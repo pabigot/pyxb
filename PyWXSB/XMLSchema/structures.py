@@ -229,20 +229,6 @@ class ElementDeclaration:
     __abstract = False
     __annotation = None
     
-class Particle:
-    # The minimum number of times the term may appear; defaults to 1
-    __minOccurs = 1
-
-    # If None, the term may appear any number of times; otherwise,
-    # this is an integral value indicating the maximum number of times
-    # the term may appear.  The default value is 1; the value, unless
-    # None, must always be at least __minOccurs.
-    __maxOccurs = 1
-
-    # A reference to a particle, which is a _ModelGroup or ...
-    __term = None
-
-    
 class ComplexTypeDefinition:
     # The name of the complex type, or None if the type is unnamed.
     __name = None
@@ -253,7 +239,7 @@ class ComplexTypeDefinition:
     # The type resolved from the base attribute
     __baseTypeDefinition = None
 
-    DM_none = 0                 #<<< No derivation method specified
+    DM_empty = 0                #<<< No derivation method specified
     DM_extension = 0x01         #<<< Derivation by extension
     DM_restriction = 0x02       #<<< Derivation by restriction
 
@@ -261,22 +247,31 @@ class ComplexTypeDefinition:
     __derivationMethod = DM_extension
 
     # Derived from the final and finalDefault attributes
-    __final = DM_none
+    __final = DM_empty
 
     # Derived from the abstract attribute
     __abstract = False
     
+    # A set() or frozenset() of AttributeUse instances
     __attributeUses = None
+
+    # Optional wildcard that constrains attributes
     __attributeWildcard = None
 
     CT_EMPTY = 0                #<<< No content
     CT_SIMPLE = 1               #<<< Simple (character) content
     CT_MIXED = 2                #<<< Children may be elements or other (e.g., character) content
     CT_ELEMENT_ONLY = 3         #<<< Expect only element content.
+
+    # Identify the sort of content in this type.  Valid values are:
+    # CT_EMPTY
+    # ( a_simple_type_definition, CT_SIMPLE )
+    # ( content_model, CT_ELEMENT_ONLY )
+    # ( content_model, CT_MIXED )
     __contentType = None
 
     # Derived from the block and blockDefault attributes
-    __prohibitedSubstitutions = DM_none
+    __prohibitedSubstitutions = DM_empty
 
     # Extracted from children of various types
     __annotations = None
@@ -310,15 +305,49 @@ class ComplexTypeDefinition:
             assert xs_namespace
             bi = ComplexTypeDefinition('anyType', xs_namespace, cls.DM_restriction)
 
-            # The baseTypeDefinition for the ur type is itself.
+            # The ur-type is its own baseTypeDefinition
             bi.__baseTypeDefinition = bi
-            # The ur-type has an absent variety, not an atomic variety, so
-            # does not have a primitiveTypeDefinition
+
+            # No constraints on attributes
+            bi.__attributeWildcard = Wildcard(Wildcard.NC_any, Wildcard.PC_lax)
+
+            # Content is mixed, with elements completely unconstrained.
+            w = Wildcard(Wildcard.NC_any, Wildcard.PC_lax)
+            p = Particle(bi.__attributeWildcard, 0, None)
+            m = ModelGroup(ModelGroup.C_SEQUENCE, [ p ])
+            bi.__contentType = ( m, cls.CT_MIXED )
+
+            # No attribute uses
+            bi.__attributeUses = set()
+
+            # No constraints on extension or substitution
+            bi.__final = cls.DM_empty
+            bi.__prohibitedSubstitutions = cls.DM_empty
+
+            bi.__abstract = False
 
             # The ur-type is always resolved
-            bi.__isResolved = True
             cls.__UrTypeDefinition = bi
         return cls.__UrTypeDefinition
+
+    @classmethod
+    def CreateFromDOM (cls, wxs, node):
+        # Node should be an XMLSchema complexType node
+        assert wxs.xsQualifiedName('complexType') == node.nodeName
+
+        name = None
+        if node.hasAttribute('name'):
+            name = node.getAttribute('name')
+
+        rv = SimpleTypeDefinition(name, wxs.getTargetNamespace(), None)
+        rv.__domNode = node
+        rv.__w3cXMLSchema = wxs
+
+        # Creation does not attempt to do resolution.  Queue up the newly created
+        # whatsis so we can resolve it after everything's been read in.
+        wxs._addUnresolvedSimpleTypeDefinition(rv)
+        
+        return rv
 
     def localName (self):
         return self.__name
@@ -366,16 +395,53 @@ class ModelGroup:
     # Optional
     __annotation = None
 
+    def __init__ (self, compositor, particles=[]):
+        self.__compositor = compositor
+        self.__particles = particles[:]
+
+class Particle:
+    # The minimum number of times the term may appear; defaults to 1
+    __minOccurs = 1
+
+    # If None, the term may appear any number of times; otherwise,
+    # this is an integral value indicating the maximum number of times
+    # the term may appear.  The default value is 1; the value, unless
+    # None, must always be at least __minOccurs.
+    __maxOccurs = 1
+
+    # A reference to a particle, which is a _ModelGroup or ...
+    __term = None
+
+    def __init__ (self, term, min_occurs=1, max_occurs=1):
+        self.__term = term
+        self.__minOccurs = min_occurs
+        self.__maxOccurs = max_occurs
+        if self.__maxOccurs is not None:
+            if self.__minOccurs > self.__maxOccurs:
+                raise LogicError('Particle minOccurs is greater than maxOccurs on creation')
+    
 # 3.10.1
 class Wildcard:
+    # A constraint on the namespace.  Valid values are:
+    # NC_any
+    # ( NC_not, a_namespace_name)
+    # set(of_namespace_names)
+    # Absent is represented by None, both in the "not" pair and in the set.
+    NC_any = '##any'            #<<< The namespace constraint "##any"
+    NC_not = '##other'          #<<< A flag indicating constraint "##other"
     __namespaceConstraint = None
 
     PC_INVALID = 0
-    PC_skip = 0x01
-    PC_lax = 0x02
-    PC_strict = 0x04
+    PC_skip = 0x01              #<<< No constraint is applied
+    PC_lax = 0x02               #<<< Validate against available uniquely determined declaration
+    PC_strict = 0x04            #<<< Validate against declaration or xsi:type which must be available
     __processContents = PC_INVALID
     __annotation = None
+
+    def __init__ (self, namespace_constraint, process_contents, annotation=None):
+        self.__namespaceConstraint = namespace_constraint
+        self.__processContents = process_contents
+        self.__annotation = annotation
 
 # 3.11.1
 class IdentityConstraintDefinition:
@@ -580,8 +646,6 @@ class SimpleTypeDefinition:
             # The simple ur-type has an absent variety, not an atomic
             # variety, so does not have a primitiveTypeDefinition
 
-            # The ur-type is always resolved
-            bi.__isResolved = True
             cls.__SimpleUrTypeDefinition = bi
         return cls.__SimpleUrTypeDefinition
 
@@ -605,8 +669,6 @@ class SimpleTypeDefinition:
         bi.__baseTypeDefinition = cls.SimpleUrTypeDefinition()
         bi.__primitiveTypeDefinition = bi
 
-        # Primitive types are always resolved
-        bi.__isResolved = True
         return bi
 
     @classmethod
@@ -630,8 +692,6 @@ class SimpleTypeDefinition:
         if cls.VARIETY_atomic == bi.__variety:
             bi.__primitiveTypeDefinition = bi.__baseTypeDefinition.__primitiveTypeDefinition
 
-        # Derived types are always resolved
-        bi.__isResolved = True
         return bi
 
     @classmethod
@@ -653,8 +713,6 @@ class SimpleTypeDefinition:
         assert item_std
         bi.__itemTypeDefinition = item_std
 
-        # Built-in list types are always resolved
-        bi.__isResolved = True
         return bi
 
     @classmethod
@@ -766,7 +824,6 @@ class SimpleTypeDefinition:
         else:
             print 'VARIETY "%s"' % (self.__variety,)
             raise LogicError('completeResolution with variety 0x%02x' % (self.__variety,))
-        self.__isResolved = True
         return self
 
     def _resolve (self):
@@ -818,8 +875,9 @@ class SimpleTypeDefinition:
         # Node should be an XMLSchema simpleType node
         assert wxs.xsQualifiedName('simpleType') == node.nodeName
 
-        # TODO: Need to see what a "final" attribute looks like
-        assert not node.hasAttribute('final')
+        # @todo Process "final" attributes
+        if node.hasAttribute('final'):
+            raise IncompleteImplementationException('"final" attribute not currently supported')
 
         name = None
         if node.hasAttribute('name'):
