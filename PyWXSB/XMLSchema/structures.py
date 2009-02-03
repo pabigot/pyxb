@@ -989,8 +989,8 @@ class Schema:
                 raise SchemaValidationError('Name %s used for both simple and complex types' % (definition.name(),))
             if not isinstance(old_definition, SimpleTypeDefinition):
                 # There are no built-in complex types
-                raise SchemaValidationError('Name %s attempts to override built-in complex type' % (definition.name(),)
-            assert isinstance(definition, ComplexTypeDefinition)
+                raise SchemaValidationError('Name %s attempts to override built-in complex type' % (definition.name(),))
+            assert isinstance(definition, SimpleTypeDefinition)
             # Copy schema-related information from the new definition
             # into the old one, and continue to use the old one.
             assert definition in self.__unresolvedTypeDefinitions

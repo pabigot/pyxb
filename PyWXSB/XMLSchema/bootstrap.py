@@ -226,7 +226,7 @@ class schema (xsc.Schema):
                 # NOTATION_NODE
                 print 'Ignoring non-element: %s' % (cn,)
 
-        self._resolveSimpleTypeDefinitions()
+        self._resolveTypeDefinitions()
 
         return self
 
