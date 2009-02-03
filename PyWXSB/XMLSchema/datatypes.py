@@ -7,29 +7,36 @@ _DerivedDatatypes = []
 _ListDatatypes = []
 
 class anySimpleType (xsc.PythonSimpleTypeSupport):
-    def stringToPython (self, value):
+    @classmethod
+    def StringToPython (self, value):
         return value
 
-    def pythonToString (self, value):
+    @classmethod
+    def PythonToString (self, value):
         return value
 # anySimpleType is not treated as a primitive, because its variety must be absent (not atomic).
     
 class string (anySimpleType):
-    def stringToPython (self, value):
+    @classmethod
+    def StringToPython (self, value):
         return value
 
-    def pythonToString (self, value):
+    @classmethod
+    def PythonToString (self, value):
         return value
 _PrimitiveDatatypes.append(string)
 
 class boolean (anySimpleType):
-    def stringToPython (self, value):
+    @classmethod
+    def StringToPython (self, value):
         if 'true' == value:
             return True
         if 'false' == value:
             return False
         raise ValueError('%s: Invalid string "%s"' % (self._simpleTypeDefinition.name(),))
-    def pythonToString (self, value):
+
+    @classmethod
+    def PythonToString (self, value):
         if value:
             return 'true'
         return 'false'

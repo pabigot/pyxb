@@ -47,7 +47,7 @@ class redefinable (xsc.ModelGroup):
         if wxs.xsQualifiedName('simpleType') == node.nodeName:
             return wxs._processSimpleType(node)
         if wxs.xsQualifiedName('complexType') == node.nodeName:
-            return node
+            return wxs._processComplexType(node)
         if wxs.xsQualifiedName('group') == node.nodeName:
             return node
         if wxs.xsQualifiedName('attributeGroup') == node.nodeName:
@@ -276,6 +276,26 @@ class schema (xsc.Schema):
         else:
             assert self.xsQualifiedName('schema') != node.parentNode.nodeName
         return rv
+
+    def _processComplexType (self, node):
+        """Walk a complexType element to create a complex type definition component.
+        """
+        # Node should be an XMLSchema complexType node
+        assert self.xsQualifiedName('complexType') == node.nodeName
+
+        x = '''
+        rv = xsc.ComplexTypeDefinition.CreateFromDOM(self, node)
+        name = rv.name()
+        if name is not None:
+            # Only topLevelComplexType instances can be named.  And
+            # they have to be named.
+            assert self.xsQualifiedName('schema') == node.parentNode.nodeName
+            self._addTypeDefinition(rv)
+        else:
+            assert self.xsQualifiedName('schema') != node.parentNode.nodeName
+        return rv
+'''        
+        return node
 
     def processTopLevelNode (self, node):
         """Process a DOM node from the top level of the schema.

@@ -78,24 +78,47 @@ class PythonSimpleTypeSupport(object):
         """Return a reference to the SimpleTypeDefinition component bound to this type."""
         return self.__simpleTypeDefinition
 
+    # Even when we have an instance of a simple type definition, we do
+    # the conversion routines as class methods, so they can be used
+    # explicitly.
+
     def stringToPython (self, value):
         """Convert a value in string form to a native Python data value.
 
-        This method should be overridden in primitive PSTSs.  It is
+        This method invokes the class method for this instance.  It is
         invoked as a pass-thru by SimpleTypeDefinition.stringToPython.
 
         @throw PyWXSB.BadTypeValueError if the value is not
         appropriate for the simple type.
         """
-        raise IncompleteImplementationError('%s: Support does not define stringToPython' % (self.__simpleTypeDefinition.name(),))
+        return self.__class__.StringToPython(value)
         
     def pythonToString (self, value):
         """Convert a value in native Python to a string appropriate for the simple type.
 
-        This method should be overridden in primitive PSTSs.  It is
+        This method invokes the corresponding class method.  It is
         invoked as a pass-thru by SimpleTypeDefinition.pythonToString
         """
-        raise IncompleteImplementationError('%s: Support does not define pythonToString' % (self.__simpleTypeDefinition.name(),))
+        return self.__class__.PythonToString(value)
+
+    @classmethod
+    def StringToPython (cls, value):
+        """Convert a value in string form to a native Python data value.
+
+        This method should be overridden in primitive PSTSs.
+
+        @throw PyWXSB.BadTypeValueError if the value is not
+        appropriate for the simple type.
+        """
+        raise IncompleteImplementationError('%s: Support does not define stringToPython' % (cls.__simpleTypeDefinition.name(),))
+        
+    @classmethod
+    def PythonToString (cls, value):
+        """Convert a value in native Python to a string appropriate for the simple type.
+
+        This method should be overridden in primitive PSTSs.
+        """
+        raise IncompleteImplementationError('%s: Support does not define pythonToString' % (cls.__simpleTypeDefinition.name(),))
 
     @classmethod
     def StringToList (cls, values, item_type_definition):
@@ -130,6 +153,21 @@ class PythonSimpleTypeSupport(object):
         @todo Implement UnionToString"""
         raise IncompleteImplementationError('PythonSimpleTypeSupport.StringToUnion')
 
+# Datatypes refers to PythonSimpleTypeSupport, so the import must
+# follow its declaration.
+import datatypes
+
+def LocateUniqueChild (node, namespace, local_name, absent_ok=False):
+    candidate = None
+    # @todo identify QName children as well as NCName
+    for cn in node.childNodes:
+        if cn.nodeName == local_name:
+            if candidate:
+                raise SchemaValidationError('Multiple %s nodes in %s' % (local_name, node.nodeName))
+            candidate = cn
+    if (candidate is None) and not absent_ok:
+        raise SchemaValidationError('Expected %s node in %s' % (local_name, node.nodeName))
+    return candidate
 
 class AttributeDeclaration:
     VC_na = 0                   #<<< No value constraint applies
@@ -243,8 +281,9 @@ class ComplexTypeDefinition:
     DM_extension = 0x01         #<<< Derivation by extension
     DM_restriction = 0x02       #<<< Derivation by restriction
 
-    # How the type was derived
-    __derivationMethod = DM_extension
+    # How the type was derived.  This field is used to identify
+    # unresolved definitions.
+    __derivationMethod = None
 
     # Derived from the final and finalDefault attributes
     __final = DM_empty
@@ -280,6 +319,49 @@ class ComplexTypeDefinition:
         self.__name = local_name
         self.__targetNamespace = target_namespace
         self.__derivationMethod = derivation_method
+
+    def _setFromInstance (self, other):
+        """Override fields in this instance with those from the other.
+
+        This method is invoked only by Schema._addTypeDefinition, and
+        then only when a built-in type collides with a schema-defined
+        type.  Material like facets is not (currently) held in the
+        built-in copy, so the DOM information is copied over to the
+        built-in STD, which is subsequently re-resolved.
+        """
+        assert self.__name == other.__name
+        assert self.__targetNamespace == other.__targetNamespace
+
+        # The other STD should be an unresolved schema-defined type.
+        assert other.__derivationMethod is None
+        assert other.__domNode is not None
+        self.__domNode = other.__domNode
+        assert other.__w3cXMLSchema is not None
+        self.__w3cXMLSchema = other.__w3cXMLSchema
+
+        # Mark this instance as unresolved so it is re-examined
+        self.__derivationMethod = None
+        return self
+
+    def isResolved (self):
+        """Indicate whether this complex type is fully defined.
+        
+        All built-in type definitions are resolved upon creation.
+        Schema-defined type definitionss are held unresolved until the
+        schema has been completely read, so that references to later
+        schema-defined types can be resolved.  Resolution is performed
+        after the entire schema has been scanned and type-definition
+        instances created for all topLevel{Simple,Complex}Types.
+
+        If a built-in type definition is also defined in a schema
+        (which it should be), the built-in definition is kept, with
+        the schema-related information copied over from the matching
+        schema-defined type definition.  The former then replaces the
+        latter in the list of type definitions to be resolved.  See
+        Schema._addTypeDefinition.
+        """
+        # Only unresolved nodes have an unset derivationMethod
+        return (self.__derivationMethod is not None)
 
     __UrTypeDefinition = None
     @classmethod
@@ -339,7 +421,7 @@ class ComplexTypeDefinition:
         if node.hasAttribute('name'):
             name = node.getAttribute('name')
 
-        rv = SimpleTypeDefinition(name, wxs.getTargetNamespace(), None)
+        rv = cls(name, wxs.getTargetNamespace(), None)
         rv.__domNode = node
         rv.__w3cXMLSchema = wxs
 
@@ -348,6 +430,31 @@ class ComplexTypeDefinition:
         wxs._addUnresolvedTypeDefinition(rv)
         
         return rv
+
+    def _resolve (self):
+        # Beware: there is a slight issue here because we use variety,
+        # which is set in the initialize* method, to indicate that the
+        # node has been resolved, but resolution is not fully complete
+        # until the completeResolution invocation is done.  During
+        # that period, checking for resolution may prematurely
+        # succeed.  This should not be an issue because in the current
+        # implementation resolution will succeed, and it's already in
+        # progress.  Only for restrictions is resolution potentially
+        # recursive.
+        if self.__derivationMethod is not None:
+            return self
+        assert self.__domNode
+        node = self.__domNode
+        wxs = self.__w3cXMLSchema
+        assert wxs is not None
+        
+        if node.hasAttribute('abstract'):
+            self.__abstract = datatypes.boolean.StringToPython(node.getAttribute('abstract'))
+
+        # @todo implement prohibitedSubstitutions, final, annotations
+
+        self.__derivationMethod = self.DM_restriction
+        return self
 
     def localName (self):
         return self.__name
@@ -540,7 +647,8 @@ class SimpleTypeDefinition:
     VARIETY_list = 0x03         #<<< Use for lists of atomic-variety types
     VARIETY_union = 0x04        #<<< Use for types that aggregate other types
 
-    # Identify the sort of value collection this holds
+    # Identify the sort of value collection this holds.  This field is
+    # used to identify unresolved definitions.
     __variety = None
 
     # For atomic variety only, the root (excepting ur-type) type.
@@ -638,7 +746,7 @@ class SimpleTypeDefinition:
             raise LogicError('Multiple definitions of SimpleUrType')
         if cls.__SimpleUrTypeDefinition is None:
             assert xs_namespace
-            bi = SimpleTypeDefinition('anySimpleType', xs_namespace, cls.VARIETY_absent)
+            bi = cls('anySimpleType', xs_namespace, cls.VARIETY_absent)
             bi._setPythonSupport(PythonSimpleTypeSupport())
 
             # The baseTypeDefinition is the ur-type.
@@ -661,7 +769,7 @@ class SimpleTypeDefinition:
         All parameters are required and must be non-None.
         """
         
-        bi = SimpleTypeDefinition(name, target_namespace, cls.VARIETY_atomic)
+        bi = cls(name, target_namespace, cls.VARIETY_atomic)
         bi._setPythonSupport(python_support)
 
         # Primitive types are based on the ur-type, and have
@@ -682,7 +790,7 @@ class SimpleTypeDefinition:
         """
         assert parent_std
         assert parent_std.__variety in (cls.VARIETY_absent, cls.VARIETY_atomic)
-        bi = SimpleTypeDefinition(name, target_namespace, parent_std.__variety)
+        bi = cls(name, target_namespace, parent_std.__variety)
         bi._setPythonSupport(python_support)
 
         # We were told the base type.  If this is atomic, we re-use
@@ -703,7 +811,7 @@ class SimpleTypeDefinition:
         that require explicit support to for Pythonic conversion; but
         note that such support is identified by the item_std.
         """
-        bi = SimpleTypeDefinition(name, target_namespace, cls.VARIETY_list)
+        bi = cls(name, target_namespace, cls.VARIETY_list)
         # Note: The pythonSupport__ field remains None, since list
         # instances share a class-level implementation that is based
         # on their itemTypeDefinition.
@@ -847,7 +955,7 @@ class SimpleTypeDefinition:
         for t in [ 'list', 'restriction', 'union' ]:
             qn = wxs.xsQualifiedName(t)
             elt_map[t] = [ _cn for _cn in node.childNodes if _cn.nodeName == qn ]
-
+ 
         # The guts of the node should be exactly one instance of
         # exactly one of these three types.
         elts = elt_map['list']
@@ -867,7 +975,9 @@ class SimpleTypeDefinition:
             assert 1 == len(elts), '%s has multiple union elements' % (name,)
             self.__initializeFromUnion(wxs, elts[0])
 
-        assert self.__variety is not None
+        if self.__variety is None:
+            raise SchemaValidationError('Expected exactly one of list, restriction, union as child of simpleType')
+
         return self
 
     @classmethod
@@ -883,7 +993,7 @@ class SimpleTypeDefinition:
         if node.hasAttribute('name'):
             name = node.getAttribute('name')
 
-        rv = SimpleTypeDefinition(name, wxs.getTargetNamespace(), None)
+        rv = cls(name, wxs.getTargetNamespace(), None)
         rv.__domNode = node
         rv.__w3cXMLSchema = wxs
 
@@ -984,13 +1094,9 @@ class Schema:
 
         old_definition = self.__typeDefinitions.get(local_name, None)
         if old_definition is not None:
-            # Only simple types are built-in, so we should only override those
+            # @todo validation error if old_definition is not a built-in
             if isinstance(definition, ComplexTypeDefinition) != isinstance(old_definition, ComplexTypeDefinition):
                 raise SchemaValidationError('Name %s used for both simple and complex types' % (definition.name(),))
-            if not isinstance(old_definition, SimpleTypeDefinition):
-                # There are no built-in complex types
-                raise SchemaValidationError('Name %s attempts to override built-in complex type' % (definition.name(),))
-            assert isinstance(definition, SimpleTypeDefinition)
             # Copy schema-related information from the new definition
             # into the old one, and continue to use the old one.
             assert definition in self.__unresolvedTypeDefinitions
