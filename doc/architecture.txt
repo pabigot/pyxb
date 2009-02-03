@@ -1,0 +1,31 @@
+The Python structures that hold schema-related data are directly related to
+the schema components defined in the XMLSchema specification.
+
+Design Choices
+==============
+
+PyWXSB
+------
+
+Most XMLSchema are relatively small, so holding the entire definition in
+memory is not an issue.  The complexity of XMLSchema can require multiple
+passes over the data type definitions to resolve forward references.  As a
+consequence of these points, the Document Object Model was selected as the
+internal representation of XML within PyWXSB.  Level 2 DOM conformance is
+assumed.
+
+Though PyWXSB currently uses the xml.dom.minidom implementation, there is no
+intention to rely on any implementation-specific features of this.  It is,
+however, assumed that certain DOM constructs will be available in a
+"Pythonic" manner.  For example, NodeList instances should support the
+capabilities of a Python sequence rather than requiring invocation of the
+item() method in an iteration up to the list length.
+
+Generated Bindings
+------------------
+
+The default templates for generated code use the Document Object Model as
+their source for instance documents.  They assume the implementation
+supports a Pythonic interface.  If an implementation supports only a strict
+DOM interface, a custom template may be required.
+

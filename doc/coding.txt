@@ -1,0 +1,48 @@
+Coding Standards
+================
+
+PyWXSB follows generally follows coding practices consistent with those
+described in the Python coding standard in PEP8.  However, the primary
+maintainer's pet peeves on whitespace differ: spaces are used around
+operators to reveal precedence assumptions, and around parenthesis to
+distinguish tuple values boundaries:
+
+    hypot2 = x*x + y*y
+    pair_of_pairs = ( (a, b), (b, c) )
+    
+
+Other practices are an attempt to reflect in Python practices used in C++ to
+explicitly reveal interface visibility.  The use of a double underscore in
+Python to indicate private data, with the rest being public, makes too much
+of the implementation details visible to the user.  A single underscore is
+used to represent the concepts of protected/friend interfaces.
+
+Exceptions
+----------
+
+Where an execution branch has been identified, but has not yet been
+implemented, raise a NotImplementedError.
+
+Document the exception behavior of methods.
+
+Annotations
+-----------
+
+Use decorators to mark class methods.
+http://www.python.org/dev/peps/pep-0318/.  Note that this restricts us to
+Python 2.4 or later.  Sigh with disappointment and move on.
+
+Documentation
+-------------
+Use docstrings for all public and implementation-shared methods and classes.
+See http://www.python.org/dev/peps/pep-0257/.
+
+Comments
+--------
+
+Use comments copiously.  Do not duplicate detailed information from
+standards, but do include pertinent summaries and a reference to the section
+in which the details can be found.  The casual reader should not be forced
+to open the standard to figure out what the coder intended to accomplish.
+
+Use ReStructured Text constructs where appropriate.
