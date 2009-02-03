@@ -4,11 +4,11 @@ import sys
 from xml.dom import minidom
 from xml.dom import Node
 
-schema_file = 'schemas/XMLSchema.xsd'
-if 1 < len(sys.argv):
-    schema_file = sys.argv[1]
+files = sys.argv[1:]
+if 0 == len(files):
+    files = [ 'schemas/XMLSchema.xsd' ]
 
-wxs = xs.Schema()
-
-wxs.processDocument(minidom.parse(schema_file))
+for file in files:
+    wxs = xs.schema()
+    wxs.processDocument(minidom.parse(file))
 

@@ -1,6 +1,16 @@
+"""XMLSchema bindings 
+
+These bindings are hand-written to support the XMSchema namespace.
+Maybe, if the generated code is good enough, they'll be replaced by
+bindings that are generated.
+
+"""
+
 import structures as xsc
 import datatypes as xsd
 from ..Namespace import Namespace
+
+from PyWXSB.exceptions_ import *
 
 from xml.dom import Node
 import sys
@@ -51,8 +61,11 @@ class anyType:
 class openAttrs (anyType):
     pass
 
-class Schema (xsc.Schema):
-    """Class corresponding to a W3C XML Schema instance."""
+class schema (xsc.Schema):
+    """Class corresponding to a W3C XML Schema instance.
+
+    This class is a subclass of the corresponding schema component.
+    """
     
     __domRootNode = None
     __pastProlog = False
@@ -192,7 +205,7 @@ class Schema (xsc.Schema):
 
         for cn in root_node.childNodes:
             if Node.ELEMENT_NODE == cn.nodeType:
-                rv = self.processNode(cn)
+                rv = self.processTopLevelNode(cn)
                 if rv is not None:
                     #print rv.nodeName
                     pass
@@ -268,7 +281,7 @@ class Schema (xsc.Schema):
             assert self.xsQualifiedName('schema') != node.parentNode.nodeName
         return rv
 
-    def processNode (self, node):
+    def processTopLevelNode (self, node):
         if self.xsQualifiedName('include') == node.nodeName:
             return self._processInclude(node)
         if self.xsQualifiedName('import') == node.nodeName:

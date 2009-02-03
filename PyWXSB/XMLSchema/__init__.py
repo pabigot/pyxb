@@ -8,4 +8,4 @@ import structures
 import datatypes
 
 # Get the bindings relevant to schemas
-from bootstrap import Schema
+from bootstrap import schema
