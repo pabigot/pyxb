@@ -345,7 +345,7 @@ class ComplexTypeDefinition:
 
         # Creation does not attempt to do resolution.  Queue up the newly created
         # whatsis so we can resolve it after everything's been read in.
-        wxs._addUnresolvedSimpleTypeDefinition(rv)
+        wxs._addUnresolvedTypeDefinition(rv)
         
         return rv
 
@@ -889,7 +889,7 @@ class SimpleTypeDefinition:
 
         # Creation does not attempt to do resolution.  Queue up the newly created
         # whatsis so we can resolve it after everything's been read in.
-        wxs._addUnresolvedSimpleTypeDefinition(rv)
+        wxs._addUnresolvedTypeDefinition(rv)
         
         return rv
 
@@ -935,39 +935,40 @@ class Schema:
     __notationDeclarations = None
     __annotations = None
 
-    __unresolvedSimpleTypeDefinitions = None
+    __unresolvedTypeDefinitions = None
 
     def __init__ (self):
         self.__annotations = [ ]
         self.__typeDefinitions = { }
-        self.__unresolvedSimpleTypeDefinitions = []
+        self.__unresolvedTypeDefinitions = []
 
-    def _addUnresolvedSimpleTypeDefinition (self, std):
-        """Invoked by SimpleTypeDefinition component when creating a
-        non-builtin simple type in this schema.
+    def _addUnresolvedTypeDefinition (self, std):
+        """Invoked by {Simple,Complex}TypeDefinition component when creating a
+        non-builtin simple (complex) type in this schema.
 
         Be aware that the type may not have a name: this method is
-        invoked during resolution when evaluating localSimpleTypes"""
-        self.__unresolvedSimpleTypeDefinitions.append(std)
+        invoked during resolution when evaluating
+        local{Simple,Complex}Type elements"""
+        self.__unresolvedTypeDefinitions.append(std)
         return std
 
-    def _resolveSimpleTypeDefinitions (self):
+    def _resolveTypeDefinitions (self):
         # @todo Need to top-sort the type definitions so we don't try
         # to do a restriction on a restriction that hasn't been
         # resolved.  For now, assume whoever wrote the schema was kind
         # enough not to use before definition.  Which isn't going to
         # be true universally.
-        while self.__unresolvedSimpleTypeDefinitions:
+        while self.__unresolvedTypeDefinitions:
             # Save the list of unresolved STDs, then prepare for any
             # new STDs defined during resolution.  They'll have to be
-            # localSimpleTypes, not named, so resolution shouldn't
+            # localTypes, not named, so resolution shouldn't
             # fail, but we still need to process them.
-            unresolved = self.__unresolvedSimpleTypeDefinitions
-            self.__unresolvedSimpleTypeDefinitions = []
+            unresolved = self.__unresolvedTypeDefinitions
+            self.__unresolvedTypeDefinitions = []
             for std in unresolved:
                 std._resolve()
                 assert std.isResolved()
-        self.__unresolvedSimpleTypeDefinitions = None
+        self.__unresolvedTypeDefinitions = None
         return self
 
     def _addAnnotation (self, annotation):
@@ -980,14 +981,22 @@ class Schema:
         local_name = definition.localName()
         assert 0 > local_name.find(':')
         assert definition
+
         old_definition = self.__typeDefinitions.get(local_name, None)
         if old_definition is not None:
+            # Only simple types are built-in, so we should only override those
+            if isinstance(definition, ComplexTypeDefinition) != isinstance(old_definition, ComplexTypeDefinition):
+                raise SchemaValidationError('Name %s used for both simple and complex types' % (definition.name(),))
+            if not isinstance(old_definition, SimpleTypeDefinition):
+                # There are no built-in complex types
+                raise SchemaValidationError('Name %s attempts to override built-in complex type' % (definition.name(),)
+            assert isinstance(definition, ComplexTypeDefinition)
             # Copy schema-related information from the new definition
             # into the old one, and continue to use the old one.
-            assert definition in self.__unresolvedSimpleTypeDefinitions
-            self.__unresolvedSimpleTypeDefinitions.remove(definition)
-            assert old_definition not in self.__unresolvedSimpleTypeDefinitions
-            self.__unresolvedSimpleTypeDefinitions.append(old_definition)
+            assert definition in self.__unresolvedTypeDefinitions
+            self.__unresolvedTypeDefinitions.remove(definition)
+            assert old_definition not in self.__unresolvedTypeDefinitions
+            self.__unresolvedTypeDefinitions.append(old_definition)
             definition = old_definition._setFromInstance(definition)
         else:
             self.__typeDefinitions[local_name] = definition
