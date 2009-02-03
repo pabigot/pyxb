@@ -1,6 +1,7 @@
 import PyWXSB.XMLSchema as xs
 
 import sys
+import traceback
 from xml.dom import minidom
 from xml.dom import Node
 
@@ -10,5 +11,9 @@ if 0 == len(files):
 
 for file in files:
     wxs = xs.schema()
-    wxs.processDocument(minidom.parse(file))
+    try:
+        wxs.processDocument(minidom.parse(file))
+    except Exception, e:
+        print '%s processing %s:' % (e.__class__, file)
+        traceback.print_exception(*sys.exc_info())
 
