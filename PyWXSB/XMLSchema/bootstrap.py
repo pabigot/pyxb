@@ -91,7 +91,6 @@ class schema (xsc.Schema):
         void = xsc.AttributeDeclaration.CreateBaseInstance('nil', self.__xsi)
         void = xsc.AttributeDeclaration.CreateBaseInstance('schemaLocation', self.__xsi)
         void = xsc.AttributeDeclaration.CreateBaseInstance('noNamespaceSchemaLocation', self.__xsi)
-        self.__urTypeDefinition = xsc.ComplexTypeDefinition('anyType', self.__xs) # 3.4.7
 
         # If there's a target namespace, use this as its schema
         if self.__targetNamespace:
@@ -199,24 +198,21 @@ class schema (xsc.Schema):
 
         # Verify that the root node is an XML schema element
         if self.xsQualifiedName('schema') != root_node.nodeName:
-            raise Exception('Root node %s of document is not an XML schema element' % (root_node.nodeName,))
+            raise SchemaValidationError('Root node %s of document is not an XML schema element' % (root_node.nodeName,))
 
         self.__domRootNode = root_node
 
         for cn in root_node.childNodes:
             if Node.ELEMENT_NODE == cn.nodeType:
                 rv = self.processTopLevelNode(cn)
-                if rv is not None:
-                    #print rv.nodeName
-                    pass
-                else:
+                if rv is None:
                     print 'Unrecognized: %s' % (cn.nodeName,)
             elif Node.TEXT_NODE == cn.nodeType:
                 # Non-element content really should just be whitespace.
                 # If something else is seen, print it for inspection.
                 text = cn.data.strip()
                 if text:
-                    print 'ignored: %s' % (text,)
+                    print 'Ignored text: %s' % (text,)
             elif Node.COMMENT_NODE == cn.nodeType:
                 #print 'comment: %s' % (cn.data.strip(),)
                 pass
@@ -228,7 +224,7 @@ class schema (xsc.Schema):
                 # DOCUMENT_NODE
                 # DOCUMENT_TYPE_NODE
                 # NOTATION_NODE
-                print 'Non-element: %s' % (cn,)
+                print 'Ignoring non-element: %s' % (cn,)
 
         self._resolveSimpleTypeDefinitions()
 
@@ -239,7 +235,7 @@ class schema (xsc.Schema):
 
     def _requireInProlog (self, node_name):
         if self.__pastProlog:
-            raise Exception('Unexpected node %s after prolog' % (node_name,))
+            raise SchemaValidationError('Unexpected node %s after prolog' % (node_name,))
 
     def _processInclude (self, node):
         self._requireInProlog(node.nodeName)
@@ -282,6 +278,10 @@ class schema (xsc.Schema):
         return rv
 
     def processTopLevelNode (self, node):
+        """Process a DOM node from the top level of the schema.
+
+        This should return a non-None value if the node was
+        successfully recognized."""
         if self.xsQualifiedName('include') == node.nodeName:
             return self._processInclude(node)
         if self.xsQualifiedName('import') == node.nodeName:
@@ -294,7 +294,7 @@ class schema (xsc.Schema):
         if rv is not None:
             self.__pastProlog = True
             return rv
-        return None
+        raise SchemaValidationError('Unexpected top-level element %s' % (node.nodeName,))
 
     def domRootNode (self):
         return self.__domRootNode
@@ -324,7 +324,7 @@ def SchemaForXS (wxs):
     '''Create a Schema instance that targets the XMLSchema namespace.
     Preload all its elements.  Note that we only need to do this in
     the bootstrap code.'''
-    rv = Schema()
+    rv = schema()
     rv.setTargetNamespace(wxs.lookupOrCreateNamespace(NamespaceURI))
     xsd.DefineSimpleTypes(rv)
     return rv

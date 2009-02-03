@@ -195,6 +195,8 @@ class positiveInteger (nonNegativeInteger):
 _DerivedDatatypes.append(positiveInteger)
 
 def DefineSimpleTypes (schema):
+    # Add the ur type
+    schema._addTypeDefinition(xsc.ComplexTypeDefinition.UrTypeDefinition(schema.getTargetNamespace()))
     # Add the simple ur type
     schema._addTypeDefinition(xsc.SimpleTypeDefinition.SimpleUrTypeDefinition(schema.getTargetNamespace()))
     # Add definitions for all primitive and derived simple types

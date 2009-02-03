@@ -11,7 +11,7 @@ CreateBaseInstance class method that creates a new instance manually.
 
 """
 
-from PyWXSB import *
+from PyWXSB.exceptions_ import *
 from xml.dom import Node
 import types
 
@@ -281,9 +281,53 @@ class ComplexTypeDefinition:
     # Extracted from children of various types
     __annotations = None
     
-    def __init__ (self, name, target_namespace = None):
-        self.__name = name
+    def __init__ (self, local_name, target_namespace, derivation_method):
+        self.__name = local_name
         self.__targetNamespace = target_namespace
+        self.__derivationMethod = derivation_method
+
+    __UrTypeDefinition = None
+    @classmethod
+    def UrTypeDefinition (cls, xs_namespace=None):
+        """Create the ComplexTypeDefinition instance that approximates
+        the ur-type.
+
+        See section 3.4.7.  Note that this does have to be bound to a
+        provided namespace since so far we do not have a namespace for
+        XMLSchema.
+
+        @todo Provide a global namespace for XMLSchema, to eliminate
+        that last nit.
+        """
+
+        # The first time, and only the first time, this is called, a
+        # namespace should be provided which is the XMLSchema
+        # namespace for this run of the system.  Please, do not try to
+        # allow this by clearing the type definition.
+        if __debug__ and (xs_namespace is not None) and (cls.__UrTypeDefinition is not None):
+            raise LogicError('Multiple definitions of UrType')
+        if cls.__UrTypeDefinition is None:
+            assert xs_namespace
+            bi = ComplexTypeDefinition('anyType', xs_namespace, cls.DM_restriction)
+
+            # The baseTypeDefinition for the ur type is itself.
+            bi.__baseTypeDefinition = bi
+            # The ur-type has an absent variety, not an atomic variety, so
+            # does not have a primitiveTypeDefinition
+
+            # The ur-type is always resolved
+            bi.__isResolved = True
+            cls.__UrTypeDefinition = bi
+        return cls.__UrTypeDefinition
+
+    def localName (self):
+        return self.__name
+
+    def name (self):
+        if self.__name is not None:
+            if self.__targetNamespace:
+                return self.__targetNamespace.qualifiedName(self.__name)
+        return self.__name
 
 class AttributeGroupDefinition:
     __name = None
@@ -522,19 +566,19 @@ class SimpleTypeDefinition:
 
         # The first time, and only the first time, this is called, a
         # namespace should be provided which is the XMLSchema
-        # namespace for this run of the system.
-        if __debug__ and (xs_namespace is not None):
-            assert cls.__SimpleUrTypeDefinition is None
+        # namespace for this run of the system.  Please, do not try to
+        # allow this by clearing the type definition.
+        if __debug__ and (xs_namespace is not None) and (cls.__SimpleUrTypeDefinition is not None):
+            raise LogicError('Multiple definitions of SimpleUrType')
         if cls.__SimpleUrTypeDefinition is None:
             assert xs_namespace
             bi = SimpleTypeDefinition('anySimpleType', xs_namespace, cls.VARIETY_absent)
             bi._setPythonSupport(PythonSimpleTypeSupport())
 
-            # The baseTypeDefinition should be the actual ur-type, but the
-            # instance we're creating serves as the ur-type.  So use that.
-            bi.__baseTypeDefinition = bi
-            # The ur-type has an absent variety, not an atomic variety, so
-            # does not have a primitiveTypeDefinition
+            # The baseTypeDefinition is the ur-type.
+            bi.__baseTypeDefinition = ComplexTypeDefinition.UrTypeDefinition()
+            # The simple ur-type has an absent variety, not an atomic
+            # variety, so does not have a primitiveTypeDefinition
 
             # The ur-type is always resolved
             bi.__isResolved = True
@@ -849,18 +893,12 @@ class Schema:
         self.__unresolvedSimpleTypeDefinitions.append(std)
         return std
 
-    def __replaceUnresolvedSimpleTypeDefinition (self, unresolved_std, replacement_std):
-        assert unresolved_std in self.__unresolvedSimpleTypeDefinitions
-        self.__unresolvedSimpleTypeDefinitions.remove(unresolved_std)
-        assert replacement_std not in self.__unresolvedSimpleTypeDefinitions
-        self.__unresolvedSimpleTypeDefinitions.append(replacement_std)
-
     def _resolveSimpleTypeDefinitions (self):
         # @todo Need to top-sort the type definitions so we don't try
         # to do a restriction on a restriction that hasn't been
         # resolved.  For now, assume whoever wrote the schema was kind
         # enough not to use before definition.  Which isn't going to
-        # be true.
+        # be true universally.
         while self.__unresolvedSimpleTypeDefinitions:
             # Save the list of unresolved STDs, then prepare for any
             # new STDs defined during resolution.  They'll have to be
@@ -888,7 +926,10 @@ class Schema:
         if old_definition is not None:
             # Copy schema-related information from the new definition
             # into the old one, and continue to use the old one.
-            self.__replaceUnresolvedSimpleTypeDefinition(definition, old_definition)
+            assert definition in self.__unresolvedSimpleTypeDefinitions
+            self.__unresolvedSimpleTypeDefinitions.remove(definition)
+            assert old_definition not in self.__unresolvedSimpleTypeDefinitions
+            self.__unresolvedSimpleTypeDefinitions.append(old_definition)
             definition = old_definition._setFromInstance(definition)
         else:
             self.__typeDefinitions[local_name] = definition
