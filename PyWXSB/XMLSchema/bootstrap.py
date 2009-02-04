@@ -281,7 +281,7 @@ class schema (xsc.Schema):
         assert self.xsQualifiedName('schema') == node.parentNode.nodeName
 
         rv = xsc.SimpleTypeDefinition.CreateFromDOM(self, node)
-        self._addTypeDefinition(rv)
+        self._addNamedComponent(rv)
         return rv
 
     def _processComplexType (self, node):
@@ -292,7 +292,7 @@ class schema (xsc.Schema):
         assert self.xsQualifiedName('schema') == node.parentNode.nodeName
 
         rv = xsc.ComplexTypeDefinition.CreateFromDOM(self, node)
-        self._addTypeDefinition(rv)
+        self._addNamedComponent(rv)
         return rv
 
     def _processAttributeGroup (self, node):
@@ -300,7 +300,7 @@ class schema (xsc.Schema):
         assert self.xsQualifiedName('attributeGroup') == node.nodeName
         assert self.xsQualifiedName('schema') == node.parentNode.nodeName
         rv = xsc.AttributeGroupDefinition.CreateFromDOM(self, node)
-        self._addAttributeGroupDefinition(rv)
+        self._addNamedComponent(rv)
         return rv
 
     def processTopLevelNode (self, node):

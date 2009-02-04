@@ -203,18 +203,18 @@ _DerivedDatatypes.append(positiveInteger)
 
 def DefineSimpleTypes (schema):
     # Add the ur type
-    schema._addTypeDefinition(xsc.ComplexTypeDefinition.UrTypeDefinition(schema.getTargetNamespace()))
+    schema._addNamedComponent(xsc.ComplexTypeDefinition.UrTypeDefinition(schema.getTargetNamespace()))
     # Add the simple ur type
-    schema._addTypeDefinition(xsc.SimpleTypeDefinition.SimpleUrTypeDefinition(schema.getTargetNamespace()))
+    schema._addNamedComponent(xsc.SimpleTypeDefinition.SimpleUrTypeDefinition(schema.getTargetNamespace()))
     # Add definitions for all primitive and derived simple types
     pts_std_map = {}
     for dtc in _PrimitiveDatatypes:
         name = dtc.__name__.rstrip('_')
-        pts_std_map.setdefault(dtc, schema._addTypeDefinition(xsc.SimpleTypeDefinition.CreatePrimitiveInstance(name, schema.getTargetNamespace(), dtc())))
+        pts_std_map.setdefault(dtc, schema._addNamedComponent(xsc.SimpleTypeDefinition.CreatePrimitiveInstance(name, schema.getTargetNamespace(), dtc())))
     for dtc in _DerivedDatatypes:
         name = dtc.__name__.rstrip('_')
         parent_std = pts_std_map[dtc.SuperType()]
-        pts_std_map.setdefault(dtc, schema._addTypeDefinition(xsc.SimpleTypeDefinition.CreateDerivedInstance(name, schema.getTargetNamespace(), parent_std, dtc())))
+        pts_std_map.setdefault(dtc, schema._addNamedComponent(xsc.SimpleTypeDefinition.CreateDerivedInstance(name, schema.getTargetNamespace(), parent_std, dtc())))
     for (list_name, element_name) in _ListDatatypes:
         element_std = schema._lookupTypeDefinition(element_name)
-        schema._addTypeDefinition(xsc.SimpleTypeDefinition.CreateListInstance(list_name, schema.getTargetNamespace(), element_std))
+        schema._addNamedComponent(xsc.SimpleTypeDefinition.CreateListInstance(list_name, schema.getTargetNamespace(), element_std))

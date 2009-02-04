@@ -385,7 +385,7 @@ class ComplexTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
     def _setFromInstance (self, other):
         """Override fields in this instance with those from the other.
 
-        This method is invoked only by Schema._addTypeDefinition, and
+        This method is invoked only by Schema._addNamedComponent, and
         then only when a built-in type collides with a schema-defined
         type.  Material like facets is not (currently) held in the
         built-in copy, so the DOM information is copied over to the
@@ -539,7 +539,7 @@ class ComplexTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
         the schema-related information copied over from the matching
         schema-defined type definition.  The former then replaces the
         latter in the list of type definitions to be resolved.  See
-        Schema._addTypeDefinition.
+        Schema._addNamedComponent.
         """
         # Only unresolved nodes have an unset derivationMethod
         return (self.__derivationMethod is not None)
@@ -866,7 +866,7 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
     def _setFromInstance (self, other):
         """Override fields in this instance with those from the other.
 
-        This method is invoked only by Schema._addTypeDefinition, and
+        This method is invoked only by Schema._addNamedComponent, and
         then only when a built-in type collides with a schema-defined
         type.  Material like facets is not (currently) held in the
         built-in copy, so the DOM information is copied over to the
@@ -1266,7 +1266,10 @@ class Schema:
             for std in unresolved:
                 std._resolve()
             if self.__unresolvedDefinitions == unresolved:
-                raise LogicError('Infinite loop resolving types: %s' % (' '.join([ _x.name() for _x in self.__unresolvedDefinitions ]),))
+                # This only happens if we didn't code things right, or
+                # the schema actually has a circular dependency in
+                # some named component.
+                raise LogicError('Infinite loop in resolution: %s' % (' '.join([ _x.name() for _x in self.__unresolvedDefinitions ]),))
         self.__unresolvedDefinitions = None
         return self
 
@@ -1274,14 +1277,18 @@ class Schema:
         self.__annotations.append(annotation)
         return annotation
 
-    def _addTypeDefinition (self, td):
-        assert td
-        assert isinstance(td, (SimpleTypeDefinition, ComplexTypeDefinition))
+    def _addNamedComponent (self, nc):
+        assert isinstance(nc, _Resolvable_mixin)
+        if nc.ncName() is None:
+            raise LogicError('Attempt to add anonymous component to dictionary: %s', (nc.__class__,))
+        if isinstance(nc, (SimpleTypeDefinition, ComplexTypeDefinition)):
+            return self.__addTypeDefinition(nc)
+        if isinstance(nc, AttributeGroupDefinition):
+            return self.__addAttributeGroupDefinition(nc)
+        raise LogicError('Cannot record named component of type %s' % (nc.__class__,))
 
+    def __addTypeDefinition (self, td):
         local_name = td.ncName()
-        if local_name is None:
-            raise SchemaValidationError('No name available for type definition')
-
         old_td = self.__typeDefinitions.get(local_name, None)
         if old_td is not None:
             # @todo validation error if old_td is not a built-in
@@ -1294,24 +1301,23 @@ class Schema:
             self.__typeDefinitions[local_name] = td
         return td
     
-    def _addAttributeGroupDefinition (self, agd):
+    def _typeDefinitions (self):
+        return self.__typeDefinitions.values()
+
+    def _lookupTypeDefinition (self, local_name):
+        return self.__typeDefinitions.get(local_name, None)
+
+    def __addAttributeGroupDefinition (self, agd):
         assert isinstance(agd, AttributeGroupDefinition)
         local_name = agd.ncName()
-        if local_name is None:
-            raise SchemaValidationError('No name available for type definition')
-
         old_agd = self.__attributeGroupDefinitions.get(local_name, None)
         if old_agd is not None:
             raise SchemaValidationError('Name %s used for multiple attribute group definitions' % (local_name,))
         self.__attributeGroupDefinitions[local_name] = agd
         return agd
 
-    def _lookupTypeDefinition (self, local_name):
-        return self.__typeDefinitions.get(local_name, None)
-    
-    def _typeDefinitions (self):
-        return self.__typeDefinitions.values()
-
     def _lookupAttributeGroupDefinition (self, local_name):
         return self.__attributeGroupDefinitions.get(local_name, None)
 
+    def _attributeGroupDefinitions (self):
+        return self.__attributeGroupDefinitions.values()
