@@ -32,7 +32,7 @@ class schemaTop (xsc.ModelGroup):
         if wxs.xsQualifiedName('element') == node.nodeName:
             return node
         if wxs.xsQualifiedName('attribute') == node.nodeName:
-            return wxs._processAttribute(node)
+            return wxs._processAttributeDeclaration(node)
         if wxs.xsQualifiedName('notation') == node.nodeName:
             print "notation"
             return node
@@ -51,7 +51,7 @@ class redefinable (xsc.ModelGroup):
         if wxs.xsQualifiedName('group') == node.nodeName:
             return node
         if wxs.xsQualifiedName('attributeGroup') == node.nodeName:
-            return node
+            return wxs._processAttributeGroup(node)
         return None
     Match = classmethod(__Match)
 
@@ -268,42 +268,39 @@ class schema (xsc.Schema):
         an = self._addAnnotation(xsc.Annotation.CreateFromDOM(self, node))
         return self
 
-    def _processAttribute (self, node):
+    def _processAttributeDeclaration (self, node):
+        # NB: This is an attribute of the schema itself
         an = xsc.AttributeDeclaration.CreateFromDOM(self, node)
         return self
 
     def _processSimpleType (self, node):
         """Walk a simpleType element to create a simple type definition component.
         """
-        # Node should be an XMLSchema simpleType node
+        # Node should be a topLevelSimpleType
         assert self.xsQualifiedName('simpleType') == node.nodeName
+        assert self.xsQualifiedName('schema') == node.parentNode.nodeName
 
         rv = xsc.SimpleTypeDefinition.CreateFromDOM(self, node)
-        name = rv.name()
-        if name is not None:
-            # Only topLevelSimpleType instances can be named.  And
-            # they have to be named.
-            assert self.xsQualifiedName('schema') == node.parentNode.nodeName
-            self._addTypeDefinition(rv)
-        else:
-            assert self.xsQualifiedName('schema') != node.parentNode.nodeName
+        self._addTypeDefinition(rv)
         return rv
 
     def _processComplexType (self, node):
         """Walk a complexType element to create a complex type definition component.
         """
-        # Node should be an XMLSchema complexType node
+        # Node should be a topLevelComplexType
         assert self.xsQualifiedName('complexType') == node.nodeName
+        assert self.xsQualifiedName('schema') == node.parentNode.nodeName
 
         rv = xsc.ComplexTypeDefinition.CreateFromDOM(self, node)
-        name = rv.name()
-        if name is not None:
-            # Only topLevelComplexType instances can be named.  And
-            # they have to be named.
-            assert self.xsQualifiedName('schema') == node.parentNode.nodeName
-            self._addTypeDefinition(rv)
-        else:
-            assert self.xsQualifiedName('schema') != node.parentNode.nodeName
+        self._addTypeDefinition(rv)
+        return rv
+
+    def _processAttributeGroup (self, node):
+        # Node should be a namedAttributeGroup
+        assert self.xsQualifiedName('attributeGroup') == node.nodeName
+        assert self.xsQualifiedName('schema') == node.parentNode.nodeName
+        rv = xsc.AttributeGroupDefinition.CreateFromDOM(self, node)
+        self._addAttributeGroupDefinition(self, rv)
         return rv
 
     def processTopLevelNode (self, node):

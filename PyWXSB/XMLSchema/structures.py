@@ -1210,7 +1210,10 @@ class Schema:
     def _addTypeDefinition (self, td):
         assert td
         assert isinstance(td, (SimpleTypeDefinition, ComplexTypeDefinition))
+
         local_name = td.localName()
+        if local_name is None:
+            raise SchemaValidationError('No name available for type definition')
 
         old_td = self.__typeDefinitions.get(local_name, None)
         if old_td is not None:
@@ -1231,6 +1234,9 @@ class Schema:
     def _addAttributeGroupDefinition (self, agd):
         assert isinstance(agd, AttributeGroupDefinition)
         local_name = agd.localName()
+        if local_name is None:
+            raise SchemaValidationError('No name available for type definition')
+
         old_agd = self.__attributeGroupDefinitions.get(local_name, None)
         if old_agd is not None:
             raise SchemaValidationError('Name %s used for multiple attribute group definitions' % (local_name,))
