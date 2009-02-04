@@ -235,6 +235,8 @@ class _Resolvable_mixin (object):
     def _resolve (self, wxs):
         """Perform whatever steps are required to resolve this component.
 
+        Resolution is performed in the context of the provided schema.
+        
         Note that, if there is a recursive resolution required, the
         component may not have been resolved upon return from this
         method.  In that case, the component should have already been
@@ -399,8 +401,6 @@ class ComplexTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
         assert other.__derivationMethod is None
         assert other.__domNode is not None
         self.__domNode = other.__domNode
-        assert other.__w3cXMLSchema is not None
-        self.__w3cXMLSchema = other.__w3cXMLSchema
 
         # Mark this instance as unresolved so it is re-examined
         self.__derivationMethod = None
@@ -466,7 +466,6 @@ class ComplexTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
 
         rv = cls(name, wxs.getTargetNamespace(), None)
         rv.__domNode = node
-        rv.__w3cXMLSchema = wxs
 
         # Creation does not attempt to do resolution.  Queue up the newly created
         # whatsis so we can resolve it after everything's been read in.
@@ -544,7 +543,7 @@ class ComplexTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
         # Only unresolved nodes have an unset derivationMethod
         return (self.__derivationMethod is not None)
 
-    def _resolve (self):
+    def _resolve (self, wxs):
         # Beware: there is a slight issue here because we use variety,
         # which is set in the initialize* method, to indicate that the
         # node has been resolved, but resolution is not fully complete
@@ -556,9 +555,8 @@ class ComplexTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
         # recursive.
         if self.__derivationMethod is not None:
             return self
-        assert self.__domNode and self.__w3cXMLSchema
+        assert self.__domNode
         node = self.__domNode
-        wxs = self.__w3cXMLSchema
         
         if node.hasAttribute('abstract'):
             self.__abstract = datatypes.boolean.StringToPython(node.getAttribute('abstract'))
@@ -636,7 +634,6 @@ class AttributeGroupDefinition (_NamedComponent_mixin, _Resolvable_mixin):
         rv = cls(name, wxs.getTargetNamespace())
         wxs._queueForResolution(rv)
         rv.__domNode = node
-        rv.__w3cXMLSchema = wxs
         return rv
 
     # Indicates whether we have resolved any references
@@ -644,21 +641,20 @@ class AttributeGroupDefinition (_NamedComponent_mixin, _Resolvable_mixin):
     def isResolved (self):
         return self.__isResolved
 
-    def _resolve (self):
+    def _resolve (self, wxs):
         print 'Resolving AG %s' % (self.name(),)
         if self.__isResolved:
             return self
         extra_uses = frozenset()
         if self.__domNode.hasAttribute('ref'):
-            agd = self.__w3cXMLSchema.lookupAttributeGroup(self.__domNode.getAttribute('ref'))
+            agd = wxs.lookupAttributeGroup(self.__domNode.getAttribute('ref'))
             if not agd.isResolved():
-                self.__w3cXMLSchema._queueForResolution(self)
+                wxs._queueForResolution(self)
                 return self
             extra_uses = agd.attributeUses()
         # @todo Add the ones from this definition
         self.__attributeUses = extra_uses
         self.__isResolved = True
-        self.__w3cXMLSchema = None
         self.__domNode = Node
         
     def attributeUses (self):
@@ -846,9 +842,6 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
     # the point it is resolved.
     __domNode = None
     
-    # A cached reference to the schema to which this type is associated.
-    __w3cXMLSchema = None
-
     # Indicate that this instance was defined as a built-in rather
     # than from a DOM instance.
     __isBuiltin = False
@@ -880,8 +873,6 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
         assert other.__baseTypeDefinition is None
         assert other.__domNode is not None
         self.__domNode = other.__domNode
-        assert other.__w3cXMLSchema is not None
-        self.__w3cXMLSchema = other.__w3cXMLSchema
 
         # Mark this instance as unresolved so it is re-examined
         self.__variety = None
@@ -1112,7 +1103,7 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
         # Only unresolved nodes have an unset variety
         return (self.__variety is not None)
 
-    def _resolve (self):
+    def _resolve (self, wxs):
         """Attempt to resolve the type.
 
         Type resolution for simple types means that the corresponding
@@ -1140,9 +1131,8 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
         """
         if self.__variety is not None:
             return self
-        assert self.__domNode and self.__w3cXMLSchema
+        assert self.__domNode
         node = self.__domNode
-        wxs = self.__w3cXMLSchema
         
         bad_instance = False
         # The guts of the node should be exactly one instance of
@@ -1186,7 +1176,6 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
 
         rv = cls(name, wxs.getTargetNamespace(), None)
         rv.__domNode = node
-        rv.__w3cXMLSchema = wxs
 
         # Creation does not attempt to do resolution.  Queue up the newly created
         # whatsis so we can resolve it after everything's been read in.
@@ -1264,7 +1253,7 @@ class Schema:
             unresolved = self.__unresolvedDefinitions
             self.__unresolvedDefinitions = []
             for std in unresolved:
-                std._resolve()
+                std._resolve(self)
             if self.__unresolvedDefinitions == unresolved:
                 # This only happens if we didn't code things right, or
                 # the schema actually has a circular dependency in
