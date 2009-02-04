@@ -170,6 +170,21 @@ def LocateUniqueChild (node, schema, tag, absent_ok=False):
         raise SchemaValidationError('Expected %s elements nested in %s' % (name, node.nodeName))
     return candidate
 
+def LocateFirstChildElement (node, absent_ok=False, require_unique=False):
+    candidate = None
+    for cn in node.childNodes:
+        if Node.ELEMENT_NODE == cn.nodeType:
+            if require_unique:
+                if candidate:
+                    raise SchemaValidationError('Multiple elements nested in %s' % (node.nodeName,))
+                candidate = cn
+            else:
+                return cn
+    if (candidate is None) and not absent_ok:
+        raise SchemaValidationError('No elements nested in %s' % (node.nodeName,))
+    return candidate
+
+
 class AttributeDeclaration:
     VC_na = 0                   #<<< No value constraint applies
     VC_default = 1              #<<< Provided value constraint is default value
@@ -432,6 +447,14 @@ class ComplexTypeDefinition:
         
         return rv
 
+    def __completeSimpleResolution (self, wxs, definition_node_list, method, base_type):
+        wxs._addUnresolvedTypeDefinition(self)
+        pass
+
+    def __completeComplexResolution (self, wxs, definition_node_list, method, base_type):
+        wxs._addUnresolvedTypeDefinition(self)
+        pass
+
     def _resolve (self):
         # Beware: there is a slight issue here because we use variety,
         # which is set in the initialize* method, to indicate that the
@@ -452,8 +475,39 @@ class ComplexTypeDefinition:
             self.__abstract = datatypes.boolean.StringToPython(node.getAttribute('abstract'))
 
         # @todo implement prohibitedSubstitutions, final, annotations
-        if self.__derivationMethod is None:
-            wxs._addUnresolvedTypeDefinition(self)
+
+        definition_node_list = node.childNodes
+        is_complex_content = True
+        base_type = ComplexTypeDefinition.UrTypeDefinition()
+        method = self.DM_restriction
+        first_elt = LocateFirstChildElement(node)
+        if first_elt:
+            have_content = False
+            if wxs.xsQualifiedName('simpleContent') == first_elt.nodeName:
+                have_content = True
+                is_complex_content = False
+            elif wxs.xsQualifiedName('complexContent') == first_elt.nodeName:
+                have_content = True
+            if have_content:
+                ions = LocateFirstChildElement(first_elt)
+                if wxs.xsQualifiedName('restriction') == ions.nodeName:
+                    method = self.DM_restriction
+                elif wxs.xsQualifiedName('extension') == ions.nodeName:
+                    method = self.DM_extension
+                else:
+                    raise SchemaValidationError('Expected restriction or extension as sole child of %s in %s' % (first_elt.name(), self.name()))
+                if not ions.hasAttribute('base'):
+                    raise SchemaValidationError('Element %s missing base attribute' % (ions.nodeName,))
+                base_type = wxs.lookupType(ions.getAttribute('base'))
+                if not base_type.isResolved():
+                    print 'Holding off resolution of %s due to dependence on unresolved %s' % (self.name(), base_type.name())
+                    wxs._addUnresolvedTypeDefinition(self)
+                    return self
+                definition_node_list = ions.childNodes
+        if is_complex_content:
+            self.__completeComplexResolution(wxs, definition_node_list, method, base_type)
+        else:
+            self.__completeSimpleResolution(wxs, definition_node_list, method, base_type)
         return self
 
     def localName (self):

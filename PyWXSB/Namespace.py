@@ -1,3 +1,5 @@
+from exceptions_ import *
+
 # URI for the XMLSchema namespace
 XMLSchema = 'http://www.w3.org/2001/XMLSchema'
 
@@ -31,10 +33,10 @@ class Namespace:
             self.__schema = schema
         return self.__schema
 
-    def lookupSimpleType (self, local_name):
+    def lookupType (self, local_name):
         if self.__schema is None:
-            raise LogicError('lookupSimpleType(%s) failed: Namespace %s has no associated schema' % (local_name, self.uri()))
-        return self.__schema.lookupSimpleType(local_name)
+            raise LogicError('lookupType(%s) failed: Namespace %s has no associated schema' % (local_name, self.uri()))
+        return self.__schema.lookupType(local_name)
 
     def qualifiedName (self, local_name, default_namespace=None):
         """Return a namespace-qualified name for the given local name

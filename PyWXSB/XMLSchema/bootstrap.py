@@ -105,18 +105,21 @@ class schema (xsc.Schema):
         else:
             self.__xs.schema(SchemaForXS(self))
 
-    def lookupSimpleType (self, type_name):
+    def lookupType (self, type_name):
         if 0 <= type_name.find(':'):
             ( prefix, local_name ) = type_name.split(':', 1)
-            return self.namespaceForPrefix(prefix).lookupSimpleType(local_name)
+            return self.namespaceForPrefix(prefix).lookupType(local_name)
         # Invoke superclass lookup
         rv = self._lookupTypeDefinition(type_name)
+        if rv is None:
+            raise Exception('lookupType: No match for "%s" in %s' % (type_name, self.__targetNamespace))
+        return rv
+
+    def lookupSimpleType (self, type_name):
+        rv = self.lookupType(type_name)
         if isinstance(rv, xsc.SimpleTypeDefinition):
             return rv
-        if rv:
-            raise Exception('lookupSimpleType: Name "%s" in %s is not a simple type' % (type_name, self.__targetNamespace))
-        print '%s Lookup "%s" failed; candidates %s' % (self.__targetNamespace, type_name, ' '.join([ _d.name() for _d in self._typeDefinitions() ]))
-        raise Exception('lookupSimpleType: No match for "%s" in %s' % (type_name, self.__targetNamespace))
+        raise Exception('lookupSimpleType: Name "%s" in %s is not a simple type' % (type_name, self.__targetNamespace))
 
     def addNamespace (self, namespace):
         old_namespace = self.__namespacePrefixMap.get(namespace.prefix(), None)
