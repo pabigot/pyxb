@@ -283,7 +283,6 @@ class schema (xsc.Schema):
         # Node should be an XMLSchema complexType node
         assert self.xsQualifiedName('complexType') == node.nodeName
 
-        x = '''
         rv = xsc.ComplexTypeDefinition.CreateFromDOM(self, node)
         name = rv.name()
         if name is not None:
@@ -294,8 +293,6 @@ class schema (xsc.Schema):
         else:
             assert self.xsQualifiedName('schema') != node.parentNode.nodeName
         return rv
-'''        
-        return node
 
     def processTopLevelNode (self, node):
         """Process a DOM node from the top level of the schema.

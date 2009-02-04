@@ -444,17 +444,16 @@ class ComplexTypeDefinition:
         # recursive.
         if self.__derivationMethod is not None:
             return self
-        assert self.__domNode
+        assert self.__domNode and self.__w3cXMLSchema
         node = self.__domNode
         wxs = self.__w3cXMLSchema
-        assert wxs is not None
         
         if node.hasAttribute('abstract'):
             self.__abstract = datatypes.boolean.StringToPython(node.getAttribute('abstract'))
 
         # @todo implement prohibitedSubstitutions, final, annotations
-
-        self.__derivationMethod = self.DM_restriction
+        if self.__derivationMethod is None:
+            wxs._addUnresolvedTypeDefinition(self)
         return self
 
     def localName (self):
@@ -1086,6 +1085,8 @@ class Schema:
             self.__unresolvedTypeDefinitions = []
             for std in unresolved:
                 std._resolve()
+            if self.__unresolvedTypeDefinitions == unresolved:
+                raise LogicError('Infinite loop resolving types: %s' % (' '.join([ _x.name() for _x in self.__unresolvedTypeDefinitions ]),))
         self.__unresolvedTypeDefinitions = None
         return self
 
