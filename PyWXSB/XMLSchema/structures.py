@@ -720,20 +720,8 @@ class SimpleTypeDefinition:
         Type resolution for simple types means that the corresponding
         schema component fields have been set.  Specifically, that
         means variety, baseTypeDefinition, and the appropriate
-        additional fields depending on variety.
-
-        All built-in STDs are resolved upon creation.  Schema-defined
-        STDs are held unresolved until the schema has been completely
-        read, so that references to later schema-defined STDs can be
-        resolved.  Resolution is performed after the entire schema has
-        been scanned and STD instances created for all
-        topLevelSimpleTypes.
-
-        If a built-in STD is also defined in a schema (which it should
-        be), the built-in STD is kept, with the schema-related
-        information copied over from the matching schema-defined STD.
-        The former then replaces the latter in the list of STDs to be
-        resolved.  See Schema._addTypeDefinition.
+        additional fields depending on variety.  See _resolve() for
+        more information.
         """
         # Only unresolved nodes have an unset variety
         return (self.__variety is not None)
@@ -868,19 +856,17 @@ class SimpleTypeDefinition:
     def __initializeFromRestriction (self, wxs, body):
         if body.hasAttribute('base'):
             base_name = body.getAttribute('base')
-            # Unless somebody's tried to resolve a restriction type
-            # prior to completing scan of all topLevelSimpleType
-            # elements, this only fails if the reference is to an
-            # unrecognized name, which is an error in the input that
-            # should produce an exception.
-            self.__baseTypeDefinition = wxs.lookupSimpleType(base_name)
-            # However, if the base type has been re-defined, it may
-            # not yet be properly re-resolved.  Force the issue.
-            # NOTE: If anybody ever defines a built-in type that uses
-            # a local simple-type internally, this might cause
-            # problems.  For now, it shouldn't.
-            self.__baseTypeDefinition._resolve()
-            assert self.__baseTypeDefinition.isResolved()
+            # Look up the base.  If there is no registered type of
+            # that name, an exception gets thrown that percolates up
+            # to the user.
+            base_type = wxs.lookupSimpleType(base_name)
+            # If the base type exists but has not yet been resolve,
+            # delay processing this type until the one it depends on
+            # has been completed.
+            if not base_type.isResolved():
+                wxs._addUnresolvedTypeDefinition(self)
+                return
+            self.__baseTypeDefinition = base_type
         else:
             self.__baseTypeDefinition = self.SimpleUrTypeDefinition()
         self.__variety = self.__baseTypeDefinition.__variety
@@ -950,15 +936,31 @@ class SimpleTypeDefinition:
         return self
 
     def _resolve (self):
-        # Beware: there is a slight issue here because we use variety,
-        # which is set in the initialize* method, to indicate that the
-        # node has been resolved, but resolution is not fully complete
-        # until the completeResolution invocation is done.  During
-        # that period, checking for resolution may prematurely
-        # succeed.  This should not be an issue because in the current
-        # implementation resolution will succeed, and it's already in
-        # progress.  Only for restrictions is resolution potentially
-        # recursive.
+        """Attempt to resolve the type.
+
+        Type resolution for simple types means that the corresponding
+        schema component fields have been set.  Specifically, that
+        means variety, baseTypeDefinition, and the appropriate
+        additional fields depending on variety.
+
+        All built-in STDs are resolved upon creation.  Schema-defined
+        STDs are held unresolved until the schema has been completely
+        read, so that references to later schema-defined STDs can be
+        resolved.  Resolution is performed after the entire schema has
+        been scanned and STD instances created for all
+        topLevelSimpleTypes.
+
+        If a built-in STD is also defined in a schema (which it should
+        be for XMLSchema), the built-in STD is kept, with the
+        schema-related information copied over from the matching
+        schema-defined STD.  The former then replaces the latter in
+        the list of STDs to be resolved.
+
+        Types defined by restriction have the same variety as the type
+        they restrict.  If a simple type restriction depends on an
+        unresolved type, this method simply queues it for resolution
+        in a later pass and returns.
+        """
         if self.__variety is not None:
             return self
         assert self.__domNode and self.__w3cXMLSchema
@@ -986,9 +988,7 @@ class SimpleTypeDefinition:
             else:
                 bad_instance = True
 
-        if self.__variety is None:
-            bad_instance = True
-
+        # It is NOT an error to fail to resolve the type.
         if bad_instance:
             raise SchemaValidationError('Expected exactly one of list, restriction, union as child of simpleType')
 
@@ -1078,15 +1078,14 @@ class Schema:
 
     def _resolveTypeDefinitions (self):
         while self.__unresolvedTypeDefinitions:
-            # Save the list of unresolved STDs, then prepare for any
-            # new STDs defined during resolution.  Then walk through
-            # the list repeatedly until we have resolved everything
-            # that does not depend on an unresolved type.
+            # Save the list of unresolved TDs, reset the list to
+            # capture any new TDs defined during resolution (or TDs
+            # that depend on an unresolved type), and attempt the
+            # resolution for everything that isn't resolved.
             unresolved = self.__unresolvedTypeDefinitions
             self.__unresolvedTypeDefinitions = []
             for std in unresolved:
                 std._resolve()
-                assert std.isResolved()
         self.__unresolvedTypeDefinitions = None
         return self
 
