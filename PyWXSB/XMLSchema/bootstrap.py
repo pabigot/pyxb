@@ -238,7 +238,7 @@ class schema (xsc.Schema):
                 # NOTATION_NODE
                 print 'Ignoring non-element: %s' % (cn,)
 
-        self._resolveTypeDefinitions()
+        self._resolveDefinitions()
 
         return self
 
@@ -300,7 +300,7 @@ class schema (xsc.Schema):
         assert self.xsQualifiedName('attributeGroup') == node.nodeName
         assert self.xsQualifiedName('schema') == node.parentNode.nodeName
         rv = xsc.AttributeGroupDefinition.CreateFromDOM(self, node)
-        self._addAttributeGroupDefinition(self, rv)
+        self._addAttributeGroupDefinition(rv)
         return rv
 
     def processTopLevelNode (self, node):

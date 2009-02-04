@@ -344,6 +344,8 @@ class ComplexTypeDefinition:
         type.  Material like facets is not (currently) held in the
         built-in copy, so the DOM information is copied over to the
         built-in STD, which is subsequently re-resolved.
+
+        Returns self.
         """
         assert self.__name == other.__name
         assert self.__targetNamespace == other.__targetNamespace
@@ -443,11 +445,11 @@ class ComplexTypeDefinition:
 
         # Creation does not attempt to do resolution.  Queue up the newly created
         # whatsis so we can resolve it after everything's been read in.
-        wxs._addUnresolvedTypeDefinition(rv)
+        wxs._addUnresolvedDefinition(rv)
         
         return rv
 
-    def __completeAttributeProcessing (self, wxs, definition_node_list):
+    def __completeAttributeProcessing (self, wxs, definition_node_list, method):
         uses_c1 = set()
         uses_c2 = set()
         uses_c3 = set()
@@ -464,7 +466,11 @@ class ComplexTypeDefinition:
                 # This must be an attributeGroupRef
                 if not node.hasAttribute('ref'):
                     raise SchemaValidationError('Require ref attribute on internal attributeGroup elements')
-                uses_c2.update(wxs.lookupAttributeGroup(node.getAttribute('ref')).attributeUses())
+                agd = wxs.lookupAttributeGroup(node.getAttribute('ref'))
+                if not agd.isResolved():
+                    wxs._addUnresolvedDefinition(self)
+                    return self
+                uses_c2.update(agd.attributeUses())
         # Handle clause 3
         if isinstance(self.__baseTypeDefinition, ComplexTypeDefinition):
             uses_c3 = uses_c3.union(self.__baseTypeDefinition.__attributeUses)
@@ -478,19 +484,19 @@ class ComplexTypeDefinition:
         uses = set([ _au for _au in uses_c1 if not _au.useProhibited() ])
         self.__attributeUses = frozenset(uses.union(uses_c2).union(uses_c3))
         # @todo Handle attributeWildcard
+        # Only now that we've succeeded do we set the method (mark this resolved)
+        self.__derivationMethod = method
         return self
 
     def __completeSimpleResolution (self, wxs, definition_node_list, method, base_type):
         # Implement CTD with simple content
         self.__baseTypeDefinition = base_type
-        self.__derivationMethod = method
-
         # @todo contentType
-        return self.__completeAttributeProcessing(wxs, definition_node_list)
+        return self.__completeAttributeProcessing(wxs, definition_node_list, method)
 
     def __completeComplexResolution (self, wxs, definition_node_list, method, base_type):
         # Implement CTD with complex content
-        wxs._addUnresolvedTypeDefinition(self)
+        wxs._addUnresolvedDefinition(self)
         pass
 
     def _resolve (self):
@@ -552,7 +558,7 @@ class ComplexTypeDefinition:
                     # Have to delay resolution until the type this
                     # depends on is available.
                     print 'Holding off resolution of %s due to dependence on unresolved %s' % (self.name(), base_type.name())
-                    wxs._addUnresolvedTypeDefinition(self)
+                    wxs._addUnresolvedDefinition(self)
                     return self
                 # The content is defined by the restriction/extension element
                 definition_node_list = ions.childNodes
@@ -572,17 +578,70 @@ class ComplexTypeDefinition:
         return self.__name
 
 class AttributeGroupDefinition:
+    # The name of the attribute group type, or None if this is an attributeGroupReference
     __name = None
+
+    # The namespace to which the group belongs
     __targetNamespace = None
+
     __attributeUses = None
+
+    # Optional wildcard that constrains attributes
     __attributeWildcard = None
+
+    # Optional annotation
     __annotation = None
 
-    def __init__ (self):
-        pass
+    # Indicates whether we have resolved any references
+    __isResolved = False
+    def isResolved (self):
+        return self.__isResolved
 
+    def __init__ (self, local_name, target_namespace):
+        self.__name = local_name
+        self.__targetNamespace = target_namespace
+
+    @classmethod
+    def CreateFromDOM (cls, wxs, node):
+        assert wxs.xsQualifiedName('attributeGroup') == node.nodeName
+        name = None
+        if node.hasAttribute('name'):
+            name = node.getAttribute('name')
+
+        rv = cls(name, wxs.getTargetNamespace())
+        wxs._addUnresolvedDefinition(rv)
+        rv.__domNode = node
+        rv.__w3cXMLSchema = wxs
+        return rv
+
+    def _resolve (self):
+        print 'Resolving AG %s' % (self.name(),)
+        if self.__isResolved:
+            return self
+        extra_uses = frozenset()
+        if self.__domNode.hasAttribute('ref'):
+            agd = self.__w3cXMLSchema.lookupAttributeGroup(self.__domNode.getAttribute('ref'))
+            if not agd.isResolved():
+                self.__w3cXMLSchema._addUnresolvedDefinition(self)
+                return self
+            extra_uses = agd.attributeUses()
+        # @todo Add the ones from this definition
+        self.__attributeUses = extra_uses
+        self.__isResolved = True
+        self.__w3cXMLSchema = None
+        self.__domNode = Node
+        
     def attributeUses (self):
         return self.__attributeUses
+
+    def localName (self):
+        return self.__name
+
+    def name (self):
+        if self.__name is not None:
+            if self.__targetNamespace:
+                return self.__targetNamespace.qualifiedName(self.__name)
+        return self.__name
 
 class ModelGroupDefinition:
     # The name by which the model will be known in some context.
@@ -806,6 +865,8 @@ class SimpleTypeDefinition:
         type.  Material like facets is not (currently) held in the
         built-in copy, so the DOM information is copied over to the
         built-in STD, which is subsequently re-resolved.
+
+        Returns self.
         """
         assert self.__name == other.__name
         assert self.__targetNamespace == other.__targetNamespace
@@ -975,7 +1036,7 @@ class SimpleTypeDefinition:
             # delay processing this type until the one it depends on
             # has been completed.
             if not base_type.isResolved():
-                wxs._addUnresolvedTypeDefinition(self)
+                wxs._addUnresolvedDefinition(self)
                 return
             self.__baseTypeDefinition = base_type
         else:
@@ -1124,7 +1185,7 @@ class SimpleTypeDefinition:
 
         # Creation does not attempt to do resolution.  Queue up the newly created
         # whatsis so we can resolve it after everything's been read in.
-        wxs._addUnresolvedTypeDefinition(rv)
+        wxs._addUnresolvedDefinition(rv)
         
         return rv
 
@@ -1170,37 +1231,41 @@ class Schema:
     __notationDeclarations = None
     __annotations = None
 
-    __unresolvedTypeDefinitions = None
+    __unresolvedDefinitions = None
 
     def __init__ (self):
         self.__annotations = [ ]
         self.__typeDefinitions = { }
-        self.__unresolvedTypeDefinitions = []
         self.__attributeGroupDefinitions = { }
 
-    def _addUnresolvedTypeDefinition (self, std):
-        """Invoked by {Simple,Complex}TypeDefinition component when creating a
-        non-builtin simple (complex) type in this schema.
+        self.__unresolvedDefinitions = []
 
-        Be aware that the type may not have a name: this method is
-        invoked during resolution when evaluating
-        local{Simple,Complex}Type elements"""
-        self.__unresolvedTypeDefinitions.append(std)
+    def _addUnresolvedDefinition (self, std):
+        """Invoked when creating something that might refer to an unseen named component.
+        """
+        self.__unresolvedDefinitions.append(std)
         return std
 
-    def _resolveTypeDefinitions (self):
-        while self.__unresolvedTypeDefinitions:
+    def _replaceUnresolvedDefinition (self, existing_def, replacement_def):
+        assert existing_def in self.__unresolvedDefinitions
+        self.__unresolvedDefinitions.remove(existing_def)
+        assert replacement_def not in self.__unresolvedDefinitions
+        self.__unresolvedDefinitions.append(replacement_def)
+        return replacement_def
+
+    def _resolveDefinitions (self):
+        while self.__unresolvedDefinitions:
             # Save the list of unresolved TDs, reset the list to
             # capture any new TDs defined during resolution (or TDs
             # that depend on an unresolved type), and attempt the
             # resolution for everything that isn't resolved.
-            unresolved = self.__unresolvedTypeDefinitions
-            self.__unresolvedTypeDefinitions = []
+            unresolved = self.__unresolvedDefinitions
+            self.__unresolvedDefinitions = []
             for std in unresolved:
                 std._resolve()
-            if self.__unresolvedTypeDefinitions == unresolved:
-                raise LogicError('Infinite loop resolving types: %s' % (' '.join([ _x.name() for _x in self.__unresolvedTypeDefinitions ]),))
-        self.__unresolvedTypeDefinitions = None
+            if self.__unresolvedDefinitions == unresolved:
+                raise LogicError('Infinite loop resolving types: %s' % (' '.join([ _x.name() for _x in self.__unresolvedDefinitions ]),))
+        self.__unresolvedDefinitions = None
         return self
 
     def _addAnnotation (self, annotation):
@@ -1222,11 +1287,7 @@ class Schema:
                 raise SchemaValidationError('Name %s used for both simple and complex types' % (td.name(),))
             # Copy schema-related information from the new definition
             # into the old one, and continue to use the old one.
-            assert td in self.__unresolvedTypeDefinitions
-            self.__unresolvedTypeDefinitions.remove(td)
-            assert old_td not in self.__unresolvedTypeDefinitions
-            self.__unresolvedTypeDefinitions.append(old_td)
-            td = old_td._setFromInstance(td)
+            td = self._replaceUnresolvedDefinition(td, old_td._setFromInstance(td))
         else:
             self.__typeDefinitions[local_name] = td
         return td
@@ -1240,7 +1301,7 @@ class Schema:
         old_agd = self.__attributeGroupDefinitions.get(local_name, None)
         if old_agd is not None:
             raise SchemaValidationError('Name %s used for multiple attribute group definitions' % (local_name,))
-        self.__attributeGroupDefinitions = agd
+        self.__attributeGroupDefinitions[local_name] = agd
         return agd
 
     def _lookupTypeDefinition (self, local_name):
