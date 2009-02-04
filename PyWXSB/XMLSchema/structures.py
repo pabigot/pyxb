@@ -184,6 +184,9 @@ def LocateFirstChildElement (node, absent_ok=False, require_unique=False):
         raise SchemaValidationError('No elements nested in %s' % (node.nodeName,))
     return candidate
 
+def HasNonAnnotationChild (node):
+    raise ImplementationIncompleteError("not implemented")
+
 
 class _NamedComponent_mixin:
     """Mix-in to hold the name and target namespace of a component.
@@ -454,9 +457,9 @@ class ComplexTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
 
     # Identify the sort of content in this type.  Valid values are:
     # CT_EMPTY
-    # ( a_simple_type_definition, CT_SIMPLE )
-    # ( content_model, CT_ELEMENT_ONLY )
-    # ( content_model, CT_MIXED )
+    # ( CT_SIMPLE, simple_type_definition )
+    # ( CT_MIXED, particle )
+    # ( CT_ELEMENT_ONLY, particle )
     __contentType = None
 
     # Derived from the block and blockDefault attributes
@@ -560,7 +563,8 @@ class ComplexTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
         
         return rv
 
-    def __completeAttributeProcessing (self, wxs, definition_node_list, method):
+    # Handle attributeUses, attributeWildcard, contentType
+    def __completeProcessing (self, wxs, definition_node_list, method, content_style):
         uses_c1 = set()
         uses_c2 = set()
         uses_c3 = set()
@@ -583,7 +587,12 @@ class ComplexTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
                     wxs._queueForResolution(self)
                     return self
                 uses_c2.update(agd.attributeUses())
-        # Handle clause 3
+
+        # Handle clause 3.  Note the slight difference in description
+        # between smple and complex content is just that the complex
+        # content assumes the base type definition is a complex type
+        # definition.  So the same code should work for both, and we
+        # don't bother to check content_style.
         if isinstance(self.__baseTypeDefinition, ComplexTypeDefinition):
             uses_c3 = uses_c3.union(self.__baseTypeDefinition.__attributeUses)
             if self.DM_restriction == self.__derivationMethod:
@@ -601,15 +610,120 @@ class ComplexTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
         return self
 
     def __completeSimpleResolution (self, wxs, definition_node_list, method, base_type):
-        # Implement CTD with simple content
+        # deriviationMethod is assigned after resolution completes
         self.__baseTypeDefinition = base_type
-        # @todo contentType
-        return self.__completeAttributeProcessing(wxs, definition_node_list, method)
 
-    def __completeComplexResolution (self, wxs, definition_node_list, method, base_type):
-        # @todo Implement CTD with complex content
-        wxs._queueForResolution(self)
-        pass
+        # Do content type
+        if isinstance(self.__baseTypeDefinition, ComplexTypeDefinition):
+            # Clauses 1, 2, and 3 might apply
+            parent_content_type = self.__baseTypeDefinition.__contentType
+            if (isinstance(parent_content_type, SimpleTypeDefinition) \
+                    and (self.DM_restriction == method)):
+                # Clause 1
+                raise IncompleteImplementationError("contentType clause 1 of simple content in CTD")
+            elif ((type(parent_content_type) == tuple) \
+                    and (self.CT_mixed == parent_content_type[1]) \
+                    and parent_content_type[0].isEmptiable()):
+                # Clause 2
+                raise IncompleteImplementationError("contentType clause 2 of simple content in CTD")
+            else:
+                # Clause 3
+                raise IncompleteImplementationError("contentType clause 3 of simple content in CTD")
+        else:
+            # Clause 4
+            self.__contentType = self.__baseTypeDefinition
+                
+        return self.__completeProcessing(wxs, definition_node_list, method, 'simple')
+
+    def __completeComplexResolution (self, wxs, type_node, content_node, definition_node_list, method, base_type):
+        # deriviationMethod is assigned after resolution completes
+        self.__baseTypeDefinition = base_type
+
+        # Do content type
+
+        # Definition 1: effective mixed
+        if (content_node is not None) \
+                and content_node.hasAttribute('mixed'):
+            effective_mixed = datatypes.boolean.StringToPython(content_node.getAttribute('mixed'))
+        elif type_node.hasAttribute('mixed'):
+            effective_mixed = datatypes.boolean.StringToPython(type_node.getAttribute('mixed'))
+        else:
+            effective_mixed = False
+
+        # Definition 2: effective content
+        case_2_1_predicate_count = 0
+        test_2_1_1 = True
+        test_2_1_2 = False
+        test_2_1_3 = False
+        typedef_particle_tags = Particle.TypedefTags(wxs.xs())
+        typedef_node = None
+        allseq_particle_tags = [ wxs.xsQualifiedName(_tag) for _tag in [ 'all', 'sequence' ] ]
+        xs_choice = wxs.xsQualifiedName('choice')
+        for cn in definition_node_list:
+            if Node.ELEMENT_NODE != cn.nodeType:
+                continue
+            if cn.nodeName in typedef_particle_tags:
+                typedef_node = cn
+                test_2_1_1 = False
+            if ((cn.nodeName in allseq_particle_tags) \
+                    and (not HasNonAnnotationChild(cn))):
+                test_2_1_2 = True
+            if ((cn.nodeName == xs_choice) \
+                    and (not HasNonAnnotationChild(cn))\
+                    and cn.hasAttribute('minOccurs') \
+                    and (0 == datatypes.integer.StringToValue(cn.getAttribute('minOccurs')))):
+                test_2_1_3 = True
+        satisfied_predicates = 0
+        if test_2_1_1:
+            satisfied_predicates += 1
+        if test_2_1_2:
+            satisfied_predicates += 1
+        if test_2_1_3:
+            satisfied_predicates += 1
+        if 1 == satisfied_predicates:
+            if effective_mixed:
+                # Clause 2.1.4
+                assert typedef_node is None
+                m = ModelGroup(ModelGroup.C_SEQUENCE, [])
+                effective_content = Particle(m, 1, 1)
+            else:
+                # Clause 2.1.5
+                effective_content = self.CT_EMPTY
+        else:
+            # Clause 2.2
+            assert typedef_node is not None
+            effective_content = Particle.CreateFromDOM(wxs, typedef_node)
+
+        # Shared from clause 3.1.2
+        if effective_mixed:
+            ct = CT_MIXED
+        else:
+            ct = CT_ELEMENT_ONLY
+        # Clause 3
+        if self.DM_restriction == method:
+            # Clause 3.1
+            if self.CT_EMPTY == effective_content:
+                # Clause 3.1.1
+                content_type = None
+            else:
+                # Clause 3.1.2(.2)
+                content_type = ( ct, effective_content )
+        else:
+            # Clause 3.2
+            assert self.DM_extension == method
+            parent_content_type = self.__baseTypeDefinition.contentType()
+            if self.CT_EMPTY == effective_content:
+                content_type = parent_content_type
+            elif self.CT_EMPTY == parent_content_type:
+                # Clause 3.2.2
+                content_type = ( ct, effective_content )
+            else:
+                assert type(parent_content_type) == tuple
+                m = ModelGroup(ModelGroup.C_SEQUENCE, [ parent_content_type[1], effective_content ])
+                content_type = Particle(m, 1, 1)
+
+        self.__contentType = content_type
+        return self.__completeProcessing(wxs, definition_node_list, method, 'complex')
 
     def isResolved (self):
         """Indicate whether this complex type is fully defined.
@@ -646,6 +760,7 @@ class ComplexTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
         assert self.__domNode
         node = self.__domNode
         
+        print 'Resolving CTD %s' % (self.name(),)
         if node.hasAttribute('abstract'):
             self.__abstract = datatypes.boolean.StringToPython(node.getAttribute('abstract'))
 
@@ -662,6 +777,7 @@ class ComplexTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
         # element content and seeing if it's one of the wrapper
         # elements.
         first_elt = LocateFirstChildElement(node)
+        content_node = None
         if first_elt:
             have_content = False
             if wxs.xsQualifiedName('simpleContent') == first_elt.nodeName:
@@ -671,17 +787,18 @@ class ComplexTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
                 have_content = True
             if have_content:
                 # Repeat the search to verify that only the one child is present.
-                first_elt = LocateFirstChildElement(node, require_unique=True)
-
+                content_node = LocateFirstChildElement(node, require_unique=True)
+                assert content_node == first_elt
+                
                 # Identify the contained restriction or extension
                 # element, and extract the base type.
-                ions = LocateFirstChildElement(first_elt)
+                ions = LocateFirstChildElement(content_node)
                 if wxs.xsQualifiedName('restriction') == ions.nodeName:
                     method = self.DM_restriction
                 elif wxs.xsQualifiedName('extension') == ions.nodeName:
                     method = self.DM_extension
                 else:
-                    raise SchemaValidationError('Expected restriction or extension as sole child of %s in %s' % (first_elt.name(), self.name()))
+                    raise SchemaValidationError('Expected restriction or extension as sole child of %s in %s' % (content_node.name(), self.name()))
                 if not ions.hasAttribute('base'):
                     raise SchemaValidationError('Element %s missing base attribute' % (ions.nodeName,))
                 base_type = wxs.lookupType(ions.getAttribute('base'))
@@ -694,7 +811,7 @@ class ComplexTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
                 # The content is defined by the restriction/extension element
                 definition_node_list = ions.childNodes
         if is_complex_content:
-            self.__completeComplexResolution(wxs, definition_node_list, method, base_type)
+            self.__completeComplexResolution(wxs, node, content_node, definition_node_list, method, base_type)
         else:
             self.__completeSimpleResolution(wxs, definition_node_list, method, base_type)
         return self
@@ -760,7 +877,7 @@ class AttributeGroupDefinition (_NamedComponent_mixin, _Resolvable_mixin):
     def attributeUses (self):
         return self.__attributeUses
 
-class ModelGroupDefinition (_NamedComponent_mixin):
+class ModelGroupDefinition (_NamedComponent_mixin, _Resolvable_mixin):
     # Reference to a _ModelGroup
     __modelGroup = None
 
@@ -769,6 +886,7 @@ class ModelGroupDefinition (_NamedComponent_mixin):
 
     def __init__ (self, name, target_namespace):
         _NamedComponent_mixin.__init__(self, name, target_namespace)
+        _Resolvable_mixin.__init__(self)
 
 
 class ModelGroup:
@@ -800,7 +918,8 @@ class Particle:
     # None, must always be at least __minOccurs.
     __maxOccurs = 1
 
-    # A reference to a particle, which is a _ModelGroup or ...
+    # A reference to a particle, which is a ModelGroup, Wildcard, or
+    # ElementDeclaration
     __term = None
 
     def __init__ (self, term, min_occurs=1, max_occurs=1):
@@ -811,6 +930,27 @@ class Particle:
             if self.__minOccurs > self.__maxOccurs:
                 raise LogicError('Particle minOccurs is greater than maxOccurs on creation')
     
+    @classmethod
+    def CreateFromDOM (cls, wxs, node):
+        if wxs.xsQualifiedName('group') == node.nodeName:
+            raise IncompleteImplementationError('Particle: implement group')
+        elif wxs.xsQualifiedName('element') == node.nodeName:
+            raise IncompleteImplementationError('Particle: implement element')
+        elif wxs.xsQualifiedName('any') == node.nodeName:
+            raise IncompleteImplementationError('Particle: implement any')
+        elif wxs.xsQualifiedName('sequence') == node.nodeName:
+            raise IncompleteImplementationError('Particle: implement sequence')
+        elif wxs.xsQualifiedName('choice') == node.nodeName:
+            raise IncompleteImplementationError('Particle: implement choice')
+        elif wxs.xsQualifiedName('all') == node.nodeName:
+            raise IncompleteImplementationError('Particle: implement all')
+        raise LogicError('Unhandled node in Particle.CreateFromDOM: %s' % (node.toxml(),))
+
+    @classmethod
+    def TypedefTags (cls, namespace):
+        return [ namespace.qualifiedName(_tag) for _tag in [ 'group', 'all', 'choice', 'sequence' ] ]
+
+
 # 3.10.1
 class Wildcard:
     # A constraint on the namespace.  Valid values are:
