@@ -221,6 +221,30 @@ class _NamedComponent_mixin:
         Anonymous components are inherently name inequivalent."""
         return (self.__name is not None) and (self.__name == other.__name) and (self.__targetNamespace == other.__targetNamespace)
 
+class _Resolvable_mixin (object):
+    """Mix-in indicating that this component may have references to unseen named components."""
+    def __init__ (self):
+        pass
+    
+    def isResolved (self):
+        """Determine whether this named component is resolved.
+
+        Override this in the child class."""
+        raise LogicError('Resolved check not implemented in %s' % (self.__class__,))
+    
+    def _resolve (self, wxs):
+        """Perform whatever steps are required to resolve this component.
+
+        Note that, if there is a recursive resolution required, the
+        component may not have been resolved upon return from this
+        method.  In that case, the component should have already been
+        added back into the set of items that still need to be
+        resolved.
+
+        Override this in the child class."""
+        raise LogicError('Resolution not implemented in %s' % (self.__class__,))
+        
+
 class AttributeDeclaration(_NamedComponent_mixin):
     VC_na = 0                   #<<< No value constraint applies
     VC_default = 1              #<<< Provided value constraint is default value
@@ -310,7 +334,7 @@ class ElementDeclaration:
     __abstract = False
     __annotation = None
     
-class ComplexTypeDefinition (_NamedComponent_mixin):
+class ComplexTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
     # The type resolved from the base attribute
     __baseTypeDefinition = None
 
@@ -354,6 +378,7 @@ class ComplexTypeDefinition (_NamedComponent_mixin):
     
     def __init__ (self, local_name, target_namespace, derivation_method):
         _NamedComponent_mixin.__init__(self, local_name, target_namespace)
+        _Resolvable_mixin.__init__(self)
         self.__targetNamespace = target_namespace
         self.__derivationMethod = derivation_method
 
@@ -380,26 +405,6 @@ class ComplexTypeDefinition (_NamedComponent_mixin):
         # Mark this instance as unresolved so it is re-examined
         self.__derivationMethod = None
         return self
-
-    def isResolved (self):
-        """Indicate whether this complex type is fully defined.
-        
-        All built-in type definitions are resolved upon creation.
-        Schema-defined type definitionss are held unresolved until the
-        schema has been completely read, so that references to later
-        schema-defined types can be resolved.  Resolution is performed
-        after the entire schema has been scanned and type-definition
-        instances created for all topLevel{Simple,Complex}Types.
-
-        If a built-in type definition is also defined in a schema
-        (which it should be), the built-in definition is kept, with
-        the schema-related information copied over from the matching
-        schema-defined type definition.  The former then replaces the
-        latter in the list of type definitions to be resolved.  See
-        Schema._addTypeDefinition.
-        """
-        # Only unresolved nodes have an unset derivationMethod
-        return (self.__derivationMethod is not None)
 
     __UrTypeDefinition = None
     @classmethod
@@ -465,7 +470,7 @@ class ComplexTypeDefinition (_NamedComponent_mixin):
 
         # Creation does not attempt to do resolution.  Queue up the newly created
         # whatsis so we can resolve it after everything's been read in.
-        wxs._addUnresolvedDefinition(rv)
+        wxs._queueForResolution(rv)
         
         return rv
 
@@ -488,7 +493,7 @@ class ComplexTypeDefinition (_NamedComponent_mixin):
                     raise SchemaValidationError('Require ref attribute on internal attributeGroup elements')
                 agd = wxs.lookupAttributeGroup(node.getAttribute('ref'))
                 if not agd.isResolved():
-                    wxs._addUnresolvedDefinition(self)
+                    wxs._queueForResolution(self)
                     return self
                 uses_c2.update(agd.attributeUses())
         # Handle clause 3
@@ -516,8 +521,28 @@ class ComplexTypeDefinition (_NamedComponent_mixin):
 
     def __completeComplexResolution (self, wxs, definition_node_list, method, base_type):
         # Implement CTD with complex content
-        wxs._addUnresolvedDefinition(self)
+        wxs._queueForResolution(self)
         pass
+
+    def isResolved (self):
+        """Indicate whether this complex type is fully defined.
+        
+        All built-in type definitions are resolved upon creation.
+        Schema-defined type definitionss are held unresolved until the
+        schema has been completely read, so that references to later
+        schema-defined types can be resolved.  Resolution is performed
+        after the entire schema has been scanned and type-definition
+        instances created for all topLevel{Simple,Complex}Types.
+
+        If a built-in type definition is also defined in a schema
+        (which it should be), the built-in definition is kept, with
+        the schema-related information copied over from the matching
+        schema-defined type definition.  The former then replaces the
+        latter in the list of type definitions to be resolved.  See
+        Schema._addTypeDefinition.
+        """
+        # Only unresolved nodes have an unset derivationMethod
+        return (self.__derivationMethod is not None)
 
     def _resolve (self):
         # Beware: there is a slight issue here because we use variety,
@@ -578,7 +603,7 @@ class ComplexTypeDefinition (_NamedComponent_mixin):
                     # Have to delay resolution until the type this
                     # depends on is available.
                     print 'Holding off resolution of %s due to dependence on unresolved %s' % (self.name(), base_type.name())
-                    wxs._addUnresolvedDefinition(self)
+                    wxs._queueForResolution(self)
                     return self
                 # The content is defined by the restriction/extension element
                 definition_node_list = ions.childNodes
@@ -588,7 +613,7 @@ class ComplexTypeDefinition (_NamedComponent_mixin):
             self.__completeSimpleResolution(wxs, definition_node_list, method, base_type)
         return self
 
-class AttributeGroupDefinition (_NamedComponent_mixin):
+class AttributeGroupDefinition (_NamedComponent_mixin, _Resolvable_mixin):
     __attributeUses = None
 
     # Optional wildcard that constrains attributes
@@ -597,13 +622,9 @@ class AttributeGroupDefinition (_NamedComponent_mixin):
     # Optional annotation
     __annotation = None
 
-    # Indicates whether we have resolved any references
-    __isResolved = False
-    def isResolved (self):
-        return self.__isResolved
-
     def __init__ (self, local_name, target_namespace):
         _NamedComponent_mixin.__init__(self, local_name, target_namespace)
+        _Resolvable_mixin.__init__(self)
 
     @classmethod
     def CreateFromDOM (cls, wxs, node):
@@ -613,10 +634,15 @@ class AttributeGroupDefinition (_NamedComponent_mixin):
             name = node.getAttribute('name')
 
         rv = cls(name, wxs.getTargetNamespace())
-        wxs._addUnresolvedDefinition(rv)
+        wxs._queueForResolution(rv)
         rv.__domNode = node
         rv.__w3cXMLSchema = wxs
         return rv
+
+    # Indicates whether we have resolved any references
+    __isResolved = False
+    def isResolved (self):
+        return self.__isResolved
 
     def _resolve (self):
         print 'Resolving AG %s' % (self.name(),)
@@ -626,7 +652,7 @@ class AttributeGroupDefinition (_NamedComponent_mixin):
         if self.__domNode.hasAttribute('ref'):
             agd = self.__w3cXMLSchema.lookupAttributeGroup(self.__domNode.getAttribute('ref'))
             if not agd.isResolved():
-                self.__w3cXMLSchema._addUnresolvedDefinition(self)
+                self.__w3cXMLSchema._queueForResolution(self)
                 return self
             extra_uses = agd.attributeUses()
         # @todo Add the ones from this definition
@@ -765,7 +791,7 @@ class Annotation:
 
 
 # Section 3.14.
-class SimpleTypeDefinition (_NamedComponent_mixin):
+class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
     """The schema component for simple type definitions.
 
     This component supports the basic datatypes of XML schema, and
@@ -834,6 +860,7 @@ class SimpleTypeDefinition (_NamedComponent_mixin):
     # attributes.
     def __init__ (self, name, target_namespace, variety):
         _NamedComponent_mixin.__init__(self, name, target_namespace)
+        _Resolvable_mixin.__init__(self)
         self.__variety = variety
 
     def _setFromInstance (self, other):
@@ -863,18 +890,6 @@ class SimpleTypeDefinition (_NamedComponent_mixin):
     def isBuiltin (self):
         """Indicate whether this simple type is a built-in type."""
         return self.__isBuiltin
-
-    def isResolved (self):
-        """Indicate whether this simple type is fully defined.
-        
-        Type resolution for simple types means that the corresponding
-        schema component fields have been set.  Specifically, that
-        means variety, baseTypeDefinition, and the appropriate
-        additional fields depending on variety.  See _resolve() for
-        more information.
-        """
-        # Only unresolved nodes have an unset variety
-        return (self.__variety is not None)
 
     __SimpleUrTypeDefinition = None
     @classmethod
@@ -1014,7 +1029,7 @@ class SimpleTypeDefinition (_NamedComponent_mixin):
             # delay processing this type until the one it depends on
             # has been completed.
             if not base_type.isResolved():
-                wxs._addUnresolvedDefinition(self)
+                wxs._queueForResolution(self)
                 return
             self.__baseTypeDefinition = base_type
         else:
@@ -1084,6 +1099,18 @@ class SimpleTypeDefinition (_NamedComponent_mixin):
             print 'VARIETY "%s"' % (self.__variety,)
             raise LogicError('completeResolution with variety 0x%02x' % (self.__variety,))
         return self
+
+    def isResolved (self):
+        """Indicate whether this simple type is fully defined.
+        
+        Type resolution for simple types means that the corresponding
+        schema component fields have been set.  Specifically, that
+        means variety, baseTypeDefinition, and the appropriate
+        additional fields depending on variety.  See _resolve() for
+        more information.
+        """
+        # Only unresolved nodes have an unset variety
+        return (self.__variety is not None)
 
     def _resolve (self):
         """Attempt to resolve the type.
@@ -1163,7 +1190,7 @@ class SimpleTypeDefinition (_NamedComponent_mixin):
 
         # Creation does not attempt to do resolution.  Queue up the newly created
         # whatsis so we can resolve it after everything's been read in.
-        wxs._addUnresolvedDefinition(rv)
+        wxs._queueForResolution(rv)
         
         return rv
 
@@ -1209,16 +1236,22 @@ class Schema:
 
         self.__unresolvedDefinitions = []
 
-    def _addUnresolvedDefinition (self, std):
-        """Invoked when creating something that might refer to an unseen named component.
+    def _queueForResolution (self, std):
+        """Invoked to note that a component may have unresolved references.
+
+        Newly created named components are unresolved, as are
+        components which, in the course of resolution, are found to
+        depend on another unresolved component.
         """
+        assert isinstance(std, _Resolvable_mixin)
         self.__unresolvedDefinitions.append(std)
         return std
 
-    def _replaceUnresolvedDefinition (self, existing_def, replacement_def):
+    def __replaceUnresolvedDefinition (self, existing_def, replacement_def):
         assert existing_def in self.__unresolvedDefinitions
         self.__unresolvedDefinitions.remove(existing_def)
         assert replacement_def not in self.__unresolvedDefinitions
+        assert isinstance(replacement_def, _Resolvable_mixin)
         self.__unresolvedDefinitions.append(replacement_def)
         return replacement_def
 
@@ -1256,7 +1289,7 @@ class Schema:
                 raise SchemaValidationError('Name %s used for both simple and complex types' % (td.name(),))
             # Copy schema-related information from the new definition
             # into the old one, and continue to use the old one.
-            td = self._replaceUnresolvedDefinition(td, old_td._setFromInstance(td))
+            td = self.__replaceUnresolvedDefinition(td, old_td._setFromInstance(td))
         else:
             self.__typeDefinitions[local_name] = td
         return td
