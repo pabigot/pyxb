@@ -44,6 +44,11 @@ class PythonSimpleTypeSupport(object):
     # done when this instance is bound to an STD.
     __simpleTypeDefinition = None
 
+    # A value reflecting the Python type into which this XML type is
+    # converted.  SHould be overridden in child classes.  A value of
+    # None indicates that no suitable Python type can be presumed.
+    PythonType = None
+
     @classmethod
     def SuperType (cls):
         """Identify the immediately higher class in the PythonSimpleTypeSupport hierarchy.
@@ -224,7 +229,7 @@ class _NamedComponent_mixin:
         Anonymous components are inherently name inequivalent."""
         return (self.__name is not None) and (self.__name == other.__name) and (self.__targetNamespace == other.__targetNamespace)
 
-class _Resolvable_mixin (object):
+class _Resolvable_mixin:
     """Mix-in indicating that this component may have references to unseen named components."""
     def __init__ (self):
         pass
@@ -908,7 +913,29 @@ class ModelGroup:
         self.__compositor = compositor
         self.__particles = particles[:]
 
+    @classmethod
+    def CreateFromDOM (cls, wxs, node):
+        if wxs.xsQualifiedName('all' == node.nodeName):
+            compositor = cls.C_ALL
+        elif wxs.xsQualifiedName('choice' == node.nodeName):
+            compositor = cls.C_CHOICE
+        elif wxs.xsQualifiedName('sequence' == node.nodeName):
+            compositor = cls.C_SEQUENCE
+        else:
+            raise IncompleteImplementationError('ModelGroup: Got unexpected %s' % (node.nodeName,))
+        particles = []
+        particle_tags = Particle.ParticleTags(wxs.xs())
+        for cn in node.childNodes:
+            if Node.ELEMENT_NODE != cn.nodeType:
+                continue
+            if cn.nodeName in particle_tags:
+                particles.append(Particle.CreateFromDOM(wxs, cn))
+        return cls(compositor, particles)
+
 class Particle:
+    # NB: Particles are not resolvable, but the term they include
+    # probably has some resolvable component.
+
     # The minimum number of times the term may appear; defaults to 1
     __minOccurs = 1
 
@@ -924,31 +951,52 @@ class Particle:
 
     def __init__ (self, term, min_occurs=1, max_occurs=1):
         self.__term = term
+        assert type(min_occurs) == int
         self.__minOccurs = min_occurs
+        assert (max_occurs is None) or (type(max_occurs) == int)
         self.__maxOccurs = max_occurs
         if self.__maxOccurs is not None:
             if self.__minOccurs > self.__maxOccurs:
-                raise LogicError('Particle minOccurs is greater than maxOccurs on creation')
+                raise LogicError('Particle minOccurs %s is greater than maxOccurs %s on creation' % (min_occurs, max_occurs))
     
     @classmethod
     def CreateFromDOM (cls, wxs, node):
         if wxs.xsQualifiedName('group') == node.nodeName:
-            raise IncompleteImplementationError('Particle: implement group')
+            # 3.9.2 says use 3.8.2, which is ModelGroup
+            # I think this is limited to explicit groups and group references
+            assert wxs.xsQualifiedName('schema') != node.parentNode.nodeName
+            assert not node.hasAttribute('name')
+            term = ModelGroup.CreateFromDOM(wxs, node)
         elif wxs.xsQualifiedName('element') == node.nodeName:
+            assert wxs.xsQualifiedName('schema') != node.parentNode.nodeName
+            # 3.9.2 says use 3.3.2, which is Element
             raise IncompleteImplementationError('Particle: implement element')
         elif wxs.xsQualifiedName('any') == node.nodeName:
+            # 3.9.2 says use 3.10.2, which is Wildcard
             raise IncompleteImplementationError('Particle: implement any')
-        elif wxs.xsQualifiedName('sequence') == node.nodeName:
-            raise IncompleteImplementationError('Particle: implement sequence')
-        elif wxs.xsQualifiedName('choice') == node.nodeName:
-            raise IncompleteImplementationError('Particle: implement choice')
-        elif wxs.xsQualifiedName('all') == node.nodeName:
-            raise IncompleteImplementationError('Particle: implement all')
-        raise LogicError('Unhandled node in Particle.CreateFromDOM: %s' % (node.toxml(),))
+        else:
+            raise LogicError('Unhandled node in Particle.CreateFromDOM: %s' % (node.toxml(),))
+
+        min_occurs = 1
+        max_occurs = 1
+        if node.hasAttribute('minOccurs'):
+            min_occurs = datatypes.nonNegativeInteger.StringToPython(node.getAttribute('minOccurs'))
+        if node.hasAttribute('maxOccurs'):
+            av = node.getAttribute('maxOccurs')
+            if 'unbounded' == av:
+                max_occurs = None
+            else:
+                max_occurs = datatypes.nonNegativeInteger.StringToPython(av)
+        rv = cls(term, min_occurs, max_occurs)
+        return rv
 
     @classmethod
     def TypedefTags (cls, namespace):
         return [ namespace.qualifiedName(_tag) for _tag in [ 'group', 'all', 'choice', 'sequence' ] ]
+
+    @classmethod
+    def ParticleTags (cls, namespace):
+        return [ namespace.qualifiedName(_tag) for _tag in [ 'group', 'all', 'choice', 'sequence', 'element', 'any' ] ]
 
 
 # 3.10.1
@@ -1411,7 +1459,7 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
 
         # @todo Process "final" attributes
         if node.hasAttribute('final'):
-            raise IncompleteImplementationException('"final" attribute not currently supported')
+            raise IncompleteImplementationError('"final" attribute not currently supported')
 
         name = None
         if node.hasAttribute('name'):
