@@ -1,6 +1,7 @@
 """Classes supporting XMLSchema Part 2: Datatypes"""
 
 import structures as xsc
+import types
 
 _PrimitiveDatatypes = []
 _DerivedDatatypes = []
@@ -8,35 +9,40 @@ _ListDatatypes = []
 
 class anySimpleType (xsc.PythonSimpleTypeSupport):
     @classmethod
-    def StringToPython (self, value):
+    def StringToPython (cls, value):
         return value
 
     @classmethod
-    def PythonToString (self, value):
+    def PythonToString (cls, value):
         return value
 # anySimpleType is not treated as a primitive, because its variety must be absent (not atomic).
     
 class string (anySimpleType):
+    # NOTE: The PythonType for this is *NOT* types.StringType, since
+    # the value may be a unicode string.
+
     @classmethod
-    def StringToPython (self, value):
+    def StringToPython (cls, value):
         return value
 
     @classmethod
-    def PythonToString (self, value):
+    def PythonToString (cls, value):
         return value
 _PrimitiveDatatypes.append(string)
 
 class boolean (anySimpleType):
+    PythonType = types.BooleanType
+
     @classmethod
-    def StringToPython (self, value):
+    def StringToPython (cls, value):
         if 'true' == value:
             return True
         if 'false' == value:
             return False
-        raise ValueError('%s: Invalid string "%s"' % (self._simpleTypeDefinition.name(),))
+        raise ValueError('boolean: Invalid value "%s"' % (value,))
 
     @classmethod
-    def PythonToString (self, value):
+    def PythonToString (cls, value):
         if value:
             return 'true'
         return 'false'
@@ -150,15 +156,36 @@ _DerivedDatatypes.append(ENTITY)
 _ListDatatypes.append( ( 'ENTITIES', 'ENTITY' ) )
 
 class integer (decimal):
-    pass
+    PythonType = types.LongType
+
+    @classmethod
+    def StringToPython (cls, value):
+        try:
+            return cls.PythonType(value)
+        except ValueError, e:
+            raise ValueError('%s: Invalid value "%s"' % (cls.__class__.__name__, value))
+
+    @classmethod
+    def PythonToString (cls, value):
+        return str(value)
 _DerivedDatatypes.append(integer)
 
 class nonPositiveInteger (integer):
-    pass
+    @classmethod
+    def StringToPython (cls, value):
+        rv = integer.StringToPython(value)
+        if 0 < rv:
+            raise ValueError('nonPositiveInteger: Invalid value "%s"' % (value,))
+        return rv
 _DerivedDatatypes.append(nonPositiveInteger)
 
 class negativeInteger (nonPositiveInteger):
-    pass
+    @classmethod
+    def StringToPython (cls, value):
+        rv = nonPositiveInteger.StringToPython(value)
+        if 0 <= rv:
+            raise ValueError('negativeInteger: Invalid value "%s"' % (value,))
+        return rv
 _DerivedDatatypes.append(negativeInteger)
 
 class long (integer):
@@ -178,7 +205,12 @@ class byte (short):
 _DerivedDatatypes.append(byte)
 
 class nonNegativeInteger (integer):
-    pass
+    @classmethod
+    def StringToPython (cls, value):
+        rv = integer.StringToPython(value)
+        if 0 > rv:
+            raise ValueError('nonNegativeInteger: Invalid value "%s" produced %d' % (value, rv))
+        return rv
 _DerivedDatatypes.append(nonNegativeInteger)
 
 class unsignedLong (nonNegativeInteger):

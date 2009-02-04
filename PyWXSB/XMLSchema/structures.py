@@ -35,6 +35,12 @@ class PythonSimpleTypeSupport(object):
     Currently, the only built-in non-atomic STDs are list variety, and
     they should use the PST of the underlying itemTypeDefinition just
     as schema-defined STDs do.
+
+    @note This is a new-style class, involved in a complex inheritance
+    hierarchy.  If you descend from it and define a custom __init__
+    method, it must use only keyword arguments and invoke
+    super.__init__(**kw).
+
     """
     
     # A reference to the XMLSchema.structures.SimpleTypeDefinition
@@ -190,7 +196,7 @@ def LocateFirstChildElement (node, absent_ok=False, require_unique=False):
     return candidate
 
 def HasNonAnnotationChild (node):
-    raise ImplementationIncompleteError("not implemented")
+    raise IncompleteImplementationError("not implemented")
 
 
 class _NamedComponent_mixin:
@@ -312,7 +318,7 @@ class AttributeDeclaration (_NamedComponent_mixin, _Resolvable_mixin):
     def _resolve (self, wxs):
         if self.isResolved():
             return self
-        print 'Resolving AD %s' % (self.name(),)
+        #print 'Resolving AD %s' % (self.name(),)
         node = self.__domNode
 
         # Implement per section 3.2.2
@@ -358,7 +364,8 @@ class AttributeUse (_Resolvable_mixin):
     # How this attribute can be used.  The component property
     # "required" is true iff the value is USE_required.
     USE_required = 0x01
-    USE_prohibited = 0x02
+    USE_optional = 0x02
+    USE_prohibited = 0x04
     __use = False
 
     # A reference to an AttributeDeclaration
@@ -376,6 +383,8 @@ class AttributeUse (_Resolvable_mixin):
             use = node.getAttribute('use')
             if 'required' == use:
                 rv.__use = cls.USE_required
+            elif 'optional' == use:
+                rv.__use = cls.USE_optional
             elif 'prohibited' == use:
                 rv.__use = cls.USE_prohibited
             else:
@@ -701,9 +710,9 @@ class ComplexTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
 
         # Shared from clause 3.1.2
         if effective_mixed:
-            ct = CT_MIXED
+            ct = self.CT_MIXED
         else:
-            ct = CT_ELEMENT_ONLY
+            ct = self.CT_ELEMENT_ONLY
         # Clause 3
         if self.DM_restriction == method:
             # Clause 3.1
@@ -856,7 +865,7 @@ class AttributeGroupDefinition (_NamedComponent_mixin, _Resolvable_mixin):
         if self.__isResolved:
             return self
         node = self.__domNode
-        print 'Resolving AG %s with %d children' % (self.name(), len(node.childNodes))
+        #print 'Resolving AG %s with %d children' % (self.name(), len(node.childNodes))
         uses = set()
         if node.hasAttribute('ref'):
             agd = wxs.lookupAttributeGroup(node.getAttribute('ref'))
@@ -951,9 +960,9 @@ class Particle:
 
     def __init__ (self, term, min_occurs=1, max_occurs=1):
         self.__term = term
-        assert type(min_occurs) == int
+        # @todo Figure out how to test whether the parameters are integers,
+        # given that sometimes they're ints and sometimes they're longs
         self.__minOccurs = min_occurs
-        assert (max_occurs is None) or (type(max_occurs) == int)
         self.__maxOccurs = max_occurs
         if self.__maxOccurs is not None:
             if self.__minOccurs > self.__maxOccurs:
@@ -1421,7 +1430,7 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
         """
         if self.__variety is not None:
             return self
-        print 'Resolving STD %s' % (self.name(),)
+        #print 'Resolving STD %s' % (self.name(),)
         assert self.__domNode
         node = self.__domNode
         
@@ -1569,7 +1578,7 @@ class Schema:
         assert isinstance(nc, _Resolvable_mixin)
         if nc.ncName() is None:
             raise LogicError('Attempt to add anonymous component to dictionary: %s', (nc.__class__,))
-        print 'Adding %s as %s' % (nc.__class__.__name__, nc.name())
+        #print 'Adding %s as %s' % (nc.__class__.__name__, nc.name())
         if isinstance(nc, (SimpleTypeDefinition, ComplexTypeDefinition)):
             return self.__addTypeDefinition(nc)
         if isinstance(nc, AttributeGroupDefinition):
