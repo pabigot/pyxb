@@ -253,7 +253,7 @@ class _Resolvable_mixin (object):
         raise LogicError('Resolution not implemented in %s' % (self.__class__,))
         
 
-class AttributeDeclaration(_NamedComponent_mixin):
+class AttributeDeclaration (_NamedComponent_mixin, _Resolvable_mixin):
     VC_na = 0                   #<<< No value constraint applies
     VC_default = 1              #<<< Provided value constraint is default value
     VC_fixed = 2                #<<< Provided value constraint is fixed value
@@ -270,49 +270,75 @@ class AttributeDeclaration(_NamedComponent_mixin):
 
     __annotation = None
 
+    def __init__ (self, name, target_namespace):
+        _NamedComponent_mixin.__init__(self, name, target_namespace)
+        _Resolvable_mixin.__init__(self)
+
     @classmethod
     def CreateBaseInstance (cls, name, target_namespace=None):
-        bi = AttributeDeclaration(name, target_namespace)
+        bi = cls(name, target_namespace)
         return bi
 
     @classmethod
     def CreateFromDOM (cls, wxs, node):
         # Node should be an XMLSchema attribute node
         assert wxs.xsQualifiedName('attribute') == node.nodeName
-        # TODO: Verify assumption that, because we are in a WXS element (viz., "attribute")
-        # we should not have to qualify the attribute names
 
-        # Currently only process top-level attributes
-        assert wxs.xsQualifiedName('schema') == node.parentNode.nodeName
+        name = None
+        if node.hasAttribute('name'):
+            name = node.getAttribute('name')
+        rv = cls(name, wxs.getTargetNamespace())
 
-        # Implement per section 3.2.2
-        assert node.hasAttribute('name')
-        rv = AttributeDeclaration(node.getAttribute('name'), wxs.getTargetNamespace())
-        rv.__scope = rv.SCOPE_global
-
-        cn = node.getElementsByTagName('simpleType')
-        assert not cn
-        if node.hasAttribute('type'):
-            rv.__typeDefinition = wxs.lookupSimpleType(node.getAttribute('type'))
-        else:
-            rv.__typeDefinition = SimpleTypeDefinition.SimpleUrTypeDefinition()
-
-        if node.hasAttribute('default'):
-            rv.__valueConstraint = (node.getAttribute('default'), rv.VC_default)
-        elif node.hasAttribute('fixed'):
-            rv.__valueConstraint = (node.getAttribute('fixed'), rv.VC_fixed)
-        else:
-            rv.__valueConstraint = None
-        
+        rv.__domNode = node
+        wxs._queueForResolution(rv)
         return rv
 
+    def isResolved (self):
+        return self.__typeDefinition is not None
 
-class AttributeUse:
+    def _resolve (self, wxs):
+        if self.isResolved():
+            return self
+        print 'Resolving STD %s' % (self.name(),)
+        node = self.__domNode
+
+        # Implement per section 3.2.2
+        if wxs.xsQualifiedName('schema') == node.parentNode.nodeName:
+            self.__scope = self.SCOPE_global
+            st_node = LocateUniqueChild(node, wxs, 'simpleType', absent_ok=True)
+            if st_node is not None:
+                self.__typeDefintion = SimpleTypeDefinition.CreateFromDOM(wxs, st_node)
+            elif node.hasAttribute('type'):
+                # Although the type definition may not be resolved, *this* component
+                # is resolved, since we don't look into the type definition for anything.
+                self.__typeDefinition = wxs.lookupSimpleType(node.getAttribute('type'))
+            else:
+                self.__typeDefinition = SimpleTypeDefinition.SimpleUrTypeDefinition()
+                
+            if node.hasAttribute('default'):
+                self.__valueConstraint = (node.getAttribute('default'), self.VC_default)
+            elif node.hasAttribute('fixed'):
+                self.__valueConstraint = (node.getAttribute('fixed'), self.VC_fixed)
+            else:
+                self.__valueConstraint = None
+        elif not node.hasAttribute('ref'):
+            raise IncompleteImplementationError('Unhandled ref in internal attribute declaration')
+        else:
+            raise IncompleteImplementationError('Unhandled anonymous internal attribute declaration')
+        
+        return self
+
+
+class AttributeUse (_Resolvable_mixin):
     VC_na = AttributeDeclaration.VC_na
     VC_default = AttributeDeclaration.VC_default
-    VC_fixerd = AttributeDeclaration.VC_fixed
+    VC_fixer = AttributeDeclaration.VC_fixed
 
-    __required = False
+    # How this attribute can be used.  The component property
+    # "required" is true iff the value is USE_required.
+    USE_required = 0x01
+    USE_prohibited = 0x02
+    __use = False
 
     # A reference to an AttributeDeclaration
     __attributeDeclaration = None
@@ -321,6 +347,48 @@ class AttributeUse:
     # values above.
     __valueConstraint = None
 
+    @classmethod
+    def CreateFromDOM (cls, wxs, node):
+        assert wxs.xsQualifiedName('attribute') == node.nodeName
+        rv = AttributeUse()
+        if node.hasAttribute('use'):
+            use = node.getAttribute('use')
+            if 'required' == use:
+                rv.__use = cls.USE_required
+            elif 'prohibited' == use:
+                rv.__use = cls.USE_prohibited
+            else:
+                raise SchemaValidationError('Unexpected value %s for attribute use attribute' % (use,))
+        if not node.hasAttribute('ref'):
+            # Create an anonymous declaration
+            rv.__attributeDeclaration = AttributeDeclaration.CreateFromDOM(wxs, node)
+        else:
+            rv.__domNode = node
+            wxs._queueForResolution(rv)
+        return rv
+
+    def isResolved (self):
+        return self.__attributeDeclaration is not None
+
+    def _resolve (self, wxs):
+        if self.isResolved():
+            return self
+        assert self.__domNode
+        node = self.__domNode
+        if not node.hasAttribute('ref'):
+            raise SchemaValidationError('Attribute uses require reference to attribute declaration')
+        # Although the attribute declaration definition may not be
+        # resolved, *this* component is resolved, since we don't look
+        # into the attribute declaration for anything.
+        self.__attributeDeclaration = wxs.lookupAttributeDeclaration(node.getAttribute('ref'))
+        self.__domNode = None
+        return self
+
+    def required (self):
+        return self.USE_required == self.__use
+
+    def prohibited (self):
+        return self.USE_prohibited == self.use
     
 class ElementDeclaration:
     __name = None
@@ -498,6 +566,7 @@ class ComplexTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
                     raise SchemaValidationError('Require ref attribute on internal attributeGroup elements')
                 agd = wxs.lookupAttributeGroup(node.getAttribute('ref'))
                 if not agd.isResolved():
+                    print 'Holding off resolution of attribute gruop %s due to dependence on unresolved %s' % (self.name(), agd.name())
                     wxs._queueForResolution(self)
                     return self
                 uses_c2.update(agd.attributeUses())
@@ -638,6 +707,7 @@ class AttributeGroupDefinition (_NamedComponent_mixin, _Resolvable_mixin):
             name = node.getAttribute('name')
 
         rv = cls(name, wxs.getTargetNamespace())
+
         wxs._queueForResolution(rv)
         rv.__domNode = node
         return rv
@@ -648,18 +718,29 @@ class AttributeGroupDefinition (_NamedComponent_mixin, _Resolvable_mixin):
         return self.__isResolved
 
     def _resolve (self, wxs):
-        print 'Resolving AG %s' % (self.name(),)
         if self.__isResolved:
             return self
-        extra_uses = frozenset()
-        if self.__domNode.hasAttribute('ref'):
-            agd = wxs.lookupAttributeGroup(self.__domNode.getAttribute('ref'))
+        node = self.__domNode
+        print 'Resolving AG %s with %d children' % (self.name(), len(node.childNodes))
+        uses = set()
+        if node.hasAttribute('ref'):
+            agd = wxs.lookupAttributeGroup(node.getAttribute('ref'))
             if not agd.isResolved():
+                print 'Holding off resolution of attribute group %s due to dependence on unresolved %s' % (self.name(), agd.name())
                 wxs._queueForResolution(self)
                 return self
-            extra_uses = agd.attributeUses()
-        # @todo Add the ones from this definition
-        self.__attributeUses = extra_uses
+            uses = uses.union(agd.attributeUses())
+        # @todo Handle annotations
+        wx_attribute = wxs.xsQualifiedName('attribute')
+        for cn in node.childNodes:
+            if Node.ELEMENT_NODE != cn.nodeType:
+                continue
+            if wx_attribute != cn.nodeName:
+                continue
+            print 'Adding use from %s' % (cn.toxml(),)
+            uses.add(AttributeUse.CreateFromDOM(wxs, cn))
+
+        self.__attributeUses = frozenset(uses)
         self.__isResolved = True
         self.__domNode = None
         
@@ -1026,6 +1107,7 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
             # delay processing this type until the one it depends on
             # has been completed.
             if not base_type.isResolved():
+                print 'Holding off resolution of anonymous simple type due to dependence on unresolved %s' % (base_type.name(),)
                 wxs._queueForResolution(self)
                 return
             self.__baseTypeDefinition = base_type
@@ -1138,6 +1220,7 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
         """
         if self.__variety is not None:
             return self
+        print 'Resolving STD %s' % (self.name(),)
         assert self.__domNode
         node = self.__domNode
         
@@ -1227,8 +1310,10 @@ class Schema:
 
     def __init__ (self):
         self.__annotations = [ ]
+
         self.__typeDefinitions = { }
         self.__attributeGroupDefinitions = { }
+        self.__attributeDeclarations = { }
 
         self.__unresolvedDefinitions = []
 
@@ -1265,7 +1350,13 @@ class Schema:
                 # This only happens if we didn't code things right, or
                 # the schema actually has a circular dependency in
                 # some named component.
-                raise LogicError('Infinite loop in resolution: %s' % (' '.join([ _x.name() for _x in self.__unresolvedDefinitions ]),))
+                failed_components = []
+                for d in self.__unresolvedDefinitions:
+                    if isinstance(d, _NamedComponent_mixin):
+                        failed_components.append('%s named %s' % (d.__class__.__name__, d.name()))
+                    else:
+                        failed_components.append('Anonymous %s' % (d.__class__.__name__,))
+                raise LogicError('Infinite loop in resolution:\n  %s' % ("\n  ".join(failed_components),))
         self.__unresolvedDefinitions = None
         return self
 
@@ -1277,11 +1368,14 @@ class Schema:
         assert isinstance(nc, _Resolvable_mixin)
         if nc.ncName() is None:
             raise LogicError('Attempt to add anonymous component to dictionary: %s', (nc.__class__,))
+        print 'Adding %s as %s' % (nc.__class__.__name__, nc.name())
         if isinstance(nc, (SimpleTypeDefinition, ComplexTypeDefinition)):
             return self.__addTypeDefinition(nc)
         if isinstance(nc, AttributeGroupDefinition):
             return self.__addAttributeGroupDefinition(nc)
-        raise LogicError('Cannot record named component of type %s' % (nc.__class__,))
+        if isinstance(nc, AttributeDeclaration):
+            return self.__addAttributeDeclaration(nc)
+        raise IncompleteImplementationError('Cannot record named component of type %s' % (nc.__class__,))
 
     def __addTypeDefinition (self, td):
         local_name = td.ncName()
@@ -1317,3 +1411,18 @@ class Schema:
 
     def _attributeGroupDefinitions (self):
         return self.__attributeGroupDefinitions.values()
+
+    def __addAttributeDeclaration (self, ad):
+        assert isinstance(ad, AttributeDeclaration)
+        local_name = ad.ncName()
+        old_ad = self.__attributeDeclarations.get(local_name, None)
+        if old_ad is not None:
+            raise SchemaValidationError('Name %s used for multiple attribute declarations' % (local_name,))
+        self.__attributeDeclarations[local_name] = ad
+        return ad
+
+    def _lookupAttributeDeclaration (self, local_name):
+        return self.__attributeDeclarations.get(local_name, None)
+
+    def _attributeDeclarations (self):
+        return self.__attributeDeclarations.values()

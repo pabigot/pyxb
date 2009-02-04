@@ -130,6 +130,15 @@ class schema (xsc.Schema):
             raise SchemaValidationError('lookupAttributeGroup: No match for "%s" in %s' % (ref_name, self.__targetNamespace))
         return rv
 
+    def lookupAttributeDeclaration (self, ref_name):
+        if 0 <= ref_name.find(':'):
+            ( prefix, local_name ) = ref_name.split(':', 1)
+            return self.namespaceForPrefix(prefix).lookupAttributeDeclaration(local_name)
+        rv = self._lookupAttributeDeclaration(ref_name)
+        if rv is None:
+            raise SchemaValidationError('lookupAttributeDeclaration: No match for "%s" in %s' % (ref_name, self.__targetNamespace))
+        return rv
+
     def addNamespace (self, namespace):
         old_namespace = self.__namespacePrefixMap.get(namespace.prefix(), None)
         return namespace
@@ -271,7 +280,8 @@ class schema (xsc.Schema):
     def _processAttributeDeclaration (self, node):
         # NB: This is an attribute of the schema itself
         an = xsc.AttributeDeclaration.CreateFromDOM(self, node)
-        return self
+        self._addNamedComponent(an)
+        return an
 
     def _processSimpleType (self, node):
         """Walk a simpleType element to create a simple type definition component.

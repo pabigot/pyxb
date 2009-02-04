@@ -44,6 +44,9 @@ class Namespace:
     def lookupAttributeGroup (self, local_name):
         return self._validatedSchema().lookupAttributeGroup(local_name)
         
+    def lookupAttributeDeclaration (self, local_name):
+        print 'Lookup attribute declaration %s in %s' % (local_name, self)
+        return self._validatedSchema().lookupAttributeDeclaration(local_name)
 
     def qualifiedName (self, local_name, default_namespace=None):
         """Return a namespace-qualified name for the given local name
