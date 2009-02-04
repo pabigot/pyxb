@@ -261,6 +261,7 @@ class AttributeDeclaration (_NamedComponent_mixin, _Resolvable_mixin):
     __typeDefinition = None
 
     SCOPE_global = 'global'
+    xSCOPE_unhandled = 'unhandled'
     # None, the string "global", or a reference to a _ComplexTypeDefinition
     __scope = None
 
@@ -287,6 +288,10 @@ class AttributeDeclaration (_NamedComponent_mixin, _Resolvable_mixin):
         name = None
         if node.hasAttribute('name'):
             name = node.getAttribute('name')
+        # @todo: Internal attribute non-reference target namespace calculation is incorrect.
+        assert not node.hasAttribute('form')
+        print 'WARNING: Not handling form default correctly'
+        # also check associated schema attributeFormDefault
         rv = cls(name, wxs.getTargetNamespace())
 
         rv.__domNode = node
@@ -299,33 +304,41 @@ class AttributeDeclaration (_NamedComponent_mixin, _Resolvable_mixin):
     def _resolve (self, wxs):
         if self.isResolved():
             return self
-        print 'Resolving STD %s' % (self.name(),)
+        print 'Resolving AD %s' % (self.name(),)
         node = self.__domNode
 
         # Implement per section 3.2.2
         if wxs.xsQualifiedName('schema') == node.parentNode.nodeName:
             self.__scope = self.SCOPE_global
-            st_node = LocateUniqueChild(node, wxs, 'simpleType', absent_ok=True)
-            if st_node is not None:
-                self.__typeDefintion = SimpleTypeDefinition.CreateFromDOM(wxs, st_node)
-            elif node.hasAttribute('type'):
-                # Although the type definition may not be resolved, *this* component
-                # is resolved, since we don't look into the type definition for anything.
-                self.__typeDefinition = wxs.lookupSimpleType(node.getAttribute('type'))
-            else:
-                self.__typeDefinition = SimpleTypeDefinition.SimpleUrTypeDefinition()
+
+        elif not node.hasAttribute('ref'):
+            # The AttributeUse component is resolved elsewhere
+            # @todo Set scope to enclosing complexType, if present
+            self.__scope = self.xSCOPE_unhandled
+        else:
+            # I think this is really a schema validation error
+            raise IncompleteImplementationError('Internal attribute declaration by reference')
+        
+        st_node = LocateUniqueChild(node, wxs, 'simpleType', absent_ok=True)
+        if st_node is not None:
+            self.__typeDefinition = SimpleTypeDefinition.CreateFromDOM(wxs, st_node)
+        elif node.hasAttribute('type'):
+            # Although the type definition may not be resolved, *this* component
+            # is resolved, since we don't look into the type definition for anything.
+            self.__typeDefinition = wxs.lookupSimpleType(node.getAttribute('type'))
+        else:
+            self.__typeDefinition = SimpleTypeDefinition.SimpleUrTypeDefinition()
                 
+        if self.SCOPE_global == self.__scope:
             if node.hasAttribute('default'):
                 self.__valueConstraint = (node.getAttribute('default'), self.VC_default)
             elif node.hasAttribute('fixed'):
                 self.__valueConstraint = (node.getAttribute('fixed'), self.VC_fixed)
             else:
                 self.__valueConstraint = None
-        elif not node.hasAttribute('ref'):
-            raise IncompleteImplementationError('Unhandled ref in internal attribute declaration')
-        else:
-            raise IncompleteImplementationError('Unhandled anonymous internal attribute declaration')
-        
+
+        # @todo handle annotation
+
         return self
 
 
