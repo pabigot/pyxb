@@ -157,16 +157,17 @@ class PythonSimpleTypeSupport(object):
 # follow its declaration.
 import datatypes
 
-def LocateUniqueChild (node, namespace, local_name, absent_ok=False):
+def LocateUniqueChild (node, schema, tag, absent_ok=False):
     candidate = None
     # @todo identify QName children as well as NCName
+    name = schema.xsQualifiedName(tag)
     for cn in node.childNodes:
-        if cn.nodeName == local_name:
+        if cn.nodeName == name:
             if candidate:
-                raise SchemaValidationError('Multiple %s nodes in %s' % (local_name, node.nodeName))
+                raise SchemaValidationError('Multiple %s elements nested in %s' % (name, node.nodeName))
             candidate = cn
     if (candidate is None) and not absent_ok:
-        raise SchemaValidationError('Expected %s node in %s' % (local_name, node.nodeName))
+        raise SchemaValidationError('Expected %s elements nested in %s' % (name, node.nodeName))
     return candidate
 
 class AttributeDeclaration:
@@ -946,34 +947,25 @@ class SimpleTypeDefinition:
         # recursive.
         if self.__variety is not None:
             return self
-        assert self.__domNode
+        assert self.__domNode and self.__w3cXMLSchema
         node = self.__domNode
         wxs = self.__w3cXMLSchema
-        assert wxs is not None
         
-        elt_map = {}
-        for t in [ 'list', 'restriction', 'union' ]:
-            qn = wxs.xsQualifiedName(t)
-            elt_map[t] = [ _cn for _cn in node.childNodes if _cn.nodeName == qn ]
- 
         # The guts of the node should be exactly one instance of
         # exactly one of these three types.
-        elts = elt_map['list']
-        if elts:
-            assert 1 == len(elts), '%s has multiple list elements' % (name,)
-            self.__initializeFromList(wxs, elts[0])
-            
-        elts = elt_map['restriction']
-        if elts:
-            assert not self.isResolved()
-            assert 1 == len(elts), '%s has multiple restriction elements' % (name,)
-            self.__initializeFromRestriction(wxs, elts[0])
+        candidate = LocateUniqueChild(node, wxs, 'list', absent_ok=True)
+        if candidate:
+            self.__initializeFromList(wxs, candidate)
 
-        elts = elt_map['union']
-        if elts:
-            assert not self.isResolved()
-            assert 1 == len(elts), '%s has multiple union elements' % (name,)
-            self.__initializeFromUnion(wxs, elts[0])
+        candidate = LocateUniqueChild(node, wxs, 'restriction', absent_ok=True)
+        if candidate:
+            assert self.__variety is None
+            self.__initializeFromRestriction(wxs, candidate)
+
+        candidate = LocateUniqueChild(node, wxs, 'union', absent_ok=True)
+        if candidate:
+            assert self.__variety is None
+            self.__initializeFromUnion(wxs, candidate)
 
         if self.__variety is None:
             raise SchemaValidationError('Expected exactly one of list, restriction, union as child of simpleType')
