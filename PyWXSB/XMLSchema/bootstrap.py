@@ -121,6 +121,15 @@ class schema (xsc.Schema):
             return rv
         raise Exception('lookupSimpleType: Name "%s" in %s is not a simple type' % (type_name, self.__targetNamespace))
 
+    def lookupAttributeGroup (self, ref_name):
+        if 0 <= ref_name.find(':'):
+            ( prefix, local_name ) = ref_name.split(':', 1)
+            return self.namespaceForPrefix(prefix).lookupAttributeGroup(local_name)
+        rv = self._lookupAttributeGroupDefinition(ref_name)
+        if rv is None:
+            raise SchemaValidationError('lookupAttributeGroup: No match for "%s" in %s' % (ref_name, self.__targetNamespace))
+        return rv
+
     def addNamespace (self, namespace):
         old_namespace = self.__namespacePrefixMap.get(namespace.prefix(), None)
         return namespace

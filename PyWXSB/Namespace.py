@@ -33,10 +33,17 @@ class Namespace:
             self.__schema = schema
         return self.__schema
 
-    def lookupType (self, local_name):
+    def _validatedSchema (self):
         if self.__schema is None:
-            raise LogicError('lookupType(%s) failed: Namespace %s has no associated schema' % (local_name, self.uri()))
-        return self.__schema.lookupType(local_name)
+            raise PyWXSBException('Cannot resolve in namespace %s: no associated schema' % (self.uri(),))
+        return self.__schema
+
+    def lookupType (self, local_name):
+        return self._validatedSchema().lookupType(local_name)
+
+    def lookupAttributeGroup (self, local_name):
+        return self._validatedSchema().lookupAttributeGroup(local_name)
+        
 
     def qualifiedName (self, local_name, default_namespace=None):
         """Return a namespace-qualified name for the given local name

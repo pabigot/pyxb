@@ -307,7 +307,7 @@ class ComplexTypeDefinition:
     # Derived from the abstract attribute
     __abstract = False
     
-    # A set() or frozenset() of AttributeUse instances
+    # A frozenset() of AttributeUse instances
     __attributeUses = None
 
     # Optional wildcard that constrains attributes
@@ -447,11 +447,49 @@ class ComplexTypeDefinition:
         
         return rv
 
+    def __completeAttributeProcessing (self, wxs, definition_node_list):
+        uses_c1 = set()
+        uses_c2 = set()
+        uses_c3 = set()
+        xs_attribute = wxs.xsQualifiedName('attribute')
+        xs_attributeGroup = wxs.xsQualifiedName('attributeGroup')
+        # Handle clauses 1 and 2
+        for node in definition_node_list:
+            if Node.ELEMENT_NODE != node.nodeType:
+                continue
+            if xs_attribute == node.nodeName:
+                # Note: This attribute use instance may have use=prohibited
+                uses_c1.add(AttributeUse.CreateFromDOM(node))
+            elif xs_attributeGroup == node.nodeName:
+                # This must be an attributeGroupRef
+                if not node.hasAttribute('ref'):
+                    raise SchemaValidationError('Require ref attribute on internal attributeGroup elements')
+                uses_c2.update(wxs.lookupAttributeGroup(node.getAttribute('ref')).attributeUses())
+        # Handle clause 3
+        if isinstance(self.__baseTypeDefinition, ComplexTypeDefinition):
+            uses_c3 = uses_c3.union(self.__baseTypeDefinition.__attributeUses)
+            if self.DM_restriction == self.__derivationMethod:
+                # Exclude attributes per clause 3.  Note that this
+                # process handles both 3.1 and 3.2, since we have
+                # not yet filtered uses_c1 for prohibited attributes
+                uses_c12 = uses_c1.union(uses_c2)
+                for au in uses_c12:
+                    uses_c3 = uses_c3.difference(au.matchingQNameMembers(uses_c3))
+        uses = set([ _au for _au in uses_c1 if not _au.useProhibited() ])
+        self.__attributeUses = frozenset(uses.union(uses_c2).union(uses_c3))
+        # @todo Handle attributeWildcard
+        return self
+
     def __completeSimpleResolution (self, wxs, definition_node_list, method, base_type):
-        wxs._addUnresolvedTypeDefinition(self)
-        pass
+        # Implement CTD with simple content
+        self.__baseTypeDefinition = base_type
+        self.__derivationMethod = method
+
+        # @todo contentType
+        return self.__completeAttributeProcessing(wxs, definition_node_list)
 
     def __completeComplexResolution (self, wxs, definition_node_list, method, base_type):
+        # Implement CTD with complex content
         wxs._addUnresolvedTypeDefinition(self)
         pass
 
@@ -476,10 +514,16 @@ class ComplexTypeDefinition:
 
         # @todo implement prohibitedSubstitutions, final, annotations
 
+        # Assume we're in the short-hand case: the entire content is
+        # implicitly wrapped in a complex restriction of the ur-type.
         definition_node_list = node.childNodes
         is_complex_content = True
         base_type = ComplexTypeDefinition.UrTypeDefinition()
         method = self.DM_restriction
+
+        # Determine whether above assumption is correct by looking for
+        # element content and seeing if it's one of the wrapper
+        # elements.
         first_elt = LocateFirstChildElement(node)
         if first_elt:
             have_content = False
@@ -489,6 +533,11 @@ class ComplexTypeDefinition:
             elif wxs.xsQualifiedName('complexContent') == first_elt.nodeName:
                 have_content = True
             if have_content:
+                # Repeat the search to verify that only the one child is present.
+                first_elt = LocateFirstChildElement(node, require_unique=True)
+
+                # Identify the contained restriction or extension
+                # element, and extract the base type.
                 ions = LocateFirstChildElement(first_elt)
                 if wxs.xsQualifiedName('restriction') == ions.nodeName:
                     method = self.DM_restriction
@@ -500,9 +549,12 @@ class ComplexTypeDefinition:
                     raise SchemaValidationError('Element %s missing base attribute' % (ions.nodeName,))
                 base_type = wxs.lookupType(ions.getAttribute('base'))
                 if not base_type.isResolved():
+                    # Have to delay resolution until the type this
+                    # depends on is available.
                     print 'Holding off resolution of %s due to dependence on unresolved %s' % (self.name(), base_type.name())
                     wxs._addUnresolvedTypeDefinition(self)
                     return self
+                # The content is defined by the restriction/extension element
                 definition_node_list = ions.childNodes
         if is_complex_content:
             self.__completeComplexResolution(wxs, definition_node_list, method, base_type)
@@ -525,6 +577,12 @@ class AttributeGroupDefinition:
     __attributeUses = None
     __attributeWildcard = None
     __annotation = None
+
+    def __init__ (self):
+        pass
+
+    def attributeUses (self):
+        return self.__attributeUses
 
 class ModelGroupDefinition:
     # The name by which the model will be known in some context.
@@ -1118,6 +1176,7 @@ class Schema:
         self.__annotations = [ ]
         self.__typeDefinitions = { }
         self.__unresolvedTypeDefinitions = []
+        self.__attributeGroupDefinitions = { }
 
     def _addUnresolvedTypeDefinition (self, std):
         """Invoked by {Simple,Complex}TypeDefinition component when creating a
@@ -1145,34 +1204,45 @@ class Schema:
         return self
 
     def _addAnnotation (self, annotation):
-
         self.__annotations.append(annotation)
         return annotation
 
-    def _addTypeDefinition (self, definition):
-        assert isinstance(definition, (SimpleTypeDefinition, ComplexTypeDefinition))
-        local_name = definition.localName()
-        assert 0 > local_name.find(':')
-        assert definition
+    def _addTypeDefinition (self, td):
+        assert td
+        assert isinstance(td, (SimpleTypeDefinition, ComplexTypeDefinition))
+        local_name = td.localName()
 
-        old_definition = self.__typeDefinitions.get(local_name, None)
-        if old_definition is not None:
-            # @todo validation error if old_definition is not a built-in
-            if isinstance(definition, ComplexTypeDefinition) != isinstance(old_definition, ComplexTypeDefinition):
-                raise SchemaValidationError('Name %s used for both simple and complex types' % (definition.name(),))
+        old_td = self.__typeDefinitions.get(local_name, None)
+        if old_td is not None:
+            # @todo validation error if old_td is not a built-in
+            if isinstance(td, ComplexTypeDefinition) != isinstance(old_td, ComplexTypeDefinition):
+                raise SchemaValidationError('Name %s used for both simple and complex types' % (td.name(),))
             # Copy schema-related information from the new definition
             # into the old one, and continue to use the old one.
-            assert definition in self.__unresolvedTypeDefinitions
-            self.__unresolvedTypeDefinitions.remove(definition)
-            assert old_definition not in self.__unresolvedTypeDefinitions
-            self.__unresolvedTypeDefinitions.append(old_definition)
-            definition = old_definition._setFromInstance(definition)
+            assert td in self.__unresolvedTypeDefinitions
+            self.__unresolvedTypeDefinitions.remove(td)
+            assert old_td not in self.__unresolvedTypeDefinitions
+            self.__unresolvedTypeDefinitions.append(old_td)
+            td = old_td._setFromInstance(td)
         else:
-            self.__typeDefinitions[local_name] = definition
-        return definition
+            self.__typeDefinitions[local_name] = td
+        return td
     
+    def _addAttributeGroupDefinition (self, agd):
+        assert isinstance(agd, AttributeGroupDefinition)
+        local_name = agd.localName()
+        old_agd = self.__attributeGroupDefinitions.get(local_name, None)
+        if old_agd is not None:
+            raise SchemaValidationError('Name %s used for multiple attribute group definitions' % (local_name,))
+        self.__attributeGroupDefinitions = agd
+        return agd
+
     def _lookupTypeDefinition (self, local_name):
         return self.__typeDefinitions.get(local_name, None)
     
     def _typeDefinitions (self):
         return self.__typeDefinitions.values()
+
+    def _lookupAttributeGroupDefinition (self, local_name):
+        return self.__attributeGroupDefinitions.get(local_name, None)
+
