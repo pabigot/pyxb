@@ -195,9 +195,14 @@ def LocateFirstChildElement (node, absent_ok=False, require_unique=False):
         raise SchemaValidationError('No elements nested in %s' % (node.nodeName,))
     return candidate
 
-def HasNonAnnotationChild (node):
-    raise IncompleteImplementationError("not implemented")
-
+def HasNonAnnotationChild (wxs, node):
+    xs_annotation = wxs.xsQualifiedName('annotation')
+    for cn in node.childNodes:
+        if Node.ELEMENT_NODE != cn.nodeType:
+            continue
+        if xs_annotation != cn.nodeName:
+            return True
+    return False
 
 class _NamedComponent_mixin:
     """Mix-in to hold the name and target namespace of a component.
@@ -680,10 +685,10 @@ class ComplexTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
                 typedef_node = cn
                 test_2_1_1 = False
             if ((cn.nodeName in allseq_particle_tags) \
-                    and (not HasNonAnnotationChild(cn))):
+                    and (not HasNonAnnotationChild(wxs, cn))):
                 test_2_1_2 = True
             if ((cn.nodeName == xs_choice) \
-                    and (not HasNonAnnotationChild(cn))\
+                    and (not HasNonAnnotationChild(wxs, cn))\
                     and cn.hasAttribute('minOccurs') \
                     and (0 == datatypes.integer.StringToValue(cn.getAttribute('minOccurs')))):
                 test_2_1_3 = True
@@ -924,11 +929,11 @@ class ModelGroup:
 
     @classmethod
     def CreateFromDOM (cls, wxs, node):
-        if wxs.xsQualifiedName('all' == node.nodeName):
+        if wxs.xsQualifiedName('all') == node.nodeName:
             compositor = cls.C_ALL
-        elif wxs.xsQualifiedName('choice' == node.nodeName):
+        elif wxs.xsQualifiedName('choice') == node.nodeName:
             compositor = cls.C_CHOICE
-        elif wxs.xsQualifiedName('sequence' == node.nodeName):
+        elif wxs.xsQualifiedName('sequence') == node.nodeName:
             compositor = cls.C_SEQUENCE
         else:
             raise IncompleteImplementationError('ModelGroup: Got unexpected %s' % (node.nodeName,))
@@ -970,7 +975,8 @@ class Particle:
     
     @classmethod
     def CreateFromDOM (cls, wxs, node):
-        if wxs.xsQualifiedName('group') == node.nodeName:
+        group_names = [ wxs.xsQualifiedName(_tag) for _tag in [ 'group', 'sequence', 'choice', 'all' ] ]
+        if node.nodeName in group_names:
             # 3.9.2 says use 3.8.2, which is ModelGroup
             # I think this is limited to explicit groups and group references
             assert wxs.xsQualifiedName('schema') != node.parentNode.nodeName
