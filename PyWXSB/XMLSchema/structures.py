@@ -185,17 +185,47 @@ def LocateFirstChildElement (node, absent_ok=False, require_unique=False):
     return candidate
 
 
-class AttributeDeclaration:
+class _NamedComponent_mixin:
+    """Mix-in to hold the name and target namespace of a component.
+
+    The name may be None, indicating an anonymous component."""
+    # Value of the component.  None if the component is anonymous.
+    __name = None
+
+    # None, or a reference to a Namespace in which the component may be found
+    __targetNamespace = None
+    
+    def __init__ (self, name, target_namespace):
+        assert (name is None) or (0 > name.find(':'))
+        self.__name = name
+        self.__targetNamespace = target_namespace
+
+    def targetNamespace (self):
+        """Return the namespace in which the component is located."""
+        return self.__targetNamespace
+
+    def ncName (self):
+        """Return the local name of the component."""
+        return self.__name
+
+    def name (self):
+        """Return the QName of the component."""
+        if self.__name is not None:
+            if self.__targetNamespace:
+                return self.__targetNamespace.qualifiedName(self.__name)
+        return self.__name
+
+    def isNameEquivalent (self, other):
+        """Return true iff this and the other component share the same name and target namespace.
+        
+        Anonymous components are inherently name inequivalent."""
+        return (self.__name is not None) and (self.__name == other.__name) and (self.__targetNamespace == other.__targetNamespace)
+
+class AttributeDeclaration(_NamedComponent_mixin):
     VC_na = 0                   #<<< No value constraint applies
     VC_default = 1              #<<< Provided value constraint is default value
     VC_fixed = 2                #<<< Provided value constraint is fixed value
 
-    # Value of the name attribute from the declaration
-    __name = None
-
-    # None, or a reference to a Namespace
-    __targetNamespace = None
-    
     __typeDefinition = None
 
     SCOPE_global = 'global'
@@ -210,14 +240,11 @@ class AttributeDeclaration:
 
     @classmethod
     def CreateBaseInstance (cls, name, target_namespace=None):
-        bi = AttributeDeclaration()
-        bi.__name = name
-        bi.__targetNamespace = target_namespace
+        bi = AttributeDeclaration(name, target_namespace)
         return bi
 
     @classmethod
     def CreateFromDOM (cls, wxs, node):
-        rv = AttributeDeclaration()
         # Node should be an XMLSchema attribute node
         assert wxs.xsQualifiedName('attribute') == node.nodeName
         # TODO: Verify assumption that, because we are in a WXS element (viz., "attribute")
@@ -227,8 +254,8 @@ class AttributeDeclaration:
         assert wxs.xsQualifiedName('schema') == node.parentNode.nodeName
 
         # Implement per section 3.2.2
-        rv.__name = node.getAttribute('name')
-        rv.__targetNamespace = wxs.getTargetNamespace()
+        assert node.hasAttribute('name')
+        rv = AttributeDeclaration(node.getAttribute('name'), wxs.getTargetNamespace())
         rv.__scope = rv.SCOPE_global
 
         cn = node.getElementsByTagName('simpleType')
@@ -283,13 +310,7 @@ class ElementDeclaration:
     __abstract = False
     __annotation = None
     
-class ComplexTypeDefinition:
-    # The name of the complex type, or None if the type is unnamed.
-    __name = None
-
-    # The namespace to which the type belongs
-    __targetNamespace = None
-
+class ComplexTypeDefinition (_NamedComponent_mixin):
     # The type resolved from the base attribute
     __baseTypeDefinition = None
 
@@ -332,7 +353,7 @@ class ComplexTypeDefinition:
     __annotations = None
     
     def __init__ (self, local_name, target_namespace, derivation_method):
-        self.__name = local_name
+        _NamedComponent_mixin.__init__(self, local_name, target_namespace)
         self.__targetNamespace = target_namespace
         self.__derivationMethod = derivation_method
 
@@ -347,8 +368,7 @@ class ComplexTypeDefinition:
 
         Returns self.
         """
-        assert self.__name == other.__name
-        assert self.__targetNamespace == other.__targetNamespace
+        assert self.isNameEquivalent(other)
 
         # The other STD should be an unresolved schema-defined type.
         assert other.__derivationMethod is None
@@ -568,22 +588,7 @@ class ComplexTypeDefinition:
             self.__completeSimpleResolution(wxs, definition_node_list, method, base_type)
         return self
 
-    def localName (self):
-        return self.__name
-
-    def name (self):
-        if self.__name is not None:
-            if self.__targetNamespace:
-                return self.__targetNamespace.qualifiedName(self.__name)
-        return self.__name
-
-class AttributeGroupDefinition:
-    # The name of the attribute group type, or None if this is an attributeGroupReference
-    __name = None
-
-    # The namespace to which the group belongs
-    __targetNamespace = None
-
+class AttributeGroupDefinition (_NamedComponent_mixin):
     __attributeUses = None
 
     # Optional wildcard that constrains attributes
@@ -598,8 +603,7 @@ class AttributeGroupDefinition:
         return self.__isResolved
 
     def __init__ (self, local_name, target_namespace):
-        self.__name = local_name
-        self.__targetNamespace = target_namespace
+        _NamedComponent_mixin.__init__(self, local_name, target_namespace)
 
     @classmethod
     def CreateFromDOM (cls, wxs, node):
@@ -634,28 +638,15 @@ class AttributeGroupDefinition:
     def attributeUses (self):
         return self.__attributeUses
 
-    def localName (self):
-        return self.__name
-
-    def name (self):
-        if self.__name is not None:
-            if self.__targetNamespace:
-                return self.__targetNamespace.qualifiedName(self.__name)
-        return self.__name
-
-class ModelGroupDefinition:
-    # The name by which the model will be known in some context.
-    # Derives from the name attribute of a group element)
-    __name = None
-
-    # Optional reference to a Namespace
-    __targetNamespace = None
-
+class ModelGroupDefinition (_NamedComponent_mixin):
     # Reference to a _ModelGroup
     __modelGroup = None
 
     # Optional
     __annotation = None
+
+    def __init__ (self, name, target_namespace):
+        _NamedComponent_mixin.__init__(self, name, target_namespace)
 
 
 class ModelGroup:
@@ -722,9 +713,7 @@ class Wildcard:
         self.__annotation = annotation
 
 # 3.11.1
-class IdentityConstraintDefinition:
-    __name = None
-    __targetNamespace = None
+class IdentityConstraintDefinition (_NamedComponent_mixin):
     ICC_KEY = 0x01
     ICC_KEYREF = 0x02
     ICC_UNIQUE = 0x04
@@ -735,9 +724,7 @@ class IdentityConstraintDefinition:
     __annotation = None
 
 # 3.12.1
-class NotationDeclaration:
-    __name = None
-    __targetNamespace = None
+class NotationDeclaration (_NamedComponent_mixin):
     __systemIdentifier = None
     __publicIdentifier = None
     __annotation = None
@@ -778,7 +765,7 @@ class Annotation:
 
 
 # Section 3.14.
-class SimpleTypeDefinition:
+class SimpleTypeDefinition (_NamedComponent_mixin):
     """The schema component for simple type definitions.
 
     This component supports the basic datatypes of XML schema, and
@@ -786,13 +773,6 @@ class SimpleTypeDefinition:
 
     @see PythonSimpleTypeSupport for additional information.
     """
-
-    # The local name of the type
-    __name = None
-
-    # Reference to a Namespace instance to which the type belongs.
-    # This should be non-None.
-    __targetNamespace = None
 
     # Reference to the SimpleTypeDefinition on which this is based.
     # The value must be non-None except for the simple ur-type
@@ -853,8 +833,7 @@ class SimpleTypeDefinition:
     # methods, the signature does not provide defaults for the core
     # attributes.
     def __init__ (self, name, target_namespace, variety):
-        self.__name = name
-        self.__targetNamespace = target_namespace
+        _NamedComponent_mixin.__init__(self, name, target_namespace)
         self.__variety = variety
 
     def _setFromInstance (self, other):
@@ -868,8 +847,7 @@ class SimpleTypeDefinition:
 
         Returns self.
         """
-        assert self.__name == other.__name
-        assert self.__targetNamespace == other.__targetNamespace
+        assert self.isNameEquivalent(other)
 
         # The other STD should be an unresolved schema-defined type.
         assert other.__baseTypeDefinition is None
@@ -1202,15 +1180,6 @@ class SimpleTypeDefinition:
         self.__pythonSupport._setSimpleTypeDefinition(self)
         return self.__pythonSupport
 
-    def localName (self):
-        return self.__name
-
-    def name (self):
-        if self.__name is not None:
-            if self.__targetNamespace:
-                return self.__targetNamespace.qualifiedName(self.__name)
-        return self.__name
-
     def pythonSupport (self):
         if self.__pythonSupport is None:
             raise LogicError('%s: No support defined' % (self.name(),))
@@ -1276,7 +1245,7 @@ class Schema:
         assert td
         assert isinstance(td, (SimpleTypeDefinition, ComplexTypeDefinition))
 
-        local_name = td.localName()
+        local_name = td.ncName()
         if local_name is None:
             raise SchemaValidationError('No name available for type definition')
 
@@ -1294,7 +1263,7 @@ class Schema:
     
     def _addAttributeGroupDefinition (self, agd):
         assert isinstance(agd, AttributeGroupDefinition)
-        local_name = agd.localName()
+        local_name = agd.ncName()
         if local_name is None:
             raise SchemaValidationError('No name available for type definition')
 
