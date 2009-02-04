@@ -673,6 +673,10 @@ class SimpleTypeDefinition:
     # A cached reference to the schema to which this type is associated.
     __w3cXMLSchema = None
 
+    # Indicate that this instance was defined as a built-in rather
+    # than from a DOM instance.
+    __isBuiltin = False
+
     # Allocate one of these.  Users should use one of the Create*
     # factory methods instead.  In an attempt to keep users from
     # creating these directly rather than through the approved factory
@@ -705,6 +709,10 @@ class SimpleTypeDefinition:
         # Mark this instance as unresolved so it is re-examined
         self.__variety = None
         return self
+
+    def isBuiltin (self):
+        """Indicate whether this simple type is a built-in type."""
+        return self.__isBuiltin
 
     def isResolved (self):
         """Indicate whether this simple type is fully defined.
@@ -778,6 +786,8 @@ class SimpleTypeDefinition:
         bi.__baseTypeDefinition = cls.SimpleUrTypeDefinition()
         bi.__primitiveTypeDefinition = bi
 
+        # Primitive types are built-in
+        bi.__isBuiltin = True
         return bi
 
     @classmethod
@@ -801,6 +811,8 @@ class SimpleTypeDefinition:
         if cls.VARIETY_atomic == bi.__variety:
             bi.__primitiveTypeDefinition = bi.__baseTypeDefinition.__primitiveTypeDefinition
 
+        # Derived types are built-in
+        bi.__isBuiltin = True
         return bi
 
     @classmethod
@@ -822,6 +834,8 @@ class SimpleTypeDefinition:
         assert item_std
         bi.__itemTypeDefinition = item_std
 
+        # List types are built-in
+        bi.__isBuiltin = True
         return bi
 
     @classmethod
@@ -1063,16 +1077,11 @@ class Schema:
         return std
 
     def _resolveTypeDefinitions (self):
-        # @todo Need to top-sort the type definitions so we don't try
-        # to do a restriction on a restriction that hasn't been
-        # resolved.  For now, assume whoever wrote the schema was kind
-        # enough not to use before definition.  Which isn't going to
-        # be true universally.
         while self.__unresolvedTypeDefinitions:
             # Save the list of unresolved STDs, then prepare for any
-            # new STDs defined during resolution.  They'll have to be
-            # localTypes, not named, so resolution shouldn't
-            # fail, but we still need to process them.
+            # new STDs defined during resolution.  Then walk through
+            # the list repeatedly until we have resolved everything
+            # that does not depend on an unresolved type.
             unresolved = self.__unresolvedTypeDefinitions
             self.__unresolvedTypeDefinitions = []
             for std in unresolved:
