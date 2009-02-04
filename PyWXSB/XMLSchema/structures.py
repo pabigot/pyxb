@@ -445,6 +445,10 @@ class ElementDeclaration:
     __abstract = False
     __annotation = None
     
+    @classmethod
+    def CreateFromDOM (cls, wxs, node):
+        raise IncompleteImplementationError('%s: Needs CreateFromDOM' % (cls.__name__,))
+
 class ComplexTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
     # The type resolved from the base attribute
     __baseTypeDefinition = None
@@ -907,6 +911,9 @@ class ModelGroupDefinition (_NamedComponent_mixin, _Resolvable_mixin):
         _NamedComponent_mixin.__init__(self, name, target_namespace)
         _Resolvable_mixin.__init__(self)
 
+    @classmethod
+    def CreateFromDOM (cls, wxs, node):
+        raise IncompleteImplementationError('%s: Needs CreateFromDOM' % (cls.__name__,))
 
 class ModelGroup:
     C_INVALID = 0
@@ -975,20 +982,18 @@ class Particle:
     
     @classmethod
     def CreateFromDOM (cls, wxs, node):
-        group_names = [ wxs.xsQualifiedName(_tag) for _tag in [ 'group', 'sequence', 'choice', 'all' ] ]
-        if node.nodeName in group_names:
-            # 3.9.2 says use 3.8.2, which is ModelGroup
-            # I think this is limited to explicit groups and group references
-            assert wxs.xsQualifiedName('schema') != node.parentNode.nodeName
-            assert not node.hasAttribute('name')
-            term = ModelGroup.CreateFromDOM(wxs, node)
+        if wxs.xsQualifiedName('group') == node.nodeName:
+            # 3.9.2 says use 3.8.2, which is ModelGroup, but I'm
+            # pretty sure they mean 3.7.2, which is
+            # ModelGroupDefinition
+            term = ModelGroupDefinition.CreateFromDOM(wxs, node)
         elif wxs.xsQualifiedName('element') == node.nodeName:
             assert wxs.xsQualifiedName('schema') != node.parentNode.nodeName
             # 3.9.2 says use 3.3.2, which is Element
-            raise IncompleteImplementationError('Particle: implement element')
+            term = ElementDeclaration.CreateFromDOM(wxs, node)
         elif wxs.xsQualifiedName('any') == node.nodeName:
             # 3.9.2 says use 3.10.2, which is Wildcard
-            raise IncompleteImplementationError('Particle: implement any')
+            term = Wildcard.CreateFromDOM(wxs, node)
         else:
             raise LogicError('Unhandled node in Particle.CreateFromDOM: %s' % (node.toxml(),))
 
@@ -1036,6 +1041,10 @@ class Wildcard:
         self.__namespaceConstraint = namespace_constraint
         self.__processContents = process_contents
         self.__annotation = annotation
+
+    @classmethod
+    def CreateFromDOM (cls, wxs, node):
+        raise IncompleteImplementationError('%s: Needs CreateFromDOM' % (cls.__name__,))
 
 # 3.11.1
 class IdentityConstraintDefinition (_NamedComponent_mixin):
