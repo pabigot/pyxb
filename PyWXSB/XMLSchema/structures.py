@@ -951,6 +951,7 @@ class SimpleTypeDefinition:
         node = self.__domNode
         wxs = self.__w3cXMLSchema
         
+        bad_instance = False
         # The guts of the node should be exactly one instance of
         # exactly one of these three types.
         candidate = LocateUniqueChild(node, wxs, 'list', absent_ok=True)
@@ -959,15 +960,22 @@ class SimpleTypeDefinition:
 
         candidate = LocateUniqueChild(node, wxs, 'restriction', absent_ok=True)
         if candidate:
-            assert self.__variety is None
-            self.__initializeFromRestriction(wxs, candidate)
+            if self.__variety is None:
+                self.__initializeFromRestriction(wxs, candidate)
+            else:
+                bad_instance = True
 
         candidate = LocateUniqueChild(node, wxs, 'union', absent_ok=True)
         if candidate:
-            assert self.__variety is None
-            self.__initializeFromUnion(wxs, candidate)
+            if self.__variety is None:
+                self.__initializeFromUnion(wxs, candidate)
+            else:
+                bad_instance = True
 
         if self.__variety is None:
+            bad_instance = True
+
+        if bad_instance:
             raise SchemaValidationError('Expected exactly one of list, restriction, union as child of simpleType')
 
         return self
