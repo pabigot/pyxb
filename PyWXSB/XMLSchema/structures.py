@@ -243,6 +243,12 @@ class _Resolvable_mixin (object):
         added back into the set of items that still need to be
         resolved.
 
+        A component may require its DOM node to complete resolution;
+        if so, the node is cached internal to the component upon
+        creation.  The resolution method should reset this cached
+        reference to None upon completion of resolution, so the DOM
+        node space is reclaimed.
+
         Override this in the child class."""
         raise LogicError('Resolution not implemented in %s' % (self.__class__,))
         
@@ -465,10 +471,10 @@ class ComplexTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
             name = node.getAttribute('name')
 
         rv = cls(name, wxs.getTargetNamespace(), None)
-        rv.__domNode = node
 
         # Creation does not attempt to do resolution.  Queue up the newly created
         # whatsis so we can resolve it after everything's been read in.
+        rv.__domNode = node
         wxs._queueForResolution(rv)
         
         return rv
@@ -519,7 +525,7 @@ class ComplexTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
         return self.__completeAttributeProcessing(wxs, definition_node_list, method)
 
     def __completeComplexResolution (self, wxs, definition_node_list, method, base_type):
-        # Implement CTD with complex content
+        # @todo Implement CTD with complex content
         wxs._queueForResolution(self)
         pass
 
@@ -655,7 +661,7 @@ class AttributeGroupDefinition (_NamedComponent_mixin, _Resolvable_mixin):
         # @todo Add the ones from this definition
         self.__attributeUses = extra_uses
         self.__isResolved = True
-        self.__domNode = Node
+        self.__domNode = None
         
     def attributeUses (self):
         return self.__attributeUses
@@ -1089,6 +1095,7 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
         else:
             print 'VARIETY "%s"' % (self.__variety,)
             raise LogicError('completeResolution with variety 0x%02x' % (self.__variety,))
+        self.__domNode = None
         return self
 
     def isResolved (self):
@@ -1175,10 +1182,10 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
             name = node.getAttribute('name')
 
         rv = cls(name, wxs.getTargetNamespace(), None)
-        rv.__domNode = node
 
         # Creation does not attempt to do resolution.  Queue up the newly created
         # whatsis so we can resolve it after everything's been read in.
+        rv.__domNode = node
         wxs._queueForResolution(rv)
         
         return rv
