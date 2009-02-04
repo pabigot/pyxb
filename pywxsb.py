@@ -14,6 +14,6 @@ for file in files:
     try:
         wxs.processDocument(minidom.parse(file))
     except Exception, e:
-        print '%s processing %s:' % (e.__class__, file)
+        sys.stderr.write("%s processing %s:\n" % (e.__class__, file))
         traceback.print_exception(*sys.exc_info())
 
