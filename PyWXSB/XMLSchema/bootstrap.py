@@ -148,7 +148,6 @@ class schema (xsc.Schema):
             raise SchemaValidationError('lookupGroup: No match for "%s" in %s' % (group_name, self.__targetNamespace))
         return rv
 
-
     def addNamespace (self, namespace):
         old_namespace = self.__namespacePrefixMap.get(namespace.prefix(), None)
         return namespace

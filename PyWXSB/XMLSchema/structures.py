@@ -839,6 +839,9 @@ class ComplexTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
             self.__completeSimpleResolution(wxs, definition_node_list, method, base_type)
         return self
 
+    def contentType (self):
+        return self.__contentType
+
 class AttributeGroupDefinition (_NamedComponent_mixin, _Resolvable_mixin):
     __attributeUses = None
 
