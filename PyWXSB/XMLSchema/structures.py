@@ -214,10 +214,15 @@ class _NamedComponent_mixin:
     # None, or a reference to a Namespace in which the component may be found
     __targetNamespace = None
     
+    # The schema in which qualified names for the namespace should be
+    # determined.
+    __schema = None
+
     def __init__ (self, name, target_namespace):
         assert (name is None) or (0 > name.find(':'))
         self.__name = name
         self.__targetNamespace = target_namespace
+        self.__schema = None
             
     def targetNamespace (self):
         """Return the namespace in which the component is located."""
@@ -229,9 +234,10 @@ class _NamedComponent_mixin:
 
     def name (self):
         """Return the QName of the component."""
-        if self.__name is not None:
-            if self.__targetNamespace:
-                return self.__targetNamespace.qualifiedName(self.__name)
+        if self.__targetNamespace is not None:
+            if self.__name is not None:
+                return '%s[%s]' % (self.__name, self.__targetNamespace.uri())
+            return '#??[%s]' % (self.__targetNamespace.uri(),)
         return self.__name
 
     def isNameEquivalent (self, other):
@@ -796,7 +802,7 @@ class ComplexTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
         test_2_1_1 = True
         test_2_1_2 = False
         test_2_1_3 = False
-        typedef_particle_tags = Particle.TypedefTags(wxs.xs())
+        typedef_particle_tags = Particle.TypedefTags(wxs)
         typedef_node = None
         allseq_particle_tags = [ wxs.xsQualifiedName(_tag) for _tag in [ 'all', 'sequence' ] ]
         xs_choice = wxs.xsQualifiedName('choice')
@@ -1038,7 +1044,7 @@ class ModelGroupDefinition (_NamedComponent_mixin):
             name = node.getAttribute('name')
         rv = cls(name, wxs.getTargetNamespace())
 
-        mg_tags = ModelGroup.GroupMemberTags(wxs.xs())
+        mg_tags = ModelGroup.GroupMemberTags(wxs)
         for cn in node.childNodes:
             if Node.ELEMENT_NODE != cn.nodeType:
                 continue
@@ -1078,7 +1084,7 @@ class ModelGroup:
         else:
             raise IncompleteImplementationError('ModelGroup: Got unexpected %s' % (node.nodeName,))
         particles = []
-        particle_tags = Particle.ParticleTags(wxs.xs())
+        particle_tags = Particle.ParticleTags(wxs)
         for cn in node.childNodes:
             if Node.ELEMENT_NODE != cn.nodeType:
                 continue
@@ -1088,8 +1094,8 @@ class ModelGroup:
         return cls(compositor, particles)
 
     @classmethod
-    def GroupMemberTags (cls, namespace):
-        return [ namespace.qualifiedName(_tag) for _tag in [ 'all', 'choice', 'sequence' ] ]
+    def GroupMemberTags (cls, wxs):
+        return [ wxs.xsQualifiedName(_tag) for _tag in [ 'all', 'choice', 'sequence' ] ]
 
 class Particle (_Resolvable_mixin):
     # NB: Particles are not resolvable, but the term they include
@@ -1133,7 +1139,7 @@ class Particle (_Resolvable_mixin):
     def CreateFromDOM (cls, wxs, node, ancestor_component):
         min_occurs = 1
         max_occurs = 1
-        if not node.nodeName in cls.ParticleTags(wxs.xs()):
+        if not node.nodeName in cls.ParticleTags(wxs):
             raise LogicError('Attempted to create particle from illegal element %s' % (node.nodeName,))
         if node.hasAttribute('minOccurs'):
             min_occurs = datatypes.nonNegativeInteger.StringToPython(node.getAttribute('minOccurs'))
@@ -1183,7 +1189,7 @@ class Particle (_Resolvable_mixin):
         elif wxs.xsQualifiedName('any') == node.nodeName:
             # 3.9.2 says use 3.10.2, which is Wildcard.
             term = Wildcard.CreateFromDOM(wxs, node)
-        elif node.nodeName in ModelGroup.GroupMemberTags(wxs.xs()):
+        elif node.nodeName in ModelGroup.GroupMemberTags(wxs):
             # Choice, sequence, and all inside a particle are explicit
             # groups (or a restriction of explicit group, in the case
             # of all)
@@ -1195,12 +1201,12 @@ class Particle (_Resolvable_mixin):
         return self
         
     @classmethod
-    def TypedefTags (cls, namespace):
-        return [ namespace.qualifiedName(_tag) for _tag in [ 'group', 'all', 'choice', 'sequence' ] ]
+    def TypedefTags (cls, wxs):
+        return [ wxs.xsQualifiedName(_tag) for _tag in [ 'group', 'all', 'choice', 'sequence' ] ]
 
     @classmethod
-    def ParticleTags (cls, namespace):
-        return [ namespace.qualifiedName(_tag) for _tag in [ 'group', 'all', 'choice', 'sequence', 'element', 'any' ] ]
+    def ParticleTags (cls, wxs):
+        return [ wxs.xsQualifiedName(_tag) for _tag in [ 'group', 'all', 'choice', 'sequence', 'element', 'any' ] ]
 
 
 # 3.10.1

@@ -8,7 +8,7 @@ XMLSchema_uri = 'http://www.w3.org/2001/XMLSchema'
 # Namespace and URI for the XMLSchema Instance namespace (always xsi).
 # This is always built-in, and cannot have an associated schema.  We
 # use it as an indicator that the namespace system has been
-# initialized.
+# initialized.  See http://www.w3.org/TR/xmlschema-1/#no-xsi
 XMLSchema_instance = None
 XMLSchema_instance_uri = 'http://www.w3.org/2001/XMLSchema-instance'
 XMLSchema_instance_prefix = 'xsi'
@@ -37,7 +37,7 @@ class Namespace:
     """
     
     __uri = None                        # The URI for the namespace
-    __prefix = None                     # The prefix by which the namespace is known in a schema
+    __boundPrefix = None                     # The prefix by which the namespace is known
     __schema = None                     # The schema in which this namespace is used
 
     __Preloaded = [ ]
@@ -89,29 +89,31 @@ class Namespace:
             raise IncompleteImplementationError('Need to support ignore_prefix in Namespace.Preload')
 
         global XML
-        XML = cls(XML_uri, XML_prefix)
+        XML = cls(XML_uri, XML_prefix, in_static_constructor=True)
         
         global XMLSchema
         # NB: No default prefix for this one
-        XMLSchema = cls(XMLSchema_uri)
-
+        XMLSchema = cls(XMLSchema_uri, in_static_constructor=True)
+        
         global XMLNamespaces
-        XMLNamespaces = cls(XMLNamespaces_uri, XMLNamespaces_prefix)
+        XMLNamespaces = cls(XMLNamespaces_uri, XMLNamespaces_prefix, in_static_constructor=True)
 
     def __init__ (self, uri=None, prefix=None, schema=None, in_static_constructor=False):
         # Make sure we have namespace support loaded before use
         if (XMLSchema_instance is None) and not in_static_constructor:
             self.__MaybePreload()
         self.__uri = uri
-        self.__prefix = prefix
+        if prefix is not None:
+            if not in_static_constructor:
+                raise LogicError('Only permanent Namespaces have bound prefixes')
+            self.__boundPrefix = prefix
         self.__schema = schema
 
-    def prefix (self, value=None):
-        if value is not None:
-            self.__prefix = value
-        return self.__prefix
+    def boundPrefix (self):
+        return self.__boundPrefix
     
-    def uri (self): return self.__uri
+    def uri (self):
+        return self.__uri
 
     def schema (self, schema=None):
         if schema is not None:
@@ -139,20 +141,10 @@ class Namespace:
     def lookupElement (self, local_name):
         return self._validatedSchema().lookupElement(local_name)
 
-    def qualifiedName (self, local_name, default_namespace=None):
-        """Return a namespace-qualified name for the given local name
-        in this namespace.
-
-        If a default namespace is provided, and it is this namespace,
-        the local name is returned without qualifying it."""
-        if default_namespace == self:
-            return local_name
-        if self.__prefix is None:
-            raise LogicError('Namespace %s has no prefix to qualify name "%s"; default %s' % (self.__uri, local_name, default_namespace))
-        return '%s:%s' % (self.__prefix, local_name)
-
     def __str__ (self):
-        return 'xmlns:%s=%s' % (self.__prefix, self.__uri)
+        if self.__boundPrefix is not None:
+            return '%s=%s' % (self.__boundPrefix, self.__uri)
+        return self.__uri
 
 class XMLName:
     """This class represents an XML name, optionally including a

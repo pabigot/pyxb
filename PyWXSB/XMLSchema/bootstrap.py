@@ -68,25 +68,47 @@ class schema (xsc.Schema):
     __domRootNode = None
     __pastProlog = False
 
-    __namespaceList = None      # List of namespace instances
-    __namespacePrefixMap = None # Map from prefix to a namespace instance
+    # A set of namespace instances referenced by this schema.
+    # Namespaces cannot be removed from this set.
+    __namespaces = None
+
+    # Map from a prefix to the namespace it represents in this schema.
+    # Namespaces with bound prefixes cannot be reassigned, and the
+    # prefix associated with a namespace cannot change.  This is
+    # prefix->Namespace, not prefix->URI.
+    __prefixToNamespaceMap = None
+
+    # Reverse direction: given a Namespace instance, determine the
+    # prefix used for that namespace.
+    __namespaceToPrefixMap = None
+
+    # Map from the namespace URI to the instance that represents it
+    # @todo redundant with Namespace registry
     __namespaceURIMap = None    # Map from URI to a namespace instance
 
     # Namespaces bound per Namespaces in XML 1.0 (Second Edition) (http://www.w3.org/TR/xml-names/)
     __xml = None                # http://www.w3.org/XML/1998/namespace
     __xmlns = None              # http://www.w3.org/2000/xmlns/
 
-    # Namespaces relevant to XMLSchema
+    # Namespaces relevant to XMLSchema; xsi is bound (see
+    # http://www.w3.org/TR/xmlschema-1/#no-xsi)
     __xs = None                 # http://www.w3.org/2001/XMLSchema
     __xsi = None                # http://www.w3.org/2001/XMLSchema-instance
 
-    __defaultNamespace = None   # Default namespace for current schema
-    __targetNamespace = None    # Target namespace for current schema
+    # Default namespace for current schema.  Will be None unless
+    # schema has an 'xmlns' attribute.
+    __defaultNamespace = None 
+
+    # Target namespace for current schema.  Will be None unless schema
+    # has a 'targetNamespace' attribute.
+    __targetNamespace = None
 
     def __init__ (self):
         xsc.Schema.__init__(self)
-        self.__namespaceList = []
-        self.__namespacePrefixMap = { }
+        self.__namespaces = set()
+        self.__namespaceToPrefixMap = { }
+        self.__prefixToNamespaceMap = { }
+
         self.__namespaceURIMap = { }
         self.__addNamespace(Namespace.XML())
         self.__xs = Namespace.XMLSchema()
@@ -158,25 +180,39 @@ class schema (xsc.Schema):
             raise SchemaValidationError('lookupElement: No match for "%s" in %s' % (element_name, self.__targetNamespace))
         return rv
 
-    def __addNamespace (self, namespace):
-        old_namespace = self.__namespacePrefixMap.get(namespace.prefix(), None)
-        self.__namespaceList.append(namespace)
+    def __recordNamespacePrefix (self, prefix, namespace):
+        if prefix is None:
+            return
+        if prefix in self.__prefixToNamespaceMap:
+            raise LogicError('Prefix %s already associated with %s' % (prefix, namespace))
+        if namespace in self.__namespaceToPrefixMap:
+            # This is not a LogicError because I'm not convinced doing this
+            # isn't legal.  Even if it does seem a little nonsensical.
+            raise IncompleteImplementationError('Namespace %s cannot have multiple prefixes' % (namespace, prefix))
+        print 'schema for %s maps %s to %s' % (self.getTargetNamespace(), prefix, namespace)
+        self.__prefixToNamespaceMap[prefix] = namespace
+        self.__namespaceToPrefixMap[namespace] = prefix
+
+    def __addNamespace (self, namespace, prefix=None):
+        assert namespace not in self.__namespaces
+        self.__namespaces.add(namespace)
         self.__namespaceURIMap[namespace.uri()] = namespace
-        if namespace.prefix() is not None:
-            self.__namespacePrefixMap[namespace.prefix()] = namespace
-        return old_namespace
+        if prefix is None:
+            prefix = namespace.boundPrefix()
+        if prefix is not None:
+            self.__recordNamespacePrefix(prefix, namespace)
+        return namespace
 
     def lookupOrCreateNamespace (self, uri, prefix=None):
         # NB: This can replace the prefix if it changed since creation
+        print '%s LOOKUP Associate %s with %s' % (self, prefix, uri)
         try:
             namespace = self.namespaceForURI(uri)
         except Exception, e:
-            namespace = Namespace(uri, prefix)
+            namespace = Namespace(uri)
             self.__addNamespace(namespace)
-        if namespace.prefix() is None:
-            namespace.prefix(prefix)
-        if namespace.prefix() is not None:
-            self.__namespacePrefixMap[namespace.prefix()] = namespace
+        if prefix is not None:
+            self.__recordNamespacePrefix(prefix, namespace)
         return namespace
 
     def setDefaultNamespace (self, namespace):
@@ -227,9 +263,41 @@ class schema (xsc.Schema):
         raise Exception('Namespace "%s" not recognized' % (uri,))
 
     def namespaceForPrefix (self, prefix):
-        if self.__namespacePrefixMap.has_key(prefix):
-            return self.__namespacePrefixMap.get(prefix, None)
+        if self.__prefixToNamespaceMap.has_key(prefix):
+            return self.__prefixToNamespaceMap.get(prefix, None)
         raise Exception('Namespace prefix "%s" not recognized' % (prefix,))
+
+    def prefixForNamespace (self, namespace):
+        """Return the prefix used in this schema for the given namespace.
+
+        If the namespace was not assigned a prefix, returns None."""
+        assert isinstance(namespace, Namespace)
+        return self.__namespaceToPrefixMap.get(namespace, None)
+
+    def qualifiedName (self, local_name, namespace=None):
+        """Return a namespace-qualified name for the given local name
+        in the given namespace.
+
+        If no namespace is provided, the target namespace must be
+        defined, and will be used.  If the namespace is the default
+        namespace for this schema, the local name is returned without
+        qualifying it."""
+
+        if namespace is None:
+            namespace = self.getTargetNamespace()
+        if namespace is None:
+            raise LogicError('Cannot get qualified name for %s without namespace.' % (local_name,))
+
+        if self.getDefaultNamespace() == namespace:
+            return local_name
+
+        prefix = self.prefixForNamespace(namespace)
+        if prefix is None:
+            raise LogicError('Namespace %s has no prefix in schema to qualify name "%s"' % (namespace.uri(), local_name))
+        return '%s:%s' % (prefix, local_name)
+
+    def xsQualifiedName (self, local_name):
+        return self.qualifiedName(local_name, self.xs())
 
     # @todo put these in base class
     def processDocument (self, doc):
@@ -402,24 +470,6 @@ class schema (xsc.Schema):
 
     def xs (self):
         return self.__xs
-
-    def xsQualifiedName (self, local_name):
-        return self.xs().qualifiedName(local_name, self.getDefaultNamespace())
-
-    def xsAttribute (self, dom_node, attr_name):
-        return self.nsAttribute(dom_node, attr_name, self.xs())
-
-    def dnsAttribute (self, dom_node, attr_name):
-        rv = None
-        if self.getDefaultNamespace():
-            rv = dom_node.getAttributeNodeNS(self.getDefaultNamespace(), attr_name)
-
-    def nsAttribute (self, dom_node, attr_name, namespace):
-        rv = None
-        if namespace is not None:
-            rv = dom_node.getAttributeNodeNS(namespace.uri(), attr_name)
-            print 'Namespace %s lookup got %s' % (namespace, rv)
-        return rv
 
 def SchemaForXS (wxs):
     '''Create a Schema instance that targets the XMLSchema namespace.
