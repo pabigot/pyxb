@@ -23,6 +23,8 @@ XML = None
 XML_uri = 'http://www.w3.org/XML/1998/namespace'
 XML_prefix = 'xml'
 
+# @todo Maintain list of pre-defined namespaces and bound prefixes
+
 # Environment variable from which default path to pre-loaded namespaces is read
 PathEnvironmentVariable = 'PYWXSB_NAMESPACE_PATH'
 
@@ -36,15 +38,19 @@ class Namespace:
     it is known in a particular schema.
     """
     
-    __uri = None                        # The URI for the namespace
-    __boundPrefix = None                     # The prefix by which the namespace is known
+    # The URI for the namespace
+    __uri = None
+
+    # A prefix bound to this namespace by standard.  Current set known are applies to
+    # xml, xmlns, and xsi.
+    __boundPrefix = None
+
+    # @todo replace with collection
     __schema = None                     # The schema in which this namespace is used
 
-    __Preloaded = [ ]
-    __xs = None
-    __xsi = None
-    __xml = None
-    __xmlns = None
+    # A map from URIs to Namespace instances.  Namespaces instances
+    # must be unique for their URI.
+    __Registry = { }
 
     @classmethod
     def __MaybePreload (cls):
@@ -98,15 +104,21 @@ class Namespace:
         global XMLNamespaces
         XMLNamespaces = cls(XMLNamespaces_uri, XMLNamespaces_prefix, in_static_constructor=True)
 
-    def __init__ (self, uri=None, prefix=None, schema=None, in_static_constructor=False):
+    def __init__ (self, uri, bound_prefix=None, schema=None, in_static_constructor=False):
         # Make sure we have namespace support loaded before use
         if (XMLSchema_instance is None) and not in_static_constructor:
             self.__MaybePreload()
+        if uri is None:
+            raise LogicException('Namespace requires a URI')
+        if uri in self.__Registry:
+            raise LogicException('Cannot create multiple namespace instances for %s' % (uri,))
+        self.__Registry[uri] = self
         self.__uri = uri
-        if prefix is not None:
+
+        if bound_prefix is not None:
             if not in_static_constructor:
-                raise LogicError('Only permanent Namespaces have bound prefixes')
-            self.__boundPrefix = prefix
+                raise LogicError('Only permanent Namespaces may have bound prefixes')
+            self.__boundPrefix = bound_prefix
         self.__schema = schema
 
     def boundPrefix (self):
