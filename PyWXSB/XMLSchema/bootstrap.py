@@ -49,7 +49,7 @@ class redefinable (xsc.ModelGroup):
         if wxs.xsQualifiedName('complexType') == node.nodeName:
             return wxs._processComplexType(node)
         if wxs.xsQualifiedName('group') == node.nodeName:
-            return node
+            return wxs._processGroup(node)
         if wxs.xsQualifiedName('attributeGroup') == node.nodeName:
             return wxs._processAttributeGroup(node)
         return None
@@ -138,6 +138,16 @@ class schema (xsc.Schema):
         if rv is None:
             raise SchemaValidationError('lookupAttributeDeclaration: No match for "%s" in %s' % (ref_name, self.__targetNamespace))
         return rv
+
+    def lookupGroup (self, group_name):
+        if 0 <= group_name.find(':'):
+            ( prefix, local_name ) = group_name.split(':', 1)
+            return self.namespaceForPrefix(prefix).lookupGroup(local_name)
+        rv = self._lookupModelGroupDefinition(group_name)
+        if rv is None:
+            raise SchemaValidationError('lookupGroup: No match for "%s" in %s' % (group_name, self.__targetNamespace))
+        return rv
+
 
     def addNamespace (self, namespace):
         old_namespace = self.__namespacePrefixMap.get(namespace.prefix(), None)
@@ -310,6 +320,14 @@ class schema (xsc.Schema):
         assert self.xsQualifiedName('attributeGroup') == node.nodeName
         assert self.xsQualifiedName('schema') == node.parentNode.nodeName
         rv = xsc.AttributeGroupDefinition.CreateFromDOM(self, node)
+        self._addNamedComponent(rv)
+        return rv
+
+    def _processGroup (self, node):
+        # Node should be a namedGroup
+        assert self.xsQualifiedName('group') == node.nodeName
+        assert self.xsQualifiedName('schema') == node.parentNode.nodeName
+        rv = xsc.ModelGroupDefinition.CreateFromDOM(self, node)
         self._addNamedComponent(rv)
         return rv
 

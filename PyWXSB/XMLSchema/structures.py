@@ -900,7 +900,7 @@ class AttributeGroupDefinition (_NamedComponent_mixin, _Resolvable_mixin):
     def attributeUses (self):
         return self.__attributeUses
 
-class ModelGroupDefinition (_NamedComponent_mixin, _Resolvable_mixin):
+class ModelGroupDefinition (_NamedComponent_mixin):
     # Reference to a _ModelGroup
     __modelGroup = None
 
@@ -909,11 +909,29 @@ class ModelGroupDefinition (_NamedComponent_mixin, _Resolvable_mixin):
 
     def __init__ (self, name, target_namespace):
         _NamedComponent_mixin.__init__(self, name, target_namespace)
-        _Resolvable_mixin.__init__(self)
+
+    def modelGroup (self):
+        return self.__modelGroup
 
     @classmethod
     def CreateFromDOM (cls, wxs, node):
-        raise IncompleteImplementationError('%s: Needs CreateFromDOM' % (cls.__name__,))
+        assert wxs.xsQualifiedName('group') == node.nodeName
+
+        assert not node.hasAttribute('ref')
+        name = None
+        if node.hasAttribute('name'):
+            name = node.getAttribute('name')
+        rv = cls(name, wxs.getTargetNamespace())
+
+        mg_tags = ModelGroup.GroupMemberTags(wxs.xs())
+        for cn in node.childNodes:
+            if Node.ELEMENT_NODE != cn.nodeType:
+                continue
+            if cn.nodeName in mg_tags:
+                assert not rv.__modelGroup
+                rv.__modelGroup = ModelGroup.CreateFromDOM(wxs, cn)
+        rv.__annotation = LocateUniqueChild(node, wxs, 'annotation', absent_ok=True)
+        return rv
 
 class ModelGroup:
     C_INVALID = 0
@@ -953,7 +971,11 @@ class ModelGroup:
                 particles.append(Particle.CreateFromDOM(wxs, cn))
         return cls(compositor, particles)
 
-class Particle:
+    @classmethod
+    def GroupMemberTags (cls, namespace):
+        return [ namespace.qualifiedName(_tag) for _tag in [ 'all', 'choice', 'sequence' ] ]
+
+class Particle (_Resolvable_mixin):
     # NB: Particles are not resolvable, but the term they include
     # probably has some resolvable component.
 
@@ -971,6 +993,7 @@ class Particle:
     __term = None
 
     def __init__ (self, term, min_occurs=1, max_occurs=1):
+        _Resolvable_mixin.__init__(self)
         self.__term = term
         # @todo Figure out how to test whether the parameters are integers,
         # given that sometimes they're ints and sometimes they're longs
@@ -982,21 +1005,6 @@ class Particle:
     
     @classmethod
     def CreateFromDOM (cls, wxs, node):
-        if wxs.xsQualifiedName('group') == node.nodeName:
-            # 3.9.2 says use 3.8.2, which is ModelGroup, but I'm
-            # pretty sure they mean 3.7.2, which is
-            # ModelGroupDefinition
-            term = ModelGroupDefinition.CreateFromDOM(wxs, node)
-        elif wxs.xsQualifiedName('element') == node.nodeName:
-            assert wxs.xsQualifiedName('schema') != node.parentNode.nodeName
-            # 3.9.2 says use 3.3.2, which is Element
-            term = ElementDeclaration.CreateFromDOM(wxs, node)
-        elif wxs.xsQualifiedName('any') == node.nodeName:
-            # 3.9.2 says use 3.10.2, which is Wildcard
-            term = Wildcard.CreateFromDOM(wxs, node)
-        else:
-            raise LogicError('Unhandled node in Particle.CreateFromDOM: %s' % (node.toxml(),))
-
         min_occurs = 1
         max_occurs = 1
         if node.hasAttribute('minOccurs'):
@@ -1007,9 +1015,45 @@ class Particle:
                 max_occurs = None
             else:
                 max_occurs = datatypes.nonNegativeInteger.StringToPython(av)
-        rv = cls(term, min_occurs, max_occurs)
+
+        rv = cls(None, min_occurs, max_occurs)
+        rv.__domNode = node
+        wxs._queueForResolution(rv)
+
         return rv
 
+    def isResolved (self):
+        return self.__term is not None
+
+    def _resolve (self, wxs):
+        if self.isResolved():
+            return self
+        node = self.__domNode
+
+        if wxs.xsQualifiedName('group') == node.nodeName:
+            # 3.9.2 says use 3.8.2, which is ModelGroup.  The group
+            # inside a particle is a groupRef.  If there is no group
+            # with that name, this throws an exception as expected.
+            if not node.hasAttribute('ref'):
+                raise SchemaValidationError('group particle without reference')
+            group_name = node.getAttribute('ref')
+            group_decl = wxs.lookupGroup(group_name)
+
+            # Neither group definitions, nor model groups, require
+            # resolution, so we can just extract the reference.
+            term = group_decl.modelGroup()
+        elif wxs.xsQualifiedName('element') == node.nodeName:
+            assert wxs.xsQualifiedName('schema') != node.parentNode.nodeName
+            # 3.9.2 says use 3.3.2, which is Element.  The element
+            # inside a particle is a localElement, so we create one
+            # here.
+            term = ElementDeclaration.CreateFromDOM(wxs, node)
+        elif wxs.xsQualifiedName('any') == node.nodeName:
+            # 3.9.2 says use 3.10.2, which is Wildcard.
+            term = Wildcard.CreateFromDOM(wxs, node)
+        else:
+            raise LogicError('Unhandled node in Particle.CreateFromDOM: %s' % (node.toxml(),))
+        
     @classmethod
     def TypedefTags (cls, namespace):
         return [ namespace.qualifiedName(_tag) for _tag in [ 'group', 'all', 'choice', 'sequence' ] ]
@@ -1539,6 +1583,7 @@ class Schema:
         self.__typeDefinitions = { }
         self.__attributeGroupDefinitions = { }
         self.__attributeDeclarations = { }
+        self.__modelGroupDefinitions = { }
 
         self.__unresolvedDefinitions = []
 
@@ -1590,7 +1635,8 @@ class Schema:
         return annotation
 
     def _addNamedComponent (self, nc):
-        assert isinstance(nc, _Resolvable_mixin)
+        if not isinstance(nc, _NamedComponent_mixin):
+            raise LogicError('Attempt to add unnamed %s instance to dictionary' % (nc.__class__,))
         if nc.ncName() is None:
             raise LogicError('Attempt to add anonymous component to dictionary: %s', (nc.__class__,))
         #print 'Adding %s as %s' % (nc.__class__.__name__, nc.name())
@@ -1600,7 +1646,9 @@ class Schema:
             return self.__addAttributeGroupDefinition(nc)
         if isinstance(nc, AttributeDeclaration):
             return self.__addAttributeDeclaration(nc)
-        raise IncompleteImplementationError('Cannot record named component of type %s' % (nc.__class__,))
+        if isinstance(nc, ModelGroupDefinition):
+            return self.__addModelGroupDefinition(nc)
+        raise IncompleteImplementationError('No support to record named component of type %s' % (nc.__class__,))
 
     def __addTypeDefinition (self, td):
         local_name = td.ncName()
@@ -1651,3 +1699,19 @@ class Schema:
 
     def _attributeDeclarations (self):
         return self.__attributeDeclarations.values()
+
+    def __addModelGroupDefinition (self, ad):
+        assert isinstance(ad, ModelGroupDefinition)
+        local_name = ad.ncName()
+        print 'Defining group %s' % (local_name,)
+        old_ad = self.__modelGroupDefinitions.get(local_name, None)
+        if old_ad is not None:
+            raise SchemaValidationError('Name %s used for multiple attribute declarations' % (local_name,))
+        self.__modelGroupDefinitions[local_name] = ad
+        return ad
+
+    def _lookupModelGroupDefinition (self, local_name):
+        return self.__modelGroupDefinitions.get(local_name, None)
+
+    def _modelGroupDefinitions (self):
+        return self.__modelGroupDefinitions.values()
