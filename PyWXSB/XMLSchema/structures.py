@@ -495,10 +495,10 @@ class ElementDeclaration (_NamedComponent_mixin, _Resolvable_mixin):
             scope = cls.SCOPE_global
         elif not node.hasAttribute('ref'):
             namespace = wxs.targetNamespaceFromDOM(node, 'elementFormDefault')
-            if not rv.__ancestorComponent:
+            if not ancestor_component:
                 raise IncompleteImplementationError("Require ancestor information for local element:\n%s\n" % (node.toxml(),))
-            if isinstance(rv.__ancestorComponent, ComplexTypeDefinition):
-                rv.__scope = rv.__ancestorComponent
+            if isinstance(ancestor_component, ComplexTypeDefinition):
+                scope = ancestor_component
         else:
             raise LogicError('Created reference as element declaration')
         
@@ -1716,6 +1716,27 @@ class Schema:
     __annotations = None
 
     __unresolvedDefinitions = None
+
+    # Default values for standard recognized schema attributes
+    __attributeMap = { 'attributeFormDefault' : 'unqualified'
+                     , 'elementFormDefault' : 'unqualified'
+                     , 'blockDefault' : ''
+                     , 'finalDefault' : ''
+                     , 'id' : None
+                     , 'targetNamespace' : None
+                     , 'version' : None
+                     # , 'xml:lang' : None
+                     } 
+
+    def _setAttributeFromDOM (self, attr):
+        self.__attributeMap[attr.name] = attr.nodeValue
+        return self
+
+    def hasAttribute (self, attr_name):
+        return self.__attributeMap.has_key(attr_name)
+
+    def getAttribute (self, attr_name):
+        return self.__attributeMap[attr_name]
 
     def __init__ (self):
         self.__annotations = [ ]

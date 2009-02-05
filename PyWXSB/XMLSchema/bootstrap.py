@@ -92,6 +92,7 @@ class schema (xsc.Schema):
         self.__namespaceURIMap = { }
 
     def initializeBuiltins (self):
+        print 'Initializing built-ins'
         self.__xml = self.lookupOrCreateNamespace('http://www.w3.org/XML/1998/namespace', 'xml')
         self.__xmlns = self.lookupOrCreateNamespace('http://www.w3.org/XML/2000/xmlns/', 'xmlns')
 
@@ -211,7 +212,11 @@ class schema (xsc.Schema):
         given tag) from the schema, potentially overrides it within
         the node, then returns either the target namespace or None.
         """
-        form = self.__attributeMap.get(default_tag)
+        # Failure to provide a valid tag for the default is a
+        # programmer error.  There's only two; surely you can get that
+        # many right.
+        assert self.hasAttribute(default_tag)
+        form = self.getAttribute(default_tag)
         assert form is not None
         if node.hasAttribute('form'):
             form = node.getAttribute('form')
@@ -237,37 +242,33 @@ class schema (xsc.Schema):
         raise Exception('Namespace prefix "%s" not recognized' % (prefix,))
 
     # @todo put these in base class
-    __attributeMap = { 'attributeFormDefault' : 'unqualified'
-                     , 'elementFormDefault' : 'unqualified'
-                     , 'blockDefault' : ''
-                     , 'finalDefault' : ''
-                     } 
-
     def processDocument (self, doc):
         """Take the root element of the document, and scan its attributes under
         the assumption it is an XMLSchema schema element.  That means
         recognize namespace declarations and process them.  Also look for
-        and set the default namespace.  If we see an attribute that looks
-        like a targetNamespace, save its value."""
-        target_namespace = None
+        and set the default namespace.  All other attributes are passed up
+        to the parent class for storage."""
         default_namespace = None
         root_node = doc.documentElement
         for attr in root_node.attributes.values():
             if 'xmlns' == attr.prefix:
+                print 'Created namespace %s for %s' % (attr.nodeValue, attr.localName)
                 self.lookupOrCreateNamespace(attr.nodeValue, attr.localName)
             elif 'xmlns' == attr.name:
                 default_namespace = attr.nodeValue
-            elif 'targetNamespace' == attr.name:
-                target_namespace = attr.nodeValue
-            elif attr.name in self.__attributeMap.keys():
-                self.__attributeMap.setdefault(attr.name, attr.nodeValue)
+            else:
+                self._setAttributeFromDOM(attr)
         if default_namespace is not None:
             # TODO: Is it required that the default namespace be recognized?
             # Does not hold for http://www.w3.org/2001/xml.xsd
             ns = self.lookupOrCreateNamespace(default_namespace)
             #ns = self.namespaceForURI(default_namespace)
             self.setDefaultNamespace(ns)
-        # If we got a targetNamespace attribute, save it.
+
+        # Apply the targetNamespace attribute.  There is a default,
+        # which is to have no associated namespace.
+        assert self.hasAttribute('targetNamespace')
+        target_namespace = self.getAttribute('targetNamespace')
         if target_namespace is not None:
             self.setTargetNamespace(self.lookupOrCreateNamespace(target_namespace))
 
