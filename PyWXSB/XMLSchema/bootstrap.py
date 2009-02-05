@@ -74,7 +74,8 @@ class schema (xsc.Schema):
     __namespacePrefixMap = None # Map from prefix to a namespace instance
     __namespaceURIMap = None    # Map from URI to a namespace instance
 
-    __xs = None                 # W3C XML Schema namespace
+    __xs = None                 # http://www.w3.org/2001/XMLSchema
+    __xml = None                # http://www.w3.org/XML/1998/namespace
     __defaultNamespace = None   # Default namespace for current schema
     __targetNamespace = None    # Target namespace for current schema
 
@@ -85,6 +86,7 @@ class schema (xsc.Schema):
         self.__namespaceURIMap = { }
 
     def initializeBuiltins (self):
+        self.__xml = self.lookupOrCreateNamespace('http://www.w3.org/XML/1998/namespace', 'xml')
         self.__xs = self.lookupOrCreateNamespace('http://www.w3.org/2001/XMLSchema')
         self.__xsi = self.lookupOrCreateNamespace('http://www.w3.org/2001/XMLSchema-instance')
         void = xsc.AttributeDeclaration.CreateBaseInstance('type', self.__xsi)
