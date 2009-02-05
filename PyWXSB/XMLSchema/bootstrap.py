@@ -74,8 +74,14 @@ class schema (xsc.Schema):
     __namespacePrefixMap = None # Map from prefix to a namespace instance
     __namespaceURIMap = None    # Map from URI to a namespace instance
 
-    __xs = None                 # http://www.w3.org/2001/XMLSchema
+    # Namespaces bound per Namespaces in XML 1.0 (Second Edition) (http://www.w3.org/TR/xml-names/)
     __xml = None                # http://www.w3.org/XML/1998/namespace
+    __xmlns = None              # http://www.w3.org/2000/xmlns/
+
+    # Namespaces relevant to XMLSchema
+    __xs = None                 # http://www.w3.org/2001/XMLSchema
+    __xsi = None                # http://www.w3.org/2001/XMLSchema-instance
+
     __defaultNamespace = None   # Default namespace for current schema
     __targetNamespace = None    # Target namespace for current schema
 
@@ -87,8 +93,14 @@ class schema (xsc.Schema):
 
     def initializeBuiltins (self):
         self.__xml = self.lookupOrCreateNamespace('http://www.w3.org/XML/1998/namespace', 'xml')
+        self.__xmlns = self.lookupOrCreateNamespace('http://www.w3.org/XML/2000/xmlns/', 'xmlns')
+
         self.__xs = self.lookupOrCreateNamespace('http://www.w3.org/2001/XMLSchema')
-        self.__xsi = self.lookupOrCreateNamespace('http://www.w3.org/2001/XMLSchema-instance')
+
+        # xsi is ultra-special, in that it can't even be expressed in
+        # a schema.  Its elements must be built-in.  See
+        # http://www.w3.org/TR/xmlschema-1/#no-xsi
+        self.__xsi = self.lookupOrCreateNamespace('http://www.w3.org/2001/XMLSchema-instance', 'xsi')
         void = xsc.AttributeDeclaration.CreateBaseInstance('type', self.__xsi)
         void = xsc.AttributeDeclaration.CreateBaseInstance('nil', self.__xsi)
         void = xsc.AttributeDeclaration.CreateBaseInstance('schemaLocation', self.__xsi)
