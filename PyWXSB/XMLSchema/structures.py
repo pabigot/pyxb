@@ -357,7 +357,7 @@ class AttributeDeclaration (_NamedComponent_mixin, _Resolvable_mixin):
                 self.__valueConstraint = None
 
         # @todo handle annotation
-
+        self.__domNode = None
         return self
 
 
@@ -426,29 +426,59 @@ class AttributeUse (_Resolvable_mixin):
         return self.USE_prohibited == self.__use
     
 class ElementDeclaration (_NamedComponent_mixin, _Resolvable_mixin):
+
+    # Simple or complex type definition
     __typeDefinition = None
+
+    SCOPE_global = 0x01         #<<< Marker for global scope
+
+    # The value SCOPE_global, or a complex type definition.  @todo
+    # Absent for declarations in named model groups (viz., local
+    # elements that aren't references).
     __scope = None
+
+    VC_na = AttributeDeclaration.VC_na
+    VC_default = AttributeDeclaration.VC_default
+    VC_fixer = AttributeDeclaration.VC_fixed
+
+    # None, or a tuple containing a string followed by one of the VC_*
+    # values above.
     __valueConstraint = None
+
     __nillable = False
+
     __identityConstraintDefinitions = None
+
+    # None, or a reference to an ElementDeclaration
     __substitutionGroupAffiliation = None
 
     SGE_none = 0
     SGE_extension = 0x01
     SGE_restriction = 0x02
     SGE_substitution = 0x04
+
+    # Subset of SGE marks formed by bitmask.  SGE_substitution is disallowed.
     __substitutionGroupExclusions = SGE_none
+
+    # Subset of SGE marks formed by bitmask
     __disallowedSubstitutions = SGE_none
 
     __abstract = False
+
     __annotation = None
     
-    def __init__ (self, name, target_namespace):
+    # The containing component which will ultimately provide the
+    # scope.  None if at the top level, or a ComplexTypeDefinition or
+    # a ModelGroup.
+    __ancestorComponent = None
+
+    def __init__ (self, name, target_namespace, ancestor_component):
         _NamedComponent_mixin.__init__(self, name, target_namespace)
         _Resolvable_mixin.__init__(self)
+        self.__ancestorComponent = ancestor_component
 
     @classmethod
-    def CreateFromDOM (cls, wxs, node):
+    def CreateFromDOM (cls, wxs, node, ancestor_component=None):
         # Node should be an XMLSchema element node
         assert wxs.xsQualifiedName('element') == node.nodeName
 
@@ -457,7 +487,17 @@ class ElementDeclaration (_NamedComponent_mixin, _Resolvable_mixin):
         if node.hasAttribute('name'):
             name = node.getAttribute('name')
 
-        rv = cls(name, wxs.getTargetNamespace())
+        rv = cls(name, wxs.getTargetNamespace(), ancestor_component)
+
+        if wxs.xsQualifiedName('schema') == node.parentNode.nodeName:
+            rv.__scope = cls.SCOPE_global
+        elif not node.hasAttribute('ref'):
+            # @todo target namespace
+            print 'WARNING: Not handling element form default properly'
+            if isinstance(rv.__ancestorComponent, ComplexTypeDefinition):
+                rv.__scope = rv.__ancestorComponent
+        else:
+            raise LogicError('Created reference as element declaration')
 
         # Creation does not attempt to do resolution.  Queue up the newly created
         # whatsis so we can resolve it after everything's been read in.
@@ -465,6 +505,61 @@ class ElementDeclaration (_NamedComponent_mixin, _Resolvable_mixin):
         wxs._queueForResolution(rv)
         
         return rv
+
+    def isResolved (self):
+        return self.__typeDefinition is not None
+
+    def _resolve (self, wxs):
+        if self.isResolved():
+            return self
+        node = self.__domNode
+
+        # NB: Scope already set
+
+        if node.hasAttribute('substitutionGroup'):
+            sga = wxs.lookupElement(node.getAttribute('substitutionGroup'))
+            if not sga.isResolved():
+                wxs._queueForResolution(self)
+                return self
+            self.__substitutionGroupAffiliation = sga
+            
+        type_def = None
+        td_node = LocateUniqueChild(node, wxs, 'simpleType', absent_ok=True)
+        if td_node is not None:
+            type_def = SimpleTypeDefinition.CreateFromDOM(wxs, node)
+        else:
+            td_node = LocateUniqueChild(node, wxs, 'complexType', absent_ok=True)
+            if td_node is not None:
+                type_def = ComplexTypeDefinition.CreateFromDOM(wxs, td_node)
+        if type_def is None:
+            if node.hasAttribute('type'):
+                type_def = wxs.lookupType(node.getAttribute('type'))
+            elif self.__substitutionGroupAffiliation is not None:
+                type_def = self.__substitutionGroupAffiliation.typeDefinition()
+            else:
+                type_def = ComplexTypeDefinition.UrTypeDefinition()
+        self.__typeDefinition = type_def
+
+        if node.hasAttribute('nillable'):
+            self.__nillable = datatypes.boolean.StringToPython(node.getAttribute('nillable'))
+
+        if self.SCOPE_global == self.__scope:
+            if node.hasAttribute('default'):
+                self.__valueConstraint = (node.getAttribute('default'), self.VC_default)
+            elif node.hasAttribute('fixed'):
+                self.__valueConstraint = (node.getAttribute('fixed'), self.VC_fixed)
+            else:
+                self.__valueConstraint = None
+
+        # @todo identity constraints, disallowed substitutions, substitution group exclusions
+                
+        if node.hasAttribute('abstract'):
+            self.__abstract = datatypes.boolean.StringToPython(node.getAttribute('abstract'))
+                
+        self.__annotation = LocateUniqueChild(node, wxs, 'annotation', absent_ok=True)
+
+        self.__domNode = None
+        return self
 
 class ComplexTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
     # The type resolved from the base attribute
@@ -788,16 +883,7 @@ class ComplexTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
         return (self.__derivationMethod is not None)
 
     def _resolve (self, wxs):
-        # Beware: there is a slight issue here because we use variety,
-        # which is set in the initialize* method, to indicate that the
-        # node has been resolved, but resolution is not fully complete
-        # until the completeResolution invocation is done.  During
-        # that period, checking for resolution may prematurely
-        # succeed.  This should not be an issue because in the current
-        # implementation resolution will succeed, and it's already in
-        # progress.  Only for restrictions is resolution potentially
-        # recursive.
-        if self.__derivationMethod is not None:
+        if self.isResolved():
             return self
         assert self.__domNode
         node = self.__domNode
@@ -1052,6 +1138,7 @@ class Particle (_Resolvable_mixin):
     def _resolve (self, wxs):
         if self.isResolved():
             return self
+        print 'Resolving Particle'
         node = self.__domNode
 
         if wxs.xsQualifiedName('group') == node.nodeName:
@@ -1069,9 +1156,12 @@ class Particle (_Resolvable_mixin):
         elif wxs.xsQualifiedName('element') == node.nodeName:
             assert wxs.xsQualifiedName('schema') != node.parentNode.nodeName
             # 3.9.2 says use 3.3.2, which is Element.  The element
-            # inside a particle is a localElement, so we create one
-            # here.
-            term = ElementDeclaration.CreateFromDOM(wxs, node)
+            # inside a particle is a localElement, so we either get
+            # the one it refers to, or create an anonymous one here.
+            if node.hasAttribute('ref'):
+                term = wxs.lookupElement(node.getAttribute('ref'))
+            else:
+                term = ElementDeclaration.CreateFromDOM(wxs, node)
         elif wxs.xsQualifiedName('any') == node.nodeName:
             # 3.9.2 says use 3.10.2, which is Wildcard.
             term = Wildcard.CreateFromDOM(wxs, node)
@@ -1082,6 +1172,9 @@ class Particle (_Resolvable_mixin):
             term = ModelGroup.CreateFromDOM(wxs, node)
         else:
             raise LogicError('Unhandled node in Particle._resolve: %s' % (node.toxml(),))
+        self.__term = term
+        self.__domNode = None
+        return self
         
     @classmethod
     def TypedefTags (cls, namespace):
@@ -1613,6 +1706,7 @@ class Schema:
         self.__attributeGroupDefinitions = { }
         self.__attributeDeclarations = { }
         self.__modelGroupDefinitions = { }
+        self.__elementDeclarations = { }
 
         self.__unresolvedDefinitions = []
 
@@ -1677,6 +1771,8 @@ class Schema:
             return self.__addAttributeDeclaration(nc)
         if isinstance(nc, ModelGroupDefinition):
             return self.__addModelGroupDefinition(nc)
+        if isinstance(nc, ElementDeclaration):
+            return self.__addElementDeclaration(nc)
         raise IncompleteImplementationError('No support to record named component of type %s' % (nc.__class__,))
 
     def __addTypeDefinition (self, td):
@@ -1735,7 +1831,7 @@ class Schema:
         print 'Defining group %s' % (local_name,)
         old_ad = self.__modelGroupDefinitions.get(local_name, None)
         if old_ad is not None:
-            raise SchemaValidationError('Name %s used for multiple attribute declarations' % (local_name,))
+            raise SchemaValidationError('Name %s used for multiple groups' % (local_name,))
         self.__modelGroupDefinitions[local_name] = ad
         return ad
 
@@ -1744,3 +1840,19 @@ class Schema:
 
     def _modelGroupDefinitions (self):
         return self.__modelGroupDefinitions.values()
+
+    def __addElementDeclaration (self, ed):
+        assert isinstance(ed, ElementDeclaration)
+        local_name = ed.ncName()
+        print 'Defining element %s' % (local_name,)
+        old_ed = self.__elementDeclarations.get(local_name, None)
+        if old_ed is not None:
+            raise SchemaValidationError('Name %s used for multiple elements' % (local_name,))
+        self.__elementDeclarations[local_name] = ed
+        return ed
+
+    def _lookupElementDeclaration (self, local_name):
+        return self.__elementDeclarations.get(local_name, None)
+
+    def _elementDeclarations (self):
+        return self.__elementDeclarations.values()

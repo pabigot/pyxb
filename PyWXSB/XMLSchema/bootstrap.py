@@ -30,11 +30,11 @@ class schemaTop (xsc.ModelGroup):
         if rv is not None:
             return rv
         if wxs.xsQualifiedName('element') == node.nodeName:
-            return node
+            return wxs._processElementDeclaration(node)
         if wxs.xsQualifiedName('attribute') == node.nodeName:
             return wxs._processAttributeDeclaration(node)
         if wxs.xsQualifiedName('notation') == node.nodeName:
-            print "notation"
+            print "WARNING: Ignoring notation"
             return node
         return None
     Match = classmethod(__Match)
@@ -146,6 +146,15 @@ class schema (xsc.Schema):
         rv = self._lookupModelGroupDefinition(group_name)
         if rv is None:
             raise SchemaValidationError('lookupGroup: No match for "%s" in %s' % (group_name, self.__targetNamespace))
+        return rv
+
+    def lookupElement (self, element_name):
+        if 0 <= element_name.find(':'):
+            ( prefix, local_name ) = element_name.split(':', 1)
+            return self.namespaceForPrefix(prefix).lookupElement(local_name)
+        rv = self._lookupElementDeclaration(element_name)
+        if rv is None:
+            raise SchemaValidationError('lookupElement: No match for "%s" in %s' % (element_name, self.__targetNamespace))
         return rv
 
     def addNamespace (self, namespace):
@@ -329,6 +338,14 @@ class schema (xsc.Schema):
         rv = xsc.ModelGroupDefinition.CreateFromDOM(self, node)
         self._addNamedComponent(rv)
         return rv
+
+    def _processElementDeclaration (self, node):
+        # Node should be a named element
+        assert self.xsQualifiedName('element') == node.nodeName
+        assert self.xsQualifiedName('schema') == node.parentNode.nodeName
+        ed = xsc.ElementDeclaration.CreateFromDOM(self, node)
+        self._addNamedComponent(ed)
+        return ed
 
     def processTopLevelNode (self, node):
         """Process a DOM node from the top level of the schema.

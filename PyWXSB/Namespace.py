@@ -51,6 +51,9 @@ class Namespace:
     def lookupGroup (self, local_name):
         return self._validatedSchema().lookupGroup(local_name)
 
+    def lookupElement (self, local_name):
+        return self._validatedSchema().lookupElement(local_name)
+
     def qualifiedName (self, local_name, default_namespace=None):
         """Return a namespace-qualified name for the given local name
         in this namespace.
