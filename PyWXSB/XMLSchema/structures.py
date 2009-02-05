@@ -492,10 +492,12 @@ class ElementDeclaration (_NamedComponent_mixin, _Resolvable_mixin):
         if wxs.xsQualifiedName('schema') == node.parentNode.nodeName:
             rv.__scope = cls.SCOPE_global
         elif not node.hasAttribute('ref'):
-            # @todo target namespace
-            print 'WARNING: Not handling element form default properly'
+            if not rv.__ancestorComponent:
+                raise IncompleteImplementationError("Require ancestor information for local element:\n%s\n" % (node.toxml(),))
             if isinstance(rv.__ancestorComponent, ComplexTypeDefinition):
                 rv.__scope = rv.__ancestorComponent
+            # @todo target namespace requires form defaults
+            print 'WARNING: Not handling element form default properly'
         else:
             raise LogicError('Created reference as element declaration')
 
@@ -827,7 +829,7 @@ class ComplexTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
         else:
             # Clause 2.2
             assert typedef_node is not None
-            effective_content = Particle.CreateFromDOM(wxs, typedef_node)
+            effective_content = Particle.CreateFromDOM(wxs, typedef_node, self)
 
         # Shared from clause 3.1.2
         if effective_mixed:
@@ -854,11 +856,11 @@ class ComplexTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
                 # Clause 3.2.2
                 content_type = ( ct, effective_content )
             else:
-                print parent_content_type
                 assert type(parent_content_type) == tuple
                 m = ModelGroup(ModelGroup.C_SEQUENCE, [ parent_content_type[1], effective_content ])
-                content_type = Particle(m, 1, 1)
+                content_type = ( ct, Particle(m, 1, 1) )
 
+        assert (self.CT_EMPTY == content_type) or (type(content_type) == tuple)
         self.__contentType = content_type
         return self.__completeProcessing(wxs, definition_node_list, method, 'complex')
 
@@ -1058,7 +1060,7 @@ class ModelGroup:
 
     def __init__ (self, compositor, particles=[]):
         self.__compositor = compositor
-        self.__particles = particles[:]
+        self.__particles =[ _p._setAncestorComponent(self) for _p in  particles ]
 
     @classmethod
     def CreateFromDOM (cls, wxs, node):
@@ -1076,7 +1078,8 @@ class ModelGroup:
             if Node.ELEMENT_NODE != cn.nodeType:
                 continue
             if cn.nodeName in particle_tags:
-                particles.append(Particle.CreateFromDOM(wxs, cn))
+                # NB: Ancestor of particle is set in the ModelGroup constructor
+                particles.append(Particle.CreateFromDOM(wxs, cn, None))
         return cls(compositor, particles)
 
     @classmethod
@@ -1100,7 +1103,12 @@ class Particle (_Resolvable_mixin):
     # ElementDeclaration
     __term = None
 
-    def __init__ (self, term, min_occurs=1, max_occurs=1):
+    # If this particle is within a complexType or a group, we need the
+    # corresponding ComplexTypeDefinition or ModelGroup in order to
+    # handle non-reference local elements.
+    __ancestorComponent = None
+
+    def __init__ (self, term, min_occurs=1, max_occurs=1, ancestor_component=None):
         _Resolvable_mixin.__init__(self)
         self.__term = term
         # @todo Figure out how to test whether the parameters are integers,
@@ -1110,9 +1118,14 @@ class Particle (_Resolvable_mixin):
         if self.__maxOccurs is not None:
             if self.__minOccurs > self.__maxOccurs:
                 raise LogicError('Particle minOccurs %s is greater than maxOccurs %s on creation' % (min_occurs, max_occurs))
+        self.__ancestorComponent = ancestor_component
+        assert (self.__ancestorComponent is None) or isinstance(self.__ancestorComponent, ( ComplexTypeDefinition, ModelGroup ))
     
+    def _setAncestorComponent (self, ancestor_component):
+        self.__ancestorComponent = ancestor_component
+
     @classmethod
-    def CreateFromDOM (cls, wxs, node):
+    def CreateFromDOM (cls, wxs, node, ancestor_component):
         min_occurs = 1
         max_occurs = 1
         if not node.nodeName in cls.ParticleTags(wxs.xs()):
@@ -1126,7 +1139,7 @@ class Particle (_Resolvable_mixin):
             else:
                 max_occurs = datatypes.nonNegativeInteger.StringToPython(av)
 
-        rv = cls(None, min_occurs, max_occurs)
+        rv = cls(None, min_occurs, max_occurs, ancestor_component)
         rv.__domNode = node
         wxs._queueForResolution(rv)
 
@@ -1161,7 +1174,7 @@ class Particle (_Resolvable_mixin):
             if node.hasAttribute('ref'):
                 term = wxs.lookupElement(node.getAttribute('ref'))
             else:
-                term = ElementDeclaration.CreateFromDOM(wxs, node)
+                term = ElementDeclaration.CreateFromDOM(wxs, node, self.__ancestorComponent)
         elif wxs.xsQualifiedName('any') == node.nodeName:
             # 3.9.2 says use 3.10.2, which is Wildcard.
             term = Wildcard.CreateFromDOM(wxs, node)
