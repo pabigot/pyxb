@@ -1,22 +1,107 @@
 from exceptions_ import *
+import os
 
-# URI for the XMLSchema namespace
-XMLSchema = 'http://www.w3.org/2001/XMLSchema'
+# Namespace and URI for the XMLSchema namespace (often xs, or xsd)
+XMLSchema = None
+XMLSchema_uri = 'http://www.w3.org/2001/XMLSchema'
 
-# URI for the XMLSchema Instance namespace
-XMLSchema_instance = 'http://www.w3.org/2001/XMLSchema-instance'
+# Namespace and URI for the XMLSchema Instance namespace (always xsi).
+# This is always built-in, and cannot have an associated schema.  We
+# use it as an indicator that the namespace system has been
+# initialized.
+XMLSchema_instance = None
+XMLSchema_instance_uri = 'http://www.w3.org/2001/XMLSchema-instance'
+XMLSchema_instance_prefix = 'xsi'
+
+# Namespace and URI for XML namespaces (always xmlns)
+XMLNamespaces = None
+XMLNamespaces_uri = 'http://www.w3.org/2000/xmlns/'
+XMLNamespaces_prefix = 'xmlns'
+
+# Namespace and URI for XML itself (always xml)
+XML = None
+XML_uri = 'http://www.w3.org/XML/1998/namespace'
+XML_prefix = 'xml'
+
+# Environment variable from which default path to pre-loaded namespaces is read
+PathEnvironmentVariable = 'PYWXSB_NAMESPACE_PATH'
 
 class Namespace:
     """Represents an XML namespace, viz. a URI.
 
     @todo A namespace can be targeted by multiple schema; currently we
-    assume only one."""
+    assume only one.
+
+    @todo A namespace should not be coupled with the prefix by which
+    it is known in a particular schema.
+    """
     
     __uri = None                        # The URI for the namespace
     __prefix = None                     # The prefix by which the namespace is known in a schema
     __schema = None                     # The schema in which this namespace is used
 
-    def __init__ (self, uri=None, prefix=None, schema=None):
+    __Preloaded = [ ]
+    __xs = None
+    __xsi = None
+    __xml = None
+    __xmlns = None
+
+    @classmethod
+    def __MaybePreload (cls):
+        if XML is None:
+            import XMLSchema.structures as xsc
+            cls.Preload(xsc)
+
+    @classmethod
+    def XML (cls):
+        cls.__MaybePreload()
+        return XML
+
+    @classmethod
+    def XMLSchema (cls):
+        cls.__MaybePreload()
+        return XMLSchema
+
+    @classmethod
+    def XMLSchema_uri (cls):
+        return XMLSchema_uri
+
+    @classmethod
+    def Preload (cls, xsc, pywxsb_schema_path=None, ignore_prefix=None):
+        if pywxsb_schema_path is None:
+            if PathEnvironmentVariable in os.environ:
+                pywxsb_schema_path = os.environ.get(PathEnvironmentVariable)
+            else:
+                pywxsb_schema_path = '.'
+
+        # xsi is ultra-special, in that it can't even be expressed in
+        # a schema.  Its elements must be built-in.  See
+        # http://www.w3.org/TR/xmlschema-1/#no-xsi
+        global XMLSchema_instance
+        assert XMLSchema_instance is None
+        XMLSchema_instance = cls(XMLSchema_instance_uri, XMLSchema_instance_prefix, in_static_constructor=True)
+        xsc.AttributeDeclaration.CreateBaseInstance('type', XMLSchema_instance)
+        xsc.AttributeDeclaration.CreateBaseInstance('nil', XMLSchema_instance)
+        xsc.AttributeDeclaration.CreateBaseInstance('schemaLocation', XMLSchema_instance)
+        xsc.AttributeDeclaration.CreateBaseInstance('noNamespaceSchemaLocation', XMLSchema_instance)
+
+        if ignore_prefix is not None:
+            raise IncompleteImplementationError('Need to support ignore_prefix in Namespace.Preload')
+
+        global XML
+        XML = cls(XML_uri, XML_prefix)
+        
+        global XMLSchema
+        # NB: No default prefix for this one
+        XMLSchema = cls(XMLSchema_uri)
+
+        global XMLNamespaces
+        XMLNamespaces = cls(XMLNamespaces_uri, XMLNamespaces_prefix)
+
+    def __init__ (self, uri=None, prefix=None, schema=None, in_static_constructor=False):
+        # Make sure we have namespace support loaded before use
+        if (XMLSchema_instance is None) and not in_static_constructor:
+            self.__MaybePreload()
         self.__uri = uri
         self.__prefix = prefix
         self.__schema = schema

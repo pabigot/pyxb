@@ -16,8 +16,6 @@ from xml.dom import Node
 import sys
 import types
 
-NamespaceURI = 'http://www.w3.org/2001/XMLSchema'
-
 # Hand-written classes used to get to the point where we can subclass
 # generated bindings.
 
@@ -90,23 +88,11 @@ class schema (xsc.Schema):
         self.__namespaceList = []
         self.__namespacePrefixMap = { }
         self.__namespaceURIMap = { }
+        self.__addNamespace(Namespace.XML())
+        self.__xs = Namespace.XMLSchema()
+        self.__addNamespace(self.__xs)
 
     def initializeBuiltins (self):
-        print 'Initializing built-ins'
-        self.__xml = self.lookupOrCreateNamespace('http://www.w3.org/XML/1998/namespace', 'xml')
-        self.__xmlns = self.lookupOrCreateNamespace('http://www.w3.org/XML/2000/xmlns/', 'xmlns')
-
-        self.__xs = self.lookupOrCreateNamespace('http://www.w3.org/2001/XMLSchema')
-
-        # xsi is ultra-special, in that it can't even be expressed in
-        # a schema.  Its elements must be built-in.  See
-        # http://www.w3.org/TR/xmlschema-1/#no-xsi
-        self.__xsi = self.lookupOrCreateNamespace('http://www.w3.org/2001/XMLSchema-instance', 'xsi')
-        void = xsc.AttributeDeclaration.CreateBaseInstance('type', self.__xsi)
-        void = xsc.AttributeDeclaration.CreateBaseInstance('nil', self.__xsi)
-        void = xsc.AttributeDeclaration.CreateBaseInstance('schemaLocation', self.__xsi)
-        void = xsc.AttributeDeclaration.CreateBaseInstance('noNamespaceSchemaLocation', self.__xsi)
-
         # If there's a target namespace, use this as its schema
         if self.__targetNamespace:
             self.__targetNamespace.schema(self)
@@ -172,17 +158,21 @@ class schema (xsc.Schema):
             raise SchemaValidationError('lookupElement: No match for "%s" in %s' % (element_name, self.__targetNamespace))
         return rv
 
-    def addNamespace (self, namespace):
+    def __addNamespace (self, namespace):
         old_namespace = self.__namespacePrefixMap.get(namespace.prefix(), None)
-        return namespace
-        
+        self.__namespaceList.append(namespace)
+        self.__namespaceURIMap[namespace.uri()] = namespace
+        if namespace.prefix() is not None:
+            self.__namespacePrefixMap[namespace.prefix()] = namespace
+        return old_namespace
+
     def lookupOrCreateNamespace (self, uri, prefix=None):
+        # NB: This can replace the prefix if it changed since creation
         try:
             namespace = self.namespaceForURI(uri)
         except Exception, e:
             namespace = Namespace(uri, prefix)
-            self.__namespaceList.append(namespace)
-            self.__namespaceURIMap[namespace.uri()] = namespace
+            self.__addNamespace(namespace)
         if namespace.prefix() is None:
             namespace.prefix(prefix)
         if namespace.prefix() is not None:
@@ -436,6 +426,6 @@ def SchemaForXS (wxs):
     Preload all its elements.  Note that we only need to do this in
     the bootstrap code.'''
     rv = schema()
-    rv.setTargetNamespace(wxs.lookupOrCreateNamespace(NamespaceURI))
+    rv.setTargetNamespace(wxs.xs())
     xsd.DefineSimpleTypes(rv)
     return rv
