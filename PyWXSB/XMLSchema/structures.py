@@ -255,20 +255,20 @@ class _Resolvable_mixin:
         """Perform whatever steps are required to resolve this component.
 
         Resolution is performed in the context of the provided schema.
+        Invoking this method may fail to complete the resolution
+        process if the component itself depends on unresolved
+        components.  The sole caller of this should be
+        schema._resolveDefinitions().
         
-        Note that, if there is a recursive resolution required, the
-        component may not have been resolved upon return from this
-        method.  In that case, the component should have already been
-        added back into the set of items that still need to be
-        resolved.
+        Override this in the child class.  The method should return
+        self.  In the prefix, if isResolved() is true, return right
+        away.  If something prevents you from completing resolution,
+        invoke wxs._queueForResolution(self) so it is retried later,
+        then immediately return self.  Prior to leaving after
+        successful resolution discard any cached dom node by setting
+        self.__domNode=None.
 
-        A component may require its DOM node to complete resolution;
-        if so, the node is cached internal to the component upon
-        creation.  The resolution method should reset this cached
-        reference to None upon completion of resolution, so the DOM
-        node space is reclaimed.
-
-        Override this in the child class."""
+        """
         raise LogicError('Resolution not implemented in %s' % (self.__class__,))
         
 
