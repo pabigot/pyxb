@@ -423,9 +423,9 @@ class AttributeUse (_Resolvable_mixin):
         return self.USE_required == self.__use
 
     def prohibited (self):
-        return self.USE_prohibited == self.use
+        return self.USE_prohibited == self.__use
     
-class ElementDeclaration (_NamedComponent_mixin):
+class ElementDeclaration (_NamedComponent_mixin, _Resolvable_mixin):
     __typeDefinition = None
     __scope = None
     __valueConstraint = None
@@ -445,6 +445,7 @@ class ElementDeclaration (_NamedComponent_mixin):
     
     def __init__ (self, name, target_namespace):
         _NamedComponent_mixin.__init__(self, name, target_namespace)
+        _Resolvable_mixin.__init__(self)
 
     @classmethod
     def CreateFromDOM (cls, wxs, node):
@@ -615,7 +616,7 @@ class ComplexTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
                 continue
             if xs_attribute == node.nodeName:
                 # Note: This attribute use instance may have use=prohibited
-                uses_c1.add(AttributeUse.CreateFromDOM(node))
+                uses_c1.add(AttributeUse.CreateFromDOM(wxs, node))
             elif xs_attributeGroup == node.nodeName:
                 # This must be an attributeGroupRef
                 if not node.hasAttribute('ref'):
@@ -641,7 +642,7 @@ class ComplexTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
                 uses_c12 = uses_c1.union(uses_c2)
                 for au in uses_c12:
                     uses_c3 = uses_c3.difference(au.matchingQNameMembers(uses_c3))
-        uses = set([ _au for _au in uses_c1 if not _au.useProhibited() ])
+        uses = set([ _au for _au in uses_c1 if not _au.prohibited() ])
         self.__attributeUses = frozenset(uses.union(uses_c2).union(uses_c3))
         # @todo Handle attributeWildcard
         # Only now that we've succeeded do we set the method (mark this resolved)
@@ -743,13 +744,14 @@ class ComplexTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
             # Clause 3.1
             if self.CT_EMPTY == effective_content:
                 # Clause 3.1.1
-                content_type = None
+                content_type = self.CT_EMPTY
             else:
                 # Clause 3.1.2(.2)
                 content_type = ( ct, effective_content )
         else:
             # Clause 3.2
             assert self.DM_extension == method
+            assert self.__baseTypeDefinition.isResolved()
             parent_content_type = self.__baseTypeDefinition.contentType()
             if self.CT_EMPTY == effective_content:
                 content_type = parent_content_type
@@ -757,6 +759,7 @@ class ComplexTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
                 # Clause 3.2.2
                 content_type = ( ct, effective_content )
             else:
+                print parent_content_type
                 assert type(parent_content_type) == tuple
                 m = ModelGroup(ModelGroup.C_SEQUENCE, [ parent_content_type[1], effective_content ])
                 content_type = Particle(m, 1, 1)
@@ -1026,6 +1029,8 @@ class Particle (_Resolvable_mixin):
     def CreateFromDOM (cls, wxs, node):
         min_occurs = 1
         max_occurs = 1
+        if not node.nodeName in cls.ParticleTags(wxs.xs()):
+            raise LogicError('Attempted to create particle from illegal element %s' % (node.nodeName,))
         if node.hasAttribute('minOccurs'):
             min_occurs = datatypes.nonNegativeInteger.StringToPython(node.getAttribute('minOccurs'))
         if node.hasAttribute('maxOccurs'):
@@ -1070,8 +1075,12 @@ class Particle (_Resolvable_mixin):
         elif wxs.xsQualifiedName('any') == node.nodeName:
             # 3.9.2 says use 3.10.2, which is Wildcard.
             term = Wildcard.CreateFromDOM(wxs, node)
+        elif wxs.xsQualifiedName('choice') == node.nodeName:
+            raise IncompleteImplementationError('Implement Particle.choice resolution')
+        elif wxs.xsQualifiedName('sequence') == node.nodeName:
+            raise IncompleteImplementationError('Implement Particle.sequence resolution')
         else:
-            raise LogicError('Unhandled node in Particle.CreateFromDOM: %s' % (node.toxml(),))
+            raise LogicError('Unhandled node in Particle._resolve: %s' % (node.toxml(),))
         
     @classmethod
     def TypedefTags (cls, namespace):
