@@ -425,9 +425,7 @@ class AttributeUse (_Resolvable_mixin):
     def prohibited (self):
         return self.USE_prohibited == self.use
     
-class ElementDeclaration:
-    __name = None
-    __targetNamespace = None
+class ElementDeclaration (_NamedComponent_mixin):
     __typeDefinition = None
     __scope = None
     __valueConstraint = None
@@ -445,9 +443,27 @@ class ElementDeclaration:
     __abstract = False
     __annotation = None
     
+    def __init__ (self, name, target_namespace):
+        _NamedComponent_mixin.__init__(self, name, target_namespace)
+
     @classmethod
     def CreateFromDOM (cls, wxs, node):
-        raise IncompleteImplementationError('%s: Needs CreateFromDOM' % (cls.__name__,))
+        # Node should be an XMLSchema element node
+        assert wxs.xsQualifiedName('element') == node.nodeName
+
+        # Might be top-level, might be local
+        name = None
+        if node.hasAttribute('name'):
+            name = node.getAttribute('name')
+
+        rv = cls(name, wxs.getTargetNamespace())
+
+        # Creation does not attempt to do resolution.  Queue up the newly created
+        # whatsis so we can resolve it after everything's been read in.
+        rv.__domNode = node
+        wxs._queueForResolution(rv)
+        
+        return rv
 
 class ComplexTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
     # The type resolved from the base attribute
