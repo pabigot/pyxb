@@ -204,6 +204,23 @@ class schema (xsc.Schema):
     def getTargetNamespace (self):
         return self.__targetNamespace
 
+    def targetNamespaceFromDOM (self, node, default_tag):
+        """Determine the approprate namespace for a local attribute/element.
+
+        This takes the appropriate default value (identified by the
+        given tag) from the schema, potentially overrides it within
+        the node, then returns either the target namespace or None.
+        """
+        form = self.__attributeMap.get(default_tag)
+        assert form is not None
+        if node.hasAttribute('form'):
+            form = node.getAttribute('form')
+        if not form in [ 'qualified', 'unqualified' ]:
+            raise SchemaValidationError('form attribute must be "qualified" or "unqualified"')
+        if 'qualifled' == form:
+            return self.getTargetNamespace()
+        return None
+
     def targetPrefix (self):
         if self.__targetNamespace:
             return self.__targetNamespace.prefix()
@@ -218,6 +235,13 @@ class schema (xsc.Schema):
         if self.__namespacePrefixMap.has_key(prefix):
             return self.__namespacePrefixMap.get(prefix, None)
         raise Exception('Namespace prefix "%s" not recognized' % (prefix,))
+
+    # @todo put these in base class
+    __attributeMap = { 'attributeFormDefault' : 'unqualified'
+                     , 'elementFormDefault' : 'unqualified'
+                     , 'blockDefault' : ''
+                     , 'finalDefault' : ''
+                     } 
 
     def processDocument (self, doc):
         """Take the root element of the document, and scan its attributes under
@@ -235,6 +259,8 @@ class schema (xsc.Schema):
                 default_namespace = attr.nodeValue
             elif 'targetNamespace' == attr.name:
                 target_namespace = attr.nodeValue
+            elif attr.name in self.__attributeMap.keys():
+                self.__attributeMap.setdefault(attr.name, attr.nodeValue)
         if default_namespace is not None:
             # TODO: Is it required that the default namespace be recognized?
             # Does not hold for http://www.w3.org/2001/xml.xsd

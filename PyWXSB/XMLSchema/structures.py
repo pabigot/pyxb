@@ -218,7 +218,7 @@ class _NamedComponent_mixin:
         assert (name is None) or (0 > name.find(':'))
         self.__name = name
         self.__targetNamespace = target_namespace
-
+            
     def targetNamespace (self):
         """Return the namespace in which the component is located."""
         return self.__targetNamespace
@@ -305,13 +305,14 @@ class AttributeDeclaration (_NamedComponent_mixin, _Resolvable_mixin):
         assert wxs.xsQualifiedName('attribute') == node.nodeName
 
         name = None
+        name = None
         if node.hasAttribute('name'):
             name = node.getAttribute('name')
-        # @todo: Internal attribute non-reference target namespace calculation is incorrect.
-        assert not node.hasAttribute('form')
-        print 'WARNING: Not handling form default correctly'
-        # also check associated schema attributeFormDefault
-        rv = cls(name, wxs.getTargetNamespace())
+            namespace = wxs.getTargetNamespace()
+        elif not node.hasAttribute('ref'):
+            namespace = wxs.getTargetNamespaceFromDOM(node, 'attributeFormDefault')
+
+        rv = cls(name, namespace)
 
         rv.__domNode = node
         wxs._queueForResolution(rv)
@@ -487,19 +488,22 @@ class ElementDeclaration (_NamedComponent_mixin, _Resolvable_mixin):
         if node.hasAttribute('name'):
             name = node.getAttribute('name')
 
-        rv = cls(name, wxs.getTargetNamespace(), ancestor_component)
-
+        scope = None
+        namespace = None
         if wxs.xsQualifiedName('schema') == node.parentNode.nodeName:
-            rv.__scope = cls.SCOPE_global
+            namespace = wxs.getTargetNamespace()
+            scope = cls.SCOPE_global
         elif not node.hasAttribute('ref'):
+            namespace = wxs.targetNamespaceFromDOM(node, 'elementFormDefault')
             if not rv.__ancestorComponent:
                 raise IncompleteImplementationError("Require ancestor information for local element:\n%s\n" % (node.toxml(),))
             if isinstance(rv.__ancestorComponent, ComplexTypeDefinition):
                 rv.__scope = rv.__ancestorComponent
-            # @todo target namespace requires form defaults
-            print 'WARNING: Not handling element form default properly'
         else:
             raise LogicError('Created reference as element declaration')
+        
+        rv = cls(name, namespace, ancestor_component)
+        rv.__scope = scope
 
         # Creation does not attempt to do resolution.  Queue up the newly created
         # whatsis so we can resolve it after everything's been read in.
@@ -1028,6 +1032,7 @@ class ModelGroupDefinition (_NamedComponent_mixin):
         assert wxs.xsQualifiedName('group') == node.nodeName
 
         assert not node.hasAttribute('ref')
+
         name = None
         if node.hasAttribute('name'):
             name = node.getAttribute('name')
