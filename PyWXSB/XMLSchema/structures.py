@@ -1211,30 +1211,54 @@ class Particle (_Resolvable_mixin):
 
 # 3.10.1
 class Wildcard:
+    NC_any = '##any'            #<<< The namespace constraint "##any"
+    NC_not = '##other'          #<<< A flag indicating constraint "##other"
+
     # A constraint on the namespace.  Valid values are:
     # NC_any
     # ( NC_not, a_namespace_name)
     # set(of_namespace_names)
     # Absent is represented by None, both in the "not" pair and in the set.
-    NC_any = '##any'            #<<< The namespace constraint "##any"
-    NC_not = '##other'          #<<< A flag indicating constraint "##other"
     __namespaceConstraint = None
 
-    PC_INVALID = 0
-    PC_skip = 0x01              #<<< No constraint is applied
-    PC_lax = 0x02               #<<< Validate against available uniquely determined declaration
-    PC_strict = 0x04            #<<< Validate against declaration or xsi:type which must be available
-    __processContents = PC_INVALID
+    PC_skip = 'skip'            #<<< No constraint is applied
+    PC_lax = 'lax'              #<<< Validate against available uniquely determined declaration
+    PC_strict = 'strict'        #<<< Validate against declaration or xsi:type which must be available
+
+    # One of PC_*
+    __processContents = None
+
     __annotation = None
 
-    def __init__ (self, namespace_constraint, process_contents, annotation=None):
+    def __init__ (self, namespace_constraint, process_contents):
         self.__namespaceConstraint = namespace_constraint
         self.__processContents = process_contents
-        self.__annotation = annotation
 
     @classmethod
     def CreateFromDOM (cls, wxs, node):
-        raise IncompleteImplementationError('%s: Needs CreateFromDOM' % (cls.__name__,))
+        
+        if not node.hasAttribute('namespace'):
+            namespace_constraint = cls.NC_any
+        else:
+            nc = node.getAttribute('namespace')
+            if cls.NC_any == nc:
+                namespace_constraint = cls.NC_any
+            elif cls.NC_not == nc:
+                namespace_constraint = ( cls.NC_not, wxs.getTargetNamespace() )
+            else:
+                raise IncompleteImplementationError('any.namespace must process otherwise condition (3.10.2)')
+
+        if not node.hasAttribute('processContents'):
+            process_contents = PC_strict
+        else:
+            pc = node.getAttribute('processContents')
+            if pc in [ cls.PC_skip, cls.PC_lax, cls.PC_strict ]:
+                process_contents = pc
+            else:
+                raise SchemaValidationError('illegal value "%s" for any processContents attribute' % (pc,))
+
+        rv = cls(namespace_constraint, process_contents)
+        rv.__annotation = LocateUniqueChild(node, wxs, 'annotation', absent_ok=True)
 
 # 3.11.1
 class IdentityConstraintDefinition (_NamedComponent_mixin):
