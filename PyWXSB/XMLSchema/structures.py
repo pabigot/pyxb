@@ -1075,10 +1075,11 @@ class Particle (_Resolvable_mixin):
         elif wxs.xsQualifiedName('any') == node.nodeName:
             # 3.9.2 says use 3.10.2, which is Wildcard.
             term = Wildcard.CreateFromDOM(wxs, node)
-        elif wxs.xsQualifiedName('choice') == node.nodeName:
-            raise IncompleteImplementationError('Implement Particle.choice resolution')
-        elif wxs.xsQualifiedName('sequence') == node.nodeName:
-            raise IncompleteImplementationError('Implement Particle.sequence resolution')
+        elif node.nodeName in ModelGroup.GroupMemberTags(wxs.xs()):
+            # Choice, sequence, and all inside a particle are explicit
+            # groups (or a restriction of explicit group, in the case
+            # of all)
+            term = ModelGroup.CreateFromDOM(wxs, node)
         else:
             raise LogicError('Unhandled node in Particle._resolve: %s' % (node.toxml(),))
         
