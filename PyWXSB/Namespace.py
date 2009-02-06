@@ -4,8 +4,17 @@ import os
 # Environment variable from which default path to pre-loaded namespaces is read
 PathEnvironmentVariable = 'PYWXSB_NAMESPACE_PATH'
 
-class Namespace:
+# Stuff required for pickling
+import cPickle as pickle
+import new
+from types import MethodType
+
+class Namespace (object):
     """Represents an XML namespace, viz. a URI.
+
+    This may be an object, or it can be an instance that does nothing
+    but delegate to another instance.  You probably don't need to know
+    that.
 
     @todo I haven't encountered specifications that state a namespace
     cannot be defined by an aggregation of multiple schemas.  On the
@@ -37,7 +46,39 @@ class Namespace:
 
     # Indicates whether this namespace is built-in to the system
     __isBuiltinNamespace = False
-    
+
+    # Indicates that this class is a proxy for the given namespace.
+    # This is required to support pickling: we represent pickled
+    # namespaces as their URIs, and nested references to built-in
+    # namespaces inside pickled schemas need to be proxies for the
+    # real built-in, since we can't force pickle to instead substitute
+    # the real one.
+    __proxyFor = None
+
+    # This trick (which requires new-style classes) allows us to
+    # convert a raw Namespace instance, as created by the pickling
+    # subsystem, into a proxy for a different Namespace instance,
+    # e.g. one that was built-in.
+    def __getattribute__ (self, aname):
+        pf_aname = '_Namespace__proxyFor'
+        proxy_for = object.__getattribute__(self, pf_aname)
+        if pf_aname == aname:
+            # Do not delegate lookups of the __proxyFor field
+            return proxy_for
+        # If this instance is a proxy for something else, return it or
+        # invoke it.  See http://code.activestate.com/recipes/519639/
+        if proxy_for is not None:
+            aval = object.__getattribute__(proxy_for, aname)
+            if isinstance(aval, MethodType):
+                return new.instancemethod(aval.im_func, self, self.__proxyFor.__class__)
+            return aval
+        # Not a proxy: return the actual attribute
+        return object.__getattribute__(self, aname)
+
+    @classmethod
+    def NamespaceForURI (cls, uri):
+        return cls.__Registry.get(uri, None)
+
     def checkInitialized (self):
         pass
 
@@ -47,6 +88,7 @@ class Namespace:
                   description=None,
                   is_builtin_namespace=False,
                   bound_prefix=None):
+        super(Namespace, self).__init__()
         # Make sure we have namespace support loaded before use, and
         # that we're not trying to do something restricted to built-in
         # namespaces
@@ -58,9 +100,9 @@ class Namespace:
 
         # Make sure the URI is given and has not been given before
         if uri is None:
-            raise LogicException('Namespace requires a URI')
+            raise LogicError('Namespace requires a URI')
         if uri in self.__Registry:
-            raise LogicException('Cannot create multiple namespace instances for %s' % (uri,))
+            raise LogicError('Cannot create multiple namespace instances for %s' % (uri,))
 
         self.__uri = uri
         self.__boundPrefix = bound_prefix
@@ -112,9 +154,49 @@ class Namespace:
         return self._validatedSchema().lookupElement(local_name)
 
     def __str__ (self):
+        assert self.__uri is not None
         if self.__boundPrefix is not None:
-            return '%s=%s' % (self.__boundPrefix, self.__uri)
-        return self.__uri
+            rv = '%s=%s' % (self.__boundPrefix, self.__uri)
+        else:
+            rv = self.__uri
+        if self.__proxyFor is not None:
+            rv = '%s[proxy]' % (rv,)
+        return rv
+
+    def __getstate__ (self):
+        state = (self.__uri,)
+        return state
+
+    def __setstate__ (self, state):
+        (uri,) = state
+        self.__proxyFor = self.NamespaceForURI(uri)
+        if self.__proxyFor is None:
+            Namespace.__init__(self, *state)
+        else:
+            print 'Initialized proxy for %s' % (self.__proxyFor,)
+            print 'Stringized proxy %s' % (self,)
+
+    def saveToFile (self, file_path):
+        if self.__schema is None:
+            raise LogicError('Cannot save namespace that does not have associated schema')
+        pickler = pickle.Pickler(open(file_path, 'wb'), -1)
+        pickler.dump(self)
+        pickler.dump(self.__schema)
+
+    @classmethod
+    def LoadFromFile (cls, file_path):
+        unpickler = pickle.Unpickler(open(file_path, 'rb'))
+        
+        instance = unpickler.load()
+        print 'Got URI %s' % (instance.uri(),)
+        rv = cls.NamespaceForURI(instance.uri())
+        assert rv is not None
+        schema = unpickler.load()
+        print 'Got schema %s' % (schema,)
+        print 'Target namespace of schema: %s' % (schema.getTargetNamespace(),)
+        assert schema.getTargetNamespace().uri() == rv.uri()
+        rv.__schema = schema
+        return rv
 
 # The XMLSchema structures module used to represent namespace schemas.  This
 # must be set, by invoking SetStructureModule, prior to attempting to use any
