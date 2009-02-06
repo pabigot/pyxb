@@ -9,7 +9,6 @@ distinguish tuple values boundaries:
 
     hypot2 = x*x + y*y
     pair_of_pairs = ( (a, b), (b, c) )
-    
 
 Other practices are an attempt to reflect in Python practices used in C++ to
 explicitly reveal interface visibility.  The use of a double underscore in
@@ -20,10 +19,24 @@ used to represent the concepts of protected/friend interfaces.
 Exceptions
 ----------
 
-Where an execution branch has been identified, but has not yet been
-implemented, raise a NotImplementedError.
+PyWXSB provides a standard exception hierarchy that extends that built into
+Python.
 
-Document the exception behavior of methods.
+Where an execution branch has been identified that requires behavior that
+has not yet been implemented, raise an IncompleteImplementationError.
+
+Where the system detects that a precondition is not satisfied, processing
+must stop.  If the precondition failure is due to improper use of the PyWXSB
+internal or public API, a LogicError should be raised.  If the precondition
+failure is due to invalid input from the schema, a SchemaValidationError
+should be raised.
+
+If the precondition is inexplicably false, Python's assert functionality may
+be used.  (Use of assert should be rare, and only in places that are
+guaranteed to be exercised during the course of testing.)
+
+The exception behavior of methods SHOULD be documented.  Documentation of
+asserts is not required.
 
 Annotations
 -----------

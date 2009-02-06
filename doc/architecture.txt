@@ -1,5 +1,14 @@
 The Python structures that hold schema-related data are directly related to
-the schema components defined in the XMLSchema specification.
+the schema components defined in the XMLSchema specification.  Familiarity
+with the material in http://www.w3.org/TR/xmlschema-1 is valuable.
+
+A set of UML diagrams hand-extracted from the XMLSchema schema was used to
+gain initial understanding of the relationship between elements of a schema
+XML representation.
+
+A companion set of UML diagrams displays the relationship between the Python
+classes that comprise the XMLSchema.structures module, which is the core of
+the system.
 
 Design Choices
 ==============
@@ -9,10 +18,10 @@ PyWXSB
 
 Most XMLSchema are relatively small, so holding the entire definition in
 memory is not an issue.  The complexity of XMLSchema can require multiple
-passes over the data type definitions to resolve forward references.  As a
-consequence of these points, the Document Object Model was selected as the
-internal representation of XML within PyWXSB.  Level 2 DOM conformance is
-assumed.
+passes over the element structure to resolve forward references or select
+child nodes of interest at different stages.  As a consequence of these
+points, the Document Object Model was selected as the internal
+representation of XML within PyWXSB.  Level 2 DOM conformance is assumed.
 
 Though PyWXSB currently uses the xml.dom.minidom implementation, there is no
 intention to rely on any implementation-specific features of this.  It is,
