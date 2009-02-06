@@ -900,7 +900,7 @@ class ComplexTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
         assert self.__domNode
         node = self.__domNode
         
-        print 'Resolving CTD %s' % (self.name(),)
+        #print 'Resolving CTD %s' % (self.name(),)
         if node.hasAttribute('abstract'):
             self.__abstract = datatypes.boolean.StringToPython(node.getAttribute('abstract'))
 
@@ -1162,7 +1162,7 @@ class Particle (_Resolvable_mixin):
     def _resolve (self, wxs):
         if self.isResolved():
             return self
-        print 'Resolving Particle'
+        #print 'Resolving Particle'
         node = self.__domNode
 
         if wxs.xsQualifiedName('group') == node.nodeName:
@@ -1897,7 +1897,7 @@ class Schema (object):
     def __addModelGroupDefinition (self, ad):
         assert isinstance(ad, ModelGroupDefinition)
         local_name = ad.ncName()
-        print 'Defining group %s' % (local_name,)
+        #print 'Defining group %s' % (local_name,)
         old_ad = self.__modelGroupDefinitions.get(local_name, None)
         if old_ad is not None:
             raise SchemaValidationError('Name %s used for multiple groups' % (local_name,))
@@ -1913,7 +1913,7 @@ class Schema (object):
     def __addElementDeclaration (self, ed):
         assert isinstance(ed, ElementDeclaration)
         local_name = ed.ncName()
-        print 'Defining element %s' % (local_name,)
+        #print 'Defining element %s' % (local_name,)
         old_ed = self.__elementDeclarations.get(local_name, None)
         if old_ed is not None:
             raise SchemaValidationError('Name %s used for multiple elements' % (local_name,))

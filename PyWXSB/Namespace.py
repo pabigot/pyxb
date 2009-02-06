@@ -1,8 +1,10 @@
 from exceptions_ import *
 import os
+import fnmatch
 
 # Environment variable from which default path to pre-loaded namespaces is read
 PathEnvironmentVariable = 'PYWXSB_NAMESPACE_PATH'
+DefaultBindingPath = "/home/pab/pywxsb/dev/bindings"
 
 # Stuff required for pickling
 import cPickle as pickle
@@ -75,12 +77,21 @@ class Namespace (object):
         # Not a proxy: return the actual attribute
         return object.__getattribute__(self, aname)
 
+    def stripProxies (self):
+        pf_aname = '_Namespace__proxyFor'
+        proxy_for = object.__getattribute__(self, pf_aname)
+        if proxy_for is not None:
+            return proxy_for.stripProxies()
+        return self
+
     @classmethod
-    def NamespaceForURI (cls, uri):
+    def _NamespaceForURI (cls, uri):
         return cls.__Registry.get(uri, None)
 
     def checkInitialized (self):
-        pass
+        afn = _BuiltSchemas.get(self.uri(), None)
+        if afn is not None:
+            self.LoadFromFile(afn)
 
     def __init__ (self, uri,
                   schema=None,
@@ -163,46 +174,61 @@ class Namespace (object):
             rv = '%s[proxy]' % (rv,)
         return rv
 
+    __PICKLE_FORMAT = '200902061410'
+
     def __getstate__ (self):
-        state = (self.__uri,)
-        return state
+        kw = {
+            'schema_location': self.__schemaLocation,
+            'description':self.__description
+            }
+        args = ( self.__uri, )
+        return ( self.__PICKLE_FORMAT, args, kw )
 
     def __setstate__ (self, state):
-        (uri,) = state
-        self.__proxyFor = self.NamespaceForURI(uri)
+        ( format, args, kw ) = state
+        if self.__PICKLE_FORMAT != format:
+            raise UnpicklingError('Got Namespace pickle format %s, require %s' % (format, self.__PICKLE_FORMAT))
+        ( uri, ) = args
+        self.__proxyFor = self._NamespaceForURI(uri)
         if self.__proxyFor is None:
-            Namespace.__init__(self, *state)
-        else:
-            print 'Initialized proxy for %s' % (self.__proxyFor,)
-            print 'Stringized proxy %s' % (self,)
+            Namespace.__init__(self, *args, **kw)
 
     def saveToFile (self, file_path):
         if self.__schema is None:
-            raise LogicError('Cannot save namespace that does not have associated schema')
-        pickler = pickle.Pickler(open(file_path, 'wb'), -1)
+            raise LogicError("Won't save namespace that does not have associated schema: %s", self.uri())
+        output = open(file_path, 'wb')
+        pickler = pickle.Pickler(output, -1)
+        pickler.dump(self.uri())
         pickler.dump(self)
         pickler.dump(self.__schema)
 
     @classmethod
     def LoadFromFile (cls, file_path):
         unpickler = pickle.Unpickler(open(file_path, 'rb'))
-        
+
+        uri = unpickler.load()
         instance = unpickler.load()
-        print 'Got URI %s' % (instance.uri(),)
-        rv = cls.NamespaceForURI(instance.uri())
+        assert instance.uri() == uri
+        #print 'Got URI %s' % (instance.uri(),)
+        rv = cls._NamespaceForURI(instance.uri())
         assert rv is not None
         schema = unpickler.load()
-        print 'Got schema %s' % (schema,)
-        print 'Target namespace of schema: %s' % (schema.getTargetNamespace(),)
+        #print 'Got schema %s' % (schema,)
+        #print 'Target namespace of schema: %s' % (schema.getTargetNamespace(),)
         assert schema.getTargetNamespace().uri() == rv.uri()
         rv.__schema = schema
+        assert rv.stripProxies() == rv
         return rv
+
+def NamespaceForURI (uri):
+    return Namespace._NamespaceForURI(uri)
 
 # The XMLSchema structures module used to represent namespace schemas.  This
 # must be set, by invoking SetStructureModule, prior to attempting to use any
 # namespace.
 _StructuresModule = None
 _SchemaClass = None
+_BuiltSchemas = { }
 
 def SetStructuresModule (xsc, schema_cls):
     """Use xsc as the module containing the classes that represent XMLSchema components.
@@ -220,6 +246,17 @@ def SetStructuresModule (xsc, schema_cls):
         raise LogicError('Cannot SetStructuresModule without a valid class to represent schemas [%s]', schema_cls)
     _StructuresModule = xsc
     _SchemaClass = schema_cls
+
+    bindings_path = os.environ.get(PathEnvironmentVariable, DefaultBindingPath)
+    print bindings_path
+    for fn in os.listdir(bindings_path):
+        if fnmatch.fnmatch(fn, '*.wxs'):
+            afn = os.path.join(bindings_path, fn)
+            infile = open(afn, 'rb')
+            unpickler = pickle.Unpickler(infile)
+            uri = unpickler.load()
+            _BuiltSchemas[uri] = afn
+            print 'Pre-built schema for %s available in %s' % (uri, afn)
 
     for ns in PredefinedNamespaces:
         ns.checkInitialized()

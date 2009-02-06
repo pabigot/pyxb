@@ -134,6 +134,8 @@ class schema (xsc.Schema):
         if 0 <= type_name.find(':'):
             ( prefix, local_name ) = type_name.split(':', 1)
             return self.namespaceForPrefix(prefix).lookupType(local_name)
+        elif (self.__defaultNamespace is not None) and (self.__defaultNamespace != self.__targetNamespace):
+            return self.__defaultNamespace.lookupType(type_name)
         # Invoke superclass lookup
         rv = self._lookupTypeDefinition(type_name)
         if rv is None:
@@ -183,14 +185,16 @@ class schema (xsc.Schema):
         return rv
 
     def __recordNamespacePrefix (self, prefix, namespace):
+        assert namespace is not None
         if prefix is None:
             return
         if prefix in self.__prefixToNamespaceMap:
             raise LogicError('Prefix %s already associated with %s' % (prefix, namespace))
-        if namespace in self.__namespaceToPrefixMap:
+        old_prefix = self.__namespaceToPrefixMap.get(namespace, None)
+        if old_prefix is not None:
             # This is not a LogicError because I'm not convinced doing this
             # isn't legal.  Even if it does seem a little nonsensical.
-            raise IncompleteImplementationError('Namespace %s cannot have multiple prefixes' % (namespace, prefix))
+            raise IncompleteImplementationError('Namespace %s cannot have multiple prefixes (%s, %s)' % (namespace, prefix, old_prefix))
         print 'schema for %s maps %s to %s' % (self.getTargetNamespace(), prefix, namespace)
         self.__prefixToNamespaceMap[prefix] = namespace
         self.__namespaceToPrefixMap[namespace] = prefix
@@ -208,9 +212,8 @@ class schema (xsc.Schema):
     def lookupOrCreateNamespace (self, uri, prefix=None):
         # NB: This can replace the prefix if it changed since creation
         print '%s LOOKUP Associate %s with %s' % (self, prefix, uri)
-        try:
-            namespace = self.namespaceForURI(uri)
-        except Exception, e:
+        namespace = Namespace.NamespaceForURI(uri)
+        if namespace is None:
             namespace = Namespace.Namespace(uri)
             self.__addNamespace(namespace)
         if prefix is not None:
@@ -384,7 +387,15 @@ class schema (xsc.Schema):
 
     def _processImport (self, node):
         self._requireInProlog(node.nodeName)
-        sys.stderr.write("warning: import directive not handled\n")
+        if not node.hasAttribute('namespace'):
+            raise SchemaValidationError('import directive must provide namespace')
+        uri = node.getAttribute('namespace')
+        namespace = Namespace.NamespaceForURI(uri)
+        if namespace is None:
+            namespace = Namespace.Namespace(uri)
+        namespace.checkInitialized()
+        if namespace.schema() is None:
+            sys.stderr.write("Warning: No available schema for imported %s, forging ahead\n" % (uri,))
         return node
 
     def _processRedefine (self, node):
