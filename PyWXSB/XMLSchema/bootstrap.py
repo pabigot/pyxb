@@ -6,9 +6,11 @@ bindings that are generated.
 
 """
 
+import PyWXSB.Namespace as Namespace
+
 import structures as xsc
+
 import datatypes as xsd
-from ..Namespace import Namespace
 
 from PyWXSB.exceptions_ import *
 
@@ -110,8 +112,8 @@ class schema (xsc.Schema):
         self.__prefixToNamespaceMap = { }
 
         self.__namespaceURIMap = { }
-        self.__addNamespace(Namespace.XML())
-        self.__xs = Namespace.XMLSchema()
+        self.__addNamespace(Namespace.XML)
+        self.__xs = Namespace.XMLSchema
         self.__addNamespace(self.__xs)
 
     def initializeBuiltins (self):
@@ -209,7 +211,7 @@ class schema (xsc.Schema):
         try:
             namespace = self.namespaceForURI(uri)
         except Exception, e:
-            namespace = Namespace(uri)
+            namespace = Namespace.Namespace(uri)
             self.__addNamespace(namespace)
         if prefix is not None:
             self.__recordNamespacePrefix(prefix, namespace)
@@ -271,7 +273,7 @@ class schema (xsc.Schema):
         """Return the prefix used in this schema for the given namespace.
 
         If the namespace was not assigned a prefix, returns None."""
-        assert isinstance(namespace, Namespace)
+        assert isinstance(namespace, Namespace.Namespace)
         return self.__namespaceToPrefixMap.get(namespace, None)
 
     def qualifiedName (self, local_name, namespace=None):
@@ -479,3 +481,5 @@ def SchemaForXS (wxs):
     rv.setTargetNamespace(wxs.xs())
     xsd.DefineSimpleTypes(rv)
     return rv
+
+Namespace.SetStructuresModule(xsc, schema)

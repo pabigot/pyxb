@@ -1736,7 +1736,7 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
     def pythonToString (self, value):
         return self.pythonSupport().pythonToString(value)
 
-class Schema:
+class Schema (object):
     __typeDefinitions = None
     __attributeDeclarations = None
     __elementDeclarations = None
