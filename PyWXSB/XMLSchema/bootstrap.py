@@ -84,16 +84,6 @@ class schema (xsc.Schema):
     # schema.
     __namespaceURIMap = None    # Map from URI to a namespace instance
 
-    # Namespaces bound per Namespaces in XML 1.0 (Second Edition) (http://www.w3.org/TR/xml-names/)
-    __xml = None                # http://www.w3.org/XML/1998/namespace
-    __xmlns = None              # http://www.w3.org/2000/xmlns/
-
-    # Namespaces relevant to XMLSchema; xsi is bound (see
-    # http://www.w3.org/TR/xmlschema-1/#no-xsi)
-
-    __xs = None                 # http://www.w3.org/2001/XMLSchema
-    __xsi = None                # http://www.w3.org/2001/XMLSchema-instance
-
     # Default namespace for current schema.  Will be None unless
     # schema has an 'xmlns' attribute.
     __defaultNamespace = None 
@@ -123,12 +113,13 @@ class schema (xsc.Schema):
         # These two are built-in; make sure they're present
         self.lookupOrCreateNamespace(Namespace.XML.uri())
         self.lookupOrCreateNamespace(Namespace.XMLSchema_instance.uri())
+
         # We're certainly going to need this one, too.  Presumably
         # it's already been added, with whatever prefix is required
         # for it in this schema.
-        self.lookupOrCreateNamespace(Namespace.XMLSchema.uri())
-
-        self.__xs = Namespace.XMLSchema
+        xs = self.namespaceForURI(Namespace.XMLSchema.uri())
+        if xs is None:
+            raise LogicError('No access to XMLSchema namespace')
 
         # If we're targeting the XMLSchema namespace, define the
         # built-in types.  Otherwise, allocate and associate a schema
@@ -545,10 +536,6 @@ class schema (xsc.Schema):
 
     def domRootNode (self):
         return self.__domRootNode
-
-    # @todo import Namespace.XMLSchema as xs
-    def xs (self):
-        return self.__xs
 
 # @todo Replace this with a reference to Namespace.XMLSchema
 def SchemaForXS (wxs):
