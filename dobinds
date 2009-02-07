@@ -1,0 +1,10 @@
+mkdir -p bindings
+rm bindings/*.wxs
+
+# Some must be done in order, to handle dependencies
+python storewxs.py schemas/xml.xsd bindings/xml.wxs
+python storewxs.py schemas/XMLSchema.xsd bindings/xsd.wxs
+python storewxs.py schemas/XMLSchema-hasFacetAndProperty.xsd bindings/xsd-hfp.wxs
+python storewxs.py schemas/wsdl.xsd bindings/wsdl.wxs
+
+# Process anything remaining
