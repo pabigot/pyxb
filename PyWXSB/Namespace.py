@@ -278,6 +278,9 @@ class __XMLSchema_instance (Namespace):
         xsi._addNamedComponent(_StructuresModule.AttributeDeclaration.CreateBaseInstance('noNamespaceSchemaLocation', self))
         self.__schema = xsi
 
+def Available ():
+    return _BuiltSchemas.keys()
+
 # Namespace and URI for the XMLSchema Instance namespace (always xsi).
 # This is always built-in, and cannot have an associated schema.  We
 # use it as an indicator that the namespace system has been

@@ -284,15 +284,18 @@ class AttributeDeclaration (_NamedComponent_mixin, _Resolvable_mixin):
     VC_fixed = 2                #<<< Provided value constraint is fixed value
 
     __typeDefinition = None
+    def typeDefinition (self): return self.__typeDefinition
 
     SCOPE_global = 'global'
     xSCOPE_unhandled = 'unhandled'
     # None, the string "global", or a reference to a _ComplexTypeDefinition
     __scope = None
+    def scope (self): return self.__scope
 
     # None, or a tuple containing a string followed by one of the VC_*
     # values above.
     __valueConstraint = None
+    def valueConstraint (self): return self.__valueConstraint
 
     __annotation = None
 
@@ -380,12 +383,15 @@ class AttributeUse (_Resolvable_mixin):
     USE_prohibited = 0x04
     __use = False
 
+
     # A reference to an AttributeDeclaration
     __attributeDeclaration = None
+    def attributeDeclaration (self): return self.__attributeDeclaration
 
     # None, or a tuple containing a string followed by one of the VC_*
     # values above.
     __valueConstraint = None
+    def valueConstraint (self): return self.__valueConstraint
 
     @classmethod
     def CreateFromDOM (cls, wxs, node):
@@ -436,6 +442,7 @@ class ElementDeclaration (_NamedComponent_mixin, _Resolvable_mixin):
 
     # Simple or complex type definition
     __typeDefinition = None
+    def typeDefinition (self): return self.__typeDefinition
 
     SCOPE_global = 0x01         #<<< Marker for global scope
 
@@ -443,6 +450,7 @@ class ElementDeclaration (_NamedComponent_mixin, _Resolvable_mixin):
     # Absent for declarations in named model groups (viz., local
     # elements that aren't references).
     __scope = None
+    def scope (self): return self.__scope
 
     VC_na = AttributeDeclaration.VC_na
     VC_default = AttributeDeclaration.VC_default
@@ -451,8 +459,10 @@ class ElementDeclaration (_NamedComponent_mixin, _Resolvable_mixin):
     # None, or a tuple containing a string followed by one of the VC_*
     # values above.
     __valueConstraint = None
+    def valueConstraint (self): return self.__valueConstraint
 
     __nillable = False
+    def nillable (self): return self.__nillable
 
     __identityConstraintDefinitions = None
 
