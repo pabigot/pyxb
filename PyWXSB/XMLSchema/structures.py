@@ -39,7 +39,8 @@ class PythonSimpleTypeSupport(object):
     @note This is a new-style class, involved in a complex inheritance
     hierarchy.  If you descend from it and define a custom __init__
     method, it must use only keyword arguments and invoke
-    super.__init__(**kw).
+    super.__init__(**kw).  Positoinal arguments are explicitly
+    disallowed.
 
     """
     
@@ -57,24 +58,17 @@ class PythonSimpleTypeSupport(object):
 
     @classmethod
     def SuperType (cls):
-        """Identify the immediately higher class in the PythonSimpleTypeSupport hierarchy.
+        """Identify the immediately higher class in the
+        PythonSimpleTypeSupport hierarchy.
 
         The topmost class in the hierarchy considers itself to be its
-        SuperType."""
+        own SuperType."""
         if PythonSimpleTypeSupport == cls:
             return cls
         for sc in cls.__bases__:
             if issubclass(sc, PythonSimpleTypeSupport):
                 return sc
         raise LogicError('%s: Unable to identify superType' % (cls.__name__,))
-
-    def isUrType (self):
-        """Return true if this PSTS instance is at the top level."""
-        return PythonSimpleTypeSupport == self.__class__
-
-    def isPrimitiveType (self):
-        """Return true iff this PSTS instance is a direct descendent of the urType."""
-        return PythonSimpleTypeSupport in self.__class__.__bases__
 
     def _setSimpleTypeDefinition (self, std):
         """Set the simple type definition corresponding to this PSTS.
@@ -86,7 +80,9 @@ class PythonSimpleTypeSupport(object):
         return self
 
     def simpleTypeDefinition (self):
-        """Return a reference to the SimpleTypeDefinition component bound to this type."""
+        """Return a reference to the SimpleTypeDefinition component
+        bound to this type."""
+        assert self.__simpleTypeDefinition is not None
         return self.__simpleTypeDefinition
 
     # Even when we have an instance of a simple type definition, we do
@@ -99,7 +95,7 @@ class PythonSimpleTypeSupport(object):
         This method invokes the class method for this instance.  It is
         invoked as a pass-thru by SimpleTypeDefinition.stringToPython.
 
-        @throw PyWXSB.BadTypeValueError if the value is not
+p        @throw PyWXSB.BadTypeValueError if the value is not
         appropriate for the simple type.
         """
         return self.__class__.StringToPython(value)
@@ -1754,6 +1750,10 @@ class Schema (object):
     __modelGroupDefinitions = None
     __notationDeclarations = None
     __annotations = None
+
+    # @todo Add a map from named component tags to names, and support
+    # lookup with a tag parameter identifying the appropriate
+    # dictionary.
 
     __unresolvedDefinitions = None
 

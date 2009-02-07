@@ -14,7 +14,20 @@ from types import MethodType
 class Namespace (object):
     """Represents an XML namespace, viz. a URI.
 
-    This may be an object, or it can be an instance that does nothing
+    There is at most one Namespace class instance per namespace (URI).
+    The instance also supports associating XMLSchema structure
+    components such as groups, complexTypes, etc. with the namespace.
+    If an XML schema is not available, these types can be loaded from
+    a pre-built file.  See LoadFromFile(path) for information.
+
+    The PyWXSB system permits variant implementations of the
+    underlying XML schema components and namespace-specific
+    constructs.  To support this, you, or whoever wrote your XMLSchema
+    support moodule, must register the schema component module and
+    schema class definition prior to using Namespace instances.  This
+    pre-loads standard namespaces including the one for XML schema.
+
+    @note This may be an object, or it can be an instance that does nothing
     but delegate to another instance.  You probably don't need to know
     that.
 
@@ -25,7 +38,7 @@ class Namespace (object):
     schema.
 
     """
-    
+
     # The URI for the namespace
     __uri = None
 
@@ -89,7 +102,7 @@ class Namespace (object):
         return cls.__Registry.get(uri, None)
 
     def checkInitialized (self):
-        afn = _BuiltSchemas.get(self.uri(), None)
+        afn = _LoadedSchemas.get(self.uri(), None)
         if afn is not None:
             self.LoadFromFile(afn)
 
@@ -149,6 +162,10 @@ class Namespace (object):
         return self.__schema
 
     def lookupType (self, local_name):
+        """Look up a type in the namespace.
+
+        This delegates to the associated schema.  It returns a
+        SimpleTypeDefnition or ComplexTypeDefinition instance."""
         return self._validatedSchema().lookupType(local_name)
 
     def lookupAttributeGroup (self, local_name):
@@ -177,14 +194,32 @@ class Namespace (object):
     __PICKLE_FORMAT = '200902061410'
 
     def __getstate__ (self):
+        """Support pickling.
+
+        Because namespace instances must be unique, we represent them
+        as their URI and any associated (non-bound) information.  This
+        way an unpickled instance that conflicts with a built-in or
+        other pre-loaded instance can be configured to proxy for the
+        real one."""
         kw = {
             'schema_location': self.__schemaLocation,
             'description':self.__description
+            # Do not include __boundPrefix: bound namespaces should
+            # have already been created by the infrastructure.
             }
         args = ( self.__uri, )
         return ( self.__PICKLE_FORMAT, args, kw )
 
     def __setstate__ (self, state):
+        """Initialize the instance from the packed state.
+
+        Because we can't determine what insteance is returned, if the
+        namespace already has an instance, we'll proxy for it.
+        Otherwise, we call the __init__ method and register this as
+        the official implementation for the namespace.
+
+        This will throw an exception if the state is not inn a format
+        recognized by this method."""
         ( format, args, kw ) = state
         if self.__PICKLE_FORMAT != format:
             raise UnpicklingError('Got Namespace pickle format %s, require %s' % (format, self.__PICKLE_FORMAT))
@@ -194,7 +229,14 @@ class Namespace (object):
             Namespace.__init__(self, *args, **kw)
 
     def saveToFile (self, file_path):
+        """Save this namespace, with its defining schema, to the given
+        file so it can be loaded later.
+
+        This method requires that a schema be associated with the
+        namespace."""
+        
         if self.__schema is None:
+            # @todo use a better exception
             raise LogicError("Won't save namespace that does not have associated schema: %s", self.uri())
         output = open(file_path, 'wb')
         pickler = pickle.Pickler(output, -1)
@@ -204,37 +246,62 @@ class Namespace (object):
 
     @classmethod
     def LoadFromFile (cls, file_path):
+        """Create a Namespace instance with schema contents loaded
+        from the given file.
+        """
         unpickler = pickle.Unpickler(open(file_path, 'rb'))
 
+        # Get the URI out of the way
         uri = unpickler.load()
+
+        # Unpack a Namespace instance.  Note that if the namespace was
+        # already defined, this instance will be a proxy that
+        # delegates to the original.
         instance = unpickler.load()
         assert instance.uri() == uri
-        #print 'Got URI %s' % (instance.uri(),)
+
+        # Get the real Namespace instance (never mind the proxy).
         rv = cls._NamespaceForURI(instance.uri())
         assert rv is not None
+        assert instance.stripProxies() == rv
+
+        # Unpack the schema instance, verify that it describes the
+        # namespace, and associate it with the namespace.
         schema = unpickler.load()
-        #print 'Got schema %s' % (schema,)
-        #print 'Target namespace of schema: %s' % (schema.getTargetNamespace(),)
         assert schema.getTargetNamespace().uri() == rv.uri()
         rv.__schema = schema
-        assert rv.stripProxies() == rv
         return rv
 
 def NamespaceForURI (uri):
+    """Given a URI, provide the Namespace instance corresponding to
+    it.
+
+    If no Namespace instance exists for the URI, the None value is
+    returned."""
     return Namespace._NamespaceForURI(uri)
 
 # The XMLSchema structures module used to represent namespace schemas.  This
 # must be set, by invoking SetStructureModule, prior to attempting to use any
 # namespace.
 _StructuresModule = None
+
+# The Python class that implements the XMLSchema schema component.
+# This is not necessarily the same as _SchemaClass.schema, though it
+# must be a subclass of that class.
 _SchemaClass = None
-_BuiltSchemas = { }
+
+# A mapping from namespace URIs to instances of Namespace that we have
+# loaded.
+# @todo Fix this anomaly: is it schemas available, schemas read from
+# files, or just namespaces?
+_LoadedSchemas = { }
 
 def SetStructuresModule (xsc, schema_cls):
     """Use xsc as the module containing the classes that represent XMLSchema components.
 
-    Also use schema_cls, which must be a subclass of xsc.Schema, to
-    create the schema instance used for in built-in namespaces.
+    Also requires schema_cls, which must be a subclass of xsc.Schema,
+    and is used to create the schema instance used for in built-in
+    namespaces.
     """
     global _StructuresModule
     global _SchemaClass
@@ -255,16 +322,23 @@ def SetStructuresModule (xsc, schema_cls):
             infile = open(afn, 'rb')
             unpickler = pickle.Unpickler(infile)
             uri = unpickler.load()
-            _BuiltSchemas[uri] = afn
+            _LoadedSchemas[uri] = afn
             print 'Pre-built schema for %s available in %s' % (uri, afn)
 
     for ns in PredefinedNamespaces:
         ns.checkInitialized()
 
 class __XMLSchema_instance (Namespace):
+    """Extension of Namespace that pre-defines types available in the
+    XMLSchema Instance (xsi) namespace.."""
+
     __initialized = False
 
     def checkInitialized (self):
+        """Ensure this namespace is ready for use.
+
+        Overrides base clsas implementation."""
+        
         global _StructuresModule
         global _SchemaClass
         if not self.__initialized:
@@ -278,8 +352,13 @@ class __XMLSchema_instance (Namespace):
         xsi._addNamedComponent(_StructuresModule.AttributeDeclaration.CreateBaseInstance('noNamespaceSchemaLocation', self))
         self.__schema = xsi
 
-def Available ():
-    return _BuiltSchemas.keys()
+def AvailableForLoad ():
+    """Return a list of namespace URIs for which we are able to load
+    the namespace contents from a pre-built file.
+
+    Note that success of the load is not guaranteed if the packed file
+    is not compatible with the schema class being used."""
+    return _LoadedSchemas.keys()
 
 # Namespace and URI for the XMLSchema Instance namespace (always xsi).
 # This is always built-in, and cannot have an associated schema.  We
@@ -290,7 +369,7 @@ XMLSchema_instance = __XMLSchema_instance('http://www.w3.org/2001/XMLSchema-inst
                                           is_builtin_namespace=True,
                                           bound_prefix='xsi')
 
-# Namespace and URI for the XMLSchema namespace (often xs, or xsd)
+## Namespace and URI for the XMLSchema namespace (often xs, or xsd)
 XMLSchema = Namespace('http://www.w3.org/2001/XMLSchema',
                       schema_location='http://www.w3.org/2001/XMLSchema.xsd',
                       description='XML Schema',

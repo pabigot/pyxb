@@ -22,10 +22,11 @@ import types
 # generated bindings.
 
 class schemaTop (xsc.ModelGroup):
-    def __init__ (self):
-        xsc.ModelGroup.__init__(self)
+    def __init__ (self, *args, **kw):
+        super(schemaTop, self).__init__(*args, **kw)
 
-    def __Match (cls, wxs, node):
+    @classmethod
+    def Match (cls, wxs, node):
         rv = redefinable.Match(wxs, node)
         if rv is not None:
             return rv
@@ -37,13 +38,13 @@ class schemaTop (xsc.ModelGroup):
             print "WARNING: Ignoring notation"
             return node
         return None
-    Match = classmethod(__Match)
 
 class redefinable (xsc.ModelGroup):
-    def __init__ (self):
-        xsc.ModelGroup.__init__(self)
+    def __init__ (self, *args, **kw):
+        super(redefinable, self).__init__(*args, **kw)
 
-    def __Match (cls, wxs, node):
+    @classmethod
+    def Match (cls, wxs, node):
         if wxs.xsQualifiedName('simpleType') == node.nodeName:
             return wxs._processSimpleType(node)
         if wxs.xsQualifiedName('complexType') == node.nodeName:
@@ -53,13 +54,6 @@ class redefinable (xsc.ModelGroup):
         if wxs.xsQualifiedName('attributeGroup') == node.nodeName:
             return wxs._processAttributeGroup(node)
         return None
-    Match = classmethod(__Match)
-
-class anyType:
-    pass
-
-class openAttrs (anyType):
-    pass
 
 class schema (xsc.Schema):
     """Class corresponding to a W3C XML Schema instance.
@@ -130,61 +124,90 @@ class schema (xsc.Schema):
         else:
             self.__xs.schema(SchemaForXS(self))
 
-    def lookupType (self, type_name):
+    def __getNamespaceForLookup (self, type_name):
+        """Resolve a QName or NCName appropriately for this schema.
+
+        Returns the namespace to be used for lookup, or None if the
+        schema is associated with the lookup nnamespace.
+        """
+        ns = None
+        local_name = type_name
         if 0 <= type_name.find(':'):
             ( prefix, local_name ) = type_name.split(':', 1)
-            return self.namespaceForPrefix(prefix).lookupType(local_name)
+            ns = self.namespaceForPrefix(prefix)
         elif (self.__defaultNamespace is not None) and (self.__defaultNamespace != self.__targetNamespace):
-            return self.__defaultNamespace.lookupType(type_name)
+            raise LogicError('This code is wrong if a namespace instance is doing the lookup')
+            #ns = self.__defaultNamespace
+        print 'Namespace %s used for %s in %s' % (ns, local_name, type_name)
+        if (ns is None) and (self.__defaultNamespace is not None) and (self.__defaultNamespace != self.__targetNamespace):
+            raise LogicError('This code is wrong if a namespace instance is doing the lookup')
+        return (ns, local_name)
+
+    def lookupType (self, type_name):
+        (ns, local_name) = self.__getNamespaceForLookup(type_name)
+        assert 0 > local_name.find(':')
+        if ns is not None:
+            rv = ns.lookupType(local_name)
         # Invoke superclass lookup
-        rv = self._lookupTypeDefinition(type_name)
+        rv = self._lookupTypeDefinition(local_name)
         if rv is None:
-            raise Exception('lookupType: No match for "%s" in %s' % (type_name, self.__targetNamespace))
+            raise Exception('lookupType: No match for "%s" in %s' % (local_name, self.__targetNamespace))
         return rv
 
     def lookupSimpleType (self, type_name):
         rv = self.lookupType(type_name)
         if isinstance(rv, xsc.SimpleTypeDefinition):
             return rv
-        raise Exception('lookupSimpleType: Name "%s" in %s is not a simple type' % (type_name, self.__targetNamespace))
+        raise Exception('lookupSimpleType: Name "%s" in %s is not a simple type' % (local_name, self.__targetNamespace))
 
     def lookupAttributeGroup (self, ref_name):
-        if 0 <= ref_name.find(':'):
-            ( prefix, local_name ) = ref_name.split(':', 1)
-            return self.namespaceForPrefix(prefix).lookupAttributeGroup(local_name)
-        rv = self._lookupAttributeGroupDefinition(ref_name)
+        (ns, local_name) = self.__getNamespaceForLookup(ref_name)
+        if ns is not None:
+            return ns.lookupAttributeGroup(local_name)
+        rv = self._lookupAttributeGroupDefinition(local_name)
         if rv is None:
-            raise SchemaValidationError('lookupAttributeGroup: No match for "%s" in %s' % (ref_name, self.__targetNamespace))
+            raise SchemaValidationError('lookupAttributeGroup: No match for "%s" in %s' % (local_name, self.__targetNamespace))
         return rv
 
     def lookupAttributeDeclaration (self, ref_name):
-        if 0 <= ref_name.find(':'):
-            ( prefix, local_name ) = ref_name.split(':', 1)
-            return self.namespaceForPrefix(prefix).lookupAttributeDeclaration(local_name)
-        rv = self._lookupAttributeDeclaration(ref_name)
+        (ns, local_name) = self.__getNamespaceForLookup(ref_name)
+        if ns is not None:
+            return ns.lookupAttributeDeclaration(local_name)
+        rv = self._lookupAttributeDeclaration(local_name)
         if rv is None:
-            raise SchemaValidationError('lookupAttributeDeclaration: No match for "%s" in %s' % (ref_name, self.__targetNamespace))
+            raise SchemaValidationError('lookupAttributeDeclaration: No match for "%s" in %s' % (local_name, self.__targetNamespace))
         return rv
 
     def lookupGroup (self, group_name):
-        if 0 <= group_name.find(':'):
-            ( prefix, local_name ) = group_name.split(':', 1)
-            return self.namespaceForPrefix(prefix).lookupGroup(local_name)
-        rv = self._lookupModelGroupDefinition(group_name)
+        (ns, local_name) = self.__getNamespaceForLookup(group_name)
+        if ns is not None:
+            return ns.lookupGroup(local_name)
+        rv = self._lookupModelGroupDefinition(local_name)
         if rv is None:
-            raise SchemaValidationError('lookupGroup: No match for "%s" in %s' % (group_name, self.__targetNamespace))
+            raise SchemaValidationError('lookupGroup: No match for "%s" in %s' % (local_name, self.__targetNamespace))
         return rv
 
     def lookupElement (self, element_name):
-        if 0 <= element_name.find(':'):
-            ( prefix, local_name ) = element_name.split(':', 1)
-            return self.namespaceForPrefix(prefix).lookupElement(local_name)
-        rv = self._lookupElementDeclaration(element_name)
+        (ns, local_name) = self.__getNamespaceForLookup(element_name)
+        if ns is not None:
+            return ns.lookupElement(local_name)
+        rv = self._lookupElementDeclaration(local_name)
         if rv is None:
-            raise SchemaValidationError('lookupElement: No match for "%s" in %s' % (element_name, self.__targetNamespace))
+            raise SchemaValidationError('lookupElement: No match for "%s" in %s' % (local_name, self.__targetNamespace))
         return rv
 
     def __recordNamespacePrefix (self, prefix, namespace):
+        """Associate the given prefix with the given namespace in this schema.
+
+        If the prefix is None, this call has no effect.  If the
+        namespace is None, or has already been associated with a
+        prefix, an exception will be thrown.
+
+        This differs from __addNamespace in that  it is assumed the
+        namespace has already been associated with the schema; it is
+        just that the prefix is now known.
+        """
+        # @todo Recording and association cannot be separated
         assert namespace is not None
         if prefix is None:
             return
@@ -221,31 +244,40 @@ class schema (xsc.Schema):
         return namespace
 
     def setDefaultNamespace (self, namespace):
+        """Specify the namespace that should be used for non-qualified
+        lookups.  """
+        print 'DEFAULT: %s' % (namespace,)
         self.__defaultNamespace = namespace
-        print "DEFAULT namespace %s" % (namespace,)
         return namespace
 
     def getDefaultNamespace (self):
         return self.__defaultNamespace
 
     def setTargetNamespace (self, namespace):
+        """Specify the namespace for which this schema provides
+        information."""
+        print 'TARGET: %s' % (namespace,)
         self.__targetNamespace = namespace
-        print "TARGET namespace %s" % (namespace,)
         return namespace
 
     def getTargetNamespace (self):
         return self.__targetNamespace
 
     def targetNamespaceFromDOM (self, node, default_tag):
-        """Determine the approprate namespace for a local attribute/element.
+        """Determine the approprate namespace for a local
+        attribute/element in the schema.
 
-        This takes the appropriate default value (identified by the
-        given tag) from the schema, potentially overrides it within
-        the node, then returns either the target namespace or None.
+        This takes the appropriate schema-level attribute default
+        value (identified by the given tag) from the schema,
+        potentially overrides it from an attribute in the node, then
+        returns either this schema's target namespace or None.  See
+        any discussion of the targetNamespace property in the
+        component specification.
         """
         # Failure to provide a valid tag for the default is a
         # programmer error.  There's only two; surely you can get that
-        # many right.
+        # many right.  Oh, hell, probably not...
+        assert default_tag in [ 'attributeFormDefault', 'elementFormDefault' ]
         assert self.hasAttribute(default_tag)
         form = self.getAttribute(default_tag)
         assert form is not None
@@ -263,11 +295,20 @@ class schema (xsc.Schema):
         return None
 
     def namespaceForURI (self, uri):
+        """Return the namespace for the URI.
+
+        Throws an exception if the namespace has not been associated
+        with this schema (must be done by processing an xmlns
+        attribute)."""
         if self.__namespaceURIMap.has_key(uri):
-            return self.__namespaceURIMap.get(uri, None)
-        raise Exception('Namespace "%s" not recognized' % (uri,))
+            return self.__namespaceURIMap[uri]
+        raise SchemaValidationError('Namespace "%s" not recognized' % (uri,))
 
     def namespaceForPrefix (self, prefix):
+        """Return the namespace associated with the given prefix in this schema.
+
+        The prefix must be a non-empty string associated with a
+        namespace through an xmlns attribute in the schema element."""
         if self.__prefixToNamespaceMap.has_key(prefix):
             return self.__prefixToNamespaceMap.get(prefix, None)
         raise Exception('Namespace prefix "%s" not recognized' % (prefix,))
@@ -275,34 +316,40 @@ class schema (xsc.Schema):
     def prefixForNamespace (self, namespace):
         """Return the prefix used in this schema for the given namespace.
 
-        If the namespace was not assigned a prefix, returns None."""
+        If the namespace was not assigned a prefix in this schema,
+        returns None."""
         assert isinstance(namespace, Namespace.Namespace)
         return self.__namespaceToPrefixMap.get(namespace, None)
 
-    def qualifiedName (self, local_name, namespace=None):
-        """Return a namespace-qualified name for the given local name
-        in the given namespace.
+    def qualifiedName (self, nc_name, namespace=None):
+        """Return a namespace-qualified name for the given NCName in
+        the optionally-specified namespace.
 
-        If no namespace is provided, the target namespace must be
-        defined, and will be used.  If the namespace is the default
-        namespace for this schema, the local name is returned without
-        qualifying it."""
+        If no namespace is provided, the target namespace will be
+        used.  If the namespace is the default namespace for this
+        schema, the NCName is returned without qualifying it."""
 
         if namespace is None:
             namespace = self.getTargetNamespace()
         if namespace is None:
-            raise LogicError('Cannot get qualified name for %s without namespace.' % (local_name,))
+            raise LogicError('Cannot get qualified name for %s without namespace.' % (nc_name,))
 
         if self.getDefaultNamespace() == namespace:
-            return local_name
+            return nc_name
 
         prefix = self.prefixForNamespace(namespace)
         if prefix is None:
-            raise LogicError('Namespace %s has no prefix in schema to qualify name "%s"' % (namespace.uri(), local_name))
-        return '%s:%s' % (prefix, local_name)
+            raise LogicError('Namespace %s has no prefix in schema to qualify name "%s"' % (namespace.uri(), nc_name))
+        return '%s:%s' % (prefix, nc_name)
 
-    def xsQualifiedName (self, local_name):
-        return self.qualifiedName(local_name, self.xs())
+    def xsQualifiedName (self, nc_name):
+        """Returns a name in the XMLSchema, qualified appropriately
+        for this schema.
+
+        @note A schema that uses XMLSchema as its default namespace
+        will produce an NCName.
+        """
+        return self.qualifiedName(nc_name, self.xs())
 
     # @todo put these in base class
     def processDocument (self, doc):
@@ -377,38 +424,47 @@ class schema (xsc.Schema):
         self.__pastProlog = False
 
     def _requireInProlog (self, node_name):
+        """Throw a SchemaValidationException referencing the given
+        node if we have passed the sequence point representing the end
+        of prolog elements."""
         if self.__pastProlog:
             raise SchemaValidationError('Unexpected node %s after prolog' % (node_name,))
 
     def _processInclude (self, node):
         self._requireInProlog(node.nodeName)
-        sys.stderr.write("warning: include directive not handled\n")
-        return node
+        raise IncompleteImplementationException('include directive not implemented')
 
     def _processImport (self, node):
+        """Process an import directive.
+
+        This attempts to locate schema (named entity) information for
+        a namespace that is referenced by this schema.
+        """
+
         self._requireInProlog(node.nodeName)
         if not node.hasAttribute('namespace'):
             raise SchemaValidationError('import directive must provide namespace')
         uri = node.getAttribute('namespace')
-        namespace = Namespace.NamespaceForURI(uri)
-        if namespace is None:
-            namespace = Namespace.Namespace(uri)
+        namespace = self.namespaceForURI(uri)
+        # @todo 
         namespace.checkInitialized()
         if namespace.schema() is None:
+            # Just in case somebody imports a namespace but doesn't
+            # actually use it, let this go.  If they do try to use it,
+            # we'll get a NotInNamespace exception then.
             sys.stderr.write("Warning: No available schema for imported %s, forging ahead\n" % (uri,))
         return node
 
     def _processRedefine (self, node):
         self._requireInProlog(node.nodeName)
-        sys.stderr.write("warning: redefine directive not handled\n")
-        return node
+        raise IncompleteImplementationException('redefine not implemented')
 
     def _processAnnotation (self, node):
         an = self._addAnnotation(xsc.Annotation.CreateFromDOM(self, node))
         return self
 
     def _processAttributeDeclaration (self, node):
-        # NB: This is an attribute of the schema itself
+        # NB: This is an attribute of the schema itself.
         an = xsc.AttributeDeclaration.CreateFromDOM(self, node)
         self._addNamedComponent(an)
         return an
@@ -451,6 +507,7 @@ class schema (xsc.Schema):
         self._addNamedComponent(rv)
         return rv
 
+    # @todo make process* private
     def _processElementDeclaration (self, node):
         # Node should be a named element
         assert self.xsQualifiedName('element') == node.nodeName
@@ -481,9 +538,11 @@ class schema (xsc.Schema):
     def domRootNode (self):
         return self.__domRootNode
 
+    # @todo import Namespace.XMLSchema as xs
     def xs (self):
         return self.__xs
 
+# @todo Replace this with a reference to Namespace.XMLSchema
 def SchemaForXS (wxs):
     '''Create a Schema instance that targets the XMLSchema namespace.
     Preload all its elements.  Note that we only need to do this in

@@ -19,6 +19,11 @@ class BadTypeValueError (PyWXSBException):
     """Raised when a value in an XML attribute does not conform to the simple type."""
     pass
 
+class NotInNamespaceError (PyWXSBException):
+    '''Raised when a name is referenced that is not defined in the appropriate namesace.'''
+    __namespace = None
+    __ncName = None
+
 class PyWXSBError (exceptions.Exception):
     """Base class for exceptions that indicate a problem that the user probably can't fix."""
     pass
