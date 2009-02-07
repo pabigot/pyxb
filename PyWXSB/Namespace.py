@@ -105,6 +105,7 @@ class Namespace (object):
         afn = _LoadedSchemas.get(self.uri(), None)
         if afn is not None:
             self.LoadFromFile(afn)
+        return self
 
     def __init__ (self, uri,
                   schema=None,
@@ -345,9 +346,6 @@ def SetStructuresModule (xsc, schema_cls):
             _LoadedSchemas[uri] = afn
             print 'Pre-built schema for %s available in %s' % (uri, afn)
 
-    for ns in PredefinedNamespaces:
-        ns.checkInitialized()
-
 class __XMLSchema_instance (Namespace):
     """Extension of Namespace that pre-defines types available in the
     XMLSchema Instance (xsi) namespace.."""
@@ -371,6 +369,7 @@ class __XMLSchema_instance (Namespace):
         xsi._addNamedComponent(_StructuresModule.AttributeDeclaration.CreateBaseInstance('schemaLocation', self))
         xsi._addNamedComponent(_StructuresModule.AttributeDeclaration.CreateBaseInstance('noNamespaceSchemaLocation', self))
         self.__schema = xsi
+        return self
 
 def AvailableForLoad ():
     """Return a list of namespace URIs for which we are able to load

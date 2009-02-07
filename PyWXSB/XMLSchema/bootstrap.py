@@ -30,11 +30,11 @@ class schemaTop (xsc.ModelGroup):
         rv = redefinable.Match(wxs, node)
         if rv is not None:
             return rv
-        if wxs.xsQualifiedName('element') == node.nodeName:
+        if node.nodeName in wxs.xsQualifiedNames('element'):
             return wxs._processElementDeclaration(node)
-        if wxs.xsQualifiedName('attribute') == node.nodeName:
+        if node.nodeName in wxs.xsQualifiedNames('attribute'):
             return wxs._processAttributeDeclaration(node)
-        if wxs.xsQualifiedName('notation') == node.nodeName:
+        if node.nodeName in wxs.xsQualifiedNames('notation'):
             print "WARNING: Ignoring notation"
             return node
         return None
@@ -45,13 +45,13 @@ class redefinable (xsc.ModelGroup):
 
     @classmethod
     def Match (cls, wxs, node):
-        if wxs.xsQualifiedName('simpleType') == node.nodeName:
+        if node.nodeName in wxs.xsQualifiedNames('simpleType'):
             return wxs._processSimpleType(node)
-        if wxs.xsQualifiedName('complexType') == node.nodeName:
+        if node.nodeName in wxs.xsQualifiedNames('complexType'):
             return wxs._processComplexType(node)
-        if wxs.xsQualifiedName('group') == node.nodeName:
+        if node.nodeName in wxs.xsQualifiedNames('group'):
             return wxs._processGroup(node)
-        if wxs.xsQualifiedName('attributeGroup') == node.nodeName:
+        if node.nodeName in wxs.xsQualifiedNames('attributeGroup'):
             return wxs._processAttributeGroup(node)
         return None
 
@@ -78,8 +78,10 @@ class schema (xsc.Schema):
     # prefix used for that namespace.
     __namespaceToPrefixMap = None
 
-    # Map from the namespace URI to the instance that represents it
-    # @todo redundant with Namespace registry
+    # Map from the namespace URI to the instance that represents it.
+    # Note: This is not redundant with Namespace.NamespaceForURI,
+    # since the latter may include namespaces not available to this
+    # schema.
     __namespaceURIMap = None    # Map from URI to a namespace instance
 
     # Namespaces bound per Namespaces in XML 1.0 (Second Edition) (http://www.w3.org/TR/xml-names/)
@@ -88,6 +90,7 @@ class schema (xsc.Schema):
 
     # Namespaces relevant to XMLSchema; xsi is bound (see
     # http://www.w3.org/TR/xmlschema-1/#no-xsi)
+
     __xs = None                 # http://www.w3.org/2001/XMLSchema
     __xsi = None                # http://www.w3.org/2001/XMLSchema-instance
 
@@ -99,21 +102,33 @@ class schema (xsc.Schema):
     # has a 'targetNamespace' attribute.
     __targetNamespace = None
 
+    # The prefix used for qualified names in the XMLSchema namespace,
+    # or None if the default namespace is XMLSchema.
+    __xsPrefix = None
+
     def __init__ (self):
         xsc.Schema.__init__(self)
         self.__namespaces = set()
         self.__namespaceToPrefixMap = { }
         self.__prefixToNamespaceMap = { }
-
         self.__namespaceURIMap = { }
-        self.__addNamespace(Namespace.XML)
-        self.__xs = Namespace.XMLSchema
-        self.__addNamespace(self.__xs)
 
     def initializeBuiltins (self):
         # If there's a target namespace, use this as its schema
         if self.__targetNamespace:
+            if self.__targetNamespace.schema():
+                raise LogicError('Cannot change schema assocation with target namespace %s' % (self.__targetNamespace,))
             self.__targetNamespace.schema(self)
+
+        # These two are built-in; make sure they're present
+        self.lookupOrCreateNamespace(Namespace.XML.uri())
+        self.lookupOrCreateNamespace(Namespace.XMLSchema_instance.uri())
+        # We're certainly going to need this one, too.  Presumably
+        # it's already been added, with whatever prefix is required
+        # for it in this schema.
+        self.lookupOrCreateNamespace(Namespace.XMLSchema.uri())
+
+        self.__xs = Namespace.XMLSchema
 
         # If we're targeting the XMLSchema namespace, define the
         # built-in types.  Otherwise, allocate and associate a schema
@@ -200,51 +215,43 @@ class schema (xsc.Schema):
             raise NotInNamespaceError('lookupElement: No match for "%s" in %s' % (qualified_name, ns))
         return rv
 
-    def __recordNamespacePrefix (self, prefix, namespace):
-        """Associate the given prefix with the given namespace in this schema.
-
-        If the prefix is None, this call has no effect.  If the
-        namespace is None, or has already been associated with a
-        prefix, an exception will be thrown.
-
-        This differs from __addNamespace in that  it is assumed the
-        namespace has already been associated with the schema; it is
-        just that the prefix is now known.
-        """
-        # @todo Recording and association cannot be separated
-        assert namespace is not None
-        if prefix is None:
-            return
-        if prefix in self.__prefixToNamespaceMap:
-            raise LogicError('Prefix %s already associated with %s' % (prefix, namespace))
-        old_prefix = self.__namespaceToPrefixMap.get(namespace, None)
-        if old_prefix is not None:
-            # This is not a LogicError because I'm not convinced doing this
-            # isn't legal.  Even if it does seem a little nonsensical.
-            raise IncompleteImplementationError('Namespace %s cannot have multiple prefixes (%s, %s)' % (namespace, prefix, old_prefix))
-        print 'schema for %s maps %s to %s' % (self.getTargetNamespace(), prefix, namespace)
-        self.__prefixToNamespaceMap[prefix] = namespace
-        self.__namespaceToPrefixMap[namespace] = prefix
-
-    def __addNamespace (self, namespace, prefix=None):
-        assert namespace not in self.__namespaces
-        self.__namespaces.add(namespace)
-        self.__namespaceURIMap[namespace.uri()] = namespace
-        if prefix is None:
-            prefix = namespace.boundPrefix()
-        if prefix is not None:
-            self.__recordNamespacePrefix(prefix, namespace)
-        return namespace
 
     def lookupOrCreateNamespace (self, uri, prefix=None):
-        # NB: This can replace the prefix if it changed since creation
-        print '%s LOOKUP Associate %s with %s' % (self, prefix, uri)
+        """Associate a namespace with this schema, potentially
+        providing a prefix by which it will be known.
+
+        The URI must exist.  If there is no namespace corresponding to
+        that URI in the namespace registry, one is created.  The
+        namespace will be known by the given prefix, or a prefix
+        permanently bound to the namespace by specification (if any).
+        Referring to a namespace by multiple prefixes is an error,
+        though it is legitimate for a namespace to both have a prefix
+        and be used as the default namespace.
+        """
         namespace = Namespace.NamespaceForURI(uri)
         if namespace is None:
+            # No such namespace exists.  Create one.
             namespace = Namespace.Namespace(uri)
-            self.__addNamespace(namespace)
-        if prefix is not None:
-            self.__recordNamespacePrefix(prefix, namespace)
+        if namespace not in self.__namespaces:
+            # Add the namespace, as well as a mapping between it and
+            # the prefix by which it is known in this schema, if any.
+            self.__namespaces.add(namespace)
+            self.__namespaceURIMap[namespace.uri()] = namespace
+
+            if prefix is None:
+                prefix = namespace.boundPrefix()
+            # The default namespace will not involve a prefix.
+            if prefix is not None:
+                if prefix in self.__prefixToNamespaceMap:
+                    raise LogicError('Prefix %s already associated with %s' % (prefix, namespace))
+                old_prefix = self.__namespaceToPrefixMap.get(namespace, None)
+                if old_prefix is not None:
+                    # This is not a LogicError because I'm not convinced doing this
+                    # isn't legal.  Even if it does seem a little nonsensical.
+                    raise IncompleteImplementationError('Namespace %s cannot have multiple prefixes (%s, %s)' % (namespace, prefix, old_prefix))
+                self.__prefixToNamespaceMap[prefix] = namespace
+                self.__namespaceToPrefixMap[namespace] = prefix
+
         return namespace
 
     def setDefaultNamespace (self, namespace):
@@ -321,39 +328,34 @@ class schema (xsc.Schema):
         """Return the prefix used in this schema for the given namespace.
 
         If the namespace was not assigned a prefix in this schema,
-        returns None."""
+        returns None.  If the default namespace is also available by
+        prefix, the prefix is returned."""
         assert isinstance(namespace, Namespace.Namespace)
         return self.__namespaceToPrefixMap.get(namespace, None)
 
-    def qualifiedName (self, nc_name, namespace=None):
-        """Return a namespace-qualified name for the given NCName in
-        the optionally-specified namespace.
-
-        If no namespace is provided, the target namespace will be
-        used.  If the namespace is the default namespace for this
-        schema, the NCName is returned without qualifying it."""
-
-        if namespace is None:
-            namespace = self.getTargetNamespace()
-        if namespace is None:
-            raise LogicError('Cannot get qualified name for %s without namespace.' % (nc_name,))
-
-        if self.getDefaultNamespace() == namespace:
-            return nc_name
-
-        prefix = self.prefixForNamespace(namespace)
-        if prefix is None:
-            raise LogicError('Namespace %s has no prefix in schema to qualify name "%s"' % (namespace.uri(), nc_name))
-        return '%s:%s' % (prefix, nc_name)
+    def xsQualifiedNames (self, nc_name):
+        """Returns a tuple containing all valid names for this schema
+        that refer to the named component in the XMLSchema namespace.
+        If XMLSchema is the default namespace and has an associated
+        prefix, both the NCName and QName versions are included;
+        otherwise if XMLSchema is the default namespace the NCName
+        variant is included; otherwise an exception is thrown.
+        """
+        if self.__xsPrefix:
+            qname = '%s:%s' % (self.__xsPrefix, nc_name)
+            if self.__defaultNamespace == Namespace.XMLSchema:
+                return (qname, nc_name)
+            return (qname,)
+        if self.__defaultNamespace == Namespace.XMLSchema:
+            return (nc_name,)
+        print self.__defaultNamespace
+        raise SchemaValidationError('No prefix available to qualify %s in XMLSchema namespace' % (nc_name,))
 
     def xsQualifiedName (self, nc_name):
-        """Returns a name in the XMLSchema, qualified appropriately
-        for this schema.
-
-        @note A schema that uses XMLSchema as its default namespace
-        will produce an NCName.
-        """
-        return self.qualifiedName(nc_name, self.xs())
+        """Given a NCName in the XMLSchema namespace, return a name
+        (QName or NCName) that identifies the component within this
+        schema."""
+        return self.xsQualifiedNames(nc_name)[0]
 
     # @todo put these in base class
     def processDocument (self, doc):
@@ -376,8 +378,11 @@ class schema (xsc.Schema):
             # TODO: Is it required that the default namespace be recognized?
             # Does not hold for http://www.w3.org/2001/xml.xsd
             ns = self.lookupOrCreateNamespace(default_namespace)
-            #ns = self.namespaceForURI(default_namespace)
             self.setDefaultNamespace(ns)
+        # Cache the prefix used for XMLSchema names.  If the default
+        # namespace is XMLSchema, do not use a prefix
+        if self.getDefaultNamespace() != Namespace.XMLSchema:
+            self.__xsPrefix = self.prefixForNamespace(Namespace.XMLSchema)
 
         # Apply the targetNamespace attribute.  There is a default,
         # which is to have no associated namespace.
@@ -386,12 +391,11 @@ class schema (xsc.Schema):
         if target_namespace is not None:
             self.setTargetNamespace(self.lookupOrCreateNamespace(target_namespace))
 
-        # Now install all the standard types, including fleshing out
-        # the xs() namespace schema.
+        # Now pre-load the namespaces that must be available.
         self.initializeBuiltins()
 
         # Verify that the root node is an XML schema element
-        if self.xsQualifiedName('schema') != root_node.nodeName:
+        if root_node.nodeName not in self.xsQualifiedNames('schema'):
             raise SchemaValidationError('Root node %s of document is not an XML schema element' % (root_node.nodeName,))
 
         self.__domRootNode = root_node
@@ -477,8 +481,8 @@ class schema (xsc.Schema):
         """Walk a simpleType element to create a simple type definition component.
         """
         # Node should be a topLevelSimpleType
-        assert self.xsQualifiedName('simpleType') == node.nodeName
-        assert self.xsQualifiedName('schema') == node.parentNode.nodeName
+        assert node.nodeName in self.xsQualifiedNames('simpleType')
+        assert node.parentNode.nodeName in self.xsQualifiedNames('schema')
 
         rv = xsc.SimpleTypeDefinition.CreateFromDOM(self, node)
         self._addNamedComponent(rv)
@@ -488,8 +492,8 @@ class schema (xsc.Schema):
         """Walk a complexType element to create a complex type definition component.
         """
         # Node should be a topLevelComplexType
-        assert self.xsQualifiedName('complexType') == node.nodeName
-        assert self.xsQualifiedName('schema') == node.parentNode.nodeName
+        assert node.nodeName in self.xsQualifiedNames('complexType')
+        assert node.parentNode.nodeName in self.xsQualifiedNames('schema')
 
         rv = xsc.ComplexTypeDefinition.CreateFromDOM(self, node)
         self._addNamedComponent(rv)
@@ -497,16 +501,16 @@ class schema (xsc.Schema):
 
     def _processAttributeGroup (self, node):
         # Node should be a namedAttributeGroup
-        assert self.xsQualifiedName('attributeGroup') == node.nodeName
-        assert self.xsQualifiedName('schema') == node.parentNode.nodeName
+        assert node.nodeName in self.xsQualifiedNames('attributeGroup')
+        assert node.parentNode.nodeName in self.xsQualifiedNames('schema')
         rv = xsc.AttributeGroupDefinition.CreateFromDOM(self, node)
         self._addNamedComponent(rv)
         return rv
 
     def _processGroup (self, node):
         # Node should be a namedGroup
-        assert self.xsQualifiedName('group') == node.nodeName
-        assert self.xsQualifiedName('schema') == node.parentNode.nodeName
+        assert node.nodeName in self.xsQualifiedNames('group')
+        assert node.parentNode.nodeName in self.xsQualifiedNames('schema')
         rv = xsc.ModelGroupDefinition.CreateFromDOM(self, node)
         self._addNamedComponent(rv)
         return rv
@@ -514,8 +518,8 @@ class schema (xsc.Schema):
     # @todo make process* private
     def _processElementDeclaration (self, node):
         # Node should be a named element
-        assert self.xsQualifiedName('element') == node.nodeName
-        assert self.xsQualifiedName('schema') == node.parentNode.nodeName
+        assert node.nodeName in self.xsQualifiedNames('element')
+        assert node.parentNode.nodeName in self.xsQualifiedNames('schema')
         ed = xsc.ElementDeclaration.CreateFromDOM(self, node)
         self._addNamedComponent(ed)
         return ed
@@ -525,13 +529,13 @@ class schema (xsc.Schema):
 
         This should return a non-None value if the node was
         successfully recognized."""
-        if self.xsQualifiedName('include') == node.nodeName:
+        if node.nodeName in self.xsQualifiedNames('include'):
             return self._processInclude(node)
-        if self.xsQualifiedName('import') == node.nodeName:
+        if node.nodeName in self.xsQualifiedNames('import'):
             return self._processImport(node)
-        if self.xsQualifiedName('redefine') == node.nodeName:
+        if node.nodeName in self.xsQualifiedNames('redefine'):
             return self._processRedefine(node)
-        if self.xsQualifiedName('annotation') == node.nodeName:
+        if node.nodeName in self.xsQualifiedNames('annotation'):
             return self._processAnnotation(node)
         rv = schemaTop.Match(self, node)
         if rv is not None:

@@ -192,11 +192,11 @@ def LocateFirstChildElement (node, absent_ok=False, require_unique=False):
     return candidate
 
 def HasNonAnnotationChild (wxs, node):
-    xs_annotation = wxs.xsQualifiedName('annotation')
+    xs_annotation = wxs.xsQualifiedNames('annotation')
     for cn in node.childNodes:
         if Node.ELEMENT_NODE != cn.nodeType:
             continue
-        if xs_annotation != cn.nodeName:
+        if cn.nodeName not in xs_annotation:
             return True
     return False
 
@@ -307,7 +307,7 @@ class AttributeDeclaration (_NamedComponent_mixin, _Resolvable_mixin):
     @classmethod
     def CreateFromDOM (cls, wxs, node):
         # Node should be an XMLSchema attribute node
-        assert wxs.xsQualifiedName('attribute') == node.nodeName
+        assert node.nodeName in wxs.xsQualifiedNames('attribute')
 
         name = None
         name = None
@@ -333,7 +333,7 @@ class AttributeDeclaration (_NamedComponent_mixin, _Resolvable_mixin):
         node = self.__domNode
 
         # Implement per section 3.2.2
-        if wxs.xsQualifiedName('schema') == node.parentNode.nodeName:
+        if node.parentNode.nodeName in wxs.xsQualifiedNames('schema'):
             self.__scope = self.SCOPE_global
 
         elif not node.hasAttribute('ref'):
@@ -391,7 +391,7 @@ class AttributeUse (_Resolvable_mixin):
 
     @classmethod
     def CreateFromDOM (cls, wxs, node):
-        assert wxs.xsQualifiedName('attribute') == node.nodeName
+        assert node.nodeName in wxs.xsQualifiedNames('attribute')
         rv = AttributeUse()
         if node.hasAttribute('use'):
             use = node.getAttribute('use')
@@ -493,7 +493,7 @@ class ElementDeclaration (_NamedComponent_mixin, _Resolvable_mixin):
     @classmethod
     def CreateFromDOM (cls, wxs, node, ancestor_component=None):
         # Node should be an XMLSchema element node
-        assert wxs.xsQualifiedName('element') == node.nodeName
+        assert node.nodeName in wxs.xsQualifiedNames('element')
 
         # Might be top-level, might be local
         name = None
@@ -502,7 +502,7 @@ class ElementDeclaration (_NamedComponent_mixin, _Resolvable_mixin):
 
         scope = None
         namespace = None
-        if wxs.xsQualifiedName('schema') == node.parentNode.nodeName:
+        if node.parentNode.nodeName in wxs.xsQualifiedNames('schema'):
             namespace = wxs.getTargetNamespace()
             scope = cls.SCOPE_global
         elif not node.hasAttribute('ref'):
@@ -701,7 +701,7 @@ class ComplexTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
     @classmethod
     def CreateFromDOM (cls, wxs, node):
         # Node should be an XMLSchema complexType node
-        assert wxs.xsQualifiedName('complexType') == node.nodeName
+        assert node.nodeName in wxs.xsQualifiedNames('complexType')
 
         name = None
         if node.hasAttribute('name'):
@@ -721,16 +721,16 @@ class ComplexTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
         uses_c1 = set()
         uses_c2 = set()
         uses_c3 = set()
-        xs_attribute = wxs.xsQualifiedName('attribute')
-        xs_attributeGroup = wxs.xsQualifiedName('attributeGroup')
+        xs_attribute = wxs.xsQualifiedNames('attribute')
+        xs_attributeGroup = wxs.xsQualifiedNames('attributeGroup')
         # Handle clauses 1 and 2
         for node in definition_node_list:
             if Node.ELEMENT_NODE != node.nodeType:
                 continue
-            if xs_attribute == node.nodeName:
+            if node.nodeName in xs_attribute:
                 # Note: This attribute use instance may have use=prohibited
                 uses_c1.add(AttributeUse.CreateFromDOM(wxs, node))
-            elif xs_attributeGroup == node.nodeName:
+            elif node.nodeName in xs_attributeGroup:
                 # This must be an attributeGroupRef
                 if not node.hasAttribute('ref'):
                     raise SchemaValidationError('Require ref attribute on internal attributeGroup elements')
@@ -810,8 +810,9 @@ class ComplexTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
         test_2_1_3 = False
         typedef_particle_tags = Particle.TypedefTags(wxs)
         typedef_node = None
-        allseq_particle_tags = [ wxs.xsQualifiedName(_tag) for _tag in [ 'all', 'sequence' ] ]
-        xs_choice = wxs.xsQualifiedName('choice')
+        allseq_particle_tags = []
+        [ allseq_particle_tags.extend(wxs.xsQualifiedNames(_tag)) for _tag in [ 'all', 'sequence' ] ]
+        xs_choice = wxs.xsQualifiedNames('choice')
         for cn in definition_node_list:
             if Node.ELEMENT_NODE != cn.nodeType:
                 continue
@@ -821,7 +822,7 @@ class ComplexTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
             if ((cn.nodeName in allseq_particle_tags) \
                     and (not HasNonAnnotationChild(wxs, cn))):
                 test_2_1_2 = True
-            if ((cn.nodeName == xs_choice) \
+            if ((cn.nodeName in xs_choice) \
                     and (not HasNonAnnotationChild(wxs, cn))\
                     and cn.hasAttribute('minOccurs') \
                     and (0 == datatypes.integer.StringToValue(cn.getAttribute('minOccurs')))):
@@ -926,10 +927,10 @@ class ComplexTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
         content_node = None
         if first_elt:
             have_content = False
-            if wxs.xsQualifiedName('simpleContent') == first_elt.nodeName:
+            if first_elt.nodeName in wxs.xsQualifiedNames('simpleContent'):
                 have_content = True
                 is_complex_content = False
-            elif wxs.xsQualifiedName('complexContent') == first_elt.nodeName:
+            elif first_elt.nodeName in wxs.xsQualifiedNames('complexContent'):
                 have_content = True
             if have_content:
                 # Repeat the search to verify that only the one child is present.
@@ -939,9 +940,9 @@ class ComplexTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
                 # Identify the contained restriction or extension
                 # element, and extract the base type.
                 ions = LocateFirstChildElement(content_node)
-                if wxs.xsQualifiedName('restriction') == ions.nodeName:
+                if ions.nodeName in wxs.xsQualifiedNames('restriction'):
                     method = self.DM_restriction
-                elif wxs.xsQualifiedName('extension') == ions.nodeName:
+                elif ions.nodeName in wxs.xsQualifiedNames('extension'):
                     method = self.DM_extension
                 else:
                     raise SchemaValidationError('Expected restriction or extension as sole child of %s in %s' % (content_node.name(), self.name()))
@@ -980,7 +981,7 @@ class AttributeGroupDefinition (_NamedComponent_mixin, _Resolvable_mixin):
 
     @classmethod
     def CreateFromDOM (cls, wxs, node):
-        assert wxs.xsQualifiedName('attributeGroup') == node.nodeName
+        assert node.nodeName in wxs.xsQualifiedNames('attributeGroup')
         name = None
         if node.hasAttribute('name'):
             name = node.getAttribute('name')
@@ -1010,11 +1011,11 @@ class AttributeGroupDefinition (_NamedComponent_mixin, _Resolvable_mixin):
                 return self
             uses = uses.union(agd.attributeUses())
         # @todo Handle annotations
-        wx_attribute = wxs.xsQualifiedName('attribute')
+        xs_attribute = wxs.xsQualifiedNames('attribute')
         for cn in node.childNodes:
             if Node.ELEMENT_NODE != cn.nodeType:
                 continue
-            if wx_attribute != cn.nodeName:
+            if cn.nodeName not in xs_attribute:
                 continue
             print 'Adding use from %s' % (cn.toxml(),)
             uses.add(AttributeUse.CreateFromDOM(wxs, cn))
@@ -1041,7 +1042,7 @@ class ModelGroupDefinition (_NamedComponent_mixin):
 
     @classmethod
     def CreateFromDOM (cls, wxs, node):
-        assert wxs.xsQualifiedName('group') == node.nodeName
+        assert node.nodeName in wxs.xsQualifiedNames('group')
 
         assert not node.hasAttribute('ref')
 
@@ -1081,11 +1082,11 @@ class ModelGroup:
 
     @classmethod
     def CreateFromDOM (cls, wxs, node):
-        if wxs.xsQualifiedName('all') == node.nodeName:
+        if node.nodeName in wxs.xsQualifiedNames('all'):
             compositor = cls.C_ALL
-        elif wxs.xsQualifiedName('choice') == node.nodeName:
+        elif node.nodeName in wxs.xsQualifiedNames('choice'):
             compositor = cls.C_CHOICE
-        elif wxs.xsQualifiedName('sequence') == node.nodeName:
+        elif node.nodeName in wxs.xsQualifiedNames('sequence'):
             compositor = cls.C_SEQUENCE
         else:
             raise IncompleteImplementationError('ModelGroup: Got unexpected %s' % (node.nodeName,))
@@ -1171,7 +1172,7 @@ class Particle (_Resolvable_mixin):
         #print 'Resolving Particle'
         node = self.__domNode
 
-        if wxs.xsQualifiedName('group') == node.nodeName:
+        if node.nodeName in wxs.xsQualifiedNames('group'):
             # 3.9.2 says use 3.8.2, which is ModelGroup.  The group
             # inside a particle is a groupRef.  If there is no group
             # with that name, this throws an exception as expected.
@@ -1182,7 +1183,7 @@ class Particle (_Resolvable_mixin):
             # Neither group definitions, nor model groups, require
             # resolution, so we can just extract the reference.
             term = group_decl.modelGroup()
-        elif wxs.xsQualifiedName('element') == node.nodeName:
+        elif node.nodeName in wxs.xsQualifiedNames('element'):
             assert wxs.xsQualifiedName('schema') != node.parentNode.nodeName
             # 3.9.2 says use 3.3.2, which is Element.  The element
             # inside a particle is a localElement, so we either get
@@ -1191,7 +1192,7 @@ class Particle (_Resolvable_mixin):
                 term = wxs.lookupElement(node.getAttribute('ref'))
             else:
                 term = ElementDeclaration.CreateFromDOM(wxs, node, self.__ancestorComponent)
-        elif wxs.xsQualifiedName('any') == node.nodeName:
+        elif node.nodeName in wxs.xsQualifiedNames('any'):
             # 3.9.2 says use 3.10.2, which is Wildcard.
             term = Wildcard.CreateFromDOM(wxs, node)
         elif node.nodeName in ModelGroup.GroupMemberTags(wxs):
@@ -1296,11 +1297,11 @@ class Annotation:
     def CreateFromDOM (cls, wxs, node):
         rv = Annotation()
         # Node should be an XMLSchema annotation node
-        assert wxs.xsQualifiedName('annotation') == node.nodeName
+        assert node.nodeName in wxs.xsQualifiedNames('annotation')
         for cn in node.childNodes:
-            if wxs.xsQualifiedName('appinfo') == cn.nodeName:
+            if cn.nodeName in wxs.xsQualifiedNames('appinfo'):
                 rv.__applicationInformation.append(cn)
-            elif wxs.xsQualifiedName('documentation') == cn.nodeName:
+            elif cn.nodeName in wxs.xsQualifiedNames('documentation'):
                 rv.__userInformation.append(cn)
             else:
                 pass
@@ -1524,7 +1525,7 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
         simple_type_child = None
         for cn in body.childNodes:
             if (Node.ELEMENT_NODE == cn.nodeType):
-                assert wxs.xsQualifiedName('simpleType') == cn.nodeName
+                assert cn.nodeName in wxs.xsQualifiedNames('simpleType')
                 assert not simple_type_child
                 simple_type_child = cn
         assert simple_type_child
@@ -1604,7 +1605,7 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
                 # NOTE: Newly created anonymous types need to be resolved
                 for cn in body.childNodes:
                     if (Node.ELEMENT_NODE == cn.nodeType):
-                        if wxs.xsQualifiedName('simpleType') == cn.nodeName:
+                        if cn.nodeName in wxs.xsQualifiedNames('simpleType'):
                             mtd.append(self.CreateFromDOM(wxs, cn))
             elif 'restriction' == alternative:
                 assert self.__baseTypeDefinition__
@@ -1696,7 +1697,7 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
     @classmethod
     def CreateFromDOM (cls, wxs, node):
         # Node should be an XMLSchema simpleType node
-        assert wxs.xsQualifiedName('simpleType') == node.nodeName
+        assert node.nodeName in wxs.xsQualifiedNames('simpleType')
 
         # @todo Process "final" attributes
         if node.hasAttribute('final'):
