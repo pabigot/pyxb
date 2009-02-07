@@ -127,8 +127,10 @@ class schema (xsc.Schema):
     def __getNamespaceForLookup (self, type_name):
         """Resolve a QName or NCName appropriately for this schema.
 
-        Returns the namespace to be used for lookup, or None if the
-        schema is associated with the lookup nnamespace.
+        Returns a pair consisting of the namespace to be used for
+        lookup, and the NCName to be used in that namespace.  Neither
+        comopnent may be None.  This method will raise an exception if
+        the appropriate namespace cannot be identified.
         """
         ns = None
         local_name = type_name
@@ -136,64 +138,66 @@ class schema (xsc.Schema):
             ( prefix, local_name ) = type_name.split(':', 1)
             ns = self.namespaceForPrefix(prefix)
         elif (self.__defaultNamespace is not None) and (self.__defaultNamespace != self.__targetNamespace):
-            raise LogicError('This code is wrong if a namespace instance is doing the lookup')
-            #ns = self.__defaultNamespace
-        print 'Namespace %s used for %s in %s' % (ns, local_name, type_name)
-        if (ns is None) and (self.__defaultNamespace is not None) and (self.__defaultNamespace != self.__targetNamespace):
-            raise LogicError('This code is wrong if a namespace instance is doing the lookup')
+            ns = self.__defaultNamespace
+        if ns is None:
+            # Not sure but that this isn't actually allowable.  If so,
+            # do we use the target namespace?
+            raise SchemaValidationError('Unable to identify a namespace for %s' % (type_name,))
         return (ns, local_name)
 
-    def lookupType (self, type_name):
-        (ns, local_name) = self.__getNamespaceForLookup(type_name)
+    def lookupType (self, qualified_name):
+        """Lookup a type by name.
+
+        If the name is a QName, the prefix part is used identify a
+        namespace, using the prefix map for this schema.  If the name
+        is an NCName, the default namespace for this schema is used.
+        If the name cannot be resolved in the appropriate namespace,
+        an exception is thrown."""
+
+        (ns, local_name) = self.__getNamespaceForLookup(qualified_name)
         assert 0 > local_name.find(':')
-        if ns is not None:
-            rv = ns.lookupType(local_name)
-        # Invoke superclass lookup
-        rv = self._lookupTypeDefinition(local_name)
+        rv = ns.lookupTypeDefinition(local_name)
         if rv is None:
-            raise Exception('lookupType: No match for "%s" in %s' % (local_name, self.__targetNamespace))
+            raise NotInNamespaceError('lookupType: No match for "%s" in %s' % (qualified_name, ns))
         return rv
 
-    def lookupSimpleType (self, type_name):
-        rv = self.lookupType(type_name)
+    def lookupSimpleType (self, qualified_name):
+        """Like lookupType, but restricted to SimpleTypeDefinitions."""
+        rv = self.lookupType(qualified_name)
         if isinstance(rv, xsc.SimpleTypeDefinition):
             return rv
-        raise Exception('lookupSimpleType: Name "%s" in %s is not a simple type' % (local_name, self.__targetNamespace))
+        raise NotInNamespaceError('lookupSimpleType: Name "%s" in %s is not a simple type' % (qualified_name, ns))
 
-    def lookupAttributeGroup (self, ref_name):
-        (ns, local_name) = self.__getNamespaceForLookup(ref_name)
-        if ns is not None:
-            return ns.lookupAttributeGroup(local_name)
-        rv = self._lookupAttributeGroupDefinition(local_name)
+    def lookupAttributeGroup (self, qualified_name):
+        """Like lookupType, but for attribute groups."""
+        (ns, local_name) = self.__getNamespaceForLookup(qualified_name)
+        rv = ns.lookupAttributeGroupDefinition(local_name)
         if rv is None:
-            raise SchemaValidationError('lookupAttributeGroup: No match for "%s" in %s' % (local_name, self.__targetNamespace))
+            raise NotInNamespaceError('lookupAttributeGroup: No match for "%s" in %s' % (qualified_name, ns))
         return rv
 
-    def lookupAttributeDeclaration (self, ref_name):
-        (ns, local_name) = self.__getNamespaceForLookup(ref_name)
-        if ns is not None:
-            return ns.lookupAttributeDeclaration(local_name)
-        rv = self._lookupAttributeDeclaration(local_name)
+    def lookupGroup (self, qualified_name):
+        """Like lookupType, but for groups."""
+        (ns, local_name) = self.__getNamespaceForLookup(qualified_name)
+        rv = ns.lookupModelGroupDefinition(local_name)
         if rv is None:
-            raise SchemaValidationError('lookupAttributeDeclaration: No match for "%s" in %s' % (local_name, self.__targetNamespace))
+            raise NotInNamespaceError('lookupGroup: No match for "%s" in %s' % (qualified_name, ns))
         return rv
 
-    def lookupGroup (self, group_name):
-        (ns, local_name) = self.__getNamespaceForLookup(group_name)
-        if ns is not None:
-            return ns.lookupGroup(local_name)
-        rv = self._lookupModelGroupDefinition(local_name)
+    def lookupAttribute (self, qualified_name):
+        """Like lookupType, but for attributes."""
+        (ns, local_name) = self.__getNamespaceForLookup(qualified_name)
+        rv = ns.lookupAttributeDeclaration(local_name)
         if rv is None:
-            raise SchemaValidationError('lookupGroup: No match for "%s" in %s' % (local_name, self.__targetNamespace))
+            raise NotInNamespaceError('lookupAttributeDeclaration: No match for "%s" in %s' % (qualified_name, ns))
         return rv
 
-    def lookupElement (self, element_name):
-        (ns, local_name) = self.__getNamespaceForLookup(element_name)
-        if ns is not None:
-            return ns.lookupElement(local_name)
-        rv = self._lookupElementDeclaration(local_name)
+    def lookupElement (self, qualified_name):
+        """Like lookupType, but for elements."""
+        (ns, local_name) = self.__getNamespaceForLookup(qualified_name)
+        rv = ns.lookupElementDeclaration(local_name)
         if rv is None:
-            raise SchemaValidationError('lookupElement: No match for "%s" in %s' % (local_name, self.__targetNamespace))
+            raise NotInNamespaceError('lookupElement: No match for "%s" in %s' % (qualified_name, ns))
         return rv
 
     def __recordNamespacePrefix (self, prefix, namespace):

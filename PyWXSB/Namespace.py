@@ -161,25 +161,45 @@ class Namespace (object):
             raise PyWXSBException('Cannot resolve in namespace %s: no associated schema' % (self.uri(),))
         return self.__schema
 
-    def lookupType (self, local_name):
-        """Look up a type in the namespace.
+    def lookupTypeDefinition (self, local_name):
+        """Look up a named type in the namespace.
 
         This delegates to the associated schema.  It returns a
-        SimpleTypeDefnition or ComplexTypeDefinition instance."""
-        return self._validatedSchema().lookupType(local_name)
+        SimpleTypeDefnition or ComplexTypeDefinition instance, or None
+        if the name does not denote a type."""
+        return self._validatedSchema()._lookupTypeDefinition(local_name)
 
-    def lookupAttributeGroup (self, local_name):
-        return self._validatedSchema().lookupAttributeGroup(local_name)
+    def lookupAttributeGroupDefinition (self, local_name):
+        """Look up a named attribute group in the namespace.
+
+        This delegates to the associated schema.  It returns an
+        AttributeGroupDefinition, or None if the name does not denote
+        an attribute group."""
+        return self._validatedSchema()._lookupAttributeGroupDefinition(local_name)
         
+    def lookupModelGroupDefinition (self, local_name):
+        """Look up a named model group in the namespace.
+
+        This delegates to the associated schema.  It returns a
+        ModelGroupDefinition, or None if the name does not denote a
+        model group."""
+        return self._validatedSchema()._lookupModelGroupDefinition(local_name)
+
     def lookupAttributeDeclaration (self, local_name):
-        print 'Lookup attribute declaration %s in %s' % (local_name, self)
-        return self._validatedSchema().lookupAttributeDeclaration(local_name)
+        """Look up a named attribute in the namespace.
 
-    def lookupGroup (self, local_name):
-        return self._validatedSchema().lookupGroup(local_name)
+        This delegates to the associated schema.  It returns an
+        AttributeDeclaration, or None if the name does not denote an
+        attribute."""
+        return self._validatedSchema()._lookupAttributeDeclaration(local_name)
 
-    def lookupElement (self, local_name):
-        return self._validatedSchema().lookupElement(local_name)
+    def lookupElementDeclaration (self, local_name):
+        """Look up a named element in the namespace.
+
+        This delegates to the associated schema.  It returns an
+        ElementDeclaration, or None if the name does not denote an
+        element."""
+        return self._validatedSchema()._lookupElementDeclaration(local_name)
 
     def __str__ (self):
         assert self.__uri is not None

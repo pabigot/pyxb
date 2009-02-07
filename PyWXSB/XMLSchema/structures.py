@@ -424,7 +424,7 @@ class AttributeUse (_Resolvable_mixin):
         # Although the attribute declaration definition may not be
         # resolved, *this* component is resolved, since we don't look
         # into the attribute declaration for anything.
-        self.__attributeDeclaration = wxs.lookupAttributeDeclaration(node.getAttribute('ref'))
+        self.__attributeDeclaration = wxs.lookupAttribute(node.getAttribute('ref'))
         self.__domNode = None
         return self
 
@@ -1177,8 +1177,7 @@ class Particle (_Resolvable_mixin):
             # with that name, this throws an exception as expected.
             if not node.hasAttribute('ref'):
                 raise SchemaValidationError('group particle without reference')
-            group_name = node.getAttribute('ref')
-            group_decl = wxs.lookupGroup(group_name)
+            group_decl = wxs.lookupGroup(node.getAttribute('ref'))
 
             # Neither group definitions, nor model groups, require
             # resolution, so we can just extract the reference.
@@ -1543,11 +1542,10 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
 
     def __initializeFromRestriction (self, wxs, body):
         if body.hasAttribute('base'):
-            base_name = body.getAttribute('base')
             # Look up the base.  If there is no registered type of
             # that name, an exception gets thrown that percolates up
             # to the user.
-            base_type = wxs.lookupSimpleType(base_name)
+            base_type = wxs.lookupSimpleType(body.getAttribute('base'))
             # If the base type exists but has not yet been resolve,
             # delay processing this type until the one it depends on
             # has been completed.
@@ -1587,8 +1585,7 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
         elif self.VARIETY_list == self.__variety:
             if 'list' == alternative:
                 if body.hasAttribute('itemType'):
-                    item_type = body.getAttribute('itemType')
-                    self.__itemTypeDefinition = wxs.lookupSimpleType(item_type)
+                    self.__itemTypeDefinition = wxs.lookupSimpleType(body.getAttribute('itemType'))
                 else:
                     # NOTE: The newly created anonymous item type will
                     # not be resolved; the caller needs to handle
@@ -1743,17 +1740,32 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
         return self.pythonSupport().pythonToString(value)
 
 class Schema (object):
+    NT_type = 0x01              #<<< Name represents a simple or complex type
+    NT_attributeGroup = 0x02    #<<< Name represents an attribute group definition
+    NT_modelGroup = 0x03        #<<< Name represents a model group definition
+    NT_attribute = 0x04         #<<< Name represents an attribute declaration
+    NT_element = 0x05           #<<< Name represents an element declaration
+
     __typeDefinitions = None
-    __attributeDeclarations = None
-    __elementDeclarations = None
     __attributeGroupDefinitions = None
     __modelGroupDefinitions = None
+    __attributeDeclarations = None
+    __elementDeclarations = None
     __notationDeclarations = None
     __annotations = None
 
-    # @todo Add a map from named component tags to names, and support
-    # lookup with a tag parameter identifying the appropriate
-    # dictionary.
+    def __mapForNamedType (self, nt):
+        if self.NT_type == nt:
+            return self.__typeDefinitions
+        if self.NT_attributeGroup == nt:
+            return self.__attributeGroupDefinitions
+        if self.NT_modelGroup == nt:
+            return self.__modelGroupDefinitions
+        if self.NT_attribute == nt:
+            return self.__attributeDeclarations
+        if self.NT_element == nt:
+            return self.__elementDeclarations
+        raise LogicError('Invalid named type 0x02x' % (nt,))
 
     __unresolvedDefinitions = None
 
@@ -1783,8 +1795,8 @@ class Schema (object):
 
         self.__typeDefinitions = { }
         self.__attributeGroupDefinitions = { }
-        self.__attributeDeclarations = { }
         self.__modelGroupDefinitions = { }
+        self.__attributeDeclarations = { }
         self.__elementDeclarations = { }
 
         self.__unresolvedDefinitions = []
@@ -1809,6 +1821,8 @@ class Schema (object):
         return replacement_def
 
     def _resolveDefinitions (self):
+        """Loop until all components associated with a name are
+        sufficiently defined."""
         while self.__unresolvedDefinitions:
             # Save the list of unresolved TDs, reset the list to
             # capture any new TDs defined during resolution (or TDs
@@ -1889,21 +1903,6 @@ class Schema (object):
     def _attributeGroupDefinitions (self):
         return self.__attributeGroupDefinitions.values()
 
-    def __addAttributeDeclaration (self, ad):
-        assert isinstance(ad, AttributeDeclaration)
-        local_name = ad.ncName()
-        old_ad = self.__attributeDeclarations.get(local_name, None)
-        if old_ad is not None:
-            raise SchemaValidationError('Name %s used for multiple attribute declarations' % (local_name,))
-        self.__attributeDeclarations[local_name] = ad
-        return ad
-
-    def _lookupAttributeDeclaration (self, local_name):
-        return self.__attributeDeclarations.get(local_name, None)
-
-    def _attributeDeclarations (self):
-        return self.__attributeDeclarations.values()
-
     def __addModelGroupDefinition (self, ad):
         assert isinstance(ad, ModelGroupDefinition)
         local_name = ad.ncName()
@@ -1920,6 +1919,21 @@ class Schema (object):
     def _modelGroupDefinitions (self):
         return self.__modelGroupDefinitions.values()
 
+    def __addAttributeDeclaration (self, ad):
+        assert isinstance(ad, AttributeDeclaration)
+        local_name = ad.ncName()
+        old_ad = self.__attributeDeclarations.get(local_name, None)
+        if old_ad is not None:
+            raise SchemaValidationError('Name %s used for multiple attribute declarations' % (local_name,))
+        self.__attributeDeclarations[local_name] = ad
+        return ad
+
+    def _lookupAttributeDeclaration (self, local_name):
+        return self.__attributeDeclarations.get(local_name, None)
+
+    def _attributeDeclarations (self):
+        return self.__attributeDeclarations.values()
+
     def __addElementDeclaration (self, ed):
         assert isinstance(ed, ElementDeclaration)
         local_name = ed.ncName()
@@ -1935,3 +1949,6 @@ class Schema (object):
 
     def _elementDeclarations (self):
         return self.__elementDeclarations.values()
+
+    def _lookupNamedComponent (self, ncname, component_type):
+        return self.__mapForNamedType(component_type).get(ncname, None)
