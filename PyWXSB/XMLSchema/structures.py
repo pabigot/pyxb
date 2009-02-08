@@ -201,6 +201,17 @@ def HasNonAnnotationChild (wxs, node):
             return True
     return False
 
+class _Singleton_mixin (object):
+    """This class is a mix-in which guarantees that only one instance
+    of the class will be created.  It is used to ensure that the
+    ur-type instances are pointer-equivalent even when unpickling.
+    See ComplexTypeDefinition.UrTypeDefinition()."""
+    def __new__ (cls, *args, **kw):
+        singleton_property = '_%s__singleton' % (cls.__name__,)
+        if not (singleton_property in cls.__dict__):
+            setattr(cls, singleton_property, object.__new__(cls, *args, **kw))
+        return cls.__dict__[singleton_property]
+
 class _NamedComponent_mixin:
     """Mix-in to hold the name and target namespace of a component.
 
@@ -676,7 +687,8 @@ class ComplexTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
         if in_builtin_definition and (cls.__UrTypeDefinition is not None):
             raise LogicError('Multiple definitions of UrType')
         if cls.__UrTypeDefinition is None:
-            bi = ComplexTypeDefinition('anyType', Namespace.XMLSchema, cls.DM_restriction)
+            # NOTE: We use a singleton subclass of this class
+            bi = _UrTypeDefinition('anyType', Namespace.XMLSchema, cls.DM_restriction)
 
             # The ur-type is its own baseTypeDefinition
             bi.__baseTypeDefinition = bi
@@ -967,6 +979,10 @@ class ComplexTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
         else:
             self.__completeSimpleResolution(wxs, definition_node_list, method, base_type)
         return self
+
+class _UrTypeDefinition (ComplexTypeDefinition, _Singleton_mixin):
+    """Subclass ensures there is only one ur-type."""
+    pass
 
 class AttributeGroupDefinition (_NamedComponent_mixin, _Resolvable_mixin):
     __attributeUses = None
@@ -1479,7 +1495,8 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
         if in_builtin_definition and (cls.__SimpleUrTypeDefinition is not None):
             raise LogicError('Multiple definitions of SimpleUrType')
         if cls.__SimpleUrTypeDefinition is None:
-            bi = cls('anySimpleType', Namespace.XMLSchema, cls.VARIETY_absent)
+            # Note: We use a singleton subclass
+            bi = _SimpleUrTypeDefinition('anySimpleType', Namespace.XMLSchema, cls.VARIETY_absent)
             bi._setPythonSupport(PythonSimpleTypeSupport())
 
             # The baseTypeDefinition is the ur-type.
@@ -1798,6 +1815,10 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
 
     def pythonToString (self, value):
         return self.pythonSupport().pythonToString(value)
+
+class _SimpleUrTypeDefinition (SimpleTypeDefinition, _Singleton_mixin):
+    """Subclass ensures there is only one simple ur-type."""
+    pass
 
 class Schema (object):
     NT_type = 0x01              #<<< Name represents a simple or complex type
