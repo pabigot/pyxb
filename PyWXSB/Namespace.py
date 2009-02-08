@@ -138,7 +138,8 @@ class Namespace (object):
         returns.  Caller must check.
         """
         assert self.__schema is None
-        afn = _LoadedSchemas.get(self.uri(), None)
+
+        afn = _LoadableNamespaceMap().get(self.uri(), None)
         if afn is not None:
             self.LoadFromFile(afn)
 
@@ -323,7 +324,7 @@ class Namespace (object):
     def __setstate__ (self, state):
         """Support pickling.
 
-        Because we can't determine what insteance is returned, if the
+        Because we can't determine what instance is returned, if the
         namespace already has an instance, we'll proxy for it.
         Otherwise, we call the __init__ method and register this as
         the official implementation for the namespace.
@@ -397,11 +398,15 @@ def NamespaceForURI (uri):
 # implementations for different purposes.
 _XMLSchemaModule = None
 
-# A mapping from namespace URIs to instances of Namespace that we have
-# loaded.
-# @todo Fix this anomaly: is it schemas available, schemas read from
-# files, or just namespaces?
-_LoadedSchemas = { }
+# A mapping from namespace URIs to names of files which appear to
+# provide a serialized version of the namespace with schema.
+__LoadableNamespaces = { }
+
+def _LoadableNamespaceMap ():
+    # Force resolution of the module; invoking SetXMLSchemaModule is
+    # what initializes this map.
+    XMLSchemaModule()
+    return __LoadableNamespaces
 
 def XMLSchemaModule ():
     """Return the Python module used for XMLSchema support.
@@ -439,7 +444,7 @@ def SetXMLSchemaModule (xs_module):
             infile = open(afn, 'rb')
             unpickler = pickle.Unpickler(infile)
             uri = unpickler.load()
-            _LoadedSchemas[uri] = afn
+            __LoadableNamespaces[uri] = afn
             print 'Pre-built schema for %s available in %s' % (uri, afn)
 
 class __XMLSchema_instance (Namespace):
@@ -496,7 +501,8 @@ def AvailableForLoad ():
 
     Note that success of the load is not guaranteed if the packed file
     is not compatible with the schema class being used."""
-    return _LoadedSchemas.keys()
+    # Invoke this to ensure we have searched for loadable namespaces
+    return _LoadableNamespaceMap().keys()
 
 # Namespace and URI for the XMLSchema Instance namespace (always xsi).
 # This is always built-in, and cannot have an associated schema.  We
@@ -530,4 +536,3 @@ XML = Namespace('http://www.w3.org/XML/1998/namespace',
 PredefinedNamespaces = [
   XMLSchema_instance, XMLSchema, XMLNamespaces, XML
 ]
-
