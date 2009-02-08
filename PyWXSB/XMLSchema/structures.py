@@ -165,7 +165,7 @@ p        @throw PyWXSB.BadTypeValueError if the value is not
 # follow its declaration.
 import datatypes
 
-def LocateUniqueChild (node, schema, tag, absent_ok=False):
+def LocateUniqueChild (node, schema, tag, absent_ok=True):
     candidate = None
     # @todo identify QName children as well as NCName
     name = schema.xsQualifiedName(tag)
@@ -178,7 +178,7 @@ def LocateUniqueChild (node, schema, tag, absent_ok=False):
         raise SchemaValidationError('Expected %s elements nested in %s' % (name, node.nodeName))
     return candidate
 
-def LocateFirstChildElement (node, absent_ok=False, require_unique=False):
+def LocateFirstChildElement (node, absent_ok=True, require_unique=False):
     candidate = None
     for cn in node.childNodes:
         if Node.ELEMENT_NODE == cn.nodeType:
@@ -348,7 +348,7 @@ class AttributeDeclaration (_NamedComponent_mixin, _Resolvable_mixin):
             # I think this is really a schema validation error
             raise IncompleteImplementationError('Internal attribute declaration by reference')
         
-        st_node = LocateUniqueChild(node, wxs, 'simpleType', absent_ok=True)
+        st_node = LocateUniqueChild(node, wxs, 'simpleType')
         if st_node is not None:
             self.__typeDefinition = SimpleTypeDefinition.CreateFromDOM(wxs, st_node)
         elif node.hasAttribute('type'):
@@ -546,11 +546,11 @@ class ElementDeclaration (_NamedComponent_mixin, _Resolvable_mixin):
             self.__substitutionGroupAffiliation = sga
             
         type_def = None
-        td_node = LocateUniqueChild(node, wxs, 'simpleType', absent_ok=True)
+        td_node = LocateUniqueChild(node, wxs, 'simpleType')
         if td_node is not None:
             type_def = SimpleTypeDefinition.CreateFromDOM(wxs, node)
         else:
-            td_node = LocateUniqueChild(node, wxs, 'complexType', absent_ok=True)
+            td_node = LocateUniqueChild(node, wxs, 'complexType')
             if td_node is not None:
                 type_def = ComplexTypeDefinition.CreateFromDOM(wxs, td_node)
         if type_def is None:
@@ -578,7 +578,7 @@ class ElementDeclaration (_NamedComponent_mixin, _Resolvable_mixin):
         if node.hasAttribute('abstract'):
             self.__abstract = datatypes.boolean.StringToPython(node.getAttribute('abstract'))
                 
-        self.__annotation = LocateUniqueChild(node, wxs, 'annotation', absent_ok=True)
+        self.__annotation = LocateUniqueChild(node, wxs, 'annotation')
 
         self.__domNode = None
         return self
@@ -937,7 +937,7 @@ class ComplexTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
                 
                 # Identify the contained restriction or extension
                 # element, and extract the base type.
-                ions = LocateFirstChildElement(content_node)
+                ions = LocateFirstChildElement(content_node, absent_ok=False)
                 if ions.nodeName in wxs.xsQualifiedNames('restriction'):
                     method = self.DM_restriction
                 elif ions.nodeName in wxs.xsQualifiedNames('extension'):
@@ -1056,7 +1056,7 @@ class ModelGroupDefinition (_NamedComponent_mixin):
             if cn.nodeName in mg_tags:
                 assert not rv.__modelGroup
                 rv.__modelGroup = ModelGroup.CreateFromDOM(wxs, cn)
-        rv.__annotation = LocateUniqueChild(node, wxs, 'annotation', absent_ok=True)
+        rv.__annotation = LocateUniqueChild(node, wxs, 'annotation')
         return rv
 
 class ModelGroup:
@@ -1262,7 +1262,7 @@ class Wildcard:
                 raise SchemaValidationError('illegal value "%s" for any processContents attribute' % (pc,))
 
         rv = cls(namespace_constraint, process_contents)
-        rv.__annotation = LocateUniqueChild(node, wxs, 'annotation', absent_ok=True)
+        rv.__annotation = LocateUniqueChild(node, wxs, 'annotation')
 
 # 3.11.1
 class IdentityConstraintDefinition (_NamedComponent_mixin):
@@ -1667,18 +1667,18 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
         bad_instance = False
         # The guts of the node should be exactly one instance of
         # exactly one of these three types.
-        candidate = LocateUniqueChild(node, wxs, 'list', absent_ok=True)
+        candidate = LocateUniqueChild(node, wxs, 'list')
         if candidate:
             self.__initializeFromList(wxs, candidate)
 
-        candidate = LocateUniqueChild(node, wxs, 'restriction', absent_ok=True)
+        candidate = LocateUniqueChild(node, wxs, 'restriction')
         if candidate:
             if self.__variety is None:
                 self.__initializeFromRestriction(wxs, candidate)
             else:
                 bad_instance = True
 
-        candidate = LocateUniqueChild(node, wxs, 'union', absent_ok=True)
+        candidate = LocateUniqueChild(node, wxs, 'union')
         if candidate:
             if self.__variety is None:
                 self.__initializeFromUnion(wxs, candidate)
