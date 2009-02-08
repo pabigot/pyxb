@@ -39,11 +39,12 @@ class Namespace (object):
     pointer-equivalence is not valid when checking whether two
     namespaces are the same.  See the equals() method.
 
-    @todo I haven't encountered specifications that state a namespace
-    cannot be defined by an aggregation of multiple schemas.  On the
+    @todo Section 4.2.1 of Structures specifies that, indeed, one can
+    have multiple schema documents that define the schema components
+    for a namespace.  This is what the include element does.  On the
     other hand, I haven't found a namespace that had more than one
-    schema.  For now, this only associates namespaces with a single
-    schema.
+    schema document.  For now, this only associates namespaces with a
+    single schema.
 
     """
 

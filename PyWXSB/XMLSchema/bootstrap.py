@@ -89,7 +89,9 @@ class schema (xsc.Schema):
     __defaultNamespace = None 
 
     # Target namespace for current schema.  Will be None unless schema
-    # has a 'targetNamespace' attribute.
+    # has a 'targetNamespace' attribute.  (Only schema documents
+    # "include"ed in other schema documents are allowed to have a
+    # missing targetNamespace attribute.)
     __targetNamespace = None
 
     # The prefix used for qualified names in the XMLSchema namespace,
@@ -120,6 +122,8 @@ class schema (xsc.Schema):
     def initializeBuiltins (self):
         # There better be a target namespace.  Use this as its schema.
         if self.__targetNamespace is None:
+            # This will blow up if we're processing an included schema
+            # document.
             raise SchemaValidationError('No targetNamespace provided')
         self.__targetNamespace._schema(self)
 
@@ -441,6 +445,7 @@ class schema (xsc.Schema):
 
     def _processInclude (self, node):
         self._requireInProlog(node.nodeName)
+        # See section 4.2.1 of Structures.
         raise IncompleteImplementationException('include directive not implemented')
 
     def _processImport (self, node):
