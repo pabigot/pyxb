@@ -1351,6 +1351,8 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
     # The value must be non-None except for the simple ur-type
     # definition.
     __baseTypeDefinition = None
+    def baseTypeDefinition (self):
+        return self.__baseTypeDefinition
 
     # @todo Support facets
     __facets = None
@@ -1375,15 +1377,35 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
     # Identify the sort of value collection this holds.  This field is
     # used to identify unresolved definitions.
     __variety = None
+    def variety (self):
+        return self.__variety
 
     # For atomic variety only, the root (excepting ur-type) type.
     __primitiveTypeDefinition = None
+    def primitiveTypeDefinition (self):
+        if self.variety() != self.VARIETY_atomic:
+            raise BadPropertyError('primitiveTypeDefinition only defined for atomic types')
+        if self.__primitiveTypeDefinition is None:
+            raise LogicError('Expected primitive type')
+        return self.__primitiveTypeDefinition
 
     # For list variety only, the type of items in the list
     __itemTypeDefinition = None
+    def itemTypeDefinition (self):
+        if self.VARIETY_list != self.variety():
+            raise BadPropertyError('itemTypeDefinition only defined for list types')
+        if self.__itemTypeDefinition is None:
+            raise LogicError('Expected item type')
+        return self.__itemTypeDefinition
 
     # For union variety only, the sequence of candidate members
     __memberTypeDefinitions = None
+    def memberTypeDefinitions (self):
+        if self.VARIETY_union != self.variety():
+            raise BadPropertyError('memberTypeDefinitions only defined for union types')
+        if self.__memberTypeDefinitions is None:
+            raise LogicError('Expected member types')
+        return self.__memberTypeDefinitions
 
     # An annotation associated with the type
     __annotation = None
@@ -1407,6 +1429,20 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
         _NamedComponent_mixin.__init__(self, name, target_namespace)
         _Resolvable_mixin.__init__(self)
         self.__variety = variety
+
+    def __str__ (self):
+        elts = [ self.name(), ': ' ]
+        if self.VARIETY_absent == self.variety():
+            elts.append('the ur-type')
+        elif self.VARIETY_atomic == self.variety():
+            elts.append(self.baseTypeDefinition().name())
+        elif self.VARIETY_list == self.variety():
+            elts.append('list of %s' % (self.itemTypeDefinition().name(),))
+        elif self.VARIETY_union == self.variety():
+            elts.append('union of %s' % (" ".join([_mtd.name() for _mtd in self.memberTypeDefinitions()],)))
+        else:
+            raise LogicError('Unexpected variety %s' % (self.variety(),))
+        return ''.join(elts)
 
     def _setFromInstance (self, other):
         """Override fields in this instance with those from the other.
@@ -1441,10 +1477,6 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
 
         See section 3.14.7."""
 
-        # The first time, and only the first time, this is called, a
-        # namespace should be provided which is the XMLSchema
-        # namespace for this run of the system.  Please, do not try to
-        # allow this by clearing the type definition.
         if in_builtin_definition and (cls.__SimpleUrTypeDefinition is not None):
             raise LogicError('Multiple definitions of SimpleUrType')
         if cls.__SimpleUrTypeDefinition is None:
@@ -1574,7 +1606,13 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
             self.__baseTypeDefinition = base_type
         else:
             self.__baseTypeDefinition = self.SimpleUrTypeDefinition()
+        # NOTE: 3.14.1 specifies that the variety is the variety of
+        # the base type definition; but if that is an ur type, whose
+        # variety is absent per 3.14.5, I'm really certain that they mean it to
+        # be atomic instead.
         self.__variety = self.__baseTypeDefinition.__variety
+        if self.__baseTypeDefinition == self.SimpleUrTypeDefinition():
+            self.__variety = self.VARIETY_atomic
         return self.__completeResolution(wxs, body, 'restriction')
 
     def __initializeFromUnion (self, wxs, body):
@@ -1596,10 +1634,15 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
             # type, which is the highest type that is below the
             # ur-type (which is not atomic).
             ptd = self
-            while self.VARIETY_atomic == ptd.__variety:
+            while isinstance(ptd, SimpleTypeDefinition) and (self.VARIETY_atomic == ptd.variety()):
                 assert ptd.__baseTypeDefinition
                 ptd = ptd.__baseTypeDefinition
-            self.__primitiveTypeDefinition = ptd
+            if not isinstance(ptd, SimpleTypeDefinition):
+                assert False
+                assert ComplexTypeDefinition.UrTypeDefinition() == ptd
+                self.__primitiveTypeDefinition = self.SimpleUrTypeDefinition()
+            else:
+                self.__primitiveTypeDefinition = ptd
         elif self.VARIETY_list == self.__variety:
             if 'list' == alternative:
                 if body.hasAttribute('itemType'):
@@ -1756,29 +1799,6 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
 
     def pythonToString (self, value):
         return self.pythonSupport().pythonToString(value)
-
-    def baseTypeDefinition (self):
-        return self.__baseTypeDefinition
-
-    def primitiveTypeDefinition (self):
-        # @todo verify Absent defines this
-        if self.variety() not in ( self.VARIETY_atomic, self.VARIETY_absent ):
-            raise BadPropertyError('itemTypeDefinition only defined for list types')
-            
-        return self.__primitiveTypeDefinition
-
-    def variety (self):
-        return self.__variety
-
-    def itemTypeDefinition (self):
-        if self.VARIETY_list != self.variety():
-            raise BadPropertyError('itemTypeDefinition only defined for list types')
-        return self.__itemTypeDefinition
-
-    def memberTypeDefinitions (self):
-        if self.VARIETY_union != self.variety():
-            raise BadPropertyError('memberTypeDefinitions only defined for union types')
-        return self.__memberTypeDefinitions
 
 class Schema (object):
     NT_type = 0x01              #<<< Name represents a simple or complex type
