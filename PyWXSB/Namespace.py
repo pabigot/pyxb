@@ -23,13 +23,21 @@ class Namespace (object):
     The PyWXSB system permits variant implementations of the
     underlying XML schema components and namespace-specific
     constructs.  To support this, you, or whoever wrote your XMLSchema
-    support moodule, must register the schema component module and
-    schema class definition prior to using Namespace instances.  This
-    pre-loads standard namespaces including the one for XML schema.
+    support module, must register the schema component module and
+    schema class definition prior to using Namespace instances,
+    through the SetXMLSchemaModule interface.  If no module is
+    registered, a default one will be assumed.
 
-    @note This may be an object, or it can be an instance that does nothing
-    but delegate to another instance.  You probably don't need to know
-    that.
+    @note Because Python's serialization support creates unique
+    instances of serialized objects on a per-pickled-stream basis, and
+    different namespaces may be stored in different streams, there is
+    a conflict with the requirement that only one Namespace instance
+    be associated with each URI.  That situation is handled by
+    enabling a Namespace instance to delegate all its actions to a
+    canonical instance for the URI.  For the most part, this is
+    invisible to the user; one way it does become visible is that
+    pointer-equivalence is not valid when checking whether two
+    namespaces are the same.  See the equals() method.
 
     @todo I haven't encountered specifications that state a namespace
     cannot be defined by an aggregation of multiple schemas.  On the
@@ -91,6 +99,10 @@ class Namespace (object):
         return object.__getattribute__(self, aname)
 
     def stripProxies (self):
+        """Return the root Namespace instance for this namespace.
+
+        Use this if you absolutely must do pointer equivalence testing
+        for Namespace instances."""
         pf_aname = '_Namespace__proxyFor'
         proxy_for = object.__getattribute__(self, pf_aname)
         if proxy_for is not None:
@@ -108,6 +120,7 @@ class Namespace (object):
 
     @classmethod
     def _NamespaceForURI (cls, uri):
+        """If a Namespace instance for the given URI exists, return it; otherwise return None."""
         return cls.__Registry.get(uri, None)
 
     def _defineSchema_overload (self):
@@ -141,12 +154,24 @@ class Namespace (object):
         return self.__schema
 
     def __init__ (self, uri,
-                  schema=None,
                   schema_location=None,
                   description=None,
                   is_builtin_namespace=False,
                   bound_prefix=None):
+        """Create a new Namespace.
+
+        The URI must be non-None, and must not already be assigned to
+        a Namespace instance.  See NamespaceForURI().
+        
+        User-created Namespace instances may also provide a
+        schemaLocation and a description.
+
+        Users should never provide a is_builtin_namespace parameter.
+        """
+
+        # New-style superclass invocation
         super(Namespace, self).__init__()
+
         # Make sure we have namespace support loaded before use, and
         # that we're not trying to do something restricted to built-in
         # namespaces
@@ -163,35 +188,63 @@ class Namespace (object):
 
         self.__uri = uri
         self.__boundPrefix = bound_prefix
-        self.__schema = schema
         self.__schemaLocation = schema_location
         self.__description = description
         self.__isBuiltinNamespace = is_builtin_namespace
 
         self.__Registry[self.__uri] = self
 
-    def uri (self): return self.__uri
-    def boundPrefix (self): return self.__boundPrefix
-    def isBuiltinNamespace (Self): return self.__isBuiltinNamespace
+    def uri (self):
+        """Return the URI for the namespace represented by this instance."""
+        return self.__uri
 
-    def schema (self, schema=None):
-        if schema is not None:
-            if self.__schema is not None:
-                raise LogicError('Not allowed to change the schema associated with namespace %s' % (self.uri(),))
-            self.__schema = schema
+    def boundPrefix (self):
+        """Return the standard prefix to be used for this namespace.
+
+        Only a few namespace prefixes are bound to namespaces: xml,
+        xmlns, and xsi are three.  In all other cases, this method
+        should return None.  The infrastructure attempts to prevent
+        user creation of Namespace instances that have bound
+        prefixes."""
+        return self.__boundPrefix
+
+    def isBuiltinNamespace (self):
+        """Return True iff this namespace was defined by the infrastructure.
+
+        That is the case for all namespaces in the Namespace module."""
+        return self.__isBuiltinNamespace
+
+    def _schema (self, schema):
+        """Associate a schema instance with this namespace.
+
+        The schema must be not be None, and the namespace must not
+        already have a schema associated with it."""
+        assert schema is not None
+        if self.__schema is not None:
+            raise LogicError('Not allowed to change the schema associated with namespace %s' % (self.uri(),))
+        self.__schema = schema
+        return self.__schema
+
+    def schema (self):
+        """Return the schema instance associated with this namespace.
+
+        If no schema has been associated, this returns None."""
         return self.__schema
 
     def schemaLocation (self, schema_location=None):
+        """Get, or set, a URI that says where the XML document defining the namespace can be found."""
         if schema_location is not None:
             self.__schemaLocation = schema_location
         return self.__schemaLocation
 
     def description (self, description=None):
+        """Get, or set, a textual description of the namespace."""
         if description is not None:
             self.__description = description
         return self.__description
 
     def _validatedSchema (self):
+        """Return a reference to the associated schema, or throw an exception if none available."""
         if self.__schema is None:
             raise PyWXSBException('Cannot resolve in namespace %s: no associated schema' % (self.uri(),))
         return self.__schema
@@ -267,7 +320,7 @@ class Namespace (object):
         return ( self.__PICKLE_FORMAT, args, kw )
 
     def __setstate__ (self, state):
-        """Initialize the instance from the packed state.
+        """Support pickling.
 
         Because we can't determine what insteance is returned, if the
         namespace already has an instance, we'll proxy for it.
@@ -350,6 +403,9 @@ _XMLSchemaModule = None
 _LoadedSchemas = { }
 
 def XMLSchemaModule ():
+    """Return the Python module used for XMLSchema support.
+
+    See SetXMLSchemaModule."""
     global _XMLSchemaModule
     if _XMLSchemaModule is None:
         import XMLSchema
@@ -404,7 +460,7 @@ class __XMLSchema_instance (Namespace):
             schema._addNamedComponent(xsc.AttributeDeclaration.CreateBaseInstance('nil', self))
             schema._addNamedComponent(xsc.AttributeDeclaration.CreateBaseInstance('schemaLocation', self))
             schema._addNamedComponent(xsc.AttributeDeclaration.CreateBaseInstance('noNamespaceSchemaLocation', self))
-            self.schema(schema)
+            self._schema(schema)
         return self
 
 class __XMLSchema (Namespace):
@@ -425,7 +481,7 @@ class __XMLSchema (Namespace):
             self._defineSchema_overload()
             if self.schema() is None:
                 # Bootstrapping non-XMLSchema schema.
-                self.schema(XMLSchemaModule().schema()).setTargetNamespace(self)
+                self._schema(XMLSchemaModule().schema()).setTargetNamespace(self)
                 XMLSchemaModule().datatypes._AddSimpleTypes(self.schema())
         elif self.schema() == schema:
             # Bootstrapping XMLSchema.

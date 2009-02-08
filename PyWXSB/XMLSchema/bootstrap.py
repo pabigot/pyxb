@@ -118,9 +118,10 @@ class schema (xsc.Schema):
         return self
 
     def initializeBuiltins (self):
-        # If there's a target namespace, use this as its schema
-        if self.__targetNamespace:
-            self.__targetNamespace.schema(self)
+        # There better be a target namespace.  Use this as its schema.
+        if self.__targetNamespace is None:
+            raise SchemaValidationError('No targetNamespace provided')
+        self.__targetNamespace._schema(self)
 
         # These two are built-in; make sure they're present
         self.lookupOrCreateNamespace(Namespace.XML.uri())
