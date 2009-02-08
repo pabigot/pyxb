@@ -20,9 +20,13 @@ class BadTypeValueError (PyWXSBException):
     pass
 
 class NotInNamespaceError (PyWXSBException):
-    '''Raised when a name is referenced that is not defined in the appropriate namesace.'''
+    '''Raised when a name is referenced that is not defined in the appropriate namespace.'''
     __namespace = None
     __ncName = None
+
+class BadPropertyError (PyWXSBException):
+    """Raised when a schema component property is accessed on a component instance that does not define that property."""
+    pass
 
 class PyWXSBError (exceptions.Exception):
     """Base class for exceptions that indicate a problem that the user probably can't fix."""

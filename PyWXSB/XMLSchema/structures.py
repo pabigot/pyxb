@@ -40,7 +40,7 @@ class PythonSimpleTypeSupport(object):
     @note This is a new-style class, involved in a complex inheritance
     hierarchy.  If you descend from it and define a custom __init__
     method, it must use only keyword arguments and invoke
-    super.__init__(**kw).  Positoinal arguments are explicitly
+    super.__init__(**kw).  Positional arguments are explicitly
     disallowed.
 
     """
@@ -96,7 +96,7 @@ class PythonSimpleTypeSupport(object):
         This method invokes the class method for this instance.  It is
         invoked as a pass-thru by SimpleTypeDefinition.stringToPython.
 
-p        @throw PyWXSB.BadTypeValueError if the value is not
+        @throw PyWXSB.BadTypeValueError if the value is not
         appropriate for the simple type.
         """
         return self.__class__.StringToPython(value)
@@ -586,6 +586,8 @@ class ElementDeclaration (_NamedComponent_mixin, _Resolvable_mixin):
 class ComplexTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
     # The type resolved from the base attribute
     __baseTypeDefinition = None
+    def baseTypeDefinition (self):
+        return self.__baseTypeDefinition
 
     DM_empty = 0                #<<< No derivation method specified
     DM_extension = 0x01         #<<< Derivation by extension
@@ -594,6 +596,8 @@ class ComplexTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
     # How the type was derived.  This field is used to identify
     # unresolved definitions.
     __derivationMethod = None
+    def derivationMethod (self):
+        return self.__derivationMethod
 
     # Derived from the final and finalDefault attributes
     __final = DM_empty
@@ -603,6 +607,8 @@ class ComplexTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
     
     # A frozenset() of AttributeUse instances
     __attributeUses = None
+    def attributeUses (self):
+        return self.__attributeUses
 
     # Optional wildcard that constrains attributes
     __attributeWildcard = None
@@ -618,6 +624,8 @@ class ComplexTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
     # ( CT_MIXED, particle )
     # ( CT_ELEMENT_ONLY, particle )
     __contentType = None
+    def contentType (self):
+        return self.__contentType
 
     # Derived from the block and blockDefault attributes
     __prohibitedSubstitutions = DM_empty
@@ -960,9 +968,6 @@ class ComplexTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
         else:
             self.__completeSimpleResolution(wxs, definition_node_list, method, base_type)
         return self
-
-    def contentType (self):
-        return self.__contentType
 
 class AttributeGroupDefinition (_NamedComponent_mixin, _Resolvable_mixin):
     __attributeUses = None
@@ -1349,6 +1354,7 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
 
     # @todo Support facets
     __facets = None
+
     # @todo Support fundamentalFacets
     __fundamentalFacets = None
 
@@ -1433,9 +1439,7 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
     def SimpleUrTypeDefinition (cls, in_builtin_definition=False):
         """Create the SimpleTypeDefinition instance that approximates the simple ur-type.
 
-        See section 3.14.7.  Note that this does have to be bound to a
-        provided namespace since at this point we do not have a
-        namespace for XMLSchema."""
+        See section 3.14.7."""
 
         # The first time, and only the first time, this is called, a
         # namespace should be provided which is the XMLSchema
@@ -1752,6 +1756,29 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
 
     def pythonToString (self, value):
         return self.pythonSupport().pythonToString(value)
+
+    def baseTypeDefinition (self):
+        return self.__baseTypeDefinition
+
+    def primitiveTypeDefinition (self):
+        # @todo verify Absent defines this
+        if self.variety() not in ( self.VARIETY_atomic, self.VARIETY_absent ):
+            raise BadPropertyError('itemTypeDefinition only defined for list types')
+            
+        return self.__primitiveTypeDefinition
+
+    def variety (self):
+        return self.__variety
+
+    def itemTypeDefinition (self):
+        if self.VARIETY_list != self.variety():
+            raise BadPropertyError('itemTypeDefinition only defined for list types')
+        return self.__itemTypeDefinition
+
+    def memberTypeDefinitions (self):
+        if self.VARIETY_union != self.variety():
+            raise BadPropertyError('memberTypeDefinitions only defined for union types')
+        return self.__memberTypeDefinitions
 
 class Schema (object):
     NT_type = 0x01              #<<< Name represents a simple or complex type
