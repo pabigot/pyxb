@@ -1217,12 +1217,17 @@ class Particle (_Resolvable_mixin):
 class Wildcard:
     NC_any = '##any'            #<<< The namespace constraint "##any"
     NC_not = '##other'          #<<< A flag indicating constraint "##other"
+    NC_targetNamespace = '##targetNamespace'
+    NC_local = '##local'
 
     # A constraint on the namespace.  Valid values are:
     # NC_any
-    # ( NC_not, a_namespace_name)
-    # set(of_namespace_names)
+    # ( NC_not, a_namespace)
+    # set(of_namespaces)
     # Absent is represented by None, both in the "not" pair and in the set.
+
+    # Note that namespace are represented by Namespace instances, not
+    # the URIs that actually define a namespace.
     __namespaceConstraint = None
 
     PC_skip = 'skip'            #<<< No constraint is applied
@@ -1250,10 +1255,21 @@ class Wildcard:
             elif cls.NC_not == nc:
                 namespace_constraint = ( cls.NC_not, wxs.getTargetNamespace() )
             else:
-                raise IncompleteImplementationError('any.namespace must process otherwise condition (3.10.2)')
+                ncs = set()
+                for ns_uri in nc.split():
+                    if cls.NC_local == ns_uri:
+                        ncs.add(None)
+                    elif cls.NC_targetNamespace == ns_uri:
+                        ncs.add(wxs.getTargetNamespace())
+                    else:
+                        namespace = Namespace.NamespaceForURI(ns_uri)
+                        if namespace is None:
+                            namespace = Namespace.Namespace(ns_uri)
+                        ncs.add(namespace)
+                namespace_constraint = frozenset(ncs)
 
         if not node.hasAttribute('processContents'):
-            process_contents = PC_strict
+            process_contents = cls.PC_strict
         else:
             pc = node.getAttribute('processContents')
             if pc in [ cls.PC_skip, cls.PC_lax, cls.PC_strict ]:
