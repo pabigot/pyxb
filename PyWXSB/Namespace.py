@@ -418,7 +418,7 @@ def SetXMLSchemaModule (xs_module):
             __LoadableNamespaces[uri] = afn
             print 'Pre-built schema for %s available in %s' % (uri, afn)
 
-class __XMLSchema_instance (Namespace):
+class _XMLSchema_instance (Namespace):
     """Extension of Namespace that pre-defines types available in the
     XMLSchema Instance (xsi) namespace."""
 
@@ -440,9 +440,18 @@ class __XMLSchema_instance (Namespace):
             self._schema(schema)
         return self
 
-class __XMLSchema (Namespace):
+class _XMLSchema (Namespace):
     """Extension of Namespace that pre-defines types available in the
     XMLSchema namespace."""
+
+    def _defineSchema_overload (self):
+        # The only reason we're overloading this is to ensure that
+        # unpickling preserved pointer equivalence of the ur types.
+        super(_XMLSchema, self)._defineSchema_overload()
+        if self.schema() is not None:
+            xsc = XMLSchemaModule().structures
+            assert xsc.ComplexTypeDefinition.UrTypeDefinition() == self.lookupTypeDefinition('anyType')
+            assert xsc.SimpleTypeDefinition.SimpleUrTypeDefinition() == self.lookupTypeDefinition('anySimpleType')
 
     def requireBuiltins (self, schema):
         """Ensure we're ready to use the XMLSchema namespace while processing the given schema.
@@ -479,13 +488,13 @@ def AvailableForLoad ():
 # This is always built-in, and cannot have an associated schema.  We
 # use it as an indicator that the namespace system has been
 # initialized.  See http://www.w3.org/TR/xmlschema-1/#no-xsi
-XMLSchema_instance = __XMLSchema_instance('http://www.w3.org/2001/XMLSchema-instance',
+XMLSchema_instance = _XMLSchema_instance('http://www.w3.org/2001/XMLSchema-instance',
                                           description='XML Schema Instance',
                                           is_builtin_namespace=True,
                                           bound_prefix='xsi')
 
 ## Namespace and URI for the XMLSchema namespace (often xs, or xsd)
-XMLSchema = __XMLSchema('http://www.w3.org/2001/XMLSchema',
+XMLSchema = _XMLSchema('http://www.w3.org/2001/XMLSchema',
                         schema_location='http://www.w3.org/2001/XMLSchema.xsd',
                         description='XML Schema',
                         is_builtin_namespace=True)
