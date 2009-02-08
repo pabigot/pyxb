@@ -14,6 +14,7 @@ CreateBaseInstance class method that creates a new instance manually.
 from PyWXSB.exceptions_ import *
 from xml.dom import Node
 import types
+import PyWXSB.Namespace as Namespace
 
 class PythonSimpleTypeSupport(object):
     """Class to support converting between WXS simple types and Python
@@ -208,6 +209,7 @@ class _NamedComponent_mixin:
     __name = None
 
     # None, or a reference to a Namespace in which the component may be found
+    # @todo Figure out how to stripProxies from this when unpickling.
     __targetNamespace = None
     
     # The schema in which qualified names for the namespace should be
@@ -217,7 +219,8 @@ class _NamedComponent_mixin:
     def __init__ (self, name, target_namespace):
         assert (name is None) or (0 > name.find(':'))
         self.__name = name
-        self.__targetNamespace = target_namespace
+        if target_namespace is not None:
+            self.__targetNamespace = target_namespace.stripProxies()
         self.__schema = None
             
     def targetNamespace (self):
@@ -240,7 +243,8 @@ class _NamedComponent_mixin:
         """Return true iff this and the other component share the same name and target namespace.
         
         Anonymous components are inherently name inequivalent."""
-        return (self.__name is not None) and (self.__name == other.__name) and (self.__targetNamespace == other.__targetNamespace)
+        # Note that unpickled objects 
+        return (self.__name is not None) and (self.__name == other.__name) and (self.__targetNamespace.equals(other.__targetNamespace))
 
 class _Resolvable_mixin:
     """Mix-in indicating that this component may have references to unseen named components."""
@@ -651,27 +655,21 @@ class ComplexTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
 
     __UrTypeDefinition = None
     @classmethod
-    def UrTypeDefinition (cls, xs_namespace=None):
+    def UrTypeDefinition (cls, in_builtin_definition=False):
         """Create the ComplexTypeDefinition instance that approximates
         the ur-type.
 
-        See section 3.4.7.  Note that this does have to be bound to a
-        provided namespace since so far we do not have a namespace for
-        XMLSchema.
-
-        @todo Provide a global namespace for XMLSchema, to eliminate
-        that last nit.
+        See section 3.4.7.
         """
 
         # The first time, and only the first time, this is called, a
         # namespace should be provided which is the XMLSchema
         # namespace for this run of the system.  Please, do not try to
         # allow this by clearing the type definition.
-        if __debug__ and (xs_namespace is not None) and (cls.__UrTypeDefinition is not None):
+        if in_builtin_definition and (cls.__UrTypeDefinition is not None):
             raise LogicError('Multiple definitions of UrType')
         if cls.__UrTypeDefinition is None:
-            assert xs_namespace
-            bi = ComplexTypeDefinition('anyType', xs_namespace, cls.DM_restriction)
+            bi = ComplexTypeDefinition('anyType', Namespace.XMLSchema, cls.DM_restriction)
 
             # The ur-type is its own baseTypeDefinition
             bi.__baseTypeDefinition = bi
@@ -1416,7 +1414,7 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
 
     __SimpleUrTypeDefinition = None
     @classmethod
-    def SimpleUrTypeDefinition (cls, xs_namespace=None):
+    def SimpleUrTypeDefinition (cls, in_builtin_definition=False):
         """Create the SimpleTypeDefinition instance that approximates the simple ur-type.
 
         See section 3.14.7.  Note that this does have to be bound to a
@@ -1427,11 +1425,10 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
         # namespace should be provided which is the XMLSchema
         # namespace for this run of the system.  Please, do not try to
         # allow this by clearing the type definition.
-        if __debug__ and (xs_namespace is not None) and (cls.__SimpleUrTypeDefinition is not None):
+        if in_builtin_definition and (cls.__SimpleUrTypeDefinition is not None):
             raise LogicError('Multiple definitions of SimpleUrType')
         if cls.__SimpleUrTypeDefinition is None:
-            assert xs_namespace
-            bi = cls('anySimpleType', xs_namespace, cls.VARIETY_absent)
+            bi = cls('anySimpleType', Namespace.XMLSchema, cls.VARIETY_absent)
             bi._setPythonSupport(PythonSimpleTypeSupport())
 
             # The baseTypeDefinition is the ur-type.

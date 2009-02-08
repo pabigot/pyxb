@@ -97,15 +97,48 @@ class Namespace (object):
             return proxy_for.stripProxies()
         return self
 
+    def equals (self, other):
+        """Determine whether two namespaces are the same, ignoring proxies.
+
+        Use this class rather than == when comparing namespaces, since
+        proxy namespaces are not pointer equivalent to what they
+        proxy, but they are equivalent in every meaningful way."""
+
+        return self.uri() == other.uri()
+
     @classmethod
     def _NamespaceForURI (cls, uri):
         return cls.__Registry.get(uri, None)
 
-    def checkInitialized (self):
+    def _defineSchema_overload (self):
+        """Attempts to load a schema for this namespace.
+
+        The base class implementation looks at the set of available
+        pre-built schemas, and if one matches this namespace
+        unserializes it and uses it.
+
+        Sub-classes may choose to look elsewhere, if this version
+        fails; or before attempting it.
+
+        There is no guarantee that a schema has been located when this
+        returns.  Caller must check.
+        """
+        assert self.__schema is None
         afn = _LoadedSchemas.get(self.uri(), None)
         if afn is not None:
             self.LoadFromFile(afn)
-        return self
+
+    def validateSchema (self):
+        """Ensure this namespace is ready for use.
+
+        If the namespace does not have an associated schema, the
+        system will attempt to load one.  If unsuccessful, an
+        exception will be thrown."""
+        if self.__schema is None:
+            self._defineSchema_overload()
+        if not self.__schema:
+            raise PyWXSBException('No schema available for required namespace %s' % (self.uri(),))
+        return self.__schema
 
     def __init__ (self, uri,
                   schema=None,
@@ -118,8 +151,7 @@ class Namespace (object):
         # that we're not trying to do something restricted to built-in
         # namespaces
         if not is_builtin_namespace:
-            XMLSchema_instance.checkInitialized()
-            
+            XMLSchema_instance.validateSchema()
             if bound_prefix is not None:
                 raise LogicError('Only permanent Namespaces may have bound prefixes')
 
@@ -144,6 +176,8 @@ class Namespace (object):
 
     def schema (self, schema=None):
         if schema is not None:
+            if self.__schema is not None:
+                raise LogicError('Not allowed to change the schema associated with namespace %s' % (self.uri(),))
             self.__schema = schema
         return self.__schema
 
@@ -226,7 +260,8 @@ class Namespace (object):
             'schema_location': self.__schemaLocation,
             'description':self.__description
             # Do not include __boundPrefix: bound namespaces should
-            # have already been created by the infrastructure.
+            # have already been created by the infrastructure, and the
+            # unpickle process will create a proxy for them.
             }
         args = ( self.__uri, )
         return ( self.__PICKLE_FORMAT, args, kw )
@@ -288,9 +323,10 @@ class Namespace (object):
 
         # Unpack the schema instance, verify that it describes the
         # namespace, and associate it with the namespace.
-        schema = unpickler.load()
-        assert schema.getTargetNamespace().uri() == rv.uri()
+        schema = unpickler.load()._postPickle()
+        assert schema.getTargetNamespace() == rv
         rv.__schema = schema
+        print 'Completed load of %s from %s' % (rv.uri(), file_path)
         return rv
 
 def NamespaceForURI (uri):
@@ -301,15 +337,11 @@ def NamespaceForURI (uri):
     returned."""
     return Namespace._NamespaceForURI(uri)
 
-# The XMLSchema structures module used to represent namespace schemas.  This
-# must be set, by invoking SetStructureModule, prior to attempting to use any
-# namespace.
-_StructuresModule = None
-
-# The Python class that implements the XMLSchema schema component.
-# This is not necessarily the same as _SchemaClass.schema, though it
-# must be a subclass of that class.
-_SchemaClass = None
+# The XMLSchema module used to represent namespace schemas.  This must
+# be set, by invoking SetStructureModule, prior to attempting to use
+# any namespace.  This is configurable since we may use different
+# implementations for different purposes.
+_XMLSchemaModule = None
 
 # A mapping from namespace URIs to instances of Namespace that we have
 # loaded.
@@ -317,23 +349,30 @@ _SchemaClass = None
 # files, or just namespaces?
 _LoadedSchemas = { }
 
-def SetStructuresModule (xsc, schema_cls):
-    """Use xsc as the module containing the classes that represent XMLSchema components.
+def XMLSchemaModule ():
+    global _XMLSchemaModule
+    if _XMLSchemaModule is None:
+        import XMLSchema
+        SetXMLSchemaModule(XMLSchema)
+    return _XMLSchemaModule
 
-    Also requires schema_cls, which must be a subclass of xsc.Schema,
-    and is used to create the schema instance used for in built-in
-    namespaces.
+def SetXMLSchemaModule (xs_module):
+    """Provide the XMLSchema module that will be used for processing.
+
+    xs_module must contain an element "structures" which includes
+    class definitions for the XMLSchema structure components; an
+    element "datatypes" which contains support for the built-in
+    XMLSchema data types; and a class "schema" that will be used to
+    create the schema instance used for in built-in namespaces.
     """
-    global _StructuresModule
-    global _SchemaClass
-    if _StructuresModule is not None:
-        raise LogicError('Cannot SetStructuresModule multiple times')
-    if xsc is None:
-        raise LogicError('Cannot SetStructuresModule without a valid structures module')
-    if not issubclass(schema_cls, xsc.Schema):
-        raise LogicError('Cannot SetStructuresModule without a valid class to represent schemas [%s]', schema_cls)
-    _StructuresModule = xsc
-    _SchemaClass = schema_cls
+    global _XMLSchemaModule
+    if _XMLSchemaModule is not None:
+        raise LogicError('Cannot SetXMLSchemaModule multiple times')
+    if xs_module is None:
+        raise LogicError('Cannot SetXMLSchemaModule without a valid structures module')
+    if not issubclass(xs_module.schema, xs_module.structures.Schema):
+        raise LogicError('SetXMLSchemaModule: Module does not provide a valid schema class')
+    _XMLSchemaModule = xs_module
 
     bindings_path = os.environ.get(PathEnvironmentVariable, DefaultBindingPath)
     print bindings_path
@@ -348,28 +387,51 @@ def SetStructuresModule (xsc, schema_cls):
 
 class __XMLSchema_instance (Namespace):
     """Extension of Namespace that pre-defines types available in the
-    XMLSchema Instance (xsi) namespace.."""
+    XMLSchema Instance (xsi) namespace."""
 
-    __initialized = False
-
-    def checkInitialized (self):
+    def _defineSchema_overload (self):
         """Ensure this namespace is ready for use.
 
-        Overrides base clsas implementation."""
+        Overrides base class implementation, since there is no schema
+        for this namespace. """
         
-        global _StructuresModule
-        global _SchemaClass
-        if not self.__initialized:
-            if not _StructuresModule or not _SchemaClass:
-                raise LogicError('Must invoke SetStructuresModule from Namespace module prior to using system.')
-            self.__initialized = True
-        xsi = _SchemaClass()
-        xsi._addNamedComponent(_StructuresModule.AttributeDeclaration.CreateBaseInstance('type', self))
-        xsi._addNamedComponent(_StructuresModule.AttributeDeclaration.CreateBaseInstance('nil', self))
-        xsi._addNamedComponent(_StructuresModule.AttributeDeclaration.CreateBaseInstance('schemaLocation', self))
-        xsi._addNamedComponent(_StructuresModule.AttributeDeclaration.CreateBaseInstance('noNamespaceSchemaLocation', self))
-        self.__schema = xsi
+        if self.schema() is None:
+            if not XMLSchemaModule():
+                raise LogicError('Must invoke SetXMLSchemaModule from Namespace module prior to using system.')
+            schema = XMLSchemaModule().schema()
+            xsc = XMLSchemaModule().structures
+            schema._addNamedComponent(xsc.AttributeDeclaration.CreateBaseInstance('type', self))
+            schema._addNamedComponent(xsc.AttributeDeclaration.CreateBaseInstance('nil', self))
+            schema._addNamedComponent(xsc.AttributeDeclaration.CreateBaseInstance('schemaLocation', self))
+            schema._addNamedComponent(xsc.AttributeDeclaration.CreateBaseInstance('noNamespaceSchemaLocation', self))
+            self.schema(schema)
         return self
+
+class __XMLSchema (Namespace):
+    """Extension of Namespace that pre-defines types available in the
+    XMLSchema namespace."""
+
+    def requireBuiltins (self, schema):
+        """Ensure we're ready to use the XMLSchema namespace while processing the given schema.
+
+        If a pre-built schema definition is available, use it.
+        Otherwise, we're bootstrapping.  If we're bootstrapping the
+        XMLSchema namespace, the caller should have already associated
+        the schema we're to use.  If not, we'll create a basic one
+        just to make progress.
+        """
+        
+        if self.schema() is None:
+            self._defineSchema_overload()
+            if self.schema() is None:
+                # Bootstrapping non-XMLSchema schema.
+                self.schema(XMLSchemaModule().schema()).setTargetNamespace(self)
+                XMLSchemaModule().datatypes._AddSimpleTypes(self.schema())
+        elif self.schema() == schema:
+            # Bootstrapping XMLSchema.
+            XMLSchemaModule().datatypes._AddSimpleTypes(self.schema())
+        assert XMLSchema == self.schema().getTargetNamespace()
+        return self.schema()
 
 def AvailableForLoad ():
     """Return a list of namespace URIs for which we are able to load
@@ -389,10 +451,10 @@ XMLSchema_instance = __XMLSchema_instance('http://www.w3.org/2001/XMLSchema-inst
                                           bound_prefix='xsi')
 
 ## Namespace and URI for the XMLSchema namespace (often xs, or xsd)
-XMLSchema = Namespace('http://www.w3.org/2001/XMLSchema',
-                      schema_location='http://www.w3.org/2001/XMLSchema.xsd',
-                      description='XML Schema',
-                      is_builtin_namespace=True)
+XMLSchema = __XMLSchema('http://www.w3.org/2001/XMLSchema',
+                        schema_location='http://www.w3.org/2001/XMLSchema.xsd',
+                        description='XML Schema',
+                        is_builtin_namespace=True)
 
 # Namespaces in XML
 XMLNamespaces = Namespace('http://www.w3.org/2000/xmlns/',

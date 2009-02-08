@@ -233,12 +233,12 @@ class positiveInteger (nonNegativeInteger):
     pass
 _DerivedDatatypes.append(positiveInteger)
 
-def DefineSimpleTypes (schema):
+def _AddSimpleTypes (schema):
     # Add the ur type
-    td = schema._addNamedComponent(xsc.ComplexTypeDefinition.UrTypeDefinition(schema.getTargetNamespace()))
+    td = schema._addNamedComponent(xsc.ComplexTypeDefinition.UrTypeDefinition(in_builtin_definition=True))
     assert td.isResolved()
     # Add the simple ur type
-    td = schema._addNamedComponent(xsc.SimpleTypeDefinition.SimpleUrTypeDefinition(schema.getTargetNamespace()))
+    td = schema._addNamedComponent(xsc.SimpleTypeDefinition.SimpleUrTypeDefinition(in_builtin_definition=True))
     assert td.isResolved()
     # Add definitions for all primitive and derived simple types
     pts_std_map = {}
@@ -257,3 +257,4 @@ def DefineSimpleTypes (schema):
         element_std = schema._lookupTypeDefinition(element_name)
         td = schema._addNamedComponent(xsc.SimpleTypeDefinition.CreateListInstance(list_name, schema.getTargetNamespace(), element_std))
         assert td.isResolved()
+    return schema

@@ -103,11 +103,23 @@ class schema (xsc.Schema):
         self.__prefixToNamespaceMap = { }
         self.__namespaceURIMap = { }
 
+    def _postPickle (self):
+        """Perform any tidying required after a schema is unpickled.
+
+        In particular, this replaces namespace references with the end
+        of their proxy chain, because things will be faster that way
+        and because folks almost certainly will assume they can do
+        pointer equivalence testing of namespaces.  Which they can't
+        if one's a proxy."""
+        if self.__defaultNamespace:
+            self.__defaultNamespace = self.__defaultNamespace.stripProxies()
+        if self.__targetNamespace:
+            self.__targetNamespace = self.__targetNamespace.stripProxies()
+        return self
+
     def initializeBuiltins (self):
         # If there's a target namespace, use this as its schema
         if self.__targetNamespace:
-            if self.__targetNamespace.schema():
-                raise LogicError('Cannot change schema assocation with target namespace %s' % (self.__targetNamespace,))
             self.__targetNamespace.schema(self)
 
         # These two are built-in; make sure they're present
@@ -121,14 +133,10 @@ class schema (xsc.Schema):
         if xs is None:
             raise LogicError('No access to XMLSchema namespace')
 
-        # If we're targeting the XMLSchema namespace, define the
-        # built-in types.  Otherwise, allocate and associate a schema
-        # instance for the XMLSchema namespace so we get access to
-        # those built-in types.
-        if self.__xs == self.__targetNamespace:
-            xsd.DefineSimpleTypes(self)
-        else:
-            self.__xs.schema(SchemaForXS(self))
+        # We're going to need the built-in types from the XMLSchema
+        # namespace.  (This gets tricky during bootstrapping; see the
+        # implementation in the Namespace module.)
+        Namespace.XMLSchema.requireBuiltins(self)
 
     def __getNamespaceForLookup (self, type_name):
         """Resolve a QName or NCName appropriately for this schema.
@@ -249,7 +257,7 @@ class schema (xsc.Schema):
         """Specify the namespace that should be used for non-qualified
         lookups.  """
         print 'DEFAULT: %s' % (namespace,)
-        self.__defaultNamespace = namespace
+        self.__defaultNamespace = namespace.stripProxies()
         return namespace
 
     def getDefaultNamespace (self):
@@ -258,11 +266,12 @@ class schema (xsc.Schema):
     def setTargetNamespace (self, namespace):
         """Specify the namespace for which this schema provides
         information."""
+        self.__targetNamespace = namespace.stripProxies()
         print 'TARGET: %s' % (namespace,)
-        self.__targetNamespace = namespace
         return namespace
 
     def getTargetNamespace (self):
+        assert (self.__targetNamespace is None) or (self.__targetNamespace == self.__targetNamespace.stripProxies())
         return self.__targetNamespace
 
     def targetNamespaceFromDOM (self, node, default_tag):
@@ -446,7 +455,7 @@ class schema (xsc.Schema):
         uri = node.getAttribute('namespace')
         namespace = self.namespaceForURI(uri)
         # @todo 
-        namespace.checkInitialized()
+        namespace.validateSchema()
         if namespace.schema() is None:
             # Just in case somebody imports a namespace but doesn't
             # actually use it, let this go.  If they do try to use it,
@@ -536,15 +545,3 @@ class schema (xsc.Schema):
 
     def domRootNode (self):
         return self.__domRootNode
-
-# @todo Replace this with a reference to Namespace.XMLSchema
-def SchemaForXS (wxs):
-    '''Create a Schema instance that targets the XMLSchema namespace.
-    Preload all its elements.  Note that we only need to do this in
-    the bootstrap code.'''
-    rv = schema()
-    rv.setTargetNamespace(wxs.xs())
-    xsd.DefineSimpleTypes(rv)
-    return rv
-
-Namespace.SetStructuresModule(xsc, schema)
