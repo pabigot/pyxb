@@ -7,7 +7,12 @@ _PrimitiveDatatypes = []
 _DerivedDatatypes = []
 _ListDatatypes = []
 
+#"""http://www/Documentation/W3C/www.w3.org/TR/2001/REC-xmlschema-1-20010502/index.html#key-urType"""
+# NB: anyType is a ComplexTypeDefinition instance; haven't figured out
+# how to deal with that yet.
+
 class anySimpleType (xsc.PythonSimpleTypeSupport):
+    """http://www/Documentation/W3C/www.w3.org/TR/xmlschema-2/index.html#dt-anySimpleType"""
     @classmethod
     def StringToPython (cls, value):
         return value
@@ -15,9 +20,13 @@ class anySimpleType (xsc.PythonSimpleTypeSupport):
     @classmethod
     def PythonToString (cls, value):
         return value
-# anySimpleType is not treated as a primitive, because its variety must be absent (not atomic).
+# anySimpleType is not treated as a primitive, because its variety
+# must be absent (not atomic).
     
 class string (anySimpleType):
+    """string.
+    
+    http://www/Documentation/W3C/www.w3.org/TR/xmlschema-2/index.html#string"""
     # NOTE: The PythonType for this is *NOT* types.StringType, since
     # the value may be a unicode string.
 
@@ -31,6 +40,10 @@ class string (anySimpleType):
 _PrimitiveDatatypes.append(string)
 
 class boolean (anySimpleType):
+    """boolean.
+
+    http://www/Documentation/W3C/www.w3.org/TR/xmlschema-2/index.html#boolean"""
+    
     PythonType = types.BooleanType
 
     @classmethod
@@ -49,10 +62,21 @@ class boolean (anySimpleType):
 _PrimitiveDatatypes.append(boolean)
 
 class decimal (anySimpleType):
+    """decimal.
+    
+    http://www/Documentation/W3C/www.w3.org/TR/xmlschema-2/index.html#decimal
+
+    Not supported.  If it becomes necessary, probably want to consider
+    http://code.google.com/p/mpmath/.
+    """
     pass
 _PrimitiveDatatypes.append(decimal)
 
 class float (anySimpleType):
+    """float.
+
+    http://www/Documentation/W3C/www.w3.org/TR/xmlschema-2/index.html#float"""
+    
     pass
 _PrimitiveDatatypes.append(float)
 
@@ -156,14 +180,24 @@ _DerivedDatatypes.append(ENTITY)
 _ListDatatypes.append( ( 'ENTITIES', 'ENTITY' ) )
 
 class integer (decimal):
+    """integer.
+
+    http://www/Documentation/W3C/www.w3.org/TR/xmlschema-2/index.html#integer"""
     PythonType = types.LongType
+    MinimumValue = None
+    MaximumValue = None
 
     @classmethod
     def StringToPython (cls, value):
+        rv = None
         try:
-            return cls.PythonType(value)
+            rv = cls.PythonType(value)
         except ValueError, e:
             raise ValueError('%s: Invalid value "%s"' % (cls.__class__.__name__, value))
+        if (cls.MinimumValue is not None) and (rv < cls.MinimumValue):
+            raise ValueError('%s: Value "%s" is below minimum %s' % (cls.__class__.__name__, value, cls.MinimumValue))
+        if (cls.MaximumValue is not None) and (rv > cls.MaximumValue):
+            raise ValueError('%s: Value "%s" is above maximum %s' % (cls.__class__.__name__, value, cls.MaximumValue))
 
     @classmethod
     def PythonToString (cls, value):
@@ -171,46 +205,37 @@ class integer (decimal):
 _DerivedDatatypes.append(integer)
 
 class nonPositiveInteger (integer):
-    @classmethod
-    def StringToPython (cls, value):
-        rv = integer.StringToPython(value)
-        if 0 < rv:
-            raise ValueError('nonPositiveInteger: Invalid value "%s"' % (value,))
-        return rv
+    MinimumValue = 1
 _DerivedDatatypes.append(nonPositiveInteger)
 
 class negativeInteger (nonPositiveInteger):
-    @classmethod
-    def StringToPython (cls, value):
-        rv = nonPositiveInteger.StringToPython(value)
-        if 0 <= rv:
-            raise ValueError('negativeInteger: Invalid value "%s"' % (value,))
-        return rv
+    MaximumValue = -1
 _DerivedDatatypes.append(negativeInteger)
 
 class long (integer):
-    pass
+    MaximumValue = -9223372036854775808
+    MinimumValue = 9223372036854775807
 _DerivedDatatypes.append(long)
 
 class int (long):
-    pass
+    PythonType = types.IntType
+    MinimumValue = -2147483648
+    MaximumValue = 2147483647
 _DerivedDatatypes.append(int)
 
 class short (int):
-    pass
+    MinimumValue = -32768
+    MaximumValue = 32767
 _DerivedDatatypes.append(short)
 
 class byte (short):
+    MinimumValue = -128
+    MaximumValue = 127
     pass
 _DerivedDatatypes.append(byte)
 
 class nonNegativeInteger (integer):
-    @classmethod
-    def StringToPython (cls, value):
-        rv = integer.StringToPython(value)
-        if 0 > rv:
-            raise ValueError('nonNegativeInteger: Invalid value "%s" produced %d' % (value, rv))
-        return rv
+    MinimumValue = 0
 _DerivedDatatypes.append(nonNegativeInteger)
 
 class unsignedLong (nonNegativeInteger):
@@ -234,6 +259,8 @@ class positiveInteger (nonNegativeInteger):
 _DerivedDatatypes.append(positiveInteger)
 
 def _AddSimpleTypes (schema):
+    """Add to the schema the definitions of the built-in types of
+    XMLSchema."""
     # Add the ur type
     td = schema._addNamedComponent(xsc.ComplexTypeDefinition.UrTypeDefinition(in_builtin_definition=True))
     assert td.isResolved()
