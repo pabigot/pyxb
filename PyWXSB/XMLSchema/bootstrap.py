@@ -107,36 +107,6 @@ class schema (xsc.Schema):
         self.__prefixToNamespaceMap = { }
         self.__namespaceURIMap = { }
 
-    def __setstate__ (self, state):
-        """Pickling support.
-
-        Normal unpickling, followed by some cleanup actions.
-
-        In particular, this replaces namespace references with the end
-        of their proxy chain, because things will be faster that way
-        and because folks almost certainly will assume they can do
-        pointer equivalence testing of namespaces.  Which they can't
-        if one's a proxy."""
-        try:
-            super_setstate = super(schema, self).__setstate__(state)
-            print "Successfully setstate in superclass"
-        except AttributeError, e:
-            self.__dict__.update(state)
-        if self.__defaultNamespace:
-            self.__defaultNamespace = self.__defaultNamespace.stripProxies()
-        if self.__targetNamespace:
-            self.__targetNamespace = self.__targetNamespace.stripProxies()
-        # Replace namespaces with proxy-stripped instances
-        for ns in self.__namespaces:
-            rns = ns.stripProxies()
-            if rns != ns:
-                self.__namespaces.remove(ns)
-                self.__namespaces.add(rns)
-        # Do the same thing for maps to Namespace instances
-        for ns_range_map in [ self.__prefixToNamespaceMap, self.__namespaceURIMap ]:
-            for (k, ns) in ns_range_map.items():
-                ns_range_map[k] = ns.stripProxies()
-
     def initializeBuiltins (self):
         # There better be a target namespace.  Use this as its schema.
         if self.__targetNamespace is None:
@@ -254,7 +224,6 @@ class schema (xsc.Schema):
         if namespace is None:
             # No such namespace exists.  Create one.
             namespace = Namespace.Namespace(uri)
-        namespace = namespace.stripProxies()
         if namespace not in self.__namespaces:
             # Add the namespace, as well as a mapping between it and
             # the prefix by which it is known in this schema, if any.
@@ -281,7 +250,7 @@ class schema (xsc.Schema):
         """Specify the namespace that should be used for non-qualified
         lookups.  """
         print 'DEFAULT: %s' % (namespace,)
-        self.__defaultNamespace = namespace.stripProxies()
+        self.__defaultNamespace = namespace
         return namespace
 
     def getDefaultNamespace (self):
@@ -290,12 +259,11 @@ class schema (xsc.Schema):
     def setTargetNamespace (self, namespace):
         """Specify the namespace for which this schema provides
         information."""
-        self.__targetNamespace = namespace.stripProxies()
+        self.__targetNamespace = namespace
         print 'TARGET: %s' % (namespace,)
         return namespace
 
     def getTargetNamespace (self):
-        assert (self.__targetNamespace is None) or (self.__targetNamespace == self.__targetNamespace.stripProxies())
         return self.__targetNamespace
 
     def targetNamespaceFromDOM (self, node, default_tag):

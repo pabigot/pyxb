@@ -59,7 +59,7 @@ class Namespace (object):
     __schema = None                     # The schema in which this namespace is used
 
     # A map from URIs to Namespace instances.  Namespaces instances
-    # must be unique for their URI.
+    # must be unique for their URI.  See __new__().
     __Registry = { }
 
     # Optional URI specifying the source for the schema for this namespace
@@ -71,53 +71,28 @@ class Namespace (object):
     # Indicates whether this namespace is built-in to the system
     __isBuiltinNamespace = False
 
-    # Indicates that this class is a proxy for the given namespace.
-    # This is required to support pickling: we represent pickled
-    # namespaces as their URIs, and nested references to built-in
-    # namespaces inside pickled schemas need to be proxies for the
-    # real built-in, since we can't force pickle to instead substitute
-    # the real one.
-    __proxyFor = None
+    def __getnewargs__ (self):
+        """Pickling support.
 
-    # This trick (which requires new-style classes) allows us to
-    # convert a raw Namespace instance, as created by the pickling
-    # subsystem, into a proxy for a different Namespace instance,
-    # e.g. one that was built-in.
-    def __getattribute__ (self, aname):
-        pf_aname = '_Namespace__proxyFor'
-        proxy_for = object.__getattribute__(self, pf_aname)
-        if pf_aname == aname:
-            # Do not delegate lookups of the __proxyFor field
-            return proxy_for
-        # If this instance is a proxy for something else, return it or
-        # invoke it.  See http://code.activestate.com/recipes/519639/
-        if proxy_for is not None:
-            aval = object.__getattribute__(proxy_for, aname)
-            if isinstance(aval, MethodType):
-                return new.instancemethod(aval.im_func, self, self.__proxyFor.__class__)
-            return aval
-        # Not a proxy: return the actual attribute
-        return object.__getattribute__(self, aname)
+        To ensure that unpickled Namespace instances are unique per
+        URI, we ensure that the routine that creates unpickled
+        instances knows what it's supposed to return."""
+        return (self.uri(),)
 
-    def stripProxies (self):
-        """Return the root Namespace instance for this namespace.
+    def __new__ (cls, *args, **kw):
+        """Pickling and singleton support.
 
-        Use this if you absolutely must do pointer equivalence testing
-        for Namespace instances."""
-        pf_aname = '_Namespace__proxyFor'
-        proxy_for = object.__getattribute__(self, pf_aname)
-        if proxy_for is not None:
-            return proxy_for.stripProxies()
-        return self
-
-    def equals (self, other):
-        """Determine whether two namespaces are the same, ignoring proxies.
-
-        Use this class rather than == when comparing namespaces, since
-        proxy namespaces are not pointer equivalent to what they
-        proxy, but they are equivalent in every meaningful way."""
-
-        return self.uri() == other.uri()
+        This ensures that no more than one Namespace instance exists
+        for any given URI.  We could do this up in __init__, but that
+        doesn't normally get called when unpickling instances; this
+        does.  See also __getnewargs__()."""
+        (uri,) = args
+        if not (uri in cls.__Registry):
+            instance = object.__new__(cls)
+            # Do this one step of __init__ so we can do checks during unpickling
+            instance.__uri = uri
+            cls.__Registry[uri] = instance
+        return cls.__Registry[uri]
 
     @classmethod
     def _NamespaceForURI (cls, uri):
@@ -185,16 +160,16 @@ class Namespace (object):
         # Make sure the URI is given and has not been given before
         if uri is None:
             raise LogicError('Namespace requires a URI')
-        if uri in self.__Registry:
-            raise LogicError('Cannot create multiple namespace instances for %s' % (uri,))
 
-        self.__uri = uri
+        # We actually set the uri when this instance was allocated;
+        # see __new__().
+        assert self.__uri == uri
         self.__boundPrefix = bound_prefix
         self.__schemaLocation = schema_location
         self.__description = description
         self.__isBuiltinNamespace = is_builtin_namespace
 
-        self.__Registry[self.__uri] = self
+        assert self.__Registry[self.__uri] == self
 
     def uri (self):
         """Return the URI for the namespace represented by this instance."""
@@ -297,8 +272,6 @@ class Namespace (object):
             rv = '%s=%s' % (self.__boundPrefix, self.__uri)
         else:
             rv = self.__uri
-        if self.__proxyFor is not None:
-            rv = '%s[proxy]' % (rv,)
         return rv
 
     __PICKLE_FORMAT = '200902061410'
@@ -324,10 +297,8 @@ class Namespace (object):
     def __setstate__ (self, state):
         """Support pickling.
 
-        Because we can't determine what instance is returned, if the
-        namespace already has an instance, we'll proxy for it.
-        Otherwise, we call the __init__ method and register this as
-        the official implementation for the namespace.
+        We used to do this to ensure uniqueness; now we just do it to
+        eliminate pickling the schema.
 
         This will throw an exception if the state is not inn a format
         recognized by this method."""
@@ -335,9 +306,9 @@ class Namespace (object):
         if self.__PICKLE_FORMAT != format:
             raise UnpicklingError('Got Namespace pickle format %s, require %s' % (format, self.__PICKLE_FORMAT))
         ( uri, ) = args
-        self.__proxyFor = self._NamespaceForURI(uri)
-        if self.__proxyFor is None:
-            Namespace.__init__(self, *args, **kw)
+        print 'Mine %s from %s' % (self.__uri, uri)
+        assert self.__uri == uri
+        self.__dict__.update(kw)
 
     def saveToFile (self, file_path):
         """Save this namespace, with its defining schema, to the given
@@ -374,7 +345,7 @@ class Namespace (object):
         # Get the real Namespace instance (never mind the proxy).
         rv = cls._NamespaceForURI(instance.uri())
         assert rv is not None
-        assert instance.stripProxies() == rv
+        assert instance == rv
 
         # Unpack the schema instance, verify that it describes the
         # namespace, and associate it with the namespace.

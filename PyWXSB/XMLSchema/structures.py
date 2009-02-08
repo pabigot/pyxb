@@ -209,7 +209,6 @@ class _NamedComponent_mixin:
     __name = None
 
     # None, or a reference to a Namespace in which the component may be found
-    # @todo Figure out how to stripProxies from this when unpickling.
     __targetNamespace = None
     
     # The schema in which qualified names for the namespace should be
@@ -220,7 +219,7 @@ class _NamedComponent_mixin:
         assert (name is None) or (0 > name.find(':'))
         self.__name = name
         if target_namespace is not None:
-            self.__targetNamespace = target_namespace.stripProxies()
+            self.__targetNamespace = target_namespace
         self.__schema = None
             
     def targetNamespace (self):
@@ -244,7 +243,7 @@ class _NamedComponent_mixin:
         
         Anonymous components are inherently name inequivalent."""
         # Note that unpickled objects 
-        return (self.__name is not None) and (self.__name == other.__name) and (self.__targetNamespace.equals(other.__targetNamespace))
+        return (self.__name is not None) and (self.__name == other.__name) and (self.__targetNamespace == other.__targetNamespace)
 
 class _Resolvable_mixin:
     """Mix-in indicating that this component may have references to unseen named components."""
