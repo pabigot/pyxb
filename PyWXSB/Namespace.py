@@ -378,7 +378,7 @@ class Namespace (object):
 
         # Unpack the schema instance, verify that it describes the
         # namespace, and associate it with the namespace.
-        schema = unpickler.load()._postPickle()
+        schema = unpickler.load()
         assert schema.getTargetNamespace() == rv
         rv.__schema = schema
         print 'Completed load of %s from %s' % (rv.uri(), file_path)

@@ -75,8 +75,10 @@ class schema (xsc.Schema):
     __prefixToNamespaceMap = None
 
     # Reverse direction: given a Namespace instance, determine the
-    # prefix used for that namespace.
-    __namespaceToPrefixMap = None
+    # prefix used for that namespace.  The map is from URI->prefix; we
+    # use the URI rather than the Namespace instance to lessen the
+    # probability of errors due to Namespace proxies.
+    __namespaceURIToPrefixMap = None
 
     # Map from the namespace URI to the instance that represents it.
     # Note: This is not redundant with Namespace.NamespaceForURI,
@@ -101,23 +103,39 @@ class schema (xsc.Schema):
     def __init__ (self):
         xsc.Schema.__init__(self)
         self.__namespaces = set()
-        self.__namespaceToPrefixMap = { }
+        self.__namespaceURIToPrefixMap = { }
         self.__prefixToNamespaceMap = { }
         self.__namespaceURIMap = { }
 
-    def _postPickle (self):
-        """Perform any tidying required after a schema is unpickled.
+    def __setstate__ (self, state):
+        """Pickling support.
+
+        Normal unpickling, followed by some cleanup actions.
 
         In particular, this replaces namespace references with the end
         of their proxy chain, because things will be faster that way
         and because folks almost certainly will assume they can do
         pointer equivalence testing of namespaces.  Which they can't
         if one's a proxy."""
+        try:
+            super_setstate = super(schema, self).__setstate__(state)
+            print "Successfully setstate in superclass"
+        except AttributeError, e:
+            self.__dict__.update(state)
         if self.__defaultNamespace:
             self.__defaultNamespace = self.__defaultNamespace.stripProxies()
         if self.__targetNamespace:
             self.__targetNamespace = self.__targetNamespace.stripProxies()
-        return self
+        # Replace namespaces with proxy-stripped instances
+        for ns in self.__namespaces:
+            rns = ns.stripProxies()
+            if rns != ns:
+                self.__namespaces.remove(ns)
+                self.__namespaces.add(rns)
+        # Do the same thing for maps to Namespace instances
+        for ns_range_map in [ self.__prefixToNamespaceMap, self.__namespaceURIMap ]:
+            for (k, ns) in ns_range_map.items():
+                ns_range_map[k] = ns.stripProxies()
 
     def initializeBuiltins (self):
         # There better be a target namespace.  Use this as its schema.
@@ -236,6 +254,7 @@ class schema (xsc.Schema):
         if namespace is None:
             # No such namespace exists.  Create one.
             namespace = Namespace.Namespace(uri)
+        namespace = namespace.stripProxies()
         if namespace not in self.__namespaces:
             # Add the namespace, as well as a mapping between it and
             # the prefix by which it is known in this schema, if any.
@@ -248,13 +267,13 @@ class schema (xsc.Schema):
             if prefix is not None:
                 if prefix in self.__prefixToNamespaceMap:
                     raise LogicError('Prefix %s already associated with %s' % (prefix, namespace))
-                old_prefix = self.__namespaceToPrefixMap.get(namespace, None)
+                old_prefix = self.__namespaceURIToPrefixMap.get(namespace.uri(), None)
                 if old_prefix is not None:
                     # This is not a LogicError because I'm not convinced doing this
                     # isn't legal.  Even if it does seem a little nonsensical.
                     raise IncompleteImplementationError('Namespace %s cannot have multiple prefixes (%s, %s)' % (namespace, prefix, old_prefix))
                 self.__prefixToNamespaceMap[prefix] = namespace
-                self.__namespaceToPrefixMap[namespace] = prefix
+                self.__namespaceURIToPrefixMap[namespace.uri()] = prefix
 
         return namespace
 
@@ -336,7 +355,7 @@ class schema (xsc.Schema):
         returns None.  If the default namespace is also available by
         prefix, the prefix is returned."""
         assert isinstance(namespace, Namespace.Namespace)
-        return self.__namespaceToPrefixMap.get(namespace, None)
+        return self.__namespaceURIToPrefixMap.get(namespace.uri(), None)
 
     def xsQualifiedNames (self, nc_name):
         """Returns a tuple containing all valid names for this schema

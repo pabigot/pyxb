@@ -6,5 +6,6 @@ python storewxs.py schemas/xml.xsd bindings/xml.wxs
 python storewxs.py schemas/XMLSchema.xsd bindings/xsd.wxs
 python storewxs.py schemas/XMLSchema-hasFacetAndProperty.xsd bindings/xsd-hfp.wxs
 python storewxs.py schemas/wsdl.xsd bindings/wsdl.wxs
+python storewxs.py schemas/xhtml.xsd bindings/xhtml.wxs
 
 # Process anything remaining
