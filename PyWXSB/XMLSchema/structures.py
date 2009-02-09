@@ -212,6 +212,26 @@ class _Singleton_mixin (object):
             setattr(cls, singleton_property, object.__new__(cls, *args, **kw))
         return cls.__dict__[singleton_property]
 
+class _Annotated_mixin (object):
+    """Mix-in that supports an optional single annotation that describes the component.
+
+    Most schema components have annotations.  The ones that don't are
+    AttributeUse, Particle, and Annotation.  ComplexTypeDefinition and
+    Schema support multiple annotations, so do not mix-in this class."""
+
+    # Optional Annotation instance
+    __annotation = None
+
+    def __init__ (self, *args, **kw):
+        super(_Annotated_mixin, self).__init__(*args, **kw)
+        self.__annotation = kw.get('annotation', None)
+
+    def _annotationFromDOM (self, wxs, node):
+        self.__annotation = LocateUniqueChild(node, wxs, 'annotation')
+
+    def annotation (self):
+        return self.__annotation
+
 class _NamedComponent_mixin (object):
     """Mix-in to hold the name and target namespace of a component.
 
@@ -289,7 +309,7 @@ class _Resolvable_mixin (object):
         raise LogicError('Resolution not implemented in %s' % (self.__class__,))
         
 
-class AttributeDeclaration (_NamedComponent_mixin, _Resolvable_mixin):
+class AttributeDeclaration (_NamedComponent_mixin, _Resolvable_mixin, _Annotated_mixin):
     VC_na = 0                   #<<< No value constraint applies
     VC_default = 1              #<<< Provided value constraint is default value
     VC_fixed = 2                #<<< Provided value constraint is fixed value
@@ -307,8 +327,6 @@ class AttributeDeclaration (_NamedComponent_mixin, _Resolvable_mixin):
     # values above.
     __valueConstraint = None
     def valueConstraint (self): return self.__valueConstraint
-
-    __annotation = None
 
     @classmethod
     def CreateBaseInstance (cls, name, target_namespace=None):
@@ -329,7 +347,7 @@ class AttributeDeclaration (_NamedComponent_mixin, _Resolvable_mixin):
             namespace = wxs.getTargetNamespaceFromDOM(node, 'attributeFormDefault')
 
         rv = cls(name=name, namespace=namespace)
-
+        rv._annotationFromDOM(wxs, node)
         rv.__domNode = node
         wxs._queueForResolution(rv)
         return rv
@@ -373,7 +391,6 @@ class AttributeDeclaration (_NamedComponent_mixin, _Resolvable_mixin):
             else:
                 self.__valueConstraint = None
 
-        # @todo handle annotation
         self.__domNode = None
         return self
 
@@ -444,7 +461,7 @@ class AttributeUse (_Resolvable_mixin):
     def prohibited (self):
         return self.USE_prohibited == self.__use
     
-class ElementDeclaration (_NamedComponent_mixin, _Resolvable_mixin):
+class ElementDeclaration (_NamedComponent_mixin, _Resolvable_mixin, _Annotated_mixin):
 
     # Simple or complex type definition
     __typeDefinition = None
@@ -488,8 +505,6 @@ class ElementDeclaration (_NamedComponent_mixin, _Resolvable_mixin):
 
     __abstract = False
 
-    __annotation = None
-    
     # The containing component which will ultimately provide the
     # scope.  None if at the top level, or a ComplexTypeDefinition or
     # a ModelGroup.
@@ -525,6 +540,7 @@ class ElementDeclaration (_NamedComponent_mixin, _Resolvable_mixin):
         
         rv = cls(name=name, namespace=namespace, ancestor_component=ancestor_component)
         rv.__scope = scope
+        rv._annotationFromDOM(wxs, node)
 
         # Creation does not attempt to do resolution.  Queue up the newly created
         # whatsis so we can resolve it after everything's been read in.
@@ -583,8 +599,6 @@ class ElementDeclaration (_NamedComponent_mixin, _Resolvable_mixin):
         if node.hasAttribute('abstract'):
             self.__abstract = datatypes.boolean.StringToPython(node.getAttribute('abstract'))
                 
-        self.__annotation = LocateUniqueChild(node, wxs, 'annotation')
-
         self.__domNode = None
         return self
 
@@ -977,14 +991,11 @@ class _UrTypeDefinition (ComplexTypeDefinition, _Singleton_mixin):
     """Subclass ensures there is only one ur-type."""
     pass
 
-class AttributeGroupDefinition (_NamedComponent_mixin, _Resolvable_mixin):
+class AttributeGroupDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated_mixin):
     __attributeUses = None
 
     # Optional wildcard that constrains attributes
     __attributeWildcard = None
-
-    # Optional annotation
-    __annotation = None
 
     @classmethod
     def CreateFromDOM (cls, wxs, node):
@@ -994,7 +1005,7 @@ class AttributeGroupDefinition (_NamedComponent_mixin, _Resolvable_mixin):
             name = node.getAttribute('name')
 
         rv = cls(name=name, target_namespace=wxs.getTargetNamespace())
-
+        rv._annotationFromDOM(wxs, node)
         wxs._queueForResolution(rv)
         rv.__domNode = node
         return rv
@@ -1017,7 +1028,6 @@ class AttributeGroupDefinition (_NamedComponent_mixin, _Resolvable_mixin):
                 wxs._queueForResolution(self)
                 return self
             uses = uses.union(agd.attributeUses())
-        # @todo Handle annotations
         xs_attribute = wxs.xsQualifiedNames('attribute')
         for cn in node.childNodes:
             if Node.ELEMENT_NODE != cn.nodeType:
@@ -1034,12 +1044,9 @@ class AttributeGroupDefinition (_NamedComponent_mixin, _Resolvable_mixin):
     def attributeUses (self):
         return self.__attributeUses
 
-class ModelGroupDefinition (_NamedComponent_mixin):
+class ModelGroupDefinition (_NamedComponent_mixin, _Annotated_mixin):
     # Reference to a _ModelGroup
     __modelGroup = None
-
-    # Optional
-    __annotation = None
 
     def modelGroup (self):
         return self.__modelGroup
@@ -1054,6 +1061,7 @@ class ModelGroupDefinition (_NamedComponent_mixin):
         if node.hasAttribute('name'):
             name = node.getAttribute('name')
         rv = cls(name=name, target_namespace=wxs.getTargetNamespace())
+        rv._annotationFromDOM(wxs, node)
 
         mg_tags = ModelGroup.GroupMemberTags(wxs)
         for cn in node.childNodes:
@@ -1062,10 +1070,9 @@ class ModelGroupDefinition (_NamedComponent_mixin):
             if cn.nodeName in mg_tags:
                 assert not rv.__modelGroup
                 rv.__modelGroup = ModelGroup.CreateFromDOM(wxs, cn)
-        rv.__annotation = LocateUniqueChild(node, wxs, 'annotation')
         return rv
 
-class ModelGroup (object):
+class ModelGroup (_Annotated_mixin):
     C_INVALID = 0
     C_ALL = 0x01
     C_CHOICE = 0x02
@@ -1076,9 +1083,6 @@ class ModelGroup (object):
 
     # A list of _Particle instances
     __particles = None
-
-    # Optional
-    __annotation = None
 
     def __init__ (self, *args, **kw):
         super(ModelGroup, self).__init__(*args, **kw)
@@ -1105,7 +1109,8 @@ class ModelGroup (object):
             if cn.nodeName in particle_tags:
                 # NB: Ancestor of particle is set in the ModelGroup constructor
                 particles.append(Particle.CreateFromDOM(wxs, cn, None))
-        return cls(compositor=compositor, particles=particles)
+        rv = cls(compositor=compositor, particles=particles)
+        rv._annotationFromDOM(wxs, node)
 
     @classmethod
     def GroupMemberTags (cls, wxs):
@@ -1226,7 +1231,7 @@ class Particle (_Resolvable_mixin):
 
 
 # 3.10.1
-class Wildcard (object):
+class Wildcard (_Annotated_mixin):
     NC_any = '##any'            #<<< The namespace constraint "##any"
     NC_not = '##other'          #<<< A flag indicating constraint "##other"
     NC_targetNamespace = '##targetNamespace'
@@ -1249,8 +1254,6 @@ class Wildcard (object):
     # One of PC_*
     __processContents = None
 
-    __annotation = None
-
     def __init__ (self, *args, **kw):
         assert 0 == len(args)
         namespace_constraint = kw['namespace_constraint']
@@ -1261,7 +1264,6 @@ class Wildcard (object):
 
     @classmethod
     def CreateFromDOM (cls, wxs, node):
-        
         if not node.hasAttribute('namespace'):
             namespace_constraint = cls.NC_any
         else:
@@ -1294,10 +1296,10 @@ class Wildcard (object):
                 raise SchemaValidationError('illegal value "%s" for any processContents attribute' % (pc,))
 
         rv = cls(namespace_constraint=namespace_constraint, process_contents=process_contents)
-        rv.__annotation = LocateUniqueChild(node, wxs, 'annotation')
+        rv._annotationFromDOM(wxs, node)
 
 # 3.11.1
-class IdentityConstraintDefinition (_NamedComponent_mixin):
+class IdentityConstraintDefinition (_NamedComponent_mixin, _Annotated_mixin):
     ICC_KEY = 0x01
     ICC_KEYREF = 0x02
     ICC_UNIQUE = 0x04
@@ -1305,10 +1307,9 @@ class IdentityConstraintDefinition (_NamedComponent_mixin):
     __selector = None
     __fields = None
     __referencedKey = None
-    __annotation = None
 
 # 3.12.1
-class NotationDeclaration (_NamedComponent_mixin):
+class NotationDeclaration (_NamedComponent_mixin, _Annotated_mixin):
     __systemIdentifier = None
     __publicIdentifier = None
     __annotation = None
@@ -1350,7 +1351,7 @@ class Annotation (object):
 
 
 # Section 3.14.
-class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
+class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated_mixin):
     """The schema component for simple type definitions.
 
     This component supports the basic datatypes of XML schema, and
@@ -1418,9 +1419,6 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
         if self.__memberTypeDefinitions is None:
             raise LogicError('Expected member types')
         return self.__memberTypeDefinitions
-
-    # An annotation associated with the type
-    __annotation = None
 
     # A non-property field that holds a reference to the DOM node from
     # which the type is defined.  The value is held only between the
@@ -1780,6 +1778,7 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
             name = node.getAttribute('name')
 
         rv = cls(name=name, target_namespace=wxs.getTargetNamespace(), variety=None)
+        rv._annotationFromDOM(wxs, node)
 
         # Creation does not attempt to do resolution.  Queue up the newly created
         # whatsis so we can resolve it after everything's been read in.
