@@ -325,29 +325,38 @@ class schema (xsc.Schema):
         assert isinstance(namespace, Namespace.Namespace)
         return self.__namespaceURIToPrefixMap.get(namespace.uri(), None)
 
-    def xsQualifiedNames (self, nc_name):
+    def qualifiedNames (self, nc_name, namespace):
         """Returns a tuple containing all valid names for this schema
-        that refer to the named component in the XMLSchema namespace.
-        If XMLSchema is the default namespace and has an associated
+        that refer to the named component in the given namespace.  If
+        the namespace is the default namespace and has an associated
         prefix, both the NCName and QName versions are included;
-        otherwise if XMLSchema is the default namespace the NCName
+        otherwise if the namespace is the default namespace the NCName
         variant is included; otherwise an exception is thrown.
         """
-        if self.__xsPrefix:
-            qname = '%s:%s' % (self.__xsPrefix, nc_name)
-            if self.__defaultNamespace == Namespace.XMLSchema:
+        # @todo There can be multiple prefixes for a namespace
+        prefix = self.prefixForNamespace(namespace)
+        if prefix:
+            qname = '%s:%s' % (prefix, nc_name)
+            if self.__defaultNamespace == namespace:
                 return (qname, nc_name)
             return (qname,)
-        if self.__defaultNamespace == Namespace.XMLSchema:
+        if self.__defaultNamespace == namespace:
             return (nc_name,)
-        print self.__defaultNamespace
-        raise SchemaValidationError('No prefix available to qualify %s in XMLSchema namespace' % (nc_name,))
+        raise SchemaValidationError('No prefix available to qualify %s in %s' % (nc_name, namespace.uri()))
 
-    def xsQualifiedName (self, nc_name):
-        """Given a NCName in the XMLSchema namespace, return a name
+    def qualifiedName (self, nc_name, namespace):
+        """Given a NCName in the given namespace, return a name
         (QName or NCName) that identifies the component within this
         schema."""
-        return self.xsQualifiedNames(nc_name)[0]
+        return self.qualifiedNames(nc_name, namespace)[0]
+
+    def xsQualifiedNames (self, nc_name):
+        """Invokes qualifiedNames using the XMLSchema namespace."""
+        return self.qualifiedNames(nc_name, Namespace.XMLSchema)
+
+    def xsQualifiedName (self, nc_name):
+        """Invokes qualifedName using the XMLSchema namespace"""
+        return self.qualifiedName(nc_name, Namespace.XMLSchema)
 
     # @todo put these in base class
     def processDocument (self, doc):
