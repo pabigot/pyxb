@@ -512,7 +512,17 @@ XML = Namespace('http://www.w3.org/XML/1998/namespace',
                 is_builtin_namespace=True,
                 bound_prefix='xml')
 
+# Elements appearing in appinfo elements to support data types
+XMLSchema_hfp = Namespace('http://www.w3.org/2001/XMLSchema-hasFacetAndProperty',
+                          description='Facets appearing in appinfo section',
+                          schema_location = 'http://www.w3.org/2001/XMLSchema-hasFacetAndProperty',
+                          is_builtin_namespace=True)
+
 # List of pre-defined namespaces.  NB: XMLSchema_instance must be first.
 PredefinedNamespaces = [
-  XMLSchema_instance, XMLSchema, XMLNamespaces, XML
+  XMLSchema_instance,
+  XMLSchema_hfp,
+  XMLSchema,
+  XMLNamespaces,
+  XML
 ]
