@@ -13,6 +13,18 @@ the system.
 Design Choices
 ==============
 
+Use of new-style classes
+
+Too many things, such as clean hooking into the pickling system, require the
+use of new-style classes.  Namespaces, schema components, and types (simple
+and complex) all use new-style classes.
+
+For this to work properly, if you implement an __init__ method, it must take
+arbitrary args and keywords, invoke super(Class, self).__init__(*args,**kw),
+and extract any arguments it needs from the keywords.  If you do not need to
+do anything in the init method, leave it out.  See
+http://fuhm.net/super-harmful/.
+
 PyWXSB
 ------
 
@@ -37,4 +49,5 @@ The default templates for generated code use the Document Object Model as
 their source for instance documents.  They assume the implementation
 supports a Pythonic interface.  If an implementation supports only a strict
 DOM interface, a custom template may be required.
+
 
