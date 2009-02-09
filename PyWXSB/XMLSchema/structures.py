@@ -1378,9 +1378,21 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
     STD_list = 0x02    #<<< Representation for list in a set of STD forms
     STD_restriction = 0x04 #<<< Representation of restriction in a set of STD forms
     STD_union = 0x08   #<<< Representation of union in a set of STD forms
-
     # Bitmask defining the subset that comprises the final property
     __final = STD_empty
+    @classmethod
+    def _FinalToString (cls, final_value):
+        """Convert a final value to a string."""
+        tags = []
+        if final_value & cls.STD_extension:
+            tags.append('extension')
+        if final_value & cls.STD_list:
+            tags.append('list')
+        if final_value & cls.STD_restriction:
+            tags.append('restriction')
+        if final_value & cls.STD_union:
+            tags.append('union')
+        return ' '.join(tags)
 
     VARIETY_absent = 0x01       #<<< Only used for the ur-type
     VARIETY_atomic = 0x02       #<<< Use for types based on a primitive type
@@ -1392,6 +1404,18 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
     __variety = None
     def variety (self):
         return self.__variety
+    @classmethod
+    def VarietyToString (cls, variety):
+        """Convert a variety value to a string."""
+        if cls.VARIETY_absent == variety:
+            return 'absent'
+        if cls.VARIETY_atomic == variety:
+            return 'atomic'
+        if cls.VARIETY_list == variety:
+            return 'list'
+        if cls.VARIETY_union == variety:
+            return 'union'
+        return '?NoVariety?'
 
     # For atomic variety only, the root (excepting ur-type) type.
     __primitiveTypeDefinition = None
@@ -1679,7 +1703,7 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
                             mtd.append(self.CreateFromDOM(wxs, cn))
             elif 'restriction' == alternative:
                 assert self.__baseTypeDefinition__
-                # If this fails, it's probably a use-before-def issue in the schema
+                # Base type should have been resolved before we got here
                 assert self.__baseTypeDefinition__.isResolved()
                 mtd = self.__baseTypeDefinition.__memberTypeDefinitions
                 assert mtd is not None
