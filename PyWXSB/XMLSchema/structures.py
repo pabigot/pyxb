@@ -1320,24 +1320,44 @@ class Annotation (object):
     __userInformation = None
     __attributes = None
 
-    def __init__ (self, *args, **kw):
-        super(Annotation, self).__init__(*args, **kw)
-        self.__applicationInformation = []
-        self.__userInformation = []
-
     @classmethod
     def CreateFromDOM (cls, wxs, node):
         rv = cls()
         # Node should be an XMLSchema annotation node
         assert node.nodeName in wxs.xsQualifiedNames('annotation')
+        app_info = []
+        user_info = []
         for cn in node.childNodes:
             if cn.nodeName in wxs.xsQualifiedNames('appinfo'):
-                rv.__applicationInformation.append(cn)
+                app_info.append(cn)
             elif cn.nodeName in wxs.xsQualifiedNames('documentation'):
-                rv.__userInformation.append(cn)
+                user_info.append(cn)
             else:
                 pass
+        if 0 < len(app_info):
+            rv.__applicationInformation = app_info
+        if 0 < len(user_info):
+            rv.__userInformation = user_info
+
+        #n2 = rv.generateDOM(wxs, node.ownerDocument)
+        #print "In: %s\n\nOut: %s\n" % (node.toxml(), n2.toxml())
         return rv
+
+    def generateDOM (self, wxs, document):
+        node = wxs.createDOMNodeInWXS(document, 'annotation')
+        if self.__userInformation is not None:
+            ui_node = wxs.createDOMNodeInWXS(document, 'documentation')
+            for ui in self.__userInformation:
+                for cn in ui.childNodes:
+                    ui_node.appendChild(cn.cloneNode(True))
+            node.appendChild(ui_node)
+        if self.__applicationInformation is not None:
+            ai_node = wxs.createDOMNodeInWXS(document, 'appinfo')
+            for ai in self.__applicationInformation:
+                for cn in ai.childNodes:
+                    ai_node.appendChild(cn.cloneNode(True))
+            node.appendChild(ai_node)
+        return node
 
     def __str__ (self):
         text = []

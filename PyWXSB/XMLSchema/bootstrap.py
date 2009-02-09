@@ -358,6 +358,14 @@ class schema (xsc.Schema):
         """Invokes qualifedName using the XMLSchema namespace"""
         return self.qualifiedName(nc_name, Namespace.XMLSchema)
 
+    def createDOMNodeInNamespace (self, dom_document, nc_name, namespace=None):
+        if namespace is None:
+            namespace = self.getDefaultNamespace()
+        return dom_document.createElementNS(namespace.uri(), self.qualifiedName(nc_name, namespace))
+
+    def createDOMNodeInWXS (self, dom_document, nc_name):
+        return self.createDOMNodeInNamespace(dom_document, nc_name, Namespace.XMLSchema)
+
     # @todo put these in base class
     def processDocument (self, doc):
         """Take the root element of the document, and scan its attributes under
