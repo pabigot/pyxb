@@ -1317,12 +1317,29 @@ class NotationDeclaration (_NamedComponent_mixin, _Annotated_mixin):
 # 3.13.1
 class Annotation (object):
     __applicationInformation = None
+    def applicationInformation (self):
+        return self.__applicationInformation
+    
     __userInformation = None
+    def userInformation (self):
+        return self.__userInformation
+
+    # @todo what the hell is this?  From 3.13.2, I think it's a place
+    # to stuff attributes from the annotation element, which makes
+    # sense, as well as from the annotation's parent element, which
+    # doesn't.  Apparently it's for attributes that don't belong to
+    # the XMLSchema namespace; so maybe we're not supposed to add
+    # those to the other components.  Note that these are attribute
+    # information items, not attribute uses.
     __attributes = None
 
     @classmethod
     def CreateFromDOM (cls, wxs, node):
         rv = cls()
+
+        # @todo: Scan for attributes in the node itself that do not
+        # belong to the XMLSchema namespace.
+
         # Node should be an XMLSchema annotation node
         assert node.nodeName in wxs.xsQualifiedNames('annotation')
         app_info = []
