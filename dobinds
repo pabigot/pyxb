@@ -9,3 +9,4 @@ python storewxs.py schemas/wsdl.xsd bindings/wsdl.wxs
 python storewxs.py schemas/xhtml.xsd bindings/xhtml.wxs
 
 # Process anything remaining
+python storewxs.py schemas/kml21.xsd bindings/kml21.wxs

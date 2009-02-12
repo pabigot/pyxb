@@ -1735,13 +1735,8 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
                 if body.hasAttribute(wxs.xsQualifiedName('memberTypes')):
                     member_types = body.getAttribute('memberTypes')
                     for mn in member_types.split():
-                        try:
-                            mt = wxs.lookupSimpleType(wxs.xsQualifiedName(mn))
-                            mtd.append(mt)
-                        except NotInNamespaceError, e:
-                            print 'Lookup failed: %s' % (e,)
-                            wxs._queueForResolution(self)
-                            return
+                        # THROW if type has not been defined
+                        mtd.append(wxs.lookupSimpleType(wxs.xsQualifiedName(mn)))
                 # NOTE: Newly created anonymous types will need to be resolved
                 for cn in body.childNodes:
                     if (Node.ELEMENT_NODE == cn.nodeType):
@@ -1752,7 +1747,6 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
                 orig_mtd = mtd
                 mtd = []
                 for mt in orig_mtd:
-                    print 'Testing mt %s' % (mt,)
                     assert isinstance(mt, SimpleTypeDefinition)
                     if not mt.isResolved():
                         wxs._queueForResolution(self)
