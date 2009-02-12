@@ -297,14 +297,16 @@ class _Resolvable_mixin (object):
         components.  The sole caller of this should be
         schema._resolveDefinitions().
         
-        Override this in the child class.  The method should return
-        self.  In the prefix, if isResolved() is true, return right
-        away.  If something prevents you from completing resolution,
-        invoke wxs._queueForResolution(self) so it is retried later,
-        then immediately return self.  Prior to leaving after
-        successful resolution discard any cached dom node by setting
+        Override this in the child class.  In the prefix, if
+        isResolved() is true, return right away.  If something
+        prevents you from completing resolution, invoke
+        wxs._queueForResolution(self) so it is retried later, then
+        immediately return self.  Prior to leaving after successful
+        resolution discard any cached dom node by setting
         self.__domNode=None.
 
+        The method should return self, whether or not resolution
+        succeeds.
         """
         raise LogicError('Resolution not implemented in %s' % (self.__class__,))
         
@@ -1040,6 +1042,7 @@ class AttributeGroupDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annot
         self.__attributeUses = frozenset(uses)
         self.__isResolved = True
         self.__domNode = None
+        return self
         
     def attributeUses (self):
         return self.__attributeUses
@@ -1674,7 +1677,7 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
             if not base_type.isResolved():
                 print 'Holding off resolution of anonymous simple type due to dependence on unresolved %s' % (base_type.name(),)
                 wxs._queueForResolution(self)
-                return
+                return self
             self.__baseTypeDefinition = base_type
         else:
             self.__baseTypeDefinition = self.SimpleUrTypeDefinition()
@@ -1688,7 +1691,6 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
         return self.__completeResolution(wxs, body, variety, 'restriction')
 
     def __initializeFromUnion (self, wxs, body):
-        self.__variety = self.VARIETY_union
         self.__baseTypeDefinition = self.SimpleUrTypeDefinition()
         return self.__completeResolution(wxs, body, self.VARIETY_union, 'union')
 
@@ -1696,6 +1698,7 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
     # variety is compounded by an alternative, since there is no
     # 'restriction' variety.
     def __completeResolution (self, wxs, body, variety, alternative):
+        assert self.__variety is None
         assert variety is not None
         if self.VARIETY_absent == variety:
             # The ur-type is always resolved.  So are restrictions of it,
@@ -1730,27 +1733,41 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
                 raise LogicError('completeResolution list variety with alternative %s' % (alternative,))
         elif self.VARIETY_union == variety:
             if 'union' == alternative:
-                mtd = []
-                # If present, first extract names from memberTypes
-                if body.hasAttribute(wxs.xsQualifiedName('memberTypes')):
-                    member_types = body.getAttribute('memberTypes')
-                    for mn in member_types.split():
-                        # THROW if type has not been defined
-                        mtd.append(wxs.lookupSimpleType(wxs.xsQualifiedName(mn)))
-                # NOTE: Newly created anonymous types will need to be resolved
-                for cn in body.childNodes:
-                    if (Node.ELEMENT_NODE == cn.nodeType):
-                        if cn.nodeName in wxs.xsQualifiedNames('simpleType'):
-                            mtd.append(self.CreateFromDOM(wxs, cn))
+                # First time we try to resolve, create the member type
+                # definitions.  If something later prevents us from
+                # resolving this type, we don't want to create them
+                # again, because we might already have references to
+                # them.
+                if self.__memberTypeDefinitions is None:
+                    mtd = []
+                    # If present, first extract names from memberTypes,
+                    # and add each one to the list
+                    if body.hasAttribute(wxs.xsQualifiedName('memberTypes')):
+                        member_types = body.getAttribute('memberTypes')
+                        for mn in member_types.split():
+                            # THROW if type has not been defined
+                            mtd.append(wxs.lookupSimpleType(wxs.xsQualifiedName(mn)))
+                    # Now look for local type definitions
+                    for cn in body.childNodes:
+                        if (Node.ELEMENT_NODE == cn.nodeType):
+                            if cn.nodeName in wxs.xsQualifiedNames('simpleType'):
+                                # NB: Attempt resolution right away to
+                                # eliminate unnecessary delay below
+                                # when looking for union expansions.
+                                mtd.append(self.CreateFromDOM(wxs, cn)._resolve(wxs))
+                    self.__memberTypeDefinitions = mtd[:]
+
                 # Replace any member types that are themselves unions
-                # with the members of those unions, in order.
-                orig_mtd = mtd
+                # with the members of those unions, in order.  Note
+                # that doing this might indicate we can't resolve this
+                # type yet, which is why we separated the member list
+                # creation and the substitution phases
                 mtd = []
-                for mt in orig_mtd:
+                for mt in self.__memberTypeDefinitions:
                     assert isinstance(mt, SimpleTypeDefinition)
                     if not mt.isResolved():
                         wxs._queueForResolution(self)
-                        return
+                        return self
                     if self.VARIETY_union == mt.variety():
                         mtd.extend(mt.memberTypeDefinitions())
                     else:
