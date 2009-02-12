@@ -8,3 +8,4 @@ test -f XMLSchema.xsd || wget http://www.w3.org/2001/XMLSchema.xsd
 test -f xml.xsd || wget http://www.w3.org/2001/xml.xsd
 test -f XMLSchema-hasFacetAndProperty.xsd || wget -O XMLSchema-hasFacetAndProperty.xsd http://www.w3.org/2001/XMLSchema-hasFacetAndProperty
 test -f xhtml.xsd || wget http://www.w3.org/1999/xhtml.xsd
+test -f kml21.xsd || wget http://code.google.com/apis/kml/schema/kml21.xsd

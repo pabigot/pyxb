@@ -1651,15 +1651,16 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
         assert simple_type_child
         return simple_type_child
 
-    # The __initializeFrom* methods are responsible for setting the
-    # variety and the baseTypeDefinition.  The remainder of the
+    # The __initializeFrom* methods are responsible for identifying
+    # the variety and the baseTypeDefinition.  The remainder of the
     # resolution is performed by the __completeResolution method.
-    # All this stuff is from section 3.14.2.
+    # Note that in some cases resolution might yet be premature, so
+    # variety is not saved until it is complete.  All this stuff is
+    # from section 3.14.2.
 
     def __initializeFromList (self, wxs, body):
-        self.__variety = self.VARIETY_list
         self.__baseTypeDefinition = self.SimpleUrTypeDefinition()
-        return self.__completeResolution(wxs, body, 'list')
+        return self.__completeResolution(wxs, body, self.VARIETY_list, 'list')
 
     def __initializeFromRestriction (self, wxs, body):
         if body.hasAttribute('base'):
@@ -1681,26 +1682,26 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
         # the base type definition; but if that is an ur type, whose
         # variety is absent per 3.14.5, I'm really certain that they mean it to
         # be atomic instead.
-        self.__variety = self.__baseTypeDefinition.__variety
+        variety = self.__baseTypeDefinition.__variety
         if self.__baseTypeDefinition == self.SimpleUrTypeDefinition():
-            self.__variety = self.VARIETY_atomic
-        return self.__completeResolution(wxs, body, 'restriction')
+            variety = self.VARIETY_atomic
+        return self.__completeResolution(wxs, body, variety, 'restriction')
 
     def __initializeFromUnion (self, wxs, body):
         self.__variety = self.VARIETY_union
         self.__baseTypeDefinition = self.SimpleUrTypeDefinition()
-        return self.__completeResolution(wxs, body, 'union')
+        return self.__completeResolution(wxs, body, self.VARIETY_union, 'union')
 
     # Complete the resolution of some variety of STD.  Note that the
     # variety is compounded by an alternative, since there is no
     # 'restriction' variety.
-    def __completeResolution (self, wxs, body, alternative):
-        assert self.__variety is not None
-        if self.VARIETY_absent == self.__variety:
+    def __completeResolution (self, wxs, body, variety, alternative):
+        assert variety is not None
+        if self.VARIETY_absent == variety:
             # The ur-type is always resolved.  So are restrictions of it,
             # which is how we might get here.
             pass
-        elif self.VARIETY_atomic == self.__variety:
+        elif self.VARIETY_atomic == variety:
             # Atomic types (and their restrictions) use the primitive
             # type, which is the highest type that is below the
             # ur-type (which is not atomic).
@@ -1714,7 +1715,7 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
                 self.__primitiveTypeDefinition = self.SimpleUrTypeDefinition()
             else:
                 self.__primitiveTypeDefinition = ptd
-        elif self.VARIETY_list == self.__variety:
+        elif self.VARIETY_list == variety:
             if 'list' == alternative:
                 if body.hasAttribute('itemType'):
                     self.__itemTypeDefinition = wxs.lookupSimpleType(body.getAttribute('itemType'))
@@ -1727,17 +1728,39 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
                 self.__itemTypeDefinition = self.__baseTypeDefinition.__itemTypeDefinition
             else:
                 raise LogicError('completeResolution list variety with alternative %s' % (alternative,))
-        elif self.VARIETY_union == self.__variety:
+        elif self.VARIETY_union == variety:
             if 'union' == alternative:
                 mtd = []
-                # TODO If present, need to extract names from memberTypes
+                # If present, first extract names from memberTypes
                 if body.hasAttribute(wxs.xsQualifiedName('memberTypes')):
-                    raise IncompleteImplementationError('union needs to extract names from memberTypes')
-                # NOTE: Newly created anonymous types need to be resolved
+                    member_types = body.getAttribute('memberTypes')
+                    for mn in member_types.split():
+                        try:
+                            mt = wxs.lookupSimpleType(wxs.xsQualifiedName(mn))
+                            mtd.append(mt)
+                        except NotInNamespaceError, e:
+                            print 'Lookup failed: %s' % (e,)
+                            wxs._queueForResolution(self)
+                            return
+                # NOTE: Newly created anonymous types will need to be resolved
                 for cn in body.childNodes:
                     if (Node.ELEMENT_NODE == cn.nodeType):
                         if cn.nodeName in wxs.xsQualifiedNames('simpleType'):
                             mtd.append(self.CreateFromDOM(wxs, cn))
+                # Replace any member types that are themselves unions
+                # with the members of those unions, in order.
+                orig_mtd = mtd
+                mtd = []
+                for mt in orig_mtd:
+                    print 'Testing mt %s' % (mt,)
+                    assert isinstance(mt, SimpleTypeDefinition)
+                    if not mt.isResolved():
+                        wxs._queueForResolution(self)
+                        return
+                    if self.VARIETY_union == mt.variety():
+                        mtd.extend(mt.memberTypeDefinitions())
+                    else:
+                        mtd.append(mt)
             elif 'restriction' == alternative:
                 assert self.__baseTypeDefinition__
                 # Base type should have been resolved before we got here
@@ -1751,6 +1774,7 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
         else:
             print 'VARIETY "%s"' % (self.__variety,)
             raise LogicError('completeResolution with variety 0x%02x' % (self.__variety,))
+        self.__variety = variety
         self.__domNode = None
         return self
 
