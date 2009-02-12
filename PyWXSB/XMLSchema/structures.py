@@ -1508,7 +1508,7 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
         if self.VARIETY_absent == self.variety():
             elts.append('the ur-type')
         elif self.VARIETY_atomic == self.variety():
-            elts.append(self.baseTypeDefinition().name())
+            elts.append('restriction of %s' % (self.baseTypeDefinition().name(),))
         elif self.VARIETY_list == self.variety():
             elts.append('list of %s' % (self.itemTypeDefinition().name(),))
         elif self.VARIETY_union == self.variety():
