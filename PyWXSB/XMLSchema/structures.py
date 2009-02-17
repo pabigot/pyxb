@@ -348,15 +348,39 @@ class _Resolvable_mixin (object):
         raise LogicError('Resolution not implemented in %s' % (self.__class__,))
         
 
-class AttributeDeclaration (_NamedComponent_mixin, _Resolvable_mixin, _Annotated_mixin):
-    """An XMLSchema Attribute Declaration component.
-
-    See http://www.w3.org/TR/xmlschema-1/index.html#cAttribute_Declarations
-    """
+class _ValueConstraint_mixin:
+    """Mix-in indicating that the component contains a simple-type
+    value that may be constrained."""
+    
     VC_na = 0                   #<<< No value constraint applies
     VC_default = 1              #<<< Provided value constraint is default value
     VC_fixed = 2                #<<< Provided value constraint is fixed value
 
+    # None, or a tuple containing a string followed by one of the VC_*
+    # values above.
+    __valueConstraint = None
+    def valueConstraint (self):
+        """A constraint on the value.
+
+        Either None, or a pair consisting of a string in the lexical
+        space of the typeDefinition and one of VC_default and
+        VC_fixed."""
+        return self.__valueConstraint
+
+    def _valueConstraintFromDOM (self, wxs, node):
+        if node.hasAttribute('default'):
+            self.__valueConstraint = (node.getAttribute('default'), self.VC_default)
+        elif node.hasAttribute('fixed'):
+            self.__valueConstraint = (node.getAttribute('fixed'), self.VC_fixed)
+        else:
+            self.__valueConstraint = None
+        
+
+class AttributeDeclaration (_NamedComponent_mixin, _Resolvable_mixin, _Annotated_mixin, _ValueConstraint_mixin):
+    """An XMLSchema Attribute Declaration component.
+
+    See http://www.w3.org/TR/xmlschema-1/index.html#cAttribute_Declarations
+    """
     # 
     __typeDefinition = None
     def typeDefinition (self):
@@ -374,17 +398,6 @@ class AttributeDeclaration (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
         None, the string "global", or a reference to a _ComplexTypeDefinition.
         """
         return self.__scope
-
-    # None, or a tuple containing a string followed by one of the VC_*
-    # values above.
-    __valueConstraint = None
-    def valueConstraint (self):
-        """A constraint on the value.
-
-        Either None, or a pair consisting of a string in the lexical
-        space of the typeDefinition and one of VC_default and
-        VC_fixed."""
-        return self.__valueConstraint
 
     @classmethod
     def CreateBaseInstance (cls, name, target_namespace=None):
@@ -406,6 +419,7 @@ class AttributeDeclaration (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
 
         rv = cls(name=name, namespace=namespace)
         rv._annotationFromDOM(wxs, node)
+        rv._valueConstraintFromDOM(wxs, node)
         rv.__domNode = node
         wxs._queueForResolution(rv)
         return rv
@@ -440,28 +454,15 @@ class AttributeDeclaration (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
         else:
             self.__typeDefinition = SimpleTypeDefinition.SimpleUrTypeDefinition()
                 
-        if self.SCOPE_global == self.__scope:
-            if node.hasAttribute('default'):
-                self.__valueConstraint = (node.getAttribute('default'), self.VC_default)
-            elif node.hasAttribute('fixed'):
-                self.__valueConstraint = (node.getAttribute('fixed'), self.VC_fixed)
-            else:
-                self.__valueConstraint = None
-
         self.__domNode = None
         return self
 
 
-class AttributeUse (_Resolvable_mixin):
+class AttributeUse (_Resolvable_mixin, _ValueConstraint_mixin):
     """An XMLSchema Attribute Use component.
 
     See http://www.w3.org/TR/xmlschema-1/index.html#cAttribute_Use
     """
-
-    # Copy value constraints from Attribute Declaration component.
-    VC_na = AttributeDeclaration.VC_na
-    VC_default = AttributeDeclaration.VC_default
-    VC_fixer = AttributeDeclaration.VC_fixed
 
     # How this attribute can be used.  The component property
     # "required" is true iff the value is USE_required.
@@ -475,11 +476,6 @@ class AttributeUse (_Resolvable_mixin):
     # A reference to an AttributeDeclaration
     __attributeDeclaration = None
     def attributeDeclaration (self): return self.__attributeDeclaration
-
-    # None, or a tuple containing a string followed by one of the VC_*
-    # values above.
-    __valueConstraint = None
-    def valueConstraint (self): return self.__valueConstraint
 
     @classmethod
     def CreateFromDOM (cls, wxs, node):
@@ -496,6 +492,9 @@ class AttributeUse (_Resolvable_mixin):
                 rv.__use = cls.USE_prohibited
             else:
                 raise SchemaValidationError('Unexpected value %s for attribute use attribute' % (use,))
+
+        rv._valueConstraintFromDOM(wxs, node)
+        
         if not node.hasAttribute('ref'):
             # Create an anonymous declaration, which will be resolved
             # separately
@@ -522,7 +521,7 @@ class AttributeUse (_Resolvable_mixin):
         self.__domNode = None
         return self
 
-class ElementDeclaration (_NamedComponent_mixin, _Resolvable_mixin, _Annotated_mixin):
+class ElementDeclaration (_NamedComponent_mixin, _Resolvable_mixin, _Annotated_mixin, _ValueConstraint_mixin):
     """An XMLSchema Element Declaration component.
 
     See http://www.w3.org/TR/xmlschema-1/index.html#cElement_Declarations
@@ -546,16 +545,6 @@ class ElementDeclaration (_NamedComponent_mixin, _Resolvable_mixin, _Annotated_m
         the owning complex type.
         """
         return self.__scope
-
-    # Copy value constraints
-    VC_na = AttributeDeclaration.VC_na
-    VC_default = AttributeDeclaration.VC_default
-    VC_fixer = AttributeDeclaration.VC_fixed
-
-    # None, or a tuple containing a string followed by one of the VC_*
-    # values above.
-    __valueConstraint = None
-    def valueConstraint (self): return self.__valueConstraint
 
     __nillable = False
     def nillable (self): return self.__nillable
@@ -615,6 +604,7 @@ class ElementDeclaration (_NamedComponent_mixin, _Resolvable_mixin, _Annotated_m
         rv = cls(name=name, namespace=namespace, ancestor_component=ancestor_component)
         rv.__scope = scope
         rv._annotationFromDOM(wxs, node)
+        rv._valueConstraintFromDOM(wxs, node)
 
         # Creation does not attempt to do resolution.  Queue up the newly created
         # whatsis so we can resolve it after everything's been read in.
@@ -668,15 +658,7 @@ class ElementDeclaration (_NamedComponent_mixin, _Resolvable_mixin, _Annotated_m
         if node.hasAttribute('nillable'):
             self.__nillable = datatypes.boolean.StringToPython(node.getAttribute('nillable'))
 
-        if self.SCOPE_global == self.__scope:
-            if node.hasAttribute('default'):
-                self.__valueConstraint = (node.getAttribute('default'), self.VC_default)
-            elif node.hasAttribute('fixed'):
-                self.__valueConstraint = (node.getAttribute('fixed'), self.VC_fixed)
-            else:
-                self.__valueConstraint = None
-
-        # @todo identity constraints, disallowed substitutions, substitution group exclusions
+        # @todo disallowed substitutions, substitution group exclusions
                 
         if node.hasAttribute('abstract'):
             self.__abstract = datatypes.boolean.StringToPython(node.getAttribute('abstract'))
