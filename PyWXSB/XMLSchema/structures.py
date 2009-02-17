@@ -6,9 +6,6 @@ described in http://www.w3.org/TR/xmlschema-1/.
 Each class has a CreateFromDOM class method that creates an instance
 and initializes it from a DOM node.
 
-Classes that need to support built-ins also support a
-CreateBaseInstance class method that creates a new instance manually.
-
 """
 
 from PyWXSB.exceptions_ import *
@@ -86,10 +83,6 @@ class PythonSimpleTypeSupport(object):
         assert self.__simpleTypeDefinition is not None
         return self.__simpleTypeDefinition
 
-    # Even when we have an instance of a simple type definition, we do
-    # the conversion routines as class methods, so they can be used
-    # explicitly.
-
     def stringToPython (self, value):
         """Convert a value in string form to a native Python data value.
 
@@ -108,6 +101,10 @@ class PythonSimpleTypeSupport(object):
         invoked as a pass-thru by SimpleTypeDefinition.pythonToString
         """
         return self.__class__.PythonToString(value)
+
+    # Even when we have an instance of a simple type definition, we do
+    # the conversion routines as class methods, so they can be used
+    # explicitly.
 
     @classmethod
     def StringToPython (cls, value):
@@ -166,11 +163,24 @@ class PythonSimpleTypeSupport(object):
 import datatypes
 
 def LocateUniqueChild (node, schema, tag, absent_ok=True):
+    """Locate a unique child of the DOM node.
+
+    The node should be a xml.dom.Node ELEMENT_NODE instance.  The
+    schema from which the node derives is also provided.  tag is the
+    NCName of an XMLSchema element.  This function returns the sole
+    child of node which is an ELEMENT_NODE instance and has a tag
+    consistent with the given tag.  If multiple nodes with a matching
+    tag are found, or abesnt_ok is False and no matching tag is found,
+    an exception is raised.
+
+    @throw SchemaValidationError if multiple elements are identified
+    @throw SchemaValidationError if absent_ok is False and no element is identified.
+    """
     candidate = None
     # @todo identify QName children as well as NCName
-    name = schema.xsQualifiedName(tag)
+    names = schema.xsQualifiedNames(tag)
     for cn in node.childNodes:
-        if cn.nodeName == name:
+        if (Node.ELEMENT_NODE == cn.nodeType) and (cn.nodeName in names):
             if candidate:
                 raise SchemaValidationError('Multiple %s elements nested in %s' % (name, node.nodeName))
             candidate = cn
@@ -178,7 +188,30 @@ def LocateUniqueChild (node, schema, tag, absent_ok=True):
         raise SchemaValidationError('Expected %s elements nested in %s' % (name, node.nodeName))
     return candidate
 
+def LocateMatchingChildren (node, schema, tag):
+    """Locate all children of the DOM node that have a particular tag.
+
+    The node should be a xml.dom.Node ELEMENT_NODE instance.  The
+    schema from which the node derives is also provided.  tag is the
+    NCName of an XMLSchema element.  This function returns a list of
+    children of node which are an ELEMENT_NODE instances and have a tag
+    consistent with the given tag.
+    """
+    matches = []
+    names = schema.xsQualifiedNames(tag)
+    for cn in node.childNodes:
+        if (Node.ELEMENT_NODE == cn.nodeType) and (cn.nodeName in names):
+            matches.append(cn)
+    return matches
+
 def LocateFirstChildElement (node, absent_ok=True, require_unique=False):
+    """Locate the first element child of the node.
+
+    If absent_ok is True, and there are no ELEMENT_NODE children, None
+    is returned.  If require_unique is True and there is more than one
+    ELEMENT_NODE child, an exception is rasied.
+    """
+    
     candidate = None
     for cn in node.childNodes:
         if Node.ELEMENT_NODE == cn.nodeType:
@@ -193,6 +226,8 @@ def LocateFirstChildElement (node, absent_ok=True, require_unique=False):
     return candidate
 
 def HasNonAnnotationChild (wxs, node):
+    """Return True iff node has an ELEMENT_NODE child that is not an
+    XMLSchema annotation node."""
     xs_annotation = wxs.xsQualifiedNames('annotation')
     for cn in node.childNodes:
         if Node.ELEMENT_NODE != cn.nodeType:
@@ -227,7 +262,9 @@ class _Annotated_mixin (object):
         self.__annotation = kw.get('annotation', None)
 
     def _annotationFromDOM (self, wxs, node):
-        self.__annotation = LocateUniqueChild(node, wxs, 'annotation')
+        cn = LocateUniqueChild(node, wxs, 'annotation')
+        if cn is not None:
+            self.__annotation = Annotation.CreateFromDOM(wxs, cn)
 
     def annotation (self):
         return self.__annotation
@@ -312,15 +349,22 @@ class _Resolvable_mixin (object):
         
 
 class AttributeDeclaration (_NamedComponent_mixin, _Resolvable_mixin, _Annotated_mixin):
+    """An XMLSchema Attribute Declaration component.
+
+    See http://www.w3.org/TR/xmlschema-1/index.html#cAttribute_Declarations
+    """
     VC_na = 0                   #<<< No value constraint applies
     VC_default = 1              #<<< Provided value constraint is default value
     VC_fixed = 2                #<<< Provided value constraint is fixed value
 
+    # The simple type definition to which an attribute value must
+    # conform.
     __typeDefinition = None
     def typeDefinition (self): return self.__typeDefinition
 
-    SCOPE_global = 'global'
-    xSCOPE_unhandled = 'unhandled'
+    SCOPE_global = 'global'     #<<< Marker to indicate global scope
+    xSCOPE_unhandled = 'unhandled' #<<< Marker to indicate scope has not been defined
+
     # None, the string "global", or a reference to a _ComplexTypeDefinition
     __scope = None
     def scope (self): return self.__scope
@@ -332,6 +376,7 @@ class AttributeDeclaration (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
 
     @classmethod
     def CreateBaseInstance (cls, name, target_namespace=None):
+        """Create an attribute declaration component for a specified namespace."""
         bi = cls(name=name, target_namespace=target_namespace)
         return bi
 
@@ -340,7 +385,6 @@ class AttributeDeclaration (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
         # Node should be an XMLSchema attribute node
         assert node.nodeName in wxs.xsQualifiedNames('attribute')
 
-        name = None
         name = None
         if node.hasAttribute('name'):
             name = node.getAttribute('name')
@@ -366,7 +410,6 @@ class AttributeDeclaration (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
         # Implement per section 3.2.2
         if node.parentNode.nodeName in wxs.xsQualifiedNames('schema'):
             self.__scope = self.SCOPE_global
-
         elif not node.hasAttribute('ref'):
             # The AttributeUse component is resolved elsewhere
             # @todo Set scope to enclosing complexType, if present
@@ -398,6 +441,12 @@ class AttributeDeclaration (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
 
 
 class AttributeUse (_Resolvable_mixin):
+    """An XMLSchema Attribute Use component.
+
+    See http://www.w3.org/TR/xmlschema-1/index.html#cAttribute_Use
+    """
+
+    # Copy value constraints from Attribute Declaration component.
     VC_na = AttributeDeclaration.VC_na
     VC_default = AttributeDeclaration.VC_default
     VC_fixer = AttributeDeclaration.VC_fixed
@@ -489,6 +538,7 @@ class ElementDeclaration (_NamedComponent_mixin, _Resolvable_mixin, _Annotated_m
     __nillable = False
     def nillable (self): return self.__nillable
 
+    # @todo implement identity constraints
     __identityConstraintDefinitions = None
 
     # None, or a reference to an ElementDeclaration
@@ -568,6 +618,14 @@ class ElementDeclaration (_NamedComponent_mixin, _Resolvable_mixin, _Annotated_m
                 return self
             self.__substitutionGroupAffiliation = sga
             
+        id_tags = list(wxs.xsQualifiedNames('key'))
+        id_tags.extend(wxs.xsQualifiedNames('unique'))
+        id_tags.extend(wxs.xsQualifiedNames('keyref'))
+        identity_constraints = []
+        for cn in node.childNodes:
+            if (Node.ELEMENT_NODE == cn.nodeType) and (cn.nodeName in id_tags):
+                identity_constraints.append(IdentityConstraintDefinition.CreateFromDOM(wxs, cn))
+
         type_def = None
         td_node = LocateUniqueChild(node, wxs, 'simpleType')
         if td_node is not None:
@@ -1300,17 +1358,76 @@ class Wildcard (_Annotated_mixin):
 
         rv = cls(namespace_constraint=namespace_constraint, process_contents=process_contents)
         rv._annotationFromDOM(wxs, node)
+        return rv
 
 # 3.11.1
 class IdentityConstraintDefinition (_NamedComponent_mixin, _Annotated_mixin):
     ICC_KEY = 0x01
     ICC_KEYREF = 0x02
     ICC_UNIQUE = 0x04
-    __identityConstraintCategory = None
-    __selector = None
-    __fields = None
-    __referencedKey = None
 
+    __identityConstraintCategory = None
+    def identityConstraintCategory (self): return self.__identityConstraintCategory
+
+    __selector = None
+    def selector (self): return self.__selector
+    
+    __fields = None
+    def fields (self): return self.__fields
+    
+    __referencedKey = None
+    
+    __annotations = None
+    def annotations (self): return self.__annotations
+
+    @classmethod
+    def CreateFromDOM (cls, wxs, node):
+        name = None
+        if node.hasAttribute('name'):
+            name = node.getAttribute('name')
+        rv = cls(name=name, target_namespace=wxs.getTargetNamespace())
+        #rv._annotationFromDOM(wxs, node);
+        if node.nodeName in wxs.xsQualifiedNames('key'):
+            rv.__identityConstraintCategory = cls.ICC_KEY
+        elif node.nodeName in wxs.xsQualifiedNames('keyref'):
+            rv.__identityConstraintCategory = cls.ICC_KEYREF
+            # Look up the constraint identified by the refer attribute.
+            raise IncompleteImplementationError('Need to support keyref')
+        elif node.nodeName in wxs.xsQualifiedNames('unique'):
+            rv.__identityConstraintCategory = cls.ICC_UNIQUE
+        else:
+            raise LogicError('Unexpected identity constraint node %s' % (node.toxml(),))
+
+        cn = LocateUniqueChild(node, wxs, 'selector')
+        if not cn.hasAttribute('xpath'):
+            raise SchemaValidationError('selector element missing xpath attribute')
+        rv.__selector == cn.getAttribute('xpath')
+
+        rv.__fields = []
+        for cn in LocateMatchingChildren(node, wxs, 'field'):
+            if not cn.hasAttribute('xpath'):
+                raise SchemaValidationError('field element missing xpath attribute')
+            rv.__fields.append(cn.getAttribute('xpath'))
+
+        rv._annotationFromDOM(wxs, node)
+        rv.__annotations = []
+        if rv.annotation() is not None:
+            rv.__annotations.append(rv)
+        annotated_child_names = list(wxs.xsQualifiedNames('selector'))
+        annotated_child_names.extend(wxs.xsQualifiedNames('field'))
+        for cn in node.childNodes:
+            if (Node.ELEMENT_NODE != cn.nodeType):
+                continue
+            an = None
+            if (cn.nodeName in annotated_child_names):
+                an = LocateUniqueChild(cn, wxs, 'annotation')
+            elif cn.nodeName in wxs.xsQualifiedNames('annotation'):
+                an = cn
+            if an is not None:
+                rv.__annotations.append(Annotation.CreateFromDOM(wxs, an))
+
+        return rv
+    
 # 3.12.1
 class NotationDeclaration (_NamedComponent_mixin, _Annotated_mixin):
     __systemIdentifier = None

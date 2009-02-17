@@ -28,17 +28,6 @@ class Namespace (object):
     through the SetXMLSchemaModule interface.  If no module is
     registered, a default one will be assumed.
 
-    @note Because Python's serialization support creates unique
-    instances of serialized objects on a per-pickled-stream basis, and
-    different namespaces may be stored in different streams, there is
-    a conflict with the requirement that only one Namespace instance
-    be associated with each URI.  That situation is handled by
-    enabling a Namespace instance to delegate all its actions to a
-    canonical instance for the URI.  For the most part, this is
-    invisible to the user; one way it does become visible is that
-    pointer-equivalence is not valid when checking whether two
-    namespaces are the same.  See the equals() method.
-
     @todo Section 4.2.1 of Structures specifies that, indeed, one can
     have multiple schema documents that define the schema components
     for a namespace.  This is what the include element does.  On the
@@ -107,7 +96,7 @@ class Namespace (object):
         unserializes it and uses it.
 
         Sub-classes may choose to look elsewhere, if this version
-        fails; or before attempting it.
+        fails or before attempting it.
 
         There is no guarantee that a schema has been located when this
         returns.  Caller must check.
@@ -281,15 +270,15 @@ class Namespace (object):
 
         Because namespace instances must be unique, we represent them
         as their URI and any associated (non-bound) information.  This
-        way an unpickled instance that conflicts with a built-in or
-        other pre-loaded instance can be configured to proxy for the
-        real one."""
+        way allows the unpickler to either identify an existing
+        Namespace instance for the URI, or create a new one, depending
+        on whether the namespace has already been encountered."""
         kw = {
             'schema_location': self.__schemaLocation,
             'description':self.__description
             # Do not include __boundPrefix: bound namespaces should
-            # have already been created by the infrastructure, and the
-            # unpickle process will create a proxy for them.
+            # have already been created by the infrastructure, so the
+            # unpickler should never create one.
             }
         args = ( self.__uri, )
         return ( self.__PICKLE_FORMAT, args, kw )
@@ -337,23 +326,20 @@ class Namespace (object):
         uri = unpickler.load()
 
         # Unpack a Namespace instance.  Note that if the namespace was
-        # already defined, this instance will be a proxy that
-        # delegates to the original.
+        # already defined, the redefinition of __new__ above will
+        # ensure a reference to the existing Namespace instance is
+        # returned.
         instance = unpickler.load()
         assert instance.uri() == uri
-
-        # Get the real Namespace instance (never mind the proxy).
-        rv = cls._NamespaceForURI(instance.uri())
-        assert rv is not None
-        assert instance == rv
+        assert cls._NamespaceForURI(instance.uri()) == instance
 
         # Unpack the schema instance, verify that it describes the
         # namespace, and associate it with the namespace.
         schema = unpickler.load()
-        assert schema.getTargetNamespace() == rv
-        rv.__schema = schema
-        print 'Completed load of %s from %s' % (rv.uri(), file_path)
-        return rv
+        assert schema.getTargetNamespace() == instance
+        instance.__schema = schema
+        print 'Completed load of %s from %s' % (instance.uri(), file_path)
+        return instance
 
 def NamespaceForURI (uri):
     """Given a URI, provide the Namespace instance corresponding to
@@ -407,8 +393,8 @@ def SetXMLSchemaModule (xs_module):
         raise LogicError('SetXMLSchemaModule: Module does not provide a valid schema class')
     _XMLSchemaModule = xs_module
 
+    # Look for pre-existing pickled schema
     bindings_path = os.environ.get(PathEnvironmentVariable, DefaultBindingPath)
-    print bindings_path
     for fn in os.listdir(bindings_path):
         if fnmatch.fnmatch(fn, '*.wxs'):
             afn = os.path.join(bindings_path, fn)
@@ -476,8 +462,8 @@ class _XMLSchema (Namespace):
         return self.schema()
 
 def AvailableForLoad ():
-    """Return a list of namespace URIs for which we are able to load
-    the namespace contents from a pre-built file.
+    """Return a list of namespace URIs for which we may be able to
+    load the namespace contents from a pre-built file.
 
     Note that success of the load is not guaranteed if the packed file
     is not compatible with the schema class being used."""
