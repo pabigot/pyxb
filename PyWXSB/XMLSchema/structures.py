@@ -1548,6 +1548,7 @@ class Annotation (object):
         return node
 
     def __str__ (self):
+        """Return the catenation of all user information elements in the annotation."""
         text = []
         # Values in userInformation are DOM "documentation" elements.
         # We want their combined content.
@@ -2053,7 +2054,8 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
 
     # pythonSupport is an instance of a subclass of
     # PythonSimpleTypeSupport.  When set, this simple type definition
-    # must be associated with the support instance.
+    # must be associated with the support instance using
+    # PSTS._setSimpleTypeDefinition.
     __pythonSupport = None
 
     def _setPythonSupport (self, python_support):
