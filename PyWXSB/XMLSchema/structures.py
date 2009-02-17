@@ -360,7 +360,7 @@ class _ValueConstraint_mixin:
     # values above.
     __valueConstraint = None
     def valueConstraint (self):
-        """A constraint on the value.
+        """A constraint on the value of the attribute or element.
 
         Either None, or a pair consisting of a string in the lexical
         space of the typeDefinition and one of VC_default and
@@ -549,11 +549,15 @@ class ElementDeclaration (_NamedComponent_mixin, _Resolvable_mixin, _Annotated_m
     __nillable = False
     def nillable (self): return self.__nillable
 
-    # @todo implement identity constraints
     __identityConstraintDefinitions = None
+    def identityConstraintDefinitions (self):
+        """A list of IdentityConstraintDefinition instances."""
+        return self.__identityConstraintDefinitions
 
-    # None, or a reference to an ElementDeclaration
     __substitutionGroupAffiliation = None
+    def substitutionGroupAffiliation (self):
+        """None, or a reference to an ElementDeclaration."""
+        return self.__substitutionGroupAffiliation
 
     SGE_none = 0
     SGE_extension = 0x01
@@ -567,11 +571,16 @@ class ElementDeclaration (_NamedComponent_mixin, _Resolvable_mixin, _Annotated_m
     __disallowedSubstitutions = SGE_none
 
     __abstract = False
+    def abstract (self): return self.__abstract
 
-    # The containing component which will ultimately provide the
-    # scope.  None if at the top level, or a ComplexTypeDefinition or
-    # a ModelGroup.
     __ancestorComponent = None
+    def ancestorComponent (self):
+        """The containing component which will ultimately provide the
+        scope.
+
+        None if at the top level, or a ComplexTypeDefinition or a
+        ModelGroup.  """
+        return self.__ancestorComponent
 
     def __init__ (self, *args, **kw):
         super(ElementDeclaration, self).__init__(*args, **kw)
@@ -637,6 +646,7 @@ class ElementDeclaration (_NamedComponent_mixin, _Resolvable_mixin, _Annotated_m
         for cn in node.childNodes:
             if (Node.ELEMENT_NODE == cn.nodeType) and (cn.nodeName in id_tags):
                 identity_constraints.append(IdentityConstraintDefinition.CreateFromDOM(wxs, cn))
+        self.__identityConstraintDefinitions = identity_constraints
 
         type_def = None
         td_node = LocateUniqueChild(node, wxs, 'simpleType')
@@ -667,19 +677,19 @@ class ElementDeclaration (_NamedComponent_mixin, _Resolvable_mixin, _Annotated_m
         return self
 
 class ComplexTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
-    # The type resolved from the base attribute
     __baseTypeDefinition = None
     def baseTypeDefinition (self):
+        "The type resolved from the base attribute."""
         return self.__baseTypeDefinition
 
     DM_empty = 0                #<<< No derivation method specified
     DM_extension = 0x01         #<<< Derivation by extension
     DM_restriction = 0x02       #<<< Derivation by restriction
 
-    # How the type was derived.  This field is used to identify
-    # unresolved definitions.
+    #  This field is used to identify unresolved definitions.
     __derivationMethod = None
     def derivationMethod (self):
+        """How the type was derived."""
         return self.__derivationMethod
 
     # Derived from the final and finalDefault attributes
@@ -688,9 +698,9 @@ class ComplexTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
     # Derived from the abstract attribute
     __abstract = False
     
-    # A frozenset() of AttributeUse instances
     __attributeUses = None
     def attributeUses (self):
+        """A frozenset() of AttributeUse instances."""
         return self.__attributeUses
 
     # Optional wildcard that constrains attributes
@@ -701,19 +711,22 @@ class ComplexTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
     CT_MIXED = 2                #<<< Children may be elements or other (e.g., character) content
     CT_ELEMENT_ONLY = 3         #<<< Expect only element content.
 
-    # Identify the sort of content in this type.  Valid values are:
-    # CT_EMPTY
-    # ( CT_SIMPLE, simple_type_definition )
-    # ( CT_MIXED, particle )
-    # ( CT_ELEMENT_ONLY, particle )
     __contentType = None
     def contentType (self):
+        """Identify the sort of content in this type.
+
+        Valid values are:
+         * CT_EMPTY
+         * ( CT_SIMPLE, simple_type_definition )
+         * ( CT_MIXED, particle )
+         * ( CT_ELEMENT_ONLY, particle )
+        """
         return self.__contentType
 
     # Derived from the block and blockDefault attributes
     __prohibitedSubstitutions = DM_empty
 
-    # Extracted from children of various types
+    # @todo Extracted from children of various types
     __annotations = None
     
     def __init__ (self, *args, **kw):
@@ -1182,21 +1195,32 @@ class ModelGroup (_Annotated_mixin):
         return [ wxs.xsQualifiedName(_tag) for _tag in [ 'all', 'choice', 'sequence' ] ]
 
 class Particle (_Resolvable_mixin):
+    """Some entity along with occurrence information."""
     # NB: Particles are not resolvable, but the term they include
     # probably has some resolvable component.
 
-    # The minimum number of times the term may appear; defaults to 1
     __minOccurs = 1
+    def minOccurs (self):
+        """The minimum number of times the term may appear.
 
-    # If None, the term may appear any number of times; otherwise,
-    # this is an integral value indicating the maximum number of times
-    # the term may appear.  The default value is 1; the value, unless
-    # None, must always be at least __minOccurs.
+        Defaults to 1."""
+        return self.__minOccurs
+
     __maxOccurs = 1
+    def maxOccurs (self):
+        """Upper limit on number of times the term may appear.
 
-    # A reference to a particle, which is a ModelGroup, Wildcard, or
-    # ElementDeclaration
+        If None, the term may appear any number of times; otherwise,
+        this is an integral value indicating the maximum number of times
+        the term may appear.  The default value is 1; the value, unless
+        None, must always be at least minOccurs().
+        """
+        return self.__maxOccurs
+
     __term = None
+    def term (self):
+        """A reference to a ModelGroup, Wildcard, or ElementDeclaration."""
+        return self.__term
 
     # If this particle is within a complexType or a group, we need the
     # corresponding ComplexTypeDefinition or ModelGroup in order to
@@ -1209,9 +1233,9 @@ class Particle (_Resolvable_mixin):
         ancestor_component = kw.get('ancestor_component', None)
         super(Particle, self).__init__(*args, **kw)
         self.__term = term
-        # @todo Figure out how to test whether the parameters are integers,
-        # given that sometimes they're ints and sometimes they're longs
+        assert isinstance(min_occurs, (types.IntType, types.LongType))
         self.__minOccurs = min_occurs
+        assert (max_occurs is None) or isinstance(max_occurs, (types.IntType, types.LongType))
         self.__maxOccurs = max_occurs
         if self.__maxOccurs is not None:
             if self.__minOccurs > self.__maxOccurs:
@@ -1288,10 +1312,12 @@ class Particle (_Resolvable_mixin):
         
     @classmethod
     def TypedefTags (cls, wxs):
+        """Return the list of schema element tags for typedef particles."""
         return [ wxs.xsQualifiedName(_tag) for _tag in [ 'group', 'all', 'choice', 'sequence' ] ]
 
     @classmethod
     def ParticleTags (cls, wxs):
+        """Return the list of schema element tags for any particle."""
         return [ wxs.xsQualifiedName(_tag) for _tag in [ 'group', 'all', 'choice', 'sequence', 'element', 'any' ] ]
 
 
