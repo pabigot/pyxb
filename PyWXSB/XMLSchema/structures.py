@@ -357,22 +357,34 @@ class AttributeDeclaration (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
     VC_default = 1              #<<< Provided value constraint is default value
     VC_fixed = 2                #<<< Provided value constraint is fixed value
 
-    # The simple type definition to which an attribute value must
-    # conform.
+    # 
     __typeDefinition = None
-    def typeDefinition (self): return self.__typeDefinition
+    def typeDefinition (self):
+        """The simple type definition to which an attribute value must
+         conform."""
+        return self.__typeDefinition
 
     SCOPE_global = 'global'     #<<< Marker to indicate global scope
     xSCOPE_unhandled = 'unhandled' #<<< Marker to indicate scope has not been defined
 
-    # None, the string "global", or a reference to a _ComplexTypeDefinition
     __scope = None
-    def scope (self): return self.__scope
+    def scope (self):
+        """The scope to which the declaration applies.
+        
+        None, the string "global", or a reference to a _ComplexTypeDefinition.
+        """
+        return self.__scope
 
     # None, or a tuple containing a string followed by one of the VC_*
     # values above.
     __valueConstraint = None
-    def valueConstraint (self): return self.__valueConstraint
+    def valueConstraint (self):
+        """A constraint on the value.
+
+        Either None, or a pair consisting of a string in the lexical
+        space of the typeDefinition and one of VC_default and
+        VC_fixed."""
+        return self.__valueConstraint
 
     @classmethod
     def CreateBaseInstance (cls, name, target_namespace=None):
@@ -457,6 +469,8 @@ class AttributeUse (_Resolvable_mixin):
     USE_optional = 0x02
     USE_prohibited = 0x04
     __use = False
+    def required (self): return self.USE_required == self.__use
+    def prohibited (self): return self.USE_prohibited == self.__use
 
     # A reference to an AttributeDeclaration
     __attributeDeclaration = None
@@ -471,6 +485,7 @@ class AttributeUse (_Resolvable_mixin):
     def CreateFromDOM (cls, wxs, node):
         assert node.nodeName in wxs.xsQualifiedNames('attribute')
         rv = cls()
+        rv.__use = cls.USE_optional
         if node.hasAttribute('use'):
             use = node.getAttribute('use')
             if 'required' == use:
@@ -482,7 +497,8 @@ class AttributeUse (_Resolvable_mixin):
             else:
                 raise SchemaValidationError('Unexpected value %s for attribute use attribute' % (use,))
         if not node.hasAttribute('ref'):
-            # Create an anonymous declaration
+            # Create an anonymous declaration, which will be resolved
+            # separately
             rv.__attributeDeclaration = AttributeDeclaration.CreateFromDOM(wxs, node)
         else:
             rv.__domNode = node
@@ -506,26 +522,32 @@ class AttributeUse (_Resolvable_mixin):
         self.__domNode = None
         return self
 
-    def required (self):
-        return self.USE_required == self.__use
-
-    def prohibited (self):
-        return self.USE_prohibited == self.__use
-    
 class ElementDeclaration (_NamedComponent_mixin, _Resolvable_mixin, _Annotated_mixin):
+    """An XMLSchema Element Declaration component.
+
+    See http://www.w3.org/TR/xmlschema-1/index.html#cElement_Declarations
+    """
 
     # Simple or complex type definition
     __typeDefinition = None
-    def typeDefinition (self): return self.__typeDefinition
+    def typeDefinition (self):
+        """The simple or complex type to which the element value conforms."""
+        return self.__typeDefinition
 
     SCOPE_global = 0x01         #<<< Marker for global scope
 
-    # The value SCOPE_global, or a complex type definition.  @todo
-    # Absent for declarations in named model groups (viz., local
-    # elements that aren't references).
     __scope = None
-    def scope (self): return self.__scope
+    def scope (self):
+        """The scope for the element.
+        Valid values are SCOPE_global, or a complex type definition.
 
+        @todo For declarations in named model groups (viz., local
+        elements that aren't references), the scope needs to be set by
+        the owning complex type.
+        """
+        return self.__scope
+
+    # Copy value constraints
     VC_na = AttributeDeclaration.VC_na
     VC_default = AttributeDeclaration.VC_default
     VC_fixer = AttributeDeclaration.VC_fixed
@@ -1298,15 +1320,20 @@ class Wildcard (_Annotated_mixin):
     NC_targetNamespace = '##targetNamespace'
     NC_local = '##local'
 
-    # A constraint on the namespace.  Valid values are:
-    # NC_any
-    # ( NC_not, a_namespace)
-    # set(of_namespaces)
-    # Absent is represented by None, both in the "not" pair and in the set.
-
-    # Note that namespace are represented by Namespace instances, not
-    # the URIs that actually define a namespace.
     __namespaceConstraint = None
+    def namespaceConstraint (self):
+        """A constraint on the namespace for the wildcard.
+
+        Valid values are:
+         * Wildcard.NC_any
+         * A tuple ( Wildcard.NC_not, a_namespace )
+         * set(of_namespaces)
+
+        Note that namespace are represented by Namespace instances,
+        not the URIs that actually define a namespace.  Absence is
+        represented by None, both in the "not" pair and in the set.
+        """
+        return self.__namespaceConstraint
 
     PC_skip = 'skip'            #<<< No constraint is applied
     PC_lax = 'lax'              #<<< Validate against available uniquely determined declaration
@@ -1314,14 +1341,13 @@ class Wildcard (_Annotated_mixin):
 
     # One of PC_*
     __processContents = None
+    def processContents (self): return self.__processContents
 
     def __init__ (self, *args, **kw):
         assert 0 == len(args)
-        namespace_constraint = kw['namespace_constraint']
-        process_contents = kw['process_contents']
         super(Wildcard, self).__init__(*args, **kw)
-        self.__namespaceConstraint = namespace_constraint
-        self.__processContents = process_contents
+        self.__namespaceConstraint = kw['namespace_constraint']
+        self.__processContents = kw['process_contents']
 
     @classmethod
     def CreateFromDOM (cls, wxs, node):
@@ -1431,8 +1457,25 @@ class IdentityConstraintDefinition (_NamedComponent_mixin, _Annotated_mixin):
 # 3.12.1
 class NotationDeclaration (_NamedComponent_mixin, _Annotated_mixin):
     __systemIdentifier = None
+    def systemIdentifier (self): return self.__systemIdentifier
+    
     __publicIdentifier = None
-    __annotation = None
+    def publicIdentifier (self): return self.__publicIdentifier
+
+    @classmethod
+    def CreateFromDOM (cls, wxs, node):
+        name = None
+        if node.hasAttribute('name'):
+            name = node.getAttribute('name')
+        rv = cls(name=name, target_namespace=wxs.getTargetNamespace())
+
+        if node.hasAttribute('system'):
+            rv.__systemIdentifier = node.getAttribute('system')
+        if node.hasAttribute('public'):
+            rv.__publicIdentifier = node.getAttribute('public')
+
+        rv._annotationFromDOM(wxs, node)
+        return rv
 
 # 3.13.1
 class Annotation (object):
@@ -2034,6 +2077,7 @@ class Schema (object):
     NT_modelGroup = 0x03        #<<< Name represents a model group definition
     NT_attribute = 0x04         #<<< Name represents an attribute declaration
     NT_element = 0x05           #<<< Name represents an element declaration
+    NT_notation = 0x06          #<<< Name represents a notation declaration
 
     __typeDefinitions = None
     __attributeGroupDefinitions = None
@@ -2054,6 +2098,8 @@ class Schema (object):
             return self.__attributeDeclarations
         if self.NT_element == nt:
             return self.__elementDeclarations
+        if self.NT_notation == nt:
+            return self.__notationDeclarations
         raise LogicError('Invalid named type 0x02x' % (nt,))
 
     __unresolvedDefinitions = None
@@ -2088,6 +2134,7 @@ class Schema (object):
         self.__modelGroupDefinitions = { }
         self.__attributeDeclarations = { }
         self.__elementDeclarations = { }
+        self.__notationDeclarations = { }
 
         self.__unresolvedDefinitions = []
 
@@ -2156,6 +2203,8 @@ class Schema (object):
             return self.__addModelGroupDefinition(nc)
         if isinstance(nc, ElementDeclaration):
             return self.__addElementDeclaration(nc)
+        if isinstance(nc, NotationDeclaration):
+            return self.__addNotationDeclaration(nc)
         raise IncompleteImplementationError('No support to record named component of type %s' % (nc.__class__,))
 
     def __addTypeDefinition (self, td):
@@ -2239,6 +2288,22 @@ class Schema (object):
 
     def _elementDeclarations (self):
         return self.__elementDeclarations.values()
+
+    def __addNotationDeclaration (self, nd):
+        assert isinstance(nd, NotationDeclaration)
+        local_name = nd.ncName()
+        #print 'Defining notation %s' % (local_name,)
+        old_nd = self.__notationDeclarations.get(local_name, None)
+        if old_nd is not None:
+            raise SchemaValidationError('Name %s used for multiple notations' % (local_name,))
+        self.__notationDeclarations[local_name] = nd
+        return nd
+
+    def _lookupNotationDeclaration (self, local_name):
+        return self.__notationDeclarations.get(local_name, None)
+
+    def _notationDeclarations (self):
+        return self.__notationDeclarations.values()
 
     def _lookupNamedComponent (self, ncname, component_type):
         return self.__mapForNamedType(component_type).get(ncname, None)

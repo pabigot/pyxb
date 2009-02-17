@@ -35,8 +35,7 @@ class schemaTop (xsc.ModelGroup):
         if node.nodeName in wxs.xsQualifiedNames('attribute'):
             return wxs._processAttributeDeclaration(node)
         if node.nodeName in wxs.xsQualifiedNames('notation'):
-            print "WARNING: Ignoring notation"
-            return node
+            return wxs._processNotationDeclaration(node)
         return None
 
 class redefinable (xsc.ModelGroup):
@@ -533,6 +532,14 @@ class schema (xsc.Schema):
         ed = xsc.ElementDeclaration.CreateFromDOM(self, node)
         self._addNamedComponent(ed)
         return ed
+
+    def _processNotationDeclaration (self, node):
+        # Node should be a named notation
+        assert node.nodeName in self.xsQualifiedNames('notation')
+        assert node.parentNode.nodeName in self.xsQualifiedNames('schema')
+        nd = xsc.NotationDeclaration.CreateFromDOM(self, node)
+        self._addNamedComponent(nd)
+        return nd
 
     def processTopLevelNode (self, node):
         """Process a DOM node from the top level of the schema.
