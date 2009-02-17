@@ -198,6 +198,7 @@ class integer (decimal):
             raise ValueError('%s: Value "%s" is below minimum %s' % (cls.__class__.__name__, value, cls.MinimumValue))
         if (cls.MaximumValue is not None) and (rv > cls.MaximumValue):
             raise ValueError('%s: Value "%s" is above maximum %s' % (cls.__class__.__name__, value, cls.MaximumValue))
+        return rv
 
     @classmethod
     def PythonToString (cls, value):
