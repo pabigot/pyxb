@@ -1695,6 +1695,14 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
             elts.append('union of %s' % (" ".join([_mtd.name() for _mtd in self.memberTypeDefinitions()],)))
         else:
             raise LogicError('Unexpected variety %s' % (self.variety(),))
+        if self.__facets:
+            felts = []
+            for (k, v) in self.__facets.items():
+                if v is None:
+                    felts.append('%s=??' % (k.Name(),))
+                else:
+                    felts.append(str(v))
+            elts.append("\n  %s" % (','.join(felts),))
         if self.__fundamentalFacets:
             elts.append("\n  ")
             elts.append(','.join( [str(_f) for _f in self.__fundamentalFacets ]))
