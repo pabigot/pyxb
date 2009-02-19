@@ -214,8 +214,8 @@ class negativeInteger (nonPositiveInteger):
 _DerivedDatatypes.append(negativeInteger)
 
 class long (integer):
-    MaximumValue = -9223372036854775808
-    MinimumValue = 9223372036854775807
+    MinimumValue = -9223372036854775808
+    MaximumValue = 9223372036854775807
 _DerivedDatatypes.append(long)
 
 class int (long):
