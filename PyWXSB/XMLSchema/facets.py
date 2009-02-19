@@ -69,10 +69,10 @@ class Facet (object):
     def __str__ (self):
         rv = []
         if self.__valueDatatype is not None:
-            rv.append('%s="%s"' % (self.__name, self.__valueDatatype.PythonToString(self.__value)))
+            rv.append('%s="%s"' % (self.Name(), self.__valueDatatype.PythonToString(self.__value)))
         else:
-            rv.append('%s="%s"' % (self.__name, self.__value))
-        if self.__fixed:
+            rv.append('%s="%s"' % (self.Name(), self.__value))
+        if isinstance(self, _Fixed_mixin) and self.fixed():
             rv.append('[fixed]')
         return ''.join(rv)
 

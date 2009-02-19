@@ -1585,10 +1585,12 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
     def baseTypeDefinition (self):
         return self.__baseTypeDefinition
 
-    # @todo Support facets
+    # A map from a subclass of facets.ConstrainingFacet to an instance
+    # of that class, or None if the facet has not been constrained in
+    # the type.
     __facets = None
 
-    # @todo Support fundamentalFacets
+    # A list of instances of facets.FundamentalFacet
     __fundamentalFacets = None
 
     STD_empty = 0          #<<< Marker indicating an empty set of STD forms
@@ -1693,6 +1695,9 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
             elts.append('union of %s' % (" ".join([_mtd.name() for _mtd in self.memberTypeDefinitions()],)))
         else:
             raise LogicError('Unexpected variety %s' % (self.variety(),))
+        if self.__fundamentalFacets:
+            elts.append("\n  ")
+            elts.append(','.join( [str(_f) for _f in self.__fundamentalFacets ]))
         return ''.join(elts)
 
     def _setFromInstance (self, other):
@@ -1977,7 +1982,7 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
                 except SchemaValidationError, e:
                     pass
                 if hfp is not None:
-                    allowed_facets = []
+                    facet_map = { }
                     fundamental_facets = []
                     has_facet = wxs.qualifiedNames('hasFacet', hfp)
                     has_property = wxs.qualifiedNames('hasProperty', hfp)
@@ -1986,13 +1991,13 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
                             if Node.ELEMENT_NODE != cn.nodeType:
                                 continue
                             if cn.nodeName in has_facet:
-                                allowed_facets.append(facets.ConstrainingFacet.ClassForFacet(cn.getAttribute('name')))
+                                facet_map.setdefault(facets.ConstrainingFacet.ClassForFacet(cn.getAttribute('name')), None)
                             if cn.nodeName in has_property:
                                 fundamental_facets.append(facets.FundamentalFacet.CreateFromDOM(wxs, cn))
                     print self.name()
-                    if 0 < len(allowed_facets):
+                    if 0 < len(facet_map):
                         assert self.__baseTypeDefinition == self.SimpleUrTypeDefinition()
-                        self.__facets = allowed_facets
+                        self.__facets = facet_map
                     if 0 < len(fundamental_facets):
                         self.__fundamentalFacets = fundamental_facets
 
