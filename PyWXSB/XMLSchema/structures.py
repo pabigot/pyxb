@@ -161,6 +161,7 @@ class PythonSimpleTypeSupport(object):
 # Datatypes refers to PythonSimpleTypeSupport, so the import must
 # follow its declaration.
 import datatypes
+import facets
 
 def LocateUniqueChild (node, schema, tag, absent_ok=True):
     """Locate a unique child of the DOM node.
@@ -265,6 +266,14 @@ class _Annotated_mixin (object):
         cn = LocateUniqueChild(node, wxs, 'annotation')
         if cn is not None:
             self.__annotation = Annotation.CreateFromDOM(wxs, cn)
+
+    def _setFromInstance (self, other):
+        try:
+            super(_Annotated_mixin, self)._setFromInstance(other)
+        except AttributeError, e:
+            pass
+        # @todo make this a copy?
+        self.__annotation = other.__annotation
 
     def annotation (self):
         return self.__annotation
@@ -1582,11 +1591,11 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
     # @todo Support fundamentalFacets
     __fundamentalFacets = None
 
-    STD_empty = 0     #<<< Marker indicating an empty set of STD forms
-    STD_extension = 0x01 #<<< Representation for extension in a set of STD forms
-    STD_list = 0x02    #<<< Representation for list in a set of STD forms
+    STD_empty = 0          #<<< Marker indicating an empty set of STD forms
+    STD_extension = 0x01   #<<< Representation for extension in a set of STD forms
+    STD_list = 0x02        #<<< Representation for list in a set of STD forms
     STD_restriction = 0x04 #<<< Representation of restriction in a set of STD forms
-    STD_union = 0x08   #<<< Representation of union in a set of STD forms
+    STD_union = 0x08       #<<< Representation of union in a set of STD forms
     # Bitmask defining the subset that comprises the final property
     __final = STD_empty
     @classmethod
@@ -1698,6 +1707,7 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
         Returns self.
         """
         assert self.isNameEquivalent(other)
+        super(SimpleTypeDefinition, self)._setFromInstance(other)
 
         # The other STD should be an unresolved schema-defined type.
         assert other.__baseTypeDefinition is None
@@ -1857,6 +1867,7 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
         variety = self.__baseTypeDefinition.__variety
         if self.__baseTypeDefinition == self.SimpleUrTypeDefinition():
             variety = self.VARIETY_atomic
+        # @todo extract facet constraints
         return self.__completeResolution(wxs, body, variety, 'restriction')
 
     def __initializeFromUnion (self, wxs, body):
@@ -1954,8 +1965,41 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
         else:
             print 'VARIETY "%s"' % (self.__variety,)
             raise LogicError('completeResolution with variety 0x%02x' % (self.__variety,))
+
+        # Determine what facets, if any, apply to this type.  This
+        # should only do something if this is a primitive type.
+        if self.annotation() is not None:
+            app_info = self.annotation().applicationInformation()
+            if app_info is not None:
+                hfp = None
+                try:
+                    hfp = wxs.namespaceForURI(Namespace.XMLSchema_hfp.uri())
+                except SchemaValidationError, e:
+                    pass
+                if hfp is not None:
+                    allowed_facets = []
+                    fundamental_facets = []
+                    has_facet = wxs.qualifiedNames('hasFacet', hfp)
+                    has_property = wxs.qualifiedNames('hasProperty', hfp)
+                    for ai in app_info:
+                        for cn in ai.childNodes:
+                            if Node.ELEMENT_NODE != cn.nodeType:
+                                continue
+                            if cn.nodeName in has_facet:
+                                allowed_facets.append(facets.ConstrainingFacet.ClassForFacet(cn.getAttribute('name')))
+                            if cn.nodeName in has_property:
+                                fundamental_facets.append(facets.FundamentalFacet.CreateFromDOM(wxs, cn))
+                    print self.name()
+                    if 0 < len(allowed_facets):
+                        assert self.__baseTypeDefinition == self.SimpleUrTypeDefinition()
+                        self.__facets = allowed_facets
+                    if 0 < len(fundamental_facets):
+                        self.__fundamentalFacets = fundamental_facets
+
         self.__variety = variety
         self.__domNode = None
+        if self.__facets is not None:
+            print '%s has facets' % (self,)
         return self
 
     def isResolved (self):
@@ -2044,6 +2088,8 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
 
         rv = cls(name=name, target_namespace=wxs.getTargetNamespace(), variety=None)
         rv._annotationFromDOM(wxs, node)
+
+        # @todo identify supported facets and properties (hfp)
 
         # Creation does not attempt to do resolution.  Queue up the newly created
         # whatsis so we can resolve it after everything's been read in.
