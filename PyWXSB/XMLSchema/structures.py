@@ -102,10 +102,15 @@ class PythonSimpleTypeSupport(object):
         """
         return self.__class__.PythonToString(value)
 
+    @classmethod
+    def __StdName (cls):
+        if cls.__simpleTypeDefinition is not None:
+            return cls.__simpleTypeDefinition.name()
+        return cls.__name__
+
     # Even when we have an instance of a simple type definition, we do
     # the conversion routines as class methods, so they can be used
     # explicitly.
-
     @classmethod
     def StringToPython (cls, value):
         """Convert a value in string form to a native Python data value.
@@ -115,7 +120,7 @@ class PythonSimpleTypeSupport(object):
         @throw PyWXSB.BadTypeValueError if the value is not
         appropriate for the simple type.
         """
-        raise IncompleteImplementationError('%s: Support does not define stringToPython' % (cls.__simpleTypeDefinition.name(),))
+        raise IncompleteImplementationError('%s: Support does not define StringToPython' % (cls.__StdName(),))
         
     @classmethod
     def PythonToString (cls, value):
@@ -123,7 +128,7 @@ class PythonSimpleTypeSupport(object):
 
         This method should be overridden in primitive PSTSs.
         """
-        raise IncompleteImplementationError('%s: Support does not define pythonToString' % (cls.__simpleTypeDefinition.name(),))
+        raise IncompleteImplementationError('%s: Support does not define PythonToString' % (cls.__StdName(),))
 
     @classmethod
     def StringToList (cls, values, item_type_definition):
@@ -1589,9 +1594,13 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
     # of that class, or None if the facet has not been constrained in
     # the type.
     __facets = None
+    def facets (self):
+        assert (self.__facets is None) or (type(self.__facets) == types.DictType)
+        return self.__facets
 
     # A list of instances of facets.FundamentalFacet
     __fundamentalFacets = None
+    def fundamentalFacets (self): return self.__fundamentalFacets
 
     STD_empty = 0          #<<< Marker indicating an empty set of STD forms
     STD_extension = 0x01   #<<< Representation for extension in a set of STD forms
@@ -1698,9 +1707,7 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
         if self.__facets:
             felts = []
             for (k, v) in self.__facets.items():
-                if v is None:
-                    felts.append('%s=??' % (k.Name(),))
-                else:
+                if v is not None:
                     felts.append(str(v))
             elts.append("\n  %s" % (','.join(felts),))
         if self.__fundamentalFacets:
@@ -1887,6 +1894,55 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
         self.__baseTypeDefinition = self.SimpleUrTypeDefinition()
         return self.__completeResolution(wxs, body, self.VARIETY_union, 'union')
 
+    def __processHasFacetAndProperty (self, wxs, app_info):
+        if app_info is  None:
+            return self
+        hfp = None
+        try:
+            hfp = wxs.namespaceForURI(Namespace.XMLSchema_hfp.uri())
+        except SchemaValidationError, e:
+            pass
+        if hfp is None:
+            return None
+        facet_map = { }
+        fundamental_facets = []
+        has_facet = wxs.qualifiedNames('hasFacet', hfp)
+        has_property = wxs.qualifiedNames('hasProperty', hfp)
+        for ai in app_info:
+            for cn in ai.childNodes:
+                if Node.ELEMENT_NODE != cn.nodeType:
+                    continue
+                if cn.nodeName in has_facet:
+                    facet_map.setdefault(facets.ConstrainingFacet.ClassForFacet(cn.getAttribute('name')), None)
+                if cn.nodeName in has_property:
+                    fundamental_facets.append(facets.FundamentalFacet.CreateFromDOM(wxs, cn))
+        if 0 < len(facet_map):
+            assert self.__baseTypeDefinition == self.SimpleUrTypeDefinition()
+            self.__facets = facet_map
+            assert type(self.__facets) == types.DictType
+        if 0 < len(fundamental_facets):
+            self.__fundamentalFacets = fundamental_facets
+        return self
+
+    def __updateFacets (self, wxs, body):
+        base_facets = {}
+        if self.__baseTypeDefinition.facets():
+            assert type(self.__baseTypeDefinition.facets()) == types.DictType
+            base_facets.update(self.__baseTypeDefinition.facets())
+        if self.__facets is not None:
+            base_facets.update(self.__facets)
+        facets = {}
+        for fc in base_facets.keys():
+            fi = None
+            for cn in LocateMatchingChildren(body, wxs, fc.Name()):
+                if fi is None:
+                    fi = facets.setdefault(fc, fc(base_type_definition=self.__baseTypeDefinition))
+                fi.updateFromDOM(wxs, cn)
+            if fi is None:
+                facets[fc] = base_facets[fc]
+        self.__facets = facets
+        assert type(self.__facets) == types.DictType
+
     # Complete the resolution of some variety of STD.  Note that the
     # variety is compounded by an alternative, since there is no
     # 'restriction' variety.
@@ -1982,37 +2038,12 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
         # Determine what facets, if any, apply to this type.  This
         # should only do something if this is a primitive type.
         if self.annotation() is not None:
-            app_info = self.annotation().applicationInformation()
-            if app_info is not None:
-                hfp = None
-                try:
-                    hfp = wxs.namespaceForURI(Namespace.XMLSchema_hfp.uri())
-                except SchemaValidationError, e:
-                    pass
-                if hfp is not None:
-                    facet_map = { }
-                    fundamental_facets = []
-                    has_facet = wxs.qualifiedNames('hasFacet', hfp)
-                    has_property = wxs.qualifiedNames('hasProperty', hfp)
-                    for ai in app_info:
-                        for cn in ai.childNodes:
-                            if Node.ELEMENT_NODE != cn.nodeType:
-                                continue
-                            if cn.nodeName in has_facet:
-                                facet_map.setdefault(facets.ConstrainingFacet.ClassForFacet(cn.getAttribute('name')), None)
-                            if cn.nodeName in has_property:
-                                fundamental_facets.append(facets.FundamentalFacet.CreateFromDOM(wxs, cn))
-                    print self.name()
-                    if 0 < len(facet_map):
-                        assert self.__baseTypeDefinition == self.SimpleUrTypeDefinition()
-                        self.__facets = facet_map
-                    if 0 < len(fundamental_facets):
-                        self.__fundamentalFacets = fundamental_facets
+            self.__processHasFacetAndProperty(wxs, self.annotation().applicationInformation())
+        self.__updateFacets(wxs, body)
 
         self.__variety = variety
         self.__domNode = None
-        if self.__facets is not None:
-            print '%s has facets' % (self,)
+        print self
         return self
 
     def isResolved (self):

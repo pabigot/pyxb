@@ -76,12 +76,14 @@ class float (anySimpleType):
     """float.
 
     http://www/Documentation/W3C/www.w3.org/TR/xmlschema-2/index.html#float"""
-    
-    pass
+
+    PythonType = types.FloatType
+
 _PrimitiveDatatypes.append(float)
 
 class double (anySimpleType):
-    pass
+    PythonType = types.FloatType
+
 _PrimitiveDatatypes.append(double)
 
 class duration (anySimpleType):

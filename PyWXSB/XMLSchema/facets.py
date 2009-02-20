@@ -2,52 +2,50 @@ from PyWXSB.exceptions_ import *
 from xml.dom import Node
 import types
 import datatypes
+import structures
 
 class _Fixed_mixin (object):
     __fixed = None
     def fixed (self): return self.__fixed
 
-    def _setFromDOM (self, wxs, node):
-        super(_Fixed_mixin, self)._setFromDOM(wxs, node)
+    def updateFromDOM (self, wxs, node):
+        super(_Fixed_mixin, self).updateFromDOM(wxs, node)
         self.__fixed = False
         if node.hasAttribute('fixed'):
             self.__fixed = datatypes.boolean.StringToPython(node.getAttribute('fixed'))
 
 class Facet (object):
     _Name = None
+    @classmethod
     def Name (self): return self._Name
 
     __baseTypeDefinition = None
     def baseTypeDefinition (self): return self.__baseTypeDefinition
 
     __valueDatatype = None
+    def valueDatatype (self):
+        if (self.__valueDatatype is None) and (self.__baseTypeDefinition is not None):
+            self.__valueDatatype = self.__baseTypeDefinition.pythonSupport()
+        if self.__valueDatatype is not None:
+            return self.__valueDatatype
+        print "No value datatype available for facet %s" % (self.Name(),)
+        return None
+
     __value = None
+    def _value (self, v): self.__value = v
     def value (self): return self.__value
 
     __annotation = None
     def annotation (self): return self.__annotation
 
-    def _setFromDOM (self, wxs, node):
-        if not node.hasAttribute('name'):
-            raise SchemaValidationError('No name attribute in facet')
-        assert node.getAttribute('name') == self.Name()
-        if (self.__valueDatatype is not None) and node.hasAttribute('value'):
-            self.__value = self.__valueDatatype.StringToPython(node.getAttribute('value'))
-        # @todo
-        self.__annotation = None
-        return self
-
     def __init__ (self, **kw):
         super(Facet, self).__init__()
         # Can't create base class instances
         assert Facet != self.__class__
-        node = kw.get('node', None)
         self.__baseTypeDefinition = kw.get('base_type_definition', None)
         value_datatype = kw.get('value_datatype', None)
         if value_datatype is not None:
             self.__valueDatatype = value_datatype
-        if node is not None:
-            self._setFromDOM(kw['wxs'], node)
 
     @classmethod
     def ClassForFacet (cls, name):
@@ -59,19 +57,17 @@ class Facet (object):
         assert facet_class is not None
         return facet_class
 
-    @classmethod
-    def _CreateFromDOM (cls, **kw):
-        node = kw.get('node', None)
-        assert node is not None
-        rv = cls.ClassForFacet(node.nodeName)(*kw)
-        return rv
-
+    def _valueString (self):
+        if self.valueDatatype() is not None:
+            try:
+                self.valueDatatype().PythonToString(self.value())
+            except Exception, e:
+                print 'Stringize face %s produced %s' % (self.Name(), e)
+        return str(self.value())
+    
     def __str__ (self):
         rv = []
-        if self.__valueDatatype is not None:
-            rv.append('%s="%s"' % (self.Name(), self.__valueDatatype.PythonToString(self.__value)))
-        else:
-            rv.append('%s="%s"' % (self.Name(), self.__value))
+        rv.append('%s="%s"' % (self.Name(), self._valueString()))
         if isinstance(self, _Fixed_mixin) and self.fixed():
             rv.append('[fixed]')
         return ''.join(rv)
@@ -82,30 +78,54 @@ class ConstrainingFacet (Facet):
                 'minExclusive', 'minInclusive', 'totalDigits', 'fractionDigits' ]
     _FacetPrefix = 'CF'
     
-    @classmethod
-    def CreateFromDOM (cls, wxs, node, base_type_definition):
-        return cls._CreateFromDOM(wxs=wxs, node=node, base_type_definition=base_type_definition)
+    def updateFromDOM (self, wxs, node):
+        try:
+            super(ConstrainingFacet, self).updateFromDOM(wxs, node)
+        except AttributeError, e:
+            pass
+        assert node.nodeName in wxs.xsQualifiedNames(self.Name())
+        if (self.valueDatatype() is not None) and node.hasAttribute('value'):
+            self._value(self.valueDatatype().StringToPython(node.getAttribute('value')))
+        # @todo
+        self.__annotation = None
+        return self
 
 class CF_length (ConstrainingFacet, _Fixed_mixin):
     _Name = 'length'
     def __init__ (self, **kw):
-        super(CF_length, self).__init__(value_datatype=datatype.nonNegativeInteger, **kw)
+        super(CF_length, self).__init__(value_datatype=datatypes.nonNegativeInteger, **kw)
 
 class CF_minLength (ConstrainingFacet, _Fixed_mixin):
     _Name = 'minLength'
     def __init__ (self, **kw):
-        super(CF_minLength, self).__init__(value_datatype=datatype.nonNegativeInteger, **kw)
+        super(CF_minLength, self).__init__(value_datatype=datatypes.nonNegativeInteger, **kw)
 
 class CF_maxLength (ConstrainingFacet, _Fixed_mixin):
     _Name = 'maxLength'
     def __init__ (self, **kw):
-        super(CF_maxLength, self).__init__(value_datatype=datatype.nonNegativeInteger, **kw)
+        super(CF_maxLength, self).__init__(value_datatype=datatypes.nonNegativeInteger, **kw)
 
 class CF_pattern (ConstrainingFacet):
     _Name = 'pattern'
 
 class CF_enumeration (ConstrainingFacet):
     _Name = 'enumeration'
+    __enumValues = None
+    __enumAnnotations = None
+
+    def __init__ (self, **kw):
+        super(CF_enumeration, self).__init__(**kw)
+        self.__enumValues = []
+        self.__enumAnnotations = []
+
+    def updateFromDOM (self, wxs, node):
+        super(CF_enumeration, self).updateFromDOM(wxs, node)
+        self.__enumValues.append(self.value())
+        self.__enumAnnotations.append(structures.LocateUniqueChild(node, wxs, 'annotation'))
+
+    def _valueString (self):
+        return '(%s)' % (','.join(self.__enumValues),)
+
 
 class CF_whiteSpace (ConstrainingFacet, _Fixed_mixin):
     _LegalValues = ( 'preserve', 'replace', 'collapse' )
@@ -134,9 +154,27 @@ class FundamentalFacet (Facet):
     _FacetPrefix = 'FF'
 
     @classmethod
-    def CreateFromDOM (cls, wxs, node):
+    def CreateFromDOM (cls, wxs, node, base_type_definition=None):
         facet_class = cls.ClassForFacet(node.getAttribute('name'))
-        return facet_class(wxs=wxs, node=node)
+        rv = facet_class(base_type_definition=base_type_definition)
+        rv._setFromDOM(wxs, node)
+
+    def updateFromDOM (self, wxs, node):
+        if not node.hasAttribute('name'):
+            raise SchemaValidationError('No name attribute in facet')
+        assert node.getAttribute('name') == self.Name()
+        self._updateFromDOM(wxs, node)
+
+    def _updateFromDOM (self, wxs, node):
+        try:
+            super(FundamentalFacet, self)._updateFromDOM(wxs, node)
+        except AttributeError, e:
+            pass
+        if (self.valueDatatype() is not None) and node.hasAttribute('value'):
+            self._value(self.valueDatatype().StringToPython(node.getAttribute('value')))
+        # @todo
+        self.__annotation = None
+        return self
 
 class FF_equal (FundamentalFacet):
     _Name = 'equal'
