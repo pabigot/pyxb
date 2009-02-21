@@ -16,14 +16,15 @@ class Facet (object):
         Note: this is NOT the STD to which the facet belongs."""
         return self.__baseTypeDefinition
 
+    # valueDataType is a Python type, probably a subclassed built-in,
+    # that is used for the value of this facet.
     __valueDatatype = None
     def valueDatatype (self):
         if (self.__valueDatatype is None) and (self.__baseTypeDefinition is not None):
             self.__valueDatatype = self.__baseTypeDefinition.pythonSupport()
         if self.__valueDatatype is not None:
             return self.__valueDatatype
-        print "No value datatype available for facet %s" % (self.Name(),)
-        return None
+        raise LogicError("No value datatype available for facet %s" % (self.Name(),))
 
     __value = None
     def _value (self, v): self.__value = v
@@ -55,9 +56,10 @@ class Facet (object):
     def _valueString (self):
         if self.valueDatatype() is not None:
             try:
-                self.valueDatatype().PythonToString(self.value())
+                self.valueDatatype().XsdToString(self.value())
             except Exception, e:
                 print 'Stringize face %s produced %s' % (self.Name(), e)
+                raise
         return str(self.value())
     
     def __str__ (self):
@@ -75,11 +77,12 @@ class ConstrainingFacet (Facet):
     
     __superFacet = None
     def superFacet (self):
-        """Return the base type constraining facet instance.
+        """Return the constraining facet instance from the base type, if any.
 
         For example, if this is a CF_length instance, the super-facet
-        is a CF_length instance in the baseTypeDefinition, or None if
-        no super-type constrains CF_length.
+        is a CF_length instance in the base type definition, or None
+        if the neither base type definition nor its ancesters
+        constrains CF_length.
         """
         return self.__superFacet
 
@@ -87,17 +90,25 @@ class ConstrainingFacet (Facet):
         super(ConstrainingFacet, self).__init__(**kw)
         self.__superFacet = kw.get('super_facet', None)
 
+    def _validateConstraint_ov (self, string_value, value):
+        pass
+
+    def validateConstraint (self, string_value, value):
+        if self.superFacet() is not None:
+            self.superFacet().validateConstraint(string_value, value)
+        self._validateConstraint_ov(string_value, value)
+
+    def _setValueFromDOM (self, wxs, node):
+        if node.hasAttribute('value'):
+            self._value(self.valueDatatype()(node.getAttribute('value')))
+        
     def updateFromDOM (self, wxs, node):
         try:
             super(ConstrainingFacet, self).updateFromDOM(wxs, node)
         except AttributeError, e:
             pass
         assert node.nodeName in wxs.xsQualifiedNames(self.Name())
-        if (self.valueDatatype() is not None) and node.hasAttribute('value'):
-            try:
-                self._value(self.valueDatatype().StringToPython(node.getAttribute('value')))
-            except Exception, e:
-                print 'ERROR updating %s from value %s: %s' % (self.Name(), node.getAttribute('value'), e)
+        self._setValueFromDOM(wxs, node)
         # @todo
         self.__annotation = None
         return self
@@ -131,6 +142,26 @@ class CF_maxLength (ConstrainingFacet, _Fixed_mixin):
 class CF_pattern (ConstrainingFacet):
     _Name = 'pattern'
 
+    __patternValues = None
+    __patternAnnotations = None
+
+    def __init__ (self, **kw):
+        super(CF_pattern, self).__init__(**kw)
+        self.__patternValues = []
+        self.__patternAnnotations = []
+
+    def _setValueFromDOM (self, wxs, node):
+        self.__value = node.getAttribute('value')
+
+    def updateFromDOM (self, wxs, node):
+        super(CF_pattern, self).updateFromDOM(wxs, node)
+        self.__patternValues.append(self.__value)
+        self.__patternAnnotations.append(structures.LocateUniqueChild(node, wxs, 'annotation'))
+
+    def _valueString (self):
+        return '(%s)' % (','.join([ str(_x) for _x in self.__patternValues ]),)
+
+
 class CF_enumeration (ConstrainingFacet):
     _Name = 'enumeration'
     __enumValues = None
@@ -147,7 +178,7 @@ class CF_enumeration (ConstrainingFacet):
         self.__enumAnnotations.append(structures.LocateUniqueChild(node, wxs, 'annotation'))
 
     def _valueString (self):
-        return '(%s)' % (','.join(self.__enumValues),)
+        return '(%s)' % (','.join([ str(_x) for _x in self.__enumValues ]),)
 
 
 class CF_whiteSpace (ConstrainingFacet, _Fixed_mixin):
@@ -194,7 +225,7 @@ class FundamentalFacet (Facet):
         except AttributeError, e:
             pass
         if (self.valueDatatype() is not None) and node.hasAttribute('value'):
-            self._value(self.valueDatatype().StringToPython(node.getAttribute('value')))
+            self._value(self.valueDatatype()(node.getAttribute('value')))
         # @todo
         self.__annotation = None
         return self

@@ -12,159 +12,6 @@ from PyWXSB.exceptions_ import *
 from xml.dom import Node
 import types
 import PyWXSB.Namespace as Namespace
-
-class PythonSimpleTypeSupport(object):
-    """Class to support converting between WXS simple types and Python
-    native types.
-
-    There must be a one-to-one correspondence between instances of (a
-    subclass of) this class and any built-in simple types except
-    lists (and unions).
-
-    Schema-defined STDs do not currently provide a mechanism to
-    associate a PST.  Instead:
-
-    * Absent types (e.g., restrictions of the ur type) and Atomic
-      types use the PST of their base type definition (recursively,
-      until a PST is found).
-    * Lists use the PST of their item type definition.
-    * Unions use the PSTs of their member type definitions.
-
-    Currently, the only built-in non-atomic STDs are list variety, and
-    they should use the PST of the underlying itemTypeDefinition just
-    as schema-defined STDs do.
-
-    @note This is a new-style class, involved in a complex inheritance
-    hierarchy.  If you descend from it and define a custom __init__
-    method, it must use only keyword arguments and invoke
-    super.__init__(**kw).  Positional arguments are explicitly
-    disallowed.
-
-    """
-    
-    # A reference to the XMLSchema.structures.SimpleTypeDefinition
-    # instance for which this instance provides support.  The
-    # reference is bidirectional through the other side's
-    # __pythonSupport variable.  It may be assigned only once, and is
-    # done when this instance is bound to an STD.
-    __simpleTypeDefinition = None
-
-    # A value reflecting the Python type into which this XML type is
-    # converted.  SHould be overridden in child classes.  A value of
-    # None indicates that no suitable Python type can be presumed.
-    PythonType = None
-
-    @classmethod
-    def SuperType (cls):
-        """Identify the immediately higher class in the
-        PythonSimpleTypeSupport hierarchy.
-
-        The topmost class in the hierarchy considers itself to be its
-        own SuperType."""
-        if PythonSimpleTypeSupport == cls:
-            return cls
-        for sc in cls.__bases__:
-            if issubclass(sc, PythonSimpleTypeSupport):
-                return sc
-        raise LogicError('%s: Unable to identify superType' % (cls.__name__,))
-
-    def _setSimpleTypeDefinition (self, std):
-        """Set the simple type definition corresponding to this PSTS.
-
-        This method should only be invoked by SimpleTypeDefinition."""
-        if self.__simpleTypeDefinition:
-            raise LogicError('Multiple assignments of SimpleTypeDefinition to PythonSTSupport: %s and %s' % (self.__simpleTypeDefinition, std))
-        self.__simpleTypeDefinition = std
-        return self
-
-    def simpleTypeDefinition (self):
-        """Return a reference to the SimpleTypeDefinition component
-        bound to this type."""
-        assert self.__simpleTypeDefinition is not None
-        return self.__simpleTypeDefinition
-
-    def stringToPython (self, value):
-        """Convert a value in string form to a native Python data value.
-
-        This method invokes the class method for this instance.  It is
-        invoked as a pass-thru by SimpleTypeDefinition.stringToPython.
-
-        @throw PyWXSB.BadTypeValueError if the value is not
-        appropriate for the simple type.
-        """
-        return self.__class__.StringToPython(value)
-        
-    def pythonToString (self, value):
-        """Convert a value in native Python to a string appropriate for the simple type.
-
-        This method invokes the corresponding class method.  It is
-        invoked as a pass-thru by SimpleTypeDefinition.pythonToString
-        """
-        return self.__class__.PythonToString(value)
-
-    @classmethod
-    def __StdName (cls):
-        if cls.__simpleTypeDefinition is not None:
-            return cls.__simpleTypeDefinition.name()
-        return cls.__name__
-
-    # Even when we have an instance of a simple type definition, we do
-    # the conversion routines as class methods, so they can be used
-    # explicitly.
-    @classmethod
-    def StringToPython (cls, value):
-        """Convert a value in string form to a native Python data value.
-
-        This method should be overridden in primitive PSTSs.
-
-        @throw PyWXSB.BadTypeValueError if the value is not
-        appropriate for the simple type.
-        """
-        raise IncompleteImplementationError('%s: Support does not define StringToPython' % (cls.__StdName(),))
-        
-    @classmethod
-    def PythonToString (cls, value):
-        """Convert a value in native Python to a string appropriate for the simple type.
-
-        This method should be overridden in primitive PSTSs.
-        """
-        raise IncompleteImplementationError('%s: Support does not define PythonToString' % (cls.__StdName(),))
-
-    @classmethod
-    def StringToList (cls, values, item_type_definition):
-        """Extract a list of values of the given type from a string.
-
-        This is used for an STD with variety 'list'.
-        @todo Implement StringToList
-        """
-        raise IncompleteImplementationError('PythonSimpleTypeSupport.stringToList')
-
-    @classmethod
-    def ListToString (cls, values, item_type_definition):
-        """Encode a sequence of values of the given type as a string
-
-        This is used for an STD with variety 'list'.
-        @todo Implement ListToString"""
-        raise IncompleteImplementationError('PythonSimpleTypeSupport.StringToList')
-
-    @classmethod
-    def StringToUnion (cls, values, member_type_definitions):
-        """Extract a value of one of the given types from a string.
-
-        This is used for an STD with variety 'union'.
-        @todo Implement StringToUnion"""
-        raise IncompleteImplementationError('PythonSimpleTypeSupport.stringToUnion')
-
-    @classmethod
-    def UnionToString (cls, values, member_type_definitions):
-        """Encode a value as a string.
-
-        This is used for an STD with variety 'union'.
-        @todo Implement UnionToString"""
-        raise IncompleteImplementationError('PythonSimpleTypeSupport.StringToUnion')
-
-# Datatypes refers to PythonSimpleTypeSupport, so the import must
-# follow its declaration.
 import datatypes
 import facets
 
@@ -680,12 +527,12 @@ class ElementDeclaration (_NamedComponent_mixin, _Resolvable_mixin, _Annotated_m
         self.__typeDefinition = type_def
 
         if node.hasAttribute('nillable'):
-            self.__nillable = datatypes.boolean.StringToPython(node.getAttribute('nillable'))
+            self.__nillable = datatypes.boolean(node.getAttribute('nillable'))
 
         # @todo disallowed substitutions, substitution group exclusions
                 
         if node.hasAttribute('abstract'):
-            self.__abstract = datatypes.boolean.StringToPython(node.getAttribute('abstract'))
+            self.__abstract = datatypes.boolean(node.getAttribute('abstract'))
                 
         self.__domNode = None
         return self
@@ -912,9 +759,9 @@ class ComplexTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
         # Definition 1: effective mixed
         if (content_node is not None) \
                 and content_node.hasAttribute('mixed'):
-            effective_mixed = datatypes.boolean.StringToPython(content_node.getAttribute('mixed'))
+            effective_mixed = datatypes.boolean(content_node.getAttribute('mixed'))
         elif type_node.hasAttribute('mixed'):
-            effective_mixed = datatypes.boolean.StringToPython(type_node.getAttribute('mixed'))
+            effective_mixed = datatypes.boolean(type_node.getAttribute('mixed'))
         else:
             effective_mixed = False
 
@@ -940,7 +787,7 @@ class ComplexTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
             if ((cn.nodeName in xs_choice) \
                     and (not HasNonAnnotationChild(wxs, cn))\
                     and cn.hasAttribute('minOccurs') \
-                    and (0 == datatypes.integer.StringToValue(cn.getAttribute('minOccurs')))):
+                    and (0 == datatypes.integer(cn.getAttribute('minOccurs')))):
                 test_2_1_3 = True
         satisfied_predicates = 0
         if test_2_1_1:
@@ -1024,7 +871,7 @@ class ComplexTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
         
         #print 'Resolving CTD %s' % (self.name(),)
         if node.hasAttribute('abstract'):
-            self.__abstract = datatypes.boolean.StringToPython(node.getAttribute('abstract'))
+            self.__abstract = datatypes.boolean(node.getAttribute('abstract'))
 
         # @todo implement prohibitedSubstitutions, final, annotations
 
@@ -1267,13 +1114,13 @@ class Particle (_Resolvable_mixin):
         if not node.nodeName in cls.ParticleTags(wxs):
             raise LogicError('Attempted to create particle from illegal element %s' % (node.nodeName,))
         if node.hasAttribute('minOccurs'):
-            min_occurs = datatypes.nonNegativeInteger.StringToPython(node.getAttribute('minOccurs'))
+            min_occurs = datatypes.nonNegativeInteger(node.getAttribute('minOccurs'))
         if node.hasAttribute('maxOccurs'):
             av = node.getAttribute('maxOccurs')
             if 'unbounded' == av:
                 max_occurs = None
             else:
-                max_occurs = datatypes.nonNegativeInteger.StringToPython(av)
+                max_occurs = datatypes.nonNegativeInteger(av)
 
         rv = cls(term=None, min_occurs=min_occurs, max_occurs=max_occurs, ancestor_component=ancestor_component)
         rv.__domNode = node
@@ -1762,7 +1609,7 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
         if cls.__SimpleUrTypeDefinition is None:
             # Note: We use a singleton subclass
             bi = _SimpleUrTypeDefinition(name='anySimpleType', target_namespace=Namespace.XMLSchema, variety=cls.VARIETY_absent)
-            bi._setPythonSupport(PythonSimpleTypeSupport())
+            bi._setPythonSupport(datatypes.anySimpleType)
 
             # The baseTypeDefinition is the ur-type.
             bi.__baseTypeDefinition = ComplexTypeDefinition.UrTypeDefinition()
@@ -2196,10 +2043,9 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
 
     def _setPythonSupport (self, python_support):
         # Includes check that python_support is not None
-        assert isinstance(python_support, PythonSimpleTypeSupport)
+        assert issubclass(python_support, datatypes._PST_mixin)
         # Can't share support instances
         self.__pythonSupport = python_support
-        #self.__pythonSupport._setSimpleTypeDefinition(self)
         return self.__pythonSupport
 
     def pythonSupport (self):

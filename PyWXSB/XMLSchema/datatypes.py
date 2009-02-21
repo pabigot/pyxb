@@ -1,5 +1,22 @@
-"""Classes supporting XMLSchema Part 2: Datatypes"""
+"""Classes supporting XMLSchema Part 2: Datatypes.
 
+We want the simple datatypes to be efficient Python values, but to
+also hold specific constraints that don't apply to the Python types.
+To do this, we subclass each STD.  Primitive STDs inherit from the
+Python type that represents them, and from a _PST_mixin class which
+adds in the constraint infrastructure.  Derived STDs inherit from the
+parent STD.
+
+There is an exception to this when the Python type associated with a
+derived STD differs from the type associated with its parent STD: for
+example, xsd:integer has a value range that requires it be represented
+by a Python long, but xsd:int allows representation by a Python int.
+In this case, the derived type is structured like a primitive type,
+but the STD superclass is recorded in a class variable _XsdBaseType.
+
+"""
+
+from PyWXSB.exceptions_ import *
 import structures as xsc
 import types
 
@@ -11,135 +28,169 @@ _ListDatatypes = []
 # NB: anyType is a ComplexTypeDefinition instance; haven't figured out
 # how to deal with that yet.
 
-class anySimpleType (xsc.PythonSimpleTypeSupport):
-    """http://www/Documentation/W3C/www.w3.org/TR/xmlschema-2/index.html#dt-anySimpleType"""
-    @classmethod
-    def StringToPython (cls, value):
-        return value
+class _PST_mixin (object):
+    _Facets = []
 
     @classmethod
-    def PythonToString (cls, value):
-        return value
+    def XsdSuperType (cls):
+        """Find the nearest parent class in the PST hierarchy.
+
+        The value for anySimpleType is None; for all others, it's a
+        primitive or derived PST descendent (including anySimpleType)."""
+        for sc in cls.mro():
+            if sc == cls:
+                continue
+            if _PST_mixin == sc:
+                # If we hit the PST base, this is a primitive type or
+                # otherwise directly descends from a Python type; return
+                # the recorded XSD supertype.
+                return cls._XsdBaseType
+            if issubclass(sc, _PST_mixin):
+                return sc
+        raise LogicError('No supertype found for %s' % (cls,))
+
+    @classmethod
+    def XsdLength (cls, value):
+        return len(cls.XsdToString(value))
+
+    def xsdLength (self):
+        return self.__class__.XsdLength(self)
+
+    @classmethod
+    def XsdConstraintsOK (self, string_value, value):
+        pass
+
+    @classmethod
+    def XsdToString (cls, value):
+        return str(value)
+
+    def xsdToString (cls):
+        return self.__class__.XsdToString(self)
+
+# We use unicode as the Python type for anything that isn't a normal
+# primitive type.  Presumably, only enumeration and pattern facets
+# will be applied.
+class anySimpleType (unicode, _PST_mixin):
+    """http://www/Documentation/W3C/www.w3.org/TR/xmlschema-2/index.html#dt-anySimpleType"""
+    _XsdBaseType = None
+
 # anySimpleType is not treated as a primitive, because its variety
 # must be absent (not atomic).
     
-class string (anySimpleType):
+class string (unicode, _PST_mixin):
     """string.
     
     http://www/Documentation/W3C/www.w3.org/TR/xmlschema-2/index.html#string"""
-    # NOTE: The PythonType for this is *NOT* types.StringType, since
-    # the value may be a unicode string.
+    _XsdBaseType = anySimpleType
 
-    @classmethod
-    def StringToPython (cls, value):
-        return value
-
-    @classmethod
-    def PythonToString (cls, value):
-        return value
 _PrimitiveDatatypes.append(string)
 
-class boolean (anySimpleType):
+# It is illegal to subclass the bool type in Python, so we subclass
+# int instead.
+class boolean (int, _PST_mixin):
     """boolean.
 
     http://www/Documentation/W3C/www.w3.org/TR/xmlschema-2/index.html#boolean"""
+    _XsdBaseType = anySimpleType
     
-    PythonType = types.BooleanType
-
-    @classmethod
-    def StringToPython (cls, value):
-        if 'true' == value:
-            return True
-        if 'false' == value:
-            return False
-        raise ValueError('boolean: Invalid value "%s"' % (value,))
-
-    @classmethod
-    def PythonToString (cls, value):
-        if value:
+    def __str__ (self):
+        if self:
             return 'true'
         return 'false'
+
+    def __new__ (cls, value, *args, **kw):
+        # Strictly speaking, only 'true' and 'false' should be
+        # recognized; however, since the base type is a built-in,
+        # @todo ensure pickle value is str(self)
+        if value in (1, 0, 'true', 'false'):
+            if value in (1, 'true'):
+                iv = True
+            else:
+                iv = False
+            return super(boolean, cls).__new__(cls, iv, *args, **kw)
+        raise ValueError('[xsd:boolean] Initializer "%s" not valid for type' % (value,))
+
+
 _PrimitiveDatatypes.append(boolean)
 
-class decimal (anySimpleType):
+class decimal (float, _PST_mixin):
     """decimal.
     
     http://www/Documentation/W3C/www.w3.org/TR/xmlschema-2/index.html#decimal
 
-    Not supported.  If it becomes necessary, probably want to consider
+    @todo The Python base type for this is wrong. Consider
     http://code.google.com/p/mpmath/.
+
     """
-    pass
+    _XsdBaseType = anySimpleType
+
 _PrimitiveDatatypes.append(decimal)
 
-class float (anySimpleType):
+class float (float, _PST_mixin):
     """float.
 
     http://www/Documentation/W3C/www.w3.org/TR/xmlschema-2/index.html#float"""
-
-    PythonType = types.FloatType
-
+    _XsdBaseType = anySimpleType
 _PrimitiveDatatypes.append(float)
 
-class double (anySimpleType):
-    PythonType = types.FloatType
-
+class double (float, _PST_mixin):
+    _XsdBaseType = anySimpleType
 _PrimitiveDatatypes.append(double)
 
-class duration (anySimpleType):
-    pass
+class duration (_PST_mixin):
+    _XsdBaseType = anySimpleType
 _PrimitiveDatatypes.append(duration)
 
-class dateTime (anySimpleType):
-    pass
+class dateTime (_PST_mixin):
+    _XsdBaseType = anySimpleType
 _PrimitiveDatatypes.append(dateTime)
 
-class time (anySimpleType):
-    pass
+class time (_PST_mixin):
+    _XsdBaseType = anySimpleType
 _PrimitiveDatatypes.append(time)
 
-class date (anySimpleType):
-    pass
+class date (_PST_mixin):
+    _XsdBaseType = anySimpleType
 _PrimitiveDatatypes.append(date)
 
-class gYearMonth (anySimpleType):
-    pass
+class gYearMonth (_PST_mixin):
+    _XsdBaseType = anySimpleType
 _PrimitiveDatatypes.append(gYearMonth)
 
-class gYear (anySimpleType):
-    pass
+class gYear (_PST_mixin):
+    _XsdBaseType = anySimpleType
 _PrimitiveDatatypes.append(gYear)
 
-class gMonthDay (anySimpleType):
-    pass
+class gMonthDay (_PST_mixin):
+    _XsdBaseType = anySimpleType
 _PrimitiveDatatypes.append(gMonthDay)
 
-class gDay (anySimpleType):
-    pass
+class gDay (_PST_mixin):
+    _XsdBaseType = anySimpleType
 _PrimitiveDatatypes.append(gDay)
 
-class gMonth (anySimpleType):
-    pass
+class gMonth (_PST_mixin):
+    _XsdBaseType = anySimpleType
 _PrimitiveDatatypes.append(gMonth)
 
-class hexBinary (anySimpleType):
-    pass
+class hexBinary (_PST_mixin):
+    _XsdBaseType = anySimpleType
 _PrimitiveDatatypes.append(hexBinary)
 
-class base64Binary (anySimpleType):
-    pass
+class base64Binary (_PST_mixin):
+    _XsdBaseType = anySimpleType
 _PrimitiveDatatypes.append(base64Binary)
 
-class anyURI (anySimpleType):
-    pass
+class anyURI (_PST_mixin):
+    _XsdBaseType = anySimpleType
 _PrimitiveDatatypes.append(anyURI)
 
-class QName (anySimpleType):
-    pass
+class QName (_PST_mixin):
+    _XsdBaseType = anySimpleType
 _PrimitiveDatatypes.append(QName)
 
-class NOTATION (anySimpleType):
-    pass
+class NOTATION (_PST_mixin):
+    _XsdBaseType = anySimpleType
 _PrimitiveDatatypes.append(NOTATION)
 
 class normalizedString (string):
@@ -181,30 +232,11 @@ class ENTITY (NCName):
 _DerivedDatatypes.append(ENTITY)
 _ListDatatypes.append( ( 'ENTITIES', 'ENTITY' ) )
 
-class integer (decimal):
+class integer (long, _PST_mixin):
     """integer.
 
     http://www/Documentation/W3C/www.w3.org/TR/xmlschema-2/index.html#integer"""
-    PythonType = types.LongType
-    MinimumValue = None
-    MaximumValue = None
-
-    @classmethod
-    def StringToPython (cls, value):
-        rv = None
-        try:
-            rv = cls.PythonType(value)
-        except ValueError, e:
-            raise ValueError('%s: Invalid value "%s"' % (cls.__class__.__name__, value))
-        if (cls.MinimumValue is not None) and (rv < cls.MinimumValue):
-            raise ValueError('%s: Value "%s" is below minimum %s' % (cls.__class__.__name__, value, cls.MinimumValue))
-        if (cls.MaximumValue is not None) and (rv > cls.MaximumValue):
-            raise ValueError('%s: Value "%s" is above maximum %s' % (cls.__class__.__name__, value, cls.MaximumValue))
-        return rv
-
-    @classmethod
-    def PythonToString (cls, value):
-        return str(value)
+    _XsdBaseType = decimal
 _DerivedDatatypes.append(integer)
 
 class nonPositiveInteger (integer):
@@ -220,8 +252,8 @@ class long (integer):
     MaximumValue = 9223372036854775807
 _DerivedDatatypes.append(long)
 
-class int (long):
-    PythonType = types.IntType
+class int (types.IntType, _PST_mixin):
+    _XsdBaseType = long
     MinimumValue = -2147483648
     MaximumValue = 2147483647
 _DerivedDatatypes.append(int)
@@ -274,13 +306,13 @@ def _AddSimpleTypes (schema):
     pts_std_map = {}
     for dtc in _PrimitiveDatatypes:
         name = dtc.__name__.rstrip('_')
-        td = schema._addNamedComponent(xsc.SimpleTypeDefinition.CreatePrimitiveInstance(name, schema.getTargetNamespace(), dtc()))
+        td = schema._addNamedComponent(xsc.SimpleTypeDefinition.CreatePrimitiveInstance(name, schema.getTargetNamespace(), dtc))
         assert td.isResolved()
         pts_std_map.setdefault(dtc, td)
     for dtc in _DerivedDatatypes:
         name = dtc.__name__.rstrip('_')
-        parent_std = pts_std_map[dtc.SuperType()]
-        td = schema._addNamedComponent(xsc.SimpleTypeDefinition.CreateDerivedInstance(name, schema.getTargetNamespace(), parent_std, dtc()))
+        parent_std = pts_std_map[dtc.XsdSuperType()]
+        td = schema._addNamedComponent(xsc.SimpleTypeDefinition.CreateDerivedInstance(name, schema.getTargetNamespace(), parent_std, dtc))
         assert td.isResolved()
         pts_std_map.setdefault(dtc, td)
     for (list_name, element_name) in _ListDatatypes:

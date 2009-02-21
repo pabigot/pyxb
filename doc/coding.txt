@@ -59,3 +59,16 @@ in which the details can be found.  The casual reader should not be forced
 to open the standard to figure out what the coder intended to accomplish.
 
 Use ReStructured Text constructs where appropriate.
+
+Invoking Superclass Instances
+-----------------------------
+
+Use the following idiom to conditionally invoke superclass methods when you
+are not sure the superclass has such a method.
+
+    def method (self, *args, **kw):
+        super_fn = getattr(super(ThisClass, self), 'method', lambda *a,**kw: None)
+        return super_fn(*args, **kw)
+
+See http://code.activestate.com/recipes/52236/
+
