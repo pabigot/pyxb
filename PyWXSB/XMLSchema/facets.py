@@ -191,6 +191,7 @@ class CF_enumeration (ConstrainingFacet):
     _Name = 'enumeration'
     __enumValues = None
     __enumAnnotations = None
+    __enumPrefix = 'EV_'
 
     def __init__ (self, **kw):
         super(CF_enumeration, self).__init__(**kw)
@@ -208,13 +209,19 @@ class CF_enumeration (ConstrainingFacet):
     def _valueString (self):
         return '(%s)' % (','.join([ str(_x) for _x in self.__enumValues ]),)
 
+    def enumPrefix (self, enum_prefix=None):
+        if enum_prefix is not None:
+            self.__enumPrefix = enum_prefix
+        return self.__enumPrefix
+
     def _literalFacetInitialization_ov (self, tag):
         rv = []
         for ei in range (0, len(self.__enumValues)):
             ev = self.__enumValues[ei]
             ea = self.__enumAnnotations[ei]
-            rv.append("EV_%s = '%s'" % (ev, ev))
-            rv.append("%s.addEnumeration(EV_%s, '%s')" % (tag, ev, ev))
+            emv = '%s%s' % (self.enumPrefix(), ev)
+            rv.append("%s = '%s'" % (emv, ev))
+            rv.append("%s.addEnumeration(%s, '%s')" % (tag, emv, ev))
         return rv
 
 class CF_whiteSpace (ConstrainingFacet, _Fixed_mixin):

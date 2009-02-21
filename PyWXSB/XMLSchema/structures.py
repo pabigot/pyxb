@@ -2077,7 +2077,7 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
     __xsdModule = 'datatypes'
     __facetsModule = 'facets'
 
-    def generateClass (self):
+    def __generateAtomicClass (self):
         thisType = self.ncName()
         baseType = self.baseTypeDefinition().pythonReference()
         facet_decls = []
@@ -2101,8 +2101,22 @@ class %{thisType} (%{baseType}):
     _Facets = [ %{facets} ]
     pass
 
-
 ''', locals())
+
+    def __generateListClass (self):
+        return str(self)
+
+    def __generateUnionClass (self):
+        return str(self)
+
+    def generateClass (self):
+        if self.VARIETY_atomic == self.variety():
+            return self.__generateAtomicClass()
+        if self.VARIETY_list == self.variety():
+            return self.__generateListClass()
+        if self.VARIETY_union == self.variety():
+            return self.__generateUnionClass()
+        raise IncompleteImplementationException('No generateClass for STD variety %s' % (self.VarietyToString(self.variety()),))
 
 class _SimpleUrTypeDefinition (SimpleTypeDefinition, _Singleton_mixin):
     """Subclass ensures there is only one simple ur-type."""
