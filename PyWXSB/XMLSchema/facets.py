@@ -16,6 +16,11 @@ class Facet (object):
         Note: this is NOT the STD to which the facet belongs."""
         return self.__baseTypeDefinition
 
+    __ownerTypeDefinition = None
+    def ownerTypeDefinition (self):
+        """The SimpleTypeDefinition component to which this facet belongs."""
+        return self.__ownerTypeDefinition
+
     # valueDataType is a Python type, probably a subclassed built-in,
     # that is used for the value of this facet.
     __valueDatatype = None
@@ -36,11 +41,15 @@ class Facet (object):
     def __init__ (self, **kw):
         super(Facet, self).__init__()
         # Can't create base class instances
+        print '***Initializing facet'
         assert Facet != self.__class__
         self.__baseTypeDefinition = kw.get('base_type_definition', None)
-        value_datatype = kw.get('value_datatype', None)
-        if value_datatype is not None:
-            self.__valueDatatype = value_datatype
+        self.__valueDatatype = kw.get('value_datatype', None)
+        self.__ownerTypeDefinition = kw.get('owner_type_definition', None)
+        assert self.__ownerTypeDefinition is not None
+        value = kw.get('value', None)
+        if value is not None:
+            self._value(value)
 
     @classmethod
     def ClassForFacet (cls, name):
@@ -113,6 +122,18 @@ class ConstrainingFacet (Facet):
         self.__annotation = None
         return self
 
+    def _literalFacetInitialization_ov (self, tag):
+        return []
+
+    def literalFacetDefinition (self, tag, facets_module='xs.facets'):
+        rv = []
+        value_literal = ''
+        if self.value() is not None:
+            value_literal = self.value().xsdLiteral()
+        rv = [ '%s = %s.%s(%s)' % (tag, facets_module, self.__class__.__name__, value_literal) ]
+        rv.extend(self._literalFacetInitialization_ov(tag))
+        return rv
+
 class _Fixed_mixin (object):
     """Mix-in to a constraining facet that adds support for the 'fixed' property."""
     __fixed = None
@@ -161,6 +182,10 @@ class CF_pattern (ConstrainingFacet):
     def _valueString (self):
         return '(%s)' % (','.join([ str(_x) for _x in self.__patternValues ]),)
 
+    def _literalFacetInitialization_ov (self, tag):
+        return [ "%s.addPattern('%s')" % (tag, _pv) for _pv in self.__patternValues ]
+
+
 
 class CF_enumeration (ConstrainingFacet):
     _Name = 'enumeration'
@@ -172,14 +197,25 @@ class CF_enumeration (ConstrainingFacet):
         self.__enumValues = []
         self.__enumAnnotations = []
 
+    def _setValueFromDOM (self, wxs, node):
+        self.__value = node.getAttribute('value')
+
     def updateFromDOM (self, wxs, node):
         super(CF_enumeration, self).updateFromDOM(wxs, node)
-        self.__enumValues.append(self.value())
+        self.__enumValues.append(self.__value)
         self.__enumAnnotations.append(structures.LocateUniqueChild(node, wxs, 'annotation'))
 
     def _valueString (self):
         return '(%s)' % (','.join([ str(_x) for _x in self.__enumValues ]),)
 
+    def _literalFacetInitialization_ov (self, tag):
+        rv = []
+        for ei in range (0, len(self.__enumValues)):
+            ev = self.__enumValues[ei]
+            ea = self.__enumAnnotations[ei]
+            rv.append("EV_%s = '%s'" % (ev, ev))
+            rv.append("%s.addEnumeration(EV_%s, '%s')" % (tag, ev, ev))
+        return rv
 
 class CF_whiteSpace (ConstrainingFacet, _Fixed_mixin):
     _LegalValues = ( 'preserve', 'replace', 'collapse' )
@@ -208,9 +244,10 @@ class FundamentalFacet (Facet):
     _FacetPrefix = 'FF'
 
     @classmethod
-    def CreateFromDOM (cls, wxs, node, base_type_definition=None):
+    def CreateFromDOM (cls, wxs, node, owner_type_definition, base_type_definition=None):
         facet_class = cls.ClassForFacet(node.getAttribute('name'))
-        rv = facet_class(base_type_definition=base_type_definition)
+        rv = facet_class(base_type_definition=base_type_definition,
+                         owner_type_definition=owner_type_definition)
         rv.updateFromDOM(wxs, node)
 
     def updateFromDOM (self, wxs, node):

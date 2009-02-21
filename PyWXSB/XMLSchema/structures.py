@@ -14,6 +14,7 @@ import types
 import PyWXSB.Namespace as Namespace
 import datatypes
 import facets
+import PyWXSB.templates as templates
 
 def LocateUniqueChild (node, schema, tag, absent_ok=True):
     """Locate a unique child of the DOM node.
@@ -1616,6 +1617,10 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
             # The simple ur-type has an absent variety, not an atomic
             # variety, so does not have a primitiveTypeDefinition
 
+            # No facets on the ur type
+            bi.__facets = {}
+            bi.__fundamentalFacets = frozenset()
+
             cls.__SimpleUrTypeDefinition = bi
         return cls.__SimpleUrTypeDefinition
 
@@ -1799,7 +1804,7 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
                     seen_facets.add(facet_name)
                     facet_map[facets.ConstrainingFacet.ClassForFacet(facet_name)] = None
                 if cn.nodeName in has_property:
-                    fundamental_facets.add(facets.FundamentalFacet.CreateFromDOM(wxs, cn))
+                    fundamental_facets.add(facets.FundamentalFacet.CreateFromDOM(wxs, cn, self))
         if 0 < len(facet_map):
             assert self.__baseTypeDefinition == self.SimpleUrTypeDefinition()
             self.__facets = facet_map
@@ -1826,7 +1831,9 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
             children = LocateMatchingChildren(body, wxs, fc.Name())
             fi = base_facets[fc]
             if 0 < len(children):
-                fi = fc(base_type_definition=self.__baseTypeDefinition, super_facet=base_facets[fc])
+                fi = fc(base_type_definition=self.__baseTypeDefinition,
+                        owner_type_definition=self,
+                        super_facet=base_facets[fc])
                 for cn in children:
                     fi.updateFromDOM(wxs, cn)
             facets[fc] = fi
@@ -2058,6 +2065,36 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
 
     def pythonToString (self, value):
         return self.pythonSupport().pythonToString(value)
+
+    __xsdModule = 'datatypes'
+    __facetsModule = 'facets'
+
+    def generateClass (self):
+        thisType = self.ncName()
+        baseType = self.baseTypeDefinition().ncName()
+        facet_decls = []
+        facets = []
+        if self.__facets is None:
+            raise LogicError('STD %s has no facets?' % (self.name(),))
+        for (fc, fi) in self.__facets.items():
+            if fi is not None:
+                assert fi.ownerTypeDefinition() is not None
+                if fi.ownerTypeDefinition() == self:
+                    fv = '_%s' % (fc.__name__,)
+                    facet_decls.extend(fi.literalFacetDefinition(fv))
+                else:
+                    fv = '%s._%s' % (fi.ownerTypeDefinition().ncName(), fc.__name__)
+                facets.append(fv)
+        facet_decls = "\n    ".join(facet_decls)
+        facets = ', '.join(facets)
+        return templates.replaceInText('''
+class %{thisType} (%{baseType}):
+    %{facet_decls}
+    _Facets = [ %{facets} ]
+    pass
+
+
+''', locals())
 
 class _SimpleUrTypeDefinition (SimpleTypeDefinition, _Singleton_mixin):
     """Subclass ensures there is only one simple ur-type."""

@@ -215,6 +215,9 @@ class Namespace (object):
             raise PyWXSBException('Cannot resolve in namespace %s: no associated schema' % (self.uri(),))
         return self.__schema
 
+    def typeDefinitions (self):
+        return self._validatedSchema()._typeDefinitions()
+
     def lookupTypeDefinition (self, local_name):
         """Look up a named type in the namespace.
 

@@ -32,6 +32,13 @@ class _PST_mixin (object):
     _Facets = []
 
     @classmethod
+    def XsdLiteral (cls, value):
+        raise LogicError('%s does not implement XsdLiteral' % (cls,))
+
+    def xsdLiteral (self):
+        return self.__class__.XsdLiteral(self)
+
+    @classmethod
     def XsdSuperType (cls):
         """Find the nearest parent class in the PST hierarchy.
 
@@ -74,6 +81,10 @@ class anySimpleType (unicode, _PST_mixin):
     """http://www/Documentation/W3C/www.w3.org/TR/xmlschema-2/index.html#dt-anySimpleType"""
     _XsdBaseType = None
 
+    @classmethod
+    def XsdLiteral (cls, value):
+        return "u'%s'" % (value,)
+
 # anySimpleType is not treated as a primitive, because its variety
 # must be absent (not atomic).
     
@@ -82,6 +93,10 @@ class string (unicode, _PST_mixin):
     
     http://www/Documentation/W3C/www.w3.org/TR/xmlschema-2/index.html#string"""
     _XsdBaseType = anySimpleType
+
+    @classmethod
+    def XsdLiteral (cls, value):
+        return "'%s'" % (value,)
 
 _PrimitiveDatatypes.append(string)
 
@@ -93,6 +108,12 @@ class boolean (int, _PST_mixin):
     http://www/Documentation/W3C/www.w3.org/TR/xmlschema-2/index.html#boolean"""
     _XsdBaseType = anySimpleType
     
+    @classmethod
+    def XsdLiteral (cls, value):
+        if value:
+            return 'True'
+        return 'False'
+
     def __str__ (self):
         if self:
             return 'true'
@@ -124,6 +145,10 @@ class decimal (float, _PST_mixin):
     """
     _XsdBaseType = anySimpleType
 
+    @classmethod
+    def XsdLiteral (cls, value):
+        return '%s' % (value,)
+
 _PrimitiveDatatypes.append(decimal)
 
 class float (float, _PST_mixin):
@@ -131,10 +156,20 @@ class float (float, _PST_mixin):
 
     http://www/Documentation/W3C/www.w3.org/TR/xmlschema-2/index.html#float"""
     _XsdBaseType = anySimpleType
+
+    @classmethod
+    def XsdLiteral (cls, value):
+        return '%s' % (value,)
+
 _PrimitiveDatatypes.append(float)
 
 class double (float, _PST_mixin):
     _XsdBaseType = anySimpleType
+
+    @classmethod
+    def XsdLiteral (cls, value):
+        return '%s' % (value,)
+
 _PrimitiveDatatypes.append(double)
 
 class duration (_PST_mixin):
@@ -237,6 +272,10 @@ class integer (long, _PST_mixin):
 
     http://www/Documentation/W3C/www.w3.org/TR/xmlschema-2/index.html#integer"""
     _XsdBaseType = decimal
+    @classmethod
+    def XsdLiteral (cls, value):
+        return 'long(%s)' % (value,)
+
 _DerivedDatatypes.append(integer)
 
 class nonPositiveInteger (integer):
@@ -254,6 +293,11 @@ _DerivedDatatypes.append(long)
 
 class int (types.IntType, _PST_mixin):
     _XsdBaseType = long
+
+    @classmethod
+    def XsdLiteral (cls, value):
+        return '%s' % (value,)
+
     MinimumValue = -2147483648
     MaximumValue = 2147483647
 _DerivedDatatypes.append(int)
