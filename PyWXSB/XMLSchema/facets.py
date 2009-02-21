@@ -46,7 +46,6 @@ class Facet (object):
         self.__baseTypeDefinition = kw.get('base_type_definition', None)
         self.__valueDatatype = kw.get('value_datatype', None)
         self.__ownerTypeDefinition = kw.get('owner_type_definition', None)
-        assert self.__ownerTypeDefinition is not None
         value = kw.get('value', None)
         if value is not None:
             self._value(value)
@@ -122,18 +121,6 @@ class ConstrainingFacet (Facet):
         self.__annotation = None
         return self
 
-    def _literalFacetInitialization_ov (self, tag):
-        return []
-
-    def literalFacetDefinition (self, tag, facets_module='xs.facets'):
-        rv = []
-        value_literal = ''
-        if self.value() is not None:
-            value_literal = self.value().xsdLiteral()
-        rv = [ '%s = %s.%s(%s)' % (tag, facets_module, self.__class__.__name__, value_literal) ]
-        rv.extend(self._literalFacetInitialization_ov(tag))
-        return rv
-
 class _Fixed_mixin (object):
     """Mix-in to a constraining facet that adds support for the 'fixed' property."""
     __fixed = None
@@ -163,66 +150,71 @@ class CF_maxLength (ConstrainingFacet, _Fixed_mixin):
 class CF_pattern (ConstrainingFacet):
     _Name = 'pattern'
 
-    __patternValues = None
-    __patternAnnotations = None
+    class _PatternElement:
+        pattern = None
+        annotation = None
+        def __init__ (self, pattern=None, annotation=None):
+            self.pattern = pattern
+            self.annotation = annotation
+
+    __patternElements = None
 
     def __init__ (self, **kw):
         super(CF_pattern, self).__init__(**kw)
-        self.__patternValues = []
-        self.__patternAnnotations = []
+        self.__patternElements = []
 
     def _setValueFromDOM (self, wxs, node):
-        self.__value = node.getAttribute('value')
+        self.__pattern = node.getAttribute('value')
 
     def updateFromDOM (self, wxs, node):
         super(CF_pattern, self).updateFromDOM(wxs, node)
-        self.__patternValues.append(self.__value)
-        self.__patternAnnotations.append(structures.LocateUniqueChild(node, wxs, 'annotation'))
+        self.__patternElements.append(self._PatternElement(self.__pattern, structures.LocateUniqueChild(node, wxs, 'annotation')))
 
     def _valueString (self):
-        return '(%s)' % (','.join([ str(_x) for _x in self.__patternValues ]),)
-
-    def _literalFacetInitialization_ov (self, tag):
-        return [ "%s.addPattern('%s')" % (tag, _pv) for _pv in self.__patternValues ]
-
-
+        return '(%s)' % (','.join([ str(_x.pattern) for _x in self.__patternElements ]),)
 
 class CF_enumeration (ConstrainingFacet):
     _Name = 'enumeration'
-    __enumValues = None
-    __enumAnnotations = None
+
+    class _EnumerationElement:
+        tag = None
+        value = None
+        description = None
+        annotation = None
+        def __init__ (self, tag=None, value=None, description=None, annotation=None):
+            self.tag = tag
+            self.value = value
+            self.description = description
+            if (self.description is None) and (self.annotation is not None):
+                self.description = str(self.annotation)
+
+    __enumerationElements = None
+    def enumerationElements (self): return self.__enumerationElements
+
     __enumPrefix = 'EV_'
 
     def __init__ (self, **kw):
         super(CF_enumeration, self).__init__(**kw)
-        self.__enumValues = []
-        self.__enumAnnotations = []
+        self.__enumerationElements = []
 
     def _setValueFromDOM (self, wxs, node):
-        self.__value = node.getAttribute('value')
+        self.__tag = node.getAttribute('value')
 
     def updateFromDOM (self, wxs, node):
         super(CF_enumeration, self).updateFromDOM(wxs, node)
-        self.__enumValues.append(self.__value)
-        self.__enumAnnotations.append(structures.LocateUniqueChild(node, wxs, 'annotation'))
+        self.__enumerationElements.append(self._EnumerationElement(tag=self.__tag,
+                                                                   annotation=structures.LocateUniqueChild(node, wxs, 'annotation'))) 
+
+    def addEnumeration (self, **kw):
+        self.__enumerationElements.append(self._EnumerationElement(**kw))
 
     def _valueString (self):
-        return '(%s)' % (','.join([ str(_x) for _x in self.__enumValues ]),)
+        return '(%s)' % (','.join([ str(_x.tag) for _x in self.__enumerationElements ]),)
 
     def enumPrefix (self, enum_prefix=None):
         if enum_prefix is not None:
             self.__enumPrefix = enum_prefix
         return self.__enumPrefix
-
-    def _literalFacetInitialization_ov (self, tag):
-        rv = []
-        for ei in range (0, len(self.__enumValues)):
-            ev = self.__enumValues[ei]
-            ea = self.__enumAnnotations[ei]
-            emv = '%s%s' % (self.enumPrefix(), ev)
-            rv.append("%s = '%s'" % (emv, ev))
-            rv.append("%s.addEnumeration(%s, '%s')" % (tag, emv, ev))
-        return rv
 
 class CF_whiteSpace (ConstrainingFacet, _Fixed_mixin):
     _LegalValues = ( 'preserve', 'replace', 'collapse' )

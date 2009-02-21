@@ -17,6 +17,7 @@ but the STD superclass is recorded in a class variable _XsdBaseType.
 """
 
 from PyWXSB.exceptions_ import *
+import facets
 import structures as xsc
 import types
 
