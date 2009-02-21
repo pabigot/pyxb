@@ -73,7 +73,7 @@ class PythonSimpleTypeSupport(object):
 
         This method should only be invoked by SimpleTypeDefinition."""
         if self.__simpleTypeDefinition:
-            raise LogicError('Multiple assignments of SimpleTypeDefinition to PythonSTSupport')
+            raise LogicError('Multiple assignments of SimpleTypeDefinition to PythonSTSupport: %s and %s' % (self.__simpleTypeDefinition, std))
         self.__simpleTypeDefinition = std
         return self
 
@@ -1600,7 +1600,9 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
 
     # A list of instances of facets.FundamentalFacet
     __fundamentalFacets = None
-    def fundamentalFacets (self): return self.__fundamentalFacets
+    def fundamentalFacets (self):
+        """A frozenset of instances of facets.FundamentallFacet."""
+        return self.__fundamentalFacets
 
     STD_empty = 0          #<<< Marker indicating an empty set of STD forms
     STD_extension = 0x01   #<<< Representation for extension in a set of STD forms
@@ -1703,7 +1705,8 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
         elif self.VARIETY_union == self.variety():
             elts.append('union of %s' % (" ".join([_mtd.name() for _mtd in self.memberTypeDefinitions()],)))
         else:
-            raise LogicError('Unexpected variety %s' % (self.variety(),))
+            elts.append('???')
+            #raise LogicError('Unexpected variety %s' % (self.variety(),))
         if self.__facets:
             felts = []
             for (k, v) in self.__facets.items():
@@ -1733,6 +1736,11 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
         assert other.__baseTypeDefinition is None
         assert other.__domNode is not None
         self.__domNode = other.__domNode
+
+        # Preserve the python support
+        if other.__pythonSupport is not None:
+            # @todo ERROR multiple references
+            self.__pythonSupport = other.__pythonSupport
 
         # Mark this instance as unresolved so it is re-examined
         self.__variety = None
@@ -1894,7 +1902,29 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
         self.__baseTypeDefinition = self.SimpleUrTypeDefinition()
         return self.__completeResolution(wxs, body, self.VARIETY_union, 'union')
 
-    def __processHasFacetAndProperty (self, wxs, app_info):
+    def __processHasFacetAndProperty (self, wxs):
+        """Identify the facets and properties for this stype.
+
+        This method simply identifies the facets that apply to this
+        specific type, and records property values.  Only
+        explicitly-associated facets and properties are stored; others
+        from base types will also affect this type.  The information
+        is taken from the applicationInformation children of the
+        definition's annotation node, if any.  If there is no support
+        for the XMLSchema_hasFacetAndProperty namespace, this is a
+        no-op.
+
+        Upon return, self.__facets is a map from the class for an
+        associated fact to None, and self.__fundamentalFacets is a
+        frozenset of instances of FundamentalFacet.
+
+        The return value is self.
+        """
+        self.__facets = { }
+        self.__fundamentalFacets = frozenset()
+        if self.annotation() is None:
+            return self
+        app_info = self.annotation().applicationInformation()
         if app_info is  None:
             return self
         hfp = None
@@ -1905,41 +1935,54 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
         if hfp is None:
             return None
         facet_map = { }
-        fundamental_facets = []
+        fundamental_facets = set()
         has_facet = wxs.qualifiedNames('hasFacet', hfp)
         has_property = wxs.qualifiedNames('hasProperty', hfp)
+        seen_facets = set()
         for ai in app_info:
             for cn in ai.childNodes:
                 if Node.ELEMENT_NODE != cn.nodeType:
                     continue
                 if cn.nodeName in has_facet:
-                    facet_map.setdefault(facets.ConstrainingFacet.ClassForFacet(cn.getAttribute('name')), None)
+                    if not cn.hasAttribute('name'):
+                        raise SchemaValidationError('hasFacet missing name attribute')
+                    facet_name = cn.getAttribute('name')
+                    if facet_name in seen_facets:
+                        raise SchemaValidationError('Multiple hasFacet specifications for %s' % (facet_name,))
+                    seen_facets.add(facet_name)
+                    facet_map[facets.ConstrainingFacet.ClassForFacet(facet_name)] = None
                 if cn.nodeName in has_property:
-                    fundamental_facets.append(facets.FundamentalFacet.CreateFromDOM(wxs, cn))
+                    fundamental_facets.add(facets.FundamentalFacet.CreateFromDOM(wxs, cn))
         if 0 < len(facet_map):
             assert self.__baseTypeDefinition == self.SimpleUrTypeDefinition()
             self.__facets = facet_map
             assert type(self.__facets) == types.DictType
         if 0 < len(fundamental_facets):
-            self.__fundamentalFacets = fundamental_facets
+            self.__fundamentalFacets = frozenset(fundamental_facets)
         return self
 
     def __updateFacets (self, wxs, body):
+        # We want a map from the union of the facet classes from this
+        # STD and the baseTypeDefinition (if present), to None if the
+        # facet has not been constrained, or a ConstrainingFacet
+        # instance if it is.  ConstrainingFacet instances created for
+        # local constraints also need a pointer to the corresponding
+        # facet from the base type definition, because those
+        # constraints also affect this type.
         base_facets = {}
+        base_facets.update(self.__facets)
         if self.__baseTypeDefinition.facets():
             assert type(self.__baseTypeDefinition.facets()) == types.DictType
             base_facets.update(self.__baseTypeDefinition.facets())
-        if self.__facets is not None:
-            base_facets.update(self.__facets)
         facets = {}
         for fc in base_facets.keys():
-            fi = None
-            for cn in LocateMatchingChildren(body, wxs, fc.Name()):
-                if fi is None:
-                    fi = facets.setdefault(fc, fc(base_type_definition=self.__baseTypeDefinition))
-                fi.updateFromDOM(wxs, cn)
-            if fi is None:
-                facets[fc] = base_facets[fc]
+            children = LocateMatchingChildren(body, wxs, fc.Name())
+            fi = base_facets[fc]
+            if 0 < len(children):
+                fi = fc(base_type_definition=self.__baseTypeDefinition, super_facet=base_facets[fc])
+                for cn in children:
+                    fi.updateFromDOM(wxs, cn)
+            facets[fc] = fi
         self.__facets = facets
         assert type(self.__facets) == types.DictType
 
@@ -1947,6 +1990,10 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
     # variety is compounded by an alternative, since there is no
     # 'restriction' variety.
     def __completeResolution (self, wxs, body, variety, alternative):
+        if self.__pythonSupport is None:
+            # @todo ERROR multiple references
+            print '%s based on %s' % (self.name(), self.__baseTypeDefinition.name())
+            self._setPythonSupport(self.__baseTypeDefinition.pythonSupport())
         assert self.__variety is None
         assert variety is not None
         if self.VARIETY_absent == variety:
@@ -2037,8 +2084,7 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
 
         # Determine what facets, if any, apply to this type.  This
         # should only do something if this is a primitive type.
-        if self.annotation() is not None:
-            self.__processHasFacetAndProperty(wxs, self.annotation().applicationInformation())
+        self.__processHasFacetAndProperty(wxs)
         self.__updateFacets(wxs, body)
 
         self.__variety = variety
@@ -2153,7 +2199,7 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
         assert isinstance(python_support, PythonSimpleTypeSupport)
         # Can't share support instances
         self.__pythonSupport = python_support
-        self.__pythonSupport._setSimpleTypeDefinition(self)
+        #self.__pythonSupport._setSimpleTypeDefinition(self)
         return self.__pythonSupport
 
     def pythonSupport (self):

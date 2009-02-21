@@ -4,23 +4,17 @@ import types
 import datatypes
 import structures
 
-class _Fixed_mixin (object):
-    __fixed = None
-    def fixed (self): return self.__fixed
-
-    def updateFromDOM (self, wxs, node):
-        super(_Fixed_mixin, self).updateFromDOM(wxs, node)
-        self.__fixed = False
-        if node.hasAttribute('fixed'):
-            self.__fixed = datatypes.boolean.StringToPython(node.getAttribute('fixed'))
-
 class Facet (object):
     _Name = None
     @classmethod
     def Name (self): return self._Name
 
     __baseTypeDefinition = None
-    def baseTypeDefinition (self): return self.__baseTypeDefinition
+    def baseTypeDefinition (self):
+        """The SimpleTypeDefinition component restricted by this facet.
+
+        Note: this is NOT the STD to which the facet belongs."""
+        return self.__baseTypeDefinition
 
     __valueDatatype = None
     def valueDatatype (self):
@@ -52,7 +46,8 @@ class Facet (object):
         assert cls != Facet
         if 0 <= name.find(':'):
             name = name.split(':', 1)[1]
-        assert name in cls._Facets
+        if not name in cls._Facets:
+            raise LogicError('Unrecognized facet name %s: expect %s' % (name, ','.join(cls._Facets)))
         facet_class = globals().get('%s_%s' % (cls._FacetPrefix, name), None)
         assert facet_class is not None
         return facet_class
@@ -78,6 +73,20 @@ class ConstrainingFacet (Facet):
                 'minExclusive', 'minInclusive', 'totalDigits', 'fractionDigits' ]
     _FacetPrefix = 'CF'
     
+    __superFacet = None
+    def superFacet (self):
+        """Return the base type constraining facet instance.
+
+        For example, if this is a CF_length instance, the super-facet
+        is a CF_length instance in the baseTypeDefinition, or None if
+        no super-type constrains CF_length.
+        """
+        return self.__superFacet
+
+    def __init__ (self, **kw):
+        super(ConstrainingFacet, self).__init__(**kw)
+        self.__superFacet = kw.get('super_facet', None)
+
     def updateFromDOM (self, wxs, node):
         try:
             super(ConstrainingFacet, self).updateFromDOM(wxs, node)
@@ -85,10 +94,24 @@ class ConstrainingFacet (Facet):
             pass
         assert node.nodeName in wxs.xsQualifiedNames(self.Name())
         if (self.valueDatatype() is not None) and node.hasAttribute('value'):
-            self._value(self.valueDatatype().StringToPython(node.getAttribute('value')))
+            try:
+                self._value(self.valueDatatype().StringToPython(node.getAttribute('value')))
+            except Exception, e:
+                print 'ERROR updating %s from value %s: %s' % (self.Name(), node.getAttribute('value'), e)
         # @todo
         self.__annotation = None
         return self
+
+class _Fixed_mixin (object):
+    """Mix-in to a constraining facet that adds support for the 'fixed' property."""
+    __fixed = None
+    def fixed (self): return self.__fixed
+
+    def updateFromDOM (self, wxs, node):
+        super(_Fixed_mixin, self).updateFromDOM(wxs, node)
+        self.__fixed = False
+        if node.hasAttribute('fixed'):
+            self.__fixed = datatypes.boolean.StringToPython(node.getAttribute('fixed'))
 
 class CF_length (ConstrainingFacet, _Fixed_mixin):
     _Name = 'length'
@@ -157,7 +180,7 @@ class FundamentalFacet (Facet):
     def CreateFromDOM (cls, wxs, node, base_type_definition=None):
         facet_class = cls.ClassForFacet(node.getAttribute('name'))
         rv = facet_class(base_type_definition=base_type_definition)
-        rv._setFromDOM(wxs, node)
+        rv.updateFromDOM(wxs, node)
 
     def updateFromDOM (self, wxs, node):
         if not node.hasAttribute('name'):
@@ -182,6 +205,8 @@ class FF_equal (FundamentalFacet):
 class FF_ordered (FundamentalFacet):
     _LegalValues = ( 'false', 'partial', 'total' )
     _Name = 'ordered'
+    def __init__ (self, **kw):
+        super(FF_ordered, self).__init__(value_datatype=datatypes.string, **kw)
 
 class FF_bounded (FundamentalFacet):
     _Name = 'bounded'
@@ -191,6 +216,8 @@ class FF_bounded (FundamentalFacet):
 class FF_cardinality (FundamentalFacet):
     _LegalValues = ( 'finite', 'countably infinite' )
     _Name = 'cardinality'
+    def __init__ (self, **kw):
+        super(FF_cardinality, self).__init__(value_datatype=datatypes.string, **kw)
 
 class FF_numeric (FundamentalFacet):
     _Name = 'numeric'
