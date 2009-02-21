@@ -172,6 +172,14 @@ class _NamedComponent_mixin (object):
             return '#??[%s]' % (self.__targetNamespace.uri(),)
         return self.__name
 
+    def pythonReference (self):
+        """Return the module-qualified reference to the Python representation of this object."""
+        tns = self.targetNamespace()
+        prefix = ''
+        if (tns is not None) and (tns.modulePath() is not None):
+            return '%s.%s' % (tns.modulePath(), self.ncName())
+        return self.ncName()
+
     def isNameEquivalent (self, other):
         """Return true iff this and the other component share the same name and target namespace.
         
@@ -2071,7 +2079,7 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
 
     def generateClass (self):
         thisType = self.ncName()
-        baseType = self.baseTypeDefinition().ncName()
+        baseType = self.baseTypeDefinition().pythonReference()
         facet_decls = []
         facets = []
         if self.__facets is None:
@@ -2083,7 +2091,7 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
                     fv = '_%s' % (fc.__name__,)
                     facet_decls.extend(fi.literalFacetDefinition(fv))
                 else:
-                    fv = '%s._%s' % (fi.ownerTypeDefinition().ncName(), fc.__name__)
+                    fv = '%s._%s' % (fi.ownerTypeDefinition().pythonReference(), fc.__name__)
                 facets.append(fv)
         facet_decls = "\n    ".join(facet_decls)
         facets = ', '.join(facets)

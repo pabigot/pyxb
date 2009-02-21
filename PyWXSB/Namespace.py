@@ -60,6 +60,10 @@ class Namespace (object):
     # Indicates whether this namespace is built-in to the system
     __isBuiltinNamespace = False
 
+    # A string denoting the path by which this namespace is imported into
+    # generated Python modules
+    __modulePath = None
+
     def __getnewargs__ (self):
         """Pickling support.
 
@@ -179,6 +183,11 @@ class Namespace (object):
 
         That is the case for all namespaces in the Namespace module."""
         return self.__isBuiltinNamespace
+
+    def modulePath (self, module_path=None):
+        if module_path is not None:
+            self.__modulePath = module_path
+        return self.__modulePath
 
     def _schema (self, schema):
         """Associate a schema instance with this namespace.
