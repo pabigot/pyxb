@@ -4,7 +4,6 @@ import sys
 import traceback
 from xml.dom import minidom
 from xml.dom import Node
-import pickle
 
 files = sys.argv[1:]
 if 0 == len(files):
