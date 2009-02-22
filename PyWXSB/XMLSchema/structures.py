@@ -1272,6 +1272,8 @@ class Wildcard (_Annotated_mixin):
     __processContents = None
     def processContents (self): return self.__processContents
 
+    def isPlural (self): return False
+
     def __init__ (self, *args, **kw):
         assert 0 == len(args)
         super(Wildcard, self).__init__(*args, **kw)
@@ -2279,6 +2281,7 @@ class Schema (object):
             td = self.__replaceUnresolvedDefinition(td, old_td._setFromInstance(td))
         else:
             self.__typeDefinitions[local_name] = td
+        assert td is not None
         return td
     
     def _typeDefinitions (self):

@@ -38,56 +38,64 @@ class PythonGenerator (Generator):
     def stringToComment (self, value):
         return [ '# %s' % (_line,) for _line in value.split("\n") ]
 
-    def __stdAtomicDefinition_s (self, std, **kw):
+    def _stdDefinition_s (self, std, **kw):
+        container = kw.get('container', std)
+        kw.setdefault('namespace', container.targetNamespace())
+        tag = kw.setdefault('tag', self.reference(container, require_defined=False, **kw))
+
+        if std.VARIETY_absent == std.variety():
+            return ''
+
         assert 'namespace' in kw
         assert kw['namespace'] is not None
         className = kw['tag']
-        baseReference = self.reference(std.baseTypeDefinition(), **kw)
+        baseReference = self.reference(container.baseTypeDefinition(), **kw)
+
         declarations = []
         definitions = []
+
+        if std.VARIETY_atomic == std.variety():
+            pass
+        if std.VARIETY_list == std.variety():
+            # @todo create a list instance
+            pass
+        if std.VARIETY_union == std.variety():
+            # @todo create a value instance
+            pass
+
+        attribute_uses = kw.get('attribute_uses', [])
+        for attr_use in attribute_uses:
+            declarations.append(self.__attributeUseDeclaration_s(attr_use, **kw))
+
         facets = []
         if std.facets() is None:
             raise LogicError('STD %s has no facets?' % (std.name(),))
+
         for (fc, fi) in std.facets().items():
             if fi is not None:
                 assert fi.ownerTypeDefinition() is not None
-                if fi.ownerTypeDefinition() == std:
-                    declarations.extend(self.declaration_l(fi, container=std, **kw))
+                if fi.ownerTypeDefinition() == container:
+                    declarations.extend(self.declaration_l(fi, container=container, **kw))
                     definitions.append(self.__constrainingFacetDefinition_s(fi, **kw))
                 elif not self._definitionAvailable(fi.ownerTypeDefinition(), **kw):
                     raise DependencyError(self, fi.ownerTypeDefinition())
                 facets.append(self.reference(fi, **kw))
+
+        if 0 == len(declarations):
+            declarations.append('pass')
         declarations = "\n    ".join(declarations)
         definitions = "\n".join(definitions)
         facets = ",\n        ".join(facets)
-        self._definitionAvailable(std, value=True)
+        self._definitionAvailable(container, value=True)
         return templates.replaceInText('''
+# SimpleType or SimpleContent
 class %{className} (%{baseReference}):
     %{declarations}
-    pass
 %{definitions}
 %{className}._Facets = [ %{facets} ]
 
 ''', locals())
 
-    def __stdListDefinition_s (self, std, **kw):
-        return '# %s' % (str(std),)
-
-    def __stdUnionDefinition_s (self, std, **kw):
-        return '# %s' % (str(std),)
-
-    def _stdDefinition_s (self, std, **kw):
-        print 'STD DEFINITION %s' % (std,)
-        kw.setdefault('namespace', std.targetNamespace())
-        kw.setdefault('tag', self.reference(std, require_defined=False, **kw))
-        if std.VARIETY_absent == std.variety():
-            return ''
-        if std.VARIETY_atomic == std.variety():
-            return self.__stdAtomicDefinition_s(std, **kw)
-        if std.VARIETY_list == std.variety():
-            return self.__stdListDefinition_s(std, **kw)
-        if std.VARIETY_union == std.variety():
-            return self.__stdUnionDefinition_s(std, **kw)
         raise IncompleteImplementationError('No generate support for STD variety %s' % (std.VarietyToString(std.variety()),))
 
     def __initializer (self, component, **kw):
@@ -98,7 +106,7 @@ class %{className} (%{baseReference}):
             member_init = '[]'
         elif component.valueConstraint() is not None:
             ( value, constraint ) = component.valueConstraint()
-            member_init = '%s(%s)' % (elt_type_ref, value)
+            member_init = '%s(%s)' % (elt_type_ref, elt_type.pythonSupport().XsdFromString(value).xsdLiteral())
         else:
             member_init = 'None'
         return member_init
@@ -111,19 +119,7 @@ class %{className} (%{baseReference}):
 
     def __ctdSimpleContentDefinition_s (self, std, **kw):
         container = kw['container']
-        className = kw['tag']
-        baseReference = self.reference(std, **kw)
-        self._definitionAvailable(container, value=True)
-        declarations = []
-        for attr_use in container.attributeUses():
-            declarations.append(self.__attributeUseDeclaration_s(attr_use, **kw))
-        declarations = "\n    ".join(declarations)
-        print "SIMPLE BASE %s" % (baseReference,)
-        return templates.replaceInText('''
-class %{className} (%{baseReference}):
-   %{declarations}
-   pass
-''', locals())
+        return self._stdDefinition_s(std, attribute_uses=container.attributeUses(), **kw)
 
     def _ctdDefinition_s (self, ctd, **kw):
         kw = kw.copy()
@@ -131,12 +127,11 @@ class %{className} (%{baseReference}):
         kw.setdefault('tag', self.reference(ctd, require_defined=False, **kw))
         content_type = ctd.contentType()
         if ctd.CT_EMPTY == content_type:
-            raise IncompleteImplementationError('No generate support for empty CTD %s' % (ctd,))
+            return self.__ctdParticleDefinition_s(None, container=ctd, **kw)
         base_type = ctd.baseTypeDefinition()
         assert base_type is not None
         if not self._definitionAvailable(base_type, **kw):
             raise DependencyError(self, base_type)
-        print ctd.name()
         assert isinstance(content_type, tuple)
         ( type_tag, particle ) = content_type
         if ctd.CT_SIMPLE == type_tag:
@@ -145,9 +140,12 @@ class %{className} (%{baseReference}):
 
     def __elementDeclaration_l (self, element_decl, **kw):
         member_name = element_decl.name()
-        member_init = self.__initializer(element_decl, elt_type=element_decl.typeDefinition(), **kw)
+        elt_type = element_decl.typeDefinition()
+        elt_type_ref = self.reference(elt_type, **kw)
+        member_init = self.__initializer(element_decl, elt_type=elt_type, **kw)
         return [ templates.replaceInText('''
-    %{member_name} = %{member_init}
+    # %{elt_type_ref}
+    %{member_name} = %{member_init}\
 ''', locals()) ]
 
     def __modelGroupDeclarations_l (self, model_group, **kw):
@@ -164,6 +162,8 @@ class %{className} (%{baseReference}):
             rv.extend(self.__modelGroupDeclarations_l(particle.term(), **kw))
         elif isinstance(particle.term(), structures.ElementDeclaration):
             rv.extend(self.__elementDeclaration_l(particle.term(), **kw))
+        elif isinstance(particle.term(), structures.Wildcard):
+            pass
         else:
             print particle
             raise IncompleteImplementationError('No support for particle term type %s' % (type(particle.term()),))
@@ -173,14 +173,17 @@ class %{className} (%{baseReference}):
         className = kw['tag']
         container = kw['container']
         baseReference = self.reference(container.baseTypeDefinition(), **kw)
-        declarations = self.__particleDeclarations_l(particle, **kw)
+        declarations = []
+        if particle is not None:
+            declarations.extend(self.__particleDeclarations_l(particle, **kw))
+        if 0 == len(declarations):
+            declarations.append('pass')
         declarations = "\n    ".join(declarations)
         self._definitionAvailable(container, value=True)
         return templates.replaceInText('''
 # Complex type
 class %{className} (%{baseReference}):
     %{declarations}
-    pass
 
 ''', locals())
         
@@ -251,8 +254,9 @@ class %{className} (%{baseReference}):
                 return self.__constrainingFacetDefinition_s(v, **kw)
             raise IncompleteImplementationError('No generate definition support for object type %s' % (v.__class__,))
         except DependencyError, e:
-            print 'Halted generation of %s: %s' % (v.name(), e)
+            #print 'Halted generation of %s: %s' % (v.name(), e)
             self._queueForGeneration(v)
+            return None
 
     __constrainingFacetInstancePrefix = '_CF_'
     def __constrainingFacetReference (self, facet, **kw):
@@ -268,21 +272,29 @@ class %{className} (%{baseReference}):
             rv = 'UNDEFINED'
         return rv
 
-    __pendingGeneration = []
+    __pendingGeneration = None
     def _queueForGeneration (self, component):
-        self.__pendingGeneration.append(component)
+        #self.__pendingGeneration.add(component)
+        if component not in self.__pendingGeneration:
+            self.__pendingGeneration.append(component)
+    def _removeFromGenerationQueue (self, component):
+        #self.__pendingGeneration.discard(component)
+        if component in self.__pendingGeneration:
+            self.__pendingGeneration.remove(component)
 
     def generateDefinitions (self, definitions):
         generated_code = []
         self.__pendingGeneration = definitions
-        while self.__pendingGeneration:
-            print 'LOOPING OVER GENERATABLES'
+        iter = 1
+        while 0 < len(self.__pendingGeneration):
+            print '%d LOOPING OVER GENERATABLES: %d' % (iter, len(self.__pendingGeneration))
+            iter += 1
             ungenerated = self.__pendingGeneration
             self.__pendingGeneration = []
             for component in ungenerated:
                 code = self._definition(component)
-                print code
-                generated_code.append(code)
+                if code is not None:
+                    generated_code.append(code)
             if self.__pendingGeneration == ungenerated:
                 # This only happens if we didn't code things right, or
                 # the schema actually has a circular dependency in
@@ -303,6 +315,7 @@ class %{className} (%{baseReference}):
         if value is not None:
             assert isinstance(value, bool)
             setattr(component, def_tag, value)
+            self._removeFromGenerationQueue(component)
             return True
         #if isinstance(component, structures.SimpleTypeDefinition) and component.isBuiltin():
         #    return True
@@ -326,6 +339,8 @@ class %{className} (%{baseReference}):
                 tag = '_Local_%s_%d' % (component.__class__.__name__, self.__componentLocalIndex)
             else:
                 tag = '%s' % (component.ncName(),)
+            if isinstance(component, structures.ComplexTypeDefinition):
+                tag = '_CT_%s' % (tag,)
             setattr(component, ref_tag, tag)
         if require_defined and not self._definitionAvailable(component, **kw):
             raise DependencyError(self, component)

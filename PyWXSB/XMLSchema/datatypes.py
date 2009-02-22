@@ -58,6 +58,15 @@ class _PST_mixin (object):
         raise LogicError('No supertype found for %s' % (cls,))
 
     @classmethod
+    def XsdPythonType (cls):
+        for sc in cls.mro():
+            if sc == object:
+                continue
+            if not issubclass(sc, _PST_mixin):
+                return sc
+        raise LogicError('No python type found for %s' % (cls,))
+
+    @classmethod
     def XsdLength (cls, value):
         return len(cls.XsdToString(value))
 
@@ -74,6 +83,10 @@ class _PST_mixin (object):
 
     def xsdToString (cls):
         return self.__class__.XsdToString(self)
+
+    @classmethod
+    def XsdFromString (cls, string_value):
+        return cls(string_value)
 
 # We use unicode as the Python type for anything that isn't a normal
 # primitive type.  Presumably, only enumeration and pattern facets
@@ -124,8 +137,8 @@ class boolean (int, _PST_mixin):
         # Strictly speaking, only 'true' and 'false' should be
         # recognized; however, since the base type is a built-in,
         # @todo ensure pickle value is str(self)
-        if value in (1, 0, 'true', 'false'):
-            if value in (1, 'true'):
+        if value in (1, 0, '1', '0', 'true', 'false'):
+            if value in (1, '1', 'true'):
                 iv = True
             else:
                 iv = False
@@ -209,8 +222,17 @@ class gMonth (_PST_mixin):
     _XsdBaseType = anySimpleType
 _PrimitiveDatatypes.append(gMonth)
 
-class hexBinary (_PST_mixin):
+class hexBinary (types.LongType, _PST_mixin):
     _XsdBaseType = anySimpleType
+    def __new__ (cls, value, *args, **kw):
+        if isinstance(value, types.StringTypes):
+            return super(hexBinary, cls).__new__(cls, '0x%s' % (value,), 16, *args, **kw)
+        return super(hexBinary, cls).__new__(cls, value, *args, **kw)
+
+    @classmethod
+    def XsdLiteral (self, value):
+        return '0x%x' % (value,)
+
 _PrimitiveDatatypes.append(hexBinary)
 
 class base64Binary (_PST_mixin):
