@@ -1,0 +1,45 @@
+Simple Type Definitions
+=======================
+
+STDs are represented by subclasses of Python built-in types, augmented with
+facets.
+
+Local STDs are assigned a protected-scope name that is unique within their
+namespace.
+
+Primitive STDs
+--------------
+
+Primitive STDs are the ones in the XMLSchema datatypes list, and are
+built-in to PyWXSB.
+
+Restrictions
+------------
+
+Simple type definitions formed by restriction inherit from the base type
+definition.  Any facets defined for the given STD are created as class
+variables using standard names.  The STD is also given a list of all facets
+that affect it; some of these may be in the STD, and some in superclasses.
+
+Enumeration facets will add class variables corresponding to each
+enumeration value.  The prefix for the class variable corresponding to an
+enumeration may be configured at code-generation time.
+
+Complex Type Definitions
+========================
+
+A complex type definition is either an extension or a restriction of either
+a simple or complex type.
+
+Particle
+========
+
+A particle is a a ModelGroup, Wildcard, or ElementDeclaration with an
+associated cardinality range.
+
+Model Groups
+============
+
+Model groups represent an all, sequence, or choice among a group of
+particles.
+
