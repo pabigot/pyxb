@@ -301,15 +301,29 @@ class Namespace (object):
         We used to do this to ensure uniqueness; now we just do it to
         eliminate pickling the schema.
 
-        This will throw an exception if the state is not inn a format
+        This will throw an exception if the state is not in a format
         recognized by this method."""
         ( format, args, kw ) = state
         if self.__PICKLE_FORMAT != format:
             raise UnpicklingError('Got Namespace pickle format %s, require %s' % (format, self.__PICKLE_FORMAT))
         ( uri, ) = args
-        print 'Mine %s from %s' % (self.__uri, uri)
         assert self.__uri == uri
         self.__dict__.update(kw)
+
+    # Class variable recording the namespace that is currently being
+    # pickled.  Used to prevent storing components that belong to
+    # other namespaces.  Should be None unless within an invocation of
+    # saveToFile.
+    __PicklingNamespace = None
+    @classmethod
+    def _PicklingNamespace (cls, value):
+        # NB: Use Namespace explicitly so do not set the variable in a
+        # subclass.
+        Namespace.__PicklingNamespace = value
+
+    @classmethod
+    def PicklingNamespace (cls):
+        return Namespace.__PicklingNamespace
 
     def saveToFile (self, file_path):
         """Save this namespace, with its defining schema, to the given
@@ -323,9 +337,12 @@ class Namespace (object):
             raise LogicError("Won't save namespace that does not have associated schema: %s", self.uri())
         output = open(file_path, 'wb')
         pickler = pickle.Pickler(output, -1)
+        self._PicklingNamespace(self)
+        assert Namespace.PicklingNamespace() is not None
         pickler.dump(self.uri())
         pickler.dump(self)
         pickler.dump(self.__schema)
+        self._PicklingNamespace(None)
 
     @classmethod
     def LoadFromFile (cls, file_path):
