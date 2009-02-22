@@ -172,14 +172,6 @@ class _NamedComponent_mixin (object):
             return '#??[%s]' % (self.__targetNamespace.uri(),)
         return self.__name
 
-    def pythonReference (self):
-        """Return the module-qualified reference to the Python representation of this object."""
-        tns = self.targetNamespace()
-        prefix = ''
-        if (tns is not None) and (tns.modulePath() is not None):
-            return '%s.%s' % (tns.modulePath(), self.ncName())
-        return self.ncName()
-
     def isNameEquivalent (self, other):
         """Return true iff this and the other component share the same name and target namespace.
         
@@ -216,7 +208,6 @@ class _Resolvable_mixin (object):
         succeeds.
         """
         raise LogicError('Resolution not implemented in %s' % (self.__class__,))
-        
 
 class _ValueConstraint_mixin:
     """Mix-in indicating that the component contains a simple-type
@@ -481,7 +472,10 @@ class ElementDeclaration (_NamedComponent_mixin, _Resolvable_mixin, _Annotated_m
             if isinstance(ancestor_component, ComplexTypeDefinition):
                 scope = ancestor_component
             else:
-                raise IncompleteImplementationError('Unable to identify scope for non-global element declaration')
+                # Presumably a declaration within a named model group;
+                # scope is determined when it is used, but is
+                # certainly not global.
+                pass
         else:
             raise LogicError('Created reference as element declaration')
         
