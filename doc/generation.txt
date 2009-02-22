@@ -213,9 +213,11 @@ Customization Points
   names, inspectors, mutators.
 
 * The mechanism by which attributes in a type are generated: names,
-  accesors, mutators.
+  inspectors, mutators.
 
 * The default enumeration value prefix
+
+* Whether enumeration values are represented by numbers or by strings
 
 * The mapping from STD ncName to enumeration values prefix.
 
