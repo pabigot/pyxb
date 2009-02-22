@@ -51,3 +51,19 @@ supports a Pythonic interface.  If an implementation supports only a strict
 DOM interface, a custom template may be required.
 
 
+Preloaded Namespaces
+--------------------
+
+Parsing of schemas is simplified by supporting pre-compiled namespace
+structures corresponding to other schema; for example, the XMLSchema
+namespace is likely to be referenced in everything, and it should not be
+necessary to download and reconstruct it each time it is needed.
+
+PyWXSB supports a serialized file that contains the Namespace definition
+including all of its contained objects.  Upon first reference to a
+Namespace, if a pre-loaded definition is available, it is loaded into the
+system and used for subsequent resolution.
+
+To avoid ambiguity, references to components that do not belong to the
+pickled namespace are stored as references rather than pickled values.  See
+structures._NamedComponent_mixin for details.

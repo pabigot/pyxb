@@ -168,11 +168,27 @@ class _Annotated_mixin (object):
 class _NamedComponent_mixin (object):
     """Mix-in to hold the name and target namespace of a component.
 
-    The name may be None, indicating an anonymous component."""
+    The name may be None, indicating an anonymous component.  The
+    targetNamespace is None only in the case of an ElementDeclaration
+    that appears within a model group.  Regardless, the name and
+    targetNamespace values are immutable after creation.
+
+    This class overrides the pickling behavior: when pickling a
+    Namespace, objects that do not belong to that namespace are
+    pickled as references, not as values.  This ensures the uniqueness
+    of objects when multiple namespace definitions are pre-loaded.
+
+    @todo Actually implement reference unpickling: need a mapping from
+    triple of namespace, ncname, and type to instances; then overload
+    __new__.
+
+    """
     # Value of the component.  None if the component is anonymous.
+    # This is immutable after creation.
     __name = None
 
-    # None, or a reference to a Namespace in which the component may be found
+    # None, or a reference to a Namespace in which the component may be found.
+    # This is immutable after creation.
     __targetNamespace = None
     
     # The schema in which qualified names for the namespace should be
@@ -213,19 +229,19 @@ class _NamedComponent_mixin (object):
         # Note that unpickled objects 
         return (self.__name is not None) and (self.__name == other.__name) and (self.__targetNamespace == other.__targetNamespace)
 
-    __IGNORE = '''
     def __getstate__ (self):
         pickling_namespace = Namespace.Namespace.PicklingNamespace()
         assert pickling_namespace is not None
         if self.targetNamespace() is None:
-            print '@@@ Pickling non-associated name %s type %s' % (self.name(), self)
+            #print '@@@ Pickling non-associated name %s type %s' % (self.name(), self)
+            assert isinstance(self, ElementDeclaration)
             return self.__dict__
         if pickling_namespace != self.targetNamespace():
             if self.ncName() is None:
-                raise LogicError('Unable to pickle reference to %s: %s' % (self.name(), self))
+                raise LogicError('Unable to pickle reference to unnamed object %s: %s' % (self.name(), self))
             print '@@@ Pickling reference to %s' % (self.name(),)
             return ( self.targetNamespace().uri(), self.ncName() )
-        print '@@@ Pickling value of %s' % (self.name(),)
+        #print '@@@ Pickling value of %s' % (self.name(),)
         return self.__dict__
 
     def __setstate__ (self, state):
@@ -234,7 +250,6 @@ class _NamedComponent_mixin (object):
             print '@@@ Need reference to %s[%s]' % (nc_name, ns_uri)
             return
         self.__dict__.update(state)
-    '''
 
 class _Resolvable_mixin (object):
     """Mix-in indicating that this component may have references to unseen named components."""
@@ -322,7 +337,7 @@ class AttributeDeclaration (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
         return self.__scope
 
     def __str__ (self):
-        return '%s{%s}' % (self.name(), self.typeDefinition())
+        return 'AD[%s:%s]' % (self.name(), self.typeDefinition())
 
     @classmethod
     def CreateBaseInstance (cls, name, target_namespace=None):
@@ -343,7 +358,7 @@ class AttributeDeclaration (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
         elif NodeAttribute(node, wxs, 'ref') is None:
             namespace = wxs.getTargetNamespaceFromDOM(node, 'attributeFormDefault')
 
-        rv = cls(name=name, namespace=namespace)
+        rv = cls(name=name, target_namespace=namespace)
         rv._annotationFromDOM(wxs, node)
         rv._valueConstraintFromDOM(wxs, node)
         rv.__domNode = node
@@ -374,7 +389,6 @@ class AttributeDeclaration (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
         type_attr = NodeAttribute(node, wxs, 'type')
         if st_node is not None:
             self.__typeDefinition = SimpleTypeDefinition.CreateFromDOM(wxs, st_node)
-            print '!! Attr decl %s created type definition %s' % (self.name(), self.__typeDefinition)
         elif type_attr is not None:
             # Although the type definition may not be resolved, *this* component
             # is resolved, since we don't look into the type definition for anything.
@@ -544,7 +558,7 @@ class ElementDeclaration (_NamedComponent_mixin, _Resolvable_mixin, _Annotated_m
         else:
             raise LogicError('Created reference as element declaration')
         
-        rv = cls(name=name, namespace=namespace, ancestor_component=ancestor_component)
+        rv = cls(name=name, target_namespace=namespace, ancestor_component=ancestor_component)
         rv.__scope = scope
         rv._annotationFromDOM(wxs, node)
         rv._valueConstraintFromDOM(wxs, node)
@@ -615,7 +629,7 @@ class ElementDeclaration (_NamedComponent_mixin, _Resolvable_mixin, _Annotated_m
         return self
 
     def __str__ (self):
-        return '%s[%s]' % (self.name(), self.typeDefinition().name())
+        return 'ED[%s:%s]' % (self.name(), self.typeDefinition().name())
 
 
 class ComplexTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
@@ -1306,7 +1320,7 @@ class Particle (_Resolvable_mixin):
         return [ wxs.xsQualifiedName(_tag) for _tag in [ 'group', 'all', 'choice', 'sequence', 'element', 'any' ] ]
 
     def __str__ (self):
-        return '%s{%d:%s}' % (self.term(), self.minOccurs(), self.maxOccurs())
+        return 'PART{%s:%d,%s}' % (self.term(), self.minOccurs(), self.maxOccurs())
 
 
 # 3.10.1
@@ -2016,13 +2030,11 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
                 # again, because we might already have references to
                 # them.
                 if self.__memberTypeDefinitions is None:
-                    print '!! Identifying member type definitions for %s:' % (self.name(),)
                     mtd = []
                     # If present, first extract names from memberTypes,
                     # and add each one to the list
                     member_types = NodeAttribute(body, wxs, 'memberTypes')
                     if member_types is not None:
-                        print '!!! Union mt attribute %s' % (member_types,)
                         for mn in member_types.split():
                             # THROW if type has not been defined
                             if 0 > mn.find(':'):
@@ -2242,7 +2254,7 @@ class Schema (object):
                      , 'id' : None
                      , 'targetNamespace' : None
                      , 'version' : None
-                     # , 'xml:lang' : None
+                     , 'xml:lang' : None
                      } 
 
     def _setAttributeFromDOM (self, attr):
