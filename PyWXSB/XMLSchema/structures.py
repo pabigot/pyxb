@@ -480,6 +480,8 @@ class ElementDeclaration (_NamedComponent_mixin, _Resolvable_mixin, _Annotated_m
                 raise IncompleteImplementationError("Require ancestor information for local element:\n%s\n" % (node.toxml(),))
             if isinstance(ancestor_component, ComplexTypeDefinition):
                 scope = ancestor_component
+            else:
+                raise IncompleteImplementationError('Unable to identify scope for non-global element declaration')
         else:
             raise LogicError('Created reference as element declaration')
         

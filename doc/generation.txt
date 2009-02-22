@@ -1,45 +1,248 @@
+This document describes the mapping between XML Schema components and Python
+constructs as used in the default generation module.
+
+Pythonic XML
+============
+
+How XML concepts should be represented in Python is a matter of taste.  For
+a complex type, I expect to see its member elements as class members.  I
+also expect attributes as class members.  As noted in Namespace Issues
+below, this can create ambiguities and errors since XML views these as
+different namespaces.
+
+Personal python style also comes into play: some might want member variables
+to be inspected and mutated only through accessor methods.  The generation
+infrastructure permits you to customize this through the assignment of an
+InterfaceGenerator instance.  This generator defines the mapping from the
+XML name to the internal class variable name, and provides an opportunity to
+define inspector and mutator methods.
+
+name : component -> python identifier
+inspect : component -> python identifier or method invocation
+mutate : component + python expression -> python statement
+
+This is future capability.  It is expected that there will be different
+interfaceGenerator instance for elements and for attributes, to support
+disambiguation.
+
+Namespace Issues
+================
+
+In XML schema, the namespaces for element declarations, type definitions,
+and attribute definitions are all distinct.  Python uses the same namespace
+for everything.  So, if you have a schema that defines a simple type
+"color", you can then have an element named "color" that has an attribute
+"color" with type "color".  Since the natural representation of elements
+inside complex types is also by their schema name, the chances of conflict
+are high.
+
+Attribute Groups
+================
+
+An attribute group is represented as a mix-in class that contains a set of
+one or more attribute declarations, structured in the same way as for
+element-content complex type definitions.  The mix-in class inherits from
+PyWXSB.binding._AG_mixin.
+
 Simple Type Definitions
 =======================
 
-STDs are represented by subclasses of Python built-in types, augmented with
-facets.
+The material in this section applies both to SimpleTypeDefinitions and to
+ComplexTypeDefinitions with simple content.
+
+STDs are represented by classes.  Classes are associated with facet
+instances.  The classes themselves are either valueless or descend from a
+Python built-in type.
 
 Local STDs are assigned a protected-scope name that is unique within their
 namespace.
 
-Primitive STDs
---------------
-
 Primitive STDs are the ones in the XMLSchema datatypes list, and are
-built-in to PyWXSB.
+built-in to PyWXSB.  The structure of a primitive STDs depends on its
+variety.
 
-Restrictions
+Atomic STDs
 ------------
 
-Simple type definitions formed by restriction inherit from the base type
-definition.  Any facets defined for the given STD are created as class
-variables using standard names.  The STD is also given a list of all facets
-that affect it; some of these may be in the STD, and some in superclasses.
+Atomic simple type definitions inherit from the base type
+definition, which is assumed to already have a Python type associated with
+it from its primitive type.
+
+Any facets defined for the given STD are created as class variables using
+standard names.  The STD also contains a class variable _Facets
+incorporating a list of all facets that affect it; some of these may be in
+the STD, and some in superclasses.
 
 Enumeration facets will add class variables corresponding to each
 enumeration value.  The prefix for the class variable corresponding to an
-enumeration may be configured at code-generation time.
+enumeration may be configured at code-generation time.  Enumeration values
+may also be made visible in the namespace.
+
+List STDs
+---------
+
+A list STD inherits from Python's list type.  The class associated with the
+item type is stored in a class variable _ItemType.
+
+
+Union STDs
+----------
+
+A union STD does not have data associated with it; rather, it is a class
+used to disambiguate the desired member type upon creation from an XML
+string.  The class includes a variable _MemberTypes which is a list of
+non-union STD classes, in the order defined by the schema.  Union STDs do
+not inherit from _STD_mixin; instead they inherit from _Union_mixin.
+
+The class includes a public XsdFromString class method which converts a
+string into the appropriate instance of a member type, by attempting to
+create a validated member instance of each member type in turn.
 
 Complex Type Definitions
 ========================
 
-A complex type definition is either an extension or a restriction of either
-a simple or complex type.
+Complex type definitions are represented by Python classes.  The _CTD_mixin
+is a base class for all CTDs.
+
+Each CTD includes a class variable _Particle which is None for empty and
+simple content, and is an instance of binding._Particle for element and
+mixed content.
+
+Each CTD contains a class variable _AttributeUses which is a list of
+instances that provide the name, Python class, and use restrictions for each
+attribute.  In addition, an instance variable and accessor methods are
+defined.
+
+The base _CTD_mixin class provides an XsdCreateFromDOM method that walks the
+class hierarchy to assign attribute values, and the _Particle hierarchy to
+extract element values.
+
+Empty Content
+-------------
+
+Simple Content
+--------------
+
+Simple content CTDs are represented by a Python class that inherits from the
+base STD.  Facets are incorporated just as for STDs.  Attributes are
+incorporated just as for element content CTDs.
+
+Element Content
+---------------
+
+Element content CTDs are represented by a Python class that inherits
+ultimately from _PST_CTD_mixin.  If the base type definition for the CTD is
+the ur-type, this inheritance is direct; otherwise, the CTD inherits from
+the Python class corresponding to its base type.
+
+Mixed Content
+-------------
+
+Element Declarations
+====================
+
+Element declarations are represented by classes that inherit from
+binding._ED_mixin and the class corresponding to the declaration's type
+definition.
+
+The class has a variable _ElementName corresponding to the name property of
+the declaration component.  It also has a variable _ElementScope with value
+None for global scope, and a reference to a subclass of _CTD_mixin for
+non-global scope declarations.
+
+Global scope element declarations are defined at the module level.
+Non-global scope element declarations are also so-represented, but the class
+name is generated to be unique within the namespace.
 
 Particle
 ========
 
-A particle is a a ModelGroup, Wildcard, or ElementDeclaration with an
-associated cardinality range.
+A particle is a ModelGroup, Wildcard, or ElementDeclaration with an
+associated cardinality range.  They are not themselves represented as data
+objects in the Python bindings.  However, the structural information in them
+is retained in the _Particle member of each non-empty CTD, or in class
+members for particles internal to a model group.
+
+The binding._Particle class contains minOccurs and maxOccurs and term
+fields, just like the XML schema component does.  The term field is a
+reference to a Python class that is a subclass of binding._ModelGroup_mixin,
+binding._Wildcard, or _binding._ED_mixin.
 
 Model Groups
 ============
 
 Model groups represent an all, sequence, or choice among a group of
-particles.
+particles.  They do not hold data objects in the Python bindings, but do
+appear as objects to provide a way to parse incoming structures.
 
+A named model group (from a Model Group Definition) has a module-level class
+that holds the particles that comprise it.  There is a corresponding
+module-level singleton object that is referenced wherever the model group is
+needed.
+
+Internal model groups define their particles within the containing CTD.
+
+The binding._ModelGroup class includes the following variables and methods:
+
+compositor -- all, sequence, or choice
+
+particles -- a tuple of binding._Particle instances
+
+reset -- Resets all state associated with an extraction sequence.  The input
+should be a DOM node that validates against the model group.
+
+nextMember -- Returns a pair consisting of a name, a boolean isPlural, and
+an instance of a _CTD_mixin [or _Wildcard_mixin] subclass. The containing
+infrastructure should associate the instance to the member variable
+associated with the name: by assignment if isPlural is false, and by append
+if isPlural is true.  The name is None in the case of a _Wildcard_mixin, and
+otherwise is the name property of the element declaration that was matched.
+
+The CTD instance that interprets the model group also maintains a list of
+the return values from nextMember, so that the original order from the XML
+can be obtained.
+
+At some point, the nextMember method should also validate the input.
+nextMember should raise a SchemaValidationError exception if an ordering or
+content property is violated.
+
+Customization Points
+====================
+
+* The mechanism by which element references in a complex type are generated:
+  names, inspectors, mutators.
+
+* The mechanism by which attributes in a type are generated: names,
+  accesors, mutators.
+
+* The default enumeration value prefix
+
+* The mapping from STD ncName to enumeration values prefix.
+
+* Whether an enumeration value is made visible at the namespace level.
+
+* The template name for classes that represent named element declarations
+* The template pattern for non-global element declaration classes
+
+* The template name for classes that represent named type definitions
+* The template pattern for unnamed type definitions
+
+* The template name for classes that represent attribute groups
+
+* The template name for classes that hold model group and particle objects
+  for named model groups
+
+* The template name for objects that represent named model groups
+
+* The template pattern for local model group objects
+* The template name for local particle objects
+
+Base Classes
+============
+
+* xs.datatypes.*
+* PyWXSB.binding defines mix-in classes
+ - _STD_mixin
+ - _CTD_mixin
+ - _AG_mixin
+ - _Union_mixin
