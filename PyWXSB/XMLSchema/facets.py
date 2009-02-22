@@ -41,7 +41,6 @@ class Facet (object):
     def __init__ (self, **kw):
         super(Facet, self).__init__()
         # Can't create base class instances
-        print '***Initializing facet'
         assert Facet != self.__class__
         self.__baseTypeDefinition = kw.get('base_type_definition', None)
         self.__valueDatatype = kw.get('value_datatype', None)
@@ -158,6 +157,7 @@ class CF_pattern (ConstrainingFacet):
             self.annotation = annotation
 
     __patternElements = None
+    def patternElements (self): return self.__patternElements
 
     def __init__ (self, **kw):
         super(CF_pattern, self).__init__(**kw)

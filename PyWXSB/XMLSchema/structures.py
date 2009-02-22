@@ -1629,6 +1629,8 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
             bi.__facets = {}
             bi.__fundamentalFacets = frozenset()
 
+            bi.__isBuiltin = True
+
             cls.__SimpleUrTypeDefinition = bi
         return cls.__SimpleUrTypeDefinition
 
@@ -2073,50 +2075,6 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
 
     def pythonToString (self, value):
         return self.pythonSupport().pythonToString(value)
-
-    __xsdModule = 'datatypes'
-    __facetsModule = 'facets'
-
-    def __generateAtomicClass (self):
-        thisType = self.ncName()
-        baseType = self.baseTypeDefinition().pythonReference()
-        facet_decls = []
-        facets = []
-        if self.__facets is None:
-            raise LogicError('STD %s has no facets?' % (self.name(),))
-        for (fc, fi) in self.__facets.items():
-            if fi is not None:
-                assert fi.ownerTypeDefinition() is not None
-                if fi.ownerTypeDefinition() == self:
-                    fv = '_%s' % (fc.__name__,)
-                    facet_decls.extend(fi.literalFacetDefinition(fv))
-                else:
-                    fv = '%s._%s' % (fi.ownerTypeDefinition().pythonReference(), fc.__name__)
-                facets.append(fv)
-        facet_decls = "\n    ".join(facet_decls)
-        facets = ', '.join(facets)
-        return templates.replaceInText('''
-class %{thisType} (%{baseType}):
-    %{facet_decls}
-    _Facets = [ %{facets} ]
-    pass
-
-''', locals())
-
-    def __generateListClass (self):
-        return str(self)
-
-    def __generateUnionClass (self):
-        return str(self)
-
-    def generateClass (self):
-        if self.VARIETY_atomic == self.variety():
-            return self.__generateAtomicClass()
-        if self.VARIETY_list == self.variety():
-            return self.__generateListClass()
-        if self.VARIETY_union == self.variety():
-            return self.__generateUnionClass()
-        raise IncompleteImplementationException('No generateClass for STD variety %s' % (self.VarietyToString(self.variety()),))
 
 class _SimpleUrTypeDefinition (SimpleTypeDefinition, _Singleton_mixin):
     """Subclass ensures there is only one simple ur-type."""

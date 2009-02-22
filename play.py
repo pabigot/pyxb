@@ -32,10 +32,7 @@ for file in files:
                     facet.enumPrefix('%s_' % enum_prefix)
 
         gen = Generator()
-
-        for td in ns.typeDefinitions():
-            if isinstance(td, xs.structures.SimpleTypeDefinition):
-                print gen.definition(td, namespace=ns)
+        print "\n".join(gen.generateDefinitions(ns.typeDefinitions()))
 
     except Exception, e:
         sys.stderr.write("%s processing %s:\n" % (e.__class__, file))
