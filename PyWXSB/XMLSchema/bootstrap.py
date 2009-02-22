@@ -280,11 +280,11 @@ class schema (xsc.Schema):
         # programmer error.  There's only two; surely you can get that
         # many right.  Oh, hell, probably not...
         assert default_tag in [ 'attributeFormDefault', 'elementFormDefault' ]
-        assert self.hasAttribute(default_tag)
-        form = self.getAttribute(default_tag)
+        assert self.schemaHasAttribute(default_tag)
+        form = xsc.NodeAttribute(node, self, 'form')
+        if form is None:
+            form = self.schemaAttribute(default_tag)
         assert form is not None
-        if node.hasAttribute('form'):
-            form = node.getAttribute('form')
         if not form in [ 'qualified', 'unqualified' ]:
             raise SchemaValidationError('form attribute must be "qualified" or "unqualified"')
         if 'qualifled' == form:
@@ -394,8 +394,8 @@ class schema (xsc.Schema):
 
         # Apply the targetNamespace attribute.  There is a default,
         # which is to have no associated namespace.
-        assert self.hasAttribute('targetNamespace')
-        target_namespace = self.getAttribute('targetNamespace')
+        assert self.schemaHasAttribute('targetNamespace')
+        target_namespace = self.schemaAttribute('targetNamespace')
         if target_namespace is not None:
             self.setTargetNamespace(self.lookupOrCreateNamespace(target_namespace))
 
@@ -459,9 +459,9 @@ class schema (xsc.Schema):
         """
 
         self._requireInProlog(node.nodeName)
-        if not node.hasAttribute('namespace'):
+        uri = xsc.NodeAttribute(node, self, 'namespace')
+        if uri is None:
             raise SchemaValidationError('import directive must provide namespace')
-        uri = node.getAttribute('namespace')
         namespace = self.namespaceForURI(uri)
         # @todo 
         namespace.validateSchema()

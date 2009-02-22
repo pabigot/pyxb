@@ -42,6 +42,40 @@ def LocateUniqueChild (node, schema, tag, absent_ok=True):
         raise SchemaValidationError('Expected %s elements nested in %s' % (name, node.nodeName))
     return candidate
 
+def NodeAttribute (node, schema, attribute_ncname, attribute_ns=Namespace.XMLSchema):
+    """Look up an attribute in a node.
+
+    NEVER EVER use node.hasAttribute or node.getAttribute directly.
+    The attribute tag can often be in multiple forms.
+
+    This gets tricky because the attribute tag may or may not be
+    qualified with a namespace.  The qualifier may be elided if the
+    containing element is in the attribute's namespace, even if that
+    is not the default namespace for the schema.
+
+    Return the requested attribute, or None if the attribute is not
+    present in the node.
+
+    An example of where this is necessary is the attribute declaration
+    for "lang" in http://www.w3.org/XML/1998/namespace, The simpleType
+    includes a union clause whose memberTypes attribute is
+    unqualified, and XMLSchema is not the default namespace."""
+    assert node.namespaceURI is not None
+    container_ns = schema.namespaceForURI(node.namespaceURI)
+    assert container_ns is not None
+    assert attribute_ns is not None
+    candidate_names = schema.qualifiedNames(attribute_ncname, attribute_ns)
+    if (attribute_ns == container_ns) and not (attribute_ncname in candidate_names):
+        candidate_names = candidate_names + (attribute_ncname,)
+    attr_value = None
+    match_name = None
+    for attr_name in candidate_names:
+        if node.hasAttribute(attr_name):
+            if attr_value is not None:
+                raise SchemaValidationError('Multiple instances of attribute %s from %s' % (attribute_ncname, attribute_ns.uri()))
+            attr_value = node.getAttribute(attr_name)
+    return attr_value
+
 def LocateMatchingChildren (node, schema, tag):
     """Locate all children of the DOM node that have a particular tag.
 
@@ -179,6 +213,29 @@ class _NamedComponent_mixin (object):
         # Note that unpickled objects 
         return (self.__name is not None) and (self.__name == other.__name) and (self.__targetNamespace == other.__targetNamespace)
 
+    __IGNORE = '''
+    def __getstate__ (self):
+        pickling_namespace = Namespace.Namespace.PicklingNamespace()
+        assert pickling_namespace is not None
+        if self.targetNamespace() is None:
+            print '@@@ Pickling non-associated name %s type %s' % (self.name(), self)
+            return self.__dict__
+        if pickling_namespace != self.targetNamespace():
+            if self.ncName() is None:
+                raise LogicError('Unable to pickle reference to %s: %s' % (self.name(), self))
+            print '@@@ Pickling reference to %s' % (self.name(),)
+            return ( self.targetNamespace().uri(), self.ncName() )
+        print '@@@ Pickling value of %s' % (self.name(),)
+        return self.__dict__
+
+    def __setstate__ (self, state):
+        if isinstance(state, tuple):
+            ( ns_uri, nc_name ) = state
+            print '@@@ Need reference to %s[%s]' % (nc_name, ns_uri)
+            return
+        self.__dict__.update(state)
+    '''
+
 class _Resolvable_mixin (object):
     """Mix-in indicating that this component may have references to unseen named components."""
     def isResolved (self):
@@ -229,12 +286,16 @@ class _ValueConstraint_mixin:
         return self.__valueConstraint
 
     def _valueConstraintFromDOM (self, wxs, node):
-        if node.hasAttribute('default'):
-            self.__valueConstraint = (node.getAttribute('default'), self.VC_default)
-        elif node.hasAttribute('fixed'):
-            self.__valueConstraint = (node.getAttribute('fixed'), self.VC_fixed)
-        else:
-            self.__valueConstraint = None
+        aval = NodeAttribute(node, wxs, 'default')
+        if aval is not None:
+            self.__valueConstraint = (aval, self.VC_default)
+            return self
+        aval = NodeAttribute(node, wxs, 'fixed')
+        if aval is not None:
+            self.__valueConstraint = (aval, self.VC_fixed)
+            return self
+        self.__valueConstraint = None
+        return self
         
 
 class AttributeDeclaration (_NamedComponent_mixin, _Resolvable_mixin, _Annotated_mixin, _ValueConstraint_mixin):
@@ -260,6 +321,9 @@ class AttributeDeclaration (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
         """
         return self.__scope
 
+    def __str__ (self):
+        return '%s{%s}' % (self.name(), self.typeDefinition())
+
     @classmethod
     def CreateBaseInstance (cls, name, target_namespace=None):
         """Create an attribute declaration component for a specified namespace."""
@@ -271,11 +335,12 @@ class AttributeDeclaration (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
         # Node should be an XMLSchema attribute node
         assert node.nodeName in wxs.xsQualifiedNames('attribute')
 
-        name = None
-        if node.hasAttribute('name'):
-            name = node.getAttribute('name')
+        name = NodeAttribute(node, wxs, 'name')
+        if name is not None:
             namespace = wxs.getTargetNamespace()
-        elif not node.hasAttribute('ref'):
+        #elif node.hasAttribute('ref'):
+        #    pass
+        elif NodeAttribute(node, wxs, 'ref') is None:
             namespace = wxs.getTargetNamespaceFromDOM(node, 'attributeFormDefault')
 
         rv = cls(name=name, namespace=namespace)
@@ -297,7 +362,7 @@ class AttributeDeclaration (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
         # Implement per section 3.2.2
         if node.parentNode.nodeName in wxs.xsQualifiedNames('schema'):
             self.__scope = self.SCOPE_global
-        elif not node.hasAttribute('ref'):
+        elif NodeAttribute(node, wxs, 'ref') is None:
             # The AttributeUse component is resolved elsewhere
             # @todo Set scope to enclosing complexType, if present
             self.__scope = self.xSCOPE_unhandled
@@ -306,12 +371,14 @@ class AttributeDeclaration (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
             raise IncompleteImplementationError('Internal attribute declaration by reference')
         
         st_node = LocateUniqueChild(node, wxs, 'simpleType')
+        type_attr = NodeAttribute(node, wxs, 'type')
         if st_node is not None:
             self.__typeDefinition = SimpleTypeDefinition.CreateFromDOM(wxs, st_node)
-        elif node.hasAttribute('type'):
+            print '!! Attr decl %s created type definition %s' % (self.name(), self.__typeDefinition)
+        elif type_attr is not None:
             # Although the type definition may not be resolved, *this* component
             # is resolved, since we don't look into the type definition for anything.
-            self.__typeDefinition = wxs.lookupSimpleType(node.getAttribute('type'))
+            self.__typeDefinition = wxs.lookupSimpleType(type_attr)
         else:
             self.__typeDefinition = SimpleTypeDefinition.SimpleUrTypeDefinition()
                 
@@ -343,8 +410,8 @@ class AttributeUse (_Resolvable_mixin, _ValueConstraint_mixin):
         assert node.nodeName in wxs.xsQualifiedNames('attribute')
         rv = cls()
         rv.__use = cls.USE_optional
-        if node.hasAttribute('use'):
-            use = node.getAttribute('use')
+        use = NodeAttribute(node, wxs, 'use')
+        if use is not None:
             if 'required' == use:
                 rv.__use = cls.USE_required
             elif 'optional' == use:
@@ -356,7 +423,7 @@ class AttributeUse (_Resolvable_mixin, _ValueConstraint_mixin):
 
         rv._valueConstraintFromDOM(wxs, node)
         
-        if not node.hasAttribute('ref'):
+        if NodeAttribute(node, wxs, 'ref') is None:
             # Create an anonymous declaration, which will be resolved
             # separately
             rv.__attributeDeclaration = AttributeDeclaration.CreateFromDOM(wxs, node)
@@ -373,12 +440,13 @@ class AttributeUse (_Resolvable_mixin, _ValueConstraint_mixin):
             return self
         assert self.__domNode
         node = self.__domNode
-        if not node.hasAttribute('ref'):
+        ref_attr = NodeAttribute(node, wxs, 'ref')
+        if ref_attr is None:
             raise SchemaValidationError('Attribute uses require reference to attribute declaration')
         # Although the attribute declaration definition may not be
         # resolved, *this* component is resolved, since we don't look
         # into the attribute declaration for anything.
-        self.__attributeDeclaration = wxs.lookupAttribute(node.getAttribute('ref'))
+        self.__attributeDeclaration = wxs.lookupAttribute(ref_attr)
         self.__domNode = None
         return self
 
@@ -456,16 +524,13 @@ class ElementDeclaration (_NamedComponent_mixin, _Resolvable_mixin, _Annotated_m
         assert node.nodeName in wxs.xsQualifiedNames('element')
 
         # Might be top-level, might be local
-        name = None
-        if node.hasAttribute('name'):
-            name = node.getAttribute('name')
-
+        name = NodeAttribute(node, wxs, 'name')
         scope = None
         namespace = None
         if node.parentNode.nodeName in wxs.xsQualifiedNames('schema'):
             namespace = wxs.getTargetNamespace()
             scope = cls.SCOPE_global
-        elif not node.hasAttribute('ref'):
+        elif NodeAttribute(node, wxs, 'ref') is None:
             namespace = wxs.targetNamespaceFromDOM(node, 'elementFormDefault')
             if not ancestor_component:
                 raise IncompleteImplementationError("Require ancestor information for local element:\n%s\n" % (node.toxml(),))
@@ -501,8 +566,9 @@ class ElementDeclaration (_NamedComponent_mixin, _Resolvable_mixin, _Annotated_m
 
         # NB: Scope already set
 
-        if node.hasAttribute('substitutionGroup'):
-            sga = wxs.lookupElement(node.getAttribute('substitutionGroup'))
+        sg_attr = NodeAttribute(node, wxs, 'substitutionGroup')
+        if sg_attr is not None:
+            sga = wxs.lookupElement(sg_attr)
             if not sga.isResolved():
                 wxs._queueForResolution(self)
                 return self
@@ -526,21 +592,24 @@ class ElementDeclaration (_NamedComponent_mixin, _Resolvable_mixin, _Annotated_m
             if td_node is not None:
                 type_def = ComplexTypeDefinition.CreateFromDOM(wxs, td_node)
         if type_def is None:
-            if node.hasAttribute('type'):
-                type_def = wxs.lookupType(node.getAttribute('type'))
+            type_attr = NodeAttribute(node, wxs, 'type')
+            if type_attr is not None:
+                type_def = wxs.lookupType(type_attr)
             elif self.__substitutionGroupAffiliation is not None:
                 type_def = self.__substitutionGroupAffiliation.typeDefinition()
             else:
                 type_def = ComplexTypeDefinition.UrTypeDefinition()
         self.__typeDefinition = type_def
 
-        if node.hasAttribute('nillable'):
-            self.__nillable = datatypes.boolean(node.getAttribute('nillable'))
+        attr_val = NodeAttribute(node, wxs, 'nillable')
+        if attr_val is not None:
+            self.__nillable = datatypes.boolean(attr_val)
 
         # @todo disallowed substitutions, substitution group exclusions
-                
-        if node.hasAttribute('abstract'):
-            self.__abstract = datatypes.boolean(node.getAttribute('abstract'))
+
+        attr_val = NodeAttribute(node, wxs, 'abstract')
+        if attr_val is not None:
+            self.__abstract = datatypes.boolean(attr_val)
                 
         self.__domNode = None
         return self
@@ -689,9 +758,7 @@ class ComplexTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
         # Node should be an XMLSchema complexType node
         assert node.nodeName in wxs.xsQualifiedNames('complexType')
 
-        name = None
-        if node.hasAttribute('name'):
-            name = node.getAttribute('name')
+        name = NodeAttribute(node, wxs, 'name')
 
         rv = cls(name=name, target_namespace=wxs.getTargetNamespace(), derivation_method=None)
 
@@ -718,9 +785,10 @@ class ComplexTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
                 uses_c1.add(AttributeUse.CreateFromDOM(wxs, node))
             elif node.nodeName in xs_attributeGroup:
                 # This must be an attributeGroupRef
-                if not node.hasAttribute('ref'):
+                ref_attr =NodeAttribute(node, wxs, 'ref')
+                if ref_attr is None:
                     raise SchemaValidationError('Require ref attribute on internal attributeGroup elements')
-                agd = wxs.lookupAttributeGroup(node.getAttribute('ref'))
+                agd = wxs.lookupAttributeGroup(ref_attr)
                 if not agd.isResolved():
                     print 'Holding off resolution of attribute gruop %s due to dependence on unresolved %s' % (self.name(), agd.name())
                     wxs._queueForResolution(self)
@@ -781,11 +849,13 @@ class ComplexTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
         # Do content type
 
         # Definition 1: effective mixed
-        if (content_node is not None) \
-                and content_node.hasAttribute('mixed'):
-            effective_mixed = datatypes.boolean(content_node.getAttribute('mixed'))
-        elif type_node.hasAttribute('mixed'):
-            effective_mixed = datatypes.boolean(type_node.getAttribute('mixed'))
+        mixed_attr = None
+        if content_node is not None:
+            mixed_attr = NodeAttribute(content_node, wxs, 'mixed')
+        if mixed_attr is None:
+            mixed_attr = NodeAttribute(type_node, wxs, 'mixed')
+        if mixed_attr is not None:
+            effective_mixed = datatypes.boolean(mixed_attr)
         else:
             effective_mixed = False
 
@@ -809,10 +879,11 @@ class ComplexTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
                     and (not HasNonAnnotationChild(wxs, cn))):
                 test_2_1_2 = True
             if ((cn.nodeName in xs_choice) \
-                    and (not HasNonAnnotationChild(wxs, cn))\
-                    and cn.hasAttribute('minOccurs') \
-                    and (0 == datatypes.integer(cn.getAttribute('minOccurs')))):
-                test_2_1_3 = True
+                    and (not HasNonAnnotationChild(wxs, cn))):
+                mo_attr = NodeAttribute(cn, wxs, 'minOccurs')
+                if ((mo_attr is not None) \
+                        and (0 == datatypes.integer(mo_attr))):
+                    test_2_1_3 = True
         satisfied_predicates = 0
         if test_2_1_1:
             satisfied_predicates += 1
@@ -894,8 +965,9 @@ class ComplexTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
         node = self.__domNode
         
         #print 'Resolving CTD %s' % (self.name(),)
-        if node.hasAttribute('abstract'):
-            self.__abstract = datatypes.boolean(node.getAttribute('abstract'))
+        attr_val = NodeAttribute(node, wxs, 'abstract')
+        if attr_val is not None:
+            self.__abstract = datatypes.boolean(attr_val)
 
         # @todo implement prohibitedSubstitutions, final, annotations
 
@@ -932,9 +1004,10 @@ class ComplexTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
                     method = self.DM_extension
                 else:
                     raise SchemaValidationError('Expected restriction or extension as sole child of %s in %s' % (content_node.name(), self.name()))
-                if not ions.hasAttribute('base'):
+                base_attr = NodeAttribute(ions, wxs, 'base')
+                if base_attr is None:
                     raise SchemaValidationError('Element %s missing base attribute' % (ions.nodeName,))
-                base_type = wxs.lookupType(ions.getAttribute('base'))
+                base_type = wxs.lookupType(base_attr)
                 if not base_type.isResolved():
                     # Have to delay resolution until the type this
                     # depends on is available.
@@ -962,9 +1035,7 @@ class AttributeGroupDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annot
     @classmethod
     def CreateFromDOM (cls, wxs, node):
         assert node.nodeName in wxs.xsQualifiedNames('attributeGroup')
-        name = None
-        if node.hasAttribute('name'):
-            name = node.getAttribute('name')
+        name = NodeAttribute(node, wxs, 'name')
 
         rv = cls(name=name, target_namespace=wxs.getTargetNamespace())
         rv._annotationFromDOM(wxs, node)
@@ -983,8 +1054,9 @@ class AttributeGroupDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annot
         node = self.__domNode
         #print 'Resolving AG %s with %d children' % (self.name(), len(node.childNodes))
         uses = set()
-        if node.hasAttribute('ref'):
-            agd = wxs.lookupAttributeGroup(node.getAttribute('ref'))
+        ref_attr = NodeAttribute(node, wxs, 'ref')
+        if ref_attr is not None:
+            agd = wxs.lookupAttributeGroup(ref_attr)
             if not agd.isResolved():
                 print 'Holding off resolution of attribute group %s due to dependence on unresolved %s' % (self.name(), agd.name())
                 wxs._queueForResolution(self)
@@ -996,7 +1068,6 @@ class AttributeGroupDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annot
                 continue
             if cn.nodeName not in xs_attribute:
                 continue
-            print 'Adding use from %s' % (cn.toxml(),)
             uses.add(AttributeUse.CreateFromDOM(wxs, cn))
 
         self.__attributeUses = frozenset(uses)
@@ -1018,11 +1089,9 @@ class ModelGroupDefinition (_NamedComponent_mixin, _Annotated_mixin):
     def CreateFromDOM (cls, wxs, node):
         assert node.nodeName in wxs.xsQualifiedNames('group')
 
-        assert not node.hasAttribute('ref')
+        assert NodeAttribute(node, wxs, 'ref') is None
 
-        name = None
-        if node.hasAttribute('name'):
-            name = node.getAttribute('name')
+        name = NodeAttribute(node, wxs, 'name')
         rv = cls(name=name, target_namespace=wxs.getTargetNamespace())
         rv._annotationFromDOM(wxs, node)
 
@@ -1162,14 +1231,15 @@ class Particle (_Resolvable_mixin):
         max_occurs = 1
         if not node.nodeName in cls.ParticleTags(wxs):
             raise LogicError('Attempted to create particle from illegal element %s' % (node.nodeName,))
-        if node.hasAttribute('minOccurs'):
-            min_occurs = datatypes.nonNegativeInteger(node.getAttribute('minOccurs'))
-        if node.hasAttribute('maxOccurs'):
-            av = node.getAttribute('maxOccurs')
-            if 'unbounded' == av:
+        attr_val = NodeAttribute(node, wxs, 'minOccurs')
+        if attr_val is not None:
+            min_occurs = datatypes.nonNegativeInteger(attr_val)
+        attr_val = NodeAttribute(node, wxs, 'maxOccurs')
+        if attr_val is not None:
+            if 'unbounded' == attr_val:
                 max_occurs = None
             else:
-                max_occurs = datatypes.nonNegativeInteger(av)
+                max_occurs = datatypes.nonNegativeInteger(attr_val)
 
         rv = cls(term=None, min_occurs=min_occurs, max_occurs=max_occurs, ancestor_component=ancestor_component)
         rv.__domNode = node
@@ -1186,13 +1256,14 @@ class Particle (_Resolvable_mixin):
         #print 'Resolving Particle'
         node = self.__domNode
 
+        ref_attr = NodeAttribute(node, wxs, 'ref')
         if node.nodeName in wxs.xsQualifiedNames('group'):
             # 3.9.2 says use 3.8.2, which is ModelGroup.  The group
             # inside a particle is a groupRef.  If there is no group
             # with that name, this throws an exception as expected.
-            if not node.hasAttribute('ref'):
+            if ref_attr is None:
                 raise SchemaValidationError('group particle without reference')
-            group_decl = wxs.lookupGroup(node.getAttribute('ref'))
+            group_decl = wxs.lookupGroup(ref_attr)
 
             # Neither group definitions, nor model groups, require
             # resolution, so we can just extract the reference.
@@ -1203,8 +1274,8 @@ class Particle (_Resolvable_mixin):
             # 3.9.2 says use 3.3.2, which is Element.  The element
             # inside a particle is a localElement, so we either get
             # the one it refers to, or create an anonymous one here.
-            if node.hasAttribute('ref'):
-                term = wxs.lookupElement(node.getAttribute('ref'))
+            if ref_attr is not None:
+                term = wxs.lookupElement(ref_attr)
             else:
                 term = ElementDeclaration.CreateFromDOM(wxs, node, self.__ancestorComponent)
             assert term is not None
@@ -1278,10 +1349,10 @@ class Wildcard (_Annotated_mixin):
 
     @classmethod
     def CreateFromDOM (cls, wxs, node):
-        if not node.hasAttribute('namespace'):
+        nc = NodeAttribute(node, wxs, 'namespace')
+        if nc is None:
             namespace_constraint = cls.NC_any
         else:
-            nc = node.getAttribute('namespace')
             if cls.NC_any == nc:
                 namespace_constraint = cls.NC_any
             elif cls.NC_not == nc:
@@ -1300,10 +1371,10 @@ class Wildcard (_Annotated_mixin):
                         ncs.add(namespace)
                 namespace_constraint = frozenset(ncs)
 
-        if not node.hasAttribute('processContents'):
+        pc = NodeAttribute(node, wxs, 'processContents')
+        if pc is None:
             process_contents = cls.PC_strict
         else:
-            pc = node.getAttribute('processContents')
             if pc in [ cls.PC_skip, cls.PC_lax, cls.PC_strict ]:
                 process_contents = pc
             else:
@@ -1335,9 +1406,7 @@ class IdentityConstraintDefinition (_NamedComponent_mixin, _Annotated_mixin):
 
     @classmethod
     def CreateFromDOM (cls, wxs, node):
-        name = None
-        if node.hasAttribute('name'):
-            name = node.getAttribute('name')
+        name = NodeAttribute(node, wxs, 'name')
         rv = cls(name=name, target_namespace=wxs.getTargetNamespace())
         #rv._annotationFromDOM(wxs, node);
         if node.nodeName in wxs.xsQualifiedNames('key'):
@@ -1352,15 +1421,16 @@ class IdentityConstraintDefinition (_NamedComponent_mixin, _Annotated_mixin):
             raise LogicError('Unexpected identity constraint node %s' % (node.toxml(),))
 
         cn = LocateUniqueChild(node, wxs, 'selector')
-        if not cn.hasAttribute('xpath'):
+        rv.__selector = NodeAttribute(cn, wxs, 'xpath')
+        if rv.__selector is None:
             raise SchemaValidationError('selector element missing xpath attribute')
-        rv.__selector == cn.getAttribute('xpath')
 
         rv.__fields = []
         for cn in LocateMatchingChildren(node, wxs, 'field'):
-            if not cn.hasAttribute('xpath'):
+            xp_attr = NodeAttribute(cn, wxs, 'xpath')
+            if xp_attr is None:
                 raise SchemaValidationError('field element missing xpath attribute')
-            rv.__fields.append(cn.getAttribute('xpath'))
+            rv.__fields.append(xp_attr)
 
         rv._annotationFromDOM(wxs, node)
         rv.__annotations = []
@@ -1391,15 +1461,11 @@ class NotationDeclaration (_NamedComponent_mixin, _Annotated_mixin):
 
     @classmethod
     def CreateFromDOM (cls, wxs, node):
-        name = None
-        if node.hasAttribute('name'):
-            name = node.getAttribute('name')
+        name = NodeAttribute(node, wxs, 'name')
         rv = cls(name=name, target_namespace=wxs.getTargetNamespace())
 
-        if node.hasAttribute('system'):
-            rv.__systemIdentifier = node.getAttribute('system')
-        if node.hasAttribute('public'):
-            rv.__publicIdentifier = node.getAttribute('public')
+        rv.__systemIdentifier = NodeAttribute(node, wxs, 'system')
+        rv.__publicIdentifier = NodeAttribute(node, wxs, 'public')
 
         rv._annotationFromDOM(wxs, node)
         return rv
@@ -1608,7 +1674,7 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
         elif self.VARIETY_list == self.variety():
             elts.append('list of %s' % (self.itemTypeDefinition().name(),))
         elif self.VARIETY_union == self.variety():
-            elts.append('union of %s' % (" ".join([_mtd.name() for _mtd in self.memberTypeDefinitions()],)))
+            elts.append('union of %s' % (" ".join([str(_mtd.name()) for _mtd in self.memberTypeDefinitions()],)))
         else:
             elts.append('???')
             #raise LogicError('Unexpected variety %s' % (self.variety(),))
@@ -1784,11 +1850,12 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
         return self.__completeResolution(wxs, body, self.VARIETY_list, 'list')
 
     def __initializeFromRestriction (self, wxs, body):
-        if body.hasAttribute('base'):
+        base_attr = NodeAttribute(body, wxs, 'base')
+        if base_attr is not None:
             # Look up the base.  If there is no registered type of
             # that name, an exception gets thrown that percolates up
             # to the user.
-            base_type = wxs.lookupSimpleType(body.getAttribute('base'))
+            base_type = wxs.lookupSimpleType(base_attr)
             # If the base type exists but has not yet been resolve,
             # delay processing this type until the one it depends on
             # has been completed.
@@ -1855,9 +1922,9 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
                 if Node.ELEMENT_NODE != cn.nodeType:
                     continue
                 if cn.nodeName in has_facet:
-                    if not cn.hasAttribute('name'):
+                    facet_name = NodeAttribute(cn, wxs, 'name', Namespace.XMLSchema_hfp)
+                    if facet_name is None:
                         raise SchemaValidationError('hasFacet missing name attribute')
-                    facet_name = cn.getAttribute('name')
                     if facet_name in seen_facets:
                         raise SchemaValidationError('Multiple hasFacet specifications for %s' % (facet_name,))
                     seen_facets.add(facet_name)
@@ -1929,8 +1996,9 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
                 self.__primitiveTypeDefinition = ptd
         elif self.VARIETY_list == variety:
             if 'list' == alternative:
-                if body.hasAttribute('itemType'):
-                    self.__itemTypeDefinition = wxs.lookupSimpleType(body.getAttribute('itemType'))
+                attr_val = NodeAttribute(body, wxs, 'itemType')
+                if attr_val is not None:
+                    self.__itemTypeDefinition = wxs.lookupSimpleType(attr_val)
                 else:
                     # NOTE: The newly created anonymous item type will
                     # not be resolved; the caller needs to handle
@@ -1948,14 +2016,18 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
                 # again, because we might already have references to
                 # them.
                 if self.__memberTypeDefinitions is None:
+                    print '!! Identifying member type definitions for %s:' % (self.name(),)
                     mtd = []
                     # If present, first extract names from memberTypes,
                     # and add each one to the list
-                    if body.hasAttribute(wxs.xsQualifiedName('memberTypes')):
-                        member_types = body.getAttribute('memberTypes')
+                    member_types = NodeAttribute(body, wxs, 'memberTypes')
+                    if member_types is not None:
+                        print '!!! Union mt attribute %s' % (member_types,)
                         for mn in member_types.split():
                             # THROW if type has not been defined
-                            mtd.append(wxs.lookupSimpleType(wxs.xsQualifiedName(mn)))
+                            if 0 > mn.find(':'):
+                                mn = wxs.xsQualifiedName(mn)
+                            mtd.append(wxs.lookupSimpleType(mn))
                     # Now look for local type definitions
                     for cn in body.childNodes:
                         if (Node.ELEMENT_NODE == cn.nodeType):
@@ -1965,6 +2037,7 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
                                 # when looking for union expansions.
                                 mtd.append(self.CreateFromDOM(wxs, cn)._resolve(wxs))
                     self.__memberTypeDefinitions = mtd[:]
+                    assert None not in self.__memberTypeDefinitions
 
                 # Replace any member types that are themselves unions
                 # with the members of those unions, in order.  Note
@@ -2002,7 +2075,7 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
 
         self.__variety = variety
         self.__domNode = None
-        print self
+        print 'Completed STD %s' % (self,)
         return self
 
     def isResolved (self):
@@ -2082,12 +2155,11 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
         assert node.nodeName in wxs.xsQualifiedNames('simpleType')
 
         # @todo Process "final" attributes
-        if node.hasAttribute('final'):
+        
+        if NodeAttribute(node, wxs, 'final') is not None:
             raise IncompleteImplementationError('"final" attribute not currently supported')
 
-        name = None
-        if node.hasAttribute('name'):
-            name = node.getAttribute('name')
+        name = NodeAttribute(node, wxs, 'name')
 
         rv = cls(name=name, target_namespace=wxs.getTargetNamespace(), variety=None)
         rv._annotationFromDOM(wxs, node)
@@ -2177,10 +2249,10 @@ class Schema (object):
         self.__attributeMap[attr.name] = attr.nodeValue
         return self
 
-    def hasAttribute (self, attr_name):
+    def schemaHasAttribute (self, attr_name):
         return self.__attributeMap.has_key(attr_name)
 
-    def getAttribute (self, attr_name):
+    def schemaAttribute (self, attr_name):
         return self.__attributeMap[attr_name]
 
     def __init__ (self, *args, **kw):
