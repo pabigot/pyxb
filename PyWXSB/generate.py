@@ -9,8 +9,10 @@ class Generator (object):
 
 class DependencyError (PyWXSBException):
     __component = None
-    def __init__ (self, component):
-        super(DependencyError, self).__init__('Dependency on ungenerated %s' % (component,))
+    def __init__ (self, generator, component):
+        super(DependencyError, self).__init__('Dependency on ungenerated %s' % (component.name(),))
+        if generator is not None:
+            generator._queueForGeneration(component)
         self.__component = component
 
 class PythonGenerator (Generator):
@@ -53,7 +55,7 @@ class PythonGenerator (Generator):
                     declarations.extend(self.declaration_l(fi, container=std, **kw))
                     definitions.append(self.__constrainingFacetDefinition_s(fi, **kw))
                 elif not self._definitionAvailable(fi.ownerTypeDefinition(), **kw):
-                    raise DependencyError(fi.ownerTypeDefinition())
+                    raise DependencyError(self, fi.ownerTypeDefinition())
                 facets.append(self.reference(fi, **kw))
         declarations = "\n    ".join(declarations)
         definitions = "\n".join(definitions)
@@ -75,7 +77,6 @@ class %{className} (%{baseReference}):
         return '# %s' % (str(std),)
 
     def _stdDefinition_s (self, std, **kw):
-        kw = kw.copy()
         print 'STD DEFINITION %s' % (std,)
         kw.setdefault('namespace', std.targetNamespace())
         kw.setdefault('tag', self.reference(std, require_defined=False, **kw))
@@ -89,12 +90,100 @@ class %{className} (%{baseReference}):
             return self.__stdUnionDefinition_s(std, **kw)
         raise IncompleteImplementationError('No generate support for STD variety %s' % (std.VarietyToString(std.variety()),))
 
+    def __initializer (self, component, **kw):
+        is_plural = kw.get('is_plural', False)
+        elt_type = kw['elt_type']
+        elt_type_ref = self.reference(elt_type, **kw)
+        if is_plural:
+            member_init = '[]'
+        elif component.valueConstraint() is not None:
+            ( value, constraint ) = component.valueConstraint()
+            member_init = '%s(%s)' % (elt_type_ref, value)
+        else:
+            member_init = 'None'
+        return member_init
+        
+    def __attributeDeclarationDeclaration_s (self, attr_decl, **kw):
+        return '%s = %s' % (attr_decl.name(), self.__initializer(attr_decl, elt_type=attr_decl.typeDefinition(), **kw))
+
+    def __attributeUseDeclaration_s (self, attr_use, **kw):
+        return self.__attributeDeclarationDeclaration_s(attr_use.attributeDeclaration(), **kw)
+
+    def __ctdSimpleContentDefinition_s (self, std, **kw):
+        container = kw['container']
+        className = kw['tag']
+        baseReference = self.reference(std, **kw)
+        self._definitionAvailable(container, value=True)
+        declarations = []
+        for attr_use in container.attributeUses():
+            declarations.append(self.__attributeUseDeclaration_s(attr_use, **kw))
+        declarations = "\n    ".join(declarations)
+        print "SIMPLE BASE %s" % (baseReference,)
+        return templates.replaceInText('''
+class %{className} (%{baseReference}):
+   %{declarations}
+   pass
+''', locals())
+
     def _ctdDefinition_s (self, ctd, **kw):
         kw = kw.copy()
         kw.setdefault('namespace', ctd.targetNamespace())
         kw.setdefault('tag', self.reference(ctd, require_defined=False, **kw))
-        #raise IncompleteImplementationError('No generate support for CTD %s' % (ctd,))
-        return '# Undefined %s' % (ctd.name(),)
+        content_type = ctd.contentType()
+        if ctd.CT_EMPTY == content_type:
+            raise IncompleteImplementationError('No generate support for empty CTD %s' % (ctd,))
+        base_type = ctd.baseTypeDefinition()
+        assert base_type is not None
+        if not self._definitionAvailable(base_type, **kw):
+            raise DependencyError(self, base_type)
+        print ctd.name()
+        assert isinstance(content_type, tuple)
+        ( type_tag, particle ) = content_type
+        if ctd.CT_SIMPLE == type_tag:
+            return self.__ctdSimpleContentDefinition_s(particle, container=ctd, **kw)
+        return self.__ctdParticleDefinition_s(particle, container=ctd, **kw)
+
+    def __elementDeclaration_l (self, element_decl, **kw):
+        member_name = element_decl.name()
+        member_init = self.__initializer(element_decl, elt_type=element_decl.typeDefinition(), **kw)
+        return [ templates.replaceInText('''
+    %{member_name} = %{member_init}
+''', locals()) ]
+
+    def __modelGroupDeclarations_l (self, model_group, **kw):
+        rv = []
+        for p in model_group.particles():
+            rv.extend(self.__particleDeclarations_l(p, **kw))
+        return rv
+
+    def __particleDeclarations_l (self, particle, **kw):
+        kw = kw.copy()
+        kw['is_plural'] = particle.isPlural()
+        rv = []
+        if isinstance(particle.term(), structures.ModelGroup):
+            rv.extend(self.__modelGroupDeclarations_l(particle.term(), **kw))
+        elif isinstance(particle.term(), structures.ElementDeclaration):
+            rv.extend(self.__elementDeclaration_l(particle.term(), **kw))
+        else:
+            print particle
+            raise IncompleteImplementationError('No support for particle term type %s' % (type(particle.term()),))
+        return rv
+
+    def __ctdParticleDefinition_s (self, particle, **kw):
+        className = kw['tag']
+        container = kw['container']
+        baseReference = self.reference(container.baseTypeDefinition(), **kw)
+        declarations = self.__particleDeclarations_l(particle, **kw)
+        declarations = "\n    ".join(declarations)
+        self._definitionAvailable(container, value=True)
+        return templates.replaceInText('''
+# Complex type
+class %{className} (%{baseReference}):
+    %{declarations}
+    pass
+
+''', locals())
+        
 
     __facetsModule = 'xs.facets'
     __enumerationPrefixMap = { }
@@ -162,6 +251,7 @@ class %{className} (%{baseReference}):
                 return self.__constrainingFacetDefinition_s(v, **kw)
             raise IncompleteImplementationError('No generate definition support for object type %s' % (v.__class__,))
         except DependencyError, e:
+            print 'Halted generation of %s: %s' % (v.name(), e)
             self._queueForGeneration(v)
 
     __constrainingFacetInstancePrefix = '_CF_'
@@ -186,10 +276,13 @@ class %{className} (%{baseReference}):
         generated_code = []
         self.__pendingGeneration = definitions
         while self.__pendingGeneration:
+            print 'LOOPING OVER GENERATABLES'
             ungenerated = self.__pendingGeneration
             self.__pendingGeneration = []
             for component in ungenerated:
-                generated_code.append(self._definition(component))
+                code = self._definition(component)
+                print code
+                generated_code.append(code)
             if self.__pendingGeneration == ungenerated:
                 # This only happens if we didn't code things right, or
                 # the schema actually has a circular dependency in
@@ -222,6 +315,7 @@ class %{className} (%{baseReference}):
 
     __componentLocalIndex = 0
     def __componentReference (self, component, **kw):
+        kw = kw.copy()
         require_defined = kw.get('require_defined', True)
         ref_tag = '__referenceTag'
         if hasattr(component, ref_tag):
@@ -234,7 +328,7 @@ class %{className} (%{baseReference}):
                 tag = '%s' % (component.ncName(),)
             setattr(component, ref_tag, tag)
         if require_defined and not self._definitionAvailable(component, **kw):
-            raise DependencyError(component)
+            raise DependencyError(self, component)
         ns = kw.get('namespace', None)
         if (ns is None) or (ns != component.targetNamespace()):
             tag = '%s.%s' % (self.moduleForNamespace(component.targetNamespace()), tag)

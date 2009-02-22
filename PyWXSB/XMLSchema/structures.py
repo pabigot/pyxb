@@ -456,6 +456,9 @@ class ElementDeclaration (_NamedComponent_mixin, _Resolvable_mixin, _Annotated_m
         super(ElementDeclaration, self).__init__(*args, **kw)
         self.__ancestorComponent = kw.get('ancestor_component', None)
 
+    def isPlural (self):
+        return False
+
     @classmethod
     def CreateFromDOM (cls, wxs, node, ancestor_component=None):
         # Node should be an XMLSchema element node
@@ -546,6 +549,10 @@ class ElementDeclaration (_NamedComponent_mixin, _Resolvable_mixin, _Annotated_m
         self.__domNode = None
         return self
 
+    def __str__ (self):
+        return '%s[%s]' % (self.name(), self.typeDefinition().name())
+
+
 class ComplexTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
     __baseTypeDefinition = None
     def baseTypeDefinition (self):
@@ -592,6 +599,18 @@ class ComplexTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
          * ( CT_ELEMENT_ONLY, particle )
         """
         return self.__contentType
+
+    def contentTypeToString (self):
+        if self.CT_EMPTY == self.contentType():
+            return 'EMPTY'
+        ( tag, particle ) = self.contentType()
+        if self.CT_SIMPLE == tag:
+            return 'Simple [%s]' % (particle,)
+        if self.CT_MIXED == tag:
+            return 'Mixed [%s]' % (particle,)
+        if self.CT_ELEMENT_ONLY == tag:
+            return 'Element [%s]' % (particle,)
+        raise LogicError('Unhandled content type')
 
     # Derived from the block and blockDefault attributes
     __prohibitedSubstitutions = DM_empty
@@ -755,7 +774,7 @@ class ComplexTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
                 raise IncompleteImplementationError("contentType clause 3 of simple content in CTD")
         else:
             # Clause 4
-            self.__contentType = self.__baseTypeDefinition
+            self.__contentType = ( self.CT_SIMPLE, self.__baseTypeDefinition )
                 
         return self.__completeProcessing(wxs, definition_node_list, method, 'simple')
 
@@ -848,7 +867,7 @@ class ComplexTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
                 m = ModelGroup(compositor=ModelGroup.C_SEQUENCE, particles=[ parent_content_type[1], effective_content ])
                 content_type = ( ct, Particle(term=m) )
 
-        assert (self.CT_EMPTY == content_type) or (type(content_type) == tuple)
+        assert (self.CT_EMPTY == content_type) or ((type(content_type) == tuple) and (content_type[1] is not None))
         self.__contentType = content_type
         return self.__completeProcessing(wxs, definition_node_list, method, 'complex')
 
@@ -1028,9 +1047,11 @@ class ModelGroup (_Annotated_mixin):
 
     # One of the C_* values above
     __compositor = C_INVALID
+    def compositor (self): return self.__compositor
 
     # A list of _Particle instances
     __particles = None
+    def particles (self): return self.__particles
 
     def __init__ (self, *args, **kw):
         super(ModelGroup, self).__init__(*args, **kw)
@@ -1038,6 +1059,12 @@ class ModelGroup (_Annotated_mixin):
         particles = kw.get('particles', [])
         self.__compositor = compositor
         self.__particles =[ _p._setAncestorComponent(self) for _p in particles ]
+
+    def isPlural (self):
+        for p in self.particles():
+            if p.isPlural():
+                return True
+        return False
 
     @classmethod
     def CreateFromDOM (cls, wxs, node):
@@ -1059,10 +1086,21 @@ class ModelGroup (_Annotated_mixin):
                 particles.append(Particle.CreateFromDOM(wxs, cn, None))
         rv = cls(compositor=compositor, particles=particles)
         rv._annotationFromDOM(wxs, node)
+        return rv
 
     @classmethod
     def GroupMemberTags (cls, wxs):
         return [ wxs.xsQualifiedName(_tag) for _tag in [ 'all', 'choice', 'sequence' ] ]
+
+    def __str__ (self):
+        comp = None
+        if self.C_ALL == self.compositor():
+            comp = 'ALL'
+        elif self.C_CHOICE == self.compositor():
+            comp = 'CHOICE'
+        elif self.C_SEQUENCE == self.compositor():
+            comp = 'SEQUENCE'
+        return '%s:(%s)' % (comp, ",".join( [ str(_p) for _p in self.particles() ] ) )
 
 class Particle (_Resolvable_mixin):
     """Some entity along with occurrence information."""
@@ -1092,6 +1130,11 @@ class Particle (_Resolvable_mixin):
         """A reference to a ModelGroup, Wildcard, or ElementDeclaration."""
         return self.__term
 
+    def isPlural (self):
+        if (self.maxOccurs() is None) or 1 < self.maxOccurs():
+            return True
+        return self.term().isPlural()
+
     # If this particle is within a complexType or a group, we need the
     # corresponding ComplexTypeDefinition or ModelGroup in order to
     # handle non-reference local elements.
@@ -1115,6 +1158,7 @@ class Particle (_Resolvable_mixin):
     
     def _setAncestorComponent (self, ancestor_component):
         self.__ancestorComponent = ancestor_component
+        return self
 
     @classmethod
     def CreateFromDOM (cls, wxs, node, ancestor_component):
@@ -1157,6 +1201,7 @@ class Particle (_Resolvable_mixin):
             # Neither group definitions, nor model groups, require
             # resolution, so we can just extract the reference.
             term = group_decl.modelGroup()
+            assert term is not None
         elif node.nodeName in wxs.xsQualifiedNames('element'):
             assert wxs.xsQualifiedName('schema') != node.parentNode.nodeName
             # 3.9.2 says use 3.3.2, which is Element.  The element
@@ -1166,9 +1211,11 @@ class Particle (_Resolvable_mixin):
                 term = wxs.lookupElement(node.getAttribute('ref'))
             else:
                 term = ElementDeclaration.CreateFromDOM(wxs, node, self.__ancestorComponent)
+            assert term is not None
         elif node.nodeName in wxs.xsQualifiedNames('any'):
             # 3.9.2 says use 3.10.2, which is Wildcard.
             term = Wildcard.CreateFromDOM(wxs, node)
+            assert term is not None
         elif node.nodeName in ModelGroup.GroupMemberTags(wxs):
             # Choice, sequence, and all inside a particle are explicit
             # groups (or a restriction of explicit group, in the case
@@ -1176,6 +1223,7 @@ class Particle (_Resolvable_mixin):
             term = ModelGroup.CreateFromDOM(wxs, node)
         else:
             raise LogicError('Unhandled node in Particle._resolve: %s' % (node.toxml(),))
+        assert term is not None
         self.__term = term
         self.__domNode = None
         return self
@@ -1189,6 +1237,9 @@ class Particle (_Resolvable_mixin):
     def ParticleTags (cls, wxs):
         """Return the list of schema element tags for any particle."""
         return [ wxs.xsQualifiedName(_tag) for _tag in [ 'group', 'all', 'choice', 'sequence', 'element', 'any' ] ]
+
+    def __str__ (self):
+        return '%s{%d:%s}' % (self.term(), self.minOccurs(), self.maxOccurs())
 
 
 # 3.10.1

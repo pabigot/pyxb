@@ -146,15 +146,15 @@ class CF_maxLength (ConstrainingFacet, _Fixed_mixin):
     def __init__ (self, **kw):
         super(CF_maxLength, self).__init__(value_datatype=datatypes.nonNegativeInteger, **kw)
 
+class _PatternElement:
+    pattern = None
+    annotation = None
+    def __init__ (self, pattern=None, annotation=None):
+        self.pattern = pattern
+        self.annotation = annotation
+
 class CF_pattern (ConstrainingFacet):
     _Name = 'pattern'
-
-    class _PatternElement:
-        pattern = None
-        annotation = None
-        def __init__ (self, pattern=None, annotation=None):
-            self.pattern = pattern
-            self.annotation = annotation
 
     __patternElements = None
     def patternElements (self): return self.__patternElements
@@ -168,25 +168,26 @@ class CF_pattern (ConstrainingFacet):
 
     def updateFromDOM (self, wxs, node):
         super(CF_pattern, self).updateFromDOM(wxs, node)
-        self.__patternElements.append(self._PatternElement(self.__pattern, structures.LocateUniqueChild(node, wxs, 'annotation')))
+        self.__patternElements.append(_PatternElement(self.__pattern, structures.LocateUniqueChild(node, wxs, 'annotation')))
 
     def _valueString (self):
         return '(%s)' % (','.join([ str(_x.pattern) for _x in self.__patternElements ]),)
 
+class _EnumerationElement:
+    tag = None
+    value = None
+    description = None
+    annotation = None
+    def __init__ (self, tag=None, value=None, description=None, annotation=None):
+        self.tag = tag
+        self.value = value
+        self.description = description
+        if (self.description is None) and (self.annotation is not None):
+            self.description = str(self.annotation)
+
+
 class CF_enumeration (ConstrainingFacet):
     _Name = 'enumeration'
-
-    class _EnumerationElement:
-        tag = None
-        value = None
-        description = None
-        annotation = None
-        def __init__ (self, tag=None, value=None, description=None, annotation=None):
-            self.tag = tag
-            self.value = value
-            self.description = description
-            if (self.description is None) and (self.annotation is not None):
-                self.description = str(self.annotation)
 
     __enumerationElements = None
     def enumerationElements (self): return self.__enumerationElements
@@ -202,11 +203,11 @@ class CF_enumeration (ConstrainingFacet):
 
     def updateFromDOM (self, wxs, node):
         super(CF_enumeration, self).updateFromDOM(wxs, node)
-        self.__enumerationElements.append(self._EnumerationElement(tag=self.__tag,
-                                                                   annotation=structures.LocateUniqueChild(node, wxs, 'annotation'))) 
+        self.__enumerationElements.append(_EnumerationElement(tag=self.__tag,
+                                                              annotation=structures.LocateUniqueChild(node, wxs, 'annotation'))) 
 
     def addEnumeration (self, **kw):
-        self.__enumerationElements.append(self._EnumerationElement(**kw))
+        self.__enumerationElements.append(_EnumerationElement(**kw))
 
     def _valueString (self):
         return '(%s)' % (','.join([ str(_x.tag) for _x in self.__enumerationElements ]),)
