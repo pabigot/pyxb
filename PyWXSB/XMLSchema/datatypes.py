@@ -112,6 +112,8 @@ class string (unicode, _PST_mixin):
     def XsdLiteral (cls, value):
         return "'%s'" % (value,)
 
+    _CF_whiteSpace = None
+
 _PrimitiveDatatypes.append(string)
 
 # It is illegal to subclass the bool type in Python, so we subclass

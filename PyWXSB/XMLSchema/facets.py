@@ -185,7 +185,6 @@ class _EnumerationElement:
         if (self.description is None) and (self.annotation is not None):
             self.description = str(self.annotation)
 
-
 class CF_enumeration (ConstrainingFacet):
     _Name = 'enumeration'
 

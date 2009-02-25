@@ -3,6 +3,7 @@ import templates
 from Namespace import Namespace
 import XMLSchema.structures as structures
 import XMLSchema.facets as facets
+import bindings
 
 class Generator (object):
     pass
@@ -16,8 +17,18 @@ class DependencyError (PyWXSBException):
         self.__component = component
 
 class PythonGenerator (Generator):
-    __xsdModule = 'datatypes'
-    __facetsModule = 'facets'
+    __targetNamespace = None
+    def targetNamespace (self): return self.__targetNamespace
+
+    __generatorConfiguration = None
+    def generatorConfiguration (self): return self.__generatorConfiguration
+
+    def __init__ (self, namespace, xs_module, generator_configuration=None):
+        self.__targetNamespace = namespace
+        self.__xsModule = xs_module
+        if generator_configuration is None:
+            generator_configuration = bindings.GeneratorConfiguration(self.targetNamespace())
+        self.__generatorConfiguration = generator_configuration
 
     def stringToUnquotedLiteral (self, value):
         value = value.replace('"', '\"')
@@ -94,7 +105,7 @@ class %{className} (%{baseReference}):
 %{definitions}
 %{className}._Facets = [ %{facets} ]
 
-''', locals())
+''', **locals())
 
         raise IncompleteImplementationError('No generate support for STD variety %s' % (std.VarietyToString(std.variety()),))
 
@@ -146,7 +157,7 @@ class %{className} (%{baseReference}):
         return [ templates.replaceInText('''
     # %{elt_type_ref}
     %{member_name} = %{member_init}\
-''', locals()) ]
+''', **locals()) ]
 
     def __modelGroupDeclarations_l (self, model_group, **kw):
         rv = []
@@ -185,7 +196,7 @@ class %{className} (%{baseReference}):
 class %{className} (%{baseReference}):
     %{declarations}
 
-''', locals())
+''', **locals())
         
 
     __facetsModule = 'xs.facets'
@@ -197,10 +208,22 @@ class %{className} (%{baseReference}):
 
     def __enumerationDeclarations_l (self, facet, **kw):
         rv = []
+        g = self.generatorConfiguration()
+        ickw = kw.copy()
+        ickw['in_class'] = facet.ownerTypeDefinition()
+        facet_ref = g.getReference(facet, **ickw)
+        facet_value_type_ref = g.getReference(facet.baseTypeDefinition(), **ickw)
+        rv.append('%s = bindings.ConstrainingFacet(value_datatype=%s)' % (facet_ref, facet_value_type_ref))
         for enum_elt in facet.enumerationElements():
             if enum_elt.description is not None:
                 rv.extend(self.stringToComment(str(enum_elt.description)))
-            rv.append('%s = %s' % (self.__enumerationTag(facet, enum_elt.tag), self.stringToQuotedLiteral(enum_elt.tag)))
+            var = g.getReference(enum_elt, **ickw)
+            # @todo optionally use integer values to speed comparisons
+            val = self.stringToQuotedLiteral(enum_elt.tag)
+            rv.append('%s = %s' % (var, val))
+            rv.append('%s.addEnumeration(tag=%s, value=%s)' % (facet_ref,
+                                                               self.stringToQuotedLiteral(enum_elt.tag),
+                                                               var))
             rv.append('')
         return rv
 

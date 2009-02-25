@@ -31,9 +31,10 @@ for file in files:
                 if facet is not None:
                     facet.enumPrefix('%s_' % enum_prefix)
 
-        gen = Generator()
-        #rint "\n".join(gen.generateDefinitions([ns.lookupTypeDefinition('NetworkLinkControlType')]))
-        print "\n".join(gen.generateDefinitions(ns.typeDefinitions()))
+        gen = Generator(ns, 'xs')
+        print "\n".join(gen.generateDefinitions([ns.lookupTypeDefinition('viewRefreshModeEnum')]))
+        #print "\n".join(gen.generateDefinitions([ns.lookupTypeDefinition('NetworkLinkControlType')]))
+        #print "\n".join(gen.generateDefinitions(ns.typeDefinitions()))
 
     except Exception, e:
         sys.stderr.write("%s processing %s:\n" % (e.__class__, file))

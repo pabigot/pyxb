@@ -8,8 +8,6 @@ DefaultBindingPath = "/home/pab/pywxsb/dev/bindings"
 
 # Stuff required for pickling
 import cPickle as pickle
-import new
-from types import MethodType
 
 class Namespace (object):
     """Represents an XML namespace, viz. a URI.
@@ -63,6 +61,14 @@ class Namespace (object):
     # A string denoting the path by which this namespace is imported into
     # generated Python modules
     __modulePath = None
+
+    # A set of options defining how the Python bindings for this
+    # namespace were generated.
+    __bindingConfiguration = None
+    def bindingConfiguration (self, bc=None):
+        if bc is not None:
+            self.__bindingConfiguration = bc
+        return self.__bindingConfiguration
 
     def __getnewargs__ (self):
         """Pickling support.
@@ -275,7 +281,7 @@ class Namespace (object):
             rv = self.__uri
         return rv
 
-    __PICKLE_FORMAT = '200902061410'
+    __PICKLE_FORMAT = '200902240721'
 
     def __getstate__ (self):
         """Support pickling.
@@ -287,10 +293,13 @@ class Namespace (object):
         on whether the namespace has already been encountered."""
         kw = {
             'schema_location': self.__schemaLocation,
-            'description':self.__description
-            # Do not include __boundPrefix: bound namespaces should
+            'description':self.__description,
+            # * Do not include __boundPrefix: bound namespaces should
             # have already been created by the infrastructure, so the
             # unpickler should never create one.
+            # * Do not include __modulePath: that is determined by the
+            # code that uses the bindings
+            '__bindingConfiguration': self.__bindingConfiguration
             }
         args = ( self.__uri, )
         return ( self.__PICKLE_FORMAT, args, kw )
@@ -305,9 +314,10 @@ class Namespace (object):
         recognized by this method."""
         ( format, args, kw ) = state
         if self.__PICKLE_FORMAT != format:
-            raise UnpicklingError('Got Namespace pickle format %s, require %s' % (format, self.__PICKLE_FORMAT))
+            raise pickle.UnpicklingError('Got Namespace pickle format %s, require %s' % (format, self.__PICKLE_FORMAT))
         ( uri, ) = args
         assert self.__uri == uri
+        # @todo This is wrong: need to map names into private member variables
         self.__dict__.update(kw)
 
     # Class variable recording the namespace that is currently being
