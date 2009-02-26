@@ -15,114 +15,7 @@ import PyWXSB.Namespace as Namespace
 import datatypes
 import facets
 import PyWXSB.templates as templates
-
-def LocateUniqueChild (node, schema, tag, absent_ok=True):
-    """Locate a unique child of the DOM node.
-
-    The node should be a xml.dom.Node ELEMENT_NODE instance.  The
-    schema from which the node derives is also provided.  tag is the
-    NCName of an XMLSchema element.  This function returns the sole
-    child of node which is an ELEMENT_NODE instance and has a tag
-    consistent with the given tag.  If multiple nodes with a matching
-    tag are found, or abesnt_ok is False and no matching tag is found,
-    an exception is raised.
-
-    @throw SchemaValidationError if multiple elements are identified
-    @throw SchemaValidationError if absent_ok is False and no element is identified.
-    """
-    candidate = None
-    # @todo identify QName children as well as NCName
-    names = schema.xsQualifiedNames(tag)
-    for cn in node.childNodes:
-        if (Node.ELEMENT_NODE == cn.nodeType) and (cn.nodeName in names):
-            if candidate:
-                raise SchemaValidationError('Multiple %s elements nested in %s' % (name, node.nodeName))
-            candidate = cn
-    if (candidate is None) and not absent_ok:
-        raise SchemaValidationError('Expected %s elements nested in %s' % (name, node.nodeName))
-    return candidate
-
-def NodeAttribute (node, schema, attribute_ncname, attribute_ns=Namespace.XMLSchema):
-    """Look up an attribute in a node.
-
-    NEVER EVER use node.hasAttribute or node.getAttribute directly.
-    The attribute tag can often be in multiple forms.
-
-    This gets tricky because the attribute tag may or may not be
-    qualified with a namespace.  The qualifier may be elided if the
-    containing element is in the attribute's namespace, even if that
-    is not the default namespace for the schema.
-
-    Return the requested attribute, or None if the attribute is not
-    present in the node.
-
-    An example of where this is necessary is the attribute declaration
-    for "lang" in http://www.w3.org/XML/1998/namespace, The simpleType
-    includes a union clause whose memberTypes attribute is
-    unqualified, and XMLSchema is not the default namespace."""
-    assert node.namespaceURI is not None
-    container_ns = schema.namespaceForURI(node.namespaceURI)
-    assert container_ns is not None
-    assert attribute_ns is not None
-    candidate_names = schema.qualifiedNames(attribute_ncname, attribute_ns)
-    if (attribute_ns == container_ns) and not (attribute_ncname in candidate_names):
-        candidate_names = candidate_names + (attribute_ncname,)
-    attr_value = None
-    match_name = None
-    for attr_name in candidate_names:
-        if node.hasAttribute(attr_name):
-            if attr_value is not None:
-                raise SchemaValidationError('Multiple instances of attribute %s from %s' % (attribute_ncname, attribute_ns.uri()))
-            attr_value = node.getAttribute(attr_name)
-    return attr_value
-
-def LocateMatchingChildren (node, schema, tag):
-    """Locate all children of the DOM node that have a particular tag.
-
-    The node should be a xml.dom.Node ELEMENT_NODE instance.  The
-    schema from which the node derives is also provided.  tag is the
-    NCName of an XMLSchema element.  This function returns a list of
-    children of node which are an ELEMENT_NODE instances and have a tag
-    consistent with the given tag.
-    """
-    matches = []
-    names = schema.xsQualifiedNames(tag)
-    for cn in node.childNodes:
-        if (Node.ELEMENT_NODE == cn.nodeType) and (cn.nodeName in names):
-            matches.append(cn)
-    return matches
-
-def LocateFirstChildElement (node, absent_ok=True, require_unique=False):
-    """Locate the first element child of the node.
-
-    If absent_ok is True, and there are no ELEMENT_NODE children, None
-    is returned.  If require_unique is True and there is more than one
-    ELEMENT_NODE child, an exception is rasied.
-    """
-    
-    candidate = None
-    for cn in node.childNodes:
-        if Node.ELEMENT_NODE == cn.nodeType:
-            if require_unique:
-                if candidate:
-                    raise SchemaValidationError('Multiple elements nested in %s' % (node.nodeName,))
-                candidate = cn
-            else:
-                return cn
-    if (candidate is None) and not absent_ok:
-        raise SchemaValidationError('No elements nested in %s' % (node.nodeName,))
-    return candidate
-
-def HasNonAnnotationChild (wxs, node):
-    """Return True iff node has an ELEMENT_NODE child that is not an
-    XMLSchema annotation node."""
-    xs_annotation = wxs.xsQualifiedNames('annotation')
-    for cn in node.childNodes:
-        if Node.ELEMENT_NODE != cn.nodeType:
-            continue
-        if cn.nodeName not in xs_annotation:
-            return True
-    return False
+from PyWXSB.domutils import *
 
 class _Singleton_mixin (object):
     """This class is a mix-in which guarantees that only one instance
@@ -155,12 +48,14 @@ class _Annotated_mixin (object):
             self.__annotation = Annotation.CreateFromDOM(wxs, cn)
 
     def _setFromInstance (self, other):
+        assert self != other
         try:
             super(_Annotated_mixin, self)._setFromInstance(other)
         except AttributeError, e:
             pass
         # @todo make this a copy?
         self.__annotation = other.__annotation
+        return self
 
     def annotation (self):
         return self.__annotation
@@ -712,6 +607,7 @@ class ComplexTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
 
         Returns self.
         """
+        assert self != other
         assert self.isNameEquivalent(other)
 
         # The other STD should be an unresolved schema-defined type.
@@ -736,8 +632,8 @@ class ComplexTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
         # namespace should be provided which is the XMLSchema
         # namespace for this run of the system.  Please, do not try to
         # allow this by clearing the type definition.
-        if in_builtin_definition and (cls.__UrTypeDefinition is not None):
-            raise LogicError('Multiple definitions of UrType')
+        #if in_builtin_definition and (cls.__UrTypeDefinition is not None):
+        #    raise LogicError('Multiple definitions of UrType')
         if cls.__UrTypeDefinition is None:
             # NOTE: We use a singleton subclass of this class
             bi = _UrTypeDefinition(name='anyType', target_namespace=Namespace.XMLSchema, derivation_method=cls.DM_restriction)
@@ -1679,6 +1575,19 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
         super(SimpleTypeDefinition, self).__init__(*args, **kw)
         self.__variety = kw['variety']
 
+    def __setstate__ (self, state):
+        """Extend base class unpickle support to retain link between
+        this instance and the Python class that it describes.
+
+        This is because the pythonSupport value is a class reference,
+        not an instance reference, so it wasn't deserialized, and its
+        class member link was never set.
+        """
+        super_fn = getattr(super(SimpleTypeDefinition, self), '__setstate__', lambda _state: self.__dict__.update(_state))
+        super_fn(state)
+        if self.__pythonSupport is not None:
+            self.__pythonSupport._SimpleTypeDefinition(self)
+
     def __str__ (self):
         elts = [ self.name(), ': ' ]
         if self.VARIETY_absent == self.variety():
@@ -1714,6 +1623,7 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
 
         Returns self.
         """
+        assert self != other
         assert self.isNameEquivalent(other)
         super(SimpleTypeDefinition, self)._setFromInstance(other)
 
@@ -1742,8 +1652,8 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
 
         See section 3.14.7."""
 
-        if in_builtin_definition and (cls.__SimpleUrTypeDefinition is not None):
-            raise LogicError('Multiple definitions of SimpleUrType')
+        #if in_builtin_definition and (cls.__SimpleUrTypeDefinition is not None):
+        #    raise LogicError('Multiple definitions of SimpleUrType')
         if cls.__SimpleUrTypeDefinition is None:
             # Note: We use a singleton subclass
             bi = _SimpleUrTypeDefinition(name='anySimpleType', target_namespace=Namespace.XMLSchema, variety=cls.VARIETY_absent)
@@ -2352,7 +2262,7 @@ class Schema (object):
     def __addTypeDefinition (self, td):
         local_name = td.ncName()
         old_td = self.__typeDefinitions.get(local_name, None)
-        if old_td is not None:
+        if (old_td is not None) and (old_td != td):
             # @todo validation error if old_td is not a built-in
             if isinstance(td, ComplexTypeDefinition) != isinstance(old_td, ComplexTypeDefinition):
                 raise SchemaValidationError('Name %s used for both simple and complex types' % (td.name(),))
@@ -2374,7 +2284,7 @@ class Schema (object):
         assert isinstance(agd, AttributeGroupDefinition)
         local_name = agd.ncName()
         old_agd = self.__attributeGroupDefinitions.get(local_name, None)
-        if old_agd is not None:
+        if (old_agd is not None) and (old_agd != agd):
             raise SchemaValidationError('Name %s used for multiple attribute group definitions' % (local_name,))
         self.__attributeGroupDefinitions[local_name] = agd
         return agd
@@ -2385,15 +2295,15 @@ class Schema (object):
     def _attributeGroupDefinitions (self):
         return self.__attributeGroupDefinitions.values()
 
-    def __addModelGroupDefinition (self, ad):
-        assert isinstance(ad, ModelGroupDefinition)
-        local_name = ad.ncName()
+    def __addModelGroupDefinition (self, mgd):
+        assert isinstance(mgd, ModelGroupDefinition)
+        local_name = mgd.ncName()
         #print 'Defining group %s' % (local_name,)
-        old_ad = self.__modelGroupDefinitions.get(local_name, None)
-        if old_ad is not None:
+        old_mgd = self.__modelGroupDefinitions.get(local_name, None)
+        if (old_mgd is not None) and (old_mgd != mgd):
             raise SchemaValidationError('Name %s used for multiple groups' % (local_name,))
-        self.__modelGroupDefinitions[local_name] = ad
-        return ad
+        self.__modelGroupDefinitions[local_name] = mgd
+        return mgd
 
     def _lookupModelGroupDefinition (self, local_name):
         return self.__modelGroupDefinitions.get(local_name, None)
@@ -2405,7 +2315,7 @@ class Schema (object):
         assert isinstance(ad, AttributeDeclaration)
         local_name = ad.ncName()
         old_ad = self.__attributeDeclarations.get(local_name, None)
-        if old_ad is not None:
+        if (old_ad is not None) and (old_ad != ad):
             raise SchemaValidationError('Name %s used for multiple attribute declarations' % (local_name,))
         self.__attributeDeclarations[local_name] = ad
         return ad
@@ -2421,7 +2331,7 @@ class Schema (object):
         local_name = ed.ncName()
         #print 'Defining element %s' % (local_name,)
         old_ed = self.__elementDeclarations.get(local_name, None)
-        if old_ed is not None:
+        if (old_ed is not None) and (old_ed != ed):
             raise SchemaValidationError('Name %s used for multiple elements' % (local_name,))
         self.__elementDeclarations[local_name] = ed
         return ed
@@ -2437,7 +2347,7 @@ class Schema (object):
         local_name = nd.ncName()
         #print 'Defining notation %s' % (local_name,)
         old_nd = self.__notationDeclarations.get(local_name, None)
-        if old_nd is not None:
+        if (old_nd is not None) and (old_nd != nd):
             raise SchemaValidationError('Name %s used for multiple notations' % (local_name,))
         self.__notationDeclarations[local_name] = nd
         return nd

@@ -32,16 +32,26 @@ _ListDatatypes = []
 class _PST_mixin (object):
     _Facets = []
 
-    __SimpleTypeDefinition = None
+    # The class attribute name used to store the reference to the STD
+    # instance must be unique to the class, not to this base class.
+    # Otherwise we mistakenly believe we've already associated a STD
+    # instance with a class (e.g., xsd:normalizedString) when in fact it's
+    # associated with the superclass (e.g., xsd:string)
     @classmethod
-    def _SimpleTypeDefinition (cls, std):
-        if cls.__SimpleTypeDefinition is not None:
-            if cls.__SimpleTypeDefinition != std:
-                raise LogicError('%s: Attempt to override existing STD %s with %s' % (cls.__name__, cls.__SimpleTypeDefinition, std))
-        cls.__SimpleTypeDefinition = std
+    def __STDAttrName (cls):
+        return '_%s__SimpleTypeDefinition' % (cls.__name__,)
 
     @classmethod
-    def SimpleTypeDefinition (cls): return cls.__SimpleTypeDefinition
+    def _SimpleTypeDefinition (cls, std):
+        attr_name = cls.__STDAttrName()
+        if hasattr(cls, attr_name):
+            old_value = getattr(cls, attr_name)
+            if old_value != std:
+                raise LogicError('%s: Attempt to override existing STD %s with %s' % (cls, old_value.name(), std.name()))
+        setattr(cls, attr_name, std)
+
+    @classmethod
+    def SimpleTypeDefinition (cls): return getattr(cls, cls.__STDAttrName())
 
     @classmethod
     def XsdLiteral (cls, value):
@@ -161,7 +171,7 @@ class boolean (int, _PST_mixin):
 
 _PrimitiveDatatypes.append(boolean)
 
-class decimal (float, _PST_mixin):
+class decimal (types.FloatType, _PST_mixin):
     """decimal.
     
     http://www/Documentation/W3C/www.w3.org/TR/xmlschema-2/index.html#decimal
@@ -178,7 +188,7 @@ class decimal (float, _PST_mixin):
 
 _PrimitiveDatatypes.append(decimal)
 
-class float (float, _PST_mixin):
+class float (types.FloatType, _PST_mixin):
     """float.
 
     http://www/Documentation/W3C/www.w3.org/TR/xmlschema-2/index.html#float"""
@@ -190,7 +200,7 @@ class float (float, _PST_mixin):
 
 _PrimitiveDatatypes.append(float)
 
-class double (float, _PST_mixin):
+class double (types.FloatType, _PST_mixin):
     _XsdBaseType = anySimpleType
 
     @classmethod
@@ -388,12 +398,14 @@ def _AddSimpleTypes (schema):
         name = dtc.__name__.rstrip('_')
         td = schema._addNamedComponent(xsc.SimpleTypeDefinition.CreatePrimitiveInstance(name, schema.getTargetNamespace(), dtc))
         assert td.isResolved()
+        assert dtc.SimpleTypeDefinition() == td
         pts_std_map.setdefault(dtc, td)
     for dtc in _DerivedDatatypes:
         name = dtc.__name__.rstrip('_')
         parent_std = pts_std_map[dtc.XsdSuperType()]
         td = schema._addNamedComponent(xsc.SimpleTypeDefinition.CreateDerivedInstance(name, schema.getTargetNamespace(), parent_std, dtc))
         assert td.isResolved()
+        assert dtc.SimpleTypeDefinition() == td
         pts_std_map.setdefault(dtc, td)
     for (list_name, element_name) in _ListDatatypes:
         element_std = schema._lookupTypeDefinition(element_name)

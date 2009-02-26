@@ -2,7 +2,7 @@ from PyWXSB.exceptions_ import *
 from xml.dom import Node
 import types
 import datatypes
-import structures
+import PyWXSB.domutils as domutils
 
 class Facet (object):
     _Name = None
@@ -136,7 +136,7 @@ class ConstrainingFacet (Facet):
         return super_fn(**kw)
         
     def _setValueFromDOM (self, wxs, node):
-        self.__setFromKeywords(value=structures.NodeAttribute(node, wxs, 'value'))
+        self.__setFromKeywords(value=domutils.NodeAttribute(node, wxs, 'value'))
         
     def updateFromDOM (self, wxs, node):
         try:
@@ -169,7 +169,7 @@ class _Fixed_mixin (object):
     
     def updateFromDOM (self, wxs, node):
         super(_Fixed_mixin, self).updateFromDOM(wxs, node)
-        self.__setFromKeywords(fixed=structures.NodeAttribute(node, wxs, 'fixed'))
+        self.__setFromKeywords(fixed=domutils.NodeAttribute(node, wxs, 'fixed'))
 
 class _CollectionFacet_Item (tuple):
     def __init__ (self, value=None, annotation=None, description=None):
@@ -242,7 +242,7 @@ class CF_pattern (ConstrainingFacet, _CollectionFacet_mixin):
 
     def updateFromDOM (self, wxs, node):
         super(CF_pattern, self).updateFromDOM(wxs, node)
-        self.__patternElements.append(_PatternElement(self.__pattern, structures.LocateUniqueChild(node, wxs, 'annotation')))
+        self.__patternElements.append(_PatternElement(self.__pattern, domutils.LocateUniqueChild(node, wxs, 'annotation')))
 
     def _valueString (self):
         return '(%s)' % (','.join([ str(_x.pattern) for _x in self.__patternElements ]),)
@@ -282,7 +282,7 @@ class CF_enumeration (ConstrainingFacet, _CollectionFacet_mixin):
     def updateFromDOM (self, wxs, node):
         super(CF_enumeration, self).updateFromDOM(wxs, node)
         self.__enumerationElements.append(_EnumerationElement(tag=self.__tag,
-                                                              annotation=structures.LocateUniqueChild(node, wxs, 'annotation'))) 
+                                                              annotation=domutils.LocateUniqueChild(node, wxs, 'annotation'))) 
 
     def addEnumeration (self, **kw):
         self.__enumerationElements.append(_EnumerationElement(**kw))
