@@ -32,6 +32,17 @@ _ListDatatypes = []
 class _PST_mixin (object):
     _Facets = []
 
+    __SimpleTypeDefinition = None
+    @classmethod
+    def _SimpleTypeDefinition (cls, std):
+        if cls.__SimpleTypeDefinition is not None:
+            if cls.__SimpleTypeDefinition != std:
+                raise LogicError('%s: Attempt to override existing STD %s with %s' % (cls.__name__, cls.__SimpleTypeDefinition, std))
+        cls.__SimpleTypeDefinition = std
+
+    @classmethod
+    def SimpleTypeDefinition (cls): return cls.__SimpleTypeDefinition
+
     @classmethod
     def XsdLiteral (cls, value):
         raise LogicError('%s does not implement XsdLiteral' % (cls,))

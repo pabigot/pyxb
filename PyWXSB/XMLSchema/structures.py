@@ -1984,10 +1984,10 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
     # variety is compounded by an alternative, since there is no
     # 'restriction' variety.
     def __completeResolution (self, wxs, body, variety, alternative):
-        if self.__pythonSupport is None:
-            # @todo ERROR multiple references
-            print '%s based on %s' % (self.name(), self.__baseTypeDefinition.name())
-            self._setPythonSupport(self.__baseTypeDefinition.pythonSupport())
+        #if self.__pythonSupport is None:
+        #    # @todo ERROR multiple references
+        #    print '%s based on %s' % (self.name(), self.__baseTypeDefinition.name())
+        #    self._setPythonSupport(self.__baseTypeDefinition.pythonSupport())
         assert self.__variety is None
         assert variety is not None
         if self.VARIETY_absent == variety:
@@ -2185,10 +2185,9 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
         
         return rv
 
-    # pythonSupport is an instance of a subclass of
-    # PythonSimpleTypeSupport.  When set, this simple type definition
-    # must be associated with the support instance using
-    # PSTS._setSimpleTypeDefinition.
+    # pythonSupport is None, or a subclass of datatypes._PSTS_mixin.  When
+    # set, this simple type definition must be associated with the
+    # support instance using PSTS._setSimpleTypeDefinition.
     __pythonSupport = None
 
     def _setPythonSupport (self, python_support):
@@ -2196,6 +2195,7 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
         assert issubclass(python_support, datatypes._PST_mixin)
         # Can't share support instances
         self.__pythonSupport = python_support
+        self.__pythonSupport._SimpleTypeDefinition(self)
         return self.__pythonSupport
 
     def pythonSupport (self):
