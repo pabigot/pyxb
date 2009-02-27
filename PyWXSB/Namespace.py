@@ -407,7 +407,9 @@ def _LoadableNamespaceMap ():
 def XMLSchemaModule ():
     """Return the Python module used for XMLSchema support.
 
-    See SetXMLSchemaModule."""
+    See SetXMLSchemaModule.  If SetXMLSchemaModule has not been
+    invoked, this will return the default schema module
+    (PyWXSB.XMLSchema)."""
     global _XMLSchemaModule
     if _XMLSchemaModule is None:
         import XMLSchema
@@ -427,7 +429,7 @@ def SetXMLSchemaModule (xs_module):
     if _XMLSchemaModule is not None:
         raise LogicError('Cannot SetXMLSchemaModule multiple times')
     if xs_module is None:
-        raise LogicError('Cannot SetXMLSchemaModule without a valid structures module')
+        raise LogicError('Cannot SetXMLSchemaModule without a valid schema module')
     if not issubclass(xs_module.schema, xs_module.structures.Schema):
         raise LogicError('SetXMLSchemaModule: Module does not provide a valid schema class')
     _XMLSchemaModule = xs_module
