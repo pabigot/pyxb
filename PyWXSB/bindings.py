@@ -65,6 +65,40 @@ class GeneratorConfiguration:
         }
     def templateMap (self): return self.__templateMap
 
+    __defaultEnumPrefix = 'EV'
+    __defaultEnumTemplate = '%{pfx}_%{name}'
+
+    def enumConstantName (self, enum_elt):
+        pfx = enum_elt.bindingPrefix()
+        if pfx is None:
+            pfx = self.__defaultEnumPrefix
+        template = enum_elt.bindingTemplate()
+        if template is None:
+            template = self.__defaultEnumTemplate
+        return templates.replaceInText(template, { 'pfx': pfx, 'name': enum_elt.tag }
+
+
+    def enumConstantValue (self, enum_elt):
+        pass
+
+    def enumConstantString (self, enum_elt):
+        pass
+
+    def facetValueClass (self, facet):
+        pass
+
+    def facetConstrainedClass (self, facet):
+        pass
+
+    def facetOwnerClass (self, facet):
+        pass
+
+    def facetValue (self, facet):
+        pass
+
+    def facetObjectName (self, facet, context):
+        pass
+
     def getReference (self, target, **kw):
         name = kw.get('name', None)
         namespace = kw.get('namespace', None)
