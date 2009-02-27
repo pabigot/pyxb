@@ -300,3 +300,19 @@ Base Classes
  - _CTD_mixin
  - _AG_mixin
  - _Union_mixin
+
+Things To Generate
+
+EnumerationElement:
+ - python name : template expansion from tag.  Requires global support when
+   used as default value cross-namespace
+ - python value : string value, or id expansion.  Local only.
+ - string value : literal from value.  Local only.
+
+ConstrainingFacet:
+ - python name : template expansion from Name.  Global support when inherited.
+ - value : literal from value.  Local only.
+
+TypeDefinition:
+ - python type reference : template expansion from ncName and targetNamespace
+
