@@ -1797,7 +1797,6 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
         variety = self.__baseTypeDefinition.__variety
         if self.__baseTypeDefinition == self.SimpleUrTypeDefinition():
             variety = self.VARIETY_atomic
-        # @todo extract facet constraints
         return self.__completeResolution(wxs, body, variety, 'restriction')
 
     def __initializeFromUnion (self, wxs, body):
@@ -1885,7 +1884,13 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
                         owner_type_definition=self,
                         super_facet=base_facets[fc])
                 for cn in children:
-                    fi.updateFromDOM(wxs, cn)
+                    kw = { 'annotation': LocateUniqueChild(cn, wxs, 'annotation') }
+                    for ai in range(0, cn.attributes.length):
+                        attr = cn.attributes.item(ai)
+                        # Convert name from unicode to string
+                        kw[str(attr.localName)] = attr.value
+                    print 'set %s from %s' % (fi.Name(), kw)
+                    fi.setFromKeywords(**kw)
             facets[fc] = fi
         self.__facets = facets
         assert type(self.__facets) == types.DictType

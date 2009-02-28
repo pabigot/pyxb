@@ -52,9 +52,13 @@ class Facet (object):
         super(Facet, self).__init__()
         # Can't create base class instances
         assert Facet != self.__class__
-        self.setFromKeywords(_reset=True, **kw)
+        self.setFromKeywords(_reset=True, _constructor=True, **kw)
 
     def _setFromKeywords_vb (self, **kw):
+        if not kw.get('_reset', False):
+            kw.setdefault('Base_type_definition', self.__baseTypeDefinition)
+            kw.setdefault('ownner_type_definition', self.__ownerTypeDefinition)
+            kw.setdefault('value_type_definition', self.__valueTypeDefinition)
         self.__baseTypeDefinition = kw.get('base_type_definition', None)
         self.__ownerTypeDefinition = kw.get('owner_type_definition', None)
         self.__valueTypeDefinition = kw.get('value_type_definition', None)
@@ -79,6 +83,8 @@ class Facet (object):
         return facet_class
 
     def _valueString (self):
+        if isinstance(self, _CollectionFacet_mixin):
+            return ','.join([ str(_i) for _i in self.items() ])
         if self.valueDatatype() is not None:
             try:
                 self.valueDatatype().XsdToString(self.value())
@@ -135,49 +141,23 @@ class ConstrainingFacet (Facet):
         super_fn = getattr(super(ConstrainingFacet, self), '_setFromKeywords_vb', lambda *a,**kw: self)
         return super_fn(**kw)
         
-    def _setValueFromDOM (self, wxs, node):
-        self.__setFromKeywords(value=domutils.NodeAttribute(node, wxs, 'value'))
-        
-    def updateFromDOM (self, wxs, node):
-        try:
-            super(ConstrainingFacet, self).updateFromDOM(wxs, node)
-        except AttributeError, e:
-            pass
-        assert node.nodeName in wxs.xsQualifiedNames(self.Name())
-        self._setValueFromDOM(wxs, node)
-        # @todo
-        self.__annotation = None
-        return self
-
 class _Fixed_mixin (object):
     """Mix-in to a constraining facet that adds support for the 'fixed' property."""
     __fixed = None
     def fixed (self): return self.__fixed
 
     def __setFromKeywords (self, **kw):
-        if '_reset' in kw:
+        if kw.get('_reset', False):
             self.__fixed = None
         kwv = kw.get('fixed', None)
         if kwv is not None:
-            self.__fixed = datatypes.boolean.StringToPython(kwv)
+            self.__fixed = datatypes.boolean(kwv)
         
     def _setFromKeywords_vb (self, **kw):
-        print 'Fixed_mixin sFK'
         self.__setFromKeywords(**kw)
         super_fn = getattr(super(_Fixed_mixin, self), '_setFromKeywords_vb', lambda *a,**kw: self)
         return super_fn(**kw)
     
-    def updateFromDOM (self, wxs, node):
-        super(_Fixed_mixin, self).updateFromDOM(wxs, node)
-        self.__setFromKeywords(fixed=domutils.NodeAttribute(node, wxs, 'fixed'))
-
-class _CollectionFacet_Item (tuple):
-    def __init__ (self, value=None, annotation=None, description=None):
-        self.value = value
-        self.annotation = annotation
-        self.description = description
-        super(_CollectionFacet_Item, self).__init__(self, value, annotation, description)
-
 class _CollectionFacet_mixin (object):
     """Mix-in to handle facets whose values are collections, not scalars.
 
@@ -188,16 +168,13 @@ class _CollectionFacet_mixin (object):
     __items = None
 
     def _setFromKeywords_vb (self, **kw):
-        print 'CF_mixin sFK'
-        if '_reset' in kw:
+        if kw.get('_reset', False):
             self.__items = []
-        if 'value' in kw:
-            del kw['value']
+        if not kw.get('_constructor', False):
+            print self._CollectionFacet_item
+            self.__items.append(self._CollectionFacet_item(**kw))
         super_fn = getattr(super(_CollectionFacet_mixin, self), '_setFromKeywords_vb', lambda *a,**kw: self)
         return super_fn(**kw)
-
-    def extendFromKeywords (self, **kw):
-        self.__items.append(_CollectionFacet_Item(**kw))
 
     def items (self): return self.__items
 
@@ -220,52 +197,48 @@ class CF_maxLength (ConstrainingFacet, _Fixed_mixin):
     def __init__ (self, **kw):
         super(CF_maxLength, self).__init__(value_type_definition=datatypes.nonNegativeInteger.SimpleTypeDefinition(), **kw)
 
-class _PatternElement:
-    pattern = None
-    annotation = None
-    def __init__ (self, pattern=None, annotation=None):
-        self.pattern = pattern
+class _CollectionFacet_Item (tuple):
+    def __init__ (self, value=None, annotation=None, description=None, **kw):
+        self.value = value
         self.annotation = annotation
+        self.description = description
+        super(_CollectionFacet_Item, self).__init__(self, value, annotation, description)
+
+class _PatternElement:
+    def __init__ (self, value=None, annotation=None, **kw):
+        assert value is not None
+        self.pattern = value
+        self.annotation = annotation
+
+    def __str__ (self): return self.pattern
 
 class CF_pattern (ConstrainingFacet, _CollectionFacet_mixin):
     _Name = 'pattern'
+    _CollectionFacet_item = _PatternElement
 
     __patternElements = None
     def patternElements (self): return self.__patternElements
 
     def __init__ (self, **kw):
-        super(CF_pattern, self).__init__(**kw)
+        super(CF_pattern, self).__init__(value_type_definition=datatypes.string.SimpleTypeDefinition(), **kw)
         self.__patternElements = []
 
-    def _setValueFromDOM (self, wxs, node):
-        self.__pattern = node.getAttribute('value')
-
-    def updateFromDOM (self, wxs, node):
-        super(CF_pattern, self).updateFromDOM(wxs, node)
-        self.__patternElements.append(_PatternElement(self.__pattern, domutils.LocateUniqueChild(node, wxs, 'annotation')))
-
-    def _valueString (self):
-        return '(%s)' % (','.join([ str(_x.pattern) for _x in self.__patternElements ]),)
-
 class _EnumerationElement:
-    tag = None
-    value = None
-    description = None
-    annotation = None
-    __bindingPrefix = None
-
-    def bindingPrefix (self): return self.__bindingPrefix
-    
-    def __init__ (self, tag=None, value=None, description=None, annotation=None, binding_prefix=None):
-        self.tag = tag
+    def __init__ (self, value=None, tag=None, description=None, annotation=None, binding_prefix=None, **kw):
+        assert value is not None
         self.value = value
+        self.tag = tag
         self.description = description
+        self.annotation = annotation
         if (self.description is None) and (self.annotation is not None):
             self.description = str(self.annotation)
         self.__bindingPrefix = binding_prefix
 
+    def __str__ (self): return self.value
+
 class CF_enumeration (ConstrainingFacet, _CollectionFacet_mixin):
     _Name = 'enumeration'
+    _CollectionFacet_item = _EnumerationElement
 
     __enumerationElements = None
     def enumerationElements (self): return self.__enumerationElements
@@ -273,22 +246,11 @@ class CF_enumeration (ConstrainingFacet, _CollectionFacet_mixin):
     __enumPrefix = 'EV_'
 
     def __init__ (self, **kw):
-        super(CF_enumeration, self).__init__(**kw)
+        super(CF_enumeration, self).__init__(value_data_type=datatypes.string.SimpleTypeDefinition(), **kw)
         self.__enumerationElements = []
-
-    def _setValueFromDOM (self, wxs, node):
-        self.__tag = node.getAttribute('value')
-
-    def updateFromDOM (self, wxs, node):
-        super(CF_enumeration, self).updateFromDOM(wxs, node)
-        self.__enumerationElements.append(_EnumerationElement(tag=self.__tag,
-                                                              annotation=domutils.LocateUniqueChild(node, wxs, 'annotation'))) 
 
     def addEnumeration (self, **kw):
         self.__enumerationElements.append(_EnumerationElement(**kw))
-
-    def _valueString (self):
-        return '(%s)' % (','.join([ str(_x.tag) for _x in self.__enumerationElements ]),)
 
     def enumPrefix (self, enum_prefix=None):
         if enum_prefix is not None:
