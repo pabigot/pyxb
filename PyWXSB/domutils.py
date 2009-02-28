@@ -36,7 +36,7 @@ def NodeAttribute (node, schema, attribute_ncname, attribute_ns=Namespace.XMLSch
             attr_value = node.getAttribute(attr_name)
     return attr_value
 
-def LocateUniqueChild (node, schema, tag, absent_ok=True):
+def LocateUniqueChild (node, schema, tag, absent_ok=True, namespace=Namespace.XMLSchema):
     """Locate a unique child of the DOM node.
 
     The node should be a xml.dom.Node ELEMENT_NODE instance.  The
@@ -52,7 +52,7 @@ def LocateUniqueChild (node, schema, tag, absent_ok=True):
     """
     candidate = None
     # @todo identify QName children as well as NCName
-    names = schema.xsQualifiedNames(tag)
+    names = schema.qualifiedNames(tag, namespace)
     for cn in node.childNodes:
         if (Node.ELEMENT_NODE == cn.nodeType) and (cn.nodeName in names):
             if candidate:
@@ -62,7 +62,7 @@ def LocateUniqueChild (node, schema, tag, absent_ok=True):
         raise SchemaValidationError('Expected %s elements nested in %s' % (name, node.nodeName))
     return candidate
 
-def LocateMatchingChildren (node, schema, tag):
+def LocateMatchingChildren (node, schema, tag, namespace=Namespace.XMLSchema):
     """Locate all children of the DOM node that have a particular tag.
 
     The node should be a xml.dom.Node ELEMENT_NODE instance.  The
@@ -72,7 +72,7 @@ def LocateMatchingChildren (node, schema, tag):
     consistent with the given tag.
     """
     matches = []
-    names = schema.xsQualifiedNames(tag)
+    names = schema.qualifiedNames(tag, namespace)
     for cn in node.childNodes:
         if (Node.ELEMENT_NODE == cn.nodeType) and (cn.nodeName in names):
             matches.append(cn)
