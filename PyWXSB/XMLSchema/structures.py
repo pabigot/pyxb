@@ -1567,10 +1567,7 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
     __isBuiltin = False
 
     # Allocate one of these.  Users should use one of the Create*
-    # factory methods instead.  In an attempt to keep users from
-    # creating these directly rather than through the approved factory
-    # methods, the signature does not provide defaults for the core
-    # attributes.
+    # factory methods instead.
     def __init__ (self, *args, **kw):
         super(SimpleTypeDefinition, self).__init__(*args, **kw)
         self.__variety = kw['variety']
@@ -2100,9 +2097,10 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
         
         return rv
 
-    # pythonSupport is None, or a subclass of datatypes._PSTS_mixin.  When
-    # set, this simple type definition must be associated with the
-    # support instance using PSTS._setSimpleTypeDefinition.
+    # pythonSupport is None, or a subclass of datatypes._PSTS_mixin.
+    # When set, this simple type definition instance must be uniquely
+    # associated with the PST class using
+    # _PSTS_mixin._SimpleTypeDefinition().
     __pythonSupport = None
 
     def _setPythonSupport (self, python_support):

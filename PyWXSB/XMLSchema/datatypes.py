@@ -1,18 +1,23 @@
 """Classes supporting XMLSchema Part 2: Datatypes.
 
+Each SimpleTypeDefinition component instance is paired with at most
+one PythonSimpleType (PST), which is a subclass of a Python type
+augmented with facets and other constraining information.
+
 We want the simple datatypes to be efficient Python values, but to
 also hold specific constraints that don't apply to the Python types.
-To do this, we subclass each STD.  Primitive STDs inherit from the
+To do this, we subclass each STD.  Primitive PSTs inherit from the
 Python type that represents them, and from a _PST_mixin class which
-adds in the constraint infrastructure.  Derived STDs inherit from the
-parent STD.
+adds in the constraint infrastructure.  Derived PSTs inherit from the
+parent PST.
 
-There is an exception to this when the Python type associated with a
-derived STD differs from the type associated with its parent STD: for
-example, xsd:integer has a value range that requires it be represented
-by a Python long, but xsd:int allows representation by a Python int.
-In this case, the derived type is structured like a primitive type,
-but the STD superclass is recorded in a class variable _XsdBaseType.
+There is an exception to this when the Python type best suited for a
+derived SimpleTypeDefinition differs from the type associated with its
+parent STD: for example, xsd:integer has a value range that requires
+it be represented by a Python long, but xsd:int allows representation
+by a Python int.  In this case, the derived PST class is structured
+like a primitive type, but the PST associated with the STD superclass
+is recorded in a class variable _XsdBaseType.
 
 """
 
@@ -51,7 +56,11 @@ class _PST_mixin (object):
         setattr(cls, attr_name, std)
 
     @classmethod
-    def SimpleTypeDefinition (cls): return getattr(cls, cls.__STDAttrName())
+    def SimpleTypeDefinition (cls):
+        attr_name = cls.__STDAttrName()
+        if hasattr(cls, attr_name):
+            return getattr(cls, attr_name)
+        raise IncompleteImplementationError('%s: No STD available' % (cls,))
 
     @classmethod
     def XsdLiteral (cls, value):

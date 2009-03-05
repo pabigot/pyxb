@@ -33,13 +33,28 @@ class Facet (object):
         return self.__valueTypeDefinition
 
     # valueDataType is a Python type, probably a subclassed built-in,
-    # that is used for the value of this facet.
+    # that is used for the value of this facet.  In generated bindings
+    # this is usually set explicitly in the facet constructor; when
+    # processing a schema, it is derived from the value type
+    # definition.
     __valueDatatype = None
     def valueDatatype (self):
-        vtd = self.valueTypeDefinition()
-        if vtd is not None:
-            return vtd.pythonSupport()
-        raise LogicError("No value type definition available for facet %s" % (self.Name(),))
+        vdt = self.__valueDatatype
+        if vdt is None:
+            # No bound type.  Search the STD hierarchy to find a level
+            # where there's a pythonSupport class available.
+            vtd = self.valueTypeDefinition()
+            while vtd is not None:
+                try:
+                    vdt = vtd.pythonSupport()
+                    break
+                except Exception, e:
+                    print "CAUGHT vDT: %s\nGoing from %s to %s" % (e, vtd.name(), vtd.baseTypeDefinition().name())
+                    vtd = vtd.baseTypeDefinition()
+            if vdt is None:
+                raise LogicError("No value type definition available for facet %s" % (self.Name(),))
+            self.__valueDatatype = vdt
+        return self.__valueDatatype
 
     __value = None
     def _value (self, v): self.__value = v
@@ -58,10 +73,16 @@ class Facet (object):
         if not kw.get('_reset', False):
             kw.setdefault('Base_type_definition', self.__baseTypeDefinition)
             kw.setdefault('ownner_type_definition', self.__ownerTypeDefinition)
+            kw.setdefault('value_datatype', self.__valueDatatype)
             kw.setdefault('value_type_definition', self.__valueTypeDefinition)
         self.__baseTypeDefinition = kw.get('base_type_definition', None)
         self.__ownerTypeDefinition = kw.get('owner_type_definition', None)
         self.__valueTypeDefinition = kw.get('value_type_definition', None)
+        self.__valueDatatype = kw.get('value_datatype', None)
+        # Verify that there's enough information that we should be
+        # able to identify a PST suitable for representing facet
+        # values.
+        assert (self.__valueDatatype is not None) or (self.__valueTypeDefinition is not None) or (self.__baseTypeDefinition is not None)
         super_fn = getattr(super(Facet, self), '_setFromKeywords_vb', lambda *a,**kw: self)
         return super_fn(**kw)
     
