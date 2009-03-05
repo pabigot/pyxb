@@ -135,7 +135,8 @@ class schema (xsc.Schema):
         # NB: This will blow up if we're trying to parse the XMLSchema
         # itself, because we already have the built-in schema instance
         # bound to the namespace.
-        self.__targetNamespace._schema(self)
+        if self.__targetNamespace.schema() is None:
+            self.__targetNamespace._schema(self)
 
     def __getNamespaceForLookup (self, type_name):
         """Resolve a QName or NCName appropriately for this schema.
@@ -373,7 +374,8 @@ class schema (xsc.Schema):
         return self.createDOMNodeInNamespace(dom_document, nc_name, Namespace.XMLSchema)
 
     # @todo put these in base class
-    def processDocument (self, doc):
+    @classmethod
+    def CreateFromDOM (cls, doc):
         """Take the root element of the document, and scan its attributes under
         the assumption it is an XMLSchema schema element.  That means
         recognize namespace declarations and process them.  Also look for
@@ -381,14 +383,34 @@ class schema (xsc.Schema):
         to the parent class for storage."""
         default_namespace = None
         root_node = doc.documentElement
+        namespaces = []
+        attribute_map = { }
         for attr in root_node.attributes.values():
             if 'xmlns' == attr.prefix:
                 print 'Created namespace %s for %s' % (attr.nodeValue, attr.localName)
-                self.lookupOrCreateNamespace(attr.nodeValue, attr.localName)
+                namespaces.append( (attr.nodeValue, attr.localName) )
             elif 'xmlns' == attr.name:
                 default_namespace = attr.nodeValue
             else:
-                self._setAttributeFromDOM(attr)
+                attribute_map[attr.name] = attr.nodeValue
+
+        Namespace.XMLSchema.validateSchema()
+
+        tns = Namespace.NamespaceForURI(attribute_map.get('targetNamespace', None))
+        schema = None
+        if tns is not None:
+            schema = tns.schema()
+        if schema is None:
+            schema = cls()
+
+        return schema.__processDocument(doc, namespaces, attribute_map, default_namespace)
+
+    def __processDocument (self, doc, namespaces, attribute_map, default_namespace):
+        root_node = doc.documentElement
+        for (uri, prefix) in namespaces:
+            self.lookupOrCreateNamespace(uri, prefix)
+        self._setAttributesFromMap(attribute_map)
+
         if default_namespace is not None:
             # TODO: Is it required that the default namespace be recognized?
             # Does not hold for http://www.w3.org/2001/xml.xsd

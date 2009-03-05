@@ -2242,6 +2242,10 @@ class Schema (object):
         self.__attributeMap[attr.name] = attr.nodeValue
         return self
 
+    def _setAttributesFromMap (self, attr_map):
+        self.__attributeMap.update(attr_map)
+        return self
+
     def schemaHasAttribute (self, attr_name):
         return self.__attributeMap.has_key(attr_name)
 
