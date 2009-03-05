@@ -72,11 +72,6 @@ class _NamedComponent_mixin (object):
     Namespace, objects that do not belong to that namespace are
     pickled as references, not as values.  This ensures the uniqueness
     of objects when multiple namespace definitions are pre-loaded.
-
-    @todo Actually implement reference unpickling: need a mapping from
-    triple of namespace, ncname, and type to instances; then overload
-    __new__.
-
     """
     # Value of the component.  None if the component is anonymous.
     # This is immutable after creation.
@@ -89,6 +84,54 @@ class _NamedComponent_mixin (object):
     # The schema in which qualified names for the namespace should be
     # determined.
     __schema = None
+
+    def __new__ (cls, *args, **kw):
+        """Pickling support.
+
+        Normally, we just create a new instance of this class.
+        However, if we're unpickling a reference in a loadable schema,
+        we need to return the existing component instance by looking
+        up the name in the component map of the desired namespace.  We
+        can tell the difference because no normal constructors that
+        inherit from this have positional arguments; only invocations
+        by unpickling with a value returned in __getnewargs__ do.
+
+        This does require that the dependent namespace already have
+        been validated (or that it be validated here).  That shouldn't
+        be a problem, except for the dependency loop resulting from
+        use of xml:lang in the XMLSchema namespace.  For that issue,
+        see Namespace._XMLSchema.
+        """
+
+        if 0 == len(args):
+            rv = super(_NamedComponent_mixin, cls).__new__(cls)
+            return rv
+        ( uri, ncname, icls ) = args
+        ns = Namespace.NamespaceForURI(uri)
+        if ns is None:
+            # This shouldn't happen: it implies somebody's unpickling
+            # a schema that includes references to components in a
+            # namespace that was not associated with the schema.
+            raise IncompleteImplementationError('Unable to resolve namespace %s in external reference' % (uri,))
+
+        # Explicitly validate here: the lookup operations won't do so,
+        # but will abort if the namespace hasn't been validated yet.
+        ns.validateSchema()
+        if (issubclass(icls, SimpleTypeDefinition) or issubclass(icls, ComplexTypeDefinition)):
+            rv = ns.lookupTypeDefinition(ncname)
+        elif issubclass(icls, AttributeGroupDefinition):
+            rv = ns.lookupAttributeGroupDefinition(ncname)
+        elif issubclass(icls, ModelGroupDefinition):
+            rv = ns.lookupModelGroupDefinition(ncname)
+        elif issubclass(icls, AttributeDeclaration):
+            rv = ns.lookupAttributeDeclaration(ncname)
+        elif issubclass(icls, ElementDeclaration):
+            rv = ns.lookupElementDeclaration(ncname)
+        else:
+            raise IncompleteImplementationError('Reference lookup not implemented for type %s searching %s in %s' % (icls, ncname, uri))
+        if rv is None:
+            raise SchemaValidationError('Unable to resolve %s as %s in %s' % (ncname, icls, uri))
+        return rv
 
     def __init__ (self, *args, **kw):
         assert 0 == len(args)
@@ -124,25 +167,50 @@ class _NamedComponent_mixin (object):
         # Note that unpickled objects 
         return (self.__name is not None) and (self.__name == other.__name) and (self.__targetNamespace == other.__targetNamespace)
 
+    def __pickleAsReference (self):
+        if self.targetNamespace() is None:
+            return False
+        pickling_namespace = Namespace.Namespace.PicklingNamespace()
+        assert pickling_namespace is not None
+        if pickling_namespace == self.targetNamespace():
+            return False
+        if self.ncName() is None:
+            raise LogicError('Unable to pickle reference to unnamed object %s: %s' % (self.name(), self))
+        return True
+
     def __getstate__ (self):
         pickling_namespace = Namespace.Namespace.PicklingNamespace()
         assert pickling_namespace is not None
-        if self.targetNamespace() is None:
-            #print '@@@ Pickling non-associated name %s type %s' % (self.name(), self)
-            assert isinstance(self, ElementDeclaration)
-            return self.__dict__
-        if pickling_namespace != self.targetNamespace():
-            if self.ncName() is None:
-                raise LogicError('Unable to pickle reference to unnamed object %s: %s' % (self.name(), self))
-            print '@@@ Pickling reference to %s' % (self.name(),)
+        if self.__pickleAsReference():
             return ( self.targetNamespace().uri(), self.ncName() )
-        #print '@@@ Pickling value of %s' % (self.name(),)
+        if self.targetNamespace() is None:
+            # The only internal named objects that should exist are
+            # ElementDeclaration components.
+            assert isinstance(self, ElementDeclaration)
         return self.__dict__
+
+    def __getnewargs__ (self):
+        """Pickling support.
+
+        If this instance is being pickled as a reference, provide the
+        arguments that are necessary so that the unpickler can locate
+        the appropriate component rather than create a duplicate
+        instance."""
+
+        if self.__pickleAsReference ():
+            rv = ( self.targetNamespace().uri(), self.ncName(), self.__class__ )
+            return rv
+        return ()
 
     def __setstate__ (self, state):
         if isinstance(state, tuple):
+            # We don't actually have to set any state here; we just
+            # make sure that we resolved to an already-configured
+            # instance.
             ( ns_uri, nc_name ) = state
-            print '@@@ Need reference to %s[%s]' % (nc_name, ns_uri)
+            assert self.targetNamespace() is not None
+            assert self.targetNamespace().uri() == ns_uri
+            assert self.ncName() == nc_name
             return
         self.__dict__.update(state)
 
