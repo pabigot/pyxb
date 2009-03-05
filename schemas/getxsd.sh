@@ -9,3 +9,7 @@ test -f xml.xsd || wget http://www.w3.org/2001/xml.xsd
 test -f XMLSchema-hasFacetAndProperty.xsd || wget -O XMLSchema-hasFacetAndProperty.xsd http://www.w3.org/2001/XMLSchema-hasFacetAndProperty
 test -f xhtml.xsd || wget http://www.w3.org/1999/xhtml.xsd
 test -f kml21.xsd || wget http://code.google.com/apis/kml/schema/kml21.xsd
+test -f saml-schema-assertion-2.0.xsd || wget http://docs.oasis-open.org/security/saml/v2.0/saml-schema-assertion-2.0.xsd
+test -f saml-schema-protocol-2.0.xsd || wget http://docs.oasis-open.org/security/saml/v2.0/saml-schema-protocol-2.0.xsd
+test -f xmldsig-core-schema.xsd || wget http://www.w3.org/TR/2002/REC-xmldsig-core-20020212/xmldsig-core-schema.xsd
+test -f xenc-schema.xsd || wget http://www.w3.org/TR/2002/REC-xmlenc-core-20021210/xenc-schema.xsd
