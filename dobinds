@@ -3,7 +3,10 @@ rm bindings/*.wxs
 
 # Some must be done in order, to handle dependencies
 python storewxs.py schemas/xml.xsd bindings/xml.wxs
-python storewxs.py schemas/XMLSchema.xsd bindings/xsd.wxs
+# NOTE: XSD depends on XML which depends on XSD.  Since we have a workable
+# XSD schema built-in, do not create an external pre-loaded schema for
+# which we'll have to resolve in XML and subsequently in XSD.
+#python storewxs.py schemas/XMLSchema.xsd bindings/xsd.wxs
 python storewxs.py schemas/XMLSchema-hasFacetAndProperty.xsd bindings/xsd-hfp.wxs
 python storewxs.py schemas/wsdl.xsd bindings/wsdl.wxs
 python storewxs.py schemas/xhtml.xsd bindings/xhtml.wxs

@@ -107,13 +107,6 @@ class schema (xsc.Schema):
         self.__namespaceURIMap = { }
 
     def initializeBuiltins (self):
-        # There better be a target namespace.  Use this as its schema.
-        if self.__targetNamespace is None:
-            # This will blow up if we're processing an included schema
-            # document.
-            raise SchemaValidationError('No targetNamespace provided')
-        self.__targetNamespace._schema(self)
-
         # These two are built-in; make sure they're present
         self.lookupOrCreateNamespace(Namespace.XML.uri())
         self.lookupOrCreateNamespace(Namespace.XMLSchema_instance.uri())
@@ -126,9 +119,23 @@ class schema (xsc.Schema):
             raise LogicError('No access to XMLSchema namespace')
 
         # We're going to need the built-in types from the XMLSchema
-        # namespace.  (This gets tricky during bootstrapping; see the
-        # implementation in the Namespace module.)
-        Namespace.XMLSchema.requireBuiltins(self)
+        # namespace.  @todo This will allocate and associate a schema
+        # instance with the XMLSchema namespace.  If we're trying to
+        # parse the XMLSchema schema, then the namespace/schema
+        # association below will fail.  To support both built-in and
+        # loaded schema for XMLSchema is going to get tricky, because
+        # of a dependency loop on xml:lang.
+        Namespace.XMLSchema.validateSchema()
+
+        # There better be a target namespace.  Use this as its schema.
+        if self.__targetNamespace is None:
+            # This will blow up if we're processing an included schema
+            # document.
+            raise SchemaValidationError('No targetNamespace provided')
+        # NB: This will blow up if we're trying to parse the XMLSchema
+        # itself, because we already have the built-in schema instance
+        # bound to the namespace.
+        self.__targetNamespace._schema(self)
 
     def __getNamespaceForLookup (self, type_name):
         """Resolve a QName or NCName appropriately for this schema.

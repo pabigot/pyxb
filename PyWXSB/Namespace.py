@@ -16,7 +16,7 @@ class Namespace (object):
     The instance also supports associating XMLSchema structure
     components such as groups, complexTypes, etc. with the namespace.
     If an XML schema is not available, these types can be loaded from
-    a pre-built file.  See LoadFromFile(path) for information.
+    a pre-parsed file.  See LoadFromFile(path) for information.
 
     The PyWXSB system permits variant implementations of the
     underlying XML schema components and namespace-specific
@@ -98,11 +98,12 @@ class Namespace (object):
         """If a Namespace instance for the given URI exists, return it; otherwise return None."""
         return cls.__Registry.get(uri, None)
 
+    __inSchemaLoad = False
     def _defineSchema_overload (self):
         """Attempts to load a schema for this namespace.
 
         The base class implementation looks at the set of available
-        pre-built schemas, and if one matches this namespace
+        pre-parsed schemas, and if one matches this namespace
         unserializes it and uses it.
 
         Sub-classes may choose to look elsewhere, if this version
@@ -112,10 +113,14 @@ class Namespace (object):
         returns.  Caller must check.
         """
         assert self.__schema is None
+        assert not self.__inSchemaLoad
 
         afn = _LoadableNamespaceMap().get(self.uri(), None)
         if afn is not None:
+            print 'Loading %s from %s' % (self.uri(), afn)
+            self.__inSchemaLoad = True
             self.LoadFromFile(afn)
+            self.__inSchemaLoad = False
 
     def validateSchema (self):
         """Ensure this namespace is ready for use.
@@ -443,7 +448,7 @@ def SetXMLSchemaModule (xs_module):
             unpickler = pickle.Unpickler(infile)
             uri = unpickler.load()
             __LoadableNamespaces[uri] = afn
-            print 'Pre-built schema for %s available in %s' % (uri, afn)
+            print 'pre-parsed schema for %s available in %s' % (uri, afn)
 
 class _XMLSchema_instance (Namespace):
     """Extension of Namespace that pre-defines types available in the
@@ -459,6 +464,7 @@ class _XMLSchema_instance (Namespace):
             if not XMLSchemaModule():
                 raise LogicError('Must invoke SetXMLSchemaModule from Namespace module prior to using system.')
             schema = XMLSchemaModule().schema()
+            # NOTE: We're explicitly not setting a targetNamespace for this schema.
             xsc = XMLSchemaModule().structures
             schema._addNamedComponent(xsc.AttributeDeclaration.CreateBaseInstance('type', self))
             schema._addNamedComponent(xsc.AttributeDeclaration.CreateBaseInstance('nil', self))
@@ -471,40 +477,38 @@ class _XMLSchema (Namespace):
     """Extension of Namespace that pre-defines types available in the
     XMLSchema namespace."""
 
+    # Ugliness: The XMLSchema definition refers to the xml namespace
+    # to resolve the xml:lang attribute. That's fine, because we've
+    # probably got the xml namespace schema available in a loadable
+    # form.  However, when we load it, it's going to want to look up
+    # types like xsd:anyURI, which are defined in XMLSchema.  That's
+    # good if we're running on the built-in schema, but if we're going
+    # to try to read one from a loadable file, we've got a recursive
+    # definition problem.  We could get around it by installing the
+    # built in, loading the xml schema, then loading a different
+    # XMLSchema schema on top of the built-in, but at that point there
+    # would be two anyURI instances in the same namespace: one from
+    # the built-in, one frmo the loaded one.
+    #
+    # Just don't try to load the XMLSchema definition from a file
+    # until we figure out how to reconcile the dependency loop.
+
     def _defineSchema_overload (self):
-        # The only reason we're overloading this is to ensure that
-        # unpickling preserved pointer equivalence of the ur types.
-        super(_XMLSchema, self)._defineSchema_overload()
+        """Overload to resolve to built-in schema rather than loaded one."""
+        self._schema(XMLSchemaModule().schema()).setTargetNamespace(self)
+        XMLSchemaModule().datatypes._AddSimpleTypes(self.schema())
+
+        # In order to load a schema from a file, we need the ability
+        # for the load infrastructure to update the built-in schema
+        # instance we've already associated.  
         if self.schema() is not None:
             xsc = XMLSchemaModule().structures
             assert xsc.ComplexTypeDefinition.UrTypeDefinition() == self.lookupTypeDefinition('anyType')
             assert xsc.SimpleTypeDefinition.SimpleUrTypeDefinition() == self.lookupTypeDefinition('anySimpleType')
 
-    def requireBuiltins (self, schema):
-        """Ensure we're ready to use the XMLSchema namespace while processing the given schema.
-
-        If a pre-built schema definition is available, use it.
-        Otherwise, we're bootstrapping.  If we're bootstrapping the
-        XMLSchema namespace, the caller should have already associated
-        the schema we're to use.  If not, we'll create a basic one
-        just to make progress.
-        """
-        
-        if self.schema() is None:
-            self._defineSchema_overload()
-            if self.schema() is None:
-                # Bootstrapping non-XMLSchema schema.
-                self._schema(XMLSchemaModule().schema()).setTargetNamespace(self)
-                XMLSchemaModule().datatypes._AddSimpleTypes(self.schema())
-        elif self.schema() == schema:
-            # Bootstrapping XMLSchema.
-            XMLSchemaModule().datatypes._AddSimpleTypes(self.schema())
-        assert XMLSchema == self.schema().getTargetNamespace()
-        return self.schema()
-
 def AvailableForLoad ():
     """Return a list of namespace URIs for which we may be able to
-    load the namespace contents from a pre-built file.
+    load the namespace contents from a pre-parsed file.
 
     Note that success of the load is not guaranteed if the packed file
     is not compatible with the schema class being used."""
