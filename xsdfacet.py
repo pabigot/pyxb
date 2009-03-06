@@ -97,7 +97,11 @@ from datatypes import *
             argset = { }
             is_collection = issubclass(fc, xs.facets._CollectionFacet_mixin)
             if issubclass(fc, xs.facets._LateDatatype_mixin):
-                argset['value_datatype'] = fc.BindingValueDatatype(td)
+                if fc.LateDatatypeBindsSuperclass():
+                    vdt = td.baseTypeDefinition()
+                else:
+                    vdt = td
+                argset['value_datatype'] = vdt
             if fi is not None:
                 if not is_collection:
                     argset['value'] = fi.value()

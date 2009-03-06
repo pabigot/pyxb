@@ -154,13 +154,17 @@ class _LateDatatype_mixin (object):
     """
 
     @classmethod
+    def LateDatatypeBindsSuperclass (cls):
+        return cls._LateDatatypeBindsSuperclass
+
+    @classmethod
     def BindingValueDatatype (cls, value_datatype):
         if isinstance(value_datatype, structures.SimpleTypeDefinition):
             while not value_datatype.hasPythonSupport():
                 value_datatype = value_datatype.baseTypeDefinition()
             value_datatype = value_datatype.pythonSupport()
         assert issubclass(value_datatype, datatypes._PST_mixin)
-        if cls._LateDatatypeBindsSuperclass:
+        if cls.LateDatatypeBindsSuperclass():
             value_datatype = value_datatype.XsdSuperType()
         return value_datatype
 
