@@ -2,6 +2,7 @@ from PyWXSB.exceptions_ import *
 from xml.dom import Node
 import types
 import datatypes
+import structures
 import PyWXSB.domutils as domutils
 
 class Facet (object):
@@ -48,7 +49,7 @@ class Facet (object):
     def annotation (self): return self.__annotation
 
     def __init__ (self, **kw):
-        super(Facet, self).__init__()
+        super(Facet, self).__init__(**kw)
         # Can't create base class instances
         assert Facet != self.__class__
         self.setFromKeywords(_reset=True, _constructor=True, **kw)
@@ -144,6 +145,28 @@ class ConstrainingFacet (Facet):
         self.__setFromKeywords(**kw)
         return rv
         
+class _LateDatatype_mixin (object):
+    """Marker class to indicate that the facet instance must be told
+    its datatype when it is constructed.
+
+    Subclasses must define a class variable
+    _LateDatatypeBindsSuperclass with a value of True or False.
+    """
+
+    @classmethod
+    def BindingValueDatatype (cls, value_datatype):
+        if isinstance(value_datatype, structures.SimpleTypeDefinition):
+            while not value_datatype.hasPythonSupport():
+                value_datatype = value_datatype.baseTypeDefinition()
+            value_datatype = value_datatype.pythonSupport()
+        assert issubclass(value_datatype, datatypes._PST_mixin)
+        if cls._LateDatatypeBindsSuperclass:
+            value_datatype = value_datatype.XsdSuperType()
+        return value_datatype
+
+    def bindValueDatatype (self, value_datatype):
+        self.setFromKeywords(_constructor=True, value_datatype=self.BindingValueDatatype(value_datatype))
+
 class _Fixed_mixin (object):
     """Mix-in to a constraining facet that adds support for the 'fixed' property."""
     __fixed = None
@@ -222,6 +245,8 @@ class CF_pattern (ConstrainingFacet, _CollectionFacet_mixin):
 
 class _EnumerationElement:
     def __init__ (self, value=None, tag=None, description=None, annotation=None, binding_prefix=None, **kw):
+        if value is None:
+            value = tag
         assert value is not None
         self.value = value
         self.tag = tag
@@ -233,9 +258,10 @@ class _EnumerationElement:
 
     def __str__ (self): return self.value
 
-class CF_enumeration (ConstrainingFacet, _CollectionFacet_mixin):
+class CF_enumeration (ConstrainingFacet, _CollectionFacet_mixin, _LateDatatype_mixin):
     _Name = 'enumeration'
     _CollectionFacet_itemType = _EnumerationElement
+    _LateDatatypeBindsSuperclass = False
 
     __enumerationElements = None
     def enumerationElements (self): return self.__enumerationElements
@@ -243,38 +269,62 @@ class CF_enumeration (ConstrainingFacet, _CollectionFacet_mixin):
     __enumPrefix = 'EV_'
 
     def __init__ (self, **kw):
-        super(CF_enumeration, self).__init__(value_datatype=datatypes.string, **kw)
-        self.__enumerationElements = []
+        super(CF_enumeration, self).__init__(**kw)
+        self.__enumPrefix = kw.get('enum_prefix', self.__enumPrefix)
+        self.__enumerationElements = { }
 
     def addEnumeration (self, **kw):
-        self.__enumerationElements.append(_EnumerationElement(**kw))
+        ee = _EnumerationElement(**kw)
+        ev = self.valueDatatype()(ee.value)
+        if ee.tag in self.__enumerationElements:
+            raise IncompleteImplementationError('Duplicate enumeration tags')
+        self.__enumerationElements[ee.tag] = ev
+        return ev
 
-    def enumPrefix (self, enum_prefix=None):
-        if enum_prefix is not None:
-            self.__enumPrefix = enum_prefix
-        return self.__enumPrefix
+    def valueForTag (self, tag):
+        return self.__enumerationElements[tag]
+
+    def prefixedTag (self, tag):
+        if self.__enumPrefix is None:
+            return tag
+        return '%s_%s' % (self.__enumPrefix, tag)
+
+class _Enumeration_mixin (object):
+    """Note: This class MUST be earlier in the mro than the Python type"""
+    def __init__ (self, value):
+        if not isinstance(value, self._CF_enumeration.valueDatatype()):
+            value = self._CF_enumeration.valueForTag(value)
+        super(_Enumeration_mixin, self).__init__(value)
+
+class _WhiteSpace_enum (_Enumeration_mixin, datatypes.string):
+    _EnumerationValueSpace = datatypes.string
+    _CF_enumeration = CF_enumeration(value_datatype=_EnumerationValueSpace)
+    WSV_preserve = _CF_enumeration.addEnumeration(tag=u'preserve')
+    WSV_replace = _CF_enumeration.addEnumeration(tag=u'replace')
+    WSV_collapse = _CF_enumeration.addEnumeration(tag=u'collapse')
 
 class CF_whiteSpace (ConstrainingFacet, _Fixed_mixin):
     _LegalValues = ( 'preserve', 'replace', 'collapse' )
     _Name = 'whiteSpace'
     def __init__ (self, **kw):
-        super(CF_whiteSpace, self).__init__(value_datatype=datatypes.anySimpleType, **kw)
+        super(CF_whiteSpace, self).__init__(value_datatype=_WhiteSpace_enum, **kw)
     # @todo correct value type definition
-
-class _LateDatatype_mixin:
-    """Marker class to indicate that the facet must be told its datatype when it is constructed."""
-
-class CF_maxInclusive (ConstrainingFacet, _Fixed_mixin, _LateDatatype_mixin):
-    _Name = 'maxInclusive'
-
-class CF_maxExclusive (ConstrainingFacet, _Fixed_mixin, _LateDatatype_mixin):
-    _Name = 'maxExclusive'
-
-class CF_minExclusive (ConstrainingFacet, _Fixed_mixin, _LateDatatype_mixin):
-    _Name = 'minExclusive'
 
 class CF_minInclusive (ConstrainingFacet, _Fixed_mixin, _LateDatatype_mixin):
     _Name = 'minInclusive'
+    _LateDatatypeBindsSuperclass = False
+
+class CF_maxInclusive (ConstrainingFacet, _Fixed_mixin, _LateDatatype_mixin):
+    _Name = 'maxInclusive'
+    _LateDatatypeBindsSuperclass = False
+
+class CF_minExclusive (ConstrainingFacet, _Fixed_mixin, _LateDatatype_mixin):
+    _Name = 'minExclusive'
+    _LateDatatypeBindsSuperclass = True
+
+class CF_maxExclusive (ConstrainingFacet, _Fixed_mixin, _LateDatatype_mixin):
+    _Name = 'maxExclusive'
+    _LateDatatypeBindsSuperclass = True
 
 class CF_totalDigits (ConstrainingFacet, _Fixed_mixin):
     _Name = 'totalDigits'
