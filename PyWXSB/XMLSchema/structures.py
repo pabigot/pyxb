@@ -1547,7 +1547,7 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
         assert (self.__facets is None) or (type(self.__facets) == types.DictType)
         return self.__facets
 
-    # A list of instances of facets.FundamentalFacet
+    # The facets.FundamentalFacet instances that describe this type
     __fundamentalFacets = None
     def fundamentalFacets (self):
         """A frozenset of instances of facets.FundamentallFacet."""

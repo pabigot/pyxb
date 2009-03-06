@@ -21,16 +21,7 @@ class Facet (object):
         """The SimpleTypeDefinition component to which this facet belongs."""
         return self.__ownerTypeDefinition
 
-    # @todo make this valueTypeDefinition
-    __valueTypeDefinition = None
-    def valueTypeDefinition (self):
-        """The SimpleTypeDefinition component that defines the value
-        space of the facet itself.  If None, defaults to
-        baseTypeDefinition(), as appropriate for
-        {min,max}{inclusive,exclusive}."""
-        if self.__valueTypeDefinition is None:
-            self.__valueTypeDefinition = self.baseTypeDefinition()
-        return self.__valueTypeDefinition
+    __ownerDatatype = None
 
     # valueDataType is a Python type, probably a subclassed built-in,
     # that is used for the value of this facet.  In generated bindings
@@ -39,21 +30,9 @@ class Facet (object):
     # definition.
     __valueDatatype = None
     def valueDatatype (self):
-        vdt = self.__valueDatatype
-        if vdt is None:
-            # No bound type.  Search the STD hierarchy to find a level
-            # where there's a pythonSupport class available.
-            vtd = self.valueTypeDefinition()
-            while vtd is not None:
-                try:
-                    vdt = vtd.pythonSupport()
-                    break
-                except Exception, e:
-                    print "CAUGHT vDT: %s\nGoing from %s to %s" % (e, vtd.name(), vtd.baseTypeDefinition().name())
-                    vtd = vtd.baseTypeDefinition()
-            if vdt is None:
-                raise LogicError("No value type definition available for facet %s" % (self.Name(),))
-            self.__valueDatatype = vdt
+        if self.__valueDatatype is None:
+            assert self.baseTypeDefinition() is not None
+            return self.baseTypeDefinition().pythonSupport()
         return self.__valueDatatype
 
     __value = None
@@ -71,18 +50,16 @@ class Facet (object):
 
     def _setFromKeywords_vb (self, **kw):
         if not kw.get('_reset', False):
-            kw.setdefault('Base_type_definition', self.__baseTypeDefinition)
-            kw.setdefault('ownner_type_definition', self.__ownerTypeDefinition)
+            kw.setdefault('base_type_definition', self.__baseTypeDefinition)
+            kw.setdefault('owner_type_definition', self.__ownerTypeDefinition)
             kw.setdefault('value_datatype', self.__valueDatatype)
-            kw.setdefault('value_type_definition', self.__valueTypeDefinition)
         self.__baseTypeDefinition = kw.get('base_type_definition', None)
         self.__ownerTypeDefinition = kw.get('owner_type_definition', None)
-        self.__valueTypeDefinition = kw.get('value_type_definition', None)
         self.__valueDatatype = kw.get('value_datatype', None)
         # Verify that there's enough information that we should be
         # able to identify a PST suitable for representing facet
         # values.
-        assert (self.__valueDatatype is not None) or (self.__valueTypeDefinition is not None) or (self.__baseTypeDefinition is not None)
+        assert (self.__valueDatatype is not None) or (self.__baseTypeDefinition is not None)
         super_fn = getattr(super(Facet, self), '_setFromKeywords_vb', lambda *a,**kw: self)
         return super_fn(**kw)
     
@@ -192,8 +169,8 @@ class _CollectionFacet_mixin (object):
         if kw.get('_reset', False):
             self.__items = []
         if not kw.get('_constructor', False):
-            print self._CollectionFacet_item
-            self.__items.append(self._CollectionFacet_item(**kw))
+            print self._CollectionFacet_itemType
+            self.__items.append(self._CollectionFacet_itemType(**kw))
         super_fn = getattr(super(_CollectionFacet_mixin, self), '_setFromKeywords_vb', lambda *a,**kw: self)
         return super_fn(**kw)
 
@@ -206,24 +183,17 @@ class _CollectionFacet_mixin (object):
 class CF_length (ConstrainingFacet, _Fixed_mixin):
     _Name = 'length'
     def __init__ (self, **kw):
-        super(CF_length, self).__init__(value_type_definition=datatypes.nonNegativeInteger.SimpleTypeDefinition(), **kw)
+        super(CF_length, self).__init__(value_datatype=datatypes.nonNegativeInteger, **kw)
 
 class CF_minLength (ConstrainingFacet, _Fixed_mixin):
     _Name = 'minLength'
     def __init__ (self, **kw):
-        super(CF_minLength, self).__init__(value_type_definition=datatypes.nonNegativeInteger.SimpleTypeDefinition(), **kw)
+        super(CF_minLength, self).__init__(value_datatype=datatypes.nonNegativeInteger, **kw)
 
 class CF_maxLength (ConstrainingFacet, _Fixed_mixin):
     _Name = 'maxLength'
     def __init__ (self, **kw):
-        super(CF_maxLength, self).__init__(value_type_definition=datatypes.nonNegativeInteger.SimpleTypeDefinition(), **kw)
-
-class _CollectionFacet_Item (tuple):
-    def __init__ (self, value=None, annotation=None, description=None, **kw):
-        self.value = value
-        self.annotation = annotation
-        self.description = description
-        super(_CollectionFacet_Item, self).__init__(self, value, annotation, description)
+        super(CF_maxLength, self).__init__(value_datatype=datatypes.nonNegativeInteger, **kw)
 
 class _PatternElement:
     def __init__ (self, value=None, annotation=None, **kw):
@@ -235,13 +205,13 @@ class _PatternElement:
 
 class CF_pattern (ConstrainingFacet, _CollectionFacet_mixin):
     _Name = 'pattern'
-    _CollectionFacet_item = _PatternElement
+    _CollectionFacet_itemType = _PatternElement
 
     __patternElements = None
     def patternElements (self): return self.__patternElements
 
     def __init__ (self, **kw):
-        super(CF_pattern, self).__init__(value_type_definition=datatypes.string.SimpleTypeDefinition(), **kw)
+        super(CF_pattern, self).__init__(value_datatype=datatypes.string, **kw)
         self.__patternElements = []
 
 class _EnumerationElement:
@@ -259,7 +229,7 @@ class _EnumerationElement:
 
 class CF_enumeration (ConstrainingFacet, _CollectionFacet_mixin):
     _Name = 'enumeration'
-    _CollectionFacet_item = _EnumerationElement
+    _CollectionFacet_itemType = _EnumerationElement
 
     __enumerationElements = None
     def enumerationElements (self): return self.__enumerationElements
@@ -267,7 +237,7 @@ class CF_enumeration (ConstrainingFacet, _CollectionFacet_mixin):
     __enumPrefix = 'EV_'
 
     def __init__ (self, **kw):
-        super(CF_enumeration, self).__init__(value_data_type=datatypes.string.SimpleTypeDefinition(), **kw)
+        super(CF_enumeration, self).__init__(value_datatype=datatypes.string, **kw)
         self.__enumerationElements = []
 
     def addEnumeration (self, **kw):
@@ -281,6 +251,8 @@ class CF_enumeration (ConstrainingFacet, _CollectionFacet_mixin):
 class CF_whiteSpace (ConstrainingFacet, _Fixed_mixin):
     _LegalValues = ( 'preserve', 'replace', 'collapse' )
     _Name = 'whiteSpace'
+    def __init__ (self, **kw):
+        super(CF_whiteSpace, self).__init__(value_datatype=datatypes.anySimpleType, **kw)
     # @todo correct value type definition
 
 class CF_maxInclusive (ConstrainingFacet, _Fixed_mixin):
@@ -297,9 +269,13 @@ class CF_minInclusive (ConstrainingFacet, _Fixed_mixin):
 
 class CF_totalDigits (ConstrainingFacet, _Fixed_mixin):
     _Name = 'totalDigits'
+    def __init__ (self, **kw):
+        super(CF_totalDigits, self).__init__(value_datatype=datatypes.positiveInteger, **kw)
 
 class CF_fractionDigits (ConstrainingFacet, _Fixed_mixin):
     _Name = 'fractionDigits'
+    def __init__ (self, **kw):
+        super(CF_fractionDigits, self).__init__(value_datatype=datatypes.nonNegativeInteger, **kw)
 
 class FundamentalFacet (Facet):
     _Facets = [ 'equal', 'ordered', 'bounded', 'cardinality', 'numeric' ]
@@ -337,21 +313,21 @@ class FF_ordered (FundamentalFacet):
     _Name = 'ordered'
     def __init__ (self, **kw):
         # @todo correct value type definition
-        super(FF_ordered, self).__init__(value_type_definition=datatypes.string.SimpleTypeDefinition(), **kw)
+        super(FF_ordered, self).__init__(value_datatype=datatypes.string, **kw)
 
 class FF_bounded (FundamentalFacet):
     _Name = 'bounded'
     def __init__ (self, **kw):
-        super(FF_bounded, self).__init__(value_type_definition=datatypes.boolean.SimpleTypeDefinition(), **kw)
+        super(FF_bounded, self).__init__(value_datatype=datatypes.boolean, **kw)
 
 class FF_cardinality (FundamentalFacet):
     _LegalValues = ( 'finite', 'countably infinite' )
     _Name = 'cardinality'
     def __init__ (self, **kw):
         # @todo correct value type definition
-        super(FF_cardinality, self).__init__(value_type_definition=datatypes.string.SimpleTypeDefinition(), **kw)
+        super(FF_cardinality, self).__init__(value_datatype=datatypes.string, **kw)
 
 class FF_numeric (FundamentalFacet):
     _Name = 'numeric'
     def __init__ (self, **kw):
-        super(FF_numeric, self).__init__(value_type_definition=datatypes.boolean.SimpleTypeDefinition(), **kw)
+        super(FF_numeric, self).__init__(value_datatype=datatypes.boolean, **kw)
