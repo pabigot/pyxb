@@ -22,6 +22,11 @@ class Facet (object):
         return self.__ownerTypeDefinition
 
     __ownerDatatype = None
+    def ownerDatatype (self):
+        """The _PST_mixin subclass to which this facet belongs."""
+        return self.__ownerDatatype
+    def _ownerDatatype (self, owner_datatype):
+        self.__ownerDatatype = owner_datatype
 
     # valueDataType is a Python type, probably a subclassed built-in,
     # that is used for the value of this facet.  In generated bindings
@@ -52,9 +57,11 @@ class Facet (object):
         if not kw.get('_reset', False):
             kw.setdefault('base_type_definition', self.__baseTypeDefinition)
             kw.setdefault('owner_type_definition', self.__ownerTypeDefinition)
+            kw.setdefault('owner_datatype', self.__ownerDatatype)
             kw.setdefault('value_datatype', self.__valueDatatype)
         self.__baseTypeDefinition = kw.get('base_type_definition', None)
         self.__ownerTypeDefinition = kw.get('owner_type_definition', None)
+        self.__ownerDatatype = kw.get('owner_datatype', None)
         self.__valueDatatype = kw.get('value_datatype', None)
         # Verify that there's enough information that we should be
         # able to identify a PST suitable for representing facet
@@ -65,9 +72,6 @@ class Facet (object):
     
     def setFromKeywords (self, **kw):
         return self._setFromKeywords_vb(**kw)
-
-    def extendFromKeywords (self, **kw):
-        raise NotImplementedError('%s: Class does not implement extendFromKeywords.' % (self.__class__.__name__,))
 
     @classmethod
     def ClassForFacet (cls, name):
@@ -135,9 +139,10 @@ class ConstrainingFacet (Facet):
             self._value(kwv)
 
     def _setFromKeywords_vb (self, **kw):
-        self.__setFromKeywords(**kw)
         super_fn = getattr(super(ConstrainingFacet, self), '_setFromKeywords_vb', lambda *a,**kw: self)
-        return super_fn(**kw)
+        rv = super_fn(**kw)
+        self.__setFromKeywords(**kw)
+        return rv
         
 class _Fixed_mixin (object):
     """Mix-in to a constraining facet that adds support for the 'fixed' property."""
@@ -198,6 +203,7 @@ class CF_maxLength (ConstrainingFacet, _Fixed_mixin):
 class _PatternElement:
     def __init__ (self, value=None, annotation=None, **kw):
         assert value is not None
+        assert isinstance(value, types.StringTypes)
         self.pattern = value
         self.annotation = annotation
 
@@ -255,16 +261,19 @@ class CF_whiteSpace (ConstrainingFacet, _Fixed_mixin):
         super(CF_whiteSpace, self).__init__(value_datatype=datatypes.anySimpleType, **kw)
     # @todo correct value type definition
 
-class CF_maxInclusive (ConstrainingFacet, _Fixed_mixin):
+class _LateDatatype_mixin:
+    """Marker class to indicate that the facet must be told its datatype when it is constructed."""
+
+class CF_maxInclusive (ConstrainingFacet, _Fixed_mixin, _LateDatatype_mixin):
     _Name = 'maxInclusive'
 
-class CF_maxExclusive (ConstrainingFacet, _Fixed_mixin):
+class CF_maxExclusive (ConstrainingFacet, _Fixed_mixin, _LateDatatype_mixin):
     _Name = 'maxExclusive'
 
-class CF_minExclusive (ConstrainingFacet, _Fixed_mixin):
+class CF_minExclusive (ConstrainingFacet, _Fixed_mixin, _LateDatatype_mixin):
     _Name = 'minExclusive'
 
-class CF_minInclusive (ConstrainingFacet, _Fixed_mixin):
+class CF_minInclusive (ConstrainingFacet, _Fixed_mixin, _LateDatatype_mixin):
     _Name = 'minInclusive'
 
 class CF_totalDigits (ConstrainingFacet, _Fixed_mixin):
