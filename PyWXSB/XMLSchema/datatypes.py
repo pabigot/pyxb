@@ -25,6 +25,7 @@ from PyWXSB.exceptions_ import *
 import facets
 import structures as xsc
 import types
+import PyWXSB.Namespace as Namespace
 
 _PrimitiveDatatypes = []
 _DerivedDatatypes = []
@@ -118,17 +119,27 @@ class _PST_mixin (object):
     def XsdFromString (cls, string_value):
         return cls(string_value)
 
+    def pythonLiteral (self):
+        class_name = self.__class__.__name__
+        mp = self._Namespace.modulePath()
+        if mp is not None:
+            class_name = '%s.%s' % (mp, class_name)
+        return '%s(%s)' % (class_name, super(_PST_mixin, self).__str__())
+
+class _List_mixin (_PST_mixin):
+    pass
+
 # We use unicode as the Python type for anything that isn't a normal
 # primitive type.  Presumably, only enumeration and pattern facets
 # will be applied.
 class anySimpleType (unicode, _PST_mixin):
     """http://www/Documentation/W3C/www.w3.org/TR/xmlschema-2/index.html#dt-anySimpleType"""
     _XsdBaseType = None
+    _Namespace = Namespace.XMLSchema
 
     @classmethod
     def XsdLiteral (cls, value):
         return "u'%s'" % (value,)
-
 # anySimpleType is not treated as a primitive, because its variety
 # must be absent (not atomic).
     
@@ -137,12 +148,11 @@ class string (unicode, _PST_mixin):
     
     http://www/Documentation/W3C/www.w3.org/TR/xmlschema-2/index.html#string"""
     _XsdBaseType = anySimpleType
+    _Namespace = Namespace.XMLSchema
 
     @classmethod
     def XsdLiteral (cls, value):
         return "'%s'" % (value,)
-
-    _CF_whiteSpace = None
 
 _PrimitiveDatatypes.append(string)
 
@@ -153,6 +163,7 @@ class boolean (int, _PST_mixin):
 
     http://www/Documentation/W3C/www.w3.org/TR/xmlschema-2/index.html#boolean"""
     _XsdBaseType = anySimpleType
+    _Namespace = Namespace.XMLSchema
     
     @classmethod
     def XsdLiteral (cls, value):
@@ -190,6 +201,7 @@ class decimal (types.FloatType, _PST_mixin):
 
     """
     _XsdBaseType = anySimpleType
+    _Namespace = Namespace.XMLSchema
 
     @classmethod
     def XsdLiteral (cls, value):
@@ -202,6 +214,7 @@ class float (types.FloatType, _PST_mixin):
 
     http://www/Documentation/W3C/www.w3.org/TR/xmlschema-2/index.html#float"""
     _XsdBaseType = anySimpleType
+    _Namespace = Namespace.XMLSchema
 
     @classmethod
     def XsdLiteral (cls, value):
@@ -211,6 +224,7 @@ _PrimitiveDatatypes.append(float)
 
 class double (types.FloatType, _PST_mixin):
     _XsdBaseType = anySimpleType
+    _Namespace = Namespace.XMLSchema
 
     @classmethod
     def XsdLiteral (cls, value):
@@ -220,42 +234,52 @@ _PrimitiveDatatypes.append(double)
 
 class duration (_PST_mixin):
     _XsdBaseType = anySimpleType
+    _Namespace = Namespace.XMLSchema
 _PrimitiveDatatypes.append(duration)
 
 class dateTime (_PST_mixin):
     _XsdBaseType = anySimpleType
+    _Namespace = Namespace.XMLSchema
 _PrimitiveDatatypes.append(dateTime)
 
 class time (_PST_mixin):
     _XsdBaseType = anySimpleType
+    _Namespace = Namespace.XMLSchema
 _PrimitiveDatatypes.append(time)
 
 class date (_PST_mixin):
     _XsdBaseType = anySimpleType
+    _Namespace = Namespace.XMLSchema
 _PrimitiveDatatypes.append(date)
 
 class gYearMonth (_PST_mixin):
     _XsdBaseType = anySimpleType
+    _Namespace = Namespace.XMLSchema
 _PrimitiveDatatypes.append(gYearMonth)
 
 class gYear (_PST_mixin):
     _XsdBaseType = anySimpleType
+    _Namespace = Namespace.XMLSchema
 _PrimitiveDatatypes.append(gYear)
 
 class gMonthDay (_PST_mixin):
     _XsdBaseType = anySimpleType
+    _Namespace = Namespace.XMLSchema
 _PrimitiveDatatypes.append(gMonthDay)
 
 class gDay (_PST_mixin):
     _XsdBaseType = anySimpleType
+    _Namespace = Namespace.XMLSchema
 _PrimitiveDatatypes.append(gDay)
 
 class gMonth (_PST_mixin):
     _XsdBaseType = anySimpleType
+    _Namespace = Namespace.XMLSchema
 _PrimitiveDatatypes.append(gMonth)
 
 class hexBinary (types.LongType, _PST_mixin):
     _XsdBaseType = anySimpleType
+    _Namespace = Namespace.XMLSchema
     def __new__ (cls, value, *args, **kw):
         if isinstance(value, types.StringTypes):
             return super(hexBinary, cls).__new__(cls, '0x%s' % (value,), 16, *args, **kw)
@@ -269,23 +293,28 @@ _PrimitiveDatatypes.append(hexBinary)
 
 class base64Binary (_PST_mixin):
     _XsdBaseType = anySimpleType
+    _Namespace = Namespace.XMLSchema
 _PrimitiveDatatypes.append(base64Binary)
 
 class anyURI (_PST_mixin):
     _XsdBaseType = anySimpleType
+    _Namespace = Namespace.XMLSchema
 _PrimitiveDatatypes.append(anyURI)
 
 class QName (_PST_mixin):
     _XsdBaseType = anySimpleType
+    _Namespace = Namespace.XMLSchema
 _PrimitiveDatatypes.append(QName)
 
 class NOTATION (_PST_mixin):
     _XsdBaseType = anySimpleType
+    _Namespace = Namespace.XMLSchema
 _PrimitiveDatatypes.append(NOTATION)
 
 class normalizedString (string):
     pass
 _DerivedDatatypes.append(normalizedString)
+assert normalizedString.XsdSuperType() == string
 
 class token (normalizedString):
     pass
@@ -298,7 +327,10 @@ _DerivedDatatypes.append(language)
 class NMTOKEN (token):
     pass
 _DerivedDatatypes.append(NMTOKEN)
-_ListDatatypes.append( ( 'NMTOKENS', 'NMTOKEN' ) )
+
+class NMTOKENS (types.ListType, _List_mixin):
+    _ItemType = NMTOKEN
+_ListDatatypes.append(NMTOKENS)
 
 class Name (token):
     pass
@@ -315,18 +347,25 @@ _DerivedDatatypes.append(ID)
 class IDREF (NCName):
     pass
 _DerivedDatatypes.append(IDREF)
-_ListDatatypes.append( ( 'IDREFS', 'IDREF' ) )
+
+class IDREFS (types.ListType, _List_mixin):
+    _ItemType = IDREF
+_ListDatatypes.append(IDREFS)
 
 class ENTITY (NCName):
     pass
 _DerivedDatatypes.append(ENTITY)
-_ListDatatypes.append( ( 'ENTITIES', 'ENTITY' ) )
+
+class ENTITIES (types.ListType, _List_mixin):
+    _ItemType = ENTITY
+_ListDatatypes.append(ENTITIES)
 
 class integer (long, _PST_mixin):
     """integer.
 
     http://www/Documentation/W3C/www.w3.org/TR/xmlschema-2/index.html#integer"""
     _XsdBaseType = decimal
+    _Namespace = Namespace.XMLSchema
     @classmethod
     def XsdLiteral (cls, value):
         return 'long(%s)' % (value,)
@@ -348,6 +387,7 @@ _DerivedDatatypes.append(long)
 
 class int (types.IntType, _PST_mixin):
     _XsdBaseType = long
+    _Namespace = Namespace.XMLSchema
 
     @classmethod
     def XsdLiteral (cls, value):
@@ -392,6 +432,8 @@ class positiveInteger (nonNegativeInteger):
     pass
 _DerivedDatatypes.append(positiveInteger)
 
+import datatypesi
+
 def _AddSimpleTypes (schema):
     """Add to the schema the definitions of the built-in types of
     XMLSchema."""
@@ -416,8 +458,11 @@ def _AddSimpleTypes (schema):
         assert td.isResolved()
         assert dtc.SimpleTypeDefinition() == td
         pts_std_map.setdefault(dtc, td)
-    for (list_name, element_name) in _ListDatatypes:
+    for dtc in _ListDatatypes:
+        list_name = dtc.__name__.rstrip('_')
+        element_name = dtc._ItemType.__name__.rstrip('_')
         element_std = schema._lookupTypeDefinition(element_name)
-        td = schema._addNamedComponent(xsc.SimpleTypeDefinition.CreateListInstance(list_name, schema.getTargetNamespace(), element_std))
+        td = schema._addNamedComponent(xsc.SimpleTypeDefinition.CreateListInstance(list_name, schema.getTargetNamespace(), element_std, dtc))
         assert td.isResolved()
     return schema
+
