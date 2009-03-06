@@ -195,10 +195,13 @@ class Namespace (object):
         That is the case for all namespaces in the Namespace module."""
         return self.__isBuiltinNamespace
 
-    def modulePath (self, module_path=None):
-        if module_path is not None:
-            self.__modulePath = module_path
+    def modulePath (self):
         return self.__modulePath
+
+    def setModulePath (self, module_path):
+        self.__modulePath = module_path
+        return self.modulePath()
+        
 
     def _schema (self, schema):
         """Associate a schema instance with this namespace.
