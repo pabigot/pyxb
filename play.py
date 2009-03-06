@@ -31,8 +31,8 @@ for file in files:
                     facet.enumPrefix('%s_' % enum_prefix)
 
         gen = Generator(ns, 'xs')
-        print "\n".join(gen.generateDefinitions([ns.lookupTypeDefinition('formChoice')]))
-        #print "\n".join(gen.generateDefinitions([ns.lookupTypeDefinition('viewRefreshModeEnum')]))
+        #print "\n".join(gen.generateDefinitions([ns.lookupTypeDefinition('formChoice')]))
+        print "\n".join(gen.generateDefinitions([ns.lookupTypeDefinition('viewRefreshModeEnum')]))
         #print "\n".join(gen.generateDefinitions([ns.lookupTypeDefinition('NetworkLinkControlType')]))
         #print "\n".join(gen.generateDefinitions(ns.typeDefinitions()))
 

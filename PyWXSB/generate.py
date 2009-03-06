@@ -82,6 +82,8 @@ class PythonGenerator (Generator):
         if std.facets() is None:
             raise LogicError('STD %s has no facets?' % (std.name(),))
 
+        print 'Facets in %s is %s' % (std.name(), std.facets())
+
         for (fc, fi) in std.facets().items():
             if fi is not None:
                 assert fi.ownerTypeDefinition() is not None

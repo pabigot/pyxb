@@ -1916,7 +1916,9 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
                     if facet_name in seen_facets:
                         raise SchemaValidationError('Multiple hasFacet specifications for %s' % (facet_name,))
                     seen_facets.add(facet_name)
-                    facet_map[facets.ConstrainingFacet.ClassForFacet(facet_name)] = None
+                    facet_class = facets.ConstrainingFacet.ClassForFacet(facet_name)
+                    #facet_map[facet_class] = facet_class(base_type_definition=self)
+                    facet_map[facet_class] = None
                 if cn.nodeName in has_property:
                     fundamental_facets.add(facets.FundamentalFacet.CreateFromDOM(wxs, cn, self))
         if 0 < len(facet_map):
@@ -1947,7 +1949,7 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
             if 0 < len(children):
                 fi = fc(base_type_definition=self.__baseTypeDefinition,
                         owner_type_definition=self,
-                        super_facet=base_facets[fc])
+                        super_facet=fi)
                 for cn in children:
                     kw = { 'annotation': LocateUniqueChild(cn, wxs, 'annotation') }
                     for ai in range(0, cn.attributes.length):

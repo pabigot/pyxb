@@ -75,7 +75,7 @@ class GeneratorConfiguration:
         template = enum_elt.bindingTemplate()
         if template is None:
             template = self.__defaultEnumTemplate
-        return templates.replaceInText(template, { 'pfx': pfx, 'name': enum_elt.tag }
+        return templates.replaceInText(template, { 'pfx': pfx, 'name': enum_elt.tag } )
 
 
     def enumConstantValue (self, enum_elt):
