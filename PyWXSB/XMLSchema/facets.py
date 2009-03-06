@@ -244,10 +244,11 @@ class CF_pattern (ConstrainingFacet, _CollectionFacet_mixin):
         self.__patternElements = []
 
 class _EnumerationElement:
-    def __init__ (self, value=None, tag=None, description=None, annotation=None, binding_prefix=None, **kw):
+    def __init__ (self, enumeration=None, value=None, tag=None, description=None, annotation=None, binding_prefix=None, **kw):
         if value is None:
             value = tag
         assert value is not None
+        self.enumeration = enumeration
         self.value = value
         self.tag = tag
         self.description = description
@@ -263,26 +264,31 @@ class CF_enumeration (ConstrainingFacet, _CollectionFacet_mixin, _LateDatatype_m
     _CollectionFacet_itemType = _EnumerationElement
     _LateDatatypeBindsSuperclass = False
 
-    __enumerationElements = None
-    def enumerationElements (self): return self.__enumerationElements
-
-    __enumPrefix = 'EV_'
+    __tagToElement = None
+    __valueToElement = None
+    __enumPrefix = 'EV'
 
     def __init__ (self, **kw):
         super(CF_enumeration, self).__init__(**kw)
         self.__enumPrefix = kw.get('enum_prefix', self.__enumPrefix)
-        self.__enumerationElements = { }
+        self.__tagToElement = { }
+        self.__valueToElement = { }
 
     def addEnumeration (self, **kw):
+        kw['enumeration'] = self
         ee = _EnumerationElement(**kw)
         ev = self.valueDatatype()(ee.value)
-        if ee.tag in self.__enumerationElements:
+        if ee.tag in self.__tagToElement:
             raise IncompleteImplementationError('Duplicate enumeration tags')
-        self.__enumerationElements[ee.tag] = ev
+        self.__tagToElement[ee.tag] = ee
+        self.__valueToElement[ev] = ee
         return ev
 
     def valueForTag (self, tag):
-        return self.__enumerationElements[tag]
+        return self.__tagToElement[tag].value
+
+    def tagForValue (self, value):
+        return self.prefixedTag(self.__valueToElement[value].tag)
 
     def prefixedTag (self, tag):
         if self.__enumPrefix is None:
@@ -298,7 +304,7 @@ class _Enumeration_mixin (object):
 
 class _WhiteSpace_enum (_Enumeration_mixin, datatypes.string):
     _EnumerationValueSpace = datatypes.string
-    _CF_enumeration = CF_enumeration(value_datatype=_EnumerationValueSpace)
+    _CF_enumeration = CF_enumeration(value_datatype=_EnumerationValueSpace, enum_prefix='WSV')
     WSV_preserve = _CF_enumeration.addEnumeration(tag=u'preserve')
     WSV_replace = _CF_enumeration.addEnumeration(tag=u'replace')
     WSV_collapse = _CF_enumeration.addEnumeration(tag=u'collapse')

@@ -431,7 +431,10 @@ class positiveInteger (nonNegativeInteger):
     pass
 _DerivedDatatypes.append(positiveInteger)
 
-import datatypesi
+try:
+    import datatypes_facets
+except ImportError, e:
+    pass
 
 def _AddSimpleTypes (schema):
     """Add to the schema the definitions of the built-in types of

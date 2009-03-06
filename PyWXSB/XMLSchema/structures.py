@@ -1885,7 +1885,7 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
             self.__facets = { }
             for v in self.pythonSupport().__dict__.values():
                 if isinstance(v, facets.ConstrainingFacet):
-                    print 'Adding facet %s to %s' % (v, self.ncName())
+                    #print 'Adding facet %s to %s' % (v, self.ncName())
                     self.__facets[v.__class__] = v
                     if v.ownerTypeDefinition() is None:
                         v.setFromKeywords(_constructor=True, owner_type_definition=self)
@@ -1982,7 +1982,7 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
                         attr = cn.attributes.item(ai)
                         # Convert name from unicode to string
                         kw[str(attr.localName)] = attr.value
-                    print 'set %s from %s' % (fi.Name(), kw)
+                    #print 'set %s from %s' % (fi.Name(), kw)
                     fi.setFromKeywords(**kw)
             local_facets[fc] = fi
         self.__facets = local_facets

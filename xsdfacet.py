@@ -9,12 +9,22 @@ from xml.dom import minidom
 from xml.dom import Node
 
 Namespace.XMLSchema.modulePath(None)
+TargetNamespace = None
+
+def PrefixedName (value):
+    if value.__module__ == xs.datatypes.__name__:
+        return value.__name__
+    if value.__module__ == xs.facets.__name__:
+        return 'facets.%s' % (value.__name__,)
+    assert False
 
 def facetLiteral (value):
+    if isinstance(value, xs.facets._Enumeration_mixin):
+        return '%s.%s' % (facetLiteral(value.__class__), value._CF_enumeration.tagForValue(value))
     if isinstance(value, xs.datatypes._PST_mixin):
         return value.pythonLiteral()
     if isinstance(value, type) and issubclass(value, xs.datatypes._PST_mixin):
-        return '%s %s' % (value.__module__, value.__name__)
+        return PrefixedName(value)
     if isinstance(value, xs.facets.Facet):
         #return '%s.XsdSuperType()._CF_%s' % (value.ownerTypeDefinition().ncName(), value.Name())
         return '%s._CF_%s' % (value.ownerTypeDefinition().ncName(), value.Name())
@@ -38,6 +48,7 @@ if 0 == len(files):
 try:
     wxs = xs.schema().CreateFromDOM(minidom.parse(files[0]))
     ns = wxs.getTargetNamespace()
+    TargetNamespace = ns
 
     type_defs = ns.typeDefinitions()
     emit_order = []
