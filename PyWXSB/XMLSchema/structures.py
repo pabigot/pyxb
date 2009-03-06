@@ -1624,6 +1624,20 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
             raise LogicError('Expected member types')
         return self.__memberTypeDefinitions
 
+    def dependentTypeDefinitions (self):
+        type_definitions = [ self.baseTypeDefinition() ]
+        if self.VARIETY_absent == self.variety():
+            type_definitions = []
+        elif self.VARIETY_atomic == self.variety():
+            type_definitions.append(self.primitiveTypeDefinition())
+        elif self.VARIETY_list == self.variety():
+            type_definitions.append(self.itemTypeDefinition())
+        elif self.VARIETY_union == self.variety():
+            type_definitions.append(self.memberTypeDefinitions())
+        else:
+            raise LogicError('Unable to identify dependent types')
+        return type_definitions
+        
     # A non-property field that holds a reference to the DOM node from
     # which the type is defined.  The value is held only between the
     # point where the simple type definition instance is created until
@@ -1733,7 +1747,7 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
             bi.__facets = {}
             bi.__fundamentalFacets = frozenset()
 
-            bi.__isBuiltin = True
+            bi.__resolveBuiltin()
 
             cls.__SimpleUrTypeDefinition = bi
         return cls.__SimpleUrTypeDefinition
@@ -1759,7 +1773,7 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
         bi.__primitiveTypeDefinition = bi
 
         # Primitive types are built-in
-        bi.__isBuiltin = True
+        bi.__resolveBuiltin()
         return bi
 
     @classmethod
@@ -1784,11 +1798,11 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
             bi.__primitiveTypeDefinition = bi.__baseTypeDefinition.__primitiveTypeDefinition
 
         # Derived types are built-in
-        bi.__isBuiltin = True
+        bi.__resolveBuiltin()
         return bi
 
     @classmethod
-    def CreateListInstance (cls, name, target_namespace, item_std):
+    def CreateListInstance (cls, name, target_namespace, item_std, python_support):
         """Create a list simple type in the target namespace.
 
         This is used to preload standard built-in list types.  You can
@@ -1797,9 +1811,7 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
         note that such support is identified by the item_std.
         """
         bi = cls(name=name, target_namespace=target_namespace, variety=cls.VARIETY_list)
-        # Note: The pythonSupport__ field remains None, since list
-        # instances share a class-level implementation that is based
-        # on their itemTypeDefinition.
+        bi._setPythonSupport(python_support)
 
         # The base type is the ur-type.  We were given the item type.
         bi.__baseTypeDefinition = cls.SimpleUrTypeDefinition()
@@ -1807,7 +1819,7 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
         bi.__itemTypeDefinition = item_std
 
         # List types are built-in
-        bi.__isBuiltin = True
+        bi.__resolveBuiltin()
         return bi
 
     @classmethod
@@ -1867,6 +1879,18 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
     def __initializeFromUnion (self, wxs, body):
         self.__baseTypeDefinition = self.SimpleUrTypeDefinition()
         return self.__completeResolution(wxs, body, self.VARIETY_union, 'union')
+
+    def __resolveBuiltin (self):
+        if self.hasPythonSupport():
+            self.__facets = { }
+            for v in self.pythonSupport().__dict__.values():
+                if isinstance(v, facets.ConstrainingFacet):
+                    print 'Adding facet %s to %s' % (v, self.ncName())
+                    self.__facets[v.__class__] = v
+                    if v.ownerTypeDefinition() is None:
+                        v.setFromKeywords(_constructor=True, owner_type_definition=self)
+        self.__isBuiltin = True
+        return self
 
     def __processHasFacetAndProperty (self, wxs):
         """Identify the facets and properties for this stype.
@@ -1966,10 +1990,6 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
     # variety is compounded by an alternative, since there is no
     # 'restriction' variety.
     def __completeResolution (self, wxs, body, variety, alternative):
-        #if self.__pythonSupport is None:
-        #    # @todo ERROR multiple references
-        #    print '%s based on %s' % (self.name(), self.__baseTypeDefinition.name())
-        #    self._setPythonSupport(self.__baseTypeDefinition.pythonSupport())
         assert self.__variety is None
         assert variety is not None
         if self.VARIETY_absent == variety:
@@ -2180,6 +2200,9 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
         self.__pythonSupport = python_support
         self.__pythonSupport._SimpleTypeDefinition(self)
         return self.__pythonSupport
+
+    def hasPythonSupport (self):
+        return self.__pythonSupport is not None
 
     def pythonSupport (self):
         if self.__pythonSupport is None:
