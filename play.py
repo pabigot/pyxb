@@ -15,8 +15,7 @@ Namespace.XMLSchema.modulePath('xs.datatypes')
 
 for file in files:
     try:
-        wxs = xs.schema()
-        wxs.processDocument(minidom.parse(file))
+        wxs = xs.schema().CreateFromDOM(minidom.parse(file))
         ns = wxs.getTargetNamespace()
         enum_prefix_map = [ ( 'colorModeEnum', 'CM' )
                           , ( 'styleStateEnum', 'SS' )
@@ -32,7 +31,8 @@ for file in files:
                     facet.enumPrefix('%s_' % enum_prefix)
 
         gen = Generator(ns, 'xs')
-        print "\n".join(gen.generateDefinitions([ns.lookupTypeDefinition('viewRefreshModeEnum')]))
+        print "\n".join(gen.generateDefinitions([ns.lookupTypeDefinition('formChoice')]))
+        #print "\n".join(gen.generateDefinitions([ns.lookupTypeDefinition('viewRefreshModeEnum')]))
         #print "\n".join(gen.generateDefinitions([ns.lookupTypeDefinition('NetworkLinkControlType')]))
         #print "\n".join(gen.generateDefinitions(ns.typeDefinitions()))
 

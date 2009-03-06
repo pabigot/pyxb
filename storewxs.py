@@ -12,9 +12,8 @@ if 0 == len(files):
 xsd_file = files[0]
 wxs_file = files[1]
 
-wxs = xs.schema()
 try:
-    wxs.processDocument(minidom.parse(xsd_file))
+    wxs = xs.schema.CreateFromDOM(minidom.parse(xsd_file))
     ns = wxs.getTargetNamespace()
     print 'Storing %s in %s' % (ns.uri(), wxs_file)
     ns.saveToFile(wxs_file)
