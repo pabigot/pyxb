@@ -278,6 +278,9 @@ class CF_enumeration (ConstrainingFacet, _CollectionFacet_mixin, _LateDatatype_m
         self.__tagToElement = { }
         self.__valueToElement = { }
 
+    def enumPrefix (self):
+        return self.__enumPrefix
+
     def addEnumeration (self, **kw):
         kw['enumeration'] = self
         ee = _EnumerationElement(**kw)
