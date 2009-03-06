@@ -1601,7 +1601,7 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
     __primitiveTypeDefinition = None
     def primitiveTypeDefinition (self):
         if self.variety() != self.VARIETY_atomic:
-            raise BadPropertyError('primitiveTypeDefinition only defined for atomic types')
+            raise BadPropertyError('[%s] primitiveTypeDefinition only defined for atomic types' % (self.ncName(), self.variety()))
         if self.__primitiveTypeDefinition is None:
             raise LogicError('Expected primitive type')
         return self.__primitiveTypeDefinition
@@ -1633,7 +1633,7 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
         elif self.VARIETY_list == self.variety():
             type_definitions.append(self.itemTypeDefinition())
         elif self.VARIETY_union == self.variety():
-            type_definitions.append(self.memberTypeDefinitions())
+            type_definitions.extend(self.memberTypeDefinitions())
         else:
             raise LogicError('Unable to identify dependent types')
         return type_definitions
@@ -1966,7 +1966,7 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
         if self.__baseTypeDefinition.facets():
             assert type(self.__baseTypeDefinition.facets()) == types.DictType
             base_facets.update(self.__baseTypeDefinition.facets())
-        facets = {}
+        local_facets = {}
         for fc in base_facets.keys():
             children = LocateMatchingChildren(body, wxs, fc.Name())
             fi = base_facets[fc]
@@ -1974,6 +1974,8 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
                 fi = fc(base_type_definition=self.__baseTypeDefinition,
                         owner_type_definition=self,
                         super_facet=fi)
+                if isinstance(fi, facets._LateDatatype_mixin):
+                    fi.bindValueDatatype(self)
                 for cn in children:
                     kw = { 'annotation': LocateUniqueChild(cn, wxs, 'annotation') }
                     for ai in range(0, cn.attributes.length):
@@ -1982,8 +1984,8 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
                         kw[str(attr.localName)] = attr.value
                     print 'set %s from %s' % (fi.Name(), kw)
                     fi.setFromKeywords(**kw)
-            facets[fc] = fi
-        self.__facets = facets
+            local_facets[fc] = fi
+        self.__facets = local_facets
         assert type(self.__facets) == types.DictType
 
     # Complete the resolution of some variety of STD.  Note that the
@@ -2009,6 +2011,10 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
                 assert ComplexTypeDefinition.UrTypeDefinition() == ptd
                 self.__primitiveTypeDefinition = self.SimpleUrTypeDefinition()
             else:
+                if (ptd != self) and (not ptd.isResolved()):
+                    assert False
+                    wxs._queueForResolution(self)
+                    return self
                 self.__primitiveTypeDefinition = ptd
         elif self.VARIETY_list == variety:
             if 'list' == alternative:
