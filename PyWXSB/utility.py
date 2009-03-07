@@ -6,37 +6,9 @@ def QuotedEscaped (s):
     """Convert a string into a literal value that can be used in Python source.
 
     This just calls repr.  No point in getting all complex when the language
-    already gives us what we need
+    already gives us what we need.
     """
     return repr(s)
-
-_ignore = r'''
-# Define the characters to be escaped, which is everything that we don't
-# want to keep as its literal form.
-_EscapedChars = r"[^-.~!@#$%^&*()_+={}\[\]|:;<>,?/'a-zA-Z0-9\\]"
-_SpecialEscapes = { "\n" : r'\n'
-                  , "\t" : r'\t'
-                  }
-
-_Escape_re = re.compile(_EscapedChars, re.UNICODE)
-_ASCII_fn = lambda _c: _SpecialEscapes.get(_c.group()[0], r'\x%02x' % ord(_c.group()[0]))
-#_ASCII_fn = lambda _c:  r'\x%02x' % ord(_c.group()[0])
-_Unicode_fn = lambda _c: r'\u%04x' % ord(_c.group()[0])
-
-    u = ''
-    r = ''
-    q = '"'
-    # Preserve backslashes
-    if 0 <= s.find("\\"):
-        r = 'r'
-        q = "'"
-    if isinstance(s, unicode):
-        s = _Escape_re.sub(_Unicode_fn, s)
-        u = 'u'
-    else:
-        s = _Escape_re.sub(_ASCII_fn, s)
-    return '%s%s%s%s%s' % (u, r, q, s, q)
-'''
 
 _UnderscoreSubstitute_re = re.compile(r'[- .]')
 _NonIdentifier_re = re.compile(r'[^a-zA-Z0-9_]')

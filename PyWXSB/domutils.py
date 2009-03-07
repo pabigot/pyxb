@@ -10,8 +10,8 @@ def NodeAttribute (node, schema, attribute_ncname, attribute_ns=Namespace.XMLSch
 
     This gets tricky because the attribute tag may or may not be
     qualified with a namespace.  The qualifier may be elided if the
-    containing element is in the attribute's namespace, even if that
-    is not the default namespace for the schema.
+    attribute is defined in the namespace of the containing element,
+    even if that is not the default namespace for the schema.
 
     Return the requested attribute, or None if the attribute is not
     present in the node.
