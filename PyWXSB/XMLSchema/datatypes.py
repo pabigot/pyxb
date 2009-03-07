@@ -120,9 +120,6 @@ class _PST_mixin (object):
 
     def pythonLiteral (self):
         class_name = self.__class__.__name__
-        mp = self._Namespace.modulePath()
-        if mp is not None:
-            class_name = '%s.%s' % (mp, class_name)
         return '%s(%s)' % (class_name, super(_PST_mixin, self).__str__())
 
 class _List_mixin (_PST_mixin):
