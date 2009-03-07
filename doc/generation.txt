@@ -118,6 +118,20 @@ The class includes a public XsdFromString class method which converts a
 string into the appropriate instance of a member type, by attempting to
 create a validated member instance of each member type in turn.
 
+Enumerations
+------------
+
+A key purpose of PyWXSB is to support named constants to represent
+enumeration values.  An STD has a class member variable _CF_enumeration if
+it has an enumeration restriction.  Any such class should also mix-in the
+facets._Enumeration_mixin class, to help with conversion between Unicode
+values and the enumeration constant values.
+
+The _CF_enumeration variable is an instance of the facets.CF_enumeration
+class.  Each class maintains a set of facets._EnumerationElement instances
+which record enumeration values 
+
+
 Complex Type Definitions
 ========================
 

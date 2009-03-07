@@ -147,7 +147,7 @@ class ConstrainingFacet (Facet):
         
 class _LateDatatype_mixin (object):
     """Marker class to indicate that the facet instance must be told
-    its datatype when it is constructed.
+    its datatype when it is constructed.  
 
     Subclasses must define a class variable
     _LateDatatypeBindsSuperclass with a value of True or False.
@@ -155,11 +155,16 @@ class _LateDatatype_mixin (object):
 
     @classmethod
     def LateDatatypeBindsSuperclass (cls):
+        """Return true if false if the proposed datatype should be
+        used, or True if the base type definition of the proposed
+        datatype should be used."""
         return cls._LateDatatypeBindsSuperclass
 
     @classmethod
     def BindingValueDatatype (cls, value_datatype):
         if isinstance(value_datatype, structures.SimpleTypeDefinition):
+            # Back up until we find something that actually has a
+            # datatype
             while not value_datatype.hasPythonSupport():
                 value_datatype = value_datatype.baseTypeDefinition()
             value_datatype = value_datatype.pythonSupport()
@@ -248,12 +253,33 @@ class CF_pattern (ConstrainingFacet, _CollectionFacet_mixin):
         self.__patternElements = []
 
 class _EnumerationElement:
-    def __init__ (self, enumeration=None, value=None, tag=None, description=None, annotation=None, binding_prefix=None, **kw):
+    # The value is the Python value that is used for equality testing
+    # against this enumeration.  This is an instance of
+    # enumeration.valueDatatype().
+    value = None
+
+    # The base python identifier used for the named constant
+    # representing the enumeration value.
+    tag = None
+
+    # A reference to the CF_enumeration instance that owns this element
+    enumeration = None
+
+    # The unicode string that defines the enumeration value.
+    unicodeValue = None
+
+    def __init__ (self, enumeration=None, value=None, tag=None,
+                  description=None, annotation=None, binding_prefix=None,
+                  unicode_value=None,
+                  **kw):
+        if tag is None:
+            tag = str(unicode_value)
         if value is None:
             value = tag
         assert value is not None
         self.enumeration = enumeration
         self.value = value
+        self.unicodeValue = unicode_value
         self.tag = tag
         self.description = description
         self.annotation = annotation
@@ -264,10 +290,17 @@ class _EnumerationElement:
     def __str__ (self): return self.value
 
 class CF_enumeration (ConstrainingFacet, _CollectionFacet_mixin, _LateDatatype_mixin):
+    """Capture a constraint that restricts valid values to a fixed set.
+
+    A STD that has an enumeration restriction should mix-in
+    _Enumeration_mixin, and should have a class variable titled
+    _CF_enumeration that is an instance of this class.
+    """
     _Name = 'enumeration'
     _CollectionFacet_itemType = _EnumerationElement
     _LateDatatypeBindsSuperclass = False
 
+    # Map from the 
     __tagToElement = None
     __valueToElement = None
     __enumPrefix = 'EV'
