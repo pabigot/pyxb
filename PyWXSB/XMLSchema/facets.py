@@ -208,7 +208,7 @@ class _CollectionFacet_mixin (object):
             self.__items = []
         if not kw.get('_constructor', False):
             print self._CollectionFacet_itemType
-            self.__items.append(self._CollectionFacet_itemType(**kw))
+            self.__items.append(self._CollectionFacet_itemType(facet_instance=self, **kw))
         super_fn = getattr(super(_CollectionFacet_mixin, self), '_setFromKeywords_vb', lambda *a,**kw: self)
         return super_fn(**kw)
 
@@ -257,34 +257,53 @@ class _EnumerationElement:
     # The value is the Python value that is used for equality testing
     # against this enumeration.  This is an instance of
     # enumeration.valueDatatype(), initialized from the unicodeValue.
-    value = None
+    __value = None
+    def value (self): return self.__value
 
-    # The base python identifier used for the named constant
-    # representing the enumeration value.
-    tag = None
+    # The Python identifier used for the named constant representing
+    # the enumeration value.  This includes any prefix.
+    __tag = None
+    def tag (self): return self.__tag
 
     # A reference to the CF_enumeration instance that owns this element
-    enumeration = None
+    __enumeration = None
+    def enumeration (self): return self.__enumeration
 
     # The unicode string that defines the enumeration value.
-    unicodeValue = None
+    __unicodeValue = None
+    def unicodeValue (self): return self.__unicodeValue
 
     def __init__ (self, enumeration=None, unicode_value=None,
                   description=None, annotation=None,
                   **kw):
         if 0 < len(kw):
             print 'EnumerationElement kw: %s' % (kw,)
+        # The preferred keyword is "unicode_value", but when being
+        # generically applied by
+        # structures.SimpleTypeDefinition.__updateFacets, the unicode
+        # value comes in through the keyword "value".  Similarly for
+        # "enumeration" and "facet_instance".
         if unicode_value is None:
             unicode_value = kw['value']
-        self.unicodeValue = unicode_value
-        self.tag = utility.MakeIdentifier(self.unicodeValue)
-        self.enumeration = enumeration
-        self.description = description
-        self.annotation = annotation
-        if (self.description is None) and (self.annotation is not None):
-            self.description = str(self.annotation)
-        if self.enumeration is not None:
-            self.value = self.enumeration.valueDatatype()(self.unicodeValue)
+        if enumeration is None:
+            enumeration = kw['facet_instance']
+        self.__unicodeValue = unicode_value
+        self.__enumeration = enumeration
+        self.__description = description
+        self.__annotation = annotation
+
+        assert self.__enumeration is not None
+
+        tag = utility.MakeIdentifier(self.unicodeValue())
+        enum_prefix = self.enumeration().enumPrefix()
+        if enum_prefix is not None:
+            tag = '%s_%s' % (enum_prefix, tag)
+        self.__tag = tag
+
+        self.__value = self.enumeration().valueDatatype()(self.unicodeValue())
+
+        if (self.__description is None) and (self.__annotation is not None):
+            self.__description = str(self.__annotation)
 
     def __str__ (self):
         return utility.QuotedEscaped(self.unicodeValue)
@@ -319,49 +338,32 @@ class CF_enumeration (ConstrainingFacet, _CollectionFacet_mixin, _LateDatatype_m
     def addEnumeration (self, **kw):
         kw['enumeration'] = self
         ee = _EnumerationElement(**kw)
-        assert ee.value is not None
         if ee.tag in self.__tagToElement:
             raise IncompleteImplementationError('Duplicate enumeration tags')
-        self.__tagToElement[ee.tag] = ee
-        self.__valueToElement[ee.value] = ee
-        self.__unicodeToElement[ee.unicodeValue] = ee
-        return ee.value
+        self.__tagToElement[ee.tag()] = ee
+        self.__unicodeToElement[ee.unicodeValue()] = ee
+        value = ee.value()
+        self.__valueToElement[value] = ee
+        return value
 
-    def valueForTag (self, tag):
-        return self.__tagToElement[tag].value
-
-    def tagForValue (self, value):
-        if isinstance(value, self.valueDatatype()):
-            return self.prefixedTag(self.__valueToElement[value].tag)
-        if isinstance(value, types.StringTypes):
-            return self.prefixedTag(self.__unicodeToElement[value].tag)
-        raise LogicError('Unexpected value of type %s passed to tagForValue' % (type(value),))
-
-    def prefixedTag (self, tag):
-        if self.__enumPrefix is None:
-            return tag
-        return '%s_%s' % (self.__enumPrefix, tag)
+    def elementForValue (self, value):
+        return self.__valueToElement[value]
 
 class _Enumeration_mixin (object):
-    """Note: This class MUST be earlier in the mro than the Python type"""
-    def __init__ (self, value):
-        if not isinstance(value, self._CF_enumeration.valueDatatype()):
-            value = self._CF_enumeration.valueForTag(value)
-        super(_Enumeration_mixin, self).__init__(value)
+    """Marker class to indicate that the generated binding has enumeration members."""
+    pass
 
 class _WhiteSpace_enum (_Enumeration_mixin, datatypes.string):
-    _EnumerationValueSpace = datatypes.string
-    _CF_enumeration = CF_enumeration(value_datatype=_EnumerationValueSpace, enum_prefix='WSV')
-    WSV_preserve = _CF_enumeration.addEnumeration(unicode_value=u'preserve')
-    WSV_replace = _CF_enumeration.addEnumeration(unicode_value=u'replace')
-    WSV_collapse = _CF_enumeration.addEnumeration(unicode_value=u'collapse')
+    pass
+_WhiteSpace_enum._CF_enumeration = CF_enumeration(value_datatype=_WhiteSpace_enum, enum_prefix='WSV')
+_WhiteSpace_enum.WSV_preserve = _WhiteSpace_enum._CF_enumeration.addEnumeration(unicode_value=u'preserve')
+_WhiteSpace_enum.WSV_replace = _WhiteSpace_enum._CF_enumeration.addEnumeration(unicode_value=u'replace')
+_WhiteSpace_enum.WSV_collapse = _WhiteSpace_enum._CF_enumeration.addEnumeration(unicode_value=u'collapse')
 
 class CF_whiteSpace (ConstrainingFacet, _Fixed_mixin):
-    _LegalValues = ( 'preserve', 'replace', 'collapse' )
     _Name = 'whiteSpace'
     def __init__ (self, **kw):
         super(CF_whiteSpace, self).__init__(value_datatype=_WhiteSpace_enum, **kw)
-    # @todo correct value type definition
 
 class CF_minInclusive (ConstrainingFacet, _Fixed_mixin, _LateDatatype_mixin):
     _Name = 'minInclusive'
