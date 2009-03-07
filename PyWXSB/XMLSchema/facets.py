@@ -3,6 +3,7 @@ from xml.dom import Node
 import types
 import datatypes
 import structures
+import PyWXSB.utility as utility
 import PyWXSB.domutils as domutils
 
 class Facet (object):
@@ -255,7 +256,7 @@ class CF_pattern (ConstrainingFacet, _CollectionFacet_mixin):
 class _EnumerationElement:
     # The value is the Python value that is used for equality testing
     # against this enumeration.  This is an instance of
-    # enumeration.valueDatatype().
+    # enumeration.valueDatatype(), initialized from the unicodeValue.
     value = None
 
     # The base python identifier used for the named constant
@@ -268,26 +269,25 @@ class _EnumerationElement:
     # The unicode string that defines the enumeration value.
     unicodeValue = None
 
-    def __init__ (self, enumeration=None, value=None, tag=None,
-                  description=None, annotation=None, binding_prefix=None,
-                  unicode_value=None,
+    def __init__ (self, enumeration=None, unicode_value=None,
+                  description=None, annotation=None,
                   **kw):
-        if tag is None:
-            tag = str(unicode_value)
-        if value is None:
-            value = tag
-        assert value is not None
-        self.enumeration = enumeration
-        self.value = value
+        if 0 < len(kw):
+            print 'EnumerationElement kw: %s' % (kw,)
+        if unicode_value is None:
+            unicode_value = kw['value']
         self.unicodeValue = unicode_value
-        self.tag = tag
+        self.tag = utility.MakeIdentifier(self.unicodeValue)
+        self.enumeration = enumeration
         self.description = description
         self.annotation = annotation
         if (self.description is None) and (self.annotation is not None):
             self.description = str(self.annotation)
-        self.__bindingPrefix = binding_prefix
+        if self.enumeration is not None:
+            self.value = self.enumeration.valueDatatype()(self.unicodeValue)
 
-    def __str__ (self): return self.value
+    def __str__ (self):
+        return utility.QuotedEscaped(self.unicodeValue)
 
 class CF_enumeration (ConstrainingFacet, _CollectionFacet_mixin, _LateDatatype_mixin):
     """Capture a constraint that restricts valid values to a fixed set.
@@ -303,6 +303,7 @@ class CF_enumeration (ConstrainingFacet, _CollectionFacet_mixin, _LateDatatype_m
     # Map from the 
     __tagToElement = None
     __valueToElement = None
+    __unicodeToElement = None
     __enumPrefix = 'EV'
 
     def __init__ (self, **kw):
@@ -310,6 +311,7 @@ class CF_enumeration (ConstrainingFacet, _CollectionFacet_mixin, _LateDatatype_m
         self.__enumPrefix = kw.get('enum_prefix', self.__enumPrefix)
         self.__tagToElement = { }
         self.__valueToElement = { }
+        self.__unicodeToElement = { }
 
     def enumPrefix (self):
         return self.__enumPrefix
@@ -317,18 +319,23 @@ class CF_enumeration (ConstrainingFacet, _CollectionFacet_mixin, _LateDatatype_m
     def addEnumeration (self, **kw):
         kw['enumeration'] = self
         ee = _EnumerationElement(**kw)
-        ev = self.valueDatatype()(ee.value)
+        assert ee.value is not None
         if ee.tag in self.__tagToElement:
             raise IncompleteImplementationError('Duplicate enumeration tags')
         self.__tagToElement[ee.tag] = ee
-        self.__valueToElement[ev] = ee
-        return ev
+        self.__valueToElement[ee.value] = ee
+        self.__unicodeToElement[ee.unicodeValue] = ee
+        return ee.value
 
     def valueForTag (self, tag):
         return self.__tagToElement[tag].value
 
     def tagForValue (self, value):
-        return self.prefixedTag(self.__valueToElement[value].tag)
+        if isinstance(value, self.valueDatatype()):
+            return self.prefixedTag(self.__valueToElement[value].tag)
+        if isinstance(value, types.StringTypes):
+            return self.prefixedTag(self.__unicodeToElement[value].tag)
+        raise LogicError('Unexpected value of type %s passed to tagForValue' % (type(value),))
 
     def prefixedTag (self, tag):
         if self.__enumPrefix is None:
@@ -345,9 +352,9 @@ class _Enumeration_mixin (object):
 class _WhiteSpace_enum (_Enumeration_mixin, datatypes.string):
     _EnumerationValueSpace = datatypes.string
     _CF_enumeration = CF_enumeration(value_datatype=_EnumerationValueSpace, enum_prefix='WSV')
-    WSV_preserve = _CF_enumeration.addEnumeration(tag=u'preserve')
-    WSV_replace = _CF_enumeration.addEnumeration(tag=u'replace')
-    WSV_collapse = _CF_enumeration.addEnumeration(tag=u'collapse')
+    WSV_preserve = _CF_enumeration.addEnumeration(unicode_value=u'preserve')
+    WSV_replace = _CF_enumeration.addEnumeration(unicode_value=u'replace')
+    WSV_collapse = _CF_enumeration.addEnumeration(unicode_value=u'collapse')
 
 class CF_whiteSpace (ConstrainingFacet, _Fixed_mixin):
     _LegalValues = ( 'preserve', 'replace', 'collapse' )
