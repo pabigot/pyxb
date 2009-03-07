@@ -31,17 +31,39 @@ def MakeIdentifier (s):
     """Convert a string into something suitable to be a Python identifier.
 
     The string is converted to unicode; spaces and periods replaced by
-    underscores; non-printables stripped; and any leading underscores
-    removed.  No check for conflicts with keywords is made.
+    underscores; non-printables stripped.  Furthermore, any leading
+    underscores are removed.  No check is made for conflicts with
+    keywords.
     """
     return _PrefixUnderscore_re.sub('', _NonIdentifier_re.sub('',_UnderscoreSubstitute_re.sub('_', str(s))))
 
-def TransformKeywords (s):
-    pass
+_Keywords = frozenset( ( "and", "del", "from", "not", "while", "as", "elif", "global",
+              "or", "with", "assert", "else", "if", "pass", "yield",
+              "break", "except", "import", "print", "class", "exec",
+              "in", "raise", "continue", "finally", "is", "return",
+              "def", "for", "lambda", "try" ) )
+def DeconflictKeyword (s):
+    """If the provide string matches a keyword, append an underscore to distinguish them."""
+    if s in _Keywords:
+        return '%s_' % (s,)
+    return s
 
 def MakeUnique (s, in_use):
-    pass
+    """Return an identifier based on s that is not in the given set.
 
+    in_use must be an instance of set().  in_use is updated to contain
+    the returned identifier.  The returned identifier is made unique
+    by appending an underscore and, if necessary, a serial number.
+    """
+    if s in in_use:
+        candidate = '%s_' % (s,)
+        ctr = 2
+        while candidate in in_use:
+            candidate = '%s_%d' % (s, ctr)
+            ctr += 1
+        s = candidate
+    in_use.add(s)
+    return s
 
 if '__main__' == __name__:
     import unittest
@@ -72,6 +94,20 @@ if '__main__' == __name__:
             self.assertEquals('idid', MakeIdentifier(u'id&id'))
             self.assertEquals('id', MakeIdentifier('_id'))
             self.assertEquals('id_', MakeIdentifier('_id_'))
+
+        def testDeconflictKeyword (self):
+            self.assertEquals('id', DeconflictKeyword('id'))
+            self.assertEquals('for_', DeconflictKeyword('for'))
+
+        def testMakeUnique (self):
+            in_use = set()
+            self.assertEquals('id', MakeUnique('id', in_use))
+            self.assertEquals(1, len(in_use))
+            self.assertEquals('id_', MakeUnique('id', in_use))
+            self.assertEquals(2, len(in_use))
+            self.assertEquals('id_2', MakeUnique('id', in_use))
+            self.assertEquals(3, len(in_use))
+            self.assertEquals(set(( 'id', 'id_', 'id_2' )), in_use)
 
     unittest.main()
     
