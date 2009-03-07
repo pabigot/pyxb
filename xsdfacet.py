@@ -1,6 +1,7 @@
 import PyWXSB.XMLSchema as xs
 print xs.datatypes
 
+from PyWXSB.exceptions_ import *
 import PyWXSB.utility as utility
 
 import PyWXSB.Namespace as Namespace
@@ -71,6 +72,10 @@ class ReferenceEnumerationMember (ReferenceLiteral):
 
 def facetLiteral (value):
     global TargetNamespace
+    if isinstance(value, types.DictionaryType):
+        return ', '.join([ '%s=%s' % (k, facetLiteral(v)) for (k, v) in value.items() ])
+    if isinstance(value, types.TupleType):
+        return tuple([ facetLiteral(_v) for _v in value ])
     if isinstance(value, xs.facets._Enumeration_mixin):
         return PrefixModule(value, value._CF_enumeration.tagForValue(value))
     if isinstance(value, xs.datatypes._PST_mixin):
@@ -170,15 +175,15 @@ import %sdatatypes as datatypes
                     argset['super_facet'] = fi.superFacet()
                 if isinstance(fi, xs.facets.CF_enumeration):
                     argset['enum_prefix'] = fi.enumPrefix()
-            std_class = facetLiteral(td)
-            facet_var = facetLiteral(ReferenceFacetMember(type_definition=td, facet_class=fc))
-            outf.write("%s = %s(%s)\n" % (facet_var, facetLiteral(fc), ', '.join([ '%s=%s' % (key, facetLiteral(val)) for (key, val) in argset.items() ])))
+            facet_var = ReferenceFacetMember(type_definition=td, facet_class=fc)
+            outf.write("%s = %s(%s)\n" % facetLiteral( (facet_var, fc, argset )))
             if (fi is not None) and is_collection:
                 for i in fi.items():
-                    argset = { }
                     if isinstance(i, xs.facets._EnumerationElement):
                         enum_member = ReferenceEnumerationMember(type_definition=td, facet_instance=fi, enumeration_element=i)
-                        outf.write("%s = %s.addKeyword(unicode_value=%s)\n" % (facetLiteral(enum_member), facet_var, facetLiteral(i.unicodeValue)))
+                        outf.write("%s = %s.addKeyword(unicode_value=%s)\n" % facetLiteral( (enum_member, facet_var, i.unicodeValue )))
+                    if isinstance(i, xs.facets._PatternElement):
+                        outf.write("%s.addPattern(pattern=%s)\n" % facetLiteral( (facet_var, i.pattern )))
 
 except Exception, e:
     sys.stderr.write("%s processing %s:\n" % (e.__class__, file))
