@@ -2,9 +2,18 @@
 
 import re
 
+def QuotedEscaped (s):
+    """Convert a string into a literal value that can be used in Python source.
+
+    This just calls repr.  No point in getting all complex when the language
+    already gives us what we need
+    """
+    return repr(s)
+
+_ignore = r'''
 # Define the characters to be escaped, which is everything that we don't
-# want to keep as its literal form."
-_EscapedChars = r"[^-.~!@#$%^&*()_+={}\[\]|:;<>,?/'a-zA-Z0-9]"
+# want to keep as its literal form.
+_EscapedChars = r"[^-.~!@#$%^&*()_+={}\[\]|:;<>,?/'a-zA-Z0-9\\]"
 _SpecialEscapes = { "\n" : r'\n'
                   , "\t" : r'\t'
                   }
@@ -14,14 +23,20 @@ _ASCII_fn = lambda _c: _SpecialEscapes.get(_c.group()[0], r'\x%02x' % ord(_c.gro
 #_ASCII_fn = lambda _c:  r'\x%02x' % ord(_c.group()[0])
 _Unicode_fn = lambda _c: r'\u%04x' % ord(_c.group()[0])
 
-def QuotedEscaped (s):
-    """Convert a string into a literal value that can be used in Python source.
-
-    The string can be ASCII or unicode.  Most printable characters are
-    retained; non-printables are escaped."""
+    u = ''
+    r = ''
+    q = '"'
+    # Preserve backslashes
+    if 0 <= s.find("\\"):
+        r = 'r'
+        q = "'"
     if isinstance(s, unicode):
-        return 'u"%s"' % (_Escape_re.sub(_Unicode_fn, s),)
-    return '"%s"' % (_Escape_re.sub(_ASCII_fn, s),)
+        s = _Escape_re.sub(_Unicode_fn, s)
+        u = 'u'
+    else:
+        s = _Escape_re.sub(_ASCII_fn, s)
+    return '%s%s%s%s%s' % (u, r, q, s, q)
+'''
 
 _UnderscoreSubstitute_re = re.compile(r'[- .]')
 _NonIdentifier_re = re.compile(r'[^a-zA-Z0-9_]')
@@ -70,19 +85,36 @@ if '__main__' == __name__:
 
     class BasicTest (unittest.TestCase):
         
-        cases = ( ( r'"1\x042"', "1\0042" )
-                , ( r'"1\x222&3"', '1"2&3' )
-                , ( r'"one' + "'" + r'two"', "one'two" )
-                , ( r'"1\n2"', "1\n2" )
-                , ( r'u"1\u00042"', u"1\0042" )
-                , ( r'u"1\u00222&3"', u'1"2&3' )
-                , ( r'u"one' + "'" + r'two"', u"one'two" )
-                  )
+        cases = ( ( r'"1\x042"', "1\0042" ) # expanded octal
+                , ( r'"1\x042"', '1\0042' ) # expanded octal (single quotes do not affect escaping)
+                , ( "r'1\\0042'", r'1\0042' ) # preserve unexpanded octal
+                , ( r'"1\x222&3"', '1"2&3' )  # escape double quotes
+                , ( '"one\'two"', "one'two" ) # preserve single quote
+                , ( r'"1\n2"', "1\n2" )       # expanded newline to escape sequence
+                , ( "r'1\\n2'", r'1\n2' )     # raw backslash preserved
+                , ( "\"1'\\n'2\"", "1'\n'2" ) # expanded newline to escape sequence
+                , ( "\"1'\\n'2\"", '1\'\n\'2' ) # expanded newline to escape sequence (single quotes)
+                , ( "\"1\\x22\\n\\x222\"", '1"\n"2' ) # escape double quotes around expanded newline
+                , ( "r'1\\'\\n\\'2'", r'1\'\n\'2' )   # preserve escaped quote and newline
+                , ( r'u"1\u00042"', u"1\0042" )       # unicode expanded octal
+                , ( r'u"1\u00222&3"', u'1"2&3' )      # unicode escape double quotes
+                , ( r'u"one' + "'" + r'two"', u"one'two" ) # unicode embedded single quote
+                , ( "r'\\i\\c*'", r'\i\c*' )               # backslashes as in patterns
+                , ( u'u"0"', u'\u0030' )                   # expanded unicode works
+                , ( u'u"\\u0022"', u'"' )      # unicode double quotes are escaped
+                , ( u'u"\\u0022"', u'\u0022' ) # single quotes don't change that expanded unicode works
+                , ( u'u"\\u0022"', ur'\u0022' ) # raw has no effect on unicode escapes
+                , ( u"u\"'\"", u"'" )           # unicode single quote works
+                , ( u"u\"\\u00220\\u0022\"", u'"\u0030"' ) # unicode with double quotes works
+                )
+                
 
         def testQuotedEscape (self):
             for ( expected, input ) in self.cases:
                 result = QuotedEscaped(input)
-                self.assertEquals(expected, result)
+                # Given "expected" value may not be correct.  Don't care as
+                # long as the evalution produces the input.
+                #self.assertEquals(expected, result)
                 self.assertEquals(input, eval(result))
 
         def testMakeIdentifier (self):
