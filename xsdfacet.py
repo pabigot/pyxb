@@ -34,11 +34,14 @@ def PrefixModule (value, text=None):
     raise IncompleteImplementationError('PrefixModule needs support for non-builtin instances')
 
 class ReferenceLiteral (object):
+    """Base class for something that requires fairly complex activity
+    in order to generate its literal value."""
 
     # Either a STD or a subclass of _Enumeration_mixin, this is the
     # class in which the referenced object is a member.
     __ownerClass = None
     def __init__ (self, **kw):
+        # NB: Pre-extend __init__
         self.__ownerClass = kw.get('type_definition', None)
 
     def _addTypePrefix (self, text):
@@ -50,8 +53,15 @@ class ReferenceFacetMember (ReferenceLiteral):
     __facetClass = None
 
     def __init__ (self, **kw):
+        variable = kw.get('variable', None)
+        assert (variable is None) or isinstance(variable, xs.facets.Facet)
+
+        if variable is not None:
+            kw.setdefault('type_definition', variable.ownerTypeDefinition())
+            self.__facetClass = type(variable)
+        self.__facetClass = kw.get('facet_class', self.__facetClass)
+
         super(ReferenceFacetMember, self).__init__(**kw)
-        self.__facetClass = kw['facet_class']
 
     def asLiteral (self, **kw):
         return self._addTypePrefix('_CF_%s' % (self.__facetClass.Name(),))
@@ -121,19 +131,26 @@ def pythonLiteral (value):
             return PrefixModule(value)
         if issubclass(value, xs.facets.Facet):
             return PrefixModule(value)
-    if isinstance(value, xs.facets.Facet):
-        #return '%s.XsdSuperType()._CF_%s' % (value.ownerTypeDefinition().ncName(), value.Name())
-        return '%s._CF_%s' % (value.ownerTypeDefinition().ncName(), value.Name())
+
+    # String instances go out as their representation
     if isinstance(value, types.StringTypes):
         return utility.QuotedEscaped(value,)
+
+    # Treat pattern elements as their value
     if isinstance(value, xs.facets._PatternElement):
         return pythonLiteral(value.pattern)
+
+    # Treat enumeration elements as their value
     if isinstance(value, xs.facets._EnumerationElement):
         return pythonLiteral(value.value())
+
     if isinstance(value, xs.structures.SimpleTypeDefinition):
         return PrefixNamespace(value.targetNamespace(), value.ncName())
+
+    # Other special cases
     if isinstance(value, ReferenceLiteral):
         return value.asLiteral()
+
     raise Exception('Unexpected literal type %s' % (type(value),))
     print 'Unexpected literal type %s' % (type(value),)
     return str(value)
@@ -207,7 +224,7 @@ import %sdatatypes as datatypes
                 if not is_collection:
                     argset['value'] = fi.value()
                 if fi.superFacet() is not None:
-                    argset['super_facet'] = fi.superFacet()
+                    argset['super_facet'] = ReferenceFacetMember(variable=fi.superFacet())
                 if isinstance(fi, xs.facets.CF_enumeration):
                     argset['enum_prefix'] = fi.enumPrefix()
             facet_var = ReferenceFacetMember(type_definition=td, facet_class=fc)
