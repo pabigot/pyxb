@@ -1,3 +1,11 @@
+"""Classes related to XMLSchema facets.
+
+The definitions herein are from section 4 of
+http://www.w3.org/TR/xmlschema-2/.  Facets are attributes of a
+datatype that constrain its lexical and value spaces.
+
+"""
+
 from PyWXSB.exceptions_ import *
 from xml.dom import Node
 import types
@@ -7,20 +15,34 @@ import PyWXSB.utility as utility
 import PyWXSB.domutils as domutils
 
 class Facet (object):
+    """The base class for facets.
+
+    This provides association with STDs, a name, and a value for the facet.
+    """
+    
     _Name = None
     @classmethod
-    def Name (self): return self._Name
+    def Name (self):
+        """The name of a facet is a class constant."""
+        return self._Name
 
     __baseTypeDefinition = None
     def baseTypeDefinition (self):
         """The SimpleTypeDefinition component restricted by this facet.
 
-        Note: this is NOT the STD to which the facet belongs."""
+        Note: this is NOT the STD to which the facet belongs, but is
+        usually that STD's base type.  I.e., this jumps us through all
+        the containing restrictions and extensions to get to the core
+        type definition."""
         return self.__baseTypeDefinition
 
     __ownerTypeDefinition = None
     def ownerTypeDefinition (self):
-        """The SimpleTypeDefinition component to which this facet belongs."""
+        """The SimpleTypeDefinition component to which this facet belongs.
+
+        I.e., the one in which the hasFacet specification was found.
+        This value is None if the facet is not associated with an
+        STD."""
         return self.__ownerTypeDefinition
 
     __ownerDatatype = None
@@ -30,13 +52,17 @@ class Facet (object):
     def _ownerDatatype (self, owner_datatype):
         self.__ownerDatatype = owner_datatype
 
-    # valueDataType is a Python type, probably a subclassed built-in,
-    # that is used for the value of this facet.  In generated bindings
-    # this is usually set explicitly in the facet constructor; when
-    # processing a schema, it is derived from the value type
-    # definition.
     __valueDatatype = None
     def valueDatatype (self):
+        """Get the datatype used to represent values of the facet.
+
+        This usually has nothing to do with the owner datatype; for
+        example, the length facet may apply to any STD but the value
+        of the facet is an integer.  In generated bindings this is
+        usually set explicitly in the facet constructor; when
+        processing a schema, it is derived from the value's type
+        definition.
+        """
         if self.__valueDatatype is None:
             assert self.baseTypeDefinition() is not None
             return self.baseTypeDefinition().pythonSupport()
@@ -50,12 +76,28 @@ class Facet (object):
     def annotation (self): return self.__annotation
 
     def __init__ (self, **kw):
+        """Create a facet instance, initializing it from the keyword parameters."""
         super(Facet, self).__init__(**kw)
         # Can't create base class instances
         assert Facet != self.__class__
         self.setFromKeywords(_reset=True, _constructor=True, **kw)
 
     def _setFromKeywords_vb (self, **kw):
+        """Configure values of the facet from a set of keywords.
+
+        This method is pre-extended; subclasses should invoke the
+        parent method after setting their local configuration.
+
+        Keywords recognized:
+        * _reset -- If false or missing, existing values will be
+          retained if they do not appear in the keywords.  If true,
+          members not defined in the keywords are set to a default.
+        * base_type_definition
+        * owner_type_definition
+        * owner_datatype
+        * value_datatype
+        """
+
         if not kw.get('_reset', False):
             kw.setdefault('base_type_definition', self.__baseTypeDefinition)
             kw.setdefault('owner_type_definition', self.__ownerTypeDefinition)
@@ -73,10 +115,12 @@ class Facet (object):
         return super_fn(**kw)
     
     def setFromKeywords (self, **kw):
+        """Public entrypoint to the _setFromKeywords_vb call hierarchy."""
         return self._setFromKeywords_vb(**kw)
 
     @classmethod
     def ClassForFacet (cls, name):
+        """Given the name of a facet, return the Facet subclass that represents it."""
         assert cls != Facet
         if 0 <= name.find(':'):
             name = name.split(':', 1)[1]
@@ -105,9 +149,16 @@ class Facet (object):
         return ''.join(rv)
 
 class ConstrainingFacet (Facet):
+    """One of the facets defined in section 4.3, which provide
+    constraints on the lexical space of a type definition."""
+    
+    # The fixed set of expected facets
     _Facets = [ 'length', 'minLength', 'maxLength', 'pattern', 'enumeration',
                 'whiteSpace', 'maxInclusive', 'maxExclusive',
                 'minExclusive', 'minInclusive', 'totalDigits', 'fractionDigits' ]
+
+    # The prefix used when generating a Python class member that
+    # represents a constraining facet.
     _FacetPrefix = 'CF'
     
     __superFacet = None
@@ -141,6 +192,12 @@ class ConstrainingFacet (Facet):
             self._value(kwv)
 
     def _setFromKeywords_vb (self, **kw):
+        """Extend base class.
+
+        Additional keywords:
+        * value
+        """
+        # NB: This uses post-extension because it makes reference to the value_data_type
         super_fn = getattr(super(ConstrainingFacet, self), '_setFromKeywords_vb', lambda *a,**kw: self)
         rv = super_fn(**kw)
         self.__setFromKeywords(**kw)
@@ -148,10 +205,17 @@ class ConstrainingFacet (Facet):
         
 class _LateDatatype_mixin (object):
     """Marker class to indicate that the facet instance must be told
-    its datatype when it is constructed.  
+    its datatype when it is constructed.
+
+    This is necessary for facets like minExclusive, for which the
+    value is determined by the base type definition of the associated
+    STD.
 
     Subclasses must define a class variable
-    _LateDatatypeBindsSuperclass with a value of True or False.
+    _LateDatatypeBindsSuperclass with a value of True or False.  The
+    value is True iff the value of this facet is not within the value
+    space of the corresponding value datatype; for example,
+    minExclusive.
     """
 
     @classmethod
@@ -162,17 +226,25 @@ class _LateDatatype_mixin (object):
         return cls._LateDatatypeBindsSuperclass
 
     @classmethod
-    def BindingValueDatatype (cls, value_datatype):
-        if isinstance(value_datatype, structures.SimpleTypeDefinition):
+    def BindingValueDatatype (cls, value_type):
+        """Find the datatype for facet values when this facet is bound
+        to the given value_type.
+
+        If the value_type is an STD, the associated python support
+        datatype from thie value_type scanning up through the base
+        type hierarchy is used.
+        """
+        
+        if isinstance(value_type, structures.SimpleTypeDefinition):
             # Back up until we find something that actually has a
             # datatype
-            while not value_datatype.hasPythonSupport():
-                value_datatype = value_datatype.baseTypeDefinition()
-            value_datatype = value_datatype.pythonSupport()
-        assert issubclass(value_datatype, datatypes._PST_mixin)
+            while not value_type.hasPythonSupport():
+                value_type = value_type.baseTypeDefinition()
+            value_type = value_type.pythonSupport()
+        assert issubclass(value_type, datatypes._PST_mixin)
         if cls.LateDatatypeBindsSuperclass():
-            value_datatype = value_datatype.XsdSuperType()
-        return value_datatype
+            value_type = value_type.XsdSuperType()
+        return value_type
 
     def bindValueDatatype (self, value_datatype):
         self.setFromKeywords(_constructor=True, value_datatype=self.BindingValueDatatype(value_datatype))
@@ -190,6 +262,11 @@ class _Fixed_mixin (object):
             self.__fixed = datatypes.boolean(kwv)
         
     def _setFromKeywords_vb (self, **kw):
+        """Extend base class.
+
+        Additional keywords:
+        * fixed
+        """
         self.__setFromKeywords(**kw)
         super_fn = getattr(super(_Fixed_mixin, self), '_setFromKeywords_vb', lambda *a,**kw: self)
         return super_fn(**kw)
@@ -199,11 +276,22 @@ class _CollectionFacet_mixin (object):
 
     For example, the enumeration and pattern facets maintain a list of
     enumeration values and patterns, respectively, as their value
-    space."""
+    space.
+
+    Subclasses must define a class variable _CollectionFacet_itemType
+    which is a reference to a class that is used to construct members
+    of the collection.
+    """
 
     __items = None
-
     def _setFromKeywords_vb (self, **kw):
+        """Extend base class.
+
+        Additional keywords:
+        * _constructor: If False or absent, the object being set is a
+          member of the collection.  If True, the object being set is
+          the collection itself.
+        """
         if kw.get('_reset', False):
             self.__items = []
         if not kw.get('_constructor', False):
@@ -212,28 +300,48 @@ class _CollectionFacet_mixin (object):
         super_fn = getattr(super(_CollectionFacet_mixin, self), '_setFromKeywords_vb', lambda *a,**kw: self)
         return super_fn(**kw)
 
-    def items (self): return self.__items
+    def items (self):
+        """The members of the collection."""
+        # @todo should this be by reference?
+        return self.__items
 
     def values (self):
+        """A generator for members of the collection."""
         for item in self.items():
             yield item.value
             
 class CF_length (ConstrainingFacet, _Fixed_mixin):
+    """A facet that specifies the length of the lexical representation of a value.
+    
+    See http://www.w3.org/TR/xmlschema-2/#rf-length
+    """
     _Name = 'length'
     def __init__ (self, **kw):
         super(CF_length, self).__init__(value_datatype=datatypes.nonNegativeInteger, **kw)
 
 class CF_minLength (ConstrainingFacet, _Fixed_mixin):
+    """A facet that constrains the length of the lexical representation of a value.
+    
+    See http://www.w3.org/TR/xmlschema-2/#rf-minLength
+    """
     _Name = 'minLength'
     def __init__ (self, **kw):
         super(CF_minLength, self).__init__(value_datatype=datatypes.nonNegativeInteger, **kw)
 
 class CF_maxLength (ConstrainingFacet, _Fixed_mixin):
+    """A facet that constrains the length of the lexical representation of a value.
+    
+    See http://www.w3.org/TR/xmlschema-2/#rf-minLength
+    """
     _Name = 'maxLength'
     def __init__ (self, **kw):
         super(CF_maxLength, self).__init__(value_datatype=datatypes.nonNegativeInteger, **kw)
 
 class _PatternElement:
+    """This class represents individual patterns that appear within a CF_pattern collection."""
+
+    pattern = None
+    annotation = None
     def __init__ (self, value=None, annotation=None, **kw):
         assert value is not None
         assert isinstance(value, types.StringTypes)
@@ -243,6 +351,10 @@ class _PatternElement:
     def __str__ (self): return self.pattern
 
 class CF_pattern (ConstrainingFacet, _CollectionFacet_mixin):
+    """A facet that constrains the lexical representation of a value to match one of a set of patterns.
+    
+    See http://www.w3.org/TR/xmlschema-2/#rf-pattern
+    """
     _Name = 'pattern'
     _CollectionFacet_itemType = _PatternElement
 
@@ -254,24 +366,34 @@ class CF_pattern (ConstrainingFacet, _CollectionFacet_mixin):
         self.__patternElements = []
 
 class _EnumerationElement:
-    # The value is the Python value that is used for equality testing
-    # against this enumeration.  This is an instance of
-    # enumeration.valueDatatype(), initialized from the unicodeValue.
+    """This class represents individual values that appear within a CF_enumeration collection."""
+    
     __value = None
-    def value (self): return self.__value
+    def value (self):
+        """The Python value that is used for equality testing
+        against this enumeration. 
 
-    # The Python identifier used for the named constant representing
-    # the enumeration value.  This includes any prefix.
+        This is an instance of enumeration.valueDatatype(),
+        initialized from the unicodeValue."""
+        return self.__value
+
     __tag = None
-    def tag (self): return self.__tag
+    def tag (self):
+        """The Python identifier used for the named constant representing
+        the enumeration value.
 
-    # A reference to the CF_enumeration instance that owns this element
+        This includes any prefix."""
+        return self.__tag
+
     __enumeration = None
-    def enumeration (self): return self.__enumeration
+    def enumeration (self):
+        """A reference to the CF_enumeration instance that owns this element."""
+        return self.__enumeration
 
-    # The unicode string that defines the enumeration value.
     __unicodeValue = None
-    def unicodeValue (self): return self.__unicodeValue
+    def unicodeValue (self):
+        """The unicode string that defines the enumeration value."""
+        return self.__unicodeValue
 
     def __init__ (self, enumeration=None, unicode_value=None,
                   description=None, annotation=None,
@@ -314,6 +436,8 @@ class CF_enumeration (ConstrainingFacet, _CollectionFacet_mixin, _LateDatatype_m
     A STD that has an enumeration restriction should mix-in
     _Enumeration_mixin, and should have a class variable titled
     _CF_enumeration that is an instance of this class.
+
+    See http://www.w3.org/TR/xmlschema-2/#rf-enumeration
     """
     _Name = 'enumeration'
     _CollectionFacet_itemType = _EnumerationElement
@@ -354,6 +478,7 @@ class _Enumeration_mixin (object):
     pass
 
 class _WhiteSpace_enum (_Enumeration_mixin, datatypes.string):
+    """The enumeration used to constrain the whiteSpace facet"""
     pass
 _WhiteSpace_enum._CF_enumeration = CF_enumeration(value_datatype=_WhiteSpace_enum, enum_prefix='WSV')
 _WhiteSpace_enum.WSV_preserve = _WhiteSpace_enum._CF_enumeration.addEnumeration(unicode_value=u'preserve')
@@ -361,37 +486,67 @@ _WhiteSpace_enum.WSV_replace = _WhiteSpace_enum._CF_enumeration.addEnumeration(u
 _WhiteSpace_enum.WSV_collapse = _WhiteSpace_enum._CF_enumeration.addEnumeration(unicode_value=u'collapse')
 
 class CF_whiteSpace (ConstrainingFacet, _Fixed_mixin):
+    """Specify the value-space interpretation of whitespace.
+
+    See http://www.w3.org/TR/xmlschema-2/#rf-whiteSpace
+    """
     _Name = 'whiteSpace'
     def __init__ (self, **kw):
         super(CF_whiteSpace, self).__init__(value_datatype=_WhiteSpace_enum, **kw)
 
 class CF_minInclusive (ConstrainingFacet, _Fixed_mixin, _LateDatatype_mixin):
+    """Specify the minimum legal value for the constrained type.
+
+    See http://www.w3.org/TR/xmlschema-2/#rf-minInclusive
+    """
     _Name = 'minInclusive'
     _LateDatatypeBindsSuperclass = False
 
 class CF_maxInclusive (ConstrainingFacet, _Fixed_mixin, _LateDatatype_mixin):
+    """Specify the maximum legal value for the constrained type.
+
+    See http://www.w3.org/TR/xmlschema-2/#rf-maxInclusive
+    """
     _Name = 'maxInclusive'
     _LateDatatypeBindsSuperclass = False
 
 class CF_minExclusive (ConstrainingFacet, _Fixed_mixin, _LateDatatype_mixin):
+    """Specify the exclusive lower bound of legal values for the constrained type.
+
+    See http://www.w3.org/TR/xmlschema-2/#rf-minExclusive
+    """
     _Name = 'minExclusive'
     _LateDatatypeBindsSuperclass = True
 
 class CF_maxExclusive (ConstrainingFacet, _Fixed_mixin, _LateDatatype_mixin):
+    """Specify the exclusive upper bound of legal values for the constrained type.
+
+    See http://www.w3.org/TR/xmlschema-2/#rf-maxExclusive
+    """
     _Name = 'maxExclusive'
     _LateDatatypeBindsSuperclass = True
 
 class CF_totalDigits (ConstrainingFacet, _Fixed_mixin):
+    """Specify the number of digits in the *value* space of the type.
+
+    See http://www.w3.org/TR/xmlschema-2/#rf-totalDigits
+    """
     _Name = 'totalDigits'
     def __init__ (self, **kw):
         super(CF_totalDigits, self).__init__(value_datatype=datatypes.positiveInteger, **kw)
 
 class CF_fractionDigits (ConstrainingFacet, _Fixed_mixin):
+    """Specify the number of sub-unit digits in the *value* space of the type.
+
+    See http://www.w3.org/TR/xmlschema-2/#rf-fractionDigits
+    """
     _Name = 'fractionDigits'
     def __init__ (self, **kw):
         super(CF_fractionDigits, self).__init__(value_datatype=datatypes.nonNegativeInteger, **kw)
 
 class FundamentalFacet (Facet):
+    """A fundamental facet provides information on the value space of the associated type."""
+    
     _Facets = [ 'equal', 'ordered', 'bounded', 'cardinality', 'numeric' ]
     _FacetPrefix = 'FF'
 
@@ -420,9 +575,19 @@ class FundamentalFacet (Facet):
         return self
 
 class FF_equal (FundamentalFacet):
+    """Specifies that the associated type supports a notion of equality.
+
+    See http://www.w3.org/TR/xmlschema-2/#equal
+    """
+    
     _Name = 'equal'
 
 class FF_ordered (FundamentalFacet):
+    """Specifies that the associated type supports a notion of order.
+
+    See http://www.w3.org/TR/xmlschema-2/#rf-ordered
+    """
+
     _LegalValues = ( 'false', 'partial', 'total' )
     _Name = 'ordered'
     def __init__ (self, **kw):
@@ -430,11 +595,21 @@ class FF_ordered (FundamentalFacet):
         super(FF_ordered, self).__init__(value_datatype=datatypes.string, **kw)
 
 class FF_bounded (FundamentalFacet):
+    """Specifies that the associated type supports a notion of bounds.
+
+    See http://www.w3.org/TR/xmlschema-2/#rf-bounded
+    """
+
     _Name = 'bounded'
     def __init__ (self, **kw):
         super(FF_bounded, self).__init__(value_datatype=datatypes.boolean, **kw)
 
 class FF_cardinality (FundamentalFacet):
+    """Specifies that the associated type supports a notion of length.
+
+    See http://www.w3.org/TR/xmlschema-2/#rf-cardinality
+    """
+
     _LegalValues = ( 'finite', 'countably infinite' )
     _Name = 'cardinality'
     def __init__ (self, **kw):
@@ -442,6 +617,11 @@ class FF_cardinality (FundamentalFacet):
         super(FF_cardinality, self).__init__(value_datatype=datatypes.string, **kw)
 
 class FF_numeric (FundamentalFacet):
+    """Specifies that the associated type represents a number.
+
+    See http://www.w3.org/TR/xmlschema-2/#rf-numeric
+    """
+
     _Name = 'numeric'
     def __init__ (self, **kw):
         super(FF_numeric, self).__init__(value_datatype=datatypes.boolean, **kw)

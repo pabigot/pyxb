@@ -2,11 +2,12 @@
 
 Each SimpleTypeDefinition component instance is paired with at most
 one PythonSimpleType (PST), which is a subclass of a Python type
-augmented with facets and other constraining information.
+augmented with facets and other constraining information.  This file
+contains the definitions of these types.
 
 We want the simple datatypes to be efficient Python values, but to
 also hold specific constraints that don't apply to the Python types.
-To do this, we subclass each STD.  Primitive PSTs inherit from the
+To do this, we subclass each PST.  Primitive PSTs inherit from the
 Python type that represents them, and from a _PST_mixin class which
 adds in the constraint infrastructure.  Derived PSTs inherit from the
 parent PST.
@@ -19,6 +20,10 @@ by a Python int.  In this case, the derived PST class is structured
 like a primitive type, but the PST associated with the STD superclass
 is recorded in a class variable _XsdBaseType.
 
+Note the strict terminology: "datatype" refers to a class which is a
+subclass of a Python type, while "type definition" refers to an
+instance of either SimpleTypeDefinition or ComplexTypeDefinition.
+
 """
 
 from PyWXSB.exceptions_ import *
@@ -30,7 +35,7 @@ _PrimitiveDatatypes = []
 _DerivedDatatypes = []
 _ListDatatypes = []
 
-#"""http://www/Documentation/W3C/www.w3.org/TR/2001/REC-xmlschema-1-20010502/index.html#key-urType"""
+#"""http://www.w3.org/TR/2001/REC-xmlschema-1-20010502/#key-urType"""
 # NB: anyType is a ComplexTypeDefinition instance; haven't figured out
 # how to deal with that yet.
 
@@ -105,6 +110,7 @@ class _PST_mixin (object):
 
     @classmethod
     def XsdConstraintsOK (self, string_value, value):
+        # @todo implement this
         pass
 
     @classmethod
@@ -129,7 +135,7 @@ class _List_mixin (_PST_mixin):
 # primitive type.  Presumably, only enumeration and pattern facets
 # will be applied.
 class anySimpleType (unicode, _PST_mixin):
-    """http://www/Documentation/W3C/www.w3.org/TR/xmlschema-2/index.html#dt-anySimpleType"""
+    """http://www.w3.org/TR/xmlschema-2/#dt-anySimpleType"""
     _XsdBaseType = None
     _Namespace = Namespace.XMLSchema
 
@@ -142,7 +148,7 @@ class anySimpleType (unicode, _PST_mixin):
 class string (unicode, _PST_mixin):
     """string.
     
-    http://www/Documentation/W3C/www.w3.org/TR/xmlschema-2/index.html#string"""
+    http://www.w3.org/TR/xmlschema-2/#string"""
     _XsdBaseType = anySimpleType
     _Namespace = Namespace.XMLSchema
 
@@ -157,7 +163,7 @@ _PrimitiveDatatypes.append(string)
 class boolean (int, _PST_mixin):
     """boolean.
 
-    http://www/Documentation/W3C/www.w3.org/TR/xmlschema-2/index.html#boolean"""
+    http://www.w3.org/TR/xmlschema-2/#boolean"""
     _XsdBaseType = anySimpleType
     _Namespace = Namespace.XMLSchema
     
@@ -190,7 +196,7 @@ _PrimitiveDatatypes.append(boolean)
 class decimal (types.FloatType, _PST_mixin):
     """decimal.
     
-    http://www/Documentation/W3C/www.w3.org/TR/xmlschema-2/index.html#decimal
+    http://www.w3.org/TR/xmlschema-2/#decimal
 
     @todo The Python base type for this is wrong. Consider
     http://code.google.com/p/mpmath/.
@@ -208,7 +214,7 @@ _PrimitiveDatatypes.append(decimal)
 class float (types.FloatType, _PST_mixin):
     """float.
 
-    http://www/Documentation/W3C/www.w3.org/TR/xmlschema-2/index.html#float"""
+    http://www.w3.org/TR/xmlschema-2/#float"""
     _XsdBaseType = anySimpleType
     _Namespace = Namespace.XMLSchema
 
@@ -359,7 +365,7 @@ _ListDatatypes.append(ENTITIES)
 class integer (long, _PST_mixin):
     """integer.
 
-    http://www/Documentation/W3C/www.w3.org/TR/xmlschema-2/index.html#integer"""
+    http://www.w3.org/TR/xmlschema-2/#integer"""
     _XsdBaseType = decimal
     _Namespace = Namespace.XMLSchema
     @classmethod
