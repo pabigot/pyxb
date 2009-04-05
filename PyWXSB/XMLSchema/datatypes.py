@@ -129,6 +129,7 @@ class _PST_mixin (object):
         return '%s(%s)' % (class_name, super(_PST_mixin, self).__str__())
 
 class _List_mixin (_PST_mixin):
+    """Marker to indicate that the datatype is a collection."""
     pass
 
 # We use unicode as the Python type for anything that isn't a normal

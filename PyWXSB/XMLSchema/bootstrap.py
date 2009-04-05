@@ -61,6 +61,9 @@ class schema (xsc.Schema):
     """
     
     __domRootNode = None
+
+    # True when we have started seeing elements, attributes, or
+    # notations.
     __pastProlog = False
 
     # A set of namespace instances referenced by this schema.

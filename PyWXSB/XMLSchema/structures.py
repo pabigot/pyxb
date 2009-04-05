@@ -77,6 +77,10 @@ class _NamedComponent_mixin (object):
     # This is immutable after creation.
     __name = None
 
+    def isAnonymous (self):
+        """Return true iff this instance is locally scoped (has no name)."""
+        return self.__name is None
+
     # None, or a reference to a Namespace in which the component may be found.
     # This is immutable after creation.
     __targetNamespace = None
@@ -316,8 +320,6 @@ class AttributeDeclaration (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
         name = NodeAttribute(node, wxs, 'name')
         if name is not None:
             namespace = wxs.getTargetNamespace()
-        #elif node.hasAttribute('ref'):
-        #    pass
         elif NodeAttribute(node, wxs, 'ref') is None:
             namespace = wxs.getTargetNamespaceFromDOM(node, 'attributeFormDefault')
 
@@ -596,6 +598,7 @@ class ElementDeclaration (_NamedComponent_mixin, _Resolvable_mixin, _Annotated_m
 
 
 class ComplexTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
+    # The type resolved from the base attribute.
     __baseTypeDefinition = None
     def baseTypeDefinition (self):
         "The type resolved from the base attribute."""
@@ -605,7 +608,8 @@ class ComplexTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
     DM_extension = 0x01         #<<< Derivation by extension
     DM_restriction = 0x02       #<<< Derivation by restriction
 
-    #  This field is used to identify unresolved definitions.
+    # How the type was derived (a DM_* value)
+    # (This field is used to identify unresolved definitions.)
     __derivationMethod = None
     def derivationMethod (self):
         """How the type was derived."""
@@ -617,6 +621,7 @@ class ComplexTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
     # Derived from the abstract attribute
     __abstract = False
     
+    # A frozenset() of AttributeUse instances.
     __attributeUses = None
     def attributeUses (self):
         """A frozenset() of AttributeUse instances."""
@@ -630,6 +635,7 @@ class ComplexTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
     CT_MIXED = 2                #<<< Children may be elements or other (e.g., character) content
     CT_ELEMENT_ONLY = 3         #<<< Expect only element content.
 
+    # Identify the sort of content in this type.
     __contentType = None
     def contentType (self):
         """Identify the sort of content in this type.
@@ -1005,6 +1011,7 @@ class _UrTypeDefinition (ComplexTypeDefinition, _Singleton_mixin):
     pass
 
 class AttributeGroupDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated_mixin):
+    # A frozenset of AttributeUse instances
     __attributeUses = None
 
     # Optional wildcard that constrains attributes
@@ -1146,10 +1153,14 @@ class ModelGroup (_Annotated_mixin):
         return '%s:(%s)' % (comp, ",".join( [ str(_p) for _p in self.particles() ] ) )
 
 class Particle (_Resolvable_mixin):
-    """Some entity along with occurrence information."""
-    # NB: Particles are not resolvable, but the term they include
-    # probably has some resolvable component.
+    """Some entity along with occurrence information.
 
+    NB: Particles are not themselves resolvable, but the term they
+    include probably has some resolvable component, so we inherit from
+    that class to make sure it gets resolved.
+    """
+
+    # The minimum number of times the term may appear.
     __minOccurs = 1
     def minOccurs (self):
         """The minimum number of times the term may appear.
@@ -1157,6 +1168,7 @@ class Particle (_Resolvable_mixin):
         Defaults to 1."""
         return self.__minOccurs
 
+    # Upper limit on number of times the term may appear.
     __maxOccurs = 1
     def maxOccurs (self):
         """Upper limit on number of times the term may appear.
@@ -1168,12 +1180,14 @@ class Particle (_Resolvable_mixin):
         """
         return self.__maxOccurs
 
+    # A reference to a ModelGroup, WildCard, or ElementDeclaration
     __term = None
     def term (self):
         """A reference to a ModelGroup, Wildcard, or ElementDeclaration."""
         return self.__term
 
     def isPlural (self):
+        """Return true iff the term might appear multiple times."""
         if (self.maxOccurs() is None) or 1 < self.maxOccurs():
             return True
         return self.term().isPlural()
@@ -1200,6 +1214,7 @@ class Particle (_Resolvable_mixin):
         assert (self.__ancestorComponent is None) or isinstance(self.__ancestorComponent, ( ComplexTypeDefinition, ModelGroup ))
     
     def _setAncestorComponent (self, ancestor_component):
+        """Record the ancestor component after construction."""
         self.__ancestorComponent = ancestor_component
         return self
 
@@ -1558,6 +1573,7 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
     STD_list = 0x02        #<<< Representation for list in a set of STD forms
     STD_restriction = 0x04 #<<< Representation of restriction in a set of STD forms
     STD_union = 0x08       #<<< Representation of union in a set of STD forms
+
     # Bitmask defining the subset that comprises the final property
     __final = STD_empty
     @classmethod
