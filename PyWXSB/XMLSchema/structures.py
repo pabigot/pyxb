@@ -248,6 +248,12 @@ class _Resolvable_mixin (object):
         """
         raise LogicError('Resolution not implemented in %s' % (self.__class__,))
 
+    def dependentDefinitions (self):
+        return self._dependentDefinitions_vx()
+
+    def _dependentDefinitions_vx (self):
+        raise LogicError('%s does not implement _dependentDefinitions_vx' % (cls,))
+
 class _ValueConstraint_mixin:
     """Mix-in indicating that the component contains a simple-type
     value that may be constrained."""
@@ -1068,6 +1074,7 @@ class ModelGroupDefinition (_NamedComponent_mixin, _Annotated_mixin):
     __modelGroup = None
 
     def modelGroup (self):
+        """The model group for which this definition provides a name."""
         return self.__modelGroup
 
     @classmethod
@@ -1086,7 +1093,8 @@ class ModelGroupDefinition (_NamedComponent_mixin, _Annotated_mixin):
                 continue
             if cn.nodeName in mg_tags:
                 assert not rv.__modelGroup
-                rv.__modelGroup = ModelGroup.CreateFromDOM(wxs, cn)
+                rv.__modelGroup = ModelGroup.CreateFromDOM(wxs, cn, model_group_definition=rv)
+        assert rv.__modelGroup is not None
         return rv
 
 class ModelGroup (_Annotated_mixin):
@@ -1095,13 +1103,23 @@ class ModelGroup (_Annotated_mixin):
     C_CHOICE = 0x02
     C_SEQUENCE = 0x03
 
-    # One of the C_* values above
+    # One of the C_* values above.  Set at construction time from the
+    # keyword parameter "compositor".
     __compositor = C_INVALID
     def compositor (self): return self.__compositor
 
-    # A list of _Particle instances
+    # A list of _Particle instances.  Set at construction time from
+    # the keyword parameter "particles".
     __particles = None
     def particles (self): return self.__particles
+
+    # The ModelGroupDefinition that names this ModelGroup, or None if
+    # the ModelGroup is anonymous.  This is set at construction time
+    # from the keyword parameter "model_group_definition".
+    __modelGroupDefinition = None
+    def modelGroupDefinition (self):
+        """The ModelGroupDefinition that names this group, or None if it is unnamed."""
+        return self.__modelGroupDefinition
 
     def __init__ (self, *args, **kw):
         super(ModelGroup, self).__init__(*args, **kw)
@@ -1109,6 +1127,7 @@ class ModelGroup (_Annotated_mixin):
         particles = kw.get('particles', [])
         self.__compositor = compositor
         self.__particles =[ _p._setAncestorComponent(self) for _p in particles ]
+        self.__modelGroupDefinition = kw.get('model_group_definition', None)
 
     def isPlural (self):
         for p in self.particles():
@@ -1117,7 +1136,7 @@ class ModelGroup (_Annotated_mixin):
         return False
 
     @classmethod
-    def CreateFromDOM (cls, wxs, node):
+    def CreateFromDOM (cls, wxs, node, **kw):
         if node.nodeName in wxs.xsQualifiedNames('all'):
             compositor = cls.C_ALL
         elif node.nodeName in wxs.xsQualifiedNames('choice'):
@@ -1134,7 +1153,7 @@ class ModelGroup (_Annotated_mixin):
             if cn.nodeName in particle_tags:
                 # NB: Ancestor of particle is set in the ModelGroup constructor
                 particles.append(Particle.CreateFromDOM(wxs, cn, None))
-        rv = cls(compositor=compositor, particles=particles)
+        rv = cls(compositor=compositor, particles=particles, **kw)
         rv._annotationFromDOM(wxs, node)
         return rv
 
@@ -2249,13 +2268,31 @@ class Schema (object):
     NT_element = 0x05           #<<< Name represents an element declaration
     NT_notation = 0x06          #<<< Name represents a notation declaration
 
+    # Map from name to SimpleTypeDefinition or ComplexTypeDefinition
     __typeDefinitions = None
+    # Map from name to AttributeGroupDefinition
     __attributeGroupDefinitions = None
+    # Map from name to ModelGroupDefinition
     __modelGroupDefinitions = None
+    # Map from name to AttributeDeclaration
     __attributeDeclarations = None
+    # Map from name to ElementDeclaration
     __elementDeclarations = None
+    # Map from name to NotationDeclaration
     __notationDeclarations = None
+    # List of annotations
     __annotations = None
+
+    # A set of _Resolvable_mixin instances that have yet to be
+    # resolved.
+    __unresolvedDefinitions = None
+
+    def completedResolution (self):
+        """Return True iff all resolvable elements have been resolved.
+
+        After this point, nobody should be messing with the any of the
+        definition or declaration maps."""
+        return self.__unresolvedDefinitions is None
 
     def __mapForNamedType (self, nt):
         if self.NT_type == nt:
@@ -2271,8 +2308,6 @@ class Schema (object):
         if self.NT_notation == nt:
             return self.__notationDeclarations
         raise LogicError('Invalid named type 0x02x' % (nt,))
-
-    __unresolvedDefinitions = None
 
     # Default values for standard recognized schema attributes
     __attributeMap = { 'attributeFormDefault' : 'unqualified'

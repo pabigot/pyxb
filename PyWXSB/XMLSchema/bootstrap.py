@@ -22,6 +22,7 @@ import types
 # generated bindings.
 
 class schemaTop (xsc.ModelGroup):
+    """Hand-written binding to the schemaTop model group of XMLSchema."""
     def __init__ (self, *args, **kw):
         super(schemaTop, self).__init__(*args, **kw)
 
@@ -39,6 +40,7 @@ class schemaTop (xsc.ModelGroup):
         return None
 
 class redefinable (xsc.ModelGroup):
+    """Hand-written binding to the redefinable model group of XMLSchema."""
     def __init__ (self, *args, **kw):
         super(redefinable, self).__init__(*args, **kw)
 
