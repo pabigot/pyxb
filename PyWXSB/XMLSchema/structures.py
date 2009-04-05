@@ -66,6 +66,21 @@ class _SchemaComponent_mixin (object):
     def schema (self): return self.__schema
     #def owner (self): return self.__owner
 
+    # Cached frozenset of components on which this component depends.
+    __dependentComponents = None
+
+    def dependentComponents (self):
+        if self.__dependentComponents is None:
+            if isinstance(self, _Resolvable_mixin) and not (self.isResolved()):
+                raise LogicError('Unresolved %s in %s: %s' % (self.__class__.__name__, self.schema().getTargetNamespace(), self,))
+            self.__dependentComponents = self._dependentComponents_vx()
+            if self in self.__dependentComponents:
+                raise LogicError('Self-dependency with %s %s' % (self.__class__.__name__, self))
+        return self.__dependentComponents
+
+    def _dependentComponents_vx (self):
+        raise LogicError('%s does not implement _dependentComponents_vx' % (self.__class__,))
+
 
 class _Singleton_mixin (object):
     """This class is a mix-in which guarantees that only one instance
@@ -298,12 +313,6 @@ class _Resolvable_mixin (object):
         """
         raise LogicError('Resolution not implemented in %s' % (self.__class__,))
 
-    def dependentDefinitions (self):
-        return self._dependentDefinitions_vx()
-
-    def _dependentDefinitions_vx (self):
-        raise LogicError('%s does not implement _dependentDefinitions_vx' % (cls,))
-
 class _ValueConstraint_mixin:
     """Mix-in indicating that the component contains a simple-type
     value that may be constrained."""
@@ -340,7 +349,8 @@ class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
 
     See http://www.w3.org/TR/xmlschema-1/index.html#cAttribute_Declarations
     """
-    # 
+
+    # The STD to which attribute values must conform
     __typeDefinition = None
     def typeDefinition (self):
         """The simple type definition to which an attribute value must
@@ -419,6 +429,12 @@ class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
         self.__domNode = None
         return self
 
+    def _dependentComponents_vx (self):
+        """Implement base class method.
+
+        AttributeDeclarations depend only on the type definition for their value.
+        """
+        return frozenset([self.__typeDefinition])
 
 class AttributeUse (_SchemaComponent_mixin, _Resolvable_mixin, _ValueConstraint_mixin):
     """An XMLSchema Attribute Use component.
@@ -442,6 +458,13 @@ class AttributeUse (_SchemaComponent_mixin, _Resolvable_mixin, _ValueConstraint_
     # Define so superclasses can take keywords
     def __init__ (self, **kw):
         super(AttributeUse, self).__init__(**kw)
+
+    def _dependentComponents_vx (self):
+        """Implement base class method.
+
+        Attribute uses depend only on their attribute declarations.
+        """
+        return frozenset([self.__attributeDeclaration])
 
     @classmethod
     def CreateFromDOM (cls, wxs, node):
@@ -548,6 +571,15 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Resolv
         None if at the top level, or a ComplexTypeDefinition or a
         ModelGroup.  """
         return self.__ancestorComponent
+
+    def _dependentComponents_vx (self):
+        """Implement base class method.
+
+        Element declarations depend on the type definition of their
+        content.  Note: The ancestor component depends on this
+        component, not the other way 'round.
+        """
+        return frozenset([self.__typeDefinition])
 
     def __init__ (self, *args, **kw):
         super(ElementDeclaration, self).__init__(*args, **kw)
@@ -779,7 +811,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
 
             # Content is mixed, with elements completely unconstrained.
             w = Wildcard(namespace_constraint=Wildcard.NC_any, process_contents=Wildcard.PC_lax, schema=_SchemaComponent_mixin._SCHEMA_None)
-            p = Particle(term=bi.__attributeWildcard, min_occurs=0, max_occurs=None, schema=_SchemaComponent_mixin._SCHEMA_None)
+            p = Particle(w, min_occurs=0, max_occurs=None, schema=_SchemaComponent_mixin._SCHEMA_None)
             m = ModelGroup(compositor=ModelGroup.C_SEQUENCE, particles=[ p ], schema=_SchemaComponent_mixin._SCHEMA_None)
             bi.__contentType = ( m, cls.CT_MIXED )
 
@@ -795,6 +827,24 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
             # The ur-type is always resolved
             cls.__UrTypeDefinition = bi
         return cls.__UrTypeDefinition
+
+    def _dependentComponents_vx (self):
+        """Implement base class method.
+
+        Complex type definitions depend on their base type definition
+        and their attribute uses, any associated wildcard, and any
+        particle that appears in the content.
+        """
+        rv = set()
+        assert self.__baseTypeDefinition is not None
+        rv.add(self.__baseTypeDefinition)
+        assert self.__attributeUses is not None
+        rv.update(self.__attributeUses)
+        if self.__attributeWildcard is not None:
+            rv.add(self.__attributeWildcard)
+        if self.CT_EMPTY != self.contentType():
+            rv.add(self.contentType()[1])
+        return frozenset(rv)
 
     @classmethod
     def CreateFromDOM (cls, wxs, node):
@@ -939,7 +989,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
                 # Clause 2.1.4
                 assert typedef_node is None
                 m = ModelGroup(compositor=ModelGroup.C_SEQUENCE, schema=wxs)
-                effective_content = Particle(term=m, schema=wxs)
+                effective_content = Particle(m, schema=wxs)
             else:
                 # Clause 2.1.5
                 effective_content = self.CT_EMPTY
@@ -975,7 +1025,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
             else:
                 assert type(parent_content_type) == tuple
                 m = ModelGroup(compositor=ModelGroup.C_SEQUENCE, particles=[ parent_content_type[1], effective_content ], schema=wxs)
-                content_type = ( ct, Particle(term=m, schema=wxs) )
+                content_type = ( ct, Particle(m, schema=wxs) )
 
         assert (self.CT_EMPTY == content_type) or ((type(content_type) == tuple) and (content_type[1] is not None))
         self.__contentType = content_type
@@ -1076,6 +1126,17 @@ class AttributeGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _
     # Optional wildcard that constrains attributes
     __attributeWildcard = None
 
+    def _dependentComponents_vx (self):
+        """Implement base class method.
+
+        Attribute group definitions depend on their attribute uses and
+        any associated wildcard.
+        """
+        rv = set(self.__attributeUses)
+        if self.__attributeWildcard is not None:
+            rv.add(self.__attributeWildcard)
+        return frozenset(rv)
+
     @classmethod
     def CreateFromDOM (cls, wxs, node):
         assert node.nodeName in wxs.xsQualifiedNames('attributeGroup')
@@ -1130,6 +1191,13 @@ class ModelGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Anno
         """The model group for which this definition provides a name."""
         return self.__modelGroup
 
+    def _dependentComponents_vx (self):
+        """Implement base class method.
+
+        Model group definitions depend only on their model group.
+        """
+        return frozenset([self.__modelGroup])
+
     @classmethod
     def CreateFromDOM (cls, wxs, node):
         assert node.nodeName in wxs.xsQualifiedNames('group')
@@ -1173,6 +1241,13 @@ class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
     def modelGroupDefinition (self):
         """The ModelGroupDefinition that names this group, or None if it is unnamed."""
         return self.__modelGroupDefinition
+
+    def _dependentComponents_vx (self):
+        """Implement base class method.
+
+        Model groups depend on their particles.
+        """
+        return frozenset(self.__particles)
 
     def __init__ (self, *args, **kw):
         super(ModelGroup, self).__init__(*args, **kw)
@@ -1263,6 +1338,13 @@ class Particle (_SchemaComponent_mixin, _Resolvable_mixin):
         if (self.maxOccurs() is None) or 1 < self.maxOccurs():
             return True
         return self.term().isPlural()
+
+    def _dependentComponents_vx (self):
+        """Implement base class method.
+
+        Particles depend on their term.
+        """
+        return frozenset([self.__term])
 
     # The ComplexTypeDefinition or ModelGroup in which this particle
     # appears.  Need this during resolution to handle non-reference
@@ -1412,6 +1494,13 @@ class Wildcard (_SchemaComponent_mixin, _Annotated_mixin):
         self.__namespaceConstraint = kw['namespace_constraint']
         self.__processContents = kw['process_contents']
 
+    def _dependentComponents_vx (self):
+        """Implement base class method.
+
+        Wildcards depend on nothing.
+        """
+        return frozenset()
+
     @classmethod
     def CreateFromDOM (cls, wxs, node):
         nc = NodeAttribute(node, wxs, 'namespace')
@@ -1469,6 +1558,13 @@ class IdentityConstraintDefinition (_SchemaComponent_mixin, _NamedComponent_mixi
     __annotations = None
     def annotations (self): return self.__annotations
 
+    def _dependentComponents_vx (self):
+        """Implement base class method.
+
+        Identity constraint definitions depend on nothing.
+        """
+        return frozenset()
+
     @classmethod
     def CreateFromDOM (cls, wxs, node):
         name = NodeAttribute(node, wxs, 'name')
@@ -1524,6 +1620,13 @@ class NotationDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Annot
     __publicIdentifier = None
     def publicIdentifier (self): return self.__publicIdentifier
 
+    def _dependentComponents_vx (self):
+        """Implement base class method.
+
+        Notation declarations depend on nothing.
+        """
+        return frozenset()
+
     @classmethod
     def CreateFromDOM (cls, wxs, node):
         name = NodeAttribute(node, wxs, 'name')
@@ -1548,6 +1651,13 @@ class Annotation (_SchemaComponent_mixin):
     # Define so superclasses can take keywords
     def __init__ (self, **kw):
         super(Annotation, self).__init__(**kw)
+
+    def _dependentComponents_vx (self):
+        """Implement base class method.
+
+        Annotations depend on nothing.
+        """
+        return frozenset()
 
     # @todo what the hell is this?  From 3.13.2, I think it's a place
     # to stuff attributes from the annotation element, which makes
@@ -1716,19 +1826,29 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
             raise LogicError('Expected member types')
         return self.__memberTypeDefinitions
 
-    def dependentTypeDefinitions (self):
-        type_definitions = [ self.baseTypeDefinition() ]
+    def _dependentComponents_vx (self):
+        """Implement base class method.
+
+        This STD depends on its baseTypeDefinition, unless its variety
+        is absent.  Other dependencies are on item, primitive, or
+        member type definitions."""
+        type_definitions = set()
+        if self != self.baseTypeDefinition():
+            type_definitions.add(self.baseTypeDefinition())
         if self.VARIETY_absent == self.variety():
-            type_definitions = []
+            type_definitions = set()
         elif self.VARIETY_atomic == self.variety():
-            type_definitions.append(self.primitiveTypeDefinition())
+            if self != self.primitiveTypeDefinition():
+                type_definitions.add(self.primitiveTypeDefinition())
         elif self.VARIETY_list == self.variety():
-            type_definitions.append(self.itemTypeDefinition())
+            assert self != self.itemTypeDefinition()
+            type_definitions.add(self.itemTypeDefinition())
         elif self.VARIETY_union == self.variety():
-            type_definitions.extend(self.memberTypeDefinitions())
+            assert self not in self.memberTypeDefinitions()
+            type_definitions.update(self.memberTypeDefinitions())
         else:
-            raise LogicError('Unable to identify dependent types')
-        return type_definitions
+            raise LogicError('Unable to identify dependent types: variety %s' % (self.variety(),))
+        return frozenset(type_definitions)
         
     # A non-property field that holds a reference to the DOM node from
     # which the type is defined.  The value is held only between the
@@ -2187,7 +2307,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
 
         self.__variety = variety
         self.__domNode = None
-        print 'Completed STD %s' % (self,)
+        #print 'Completed STD %s' % (self,)
         return self
 
     def isResolved (self):
@@ -2348,6 +2468,14 @@ class Schema (_SchemaComponent_mixin):
     # resolved.
     __unresolvedDefinitions = None
 
+    def _dependentComponents_vx (self):
+        """Implement base class method.
+
+        The schema as a whole depends on nothing (that we have any
+        control over, at least).
+        """
+        return frozenset()
+
     def _associateComponent (self, component):
         """Record that the given component is found within this schema."""
         assert component not in self.__components
@@ -2426,16 +2554,16 @@ class Schema (_SchemaComponent_mixin):
 
         self.__unresolvedDefinitions = []
 
-    def _queueForResolution (self, std):
+    def _queueForResolution (self, resolvable):
         """Invoked to note that a component may have unresolved references.
 
         Newly created named components are unresolved, as are
         components which, in the course of resolution, are found to
         depend on another unresolved component.
         """
-        assert isinstance(std, _Resolvable_mixin)
-        self.__unresolvedDefinitions.append(std)
-        return std
+        assert isinstance(resolvable, _Resolvable_mixin)
+        self.__unresolvedDefinitions.append(resolvable)
+        return resolvable
 
     def __replaceUnresolvedDefinition (self, existing_def, replacement_def):
         assert existing_def in self.__unresolvedDefinitions
@@ -2448,15 +2576,16 @@ class Schema (_SchemaComponent_mixin):
     def _resolveDefinitions (self):
         """Loop until all components associated with a name are
         sufficiently defined."""
-        while self.__unresolvedDefinitions:
+        while 0 < len(self.__unresolvedDefinitions):
             # Save the list of unresolved TDs, reset the list to
             # capture any new TDs defined during resolution (or TDs
             # that depend on an unresolved type), and attempt the
             # resolution for everything that isn't resolved.
             unresolved = self.__unresolvedDefinitions
             self.__unresolvedDefinitions = []
-            for std in unresolved:
-                std._resolve(self)
+            for resolvable in unresolved:
+                resolvable._resolve(self)
+                assert (resolvable.isResolved() or (resolvable in self.__unresolvedDefinitions))
             if self.__unresolvedDefinitions == unresolved:
                 # This only happens if we didn't code things right, or
                 # the schema actually has a circular dependency in
