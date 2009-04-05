@@ -53,6 +53,8 @@ class _SchemaComponent_mixin (object):
         self.__schema = kw['schema']
         if self._SCHEMA_None == self.__schema:
             self.__schema = None
+        if self.__schema is not None:
+            self.__schema._associateComponent(self)
         #self.__owner = kw.get('owner', None)
 
     #def _setOwner (self, owner):
@@ -2323,6 +2325,10 @@ class Schema (_SchemaComponent_mixin):
     NT_element = 0x05           #<<< Name represents an element declaration
     NT_notation = 0x06          #<<< Name represents a notation declaration
 
+    # A set containing all components, named or unnamed, that belong
+    # to this schema.
+    __components = None
+
     # Map from name to SimpleTypeDefinition or ComplexTypeDefinition
     __typeDefinitions = None
     # Map from name to AttributeGroupDefinition
@@ -2341,6 +2347,15 @@ class Schema (_SchemaComponent_mixin):
     # A set of _Resolvable_mixin instances that have yet to be
     # resolved.
     __unresolvedDefinitions = None
+
+    def _associateComponent (self, component):
+        """Record that the given component is found within this schema."""
+        assert component not in self.__components
+        self.__components.add(component)
+
+    def components (self):
+        """Return a frozenset of all components, named or unnamed, belonging to this schema."""
+        return frozenset(self.__components)
 
     def completedResolution (self):
         """Return True iff all resolvable elements have been resolved.
@@ -2376,23 +2391,30 @@ class Schema (_SchemaComponent_mixin):
                      } 
 
     def _setAttributeFromDOM (self, attr):
+        """Override the schema attribute with the given DOM value."""
         self.__attributeMap[attr.name] = attr.nodeValue
         return self
 
     def _setAttributesFromMap (self, attr_map):
+        """Override the schema attributes with values from the given map."""
         self.__attributeMap.update(attr_map)
         return self
 
     def schemaHasAttribute (self, attr_name):
+        """Return True iff the schema has an attribute with the given (nc)name."""
         return self.__attributeMap.has_key(attr_name)
 
     def schemaAttribute (self, attr_name):
+        """Return the schema attribute value associated with the given (nc)name."""
         return self.__attributeMap[attr_name]
 
     def __init__ (self, *args, **kw):
         assert 'schema' not in kw
         kw['schema'] = _SchemaComponent_mixin._SCHEMA_None
         super(Schema, self).__init__(*args, **kw)
+
+        self.__components = set()
+
         self.__annotations = [ ]
 
         self.__typeDefinitions = { }
