@@ -201,7 +201,6 @@ class Namespace (object):
     def setModulePath (self, module_path):
         self.__modulePath = module_path
         return self.modulePath()
-        
 
     def _schema (self, schema):
         """Associate a schema instance with this namespace.
@@ -467,13 +466,13 @@ class _XMLSchema_instance (Namespace):
             if not XMLSchemaModule():
                 raise LogicError('Must invoke SetXMLSchemaModule from Namespace module prior to using system.')
             schema = XMLSchemaModule().schema()
+            self._schema(schema)
             # NOTE: We're explicitly not setting a targetNamespace for this schema.
             xsc = XMLSchemaModule().structures
             schema._addNamedComponent(xsc.AttributeDeclaration.CreateBaseInstance('type', self))
             schema._addNamedComponent(xsc.AttributeDeclaration.CreateBaseInstance('nil', self))
             schema._addNamedComponent(xsc.AttributeDeclaration.CreateBaseInstance('schemaLocation', self))
             schema._addNamedComponent(xsc.AttributeDeclaration.CreateBaseInstance('noNamespaceSchemaLocation', self))
-            self._schema(schema)
         return self
 
 class _XMLSchema (Namespace):

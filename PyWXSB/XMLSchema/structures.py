@@ -4,7 +4,8 @@ Class names and behavior should conform to the schema components
 described in http://www.w3.org/TR/xmlschema-1/.
 
 Each class has a CreateFromDOM class method that creates an instance
-and initializes it from a DOM node.
+and initializes it from a DOM node.  Only the Wildcard, Particle, and
+ModelGroup components are created from non-DOM sources.
 
 """
 
@@ -16,6 +17,53 @@ import datatypes
 import facets
 import PyWXSB.templates as templates
 from PyWXSB.domutils import *
+
+class _SchemaComponent_mixin (object):
+    """A mix-in that marks the class as representing a schema component.
+
+    This exists so that we can determine the owning schema for any
+    component we encounter.  This is normally done at construction
+    time by passing a schema=val parameter to the constructor.  
+    """
+
+    # A special tag to pass in the constructor when the schema is
+    # known to be unavailable.  This allows us to detect cases where
+    # the system is not providing the schema.
+    _SCHEMA_None = 'ExplicitNoSchema'
+
+    # The schema to which this component belongs.  If None, assume it
+    # belongs to the XMLSchema namespace.  The value cannot be changed
+    # after construction.
+    __schema = None
+
+    # The schema component that owns this.  If None, the component is
+    # owned directly by the schema.
+    #__owner = None
+
+    # The schema components owned by this component.  All named
+    # components are owned by the schema; anonymous ones are owned by
+    # intervening components.
+    #__ownedComponents = None
+
+    def __init__ (self, *args, **kw):
+        super(_SchemaComponent_mixin, self).__init__(*args, **kw)
+        #self.__ownedComponents = set()
+        if 'schema' not in kw:
+            raise LogicError('Constructor failed to provide owning schema')
+        self.__schema = kw['schema']
+        if self._SCHEMA_None == self.__schema:
+            self.__schema = None
+        #self.__owner = kw.get('owner', None)
+
+    #def _setOwner (self, owner):
+    #    if owner is not None:
+    #        assert self.__owner is None
+    #        self.__owner = owner
+    #        owner.__ownedComponents.insert(self)
+
+    def schema (self): return self.__schema
+    #def owner (self): return self.__owner
+
 
 class _Singleton_mixin (object):
     """This class is a mix-in which guarantees that only one instance
@@ -285,8 +333,7 @@ class _ValueConstraint_mixin:
         self.__valueConstraint = None
         return self
         
-
-class AttributeDeclaration (_NamedComponent_mixin, _Resolvable_mixin, _Annotated_mixin, _ValueConstraint_mixin):
+class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Resolvable_mixin, _Annotated_mixin, _ValueConstraint_mixin):
     """An XMLSchema Attribute Declaration component.
 
     See http://www.w3.org/TR/xmlschema-1/index.html#cAttribute_Declarations
@@ -315,7 +362,7 @@ class AttributeDeclaration (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
     @classmethod
     def CreateBaseInstance (cls, name, target_namespace=None):
         """Create an attribute declaration component for a specified namespace."""
-        bi = cls(name=name, target_namespace=target_namespace)
+        bi = cls(name=name, target_namespace=target_namespace, schema=target_namespace.schema())
         return bi
 
     @classmethod
@@ -329,7 +376,7 @@ class AttributeDeclaration (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
         elif NodeAttribute(node, wxs, 'ref') is None:
             namespace = wxs.getTargetNamespaceFromDOM(node, 'attributeFormDefault')
 
-        rv = cls(name=name, target_namespace=namespace)
+        rv = cls(name=name, target_namespace=namespace, schema=wxs)
         rv._annotationFromDOM(wxs, node)
         rv._valueConstraintFromDOM(wxs, node)
         rv.__domNode = node
@@ -371,7 +418,7 @@ class AttributeDeclaration (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
         return self
 
 
-class AttributeUse (_Resolvable_mixin, _ValueConstraint_mixin):
+class AttributeUse (_SchemaComponent_mixin, _Resolvable_mixin, _ValueConstraint_mixin):
     """An XMLSchema Attribute Use component.
 
     See http://www.w3.org/TR/xmlschema-1/index.html#cAttribute_Use
@@ -390,10 +437,14 @@ class AttributeUse (_Resolvable_mixin, _ValueConstraint_mixin):
     __attributeDeclaration = None
     def attributeDeclaration (self): return self.__attributeDeclaration
 
+    # Define so superclasses can take keywords
+    def __init__ (self, **kw):
+        super(AttributeUse, self).__init__(**kw)
+
     @classmethod
     def CreateFromDOM (cls, wxs, node):
         assert node.nodeName in wxs.xsQualifiedNames('attribute')
-        rv = cls()
+        rv = cls(schema=wxs)
         rv.__use = cls.USE_optional
         use = NodeAttribute(node, wxs, 'use')
         if use is not None:
@@ -435,7 +486,7 @@ class AttributeUse (_Resolvable_mixin, _ValueConstraint_mixin):
         self.__domNode = None
         return self
 
-class ElementDeclaration (_NamedComponent_mixin, _Resolvable_mixin, _Annotated_mixin, _ValueConstraint_mixin):
+class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Resolvable_mixin, _Annotated_mixin, _ValueConstraint_mixin):
     """An XMLSchema Element Declaration component.
 
     See http://www.w3.org/TR/xmlschema-1/index.html#cElement_Declarations
@@ -529,7 +580,7 @@ class ElementDeclaration (_NamedComponent_mixin, _Resolvable_mixin, _Annotated_m
         else:
             raise LogicError('Created reference as element declaration')
         
-        rv = cls(name=name, target_namespace=namespace, ancestor_component=ancestor_component)
+        rv = cls(name=name, target_namespace=namespace, ancestor_component=ancestor_component, schema=wxs)
         rv.__scope = scope
         rv._annotationFromDOM(wxs, node)
         rv._valueConstraintFromDOM(wxs, node)
@@ -603,7 +654,7 @@ class ElementDeclaration (_NamedComponent_mixin, _Resolvable_mixin, _Annotated_m
         return 'ED[%s:%s]' % (self.name(), self.typeDefinition().name())
 
 
-class ComplexTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
+class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Resolvable_mixin):
     # The type resolved from the base attribute.
     __baseTypeDefinition = None
     def baseTypeDefinition (self):
@@ -716,18 +767,18 @@ class ComplexTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
         #    raise LogicError('Multiple definitions of UrType')
         if cls.__UrTypeDefinition is None:
             # NOTE: We use a singleton subclass of this class
-            bi = _UrTypeDefinition(name='anyType', target_namespace=Namespace.XMLSchema, derivation_method=cls.DM_restriction)
+            bi = _UrTypeDefinition(name='anyType', target_namespace=Namespace.XMLSchema, derivation_method=cls.DM_restriction, schema=_SchemaComponent_mixin._SCHEMA_None)
 
             # The ur-type is its own baseTypeDefinition
             bi.__baseTypeDefinition = bi
 
             # No constraints on attributes
-            bi.__attributeWildcard = Wildcard(namespace_constraint=Wildcard.NC_any, process_contents=Wildcard.PC_lax)
+            bi.__attributeWildcard = Wildcard(namespace_constraint=Wildcard.NC_any, process_contents=Wildcard.PC_lax, schema=_SchemaComponent_mixin._SCHEMA_None)
 
             # Content is mixed, with elements completely unconstrained.
-            w = Wildcard(namespace_constraint=Wildcard.NC_any, process_contents=Wildcard.PC_lax)
-            p = Particle(term=bi.__attributeWildcard, min_occurs=0, max_occurs=None)
-            m = ModelGroup(compositor=ModelGroup.C_SEQUENCE, particles=[ p ])
+            w = Wildcard(namespace_constraint=Wildcard.NC_any, process_contents=Wildcard.PC_lax, schema=_SchemaComponent_mixin._SCHEMA_None)
+            p = Particle(term=bi.__attributeWildcard, min_occurs=0, max_occurs=None, schema=_SchemaComponent_mixin._SCHEMA_None)
+            m = ModelGroup(compositor=ModelGroup.C_SEQUENCE, particles=[ p ], schema=_SchemaComponent_mixin._SCHEMA_None)
             bi.__contentType = ( m, cls.CT_MIXED )
 
             # No attribute uses
@@ -750,7 +801,7 @@ class ComplexTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
 
         name = NodeAttribute(node, wxs, 'name')
 
-        rv = cls(name=name, target_namespace=wxs.getTargetNamespace(), derivation_method=None)
+        rv = cls(name=name, target_namespace=wxs.getTargetNamespace(), derivation_method=None, schema=wxs)
 
         # Creation does not attempt to do resolution.  Queue up the newly created
         # whatsis so we can resolve it after everything's been read in.
@@ -885,8 +936,8 @@ class ComplexTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
             if effective_mixed:
                 # Clause 2.1.4
                 assert typedef_node is None
-                m = ModelGroup(compositor=ModelGroup.C_SEQUENCE)
-                effective_content = Particle(term=m)
+                m = ModelGroup(compositor=ModelGroup.C_SEQUENCE, schema=wxs)
+                effective_content = Particle(term=m, schema=wxs)
             else:
                 # Clause 2.1.5
                 effective_content = self.CT_EMPTY
@@ -921,8 +972,8 @@ class ComplexTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin):
                 content_type = ( ct, effective_content )
             else:
                 assert type(parent_content_type) == tuple
-                m = ModelGroup(compositor=ModelGroup.C_SEQUENCE, particles=[ parent_content_type[1], effective_content ])
-                content_type = ( ct, Particle(term=m) )
+                m = ModelGroup(compositor=ModelGroup.C_SEQUENCE, particles=[ parent_content_type[1], effective_content ], schema=wxs)
+                content_type = ( ct, Particle(term=m, schema=wxs) )
 
         assert (self.CT_EMPTY == content_type) or ((type(content_type) == tuple) and (content_type[1] is not None))
         self.__contentType = content_type
@@ -1016,7 +1067,7 @@ class _UrTypeDefinition (ComplexTypeDefinition, _Singleton_mixin):
     """Subclass ensures there is only one ur-type."""
     pass
 
-class AttributeGroupDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated_mixin):
+class AttributeGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Resolvable_mixin, _Annotated_mixin):
     # A frozenset of AttributeUse instances
     __attributeUses = None
 
@@ -1028,7 +1079,7 @@ class AttributeGroupDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annot
         assert node.nodeName in wxs.xsQualifiedNames('attributeGroup')
         name = NodeAttribute(node, wxs, 'name')
 
-        rv = cls(name=name, target_namespace=wxs.getTargetNamespace())
+        rv = cls(name=name, target_namespace=wxs.getTargetNamespace(), schema=wxs)
         rv._annotationFromDOM(wxs, node)
         wxs._queueForResolution(rv)
         rv.__domNode = node
@@ -1069,7 +1120,7 @@ class AttributeGroupDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annot
     def attributeUses (self):
         return self.__attributeUses
 
-class ModelGroupDefinition (_NamedComponent_mixin, _Annotated_mixin):
+class ModelGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Annotated_mixin):
     # Reference to a _ModelGroup
     __modelGroup = None
 
@@ -1084,7 +1135,7 @@ class ModelGroupDefinition (_NamedComponent_mixin, _Annotated_mixin):
         assert NodeAttribute(node, wxs, 'ref') is None
 
         name = NodeAttribute(node, wxs, 'name')
-        rv = cls(name=name, target_namespace=wxs.getTargetNamespace())
+        rv = cls(name=name, target_namespace=wxs.getTargetNamespace(), schema=wxs)
         rv._annotationFromDOM(wxs, node)
 
         mg_tags = ModelGroup.GroupMemberTags(wxs)
@@ -1097,7 +1148,7 @@ class ModelGroupDefinition (_NamedComponent_mixin, _Annotated_mixin):
         assert rv.__modelGroup is not None
         return rv
 
-class ModelGroup (_Annotated_mixin):
+class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
     C_INVALID = 0
     C_ALL = 0x01
     C_CHOICE = 0x02
@@ -1153,7 +1204,7 @@ class ModelGroup (_Annotated_mixin):
             if cn.nodeName in particle_tags:
                 # NB: Ancestor of particle is set in the ModelGroup constructor
                 particles.append(Particle.CreateFromDOM(wxs, cn, None))
-        rv = cls(compositor=compositor, particles=particles, **kw)
+        rv = cls(compositor=compositor, particles=particles, schema=wxs, **kw)
         rv._annotationFromDOM(wxs, node)
         return rv
 
@@ -1171,7 +1222,7 @@ class ModelGroup (_Annotated_mixin):
             comp = 'SEQUENCE'
         return '%s:(%s)' % (comp, ",".join( [ str(_p) for _p in self.particles() ] ) )
 
-class Particle (_Resolvable_mixin):
+class Particle (_SchemaComponent_mixin, _Resolvable_mixin):
     """Some entity along with occurrence information.
 
     NB: Particles are not themselves resolvable, but the term they
@@ -1211,9 +1262,9 @@ class Particle (_Resolvable_mixin):
             return True
         return self.term().isPlural()
 
-    # If this particle is within a complexType or a group, we need the
-    # corresponding ComplexTypeDefinition or ModelGroup in order to
-    # handle non-reference local elements.
+    # The ComplexTypeDefinition or ModelGroup in which this particle
+    # appears.  Need this during resolution to handle non-reference
+    # local ElementDeclarations.
     __ancestorComponent = None
 
     def __init__ (self, term, *args, **kw):
@@ -1253,7 +1304,7 @@ class Particle (_Resolvable_mixin):
             else:
                 max_occurs = datatypes.nonNegativeInteger(attr_val)
 
-        rv = cls(term=None, min_occurs=min_occurs, max_occurs=max_occurs, ancestor_component=ancestor_component)
+        rv = cls(term=None, min_occurs=min_occurs, max_occurs=max_occurs, ancestor_component=ancestor_component, schema=wxs)
         rv.__domNode = node
         wxs._queueForResolution(rv)
 
@@ -1322,7 +1373,7 @@ class Particle (_Resolvable_mixin):
 
 
 # 3.10.1
-class Wildcard (_Annotated_mixin):
+class Wildcard (_SchemaComponent_mixin, _Annotated_mixin):
     NC_any = '##any'            #<<< The namespace constraint "##any"
     NC_not = '##other'          #<<< A flag indicating constraint "##other"
     NC_targetNamespace = '##targetNamespace'
@@ -1392,12 +1443,12 @@ class Wildcard (_Annotated_mixin):
             else:
                 raise SchemaValidationError('illegal value "%s" for any processContents attribute' % (pc,))
 
-        rv = cls(namespace_constraint=namespace_constraint, process_contents=process_contents)
+        rv = cls(namespace_constraint=namespace_constraint, process_contents=process_contents, schema=wxs)
         rv._annotationFromDOM(wxs, node)
         return rv
 
 # 3.11.1
-class IdentityConstraintDefinition (_NamedComponent_mixin, _Annotated_mixin):
+class IdentityConstraintDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Annotated_mixin):
     ICC_KEY = 0x01
     ICC_KEYREF = 0x02
     ICC_UNIQUE = 0x04
@@ -1419,7 +1470,7 @@ class IdentityConstraintDefinition (_NamedComponent_mixin, _Annotated_mixin):
     @classmethod
     def CreateFromDOM (cls, wxs, node):
         name = NodeAttribute(node, wxs, 'name')
-        rv = cls(name=name, target_namespace=wxs.getTargetNamespace())
+        rv = cls(name=name, target_namespace=wxs.getTargetNamespace(), schema=wxs)
         #rv._annotationFromDOM(wxs, node);
         if node.nodeName in wxs.xsQualifiedNames('key'):
             rv.__identityConstraintCategory = cls.ICC_KEY
@@ -1464,7 +1515,7 @@ class IdentityConstraintDefinition (_NamedComponent_mixin, _Annotated_mixin):
         return rv
     
 # 3.12.1
-class NotationDeclaration (_NamedComponent_mixin, _Annotated_mixin):
+class NotationDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Annotated_mixin):
     __systemIdentifier = None
     def systemIdentifier (self): return self.__systemIdentifier
     
@@ -1474,7 +1525,7 @@ class NotationDeclaration (_NamedComponent_mixin, _Annotated_mixin):
     @classmethod
     def CreateFromDOM (cls, wxs, node):
         name = NodeAttribute(node, wxs, 'name')
-        rv = cls(name=name, target_namespace=wxs.getTargetNamespace())
+        rv = cls(name=name, target_namespace=wxs.getTargetNamespace(), schema=wxs)
 
         rv.__systemIdentifier = NodeAttribute(node, wxs, 'system')
         rv.__publicIdentifier = NodeAttribute(node, wxs, 'public')
@@ -1483,7 +1534,7 @@ class NotationDeclaration (_NamedComponent_mixin, _Annotated_mixin):
         return rv
 
 # 3.13.1
-class Annotation (object):
+class Annotation (_SchemaComponent_mixin):
     __applicationInformation = None
     def applicationInformation (self):
         return self.__applicationInformation
@@ -1491,6 +1542,10 @@ class Annotation (object):
     __userInformation = None
     def userInformation (self):
         return self.__userInformation
+
+    # Define so superclasses can take keywords
+    def __init__ (self, **kw):
+        super(Annotation, self).__init__(**kw)
 
     # @todo what the hell is this?  From 3.13.2, I think it's a place
     # to stuff attributes from the annotation element, which makes
@@ -1503,7 +1558,7 @@ class Annotation (object):
 
     @classmethod
     def CreateFromDOM (cls, wxs, node):
-        rv = cls()
+        rv = cls(schema=wxs)
 
         # @todo: Scan for attributes in the node itself that do not
         # belong to the XMLSchema namespace.
@@ -1557,7 +1612,7 @@ class Annotation (object):
 
 
 # Section 3.14.
-class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated_mixin):
+class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Resolvable_mixin, _Annotated_mixin):
     """The schema component for simple type definitions.
 
     This component supports the basic datatypes of XML schema, and
@@ -1770,7 +1825,7 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
         #    raise LogicError('Multiple definitions of SimpleUrType')
         if cls.__SimpleUrTypeDefinition is None:
             # Note: We use a singleton subclass
-            bi = _SimpleUrTypeDefinition(name='anySimpleType', target_namespace=Namespace.XMLSchema, variety=cls.VARIETY_absent)
+            bi = _SimpleUrTypeDefinition(name='anySimpleType', target_namespace=Namespace.XMLSchema, variety=cls.VARIETY_absent, schema=_SchemaComponent_mixin._SCHEMA_None)
             bi._setPythonSupport(datatypes.anySimpleType)
 
             # The baseTypeDefinition is the ur-type.
@@ -1788,7 +1843,7 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
         return cls.__SimpleUrTypeDefinition
 
     @classmethod
-    def CreatePrimitiveInstance (cls, name, target_namespace, python_support):
+    def CreatePrimitiveInstance (cls, name, schema, python_support):
         """Create a primitive simple type in the target namespace.
 
         This is mainly used to pre-load standard built-in primitive
@@ -1799,7 +1854,7 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
         All parameters are required and must be non-None.
         """
         
-        bi = cls(name=name, target_namespace=target_namespace, variety=cls.VARIETY_atomic)
+        bi = cls(name=name, schema=schema, target_namespace=schema.getTargetNamespace(), variety=cls.VARIETY_atomic)
         bi._setPythonSupport(python_support)
 
         # Primitive types are based on the ur-type, and have
@@ -1812,7 +1867,7 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
         return bi
 
     @classmethod
-    def CreateDerivedInstance (cls, name, target_namespace, parent_std, python_support):
+    def CreateDerivedInstance (cls, name, schema, parent_std, python_support):
         """Create a derived simple type in the target namespace.
 
         This is used to pre-load standard built-in derived types.  You
@@ -1822,7 +1877,7 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
         """
         assert parent_std
         assert parent_std.__variety in (cls.VARIETY_absent, cls.VARIETY_atomic)
-        bi = cls(name=name, target_namespace=target_namespace, variety=parent_std.__variety)
+        bi = cls(name=name, schema=schema, target_namespace=schema.getTargetNamespace(), variety=parent_std.__variety)
         bi._setPythonSupport(python_support)
 
         # We were told the base type.  If this is atomic, we re-use
@@ -1837,7 +1892,7 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
         return bi
 
     @classmethod
-    def CreateListInstance (cls, name, target_namespace, item_std, python_support):
+    def CreateListInstance (cls, name, schema, item_std, python_support):
         """Create a list simple type in the target namespace.
 
         This is used to preload standard built-in list types.  You can
@@ -1845,7 +1900,7 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
         that require explicit support to for Pythonic conversion; but
         note that such support is identified by the item_std.
         """
-        bi = cls(name=name, target_namespace=target_namespace, variety=cls.VARIETY_list)
+        bi = cls(name=name, schema=schema, target_namespace=schema.getTargetNamespace(), variety=cls.VARIETY_list)
         bi._setPythonSupport(python_support)
 
         # The base type is the ur-type.  We were given the item type.
@@ -1858,7 +1913,7 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
         return bi
 
     @classmethod
-    def CreateUnionInstance (cls, name, target_namespace, member_stds):
+    def CreateUnionInstance (cls, name, schema, member_stds):
         """(Placeholder) Create a union simple type in the target namespace.
 
         This function has not been implemented."""
@@ -2216,7 +2271,7 @@ class SimpleTypeDefinition (_NamedComponent_mixin, _Resolvable_mixin, _Annotated
 
         name = NodeAttribute(node, wxs, 'name')
 
-        rv = cls(name=name, target_namespace=wxs.getTargetNamespace(), variety=None)
+        rv = cls(name=name, target_namespace=wxs.getTargetNamespace(), variety=None, schema=wxs)
         rv._annotationFromDOM(wxs, node)
 
         # @todo identify supported facets and properties (hfp)
@@ -2260,7 +2315,7 @@ class _SimpleUrTypeDefinition (SimpleTypeDefinition, _Singleton_mixin):
     """Subclass ensures there is only one simple ur-type."""
     pass
 
-class Schema (object):
+class Schema (_SchemaComponent_mixin):
     NT_type = 0x01              #<<< Name represents a simple or complex type
     NT_attributeGroup = 0x02    #<<< Name represents an attribute group definition
     NT_modelGroup = 0x03        #<<< Name represents a model group definition
@@ -2335,6 +2390,8 @@ class Schema (object):
         return self.__attributeMap[attr_name]
 
     def __init__ (self, *args, **kw):
+        assert 'schema' not in kw
+        kw['schema'] = _SchemaComponent_mixin._SCHEMA_None
         super(Schema, self).__init__(*args, **kw)
         self.__annotations = [ ]
 

@@ -453,14 +453,14 @@ def _AddSimpleTypes (schema):
     pts_std_map = {}
     for dtc in _PrimitiveDatatypes:
         name = dtc.__name__.rstrip('_')
-        td = schema._addNamedComponent(xsc.SimpleTypeDefinition.CreatePrimitiveInstance(name, schema.getTargetNamespace(), dtc))
+        td = schema._addNamedComponent(xsc.SimpleTypeDefinition.CreatePrimitiveInstance(name, schema, dtc))
         assert td.isResolved()
         assert dtc.SimpleTypeDefinition() == td
         pts_std_map.setdefault(dtc, td)
     for dtc in _DerivedDatatypes:
         name = dtc.__name__.rstrip('_')
         parent_std = pts_std_map[dtc.XsdSuperType()]
-        td = schema._addNamedComponent(xsc.SimpleTypeDefinition.CreateDerivedInstance(name, schema.getTargetNamespace(), parent_std, dtc))
+        td = schema._addNamedComponent(xsc.SimpleTypeDefinition.CreateDerivedInstance(name, schema, parent_std, dtc))
         assert td.isResolved()
         assert dtc.SimpleTypeDefinition() == td
         pts_std_map.setdefault(dtc, td)
@@ -468,7 +468,7 @@ def _AddSimpleTypes (schema):
         list_name = dtc.__name__.rstrip('_')
         element_name = dtc._ItemType.__name__.rstrip('_')
         element_std = schema._lookupTypeDefinition(element_name)
-        td = schema._addNamedComponent(xsc.SimpleTypeDefinition.CreateListInstance(list_name, schema.getTargetNamespace(), element_std, dtc))
+        td = schema._addNamedComponent(xsc.SimpleTypeDefinition.CreateListInstance(list_name, schema, element_std, dtc))
         assert td.isResolved()
     return schema
 
