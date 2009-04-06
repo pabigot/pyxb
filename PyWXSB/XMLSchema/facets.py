@@ -295,7 +295,7 @@ class _CollectionFacet_mixin (object):
         if kw.get('_reset', False):
             self.__items = []
         if not kw.get('_constructor', False):
-            print self._CollectionFacet_itemType
+            #print self._CollectionFacet_itemType
             self.__items.append(self._CollectionFacet_itemType(facet_instance=self, **kw))
         super_fn = getattr(super(_CollectionFacet_mixin, self), '_setFromKeywords_vb', lambda *a,**kw: self)
         return super_fn(**kw)
@@ -398,8 +398,8 @@ class _EnumerationElement:
     def __init__ (self, enumeration=None, unicode_value=None,
                   description=None, annotation=None,
                   **kw):
-        if 0 < len(kw):
-            print 'EnumerationElement kw: %s' % (kw,)
+        #if 0 < len(kw):
+        #    print 'EnumerationElement kw: %s' % (kw,)
         # The preferred keyword is "unicode_value", but when being
         # generically applied by
         # structures.SimpleTypeDefinition.__updateFacets, the unicode
