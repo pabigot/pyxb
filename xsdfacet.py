@@ -66,6 +66,25 @@ class ReferenceFacetMember (ReferenceLiteral):
     def asLiteral (self, **kw):
         return self._addTypePrefix('_CF_%s' % (self.__facetClass.Name(),))
 
+class ReferenceClass (ReferenceLiteral):
+    __namedComponent = None
+    __AnonymousIndex = 0
+
+    def __init__ (self, **kw):
+        self.__namedComponent = kw['named_component']
+
+    @classmethod
+    def _NextAnonymousIndex (cls):
+        rv = cls.__AnonymousIndex
+        cls.__AnonymousIndex += 1
+        return rv
+
+    def asLiteral (self, **kw):
+        name = self.__namedComponent.ncName()
+        if name is None:
+            name = 'ANON%d' % (self._NextAnonymousIndex(),)
+        return '_STD_%s' % (name,)
+
 class ReferenceEnumerationMember (ReferenceLiteral):
     enumerationElement = None
     
@@ -144,7 +163,7 @@ def pythonLiteral (value):
     if isinstance(value, xs.facets._EnumerationElement):
         return pythonLiteral(value.value())
 
-    if isinstance(value, xs.structures.SimpleTypeDefinition):
+    if isinstance(value, (xs.structures.SimpleTypeDefinition, xs.structures.ComplexTypeDefinition) ):
         return PrefixNamespace(value.targetNamespace(), value.ncName())
 
     # Other special cases
@@ -171,11 +190,10 @@ try:
         for td in type_defs:
             if not isinstance(td, xs.structures.SimpleTypeDefinition):
                 continue
-            if td.targetNamespace() != TargetNamespace:
-                continue
+            assert td.targetNamespace() == TargetNamespace
             if (Namespace.XMLSchema == TargetNamespace) and (not td.isBuiltin()):
                 continue
-            dep_types = td.dependentTypeDefinitions()
+            dep_types = td.dependentComponents()
             ready = True
             for dtd in dep_types:
                 if dtd.targetNamespace() != TargetNamespace:
@@ -202,7 +220,11 @@ import %sfacets as facets
 import %sdatatypes as datatypes
 ''' % (import_prefix, import_prefix))
 
+
     for td in emit_order:
+        td_class = ReferenceClass(named_component=td)
+        outf.write("# class %s (%s)\n" % pythonLiteral( (td_class, td.baseTypeDefinition() ) ))
+
         #print 'Emitting %d facets in %s' % (len(td.facets()), td)
         for (fc, fi) in td.facets().items():
             if (fi is None) and (fc in td.baseTypeDefinition().facets()):
