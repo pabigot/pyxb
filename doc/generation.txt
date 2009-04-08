@@ -32,16 +32,26 @@ for everything.  So, if you have a schema that defines a simple type
 inside complex types is also by their schema name, the chances of conflict
 are high.
 
-Attribute Use
-=============
+Representation of Schema Components
+===================================
 
-An attribute use is represented as a local variable with accessor methods.
-Each class that allows attributes contains a class variable _AttributeUses
-which is a list of instances that provide the name, Python class, and use
-restrictions for each attribute.  In the case of classes defined by
-restriction, the variable corresponding to the accessor remains in the
-parent class, but a new instance is added to the local _AttributeUses list,
-and new accessors may be defined to implement an updated use property.
+Attribute Declaration
+---------------------
+
+Attribute declarations are simply a binding of a name to a type.  They are
+not themselves represented, but provide the name for an Attribute Use.
+
+Attribute Use
+-------------
+
+An attribute use is represented as an instance variable with accessor
+methods in the class used for its owning CTD.  Each class that allows
+attributes contains a class variable _AttributeUses which is a list of
+instances that provide the name, Python class, and use restrictions for each
+attribute.  In the case of classes defined by restriction, the variable
+corresponding to the accessor remains in the parent class, but a new
+instance is added to the local _AttributeUses list, and new accessors may be
+defined to implement an updated use property.
 
 class _AttributeUse:
   name = ncName
@@ -50,18 +60,18 @@ class _AttributeUse:
   use = USE_prohibited | USE_required (0 = USE_optional)
 
 Attribute Groups
-================
+----------------
 
 An attribute group is represented as a mix-in class that contains a set of
-one or more attribute declarations, structured in the same way as for
+one or more attribute uses, structured in the same way as for
 element-content complex type definitions.  The mix-in class inherits from
 PyWXSB.binding._AG_mixin.
 
 Simple Type Definitions
-=======================
+-----------------------
 
-The material in this section applies both to SimpleTypeDefinitions and to
-ComplexTypeDefinitions with simple content.
+(The material in this section applies both to SimpleTypeDefinitions and to
+ComplexTypeDefinitions with simple content.)
 
 STDs are represented by classes.  Classes are associated with facet
 instances.  The classes themselves are either valueless or descend from a
@@ -92,21 +102,20 @@ Enumeration values may also be made visible in the namespace.  Both these
 options are configurable at the namespace and named STD levels.
 
 Atomic STDs
------------
+~~~~~~~~~~~
 
 Atomic simple type definitions inherit from the base type definition, which
 is assumed to already have a Python type associated with it from its
 primitive type.
 
 List STDs
----------
+~~~~~~~~~
 
 A list STD inherits from Python's list type.  The class associated with the
 item type is stored in a class variable _ItemType.
 
-
 Union STDs
-----------
+~~~~~~~~~~
 
 A union STD does not have data associated with it; rather, it is a class
 used to disambiguate the desired member type upon creation from an XML
@@ -119,7 +128,7 @@ string into the appropriate instance of a member type, by attempting to
 create a validated member instance of each member type in turn.
 
 Enumerations
-------------
+~~~~~~~~~~~~
 
 A key purpose of PyWXSB is to support named constants to represent
 enumeration values.  An STD has a class member variable _CF_enumeration if
@@ -131,9 +140,8 @@ The _CF_enumeration variable is an instance of the facets.CF_enumeration
 class.  Each class maintains a set of facets._EnumerationElement instances
 which record enumeration values 
 
-
 Complex Type Definitions
-========================
+------------------------
 
 Complex type definitions are represented by Python classes.  The _CTD_mixin
 is a base class for all CTDs.
@@ -167,19 +175,22 @@ CTDs that are defined by restriction apply thusly:
   it may be necessary to convert an element field value from a collection to
   an instance.
 
+class _CTD_mixin:
+  _Particle = None
+  _AttributeUses = None
 
 Empty Content
--------------
+~~~~~~~~~~~~~
 
 Simple Content
---------------
+~~~~~~~~~~~~~~
 
 Simple content CTDs are represented by a Python class that inherits from the
 base STD.  Facets are incorporated just as for STDs.  Attributes are
 incorporated just as for element content CTDs.
 
 Element Content
----------------
+~~~~~~~~~~~~~~~
 
 Element content CTDs are represented by a Python class that inherits
 ultimately from _PST_CTD_mixin.  If the base type definition for the CTD is
@@ -187,10 +198,13 @@ the ur-type, this inheritance is direct; otherwise, the CTD inherits from
 the Python class corresponding to its base type.
 
 Mixed Content
--------------
+~~~~~~~~~~~~~
+
+Ick.  Don't know yet.
+
 
 Element Declarations
-====================
+--------------------
 
 Element declarations are represented by classes that inherit from
 binding._ED_mixin and the class corresponding to the declaration's type
@@ -206,7 +220,7 @@ Non-global scope element declarations are also so-represented, but the class
 name is generated to be unique within the namespace.
 
 Particle
-========
+--------
 
 A particle is a ModelGroup, Wildcard, or ElementDeclaration with an
 associated cardinality range.  They are not themselves represented as data
@@ -220,7 +234,7 @@ reference to a Python class that is a subclass of binding._ModelGroup_mixin,
 binding._Wildcard, or _binding._ED_mixin.
 
 Model Groups
-============
+------------
 
 Model groups represent an all, sequence, or choice among a group of
 particles.  They do not hold data objects in the Python bindings, but do
@@ -242,7 +256,7 @@ particles -- a tuple of binding._Particle instances
 reset -- Resets all state associated with an extraction sequence.  The input
 should be a DOM node that validates against the model group.
 
-nextMember -- Returns a pair consisting of a name, a boolean isPlural, and
+nextMember -- Returns a tuple consisting of a name, a boolean isPlural, and
 an instance of a _CTD_mixin [or _Wildcard_mixin] subclass. The containing
 infrastructure should associate the instance to the member variable
 associated with the name: by assignment if isPlural is false, and by append
@@ -256,6 +270,13 @@ can be obtained.
 At some point, the nextMember method should also validate the input.
 nextMember should raise a SchemaValidationError exception if an ordering or
 content property is violated.
+
+Order of Generation
+===================
+
+* SimpleTypeDefinitions
+* AttributeGroups
+
 
 Customization Points
 ====================
