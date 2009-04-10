@@ -16,8 +16,11 @@ from xml.dom import Node
 Namespace.XMLSchema.setModulePath('xs')
 
 def PrefixNamespace (ns, text):
+    mp = None
     if Namespace.XMLSchema == ns:
-        mp = 'datatypes'
+        global TargetNamespace
+        if TargetNamespace != Namespace.XMLSchema:
+            mp = 'datatypes'
     else:
         mp = ns.modulePath()
     if mp is not None:
@@ -28,20 +31,20 @@ def PrefixModule (value, text=None):
     if text is None:
         text = value.__name__
     if value.__module__ == xs.datatypes.__name__:
+        global TargetNamespace
+        if TargetNamespace == Namespace.XMLSchema:
+            return text
         return 'datatypes.%s' % (text,)
     if value.__module__ == xs.facets.__name__:
         return 'facets.%s' % (text,)
     raise IncompleteImplementationError('PrefixModule needs support for non-builtin instances')
 
 class ReferenceLiteral (object):
-    """Base class for something that requires fairly complex activity
-    in order to generate its literal value."""
 
     # Either a STD or a subclass of _Enumeration_mixin, this is the
     # class in which the referenced object is a member.
     __ownerClass = None
     def __init__ (self, **kw):
-        # NB: Pre-extend __init__
         self.__ownerClass = kw.get('type_definition', None)
 
     def _addTypePrefix (self, text):
@@ -53,37 +56,11 @@ class ReferenceFacetMember (ReferenceLiteral):
     __facetClass = None
 
     def __init__ (self, **kw):
-        variable = kw.get('variable', None)
-        assert (variable is None) or isinstance(variable, xs.facets.Facet)
-
-        if variable is not None:
-            kw.setdefault('type_definition', variable.ownerTypeDefinition())
-            self.__facetClass = type(variable)
-        self.__facetClass = kw.get('facet_class', self.__facetClass)
-
         super(ReferenceFacetMember, self).__init__(**kw)
+        self.__facetClass = kw['facet_class']
 
     def asLiteral (self, **kw):
         return self._addTypePrefix('_CF_%s' % (self.__facetClass.Name(),))
-
-class ReferenceClass (ReferenceLiteral):
-    __namedComponent = None
-    __AnonymousIndex = 0
-
-    def __init__ (self, **kw):
-        self.__namedComponent = kw['named_component']
-
-    @classmethod
-    def _NextAnonymousIndex (cls):
-        rv = cls.__AnonymousIndex
-        cls.__AnonymousIndex += 1
-        return rv
-
-    def asLiteral (self, **kw):
-        name = self.__namedComponent.ncName()
-        if name is None:
-            name = 'ANON%d' % (self._NextAnonymousIndex(),)
-        return '_STD_%s' % (name,)
 
 class ReferenceEnumerationMember (ReferenceLiteral):
     enumerationElement = None
@@ -150,26 +127,19 @@ def pythonLiteral (value):
             return PrefixModule(value)
         if issubclass(value, xs.facets.Facet):
             return PrefixModule(value)
-
-    # String instances go out as their representation
+    if isinstance(value, xs.facets.Facet):
+        #return '%s.XsdSuperType()._CF_%s' % (value.ownerTypeDefinition().ncName(), value.Name())
+        return '%s._CF_%s' % (value.ownerTypeDefinition().ncName(), value.Name())
     if isinstance(value, types.StringTypes):
         return utility.QuotedEscaped(value,)
-
-    # Treat pattern elements as their value
     if isinstance(value, xs.facets._PatternElement):
         return pythonLiteral(value.pattern)
-
-    # Treat enumeration elements as their value
     if isinstance(value, xs.facets._EnumerationElement):
         return pythonLiteral(value.value())
-
-    if isinstance(value, (xs.structures.SimpleTypeDefinition, xs.structures.ComplexTypeDefinition) ):
+    if isinstance(value, xs.structures.SimpleTypeDefinition):
         return PrefixNamespace(value.targetNamespace(), value.ncName())
-
-    # Other special cases
     if isinstance(value, ReferenceLiteral):
         return value.asLiteral()
-
     raise Exception('Unexpected literal type %s' % (type(value),))
     print 'Unexpected literal type %s' % (type(value),)
     return str(value)
@@ -183,31 +153,7 @@ try:
     TargetNamespace = wxs.getTargetNamespace()
     #TargetNamespace.setModulePath(None)
 
-    type_defs = TargetNamespace.typeDefinitions()
-    emit_order = []
-    while 0 < len(type_defs):
-        new_type_defs = []
-        for td in type_defs:
-            if not isinstance(td, xs.structures.SimpleTypeDefinition):
-                continue
-            assert td.targetNamespace() == TargetNamespace
-            if (Namespace.XMLSchema == TargetNamespace) and (not td.isBuiltin()):
-                continue
-            dep_types = td.dependentComponents()
-            ready = True
-            for dtd in dep_types:
-                if dtd.targetNamespace() != TargetNamespace:
-                    continue
-                if dtd == td:
-                    continue
-                if not (dtd in emit_order):
-                    ready = False
-                    break
-            if ready:
-                emit_order.append(td)
-            else:
-                new_type_defs.append(td)
-        type_defs = new_type_defs
+    emit_order = wxs.OrderedComponents([ _c for _c in wxs.components() if isinstance(_c, xs.structures.SimpleTypeDefinition) ], TargetNamespace)
 
     outf = file('datatypesi.py', 'w')
 
@@ -220,11 +166,7 @@ import %sfacets as facets
 import %sdatatypes as datatypes
 ''' % (import_prefix, import_prefix))
 
-
     for td in emit_order:
-        td_class = ReferenceClass(named_component=td)
-        outf.write("# class %s (%s)\n" % pythonLiteral( (td_class, td.baseTypeDefinition() ) ))
-
         #print 'Emitting %d facets in %s' % (len(td.facets()), td)
         for (fc, fi) in td.facets().items():
             if (fi is None) and (fc in td.baseTypeDefinition().facets()):
@@ -246,7 +188,7 @@ import %sdatatypes as datatypes
                 if not is_collection:
                     argset['value'] = fi.value()
                 if fi.superFacet() is not None:
-                    argset['super_facet'] = ReferenceFacetMember(variable=fi.superFacet())
+                    argset['super_facet'] = fi.superFacet()
                 if isinstance(fi, xs.facets.CF_enumeration):
                     argset['enum_prefix'] = fi.enumPrefix()
             facet_var = ReferenceFacetMember(type_definition=td, facet_class=fc)
