@@ -1,4 +1,5 @@
 import PyWXSB.XMLSchema as xs
+import cStringIO as StringIO
 print xs.datatypes
 
 from PyWXSB.exceptions_ import *
@@ -85,6 +86,18 @@ class ReferenceClass (ReferenceLiteral):
             name = 'ANON%d' % (self._NextAnonymousIndex(),)
         return '_STD_%s' % (name,)
 
+class ReferenceFacet (ReferenceLiteral):
+
+    __facet = None
+
+    def __init__ (self, **kw):
+        self.__facet = kw['facet']
+        super(ReferenceFacet, self).__init__(**kw)
+        
+    def asLiteral (self, **kw):
+        return '%s._CF_%s' % (pythonLiteral(self.__facet.ownerTypeDefinition()), self.__facet.Name())
+        
+
 class ReferenceEnumerationMember (ReferenceLiteral):
     enumerationElement = None
     
@@ -155,6 +168,9 @@ def pythonLiteral (value):
     if isinstance(value, types.StringTypes):
         return utility.QuotedEscaped(value,)
 
+    if isinstance(value, xs.facets.Facet):
+        return pythonLiteral(ReferenceFacet(facet=value))
+
     # Treat pattern elements as their value
     if isinstance(value, xs.facets._PatternElement):
         return pythonLiteral(value.pattern)
@@ -175,8 +191,46 @@ def pythonLiteral (value):
     return str(value)
 
 
+def GenerateFacets (outf, td):
+    for (fc, fi) in td.facets().items():
+        if (fi is None) and (fc in td.baseTypeDefinition().facets()):
+            # Nothing new here
+            continue
+        if (fi is not None) and (fi.ownerTypeDefinition() != td):
+            # Did this one in an ancestor
+            continue
+        argset = { }
+        is_collection = issubclass(fc, xs.facets._CollectionFacet_mixin)
+        if issubclass(fc, xs.facets._LateDatatype_mixin):
+            vdt = td
+            if fc.LateDatatypeBindsSuperclass():
+                vdt = vdt.baseTypeDefinition()
+            argset['value_datatype'] = vdt
+        if fi is not None:
+            if not is_collection:
+                argset['value'] = fi.value()
+            if fi.superFacet() is not None:
+                argset['super_facet'] = fi.superFacet()
+            if isinstance(fi, xs.facets.CF_enumeration):
+                argset['enum_prefix'] = fi.enumPrefix()
+        facet_var = ReferenceFacetMember(type_definition=td, facet_class=fc)
+        outf.write("%s = %s(%s)\n" % pythonLiteral( (facet_var, fc, argset )))
+        if (fi is not None) and is_collection:
+            for i in fi.items():
+                if isinstance(i, xs.facets._EnumerationElement):
+                    enum_member = ReferenceEnumerationMember(type_definition=td, facet_instance=fi, enumeration_element=i)
+                    outf.write("%s = %s.addKeyword(unicode_value=%s)\n" % pythonLiteral( (enum_member, facet_var, i.unicodeValue() )))
+                if isinstance(i, xs.facets._PatternElement):
+                    outf.write("%s.addPattern(pattern=%s)\n" % pythonLiteral( (facet_var, i.pattern )))
+
 def GenerateSTD (std):
-    return "# %s\n" % (std,)
+    outf = StringIO.StringIO()
+    outf.write('''
+class %s (%s):
+    pass
+''' % pythonLiteral( (std, std.baseTypeDefinition()) ))
+    GenerateFacets(outf, std)
+    return outf.getvalue()
 
 def GenerateCTD (ctd):
     return "# %s\n" % (ctd,)
@@ -188,7 +242,7 @@ GeneratorMap = {
 
 files = sys.argv[1:]
 if 0 == len(files):
-    files = [ 'schemas/wsdl.xsd' ]
+    files = [ 'schemas/kml21.xsd' ]
 
 try:
     wxs = xs.schema().CreateFromDOM(minidom.parse(files[0]))
@@ -199,6 +253,7 @@ try:
     emit_order = wxs.orderedComponents()
 
     outf = file('gen.py', 'w')
+    outf = StringIO.StringIO()
 
     import_prefix = 'PyWXSB.XMLSchema.'
     if TargetNamespace == Namespace.XMLSchema:
@@ -210,12 +265,12 @@ import %sdatatypes as datatypes
 ''' % (import_prefix, import_prefix))
 
     for td in emit_order:
-        print type(td)
         generator = GeneratorMap.get(type(td), None)
         if generator is None:
             continue
-        print 'Generator'
         outf.write(generator(td))
+
+    print outf.getvalue()
 
 except Exception, e:
     sys.stderr.write("%s processing %s:\n" % (e.__class__, file))
