@@ -517,8 +517,7 @@ class schema (xsc.Schema):
     def _processAttributeDeclaration (self, node):
         # NB: This is an attribute of the schema itself.
         an = xsc.AttributeDeclaration.CreateFromDOM(self, node)
-        self._addNamedComponent(an)
-        return an
+        return self._addNamedComponent(an)
 
     def _processSimpleType (self, node):
         """Walk a simpleType element to create a simple type definition component.
@@ -528,8 +527,7 @@ class schema (xsc.Schema):
         assert node.parentNode.nodeName in self.xsQualifiedNames('schema')
 
         rv = xsc.SimpleTypeDefinition.CreateFromDOM(self, node)
-        self._addNamedComponent(rv)
-        return rv
+        return self._addNamedComponent(rv)
 
     def _processComplexType (self, node):
         """Walk a complexType element to create a complex type definition component.
@@ -539,24 +537,21 @@ class schema (xsc.Schema):
         assert node.parentNode.nodeName in self.xsQualifiedNames('schema')
 
         rv = xsc.ComplexTypeDefinition.CreateFromDOM(self, node)
-        self._addNamedComponent(rv)
-        return rv
+        return self._addNamedComponent(rv)
 
     def _processAttributeGroup (self, node):
         # Node should be a namedAttributeGroup
         assert node.nodeName in self.xsQualifiedNames('attributeGroup')
         assert node.parentNode.nodeName in self.xsQualifiedNames('schema')
         rv = xsc.AttributeGroupDefinition.CreateFromDOM(self, node)
-        self._addNamedComponent(rv)
-        return rv
+        return self._addNamedComponent(rv)
 
     def _processGroup (self, node):
         # Node should be a namedGroup
         assert node.nodeName in self.xsQualifiedNames('group')
         assert node.parentNode.nodeName in self.xsQualifiedNames('schema')
         rv = xsc.ModelGroupDefinition.CreateFromDOM(self, node)
-        self._addNamedComponent(rv)
-        return rv
+        return self._addNamedComponent(rv)
 
     # @todo make process* private
     def _processElementDeclaration (self, node):
@@ -564,16 +559,14 @@ class schema (xsc.Schema):
         assert node.nodeName in self.xsQualifiedNames('element')
         assert node.parentNode.nodeName in self.xsQualifiedNames('schema')
         ed = xsc.ElementDeclaration.CreateFromDOM(self, node)
-        self._addNamedComponent(ed)
-        return ed
+        return self._addNamedComponent(ed)
 
     def _processNotationDeclaration (self, node):
         # Node should be a named notation
         assert node.nodeName in self.xsQualifiedNames('notation')
         assert node.parentNode.nodeName in self.xsQualifiedNames('schema')
         nd = xsc.NotationDeclaration.CreateFromDOM(self, node)
-        self._addNamedComponent(nd)
-        return nd
+        return self._addNamedComponent(nd)
 
     def processTopLevelNode (self, node):
         """Process a DOM node from the top level of the schema.
