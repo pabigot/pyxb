@@ -2498,11 +2498,11 @@ class Schema (_SchemaComponent_mixin):
       , SimpleTypeDefinition         # no dependencies
       , AttributeDeclaration         # SimpleTypeDefinition
       , AttributeUse                 # AttributeDeclaration
+      , AttributeGroupDefinition     # AttributeUse
       , ComplexTypeDefinition        # SimpleTypeDefinition, AttributeUse
       , ElementDeclaration           # *TypeDefinition
-      , AttributeGroupDefinition     # AttributeUse
-      , ModelGroupDefinition         # ModelGroup
       , ModelGroup                   # ComplexTypeDefinition, ElementDeclaration, Wildcard
+      , ModelGroupDefinition         # ModelGroup
       , Particle                     # ModelGroup, WildCard, ElementDeclaration
         )
 
