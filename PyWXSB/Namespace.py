@@ -288,7 +288,7 @@ class Namespace (object):
                     if dtd == td:
                         continue
                     if not (dtd in emit_order):
-                        print '%s depends on %s, not emitting' % (td.name(), dtd.name())
+                        #print '%s depends on %s, not emitting' % (td.name(), dtd.name())
                         ready = False
                         break
                 if ready:
