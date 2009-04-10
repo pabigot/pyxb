@@ -240,6 +240,59 @@ class Namespace (object):
     def typeDefinitions (self):
         return self._validatedSchema()._typeDefinitions()
 
+    def sortByDependency (self, components, dependent_class_filter):
+        """Return the components that belong to this namespace, in order of dependency.
+
+        Specifically, components are not referenced in any component
+        that precedes them in the returned sequence.  Any dependency
+        that is not an instance of the dependent_class_filter is
+        ignored."""
+        emit_order = []
+        while 0 < len(components):
+            new_components = []
+            for td in components:
+                # Anything not in this namespace is just thrown away.
+                try:
+                    if self != td.targetNamespace():
+                        continue
+                except AttributeError:
+                    pass
+                #if self == XMLSchema:
+                #    try:
+                #        if not td.isBuiltin():
+                #            continue
+                #    except AttributeError:
+                #        pass
+                dep_types = td.dependentComponents()
+                ready = True
+                for dtd in dep_types:
+                    # If the component depends on something that is
+                    # not a type we care about, just move along
+                    if (dependent_class_filter is not None) and not isinstance(dtd, dependent_class_filter):
+                        continue
+                    # Ignore dependencies that go outside the namespace
+                    try:
+                        if self != dtd.targetNamespace():
+                            continue
+                    except AttributeError:
+                        # Ignore dependencies on unnamed things
+                        continue
+                    # Ignore self-dependencies
+                    if dtd == td:
+                        continue
+                    if not (dtd in emit_order):
+                        print '%s depends on %s, not emitting' % (td, dtd)
+                        ready = False
+                        break
+                if ready:
+                    emit_order.append(td)
+                else:
+                    new_components.append(td)
+            if components == new_components:
+                raise LogicError('Infinite loop in order calculation:\n  %s' % ("\n  ".join( [str(_c) for _c in components] ),))
+            components = new_components
+        return emit_order
+
     def lookupTypeDefinition (self, local_name):
         """Look up a named type in the namespace.
 
