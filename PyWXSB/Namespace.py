@@ -270,6 +270,13 @@ class Namespace (object):
                     # not a type we care about, just move along
                     if (dependent_class_filter is not None) and not isinstance(dtd, dependent_class_filter):
                         continue
+                    # Ignore dependencies on built-ins
+                    try:
+                        if dtd.isBuiltin():
+                            continue
+                    except AttributeError:
+                        pass
+
                     # Ignore dependencies that go outside the namespace
                     try:
                         if self != dtd.targetNamespace():
@@ -281,7 +288,7 @@ class Namespace (object):
                     if dtd == td:
                         continue
                     if not (dtd in emit_order):
-                        print '%s depends on %s, not emitting' % (td, dtd)
+                        print '%s depends on %s, not emitting' % (td.name(), dtd.name())
                         ready = False
                         break
                 if ready:
