@@ -72,13 +72,16 @@ class _SchemaComponent_mixin (object):
     def dependentComponents (self):
         if self.__dependentComponents is None:
             if isinstance(self, _Resolvable_mixin) and not (self.isResolved()):
-                raise LogicError('Unresolved %s in %s: %s' % (self.__class__.__name__, self.schema().getTargetNamespace(), self,))
+                raise LogicError('Unresolved %s in %s: %s - %s' % (self.__class__.__name__, self.schema().getTargetNamespace(), self, self.name()))
             self.__dependentComponents = self._dependentComponents_vx()
             if self in self.__dependentComponents:
                 raise LogicError('Self-dependency with %s %s' % (self.__class__.__name__, self))
         return self.__dependentComponents
 
     def _dependentComponents_vx (self):
+        """Return a frozenset of component instance on which this component depends.
+
+        Implement in subclasses."""
         raise LogicError('%s does not implement _dependentComponents_vx' % (self.__class__,))
 
 
@@ -369,7 +372,7 @@ class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
         return self.__scope
 
     def __str__ (self):
-        return 'AD[%s:%s]' % (self.name(), self.typeDefinition())
+        return 'AD[%s:%s]' % (self.name(), self.typeDefinition().name())
 
     @classmethod
     def CreateBaseInstance (cls, name, target_namespace=None):
@@ -510,6 +513,10 @@ class AttributeUse (_SchemaComponent_mixin, _Resolvable_mixin, _ValueConstraint_
         self.__attributeDeclaration = wxs.lookupAttribute(ref_attr)
         self.__domNode = None
         return self
+
+    def __str__ (self):
+        return 'AU[%s]' % (self.attributeDeclaration(),)
+
 
 class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Resolvable_mixin, _Annotated_mixin, _ValueConstraint_mixin):
     """An XMLSchema Element Declaration component.
@@ -828,6 +835,10 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
             cls.__UrTypeDefinition = bi
         return cls.__UrTypeDefinition
 
+    def isBuiltin (self):
+        """Indicate whether this simple type is a built-in type."""
+        return (self.UrTypeDefinition() == self)
+
     def _dependentComponents_vx (self):
         """Implement base class method.
 
@@ -1104,7 +1115,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
                 if not base_type.isResolved():
                     # Have to delay resolution until the type this
                     # depends on is available.
-                    print 'Holding off resolution of %s due to dependence on unresolved %s' % (self.name(), base_type.name())
+                    #print 'Holding off resolution of %s due to dependence on unresolved %s' % (self.name(), base_type.name())
                     wxs._queueForResolution(self)
                     return self
                 # The content is defined by the restriction/extension element
@@ -1115,9 +1126,16 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
             self.__completeSimpleResolution(wxs, definition_node_list, method, base_type)
         return self
 
+    def __str__ (self):
+        return 'CTD[%s]' % (self.name(),)
+
+
 class _UrTypeDefinition (ComplexTypeDefinition, _Singleton_mixin):
     """Subclass ensures there is only one ur-type."""
-    pass
+    def _dependentComponents_vx (self):
+        """The UrTypeDefinition is not dependent on anything."""
+        return frozenset()
+
 
 class AttributeGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Resolvable_mixin, _Annotated_mixin):
     # A frozenset of AttributeUse instances
@@ -1217,6 +1235,10 @@ class ModelGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Anno
                 rv.__modelGroup = ModelGroup.CreateFromDOM(wxs, cn, model_group_definition=rv)
         assert rv.__modelGroup is not None
         return rv
+
+    def __str__ (self):
+        return 'MGD[%s: %s]' % (self.name(), self.modelGroup())
+
 
 class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
     C_INVALID = 0
@@ -1453,7 +1475,8 @@ class Particle (_SchemaComponent_mixin, _Resolvable_mixin):
         return [ wxs.xsQualifiedName(_tag) for _tag in [ 'group', 'all', 'choice', 'sequence', 'element', 'any' ] ]
 
     def __str__ (self):
-        return 'PART{%s:%d,%s}' % (self.term(), self.minOccurs(), self.maxOccurs())
+        #return 'PART{%s:%d,%s}' % (self.term(), self.minOccurs(), self.maxOccurs())
+        return 'PART{%s:%d,%s}' % ('TERM', self.minOccurs(), self.maxOccurs())
 
 
 # 3.10.1
@@ -2435,7 +2458,9 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
 
 class _SimpleUrTypeDefinition (SimpleTypeDefinition, _Singleton_mixin):
     """Subclass ensures there is only one simple ur-type."""
-    pass
+    def _dependentComponents_vx (self):
+        """The SimpleUrTypeDefinition is not dependent on anything."""
+        return frozenset()
 
 class Schema (_SchemaComponent_mixin):
     NT_type = 0x01              #<<< Name represents a simple or complex type
@@ -2464,6 +2489,23 @@ class Schema (_SchemaComponent_mixin):
     # List of annotations
     __annotations = None
 
+    # Tuple of component classes in order in which they must be generated.
+    __ComponentOrder = (
+        Annotation                   # no dependencies
+      , IdentityConstraintDefinition # no dependencies
+      , NotationDeclaration          # no dependencies
+      , Wildcard                     # no dependencies
+      , SimpleTypeDefinition         # no dependencies
+      , AttributeDeclaration         # SimpleTypeDefinition
+      , AttributeUse                 # AttributeDeclaration
+      , ComplexTypeDefinition        # SimpleTypeDefinition, AttributeUse
+      , ElementDeclaration           # *TypeDefinition
+      , AttributeGroupDefinition     # AttributeUse
+      , ModelGroupDefinition         # ModelGroup
+      , ModelGroup                   # ComplexTypeDefinition, ElementDeclaration, Wildcard
+      , Particle                     # ModelGroup, WildCard, ElementDeclaration
+        )
+
     # A set of _Resolvable_mixin instances that have yet to be
     # resolved.
     __unresolvedDefinitions = None
@@ -2484,6 +2526,26 @@ class Schema (_SchemaComponent_mixin):
     def components (self):
         """Return a frozenset of all components, named or unnamed, belonging to this schema."""
         return frozenset(self.__components)
+
+    @classmethod
+    def OrderedComponents (self, components, namespace):
+        if components is None:
+            components = self.components()
+        component_by_class = {}
+        for c in components:
+            component_by_class.setdefault(c.__class__, []).append(c)
+        ordered_components = []
+        for cc in self.__ComponentOrder:
+            if cc not in component_by_class:
+                continue
+            component_list = component_by_class[cc]
+            if namespace is not None:
+                component_list = namespace.sortByDependency(component_list, dependent_class_filter=cc)
+            ordered_components.extend(component_list)
+        return ordered_components
+
+    def orderedComponents (self):
+        return self.OrderedComponents(self.components(), self.getTargetNamespace())
 
     def completedResolution (self):
         """Return True iff all resolvable elements have been resolved.
@@ -2571,6 +2633,10 @@ class Schema (_SchemaComponent_mixin):
         assert replacement_def not in self.__unresolvedDefinitions
         assert isinstance(replacement_def, _Resolvable_mixin)
         self.__unresolvedDefinitions.append(replacement_def)
+        # Throw away the reference to the previous component and use
+        # the replacement one
+        self.__components.remove(existing_def)
+        self.__components.add(replacement_def)
         return replacement_def
 
     def _resolveDefinitions (self):
