@@ -51,6 +51,57 @@ class _PST_mixin (object):
     accept them.
     """
 
+    # A map from leaf classes in the facets module to instance of
+    # those classes that constrain or otherwise affect the datatype.
+    # Note that each descendent of _PST_mixin has its own map.
+    __FacetMap = {}
+
+    # Determine the name of the class-private facet map.  This
+    # algorithm should match the one used by Python, so the base class
+    # value can be read.
+    @classmethod
+    def __FacetMapAttributeName (cls):
+        return '_%s__FacetMap' % (cls.__name__.strip('_'),)
+
+    @classmethod
+    def _FacetMap (cls):
+        """Return a reference to the facet map for this datatype.
+
+        The facet map is a map from leaf facet classes to instances of
+        those classes that constrain or otherwise apply to the lexical
+        or value space of the datatype.
+
+        Raises AttributeError if the facet map has not been defined."""
+        return getattr(cls, cls.__FacetMapAttributeName())
+    
+    @classmethod
+    def _InitializeFacetMap (cls, *args):
+        """Initialize the facet map for this datatype.
+
+        This must be called exactly once, after all facets belonging
+        to the datatype have been created.
+
+        Raises LogicError if called multiple times, or if called when
+        a parent class facet map has not been initialized."""
+        fm = None
+        try:
+            fm = cls._FacetMap()
+        except AttributeError:
+            pass
+        if fm is not None:
+            raise LogicError('%s facet map initialized multiple times' % (cls.__name__,))
+        for super_class in cls.mro()[1:]:
+            if issubclass(super_class, _PST_mixin):
+                fm = super_class._FacetMap()
+                break
+        if fm is None:
+            raise LogicError('%s is not a child of _PST_mixin' % (cls.__name__,))
+        fm = fm.copy()
+        for facet in args:
+            fm[type(facet)] = facet
+        setattr(cls, cls.__FacetMapAttributeName(), fm)
+        return fm
+
     # Must override new, because new gets invoked before init, and
     # usually doesn't accept keywords.  In case it does, only remove
     # the ones that are interpreted by this class.
@@ -58,7 +109,8 @@ class _PST_mixin (object):
         kw.pop('validate_constraints', None)
         return super(_PST_mixin, cls).__new__(cls, *args, **kw)
 
-    # Validate the constraints after invoking the parent constructor.
+    # Validate the constraints after invoking the parent constructor,
+    # unless told not to.
     def __init__ (self, *args, **kw):
         validate_constraints = kw.pop('validate_constraints', True)
         super(_PST_mixin, self).__init__(*args, **kw)
@@ -167,7 +219,7 @@ class _PST_mixin (object):
         class_name = self.__class__.__name__
         return '%s(%s)' % (class_name, super(_PST_mixin, self).__str__())
 
-class _List_mixin (_PST_mixin):
+class _List_mixin:
     """Marker to indicate that the datatype is a collection."""
     pass
 
@@ -374,7 +426,7 @@ class NMTOKEN (token):
     pass
 _DerivedDatatypes.append(NMTOKEN)
 
-class NMTOKENS (types.ListType, _List_mixin):
+class NMTOKENS (_PST_mixin, _List_mixin, types.ListType):
     _ItemType = NMTOKEN
 _ListDatatypes.append(NMTOKENS)
 
@@ -394,7 +446,7 @@ class IDREF (NCName):
     pass
 _DerivedDatatypes.append(IDREF)
 
-class IDREFS (types.ListType, _List_mixin):
+class IDREFS (_PST_mixin, _List_mixin, types.ListType):
     _ItemType = IDREF
 _ListDatatypes.append(IDREFS)
 
@@ -402,7 +454,7 @@ class ENTITY (NCName):
     pass
 _DerivedDatatypes.append(ENTITY)
 
-class ENTITIES (types.ListType, _List_mixin):
+class ENTITIES (_PST_mixin, _List_mixin, types.ListType):
     _ItemType = ENTITY
 _ListDatatypes.append(ENTITIES)
 

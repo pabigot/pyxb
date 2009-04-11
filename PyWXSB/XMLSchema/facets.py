@@ -360,10 +360,12 @@ class _PatternElement:
 
     pattern = None
     annotation = None
-    def __init__ (self, value=None, annotation=None, **kw):
-        assert value is not None
-        assert isinstance(value, types.StringTypes)
-        self.pattern = value
+    def __init__ (self, pattern=None, value=None, annotation=None, **kw):
+        if pattern is None:
+            assert value is not None
+            pattern = value
+        assert isinstance(pattern, types.StringTypes)
+        self.pattern = pattern
         self.annotation = annotation
 
     def __str__ (self): return self.pattern
@@ -382,6 +384,11 @@ class CF_pattern (ConstrainingFacet, _CollectionFacet_mixin):
     def __init__ (self, **kw):
         super(CF_pattern, self).__init__(value_datatype=datatypes.string, **kw)
         self.__patternElements = []
+
+    def addPattern (self, **kw):
+        pattern = self._CollectionFacet_itemType(**kw)
+        self.__patternElements.append(pattern)
+        return pattern
 
     def _validateConstraint_vx (self, value):
         # @todo implement this
@@ -481,11 +488,6 @@ class CF_enumeration (ConstrainingFacet, _CollectionFacet_mixin, _LateDatatype_m
     # the module level.  If None, tags are not made visible.
     __enumPrefix = None
 
-    # A bypass flag that allows us to create enumeration values before
-    # they're added to the list of acceptable values.  Without this,
-    # creating an element will fail the constraint check.
-    __inAddEnumeration = False
-
     def __init__ (self, **kw):
         super(CF_enumeration, self).__init__(**kw)
         self.__enumPrefix = kw.get('enum_prefix', self.__enumPrefix)
@@ -543,10 +545,15 @@ class _Enumeration_mixin (object):
 class _WhiteSpace_enum (datatypes.string, _Enumeration_mixin):
     """The enumeration used to constrain the whiteSpace facet"""
     pass
-_WhiteSpace_enum._CF_enumeration = CF_enumeration(value_datatype=_WhiteSpace_enum, enum_prefix='WSV')
-_WhiteSpace_enum.WSV_preserve = _WhiteSpace_enum._CF_enumeration.addEnumeration(unicode_value=u'preserve')
-_WhiteSpace_enum.WSV_replace = _WhiteSpace_enum._CF_enumeration.addEnumeration(unicode_value=u'replace')
-_WhiteSpace_enum.WSV_collapse = _WhiteSpace_enum._CF_enumeration.addEnumeration(unicode_value=u'collapse')
+_WhiteSpace_enum._CF_enumeration = CF_enumeration(value_datatype=_WhiteSpace_enum)
+_WhiteSpace_enum.preserve = _WhiteSpace_enum._CF_enumeration.addEnumeration(unicode_value=u'preserve')
+_WhiteSpace_enum.replace = _WhiteSpace_enum._CF_enumeration.addEnumeration(unicode_value=u'replace')
+_WhiteSpace_enum.collapse = _WhiteSpace_enum._CF_enumeration.addEnumeration(unicode_value=u'collapse')
+# NOTE: For correctness we really need to initialize the facet map for
+# WhiteSpace_enum, even though at the moment it isn't necessary.  We
+# can't right now, because its parent datatypes.string hasn't been
+# initialized.
+#_WhiteSpace_enum._InitializeFacetMap(_WhiteSpace_enum._CF_enumeration)
 
 class CF_whiteSpace (ConstrainingFacet, _Fixed_mixin):
     """Specify the value-space interpretation of whitespace.
@@ -713,23 +720,3 @@ class FF_numeric (FundamentalFacet):
     _Name = 'numeric'
     def __init__ (self, **kw):
         super(FF_numeric, self).__init__(value_datatype=datatypes.boolean, **kw)
-
-def ConstrainingFacets (instance):
-    """Look at the attributes of the instance and return a tuple of the
-    ones that are facets."""
-    if isinstance(instance, type):
-        cls = instance
-    else:
-        cls = instance.__class__
-    attr_name = '_%s__Facets' % (cls.__name__,)
-    rv = getattr(cls, attr_name, None)
-    if rv is None:
-        rv = []
-        for v in cls.__dict__.values():
-            if isinstance(v, ConstrainingFacet):
-                rv.append(v)
-        rv = tuple(rv)
-        #setattr(cls, attr_name, rv)
-    return rv
-
-datatypes._PST_mixin._GetConstrainingFacets = ConstrainingFacets
