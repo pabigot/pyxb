@@ -115,10 +115,7 @@ class _PST_mixin (object):
         validate_constraints = kw.pop('validate_constraints', True)
         super(_PST_mixin, self).__init__(*args, **kw)
         if validate_constraints:
-            value_string = None
-            if (1 == len(args)) and isinstance(args[0], types.StringTypes):
-                value_string = args[0]
-            self.xsdConstraintsOK(value_string=value_string)
+            self.xsdConstraintsOK()
 
     # This is a placeholder for a class method that will retrieve the
     # set of facets associated with the class.  We can't define it
@@ -189,7 +186,7 @@ class _PST_mixin (object):
         raise LogicError('No python type found for %s' % (cls,))
 
     @classmethod
-    def XsdConstraintsOK (cls, value, value_string):
+    def XsdConstraintsOK (cls, value):
         """Validate the given value against the constraints on this class.
 
         Throws BadTypeValueError if any constraint is violated.
@@ -205,13 +202,13 @@ class _PST_mixin (object):
         except AttributeError:
             return value
         for f in facet_values:
-            if not f.validateConstraint(value, value_string):
-                raise BadTypeValueError('%s violation for %s (%s) in %s' % (f.Name(), value, repr(value_string), cls.__name__))
+            if not f.validateConstraint(value):
+                raise BadTypeValueError('%s violation for %s in %s' % (f.Name(), value, cls.__name__))
             #print '%s ok for %s' % (f.Name(), value)
         return value
 
-    def xsdConstraintsOK (self, value_string=None):
-        return self.XsdConstraintsOK(self, value_string)
+    def xsdConstraintsOK (self):
+        return self.XsdConstraintsOK(self)
 
     @classmethod
     def XsdValueLength (cls, value):
