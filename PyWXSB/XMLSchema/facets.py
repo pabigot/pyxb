@@ -552,7 +552,7 @@ class _Enumeration_mixin (object):
     def valueForUnicode (cls, ustr):
         return cls._CF_enumeration.valueForUnicode(ustr)
 
-class _WhiteSpace_enum (_Enumeration_mixin, datatypes.string):
+class _WhiteSpace_enum (datatypes.string, _Enumeration_mixin):
     """The enumeration used to constrain the whiteSpace facet"""
     pass
 _WhiteSpace_enum._CF_enumeration = CF_enumeration(value_datatype=_WhiteSpace_enum, enum_prefix='WSV')
@@ -581,6 +581,10 @@ class CF_minInclusive (ConstrainingFacet, _Fixed_mixin, _LateDatatype_mixin):
     _Name = 'minInclusive'
     _LateDatatypeBindsSuperclass = False
 
+    def _validateConstraint_vx (self, value):
+        return (self.value() is None) or (self.value() <= value)
+
+
 class CF_maxInclusive (ConstrainingFacet, _Fixed_mixin, _LateDatatype_mixin):
     """Specify the maximum legal value for the constrained type.
 
@@ -588,6 +592,9 @@ class CF_maxInclusive (ConstrainingFacet, _Fixed_mixin, _LateDatatype_mixin):
     """
     _Name = 'maxInclusive'
     _LateDatatypeBindsSuperclass = False
+
+    def _validateConstraint_vx (self, value):
+        return (self.value() is None) or (self.value() >= value)
 
 class CF_minExclusive (ConstrainingFacet, _Fixed_mixin, _LateDatatype_mixin):
     """Specify the exclusive lower bound of legal values for the constrained type.
@@ -597,6 +604,9 @@ class CF_minExclusive (ConstrainingFacet, _Fixed_mixin, _LateDatatype_mixin):
     _Name = 'minExclusive'
     _LateDatatypeBindsSuperclass = True
 
+    def _validateConstraint_vx (self, value):
+        return (self.value() is None) or (self.value() < value)
+
 class CF_maxExclusive (ConstrainingFacet, _Fixed_mixin, _LateDatatype_mixin):
     """Specify the exclusive upper bound of legal values for the constrained type.
 
@@ -604,6 +614,9 @@ class CF_maxExclusive (ConstrainingFacet, _Fixed_mixin, _LateDatatype_mixin):
     """
     _Name = 'maxExclusive'
     _LateDatatypeBindsSuperclass = True
+
+    def _validateConstraint_vx (self, value):
+        return (self.value() is None) or (self.value() > value)
 
 class CF_totalDigits (ConstrainingFacet, _Fixed_mixin):
     """Specify the number of digits in the *value* space of the type.
@@ -614,6 +627,10 @@ class CF_totalDigits (ConstrainingFacet, _Fixed_mixin):
     def __init__ (self, **kw):
         super(CF_totalDigits, self).__init__(value_datatype=datatypes.positiveInteger, **kw)
 
+    def _validateConstraint_vx (self, value):
+        # @todo implement this
+        return False
+
 class CF_fractionDigits (ConstrainingFacet, _Fixed_mixin):
     """Specify the number of sub-unit digits in the *value* space of the type.
 
@@ -622,6 +639,10 @@ class CF_fractionDigits (ConstrainingFacet, _Fixed_mixin):
     _Name = 'fractionDigits'
     def __init__ (self, **kw):
         super(CF_fractionDigits, self).__init__(value_datatype=datatypes.nonNegativeInteger, **kw)
+
+    def _validateConstraint_vx (self, value):
+        # @todo implement this
+        return False
 
 class FundamentalFacet (Facet):
     """A fundamental facet provides information on the value space of the associated type."""
@@ -712,7 +733,7 @@ def ConstrainingFacets (instance):
         cls = instance
     else:
         cls = instance.__class__
-    attr_name = '__Facets'
+    attr_name = '_%s__Facets' % (cls.__name__,)
     rv = getattr(cls, attr_name, None)
     if rv is None:
         rv = []
@@ -720,7 +741,7 @@ def ConstrainingFacets (instance):
             if isinstance(v, ConstrainingFacet):
                 rv.append(v)
         rv = tuple(rv)
-        setattr(cls, attr_name, rv)
+        #setattr(cls, attr_name, rv)
     return rv
 
 datatypes._PST_mixin._GetConstrainingFacets = ConstrainingFacets
