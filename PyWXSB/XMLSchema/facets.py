@@ -234,7 +234,7 @@ class _LateDatatype_mixin (object):
         to the given value_type.
 
         If the value_type is an STD, the associated python support
-        datatype from thie value_type scanning up through the base
+        datatype from this value_type scanning up through the base
         type hierarchy is used.
         """
         
@@ -286,6 +286,11 @@ class _CollectionFacet_mixin (object):
     of the collection.
     """
 
+    __inhibitValidation = False
+    def __init__ (self, *args, **kw):
+        super(_CollectionFacet_mixin, self).__init__(*args, **kw)
+        self.__inhibitValidation = False
+
     __items = None
     def _setFromKeywords_vb (self, **kw):
         """Extend base class.
@@ -299,9 +304,17 @@ class _CollectionFacet_mixin (object):
             self.__items = []
         if not kw.get('_constructor', False):
             #print self._CollectionFacet_itemType
+            old_inhibit = self._inhibitValidation(True)
             self.__items.append(self._CollectionFacet_itemType(facet_instance=self, **kw))
+            self._inhibitValidation(old_inhibit)
         super_fn = getattr(super(_CollectionFacet_mixin, self), '_setFromKeywords_vb', lambda *a,**kw: self)
         return super_fn(**kw)
+
+    def _inhibitValidation (self, value=None):
+        rv = self.__inhibitValidation
+        if value is not None:
+            self.__inhibitValidation = value
+        return rv
 
     def items (self):
         """The members of the collection."""
@@ -322,6 +335,10 @@ class CF_length (ConstrainingFacet, _Fixed_mixin):
     def __init__ (self, **kw):
         super(CF_length, self).__init__(value_datatype=datatypes.nonNegativeInteger, **kw)
 
+    def _validateConstraint_vx (self, value):
+        # @todo implement this
+        return True
+
 class CF_minLength (ConstrainingFacet, _Fixed_mixin):
     """A facet that constrains the length of the lexical representation of a value.
     
@@ -331,6 +348,10 @@ class CF_minLength (ConstrainingFacet, _Fixed_mixin):
     def __init__ (self, **kw):
         super(CF_minLength, self).__init__(value_datatype=datatypes.nonNegativeInteger, **kw)
 
+    def _validateConstraint_vx (self, value):
+        # @todo implement this
+        return True
+
 class CF_maxLength (ConstrainingFacet, _Fixed_mixin):
     """A facet that constrains the length of the lexical representation of a value.
     
@@ -339,6 +360,10 @@ class CF_maxLength (ConstrainingFacet, _Fixed_mixin):
     _Name = 'maxLength'
     def __init__ (self, **kw):
         super(CF_maxLength, self).__init__(value_datatype=datatypes.nonNegativeInteger, **kw)
+
+    def _validateConstraint_vx (self, value):
+        # @todo implement this
+        return True
 
 class _PatternElement:
     """This class represents individual patterns that appear within a CF_pattern collection."""
@@ -367,6 +392,10 @@ class CF_pattern (ConstrainingFacet, _CollectionFacet_mixin):
     def __init__ (self, **kw):
         super(CF_pattern, self).__init__(value_datatype=datatypes.string, **kw)
         self.__patternElements = []
+
+    def _validateConstraint_vx (self, value):
+        # @todo implement this
+        return True
 
 class _EnumerationElement:
     """This class represents individual values that appear within a CF_enumeration collection."""
@@ -458,8 +487,9 @@ class CF_enumeration (ConstrainingFacet, _CollectionFacet_mixin, _LateDatatype_m
     __valueToElement = None
     __unicodeToElement = None
 
-    # The prefix to be used when making enumeration tags visible at the module level.
-    __enumPrefix = 'EV'
+    # The prefix to be used when making enumeration tags visible at
+    # the module level.  If None, tags are not made visible.
+    __enumPrefix = None
 
     # A bypass flag that allows us to create enumeration values before
     # they're added to the list of acceptable values.  Without this,
@@ -479,9 +509,9 @@ class CF_enumeration (ConstrainingFacet, _CollectionFacet_mixin, _LateDatatype_m
 
     def addEnumeration (self, **kw):
         kw['enumeration'] = self
-        self.__inAddEnumeration = True
+        old_inhibit = self._inhibitValidation(True)
         ee = _EnumerationElement(**kw)
-        self.__inAddEnumeration = False
+        self._inhibitValidation(old_inhibit)
         if ee.tag in self.__tagToElement:
             raise IncompleteImplementationError('Duplicate enumeration tags')
         self.__tagToElement[ee.tag()] = ee
@@ -492,13 +522,24 @@ class CF_enumeration (ConstrainingFacet, _CollectionFacet_mixin, _LateDatatype_m
         return value
 
     def elementForValue (self, value):
+        """Return the EnumerationElement instance that has the given value.
+
+        Raises KeyError if the value is not valid for the enumeration."""
         return self.__valueToElement[value]
 
     def valueForUnicode (self, ustr):
-        return self.__unicodeToElement[ustr].value()
+        """Return the enumeration value corresponding to the given unicode string.
+
+        If ustr is not a valid option for this enumeration, return None."""
+        rv = self.__unicodeToElement.get(ustr, None)
+        if rv is not None:
+            rv = rv.value()
+        return rv
 
     def _validateConstraint_vx (self, value):
-        if self.__inAddEnumeration:
+        # If validation is inhibited, or if the facet hasn't had any
+        # restrictions applied yet, return True.
+        if self._inhibitValidation() or (0 == len(self.__elements)):
             return True
         for ee in self.__elements:
             if ee.value() == value:
@@ -507,7 +548,9 @@ class CF_enumeration (ConstrainingFacet, _CollectionFacet_mixin, _LateDatatype_m
 
 class _Enumeration_mixin (object):
     """Marker class to indicate that the generated binding has enumeration members."""
-    pass
+    @classmethod
+    def valueForUnicode (cls, ustr):
+        return cls._CF_enumeration.valueForUnicode(ustr)
 
 class _WhiteSpace_enum (_Enumeration_mixin, datatypes.string):
     """The enumeration used to constrain the whiteSpace facet"""
@@ -669,7 +712,6 @@ def ConstrainingFacets (instance):
         cls = instance
     else:
         cls = instance.__class__
-    attr_name = '_%s__Facets' % (cls.__name__,)
     attr_name = '__Facets'
     rv = getattr(cls, attr_name, None)
     if rv is None:
