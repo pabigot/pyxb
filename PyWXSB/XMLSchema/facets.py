@@ -184,14 +184,14 @@ class ConstrainingFacet (Facet):
         super(ConstrainingFacet, self).__init__(**kw)
         self.__superFacet = kw.get('super_facet', None)
 
-    def _validateConstraint_vx (self, value):
+    def _validateConstraint_vx (self, value, value_string):
         raise LogicError("Facet %s does not implement constraints" % (self.Name(),))
 
-    def validateConstraint (self, value):
+    def validateConstraint (self, value, value_string):
         """Return True iff the given value satisfies the constraint represented by this facet instance.
 
         The actual test is delegated to the subclasses."""
-        return self._validateConstraint_vx(value)
+        return self._validateConstraint_vx(value, value_string)
 
     def __setFromKeywords(self, **kw):
         kwv = kw.get('value', None)
@@ -330,9 +330,9 @@ class CF_length (ConstrainingFacet, _Fixed_mixin):
     _Name = 'length'
     _ValueDatatype = datatypes.nonNegativeInteger
 
-    def _validateConstraint_vx (self, value):
-        # @todo implement this
-        return True
+    def _validateConstraint_vx (self, value, value_string):
+        value_length = value.xsdValueLength()
+        return (value_length is None) or (value_length == self.value())
 
 class CF_minLength (ConstrainingFacet, _Fixed_mixin):
     """A facet that constrains the length of the lexical representation of a value.
@@ -342,9 +342,9 @@ class CF_minLength (ConstrainingFacet, _Fixed_mixin):
     _Name = 'minLength'
     _ValueDatatype = datatypes.nonNegativeInteger
 
-    def _validateConstraint_vx (self, value):
-        # @todo implement this
-        return True
+    def _validateConstraint_vx (self, value, value_string):
+        value_length = value.xsdValueLength()
+        return (value_length is None) or (value_length >= self.value())
 
 class CF_maxLength (ConstrainingFacet, _Fixed_mixin):
     """A facet that constrains the length of the lexical representation of a value.
@@ -354,9 +354,9 @@ class CF_maxLength (ConstrainingFacet, _Fixed_mixin):
     _Name = 'maxLength'
     _ValueDatatype = datatypes.nonNegativeInteger
 
-    def _validateConstraint_vx (self, value):
-        # @todo implement this
-        return True
+    def _validateConstraint_vx (self, value, value_string):
+        value_length = value.xsdValueLength()
+        return (value_length is None) or (value_length <= self.value())
 
 class _PatternElement:
     """This class represents individual patterns that appear within a CF_pattern collection."""
@@ -394,7 +394,7 @@ class CF_pattern (ConstrainingFacet, _CollectionFacet_mixin):
         self.__patternElements.append(pattern)
         return pattern
 
-    def _validateConstraint_vx (self, value):
+    def _validateConstraint_vx (self, value, value_string):
         # @todo implement this
         return True
 
@@ -530,7 +530,7 @@ class CF_enumeration (ConstrainingFacet, _CollectionFacet_mixin, _LateDatatype_m
             rv = rv.value()
         return rv
 
-    def _validateConstraint_vx (self, value):
+    def _validateConstraint_vx (self, value, value_string):
         # If validation is inhibited, or if the facet hasn't had any
         # restrictions applied yet, return True.
         if 0 == len(self.__elements):
@@ -567,7 +567,7 @@ class CF_whiteSpace (ConstrainingFacet, _Fixed_mixin):
     _Name = 'whiteSpace'
     _ValueDatatype = _WhiteSpace_enum
 
-    def _validateConstraint_vx (self, value):
+    def _validateConstraint_vx (self, value, value_string):
         """No validation rules for whitespace facet."""
         return True
 
@@ -579,7 +579,7 @@ class CF_minInclusive (ConstrainingFacet, _Fixed_mixin, _LateDatatype_mixin):
     _Name = 'minInclusive'
     _LateDatatypeBindsSuperclass = False
 
-    def _validateConstraint_vx (self, value):
+    def _validateConstraint_vx (self, value, value_string):
         return (self.value() is None) or (self.value() <= value)
 
 
@@ -591,7 +591,7 @@ class CF_maxInclusive (ConstrainingFacet, _Fixed_mixin, _LateDatatype_mixin):
     _Name = 'maxInclusive'
     _LateDatatypeBindsSuperclass = False
 
-    def _validateConstraint_vx (self, value):
+    def _validateConstraint_vx (self, value, value_string):
         return (self.value() is None) or (self.value() >= value)
 
 class CF_minExclusive (ConstrainingFacet, _Fixed_mixin, _LateDatatype_mixin):
@@ -602,7 +602,7 @@ class CF_minExclusive (ConstrainingFacet, _Fixed_mixin, _LateDatatype_mixin):
     _Name = 'minExclusive'
     _LateDatatypeBindsSuperclass = True
 
-    def _validateConstraint_vx (self, value):
+    def _validateConstraint_vx (self, value, value_string):
         return (self.value() is None) or (self.value() < value)
 
 class CF_maxExclusive (ConstrainingFacet, _Fixed_mixin, _LateDatatype_mixin):
@@ -613,7 +613,7 @@ class CF_maxExclusive (ConstrainingFacet, _Fixed_mixin, _LateDatatype_mixin):
     _Name = 'maxExclusive'
     _LateDatatypeBindsSuperclass = True
 
-    def _validateConstraint_vx (self, value):
+    def _validateConstraint_vx (self, value, value_string):
         return (self.value() is None) or (self.value() > value)
 
 class CF_totalDigits (ConstrainingFacet, _Fixed_mixin):
@@ -624,7 +624,7 @@ class CF_totalDigits (ConstrainingFacet, _Fixed_mixin):
     _Name = 'totalDigits'
     _ValueDatatype = datatypes.positiveInteger
 
-    def _validateConstraint_vx (self, value):
+    def _validateConstraint_vx (self, value, value_string):
         # @todo implement this
         return False
 
@@ -636,7 +636,7 @@ class CF_fractionDigits (ConstrainingFacet, _Fixed_mixin):
     _Name = 'fractionDigits'
     _ValueDatatype = datatypes.nonNegativeInteger
 
-    def _validateConstraint_vx (self, value):
+    def _validateConstraint_vx (self, value, value_string):
         # @todo implement this
         return True
 

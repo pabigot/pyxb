@@ -115,7 +115,10 @@ class _PST_mixin (object):
         validate_constraints = kw.pop('validate_constraints', True)
         super(_PST_mixin, self).__init__(*args, **kw)
         if validate_constraints:
-            self.xsdConstraintsOK()
+            value_string = None
+            if (1 == len(args)) and isinstance(args[0], types.StringTypes):
+                value_string = args[0]
+            self.xsdConstraintsOK(value_string=value_string)
 
     # This is a placeholder for a class method that will retrieve the
     # set of facets associated with the class.  We can't define it
@@ -186,7 +189,7 @@ class _PST_mixin (object):
         raise LogicError('No python type found for %s' % (cls,))
 
     @classmethod
-    def XsdConstraintsOK (cls, value):
+    def XsdConstraintsOK (cls, value, value_string):
         """Validate the given value against the constraints on this class.
 
         Throws BadTypeValueError if any constraint is violated.
@@ -202,13 +205,43 @@ class _PST_mixin (object):
         except AttributeError:
             return value
         for f in facet_values:
-            if not f.validateConstraint(value):
-                raise BadTypeValueError('%s violation for %s in %s' % (f.Name(), value, cls.__name__))
+            if not f.validateConstraint(value, value_string):
+                raise BadTypeValueError('%s violation for %s (%s) in %s' % (f.Name(), value, repr(value_string), cls.__name__))
             #print '%s ok for %s' % (f.Name(), value)
         return value
 
-    def xsdConstraintsOK (self):
-        return self.XsdConstraintsOK(self)
+    def xsdConstraintsOK (self, value_string=None):
+        return self.XsdConstraintsOK(self, value_string)
+
+    @classmethod
+    def XsdValueLength (cls, value):
+        """Return the length of the given value.
+
+        The length is calculated by a subclass implementation of
+        _XsdValueLength_vx in accordance with
+        http://www.w3.org/TR/xmlschema-2/#rf-length.
+
+        The return value is a non-negative integer, or None if length
+        constraints should be considered trivially satisfied (as with
+        QName and NOTATION).
+
+        Raise LogicError if the provided value is not an instance of cls.
+
+        Raise LogicError if an attempt is made to calculate a length
+        for an instance of a type that does not support length
+        calculations.
+        """
+        assert isinstance(value, cls)
+        return cls._XsdValueLength_vx(value)
+
+    @classmethod
+    def _XsdValueLength_vx (cls, value):
+        raise LogicError('Class %s does not support length validation' % (cls.__name__,))
+
+    def xsdValueLength (self):
+        """Return the length of this instance within its value space.
+        See XsdValueLength."""
+        return self.XsdValueLength(self)
 
     @classmethod
     def XsdToString (cls, value):
@@ -228,7 +261,10 @@ class _PST_mixin (object):
 
 class _List_mixin:
     """Marker to indicate that the datatype is a collection."""
-    pass
+
+    @classmethod
+    def XsdValueLength (cls, value):
+        return len(value)
 
 class _Enumeration_mixin:
     """Marker to indicate that the datatype is an enumeration."""
@@ -257,7 +293,12 @@ class string (_PST_mixin, unicode):
 
     @classmethod
     def XsdLiteral (cls, value):
-        return "'%s'" % (value,)
+        assert isinstance(value, cls)
+        return repr(value)
+
+    @classmethod
+    def XsdValueLength (cls, value):
+        return len(value)
 
 _PrimitiveDatatypes.append(string)
 
@@ -394,26 +435,49 @@ class hexBinary (_PST_mixin, types.LongType):
     def XsdLiteral (self, value):
         return '0x%x' % (value,)
 
+    @classmethod
+    def XsdValueLength (cls, value):
+        raise NotImplementedError('No length calculation for hexBinary')
+
 _PrimitiveDatatypes.append(hexBinary)
 
 class base64Binary (_PST_mixin):
     _XsdBaseType = anySimpleType
     _Namespace = Namespace.XMLSchema
+    @classmethod
+    def XsdValueLength (cls, value):
+        raise NotImplementedError('No length calculation for base64Binary')
+
 _PrimitiveDatatypes.append(base64Binary)
 
 class anyURI (_PST_mixin):
     _XsdBaseType = anySimpleType
     _Namespace = Namespace.XMLSchema
+
+    @classmethod
+    def XsdValueLength (cls, value):
+        return len(value)
+
 _PrimitiveDatatypes.append(anyURI)
 
 class QName (_PST_mixin):
     _XsdBaseType = anySimpleType
     _Namespace = Namespace.XMLSchema
+    @classmethod
+    def XsdValueLength (cls, value):
+        """Section 4.3.1.3: Legacy length return None to indicate no check"""
+        return None
+
 _PrimitiveDatatypes.append(QName)
 
 class NOTATION (_PST_mixin):
     _XsdBaseType = anySimpleType
     _Namespace = Namespace.XMLSchema
+    @classmethod
+    def XsdValueLength (cls, value):
+        """Section 4.3.1.3: Legacy length return None to indicate no check"""
+        return None
+
 _PrimitiveDatatypes.append(NOTATION)
 
 class normalizedString (string):
