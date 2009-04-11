@@ -263,15 +263,24 @@ class _PST_mixin (object):
         class_name = self.__class__.__name__
         return '%s(%s)' % (class_name, super(_PST_mixin, self).__str__())
 
-class _List_mixin (object):
-    """Marker to indicate that the datatype is a collection."""
+class _PST_list (_PST_mixin, types.ListType):
+    """Base class for collection datatypes.
+
+    This class descends from the Python list type, and incorporates
+    _PST_mixin.  Subclasses must define a class variable _ItemType
+    which is a reference to the class of which members must be
+    instances."""
+
+    # Ick: If we don't declare this here, this class's map doesn't get
+    # initialized.  Alternative is to not descend from _PST_mixin.
+    __FacetMap = {}
 
     @classmethod
     def _XsdConstraintsPreCheck_vb (cls, value):
         for v in value:
             if not isinstance(v, cls._ItemType):
                 raise BadTypeValueError('Type %s has member of type %s, must be %s' % (cls.__name__, type(v).__name__, cls._ItemType.__name__))
-        super_fn = getattr(super(_List_mixin, cls), '_XsdConstraintsPreCheck_vb', lambda *a,**kw: True)
+        super_fn = getattr(super(_PST_list, cls), '_XsdConstraintsPreCheck_vb', lambda *a,**kw: True)
         return super_fn(value)
 
     @classmethod
@@ -509,7 +518,7 @@ class NMTOKEN (token):
     pass
 _DerivedDatatypes.append(NMTOKEN)
 
-class NMTOKENS (_PST_mixin, _List_mixin, types.ListType):
+class NMTOKENS (_PST_list):
     _ItemType = NMTOKEN
 _ListDatatypes.append(NMTOKENS)
 
@@ -529,7 +538,7 @@ class IDREF (NCName):
     pass
 _DerivedDatatypes.append(IDREF)
 
-class IDREFS (_PST_mixin, _List_mixin, types.ListType):
+class IDREFS (_PST_list):
     _ItemType = IDREF
 _ListDatatypes.append(IDREFS)
 
@@ -537,7 +546,7 @@ class ENTITY (NCName):
     pass
 _DerivedDatatypes.append(ENTITY)
 
-class ENTITIES (_PST_mixin, _List_mixin, types.ListType):
+class ENTITIES (_PST_list):
     _ItemType = ENTITY
 _ListDatatypes.append(ENTITIES)
 

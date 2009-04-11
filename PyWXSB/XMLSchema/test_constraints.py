@@ -27,7 +27,8 @@ Password._CF_minLength =  facets.CF_minLength(super_facet=datatypes.string._CF_m
 Password._CF_maxLength =  facets.CF_maxLength(super_facet=datatypes.string._CF_maxLength, value=facets.CF_maxLength._ValueDatatype(15))
 Password._InitializeFacetMap(Password._CF_minLength, Password._CF_maxLength)
 
-class AFew (datatypes.NMTOKENS):
+class AFew (datatypes._PST_list):
+    _ItemType = datatypes.integer
     pass
 AFew._CF_minLength =  facets.CF_minLength(super_facet=datatypes.string._CF_minLength, value=datatypes.nonNegativeInteger(2))
 AFew._CF_maxLength =  facets.CF_maxLength(super_facet=datatypes.string._CF_maxLength, value=facets.CF_maxLength._ValueDatatype(4))
@@ -86,9 +87,10 @@ class testLength (unittest.TestCase):
         self.assertRaises(BadTypeValueError, TLA, 'un')
 
     def testList (self):
-        self.assertRaises(BadTypeValueError, Hand, [1,2,3,4])
-        self.assertEqual(5, len(Hand([1,2,3,4,5])))
-        self.assertRaises(BadTypeValueError, Hand, [1,2,3,4,5,6])
+        t = datatypes.NMTOKEN('card')
+        self.assertRaises(BadTypeValueError, Hand, 4 * [t])
+        self.assertEqual(5, len(Hand(5 * [t])))
+        self.assertRaises(BadTypeValueError, Hand, 6 * [t])
 
 class testMinMaxLength (unittest.TestCase):
     def test (self):
@@ -98,12 +100,13 @@ class testMinMaxLength (unittest.TestCase):
         self.assertRaises(BadTypeValueError, Password, 16*'x')
         
     def testList (self):
+        i = datatypes.integer(2)
         self.assertRaises(BadTypeValueError, AFew, [])
-        self.assertRaises(BadTypeValueError, AFew, [1])
-        self.assertEqual(2, len(AFew([1,2])))
-        self.assertEqual(3, len(AFew([1,2,3])))
-        self.assertEqual(4, len(AFew([1,2,3,4])))
-        self.assertRaises(BadTypeValueError, AFew, [1,2,3,4,5])
+        self.assertRaises(BadTypeValueError, AFew, [i])
+        self.assertEqual(2, len(AFew(2 * [i])))
+        self.assertEqual(3, len(AFew(3 * [i])))
+        self.assertEqual(4, len(AFew(4 * [i])))
+        self.assertRaises(BadTypeValueError, AFew, 5 * [i])
 
 class testEnumeration (unittest.TestCase):
     def test (self):
