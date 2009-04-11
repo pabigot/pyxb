@@ -52,6 +52,12 @@ class Facet (object):
     def _ownerDatatype (self, owner_datatype):
         self.__ownerDatatype = owner_datatype
 
+    # The default valueDatatype to use for instances of this class.
+    # This is overridden in subclasses that do not use late value
+    # datatype bindings.
+    _ValueDatatype = None
+
+    # The datatype used for facet values.
     __valueDatatype = None
     def valueDatatype (self):
         """Get the datatype used to represent values of the facet.
@@ -106,7 +112,7 @@ class Facet (object):
         self.__baseTypeDefinition = kw.get('base_type_definition', None)
         self.__ownerTypeDefinition = kw.get('owner_type_definition', None)
         self.__ownerDatatype = kw.get('owner_datatype', None)
-        self.__valueDatatype = kw.get('value_datatype', None)
+        self.__valueDatatype = kw.get('value_datatype', self._ValueDatatype)
         # Verify that there's enough information that we should be
         # able to identify a PST suitable for representing facet
         # values.
@@ -322,8 +328,7 @@ class CF_length (ConstrainingFacet, _Fixed_mixin):
     See http://www.w3.org/TR/xmlschema-2/#rf-length
     """
     _Name = 'length'
-    def __init__ (self, **kw):
-        super(CF_length, self).__init__(value_datatype=datatypes.nonNegativeInteger, **kw)
+    _ValueDatatype = datatypes.nonNegativeInteger
 
     def _validateConstraint_vx (self, value):
         # @todo implement this
@@ -335,8 +340,7 @@ class CF_minLength (ConstrainingFacet, _Fixed_mixin):
     See http://www.w3.org/TR/xmlschema-2/#rf-minLength
     """
     _Name = 'minLength'
-    def __init__ (self, **kw):
-        super(CF_minLength, self).__init__(value_datatype=datatypes.nonNegativeInteger, **kw)
+    _ValueDatatype = datatypes.nonNegativeInteger
 
     def _validateConstraint_vx (self, value):
         # @todo implement this
@@ -348,8 +352,7 @@ class CF_maxLength (ConstrainingFacet, _Fixed_mixin):
     See http://www.w3.org/TR/xmlschema-2/#rf-minLength
     """
     _Name = 'maxLength'
-    def __init__ (self, **kw):
-        super(CF_maxLength, self).__init__(value_datatype=datatypes.nonNegativeInteger, **kw)
+    _ValueDatatype = datatypes.nonNegativeInteger
 
     def _validateConstraint_vx (self, value):
         # @todo implement this
@@ -377,12 +380,13 @@ class CF_pattern (ConstrainingFacet, _CollectionFacet_mixin):
     """
     _Name = 'pattern'
     _CollectionFacet_itemType = _PatternElement
+    _ValueDatatype = datatypes.string
 
     __patternElements = None
     def patternElements (self): return self.__patternElements
 
     def __init__ (self, **kw):
-        super(CF_pattern, self).__init__(value_datatype=datatypes.string, **kw)
+        super(CF_pattern, self).__init__(**kw)
         self.__patternElements = []
 
     def addPattern (self, **kw):
@@ -561,8 +565,7 @@ class CF_whiteSpace (ConstrainingFacet, _Fixed_mixin):
     See http://www.w3.org/TR/xmlschema-2/#rf-whiteSpace
     """
     _Name = 'whiteSpace'
-    def __init__ (self, **kw):
-        super(CF_whiteSpace, self).__init__(value_datatype=_WhiteSpace_enum, **kw)
+    _ValueDatatype = _WhiteSpace_enum
 
     def _validateConstraint_vx (self, value):
         """No validation rules for whitespace facet."""
@@ -619,8 +622,7 @@ class CF_totalDigits (ConstrainingFacet, _Fixed_mixin):
     See http://www.w3.org/TR/xmlschema-2/#rf-totalDigits
     """
     _Name = 'totalDigits'
-    def __init__ (self, **kw):
-        super(CF_totalDigits, self).__init__(value_datatype=datatypes.positiveInteger, **kw)
+    _ValueDatatype = datatypes.positiveInteger
 
     def _validateConstraint_vx (self, value):
         # @todo implement this
@@ -632,12 +634,11 @@ class CF_fractionDigits (ConstrainingFacet, _Fixed_mixin):
     See http://www.w3.org/TR/xmlschema-2/#rf-fractionDigits
     """
     _Name = 'fractionDigits'
-    def __init__ (self, **kw):
-        super(CF_fractionDigits, self).__init__(value_datatype=datatypes.nonNegativeInteger, **kw)
+    _ValueDatatype = datatypes.nonNegativeInteger
 
     def _validateConstraint_vx (self, value):
         # @todo implement this
-        return False
+        return True
 
 class FundamentalFacet (Facet):
     """A fundamental facet provides information on the value space of the associated type."""
@@ -685,9 +686,11 @@ class FF_ordered (FundamentalFacet):
 
     _LegalValues = ( 'false', 'partial', 'total' )
     _Name = 'ordered'
+    _ValueDatatype = datatypes.string
+
     def __init__ (self, **kw):
         # @todo correct value type definition
-        super(FF_ordered, self).__init__(value_datatype=datatypes.string, **kw)
+        super(FF_ordered, self).__init__(**kw)
 
 class FF_bounded (FundamentalFacet):
     """Specifies that the associated type supports a notion of bounds.
@@ -696,8 +699,7 @@ class FF_bounded (FundamentalFacet):
     """
 
     _Name = 'bounded'
-    def __init__ (self, **kw):
-        super(FF_bounded, self).__init__(value_datatype=datatypes.boolean, **kw)
+    _ValueDatatype = datatypes.boolean
 
 class FF_cardinality (FundamentalFacet):
     """Specifies that the associated type supports a notion of length.
@@ -707,6 +709,7 @@ class FF_cardinality (FundamentalFacet):
 
     _LegalValues = ( 'finite', 'countably infinite' )
     _Name = 'cardinality'
+    _ValueDatatype = datatypes.string
     def __init__ (self, **kw):
         # @todo correct value type definition
         super(FF_cardinality, self).__init__(value_datatype=datatypes.string, **kw)
@@ -718,5 +721,4 @@ class FF_numeric (FundamentalFacet):
     """
 
     _Name = 'numeric'
-    def __init__ (self, **kw):
-        super(FF_numeric, self).__init__(value_datatype=datatypes.boolean, **kw)
+    _ValueDatatype = datatypes.boolean
