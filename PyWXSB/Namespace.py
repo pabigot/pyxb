@@ -289,7 +289,8 @@ class Namespace (object):
                 else:
                     new_components.append(td)
             if components == new_components:
-                raise LogicError('Infinite loop in order calculation:\n  %s' % ("\n  ".join( [str(_c) for _c in components] ),))
+                #raise LogicError('Infinite loop in order calculation:\n  %s' % ("\n  ".join( [str(_c) for _c in components] ),))
+                raise LogicError('Infinite loop in order calculation:\n  %s' % ("\n  ".join( ['%s: %s' % (_c.name(),  ' '.join([ _dtd.name() for _dtd in _c.dependentComponents()])) for _c in components] ),))
             components = new_components
         return emit_order
 
