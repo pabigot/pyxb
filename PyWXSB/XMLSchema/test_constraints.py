@@ -13,11 +13,10 @@ import datatypes
 # 4.3.8 maxExclusive
 # 4.3.9 minExclusive
 # 4.3.10 minInclusive
-# NEED 4.3.11 totalDigits
-# NEED 4.3.12 fractionDigits
+# 4.3.11 totalDigits
+# 4.3.12 fractionDigits
 
 class TLA (datatypes.string):
-
     pass
 TLA._CF_length =  facets.CF_length(super_facet=datatypes.string._CF_length, value=datatypes.nonNegativeInteger(3))
 TLA._InitializeFacetMap(TLA._CF_length)
@@ -41,6 +40,12 @@ class ExclusiveFloat (datatypes.float):
 ExclusiveFloat._CF_minExclusive =  facets.CF_minExclusive(super_facet=datatypes.float._CF_minExclusive, value_datatype=datatypes.float, value=datatypes.float(-5))
 ExclusiveFloat._CF_maxExclusive =  facets.CF_maxExclusive(super_facet=datatypes.float._CF_maxExclusive, value_datatype=datatypes.float, value=datatypes.float(7))
 ExclusiveFloat._InitializeFacetMap(ExclusiveFloat._CF_minExclusive, ExclusiveFloat._CF_maxExclusive)
+
+class FixedPoint (datatypes.decimal):
+    pass
+FixedPoint._CF_totalDigits =  facets.CF_totalDigits(super_facet=datatypes.decimal._CF_totalDigits, value=facets.CF_totalDigits._ValueDatatype(5))
+FixedPoint._CF_fractionDigits =  facets.CF_fractionDigits(super_facet=datatypes.decimal._CF_maxExclusive, value=facets.CF_fractionDigits._ValueDatatype(2))
+FixedPoint._InitializeFacetMap(FixedPoint._CF_totalDigits, FixedPoint._CF_fractionDigits)
 
 class testMaxInclusive (unittest.TestCase):
     def test (self):
@@ -82,3 +87,38 @@ class testEnumeration (unittest.TestCase):
         self.assertEqual(Cardinals.three, Cardinals(u'three'))
         self.assertRaises(BadTypeValueError, Cardinals, 'One')
         self.assertRaises(BadTypeValueError, Cardinals, 'four')
+
+class testDigits (unittest.TestCase):
+    def testTotalDigits (self):
+        self.assertEqual(1, FixedPoint(1))
+        self.assertEqual(12, FixedPoint(12))
+        self.assertEqual(123, FixedPoint(123))
+        self.assertEqual(1234, FixedPoint(1234))
+        self.assertEqual(12345, FixedPoint(12345))
+        self.assertRaises(BadTypeValueError, FixedPoint, 123456)
+        self.assertRaises(BadTypeValueError, FixedPoint, 1234567)
+        self.assertEqual(-1, FixedPoint(-1))
+        self.assertEqual(-12, FixedPoint(-12))
+        self.assertEqual(-123, FixedPoint(-123))
+        self.assertEqual(-1234, FixedPoint(-1234))
+        self.assertEqual(-12345, FixedPoint(-12345))
+        self.assertRaises(BadTypeValueError, FixedPoint, -123456)
+        self.assertRaises(BadTypeValueError, FixedPoint, -1234567)
+
+    def testFractionDigits (self):
+        self.assertEqual(1, FixedPoint(1))
+        self.assertEqual(1.2, FixedPoint(1.2))
+        self.assertEqual(1.23, FixedPoint(1.23))
+        self.assertRaises(BadTypeValueError, FixedPoint, 1.234)
+        self.assertEqual(12, FixedPoint(12))
+        self.assertEqual(12.3, FixedPoint(12.3))
+        self.assertEqual(12.34, FixedPoint(12.34))
+        self.assertRaises(BadTypeValueError, FixedPoint, 12.345)
+        self.assertEqual(-1, FixedPoint(-1))
+        self.assertEqual(-1.2, FixedPoint(-1.2))
+        self.assertEqual(-1.23, FixedPoint(-1.23))
+        self.assertRaises(BadTypeValueError, FixedPoint, -1.234)
+        self.assertEqual(-12, FixedPoint(-12))
+        self.assertEqual(-12.3, FixedPoint(-12.3))
+        self.assertEqual(-12.34, FixedPoint(-12.34))
+        self.assertRaises(BadTypeValueError, FixedPoint, -12.345)

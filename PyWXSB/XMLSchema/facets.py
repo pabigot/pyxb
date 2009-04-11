@@ -625,8 +625,23 @@ class CF_totalDigits (ConstrainingFacet, _Fixed_mixin):
     _ValueDatatype = datatypes.positiveInteger
 
     def _validateConstraint_vx (self, value, value_string):
-        # @todo implement this
-        return False
+        if self.value() is None:
+            return True
+        n = 0
+        scale = 1
+        match = False
+        v = None
+        while (n <= self.value()) and (not match):
+            v = long(value * scale)
+            match = ((value * scale) == v)
+            if self.value() == n:
+                break
+            n += 1
+            scale *= 10
+        while n < self.value():
+            n += 1
+            scale *= 10
+        return match and (v is not None) and (abs(v) < scale)
 
 class CF_fractionDigits (ConstrainingFacet, _Fixed_mixin):
     """Specify the number of sub-unit digits in the *value* space of the type.
@@ -637,8 +652,16 @@ class CF_fractionDigits (ConstrainingFacet, _Fixed_mixin):
     _ValueDatatype = datatypes.nonNegativeInteger
 
     def _validateConstraint_vx (self, value, value_string):
-        # @todo implement this
-        return True
+        if self.value() is None:
+            return True
+        n = 0
+        scale = 1
+        while n <= self.value():
+            if ((value * scale) == long(value * scale)):
+                return True
+            n += 1
+            scale *= 10
+        return False
 
 class FundamentalFacet (Facet):
     """A fundamental facet provides information on the value space of the associated type."""
