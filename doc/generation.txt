@@ -85,21 +85,23 @@ built-in to PyWXSB.  The structure of a primitive STDs depends on its
 variety.
 
 Any facets defined for the given STD are created as class variables using a
-name template [option].  The STD also contains a class variable _Facets
-incorporating a list of all facets that affect it; some of these may be in
-the STD, and some in superclasses.
-
-class _Facet:
-  name = a string
-  valueType = a reference to an STD in the XMLSchema datatypes
-  fixed = a boolean, or None
-  ownerClass = a reference to the STD in which the facet instance is defined
+name template [option].  The STD also contains a private class variable
+__FacetMap which maps from facet classes to instances of that class.  A type
+has an entry in the map for a facet class only if the facet is legal to
+apply to that type.  Maps for subclasses are copies of the superclass map,
+with additional constraints overwriting the parent ones.
 
 Enumeration facets will add class variables corresponding to each
-enumeration value.  [option] The prefix for the class variable corresponding
-to an enumeration may be configured at code-generation time.  [option]
-Enumeration values may also be made visible in the namespace.  Both these
-options are configurable at the namespace and named STD levels.
+enumeration value.  [option] If a prefix is associated with the enumeration,
+the enumeration value will also be promoted to the module (namespace) level,
+using the prefix.  Both these options are configurable at the namespace and
+named STD levels.
+
+The constructor for an STD will check the resulting value against the
+constraints that apply to that STD.  THis may be inconvenient in some cases;
+for example, a subtype of NMTOKENS that requires a length of 5 must be
+created with an iterable holding five elements; it cannot be built up
+piece-by-piece.
 
 Atomic STDs
 ~~~~~~~~~~~
@@ -111,21 +113,27 @@ primitive type.
 List STDs
 ~~~~~~~~~
 
-A list STD inherits from Python's list type.  The class associated with the
-item type is stored in a class variable _ItemType.
+A list STD inherits from the datatypes._PST_list class, which combines
+_PST_mixin with Python's list type and adds other stuff.  The class
+associated with the item type is stored in a class variable _ItemType.
+
+A BadTypeValue is raised when a list STD's constraints are checked and a
+member of the list is not an instance of the _ItemType.
 
 Union STDs
 ~~~~~~~~~~
 
 A union STD does not have data associated with it; rather, it is a class
 used to disambiguate the desired member type upon creation from an XML
-string.  The class includes a variable _MemberTypes which is a list of
-non-union STD classes, in the order defined by the schema.  Union STDs do
-not inherit from _STD_mixin; instead they inherit from _Union_mixin.
+string.  It inherits from _PST_union only.  Subclasses must include a
+variable _MemberTypes which is a tuple of non-union STD classes, in the
+order defined by the schema.
 
-The class includes a public XsdFromString class method which converts a
-string into the appropriate instance of a member type, by attempting to
-create a validated member instance of each member type in turn.
+The class includes a public Factory class method which converts a string
+into the appropriate instance of a member type, by attempting to create a
+validated member instance of each member type in turn.
+
+@todo Unions can be constrained by pattern or enumeration facets.
 
 Enumerations
 ~~~~~~~~~~~~
@@ -138,7 +146,9 @@ values and the enumeration constant values.
 
 The _CF_enumeration variable is an instance of the facets.CF_enumeration
 class.  Each class maintains a set of facets._EnumerationElement instances
-which record enumeration values 
+which record enumeration values.  Note that because the instance includes a
+reference to the class that owns the facet, the definition of the instance
+has to follow the class proper.
 
 Complex Type Definitions
 ------------------------
@@ -274,8 +284,17 @@ content property is violated.
 Order of Generation
 ===================
 
-* SimpleTypeDefinitions
-* AttributeGroups
+* Annotation, IdentityConstraintDefinition, NotationDeclaration, and
+  Wildcard all have no dependencies
+* SimpleTypeDefinition
+* AttributeDeclaration depends on SimpleTypeDefinition
+* AttributeUse depends on AttributeDeclaration
+* AttributeGroupDefinition depends on AttributeUse
+* ComplexTypeDefinition depends on SimpleTypeDefinition and AttributeUse
+* ElementDeclaration depends on {Simple,Complex}TypeDefinition
+* ModelGroup depends on ElementDeclaration and Wildcard
+* ModelGroupDefinition depends on ModelGorup
+* Particle depends on ModelGroup, Wildcard, ElementDeclaration
 
 
 Customization Points
