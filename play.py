@@ -261,13 +261,13 @@ class %s (%s):
 ''' % (pythonLiteral(std), ', '.join(parent_classes)))
     elif xs.structures.SimpleTypeDefinition.VARIETY_list == std.variety():
         outf.write('''
-class %s (list):
+class %s (datatypes._PST_list):
     # Type for items in the list
     _ItemType = %s
-''' % pythonLiteral( (std, std.baseTypeDefinition()) ))
+''' % pythonLiteral( (std, std.itemTypeDefinition()) ))
     elif xs.structures.SimpleTypeDefinition.VARIETY_union == std.variety():
         outf.write('''
-class %s: # (_Union_mixin):
+class %s (datatypes._PST_union):
     # Types of potential union members
     _MemberTypes = ( %s )
 ''' % ( pythonLiteral(std), ", ".join( [ pythonLiteral(_mt) for _mt in std.memberTypeDefinitions() ])))
