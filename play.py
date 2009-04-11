@@ -1,5 +1,5 @@
 import PyWXSB.XMLSchema as xs
-import cStringIO as StringIO
+import StringIO
 print xs.datatypes
 
 from PyWXSB.exceptions_ import *
@@ -80,11 +80,17 @@ class ReferenceClass (ReferenceLiteral):
         cls.__AnonymousIndex += 1
         return rv
 
+    __GEN_Attr = '_ReferenceClass_asLiteral'
     def asLiteral (self, **kw):
-        name = self.__namedComponent.ncName()
-        if name is None:
-            name = 'ANON%d' % (self._NextAnonymousIndex(),)
-        return '_STD_%s' % (name,)
+        rv = getattr(self.__namedComponent, self.__GEN_Attr, None)
+        if rv is None:
+            name = self.__namedComponent.ncName()
+            if name is None:
+                name = '_Class_ANON%d' % (self._NextAnonymousIndex(),)
+            #rv = '_STD_%s' % (name,)
+            rv = name
+            setattr(self.__namedComponent, self.__GEN_Attr, rv)
+        return PrefixNamespace(self.__namedComponent.targetNamespace(), rv)
 
 class ReferenceFacet (ReferenceLiteral):
 
@@ -180,11 +186,15 @@ def pythonLiteral (value):
         return pythonLiteral(value.value())
 
     if isinstance(value, (xs.structures.SimpleTypeDefinition, xs.structures.ComplexTypeDefinition) ):
-        return PrefixNamespace(value.targetNamespace(), value.ncName())
+        #return PrefixNamespace(value.targetNamespace(), value.ncName())
+        return pythonLiteral(ReferenceClass(named_component=value))
 
     # Other special cases
     if isinstance(value, ReferenceLiteral):
         return value.asLiteral()
+
+    if value is None:
+        return 'None'
 
     raise Exception('Unexpected literal type %s' % (type(value),))
     print 'Unexpected literal type %s' % (type(value),)
@@ -192,7 +202,10 @@ def pythonLiteral (value):
 
 
 def GenerateFacets (outf, td):
+    facet_instances = []
     for (fc, fi) in td.facets().items():
+        #if (fi is None) or (fi.ownerTypeDefinition() != td):
+        #    continue
         if (fi is None) and (fc in td.baseTypeDefinition().facets()):
             # Nothing new here
             continue
@@ -215,21 +228,56 @@ def GenerateFacets (outf, td):
                 argset['enum_prefix'] = fi.enumPrefix()
         facet_var = ReferenceFacetMember(type_definition=td, facet_class=fc)
         outf.write("%s = %s(%s)\n" % pythonLiteral( (facet_var, fc, argset )))
+        facet_instances.append(pythonLiteral(facet_var))
         if (fi is not None) and is_collection:
             for i in fi.items():
                 if isinstance(i, xs.facets._EnumerationElement):
                     enum_member = ReferenceEnumerationMember(type_definition=td, facet_instance=fi, enumeration_element=i)
-                    outf.write("%s = %s.addKeyword(unicode_value=%s)\n" % pythonLiteral( (enum_member, facet_var, i.unicodeValue() )))
+                    outf.write("%s = %s.addEnumeration(unicode_value=%s)\n" % pythonLiteral( (enum_member, facet_var, i.unicodeValue() )))
+                    if fi.enumPrefix() is not None:
+                        outf.write("%s_%s = %s\n" % (fi.enumPrefix(), i.tag(), pythonLiteral(enum_member)))
                 if isinstance(i, xs.facets._PatternElement):
                     outf.write("%s.addPattern(pattern=%s)\n" % pythonLiteral( (facet_var, i.pattern )))
+    if 2 <= len(facet_instances):
+        map_args = ",\n   ".join(facet_instances)
+    else:
+        map_args = ','.join(facet_instances)
+    outf.write("%s._InitializeFacetMap(%s)\n" % (pythonLiteral(td), map_args))
 
 def GenerateSTD (std):
     outf = StringIO.StringIO()
-    outf.write('''
+    parent_classes = [ pythonLiteral(std.baseTypeDefinition()) ]
+    enum_facet = std.facets().get(xs.facets.CF_enumeration, None)
+    if (enum_facet is not None) and (enum_facet.ownerTypeDefinition() == std):
+        parent_classes.append('facets._Enumeration_mixin')
+        
+    if xs.structures.SimpleTypeDefinition.VARIETY_absent == std.variety():
+        assert False
+        pass
+    elif xs.structures.SimpleTypeDefinition.VARIETY_atomic == std.variety():
+        outf.write('''
 class %s (%s):
     pass
+''' % (pythonLiteral(std), ', '.join(parent_classes)))
+    elif xs.structures.SimpleTypeDefinition.VARIETY_list == std.variety():
+        outf.write('''
+class %s (list):
+    # Type for items in the list
+    _ItemType = %s
 ''' % pythonLiteral( (std, std.baseTypeDefinition()) ))
-    GenerateFacets(outf, std)
+    elif xs.structures.SimpleTypeDefinition.VARIETY_union == std.variety():
+        outf.write('''
+class %s: # (_Union_mixin):
+    # Types of potential union members
+    _MemberTypes = ( %s )
+''' % ( pythonLiteral(std), ", ".join( [ pythonLiteral(_mt) for _mt in std.memberTypeDefinitions() ])))
+    if False:
+        # If generating datatype_facets, throw away the class garbage
+        outf = StringIO.StringIO()
+        if std.isBuiltin():
+            GenerateFacets(outf, std)
+    else:
+        GenerateFacets(outf, std)
     return outf.getvalue()
 
 def GenerateCTD (ctd):
@@ -237,7 +285,7 @@ def GenerateCTD (ctd):
 
 GeneratorMap = {
     xs.structures.SimpleTypeDefinition : GenerateSTD
-  , xs.structures.ComplexTypeDefinition : GenerateCTD
+#  , xs.structures.ComplexTypeDefinition : GenerateCTD
 }
 
 files = sys.argv[1:]
@@ -252,7 +300,7 @@ try:
     type_defs = TargetNamespace.typeDefinitions()
     emit_order = wxs.orderedComponents()
 
-    outf = file('gen.py', 'w')
+    #outf = file('gen.py', 'w')
     outf = StringIO.StringIO()
 
     import_prefix = 'PyWXSB.XMLSchema.'
@@ -270,7 +318,8 @@ import %sdatatypes as datatypes
             continue
         outf.write(generator(td))
 
-    print outf.getvalue()
+    if isinstance(outf, StringIO.StringIO):
+        print outf.getvalue()
 
 except Exception, e:
     sys.stderr.write("%s processing %s:\n" % (e.__class__, file))
