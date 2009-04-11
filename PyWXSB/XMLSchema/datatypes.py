@@ -191,10 +191,17 @@ class _PST_mixin (object):
 
         Throws BadTypeValueError if any constraint is violated.
         """
-        # If we're still setting up, let things go
-        if value._GetConstrainingFacets is None:
+        facet_values = None
+
+        # When setting up the datatypes, if we attempt to validate
+        # something before the facets have been initialized (e.g., a
+        # nonNegativeInteger used as a length facet for the parent
+        # integer datatype), just ignore that.
+        try:
+            facet_values = value._FacetMap().values()
+        except AttributeError:
             return value
-        for f in value._GetConstrainingFacets():
+        for f in facet_values:
             if not f.validateConstraint(value):
                 raise BadTypeValueError('%s violation for %s in %s' % (f.Name(), value, cls.__name__))
             #print '%s ok for %s' % (f.Name(), value)
