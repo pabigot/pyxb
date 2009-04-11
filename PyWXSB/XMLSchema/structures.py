@@ -84,6 +84,16 @@ class _SchemaComponent_mixin (object):
         Implement in subclasses."""
         raise LogicError('%s does not implement _dependentComponents_vx' % (self.__class__,))
 
+    def isTypeDefinition (self):
+        """Return True iff this component is a simple or complex type
+        definition."""
+        return isinstance(self, (SimpleTypeDefinition, ComplexTypeDefinition))
+
+    def isUrTypeDefinition (self):
+        """Return True iff this component is a simple or complex type
+        definition."""
+        return isinstance(self, (_SimpleUrTypeDefinition, _UrTypeDefinition))
+
 
 class _Singleton_mixin (object):
     """This class is a mix-in which guarantees that only one instance
