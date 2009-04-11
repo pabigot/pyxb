@@ -275,6 +275,11 @@ class _PST_union (_PST_mixin):
     Subclasses must provide a class variable _MemberTypes which is a
     tuple of legal members of the union."""
 
+    # Ick: If we don't declare this here, this class's map doesn't get
+    # initialized.  Alternative is to not descend from _PST_mixin.
+    # @todo Ensure that pattern and enumeration are valid constraints
+    __FacetMap = {}
+
     @classmethod
     def Factory (cls, value):
         """Given a value, attempt to create an instance of some member
@@ -320,10 +325,20 @@ class _PST_list (_PST_mixin, types.ListType):
     __FacetMap = {}
 
     @classmethod
+    def ValidateItem (cls, value):
+        """Verify that the given value is permitted as an item of this list."""
+        if issubclass(cls._ItemType, _PST_union):
+            cls._ItemType.ValidateMember(value)
+        else:
+            if not isinstance(value, cls._ItemType):
+                raise BadTypeValueError('Type %s has member of type %s, must be %s' % (cls.__name__, type(value).__name__, cls._ItemType.__name__))
+        return value
+
+    @classmethod
     def _XsdConstraintsPreCheck_vb (cls, value):
+        """Verify that the items in the list are acceptable members."""
         for v in value:
-            if not isinstance(v, cls._ItemType):
-                raise BadTypeValueError('Type %s has member of type %s, must be %s' % (cls.__name__, type(v).__name__, cls._ItemType.__name__))
+            cls.ValidateItem(v)
         super_fn = getattr(super(_PST_list, cls), '_XsdConstraintsPreCheck_vb', lambda *a,**kw: True)
         return super_fn(value)
 
