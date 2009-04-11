@@ -332,7 +332,7 @@ class CF_length (ConstrainingFacet, _Fixed_mixin):
 
     def _validateConstraint_vx (self, value, value_string):
         value_length = value.xsdValueLength()
-        return (value_length is None) or (value_length == self.value())
+        return (value_length is None) or (self.value() is None) or (value_length == self.value())
 
 class CF_minLength (ConstrainingFacet, _Fixed_mixin):
     """A facet that constrains the length of the lexical representation of a value.
@@ -344,7 +344,7 @@ class CF_minLength (ConstrainingFacet, _Fixed_mixin):
 
     def _validateConstraint_vx (self, value, value_string):
         value_length = value.xsdValueLength()
-        return (value_length is None) or (value_length >= self.value())
+        return (value_length is None) or (self.value() is None) or (value_length >= self.value())
 
 class CF_maxLength (ConstrainingFacet, _Fixed_mixin):
     """A facet that constrains the length of the lexical representation of a value.
@@ -356,7 +356,7 @@ class CF_maxLength (ConstrainingFacet, _Fixed_mixin):
 
     def _validateConstraint_vx (self, value, value_string):
         value_length = value.xsdValueLength()
-        return (value_length is None) or (value_length <= self.value())
+        return (value_length is None) or (self.value() is None) or (value_length <= self.value())
 
 class _PatternElement:
     """This class represents individual patterns that appear within a CF_pattern collection."""
