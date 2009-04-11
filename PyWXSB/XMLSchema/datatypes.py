@@ -40,10 +40,30 @@ _ListDatatypes = []
 # how to deal with that yet.
 
 class _PST_mixin (object):
+    """_PST_mixin is a base mix-in class that is part of the hierarchy
+    of any class that represents the Python datatype for a
+    SimpleTypeDefinition.
+
+    Note: This class, or a descendent of it, must be the first class
+    in the method resolution order when a subclass has multiple
+    parents.  Otherwise, constructor keyword arguments may not be
+    removed before passing them on to Python classes that do not
+    accept them.
+    """
+
+    # Must override new, because new gets invoked before init, and
+    # usually doesn't accept keywords.  In case it does, only remove
+    # the ones that are interpreted by this class.
+    def __new__ (cls, *args, **kw):
+        kw.pop('validate_constraints', None)
+        return super(_PST_mixin, cls).__new__(cls, *args, **kw)
+
     # Validate the constraints after invoking the parent constructor.
     def __init__ (self, *args, **kw):
+        validate_constraints = kw.pop('validate_constraints', True)
         super(_PST_mixin, self).__init__(*args, **kw)
-        self.xsdConstraintsOK()
+        if validate_constraints:
+            self.xsdConstraintsOK()
 
     # This is a placeholder for a class method that will retrieve the
     # set of facets associated with the class.  We can't define it
@@ -158,7 +178,7 @@ class _Enumeration_mixin:
 # We use unicode as the Python type for anything that isn't a normal
 # primitive type.  Presumably, only enumeration and pattern facets
 # will be applied.
-class anySimpleType (unicode, _PST_mixin):
+class anySimpleType (_PST_mixin, unicode):
     """http://www.w3.org/TR/xmlschema-2/#dt-anySimpleType"""
     _XsdBaseType = None
     _Namespace = Namespace.XMLSchema
@@ -169,7 +189,7 @@ class anySimpleType (unicode, _PST_mixin):
 # anySimpleType is not treated as a primitive, because its variety
 # must be absent (not atomic).
     
-class string (unicode, _PST_mixin):
+class string (_PST_mixin, unicode):
     """string.
     
     http://www.w3.org/TR/xmlschema-2/#string"""
@@ -184,7 +204,7 @@ _PrimitiveDatatypes.append(string)
 
 # It is illegal to subclass the bool type in Python, so we subclass
 # int instead.
-class boolean (int, _PST_mixin):
+class boolean (_PST_mixin, int):
     """boolean.
 
     http://www.w3.org/TR/xmlschema-2/#boolean"""
@@ -217,7 +237,7 @@ class boolean (int, _PST_mixin):
 
 _PrimitiveDatatypes.append(boolean)
 
-class decimal (types.FloatType, _PST_mixin):
+class decimal (_PST_mixin, types.FloatType):
     """decimal.
     
     http://www.w3.org/TR/xmlschema-2/#decimal
@@ -235,7 +255,7 @@ class decimal (types.FloatType, _PST_mixin):
 
 _PrimitiveDatatypes.append(decimal)
 
-class float (types.FloatType, _PST_mixin):
+class float (_PST_mixin, types.FloatType):
     """float.
 
     http://www.w3.org/TR/xmlschema-2/#float"""
@@ -248,7 +268,7 @@ class float (types.FloatType, _PST_mixin):
 
 _PrimitiveDatatypes.append(float)
 
-class double (types.FloatType, _PST_mixin):
+class double (_PST_mixin, types.FloatType):
     _XsdBaseType = anySimpleType
     _Namespace = Namespace.XMLSchema
 
@@ -303,7 +323,7 @@ class gMonth (_PST_mixin):
     _Namespace = Namespace.XMLSchema
 _PrimitiveDatatypes.append(gMonth)
 
-class hexBinary (types.LongType, _PST_mixin):
+class hexBinary (_PST_mixin, types.LongType):
     _XsdBaseType = anySimpleType
     _Namespace = Namespace.XMLSchema
     def __new__ (cls, value, *args, **kw):
@@ -386,7 +406,7 @@ class ENTITIES (types.ListType, _List_mixin):
     _ItemType = ENTITY
 _ListDatatypes.append(ENTITIES)
 
-class integer (long, _PST_mixin):
+class integer (_PST_mixin, long):
     """integer.
 
     http://www.w3.org/TR/xmlschema-2/#integer"""
@@ -411,7 +431,7 @@ class long (integer):
     MaximumValue = 9223372036854775807
 _DerivedDatatypes.append(long)
 
-class int (types.IntType, _PST_mixin):
+class int (_PST_mixin, types.IntType):
     _XsdBaseType = long
     _Namespace = Namespace.XMLSchema
 

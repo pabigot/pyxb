@@ -286,10 +286,8 @@ class _CollectionFacet_mixin (object):
     of the collection.
     """
 
-    __inhibitValidation = False
     def __init__ (self, *args, **kw):
         super(_CollectionFacet_mixin, self).__init__(*args, **kw)
-        self.__inhibitValidation = False
 
     __items = None
     def _setFromKeywords_vb (self, **kw):
@@ -304,17 +302,9 @@ class _CollectionFacet_mixin (object):
             self.__items = []
         if not kw.get('_constructor', False):
             #print self._CollectionFacet_itemType
-            old_inhibit = self._inhibitValidation(True)
             self.__items.append(self._CollectionFacet_itemType(facet_instance=self, **kw))
-            self._inhibitValidation(old_inhibit)
         super_fn = getattr(super(_CollectionFacet_mixin, self), '_setFromKeywords_vb', lambda *a,**kw: self)
         return super_fn(**kw)
-
-    def _inhibitValidation (self, value=None):
-        rv = self.__inhibitValidation
-        if value is not None:
-            self.__inhibitValidation = value
-        return rv
 
     def items (self):
         """The members of the collection."""
@@ -450,7 +440,7 @@ class _EnumerationElement:
 
         self.__tag = utility.MakeIdentifier(self.unicodeValue())
 
-        self.__value = self.enumeration().valueDatatype()(self.unicodeValue())
+        self.__value = self.enumeration().valueDatatype()(self.unicodeValue(), validate_constraints=False)
 
         if (self.__description is None) and (self.__annotation is not None):
             self.__description = str(self.__annotation)
@@ -509,9 +499,7 @@ class CF_enumeration (ConstrainingFacet, _CollectionFacet_mixin, _LateDatatype_m
 
     def addEnumeration (self, **kw):
         kw['enumeration'] = self
-        old_inhibit = self._inhibitValidation(True)
         ee = _EnumerationElement(**kw)
-        self._inhibitValidation(old_inhibit)
         if ee.tag in self.__tagToElement:
             raise IncompleteImplementationError('Duplicate enumeration tags')
         self.__tagToElement[ee.tag()] = ee
@@ -539,7 +527,7 @@ class CF_enumeration (ConstrainingFacet, _CollectionFacet_mixin, _LateDatatype_m
     def _validateConstraint_vx (self, value):
         # If validation is inhibited, or if the facet hasn't had any
         # restrictions applied yet, return True.
-        if self._inhibitValidation() or (0 == len(self.__elements)):
+        if 0 == len(self.__elements):
             return True
         for ee in self.__elements:
             if ee.value() == value:
