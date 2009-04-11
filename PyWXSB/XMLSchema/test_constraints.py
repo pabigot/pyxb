@@ -27,6 +27,17 @@ Password._CF_minLength =  facets.CF_minLength(super_facet=datatypes.string._CF_m
 Password._CF_maxLength =  facets.CF_maxLength(super_facet=datatypes.string._CF_maxLength, value=facets.CF_maxLength._ValueDatatype(15))
 Password._InitializeFacetMap(Password._CF_minLength, Password._CF_maxLength)
 
+class AFew (datatypes.NMTOKENS):
+    pass
+AFew._CF_minLength =  facets.CF_minLength(super_facet=datatypes.string._CF_minLength, value=datatypes.nonNegativeInteger(2))
+AFew._CF_maxLength =  facets.CF_maxLength(super_facet=datatypes.string._CF_maxLength, value=facets.CF_maxLength._ValueDatatype(4))
+AFew._InitializeFacetMap(AFew._CF_minLength, AFew._CF_maxLength)
+
+class Hand (datatypes.NMTOKENS):
+    pass
+Hand._CF_length =  facets.CF_length(super_facet=datatypes.string._CF_length, value=datatypes.nonNegativeInteger(5))
+Hand._InitializeFacetMap(Hand._CF_length)
+
 class Cardinals (datatypes.string, facets._Enumeration_mixin):
     pass
 Cardinals._CF_enumeration = facets.CF_enumeration(value_datatype=Cardinals, super_facet=datatypes.string._CF_enumeration, enum_prefix=None)
@@ -46,6 +57,8 @@ class FixedPoint (datatypes.decimal):
 FixedPoint._CF_totalDigits =  facets.CF_totalDigits(super_facet=datatypes.decimal._CF_totalDigits, value=facets.CF_totalDigits._ValueDatatype(5))
 FixedPoint._CF_fractionDigits =  facets.CF_fractionDigits(super_facet=datatypes.decimal._CF_maxExclusive, value=facets.CF_fractionDigits._ValueDatatype(2))
 FixedPoint._InitializeFacetMap(FixedPoint._CF_totalDigits, FixedPoint._CF_fractionDigits)
+
+
 
 class testMaxInclusive (unittest.TestCase):
     def test (self):
@@ -72,6 +85,11 @@ class testLength (unittest.TestCase):
         self.assertRaises(BadTypeValueError, TLA, 'three')
         self.assertRaises(BadTypeValueError, TLA, 'un')
 
+    def testList (self):
+        self.assertRaises(BadTypeValueError, Hand, [1,2,3,4])
+        self.assertEqual(5, len(Hand([1,2,3,4,5])))
+        self.assertRaises(BadTypeValueError, Hand, [1,2,3,4,5,6])
+
 class testMinMaxLength (unittest.TestCase):
     def test (self):
         self.assertRaises(BadTypeValueError, Password, 7*'x')
@@ -79,6 +97,14 @@ class testMinMaxLength (unittest.TestCase):
         self.assertEqual(15 * 'x', Password(15*'x'))
         self.assertRaises(BadTypeValueError, Password, 16*'x')
         
+    def testList (self):
+        self.assertRaises(BadTypeValueError, AFew, [])
+        self.assertRaises(BadTypeValueError, AFew, [1])
+        self.assertEqual(2, len(AFew([1,2])))
+        self.assertEqual(3, len(AFew([1,2,3])))
+        self.assertEqual(4, len(AFew([1,2,3,4])))
+        self.assertRaises(BadTypeValueError, AFew, [1,2,3,4,5])
+
 class testEnumeration (unittest.TestCase):
     def test (self):
         self.assertEqual(Cardinals.one, Cardinals('one'))

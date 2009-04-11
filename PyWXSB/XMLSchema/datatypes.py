@@ -229,11 +229,9 @@ class _PST_mixin (object):
         calculations.
         """
         assert isinstance(value, cls)
+        if not hasattr(cls, '_XsdValueLength_vx'):
+            raise LogicError('Class %s does not support length validation' % (cls.__name__,))
         return cls._XsdValueLength_vx(value)
-
-    @classmethod
-    def _XsdValueLength_vx (cls, value):
-        raise LogicError('Class %s does not support length validation' % (cls.__name__,))
 
     def xsdValueLength (self):
         """Return the length of this instance within its value space.
@@ -260,7 +258,7 @@ class _List_mixin:
     """Marker to indicate that the datatype is a collection."""
 
     @classmethod
-    def XsdValueLength (cls, value):
+    def _XsdValueLength_vx (cls, value):
         return len(value)
 
 class _Enumeration_mixin:
