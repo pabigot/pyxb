@@ -263,6 +263,50 @@ class _PST_mixin (object):
         class_name = self.__class__.__name__
         return '%s(%s)' % (class_name, super(_PST_mixin, self).__str__())
 
+class _PST_union (_PST_mixin):
+    """Base class for union datatypes.
+
+    This class descends only from _PST_mixin.  A LogicError is raised
+    if an attempt is made to construct an instance of a subclass of
+    _PST_union.  Values consistent with the member types are
+    constructed using the Factory class method.  Values are validated
+    using the ValidateMember class method.
+
+    Subclasses must provide a class variable _MemberTypes which is a
+    tuple of legal members of the union."""
+
+    @classmethod
+    def Factory (cls, value):
+        """Given a value, attempt to create an instance of some member
+        of this union.
+
+        The first instance which can be legally created is returned.
+        If no member type instance can be created from the given
+        value, a BadTypeValueError is raised."""
+        for mt in cls._MemberTypes:
+            try:
+                return mt(value)
+            except BadTypeValueError:
+                pass
+            except ValueError:
+                pass
+            except:
+                pass
+        raise BadTypeValueError('%s cannot construct union member from value %s' % (cls.__name__, value))
+
+    @classmethod
+    def ValidateMember (cls, value):
+        """Validate the given value as a potential union member.
+
+        Raises BadTypeValueError if the value is not an instance of a
+        member type."""
+        if not isinstance(value, cls._MemberTypes):
+            raise BadTypeValueError('%s cannot hold a member of type %s' % (cls.__name__, value.__class__.__name__))
+        return value
+
+    def __init__ (self, *args, **kw):
+        raise LogicError('%s: cannot construct instances of union' % (self.__class__.__name__,))
+
 class _PST_list (_PST_mixin, types.ListType):
     """Base class for collection datatypes.
 
