@@ -40,7 +40,15 @@ _ListDatatypes = []
 # how to deal with that yet.
 
 class _PST_mixin (object):
-    _Facets = []
+    # Validate the constraints after invoking the parent constructor.
+    def __init__ (self, *args, **kw):
+        super(_PST_mixin, self).__init__(*args, **kw)
+        self.xsdConstraintsOK()
+
+    # This is a placeholder for a class method that will retrieve the
+    # set of facets associated with the class.  We can't define it
+    # here because the facets module has a dependency on this module.
+    _GetConstrainingFacets = None
 
     # The class attribute name used to store the reference to the STD
     # instance must be unique to the class, not to this base class.
@@ -69,10 +77,11 @@ class _PST_mixin (object):
 
     @classmethod
     def XsdLiteral (cls, value):
+        """Convert from a python value to a quoted string usable in a schema."""
         raise LogicError('%s does not implement XsdLiteral' % (cls,))
 
     def xsdLiteral (self):
-        return self.__class__.XsdLiteral(self)
+        return self.XsdLiteral(self)
 
     @classmethod
     def XsdSuperType (cls):
@@ -94,6 +103,9 @@ class _PST_mixin (object):
 
     @classmethod
     def XsdPythonType (cls):
+        """Find the first parent class that isn't part of the
+        PST_mixin hierarchy.  This is expected to be the Python value
+        class."""
         for sc in cls.mro():
             if sc == object:
                 continue
@@ -102,23 +114,30 @@ class _PST_mixin (object):
         raise LogicError('No python type found for %s' % (cls,))
 
     @classmethod
-    def XsdLength (cls, value):
-        return len(cls.XsdToString(value))
+    def XsdConstraintsOK (cls, value):
+        """Validate the given value against the constraints on this class.
 
-    def xsdLength (self):
-        return self.__class__.XsdLength(self)
+        Throws BadTypeValueError if any constraint is violated.
+        """
+        # If we're still setting up, let things go
+        if value._GetConstrainingFacets is None:
+            return value
+        for f in value._GetConstrainingFacets():
+            if not f.validateConstraint(value):
+                raise BadTypeValueError('%s violation for %s in %s' % (f.Name(), value, cls.__name__))
+            #print '%s ok for %s' % (f.Name(), value)
+        return value
 
-    @classmethod
-    def XsdConstraintsOK (self, string_value, value):
-        # @todo implement this
-        pass
+    def xsdConstraintsOK (self):
+        return self.XsdConstraintsOK(self)
 
     @classmethod
     def XsdToString (cls, value):
-        return str(value)
+        """Convert the python native value into a string suitable for use in a schema."""
+        return unicode(str(value))
 
     def xsdToString (cls):
-        return self.__class__.XsdToString(self)
+        return self.XsdToString(self)
 
     @classmethod
     def XsdFromString (cls, string_value):
@@ -130,6 +149,10 @@ class _PST_mixin (object):
 
 class _List_mixin (_PST_mixin):
     """Marker to indicate that the datatype is a collection."""
+    pass
+
+class _Enumeration_mixin:
+    """Marker to indicate that the datatype is an enumeration."""
     pass
 
 # We use unicode as the Python type for anything that isn't a normal

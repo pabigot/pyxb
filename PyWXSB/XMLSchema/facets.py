@@ -135,9 +135,9 @@ class Facet (object):
             return ','.join([ str(_i) for _i in self.items() ])
         if self.valueDatatype() is not None:
             try:
-                self.valueDatatype().XsdToString(self.value())
+                return self.valueDatatype().XsdToString(self.value())
             except Exception, e:
-                print 'Stringize face %s produced %s' % (self.Name(), e)
+                print 'Stringize facet %s produced %s' % (self.Name(), e)
                 raise
         return str(self.value())
     
@@ -157,8 +157,10 @@ class ConstrainingFacet (Facet):
                 'whiteSpace', 'maxInclusive', 'maxExclusive',
                 'minExclusive', 'minInclusive', 'totalDigits', 'fractionDigits' ]
 
-    # The prefix used when generating a Python class member that
-    # represents a constraining facet.
+    # The prefix used for Python classes used for a constraining
+    # facet.  Note that this is not the prefix used when generating a
+    # Python class member that specifies a constraining instance, even
+    # if it happens to be the same digraph.
     _FacetPrefix = 'CF'
     
     __superFacet = None
@@ -176,13 +178,14 @@ class ConstrainingFacet (Facet):
         super(ConstrainingFacet, self).__init__(**kw)
         self.__superFacet = kw.get('super_facet', None)
 
-    def _validateConstraint_ov (self, string_value, value):
-        pass
+    def _validateConstraint_vx (self, value):
+        raise LogicError("Facet %s does not implement constraints" % (self.Name(),))
 
-    def validateConstraint (self, string_value, value):
-        if self.superFacet() is not None:
-            self.superFacet().validateConstraint(string_value, value)
-        self._validateConstraint_ov(string_value, value)
+    def validateConstraint (self, value):
+        """Return True iff the given value satisfies the constraint represented by this facet instance.
+
+        The actual test is delegated to the subclasses."""
+        return self._validateConstraint_vx(value)
 
     def __setFromKeywords(self, **kw):
         kwv = kw.get('value', None)
@@ -382,7 +385,7 @@ class _EnumerationElement:
         """The Python identifier used for the named constant representing
         the enumeration value.
 
-        This includes any prefix."""
+        This does not include any prefix."""
         return self.__tag
 
     __enumeration = None
@@ -416,11 +419,7 @@ class _EnumerationElement:
 
         assert self.__enumeration is not None
 
-        tag = utility.MakeIdentifier(self.unicodeValue())
-        enum_prefix = self.enumeration().enumPrefix()
-        if enum_prefix is not None:
-            tag = '%s_%s' % (enum_prefix, tag)
-        self.__tag = tag
+        self.__tag = utility.MakeIdentifier(self.unicodeValue())
 
         self.__value = self.enumeration().valueDatatype()(self.unicodeValue())
 
@@ -437,21 +436,40 @@ class CF_enumeration (ConstrainingFacet, _CollectionFacet_mixin, _LateDatatype_m
     _Enumeration_mixin, and should have a class variable titled
     _CF_enumeration that is an instance of this class.
 
+    "unicode" refers to the Unicode string by which the value is
+    represented in XML.
+
+    "tag" refers to the Python member reference associated with the
+    enumeration.  The value is derived from the unicode value of the
+    enumeration element and an optional prefix that identifies the
+    owning simple type when the tag is promoted to module-level
+    visibility.
+    
+    "value" refers to the Python value held in the tag
+
     See http://www.w3.org/TR/xmlschema-2/#rf-enumeration
     """
     _Name = 'enumeration'
     _CollectionFacet_itemType = _EnumerationElement
     _LateDatatypeBindsSuperclass = False
 
-    # Map from the 
+    __elements = None
     __tagToElement = None
     __valueToElement = None
     __unicodeToElement = None
+
+    # The prefix to be used when making enumeration tags visible at the module level.
     __enumPrefix = 'EV'
+
+    # A bypass flag that allows us to create enumeration values before
+    # they're added to the list of acceptable values.  Without this,
+    # creating an element will fail the constraint check.
+    __inAddEnumeration = False
 
     def __init__ (self, **kw):
         super(CF_enumeration, self).__init__(**kw)
         self.__enumPrefix = kw.get('enum_prefix', self.__enumPrefix)
+        self.__elements = []
         self.__tagToElement = { }
         self.__valueToElement = { }
         self.__unicodeToElement = { }
@@ -461,17 +479,31 @@ class CF_enumeration (ConstrainingFacet, _CollectionFacet_mixin, _LateDatatype_m
 
     def addEnumeration (self, **kw):
         kw['enumeration'] = self
+        self.__inAddEnumeration = True
         ee = _EnumerationElement(**kw)
+        self.__inAddEnumeration = False
         if ee.tag in self.__tagToElement:
             raise IncompleteImplementationError('Duplicate enumeration tags')
         self.__tagToElement[ee.tag()] = ee
         self.__unicodeToElement[ee.unicodeValue()] = ee
         value = ee.value()
         self.__valueToElement[value] = ee
+        self.__elements.append(ee)
         return value
 
     def elementForValue (self, value):
         return self.__valueToElement[value]
+
+    def valueForUnicode (self, ustr):
+        return self.__unicodeToElement[ustr].value()
+
+    def _validateConstraint_vx (self, value):
+        if self.__inAddEnumeration:
+            return True
+        for ee in self.__elements:
+            if ee.value() == value:
+                return True
+        return False
 
 class _Enumeration_mixin (object):
     """Marker class to indicate that the generated binding has enumeration members."""
@@ -493,6 +525,10 @@ class CF_whiteSpace (ConstrainingFacet, _Fixed_mixin):
     _Name = 'whiteSpace'
     def __init__ (self, **kw):
         super(CF_whiteSpace, self).__init__(value_datatype=_WhiteSpace_enum, **kw)
+
+    def _validateConstraint_vx (self, value):
+        """No validation rules for whitespace facet."""
+        return True
 
 class CF_minInclusive (ConstrainingFacet, _Fixed_mixin, _LateDatatype_mixin):
     """Specify the minimum legal value for the constrained type.
@@ -625,3 +661,24 @@ class FF_numeric (FundamentalFacet):
     _Name = 'numeric'
     def __init__ (self, **kw):
         super(FF_numeric, self).__init__(value_datatype=datatypes.boolean, **kw)
+
+def ConstrainingFacets (instance):
+    """Look at the attributes of the instance and return a tuple of the
+    ones that are facets."""
+    if isinstance(instance, type):
+        cls = instance
+    else:
+        cls = instance.__class__
+    attr_name = '_%s__Facets' % (cls.__name__,)
+    attr_name = '__Facets'
+    rv = getattr(cls, attr_name, None)
+    if rv is None:
+        rv = []
+        for v in cls.__dict__.values():
+            if isinstance(v, ConstrainingFacet):
+                rv.append(v)
+        rv = tuple(rv)
+        setattr(cls, attr_name, rv)
+    return rv
+
+datatypes._PST_mixin._GetConstrainingFacets = ConstrainingFacets
