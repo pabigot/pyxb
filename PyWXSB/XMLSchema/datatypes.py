@@ -186,11 +186,20 @@ class _PST_mixin (object):
         raise LogicError('No python type found for %s' % (cls,))
 
     @classmethod
+    def _XsdConstraintsPreCheck_vb (cls, value):
+        """Pre-extended class method to verify other things before checking constraints."""
+        super_fn = getattr(super(_PST_mixin, cls), '_XsdConstraintsPreCheck_vb', lambda *a,**kw: True)
+        return super_fn(value)
+
+    @classmethod
     def XsdConstraintsOK (cls, value):
         """Validate the given value against the constraints on this class.
 
         Throws BadTypeValueError if any constraint is violated.
         """
+
+        cls._XsdConstraintsPreCheck_vb(value)
+
         facet_values = None
 
         # When setting up the datatypes, if we attempt to validate
@@ -254,8 +263,16 @@ class _PST_mixin (object):
         class_name = self.__class__.__name__
         return '%s(%s)' % (class_name, super(_PST_mixin, self).__str__())
 
-class _List_mixin:
+class _List_mixin (object):
     """Marker to indicate that the datatype is a collection."""
+
+    @classmethod
+    def _XsdConstraintsPreCheck_vb (cls, value):
+        for v in value:
+            if not isinstance(v, cls._ItemType):
+                raise BadTypeValueError('Type %s has member of type %s, must be %s' % (cls.__name__, type(v).__name__, cls._ItemType.__name__))
+        super_fn = getattr(super(_List_mixin, cls), '_XsdConstraintsPreCheck_vb', lambda *a,**kw: True)
+        return super_fn(value)
 
     @classmethod
     def _XsdValueLength_vx (cls, value):
