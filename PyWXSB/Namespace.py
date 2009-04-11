@@ -257,12 +257,6 @@ class Namespace (object):
                         continue
                 except AttributeError:
                     pass
-                #if self == XMLSchema:
-                #    try:
-                #        if not td.isBuiltin():
-                #            continue
-                #    except AttributeError:
-                #        pass
                 dep_types = td.dependentComponents()
                 ready = True
                 for dtd in dep_types:
@@ -270,20 +264,19 @@ class Namespace (object):
                     # not a type we care about, just move along
                     if (dependent_class_filter is not None) and not isinstance(dtd, dependent_class_filter):
                         continue
-                    # Ignore dependencies on built-ins
-                    try:
-                        if dtd.isBuiltin():
-                            continue
-                    except AttributeError:
-                        pass
 
                     # Ignore dependencies that go outside the namespace
                     try:
                         if self != dtd.targetNamespace():
                             continue
                     except AttributeError:
-                        # Ignore dependencies on unnamed things
+                        # Ignore dependencies on unnameable things
                         continue
+
+                    # Ignore dependencies on the ur types
+                    if dtd.isUrTypeDefinition():
+                        continue
+
                     # Ignore self-dependencies
                     if dtd == td:
                         continue
