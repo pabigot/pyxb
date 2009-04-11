@@ -10,8 +10,8 @@ import datatypes
 # 4.3.5 enumeration
 # NEED 4.3.6 whiteSpace
 # 4.3.7 maxInclusive
-# NEED 4.3.8 maxExclusive
-# NEED 4.3.9 minExclusive
+# 4.3.8 maxExclusive
+# 4.3.9 minExclusive
 # 4.3.10 minInclusive
 # NEED 4.3.11 totalDigits
 # NEED 4.3.12 fractionDigits
@@ -36,19 +36,30 @@ Cardinals.two = Cardinals._CF_enumeration.addEnumeration(unicode_value=u'two')
 Cardinals.three = Cardinals._CF_enumeration.addEnumeration(unicode_value=u'three')
 Cardinals._InitializeFacetMap(Cardinals._CF_enumeration)
 
+class ExclusiveFloat (datatypes.float):
+    pass
+ExclusiveFloat._CF_minExclusive =  facets.CF_minExclusive(super_facet=datatypes.float._CF_minExclusive, value_datatype=datatypes.float, value=datatypes.float(-5))
+ExclusiveFloat._CF_maxExclusive =  facets.CF_maxExclusive(super_facet=datatypes.float._CF_maxExclusive, value_datatype=datatypes.float, value=datatypes.float(7))
+ExclusiveFloat._InitializeFacetMap(ExclusiveFloat._CF_minExclusive, ExclusiveFloat._CF_maxExclusive)
+
 class testMaxInclusive (unittest.TestCase):
     def test (self):
         self.assertEqual(5, datatypes.byte(5))
         self.assertRaises(BadTypeValueError, datatypes.byte, 256)
         self.assertRaises(BadTypeValueError, datatypes.byte, 255)
         self.assertEquals(127, datatypes.byte(127))
-
-class testMinInclusive (unittest.TestCase):
-    def test (self):
-        self.assertEqual(5, datatypes.byte(5))
         self.assertRaises(BadTypeValueError, datatypes.byte, -150)
         self.assertRaises(BadTypeValueError, datatypes.byte, -129)
         self.assertEquals(-128, datatypes.byte(-128))
+
+class testMinMaxExclusive (unittest.TestCase):
+    def test (self):
+        self.assertRaises(BadTypeValueError, ExclusiveFloat, -10.0)
+        self.assertRaises(BadTypeValueError, ExclusiveFloat, -5.0)
+        self.assertEqual(-4.0, ExclusiveFloat(-4.0))
+        self.assertEqual(0.0, ExclusiveFloat(0.0))
+        self.assertEqual(6.875, ExclusiveFloat(6.875))
+        self.assertRaises(BadTypeValueError, ExclusiveFloat, 7.0)
 
 class testLength (unittest.TestCase):
     def test (self):
