@@ -207,7 +207,7 @@ class _PST_mixin (object):
         # nonNegativeInteger used as a length facet for the parent
         # integer datatype), just ignore that.
         try:
-            facet_values = value._FacetMap().values()
+            facet_values = cls._FacetMap().values()
         except AttributeError:
             return value
         for f in facet_values:
@@ -281,22 +281,37 @@ class _PST_union (_PST_mixin):
     __FacetMap = {}
 
     @classmethod
-    def Factory (cls, value):
+    def _SetFacetMapWithModule (cls, facets):
+        cls.__FacetMap.setdefault(facets.CF_pattern, facets.CF_pattern())
+        cls.__FacetMap.setdefault(facets.CF_enumeration, facets.CF_enumeration())
+
+    @classmethod
+    def Factory (cls, value, **kw):
         """Given a value, attempt to create an instance of some member
         of this union.
 
         The first instance which can be legally created is returned.
         If no member type instance can be created from the given
-        value, a BadTypeValueError is raised."""
+        value, a BadTypeValueError is raised.
+
+        The value generated from the member types is further validated
+        against any constraints that apply to the union."""
+        rv = None
+        validate_constraints = kw.get('validate_constraints', True)
         for mt in cls._MemberTypes:
             try:
-                return mt(value)
+                rv = mt(value, **kw)
+                break
             except BadTypeValueError:
                 pass
             except ValueError:
                 pass
             except:
                 pass
+        if rv is not None:
+            if validate_constraints:
+                cls.XsdConstraintsOK(rv)
+            return rv
         raise BadTypeValueError('%s cannot construct union member from value %s' % (cls.__name__, value))
 
     @classmethod

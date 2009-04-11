@@ -2144,7 +2144,19 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
         self.__isBuiltin = True
         return self
 
-    def __processHasFacetAndProperty (self, wxs):
+    def __defineDefaultFacets (self, wxs, variety):
+        """Create facets for varieties that can take facets that are undeclared.
+
+        This means unions, which per section 4.1.2.3 of
+        http://www.w3.org/TR/xmlschema-2/ can have enumeration or
+        pattern restrictions."""
+        if self.VARIETY_union != variety:
+            return self
+        self.__facets.setdefault(facets.CF_pattern, facets.CF_pattern(base_type_definition=self))
+        self.__facets.setdefault(facets.CF_enumeration, facets.CF_enumeration(base_type_definition=self))
+        return self
+
+    def __processHasFacetAndProperty (self, wxs, variety):
         """Identify the facets and properties for this stype.
 
         This method simply identifies the facets that apply to this
@@ -2165,10 +2177,10 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
         self.__facets = { }
         self.__fundamentalFacets = frozenset()
         if self.annotation() is None:
-            return self
+            return self.__defineDefaultFacets(wxs, variety)
         app_info = self.annotation().applicationInformation()
         if app_info is  None:
-            return self
+            return self.__defineDefaultFacets(wxs, variety)
         hfp = None
         try:
             hfp = wxs.namespaceForURI(Namespace.XMLSchema_hfp.uri())
@@ -2327,9 +2339,9 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
                     else:
                         mtd.append(mt)
             elif 'restriction' == alternative:
-                assert self.__baseTypeDefinition__
+                assert self.__baseTypeDefinition
                 # Base type should have been resolved before we got here
-                assert self.__baseTypeDefinition__.isResolved()
+                assert self.__baseTypeDefinition.isResolved()
                 mtd = self.__baseTypeDefinition.__memberTypeDefinitions
                 assert mtd is not None
             else:
@@ -2337,12 +2349,12 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
             # Save a unique copy
             self.__memberTypeDefinitions = mtd[:]
         else:
-            print 'VARIETY "%s"' % (self.__variety,)
-            raise LogicError('completeResolution with variety 0x%02x' % (self.__variety,))
+            print 'VARIETY "%s"' % (variety,)
+            raise LogicError('completeResolution with variety 0x%02x' % (variety,))
 
         # Determine what facets, if any, apply to this type.  This
         # should only do something if this is a primitive type.
-        self.__processHasFacetAndProperty(wxs)
+        self.__processHasFacetAndProperty(wxs, variety)
         self.__updateFacets(wxs, body)
 
         self.__variety = variety

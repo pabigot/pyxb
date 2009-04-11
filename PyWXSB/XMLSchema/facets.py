@@ -451,7 +451,11 @@ class _EnumerationElement:
 
         self.__tag = utility.MakeIdentifier(self.unicodeValue())
 
-        self.__value = self.enumeration().valueDatatype()(self.unicodeValue(), validate_constraints=False)
+        value_datatype = self.enumeration().valueDatatype()
+        if issubclass(value_datatype, datatypes._PST_union):
+            self.__value = value_datatype.Factory(self.unicodeValue(), validate_constraints=False)
+        else:
+            self.__value = value_datatype(self.unicodeValue(), validate_constraints=False)
 
         if (self.__description is None) and (self.__annotation is not None):
             self.__description = str(self.__annotation)
@@ -745,3 +749,4 @@ class FF_numeric (FundamentalFacet):
 
     _Name = 'numeric'
     _ValueDatatype = datatypes.boolean
+
