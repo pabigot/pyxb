@@ -1773,9 +1773,10 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
     def baseTypeDefinition (self):
         return self.__baseTypeDefinition
 
-    # A map from a subclass of facets.ConstrainingFacet to an instance
-    # of that class, or None if the facet has not been constrained in
-    # the type.
+    # A map from a subclass of facets.Facet to an instance of that
+    # class.  Presence of a facet class as a key in this map is the
+    # indicator that the type definition and its subtypes are
+    # permitted to use the corresponding facet.
     __facets = None
     def facets (self):
         assert (self.__facets is None) or (type(self.__facets) == types.DictType)
@@ -1881,6 +1882,12 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
             type_definitions.update(self.memberTypeDefinitions())
         else:
             raise LogicError('Unable to identify dependent types: variety %s' % (self.variety(),))
+        # NB: This type also depends on the value type definitions for
+        # any facets that apply to it.  This fact only matters when
+        # generating the datatypes_facets source.  That, and the fact
+        # that there are dependency loops (e.g., integer requires a
+        # nonNegativeInteger for its length facet) means we don't
+        # bother adding in those.
         return frozenset(type_definitions)
         
     # A non-property field that holds a reference to the DOM node from
