@@ -118,6 +118,14 @@ class _PST_mixin (object):
                 args = (norm_str,) + args[1:]
         return args
 
+    @classmethod
+    def Factory (cls, *args, **kw):
+        """Provide a common mechanism to create new instances of this type.
+
+        The class constructor won't do, because you can't create
+        instances of union types."""
+        return cls(*args, **kw)
+
     # Must override new, because new gets invoked before init, and
     # usually doesn't accept keywords.  In case it does, only remove
     # the ones that are interpreted by this class.  Do the same
@@ -298,7 +306,7 @@ class _PST_union (_PST_mixin):
     __FacetMap = {}
 
     @classmethod
-    def Factory (cls, value, **kw):
+    def Factory (cls, *args, **kw):
         """Given a value, attempt to create an instance of some member
         of this union.
 
@@ -312,7 +320,7 @@ class _PST_union (_PST_mixin):
         validate_constraints = kw.get('validate_constraints', True)
         for mt in cls._MemberTypes:
             try:
-                rv = mt(value, **kw)
+                rv = mt(*args, **kw)
                 break
             except BadTypeValueError:
                 pass
@@ -324,7 +332,7 @@ class _PST_union (_PST_mixin):
             if validate_constraints:
                 cls.XsdConstraintsOK(rv)
             return rv
-        raise BadTypeValueError('%s cannot construct union member from value %s' % (cls.__name__, value))
+        raise BadTypeValueError('%s cannot construct union member from args %s' % (cls.__name__, args))
 
     @classmethod
     def ValidateMember (cls, value):
@@ -373,8 +381,7 @@ class _PST_list (_PST_mixin, types.ListType):
     def _XsdValueLength_vx (cls, value):
         return len(value)
 
-class _Enumeration_mixin:
-    """Marker to indicate that the datatype is an enumeration."""
+class _PYWXSB_element (_PST_mixin):
     pass
 
 # We use unicode as the Python type for anything that isn't a normal
