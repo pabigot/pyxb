@@ -457,10 +457,11 @@ class AttributeUse (_SchemaComponent_mixin, _Resolvable_mixin, _ValueConstraint_
 
     # How this attribute can be used.  The component property
     # "required" is true iff the value is USE_required.
-    USE_required = 0x01
-    USE_optional = 0x02
-    USE_prohibited = 0x04
     __use = False
+
+    USE_required = 0x01         #<<< The attribute is required
+    USE_optional = 0x02         #<<< The attribute may or may not appear
+    USE_prohibited = 0x04       #<<< The attribute must not appear
     def required (self): return self.USE_required == self.__use
     def prohibited (self): return self.USE_prohibited == self.__use
 
@@ -542,6 +543,8 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Resolv
 
     SCOPE_global = 0x01         #<<< Marker for global scope
 
+    # The scope for the element.  Valid values are SCOPE_global or a
+    # complex type definition.
     __scope = None
     def scope (self):
         """The scope for the element.
@@ -566,10 +569,10 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Resolv
         """None, or a reference to an ElementDeclaration."""
         return self.__substitutionGroupAffiliation
 
-    SGE_none = 0
-    SGE_extension = 0x01
-    SGE_restriction = 0x02
-    SGE_substitution = 0x04
+    SGE_none = 0                #<<< No substitution group exclusion specified
+    SGE_extension = 0x01        #<<< Substitution by an extension of the base type
+    SGE_restriction = 0x02      #<<< Substitution by a restriction of the base type
+    SGE_substitution = 0x04     #<<< Substitution by replacement (?)
 
     # Subset of SGE marks formed by bitmask.  SGE_substitution is disallowed.
     __substitutionGroupExclusions = SGE_none
@@ -580,6 +583,7 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Resolv
     __abstract = False
     def abstract (self): return self.__abstract
 
+    # The containing component which provides the scope
     __ancestorComponent = None
     def ancestorComponent (self):
         """The containing component which will ultimately provide the
@@ -603,6 +607,7 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Resolv
         self.__ancestorComponent = kw.get('ancestor_component', None)
 
     def isPlural (self):
+        """Element declarations are not multivalued in themselves."""
         return False
 
     @classmethod
@@ -1290,6 +1295,7 @@ class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
         self.__modelGroupDefinition = kw.get('model_group_definition', None)
 
     def isPlural (self):
+        """A model group is multi-valued if it has a multi-valued particle."""
         for p in self.particles():
             if p.isPlural():
                 return True
@@ -1519,7 +1525,9 @@ class Wildcard (_SchemaComponent_mixin, _Annotated_mixin):
     __processContents = None
     def processContents (self): return self.__processContents
 
-    def isPlural (self): return False
+    def isPlural (self):
+        """Wildcards are not multi-valued."""
+        return False
 
     def __init__ (self, *args, **kw):
         assert 0 == len(args)
