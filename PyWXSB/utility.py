@@ -52,8 +52,27 @@ def MakeUnique (s, in_use):
     in_use.add(s)
     return s
 
-def PrepareIdentifier (s, in_use, aux_keywords=frozenset()):
-    return MakeUnique(DeconflictKeyword(MakeIdentifier(s), aux_keywords), in_use)
+def PrepareIdentifier (s, in_use, aux_keywords=frozenset(), private=False):
+    """Combine everything required to create a unique identifier.
+
+    in_use is the set of already used identifiers.  Upon return from
+    this function, it is updated to include the returned identifier.
+
+    aux_keywords is an optional set of additional symbols that are
+    illegal in the given context; use this to prevent conflicts with
+    known method names.
+
+    If private is True, the returned identifier has two leading
+    underscores, making it a private variable within a Python class.
+    If private is False, all leading underscores are stripped,
+    guaranteeing the identifier will not be private."""
+    s = MakeIdentifier(s)
+    if private:
+        while not s.startswith('__'):
+            s = '_' + s
+    else:
+        s = s.lstrip('_')
+    return MakeUnique(DeconflictKeyword(s, aux_keywords), in_use)
 
 if '__main__' == __name__:
     import unittest
@@ -83,6 +102,13 @@ if '__main__' == __name__:
                 , ( u"u\"\\u00220\\u0022\"", u'"\u0030"' ) # unicode with double quotes works
                 )
                 
+
+        def testPrepareIdentifier (self):
+            in_use = set()
+            self.assertEquals('id', PrepareIdentifier('id', in_use))
+            self.assertEquals('id_', PrepareIdentifier('id', in_use))
+            self.assertEquals('__id', PrepareIdentifier('id', in_use, private=True))
+            self.assertEquals('__id_', PrepareIdentifier('id', in_use, private=True))
 
         def testQuotedEscape (self):
             for ( expected, input ) in self.cases:
