@@ -310,6 +310,8 @@ class %{std} (datatypes._PST_union):
 def GenerateCTD (ctd, **kw):
     return templates.replaceInText('''
 # Complex type %{ctd}
+class %{ctd}:
+    pass
 ''', ctd=pythonLiteral(ctd))
 
 def GenerateED (ed, **kw):
