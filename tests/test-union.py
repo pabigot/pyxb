@@ -1,4 +1,6 @@
 import PyWXSB.generate
+from xml.dom import minidom
+from xml.dom import Node
 
 code = PyWXSB.generate.GeneratePython('schemas/test-union.xsd')
 rv = compile(code, 'test', 'exec')
@@ -40,6 +42,25 @@ class TestUnion (unittest.TestCase):
         self.assertEqual(english.two, myElement('two').content())
         self.assertEqual(welsh.tri, myElement('tri').content())
         self.assertRaises(BadTypeValueError, myElement, 'five')
+
+    def testMyElementDOM (self):
+        self.assertEqual(0, myElement.CreateFromDOM(minidom.parseString('<myElement>0</myElement>').documentElement).content())
+
+        self.assertEqual(english.one, myElement.CreateFromDOM(minidom.parseString('<myElement>one</myElement>').documentElement).content())
+        self.assertEqual(welsh.un, myElement.CreateFromDOM(minidom.parseString('<myElement>un</myElement>').documentElement).content())
+
+        self.assertEqual(english.one, myElement.CreateFromDOM(minidom.parseString('<myElement>one<!-- with comment --></myElement>').documentElement).content())
+        self.assertEqual(welsh.un, myElement.CreateFromDOM(minidom.parseString('<myElement><!-- with comment -->un</myElement>').documentElement).content())
+
+        self.assertEqual(english.one, myElement.CreateFromDOM(minidom.parseString('<myElement> one <!-- with comment and whitespace --></myElement>').documentElement).content())
+        self.assertRaises(BadTypeValueError, myElement.CreateFromDOM, minidom.parseString('<myElement><!-- whitespace is error for welsh --> un</myElement>').documentElement)
+
+        self.assertEqual(english.one, myElement.CreateFromDOM(minidom.parseString('''<myElement><!-- whitespace is collapsed for english -->
+one
+</myElement>''').documentElement).content())
+        self.assertRaises(BadTypeValueError, myElement.CreateFromDOM, minidom.parseString('''<myElement><!--whitespace is only reduced for welsh -->
+un
+</myElement>''').documentElement)
 
 if __name__ == '__main__':
     unittest.main()
