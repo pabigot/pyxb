@@ -48,6 +48,11 @@ class TestCTD (unittest.TestCase):
         instance = CreateFromDocument('<emptyWithAttr capitalized="true" language="hebrew"/>')
         self.assertEqual('hebrew', instance.language())
         self.assert_(instance.capitalized())
+        # Raw constructor generates default everything; optional
+        # attributes may have value None.
+        instance = emptyWithAttr()
+        self.assertEqual('irish', instance.language())
+        self.assert_(instance.capitalized() is None)
 
     def testEmptyWithAttrGroups (self):
         instance = CreateFromDocument('<emptyWithAttrGroups/>')
