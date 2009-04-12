@@ -388,11 +388,11 @@ class %{ctd} (bindings.PyWXSB_CTD_element):
     %{attr_name} = bindings.AttributeUse(%{attr_tag}, %{attr_type}%{aux_init})
     def %{attr_inspector} (self):
         """Get the value of the %{attr_tag} attribute."""
-        return self.%{attr_name}.value()
+        return self.%{attr_name}.value(self)
     def %{attr_mutator} (self, new_value):
         """Set the value of the %{attr_tag} attribute.  Raises BadValueTypeException
         if the new value is not consistent with the attribute's type."""
-        return self.%{attr_name}.setValue(new_value)''', **au_map))
+        return self.%{attr_name}.setValue(self, new_value)''', **au_map))
     
     trailing_comma = ''
     if 1 == len(attribute_uses):

@@ -28,8 +28,10 @@ class TestCTD (unittest.TestCase):
         # interesting stuff.  I suppose that ought to be a
         # configuration option.
         self.assertEqual('test', simple('test').content())
-
-        self.assertEqual('test', CreateFromDocument('<simple>test</simple>').content())
+        xml = '<simple>test</simple>'
+        instance = CreateFromDocument(xml)
+        self.assertEqual('test', instance.content())
+        self.assertEqual(xml, instance.toDOM().toxml())
 
     def testString (self):
         self.assertEqual('test', datatypes.string('test'))
@@ -53,20 +55,25 @@ class TestCTD (unittest.TestCase):
         instance = emptyWithAttr()
         self.assertEqual('irish', instance.language())
         self.assert_(instance.capitalized() is None)
-
         self.assertEqual('<emptyWithAttr/>', instance.toDOM().toxml())
-        instance.setLanguage('french')
-        self.assertEqual('<emptyWithAttr language="french"/>', instance.toDOM().toxml())
+
+        # Create another instance, to make sure the attributes are different
+        instance2 = emptyWithAttr()
+        self.assertEqual('irish', instance2.language())
+        instance2.setLanguage('french')
+        self.assertEqual('<emptyWithAttr language="french"/>', instance2.toDOM().toxml())
+        self.assertNotEqual(instance.language(), instance2.language())
 
 
     def testEmptyWithAttrGroups (self):
-        instance = CreateFromDocument('<emptyWithAttrGroups/>')
+        xml = '<emptyWithAttrGroups bMember1="xxx"/>'
+        instance = CreateFromDocument(xml)
         self.assertEqual('gM1', instance.groupMember1())
         self.assertEqual('gM2', instance.groupMember2())
-        self.assertEqual('bM1', instance.bMember1())
+        self.assertEqual('xxx', instance.bMember1())
         self.assertEqual('lA1', instance.localAttr1())
         # Note that defaulted attributes are not generated in the DOM.
-        self.assertEqual('<emptyWithAttrGroups/>', instance.toDOM().toxml())
+        self.assertEqual(xml, instance.toDOM().toxml())
 
     def testStructureElement (self):
         #self.assertEqual('test', CreateFromDocument('<structure>test</structure>'))

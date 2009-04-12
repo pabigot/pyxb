@@ -16,15 +16,19 @@ class PyWXSB_element (object):
     """
 
     # Reference to the instance of the underlying type
+    __realContent = None
+
+    # Reference to the instance of the underlying type
     __content = None
     
     # Assign to the content field.  This may manipulate the assigned
     # value if doing so results in a cleaner interface for the user.
     def __setContent (self, content):
-        self.__content = content
+        self.__realContent = content
+        self.__content = self.__realContent
         if content is not None:
             if issubclass(self._TypeDefinition, PyWXSB_CTD_simple):
-                self.__content = self.content().content()
+                self.__content = self.__realContent.content()
         return self
 
     def __init__ (self, *args, **kw):
@@ -34,7 +38,7 @@ class PyWXSB_element (object):
         the Factory method of the element type definition.
         
         If the element is a complex type with simple content, the
-        value of the content is dereferenced once.
+        value of the content() is dereferenced once, as a convenience.
         """
         self.__setContent(self._TypeDefinition.Factory(*args, **kw))
         
@@ -53,13 +57,13 @@ class PyWXSB_element (object):
         return rv
 
     def toDOM (self):
-        return self.content().toDOM(self._XsdName)
+        return self.__realContent.toDOM(self._XsdName)
 
 class AttributeUse (object):
     """A helper class that encapsulates everything we need to know about an attribute."""
     __tag = None       # Unicode XML tag @todo not including namespace
     __dataType = None  # PST datatype
-    __value = None     # THe current value of the attribute
+    __value = None     # The current value of the attribute
     __defaultValue = None       # Unicode default value, or None
     __fixed = False             # If True, value cannot be changed
     __required = False          # If True, attribute must appear
@@ -73,45 +77,60 @@ class AttributeUse (object):
         self.__fixed = fixed
         self.__required = required
         self.__prohibited = prohibited
+        assert not self.__provided
 
-    def setFromDOM (self, node):
+    def __getValue (self, cdt_instance):
+        return getattr(cdt_instance, '__AU_%s' % (self.__tag,), (False, None))
+
+    def __getProvided (self, cdt_instance):
+        return self.__getValue(cdt_instance)[0]
+
+    def value (self, cdt_instance):
+        """Get the value of the attribute."""
+        return self.__getValue(cdt_instance)[1]
+
+    def __setValue (self, cdt_instance, new_value, provided):
+        return setattr(cdt_instance, '__AU_%s' % (self.__tag,), (provided, new_value))
+
+    def setFromDOM (self, cdt_instance, node):
         unicode_value = self.__defaultValue
+        provided = False
         if isinstance(node, dom.Node):
             if node.hasAttribute(self.__tag):
                 if self.__prohibited:
                     raise ProhibitedAttributeError('Prohibited attribute %s found' % (self.__tag,))
                 unicode_value = node.getAttribute(self.__tag)
+                provided = True
             else:
                 if self.__required:
                     raise MissingAttributeError('Required attribute %s not found' % (self.__tag,))
         if unicode_value is None:
             # Must be optional and absent
-            self.__value = None
+            self.__setValue(cdt_instance, None, False)
         else:
             if self.__fixed and (unicode_value != self.__defaultValue):
                 raise AttributeChangeError('Attempt to change value of fixed attribute %s' % (self.__tag,))
-            self.__value = self.__dataType(unicode_value)
+            # NB: Do not set provided here; this may be the default
+            self.__setValue(cdt_instance, self.__dataType(unicode_value), provided)
         return self
 
-    def addDOMAttribute (self, element):
+    def addDOMAttribute (self, cdt_instance, element):
         """If this attribute as been set, add the corresponding attribute to the DOM element."""
-        if self.__provided:
-            element.setAttribute(self.__tag, self.__value.xsdLiteral())
+        ( provided, value ) = self.__getValue(cdt_instance)
+        if provided:
+            assert value is not None
+            element.setAttribute(self.__tag, value.xsdLiteral())
         return self
 
-    def value (self):
-        """Get the value of the attribute."""
-        return self.__value
-
-    def setValue (self, new_value):
+    def setValue (self, cdt_instance, new_value):
         """Set the value of the attribute.
 
         This validates the value against the data type."""
+        assert new_value is not None
         if not isinstance(new_value, self.__dataType):
             new_value = self.__dataType(new_value)
-        self.__value = new_value
-        self.__provided = True
-        return self.__value
+        self.__setValue(cdt_instance, new_value, True)
+        return new_value
 
 class PyWXSB_enumeration_mixin (object):
     """Marker in case we need to know that a PST has an enumeration constraint facet."""
@@ -123,13 +142,13 @@ class PyWXSB_complexTypeDefinition (object):
     """
     def _setAttributesFromDOM (self, node):
         for au in self._AttributeUses:
-            au.setFromDOM(node)
+            au.setFromDOM(self, node)
         return self
 
     def _setDOMFromAttributes (self, element):
         """Add any appropriate attributes from this instance into the DOM element."""
         for au in self._AttributeUses:
-            au.addDOMAttribute(element)
+            au.addDOMAttribute(self, element)
         return element
 
 class PyWXSB_CTD_empty (PyWXSB_complexTypeDefinition):
@@ -170,6 +189,12 @@ class PyWXSB_CTD_simple (PyWXSB_complexTypeDefinition):
     def CreateFromDOM (cls, node):
         """Create an instance from the node content, and set the attributes."""
         return cls(domutils.ExtractTextContent(node))._setAttributesFromDOM(node)
+
+    def toDOM (self, element_tag):
+        """Create a DOM element with the given tag holding the content of this instance."""
+        doc = minidom.getDOMImplementation().createDocument(None, element_tag, None)
+        doc.documentElement.appendChild(doc.createTextNode(self.content().xsdLiteral()))
+        return self._setDOMFromAttributes(doc.documentElement)
 
 class PyWXSB_CTD_mixed (PyWXSB_complexTypeDefinition):
     """Base for any Python class that serves as the binding for an
