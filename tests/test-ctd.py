@@ -19,12 +19,23 @@ class TestCTD (unittest.TestCase):
         self.assert_(issubclass(structure_, bindings.PyWXSB_CTD_element))
 
     def testSimple (self):
-        # Note that when the element has simple content, we remove the
-        # extra level of indirection so the element content is the
-        # same as the ctd content.
         self.assertEqual('test', simple_('test').content())
+
+        # Note that when the element is a complex type with simple
+        # content, we remove the extra level of indirection so the
+        # element content is the same as the ctd content.  Otherwise,
+        # you'd have to do foo.content().content() to get to the
+        # interesting stuff.  I suppose that ought to be a
+        # configuration option.
         self.assertEqual('test', simple('test').content())
+
         self.assertEqual('test', CreateFromDocument('<simple>test</simple>').content())
+
+    def testString (self):
+        # 
+        self.assertEqual('test', datatypes.string('test'))
+        self.assertEqual('test', string('test').content())
+        self.assertEqual('test', CreateFromDocument('<string>test</string>').content())
 
     def testStructureElement (self):
         #self.assertEqual('test', CreateFromDocument('<structure>test</structure>'))
