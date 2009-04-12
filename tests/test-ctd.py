@@ -43,12 +43,11 @@ class TestCTD (unittest.TestCase):
     def testEmptyWithAttr (self):
         self.assertRaises(MissingAttributeError, CreateFromDocument, '<emptyWithAttr/>')
         instance = CreateFromDocument('<emptyWithAttr capitalized="false"/>')
-        self.assertEqual('irish', instance.language)
-        self.assert_(not instance.capitalized)
+        self.assertEqual('irish', instance.language())
+        self.assert_(not instance.capitalized())
         instance = CreateFromDocument('<emptyWithAttr capitalized="true" language="hebrew"/>')
-        self.assertEqual('hebrew', instance.language)
-        self.assert_(instance.capitalized)
-        
+        self.assertEqual('hebrew', instance.language())
+        self.assert_(instance.capitalized())
 
     def testStructureElement (self):
         #self.assertEqual('test', CreateFromDocument('<structure>test</structure>'))

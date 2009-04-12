@@ -44,6 +44,9 @@ class ProhibitedAttributeError (BadDocumentError):
 class MissingAttributeError (BadDocumentError):
     """Raised when an attribute that is required is missing in an element."""
 
+class AttributeChangeError (BadDocumentError):
+    """Raised when an attribute with a fixed value constraint is set to a different value."""
+
 class PyWXSBError (exceptions.Exception):
     """Base class for exceptions that indicate a problem that the user probably can't fix."""
     pass

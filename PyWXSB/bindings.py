@@ -22,10 +22,12 @@ class PyWXSB_element (object):
             self.__setContent(self._TypeDefinition.Factory(*args, **kw))
         
 
-    # Delegate
+    # Delegate unrecognized attribute accesses to the content.
     def __getattr__ (self, name):
         return getattr(self.__content, name)
 
+    # @todo What if we need to deconflict "content" from something
+    # that's in the underlying type?
     def content (self): return self.__content
     
     def _content (self, content):
@@ -39,18 +41,19 @@ class PyWXSB_element (object):
         return rv
 
 class AttributeUse (object):
-    __field = None     # Python class field
     __tag = None       # Unicode XML tag @todo not including namespace
-    __dataType = None # PST datatype
+    __dataType = None  # PST datatype
+    __value = None     # THe current value of the attribute
     __defaultValue = None       # Unicode default value, or None
+    __fixed = False             # If True, value cannot be changed
     __required = False          # If True, attribute must appear
     __prohibited = False        # If True, attribute must not appear
 
-    def __init__ (self, field, tag, data_type, default_value=None, required=False, prohibited=False):
-        self.__field = field
+    def __init__ (self, tag, data_type, default_value=None, fixed=False, required=False, prohibited=False):
         self.__tag = tag
         self.__dataType = data_type
         self.__defaultValue = default_value
+        self.__fixed = fixed
         self.__required = required
         self.__prohibited = prohibited
 
@@ -65,15 +68,26 @@ class AttributeUse (object):
                 raise MissingAttributeError('Required attribute %s not found' % (self.__tag,))
         if unicode_value is None:
             raise LogicError('No default value available for attribute %s' % (self.__tag,))
-        value = self.__dataType(unicode_value)
-        setattr(ctd_instance, self.__field, value)
+        if self.__fixed and (unicode_value != self.__defaultValue):
+            raise AttributeChangeError('Attempt to change value of fixed attribute %s' % (self.__tag,))
+        self.__value = self.__dataType(unicode_value)
+        return self
+
+    def value (self):
+        return self.__value
+
+    def setValue (self, new_value):
+        if not isinstance(new_value, self__dataType):
+            new_value = self.__dataType(new_value)
+        self.__value = new_value
+        return self.__value
 
 class PyWXSB_enumeration_mixin (object):
     pass
 
 class PyWXSB_complexTypeDefinition (object):
     def _setAttributesFromDOM (self, node):
-        for au in self._Attributes:
+        for au in self._AttributeUses:
             au.setFromDOM(self, node)
         return self
 

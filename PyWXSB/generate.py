@@ -353,23 +353,26 @@ class %{ctd} (bindings.PyWXSB_CTD_mixed):
 class %{ctd} (bindings.PyWXSB_CTD_element):
 '''
 
-    attribute_init = []
-    attribute_support = []
+    attribute_uses = []
+    attribute_definitions = []
     class_keywords = frozenset([ '_TypeDefinition' ])
     class_unique = set()
     for au in ctd.attributeUses():
         ad = au.attributeDeclaration()
         au_map = { }
-        au_map['attr_name'] = utility.PrepareIdentifier(ad.ncName(), class_unique, class_keywords)
+        au_map['attr_inspector'] = ai = utility.PrepareIdentifier(ad.ncName(), class_unique, class_keywords)
+        au_map['attr_mutator'] = utility.PrepareIdentifier('set' + ai[0].upper() + ai[1:], class_unique, class_keywords)
+        au_map['attr_name'] = utility.PrepareIdentifier(ad.ncName(), class_unique, class_keywords, private=True)
         au_map['attr_tag'] = pythonLiteral(ad.ncName(), **kw)
         au_map['attr_type'] = pythonLiteral(ad.typeDefinition(), **kw)
-        attribute_init.append(templates.replaceInText('%{attr_name} = None # %{attr_type}', **au_map))
         au_map['constraint_value'] = pythonLiteral(None, **kw)
         vc = au.valueConstraint()
         if vc is None:
             vc = ad.valueConstraint()
         aux_init = []
         if vc is not None:
+            if au.VC_fixed == vc[0]:
+                aux_init.append('fixed=True')
             aux_init.append('default_value=%s' % (pythonLiteral(ad.valueConstraint()[0], **kw),))
         if au.required():
             aux_init.append('required=True')
@@ -380,13 +383,23 @@ class %{ctd} (bindings.PyWXSB_CTD_element):
         else:
             aux_init.insert(0, '')
             au_map['aux_init'] = ', '.join(aux_init)
-        attribute_support.append(templates.replaceInText("bindings.AttributeUse('%{attr_name}', %{attr_tag}, %{attr_type}%{aux_init})", **au_map))
+        attribute_uses.append(au_map['attr_name'])
+        attribute_definitions.append(templates.replaceInText('''
+    %{attr_name} = bindings.AttributeUse(%{attr_tag}, %{attr_type}%{aux_init})
+    def %{attr_inspector} (self):
+        """Get the value of the %{attr_tag} attribute."""
+        return self.%{attr_name}.value()
+    def %{attr_mutator} (self, new_value):
+        """Set the value of the %{attr_tag} attribute.  Raises BadValueTypeException
+        if the new value is not consistent with the attribute's type."""
+        return self.%{attr_name}.setValue(new_value)''', **au_map))
     
     trailing_comma = ''
-    if 1 == len(attribute_support):
+    if 1 == len(attribute_uses):
         trailing_comma = ','
     template = ''.join( [prolog_template,
-                         "    _Attributes = (\n    ", ",\n    ".join(attribute_support), trailing_comma, "\n    )\n\n"
+                         "    ", "\n    ".join(attribute_definitions), "\n",
+                         "    _AttributeUses = (\n    ", ",\n    ".join(attribute_uses), trailing_comma, "\n    )\n\n"
                              ] )
 
     return templates.replaceInText(template, **template_map)
