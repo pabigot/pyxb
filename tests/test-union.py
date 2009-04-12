@@ -43,8 +43,14 @@ class TestUnion (unittest.TestCase):
         self.assertEqual(welsh.tri, myElement('tri').content())
         self.assertRaises(BadTypeValueError, myElement, 'five')
 
+    def testXMLErrors (self):
+        self.assertEqual(welsh.un, CreateFromDocument('<myElement>un</myElement>').content())
+        self.assertRaises(NotAnElementError, CreateFromDocument, '<welsh>un</welsh>')
+        self.assertRaises(UnrecognizedElementError, CreateFromDocument, '<myelement>un</myelement>')
+
     def testMyElementDOM (self):
         self.assertEqual(0, myElement.CreateFromDOM(minidom.parseString('<myElement>0</myElement>').documentElement).content())
+        self.assertEqual(0, CreateFromDocument('<myElement>0</myElement>').content())
 
         self.assertEqual(english.one, myElement.CreateFromDOM(minidom.parseString('<myElement>one</myElement>').documentElement).content())
         self.assertEqual(welsh.un, myElement.CreateFromDOM(minidom.parseString('<myElement>un</myElement>').documentElement).content())

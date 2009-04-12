@@ -351,11 +351,32 @@ def GeneratePython (input, **kw):
         if TargetNamespace == Namespace.XMLSchema:
             import_prefix = ''
         
-        outf.write('''
-import %sfacets as facets
-import %sdatatypes as datatypes
+        outf.write(templates.replaceInText('''
+import %{import_prefix}facets as facets
+import %{import_prefix}datatypes as datatypes
 import PyWXSB.bindings as bindings
-''' % (import_prefix, import_prefix))
+
+NamespacePrefix = 'tns'
+
+def CreateFromDocument (xml):
+    """Parse the given XML and use the document element to create a Python instance."""
+    dom = minidom.parseString(xml)
+    return CreateFromDOM(dom.documentElement)
+
+def CreateFromDOM (node):
+    """Create a Python instance from the given DOM node.
+    The node tag must correspond to an element declaration in this module."""
+    ncname = node.tagName
+    if 0 <= ncname.find(':'):
+        ncname = name.split(':', 1)[1]
+    cls = globals().get(ncname, None)
+    if cls is None:
+        raise UnrecognizedElementError('No class available for %s' % (ncname,))
+    if not issubclass(cls, bindings.PyWXSB_element):
+        raise NotAnElementError('Tag %s does not exist as element in module' % (ncname,))
+    return cls.CreateFromDOM(node)
+
+''', import_prefix=import_prefix))
     
         for td in emit_order:
             generator = GeneratorMap.get(type(td), None)

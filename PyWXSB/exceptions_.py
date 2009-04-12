@@ -32,6 +32,12 @@ class BadDocumentError (PyWXSBException):
     """Raised when processing document content and an error is encountered."""
     pass
 
+class UnrecognizedElementError (BadDocumentError):
+    """Raised when processing document and an unrecognized element is encountered."""
+
+class NotAnElementError (UnrecognizedElementError):
+    """Raised when processing document and a tag that is a type but not an element is encountered."""
+
 class PyWXSBError (exceptions.Exception):
     """Base class for exceptions that indicate a problem that the user probably can't fix."""
     pass
