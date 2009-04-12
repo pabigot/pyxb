@@ -59,6 +59,16 @@ FixedPoint._CF_totalDigits =  facets.CF_totalDigits(super_facet=datatypes.decima
 FixedPoint._CF_fractionDigits =  facets.CF_fractionDigits(super_facet=datatypes.decimal._CF_maxExclusive, value=facets.CF_fractionDigits._ValueDatatype(2))
 FixedPoint._InitializeFacetMap(FixedPoint._CF_totalDigits, FixedPoint._CF_fractionDigits)
 
+class ReplaceString (datatypes.string):
+    pass
+ReplaceString._CF_whiteSpace = facets.CF_whiteSpace(value=facets._WhiteSpace_enum.replace, super_facet=datatypes.string._CF_whiteSpace)
+ReplaceString._InitializeFacetMap(ReplaceString._CF_whiteSpace)
+
+class CollapseString (datatypes.string):
+    pass
+CollapseString._CF_whiteSpace = facets.CF_whiteSpace(value=facets._WhiteSpace_enum.collapse, super_facet=datatypes.string._CF_whiteSpace)
+CollapseString._InitializeFacetMap(CollapseString._CF_whiteSpace)
+
 class testMaxInclusive (unittest.TestCase):
     def test (self):
         self.assertEqual(5, datatypes.byte(5))
@@ -157,6 +167,12 @@ class testWhitespace (unittest.TestCase):
         for c in cases:
             self.assertEqual(c, self.__Preserve.normalizeString(c))
 
+    def testPreserveString (self):
+        cases = [ "test", "  test", "  test", "\ttest", "\ttest\n\rtoo\n" ]
+        for c in cases:
+            self.assertEqual(c, datatypes.string(c))
+            self.assertEqual(c, datatypes.string(unicode(c)))
+
     __Replace = facets.CF_whiteSpace(value=facets._WhiteSpace_enum.replace)
     def testReplace (self):
         self.assertEqual("test", self.__Replace.normalizeString("test"))
@@ -164,6 +180,23 @@ class testWhitespace (unittest.TestCase):
         self.assertEqual(" test", self.__Replace.normalizeString("\ttest"))
         self.assertEqual(" test  ", self.__Replace.normalizeString("\ttest\n\r"))
         self.assertEqual(" test  too ", self.__Replace.normalizeString("\ttest\n\rtoo\n"))
+        self.assertEqual("test", self.__Replace.normalizeString(u"test"))
+        self.assertEqual("  test", self.__Replace.normalizeString(u"  test"))
+        self.assertEqual(" test", self.__Replace.normalizeString(u"\ttest"))
+        self.assertEqual(" test  ", self.__Replace.normalizeString(u"\ttest\n\r"))
+        self.assertEqual(" test  too ", self.__Replace.normalizeString(u"\ttest\n\rtoo\n"))
+
+    def testReplaceString (self):
+        self.assertEqual("test", ReplaceString("test"))
+        self.assertEqual("  test", ReplaceString("  test"))
+        self.assertEqual(" test", ReplaceString("\ttest"))
+        self.assertEqual(" test  ", ReplaceString("\ttest\n\r"))
+        self.assertEqual(" test  too ", ReplaceString("\ttest\n\rtoo\n"))
+        self.assertEqual("test", ReplaceString(u"test"))
+        self.assertEqual("  test", ReplaceString(u"  test"))
+        self.assertEqual(" test", ReplaceString(u"\ttest"))
+        self.assertEqual(" test  ", ReplaceString(u"\ttest\n\r"))
+        self.assertEqual(" test  too ", ReplaceString(u"\ttest\n\rtoo\n"))
 
     __Collapse = facets.CF_whiteSpace(value=facets._WhiteSpace_enum.collapse)
     def testCollapse (self):
@@ -172,6 +205,23 @@ class testWhitespace (unittest.TestCase):
         self.assertEqual("test", self.__Collapse.normalizeString("\ttest"))
         self.assertEqual("test", self.__Collapse.normalizeString("\ttest\n\r"))
         self.assertEqual("test too", self.__Collapse.normalizeString("\ttest\n\rtoo\n"))
+        self.assertEqual("test", self.__Collapse.normalizeString(u"test"))
+        self.assertEqual("test", self.__Collapse.normalizeString(u"  test"))
+        self.assertEqual("test", self.__Collapse.normalizeString(u"\ttest"))
+        self.assertEqual("test", self.__Collapse.normalizeString(u"\ttest\n\r"))
+        self.assertEqual("test too", self.__Collapse.normalizeString(u"\ttest\n\rtoo\n"))
+
+    def testCollapseString (self):
+        self.assertEqual("test", CollapseString("test"))
+        self.assertEqual("test", CollapseString("  test"))
+        self.assertEqual("test", CollapseString("\ttest"))
+        self.assertEqual("test", CollapseString("\ttest\n\r"))
+        self.assertEqual("test too", CollapseString("\ttest\n\rtoo\n"))
+        self.assertEqual("test", CollapseString(u"test"))
+        self.assertEqual("test", CollapseString(u"  test"))
+        self.assertEqual("test", CollapseString(u"\ttest"))
+        self.assertEqual("test", CollapseString(u"\ttest\n\r"))
+        self.assertEqual("test too", CollapseString(u"\ttest\n\rtoo\n"))
 
 if __name__ == '__main__':
     unittest.main()

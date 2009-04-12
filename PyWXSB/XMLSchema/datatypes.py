@@ -102,18 +102,35 @@ class _PST_mixin (object):
         setattr(cls, cls.__FacetMapAttributeName(), fm)
         return fm
 
+    @classmethod
+    def __ConvertArgs (cls, args):
+        """If the first argument is a string, and this class has a
+        whitespace facet, replace the first argument with the results
+        of applying whitespace normalization.
+
+        We need to do this for both __new__ and __init__, because in
+        some cases (e.g., str/unicode) the value is assigned during
+        __new__ not __init__."""
+        if (0 < len(args)) and isinstance(args[0], types.StringTypes):
+            cf_whitespace = getattr(cls, '_CF_whiteSpace', None)
+            if cf_whitespace is not None:
+                norm_str = unicode(cf_whitespace.normalizeString(args[0]))
+                args = (norm_str,) + args[1:]
+        return args
+
     # Must override new, because new gets invoked before init, and
     # usually doesn't accept keywords.  In case it does, only remove
-    # the ones that are interpreted by this class.
+    # the ones that are interpreted by this class.  Do the same
+    # argument conversion as is done in init.
     def __new__ (cls, *args, **kw):
         kw.pop('validate_constraints', None)
-        return super(_PST_mixin, cls).__new__(cls, *args, **kw)
+        return super(_PST_mixin, cls).__new__(cls, *cls.__ConvertArgs(args), **kw)
 
     # Validate the constraints after invoking the parent constructor,
     # unless told not to.
     def __init__ (self, *args, **kw):
         validate_constraints = kw.pop('validate_constraints', True)
-        super(_PST_mixin, self).__init__(*args, **kw)
+        super(_PST_mixin, self).__init__(*self.__ConvertArgs(args), **kw)
         if validate_constraints:
             self.xsdConstraintsOK()
 
@@ -279,11 +296,6 @@ class _PST_union (_PST_mixin):
     # initialized.  Alternative is to not descend from _PST_mixin.
     # @todo Ensure that pattern and enumeration are valid constraints
     __FacetMap = {}
-
-    @classmethod
-    def _SetFacetMapWithModule (cls, facets):
-        cls.__FacetMap.setdefault(facets.CF_pattern, facets.CF_pattern())
-        cls.__FacetMap.setdefault(facets.CF_enumeration, facets.CF_enumeration())
 
     @classmethod
     def Factory (cls, value, **kw):
