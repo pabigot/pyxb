@@ -40,4 +40,20 @@
 			<xs:enumeration value="un"/>
 		</xs:restriction>
 	</xs:simpleType>
+	<xs:simpleType name="words2">
+		<xs:union>
+			<xs:simpleType>
+				<xs:restriction base="xs:string">
+					<xs:enumeration value="four"/>
+					<xs:enumeration value="five"/>
+				</xs:restriction>
+			</xs:simpleType>
+			<xs:simpleType>
+				<xs:restriction base="xs:string">
+					<xs:enumeration value="pedwar"/>
+					<xs:enumeration value="pump"/>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:union>
+	</xs:simpleType>
 </xs:schema>

@@ -30,6 +30,11 @@ class TestUnion (unittest.TestCase):
         self.assertRaises(BadTypeValueError, ones.Factory, 'two')
         self.assertEqual(ones.un, ones.Factory('un'))
 
+    def testAnonymousUnion (self):
+        self.assertEqual('four', words2.Factory('four'))
+        self.assertEqual('pump', words2.Factory('pump'))
+        self.assertRaises(BadTypeValueError,  words2.Factory, 'one')
+
 if __name__ == '__main__':
     unittest.main()
     
