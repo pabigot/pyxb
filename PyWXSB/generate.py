@@ -15,6 +15,8 @@ import traceback
 from xml.dom import minidom
 from xml.dom import Node
 
+UniqueInUse = set()
+
 Namespace.XMLSchema.setModulePath('xs')
 
 def PrefixNamespace (ns, text):
@@ -88,13 +90,13 @@ class ReferenceClass (ReferenceLiteral):
         , Namespace.XMLSchemaModule().structures.ElementDeclaration: 'ED'
         }
     def asLiteral (self, **kw):
+        global UniqueInUse
         rv = getattr(self.__namedComponent, self.__GEN_Attr, None)
         if rv is None:
             name = self.__namedComponent.ncName()
             if name is None:
-                name = '_%s_ANON%d' % (self.__ComponentTagMap.get(type(self.__namedComponent), 'COMPONENT'), self._NextAnonymousIndex())
-            #rv = '_STD_%s' % (name,)
-            rv = name
+                name = '_%s_ANON' % (self.__ComponentTagMap.get(type(self.__namedComponent), 'COMPONENT'),)
+            rv = utility.MakeUnique(utility.DeconflictKeyword(utility.MakeIdentifier(name)), UniqueInUse)
             setattr(self.__namedComponent, self.__GEN_Attr, rv)
         return PrefixNamespace(self.__namedComponent.targetNamespace(), rv)
 
@@ -262,6 +264,7 @@ def GenerateSTD (std, **kw):
     template_map = { }
     template_map['std'] = pythonLiteral(std)
     template_map['superclasses'] = ', '.join(parent_classes)
+    template_map['name'] = pythonLiteral(std.ncName())
 
     if xs.structures.SimpleTypeDefinition.VARIETY_absent == std.variety():
         assert False
@@ -271,13 +274,18 @@ def GenerateSTD (std, **kw):
 # Atomic SimpleTypeDefinition
 class %{std} (%{superclasses}):
     """%{description}"""
-    pass
+
+    # The name of this type definition within the schema
+    _XsdName = %{name}
 '''
         template_map['description'] = ''
     elif xs.structures.SimpleTypeDefinition.VARIETY_list == std.variety():
         template = '''
 class %{std} (datatypes._PST_list):
     """%{description}"""
+
+    # The name of this type definition within the schema
+    _XsdName = %{name}
 
     # Type for items in the list
     _ItemType = %{itemtype}
@@ -288,6 +296,10 @@ class %{std} (datatypes._PST_list):
         template = '''
 class %{std} (datatypes._PST_union):
     """%{description}"""
+
+    # The name of this type definition within the schema
+    _XsdName = %{name}
+
     # Types of potential union members
     _MemberTypes = ( %{membertypes}, )
 '''
@@ -360,7 +372,7 @@ def GenerateED (ed, **kw):
     outf.write(templates.replaceInText('''
 # ElementDeclaration
 class %{class} (bindings.PyWXSB_element):
-    _ElementName = %{element_name}
+    _XsdName = %{element_name}
     _ElementScope = %{element_scope}
     _TypeDefinition = %{base_datatype}
 ''', **template_map))
@@ -411,6 +423,11 @@ def CreateFromDOM (node):
 
 ''', import_prefix=import_prefix))
     
+        # Give priority for identifiers to element declarations
+        for td in emit_order:
+            if isinstance(td, xs.structures.ElementDeclaration):
+                ReferenceClass(named_component=td).asLiteral()
+
         for td in emit_order:
             generator = GeneratorMap.get(type(td), None)
             if generator is None:
