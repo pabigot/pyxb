@@ -287,7 +287,8 @@ Order of Generation
 * SimpleTypeDefinition
 * AttributeDeclaration depends on SimpleTypeDefinition
 * AttributeUse depends on AttributeDeclaration
-* AttributeGroupDefinition depends on AttributeUse
+* AttributeGroupDefinition depends on AttributeUse (but don't exist at
+  generation time so nobody cares)
 * ComplexTypeDefinition depends on SimpleTypeDefinition and AttributeUse
 * ElementDeclaration depends on {Simple,Complex}TypeDefinition
 * ModelGroup depends on ElementDeclaration and Wildcard
