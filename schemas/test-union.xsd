@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xs:schema targetNamespace="URN:unionTest" xmlns:tns="URN:unionTest" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+	<xs:annotation>
+		<xs:documentation>Test case for unions</xs:documentation>
+	</xs:annotation>
+	<xs:element name="myElement" type="tns:myUnion"/>
+	<xs:simpleType name="singleDigit">
+		<xs:restriction base="xs:byte">
+			<xs:minInclusive value="0"/>
+			<xs:maxInclusive value="9"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="english">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="one"/>
+			<xs:enumeration value="two"/>
+			<xs:enumeration value="three"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="welsh">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="un"/>
+			<xs:enumeration value="dau"/>
+			<xs:enumeration value="tri"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="words">
+		<xs:union memberTypes="tns:english tns:welsh"/>
+	</xs:simpleType>
+	<xs:simpleType name="myUnion">
+		<xs:union memberTypes="tns:singleDigit tns:words"/>
+	</xs:simpleType>
+	<xs:simpleType name="unionList">
+		<xs:list itemType="tns:myUnion"/>
+	</xs:simpleType>
+	<xs:simpleType name="ones">
+		<xs:restriction base="tns:words">
+			<xs:enumeration value="one"/>
+			<xs:enumeration value="un"/>
+		</xs:restriction>
+	</xs:simpleType>
+</xs:schema>

@@ -1,7 +1,7 @@
 from PyWXSB.exceptions_ import *
 import unittest
-import facets
-import datatypes
+import PyWXSB.XMLSchema.facets as facets
+import PyWXSB.XMLSchema.datatypes as datatypes
 
 # 4.3.1 length
 # 4.3.2 minLength
@@ -58,8 +58,6 @@ class FixedPoint (datatypes.decimal):
 FixedPoint._CF_totalDigits =  facets.CF_totalDigits(super_facet=datatypes.decimal._CF_totalDigits, value=facets.CF_totalDigits._ValueDatatype(5))
 FixedPoint._CF_fractionDigits =  facets.CF_fractionDigits(super_facet=datatypes.decimal._CF_maxExclusive, value=facets.CF_fractionDigits._ValueDatatype(2))
 FixedPoint._InitializeFacetMap(FixedPoint._CF_totalDigits, FixedPoint._CF_fractionDigits)
-
-
 
 class testMaxInclusive (unittest.TestCase):
     def test (self):
@@ -151,3 +149,6 @@ class testDigits (unittest.TestCase):
         self.assertEqual(-12.3, FixedPoint(-12.3))
         self.assertEqual(-12.34, FixedPoint(-12.34))
         self.assertRaises(BadTypeValueError, FixedPoint, -12.345)
+
+if __name__ == '__main__':
+    unittest.main()
