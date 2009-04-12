@@ -152,16 +152,14 @@ instance has to follow the class proper.
 Complex Type Definitions
 ------------------------
 
-Complex type definitions are represented by Python classes.  The _CTD_mixin
-is a base class for all CTDs.
+Complex type definitions are represented by Python classes.
+bindings.PyWXSB_complexTypeDefinition is a base class for all CTDs.  This in
+turn is subclassed for each of the four content types: empty, simple, mixed,
+and element.  The content fields of a CTD are dependent on its content type.
 
-Each CTD includes a class variable _Particle which is None for empty and
-simple content, and is an instance of binding._Particle for element and
-mixed content.
-
-The base _CTD_mixin class provides an XsdCreateFromDOM method that walks the
-class hierarchy to assign attribute values, and the _Particle hierarchy to
-extract element values.
+The base PyWXSB_complexTypeDefinition class provides an InitializeFromDOM
+method that walks the class hierarchy to assign attribute values, and the
+_Particle hierarchy to extract element values.
 
 CTDs that are defined by extension apply thusly:
 * Any attribute or element that matches a corresponding attribute or element
@@ -220,10 +218,10 @@ the class corresponding to their type definition, primarily because that
 type might be a union STD.  Instead, the content is represented as a field,
 which is an instance of an STD or CTD class.
 
-The class has a variable _ElementName corresponding to the name property of
-the declaration component.  It also has a variable _ElementScope with value
-None for global scope, and a reference to a subclass of _CTD_mixin for
-non-global scope declarations.
+The class has a variable _XsdName corresponding to the name property of the
+declaration component.  It also has a variable _ElementScope with value None
+for global scope, and a reference to a subclass of _CTD_mixin for non-global
+scope declarations.
 
 Global scope element declarations are defined at the module level.
 Non-global scope element declarations are also so-represented, but the class

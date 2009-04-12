@@ -93,7 +93,7 @@ class ReferenceClass (ReferenceLiteral):
                 name = self.__namedComponent.ncName()
                 if name is None:
                     name = '_%s_ANON' % (self.__ComponentTagMap.get(type(self.__namedComponent), 'COMPONENT'),)
-                rv = utility.MakeUnique(utility.DeconflictKeyword(utility.MakeIdentifier(name)), UniqueInUse)
+                rv = utility.PrepareIdentifier(name, UniqueInUse)
                 setattr(self.__namedComponent, self.__GEN_Attr, rv)
         else:
             if Namespace.XMLSchema == tns:
@@ -322,42 +322,73 @@ class %{std} (datatypes._PST_union):
 
 def GenerateCTD (ctd, **kw):
     content_type = None
-    template = None
+    prolog_template = None
     template_map = { }
     template_map['ctd'] = pythonLiteral(ctd, **kw)
+
     if (ctd.CT_EMPTY == ctd.contentType()):
-        template = '''
+        prolog_template = '''
 # Complex type %{ctd} with empty content
 class %{ctd} (bindings.PyWXSB_CTD_empty):
-    pass
 '''
         pass
     elif (ctd.CT_SIMPLE == ctd.contentType()[0]):
         content_type = ctd.contentType()[1]
-        template = '''
+        prolog_template = '''
 # Complex type %{ctd} with simple content type %{basetype}
 class %{ctd} (bindings.PyWXSB_CTD_simple):
     _TypeDefinition = %{basetype}
-    pass
 '''
         template_map['basetype'] = pythonLiteral(content_type, **kw)
     elif (ctd.CT_MIXED == ctd.contentType()[0]):
         content_type = ctd.contentType()[1]
-        template = '''
+        prolog_template = '''
 # Complex type %{ctd} with mixed content
 class %{ctd} (bindings.PyWXSB_CTD_mixed):
-    pass
 '''
     elif (ctd.CT_ELEMENT_ONLY == ctd.contentType()[0]):
         content_type = ctd.contentType()[1]
-        template = '''
+        prolog_template = '''
 # Complex type %{ctd} with element-only content
 class %{ctd} (bindings.PyWXSB_CTD_element):
-    pass
 '''
 
-    if template is None:
-        return None
+    attribute_init = []
+    attribute_support = []
+    class_keywords = frozenset([ '_TypeDefinition' ])
+    class_unique = set()
+    for au in ctd.attributeUses():
+        ad = au.attributeDeclaration()
+        au_map = { }
+        au_map['attr_name'] = utility.PrepareIdentifier(ad.ncName(), class_unique, class_keywords)
+        au_map['attr_tag'] = pythonLiteral(ad.ncName(), **kw)
+        au_map['attr_type'] = pythonLiteral(ad.typeDefinition(), **kw)
+        attribute_init.append(templates.replaceInText('%{attr_name} = None # %{attr_type}', **au_map))
+        au_map['constraint_value'] = pythonLiteral(None, **kw)
+        vc = au.valueConstraint()
+        if vc is None:
+            vc = ad.valueConstraint()
+        aux_init = []
+        if vc is not None:
+            aux_init.append('default_value=%s' % (pythonLiteral(ad.valueConstraint()[0], **kw),))
+        if au.required():
+            aux_init.append('required=True')
+        if au.prohibited():
+            aux_init.append('prohibited=True')
+        if 0 == len(aux_init):
+            au_map['aux_init'] = ''
+        else:
+            aux_init.insert(0, '')
+            au_map['aux_init'] = ', '.join(aux_init)
+        attribute_support.append(templates.replaceInText("bindings.AttributeUse('%{attr_name}', %{attr_tag}, %{attr_type}%{aux_init})", **au_map))
+    
+    trailing_comma = ''
+    if 1 == len(attribute_support):
+        trailing_comma = ','
+    template = ''.join( [prolog_template,
+                         "    _Attributes = (\n    ", ",\n    ".join(attribute_support), trailing_comma, "\n    )\n\n"
+                             ] )
+
     return templates.replaceInText(template, **template_map)
 
 def GenerateED (ed, **kw):
@@ -404,6 +435,8 @@ def GeneratePython (input, **kw):
 import %{import_prefix}facets as facets
 import %{import_prefix}datatypes as datatypes
 import PyWXSB.bindings as bindings
+from xml.dom import minidom
+from xml.dom import Node
 
 NamespacePrefix = 'tns'
 

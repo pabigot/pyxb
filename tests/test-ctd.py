@@ -32,10 +32,23 @@ class TestCTD (unittest.TestCase):
         self.assertEqual('test', CreateFromDocument('<simple>test</simple>').content())
 
     def testString (self):
-        # 
         self.assertEqual('test', datatypes.string('test'))
-        self.assertEqual('test', string('test').content())
-        self.assertEqual('test', CreateFromDocument('<string>test</string>').content())
+        rv = string('test')
+        self.assert_(isinstance(rv.content(), datatypes.string))
+        self.assertEqual('test', rv.content())
+        rv = CreateFromDocument('<string>test</string>')
+        self.assert_(isinstance(rv, string))
+        self.assertEqual('test', rv.content())
+
+    def testEmptyWithAttr (self):
+        self.assertRaises(MissingAttributeError, CreateFromDocument, '<emptyWithAttr/>')
+        instance = CreateFromDocument('<emptyWithAttr capitalized="false"/>')
+        self.assertEqual('irish', instance.language)
+        self.assert_(not instance.capitalized)
+        instance = CreateFromDocument('<emptyWithAttr capitalized="true" language="hebrew"/>')
+        self.assertEqual('hebrew', instance.language)
+        self.assert_(instance.capitalized)
+        
 
     def testStructureElement (self):
         #self.assertEqual('test', CreateFromDocument('<structure>test</structure>'))

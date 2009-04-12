@@ -38,6 +38,12 @@ class UnrecognizedElementError (BadDocumentError):
 class NotAnElementError (UnrecognizedElementError):
     """Raised when processing document and a tag that is a type but not an element is encountered."""
 
+class ProhibitedAttributeError (BadDocumentError):
+    """Raised when an attribute that is prohibited is provided in an element."""
+
+class MissingAttributeError (BadDocumentError):
+    """Raised when an attribute that is required is missing in an element."""
+
 class PyWXSBError (exceptions.Exception):
     """Base class for exceptions that indicate a problem that the user probably can't fix."""
     pass
