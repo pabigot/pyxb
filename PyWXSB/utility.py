@@ -29,9 +29,9 @@ _Keywords = frozenset( ( "and", "del", "from", "not", "while", "as", "elif", "gl
               "break", "except", "import", "print", "class", "exec",
               "in", "raise", "continue", "finally", "is", "return",
               "def", "for", "lambda", "try" ) )
-def DeconflictKeyword (s):
+def DeconflictKeyword (s, aux_keywords=frozenset()):
     """If the provide string matches a keyword, append an underscore to distinguish them."""
-    if s in _Keywords:
+    if (s in _Keywords) or (s in aux_keywords):
         return '%s_' % (s,)
     return s
 
@@ -51,6 +51,9 @@ def MakeUnique (s, in_use):
         s = candidate
     in_use.add(s)
     return s
+
+def PrepareIdentifier (s, in_use, aux_keywords=frozenset()):
+    return MakeUnique(DeconflictKeyword(MakeIdentifier(s), aux_keywords), in_use)
 
 if '__main__' == __name__:
     import unittest
