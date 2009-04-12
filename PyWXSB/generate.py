@@ -81,12 +81,16 @@ class ReferenceClass (ReferenceLiteral):
         return rv
 
     __GEN_Attr = '_ReferenceClass_asLiteral'
+    __ComponentTagMap = {
+        Namespace.XMLSchemaModule().structures.SimpleTypeDefinition: 'STD'
+        , Namespace.XMLSchemaModule().structures.ComplexTypeDefinition: 'CTD'
+        }
     def asLiteral (self, **kw):
         rv = getattr(self.__namedComponent, self.__GEN_Attr, None)
         if rv is None:
             name = self.__namedComponent.ncName()
             if name is None:
-                name = '_Class_ANON%d' % (self._NextAnonymousIndex(),)
+                name = '_%s_ANON%d' % (self.__ComponentTagMap.get(type(self.__namedComponent), 'COMPONENT'), self._NextAnonymousIndex())
             #rv = '_STD_%s' % (name,)
             rv = name
             setattr(self.__namedComponent, self.__GEN_Attr, rv)
