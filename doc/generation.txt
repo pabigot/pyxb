@@ -140,15 +140,14 @@ Enumerations
 
 A key purpose of PyWXSB is to support named constants to represent
 enumeration values.  An STD has a class member variable _CF_enumeration if
-it has an enumeration restriction.  Any such class should also mix-in the
-facets._Enumeration_mixin class, to help with conversion between Unicode
-values and the enumeration constant values.
+it has an enumeration restriction.  This variable supports translation
+between tag, value, and unicode representations of the enumeration.
 
 The _CF_enumeration variable is an instance of the facets.CF_enumeration
-class.  Each class maintains a set of facets._EnumerationElement instances
-which record enumeration values.  Note that because the instance includes a
-reference to the class that owns the facet, the definition of the instance
-has to follow the class proper.
+class.  Each instance maintains a set of facets._EnumerationElement
+instances which record enumeration values.  Note that because the instance
+includes a reference to the class that owns the facet, the definition of the
+instance has to follow the class proper.
 
 Complex Type Definitions
 ------------------------
