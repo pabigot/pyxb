@@ -30,6 +30,7 @@ from PyWXSB.exceptions_ import *
 import structures as xsc
 import types
 import PyWXSB.Namespace as Namespace
+import PyWXSB.domutils as domutils
 
 _PrimitiveDatatypes = []
 _DerivedDatatypes = []
@@ -123,8 +124,15 @@ class _PST_mixin (object):
         """Provide a common mechanism to create new instances of this type.
 
         The class constructor won't do, because you can't create
-        instances of union types."""
+        instances of union types.
+
+        This method may be overridden in subclasses (like _PST_union)."""
         return cls(*args, **kw)
+
+    @classmethod
+    def CreateFromDOM (cls, node):
+        """Create a simple type instance from the given DOM Node instance."""
+        return cls.Factory(domutils.ExtractTextContent(node))
 
     # Must override new, because new gets invoked before init, and
     # usually doesn't accept keywords.  In case it does, only remove
@@ -380,12 +388,6 @@ class _PST_list (_PST_mixin, types.ListType):
     @classmethod
     def _XsdValueLength_vx (cls, value):
         return len(value)
-
-class _PYWXSB_element (_PST_mixin):
-    pass
-
-class _Enumeration_mixin (object):
-    pass
 
 # We use unicode as the Python type for anything that isn't a normal
 # primitive type.  Presumably, only enumeration and pattern facets

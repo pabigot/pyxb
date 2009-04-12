@@ -257,7 +257,7 @@ def GenerateSTD (std, **kw):
     parent_classes = [ pythonLiteral(std.baseTypeDefinition()) ]
     enum_facet = std.facets().get(xs.facets.CF_enumeration, None)
     if (enum_facet is not None) and (enum_facet.ownerTypeDefinition() == std):
-        parent_classes.append('facets._Enumeration_mixin')
+        parent_classes.append('bindings.PyWXSB_enumeration_mixin')
         
     template_map = { }
     template_map['std'] = pythonLiteral(std)
@@ -326,14 +326,10 @@ def GenerateED (ed, **kw):
     template_map['base_datatype'] = pythonLiteral(ReferenceClass(named_component=ed.typeDefinition()))
     outf.write(templates.replaceInText('''
 # ElementDeclaration
-class %{class}:
+class %{class} (bindings.PyWXSB_element):
     _ElementName = %{element_name}
     _ElementScope = %{element_scope}
-    __TypeDefinition = %{base_datatype}
-    __content = None
-    def __init__ (self, *args, **kw):
-        self.__content = self.__TypeDefinition.Factory(*args, **kw)
-    def content (self): return self.__content
+    _TypeDefinition = %{base_datatype}
 ''', **template_map))
     return outf.getvalue()
 
@@ -358,6 +354,7 @@ def GeneratePython (input, **kw):
         outf.write('''
 import %sfacets as facets
 import %sdatatypes as datatypes
+import PyWXSB.bindings as bindings
 ''' % (import_prefix, import_prefix))
     
         for td in emit_order:
