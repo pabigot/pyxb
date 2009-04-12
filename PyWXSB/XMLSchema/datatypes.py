@@ -384,6 +384,9 @@ class _PST_list (_PST_mixin, types.ListType):
 class _PYWXSB_element (_PST_mixin):
     pass
 
+class _Enumeration_mixin (object):
+    pass
+
 # We use unicode as the Python type for anything that isn't a normal
 # primitive type.  Presumably, only enumeration and pattern facets
 # will be applied.
