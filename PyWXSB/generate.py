@@ -84,6 +84,7 @@ class ReferenceClass (ReferenceLiteral):
     __ComponentTagMap = {
         Namespace.XMLSchemaModule().structures.SimpleTypeDefinition: 'STD'
         , Namespace.XMLSchemaModule().structures.ComplexTypeDefinition: 'CTD'
+        , Namespace.XMLSchemaModule().structures.ElementDeclaration: 'ED'
         }
     def asLiteral (self, **kw):
         rv = getattr(self.__namedComponent, self.__GEN_Attr, None)
@@ -288,8 +289,35 @@ class %s (datatypes._PST_union):
 def GenerateCTD (ctd, **kw):
     return "# %s\n" % (ctd,)
 
+import PyWXSB.templates as templates
+
+def GenerateED (ed, **kw):
+    outf = StringIO.StringIO()
+    template_map = { }
+    template_map['class'] = pythonLiteral(ReferenceClass(named_component=ed))
+    template_map['element_name'] = pythonLiteral(ed.ncName())
+    if (ed.SCOPE_global == ed.scope()):
+        template_map['element_scope'] = pythonLiteral(None)
+    else:
+        template_map['element_scope'] = pythonLiteral(ed.scope())
+    template_map['base_datatype'] = pythonLiteral(ReferenceClass(named_component=ed.typeDefinition()))
+    outf.write(templates.replaceInText('''
+# ElementDeclaration
+class %{class}:
+    _ElementName = %{element_name}
+    _ElementScope = %{element_scope}
+    __TypeDefinition = %{base_datatype}
+    __content = None
+    def __init__ (self, *args, **kw):
+        self.__content = self.__TypeDefinition.Factory(*args, **kw)
+    def content (self): return self.__content
+''', **template_map))
+    return outf.getvalue()
+
+
 GeneratorMap = {
     xs.structures.SimpleTypeDefinition : GenerateSTD
+  , xs.structures.ElementDeclaration : GenerateED
 #  , xs.structures.ComplexTypeDefinition : GenerateCTD
 }
 
