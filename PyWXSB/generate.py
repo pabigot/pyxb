@@ -19,15 +19,6 @@ UniqueInUse = set()
 
 Namespace.XMLSchema.setModulePath('xs')
 
-def PrefixNamespace (ns, text):
-    if Namespace.XMLSchema == ns:
-        mp = 'datatypes'
-    else:
-        mp = ns.modulePath()
-    if mp is not None:
-        text = '%s.%s' % (mp, text)
-    return text
-
 def PrefixModule (value, text=None):
     if text is None:
         text = value.__name__
@@ -44,13 +35,23 @@ class ReferenceLiteral (object):
     # Either a STD or a subclass of _Enumeration_mixin, this is the
     # class in which the referenced object is a member.
     __ownerClass = None
+
+    # The value to be used as a literal for this object
+    __literal = None
+
     def __init__ (self, **kw):
         # NB: Pre-extend __init__
         self.__ownerClass = kw.get('type_definition', None)
 
-    def _addTypePrefix (self, text):
+    def _literal (self, literal):
+        self.__literal = literal
+
+    def asLiteral (self):
+        return self.__literal
+
+    def _addTypePrefix (self, text, **kw):
         if self.__ownerClass is not None:
-            text = '%s.%s' % (pythonLiteral(self.__ownerClass), text)
+            text = '%s.%s' % (pythonLiteral(self.__ownerClass, **kw), text)
         return text
 
 class ReferenceFacetMember (ReferenceLiteral):
@@ -67,21 +68,10 @@ class ReferenceFacetMember (ReferenceLiteral):
 
         super(ReferenceFacetMember, self).__init__(**kw)
 
-    def asLiteral (self, **kw):
-        return self._addTypePrefix('_CF_%s' % (self.__facetClass.Name(),))
+        self._literal(self._addTypePrefix('_CF_%s' % (self.__facetClass.Name(),), **kw))
 
 class ReferenceClass (ReferenceLiteral):
     __namedComponent = None
-    __AnonymousIndex = 0
-
-    def __init__ (self, **kw):
-        self.__namedComponent = kw['named_component']
-
-    @classmethod
-    def _NextAnonymousIndex (cls):
-        rv = cls.__AnonymousIndex
-        cls.__AnonymousIndex += 1
-        return rv
 
     __GEN_Attr = '_ReferenceClass_asLiteral'
     __ComponentTagMap = {
@@ -89,17 +79,32 @@ class ReferenceClass (ReferenceLiteral):
         , Namespace.XMLSchemaModule().structures.ComplexTypeDefinition: 'CTD'
         , Namespace.XMLSchemaModule().structures.ElementDeclaration: 'ED'
         }
-    def asLiteral (self, **kw):
-        global UniqueInUse
-        rv = getattr(self.__namedComponent, self.__GEN_Attr, None)
-        if rv is None:
-            name = self.__namedComponent.ncName()
-            if name is None:
-                name = '_%s_ANON' % (self.__ComponentTagMap.get(type(self.__namedComponent), 'COMPONENT'),)
-            rv = utility.MakeUnique(utility.DeconflictKeyword(utility.MakeIdentifier(name)), UniqueInUse)
-            setattr(self.__namedComponent, self.__GEN_Attr, rv)
-        return PrefixNamespace(self.__namedComponent.targetNamespace(), rv)
 
+    def __init__ (self, **kw):
+        self.__namedComponent = kw['named_component']
+
+        global UniqueInUse
+        btns = kw['binding_target_namespace']
+        tns = self.__namedComponent.targetNamespace()
+
+        if btns == tns:
+            rv = getattr(self.__namedComponent, self.__GEN_Attr, None)
+            if rv is None:
+                name = self.__namedComponent.ncName()
+                if name is None:
+                    name = '_%s_ANON' % (self.__ComponentTagMap.get(type(self.__namedComponent), 'COMPONENT'),)
+                rv = utility.MakeUnique(utility.DeconflictKeyword(utility.MakeIdentifier(name)), UniqueInUse)
+                setattr(self.__namedComponent, self.__GEN_Attr, rv)
+        else:
+            if Namespace.XMLSchema == tns:
+                mp = 'datatypes'
+            else:
+                mp = tns.modulePath()
+            rv = self.__namedComponent.ncName()
+            if mp is not None:
+                rv = '%s.%s' % (mp, rv)
+        self._literal(rv)
+    
 class ReferenceFacet (ReferenceLiteral):
 
     __facet = None
@@ -107,9 +112,7 @@ class ReferenceFacet (ReferenceLiteral):
     def __init__ (self, **kw):
         self.__facet = kw['facet']
         super(ReferenceFacet, self).__init__(**kw)
-        
-    def asLiteral (self, **kw):
-        return '%s._CF_%s' % (pythonLiteral(self.__facet.ownerTypeDefinition()), self.__facet.Name())
+        self._literal('%s._CF_%s' % (pythonLiteral(self.__facet.ownerTypeDefinition(), **kw), self.__facet.Name()))
         
 
 class ReferenceEnumerationMember (ReferenceLiteral):
@@ -124,7 +127,7 @@ class ReferenceEnumerationMember (ReferenceLiteral):
 
         # See if we were given a value, from which we can extract the
         # other information.
-        value = kw.get('value', None)
+        value = kw.get('enum_value', None)
         assert (value is None) or isinstance(value, xs.facets._Enumeration_mixin)
 
         # Must provide facet_instance, or a value from which it can be
@@ -149,22 +152,21 @@ class ReferenceEnumerationMember (ReferenceLiteral):
 
         super(ReferenceEnumerationMember, self).__init__(**kw)
 
-    def asLiteral (self, **kw):
-        return self._addTypePrefix(self.enumerationElement.tag())
+        self._literal(self._addTypePrefix(self.enumerationElement.tag(), **kw))
 
-def pythonLiteral (value):
+def pythonLiteral (value, **kw):
     # For dictionaries, apply translation to all values (not keys)
     if isinstance(value, types.DictionaryType):
-        return ', '.join([ '%s=%s' % (k, pythonLiteral(v)) for (k, v) in value.items() ])
+        return ', '.join([ '%s=%s' % (k, pythonLiteral(v, **kw)) for (k, v) in value.items() ])
 
     # For tuples, apply translation to all members
     if isinstance(value, types.TupleType):
-        return tuple([ pythonLiteral(_v) for _v in value ])
+        return tuple([ pythonLiteral(_v, **kw) for _v in value ])
 
     # Value is a binding value for which there should be an
     # enumeration constant.  Return that constant.
     if isinstance(value, xs.facets._Enumeration_mixin):
-        return pythonLiteral(ReferenceEnumerationMember(value=value))
+        return pythonLiteral(ReferenceEnumerationMember(enum_value=value, **kw))
 
     # Value is an instance of a Python binding, e.g. one of the
     # XMLSchema datatypes.  Use its value, applying the proper prefix
@@ -183,7 +185,7 @@ def pythonLiteral (value):
         return utility.QuotedEscaped(value,)
 
     if isinstance(value, xs.facets.Facet):
-        return pythonLiteral(ReferenceFacet(facet=value))
+        return pythonLiteral(ReferenceFacet(facet=value, **kw))
 
     # Treat pattern elements as their value
     if isinstance(value, xs.facets._PatternElement):
@@ -193,9 +195,8 @@ def pythonLiteral (value):
     if isinstance(value, xs.facets._EnumerationElement):
         return pythonLiteral(value.value())
 
-    if isinstance(value, (xs.structures.SimpleTypeDefinition, xs.structures.ComplexTypeDefinition) ):
-        #return PrefixNamespace(value.targetNamespace(), value.ncName())
-        return pythonLiteral(ReferenceClass(named_component=value))
+    if isinstance(value, xs.structures._NamedComponent_mixin):
+        return pythonLiteral(ReferenceClass(named_component=value, **kw))
 
     # Other special cases
     if isinstance(value, ReferenceLiteral):
@@ -209,7 +210,7 @@ def pythonLiteral (value):
     return str(value)
 
 
-def GenerateFacets (outf, td):
+def GenerateFacets (outf, td, **kw):
     facet_instances = []
     for (fc, fi) in td.facets().items():
         #if (fi is None) or (fi.ownerTypeDefinition() != td):
@@ -234,37 +235,37 @@ def GenerateFacets (outf, td):
                 argset['super_facet'] = fi.superFacet()
             if isinstance(fi, xs.facets.CF_enumeration):
                 argset['enum_prefix'] = fi.enumPrefix()
-        facet_var = ReferenceFacetMember(type_definition=td, facet_class=fc)
-        outf.write("%s = %s(%s)\n" % pythonLiteral( (facet_var, fc, argset )))
-        facet_instances.append(pythonLiteral(facet_var))
+        facet_var = ReferenceFacetMember(type_definition=td, facet_class=fc, **kw)
+        outf.write("%s = %s(%s)\n" % pythonLiteral( (facet_var, fc, argset ), **kw))
+        facet_instances.append(pythonLiteral(facet_var, **kw))
         if (fi is not None) and is_collection:
             for i in fi.items():
                 if isinstance(i, xs.facets._EnumerationElement):
-                    enum_member = ReferenceEnumerationMember(type_definition=td, facet_instance=fi, enumeration_element=i)
-                    outf.write("%s = %s.addEnumeration(unicode_value=%s)\n" % pythonLiteral( (enum_member, facet_var, i.unicodeValue() )))
+                    enum_member = ReferenceEnumerationMember(type_definition=td, facet_instance=fi, enumeration_element=i, **kw)
+                    outf.write("%s = %s.addEnumeration(unicode_value=%s)\n" % pythonLiteral( (enum_member, facet_var, i.unicodeValue() ), **kw))
                     if fi.enumPrefix() is not None:
-                        outf.write("%s_%s = %s\n" % (fi.enumPrefix(), i.tag(), pythonLiteral(enum_member)))
+                        outf.write("%s_%s = %s\n" % (fi.enumPrefix(), i.tag(), pythonLiteral(enum_member, **kw)))
                 if isinstance(i, xs.facets._PatternElement):
-                    outf.write("%s.addPattern(pattern=%s)\n" % pythonLiteral( (facet_var, i.pattern )))
+                    outf.write("%s.addPattern(pattern=%s)\n" % pythonLiteral( (facet_var, i.pattern ), **kw))
     if 2 <= len(facet_instances):
         map_args = ",\n   ".join(facet_instances)
     else:
         map_args = ','.join(facet_instances)
-    outf.write("%s._InitializeFacetMap(%s)\n" % (pythonLiteral(td), map_args))
+    outf.write("%s._InitializeFacetMap(%s)\n" % (pythonLiteral(td, **kw), map_args))
 
 def GenerateSTD (std, **kw):
     generate_facets = kw.get('generate_facets', False)
     outf = StringIO.StringIO()
 
-    parent_classes = [ pythonLiteral(std.baseTypeDefinition()) ]
+    parent_classes = [ pythonLiteral(std.baseTypeDefinition(), **kw) ]
     enum_facet = std.facets().get(xs.facets.CF_enumeration, None)
     if (enum_facet is not None) and (enum_facet.ownerTypeDefinition() == std):
         parent_classes.append('bindings.PyWXSB_enumeration_mixin')
         
     template_map = { }
-    template_map['std'] = pythonLiteral(std)
+    template_map['std'] = pythonLiteral(std, **kw)
     template_map['superclasses'] = ', '.join(parent_classes)
-    template_map['name'] = pythonLiteral(std.ncName())
+    template_map['name'] = pythonLiteral(std.ncName(), **kw)
 
     if xs.structures.SimpleTypeDefinition.VARIETY_absent == std.variety():
         assert False
@@ -290,7 +291,7 @@ class %{std} (datatypes._PST_list):
     # Type for items in the list
     _ItemType = %{itemtype}
 '''
-        template_map['itemtype'] = pythonLiteral(std.itemTypeDefinition())
+        template_map['itemtype'] = pythonLiteral(std.itemTypeDefinition(), **kw)
         template_map['description'] = templates.replaceInText('Simple type that is a list of %{itemtype}', **template_map)
     elif xs.structures.SimpleTypeDefinition.VARIETY_union == std.variety():
         template = '''
@@ -303,7 +304,7 @@ class %{std} (datatypes._PST_union):
     # Types of potential union members
     _MemberTypes = ( %{membertypes}, )
 '''
-        template_map['membertypes'] = ", ".join( [ pythonLiteral(_mt) for _mt in std.memberTypeDefinitions() ])
+        template_map['membertypes'] = ", ".join( [ pythonLiteral(_mt, **kw) for _mt in std.memberTypeDefinitions() ])
         template_map['description'] = templates.replaceInText('Simple type that is a union of %{membertypes}', **template_map)
 
     if 0 == len(template_map['description']):
@@ -314,16 +315,16 @@ class %{std} (datatypes._PST_union):
         # If generating datatype_facets, throw away the class garbage
         outf = StringIO.StringIO()
         if std.isBuiltin():
-            GenerateFacets(outf, std)
+            GenerateFacets(outf, std, **kw)
     else:
-        GenerateFacets(outf, std)
+        GenerateFacets(outf, std, **kw)
     return outf.getvalue()
 
 def GenerateCTD (ctd, **kw):
     content_type = None
     template = None
     template_map = { }
-    template_map['ctd'] = pythonLiteral(ctd)
+    template_map['ctd'] = pythonLiteral(ctd, **kw)
     if (ctd.CT_EMPTY == ctd.contentType()):
         template = '''
 # Complex type %{ctd} with empty content
@@ -339,7 +340,7 @@ class %{ctd} (bindings.PyWXSB_CTD_simple):
     _TypeDefinition = %{basetype}
     pass
 '''
-        template_map['basetype'] = pythonLiteral(ReferenceClass(named_component=content_type))
+        template_map['basetype'] = pythonLiteral(content_type, **kw)
     elif (ctd.CT_MIXED == ctd.contentType()[0]):
         content_type = ctd.contentType()[1]
         template = '''
@@ -362,13 +363,13 @@ class %{ctd} (bindings.PyWXSB_CTD_element):
 def GenerateED (ed, **kw):
     outf = StringIO.StringIO()
     template_map = { }
-    template_map['class'] = pythonLiteral(ReferenceClass(named_component=ed))
-    template_map['element_name'] = pythonLiteral(ed.ncName())
+    template_map['class'] = pythonLiteral(ed, **kw)
+    template_map['element_name'] = pythonLiteral(ed.ncName(), **kw)
     if (ed.SCOPE_global == ed.scope()):
-        template_map['element_scope'] = pythonLiteral(None)
+        template_map['element_scope'] = pythonLiteral(None, **kw)
     else:
-        template_map['element_scope'] = pythonLiteral(ed.scope())
-    template_map['base_datatype'] = pythonLiteral(ReferenceClass(named_component=ed.typeDefinition()))
+        template_map['element_scope'] = pythonLiteral(ed.scope(), **kw)
+    template_map['base_datatype'] = pythonLiteral(ed.typeDefinition(), **kw)
     outf.write(templates.replaceInText('''
 # ElementDeclaration
 class %{class} (bindings.PyWXSB_element):
@@ -388,14 +389,17 @@ GeneratorMap = {
 def GeneratePython (input, **kw):
     try:
         wxs = xs.schema().CreateFromDOM(minidom.parse(input))
-        TargetNamespace = wxs.getTargetNamespace()
+
+        generator_kw = kw.copy()
+        generator_kw['binding_target_namespace'] = wxs.getTargetNamespace()
+
         emit_order = wxs.orderedComponents()
         outf = StringIO.StringIO()
     
         import_prefix = 'PyWXSB.XMLSchema.'
-        if TargetNamespace == Namespace.XMLSchema:
+        if wxs.getTargetNamespace() == Namespace.XMLSchema:
             import_prefix = ''
-        
+
         outf.write(templates.replaceInText('''
 import %{import_prefix}facets as facets
 import %{import_prefix}datatypes as datatypes
@@ -426,13 +430,13 @@ def CreateFromDOM (node):
         # Give priority for identifiers to element declarations
         for td in emit_order:
             if isinstance(td, xs.structures.ElementDeclaration):
-                ReferenceClass(named_component=td).asLiteral()
+                ReferenceClass(named_component=td, **generator_kw).asLiteral()
 
         for td in emit_order:
             generator = GeneratorMap.get(type(td), None)
             if generator is None:
                 continue
-            outf.write(generator(td, **kw))
+            outf.write(generator(td, **generator_kw))
     
         return outf.getvalue()
     
