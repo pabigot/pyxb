@@ -4,6 +4,7 @@ print xs.datatypes
 
 from PyWXSB.exceptions_ import *
 import PyWXSB.utility as utility
+import PyWXSB.templates as templates
 
 import PyWXSB.Namespace as Namespace
 #from PyWXSB.generate import PythonGenerator as Generator
@@ -252,31 +253,51 @@ def GenerateFacets (outf, td):
 def GenerateSTD (std, **kw):
     generate_facets = kw.get('generate_facets', False)
     outf = StringIO.StringIO()
+
     parent_classes = [ pythonLiteral(std.baseTypeDefinition()) ]
     enum_facet = std.facets().get(xs.facets.CF_enumeration, None)
     if (enum_facet is not None) and (enum_facet.ownerTypeDefinition() == std):
         parent_classes.append('facets._Enumeration_mixin')
         
+    template_map = { }
+    template_map['std'] = pythonLiteral(std)
+    template_map['superclasses'] = ', '.join(parent_classes)
+
     if xs.structures.SimpleTypeDefinition.VARIETY_absent == std.variety():
         assert False
-        pass
+        return None
     elif xs.structures.SimpleTypeDefinition.VARIETY_atomic == std.variety():
-        outf.write('''
-class %s (%s):
+        template = '''
+# Atomic SimpleTypeDefinition
+class %{std} (%{superclasses}):
+    """%{description}"""
     pass
-''' % (pythonLiteral(std), ', '.join(parent_classes)))
+'''
+        template_map['description'] = ''
     elif xs.structures.SimpleTypeDefinition.VARIETY_list == std.variety():
-        outf.write('''
-class %s (datatypes._PST_list):
+        template = '''
+class %{std} (datatypes._PST_list):
+    """%{description}"""
+
     # Type for items in the list
-    _ItemType = %s
-''' % pythonLiteral( (std, std.itemTypeDefinition()) ))
+    _ItemType = %{itemtype}
+'''
+        template_map['itemtype'] = pythonLiteral(std.itemTypeDefinition())
+        template_map['description'] = templates.replaceInText('Simple type that is a list of %{itemtype}', **template_map)
     elif xs.structures.SimpleTypeDefinition.VARIETY_union == std.variety():
-        outf.write('''
-class %s (datatypes._PST_union):
+        template = '''
+class %{std} (datatypes._PST_union):
+    """%{description}"""
     # Types of potential union members
-    _MemberTypes = ( %s )
-''' % ( pythonLiteral(std), ", ".join( [ pythonLiteral(_mt) for _mt in std.memberTypeDefinitions() ])))
+    _MemberTypes = ( %{membertypes}, )
+'''
+        template_map['membertypes'] = ", ".join( [ pythonLiteral(_mt) for _mt in std.memberTypeDefinitions() ])
+        template_map['description'] = templates.replaceInText('Simple type that is a union of %{membertypes}', **template_map)
+
+    if 0 == len(template_map['description']):
+        template_map['description'] = 'No information'
+    outf.write(templates.replaceInText(template, **template_map))
+
     if generate_facets:
         # If generating datatype_facets, throw away the class garbage
         outf = StringIO.StringIO()
@@ -287,9 +308,9 @@ class %s (datatypes._PST_union):
     return outf.getvalue()
 
 def GenerateCTD (ctd, **kw):
-    return "# %s\n" % (ctd,)
-
-import PyWXSB.templates as templates
+    return templates.replaceInText('''
+# Complex type %{ctd}
+''', ctd=pythonLiteral(ctd))
 
 def GenerateED (ed, **kw):
     outf = StringIO.StringIO()
@@ -318,7 +339,7 @@ class %{class}:
 GeneratorMap = {
     xs.structures.SimpleTypeDefinition : GenerateSTD
   , xs.structures.ElementDeclaration : GenerateED
-#  , xs.structures.ComplexTypeDefinition : GenerateCTD
+  , xs.structures.ComplexTypeDefinition : GenerateCTD
 }
 
 def GeneratePython (input, **kw):
