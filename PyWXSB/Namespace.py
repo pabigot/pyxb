@@ -504,7 +504,7 @@ def SetXMLSchemaModule (xs_module):
             unpickler = pickle.Unpickler(infile)
             uri = unpickler.load()
             __LoadableNamespaces[uri] = afn
-            print 'pre-parsed schema for %s available in %s' % (uri, afn)
+            #print 'pre-parsed schema for %s available in %s' % (uri, afn)
 
 class _XMLSchema_instance (Namespace):
     """Extension of Namespace that pre-defines types available in the
