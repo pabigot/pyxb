@@ -2,7 +2,7 @@ import PyWXSB.generate
 from xml.dom import minidom
 from xml.dom import Node
 
-code = PyWXSB.generate.GeneratePython('schemas/test-ctd.xsd')
+code = PyWXSB.generate.GeneratePython('schemas/test-cdt-attr.xsd')
 rv = compile(code, 'test', 'exec')
 eval(rv)
 
