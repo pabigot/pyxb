@@ -62,25 +62,24 @@ class PyWXSB_element (object):
 class AttributeUse (object):
     """A helper class that encapsulates everything we need to know about an attribute."""
     __tag = None       # Unicode XML tag @todo not including namespace
+    __valueAttributeName = None # Private attribute used in the associated class to hold the attribute value
     __dataType = None  # PST datatype
-    __value = None     # The current value of the attribute
     __defaultValue = None       # Unicode default value, or None
     __fixed = False             # If True, value cannot be changed
     __required = False          # If True, attribute must appear
     __prohibited = False        # If True, attribute must not appear
-    __provided = False          # If True, attribute was set from DOM or user
 
-    def __init__ (self, tag, data_type, default_value=None, fixed=False, required=False, prohibited=False):
+    def __init__ (self, tag, value_attribute_name, data_type, default_value=None, fixed=False, required=False, prohibited=False):
         self.__tag = tag
+        self.__valueAttributeName = value_attribute_name
         self.__dataType = data_type
         self.__defaultValue = default_value
         self.__fixed = fixed
         self.__required = required
         self.__prohibited = prohibited
-        assert not self.__provided
 
     def __getValue (self, cdt_instance):
-        return getattr(cdt_instance, '__AU_%s' % (self.__tag,), (False, None))
+        return getattr(cdt_instance, self.__valueAttributeName, (False, None))
 
     def __getProvided (self, cdt_instance):
         return self.__getValue(cdt_instance)[0]
@@ -90,7 +89,7 @@ class AttributeUse (object):
         return self.__getValue(cdt_instance)[1]
 
     def __setValue (self, cdt_instance, new_value, provided):
-        return setattr(cdt_instance, '__AU_%s' % (self.__tag,), (provided, new_value))
+        return setattr(cdt_instance, self.__valueAttributeName, (provided, new_value))
 
     def setFromDOM (self, cdt_instance, node):
         unicode_value = self.__defaultValue
