@@ -2152,8 +2152,8 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
         pattern restrictions."""
         if self.VARIETY_union != variety:
             return self
-        self.__facets.setdefault(facets.CF_pattern, facets.CF_pattern(base_type_definition=self))
-        self.__facets.setdefault(facets.CF_enumeration, facets.CF_enumeration(base_type_definition=self))
+        self.__facets.setdefault(facets.CF_pattern, None)
+        self.__facets.setdefault(facets.CF_enumeration, None)
         return self
 
     def __processHasFacetAndProperty (self, wxs, variety):
