@@ -1,6 +1,7 @@
 import PyWXSB.Namespace as Namespace
 from PyWXSB.exceptions_ import *
 from xml.dom import Node
+import xml.dom as dom
 
 def NodeAttribute (node, schema, attribute_ncname, attribute_ns=Namespace.XMLSchema):
     """Look up an attribute in a node.
@@ -110,3 +111,15 @@ def HasNonAnnotationChild (wxs, node):
             return True
     return False
 
+def ExtractTextContent (node):
+    text = []
+    for cn in node.childNodes:
+        if Node.TEXT_NODE == cn.nodeType:
+            text.append(cn.data)
+        elif Node.CDATA_SECTION_NODE == cn.nodeType:
+            text.append(cn.data)
+        elif Node.COMMENT_NODE == cn.nodeType:
+            pass
+        else:
+            raise BadDocumentError('Non-text node %s found in content' % (cn,))
+    return ''.join(text)
