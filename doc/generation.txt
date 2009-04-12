@@ -215,9 +215,10 @@ Ick.  Don't know yet.
 Element Declarations
 --------------------
 
-Element declarations are represented by classes that inherit from
-binding._ED_mixin and the class corresponding to the declaration's type
-definition.
+Element declarations are represented by classes.  They do not inherit from
+the class corresponding to their type definition, primarily because that
+type might be a union STD.  Instead, the content is represented as a field,
+which is an instance of an STD or CTD class.
 
 The class has a variable _ElementName corresponding to the name property of
 the declaration component.  It also has a variable _ElementScope with value
