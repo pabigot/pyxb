@@ -33,4 +33,20 @@
 		<xs:attribute name="capitalized" type="xs:boolean" use="required"/>
 	</xs:complexType>
 	<xs:element name="emptyWithAttr" type="emptyWithAttr"/>
+	<xs:attributeGroup id="attrGroupA" name="attrGroupA">
+		<xs:attribute name="groupMember2" type="xs:string" default="gM2"/>
+		<xs:attribute name="groupMember1" type="xs:string" default="gM1"/>
+	</xs:attributeGroup>
+	<xs:attributeGroup name="attrGroupB">
+		<xs:attributeGroup ref="attrGroupA"/>
+		<xs:attribute name="bMember1" type="xs:string" default="bM1"/>
+	</xs:attributeGroup>
+	<xs:complexType name="emptyWithAttrGroups">
+		<xs:annotation>
+			<xs:documentation>This element has no data, but does have an attribute.</xs:documentation>
+		</xs:annotation>
+		<xs:attribute name="localAttr1" default="lA1"/>
+		<xs:attributeGroup ref="attrGroupB"/>
+	</xs:complexType>
+	<xs:element name="emptyWithAttrGroups" type="emptyWithAttrGroups"/>
 </xs:schema>

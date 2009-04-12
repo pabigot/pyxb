@@ -1194,20 +1194,23 @@ class AttributeGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _
         uses = set()
         ref_attr = NodeAttribute(node, wxs, 'ref')
         if ref_attr is not None:
-            agd = wxs.lookupAttributeGroup(ref_attr)
-            if not agd.isResolved():
-                print 'Holding off resolution of attribute group %s due to dependence on unresolved %s' % (self.name(), agd.name())
-                wxs._queueForResolution(self)
-                return self
-            uses = uses.union(agd.attributeUses())
+            raise SchemaValidationError('Attribute reference at top level')
         xs_attribute = wxs.xsQualifiedNames('attribute')
+        xs_attributeGroup = wxs.xsQualifiedNames('attributeGroup')
         for cn in node.childNodes:
             if Node.ELEMENT_NODE != cn.nodeType:
                 continue
-            if cn.nodeName not in xs_attribute:
-                continue
-            uses.add(AttributeUse.CreateFromDOM(wxs, cn))
-
+            if cn.nodeName in xs_attribute:
+                uses.add(AttributeUse.CreateFromDOM(wxs, cn))
+            elif cn.nodeName in xs_attributeGroup:
+                ref_attr = NodeAttribute(cn, wxs, 'ref')
+                if ref_attr is None:
+                    raise SchemaValidationError('Non-reference attribute group')
+                agd = wxs.lookupAttributeGroup(ref_attr)
+                if not agd.isResolved():
+                    wxs._queueForResolution(self)
+                    return self
+                uses = uses.union(agd.attributeUses())
         self.__attributeUses = frozenset(uses)
         self.__isResolved = True
         self.__domNode = None

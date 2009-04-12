@@ -15,7 +15,8 @@ def NodeAttribute (node, schema, attribute_ncname, attribute_ns=Namespace.XMLSch
     even if that is not the default namespace for the schema.
 
     Return the requested attribute, or None if the attribute is not
-    present in the node.
+    present in the node.  Raises SchemaValidationError if the
+    attribute appears multiple times.  @todo Not sure that's right.
 
     An example of where this is necessary is the attribute declaration
     for "lang" in http://www.w3.org/XML/1998/namespace, The simpleType

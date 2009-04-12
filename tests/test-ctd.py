@@ -49,6 +49,13 @@ class TestCTD (unittest.TestCase):
         self.assertEqual('hebrew', instance.language())
         self.assert_(instance.capitalized())
 
+    def testEmptyWithAttrGroups (self):
+        instance = CreateFromDocument('<emptyWithAttrGroups/>')
+        self.assertEqual('gM1', instance.groupMember1())
+        self.assertEqual('gM2', instance.groupMember2())
+        self.assertEqual('bM1', instance.bMember1())
+        self.assertEqual('lA1', instance.localAttr1())
+
     def testStructureElement (self):
         #self.assertEqual('test', CreateFromDocument('<structure>test</structure>'))
         pass
