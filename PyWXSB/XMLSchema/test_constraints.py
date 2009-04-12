@@ -8,7 +8,7 @@ import PyWXSB.XMLSchema.datatypes as datatypes
 # 4.3.3 maxLength
 # NEED 4.3.4 pattern
 # 4.3.5 enumeration
-# NEED 4.3.6 whiteSpace
+# 4.3.6 whiteSpace
 # 4.3.7 maxInclusive
 # 4.3.8 maxExclusive
 # 4.3.9 minExclusive
@@ -149,6 +149,29 @@ class testDigits (unittest.TestCase):
         self.assertEqual(-12.3, FixedPoint(-12.3))
         self.assertEqual(-12.34, FixedPoint(-12.34))
         self.assertRaises(BadTypeValueError, FixedPoint, -12.345)
+
+class testWhitespace (unittest.TestCase):
+    __Preserve = facets.CF_whiteSpace(value=facets._WhiteSpace_enum.preserve)
+    def testPreserve (self):
+        cases = [ "test", "  test", "  test", "\ttest", "\ttest\n\rtoo\n" ]
+        for c in cases:
+            self.assertEqual(c, self.__Preserve.normalizeString(c))
+
+    __Replace = facets.CF_whiteSpace(value=facets._WhiteSpace_enum.replace)
+    def testReplace (self):
+        self.assertEqual("test", self.__Replace.normalizeString("test"))
+        self.assertEqual("  test", self.__Replace.normalizeString("  test"))
+        self.assertEqual(" test", self.__Replace.normalizeString("\ttest"))
+        self.assertEqual(" test  ", self.__Replace.normalizeString("\ttest\n\r"))
+        self.assertEqual(" test  too ", self.__Replace.normalizeString("\ttest\n\rtoo\n"))
+
+    __Collapse = facets.CF_whiteSpace(value=facets._WhiteSpace_enum.collapse)
+    def testCollapse (self):
+        self.assertEqual("test", self.__Collapse.normalizeString("test"))
+        self.assertEqual("test", self.__Collapse.normalizeString("  test"))
+        self.assertEqual("test", self.__Collapse.normalizeString("\ttest"))
+        self.assertEqual("test", self.__Collapse.normalizeString("\ttest\n\r"))
+        self.assertEqual("test too", self.__Collapse.normalizeString("\ttest\n\rtoo\n"))
 
 if __name__ == '__main__':
     unittest.main()
