@@ -399,7 +399,7 @@ class anySimpleType (_PST_mixin, unicode):
 
     @classmethod
     def XsdLiteral (cls, value):
-        return "u'%s'" % (value,)
+        return value
 # anySimpleType is not treated as a primitive, because its variety
 # must be absent (not atomic).
     
@@ -413,7 +413,7 @@ class string (_PST_mixin, unicode):
     @classmethod
     def XsdLiteral (cls, value):
         assert isinstance(value, cls)
-        return repr(value)
+        return value
 
     @classmethod
     def XsdValueLength (cls, value):

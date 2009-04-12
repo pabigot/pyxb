@@ -54,12 +54,19 @@ class TestCTD (unittest.TestCase):
         self.assertEqual('irish', instance.language())
         self.assert_(instance.capitalized() is None)
 
+        self.assertEqual('<emptyWithAttr/>', instance.toDOM().toxml())
+        instance.setLanguage('french')
+        self.assertEqual('<emptyWithAttr language="french"/>', instance.toDOM().toxml())
+
+
     def testEmptyWithAttrGroups (self):
         instance = CreateFromDocument('<emptyWithAttrGroups/>')
         self.assertEqual('gM1', instance.groupMember1())
         self.assertEqual('gM2', instance.groupMember2())
         self.assertEqual('bM1', instance.bMember1())
         self.assertEqual('lA1', instance.localAttr1())
+        # Note that defaulted attributes are not generated in the DOM.
+        self.assertEqual('<emptyWithAttrGroups/>', instance.toDOM().toxml())
 
     def testStructureElement (self):
         #self.assertEqual('test', CreateFromDocument('<structure>test</structure>'))

@@ -1,6 +1,7 @@
 from PyWXSB.exceptions_ import *
 import XMLSchema as xs
 import xml.dom as dom
+from xml.dom import minidom
 import domutils
 
 class PyWXSB_element (object):
@@ -51,6 +52,9 @@ class PyWXSB_element (object):
         rv.__setContent(cls._TypeDefinition.CreateFromDOM(node))
         return rv
 
+    def toDOM (self):
+        return self.content().toDOM(self._XsdName)
+
 class AttributeUse (object):
     """A helper class that encapsulates everything we need to know about an attribute."""
     __tag = None       # Unicode XML tag @todo not including namespace
@@ -60,6 +64,7 @@ class AttributeUse (object):
     __fixed = False             # If True, value cannot be changed
     __required = False          # If True, attribute must appear
     __prohibited = False        # If True, attribute must not appear
+    __provided = False          # If True, attribute was set from DOM or user
 
     def __init__ (self, tag, data_type, default_value=None, fixed=False, required=False, prohibited=False):
         self.__tag = tag
@@ -69,7 +74,7 @@ class AttributeUse (object):
         self.__required = required
         self.__prohibited = prohibited
 
-    def setFromDOM (self, ctd_instance, node):
+    def setFromDOM (self, node):
         unicode_value = self.__defaultValue
         if isinstance(node, dom.Node):
             if node.hasAttribute(self.__tag):
@@ -88,6 +93,12 @@ class AttributeUse (object):
             self.__value = self.__dataType(unicode_value)
         return self
 
+    def addDOMAttribute (self, element):
+        """If this attribute as been set, add the corresponding attribute to the DOM element."""
+        if self.__provided:
+            element.setAttribute(self.__tag, self.__value.xsdLiteral())
+        return self
+
     def value (self):
         """Get the value of the attribute."""
         return self.__value
@@ -96,9 +107,10 @@ class AttributeUse (object):
         """Set the value of the attribute.
 
         This validates the value against the data type."""
-        if not isinstance(new_value, self__dataType):
+        if not isinstance(new_value, self.__dataType):
             new_value = self.__dataType(new_value)
         self.__value = new_value
+        self.__provided = True
         return self.__value
 
 class PyWXSB_enumeration_mixin (object):
@@ -111,8 +123,14 @@ class PyWXSB_complexTypeDefinition (object):
     """
     def _setAttributesFromDOM (self, node):
         for au in self._AttributeUses:
-            au.setFromDOM(self, node)
+            au.setFromDOM(node)
         return self
+
+    def _setDOMFromAttributes (self, element):
+        """Add any appropriate attributes from this instance into the DOM element."""
+        for au in self._AttributeUses:
+            au.addDOMAttribute(element)
+        return element
 
 class PyWXSB_CTD_empty (PyWXSB_complexTypeDefinition):
     """Base for any Python class that serves as the binding for an
@@ -126,6 +144,11 @@ class PyWXSB_CTD_empty (PyWXSB_complexTypeDefinition):
     def CreateFromDOM (cls, node):
         """Create a raw instance, and set attributes from the DOM node."""
         return cls()._setAttributesFromDOM(node)
+
+    def toDOM (self, element_tag):
+        """Create a DOM element with the given tag holding the content of this instance."""
+        doc = minidom.getDOMImplementation().createDocument(None, element_tag, None)
+        return self._setDOMFromAttributes(doc.documentElement)
 
 class PyWXSB_CTD_simple (PyWXSB_complexTypeDefinition):
     """Base for any Python class that serves as the binding for an
