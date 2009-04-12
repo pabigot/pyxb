@@ -363,7 +363,7 @@ class %{ctd} (bindings.PyWXSB_CTD_element):
         au_map['attr_inspector'] = ai = utility.PrepareIdentifier(ad.ncName(), class_unique, class_keywords)
         au_map['attr_mutator'] = utility.PrepareIdentifier('set' + ai[0].upper() + ai[1:], class_unique, class_keywords)
         au_map['attr_name'] = utility.PrepareIdentifier(ad.ncName(), class_unique, class_keywords, private=True)
-        au_map['value_attr_name'] = utility.PrepareIdentifier(ad.ncName(), class_unique, class_keywords, private=True)
+        au_map['value_attr_name'] = utility.PrepareIdentifier('%s_%s' % (template_map['ctd'], ad.ncName()), class_unique, class_keywords, private=True)
         au_map['attr_tag'] = pythonLiteral(ad.ncName(), **kw)
         au_map['attr_type'] = pythonLiteral(ad.typeDefinition(), **kw)
         au_map['constraint_value'] = pythonLiteral(None, **kw)
