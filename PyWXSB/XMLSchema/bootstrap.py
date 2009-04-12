@@ -157,6 +157,10 @@ class schema (xsc.Schema):
             ( prefix, local_name ) = type_name.split(':', 1)
             ns = self.namespaceForPrefix(prefix)
         elif (self.__defaultNamespace is not None) and (self.__defaultNamespace != self.__targetNamespace):
+            # @todo There was some reason why it was important to not
+            # do this for the target namespace...
+            ns = self.__defaultNamespace
+        elif (self.__defaultNamespace is not None):
             ns = self.__defaultNamespace
         if ns is None:
             # Not sure but that this isn't actually allowable.  If so,

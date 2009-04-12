@@ -308,11 +308,44 @@ class %{std} (datatypes._PST_union):
     return outf.getvalue()
 
 def GenerateCTD (ctd, **kw):
-    return templates.replaceInText('''
-# Complex type %{ctd}
-class %{ctd}:
+    content_type = None
+    template = None
+    template_map = { }
+    template_map['ctd'] = pythonLiteral(ctd)
+    if (ctd.CT_EMPTY == ctd.contentType()):
+        template = '''
+# Complex type %{ctd} with empty content
+class %{ctd} (bindings.PyWXSB_CTD_empty):
     pass
-''', ctd=pythonLiteral(ctd))
+'''
+        pass
+    elif (ctd.CT_SIMPLE == ctd.contentType()[0]):
+        content_type = ctd.contentType()[1]
+        template = '''
+# Complex type %{ctd} with simple content type %{basetype}
+class %{ctd} (bindings.PyWXSB_CTD_simple):
+    _TypeDefinition = %{basetype}
+    pass
+'''
+        template_map['basetype'] = pythonLiteral(ReferenceClass(named_component=content_type))
+    elif (ctd.CT_MIXED == ctd.contentType()[0]):
+        content_type = ctd.contentType()[1]
+        template = '''
+# Complex type %{ctd} with mixed content
+class %{ctd} (bindings.PyWXSB_CTD_mixed):
+    pass
+'''
+    elif (ctd.CT_ELEMENT_ONLY == ctd.contentType()[0]):
+        content_type = ctd.contentType()[1]
+        template = '''
+# Complex type %{ctd} with element-only content
+class %{ctd} (bindings.PyWXSB_CTD_element):
+    pass
+'''
+
+    if template is None:
+        return None
+    return templates.replaceInText(template, **template_map)
 
 def GenerateED (ed, **kw):
     outf = StringIO.StringIO()
