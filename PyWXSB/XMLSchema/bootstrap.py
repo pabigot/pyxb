@@ -296,7 +296,12 @@ class schema (xsc.Schema):
     def getTargetNamespace (self):
         return self.__targetNamespace
 
-    def targetNamespaceFromDOM (self, node, default_tag):
+    # Compile-time spelling check
+    __QUALIFIED = 'qualified'
+    # Compile-time spelling check
+    __UNQUALIFIED = 'unqualified'
+
+    def defaultNamespaceFromDOM (self, node, default_tag):
         """Determine the approprate namespace for a local
         attribute/element in the schema.
 
@@ -316,9 +321,9 @@ class schema (xsc.Schema):
         if form is None:
             form = self.schemaAttribute(default_tag)
         assert form is not None
-        if not form in [ 'qualified', 'unqualified' ]:
-            raise SchemaValidationError('form attribute must be "qualified" or "unqualified"')
-        if 'qualifled' == form:
+        if not form in [ self.__QUALIFIED, self.__UNQUALIFIED ]:
+            raise SchemaValidationError('form attribute must be "%s" or "%s"' % (self.__QUALIFIED, self.__UNQUALIFIED))
+        if self.__UNQUALIFIED == form:
             return self.getTargetNamespace()
         return None
 
