@@ -1390,6 +1390,21 @@ class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
     def GroupMemberTags (cls, wxs):
         return [ wxs.xsQualifiedName(_tag) for _tag in [ 'all', 'choice', 'sequence' ] ]
 
+    def elementDeclarations (self):
+        """Return a list of all ElementDeclarations that are at the top level of this model group."""
+        element_decls = []
+        model_groups = [ self ]
+        while model_groups:
+            mg = model_groups.pop(0)
+            for p in mg.particles():
+                if isinstance(p.term(), ModelGroup):
+                    model_groups.append(p.term())
+                elif isinstance(p.term(), ElementDeclaration):
+                    element_decls.append(p.term())
+                else:
+                    pass
+        return element_decls
+
     def __str__ (self):
         comp = None
         if self.C_ALL == self.compositor():
@@ -1438,6 +1453,7 @@ class Particle (_SchemaComponent_mixin, _Resolvable_mixin):
         """Return true iff the term might appear multiple times."""
         if (self.maxOccurs() is None) or 1 < self.maxOccurs():
             return True
+        # @todo is this correct?
         return self.term().isPlural()
 
     def _dependentComponents_vx (self):
