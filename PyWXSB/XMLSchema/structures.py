@@ -101,6 +101,21 @@ class _SchemaComponent_mixin (object):
         definition."""
         return isinstance(self, (_SimpleUrTypeDefinition, _UrTypeDefinition))
 
+    def bestNCName (self):
+        """Return the name of this component, as best it can be
+        determined.
+
+        For example, ModelGroup instances will be named by their
+        ModelGroupDefinition, if available.  Returns None if no name
+        can be inferred."""
+        if isinstance(self, _NamedComponent_mixin):
+            return self.ncName()
+        if isinstance(self, ModelGroup):
+            agd = self.modelGroupDefinition()
+            if agd is not None:
+                return agd.ncName()
+        return None
+
     def nameInBinding (self):
         """Return the name by which this component is known in the XSD
         binding.  NB: To support builtin datatypes,
@@ -649,6 +664,8 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Resolv
             namespace = wxs.getTargetNamespace()
             scope = cls.SCOPE_global
         elif NodeAttribute(node, wxs, 'ref') is None:
+            # NB: It is perfectly legal for namespace to be None when
+            # processing local elements.
             namespace = wxs.defaultNamespaceFromDOM(node, 'elementFormDefault')
             if not ancestor_component:
                 raise IncompleteImplementationError("Require ancestor information for local element:\n%s\n" % (node.toxml(),))

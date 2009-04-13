@@ -253,7 +253,7 @@ class Namespace (object):
             for td in components:
                 # Anything not in this namespace is just thrown away.
                 try:
-                    if self != td.targetNamespace():
+                    if (self != td.targetNamespace()) and (td.targetNamespace() is not None):
                         print 'Discarding %s: tns=%s not %s' % (td, td.targetNamespace(), self)
                         continue
                 except AttributeError:

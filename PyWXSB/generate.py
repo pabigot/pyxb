@@ -110,17 +110,19 @@ class ReferenceSchemaComponent (ReferenceLiteral):
             # The initial name is the name of the component, or if the
             # component can't be named the name of something else
             # relevant.
-            name = None
-            try:
-                name = self.__component.ncName()
-            except:
-                # ModelGroup instances are not named, but they're
-                # often associated with a ModelGroupDefinition which
-                # is.
-                if isinstance(self.__component, xs.structures.ModelGroup):
-                    mgd = self.__component.modelGroupDefinition()
-                    if mgd is not None:
-                        name = mgd.ncName()
+            name = self.__component.bestNCName()
+
+            # Element declarations may be local, in which case we want
+            # to incorporate the parentage in the name.
+            parent = self.__component
+            while isinstance(parent, xs.structures.ElementDeclaration):
+                ac = self.__component.ancestorComponent()
+                if ac is not None:
+                    ancestor_name = ac.bestNCName()
+                    if ancestor_name is None:
+                        ancestor_name = 'unknown'
+                    name = '%s_%s' % (ancestor_name, name)
+                parent = ac
             if name is None:
                 name = '_%s_ANON_%d' % (self.__ComponentTagMap.get(type(self.__component), 'COMPONENT'), self.__NextAnonymousIndex())
             name = utility.PrepareIdentifier(name, UniqueInBinding)
