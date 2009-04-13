@@ -254,6 +254,7 @@ class Namespace (object):
                 # Anything not in this namespace is just thrown away.
                 try:
                     if self != td.targetNamespace():
+                        print 'Discarding %s: tns=%s not %s' % (td, td.targetNamespace(), self)
                         continue
                 except AttributeError:
                     pass
