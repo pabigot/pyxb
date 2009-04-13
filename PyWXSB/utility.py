@@ -52,7 +52,7 @@ def MakeUnique (s, in_use):
     in_use.add(s)
     return s
 
-def PrepareIdentifier (s, in_use, aux_keywords=frozenset(), private=False):
+def PrepareIdentifier (s, in_use, aux_keywords=frozenset(), private=False, protected=False):
     """Combine everything required to create a unique identifier.
 
     in_use is the set of already used identifiers.  Upon return from
@@ -66,12 +66,11 @@ def PrepareIdentifier (s, in_use, aux_keywords=frozenset(), private=False):
     underscores, making it a private variable within a Python class.
     If private is False, all leading underscores are stripped,
     guaranteeing the identifier will not be private."""
-    s = MakeIdentifier(s)
+    s = MakeIdentifier(s).lstrip('_')
     if private:
-        while not s.startswith('__'):
-            s = '_' + s
-    else:
-        s = s.lstrip('_')
+        s = '__' + s
+    elif protected:
+        s = '_' + s
     return MakeUnique(DeconflictKeyword(s, aux_keywords), in_use)
 
 if '__main__' == __name__:
