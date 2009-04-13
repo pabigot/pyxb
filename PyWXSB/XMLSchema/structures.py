@@ -45,16 +45,16 @@ class _SchemaComponent_mixin (object):
 
     # The schema component that owns this.  If None, the component is
     # owned directly by the schema.
-    #__owner = None
+    __owner = None
 
     # The schema components owned by this component.  All named
     # components are owned by the schema; anonymous ones are owned by
     # intervening components.
-    #__ownedComponents = None
+    __ownedComponents = None
 
     def __init__ (self, *args, **kw):
+        self.__ownedComponents = set()
         super(_SchemaComponent_mixin, self).__init__(*args, **kw)
-        #self.__ownedComponents = set()
         if 'schema' not in kw:
             raise LogicError('Constructor failed to provide owning schema')
         self.__schema = kw['schema']
@@ -62,16 +62,16 @@ class _SchemaComponent_mixin (object):
             self.__schema = None
         if self.__schema is not None:
             self.__schema._associateComponent(self)
-        #self.__owner = kw.get('owner', None)
+        self._setOwner(kw.get('owner', None))
 
-    #def _setOwner (self, owner):
-    #    if owner is not None:
-    #        assert self.__owner is None
-    #        self.__owner = owner
-    #        owner.__ownedComponents.insert(self)
+    def _setOwner (self, owner):
+        if owner is not None:
+            assert (self.__owner is None) or (self.__owner == owner)
+            self.__owner = owner
+            owner.__ownedComponents.add(self)
 
     def schema (self): return self.__schema
-    #def owner (self): return self.__owner
+    def owner (self): return self.__owner
 
     # Cached frozenset of components on which this component depends.
     __dependentComponents = None
@@ -166,7 +166,7 @@ class _Annotated_mixin (object):
     def _annotationFromDOM (self, wxs, node):
         cn = LocateUniqueChild(node, wxs, 'annotation')
         if cn is not None:
-            self.__annotation = Annotation.CreateFromDOM(wxs, cn)
+            self.__annotation = Annotation.CreateFromDOM(wxs, cn, owner=self)
 
     def _setFromInstance (self, other):
         assert self != other
@@ -432,7 +432,7 @@ class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
         return bi
 
     @classmethod
-    def CreateFromDOM (cls, wxs, node):
+    def CreateFromDOM (cls, wxs, node, owner=None):
         # Node should be an XMLSchema attribute node
         assert node.nodeName in wxs.xsQualifiedNames('attribute')
 
@@ -442,7 +442,7 @@ class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
         elif NodeAttribute(node, wxs, 'ref') is None:
             namespace = wxs.defaultNamespaceFromDOM(node, 'attributeFormDefault')
 
-        rv = cls(name=name, target_namespace=namespace, schema=wxs)
+        rv = cls(name=name, target_namespace=namespace, schema=wxs, owner=owner)
         rv._annotationFromDOM(wxs, node)
         rv._valueConstraintFromDOM(wxs, node)
         rv.__domNode = node
@@ -472,7 +472,7 @@ class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
         st_node = LocateUniqueChild(node, wxs, 'simpleType')
         type_attr = NodeAttribute(node, wxs, 'type')
         if st_node is not None:
-            self.__typeDefinition = SimpleTypeDefinition.CreateFromDOM(wxs, st_node)
+            self.__typeDefinition = SimpleTypeDefinition.CreateFromDOM(wxs, st_node, owner=self)
         elif type_attr is not None:
             # Although the type definition may not be resolved, *this* component
             # is resolved, since we don't look into the type definition for anything.
@@ -522,9 +522,9 @@ class AttributeUse (_SchemaComponent_mixin, _Resolvable_mixin, _ValueConstraint_
         return frozenset([self.__attributeDeclaration])
 
     @classmethod
-    def CreateFromDOM (cls, wxs, node):
+    def CreateFromDOM (cls, wxs, node, owner=None):
         assert node.nodeName in wxs.xsQualifiedNames('attribute')
-        rv = cls(schema=wxs)
+        rv = cls(schema=wxs, owner=owner)
         rv.__use = cls.USE_optional
         use = NodeAttribute(node, wxs, 'use')
         if use is not None:
@@ -542,7 +542,7 @@ class AttributeUse (_SchemaComponent_mixin, _Resolvable_mixin, _ValueConstraint_
         if NodeAttribute(node, wxs, 'ref') is None:
             # Create an anonymous declaration, which will be resolved
             # separately
-            rv.__attributeDeclaration = AttributeDeclaration.CreateFromDOM(wxs, node)
+            rv.__attributeDeclaration = AttributeDeclaration.CreateFromDOM(wxs, node, owner=rv)
         else:
             rv.__domNode = node
             wxs._queueForResolution(rv)
@@ -652,7 +652,7 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Resolv
         return False
 
     @classmethod
-    def CreateFromDOM (cls, wxs, node, ancestor_component=None):
+    def CreateFromDOM (cls, wxs, node, ancestor_component=None, owner=None):
         # Node should be an XMLSchema element node
         assert node.nodeName in wxs.xsQualifiedNames('element')
 
@@ -679,7 +679,7 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Resolv
         else:
             raise LogicError('Created reference as element declaration')
         
-        rv = cls(name=name, target_namespace=namespace, ancestor_component=ancestor_component, schema=wxs)
+        rv = cls(name=name, target_namespace=namespace, ancestor_component=ancestor_component, schema=wxs, owner=owner)
         rv.__scope = scope
         rv._annotationFromDOM(wxs, node)
         rv._valueConstraintFromDOM(wxs, node)
@@ -715,17 +715,17 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Resolv
         identity_constraints = []
         for cn in node.childNodes:
             if (Node.ELEMENT_NODE == cn.nodeType) and (cn.nodeName in id_tags):
-                identity_constraints.append(IdentityConstraintDefinition.CreateFromDOM(wxs, cn))
+                identity_constraints.append(IdentityConstraintDefinition.CreateFromDOM(wxs, cn, owner=self))
         self.__identityConstraintDefinitions = identity_constraints
 
         type_def = None
         td_node = LocateUniqueChild(node, wxs, 'simpleType')
         if td_node is not None:
-            type_def = SimpleTypeDefinition.CreateFromDOM(wxs, node)
+            type_def = SimpleTypeDefinition.CreateFromDOM(wxs, node, owner=self)
         else:
             td_node = LocateUniqueChild(node, wxs, 'complexType')
             if td_node is not None:
-                type_def = ComplexTypeDefinition.CreateFromDOM(wxs, td_node)
+                type_def = ComplexTypeDefinition.CreateFromDOM(wxs, td_node, owner=self)
         if type_def is None:
             type_attr = NodeAttribute(node, wxs, 'type')
             if type_attr is not None:
@@ -916,13 +916,13 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
         return frozenset(rv)
 
     @classmethod
-    def CreateFromDOM (cls, wxs, node):
+    def CreateFromDOM (cls, wxs, node, owner=None):
         # Node should be an XMLSchema complexType node
         assert node.nodeName in wxs.xsQualifiedNames('complexType')
 
         name = NodeAttribute(node, wxs, 'name')
 
-        rv = cls(name=name, target_namespace=wxs.getTargetNamespace(), derivation_method=None, schema=wxs)
+        rv = cls(name=name, target_namespace=wxs.getTargetNamespace(), derivation_method=None, schema=wxs, owner=owner)
 
         # Creation does not attempt to do resolution.  Queue up the newly created
         # whatsis so we can resolve it after everything's been read in.
@@ -944,7 +944,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
                 continue
             if node.nodeName in xs_attribute:
                 # Note: This attribute use instance may have use=prohibited
-                uses_c1.add(AttributeUse.CreateFromDOM(wxs, node))
+                uses_c1.add(AttributeUse.CreateFromDOM(wxs, node, owner=self))
             elif node.nodeName in xs_attributeGroup:
                 # This must be an attributeGroupRef
                 ref_attr =NodeAttribute(node, wxs, 'ref')
@@ -1065,7 +1065,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
         else:
             # Clause 2.2
             assert typedef_node is not None
-            effective_content = Particle.CreateFromDOM(wxs, typedef_node, self)
+            effective_content = Particle.CreateFromDOM(wxs, typedef_node, self, owner=self)
 
         # Shared from clause 3.1.2
         if effective_mixed:
@@ -1214,11 +1214,11 @@ class AttributeGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _
         return frozenset(rv)
 
     @classmethod
-    def CreateFromDOM (cls, wxs, node):
+    def CreateFromDOM (cls, wxs, node, owner=None):
         assert node.nodeName in wxs.xsQualifiedNames('attributeGroup')
         name = NodeAttribute(node, wxs, 'name')
 
-        rv = cls(name=name, target_namespace=wxs.getTargetNamespace(), schema=wxs)
+        rv = cls(name=name, target_namespace=wxs.getTargetNamespace(), schema=wxs, owner=owner)
         rv._annotationFromDOM(wxs, node)
         wxs._queueForResolution(rv)
         rv.__domNode = node
@@ -1244,7 +1244,7 @@ class AttributeGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _
             if Node.ELEMENT_NODE != cn.nodeType:
                 continue
             if cn.nodeName in xs_attribute:
-                uses.add(AttributeUse.CreateFromDOM(wxs, cn))
+                uses.add(AttributeUse.CreateFromDOM(wxs, cn, owner=self))
             elif cn.nodeName in xs_attributeGroup:
                 ref_attr = NodeAttribute(cn, wxs, 'ref')
                 if ref_attr is None:
@@ -1278,13 +1278,13 @@ class ModelGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Anno
         return frozenset([self.__modelGroup])
 
     @classmethod
-    def CreateFromDOM (cls, wxs, node):
+    def CreateFromDOM (cls, wxs, node, owner=None):
         assert node.nodeName in wxs.xsQualifiedNames('group')
 
         assert NodeAttribute(node, wxs, 'ref') is None
 
         name = NodeAttribute(node, wxs, 'name')
-        rv = cls(name=name, target_namespace=wxs.getTargetNamespace(), schema=wxs)
+        rv = cls(name=name, target_namespace=wxs.getTargetNamespace(), schema=wxs, owner=owner)
         rv._annotationFromDOM(wxs, node)
 
         mg_tags = ModelGroup.GroupMemberTags(wxs)
@@ -1293,7 +1293,7 @@ class ModelGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Anno
                 continue
             if cn.nodeName in mg_tags:
                 assert not rv.__modelGroup
-                rv.__modelGroup = ModelGroup.CreateFromDOM(wxs, cn, model_group_definition=rv)
+                rv.__modelGroup = ModelGroup.CreateFromDOM(wxs, cn, model_group_definition=rv, owner=rv)
         assert rv.__modelGroup is not None
         return rv
 
@@ -1366,6 +1366,8 @@ class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
                 # NB: Ancestor of particle is set in the ModelGroup constructor
                 particles.append(Particle.CreateFromDOM(wxs, cn, None))
         rv = cls(compositor=compositor, particles=particles, schema=wxs, **kw)
+        for p in particles:
+            p._setOwner(rv)
         rv._annotationFromDOM(wxs, node)
         return rv
 
@@ -1458,7 +1460,7 @@ class Particle (_SchemaComponent_mixin, _Resolvable_mixin):
         return self
 
     @classmethod
-    def CreateFromDOM (cls, wxs, node, ancestor_component):
+    def CreateFromDOM (cls, wxs, node, ancestor_component, owner=None):
         min_occurs = 1
         max_occurs = 1
         if not node.nodeName in cls.ParticleTags(wxs):
@@ -1473,7 +1475,7 @@ class Particle (_SchemaComponent_mixin, _Resolvable_mixin):
             else:
                 max_occurs = datatypes.nonNegativeInteger(attr_val)
 
-        rv = cls(term=None, min_occurs=min_occurs, max_occurs=max_occurs, ancestor_component=ancestor_component, schema=wxs)
+        rv = cls(term=None, min_occurs=min_occurs, max_occurs=max_occurs, ancestor_component=ancestor_component, schema=wxs, owner=owner)
         rv.__domNode = node
         wxs._queueForResolution(rv)
 
@@ -1508,17 +1510,17 @@ class Particle (_SchemaComponent_mixin, _Resolvable_mixin):
             if ref_attr is not None:
                 term = wxs.lookupElement(ref_attr)
             else:
-                term = ElementDeclaration.CreateFromDOM(wxs, node, self.__ancestorComponent)
+                term = ElementDeclaration.CreateFromDOM(wxs, node, self.__ancestorComponent, owner=self)
             assert term is not None
         elif node.nodeName in wxs.xsQualifiedNames('any'):
             # 3.9.2 says use 3.10.2, which is Wildcard.
-            term = Wildcard.CreateFromDOM(wxs, node)
+            term = Wildcard.CreateFromDOM(wxs, node, owner=self)
             assert term is not None
         elif node.nodeName in ModelGroup.GroupMemberTags(wxs):
             # Choice, sequence, and all inside a particle are explicit
             # groups (or a restriction of explicit group, in the case
             # of all)
-            term = ModelGroup.CreateFromDOM(wxs, node)
+            term = ModelGroup.CreateFromDOM(wxs, node, owner=self)
         else:
             raise LogicError('Unhandled node in Particle._resolve: %s' % (node.toxml(),))
         assert term is not None
@@ -1589,7 +1591,7 @@ class Wildcard (_SchemaComponent_mixin, _Annotated_mixin):
         return frozenset()
 
     @classmethod
-    def CreateFromDOM (cls, wxs, node):
+    def CreateFromDOM (cls, wxs, node, owner=None):
         nc = NodeAttribute(node, wxs, 'namespace')
         if nc is None:
             namespace_constraint = cls.NC_any
@@ -1621,7 +1623,7 @@ class Wildcard (_SchemaComponent_mixin, _Annotated_mixin):
             else:
                 raise SchemaValidationError('illegal value "%s" for any processContents attribute' % (pc,))
 
-        rv = cls(namespace_constraint=namespace_constraint, process_contents=process_contents, schema=wxs)
+        rv = cls(namespace_constraint=namespace_constraint, process_contents=process_contents, schema=wxs, owner=owner)
         rv._annotationFromDOM(wxs, node)
         return rv
 
@@ -1653,9 +1655,9 @@ class IdentityConstraintDefinition (_SchemaComponent_mixin, _NamedComponent_mixi
         return frozenset()
 
     @classmethod
-    def CreateFromDOM (cls, wxs, node):
+    def CreateFromDOM (cls, wxs, node, owner=None):
         name = NodeAttribute(node, wxs, 'name')
-        rv = cls(name=name, target_namespace=wxs.getTargetNamespace(), schema=wxs)
+        rv = cls(name=name, target_namespace=wxs.getTargetNamespace(), schema=wxs, owner=owner)
         #rv._annotationFromDOM(wxs, node);
         if node.nodeName in wxs.xsQualifiedNames('key'):
             rv.__identityConstraintCategory = cls.ICC_KEY
@@ -1695,7 +1697,7 @@ class IdentityConstraintDefinition (_SchemaComponent_mixin, _NamedComponent_mixi
             elif cn.nodeName in wxs.xsQualifiedNames('annotation'):
                 an = cn
             if an is not None:
-                rv.__annotations.append(Annotation.CreateFromDOM(wxs, an))
+                rv.__annotations.append(Annotation.CreateFromDOM(wxs, an, owner=rv))
 
         return rv
     
@@ -1715,9 +1717,9 @@ class NotationDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Annot
         return frozenset()
 
     @classmethod
-    def CreateFromDOM (cls, wxs, node):
+    def CreateFromDOM (cls, wxs, node, owner=None):
         name = NodeAttribute(node, wxs, 'name')
-        rv = cls(name=name, target_namespace=wxs.getTargetNamespace(), schema=wxs)
+        rv = cls(name=name, target_namespace=wxs.getTargetNamespace(), schema=wxs, owner=owner)
 
         rv.__systemIdentifier = NodeAttribute(node, wxs, 'system')
         rv.__publicIdentifier = NodeAttribute(node, wxs, 'public')
@@ -1756,8 +1758,8 @@ class Annotation (_SchemaComponent_mixin):
     __attributes = None
 
     @classmethod
-    def CreateFromDOM (cls, wxs, node):
-        rv = cls(schema=wxs)
+    def CreateFromDOM (cls, wxs, node, owner=None):
+        rv = cls(schema=wxs, owner=owner)
 
         # @todo: Scan for attributes in the node itself that do not
         # belong to the XMLSchema namespace.
@@ -2343,7 +2345,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
                     # NOTE: The newly created anonymous item type will
                     # not be resolved; the caller needs to handle
                     # that.
-                    self.__itemTypeDefinition = self.CreateFromDOM(wxs, self.__singleSimpleTypeChild(wxs, body))
+                    self.__itemTypeDefinition = self.CreateFromDOM(wxs, self.__singleSimpleTypeChild(wxs, body), owner=self)
             elif 'restriction' == alternative:
                 self.__itemTypeDefinition = self.__baseTypeDefinition.__itemTypeDefinition
             else:
@@ -2373,7 +2375,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
                                 # NB: Attempt resolution right away to
                                 # eliminate unnecessary delay below
                                 # when looking for union expansions.
-                                mtd.append(self.CreateFromDOM(wxs, cn)._resolve(wxs))
+                                mtd.append(self.CreateFromDOM(wxs, cn, owner=self)._resolve(wxs))
                     self.__memberTypeDefinitions = mtd[:]
                     assert None not in self.__memberTypeDefinitions
 
@@ -2488,7 +2490,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
         return self
 
     @classmethod
-    def CreateFromDOM (cls, wxs, node):
+    def CreateFromDOM (cls, wxs, node, owner=None):
         # Node should be an XMLSchema simpleType node
         assert node.nodeName in wxs.xsQualifiedNames('simpleType')
 
@@ -2499,7 +2501,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
 
         name = NodeAttribute(node, wxs, 'name')
 
-        rv = cls(name=name, target_namespace=wxs.getTargetNamespace(), variety=None, schema=wxs)
+        rv = cls(name=name, target_namespace=wxs.getTargetNamespace(), variety=None, schema=wxs, owner=owner)
         rv._annotationFromDOM(wxs, node)
 
         # @todo identify supported facets and properties (hfp)

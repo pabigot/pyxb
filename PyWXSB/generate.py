@@ -86,6 +86,7 @@ class ReferenceSchemaComponent (ReferenceLiteral):
         , Namespace.XMLSchemaModule().structures.ElementDeclaration: 'ED'
         , Namespace.XMLSchemaModule().structures.ModelGroup: 'MG'
         , Namespace.XMLSchemaModule().structures.Particle: 'PRT'
+        , Namespace.XMLSchemaModule().structures.Wildcard: 'WC'
         }
 
     def __init__ (self, component, **kw):
@@ -117,14 +118,20 @@ class ReferenceSchemaComponent (ReferenceLiteral):
             parent = self.__component
             while isinstance(parent, xs.structures.ElementDeclaration):
                 ac = self.__component.ancestorComponent()
+                if ac is None:
+                    ac = self.__component.owner()
                 if ac is not None:
-                    ancestor_name = ac.bestNCName()
+                    while (ac is not None) and (ac.bestNCName() is None):
+                        ac = ac.owner()
+                    ancestor_name = None
+                    if ac is not None:
+                        ancestor_name = ac.bestNCName()
                     if ancestor_name is None:
                         ancestor_name = 'unknown'
                     name = '%s_%s' % (ancestor_name, name)
                 parent = ac
             if name is None:
-                name = '_%s_ANON_%d' % (self.__ComponentTagMap.get(type(self.__component), 'COMPONENT'), self.__NextAnonymousIndex())
+                name = '_%s_ANON_%d' % (self.__ComponentTagMap.get(type(self.__component), 'COMPONENT%s' % (self.__component.__class__.__name__,)), self.__NextAnonymousIndex())
             name = utility.PrepareIdentifier(name, UniqueInBinding)
             self.__component.setNameInBinding(name)
         if not is_in_binding:
