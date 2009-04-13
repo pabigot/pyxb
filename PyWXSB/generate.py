@@ -133,9 +133,9 @@ class ReferenceSchemaComponent (ReferenceLiteral):
             # to incorporate the parentage in the name.
             parent = self.__component
             while isinstance(parent, xs.structures.ElementDeclaration):
-                ac = self.__component.ancestorComponent()
+                ac = parent.ancestorComponent()
                 if ac is None:
-                    ac = self.__component.owner()
+                    ac = parent.owner()
                 if ac is not None:
                     while (ac is not None) and (ac.bestNCName() is None):
                         ac = ac.owner()
@@ -530,10 +530,10 @@ def GenerateMG (mg, **kw):
         for f in field_names.get(fn):
             if field_type is None:
                 field_type = f.typeDefinition()
-            else:
-                # This is not necessarily wrong, but it could confuse
-                # the user.  I want to know how prevalent it is.
-                assert field_type == f.typeDefinition()
+            if field_type == f.typeDefinition():
+                # Nothing technically wrong with this, though it might
+                # confuse the user.
+                pass
             if isinstance(f.owner(), xs.structures.Particle):
                 p = f.owner()
                 may_be_plural = may_be_plural or p.isPlural()
@@ -559,6 +559,8 @@ def GenerateMG (mg, **kw):
         min_occurs = int(min_occurs)
         if max_occurs is None:
             max_occurs = '*'
+        elif -1 == max_occurs:
+            max_occurs = 1
         else:
             max_occurs = int(max_occurs)
         field_decls.append("# + %s %s [%d..%s]" % (fn, pythonLiteral(f.typeDefinition(), **kw), min_occurs, max_occurs))
