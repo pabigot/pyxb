@@ -130,9 +130,11 @@ class ReferenceSchemaComponent (ReferenceLiteral):
                         ancestor_name = 'unknown'
                     name = '%s_%s' % (ancestor_name, name)
                 parent = ac
+            protected = False
             if name is None:
                 name = '_%s_ANON_%d' % (self.__ComponentTagMap.get(type(self.__component), 'COMPONENT%s' % (self.__component.__class__.__name__,)), self.__NextAnonymousIndex())
-            name = utility.PrepareIdentifier(name, UniqueInBinding)
+                protected = True
+            name = utility.PrepareIdentifier(name, UniqueInBinding, protected=protected)
             self.__component.setNameInBinding(name)
         if not is_in_binding:
             mp = None
@@ -240,8 +242,9 @@ def pythonLiteral (value, **kw):
     if isinstance(value, ReferenceLiteral):
         return value.asLiteral()
 
-    if value is None:
-        return 'None'
+    # Standard Python types
+    if isinstance(value, (types.NoneType, types.BooleanType, types.FloatType, types.IntType, types.LongType)):
+        return repr(value)
 
     raise Exception('Unexpected literal type %s' % (type(value),))
     print 'Unexpected literal type %s' % (type(value),)
@@ -466,17 +469,16 @@ class %{class} (bindings.PyWXSB_element):
 def GeneratePRT (prt, **kw):
     outf = StringIO.StringIO()
     template_map = { }
-    template_map['min_occurs'] = str(prt.minOccurs())
-    if prt.maxOccurs() is not None:
-        template_map['max_occurs'] = str(prt.maxOccurs())
+    template_map['min_occurs'] = pythonLiteral(int(prt.minOccurs()), **kw)
+    if prt.maxOccurs() is None:
+        template_map['max_occurs'] = pythonLiteral(prt.maxOccurs(), **kw)
     else:
-        template_map['max_occurs'] = str(-1)
+        template_map['max_occurs'] = pythonLiteral(int(prt.maxOccurs()), **kw)
     template_map['term'] = pythonLiteral(prt.term(), **kw)
+    template_map['particle_var'] = pythonLiteral(prt, **kw)
     outf.write(templates.replaceInText('''
 # Particle
-# min = %{min_occurs}
-# max = %{max_occurs}
-# term = %{term}
+%{particle_var} = bindings.Particle(%{min_occurs}, %{max_occurs}, %{term})
 ''', **template_map))
     return outf.getvalue()
 
@@ -488,6 +490,17 @@ def GenerateMG (mg, **kw):
     outf.write(templates.replaceInText('''
 # Model group %{model_group}
 # %{mg_obj}
+%{model_group} = None
+''', **template_map))
+    return outf.getvalue()
+
+def GenerateWC (wc, **kw):
+    outf = StringIO.StringIO()
+    template_map = { }
+    template_map['wildcard'] = pythonLiteral(wc, **kw)
+    outf.write(templates.replaceInText('''
+# Wildcard %{wildcard}
+%{wildcard} = None
 ''', **template_map))
     return outf.getvalue()
 
@@ -497,6 +510,7 @@ GeneratorMap = {
   , xs.structures.ComplexTypeDefinition : GenerateCTD
   , xs.structures.Particle : GeneratePRT
   , xs.structures.ModelGroup : GenerateMG
+  , xs.structures.Wildcard : GenerateWC
 }
 
 def GeneratePython (input, **kw):

@@ -200,7 +200,52 @@ class PyWXSB_CTD_mixed (PyWXSB_complexTypeDefinition):
     XMLSchema complexType with mixed content."""
     pass
 
+class Particle (object):
+    """Record defining the structure and number of an XML object.
+    This is a min and max count associated with a
+    ModelGroup, ElementDeclaration, or Wildcard."""
+    # The minimum number of times the term may appear.
+    __minOccurs = 1
+    def minOccurs (self):
+        """The minimum number of times the term may appear.
+
+        Defaults to 1."""
+        return self.__minOccurs
+
+    # Upper limit on number of times the term may appear.
+    __maxOccurs = 1
+    def maxOccurs (self):
+        """Upper limit on number of times the term may appear.
+
+        If None, the term may appear any number of times; otherwise,
+        this is an integral value indicating the maximum number of times
+        the term may appear.  The default value is 1; the value, unless
+        None, must always be at least minOccurs().
+        """
+        return self.__maxOccurs
+
+    # A reference to a ModelGroup, WildCard, or ElementDeclaration
+    __term = None
+    def term (self):
+        """A reference to a ModelGroup, Wildcard, or ElementDeclaration."""
+        return self.__term
+
+    def isPlural (self):
+        """Return true iff the term might appear multiple times."""
+        if (self.maxOccurs() is None) or 1 < self.maxOccurs():
+            return True
+        return self.term().isPlural()
+
+    def __init__ (self, min_occurs, max_occurs, term):
+        self.__minOccurs = min_occurs
+        self.__maxOccurs = max_occurs
+        self.__term = term
+
 class PyWXSB_CTD_element (PyWXSB_complexTypeDefinition):
     """Base for any Python class that serves as the binding for an
     XMLSchema complexType with element-only content."""
+
+    # The Particle instance used to represent data for this type
+    __content = None
+
     pass
