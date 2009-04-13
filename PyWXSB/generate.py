@@ -45,6 +45,7 @@ class ReferenceLiteral (object):
 
     def _literal (self, literal):
         self.__literal = literal
+        return literal
 
     def asLiteral (self):
         return self.__literal
@@ -53,6 +54,43 @@ class ReferenceLiteral (object):
         if self.__ownerClass is not None:
             text = '%s.%s' % (pythonLiteral(self.__ownerClass, **kw), text)
         return text
+
+    __GEN_Attr = '_Reference_asLiteral'
+    __ComponentTagMap = {
+        Namespace.XMLSchemaModule().structures.SimpleTypeDefinition: 'STD'
+        , Namespace.XMLSchemaModule().structures.ComplexTypeDefinition: 'CTD'
+        , Namespace.XMLSchemaModule().structures.ElementDeclaration: 'ED'
+        , Namespace.XMLSchemaModule().structures.ModelGroup: 'MG'
+        , Namespace.XMLSchemaModule().structures.Particle: 'PRT'
+        }
+
+    def _setLiteralFromComponent (self, component, name, **kw):
+        global UniqueInUse
+        btns = kw['binding_target_namespace']
+        tns = None
+        try:
+            tns = component.targetNamespace()
+        except:
+            pass
+
+        if name is None:
+            name = '_%s_ANON' % (self.__ComponentTagMap.get(type(component), 'COMPONENT'),)
+            
+        if (btns == tns) or (tns is None):
+            rv = getattr(component, self.__GEN_Attr, None)
+            if rv is None:
+                rv = utility.PrepareIdentifier(name, UniqueInUse)
+                setattr(component, self.__GEN_Attr, rv)
+        else:
+            mp = None
+            if Namespace.XMLSchema == tns:
+                mp = 'datatypes'
+            elif tns is not None:
+                mp = tns.modulePath()
+            rv = name
+            if mp is not None:
+                rv = '%s.%s' % (mp, rv)
+        self._literal(rv)
 
 class ReferenceFacetMember (ReferenceLiteral):
     __facetClass = None
@@ -70,40 +108,26 @@ class ReferenceFacetMember (ReferenceLiteral):
 
         self._literal(self._addTypePrefix('_CF_%s' % (self.__facetClass.Name(),), **kw))
 
+class ReferenceModelGroup (ReferenceLiteral):
+    __modelGroup = None
+    __ModelGroupsInUse = set()
+
+    __GEN_Attr = '_ReferenceClass_asLiteral'
+    def __init__ (self, **kw):
+        self.__modelGroup = kw['model_group']
+        super(ReferenceLiteral, self).__init__(**kw)
+        name = None
+        if self.__modelGroup.modelGroupDefinition() is not None:
+            name = self.__modelGroup.modelGroupDefinition().ncName()
+        name = self._setLiteralFromComponent(self.__modelGroup, name, **kw)
+        print 'Model group name %s' % (name,)
+
 class ReferenceClass (ReferenceLiteral):
     __namedComponent = None
 
-    __GEN_Attr = '_ReferenceClass_asLiteral'
-    __ComponentTagMap = {
-        Namespace.XMLSchemaModule().structures.SimpleTypeDefinition: 'STD'
-        , Namespace.XMLSchemaModule().structures.ComplexTypeDefinition: 'CTD'
-        , Namespace.XMLSchemaModule().structures.ElementDeclaration: 'ED'
-        }
-
     def __init__ (self, **kw):
         self.__namedComponent = kw['named_component']
-
-        global UniqueInUse
-        btns = kw['binding_target_namespace']
-        tns = self.__namedComponent.targetNamespace()
-
-        if btns == tns:
-            rv = getattr(self.__namedComponent, self.__GEN_Attr, None)
-            if rv is None:
-                name = self.__namedComponent.ncName()
-                if name is None:
-                    name = '_%s_ANON' % (self.__ComponentTagMap.get(type(self.__namedComponent), 'COMPONENT'),)
-                rv = utility.PrepareIdentifier(name, UniqueInUse)
-                setattr(self.__namedComponent, self.__GEN_Attr, rv)
-        else:
-            if Namespace.XMLSchema == tns:
-                mp = 'datatypes'
-            else:
-                mp = tns.modulePath()
-            rv = self.__namedComponent.ncName()
-            if mp is not None:
-                rv = '%s.%s' % (mp, rv)
-        self._literal(rv)
+        self._setLiteralFromComponent(self.__namedComponent, self.__namedComponent.ncName(), **kw)
     
 class ReferenceFacet (ReferenceLiteral):
 
@@ -197,6 +221,13 @@ def pythonLiteral (value, **kw):
 
     if isinstance(value, xs.structures._NamedComponent_mixin):
         return pythonLiteral(ReferenceClass(named_component=value, **kw))
+
+    if isinstance(value, xs.structures.ModelGroup):
+        return pythonLiteral(ReferenceModelGroup(model_group=value, **kw))
+
+    if isinstance(value, xs.structures.Wildcard):
+        print '**********  WARNING: Wildcard encountered'
+        return None
 
     # Other special cases
     if isinstance(value, ReferenceLiteral):
@@ -425,10 +456,40 @@ class %{class} (bindings.PyWXSB_element):
     return outf.getvalue()
 
 
+def GeneratePRT (prt, **kw):
+    outf = StringIO.StringIO()
+    template_map = { }
+    template_map['min_occurs'] = str(prt.minOccurs())
+    if prt.maxOccurs() is not None:
+        template_map['max_occurs'] = str(prt.maxOccurs())
+    else:
+        template_map['max_occurs'] = str(-1)
+    template_map['term'] = pythonLiteral(prt.term(), **kw)
+    outf.write(templates.replaceInText('''
+# Particle
+# min = %{min_occurs}
+# max = %{max_occurs}
+# term = %{term}
+''', **template_map))
+    return outf.getvalue()
+
+def GenerateMG (mg, **kw):
+    outf = StringIO.StringIO()
+    template_map = { }
+    template_map['model_group'] = pythonLiteral(mg, **kw)
+    template_map['mg_obj'] = object.__str__(mg)
+    outf.write(templates.replaceInText('''
+# Model group %{model_group}
+# %{mg_obj}
+''', **template_map))
+    return outf.getvalue()
+
 GeneratorMap = {
     xs.structures.SimpleTypeDefinition : GenerateSTD
   , xs.structures.ElementDeclaration : GenerateED
   , xs.structures.ComplexTypeDefinition : GenerateCTD
+  , xs.structures.Particle : GeneratePRT
+  , xs.structures.ModelGroup : GenerateMG
 }
 
 def GeneratePython (input, **kw):

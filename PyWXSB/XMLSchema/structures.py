@@ -28,7 +28,8 @@ class _SchemaComponent_mixin (object):
 
     # A special tag to pass in the constructor when the schema is
     # known to be unavailable.  This allows us to detect cases where
-    # the system is not providing the schema.
+    # the system is not providing the schema.  The only such cases
+    # should be the ur types and a schema itself.
     _SCHEMA_None = 'ExplicitNoSchema'
 
     # The schema to which this component belongs.  If None, assume it
@@ -399,7 +400,7 @@ class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
         if name is not None:
             namespace = wxs.getTargetNamespace()
         elif NodeAttribute(node, wxs, 'ref') is None:
-            namespace = wxs.getTargetNamespaceFromDOM(node, 'attributeFormDefault')
+            namespace = wxs.defaultNamespaceFromDOM(node, 'attributeFormDefault')
 
         rv = cls(name=name, target_namespace=namespace, schema=wxs)
         rv._annotationFromDOM(wxs, node)
@@ -623,7 +624,7 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Resolv
             namespace = wxs.getTargetNamespace()
             scope = cls.SCOPE_global
         elif NodeAttribute(node, wxs, 'ref') is None:
-            namespace = wxs.targetNamespaceFromDOM(node, 'elementFormDefault')
+            namespace = wxs.defaultNamespaceFromDOM(node, 'elementFormDefault')
             if not ancestor_component:
                 raise IncompleteImplementationError("Require ancestor information for local element:\n%s\n" % (node.toxml(),))
             if isinstance(ancestor_component, ComplexTypeDefinition):
@@ -1393,6 +1394,7 @@ class Particle (_SchemaComponent_mixin, _Resolvable_mixin):
     __ancestorComponent = None
 
     def __init__ (self, term, *args, **kw):
+        assert kw.get('schema', None) is not None
         min_occurs = kw.get('min_occurs', 1)
         max_occurs = kw.get('max_occurs', 1)
         ancestor_component = kw.get('ancestor_component', None)
@@ -1441,7 +1443,6 @@ class Particle (_SchemaComponent_mixin, _Resolvable_mixin):
     def _resolve (self, wxs):
         if self.isResolved():
             return self
-        #print 'Resolving Particle'
         node = self.__domNode
 
         ref_attr = NodeAttribute(node, wxs, 'ref')
@@ -2579,12 +2580,15 @@ class Schema (_SchemaComponent_mixin):
             if cc not in component_by_class:
                 continue
             component_list = component_by_class[cc]
+            orig_length = len(component_list)
             if namespace is not None:
                 component_list = namespace.sortByDependency(component_list, dependent_class_filter=cc)
+                #assert len(component_list) == orig_length
             ordered_components.extend(component_list)
         return ordered_components
 
     def orderedComponents (self):
+        assert self.completedResolution()
         return self.OrderedComponents(self.components(), self.getTargetNamespace())
 
     def completedResolution (self):
@@ -2691,6 +2695,7 @@ class Schema (_SchemaComponent_mixin):
             self.__unresolvedDefinitions = []
             for resolvable in unresolved:
                 resolvable._resolve(self)
+                assert resolvable in self.__components
                 assert (resolvable.isResolved() or (resolvable in self.__unresolvedDefinitions))
             if self.__unresolvedDefinitions == unresolved:
                 # This only happens if we didn't code things right, or
