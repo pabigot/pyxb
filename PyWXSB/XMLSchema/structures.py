@@ -1312,6 +1312,21 @@ class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
     __compositor = C_INVALID
     def compositor (self): return self.__compositor
 
+    @classmethod
+    def CompositorToString (cls, compositor):
+        """Map a compositor value to a string."""
+        if cls.C_ALL == compositor:
+            return 'all'
+        if cls.C_CHOICE == compositor:
+            return 'choice'
+        if cls.C_SEQUENCE == compositor:
+            return 'sequence'
+        return 'invalid'
+
+    def compositorToString (self):
+        """Return a string representing the compositor value."""
+        return self.CompositorToString(self.__compositor)
+
     # A list of _Particle instances.  Set at construction time from
     # the keyword parameter "particles".
     __particles = None

@@ -16,6 +16,7 @@ from xml.dom import minidom
 from xml.dom import Node
 
 UniqueInBinding = set()
+PostscriptItems = []
 
 Namespace.XMLSchema.setModulePath('xs')
 
@@ -71,6 +72,22 @@ class ReferenceFacetMember (ReferenceLiteral):
 
         self.setLiteral(self._addTypePrefix('_CF_%s' % (self.__facetClass.Name(),), **kw))
 
+class ReferenceParticle (ReferenceLiteral):
+    __particle = None
+
+    def __init__ (self, particle, **kw):
+        self.__particle = particle
+        super(ReferenceParticle, self).__init__(**kw)
+        template_map = { }
+        template_map['min_occurs'] = pythonLiteral(int(particle.minOccurs()), **kw)
+        if particle.maxOccurs() is None:
+            template_map['max_occurs'] = pythonLiteral(particle.maxOccurs(), **kw)
+        else:
+            template_map['max_occurs'] = pythonLiteral(int(particle.maxOccurs()), **kw)
+        assert particle.term() is not None
+        template_map['term'] = pythonLiteral(particle.term(), **kw)
+        self.setLiteral(templates.replaceInText('bindings.Particle(%{min_occurs}, %{max_occurs}, %{term})', **template_map))
+
 class ReferenceSchemaComponent (ReferenceLiteral):
     __component = None
 
@@ -85,7 +102,6 @@ class ReferenceSchemaComponent (ReferenceLiteral):
         , Namespace.XMLSchemaModule().structures.ComplexTypeDefinition: 'CTD'
         , Namespace.XMLSchemaModule().structures.ElementDeclaration: 'ED'
         , Namespace.XMLSchemaModule().structures.ModelGroup: 'MG'
-        , Namespace.XMLSchemaModule().structures.Particle: 'PRT'
         , Namespace.XMLSchemaModule().structures.Wildcard: 'WC'
         }
 
@@ -132,7 +148,10 @@ class ReferenceSchemaComponent (ReferenceLiteral):
                 parent = ac
             protected = False
             if name is None:
-                name = '_%s_ANON_%d' % (self.__ComponentTagMap.get(type(self.__component), 'COMPONENT%s' % (self.__component.__class__.__name__,)), self.__NextAnonymousIndex())
+                tag = self.__ComponentTagMap.get(type(self.__component), None)
+                if tag is None:
+                    raise LogicError('Not prepared for reference to component type %s' % (self.__component.__class__.__name__,))
+                name = '_%s_ANON_%d' % (tag, self.__NextAnonymousIndex())
                 protected = True
             name = utility.PrepareIdentifier(name, UniqueInBinding, protected=protected)
             self.__component.setNameInBinding(name)
@@ -233,6 +252,10 @@ def pythonLiteral (value, **kw):
     # Treat enumeration elements as their value
     if isinstance(value, xs.facets._EnumerationElement):
         return pythonLiteral(value.value())
+
+    # Particles expand to a bindings.Particle instance
+    if isinstance(value, xs.structures.Particle):
+        return pythonLiteral(ReferenceParticle(value, **kw))
 
     # Schema components have a single name through their lifespan
     if isinstance(value, xs.structures._SchemaComponent_mixin):
@@ -389,6 +412,11 @@ class %{ctd} (bindings.PyWXSB_CTD_mixed):
 '''
     elif (ctd.CT_ELEMENT_ONLY == ctd.contentType()[0]):
         content_type = ctd.contentType()[1]
+        template_map['particle'] = pythonLiteral(content_type, **kw)
+        global PostscriptItems
+        PostscriptItems.append(templates.replaceInText('''
+%{ctd}._Content = %{particle}
+''', **template_map))
         prolog_template = '''
 # Complex type %{ctd} with element-only content
 class %{ctd} (bindings.PyWXSB_CTD_element):
@@ -465,32 +493,17 @@ class %{class} (bindings.PyWXSB_element):
 ''', **template_map))
     return outf.getvalue()
 
-
-def GeneratePRT (prt, **kw):
-    outf = StringIO.StringIO()
-    template_map = { }
-    template_map['min_occurs'] = pythonLiteral(int(prt.minOccurs()), **kw)
-    if prt.maxOccurs() is None:
-        template_map['max_occurs'] = pythonLiteral(prt.maxOccurs(), **kw)
-    else:
-        template_map['max_occurs'] = pythonLiteral(int(prt.maxOccurs()), **kw)
-    template_map['term'] = pythonLiteral(prt.term(), **kw)
-    template_map['particle_var'] = pythonLiteral(prt, **kw)
-    outf.write(templates.replaceInText('''
-# Particle
-%{particle_var} = bindings.Particle(%{min_occurs}, %{max_occurs}, %{term})
-''', **template_map))
-    return outf.getvalue()
-
 def GenerateMG (mg, **kw):
     outf = StringIO.StringIO()
     template_map = { }
     template_map['model_group'] = pythonLiteral(mg, **kw)
-    template_map['mg_obj'] = object.__str__(mg)
     outf.write(templates.replaceInText('''
-# Model group %{model_group}
-# %{mg_obj}
-%{model_group} = None
+%{model_group} = bindings.ModelGroup()
+''', **template_map))
+    template_map['compositor'] = 'bindings.ModelGroup.C_%s' % (mg.compositorToString().upper(),)
+    template_map['particles'] = ','.join( [ pythonLiteral(_p, **kw) for _p in mg.particles() ])
+    PostscriptItems.append(templates.replaceInText('''
+%{model_group}._setContent(%{compositor}, [ %{particles} ])
 ''', **template_map))
     return outf.getvalue()
 
@@ -508,12 +521,15 @@ GeneratorMap = {
     xs.structures.SimpleTypeDefinition : GenerateSTD
   , xs.structures.ElementDeclaration : GenerateED
   , xs.structures.ComplexTypeDefinition : GenerateCTD
-  , xs.structures.Particle : GeneratePRT
   , xs.structures.ModelGroup : GenerateMG
   , xs.structures.Wildcard : GenerateWC
 }
 
 def GeneratePython (input, **kw):
+    global UniqueInBinding
+    global PostscriptItems
+    UniqueInBinding.clear()
+    PostscriptItems = []
     try:
         wxs = xs.schema().CreateFromDOM(minidom.parse(input))
 
@@ -567,6 +583,8 @@ def CreateFromDOM (node):
                 continue
             outf.write(generator(td, **generator_kw))
     
+        outf.write(''.join(PostscriptItems))
+                             
         return outf.getvalue()
     
     except Exception, e:
