@@ -37,6 +37,12 @@ class _SchemaComponent_mixin (object):
     # after construction.
     __schema = None
 
+    # The name by which this component is known within the binding
+    # module.  This is in component rather than _NamedComponent_mixin
+    # because some unnamed components (like ModelGroup and Wildcard)
+    # have Python objects to represent them.
+    __nameInBinding = None
+
     # The schema component that owns this.  If None, the component is
     # owned directly by the schema.
     #__owner = None
@@ -95,6 +101,27 @@ class _SchemaComponent_mixin (object):
         definition."""
         return isinstance(self, (_SimpleUrTypeDefinition, _UrTypeDefinition))
 
+    def nameInBinding (self):
+        """Return the name by which this component is known in the XSD
+        binding.  NB: To support builtin datatypes,
+        SimpleTypeDefinitions with an associated pythonSupport class
+        initialize their binding name from the class name when the
+        support association is created."""
+        return self.__nameInBinding
+
+    def setNameInBinding (self, name_in_binding):
+        """Set the name by which this component shall be known in the XSD binding."""
+        self.__nameInBinding = name_in_binding
+        return self
+
+    def _setFromInstance (self, other):
+        assert self != other
+        super_fn = getattr(super(_SchemaComponent_mixin, self), '_setFromInstance', lambda *args, **kw: None)
+        super_fn(other)
+        # The only thing we update is the binding name, and that only if it's new.
+        if self.__nameInBinding is None:
+            self.__nameInBinding = other.__nameInBinding
+        return self
 
 class _Singleton_mixin (object):
     """This class is a mix-in which guarantees that only one instance
@@ -128,10 +155,8 @@ class _Annotated_mixin (object):
 
     def _setFromInstance (self, other):
         assert self != other
-        try:
-            super(_Annotated_mixin, self)._setFromInstance(other)
-        except AttributeError, e:
-            pass
+        super_fn = getattr(super(_Annotated_mixin, self), '_setFromInstance', lambda *args, **kw: None)
+        super_fn(other)
         # @todo make this a copy?
         self.__annotation = other.__annotation
         return self
@@ -2481,6 +2506,8 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
         # Can't share support instances
         self.__pythonSupport = python_support
         self.__pythonSupport._SimpleTypeDefinition(self)
+        if self.nameInBinding() is None:
+            self.setNameInBinding(self.__pythonSupport.__name__)
         return self.__pythonSupport
 
     def hasPythonSupport (self):

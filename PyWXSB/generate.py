@@ -15,7 +15,7 @@ import traceback
 from xml.dom import minidom
 from xml.dom import Node
 
-UniqueInUse = set()
+UniqueInBinding = set()
 
 Namespace.XMLSchema.setModulePath('xs')
 
@@ -43,7 +43,7 @@ class ReferenceLiteral (object):
         # NB: Pre-extend __init__
         self.__ownerClass = kw.get('type_definition', None)
 
-    def _literal (self, literal):
+    def setLiteral (self, literal):
         self.__literal = literal
         return literal
 
@@ -54,43 +54,6 @@ class ReferenceLiteral (object):
         if self.__ownerClass is not None:
             text = '%s.%s' % (pythonLiteral(self.__ownerClass, **kw), text)
         return text
-
-    __GEN_Attr = '_Reference_asLiteral'
-    __ComponentTagMap = {
-        Namespace.XMLSchemaModule().structures.SimpleTypeDefinition: 'STD'
-        , Namespace.XMLSchemaModule().structures.ComplexTypeDefinition: 'CTD'
-        , Namespace.XMLSchemaModule().structures.ElementDeclaration: 'ED'
-        , Namespace.XMLSchemaModule().structures.ModelGroup: 'MG'
-        , Namespace.XMLSchemaModule().structures.Particle: 'PRT'
-        }
-
-    def _setLiteralFromComponent (self, component, name, **kw):
-        global UniqueInUse
-        btns = kw['binding_target_namespace']
-        tns = None
-        try:
-            tns = component.targetNamespace()
-        except:
-            pass
-
-        if name is None:
-            name = '_%s_ANON' % (self.__ComponentTagMap.get(type(component), 'COMPONENT'),)
-            
-        if (btns == tns) or (tns is None):
-            rv = getattr(component, self.__GEN_Attr, None)
-            if rv is None:
-                rv = utility.PrepareIdentifier(name, UniqueInUse)
-                setattr(component, self.__GEN_Attr, rv)
-        else:
-            mp = None
-            if Namespace.XMLSchema == tns:
-                mp = 'datatypes'
-            elif tns is not None:
-                mp = tns.modulePath()
-            rv = name
-            if mp is not None:
-                rv = '%s.%s' % (mp, rv)
-        self._literal(rv)
 
 class ReferenceFacetMember (ReferenceLiteral):
     __facetClass = None
@@ -106,38 +69,79 @@ class ReferenceFacetMember (ReferenceLiteral):
 
         super(ReferenceFacetMember, self).__init__(**kw)
 
-        self._literal(self._addTypePrefix('_CF_%s' % (self.__facetClass.Name(),), **kw))
+        self.setLiteral(self._addTypePrefix('_CF_%s' % (self.__facetClass.Name(),), **kw))
 
-class ReferenceModelGroup (ReferenceLiteral):
-    __modelGroup = None
-    __ModelGroupsInUse = set()
+class ReferenceSchemaComponent (ReferenceLiteral):
+    __component = None
 
-    __GEN_Attr = '_ReferenceClass_asLiteral'
-    def __init__ (self, **kw):
-        self.__modelGroup = kw['model_group']
-        super(ReferenceLiteral, self).__init__(**kw)
-        name = None
-        if self.__modelGroup.modelGroupDefinition() is not None:
-            name = self.__modelGroup.modelGroupDefinition().ncName()
-        name = self._setLiteralFromComponent(self.__modelGroup, name, **kw)
-        print 'Model group name %s' % (name,)
+    __anonymousIndex = 0
+    @classmethod
+    def __NextAnonymousIndex (cls):
+        cls.__anonymousIndex += 1
+        return cls.__anonymousIndex
 
-class ReferenceClass (ReferenceLiteral):
-    __namedComponent = None
+    __ComponentTagMap = {
+        Namespace.XMLSchemaModule().structures.SimpleTypeDefinition: 'STD'
+        , Namespace.XMLSchemaModule().structures.ComplexTypeDefinition: 'CTD'
+        , Namespace.XMLSchemaModule().structures.ElementDeclaration: 'ED'
+        , Namespace.XMLSchemaModule().structures.ModelGroup: 'MG'
+        , Namespace.XMLSchemaModule().structures.Particle: 'PRT'
+        }
 
-    def __init__ (self, **kw):
-        self.__namedComponent = kw['named_component']
-        self._setLiteralFromComponent(self.__namedComponent, self.__namedComponent.ncName(), **kw)
-    
+    def __init__ (self, component, **kw):
+        self.__component = component
+        btns = kw['binding_target_namespace']
+        tns = None
+        try:
+            tns = self.__component.targetNamespace()
+        except:
+            tns = btns
+        is_in_binding = (btns == tns) or (tns is None)
+            
+        name = self.__component.nameInBinding()
+        if name is None:
+            global UniqueInBinding
+
+            # The only components that are allowed to be nameless at
+            # this point are ones in the binding we're generating.
+            if not is_in_binding:
+                raise LogicError('Attempt to reference unnamed component not in binding')
+
+            # The initial name is the name of the component, or if the
+            # component can't be named the name of something else
+            # relevant.
+            name = None
+            try:
+                name = self.__component.ncName()
+            except:
+                # ModelGroup instances are not named, but they're
+                # often associated with a ModelGroupDefinition which
+                # is.
+                if isinstance(self.__component, xs.structures.ModelGroup):
+                    mgd = self.__component.modelGroupDefinition()
+                    if mgd is not None:
+                        name = mgd.ncName()
+            if name is None:
+                name = '_%s_ANON_%d' % (self.__ComponentTagMap.get(type(self.__component), 'COMPONENT'), self.__NextAnonymousIndex())
+            name = utility.PrepareIdentifier(name, UniqueInBinding)
+            self.__component.setNameInBinding(name)
+        if not is_in_binding:
+            mp = None
+            if Namespace.XMLSchema == tns:
+                mp = 'datatypes'
+            elif tns is not None:
+                mp = tns.modulePath()
+            if mp is not None:
+                name = '%s.%s' % (mp, name)
+        self.setLiteral(name)
+
 class ReferenceFacet (ReferenceLiteral):
-
     __facet = None
 
     def __init__ (self, **kw):
         self.__facet = kw['facet']
         super(ReferenceFacet, self).__init__(**kw)
-        self._literal('%s._CF_%s' % (pythonLiteral(self.__facet.ownerTypeDefinition(), **kw), self.__facet.Name()))
-        
+        self.setLiteral('%s._CF_%s' % (pythonLiteral(self.__facet.ownerTypeDefinition(), **kw), self.__facet.Name()))
 
 class ReferenceEnumerationMember (ReferenceLiteral):
     enumerationElement = None
@@ -176,7 +180,7 @@ class ReferenceEnumerationMember (ReferenceLiteral):
 
         super(ReferenceEnumerationMember, self).__init__(**kw)
 
-        self._literal(self._addTypePrefix(self.enumerationElement.tag(), **kw))
+        self.setLiteral(self._addTypePrefix(self.enumerationElement.tag(), **kw))
 
 def pythonLiteral (value, **kw):
     # For dictionaries, apply translation to all values (not keys)
@@ -219,15 +223,9 @@ def pythonLiteral (value, **kw):
     if isinstance(value, xs.facets._EnumerationElement):
         return pythonLiteral(value.value())
 
-    if isinstance(value, xs.structures._NamedComponent_mixin):
-        return pythonLiteral(ReferenceClass(named_component=value, **kw))
-
-    if isinstance(value, xs.structures.ModelGroup):
-        return pythonLiteral(ReferenceModelGroup(model_group=value, **kw))
-
-    if isinstance(value, xs.structures.Wildcard):
-        print '**********  WARNING: Wildcard encountered'
-        return None
+    # Schema components have a single name through their lifespan
+    if isinstance(value, xs.structures._SchemaComponent_mixin):
+        return pythonLiteral(ReferenceSchemaComponent(value, **kw))
 
     # Other special cases
     if isinstance(value, ReferenceLiteral):
@@ -538,7 +536,7 @@ def CreateFromDOM (node):
         # Give priority for identifiers to element declarations
         for td in emit_order:
             if isinstance(td, xs.structures.ElementDeclaration):
-                ReferenceClass(named_component=td, **generator_kw).asLiteral()
+                ReferenceSchemaComponent(td, **generator_kw).asLiteral()
 
         for td in emit_order:
             generator = GeneratorMap.get(type(td), None)
