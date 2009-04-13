@@ -62,7 +62,7 @@ class PyWXSB_element (object):
 class AttributeUse (object):
     """A helper class that encapsulates everything we need to know about an attribute."""
     __tag = None       # Unicode XML tag @todo not including namespace
-    __valueAttributeName = None # Private attribute used in the associated class to hold the attribute value
+    __valueAttributeName = None # Private attribute used in instances to hold the attribute value
     __dataType = None  # PST datatype
     __defaultValue = None       # Unicode default value, or None
     __fixed = False             # If True, value cannot be changed
