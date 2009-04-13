@@ -3,8 +3,9 @@ import XMLSchema as xs
 import xml.dom as dom
 from xml.dom import minidom
 import domutils
+import utility
 
-class PyWXSB_element (object):
+class PyWXSB_element (utility._DeconflictSymbols_mixin, object):
     """Base class for any Python class that serves as the binding to an XMLSchema element.
 
     The subclass must define a class variable _TypeDefinition which is
@@ -21,6 +22,11 @@ class PyWXSB_element (object):
     # Reference to the instance of the underlying type
     __content = None
     
+    # Symbols that remain the responsibility of this class.  Any
+    # symbols in the type from the content are deconflicted by
+    # providing an alternative name in the subclass.
+    _ReservedSymbols = set([ 'content', 'CreateFromDOM', 'toDOM' ])
+
     # Assign to the content field.  This may manipulate the assigned
     # value if doing so results in a cleaner interface for the user.
     def __setContent (self, content):
@@ -198,7 +204,7 @@ class PyWXSB_enumeration_mixin (object):
     """Marker in case we need to know that a PST has an enumeration constraint facet."""
     pass
 
-class PyWXSB_complexTypeDefinition (object):
+class PyWXSB_complexTypeDefinition (utility._DeconflictSymbols_mixin, object):
     """Base for any Python class that serves as the binding for an
     XMLSchema complexType.
     """
@@ -212,6 +218,22 @@ class PyWXSB_complexTypeDefinition (object):
         for au in self._AttributeUses:
             au.addDOMAttribute(self, element)
         return element
+
+    # Specify the symbols to be reserved for all CTDs
+    _ReservedSymbols = set([ 'Factory', 'CreateFromDOM', 'toDOM' ])
+
+    # Class variable which maps complex type attribute names to the
+    # name used within the generated binding.  For example, if
+    # somebody's gone and decided that the word Factory would make an
+    # awesome attribute for some complex type, the binding will
+    # rewrite it so the accessor method is Factory_.  This is only
+    # overridden in generated bindings where an attribute name
+    # conflicted with a reserved symbol.
+    _AttributeDeconflictMap = { }
+
+    # Class variable which maps complex type element names to the name
+    # used within the generated binding.  See _AttributeDeconflictMap.
+    _ElementDeconflictMap = { }
 
 class PyWXSB_CTD_empty (PyWXSB_complexTypeDefinition):
     """Base for any Python class that serves as the binding for an
@@ -269,4 +291,3 @@ class PyWXSB_CTD_element (PyWXSB_complexTypeDefinition):
     define a class variable _Content with a bindings.Particle instance
     as its value."""
 
-    pass

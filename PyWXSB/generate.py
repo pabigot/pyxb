@@ -3,11 +3,10 @@ import StringIO
 print xs.datatypes
 
 from PyWXSB.exceptions_ import *
-import PyWXSB.utility as utility
-import PyWXSB.templates as templates
-
-import PyWXSB.Namespace as Namespace
-#from PyWXSB.generate import PythonGenerator as Generator
+import utility
+import templates
+import bindings
+import Namespace
 
 import types
 import sys
@@ -391,12 +390,14 @@ def GenerateCTD (ctd, **kw):
     template_map['ctd'] = pythonLiteral(ctd, **kw)
 
     if (ctd.CT_EMPTY == ctd.contentType()):
+        ctd_parent_class = bindings.PyWXSB_CTD_empty
         prolog_template = '''
 # Complex type %{ctd} with empty content
 class %{ctd} (bindings.PyWXSB_CTD_empty):
 '''
         pass
     elif (ctd.CT_SIMPLE == ctd.contentType()[0]):
+        ctd_parent_class = bindings.PyWXSB_CTD_simple
         content_type = ctd.contentType()[1]
         prolog_template = '''
 # Complex type %{ctd} with simple content type %{basetype}
@@ -405,12 +406,14 @@ class %{ctd} (bindings.PyWXSB_CTD_simple):
 '''
         template_map['basetype'] = pythonLiteral(content_type, **kw)
     elif (ctd.CT_MIXED == ctd.contentType()[0]):
+        ctd_parent_class = bindings.PyWXSB_CTD_mixed
         content_type = ctd.contentType()[1]
         prolog_template = '''
 # Complex type %{ctd} with mixed content
 class %{ctd} (bindings.PyWXSB_CTD_mixed):
 '''
     elif (ctd.CT_ELEMENT_ONLY == ctd.contentType()[0]):
+        ctd_parent_class = bindings.PyWXSB_CTD_element
         content_type = ctd.contentType()[1]
         template_map['particle'] = pythonLiteral(content_type, **kw)
         global PostscriptItems
@@ -422,18 +425,46 @@ class %{ctd} (bindings.PyWXSB_CTD_mixed):
 class %{ctd} (bindings.PyWXSB_CTD_element):
 '''
 
-    attribute_uses = []
-    attribute_definitions = []
-    class_keywords = frozenset([ '_TypeDefinition' ])
+    # Support for deconflicting attributes, elements, and reserved symbols
+    class_keywords = frozenset(ctd_parent_class._ReservedSymbols)
     class_unique = set()
+
+    # Deconflict elements first, attributes are lower priority.
+    # Expectation is that all elements that have the same tag in the
+    # XML are combined into the same instance member, even if they
+    # have different types.
+    element_name_map = { }
+    if isinstance(content_type, xs.structures.Particle):
+        term = content_type.term()
+        if isinstance(term, xs.structures.ModelGroup):
+            element_decls = term.elementDeclarations()
+        elif isinstance(term, xs.structures.ElementDeclaration):
+            element_decls = [ term ]
+        elif isinstance(term, xs.structures.Wildcard):
+            # @todo
+            pass
+        else:
+            raise LogicError('Unhandled content type %s' % (type(term),))
+        for ed in element_decls:
+            en = ed.ncName()
+            if not (en in element_decls):
+                element_name_map[en] = utility.PrepareIdentifier(en, class_unique, class_keywords)
+
+    # Create definitions for all attributes.
+    attribute_name_map = { }
+    attribute_uses = []
+    definitions = []
     for au in ctd.attributeUses():
         ad = au.attributeDeclaration()
         au_map = { }
-        au_map['attr_inspector'] = ai = utility.PrepareIdentifier(ad.ncName(), class_unique, class_keywords)
-        au_map['attr_mutator'] = utility.PrepareIdentifier('set' + ai[0].upper() + ai[1:], class_unique, class_keywords)
-        au_map['attr_name'] = utility.PrepareIdentifier(ad.ncName(), class_unique, class_keywords, private=True)
-        au_map['value_attr_name'] = utility.PrepareIdentifier('%s_%s' % (template_map['ctd'], ad.ncName()), class_unique, class_keywords, private=True)
-        au_map['attr_tag'] = pythonLiteral(ad.ncName(), **kw)
+        attr_name = ad.ncName()
+        used_attr_name = utility.PrepareIdentifier(attr_name, class_unique, class_keywords)
+        attribute_name_map[attr_name] = used_attr_name
+        au_map['attr_inspector'] = used_attr_name
+        au_map['attr_mutator'] = utility.PrepareIdentifier('set' + used_attr_name[0].upper() + used_attr_name[1:], class_unique, class_keywords)
+        au_map['attr_name'] = utility.PrepareIdentifier(attr_name, class_unique, class_keywords, private=True)
+        au_map['value_attr_name'] = utility.PrepareIdentifier('%s_%s' % (template_map['ctd'], attr_name), class_unique, class_keywords, private=True)
+        au_map['attr_tag'] = pythonLiteral(attr_name, **kw)
         au_map['attr_type'] = pythonLiteral(ad.typeDefinition(), **kw)
         au_map['constraint_value'] = pythonLiteral(None, **kw)
         vc = au.valueConstraint()
@@ -454,7 +485,7 @@ class %{ctd} (bindings.PyWXSB_CTD_element):
             aux_init.insert(0, '')
             au_map['aux_init'] = ', '.join(aux_init)
         attribute_uses.append(au_map['attr_name'])
-        attribute_definitions.append(templates.replaceInText('''
+        definitions.append(templates.replaceInText('''
     %{attr_name} = bindings.AttributeUse(%{attr_tag}, '%{value_attr_name}', %{attr_type}%{aux_init})
     def %{attr_inspector} (self):
         """Get the value of the %{attr_tag} attribute."""
@@ -463,12 +494,18 @@ class %{ctd} (bindings.PyWXSB_CTD_element):
         """Set the value of the %{attr_tag} attribute.  Raises BadValueTypeException
         if the new value is not consistent with the attribute's type."""
         return self.%{attr_name}.setValue(self, new_value)''', **au_map))
+
+    if 0 < len(attribute_name_map):
+        definitions.append('_AttributeNameMap = %s' % (repr(attribute_name_map),))
     
+    if 0 < len(element_name_map):
+        definitions.append('_ElementNameMap = %s' % (repr(element_name_map),))
+
     trailing_comma = ''
     if 1 == len(attribute_uses):
         trailing_comma = ','
     template = ''.join( [prolog_template,
-                         "    ", "\n    ".join(attribute_definitions), "\n",
+                         "    ", "\n    ".join(definitions), "\n",
                          "    _AttributeUses = (\n    ", ",\n    ".join(attribute_uses), trailing_comma, "\n    )\n\n"
                              ] )
 

@@ -55,6 +55,9 @@ def MakeUnique (s, in_use):
 def PrepareIdentifier (s, in_use, aux_keywords=frozenset(), private=False, protected=False):
     """Combine everything required to create a unique identifier.
 
+    Leading and trailing underscores are stripped from all
+    identifiers.
+
     in_use is the set of already used identifiers.  Upon return from
     this function, it is updated to include the returned identifier.
 
@@ -65,16 +68,60 @@ def PrepareIdentifier (s, in_use, aux_keywords=frozenset(), private=False, prote
     If private is True, the returned identifier has two leading
     underscores, making it a private variable within a Python class.
     If private is False, all leading underscores are stripped,
-    guaranteeing the identifier will not be private."""
-    s = MakeIdentifier(s).lstrip('_')
+    guaranteeing the identifier will not be private.
+
+    NOTE: Only module-level identifiers should be treated as
+    protected.  The class-level _ReservedSymbol infrastructure does
+    not include protected symbols."""
+    s = DeconflictKeyword(MakeIdentifier(s).strip('_'), aux_keywords)
     if private:
         s = '__' + s
     elif protected:
         s = '_' + s
-    return MakeUnique(DeconflictKeyword(s, aux_keywords), in_use)
+    return MakeUnique(s, in_use)
+
+class _DeconflictSymbols_mixin (object):
+    """Mix-in used to deconflict public symbols in classes that may be
+    inherited by generated binding classes.
+
+    Some classes, like bindings._PST_element or datatypes._PST_mixin,
+    have public symbols associated with functions and variables.  It
+    is possible that an XML schema might include tags and attribute
+    names that match these symbols.  To avoid conflict, the reserved
+    symbols marked in this class are added to the pre-defined
+    identifier set.
+
+    Subclasses should create a class-level variable that contains a
+    set of strings denoting the symbols reserved in this class,
+    combined with those from any superclasses that also have reserved
+    symbols.  Code like the following is suggested:
+       # For base classes (direct mix-in):
+        _ReservedSymbols = set([ 'one', 'two' ])
+       # For subclasses:
+        _ReservedSymbols = SuperClass._ReservedSymbols.union(set([ 'three' ]))
+
+    Only public symbols (those with no underscores) are current
+    supported.  (Private symbols can't be deconflict that easily, and
+    no protected symbols that derive from the XML are created by the
+    binding generator.)
+    """
+
+    # Base from mixin does not reserve anything.
+    _ReservedSymbols = set()
 
 if '__main__' == __name__:
     import unittest
+
+    class DST_base (_DeconflictSymbols_mixin):
+        _ReservedSymbols = set([ 'one', 'two' ])
+
+    class DST_sub (DST_base):
+        _ReservedSymbols = DST_base._ReservedSymbols.union(set([ 'three' ]))
+
+    class DeconfictSymbolsTtest (unittest.TestCase):
+        def testDeconflict (self):
+            self.assertEquals(2, len(DST_base._ReservedSymbols))
+            self.assertEquals(3, len(DST_sub._ReservedSymbols))
 
     class BasicTest (unittest.TestCase):
         
@@ -106,8 +153,24 @@ if '__main__' == __name__:
             in_use = set()
             self.assertEquals('id', PrepareIdentifier('id', in_use))
             self.assertEquals('id_', PrepareIdentifier('id', in_use))
+            self.assertEquals('id_2', PrepareIdentifier('id_', in_use))
+            self.assertEquals('id_3', PrepareIdentifier('id____', in_use))
+            self.assertEquals('_id', PrepareIdentifier('id', in_use, protected=True))
+            self.assertEquals('_id_', PrepareIdentifier('id', in_use, protected=True))
             self.assertEquals('__id', PrepareIdentifier('id', in_use, private=True))
             self.assertEquals('__id_', PrepareIdentifier('id', in_use, private=True))
+
+            reserved = frozenset([ 'Factory' ])
+            in_use = set()
+            self.assertEquals('Factory_', PrepareIdentifier('Factory', in_use, reserved))
+            self.assertEquals('Factory__', PrepareIdentifier('Factory', in_use, reserved))
+            self.assertEquals('Factory__2', PrepareIdentifier('Factory', in_use, reserved))
+
+            in_use = set()
+            self.assertEquals('global_', PrepareIdentifier('global', in_use))
+            self.assertEquals('global__', PrepareIdentifier('global', in_use))
+            self.assertEquals('global__2', PrepareIdentifier('global', in_use))
+
 
         def testQuotedEscape (self):
             for ( expected, input ) in self.cases:

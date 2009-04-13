@@ -31,6 +31,7 @@ import structures as xsc
 import types
 import PyWXSB.Namespace as Namespace
 import PyWXSB.domutils as domutils
+import PyWXSB.utility
 
 _PrimitiveDatatypes = []
 _DerivedDatatypes = []
@@ -40,7 +41,7 @@ _ListDatatypes = []
 # NB: anyType is a ComplexTypeDefinition instance; haven't figured out
 # how to deal with that yet.
 
-class _PST_mixin (object):
+class _PST_mixin (PyWXSB.utility._DeconflictSymbols_mixin, object):
     """_PST_mixin is a base mix-in class that is part of the hierarchy
     of any class that represents the Python datatype for a
     SimpleTypeDefinition.
@@ -56,6 +57,16 @@ class _PST_mixin (object):
     # those classes that constrain or otherwise affect the datatype.
     # Note that each descendent of _PST_mixin has its own map.
     __FacetMap = {}
+
+    # Symbols that remain the responsibility of this class.  Any
+    # public symbols in generated binding subclasses are deconflicted
+    # by providing an alternative name in the subclass.  (There
+    # currently are no public symbols in generated SimpleTypeDefinion
+    # bindings.)
+    _ReservedSymbols = set([ 'Factory', 'CreateFromDOM', 'XsdLiteral', 'xsdLiteral',
+                            'XsdSuperType', 'XsdPythonType', 'XsdConstraintsOK',
+                            'xsdConstraintsOK', 'XsdValueLength', 'xsdValueLength',
+                            'PythonLiteral', 'pythonLiteral' ])
 
     # Determine the name of the class-private facet map.  This
     # algorithm should match the one used by Python, so the base class
@@ -175,6 +186,10 @@ class _PST_mixin (object):
 
     @classmethod
     def SimpleTypeDefinition (cls):
+        """Return the SimpleTypeDefinition instance for the given
+        class.  This should only be invoked when generating bindings.
+        Raise IncompleteImplementationError if no STD instance has
+        been associated with the class."""
         attr_name = cls.__STDAttrName()
         if hasattr(cls, attr_name):
             return getattr(cls, attr_name)
@@ -182,10 +197,13 @@ class _PST_mixin (object):
 
     @classmethod
     def XsdLiteral (cls, value):
-        """Convert from a python value to a quoted string usable in a schema."""
+        """Convert from a python value to a string usable in an XML
+        document."""
         raise LogicError('%s does not implement XsdLiteral' % (cls,))
 
     def xsdLiteral (self):
+        """Return text suitable for representing the value of this
+        instance in an XML document."""
         return self.XsdLiteral(self)
 
     @classmethod
@@ -250,6 +268,7 @@ class _PST_mixin (object):
         return value
 
     def xsdConstraintsOK (self):
+        """Validate the value of this instance against its constraints."""
         return self.XsdConstraintsOK(self)
 
     @classmethod
@@ -281,20 +300,16 @@ class _PST_mixin (object):
         return self.XsdValueLength(self)
 
     @classmethod
-    def XsdToString (cls, value):
-        """Convert the python native value into a string suitable for use in a schema."""
-        return unicode(str(value))
-
-    def xsdToString (cls):
-        return self.XsdToString(self)
-
-    @classmethod
-    def XsdFromString (cls, string_value):
-        return cls(string_value)
+    def PythonLiteral (cls, value):
+        """Return a string which can be embedded into Python source to
+        represent the given value as an instance of this class."""
+        class_name = cls.__name__
+        return '%s(%s)' % (class_name, repr(value))
 
     def pythonLiteral (self):
-        class_name = self.__class__.__name__
-        return '%s(%s)' % (class_name, super(_PST_mixin, self).__str__())
+        """Return a string which can be embedded into Python source to
+        represent the value of this instance."""
+        return self.PythonLiteral(self)
 
 class _PST_union (_PST_mixin):
     """Base class for union datatypes.
@@ -303,7 +318,7 @@ class _PST_union (_PST_mixin):
     if an attempt is made to construct an instance of a subclass of
     _PST_union.  Values consistent with the member types are
     constructed using the Factory class method.  Values are validated
-    using the ValidateMember class method.
+    using the _ValidateMember class method.
 
     Subclasses must provide a class variable _MemberTypes which is a
     tuple of legal members of the union."""
@@ -343,7 +358,7 @@ class _PST_union (_PST_mixin):
         raise BadTypeValueError('%s cannot construct union member from args %s' % (cls.__name__, args))
 
     @classmethod
-    def ValidateMember (cls, value):
+    def _ValidateMember (cls, value):
         """Validate the given value as a potential union member.
 
         Raises BadTypeValueError if the value is not an instance of a
@@ -368,10 +383,10 @@ class _PST_list (_PST_mixin, types.ListType):
     __FacetMap = {}
 
     @classmethod
-    def ValidateItem (cls, value):
+    def _ValidateItem (cls, value):
         """Verify that the given value is permitted as an item of this list."""
         if issubclass(cls._ItemType, _PST_union):
-            cls._ItemType.ValidateMember(value)
+            cls._ItemType._ValidateMember(value)
         else:
             if not isinstance(value, cls._ItemType):
                 raise BadTypeValueError('Type %s has member of type %s, must be %s' % (cls.__name__, type(value).__name__, cls._ItemType.__name__))
@@ -381,7 +396,7 @@ class _PST_list (_PST_mixin, types.ListType):
     def _XsdConstraintsPreCheck_vb (cls, value):
         """Verify that the items in the list are acceptable members."""
         for v in value:
-            cls.ValidateItem(v)
+            cls._ValidateItem(v)
         super_fn = getattr(super(_PST_list, cls), '_XsdConstraintsPreCheck_vb', lambda *a,**kw: True)
         return super_fn(value)
 
@@ -433,8 +448,8 @@ class boolean (_PST_mixin, int):
     @classmethod
     def XsdLiteral (cls, value):
         if value:
-            return 'True'
-        return 'False'
+            return 'true'
+        return 'false'
 
     def __str__ (self):
         if self:
@@ -656,21 +671,20 @@ class integer (_PST_mixin, long):
     _Namespace = Namespace.XMLSchema
     @classmethod
     def XsdLiteral (cls, value):
-        return 'long(%s)' % (value,)
+        return '%d' % (value,)
 
 _DerivedDatatypes.append(integer)
 
 class nonPositiveInteger (integer):
-    MinimumValue = 1
+    pass
 _DerivedDatatypes.append(nonPositiveInteger)
 
 class negativeInteger (nonPositiveInteger):
-    MaximumValue = -1
+    pass
 _DerivedDatatypes.append(negativeInteger)
 
 class long (integer):
-    MinimumValue = -9223372036854775808
-    MaximumValue = 9223372036854775807
+    pass
 _DerivedDatatypes.append(long)
 
 class int (_PST_mixin, types.IntType):
@@ -681,23 +695,19 @@ class int (_PST_mixin, types.IntType):
     def XsdLiteral (cls, value):
         return '%s' % (value,)
 
-    MinimumValue = -2147483648
-    MaximumValue = 2147483647
+    pass
 _DerivedDatatypes.append(int)
 
 class short (int):
-    MinimumValue = -32768
-    MaximumValue = 32767
+    pass
 _DerivedDatatypes.append(short)
 
 class byte (short):
-    MinimumValue = -128
-    MaximumValue = 127
     pass
 _DerivedDatatypes.append(byte)
 
 class nonNegativeInteger (integer):
-    MinimumValue = 0
+    pass
 _DerivedDatatypes.append(nonNegativeInteger)
 
 class unsignedLong (nonNegativeInteger):
