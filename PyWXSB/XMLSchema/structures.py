@@ -2724,6 +2724,8 @@ class Schema (_SchemaComponent_mixin):
         kw['schema'] = _SchemaComponent_mixin._SCHEMA_None
         super(Schema, self).__init__(*args, **kw)
 
+        self.__attributeMap = self.__attributeMap.copy()
+
         self.__components = set()
 
         self.__annotations = [ ]
