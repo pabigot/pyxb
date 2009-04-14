@@ -78,13 +78,14 @@ class TestMG (_TestBase):
         self.assert_( ('ielt', None) in pde )
 
     def testChoiceSingleElements (self):
-        return
         mgd = xs.structures.ModelGroup(compositor=xs.structures.ModelGroup.C_CHOICE, particles=self._getSingleElements(), schema=self.schema())
         pd = mgd.pluralityData()
-        self.assertEqual(1, len(pd))
+        self.assertEqual(2, len(pd))
         pde = pd[0]
-        self.assertEqual(2, len(pde))
+        self.assertEqual(1, len(pde))
         self.assert_( ('selt', 1) in pde )
+        pde = pd[1]
+        self.assertEqual(1, len(pde))
         self.assert_( ('ielt', 1) in pde )
 
 class TestParticle (_TestBase):

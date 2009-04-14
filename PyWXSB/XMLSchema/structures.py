@@ -1380,7 +1380,10 @@ class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
     def pluralityData (self):
         pdll = [ _p.pluralityData() for _p in self.particles() ]
         if (self.C_CHOICE == self.compositor()):
-            pass
+            new_pd = []
+            for pd in pdll:
+                new_pd.extend(pd)
+            pd = new_pd
         elif ((self.C_SEQUENCE == self.compositor()) or (self.C_ALL == self.compositor())):
             # Sequence means all of them, in all their glory
             # All is treated the same way
