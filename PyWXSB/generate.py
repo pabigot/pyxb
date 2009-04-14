@@ -216,9 +216,13 @@ def pythonLiteral (value, **kw):
     if isinstance(value, types.DictionaryType):
         return ', '.join([ '%s=%s' % (k, pythonLiteral(v, **kw)) for (k, v) in value.items() ])
 
-    # For tuples, apply translation to all members
-    if isinstance(value, types.TupleType):
-        return tuple([ pythonLiteral(_v, **kw) for _v in value ])
+    # For lists, apply translation to all members
+    if isinstance(value, types.ListType):
+        return [ pythonLiteral(_v, **kw) for _v in value ]
+
+    # For other collection types, do what you do for list
+    if isinstance(value, (types.TupleType, set)):
+        return type(value)(pythonLiteral(list(value), **kw))
 
     # Value is a binding value for which there should be an
     # enumeration constant.  Return that constant.
@@ -438,26 +442,52 @@ class %{ctd} (bindings.PyWXSB_CTD_element):
     # whether there might be multiple instances of elements of that
     # name.
     element_name_map = { }
+    element_uses = []
+    datatype_map = { }
     if isinstance(content_type, xs.structures.Particle):
         plurality_data = content_type.pluralityData()
-        name_map = { }
+
+        name_plurality = { }
+        name_types = { }
         for pdm in plurality_data:
             npdm = { }
             for (ed, v) in pdm.items():
                 tag = ed.ncName()
+                name_types.setdefault(tag, set()).add(ed)
                 if tag is not None:
                     if tag in npdm:
                         npdm[tag] = True
                     else:
                         npdm[tag] = v
-            name_map = plurality_data._MapUnion(name_map, npdm)
-        for (name, is_plural) in name_map.items():
-            field_name = utility.PrepareIdentifier(name, class_unique, class_keywords)
-            element_name_map[name] = (field_name , is_plural )
-            if is_plural:
-                definitions.append('%s = []' % (field_name,))
+            name_plurality = plurality_data._MapUnion(name_plurality, npdm)
+        datatype_items = []
+        for (name, is_plural) in name_plurality.items():
+            ef_map = { }
+            aux_init = []
+            used_field_name = utility.PrepareIdentifier(name, class_unique, class_keywords)
+            element_name_map[name] = used_field_name
+
+            ef_map['python_field_name'] = used_field_name
+            ef_map['field_inspector'] = used_field_name
+            ef_map['field_mutator'] = utility.PrepareIdentifier('set' + used_field_name[0].upper() + used_field_name[1:], class_unique, class_keywords)
+            ef_map['field_name'] = utility.PrepareIdentifier(name, class_unique, class_keywords, private=True)
+            ef_map['value_field_name'] = utility.PrepareIdentifier('%s_%s' % (template_map['ctd'], name), class_unique, class_keywords, private=True)
+            ef_map['is_plural'] = repr(is_plural)
+            ef_map['field_tag'] = pythonLiteral(name, **kw)
+            element_uses.append(templates.replaceInText('%{field_tag} : %{field_name}', **ef_map))
+            datatype_items.append("%s : [ %s ]" % (ef_map['field_tag'], ','.join(pythonLiteral(_n, **kw) for _n in name_types[name])))
+            if 0 == len(aux_init):
+                ef_map['aux_init'] = ''
             else:
-                definitions.append('%s = None' % (field_name,))
+                ef_map['aux_init'] = ', ' + ', '.join(aux_init)
+            definitions.append(templates.replaceInText('''
+    # Element %{field_tag} uses Python identifier %{python_field_name}
+    %{field_name} = bindings.ElementField(%{field_tag}, '%{python_field_name}', '%{value_field_name}', %{is_plural}%{aux_init})
+''', **ef_map))
+        PostscriptItems.append('''
+%s._UpdateElementDatatypes({
+    %s
+})''' % (template_map['ctd'], ",\n    ".join(datatype_items)))
 
     # Create definitions for all attributes.
     attribute_name_map = { }
@@ -468,6 +498,7 @@ class %{ctd} (bindings.PyWXSB_CTD_element):
         attr_name = ad.ncName()
         used_attr_name = utility.PrepareIdentifier(attr_name, class_unique, class_keywords)
         attribute_name_map[attr_name] = used_attr_name
+        au_map['python_attr_name'] = used_attr_name
         au_map['attr_inspector'] = used_attr_name
         au_map['attr_mutator'] = utility.PrepareIdentifier('set' + used_attr_name[0].upper() + used_attr_name[1:], class_unique, class_keywords)
         au_map['attr_name'] = utility.PrepareIdentifier(attr_name, class_unique, class_keywords, private=True)
@@ -492,9 +523,10 @@ class %{ctd} (bindings.PyWXSB_CTD_element):
         else:
             aux_init.insert(0, '')
             au_map['aux_init'] = ', '.join(aux_init)
-        attribute_uses.append(au_map['attr_name'])
+        attribute_uses.append(templates.replaceInText('%{attr_tag} : %{attr_name}', **au_map))
         definitions.append(templates.replaceInText('''
-    %{attr_name} = bindings.AttributeUse(%{attr_tag}, '%{value_attr_name}', %{attr_type}%{aux_init})
+    # Attribute %{attr_tag} uses Python identifier %{python_attr_name}
+    %{attr_name} = bindings.AttributeUse(%{attr_tag}, '%{python_attr_name}', '%{value_attr_name}', %{attr_type}%{aux_init})
     def %{attr_inspector} (self):
         """Get the value of the %{attr_tag} attribute."""
         return self.%{attr_name}.value(self)
@@ -503,20 +535,11 @@ class %{ctd} (bindings.PyWXSB_CTD_element):
         if the new value is not consistent with the attribute's type."""
         return self.%{attr_name}.setValue(self, new_value)''', **au_map))
 
-    if 0 < len(attribute_name_map):
-        definitions.append('_AttributeNameMap = %s' % (repr(attribute_name_map),))
-    
-    if 0 < len(element_name_map):
-        definitions.append('_ElementNameMap = %s' % (repr(element_name_map),))
-
     trailing_comma = ''
-    if 1 == len(attribute_uses):
-        trailing_comma = ','
-    template = ''.join( [prolog_template,
-                         "    ", "\n    ".join(definitions), "\n",
-                         "    _AttributeUses = (\n    ", ",\n    ".join(attribute_uses), trailing_comma, "\n    )\n\n"
-                             ] )
-
+    template = ''.join([prolog_template,
+                "    ", "\n    ".join(definitions), "\n",
+                "    _AttributeMap = {\n        ", ",\n        ".join(attribute_uses), "\n    }\n",
+                "    _ElementMap = {\n        ", ",\n        ".join(element_uses), "\n    }\n\n" ])
     return templates.replaceInText(template, **template_map)
 
 def GenerateED (ed, **kw):

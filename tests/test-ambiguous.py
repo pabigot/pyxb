@@ -13,9 +13,11 @@ import unittest
 
 class TestAmbiguous (unittest.TestCase):
     def testType (self):
-        self.assertEqual(1, len(tWrapper._ElementNameMap))
-        self.assertEqual(('field', True), tWrapper._ElementNameMap['field'])
-        self.assertTrue(isinstance(tWrapper.field, types.ListType))
+        self.assertEqual(1, len(tWrapper._ElementMap))
+        ef = tWrapper._ElementMap['field']
+        self.assertEqual('field', ef.pythonTag())
+        self.assertTrue(ef.isPlural())
+        self.assertEqual([], ef.defaultValue())
 
     def testInstance (self):
         pass

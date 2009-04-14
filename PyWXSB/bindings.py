@@ -68,6 +68,7 @@ class PyWXSB_element (utility._DeconflictSymbols_mixin, object):
 class AttributeUse (object):
     """A helper class that encapsulates everything we need to know about an attribute."""
     __tag = None       # Unicode XML tag @todo not including namespace
+    __pythonTag = None # Identifier used for this attribute within the owning class
     __valueAttributeName = None # Private attribute used in instances to hold the attribute value
     __dataType = None  # PST datatype
     __defaultValue = None       # Unicode default value, or None
@@ -75,14 +76,21 @@ class AttributeUse (object):
     __required = False          # If True, attribute must appear
     __prohibited = False        # If True, attribute must not appear
 
-    def __init__ (self, tag, value_attribute_name, data_type, default_value=None, fixed=False, required=False, prohibited=False):
+    def __init__ (self, tag, python_tag, value_attribute_name, data_type, default_value=None, fixed=False, required=False, prohibited=False):
         self.__tag = tag
+        self.__pythonTag = python_tag
         self.__valueAttributeName = value_attribute_name
         self.__dataType = data_type
         self.__defaultValue = default_value
         self.__fixed = fixed
         self.__required = required
         self.__prohibited = prohibited
+
+    def tag (self):
+        return self.__tag
+    
+    def pythonTag (self):
+        return self.__pythonTag
 
     def __getValue (self, cdt_instance):
         return getattr(cdt_instance, self.__valueAttributeName, (False, None))
@@ -136,6 +144,57 @@ class AttributeUse (object):
             new_value = self.__dataType(new_value)
         self.__setValue(cdt_instance, new_value, True)
         return new_value
+
+class ElementField (object):
+    """Aggregate the information relevant to an element of a complex type.
+
+    This includes the original tag name, the spelling of the
+    corresponding object in Python, an indicator of whether multiple
+    instances might be associated with the field, and a list of types
+    for legal values of the field."""
+
+    __tag = None
+    __pythonTag = None
+    __valueElementName = None
+    __dataTypes = None
+    __isPlural = False
+
+    def __init__ (self, tag, python_tag, value_element_name, is_plural, default=None, data_types=[]):
+        self.__tag = tag
+        self.__pythonTag = python_tag
+        self.__valueElementName = value_element_name
+        self.__isPlural = is_plural
+        self.__dataTypes = data_types
+
+    def _setDataTypes (self, data_types):
+        self.__dataTypes = data_types
+
+    def tag (self):
+        return self.__tag
+    
+    def pythonTag (self):
+        return self.__pythonTag
+
+    def isPlural (self):
+        return self.__isPlural
+
+    def defaultValue (self):
+        if self.isPlural():
+            return []
+        return None
+
+    def value (self, cdt_instance):
+        return getattr(ctd_instance, self.__valueElementName, self.defaultValue())
+
+    def __setValue (self, ctd_instance, value):
+        return setattr(ctd_instance, self.__valueElementName, value)
+
+    def setValue (self, ctd_instance, value):
+        if value is None:
+            return self.__setValue(ctd_instance, self.defaultValue())
+        if not isinstance(value, self.__dataTypes):
+            raise BadTypeValueError('Cannot assign value of type %s to field %s' % (type(value), self.tag()))
+
 
 class Particle (object):
     """Record defining the structure and number of an XML object.
@@ -209,13 +268,13 @@ class PyWXSB_complexTypeDefinition (utility._DeconflictSymbols_mixin, object):
     XMLSchema complexType.
     """
     def _setAttributesFromDOM (self, node):
-        for au in self._AttributeUses:
+        for au in self._AttributeMap.values():
             au.setFromDOM(self, node)
         return self
 
     def _setDOMFromAttributes (self, element):
         """Add any appropriate attributes from this instance into the DOM element."""
-        for au in self._AttributeUses:
+        for au in self._AttributeMap.values():
             au.addDOMAttribute(self, element)
         return element
 
@@ -234,6 +293,11 @@ class PyWXSB_complexTypeDefinition (utility._DeconflictSymbols_mixin, object):
     # Class variable which maps complex type element names to the name
     # used within the generated binding.  See _AttributeDeconflictMap.
     _ElementDeconflictMap = { }
+
+    @classmethod
+    def _UpdateElementDatatypes (cls, datatype_map):
+        for (k, v) in datatype_map.items():
+            cls._ElementMap[k]._setDataTypes(v)
 
 class PyWXSB_CTD_empty (PyWXSB_complexTypeDefinition):
     """Base for any Python class that serves as the binding for an

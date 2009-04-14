@@ -12,13 +12,18 @@ import unittest
 
 class TestDeconflict (unittest.TestCase):
     def testAttributes (self):
-        self.assertEqual(2, len(CTD_empty._ElementNameMap))
-        self.assertEqual(('CreateFromDOM_', False), CTD_empty._ElementNameMap['CreateFromDOM'])
-        self.assertTrue(CTD_empty.CreateFromDOM_ is None)
-        self.assertEqual(('Factory_', False), CTD_empty._ElementNameMap['Factory'])
-        self.assertEqual(2, len(CTD_empty._AttributeNameMap))
-        self.assertEqual('toDOM_', CTD_empty._AttributeNameMap['toDOM'])
-        self.assertEqual('Factory__', CTD_empty._AttributeNameMap['Factory'])
+        self.assertEqual(2, len(CTD_empty._ElementMap))
+        ef = CTD_empty._ElementMap['CreateFromDOM']
+        self.assertEqual('CreateFromDOM_', ef.pythonTag())
+        self.assertFalse(ef.isPlural())
+        self.assertTrue(ef.defaultValue() is None)
+        ef = CTD_empty._ElementMap['Factory']
+        self.assertEqual('Factory_', ef.pythonTag())
+        self.assertFalse(ef.isPlural())
+        self.assertTrue(ef.defaultValue() is None)
+        self.assertEqual(2, len(CTD_empty._AttributeMap))
+        self.assertEqual('toDOM_', CTD_empty._AttributeMap['toDOM'].pythonTag())
+        self.assertEqual('Factory__', CTD_empty._AttributeMap['Factory'].pythonTag())
 
 if __name__ == '__main__':
     unittest.main()
