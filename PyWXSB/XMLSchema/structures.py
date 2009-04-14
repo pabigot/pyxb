@@ -1500,17 +1500,18 @@ class Particle (_SchemaComponent_mixin, _Resolvable_mixin):
         """Return the plurality data for this component.
 
         The plurality data for a particle is the plurality data for
-        its term, with the counts scaled by the maximum number of
-        times the particle can occur."""
+        its term, with the counts scaled by the effect of maxOccurs.
+        Since we only care about plurality, the legal counts are 0, 1,
+        and infinite."""
         pd = self.term().pluralityData()
         new_pd = []
         
         for pde in pd:
             new_pde = []
             for (name, count) in pde:
-                if (count is not None) and (self.maxOccurs() is not None):
-                    count = count * self.maxOccurs()
-                else:
+                if 0 == self.maxOccurs():
+                    count = 0
+                elif (1 < self.maxOccurs()) or (self.maxOccurs() is None):
                     count = None
                 new_pde.append( (name, count) )
             new_pd.append(new_pde)

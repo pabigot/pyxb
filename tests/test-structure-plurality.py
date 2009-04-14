@@ -63,7 +63,7 @@ class TestMG (_TestBase):
         self.assertEqual(1, len(pd))
         pde = pd[0]
         self.assertEqual(2, len(pde))
-        self.assert_( ('selt', 4) in pde )
+        self.assert_( ('selt', None) in pde )
         self.assert_( ('ielt', None) in pde )
 
     def testAllSingleElements (self):
@@ -81,7 +81,7 @@ class TestMG (_TestBase):
         self.assertEqual(1, len(pd))
         pde = pd[0]
         self.assertEqual(2, len(pde))
-        self.assert_( ('selt', 4) in pde )
+        self.assert_( ('selt', None) in pde )
         self.assert_( ('ielt', None) in pde )
 
     def testChoiceSingleElements (self):
@@ -101,12 +101,23 @@ class TestMG (_TestBase):
         self.assertEqual(2, len(pd))
         pde = pd[0]
         self.assertEqual(1, len(pde))
-        self.assert_( ('selt', 4) in pde )
+        self.assert_( ('selt', None) in pde )
         pde = pd[1]
         self.assertEqual(1, len(pde))
         self.assert_( ('ielt', None) in pde )
 
 class TestParticle (_TestBase):
+    def testZeroElement (self):
+        ed = self.schema().lookupElement('selt')
+        prt = xs.structures.Particle(ed, min_occurs=0, max_occurs=0, schema=self.schema())
+        pd = prt.pluralityData()
+        self.assertEqual(1, len(pd))
+        pde = pd[0]
+        self.assertEqual(1, len(pde))
+        (name, count) = pde[0]
+        self.assertEqual(ed.ncName(), name)
+        self.assertEqual(0, count)
+
     def testSingleElement (self):
         ed = self.schema().lookupElement('selt')
         prt = xs.structures.Particle(ed, min_occurs=1, max_occurs=1, schema=self.schema())
@@ -138,7 +149,7 @@ class TestParticle (_TestBase):
         self.assertEqual(1, len(pde))
         (name, count) = pde[0]
         self.assertEqual(ed.ncName(), name)
-        self.assertEqual(3, count)
+        self.assertEqual(None, count)
 
     def testUnboundedElement (self):
         ed = self.schema().lookupElement('selt')
@@ -151,13 +162,22 @@ class TestParticle (_TestBase):
         self.assertEqual(ed.ncName(), name)
         self.assertEqual(None, count)
 
+    def testZeroMGSeq (self):
+        prt = xs.structures.Particle(self._getMGMulti(ModelGroup.C_SEQUENCE), min_occurs=0, max_occurs=0, schema=self.schema())
+        pd = prt.pluralityData()
+        self.assertEqual(1, len(pd))
+        pde = pd[0]
+        self.assertEqual(2, len(pde))
+        self.assert_( ('selt', 0) in pde )
+        self.assert_( ('ielt', 0) in pde )
+        
     def testOptionalMGSeq (self):
         prt = xs.structures.Particle(self._getMGMulti(ModelGroup.C_SEQUENCE), min_occurs=0, max_occurs=1, schema=self.schema())
         pd = prt.pluralityData()
         self.assertEqual(1, len(pd))
         pde = pd[0]
         self.assertEqual(2, len(pde))
-        self.assert_( ('selt', 4) in pde )
+        self.assert_( ('selt', None) in pde )
         self.assert_( ('ielt', None) in pde )
         
     def testMultipleMGSeq (self):
@@ -166,7 +186,7 @@ class TestParticle (_TestBase):
         self.assertEqual(1, len(pd))
         pde = pd[0]
         self.assertEqual(2, len(pde))
-        self.assert_( ('selt', 12) in pde )
+        self.assert_( ('selt', None) in pde )
         self.assert_( ('ielt', None) in pde )
         
     def testUnboundedMGSeq (self):
@@ -178,6 +198,31 @@ class TestParticle (_TestBase):
         self.assertEqual(2, len(pde))
         self.assert_( ('selt', None) in pde )
         self.assert_( ('ielt', None) in pde )
+
+    def testOptionalMGChoice (self):
+        prt = xs.structures.Particle(self._getMGMulti(ModelGroup.C_CHOICE), min_occurs=0, max_occurs=1, schema=self.schema())
+        pd = prt.pluralityData()
+        self.assertEqual(2, len(pd))
+        pde = pd[0]
+        self.assertEqual(1, len(pde))
+        self.assert_( ('selt', None) in pde )
+        pde = pd[1]
+        self.assertEqual(1, len(pde))
+        self.assert_( ('ielt', None) in pde )
+        
+    def testMultiMGChoice (self):
+        return
+        prt = xs.structures.Particle(self._getMGMulti(ModelGroup.C_CHOICE), min_occurs=3, max_occurs=3, schema=self.schema())
+        pd = prt.pluralityData()
+        print pd
+        self.assertEqual(2, len(pd))
+        pde = pd[0]
+        self.assertEqual(1, len(pde))
+        self.assert_( ('selt', None) in pde )
+        pde = pd[1]
+        self.assertEqual(1, len(pde))
+        self.assert_( ('ielt', None) in pde )
+        
 
 if __name__ == '__main__':
     unittest.main()
