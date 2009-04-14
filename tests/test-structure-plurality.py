@@ -26,11 +26,13 @@ class TestED (_TestBase):
         self.assert_(ed.isResolved())
         pd = ed.pluralityData()
         self.assertEqual(1, len(pd))
-        ( tag, count ) = pd[0]
+        pde = pd[0]
+        self.assertEqual(1, len(pd))
+        ( tag, count ) = pde[0]
         self.assertEqual(ed.ncName(), tag)
         self.assertEqual(1, count)
 
-class testMG (_TestBase):
+class TestMG (_TestBase):
     def _getSingleElements (self):
         return [ xs.structures.Particle(self.schema().lookupElement('selt'), schema=self.schema()),
                  xs.structures.Particle(self.schema().lookupElement('ielt'), schema=self.schema())]
@@ -42,39 +44,58 @@ class testMG (_TestBase):
     def testSequenceSingleElements (self):
         mgd = xs.structures.ModelGroup(compositor=xs.structures.ModelGroup.C_SEQUENCE, particles=self._getSingleElements(), schema=self.schema())
         pd = mgd.pluralityData()
-        self.assertEqual(2, len(pd))
-        self.assert_( ('selt', 1) in pd )
-        self.assert_( ('ielt', 1) in pd )
+        self.assertEqual(1, len(pd))
+        pde = pd[0]
+        self.assertEqual(2, len(pde))
+        self.assert_( ('selt', 1) in pde )
+        self.assert_( ('ielt', 1) in pde )
 
     def testSequenceMultiElements (self):
         mgd = xs.structures.ModelGroup(compositor=xs.structures.ModelGroup.C_SEQUENCE, particles=self._getMultiElements(), schema=self.schema())
         pd = mgd.pluralityData()
-        self.assertEqual(2, len(pd))
-        self.assert_( ('selt', 4) in pd )
-        self.assert_( ('ielt', None) in pd )
+        self.assertEqual(1, len(pd))
+        pde = pd[0]
+        self.assertEqual(2, len(pde))
+        self.assert_( ('selt', 4) in pde )
+        self.assert_( ('ielt', None) in pde )
 
     def testAllSingleElements (self):
         mgd = xs.structures.ModelGroup(compositor=xs.structures.ModelGroup.C_ALL, particles=self._getSingleElements(), schema=self.schema())
         pd = mgd.pluralityData()
-        self.assertEqual(2, len(pd))
-        self.assert_( ('selt', 1) in pd )
-        self.assert_( ('ielt', 1) in pd )
+        self.assertEqual(1, len(pd))
+        pde = pd[0]
+        self.assertEqual(2, len(pde))
+        self.assert_( ('selt', 1) in pde )
+        self.assert_( ('ielt', 1) in pde )
 
     def testAllMultiElements (self):
         mgd = xs.structures.ModelGroup(compositor=xs.structures.ModelGroup.C_ALL, particles=self._getMultiElements(), schema=self.schema())
         pd = mgd.pluralityData()
-        self.assertEqual(2, len(pd))
-        self.assert_( ('selt', 4) in pd )
-        self.assert_( ('ielt', None) in pd )
+        self.assertEqual(1, len(pd))
+        pde = pd[0]
+        self.assertEqual(2, len(pde))
+        self.assert_( ('selt', 4) in pde )
+        self.assert_( ('ielt', None) in pde )
 
+    def testChoiceSingleElements (self):
+        return
+        mgd = xs.structures.ModelGroup(compositor=xs.structures.ModelGroup.C_CHOICE, particles=self._getSingleElements(), schema=self.schema())
+        pd = mgd.pluralityData()
+        self.assertEqual(1, len(pd))
+        pde = pd[0]
+        self.assertEqual(2, len(pde))
+        self.assert_( ('selt', 1) in pde )
+        self.assert_( ('ielt', 1) in pde )
 
-class testParticle (_TestBase):
+class TestParticle (_TestBase):
     def testSingleElement (self):
         ed = self.schema().lookupElement('selt')
         prt = xs.structures.Particle(ed, min_occurs=1, max_occurs=1, schema=self.schema())
         pd = prt.pluralityData()
         self.assertEqual(1, len(pd))
-        (name, count) = pd[0]
+        pde = pd[0]
+        self.assertEqual(1, len(pde))
+        (name, count) = pde[0]
         self.assertEqual(ed.ncName(), name)
         self.assertEqual(1, count)
 
@@ -83,7 +104,9 @@ class testParticle (_TestBase):
         prt = xs.structures.Particle(ed, min_occurs=0, max_occurs=1, schema=self.schema())
         pd = prt.pluralityData()
         self.assertEqual(1, len(pd))
-        (name, count) = pd[0]
+        pde = pd[0]
+        self.assertEqual(1, len(pde))
+        (name, count) = pde[0]
         self.assertEqual(ed.ncName(), name)
         self.assertEqual(1, count)
 
@@ -92,7 +115,9 @@ class testParticle (_TestBase):
         prt = xs.structures.Particle(ed, min_occurs=3, max_occurs=3, schema=self.schema())
         pd = prt.pluralityData()
         self.assertEqual(1, len(pd))
-        (name, count) = pd[0]
+        pde = pd[0]
+        self.assertEqual(1, len(pde))
+        (name, count) = pde[0]
         self.assertEqual(ed.ncName(), name)
         self.assertEqual(3, count)
 
@@ -101,7 +126,9 @@ class testParticle (_TestBase):
         prt = xs.structures.Particle(ed, min_occurs=3, max_occurs=None, schema=self.schema())
         pd = prt.pluralityData()
         self.assertEqual(1, len(pd))
-        (name, count) = pd[0]
+        pde = pd[0]
+        self.assertEqual(1, len(pde))
+        (name, count) = pde[0]
         self.assertEqual(ed.ncName(), name)
         self.assertEqual(None, count)
 

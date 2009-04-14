@@ -647,7 +647,7 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Resolv
         """Return the plurality information for this component.
 
         An ElementDeclaration produces one instance of a single element."""
-        return [ ( self.ncName(), 1 ) ]
+        return [ [ (self.ncName(), 1) ] ]
 
     def _dependentComponents_vx (self):
         """Implement base class method.
@@ -1378,25 +1378,30 @@ class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
         return False
 
     def pluralityData (self):
-        pdl = [ _p.pluralityData() for _p in self.particles() ]
+        pdll = [ _p.pluralityData() for _p in self.particles() ]
         if (self.C_CHOICE == self.compositor()):
             pass
         elif ((self.C_SEQUENCE == self.compositor()) or (self.C_ALL == self.compositor())):
             # Sequence means all of them, in all their glory
             # All is treated the same way
-            name_map = {}
-            for pd in pdl:
-                for (name, count) in pd:
-                    if name in name_map:
-                        old = name_map[name]
-                        if (old is None) or (count is None):
-                            name_map[name] = None
-                        else:
-                            name_map[name] = old + count
-                    else:
-                        name_map[name] = count
-            pd = name_map.items()
-            pass
+            new_pd = pdll.pop()
+            for pd in pdll:
+                stage_pd = []
+                for pde1 in new_pd:
+                    for pde2 in pd:
+                        name_map = {}
+                        for (name, count) in (pde1+pde2):
+                            if name in name_map:
+                                old = name_map[name]
+                                if (old is None) or (count is None):
+                                    name_map[name] = None
+                                else:
+                                    name_map[name] = old + count
+                            else:
+                                name_map[name] = count
+                        stage_pd.append(name_map.items())
+                new_pd = stage_pd
+            pd = new_pd
         else:
             raise LogicError('Unrecognized compositor value %s' % (self.compositor(),))
         return pd
@@ -1497,12 +1502,15 @@ class Particle (_SchemaComponent_mixin, _Resolvable_mixin):
         pd = self.term().pluralityData()
         new_pd = []
         
-        for (name, count) in pd:
-            if (count is not None) and (self.maxOccurs() is not None):
-                count = count * self.maxOccurs()
-            else:
-                count = None
-            new_pd.append( (name, count) )
+        for pde in pd:
+            new_pde = []
+            for (name, count) in pde:
+                if (count is not None) and (self.maxOccurs() is not None):
+                    count = count * self.maxOccurs()
+                else:
+                    count = None
+                new_pde.append( (name, count) )
+            new_pd.append(new_pde)
         return new_pd
 
     def isPlural (self):
