@@ -44,9 +44,9 @@ class TestED (_TestBase):
         self.assertEqual(1, len(pd))
         pde = pd[0]
         self.assertEqual(1, len(pd))
-        ( tag, count ) = pde[0]
+        ( tag, is_plural ) = pde[0]
         self.assertEqual(ed.ncName(), tag)
-        self.assertEqual(1, count)
+        self.assertFalse(is_plural)
 
 class TestMG (_TestBase):
     def testSequenceSingleElements (self):
@@ -55,8 +55,8 @@ class TestMG (_TestBase):
         self.assertEqual(1, len(pd))
         pde = pd[0]
         self.assertEqual(2, len(pde))
-        self.assert_( ('selt', 1) in pde )
-        self.assert_( ('ielt', 1) in pde )
+        self.assert_( ('selt', False) in pde )
+        self.assert_( ('ielt', False) in pde )
 
     def testSequenceMultiElements (self):
         mgd = self._getMGMulti(ModelGroup.C_SEQUENCE)
@@ -64,9 +64,9 @@ class TestMG (_TestBase):
         self.assertEqual(1, len(pd))
         pde = pd[0]
         self.assertEqual(3, len(pde))
-        self.assert_( ('selt', None) in pde )
-        self.assert_( ('ielt', None) in pde )
-        self.assert_( ('belt', 1) in pde )
+        self.assert_( ('selt', True) in pde )
+        self.assert_( ('ielt', True) in pde )
+        self.assert_( ('belt', False) in pde )
 
     def testAllSingleElements (self):
         mgd = self._getMGSingle(ModelGroup.C_ALL)
@@ -74,8 +74,8 @@ class TestMG (_TestBase):
         self.assertEqual(1, len(pd))
         pde = pd[0]
         self.assertEqual(2, len(pde))
-        self.assert_( ('selt', 1) in pde )
-        self.assert_( ('ielt', 1) in pde )
+        self.assert_( ('selt', False) in pde )
+        self.assert_( ('ielt', False) in pde )
 
     def testAllMultiElements (self):
         mgd = self._getMGMulti(ModelGroup.C_ALL)
@@ -83,9 +83,9 @@ class TestMG (_TestBase):
         self.assertEqual(1, len(pd))
         pde = pd[0]
         self.assertEqual(3, len(pde))
-        self.assert_( ('selt', None) in pde )
-        self.assert_( ('ielt', None) in pde )
-        self.assert_( ('belt', 1) in pde )
+        self.assert_( ('selt', True) in pde )
+        self.assert_( ('ielt', True) in pde )
+        self.assert_( ('belt', False) in pde )
 
     def testChoiceSingleElements (self):
         mgd = self._getMGSingle(ModelGroup.C_CHOICE)
@@ -93,10 +93,10 @@ class TestMG (_TestBase):
         self.assertEqual(2, len(pd))
         pde = pd[0]
         self.assertEqual(1, len(pde))
-        self.assert_( ('selt', 1) in pde )
+        self.assert_( ('selt', False) in pde )
         pde = pd[1]
         self.assertEqual(1, len(pde))
-        self.assert_( ('ielt', 1) in pde )
+        self.assert_( ('ielt', False) in pde )
 
     def testChoiceMultiElements (self):
         mgd = self._getMGMulti(ModelGroup.C_CHOICE)
@@ -104,13 +104,13 @@ class TestMG (_TestBase):
         self.assertEqual(3, len(pd))
         pde = pd[0]
         self.assertEqual(1, len(pde))
-        self.assert_( ('selt', None) in pde )
+        self.assert_( ('selt', True) in pde )
         pde = pd[1]
         self.assertEqual(1, len(pde))
-        self.assert_( ('ielt', None) in pde )
+        self.assert_( ('ielt', True) in pde )
         pde = pd[2]
         self.assertEqual(1, len(pde))
-        self.assert_( ('belt', 1) in pde )
+        self.assert_( ('belt', False) in pde )
 
 class TestParticle (_TestBase):
     def testZeroElement (self):
@@ -126,9 +126,9 @@ class TestParticle (_TestBase):
         self.assertEqual(1, len(pd))
         pde = pd[0]
         self.assertEqual(1, len(pde))
-        (name, count) = pde[0]
+        (name, is_plural) = pde[0]
         self.assertEqual(ed.ncName(), name)
-        self.assertEqual(1, count)
+        self.assertFalse(is_plural)
 
     def testOptionalElement (self):
         ed = self.schema().lookupElement('selt')
@@ -137,9 +137,9 @@ class TestParticle (_TestBase):
         self.assertEqual(1, len(pd))
         pde = pd[0]
         self.assertEqual(1, len(pde))
-        (name, count) = pde[0]
+        (name, is_plural) = pde[0]
         self.assertEqual(ed.ncName(), name)
-        self.assertEqual(1, count)
+        self.assertFalse(is_plural)
 
     def testMultipleElement (self):
         ed = self.schema().lookupElement('selt')
@@ -148,9 +148,9 @@ class TestParticle (_TestBase):
         self.assertEqual(1, len(pd))
         pde = pd[0]
         self.assertEqual(1, len(pde))
-        (name, count) = pde[0]
+        (name, is_plural) = pde[0]
         self.assertEqual(ed.ncName(), name)
-        self.assertEqual(None, count)
+        self.assertTrue(is_plural)
 
     def testUnboundedElement (self):
         ed = self.schema().lookupElement('selt')
@@ -159,9 +159,9 @@ class TestParticle (_TestBase):
         self.assertEqual(1, len(pd))
         pde = pd[0]
         self.assertEqual(1, len(pde))
-        (name, count) = pde[0]
+        (name, is_plural) = pde[0]
         self.assertEqual(ed.ncName(), name)
-        self.assertEqual(None, count)
+        self.assertTrue(is_plural)
 
     def testZeroMGSeq (self):
         prt = xs.structures.Particle(self._getMGMulti(ModelGroup.C_SEQUENCE), min_occurs=0, max_occurs=0, schema=self.schema())
@@ -174,9 +174,9 @@ class TestParticle (_TestBase):
         self.assertEqual(1, len(pd))
         pde = pd[0]
         self.assertEqual(3, len(pde))
-        self.assert_( ('selt', None) in pde )
-        self.assert_( ('ielt', None) in pde )
-        self.assert_( ('belt', 1) in pde )
+        self.assert_( ('selt', True) in pde )
+        self.assert_( ('ielt', True) in pde )
+        self.assert_( ('belt', False) in pde )
         
     def testMultipleMGSeq (self):
         prt = xs.structures.Particle(self._getMGMulti(ModelGroup.C_SEQUENCE), min_occurs=3, max_occurs=3, schema=self.schema())
@@ -184,9 +184,9 @@ class TestParticle (_TestBase):
         self.assertEqual(1, len(pd))
         pde = pd[0]
         self.assertEqual(3, len(pde))
-        self.assert_( ('selt', None) in pde )
-        self.assert_( ('ielt', None) in pde )
-        self.assert_( ('belt', None) in pde )
+        self.assert_( ('selt', True) in pde )
+        self.assert_( ('ielt', True) in pde )
+        self.assert_( ('belt', True) in pde )
         
     def testUnboundedMGSeq (self):
         ed = self.schema().lookupElement('selt')
@@ -195,9 +195,9 @@ class TestParticle (_TestBase):
         self.assertEqual(1, len(pd))
         pde = pd[0]
         self.assertEqual(3, len(pde))
-        self.assert_( ('selt', None) in pde )
-        self.assert_( ('ielt', None) in pde )
-        self.assert_( ('belt', None) in pde )
+        self.assert_( ('selt', True) in pde )
+        self.assert_( ('ielt', True) in pde )
+        self.assert_( ('belt', True) in pde )
 
     def testOptionalMGChoice (self):
         prt = xs.structures.Particle(self._getMGMulti(ModelGroup.C_CHOICE), min_occurs=0, max_occurs=1, schema=self.schema())
@@ -205,13 +205,13 @@ class TestParticle (_TestBase):
         self.assertEqual(3, len(pd))
         pde = pd[0]
         self.assertEqual(1, len(pde))
-        self.assert_( ('selt', None) in pde )
+        self.assert_( ('selt', True) in pde )
         pde = pd[1]
         self.assertEqual(1, len(pde))
-        self.assert_( ('ielt', None) in pde )
+        self.assert_( ('ielt', True) in pde )
         pde = pd[2]
         self.assertEqual(1, len(pde))
-        self.assert_( ('belt', 1) in pde )
+        self.assert_( ('belt', False) in pde )
         
     def testMultiMGChoice (self):
         prt = xs.structures.Particle(self._getMGMulti(ModelGroup.C_CHOICE), min_occurs=3, max_occurs=3, schema=self.schema())
@@ -219,9 +219,9 @@ class TestParticle (_TestBase):
         self.assertEqual(1, len(pd))
         pde = pd[0]
         self.assertEqual(3, len(pde))
-        self.assert_( ('selt', None) in pde )
-        self.assert_( ('ielt', None) in pde )
-        self.assert_( ('belt', None) in pde )
+        self.assert_( ('selt', True) in pde )
+        self.assert_( ('ielt', True) in pde )
+        self.assert_( ('belt', True) in pde )
         
 if __name__ == '__main__':
     unittest.main()

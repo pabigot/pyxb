@@ -647,7 +647,7 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Resolv
         """Return the plurality information for this component.
 
         An ElementDeclaration produces one instance of a single element."""
-        return [ [ (self.ncName(), 1) ] ]
+        return [ [ (self.ncName(), False) ] ]
 
     def _dependentComponents_vx (self):
         """Implement base class method.
@@ -1523,18 +1523,14 @@ class Particle (_SchemaComponent_mixin, _Resolvable_mixin):
                     if name not in name_map:
                         name_map[name] = count
                     else:
-                        name_map[name] = None
+                        name_map[name] = True
             pd = [ name_map.items() ]
 
         new_pd = []
         for pde in pd:
             new_pde = []
             for (name, count) in pde:
-                if 0 == self.maxOccurs():
-                    count = 0
-                elif (1 < self.maxOccurs()) or (self.maxOccurs() is None):
-                    count = None
-                new_pde.append( (name, count) )
+                new_pde.append( (name, True) )
             new_pd.append(new_pde)
         return new_pd
 
