@@ -9,18 +9,20 @@ import unittest
 
 Namespace.XMLSchema.validateSchema()
 
-class TestED (unittest.TestCase):
+class _TestBase (unittest.TestCase):
     __schema = None
+    def schema (self): return self.__schema
 
     def setUp (self):
-        if self.__schema is None:
-            self.__schema = xs.schema()
-            ed = xs.structures.ElementDeclaration(name='foo', schema=self.__schema)
-            ed._typeDefinition(Namespace.XMLSchema.lookupTypeDefinition('string'))
+        self.__schema = xs.schema()
+        for ( name, type ) in [ ( 'selt', 'string' ), ( 'ielt', 'int' ), ( 'belt', 'boolean' ) ]:
+            ed = xs.structures.ElementDeclaration(name=name, schema=self.__schema)
+            ed._typeDefinition(Namespace.XMLSchema.lookupTypeDefinition(type))
             self.__schema._addNamedComponent(ed)
-
+    
+class TestED (_TestBase):
     def testBasic (self):
-        ed = self.__schema.lookupElement('foo')
+        ed = self.schema().lookupElement('selt')
         self.assert_(ed.isResolved())
         pd = ed.pluralityData()
         self.assertEqual(1, len(pd))
@@ -28,11 +30,7 @@ class TestED (unittest.TestCase):
         self.assertEqual(ed.ncName(), tag)
         self.assertEqual(1, count)
 
-class testMGD (unittest.TestCase):
-
-    def setUp (self):
-        self.__schema = xs.schema()
-
+class testMG (_TestBase):
     def testSequence (self):
         pass
 
@@ -41,6 +39,43 @@ class testMGD (unittest.TestCase):
 
     def testChoice (self):
         pass
+
+class testParticle (_TestBase):
+    def testSingle (self):
+        ed = self.schema().lookupElement('selt')
+        prt = xs.structures.Particle(ed, min_occurs=1, max_occurs=1, schema=self.schema())
+        pd = prt.pluralityData()
+        self.assertEqual(1, len(pd))
+        (name, count) = pd[0]
+        self.assertEqual(ed.ncName(), name)
+        self.assertEqual(1, count)
+
+    def testOptional (self):
+        ed = self.schema().lookupElement('selt')
+        prt = xs.structures.Particle(ed, min_occurs=0, max_occurs=1, schema=self.schema())
+        pd = prt.pluralityData()
+        self.assertEqual(1, len(pd))
+        (name, count) = pd[0]
+        self.assertEqual(ed.ncName(), name)
+        self.assertEqual(1, count)
+
+    def testMultiple (self):
+        ed = self.schema().lookupElement('selt')
+        prt = xs.structures.Particle(ed, min_occurs=3, max_occurs=3, schema=self.schema())
+        pd = prt.pluralityData()
+        self.assertEqual(1, len(pd))
+        (name, count) = pd[0]
+        self.assertEqual(ed.ncName(), name)
+        self.assertEqual(3, count)
+
+    def testUnbounded (self):
+        ed = self.schema().lookupElement('selt')
+        prt = xs.structures.Particle(ed, min_occurs=3, max_occurs=None, schema=self.schema())
+        pd = prt.pluralityData()
+        self.assertEqual(1, len(pd))
+        (name, count) = pd[0]
+        self.assertEqual(ed.ncName(), name)
+        self.assertEqual(None, count)
 
 if __name__ == '__main__':
     unittest.main()

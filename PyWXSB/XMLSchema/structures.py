@@ -1464,6 +1464,23 @@ class Particle (_SchemaComponent_mixin, _Resolvable_mixin):
         """A reference to a ModelGroup, Wildcard, or ElementDeclaration."""
         return self.__term
 
+    def pluralityData (self):
+        """Return the plurality data for this component.
+
+        The plurality data for a particle is the plurality data for
+        its term, with the counts scaled by the maximum number of
+        times the particle can occur."""
+        pd = self.term().pluralityData()
+        new_pd = []
+        
+        for (name, count) in pd:
+            if (count is not None) and (self.maxOccurs() is not None):
+                count = count * self.maxOccurs()
+            else:
+                count = None
+            new_pd.append( (name, count) )
+        return new_pd
+
     def isPlural (self):
         """Return true iff the term might appear multiple times."""
         if (self.maxOccurs() is None) or 1 < self.maxOccurs():
