@@ -398,6 +398,95 @@ class _ValueConstraint_mixin:
         self.__valueConstraint = None
         return self
         
+class _PluralityData (types.ListType):
+    """This class represents an abstraction of the set of documents
+    conformant to a particle or particle term.
+
+    The abstraction of a given document is a map from element
+    declarations that can appear in it to a boolean that is true iff
+    there could be multiple instances of that element declaration at
+    the top level of the document fragment.  The abstraction of the
+    set is a list of document abstractions.
+
+    This information is used in binding generation to determine
+    whether a field associated with a tag might need to hold multiple
+    instances, and whether those instances might be of different
+    types.
+    """
+    
+    @classmethod
+    def _MapUnion (self, map1, map2):
+        umap = { }
+        for k in set(map1.keys()).union(map2.keys()):
+            if k in map1:
+                umap[k] = (k in map2) or map1[k]
+            else:
+                umap[k] = map2[k]
+        return umap
+
+    def __fromModelGroup (self, model_group):
+        # Start by collecting the data for each of the particles.
+        pdll = [ _PluralityData(_p) for _p in model_group.particles() ]
+        if (ModelGroup.C_CHOICE == model_group.compositor()):
+            # Plurality for choice is simply any of the pluralities of the particles.
+            for pd in pdll:
+                union_map = { }
+                for pdm in pd:
+                    union_map = self._MapUnion(union_map, pdm)
+                self.append(union_map)
+        elif ((ModelGroup.C_SEQUENCE == model_group.compositor()) or (ModelGroup.C_ALL == model_group.compositor())):
+            # Sequence means all of them, in all their glory
+            # All is treated the same way
+            # Essentially this is a pointwise OR of the pluralities of the particles.
+            new_pd = pdll.pop()
+            for pd in pdll:
+                stage_pd = [ ]
+                for pdm1 in new_pd:
+                    for pdm2 in pd:
+                        stage_pd.append(self._MapUnion(pdm1, pdm2))
+                new_pd = stage_pd
+            self.extend(new_pd)
+        else:
+            raise LogicError('Unrecognized compositor value %s' % (model_group.compositor(),))
+
+    def __fromParticle (self, particle):
+        pd = particle.term().pluralityData()
+
+        # If the particle can't appear at all, there are no results.
+        if 0 == particle.maxOccurs():
+            return
+
+        # If the particle can only occur once, it has no effect on the
+        # pluralities; use the term to identify them
+        if 1 == particle.maxOccurs():
+            self.__setFromComponent(particle.term())
+            return
+        
+        # If there are multiple alternatives, assume they are all
+        # taken.  Do this by creating a map that treats every possible
+        # element as appearing multiple times.
+        true_map = {}
+        pd = _PluralityData(particle.term())
+        while 0 < len(pd):
+            pdm = pd.pop()
+            [ true_map.setdefault(_k, True) for _k in pdm.keys() ]
+        self.append(true_map)
+
+    def __setFromComponent (self, component=None):
+        del self[:]
+        if isinstance(component, ElementDeclaration):
+            self.append( { component: False } )
+        elif isinstance(component, ModelGroup):
+            self.__fromModelGroup(component)
+        elif isinstance(component, Particle):
+            self.__fromParticle(component)
+        elif component is not None:
+            raise NotImplementedError("No support for plurality of component type %s" % (type(component),))
+
+    def __init__ (self, component=None):
+        super(_PluralityData, self).__init__()
+        self.__setFromComponent(component)
+
 class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Resolvable_mixin, _Annotated_mixin, _ValueConstraint_mixin):
     """An XMLSchema Attribute Declaration component.
 
@@ -647,7 +736,7 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Resolv
         """Return the plurality information for this component.
 
         An ElementDeclaration produces one instance of a single element."""
-        return [ [ (self.ncName(), False) ] ]
+        return _PluralityData(self)
 
     def _dependentComponents_vx (self):
         """Implement base class method.
@@ -1380,36 +1469,7 @@ class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
     def pluralityData (self):
         """Get the plurality data for this model group.
         """
-        
-        # Start by collecting the data for each of the particles.
-        pdll = [ _p.pluralityData() for _p in self.particles() ]
-        if (self.C_CHOICE == self.compositor()):
-            # Plurality for choice is simply any of the pluralities of the particles.
-            new_pd = []
-            for pd in pdll:
-                new_pd.extend(pd)
-            pd = new_pd
-        elif ((self.C_SEQUENCE == self.compositor()) or (self.C_ALL == self.compositor())):
-            # Sequence means all of them, in all their glory
-            # All is treated the same way
-            # Essentially this is a pointwise OR of the pluralities of the particles.
-            new_pd = pdll.pop()
-            for pd in pdll:
-                stage_pd = []
-                for pde1 in new_pd:
-                    for pde2 in pd:
-                        name_map = {}
-                        for (name, is_plural) in (pde1+pde2):
-                            if name in name_map:
-                                name_map[name] = True
-                            else:
-                                name_map[name] = is_plural
-                        stage_pd.append(name_map.items())
-                new_pd = stage_pd
-            pd = new_pd
-        else:
-            raise LogicError('Unrecognized compositor value %s' % (self.compositor(),))
-        return pd
+        return _PluralityData(self)
 
     @classmethod
     def CreateFromDOM (cls, wxs, node, **kw):
@@ -1504,44 +1564,7 @@ class Particle (_SchemaComponent_mixin, _Resolvable_mixin):
         The plurality data for a particle is the plurality data for
         its term, with the counts scaled by the effect of
         maxOccurs."""
-        pd = self.term().pluralityData()
-        # Verify the structure of the
-        assert types.ListType == type(pd)
-        assert (0 == len(pd)) or (types.ListType == type(pd[0]))
-        assert (0 == len(pd)) or (0 == len(pd[0])) or (types.TupleType == type(pd[0][0]))
-        
-        # If the particle can't appear at all, there are no results.
-        if 0 == self.maxOccurs():
-            return []
-
-        # If the particle can only occur once, it has no effect on the
-        # pluralities.
-        if 1 == self.maxOccurs():
-            return pd
-
-        # If there are multiple alternatives, assume they are all
-        # taken.  Do this by creating the union of the tags
-        if 1 < len(pd):
-            name_map = { }
-            for pde in pd:
-                for (name, is_plural) in pde:
-                    # If we haven't seen the name before, use its
-                    # count.  If we have, by definition it's plural.
-                    if name not in name_map:
-                        name_map[name] = is_plural
-                    else:
-                        name_map[name] = True
-            pd = [ name_map.items() ]
-
-        # Now create a new list where everything is considered to be
-        # plural
-        new_pd = []
-        for pde in pd:
-            new_pde = []
-            for (name, count) in pde:
-                new_pde.append( (name, True) )
-            new_pd.append(new_pde)
-        return new_pd
+        return _PluralityData(self)
 
     def isPlural (self):
         """Return true iff the term might appear multiple times."""
