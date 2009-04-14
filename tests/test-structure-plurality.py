@@ -111,12 +111,7 @@ class TestParticle (_TestBase):
         ed = self.schema().lookupElement('selt')
         prt = xs.structures.Particle(ed, min_occurs=0, max_occurs=0, schema=self.schema())
         pd = prt.pluralityData()
-        self.assertEqual(1, len(pd))
-        pde = pd[0]
-        self.assertEqual(1, len(pde))
-        (name, count) = pde[0]
-        self.assertEqual(ed.ncName(), name)
-        self.assertEqual(0, count)
+        self.assertEqual(0, len(pd))
 
     def testSingleElement (self):
         ed = self.schema().lookupElement('selt')
@@ -165,11 +160,7 @@ class TestParticle (_TestBase):
     def testZeroMGSeq (self):
         prt = xs.structures.Particle(self._getMGMulti(ModelGroup.C_SEQUENCE), min_occurs=0, max_occurs=0, schema=self.schema())
         pd = prt.pluralityData()
-        self.assertEqual(1, len(pd))
-        pde = pd[0]
-        self.assertEqual(2, len(pde))
-        self.assert_( ('selt', 0) in pde )
-        self.assert_( ('ielt', 0) in pde )
+        self.assertEqual(0, len(pd))
         
     def testOptionalMGSeq (self):
         prt = xs.structures.Particle(self._getMGMulti(ModelGroup.C_SEQUENCE), min_occurs=0, max_occurs=1, schema=self.schema())
@@ -211,16 +202,17 @@ class TestParticle (_TestBase):
         self.assert_( ('ielt', None) in pde )
         
     def testMultiMGChoice (self):
-        return
         prt = xs.structures.Particle(self._getMGMulti(ModelGroup.C_CHOICE), min_occurs=3, max_occurs=3, schema=self.schema())
         pd = prt.pluralityData()
         print pd
         self.assertEqual(2, len(pd))
         pde = pd[0]
-        self.assertEqual(1, len(pde))
+        self.assertEqual(2, len(pde))
         self.assert_( ('selt', None) in pde )
+        self.assert_( ('ielt', None) in pde )
         pde = pd[1]
-        self.assertEqual(1, len(pde))
+        self.assertEqual(2, len(pde))
+        self.assert_( ('selt', None) in pde )
         self.assert_( ('ielt', None) in pde )
         
 

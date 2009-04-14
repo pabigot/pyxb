@@ -1504,8 +1504,18 @@ class Particle (_SchemaComponent_mixin, _Resolvable_mixin):
         Since we only care about plurality, the legal counts are 0, 1,
         and infinite."""
         pd = self.term().pluralityData()
-        new_pd = []
+        assert types.ListType == type(pd)
+        if 0 < len(pd):
+            assert types.ListType == type(pd[0])
+            if 0 < len(pd[0]):
+                assert types.TupleType == type(pd[0][0])
         
+        if 1 == self.maxOccurs():
+            return pd
+        if 0 == self.maxOccurs():
+            return []
+
+        new_pd = []
         for pde in pd:
             new_pde = []
             for (name, count) in pde:
@@ -1515,6 +1525,11 @@ class Particle (_SchemaComponent_mixin, _Resolvable_mixin):
                     count = None
                 new_pde.append( (name, count) )
             new_pd.append(new_pde)
+                    
+        #print 'Multi-scale %s' % (pd,)
+        #new_pd = [[]]
+        #for pde in pd:
+        #    new_pd = [ _x + [_y] for _x in new_pd for _y in pd ]
         return new_pd
 
     def isPlural (self):
