@@ -581,11 +581,16 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Resolv
     def typeDefinition (self):
         """The simple or complex type to which the element value conforms."""
         return self.__typeDefinition
+    def _typeDefinition (self, type_definition):
+        """Set the type of the element."""
+        self.__typeDefinition = type_definition
+        return self
 
     SCOPE_global = 0x01         #<<< Marker for global scope
 
     # The scope for the element.  Valid values are SCOPE_global or a
-    # complex type definition.
+    # complex type definition.  None is an invalid value, but may
+    # appear if scope is determined by an ancestor component.
     __scope = None
     def scope (self):
         """The scope for the element.
@@ -596,6 +601,10 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Resolv
         the owning complex type.
         """
         return self.__scope
+    def _scope (self, scope):
+        """Set the element scope."""
+        assert (self.SCOPE_global == scope) or isinstance(scope, ComplexTypeDefinition) or (scope is None)
+        self.__scope = scope
 
     __nillable = False
     def nillable (self): return self.__nillable
@@ -633,6 +642,12 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Resolv
         None if at the top level, or a ComplexTypeDefinition or a
         ModelGroup.  """
         return self.__ancestorComponent
+
+    def pluralityData (self):
+        """Return the plurality information for this component.
+
+        An ElementDeclaration produces one instance of a single element."""
+        return [ ( self.ncName(), 1 ) ]
 
     def _dependentComponents_vx (self):
         """Implement base class method.
@@ -680,7 +695,7 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Resolv
             raise LogicError('Created reference as element declaration')
         
         rv = cls(name=name, target_namespace=namespace, ancestor_component=ancestor_component, schema=wxs, owner=owner)
-        rv.__scope = scope
+        rv._scope(scope)
         rv._annotationFromDOM(wxs, node)
         rv._valueConstraintFromDOM(wxs, node)
 
@@ -734,7 +749,7 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Resolv
                 type_def = self.__substitutionGroupAffiliation.typeDefinition()
             else:
                 type_def = ComplexTypeDefinition.UrTypeDefinition()
-        self.__typeDefinition = type_def
+        self._typeDefinition(type_def)
 
         attr_val = NodeAttribute(node, wxs, 'nillable')
         if attr_val is not None:

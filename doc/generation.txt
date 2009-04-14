@@ -21,6 +21,25 @@ name : component -> python identifier
 inspect : component -> python identifier or method invocation
 mutate : component + python expression -> python statement
 
+Complex Type Field Representation
+---------------------------------
+
+The binding corresponding to a complex type provides access to XML
+attributes through inspector and mutator functions, and to nested elements
+through Python value attributes.  The names of the Python value attributes
+are derived from the corresponding names for elements that can appear within
+the schema, but may be modified to be valid Python identifiers that do not
+conflict with infrastructure attributes.
+
+Each field name is paired with the XML tag from which its value is obtained.
+Furthermore, the field is fixed to be either a single value or a collection,
+depending on the model groups within the complex type.  Single value fields
+are those for which at most one element with the field tag may appear in a
+valid complex type instance.  The value of such a field is either None
+(indicating no sub-element was found), or a reference to a binding instance.
+Fields that hold sub-elements that might have multiple instances are
+represented as lists.
+
 Namespace Issues
 ================
 
