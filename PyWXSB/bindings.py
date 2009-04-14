@@ -192,6 +192,7 @@ class ElementUse (object):
 
     def reset (self, ctd_instance):
         self.__setValue(ctd_instance, self.defaultValue())
+        return self
 
     def _setDataTypes (self, data_types):
         self.__dataTypes = data_types
@@ -218,31 +219,28 @@ class ElementUse (object):
 
     def setValue (self, ctd_instance, value):
         if value is None:
-            return self.__setValue(ctd_instance, self.defaultValue())
+            return self.reset(ctd_instance)
         assert self.__dataTypes is not None
         for dt in self.__dataTypes:
             if isinstance(value, dt):
                 self.__setValue(ctd_instance, value)
-                return
+                ctd_instance._addContent(value, self)
+                return self
         for dt in self.__dataTypes:
             try:
                 iv = dt(value)
                 self.__setValue(ctd_instance, iv)
-                return
+                ctd_instance._addContent(iv, self)
+                return self
             except BadTypeValueError, e:
                 pass
         raise BadTypeValueError('Cannot assign value of type %s to field %s: legal types %s' % (type(value), self.tag(), ' '.join([str(_dt) for _dt in self.__dataTypes])))
 
-    def addDOMElement (self, ctd_instance, document, element):
-        """Add the value of the corresponding element field to the DOM element."""
-        value = self.value(ctd_instance)
-        if value is None:
-            return ctd_instance
-        if not self.isPlural():
-            value = [ value ]
-        for v in value:
-            assert isinstance(v, PyWXSB_element)
-            v.toDOM(document, parent=element)
+    def addDOMElement (self, value, document, element):
+        """Add the given value of the corresponding element field to the DOM element."""
+        if value is not None:
+            assert isinstance(value, PyWXSB_element)
+            value.toDOM(document, parent=element)
         return self
 
 class Particle (object):
@@ -330,6 +328,8 @@ class PyWXSB_complexTypeDefinition (utility._DeconflictSymbols_mixin, object):
         that = None
         if (0 < len(args)) and isinstance(args[0], self.__class__):
             that = args[0]
+        if isinstance(self, _CTD_content_mixin):
+            self._resetContent()
         for fu in self._PythonMap().values():
             fu.reset(self)
             iv = None
@@ -391,11 +391,6 @@ class PyWXSB_complexTypeDefinition (utility._DeconflictSymbols_mixin, object):
             au.addDOMAttribute(self, element)
         return element
 
-    def _setDOMFromContent (self, document, element):
-        for eu in self._ElementMap.values():
-            eu.addDOMElement(self, document, element)
-        return self
-
     def toDOM (self, tag=None, document=None, parent=None):
         """Create a DOM element with the given tag holding the content of this instance."""
         if document is None:
@@ -421,6 +416,9 @@ class PyWXSB_CTD_empty (PyWXSB_complexTypeDefinition):
     def CreateFromDOM (cls, node):
         """Create a raw instance, and set attributes from the DOM node."""
         return cls()._setAttributesFromDOM(node)
+
+    def _setDOMFromContent (self, document, element):
+        return self
 
 class PyWXSB_CTD_simple (PyWXSB_complexTypeDefinition):
     """Base for any Python class that serves as the binding for an
@@ -448,13 +446,40 @@ class PyWXSB_CTD_simple (PyWXSB_complexTypeDefinition):
         """Create a DOM element with the given tag holding the content of this instance."""
         return element.appendChild(document.createTextNode(self.content().xsdLiteral()))
 
-class PyWXSB_CTD_mixed (PyWXSB_complexTypeDefinition):
+class _CTD_content_mixin (object):
+    __elementContent = None
+    __content = None
+
+    def __init__ (self, *args, **kw):
+        self._resetContent()
+        super(_CTD_content_mixin, self).__init__(*args, **kw)
+
+    def content (self):
+        return self.__content
+
+    def _resetContent (self):
+        self.__content = []
+        self.__elementContent = []
+
+    def _elementContent (self):
+        return self.__elementContent()
+
+    def _addContent (self, child, element_use=None):
+        self.__elementContent.append( (child, element_use) )
+        self.__content.append(child)
+
+    def _setDOMFromContent (self, document, element):
+        for (content, element_use) in self.__elementContent:
+            element_use.addDOMElement(content, document, element)
+        return self
+
+class PyWXSB_CTD_mixed (_CTD_content_mixin, PyWXSB_complexTypeDefinition):
     """Base for any Python class that serves as the binding for an
     XMLSchema complexType with mixed content.
     """
     pass
 
-class PyWXSB_CTD_element (PyWXSB_complexTypeDefinition):
+class PyWXSB_CTD_element (_CTD_content_mixin, PyWXSB_complexTypeDefinition):
     """Base for any Python class that serves as the binding for an
     XMLSchema complexType with element-only content.  Subclasses must
     define a class variable _Content with a bindings.Particle instance
