@@ -66,7 +66,7 @@ class _PST_mixin (PyWXSB.utility._DeconflictSymbols_mixin, object):
     _ReservedSymbols = set([ 'Factory', 'CreateFromDOM', 'XsdLiteral', 'xsdLiteral',
                             'XsdSuperType', 'XsdPythonType', 'XsdConstraintsOK',
                             'xsdConstraintsOK', 'XsdValueLength', 'xsdValueLength',
-                            'PythonLiteral', 'pythonLiteral' ])
+                            'PythonLiteral', 'pythonLiteral', 'toDOM' ])
 
     # Determine the name of the class-private facet map.  This
     # algorithm should match the one used by Python, so the base class
@@ -310,6 +310,10 @@ class _PST_mixin (PyWXSB.utility._DeconflictSymbols_mixin, object):
         """Return a string which can be embedded into Python source to
         represent the value of this instance."""
         return self.PythonLiteral(self)
+
+    def toDOM (self, tag=None, document=None, parent=None):
+        return parent.appendChild(document.createTextNode(self.xsdLiteral()))
+
 
 class _PST_union (_PST_mixin):
     """Base class for union datatypes.

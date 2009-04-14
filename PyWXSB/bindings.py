@@ -19,7 +19,8 @@ class PyWXSB_element (utility._DeconflictSymbols_mixin, object):
     # Reference to the instance of the underlying type
     __realContent = None
 
-    # Reference to the instance of the underlying type
+    # Reference to the instance of the underlying type, or to that
+    # type's content if that is a complex type with simple content.
     __content = None
     
     # Symbols that remain the responsibility of this class.  Any
@@ -62,8 +63,16 @@ class PyWXSB_element (utility._DeconflictSymbols_mixin, object):
         rv.__setContent(cls._TypeDefinition.CreateFromDOM(node))
         return rv
 
-    def toDOM (self):
-        return self.__realContent.toDOM(self._XsdName)
+    def toDOM (self, document=None, parent=None):
+        if document is None:
+            assert parent is None
+            document = minidom.getDOMImplementation().createDocument(None, self._XsdName, None)
+            element = document.documentElement
+        else:
+            assert parent is not None
+            element = parent.appendChild(document.createElement(self._XsdName))
+        self.__realContent.toDOM(tag=None, document=document, parent=element)
+        return element
 
 class AttributeUse (object):
     """A helper class that encapsulates everything we need to know about an attribute."""
@@ -217,11 +226,24 @@ class ElementUse (object):
                 return
         for dt in self.__dataTypes:
             try:
-                self.__setValue(ctd_instance, dt(value))
+                iv = dt(value)
+                self.__setValue(ctd_instance, iv)
                 return
             except BadTypeValueError, e:
                 pass
         raise BadTypeValueError('Cannot assign value of type %s to field %s: legal types %s' % (type(value), self.tag(), ' '.join([str(_dt) for _dt in self.__dataTypes])))
+
+    def addDOMElement (self, ctd_instance, document, element):
+        """Add the value of the corresponding element field to the DOM element."""
+        value = self.value(ctd_instance)
+        if value is None:
+            return ctd_instance
+        if not self.isPlural():
+            value = [ value ]
+        for v in value:
+            assert isinstance(v, PyWXSB_element)
+            v.toDOM(document, parent=element)
+        return self
 
 class Particle (object):
     """Record defining the structure and number of an XML object.
@@ -305,9 +327,15 @@ class PyWXSB_complexTypeDefinition (utility._DeconflictSymbols_mixin, object):
 
     def __init__ (self, *args, **kw):
         super(PyWXSB_complexTypeDefinition, self).__init__(*args, **kw)
+        that = None
+        if (0 < len(args)) and isinstance(args[0], self.__class__):
+            that = args[0]
         for fu in self._PythonMap().values():
             fu.reset(self)
-            iv = kw.get(fu.pythonTag(), None)
+            iv = None
+            if that is not None:
+                iv = fu.value(that)
+            iv = kw.get(fu.pythonTag(), iv)
             if iv is not None:
                 fu.setValue(self, iv)
 
@@ -315,17 +343,6 @@ class PyWXSB_complexTypeDefinition (utility._DeconflictSymbols_mixin, object):
     def Factory (cls, *args, **kw):
         rv = cls(*args, **kw)
         return rv
-
-    def _setAttributesFromDOM (self, node):
-        for au in self._AttributeMap.values():
-            au.setFromDOM(self, node)
-        return self
-
-    def _setDOMFromAttributes (self, element):
-        """Add any appropriate attributes from this instance into the DOM element."""
-        for au in self._AttributeMap.values():
-            au.addDOMAttribute(self, element)
-        return element
 
     # Specify the symbols to be reserved for all CTDs.
     _ReservedSymbols = set([ 'Factory', 'CreateFromDOM', 'toDOM' ])
@@ -363,6 +380,39 @@ class PyWXSB_complexTypeDefinition (utility._DeconflictSymbols_mixin, object):
         assert(len(python_map) == (len(cls._ElementMap) + len(cls._AttributeMap)))
         setattr(cls, cls.__PythonMapAttribute(), python_map)
 
+    def _setAttributesFromDOM (self, node):
+        for au in self._AttributeMap.values():
+            au.setFromDOM(self, node)
+        return self
+
+    def _setDOMFromAttributes (self, element):
+        """Add any appropriate attributes from this instance into the DOM element."""
+        for au in self._AttributeMap.values():
+            au.addDOMAttribute(self, element)
+        return element
+
+    def _setDOMFromContent (self, document, element):
+        for eu in self._ElementMap.values():
+            eu.addDOMElement(self, document, element)
+        return self
+
+    def toDOM (self, tag=None, document=None, parent=None):
+        """Create a DOM element with the given tag holding the content of this instance."""
+        if document is None:
+            assert parent is None
+            document = minidom.getDOMImplementation().createDocument(None, tag, None)
+            element = document.documentElement
+        else:
+            if parent is None:
+                parent = document.documentElement()
+            if tag is None:
+                element = parent
+            else:
+                element = parent.appendChild(document.createElement(tag))
+        self._setDOMFromContent(document, element)
+        self._setDOMFromAttributes(element)
+        return element
+
 class PyWXSB_CTD_empty (PyWXSB_complexTypeDefinition):
     """Base for any Python class that serves as the binding for an
     XMLSchema complexType with empty content."""
@@ -371,11 +421,6 @@ class PyWXSB_CTD_empty (PyWXSB_complexTypeDefinition):
     def CreateFromDOM (cls, node):
         """Create a raw instance, and set attributes from the DOM node."""
         return cls()._setAttributesFromDOM(node)
-
-    def toDOM (self, element_tag):
-        """Create a DOM element with the given tag holding the content of this instance."""
-        doc = minidom.getDOMImplementation().createDocument(None, element_tag, None)
-        return self._setDOMFromAttributes(doc.documentElement)
 
 class PyWXSB_CTD_simple (PyWXSB_complexTypeDefinition):
     """Base for any Python class that serves as the binding for an
@@ -399,11 +444,9 @@ class PyWXSB_CTD_simple (PyWXSB_complexTypeDefinition):
         """Create an instance from the node content, and set the attributes."""
         return cls(domutils.ExtractTextContent(node))._setAttributesFromDOM(node)
 
-    def toDOM (self, element_tag):
+    def _setDOMFromContent (self, document, element):
         """Create a DOM element with the given tag holding the content of this instance."""
-        doc = minidom.getDOMImplementation().createDocument(None, element_tag, None)
-        doc.documentElement.appendChild(doc.createTextNode(self.content().xsdLiteral()))
-        return self._setDOMFromAttributes(doc.documentElement)
+        return element.appendChild(document.createTextNode(self.content().xsdLiteral()))
 
 class PyWXSB_CTD_mixed (PyWXSB_complexTypeDefinition):
     """Base for any Python class that serves as the binding for an
