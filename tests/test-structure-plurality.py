@@ -78,7 +78,6 @@ class TestMG (_TestBase):
     def testSequenceRepeatedElements (self):
         mgd = self._getMGRepeated(ModelGroup.C_SEQUENCE)
         pd = mgd.pluralityData()
-        print pd
         self.assertEqual(1, len(pd))
         pde = pd[0]
         self.assertEqual(1, len(pde))
@@ -106,7 +105,6 @@ class TestMG (_TestBase):
     def testAllRepeatedElements (self):
         mgd = self._getMGRepeated(ModelGroup.C_ALL)
         pd = mgd.pluralityData()
-        print pd
         self.assertEqual(1, len(pd))
         pde = pd[0]
         self.assertEqual(1, len(pde))
@@ -140,7 +138,6 @@ class TestMG (_TestBase):
     def testChoiceRepeatedElements (self):
         mgd = self._getMGRepeated(ModelGroup.C_CHOICE)
         pd = mgd.pluralityData()
-        print pd
         self.assertEqual(2, len(pd))
         pde = pd[0]
         self.assertEqual(1, len(pde))
@@ -259,7 +256,42 @@ class TestParticle (_TestBase):
         self.assert_( ('selt', True) in pde )
         self.assert_( ('ielt', True) in pde )
         self.assert_( ('belt', True) in pde )
+
+    def testSingleSequenceRepeated (self):
+        prt = xs.structures.Particle(self._getMGRepeated(ModelGroup.C_SEQUENCE), schema=self.schema())
+        pd = prt.pluralityData()
+        self.assertEqual(1, len(pd))
+        pde = pd[0]
+        self.assertEqual(1, len(pde))
+        self.assert_( ('selt', True) in pde )
         
+    def testSingleChoiceRepeated (self):
+        prt = xs.structures.Particle(self._getMGRepeated(ModelGroup.C_CHOICE), schema=self.schema())
+        pd = prt.pluralityData()
+        self.assertEqual(2, len(pd))
+        pde = pd[0]
+        self.assertEqual(1, len(pde))
+        self.assert_( ('selt', False) in pde )
+        pde = pd[1]
+        self.assertEqual(1, len(pde))
+        self.assert_( ('selt', False) in pde )
+        
+    def testMultiSequenceRepeated (self):
+        prt = xs.structures.Particle(self._getMGRepeated(ModelGroup.C_SEQUENCE), max_occurs=2, schema=self.schema())
+        pd = prt.pluralityData()
+        self.assertEqual(1, len(pd))
+        pde = pd[0]
+        self.assertEqual(1, len(pde))
+        self.assert_( ('selt', True) in pde )
+        
+    def testMultiChoiceRepeated (self):
+        prt = xs.structures.Particle(self._getMGRepeated(ModelGroup.C_CHOICE), max_occurs=2, schema=self.schema())
+        pd = prt.pluralityData()
+        self.assertEqual(1, len(pd))
+        pde = pd[0]
+        self.assertEqual(1, len(pde))
+        self.assert_( ('selt', True) in pde )
+
 if __name__ == '__main__':
     unittest.main()
     
