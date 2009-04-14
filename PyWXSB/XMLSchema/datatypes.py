@@ -312,7 +312,8 @@ class _PST_mixin (PyWXSB.utility._DeconflictSymbols_mixin, object):
         return self.PythonLiteral(self)
 
     def toDOM (self, tag=None, document=None, parent=None):
-        return parent.appendChild(document.createTextNode(self.xsdLiteral()))
+        (document, element) = domutils.ToDOM_startup(document, parent)
+        return element.appendChild(document.createTextNode(self.xsdLiteral()))
 
 
 class _PST_union (_PST_mixin):

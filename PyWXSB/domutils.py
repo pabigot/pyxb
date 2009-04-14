@@ -1,6 +1,7 @@
 import PyWXSB.Namespace as Namespace
 from PyWXSB.exceptions_ import *
 from xml.dom import Node
+from xml.dom import minidom
 import xml.dom as dom
 
 def NodeAttribute (node, schema, attribute_ncname, attribute_ns=Namespace.XMLSchema):
@@ -113,6 +114,9 @@ def HasNonAnnotationChild (wxs, node):
     return False
 
 def ExtractTextContent (node):
+    """Walk all the children, extracting all text content and
+    catenating it.  This is mainly used to strip comments out of the
+    content of complex elements with simple types."""
     text = []
     for cn in node.childNodes:
         if Node.TEXT_NODE == cn.nodeType:
@@ -124,3 +128,28 @@ def ExtractTextContent (node):
         else:
             raise BadDocumentError('Non-text node %s found in content' % (cn,))
     return ''.join(text)
+
+def ToDOM_startup (document, parent, tag=None):
+    """Create the DOM infrastructure necessary to convert a binding instance to DOM.
+    
+    If the document and parent are not defined, a new DOM document
+    instance is created from the default implementation, and it and
+    the document element are returned.
+    
+    Otherwise, if tag is not None a new element that is a child of
+    parent is created.  If tag is None, the parent is returned as the
+    element.
+
+    Returns a pair (document, element)."""
+    if document is None:
+        assert parent is None
+        assert tag is not None
+        document = minidom.getDOMImplementation().createDocument(None, tag, None)
+        element = document.documentElement
+    else:
+        assert parent is not None
+        if tag is None:
+            element = parent
+        else:
+            element = parent.appendChild(document.createElement(tag))
+    return (document, element)

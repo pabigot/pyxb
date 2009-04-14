@@ -53,9 +53,12 @@ class PyWXSB_element (utility._DeconflictSymbols_mixin, object):
     def __getattr__ (self, name):
         return getattr(self.__content, name)
 
-    # @todo What if we need to deconflict "content" from something
-    # that's in the underlying type?
-    def content (self): return self.__content
+    def content (self):
+        """Return the element content, which is an instance of the
+        _TypeDefinition for this class.  Or, in the case that
+        _TypeDefinition is a complex type with simple content, the
+        dereferenced simple content is returned."""
+        return self.__content
     
     @classmethod
     def CreateFromDOM (cls, node):
@@ -64,13 +67,7 @@ class PyWXSB_element (utility._DeconflictSymbols_mixin, object):
         return rv
 
     def toDOM (self, document=None, parent=None):
-        if document is None:
-            assert parent is None
-            document = minidom.getDOMImplementation().createDocument(None, self._XsdName, None)
-            element = document.documentElement
-        else:
-            assert parent is not None
-            element = parent.appendChild(document.createElement(self._XsdName))
+        (document, element) = domutils.ToDOM_startup(document, parent, self._XsdName)
         self.__realContent.toDOM(tag=None, document=document, parent=element)
         return element
 
@@ -285,6 +282,13 @@ class Particle (object):
         self.__term = term
 
 class ModelGroup (object):
+    """Record the structure of a model group.
+
+    This is used when interpreting a DOM document fragment, to be sure
+    the correct binding structure is used to extract the contents of
+    each element.  It almost does something like validation, as a side
+    effect."""
+
     C_INVALID = 0
     C_ALL = 0x01
     C_CHOICE = 0x02
@@ -393,17 +397,7 @@ class PyWXSB_complexTypeDefinition (utility._DeconflictSymbols_mixin, object):
 
     def toDOM (self, tag=None, document=None, parent=None):
         """Create a DOM element with the given tag holding the content of this instance."""
-        if document is None:
-            assert parent is None
-            document = minidom.getDOMImplementation().createDocument(None, tag, None)
-            element = document.documentElement
-        else:
-            if parent is None:
-                parent = document.documentElement()
-            if tag is None:
-                element = parent
-            else:
-                element = parent.appendChild(document.createElement(tag))
+        (document, element) = domutils.ToDOM_startup(document, parent, tag)
         self._setDOMFromContent(document, element)
         self._setDOMFromAttributes(element)
         return element
@@ -447,7 +441,24 @@ class PyWXSB_CTD_simple (PyWXSB_complexTypeDefinition):
         return element.appendChild(document.createTextNode(self.content().xsdLiteral()))
 
 class _CTD_content_mixin (object):
+    """Retain information about element and mixed content in a complex type instance.
+
+    This is used to generate the XML from the binding in the same
+    order as it was read in, with mixed content in the right position.
+    It can also be used if order is critical to the interpretation of
+    interleaved elements.
+
+    Subclasses must define a class variable _Content with a
+    bindings.Particle instance as its value.
+
+    Subclasses should define a class-level _ElementMap variable which
+    maps from unicode element tags (not including namespace
+    qualifiers) to the corresponding ElementUse information
+    """
+
+    # A list of pairs of content and the ElementUse instance it came from
     __elementContent = None
+    # A list containing just the content
     __content = None
 
     def __init__ (self, *args, **kw):
@@ -465,6 +476,7 @@ class _CTD_content_mixin (object):
         return self.__elementContent()
 
     def _addContent (self, child, element_use=None):
+        assert isinstance(child, PyWXSB_element)
         self.__elementContent.append( (child, element_use) )
         self.__content.append(child)
 
@@ -481,13 +493,7 @@ class PyWXSB_CTD_mixed (_CTD_content_mixin, PyWXSB_complexTypeDefinition):
 
 class PyWXSB_CTD_element (_CTD_content_mixin, PyWXSB_complexTypeDefinition):
     """Base for any Python class that serves as the binding for an
-    XMLSchema complexType with element-only content.  Subclasses must
-    define a class variable _Content with a bindings.Particle instance
-    as its value.
-
-    Subclasses should define a class-level _ElementMap variable which
-    maps from unicode element tags (not including namespace
-    qualifiers) to the corresponding ElementUse information
+    XMLSchema complexType with element-only content.
     """
     pass
 
