@@ -71,17 +71,20 @@ class AttributeUse (object):
     __pythonTag = None # Identifier used for this attribute within the owning class
     __valueAttributeName = None # Private attribute used in instances to hold the attribute value
     __dataType = None  # PST datatype
-    __defaultValue = None       # Unicode default value, or None
+    __unicodeDefault = None     # Default value as a unicode string, or None
+    __defaultValue = None       # Default value as an instance of datatype, or None
     __fixed = False             # If True, value cannot be changed
     __required = False          # If True, attribute must appear
     __prohibited = False        # If True, attribute must not appear
 
-    def __init__ (self, tag, python_tag, value_attribute_name, data_type, default_value=None, fixed=False, required=False, prohibited=False):
+    def __init__ (self, tag, python_tag, value_attribute_name, data_type, unicode_default=None, fixed=False, required=False, prohibited=False):
         self.__tag = tag
         self.__pythonTag = python_tag
         self.__valueAttributeName = value_attribute_name
         self.__dataType = data_type
-        self.__defaultValue = default_value
+        self.__unicodeDefault = unicode_default
+        if self.__unicodeDefault is not None:
+            self.__defaultValue = self.__dataType(self.__unicodeDefault)
         self.__fixed = fixed
         self.__required = required
         self.__prohibited = prohibited
@@ -94,20 +97,23 @@ class AttributeUse (object):
         """Tag used within Python code for the attribute"""
         return self.__pythonTag
 
-    def __getValue (self, cdt_instance):
-        return getattr(cdt_instance, self.__valueAttributeName, (False, None))
+    def __getValue (self, ctd_instance):
+        return getattr(ctd_instance, self.__valueAttributeName, (False, None))
 
-    def __getProvided (self, cdt_instance):
-        return self.__getValue(cdt_instance)[0]
+    def __getProvided (self, ctd_instance):
+        return self.__getValue(ctd_instance)[0]
 
-    def value (self, cdt_instance):
+    def value (self, ctd_instance):
         """Get the value of the attribute."""
-        return self.__getValue(cdt_instance)[1]
+        return self.__getValue(ctd_instance)[1]
 
-    def __setValue (self, cdt_instance, new_value, provided):
-        return setattr(cdt_instance, self.__valueAttributeName, (provided, new_value))
+    def __setValue (self, ctd_instance, new_value, provided):
+        return setattr(ctd_instance, self.__valueAttributeName, (provided, new_value))
 
-    def setFromDOM (self, cdt_instance, node):
+    def reset (self, ctd_instance):
+        self.__setValue(ctd_instance, self.__defaultValue, False)
+
+    def setFromDOM (self, ctd_instance, node):
         """Set the value of the attribute in the given instance from
         the corresponding attribute of the DOM Element node.  If node
         is None, or does not have an attribute, the default value is
@@ -115,7 +121,7 @@ class AttributeUse (object):
         MissingAttributeError in the cases of prohibited and required
         attributes.
         """
-        unicode_value = self.__defaultValue
+        unicode_value = self.__unicodeDefault
         provided = False
         if isinstance(node, dom.Node):
             if node.hasAttribute(self.__tag):
@@ -128,30 +134,30 @@ class AttributeUse (object):
                     raise MissingAttributeError('Required attribute %s not found' % (self.__tag,))
         if unicode_value is None:
             # Must be optional and absent
-            self.__setValue(cdt_instance, None, False)
+            self.__setValue(ctd_instance, None, False)
         else:
             if self.__fixed and (unicode_value != self.__defaultValue):
                 raise AttributeChangeError('Attempt to change value of fixed attribute %s' % (self.__tag,))
             # NB: Do not set provided here; this may be the default
-            self.__setValue(cdt_instance, self.__dataType(unicode_value), provided)
+            self.__setValue(ctd_instance, self.__dataType(unicode_value), provided)
         return self
 
-    def addDOMAttribute (self, cdt_instance, element):
+    def addDOMAttribute (self, ctd_instance, element):
         """If this attribute as been set, add the corresponding attribute to the DOM element."""
-        ( provided, value ) = self.__getValue(cdt_instance)
+        ( provided, value ) = self.__getValue(ctd_instance)
         if provided:
             assert value is not None
             element.setAttribute(self.__tag, value.xsdLiteral())
         return self
 
-    def setValue (self, cdt_instance, new_value):
+    def setValue (self, ctd_instance, new_value):
         """Set the value of the attribute.
 
         This validates the value against the data type."""
         assert new_value is not None
         if not isinstance(new_value, self.__dataType):
             new_value = self.__dataType(new_value)
-        self.__setValue(cdt_instance, new_value, True)
+        self.__setValue(ctd_instance, new_value, True)
         return new_value
 
 class ElementUse (object):
@@ -175,6 +181,9 @@ class ElementUse (object):
         self.__isPlural = is_plural
         self.__dataTypes = data_types
 
+    def reset (self, ctd_instance):
+        self.__setValue(ctd_instance, self.defaultValue())
+
     def _setDataTypes (self, data_types):
         self.__dataTypes = data_types
 
@@ -192,7 +201,7 @@ class ElementUse (object):
             return []
         return None
 
-    def value (self, cdt_instance):
+    def value (self, ctd_instance):
         return getattr(ctd_instance, self.__valueElementName, self.defaultValue())
 
     def __setValue (self, ctd_instance, value):
@@ -201,9 +210,18 @@ class ElementUse (object):
     def setValue (self, ctd_instance, value):
         if value is None:
             return self.__setValue(ctd_instance, self.defaultValue())
-        if not isinstance(value, self.__dataTypes):
-            raise BadTypeValueError('Cannot assign value of type %s to field %s' % (type(value), self.tag()))
-
+        assert self.__dataTypes is not None
+        for dt in self.__dataTypes:
+            if isinstance(value, dt):
+                self.__setValue(ctd_instance, value)
+                return
+        for dt in self.__dataTypes:
+            try:
+                self.__setValue(ctd_instance, dt(value))
+                return
+            except BadTypeValueError, e:
+                pass
+        raise BadTypeValueError('Cannot assign value of type %s to field %s: legal types %s' % (type(value), self.tag(), ' '.join([str(_dt) for _dt in self.__dataTypes])))
 
 class Particle (object):
     """Record defining the structure and number of an XML object.
@@ -278,8 +296,26 @@ class PyWXSB_complexTypeDefinition (utility._DeconflictSymbols_mixin, object):
 
     Subclasses should define a class-level _AttributeMap variable
     which maps from the unicode tag of an attribute to the
-    AttributeUse instance that defines it.
+    AttributeUse instance that defines it.  Similarly, subclasses
+    should define an _ElementMap variable.
     """
+
+    _AttributeMap = { }
+    _ElementMap = { }
+
+    def __init__ (self, *args, **kw):
+        super(PyWXSB_complexTypeDefinition, self).__init__(*args, **kw)
+        for fu in self._PythonMap().values():
+            fu.reset(self)
+            iv = kw.get(fu.pythonTag(), None)
+            if iv is not None:
+                fu.setValue(self, iv)
+
+    @classmethod
+    def Factory (cls, *args, **kw):
+        rv = cls(*args, **kw)
+        return rv
+
     def _setAttributesFromDOM (self, node):
         for au in self._AttributeMap.values():
             au.setFromDOM(self, node)
@@ -308,17 +344,28 @@ class PyWXSB_complexTypeDefinition (utility._DeconflictSymbols_mixin, object):
     _ElementDeconflictMap = { }
 
     @classmethod
+    def __PythonMapAttribute (cls):
+        return '_%s_PythonMap' % (cls.__name__,)
+
+    @classmethod
+    def _PythonMap (cls):
+        return getattr(cls, cls.__PythonMapAttribute(), { })
+
+    @classmethod
     def _UpdateElementDatatypes (cls, datatype_map):
         for (k, v) in datatype_map.items():
             cls._ElementMap[k]._setDataTypes(v)
+        python_map = { }
+        for eu in cls._ElementMap.values():
+            python_map[eu.pythonTag()] = eu
+        for au in cls._AttributeMap.values():
+            python_map[au.pythonTag()] = au
+        assert(len(python_map) == (len(cls._ElementMap) + len(cls._AttributeMap)))
+        setattr(cls, cls.__PythonMapAttribute(), python_map)
 
 class PyWXSB_CTD_empty (PyWXSB_complexTypeDefinition):
     """Base for any Python class that serves as the binding for an
     XMLSchema complexType with empty content."""
-
-    @classmethod
-    def Factory (cls, *args, **kw):
-        return cls(*args, **kw)._setAttributesFromDOM(None)
 
     @classmethod
     def CreateFromDOM (cls, node):
@@ -339,6 +386,7 @@ class PyWXSB_CTD_simple (PyWXSB_complexTypeDefinition):
         return self.__content
 
     def __init__ (self, *args, **kw):
+        super(PyWXSB_CTD_simple, self).__init__(**kw)
         self.__content = self._TypeDefinition.Factory(*args, **kw)
 
     @classmethod
@@ -373,5 +421,5 @@ class PyWXSB_CTD_element (PyWXSB_complexTypeDefinition):
     maps from unicode element tags (not including namespace
     qualifiers) to the corresponding ElementUse information
     """
-    
+    pass
 

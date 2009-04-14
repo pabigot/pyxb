@@ -444,9 +444,9 @@ class %{ctd} (bindings.PyWXSB_CTD_element):
     element_name_map = { }
     element_uses = []
     datatype_map = { }
+    datatype_items = []
     if isinstance(content_type, xs.structures.Particle):
         plurality_data = content_type.pluralityData().nameBasedPlurality()
-        datatype_items = []
         for (name, (is_plural, types)) in plurality_data.items():
             ef_map = { }
             aux_init = []
@@ -469,11 +469,19 @@ class %{ctd} (bindings.PyWXSB_CTD_element):
             definitions.append(templates.replaceInText('''
     # Element %{field_tag} uses Python identifier %{python_field_name}
     %{field_name} = bindings.ElementUse(%{field_tag}, '%{python_field_name}', '%{value_field_name}', %{is_plural}%{aux_init})
-''', **ef_map))
-        PostscriptItems.append('''
+    def %{field_inspector} (self):
+        """Get the value of the %{field_tag} element."""
+        return self.%{field_name}.value(self)
+    def %{field_mutator} (self, new_value):
+        """Set the value of the %{field_tag} element.  Raises BadValueTypeException
+        if the new value is not consistent with the element's type."""
+        return self.%{field_name}.setValue(self, new_value)''', **ef_map))
+
+    PostscriptItems.append('''
 %s._UpdateElementDatatypes({
     %s
 })''' % (template_map['ctd'], ",\n    ".join(datatype_items)))
+
 
     # Create definitions for all attributes.
     attribute_name_map = { }
@@ -499,7 +507,7 @@ class %{ctd} (bindings.PyWXSB_CTD_element):
         if vc is not None:
             if au.VC_fixed == vc[0]:
                 aux_init.append('fixed=True')
-            aux_init.append('default_value=%s' % (pythonLiteral(ad.valueConstraint()[0], **kw),))
+            aux_init.append('unicode_default=%s' % (pythonLiteral(ad.valueConstraint()[0], **kw),))
         if au.required():
             aux_init.append('required=True')
         if au.prohibited():
