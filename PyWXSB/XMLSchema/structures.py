@@ -1378,8 +1378,13 @@ class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
         return False
 
     def pluralityData (self):
+        """Get the plurality data for this model group.
+        """
+        
+        # Start by collecting the data for each of the particles.
         pdll = [ _p.pluralityData() for _p in self.particles() ]
         if (self.C_CHOICE == self.compositor()):
+            # Plurality for choice is simply any of the pluralities of the particles.
             new_pd = []
             for pd in pdll:
                 new_pd.extend(pd)
@@ -1387,6 +1392,7 @@ class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
         elif ((self.C_SEQUENCE == self.compositor()) or (self.C_ALL == self.compositor())):
             # Sequence means all of them, in all their glory
             # All is treated the same way
+            # Essentially this is a pointwise OR of the pluralities of the particles.
             new_pd = pdll.pop()
             for pd in pdll:
                 stage_pd = []
@@ -1496,32 +1502,39 @@ class Particle (_SchemaComponent_mixin, _Resolvable_mixin):
         """Return the plurality data for this component.
 
         The plurality data for a particle is the plurality data for
-        its term, with the counts scaled by the effect of maxOccurs.
-        Since we only care about plurality, the legal counts are 0, 1,
-        and infinite."""
+        its term, with the counts scaled by the effect of
+        maxOccurs."""
         pd = self.term().pluralityData()
+        # Verify the structure of the
         assert types.ListType == type(pd)
-        if 0 < len(pd):
-            assert types.ListType == type(pd[0])
-            if 0 < len(pd[0]):
-                assert types.TupleType == type(pd[0][0])
+        assert (0 == len(pd)) or (types.ListType == type(pd[0]))
+        assert (0 == len(pd)) or (0 == len(pd[0])) or (types.TupleType == type(pd[0][0]))
         
-        if 1 == self.maxOccurs():
-            return pd
+        # If the particle can't appear at all, there are no results.
         if 0 == self.maxOccurs():
             return []
 
-        # If there are multiple alternatives, assume they are all taken.  Do this by creating the union of the 
+        # If the particle can only occur once, it has no effect on the
+        # pluralities.
+        if 1 == self.maxOccurs():
+            return pd
+
+        # If there are multiple alternatives, assume they are all
+        # taken.  Do this by creating the union of the tags
         if 1 < len(pd):
             name_map = { }
             for pde in pd:
-                for (name, count) in pde:
+                for (name, is_plural) in pde:
+                    # If we haven't seen the name before, use its
+                    # count.  If we have, by definition it's plural.
                     if name not in name_map:
-                        name_map[name] = count
+                        name_map[name] = is_plural
                     else:
                         name_map[name] = True
             pd = [ name_map.items() ]
 
+        # Now create a new list where everything is considered to be
+        # plural
         new_pd = []
         for pde in pd:
             new_pde = []
