@@ -416,6 +416,8 @@ class _PluralityData (types.ListType):
     
     @classmethod
     def _MapUnion (self, map1, map2):
+        """Given two maps, return an updated map indicating the
+        unified plurality."""
         umap = { }
         for k in set(map1.keys()).union(map2.keys()):
             if k in map1:
@@ -423,6 +425,26 @@ class _PluralityData (types.ListType):
             else:
                 umap[k] = map2[k]
         return umap
+
+    def nameBasedPlurality (self):
+        """Return a map from NCNames to pairs consisting of a boolean
+        representing the plurality of the aggregated name, and a list
+        denoting the element declarations with that name."""
+
+        name_plurality = { }
+        name_types = { }
+        for pdm in self:
+            npdm = { }
+            for (ed, v) in pdm.items():
+                tag = ed.ncName()
+                name_types.setdefault(tag, set()).add(ed)
+                npdm[tag] = npdm.get(tag, False) or v
+            name_plurality = self._MapUnion(name_plurality, npdm)
+        rv = { }
+        for (name, types) in name_types.items():
+            is_plural = name_plurality[name] or (1 < len(types))
+            rv[name] = ( is_plural, types )
+        return rv
 
     def __fromModelGroup (self, model_group):
         # Start by collecting the data for each of the particles.

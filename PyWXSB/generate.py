@@ -445,23 +445,9 @@ class %{ctd} (bindings.PyWXSB_CTD_element):
     element_uses = []
     datatype_map = { }
     if isinstance(content_type, xs.structures.Particle):
-        plurality_data = content_type.pluralityData()
-
-        name_plurality = { }
-        name_types = { }
-        for pdm in plurality_data:
-            npdm = { }
-            for (ed, v) in pdm.items():
-                tag = ed.ncName()
-                name_types.setdefault(tag, set()).add(ed)
-                if tag is not None:
-                    if tag in npdm:
-                        npdm[tag] = True
-                    else:
-                        npdm[tag] = v
-            name_plurality = plurality_data._MapUnion(name_plurality, npdm)
+        plurality_data = content_type.pluralityData().nameBasedPlurality()
         datatype_items = []
-        for (name, is_plural) in name_plurality.items():
+        for (name, (is_plural, types)) in plurality_data.items():
             ef_map = { }
             aux_init = []
             used_field_name = utility.PrepareIdentifier(name, class_unique, class_keywords)
@@ -475,14 +461,14 @@ class %{ctd} (bindings.PyWXSB_CTD_element):
             ef_map['is_plural'] = repr(is_plural)
             ef_map['field_tag'] = pythonLiteral(name, **kw)
             element_uses.append(templates.replaceInText('%{field_tag} : %{field_name}', **ef_map))
-            datatype_items.append("%s : [ %s ]" % (ef_map['field_tag'], ','.join(pythonLiteral(_n, **kw) for _n in name_types[name])))
+            datatype_items.append("%s : [ %s ]" % (ef_map['field_tag'], ','.join(pythonLiteral(types, **kw))))
             if 0 == len(aux_init):
                 ef_map['aux_init'] = ''
             else:
                 ef_map['aux_init'] = ', ' + ', '.join(aux_init)
             definitions.append(templates.replaceInText('''
     # Element %{field_tag} uses Python identifier %{python_field_name}
-    %{field_name} = bindings.ElementField(%{field_tag}, '%{python_field_name}', '%{value_field_name}', %{is_plural}%{aux_init})
+    %{field_name} = bindings.ElementUse(%{field_tag}, '%{python_field_name}', '%{value_field_name}', %{is_plural}%{aux_init})
 ''', **ef_map))
         PostscriptItems.append('''
 %s._UpdateElementDatatypes({

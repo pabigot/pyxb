@@ -87,9 +87,11 @@ class AttributeUse (object):
         self.__prohibited = prohibited
 
     def tag (self):
+        """Unicode tag for the attribute in its element"""
         return self.__tag
     
     def pythonTag (self):
+        """Tag used within Python code for the attribute"""
         return self.__pythonTag
 
     def __getValue (self, cdt_instance):
@@ -106,6 +108,13 @@ class AttributeUse (object):
         return setattr(cdt_instance, self.__valueAttributeName, (provided, new_value))
 
     def setFromDOM (self, cdt_instance, node):
+        """Set the value of the attribute in the given instance from
+        the corresponding attribute of the DOM Element node.  If node
+        is None, or does not have an attribute, the default value is
+        assigned.  Raises ProhibitedAttributeError and
+        MissingAttributeError in the cases of prohibited and required
+        attributes.
+        """
         unicode_value = self.__defaultValue
         provided = False
         if isinstance(node, dom.Node):
@@ -145,7 +154,7 @@ class AttributeUse (object):
         self.__setValue(cdt_instance, new_value, True)
         return new_value
 
-class ElementField (object):
+class ElementUse (object):
     """Aggregate the information relevant to an element of a complex type.
 
     This includes the original tag name, the spelling of the
@@ -266,6 +275,10 @@ class PyWXSB_enumeration_mixin (object):
 class PyWXSB_complexTypeDefinition (utility._DeconflictSymbols_mixin, object):
     """Base for any Python class that serves as the binding for an
     XMLSchema complexType.
+
+    Subclasses should define a class-level _AttributeMap variable
+    which maps from the unicode tag of an attribute to the
+    AttributeUse instance that defines it.
     """
     def _setAttributesFromDOM (self, node):
         for au in self._AttributeMap.values():
@@ -278,7 +291,7 @@ class PyWXSB_complexTypeDefinition (utility._DeconflictSymbols_mixin, object):
             au.addDOMAttribute(self, element)
         return element
 
-    # Specify the symbols to be reserved for all CTDs
+    # Specify the symbols to be reserved for all CTDs.
     _ReservedSymbols = set([ 'Factory', 'CreateFromDOM', 'toDOM' ])
 
     # Class variable which maps complex type attribute names to the
@@ -346,12 +359,19 @@ class PyWXSB_CTD_simple (PyWXSB_complexTypeDefinition):
 
 class PyWXSB_CTD_mixed (PyWXSB_complexTypeDefinition):
     """Base for any Python class that serves as the binding for an
-    XMLSchema complexType with mixed content."""
+    XMLSchema complexType with mixed content.
+    """
     pass
 
 class PyWXSB_CTD_element (PyWXSB_complexTypeDefinition):
     """Base for any Python class that serves as the binding for an
     XMLSchema complexType with element-only content.  Subclasses must
     define a class variable _Content with a bindings.Particle instance
-    as its value."""
+    as its value.
+
+    Subclasses should define a class-level _ElementMap variable which
+    maps from unicode element tags (not including namespace
+    qualifiers) to the corresponding ElementUse information
+    """
+    
 
