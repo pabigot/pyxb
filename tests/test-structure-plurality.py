@@ -32,7 +32,8 @@ class _TestBase (unittest.TestCase):
 
     def _getRepeatedElements (self):
         return [xs.structures.Particle(self.schema().lookupElement('selt'), schema=self.schema()),
-                xs.structures.Particle(self.schema().lookupElement('selt'), schema=self.schema())]
+                xs.structures.Particle(self.schema().lookupElement('selt'), schema=self.schema()),
+                xs.structures.Particle(self.schema().lookupElement('belt'), schema=self.schema())]
 
     def _getMGRepeated (self, compositor):
         return ModelGroup(compositor=compositor, particles=self._getRepeatedElements(), schema=self.schema())
@@ -80,8 +81,9 @@ class TestMG (_TestBase):
         pd = mgd.pluralityData()
         self.assertEqual(1, len(pd))
         pde = pd[0]
-        self.assertEqual(1, len(pde))
+        self.assertEqual(2, len(pde))
         self.assert_( ('selt', True) in pde )
+        self.assert_( ('belt', False) in pde )
 
     def testAllSingleElements (self):
         mgd = self._getMGSingle(ModelGroup.C_ALL)
@@ -107,8 +109,9 @@ class TestMG (_TestBase):
         pd = mgd.pluralityData()
         self.assertEqual(1, len(pd))
         pde = pd[0]
-        self.assertEqual(1, len(pde))
+        self.assertEqual(2, len(pde))
         self.assert_( ('selt', True) in pde )
+        self.assert_( ('belt', False) in pde )
 
     def testChoiceSingleElements (self):
         mgd = self._getMGSingle(ModelGroup.C_CHOICE)
@@ -138,13 +141,16 @@ class TestMG (_TestBase):
     def testChoiceRepeatedElements (self):
         mgd = self._getMGRepeated(ModelGroup.C_CHOICE)
         pd = mgd.pluralityData()
-        self.assertEqual(2, len(pd))
+        self.assertEqual(3, len(pd))
         pde = pd[0]
         self.assertEqual(1, len(pde))
         self.assert_( ('selt', False) in pde )
         pde = pd[1]
         self.assertEqual(1, len(pde))
         self.assert_( ('selt', False) in pde )
+        pde = pd[2]
+        self.assertEqual(1, len(pde))
+        self.assert_( ('belt', False) in pde )
 
 class TestParticle (_TestBase):
     def testZeroElement (self):
@@ -262,35 +268,41 @@ class TestParticle (_TestBase):
         pd = prt.pluralityData()
         self.assertEqual(1, len(pd))
         pde = pd[0]
-        self.assertEqual(1, len(pde))
+        self.assertEqual(2, len(pde))
         self.assert_( ('selt', True) in pde )
+        self.assert_( ('belt', False) in pde )
         
     def testSingleChoiceRepeated (self):
         prt = xs.structures.Particle(self._getMGRepeated(ModelGroup.C_CHOICE), schema=self.schema())
         pd = prt.pluralityData()
-        self.assertEqual(2, len(pd))
+        self.assertEqual(3, len(pd))
         pde = pd[0]
         self.assertEqual(1, len(pde))
         self.assert_( ('selt', False) in pde )
         pde = pd[1]
         self.assertEqual(1, len(pde))
         self.assert_( ('selt', False) in pde )
+        pde = pd[2]
+        self.assertEqual(1, len(pde))
+        self.assert_( ('belt', False) in pde )
         
     def testMultiSequenceRepeated (self):
         prt = xs.structures.Particle(self._getMGRepeated(ModelGroup.C_SEQUENCE), max_occurs=2, schema=self.schema())
         pd = prt.pluralityData()
         self.assertEqual(1, len(pd))
         pde = pd[0]
-        self.assertEqual(1, len(pde))
+        self.assertEqual(2, len(pde))
         self.assert_( ('selt', True) in pde )
+        self.assert_( ('belt', True) in pde )
         
     def testMultiChoiceRepeated (self):
         prt = xs.structures.Particle(self._getMGRepeated(ModelGroup.C_CHOICE), max_occurs=2, schema=self.schema())
         pd = prt.pluralityData()
         self.assertEqual(1, len(pd))
         pde = pd[0]
-        self.assertEqual(1, len(pde))
+        self.assertEqual(2, len(pde))
         self.assert_( ('selt', True) in pde )
+        self.assert_( ('belt', True) in pde )
 
 if __name__ == '__main__':
     unittest.main()
