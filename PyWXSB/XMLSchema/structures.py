@@ -1377,6 +1377,30 @@ class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
                 return True
         return False
 
+    def pluralityData (self):
+        pdl = [ _p.pluralityData() for _p in self.particles() ]
+        if (self.C_CHOICE == self.compositor()):
+            pass
+        elif ((self.C_SEQUENCE == self.compositor()) or (self.C_ALL == self.compositor())):
+            # Sequence means all of them, in all their glory
+            # All is treated the same way
+            name_map = {}
+            for pd in pdl:
+                for (name, count) in pd:
+                    if name in name_map:
+                        old = name_map[name]
+                        if (old is None) or (count is None):
+                            name_map[name] = None
+                        else:
+                            name_map[name] = old + count
+                    else:
+                        name_map[name] = count
+            pd = name_map.items()
+            pass
+        else:
+            raise LogicError('Unrecognized compositor value %s' % (self.compositor(),))
+        return pd
+
     @classmethod
     def CreateFromDOM (cls, wxs, node, **kw):
         if node.nodeName in wxs.xsQualifiedNames('all'):
