@@ -480,6 +480,9 @@ class _PluralityData (types.ListType):
             self.__fromModelGroup(component)
         elif isinstance(component, Particle):
             self.__fromParticle(component)
+        elif isinstance(component, Wildcard):
+            # @todo Implement this
+            pass
         elif component is not None:
             raise NotImplementedError("No support for plurality of component type %s" % (type(component),))
 
@@ -982,7 +985,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
             w = Wildcard(namespace_constraint=Wildcard.NC_any, process_contents=Wildcard.PC_lax, schema=_SchemaComponent_mixin._SCHEMA_None)
             p = Particle(w, min_occurs=0, max_occurs=None, schema=_SchemaComponent_mixin._SCHEMA_None)
             m = ModelGroup(compositor=ModelGroup.C_SEQUENCE, particles=[ p ], schema=_SchemaComponent_mixin._SCHEMA_None)
-            bi.__contentType = ( cls.CT_MIXED, Particle(m, schema==_SchemaComponent_mixin._SCHEMA_None) )
+            bi.__contentType = ( cls.CT_MIXED, Particle(m, schema=_SchemaComponent_mixin._SCHEMA_None) )
 
             # No attribute uses
             bi.__attributeUses = set()
@@ -1720,6 +1723,11 @@ class Wildcard (_SchemaComponent_mixin, _Annotated_mixin):
     # One of PC_*
     __processContents = None
     def processContents (self): return self.__processContents
+
+    def pluralityData (self):
+        """Get the plurality data for this wildcard
+        """
+        return _PluralityData(self)
 
     def isPlural (self):
         """Wildcards are not multi-valued."""

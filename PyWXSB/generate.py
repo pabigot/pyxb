@@ -432,23 +432,26 @@ class %{ctd} (bindings.PyWXSB_CTD_element):
     # Deconflict elements first, attributes are lower priority.
     # Expectation is that all elements that have the same tag in the
     # XML are combined into the same instance member, even if they
-    # have different types.
+    # have different types.  Determine what name that should be, and
+    # whether there might be multiple instances of elements of that
+    # name.
     element_name_map = { }
     if isinstance(content_type, xs.structures.Particle):
-        term = content_type.term()
-        if isinstance(term, xs.structures.ModelGroup):
-            element_decls = term.elementDeclarations()
-        elif isinstance(term, xs.structures.ElementDeclaration):
-            element_decls = [ term ]
-        elif isinstance(term, xs.structures.Wildcard):
-            # @todo
-            pass
-        else:
-            raise LogicError('Unhandled content type %s' % (type(term),))
-        for ed in element_decls:
-            en = ed.ncName()
-            if not (en in element_decls):
-                element_name_map[en] = utility.PrepareIdentifier(en, class_unique, class_keywords)
+        plurality_data = content_type.pluralityData()
+        name_map = { }
+        for pdm in plurality_data:
+            npdm = { }
+            for (ed, v) in pdm.items():
+                tag = ed.ncName()
+                if tag is not None:
+                    if tag in npdm:
+                        npdm[tag] = True
+                    else:
+                        npdm[tag] = v
+            print npdm
+            name_map = plurality_data._MapUnion(name_map, npdm)
+        for en in name_map.keys():
+            element_name_map[en] = ( utility.PrepareIdentifier(en, class_unique, class_keywords), name_map[en] )
 
     # Create definitions for all attributes.
     attribute_name_map = { }
