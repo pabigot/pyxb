@@ -542,15 +542,13 @@ def GenerateMG (mg, **kw):
     # tags might appear.  For each tag, we're looking at the occurence
     # ranges and types of the elements it might represent.  We're
     # gonna spit all that out as a comment near the model group
-    # declaration, so the user can see it, and we're also going to
-    # create a map that gets stored in the model group that allows us
-    # to uniquify the field names based on the type in which the model
-    # group is used.
+    # declaration.
     #
     # @todo Handle the obscure case where the same tag is used for two
     # distinct elements both of which can appear.  This might happen
     # with a sequence of sequences, for example, and results in the
-    # wrong occurence counts.
+    # wrong occurence counts.  NB: This can't be handled at this
+    # level; needs to be done within the element.
     #
     # @todo Gotta handle wildcards in here too.
 
