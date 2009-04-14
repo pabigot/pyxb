@@ -982,7 +982,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
             w = Wildcard(namespace_constraint=Wildcard.NC_any, process_contents=Wildcard.PC_lax, schema=_SchemaComponent_mixin._SCHEMA_None)
             p = Particle(w, min_occurs=0, max_occurs=None, schema=_SchemaComponent_mixin._SCHEMA_None)
             m = ModelGroup(compositor=ModelGroup.C_SEQUENCE, particles=[ p ], schema=_SchemaComponent_mixin._SCHEMA_None)
-            bi.__contentType = ( m, cls.CT_MIXED )
+            bi.__contentType = ( cls.CT_MIXED, Particle(m, schema==_SchemaComponent_mixin._SCHEMA_None) )
 
             # No attribute uses
             bi.__attributeUses = set()
