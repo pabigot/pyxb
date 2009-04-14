@@ -8,12 +8,19 @@ eval(rv)
 
 from PyWXSB.exceptions_ import *
 
+import types
 import unittest
 
-class TestDeconflict (unittest.TestCase):
-    def testAttributes (self):
+class TestAmbiguous (unittest.TestCase):
+    def testType (self):
         self.assertEqual(1, len(tWrapper._ElementNameMap))
         self.assertEqual(('field', True), tWrapper._ElementNameMap['field'])
+        self.assertTrue(isinstance(tWrapper.field, types.ListType))
+
+    def testInstance (self):
+        pass
+        #wr = wrapper()
+        #self.assertTrue(isinstance(wr.field, types.ListType))
 
 if __name__ == '__main__':
     unittest.main()

@@ -14,6 +14,7 @@ class TestDeconflict (unittest.TestCase):
     def testAttributes (self):
         self.assertEqual(2, len(CTD_empty._ElementNameMap))
         self.assertEqual(('CreateFromDOM_', False), CTD_empty._ElementNameMap['CreateFromDOM'])
+        self.assertTrue(CTD_empty.CreateFromDOM_ is None)
         self.assertEqual(('Factory_', False), CTD_empty._ElementNameMap['Factory'])
         self.assertEqual(2, len(CTD_empty._AttributeNameMap))
         self.assertEqual('toDOM_', CTD_empty._AttributeNameMap['toDOM'])

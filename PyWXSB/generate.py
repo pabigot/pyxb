@@ -429,6 +429,8 @@ class %{ctd} (bindings.PyWXSB_CTD_element):
     class_keywords = frozenset(ctd_parent_class._ReservedSymbols)
     class_unique = set()
 
+    definitions = []
+
     # Deconflict elements first, attributes are lower priority.
     # Expectation is that all elements that have the same tag in the
     # XML are combined into the same instance member, even if they
@@ -448,15 +450,18 @@ class %{ctd} (bindings.PyWXSB_CTD_element):
                         npdm[tag] = True
                     else:
                         npdm[tag] = v
-            print npdm
             name_map = plurality_data._MapUnion(name_map, npdm)
-        for en in name_map.keys():
-            element_name_map[en] = ( utility.PrepareIdentifier(en, class_unique, class_keywords), name_map[en] )
+        for (name, is_plural) in name_map.items():
+            field_name = utility.PrepareIdentifier(name, class_unique, class_keywords)
+            element_name_map[name] = (field_name , is_plural )
+            if is_plural:
+                definitions.append('%s = []' % (field_name,))
+            else:
+                definitions.append('%s = None' % (field_name,))
 
     # Create definitions for all attributes.
     attribute_name_map = { }
     attribute_uses = []
-    definitions = []
     for au in ctd.attributeUses():
         ad = au.attributeDeclaration()
         au_map = { }
