@@ -1393,15 +1393,11 @@ class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
                 for pde1 in new_pd:
                     for pde2 in pd:
                         name_map = {}
-                        for (name, count) in (pde1+pde2):
+                        for (name, is_plural) in (pde1+pde2):
                             if name in name_map:
-                                old = name_map[name]
-                                if (old is None) or (count is None):
-                                    name_map[name] = None
-                                else:
-                                    name_map[name] = old + count
+                                name_map[name] = True
                             else:
-                                name_map[name] = count
+                                name_map[name] = is_plural
                         stage_pd.append(name_map.items())
                 new_pd = stage_pd
             pd = new_pd

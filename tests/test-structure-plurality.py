@@ -30,6 +30,13 @@ class _TestBase (unittest.TestCase):
                  xs.structures.Particle(self.schema().lookupElement('ielt'), max_occurs=None, schema=self.schema()),
                  xs.structures.Particle(self.schema().lookupElement('belt'), schema=self.schema())]
 
+    def _getRepeatedElements (self):
+        return [xs.structures.Particle(self.schema().lookupElement('selt'), schema=self.schema()),
+                xs.structures.Particle(self.schema().lookupElement('selt'), schema=self.schema())]
+
+    def _getMGRepeated (self, compositor):
+        return ModelGroup(compositor=compositor, particles=self._getRepeatedElements(), schema=self.schema())
+
     def _getMGSingle (self, compositor):
         return ModelGroup(compositor=compositor, particles=self._getSingleElements(), schema=self.schema())
 
@@ -68,6 +75,15 @@ class TestMG (_TestBase):
         self.assert_( ('ielt', True) in pde )
         self.assert_( ('belt', False) in pde )
 
+    def testSequenceRepeatedElements (self):
+        mgd = self._getMGRepeated(ModelGroup.C_SEQUENCE)
+        pd = mgd.pluralityData()
+        print pd
+        self.assertEqual(1, len(pd))
+        pde = pd[0]
+        self.assertEqual(1, len(pde))
+        self.assert_( ('selt', True) in pde )
+
     def testAllSingleElements (self):
         mgd = self._getMGSingle(ModelGroup.C_ALL)
         pd = mgd.pluralityData()
@@ -86,6 +102,15 @@ class TestMG (_TestBase):
         self.assert_( ('selt', True) in pde )
         self.assert_( ('ielt', True) in pde )
         self.assert_( ('belt', False) in pde )
+
+    def testAllRepeatedElements (self):
+        mgd = self._getMGRepeated(ModelGroup.C_ALL)
+        pd = mgd.pluralityData()
+        print pd
+        self.assertEqual(1, len(pd))
+        pde = pd[0]
+        self.assertEqual(1, len(pde))
+        self.assert_( ('selt', True) in pde )
 
     def testChoiceSingleElements (self):
         mgd = self._getMGSingle(ModelGroup.C_CHOICE)
@@ -111,6 +136,18 @@ class TestMG (_TestBase):
         pde = pd[2]
         self.assertEqual(1, len(pde))
         self.assert_( ('belt', False) in pde )
+
+    def testChoiceRepeatedElements (self):
+        mgd = self._getMGRepeated(ModelGroup.C_CHOICE)
+        pd = mgd.pluralityData()
+        print pd
+        self.assertEqual(2, len(pd))
+        pde = pd[0]
+        self.assertEqual(1, len(pde))
+        self.assert_( ('selt', False) in pde )
+        pde = pd[1]
+        self.assertEqual(1, len(pde))
+        self.assert_( ('selt', False) in pde )
 
 class TestParticle (_TestBase):
     def testZeroElement (self):
