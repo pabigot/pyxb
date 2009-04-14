@@ -20,6 +20,20 @@ class _TestBase (unittest.TestCase):
             ed._typeDefinition(Namespace.XMLSchema.lookupTypeDefinition(type))
             self.__schema._addNamedComponent(ed)
     
+    def _getSingleElements (self):
+        return [ xs.structures.Particle(self.schema().lookupElement('selt'), schema=self.schema()),
+                 xs.structures.Particle(self.schema().lookupElement('ielt'), schema=self.schema())]
+
+    def _getMultiElements (self):
+        return [ xs.structures.Particle(self.schema().lookupElement('selt'), max_occurs=4, schema=self.schema()),
+                 xs.structures.Particle(self.schema().lookupElement('ielt'), max_occurs=None, schema=self.schema())]
+
+    def _getMGSingle (self, compositor):
+        return xs.structures.ModelGroup(compositor=compositor, particles=self._getSingleElements(), schema=self.schema())
+
+    def _getMGMulti (self, compositor):
+        return xs.structures.ModelGroup(compositor=compositor, particles=self._getMultiElements(), schema=self.schema())
+
 class TestED (_TestBase):
     def testBasic (self):
         ed = self.schema().lookupElement('selt')
@@ -33,16 +47,8 @@ class TestED (_TestBase):
         self.assertEqual(1, count)
 
 class TestMG (_TestBase):
-    def _getSingleElements (self):
-        return [ xs.structures.Particle(self.schema().lookupElement('selt'), schema=self.schema()),
-                 xs.structures.Particle(self.schema().lookupElement('ielt'), schema=self.schema())]
-
-    def _getMultiElements (self):
-        return [ xs.structures.Particle(self.schema().lookupElement('selt'), max_occurs=4, schema=self.schema()),
-                 xs.structures.Particle(self.schema().lookupElement('ielt'), max_occurs=None, schema=self.schema())]
-
     def testSequenceSingleElements (self):
-        mgd = xs.structures.ModelGroup(compositor=xs.structures.ModelGroup.C_SEQUENCE, particles=self._getSingleElements(), schema=self.schema())
+        mgd = self._getMGSingle(xs.structures.ModelGroup.C_SEQUENCE)
         pd = mgd.pluralityData()
         self.assertEqual(1, len(pd))
         pde = pd[0]
@@ -51,7 +57,7 @@ class TestMG (_TestBase):
         self.assert_( ('ielt', 1) in pde )
 
     def testSequenceMultiElements (self):
-        mgd = xs.structures.ModelGroup(compositor=xs.structures.ModelGroup.C_SEQUENCE, particles=self._getMultiElements(), schema=self.schema())
+        mgd = self._getMGMulti(xs.structures.ModelGroup.C_SEQUENCE)
         pd = mgd.pluralityData()
         self.assertEqual(1, len(pd))
         pde = pd[0]
@@ -60,7 +66,7 @@ class TestMG (_TestBase):
         self.assert_( ('ielt', None) in pde )
 
     def testAllSingleElements (self):
-        mgd = xs.structures.ModelGroup(compositor=xs.structures.ModelGroup.C_ALL, particles=self._getSingleElements(), schema=self.schema())
+        mgd = self._getMGSingle(xs.structures.ModelGroup.C_ALL)
         pd = mgd.pluralityData()
         self.assertEqual(1, len(pd))
         pde = pd[0]
@@ -69,7 +75,7 @@ class TestMG (_TestBase):
         self.assert_( ('ielt', 1) in pde )
 
     def testAllMultiElements (self):
-        mgd = xs.structures.ModelGroup(compositor=xs.structures.ModelGroup.C_ALL, particles=self._getMultiElements(), schema=self.schema())
+        mgd = self._getMGMulti(xs.structures.ModelGroup.C_ALL)
         pd = mgd.pluralityData()
         self.assertEqual(1, len(pd))
         pde = pd[0]
@@ -78,7 +84,7 @@ class TestMG (_TestBase):
         self.assert_( ('ielt', None) in pde )
 
     def testChoiceSingleElements (self):
-        mgd = xs.structures.ModelGroup(compositor=xs.structures.ModelGroup.C_CHOICE, particles=self._getSingleElements(), schema=self.schema())
+        mgd = self._getMGSingle(xs.structures.ModelGroup.C_CHOICE)
         pd = mgd.pluralityData()
         self.assertEqual(2, len(pd))
         pde = pd[0]
@@ -89,7 +95,7 @@ class TestMG (_TestBase):
         self.assert_( ('ielt', 1) in pde )
 
     def testChoiceMultiElements (self):
-        mgd = xs.structures.ModelGroup(compositor=xs.structures.ModelGroup.C_CHOICE, particles=self._getMultiElements(), schema=self.schema())
+        mgd = self._getMGMulti(xs.structures.ModelGroup.C_CHOICE)
         pd = mgd.pluralityData()
         self.assertEqual(2, len(pd))
         pde = pd[0]
