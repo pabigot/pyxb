@@ -205,12 +205,8 @@ class TestParticle (_TestBase):
         prt = xs.structures.Particle(self._getMGMulti(ModelGroup.C_CHOICE), min_occurs=3, max_occurs=3, schema=self.schema())
         pd = prt.pluralityData()
         print pd
-        self.assertEqual(2, len(pd))
+        self.assertEqual(1, len(pd))
         pde = pd[0]
-        self.assertEqual(2, len(pde))
-        self.assert_( ('selt', None) in pde )
-        self.assert_( ('ielt', None) in pde )
-        pde = pd[1]
         self.assertEqual(2, len(pde))
         self.assert_( ('selt', None) in pde )
         self.assert_( ('ielt', None) in pde )

@@ -1515,6 +1515,17 @@ class Particle (_SchemaComponent_mixin, _Resolvable_mixin):
         if 0 == self.maxOccurs():
             return []
 
+        # If there are multiple alternatives, assume they are all taken.  Do this by creating the union of the 
+        if 1 < len(pd):
+            name_map = { }
+            for pde in pd:
+                for (name, count) in pde:
+                    if name not in name_map:
+                        name_map[name] = count
+                    else:
+                        name_map[name] = None
+            pd = [ name_map.items() ]
+
         new_pd = []
         for pde in pd:
             new_pde = []
@@ -1525,11 +1536,6 @@ class Particle (_SchemaComponent_mixin, _Resolvable_mixin):
                     count = None
                 new_pde.append( (name, count) )
             new_pd.append(new_pde)
-                    
-        #print 'Multi-scale %s' % (pd,)
-        #new_pd = [[]]
-        #for pde in pd:
-        #    new_pd = [ _x + [_y] for _x in new_pd for _y in pd ]
         return new_pd
 
     def isPlural (self):
