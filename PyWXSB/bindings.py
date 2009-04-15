@@ -221,6 +221,40 @@ class ElementUse (object):
             return []
         return None
 
+    def clearGenerationMarkers (self, ctd_instance):
+        value = self.value(ctd_instance)
+        if not self.isPlural():
+            if value is None:
+                return
+            value = [ value ]
+        for v in value:
+            assert v is not None
+            v.__generated = False
+
+    def nextValueToGenerate (self, ctd_instance):
+        value = self.value(ctd_instance)
+        if not self.isPlural():
+            if value is None:
+                raise DOMGenerationError('Optional %s value is not available' % (self.pythonTag(),))
+            value = [ value ]
+        for v in value:
+            if not v.__generated:
+                print 'Marked value in %s as generated' % (self.pythonTag(),)
+                v.__generated = True
+                return v
+        raise DOMGenerationError('No %s values remain to be generated' % (self.pythonTag(),))
+
+    def hasUngeneratedValues (self, ctd_instance):
+        value = self.value(ctd_instance)
+        if not self.isPlural():
+            if value is None:
+                return False
+            value = [ value ]
+        for v in value:
+            if not v.__generated:
+                return True
+        return False
+
     def value (self, ctd_instance):
         return getattr(ctd_instance, self.__valueElementName, self.defaultValue())
 
@@ -306,9 +340,7 @@ class Particle (object):
                 elif issubclass(self.term(), PyWXSB_element):
                     eu = ctd_instance._UseForElement(self.term())
                     assert eu is not None
-                    value = eu.value(ctd_instance)
-                    # @todo next value in list
-                    assert not eu.isPlural()
+                    value = eu.nextValueToGenerate(ctd_instance)
                     value.toDOM(document, element)
                 else:
                     raise IncompleteImplementationError('Particle.extendFromDOM: No support for term type %s' % (self.term(),))
@@ -513,7 +545,6 @@ class PyWXSB_complexTypeDefinition (utility._DeconflictSymbols_mixin, object):
         rv._setContentFromDOM(node)
         return rv
 
-
     # Specify the symbols to be reserved for all CTDs.
     _ReservedSymbols = set([ 'Factory', 'CreateFromDOM', 'toDOM' ])
 
@@ -580,19 +611,18 @@ class PyWXSB_complexTypeDefinition (utility._DeconflictSymbols_mixin, object):
     def toDOM (self, document=None, parent=None, tag=None):
         """Create a DOM element with the given tag holding the content of this instance."""
         (document, element) = domutils.ToDOM_startup(document, parent, tag)
+        for eu in self._ElementMap.values():
+            eu.clearGenerationMarkers(self)
         self._setDOMFromContent(document, element)
+        for eu in self._ElementMap.values():
+            if eu.hasUngeneratedValues(self):
+                raise DOMGenerationError('Values in %s were not converted to DOM' % (eu.pythonTag(),))
         self._setDOMFromAttributes(element)
-        # @todo detect ungenerated content
         return element
 
 class PyWXSB_CTD_empty (PyWXSB_complexTypeDefinition):
     """Base for any Python class that serves as the binding for an
     XMLSchema complexType with empty content."""
-
-    @classmethod
-    def CreateFromDOM (cls, node):
-        """Create a raw instance, and set attributes from the DOM node."""
-        return cls()._setAttributesFromDOM(node)
 
     def _setContentFromDOM_vx (self, node):
         """CTD with empty content does nothing with node content."""
@@ -622,11 +652,6 @@ class PyWXSB_CTD_simple (PyWXSB_complexTypeDefinition):
     def Factory (cls, *args, **kw):
         rv = cls(*args, **kw)
         return rv
-
-    @classmethod
-    def CreateFromDOM (cls, node):
-        """Create an instance from the node content, and set the attributes."""
-        return cls(domutils.ExtractTextContent(node))._setAttributesFromDOM(node)
 
     def _setContentFromDOM_vx (self, node):
         """CTD with simple content type creates a PST instance from the node body."""
