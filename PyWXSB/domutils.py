@@ -81,17 +81,21 @@ def LocateMatchingChildren (node, schema, tag, namespace=Namespace.XMLSchema):
             matches.append(cn)
     return matches
 
-def LocateFirstChildElement (node, absent_ok=True, require_unique=False):
+def LocateFirstChildElement (node, absent_ok=True, require_unique=False, ignore_nodes=()):
     """Locate the first element child of the node.
 
     If absent_ok is True, and there are no ELEMENT_NODE children, None
     is returned.  If require_unique is True and there is more than one
-    ELEMENT_NODE child, an exception is rasied.
+    ELEMENT_NODE child, an exception is rasied.  Any ELEMENT_NODE
+    child with a nodeName in ignore_nodes is bypassed; you probably
+    want to add annotation to this tuple.
     """
     
     candidate = None
     for cn in node.childNodes:
         if Node.ELEMENT_NODE == cn.nodeType:
+            if cn.nodeName in ignore_nodes:
+                continue
             if require_unique:
                 if candidate:
                     raise SchemaValidationError('Multiple elements nested in %s' % (node.nodeName,))

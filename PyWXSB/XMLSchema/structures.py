@@ -882,7 +882,7 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Resolv
         return 'ED[%s:%s]' % (self.name(), self.typeDefinition().name())
 
 
-class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Resolvable_mixin):
+class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Resolvable_mixin, _Annotated_mixin):
     # The type resolved from the base attribute.
     __baseTypeDefinition = None
     def baseTypeDefinition (self):
@@ -1056,6 +1056,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
         # Creation does not attempt to do resolution.  Queue up the newly created
         # whatsis so we can resolve it after everything's been read in.
         rv.__domNode = node
+        rv._annotationFromDOM(wxs, node)
         wxs._queueForResolution(rv)
         
         return rv
@@ -1163,6 +1164,9 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
         for cn in definition_node_list:
             if Node.ELEMENT_NODE != cn.nodeType:
                 continue
+            if cn.nodeName in (wxs.xsQualifiedNames('simpleContent') + wxs.xsQualifiedNames('complexContent')):
+                # Should have found the content node earlier.
+                raise LogicError('Missed explicit wrapper in complexType content')
             if cn.nodeName in typedef_particle_tags:
                 typedef_node = cn
                 test_2_1_1 = False
@@ -1272,7 +1276,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
         # Determine whether above assumption is correct by looking for
         # element content and seeing if it's one of the wrapper
         # elements.
-        first_elt = LocateFirstChildElement(node)
+        first_elt = LocateFirstChildElement(node, ignore_nodes=wxs.xsQualifiedNames('annotation'))
         content_node = None
         if first_elt:
             have_content = False
@@ -1281,14 +1285,18 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
                 is_complex_content = False
             elif first_elt.nodeName in wxs.xsQualifiedNames('complexContent'):
                 have_content = True
+            else:
+                # Not one of the wrappers; use implicit wrapper around
+                # the children
+                pass
             if have_content:
                 # Repeat the search to verify that only the one child is present.
-                content_node = LocateFirstChildElement(node, require_unique=True)
+                content_node = LocateFirstChildElement(node, require_unique=True, ignore_nodes=wxs.xsQualifiedNames('annotation'))
                 assert content_node == first_elt
                 
                 # Identify the contained restriction or extension
                 # element, and extract the base type.
-                ions = LocateFirstChildElement(content_node, absent_ok=False)
+                ions = LocateFirstChildElement(content_node, absent_ok=False, ignore_nodes=wxs.xsQualifiedNames('annotation'))
                 if ions.nodeName in wxs.xsQualifiedNames('restriction'):
                     method = self.DM_restriction
                 elif ions.nodeName in wxs.xsQualifiedNames('extension'):
