@@ -31,6 +31,7 @@
 		</xs:annotation>
 		<xs:attribute default="irish" name="language" use="optional"/>
 		<xs:attribute name="capitalized" type="xs:boolean" use="required"/>
+		<xs:attribute name="port" type="xs:short" default="5432"/>
 	</xs:complexType>
 	<xs:element name="emptyWithAttr" type="emptyWithAttr"/>
 	<xs:attributeGroup id="attrGroupA" name="attrGroupA">

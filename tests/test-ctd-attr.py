@@ -43,18 +43,22 @@ class TestCTD (unittest.TestCase):
         self.assertEqual('test', rv.content())
 
     def testEmptyWithAttr (self):
+        self.assertEqual(3, len(emptyWithAttr._TypeDefinition._AttributeMap))
         self.assertRaises(MissingAttributeError, CreateFromDocument, '<emptyWithAttr/>')
         instance = CreateFromDocument('<emptyWithAttr capitalized="false"/>')
         self.assertEqual('irish', instance.language())
         self.assert_(not instance.capitalized())
+        self.assertEqual(5432, instance.port())
         instance = CreateFromDocument('<emptyWithAttr capitalized="true" language="hebrew"/>')
         self.assertEqual('hebrew', instance.language())
         self.assert_(instance.capitalized())
+        self.assertEqual(5432, instance.port())
         # Raw constructor generates default everything; optional
         # attributes may have value None.
         instance = emptyWithAttr()
         self.assertEqual('irish', instance.language())
         self.assert_(instance.capitalized() is None)
+        self.assertEqual(5432, instance.port())
         self.assertEqual('<emptyWithAttr/>', instance.toDOM().toxml())
 
         # Create another instance, to make sure the attributes are different
