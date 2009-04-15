@@ -506,7 +506,7 @@ class PyWXSB_CTD_simple (PyWXSB_complexTypeDefinition):
         self.__content = value
 
     def __init__ (self, *args, **kw):
-        assert issubclass(self._TypeDefinition, datatypes._PST_mixin)
+        assert issubclass(self._TypeDefinition, xs.datatypes._PST_mixin)
         super(PyWXSB_CTD_simple, self).__init__(**kw)
         self.__setContent(self._TypeDefinition.Factory(*args, **kw))
 
