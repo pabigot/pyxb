@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="URN:test">
+	<xs:annotation>
+		<xs:documentation>Created with EditiX (http://www.editix.com) at Wed Apr 15 14:24:10 MST 2009</xs:documentation>
+	</xs:annotation>
+	<xs:element name="elt"/>
+	<xs:element name="h01b"><!-- Zero or one elt children, occurrence constrained by sequence -->
+		<xs:complexType>
+			<xs:sequence minOccurs="0" maxOccurs="1">
+				<xs:element name="elt"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="h01"><!-- Zero or one elt children, occurrence constrained by elt -->
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="elt" maxOccurs="1" minOccurs="0"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>
