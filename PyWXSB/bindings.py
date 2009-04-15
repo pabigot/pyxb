@@ -292,6 +292,33 @@ class Particle (object):
         self.__maxOccurs = max_occurs
         self.__term = term
 
+    def extendDOMFromContent (self, document, element, ctd_instance):
+        rep = 0
+        assert isinstance(ctd_instance, PyWXSB_complexTypeDefinition)
+        while ((self.maxOccurs() is None) or (rep < self.maxOccurs())):
+            print 'extendDOMFromContent rep %s limit %s' % (rep, self.maxOccurs())
+            try:
+                if isinstance(self.term(), ModelGroup):
+                    raise IncompleteImplementationError('Particle.extendDOMFromContent: ModelGroup')
+                elif issubclass(self.term(), PyWXSB_element):
+                    print '**** GENERATION'
+                    eu = ctd_instance.useForElement(self.term())
+                    assert eu is not None
+                    value = eu.value(ctd_instance)
+                    # @todo next value in list
+                    assert not eu.isPlural()
+                    value.toDOM(document, element)
+                else:
+                    raise IncompleteImplementationError('Particle.extendFromDOM: No support for term type %s' % (self.term(),))
+            except IncompleteImplementationError, e:
+                raise
+            except Exception, e:
+                print 'Caught adding term from DOM %s: %s' % (node_list[0], e)
+                break
+            rep += 1
+        if rep < self.minOccurs():
+            raise DOMGenerationError('Expected at least %d instances of %s, got only %d' % (self.minOccurs(), self.term(), rep))
+
     def extendFromDOM (self, ctd_instance, node_list):
         """Extend the content of the given ctd_instance from the DOM
         nodes in the list.
@@ -324,7 +351,8 @@ class Particle (object):
                 raise
                 break
             rep += 1
-            pass
+        if rep < self.minOccurs():
+            raise MissingContentError('Expected at least %d instances of %s, got only %d' % (self.minOccurs(), self.term(), rep))
         return node_list
 
 class ModelGroup (object):
@@ -358,7 +386,7 @@ class ModelGroup (object):
 
     def __processChoice (self, ctd_instance, node_list, candidate_particles):
         for particle in candidate_particles:
-            assert 0 == particle.minOccurs()
+            assert particle.minOccurs() in (0, 1)
             assert 1 == particle.maxOccurs()
             try:
                 node_list = particle.extendFromDOM(ctd_instance, node_list)
@@ -506,11 +534,12 @@ class PyWXSB_complexTypeDefinition (utility._DeconflictSymbols_mixin, object):
             au.addDOMAttribute(self, element)
         return element
 
-    def toDOM (self, tag=None, document=None, parent=None):
+    def toDOM (self, document=None, parent=None, tag=None):
         """Create a DOM element with the given tag holding the content of this instance."""
         (document, element) = domutils.ToDOM_startup(document, parent, tag)
         self._setDOMFromContent(document, element)
         self._setDOMFromAttributes(element)
+        # @todo detect ungenerated content
         return element
 
 class PyWXSB_CTD_empty (PyWXSB_complexTypeDefinition):
@@ -619,8 +648,7 @@ class _CTD_content_mixin (object):
         return self
 
     def _setDOMFromContent (self, document, element):
-        for (content, element_use) in self.__elementContent:
-            element_use.addDOMElement(content, document, element)
+        self._Content.extendDOMFromContent(document, element, self)
         return self
 
 class PyWXSB_CTD_mixed (_CTD_content_mixin, PyWXSB_complexTypeDefinition):

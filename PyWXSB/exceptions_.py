@@ -56,6 +56,10 @@ class MissingAttributeError (BadDocumentError):
 class AttributeChangeError (BadDocumentError):
     """Raised when an attribute with a fixed value constraint is set to a different value."""
 
+class DOMGenerationError (PyWXSBException):
+    """Raised when converting binding to DOM and something goes wrong."""
+    pass
+
 class PyWXSBError (exceptions.Exception):
     """Base class for exceptions that indicate a problem that the user probably can't fix."""
     pass
