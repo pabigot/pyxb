@@ -36,16 +36,16 @@ class StructuralBadDocumentError (BadDocumentError):
     """Raised when processing document and the content model is not satisfied."""
 
 class UnrecognizedContentError (StructuralBadDocumentError):
-    """Raised when processing document and unrecognized content is encountered."""
+    """Raised when processing document and an element does not match the content model."""
 
 class UnrecognizedElementError (UnrecognizedContentError):
-    """Raised when processing document and an unrecognized element is encountered."""
+    """Raised when creating an instance from a document with an unrecognized root element."""
 
 class ExtraContentError (StructuralBadDocumentError):
     """Raised when processing document and there is more material in an element content than expected."""
 
 class MissingContentError (StructuralBadDocumentError):
-    """Raised when processing document and expected content is not present."""
+    """Raised when processing document and expected content is not present.  See also UnrecognizedContentError."""
 
 class NotAnElementError (UnrecognizedElementError):
     """Raised when processing document and a tag that is a type but not an element is encountered."""
