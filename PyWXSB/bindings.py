@@ -391,7 +391,7 @@ class Particle (object):
                     #print 'Ignoring wildcard match %s' % (ignored,)
                 else:
                     raise IncompleteImplementationError('Particle.extendFromDOM: No support for term type %s' % (self.term(),))
-            except MissingContentError, e:
+            except StructuralBadDocumentError, e:
                 #print 'Informational MCE: %s' % (e,)
                 break
             except IncompleteImplementationError, e:
@@ -401,6 +401,8 @@ class Particle (object):
                 raise
             rep += 1
         if rep < self.minOccurs():
+            if 0 < len(node_list):
+                raise UnrecognizedContentError('Expected at least %d instances of %s, got only %d before %s' % (self.minOccurs(), self.term(), rep, node_list[0].nodeName))
             raise MissingContentError('Expected at least %d instances of %s, got only %d' % (self.minOccurs(), self.term(), rep))
         return node_list
 
