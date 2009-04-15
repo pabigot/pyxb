@@ -299,12 +299,10 @@ class Particle (object):
         rep = 0
         assert isinstance(ctd_instance, PyWXSB_complexTypeDefinition)
         while ((self.maxOccurs() is None) or (rep < self.maxOccurs())):
-            print 'extendDOMFromContent rep %s limit %s' % (rep, self.maxOccurs())
             try:
                 if isinstance(self.term(), ModelGroup):
                     self.term().extendDOMFromContent(document, element, ctd_instance)
                 elif issubclass(self.term(), PyWXSB_element):
-                    print '**** GENERATION'
                     eu = ctd_instance._UseForElement(self.term())
                     assert eu is not None
                     value = eu.value(ctd_instance)
@@ -316,10 +314,9 @@ class Particle (object):
             except IncompleteImplementationError, e:
                 raise
             except DOMGenerationError, e:
-                print 'Caught adding term from DOM %s: %s' % (self.term(), e)
                 break
             except Exception, e:
-                print 'Unexpected caught adding term from DOM %s: %s' % (self.term(), e)
+                print 'Caught extending DOM from term %s: %s' % (self.term(), e)
                 raise
             rep += 1
         if rep < self.minOccurs():
@@ -335,14 +332,10 @@ class Particle (object):
         rep = 0
         assert isinstance(ctd_instance, PyWXSB_complexTypeDefinition)
         while (0 < len(node_list)) and ((self.maxOccurs() is None) or (rep < self.maxOccurs())):
-            print 'Rep %s limit %s' % (rep, self.maxOccurs())
             try:
                 if isinstance(self.term(), ModelGroup):
-                    print 'Pre model group node list length %d' % (len(node_list),)
                     node_list = self.term().extendFromDOM(ctd_instance, node_list)
-                    print 'Post model group node list length %d' % (len(node_list),)
                 elif issubclass(self.term(), PyWXSB_element):
-                    print 'Pre element %s create' % (self.term()._XsdName,)
                     if 0 == len(node_list):
                         raise MissingContentError('Expected element %s' % (self.term()._XsdName,))
                     element = self.term().CreateFromDOM(node_list[0])
@@ -355,7 +348,6 @@ class Particle (object):
             except Exception, e:
                 print 'Caught creating term from DOM %s: %s' % (node_list[0], e)
                 raise
-                break
             rep += 1
         if rep < self.minOccurs():
             raise MissingContentError('Expected at least %d instances of %s, got only %d' % (self.minOccurs(), self.term(), rep))
@@ -442,10 +434,8 @@ class ModelGroup (object):
         mutable_node_list = node_list[:]
         if self.C_SEQUENCE == self.compositor():
             for particle in self.particles():
-                print 'Attempting sequence member %s starts %s' % (particle, mutable_node_list[0])
                 try:
                     mutable_node_list = particle.extendFromDOM(ctd_instance, mutable_node_list)
-                    print 'Success'
                 except Exception, e:
                     print 'SEQUENCE failed: %s' % (e,)
                     raise

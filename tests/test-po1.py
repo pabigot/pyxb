@@ -16,12 +16,8 @@ Anytown, AS  12345-6789'''
     street_xml = '<street>%s</street>' % (street_content,)
     street_dom = minidom.parseString(street_xml).documentElement
 
-    # Note: name comes before street in the schema.  For now, the
-    # order maintenance is wrong.
     address1_xml = '<name>Customer</name><street>95 Main St</street>'
     address2_xml = '<name>Sugar Mama</name><street>24 E. Dearling Ave.</street>'
-    #address1_xml = '<street>95 Main St</street><name>Customer</name>'
-    #address2_xml = '<street>24 E. Dearling Ave.</street><name>Sugar Mama</name>'
 
     def testPythonElementSimpleContent (self):
         elt = USAddress_street(self.street_content)
@@ -42,15 +38,16 @@ Anytown, AS  12345-6789'''
         xml = '<shipTo>%s</shipTo>' % (self.address1_xml,)
         dom = minidom.parseString(xml)
         addr2 = USAddress.CreateFromDOM(dom.documentElement)
-        print addr2
-        #self.assertEqual(xml, addr2.toDOM(tag='shipTo').toxml())
+        self.assertEqual(xml, addr2.toDOM(tag='shipTo').toxml())
 
     def testPurchaseOrder (self):
         po = purchaseOrder(shipTo=USAddress(name='Customer', street='95 Main St'),
                            billTo=USAddress(name='Sugar Mama', street='24 E. Dearling Ave'),
                            comment='Thanks, dear!')
-        #print po.shipTo().toDOM().toxml()
-        #print po.toDOM().toxml()
+        xml = po.toDOM().toxml()
+        dom = minidom.parseString(xml)
+        po2 = purchaseOrder.CreateFromDOM(dom.documentElement)
+        self.assertEqual(xml, po2.toDOM().toxml())
 
 if __name__ == '__main__':
     unittest.main()
