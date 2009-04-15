@@ -197,10 +197,6 @@ class ElementUse (object):
         self.__isPlural = is_plural
         self.__dataTypes = data_types
 
-    def reset (self, ctd_instance):
-        self.__setValue(ctd_instance, self.defaultValue())
-        return self
-
     def _setDataTypes (self, data_types):
         self.__dataTypes = data_types
 
@@ -258,7 +254,15 @@ class ElementUse (object):
     def value (self, ctd_instance):
         return getattr(ctd_instance, self.__valueElementName, self.defaultValue())
 
+    def reset (self, ctd_instance):
+        setattr(ctd_instance, self.__valueElementName, self.defaultValue())
+        return self
+
     def __setValue (self, ctd_instance, value):
+        if self.isPlural():
+            values = self.value(ctd_instance)
+            values.append(value)
+            return values
         return setattr(ctd_instance, self.__valueElementName, value)
 
     # @todo Distinguish based on plurality
@@ -270,13 +274,13 @@ class ElementUse (object):
         for dt in self.__dataTypes:
             if isinstance(value, dt):
                 self.__setValue(ctd_instance, value)
-                ctd_instance._addContent(value, self)
+                ctd_instance._addContent(value)
                 return self
         for dt in self.__dataTypes:
             try:
                 iv = dt(value)
                 self.__setValue(ctd_instance, iv)
-                ctd_instance._addContent(iv, self)
+                ctd_instance._addContent(iv)
                 return self
             except BadTypeValueError, e:
                 pass
@@ -696,7 +700,7 @@ class _CTD_content_mixin (object):
             raise LogicError('Element %s is not registered within %s' % (element._XsdName, self._XsdName))
         eu.setValue(self, element)
 
-    def _addContent (self, child, element_use=None):
+    def _addContent (self, child):
         assert isinstance(child, PyWXSB_element) or isinstance(child, types.StringTypes)
         self.__content.append(child)
 
@@ -709,10 +713,11 @@ class _CTD_content_mixin (object):
                 if is_mixed:
                     if 0 < len(node_list):
                         node_list = self._Content.extendFromDOM(self, node_list)
-                    self._addContent(domutils.ExtractTextContent(cn))
+                    self._addContent(cn.data)
                 else:
                     # Text outside of mixed mode is ignored.  @todo
                     # verify is only whitespace?
+                    print 'Ignoring mixed content in %s: %s' % (node.nodeName, domutils.ExtractTextContent(cn),)
                     pass
             else:
                 node_list.append(cn)
@@ -724,6 +729,9 @@ class _CTD_content_mixin (object):
 
     def _setDOMFromContent (self, document, element):
         self._Content.extendDOMFromContent(document, element, self)
+        mixed_content = self.content()
+        if 0 < len(mixed_content):
+            element.appendChild(document.createTextNode(''.join(mixed_content)))
         return self
 
 class PyWXSB_CTD_mixed (_CTD_content_mixin, PyWXSB_complexTypeDefinition):
