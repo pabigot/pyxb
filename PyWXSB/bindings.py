@@ -342,11 +342,15 @@ class Particle (object):
             try:
                 if isinstance(self.term(), ModelGroup):
                     self.term().extendDOMFromContent(document, element, ctd_instance)
-                elif issubclass(self.term(), PyWXSB_element):
+                elif isinstance(self.term(), type) and issubclass(self.term(), PyWXSB_element):
                     eu = ctd_instance._UseForElement(self.term())
                     assert eu is not None
                     value = eu.nextValueToGenerate(ctd_instance)
                     value.toDOM(document, element)
+                elif isinstance(self.term(), Wildcard):
+                    print 'Generation ignoring wildcard'
+                    break
+                    pass
                 else:
                     raise IncompleteImplementationError('Particle.extendFromDOM: No support for term type %s' % (self.term(),))
             except IncompleteImplementationError, e:
@@ -417,6 +421,10 @@ class ModelGroup (object):
         return self.__particles
 
     def _setContent (self, compositor, particles):
+        self.__compositor = compositor
+        self.__particles = particles
+
+    def __init__ (self, compositor=C_INVALID, particles=None):
         self.__compositor = compositor
         self.__particles = particles
 
@@ -498,6 +506,10 @@ class ModelGroup (object):
             return new_list
         else:
             assert False
+
+class Wildcard (object):
+    """Placeholder for wildcard objects."""
+    pass
 
 class PyWXSB_enumeration_mixin (object):
     """Marker in case we need to know that a PST has an enumeration constraint facet."""

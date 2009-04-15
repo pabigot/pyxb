@@ -120,8 +120,9 @@ class ReferenceSchemaComponent (ReferenceLiteral):
 
             # The only components that are allowed to be nameless at
             # this point are ones in the binding we're generating.
-            if not is_in_binding:
-                raise LogicError('Attempt to reference unnamed component not in binding')
+            # @todo should not have to special case XMLSchema
+            if not (is_in_binding or (Namespace.XMLSchema == tns)):
+                raise LogicError('Attempt to reference unnamed component not in binding: %s' % (component,))
 
             # The initial name is the name of the component, or if the
             # component can't be named the name of something else

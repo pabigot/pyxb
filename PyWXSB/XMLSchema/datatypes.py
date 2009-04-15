@@ -37,10 +37,6 @@ _PrimitiveDatatypes = []
 _DerivedDatatypes = []
 _ListDatatypes = []
 
-#"""http://www.w3.org/TR/2001/REC-xmlschema-1-20010502/#key-urType"""
-# NB: anyType is a ComplexTypeDefinition instance; haven't figured out
-# how to deal with that yet.
-
 class _PST_mixin (PyWXSB.utility._DeconflictSymbols_mixin, object):
     """_PST_mixin is a base mix-in class that is part of the hierarchy
     of any class that represents the Python datatype for a
@@ -740,6 +736,21 @@ try:
     import datatypes_facets
 except ImportError, e:
     pass
+
+import PyWXSB.bindings as bindings
+class anyType (PyWXSB.bindings.PyWXSB_CTD_mixed):
+    """http://www.w3.org/TR/2001/REC-xmlschema-1-20010502/#key-urType"""
+    @classmethod
+    def Factory (cls, *args, **kw):
+        return anyType()
+
+    _Content = bindings.Particle(1, 1,
+                                 bindings.ModelGroup(bindings.ModelGroup.C_SEQUENCE,
+                                                     [ bindings.Particle(0, None,
+                                                                         bindings.Wildcard()
+                                                                         ) # end Particle
+                                                       ]) # end ModelGroup
+                                 ) # end Particle
 
 def _AddSimpleTypes (schema):
     """Add to the schema the definitions of the built-in types of
