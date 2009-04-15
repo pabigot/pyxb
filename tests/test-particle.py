@@ -71,9 +71,6 @@ class TestParticle (unittest.TestCase):
     def test_h24 (self):
         xml = '<h24></h24>'
         dom = minidom.parseString(xml)
-        instance = h24.CreateFromDOM(dom.documentElement)
-        print instance
-        print instance.toxml()
         self.assertRaises(MissingContentError, h24.CreateFromDOM, dom.documentElement)
         
         for num_elt in range(0, 5):
@@ -82,7 +79,7 @@ class TestParticle (unittest.TestCase):
             if 2 > num_elt:
                 self.assertRaises(MissingContentError, h24.CreateFromDOM, dom.documentElement)
             elif 4 >= num_elt:
-                instance = h24.CreatFromDOM(dom.documentElement)
+                instance = h24.CreateFromDOM(dom.documentElement)
                 self.assertEqual(num_elt, len(instance.elt()))
                 self.assertEqual(instance.toDOM().toxml(), xml)
             else:
@@ -91,9 +88,6 @@ class TestParticle (unittest.TestCase):
     def test_h24b (self):
         xml = '<h24b></h24b>'
         dom = minidom.parseString(xml)
-        instance = h24b.CreateFromDOM(dom.documentElement)
-        print instance
-        #print instance.toxml()
         self.assertRaises(MissingContentError, h24b.CreateFromDOM, dom.documentElement)
         
         for num_elt in range(0, 5):
@@ -102,7 +96,7 @@ class TestParticle (unittest.TestCase):
             if 2 > num_elt:
                 self.assertRaises(MissingContentError, h24b.CreateFromDOM, dom.documentElement)
             elif 4 >= num_elt:
-                instance = h24b.CreatFromDOM(dom.documentElement)
+                instance = h24b.CreateFromDOM(dom.documentElement)
                 self.assertEqual(num_elt, len(instance.elt()))
                 self.assertEqual(instance.toDOM().toxml(), xml)
             else:
