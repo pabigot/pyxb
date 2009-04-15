@@ -212,6 +212,9 @@ class ElementUse (object):
     def isPlural (self):
         return self.__isPlural
 
+    def validElements (self):
+        return self.__dataTypes
+
     def defaultValue (self):
         if self.isPlural():
             return []
@@ -299,10 +302,10 @@ class Particle (object):
             print 'extendDOMFromContent rep %s limit %s' % (rep, self.maxOccurs())
             try:
                 if isinstance(self.term(), ModelGroup):
-                    raise IncompleteImplementationError('Particle.extendDOMFromContent: ModelGroup')
+                    self.term().extendDOMFromContent(document, element, ctd_instance)
                 elif issubclass(self.term(), PyWXSB_element):
                     print '**** GENERATION'
-                    eu = ctd_instance.useForElement(self.term())
+                    eu = ctd_instance._UseForElement(self.term())
                     assert eu is not None
                     value = eu.value(ctd_instance)
                     # @todo next value in list
@@ -312,9 +315,12 @@ class Particle (object):
                     raise IncompleteImplementationError('Particle.extendFromDOM: No support for term type %s' % (self.term(),))
             except IncompleteImplementationError, e:
                 raise
-            except Exception, e:
-                print 'Caught adding term from DOM %s: %s' % (node_list[0], e)
+            except DOMGenerationError, e:
+                print 'Caught adding term from DOM %s: %s' % (self.term(), e)
                 break
+            except Exception, e:
+                print 'Unexpected caught adding term from DOM %s: %s' % (self.term(), e)
+                raise
             rep += 1
         if rep < self.minOccurs():
             raise DOMGenerationError('Expected at least %d instances of %s, got only %d' % (self.minOccurs(), self.term(), rep))
@@ -384,7 +390,43 @@ class ModelGroup (object):
         self.__compositor = compositor
         self.__particles = particles
 
-    def __processChoice (self, ctd_instance, node_list, candidate_particles):
+    def __extendDOMFromChoice (self, document, element, ctd_instance, candidate_particles):
+        for particle in candidate_particles:
+            try:
+                particle.extendDOMFromContent(document, element, ctd_instance)
+                return particle
+            except DOMGenerationException, e:
+                pass
+            except Exception, e:
+                print 'GEN CHOICE failed: %s' % (e,)
+                raise
+        return None
+
+    def extendDOMFromContent (self, document, element, ctd_instance):
+        assert isinstance(ctd_instance, PyWXSB_complexTypeDefinition)
+        if self.C_SEQUENCE == self.compositor():
+            for particle in self.particles():
+                particle.extendDOMFromContent(document, element, ctd_instance)
+        elif self.C_ALL == self.compositor():
+            mutable_particles = self.particles().copy()
+            while 0 < len(mutable_particles):
+                try:
+                    choice = self.__extendDOMFromChoice(document, element, ctd_instance, mutable_particles)
+                    mutable_particles.remove(choice)
+                except Exception, e:
+                    print 'ALL failed: %s' % (e,)
+                    break
+            for particle in mutable_particles:
+                if 0 < particle.minOccurs():
+                    raise DOMGenerationError('ALL: Could not generate instance of required %s' % (particle.term(),))
+        elif self.C_CHOICE == self.compositor():
+            choice = self.__extendDOMFromChoice(document, element, ctd_instance, ctd_instance, self.particles())
+            if choice is None:
+                raise DOMGenerationError('CHOICE: No candidates found')
+        else:
+            assert False
+        
+    def __extendContentFromChoice (self, ctd_instance, node_list, candidate_particles):
         for particle in candidate_particles:
             assert particle.minOccurs() in (0, 1)
             assert 1 == particle.maxOccurs()
@@ -412,16 +454,19 @@ class ModelGroup (object):
             mutable_particles = self.particles().copy()
             while 0 < len(mutable_particles):
                 try:
-                    (choice, new_list) = self.__processChoice(ctd_instance, mutable_node_list, mutable_particles)
+                    (choice, new_list) = self.__extendContentFromChoice(ctd_instance, mutable_node_list, mutable_particles)
                     mutable_particles.remove(choice)
                     mutable_node_list = new_list
                 except Exception, e:
                     print 'ALL failed: %s' % (e,)
                     break
+            for particle in mutable_particles:
+                if 0 < particle.minOccurs():
+                    raise MissingContentError('ALL: Expected an instance of %s' % (particle.term(),))
             print 'Ignored unused %s' % (mutable_particles,)
             return mutable_node_list
         elif self.C_CHOICE == self.compositor():
-            (choice, new_list) = self.__processChoice(ctd_instance, mutable_node_list, self.particles())
+            (choice, new_list) = self.__extendContentFromChoice(ctd_instance, mutable_node_list, self.particles())
             return new_list
         else:
             assert False
@@ -513,6 +558,13 @@ class PyWXSB_complexTypeDefinition (utility._DeconflictSymbols_mixin, object):
             python_map[au.pythonTag()] = au
         assert(len(python_map) == (len(cls._ElementMap) + len(cls._AttributeMap)))
         setattr(cls, cls.__PythonMapAttribute(), python_map)
+
+    @classmethod
+    def _UseForElement (cls, element):
+        for eu in cls._ElementMap.values():
+            if element in eu.validElements():
+                return eu
+        return None
 
     def _setAttributesFromDOM (self, node):
         """Initialize the attributes of this element from those of the DOM node."""
