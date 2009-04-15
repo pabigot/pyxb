@@ -393,6 +393,7 @@ def GenerateCTD (ctd, **kw):
     template_map = { }
     template_map['ctd'] = pythonLiteral(ctd, **kw)
 
+    need_content = False
     if (ctd.CT_EMPTY == ctd.contentType()):
         ctd_parent_class = bindings.PyWXSB_CTD_empty
         prolog_template = '''
@@ -412,6 +413,8 @@ class %{ctd} (bindings.PyWXSB_CTD_simple):
     elif (ctd.CT_MIXED == ctd.contentType()[0]):
         ctd_parent_class = bindings.PyWXSB_CTD_mixed
         content_type = ctd.contentType()[1]
+        template_map['particle'] = pythonLiteral(content_type, **kw)
+        need_content = True
         prolog_template = '''
 # Complex type %{ctd} with mixed content
 class %{ctd} (bindings.PyWXSB_CTD_mixed):
@@ -420,14 +423,18 @@ class %{ctd} (bindings.PyWXSB_CTD_mixed):
         ctd_parent_class = bindings.PyWXSB_CTD_element
         content_type = ctd.contentType()[1]
         template_map['particle'] = pythonLiteral(content_type, **kw)
-        global PostscriptItems
-        PostscriptItems.append(templates.replaceInText('''
-%{ctd}._Content = %{particle}
-''', **template_map))
+        need_content = True
         prolog_template = '''
 # Complex type %{ctd} with element-only content
 class %{ctd} (bindings.PyWXSB_CTD_element):
 '''
+    if need_content:
+        global PostscriptItems
+        PostscriptItems.append(templates.replaceInText('''
+%{ctd}._Content = %{particle}
+''', **template_map))
+        
+
 
     # Support for deconflicting attributes, elements, and reserved symbols
     class_keywords = frozenset(ctd_parent_class._ReservedSymbols)

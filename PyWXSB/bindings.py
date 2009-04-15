@@ -4,6 +4,7 @@ import xml.dom as dom
 from xml.dom import minidom
 import domutils
 import utility
+import types
 
 class PyWXSB_element (utility._DeconflictSymbols_mixin, object):
     """Base class for any Python class that serves as the binding to an XMLSchema element.
@@ -387,7 +388,7 @@ class ModelGroup (object):
             try:
                 particle.extendDOMFromContent(document, element, ctd_instance)
                 return particle
-            except DOMGenerationException, e:
+            except DOMGenerationError, e:
                 pass
             except Exception, e:
                 print 'GEN CHOICE failed: %s' % (e,)
@@ -412,7 +413,7 @@ class ModelGroup (object):
                 if 0 < particle.minOccurs():
                     raise DOMGenerationError('ALL: Could not generate instance of required %s' % (particle.term(),))
         elif self.C_CHOICE == self.compositor():
-            choice = self.__extendDOMFromChoice(document, element, ctd_instance, ctd_instance, self.particles())
+            choice = self.__extendDOMFromChoice(document, element, ctd_instance, self.particles())
             if choice is None:
                 raise DOMGenerationError('CHOICE: No candidates found')
         else:
@@ -651,8 +652,6 @@ class _CTD_content_mixin (object):
     qualifiers) to the corresponding ElementUse information
     """
 
-    # A list of pairs of content and the ElementUse instance it came from
-    __elementContent = None
     # A list containing just the content
     __content = None
 
@@ -661,14 +660,10 @@ class _CTD_content_mixin (object):
         super(_CTD_content_mixin, self).__init__(*args, **kw)
 
     def content (self):
-        return self.__content
+        return [ _x for _x in self.__content if isinstance(_x, types.StringTypes) ]
 
     def _resetContent (self):
         self.__content = []
-        self.__elementContent = []
-
-    def _elementContent (self):
-        return self.__elementContent()
 
     def _addElement (self, element):
         eu = self._ElementMap.get(element._XsdName, None)
@@ -677,14 +672,27 @@ class _CTD_content_mixin (object):
         eu.setValue(self, element)
 
     def _addContent (self, child, element_use=None):
-        assert isinstance(child, PyWXSB_element)
-        self.__elementContent.append( (child, element_use) )
+        assert isinstance(child, PyWXSB_element) or isinstance(child, types.StringTypes)
         self.__content.append(child)
 
     def _setMixableContentFromDOM (self, node, is_mixed):
         """Set the content of this instance from the content of the given node."""
         assert isinstance(self._Content, Particle)
-        node_list = self._Content.extendFromDOM(self, node.childNodes[:])
+        node_list = []
+        for cn in node.childNodes:
+            if cn.nodeType in (dom.Node.TEXT_NODE, dom.Node.CDATA_SECTION_NODE):
+                if is_mixed:
+                    if 0 < len(node_list):
+                        node_list = self._Content.extendFromDOM(self, node_list)
+                    self._addContent(domutils.ExtractTextContent(cn))
+                else:
+                    # Text outside of mixed mode is ignored.  @todo
+                    # verify is only whitespace?
+                    pass
+            else:
+                node_list.append(cn)
+        if 0 < len(node_list):
+            node_list = self._Content.extendFromDOM(self, node_list)
         if 0 < len(node_list):
             raise ExtraContentError('Extra content starting with %s' % (node_list[0],))
         return self
