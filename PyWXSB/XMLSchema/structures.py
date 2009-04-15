@@ -460,14 +460,15 @@ class _PluralityData (types.ListType):
             # Sequence means all of them, in all their glory
             # All is treated the same way
             # Essentially this is a pointwise OR of the pluralities of the particles.
-            new_pd = pdll.pop()
-            for pd in pdll:
-                stage_pd = [ ]
-                for pdm1 in new_pd:
-                    for pdm2 in pd:
-                        stage_pd.append(self._MapUnion(pdm1, pdm2))
-                new_pd = stage_pd
-            self.extend(new_pd)
+            if 0 < len(pdll):
+                new_pd = pdll.pop()
+                for pd in pdll:
+                    stage_pd = [ ]
+                    for pdm1 in new_pd:
+                        for pdm2 in pd:
+                            stage_pd.append(self._MapUnion(pdm1, pdm2))
+                    new_pd = stage_pd
+                self.extend(new_pd)
         else:
             raise LogicError('Unrecognized compositor value %s' % (model_group.compositor(),))
 
