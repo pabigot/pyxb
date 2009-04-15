@@ -300,12 +300,18 @@ class Particle (object):
         is extracted and saved.  The unconsumed portion of the list is
         returned."""
         rep = 0
+        assert isinstance(ctd_instance, PyWXSB_complexTypeDefinition)
         while (0 < len(node_list)) and ((self.maxOccurs() is None) or (rep < self.maxOccurs())):
             print 'Rep %s limit %s' % (rep, self.maxOccurs())
             try:
                 if isinstance(self.term(), ModelGroup):
-                    print 'Skipping creation from model group'
-                elif isinstance(self.term(), PyWXSB_element):
+                    print 'Pre model group node list length %d' % (len(node_list),)
+                    node_list = self.term().extendFromDOM(ctd_instance, node_list)
+                    print 'Post model group node list length %d' % (len(node_list),)
+                elif issubclass(self.term(), PyWXSB_element):
+                    print 'Pre element %s create' % (self.term()._XsdName,)
+                    if 0 == len(node_list):
+                        raise MissingContentError('Expected element %s' % (self.term()._XsdName,))
                     element = self.term().CreateFromDOM(node_list[0])
                     node_list.pop(0)
                     ctd_instance._addElement(element)
@@ -315,6 +321,7 @@ class Particle (object):
                 raise
             except Exception, e:
                 print 'Caught creating term from DOM %s: %s' % (node_list[0], e)
+                raise
                 break
             rep += 1
             pass
@@ -349,16 +356,45 @@ class ModelGroup (object):
         self.__compositor = compositor
         self.__particles = particles
 
-    def createFromDOM (self, ctd_instance, node_list):
+    def __processChoice (self, ctd_instance, node_list, candidate_particles):
+        for particle in candidate_particles:
+            assert 0 == particle.minOccurs()
+            assert 1 == particle.maxOccurs()
+            try:
+                node_list = particle.extendFromDOM(ctd_instance, node_list)
+                return (particle, node_list)
+            except Exception, e:
+                print 'CHOICE failed: %s' % (e,)
+        raise UnrecognizedContentError(node_list[0])
+
+    def extendFromDOM (self, ctd_instance, node_list):
+        assert isinstance(ctd_instance, PyWXSB_complexTypeDefinition)
         mutable_node_list = node_list[:]
         if self.C_SEQUENCE == self.compositor():
-            for p in self.particles():
-                element = p.createFromDOM
-            pass
+            for particle in self.particles():
+                print 'Attempting sequence member %s starts %s' % (particle, mutable_node_list[0])
+                try:
+                    mutable_node_list = particle.extendFromDOM(ctd_instance, mutable_node_list)
+                    print 'Success'
+                except Exception, e:
+                    print 'SEQUENCE failed: %s' % (e,)
+                    raise
+            return mutable_node_list
         elif self.C_ALL == self.compositor():
-            pass
+            mutable_particles = self.particles().copy()
+            while 0 < len(mutable_particles):
+                try:
+                    (choice, new_list) = self.__processChoice(ctd_instance, mutable_node_list, mutable_particles)
+                    mutable_particles.remove(choice)
+                    mutable_node_list = new_list
+                except Exception, e:
+                    print 'ALL failed: %s' % (e,)
+                    break
+            print 'Ignored unused %s' % (mutable_particles,)
+            return mutable_node_list
         elif self.C_CHOICE == self.compositor():
-            pass
+            (choice, new_list) = self.__processChoice(ctd_instance, mutable_node_list, self.particles())
+            return new_list
         else:
             assert False
 
@@ -577,10 +613,9 @@ class _CTD_content_mixin (object):
     def _setMixableContentFromDOM (self, node, is_mixed):
         """Set the content of this instance from the content of the given node."""
         assert isinstance(self._Content, Particle)
-        node_list = node.childNodes[:]
-        self._Content.extendFromDOM(self, node_list)
+        node_list = self._Content.extendFromDOM(self, node.childNodes[:])
         if 0 < len(node_list):
-            raise ExtraContentError()
+            raise ExtraContentError('Extra content starting with %s' % (node_list[0],))
         return self
 
     def _setDOMFromContent (self, document, element):

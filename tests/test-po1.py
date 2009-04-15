@@ -18,10 +18,10 @@ Anytown, AS  12345-6789'''
 
     # Note: name comes before street in the schema.  For now, the
     # order maintenance is wrong.
-    #address1_xml = '<name>Customer</name><street>95 Main St</street>'
-    #address2_xml = '<name>Sugar Mama</name><street>24 E. Dearling Ave.</street>'
-    address1_xml = '<street>95 Main St</street><name>Customer</name>'
-    address2_xml = '<street>24 E. Dearling Ave.</street><name>Sugar Mama</name>'
+    address1_xml = '<name>Customer</name><street>95 Main St</street>'
+    address2_xml = '<name>Sugar Mama</name><street>24 E. Dearling Ave.</street>'
+    #address1_xml = '<street>95 Main St</street><name>Customer</name>'
+    #address2_xml = '<street>24 E. Dearling Ave.</street><name>Sugar Mama</name>'
 
     def testPythonElementSimpleContent (self):
         elt = USAddress_street(self.street_content)
@@ -37,10 +37,12 @@ Anytown, AS  12345-6789'''
         self.assertEqual('95 Main St', addr.street().content())
         self.assertEqual('<s>%s</s>' % (self.address1_xml,), addr.toDOM(tag='s').toxml())
 
-        #xml = '<shipTo>%s</shipTo>' % (self.address1_xml,)
-        #print addr.toDOM(tag='shipTo').toxml()
-        #dom = minidom.parseString(xml)
-        #addr2 = USAddress.CreateFromDOM(dom)
+    def testDOM_CTD_element (self):
+        # NB: USAddress is a CTD, not an element.
+        xml = '<shipTo>%s</shipTo>' % (self.address1_xml,)
+        dom = minidom.parseString(xml)
+        addr2 = USAddress.CreateFromDOM(dom.documentElement)
+        print addr2
         #self.assertEqual(xml, addr2.toDOM(tag='shipTo').toxml())
 
     def testPurchaseOrder (self):
