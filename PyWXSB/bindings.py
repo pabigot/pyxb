@@ -59,6 +59,8 @@ class PyWXSB_element (utility._DeconflictSymbols_mixin, object):
         _TypeDefinition for this class.  Or, in the case that
         _TypeDefinition is a complex type with simple content, the
         dereferenced simple content is returned."""
+        if isinstance(self.__content, PyWXSB_CTD_mixed):
+            return self.__content.content()
         return self.__content
     
     @classmethod
@@ -235,7 +237,6 @@ class ElementUse (object):
             value = [ value ]
         for v in value:
             if not v.__generated:
-                print 'Marked value in %s as generated' % (self.pythonTag(),)
                 v.__generated = True
                 return v
         raise DOMGenerationError('No %s values remain to be generated' % (self.pythonTag(),))
@@ -689,7 +690,7 @@ class _CTD_content_mixin (object):
         super(_CTD_content_mixin, self).__init__(*args, **kw)
 
     def content (self):
-        return [ _x for _x in self.__content if isinstance(_x, types.StringTypes) ]
+        return ''.join([ _x for _x in self.__content if isinstance(_x, types.StringTypes) ])
 
     def _resetContent (self):
         self.__content = []
@@ -713,6 +714,7 @@ class _CTD_content_mixin (object):
                 if is_mixed:
                     if 0 < len(node_list):
                         node_list = self._Content.extendFromDOM(self, node_list)
+                    print 'Adding mixed content to %s' % (node.nodeName,)
                     self._addContent(cn.data)
                 else:
                     # Text outside of mixed mode is ignored.  @todo
