@@ -348,9 +348,9 @@ class Particle (object):
                     value = eu.nextValueToGenerate(ctd_instance)
                     value.toDOM(document, element)
                 elif isinstance(self.term(), Wildcard):
-                    print 'Generation ignoring wildcard'
+                    #print 'Generation ignoring wildcard'
+                    # @todo handle generation of wildcards
                     break
-                    pass
                 else:
                     raise IncompleteImplementationError('Particle.extendFromDOM: No support for term type %s' % (self.term(),))
             except IncompleteImplementationError, e:
@@ -358,7 +358,7 @@ class Particle (object):
             except DOMGenerationError, e:
                 break
             except Exception, e:
-                print 'Caught extending DOM from term %s: %s' % (self.term(), e)
+                #print 'Caught extending DOM from term %s: %s' % (self.term(), e)
                 raise
             rep += 1
         if rep < self.minOccurs():
@@ -373,22 +373,31 @@ class Particle (object):
         returned."""
         rep = 0
         assert isinstance(ctd_instance, PyWXSB_complexTypeDefinition)
-        while (0 < len(node_list)) and ((self.maxOccurs() is None) or (rep < self.maxOccurs())):
+        while ((self.maxOccurs() is None) or (rep < self.maxOccurs())):
+            node_list = ctd_instance._stripMixedContent(node_list)
             try:
                 if isinstance(self.term(), ModelGroup):
                     node_list = self.term().extendFromDOM(ctd_instance, node_list)
-                elif issubclass(self.term(), PyWXSB_element):
+                elif isinstance(self.term(), type) and issubclass(self.term(), PyWXSB_element):
                     if 0 == len(node_list):
                         raise MissingContentError('Expected element %s' % (self.term()._XsdName,))
                     element = self.term().CreateFromDOM(node_list[0])
                     node_list.pop(0)
                     ctd_instance._addElement(element)
+                elif isinstance(self.term(), Wildcard):
+                    if 0 == len(node_list):
+                        raise MissingContentError('Expected wildcard')
+                    ignored = node_list.pop(0)
+                    #print 'Ignoring wildcard match %s' % (ignored,)
                 else:
                     raise IncompleteImplementationError('Particle.extendFromDOM: No support for term type %s' % (self.term(),))
+            except MissingContentError, e:
+                #print 'Informational MCE: %s' % (e,)
+                break
             except IncompleteImplementationError, e:
                 raise
             except Exception, e:
-                print 'Caught creating term from DOM %s: %s' % (node_list[0], e)
+                #print 'Caught creating term from DOM: %s' % (e,)
                 raise
             rep += 1
         if rep < self.minOccurs():
@@ -436,7 +445,7 @@ class ModelGroup (object):
             except DOMGenerationError, e:
                 pass
             except Exception, e:
-                print 'GEN CHOICE failed: %s' % (e,)
+                #print 'GEN CHOICE failed: %s' % (e,)
                 raise
         return None
 
@@ -452,7 +461,7 @@ class ModelGroup (object):
                     choice = self.__extendDOMFromChoice(document, element, ctd_instance, mutable_particles)
                     mutable_particles.remove(choice)
                 except Exception, e:
-                    print 'ALL failed: %s' % (e,)
+                    #print 'ALL failed: %s' % (e,)
                     break
             for particle in mutable_particles:
                 if 0 < particle.minOccurs():
@@ -465,6 +474,8 @@ class ModelGroup (object):
             assert False
         
     def __extendContentFromChoice (self, ctd_instance, node_list, candidate_particles):
+        # @todo Is there a preference to match particles that have a
+        # minOccurs of 1?  Probably....
         for particle in candidate_particles:
             assert particle.minOccurs() in (0, 1)
             assert 1 == particle.maxOccurs()
@@ -472,7 +483,8 @@ class ModelGroup (object):
                 node_list = particle.extendFromDOM(ctd_instance, node_list)
                 return (particle, node_list)
             except Exception, e:
-                print 'CHOICE failed: %s' % (e,)
+                #print 'CHOICE failed: %s' % (e,)
+                pass
         raise UnrecognizedContentError(node_list[0])
 
     def extendFromDOM (self, ctd_instance, node_list):
@@ -483,7 +495,7 @@ class ModelGroup (object):
                 try:
                     mutable_node_list = particle.extendFromDOM(ctd_instance, mutable_node_list)
                 except Exception, e:
-                    print 'SEQUENCE failed: %s' % (e,)
+                    #print 'SEQUENCE failed: %s' % (e,)
                     raise
             return mutable_node_list
         elif self.C_ALL == self.compositor():
@@ -494,12 +506,12 @@ class ModelGroup (object):
                     mutable_particles.remove(choice)
                     mutable_node_list = new_list
                 except Exception, e:
-                    print 'ALL failed: %s' % (e,)
+                    #print 'ALL failed: %s' % (e,)
                     break
             for particle in mutable_particles:
                 if 0 < particle.minOccurs():
                     raise MissingContentError('ALL: Expected an instance of %s' % (particle.term(),))
-            print 'Ignored unused %s' % (mutable_particles,)
+            #print 'Ignored unused %s' % (mutable_particles,)
             return mutable_node_list
         elif self.C_CHOICE == self.compositor():
             (choice, new_list) = self.__extendContentFromChoice(ctd_instance, mutable_node_list, self.particles())
@@ -717,26 +729,29 @@ class _CTD_content_mixin (object):
         assert isinstance(child, PyWXSB_element) or isinstance(child, types.StringTypes)
         self.__content.append(child)
 
+    __isMixed = False
+    def _stripMixedContent (self, node_list):
+        while 0 < len(node_list):
+            cn = node_list[0]
+            if not (cn.nodeType in (dom.Node.TEXT_NODE, dom.Node.CDATA_SECTION_NODE)):
+                break
+            if self.__isMixed:
+                #print 'Adding mixed content'
+                self._addContent(cn.data)
+            else:
+                #print 'Ignoring mixed content'
+                pass
+        return node_list
+
     def _setMixableContentFromDOM (self, node, is_mixed):
         """Set the content of this instance from the content of the given node."""
         assert isinstance(self._Content, Particle)
-        node_list = []
-        for cn in node.childNodes:
-            if cn.nodeType in (dom.Node.TEXT_NODE, dom.Node.CDATA_SECTION_NODE):
-                if is_mixed:
-                    if 0 < len(node_list):
-                        node_list = self._Content.extendFromDOM(self, node_list)
-                    print 'Adding mixed content to %s' % (node.nodeName,)
-                    self._addContent(cn.data)
-                else:
-                    # Text outside of mixed mode is ignored.  @todo
-                    # verify is only whitespace?
-                    print 'Ignoring mixed content in %s: %s' % (node.nodeName, domutils.ExtractTextContent(cn),)
-                    pass
-            else:
-                node_list.append(cn)
-        if 0 < len(node_list):
-            node_list = self._Content.extendFromDOM(self, node_list)
+        # The child nodes may include text which should be saved as
+        # mixed content.  Use _stripMixedContent prior to extracting
+        # element data to save them in the correct relative position,
+        # while not losing track of where we are in the content model.
+        self.__isMixed = is_mixed
+        node_list = self._Content.extendFromDOM(self, node.childNodes[:])
         if 0 < len(node_list):
             raise ExtraContentError('Extra content starting with %s' % (node_list[0],))
         return self
