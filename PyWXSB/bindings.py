@@ -73,7 +73,7 @@ class PyWXSB_element (utility._DeconflictSymbols_mixin, object):
         if 0 < node_name.find(':'):
             node_name = node_name.split(':')[1]
         if cls._XsdName != node_name:
-            raise LogicError('Attempting to create element %s from DOM node named %s' % (cls._XsdName, node_name))
+            raise UnrecognizedContentError('Attempting to create element %s from DOM node named %s' % (cls._XsdName, node_name))
         rv = cls()
         rv.__setContent(cls._TypeDefinition.CreateFromDOM(node))
         return rv
