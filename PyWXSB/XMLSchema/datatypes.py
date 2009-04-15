@@ -143,6 +143,7 @@ class _PST_mixin (PyWXSB.utility._DeconflictSymbols_mixin, object):
     @classmethod
     def CreateFromDOM (cls, node):
         """Create a simple type instance from the given DOM Node instance."""
+        # @todo error if non-text content?
         return cls.Factory(domutils.ExtractTextContent(node))
 
     # Must override new, because new gets invoked before init, and

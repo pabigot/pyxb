@@ -35,6 +35,9 @@ class BadDocumentError (PyWXSBException):
 class UnrecognizedElementError (BadDocumentError):
     """Raised when processing document and an unrecognized element is encountered."""
 
+class ExtraContentError (BadDocumentError):
+    """Raised when processing document and there is more material in an element content than expected."""
+
 class NotAnElementError (UnrecognizedElementError):
     """Raised when processing document and a tag that is a type but not an element is encountered."""
 

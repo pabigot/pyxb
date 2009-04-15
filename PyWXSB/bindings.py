@@ -62,6 +62,15 @@ class PyWXSB_element (utility._DeconflictSymbols_mixin, object):
     
     @classmethod
     def CreateFromDOM (cls, node):
+        """Create an instance of this element from the given DOM node.
+
+        Raises LogicError if the name of the node is not consistent
+        with the _XsdName of this class."""
+        node_name = node.nodeName
+        if 0 < node_name.find(':'):
+            node_name = node_name.split(':')[1]
+        if cls._XsdName != node_name:
+            raise LogicError('Attempting to create element %s from DOM node named %s' % (cls._XsdName, node_name))
         rv = cls()
         rv.__setContent(cls._TypeDefinition.CreateFromDOM(node))
         return rv
@@ -214,7 +223,9 @@ class ElementUse (object):
     def __setValue (self, ctd_instance, value):
         return setattr(ctd_instance, self.__valueElementName, value)
 
+    # @todo Distinguish based on plurality
     def setValue (self, ctd_instance, value):
+        """Set the value of this element in the given instance."""
         if value is None:
             return self.reset(ctd_instance)
         assert self.__dataTypes is not None
@@ -281,6 +292,34 @@ class Particle (object):
         self.__maxOccurs = max_occurs
         self.__term = term
 
+    def extendFromDOM (self, ctd_instance, node_list):
+        """Extend the content of the given ctd_instance from the DOM
+        nodes in the list.
+
+        Nodes are removed from the front of the list as their content
+        is extracted and saved.  The unconsumed portion of the list is
+        returned."""
+        rep = 0
+        while (0 < len(node_list)) and ((self.maxOccurs() is None) or (rep < self.maxOccurs())):
+            print 'Rep %s limit %s' % (rep, self.maxOccurs())
+            try:
+                if isinstance(self.term(), ModelGroup):
+                    print 'Skipping creation from model group'
+                elif isinstance(self.term(), PyWXSB_element):
+                    element = self.term().CreateFromDOM(node_list[0])
+                    node_list.pop(0)
+                    ctd_instance._addElement(element)
+                else:
+                    raise IncompleteImplementationError('Particle.extendFromDOM: No support for term type %s' % (self.term(),))
+            except IncompleteImplementationError, e:
+                raise
+            except Exception, e:
+                print 'Caught creating term from DOM %s: %s' % (node_list[0], e)
+                break
+            rep += 1
+            pass
+        return node_list
+
 class ModelGroup (object):
     """Record the structure of a model group.
 
@@ -309,6 +348,19 @@ class ModelGroup (object):
     def _setContent (self, compositor, particles):
         self.__compositor = compositor
         self.__particles = particles
+
+    def createFromDOM (self, ctd_instance, node_list):
+        mutable_node_list = node_list[:]
+        if self.C_SEQUENCE == self.compositor():
+            for p in self.particles():
+                element = p.createFromDOM
+            pass
+        elif self.C_ALL == self.compositor():
+            pass
+        elif self.C_CHOICE == self.compositor():
+            pass
+        else:
+            assert False
 
 class PyWXSB_enumeration_mixin (object):
     """Marker in case we need to know that a PST has an enumeration constraint facet."""
@@ -345,8 +397,22 @@ class PyWXSB_complexTypeDefinition (utility._DeconflictSymbols_mixin, object):
 
     @classmethod
     def Factory (cls, *args, **kw):
+        """Create an instance from parameters and keywords."""
         rv = cls(*args, **kw)
         return rv
+
+    @classmethod
+    def CreateFromDOM (cls, node):
+        """Create an instance from a DOM node.
+
+        Note that only the node attributes and content are used; the
+        node name must have been validated against an owning
+        element."""
+        rv = cls()
+        rv._setAttributesFromDOM(node)
+        rv._setContentFromDOM(node)
+        return rv
+
 
     # Specify the symbols to be reserved for all CTDs.
     _ReservedSymbols = set([ 'Factory', 'CreateFromDOM', 'toDOM' ])
@@ -385,9 +451,18 @@ class PyWXSB_complexTypeDefinition (utility._DeconflictSymbols_mixin, object):
         setattr(cls, cls.__PythonMapAttribute(), python_map)
 
     def _setAttributesFromDOM (self, node):
+        """Initialize the attributes of this element from those of the DOM node."""
         for au in self._AttributeMap.values():
             au.setFromDOM(self, node)
         return self
+
+    def _setContentFromDOM_vx (self, node):
+        """Override this in subclasses that expect to process content."""
+        raise LogicError('%s did not implement _setContentFromDOM_vx' % (self.__class__.__name__,))
+
+    def _setContentFromDOM (self, node):
+        """Initialize the content of this element from the content of the DOM node."""
+        return self._setContentFromDOM_vx(node)
 
     def _setDOMFromAttributes (self, element):
         """Add any appropriate attributes from this instance into the DOM element."""
@@ -411,6 +486,11 @@ class PyWXSB_CTD_empty (PyWXSB_complexTypeDefinition):
         """Create a raw instance, and set attributes from the DOM node."""
         return cls()._setAttributesFromDOM(node)
 
+    def _setContentFromDOM_vx (self, node):
+        """CTD with empty content does nothing with node content."""
+        # @todo Schema validation check?
+        return self
+
     def _setDOMFromContent (self, document, element):
         return self
 
@@ -422,9 +502,13 @@ class PyWXSB_CTD_simple (PyWXSB_complexTypeDefinition):
     def content (self):
         return self.__content
 
+    def __setContent (self, value):
+        self.__content = value
+
     def __init__ (self, *args, **kw):
+        assert issubclass(self._TypeDefinition, datatypes._PST_mixin)
         super(PyWXSB_CTD_simple, self).__init__(**kw)
-        self.__content = self._TypeDefinition.Factory(*args, **kw)
+        self.__setContent(self._TypeDefinition.Factory(*args, **kw))
 
     @classmethod
     def Factory (cls, *args, **kw):
@@ -435,6 +519,10 @@ class PyWXSB_CTD_simple (PyWXSB_complexTypeDefinition):
     def CreateFromDOM (cls, node):
         """Create an instance from the node content, and set the attributes."""
         return cls(domutils.ExtractTextContent(node))._setAttributesFromDOM(node)
+
+    def _setContentFromDOM_vx (self, node):
+        """CTD with simple content type creates a PST instance from the node body."""
+        self.__setContent(self._TypeDefinition.CreateFromDOM(node))
 
     def _setDOMFromContent (self, document, element):
         """Create a DOM element with the given tag holding the content of this instance."""
@@ -475,10 +563,25 @@ class _CTD_content_mixin (object):
     def _elementContent (self):
         return self.__elementContent()
 
+    def _addElement (self, element):
+        eu = self._ElementMap.get(element._XsdName, None)
+        if eu is None:
+            raise LogicError('Element %s is not registered within %s' % (element._XsdName, self._XsdName))
+        eu.setValue(self, element)
+
     def _addContent (self, child, element_use=None):
         assert isinstance(child, PyWXSB_element)
         self.__elementContent.append( (child, element_use) )
         self.__content.append(child)
+
+    def _setMixableContentFromDOM (self, node, is_mixed):
+        """Set the content of this instance from the content of the given node."""
+        assert isinstance(self._Content, Particle)
+        node_list = node.childNodes[:]
+        self._Content.extendFromDOM(self, node_list)
+        if 0 < len(node_list):
+            raise ExtraContentError()
+        return self
 
     def _setDOMFromContent (self, document, element):
         for (content, element_use) in self.__elementContent:
@@ -489,11 +592,17 @@ class PyWXSB_CTD_mixed (_CTD_content_mixin, PyWXSB_complexTypeDefinition):
     """Base for any Python class that serves as the binding for an
     XMLSchema complexType with mixed content.
     """
-    pass
+
+    def _setContentFromDOM_vx (self, node):
+        """Delegate processing to content mixin, with mixed content enabled."""
+        return self._setMixableContentFromDOM(node, is_mixed=True)
+
 
 class PyWXSB_CTD_element (_CTD_content_mixin, PyWXSB_complexTypeDefinition):
     """Base for any Python class that serves as the binding for an
     XMLSchema complexType with element-only content.
     """
-    pass
 
+    def _setContentFromDOM_vx (self, node):
+        """Delegate processing to content mixin, with mixed content disabled."""
+        return self._setMixableContentFromDOM(node, is_mixed=False)
