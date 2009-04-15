@@ -460,7 +460,7 @@ class ModelGroup (object):
                 try:
                     choice = self.__extendDOMFromChoice(document, element, ctd_instance, mutable_particles)
                     mutable_particles.remove(choice)
-                except Exception, e:
+                except DOMGenerationError, e:
                     #print 'ALL failed: %s' % (e,)
                     break
             for particle in mutable_particles:
@@ -482,10 +482,12 @@ class ModelGroup (object):
             try:
                 node_list = particle.extendFromDOM(ctd_instance, node_list)
                 return (particle, node_list)
-            except Exception, e:
+            except BadDocumentError, e:
                 #print 'CHOICE failed: %s' % (e,)
                 pass
-        raise UnrecognizedContentError(node_list[0])
+        if 0 < len(node_list):
+            raise UnrecognizedContentError(node_list[0])
+        raise MissingContentError('No match for required choice')
 
     def extendFromDOM (self, ctd_instance, node_list):
         assert isinstance(ctd_instance, PyWXSB_complexTypeDefinition)
@@ -494,7 +496,7 @@ class ModelGroup (object):
             for particle in self.particles():
                 try:
                     mutable_node_list = particle.extendFromDOM(ctd_instance, mutable_node_list)
-                except Exception, e:
+                except BadDocumentError, e:
                     #print 'SEQUENCE failed: %s' % (e,)
                     raise
             return mutable_node_list
@@ -505,7 +507,7 @@ class ModelGroup (object):
                     (choice, new_list) = self.__extendContentFromChoice(ctd_instance, mutable_node_list, mutable_particles)
                     mutable_particles.remove(choice)
                     mutable_node_list = new_list
-                except Exception, e:
+                except BadDocumentError, e:
                     #print 'ALL failed: %s' % (e,)
                     break
             for particle in mutable_particles:
