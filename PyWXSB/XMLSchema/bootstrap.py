@@ -279,7 +279,7 @@ class schema (xsc.Schema):
     def setDefaultNamespace (self, namespace):
         """Specify the namespace that should be used for non-qualified
         lookups.  """
-        print 'DEFAULT: %s' % (namespace,)
+        #print 'DEFAULT: %s' % (namespace,)
         self.__defaultNamespace = namespace
         return namespace
 
@@ -290,7 +290,7 @@ class schema (xsc.Schema):
         """Specify the namespace for which this schema provides
         information."""
         self.__targetNamespace = namespace
-        print 'TARGET: %s' % (namespace,)
+        #print 'TARGET: %s' % (namespace,)
         return namespace
 
     def getTargetNamespace (self):
@@ -331,6 +331,10 @@ class schema (xsc.Schema):
         if self.__targetNamespace:
             return self.__targetNamespace.prefix()
         return None
+
+    def namespaces (self):
+        """Return the set of namespaces associated with this schema."""
+        return self.__namespaces
 
     def namespaceForURI (self, uri):
         """Return the namespace for the URI.
@@ -415,7 +419,7 @@ class schema (xsc.Schema):
         attribute_map = { }
         for attr in root_node.attributes.values():
             if 'xmlns' == attr.prefix:
-                print 'Created namespace %s for %s' % (attr.nodeValue, attr.localName)
+                #print 'Created namespace %s for %s' % (attr.nodeValue, attr.localName)
                 namespaces.append( (attr.nodeValue, attr.localName) )
             elif 'xmlns' == attr.name:
                 default_namespace = attr.nodeValue

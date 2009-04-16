@@ -1,6 +1,6 @@
 import PyWXSB.XMLSchema as xs
 import StringIO
-print xs.datatypes
+import datetime
 
 from PyWXSB.exceptions_ import *
 import utility
@@ -684,14 +684,27 @@ def GeneratePython (input, **kw):
         if wxs.getTargetNamespace() == Namespace.XMLSchema:
             import_prefix = ''
 
-        outf.write(templates.replaceInText('''
+        template_map = { }
+        template_map['input'] = input
+        template_map['date'] = str(datetime.datetime.now())
+        template_map['version'] = 'UNSPECIFIED'
+        tns = wxs.getTargetNamespace()
+        if tns is not None:
+            tns = tns.uri()
+        template_map['targetNamespace'] = repr(tns)
+        template_map['namespaces'] = ', '.join( [ repr(_ns.uri()) for _ns in wxs.namespaces() ] )
+        template_map['import_prefix'] = import_prefix
+
+        outf.write(templates.replaceInText('''# Bindings for %{input}
+# Generated %{date} by PyWXSB version %{version}
 import %{import_prefix}facets as facets
 import %{import_prefix}datatypes as datatypes
 import PyWXSB.bindings as bindings
 from xml.dom import minidom
 from xml.dom import Node
 
-NamespacePrefix = 'tns'
+Namespace = %{targetNamespace}
+NamespaceDependencies = [ %{namespaces} ]
 
 def CreateFromDocument (xml):
     """Parse the given XML and use the document element to create a Python instance."""
@@ -711,7 +724,7 @@ def CreateFromDOM (node):
         raise NotAnElementError('Tag %s does not exist as element in module' % (ncname,))
     return cls.CreateFromDOM(node)
 
-''', import_prefix=import_prefix))
+''', **template_map))
     
         # Give priority for identifiers to element declarations
         for td in emit_order:

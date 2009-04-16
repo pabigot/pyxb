@@ -1,3 +1,7 @@
+"""This file contains support classes from which schema-specific
+bindings inherit, and that describe the content models of those
+schema."""
+
 from PyWXSB.exceptions_ import *
 import XMLSchema as xs
 import xml.dom as dom
@@ -7,7 +11,8 @@ import utility
 import types
 
 class PyWXSB_element (utility._DeconflictSymbols_mixin, object):
-    """Base class for any Python class that serves as the binding to an XMLSchema element.
+    """Base class for any Python class that serves as the binding to
+    an XMLSchema element.
 
     The subclass must define a class variable _TypeDefinition which is
     a reference to the _PST_mixin or PyWXSB_complexTypeDefinition
@@ -16,6 +21,11 @@ class PyWXSB_element (utility._DeconflictSymbols_mixin, object):
     Most actions on instances of these clases are delegated to the
     underlying content object.
     """
+
+    # Reference to the simple or complex type binding that serves as
+    # the content of this element.
+    # MUST BE SET IN SUBCLASS
+    _TypeDefinition = None
 
     # Reference to the instance of the underlying type
     __realContent = None
@@ -26,7 +36,8 @@ class PyWXSB_element (utility._DeconflictSymbols_mixin, object):
     
     # Symbols that remain the responsibility of this class.  Any
     # symbols in the type from the content are deconflicted by
-    # providing an alternative name in the subclass.
+    # providing an alternative name in the subclass.  See the
+    # _DeconflictSymbols_mixin class.
     _ReservedSymbols = set([ 'content', 'CreateFromDOM', 'toDOM' ])
 
     # Assign to the content field.  This may manipulate the assigned
@@ -79,14 +90,17 @@ class PyWXSB_element (utility._DeconflictSymbols_mixin, object):
         return rv
 
     def toDOM (self, document=None, parent=None):
+        """Add a DOM representation of this element as a child of
+        parent, which should be a DOM Node instance."""
         (document, element) = domutils.ToDOM_startup(document, parent, self._XsdName)
         self.__realContent.toDOM(tag=None, document=document, parent=element)
         return element
 
 class AttributeUse (object):
-    """A helper class that encapsulates everything we need to know about an attribute."""
+    """A helper class that encapsulates everything we need to know
+    about the way an attribute is used within a binding class."""
     __tag = None       # Unicode XML tag @todo not including namespace
-    __pythonTag = None # Identifier used for this attribute within the owning class
+    __pythonField = None # Identifier used for this attribute within the owning class
     __valueAttributeName = None # Private attribute used in instances to hold the attribute value
     __dataType = None  # PST datatype
     __unicodeDefault = None     # Default value as a unicode string, or None
@@ -95,9 +109,9 @@ class AttributeUse (object):
     __required = False          # If True, attribute must appear
     __prohibited = False        # If True, attribute must not appear
 
-    def __init__ (self, tag, python_tag, value_attribute_name, data_type, unicode_default=None, fixed=False, required=False, prohibited=False):
+    def __init__ (self, tag, python_field, value_attribute_name, data_type, unicode_default=None, fixed=False, required=False, prohibited=False):
         self.__tag = tag
-        self.__pythonTag = python_tag
+        self.__pythonField = python_field
         self.__valueAttributeName = value_attribute_name
         self.__dataType = data_type
         self.__unicodeDefault = unicode_default
@@ -111,9 +125,9 @@ class AttributeUse (object):
         """Unicode tag for the attribute in its element"""
         return self.__tag
     
-    def pythonTag (self):
+    def pythonField (self):
         """Tag used within Python code for the attribute"""
-        return self.__pythonTag
+        return self.__pythonField
 
     def __getValue (self, ctd_instance):
         return getattr(ctd_instance, self.__valueAttributeName, (False, None))
@@ -187,14 +201,14 @@ class ElementUse (object):
     for legal values of the field."""
 
     __tag = None
-    __pythonTag = None
+    __pythonField = None
     __valueElementName = None
     __dataTypes = None
     __isPlural = False
 
-    def __init__ (self, tag, python_tag, value_element_name, is_plural, default=None, data_types=[]):
+    def __init__ (self, tag, python_field, value_element_name, is_plural, default=None, data_types=[]):
         self.__tag = tag
-        self.__pythonTag = python_tag
+        self.__pythonField = python_field
         self.__valueElementName = value_element_name
         self.__isPlural = is_plural
         self.__dataTypes = data_types
@@ -205,8 +219,8 @@ class ElementUse (object):
     def tag (self):
         return self.__tag
     
-    def pythonTag (self):
-        return self.__pythonTag
+    def pythonField (self):
+        return self.__pythonField
 
     def isPlural (self):
         return self.__isPlural
@@ -233,13 +247,13 @@ class ElementUse (object):
         value = self.value(ctd_instance)
         if not self.isPlural():
             if value is None:
-                raise DOMGenerationError('Optional %s value is not available' % (self.pythonTag(),))
+                raise DOMGenerationError('Optional %s value is not available' % (self.pythonField(),))
             value = [ value ]
         for v in value:
             if not v.__generated:
                 v.__generated = True
                 return v
-        raise DOMGenerationError('No %s values remain to be generated' % (self.pythonTag(),))
+        raise DOMGenerationError('No %s values remain to be generated' % (self.pythonField(),))
 
     def hasUngeneratedValues (self, ctd_instance):
         value = self.value(ctd_instance)
@@ -563,7 +577,7 @@ class PyWXSB_complexTypeDefinition (utility._DeconflictSymbols_mixin, object):
             iv = None
             if that is not None:
                 iv = fu.value(that)
-            iv = kw.get(fu.pythonTag(), iv)
+            iv = kw.get(fu.pythonField(), iv)
             if iv is not None:
                 fu.setValue(self, iv)
 
@@ -615,9 +629,9 @@ class PyWXSB_complexTypeDefinition (utility._DeconflictSymbols_mixin, object):
             cls._ElementMap[k]._setDataTypes(v)
         python_map = { }
         for eu in cls._ElementMap.values():
-            python_map[eu.pythonTag()] = eu
+            python_map[eu.pythonField()] = eu
         for au in cls._AttributeMap.values():
-            python_map[au.pythonTag()] = au
+            python_map[au.pythonField()] = au
         assert(len(python_map) == (len(cls._ElementMap) + len(cls._AttributeMap)))
         setattr(cls, cls.__PythonMapAttribute(), python_map)
 
@@ -656,7 +670,7 @@ class PyWXSB_complexTypeDefinition (utility._DeconflictSymbols_mixin, object):
         self._setDOMFromContent(document, element)
         for eu in self._ElementMap.values():
             if eu.hasUngeneratedValues(self):
-                raise DOMGenerationError('Values in %s were not converted to DOM' % (eu.pythonTag(),))
+                raise DOMGenerationError('Values in %s were not converted to DOM' % (eu.pythonField(),))
         self._setDOMFromAttributes(element)
         return element
 
