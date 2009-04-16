@@ -656,7 +656,7 @@ def GenerateWC (wc, **kw):
     template_map['wildcard'] = pythonLiteral(wc, **kw)
     outf.write(templates.replaceInText('''
 # Wildcard %{wildcard}
-%{wildcard} = None
+%{wildcard} = pywxsb.binding.content.Wildcard()
 ''', **template_map))
     return outf.getvalue()
 

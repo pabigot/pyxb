@@ -64,15 +64,15 @@ class AttributeUse (object):
         """
         unicode_value = self.__unicodeDefault
         provided = False
-        if isinstance(node, xml.dom.Node):
-            if node.hasAttribute(self.__tag):
-                if self.__prohibited:
-                    raise ProhibitedAttributeError('Prohibited attribute %s found' % (self.__tag,))
-                unicode_value = node.getAttribute(self.__tag)
-                provided = True
-            else:
-                if self.__required:
-                    raise MissingAttributeError('Required attribute %s not found' % (self.__tag,))
+        assert isinstance(node, xml.dom.Node)
+        if node.hasAttribute(self.__tag):
+            if self.__prohibited:
+                raise ProhibitedAttributeError('Prohibited attribute %s found' % (self.__tag,))
+            unicode_value = node.getAttribute(self.__tag)
+            provided = True
+        else:
+            if self.__required:
+                raise MissingAttributeError('Required attribute %s not found' % (self.__tag,))
         if unicode_value is None:
             # Must be optional and absent
             self.__setValue(ctd_instance, None, False)
@@ -271,7 +271,7 @@ class Particle (object):
                     value = eu.nextValueToGenerate(ctd_instance)
                     value.toDOM(document, element)
                 elif isinstance(self.term(), Wildcard):
-                    #print 'Generation ignoring wildcard'
+                    print 'Generation ignoring wildcard'
                     # @todo handle generation of wildcards
                     break
                 else:
@@ -311,7 +311,7 @@ class Particle (object):
                     if 0 == len(node_list):
                         raise MissingContentError('Expected wildcard')
                     ignored = node_list.pop(0)
-                    #print 'Ignoring wildcard match %s' % (ignored,)
+                    print 'Ignoring wildcard match %s' % (ignored,)
                 else:
                     raise IncompleteImplementationError('Particle.extendFromDOM: No support for term type %s' % (self.term(),))
             except StructuralBadDocumentError, e:
@@ -455,5 +455,33 @@ class ModelGroup (object):
 
 class Wildcard (object):
     """Placeholder for wildcard objects."""
-    pass
 
+    NC_any = '##any'            #<<< The namespace constraint "##any"
+    NC_not = '##other'          #<<< A flag indicating constraint "##other"
+    NC_targetNamespace = '##targetNamespace'
+    NC_local = '##local'
+
+    __namespaceConstraint = None
+    def namespaceConstraint (self):
+        """A constraint on the namespace for the wildcard.
+
+        Valid values are:
+         * Wildcard.NC_any
+         * A tuple ( Wildcard.NC_not, a_namespace )
+         * set(of_namespaces)
+
+        Namespaces are represented by their URIs.  Absence is
+        represented by None, both in the "not" pair and in the set.
+        """
+        return self.__namespaceConstraint
+
+    PC_skip = 'skip'            #<<< No constraint is applied
+    PC_lax = 'lax'              #<<< Validate against available uniquely determined declaration
+    PC_strict = 'strict'        #<<< Validate against declaration or xsi:type which must be available
+
+    # One of PC_*
+    __processContents = None
+    def processContents (self): return self.__processContents
+
+    def __init__ (self, *args, **kw):
+        pass

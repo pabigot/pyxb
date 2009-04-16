@@ -14,8 +14,13 @@ from pywxsb.exceptions_ import *
 import unittest
 
 class TestWildcard (unittest.TestCase):
-    def testBasic (self):
+    def testElement (self):
         xml = '<wrapper><first/><second/><third/></wrapper>'
+        doc = minidom.parseString(xml)
+        instance = wrapper.CreateFromDOM(doc.documentElement)
+
+    def testAttribute (self):
+        xml = '<wrapper myattr="true" auxattr="somevalue"/>'
         doc = minidom.parseString(xml)
         instance = wrapper.CreateFromDOM(doc.documentElement)
 

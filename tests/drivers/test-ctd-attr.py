@@ -81,6 +81,11 @@ class TestCTD (unittest.TestCase):
         # Note that defaulted attributes are not generated in the DOM.
         self.assertEqual(xml, instance.toDOM().toxml())
 
+    def testUnrecognizedAttribute (self):
+        xml = '<emptyWithAttr capitalized="false" garbage="what is this"/>'
+        doc = minidom.parseString(xml)
+        self.assertRaises(UnrecognizedAttributeError, emptyWithAttr.CreateFromDOM, doc.documentElement)
+
     def testStructureElement (self):
         #self.assertEqual('test', CreateFromDocument('<structure>test</structure>'))
         pass

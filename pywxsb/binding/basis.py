@@ -561,8 +561,33 @@ class complexTypeDefinition (utility._DeconflictSymbols_mixin, object):
         return None
 
     def _setAttributesFromDOM (self, node):
-        """Initialize the attributes of this element from those of the DOM node."""
-        for au in self._AttributeMap.values():
+        """Initialize the attributes of this element from those of the DOM node.
+
+        Raises UnrecognizedAttributeError if the DOM node has
+        attributes that are not allowed in this type.  May raise other
+        errors if prohibited or required attributes are not
+        present."""
+        
+        # Handle all the attributes that are present in the node
+        attrs_available = set(self._AttributeMap.values())
+        for ai in range(0, node.attributes.length):
+            attr = node.attributes.item(ai)
+            local_name = attr.localName
+            prefix = attr.prefix
+            if not prefix:
+                prefix = None
+            value = attr.value
+            # @todo handle cross-namespace attributes
+            if prefix is not None:
+                raise IncompleteImplementationError('No support for namespace-qualified attributes')
+            au = self._AttributeMap.get(local_name, None)
+            if au is None:
+                raise UnrecognizedAttributeError('Attribute %s is not permitted in type' % (local_name,))
+            au.setFromDOM(self, node)
+            attrs_available.remove(au)
+        # Handle all the ones that aren't present.  NB: Don't just
+        # reset the attribute; we need to check for missing ones.
+        for au in attrs_available:
             au.setFromDOM(self, node)
         return self
 

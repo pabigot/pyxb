@@ -50,6 +50,9 @@ class MissingContentError (StructuralBadDocumentError):
 class NotAnElementError (UnrecognizedElementError):
     """Raised when processing document and a tag that is a type but not an element is encountered."""
 
+class UnrecognizedAttributeError (BadDocumentError):
+    """Raised when an attribute is found that is not sanctioned by the content model."""
+
 class ProhibitedAttributeError (BadDocumentError):
     """Raised when an attribute that is prohibited is provided in an element."""
 
