@@ -143,6 +143,16 @@ class schema (xsc.Schema):
             if self.__targetNamespace.schema() is None:
                 self.__targetNamespace._schema(self)
 
+        # Try to validate anything else we might need.  Ideally,
+        # they'll all exist in pre-parsed format.  We'll need them if
+        # we're going to generate code.
+        for ns in self.namespaces():
+            if self.__targetNamespace != ns:
+                try:
+                    ns.validateSchema()
+                except Exception, e:
+                    print 'WARNING validating schema for %s: %s' % (ns.uri(), e)
+
     def __getNamespaceForLookup (self, type_name):
         """Resolve a QName or NCName appropriately for this schema.
 
