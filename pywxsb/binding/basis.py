@@ -453,8 +453,10 @@ class element (utility._DeconflictSymbols_mixin, object):
             node_name = node_name.split(':')[1]
         if cls._XsdName != node_name:
             raise UnrecognizedContentError('Attempting to create element %s from DOM node named %s' % (cls._XsdName, node_name))
-        rv = cls()
+        rv = cls(validate_constraints=False)
         rv.__setContent(cls._TypeDefinition.CreateFromDOM(node))
+        if isinstance(rv, simpleTypeDefinition):
+            rv.xsdConstraintsOK()
         return rv
 
     def toDOM (self, document=None, parent=None):
