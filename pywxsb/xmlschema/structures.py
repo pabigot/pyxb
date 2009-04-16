@@ -437,9 +437,14 @@ class _PluralityData (types.ListType):
         for pdm in self:
             npdm = { }
             for (ed, v) in pdm.items():
-                tag = ed.ncName()
-                name_types.setdefault(tag, set()).add(ed)
-                npdm[tag] = npdm.get(tag, False) or v
+                if isinstance(ed, ElementDeclaration):
+                    tag = ed.ncName()
+                    name_types.setdefault(tag, set()).add(ed)
+                    npdm[tag] = npdm.get(tag, False) or v
+                elif isinstance(ed, Wildcard):
+                    pass
+                else:
+                    raise LogicError('Unexpected plurality index %s' % (ed,))
             name_plurality = self._MapUnion(name_plurality, npdm)
         rv = { }
         for (name, types) in name_types.items():
@@ -505,8 +510,7 @@ class _PluralityData (types.ListType):
         elif isinstance(component, Particle):
             self.__fromParticle(component)
         elif isinstance(component, Wildcard):
-            # @todo Implement this
-            pass
+            self.append( { component: False } )
         elif component is not None:
             raise NotImplementedError("No support for plurality of component type %s" % (type(component),))
 
@@ -1073,7 +1077,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
         uses_c3 = set()
         xs_attribute = wxs.xsQualifiedNames('attribute')
         xs_attributeGroup = wxs.xsQualifiedNames('attributeGroup')
-        # Handle clauses 1 and 2
+        # Handle clauses 1 and 2 (common between simple and complex types)
         for node in definition_node_list:
             if Node.ELEMENT_NODE != node.nodeType:
                 continue
@@ -1108,7 +1112,20 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
                     uses_c3 = uses_c3.difference(au.matchingQNameMembers(uses_c3))
         uses = set([ _au for _au in uses_c1 if not _au.prohibited() ])
         self.__attributeUses = frozenset(uses.union(uses_c2).union(uses_c3))
+
         # @todo Handle attributeWildcard
+        node = self.__domNode
+        any_attribute = LocateUniqueChild(node, wxs, 'anyAttribute')
+        # Clause 1
+        local_wildcard = None
+        if any_attribute is not None:
+            local_wildcard = Wildcard.CreateFromDOM(wxs, any_attribute)
+            print 'WARINNG: Unhandled attribute wildcard'
+        # Clause 2
+        # Clause 3
+
+        # @todo Make sure we didn't miss any child nodes
+
         # Only now that we've succeeded do we set the method (mark this resolved)
         self.__derivationMethod = method
         return self
@@ -1783,6 +1800,7 @@ class Wildcard (_SchemaComponent_mixin, _Annotated_mixin):
 
     @classmethod
     def CreateFromDOM (cls, wxs, node, owner=None):
+        assert (node.nodeName in wxs.xsQualifiedNames('any')) or (node.nodeName in wxs.xsQualifiedNames('anyAttribute'))
         nc = NodeAttribute(node, wxs, 'namespace')
         if nc is None:
             namespace_constraint = cls.NC_any
