@@ -17,8 +17,6 @@ from xml.dom import Node
 UniqueInBinding = set()
 PostscriptItems = []
 
-Namespace.XMLSchema.setModulePath('xs')
-
 def PrefixModule (value, text=None):
     if text is None:
         text = value.__name__
@@ -77,6 +75,7 @@ class ReferenceParticle (ReferenceLiteral):
     def __init__ (self, particle, **kw):
         self.__particle = particle
         super(ReferenceParticle, self).__init__(**kw)
+
         template_map = { }
         template_map['min_occurs'] = pythonLiteral(int(particle.minOccurs()), **kw)
         if particle.maxOccurs() is None:
@@ -115,7 +114,7 @@ class ReferenceSchemaComponent (ReferenceLiteral):
         is_in_binding = (btns == tns) or (tns is None)
             
         name = self.__component.nameInBinding()
-        if name is None:
+        if is_in_binding and (name is None):
             global UniqueInBinding
 
             # The only components that are allowed to be nameless at
@@ -161,6 +160,7 @@ class ReferenceSchemaComponent (ReferenceLiteral):
                 mp = 'datatypes'
             elif tns is not None:
                 mp = tns.modulePath()
+                assert mp is not None
             if mp is not None:
                 name = '%s.%s' % (mp, name)
         self.setLiteral(name)
@@ -704,6 +704,17 @@ def GeneratePython (**kw):
         template_map['namespaces'] = ', '.join( [ repr(_ns.uri()) for _ns in schema.namespaces() ] )
         template_map['import_prefix'] = import_prefix
 
+        import_namespaces = [ ]
+        for ns in schema.namespaces():
+            if ns == schema.getTargetNamespace():
+                continue
+            if ns.modulePath() is None:
+                if not ns.isBuiltinNamespace():
+                    print 'WARNING: Dependency on %s with no module path' % (ns.uri(),)
+                continue
+            import_namespaces.append(ns)
+        template_map['aux_imports'] = "\n".join( [ 'import %s' % (_ns.modulePath(),) for _ns in import_namespaces ])
+
         outf.write(templates.replaceInText('''# PyWXSB bindings for %{input}
 # Generated %{date} by PyWXSB version %{version}
 import %{import_prefix}facets as facets
@@ -711,6 +722,8 @@ import %{import_prefix}datatypes as datatypes
 import pywxsb.binding
 from xml.dom import minidom
 from xml.dom import Node
+# Import bindings for namespaces listed in schema xmlns
+%{aux_imports}
 
 Namespace = %{targetNamespace}
 NamespaceDependencies = [ %{namespaces} ]
