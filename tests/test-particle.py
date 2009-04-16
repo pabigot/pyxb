@@ -76,10 +76,8 @@ class TestParticle (unittest.TestCase):
         for num_elt in range(0, 5):
             xml = '<h24>%s</h24>' % (''.join(num_elt * ['<elt/>']),)
             dom = minidom.parseString(xml)
-            if 0 == num_elt:
+            if 2 > num_elt:
                 self.assertRaises(MissingContentError, h24.CreateFromDOM, dom.documentElement)
-            elif 2 > num_elt:
-                self.assertRaises(UnrecognizedContentError, h24.CreateFromDOM, dom.documentElement)
             elif 4 >= num_elt:
                 instance = h24.CreateFromDOM(dom.documentElement)
                 self.assertEqual(num_elt, len(instance.elt()))

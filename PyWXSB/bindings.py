@@ -374,10 +374,10 @@ class Particle (object):
         rep = 0
         assert isinstance(ctd_instance, PyWXSB_complexTypeDefinition)
         while ((self.maxOccurs() is None) or (rep < self.maxOccurs())):
-            node_list = ctd_instance._stripMixedContent(node_list)
+            ctd_instance._stripMixedContent(node_list)
             try:
                 if isinstance(self.term(), ModelGroup):
-                    node_list = self.term().extendFromDOM(ctd_instance, node_list)
+                    self.term().extendFromDOM(ctd_instance, node_list)
                 elif isinstance(self.term(), type) and issubclass(self.term(), PyWXSB_element):
                     if 0 == len(node_list):
                         raise MissingContentError('Expected element %s' % (self.term()._XsdName,))
@@ -482,8 +482,8 @@ class ModelGroup (object):
             assert particle.minOccurs() in (0, 1)
             assert 1 == particle.maxOccurs()
             try:
-                node_list = particle.extendFromDOM(ctd_instance, node_list)
-                return (particle, node_list)
+                particle.extendFromDOM(ctd_instance, node_list)
+                return particle
             except BadDocumentError, e:
                 #print 'CHOICE failed: %s' % (e,)
                 pass
@@ -493,22 +493,20 @@ class ModelGroup (object):
 
     def extendFromDOM (self, ctd_instance, node_list):
         assert isinstance(ctd_instance, PyWXSB_complexTypeDefinition)
-        mutable_node_list = node_list[:]
         if self.C_SEQUENCE == self.compositor():
             for particle in self.particles():
                 try:
-                    mutable_node_list = particle.extendFromDOM(ctd_instance, mutable_node_list)
+                    particle.extendFromDOM(ctd_instance, node_list)
                 except BadDocumentError, e:
                     #print 'SEQUENCE failed: %s' % (e,)
                     raise
-            return mutable_node_list
+            return
         elif self.C_ALL == self.compositor():
             mutable_particles = self.particles().copy()
             while 0 < len(mutable_particles):
                 try:
-                    (choice, new_list) = self.__extendContentFromChoice(ctd_instance, mutable_node_list, mutable_particles)
+                    choice = self.__extendContentFromChoice(ctd_instance, node_list, mutable_particles)
                     mutable_particles.remove(choice)
-                    mutable_node_list = new_list
                 except BadDocumentError, e:
                     #print 'ALL failed: %s' % (e,)
                     break
@@ -516,10 +514,10 @@ class ModelGroup (object):
                 if 0 < particle.minOccurs():
                     raise MissingContentError('ALL: Expected an instance of %s' % (particle.term(),))
             #print 'Ignored unused %s' % (mutable_particles,)
-            return mutable_node_list
+            return
         elif self.C_CHOICE == self.compositor():
-            (choice, new_list) = self.__extendContentFromChoice(ctd_instance, mutable_node_list, self.particles())
-            return new_list
+            choice = self.__extendContentFromChoice(ctd_instance, node_list, self.particles())
+            return
         else:
             assert False
 
@@ -755,7 +753,8 @@ class _CTD_content_mixin (object):
         # element data to save them in the correct relative position,
         # while not losing track of where we are in the content model.
         self.__isMixed = is_mixed
-        node_list = self._Content.extendFromDOM(self, node.childNodes[:])
+        node_list = node.childNodes[:]
+        self._Content.extendFromDOM(self, node_list)
         if 0 < len(node_list):
             raise ExtraContentError('Extra content starting with %s' % (node_list[0],))
         return self
