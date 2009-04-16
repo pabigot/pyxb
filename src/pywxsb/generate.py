@@ -233,11 +233,11 @@ def pythonLiteral (value, **kw):
     # Value is an instance of a Python binding, e.g. one of the
     # XMLSchema datatypes.  Use its value, applying the proper prefix
     # for the module.
-    if isinstance(value, xs.datatypes._PST_mixin):
+    if isinstance(value, bindings.PyWXSB_simpleTypeDefinition):
         return PrefixModule(value, value.pythonLiteral())
 
     if isinstance(value, type):
-        if issubclass(value, xs.datatypes._PST_mixin):
+        if issubclass(value, bindings.PyWXSB_simpleTypeDefinition):
             return PrefixModule(value)
         if issubclass(value, xs.facets.Facet):
             return PrefixModule(value)
@@ -350,7 +350,7 @@ class %{std} (%{superclasses}):
         template_map['description'] = ''
     elif xs.structures.SimpleTypeDefinition.VARIETY_list == std.variety():
         template = '''
-class %{std} (datatypes._PST_list):
+class %{std} (bindings.PyWXSB_STD_list):
     """%{description}"""
 
     # The name of this type definition within the schema
@@ -363,7 +363,7 @@ class %{std} (datatypes._PST_list):
         template_map['description'] = templates.replaceInText('Simple type that is a list of %{itemtype}', **template_map)
     elif xs.structures.SimpleTypeDefinition.VARIETY_union == std.variety():
         template = '''
-class %{std} (datatypes._PST_union):
+class %{std} (bindings.PyWXSB_STD_union):
     """%{description}"""
 
     # The name of this type definition within the schema

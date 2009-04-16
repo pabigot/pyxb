@@ -84,12 +84,12 @@ class _DeconflictSymbols_mixin (object):
     """Mix-in used to deconflict public symbols in classes that may be
     inherited by generated binding classes.
 
-    Some classes, like bindings._PST_element or datatypes._PST_mixin,
-    have public symbols associated with functions and variables.  It
-    is possible that an XML schema might include tags and attribute
-    names that match these symbols.  To avoid conflict, the reserved
-    symbols marked in this class are added to the pre-defined
-    identifier set.
+    Some classes, like bindings.PyWXSB_element or
+    datatypes.PyWXSB_simpleTypeDefinition, have public symbols
+    associated with functions and variables.  It is possible that an
+    XML schema might include tags and attribute names that match these
+    symbols.  To avoid conflict, the reserved symbols marked in this
+    class are added to the pre-defined identifier set.
 
     Subclasses should create a class-level variable that contains a
     set of strings denoting the symbols reserved in this class,

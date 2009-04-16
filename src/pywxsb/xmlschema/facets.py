@@ -11,6 +11,7 @@ from xml.dom import Node
 import types
 import datatypes
 import structures
+import pywxsb.binding.basis as bindings
 import pywxsb.utils.utility as utility
 import pywxsb.utils.domutils as domutils
 import re
@@ -48,7 +49,7 @@ class Facet (object):
 
     __ownerDatatype = None
     def ownerDatatype (self):
-        """The _PST_mixin subclass to which this facet belongs."""
+        """The PyWXSB_simpleTypeDefinition subclass to which this facet belongs."""
         return self.__ownerDatatype
     def _ownerDatatype (self, owner_datatype):
         self.__ownerDatatype = owner_datatype
@@ -251,7 +252,7 @@ class _LateDatatype_mixin (object):
             while not value_type.hasPythonSupport():
                 value_type = value_type.baseTypeDefinition()
             value_type = value_type.pythonSupport()
-        assert issubclass(value_type, datatypes._PST_mixin)
+        assert issubclass(value_type, bindings.PyWXSB_simpleTypeDefinition)
         if cls.LateDatatypeBindsSuperclass():
             value_type = value_type.XsdSuperType()
         return value_type
@@ -453,7 +454,7 @@ class _EnumerationElement:
         self.__tag = utility.MakeIdentifier(self.unicodeValue())
 
         value_datatype = self.enumeration().valueDatatype()
-        if issubclass(value_datatype, datatypes._PST_union):
+        if issubclass(value_datatype, bindings.PyWXSB_STD_union):
             self.__value = value_datatype.Factory(self.unicodeValue(), validate_constraints=False)
         else:
             self.__value = value_datatype(self.unicodeValue(), validate_constraints=False)
