@@ -53,7 +53,7 @@ Python data structures bound to data types in these namespace should be as
 close as possible to those that would have been hand-written by a user.  As
 an example, elements that may only appear once should correspond to fields
 with a object value; those that may appear multiple times should correspond
-to fields with a sequence value.  Values recognized through a model group
+to fields with an iterator value.  Values recognized through a model group
 definition should be broken down into direct references to the underlying
 element (not passed through some intermediate structure).
 

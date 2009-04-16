@@ -72,3 +72,20 @@ are not sure the superclass has such a method.
 
 See http://code.activestate.com/recipes/52236/
 
+Terminology
+-----------
+
+The term "attribute" has different meanings in Python and XML.  Ick.
+
+tag : Refers to the text that opens an XML element
+
+instance : [as an adjective] Refers to a characteristic of an instance of a
+Python class.
+
+class : [as an adjective] Refers to a characteristic of a Python class
+itself, shared among all instances.
+
+field : Refers to a named attribute of a Python class.  When the attribute
+holds a value, it is an "instance (class) variable" or "instance field".
+When it holds a reference to an invokable object, it is an "instance (class)
+method".
