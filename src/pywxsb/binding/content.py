@@ -1,6 +1,9 @@
 """Helper classes that maintain the content model of XMLSchema in the binding classes."""
 
-from basis import *
+from pywxsb.exceptions_ import *
+import basis
+
+import xml.dom
 
 class AttributeUse (object):
     """A helper class that encapsulates everything we need to know
@@ -61,7 +64,7 @@ class AttributeUse (object):
         """
         unicode_value = self.__unicodeDefault
         provided = False
-        if isinstance(node, dom.Node):
+        if isinstance(node, xml.dom.Node):
             if node.hasAttribute(self.__tag):
                 if self.__prohibited:
                     raise ProhibitedAttributeError('Prohibited attribute %s found' % (self.__tag,))
@@ -210,7 +213,7 @@ class ElementUse (object):
     def addDOMElement (self, value, document, element):
         """Add the given value of the corresponding element field to the DOM element."""
         if value is not None:
-            assert isinstance(value, PyWXSB_element)
+            assert isinstance(value, basis.element)
             value.toDOM(document, parent=element)
         return self
 
@@ -257,12 +260,12 @@ class Particle (object):
 
     def extendDOMFromContent (self, document, element, ctd_instance):
         rep = 0
-        assert isinstance(ctd_instance, PyWXSB_complexTypeDefinition)
+        assert isinstance(ctd_instance, basis.complexTypeDefinition)
         while ((self.maxOccurs() is None) or (rep < self.maxOccurs())):
             try:
                 if isinstance(self.term(), ModelGroup):
                     self.term().extendDOMFromContent(document, element, ctd_instance)
-                elif isinstance(self.term(), type) and issubclass(self.term(), PyWXSB_element):
+                elif isinstance(self.term(), type) and issubclass(self.term(), basis.element):
                     eu = ctd_instance._UseForElement(self.term())
                     assert eu is not None
                     value = eu.nextValueToGenerate(ctd_instance)
@@ -292,13 +295,13 @@ class Particle (object):
         is extracted and saved.  The unconsumed portion of the list is
         returned."""
         rep = 0
-        assert isinstance(ctd_instance, PyWXSB_complexTypeDefinition)
+        assert isinstance(ctd_instance, basis.complexTypeDefinition)
         while ((self.maxOccurs() is None) or (rep < self.maxOccurs())):
             ctd_instance._stripMixedContent(node_list)
             try:
                 if isinstance(self.term(), ModelGroup):
                     self.term().extendFromDOM(ctd_instance, node_list)
-                elif isinstance(self.term(), type) and issubclass(self.term(), PyWXSB_element):
+                elif isinstance(self.term(), type) and issubclass(self.term(), basis.element):
                     if 0 == len(node_list):
                         raise MissingContentError('Expected element %s' % (self.term()._XsdName,))
                     element = self.term().CreateFromDOM(node_list[0])
@@ -381,7 +384,7 @@ class ModelGroup (object):
         return None
 
     def extendDOMFromContent (self, document, element, ctd_instance):
-        assert isinstance(ctd_instance, PyWXSB_complexTypeDefinition)
+        assert isinstance(ctd_instance, basis.complexTypeDefinition)
         if self.C_SEQUENCE == self.compositor():
             for particle in self.particles():
                 particle.extendDOMFromContent(document, element, ctd_instance)
@@ -421,7 +424,7 @@ class ModelGroup (object):
         raise MissingContentError('No match for required choice')
 
     def extendFromDOM (self, ctd_instance, node_list):
-        assert isinstance(ctd_instance, PyWXSB_complexTypeDefinition)
+        assert isinstance(ctd_instance, basis.complexTypeDefinition)
         if self.C_SEQUENCE == self.compositor():
             for particle in self.particles():
                 try:

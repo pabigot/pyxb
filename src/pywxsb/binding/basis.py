@@ -9,8 +9,8 @@ import pywxsb.utils.domutils as domutils
 import pywxsb.utils.utility as utility
 import types
 
-class PyWXSB_simpleTypeDefinition (utility._DeconflictSymbols_mixin, object):
-    """PyWXSB_simpleTypeDefinition is a base mix-in class that is part of the hierarchy
+class simpleTypeDefinition (utility._DeconflictSymbols_mixin, object):
+    """simpleTypeDefinition is a base mix-in class that is part of the hierarchy
     of any class that represents the Python datatype for a
     SimpleTypeDefinition.
 
@@ -23,7 +23,7 @@ class PyWXSB_simpleTypeDefinition (utility._DeconflictSymbols_mixin, object):
 
     # A map from leaf classes in the facets module to instance of
     # those classes that constrain or otherwise affect the datatype.
-    # Note that each descendent of PyWXSB_simpleTypeDefinition has its own map.
+    # Note that each descendent of simpleTypeDefinition has its own map.
     __FacetMap = {}
 
     # Symbols that remain the responsibility of this class.  Any
@@ -71,11 +71,11 @@ class PyWXSB_simpleTypeDefinition (utility._DeconflictSymbols_mixin, object):
         if fm is not None:
             raise LogicError('%s facet map initialized multiple times' % (cls.__name__,))
         for super_class in cls.mro()[1:]:
-            if issubclass(super_class, PyWXSB_simpleTypeDefinition):
+            if issubclass(super_class, simpleTypeDefinition):
                 fm = super_class._FacetMap()
                 break
         if fm is None:
-            raise LogicError('%s is not a child of PyWXSB_simpleTypeDefinition' % (cls.__name__,))
+            raise LogicError('%s is not a child of simpleTypeDefinition' % (cls.__name__,))
         fm = fm.copy()
         for facet in args:
             fm[type(facet)] = facet
@@ -105,7 +105,7 @@ class PyWXSB_simpleTypeDefinition (utility._DeconflictSymbols_mixin, object):
         The class constructor won't do, because you can't create
         instances of union types.
 
-        This method may be overridden in subclasses (like PyWXSB_STD_union)."""
+        This method may be overridden in subclasses (like STD_union)."""
         return cls(*args, **kw)
 
     @classmethod
@@ -120,13 +120,13 @@ class PyWXSB_simpleTypeDefinition (utility._DeconflictSymbols_mixin, object):
     # argument conversion as is done in init.
     def __new__ (cls, *args, **kw):
         kw.pop('validate_constraints', None)
-        return super(PyWXSB_simpleTypeDefinition, cls).__new__(cls, *cls.__ConvertArgs(args), **kw)
+        return super(simpleTypeDefinition, cls).__new__(cls, *cls.__ConvertArgs(args), **kw)
 
     # Validate the constraints after invoking the parent constructor,
     # unless told not to.
     def __init__ (self, *args, **kw):
         validate_constraints = kw.pop('validate_constraints', True)
-        super(PyWXSB_simpleTypeDefinition, self).__init__(*self.__ConvertArgs(args), **kw)
+        super(simpleTypeDefinition, self).__init__(*self.__ConvertArgs(args), **kw)
         if validate_constraints:
             self.xsdConstraintsOK()
 
@@ -184,12 +184,12 @@ class PyWXSB_simpleTypeDefinition (utility._DeconflictSymbols_mixin, object):
         for sc in cls.mro():
             if sc == cls:
                 continue
-            if PyWXSB_simpleTypeDefinition == sc:
+            if simpleTypeDefinition == sc:
                 # If we hit the PST base, this is a primitive type or
                 # otherwise directly descends from a Python type; return
                 # the recorded XSD supertype.
                 return cls._XsdBaseType
-            if issubclass(sc, PyWXSB_simpleTypeDefinition):
+            if issubclass(sc, simpleTypeDefinition):
                 return sc
         raise LogicError('No supertype found for %s' % (cls,))
 
@@ -201,14 +201,14 @@ class PyWXSB_simpleTypeDefinition (utility._DeconflictSymbols_mixin, object):
         for sc in cls.mro():
             if sc == object:
                 continue
-            if not issubclass(sc, PyWXSB_simpleTypeDefinition):
+            if not issubclass(sc, simpleTypeDefinition):
                 return sc
         raise LogicError('No python type found for %s' % (cls,))
 
     @classmethod
     def _XsdConstraintsPreCheck_vb (cls, value):
         """Pre-extended class method to verify other things before checking constraints."""
-        super_fn = getattr(super(PyWXSB_simpleTypeDefinition, cls), '_XsdConstraintsPreCheck_vb', lambda *a,**kw: True)
+        super_fn = getattr(super(simpleTypeDefinition, cls), '_XsdConstraintsPreCheck_vb', lambda *a,**kw: True)
         return super_fn(value)
 
     @classmethod
@@ -285,12 +285,12 @@ class PyWXSB_simpleTypeDefinition (utility._DeconflictSymbols_mixin, object):
         return element.appendChild(document.createTextNode(self.xsdLiteral()))
 
 
-class PyWXSB_STD_union (PyWXSB_simpleTypeDefinition):
+class STD_union (simpleTypeDefinition):
     """Base class for union datatypes.
 
-    This class descends only from PyWXSB_simpleTypeDefinition.  A LogicError is raised
+    This class descends only from simpleTypeDefinition.  A LogicError is raised
     if an attempt is made to construct an instance of a subclass of
-    PyWXSB_STD_union.  Values consistent with the member types are
+    STD_union.  Values consistent with the member types are
     constructed using the Factory class method.  Values are validated
     using the _ValidateMember class method.
 
@@ -298,7 +298,7 @@ class PyWXSB_STD_union (PyWXSB_simpleTypeDefinition):
     tuple of legal members of the union."""
 
     # Ick: If we don't declare this here, this class's map doesn't get
-    # initialized.  Alternative is to not descend from PyWXSB_simpleTypeDefinition.
+    # initialized.  Alternative is to not descend from simpleTypeDefinition.
     # @todo Ensure that pattern and enumeration are valid constraints
     __FacetMap = {}
 
@@ -344,22 +344,22 @@ class PyWXSB_STD_union (PyWXSB_simpleTypeDefinition):
     def __init__ (self, *args, **kw):
         raise LogicError('%s: cannot construct instances of union' % (self.__class__.__name__,))
 
-class PyWXSB_STD_list (PyWXSB_simpleTypeDefinition, types.ListType):
+class STD_list (simpleTypeDefinition, types.ListType):
     """Base class for collection datatypes.
 
     This class descends from the Python list type, and incorporates
-    PyWXSB_simpleTypeDefinition.  Subclasses must define a class variable _ItemType
+    simpleTypeDefinition.  Subclasses must define a class variable _ItemType
     which is a reference to the class of which members must be
     instances."""
 
     # Ick: If we don't declare this here, this class's map doesn't get
-    # initialized.  Alternative is to not descend from PyWXSB_simpleTypeDefinition.
+    # initialized.  Alternative is to not descend from simpleTypeDefinition.
     __FacetMap = {}
 
     @classmethod
     def _ValidateItem (cls, value):
         """Verify that the given value is permitted as an item of this list."""
-        if issubclass(cls._ItemType, PyWXSB_STD_union):
+        if issubclass(cls._ItemType, STD_union):
             cls._ItemType._ValidateMember(value)
         else:
             if not isinstance(value, cls._ItemType):
@@ -371,19 +371,19 @@ class PyWXSB_STD_list (PyWXSB_simpleTypeDefinition, types.ListType):
         """Verify that the items in the list are acceptable members."""
         for v in value:
             cls._ValidateItem(v)
-        super_fn = getattr(super(PyWXSB_STD_list, cls), '_XsdConstraintsPreCheck_vb', lambda *a,**kw: True)
+        super_fn = getattr(super(STD_list, cls), '_XsdConstraintsPreCheck_vb', lambda *a,**kw: True)
         return super_fn(value)
 
     @classmethod
     def _XsdValueLength_vx (cls, value):
         return len(value)
 
-class PyWXSB_element (utility._DeconflictSymbols_mixin, object):
+class element (utility._DeconflictSymbols_mixin, object):
     """Base class for any Python class that serves as the binding to
     an XMLSchema element.
 
     The subclass must define a class variable _TypeDefinition which is
-    a reference to the PyWXSB_simpleTypeDefinition or PyWXSB_complexTypeDefinition
+    a reference to the simpleTypeDefinition or complexTypeDefinition
     subclass that serves as the information holder for the element.
 
     Most actions on instances of these clases are delegated to the
@@ -414,7 +414,7 @@ class PyWXSB_element (utility._DeconflictSymbols_mixin, object):
         self.__realContent = content
         self.__content = self.__realContent
         if content is not None:
-            if issubclass(self._TypeDefinition, PyWXSB_CTD_simple):
+            if issubclass(self._TypeDefinition, CTD_simple):
                 self.__content = self.__realContent.content()
         return self
 
@@ -438,7 +438,7 @@ class PyWXSB_element (utility._DeconflictSymbols_mixin, object):
         _TypeDefinition for this class.  Or, in the case that
         _TypeDefinition is a complex type with simple content, the
         dereferenced simple content is returned."""
-        if isinstance(self.__content, PyWXSB_CTD_mixed):
+        if isinstance(self.__content, CTD_mixed):
             return self.__content.content()
         return self.__content
     
@@ -464,11 +464,11 @@ class PyWXSB_element (utility._DeconflictSymbols_mixin, object):
         self.__realContent.toDOM(tag=None, document=document, parent=element)
         return element
 
-class PyWXSB_enumeration_mixin (object):
+class enumeration_mixin (object):
     """Marker in case we need to know that a PST has an enumeration constraint facet."""
     pass
 
-class PyWXSB_complexTypeDefinition (utility._DeconflictSymbols_mixin, object):
+class complexTypeDefinition (utility._DeconflictSymbols_mixin, object):
     """Base for any Python class that serves as the binding for an
     XMLSchema complexType.
 
@@ -482,7 +482,7 @@ class PyWXSB_complexTypeDefinition (utility._DeconflictSymbols_mixin, object):
     _ElementMap = { }
 
     def __init__ (self, *args, **kw):
-        super(PyWXSB_complexTypeDefinition, self).__init__(*args, **kw)
+        super(complexTypeDefinition, self).__init__(*args, **kw)
         that = None
         if (0 < len(args)) and isinstance(args[0], self.__class__):
             that = args[0]
@@ -590,7 +590,7 @@ class PyWXSB_complexTypeDefinition (utility._DeconflictSymbols_mixin, object):
         self._setDOMFromAttributes(element)
         return element
 
-class PyWXSB_CTD_empty (PyWXSB_complexTypeDefinition):
+class CTD_empty (complexTypeDefinition):
     """Base for any Python class that serves as the binding for an
     XMLSchema complexType with empty content."""
 
@@ -602,7 +602,7 @@ class PyWXSB_CTD_empty (PyWXSB_complexTypeDefinition):
     def _setDOMFromContent (self, document, element):
         return self
 
-class PyWXSB_CTD_simple (PyWXSB_complexTypeDefinition):
+class CTD_simple (complexTypeDefinition):
     """Base for any Python class that serves as the binding for an
     XMLSchema complexType with simple content."""
 
@@ -614,8 +614,8 @@ class PyWXSB_CTD_simple (PyWXSB_complexTypeDefinition):
         self.__content = value
 
     def __init__ (self, *args, **kw):
-        assert issubclass(self._TypeDefinition, PyWXSB_simpleTypeDefinition)
-        super(PyWXSB_CTD_simple, self).__init__(**kw)
+        assert issubclass(self._TypeDefinition, simpleTypeDefinition)
+        super(CTD_simple, self).__init__(**kw)
         self.__setContent(self._TypeDefinition.Factory(*args, **kw))
 
     @classmethod
@@ -667,7 +667,7 @@ class _CTD_content_mixin (object):
         eu.setValue(self, element)
 
     def _addContent (self, child):
-        assert isinstance(child, PyWXSB_element) or isinstance(child, types.StringTypes)
+        assert isinstance(child, element) or isinstance(child, types.StringTypes)
         self.__content.append(child)
 
     __isMixed = False
@@ -705,7 +705,7 @@ class _CTD_content_mixin (object):
             element.appendChild(document.createTextNode(''.join(mixed_content)))
         return self
 
-class PyWXSB_CTD_mixed (_CTD_content_mixin, PyWXSB_complexTypeDefinition):
+class CTD_mixed (_CTD_content_mixin, complexTypeDefinition):
     """Base for any Python class that serves as the binding for an
     XMLSchema complexType with mixed content.
     """
@@ -715,7 +715,7 @@ class PyWXSB_CTD_mixed (_CTD_content_mixin, PyWXSB_complexTypeDefinition):
         return self._setMixableContentFromDOM(node, is_mixed=True)
 
 
-class PyWXSB_CTD_element (_CTD_content_mixin, PyWXSB_complexTypeDefinition):
+class CTD_element (_CTD_content_mixin, complexTypeDefinition):
     """Base for any Python class that serves as the binding for an
     XMLSchema complexType with element-only content.
     """

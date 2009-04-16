@@ -11,7 +11,7 @@ from xml.dom import Node
 import types
 import datatypes
 import structures
-import pywxsb.binding.basis as bindings
+import pywxsb.binding
 import pywxsb.utils.utility as utility
 import pywxsb.utils.domutils as domutils
 import re
@@ -252,7 +252,7 @@ class _LateDatatype_mixin (object):
             while not value_type.hasPythonSupport():
                 value_type = value_type.baseTypeDefinition()
             value_type = value_type.pythonSupport()
-        assert issubclass(value_type, bindings.PyWXSB_simpleTypeDefinition)
+        assert issubclass(value_type, pywxsb.binding.basis.simpleTypeDefinition)
         if cls.LateDatatypeBindsSuperclass():
             value_type = value_type.XsdSuperType()
         return value_type
@@ -454,7 +454,7 @@ class _EnumerationElement:
         self.__tag = utility.MakeIdentifier(self.unicodeValue())
 
         value_datatype = self.enumeration().valueDatatype()
-        if issubclass(value_datatype, bindings.PyWXSB_STD_union):
+        if issubclass(value_datatype, pywxsb.binding.basis.STD_union):
             self.__value = value_datatype.Factory(self.unicodeValue(), validate_constraints=False)
         else:
             self.__value = value_datatype(self.unicodeValue(), validate_constraints=False)

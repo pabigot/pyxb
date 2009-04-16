@@ -15,8 +15,8 @@ class TestCTD (unittest.TestCase):
     # Make sure that name collisions are deconflicted in favor of the
     # element declaration.
     def testDeconflict (self):
-        self.assert_(issubclass(structure, pywxsb.binding.basis.PyWXSB_element))
-        self.assert_(issubclass(structure_, pywxsb.binding.basis.PyWXSB_CTD_element))
+        self.assert_(issubclass(structure, pywxsb.binding.basis.element))
+        self.assert_(issubclass(structure_, pywxsb.binding.basis.CTD_element))
 
     def testSimple (self):
         self.assertEqual('test', simple_('test').content())

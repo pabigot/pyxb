@@ -15,8 +15,7 @@ import types
 import pywxsb.Namespace as Namespace
 import datatypes
 import facets
-import pywxsb.binding.basis as bindings
-import pywxsb.binding.content
+import pywxsb.binding
 import pywxsb.utils.templates as templates
 from pywxsb.utils.domutils import *
 
@@ -2710,7 +2709,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
 
     def _setPythonSupport (self, python_support):
         # Includes check that python_support is not None
-        assert issubclass(python_support, bindings.PyWXSB_simpleTypeDefinition)
+        assert issubclass(python_support, pywxsb.binding.basis.simpleTypeDefinition)
         # Can't share support instances
         self.__pythonSupport = python_support
         self.__pythonSupport._SimpleTypeDefinition(self)
