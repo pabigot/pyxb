@@ -26,18 +26,18 @@ instance of either SimpleTypeDefinition or ComplexTypeDefinition.
 
 """
 
-from PyWXSB.exceptions_ import *
+from pywxsb.exceptions_ import *
 import structures as xsc
 import types
-import PyWXSB.Namespace as Namespace
-import PyWXSB.domutils as domutils
-import PyWXSB.utility
+import pywxsb.Namespace as Namespace
+import pywxsb.utils.domutils as domutils
+import pywxsb.utils.utility as utility
 
 _PrimitiveDatatypes = []
 _DerivedDatatypes = []
 _ListDatatypes = []
 
-class _PST_mixin (PyWXSB.utility._DeconflictSymbols_mixin, object):
+class _PST_mixin (utility._DeconflictSymbols_mixin, object):
     """_PST_mixin is a base mix-in class that is part of the hierarchy
     of any class that represents the Python datatype for a
     SimpleTypeDefinition.
@@ -737,17 +737,17 @@ try:
 except ImportError, e:
     pass
 
-import PyWXSB.bindings as bindings
-class anyType (PyWXSB.bindings.PyWXSB_CTD_mixed):
+import pywxsb.binding.basis as basis
+class anyType (basis.PyWXSB_CTD_mixed):
     """http://www.w3.org/TR/2001/REC-xmlschema-1-20010502/#key-urType"""
     @classmethod
     def Factory (cls, *args, **kw):
         return anyType()
 
-    _Content = bindings.Particle(1, 1,
-                                 bindings.ModelGroup(bindings.ModelGroup.C_SEQUENCE,
-                                                     [ bindings.Particle(0, None,
-                                                                         bindings.Wildcard()
+    _Content = basis.Particle(1, 1,
+                                 basis.ModelGroup(basis.ModelGroup.C_SEQUENCE,
+                                                     [ basis.Particle(0, None,
+                                                                         basis.Wildcard()
                                                                          ) # end Particle
                                                        ]) # end ModelGroup
                                  ) # end Particle

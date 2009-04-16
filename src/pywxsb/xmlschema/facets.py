@@ -6,13 +6,13 @@ datatype that constrain its lexical and value spaces.
 
 """
 
-from PyWXSB.exceptions_ import *
+from pywxsb.exceptions_ import *
 from xml.dom import Node
 import types
 import datatypes
 import structures
-import PyWXSB.utility as utility
-import PyWXSB.domutils as domutils
+import pywxsb.utils.utility as utility
+import pywxsb.utils.domutils as domutils
 import re
 
 class Facet (object):

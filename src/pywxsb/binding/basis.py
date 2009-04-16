@@ -2,12 +2,12 @@
 bindings inherit, and that describe the content models of those
 schema."""
 
-from PyWXSB.exceptions_ import *
-import XMLSchema as xs
+from pywxsb.exceptions_ import *
+import pywxsb.xmlschema.datatypes as xs
 import xml.dom as dom
 from xml.dom import minidom
-import domutils
-import utility
+import pywxsb.utils.domutils as domutils
+import pywxsb.utils.utility as utility
 import types
 
 class PyWXSB_element (utility._DeconflictSymbols_mixin, object):

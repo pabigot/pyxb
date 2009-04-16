@@ -6,13 +6,13 @@ bindings that are generated.
 
 """
 
-import PyWXSB.Namespace as Namespace
+import pywxsb.Namespace as Namespace
 
 import structures as xsc
 
 import datatypes as xsd
 
-from PyWXSB.exceptions_ import *
+from pywxsb.exceptions_ import *
 
 from xml.dom import Node
 import sys

@@ -1,4 +1,4 @@
-import PyWXSB.XMLSchema as xs
+import pywxsb.xmlschema as xs
 
 import sys
 import traceback
@@ -7,7 +7,7 @@ from xml.dom import Node
 
 files = sys.argv[1:]
 if 0 == len(files):
-    files = [ 'schemas/xml.xsd', 'xml.wxs' ]
+    files = [ 'src/pywxsb/standard/schemas/xml.xsd', 'xml.wxs' ]
 
 xsd_file = files[0]
 wxs_file = files[1]

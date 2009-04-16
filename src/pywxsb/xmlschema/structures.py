@@ -9,14 +9,14 @@ ModelGroup components are created from non-DOM sources.
 
 """
 
-from PyWXSB.exceptions_ import *
+from pywxsb.exceptions_ import *
 from xml.dom import Node
 import types
-import PyWXSB.Namespace as Namespace
+import pywxsb.Namespace as Namespace
 import datatypes
 import facets
-import PyWXSB.templates as templates
-from PyWXSB.domutils import *
+import pywxsb.utils.templates as templates
+from pywxsb.utils.domutils import *
 
 class _SchemaComponent_mixin (object):
     """A mix-in that marks the class as representing a schema component.
