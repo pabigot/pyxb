@@ -4,4 +4,5 @@
 
 <myElement xsi:schemaLocation="URN:unionTest C:\Users\pab\Documents\XML\test-union.xsd" xmlns="URN:unionTest" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     one
+ <!-- and a comment -->
 </myElement>
