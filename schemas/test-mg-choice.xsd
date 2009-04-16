@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<schema targetNamespace="URN:test-mg-choice" xmlns="http://www.w3.org/2001/XMLSchema" xmlns:tns="URN:test-mg-choice">
+	<complexType name="choice">
+		<choice>
+			<element name="first"/>
+			<element name="second"/>
+			<element name="third"/>
+		</choice>
+	</complexType>
+	<element name="choice" type="tns:choice"/>
+	<element name="multiplechoice" type="tns:multiplechoice"/>
+	<complexType name="multiplechoice">
+		<sequence maxOccurs="unbounded">
+			<element ref="tns:choice"/>
+		</sequence>
+	</complexType>
+</schema>
