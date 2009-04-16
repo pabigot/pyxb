@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<schema targetNamespace="URN:test-mg-all" xmlns="http://www.w3.org/2001/XMLSchema" xmlns:tns="URN:test-mg-all">
+	<element name="required" type="tns:required"/>
+	<element name="optional" type="tns:optional"/>
+	<complexType name="required">
+		<all>
+			<element name="first"/>
+			<element name="second" minOccurs="0"/>
+			<element name="third"/>
+		</all>
+	</complexType>
+	<complexType name="optional">
+		<all minOccurs="0">
+			<element name="first"/>
+			<element name="second"/>
+			<element name="third"/>
+		</all>
+	</complexType>
+</schema>

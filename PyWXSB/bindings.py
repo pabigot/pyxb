@@ -426,7 +426,8 @@ class ModelGroup (object):
         return self.__compositor
 
     # A list of _Particle instances.  Set at construction time from
-    # the keyword parameter "particles".
+    # the keyword parameter "particles".  May be sorted; see
+    # _setContent.
     __particles = None
     def particles (self):
         return self.__particles
@@ -434,12 +435,20 @@ class ModelGroup (object):
     def _setContent (self, compositor, particles):
         self.__compositor = compositor
         self.__particles = particles
+        # Particle lists that might be involved in a choice are sorted
+        # for greedy matching.
+        if self.compositor() in (self.C_ALL, self.C_CHOICE):
+            self.__particles.sort(lambda _x,_y: -cmp(_x.minOccurs(), _y.minOccurs()))
 
     def __init__ (self, compositor=C_INVALID, particles=None):
-        self.__compositor = compositor
-        self.__particles = particles
+        self._setContent(compositor, particles)
 
     def __extendDOMFromChoice (self, document, element, ctd_instance, candidate_particles):
+        # Correct behavior requires that particles with a minOccurs()
+        # of 1 preceed any particle with minOccurs() of zero;
+        # otherwise we can incorrectly succeed at matching while not
+        # consuming everything that's available.  This sorting was
+        # done in _setContent.
         for particle in candidate_particles:
             try:
                 particle.extendDOMFromContent(document, element, ctd_instance)
@@ -502,7 +511,7 @@ class ModelGroup (object):
                     raise
             return
         elif self.C_ALL == self.compositor():
-            mutable_particles = self.particles().copy()
+            mutable_particles = self.particles()[:]
             while 0 < len(mutable_particles):
                 try:
                     choice = self.__extendContentFromChoice(ctd_instance, node_list, mutable_particles)
