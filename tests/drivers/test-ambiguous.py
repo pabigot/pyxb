@@ -2,7 +2,10 @@ import pywxsb.generate
 from xml.dom import minidom
 from xml.dom import Node
 
-code = pywxsb.generate.GeneratePython('schemas/test-ambiguous.xsd')
+import os.path
+schema_path = '%s/../schemas/test-ambiguous.xsd' % (os.path.dirname(__file__),)
+code = pywxsb.generate.GeneratePython(schema_path)
+
 rv = compile(code, 'test', 'exec')
 eval(rv)
 

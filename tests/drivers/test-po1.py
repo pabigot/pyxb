@@ -2,7 +2,10 @@ import pywxsb.generate
 from xml.dom import minidom
 from xml.dom import Node
 
-code = pywxsb.generate.GeneratePython('schemas/po1.xsd')
+import os.path
+schema_path = '%s/../schemas/po1.xsd' % (os.path.dirname(__file__),)
+code = pywxsb.generate.GeneratePython(schema_path)
+
 rv = compile(code, 'test', 'exec')
 eval(rv)
 
