@@ -1,0 +1,12 @@
+* When generating a DOM instance from a binding instance, the resulting
+  document will validate against the schema, but the order of elements
+  within it may be different from the original order of creation.  For an
+  example of this, see
+  tests/test-mg-choice:TestMGChoice.testMultichoiceOrderImportant
+
+* Wildcards are not supported.
+
+* Substitution groups are not supported.
+
+* Wildcard attributes are not supported.
+

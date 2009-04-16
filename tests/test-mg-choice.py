@@ -11,29 +11,38 @@ from PyWXSB.exceptions_ import *
 import unittest
 
 class TestMGChoice (unittest.TestCase):
+    def onlyFirst (self, instance):
+        self.assert_(isinstance(instance.first(), choice_first))
+        self.assert_(instance.second() is None)
+        self.assert_(instance.third() is None)
+
+    def onlySecond (self, instance):
+        self.assert_(instance.first() is None)
+        self.assert_(isinstance(instance.second(), choice_second))
+        self.assert_(instance.third() is None)
+
+    def onlyThird (self, instance):
+        self.assert_(instance.first() is None)
+        self.assert_(instance.second() is None)
+        self.assert_(isinstance(instance.third(), choice_third))
+
     def testSingleChoice (self):
         xml = '<choice><first/></choice>'
         dom = minidom.parseString(xml)
         instance = choice.CreateFromDOM(dom.documentElement)
-        self.assert_(isinstance(instance.first(), choice_first))
-        self.assert_(instance.second() is None)
-        self.assert_(instance.third() is None)
+        self.onlyFirst(instance)
         self.assertEqual(instance.toDOM().toxml(), xml)
 
         xml = '<choice><second/></choice>'
         dom = minidom.parseString(xml)
         instance = choice.CreateFromDOM(dom.documentElement)
-        self.assert_(instance.first() is None)
-        self.assert_(isinstance(instance.second(), choice_second))
-        self.assert_(instance.third() is None)
+        self.onlySecond(instance)
         self.assertEqual(instance.toDOM().toxml(), xml)
 
         xml = '<choice><third/></choice>'
         dom = minidom.parseString(xml)
         instance = choice.CreateFromDOM(dom.documentElement)
-        self.assert_(instance.first() is None)
-        self.assert_(instance.second() is None)
-        self.assert_(isinstance(instance.third(), choice_third))
+        self.onlyThird(instance)
         self.assertEqual(instance.toDOM().toxml(), xml)
 
     def testMissingSingle (self):
@@ -49,6 +58,42 @@ class TestMGChoice (unittest.TestCase):
         xml = '<choice><second/><third/></choice>'
         dom = minidom.parseString(xml)
         self.assertRaises(ExtraContentError, choice.CreateFromDOM, dom.documentElement)
+
+    def testMultichoice (self):
+        xml = '<multiplechoice/>'
+        dom = minidom.parseString(xml)
+        instance = multiplechoice.CreateFromDOM(dom.documentElement)
+        self.assertEqual(0, len(instance.first()))
+        self.assertEqual(0, len(instance.second()))
+        self.assertEqual(0, len(instance.third()))
+        self.assertEqual(instance.toDOM().toxml(), xml)
+
+        xml = '<multiplechoice><first/></multiplechoice>'
+        dom = minidom.parseString(xml)
+        instance = multiplechoice.CreateFromDOM(dom.documentElement)
+        self.assertEqual(1, len(instance.first()))
+        self.assertEqual(0, len(instance.second()))
+        self.assertEqual(0, len(instance.third()))
+        self.assertEqual(instance.toDOM().toxml(), xml)
+
+        xml = '<multiplechoice><first/><first/><first/><third/></multiplechoice>'
+        dom = minidom.parseString(xml)
+        instance = multiplechoice.CreateFromDOM(dom.documentElement)
+        self.assertEqual(3, len(instance.first()))
+        self.assertEqual(0, len(instance.second()))
+        self.assertEqual(1, len(instance.third()))
+        self.assertEqual(instance.toDOM().toxml(), xml)
+
+    def testMultichoiceOrderImportant (self):
+        xml = '<multiplechoice><first/><third/><first/></multiplechoice>'
+        dom = minidom.parseString(xml)
+        instance = multiplechoice.CreateFromDOM(dom.documentElement)
+        self.assertEqual(2, len(instance.first()))
+        self.assertEqual(0, len(instance.second()))
+        self.assertEqual(1, len(instance.third()))
+        # @todo This test will fail because both firsts will precede the second.
+        #self.assertEqual(instance.toDOM().toxml(), xml)
+
 
 if __name__ == '__main__':
     unittest.main()

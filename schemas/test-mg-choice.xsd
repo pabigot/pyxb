@@ -11,8 +11,12 @@
 	<element name="choice" type="tns:choice"/>
 	<element name="multiplechoice" type="tns:multiplechoice"/>
 	<complexType name="multiplechoice">
-		<sequence maxOccurs="unbounded">
-			<element ref="tns:choice"/>
+		<sequence minOccurs="0" maxOccurs="unbounded">
+			<choice>
+				<element name="first"/>
+				<element name="second"/>
+				<element name="third"/>
+			</choice>
 		</sequence>
 	</complexType>
 </schema>
