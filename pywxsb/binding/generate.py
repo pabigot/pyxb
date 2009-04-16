@@ -350,6 +350,7 @@ class %{std} (%{superclasses}):
         template_map['description'] = ''
     elif xs.structures.SimpleTypeDefinition.VARIETY_list == std.variety():
         template = '''
+# List SimpleTypeDefinition
 class %{std} (pywxsb.binding.basis.STD_list):
     """%{description}"""
 
@@ -363,6 +364,7 @@ class %{std} (pywxsb.binding.basis.STD_list):
         template_map['description'] = templates.replaceInText('Simple type that is a list of %{itemtype}', **template_map)
     elif xs.structures.SimpleTypeDefinition.VARIETY_union == std.variety():
         template = '''
+# Union SimpleTypeDefinition
 class %{std} (pywxsb.binding.basis.STD_union):
     """%{description}"""
 

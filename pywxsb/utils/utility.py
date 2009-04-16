@@ -22,7 +22,10 @@ def MakeIdentifier (s):
     underscores are removed.  No check is made for conflicts with
     keywords.
     """
-    return _PrefixUnderscore_re.sub('', _NonIdentifier_re.sub('',_UnderscoreSubstitute_re.sub('_', str(s))))
+    s = _PrefixUnderscore_re.sub('', _NonIdentifier_re.sub('',_UnderscoreSubstitute_re.sub('_', str(s))))
+    if 0 == len(s):
+        s = 'emptyString'
+    return s
 
 _Keywords = frozenset( ( "and", "del", "from", "not", "while", "as", "elif", "global",
               "or", "with", "assert", "else", "if", "pass", "yield",

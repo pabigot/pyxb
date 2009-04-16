@@ -1,5 +1,6 @@
 import unittest
 from pywxsb.utils.utility import *
+from pywxsb.utils.utility import _DeconflictSymbols_mixin
 
 class DST_base (_DeconflictSymbols_mixin):
     _ReservedSymbols = set([ 'one', 'two' ])
@@ -60,7 +61,6 @@ class BasicTest (unittest.TestCase):
         self.assertEquals('global__', PrepareIdentifier('global', in_use))
         self.assertEquals('global__2', PrepareIdentifier('global', in_use))
 
-
     def testQuotedEscape (self):
         for ( expected, input ) in self.cases:
             result = QuotedEscaped(input)
@@ -78,6 +78,8 @@ class BasicTest (unittest.TestCase):
         self.assertEquals('idid', MakeIdentifier(u'id&id'))
         self.assertEquals('id', MakeIdentifier('_id'))
         self.assertEquals('id_', MakeIdentifier('_id_'))
+        self.assertEquals('emptyString', MakeIdentifier(''))
+        self.assertEquals('emptyString', MakeIdentifier('_'))
 
     def testDeconflictKeyword (self):
         self.assertEquals('id', DeconflictKeyword('id'))
