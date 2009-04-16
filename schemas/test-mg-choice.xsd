@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <schema targetNamespace="URN:test-mg-choice" xmlns="http://www.w3.org/2001/XMLSchema" xmlns:tns="URN:test-mg-choice">
+	<element name="choice" type="tns:choice"/>
+	<element name="multiplechoice" type="tns:multiplechoice"/>
+	<element name="altmultiplechoice" type="tns:altmultiplechoice"/>
 	<complexType name="choice">
 		<choice>
 			<element name="first"/>
@@ -8,8 +11,6 @@
 			<element name="third"/>
 		</choice>
 	</complexType>
-	<element name="choice" type="tns:choice"/>
-	<element name="multiplechoice" type="tns:multiplechoice"/>
 	<complexType name="multiplechoice">
 		<sequence minOccurs="0" maxOccurs="unbounded">
 			<choice>
@@ -18,5 +19,12 @@
 				<element name="third"/>
 			</choice>
 		</sequence>
+	</complexType>
+	<complexType name="altmultiplechoice">
+		<choice minOccurs="0" maxOccurs="3">
+			<element name="first"/>
+			<element name="second"/>
+			<element name="third"/>
+		</choice>
 	</complexType>
 </schema>

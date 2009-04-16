@@ -95,6 +95,36 @@ class TestMGChoice (unittest.TestCase):
         #self.assertEqual(instance.toDOM().toxml(), xml)
 
 
+    def testAltMultichoice (self):
+        xml = '<altmultiplechoice/>'
+        dom = minidom.parseString(xml)
+        instance = altmultiplechoice.CreateFromDOM(dom.documentElement)
+        self.assertEqual(0, len(instance.first()))
+        self.assertEqual(0, len(instance.second()))
+        self.assertEqual(0, len(instance.third()))
+        self.assertEqual(instance.toDOM().toxml(), xml)
+
+        xml = '<altmultiplechoice><first/></altmultiplechoice>'
+        dom = minidom.parseString(xml)
+        instance = altmultiplechoice.CreateFromDOM(dom.documentElement)
+        self.assertEqual(1, len(instance.first()))
+        self.assertEqual(0, len(instance.second()))
+        self.assertEqual(0, len(instance.third()))
+        self.assertEqual(instance.toDOM().toxml(), xml)
+
+        xml = '<altmultiplechoice><first/><first/><third/></altmultiplechoice>'
+        dom = minidom.parseString(xml)
+        instance = altmultiplechoice.CreateFromDOM(dom.documentElement)
+        self.assertEqual(2, len(instance.first()))
+        self.assertEqual(0, len(instance.second()))
+        self.assertEqual(1, len(instance.third()))
+        self.assertEqual(instance.toDOM().toxml(), xml)
+
+    def testTooManyChoices (self):
+        xml = '<altmultiplechoice><first/><first/><first/><third/></altmultiplechoice>'
+        dom = minidom.parseString(xml)
+        self.assertRaises(ExtraContentError, altmultiplechoice.CreateFromDOM, dom.documentElement)
+
 if __name__ == '__main__':
     unittest.main()
     
