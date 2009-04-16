@@ -4,7 +4,8 @@ import fnmatch
 
 # Environment variable from which default path to pre-loaded namespaces is read
 PathEnvironmentVariable = 'PYWXSB_NAMESPACE_PATH'
-DefaultBindingPath = "/home/pab/pywxsb/dev/bindings"
+import os.path
+DefaultBindingPath = "%s/standard/bindings" % (os.path.dirname(__file__),)
 
 # Stuff required for pickling
 import cPickle as pickle
@@ -250,6 +251,7 @@ class Namespace (object):
         emit_order = []
         while 0 < len(components):
             new_components = []
+            ready_components = []
             for td in components:
                 # Anything not in this namespace is just thrown away.
                 try:
@@ -281,14 +283,16 @@ class Namespace (object):
                     # Ignore self-dependencies
                     if dtd == td:
                         continue
-                    if not (dtd in emit_order):
+                    if not ((dtd in emit_order) or (dtd in ready_components)):
                         #print '%s depends on %s, not emitting' % (td.name(), dtd.name())
                         ready = False
                         break
                 if ready:
-                    emit_order.append(td)
+                    ready_components.append(td)
                 else:
                     new_components.append(td)
+            ready_components.sort(lambda _x, _y: cmp(_x.bestNCName(), _y.bestNCName()))
+            emit_order.extend(ready_components)
             if components == new_components:
                 #raise LogicError('Infinite loop in order calculation:\n  %s' % ("\n  ".join( [str(_c) for _c in components] ),))
                 raise LogicError('Infinite loop in order calculation:\n  %s' % ("\n  ".join( ['%s: %s' % (_c.name(),  ' '.join([ _dtd.name() for _dtd in _c.dependentComponents()])) for _c in components] ),))
