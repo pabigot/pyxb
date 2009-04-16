@@ -1,5 +1,5 @@
 mkdir -p bindings
-rm pywxsb/standard/bindings/*
+rm pywxsb/standard/bindings/[a-z]*
 
 # Some must be done in order, to handle dependencies
 # NOTE: Use prefix xml_ instead of xml because xml conflicts with standard package
