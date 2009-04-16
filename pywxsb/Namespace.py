@@ -352,7 +352,7 @@ class Namespace (object):
             rv = self.__uri
         return rv
 
-    __PICKLE_FORMAT = '200902240721'
+    __PICKLE_FORMAT = '200904161519'
 
     def __getstate__ (self):
         """Support pickling.
@@ -368,8 +368,7 @@ class Namespace (object):
             # * Do not include __boundPrefix: bound namespaces should
             # have already been created by the infrastructure, so the
             # unpickler should never create one.
-            # * Do not include __modulePath: that is determined by the
-            # code that uses the bindings
+            '__modulePath' : self.__modulePath,
             '__bindingConfiguration': self.__bindingConfiguration
             }
         args = ( self.__uri, )
@@ -388,7 +387,11 @@ class Namespace (object):
             raise pickle.UnpicklingError('Got Namespace pickle format %s, require %s' % (format, self.__PICKLE_FORMAT))
         ( uri, ) = args
         assert self.__uri == uri
-        # @todo This is wrong: need to map names into private member variables
+        # Convert private keys into proper form
+        for (k, v) in kw.items():
+            if k.startswith('__'):
+                del kw[k]
+                kw['_%s%s' % (self.__class__.__name__, k)] = v
         self.__dict__.update(kw)
 
     # Class variable recording the namespace that is currently being
