@@ -283,7 +283,12 @@ class Namespace (object):
                     # Ignore self-dependencies
                     if dtd == td:
                         continue
-                    if not ((dtd in emit_order) or (dtd in ready_components)):
+
+                    # Do not include components that are ready but
+                    # have not been placed on emit_order yet.  Doing
+                    # so might result in order violations after
+                    # they've been sorted.
+                    if not (dtd in emit_order):
                         #print '%s depends on %s, not emitting' % (td.name(), dtd.name())
                         ready = False
                         break
