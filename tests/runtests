@@ -1,0 +1,4 @@
+PYTHONPATH=..
+export PYTHONPATH
+cd tests
+nosetests drivers/

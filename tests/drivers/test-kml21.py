@@ -1,6 +1,6 @@
 import PyWXSB.generate
 
-code = PyWXSB.generate.GeneratePython('schemas/kml21.xsd')
+code = PyWXSB.generate.GeneratePython('../src/standard/schemas/kml21.xsd')
 rv = compile(code, 'test', 'exec')
 eval(rv)
 
