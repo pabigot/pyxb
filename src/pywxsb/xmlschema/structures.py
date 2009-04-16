@@ -16,6 +16,7 @@ import pywxsb.Namespace as Namespace
 import datatypes
 import facets
 import pywxsb.binding.basis as bindings
+import pywxsb.binding.content
 import pywxsb.utils.templates as templates
 from pywxsb.utils.domutils import *
 

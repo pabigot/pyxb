@@ -5,7 +5,7 @@ import datetime
 from pywxsb.exceptions_ import *
 import pywxsb.utils.utility as utility
 import pywxsb.utils.templates as templates
-import pywxsb.binding.basis as bindings
+import pywxsb.binding
 import Namespace
 
 import types
@@ -85,7 +85,7 @@ class ReferenceParticle (ReferenceLiteral):
             template_map['max_occurs'] = pythonLiteral(int(particle.maxOccurs()), **kw)
         assert particle.term() is not None
         template_map['term'] = pythonLiteral(particle.term(), **kw)
-        self.setLiteral(templates.replaceInText('bindings.Particle(%{min_occurs}, %{max_occurs}, %{term})', **template_map))
+        self.setLiteral(templates.replaceInText('pywxsb.binding.content.Particle(%{min_occurs}, %{max_occurs}, %{term})', **template_map))
 
 class ReferenceSchemaComponent (ReferenceLiteral):
     __component = None
@@ -233,11 +233,11 @@ def pythonLiteral (value, **kw):
     # Value is an instance of a Python binding, e.g. one of the
     # XMLSchema datatypes.  Use its value, applying the proper prefix
     # for the module.
-    if isinstance(value, bindings.PyWXSB_simpleTypeDefinition):
+    if isinstance(value, pywxsb.binding.basis.PyWXSB_simpleTypeDefinition):
         return PrefixModule(value, value.pythonLiteral())
 
     if isinstance(value, type):
-        if issubclass(value, bindings.PyWXSB_simpleTypeDefinition):
+        if issubclass(value, pywxsb.binding.basis.PyWXSB_simpleTypeDefinition):
             return PrefixModule(value)
         if issubclass(value, xs.facets.Facet):
             return PrefixModule(value)
@@ -257,7 +257,7 @@ def pythonLiteral (value, **kw):
     if isinstance(value, xs.facets._EnumerationElement):
         return pythonLiteral(value.value())
 
-    # Particles expand to a bindings.Particle instance
+    # Particles expand to a pywxsb.binding.content.Particle instance
     if isinstance(value, xs.structures.Particle):
         return pythonLiteral(ReferenceParticle(value, **kw))
 
@@ -328,7 +328,7 @@ def GenerateSTD (std, **kw):
     parent_classes = [ pythonLiteral(std.baseTypeDefinition(), **kw) ]
     enum_facet = std.facets().get(xs.facets.CF_enumeration, None)
     if (enum_facet is not None) and (enum_facet.ownerTypeDefinition() == std):
-        parent_classes.append('bindings.PyWXSB_enumeration_mixin')
+        parent_classes.append('pywxsb.binding.basis.PyWXSB_enumeration_mixin')
         
     template_map = { }
     template_map['std'] = pythonLiteral(std, **kw)
@@ -350,7 +350,7 @@ class %{std} (%{superclasses}):
         template_map['description'] = ''
     elif xs.structures.SimpleTypeDefinition.VARIETY_list == std.variety():
         template = '''
-class %{std} (bindings.PyWXSB_STD_list):
+class %{std} (pywxsb.binding.basis.PyWXSB_STD_list):
     """%{description}"""
 
     # The name of this type definition within the schema
@@ -363,7 +363,7 @@ class %{std} (bindings.PyWXSB_STD_list):
         template_map['description'] = templates.replaceInText('Simple type that is a list of %{itemtype}', **template_map)
     elif xs.structures.SimpleTypeDefinition.VARIETY_union == std.variety():
         template = '''
-class %{std} (bindings.PyWXSB_STD_union):
+class %{std} (pywxsb.binding.basis.PyWXSB_STD_union):
     """%{description}"""
 
     # The name of this type definition within the schema
@@ -396,38 +396,38 @@ def GenerateCTD (ctd, **kw):
 
     need_content = False
     if (ctd.CT_EMPTY == ctd.contentType()):
-        ctd_parent_class = bindings.PyWXSB_CTD_empty
+        ctd_parent_class = pywxsb.binding.basis.PyWXSB_CTD_empty
         prolog_template = '''
 # Complex type %{ctd} with empty content
-class %{ctd} (bindings.PyWXSB_CTD_empty):
+class %{ctd} (pywxsb.binding.basis.PyWXSB_CTD_empty):
 '''
         pass
     elif (ctd.CT_SIMPLE == ctd.contentType()[0]):
-        ctd_parent_class = bindings.PyWXSB_CTD_simple
+        ctd_parent_class = pywxsb.binding.basis.PyWXSB_CTD_simple
         content_type = ctd.contentType()[1]
         prolog_template = '''
 # Complex type %{ctd} with simple content type %{basetype}
-class %{ctd} (bindings.PyWXSB_CTD_simple):
+class %{ctd} (pywxsb.binding.basis.PyWXSB_CTD_simple):
     _TypeDefinition = %{basetype}
 '''
         template_map['basetype'] = pythonLiteral(content_type, **kw)
     elif (ctd.CT_MIXED == ctd.contentType()[0]):
-        ctd_parent_class = bindings.PyWXSB_CTD_mixed
+        ctd_parent_class = pywxsb.binding.basis.PyWXSB_CTD_mixed
         content_type = ctd.contentType()[1]
         template_map['particle'] = pythonLiteral(content_type, **kw)
         need_content = True
         prolog_template = '''
 # Complex type %{ctd} with mixed content
-class %{ctd} (bindings.PyWXSB_CTD_mixed):
+class %{ctd} (pywxsb.binding.basis.PyWXSB_CTD_mixed):
 '''
     elif (ctd.CT_ELEMENT_ONLY == ctd.contentType()[0]):
-        ctd_parent_class = bindings.PyWXSB_CTD_element
+        ctd_parent_class = pywxsb.binding.basis.PyWXSB_CTD_element
         content_type = ctd.contentType()[1]
         template_map['particle'] = pythonLiteral(content_type, **kw)
         need_content = True
         prolog_template = '''
 # Complex type %{ctd} with element-only content
-class %{ctd} (bindings.PyWXSB_CTD_element):
+class %{ctd} (pywxsb.binding.basis.PyWXSB_CTD_element):
 '''
     if need_content:
         global PostscriptItems
@@ -476,7 +476,7 @@ class %{ctd} (bindings.PyWXSB_CTD_element):
                 ef_map['aux_init'] = ', ' + ', '.join(aux_init)
             definitions.append(templates.replaceInText('''
     # Element %{field_tag} uses Python identifier %{python_field_name}
-    %{field_name} = bindings.ElementUse(%{field_tag}, '%{python_field_name}', '%{value_field_name}', %{is_plural}%{aux_init})
+    %{field_name} = pywxsb.binding.content.ElementUse(%{field_tag}, '%{python_field_name}', '%{value_field_name}', %{is_plural}%{aux_init})
     def %{field_inspector} (self):
         """Get the value of the %{field_tag} element."""
         return self.%{field_name}.value(self)
@@ -528,7 +528,7 @@ class %{ctd} (bindings.PyWXSB_CTD_element):
         attribute_uses.append(templates.replaceInText('%{attr_tag} : %{attr_name}', **au_map))
         definitions.append(templates.replaceInText('''
     # Attribute %{attr_tag} uses Python identifier %{python_attr_name}
-    %{attr_name} = bindings.AttributeUse(%{attr_tag}, '%{python_attr_name}', '%{value_attr_name}', %{attr_type}%{aux_init})
+    %{attr_name} = pywxsb.binding.content.AttributeUse(%{attr_tag}, '%{python_attr_name}', '%{value_attr_name}', %{attr_type}%{aux_init})
     def %{attr_inspector} (self):
         """Get the value of the %{attr_tag} attribute."""
         return self.%{attr_name}.value(self)
@@ -556,7 +556,7 @@ def GenerateED (ed, **kw):
     template_map['base_datatype'] = pythonLiteral(ed.typeDefinition(), **kw)
     outf.write(templates.replaceInText('''
 # ElementDeclaration
-class %{class} (bindings.PyWXSB_element):
+class %{class} (pywxsb.binding.basis.PyWXSB_element):
     _XsdName = %{element_name}
     _ElementScope = %{element_scope}
     _TypeDefinition = %{base_datatype}
@@ -639,9 +639,9 @@ def GenerateMG (mg, **kw):
     outf.write(templates.replaceInText('''
 # %{model_group} top level elements:
 %{field_descr}
-%{model_group} = bindings.ModelGroup()
+%{model_group} = pywxsb.binding.content.ModelGroup()
 ''', **template_map))
-    template_map['compositor'] = 'bindings.ModelGroup.C_%s' % (mg.compositorToString().upper(),)
+    template_map['compositor'] = 'pywxsb.binding.content.ModelGroup.C_%s' % (mg.compositorToString().upper(),)
     template_map['particles'] = ','.join( [ pythonLiteral(_p, **kw) for _p in mg.particles() ])
     PostscriptItems.append(templates.replaceInText('''
 %{model_group}._setContent(%{compositor}, [ %{particles} ])
@@ -695,11 +695,11 @@ def GeneratePython (input, **kw):
         template_map['namespaces'] = ', '.join( [ repr(_ns.uri()) for _ns in wxs.namespaces() ] )
         template_map['import_prefix'] = import_prefix
 
-        outf.write(templates.replaceInText('''# Bindings for %{input}
+        outf.write(templates.replaceInText('''# Pywxsb.Binding.Basis for %{input}
 # Generated %{date} by PyWXSB version %{version}
 import %{import_prefix}facets as facets
 import %{import_prefix}datatypes as datatypes
-import pywxsb.binding.basis as bindings
+import pywxsb.binding
 from xml.dom import minidom
 from xml.dom import Node
 
@@ -720,7 +720,7 @@ def CreateFromDOM (node):
     cls = globals().get(ncname, None)
     if cls is None:
         raise UnrecognizedElementError('No class available for %s' % (ncname,))
-    if not issubclass(cls, bindings.PyWXSB_element):
+    if not issubclass(cls, pywxsb.binding.basis.PyWXSB_element):
         raise NotAnElementError('Tag %s does not exist as element in module' % (ncname,))
     return cls.CreateFromDOM(node)
 
