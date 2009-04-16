@@ -1,24 +1,66 @@
+#!/usr/bin/env python
+
 import pywxsb.xmlschema
-import pywxsb.generate
+from pywxsb.binding.generate import GeneratePython
 
 import sys
 import traceback
 from xml.dom import minidom
 from xml.dom import Node
+     
+module_path = 'pywxsb.standard.bindings'
+schema_file = 'pywxsb/standard/schemas/xml.xsd'
+binding_path = 'pywxsb/standard/bindings'
+prefix = 'xml'
 
-files = sys.argv[1:]
-if 0 == len(files):
-    files = [ 'src/pywxsb/standard/schemas/xml.xsd', 'xml.wxs' ]
+if 1 < len(sys.argv):
+    schema_file = sys.argv[1]
+if 2 < len(sys.argv):
+    binding_path = sys.argv[2]
+if 3 < len(sys.argv):
+    prefix = sys.argv[3]
 
-xsd_file = files[0]
-wxs_file = files[1]
+parsed_schema_file = '%s/%s.wxs' % (binding_path, prefix)
+binding_file = '%s/%s.py' % (binding_path, prefix)
+
+wxs = None
+ns = None
+try:
+    wxs = pywxsb.xmlschema.schema.CreateFromDOM(minidom.parse(schema_file))
+    ns = wxs.getTargetNamespace()
+    ns.setModulePath('%s.%s' % (module_path, prefix))
+    print 'Extracted schema information from %s, yielding namespace %s' % (schema_file, ns)
+except Exception, e:
+    print  'Exception processing %s: %s' % (schema_file, e)
+    traceback.print_exception(*sys.exc_info())
+    sys.exit(1)
+
+for ns in wxs.namespaces():
+    try:
+        ns.validateSchema()
+    except:
+        pass
+
+# Save binding source first, so name-in-binding is stored in the
+# parsed schema file
+try:
+    binding_source = GeneratePython(schema=wxs, schema_file=schema_file)
+    file(binding_file, "w").write(binding_source)
+    print 'Saved binding source to %s' % (binding_file,)
+except Exception, e:
+    print 'Exception generating bindings to %s: %s' % (binding_file, e)
+    traceback.print_exception(*sys.exc_info())
+    sys.exit(3)
 
 try:
-    wxs = xs.schema.CreateFromDOM(minidom.parse(xsd_file))
     ns = wxs.getTargetNamespace()
-    print 'Storing %s in %s' % (ns.uri(), wxs_file)
-    ns.saveToFile(wxs_file)
+    ns.saveToFile(parsed_schema_file)
+    print 'Saved parsed schema to %s' % (parsed_schema_file,)
 except Exception, e:
-    sys.stderr.write("%s processing %s:\n" % (e.__class__, xsd_file))
-    traceback.print_exception(*sys.exc_info())
+    print 'Exception saving preprocessed schema to %s: %s' % (parsed_schema_file, e)
+    sys.exit(2)
+
+# LocalVariables:
+# mode:python
+# End:
 

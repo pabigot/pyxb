@@ -1,10 +1,10 @@
-import pywxsb.generate
+import pywxsb.binding.generate
 from xml.dom import minidom
 from xml.dom import Node
 
 import os.path
 schema_path = '%s/../schemas/test-mg-choice.xsd' % (os.path.dirname(__file__),)
-code = pywxsb.generate.GeneratePython(schema_path)
+code = pywxsb.binding.generate.GeneratePython(schema_file=schema_path)
 rv = compile(code, 'test', 'exec')
 eval(rv)
 

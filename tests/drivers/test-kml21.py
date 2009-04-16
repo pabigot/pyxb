@@ -1,8 +1,8 @@
-import pywxsb.generate
+import pywxsb.binding.generate
 
 import os.path
 schema_path = '%s/../../pywxsb/standard/schemas/kml21.xsd' % (os.path.dirname(__file__),)
-code = pywxsb.generate.GeneratePython(schema_path)
+code = pywxsb.binding.generate.GeneratePython(schema_file=schema_path)
 rv = compile(code, 'test', 'exec')
 eval(rv)
 

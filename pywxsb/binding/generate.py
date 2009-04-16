@@ -6,7 +6,7 @@ from pywxsb.exceptions_ import *
 import pywxsb.utils.utility as utility
 import pywxsb.utils.templates as templates
 import pywxsb.binding
-import Namespace
+import pywxsb.Namespace as Namespace
 
 import types
 import sys
@@ -666,36 +666,43 @@ GeneratorMap = {
   , xs.structures.Wildcard : GenerateWC
 }
 
-def GeneratePython (input, **kw):
+def GeneratePython (**kw):
     global UniqueInBinding
     global PostscriptItems
     UniqueInBinding.clear()
     PostscriptItems = []
     try:
-        wxs = xs.schema().CreateFromDOM(minidom.parse(input))
+        schema = kw.get('schema', None)
+        schema_file = kw.get('schema_file', None)
+        if schema is None:
+            if schema_file is None:
+                raise Exception('No input provided')
+            schema = xs.schema().CreateFromDOM(minidom.parse(schema_file))
+        if schema_file is None:
+            schema_file = '<not provided>'
 
         generator_kw = kw.copy()
-        generator_kw['binding_target_namespace'] = wxs.getTargetNamespace()
+        generator_kw['binding_target_namespace'] = schema.getTargetNamespace()
 
-        emit_order = wxs.orderedComponents()
+        emit_order = schema.orderedComponents()
         outf = StringIO.StringIO()
     
         import_prefix = 'pywxsb.xmlschema.'
-        if wxs.getTargetNamespace() == Namespace.XMLSchema:
+        if schema.getTargetNamespace() == Namespace.XMLSchema:
             import_prefix = ''
 
         template_map = { }
-        template_map['input'] = input
+        template_map['input'] = schema_file
         template_map['date'] = str(datetime.datetime.now())
         template_map['version'] = 'UNSPECIFIED'
-        tns = wxs.getTargetNamespace()
+        tns = schema.getTargetNamespace()
         if tns is not None:
             tns = tns.uri()
         template_map['targetNamespace'] = repr(tns)
-        template_map['namespaces'] = ', '.join( [ repr(_ns.uri()) for _ns in wxs.namespaces() ] )
+        template_map['namespaces'] = ', '.join( [ repr(_ns.uri()) for _ns in schema.namespaces() ] )
         template_map['import_prefix'] = import_prefix
 
-        outf.write(templates.replaceInText('''# Pywxsb.Binding.Basis for %{input}
+        outf.write(templates.replaceInText('''# PyWXSB bindings for %{input}
 # Generated %{date} by PyWXSB version %{version}
 import %{import_prefix}facets as facets
 import %{import_prefix}datatypes as datatypes
@@ -738,7 +745,6 @@ def CreateFromDOM (node):
             outf.write(generator(td, **generator_kw))
     
         outf.write(''.join(PostscriptItems))
-                             
         return outf.getvalue()
     
     except Exception, e:
