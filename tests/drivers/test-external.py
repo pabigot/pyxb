@@ -8,22 +8,24 @@ import imp
 import os.path
 schema_path = '%s/../schemas' % (os.path.dirname(__file__),)
 
-# First, get and build a module that has the shared types in it.
-code = pywxsb.binding.generate.GeneratePython(schema_file=schema_path + '/shared-types.xsd')
-rv = compile(code, 'shared-types', 'exec')
-
+# Create a module into which we'll stick the shared types bindings.
+# Put it into the sys modules so the import directive in subsequent
+# code is resolved.
 st = imp.new_module('st')
-exec code in st.__dict__
 sys.modules['st'] = st
 
+# Now get the code for the shared types bindings, and evaluate it
+# within the new module.
+code = pywxsb.binding.generate.GeneratePython(schema_file=schema_path + '/shared-types.xsd')
+rv = compile(code, 'shared-types', 'exec')
+exec code in st.__dict__
+
+# Set the path by which we expect to reference the module
 stns = pywxsb.Namespace.NamespaceForURI('URN:shared-types')
 stns.setModulePath('st')
 
-# Now get and build a module that refers to that module.  (Comment out
-# the import for the shared one; it's already present.)
+# Now get and build a module that refers to that module.
 code = pywxsb.binding.generate.GeneratePython(schema_file=schema_path + '/test-external.xsd')
-code.replace('import st', '#import st')
-#print code
 rv = compile(code, 'test-external', 'exec')
 eval(rv)
 
