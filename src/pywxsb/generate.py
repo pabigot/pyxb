@@ -1,11 +1,11 @@
-import PyWXSB.XMLSchema as xs
+import pywxsb.xmlschema as xs
 import StringIO
 import datetime
 
-from PyWXSB.exceptions_ import *
-import utility
-import templates
-import bindings
+from pywxsb.exceptions_ import *
+import pywxsb.utils.utility as utility
+import pywxsb.utils.templates as templates
+import pywxsb.binding.basis as bindings
 import Namespace
 
 import types
@@ -680,7 +680,7 @@ def GeneratePython (input, **kw):
         emit_order = wxs.orderedComponents()
         outf = StringIO.StringIO()
     
-        import_prefix = 'PyWXSB.XMLSchema.'
+        import_prefix = 'pywxsb.xmlschema.'
         if wxs.getTargetNamespace() == Namespace.XMLSchema:
             import_prefix = ''
 
@@ -699,7 +699,7 @@ def GeneratePython (input, **kw):
 # Generated %{date} by PyWXSB version %{version}
 import %{import_prefix}facets as facets
 import %{import_prefix}datatypes as datatypes
-import PyWXSB.bindings as bindings
+import pywxsb.binding.basis as bindings
 from xml.dom import minidom
 from xml.dom import Node
 

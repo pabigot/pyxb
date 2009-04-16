@@ -3,7 +3,6 @@ bindings inherit, and that describe the content models of those
 schema."""
 
 from pywxsb.exceptions_ import *
-import pywxsb.xmlschema.datatypes as xs
 import xml.dom as dom
 from xml.dom import minidom
 import pywxsb.utils.domutils as domutils
@@ -698,6 +697,7 @@ class PyWXSB_CTD_simple (PyWXSB_complexTypeDefinition):
         self.__content = value
 
     def __init__ (self, *args, **kw):
+        import pywxsb.xmlschema.datatypes as xs
         assert issubclass(self._TypeDefinition, xs.datatypes._PST_mixin)
         super(PyWXSB_CTD_simple, self).__init__(**kw)
         self.__setContent(self._TypeDefinition.Factory(*args, **kw))

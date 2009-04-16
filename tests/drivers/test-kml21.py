@@ -1,10 +1,10 @@
-import PyWXSB.generate
+import pywxsb.generate
 
-code = PyWXSB.generate.GeneratePython('../src/standard/schemas/kml21.xsd')
+code = pywxsb.generate.GeneratePython('../src/pywxsb/standard/schemas/kml21.xsd')
 rv = compile(code, 'test', 'exec')
 eval(rv)
 
-from PyWXSB.exceptions_ import *
+from pywxsb.exceptions_ import *
 
 import unittest
 
