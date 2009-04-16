@@ -1020,6 +1020,9 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
 
             bi.__abstract = False
 
+            # Refer to it by name
+            bi.setNameInBinding(bi.ncName())
+
             # The ur-type is always resolved
             cls.__UrTypeDefinition = bi
         return cls.__UrTypeDefinition
