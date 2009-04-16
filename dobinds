@@ -1,19 +1,21 @@
 mkdir -p bindings
 rm bindings/*.wxs
+PYTHONPATH=src
+export PYTHONPATH
 
 # Some must be done in order, to handle dependencies
-python storewxs.py schemas/xml.xsd bindings/xml.wxs
+python storewxs.py src/pywxsb/standard/schemas/xml.xsd bindings/xml.wxs
 # NOTE: XSD depends on XML which depends on XSD.  Since we have a workable
 # XSD schema built-in, do not create an external pre-loaded schema for
 # which we'll have to resolve in XML and subsequently in XSD.
-#python storewxs.py schemas/XMLSchema.xsd bindings/xsd.wxs
-python storewxs.py schemas/XMLSchema-hasFacetAndProperty.xsd bindings/xsd-hfp.wxs
-python storewxs.py schemas/wsdl.xsd bindings/wsdl.wxs
-python storewxs.py schemas/xhtml.xsd bindings/xhtml.wxs
+#python storewxs.py src/pywxsb/standard/schemas/XMLSchema.xsd bindings/xsd.wxs
+python storewxs.py src/pywxsb/standard/schemas/XMLSchema-hasFacetAndProperty.xsd bindings/xsd-hfp.wxs
+python storewxs.py src/pywxsb/standard/schemas/wsdl.xsd bindings/wsdl.wxs
+python storewxs.py src/pywxsb/standard/schemas/xhtml.xsd bindings/xhtml.wxs
 
 # Process anything remaining
-python storewxs.py schemas/kml21.xsd bindings/kml21.wxs
-python storewxs.py schemas/xmldsig-core-schema.xsd bindings/xmldsig.wxs
-python storewxs.py schemas/xenc-schema.xsd bindings/xenc.wxs
+python storewxs.py src/pywxsb/standard/schemas/kml21.xsd bindings/kml21.wxs
+python storewxs.py src/pywxsb/standard/schemas/xmldsig-core-schema.xsd bindings/xmldsig.wxs
+python storewxs.py src/pywxsb/standard/schemas/xenc-schema.xsd bindings/xenc.wxs
 
-python storewxs.py schemas/saml-schema-assertion-2.0.xsd bindings/saml-assert.wxs
+python storewxs.py src/pywxsb/standard/schemas/saml-schema-assertion-2.0.xsd bindings/saml-assert.wxs

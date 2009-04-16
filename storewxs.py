@@ -1,4 +1,5 @@
-import pywxsb.xmlschema as xs
+import pywxsb.xmlschema
+import pywxsb.generate
 
 import sys
 import traceback
