@@ -97,20 +97,20 @@ class ReferenceWildcard (ReferenceLiteral):
         template_map['Wildcard'] = 'pywxsb.binding.content.Wildcard'
         if (xs.structures.Wildcard.NC_any == wildcard.namespaceConstraint()):
             template_map['nc'] = templates.replaceInText('%{Wildcard}.NC_any', **template_map)
-        elif isinstance(wildcard.namespaceConstraint(), set):
+        elif isinstance(wildcard.namespaceConstraint(), (set, frozenset)):
             namespaces = []
-            for ns in wildcard.namespaceConstrant():
+            for ns in wildcard.namespaceConstraint():
                 if ns is None:
-                    namespace.append(None)
+                    namespaces.append(None)
                 else:
-                    namespace.append(ns.uri())
+                    namespaces.append(ns.uri())
             template_map['nc'] = 'set(%s)' % (",".join( [ repr(_ns) for _ns in namespaces ]))
         else:
             assert isinstance(wildcard.namespaceConstraint(), tuple)
-            ns = wildcard.namespaceConstrant()[1]
+            ns = wildcard.namespaceConstraint()[1]
             if ns is not None:
                 ns = ns.uri()
-            template_map['nc'] = templates.replaceInText('(%{Wildcard}.NC_not, %s)' % (repr(ns),), **template_map)
+            template_map['nc'] = templates.replaceInText('(%{Wildcard}.NC_not, %{namespace})', namespace=repr(ns), **template_map)
         template_map['pc'] = wildcard.processContents()
         self.setLiteral(templates.replaceInText('%{Wildcard}(process_contents=%{Wildcard}.PC_%{pc}, namespace_constraint=%{nc})', **template_map))
 
@@ -363,7 +363,9 @@ def GenerateSTD (std, **kw):
         
     template_map = { }
     template_map['std'] = pythonLiteral(std, **kw)
-    template_map['superclasses'] = ', '.join(parent_classes)
+    template_map['superclasses'] = ''
+    if 0 < len(parent_classes):
+        template_map['superclasses'] = ', '.join(parent_classes)
     template_map['name'] = pythonLiteral(std.ncName(), **kw)
 
     if xs.structures.SimpleTypeDefinition.VARIETY_absent == std.variety():
@@ -382,6 +384,7 @@ class %{std} (%{superclasses}):
     elif xs.structures.SimpleTypeDefinition.VARIETY_list == std.variety():
         template = '''
 # List SimpleTypeDefinition
+# superclasses %{superclasses}
 class %{std} (pywxsb.binding.basis.STD_list):
     """%{description}"""
 
@@ -396,6 +399,7 @@ class %{std} (pywxsb.binding.basis.STD_list):
     elif xs.structures.SimpleTypeDefinition.VARIETY_union == std.variety():
         template = '''
 # Union SimpleTypeDefinition
+# superclasses %{superclasses}
 class %{std} (pywxsb.binding.basis.STD_union):
     """%{description}"""
 
@@ -475,6 +479,8 @@ class %{ctd} (pywxsb.binding.basis.CTD_element):
     class_unique = set()
 
     definitions = []
+
+    definitions.append('# Base type is %{base_type}')
 
     # Deconflict elements first, attributes are lower priority.
     # Expectation is that all elements that have the same tag in the

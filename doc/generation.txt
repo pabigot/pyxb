@@ -1,14 +1,48 @@
 This document describes the mapping between XML Schema components and Python
-constructs as used in the default generation module.
+constructs as used in the default binding generation module.
+
+Namespace Issues
+================
+
+In XML schema, the namespaces for element declarations, type definitions,
+and attribute definitions are all distinct.  Python uses the same namespace
+for everything.  So, if you have a schema that defines a simple type
+"color", it can also have a complex type "color" with a child element named
+"color" that has an attribute "color" with type "color".  Since the natural
+representation of elements inside complex types is also by their schema
+name, the chances of conflict are high.
+
+PyWXSB resolves this by ensuring every identifiable object has a unique
+identifier.  Identifiers are made unique by appending underscores, with a
+sequence number if necessary.  See pywxsb.utils.utility.PrepareIdentifier
+for details.
+
+In addition to name conflicts directly in the schema, conflicts may also
+result from Python keywords and public field or method names in the binding
+classes.  The pywxsb.utils.utility._DeconflictSymbols_mixin is used to
+refine the set of type-specific public names.  If you customize a generated
+binding class by extending from it, you must specific your own class
+variable _ReservedSymbols with a value that is the union of your symbols and
+those of the superclass(es).
+
+Identifiers are deconflicted in favor of higher items on this list:
+* Python keywords
+* Public class identifiers
+* Element tags
+* Complex or simple type definition tags
+* Enumeration tags
+* Attribute tags
+although, of course, enumeration and attribute tags cannot conflict because
+they occur in different component types.
 
 Pythonic XML
 ============
 
 How XML concepts should be represented in Python is a matter of taste.  For
 a complex type, I expect to see its member elements as class members.  I
-also expect attributes as class members.  As noted in Namespace Issues
-below, this can create ambiguities and errors since XML views these as
-different namespaces.
+also expect attributes as class members.  As noted in Namespace Issues, this
+can create ambiguities and errors since XML views these as different
+namespaces.
 
 Personal Python style also comes into play: some might want member variables
 to be inspected and mutated only through accessor methods.  The generation
@@ -17,19 +51,25 @@ InterfaceGenerator instance.  This generator defines the mapping from the
 XML name to the internal class variable name, and provides an opportunity to
 define inspector and mutator methods.
 
-name : component -> python identifier
-inspect : component -> python identifier or method invocation
-mutate : component + python expression -> python statement
+Simple Types
+------------
 
-Complex Type Field Representation
----------------------------------
+Simple types are classes which ultimately descend from a Python class, often
+a built-in.  The binding classes incorporate the facets which constrain
+the value space for the simple type.
+
+The built-in datatypes described in XMLSchema are provided by the
+infrastructure in pywxsb.binding.datatypes (or pywxsb.xmlschema.datatypes).
+
+Complex Types
+-------------
 
 The binding corresponding to a complex type provides access to XML
-attributes through inspector and mutator functions, and to nested elements
-through Python value attributes.  The names of the Python value attributes
-are derived from the corresponding names for elements that can appear within
-the schema, but may be modified to be valid Python identifiers that do not
-conflict with infrastructure attributes.
+attributes and child elements through inspector and mutator functions.  The
+names of the Python value attributes are derived from the corresponding
+names for elements that can appear within the schema, but may be modified to
+be valid Python identifiers that do not conflict with infrastructure
+attributes.
 
 Each field name is paired with the XML tag from which its value is obtained.
 Furthermore, the field is fixed to be either a single value or a collection,
@@ -40,16 +80,41 @@ valid complex type instance.  The value of such a field is either None
 Fields that hold sub-elements that might have multiple instances are
 represented as lists.
 
-Namespace Issues
-================
 
-In XML schema, the namespaces for element declarations, type definitions,
-and attribute definitions are all distinct.  Python uses the same namespace
-for everything.  So, if you have a schema that defines a simple type
-"color", you can then have an element named "color" that has an attribute
-"color" with type "color".  Since the natural representation of elements
-inside complex types is also by their schema name, the chances of conflict
-are high.
+
+Attributes of Complex Types
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+An attribute of a complex type is represented as an instance of the
+content.AttributeUse class, and is stored as a private instance variable in
+the class used for its owning CTD.  The code generator provides inspector
+and mutator methods; the mutator method will validate the new value against
+the attribute type.
+
+A complex type definition that supports attribute wildcards does so by
+overriding the base class _AttributeWildcard field with an instance of the
+content.Wildcard class.  Absence of such an override means that unrecognized
+attributes appearing in a DOM node will result in an
+UnrecognizedAttributeError exception.  If wildcard attributes are allowed,
+they can be accessed through the instance method wildcardAttributes(), which
+returns a map from attribute tags to the string value of the attribute from
+the DOM model.
+
+When creating values from a DOM instance, the absence of an attribute with
+use=requires in the schema will result in a MissingAttributeError.
+Instances created through the class constructor are not checked for missing
+attributes.  @todo This may change.
+
+Attempts to read or set attributes with use=prohibited in the schema will
+result in a ProhibitedAttributeError.  This validation is performed whether
+the instance is created using CreateFromDOM or the class constructor.
+
+Each class that allows attributes contains a class variable _AttributeMap
+which maps from the **prefix-qualified** attribute name to the corresponding
+AttributeUse instances.
+
+Elements In Complex Types
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Representation of Schema Components
 ===================================
@@ -63,28 +128,15 @@ not themselves represented, but provide the name for an Attribute Use.
 Attribute Use
 -------------
 
-An attribute use is represented as an instance variable with accessor
-methods in the class used for its owning CTD.  Each class that allows
-attributes contains a class variable _AttributeUses which is a list of
-instances that provide the name, Python class, and use restrictions for each
-attribute.  In the case of classes defined by restriction, the variable
-corresponding to the accessor remains in the parent class, but a new
-instance is added to the local _AttributeUses list, and new accessors may be
-defined to implement an updated use property.
-
-class _AttributeUse:
-  name = ncName
-  pythonClass = SimpleTypeDefinitionClass (None for inherited uses)
-  inheritedUse = _AttributeUse (parent class use reference)
-  use = USE_prohibited | USE_required (0 = USE_optional)
+See `Complex Type Attributes`_.
 
 Attribute Groups
 ----------------
 
-An attribute group is represented as a mix-in class that contains a set of
-one or more attribute uses, structured in the same way as for
-element-content complex type definitions.  The mix-in class inherits from
-PyWXSB.binding._AG_mixin.
+Attribute groups do not appear in the bindings.  The set of attribute uses,
+and potential wildcards, that they enable are incorporated into the `Complex
+Type Attributes`_ infrastructure.
+
 
 Simple Type Definitions
 -----------------------
@@ -172,13 +224,16 @@ Complex Type Definitions
 ------------------------
 
 Complex type definitions are represented by Python classes.
-bindings.PyWXSB_complexTypeDefinition is a base class for all CTDs.  This in
-turn is subclassed for each of the four content types: empty, simple, mixed,
-and element.  The content fields of a CTD are dependent on its content type.
+pywxsb.binding.basis.complexTypeDefinition is a base class for all CTDs.
+This in turn is subclassed for each of the four content types: empty,
+simple, mixed, and element.  The content fields of a CTD are dependent on
+its content type.
 
-The base PyWXSB_complexTypeDefinition class provides an InitializeFromDOM
-method that walks the class hierarchy to assign attribute values, and the
-_Particle hierarchy to extract element values.
+The base complexTypeDefinition class provides a CreateFromDOM method that is
+like Factory but also sets the instance values.  Alternatively, the python
+field names can be used as keywords to the class constructor.  DOM values
+are validated against the content model; keyword initializers are only
+validated against the field type.
 
 CTDs that are defined by extension apply thusly:
 * Any attribute or element that matches a corresponding attribute or element

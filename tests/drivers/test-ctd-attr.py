@@ -86,10 +86,6 @@ class TestCTD (unittest.TestCase):
         doc = minidom.parseString(xml)
         self.assertRaises(UnrecognizedAttributeError, emptyWithAttr.CreateFromDOM, doc.documentElement)
 
-    def testStructureElement (self):
-        #self.assertEqual('test', CreateFromDocument('<structure>test</structure>'))
-        pass
-
 if __name__ == '__main__':
     unittest.main()
     
