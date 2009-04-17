@@ -772,6 +772,7 @@ class _CTD_content_mixin (object):
         self.__isMixed = is_mixed
         node_list = node.childNodes[:]
         self._Content.extendFromDOM(self, node_list)
+        node_list = self._stripMixedContent(node_list)
         if 0 < len(node_list):
             raise ExtraContentError('Extra content starting with %s' % (node_list[0],))
         return self
