@@ -506,7 +506,6 @@ class %{ctd} (%{superclasses}):
     # name.
     element_name_map = { }
     element_uses = []
-    datatype_map = { }
     datatype_items = []
 
     # Also retain in the ctd the information about the element
@@ -521,8 +520,8 @@ class %{ctd} (%{superclasses}):
         # plurality data matches that of a parent class.  Ensure names
         # associated with those superclass instances are marked as
         # reserved.
-        for (name, (is_plural, types)) in plurality_data.items():
-            if inherits_from_base:
+        if inherits_from_base:
+            for (name, (is_plural, types)) in plurality_data.items():
                 superclass_info = base_type.__elementFields.get(name, None)
                 if superclass_info is not None:
                     ( superclass_is_plural, superclass_types, superclass_ef_map ) = superclass_info
@@ -534,7 +533,7 @@ class %{ctd} (%{superclasses}):
                         class_unique.add(superclass_ef_map['field_mutator'])
                         class_unique.add(superclass_ef_map['field_name'])
                         class_unique.add(superclass_ef_map['value_field_name'])
-                        ctd.__elementFields[name] = ( superclass_is_plural, superclass_types, superclass_ef_map )
+                        ctd.__elementFields[name] = superclass_info
                     else:
                         definitions.append(templates.replaceInText('# Element %{field_tag} will override parent %{superclass} field %{python_field_name} due to content model differences', superclasses=template_map['superclasses'], **superclass_ef_map))
 
@@ -584,7 +583,34 @@ class %{ctd} (%{superclasses}):
     # Create definitions for all attributes.
     attribute_name_map = { }
     attribute_uses = []
-    for au in ctd.attributeUses():
+    ctd.__attributeFields = { }
+    if inherits_from_base:
+        element_attribute_uses = set()
+        for au in ctd.attributeUses():
+            inherit_attribute = False
+            ad = au.attributeDeclaration()
+            name = ad.ncName()
+            superclass_info = base_type.__attributeFields.get(name, None)
+            if superclass_info is not None:
+                this_config = ( au.required(), au.prohibited(), au.attributeDeclaration() )
+                ( superclass_config, superclass_au_map ) = superclass_info
+                if this_config == superclass_config:
+                    definitions.append(templates.replaceInText('# Attribute %{attr_tag} inherits from parent %{superclasses} as %{python_attr_name}', superclasses=template_map['superclasses'], **superclass_au_map))
+                    class_unique.add(superclass_au_map['python_attr_name'])
+                    class_unique.add(superclass_au_map['attr_inspector'])
+                    class_unique.add(superclass_au_map['attr_mutator'])
+                    class_unique.add(superclass_au_map['attr_name'])
+                    class_unique.add(superclass_au_map['value_attr_name'])
+                    ctd.__attributeFields[name] = superclass_info
+                    inherit_attribute = True
+                else:
+                    definitions.append(templates.replaceInText('# Attribute %{attr_tag} will override parent %{superclass} field %{python_field_name} due to use or declaration differences', superclasses=template_map['superclasses'], **superclass_au_map))
+            if not inherit_attribute:
+                element_attribute_uses.add(au)
+    else:
+        element_attribute_uses = set(ctd.attributeUses())
+
+    for au in element_attribute_uses:
         ad = au.attributeDeclaration()
         au_map = { }
         attr_name = ad.ncName()
@@ -615,6 +641,7 @@ class %{ctd} (%{superclasses}):
         else:
             aux_init.insert(0, '')
             au_map['aux_init'] = ', '.join(aux_init)
+        ctd.__attributeFields[attr_name] = ( ( au.required(), au.prohibited(), au.attributeDeclaration() ), au_map )
         attribute_uses.append(templates.replaceInText('%{attr_tag} : %{attr_name}', **au_map))
         definitions.append(templates.replaceInText('''
     # Attribute %{attr_tag} uses Python identifier %{python_attr_name}
@@ -631,23 +658,30 @@ class %{ctd} (%{superclasses}):
         definitions.append('_AttributeWildcard = %s' % (pythonLiteral(ctd.attributeWildcard(), **kw),))
     if ctd.hasWildcardElement():
         definitions.append('_HasWildcardElement = True')
+    template_map['attribute_uses'] = ",\n        ".join(attribute_uses)
     template_map['element_uses'] = ",\n        ".join(element_uses)
     if inherits_from_base:
-        element_map_decl = '''
+        map_decl = '''
     _ElementMap = %{superclasses}._ElementMap.copy()
     _ElementMap.update({
         %{element_uses}
+    })
+    _AttributeMap = %{superclasses}._AttributeMap.copy()
+    _AttributeMap.update({
+        %{attribute_uses}
     })'''
     else:
-        element_map_decl = '''
+        map_decl = '''
     _ElementMap = {
         %{element_uses}
+    }
+    _AttributeMap = {
+        %{attribute_uses}
     }'''
 
     template = ''.join([prolog_template,
                "    ", "\n    ".join(definitions), "\n",
-               "    _AttributeMap = {\n        ", ",\n        ".join(attribute_uses), "\n    }\n",
-               element_map_decl, "\n\n" ])
+               map_decl, "\n\n" ])
 
     return templates.replaceInText(template, **template_map)
 
