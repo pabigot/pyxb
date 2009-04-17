@@ -540,6 +540,52 @@ class _AttributeWildcard_mixin (object):
         self.__attributeWildcard = attribute_wildcard
         return self
 
+    def _attributeRelevantChildren (self, wxs, node_list):
+        """Return the nodes that are relevant for attribute processing.
+
+        The input is a schema, and a sequence of nodes found in the
+        document that defines the schema.
+
+        A successful return value is a 3-element tuple.  The first
+        element is a list of DOM Nodes with nodeName attribute, the
+        second a list of AttributeGroupDefinition instances, and the
+        third a single DOM Node with nodeName anyAttribute.  The third
+        element will be None if there is no anyAttribute child of the
+        given node.
+
+        The return value will be None if any of the children involve a
+        reference to an unresolved component."""
+        
+        xs_attribute = wxs.xsQualifiedNames('attribute')
+        attributes = []
+        xs_attributeGroup = wxs.xsQualifiedNames('attributeGroup')
+        attribute_groups = []
+        xs_anyAttribute = wxs.xsQualifiedNames('anyAttribute')
+        any_attribute = None
+        # Handle clauses 1 and 2 (common between simple and complex types)
+        for node in node_list:
+            if Node.ELEMENT_NODE != node.nodeType:
+                continue
+            if node.nodeName in xs_attribute:
+                # Note: This attribute use instance may have use=prohibited
+                attributes.append(node)
+            elif node.nodeName in xs_attributeGroup:
+                # This must be an attributeGroupRef
+                ref_attr = NodeAttribute(node, wxs, 'ref')
+                if ref_attr is None:
+                    raise SchemaValidationError('Require ref attribute on internal attributeGroup elements')
+                agd = wxs.lookupAttributeGroup(ref_attr)
+                if not agd.isResolved():
+                    return None
+                attribute_groups.append(agd)
+            elif node.nodeName in xs_anyAttribute:
+                if any_attribute is not None:
+                    raise SchemaValidationError('Multiple anyAttribute children are not allowed')
+                any_attribute = node
+                
+        return (attributes, attribute_groups, any_attribute)
+
+
 class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Resolvable_mixin, _Annotated_mixin, _ValueConstraint_mixin):
     """An XMLSchema Attribute Declaration component.
 
@@ -1091,29 +1137,22 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
 
     # Handle attributeUses, attributeWildcard, contentType
     def __completeProcessing (self, wxs, definition_node_list, method, content_style):
+        rv = self._attributeRelevantChildren(wxs, definition_node_list)
+        if rv is None:
+            wxs._queueForResolution(self)
+            print 'Holding off CTD %s resolution due to unresolved attribute group' % (self.name(),)
+            return self
+
+        (attributes, attribute_groups, any_attribute) = rv
+        
+        # Handle clauses 1 and 2 (common between simple and complex types)
         uses_c1 = set()
         uses_c2 = set()
         uses_c3 = set()
-        xs_attribute = wxs.xsQualifiedNames('attribute')
-        xs_attributeGroup = wxs.xsQualifiedNames('attributeGroup')
-        # Handle clauses 1 and 2 (common between simple and complex types)
-        for node in definition_node_list:
-            if Node.ELEMENT_NODE != node.nodeType:
-                continue
-            if node.nodeName in xs_attribute:
-                # Note: This attribute use instance may have use=prohibited
-                uses_c1.add(AttributeUse.CreateFromDOM(wxs, node, owner=self))
-            elif node.nodeName in xs_attributeGroup:
-                # This must be an attributeGroupRef
-                ref_attr =NodeAttribute(node, wxs, 'ref')
-                if ref_attr is None:
-                    raise SchemaValidationError('Require ref attribute on internal attributeGroup elements')
-                agd = wxs.lookupAttributeGroup(ref_attr)
-                if not agd.isResolved():
-                    print 'Holding off resolution of attribute gruop %s due to dependence on unresolved %s' % (self.name(), agd.name())
-                    wxs._queueForResolution(self)
-                    return self
-                uses_c2.update(agd.attributeUses())
+        for node in attributes:
+            uses_c1.add(AttributeUse.CreateFromDOM(wxs, node, owner=self))
+        for agd in attribute_groups:
+            uses_c2.update(agd.attributeUses())
 
         # Handle clause 3.  Note the slight difference in description
         # between smple and complex content is just that the complex
