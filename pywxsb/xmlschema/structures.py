@@ -518,6 +518,28 @@ class _PluralityData (types.ListType):
         super(_PluralityData, self).__init__()
         self.__setFromComponent(component)
 
+class _AttributeWildcard_mixin (object):
+    """Support for components that accept attribute wildcards.
+
+    That is AttributeGroupDefinition and ComplexType.  The
+    calculations of the appropriate wildcard are sufficiently complex
+    that they need to be abstracted out to a mix-in class."""
+
+    # Optional wildcard that constrains attributes
+    __attributeWildcard = None
+
+    def attributeWildcard (self):
+        """Return the Wildcard component associated with attributes of
+        this instance, or None if attribute wildcards are not present
+        in the instance."""
+        return self.__attributeWildcard
+
+    def _setAttributeWildcard (self, attribute_wildcard):
+        """Set the attribute wildcard property for this instance."""
+        assert(isinstance(attribute_wildcard, Wildcard))
+        self.__attributeWildcard = attribute_wildcard
+        return self
+
 class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Resolvable_mixin, _Annotated_mixin, _ValueConstraint_mixin):
     """An XMLSchema Attribute Declaration component.
 
@@ -888,7 +910,7 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Resolv
         return 'ED[%s:%s]' % (self.name(), self.typeDefinition().name())
 
 
-class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Resolvable_mixin, _Annotated_mixin):
+class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Resolvable_mixin, _Annotated_mixin, _AttributeWildcard_mixin):
     # The type resolved from the base attribute.
     __baseTypeDefinition = None
     def baseTypeDefinition (self):
@@ -917,9 +939,6 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
     def attributeUses (self):
         """A frozenset() of AttributeUse instances."""
         return self.__attributeUses
-
-    # Optional wildcard that constrains attributes
-    __attributeWildcard = None
 
     CT_EMPTY = 0                #<<< No content
     CT_SIMPLE = 1               #<<< Simple (character) content
@@ -1007,7 +1026,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
             bi.__baseTypeDefinition = bi
 
             # No constraints on attributes
-            bi.__attributeWildcard = Wildcard(namespace_constraint=Wildcard.NC_any, process_contents=Wildcard.PC_lax, schema=_SchemaComponent_mixin._SCHEMA_None)
+            bi._setAttributeWildcard(Wildcard(namespace_constraint=Wildcard.NC_any, process_contents=Wildcard.PC_lax, schema=_SchemaComponent_mixin._SCHEMA_None))
 
             # Content is mixed, with elements completely unconstrained.
             w = Wildcard(namespace_constraint=Wildcard.NC_any, process_contents=Wildcard.PC_lax, schema=_SchemaComponent_mixin._SCHEMA_None)
@@ -1047,8 +1066,8 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
         rv.add(self.__baseTypeDefinition)
         assert self.__attributeUses is not None
         rv.update(self.__attributeUses)
-        if self.__attributeWildcard is not None:
-            rv.add(self.__attributeWildcard)
+        if self.attributeWildcard() is not None:
+            rv.add(self.attributeWildcard())
         if self.CT_EMPTY != self.contentType():
             rv.add(self.contentType()[1])
         return frozenset(rv)
@@ -1354,12 +1373,9 @@ class _UrTypeDefinition (ComplexTypeDefinition, _Singleton_mixin):
         return frozenset()
 
 
-class AttributeGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Resolvable_mixin, _Annotated_mixin):
+class AttributeGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Resolvable_mixin, _Annotated_mixin, _AttributeWildcard_mixin):
     # A frozenset of AttributeUse instances
     __attributeUses = None
-
-    # Optional wildcard that constrains attributes
-    __attributeWildcard = None
 
     def _dependentComponents_vx (self):
         """Implement base class method.
@@ -1368,8 +1384,8 @@ class AttributeGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _
         any associated wildcard.
         """
         rv = set(self.__attributeUses)
-        if self.__attributeWildcard is not None:
-            rv.add(self.__attributeWildcard)
+        if self.attributeWildcard() is not None:
+            rv.add(self.attributeWildcard())
         return frozenset(rv)
 
     @classmethod
