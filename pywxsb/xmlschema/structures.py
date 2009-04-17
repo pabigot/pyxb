@@ -1149,8 +1149,8 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
         uses_c1 = set()
         uses_c2 = set()
         uses_c3 = set()
-        for node in attributes:
-            uses_c1.add(AttributeUse.CreateFromDOM(wxs, node, owner=self))
+        for cn in attributes:
+            uses_c1.add(AttributeUse.CreateFromDOM(wxs, cn, owner=self))
         for agd in attribute_groups:
             uses_c2.update(agd.attributeUses())
 
@@ -1447,27 +1447,25 @@ class AttributeGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _
         if self.__isResolved:
             return self
         node = self.__domNode
-        #print 'Resolving AG %s with %d children' % (self.name(), len(node.childNodes))
-        uses = set()
+
+        # Attribute group definitions must not be references
         ref_attr = NodeAttribute(node, wxs, 'ref')
         if ref_attr is not None:
             raise SchemaValidationError('Attribute reference at top level')
-        xs_attribute = wxs.xsQualifiedNames('attribute')
-        xs_attributeGroup = wxs.xsQualifiedNames('attributeGroup')
-        for cn in node.childNodes:
-            if Node.ELEMENT_NODE != cn.nodeType:
-                continue
-            if cn.nodeName in xs_attribute:
-                uses.add(AttributeUse.CreateFromDOM(wxs, cn, owner=self))
-            elif cn.nodeName in xs_attributeGroup:
-                ref_attr = NodeAttribute(cn, wxs, 'ref')
-                if ref_attr is None:
-                    raise SchemaValidationError('Non-reference attribute group')
-                agd = wxs.lookupAttributeGroup(ref_attr)
-                if not agd.isResolved():
-                    wxs._queueForResolution(self)
-                    return self
-                uses = uses.union(agd.attributeUses())
+
+        rv = self._attributeRelevantChildren(wxs, node.childNodes)
+        if rv is None:
+            wxs._queueForResolution(self)
+            print 'Holding off CTD %s resolution due to unresolved attribute group' % (self.name(),)
+            return self
+
+        (attributes, attribute_groups, any_attribute) = rv
+        uses = set()
+        for cn in attributes:
+            uses.add(AttributeUse.CreateFromDOM(wxs, cn, owner=self))
+        for agd in attribute_groups:
+            uses = uses.union(agd.attributeUses())
+
         self.__attributeUses = frozenset(uses)
         self.__isResolved = True
         self.__domNode = None
