@@ -430,50 +430,60 @@ def GenerateCTD (ctd, **kw):
     prolog_template = None
     template_map = { }
     template_map['ctd'] = pythonLiteral(ctd, **kw)
+    base_type = ctd.baseTypeDefinition()
+    template_map['base_type'] = pythonLiteral(base_type, **kw)
 
     need_content = False
+    content_basis = None
     if (ctd.CT_EMPTY == ctd.contentType()):
+        content_type = 'empty'
         ctd_parent_class = pywxsb.binding.basis.CTD_empty
         prolog_template = '''
 # Complex type %{ctd} with empty content
-class %{ctd} (pywxsb.binding.basis.CTD_empty):
+class %{ctd} (%{superclasses}):
 '''
         pass
     elif (ctd.CT_SIMPLE == ctd.contentType()[0]):
+        content_type = 'simple'
         ctd_parent_class = pywxsb.binding.basis.CTD_simple
-        content_type = ctd.contentType()[1]
+        content_basis = ctd.contentType()[1]
         prolog_template = '''
 # Complex type %{ctd} with simple content type %{basetype}
-class %{ctd} (pywxsb.binding.basis.CTD_simple):
+class %{ctd} (%{superclasses}):
     _TypeDefinition = %{basetype}
 '''
-        template_map['basetype'] = pythonLiteral(content_type, **kw)
+        template_map['basetype'] = pythonLiteral(content_basis, **kw)
     elif (ctd.CT_MIXED == ctd.contentType()[0]):
+        content_type = 'mixed'
         ctd_parent_class = pywxsb.binding.basis.CTD_mixed
-        content_type = ctd.contentType()[1]
-        template_map['particle'] = pythonLiteral(content_type, **kw)
+        content_basis = ctd.contentType()[1]
+        template_map['particle'] = pythonLiteral(content_basis, **kw)
         need_content = True
         prolog_template = '''
 # Complex type %{ctd} with mixed content
-class %{ctd} (pywxsb.binding.basis.CTD_mixed):
+class %{ctd} (%{superclasses}):
 '''
     elif (ctd.CT_ELEMENT_ONLY == ctd.contentType()[0]):
+        content_type = 'element'
         ctd_parent_class = pywxsb.binding.basis.CTD_element
-        content_type = ctd.contentType()[1]
-        template_map['particle'] = pythonLiteral(content_type, **kw)
+        content_basis = ctd.contentType()[1]
+        template_map['particle'] = pythonLiteral(content_basis, **kw)
         need_content = True
         prolog_template = '''
 # Complex type %{ctd} with element-only content
-class %{ctd} (pywxsb.binding.basis.CTD_element):
+class %{ctd} (%{superclasses}):
 '''
+
+    template_map['superclasses'] = pythonLiteral(base_type, **kw)
+    if isinstance(base_type, pywxsb.xmlschema.structures.SimpleTypeDefinition) or base_type.isUrTypeDefinition():
+        template_map['superclasses'] = 'pywxsb.binding.basis.CTD_%s' % (content_type,)
+
     if need_content:
         global PostscriptItems
         PostscriptItems.append(templates.replaceInText('''
 %{ctd}._Content = %{particle}
 ''', **template_map))
         
-
-
     # Support for deconflicting attributes, elements, and reserved symbols
     class_keywords = frozenset(ctd_parent_class._ReservedSymbols)
     class_unique = set()
@@ -492,8 +502,8 @@ class %{ctd} (pywxsb.binding.basis.CTD_element):
     element_uses = []
     datatype_map = { }
     datatype_items = []
-    if isinstance(content_type, xs.structures.Particle):
-        plurality_data = content_type.pluralityData().nameBasedPlurality()
+    if isinstance(content_basis, xs.structures.Particle):
+        plurality_data = content_basis.pluralityData().nameBasedPlurality()
         for (name, (is_plural, types)) in plurality_data.items():
             ef_map = { }
             aux_init = []
