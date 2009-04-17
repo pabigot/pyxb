@@ -33,7 +33,15 @@
 		<xs:attribute name="capitalized" type="xs:boolean" use="required"/>
 		<xs:attribute name="port" type="xs:short" default="5432"/>
 	</xs:complexType>
+		<xs:complexType name="extendedEWA">
+		<xs:complexContent>
+			<xs:restriction base="emptyWithAttr">
+				<xs:attribute name="language" use="prohibited"/>
+			</xs:restriction>
+		</xs:complexContent>
+	</xs:complexType>
 	<xs:element name="emptyWithAttr" type="emptyWithAttr"/>
+	<xs:element name="extendedEWA" type="extendedEWA"/>
 	<xs:attributeGroup id="attrGroupA" name="attrGroupA">
 		<xs:attribute name="groupMember2" type="xs:string" default="gM2"/>
 		<xs:attribute name="groupMember1" type="xs:string" default="gM1"/>
@@ -50,4 +58,5 @@
 		<xs:attributeGroup ref="attrGroupB"/>
 	</xs:complexType>
 	<xs:element name="emptyWithAttrGroups" type="emptyWithAttrGroups"/>
+	
 </xs:schema>

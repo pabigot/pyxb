@@ -70,6 +70,21 @@ class TestCTD (unittest.TestCase):
         self.assertEqual('<emptyWithAttr language="french"/>', instance2.toDOM().toxml())
         self.assertNotEqual(instance.language(), instance2.language())
 
+        # Verify the use.  Note reference through CTD not element.
+        au = emptyWithAttr_._AttributeMap['language']
+        self.assertFalse(au.required())
+        self.assertFalse(au.prohibited())
+        au = emptyWithAttr_._AttributeMap['capitalized']
+        self.assertTrue(au.required())
+        self.assertFalse(au.prohibited())
+
+    def testExtendedEWA (self):
+        # Verify the use.  Note reference through CTD not element.
+        self.assertNotEqual(extendedEWA_._AttributeMap['language'], emptyWithAttr_._AttributeMap['language'])
+        au = extendedEWA_._AttributeMap['language']
+        self.assertFalse(au.required())
+        self.assertTrue(au.prohibited())
+        self.assertEqual(extendedEWA_._AttributeMap['capitalized'], emptyWithAttr_._AttributeMap['capitalized'])
 
     def testEmptyWithAttrGroups (self):
         xml = '<emptyWithAttrGroups bMember1="xxx"/>'

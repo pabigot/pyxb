@@ -729,6 +729,20 @@ class AttributeUse (_SchemaComponent_mixin, _Resolvable_mixin, _ValueConstraint_
         """
         return frozenset([self.__attributeDeclaration])
 
+    def matchingQNameMembers (self, au_set):
+        """Return the subset of au_set for which the use names match this use."""
+        if not self.isResolved():
+            return None
+        this_ad = self.attributeDeclaration()
+        rv = set()
+        for au in au_set:
+            if not au.isResolved():
+                return None
+            that_ad = au.attributeDeclaration()
+            if this_ad.isNameEquivalent(that_ad):
+                rv.add(au)
+        return rv
+
     @classmethod
     def CreateFromDOM (cls, wxs, node, owner=None):
         assert node.nodeName in wxs.xsQualifiedNames('attribute')
@@ -752,6 +766,7 @@ class AttributeUse (_SchemaComponent_mixin, _Resolvable_mixin, _ValueConstraint_
             # separately
             rv.__attributeDeclaration = AttributeDeclaration.CreateFromDOM(wxs, node, owner=rv)
         else:
+            aur = NodeAttribute(node, wxs, 'ref')
             rv.__domNode = node
             wxs._queueForResolution(rv)
         return rv
@@ -1195,15 +1210,19 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
         # don't bother to check content_style.
         if isinstance(self.__baseTypeDefinition, ComplexTypeDefinition):
             uses_c3 = uses_c3.union(self.__baseTypeDefinition.__attributeUses)
-            if self.DM_restriction == self.__derivationMethod:
+            if self.DM_restriction == method:
                 # Exclude attributes per clause 3.  Note that this
                 # process handles both 3.1 and 3.2, since we have
                 # not yet filtered uses_c1 for prohibited attributes
                 uses_c12 = uses_c1.union(uses_c2)
                 for au in uses_c12:
-                    uses_c3 = uses_c3.difference(au.matchingQNameMembers(uses_c3))
-        uses = set([ _au for _au in uses_c1 if not _au.prohibited() ])
-        self.__attributeUses = frozenset(uses.union(uses_c2).union(uses_c3))
+                    matching_uses = au.matchingQNameMembers(uses_c3)
+                    if matching_uses is None:
+                        wxs._queueForResolution(self)
+                        print 'Holding off CTD %s resolution to check for attribute restrictions' % (self.name(),)
+                        return self
+                    uses_c3 = uses_c3.difference(matching_uses)
+        self.__attributeUses = frozenset(uses_c1.union(uses_c2).union(uses_c3))
 
         # @todo Handle attributeWildcard
         # Clause 1

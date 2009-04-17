@@ -584,6 +584,7 @@ class %{ctd} (%{superclasses}):
     attribute_name_map = { }
     attribute_uses = []
     ctd.__attributeFields = { }
+
     if inherits_from_base:
         element_attribute_uses = set()
         for au in ctd.attributeUses():

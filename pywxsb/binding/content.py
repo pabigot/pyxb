@@ -34,6 +34,9 @@ class AttributeUse (object):
         """Unicode tag for the attribute in its element"""
         return self.__tag
     
+    def prohibited (self): return self.__prohibited
+    def required (self): return self.__required
+
     def pythonField (self):
         """Tag used within Python code for the attribute"""
         return self.__pythonField
