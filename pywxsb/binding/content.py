@@ -101,6 +101,8 @@ class AttributeUse (object):
         assert new_value is not None
         if not isinstance(new_value, self.__dataType):
             new_value = self.__dataType(new_value)
+        if self.__fixed and (new_value != self.__defaultValue):
+            raise AttributeChangeError('Attempt to change value of fixed attribute %s' % (self.__tag,))
         self.__setValue(ctd_instance, new_value, True)
         return new_value
 

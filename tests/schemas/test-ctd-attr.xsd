@@ -33,6 +33,7 @@
 		<xs:attribute default="irish" name="language" use="optional"/>
 		<xs:attribute name="capitalized" type="xs:boolean" use="required"/>
 		<xs:attribute name="port" type="xs:short" default="5432"/>
+		<xs:attribute name="immutable" type="xs:string" fixed="stone"/>
 		<xs:attribute ref="tlAttr"/>
 	</xs:complexType>
 	<xs:complexType name="restrictedEWA">

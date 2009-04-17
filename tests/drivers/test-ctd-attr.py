@@ -45,13 +45,22 @@ class TestCTD (unittest.TestCase):
         self.assertEqual('test', rv.content())
 
     def testEmptyWithAttr (self):
-        self.assertEqual(4, len(emptyWithAttr._TypeDefinition._AttributeMap))
+        self.assertEqual(5, len(emptyWithAttr._TypeDefinition._AttributeMap))
         self.assertRaises(MissingAttributeError, CreateFromDocument, '<emptyWithAttr/>')
         instance = CreateFromDocument('<emptyWithAttr capitalized="false"/>')
         self.assertEqual('irish', instance.language())
         self.assert_(not instance.capitalized())
         self.assertEqual(5432, instance.port())
         self.assertEqual('top default', instance.tlAttr())
+        self.assertEqual('stone', instance.immutable())
+
+        instance.setTlAttr('new value')
+        self.assertEqual('new value', instance.tlAttr())
+
+        # Can't change immutable attributes
+        self.assertRaises(AttributeChangeError, instance.setImmutable, 'water')
+        self.assertRaises(AttributeChangeError, CreateFromDocument, '<emptyWithAttr capitalized="true" immutable="water"/>')
+
         instance = CreateFromDocument('<emptyWithAttr capitalized="true" language="hebrew"/>')
         self.assertEqual('hebrew', instance.language())
         self.assert_(instance.capitalized())

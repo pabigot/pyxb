@@ -625,14 +625,15 @@ class %{ctd} (%{superclasses}):
         au_map['attr_tag'] = pythonLiteral(attr_name, **kw)
         au_map['attr_type'] = pythonLiteral(ad.typeDefinition(), **kw)
         au_map['constraint_value'] = pythonLiteral(None, **kw)
-        vc = au.valueConstraint()
-        if vc is None:
-            vc = ad.valueConstraint()
+        vc_source = ad
+        if au.valueConstraint() is not None:
+            vc_source = au
         aux_init = []
-        if vc is not None:
-            if au.VC_fixed == vc[0]:
-                aux_init.append('fixed=True')
-            aux_init.append('unicode_default=%s' % (pythonLiteral(vc[0], **kw),))
+        if vc_source.fixed() is not None:
+            aux_init.append('fixed=True')
+            aux_init.append('unicode_default=%s' % (pythonLiteral(vc_source.fixed(), **kw),))
+        elif vc_source.default() is not None:
+            aux_init.append('unicode_default=%s' % (pythonLiteral(vc_source.default(), **kw),))
         if au.required():
             aux_init.append('required=True')
         if au.prohibited():
