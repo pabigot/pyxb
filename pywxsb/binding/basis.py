@@ -741,7 +741,7 @@ class _CTD_content_mixin (object):
     def _addElement (self, element):
         eu = self._ElementMap.get(element._XsdName, None)
         if eu is None:
-            raise LogicError('Element %s is not registered within %s' % (element._XsdName, self._XsdName))
+            raise LogicError('Element %s is not registered within CTD %s' % (element._XsdName, self.__class__.__name__))
         eu.setValue(self, element)
 
     def _addContent (self, child):
