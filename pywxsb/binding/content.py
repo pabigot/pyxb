@@ -310,8 +310,7 @@ class Particle (object):
                 elif isinstance(self.term(), Wildcard):
                     if 0 == len(node_list):
                         raise MissingContentError('Expected wildcard')
-                    ignored = node_list.pop(0)
-                    print 'Ignoring wildcard match %s' % (ignored,)
+                    self.term().validateAndAdd(ctd_instance, node_list.pop(0))
                 else:
                     raise IncompleteImplementationError('Particle.extendFromDOM: No support for term type %s' % (self.term(),))
             except StructuralBadDocumentError, e:
@@ -484,4 +483,19 @@ class Wildcard (object):
     def processContents (self): return self.__processContents
 
     def __init__ (self, *args, **kw):
-        pass
+        # Namespace constraint and process contents are required parameters.
+        self.__namespaceConstraint = kw['namespace_constraint']
+        self.__processContents = kw['process_contents']
+
+    def validateAndAdd (self, ctd_instance, node):
+        """Add the node to the list of wildcard elements in the given
+        CTD instance.
+
+        As a side effect, if the wildcard specification indicates that
+        the node should be validated, this ought to make an attempt to
+        do so.  Currently, it doesn't bother.
+        """
+        # @todo check node against namespace constraint and process contents
+        assert isinstance(ctd_instance, basis.complexTypeDefinition)
+        ctd_instance.wildcardElements().append(node)
+        

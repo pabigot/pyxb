@@ -572,6 +572,8 @@ class %{ctd} (pywxsb.binding.basis.CTD_element):
 
     if ctd.attributeWildcard() is not None:
         definitions.append('_AttributeWildcard = %s' % (pythonLiteral(ctd.attributeWildcard(), **kw),))
+    if ctd.hasWildcardElement():
+        definitions.append('_HasWildcardElement = True')
 
     template = ''.join([prolog_template,
                 "    ", "\n    ".join(definitions), "\n",

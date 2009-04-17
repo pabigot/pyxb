@@ -482,17 +482,55 @@ class complexTypeDefinition (utility._DeconflictSymbols_mixin, object):
 
     # If the type supports wildcard attributes, this describes their
     # constraints.  (If it doesn't, this should remain None.)
+    # Supporting classes should override this value.
     _AttributeWildcard = None
 
     # Map from ncNames in the binding namespace to AttributeUse
     # instances
     _AttributeMap = { }
 
+    # A value that indicates whether the content model for this type
+    # supports wildcard elements.  Supporting classes should override
+    # this value.
+    _HasWildcardElement = False
+
     # Map from ncNames in the binding namespace to ElementUse
     # instances
     _ElementMap = { }
 
+    # Per-instance map from tags to attribute values for wildcard
+    # attributes.  Value is None if the type does not support wildcard
+    # attributes.
+    __wildcardAttributeMap = None
+
+    def wildcardAttributeMap (self):
+        """Obtain access to wildcard attributes.
+
+        The return value is None if this type does not support
+        wildcard attributes.  If wildcard attributes are allowed, the
+        return value is a map from tags to the unicode string value of
+        the corresponding attribute."""
+        return self.__wildcardAttributeMap
+
+    # Per-instance list of DOM nodes interpreted as wildcard elements.
+    # Value is None if the type does not support wildcard elements.
+    __wildcardElements = None
+
+    def wildcardElements (self):
+        """Obtain access to wildcard elements.
+
+        The return value is None if the content model for this type
+        does not support wildcard elements.  If wildcard elements are
+        allowed, the return value is a list of DOM Element nodes
+        corresponding to conformant unrecognized elements, in the
+        order in which they were encountered."""
+        return self.__wildcardElements
+
     def __init__ (self, *args, **kw):
+        if self._AttributeWildcard is not None:
+            self.__wildcardAttributeMap = { }
+        if self._HasWildcardElement:
+            self.__wildcardElements = []
         super(complexTypeDefinition, self).__init__(*args, **kw)
         that = None
         if (0 < len(args)) and isinstance(args[0], self.__class__):
@@ -507,6 +545,7 @@ class complexTypeDefinition (utility._DeconflictSymbols_mixin, object):
             iv = kw.get(fu.pythonField(), iv)
             if iv is not None:
                 fu.setValue(self, iv)
+           
 
     @classmethod
     def Factory (cls, *args, **kw):
@@ -593,7 +632,7 @@ class complexTypeDefinition (utility._DeconflictSymbols_mixin, object):
             if au is None:
                 if self._AttributeWildcard is None:
                     raise UnrecognizedAttributeError('Attribute %s is not permitted in type' % (local_name,))
-                print 'Ignoring wildcard attribute %s' % (local_name,)
+                self.__wildcardAttributeMap[local_name] = value
                 continue
             au.setFromDOM(self, node)
             attrs_available.remove(au)

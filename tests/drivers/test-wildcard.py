@@ -136,14 +136,39 @@ class TestIntensionalSet (unittest.TestCase):
 
 class TestWildcard (unittest.TestCase):
     def testElement (self):
+        # NB: Test on CTD, not element
+        self.assert_(wrapper_._HasWildcardElement)
         xml = '<wrapper><first/><second/><third/></wrapper>'
         doc = minidom.parseString(xml)
         instance = wrapper.CreateFromDOM(doc.documentElement)
+        self.assert_(isinstance(instance.wildcardElements(), list))
+        self.assertEquals(1, len(instance.wildcardElements()))
+
+    def testMultiElement (self):
+        tested_overmax = False
+        for rep in range(0, 6):
+            xml = '<wrapper><first/><second/>%s</wrapper>' % (''.join(rep * ['<third/>']),)
+            doc = minidom.parseString(xml)
+            if 3 >= rep:
+                instance = wrapper.CreateFromDOM(doc.documentElement)
+                self.assert_(isinstance(instance.wildcardElements(), list))
+                self.assertEquals(rep, len(instance.wildcardElements()))
+                for i in range(0, rep):
+                    self.assertEquals('third', instance.wildcardElements()[i].nodeName)
+            else:
+                tested_overmax = True
+                self.assertRaises(ExtraContentError, wrapper.CreateFromDOM, doc.documentElement)
+        self.assert_(tested_overmax)
 
     def testAttribute (self):
+        # NB: Test on CTD, not element
+        self.assert_(isinstance(wrapper_._AttributeWildcard, pywxsb.binding.content.Wildcard))
         xml = '<wrapper myattr="true" auxattr="somevalue"/>'
         doc = minidom.parseString(xml)
         instance = wrapper.CreateFromDOM(doc.documentElement)
+        self.assert_(isinstance(instance.wildcardAttributeMap(), dict))
+        self.assertEquals(1, len(instance.wildcardAttributeMap()))
+        self.assertEquals('somevalue', instance.wildcardAttributeMap()['auxattr'])
 
 if __name__ == '__main__':
     unittest.main()

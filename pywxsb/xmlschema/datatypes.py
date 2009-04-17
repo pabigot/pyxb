@@ -379,7 +379,8 @@ class anyType (pywxsb.binding.basis.CTD_mixed):
     _Content = pywxsb.binding.content.Particle(1, 1,
                                                pywxsb.binding.content.ModelGroup(pywxsb.binding.content.ModelGroup.C_SEQUENCE,
                                                                                  [ pywxsb.binding.content.Particle(0, None,
-                                                                                                                   pywxsb.binding.content.Wildcard()
+                                                                                                                   pywxsb.binding.content.Wildcard(namespace_constraint=pywxsb.binding.content.Wildcard.NC_any,
+                                                                                                                                                   process_contents=pywxsb.binding.content.Wildcard.PC_lax)
                                                                                                                    ) # end Particle
                                                                                    ]) # end ModelGroup
                                                ) # end Particle

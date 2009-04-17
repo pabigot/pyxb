@@ -857,6 +857,10 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Resolv
         An ElementDeclaration produces one instance of a single element."""
         return _PluralityData(self)
 
+    def hasWildcardElement (self):
+        """Return False, since element declarations are not wildcards."""
+        return False
+
     def _dependentComponents_vx (self):
         """Implement base class method.
 
@@ -1045,6 +1049,16 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
     def __init__ (self, *args, **kw):
         super(ComplexTypeDefinition, self).__init__(*args, **kw)
         self.__derivationMethod = kw.get('derivation_method', None)
+
+    def hasWildcardElement (self):
+        """Return True iff this type includes a wildcard element in
+        its content model."""
+        if self.CT_EMPTY == self.contentType():
+            return False
+        ( tag, particle ) = self.contentType()
+        if self.CT_SIMPLE == tag:
+            return False
+        return particle.hasWildcardElement()
 
     def _setFromInstance (self, other):
         """Override fields in this instance with those from the other.
@@ -1629,6 +1643,13 @@ class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
         """
         return _PluralityData(self)
 
+    def hasWildcardElement (self):
+        """Return True if the model includes a wildcard amongst its particles."""
+        for p in self.particles():
+            if p.hasWildcardElement():
+                return True
+        return False
+
     @classmethod
     def CreateFromDOM (cls, wxs, node, **kw):
         if node.nodeName in wxs.xsQualifiedNames('all'):
@@ -1730,6 +1751,12 @@ class Particle (_SchemaComponent_mixin, _Resolvable_mixin):
             return True
         # @todo is this correct?
         return self.term().isPlural()
+
+    def hasWildcardElement (self):
+        """Return True iff this particle has a wildcard in its term.
+
+        Note that the wildcard may be in a nested model group."""
+        return self.term().hasWildcardElement()
 
     def _dependentComponents_vx (self):
         """Implement base class method.
@@ -2000,6 +2027,10 @@ class Wildcard (_SchemaComponent_mixin, _Annotated_mixin):
     def isPlural (self):
         """Wildcards are not multi-valued."""
         return False
+
+    def hasWildcardElement (self):
+        """Return True, since Wildcard components are wildcards."""
+        return True
 
     def __init__ (self, *args, **kw):
         assert 0 == len(args)
