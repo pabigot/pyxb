@@ -118,7 +118,7 @@ class Namespace (object):
 
         afn = _LoadableNamespaceMap().get(self.uri(), None)
         if afn is not None:
-            print 'Loading %s from %s' % (self.uri(), afn)
+            #print 'Loading %s from %s' % (self.uri(), afn)
             self.__inSchemaLoad = True
             self.LoadFromFile(afn)
             self.__inSchemaLoad = False
@@ -454,7 +454,7 @@ class Namespace (object):
         schema = unpickler.load()
         assert schema.getTargetNamespace() == instance
         instance.__schema = schema
-        print 'Completed load of %s from %s' % (instance.uri(), file_path)
+        #print 'Completed load of %s from %s' % (instance.uri(), file_path)
         return instance
 
 def NamespaceForURI (uri):
