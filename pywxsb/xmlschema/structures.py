@@ -536,7 +536,7 @@ class _AttributeWildcard_mixin (object):
 
     def _setAttributeWildcard (self, attribute_wildcard):
         """Set the attribute wildcard property for this instance."""
-        assert(isinstance(attribute_wildcard, Wildcard))
+        assert (attribute_wildcard is None) or isinstance(attribute_wildcard, Wildcard)
         self.__attributeWildcard = attribute_wildcard
         return self
 
@@ -585,6 +585,36 @@ class _AttributeWildcard_mixin (object):
                 
         return (attributes, attribute_groups, any_attribute)
 
+    @classmethod
+    def IntensionalUnion (cls, constraints):
+        """http://www.w3.org/TR/xmlschema-1/#cos-aw-union"""
+        return None
+
+    @classmethod
+    def IntensionalIntersection (cls, constraints):
+        """http://www.w3.org/TR/xmlschema-1/#cos-aw-intersect"""
+        return None
+
+    @classmethod
+    def CompleteWildcard (cls, attribute_groups, any_attribute, local_wildcard):
+        # Non-absent wildcard properties of attribute groups
+        agd_wildcards = []
+        for agd in attribute_groups:
+            if agd.attributeWildcard() is not None:
+                agd_wildcards.append(agd.attributeWildcard())
+
+        # Clause 2.1
+        if 0 == len(agd_wildcards):
+            return local_wildcard
+
+        if any_attribute is not None:
+            # Clause 2.2.1
+            return Wildcard(process_contents=local_wildcard.processContents(),
+                            namespace_constraint=self.IntensionalIntersection(agd_wildcards + [local_wildcard.namespaceConstraint()]),
+                            annotation=local_wildcard.annotation())
+        # Clause 2.2.2
+        return Wildcard(process_contents=agd_wildcards[0].processContents(),
+                        namespace_constraint=self.IntensionalIntersection(agd_wildcards))
 
 class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Resolvable_mixin, _Annotated_mixin, _ValueConstraint_mixin):
     """An XMLSchema Attribute Declaration component.
@@ -1172,14 +1202,12 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
         self.__attributeUses = frozenset(uses.union(uses_c2).union(uses_c3))
 
         # @todo Handle attributeWildcard
-        node = self.__domNode
-        any_attribute = LocateUniqueChild(node, wxs, 'anyAttribute')
         # Clause 1
         local_wildcard = None
         if any_attribute is not None:
             local_wildcard = Wildcard.CreateFromDOM(wxs, any_attribute)
-            print 'WARINNG: Unhandled attribute wildcard'
         # Clause 2
+        complete_wildcard = _AttributeWildcard_mixin.CompleteWildcard(attribute_groups, any_attribute, local_wildcard)
         # Clause 3
 
         # @todo Make sure we didn't miss any child nodes
@@ -1465,6 +1493,12 @@ class AttributeGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _
             uses.add(AttributeUse.CreateFromDOM(wxs, cn, owner=self))
         for agd in attribute_groups:
             uses = uses.union(agd.attributeUses())
+
+        local_wildcard = None
+        if any_attribute is not None:
+            local_wildcard = Wildcard.CreateFromDOM(wxs, any_attribute)
+        # Clause 2
+        self._setAttributeWildcard(_AttributeWildcard_mixin.CompleteWildcard(attribute_groups, any_attribute, local_wildcard))
 
         self.__attributeUses = frozenset(uses)
         self.__isResolved = True
