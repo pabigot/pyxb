@@ -586,16 +586,6 @@ class _AttributeWildcard_mixin (object):
         return (attributes, attribute_groups, any_attribute)
 
     @classmethod
-    def IntensionalUnion (cls, constraints):
-        """http://www.w3.org/TR/xmlschema-1/#cos-aw-union"""
-        return None
-
-    @classmethod
-    def IntensionalIntersection (cls, constraints):
-        """http://www.w3.org/TR/xmlschema-1/#cos-aw-intersect"""
-        return None
-
-    @classmethod
     def CompleteWildcard (cls, attribute_groups, any_attribute, local_wildcard):
         # Non-absent wildcard properties of attribute groups
         agd_wildcards = []
@@ -610,11 +600,11 @@ class _AttributeWildcard_mixin (object):
         if any_attribute is not None:
             # Clause 2.2.1
             return Wildcard(process_contents=local_wildcard.processContents(),
-                            namespace_constraint=self.IntensionalIntersection(agd_wildcards + [local_wildcard.namespaceConstraint()]),
+                            namespace_constraint=Wildcard.IntensionalIntersection(agd_wildcards + [local_wildcard.namespaceConstraint()]),
                             annotation=local_wildcard.annotation())
         # Clause 2.2.2
         return Wildcard(process_contents=agd_wildcards[0].processContents(),
-                        namespace_constraint=self.IntensionalIntersection(agd_wildcards))
+                        namespace_constraint=Wildcard.IntensionalIntersection(agd_wildcards))
 
 class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Resolvable_mixin, _Annotated_mixin, _ValueConstraint_mixin):
     """An XMLSchema Attribute Declaration component.
@@ -1229,8 +1219,8 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
                 else:
                     # 3.2.2.1.2
                     self._setAttributeWildcard(process_contents=complete_wildcard.processContents(),
-                                               namespace_constraint = _AttributeWildcard_mixin.IntensionalUnion([complete_wildcard.namespaceConstraint(),
-                                                                                                                 base_wildcard.namespaceConstraint()]),
+                                               namespace_constraint = Wildcard.IntensionalUnion([complete_wildcard.namespaceConstraint(),
+                                                                                                 base_wildcard.namespaceConstraint()]),
                                                annotation=complete_wildcard.annotation())
             else:
                 # 3.2.2.2
@@ -1880,6 +1870,69 @@ class Wildcard (_SchemaComponent_mixin, _Annotated_mixin):
         represented by None, both in the "not" pair and in the set.
         """
         return self.__namespaceConstraint
+
+    @classmethod
+    def IntensionalUnion (cls, constraints):
+        """http://www.w3.org/TR/xmlschema-1/#cos-aw-union"""
+        assert 0 < len(constraints)
+        o1 = constraints.pop(0);
+        while 0 < len(constraints):
+            o2 = constraints.pop(0);
+            # 1
+            if (o1 == o2):
+                continue
+            # 2
+            if (cls.NC_any == o1) or (cls.NC_any == o2):
+                o1 = cls.NC_any
+                continue
+            # 3
+            if isinstance(o1, set) and isinstance(o2, set):
+                o1 = o1.union(o2)
+                continue
+            # 4
+            if (isinstance(o1, tuple) and isinstance(o2, tuple)) and (o1[1] != o2[1]):
+                o1 = ( cls.NC_not, None )
+                continue
+            # At this point, one must be a negated namespace and the
+            # other a set.  Identify them.
+            c_tuple = None
+            c_set = None
+            if isinstance(o1, tuple):
+                assert isinstance(o2, set)
+                c_tuple = o1
+                c_set = o2
+            else:
+                assert isinstance(o1, set)
+                assert isinstance(o2, tuple)
+                c_tuple = o2
+                c_set = o1
+            negated_ns = c_tuple[1]
+            if negated_ns is not None:
+                # 5.1
+                if (negated_ns in c_set) and (None in c_set):
+                    o1 = cls.NC_any
+                    continue
+                # 5.2
+                if negated_ns in c_set:
+                    o1 = ( cls.NC_not, None )
+                    continue
+                # 5.3
+                if None in c_set:
+                    raise SchemaValidationError('Union of wildcard namespace constraints not expressible')
+                o1 = c_tuple
+                continue
+            # 6
+            if None in c_set:
+                o1 = cls.NC_any
+            else:
+                o1 = ( cls.NC_not, None )
+        return o1
+
+    @classmethod
+    def IntensionalIntersection (cls, constraints):
+        """http://www.w3.org/TR/xmlschema-1/#cos-aw-intersect"""
+        pass
+
 
     PC_skip = 'skip'            #<<< No constraint is applied
     PC_lax = 'lax'              #<<< Validate against available uniquely determined declaration
