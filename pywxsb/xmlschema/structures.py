@@ -1931,8 +1931,58 @@ class Wildcard (_SchemaComponent_mixin, _Annotated_mixin):
     @classmethod
     def IntensionalIntersection (cls, constraints):
         """http://www.w3.org/TR/xmlschema-1/#cos-aw-intersect"""
-        pass
-
+        assert 0 < len(constraints)
+        o1 = constraints.pop(0);
+        while 0 < len(constraints):
+            o2 = constraints.pop(0);
+            # 1
+            if (o1 == o2):
+                continue
+            # 2
+            if (cls.NC_any == o1) or (cls.NC_any == o2):
+                if cls.NC_any == o1:
+                    o1 = o2
+                continue
+            # 4
+            if isinstance(o1, set) and isinstance(o2, set):
+                o1 = o1.intersection(o2)
+                continue
+            if isinstance(o1, tuple) and isinstance(o2, tuple):
+                ns1 = o1[1]
+                ns2 = o2[1]
+                # 5
+                if (ns1 is not None) and (ns2 is not None) and (ns1 != ns2):
+                    raise SchemaValidationError('Intersection of wildcard namespace constraints not expressible')
+                # 6
+                assert (ns1 is None) or (ns2 is None)
+                if ns1 is None:
+                    assert ns2 is not None
+                    o1 = ( cls.NC_not, ns2 )
+                else:
+                    assert ns1 is not None
+                    o1 = ( cls.NC_not, ns1 )
+                continue
+            # 3
+            # At this point, one must be a negated namespace and the
+            # other a set.  Identify them.
+            c_tuple = None
+            c_set = None
+            if isinstance(o1, tuple):
+                assert isinstance(o2, set)
+                c_tuple = o1
+                c_set = o2
+            else:
+                assert isinstance(o1, set)
+                assert isinstance(o2, tuple)
+                c_tuple = o2
+                c_set = o1
+            negated_ns = c_tuple[1]
+            if negated_ns in c_set:
+                c_set.remove(negated_ns)
+            if None in c_set:
+                c_set.remove(None)
+            o1 = c_set
+        return o1
 
     PC_skip = 'skip'            #<<< No constraint is applied
     PC_lax = 'lax'              #<<< Validate against available uniquely determined declaration
