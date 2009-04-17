@@ -1028,7 +1028,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
         """
         return self.__contentType
 
-    def contentTypeToString (self):
+    def contentTypeAsString (self):
         if self.CT_EMPTY == self.contentType():
             return 'EMPTY'
         ( tag, particle ) = self.contentType()
