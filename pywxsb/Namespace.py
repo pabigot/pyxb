@@ -241,7 +241,8 @@ class Namespace (object):
     def typeDefinitions (self):
         return self._validatedSchema()._typeDefinitions()
 
-    def sortByDependency (self, components, dependent_class_filter):
+    @classmethod
+    def SortByDependency (cls, components, dependent_class_filter, target_namespace):
         """Return the components that belong to this namespace, in order of dependency.
 
         Specifically, components are not referenced in any component
@@ -255,12 +256,14 @@ class Namespace (object):
             for td in components:
                 # Anything not in this namespace is just thrown away.
                 try:
-                    if (self != td.targetNamespace()) and (td.targetNamespace() is not None):
-                        print 'Discarding %s: tns=%s not %s' % (td, td.targetNamespace(), self)
+                    if (target_namespace != td.targetNamespace()) and (td.targetNamespace() is not None):
+                        print 'Discarding %s: tns=%s not %s' % (td, td.targetNamespace(), target_namespace)
                         continue
                 except AttributeError:
+                    # Unnamed things don't get discarded this way
                     pass
                 dep_types = td.dependentComponents()
+                #print 'Type %s depends on %s' % (td, dep_types)
                 ready = True
                 for dtd in dep_types:
                     # If the component depends on something that is
@@ -270,7 +273,7 @@ class Namespace (object):
 
                     # Ignore dependencies that go outside the namespace
                     try:
-                        if self != dtd.targetNamespace():
+                        if target_namespace != dtd.targetNamespace():
                             continue
                     except AttributeError:
                         # Ignore dependencies on unnameable things

@@ -429,7 +429,7 @@ class _PluralityData (types.ListType):
 
     def nameBasedPlurality (self):
         """Return a map from NCNames to pairs consisting of a boolean
-        representing the plurality of the aggregated name, and a list
+        representing the plurality of the aggregated name, and a set
         denoting the element declarations with that name."""
 
         name_plurality = { }
@@ -3083,9 +3083,7 @@ class Schema (_SchemaComponent_mixin):
                 continue
             component_list = component_by_class[cc]
             orig_length = len(component_list)
-            if namespace is not None:
-                component_list = namespace.sortByDependency(component_list, dependent_class_filter=cc)
-                #assert len(component_list) == orig_length
+            component_list = Namespace.Namespace.SortByDependency(component_list, dependent_class_filter=cc, target_namespace=namespace)
             ordered_components.extend(component_list)
         return ordered_components
 
