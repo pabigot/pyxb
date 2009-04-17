@@ -387,6 +387,24 @@ class _ValueConstraint_mixin:
         VC_fixed."""
         return self.__valueConstraint
 
+    def default (self):
+        """If this instance constraints a default value, return that
+        value; otherwise return None."""
+        if not isinstance(self.__valueConstraint, tuple):
+            return None
+        if self.VC_default != self.__valueConstraint[1]:
+            return None
+        return self.__valueConstraint[0]
+
+    def fixed (self):
+        """If this instance constraints a fixed value, return that
+        value; otherwise return None."""
+        if not isinstance(self.__valueConstraint, tuple):
+            return None
+        if self.VC_fixed != self.__valueConstraint[1]:
+            return None
+        return self.__valueConstraint[0]
+
     def _valueConstraintFromDOM (self, wxs, node):
         aval = NodeAttribute(node, wxs, 'default')
         if aval is not None:
@@ -729,9 +747,17 @@ class AttributeUse (_SchemaComponent_mixin, _Resolvable_mixin, _ValueConstraint_
         """
         return frozenset([self.__attributeDeclaration])
 
-    def matchingQNameMembers (self, au_set):
+    def matchingQNameMembers (self, wxs, au_set):
         """Return the subset of au_set for which the use names match this use."""
+
+        # This use may be brand new, and temporary, and if we don't
+        # resolve it now it may be thrown away and we'll loop forever
+        # creating new instances that aren't resolved.
         if not self.isResolved():
+            self._resolve(wxs)
+        # If it's still not resolved, hold off
+        if not self.isResolved():
+            aur = NodeAttribute(self.__domNode, self.__wxs, 'ref')
             return None
         this_ad = self.attributeDeclaration()
         rv = set()
@@ -766,7 +792,6 @@ class AttributeUse (_SchemaComponent_mixin, _Resolvable_mixin, _ValueConstraint_
             # separately
             rv.__attributeDeclaration = AttributeDeclaration.CreateFromDOM(wxs, node, owner=rv)
         else:
-            aur = NodeAttribute(node, wxs, 'ref')
             rv.__domNode = node
             wxs._queueForResolution(rv)
         return rv
@@ -786,6 +811,7 @@ class AttributeUse (_SchemaComponent_mixin, _Resolvable_mixin, _ValueConstraint_
         # resolved, *this* component is resolved, since we don't look
         # into the attribute declaration for anything.
         self.__attributeDeclaration = wxs.lookupAttribute(ref_attr)
+        assert self.__attributeDeclaration is not None
         self.__domNode = None
         return self
 
@@ -1199,7 +1225,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
         uses_c2 = set()
         uses_c3 = set()
         for cn in attributes:
-            uses_c1.add(AttributeUse.CreateFromDOM(wxs, cn, owner=self))
+            uses_c1.add(AttributeUse.CreateFromDOM(wxs, cn))
         for agd in attribute_groups:
             uses_c2.update(agd.attributeUses())
 
@@ -1216,12 +1242,18 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
                 # not yet filtered uses_c1 for prohibited attributes
                 uses_c12 = uses_c1.union(uses_c2)
                 for au in uses_c12:
-                    matching_uses = au.matchingQNameMembers(uses_c3)
+                    matching_uses = au.matchingQNameMembers(wxs, uses_c3)
                     if matching_uses is None:
                         wxs._queueForResolution(self)
                         print 'Holding off CTD %s resolution to check for attribute restrictions' % (self.name(),)
                         return self
                     uses_c3 = uses_c3.difference(matching_uses)
+
+        # Past the last point where we might not resolve this
+        # instance.  Set the owner of the AttributeUse instances we
+        # created.
+        for au in uses_c1:
+            au._setOwner(self)
         self.__attributeUses = frozenset(uses_c1.union(uses_c2).union(uses_c3))
 
         # @todo Handle attributeWildcard

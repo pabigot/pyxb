@@ -45,12 +45,13 @@ class TestCTD (unittest.TestCase):
         self.assertEqual('test', rv.content())
 
     def testEmptyWithAttr (self):
-        self.assertEqual(3, len(emptyWithAttr._TypeDefinition._AttributeMap))
+        self.assertEqual(4, len(emptyWithAttr._TypeDefinition._AttributeMap))
         self.assertRaises(MissingAttributeError, CreateFromDocument, '<emptyWithAttr/>')
         instance = CreateFromDocument('<emptyWithAttr capitalized="false"/>')
         self.assertEqual('irish', instance.language())
         self.assert_(not instance.capitalized())
         self.assertEqual(5432, instance.port())
+        self.assertEqual('top default', instance.tlAttr())
         instance = CreateFromDocument('<emptyWithAttr capitalized="true" language="hebrew"/>')
         self.assertEqual('hebrew', instance.language())
         self.assert_(instance.capitalized())
@@ -62,6 +63,9 @@ class TestCTD (unittest.TestCase):
         self.assert_(instance.capitalized() is None)
         self.assertEqual(5432, instance.port())
         self.assertEqual('<emptyWithAttr/>', instance.toDOM().toxml())
+
+        # Test reference attribute
+        self.assertEqual('top default', instance.tlAttr())
 
         # Create another instance, to make sure the attributes are different
         instance2 = emptyWithAttr()
@@ -78,13 +82,13 @@ class TestCTD (unittest.TestCase):
         self.assertTrue(au.required())
         self.assertFalse(au.prohibited())
 
-    def testExtendedEWA (self):
+    def testRestrictedEWA (self):
         # Verify the use.  Note reference through CTD not element.
-        self.assertNotEqual(extendedEWA_._AttributeMap['language'], emptyWithAttr_._AttributeMap['language'])
-        au = extendedEWA_._AttributeMap['language']
+        self.assertNotEqual(restrictedEWA_._AttributeMap['language'], emptyWithAttr_._AttributeMap['language'])
+        au = restrictedEWA_._AttributeMap['language']
         self.assertFalse(au.required())
         self.assertTrue(au.prohibited())
-        self.assertEqual(extendedEWA_._AttributeMap['capitalized'], emptyWithAttr_._AttributeMap['capitalized'])
+        self.assertEqual(restrictedEWA_._AttributeMap['capitalized'], emptyWithAttr_._AttributeMap['capitalized'])
 
     def testEmptyWithAttrGroups (self):
         xml = '<emptyWithAttrGroups bMember1="xxx"/>'
@@ -95,6 +99,9 @@ class TestCTD (unittest.TestCase):
         self.assertEqual('lA1', instance.localAttr1())
         # Note that defaulted attributes are not generated in the DOM.
         self.assertEqual(xml, instance.toDOM().toxml())
+
+        # Test reference attribute with changed default
+        self.assertEqual('refDefault', instance.tlAttr())
 
     def testUnrecognizedAttribute (self):
         xml = '<emptyWithAttr capitalized="false" garbage="what is this"/>'
