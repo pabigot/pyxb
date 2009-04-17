@@ -86,6 +86,34 @@ class ReferenceParticle (ReferenceLiteral):
         template_map['term'] = pythonLiteral(particle.term(), **kw)
         self.setLiteral(templates.replaceInText('pywxsb.binding.content.Particle(%{min_occurs}, %{max_occurs}, %{term})', **template_map))
 
+class ReferenceWildcard (ReferenceLiteral):
+    __wildcard = None
+
+    def __init__ (self, wildcard, **kw):
+        self.__wildcard = wildcard
+        super(ReferenceWildcard, self).__init__(**kw)
+        
+        template_map = { }
+        template_map['Wildcard'] = 'pywxsb.binding.content.Wildcard'
+        if (xs.structures.Wildcard.NC_any == wildcard.namespaceConstraint()):
+            template_map['nc'] = templates.replaceInText('%{Wildcard}.NC_any', **template_map)
+        elif isinstance(wildcard.namespaceConstraint(), set):
+            namespaces = []
+            for ns in wildcard.namespaceConstrant():
+                if ns is None:
+                    namespace.append(None)
+                else:
+                    namespace.append(ns.uri())
+            template_map['nc'] = 'set(%s)' % (",".join( [ repr(_ns) for _ns in namespaces ]))
+        else:
+            assert isinstance(wildcard.namespaceConstraint(), tuple)
+            ns = wildcard.namespaceConstrant()[1]
+            if ns is not None:
+                ns = ns.uri()
+            template_map['nc'] = templates.replaceInText('(%{Wildcard}.NC_not, %s)' % (repr(ns),), **template_map)
+        template_map['pc'] = wildcard.processContents()
+        self.setLiteral(templates.replaceInText('%{Wildcard}(process_contents=%{Wildcard}.PC_%{pc}, namespace_constraint=%{nc})', **template_map))
+
 class ReferenceSchemaComponent (ReferenceLiteral):
     __component = None
 
@@ -100,7 +128,6 @@ class ReferenceSchemaComponent (ReferenceLiteral):
         , Namespace.XMLSchemaModule().structures.ComplexTypeDefinition: 'CTD'
         , Namespace.XMLSchemaModule().structures.ElementDeclaration: 'ED'
         , Namespace.XMLSchemaModule().structures.ModelGroup: 'MG'
-        , Namespace.XMLSchemaModule().structures.Wildcard: 'WC'
         }
 
     def __init__ (self, component, **kw):
@@ -260,6 +287,10 @@ def pythonLiteral (value, **kw):
     # Particles expand to a pywxsb.binding.content.Particle instance
     if isinstance(value, xs.structures.Particle):
         return pythonLiteral(ReferenceParticle(value, **kw))
+
+    # Wildcards expand to a pywxsb.binding.content.Wildcard instance
+    if isinstance(value, xs.structures.Wildcard):
+        return pythonLiteral(ReferenceWildcard(value, **kw))
 
     # Schema components have a single name through their lifespan
     if isinstance(value, xs.structures._SchemaComponent_mixin):
@@ -539,7 +570,9 @@ class %{ctd} (pywxsb.binding.basis.CTD_element):
         if the new value is not consistent with the attribute's type."""
         return self.%{attr_name}.setValue(self, new_value)''', **au_map))
 
-    trailing_comma = ''
+    if ctd.attributeWildcard() is not None:
+        definitions.append('_AttributeWildcard = %s' % (pythonLiteral(ctd.attributeWildcard(), **kw),))
+
     template = ''.join([prolog_template,
                 "    ", "\n    ".join(definitions), "\n",
                 "    _AttributeMap = {\n        ", ",\n        ".join(attribute_uses), "\n    }\n",
@@ -650,22 +683,11 @@ def GenerateMG (mg, **kw):
 ''', **template_map))
     return outf.getvalue()
 
-def GenerateWC (wc, **kw):
-    outf = StringIO.StringIO()
-    template_map = { }
-    template_map['wildcard'] = pythonLiteral(wc, **kw)
-    outf.write(templates.replaceInText('''
-# Wildcard %{wildcard}
-%{wildcard} = pywxsb.binding.content.Wildcard()
-''', **template_map))
-    return outf.getvalue()
-
 GeneratorMap = {
     xs.structures.SimpleTypeDefinition : GenerateSTD
   , xs.structures.ElementDeclaration : GenerateED
   , xs.structures.ComplexTypeDefinition : GenerateCTD
   , xs.structures.ModelGroup : GenerateMG
-  , xs.structures.Wildcard : GenerateWC
 }
 
 def GeneratePython (**kw):

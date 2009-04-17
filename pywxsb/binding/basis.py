@@ -480,7 +480,16 @@ class complexTypeDefinition (utility._DeconflictSymbols_mixin, object):
     should define an _ElementMap variable.
     """
 
+    # If the type supports wildcard attributes, this describes their
+    # constraints.  (If it doesn't, this should remain None.)
+    _AttributeWildcard = None
+
+    # Map from ncNames in the binding namespace to AttributeUse
+    # instances
     _AttributeMap = { }
+
+    # Map from ncNames in the binding namespace to ElementUse
+    # instances
     _ElementMap = { }
 
     def __init__ (self, *args, **kw):
@@ -582,7 +591,10 @@ class complexTypeDefinition (utility._DeconflictSymbols_mixin, object):
                 raise IncompleteImplementationError('No support for namespace-qualified attributes')
             au = self._AttributeMap.get(local_name, None)
             if au is None:
-                raise UnrecognizedAttributeError('Attribute %s is not permitted in type' % (local_name,))
+                if self._AttributeWildcard is None:
+                    raise UnrecognizedAttributeError('Attribute %s is not permitted in type' % (local_name,))
+                print 'Ignoring wildcard attribute %s' % (local_name,)
+                continue
             au.setFromDOM(self, node)
             attrs_available.remove(au)
         # Handle all the ones that aren't present.  NB: Don't just
