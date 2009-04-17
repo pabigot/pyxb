@@ -1206,9 +1206,35 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
         local_wildcard = None
         if any_attribute is not None:
             local_wildcard = Wildcard.CreateFromDOM(wxs, any_attribute)
+
         # Clause 2
         complete_wildcard = _AttributeWildcard_mixin.CompleteWildcard(attribute_groups, any_attribute, local_wildcard)
+
         # Clause 3
+        if self.DM_restriction == method:
+            # Clause 3.1
+            self._setAttributeWildcard(complete_wildcard)
+        else:
+            assert (self.DM_extension == method)
+            assert self.baseTypeDefinition().isResolved()
+            # 3.2.1
+            base_wildcard = None
+            if isinstance(self.baseTypeDefinition(), ComplexTypeDefinition):
+                base_wildcard = self.baseTypeDefinition().attributeWildcard()
+            # 3.2.2
+            if base_wildcard is not None:
+                if complete_wildcard is None:
+                    # 3.2.2.1.1
+                    self._setAttributeWildcard(base_wildcard)
+                else:
+                    # 3.2.2.1.2
+                    self._setAttributeWildcard(process_contents=complete_wildcard.processContents(),
+                                               namespace_constraint = _AttributeWildcard_mixin.IntensionalUnion([complete_wildcard.namespaceConstraint(),
+                                                                                                                 base_wildcard.namespaceConstraint()]),
+                                               annotation=complete_wildcard.annotation())
+            else:
+                # 3.2.2.2
+                self._setAttributeWildcard(complete_wildcard)
 
         # @todo Make sure we didn't miss any child nodes
 
@@ -1494,10 +1520,10 @@ class AttributeGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _
         for agd in attribute_groups:
             uses = uses.union(agd.attributeUses())
 
+        # "Complete wildcard" per CTD
         local_wildcard = None
         if any_attribute is not None:
             local_wildcard = Wildcard.CreateFromDOM(wxs, any_attribute)
-        # Clause 2
         self._setAttributeWildcard(_AttributeWildcard_mixin.CompleteWildcard(attribute_groups, any_attribute, local_wildcard))
 
         self.__attributeUses = frozenset(uses)
