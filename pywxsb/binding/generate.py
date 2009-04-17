@@ -474,9 +474,15 @@ class %{ctd} (%{superclasses}):
 class %{ctd} (%{superclasses}):
 '''
 
+    # Complex types that inherit from non-ur-type complex types should
+    # have their base type as their Python superclass, so pre-existing
+    # elements and attributes can be re-used.
+    inherits_from_base = True
     template_map['superclasses'] = pythonLiteral(base_type, **kw)
     if isinstance(base_type, pywxsb.xmlschema.structures.SimpleTypeDefinition) or base_type.isUrTypeDefinition():
+        inherits_from_base = False
         template_map['superclasses'] = 'pywxsb.binding.basis.CTD_%s' % (content_type,)
+        assert base_type.nameInBinding() is not None
 
     if need_content:
         global PostscriptItems
@@ -502,9 +508,41 @@ class %{ctd} (%{superclasses}):
     element_uses = []
     datatype_map = { }
     datatype_items = []
+
+    # Also retain in the ctd the information about the element
+    # infrastructure, so it can be inherited where appropriate in
+    # subclasses.
+    ctd.__elementFields = { }
     if isinstance(content_basis, xs.structures.Particle):
         plurality_data = content_basis.pluralityData().nameBasedPlurality()
+
+        # Throw out the plurality nodes for elements that should be
+        # inherited from a superclass, which are those for which the
+        # plurality data matches that of a parent class.  Ensure names
+        # associated with those superclass instances are marked as
+        # reserved.
         for (name, (is_plural, types)) in plurality_data.items():
+            if inherits_from_base:
+                superclass_info = base_type.__elementFields.get(name, None)
+                if superclass_info is not None:
+                    ( superclass_is_plural, superclass_types, superclass_ef_map ) = superclass_info
+                    if (is_plural == superclass_is_plural) and (types == superclass_types):
+                        definitions.append(templates.replaceInText('# Element %{field_tag} inherits from parent %{superclasses} as %{python_field_name}', superclasses=template_map['superclasses'], **superclass_ef_map))
+                        del plurality_data[name]
+                        class_unique.add(superclass_ef_map['python_field_name'])
+                        class_unique.add(superclass_ef_map['field_inspector'])
+                        class_unique.add(superclass_ef_map['field_mutator'])
+                        class_unique.add(superclass_ef_map['field_name'])
+                        class_unique.add(superclass_ef_map['value_field_name'])
+                        ctd.__elementFields[name] = ( superclass_is_plural, superclass_types, superclass_ef_map )
+                    else:
+                        definitions.append(templates.replaceInText('# Element %{field_tag} will override parent %{superclass} field %{python_field_name} due to content model differences', superclasses=template_map['superclasses'], **superclass_ef_map))
+
+        for (name, (is_plural, types)) in plurality_data.items():
+            # If this name exists as an element in the parent class,
+            # and the plurality data is identical, then inherit the
+            # element infrastructure from the parent
+            
             ef_map = { }
             aux_init = []
             used_field_name = utility.PrepareIdentifier(name, class_unique, class_keywords)
@@ -517,12 +555,15 @@ class %{ctd} (%{superclasses}):
             ef_map['value_field_name'] = utility.PrepareIdentifier('%s_%s' % (template_map['ctd'], name), class_unique, class_keywords, private=True)
             ef_map['is_plural'] = repr(is_plural)
             ef_map['field_tag'] = pythonLiteral(name, **kw)
+            ef_map['element_ref'] = ' '.join([ object.__str__(_t) for _t in types ])
             element_uses.append(templates.replaceInText('%{field_tag} : %{field_name}', **ef_map))
             datatype_items.append("%s : [ %s ]" % (ef_map['field_tag'], ','.join(pythonLiteral(types, **kw))))
             if 0 == len(aux_init):
                 ef_map['aux_init'] = ''
             else:
                 ef_map['aux_init'] = ', ' + ', '.join(aux_init)
+
+            ctd.__elementFields[name] = ( is_plural, types, ef_map )
             definitions.append(templates.replaceInText('''
     # Element %{field_tag} uses Python identifier %{python_field_name}
     %{field_name} = pywxsb.binding.content.ElementUse(%{field_tag}, '%{python_field_name}', '%{value_field_name}', %{is_plural}%{aux_init})
@@ -590,11 +631,24 @@ class %{ctd} (%{superclasses}):
         definitions.append('_AttributeWildcard = %s' % (pythonLiteral(ctd.attributeWildcard(), **kw),))
     if ctd.hasWildcardElement():
         definitions.append('_HasWildcardElement = True')
+    template_map['element_uses'] = ",\n        ".join(element_uses)
+    if inherits_from_base:
+        element_map_decl = '''
+    _ElementMap = %{superclasses}._ElementMap.copy()
+    _ElementMap.update({
+        %{element_uses}
+    })'''
+    else:
+        element_map_decl = '''
+    _ElementMap = {
+        %{element_uses}
+    }'''
 
     template = ''.join([prolog_template,
-                "    ", "\n    ".join(definitions), "\n",
-                "    _AttributeMap = {\n        ", ",\n        ".join(attribute_uses), "\n    }\n",
-                "    _ElementMap = {\n        ", ",\n        ".join(element_uses), "\n    }\n\n" ])
+               "    ", "\n    ".join(definitions), "\n",
+               "    _AttributeMap = {\n        ", ",\n        ".join(attribute_uses), "\n    }\n",
+               element_map_decl, "\n\n" ])
+
     return templates.replaceInText(template, **template_map)
 
 def GenerateED (ed, **kw):
