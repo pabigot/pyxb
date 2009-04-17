@@ -632,7 +632,7 @@ class %{ctd} (%{superclasses}):
         if vc is not None:
             if au.VC_fixed == vc[0]:
                 aux_init.append('fixed=True')
-            aux_init.append('unicode_default=%s' % (pythonLiteral(ad.valueConstraint()[0], **kw),))
+            aux_init.append('unicode_default=%s' % (pythonLiteral(vc[0], **kw),))
         if au.required():
             aux_init.append('required=True')
         if au.prohibited():
