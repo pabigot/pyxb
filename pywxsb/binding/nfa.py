@@ -34,12 +34,39 @@ class NFA (dict):
     def end (self): return self.__end
 
     def addTransition (self, key, start, end):
+        assert end is not None
         self.setdefault(start, {}).setdefault(key, set()).add(end)
         return self
 
     def ok (self, key, start, end):
         return end in self[start].get(key, set())
 
+    def oneStep (self, node, key):
+        return self.setdefault(node, {}).get(key, set())
+
+    def canReach (self, key, start=None, with_epsilon=False):
+        if start is None:
+            start = [ self.start() ]
+        if not isinstance(start, (list, set, frozenset)):
+            start = [ start ]
+        eps_moves = set(start)
+        key_moves = set()
+
+        last_eps_moves = None
+        last_key_moves = None
+
+        while ((last_eps_moves != eps_moves) or (last_key_moves != key_moves)):
+            last_eps_moves = eps_moves.copy()
+            last_key_moves = key_moves.copy()
+            for start in eps_moves:
+                eps_moves = eps_moves.union(self.oneStep(start, None))
+                key_moves = key_moves.union(self.oneStep(start, key))
+            for start in last_key_moves:
+                key_moves = key_moves.union(self.oneStep(start, None))
+        if with_epsilon:
+            return eps_moves.union(key_moves)
+        return key_moves
+        
     def __str__ (self):
         states = set(self.keys())
         elements = set()
@@ -55,7 +82,7 @@ class NFA (dict):
             if start == self.end():
                 strings.append('%s terminates' % (start,))
                 continue
-            transitions = self.get(start, None)
+            transitions = self[start]
             if 0 == len(transitions):
                 strings.append('%s dead-ends' % (start,))
                 continue
@@ -73,8 +100,6 @@ class Thompson:
     def __init__ (self, term):
         self.__nfa = NFA()
         self.fromTerm(term, self.__nfa.start(), self.__nfa.end())
-        print self.__nfa
-        print
 
     def fromElement (self, element, start, end):
         self.addTransition(element, start, end)
@@ -84,21 +109,21 @@ class Thompson:
         self.__nfa.addTransition(element, start, end)
 
     def fromParticle (self, particle, start, end):
-        print '# %d to %s of %s' % (particle.minOccurs(), particle.maxOccurs(), particle.term())
-
-        cur_start = None
-        next_end = self.__nfa.newState()
-        self.addTransition(None, start, next_end)
+        #print '# %d to %s of %s' % (particle.minOccurs(), particle.maxOccurs(), particle.term())
 
         if 0 == particle.minOccurs():
             self.addTransition(None, start, end)
 
+        cur_start = next_end = start
         for step in range(0, particle.minOccurs()):
             cur_start = next_end
             next_end = self.__nfa.newState()
             self.addTransition(particle.term(), cur_start, next_end)
 
         if None is particle.maxOccurs():
+            if next_end == start:
+                self.addTransition(particle.term(), start, end)
+                next_end = end
             self.addTransition(None, next_end, cur_start)
         else:
             for step in range(particle.minOccurs(), particle.maxOccurs()):
@@ -118,22 +143,51 @@ class TestThompson (unittest.TestCase):
     def testParticleOne (self):
         t = Thompson(Particle(1,1,'a'))
         nfa = t.nfa()
-        print dict.__str__(nfa)
-        self.assertEquals(4, len(nfa))
-        self.assertTrue(nfa.ok(None, nfa.start(), 2))
-        self.assertTrue(nfa.ok('a', 2, 3))
-        self.assertTrue(nfa.ok(None, 3, 0))
-        self.assertFalse(nfa.ok(None, 1, 0))
+        self.assertFalse(nfa.end() in nfa.canReach(None, nfa.start()))
+        self.assertTrue(nfa.end() in nfa.canReach('a', nfa.start()))
+        self.assertFalse(nfa.end() in nfa.canReach('a', nfa.canReach('a')))
 
     def testParticleOptional (self):
         t = Thompson(Particle(0,1,'a'))
         nfa = t.nfa()
-        print dict.__str__(nfa)
-        self.assertEquals(4, len(nfa))
-        self.assertTrue(nfa.ok(None, nfa.start(), 2))
-        self.assertTrue(nfa.ok('a', 2, 3))
-        self.assertTrue(nfa.ok(None, 3, 0))
-        self.assertTrue(nfa.ok(None, 1, 0))
+        self.assertTrue(nfa.end() in nfa.canReach(None, nfa.start()))
+        self.assertTrue(nfa.end() in nfa.canReach('a', nfa.start()))
+        self.assertFalse(nfa.end() in nfa.canReach('a', nfa.canReach('a')))
+
+    def testParticleAny (self):
+        t = Thompson(Particle(0,None,'a'))
+        nfa = t.nfa()
+        self.assertTrue(nfa.end() in nfa.canReach(None, nfa.start()))
+        self.assertTrue(nfa.end() in nfa.canReach('a', nfa.start()))
+        reaches = [ nfa.start() ]
+        for rep in range(0, 10):
+            reaches = nfa.canReach('a', reaches)
+            self.assertTrue(nfa.end() in reaches)
+
+    def testParticle2Plus (self):
+        particle = Particle(2, None, 'a')
+        t = Thompson(particle)
+        nfa = t.nfa()
+        reaches = [ nfa.start() ]
+        for rep in range(1, 10):
+            reaches = nfa.canReach('a', reaches)
+            if particle.minOccurs() <= rep:
+                self.assertTrue(nfa.end() in reaches)
+            else:
+                self.assertFalse(nfa.end() in reaches)
+
+    def testParticleSome (self):
+        particle = Particle(3, 5, 'a')
+        t = Thompson(particle)
+        nfa = t.nfa()
+        reaches = [ nfa.start() ]
+        for rep in range(1, 10):
+            reaches = nfa.canReach('a', reaches)
+            if (particle.minOccurs() <= rep) and (rep <= particle.maxOccurs()):
+                self.assertTrue(nfa.end() in reaches)
+            else:
+                self.assertFalse(nfa.end() in reaches)
+
 
 '''
 a = Element('a')
@@ -152,5 +206,6 @@ ex = Particle(2, None, a)
 ex = Particle(1, 1, ModelGroup(ModelGroup.C_SEQUENCE, [ Particle(1,1,'a'), Particle(1,1,'b')]))
 '''
 if __name__ == '__main__':
+    #Thompson(Particle(0,None,'a'))
     unittest.main()
     
