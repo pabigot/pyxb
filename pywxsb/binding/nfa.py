@@ -146,6 +146,10 @@ class Thompson:
             start = next_state
         self.addTransition(None, start, end)
 
+    def __fromMGChoice (self, particles, start, end):
+        for p in particles:
+            self.addTransition(p, start, end)
+
     def fromModelGroup (self, group, start, end):
         if ModelGroup.C_ALL == group.compositor():
             return self.__fromMGAll(group.particles(), start, end)
@@ -222,6 +226,24 @@ class TestThompson (unittest.TestCase):
         self.assertFalse(nfa.isFullPath([ 'a', 'b' ]))
         self.assertTrue(nfa.isFullPath([ 'a', 'b', 'c' ]))
         self.assertFalse(nfa.isFullPath([ 'a', 'b', 'c', 'd' ]))
+
+    def testChoice1 (self):
+        seq = ModelGroup(ModelGroup.C_SEQUENCE, [ 'a' ])
+        t = Thompson(seq)
+        nfa = t.nfa()
+        self.assertFalse(nfa.isFullPath([ ]))
+        self.assertTrue(nfa.isFullPath([ 'a' ]))
+        self.assertFalse(nfa.isFullPath([ 'a', 'b' ]))
+
+    def testChoice3 (self):
+        seq = ModelGroup(ModelGroup.C_SEQUENCE, [ 'a', 'b', 'c' ])
+        t = Thompson(seq)
+        nfa = t.nfa()
+        self.assertFalse(nfa.isFullPath([ ]))
+        self.assertTrue(nfa.isFullPath([ 'a' ]))
+        self.assertTrue(nfa.isFullPath([ 'b' ]))
+        self.assertTrue(nfa.isFullPath([ 'c' ]))
+        self.assertFalse(nfa.isFullPath([ 'a', 'b' ]))
 
 
 '''
