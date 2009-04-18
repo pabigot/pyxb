@@ -219,13 +219,17 @@ class base64Binary (pywxsb.binding.basis.simpleTypeDefinition):
 
 _PrimitiveDatatypes.append(base64Binary)
 
-class anyURI (pywxsb.binding.basis.simpleTypeDefinition):
+class anyURI (pywxsb.binding.basis.simpleTypeDefinition, types.UnicodeType):
     _XsdBaseType = anySimpleType
     _Namespace = Namespace.XMLSchema
 
     @classmethod
     def XsdValueLength (cls, value):
         return len(value)
+
+    @classmethod
+    def XsdLiteral (cls, value):
+        return unicode(value)
 
 _PrimitiveDatatypes.append(anyURI)
 
