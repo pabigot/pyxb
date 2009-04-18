@@ -98,6 +98,83 @@ class FiniteAutomaton (dict):
                 return states
             states = new_states
 
+    def reverseTransitions (self):
+        reverse_map = { }
+        for state in self.keys():
+            transitions = self[state]
+            for key in transitions.keys():
+                [ reverse_map.setdefault(_s, {}).setdefault(key, set()).add(state) for _s in transitions[key] ]
+        #print reverse_map
+        return reverse_map
+
+    def minimizeDFA (self, final_states):
+        nonfinal_states = tuple(set(self.keys()).difference(set(final_states)))
+        alphabet = self.alphabet()
+        reverse_map = self.reverseTransitions()
+        work = set([ final_states, nonfinal_states ])
+        partition = work.copy()
+        while 0 < len(work):
+            states = set(work.pop())
+            #print 'State %s, partition %s' % (states, partition)
+            for key in alphabet:
+                sources = set()
+                [ sources.update(reverse_map.get(_s, {}).get(key, set())) for _s in states ]
+                new_partition = set()
+                for r in partition:
+                    rs = set(r)
+                    if (0 < len(sources.intersection(rs))) and (0 < len(rs.difference(sources))):
+                        r1 = tuple(rs.intersection(sources))
+                        r2 = tuple(rs.difference(r1))
+                        #print 'Split on %s: %s and %s' % (key, r1, r2)
+                        new_partition.add(r1)
+                        new_partition.add(r2)
+                        if r in work:
+                            work.remove(r)
+                            work.add(r1)
+                            work.add(r2)
+                        elif len(r1) <= len(r2):
+                            work.add(r1)
+                        else:
+                            work.add(r2)
+                    else:
+                        new_partition.add(r)
+                partition = new_partition
+        translate_map = { }
+        min_dfa = FiniteAutomaton()
+        for p in partition:
+            if self.start() in p:
+                new_state = min_dfa.start()
+            elif self.end() in p:
+                new_state = min_dfa.end()
+            else:
+                new_state = min_dfa.newState()
+            #print 'Convert %s to %s' % (p, new_state)
+            for max_state in p:
+                assert max_state not in translate_map
+                translate_map[max_state] = new_state
+
+        for f in final_states:
+            self.addTransition(None, f, self.end())
+        #print 'DFA: %s' % (self,)
+        for (state, transitions) in self.items():
+            for (key, destination) in transitions.items():
+                assert 1 == len(destination)
+                d = destination.copy().pop()
+                #print 'Old: %s via %s to %s\nNew: %s via %s to %s' % (state, key, d, translate_map[state], key, translate_map[d])
+                min_dfa.addTransition(key, translate_map[state], translate_map[d])
+
+        # Just in case self.start() and self.end() are in the same partition
+        min_dfa.addTransition(None, translate_map[self.end()], min_dfa.end())
+        #print 'Final added %d jump to %d' % (translate_map[self.end()], min_dfa.end())
+
+        #print 'DFA: %s' % (self,)
+        #print 'Start: %s' % (translate_map[self.start()],)
+        #print 'Final: %s' % (set([ translate_map[_s] for _s in final_states ]).pop(),)
+        #print 'Partition: %s' % (partition,)
+        #print 'Minimized: %s' % (min_dfa,)
+        #print "Resulting DFA:\n%s\n\n" % (min_dfa,)
+        return min_dfa
+        
     def buildDFA (self):
         """Build a deterministic finite automaton that accepts the
         same language as this one.
@@ -127,11 +204,11 @@ class FiniteAutomaton (dict):
                     if not dfa.ok(key, dfa_state, new_state):
                         changing = True
                         dfa.addTransition(key, dfa_state, new_state)
+        final_states = set()
         for (psi, dfa_state) in pset_to_state.items():
             if self.end() in psi:
-                dfa.addTransition(None, dfa_state, dfa.end())
-        #print "Resulting DFA:\n%s\n\n" % (dfa,)
-        return dfa
+                final_states.add(dfa_state)
+        return dfa.minimizeDFA(tuple(final_states))
 
     def __str__ (self):
         states = set(self.keys())
@@ -407,6 +484,19 @@ class TestFiniteAutomaton (unittest.TestCase):
         self.assertFalse(nfa.isFullPath(['a', 'a']))
         self.assertFalse(nfa.isFullPath(['b', 'a', 'b']))
         self.assertFalse(nfa.isFullPath(['a', 'b', 'a']))
+
+    def testDFA (self):
+        nfa = FiniteAutomaton()
+        q1 = nfa.newState()
+        nfa.addTransition(None, nfa.start(), q1)
+        nfa.addTransition('a', q1, q1)
+        nfa.addTransition('b', q1, q1)
+        q2 = nfa.newState()
+        nfa.addTransition('a', q1, q2)
+        q3 = nfa.newState()
+        nfa.addTransition('b', q2, q3)
+        nfa.addTransition('b', q3, nfa.end())
+        dfa = nfa.buildDFA()
 
 class TestPermutations (unittest.TestCase):
     def testPermutations (self):
