@@ -49,11 +49,6 @@ class FiniteAutomaton (dict):
         destination on key."""
         return destination in self[source].get(key, set())
 
-    def oneStep (self, origin, key):
-        """Return the set of states reachable by one transition of key
-        from the given origin."""
-        return self.setdefault(origin, {}).get(key, set())
-
     def addSubAutomaton (self, nfa):
         """Copy the given automaton into this one.  Returns a pair of
         the start and end states of the copied sub-automaton."""
@@ -68,6 +63,7 @@ class FiniteAutomaton (dict):
         return (nfa_base_id+nfa.start(), nfa_base_id+nfa.end())
 
     def alphabet (self):
+        """Determine the keys that allow transitions in the automaton."""
         elements = set()
         for k in self.keys():
             transitions = self[k]
@@ -75,40 +71,14 @@ class FiniteAutomaton (dict):
         elements.discard(None)
         return elements
     
-    def canReach (self, key, origin=None):
-        """Return the set of nodes that can be reached from any state
-        in origin with any number of epsilon moves and exactly one key
-        move.  If no origin is provided, the automaton start state is
-        used."""
-        if origin is None:
-            origin = [ self.start() ]
-        if not isinstance(origin, (list, set, frozenset)):
-            origin = [ origin ]
-        eps_moves = set(origin)
-        key_moves = set()
-
-        last_eps_moves = None
-        last_key_moves = None
-
-        while ((last_eps_moves != eps_moves) or (last_key_moves != key_moves)):
-            last_eps_moves = eps_moves.copy()
-            last_key_moves = key_moves.copy()
-            for source in eps_moves:
-                eps_moves = eps_moves.union(self.oneStep(source, None))
-                key_moves = key_moves.union(self.oneStep(source, key))
-            for source in last_key_moves:
-                key_moves = key_moves.union(self.oneStep(source, None))
-        return key_moves
-        
     def isFullPath (self, steps):
         """Return True iff the automaton can be traversed from start
         to end following the given steps, including arbitrary epsilon
         moves."""
-        reaches = set( [self.start()] )
+        reaches = self.epsilonClosure([self.start()])
         #print 'Starting full path from %s\n%s\n' % (reaches, self)
         for s in steps:
-            reaches = self.canReach(s, reaches)
-            #print 'Add %s reaches %s' % (s, reaches)
+            reaches = self.epsilonClosure(self.move(reaches, s))
         return self.end() in reaches
 
     def move (self, states, key):
@@ -298,50 +268,44 @@ class TestThompson (unittest.TestCase):
     def testParticleOne (self):
         t = Thompson(Particle(1,1,'a'))
         for nfa in (t.nfa(), t.nfa().buildDFA()):
-            self.assertFalse(nfa.end() in nfa.canReach(None, nfa.start()))
-            self.assertTrue(nfa.end() in nfa.canReach('a', nfa.start()))
-            self.assertFalse(nfa.end() in nfa.canReach('a', nfa.canReach('a')))
+            self.assertFalse(nfa.isFullPath([]))
+            self.assertTrue(nfa.isFullPath(['a']))
+            self.assertFalse(nfa.isFullPath(['a', 'a']))
 
     def testParticleOptional (self):
         t = Thompson(Particle(0,1,'a'))
         for nfa in (t.nfa(), t.nfa().buildDFA()):
-            self.assertTrue(nfa.end() in nfa.canReach(None, nfa.start()))
-            self.assertTrue(nfa.end() in nfa.canReach('a', nfa.start()))
-            self.assertFalse(nfa.end() in nfa.canReach('a', nfa.canReach('a')))
+            self.assertTrue(nfa.isFullPath([]))
+            self.assertTrue(nfa.isFullPath(['a']))
+            self.assertFalse(nfa.isFullPath(['a', 'a']))
 
     def testParticleAny (self):
         t = Thompson(Particle(0,None,'a'))
         for nfa in (t.nfa(), t.nfa().buildDFA()):
-            self.assertTrue(nfa.end() in nfa.canReach(None, nfa.start()))
-            self.assertTrue(nfa.end() in nfa.canReach('a', nfa.start()))
-            reaches = [ nfa.start() ]
+            self.assertTrue(nfa.isFullPath([]))
+            self.assertTrue(nfa.isFullPath(['a']))
             for rep in range(0, 10):
-                reaches = nfa.canReach('a', reaches)
-                self.assertTrue(nfa.end() in reaches)
+                self.assertTrue(nfa.isFullPath(rep * ['a']))
 
     def testParticle2Plus (self):
         particle = Particle(2, None, 'a')
         t = Thompson(particle)
         for nfa in (t.nfa(), t.nfa().buildDFA()):
-            reaches = [ nfa.start() ]
             for rep in range(1, 10):
-                reaches = nfa.canReach('a', reaches)
                 if particle.minOccurs() <= rep:
-                    self.assertTrue(nfa.end() in reaches)
+                    self.assertTrue(nfa.isFullPath(rep * ['a']))
                 else:
-                    self.assertFalse(nfa.end() in reaches)
+                    self.assertFalse(nfa.isFullPath(rep * ['a']))
 
     def testParticleSome (self):
         particle = Particle(3, 5, 'a')
         t = Thompson(particle)
         for nfa in (t.nfa(), t.nfa().buildDFA()):
-            reaches = [ nfa.start() ]
             for rep in range(1, 10):
-                reaches = nfa.canReach('a', reaches)
                 if (particle.minOccurs() <= rep) and (rep <= particle.maxOccurs()):
-                    self.assertTrue(nfa.end() in reaches)
+                    self.assertTrue(nfa.isFullPath(rep * ['a']))
                 else:
-                    self.assertFalse(nfa.end() in reaches)
+                    self.assertFalse(nfa.isFullPath(rep * ['a']))
 
     def testSequence1 (self):
         seq = ModelGroup(ModelGroup.C_SEQUENCE, [ 'a' ])
