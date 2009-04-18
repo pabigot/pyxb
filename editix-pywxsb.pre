@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<MyProject path="editix-pywxsb.pre">
+ <group path="schemas">
+  <item path="/home/pab/pywxsb/dev/tests/schemas/test-union.xsd" type="XSD" encoding="AUTOMATIC" open="false" test="true">
+   <property name="encoding" value="AUTOMATIC"/>
+  </item>
+  <item path="/home/pab/pywxsb/dev/tests/schemas/test-enum.xsd" type="XSD" encoding="AUTOMATIC" open="false" test="false">
+   <property name="encoding" value="AUTOMATIC"/>
+  </item>
+  <item path="/home/pab/pywxsb/dev/tests/schemas/test-ctd-attr.xsd" type="XSD" encoding="AUTOMATIC" open="true" test="true">
+   <property name="encoding" value="AUTOMATIC"/>
+  </item>
+  <item path="/home/pab/pywxsb/dev/tests/schemas/test-ambiguous.xsd" type="XSD" encoding="AUTOMATIC" open="false" test="true">
+   <property name="encoding" value="AUTOMATIC"/>
+  </item>
+
+ </group>
+ <group path="documents">
+  <group path="union">
+   <item path="/home/pab/pywxsb/dev/tests/documents/union/test-union-001.xml" type="XML" encoding="AUTOMATIC" open="false" test="true">
+    <property name="encoding" value="AUTOMATIC"/>
+   </item>
+
+  </group>
+
+ </group>
+
+</MyProject>
