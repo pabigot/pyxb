@@ -44,6 +44,24 @@ class NFA (dict):
     def oneStep (self, node, key):
         return self.setdefault(node, {}).get(key, set())
 
+    def removeState (self, state):
+        del self[state]
+        for transitions in self.values():
+            for target in transitions.values():
+                target.discard(state)
+
+    def addSubNFA (self, nfa):
+        nfa_base_id = self.__stateID+1
+        #print "Adding subnfa offset by %d:\n%s\n" % (nfa_base_id, nfa)
+        self.__stateID += len(nfa)
+        for sub_state in nfa.keys():
+            ssid = sub_state + nfa_base_id
+            ss_map = self.setdefault(ssid, {})
+            for key in nfa[sub_state]:
+                ss_map.setdefault(key, set())
+                ss_map[key] = ss_map[key].union(set([ (nfa_base_id+_i) for _i in nfa[sub_state][key]]))
+        return (nfa_base_id+nfa.start(), nfa_base_id+nfa.end())
+
     def canReach (self, key, start=None, with_epsilon=False):
         if start is None:
             start = [ self.start() ]
@@ -69,8 +87,10 @@ class NFA (dict):
         
     def isFullPath (self, steps):
         reaches = set( [self.start()] )
+        #print 'Starting full path from %s\n%s\n' % (reaches, self)
         for s in steps:
             reaches = self.canReach(s, reaches)
+            #print 'Add %s reaches %s' % (s, reaches)
         return self.end() in reaches
 
     def __str__ (self):
@@ -149,6 +169,22 @@ class Thompson:
     def __fromMGChoice (self, particles, start, end):
         for p in particles:
             self.addTransition(p, start, end)
+
+    def __fromMGAll (self, particles, start, end):
+        nfa = NFA()
+        nfa.addTransition(None, nfa.start(), nfa.end())
+        for p in particles:
+            next_nfa = NFA()
+            (sub_start, sub_end) = next_nfa.addSubNFA(nfa)
+            next_nfa.addTransition(p, next_nfa.start(), sub_start)
+            next_nfa.addTransition(None, sub_end, next_nfa.end())
+            (sub_start, sub_end) = next_nfa.addSubNFA(nfa)
+            next_nfa.addTransition(None, next_nfa.start(), sub_start)
+            next_nfa.addTransition(p, sub_end, next_nfa.end())
+            nfa = next_nfa
+        (sub_start, sub_end) = self.__nfa.addSubNFA(nfa)
+        self.addTransition(None, start, sub_start)
+        self.addTransition(None, sub_end, end)
 
     def fromModelGroup (self, group, start, end):
         if ModelGroup.C_ALL == group.compositor():
@@ -244,6 +280,55 @@ class TestThompson (unittest.TestCase):
         self.assertTrue(nfa.isFullPath([ 'b' ]))
         self.assertTrue(nfa.isFullPath([ 'c' ]))
         self.assertFalse(nfa.isFullPath([ 'a', 'b' ]))
+
+    def testAll1 (self):
+        seq = ModelGroup(ModelGroup.C_ALL, [ 'a' ])
+        t = Thompson(seq)
+        nfa = t.nfa()
+        self.assertFalse(nfa.isFullPath([ ]))
+        self.assertTrue(nfa.isFullPath([ 'a' ]))
+        self.assertFalse(nfa.isFullPath([ 'a', 'a' ]))
+
+    def testAll2 (self):
+        seq = ModelGroup(ModelGroup.C_ALL, [ 'a', 'b' ])
+        t = Thompson(seq)
+        nfa = t.nfa()
+        self.assertFalse(nfa.isFullPath([ ]))
+        self.assertFalse(nfa.isFullPath([ 'a' ]))
+        self.assertFalse(nfa.isFullPath([ 'a', 'a' ]))
+        self.assertTrue(nfa.isFullPath([ 'a', 'b' ]))
+        self.assertTrue(nfa.isFullPath([ 'b', 'a' ]))
+        self.assertFalse(nfa.isFullPath([ 'a', 'b', 'a' ]))
+        self.assertFalse(nfa.isFullPath([ 'b', 'a', 'b' ]))
+
+class TestNFA (unittest.TestCase):
+    def testSubNFA (self):
+        subnfa = NFA()
+        subnfa.addTransition('a', subnfa.start(), subnfa.end())
+        nfa = NFA()
+        ( start, end ) = nfa.addSubNFA(subnfa)
+        nfa.addTransition('b', nfa.start(), start)
+        nfa.addTransition('c', end, nfa.end())
+        self.assertFalse(nfa.isFullPath([ ]))
+        self.assertTrue(nfa.isFullPath(['b', 'a', 'c']))
+
+    def testSubNFA (self):
+        subnfa = NFA()
+        subnfa.addTransition('a', subnfa.start(), subnfa.end())
+        nfa = NFA()
+        ( start, end ) = nfa.addSubNFA(subnfa)
+        nfa.addTransition('b', nfa.start(), start)
+        nfa.addTransition(None, end, nfa.end())
+        ( start, end ) = nfa.addSubNFA(subnfa)
+        nfa.addTransition(None, nfa.start(), start)
+        nfa.addTransition('b', end, nfa.end())
+
+        self.assertFalse(nfa.isFullPath([ ]))
+        self.assertTrue(nfa.isFullPath(['b', 'a']))
+        self.assertTrue(nfa.isFullPath(['a', 'b']))
+        self.assertFalse(nfa.isFullPath(['a', 'a']))
+        self.assertFalse(nfa.isFullPath(['b', 'a', 'b']))
+        self.assertFalse(nfa.isFullPath(['a', 'b', 'a']))
 
 
 '''
