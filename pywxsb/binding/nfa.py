@@ -1,23 +1,23 @@
 import unittest
 from content import *
 
-class Element (object):
-    __name = None
-
-    def __init__ (self, name):
-        self.__name = name
-
-    def name (self): return self.__name
-
-    def __str__ (self): return self.name()
-
-
 # Represent state transitions as a map from states to maps from
 # symbols to sets of states.  States are integers.
 
 class FiniteAutomaton (dict):
+    """Represent a finite automaton.
+
+    States are integers.  The start and end state are distinguished.
+    Transitions are by value; the value None represents an epsilon
+    transition."""
+
+    # A unique identifier used for creating states
     __stateID = -1
+
+    # The state serving as the automaton start.
     __start = None
+
+    # The state serving as the automaton end.
     __end = None
 
     def __init__ (self):
@@ -25,34 +25,39 @@ class FiniteAutomaton (dict):
         self.__start = self.newState()
 
     def newState (self):
+        """Create a new node in the automaton.  No transitions are added."""
         self.__stateID += 1
         self.setdefault(self.__stateID, {})
         return self.__stateID
 
-    def start (self): return self.__start
+    def start (self):
+        """Obtain the start node of the automaton."""
+        return self.__start
 
-    def end (self): return self.__end
+    def end (self):
+        """Obtain the end node of the automaton."""
+        return self.__end
 
-    def addTransition (self, key, start, end):
-        assert end is not None
-        self.setdefault(start, {}).setdefault(key, set()).add(end)
+    def addTransition (self, key, source, destination):
+        """Add a transition on key from the source state to the destination state."""
+        assert destination is not None
+        self.setdefault(source, {}).setdefault(key, set()).add(destination)
         return self
 
-    def ok (self, key, start, end):
-        return end in self[start].get(key, set())
+    def ok (self, key, source, destination):
+        """Return True iff the automaton can transition from source to
+        destination on key."""
+        return destination in self[source].get(key, set())
 
-    def oneStep (self, node, key):
-        return self.setdefault(node, {}).get(key, set())
-
-    def removeState (self, state):
-        del self[state]
-        for transitions in self.values():
-            for target in transitions.values():
-                target.discard(state)
+    def oneStep (self, origin, key):
+        """Return the set of states reachable by one transition of key
+        from the given origin."""
+        return self.setdefault(origin, {}).get(key, set())
 
     def addSubAutomaton (self, nfa):
+        """Copy the given automaton into this one.  Returns a pair of
+        the start and end states of the copied sub-automaton."""
         nfa_base_id = self.__stateID+1
-        #print "Adding subnfa offset by %d:\n%s\n" % (nfa_base_id, nfa)
         self.__stateID += len(nfa)
         for sub_state in nfa.keys():
             ssid = sub_state + nfa_base_id
@@ -62,12 +67,15 @@ class FiniteAutomaton (dict):
                 ss_map[key] = ss_map[key].union(set([ (nfa_base_id+_i) for _i in nfa[sub_state][key]]))
         return (nfa_base_id+nfa.start(), nfa_base_id+nfa.end())
 
-    def canReach (self, key, start=None, with_epsilon=False):
-        if start is None:
-            start = [ self.start() ]
-        if not isinstance(start, (list, set, frozenset)):
-            start = [ start ]
-        eps_moves = set(start)
+    def canReach (self, key, origin=None):
+        """Return the set of nodes that can be reached from origin
+        with any number of epsilon moves and exactly one key move.  If
+        no origin is provided, the automaton start state is used."""
+        if origin is None:
+            origin = [ self.start() ]
+        if not isinstance(origin, (list, set, frozenset)):
+            origin = [ origin ]
+        eps_moves = set(origin)
         key_moves = set()
 
         last_eps_moves = None
@@ -76,16 +84,17 @@ class FiniteAutomaton (dict):
         while ((last_eps_moves != eps_moves) or (last_key_moves != key_moves)):
             last_eps_moves = eps_moves.copy()
             last_key_moves = key_moves.copy()
-            for start in eps_moves:
-                eps_moves = eps_moves.union(self.oneStep(start, None))
-                key_moves = key_moves.union(self.oneStep(start, key))
-            for start in last_key_moves:
-                key_moves = key_moves.union(self.oneStep(start, None))
-        if with_epsilon:
-            return eps_moves.union(key_moves)
+            for source in eps_moves:
+                eps_moves = eps_moves.union(self.oneStep(source, None))
+                key_moves = key_moves.union(self.oneStep(source, key))
+            for source in last_key_moves:
+                key_moves = key_moves.union(self.oneStep(source, None))
         return key_moves
         
     def isFullPath (self, steps):
+        """Return True iff the automaton can be traversed from start
+        to end following the given steps, including arbitrary epsilon
+        moves."""
         reaches = set( [self.start()] )
         #print 'Starting full path from %s\n%s\n' % (reaches, self)
         for s in steps:
@@ -104,42 +113,73 @@ class FiniteAutomaton (dict):
         states = list(states)
         states.sort()
         strings = []
-        for start in states:
-            if start == self.end():
-                strings.append('%s terminates' % (start,))
+        for source in states:
+            if source == self.end():
+                strings.append('%s terminates' % (source,))
                 continue
-            transitions = self[start]
+            transitions = self[source]
             if 0 == len(transitions):
-                strings.append('%s dead-ends' % (start,))
+                strings.append('%s dead-ends' % (source,))
                 continue
             for step in transitions.keys():
-                strings.append('%s via %s to %s' % (start, step, ' '.join([ str(_s) for _s in transitions[step]])))
+                strings.append('%s via %s to %s' % (source, step, ' '.join([ str(_s) for _s in transitions[step]])))
         return "\n".join(strings)
 
-class Thompson:
-    """Create a NFA from a content model."""
+def _Permutations (particles):
+    if 1 == len(particles):
+        yield tuple(particles)
+    else:
+        for i in range(len(particles)):
+            this = particles[i]
+            rest = particles[:i] + particles[i+1:]
+            for p in _Permutations(rest):
+                yield (this,) + p
 
+class Thompson:
+    """Create a NFA from a content model.  Reminiscent of Thompson's
+    algorithm for creating an NFA from a regular expression."""
+
+    # The NFA 
     __nfa = None
 
-    def nfa (self): return self.__nfa
+    def nfa (self):
+        return self.__nfa
 
-    def __init__ (self, term):
+    def __init__ (self, term=None):
         self.__nfa = FiniteAutomaton()
-        self.addTransition(term, self.__nfa.start(), self.__nfa.end())
+        if term is not None:
+            self.addTransition(term, self.__nfa.start(), self.__nfa.end())
 
-    def addTransition (self, element, start, end):
-        if isinstance(element, Particle):
-            return self.fromParticle(element, start, end)
-        if isinstance(element, ModelGroup):
-            return self.fromModelGroup(element, start, end)
-        self.__nfa.addTransition(element, start, end)
+    def addTransition (self, term, start, end):
+        """Interpret the term and update the NFA to support a path
+        from start to end that is consistent with the term.
 
-    def fromParticle (self, particle, start, end):
+        Particles express looping operations with minimum and maximum
+        iteration counts.
+
+        Model groups express control structures: ordered and unordered
+        sequences, and alternatives.
+
+        Anything else is assumed to be a character in the automaton
+        alphabet.
+        """
+        if isinstance(term, Particle):
+            return self.__fromParticle(term, start, end)
+        if isinstance(term, ModelGroup):
+            return self.__fromModelGroup(term, start, end)
+        self.__nfa.addTransition(term, start, end)
+
+    def __fromParticle (self, particle, start, end):
+        """Add transitions to interpret the particle."""
+
         #print '# %d to %s of %s' % (particle.minOccurs(), particle.maxOccurs(), particle.term())
 
+        # If possible, epsilon transition straight from start to end.
         if 0 == particle.minOccurs():
             self.addTransition(None, start, end)
 
+        # Add term transitions from start through the minimum number
+        # of instances of the term.
         cur_start = next_end = start
         for step in range(0, particle.minOccurs()):
             cur_start = next_end
@@ -147,19 +187,25 @@ class Thompson:
             self.addTransition(particle.term(), cur_start, next_end)
 
         if None is particle.maxOccurs():
+            # Add a back loop to repeat the last instance of the term
+            # (creating said instance, if we haven't already)
             if next_end == start:
                 self.addTransition(particle.term(), start, end)
                 next_end = end
             self.addTransition(None, next_end, cur_start)
         else:
+            # Add additional terms up to the maximum, with a short-cut
+            # exit for those above the minOccurs value.
             for step in range(particle.minOccurs(), particle.maxOccurs()):
                 cur_start = next_end
                 next_end = self.__nfa.newState()
                 self.addTransition(None, cur_start, end)
                 self.addTransition(particle.term(), cur_start, next_end)
+        # Leave the sub-FA
         self.addTransition(None, next_end, end)
 
     def __fromMGSequence (self, particles, start, end):
+        # Just step from one to the next
         for p in particles:
             next_state = self.__nfa.newState()
             self.addTransition(p, start, next_state)
@@ -167,26 +213,17 @@ class Thompson:
         self.addTransition(None, start, end)
 
     def __fromMGChoice (self, particles, start, end):
+        # Trivial: start to end for each possibility
         for p in particles:
             self.addTransition(p, start, end)
 
     def __fromMGAll (self, particles, start, end):
-        nfa = FiniteAutomaton()
-        nfa.addTransition(None, nfa.start(), nfa.end())
-        for p in particles:
-            next_nfa = FiniteAutomaton()
-            (sub_start, sub_end) = next_nfa.addSubAutomaton(nfa)
-            next_nfa.addTransition(p, next_nfa.start(), sub_start)
-            next_nfa.addTransition(None, sub_end, next_nfa.end())
-            (sub_start, sub_end) = next_nfa.addSubAutomaton(nfa)
-            next_nfa.addTransition(None, next_nfa.start(), sub_start)
-            next_nfa.addTransition(p, sub_end, next_nfa.end())
-            nfa = next_nfa
-        (sub_start, sub_end) = self.__nfa.addSubAutomaton(nfa)
-        self.addTransition(None, start, sub_start)
-        self.addTransition(None, sub_end, end)
+        # Brute force: start to end for each possibility
+        for possibility in _Permutations(particles):
+            self.__fromMGSequence(possibility, start, end)
 
-    def fromModelGroup (self, group, start, end):
+    def __fromModelGroup (self, group, start, end):
+        # Do the right thing based on the model group compositor
         if ModelGroup.C_ALL == group.compositor():
             return self.__fromMGAll(group.particles(), start, end)
         if ModelGroup.C_CHOICE == group.compositor():
@@ -301,6 +338,22 @@ class TestThompson (unittest.TestCase):
         self.assertFalse(nfa.isFullPath([ 'a', 'b', 'a' ]))
         self.assertFalse(nfa.isFullPath([ 'b', 'a', 'b' ]))
 
+    def testAll3 (self):
+        seq = ModelGroup(ModelGroup.C_ALL, [ 'a', 'b', 'c' ])
+        t = Thompson(seq)
+        nfa = t.nfa()
+        self.assertFalse(nfa.isFullPath([ ]))
+        self.assertFalse(nfa.isFullPath([ 'a' ]))
+        self.assertFalse(nfa.isFullPath([ 'a', 'a' ]))
+        self.assertFalse(nfa.isFullPath([ 'a', 'b' ]))
+        self.assertFalse(nfa.isFullPath([ 'b', 'a' ]))
+        self.assertTrue(nfa.isFullPath([ 'a', 'b', 'c' ]))
+        self.assertTrue(nfa.isFullPath([ 'a', 'c', 'b' ]))
+        self.assertTrue(nfa.isFullPath([ 'b', 'a', 'c' ]))
+        self.assertTrue(nfa.isFullPath([ 'b', 'c', 'a' ]))
+        self.assertTrue(nfa.isFullPath([ 'c', 'a', 'b' ]))
+        self.assertTrue(nfa.isFullPath([ 'c', 'b', 'a' ]))
+
 class TestFiniteAutomaton (unittest.TestCase):
     def testSubAutomaton (self):
         subnfa = FiniteAutomaton()
@@ -330,24 +383,25 @@ class TestFiniteAutomaton (unittest.TestCase):
         self.assertFalse(nfa.isFullPath(['b', 'a', 'b']))
         self.assertFalse(nfa.isFullPath(['a', 'b', 'a']))
 
+class TestPermutations (unittest.TestCase):
+    def testPermutations (self):
+        p1 = set(_Permutations(['a']))
+        self.assertEqual(1, len(p1))
 
-'''
-a = Element('a')
+        p2 = set(_Permutations(['a', 'b']))
+        self.assertEqual(2, len(p2))
+        self.assertTrue(('a', 'b') in p2)
+        self.assertTrue(('b', 'a') in p2)
 
-t = Thompson(a)
-ex = Particle(1, 1, a)
-Thompson(Particle(1, 1, a))
-Thompson(Particle(0, 1, a))
-Thompson(Particle(1, 2, a))
-Thompson(Particle(3, 5, a))
-Thompson(Particle(2, None, a))
-ex = Particle(0, 1, a)
-ex = Particle(2, 5, a)
-ex = Particle(2, None, a)
+        p3 = set(_Permutations(['a', 'b', 'c']))
+        self.assertEqual(6, len(p3))
+        self.assertTrue(('a', 'b', 'c') in p3)
+        self.assertTrue(('a', 'c', 'b') in p3)
+        self.assertTrue(('b', 'a', 'c') in p3)
+        self.assertTrue(('b', 'c', 'a') in p3)
+        self.assertTrue(('c', 'a', 'b') in p3)
+        self.assertTrue(('c', 'b', 'a') in p3)
 
-ex = Particle(1, 1, ModelGroup(ModelGroup.C_SEQUENCE, [ Particle(1,1,'a'), Particle(1,1,'b')]))
-'''
 if __name__ == '__main__':
-    #Thompson(Particle(0,None,'a'))
     unittest.main()
     
