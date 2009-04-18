@@ -228,7 +228,7 @@ class TestThompson (unittest.TestCase):
         self.assertFalse(nfa.isFullPath([ 'a', 'b', 'c', 'd' ]))
 
     def testChoice1 (self):
-        seq = ModelGroup(ModelGroup.C_SEQUENCE, [ 'a' ])
+        seq = ModelGroup(ModelGroup.C_CHOICE, [ 'a' ])
         t = Thompson(seq)
         nfa = t.nfa()
         self.assertFalse(nfa.isFullPath([ ]))
@@ -236,7 +236,7 @@ class TestThompson (unittest.TestCase):
         self.assertFalse(nfa.isFullPath([ 'a', 'b' ]))
 
     def testChoice3 (self):
-        seq = ModelGroup(ModelGroup.C_SEQUENCE, [ 'a', 'b', 'c' ])
+        seq = ModelGroup(ModelGroup.C_CHOICE, [ 'a', 'b', 'c' ])
         t = Thompson(seq)
         nfa = t.nfa()
         self.assertFalse(nfa.isFullPath([ ]))

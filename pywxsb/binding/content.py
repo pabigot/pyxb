@@ -362,10 +362,6 @@ class ModelGroup (object):
     def _setContent (self, compositor, particles):
         self.__compositor = compositor
         self.__particles = particles
-        # Particle lists that might be involved in a choice are sorted
-        # for greedy matching.
-        if self.compositor() in (self.C_ALL, self.C_CHOICE):
-            self.__particles.sort(lambda _x,_y: -cmp(_x.minOccurs(), _y.minOccurs()))
 
     def __init__ (self, compositor=C_INVALID, particles=None):
         self._setContent(compositor, particles)
