@@ -8,6 +8,8 @@ import pywxsb.utils.templates as templates
 import pywxsb.binding
 import pywxsb.Namespace as Namespace
 
+import nfa
+
 import types
 import sys
 import traceback
@@ -128,6 +130,7 @@ class ReferenceSchemaComponent (ReferenceLiteral):
         , Namespace.XMLSchemaModule().structures.ComplexTypeDefinition: 'CTD'
         , Namespace.XMLSchemaModule().structures.ElementDeclaration: 'ED'
         , Namespace.XMLSchemaModule().structures.ModelGroup: 'MG'
+        , Namespace.XMLSchemaModule().structures.Wildcard: 'WC'
         }
 
     def __init__ (self, component, **kw):
@@ -308,6 +311,9 @@ def pythonLiteral (value, **kw):
     if isinstance(value, (types.NoneType, types.BooleanType, types.FloatType, types.IntType, types.LongType)):
         return repr(value)
 
+    if isinstance(value, nfa.AllWalker):
+        return repr(None)
+
     raise Exception('Unexpected literal type %s' % (type(value),))
     print 'Unexpected literal type %s' % (type(value),)
     return str(value)
@@ -478,6 +484,7 @@ class %{ctd} (%{superclasses}):
 class %{ctd} (%{superclasses}):
 '''
 
+
     # Complex types that inherit from non-ur-type complex types should
     # have their base type as their Python superclass, so pre-existing
     # elements and attributes can be re-used.
@@ -501,6 +508,28 @@ class %{ctd} (%{superclasses}):
     definitions = []
 
     definitions.append('# Base type is %{base_type}')
+
+    if isinstance(content_basis, pywxsb.xmlschema.structures.Particle):
+        print 'Building FA for %s' % (ctd.name(),)
+        fa = nfa.Thompson(content_basis).nfa()
+        print "Non-deterministic FA for %s:\n%s\n\n" % (ctd.name(), fa)
+        fa = fa.buildDFA()
+        print "Minimized deterministic FA for %s:\n%s\n\n" % (ctd.name(), fa)
+        wildcard_map = { }
+        output = []
+        for i in range(len(fa)):
+            output.append('# state[%d] = { ' % (i,))
+            for (key, destination_set) in fa[i].items():
+                assert 1 == len(destination_set)
+                if isinstance(key, pywxsb.xmlschema.structures.Wildcard):
+                    if not key in wildcard_map:
+                        wildcard_map[key] = pythonLiteral(key, **kw)
+                    ref = ReferenceSchemaComponent(key, **kw).asLiteral()
+                else:
+                    ref = pythonLiteral(key, **kw)
+                output.append("#    %s : %d" % (ref, destination_set.pop()))
+            output.append('#    }')
+        definitions.append("\n".join(output))
 
     # Deconflict elements first, attributes are lower priority.
     # Expectation is that all elements that have the same tag in the
