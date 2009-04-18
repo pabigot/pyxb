@@ -15,7 +15,7 @@ class Element (object):
 # Represent state transitions as a map from states to maps from
 # symbols to sets of states.  States are integers.
 
-class NFA (dict):
+class FiniteAutomaton (dict):
     __stateID = -1
     __start = None
     __end = None
@@ -50,7 +50,7 @@ class NFA (dict):
             for target in transitions.values():
                 target.discard(state)
 
-    def addSubNFA (self, nfa):
+    def addSubAutomaton (self, nfa):
         nfa_base_id = self.__stateID+1
         #print "Adding subnfa offset by %d:\n%s\n" % (nfa_base_id, nfa)
         self.__stateID += len(nfa)
@@ -124,7 +124,7 @@ class Thompson:
     def nfa (self): return self.__nfa
 
     def __init__ (self, term):
-        self.__nfa = NFA()
+        self.__nfa = FiniteAutomaton()
         self.addTransition(term, self.__nfa.start(), self.__nfa.end())
 
     def addTransition (self, element, start, end):
@@ -171,18 +171,18 @@ class Thompson:
             self.addTransition(p, start, end)
 
     def __fromMGAll (self, particles, start, end):
-        nfa = NFA()
+        nfa = FiniteAutomaton()
         nfa.addTransition(None, nfa.start(), nfa.end())
         for p in particles:
-            next_nfa = NFA()
-            (sub_start, sub_end) = next_nfa.addSubNFA(nfa)
+            next_nfa = FiniteAutomaton()
+            (sub_start, sub_end) = next_nfa.addSubAutomaton(nfa)
             next_nfa.addTransition(p, next_nfa.start(), sub_start)
             next_nfa.addTransition(None, sub_end, next_nfa.end())
-            (sub_start, sub_end) = next_nfa.addSubNFA(nfa)
+            (sub_start, sub_end) = next_nfa.addSubAutomaton(nfa)
             next_nfa.addTransition(None, next_nfa.start(), sub_start)
             next_nfa.addTransition(p, sub_end, next_nfa.end())
             nfa = next_nfa
-        (sub_start, sub_end) = self.__nfa.addSubNFA(nfa)
+        (sub_start, sub_end) = self.__nfa.addSubAutomaton(nfa)
         self.addTransition(None, start, sub_start)
         self.addTransition(None, sub_end, end)
 
@@ -301,25 +301,25 @@ class TestThompson (unittest.TestCase):
         self.assertFalse(nfa.isFullPath([ 'a', 'b', 'a' ]))
         self.assertFalse(nfa.isFullPath([ 'b', 'a', 'b' ]))
 
-class TestNFA (unittest.TestCase):
-    def testSubNFA (self):
-        subnfa = NFA()
+class TestFiniteAutomaton (unittest.TestCase):
+    def testSubAutomaton (self):
+        subnfa = FiniteAutomaton()
         subnfa.addTransition('a', subnfa.start(), subnfa.end())
-        nfa = NFA()
-        ( start, end ) = nfa.addSubNFA(subnfa)
+        nfa = FiniteAutomaton()
+        ( start, end ) = nfa.addSubAutomaton(subnfa)
         nfa.addTransition('b', nfa.start(), start)
         nfa.addTransition('c', end, nfa.end())
         self.assertFalse(nfa.isFullPath([ ]))
         self.assertTrue(nfa.isFullPath(['b', 'a', 'c']))
 
-    def testSubNFA (self):
-        subnfa = NFA()
+    def testSubAutomaton (self):
+        subnfa = FiniteAutomaton()
         subnfa.addTransition('a', subnfa.start(), subnfa.end())
-        nfa = NFA()
-        ( start, end ) = nfa.addSubNFA(subnfa)
+        nfa = FiniteAutomaton()
+        ( start, end ) = nfa.addSubAutomaton(subnfa)
         nfa.addTransition('b', nfa.start(), start)
         nfa.addTransition(None, end, nfa.end())
-        ( start, end ) = nfa.addSubNFA(subnfa)
+        ( start, end ) = nfa.addSubAutomaton(subnfa)
         nfa.addTransition(None, nfa.start(), start)
         nfa.addTransition('b', end, nfa.end())
 
