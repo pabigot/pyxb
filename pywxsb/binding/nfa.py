@@ -67,6 +67,12 @@ class NFA (dict):
             return eps_moves.union(key_moves)
         return key_moves
         
+    def isFullPath (self, steps):
+        reaches = set( [self.start()] )
+        for s in steps:
+            reaches = self.canReach(s, reaches)
+        return self.end() in reaches
+
     def __str__ (self):
         states = set(self.keys())
         elements = set()
@@ -99,13 +105,13 @@ class Thompson:
 
     def __init__ (self, term):
         self.__nfa = NFA()
-        self.fromTerm(term, self.__nfa.start(), self.__nfa.end())
-
-    def fromElement (self, element, start, end):
-        self.addTransition(element, start, end)
-        return self
+        self.addTransition(term, self.__nfa.start(), self.__nfa.end())
 
     def addTransition (self, element, start, end):
+        if isinstance(element, Particle):
+            return self.fromParticle(element, start, end)
+        if isinstance(element, ModelGroup):
+            return self.fromModelGroup(element, start, end)
         self.__nfa.addTransition(element, start, end)
 
     def fromParticle (self, particle, start, end):
@@ -133,10 +139,21 @@ class Thompson:
                 self.addTransition(particle.term(), cur_start, next_end)
         self.addTransition(None, next_end, end)
 
-    def fromTerm (self, term, start, end):
-        if isinstance(term, Particle):
-            return self.fromParticle(term, start, end)
-        return self.fromElement(term, start, end)
+    def __fromMGSequence (self, particles, start, end):
+        for p in particles:
+            next_state = self.__nfa.newState()
+            self.addTransition(p, start, next_state)
+            start = next_state
+        self.addTransition(None, start, end)
+
+    def fromModelGroup (self, group, start, end):
+        if ModelGroup.C_ALL == group.compositor():
+            return self.__fromMGAll(group.particles(), start, end)
+        if ModelGroup.C_CHOICE == group.compositor():
+            return self.__fromMGChoice(group.particles(), start, end)
+        if ModelGroup.C_SEQUENCE == group.compositor():
+            return self.__fromMGSequence(group.particles(), start, end)
+        assert False
 
 class TestThompson (unittest.TestCase):
 
@@ -187,6 +204,24 @@ class TestThompson (unittest.TestCase):
                 self.assertTrue(nfa.end() in reaches)
             else:
                 self.assertFalse(nfa.end() in reaches)
+
+    def testSequence1 (self):
+        seq = ModelGroup(ModelGroup.C_SEQUENCE, [ 'a' ])
+        t = Thompson(seq)
+        nfa = t.nfa()
+        self.assertFalse(nfa.isFullPath([ ]))
+        self.assertTrue(nfa.isFullPath([ 'a' ]))
+        self.assertFalse(nfa.isFullPath([ 'a', 'b' ]))
+
+    def testSequence3 (self):
+        seq = ModelGroup(ModelGroup.C_SEQUENCE, [ 'a', 'b', 'c' ])
+        t = Thompson(seq)
+        nfa = t.nfa()
+        self.assertFalse(nfa.isFullPath([ ]))
+        self.assertFalse(nfa.isFullPath([ 'a' ]))
+        self.assertFalse(nfa.isFullPath([ 'a', 'b' ]))
+        self.assertTrue(nfa.isFullPath([ 'a', 'b', 'c' ]))
+        self.assertFalse(nfa.isFullPath([ 'a', 'b', 'c', 'd' ]))
 
 
 '''
