@@ -173,7 +173,6 @@ class FiniteAutomaton (dict):
         #print 'Partition: %s' % (partition,)
         #print 'Minimized: %s' % (min_dfa,)
         #print "Resulting DFA:\n%s\n\n" % (min_dfa,)
-        #print 'Minimal DFA has %d states, original had %d' % (len(min_dfa), len(self))
         return min_dfa
         
     def buildDFA (self):
@@ -272,7 +271,6 @@ class Thompson:
         Anything else is assumed to be a character in the automaton
         alphabet.
         """
-        print 'Thompson from %s type %s' % (term, type(term))
         if isinstance(term, Particle):
             return self.__fromParticle(term, start, end)
         if isinstance(term, ModelGroup):
@@ -282,7 +280,7 @@ class Thompson:
     def __fromParticle (self, particle, start, end):
         """Add transitions to interpret the particle."""
 
-        print '# %d to %s of %s' % (particle.minOccurs(), particle.maxOccurs(), particle.term())
+        #print '# %d to %s of %s' % (particle.minOccurs(), particle.maxOccurs(), particle.term())
 
         # If possible, epsilon transition straight from start to end.
         if 0 == particle.minOccurs():

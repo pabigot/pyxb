@@ -8,8 +8,6 @@ import pywxsb.utils.templates as templates
 import pywxsb.binding
 import pywxsb.Namespace as Namespace
 
-import nfa
-
 import types
 import sys
 import traceback
@@ -479,12 +477,6 @@ class %{ctd} (%{superclasses}):
 # Complex type %{ctd} with element-only content
 class %{ctd} (%{superclasses}):
 '''
-
-    if isinstance(content_basis, pywxsb.xmlschema.structures.Particle):
-        fa = nfa.Thompson(content_basis).nfa()
-        print fa
-        sys.exit(1)
-
 
     # Complex types that inherit from non-ur-type complex types should
     # have their base type as their Python superclass, so pre-existing
