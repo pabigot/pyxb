@@ -1,5 +1,7 @@
-import unittest
-from content import *
+#import unittest
+#from pywxsb.binding.content import Particle, ModelGroup
+
+from pywxsb.xmlschema.structures import Particle, ModelGroup
 
 # Represent state transitions as a map from states to maps from
 # symbols to sets of states.  States are integers.
@@ -173,6 +175,7 @@ class FiniteAutomaton (dict):
         #print 'Partition: %s' % (partition,)
         #print 'Minimized: %s' % (min_dfa,)
         #print "Resulting DFA:\n%s\n\n" % (min_dfa,)
+        #print 'Minimal DFA has %d states, original had %d' % (len(min_dfa), len(self))
         return min_dfa
         
     def buildDFA (self):
@@ -195,6 +198,9 @@ class FiniteAutomaton (dict):
                 for key in alphabet:
                     assert key is not None
                     ns = tuple(self.epsilonClosure(self.move(psi, key)))
+                    if 0 == len(ns):
+                        #print 'From %s via %s is dead' % (psi, key)
+                        continue
                     #print 'From %s via %s can reach %s' % (psi, key, ns)
                     new_state = pset_to_state.get(ns, None)
                     if new_state is None:
@@ -243,6 +249,17 @@ def _Permutations (particles):
             for p in _Permutations(rest):
                 yield (this,) + p
 
+class AllWalker (object):
+    """A list of minimized DFAs each of which is a single option within
+    an ALL model group."""
+    __particles = None
+
+    def __init__ (self):
+        self.__particles = [ ]
+
+    def add (self, dfa):
+        self.__particles.append(dfa)
+
 class Thompson:
     """Create a NFA from a content model.  Reminiscent of Thompson's
     algorithm for creating an NFA from a regular expression."""
@@ -256,6 +273,7 @@ class Thompson:
     def __init__ (self, term=None):
         self.__nfa = FiniteAutomaton()
         if term is not None:
+            #assert isinstance(term, Particle)
             self.addTransition(term, self.__nfa.start(), self.__nfa.end())
 
     def addTransition (self, term, start, end):
@@ -314,6 +332,7 @@ class Thompson:
 
     def __fromMGSequence (self, particles, start, end):
         # Just step from one to the next
+        #print '# Sequence of %s' % (particles,)
         for p in particles:
             next_state = self.__nfa.newState()
             self.addTransition(p, start, next_state)
@@ -322,13 +341,17 @@ class Thompson:
 
     def __fromMGChoice (self, particles, start, end):
         # Trivial: start to end for each possibility
+        #print '# Choice of %s' % (particles,)
         for p in particles:
             self.addTransition(p, start, end)
 
     def __fromMGAll (self, particles, start, end):
-        # Brute force: start to end for each possibility
-        for possibility in _Permutations(particles):
-            self.__fromMGSequence(possibility, start, end)
+        # All is too ugly: exponential state growth.  Use a special
+        # construct instead.
+        walker = AllWalker()
+        for p in particles:
+            walker.add(Thompson(p).nfa().buildDFA())
+        self.addTransition(walker, start, end)
 
     def __fromModelGroup (self, group, start, end):
         # Do the right thing based on the model group compositor
@@ -339,6 +362,7 @@ class Thompson:
         if ModelGroup.C_SEQUENCE == group.compositor():
             return self.__fromMGSequence(group.particles(), start, end)
         assert False
+'''
 
 class TestThompson (unittest.TestCase):
 
@@ -517,6 +541,18 @@ class TestPermutations (unittest.TestCase):
         self.assertTrue(('c', 'a', 'b') in p3)
         self.assertTrue(('c', 'b', 'a') in p3)
 
+class TestSchema (unittest.TestCase):
+    def testWsdl (self):
+        x = ModelGroup(ModelGroup.C_CHOICE, [ 'a', 'b', 'c' ])
+        x = ModelGroup(ModelGroup.C_SEQUENCE, [ Particle(0, None, x) ])
+        x = ModelGroup(ModelGroup.C_SEQUENCE, [ Particle(0, None, 'W'), x ])
+        x = ModelGroup(ModelGroup.C_SEQUENCE, [ Particle(0, 1, 'd'), x ])
+        t = Thompson(x)
+        for nfa in ( t.nfa(), t.nfa().buildDFA() ):
+            self.assertTrue(nfa.isFullPath([ 'd' ]))
+            self.assertFalse(nfa.isFullPath([ 'd', 'd' ]))
+                                          
 if __name__ == '__main__':
     unittest.main()
     
+'''
