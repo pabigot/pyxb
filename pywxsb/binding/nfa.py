@@ -67,10 +67,19 @@ class FiniteAutomaton (dict):
                 ss_map[key] = ss_map[key].union(set([ (nfa_base_id+_i) for _i in nfa[sub_state][key]]))
         return (nfa_base_id+nfa.start(), nfa_base_id+nfa.end())
 
+    def alphabet (self):
+        elements = set()
+        for k in self.keys():
+            transitions = self[k]
+            elements = elements.union(transitions.keys())
+        elements.discard(None)
+        return elements
+    
     def canReach (self, key, origin=None):
-        """Return the set of nodes that can be reached from origin
-        with any number of epsilon moves and exactly one key move.  If
-        no origin is provided, the automaton start state is used."""
+        """Return the set of nodes that can be reached from any state
+        in origin with any number of epsilon moves and exactly one key
+        move.  If no origin is provided, the automaton start state is
+        used."""
         if origin is None:
             origin = [ self.start() ]
         if not isinstance(origin, (list, set, frozenset)):
@@ -101,6 +110,58 @@ class FiniteAutomaton (dict):
             reaches = self.canReach(s, reaches)
             #print 'Add %s reaches %s' % (s, reaches)
         return self.end() in reaches
+
+    def move (self, states, key):
+        """Determine the set of states reachable from the input set of states by one key transition."""
+        next_states = set()
+        for s in states:
+            next_states = next_states.union(self[s].get(key, set()))
+        #print 'Move from %s via %s is %s' % (states, key, next_states)
+        return next_states
+
+    def epsilonClosure (self, states):
+        """Calculate the epsilon closure of the given set of states."""
+        states = set(states)
+        while True:
+            new_states = states.union(self.move(states, None))
+            if states == new_states:
+                return states
+            states = new_states
+
+    def buildDFA (self):
+        """Build a deterministic finite automaton that accepts the
+        same language as this one.
+
+        The resulting automaton has epsilon transitions only from
+        terminal states to the DFA distinguished end state."""
+
+        #print "Building DFA from NFA:\n%s\n" % (self,)
+        dfa = FiniteAutomaton()
+        ps0 = tuple(self.epsilonClosure([ dfa.start() ]))
+        #print "Start state is %s" % (ps0,)
+        pset_to_state = { ps0 : dfa.start() }
+        changing = True
+        alphabet = self.alphabet()
+        while changing:
+            changing = False
+            for (psi, dfa_state) in pset_to_state.items():
+                for key in alphabet:
+                    assert key is not None
+                    ns = tuple(self.epsilonClosure(self.move(psi, key)))
+                    #print 'From %s via %s can reach %s' % (psi, key, ns)
+                    new_state = pset_to_state.get(ns, None)
+                    if new_state is None:
+                        new_state = dfa.newState()
+                        pset_to_state[ns] = new_state
+                        #print "New state %d is %s" % (new_state, ns)
+                    if not dfa.ok(key, dfa_state, new_state):
+                        changing = True
+                        dfa.addTransition(key, dfa_state, new_state)
+        for (psi, dfa_state) in pset_to_state.items():
+            if self.end() in psi:
+                dfa.addTransition(None, dfa_state, dfa.end())
+        #print "Resulting DFA:\n%s\n\n" % (dfa,)
+        return dfa
 
     def __str__ (self):
         states = set(self.keys())
@@ -236,123 +297,123 @@ class TestThompson (unittest.TestCase):
 
     def testParticleOne (self):
         t = Thompson(Particle(1,1,'a'))
-        nfa = t.nfa()
-        self.assertFalse(nfa.end() in nfa.canReach(None, nfa.start()))
-        self.assertTrue(nfa.end() in nfa.canReach('a', nfa.start()))
-        self.assertFalse(nfa.end() in nfa.canReach('a', nfa.canReach('a')))
+        for nfa in (t.nfa(), t.nfa().buildDFA()):
+            self.assertFalse(nfa.end() in nfa.canReach(None, nfa.start()))
+            self.assertTrue(nfa.end() in nfa.canReach('a', nfa.start()))
+            self.assertFalse(nfa.end() in nfa.canReach('a', nfa.canReach('a')))
 
     def testParticleOptional (self):
         t = Thompson(Particle(0,1,'a'))
-        nfa = t.nfa()
-        self.assertTrue(nfa.end() in nfa.canReach(None, nfa.start()))
-        self.assertTrue(nfa.end() in nfa.canReach('a', nfa.start()))
-        self.assertFalse(nfa.end() in nfa.canReach('a', nfa.canReach('a')))
+        for nfa in (t.nfa(), t.nfa().buildDFA()):
+            self.assertTrue(nfa.end() in nfa.canReach(None, nfa.start()))
+            self.assertTrue(nfa.end() in nfa.canReach('a', nfa.start()))
+            self.assertFalse(nfa.end() in nfa.canReach('a', nfa.canReach('a')))
 
     def testParticleAny (self):
         t = Thompson(Particle(0,None,'a'))
-        nfa = t.nfa()
-        self.assertTrue(nfa.end() in nfa.canReach(None, nfa.start()))
-        self.assertTrue(nfa.end() in nfa.canReach('a', nfa.start()))
-        reaches = [ nfa.start() ]
-        for rep in range(0, 10):
-            reaches = nfa.canReach('a', reaches)
-            self.assertTrue(nfa.end() in reaches)
+        for nfa in (t.nfa(), t.nfa().buildDFA()):
+            self.assertTrue(nfa.end() in nfa.canReach(None, nfa.start()))
+            self.assertTrue(nfa.end() in nfa.canReach('a', nfa.start()))
+            reaches = [ nfa.start() ]
+            for rep in range(0, 10):
+                reaches = nfa.canReach('a', reaches)
+                self.assertTrue(nfa.end() in reaches)
 
     def testParticle2Plus (self):
         particle = Particle(2, None, 'a')
         t = Thompson(particle)
-        nfa = t.nfa()
-        reaches = [ nfa.start() ]
-        for rep in range(1, 10):
-            reaches = nfa.canReach('a', reaches)
-            if particle.minOccurs() <= rep:
-                self.assertTrue(nfa.end() in reaches)
-            else:
-                self.assertFalse(nfa.end() in reaches)
+        for nfa in (t.nfa(), t.nfa().buildDFA()):
+            reaches = [ nfa.start() ]
+            for rep in range(1, 10):
+                reaches = nfa.canReach('a', reaches)
+                if particle.minOccurs() <= rep:
+                    self.assertTrue(nfa.end() in reaches)
+                else:
+                    self.assertFalse(nfa.end() in reaches)
 
     def testParticleSome (self):
         particle = Particle(3, 5, 'a')
         t = Thompson(particle)
-        nfa = t.nfa()
-        reaches = [ nfa.start() ]
-        for rep in range(1, 10):
-            reaches = nfa.canReach('a', reaches)
-            if (particle.minOccurs() <= rep) and (rep <= particle.maxOccurs()):
-                self.assertTrue(nfa.end() in reaches)
-            else:
-                self.assertFalse(nfa.end() in reaches)
+        for nfa in (t.nfa(), t.nfa().buildDFA()):
+            reaches = [ nfa.start() ]
+            for rep in range(1, 10):
+                reaches = nfa.canReach('a', reaches)
+                if (particle.minOccurs() <= rep) and (rep <= particle.maxOccurs()):
+                    self.assertTrue(nfa.end() in reaches)
+                else:
+                    self.assertFalse(nfa.end() in reaches)
 
     def testSequence1 (self):
         seq = ModelGroup(ModelGroup.C_SEQUENCE, [ 'a' ])
         t = Thompson(seq)
-        nfa = t.nfa()
-        self.assertFalse(nfa.isFullPath([ ]))
-        self.assertTrue(nfa.isFullPath([ 'a' ]))
-        self.assertFalse(nfa.isFullPath([ 'a', 'b' ]))
+        for nfa in (t.nfa(), t.nfa().buildDFA()):
+            self.assertFalse(nfa.isFullPath([ ]))
+            self.assertTrue(nfa.isFullPath([ 'a' ]))
+            self.assertFalse(nfa.isFullPath([ 'a', 'b' ]))
 
     def testSequence3 (self):
         seq = ModelGroup(ModelGroup.C_SEQUENCE, [ 'a', 'b', 'c' ])
         t = Thompson(seq)
-        nfa = t.nfa()
-        self.assertFalse(nfa.isFullPath([ ]))
-        self.assertFalse(nfa.isFullPath([ 'a' ]))
-        self.assertFalse(nfa.isFullPath([ 'a', 'b' ]))
-        self.assertTrue(nfa.isFullPath([ 'a', 'b', 'c' ]))
-        self.assertFalse(nfa.isFullPath([ 'a', 'b', 'c', 'd' ]))
+        for nfa in (t.nfa(), t.nfa().buildDFA()):
+            self.assertFalse(nfa.isFullPath([ ]))
+            self.assertFalse(nfa.isFullPath([ 'a' ]))
+            self.assertFalse(nfa.isFullPath([ 'a', 'b' ]))
+            self.assertTrue(nfa.isFullPath([ 'a', 'b', 'c' ]))
+            self.assertFalse(nfa.isFullPath([ 'a', 'b', 'c', 'd' ]))
 
     def testChoice1 (self):
         seq = ModelGroup(ModelGroup.C_CHOICE, [ 'a' ])
         t = Thompson(seq)
-        nfa = t.nfa()
-        self.assertFalse(nfa.isFullPath([ ]))
-        self.assertTrue(nfa.isFullPath([ 'a' ]))
-        self.assertFalse(nfa.isFullPath([ 'a', 'b' ]))
+        for nfa in (t.nfa(), t.nfa().buildDFA()):
+            self.assertFalse(nfa.isFullPath([ ]))
+            self.assertTrue(nfa.isFullPath([ 'a' ]))
+            self.assertFalse(nfa.isFullPath([ 'a', 'b' ]))
 
     def testChoice3 (self):
         seq = ModelGroup(ModelGroup.C_CHOICE, [ 'a', 'b', 'c' ])
         t = Thompson(seq)
-        nfa = t.nfa()
-        self.assertFalse(nfa.isFullPath([ ]))
-        self.assertTrue(nfa.isFullPath([ 'a' ]))
-        self.assertTrue(nfa.isFullPath([ 'b' ]))
-        self.assertTrue(nfa.isFullPath([ 'c' ]))
-        self.assertFalse(nfa.isFullPath([ 'a', 'b' ]))
+        for nfa in (t.nfa(), t.nfa().buildDFA()):
+            self.assertFalse(nfa.isFullPath([ ]))
+            self.assertTrue(nfa.isFullPath([ 'a' ]))
+            self.assertTrue(nfa.isFullPath([ 'b' ]))
+            self.assertTrue(nfa.isFullPath([ 'c' ]))
+            self.assertFalse(nfa.isFullPath([ 'a', 'b' ]))
 
     def testAll1 (self):
         seq = ModelGroup(ModelGroup.C_ALL, [ 'a' ])
         t = Thompson(seq)
-        nfa = t.nfa()
-        self.assertFalse(nfa.isFullPath([ ]))
-        self.assertTrue(nfa.isFullPath([ 'a' ]))
-        self.assertFalse(nfa.isFullPath([ 'a', 'a' ]))
+        for nfa in (t.nfa(), t.nfa().buildDFA()):
+            self.assertFalse(nfa.isFullPath([ ]))
+            self.assertTrue(nfa.isFullPath([ 'a' ]))
+            self.assertFalse(nfa.isFullPath([ 'a', 'a' ]))
 
     def testAll2 (self):
         seq = ModelGroup(ModelGroup.C_ALL, [ 'a', 'b' ])
         t = Thompson(seq)
-        nfa = t.nfa()
-        self.assertFalse(nfa.isFullPath([ ]))
-        self.assertFalse(nfa.isFullPath([ 'a' ]))
-        self.assertFalse(nfa.isFullPath([ 'a', 'a' ]))
-        self.assertTrue(nfa.isFullPath([ 'a', 'b' ]))
-        self.assertTrue(nfa.isFullPath([ 'b', 'a' ]))
-        self.assertFalse(nfa.isFullPath([ 'a', 'b', 'a' ]))
-        self.assertFalse(nfa.isFullPath([ 'b', 'a', 'b' ]))
+        for nfa in (t.nfa(), t.nfa().buildDFA()):
+            self.assertFalse(nfa.isFullPath([ ]))
+            self.assertFalse(nfa.isFullPath([ 'a' ]))
+            self.assertFalse(nfa.isFullPath([ 'a', 'a' ]))
+            self.assertTrue(nfa.isFullPath([ 'a', 'b' ]))
+            self.assertTrue(nfa.isFullPath([ 'b', 'a' ]))
+            self.assertFalse(nfa.isFullPath([ 'a', 'b', 'a' ]))
+            self.assertFalse(nfa.isFullPath([ 'b', 'a', 'b' ]))
 
     def testAll3 (self):
         seq = ModelGroup(ModelGroup.C_ALL, [ 'a', 'b', 'c' ])
         t = Thompson(seq)
-        nfa = t.nfa()
-        self.assertFalse(nfa.isFullPath([ ]))
-        self.assertFalse(nfa.isFullPath([ 'a' ]))
-        self.assertFalse(nfa.isFullPath([ 'a', 'a' ]))
-        self.assertFalse(nfa.isFullPath([ 'a', 'b' ]))
-        self.assertFalse(nfa.isFullPath([ 'b', 'a' ]))
-        self.assertTrue(nfa.isFullPath([ 'a', 'b', 'c' ]))
-        self.assertTrue(nfa.isFullPath([ 'a', 'c', 'b' ]))
-        self.assertTrue(nfa.isFullPath([ 'b', 'a', 'c' ]))
-        self.assertTrue(nfa.isFullPath([ 'b', 'c', 'a' ]))
-        self.assertTrue(nfa.isFullPath([ 'c', 'a', 'b' ]))
-        self.assertTrue(nfa.isFullPath([ 'c', 'b', 'a' ]))
+        for nfa in (t.nfa(), t.nfa().buildDFA()):
+            self.assertFalse(nfa.isFullPath([ ]))
+            self.assertFalse(nfa.isFullPath([ 'a' ]))
+            self.assertFalse(nfa.isFullPath([ 'a', 'a' ]))
+            self.assertFalse(nfa.isFullPath([ 'a', 'b' ]))
+            self.assertFalse(nfa.isFullPath([ 'b', 'a' ]))
+            self.assertTrue(nfa.isFullPath([ 'a', 'b', 'c' ]))
+            self.assertTrue(nfa.isFullPath([ 'a', 'c', 'b' ]))
+            self.assertTrue(nfa.isFullPath([ 'b', 'a', 'c' ]))
+            self.assertTrue(nfa.isFullPath([ 'b', 'c', 'a' ]))
+            self.assertTrue(nfa.isFullPath([ 'c', 'a', 'b' ]))
+            self.assertTrue(nfa.isFullPath([ 'c', 'b', 'a' ]))
 
 class TestFiniteAutomaton (unittest.TestCase):
     def testSubAutomaton (self):
