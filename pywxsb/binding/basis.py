@@ -8,6 +8,7 @@ from xml.dom import minidom
 import pywxsb.utils.domutils as domutils
 import pywxsb.utils.utility as utility
 import types
+import pywxsb.Namespace
 
 class simpleTypeDefinition (utility._DeconflictSymbols_mixin, object):
     """simpleTypeDefinition is a base mix-in class that is part of the hierarchy
@@ -533,8 +534,11 @@ class complexTypeDefinition (utility._DeconflictSymbols_mixin, object):
             self.__wildcardElements = []
         super(complexTypeDefinition, self).__init__(*args, **kw)
         that = None
-        if (0 < len(args)) and isinstance(args[0], self.__class__):
-            that = args[0]
+        if 0 < len(args):
+            if isinstance(args[0], self.__class__):
+                that = args[0]
+            else:
+                raise IncompleteImplementationError('No constructor support for argument %s' % (args[0],))
         if isinstance(self, _CTD_content_mixin):
             self._resetContent()
         for fu in self._PythonMap().values():
@@ -621,13 +625,17 @@ class complexTypeDefinition (utility._DeconflictSymbols_mixin, object):
         for ai in range(0, node.attributes.length):
             attr = node.attributes.item(ai)
             local_name = attr.localName
+            namespace_name = attr.namespaceURI
+            # Ignore xmlns attributes; DOM got those
+            if pywxsb.Namespace.XMLNamespaces.uri() == namespace_name:
+                continue
             prefix = attr.prefix
             if not prefix:
                 prefix = None
             value = attr.value
             # @todo handle cross-namespace attributes
             if prefix is not None:
-                raise IncompleteImplementationError('No support for namespace-qualified attributes')
+                raise IncompleteImplementationError('No support for namespace-qualified attributes like %s:%s' % (prefix, local_name))
             au = self._AttributeMap.get(local_name, None)
             if au is None:
                 if self._AttributeWildcard is None:
