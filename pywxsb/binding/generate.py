@@ -300,6 +300,10 @@ def pythonLiteral (value, **kw):
     if isinstance(value, ReferenceLiteral):
         return value.asLiteral()
 
+    # Represent namespaces by their URI
+    if isinstance(value, Namespace.Namespace):
+        return repr(value.uri())
+
     # Standard Python types
     if isinstance(value, (types.NoneType, types.BooleanType, types.FloatType, types.IntType, types.LongType)):
         return repr(value)
@@ -625,6 +629,7 @@ class %{ctd} (%{superclasses}):
         au_map['attr_tag'] = pythonLiteral(attr_name, **kw)
         au_map['attr_type'] = pythonLiteral(ad.typeDefinition(), **kw)
         au_map['constraint_value'] = pythonLiteral(None, **kw)
+        au_map['attr_ns'] = pythonLiteral(ad.targetNamespace(), **kw)
         vc_source = ad
         if au.valueConstraint() is not None:
             vc_source = au
@@ -646,7 +651,7 @@ class %{ctd} (%{superclasses}):
         ctd.__attributeFields[attr_name] = ( ( au.required(), au.prohibited(), au.attributeDeclaration() ), au_map )
         attribute_uses.append(templates.replaceInText('%{attr_tag} : %{attr_name}', **au_map))
         definitions.append(templates.replaceInText('''
-    # Attribute %{attr_tag} uses Python identifier %{python_attr_name}
+    # Attribute %{attr_tag} from %{attr_ns} uses Python identifier %{python_attr_name}
     %{attr_name} = pywxsb.binding.content.AttributeUse(%{attr_tag}, '%{python_attr_name}', '%{value_attr_name}', %{attr_type}%{aux_init})
     def %{attr_inspector} (self):
         """Get the value of the %{attr_tag} attribute."""
