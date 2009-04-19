@@ -2,7 +2,6 @@
 
 from pywxsb.exceptions_ import *
 import basis
-import nfa
 
 import xml.dom
 
@@ -189,6 +188,7 @@ class ElementUse (object):
         return self
 
     def __setValue (self, ctd_instance, value):
+        #print 'Set value of %s to %s' % (self.tag(), value)
         if self.isPlural():
             values = self.value(ctd_instance)
             values.append(value)
@@ -260,6 +260,7 @@ class ContentModelTransition (object):
         return rv
 
     def nextState (self): return self.__nextState
+    def term (self): return self.__term
 
     def attemptTransition (self, ctd_instance, node_list, store):
         """Attempt to make the appropriate transition.
@@ -274,17 +275,20 @@ class ContentModelTransition (object):
 
         if self.TT_element == self.__termType:
             if 0 == len(node_list):
-                raise MissingContentError()
+                raise MissingContentError('No DOM nodes for reduction of %s' % (self.__term,))
+            #print 'Element reduction attempt attempt for %s' % (self.__term,)
             element = self.__term.CreateFromDOM(node_list[0])
             node_list.pop(0)
             if store:
                 self.__elementUse.setValue(ctd_instance, element)
         elif self.TT_modelGroupAll == self.__termType:
+            #print 'All model group reduction attempt'
             self.__term.matchAlternatives(ctd_instance, node_list, store)
-        elif self.TT_wilcard == self.__termType:
+        elif self.TT_wildcard == self.__termType:
+            #print 'Wildcard reduction attempt'
             if 0 == len(node_list):
                 raise MissingContentError()
-            if not self.__term.matchesNode(node_list[0]):
+            if not self.__term.matchesNode(ctd_instance, node_list[0]):
                 raise UnexpectedContentError(node_list[0])
             node = node_list.pop(0)
             if store:
@@ -300,7 +304,9 @@ class ContentModelState (object):
     # Sequence of ContentModelTransition instances
     __transitions = None
 
-    def __init__ (self, state, is_final, *transitions):
+    def isFinal (self): return self.__isFinal
+
+    def __init__ (self, state, is_final, transitions):
         self.__state = state
         self.__isFinal = is_final
         self.__transitions = transitions
@@ -318,10 +324,15 @@ class ContentModelState (object):
 
         Otherwise a StructuralBadDocumentError is raised."""
         for transition in self.__transitions:
+            # @todo check nodeName against element
             try:
+                #print 'Attempting transition at %s' % (transition.term(),)
                 transition.attemptTransition(ctd_instance, node_list, store)
+                #print 'Transition succeeded with %s' % (transition.term(),)
+
                 return transition.nextState()
             except StructuralBadDocumentError, e:
+                #print 'Transition failed with %s: %s' % (transition.term(), e)
                 pass
         if self.isFinal():
             return None
@@ -346,7 +357,9 @@ class ContentModel (object):
         determine whether this is acceptable."""
         state = 1
         while state is not None:
+            node_list = ctd_instance._stripMixedContent(node_list)
             state = self.__stateMap[state].evaluateContent(ctd_instance, node_list, store)
+        node_list = ctd_instance._stripMixedContent(node_list)
         if state is not None:
             raise MissingContentError()
 
@@ -356,6 +369,7 @@ class ModelGroupAllAlternative (object):
     __required = None
 
     def __init__ (self, content_model, required):
+        #print '%s created MGA alternative model %s required %s' % (self, content_model, required)
         self.__contentModel = content_model
         self.__required = required
 
@@ -367,7 +381,7 @@ class ModelGroupAll (object):
 
     __alternatives = None
 
-    def __init__ (self, *alternatives):
+    def __init__ (self, alternatives):
         self.__alternatives = alternatives
 
     def matchAlternatives (self, ctd_instance, node_list, store=True):
@@ -378,27 +392,42 @@ class ModelGroupAll (object):
         alternatives = set(self.__alternatives)
         match_order = []
         found_match = True
+        #print 'Starting to match ALL with %d alternatives and %d nodes, store is %s' % (len(alternatives), len(node_list), store)
         while (0 < len(alternatives)) and found_match:
             found_match = False
+            #if 0 < len(node_list):
+            #    print 'Next up: %s' % (node_list[0],)
+            #else:
+            #    print 'Next up: nothing'
             for alt in alternatives:
                 try:
+                    #print 'Trying alternative %s, required %s: %s' % (alt, alt.required(), alt.contentModel())
+                    node_count = len(node_list)
                     alt.contentModel().interprete(ctd_instance, node_list, store=False)
-                    match_order.append(alt)
-                    alternatives.remove(alt)
-                    found_match = True
-                    break
+                    #print 'Completed interpret with %d nodes out of %d left' % (len(node_list), node_count)
+                    if len(node_list) < node_count:
+                        #print 'Succeeded with alternative %s' % (alt,)
+                        match_order.append(alt)
+                        alternatives.remove(alt)
+                        found_match = True
+                        break
                 except BadDocumentError, e:
+                    #print 'Failed with alternative %s: %s' % (alt, type(e))
                     pass
         # If there's a required alternative that wasn't matched, raise
         # an error
+        #print 'Checking %d remaining alternatives for required' % (len(alternatives),)
         if 0 < len(alternatives):
             for alt in alternatives:
+                #print 'Alternative %s required %s' % (alt, alt.required())
                 if alt.required():
                     raise MissingContentError(alt)
         # If this isn't a dry run, re-execute the alternatives in the
         # successful order.
         if store:
+            #print 'Storing by matching %d alternatives in order' % (len(match_order),)
             for alt in match_order:
+                #print 'Re-executing alternative %s with %d nodes left' % (alt, len(saved_node_list),)
                 alt.contentModel().interprete(ctd_instance, saved_node_list)
             assert saved_node_list == node_list
 

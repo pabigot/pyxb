@@ -257,8 +257,10 @@ class AllWalker (object):
     def __init__ (self):
         self.__particles = [ ]
 
-    def add (self, dfa):
-        self.__particles.append(dfa)
+    def particles (self): return  self.__particles
+
+    def add (self, dfa, is_required):
+        self.__particles.append( ( dfa, is_required ) )
 
 class Thompson:
     """Create a NFA from a content model.  Reminiscent of Thompson's
@@ -350,7 +352,7 @@ class Thompson:
         # construct instead.
         walker = AllWalker()
         for p in particles:
-            walker.add(Thompson(p).nfa().buildDFA())
+            walker.add(Thompson(p).nfa().buildDFA(), 0 < p.minOccurs())
         self.addTransition(walker, start, end)
 
     def __fromModelGroup (self, group, start, end):

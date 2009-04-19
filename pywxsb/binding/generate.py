@@ -311,13 +311,81 @@ def pythonLiteral (value, **kw):
     if isinstance(value, (types.NoneType, types.BooleanType, types.FloatType, types.IntType, types.LongType)):
         return repr(value)
 
-    if isinstance(value, nfa.AllWalker):
-        return repr(None)
-
     raise Exception('Unexpected literal type %s' % (type(value),))
     print 'Unexpected literal type %s' % (type(value),)
     return str(value)
 
+
+def GenerateModelGroupAll (ctd, mga, template_map, **kw):
+    mga_tag = '__AModelGroup'
+    template_map['mga_tag'] = mga_tag
+    lines = []
+    lines2 = []
+    for ( dfa, is_required ) in mga.particles():
+        ( dfa_tag, dfa_lines ) = GenerateContentModel(ctd, dfa, **kw)
+        lines.extend(dfa_lines)
+        template_map['dfa_tag'] = dfa_tag
+        template_map['is_required'] = pythonLiteral(is_required, **kw)
+        lines2.append(templates.replaceInText('    %{content}.ModelGroupAllAlternative(%{ctd}.%{dfa_tag}, %{is_required}),', **template_map))
+    lines.append(templates.replaceInText('%{mga_tag} = %{content}.ModelGroupAll(alternatives=[', **template_map))
+    lines.extend(lines2)
+    lines.append('])')
+    return (mga_tag, lines)
+
+def GenerateContentModel (ctd, automaton, **kw):
+    cmi = None
+    template_map = { }
+    template_map['ctd'] = pythonLiteral(ctd, **kw)
+    try:
+        cmi = '_ContentModel_%d' % (ctd.__contentModelIndex,)
+        ctd.__contentModelIndex += 1
+    except AttributeError:
+        cmi = '_ContentModel'
+        ctd.__contentModelIndex = 1
+    template_map['cm_tag'] = cmi
+    template_map['content'] = 'pywxsb.binding.content'
+    template_map['state_comma'] = ' '
+    lines = []
+    lines2 = []
+    for (state, transitions) in automaton.items():
+        if automaton.end() == state:
+            continue
+        template_map['state'] = pythonLiteral(state)
+        template_map['is_final'] = pythonLiteral(None in transitions)
+
+        lines2.append(templates.replaceInText('%{state_comma} %{state} : %{content}.ContentModelState(state=%{state}, is_final=%{is_final}, transitions=[', **template_map))
+        template_map['state_comma'] = ','
+        lines3 = []
+        for (key, destinations) in transitions.items():
+            if key is None:
+                continue
+            assert 1 == len(destinations)
+            template_map['next_state'] = pythonLiteral(list(destinations)[0], **kw)
+            if isinstance(key, xs.structures.Wildcard):
+                template_map['eu_field'] = pythonLiteral(None, **kw)
+                template_map['term'] = pythonLiteral(key, **kw)
+            elif isinstance(key, pywxsb.binding.nfa.AllWalker):
+                (mga_tag, mga_defns) = GenerateModelGroupAll(ctd, key, template_map.copy(), **kw)
+                template_map['term'] = mga_tag
+                lines.extend(mga_defns)
+                template_map['eu_field'] = pythonLiteral(None, **kw)
+            else:
+                template_map['term'] = pythonLiteral(key, **kw)
+                if 'eu_field' in template_map:
+                    del template_map['eu_field']
+                for (name, ( is_plural, types, ef_map) ) in ctd.__elementFields.items():
+                    if key in types:
+                        template_map['eu_field'] = templates.replaceInText('%{ctd}._UseForTag(%{field_tag})', field_tag=ef_map['field_tag'], **template_map)
+                        break
+            lines3.append(templates.replaceInText('%{content}.ContentModelTransition(term=%{term}, next_state=%{next_state}, element_use=%{eu_field}),',
+                          **template_map))
+        lines2.extend([ '    '+_l for _l in lines3 ])
+        lines2.append("])")
+
+    lines.append(templates.replaceInText('%{ctd}.%{cm_tag} = %{content}.ContentModel(state_map = {', **template_map))
+    lines.extend(['    '+_l for _l in lines2 ])
+    lines.append("})")
+    return (cmi, lines)
 
 def GenerateFacets (outf, td, **kw):
     facet_instances = []
@@ -484,7 +552,6 @@ class %{ctd} (%{superclasses}):
 class %{ctd} (%{superclasses}):
 '''
 
-
     # Complex types that inherit from non-ur-type complex types should
     # have their base type as their Python superclass, so pre-existing
     # elements and attributes can be re-used.
@@ -495,41 +562,9 @@ class %{ctd} (%{superclasses}):
         template_map['superclasses'] = 'pywxsb.binding.basis.CTD_%s' % (content_type,)
         assert base_type.nameInBinding() is not None
 
-    if need_content:
-        global PostscriptItems
-        PostscriptItems.append(templates.replaceInText('''
-%{ctd}._Content = %{particle}
-''', **template_map))
-        
     # Support for deconflicting attributes, elements, and reserved symbols
     class_keywords = frozenset(ctd_parent_class._ReservedSymbols)
     class_unique = set()
-
-    definitions = []
-
-    definitions.append('# Base type is %{base_type}')
-
-    if isinstance(content_basis, pywxsb.xmlschema.structures.Particle):
-        print 'Building FA for %s' % (ctd.name(),)
-        fa = nfa.Thompson(content_basis).nfa()
-        print "Non-deterministic FA for %s:\n%s\n\n" % (ctd.name(), fa)
-        fa = fa.buildDFA()
-        print "Minimized deterministic FA for %s:\n%s\n\n" % (ctd.name(), fa)
-        wildcard_map = { }
-        output = []
-        for i in range(len(fa)):
-            output.append('# state[%d] = { ' % (i,))
-            for (key, destination_set) in fa[i].items():
-                assert 1 == len(destination_set)
-                if isinstance(key, pywxsb.xmlschema.structures.Wildcard):
-                    if not key in wildcard_map:
-                        wildcard_map[key] = pythonLiteral(key, **kw)
-                    ref = ReferenceSchemaComponent(key, **kw).asLiteral()
-                else:
-                    ref = pythonLiteral(key, **kw)
-                output.append("#    %s : %d" % (ref, destination_set.pop()))
-            output.append('#    }')
-        definitions.append("\n".join(output))
 
     # Deconflict elements first, attributes are lower priority.
     # Expectation is that all elements that have the same tag in the
@@ -541,10 +576,15 @@ class %{ctd} (%{superclasses}):
     element_uses = []
     datatype_items = []
 
-    # Also retain in the ctd the information about the element
+    definitions = []
+
+    definitions.append('# Base type is %{base_type}')
+
+    # Retain in the ctd the information about the element
     # infrastructure, so it can be inherited where appropriate in
     # subclasses.
     ctd.__elementFields = { }
+
     if isinstance(content_basis, xs.structures.Particle):
         plurality_data = content_basis.pluralityData().nameBasedPlurality()
 
@@ -570,6 +610,7 @@ class %{ctd} (%{superclasses}):
                     else:
                         definitions.append(templates.replaceInText('# Element %{field_tag} will override parent %{superclass} field %{python_field_name} due to content model differences', superclasses=template_map['superclasses'], **superclass_ef_map))
 
+        PostscriptItems.append("\n\n")
         for (name, (is_plural, types)) in plurality_data.items():
             # If this name exists as an element in the parent class,
             # and the plurality data is identical, then inherit the
@@ -607,10 +648,27 @@ class %{ctd} (%{superclasses}):
         if the new value is not consistent with the element's type."""
         return self.%{field_name}.setValue(self, new_value)''', **ef_map))
 
+        #print 'Building FA for %s' % (ctd.name(),)
+        fa = nfa.Thompson(content_basis).nfa()
+        #print "Non-deterministic FA for %s:\n%s\n\n" % (ctd.name(), fa)
+        fa = fa.buildDFA()
+        #print "Minimized deterministic FA for %s:\n%s\n\n" % (ctd.name(), fa)
+        (cmi, cmi_defn) = GenerateContentModel(ctd=ctd, automaton=fa, **kw)
+        PostscriptItems.append("\n".join(cmi_defn))
+        PostscriptItems.append("\n")
+
+    if need_content:
+        global PostscriptItems
+        PostscriptItems.append(templates.replaceInText('''
+%{ctd}._Content = %{particle}
+''', **template_map))
+        
+
     PostscriptItems.append('''
 %s._UpdateElementDatatypes({
     %s
-})''' % (template_map['ctd'], ",\n    ".join(datatype_items)))
+})
+''' % (template_map['ctd'], ",\n    ".join(datatype_items)))
 
 
     # Create definitions for all attributes.

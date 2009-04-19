@@ -585,6 +585,10 @@ class complexTypeDefinition (utility._DeconflictSymbols_mixin, object):
     # used within the generated binding.  See _AttributeDeconflictMap.
     _ElementDeconflictMap = { }
 
+    # None, or a reference to a ContentModel instance that defines how
+    # to reduce a DOM node list to the body of this element.
+    _ContentModel = None
+
     @classmethod
     def __PythonMapAttribute (cls):
         return '_%s_PythonMap' % (cls.__name__,)
@@ -611,6 +615,10 @@ class complexTypeDefinition (utility._DeconflictSymbols_mixin, object):
             if element in eu.validElements():
                 return eu
         return None
+
+    @classmethod
+    def _UseForTag (cls, tag):
+        return cls._ElementMap[tag]
 
     def _setAttributesFromDOM (self, node):
         """Initialize the attributes of this element from those of the DOM node.
@@ -779,8 +787,11 @@ class _CTD_content_mixin (object):
         # while not losing track of where we are in the content model.
         self.__isMixed = is_mixed
         node_list = node.childNodes[:]
-        self._Content.extendFromDOM(self, node_list)
-        node_list = self._stripMixedContent(node_list)
+        #print 'Setting mixable control of %s from %s' % (self.__class__, node_list)
+        self._stripMixedContent(node_list)
+        if self._ContentModel is not None:
+            self._ContentModel.interprete(self, node_list)
+            self._stripMixedContent(node_list)
         if 0 < len(node_list):
             raise ExtraContentError('Extra content starting with %s' % (node_list[0],))
         return self
