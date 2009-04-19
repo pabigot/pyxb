@@ -3,9 +3,13 @@ import StringIO
 import datetime
 
 from pywxsb.exceptions_ import *
-import pywxsb.utils.utility as utility
-import pywxsb.utils.templates as templates
-import pywxsb.binding
+from ..utils import utility
+from ..utils import templates
+from ..xmlschema import structures
+import basis
+import content
+import datatypes
+import facets
 import pywxsb.Namespace as Namespace
 
 import nfa
@@ -22,10 +26,10 @@ PostscriptItems = []
 def PrefixModule (value, text=None):
     if text is None:
         text = value.__name__
-    if value.__module__ == xs.datatypes.__name__:
-        return 'datatypes.%s' % (text,)
-    if value.__module__ == xs.facets.__name__:
-        return 'facets.%s' % (text,)
+    if value.__module__ == datatypes.__name__:
+        return 'pywxsb.binding.datatypes.%s' % (text,)
+    if value.__module__ == facets.__name__:
+        return 'pywxsb.binding.facets.%s' % (text,)
     raise IncompleteImplementationError('PrefixModule needs support for non-builtin instances')
 
 class ReferenceLiteral (object):
@@ -60,7 +64,7 @@ class ReferenceFacetMember (ReferenceLiteral):
 
     def __init__ (self, **kw):
         variable = kw.get('variable', None)
-        assert (variable is None) or isinstance(variable, xs.facets.Facet)
+        assert (variable is None) or isinstance(variable, facets.Facet)
 
         if variable is not None:
             kw.setdefault('type_definition', variable.ownerTypeDefinition())
@@ -187,7 +191,7 @@ class ReferenceSchemaComponent (ReferenceLiteral):
         if not is_in_binding:
             mp = None
             if Namespace.XMLSchema == tns:
-                mp = 'datatypes'
+                mp = 'pywxsb.binding.datatypes'
             elif tns is not None:
                 mp = tns.modulePath()
                 assert mp is not None
@@ -216,15 +220,15 @@ class ReferenceEnumerationMember (ReferenceLiteral):
         # See if we were given a value, from which we can extract the
         # other information.
         value = kw.get('enum_value', None)
-        assert (value is None) or isinstance(value, xs.facets._Enumeration_mixin)
+        assert (value is None) or isinstance(value, facets._Enumeration_mixin)
 
         # Must provide facet_instance, or a value from which it can be
         # obtained.
         facet_instance = kw.get('facet_instance', None)
         if facet_instance is None:
-            assert isinstance(value, xs.facets._Enumeration_mixin)
+            assert isinstance(value, facets._Enumeration_mixin)
             facet_instance = value._CF_enumeration
-        assert isinstance(facet_instance, xs.facets.CF_enumeration)
+        assert isinstance(facet_instance, facets.CF_enumeration)
 
         # Must provide the enumeration_element, or a facet_instance
         # and value from which it can be identified.
@@ -232,7 +236,7 @@ class ReferenceEnumerationMember (ReferenceLiteral):
         if self.enumerationElement is None:
             assert value is not None
             self.enumerationElement = facet_instance.elementForValue(value)
-        assert isinstance(self.enumerationElement, xs.facets._EnumerationElement)
+        assert isinstance(self.enumerationElement, facets._EnumerationElement)
 
         # If no type definition was provided, use the value datatype
         # for the facet.
@@ -257,34 +261,34 @@ def pythonLiteral (value, **kw):
 
     # Value is a binding value for which there should be an
     # enumeration constant.  Return that constant.
-    if isinstance(value, xs.facets._Enumeration_mixin):
+    if isinstance(value, facets._Enumeration_mixin):
         return pythonLiteral(ReferenceEnumerationMember(enum_value=value, **kw))
 
     # Value is an instance of a Python binding, e.g. one of the
     # XMLSchema datatypes.  Use its value, applying the proper prefix
     # for the module.
-    if isinstance(value, pywxsb.binding.basis.simpleTypeDefinition):
+    if isinstance(value, basis.simpleTypeDefinition):
         return PrefixModule(value, value.pythonLiteral())
 
     if isinstance(value, type):
-        if issubclass(value, pywxsb.binding.basis.simpleTypeDefinition):
+        if issubclass(value, basis.simpleTypeDefinition):
             return PrefixModule(value)
-        if issubclass(value, xs.facets.Facet):
+        if issubclass(value, facets.Facet):
             return PrefixModule(value)
 
     # String instances go out as their representation
     if isinstance(value, types.StringTypes):
         return utility.QuotedEscaped(value,)
 
-    if isinstance(value, xs.facets.Facet):
+    if isinstance(value, facets.Facet):
         return pythonLiteral(ReferenceFacet(facet=value, **kw))
 
     # Treat pattern elements as their value
-    if isinstance(value, xs.facets._PatternElement):
+    if isinstance(value, facets._PatternElement):
         return pythonLiteral(value.pattern)
 
     # Treat enumeration elements as their value
-    if isinstance(value, xs.facets._EnumerationElement):
+    if isinstance(value, facets._EnumerationElement):
         return pythonLiteral(value.value())
 
     # Particles expand to a pywxsb.binding.content.Particle instance
@@ -364,7 +368,7 @@ def GenerateContentModel (ctd, automaton, **kw):
             if isinstance(key, xs.structures.Wildcard):
                 template_map['eu_field'] = pythonLiteral(None, **kw)
                 template_map['term'] = pythonLiteral(key, **kw)
-            elif isinstance(key, pywxsb.binding.nfa.AllWalker):
+            elif isinstance(key, nfa.AllWalker):
                 (mga_tag, mga_defns) = GenerateModelGroupAll(ctd, key, template_map.copy(), **kw)
                 template_map['term'] = mga_tag
                 lines.extend(mga_defns)
@@ -399,8 +403,8 @@ def GenerateFacets (outf, td, **kw):
             # Did this one in an ancestor
             continue
         argset = { }
-        is_collection = issubclass(fc, xs.facets._CollectionFacet_mixin)
-        if issubclass(fc, xs.facets._LateDatatype_mixin):
+        is_collection = issubclass(fc, facets._CollectionFacet_mixin)
+        if issubclass(fc, facets._LateDatatype_mixin):
             vdt = td
             if fc.LateDatatypeBindsSuperclass():
                 vdt = vdt.baseTypeDefinition()
@@ -410,19 +414,19 @@ def GenerateFacets (outf, td, **kw):
                 argset['value'] = fi.value()
             if (fi.superFacet() is not None):
                 argset['super_facet'] = fi.superFacet()
-            if isinstance(fi, xs.facets.CF_enumeration):
+            if isinstance(fi, facets.CF_enumeration):
                 argset['enum_prefix'] = fi.enumPrefix()
         facet_var = ReferenceFacetMember(type_definition=td, facet_class=fc, **kw)
         outf.write("%s = %s(%s)\n" % pythonLiteral( (facet_var, fc, argset ), **kw))
         facet_instances.append(pythonLiteral(facet_var, **kw))
         if (fi is not None) and is_collection:
             for i in fi.items():
-                if isinstance(i, xs.facets._EnumerationElement):
+                if isinstance(i, facets._EnumerationElement):
                     enum_member = ReferenceEnumerationMember(type_definition=td, facet_instance=fi, enumeration_element=i, **kw)
                     outf.write("%s = %s.addEnumeration(unicode_value=%s)\n" % pythonLiteral( (enum_member, facet_var, i.unicodeValue() ), **kw))
                     if fi.enumPrefix() is not None:
                         outf.write("%s_%s = %s\n" % (fi.enumPrefix(), i.tag(), pythonLiteral(enum_member, **kw)))
-                if isinstance(i, xs.facets._PatternElement):
+                if isinstance(i, facets._PatternElement):
                     outf.write("%s.addPattern(pattern=%s)\n" % pythonLiteral( (facet_var, i.pattern ), **kw))
     if 2 <= len(facet_instances):
         map_args = ",\n   ".join(facet_instances)
@@ -435,7 +439,7 @@ def GenerateSTD (std, **kw):
     outf = StringIO.StringIO()
 
     parent_classes = [ pythonLiteral(std.baseTypeDefinition(), **kw) ]
-    enum_facet = std.facets().get(xs.facets.CF_enumeration, None)
+    enum_facet = std.facets().get(facets.CF_enumeration, None)
     if (enum_facet is not None) and (enum_facet.ownerTypeDefinition() == std):
         parent_classes.append('pywxsb.binding.basis.enumeration_mixin')
         
@@ -515,7 +519,7 @@ def GenerateCTD (ctd, **kw):
     content_basis = None
     if (ctd.CT_EMPTY == ctd.contentType()):
         content_type = 'empty'
-        ctd_parent_class = pywxsb.binding.basis.CTD_empty
+        ctd_parent_class = basis.CTD_empty
         prolog_template = '''
 # Complex type %{ctd} with empty content
 class %{ctd} (%{superclasses}):
@@ -523,7 +527,7 @@ class %{ctd} (%{superclasses}):
         pass
     elif (ctd.CT_SIMPLE == ctd.contentType()[0]):
         content_type = 'simple'
-        ctd_parent_class = pywxsb.binding.basis.CTD_simple
+        ctd_parent_class = basis.CTD_simple
         content_basis = ctd.contentType()[1]
         prolog_template = '''
 # Complex type %{ctd} with simple content type %{basetype}
@@ -533,7 +537,7 @@ class %{ctd} (%{superclasses}):
         template_map['basetype'] = pythonLiteral(content_basis, **kw)
     elif (ctd.CT_MIXED == ctd.contentType()[0]):
         content_type = 'mixed'
-        ctd_parent_class = pywxsb.binding.basis.CTD_mixed
+        ctd_parent_class = basis.CTD_mixed
         content_basis = ctd.contentType()[1]
         template_map['particle'] = pythonLiteral(content_basis, **kw)
         need_content = True
@@ -543,7 +547,7 @@ class %{ctd} (%{superclasses}):
 '''
     elif (ctd.CT_ELEMENT_ONLY == ctd.contentType()[0]):
         content_type = 'element'
-        ctd_parent_class = pywxsb.binding.basis.CTD_element
+        ctd_parent_class = basis.CTD_element
         content_basis = ctd.contentType()[1]
         template_map['particle'] = pythonLiteral(content_basis, **kw)
         need_content = True
@@ -557,7 +561,7 @@ class %{ctd} (%{superclasses}):
     # elements and attributes can be re-used.
     inherits_from_base = True
     template_map['superclasses'] = pythonLiteral(base_type, **kw)
-    if isinstance(base_type, pywxsb.xmlschema.structures.SimpleTypeDefinition) or base_type.isUrTypeDefinition():
+    if isinstance(base_type, structures.SimpleTypeDefinition) or base_type.isUrTypeDefinition():
         inherits_from_base = False
         template_map['superclasses'] = 'pywxsb.binding.basis.CTD_%s' % (content_type,)
         assert base_type.nameInBinding() is not None
@@ -658,7 +662,6 @@ class %{ctd} (%{superclasses}):
         PostscriptItems.append("\n")
 
     if need_content:
-        global PostscriptItems
         PostscriptItems.append(templates.replaceInText('''
 %{ctd}._Content = %{particle}
 ''', **template_map))
@@ -939,8 +942,6 @@ def GeneratePython (**kw):
 
         outf.write(templates.replaceInText('''# PyWXSB bindings for %{input}
 # Generated %{date} by PyWXSB version %{version}
-import %{import_prefix}facets as facets
-import %{import_prefix}datatypes as datatypes
 import pywxsb.binding
 from xml.dom import minidom
 from xml.dom import Node

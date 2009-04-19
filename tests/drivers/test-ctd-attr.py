@@ -36,9 +36,9 @@ class TestCTD (unittest.TestCase):
         self.assertEqual(xml, instance.toDOM().toxml())
 
     def testString (self):
-        self.assertEqual('test', datatypes.string('test'))
+        self.assertEqual('test', pywxsb.binding.datatypes.string('test'))
         rv = string('test')
-        self.assert_(isinstance(rv.content(), datatypes.string))
+        self.assert_(isinstance(rv.content(), pywxsb.binding.datatypes.string))
         self.assertEqual('test', rv.content())
         rv = CreateFromDocument('<string>test</string>')
         self.assert_(isinstance(rv, string))

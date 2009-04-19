@@ -27,13 +27,11 @@ instance of either SimpleTypeDefinition or ComplexTypeDefinition.
 """
 
 from pywxsb.exceptions_ import *
-import structures as xsc
 import types
 import pywxsb.Namespace as Namespace
 import pywxsb.utils.domutils as domutils
 import pywxsb.utils.utility as utility
-import pywxsb.binding.basis
-import pywxsb.binding.content
+import basis
 
 _PrimitiveDatatypes = []
 _DerivedDatatypes = []
@@ -42,7 +40,7 @@ _ListDatatypes = []
 # We use unicode as the Python type for anything that isn't a normal
 # primitive type.  Presumably, only enumeration and pattern facets
 # will be applied.
-class anySimpleType (pywxsb.binding.basis.simpleTypeDefinition, unicode):
+class anySimpleType (basis.simpleTypeDefinition, unicode):
     """http://www.w3.org/TR/xmlschema-2/#dt-anySimpleType"""
     _XsdBaseType = None
     _Namespace = Namespace.XMLSchema
@@ -53,7 +51,7 @@ class anySimpleType (pywxsb.binding.basis.simpleTypeDefinition, unicode):
 # anySimpleType is not treated as a primitive, because its variety
 # must be absent (not atomic).
     
-class string (pywxsb.binding.basis.simpleTypeDefinition, unicode):
+class string (basis.simpleTypeDefinition, unicode):
     """string.
     
     http://www.w3.org/TR/xmlschema-2/#string"""
@@ -73,7 +71,7 @@ _PrimitiveDatatypes.append(string)
 
 # It is illegal to subclass the bool type in Python, so we subclass
 # int instead.
-class boolean (pywxsb.binding.basis.simpleTypeDefinition, int):
+class boolean (basis.simpleTypeDefinition, int):
     """boolean.
 
     http://www.w3.org/TR/xmlschema-2/#boolean"""
@@ -106,7 +104,7 @@ class boolean (pywxsb.binding.basis.simpleTypeDefinition, int):
 
 _PrimitiveDatatypes.append(boolean)
 
-class decimal (pywxsb.binding.basis.simpleTypeDefinition, types.FloatType):
+class decimal (basis.simpleTypeDefinition, types.FloatType):
     """decimal.
     
     http://www.w3.org/TR/xmlschema-2/#decimal
@@ -124,7 +122,7 @@ class decimal (pywxsb.binding.basis.simpleTypeDefinition, types.FloatType):
 
 _PrimitiveDatatypes.append(decimal)
 
-class float (pywxsb.binding.basis.simpleTypeDefinition, types.FloatType):
+class float (basis.simpleTypeDefinition, types.FloatType):
     """float.
 
     http://www.w3.org/TR/xmlschema-2/#float"""
@@ -137,7 +135,7 @@ class float (pywxsb.binding.basis.simpleTypeDefinition, types.FloatType):
 
 _PrimitiveDatatypes.append(float)
 
-class double (pywxsb.binding.basis.simpleTypeDefinition, types.FloatType):
+class double (basis.simpleTypeDefinition, types.FloatType):
     _XsdBaseType = anySimpleType
     _Namespace = Namespace.XMLSchema
 
@@ -147,52 +145,52 @@ class double (pywxsb.binding.basis.simpleTypeDefinition, types.FloatType):
 
 _PrimitiveDatatypes.append(double)
 
-class duration (pywxsb.binding.basis.simpleTypeDefinition):
+class duration (basis.simpleTypeDefinition):
     _XsdBaseType = anySimpleType
     _Namespace = Namespace.XMLSchema
 _PrimitiveDatatypes.append(duration)
 
-class dateTime (pywxsb.binding.basis.simpleTypeDefinition):
+class dateTime (basis.simpleTypeDefinition):
     _XsdBaseType = anySimpleType
     _Namespace = Namespace.XMLSchema
 _PrimitiveDatatypes.append(dateTime)
 
-class time (pywxsb.binding.basis.simpleTypeDefinition):
+class time (basis.simpleTypeDefinition):
     _XsdBaseType = anySimpleType
     _Namespace = Namespace.XMLSchema
 _PrimitiveDatatypes.append(time)
 
-class date (pywxsb.binding.basis.simpleTypeDefinition):
+class date (basis.simpleTypeDefinition):
     _XsdBaseType = anySimpleType
     _Namespace = Namespace.XMLSchema
 _PrimitiveDatatypes.append(date)
 
-class gYearMonth (pywxsb.binding.basis.simpleTypeDefinition):
+class gYearMonth (basis.simpleTypeDefinition):
     _XsdBaseType = anySimpleType
     _Namespace = Namespace.XMLSchema
 _PrimitiveDatatypes.append(gYearMonth)
 
-class gYear (pywxsb.binding.basis.simpleTypeDefinition):
+class gYear (basis.simpleTypeDefinition):
     _XsdBaseType = anySimpleType
     _Namespace = Namespace.XMLSchema
 _PrimitiveDatatypes.append(gYear)
 
-class gMonthDay (pywxsb.binding.basis.simpleTypeDefinition):
+class gMonthDay (basis.simpleTypeDefinition):
     _XsdBaseType = anySimpleType
     _Namespace = Namespace.XMLSchema
 _PrimitiveDatatypes.append(gMonthDay)
 
-class gDay (pywxsb.binding.basis.simpleTypeDefinition):
+class gDay (basis.simpleTypeDefinition):
     _XsdBaseType = anySimpleType
     _Namespace = Namespace.XMLSchema
 _PrimitiveDatatypes.append(gDay)
 
-class gMonth (pywxsb.binding.basis.simpleTypeDefinition):
+class gMonth (basis.simpleTypeDefinition):
     _XsdBaseType = anySimpleType
     _Namespace = Namespace.XMLSchema
 _PrimitiveDatatypes.append(gMonth)
 
-class hexBinary (pywxsb.binding.basis.simpleTypeDefinition, types.LongType):
+class hexBinary (basis.simpleTypeDefinition, types.LongType):
     _XsdBaseType = anySimpleType
     _Namespace = Namespace.XMLSchema
     def __new__ (cls, value, *args, **kw):
@@ -210,7 +208,7 @@ class hexBinary (pywxsb.binding.basis.simpleTypeDefinition, types.LongType):
 
 _PrimitiveDatatypes.append(hexBinary)
 
-class base64Binary (pywxsb.binding.basis.simpleTypeDefinition):
+class base64Binary (basis.simpleTypeDefinition):
     _XsdBaseType = anySimpleType
     _Namespace = Namespace.XMLSchema
     @classmethod
@@ -219,7 +217,7 @@ class base64Binary (pywxsb.binding.basis.simpleTypeDefinition):
 
 _PrimitiveDatatypes.append(base64Binary)
 
-class anyURI (pywxsb.binding.basis.simpleTypeDefinition, types.UnicodeType):
+class anyURI (basis.simpleTypeDefinition, types.UnicodeType):
     _XsdBaseType = anySimpleType
     _Namespace = Namespace.XMLSchema
 
@@ -233,7 +231,7 @@ class anyURI (pywxsb.binding.basis.simpleTypeDefinition, types.UnicodeType):
 
 _PrimitiveDatatypes.append(anyURI)
 
-class QName (pywxsb.binding.basis.simpleTypeDefinition):
+class QName (basis.simpleTypeDefinition):
     _XsdBaseType = anySimpleType
     _Namespace = Namespace.XMLSchema
     @classmethod
@@ -243,7 +241,7 @@ class QName (pywxsb.binding.basis.simpleTypeDefinition):
 
 _PrimitiveDatatypes.append(QName)
 
-class NOTATION (pywxsb.binding.basis.simpleTypeDefinition):
+class NOTATION (basis.simpleTypeDefinition):
     _XsdBaseType = anySimpleType
     _Namespace = Namespace.XMLSchema
     @classmethod
@@ -270,7 +268,7 @@ class NMTOKEN (token):
     pass
 _DerivedDatatypes.append(NMTOKEN)
 
-class NMTOKENS (pywxsb.binding.basis.STD_list):
+class NMTOKENS (basis.STD_list):
     _ItemType = NMTOKEN
 _ListDatatypes.append(NMTOKENS)
 
@@ -290,7 +288,7 @@ class IDREF (NCName):
     pass
 _DerivedDatatypes.append(IDREF)
 
-class IDREFS (pywxsb.binding.basis.STD_list):
+class IDREFS (basis.STD_list):
     _ItemType = IDREF
 _ListDatatypes.append(IDREFS)
 
@@ -298,11 +296,11 @@ class ENTITY (NCName):
     pass
 _DerivedDatatypes.append(ENTITY)
 
-class ENTITIES (pywxsb.binding.basis.STD_list):
+class ENTITIES (basis.STD_list):
     _ItemType = ENTITY
 _ListDatatypes.append(ENTITIES)
 
-class integer (pywxsb.binding.basis.simpleTypeDefinition, long):
+class integer (basis.simpleTypeDefinition, long):
     """integer.
 
     http://www.w3.org/TR/xmlschema-2/#integer"""
@@ -326,7 +324,7 @@ class long (integer):
     pass
 _DerivedDatatypes.append(long)
 
-class int (pywxsb.binding.basis.simpleTypeDefinition, types.IntType):
+class int (basis.simpleTypeDefinition, types.IntType):
     _XsdBaseType = long
     _Namespace = Namespace.XMLSchema
 
@@ -369,55 +367,20 @@ class positiveInteger (nonNegativeInteger):
     pass
 _DerivedDatatypes.append(positiveInteger)
 
-try:
-    import datatypes_facets
-except ImportError, e:
-    pass
+import datatypes_facets
+import content
 
-class anyType (pywxsb.binding.basis.CTD_mixed):
+class anyType (basis.CTD_mixed):
     """http://www.w3.org/TR/2001/REC-xmlschema-1-20010502/#key-urType"""
     @classmethod
     def Factory (cls, *args, **kw):
         return anyType()
 
-    _Content = pywxsb.binding.content.Particle(1, 1,
-                                               pywxsb.binding.content.ModelGroup(pywxsb.binding.content.ModelGroup.C_SEQUENCE,
-                                                                                 [ pywxsb.binding.content.Particle(0, None,
-                                                                                                                   pywxsb.binding.content.Wildcard(namespace_constraint=pywxsb.binding.content.Wildcard.NC_any,
-                                                                                                                                                   process_contents=pywxsb.binding.content.Wildcard.PC_lax)
-                                                                                                                   ) # end Particle
-                                                                                   ]) # end ModelGroup
-                                               ) # end Particle
-
-def _AddSimpleTypes (schema):
-    """Add to the schema the definitions of the built-in types of
-    XMLSchema."""
-    # Add the ur type
-    td = schema._addNamedComponent(xsc.ComplexTypeDefinition.UrTypeDefinition(in_builtin_definition=True))
-    assert td.isResolved()
-    # Add the simple ur type
-    td = schema._addNamedComponent(xsc.SimpleTypeDefinition.SimpleUrTypeDefinition(in_builtin_definition=True))
-    assert td.isResolved()
-    # Add definitions for all primitive and derived simple types
-    pts_std_map = {}
-    for dtc in _PrimitiveDatatypes:
-        name = dtc.__name__.rstrip('_')
-        td = schema._addNamedComponent(xsc.SimpleTypeDefinition.CreatePrimitiveInstance(name, schema, dtc))
-        assert td.isResolved()
-        assert dtc.SimpleTypeDefinition() == td
-        pts_std_map.setdefault(dtc, td)
-    for dtc in _DerivedDatatypes:
-        name = dtc.__name__.rstrip('_')
-        parent_std = pts_std_map[dtc.XsdSuperType()]
-        td = schema._addNamedComponent(xsc.SimpleTypeDefinition.CreateDerivedInstance(name, schema, parent_std, dtc))
-        assert td.isResolved()
-        assert dtc.SimpleTypeDefinition() == td
-        pts_std_map.setdefault(dtc, td)
-    for dtc in _ListDatatypes:
-        list_name = dtc.__name__.rstrip('_')
-        element_name = dtc._ItemType.__name__.rstrip('_')
-        element_std = schema._lookupTypeDefinition(element_name)
-        td = schema._addNamedComponent(xsc.SimpleTypeDefinition.CreateListInstance(list_name, schema, element_std, dtc))
-        assert td.isResolved()
-    return schema
-
+    _Content = content.Particle(1, 1,
+                                content.ModelGroup(content.ModelGroup.C_SEQUENCE,
+                                                   [ content.Particle(0, None,
+                                                                      content.Wildcard(namespace_constraint=content.Wildcard.NC_any,
+                                                                                       process_contents=content.Wildcard.PC_lax)
+                                                                      ) # end Particle
+                                                     ]) # end ModelGroup
+                                ) # end Particle

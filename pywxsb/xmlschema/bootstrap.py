@@ -10,7 +10,7 @@ import pywxsb.Namespace as Namespace
 
 import structures as xsc
 
-import datatypes as xsd
+import pywxsb.binding.datatypes as xsd
 
 from pywxsb.exceptions_ import *
 

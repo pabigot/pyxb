@@ -18,13 +18,11 @@ The module also provides a top-level class that supports schema
 processing.
 """
 
-
-
 # Get the schema component datatypes
 import structures
 
 # Get the built-in datatypes
-import datatypes
+#import datatypes
 
 # Get the bindings relevant to schemas.  NB: Other implementations may
 # be used in the future.

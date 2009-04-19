@@ -1,8 +1,10 @@
 from pywxsb.exceptions_ import *
 import unittest
-import pywxsb.xmlschema.facets as facets
-import pywxsb.xmlschema.datatypes as datatypes
+#import pywxsb.binding.facets as facets
+#import pywxsb.binding.datatypes as datatypes
 import pywxsb.binding
+import pywxsb.binding.facets as facets
+import pywxsb.binding.datatypes as datatypes
 
 # 4.3.1 length
 # 4.3.2 minLength

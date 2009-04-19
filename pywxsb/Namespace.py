@@ -568,7 +568,7 @@ class _XMLSchema (Namespace):
     def _defineSchema_overload (self):
         """Overload to resolve to built-in schema rather than loaded one."""
         self._schema(XMLSchemaModule().schema()).setTargetNamespace(self)
-        XMLSchemaModule().datatypes._AddSimpleTypes(self.schema())
+        XMLSchemaModule().structures._AddSimpleTypes(self.schema())
 
         # In order to load a schema from a file, we need the ability
         # for the load infrastructure to update the built-in schema

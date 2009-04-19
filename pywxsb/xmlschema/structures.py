@@ -13,9 +13,10 @@ from pywxsb.exceptions_ import *
 from xml.dom import Node
 import types
 import pywxsb.Namespace as Namespace
-import datatypes
-import facets
-import pywxsb.binding
+from ..binding import basis
+from ..binding import datatypes
+from ..binding import facets
+from ..utils import templates
 import pywxsb.utils.templates as templates
 from pywxsb.utils.domutils import *
 
@@ -3028,7 +3029,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
 
     def _setPythonSupport (self, python_support):
         # Includes check that python_support is not None
-        assert issubclass(python_support, pywxsb.binding.basis.simpleTypeDefinition)
+        assert issubclass(python_support, basis.simpleTypeDefinition)
         # Can't share support instances
         self.__pythonSupport = python_support
         self.__pythonSupport._SimpleTypeDefinition(self)
@@ -3389,3 +3390,36 @@ class Schema (_SchemaComponent_mixin):
 
     def _lookupNamedComponent (self, ncname, component_type):
         return self.__mapForNamedType(component_type).get(ncname, None)
+
+def _AddSimpleTypes (schema):
+    """Add to the schema the definitions of the built-in types of
+    XMLSchema."""
+    # Add the ur type
+    td = schema._addNamedComponent(ComplexTypeDefinition.UrTypeDefinition(in_builtin_definition=True))
+    assert td.isResolved()
+    # Add the simple ur type
+    td = schema._addNamedComponent(SimpleTypeDefinition.SimpleUrTypeDefinition(in_builtin_definition=True))
+    assert td.isResolved()
+    # Add definitions for all primitive and derived simple types
+    pts_std_map = {}
+    for dtc in datatypes._PrimitiveDatatypes:
+        name = dtc.__name__.rstrip('_')
+        td = schema._addNamedComponent(SimpleTypeDefinition.CreatePrimitiveInstance(name, schema, dtc))
+        assert td.isResolved()
+        assert dtc.SimpleTypeDefinition() == td
+        pts_std_map.setdefault(dtc, td)
+    for dtc in datatypes._DerivedDatatypes:
+        name = dtc.__name__.rstrip('_')
+        parent_std = pts_std_map[dtc.XsdSuperType()]
+        td = schema._addNamedComponent(SimpleTypeDefinition.CreateDerivedInstance(name, schema, parent_std, dtc))
+        assert td.isResolved()
+        assert dtc.SimpleTypeDefinition() == td
+        pts_std_map.setdefault(dtc, td)
+    for dtc in datatypes._ListDatatypes:
+        list_name = dtc.__name__.rstrip('_')
+        element_name = dtc._ItemType.__name__.rstrip('_')
+        element_std = schema._lookupTypeDefinition(element_name)
+        td = schema._addNamedComponent(SimpleTypeDefinition.CreateListInstance(list_name, schema, element_std, dtc))
+        assert td.isResolved()
+    return schema
+
