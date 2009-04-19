@@ -54,6 +54,28 @@ class TestCTDExtension (unittest.TestCase):
         self.assertEqual('new', instance.pAttr())
         self.assertEqual('add generation', instance.eAttr())
 
+    def testMidWildcard (self):
+        xml = '<defs><documentation/><something/><message/><message/><import/><message/></defs>'
+        doc = minidom.parseString(xml)
+        instance = defs.CreateFromDOM(doc.documentElement)
+        self.assertFalse(instance.documentation() is None)
+        self.assertEqual(3, len(instance.message()))
+        self.assertEqual(1, len(instance.import_()))
+        self.assertEqual(1, len(instance.wildcardElements()))
+
+        xml = '<defs><something/><else/><message/><message/><import/><message/></defs>'
+        doc = minidom.parseString(xml)
+        instance = defs.CreateFromDOM(doc.documentElement)
+        self.assertTrue(instance.documentation() is None)
+        self.assertEqual(3, len(instance.message()))
+        self.assertEqual(1, len(instance.import_()))
+        self.assertEqual(2, len(instance.wildcardElements()))
+
+    def testEndWildcard (self):
+        xml = '<defs><message/><something/></defs>'
+        doc = minidom.parseString(xml)
+        self.assertRaises(ExtraContentError, defs.CreateFromDOM, doc.documentElement)
+
 if __name__ == '__main__':
     unittest.main()
     
