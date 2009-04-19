@@ -91,7 +91,18 @@ class TestMGAll (unittest.TestCase):
         dom = minidom.parseString(xml)
         self.assertRaises(ExtraContentError, optional.CreateFromDOM, dom.documentElement)
 
-    
+    def stripMembers (self, xml, body):
+        for b in body:
+            xml = xml.replace('<%s/>' % (b,), 'X')
+        return xml
+
+    def testMany (self):
+        for body in [ "abcdefgh", "fghbcd", "bfgcahd" ]:
+            xml = '<many>%s</many>' % (''.join([ '<%s/>' % (_x,) for _x in body ]),)
+            dom = minidom.parseString(xml)
+            instance = many.CreateFromDOM(dom.documentElement)
+            rev = self.stripMembers(instance.toDOM().toxml(), body)
+            self.assertEqual('<many>%s</many>' % (''.join(len(body)*['X']),), rev)
 
 if __name__ == '__main__':
     unittest.main()

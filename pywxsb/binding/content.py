@@ -598,7 +598,7 @@ class ModelGroup (object):
             for particle in self.particles():
                 particle.extendDOMFromContent(document, element, ctd_instance)
         elif self.C_ALL == self.compositor():
-            mutable_particles = self.particles().copy()
+            mutable_particles = self.particles()[:]
             while 0 < len(mutable_particles):
                 try:
                     choice = self.__extendDOMFromChoice(document, element, ctd_instance, mutable_particles)
