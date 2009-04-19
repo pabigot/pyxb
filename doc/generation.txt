@@ -116,6 +116,83 @@ AttributeUse instances.
 Elements In Complex Types
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
+Elements are represented, like attributes, as instance fields, nominally
+private with public inspectors and mutators.  The field named is derived
+from the tag of the schema element declaration.  Where multiple element
+declarations have the same tag within a given complex type definition, all
+those elements are accessed through the same variable.  The variable is an
+instance reference if the maximum number of occurrences of elements with its
+tag is one; otherwise it is a list.
+
+The content model for a complex type definition is either a simple type or a
+schema particle, which in turn can have element declarations, wildcards, or
+model groups as their term.  PyWXSB translates the content model into a
+deterministic finite automaton, which is executed at runtime over the child
+nodes of the DOM element so that nodes are added to element in the correct
+order.
+
+States in the finite automaton are integers, with the value 1 being the
+start state.  Edge transitions are made by successfully interpreting a DOM
+node as an element instance, or by matching the node against a wildcard.  As
+a special case, model groups with compositor "all" are handled as a special
+transition, so that the state space does not grow exponentially; see below.
+
+From a given state, the next child node is tested against all element
+declarations first, followed by any "all" model groups, followed by wildcard
+nodes.  If none of the transitions from the state can be taken, an
+UnexpectedContentError is raised.  If, at the point where the child node
+list is exhausted, the current state is a final state (has a None transition
+to state zero), the content model is satisfied and the element is created.
+If not, a MissingContentError is raised.
+
+Handling of Model Groups with compositor "all"
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+The "all" compositor model group represents zero or one instances of a set
+of terms, in arbitrary order.  A deterministic finite automaton to recognize
+this pattern has 2^n nodes if there are n alternatives.  Some of the schema
+PyWXSB must handle include model groups with nine or more alternatives.
+Generating and attempting to minimize such a DFA is too time consuming.
+
+For this reason, an "all" model group is represented as a special
+transition.  When starting to test against this transition, the content
+model interpreter will create a set containing all the alternatives.  It
+will then attempt to match the head of the element list against each
+alternative in turn.  When an alternative is successfully matched, it is
+removed from the candidate list.  Element declaration alternatives are
+checked first, followed by additional "all" model groups, followed by
+wildcards.  If every remaining alternative has been checked and the head of
+the node list does not match, or there are no more child nodes in the list,
+processing of the model group is completed.  If any remaining alternative
+has a minOccurs of 1, an UnrecognizedContentError or a MissingContentError
+is raised, depending on the state of the node list.  Otherwise the optional
+alternatives are interpreted as being absent, andthe element reduction
+completes.
+
+Content models are represented as maps from integers to ContentTransition
+nodes.  A ContentTransition node comprises a term, a reference to an
+ElementUse, and an integer value next state.  A term comprises a subclass of
+pywxsb.binding.basis.element, an instance of pywxsb.binding.basis.Wildcard,
+or an instance of pywxsb.binding.basis.ModelGroupAll.  A ModelGroupAll
+instance comprises a set of pairs comprising a DFA that serves as the
+content model for a term, and a boolean.  The boolean is true iff the
+corresponding original alternative particle has a minOccurs of 1.
+
+A reduction against a basis.element class is successful if an instance of
+the class can be created from the DOM element node at the head of the
+current child list.  If successful, the ElementUse is used to store it
+within the parent element, and the content model interpreter continues at
+the successor state.
+
+A reduction against a Wildcard is successful if the wildcare namespace
+constraints are met.  If so, the child node is stored in the
+wildcardElements list, and the content model interpreter continues at the
+successor state.
+
+A reduction against a ModelGroupAll instance is successful following the
+algorithm described above.  Execution of this instance results in the
+storage of the elements and wildcards generated from the consumed prefix of
+the child node list, in the normal course of processing alternative terms.
+
 Representation of Schema Components
 ===================================
 

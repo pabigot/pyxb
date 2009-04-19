@@ -2,6 +2,7 @@
 
 from pywxsb.exceptions_ import *
 import basis
+import nfa
 
 import xml.dom
 
@@ -221,6 +222,185 @@ class ElementUse (object):
             assert isinstance(value, basis.element)
             value.toDOM(document, parent=element)
         return self
+
+class ContentModelTransition (object):
+    # The matching term for this transition to succeed
+    __term = None
+    # The next state in the DFA
+    __nextState = None
+    # The ElementUse instance used to store a successful match in the
+    # complex type definition instance.
+    __elementUse = None
+
+    TT_element = 0x01
+    TT_modelGroupAll = 0x02
+    TT_wildcard = 0x03
+    __termType = None
+
+    def __init__ (self, term, next_state, element_use=None):
+        self.__term = term
+        self.__nextState = next_state
+        assert self.__nextState is not None
+        self.__elementUse = element_use
+        if isinstance(self.__term, type) and issubclass(self.__term, basis.element):
+            self.__termType = self.TT_element
+        elif isinstance(self.__term, ModelGroupAll):            
+            self.__termType = self.TT_modelGroupAll
+        elif isinstance(self.__term, Wildcard):
+            self.__termType = self.TT_wildcard
+        else:
+            raise LogicError('Unexpected transition term %s' % (self.__term,))
+
+    def __cmp__ (self, other):
+        """Sort transitions so elements precede model groups precede
+        wildcards.  Also sort within each subsequence."""
+        rv = cmp(self.__termType, other.__termType)
+        if 0 == rv:
+            rv = cmp(self.__term, other.__term)
+        return rv
+
+    def nextState (self): return self.__nextState
+
+    def attemptTransition (self, ctd_instance, node_list, store):
+        """Attempt to make the appropriate transition.
+
+        If something goes wrong, a BadDocumentError will be propagated
+        through this call, and node_list will remain unchanged.  If
+        everything works, the prefix of the node_list that matches the
+        transition will have been stripped away, and if the store
+        parameter is True, the resulting binding instances will be
+        stored in the proper location of ctd_instance.
+        """
+
+        if self.TT_element == self.__termType:
+            if 0 == len(node_list):
+                raise MissingContentError()
+            element = self.__term.CreateFromDOM(node_list[0])
+            node_list.pop(0)
+            if store:
+                self.__elementUse.setValue(ctd_instance, element)
+        elif self.TT_modelGroupAll == self.__termType:
+            self.__term.matchAlternatives(ctd_instance, node_list, store)
+        elif self.TT_wilcard == self.__termType:
+            if 0 == len(node_list):
+                raise MissingContentError()
+            if not self.__term.matchesNode(node_list[0]):
+                raise UnexpectedContentError(node_list[0])
+            node = node_list.pop(0)
+            if store:
+                ctd_instance.wildcardElements().append(node)
+        else:
+            raise LogicError('Unexpected transition term %s' % (self.__term,))
+
+class ContentModelState (object):
+    # Integer
+    __state = None
+    # If True, this state can successfully complete the element reduction
+    __isFinal = None
+    # Sequence of ContentModelTransition instances
+    __transitions = None
+
+    def __init__ (self, state, is_final, *transitions):
+        self.__state = state
+        self.__isFinal = is_final
+        self.__transitions = transitions
+        self.__transitions.sort()
+
+    def evaluateContent (self, ctd_instance, node_list, store):
+        """Determine where to go from this state.
+
+        If a transition matches, the consumed prefix of node_list has
+        been stripped, the resulting data stored in ctd_instance if
+        store is True, and the next state is returned.
+
+        If no transition can be made, and this state is a final state
+        for the DFA, the value None is returned.
+
+        Otherwise a StructuralBadDocumentError is raised."""
+        for transition in self.__transitions:
+            try:
+                transition.attemptTransition(ctd_instance, node_list, store)
+                return transition.nextState()
+            except StructuralBadDocumentError, e:
+                pass
+        if self.isFinal():
+            return None
+        if 0 < len(node_list):
+            raise UnrecognizedContentError(node_list[0])
+        raise MissingContentError()
+
+class ContentModel (object):
+    # Map from integers to ContentModelState instances
+    __stateMap = None
+
+    def __init__ (self, state_map=None):
+        self.__stateMap = state_map
+
+    def interprete (self, ctd_instance, node_list, store=True):
+        """Attempt to match the content model against the node_list.
+
+        When a state has been reached from which no transition is
+        possible, this method returns (if the end state is a final
+        state), or throws a MissingContentError.  There may be
+        material remaining on the node_list; it is up to the caller to
+        determine whether this is acceptable."""
+        state = 1
+        while state is not None:
+            state = self.__stateMap[state].evaluateContent(ctd_instance, node_list, store)
+        if state is not None:
+            raise MissingContentError()
+
+
+class ModelGroupAllAlternative (object):
+    __contentModel = None
+    __required = None
+
+    def __init__ (self, content_model, required):
+        self.__contentModel = content_model
+        self.__required = required
+
+    def required (self): return self.__required
+    def contentModel (self): return self.__contentModel
+
+class ModelGroupAll (object):
+    """Class that represents a ModelGroup with an "all" compositor."""
+
+    __alternatives = None
+
+    def __init__ (self, *alternatives):
+        self.__alternatives = alternatives
+
+    def matchAlternatives (self, ctd_instance, node_list, store=True):
+        # Save the incoming node list so we can re-execute the
+        # alternatives if they match.
+        saved_node_list = node_list[:]
+
+        alternatives = set(self.__alternatives)
+        match_order = []
+        found_match = True
+        while (0 < len(alternatives)) and found_match:
+            found_match = False
+            for alt in alternatives:
+                try:
+                    alt.contentModel().interprete(ctd_instance, node_list, store=False)
+                    match_order.append(alt)
+                    alternatives.remove(alt)
+                    found_match = True
+                    break
+                except BadDocumentError, e:
+                    pass
+        # If there's a required alternative that wasn't matched, raise
+        # an error
+        if 0 < len(alternatives):
+            for alt in alternatives:
+                if alt.required():
+                    raise MissingContentError(alt)
+        # If this isn't a dry run, re-execute the alternatives in the
+        # successful order.
+        if store:
+            for alt in match_order:
+                alt.contentModel().interprete(ctd_instance, saved_node_list)
+            assert saved_node_list == node_list
 
 class Particle (object):
     """Record defining the structure and number of an XML object.
@@ -488,15 +668,14 @@ class Wildcard (object):
         self.__namespaceConstraint = kw['namespace_constraint']
         self.__processContents = kw['process_contents']
 
-    def validateAndAdd (self, ctd_instance, node):
-        """Add the node to the list of wildcard elements in the given
-        CTD instance.
+    def matchesNode (self, ctd_instance, node):
+        """Return True iff the node is a valid match against this wildcard.
 
-        As a side effect, if the wildcard specification indicates that
-        the node should be validated, this ought to make an attempt to
-        do so.  Currently, it doesn't bother.
+        Not implemented yet: all wildcards are assumed to match all
+        nodes.
+
         """
         # @todo check node against namespace constraint and process contents
-        assert isinstance(ctd_instance, basis.complexTypeDefinition)
-        ctd_instance.wildcardElements().append(node)
+        print 'WARNING: Accepting node as wildcard match without validating.'
+        return True
         
