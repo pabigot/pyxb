@@ -11,8 +11,8 @@ from xml.dom import Node
 import types
 import datatypes
 import basis
-from ..utils import utility
-from ..utils import domutils
+from pywxsb.utils import utility
+from pywxsb.utils import domutils
 import re
 
 class Facet (object):

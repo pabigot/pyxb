@@ -3,9 +3,9 @@ import StringIO
 import datetime
 
 from pywxsb.exceptions_ import *
-from ..utils import utility
-from ..utils import templates
-from ..xmlschema import structures
+from pywxsb.utils import utility
+from pywxsb.utils import templates
+from pywxsb.xmlschema import structures
 import basis
 import content
 import datatypes

@@ -13,10 +13,10 @@ from pywxsb.exceptions_ import *
 from xml.dom import Node
 import types
 import pywxsb.Namespace as Namespace
-from ..binding import basis
-from ..binding import datatypes
-from ..binding import facets
-from ..utils import templates
+from pywxsb.binding import basis
+from pywxsb.binding import datatypes
+from pywxsb.binding import facets
+from pywxsb.utils import templates
 import pywxsb.utils.templates as templates
 from pywxsb.utils.domutils import *
 
