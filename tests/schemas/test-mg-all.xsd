@@ -6,15 +6,22 @@
 	<complexType name="required">
 		<all>
 			<element name="first"/>
-			<element name="second" minOccurs="0"/>
+			<element name="second"/>
 			<element name="third"/>
 		</all>
 	</complexType>
 	<complexType name="optional">
 		<all minOccurs="0">
+			<element name="first" minOccurs="0"/>
+			<element name="second" minOccurs="0"/>
+			<element name="third" minOccurs="0"/>
+		</all>
+	</complexType>
+	<complexType name="thirdOptional">
+		<all minOccurs="0">
 			<element name="first"/>
 			<element name="second"/>
-			<element name="third"/>
+			<element name="third" minOccurs="0"/>
 		</all>
 	</complexType>
 </schema>

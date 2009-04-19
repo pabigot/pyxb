@@ -25,13 +25,6 @@ class TestMGAll (unittest.TestCase):
         self.assert_(isinstance(instance.second(), required_second))
         self.assert_(isinstance(instance.third(), required_third))
 
-        xml = '<required><first/><third/></required>'
-        dom = minidom.parseString(xml)
-        instance = required.CreateFromDOM(dom.documentElement)
-        self.assert_(isinstance(instance.first(), required_first))
-        self.assert_(instance.second() is None)
-        self.assert_(isinstance(instance.third(), required_third))
-
     def testRequiredMisordered (self):
         xml = '<required><third/><first/><second/></required>'
         dom = minidom.parseString(xml)
@@ -40,17 +33,29 @@ class TestMGAll (unittest.TestCase):
         self.assert_(isinstance(instance.second(), required_second))
         self.assert_(isinstance(instance.third(), required_third))
 
-        xml = '<required><third/><first/></required>'
-        dom = minidom.parseString(xml)
-        instance = required.CreateFromDOM(dom.documentElement)
-        self.assert_(isinstance(instance.first(), required_first))
-        self.assert_(instance.second() is None)
-        self.assert_(isinstance(instance.third(), required_third))
-
     def testRequiredTooMany (self):
-        xml = '<required><third/><first/><third/></required>'
+        xml = '<required><third/><first/><second/><third/></required>'
         dom = minidom.parseString(xml)
         self.assertRaises(ExtraContentError, required.CreateFromDOM, dom.documentElement)
+
+    def testThirdOptional (self):
+        xml = '<thirdOptional><first/><second/></thirdOptional>'
+        dom = minidom.parseString(xml)
+        instance = thirdOptional.CreateFromDOM(dom.documentElement)
+        self.assert_(isinstance(instance.first(), thirdOptional_first))
+        self.assert_(isinstance(instance.second(), thirdOptional_second))
+        self.assert_(instance.third() is None)
+
+        xml = '<thirdOptional><first/><second/><third/></thirdOptional>'
+        dom = minidom.parseString(xml)
+        instance = thirdOptional.CreateFromDOM(dom.documentElement)
+        self.assert_(isinstance(instance.first(), thirdOptional_first))
+        self.assert_(isinstance(instance.second(), thirdOptional_second))
+        self.assert_(isinstance(instance.third(), thirdOptional_third))
+
+        xml = '<thirdOptional><first/><second/><third/><first/></thirdOptional>'
+        dom = minidom.parseString(xml)
+        self.assertRaises(ExtraContentError, thirdOptional.CreateFromDOM, dom.documentElement)
 
     def testOptional (self):
         xml = '<optional/>'
