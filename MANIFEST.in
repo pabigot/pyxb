@@ -1,6 +1,11 @@
+# Legal stuff
+include LICENSE NOTICE
 # Include the pre-built bindings for standard schema
 recursive-include pywxsb/standard *.py *.xsd *.wxs
 # Include all the unit tests
 recursive-include tests *.py *.xsd *.xml
-# Include the scripts and other garbage helpful to the maintainer
-recursive-include maintainer *
+# Include the scripts and any other garbage helpful to the maintainer
+recursive-include maintainer *.sh
+# Documentation, not including cached W3C material
+recursive-include doc *.txt
+prune doc/W3C
