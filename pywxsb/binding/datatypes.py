@@ -231,13 +231,38 @@ class anyURI (basis.simpleTypeDefinition, types.UnicodeType):
 
 _PrimitiveDatatypes.append(anyURI)
 
-class QName (basis.simpleTypeDefinition):
+class QName (basis.simpleTypeDefinition, unicode):
     _XsdBaseType = anySimpleType
     _Namespace = Namespace.XMLSchema
     @classmethod
     def XsdValueLength (cls, value):
         """Section 4.3.1.3: Legacy length return None to indicate no check"""
         return None
+
+    __localName = None
+    __prefix = None
+
+    def prefix (self):
+        """Return the prefix portion of the QName, or None if the name is not qualified."""
+        if self.__localName is None:
+            self.__resolveLocals()
+        return self.__prefix
+
+    def localName (self):
+        """Return the local portion of the QName."""
+        if self.__localName is None:
+            self.__resolveLocals()
+        return self.__localName
+
+    def __resolveLocals (self):
+        if self.find(':'):
+            (self.__prefix, self.__localName) = self.split(':', 1)
+        else:
+            self.__localName = unicode(self)
+
+    @classmethod
+    def XsdLiteral (cls, value):
+        return unicode(value)
 
 _PrimitiveDatatypes.append(QName)
 
