@@ -1,0 +1,6 @@
+# Include the pre-built bindings for standard schema
+recursive-include pywxsb/standard *.py *.xsd *.wxs
+# Include all the unit tests
+recursive-include tests *.py *.xsd *.xml
+# Include the scripts and other garbage helpful to the maintainer
+recursive-include maintainer *
