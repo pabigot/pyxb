@@ -6,14 +6,14 @@ class Test_ENTITIES (unittest.TestCase):
     def testBasicLists (self):
         v = xsd.ENTITIES([ "one", "two", "three" ])
         self.assertEqual(3, len(v))
-        self.assertTrue(isinstance(v[0], xsd.ENTITY)
+        self.assertTrue(isinstance(v[0], xsd.ENTITY))
         self.assertEqual("one", v[0])
 
     def testStringLists (self):
         v = xsd.ENTITIES("one two three")
         self.assertEqual(3, len(v))
         self.assertEqual("one", v[0])
-        self.assertTrue(isinstance(v[0], xsd.ENTITY)
+        self.assertTrue(isinstance(v[0], xsd.ENTITY))
         self.assertRaises(BadTypeValueError, xsd.ENTITIES, 'string with b@d id')
 
 if __name__ == '__main__':
