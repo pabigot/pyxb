@@ -372,7 +372,10 @@ class language (token):
 _DerivedDatatypes.append(language)
 
 class NMTOKEN (token):
-    """See http://www.w3.org/TR/2000/WD-xml-2e-20000814.html#NT-Nmtoken"""
+    """See http://www.w3.org/TR/2000/WD-xml-2e-20000814.html#NT-Nmtoken
+
+    NMTOKEN is an identifier that can start with any character that is
+    legal in it."""
     _ValidRE = re.compile('^[-_.:A-Za-z0-9]*$')
 _DerivedDatatypes.append(NMTOKEN)
 
