@@ -277,7 +277,22 @@ class NOTATION (basis.simpleTypeDefinition):
 _PrimitiveDatatypes.append(NOTATION)
 
 class normalizedString (string):
-    pass
+    # All descendents of normalizedString constrain the lexical/value
+    # space in some way.  Subclasses should set the _ValidRE class
+    # variable to a compiled regular expression that matches valid
+    # input.
+    # @todo Implement pattern constraints and just rely on that
+
+    @classmethod
+    def _XsdConstraintsPreCheck_vb (cls, value):
+        if not isinstance(value, (str, unicode)):
+            raise BadTypeValueError('%s value must be a string' % (cls.__name__,))
+        match_object = cls._ValidRE.match(value)
+        if match_object is None:
+            raise BadTypeValueError('%s pattern constraint violation for "%s"' % (cls.__name__, value))
+        super_fn = getattr(super(normalizedString, cls), '_XsdConstraintsPreCheck_vb', lambda *a,**kw: True)
+        return super_fn(value)
+
 _DerivedDatatypes.append(normalizedString)
 assert normalizedString.XsdSuperType() == string
 
@@ -303,18 +318,7 @@ _DerivedDatatypes.append(Name)
 
 import re
 class NCName (Name):
-    # @todo Implement pattern constraints and just rely on that
-    __ValidRE = re.compile('^[A-Za-z_][-_.A-Za-z0-9]*$')
-
-    @classmethod
-    def _XsdConstraintsPreCheck_vb (cls, value):
-        if not isinstance(value, (str, unicode)):
-            raise BadTypeValueError('NCName value must be a string')
-        match_object = cls.__ValidRE.match(value)
-        if match_object is None:
-            raise BadTypeValueError('NCName pattern constraint violation for "%s"' % (value,))
-        super_fn = getattr(super(NCName, cls), '_XsdConstraintsPreCheck_vb', lambda *a,**kw: True)
-        return super_fn(value)
+    _ValidRE = re.compile('^[A-Za-z_][-_.A-Za-z0-9]*$')
 
 _DerivedDatatypes.append(NCName)
 
