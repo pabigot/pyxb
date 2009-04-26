@@ -46,6 +46,13 @@ class TestUnion (unittest.TestCase):
         self.assertEqual(welsh.tri, myElement('tri').content())
         self.assertRaises(BadTypeValueError, myElement, 'five')
 
+    def testValidation (self):
+        # Test automated conversion
+        uv = myUnion._ValidateMember('one')
+        self.assertTrue(isinstance(uv, english))
+        uv = myUnion._ValidateMember('tri')
+        self.assertTrue(isinstance(uv, welsh))
+
     def testXMLErrors (self):
         self.assertEqual(welsh.un, CreateFromDocument('<myElement>un</myElement>').content())
         self.assertRaises(NotAnElementError, CreateFromDocument, '<welsh>un</welsh>')

@@ -135,6 +135,8 @@ class simpleTypeDefinition (utility._DeconflictSymbols_mixin, object):
             args = cls.__ConvertArgs(args)
         try:
             return super(simpleTypeDefinition, cls).__new__(cls, *args, **kw)
+        except ValueError, e:
+            raise BadTypeValueError(e)
         except OverflowError, e:
             raise BadTypeValueError(e)
 
@@ -366,6 +368,12 @@ class STD_union (simpleTypeDefinition):
         Raises BadTypeValueError if the value is not an instance of a
         member type."""
         if not isinstance(value, cls._MemberTypes):
+            for mt in cls._MemberTypes:
+                try:
+                    value = mt(value)
+                    return value
+                except BadTypeValueError:
+                    pass
             raise BadTypeValueError('%s cannot hold a member of type %s' % (cls.__name__, value.__class__.__name__))
         return value
 
@@ -386,21 +394,31 @@ class STD_list (simpleTypeDefinition, types.ListType):
 
     @classmethod
     def _ValidateItem (cls, value):
-        """Verify that the given value is permitted as an item of this list."""
+        """Verify that the given value is permitted as an item of this list.
+
+        This may convert the value to the proper type, if it is
+        compatible but not an instance of the iitem type.  Returns the
+        value that should be used as the item, or raises an exception
+        if the value cannot be converted."""
         if issubclass(cls._ItemType, STD_union):
-            cls._ItemType._ValidateMember(value)
+            value = cls._ItemType._ValidateMember(value)
         else:
             if not isinstance(value, cls._ItemType):
-                raise BadTypeValueError('Type %s has member of type %s, must be %s' % (cls.__name__, type(value).__name__, cls._ItemType.__name__))
+                try:
+                    value = cls._ItemType(value)
+                except BadTypeValueError:
+                    raise BadTypeValueError('Type %s has member of type %s, must be %s' % (cls.__name__, type(value).__name__, cls._ItemType.__name__))
         return value
 
     @classmethod
     def _XsdConstraintsPreCheck_vb (cls, value):
         """Verify that the items in the list are acceptable members."""
+        assert isinstance(value, list)
+        new_values = []
         for v in value:
-            cls._ValidateItem(v)
+            new_values.append(cls._ValidateItem(v))
         super_fn = getattr(super(STD_list, cls), '_XsdConstraintsPreCheck_vb', lambda *a,**kw: True)
-        return super_fn(value)
+        return super_fn(new_values)
 
     @classmethod
     def _XsdValueLength_vx (cls, value):
