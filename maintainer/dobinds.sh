@@ -12,6 +12,14 @@ scripts/genbind pyxb/standard/schemas/XMLSchema-hasFacetAndProperty.xsd pyxb/sta
 scripts/genbind pyxb/standard/schemas/wsdl.xsd pyxb/standard/bindings wsdl
 scripts/genbind pyxb/standard/schemas/xhtml.xsd pyxb/standard/bindings xhtml
 
+# Useful wsdl dependents
+scripts/genbind pyxb/standard/schemas/soap.xsd pyxb/standard/bindings soap
+scripts/genbind pyxb/standard/schemas/soapenc.xsd pyxb/standard/bindings soapenc
+scripts/genbind pyxb/standard/schemas/mimebind.xsd pyxb/standard/bindings soapmime
+scripts/genbind pyxb/standard/schemas/soapbind.xsd pyxb/standard/bindings soapbind
+scripts/genbind pyxb/standard/schemas/httpbind.xsd pyxb/standard/bindings soaphttp
+scripts/genbind pyxb/standard/schemas/soap12.xsd pyxb/standard/bindings soap12
+
 # Process anything remaining
 scripts/genbind pyxb/standard/schemas/kml21.xsd pyxb/standard/bindings kml
 scripts/genbind pyxb/standard/schemas/xmldsig-core-schema.xsd pyxb/standard/bindings xmldsig

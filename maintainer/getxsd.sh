@@ -1,4 +1,5 @@
 test -f soap.xsd || wget -O soap.xsd http://schemas.xmlsoap.org/soap/envelope/
+test -f soap12.xsd || wget -O soap12.xsd http://schemas.xmlsoap.org/wsdl/soap12/wsdl11soap12.xsd
 test -f soapenc.xsd || wget -O soapenc.xsd http://schemas.xmlsoap.org/soap/encoding/
 test -f wsdl.xsd || wget -O wsdl.xsd http://schemas.xmlsoap.org/wsdl/
 test -f soapbind.xsd || wget -O soapbind.xsd http://schemas.xmlsoap.org/wsdl/soap/
