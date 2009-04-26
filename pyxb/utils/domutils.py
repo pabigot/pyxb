@@ -1,5 +1,5 @@
-import pywxsb.Namespace as Namespace
-from pywxsb.exceptions_ import *
+import pyxb.Namespace as Namespace
+from pyxb.exceptions_ import *
 from xml.dom import Node
 from xml.dom import minidom
 import xml.dom as dom

@@ -1,6 +1,6 @@
 import unittest
-from pywxsb.utils.utility import *
-from pywxsb.utils.utility import _DeconflictSymbols_mixin
+from pyxb.utils.utility import *
+from pyxb.utils.utility import _DeconflictSymbols_mixin
 
 class DST_base (_DeconflictSymbols_mixin):
     _ReservedSymbols = set([ 'one', 'two' ])

@@ -1,12 +1,12 @@
-import pywxsb.binding.generate
+import pyxb.binding.generate
 
 import os.path
-schema_path = '%s/../../pywxsb/standard/schemas/kml21.xsd' % (os.path.dirname(__file__),)
-code = pywxsb.binding.generate.GeneratePython(schema_file=schema_path)
+schema_path = '%s/../../pyxb/standard/schemas/kml21.xsd' % (os.path.dirname(__file__),)
+code = pyxb.binding.generate.GeneratePython(schema_file=schema_path)
 rv = compile(code, 'test', 'exec')
 eval(rv)
 
-from pywxsb.exceptions_ import *
+from pyxb.exceptions_ import *
 
 import unittest
 

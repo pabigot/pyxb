@@ -2,13 +2,13 @@
 bindings inherit, and that describe the content models of those
 schema."""
 
-from pywxsb.exceptions_ import *
+from pyxb.exceptions_ import *
 import xml.dom as dom
 from xml.dom import minidom
-import pywxsb.utils.domutils as domutils
-import pywxsb.utils.utility as utility
+import pyxb.utils.domutils as domutils
+import pyxb.utils.utility as utility
 import types
-import pywxsb.Namespace
+import pyxb.Namespace
 
 class simpleTypeDefinition (utility._DeconflictSymbols_mixin, object):
     """simpleTypeDefinition is a base mix-in class that is part of the hierarchy
@@ -635,7 +635,7 @@ class complexTypeDefinition (utility._DeconflictSymbols_mixin, object):
             local_name = attr.localName
             namespace_name = attr.namespaceURI
             # Ignore xmlns attributes; DOM got those
-            if pywxsb.Namespace.XMLNamespaces.uri() == namespace_name:
+            if pyxb.Namespace.XMLNamespaces.uri() == namespace_name:
                 continue
             prefix = attr.prefix
             if not prefix:

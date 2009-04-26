@@ -1,7 +1,7 @@
-import pywxsb.binding.generate
+import pyxb.binding.generate
 from xml.dom import minidom
 from xml.dom import Node
-import pywxsb.Namespace
+import pyxb.Namespace
 import sys
 import imp
 
@@ -16,20 +16,20 @@ sys.modules['st'] = st
 
 # Now get the code for the shared types bindings, and evaluate it
 # within the new module.
-code = pywxsb.binding.generate.GeneratePython(schema_file=schema_path + '/shared-types.xsd')
+code = pyxb.binding.generate.GeneratePython(schema_file=schema_path + '/shared-types.xsd')
 rv = compile(code, 'shared-types', 'exec')
 exec code in st.__dict__
 
 # Set the path by which we expect to reference the module
-stns = pywxsb.Namespace.NamespaceForURI('URN:shared-types')
+stns = pyxb.Namespace.NamespaceForURI('URN:shared-types')
 stns.setModulePath('st')
 
 # Now get and build a module that refers to that module.
-code = pywxsb.binding.generate.GeneratePython(schema_file=schema_path + '/test-external.xsd')
+code = pyxb.binding.generate.GeneratePython(schema_file=schema_path + '/test-external.xsd')
 rv = compile(code, 'test-external', 'exec')
 eval(rv)
 
-from pywxsb.exceptions_ import *
+from pyxb.exceptions_ import *
 
 import unittest
 

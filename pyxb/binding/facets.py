@@ -6,13 +6,13 @@ datatype that constrain its lexical and value spaces.
 
 """
 
-from pywxsb.exceptions_ import *
+from pyxb.exceptions_ import *
 from xml.dom import Node
 import types
 import datatypes
 import basis
-from pywxsb.utils import utility
-from pywxsb.utils import domutils
+from pyxb.utils import utility
+from pyxb.utils import domutils
 import re
 
 class Facet (object):
@@ -245,7 +245,7 @@ class _LateDatatype_mixin (object):
         type hierarchy is used.
         """
         
-        import pywxsb.xmlschema.structures as structures
+        import pyxb.xmlschema.structures as structures
         if isinstance(value_type, structures.SimpleTypeDefinition):
             # Back up until we find something that actually has a
             # datatype

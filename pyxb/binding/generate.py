@@ -1,16 +1,16 @@
-import pywxsb.xmlschema as xs
+import pyxb.xmlschema as xs
 import StringIO
 import datetime
 
-from pywxsb.exceptions_ import *
-from pywxsb.utils import utility
-from pywxsb.utils import templates
-from pywxsb.xmlschema import structures
+from pyxb.exceptions_ import *
+from pyxb.utils import utility
+from pyxb.utils import templates
+from pyxb.xmlschema import structures
 import basis
 import content
 import datatypes
 import facets
-import pywxsb.Namespace as Namespace
+import pyxb.Namespace as Namespace
 
 import nfa
 
@@ -27,9 +27,9 @@ def PrefixModule (value, text=None):
     if text is None:
         text = value.__name__
     if value.__module__ == datatypes.__name__:
-        return 'pywxsb.binding.datatypes.%s' % (text,)
+        return 'pyxb.binding.datatypes.%s' % (text,)
     if value.__module__ == facets.__name__:
-        return 'pywxsb.binding.facets.%s' % (text,)
+        return 'pyxb.binding.facets.%s' % (text,)
     raise IncompleteImplementationError('PrefixModule needs support for non-builtin instances')
 
 class ReferenceLiteral (object):
@@ -90,7 +90,7 @@ class ReferenceParticle (ReferenceLiteral):
             template_map['max_occurs'] = pythonLiteral(int(particle.maxOccurs()), **kw)
         assert particle.term() is not None
         template_map['term'] = pythonLiteral(particle.term(), **kw)
-        self.setLiteral(templates.replaceInText('pywxsb.binding.content.Particle(%{min_occurs}, %{max_occurs}, %{term})', **template_map))
+        self.setLiteral(templates.replaceInText('pyxb.binding.content.Particle(%{min_occurs}, %{max_occurs}, %{term})', **template_map))
 
 class ReferenceWildcard (ReferenceLiteral):
     __wildcard = None
@@ -100,7 +100,7 @@ class ReferenceWildcard (ReferenceLiteral):
         super(ReferenceWildcard, self).__init__(**kw)
         
         template_map = { }
-        template_map['Wildcard'] = 'pywxsb.binding.content.Wildcard'
+        template_map['Wildcard'] = 'pyxb.binding.content.Wildcard'
         if (xs.structures.Wildcard.NC_any == wildcard.namespaceConstraint()):
             template_map['nc'] = templates.replaceInText('%{Wildcard}.NC_any', **template_map)
         elif isinstance(wildcard.namespaceConstraint(), (set, frozenset)):
@@ -191,7 +191,7 @@ class ReferenceSchemaComponent (ReferenceLiteral):
         if not is_in_binding:
             mp = None
             if Namespace.XMLSchema == tns:
-                mp = 'pywxsb.binding.datatypes'
+                mp = 'pyxb.binding.datatypes'
             elif tns is not None:
                 mp = tns.modulePath()
                 assert mp is not None
@@ -291,11 +291,11 @@ def pythonLiteral (value, **kw):
     if isinstance(value, facets._EnumerationElement):
         return pythonLiteral(value.value())
 
-    # Particles expand to a pywxsb.binding.content.Particle instance
+    # Particles expand to a pyxb.binding.content.Particle instance
     if isinstance(value, xs.structures.Particle):
         return pythonLiteral(ReferenceParticle(value, **kw))
 
-    # Wildcards expand to a pywxsb.binding.content.Wildcard instance
+    # Wildcards expand to a pyxb.binding.content.Wildcard instance
     if isinstance(value, xs.structures.Wildcard):
         return pythonLiteral(ReferenceWildcard(value, **kw))
 
@@ -347,7 +347,7 @@ def GenerateContentModel (ctd, automaton, **kw):
         cmi = '_ContentModel'
         ctd.__contentModelIndex = 1
     template_map['cm_tag'] = cmi
-    template_map['content'] = 'pywxsb.binding.content'
+    template_map['content'] = 'pyxb.binding.content'
     template_map['state_comma'] = ' '
     lines = []
     lines2 = []
@@ -441,7 +441,7 @@ def GenerateSTD (std, **kw):
     parent_classes = [ pythonLiteral(std.baseTypeDefinition(), **kw) ]
     enum_facet = std.facets().get(facets.CF_enumeration, None)
     if (enum_facet is not None) and (enum_facet.ownerTypeDefinition() == std):
-        parent_classes.append('pywxsb.binding.basis.enumeration_mixin')
+        parent_classes.append('pyxb.binding.basis.enumeration_mixin')
         
     template_map = { }
     template_map['std'] = pythonLiteral(std, **kw)
@@ -467,7 +467,7 @@ class %{std} (%{superclasses}):
         template = '''
 # List SimpleTypeDefinition
 # superclasses %{superclasses}
-class %{std} (pywxsb.binding.basis.STD_list):
+class %{std} (pyxb.binding.basis.STD_list):
     """%{description}"""
 
     # The name of this type definition within the schema
@@ -482,7 +482,7 @@ class %{std} (pywxsb.binding.basis.STD_list):
         template = '''
 # Union SimpleTypeDefinition
 # superclasses %{superclasses}
-class %{std} (pywxsb.binding.basis.STD_union):
+class %{std} (pyxb.binding.basis.STD_union):
     """%{description}"""
 
     # The name of this type definition within the schema
@@ -563,7 +563,7 @@ class %{ctd} (%{superclasses}):
     template_map['superclasses'] = pythonLiteral(base_type, **kw)
     if isinstance(base_type, structures.SimpleTypeDefinition) or base_type.isUrTypeDefinition():
         inherits_from_base = False
-        template_map['superclasses'] = 'pywxsb.binding.basis.CTD_%s' % (content_type,)
+        template_map['superclasses'] = 'pyxb.binding.basis.CTD_%s' % (content_type,)
         assert base_type.nameInBinding() is not None
 
     # Support for deconflicting attributes, elements, and reserved symbols
@@ -643,7 +643,7 @@ class %{ctd} (%{superclasses}):
             ctd.__elementFields[name] = ( is_plural, types, ef_map )
             definitions.append(templates.replaceInText('''
     # Element %{field_tag} uses Python identifier %{python_field_name}
-    %{field_name} = pywxsb.binding.content.ElementUse(%{field_tag}, '%{python_field_name}', '%{value_field_name}', %{is_plural}%{aux_init})
+    %{field_name} = pyxb.binding.content.ElementUse(%{field_tag}, '%{python_field_name}', '%{value_field_name}', %{is_plural}%{aux_init})
     def %{field_inspector} (self):
         """Get the value of the %{field_tag} element."""
         return self.%{field_name}.value(self)
@@ -742,7 +742,7 @@ class %{ctd} (%{superclasses}):
         attribute_uses.append(templates.replaceInText('%{attr_tag} : %{attr_name}', **au_map))
         definitions.append(templates.replaceInText('''
     # Attribute %{attr_tag} from %{attr_ns} uses Python identifier %{python_attr_name}
-    %{attr_name} = pywxsb.binding.content.AttributeUse(%{attr_tag}, '%{python_attr_name}', '%{value_attr_name}', %{attr_type}%{aux_init})
+    %{attr_name} = pyxb.binding.content.AttributeUse(%{attr_tag}, '%{python_attr_name}', '%{value_attr_name}', %{attr_type}%{aux_init})
     def %{attr_inspector} (self):
         """Get the value of the %{attr_tag} attribute."""
         return self.%{attr_name}.value(self)
@@ -794,7 +794,7 @@ def GenerateED (ed, **kw):
     template_map['base_datatype'] = pythonLiteral(ed.typeDefinition(), **kw)
     outf.write(templates.replaceInText('''
 # ElementDeclaration
-class %{class} (pywxsb.binding.basis.element):
+class %{class} (pyxb.binding.basis.element):
     _XsdName = %{element_name}
     _ElementScope = %{element_scope}
     _TypeDefinition = %{base_datatype}
@@ -877,9 +877,9 @@ def GenerateMG (mg, **kw):
     outf.write(templates.replaceInText('''
 # %{model_group} top level elements:
 %{field_descr}
-%{model_group} = pywxsb.binding.content.ModelGroup()
+%{model_group} = pyxb.binding.content.ModelGroup()
 ''', **template_map))
-    template_map['compositor'] = 'pywxsb.binding.content.ModelGroup.C_%s' % (mg.compositorToString().upper(),)
+    template_map['compositor'] = 'pyxb.binding.content.ModelGroup.C_%s' % (mg.compositorToString().upper(),)
     template_map['particles'] = ','.join( [ pythonLiteral(_p, **kw) for _p in mg.particles() ])
     PostscriptItems.append(templates.replaceInText('''
 %{model_group}._setContent(%{compositor}, [ %{particles} ])
@@ -914,7 +914,7 @@ def GeneratePython (**kw):
         emit_order = schema.orderedComponents()
         outf = StringIO.StringIO()
     
-        import_prefix = 'pywxsb.xmlschema.'
+        import_prefix = 'pyxb.xmlschema.'
         if schema.getTargetNamespace() == Namespace.XMLSchema:
             import_prefix = ''
 
@@ -942,7 +942,7 @@ def GeneratePython (**kw):
 
         outf.write(templates.replaceInText('''# PyWXSB bindings for %{input}
 # Generated %{date} by PyWXSB version %{version}
-import pywxsb.binding
+import pyxb.binding
 from xml.dom import minidom
 from xml.dom import Node
 # Import bindings for namespaces listed in schema xmlns
@@ -965,7 +965,7 @@ def CreateFromDOM (node):
     cls = globals().get(ncname, None)
     if cls is None:
         raise UnrecognizedElementError('No class available for %s' % (ncname,))
-    if not issubclass(cls, pywxsb.binding.basis.element):
+    if not issubclass(cls, pyxb.binding.basis.element):
         raise NotAnElementError('Tag %s does not exist as element in module' % (ncname,))
     return cls.CreateFromDOM(node)
 

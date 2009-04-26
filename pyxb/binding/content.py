@@ -1,6 +1,6 @@
 """Helper classes that maintain the content model of XMLSchema in the binding classes."""
 
-from pywxsb.exceptions_ import *
+from pyxb.exceptions_ import *
 import basis
 
 import xml.dom

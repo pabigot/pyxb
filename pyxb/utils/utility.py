@@ -88,7 +88,7 @@ class _DeconflictSymbols_mixin (object):
     inherited by generated binding classes.
 
     Some classes, like the element or simpleTypeDefinition classes in
-    pywxsb.binding.basis, have public symbols associated with
+    pyxb.binding.basis, have public symbols associated with
     functions and variables.  It is possible that an XML schema might
     include tags and attribute names that match these symbols.  To
     avoid conflict, the reserved symbols marked in this class are

@@ -1,14 +1,14 @@
-import pywxsb.binding.generate
+import pyxb.binding.generate
 from xml.dom import minidom
 from xml.dom import Node
 
 import os.path
 schema_path = '%s/../schemas/test-ctd-attr.xsd' % (os.path.dirname(__file__),)
-code = pywxsb.binding.generate.GeneratePython(schema_file=schema_path)
+code = pyxb.binding.generate.GeneratePython(schema_file=schema_path)
 rv = compile(code, 'test', 'exec')
 eval(rv)
 
-from pywxsb.exceptions_ import *
+from pyxb.exceptions_ import *
 
 import unittest
 
@@ -17,8 +17,8 @@ class TestCTD (unittest.TestCase):
     # Make sure that name collisions are deconflicted in favor of the
     # element declaration.
     def testDeconflict (self):
-        self.assert_(issubclass(structure, pywxsb.binding.basis.element))
-        self.assert_(issubclass(structure_, pywxsb.binding.basis.CTD_element))
+        self.assert_(issubclass(structure, pyxb.binding.basis.element))
+        self.assert_(issubclass(structure_, pyxb.binding.basis.CTD_element))
 
     def testSimple (self):
         self.assertEqual('test', simple_('test').content())
@@ -36,9 +36,9 @@ class TestCTD (unittest.TestCase):
         self.assertEqual(xml, instance.toDOM().toxml())
 
     def testString (self):
-        self.assertEqual('test', pywxsb.binding.datatypes.string('test'))
+        self.assertEqual('test', pyxb.binding.datatypes.string('test'))
         rv = string('test')
-        self.assert_(isinstance(rv.content(), pywxsb.binding.datatypes.string))
+        self.assert_(isinstance(rv.content(), pyxb.binding.datatypes.string))
         self.assertEqual('test', rv.content())
         rv = CreateFromDocument('<string>test</string>')
         self.assert_(isinstance(rv, string))

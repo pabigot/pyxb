@@ -1,10 +1,10 @@
-from pywxsb.exceptions_ import *
+from pyxb.exceptions_ import *
 import unittest
-#import pywxsb.binding.facets as facets
-#import pywxsb.binding.datatypes as datatypes
-import pywxsb.binding
-import pywxsb.binding.facets as facets
-import pywxsb.binding.datatypes as datatypes
+#import pyxb.binding.facets as facets
+#import pyxb.binding.datatypes as datatypes
+import pyxb.binding
+import pyxb.binding.facets as facets
+import pyxb.binding.datatypes as datatypes
 
 # 4.3.1 length
 # 4.3.2 minLength
@@ -30,7 +30,7 @@ Password._CF_minLength =  facets.CF_minLength(super_facet=datatypes.string._CF_m
 Password._CF_maxLength =  facets.CF_maxLength(super_facet=datatypes.string._CF_maxLength, value=facets.CF_maxLength._ValueDatatype(15))
 Password._InitializeFacetMap(Password._CF_minLength, Password._CF_maxLength)
 
-class AFew (pywxsb.binding.basis.STD_list):
+class AFew (pyxb.binding.basis.STD_list):
     _ItemType = datatypes.integer
     pass
 AFew._CF_minLength =  facets.CF_minLength(super_facet=datatypes.string._CF_minLength, value=datatypes.nonNegativeInteger(2))

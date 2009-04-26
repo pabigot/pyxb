@@ -9,7 +9,7 @@ We want the simple datatypes to be efficient Python values, but to
 also hold specific constraints that don't apply to the Python types.
 To do this, we subclass each PST.  Primitive PSTs inherit from the
 Python type that represents them, and from a
-pywxsb.binding.basis.simpleTypeDefinition class which adds in the
+pyxb.binding.basis.simpleTypeDefinition class which adds in the
 constraint infrastructure.  Derived PSTs inherit from the parent PST.
 
 There is an exception to this when the Python type best suited for a
@@ -26,11 +26,11 @@ instance of either SimpleTypeDefinition or ComplexTypeDefinition.
 
 """
 
-from pywxsb.exceptions_ import *
+from pyxb.exceptions_ import *
 import types
-import pywxsb.Namespace as Namespace
-import pywxsb.utils.domutils as domutils
-import pywxsb.utils.utility as utility
+import pyxb.Namespace as Namespace
+import pyxb.utils.domutils as domutils
+import pyxb.utils.utility as utility
 import basis
 
 _PrimitiveDatatypes = []

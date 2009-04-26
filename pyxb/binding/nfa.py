@@ -1,7 +1,7 @@
 #import unittest
-#from pywxsb.binding.content import Particle, ModelGroup
+#from pyxb.binding.content import Particle, ModelGroup
 
-from pywxsb.xmlschema.structures import Particle, ModelGroup
+from pyxb.xmlschema.structures import Particle, ModelGroup
 
 # Represent state transitions as a map from states to maps from
 # symbols to sets of states.  States are integers.

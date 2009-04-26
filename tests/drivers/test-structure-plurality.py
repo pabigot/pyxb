@@ -1,11 +1,11 @@
 # Test the infrastructure that determines whether specific element
 # names should be treated as single values or collections.
 
-import pywxsb.xmlschema as xs
-from pywxsb.exceptions_ import *
-import pywxsb.Namespace as Namespace
-from pywxsb.xmlschema.structures import _PluralityData
-from pywxsb.xmlschema.structures import ModelGroup
+import pyxb.xmlschema as xs
+from pyxb.exceptions_ import *
+import pyxb.Namespace as Namespace
+from pyxb.xmlschema.structures import _PluralityData
+from pyxb.xmlschema.structures import ModelGroup
 
 import unittest
 

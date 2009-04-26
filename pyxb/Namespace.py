@@ -489,8 +489,8 @@ def XMLSchemaModule ():
     (PyWXSB.XMLSchema)."""
     global _XMLSchemaModule
     if _XMLSchemaModule is None:
-        import pywxsb.xmlschema
-        SetXMLSchemaModule(pywxsb.xmlschema)
+        import pyxb.xmlschema
+        SetXMLSchemaModule(pyxb.xmlschema)
     return _XMLSchemaModule
 
 def SetXMLSchemaModule (xs_module):
