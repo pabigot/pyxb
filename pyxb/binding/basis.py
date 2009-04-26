@@ -118,16 +118,23 @@ class simpleTypeDefinition (utility._DeconflictSymbols_mixin, object):
     # Must override new, because new gets invoked before init, and
     # usually doesn't accept keywords.  In case it does, only remove
     # the ones that are interpreted by this class.  Do the same
-    # argument conversion as is done in init.
+    # argument conversion as is done in init.  Trap errors and convert
+    # them to BadTypeValue errors.
     def __new__ (cls, *args, **kw):
         kw.pop('validate_constraints', None)
-        return super(simpleTypeDefinition, cls).__new__(cls, *cls.__ConvertArgs(args), **kw)
+        try:
+            return super(simpleTypeDefinition, cls).__new__(cls, *cls.__ConvertArgs(args), **kw)
+        except OverflowError, e:
+            raise BadTypeValueError(e)
 
     # Validate the constraints after invoking the parent constructor,
     # unless told not to.
     def __init__ (self, *args, **kw):
         validate_constraints = kw.pop('validate_constraints', True)
-        super(simpleTypeDefinition, self).__init__(*self.__ConvertArgs(args), **kw)
+        try:
+            super(simpleTypeDefinition, self).__init__(*self.__ConvertArgs(args), **kw)
+        except OverflowError, e:
+            raise BadTypeValueError(e)
         if validate_constraints:
             self.xsdConstraintsOK()
 
