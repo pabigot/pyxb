@@ -99,7 +99,7 @@ class boolean (basis.simpleTypeDefinition, int):
             else:
                 iv = False
             return super(boolean, cls).__new__(cls, iv, *args, **kw)
-        raise ValueError('[xsd:boolean] Initializer "%s" not valid for type' % (value,))
+        raise BadTypeValueError('[xsd:boolean] Initializer "%s" not valid for type' % (value,))
 
 
 _PrimitiveDatatypes.append(boolean)
