@@ -255,7 +255,7 @@ class simpleTypeDefinition (utility._DeconflictSymbols_mixin, object):
         list are acceptable, and for token descendents, to check the
         lexical/value space conformance of the input.
         """
-        super_fn = getattr(super(simpleTypeDefinition, cls), '_XsdConstraintsPreCheck_vb', lambda *a,**kw: True)
+        super_fn = getattr(super(simpleTypeDefinition, cls), '_XsdConstraintsPreCheck_vb', lambda *a,**kw: value)
         return super_fn(value)
 
     @classmethod
@@ -265,7 +265,7 @@ class simpleTypeDefinition (utility._DeconflictSymbols_mixin, object):
         Throws BadTypeValueError if any constraint is violated.
         """
 
-        cls._XsdConstraintsPreCheck_vb(value)
+        value = cls._XsdConstraintsPreCheck_vb(value)
 
         facet_values = None
 
@@ -430,12 +430,11 @@ class STD_list (simpleTypeDefinition, types.ListType):
     @classmethod
     def _XsdConstraintsPreCheck_vb (cls, value):
         """Verify that the items in the list are acceptable members."""
-        assert isinstance(value, list)
-        new_values = []
-        for v in value:
-            new_values.append(cls._ValidateItem(v))
-        super_fn = getattr(super(STD_list, cls), '_XsdConstraintsPreCheck_vb', lambda *a,**kw: True)
-        return super_fn(new_values)
+        assert isinstance(value, cls)
+        for i in range(len(value)):
+            value[i] = cls._ValidateItem(value[i])
+        super_fn = getattr(super(STD_list, cls), '_XsdConstraintsPreCheck_vb', lambda *a,**kw: value)
+        return super_fn(value)
 
     @classmethod
     def _XsdValueLength_vx (cls, value):
