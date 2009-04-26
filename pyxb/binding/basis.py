@@ -127,8 +127,11 @@ class simpleTypeDefinition (utility._DeconflictSymbols_mixin, object):
     # yet.
     def __new__ (cls, *args, **kw):
         kw.pop('validate_constraints', None)
+        apply_whitespace_facet = kw.pop('apply_whitespace_facet', False)
+        if apply_whitespace_facet:
+            args = cls.__ConvertArgs(args)
         try:
-            return super(simpleTypeDefinition, cls).__new__(cls, *cls.__ConvertArgs(args), **kw)
+            return super(simpleTypeDefinition, cls).__new__(cls, *args, **kw)
         except OverflowError, e:
             raise BadTypeValueError(e)
 
@@ -136,8 +139,11 @@ class simpleTypeDefinition (utility._DeconflictSymbols_mixin, object):
     # unless told not to.
     def __init__ (self, *args, **kw):
         validate_constraints = kw.pop('validate_constraints', True)
+        apply_whitespace_facet = kw.pop('apply_whitespace_facet', False)
+        if apply_whitespace_facet:
+            args = self.__ConvertArgs(args)
         try:
-            super(simpleTypeDefinition, self).__init__(*self.__ConvertArgs(args), **kw)
+            super(simpleTypeDefinition, self).__init__(*args, **kw)
         except OverflowError, e:
             raise BadTypeValueError(e)
         if validate_constraints:

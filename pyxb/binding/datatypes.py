@@ -32,6 +32,7 @@ import pyxb.Namespace as Namespace
 import pyxb.utils.domutils as domutils
 import pyxb.utils.utility as utility
 import basis
+import re
 
 _PrimitiveDatatypes = []
 _DerivedDatatypes = []
@@ -277,19 +278,67 @@ class NOTATION (basis.simpleTypeDefinition):
 _PrimitiveDatatypes.append(NOTATION)
 
 class normalizedString (string):
+    """See http:///www.w3.org/TR/xmlschema-2/index.html#normalizedString
+
+    Normalized strings can't have carriage returns, linefeeds, or
+    tabs in them."""
+
     # All descendents of normalizedString constrain the lexical/value
     # space in some way.  Subclasses should set the _ValidRE class
     # variable to a compiled regular expression that matches valid
-    # input.
-    # @todo Implement pattern constraints and just rely on that
+    # input, or the _InvalidRE class variable to a compiled regular
+    # expression that detects invalid inputs.
+    #
+    # Alternatively, subclasses can override the _ValidateString
+    # class.
+    
+    # @todo Implement pattern constraints and just rely on them
+
+    # No CR, LF, or TAB
+    __BadChars = re.compile("[\r\n\t]")
+
+    _ValidRE = None
+    _InvalidRE = None
+    
+    @classmethod
+    def __ValidateString (cls, value):
+        # This regular expression doesn't work.  Don't know why.
+        #if cls.__BadChars.match(value) is not None:
+        #    raise BadTypeValueError('CR/NL/TAB characters illegal in %s' % (cls.__name__,))
+        if (0 <= value.find("\n")) or (0 <= value.find("\r")) or (0 <= value.find("\t")):
+            raise BadTypeValueError('CR/NL/TAB characters illegal in %s' % (cls.__name__,))
+        if cls._ValidRE is not None:
+            match_object = cls._ValidRE.match(value)
+            if match_object is None:
+                raise BadTypeValueError('%s pattern constraint violation for "%s"' % (cls.__name__, value))
+        if cls._InvalidRE is not None:
+            match_object = cls._InvalidRE.match(value)
+            if not (match_object is None):
+                raise BadTypeValueError('%s pattern constraint violation for "%s"' % (cls.__name__, value))
+        return True
+
+    @classmethod
+    def _ValidateString_va (cls, value):
+        """Post-extended method to validate that a string matches a given pattern.
+
+        If you can express the valid strings as a compiled regular
+        expression in the class variable _ValidRE, or the invalid
+        strings as a compiled regular expression in the class variable
+        _InvalidRE, you can just use those.  If the acceptable matches
+        are any trickier, you should invoke the superclass
+        implementation, and if it returns True then perform additional
+        tests."""
+        super_fn = getattr(super(normalizedString, cls), '_ValidateString_va', lambda *a,**kw: True)
+        if not super_fn(value):
+            return False
+        return cls.__ValidateString(value)
 
     @classmethod
     def _XsdConstraintsPreCheck_vb (cls, value):
         if not isinstance(value, (str, unicode)):
             raise BadTypeValueError('%s value must be a string' % (cls.__name__,))
-        match_object = cls._ValidRE.match(value)
-        if match_object is None:
-            raise BadTypeValueError('%s pattern constraint violation for "%s"' % (cls.__name__, value))
+        if not cls._ValidateString_va(value):
+            raise BadTypeValueError('%s lexical/value space violation for "%s"' % (cls.__name__, value))
         super_fn = getattr(super(normalizedString, cls), '_XsdConstraintsPreCheck_vb', lambda *a,**kw: True)
         return super_fn(value)
 
@@ -297,15 +346,34 @@ _DerivedDatatypes.append(normalizedString)
 assert normalizedString.XsdSuperType() == string
 
 class token (normalizedString):
-    pass
+    """See http:///www.w3.org/TR/xmlschema-2/index.html#token
+
+    Tokens cannot leading or trailing space characters; any
+    carriage return, line feed, or tab characters; nor any occurrence
+    of two or more consecutive space characters."""
+    
+    @classmethod
+    def _ValidateString_va (cls, value):
+        super_fn = getattr(super(token, cls), '_ValidateString_va', lambda *a,**kw: True)
+        if not super_fn(value):
+            return False
+        if value.startswith(" "):
+            raise BadTypeValueError('Leading spaces in token')
+        if value.endswith(" "):
+            raise BadTypeValueError('Trailing spaces in token')
+        if 0 <= value.find('  '):
+            raise BadTypeValueError('Multiple internal spaces in token')
+        return True
 _DerivedDatatypes.append(token)
 
 class language (token):
-    pass
+    """See http:///www.w3.org/TR/xmlschema-2/index.html#language"""
+    _ValidRE = re.compile('^[a-zA-Z]{1,8}(-[a-zA-Z0-9]{1,8})*$')
 _DerivedDatatypes.append(language)
 
 class NMTOKEN (token):
-    pass
+    """See http://www.w3.org/TR/2000/WD-xml-2e-20000814.html#NT-Nmtoken"""
+    _ValidRE = re.compile('^[-_.:A-Za-z0-9]*$')
 _DerivedDatatypes.append(NMTOKEN)
 
 class NMTOKENS (basis.STD_list):
@@ -313,20 +381,22 @@ class NMTOKENS (basis.STD_list):
 _ListDatatypes.append(NMTOKENS)
 
 class Name (token):
-    pass
+    """See http://www.w3.org/TR/2000/WD-xml-2e-20000814.html#NT-Name"""
+    _ValidRE = re.compile('^[A-Za-z_:][-_.:A-Za-z0-9]*$')
 _DerivedDatatypes.append(Name)
 
-import re
 class NCName (Name):
+    """See http://www.w3.org/TR/1999/REC-xml-names-19990114/index.html#NT-NCName"""
     _ValidRE = re.compile('^[A-Za-z_][-_.A-Za-z0-9]*$')
-
 _DerivedDatatypes.append(NCName)
 
 class ID (NCName):
+    # Lexical and value space match that of parent NCName
     pass
 _DerivedDatatypes.append(ID)
 
 class IDREF (NCName):
+    # Lexical and value space match that of parent NCName
     pass
 _DerivedDatatypes.append(IDREF)
 
@@ -335,6 +405,12 @@ class IDREFS (basis.STD_list):
 _ListDatatypes.append(IDREFS)
 
 class ENTITY (NCName):
+    # Lexical and value space match that of parent NCName; we're gonna
+    # ignore the additioanl requirement that it be declared as an
+    # unparsed entity
+    #
+    # @todo Don't ignore the requirement that this be declared as an
+    # unparsed entity.
     pass
 _DerivedDatatypes.append(ENTITY)
 
