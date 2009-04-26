@@ -28,9 +28,57 @@ class Test_hexBinary (unittest.TestCase):
         self.assertEqual(0x1234567890, v)
         self.assertEqual(5, v.length())
 
+        v = xsd.hexBinary(0x123456789abcdef0)
+        self.assertEqual(0x123456789abcdef0, v)
+        self.assertEqual(8, v.length())
+
         v = xsd.hexBinary(0x1234567890123456789012345678901234567890)
         self.assertEqual(0x1234567890123456789012345678901234567890, v)
         self.assertEqual(20, v.length())
+
+    def testStrings (self):
+        v = xsd.hexBinary("01")
+        self.assertEqual(1, v)
+        self.assertEqual(1, v.length())
+
+        v = xsd.hexBinary("00")
+        self.assertEqual(0, v)
+        self.assertEqual(1, v.length())
+
+        v = xsd.hexBinary("0123")
+        self.assertEqual(0x123, v)
+        self.assertEqual(2, v.length())
+
+        v = xsd.hexBinary("1234")
+        self.assertEqual(0x1234, v)
+        self.assertEqual(2, v.length())
+
+        v = xsd.hexBinary('012345')
+        self.assertEqual(0x12345, v)
+        self.assertEqual(3, v.length())
+
+        v = xsd.hexBinary('1234567890')
+        self.assertEqual(0x1234567890, v)
+        self.assertEqual(5, v.length())
+
+        v = xsd.hexBinary('123456789abcdef0')
+        self.assertEqual(0x123456789abcdef0, v)
+        self.assertEqual(8, v.length())
+
+        v = xsd.hexBinary('123456789ABCDEF0')
+        self.assertEqual(0x123456789abcdef0, v)
+        self.assertEqual(8, v.length())
+
+        v = xsd.hexBinary('1234567890123456789012345678901234567890')
+        self.assertEqual(0x1234567890123456789012345678901234567890, v)
+        self.assertEqual(20, v.length())
+        
+    def testBadStrings (self):
+        self.assertRaises(BadTypeValueError, xsd.hexBinary, '')
+        self.assertRaises(BadTypeValueError, xsd.hexBinary, '0')
+        self.assertRaises(BadTypeValueError, xsd.hexBinary, '012')
+        self.assertRaises(BadTypeValueError, xsd.hexBinary, '01s')
+
 
     def testLiteralization (self):
         self.assertEqual('00', xsd.hexBinary(0).xsdLiteral())

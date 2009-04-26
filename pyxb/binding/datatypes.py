@@ -202,12 +202,13 @@ class hexBinary (basis.simpleTypeDefinition, types.LongType):
 
     @classmethod
     def _ConvertString (cls, text):
-        assert isinstance(value, types.StringTypes)
-        length = 0
+        """Convert a sequence of pairs of hex digits into a length (in
+        octets) and a binary value."""
+        assert isinstance(text, types.StringTypes)
         value = 0L
-        i = 0
-        while (i < len(text)):
-            v = ord(text[i].lower())
+        length = 0
+        while (length < len(text)):
+            v = ord(text[length].lower())
             if (ord('0') <= v) and (v <= ord('9')):
                 value = (value << 4) + v - ord('0')
             elif (ord('a') <= v) and (v <= ord('f')):
@@ -215,9 +216,11 @@ class hexBinary (basis.simpleTypeDefinition, types.LongType):
             else:
                 raise BadTypeValueError('Non-hexadecimal values in %s' % (cls.__class__.__name__,))
             length += 1
+        if 0 == length:
+            raise BadTypeValueError('%s must be non-empty string' % (cls.__class__.__name__,))
         if (length & 0x01):
             raise BadTypeValueError('%s value ends mid-octet' % (cls.__class__.__name__,))
-        return (length, value)
+        return (length >> 1, value)
 
     @classmethod
     def _ConvertValue (cls, value):
