@@ -265,6 +265,21 @@ class QName (basis.simpleTypeDefinition, unicode):
     def XsdLiteral (cls, value):
         return unicode(value)
 
+    @classmethod
+    def _XsdConstraintsPreCheck_vb (cls, value):
+        if not isinstance(value, (str, unicode)):
+            raise BadTypeValueError('%s value must be a string' % (cls.__name__,))
+        if 0 <= value.find(':'):
+            (prefix, local) = value.split(':', 1)
+            if (NCName._ValidRE.match(prefix) is None) or (NCName._ValidRE.match(local) is None):
+                raise BadTypeValueError('%s lexical/value space violation for "%s"' % (cls.__name__, value))
+        else:
+            if NCName._ValidRE.match(value) is None:
+                raise BadTypeValueError('%s lexical/value space violation for "%s"' % (cls.__name__, value))
+        super_fn = getattr(super(QName, cls), '_XsdConstraintsPreCheck_vb', lambda *a,**kw: True)
+        return super_fn(value)
+
+
 _PrimitiveDatatypes.append(QName)
 
 class NOTATION (basis.simpleTypeDefinition):
