@@ -605,12 +605,13 @@ class _AttributeWildcard_mixin (object):
         return (attributes, attribute_groups, any_attribute)
 
     @classmethod
-    def CompleteWildcard (cls, attribute_groups, any_attribute, local_wildcard):
+    def CompleteWildcard (cls, wxs, attribute_groups, any_attribute, local_wildcard):
         # Non-absent wildcard properties of attribute groups
         agd_wildcards = []
         for agd in attribute_groups:
             if agd.attributeWildcard() is not None:
                 agd_wildcards.append(agd.attributeWildcard())
+        agd_constraints = [ _agd.namespaceConstraint() for _agd in agd_wildcards ]
 
         # Clause 2.1
         if 0 == len(agd_wildcards):
@@ -619,11 +620,13 @@ class _AttributeWildcard_mixin (object):
         if any_attribute is not None:
             # Clause 2.2.1
             return Wildcard(process_contents=local_wildcard.processContents(),
-                            namespace_constraint=Wildcard.IntensionalIntersection(agd_wildcards + [local_wildcard.namespaceConstraint()]),
-                            annotation=local_wildcard.annotation())
+                            namespace_constraint=Wildcard.IntensionalIntersection(agd_constraints + [local_wildcard.namespaecConstraint()]),
+                            annotation=local_wildcard.annotation(),
+                            schema=wxs)
         # Clause 2.2.2
         return Wildcard(process_contents=agd_wildcards[0].processContents(),
-                        namespace_constraint=Wildcard.IntensionalIntersection(agd_wildcards))
+                        namespace_constraint=Wildcard.IntensionalIntersection(agd_constraints),
+                        schema=wxs)
 
 class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Resolvable_mixin, _Annotated_mixin, _ValueConstraint_mixin):
     """An XMLSchema Attribute Declaration component.
@@ -1264,7 +1267,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
             local_wildcard = Wildcard.CreateFromDOM(wxs, any_attribute)
 
         # Clause 2
-        complete_wildcard = _AttributeWildcard_mixin.CompleteWildcard(attribute_groups, any_attribute, local_wildcard)
+        complete_wildcard = _AttributeWildcard_mixin.CompleteWildcard(wxs, attribute_groups, any_attribute, local_wildcard)
 
         # Clause 3
         if self.DM_restriction == method:
@@ -1580,7 +1583,7 @@ class AttributeGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _
         local_wildcard = None
         if any_attribute is not None:
             local_wildcard = Wildcard.CreateFromDOM(wxs, any_attribute)
-        self._setAttributeWildcard(_AttributeWildcard_mixin.CompleteWildcard(attribute_groups, any_attribute, local_wildcard))
+        self._setAttributeWildcard(_AttributeWildcard_mixin.CompleteWildcard(wxs, attribute_groups, any_attribute, local_wildcard))
 
         self.__attributeUses = frozenset(uses)
         self.__isResolved = True
