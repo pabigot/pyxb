@@ -705,6 +705,6 @@ class Wildcard (object):
 
         """
         # @todo check node against namespace constraint and process contents
-        print 'WARNING: Accepting node as wildcard match without validating.'
+        #print 'WARNING: Accepting node as wildcard match without validating.'
         return True
         
