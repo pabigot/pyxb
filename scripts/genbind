@@ -1,16 +1,16 @@
 #!/usr/bin/env python
 
-import pywxsb.xmlschema
-from pywxsb.binding.generate import GeneratePython
+import pyxb.xmlschema
+from pyxb.binding.generate import GeneratePython
 
 import sys
 import traceback
 from xml.dom import minidom
 from xml.dom import Node
      
-module_path = 'pywxsb.standard.bindings'
-schema_file = 'pywxsb/standard/schemas/xml.xsd'
-binding_path = 'pywxsb/standard/bindings'
+module_path = 'pyxb.standard.bindings'
+schema_file = 'pyxb/standard/schemas/xml.xsd'
+binding_path = 'pyxb/standard/bindings'
 prefix = 'xml'
 
 if 1 < len(sys.argv):
@@ -26,7 +26,7 @@ binding_file = '%s/%s.py' % (binding_path, prefix)
 wxs = None
 ns = None
 try:
-    wxs = pywxsb.xmlschema.schema.CreateFromDOM(minidom.parse(schema_file))
+    wxs = pyxb.xmlschema.schema.CreateFromDOM(minidom.parse(schema_file))
     ns = wxs.getTargetNamespace()
     ns.setModulePath('%s.%s' % (module_path, prefix))
     print 'Extracted schema information from %s, yielding namespace %s' % (schema_file, ns)
