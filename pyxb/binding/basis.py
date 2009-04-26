@@ -111,9 +111,12 @@ class simpleTypeDefinition (utility._DeconflictSymbols_mixin, object):
 
     @classmethod
     def CreateFromDOM (cls, node):
-        """Create a simple type instance from the given DOM Node instance."""
+        """Create a simple type instance from the given DOM Node instance.
+
+        Any whitespace facet constraint is applied to the extracted
+        text."""
         # @todo error if non-text content?
-        return cls.Factory(domutils.ExtractTextContent(node))
+        return cls.Factory(domutils.ExtractTextContent(node), apply_whitespace_facet=True)
 
     # Must override new, because new gets invoked before init, and
     # usually doesn't accept keywords.  In case it does, only remove
