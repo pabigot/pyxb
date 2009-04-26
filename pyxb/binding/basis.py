@@ -100,6 +100,27 @@ class simpleTypeDefinition (utility._DeconflictSymbols_mixin, object):
         return args
 
     @classmethod
+    def _ConvertArguments (cls, args, kw):
+        """Pre-process the arguments.
+
+        This is used before invoking the parent constructor.  One
+        application is to apply the whitespace facet processing; if
+        such a request is in the keywords, it is removed so it does
+        not propagate to the superclass.  Another application is to
+        convert the arguments from a string to a list."""
+        apply_whitespace_facet = kw.pop('apply_whitespace_facet', False)
+        if apply_whitespace_facet:
+            args = cls.__ConvertArgs(args)
+        if issubclass(cls, STD_list):
+            # If the first argument is a string, split it on spaces
+            # and use the resulting list of tokens.
+            if 0 < len(args):
+                arg1 = args[0]
+                if isinstance(arg1, (str, unicode)):
+                    args = (arg1.split(),) +  args[1:]
+        return args
+
+    @classmethod
     def Factory (cls, *args, **kw):
         """Provide a common mechanism to create new instances of this type.
 
@@ -130,9 +151,7 @@ class simpleTypeDefinition (utility._DeconflictSymbols_mixin, object):
     # yet.
     def __new__ (cls, *args, **kw):
         kw.pop('validate_constraints', None)
-        apply_whitespace_facet = kw.pop('apply_whitespace_facet', False)
-        if apply_whitespace_facet:
-            args = cls.__ConvertArgs(args)
+        args = cls._ConvertArguments(args, kw)
         try:
             return super(simpleTypeDefinition, cls).__new__(cls, *args, **kw)
         except ValueError, e:
@@ -144,9 +163,7 @@ class simpleTypeDefinition (utility._DeconflictSymbols_mixin, object):
     # unless told not to.
     def __init__ (self, *args, **kw):
         validate_constraints = kw.pop('validate_constraints', True)
-        apply_whitespace_facet = kw.pop('apply_whitespace_facet', False)
-        if apply_whitespace_facet:
-            args = self.__ConvertArgs(args)
+        args = self._ConvertArguments(args, kw)
         try:
             super(simpleTypeDefinition, self).__init__(*args, **kw)
         except OverflowError, e:
