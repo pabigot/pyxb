@@ -301,8 +301,21 @@ class Name (token):
     pass
 _DerivedDatatypes.append(Name)
 
+import re
 class NCName (Name):
-    pass
+    # @todo Implement pattern constraints and just rely on that
+    __ValidRE = re.compile('^[A-Za-z_][-_.A-Za-z0-9]*$')
+
+    @classmethod
+    def _XsdConstraintsPreCheck_vb (cls, value):
+        if not isinstance(value, (str, unicode)):
+            raise BadTypeValueError('NCName value must be a string')
+        match_object = cls.__ValidRE.match(value)
+        if match_object is None:
+            raise BadTypeValueError('NCName pattern constraint violation for "%s"' % (value,))
+        super_fn = getattr(super(NCName, cls), '_XsdConstraintsPreCheck_vb', lambda *a,**kw: True)
+        return super_fn(value)
+
 _DerivedDatatypes.append(NCName)
 
 class ID (NCName):

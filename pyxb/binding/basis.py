@@ -120,6 +120,11 @@ class simpleTypeDefinition (utility._DeconflictSymbols_mixin, object):
     # the ones that are interpreted by this class.  Do the same
     # argument conversion as is done in init.  Trap errors and convert
     # them to BadTypeValue errors.
+    #
+    # Note: We explicitly do not validate constraints here.  That's
+    # done in the normal constructor; here, we might be in the process
+    # of building a value that eventually will be legal, but isn't
+    # yet.
     def __new__ (cls, *args, **kw):
         kw.pop('validate_constraints', None)
         try:
@@ -215,7 +220,13 @@ class simpleTypeDefinition (utility._DeconflictSymbols_mixin, object):
 
     @classmethod
     def _XsdConstraintsPreCheck_vb (cls, value):
-        """Pre-extended class method to verify other things before checking constraints."""
+        """Pre-extended class method to verify other things before
+        checking constraints.
+
+        This is used for list types, to verify that the values in the
+        list are acceptable, and for token descendents, to check the
+        lexical/value space conformance of the input.
+        """
         super_fn = getattr(super(simpleTypeDefinition, cls), '_XsdConstraintsPreCheck_vb', lambda *a,**kw: True)
         return super_fn(value)
 
