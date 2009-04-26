@@ -116,7 +116,7 @@ class simpleTypeDefinition (utility._DeconflictSymbols_mixin, object):
             # and use the resulting list of tokens.
             if 0 < len(args):
                 arg1 = args[0]
-                if isinstance(arg1, (str, unicode)):
+                if isinstance(arg1, types.StringTypes):
                     args = (arg1.split(),) +  args[1:]
         return args
 

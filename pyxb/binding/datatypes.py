@@ -194,18 +194,71 @@ _PrimitiveDatatypes.append(gMonth)
 class hexBinary (basis.simpleTypeDefinition, types.LongType):
     _XsdBaseType = anySimpleType
     _Namespace = Namespace.XMLSchema
-    def __new__ (cls, value, *args, **kw):
-        if isinstance(value, types.StringTypes):
-            return super(hexBinary, cls).__new__(cls, '0x%s' % (value,), 16, *args, **kw)
-        return super(hexBinary, cls).__new__(cls, value, *args, **kw)
+
+    __length = None
+    def length (self):
+        """Return the length of the value, in octets."""
+        return self.__length
 
     @classmethod
-    def XsdLiteral (self, value):
-        return '0x%x' % (value,)
+    def _ConvertString (cls, text):
+        assert isinstance(value, types.StringTypes)
+        length = 0
+        value = 0L
+        i = 0
+        while (i < len(text)):
+            v = ord(text[i].lower())
+            if (ord('0') <= v) and (v <= ord('9')):
+                value = (value << 4) + v - ord('0')
+            elif (ord('a') <= v) and (v <= ord('f')):
+                value = (value << 4) + v - ord('a') + 10
+            else:
+                raise BadTypeValueError('Non-hexadecimal values in %s' % (cls.__class__.__name__,))
+            length += 1
+        if (length & 0x01):
+            raise BadTypeValueError('%s value ends mid-octet' % (cls.__class__.__name__,))
+        return (length, value)
+
+    @classmethod
+    def _ConvertValue (cls, value):
+        """Given an integral value, return a pair consisting of the
+        number of octets required to represent the value, and the
+        value."""
+        length = 0
+        if 0 == value:
+            length = 1
+        else:
+            mv = value
+            while (0 != mv):
+                length += 1
+                mv = mv >> 4
+            length = (length+1) >> 1
+        return (length, value)
+
+    def __new__ (cls, value, *args, **kw):
+        if isinstance(value, types.StringTypes):
+            (length, binary_value) = cls._ConvertString(value)
+        else:
+            (length, binary_value) = cls._ConvertValue(value)
+        rv = super(hexBinary, cls).__new__(cls, binary_value, *args, **kw)
+        rv.__length = length
+        return rv
+
+    @classmethod
+    def XsdLiteral (cls, value):
+        mv = value
+        length = value.length()
+        pieces = []
+        while (0 < length):
+            pieces.append('%2.2X' % (mv & 0xFF,))
+            mv = mv >> 8
+            length -= 1
+        pieces.reverse()
+        return ''.join(pieces)
 
     @classmethod
     def XsdValueLength (cls, value):
-        raise NotImplementedError('No length calculation for hexBinary')
+        return value.length()
 
 _PrimitiveDatatypes.append(hexBinary)
 
@@ -267,7 +320,7 @@ class QName (basis.simpleTypeDefinition, unicode):
 
     @classmethod
     def _XsdConstraintsPreCheck_vb (cls, value):
-        if not isinstance(value, (str, unicode)):
+        if not isinstance(value, types.StringTypes):
             raise BadTypeValueError('%s value must be a string' % (cls.__name__,))
         if 0 <= value.find(':'):
             (prefix, local) = value.split(':', 1)
@@ -350,7 +403,7 @@ class normalizedString (string):
 
     @classmethod
     def _XsdConstraintsPreCheck_vb (cls, value):
-        if not isinstance(value, (str, unicode)):
+        if not isinstance(value, types.StringTypes):
             raise BadTypeValueError('%s value must be a string' % (cls.__name__,))
         if not cls._ValidateString_va(value):
             raise BadTypeValueError('%s lexical/value space violation for "%s"' % (cls.__name__, value))
