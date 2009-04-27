@@ -3,7 +3,7 @@ import os
 import fnmatch
 
 # Environment variable from which default path to pre-loaded namespaces is read
-PathEnvironmentVariable = 'PYWXSB_NAMESPACE_PATH'
+PathEnvironmentVariable = 'PYXB_NAMESPACE_PATH'
 import os.path
 DefaultBindingPath = "%s/standard/bindings" % (os.path.dirname(__file__),)
 
@@ -457,13 +457,17 @@ class Namespace (object):
         #print 'Completed load of %s from %s' % (instance.uri(), file_path)
         return instance
 
-def NamespaceForURI (uri):
+def NamespaceForURI (uri, create_if_missing=False):
     """Given a URI, provide the Namespace instance corresponding to
     it.
 
     If no Namespace instance exists for the URI, the None value is
-    returned."""
-    return Namespace._NamespaceForURI(uri)
+    returned, unless create_is_missing is True in which case a new
+    Namespace instance for the given URI is returned."""
+    rv = Namespace._NamespaceForURI(uri)
+    if (rv is None) and create_if_missing:
+        rv = Namespace(uri)
+    return rv
 
 # The XMLSchema module used to represent namespace schemas.  This must
 # be set, by invoking SetStructureModule, prior to attempting to use
