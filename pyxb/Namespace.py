@@ -477,12 +477,28 @@ _XMLSchemaModule = None
 
 # A mapping from namespace URIs to names of files which appear to
 # provide a serialized version of the namespace with schema.
-__LoadableNamespaces = { }
+__LoadableNamespaces = None
 
 def _LoadableNamespaceMap ():
-    # Force resolution of the module; invoking SetXMLSchemaModule is
-    # what initializes this map.
-    XMLSchemaModule()
+    """Get the map from URIs to files from which the namespace data
+    can be loaded."""
+    if __LoadableNamespaces is None:
+        global __LoadableNamespaces
+
+        # Look for pre-existing pickled schema
+        __LoadableNamespaces = { }
+        bindings_path = os.environ.get(PathEnvironmentVariable, DefaultBindingPath)
+        for bp in bindings_path.split(':'):
+            if '+' == bp:
+                bp = DefaultBindingPath
+            for fn in os.listdir(bp):
+                if fnmatch.fnmatch(fn, '*.wxs'):
+                    afn = os.path.join(bp, fn)
+                    infile = open(afn, 'rb')
+                    unpickler = pickle.Unpickler(infile)
+                    uri = unpickler.load()
+                    __LoadableNamespaces[uri] = afn
+                    #print 'pre-parsed schema for %s available in %s' % (uri, afn)
     return __LoadableNamespaces
 
 def XMLSchemaModule ():
@@ -514,17 +530,6 @@ def SetXMLSchemaModule (xs_module):
     if not issubclass(xs_module.schema, xs_module.structures.Schema):
         raise LogicError('SetXMLSchemaModule: Module does not provide a valid schema class')
     _XMLSchemaModule = xs_module
-
-    # Look for pre-existing pickled schema
-    bindings_path = os.environ.get(PathEnvironmentVariable, DefaultBindingPath)
-    for fn in os.listdir(bindings_path):
-        if fnmatch.fnmatch(fn, '*.wxs'):
-            afn = os.path.join(bindings_path, fn)
-            infile = open(afn, 'rb')
-            unpickler = pickle.Unpickler(infile)
-            uri = unpickler.load()
-            __LoadableNamespaces[uri] = afn
-            #print 'pre-parsed schema for %s available in %s' % (uri, afn)
 
 class _XMLSchema_instance (Namespace):
     """Extension of Namespace that pre-defines types available in the
