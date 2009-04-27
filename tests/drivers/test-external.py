@@ -66,6 +66,15 @@ class TestExternal (unittest.TestCase):
         dom = minidom.parseString(xml)
         self.assertRaises(BadTypeValueError, word.CreateFromDOM, dom.documentElement)
 
+    def testComplexShared (self):
+        xml = '<lwords language="english" newlanguage="welsh">un</lwords>'
+        dom = minidom.parseString(xml)
+        instance = lwords.CreateFromDOM(dom.documentElement)
+        self.assertTrue(isinstance(instance, lwords))
+        self.assertTrue(isinstance(instance.content(), st.welsh))
+        self.assertEquals('english', instance.language())
+        self.assertEquals('welsh', instance.newlanguage())
+
 if __name__ == '__main__':
     unittest.main()
     

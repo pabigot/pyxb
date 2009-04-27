@@ -9,4 +9,12 @@
 	</xs:complexType>
 	<xs:element name="word" type="word"/>
 	<xs:element name="english" type="st:english"/>
+	<xs:complexType name="extlangword">
+                <xs:complexContent>
+                        <xs:extension base="st:langwords">
+			  <xs:attribute name="newlanguage" default="welsh"/>
+                        </xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:element name="lwords" type="extlangword"/>
 </xs:schema>
