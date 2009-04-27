@@ -14,7 +14,7 @@ import pyxb.binding.datatypes as xsd
 
 from pyxb.exceptions_ import *
 
-from xml.dom import Node
+import xml.dom
 import sys
 import types
 
@@ -247,7 +247,6 @@ class schema (xsc.Schema):
             raise NotInNamespaceError('lookupElement: No match for "%s" in %s' % (qualified_name, ns))
         return rv
 
-
     def lookupOrCreateNamespace (self, uri, prefix=None):
         """Associate a namespace with this schema, potentially
         providing a prefix by which it will be known.
@@ -417,17 +416,21 @@ class schema (xsc.Schema):
 
     # @todo put these in base class
     @classmethod
-    def CreateFromDOM (cls, doc):
+    def CreateFromDOM (cls, node, attributes=None):
         """Take the root element of the document, and scan its attributes under
         the assumption it is an XMLSchema schema element.  That means
         recognize namespace declarations and process them.  Also look for
         and set the default namespace.  All other attributes are passed up
         to the parent class for storage."""
         default_namespace = None
-        root_node = doc.documentElement
+        root_node = node
+        if xml.dom.Node.DOCUMENT_NODE == node.nodeType:
+            root_node = root_node.documentElement
         namespaces = []
+        if attributes is None:
+            attributes = root_node.attributes
         attribute_map = { }
-        for attr in root_node.attributes.values():
+        for attr in attributes.values():
             if 'xmlns' == attr.prefix:
                 #print 'Created namespace %s for %s' % (attr.nodeValue, attr.localName)
                 namespaces.append( (attr.nodeValue, attr.localName) )
@@ -445,10 +448,9 @@ class schema (xsc.Schema):
         if schema is None:
             schema = cls()
 
-        return schema.__processDocument(doc, namespaces, attribute_map, default_namespace)
+        return schema.__processDocumentRoot(root_node, namespaces, attribute_map, default_namespace)
 
-    def __processDocument (self, doc, namespaces, attribute_map, default_namespace):
-        root_node = doc.documentElement
+    def __processDocumentRoot (self, root_node, namespaces, attribute_map, default_namespace):
         for (uri, prefix) in namespaces:
             self.lookupOrCreateNamespace(uri, prefix)
         self._setAttributesFromMap(attribute_map)
@@ -480,17 +482,17 @@ class schema (xsc.Schema):
         self.__domRootNode = root_node
 
         for cn in root_node.childNodes:
-            if Node.ELEMENT_NODE == cn.nodeType:
+            if xml.dom.Node.ELEMENT_NODE == cn.nodeType:
                 rv = self.processTopLevelNode(cn)
                 if rv is None:
                     print 'Unrecognized: %s' % (cn.nodeName,)
-            elif Node.TEXT_NODE == cn.nodeType:
+            elif xml.dom.Node.TEXT_NODE == cn.nodeType:
                 # Non-element content really should just be whitespace.
                 # If something else is seen, print it for inspection.
                 text = cn.data.strip()
                 if text:
                     print 'Ignored text: %s' % (text,)
-            elif Node.COMMENT_NODE == cn.nodeType:
+            elif xml.dom.Node.COMMENT_NODE == cn.nodeType:
                 #print 'comment: %s' % (cn.data.strip(),)
                 pass
             else:
