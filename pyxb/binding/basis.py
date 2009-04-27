@@ -491,9 +491,15 @@ class element (utility._DeconflictSymbols_mixin, object):
         """
         self.__setContent(self._TypeDefinition.Factory(*args, **kw))
         
-    # Delegate unrecognized attribute accesses to the content.
+    # Delegate unrecognized attribute accesses to the content or, if
+    # this is a CTD_simple and the real content has the attribute,
+    # prefer that.
     def __getattr__ (self, name):
-        return getattr(self.__content, name)
+        content = self.__content
+        if self.__content != self.__realContent:
+            if hasattr(self.__realContent, name):
+                content = self.__realContent
+        return getattr(content, name)
 
     def content (self):
         """Return the element content, which is an instance of the
@@ -625,7 +631,7 @@ class complexTypeDefinition (utility._DeconflictSymbols_mixin, object):
         Note that only the node attributes and content are used; the
         node name must have been validated against an owning
         element."""
-        rv = cls()
+        rv = cls(validate_constraints=False)
         rv._setAttributesFromDOM(node)
         rv._setContentFromDOM(node)
         return rv
@@ -781,10 +787,16 @@ class CTD_simple (complexTypeDefinition):
     def _setContentFromDOM_vx (self, node):
         """CTD with simple content type creates a PST instance from the node body."""
         self.__setContent(self._TypeDefinition.CreateFromDOM(node))
+        self.xsdConstraintsOK()
 
     def _setDOMFromContent (self, document, element):
         """Create a DOM element with the given tag holding the content of this instance."""
         return element.appendChild(document.createTextNode(self.content().xsdLiteral()))
+
+    _ReservedSymbols = complexTypeDefinition._ReservedSymbols.union(set([ 'xsdConstraintsOK' ]))
+
+    def xsdConstraintsOK (self):
+        self.content().xsdConstraintsOK()
 
 class _CTD_content_mixin (object):
     """Retain information about element and mixed content in a complex type instance.
