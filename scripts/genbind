@@ -58,6 +58,7 @@ try:
     print 'Saved parsed schema to %s' % (parsed_schema_file,)
 except Exception, e:
     print 'Exception saving preprocessed schema to %s: %s' % (parsed_schema_file, e)
+    traceback.print_exception(*sys.exc_info())
     sys.exit(2)
 
 # LocalVariables:
