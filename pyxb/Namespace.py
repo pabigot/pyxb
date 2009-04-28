@@ -482,9 +482,8 @@ __LoadableNamespaces = None
 def _LoadableNamespaceMap ():
     """Get the map from URIs to files from which the namespace data
     can be loaded."""
+    global __LoadableNamespaces
     if __LoadableNamespaces is None:
-        global __LoadableNamespaces
-
         # Look for pre-existing pickled schema
         __LoadableNamespaces = { }
         bindings_path = os.environ.get(PathEnvironmentVariable, DefaultBindingPath)
