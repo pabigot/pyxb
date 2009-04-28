@@ -19,6 +19,7 @@ from pyxb.binding import facets
 from pyxb.utils import templates
 import pyxb.utils.templates as templates
 from pyxb.utils.domutils import *
+import copy
 
 class _SchemaComponent_mixin (object):
     """A mix-in that marks the class as representing a schema component.
@@ -131,9 +132,13 @@ class _SchemaComponent_mixin (object):
         self.__nameInBinding = name_in_binding
         return self
 
-    def _setFromInstance (self, other):
+    def _setBuiltinFromInstance (self, other):
+        """Override fields in this instance with those from the other.
+
+        Post-extended; description in leaf implementation in
+        ComplexTypeDefinition and SimpleTypeDefinition."""
         assert self != other
-        super_fn = getattr(super(_SchemaComponent_mixin, self), '_setFromInstance', lambda *args, **kw: None)
+        super_fn = getattr(super(_SchemaComponent_mixin, self), '_setBuiltinFromInstance', lambda *args, **kw: None)
         super_fn(other)
         # The only thing we update is the binding name, and that only if it's new.
         if self.__nameInBinding is None:
@@ -170,9 +175,13 @@ class _Annotated_mixin (object):
         if cn is not None:
             self.__annotation = Annotation.CreateFromDOM(wxs, cn, owner=self)
 
-    def _setFromInstance (self, other):
+    def _setBuiltinFromInstance (self, other):
+        """Override fields in this instance with those from the other.
+
+        Post-extended; description in leaf implementation in
+        ComplexTypeDefinition and SimpleTypeDefinition."""
         assert self != other
-        super_fn = getattr(super(_Annotated_mixin, self), '_setFromInstance', lambda *args, **kw: None)
+        super_fn = getattr(super(_Annotated_mixin, self), '_setBuiltinFromInstance', lambda *args, **kw: None)
         super_fn(other)
         # @todo make this a copy?
         self.__annotation = other.__annotation
@@ -418,6 +427,52 @@ class _ValueConstraint_mixin:
         self.__valueConstraint = None
         return self
         
+class _ScopedDeclaration_mixin (object):
+    SCOPE_global = 'global'     #<<< Marker to indicate global scope
+
+    # The scope for the element.  Valid values are SCOPE_global or a
+    # complex type definition.  None is an invalid value, but may
+    # appear if scope is determined by an ancestor component.
+    __scope = None
+    def scope (self):
+        """The scope for the declaration.
+
+        Valid values are SCOPE_global, or a complex type definition.
+        A value of None means a non-global declaration that is not
+        owned by a complex type definition.  These can only appear in
+        attribute group definitions or model group definitions.
+
+        @todo For declarations in named model groups (viz., local
+        elements that aren't references), the scope needs to be set by
+        the owning complex type.
+        """
+        return self.__scope
+
+    def _scope (self, scope):
+        """Set the element scope."""
+        assert (self.SCOPE_global == scope) or isinstance(scope, ComplexTypeDefinition) or (scope is None)
+        self.__scope = scope
+
+
+    def scopedCopy (self, ctd):
+        """Return a copy of this declaration with scope set to the
+        provided ComplexTypeDefinition.
+
+        This is used to create copies of global attribute and element
+        declarations that are owned by, and have scope of, the complex
+        type definition to which they belong.
+
+        The owner of the copy is cleared; the copy owns no components;
+        the set of components on which the copy depends is cleared.
+        The CTD instance that needs the copy should become the owner.
+        
+        Subclasses should post-extend this if it is necessary to reset
+        some attributes of the copy."""
+        that = copy.copy(self)
+        assert (self.SCOPE_global == that.__scope) or (that.__scope is None)
+        that.__scope = ctd
+        return that
+
 class _PluralityData (types.ListType):
     """This class represents an abstraction of the set of documents
     conformant to a particle or particle term.
@@ -628,7 +683,7 @@ class _AttributeWildcard_mixin (object):
                         namespace_constraint=Wildcard.IntensionalIntersection(agd_constraints),
                         schema=wxs)
 
-class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Resolvable_mixin, _Annotated_mixin, _ValueConstraint_mixin):
+class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Resolvable_mixin, _Annotated_mixin, _ValueConstraint_mixin, _ScopedDeclaration_mixin):
     """An XMLSchema Attribute Declaration component.
 
     See http://www.w3.org/TR/xmlschema-1/index.html#cAttribute_Declarations
@@ -640,17 +695,6 @@ class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
         """The simple type definition to which an attribute value must
          conform."""
         return self.__typeDefinition
-
-    SCOPE_global = 'global'     #<<< Marker to indicate global scope
-    xSCOPE_unhandled = 'unhandled' #<<< Marker to indicate scope has not been defined
-
-    __scope = None
-    def scope (self):
-        """The scope to which the declaration applies.
-        
-        None, the string "global", or a reference to a _ComplexTypeDefinition.
-        """
-        return self.__scope
 
     def __str__ (self):
         return 'AD[%s:%s]' % (self.name(), self.typeDefinition().name())
@@ -690,11 +734,11 @@ class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
 
         # Implement per section 3.2.2
         if node.parentNode.nodeName in wxs.xsQualifiedNames('schema'):
-            self.__scope = self.SCOPE_global
+            self._scope(self.SCOPE_global)
         elif NodeAttribute(node, wxs, 'ref') is None:
             # The AttributeUse component is resolved elsewhere
             # @todo Set scope to enclosing complexType, if present
-            self.__scope = self.xSCOPE_unhandled
+            pass
         else:
             # I think this is really a schema validation error
             raise IncompleteImplementationError('Internal attribute declaration by reference')
@@ -823,7 +867,7 @@ class AttributeUse (_SchemaComponent_mixin, _Resolvable_mixin, _ValueConstraint_
         return 'AU[%s]' % (self.attributeDeclaration(),)
 
 
-class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Resolvable_mixin, _Annotated_mixin, _ValueConstraint_mixin):
+class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Resolvable_mixin, _Annotated_mixin, _ValueConstraint_mixin, _ScopedDeclaration_mixin):
     """An XMLSchema Element Declaration component.
 
     See http://www.w3.org/TR/xmlschema-1/index.html#cElement_Declarations
@@ -838,26 +882,6 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Resolv
         """Set the type of the element."""
         self.__typeDefinition = type_definition
         return self
-
-    SCOPE_global = 0x01         #<<< Marker for global scope
-
-    # The scope for the element.  Valid values are SCOPE_global or a
-    # complex type definition.  None is an invalid value, but may
-    # appear if scope is determined by an ancestor component.
-    __scope = None
-    def scope (self):
-        """The scope for the element.
-        Valid values are SCOPE_global, or a complex type definition.
-
-        @todo For declarations in named model groups (viz., local
-        elements that aren't references), the scope needs to be set by
-        the owning complex type.
-        """
-        return self.__scope
-    def _scope (self, scope):
-        """Set the element scope."""
-        assert (self.SCOPE_global == scope) or isinstance(scope, ComplexTypeDefinition) or (scope is None)
-        self.__scope = scope
 
     __nillable = False
     def nillable (self): return self.__nillable
@@ -1105,7 +1129,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
             return False
         return particle.hasWildcardElement()
 
-    def _setFromInstance (self, other):
+    def _setBuiltinFromInstance (self, other):
         """Override fields in this instance with those from the other.
 
         This method is invoked only by Schema._addNamedComponent, and
@@ -1118,6 +1142,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
         """
         assert self != other
         assert self.isNameEquivalent(other)
+        super(SimpleTypeDefinition, self)._setBuiltinFromInstance(other)
 
         # The other STD should be an unresolved schema-defined type.
         assert other.__derivationMethod is None
@@ -1219,7 +1244,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
         rv = self._attributeRelevantChildren(wxs, definition_node_list)
         if rv is None:
             wxs._queueForResolution(self)
-            print 'Holding off CTD %s resolution due to unresolved attribute group' % (self.name(),)
+            print 'Holding off CTD %s resolution due to unresolved attribute or group' % (self.name(),)
             return self
 
         (attributes, attribute_groups, any_attribute) = rv
@@ -2510,7 +2535,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
             elts.append(','.join( [str(_f) for _f in self.__fundamentalFacets ]))
         return ''.join(elts)
 
-    def _setFromInstance (self, other):
+    def _setBuiltinFromInstance (self, other):
         """Override fields in this instance with those from the other.
 
         This method is invoked only by Schema._addNamedComponent, and
@@ -2523,7 +2548,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
         """
         assert self != other
         assert self.isNameEquivalent(other)
-        super(SimpleTypeDefinition, self)._setFromInstance(other)
+        super(SimpleTypeDefinition, self)._setBuiltinFromInstance(other)
 
         # The other STD should be an unresolved schema-defined type.
         assert other.__baseTypeDefinition is None
@@ -3301,7 +3326,7 @@ class Schema (_SchemaComponent_mixin):
                 raise SchemaValidationError('Name %s used for both simple and complex types' % (td.name(),))
             # Copy schema-related information from the new definition
             # into the old one, and continue to use the old one.
-            td = self.__replaceUnresolvedDefinition(td, old_td._setFromInstance(td))
+            td = self.__replaceUnresolvedDefinition(td, old_td._setBuiltinFromInstance(td))
         else:
             self.__typeDefinitions[local_name] = td
         assert td is not None
