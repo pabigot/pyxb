@@ -50,9 +50,7 @@ class _SchemaComponent_mixin (object):
     # owned directly by the schema.
     __owner = None
 
-    # The schema components owned by this component.  All named
-    # components are owned by the schema; anonymous ones are owned by
-    # intervening components.
+    # The schema components owned by this component.
     __ownedComponents = None
 
     def __init__ (self, *args, **kw):
@@ -93,6 +91,63 @@ class _SchemaComponent_mixin (object):
 
         Implement in subclasses."""
         raise LogicError('%s does not implement _dependentComponents_vx' % (self.__class__,))
+
+    # A reference to the instance from which this instance was cloned.
+    __cloneSource = None
+
+    def _cloneSource (self):
+        """The source component from which this is a clone.
+
+        Returns None if this is not a clone."""
+        return self.__cloneSource
+
+    # A set of references to all instances that are clones of this one.
+    __clones = None
+
+    def _clones (self):
+        """The set of instances cloned from this component.
+
+        Returns None if no instances have been cloned from this."""
+        return self.__clones
+
+    def _resetClone_vc (self):
+        """Virtual method to clear whatever attributes should be reset
+        in a cloned component.
+
+        This instance should be an instance created by copy.copy().
+
+        The implementation in this class clears the owner and
+        dependency relations.
+
+        Returns self.
+        """
+        assert self.__cloneSource is not None
+        self.__owner = None
+        self.__ownedComponents = set()
+        self.__dependentComponents = None
+        assert self.__nameInBinding is None
+        return getattr(super(_SchemaComponent_mixin, self), '_resetClone_vc', lambda *args, **kw: self)()
+
+    def _clone (self):
+        """Create a copy of this instance suitable for adoption by
+        some other component.
+        
+        This is used for things like creating a locally-scoped
+        declaration from a group declaration."""
+        that = copy.copy(self)
+        that.__cloneSource = self
+        if self.__clones is None:
+            self.__clones = set()
+        self.__clones.add(that)
+        return that._resetClone_vc()
+
+    def _copyResolution (self, resolved):
+        """Invoked upon resolution if the resolved object has clones.
+
+        Subclasses should override this method in order to copy the
+        required resolution information from the given instance, which
+        should be the source to this instance as a clone."""
+        pass
 
     def isTypeDefinition (self):
         """Return True iff this component is a simple or complex type
@@ -240,13 +295,16 @@ class _NamedComponent_mixin (object):
         if 0 == len(args):
             rv = super(_NamedComponent_mixin, cls).__new__(cls)
             return rv
-        ( uri, ncname, icls ) = args
+        ( uri, ncname, scope, icls ) = args
         ns = Namespace.NamespaceForURI(uri)
         if ns is None:
             # This shouldn't happen: it implies somebody's unpickling
             # a schema that includes references to components in a
             # namespace that was not associated with the schema.
             raise IncompleteImplementationError('Unable to resolve namespace %s in external reference' % (uri,))
+
+        if scope is not None:
+            print 'Need to lookup %s in %s' % (ncname, scope)
 
         # Explicitly validate here: the lookup operations won't do so,
         # but will abort if the namespace hasn't been validated yet.
@@ -304,8 +362,12 @@ class _NamedComponent_mixin (object):
     def __pickleAsReference (self):
         if self.targetNamespace() is None:
             return False
+        # Get the namespace we're pickling.  If the namespace is None,
+        # we're not pickling; we're probably cloning, and in that case
+        # we don't want to use the reference state encoding.
         pickling_namespace = Namespace.Namespace.PicklingNamespace()
-        assert pickling_namespace is not None
+        if pickling_namespace is None:
+            return False
         if pickling_namespace == self.targetNamespace():
             return False
         if self.ncName() is None:
@@ -313,14 +375,22 @@ class _NamedComponent_mixin (object):
         return True
 
     def __getstate__ (self):
-        pickling_namespace = Namespace.Namespace.PicklingNamespace()
-        assert pickling_namespace is not None
         if self.__pickleAsReference():
             return ( self.targetNamespace().uri(), self.ncName() )
         if self.targetNamespace() is None:
             # The only internal named objects that should exist are
-            # ElementDeclaration components.
-            assert isinstance(self, ElementDeclaration)
+            # ones that have a non-global scope.
+            assert isinstance(self, _ScopedDeclaration_mixin)
+            assert isinstance(self.scope(), ComplexTypeDefinition)
+        if isinstance(self, _ScopedDeclaration_mixin) \
+                and isinstance(self.scope(), ComplexTypeDefinition) \
+                and (self.scope().ncName() is None):
+            # We need the scope to be locatable, which means it needs
+            # to have a name.  If it turns out to be possible to have
+            # anonymous complex types, which I think it is, this will
+            # fail, and we'll need to come up with some other way to
+            # represent scopes across namespaces.  Perhaps a uuid?
+            raise IncompleteImplementationError('Local scope is anonymous type')
         return self.__dict__
 
     def __getnewargs__ (self):
@@ -332,7 +402,16 @@ class _NamedComponent_mixin (object):
         instance."""
 
         if self.__pickleAsReference ():
-            rv = ( self.targetNamespace().uri(), self.ncName(), self.__class__ )
+            scope = None
+            if isinstance(self, _ScopedDeclaration_mixin):
+                # If scope is global, we can look it up in the namespace.
+                # If scope is None, this must be within a group; why are we serializing it?
+                # If scope is local, provide the namespace and name of the type that holds it
+                if self.SCOPE_global != self.scope():
+                    if self.scope() is None:
+                        raise LogicError('UNBOUND SCOPE %s: %s' % (object.__str__(self), self,))
+                    scope = ( self.scope().targetNamespace().uri(), self.scope().ncName() )
+            rv = ( self.targetNamespace().uri(), self.ncName(), scope, self.__class__ )
             return rv
         return ()
 
@@ -347,7 +426,7 @@ class _NamedComponent_mixin (object):
             assert self.ncName() == nc_name
             return
         self.__dict__.update(state)
-
+            
 class _Resolvable_mixin (object):
     """Mix-in indicating that this component may have references to unseen named components."""
     def isResolved (self):
@@ -428,6 +507,8 @@ class _ValueConstraint_mixin:
         return self
         
 class _ScopedDeclaration_mixin (object):
+    """Mix-in class for named components that have a scope."""
+
     SCOPE_global = 'global'     #<<< Marker to indicate global scope
 
     # The scope for the element.  Valid values are SCOPE_global or a
@@ -449,14 +530,18 @@ class _ScopedDeclaration_mixin (object):
         return self.__scope
 
     def _scope (self, scope):
-        """Set the element scope."""
+        """Set the component scope."""
         assert (self.SCOPE_global == scope) or isinstance(scope, ComplexTypeDefinition) or (scope is None)
         self.__scope = scope
+        return self
 
+    def adaptForScope (self, owner, ctd):
+        """Return a copy of this declaration with scope configured.
 
-    def scopedCopy (self, ctd):
-        """Return a copy of this declaration with scope set to the
-        provided ComplexTypeDefinition.
+        Declarations with global scope are simply returned unchanged.
+        Declarations with no scope are cloned, the clone scope set to
+        the provided ComplexTypeDefinition, and the clone returned.
+        Declarations with local scope are in error.
 
         This is used to create copies of global attribute and element
         declarations that are owned by, and have scope of, the complex
@@ -464,14 +549,19 @@ class _ScopedDeclaration_mixin (object):
 
         The owner of the copy is cleared; the copy owns no components;
         the set of components on which the copy depends is cleared.
-        The CTD instance that needs the copy should become the owner.
-        
-        Subclasses should post-extend this if it is necessary to reset
-        some attributes of the copy."""
-        that = copy.copy(self)
-        assert (self.SCOPE_global == that.__scope) or (that.__scope is None)
-        that.__scope = ctd
-        return that
+        The CTD instance that is the copy should become the owner.
+        """
+        if self.SCOPE_global == self.scope():
+            return self
+        if self.scope() is not None:
+            raise LogicError('Should not be creating scoped copy of locally-scoped component')
+        rv = self
+        if self.owner() != owner:
+            rv = self._clone()
+            rv._setOwner(owner)
+        rv._scope(ctd)
+        assert ctd.ncName() is not None
+        return rv
 
 class _PluralityData (types.ListType):
     """This class represents an abstraction of the set of documents
@@ -703,6 +793,7 @@ class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
     def CreateBaseInstance (cls, name, target_namespace=None):
         """Create an attribute declaration component for a specified namespace."""
         bi = cls(name=name, target_namespace=target_namespace, schema=target_namespace.schema())
+        bi._scope(_ScopedDeclaration_mixin.SCOPE_global)
         return bi
 
     @classmethod
@@ -716,15 +807,30 @@ class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
         elif NodeAttribute(node, wxs, 'ref') is None:
             namespace = wxs.defaultNamespaceFromDOM(node, 'attributeFormDefault')
 
+        # Implement per section 3.2.2
+        scope = None
+        if node.parentNode.nodeName in wxs.xsQualifiedNames('schema'):
+            scope = cls.SCOPE_global
+        elif NodeAttribute(node, wxs, 'ref') is None:
+            # The AttributeUse component is resolved elsewhere;
+            pass
+        else:
+            raise SchemaValidationError('Internal attribute declaration by reference')
+
         rv = cls(name=name, target_namespace=namespace, schema=wxs, owner=owner)
         rv._annotationFromDOM(wxs, node)
         rv._valueConstraintFromDOM(wxs, node)
         rv.__domNode = node
+        rv._scope(scope)
         wxs._queueForResolution(rv)
         return rv
 
     def isResolved (self):
         return self.__typeDefinition is not None
+
+    def _copyResolution (self, other):
+        self.__typeDefinition = other.__typeDefinition
+        return self
 
     def _resolve (self, wxs):
         if self.isResolved():
@@ -732,17 +838,6 @@ class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
         #print 'Resolving AD %s' % (self.name(),)
         node = self.__domNode
 
-        # Implement per section 3.2.2
-        if node.parentNode.nodeName in wxs.xsQualifiedNames('schema'):
-            self._scope(self.SCOPE_global)
-        elif NodeAttribute(node, wxs, 'ref') is None:
-            # The AttributeUse component is resolved elsewhere
-            # @todo Set scope to enclosing complexType, if present
-            pass
-        else:
-            # I think this is really a schema validation error
-            raise IncompleteImplementationError('Internal attribute declaration by reference')
-        
         st_node = LocateUniqueChild(node, wxs, 'simpleType')
         type_attr = NodeAttribute(node, wxs, 'type')
         if st_node is not None:
@@ -753,7 +848,7 @@ class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
             self.__typeDefinition = wxs.lookupSimpleType(type_attr)
         else:
             self.__typeDefinition = SimpleTypeDefinition.SimpleUrTypeDefinition()
-                
+
         self.__domNode = None
         return self
 
@@ -816,6 +911,19 @@ class AttributeUse (_SchemaComponent_mixin, _Resolvable_mixin, _ValueConstraint_
             if this_ad.isNameEquivalent(that_ad):
                 rv.add(au)
         return rv
+
+    def adaptForScope (self, complex_type_definition):
+        # Attribute uses that belong to a base type are not adapted:
+        # the scope should already be set
+        if isinstance(self.owner(), ComplexTypeDefinition) and (self.owner() != complex_type_definition):
+            assert self.attributeDeclaration().scope() is not None
+            return self
+        rv = self
+        if isinstance(self.owner(), AttributeGroupDefinition):
+            rv = self._clone()
+        rv._setOwner(complex_type_definition)
+        rv.__attributeDeclaration = self.attributeDeclaration().adaptForScope(rv, complex_type_definition)
+        return self
 
     @classmethod
     def CreateFromDOM (cls, wxs, node, owner=None):
@@ -963,17 +1071,10 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Resolv
             # NB: It is perfectly legal for namespace to be None when
             # processing local elements.
             namespace = wxs.defaultNamespaceFromDOM(node, 'elementFormDefault')
-            if not ancestor_component:
-                raise IncompleteImplementationError("Require ancestor information for local element:\n%s\n" % (node.toxml(),))
-            if isinstance(ancestor_component, ComplexTypeDefinition):
-                scope = ancestor_component
-            else:
-                # Presumably a declaration within a named model group;
-                # scope is determined when it is used, but is
-                # certainly not global.
-                pass
+            # Local element scope is determined when it is used in a
+            # complex type definition.
         else:
-            raise LogicError('Created reference as element declaration')
+            raise SchemaValidationError('Created reference as element declaration')
         
         rv = cls(name=name, target_namespace=namespace, ancestor_component=ancestor_component, schema=wxs, owner=owner)
         rv._scope(scope)
@@ -994,8 +1095,6 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Resolv
         if self.isResolved():
             return self
         node = self.__domNode
-
-        # NB: Scope already set
 
         sg_attr = NodeAttribute(node, wxs, 'substitutionGroup')
         if sg_attr is not None:
@@ -1078,6 +1177,14 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
     def attributeUses (self):
         """A frozenset() of AttributeUse instances."""
         return self.__attributeUses
+
+    # A map from NCNames to AttributeDeclaration instances that are
+    # local to this type.
+    __scopedAttributeDeclarations = None
+
+    # A map from NCNames to ElementDeclaration instances that are
+    # local to this type.
+    _scopedElementDeclarations = None
 
     CT_EMPTY = 0                #<<< No content
     CT_SIMPLE = 1               #<<< Simple (character) content
@@ -1222,6 +1329,15 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
             rv.add(self.contentType()[1])
         return frozenset(rv)
 
+    def __setAttributeUses (self, uses):
+        self.__attributeUses = frozenset([ _u.adaptForScope(self) for _u in uses ])
+        self.__scopedAttributeDeclarations = { }
+        for au in self.__attributeUses:
+            ad = au.attributeDeclaration()
+            if ad.scope() == self:
+                print 'Adding scoped attribute declaration %s in %s' % (ad.ncName(), self.ncName())
+                self.__scopedAttributeDeclarations[ad.ncName()] = ad
+
     @classmethod
     def CreateFromDOM (cls, wxs, node, owner=None):
         # Node should be an XMLSchema complexType node
@@ -1259,12 +1375,16 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
             uses_c2.update(agd.attributeUses())
 
         # Handle clause 3.  Note the slight difference in description
-        # between smple and complex content is just that the complex
-        # content assumes the base type definition is a complex type
-        # definition.  So the same code should work for both, and we
-        # don't bother to check content_style.
+        # between simple and complex content is just that the complex
+        # content doesn't bother to check that the base type
+        # definition is a complex type definition.  So the same code
+        # should work for both, and we don't bother to check
+        # content_style.
         if isinstance(self.__baseTypeDefinition, ComplexTypeDefinition):
             uses_c3 = uses_c3.union(self.__baseTypeDefinition.__attributeUses)
+            for au in uses_c3:
+                ad = au.attributeDeclaration()
+                #print 'Base use %s of %s in %s is scoped in %s' % (object.__str__(ad), ad.ncName(), ad.targetNamespace().uri(), ad.scope())
             if self.DM_restriction == method:
                 # Exclude attributes per clause 3.  Note that this
                 # process handles both 3.1 and 3.2, since we have
@@ -1281,9 +1401,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
         # Past the last point where we might not resolve this
         # instance.  Set the owner of the AttributeUse instances we
         # created.
-        for au in uses_c1:
-            au._setOwner(self)
-        self.__attributeUses = frozenset(uses_c1.union(uses_c2).union(uses_c3))
+        self.__setAttributeUses(uses_c1.union(uses_c2).union(uses_c3))
 
         # @todo Handle attributeWildcard
         # Clause 1
@@ -3279,6 +3397,8 @@ class Schema (_SchemaComponent_mixin):
                 resolvable._resolve(self)
                 assert resolvable in self.__components
                 assert (resolvable.isResolved() or (resolvable in self.__unresolvedDefinitions))
+                if resolvable.isResolved() and (resolvable._clones() is not None):
+                    [ _c._copyResolution(resolvable) for _c in resolvable._clones() ]
             if self.__unresolvedDefinitions == unresolved:
                 # This only happens if we didn't code things right, or
                 # the schema actually has a circular dependency in
@@ -3302,6 +3422,8 @@ class Schema (_SchemaComponent_mixin):
             raise LogicError('Attempt to add unnamed %s instance to dictionary' % (nc.__class__,))
         if nc.ncName() is None:
             raise LogicError('Attempt to add anonymous component to dictionary: %s', (nc.__class__,))
+        if isinstance(nc, _ScopedDeclaration_mixin):
+            assert _ScopedDeclaration_mixin.SCOPE_global == nc.scope()
         #print 'Adding %s as %s' % (nc.__class__.__name__, nc.name())
         if isinstance(nc, (SimpleTypeDefinition, ComplexTypeDefinition)):
             return self.__addTypeDefinition(nc)
