@@ -717,6 +717,7 @@ class %{ctd} (%{superclasses}):
         au_map['attr_name'] = utility.PrepareIdentifier(attr_name, class_unique, class_keywords, private=True)
         au_map['value_attr_name'] = utility.PrepareIdentifier('%s_%s' % (template_map['ctd'], attr_name), class_unique, class_keywords, private=True)
         au_map['attr_tag'] = pythonLiteral(attr_name, **kw)
+        assert ad.typeDefinition() is not None
         au_map['attr_type'] = pythonLiteral(ad.typeDefinition(), **kw)
         au_map['constraint_value'] = pythonLiteral(None, **kw)
         au_map['attr_ns'] = pythonLiteral(ad.targetNamespace(), **kw)
