@@ -297,32 +297,47 @@ class _NamedComponent_mixin (object):
             return rv
         ( uri, ncname, scope, icls ) = args
         ns = Namespace.NamespaceForURI(uri)
+        # Explicitly validate here: the lookup operations won't do so,
+        # but will abort if the namespace hasn't been validated yet.
+        ns.validateSchema()
+
         if ns is None:
             # This shouldn't happen: it implies somebody's unpickling
             # a schema that includes references to components in a
             # namespace that was not associated with the schema.
             raise IncompleteImplementationError('Unable to resolve namespace %s in external reference' % (uri,))
-
-        if scope is not None:
+        if isinstance(scope, tuple):
             print 'Need to lookup %s in %s' % (ncname, scope)
-
-        # Explicitly validate here: the lookup operations won't do so,
-        # but will abort if the namespace hasn't been validated yet.
-        ns.validateSchema()
-        if (issubclass(icls, SimpleTypeDefinition) or issubclass(icls, ComplexTypeDefinition)):
-            rv = ns.lookupTypeDefinition(ncname)
-        elif issubclass(icls, AttributeGroupDefinition):
-            rv = ns.lookupAttributeGroupDefinition(ncname)
-        elif issubclass(icls, ModelGroupDefinition):
-            rv = ns.lookupModelGroupDefinition(ncname)
-        elif issubclass(icls, AttributeDeclaration):
-            rv = ns.lookupAttributeDeclaration(ncname)
-        elif issubclass(icls, ElementDeclaration):
-            rv = ns.lookupElementDeclaration(ncname)
+            ( scope_uri, scope_ncname ) = scope
+            assert uri == scope_uri
+            scope_ctd = ns.lookupTypeDefinition(scope_ncname)
+            if scope_ctd is None:
+                raise SchemaValidationError('Unable to resolve local scope %s in %s' % (scope_ncname, scope_uri))
+            if issubclass(icls, AttributeDeclaration):
+                rv = scope_ctd.lookupScopedAttributeDeclaration(ncname)
+            elif issubclass(icls, ElementDeclaration):
+                rv = scope_ctd.lookupScopedAttributeDeclaration(ncname)
+            else:
+                raise IncompleteImplementationError('Local scope reference lookup not implemented for type %s searching %s in %s' % (icls, ncname, uri))
+            if rv is None:
+                raise SchemaValidationError('Unable to resolve local %s as %s in %s in %s' % (ncname, icls, scope_name, uri))
+        elif (scope is None) or (_ScopedDeclaration_mixin.SCOPE_global == scope):
+            if (issubclass(icls, SimpleTypeDefinition) or issubclass(icls, ComplexTypeDefinition)):
+                rv = ns.lookupTypeDefinition(ncname)
+            elif issubclass(icls, AttributeGroupDefinition):
+                rv = ns.lookupAttributeGroupDefinition(ncname)
+            elif issubclass(icls, ModelGroupDefinition):
+                rv = ns.lookupModelGroupDefinition(ncname)
+            elif issubclass(icls, AttributeDeclaration):
+                rv = ns.lookupAttributeDeclaration(ncname)
+            elif issubclass(icls, ElementDeclaration):
+                rv = ns.lookupElementDeclaration(ncname)
+            else:
+                raise IncompleteImplementationError('Reference lookup not implemented for type %s searching %s in %s' % (icls, ncname, uri))
+            if rv is None:
+                raise SchemaValidationError('Unable to resolve %s as %s in %s' % (ncname, icls, uri))
         else:
-            raise IncompleteImplementationError('Reference lookup not implemented for type %s searching %s in %s' % (icls, ncname, uri))
-        if rv is None:
-            raise SchemaValidationError('Unable to resolve %s as %s in %s' % (ncname, icls, uri))
+            raise IncompleteImplementationError('Unable to resolve reference %s in scope %s in %s' % (ncname, scope, uri))
         return rv
 
     def __init__ (self, *args, **kw):
@@ -376,21 +391,26 @@ class _NamedComponent_mixin (object):
 
     def __getstate__ (self):
         if self.__pickleAsReference():
+            # NB: This instance may be a scoped declaration, but in
+            # this case (unlike getnewargs) we don't care about trying
+            # to look up a previous instance, so we don't need to
+            # encode the scope in the reference tuple.
             return ( self.targetNamespace().uri(), self.ncName() )
         if self.targetNamespace() is None:
             # The only internal named objects that should exist are
-            # ones that have a non-global scope.
+            # ones that have a non-global scope (including those with
+            # absent scope).
+            # @todo this is wrong for schema that are not bound to a
+            # namespace, unless we use an unbound Namespace instance
             assert isinstance(self, _ScopedDeclaration_mixin)
-            assert isinstance(self.scope(), ComplexTypeDefinition)
-        if isinstance(self, _ScopedDeclaration_mixin) \
-                and isinstance(self.scope(), ComplexTypeDefinition) \
-                and (self.scope().ncName() is None):
-            # We need the scope to be locatable, which means it needs
-            # to have a name.  If it turns out to be possible to have
-            # anonymous complex types, which I think it is, this will
-            # fail, and we'll need to come up with some other way to
-            # represent scopes across namespaces.  Perhaps a uuid?
-            raise IncompleteImplementationError('Local scope is anonymous type')
+            assert self.SCOPE_global != self.scope()
+            # NOTE: The name of the scope may be None.  This is not a
+            # problem unless somebody tries to extend or restrict the
+            # scope type, which at the moment I'm thinking is
+            # impossible for anonymous types.  If it isn't, we're
+            # gonna need some other sort of ID, like a UUID associated
+            # with the anonymous class at the time it's written to the
+            # preprocessed schema file.
         return self.__dict__
 
     def __getnewargs__ (self):
@@ -507,7 +527,23 @@ class _ValueConstraint_mixin:
         return self
         
 class _ScopedDeclaration_mixin (object):
-    """Mix-in class for named components that have a scope."""
+    """Mix-in class for named components that have a scope.
+
+    Scope is important when doing cross-namespace inheritance,
+    e.g. extending or restricting a complex type definition that is
+    from a different namespace.  In this case, we will need to retain
+    a reference to the external component when the schema is
+    serialized.
+
+    This is done in the pickling process by including the scope when
+    pickling a component as a reference.  The scope is the
+    SCOPE_global if global; otherwise, it is a tuple containing the
+    external namespace URI and the NCName of the complex type
+    definition in that namespace.  We assume that the complex type
+    definition has global scope; otherwise, it should not have been
+    possible to extend or restrict it.  (Should this be untrue, there
+    are comments in the code about a possible solution.)
+    """
 
     SCOPE_global = 'global'     #<<< Marker to indicate global scope
 
@@ -560,7 +596,6 @@ class _ScopedDeclaration_mixin (object):
             rv = self._clone()
             rv._setOwner(owner)
         rv._scope(ctd)
-        assert ctd.ncName() is not None
         return rv
 
 class _PluralityData (types.ListType):
@@ -1181,10 +1216,24 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
     # A map from NCNames to AttributeDeclaration instances that are
     # local to this type.
     __scopedAttributeDeclarations = None
+    def lookupScopedAttributeDeclaration (self, ncname):
+        """Find an attribute declaration with the given name that is local to this type.
+
+        Returns None if there is no such local attribute declaration."""
+        if self.__scopedAttributeDeclarations is None:
+            return None
+        return self.__scopedAttributeDeclarations.get(ncname, None)
 
     # A map from NCNames to ElementDeclaration instances that are
     # local to this type.
     _scopedElementDeclarations = None
+    def lookupScopedElementDeclaration (self, ncname):
+        """Find an element declaration with the given name that is local to this type.
+
+        Returns None if there is no such local element declaration."""
+        if self.__scopedElementDeclarations is None:
+            return None
+        return self.__scopedElementDeclarations.get(ncname, None)
 
     CT_EMPTY = 0                #<<< No content
     CT_SIMPLE = 1               #<<< Simple (character) content
