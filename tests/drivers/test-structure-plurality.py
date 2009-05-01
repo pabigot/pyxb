@@ -20,6 +20,7 @@ class _TestBase (unittest.TestCase):
         for ( name, type ) in [ ( 'selt', 'string' ), ( 'ielt', 'int' ), ( 'belt', 'boolean' ) ]:
             ed = xs.structures.ElementDeclaration(name=name, schema=self.__schema)
             ed._typeDefinition(Namespace.XMLSchema.lookupTypeDefinition(type))
+            ed._scope(xs.structures._ScopedDeclaration_mixin.SCOPE_global)
             self.__schema._addNamedComponent(ed)
             setattr(self, name, ed)
 
