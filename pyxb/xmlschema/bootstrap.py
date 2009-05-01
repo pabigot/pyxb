@@ -13,6 +13,7 @@ import structures as xsc
 import pyxb.binding.datatypes as xsd
 
 from pyxb.exceptions_ import *
+import traceback
 
 import xml.dom
 import sys
@@ -152,6 +153,7 @@ class schema (xsc.Schema):
                     ns.validateSchema()
                 except Exception, e:
                     print 'WARNING validating schema for %s: %s' % (ns.uri(), e)
+                    traceback.print_exception(*sys.exc_info())
 
     def __getNamespaceForLookup (self, type_name):
         """Resolve a QName or NCName appropriately for this schema.
