@@ -612,7 +612,14 @@ class %{ctd} (%{superclasses}):
                         class_unique.add(superclass_ef_map['value_field_name'])
                         ctd.__elementFields[name] = superclass_info
                     else:
-                        definitions.append(templates.replaceInText('# Element %{field_tag} will override parent %{superclasses} field %{python_field_name} due to content model differences', superclasses=template_map['superclasses'], **superclass_ef_map))
+                        definitions.append(templates.replaceInText('''
+# Element %{field_tag} will override parent %{superclasses} field %{python_field_name}
+# due to content model differences:
+# plural %{plural} vs %{sc_plural}
+# types %{types} vs %{sc_types}
+''', plural=str(is_plural), sc_plural=str(superclass_is_plural),
+   types=str(types), sc_types=str(superclass_types),
+   superclasses=template_map['superclasses'], **superclass_ef_map))
 
         PostscriptItems.append("\n\n")
         for (name, (is_plural, types)) in plurality_data.items():
