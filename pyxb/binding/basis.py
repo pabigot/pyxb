@@ -667,7 +667,7 @@ class complexTypeDefinition (utility._DeconflictSymbols_mixin, object):
     @classmethod
     def _UpdateElementDatatypes (cls, datatype_map):
         for (k, v) in datatype_map.items():
-            cls._ElementMap[k]._setDataTypes(v)
+            cls._ElementMap[k]._setValidElements(v)
         python_map = { }
         for eu in cls._ElementMap.values():
             python_map[eu.pythonField()] = eu

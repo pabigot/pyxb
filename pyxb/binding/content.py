@@ -114,33 +114,54 @@ class ElementUse (object):
     instances might be associated with the field, and a list of types
     for legal values of the field."""
 
+    def tag (self):
+        """The tag is the unicode XML NCName of the element"""
+        return self.__tag
     __tag = None
+
+    def pythonField (self):
+        """The pythonField is the string name of the binding class
+        field used to hold the element values.  This is the
+        user-visible name, and excepting namespace disambiguation will
+        be equal to the tag."""
+        return self.__pythonField
     __pythonField = None
+
+    # The dictionary key used to identify the value of the element.
+    # The value is the same as that used for private member variables
+    # in the binding class within which the element declaration
+    # occurred.
     __valueElementName = None
-    __dataTypes = None
+
+    def validElements (self):
+        """A list of binding classes that express the permissible types of
+        element instances for this use."""
+        return self.__validElements
+    __validElements = None
+
+    def isPlural (self):
+        """True iff the content model indicates that more than one element
+        can legitimately belong to this use.  This includes elements in
+        particles with maxOccurs greater than one, and when multiple
+        elements with the same NCName are declared in the same type."""
+        return self.__isPlural
     __isPlural = False
 
-    def __init__ (self, tag, python_field, value_element_name, is_plural, default=None, data_types=[]):
+    # If not None, this specifies an ElementUse in a binding class for
+    # which this element use is a restriction.  That element use is
+    # what is used to store the corresponding values, after validating
+    # them against validElements at this level.
+    __parentUse = None
+
+    def __init__ (self, tag, python_field, value_element_name, is_plural, default=None, valid_elements=[]):
         self.__tag = tag
         self.__pythonField = python_field
         self.__valueElementName = value_element_name
         self.__isPlural = is_plural
-        self.__dataTypes = data_types
+        self.__validElements = valid_elements
 
-    def _setDataTypes (self, data_types):
-        self.__dataTypes = data_types
-
-    def tag (self):
-        return self.__tag
-    
-    def pythonField (self):
-        return self.__pythonField
-
-    def isPlural (self):
-        return self.__isPlural
-
-    def validElements (self):
-        return self.__dataTypes
+    def _setValidElements (self, valid_elements):
+        self.__validElements = valid_elements
 
     def defaultValue (self):
         if self.isPlural():
@@ -200,13 +221,13 @@ class ElementUse (object):
         """Set the value of this element in the given instance."""
         if value is None:
             return self.reset(ctd_instance)
-        assert self.__dataTypes is not None
-        for dt in self.__dataTypes:
+        assert self.__validElements is not None
+        for dt in self.__validElements:
             if isinstance(value, dt):
                 self.__setValue(ctd_instance, value)
                 ctd_instance._addContent(value)
                 return self
-        for dt in self.__dataTypes:
+        for dt in self.__validElements:
             try:
                 iv = dt(value)
                 self.__setValue(ctd_instance, iv)
@@ -214,7 +235,7 @@ class ElementUse (object):
                 return self
             except BadTypeValueError, e:
                 pass
-        raise BadTypeValueError('Cannot assign value of type %s to field %s: legal types %s' % (type(value), self.tag(), ' '.join([str(_dt) for _dt in self.__dataTypes])))
+        raise BadTypeValueError('Cannot assign value of type %s to field %s: legal types %s' % (type(value), self.tag(), ' '.join([str(_dt) for _dt in self.__validElements])))
 
     def addDOMElement (self, value, document, element):
         """Add the given value of the corresponding element field to the DOM element."""
@@ -224,20 +245,31 @@ class ElementUse (object):
         return self
 
 class ContentModelTransition (object):
-    # The matching term for this transition to succeed
+    def term (self):
+        """The matching term for this transition to succeed."""
+        return self.__term
     __term = None
-    # The next state in the DFA
+
+    def nextState (self):
+        """The next state in the DFA"""
+        return self.__nextState
     __nextState = None
+
     # The ElementUse instance used to store a successful match in the
     # complex type definition instance.
     __elementUse = None
 
-    TT_element = 0x01
-    TT_modelGroupAll = 0x02
-    TT_wildcard = 0x03
+    # Types of transition that can be taken, in order of preferred match
+    TT_element = 0x01           #<<< The transition is on an element
+    TT_modelGroupAll = 0x02     #<<< The transition is on an ALL model group
+    TT_wildcard = 0x03          #<<< The transition is on a wildcard
+
+    # What type of term this transition covers
     __termType = None
 
     def __init__ (self, term, next_state, element_use=None):
+        """Create a transition to a new state upon receipt of a term,
+        storing the successful match using the provided ElementUse."""
         self.__term = term
         self.__nextState = next_state
         assert self.__nextState is not None
@@ -258,9 +290,6 @@ class ContentModelTransition (object):
         if 0 == rv:
             rv = cmp(self.__term, other.__term)
         return rv
-
-    def nextState (self): return self.__nextState
-    def term (self): return self.__term
 
     def attemptTransition (self, ctd_instance, node_list, store):
         """Attempt to make the appropriate transition.
@@ -297,14 +326,22 @@ class ContentModelTransition (object):
             raise LogicError('Unexpected transition term %s' % (self.__term,))
 
 class ContentModelState (object):
+    """Represents a state in a ContentModel DFA.
+
+    The state identifier is an integer.  A flag indicates whether the
+    state is a legitimate final state for the DFA.  The transitions
+    are an ordered sequence of ContentModelTransition instances."""
+
     # Integer
     __state = None
-    # If True, this state can successfully complete the element reduction
-    __isFinal = None
     # Sequence of ContentModelTransition instances
     __transitions = None
 
-    def isFinal (self): return self.__isFinal
+    def isFinal (self):
+        """If True, this state can successfully complete the element
+        reduction."""
+        return self.__isFinal
+    __isFinal = None
 
     def __init__ (self, state, is_final, transitions):
         self.__state = state
@@ -341,6 +378,11 @@ class ContentModelState (object):
         raise MissingContentError()
 
 class ContentModel (object):
+    """The ContentModel is a deterministic finite state automaton
+    which can be traversed using a sequence of DOM nodes which are
+    matched on transitions against the legal content model of a
+    complex type."""
+
     # Map from integers to ContentModelState instances
     __stateMap = None
 
