@@ -1408,7 +1408,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
                 print 'Adding scoped attribute declaration %s in %s' % (ad.ncName(), self.ncName())
                 self.__scopedAttributeDeclarations[ad.ncName()] = ad
 
-    def __mapLocalElements (self, wxs):
+    def __mapLocalElements (self, wxs, method):
         if self.CT_EMPTY == self.contentType():
             return False
         (tag, particle) = self.contentType()
@@ -1416,6 +1416,9 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
             return False
         element_decls = particle.elementDeclarations(wxs)
         assert particle.term() is not None
+        if self.DM_restriction == method:
+            print "Parent model: %s\nThis model: %s\n" % (self.baseTypeDefinition().contentType()[1].elementDeclarations(wxs), element_decls)
+
         assert self.__scopedElementDeclarations is None
         self.__scopedElementDeclarations = { }
         for ed in element_decls:
@@ -1472,13 +1475,10 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
         # content_style.
         if isinstance(self.__baseTypeDefinition, ComplexTypeDefinition):
             uses_c3 = uses_c3.union(self.__baseTypeDefinition.__attributeUses)
-            for au in uses_c3:
-                ad = au.attributeDeclaration()
-                #print 'Base use %s of %s in %s is scoped in %s' % (object.__str__(ad), ad.ncName(), ad.targetNamespace().uri(), ad.scope())
             if self.DM_restriction == method:
                 # Exclude attributes per clause 3.  Note that this
                 # process handles both 3.1 and 3.2, since we have
-                # not yet filtered uses_c1 for prohibited attributes
+                # not yet filtered uses_c1 for prohibited attributes.
                 uses_c12 = uses_c1.union(uses_c2)
                 for au in uses_c12:
                     matching_uses = au.matchingQNameMembers(wxs, uses_c3)
@@ -1489,8 +1489,8 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
                     uses_c3 = uses_c3.difference(matching_uses)
 
         # Past the last point where we might not resolve this
-        # instance.  Set the owner of the AttributeUse instances we
-        # created.
+        # instance.  Store the attribute uses, also recording local
+        # attribute declarations.
         self.__setAttributeUses(uses_c1.union(uses_c2).union(uses_c3))
 
         # @todo Handle attributeWildcard
@@ -1531,7 +1531,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
         # @todo Make sure we didn't miss any child nodes
 
         # Scan for local element declarations and set up the dictionary for them
-        self.__mapLocalElements(wxs)
+        self.__mapLocalElements(wxs, method)
 
         # Only now that we've succeeded do we set the method (mark this resolved)
         self.__derivationMethod = method
@@ -1989,8 +1989,10 @@ class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
         return [ wxs.xsQualifiedName(_tag) for _tag in [ 'all', 'choice', 'sequence' ] ]
 
     def elementDeclarations (self, wxs):
-        """Return a list of all ElementDeclarations that are at the top level of this model group."""
-        element_decls = set()
+        """Return a list of all ElementDeclarations that are at the
+        top level of this model group, in the order in which they can
+        occur."""
+        element_decls = []
         model_groups = [ self ]
         #print 'Extracting element declarations from model group with %d particles: %s'  % (len(self.particles()), self.particles())
         while model_groups:
@@ -2002,7 +2004,7 @@ class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
                 if isinstance(p.term(), ModelGroup):
                     model_groups.append(p.term())
                 elif isinstance(p.term(), ElementDeclaration):
-                    element_decls.update(p.elementDeclarations(wxs))
+                    element_decls.extend(p.elementDeclarations(wxs))
                 else:
                     assert p.term() is not None
                     pass
@@ -2062,9 +2064,9 @@ class Particle (_SchemaComponent_mixin, _Resolvable_mixin):
         if isinstance(self.__term, ModelGroup):
             return self.__term.elementDeclarations(wxs)
         if isinstance(self.__term, ElementDeclaration):
-            return set([ self.__term ])
+            return [ self.__term ]
         if isinstance(self.__term, Wildcard):
-            return set()
+            return [ ]
         raise LogicError('Unexpected term type %s' % (self.__term,))
 
     def pluralityData (self):
