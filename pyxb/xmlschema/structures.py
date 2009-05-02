@@ -70,6 +70,7 @@ class _SchemaComponent_mixin (object):
             assert (self.__owner is None) or (self.__owner == owner)
             self.__owner = owner
             owner.__ownedComponents.add(self)
+        return self
 
     def schema (self): return self.__schema
     def owner (self): return self.__owner
@@ -316,11 +317,11 @@ class _NamedComponent_mixin (object):
             if issubclass(icls, AttributeDeclaration):
                 rv = scope_ctd.lookupScopedAttributeDeclaration(ncname)
             elif issubclass(icls, ElementDeclaration):
-                rv = scope_ctd.lookupScopedAttributeDeclaration(ncname)
+                rv = scope_ctd.lookupScopedElementDeclaration(ncname)
             else:
                 raise IncompleteImplementationError('Local scope reference lookup not implemented for type %s searching %s in %s' % (icls, ncname, uri))
             if rv is None:
-                raise SchemaValidationError('Unable to resolve local %s as %s in %s in %s' % (ncname, icls, scope_name, uri))
+                raise SchemaValidationError('Unable to resolve local %s as %s in %s in %s' % (ncname, icls, scope_ncname, uri))
         elif (scope is None) or (_ScopedDeclaration_mixin.SCOPE_global == scope):
             if (issubclass(icls, SimpleTypeDefinition) or issubclass(icls, ComplexTypeDefinition)):
                 rv = ns.lookupTypeDefinition(ncname)
@@ -571,6 +572,10 @@ class _ScopedDeclaration_mixin (object):
         self.__scope = scope
         return self
 
+    def __init__ (self, *args, **kw):
+        super(_ScopedDeclaration_mixin, self).__init__(*args, **kw)
+        self.__scope = kw.get('scope', None)
+
     def adaptForScope (self, owner, ctd):
         """Return a copy of this declaration with scope configured.
 
@@ -587,10 +592,15 @@ class _ScopedDeclaration_mixin (object):
         the set of components on which the copy depends is cleared.
         The CTD instance that is the copy should become the owner.
         """
-        if self.SCOPE_global == self.scope():
+        if self.scope() in (_ScopedDeclaration_mixin.SCOPE_global, ctd):
             return self
+        # Attribute declarations should have no scope assigned.
+        # Element declarations might be scoped in a containing complex
+        # type.
         if self.scope() is not None:
-            raise LogicError('Should not be creating scoped copy of locally-scoped component')
+            if isinstance(self, AttributeDeclaration):
+                raise LogicError('Should not be creating scoped copy of locally-scoped component')
+            return self
         rv = self
         if self.owner() != owner:
             rv = self._clone()
@@ -947,16 +957,23 @@ class AttributeUse (_SchemaComponent_mixin, _Resolvable_mixin, _ValueConstraint_
                 rv.add(au)
         return rv
 
-    def adaptForScope (self, complex_type_definition):
+    def adaptForScope (self, owner, complex_type_definition):
+        """Return this instance or a clone for which the associated
+        attribute declaration has a defined scope: either global or
+        the given complex type definition."""
         # Attribute uses that belong to a base type are not adapted:
         # the scope should already be set
         if isinstance(self.owner(), ComplexTypeDefinition) and (self.owner() != complex_type_definition):
             assert self.attributeDeclaration().scope() is not None
             return self
         rv = self
+        # Attribute uses that belong to an attribute group need to be
+        # cloned.
         if isinstance(self.owner(), AttributeGroupDefinition):
             rv = self._clone()
+        assert owner == complex_type_definition
         rv._setOwner(complex_type_definition)
+        # Update the attribute declaration so that it is in this scope as well
         rv.__attributeDeclaration = self.attributeDeclaration().adaptForScope(rv, complex_type_definition)
         return self
 
@@ -1091,16 +1108,16 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Resolv
         return False
 
     @classmethod
-    def CreateFromDOM (cls, wxs, node, ancestor_component=None, owner=None):
+    def CreateFromDOM (cls, wxs, node, ancestor_component=None, owner=None, scope=None):
         # Node should be an XMLSchema element node
         assert node.nodeName in wxs.xsQualifiedNames('element')
 
         # Might be top-level, might be local
         name = NodeAttribute(node, wxs, 'name')
-        scope = None
         namespace = None
         if node.parentNode.nodeName in wxs.xsQualifiedNames('schema'):
             namespace = wxs.getTargetNamespace()
+            assert scope is None
             scope = cls.SCOPE_global
         elif NodeAttribute(node, wxs, 'ref') is None:
             # NB: It is perfectly legal for namespace to be None when
@@ -1226,7 +1243,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
 
     # A map from NCNames to ElementDeclaration instances that are
     # local to this type.
-    _scopedElementDeclarations = None
+    __scopedElementDeclarations = None
     def lookupScopedElementDeclaration (self, ncname):
         """Find an element declaration with the given name that is local to this type.
 
@@ -1378,14 +1395,38 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
             rv.add(self.contentType()[1])
         return frozenset(rv)
 
+    # Given a set of attribute uses within this type, record them.  If
+    # necessary, unbound attribute declarations are cloned and set to
+    # use this type as their scope.  A map is maintained from the
+    # NCName of the declaration to the attribute declaration.
     def __setAttributeUses (self, uses):
-        self.__attributeUses = frozenset([ _u.adaptForScope(self) for _u in uses ])
+        self.__attributeUses = frozenset([ _u.adaptForScope(self, self) for _u in uses ])
         self.__scopedAttributeDeclarations = { }
         for au in self.__attributeUses:
             ad = au.attributeDeclaration()
             if ad.scope() == self:
                 print 'Adding scoped attribute declaration %s in %s' % (ad.ncName(), self.ncName())
                 self.__scopedAttributeDeclarations[ad.ncName()] = ad
+
+    def __mapLocalElements (self, wxs):
+        if self.CT_EMPTY == self.contentType():
+            return False
+        (tag, particle) = self.contentType()
+        if (self.CT_SIMPLE == self.contentType()) or not isinstance(particle, Particle):
+            return False
+        element_decls = particle.elementDeclarations(wxs)
+        assert particle.term() is not None
+        assert self.__scopedElementDeclarations is None
+        self.__scopedElementDeclarations = { }
+        for ed in element_decls:
+            assert ed.scope() is not None
+            assert ed.ncName() is not None
+            if ed.scope() == self:
+                print 'Storing %s as declaration %s in %s' % (ed.ncName(), object.__str__(ed), self.ncName())
+                self.__scopedElementDeclarations[ed.ncName()] = ed
+            else:
+                assert ed.scope() is not None
+        return True
 
     @classmethod
     def CreateFromDOM (cls, wxs, node, owner=None):
@@ -1489,6 +1530,9 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
 
         # @todo Make sure we didn't miss any child nodes
 
+        # Scan for local element declarations and set up the dictionary for them
+        self.__mapLocalElements(wxs)
+
         # Only now that we've succeeded do we set the method (mark this resolved)
         self.__derivationMethod = method
         return self
@@ -1583,7 +1627,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
         else:
             # Clause 2.2
             assert typedef_node is not None
-            effective_content = Particle.CreateFromDOM(wxs, typedef_node, self, owner=self)
+            effective_content = Particle.CreateFromDOM(wxs, typedef_node, self, owner=self, scope=self)
 
         # Shared from clause 3.1.2
         if effective_mixed:
@@ -1816,7 +1860,7 @@ class ModelGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Anno
                 continue
             if cn.nodeName in mg_tags:
                 assert not rv.__modelGroup
-                rv.__modelGroup = ModelGroup.CreateFromDOM(wxs, cn, model_group_definition=rv, owner=rv)
+                rv.__modelGroup = ModelGroup.CreateFromDOM(wxs, cn, model_group_definition=rv, owner=rv, scope=None)
         assert rv.__modelGroup is not None
         return rv
 
@@ -1870,13 +1914,31 @@ class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
         """
         return frozenset(self.__particles)
 
+    def __adaptParticles (self, particles, scope):
+        return [ _p.adaptForScope(self, scope)._setAncestorComponent(self) for _p in particles ]
+
+    __scope = None
+    
     def __init__ (self, *args, **kw):
         super(ModelGroup, self).__init__(*args, **kw)
         compositor = kw.get('compositor', None)
         particles = kw.get('particles', [])
+        self.__scope = kw.get('scope', None)
         self.__compositor = compositor
-        self.__particles =[ _p._setAncestorComponent(self) for _p in particles ]
+        #print 'Incoming particles %s with scope %s' % (particles, self.__scope)
+        self.__particles = self.__adaptParticles(particles, self.__scope)
         self.__modelGroupDefinition = kw.get('model_group_definition', None)
+
+    def adaptForScope (self, owner, scope, do_clone=True):
+        #print 'Adapting %d particles for scope %s' % (len(self.__particles), scope)
+        assert (self.__scope is None) or (self.__scope == scope)
+        particles = self.__adaptParticles(self.__particles, scope)
+        rv = self
+        if (particles != self.__particles) and do_clone:
+            rv = self.clone()
+            rv._setOwner(owner)
+        rv.__particles = particles
+        return rv
 
     def isPlural (self):
         """A model group is multi-valued if it has a multi-valued particle."""
@@ -1899,6 +1961,7 @@ class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
 
     @classmethod
     def CreateFromDOM (cls, wxs, node, **kw):
+        scope = kw.get('scope', None)
         if node.nodeName in wxs.xsQualifiedNames('all'):
             compositor = cls.C_ALL
         elif node.nodeName in wxs.xsQualifiedNames('choice'):
@@ -1914,7 +1977,7 @@ class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
                 continue
             if cn.nodeName in particle_tags:
                 # NB: Ancestor of particle is set in the ModelGroup constructor
-                particles.append(Particle.CreateFromDOM(wxs, cn, None))
+                particles.append(Particle.CreateFromDOM(wxs, cn, ancestor_component=None, scope=scope))
         rv = cls(compositor=compositor, particles=particles, schema=wxs, **kw)
         for p in particles:
             p._setOwner(rv)
@@ -1925,19 +1988,26 @@ class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
     def GroupMemberTags (cls, wxs):
         return [ wxs.xsQualifiedName(_tag) for _tag in [ 'all', 'choice', 'sequence' ] ]
 
-    def elementDeclarations (self):
+    def elementDeclarations (self, wxs):
         """Return a list of all ElementDeclarations that are at the top level of this model group."""
-        element_decls = []
+        element_decls = set()
         model_groups = [ self ]
+        #print 'Extracting element declarations from model group with %d particles: %s'  % (len(self.particles()), self.particles())
         while model_groups:
             mg = model_groups.pop(0)
             for p in mg.particles():
+                if not p.isResolved():
+                    p._resolve(wxs)
+                assert p.isResolved()
                 if isinstance(p.term(), ModelGroup):
                     model_groups.append(p.term())
                 elif isinstance(p.term(), ElementDeclaration):
-                    element_decls.append(p.term())
+                    element_decls.update(p.elementDeclarations(wxs))
                 else:
+                    assert p.term() is not None
                     pass
+                #print 'Particle term: %s' % (object.__str__(p.term()),)
+        #print 'Model group with %d particles produced %d element declarations' % (len(self.particles()), len(element_decls))
         return element_decls
 
     def __str__ (self):
@@ -1984,6 +2054,19 @@ class Particle (_SchemaComponent_mixin, _Resolvable_mixin):
         """A reference to a ModelGroup, Wildcard, or ElementDeclaration."""
         return self.__term
 
+    def elementDeclarations (self, wxs):
+        if not self.isResolved():
+            self._resolve(wxs)
+        assert self.isResolved()
+        assert self.__term is not None
+        if isinstance(self.__term, ModelGroup):
+            return self.__term.elementDeclarations(wxs)
+        if isinstance(self.__term, ElementDeclaration):
+            return set([ self.__term ])
+        if isinstance(self.__term, Wildcard):
+            return set()
+        raise LogicError('Unexpected term type %s' % (self.__term,))
+
     def pluralityData (self):
         """Return the plurality data for this component.
 
@@ -2017,13 +2100,19 @@ class Particle (_SchemaComponent_mixin, _Resolvable_mixin):
     # local ElementDeclarations.
     __ancestorComponent = None
 
+    __scope = None
+
     def __init__ (self, term, *args, **kw):
         assert kw.get('schema', None) is not None
         min_occurs = kw.get('min_occurs', 1)
         max_occurs = kw.get('max_occurs', 1)
+        self.__scope = kw.get('scope', None)
         ancestor_component = kw.get('ancestor_component', None)
         super(Particle, self).__init__(*args, **kw)
-        self.__term = term
+        if (term is not None) and (self.__scope is not None):
+            self.__term = term.adaptForScope(self, self.__scope)
+        else:
+            self.__term = term
         assert isinstance(min_occurs, (types.IntType, types.LongType))
         self.__minOccurs = min_occurs
         assert (max_occurs is None) or isinstance(max_occurs, (types.IntType, types.LongType))
@@ -2039,8 +2128,27 @@ class Particle (_SchemaComponent_mixin, _Resolvable_mixin):
         self.__ancestorComponent = ancestor_component
         return self
 
+    def adaptForScope (self, owner, complex_type_definition):
+        """Return this instance or a clone for which the associated
+        attribute declaration has a defined scope: either global or
+        the given complex type definition."""
+        term = self.__term
+        if not isinstance(term, ElementDeclaration):
+            return self
+        if term.scope() in (_ScopedDeclaration_mixin.SCOPE_global, complex_type_definition):
+            return self
+        #if term.scope() is not None:
+        #    raise LogicError('Should not be creating %s-scoped copy of %s-scoped component' % (complex_type_definition.ncName(), term.scope().ncName()))
+        rv = self
+        term = term.adaptForScope(self, complex_type_definition)
+        if term != self.__term:
+            rv = self.clone()
+            rv.__term = term
+            rv._setOwner(owner)
+        return rv
+
     @classmethod
-    def CreateFromDOM (cls, wxs, node, ancestor_component, owner=None):
+    def CreateFromDOM (cls, wxs, node, ancestor_component, owner=None, scope=None):
         min_occurs = 1
         max_occurs = 1
         if not node.nodeName in cls.ParticleTags(wxs):
@@ -2055,7 +2163,7 @@ class Particle (_SchemaComponent_mixin, _Resolvable_mixin):
             else:
                 max_occurs = datatypes.nonNegativeInteger(attr_val)
 
-        rv = cls(term=None, min_occurs=min_occurs, max_occurs=max_occurs, ancestor_component=ancestor_component, schema=wxs, owner=owner)
+        rv = cls(term=None, min_occurs=min_occurs, max_occurs=max_occurs, ancestor_component=ancestor_component, schema=wxs, owner=owner, scope=scope)
         rv.__domNode = node
         wxs._queueForResolution(rv)
 
@@ -2090,7 +2198,7 @@ class Particle (_SchemaComponent_mixin, _Resolvable_mixin):
             if ref_attr is not None:
                 term = wxs.lookupElement(ref_attr)
             else:
-                term = ElementDeclaration.CreateFromDOM(wxs, node, self.__ancestorComponent, owner=self)
+                term = ElementDeclaration.CreateFromDOM(wxs, node, self.__ancestorComponent, owner=self, scope=self.__scope)
             assert term is not None
         elif node.nodeName in wxs.xsQualifiedNames('any'):
             # 3.9.2 says use 3.10.2, which is Wildcard.
@@ -2100,11 +2208,11 @@ class Particle (_SchemaComponent_mixin, _Resolvable_mixin):
             # Choice, sequence, and all inside a particle are explicit
             # groups (or a restriction of explicit group, in the case
             # of all)
-            term = ModelGroup.CreateFromDOM(wxs, node, owner=self)
+            term = ModelGroup.CreateFromDOM(wxs, node, owner=self, scope=self.__scope)
         else:
             raise LogicError('Unhandled node in Particle._resolve: %s' % (node.toxml(),))
         assert term is not None
-        self.__term = term
+        self.__term = term.adaptForScope(self, self.__scope)
         self.__domNode = None
         return self
         
@@ -2291,6 +2399,10 @@ class Wildcard (_SchemaComponent_mixin, _Annotated_mixin):
         Wildcards depend on nothing.
         """
         return frozenset()
+
+    def adaptForScope (self, owner, ctd):
+        """Wildcards are scope-independent; return self"""
+        return self
 
     @classmethod
     def CreateFromDOM (cls, wxs, node, owner=None):

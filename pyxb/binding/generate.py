@@ -825,7 +825,7 @@ def GenerateMG (mg, **kw):
     # @todo Gotta handle wildcards in here too.
 
     field_names = { }
-    for e in mg.elementDeclarations():
+    for e in mg.elementDeclarations(None):
         field_names.setdefault(e.ncName(), []).append(e)
     field_decls = []
     for fn in field_names.keys():
