@@ -238,13 +238,13 @@ class schema (xsc.Schema):
             raise NotInNamespaceError('lookupAttributeDeclaration: No match for "%s" in %s' % (qualified_name, ns))
         return rv
 
-    def lookupElement (self, qualified_name):
+    def lookupElement (self, qualified_name, context=xsc._ScopedDeclaration_mixin.SCOPE_global):
         """Like lookupType, but for elements."""
         (ns, local_name) = self.__getNamespaceForLookup(qualified_name)
         if ns is None:
-            rv = self._lookupElementDeclaration(local_name)
+            rv = self._lookupElementDeclaration(local_name, context)
         else:
-            rv = ns.lookupElementDeclaration(local_name)
+            rv = ns.lookupElementDeclaration(local_name, context)
         if rv is None:
             raise NotInNamespaceError('lookupElement: No match for "%s" in %s' % (qualified_name, ns))
         return rv
@@ -591,7 +591,7 @@ class schema (xsc.Schema):
         # Node should be a namedGroup
         assert node.nodeName in self.xsQualifiedNames('group')
         assert node.parentNode.nodeName in self.xsQualifiedNames('schema')
-        rv = xsc.ModelGroupDefinition.CreateFromDOM(self, node)
+        rv = xsc.ModelGroupDefinition.CreateFromDOM(self, xsc._ScopedDeclaration_mixin.SCOPE_global, node)
         return self._addNamedComponent(rv)
 
     # @todo make process* private
@@ -599,7 +599,7 @@ class schema (xsc.Schema):
         # Node should be a named element
         assert node.nodeName in self.xsQualifiedNames('element')
         assert node.parentNode.nodeName in self.xsQualifiedNames('schema')
-        ed = xsc.ElementDeclaration.CreateFromDOM(self, node)
+        ed = xsc.ElementDeclaration.CreateFromDOM(self, xsc._ScopedDeclaration_mixin.SCOPE_global, node)
         return self._addNamedComponent(ed)
 
     def _processNotationDeclaration (self, node):

@@ -548,6 +548,10 @@ class _ScopedDeclaration_mixin (object):
 
     SCOPE_global = 'global'     #<<< Marker to indicate global scope
 
+    @classmethod
+    def IsValidScope (cls, value):
+        return (cls.SCOPE_global == value) or isinstance(value, ComplexTypeDefinition)
+
     # The scope for the element.  Valid values are SCOPE_global or a
     # complex type definition.  None is an invalid value, but may
     # appear if scope is determined by an ancestor component.
@@ -841,6 +845,7 @@ class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
         bi._scope(_ScopedDeclaration_mixin.SCOPE_global)
         return bi
 
+    # CFD:AttributeDeclaration
     @classmethod
     def CreateFromDOM (cls, wxs, node, owner=None):
         # Node should be an XMLSchema attribute node
@@ -977,6 +982,7 @@ class AttributeUse (_SchemaComponent_mixin, _Resolvable_mixin, _ValueConstraint_
         rv.__attributeDeclaration = self.attributeDeclaration().adaptForScope(rv, complex_type_definition)
         return self
 
+    # CFD:AttributeUse
     @classmethod
     def CreateFromDOM (cls, wxs, node, owner=None):
         assert node.nodeName in wxs.xsQualifiedNames('attribute')
@@ -1101,14 +1107,31 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Resolv
 
     def __init__ (self, *args, **kw):
         super(ElementDeclaration, self).__init__(*args, **kw)
+        self._scope(kw['context'])
         self.__ancestorComponent = kw.get('ancestor_component', None)
 
     def isPlural (self):
         """Element declarations are not multivalued in themselves."""
         return False
 
+    # CFD:ElementDeclaration
     @classmethod
-    def CreateFromDOM (cls, wxs, node, ancestor_component=None, owner=None, scope=None):
+    def CreateFromDOM (cls, wxs, context, node, ancestor_component=None, owner=None):
+        """Create an element declaration from the given DOM node.
+
+        wxs is a Schema instance within which the element is being
+        declared.
+
+        context is the _ScopeDeclaration_mixin context in which the
+        element declaration appears.  It can be None to indicate an
+        element being declared in a model group.
+
+        node is a DOM element.  The name must be 'element', and the
+        node must be in the XMLSchema namespace."""
+
+        assert isinstance(wxs, Schema)
+        assert (context is None) or _ScopedDeclaration_mixin.IsValidScope(context)
+
         # Node should be an XMLSchema element node
         assert node.nodeName in wxs.xsQualifiedNames('element')
 
@@ -1117,19 +1140,16 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Resolv
         namespace = None
         if node.parentNode.nodeName in wxs.xsQualifiedNames('schema'):
             namespace = wxs.getTargetNamespace()
-            assert scope is None
-            scope = cls.SCOPE_global
+            assert _ScopedDeclaration_mixin.SCOPE_global == context
         elif NodeAttribute(node, wxs, 'ref') is None:
             # NB: It is perfectly legal for namespace to be None when
             # processing local elements.
             namespace = wxs.defaultNamespaceFromDOM(node, 'elementFormDefault')
-            # Local element scope is determined when it is used in a
-            # complex type definition.
+            # Context may be None or a CTD.
         else:
             raise SchemaValidationError('Created reference as element declaration')
         
-        rv = cls(name=name, target_namespace=namespace, ancestor_component=ancestor_component, schema=wxs, owner=owner)
-        rv._scope(scope)
+        rv = cls(name=name, target_namespace=namespace, context=context, ancestor_component=ancestor_component, schema=wxs, owner=owner)
         rv._annotationFromDOM(wxs, node)
         rv._valueConstraintFromDOM(wxs, node)
 
@@ -1351,11 +1371,15 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
             # No constraints on attributes
             bi._setAttributeWildcard(Wildcard(namespace_constraint=Wildcard.NC_any, process_contents=Wildcard.PC_lax, schema=_SchemaComponent_mixin._SCHEMA_None))
 
-            # Content is mixed, with elements completely unconstrained.
-            w = Wildcard(namespace_constraint=Wildcard.NC_any, process_contents=Wildcard.PC_lax, schema=_SchemaComponent_mixin._SCHEMA_None)
-            p = Particle(w, min_occurs=0, max_occurs=None, schema=_SchemaComponent_mixin._SCHEMA_None)
-            m = ModelGroup(compositor=ModelGroup.C_SEQUENCE, particles=[ p ], schema=_SchemaComponent_mixin._SCHEMA_None)
-            bi.__contentType = ( cls.CT_MIXED, Particle(m, schema=_SchemaComponent_mixin._SCHEMA_None) )
+            # Content is mixed, with elements completely
+            # unconstrained.  The type is global, and @todo is not
+            # associatd with a schema (it should be)
+            kw = { 'schema' : _SchemaComponent_mixin._SCHEMA_None
+                 , 'context': _ScopedDeclaration_mixin.SCOPE_global }
+            w = Wildcard(namespace_constraint=Wildcard.NC_any, process_contents=Wildcard.PC_lax, **kw)
+            p = Particle(w, min_occurs=0, max_occurs=None, **kw)
+            m = ModelGroup(compositor=ModelGroup.C_SEQUENCE, particles=[ p ], **kw)
+            bi.__contentType = ( cls.CT_MIXED, Particle(m, **kw) )
 
             # No attribute uses
             bi.__attributeUses = set()
@@ -1431,6 +1455,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
                 assert ed.scope() is not None
         return True
 
+    # CFD:CTD CFD:ComplexTypeDefinition
     @classmethod
     def CreateFromDOM (cls, wxs, node, owner=None):
         # Node should be an XMLSchema complexType node
@@ -1567,7 +1592,10 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
         # deriviationMethod is assigned after resolution completes
         self.__baseTypeDefinition = base_type
 
-        # Do content type
+        # Do content type.  Cache the keywords that need to be used
+        # for newly created schema components.
+        ckw = { 'schema': wxs
+              , 'context': self }
 
         # Definition 1: effective mixed
         mixed_attr = None
@@ -1619,15 +1647,15 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
             if effective_mixed:
                 # Clause 2.1.4
                 assert typedef_node is None
-                m = ModelGroup(compositor=ModelGroup.C_SEQUENCE, schema=wxs)
-                effective_content = Particle(m, schema=wxs)
+                m = ModelGroup(compositor=ModelGroup.C_SEQUENCE, **ckw)
+                effective_content = Particle(m, **ckw)
             else:
                 # Clause 2.1.5
                 effective_content = self.CT_EMPTY
         else:
             # Clause 2.2
             assert typedef_node is not None
-            effective_content = Particle.CreateFromDOM(wxs, typedef_node, self, owner=self, scope=self)
+            effective_content = Particle.CreateFromDOM(wxs, self, typedef_node, self, owner=self)
 
         # Shared from clause 3.1.2
         if effective_mixed:
@@ -1639,24 +1667,24 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
             # Clause 3.1
             if self.CT_EMPTY == effective_content:
                 # Clause 3.1.1
-                content_type = self.CT_EMPTY
+                content_type = self.CT_EMPTY                     # ASSIGN CT_EMPTY
             else:
                 # Clause 3.1.2(.2)
-                content_type = ( ct, effective_content )
+                content_type = ( ct, effective_content )         # ASSIGN RESTRICTION
         else:
             # Clause 3.2
             assert self.DM_extension == method
             assert self.__baseTypeDefinition.isResolved()
             parent_content_type = self.__baseTypeDefinition.contentType()
             if self.CT_EMPTY == effective_content:
-                content_type = parent_content_type
+                content_type = parent_content_type               # ASSIGN EXTENSION PARENT ONLY
             elif self.CT_EMPTY == parent_content_type:
                 # Clause 3.2.2
-                content_type = ( ct, effective_content )
+                content_type = ( ct, effective_content )         # ASSIGN EXTENSION LOCAL ONLY
             else:
                 assert type(parent_content_type) == tuple
-                m = ModelGroup(compositor=ModelGroup.C_SEQUENCE, particles=[ parent_content_type[1], effective_content ], schema=wxs)
-                content_type = ( ct, Particle(m, schema=wxs) )
+                m = ModelGroup(compositor=ModelGroup.C_SEQUENCE, particles=[ parent_content_type[1], effective_content ], **ckw)
+                content_type = ( ct, Particle(m, **ckw) )   # ASSIGN EXTENSION PARENT AND LOCAL
 
         assert (self.CT_EMPTY == content_type) or ((type(content_type) == tuple) and (content_type[1] is not None))
         self.__contentType = content_type
@@ -1776,6 +1804,7 @@ class AttributeGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _
             rv.add(self.attributeWildcard())
         return frozenset(rv)
 
+    # CFD:AGD CFD:AttributeGroupDefinition
     @classmethod
     def CreateFromDOM (cls, wxs, node, owner=None):
         assert node.nodeName in wxs.xsQualifiedNames('attributeGroup')
@@ -1844,8 +1873,23 @@ class ModelGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Anno
         """
         return frozenset([self.__modelGroup])
 
+    # CFD:MGD CFD:ModelGroupDefinition
     @classmethod
-    def CreateFromDOM (cls, wxs, node, owner=None):
+    def CreateFromDOM (cls, wxs, context, node, owner=None):
+        """Create a Model Group Definition from a DOM element node.
+
+        wxs is a Schema instance within which the model group is being
+        defined.
+
+        context is the _ScopeDeclaration_mixin context that is used to
+        resolve references internal to the model group.
+
+        node is a DOM element.  The name must be 'group', and the node
+        must be in the XMLSchema namespace.  The node must have a
+        'name' attribute, and must not have a 'ref' attribute.
+        """
+        assert isinstance(wxs, Schema)
+        assert _ScopedDeclaration_mixin.IsValidScope(context)
         assert node.nodeName in wxs.xsQualifiedNames('group')
 
         assert NodeAttribute(node, wxs, 'ref') is None
@@ -1860,7 +1904,7 @@ class ModelGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Anno
                 continue
             if cn.nodeName in mg_tags:
                 assert not rv.__modelGroup
-                rv.__modelGroup = ModelGroup.CreateFromDOM(wxs, cn, model_group_definition=rv, owner=rv, scope=None)
+                rv.__modelGroup = ModelGroup.CreateFromDOM(wxs, context, cn, model_group_definition=rv, owner=rv)
         assert rv.__modelGroup is not None
         return rv
 
@@ -1959,9 +2003,25 @@ class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
                 return True
         return False
 
+    # CFD:MG CFD:ModelGroup
     @classmethod
-    def CreateFromDOM (cls, wxs, node, **kw):
-        scope = kw.get('scope', None)
+    def CreateFromDOM (cls, wxs, context, node, **kw):
+        """Create a model group from the given DOM node.
+
+        wxs is a Schema instance within which the model group is being
+        defined.
+
+        context is the _ScopeDeclaration_mixin context that is used to
+        resolve references internal to the model group.  The context
+        is passed down to child particles that are being created.
+
+        node is a DOM element.  The name must be one of ( 'all',
+        'choice', 'sequence' ), and the node must be in the XMLSchema
+        namespace."""
+        
+        assert isinstance(wxs, Schema)
+        assert (context is None) or _ScopedDeclaration_mixin.IsValidScope(context)
+
         if node.nodeName in wxs.xsQualifiedNames('all'):
             compositor = cls.C_ALL
         elif node.nodeName in wxs.xsQualifiedNames('choice'):
@@ -1977,7 +2037,7 @@ class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
                 continue
             if cn.nodeName in particle_tags:
                 # NB: Ancestor of particle is set in the ModelGroup constructor
-                particles.append(Particle.CreateFromDOM(wxs, cn, ancestor_component=None, scope=scope))
+                particles.append(Particle.CreateFromDOM(wxs, context, cn, ancestor_component=None))
         rv = cls(compositor=compositor, particles=particles, schema=wxs, **kw)
         for p in particles:
             p._setOwner(rv)
@@ -2102,19 +2162,22 @@ class Particle (_SchemaComponent_mixin, _Resolvable_mixin):
     # local ElementDeclarations.
     __ancestorComponent = None
 
-    __scope = None
+    def _context (self):
+        """The context within which element and attribute references are
+        identified."""
+        return self.__context
+    __context = None
 
     def __init__ (self, term, *args, **kw):
         assert kw.get('schema', None) is not None
         min_occurs = kw.get('min_occurs', 1)
         max_occurs = kw.get('max_occurs', 1)
-        self.__scope = kw.get('scope', None)
+        self.__context = kw['context']
+        assert (self._context() is None) or _ScopedDeclaration_mixin.IsValidScope(self._context())
         ancestor_component = kw.get('ancestor_component', None)
         super(Particle, self).__init__(*args, **kw)
-        if (term is not None) and (self.__scope is not None):
-            self.__term = term.adaptForScope(self, self.__scope)
-        else:
-            self.__term = term
+        if term is not None:
+            self.__term = term.adaptForScope(self, self._context())
         assert isinstance(min_occurs, (types.IntType, types.LongType))
         self.__minOccurs = min_occurs
         assert (max_occurs is None) or isinstance(max_occurs, (types.IntType, types.LongType))
@@ -2149,8 +2212,26 @@ class Particle (_SchemaComponent_mixin, _Resolvable_mixin):
             rv._setOwner(owner)
         return rv
 
+    # CFD:Particle
     @classmethod
-    def CreateFromDOM (cls, wxs, node, ancestor_component, owner=None, scope=None):
+    def CreateFromDOM (cls, wxs, context, node, ancestor_component, owner=None):
+        """Create a particle from the given DOM node.
+
+        wxs is a Schema instance within which the model group is being
+        defined.
+
+        context is the _ScopeDeclaration_mixin context that is used to
+        resolve element references.  The context is passed down to
+        child model groups that are created.  It may be None when
+        defining a particle inside a model group definition.
+
+        node is a DOM element.  The name must be one of ( 'group',
+        'element', 'any', 'all', 'choice', 'sequence' ), and the node
+        must be in the XMLSchema namespace."""
+
+        assert isinstance(wxs, Schema)
+        assert (context is None) or _ScopedDeclaration_mixin.IsValidScope(context)
+
         min_occurs = 1
         max_occurs = 1
         if not node.nodeName in cls.ParticleTags(wxs):
@@ -2165,7 +2246,7 @@ class Particle (_SchemaComponent_mixin, _Resolvable_mixin):
             else:
                 max_occurs = datatypes.nonNegativeInteger(attr_val)
 
-        rv = cls(term=None, min_occurs=min_occurs, max_occurs=max_occurs, ancestor_component=ancestor_component, schema=wxs, owner=owner, scope=scope)
+        rv = cls(term=None, min_occurs=min_occurs, max_occurs=max_occurs, context=context, ancestor_component=ancestor_component, schema=wxs, owner=owner)
         rv.__domNode = node
         wxs._queueForResolution(rv)
 
@@ -2174,7 +2255,10 @@ class Particle (_SchemaComponent_mixin, _Resolvable_mixin):
     def isResolved (self):
         return self.__term is not None
 
+    # res:Particle
     def _resolve (self, wxs):
+        assert self._context() is not None
+        
         if self.isResolved():
             return self
         node = self.__domNode
@@ -2196,11 +2280,11 @@ class Particle (_SchemaComponent_mixin, _Resolvable_mixin):
             assert wxs.xsQualifiedName('schema') != node.parentNode.nodeName
             # 3.9.2 says use 3.3.2, which is Element.  The element
             # inside a particle is a localElement, so we either get
-            # the one it refers to, or create an anonymous one here.
+            # the one it refers to, or create a local one here.
             if ref_attr is not None:
-                term = wxs.lookupElement(ref_attr)
+                term = wxs.lookupElement(ref_attr, self._context())
             else:
-                term = ElementDeclaration.CreateFromDOM(wxs, node, self.__ancestorComponent, owner=self, scope=self.__scope)
+                term = ElementDeclaration.CreateFromDOM(wxs, self._context(), node, self.__ancestorComponent, owner=self)
             assert term is not None
         elif node.nodeName in wxs.xsQualifiedNames('any'):
             # 3.9.2 says use 3.10.2, which is Wildcard.
@@ -2210,11 +2294,11 @@ class Particle (_SchemaComponent_mixin, _Resolvable_mixin):
             # Choice, sequence, and all inside a particle are explicit
             # groups (or a restriction of explicit group, in the case
             # of all)
-            term = ModelGroup.CreateFromDOM(wxs, node, owner=self, scope=self.__scope)
+            term = ModelGroup.CreateFromDOM(wxs, self._context(), node, owner=self)
         else:
             raise LogicError('Unhandled node in Particle._resolve: %s' % (node.toxml(),))
         assert term is not None
-        self.__term = term.adaptForScope(self, self.__scope)
+        self.__term = term.adaptForScope(self, self._context())
         self.__domNode = None
         return self
         
@@ -2406,6 +2490,7 @@ class Wildcard (_SchemaComponent_mixin, _Annotated_mixin):
         """Wildcards are scope-independent; return self"""
         return self
 
+    # CFD:Wildcard
     @classmethod
     def CreateFromDOM (cls, wxs, node, owner=None):
         assert (node.nodeName in wxs.xsQualifiedNames('any')) or (node.nodeName in wxs.xsQualifiedNames('anyAttribute'))
@@ -2471,6 +2556,7 @@ class IdentityConstraintDefinition (_SchemaComponent_mixin, _NamedComponent_mixi
         """
         return frozenset()
 
+    # CFD:ICD CFD:IdentityConstraintDefinition
     @classmethod
     def CreateFromDOM (cls, wxs, node, owner=None):
         name = NodeAttribute(node, wxs, 'name')
@@ -2533,6 +2619,7 @@ class NotationDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Annot
         """
         return frozenset()
 
+    # CFD:ND CFD:NotationDeclaration
     @classmethod
     def CreateFromDOM (cls, wxs, node, owner=None):
         name = NodeAttribute(node, wxs, 'name')
@@ -2574,6 +2661,7 @@ class Annotation (_SchemaComponent_mixin):
     # information items, not attribute uses.
     __attributes = None
 
+    # CFD:Annotation
     @classmethod
     def CreateFromDOM (cls, wxs, node, owner=None):
         rv = cls(schema=wxs, owner=owner)
@@ -3306,6 +3394,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
 
         return self
 
+    # CFD:STD CFD:SimpleTypeDefinition
     @classmethod
     def CreateFromDOM (cls, wxs, node, owner=None):
         # Node should be an XMLSchema simpleType node

@@ -339,7 +339,7 @@ class Namespace (object):
         attribute."""
         return self._validatedSchema()._lookupAttributeDeclaration(local_name)
 
-    def lookupElementDeclaration (self, local_name):
+    def lookupElementDeclaration (self, local_name, context=None):
         """Look up a named element in the namespace.
 
         This delegates to the associated schema.  It returns an
