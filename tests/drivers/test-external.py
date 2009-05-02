@@ -75,6 +75,28 @@ class TestExternal (unittest.TestCase):
         self.assertEquals('english', instance.language())
         self.assertEquals('welsh', instance.newlanguage())
 
+    def testCrossedRestriction (self):
+        # Content model elements that are consistent with parent
+        # should share its fields; those that change something should
+        # override it.
+        self.assertEqual(st.extendedName._ElementMap['title'], restExtName._ElementMap['title'])
+        self.assertEqual(st.extendedName._ElementMap['forename'], restExtName._ElementMap['forename'])
+        self.assertEqual(st.extendedName._ElementMap['surname'], restExtName._ElementMap['surname'])
+        self.assertNotEqual(st.extendedName._ElementMap['generation'], restExtName._ElementMap['generation'])
+
+        xml = '<personName><surname>Smith</surname></personName>'
+        dom = minidom.parseString(xml)
+        instance = st.personName.CreateFromDOM(dom.documentElement)
+        xml = '<personName><surname>Smith</surname><generation>Jr.</generation></personName>'
+        dom = minidom.parseString(xml)
+        self.assertRaises(ExtraContentError, st.personName.CreateFromDOM, dom.documentElement)
+        xml = xml.replace('personName', 'extendedName')
+        dom = minidom.parseString(xml)
+        instance = st.extendedName.CreateFromDOM(dom.documentElement)
+        xml = xml.replace('extendedName', 'restExtName')
+        dom = minidom.parseString(xml)
+        instance = restExtName.CreateFromDOM(dom.documentElement)
+
 if __name__ == '__main__':
     unittest.main()
     
