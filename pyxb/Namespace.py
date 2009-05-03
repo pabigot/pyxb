@@ -248,7 +248,9 @@ class Namespace (object):
         Specifically, components are not referenced in any component
         that precedes them in the returned sequence.  Any dependency
         that is not an instance of the dependent_class_filter is
-        ignored."""
+        ignored.  Declaration components that do not have a scope are
+        also ignored, as nothing can depend on them except things like
+        model groups which in turn are not depended on."""
         emit_order = []
         while 0 < len(components):
             new_components = []
@@ -262,6 +264,14 @@ class Namespace (object):
                 except AttributeError:
                     # Unnamed things don't get discarded this way
                     pass
+                # Scoped declarations that don't have a scope are tossed out too
+                try:
+                    if td.scope() is None:
+                        print 'Discarding %s: no scope defined' % (td.name(),)
+                        continue
+                except AttributeError, e:
+                    pass
+
                 dep_types = td.dependentComponents()
                 #print 'Type %s depends on %s' % (td, dep_types)
                 ready = True
