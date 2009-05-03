@@ -591,6 +591,18 @@ class _ScopedDeclaration_mixin (object):
     def IsValidScope (cls, value):
         return (cls.SCOPE_global == value) or isinstance(value, ComplexTypeDefinition)
 
+    def _scopeIsCompatible (self, scope):
+        """Return True if this scope currently assigned to this instance is compatible with the given scope.
+
+        If the incoming scope is None, presume it will ultimately be
+        compatible.  Scopes that are equal are compatible, as is a
+        local scope if this already has a global scope."""
+        if scope is None:
+            return True
+        if self.scope() == scope:
+            return True
+        return (self.SCOPE_global == self.scope()) and isinstance(scope, ComplexTypeDefinition)
+
     # The scope for the element.  Valid values are SCOPE_global or a
     # complex type definition.  None is an invalid value, but may
     # appear if scope is determined by an ancestor component.
@@ -1213,12 +1225,18 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Resolv
         
         return rv
 
+    def hasUnresolvableParticle (self, wxs):
+        return False
+
     def _adaptForScope (self, wxs, owner, scope):
         rv = self
-        if self._scope() is None:
+        if (self._scope() is None) and (scope is not None):
             rv = self._clone(wxs)
+            assert owner is not None
             rv._setOwner(owner)
             rv._setScope(scope)
+        else:
+            assert self._scopeIsCompatible(scope)
         return rv
 
     def isResolved (self):
@@ -2187,12 +2205,7 @@ class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
         while model_groups:
             mg = model_groups.pop(0)
             for p in mg.particles():
-                if not p.isResolved():
-                    p._resolve(wxs)
-                if not p.isResolved():
-                    raise LogicError('Cannot identify element declarations: unresolved inner particle')
                 if isinstance(p.term(), ModelGroup):
-                    assert p.isResolved()
                     model_groups.append(p.term())
                 elif isinstance(p.term(), ElementDeclaration):
                     element_decls.extend(p.elementDeclarations(wxs))
@@ -2205,7 +2218,6 @@ class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
 
     def _adaptForScope (self, wxs, owner, scope):
         rv = self
-        
         scoped_particles = [ _p._adaptForScope(wxs, None, scope) for _p in self.particles() ]
         if scoped_particles != self.particles():
             rv = self._clone(wxs)
@@ -2223,13 +2235,8 @@ class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
             comp = 'SEQUENCE'
         return '%s:(%s)' % (comp, ",".join( [ str(_p) for _p in self.particles() ] ) )
 
-class Particle (_SchemaComponent_mixin, _Resolvable_mixin):
-    """Some entity along with occurrence information.
-
-    NB: Particles are not themselves resolvable, but the term they
-    include probably has some resolvable component, so we inherit from
-    that class to make sure it gets resolved.
-    """
+class Particle (_SchemaComponent_mixin):
+    """Some entity along with occurrence information."""
 
     # The minimum number of times the term may appear.
     __minOccurs = 1
@@ -2258,9 +2265,6 @@ class Particle (_SchemaComponent_mixin, _Resolvable_mixin):
         return self.__term
 
     def elementDeclarations (self, wxs):
-        if not self.isResolved():
-            self._resolve(wxs)
-        assert self.isResolved()
         assert self.__term is not None
         if isinstance(self.__term, ModelGroup):
             return self.__term.elementDeclarations(wxs)
@@ -2331,15 +2335,21 @@ class Particle (_SchemaComponent_mixin, _Resolvable_mixin):
 
         super(Particle, self).__init__(*args, **kw)
 
-        assert kw.get('schema', None) is not None
+        wxs = kw.get('schema', None)
+        assert wxs is not None
         min_occurs = kw.get('min_occurs', 1)
         max_occurs = kw.get('max_occurs', 1)
+
         assert 'context' in kw
         assert 'scope' in kw
         assert _ScopedDeclaration_mixin.IsValidScope(self._context())
         assert (self._scope() is None) or isinstance(self._scope(), ComplexTypeDefinition)
 
-        self.__term = term
+        assert term is not None
+        self.__term = term._adaptForScope(wxs, self, self._scope())
+        if self.__term.owner() is None:
+            self.__term._setOwner(self)
+
         assert isinstance(min_occurs, (types.IntType, types.LongType))
         self.__minOccurs = min_occurs
         assert (max_occurs is None) or isinstance(max_occurs, (types.IntType, types.LongType))
@@ -2348,6 +2358,46 @@ class Particle (_SchemaComponent_mixin, _Resolvable_mixin):
             if self.__minOccurs > self.__maxOccurs:
                 raise LogicError('Particle minOccurs %s is greater than maxOccurs %s on creation' % (min_occurs, max_occurs))
     
+    @classmethod
+    def __GetTerm (cls, wxs, context, node, scope):
+        ref_attr = NodeAttribute(node, wxs, 'ref')
+        if node.nodeName in wxs.xsQualifiedNames('group'):
+            # 3.9.2 says use 3.8.2, which is ModelGroup.  The group
+            # inside a particle is a groupRef.  If there is no group
+            # with that name, this throws an exception as expected.
+            if ref_attr is None:
+                raise SchemaValidationError('group particle without reference')
+            # Named groups can only appear at global scope, so no need
+            # to use context here.
+            group_decl = wxs.lookupGroup(ref_attr)
+
+            # Neither group definitions, nor model groups, require
+            # resolution, so we can just extract the reference.
+            term = group_decl.modelGroup()
+            assert term is not None
+        elif node.nodeName in wxs.xsQualifiedNames('element'):
+            assert wxs.xsQualifiedName('schema') != node.parentNode.nodeName
+            # 3.9.2 says use 3.3.2, which is Element.  The element
+            # inside a particle is a localElement, so we either get
+            # the one it refers to, or create a local one here.
+            if ref_attr is not None:
+                term = wxs.lookupElement(ref_attr, context)
+            else:
+                term = ElementDeclaration.CreateFromDOM(wxs, node, scope)
+            assert term is not None
+        elif node.nodeName in wxs.xsQualifiedNames('any'):
+            # 3.9.2 says use 3.10.2, which is Wildcard.
+            term = Wildcard.CreateFromDOM(wxs, node)
+            assert term is not None
+        elif node.nodeName in ModelGroup.GroupMemberTags(wxs):
+            # Choice, sequence, and all inside a particle are explicit
+            # groups (or a restriction of explicit group, in the case
+            # of all)
+            term = ModelGroup.CreateFromDOM(wxs, context, node, scope)
+        else:
+            raise LogicError('Unhandled node in Particle._resolve: %s' % (node.toxml(),))
+        return term
+
     # CFD:Particle
     @classmethod
     def CreateFromDOM (cls, wxs, context, node, scope, owner=None):
@@ -2392,19 +2442,20 @@ class Particle (_SchemaComponent_mixin, _Resolvable_mixin):
             else:
                 kw['max_occurs'] = datatypes.nonNegativeInteger(attr_val)
 
-        rv = cls(None, **kw)
-        rv.__domNode = node
-        wxs._queueForResolution(rv)
-
+        rv = cls(cls.__GetTerm(wxs, context, node, scope), **kw)
         return rv
 
     def _adaptForScope (self, wxs, owner, scope):
         rv = self
-        if self._scope() is None:
+        if (self._scope() is None) and (scope is not None):
             rv = self._clone(wxs)
             rv._setOwner(owner)
-            if rv.__term:
-                rv.__term = rv.__term._adaptForScope(wxs, rv, scope)
+            rv.__term = rv.__term._adaptForScope(wxs, rv, scope)
+        else:
+            try:
+                assert self.__term._scopeIsCompatible(scope)
+            except AttributeError:
+                pass
         return rv
 
     def hasUnresolvableParticle (self, wxs):
@@ -2417,66 +2468,7 @@ class Particle (_SchemaComponent_mixin, _Resolvable_mixin):
         resolvability, not do any resolution.
 
         """
-        if (not self.isResolved()) and (wxs is not None):
-            self._resolve(wxs)
-        if not self.isResolved():
-            return True
-        if isinstance(self.term(), ModelGroup):
-            return self.term().hasUnresolvableParticle(wxs)
-        return False
-
-    def isResolved (self):
-        return self.__term is not None
-
-    # res:Particle
-    def _resolve (self, wxs):
-        # Must have context in which lookups can be performed
-        assert self._context() is not None
-        
-        if self.isResolved():
-            return self
-        node = self.__domNode
-
-        ref_attr = NodeAttribute(node, wxs, 'ref')
-        if node.nodeName in wxs.xsQualifiedNames('group'):
-            # 3.9.2 says use 3.8.2, which is ModelGroup.  The group
-            # inside a particle is a groupRef.  If there is no group
-            # with that name, this throws an exception as expected.
-            if ref_attr is None:
-                raise SchemaValidationError('group particle without reference')
-            # Named groups can only appear at global scope, so no need
-            # to use context here.
-            group_decl = wxs.lookupGroup(ref_attr)
-
-            # Neither group definitions, nor model groups, require
-            # resolution, so we can just extract the reference.
-            term = group_decl.modelGroup()._adaptForScope(wxs, self, self._scope())
-            assert term is not None
-        elif node.nodeName in wxs.xsQualifiedNames('element'):
-            assert wxs.xsQualifiedName('schema') != node.parentNode.nodeName
-            # 3.9.2 says use 3.3.2, which is Element.  The element
-            # inside a particle is a localElement, so we either get
-            # the one it refers to, or create a local one here.
-            if ref_attr is not None:
-                term = wxs.lookupElement(ref_attr, self._context())
-            else:
-                term = ElementDeclaration.CreateFromDOM(wxs, node, self._scope(), owner=self)
-            assert term is not None
-        elif node.nodeName in wxs.xsQualifiedNames('any'):
-            # 3.9.2 says use 3.10.2, which is Wildcard.
-            term = Wildcard.CreateFromDOM(wxs, node, owner=self)
-            assert term is not None
-        elif node.nodeName in ModelGroup.GroupMemberTags(wxs):
-            # Choice, sequence, and all inside a particle are explicit
-            # groups (or a restriction of explicit group, in the case
-            # of all)
-            term = ModelGroup.CreateFromDOM(wxs, self._context(), node, self._scope(), owner=self)
-        else:
-            raise LogicError('Unhandled node in Particle._resolve: %s' % (node.toxml(),))
-        assert term is not None
-        self.__term = term
-        self.__domNode = None
-        return self
+        return self.term().hasUnresolvableParticle(wxs)
         
     @classmethod
     def TypedefTags (cls, wxs):
@@ -2661,6 +2653,9 @@ class Wildcard (_SchemaComponent_mixin, _Annotated_mixin):
         Wildcards depend on nothing.
         """
         return frozenset()
+
+    def hasUnresolvableParticle (self, wxs):
+        return False
 
     def _adaptForScope (self, wxs, owner, ctd):
         """Wildcards are scope-independent; return self"""
