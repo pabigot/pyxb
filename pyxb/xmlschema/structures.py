@@ -107,7 +107,7 @@ class _SchemaComponent_mixin (object):
     def dependentComponents (self):
         if self.__dependentComponents is None:
             if isinstance(self, _Resolvable_mixin) and not (self.isResolved()):
-                raise LogicError('Unresolved %s in %s: %s - %s' % (self.__class__.__name__, self.schema().getTargetNamespace(), self, self.name()))
+                raise LogicError('Unresolved %s in %s: %s' % (self.__class__.__name__, self.schema().getTargetNamespace(), self.name()))
             self.__dependentComponents = self._dependentComponents_vx()
             if self in self.__dependentComponents:
                 raise LogicError('Self-dependency with %s %s' % (self.__class__.__name__, self))
@@ -153,9 +153,11 @@ class _SchemaComponent_mixin (object):
         self.__ownedComponents = set()
         self.__dependentComponents = None
         assert self.__nameInBinding is None
+        if self.__schema:
+            self.__schema._associateComponent(self)
         return getattr(super(_SchemaComponent_mixin, self), '_resetClone_vc', lambda *args, **kw: self)()
 
-    def _clone (self):
+    def _clone (self, wxs):
         """Create a copy of this instance suitable for adoption by
         some other component.
         
@@ -166,7 +168,12 @@ class _SchemaComponent_mixin (object):
         if self.__clones is None:
             self.__clones = set()
         self.__clones.add(that)
-        return that._resetClone_vc()
+        that._resetClone_vc()
+        if isinstance(that, _Resolvable_mixin):
+            assert wxs is not None
+            print 'Queuing cloned %s for resolution' % (type(that),)
+            wxs._queueForResolution(that)
+        return that
 
     def _copyResolution (self, resolved):
         """Invoked upon resolution if the resolved object has clones.
@@ -1057,7 +1064,7 @@ class AttributeUse (_SchemaComponent_mixin, _Resolvable_mixin, _ValueConstraint_
         self.__domNode = None
         return self
 
-    def _adaptForScope (self, ctd):
+    def _adaptForScope (self, wxs, ctd):
         """Adapt this instance for the given complex type.
 
         If the attribute declaration for this instance has scope None,
@@ -1068,10 +1075,10 @@ class AttributeUse (_SchemaComponent_mixin, _Resolvable_mixin, _ValueConstraint_
         ad = self.__attributeDeclaration
         rv = self
         if ad.scope() is None:
-            rv = self._clone()
+            rv = self._clone(wxs)
             rv._setOwner(ctd)
-            rv.__attributeDeclaration = ad._clone()
-            rv.__attributeDeclaration._setOwner(ctd)
+            rv.__attributeDeclaration = ad._clone(wxs)
+            rv.__attributeDeclaration._setOwner(rv)
             rv.__attributeDeclaration._setScope(ctd)
         return rv
 
@@ -1206,17 +1213,34 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Resolv
         
         return rv
 
+    def _adaptForScope (self, wxs, owner, scope):
+        rv = self
+        if self._scope() is None:
+            rv = self._clone(wxs)
+            rv._setOwner(owner)
+            rv._setScope(scope)
+        return rv
+
     def isResolved (self):
         return self.__typeDefinition is not None
 
+    # res:ED res:ElementDeclaration
     def _resolve (self, wxs):
         if self.isResolved():
             return self
+
+        if self.scope() is None:
+            print 'Not resolving unscoped ElementDeclaration %s' % (self.name(),)
+            # DO NOT REQUEUE
+            return self
+
         node = self.__domNode
 
         sg_attr = NodeAttribute(node, wxs, 'substitutionGroup')
         if sg_attr is not None:
-            sga = wxs.lookupElement(sg_attr)
+            sga = wxs.lookupElement(sg_attr, self.scope())
+            if sga is None:
+                raise SchemaValidationError('Unable to resolve substitution group %s' % (sg_attr,))
             if not sga.isResolved():
                 wxs._queueForResolution(self)
                 return self
@@ -1371,6 +1395,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
     def __init__ (self, *args, **kw):
         super(ComplexTypeDefinition, self).__init__(*args, **kw)
         self.__derivationMethod = kw.get('derivation_method', None)
+        assert self._scope() is None
         self.__scopedElementDeclarations = { }
         self.__scopedAttributeDeclarations = { }
 
@@ -1547,7 +1572,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
         # Past the last point where we might not resolve this
         # instance.  Store the attribute uses, also recording local
         # attribute declarations.
-        self.__attributeUses = frozenset([ _u._adaptForScope(self) for _u in uses_c1.union(uses_c2).union(uses_c3) ])
+        self.__attributeUses = frozenset([ _u._adaptForScope(wxs, self) for _u in uses_c1.union(uses_c2).union(uses_c3) ])
 
         # @todo Handle attributeWildcard
         # Clause 1
@@ -2178,6 +2203,16 @@ class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
         #print 'Model group with %d particles produced %d element declarations' % (len(self.particles()), len(element_decls))
         return element_decls
 
+    def _adaptForScope (self, wxs, owner, scope):
+        rv = self
+        
+        scoped_particles = [ _p._adaptForScope(wxs, None, scope) for _p in self.particles() ]
+        if scoped_particles != self.particles():
+            rv = self._clone(wxs)
+            rv._setOwner(owner)
+            rv.__particles = scoped_particles
+        return rv
+
     def __str__ (self):
         comp = None
         if self.C_ALL == self.compositor():
@@ -2363,11 +2398,26 @@ class Particle (_SchemaComponent_mixin, _Resolvable_mixin):
 
         return rv
 
+    def _adaptForScope (self, wxs, owner, scope):
+        rv = self
+        if self._scope() is None:
+            rv = self._clone(wxs)
+            rv._setOwner(owner)
+            if rv.__term:
+                rv.__term = rv.__term._adaptForScope(wxs, rv, scope)
+        return rv
+
     def hasUnresolvableParticle (self, wxs):
         """A particle has an unresolvable particle if it cannot be
         resolved, or if it has resolved to a term which is a model
-        group that has an unresolvable particle."""
-        if not self.isResolved():
+        group that has an unresolvable particle.
+
+        wxs is a schema within which resolution proceeds, or None to
+        indicate that this should simply test for lack of
+        resolvability, not do any resolution.
+
+        """
+        if (not self.isResolved()) and (wxs is not None):
             self._resolve(wxs)
         if not self.isResolved():
             return True
@@ -2400,7 +2450,7 @@ class Particle (_SchemaComponent_mixin, _Resolvable_mixin):
 
             # Neither group definitions, nor model groups, require
             # resolution, so we can just extract the reference.
-            term = group_decl.modelGroup()
+            term = group_decl.modelGroup()._adaptForScope(wxs, self, self._scope())
             assert term is not None
         elif node.nodeName in wxs.xsQualifiedNames('element'):
             assert wxs.xsQualifiedName('schema') != node.parentNode.nodeName
@@ -2612,7 +2662,7 @@ class Wildcard (_SchemaComponent_mixin, _Annotated_mixin):
         """
         return frozenset()
 
-    def adaptForScope (self, owner, ctd):
+    def _adaptForScope (self, wxs, owner, ctd):
         """Wildcards are scope-independent; return self"""
         return self
 
@@ -3772,10 +3822,18 @@ class Schema (_SchemaComponent_mixin):
             unresolved = self.__unresolvedDefinitions
             self.__unresolvedDefinitions = []
             for resolvable in unresolved:
+                if isinstance(resolvable, _ScopedDeclaration_mixin) and (resolvable.scope() is None):
+                    print 'NOT RESOLVING unscoped declaration %s' % (resolvable.name(),)
+                    continue
                 resolvable._resolve(self)
-                assert resolvable in self.__components
-                assert (resolvable.isResolved() or (resolvable in self.__unresolvedDefinitions))
+                print '%s %s %s' % ((resolvable in self.__components), type(resolvable), resolvable._scope())
+                assert (resolvable in self.__components) \
+                    or (isinstance(resolvable, _ScopedDeclaration_mixin) \
+                        and (isinstance(resolvable.scope(), ComplexTypeDefinition)))
+                assert resolvable.isResolved() or (resolvable in self.__unresolvedDefinitions)
                 if resolvable.isResolved() and (resolvable._clones() is not None):
+                    print 'COPYING %s RESOLUTION TO CLONES' % (resolvable,)
+                    assert False
                     [ _c._copyResolution(resolvable) for _c in resolvable._clones() ]
             if self.__unresolvedDefinitions == unresolved:
                 # This only happens if we didn't code things right, or
