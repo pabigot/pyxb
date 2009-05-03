@@ -609,7 +609,10 @@ class %{ctd} (%{superclasses}):
                 superclass_info = base_type.__elementFields.get(name, None)
                 if superclass_info is not None:
                     ( superclass_is_plural, superclass_types, superclass_ef_map ) = superclass_info
-                    if (is_plural == superclass_is_plural) and TypeSetCompatible(types, superclass_types):
+                    # Not checking plurality: should only matter with
+                    # restriction, and there it should be compatible
+                    # if the schema is valid.
+                    if TypeSetCompatible(types, superclass_types):
                         definitions.append(templates.replaceInText('# Element %{field_tag} inherits from parent %{superclasses} as %{python_field_name}', superclasses=template_map['superclasses'], **superclass_ef_map))
                         del plurality_data[name]
                         class_unique.add(superclass_ef_map['python_field_name'])
