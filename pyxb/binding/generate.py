@@ -177,7 +177,8 @@ class ReferenceSchemaComponent (ReferenceLiteral):
                     print 'NO SCOPE for %s' % (self.__component,)
                 assert scope is not None
                 if isinstance(scope, xs.structures.ComplexTypeDefinition):
-                    assert scope.targetNamespace() == self.__component.targetNamespace()
+                    if scope.targetNamespace() != self.__component.targetNamespace():
+                        print 'WARNING: Inner decl %s tns %s scope %s' % (name, self.__component.targetNamespace(), scope.name())
                     name = '%s_%s' % (scope.ncName(), name)
 
             name = utility.PrepareIdentifier(name, UniqueInBinding, protected=protected)
@@ -372,7 +373,8 @@ def GenerateContentModel (ctd, automaton, **kw):
                 if 'eu_field' in template_map:
                     del template_map['eu_field']
                 for (name, ( is_plural, types, ef_map) ) in ctd.__elementFields.items():
-                    if key in types:
+                    type_names = [ _u.ncName() for _u in types ]
+                    if key.ncName() in type_names:
                         template_map['eu_field'] = templates.replaceInText('%{ctd}._UseForTag(%{field_tag})', field_tag=ef_map['field_tag'], **template_map)
                         break
             lines3.append(templates.replaceInText('%{content}.ContentModelTransition(term=%{term}, next_state=%{next_state}, element_use=%{eu_field}),',
@@ -501,6 +503,17 @@ class %{std} (pyxb.binding.basis.STD_union):
         GenerateFacets(outf, std, **kw)
     return outf.getvalue()
 
+def TypeSetCompatible (s1, s2):
+    for ctd1 in s1:
+        match = False
+        for ctd2 in s2:
+            if ctd1.ncName() == ctd2.ncName():
+                match = True
+                break
+        if not match:
+            return False
+    return True
+
 def GenerateCTD (ctd, **kw):
     content_type = None
     prolog_template = None
@@ -596,7 +609,7 @@ class %{ctd} (%{superclasses}):
                 superclass_info = base_type.__elementFields.get(name, None)
                 if superclass_info is not None:
                     ( superclass_is_plural, superclass_types, superclass_ef_map ) = superclass_info
-                    if (is_plural == superclass_is_plural) and (types == superclass_types):
+                    if (is_plural == superclass_is_plural) and TypeSetCompatible(types, superclass_types):
                         definitions.append(templates.replaceInText('# Element %{field_tag} inherits from parent %{superclasses} as %{python_field_name}', superclasses=template_map['superclasses'], **superclass_ef_map))
                         del plurality_data[name]
                         class_unique.add(superclass_ef_map['python_field_name'])
@@ -606,13 +619,16 @@ class %{ctd} (%{superclasses}):
                         class_unique.add(superclass_ef_map['value_field_name'])
                         ctd.__elementFields[name] = superclass_info
                     else:
+                        if (ctd.DM_restriction == ctd.derivationMethod()):
+                            raise IncompleteImplementationError('Restriction invalid or re-use incomplete')
                         definitions.append(templates.replaceInText('''
 # Element %{field_tag} will override parent %{superclasses} field %{python_field_name}
 # due to content model differences:
 # plural %{plural} vs %{sc_plural}
 # types %{types} vs %{sc_types}
 ''', plural=str(is_plural), sc_plural=str(superclass_is_plural),
-   types=str(types), sc_types=str(superclass_types),
+   types=' '.join([ _t.name() for _t in types]),
+   sc_types=' '.join([ _t.name() for _t in superclass_types]),
    superclasses=template_map['superclasses'], **superclass_ef_map))
 
         PostscriptItems.append("\n\n")
