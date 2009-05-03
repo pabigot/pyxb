@@ -173,6 +173,8 @@ class ReferenceSchemaComponent (ReferenceLiteral):
             # to incorporate the parentage in the name.
             if isinstance(self.__component, xs.structures._ScopedDeclaration_mixin):
                 scope = self.__component.scope()
+                if scope is None:
+                    print 'NO SCOPE for %s' % (self.__component,)
                 assert scope is not None
                 if isinstance(scope, xs.structures.ComplexTypeDefinition):
                     assert scope.targetNamespace() == self.__component.targetNamespace()
@@ -783,6 +785,9 @@ class %{ctd} (%{superclasses}):
     return templates.replaceInText(template, **template_map)
 
 def GenerateED (ed, **kw):
+    # Unscoped declarations should never be referenced in the binding.
+    if ed.scope() is None:
+        return ''
     outf = StringIO.StringIO()
     template_map = { }
     template_map['class'] = pythonLiteral(ed, **kw)
@@ -825,6 +830,9 @@ def GenerateMG (mg, **kw):
 
     field_names = { }
     for e in mg.elementDeclarations(None):
+        if e.scope() is None:
+            return ''
+        assert e.isResolved()
         field_names.setdefault(e.ncName(), []).append(e)
     field_decls = []
     for fn in field_names.keys():
@@ -971,10 +979,10 @@ def CreateFromDOM (node):
 
 ''', **template_map))
     
-        # Give priority for identifiers to element declarations
+        # Give priority for identifiers to scoped element declarations
         for td in emit_order:
-            if isinstance(td, xs.structures.ElementDeclaration):
-                ReferenceSchemaComponent(td, **generator_kw).asLiteral()
+            if (isinstance(td, xs.structures.ElementDeclaration)) and (td.scope() is not None):
+                _ignored = ReferenceSchemaComponent(td, **generator_kw).asLiteral()
 
         for td in emit_order:
             generator = GeneratorMap.get(type(td), None)
