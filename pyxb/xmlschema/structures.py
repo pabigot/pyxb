@@ -1521,7 +1521,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
             au = AttributeUse.CreateFromDOM(wxs, self, cn, self)
             uses_c1.add(au)
         for agd in attribute_groups:
-            uses_c2.update([ _u._adaptForScope(self) for _u in agd.attributeUses() ])
+            uses_c2.update(agd.attributeUses())
 
         # Handle clause 3.  Note the slight difference in description
         # between simple and complex content is just that the complex
@@ -1547,7 +1547,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
         # Past the last point where we might not resolve this
         # instance.  Store the attribute uses, also recording local
         # attribute declarations.
-        self.__attributeUses = frozenset(uses_c1.union(uses_c2).union(uses_c3))
+        self.__attributeUses = frozenset([ _u._adaptForScope(self) for _u in uses_c1.union(uses_c2).union(uses_c3) ])
 
         # @todo Handle attributeWildcard
         # Clause 1
@@ -1586,17 +1586,12 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
 
         # @todo Make sure we didn't miss any child nodes
 
-        # Scan for local element declarations and set up the dictionary for them
-        #self.__mapLocalElements(wxs, method)
-
-        # Only now that we've succeeded do we set the method (mark this resolved)
+        # Only now that we've succeeded do we store the method, which
+        # marks this component resolved.
         self.__derivationMethod = method
         return self
 
-    def __setSimpleContent (self, wxs, method, base_type):
-        # deriviationMethod is assigned after resolution completes
-        self.__baseTypeDefinition = base_type
-
+    def __setSimpleContent (self, wxs, method):
         # Do content type
         if isinstance(self.__baseTypeDefinition, ComplexTypeDefinition):
             # Clauses 1, 2, and 3 might apply
@@ -1617,10 +1612,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
             # Clause 4
             self.__contentType = ( self.CT_SIMPLE, self.__baseTypeDefinition )
 
-    def __setComplexContent (self, wxs, type_node, content_node, definition_node_list, method, base_type):
-        # deriviationMethod is assigned after resolution completes
-        self.__baseTypeDefinition = base_type
-
+    def __setComplexContent (self, wxs, type_node, content_node, definition_node_list, method):
         # Do content type.  Cache the keywords that need to be used
         # for newly created schema components.
         ckw = { 'schema' : wxs
@@ -1752,6 +1744,8 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
     #   an unresolved attribute from the base type
     #   [__completeProcessing]
     #
+    # * The content model includes a particle which cannot be resolved
+    #   (so has not contributed any local element declarations).
     def _resolve (self, wxs):
         if self.isResolved():
             return self
@@ -1765,72 +1759,95 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
 
         # @todo implement prohibitedSubstitutions, final, annotations
 
-        # Assume we're in the short-hand case: the entire content is
-        # implicitly wrapped in a complex restriction of the ur-type.
-        definition_node_list = node.childNodes
-        is_complex_content = True
-        base_type = ComplexTypeDefinition.UrTypeDefinition()
-        method = self.DM_restriction
-
-        # Determine whether above assumption is correct by looking for
-        # element content and seeing if it's one of the wrapper
-        # elements.
-        first_elt = LocateFirstChildElement(node, ignore_nodes=wxs.xsQualifiedNames('annotation'))
-        content_node = None
-        if first_elt:
-            have_content = False
-            if first_elt.nodeName in wxs.xsQualifiedNames('simpleContent'):
-                have_content = True
-                is_complex_content = False
-            elif first_elt.nodeName in wxs.xsQualifiedNames('complexContent'):
-                have_content = True
-            else:
-                # Not one of the wrappers; use implicit wrapper around
-                # the children
-                pass
-            if have_content:
-                # Repeat the search to verify that only the one child is present.
-                content_node = LocateFirstChildElement(node, require_unique=True, ignore_nodes=wxs.xsQualifiedNames('annotation'))
-                assert content_node == first_elt
-                
-                # Identify the contained restriction or extension
-                # element, and extract the base type.
-                ions = LocateFirstChildElement(content_node, absent_ok=False, ignore_nodes=wxs.xsQualifiedNames('annotation'))
-                if ions.nodeName in wxs.xsQualifiedNames('restriction'):
-                    method = self.DM_restriction
-                elif ions.nodeName in wxs.xsQualifiedNames('extension'):
-                    method = self.DM_extension
+        # See whether we've resolved through to the base type
+        if self.__baseTypeDefinition is None:
+            # Assume we're in the short-hand case: the entire content is
+            # implicitly wrapped in a complex restriction of the ur-type.
+            definition_node_list = node.childNodes
+            is_complex_content = True
+            base_type = ComplexTypeDefinition.UrTypeDefinition()
+            method = self.DM_restriction
+    
+            # Determine whether above assumption is correct by looking for
+            # element content and seeing if it's one of the wrapper
+            # elements.
+            first_elt = LocateFirstChildElement(node, ignore_nodes=wxs.xsQualifiedNames('annotation'))
+            content_node = None
+            if first_elt:
+                have_content = False
+                if first_elt.nodeName in wxs.xsQualifiedNames('simpleContent'):
+                    have_content = True
+                    is_complex_content = False
+                elif first_elt.nodeName in wxs.xsQualifiedNames('complexContent'):
+                    have_content = True
                 else:
-                    raise SchemaValidationError('Expected restriction or extension as sole child of %s in %s' % (content_node.name(), self.name()))
-                base_attr = NodeAttribute(ions, wxs, 'base')
-                if base_attr is None:
-                    raise SchemaValidationError('Element %s missing base attribute' % (ions.nodeName,))
-                base_type = wxs.lookupType(base_attr)
-                if not base_type.isResolved():
-                    # Have to delay resolution until the type this
-                    # depends on is available.
-                    #print 'Holding off resolution of %s due to dependence on unresolved %s' % (self.name(), base_type.name())
-                    wxs._queueForResolution(self)
-                    return self
-                # The content is defined by the restriction/extension element
-                definition_node_list = ions.childNodes
+                    # Not one of the wrappers; use implicit wrapper around
+                    # the children
+                    pass
+                if have_content:
+                    # Repeat the search to verify that only the one child is present.
+                    content_node = LocateFirstChildElement(node, require_unique=True, ignore_nodes=wxs.xsQualifiedNames('annotation'))
+                    assert content_node == first_elt
+                    
+                    # Identify the contained restriction or extension
+                    # element, and extract the base type.
+                    ions = LocateFirstChildElement(content_node, absent_ok=False, ignore_nodes=wxs.xsQualifiedNames('annotation'))
+                    if ions.nodeName in wxs.xsQualifiedNames('restriction'):
+                        method = self.DM_restriction
+                    elif ions.nodeName in wxs.xsQualifiedNames('extension'):
+                        method = self.DM_extension
+                    else:
+                        raise SchemaValidationError('Expected restriction or extension as sole child of %s in %s' % (content_node.name(), self.name()))
+                    base_attr = NodeAttribute(ions, wxs, 'base')
+                    if base_attr is None:
+                        raise SchemaValidationError('Element %s missing base attribute' % (ions.nodeName,))
+                    base_type = wxs.lookupType(base_attr)
+                    if not base_type.isResolved():
+                        # Have to delay resolution until the type this
+                        # depends on is available.
+                        #print 'Holding off resolution of %s due to dependence on unresolved %s' % (self.name(), base_type.name())
+                        wxs._queueForResolution(self)
+                        return self
+                    # The content is defined by the restriction/extension element
+                    definition_node_list = ions.childNodes
+            # deriviationMethod is assigned after resolution completes
+            self.__baseTypeDefinition = base_type
+            self.__pendingDerivationMethod = method
+            self.__definitionNodeList = definition_node_list
+            self.__contentNode = content_node
 
+        if self.__baseTypeDefinition is None:
+            wxs._queueForResolution(self)
+            return self
+
+        # Only build the content once.  This all completes now that we
+        # have a base type.
         if self.__contentType is None:
             if is_complex_content:
-                self.__setComplexContent(wxs, node, content_node, definition_node_list, method, base_type)
+                self.__setComplexContent(wxs, node, self.__contentNode, self.__definitionNodeList, self.__pendingDerivationMethod)
                 self.__contentStyle = 'complex'
             else:
                 # The definition node list is not relevant to simple content
-                self.__setSimpleContent(wxs, method, base_type)
+                self.__setSimpleContent(wxs, self.__pendingDerivationMethod)
                 self.__contentStyle = 'simple'
+
+        # If something went wrong building the content, we'll have to
+        # try again later
         if self.__contentType is None:
+            wxs._queueForResolution(self)
             return self
+
+        # Last chance for failure is if we haven't been able to
+        # extract all the element declarations that might appear in
+        # this complex type.
         if isinstance(self.__contentType, tuple) and isinstance(self.__contentType[1], Particle):
             prt = self.__contentType[1]
             if prt.hasUnresolvableParticle(wxs):
                 print 'CTD %s content cannot be fully resolved' % (self.ncName(),)
+                wxs._queueForResolution(self)
                 return self
-        return self.__completeProcessing(wxs, definition_node_list, method, self.__contentStyle)
+
+        return self.__completeProcessing(wxs, self.__definitionNodeList, self.__pendingDerivationMethod, self.__contentStyle)
 
     def __str__ (self):
         return 'CTD[%s]' % (self.name(),)
