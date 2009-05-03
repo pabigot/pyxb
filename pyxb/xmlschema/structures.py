@@ -178,7 +178,6 @@ class _SchemaComponent_mixin (object):
         that._resetClone_vc()
         if isinstance(that, _Resolvable_mixin):
             assert wxs is not None
-            print 'Queuing cloned %s for resolution' % (type(that),)
             wxs._queueForResolution(that)
         return that
 
@@ -371,9 +370,9 @@ class _NamedComponent_mixin (object):
             elif issubclass(icls, ModelGroupDefinition):
                 rv = ns.lookupModelGroupDefinition(ncname)
             elif issubclass(icls, AttributeDeclaration):
-                rv = ns.lookupAttributeDeclaration(ncname)
+                rv = ns.lookupAttributeDeclaration(ncname, _ScopedDeclaration_mixin.SCOPE_global)
             elif issubclass(icls, ElementDeclaration):
-                rv = ns.lookupElementDeclaration(ncname)
+                rv = ns.lookupElementDeclaration(ncname, _ScopedDeclaration_mixin.SCOPE_global)
             else:
                 raise IncompleteImplementationError('Reference lookup not implemented for type %s searching %s in %s' % (icls, ncname, uri))
             if rv is None:
@@ -3825,7 +3824,7 @@ class Schema (_SchemaComponent_mixin):
             self.__unresolvedDefinitions = []
             for resolvable in unresolved:
                 if isinstance(resolvable, _ScopedDeclaration_mixin) and (resolvable.scope() is None):
-                    print 'NOT RESOLVING unscoped declaration %s' % (resolvable.name(),)
+                    #print 'NOT RESOLVING unscoped declaration %s' % (resolvable.name(),)
                     continue
                 resolvable._resolve(self)
                 assert (resolvable in self.__components) \
