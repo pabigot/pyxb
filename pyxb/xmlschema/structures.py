@@ -1640,7 +1640,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
         self.__derivationMethod = method
         return self
 
-    def __setSimpleContent (self, wxs, method):
+    def __simpleContent (self, wxs, method):
         # Do content type
         if isinstance(self.__baseTypeDefinition, ComplexTypeDefinition):
             # Clauses 1, 2, and 3 might apply
@@ -1659,9 +1659,10 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
                 raise IncompleteImplementationError("contentType clause 3 of simple content in CTD")
         else:
             # Clause 4
-            self.__contentType = ( self.CT_SIMPLE, self.__baseTypeDefinition )
+            return ( self.CT_SIMPLE, self.__baseTypeDefinition )
+        assert False
 
-    def __setComplexContent (self, wxs, type_node, content_node, definition_node_list, method):
+    def __complexContent (self, wxs, type_node, content_node, definition_node_list, method):
         # Do content type.  Cache the keywords that need to be used
         # for newly created schema components.
         ckw = { 'schema' : wxs
@@ -1759,7 +1760,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
                 content_type = ( ct, Particle(m, **ckw) )        # ASSIGN EXTENSION PARENT AND LOCAL
 
         assert (self.CT_EMPTY == content_type) or ((type(content_type) == tuple) and (content_type[1] is not None))
-        self.__contentType = content_type
+        return content_type
 
     def isResolved (self):
         """Indicate whether this complex type is fully defined.
@@ -1873,12 +1874,14 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
         # have a base type.
         if self.__contentType is None:
             if is_complex_content:
-                self.__setComplexContent(wxs, node, self.__contentNode, self.__definitionNodeList, self.__pendingDerivationMethod)
+                content_type = self.__complexContent(wxs, node, self.__contentNode, self.__definitionNodeList, self.__pendingDerivationMethod)
                 self.__contentStyle = 'complex'
             else:
                 # The definition node list is not relevant to simple content
-                self.__setSimpleContent(wxs, self.__pendingDerivationMethod)
+                content_type = self.__simpleContent(wxs, self.__pendingDerivationMethod)
                 self.__contentStyle = 'simple'
+            assert content_type is not None
+            self.__contentType = content_type
 
         # If something went wrong building the content, we'll have to
         # try again later
