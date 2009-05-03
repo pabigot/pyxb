@@ -71,10 +71,11 @@ class _SchemaComponent_mixin (object):
         to a group and being incorporated into a complex type
         definition."""
         assert self.__cloneSource is not None
+        assert isinstance(self, _ScopedDeclaration_mixin)
         assert isinstance(ctd, ComplexTypeDefinition)
         assert self.__scope is None
         self.__scope = ctd
-        return self
+        return self._recordInScope()
 
     def __init__ (self, *args, **kw):
         self.__ownedComponents = set()
@@ -369,7 +370,6 @@ class _NamedComponent_mixin (object):
 
     def __init__ (self, *args, **kw):
         assert 0 == len(args)
-        super(_NamedComponent_mixin, self).__init__(*args, **kw)
         name = kw.get('name', None)
         target_namespace = kw.get('target_namespace', None)
         assert (name is None) or (0 > name.find(':'))
@@ -377,6 +377,8 @@ class _NamedComponent_mixin (object):
         if target_namespace is not None:
             self.__targetNamespace = target_namespace
         self.__schema = None
+        # Do parent invocations after we've set the name: they might need it.
+        super(_NamedComponent_mixin, self).__init__(*args, **kw)
             
     def targetNamespace (self):
         """Return the namespace in which the component is located."""
@@ -572,6 +574,8 @@ class _ScopedDeclaration_mixin (object):
     definition has global scope; otherwise, it should not have been
     possible to extend or restrict it.  (Should this be untrue, there
     are comments in the code about a possible solution.)
+
+    @warning This mix-in must follow _NamedComponent_mixin in the mro.
     """
 
     SCOPE_global = 'global'     #<<< Marker to indicate global scope
@@ -600,6 +604,18 @@ class _ScopedDeclaration_mixin (object):
     def __init__ (self, *args, **kw):
         super(_ScopedDeclaration_mixin, self).__init__(*args, **kw)
         assert 'scope' in kw
+        # Note: This requires that the _NamedComponent_mixin have
+        # already done its thing.
+        self._recordInScope()
+
+    def _recordInScope (self):
+        # Absent scope doesn't get recorded anywhere.  Global scope is
+        # recorded in the namespace by somebody else.  Local scopes
+        # are recorded here.
+        if isinstance(self.scope(), ComplexTypeDefinition):
+            self.scope()._recordLocalDeclaration(self)
+        return self
+
 
 class _PluralityData (types.ListType):
     """This class represents an abstraction of the set of documents
@@ -1301,6 +1317,20 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
             return None
         return self.__scopedElementDeclarations.get(ncname, None)
 
+    def _recordLocalDeclaration (self, decl):
+        """Record the given declaration as being locally scoped in
+        this type."""
+        assert decl.scope() == self
+        if isinstance(decl, ElementDeclaration):
+            scope_map = self.__scopedElementDeclarations
+        elif isinstance(decl, AttributeDeclaration):
+            scope_map = self.__scopedAttributeDeclarations
+        else:
+            raise LogicError('Unexpected instance of %s recording as local declaration' % (type(decl),))
+        assert decl.ncName() is not None
+        scope_map[decl.ncName()] = decl
+        return self
+
     CT_EMPTY = 0                #<<< No content
     CT_SIMPLE = 1               #<<< Simple (character) content
     CT_MIXED = 2                #<<< Children may be elements or other (e.g., character) content
@@ -1340,6 +1370,8 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
     def __init__ (self, *args, **kw):
         super(ComplexTypeDefinition, self).__init__(*args, **kw)
         self.__derivationMethod = kw.get('derivation_method', None)
+        self.__scopedElementDeclarations = { }
+        self.__scopedAttributeDeclarations = { }
 
     def hasWildcardElement (self):
         """Return True iff this type includes a wildcard element in
