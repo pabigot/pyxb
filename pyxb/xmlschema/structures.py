@@ -373,6 +373,8 @@ class _NamedComponent_mixin (object):
                 rv = ns.lookupAttributeDeclaration(ncname, _ScopedDeclaration_mixin.SCOPE_global)
             elif issubclass(icls, ElementDeclaration):
                 rv = ns.lookupElementDeclaration(ncname, _ScopedDeclaration_mixin.SCOPE_global)
+            elif issubclass(icls, IdentityConstraintDefinition):
+                rv = ns.lookupIdentityConstraintDefinition(ncname)
             else:
                 raise IncompleteImplementationError('Reference lookup not implemented for type %s searching %s in %s' % (icls, ncname, uri))
             if rv is None:
@@ -2782,6 +2784,7 @@ class IdentityConstraintDefinition (_SchemaComponent_mixin, _NamedComponent_mixi
             if an is not None:
                 rv.__annotations.append(Annotation.CreateFromDOM(wxs, an, owner=rv))
 
+        wxs._addNamedComponent(rv)
         return rv
     
 # 3.12.1
@@ -3642,6 +3645,7 @@ class Schema (_SchemaComponent_mixin):
     NT_attribute = 0x04         #<<< Name represents an attribute declaration
     NT_element = 0x05           #<<< Name represents an element declaration
     NT_notation = 0x06          #<<< Name represents a notation declaration
+    NT_identityConstraint = 0x07 # <<< Name represents an identity constraint definition
 
     # A set containing all components, named or unnamed, that belong
     # to this schema.
@@ -3659,6 +3663,8 @@ class Schema (_SchemaComponent_mixin):
     __elementDeclarations = None
     # Map from name to NotationDeclaration
     __notationDeclarations = None
+    # Map from name to IdentityConstraintDefinition
+    __identityConstraintDefinitions = None
     # List of annotations
     __annotations = None
 
@@ -3741,6 +3747,8 @@ class Schema (_SchemaComponent_mixin):
             return self.__elementDeclarations
         if self.NT_notation == nt:
             return self.__notationDeclarations
+        if self.NT_identityConstraint == nt:
+            return self.__identityConstraintDefinition
         raise LogicError('Invalid named type 0x02x' % (nt,))
 
     # Default values for standard recognized schema attributes
@@ -3789,6 +3797,7 @@ class Schema (_SchemaComponent_mixin):
         self.__attributeDeclarations = { }
         self.__elementDeclarations = { }
         self.__notationDeclarations = { }
+        self.__identityConstraintDefinitions = { }
 
         self.__unresolvedDefinitions = []
 
@@ -3876,6 +3885,8 @@ class Schema (_SchemaComponent_mixin):
             return self.__addElementDeclaration(nc)
         if isinstance(nc, NotationDeclaration):
             return self.__addNotationDeclaration(nc)
+        if isinstance(nc, IdentityConstraintDefinition):
+            return self.__addIdentityConstraintDefinition(nc)
         raise IncompleteImplementationError('No support to record named component of type %s' % (nc.__class__,))
 
     def __addTypeDefinition (self, td):
@@ -3988,6 +3999,22 @@ class Schema (_SchemaComponent_mixin):
 
     def _notationDeclarations (self):
         return self.__notationDeclarations.values()
+
+    def __addIdentityConstraintDefinition (self, nd):
+        assert isinstance(nd, IdentityConstraintDefinition)
+        local_name = nd.ncName()
+        #print 'Defining notation %s' % (local_name,)
+        old_nd = self.__identityConstraintDefinitions.get(local_name, None)
+        if (old_nd is not None) and (old_nd != nd):
+            raise SchemaValidationError('Name %s used for multiple notations' % (local_name,))
+        self.__identityConstraintDefinitions[local_name] = nd
+        return nd
+
+    def _lookupIdentityConstraintDefinition (self, local_name):
+        return self.__identityConstraintDefinitions.get(local_name, None)
+
+    def _identityConstraintDefinitions (self):
+        return self.__identityConstraintDefinitions.values()
 
     def _lookupNamedComponent (self, ncname, component_type):
         return self.__mapForNamedType(component_type).get(ncname, None)

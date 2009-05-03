@@ -357,6 +357,14 @@ class Namespace (object):
         element."""
         return self._validatedSchema()._lookupElementDeclaration(local_name, context)
 
+    def lookupIdentityConstraintDefinition (self, local_name, context=None):
+        """Look up an identity constraint definition in the namespace.
+
+        This delegates to the associated schema.  It returns an
+        IdentityConstraintDefinition, or None if the name does not
+        denote an element."""
+        return self._validatedSchema()._lookupIdentityConstraintDefinition(local_name)
+
     def __str__ (self):
         assert self.__uri is not None
         if self.__boundPrefix is not None:
