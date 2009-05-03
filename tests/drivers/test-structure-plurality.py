@@ -15,42 +15,58 @@ class _TestBase (unittest.TestCase):
     __schema = None
     def schema (self): return self.__schema
 
-    def _ctorKW (self):
-        return self.__ctorKW
-    __ctorKW = None
+    def _edKW (self):
+        return self.__edKW
+    __edKW = None
+
+    def _prtKW (self):
+        return self.__prtKW
+    __prtKW = None
+
+    def _mgKW (self):
+        return self.__mgKW
+    __mgKW = None
 
     def setUp (self):
         self.__schema = xs.schema()
-        self.__ctorKW = { 'schema' : self.__schema
-                        , 'context' : xs.structures._ScopedDeclaration_mixin.SCOPE_global }
+        self.__edKW = { 'schema' : self.__schema
+                      , 'scope' : xs.structures._ScopedDeclaration_mixin.SCOPE_global
+                      , 'context' : xs.structures._ScopedDeclaration_mixin.SCOPE_global }
+        self.__prtKW = { 'schema' : self.__schema
+                       , 'scope' : None
+                       , 'context' : xs.structures._ScopedDeclaration_mixin.SCOPE_global }
+        self.__mgKW = { 'schema' : self.__schema
+                      , 'scope' : None
+                      , 'context' : xs.structures._ScopedDeclaration_mixin.SCOPE_global }
+
         for ( name, type ) in [ ( 'selt', 'string' ), ( 'ielt', 'int' ), ( 'belt', 'boolean' ) ]:
-            ed = xs.structures.ElementDeclaration(name=name, **self._ctorKW())
+            ed = xs.structures.ElementDeclaration(name=name, **self._edKW())
             ed._typeDefinition(Namespace.XMLSchema.lookupTypeDefinition(type))
             self.__schema._addNamedComponent(ed)
             setattr(self, name, ed)
 
     def _getSingleElements (self):
-        return [ xs.structures.Particle(self.selt, **self._ctorKW()),
-                 xs.structures.Particle(self.ielt, **self._ctorKW())]
+        return [ xs.structures.Particle(self.selt, **self._prtKW()),
+                 xs.structures.Particle(self.ielt, **self._prtKW())]
 
     def _getMultiElements (self):
-        return [ xs.structures.Particle(self.selt, max_occurs=4, **self._ctorKW()),
-                 xs.structures.Particle(self.ielt, max_occurs=None, **self._ctorKW()),
-                 xs.structures.Particle(self.belt, **self._ctorKW())]
+        return [ xs.structures.Particle(self.selt, max_occurs=4, **self._prtKW()),
+                 xs.structures.Particle(self.ielt, max_occurs=None, **self._prtKW()),
+                 xs.structures.Particle(self.belt, **self._prtKW())]
 
     def _getRepeatedElements (self):
-        return [xs.structures.Particle(self.selt, **self._ctorKW()),
-                xs.structures.Particle(self.selt, **self._ctorKW()),
-                xs.structures.Particle(self.belt, **self._ctorKW())]
+        return [xs.structures.Particle(self.selt, **self._prtKW()),
+                xs.structures.Particle(self.selt, **self._prtKW()),
+                xs.structures.Particle(self.belt, **self._prtKW())]
 
     def _getMGRepeated (self, compositor):
-        return ModelGroup(compositor=compositor, particles=self._getRepeatedElements(), **self._ctorKW())
+        return ModelGroup(compositor=compositor, particles=self._getRepeatedElements(), **self._mgKW())
 
     def _getMGSingle (self, compositor):
-        return ModelGroup(compositor=compositor, particles=self._getSingleElements(), **self._ctorKW())
+        return ModelGroup(compositor=compositor, particles=self._getSingleElements(), **self._mgKW())
 
     def _getMGMulti (self, compositor):
-        return ModelGroup(compositor=compositor, particles=self._getMultiElements(), **self._ctorKW())
+        return ModelGroup(compositor=compositor, particles=self._getMultiElements(), **self._mgKW())
 
 class TestPluralityData (unittest.TestCase):
 
@@ -191,13 +207,13 @@ class TestMG (_TestBase):
 class TestParticle (_TestBase):
     def testZeroElement (self):
         ed = self.selt
-        prt = xs.structures.Particle(ed, min_occurs=0, max_occurs=0, **self._ctorKW())
+        prt = xs.structures.Particle(ed, min_occurs=0, max_occurs=0, **self._prtKW())
         pd = prt.pluralityData()
         self.assertEqual(0, len(pd))
 
     def testSingleElement (self):
         ed = self.selt
-        prt = xs.structures.Particle(ed, min_occurs=1, max_occurs=1, **self._ctorKW())
+        prt = xs.structures.Particle(ed, min_occurs=1, max_occurs=1, **self._prtKW())
         pd = prt.pluralityData()
         self.assertEqual(1, len(pd))
         pdm = pd[0]
@@ -206,7 +222,7 @@ class TestParticle (_TestBase):
 
     def testOptionalElement (self):
         ed = self.selt
-        prt = xs.structures.Particle(ed, min_occurs=0, max_occurs=1, **self._ctorKW())
+        prt = xs.structures.Particle(ed, min_occurs=0, max_occurs=1, **self._prtKW())
         pd = prt.pluralityData()
         self.assertEqual(1, len(pd))
         pdm = pd[0]
@@ -215,7 +231,7 @@ class TestParticle (_TestBase):
 
     def testMultipleElement (self):
         ed = self.selt
-        prt = xs.structures.Particle(ed, min_occurs=3, max_occurs=3, **self._ctorKW())
+        prt = xs.structures.Particle(ed, min_occurs=3, max_occurs=3, **self._prtKW())
         pd = prt.pluralityData()
         self.assertEqual(1, len(pd))
         pdm = pd[0]
@@ -224,7 +240,7 @@ class TestParticle (_TestBase):
 
     def testUnboundedElement (self):
         ed = self.selt
-        prt = xs.structures.Particle(ed, min_occurs=3, max_occurs=None, **self._ctorKW())
+        prt = xs.structures.Particle(ed, min_occurs=3, max_occurs=None, **self._prtKW())
         pd = prt.pluralityData()
         self.assertEqual(1, len(pd))
         pdm = pd[0]
@@ -232,12 +248,12 @@ class TestParticle (_TestBase):
         self.assertTrue(pdm[ed])
 
     def testZeroMGSeq (self):
-        prt = xs.structures.Particle(self._getMGMulti(ModelGroup.C_SEQUENCE), min_occurs=0, max_occurs=0, **self._ctorKW())
+        prt = xs.structures.Particle(self._getMGMulti(ModelGroup.C_SEQUENCE), min_occurs=0, max_occurs=0, **self._prtKW())
         pd = prt.pluralityData()
         self.assertEqual(0, len(pd))
         
     def testOptionalMGSeq (self):
-        prt = xs.structures.Particle(self._getMGMulti(ModelGroup.C_SEQUENCE), min_occurs=0, max_occurs=1, **self._ctorKW())
+        prt = xs.structures.Particle(self._getMGMulti(ModelGroup.C_SEQUENCE), min_occurs=0, max_occurs=1, **self._prtKW())
         pd = prt.pluralityData()
         self.assertEqual(1, len(pd))
         pdm = pd[0]
@@ -247,7 +263,7 @@ class TestParticle (_TestBase):
         self.assertFalse(pdm[self.belt])
         
     def testMultipleMGSeq (self):
-        prt = xs.structures.Particle(self._getMGMulti(ModelGroup.C_SEQUENCE), min_occurs=3, max_occurs=3, **self._ctorKW())
+        prt = xs.structures.Particle(self._getMGMulti(ModelGroup.C_SEQUENCE), min_occurs=3, max_occurs=3, **self._prtKW())
         pd = prt.pluralityData()
         self.assertEqual(1, len(pd))
         pdm = pd[0]
@@ -258,7 +274,7 @@ class TestParticle (_TestBase):
         
     def testUnboundedMGSeq (self):
         ed = self.selt
-        prt = xs.structures.Particle(self._getMGMulti(ModelGroup.C_SEQUENCE), min_occurs=3, max_occurs=None, **self._ctorKW())
+        prt = xs.structures.Particle(self._getMGMulti(ModelGroup.C_SEQUENCE), min_occurs=3, max_occurs=None, **self._prtKW())
         pd = prt.pluralityData()
         self.assertEqual(1, len(pd))
         pdm = pd[0]
@@ -268,7 +284,7 @@ class TestParticle (_TestBase):
         self.assertTrue(pdm[self.belt])
 
     def testOptionalMGChoice (self):
-        prt = xs.structures.Particle(self._getMGMulti(ModelGroup.C_CHOICE), min_occurs=0, max_occurs=1, **self._ctorKW())
+        prt = xs.structures.Particle(self._getMGMulti(ModelGroup.C_CHOICE), min_occurs=0, max_occurs=1, **self._prtKW())
         pd = prt.pluralityData()
         self.assertEqual(3, len(pd))
         pdm = pd[0]
@@ -282,7 +298,7 @@ class TestParticle (_TestBase):
         self.assertFalse(pdm[self.belt])
         
     def testMultiMGChoice (self):
-        prt = xs.structures.Particle(self._getMGMulti(ModelGroup.C_CHOICE), min_occurs=3, max_occurs=3, **self._ctorKW())
+        prt = xs.structures.Particle(self._getMGMulti(ModelGroup.C_CHOICE), min_occurs=3, max_occurs=3, **self._prtKW())
         pd = prt.pluralityData()
         self.assertEqual(1, len(pd))
         pdm = pd[0]
@@ -292,7 +308,7 @@ class TestParticle (_TestBase):
         self.assertTrue(pdm[self.belt])
 
     def testSingleSequenceRepeated (self):
-        prt = xs.structures.Particle(self._getMGRepeated(ModelGroup.C_SEQUENCE), **self._ctorKW())
+        prt = xs.structures.Particle(self._getMGRepeated(ModelGroup.C_SEQUENCE), **self._prtKW())
         pd = prt.pluralityData()
         self.assertEqual(1, len(pd))
         pdm = pd[0]
@@ -301,7 +317,7 @@ class TestParticle (_TestBase):
         self.assertFalse(pdm[self.belt])
         
     def testSingleChoiceRepeated (self):
-        prt = xs.structures.Particle(self._getMGRepeated(ModelGroup.C_CHOICE), **self._ctorKW())
+        prt = xs.structures.Particle(self._getMGRepeated(ModelGroup.C_CHOICE), **self._prtKW())
         pd = prt.pluralityData()
         self.assertEqual(3, len(pd))
         pdm = pd[0]
@@ -315,7 +331,7 @@ class TestParticle (_TestBase):
         self.assertFalse(pdm[self.belt])
         
     def testMultiSequenceRepeated (self):
-        prt = xs.structures.Particle(self._getMGRepeated(ModelGroup.C_SEQUENCE), max_occurs=2, **self._ctorKW())
+        prt = xs.structures.Particle(self._getMGRepeated(ModelGroup.C_SEQUENCE), max_occurs=2, **self._prtKW())
         pd = prt.pluralityData()
         self.assertEqual(1, len(pd))
         pdm = pd[0]
@@ -324,7 +340,7 @@ class TestParticle (_TestBase):
         self.assertTrue(pdm[self.belt])
         
     def testMultiChoiceRepeated (self):
-        prt = xs.structures.Particle(self._getMGRepeated(ModelGroup.C_CHOICE), max_occurs=2, **self._ctorKW())
+        prt = xs.structures.Particle(self._getMGRepeated(ModelGroup.C_CHOICE), max_occurs=2, **self._prtKW())
         pd = prt.pluralityData()
         self.assertEqual(1, len(pd))
         pdm = pd[0]

@@ -331,7 +331,7 @@ class Namespace (object):
         model group."""
         return self._validatedSchema()._lookupModelGroupDefinition(local_name)
 
-    def lookupAttributeDeclaration (self, local_name):
+    def lookupAttributeDeclaration (self, local_name, context=None):
         """Look up a named attribute in the namespace.
 
         This delegates to the associated schema.  It returns an

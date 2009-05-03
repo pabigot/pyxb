@@ -227,13 +227,13 @@ class schema (xsc.Schema):
             raise NotInNamespaceError('lookupGroup: No match for "%s" in %s' % (qualified_name, ns))
         return rv
 
-    def lookupAttribute (self, qualified_name):
+    def lookupAttribute (self, qualified_name, context=xsc._ScopedDeclaration_mixin.SCOPE_global):
         """Like lookupType, but for attributes."""
         (ns, local_name) = self.__getNamespaceForLookup(qualified_name)
         if ns is None:
-            rv = self._lookupAttributeDeclaration(local_name)
+            rv = self._lookupAttributeDeclaration(local_name, context)
         else:
-            rv = ns.lookupAttributeDeclaration(local_name)
+            rv = ns.lookupAttributeDeclaration(local_name, context)
         if rv is None:
             raise NotInNamespaceError('lookupAttributeDeclaration: No match for "%s" in %s' % (qualified_name, ns))
         return rv
@@ -557,7 +557,7 @@ class schema (xsc.Schema):
 
     def _processAttributeDeclaration (self, node):
         # NB: This is an attribute of the schema itself.
-        an = xsc.AttributeDeclaration.CreateFromDOM(self, node)
+        an = xsc.AttributeDeclaration.CreateFromDOM(self, node, xsc._ScopedDeclaration_mixin.SCOPE_global)
         return self._addNamedComponent(an)
 
     def _processSimpleType (self, node):
@@ -591,7 +591,7 @@ class schema (xsc.Schema):
         # Node should be a namedGroup
         assert node.nodeName in self.xsQualifiedNames('group')
         assert node.parentNode.nodeName in self.xsQualifiedNames('schema')
-        rv = xsc.ModelGroupDefinition.CreateFromDOM(self, xsc._ScopedDeclaration_mixin.SCOPE_global, node)
+        rv = xsc.ModelGroupDefinition.CreateFromDOM(self, node)
         return self._addNamedComponent(rv)
 
     # @todo make process* private
@@ -599,7 +599,7 @@ class schema (xsc.Schema):
         # Node should be a named element
         assert node.nodeName in self.xsQualifiedNames('element')
         assert node.parentNode.nodeName in self.xsQualifiedNames('schema')
-        ed = xsc.ElementDeclaration.CreateFromDOM(self, xsc._ScopedDeclaration_mixin.SCOPE_global, node)
+        ed = xsc.ElementDeclaration.CreateFromDOM(self, node, xsc._ScopedDeclaration_mixin.SCOPE_global)
         return self._addNamedComponent(ed)
 
     def _processNotationDeclaration (self, node):
