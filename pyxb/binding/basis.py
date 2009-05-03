@@ -541,6 +541,9 @@ class element (utility._DeconflictSymbols_mixin, object):
         self.__realContent.toDOM(tag=None, document=document, parent=element)
         return element
 
+    def __str__ (self):
+        return str(self.content())
+
 class enumeration_mixin (object):
     """Marker in case we need to know that a PST has an enumeration constraint facet."""
     pass
