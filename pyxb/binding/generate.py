@@ -172,9 +172,11 @@ class ReferenceSchemaComponent (ReferenceLiteral):
             # Element declarations may be local, in which case we want
             # to incorporate the parentage in the name.
             if isinstance(self.__component, xs.structures._ScopedDeclaration_mixin):
-                assert self.__component.scope() is not None
-                if isinstance(self.__component.scope(), xs.structures.ComplexTypeDefinition):
-                    name = '%s_%s' % (pythonLiteral(self.__component.scope(), **kw), name)
+                scope = self.__component.scope()
+                assert scope is not None
+                if isinstance(scope, xs.structures.ComplexTypeDefinition):
+                    assert scope.targetNamespace() == self.__component.targetNamespace()
+                    name = '%s_%s' % (scope.ncName(), name)
 
             name = utility.PrepareIdentifier(name, UniqueInBinding, protected=protected)
             self.__component.setNameInBinding(name)
