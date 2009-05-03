@@ -161,24 +161,6 @@ class ReferenceSchemaComponent (ReferenceLiteral):
             # component can't be named the name of something else
             # relevant.
             name = self.__component.bestNCName()
-
-            # Element declarations may be local, in which case we want
-            # to incorporate the parentage in the name.
-            parent = self.__component
-            while isinstance(parent, xs.structures.ElementDeclaration):
-                ac = parent.ancestorComponent()
-                if ac is None:
-                    ac = parent.owner()
-                if ac is not None:
-                    while (ac is not None) and (ac.bestNCName() is None):
-                        ac = ac.owner()
-                    ancestor_name = None
-                    if ac is not None:
-                        ancestor_name = ac.bestNCName()
-                    if ancestor_name is None:
-                        ancestor_name = 'unknown'
-                    name = '%s_%s' % (ancestor_name, name)
-                parent = ac
             protected = False
             if name is None:
                 tag = self.__ComponentTagMap.get(type(self.__component), None)
@@ -186,6 +168,14 @@ class ReferenceSchemaComponent (ReferenceLiteral):
                     raise LogicError('Not prepared for reference to component type %s' % (self.__component.__class__.__name__,))
                 name = '_%s_ANON_%d' % (tag, self.__NextAnonymousIndex())
                 protected = True
+
+            # Element declarations may be local, in which case we want
+            # to incorporate the parentage in the name.
+            if isinstance(self.__component, xs.structures._ScopedDeclaration_mixin):
+                assert self.__component.scope() is not None
+                if isinstance(self.__component.scope(), xs.structures.ComplexTypeDefinition):
+                    name = '%s_%s' % (pythonLiteral(self.__component.scope(), **kw), name)
+
             name = utility.PrepareIdentifier(name, UniqueInBinding, protected=protected)
             self.__component.setNameInBinding(name)
         if not is_in_binding:
