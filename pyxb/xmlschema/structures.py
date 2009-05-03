@@ -1593,7 +1593,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
         self.__derivationMethod = method
         return self
 
-    def __completeSimpleResolution (self, wxs, definition_node_list, method, base_type):
+    def __setSimpleContent (self, wxs, method, base_type):
         # deriviationMethod is assigned after resolution completes
         self.__baseTypeDefinition = base_type
 
@@ -1616,10 +1616,8 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
         else:
             # Clause 4
             self.__contentType = ( self.CT_SIMPLE, self.__baseTypeDefinition )
-                
-        return self.__completeProcessing(wxs, definition_node_list, method, 'simple')
 
-    def __completeComplexResolution (self, wxs, type_node, content_node, definition_node_list, method, base_type):
+    def __setComplexContent (self, wxs, type_node, content_node, definition_node_list, method, base_type):
         # deriviationMethod is assigned after resolution completes
         self.__baseTypeDefinition = base_type
 
@@ -1721,12 +1719,6 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
 
         assert (self.CT_EMPTY == content_type) or ((type(content_type) == tuple) and (content_type[1] is not None))
         self.__contentType = content_type
-        if isinstance(content_type, tuple) and isinstance(content_type[1], Particle):
-            prt = content_type[1]
-            prt._resolve(wxs)
-            print 'CTD %s content resolved %s cannot be fully resolved: %s' % (self.ncName(), prt.isResolved(), prt.hasUnresolvableParticle(wxs))
-
-        return self.__completeProcessing(wxs, definition_node_list, method, 'complex')
 
     def isResolved (self):
         """Indicate whether this complex type is fully defined.
@@ -1822,11 +1814,23 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
                     return self
                 # The content is defined by the restriction/extension element
                 definition_node_list = ions.childNodes
-        if is_complex_content:
-            self.__completeComplexResolution(wxs, node, content_node, definition_node_list, method, base_type)
-        else:
-            self.__completeSimpleResolution(wxs, definition_node_list, method, base_type)
-        return self
+
+        if self.__contentType is None:
+            if is_complex_content:
+                self.__setComplexContent(wxs, node, content_node, definition_node_list, method, base_type)
+                self.__contentStyle = 'complex'
+            else:
+                # The definition node list is not relevant to simple content
+                self.__setSimpleContent(wxs, method, base_type)
+                self.__contentStyle = 'simple'
+        if self.__contentType is None:
+            return self
+        if isinstance(self.__contentType, tuple) and isinstance(self.__contentType[1], Particle):
+            prt = self.__contentType[1]
+            if prt.hasUnresolvableParticle(wxs):
+                print 'CTD %s content cannot be fully resolved' % (self.ncName(),)
+                return self
+        return self.__completeProcessing(wxs, definition_node_list, method, self.__contentStyle)
 
     def __str__ (self):
         return 'CTD[%s]' % (self.name(),)
