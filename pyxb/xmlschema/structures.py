@@ -973,7 +973,8 @@ class AttributeUse (_SchemaComponent_mixin, _Resolvable_mixin, _ValueConstraint_
         # creating new instances that aren't resolved.
         if not self.isResolved():
             self._resolve(wxs)
-        # If it's still not resolved, hold off
+        # If it's still not resolved, hold off, and indicate that the
+        # caller should hold off too.
         if not self.isResolved():
             aur = NodeAttribute(self.__domNode, self.__wxs, 'ref')
             return None
@@ -1051,7 +1052,7 @@ class AttributeUse (_SchemaComponent_mixin, _Resolvable_mixin, _ValueConstraint_
         # Although the attribute declaration definition may not be
         # resolved, *this* component is resolved, since we don't look
         # into the attribute declaration for anything.
-        self.__attributeDeclaration = wxs.lookupAttribute(ref_attr)
+        self.__attributeDeclaration = wxs.lookupAttribute(ref_attr, self._context())
         assert self.__attributeDeclaration is not None
         self.__domNode = None
         return self
@@ -1484,42 +1485,6 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
             rv.add(self.contentType()[1])
         return frozenset(rv)
 
-    # Given a set of attribute uses within this type, record them.  If
-    # necessary, unbound attribute declarations are cloned and set to
-    # use this type as their scope.  A map is maintained from the
-    # NCName of the declaration to the attribute declaration.
-    def __setAttributeUses (self, uses):
-        self.__attributeUses = frozenset(uses)
-        self.__scopedAttributeDeclarations = { }
-        for au in self.__attributeUses:
-            ad = au.attributeDeclaration()
-            if ad.scope() == self:
-                print 'Adding scoped attribute declaration %s in %s' % (ad.ncName(), self.ncName())
-                self.__scopedAttributeDeclarations[ad.ncName()] = ad
-
-    def __mapLocalElements (self, wxs, method):
-        if self.CT_EMPTY == self.contentType():
-            return False
-        (tag, particle) = self.contentType()
-        if (self.CT_SIMPLE == self.contentType()) or not isinstance(particle, Particle):
-            return False
-        element_decls = particle.elementDeclarations(wxs)
-        assert particle.term() is not None
-        if self.DM_restriction == method:
-            print "Parent model: %s\nThis model: %s\n" % (self.baseTypeDefinition().contentType()[1].elementDeclarations(wxs), element_decls)
-
-        assert self.__scopedElementDeclarations is None
-        self.__scopedElementDeclarations = { }
-        for ed in element_decls:
-            assert ed.scope() is not None
-            assert ed.ncName() is not None
-            if ed.scope() == self:
-                print 'Storing %s as declaration %s in %s' % (ed.ncName(), object.__str__(ed), self.ncName())
-                self.__scopedElementDeclarations[ed.ncName()] = ed
-            else:
-                assert ed.scope() is not None
-        return True
-
     # CFD:CTD CFD:ComplexTypeDefinition
     @classmethod
     def CreateFromDOM (cls, wxs, node, owner=None):
@@ -1582,7 +1547,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
         # Past the last point where we might not resolve this
         # instance.  Store the attribute uses, also recording local
         # attribute declarations.
-        self.__setAttributeUses(uses_c1.union(uses_c2).union(uses_c3))
+        self.__attributeUses = frozenset(uses_c1.union(uses_c2).union(uses_c3))
 
         # @todo Handle attributeWildcard
         # Clause 1
@@ -1778,6 +1743,17 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
         # Only unresolved nodes have an unset derivationMethod
         return (self.__derivationMethod is not None)
 
+    # Resolution of a CTD can be delayed for the following reasons:
+    #
+    # * It extends or restricts a base type that has not been resolved
+    #   [_resolve]
+    #
+    # * It refers to an attribute or attribute group that has not been
+    #   resolved [__completeProcessing]
+    #
+    # * It includes an attribute that matches in NCName and namespace
+    #   an unresolved attribute from the base type
+    #   [__completeProcessing]
     def _resolve (self, wxs):
         if self.isResolved():
             return self
