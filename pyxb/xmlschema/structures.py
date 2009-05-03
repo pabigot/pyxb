@@ -152,6 +152,7 @@ class _SchemaComponent_mixin (object):
         self.__owner = None
         self.__ownedComponents = set()
         self.__dependentComponents = None
+        self.__clones = None
         assert self.__nameInBinding is None
         if self.__schema:
             self.__schema._associateComponent(self)
@@ -163,6 +164,12 @@ class _SchemaComponent_mixin (object):
         
         This is used for things like creating a locally-scoped
         declaration from a group declaration."""
+
+        # We only care about cloning declarations, and they should
+        # have an unassigned scope.  However, we do clone
+        # non-declarations that contain cloned declarations.
+        assert (not isinstance(self, _ScopedDeclaration_mixin)) or (self.scope() is None)
+
         that = copy.copy(self)
         that.__cloneSource = self
         if self.__clones is None:
