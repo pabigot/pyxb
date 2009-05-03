@@ -10,6 +10,8 @@ OFN=test-stored-$$.py
 cat >>${OFN} <<EOText
 import pyxb.Namespace
 print "\n".join(pyxb.Namespace.AvailableForLoad())
+ns = pyxb.Namespace.NamespaceForURI('URN:shared-types', True)
+ns.validateSchema()
 ns = pyxb.Namespace.NamespaceForURI('URN:test-external', True)
 ns.validateSchema()
 EOText

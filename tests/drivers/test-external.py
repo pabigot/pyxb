@@ -82,7 +82,7 @@ class TestExternal (unittest.TestCase):
         self.assertEqual(st.extendedName._ElementMap['title'], restExtName._ElementMap['title'])
         self.assertEqual(st.extendedName._ElementMap['forename'], restExtName._ElementMap['forename'])
         self.assertEqual(st.extendedName._ElementMap['surname'], restExtName._ElementMap['surname'])
-        self.assertNotEqual(st.extendedName._ElementMap['generation'], restExtName._ElementMap['generation'])
+        self.assertEqual(st.extendedName._ElementMap['generation'], restExtName._ElementMap['generation'])
 
         xml = '<personName><surname>Smith</surname></personName>'
         dom = minidom.parseString(xml)

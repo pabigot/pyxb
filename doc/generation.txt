@@ -81,7 +81,6 @@ Fields that hold sub-elements that might have multiple instances are
 represented as lists.
 
 
-
 Attributes of Complex Types
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
