@@ -323,15 +323,16 @@ class _NamedComponent_mixin (object):
             return rv
         ( uri, ncname, scope, icls ) = args
         ns = Namespace.NamespaceForURI(uri)
-        # Explicitly validate here: the lookup operations won't do so,
-        # but will abort if the namespace hasn't been validated yet.
-        ns.validateSchema()
 
         if ns is None:
             # This shouldn't happen: it implies somebody's unpickling
             # a schema that includes references to components in a
             # namespace that was not associated with the schema.
+            print 'URI %s ncname %s scope %s icls %s' % args
             raise IncompleteImplementationError('Unable to resolve namespace %s in external reference' % (uri,))
+        # Explicitly validate here: the lookup operations won't do so,
+        # but will abort if the namespace hasn't been validated yet.
+        ns.validateSchema()
         if isinstance(scope, tuple):
             print 'Need to lookup %s in %s' % (ncname, scope)
             ( scope_uri, scope_ncname ) = scope
@@ -451,8 +452,10 @@ class _NamedComponent_mixin (object):
             scope = None
             if isinstance(self, _ScopedDeclaration_mixin):
                 # If scope is global, we can look it up in the namespace.
-                # If scope is None, this must be within a group; why are we serializing it?
-                # If scope is local, provide the namespace and name of the type that holds it
+                # If scope is None, this must be within a group in
+                # another namespace.  Why are we serializing it?
+                # If scope is local, provide the namespace and name of
+                # the type that holds it
                 if self.SCOPE_global != self.scope():
                     if self.scope() is None:
                         raise LogicError('UNBOUND SCOPE %s: %s' % (object.__str__(self), self,))
@@ -866,12 +869,11 @@ class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
             assert NodeAttribute(node, wxs, 'ref') is None
 
         # Implement per section 3.2.2
-        scope = None
         if node.parentNode.nodeName in wxs.xsQualifiedNames('schema'):
-            scope = cls.SCOPE_global
+            assert cls.SCOPE_global == scope
         elif NodeAttribute(node, wxs, 'ref') is None:
             # This is an anonymous declaration within an attribute use
-            pass
+            assert (scope is None) or isinstance(scope, ComplexTypeDefinition)
         else:
             raise SchemaValidationError('Internal attribute declaration by reference')
 
@@ -991,8 +993,9 @@ class AttributeUse (_SchemaComponent_mixin, _Resolvable_mixin, _ValueConstraint_
 
         assert isinstance(wxs, Schema)
         assert _ScopedDeclaration_mixin.IsValidScope(context)
+        assert (scope is None) or isinstance(scope, ComplexTypeDefinition)
         assert node.nodeName in wxs.xsQualifiedNames('attribute')
-        rv = cls(schema=wxs, owner=owner)
+        rv = cls(schema=wxs, context=context, scope=scope, owner=owner)
         rv.__use = cls.USE_optional
         use = NodeAttribute(node, wxs, 'use')
         if use is not None:
@@ -1049,7 +1052,9 @@ class AttributeUse (_SchemaComponent_mixin, _Resolvable_mixin, _ValueConstraint_
         rv = self
         if ad.scope() is None:
             rv = self._clone()
+            rv._setOwner(ctd)
             rv.__attributeDeclaration = ad._clone()
+            rv.__attributeDeclaration._setOwner(ctd)
             rv.__attributeDeclaration._setScope(ctd)
         return rv
 
@@ -1452,7 +1457,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
     # use this type as their scope.  A map is maintained from the
     # NCName of the declaration to the attribute declaration.
     def __setAttributeUses (self, uses):
-        self.__attributeUses = frozenset([ _u._adaptForScope(self) for _u in uses ])
+        self.__attributeUses = frozenset(uses)
         self.__scopedAttributeDeclarations = { }
         for au in self.__attributeUses:
             ad = au.attributeDeclaration()
@@ -1516,9 +1521,10 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
         uses_c2 = set()
         uses_c3 = set()
         for cn in attributes:
-            uses_c1.add(AttributeUse.CreateFromDOM(wxs, self, cn, self))
+            au = AttributeUse.CreateFromDOM(wxs, self, cn, self)
+            uses_c1.add(au)
         for agd in attribute_groups:
-            uses_c2.update(agd.attributeUses())
+            uses_c2.update([ _u._adaptForScope(self) for _u in agd.attributeUses() ])
 
         # Handle clause 3.  Note the slight difference in description
         # between simple and complex content is just that the complex
