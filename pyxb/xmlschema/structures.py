@@ -1158,7 +1158,7 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Resolv
         """Element declarations are not multivalued in themselves."""
         return False
 
-    # CFD:ElementDeclaration
+    # CFD:ED CFD:ElementDeclaration
     @classmethod
     def CreateFromDOM (cls, wxs, node, scope, owner=None):
         """Create an element declaration from the given DOM node.
@@ -1721,6 +1721,11 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
 
         assert (self.CT_EMPTY == content_type) or ((type(content_type) == tuple) and (content_type[1] is not None))
         self.__contentType = content_type
+        if isinstance(content_type, tuple) and isinstance(content_type[1], Particle):
+            prt = content_type[1]
+            prt._resolve(wxs)
+            print 'CTD %s content resolved %s cannot be fully resolved: %s' % (self.ncName(), prt.isResolved(), prt.hasUnresolvableParticle(wxs))
+
         return self.__completeProcessing(wxs, definition_node_list, method, 'complex')
 
     def isResolved (self):
@@ -1754,6 +1759,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
     # * It includes an attribute that matches in NCName and namespace
     #   an unresolved attribute from the base type
     #   [__completeProcessing]
+    #
     def _resolve (self, wxs):
         if self.isResolved():
             return self
@@ -1998,10 +2004,18 @@ class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
         """Return a string representing the compositor value."""
         return self.CompositorToString(self.__compositor)
 
-    # A list of _Particle instances.  Set at construction time from
+    # A list of Particle instances.  Set at construction time from
     # the keyword parameter "particles".
     __particles = None
     def particles (self): return self.__particles
+
+    def hasUnresolvableParticle (self, wxs):
+        """A model group has an unresolvable particle if any of its
+        particles is unresolvable.  Duh."""
+        for p in self.particles():
+            if p.hasUnresolvableParticle(wxs):
+                return True
+        return False
 
     # The ModelGroupDefinition that names this ModelGroup, or None if
     # the ModelGroup is anonymous.  This is set at construction time
@@ -2327,6 +2341,18 @@ class Particle (_SchemaComponent_mixin, _Resolvable_mixin):
         wxs._queueForResolution(rv)
 
         return rv
+
+    def hasUnresolvableParticle (self, wxs):
+        """A particle has an unresolvable particle if it cannot be
+        resolved, or if it has resolved to a term which is a model
+        group that has an unresolvable particle."""
+        if not self.isResolved():
+            self._resolve(wxs)
+        if not self.isResolved():
+            return True
+        if isinstance(self.term(), ModelGroup):
+            return self.term().hasUnresolvableParticle(wxs)
+        return False
 
     def isResolved (self):
         return self.__term is not None
