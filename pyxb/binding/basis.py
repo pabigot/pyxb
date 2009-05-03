@@ -128,7 +128,11 @@ class simpleTypeDefinition (utility._DeconflictSymbols_mixin, object):
         instances of union types.
 
         This method may be overridden in subclasses (like STD_union)."""
-        return cls(*args, **kw)
+        try:
+            return cls(*args, **kw)
+        except TypeError, e:
+            print 'ERROR in %s: %s' % (cls, e)
+            raise
 
     @classmethod
     def CreateFromDOM (cls, node):
@@ -521,8 +525,11 @@ class element (utility._DeconflictSymbols_mixin, object):
             node_name = node_name.split(':')[1]
         if cls._XsdName != node_name:
             raise UnrecognizedContentError('Attempting to create element %s from DOM node named %s' % (cls._XsdName, node_name))
-        rv = cls(validate_constraints=False)
-        rv.__setContent(cls._TypeDefinition.CreateFromDOM(node))
+        if issubclass(cls._TypeDefinition, simpleTypeDefinition):
+            rv = cls(cls._TypeDefinition.CreateFromDOM(node))
+        else:
+            rv = cls(validate_constraints=False)
+            rv.__setContent(cls._TypeDefinition.CreateFromDOM(node))
         if isinstance(rv, simpleTypeDefinition):
             rv.xsdConstraintsOK()
         return rv
@@ -605,7 +612,7 @@ class complexTypeDefinition (utility._DeconflictSymbols_mixin, object):
             if isinstance(args[0], self.__class__):
                 that = args[0]
             else:
-                raise IncompleteImplementationError('No constructor support for argument %s' % (args[0],))
+                raise IncompleteImplementationError('No %s constructor support for argument %s' % (type(self), args[0]))
         if isinstance(self, _CTD_content_mixin):
             self._resetContent()
         for fu in self._PythonMap().values():
