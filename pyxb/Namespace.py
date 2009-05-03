@@ -337,7 +337,7 @@ class Namespace (object):
         This delegates to the associated schema.  It returns an
         AttributeDeclaration, or None if the name does not denote an
         attribute."""
-        return self._validatedSchema()._lookupAttributeDeclaration(local_name)
+        return self._validatedSchema()._lookupAttributeDeclaration(local_name, context)
 
     def lookupElementDeclaration (self, local_name, context=None):
         """Look up a named element in the namespace.
@@ -345,7 +345,7 @@ class Namespace (object):
         This delegates to the associated schema.  It returns an
         ElementDeclaration, or None if the name does not denote an
         element."""
-        return self._validatedSchema()._lookupElementDeclaration(local_name)
+        return self._validatedSchema()._lookupElementDeclaration(local_name, context)
 
     def __str__ (self):
         assert self.__uri is not None

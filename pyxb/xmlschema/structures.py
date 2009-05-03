@@ -3878,8 +3878,14 @@ class Schema (_SchemaComponent_mixin):
         self.__attributeDeclarations[local_name] = ad
         return ad
 
-    def _lookupAttributeDeclaration (self, local_name):
-        return self.__attributeDeclarations.get(local_name, None)
+    def _lookupAttributeDeclaration (self, local_name, context):
+        assert context is not None
+        rv = None
+        if isinstance(context, ComplexTypeDefinition):
+            rv = context.lookupScopedAttributeDeclaration(local_name)
+        if rv is None:
+            rv = self.__attributeDeclarations.get(local_name, None)
+        return rv
 
     def _attributeDeclarations (self):
         return self.__attributeDeclarations.values()
@@ -3894,8 +3900,14 @@ class Schema (_SchemaComponent_mixin):
         self.__elementDeclarations[local_name] = ed
         return ed
 
-    def _lookupElementDeclaration (self, local_name):
-        return self.__elementDeclarations.get(local_name, None)
+    def _lookupElementDeclaration (self, local_name, context):
+        assert context is not None
+        rv = None
+        if isinstance(context, ComplexTypeDefinition):
+            rv = context.lookupScopedElementDeclaration(local_name)
+        if rv is None:
+            rv = self.__elementDeclarations.get(local_name, None)
+        return rv
 
     def _elementDeclarations (self):
         return self.__elementDeclarations.values()
