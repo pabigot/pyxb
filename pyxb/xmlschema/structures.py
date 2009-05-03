@@ -3826,7 +3826,6 @@ class Schema (_SchemaComponent_mixin):
                     print 'NOT RESOLVING unscoped declaration %s' % (resolvable.name(),)
                     continue
                 resolvable._resolve(self)
-                print '%s %s %s' % ((resolvable in self.__components), type(resolvable), resolvable._scope())
                 assert (resolvable in self.__components) \
                     or (isinstance(resolvable, _ScopedDeclaration_mixin) \
                         and (isinstance(resolvable.scope(), ComplexTypeDefinition)))
