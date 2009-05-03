@@ -179,7 +179,12 @@ class ReferenceSchemaComponent (ReferenceLiteral):
                 if isinstance(scope, xs.structures.ComplexTypeDefinition):
                     if scope.targetNamespace() != self.__component.targetNamespace():
                         print 'WARNING: Inner decl %s tns %s scope %s' % (name, self.__component.targetNamespace(), scope.name())
-                    name = '%s_%s' % (scope.ncName(), name)
+                    name_prefix = scope.ncName()
+                    if name_prefix is None:
+                        assert scope.owner() is not None
+                        name_prefix = scope.owner().ncName()
+                    assert name_prefix is not None
+                    name = '%s_%s' % (name_prefix, name)
 
             name = utility.PrepareIdentifier(name, UniqueInBinding, protected=protected)
             self.__component.setNameInBinding(name)
