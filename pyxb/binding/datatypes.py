@@ -146,12 +146,111 @@ class double (basis.simpleTypeDefinition, types.FloatType):
 
 _PrimitiveDatatypes.append(double)
 
+import time as python_time
+import datetime
+
 class duration (basis.simpleTypeDefinition):
     _XsdBaseType = anySimpleType
     _Namespace = Namespace.XMLSchema
 _PrimitiveDatatypes.append(duration)
 
-class dateTime (basis.simpleTypeDefinition):
+class _TimeZone (datetime.tzinfo):
+    """A tzinfo subclass that helps deal with UTC conversions"""
+    __Lexical_re = re.compile('^([-+])(\d\d):(\d\d)$')
+
+    __utcOffset = 0
+
+    def __init__ (self, spec=None, flip=False):
+        if spec is None:
+            return
+        if 'Z' == spec:
+            return
+        match = self.__Lexical_re.match(spec)
+        if match is None:
+            raise ValueError('Bad time zone: %s' % (spec,))
+        self.__utcOffset = int(match.group(2)) * 60 + int(match.group(3))
+        if '-' == match.group(1):
+            self.__utcOffset = - self.__utcOffset
+        if flip:
+            self.__utcOffset = - self.__utcOffset
+
+    def utcoffset (self, dt):
+        return datetime.timedelta(minutes=self.__utcOffset)
+
+    def tzname (self, dt):
+        if 0 == self.__utcOffset:
+            return 'UTC'
+        if 0 > self.__utcOffset:
+            return 'UTC-%02d%02d' % divmod(-self.__utcOffset, 60)
+            return 'UTC+%02d%02d' % divmod(self.__utcOffset, 60)
+    
+    def dst (self, dt):
+        return datetime.timedelta()
+
+
+class dateTime (basis.simpleTypeDefinition, datetime.datetime):
+    """http://www.w3.org/TR/xmlschema-2/index.html#dateTime
+
+    This class uses the Python datetime.datetime class as its
+    underlying representation.  Note that per the XMLSchema spec, all
+    dateTime objects are in UTC, and that timezone information in the
+    string representation in XML is an indication of the local time
+    zone's offset from UTC.
+    """
+
+    __Lexical_re = re.compile('^(?P<negYear>-?)(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})T(?P<hour>\d{2}):(?P<minute>\d{2}):(?P<second>\d{2})(?P<fracsec>\.\d*)?(?P<tzinfo>Z|[-+]\d\d:\d\d)?$')
+
+    # The fields in order of appearance in a time.struct_time instance
+    __Fields = ( 'year', 'month', 'day', 'hour', 'minute', 'second' )
+    # All non-tzinfo keywords for datetime constructor
+    __Fields_us = __Fields + ('microsecond',)
+    
+    def __new__ (cls, *args, **kw):
+        if 0 == len(args):
+            now = python_time.gmtime()
+            args = (datetime.datetime(*(now[:7])),)
+        value = args[0]
+        tzoffs = None
+        ctor_kw = { }
+        if isinstance(value, types.StringTypes):
+            match = cls.__Lexical_re.match(value)
+            if match is None:
+                raise BadTypeValueError('Value not in dateTime lexical space') 
+            match_map = match.groupdict()
+            for f in cls.__Fields:
+                ctor_kw[f] = int(match_map[f])
+            if match_map['negYear']:
+                ctor_kw['year'] = - year
+            if match_map['fracsec']:
+                ctor_kw['microsecond'] = int(1000000 * float('0%s' % (match_map['fracsec'],)))
+            if match_map['tzinfo']:
+                ctor_kw['tzinfo'] = _TimeZone(match_map['tzinfo'], flip=True)
+        elif isinstance(value, datetime.datetime):
+            for f in cls.__Fields_us:
+                ctor_kw[f] = getattr(value, f)
+            if value.tzinfo is not None:
+                ctor_kw['tzinfo'] = _TimeZone(value.tzinfo.utcoffset(), flip=True)
+        else:
+            raise BadTypeValueError('Unexpected type %s' % (type(value),))
+        tzoffs = ctor_kw.pop('tzinfo', None)
+        if tzoffs is not None:
+            dt = datetime.datetime(tzinfo=tzoffs, **ctor_kw)
+            dt = tzoffs.fromutc(dt)
+            ctor_kw = { }
+            [ ctor_kw.setdefault(_field, getattr(dt, _field)) for _field in cls.__Fields_us ]
+        year = ctor_kw.pop('year')
+        month = ctor_kw.pop('month')
+        day = ctor_kw.pop('day')
+        kw.update(ctor_kw)
+        return super(dateTime, cls).__new__(cls, year, month, day, **kw)
+
+    @classmethod
+    def XsdLiteral (cls, value):
+        iso = value.isoformat()
+        if 0 <= iso.find('.'):
+            iso = iso.rstrip('0')
+        return '%sZ' % (iso,)
+
     _XsdBaseType = anySimpleType
     _Namespace = Namespace.XMLSchema
 _PrimitiveDatatypes.append(dateTime)
