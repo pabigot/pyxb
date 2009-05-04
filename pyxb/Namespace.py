@@ -40,6 +40,21 @@ class Namespace (object):
     # namespace.
     __uri = None
 
+    # Map from name to SimpleTypeDefinition or ComplexTypeDefinition
+    __typeDefinitions = None
+    # Map from name to AttributeGroupDefinition
+    __attributeGroupDefinitions = None
+    # Map from name to ModelGroupDefinition
+    __modelGroupDefinitions = None
+    # Map from name to AttributeDeclaration
+    __attributeDeclarations = None
+    # Map from name to ElementDeclaration
+    __elementDeclarations = None
+    # Map from name to NotationDeclaration
+    __notationDeclarations = None
+    # Map from name to IdentityConstraintDefinition
+    __identityConstraintDefinitions = None
+
     # A prefix bound to this namespace by standard.  Current set known are applies to
     # xml, xmlns, and xsi.
     __boundPrefix = None
@@ -182,7 +197,23 @@ class Namespace (object):
         self.__description = description
         self.__isBuiltinNamespace = is_builtin_namespace
 
+        self.__typeDefinitions = { }
+        self.__attributeGroupDefinitions = { }
+        self.__modelGroupDefinitions = { }
+        self.__attributeDeclarations = { }
+        self.__elementDeclarations = { }
+        self.__notationDeclarations = { }
+        self.__identityConstraintDefinitions = { }
+
         assert (self.__uri is None) or (self.__Registry[self.__uri] == self)
+
+    def typeDefinitions (self): return self.__typeDefinitions
+    def attributeGroupDefinitions (self): return self.__attributeGroupDefinitions
+    def modelGroupDefinitions (self): return self.__modelGroupDefinitions
+    def attributeDeclarations (self): return self.__attributeDeclarations
+    def elementDeclarations (self): return self.__elementDeclarations
+    def notationDeclarations (self): return self.__notationDeclarations
+    def identityConstraintDefinitions (self): return self.__identityConstraintDefinitions
 
     @classmethod
     def CreateEmptyNamespace (cls):
@@ -232,6 +263,7 @@ class Namespace (object):
         if self.__schema is not None:
             raise LogicError('Not allowed to change the schema associated with namespace %s' % (self.uri(),))
         self.__schema = schema
+        self.__schema._setTargetNamespace(self)
         return self.__schema
 
     def schema (self):
@@ -257,9 +289,6 @@ class Namespace (object):
         if self.__schema is None:
             raise PyWXSBException('Cannot resolve in namespace %s: no associated schema' % (self.uri(),))
         return self.__schema
-
-    def typeDefinitions (self):
-        return self._validatedSchema()._typeDefinitions()
 
     @classmethod
     def SortByDependency (cls, components, dependent_class_filter, target_namespace):
@@ -495,6 +524,10 @@ class Namespace (object):
         # Unpack the schema instance, verify that it describes the
         # namespace, and associate it with the namespace.
         schema = unpickler.load()
+        print 'WARNING-**-Hack'
+        if schema.getTargetNamespace() is None:
+            schema._setTargetNamespace(instance)
+            
         assert schema.getTargetNamespace() == instance
         instance.__schema = schema
         #print 'Completed load of %s from %s' % (instance.uri(), file_path)

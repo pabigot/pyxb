@@ -95,12 +95,6 @@ class schema (xsc.Schema):
     # schema has an 'xmlns' attribute.
     __defaultNamespace = None 
 
-    # Target namespace for current schema.  Will be None only if the
-    # schema lacks a 'targetNamespace' attribute.  (Normally would
-    # occur for schemas documents "include"ed in other schema
-    # documents, but some people don't bother at all.)
-    __targetNamespace = None
-
     # The prefix used for qualified names in the XMLSchema namespace,
     # or None if the default namespace is XMLSchema.
     __xsPrefix = None
@@ -136,19 +130,19 @@ class schema (xsc.Schema):
         # It's perfectly legitimate to not specify a target namespace.
 
         # There better be a target namespace.  Use this as its schema.
-        if self.__targetNamespace is not None:
+        if self.targetNamespace() is not None:
             # NB: This will blow up if we're trying to parse the XMLSchema
             # itself, because we already have the built-in schema instance
             # bound to the namespace.
-            assert (self.__targetNamespace.schema() is None) or (Namespace.XMLSchema == self.__targetNamespace)
-            if self.__targetNamespace.schema() is None:
-                self.__targetNamespace._schema(self)
+            assert (self.targetNamespace().schema() is None) or (Namespace.XMLSchema == self.targetNamespace())
+            if self.targetNamespace().schema() is None:
+                self.targetNamespace()._schema(self)
 
         # Try to validate anything else we might need.  Ideally,
         # they'll all exist in pre-parsed format.  We'll need them if
         # we're going to generate code.
         for ns in self.namespaces():
-            if self.__targetNamespace != ns:
+            if self.targetNamespace() != ns:
                 try:
                     ns.validateSchema()
                 except Exception, e:
@@ -175,8 +169,8 @@ class schema (xsc.Schema):
             # @todo There was some reason why it was important to not
             # do this for the target namespace...
             ns = self.__defaultNamespace
-        elif self.__targetNamespace is not None:
-            ns = self.__targetNamespace
+        elif self.targetNamespace() is not None:
+            ns = self.targetNamespace()
         return (ns, local_name)
 
     def lookupType (self, qualified_name):
@@ -300,12 +294,12 @@ class schema (xsc.Schema):
     def setTargetNamespace (self, namespace):
         """Specify the namespace for which this schema provides
         information."""
-        self.__targetNamespace = namespace
+        self._setTargetNamespace(namespace)
         #print 'TARGET: %s' % (namespace,)
         return namespace
 
     def getTargetNamespace (self):
-        return self.__targetNamespace
+        return self.targetNamespace()
 
     # Compile-time spelling check
     __QUALIFIED = 'qualified'
@@ -339,8 +333,8 @@ class schema (xsc.Schema):
         return None
 
     def targetPrefix (self):
-        if self.__targetNamespace:
-            return self.__targetNamespace.prefix()
+        if self.targetNamespace():
+            return self.targetNamespace().prefix()
         return None
 
     def namespaces (self):
@@ -446,13 +440,17 @@ class schema (xsc.Schema):
         tns_uri = attribute_map.get('targetNamespace', None)
         if tns_uri is None:
             tns = Namespace.CreateEmptyNamespace()
+            assert tns is not None
         else:
-            tns = Namespace.NamespaceForURI(tns_uri)
+            tns = Namespace.NamespaceForURI(tns_uri, create_if_missing=True)
+            assert tns is not None
+        assert tns is not None
         schema = None
         if tns is not None:
             schema = tns.schema()
         if schema is None:
             schema = cls()
+        schema._setTargetNamespace(tns)
 
         return schema.__processDocumentRoot(root_node, namespaces, attribute_map, default_namespace)
 

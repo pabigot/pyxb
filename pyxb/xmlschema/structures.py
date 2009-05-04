@@ -3643,22 +3643,26 @@ class Schema (_SchemaComponent_mixin):
     # to this schema.
     __components = None
 
-    # Map from name to SimpleTypeDefinition or ComplexTypeDefinition
-    __typeDefinitions = None
-    # Map from name to AttributeGroupDefinition
-    __attributeGroupDefinitions = None
-    # Map from name to ModelGroupDefinition
-    __modelGroupDefinitions = None
-    # Map from name to AttributeDeclaration
-    __attributeDeclarations = None
-    # Map from name to ElementDeclaration
-    __elementDeclarations = None
-    # Map from name to NotationDeclaration
-    __notationDeclarations = None
-    # Map from name to IdentityConstraintDefinition
-    __identityConstraintDefinitions = None
     # List of annotations
     __annotations = None
+
+    # Target namespace for current schema.  Will be None only if the
+    # schema lacks a 'targetNamespace' attribute.  (Normally would
+    # occur for schemas documents "include"ed in other schema
+    # documents, but some people don't bother at all.)
+    __targetNamespace = None
+    def _setTargetNamespace (self, tns):
+        self.__targetNamespace = tns
+        self.__typeDefinitions = tns.typeDefinitions()
+        self.__attributeGroupDefinitions = tns.attributeGroupDefinitions()
+        self.__modelGroupDefinitions = tns.modelGroupDefinitions()
+        self.__attributeDeclarations = tns.attributeDeclarations()
+        self.__elementDeclarations = tns.elementDeclarations()
+        self.__notationDeclarations = tns.notationDeclarations()
+        self.__identityConstraintDefinitions = tns.identityConstraintDefinitions
+
+    def targetNamespace (self):
+        return self.__targetNamespace
 
     # Tuple of component classes in order in which they must be generated.
     __ComponentOrder = (
@@ -3766,14 +3770,6 @@ class Schema (_SchemaComponent_mixin):
 
         self.__annotations = [ ]
 
-        self.__typeDefinitions = { }
-        self.__attributeGroupDefinitions = { }
-        self.__modelGroupDefinitions = { }
-        self.__attributeDeclarations = { }
-        self.__elementDeclarations = { }
-        self.__notationDeclarations = { }
-        self.__identityConstraintDefinitions = { }
-
         self.__unresolvedDefinitions = []
 
     def _queueForResolution (self, resolvable):
@@ -3841,6 +3837,7 @@ class Schema (_SchemaComponent_mixin):
         return annotation
 
     def _addNamedComponent (self, nc):
+        assert self.targetNamespace() is not None
         if not isinstance(nc, _NamedComponent_mixin):
             raise LogicError('Attempt to add unnamed %s instance to dictionary' % (nc.__class__,))
         if nc.ncName() is None:
@@ -3866,6 +3863,7 @@ class Schema (_SchemaComponent_mixin):
 
     def __addTypeDefinition (self, td):
         local_name = td.ncName()
+        assert self.__targetNamespace
         old_td = self.__typeDefinitions.get(local_name, None)
         if (old_td is not None) and (old_td != td):
             # @todo validation error if old_td is not a built-in
