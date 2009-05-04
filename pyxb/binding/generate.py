@@ -993,7 +993,7 @@ def CreateFromDOM (node):
     The node tag must correspond to an element declaration in this module."""
     ncname = node.tagName
     if 0 <= ncname.find(':'):
-        ncname = name.split(':', 1)[1]
+        ncname = ncname.split(':', 1)[1]
     cls = globals().get(ncname, None)
     if cls is None:
         raise UnrecognizedElementError('No class available for %s' % (ncname,))
