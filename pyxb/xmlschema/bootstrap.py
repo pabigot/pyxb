@@ -443,7 +443,11 @@ class schema (xsc.Schema):
 
         Namespace.XMLSchema.validateSchema()
 
-        tns = Namespace.NamespaceForURI(attribute_map.get('targetNamespace', None))
+        tns_uri = attribute_map.get('targetNamespace', None)
+        if tns_uri is None:
+            tns = Namespace.CreateEmptyNamespace()
+        else:
+            tns = Namespace.NamespaceForURI(tns_uri)
         schema = None
         if tns is not None:
             schema = tns.schema()

@@ -36,7 +36,8 @@ class Namespace (object):
 
     """
 
-    # The URI for the namespace
+    # The URI for the namespace.  If the URI is None, this is an empty
+    # namespace.
     __uri = None
 
     # A prefix bound to this namespace by standard.  Current set known are applies to
@@ -91,12 +92,20 @@ class Namespace (object):
             instance = object.__new__(cls)
             # Do this one step of __init__ so we can do checks during unpickling
             instance.__uri = uri
+            # Empty namespaces are not stored in the registry.
+            if uri is None:
+                return instance
             cls.__Registry[uri] = instance
         return cls.__Registry[uri]
 
     @classmethod
     def _NamespaceForURI (cls, uri):
-        """If a Namespace instance for the given URI exists, return it; otherwise return None."""
+        """If a Namespace instance for the given URI exists, return it; otherwise return None.
+
+        Note; Empty namespaces are not stored in the registry.  If you
+        use one (e.g., for a schema with no target namespace), don't
+        lose hold of it."""
+        assert uri is not None
         return cls.__Registry.get(uri, None)
 
     __inSchemaLoad = False
@@ -116,6 +125,9 @@ class Namespace (object):
         assert self.__schema is None
         assert not self.__inSchemaLoad
 
+        # Empty namespaces cannot load schemas
+        if self.uri() is None:
+            return None
         afn = _LoadableNamespaceMap().get(self.uri(), None)
         if afn is not None:
             #print 'Loading %s from %s' % (self.uri(), afn)
@@ -162,10 +174,6 @@ class Namespace (object):
             if bound_prefix is not None:
                 raise LogicError('Only permanent Namespaces may have bound prefixes')
 
-        # Make sure the URI is given and has not been given before
-        if uri is None:
-            raise LogicError('Namespace requires a URI')
-
         # We actually set the uri when this instance was allocated;
         # see __new__().
         assert self.__uri == uri
@@ -174,10 +182,22 @@ class Namespace (object):
         self.__description = description
         self.__isBuiltinNamespace = is_builtin_namespace
 
-        assert self.__Registry[self.__uri] == self
+        assert (self.__uri is None) or (self.__Registry[self.__uri] == self)
+
+    @classmethod
+    def CreateEmptyNamespace (cls):
+        """Create an empty namespace.
+
+        Use this instead of the standard constructor, in case we need
+        to augment it with a uuid or the like."""
+        return Namespace(None)
 
     def uri (self):
-        """Return the URI for the namespace represented by this instance."""
+        """Return the URI for the namespace represented by this instance.
+
+        If the URI is None, this is an empty namespace, used to hold
+        declarations not associated with a namespace (e.g., from
+        schema with no target namespace)."""
         return self.__uri
 
     def boundPrefix (self):
@@ -366,6 +386,8 @@ class Namespace (object):
         return self._validatedSchema()._lookupIdentityConstraintDefinition(local_name)
 
     def __str__ (self):
+        if self.__uri is None:
+            return 'EmptyNamespace'
         assert self.__uri is not None
         if self.__boundPrefix is not None:
             rv = '%s=%s' % (self.__boundPrefix, self.__uri)
@@ -383,6 +405,8 @@ class Namespace (object):
         way allows the unpickler to either identify an existing
         Namespace instance for the URI, or create a new one, depending
         on whether the namespace has already been encountered."""
+        if self.uri() is None:
+            raise LogicError('Illegal to serialize empty namespaces')
         kw = {
             'schema_location': self.__schemaLocation,
             'description':self.__description,
@@ -458,6 +482,7 @@ class Namespace (object):
 
         # Get the URI out of the way
         uri = unpickler.load()
+        assert uri is not None
 
         # Unpack a Namespace instance.  Note that if the namespace was
         # already defined, the redefinition of __new__ above will
@@ -482,10 +507,21 @@ def NamespaceForURI (uri, create_if_missing=False):
     If no Namespace instance exists for the URI, the None value is
     returned, unless create_is_missing is True in which case a new
     Namespace instance for the given URI is returned."""
+    if uri is None:
+        raise LogicError('Cannot lookup empty namespaces')
     rv = Namespace._NamespaceForURI(uri)
     if (rv is None) and create_if_missing:
         rv = Namespace(uri)
     return rv
+
+def CreateEmptyNamespace ():
+    """Create an empty namespace.
+
+    Use this when you need a namespace for declarations in a schema
+    with no target namespace.  Empty namespaces are not stored in the
+    infrastructure; it is your responsibility to hold on to the
+    reference you get from this."""
+    return Namespace.CreateEmptyNamespace()
 
 # The XMLSchema module used to represent namespace schemas.  This must
 # be set, by invoking SetStructureModule, prior to attempting to use
