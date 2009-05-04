@@ -3639,14 +3639,6 @@ class _SimpleUrTypeDefinition (SimpleTypeDefinition, _Singleton_mixin):
         return frozenset()
 
 class Schema (_SchemaComponent_mixin):
-    NT_type = 0x01              #<<< Name represents a simple or complex type
-    NT_attributeGroup = 0x02    #<<< Name represents an attribute group definition
-    NT_modelGroup = 0x03        #<<< Name represents a model group definition
-    NT_attribute = 0x04         #<<< Name represents an attribute declaration
-    NT_element = 0x05           #<<< Name represents an element declaration
-    NT_notation = 0x06          #<<< Name represents a notation declaration
-    NT_identityConstraint = 0x07 # <<< Name represents an identity constraint definition
-
     # A set containing all components, named or unnamed, that belong
     # to this schema.
     __components = None
@@ -3733,23 +3725,6 @@ class Schema (_SchemaComponent_mixin):
         After this point, nobody should be messing with the any of the
         definition or declaration maps."""
         return self.__unresolvedDefinitions is None
-
-    def __mapForNamedType (self, nt):
-        if self.NT_type == nt:
-            return self.__typeDefinitions
-        if self.NT_attributeGroup == nt:
-            return self.__attributeGroupDefinitions
-        if self.NT_modelGroup == nt:
-            return self.__modelGroupDefinitions
-        if self.NT_attribute == nt:
-            return self.__attributeDeclarations
-        if self.NT_element == nt:
-            return self.__elementDeclarations
-        if self.NT_notation == nt:
-            return self.__notationDeclarations
-        if self.NT_identityConstraint == nt:
-            return self.__identityConstraintDefinition
-        raise LogicError('Invalid named type 0x02x' % (nt,))
 
     # Default values for standard recognized schema attributes
     __attributeMap = { 'attributeFormDefault' : 'unqualified'
@@ -4015,9 +3990,6 @@ class Schema (_SchemaComponent_mixin):
 
     def _identityConstraintDefinitions (self):
         return self.__identityConstraintDefinitions.values()
-
-    def _lookupNamedComponent (self, ncname, component_type):
-        return self.__mapForNamedType(component_type).get(ncname, None)
 
 def _AddSimpleTypes (schema):
     """Add to the schema the definitions of the built-in types of
