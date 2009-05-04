@@ -3881,7 +3881,7 @@ class Schema (_SchemaComponent_mixin):
         return self.__typeDefinitions.values()
 
     def _lookupTypeDefinition (self, local_name):
-        return self.__typeDefinitions.get(local_name, None)
+        return self.targetNamespace().lookupTypeDefinition(local_name)
 
     def __addAttributeGroupDefinition (self, agd):
         assert isinstance(agd, AttributeGroupDefinition)
@@ -3893,7 +3893,7 @@ class Schema (_SchemaComponent_mixin):
         return agd
 
     def _lookupAttributeGroupDefinition (self, local_name):
-        return self.__attributeGroupDefinitions.get(local_name, None)
+        return self.targetNamespace().lookupAttributeGroupDefinition(local_name)
 
     def _attributeGroupDefinitions (self):
         return self.__attributeGroupDefinitions.values()
@@ -3909,7 +3909,7 @@ class Schema (_SchemaComponent_mixin):
         return mgd
 
     def _lookupModelGroupDefinition (self, local_name):
-        return self.__modelGroupDefinitions.get(local_name, None)
+        return self.targetNamespace().lookupModelGroupDefinition(local_name)
 
     def _modelGroupDefinitions (self):
         return self.__modelGroupDefinitions.values()
@@ -3968,8 +3968,8 @@ class Schema (_SchemaComponent_mixin):
         return nd
 
     def _lookupNotationDeclaration (self, local_name):
-        return self.__notationDeclarations.get(local_name, None)
-
+        return self.targetNamespace().lookupNotationDeclaration(local_name)
+    
     def _notationDeclarations (self):
         return self.__notationDeclarations.values()
 
@@ -3984,7 +3984,7 @@ class Schema (_SchemaComponent_mixin):
         return nd
 
     def _lookupIdentityConstraintDefinition (self, local_name):
-        return self.__identityConstraintDefinitions.get(local_name, None)
+        return self.targetNamespace().lookupIdentityConstraintDefinition(local_name)
 
     def _identityConstraintDefinitions (self):
         return self.__identityConstraintDefinitions.values()

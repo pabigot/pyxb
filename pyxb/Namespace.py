@@ -372,7 +372,7 @@ class Namespace (object):
         This delegates to the associated schema.  It returns a
         SimpleTypeDefnition or ComplexTypeDefinition instance, or None
         if the name does not denote a type."""
-        return self._validatedSchema()._lookupTypeDefinition(local_name)
+        return self.__typeDefinitions.get(local_name, None)
 
     def lookupAttributeGroupDefinition (self, local_name):
         """Look up a named attribute group in the namespace.
@@ -380,7 +380,7 @@ class Namespace (object):
         This delegates to the associated schema.  It returns an
         AttributeGroupDefinition, or None if the name does not denote
         an attribute group."""
-        return self._validatedSchema()._lookupAttributeGroupDefinition(local_name)
+        return self.__attributeGroupDefinitions.get(local_name, None)
         
     def lookupModelGroupDefinition (self, local_name):
         """Look up a named model group in the namespace.
@@ -388,7 +388,7 @@ class Namespace (object):
         This delegates to the associated schema.  It returns a
         ModelGroupDefinition, or None if the name does not denote a
         model group."""
-        return self._validatedSchema()._lookupModelGroupDefinition(local_name)
+        return self.__modelGroupDefinitions.get(local_name, None)
 
     def lookupAttributeDeclaration (self, local_name, context=None):
         """Look up a named attribute in the namespace.
@@ -406,7 +406,10 @@ class Namespace (object):
         element."""
         return self._validatedSchema()._lookupElementDeclaration(local_name, context)
 
-    def lookupIdentityConstraintDefinition (self, local_name, context=None):
+    def lookupNotationDeclaration (self, local_name):
+        return self.__notationDeclarations.get(local_name, None)
+
+    def lookupIdentityConstraintDefinition (self, local_name):
         """Look up an identity constraint definition in the namespace.
 
         This delegates to the associated schema.  It returns an
