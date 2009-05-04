@@ -3908,9 +3908,6 @@ class Schema (_SchemaComponent_mixin):
         self.__modelGroupDefinitions[local_name] = mgd
         return mgd
 
-    def _lookupModelGroupDefinition (self, local_name):
-        return self.targetNamespace().lookupModelGroupDefinition(local_name)
-
     def _modelGroupDefinitions (self):
         return self.__modelGroupDefinitions.values()
 
@@ -3967,9 +3964,6 @@ class Schema (_SchemaComponent_mixin):
         self.__notationDeclarations[local_name] = nd
         return nd
 
-    def _lookupNotationDeclaration (self, local_name):
-        return self.targetNamespace().lookupNotationDeclaration(local_name)
-    
     def _notationDeclarations (self):
         return self.__notationDeclarations.values()
 
@@ -3982,9 +3976,6 @@ class Schema (_SchemaComponent_mixin):
             raise SchemaValidationError('Name %s used for multiple notations' % (local_name,))
         self.__identityConstraintDefinitions[local_name] = nd
         return nd
-
-    def _lookupIdentityConstraintDefinition (self, local_name):
-        return self.targetNamespace().lookupIdentityConstraintDefinition(local_name)
 
     def _identityConstraintDefinitions (self):
         return self.__identityConstraintDefinitions.values()
