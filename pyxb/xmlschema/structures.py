@@ -3920,9 +3920,6 @@ class Schema (_SchemaComponent_mixin):
             rv = self.__attributeDeclarations.get(local_name, None)
         return rv
 
-    def _attributeDeclarations (self):
-        return self.__attributeDeclarations.values()
-
     def __addElementDeclaration (self, ed):
         assert isinstance(ed, ElementDeclaration)
         local_name = ed.ncName()
@@ -3941,9 +3938,6 @@ class Schema (_SchemaComponent_mixin):
         if rv is None:
             rv = self.__elementDeclarations.get(local_name, None)
         return rv
-
-    def _elementDeclarations (self):
-        return self.__elementDeclarations.values()
 
     def __addNotationDeclaration (self, nd):
         assert isinstance(nd, NotationDeclaration)
