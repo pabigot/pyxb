@@ -203,7 +203,7 @@ class schema (xsc.Schema):
         """Like lookupType, but for attribute groups."""
         (ns, local_name) = self.__getNamespaceForLookup(qualified_name)
         if ns is None:
-            rv = self._lookupAttributeGroupDefinition(local_name)
+            rv = self.targetNamespace().lookupAttributeGroupDefinition(local_name)
         else:
             rv = ns.lookupAttributeGroupDefinition(local_name)
         if rv is None:

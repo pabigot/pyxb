@@ -3892,12 +3892,6 @@ class Schema (_SchemaComponent_mixin):
         self.__attributeGroupDefinitions[local_name] = agd
         return agd
 
-    def _lookupAttributeGroupDefinition (self, local_name):
-        return self.targetNamespace().lookupAttributeGroupDefinition(local_name)
-
-    def _attributeGroupDefinitions (self):
-        return self.__attributeGroupDefinitions.values()
-
     def __addModelGroupDefinition (self, mgd):
         assert isinstance(mgd, ModelGroupDefinition)
         local_name = mgd.ncName()
@@ -3907,9 +3901,6 @@ class Schema (_SchemaComponent_mixin):
             raise SchemaValidationError('Name %s used for multiple groups' % (local_name,))
         self.__modelGroupDefinitions[local_name] = mgd
         return mgd
-
-    def _modelGroupDefinitions (self):
-        return self.__modelGroupDefinitions.values()
 
     def __addAttributeDeclaration (self, ad):
         assert isinstance(ad, AttributeDeclaration)
@@ -3964,9 +3955,6 @@ class Schema (_SchemaComponent_mixin):
         self.__notationDeclarations[local_name] = nd
         return nd
 
-    def _notationDeclarations (self):
-        return self.__notationDeclarations.values()
-
     def __addIdentityConstraintDefinition (self, nd):
         assert isinstance(nd, IdentityConstraintDefinition)
         local_name = nd.ncName()
@@ -3976,9 +3964,6 @@ class Schema (_SchemaComponent_mixin):
             raise SchemaValidationError('Name %s used for multiple notations' % (local_name,))
         self.__identityConstraintDefinitions[local_name] = nd
         return nd
-
-    def _identityConstraintDefinitions (self):
-        return self.__identityConstraintDefinitions.values()
 
 def _AddSimpleTypes (schema):
     """Add to the schema the definitions of the built-in types of
