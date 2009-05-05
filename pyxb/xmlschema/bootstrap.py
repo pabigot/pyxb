@@ -149,6 +149,9 @@ class schema (xsc.Schema):
                     print 'WARNING validating schema for %s: %s' % (ns.uri(), e)
                     traceback.print_exception(*sys.exc_info())
 
+    def namespaceForQName (self, type_name):
+        return self.__getNamespaceForLookup(type_name)[0]
+
     def __getNamespaceForLookup (self, type_name):
         """Resolve a QName or NCName appropriately for this schema.
 
@@ -227,7 +230,7 @@ class schema (xsc.Schema):
         if ns is None:
             rv = self._lookupAttributeDeclaration(local_name, context)
         else:
-            rv = ns.lookupAttributeDeclaration(local_name, context)
+            rv = xsc._LookupAttributeDeclaration(ns, context, local_name)
         if rv is None:
             raise NotInNamespaceError('lookupAttributeDeclaration: No match for "%s" in %s' % (qualified_name, ns))
         return rv
@@ -238,7 +241,7 @@ class schema (xsc.Schema):
         if ns is None:
             rv = self._lookupElementDeclaration(local_name, context)
         else:
-            rv = ns.lookupElementDeclaration(local_name, context)
+            rv = xsc._LookupElementDeclaration(ns, context, local_name)
         if rv is None:
             raise NotInNamespaceError('lookupElement: No match for "%s" in %s' % (qualified_name, ns))
         return rv
