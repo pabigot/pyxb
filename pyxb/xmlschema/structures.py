@@ -280,7 +280,7 @@ class _Annotated_mixin (object):
         self.__annotation = kw.get('annotation', None)
 
     def _annotationFromDOM (self, wxs, node):
-        cn = LocateUniqueChild(node, wxs, 'annotation')
+        cn = LocateUniqueChild(node, 'annotation')
         if cn is not None:
             self.__annotation = Annotation.CreateFromDOM(wxs, cn, owner=self)
 
@@ -947,7 +947,7 @@ class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
         #print 'Resolving AD %s' % (self.name(),)
         node = self.__domNode
 
-        st_node = LocateUniqueChild(node, wxs, 'simpleType')
+        st_node = LocateUniqueChild(node, 'simpleType')
         type_attr = NodeAttribute(node, 'type')
         if st_node is not None:
             self.__typeDefinition = SimpleTypeDefinition.CreateFromDOM(wxs, st_node, owner=self)
@@ -1286,11 +1286,11 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Resolv
         self.__identityConstraintDefinitions = identity_constraints
 
         type_def = None
-        td_node = LocateUniqueChild(node, wxs, 'simpleType')
+        td_node = LocateUniqueChild(node, 'simpleType')
         if td_node is not None:
             type_def = SimpleTypeDefinition.CreateFromDOM(wxs, node, owner=self)
         else:
-            td_node = LocateUniqueChild(node, wxs, 'complexType')
+            td_node = LocateUniqueChild(node, 'complexType')
             if td_node is not None:
                 type_def = ComplexTypeDefinition.CreateFromDOM(wxs, td_node, owner=self)
         if type_def is None:
@@ -1704,10 +1704,10 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
                 typedef_node = cn
                 test_2_1_1 = False
             if xsd.nodeIsNamed(cn, 'all', 'sequence') \
-                    and (not HasNonAnnotationChild(wxs, cn)):
+                    and (not HasNonAnnotationChild(cn)):
                 test_2_1_2 = True
             if xsd.nodeIsNamed(cn, 'choice') \
-                    and (not HasNonAnnotationChild(wxs, cn)):
+                    and (not HasNonAnnotationChild(cn)):
                 mo_attr = NodeAttribute(cn, 'minOccurs')
                 if ((mo_attr is not None) \
                         and (0 == datatypes.integer(mo_attr))):
@@ -2768,13 +2768,13 @@ class IdentityConstraintDefinition (_SchemaComponent_mixin, _NamedComponent_mixi
         else:
             raise LogicError('Unexpected identity constraint node %s' % (node.toxml(),))
 
-        cn = LocateUniqueChild(node, wxs, 'selector')
+        cn = LocateUniqueChild(node, 'selector')
         rv.__selector = NodeAttribute(cn, 'xpath')
         if rv.__selector is None:
             raise SchemaValidationError('selector element missing xpath attribute')
 
         rv.__fields = []
-        for cn in LocateMatchingChildren(node, wxs, 'field'):
+        for cn in LocateMatchingChildren(node, 'field'):
             xp_attr = NodeAttribute(cn, 'xpath')
             if xp_attr is None:
                 raise SchemaValidationError('field element missing xpath attribute')
@@ -2789,7 +2789,7 @@ class IdentityConstraintDefinition (_SchemaComponent_mixin, _NamedComponent_mixi
                 continue
             an = None
             if xsd.nodeIsNamed(cn, 'selector', 'field'):
-                an = LocateUniqueChild(cn, wxs, 'annotation')
+                an = LocateUniqueChild(cn, 'annotation')
             elif xsd.nodeIsNamed(cn, 'annotation'):
                 an = cn
             if an is not None:
@@ -3379,7 +3379,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
             base_facets.update(self.__baseTypeDefinition.facets())
         local_facets = {}
         for fc in base_facets.keys():
-            children = LocateMatchingChildren(body, wxs, fc.Name())
+            children = LocateMatchingChildren(body, fc.Name())
             fi = base_facets[fc]
             if 0 < len(children):
                 fi = fc(base_type_definition=self.__baseTypeDefinition,
@@ -3388,7 +3388,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
                 if isinstance(fi, facets._LateDatatype_mixin):
                     fi.bindValueDatatype(self)
                 for cn in children:
-                    kw = { 'annotation': LocateUniqueChild(cn, wxs, 'annotation') }
+                    kw = { 'annotation': LocateUniqueChild(cn, 'annotation') }
                     for ai in range(0, cn.attributes.length):
                         attr = cn.attributes.item(ai)
                         # Convert name from unicode to string
@@ -3557,18 +3557,18 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
         bad_instance = False
         # The guts of the node should be exactly one instance of
         # exactly one of these three types.
-        candidate = LocateUniqueChild(node, wxs, 'list')
+        candidate = LocateUniqueChild(node, 'list')
         if candidate:
             self.__initializeFromList(wxs, candidate)
 
-        candidate = LocateUniqueChild(node, wxs, 'restriction')
+        candidate = LocateUniqueChild(node, 'restriction')
         if candidate:
             if self.__variety is None:
                 self.__initializeFromRestriction(wxs, candidate)
             else:
                 bad_instance = True
 
-        candidate = LocateUniqueChild(node, wxs, 'union')
+        candidate = LocateUniqueChild(node, 'union')
         if candidate:
             if self.__variety is None:
                 self.__initializeFromUnion(wxs, candidate)

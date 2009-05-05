@@ -36,16 +36,16 @@ def NodeAttribute (node, attribute_ncname, attribute_ns=Namespace.XMLSchema):
         return node.getAttributeNS(attribute_ns.uri(), attribute_ncname)
     return None
 
-def LocateUniqueChild (node, schema, tag, absent_ok=True, namespace=Namespace.XMLSchema):
+def LocateUniqueChild (node, tag, absent_ok=True, namespace=Namespace.XMLSchema):
     """Locate a unique child of the DOM node.
 
-    The node should be a xml.dom.Node ELEMENT_NODE instance.  The
-    schema from which the node derives is also provided.  tag is the
-    NCName of an XMLSchema element.  This function returns the sole
-    child of node which is an ELEMENT_NODE instance and has a tag
-    consistent with the given tag.  If multiple nodes with a matching
-    tag are found, or abesnt_ok is False and no matching tag is found,
-    an exception is raised.
+    The node should be a xml.dom.Node ELEMENT_NODE instance.  tag is
+    the NCName of an element in the namespace, which defaults to the
+    XMLSchema namespace.  This function returns the sole child of node
+    which is an ELEMENT_NODE instance and has a tag consistent with
+    the given tag.  If multiple nodes with a matching tag are found,
+    or abesnt_ok is False and no matching tag is found, an exception
+    is raised.
 
     @throw SchemaValidationError if multiple elements are identified
     @throw SchemaValidationError if absent_ok is False and no element is identified.
@@ -60,14 +60,14 @@ def LocateUniqueChild (node, schema, tag, absent_ok=True, namespace=Namespace.XM
         raise SchemaValidationError('Expected %s elements nested in %s' % (name, node.nodeName))
     return candidate
 
-def LocateMatchingChildren (node, schema, tag, namespace=Namespace.XMLSchema):
+def LocateMatchingChildren (node, tag, namespace=Namespace.XMLSchema):
     """Locate all children of the DOM node that have a particular tag.
 
-    The node should be a xml.dom.Node ELEMENT_NODE instance.  The
-    schema from which the node derives is also provided.  tag is the
-    NCName of an XMLSchema element.  This function returns a list of
-    children of node which are an ELEMENT_NODE instances and have a tag
-    consistent with the given tag.
+    The node should be a xml.dom.Node ELEMENT_NODE instance.  tag is
+    the NCName of an element in the namespace, which defaults to the
+    XMLSchema namespace.  This function returns a list of children of
+    node which are an ELEMENT_NODE instances and have a tag consistent
+    with the given tag.
     """
     matches = []
     for cn in node.childNodes:
@@ -99,7 +99,7 @@ def LocateFirstChildElement (node, absent_ok=True, require_unique=False, ignore_
         raise SchemaValidationError('No elements nested in %s' % (node.nodeName,))
     return candidate
 
-def HasNonAnnotationChild (wxs, node):
+def HasNonAnnotationChild (node):
     """Return True iff node has an ELEMENT_NODE child that is not an
     XMLSchema annotation node."""
     for cn in node.childNodes:
