@@ -1836,7 +1836,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
             # Determine whether above assumption is correct by looking for
             # element content and seeing if it's one of the wrapper
             # elements.
-            first_elt = LocateFirstChildElement(node, ignore_nodes=wxs.xsQualifiedNames('annotation'))
+            first_elt = LocateFirstChildElement(node)
             content_node = None
             if first_elt:
                 have_content = False
@@ -1851,12 +1851,12 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
                     pass
                 if have_content:
                     # Repeat the search to verify that only the one child is present.
-                    content_node = LocateFirstChildElement(node, require_unique=True, ignore_nodes=wxs.xsQualifiedNames('annotation'))
+                    content_node = LocateFirstChildElement(node, require_unique=True)
                     assert content_node == first_elt
                     
                     # Identify the contained restriction or extension
                     # element, and extract the base type.
-                    ions = LocateFirstChildElement(content_node, absent_ok=False, ignore_nodes=wxs.xsQualifiedNames('annotation'))
+                    ions = LocateFirstChildElement(content_node, absent_ok=False)
                     if xsd.nodeIsNamed(ions, 'restriction'):
                         method = self.DM_restriction
                     elif xsd.nodeIsNamed(ions, 'extension'):

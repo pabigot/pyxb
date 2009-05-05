@@ -3,6 +3,7 @@ from pyxb.exceptions_ import *
 from xml.dom import Node
 from xml.dom import minidom
 import xml.dom as dom
+from pyxb.Namespace import XMLSchema as xsd
 
 def NodeAttribute (node, attribute_ncname, attribute_ns=Namespace.XMLSchema):
     """Namespace-aware search for an attribute in a node.
@@ -77,20 +78,19 @@ def LocateMatchingChildren (node, schema, tag, namespace=Namespace.XMLSchema):
             matches.append(cn)
     return matches
 
-def LocateFirstChildElement (node, absent_ok=True, require_unique=False, ignore_nodes=()):
+def LocateFirstChildElement (node, absent_ok=True, require_unique=False, ignore_annotations=True):
     """Locate the first element child of the node.
 
     If absent_ok is True, and there are no ELEMENT_NODE children, None
     is returned.  If require_unique is True and there is more than one
-    ELEMENT_NODE child, an exception is rasied.  Any ELEMENT_NODE
-    child with a nodeName in ignore_nodes is bypassed; you probably
-    want to add annotation to this tuple.
+    ELEMENT_NODE child, an exception is rasied.  Unless
+    ignore_annotations is False, annotation nodes are ignored.
     """
     
     candidate = None
     for cn in node.childNodes:
         if Node.ELEMENT_NODE == cn.nodeType:
-            if cn.nodeName in ignore_nodes:
+            if ignore_annotations and xsd.nodeIsNamed(cn, 'annotation'):
                 continue
             if require_unique:
                 if candidate:
@@ -105,11 +105,8 @@ def LocateFirstChildElement (node, absent_ok=True, require_unique=False, ignore_
 def HasNonAnnotationChild (wxs, node):
     """Return True iff node has an ELEMENT_NODE child that is not an
     XMLSchema annotation node."""
-    xs_annotation = wxs.xsQualifiedNames('annotation')
     for cn in node.childNodes:
-        if Node.ELEMENT_NODE != cn.nodeType:
-            continue
-        if cn.nodeName not in xs_annotation:
+        if (Node.ELEMENT_NODE == cn.nodeType) and (not xsd.nodeIsNamed(cn, 'annotation')):
             return True
     return False
 
