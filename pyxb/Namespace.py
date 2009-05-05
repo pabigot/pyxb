@@ -427,7 +427,7 @@ class Namespace (object):
             rv = self.__uri
         return rv
 
-    __PICKLE_FORMAT = '200904161519'
+    __PICKLE_FORMAT = '200905041925'
 
     def __getstate__ (self):
         """Support pickling.
@@ -493,6 +493,10 @@ class Namespace (object):
         This method requires that a schema be associated with the
         namespace."""
         
+        if self.uri() is None:
+            raise LogicError('Illegal to serialize empty namespaces')
+        #if self.isBuiltinNamespace():
+        #    raise LogicError("Won't serialize a built-in namespace")
         if self.__schema is None:
             # @todo use a better exception
             raise LogicError("Won't save namespace that does not have associated schema: %s", self.uri())
@@ -503,6 +507,13 @@ class Namespace (object):
         pickler.dump(self.uri())
         pickler.dump(self)
         pickler.dump(self.__schema)
+        pickler.dump(self.__typeDefinitions)
+        pickler.dump(self.__attributeGroupDefinitions)
+        pickler.dump(self.__modelGroupDefinitions)
+        pickler.dump(self.__attributeDeclarations)
+        pickler.dump(self.__elementDeclarations)
+        pickler.dump(self.__notationDeclarations)
+        pickler.dump(self.__identityConstraintDefinitions)
         self._PicklingNamespace(None)
 
     @classmethod
@@ -526,7 +537,17 @@ class Namespace (object):
 
         # Unpack the schema instance, verify that it describes the
         # namespace, and associate it with the namespace.
+        assert 0 == len(instance.__typeDefinitions)
+
         schema = unpickler.load()
+        instance.__typeDefinitions = unpickler.load()
+        instance.__attributeGroupDefinitions = unpickler.load()
+        instance.__modelGroupDefinitions = unpickler.load()
+        instance.__attributeDeclarations = unpickler.load()
+        instance.__elementDeclarations = unpickler.load()
+        instance.__notationDeclarations = unpickler.load()
+        instance.__identityConstraintDefinitions = unpickler.load()
+
         print 'WARNING-**-Hack'
         if schema.getTargetNamespace() is None:
             schema._setTargetNamespace(instance)
