@@ -292,17 +292,6 @@ class schema (xsc.Schema):
     def getDefaultNamespace (self):
         return self.__defaultNamespace
 
-    def setTargetNamespace (self, namespace):
-        """Specify the namespace for which this schema provides
-        information."""
-        #self._setTargetNamespace(namespace)
-        assert self.targetNamespace() == namespace
-        #print 'TARGET: %s' % (namespace,)
-        return namespace
-
-    def getTargetNamespace (self):
-        return self.targetNamespace()
-
     # Compile-time spelling check
     __QUALIFIED = 'qualified'
     # Compile-time spelling check
@@ -331,7 +320,7 @@ class schema (xsc.Schema):
         if not form in [ self.__QUALIFIED, self.__UNQUALIFIED ]:
             raise SchemaValidationError('form attribute must be "%s" or "%s"' % (self.__QUALIFIED, self.__UNQUALIFIED))
         if self.__UNQUALIFIED == form:
-            return self.getTargetNamespace()
+            return self.targetNamespace()
         return None
 
     def targetPrefix (self):
@@ -408,7 +397,7 @@ class schema (xsc.Schema):
 
         tns_uri = attribute_map.get('targetNamespace', None)
         if tns_uri is None:
-            tns = Namespace.CreateEmptyNamespace()
+            tns = Namespace.CreateAbsentNamespace()
         else:
             tns = Namespace.NamespaceForURI(tns_uri, create_if_missing=True)
         assert tns is not None
@@ -437,8 +426,10 @@ class schema (xsc.Schema):
         # which is to have no associated namespace.
         assert self.schemaHasAttribute('targetNamespace')
         target_namespace = self.schemaAttribute('targetNamespace')
-        if target_namespace is not None:
-            self.setTargetNamespace(self.lookupOrCreateNamespace(target_namespace))
+        if target_namespace is None:
+            assert self.targetNamespace().isAbsentNamespace()
+        else:
+            assert self.targetNamespace().uri() == target_namespace
 
         # Now pre-load the namespaces that must be available.
         self.initializeBuiltins()

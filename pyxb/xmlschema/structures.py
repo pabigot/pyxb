@@ -129,7 +129,7 @@ class _SchemaComponent_mixin (object):
     def dependentComponents (self):
         if self.__dependentComponents is None:
             if isinstance(self, _Resolvable_mixin) and not (self.isResolved()):
-                raise LogicError('Unresolved %s in %s: %s' % (self.__class__.__name__, self.schema().getTargetNamespace(), self.name()))
+                raise LogicError('Unresolved %s in %s: %s' % (self.__class__.__name__, self.schema().targetNamespace(), self.name()))
             self.__dependentComponents = self._dependentComponents_vx()
             if self in self.__dependentComponents:
                 raise LogicError('Self-dependency with %s %s' % (self.__class__.__name__, self))
@@ -917,7 +917,7 @@ class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
 
         name = NodeAttribute(node, 'name')
         if name is not None:
-            namespace = wxs.getTargetNamespace()
+            namespace = wxs.targetNamespace()
         else:
             # Can't have both ref and name
             assert NodeAttribute(node, 'ref') is None
@@ -1218,7 +1218,7 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Resolv
         name = NodeAttribute(node, 'name')
         namespace = None
         if xsd.nodeIsNamed(node.parentNode, 'schema'):
-            namespace = wxs.getTargetNamespace()
+            namespace = wxs.targetNamespace()
             assert _ScopedDeclaration_mixin.SCOPE_global == scope
         elif NodeAttribute(node, 'ref') is None:
             # NB: It is perfectly legal for namespace to be None when
@@ -1550,7 +1550,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
 
         name = NodeAttribute(node, 'name')
 
-        rv = cls(name=name, target_namespace=wxs.getTargetNamespace(), derivation_method=None, schema=wxs, owner=owner)
+        rv = cls(name=name, target_namespace=wxs.targetNamespace(), derivation_method=None, schema=wxs, owner=owner)
 
         # Creation does not attempt to do resolution.  Queue up the newly created
         # whatsis so we can resolve it after everything's been read in.
@@ -1952,7 +1952,7 @@ class AttributeGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _
         # of the schema, so the context is always SCOPE_global.  Any
         # definitions in them are scope None, until they're referenced
         # in a complex type.
-        rv = cls(name=name, target_namespace=wxs.getTargetNamespace(), context=_ScopedDeclaration_mixin.SCOPE_global, scope=None, schema=wxs, owner=owner)
+        rv = cls(name=name, target_namespace=wxs.targetNamespace(), context=_ScopedDeclaration_mixin.SCOPE_global, scope=None, schema=wxs, owner=owner)
 
         rv._annotationFromDOM(wxs, node)
         wxs._queueForResolution(rv)
@@ -2034,7 +2034,7 @@ class ModelGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Anno
         assert NodeAttribute(node, 'ref') is None
 
         name = NodeAttribute(node, 'name')
-        rv = cls(name=name, target_namespace=wxs.getTargetNamespace(), schema=wxs, owner=owner)
+        rv = cls(name=name, target_namespace=wxs.targetNamespace(), schema=wxs, owner=owner)
         rv._annotationFromDOM(wxs, node)
 
         for cn in node.childNodes:
@@ -2696,14 +2696,14 @@ class Wildcard (_SchemaComponent_mixin, _Annotated_mixin):
             if cls.NC_any == nc:
                 namespace_constraint = cls.NC_any
             elif cls.NC_not == nc:
-                namespace_constraint = ( cls.NC_not, wxs.getTargetNamespace() )
+                namespace_constraint = ( cls.NC_not, wxs.targetNamespace() )
             else:
                 ncs = set()
                 for ns_uri in nc.split():
                     if cls.NC_local == ns_uri:
                         ncs.add(None)
                     elif cls.NC_targetNamespace == ns_uri:
-                        ncs.add(wxs.getTargetNamespace())
+                        ncs.add(wxs.targetNamespace())
                     else:
                         namespace = Namespace.NamespaceForURI(ns_uri)
                         if namespace is None:
@@ -2755,7 +2755,7 @@ class IdentityConstraintDefinition (_SchemaComponent_mixin, _NamedComponent_mixi
     @classmethod
     def CreateFromDOM (cls, wxs, node, owner=None):
         name = NodeAttribute(node, 'name')
-        rv = cls(name=name, target_namespace=wxs.getTargetNamespace(), schema=wxs, owner=owner)
+        rv = cls(name=name, target_namespace=wxs.targetNamespace(), schema=wxs, owner=owner)
         #rv._annotationFromDOM(wxs, node);
         if xsd.nodeIsNamed(node, 'key'):
             rv.__identityConstraintCategory = cls.ICC_KEY
@@ -2817,7 +2817,7 @@ class NotationDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Annot
     @classmethod
     def CreateFromDOM (cls, wxs, node, owner=None):
         name = NodeAttribute(node, 'name')
-        rv = cls(name=name, target_namespace=wxs.getTargetNamespace(), schema=wxs, owner=owner)
+        rv = cls(name=name, target_namespace=wxs.targetNamespace(), schema=wxs, owner=owner)
 
         rv.__systemIdentifier = NodeAttribute(node, 'system')
         rv.__publicIdentifier = NodeAttribute(node, 'public')
@@ -3171,7 +3171,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
         All parameters are required and must be non-None.
         """
         
-        bi = cls(name=name, schema=schema, target_namespace=schema.getTargetNamespace(), variety=cls.VARIETY_atomic)
+        bi = cls(name=name, schema=schema, target_namespace=schema.targetNamespace(), variety=cls.VARIETY_atomic)
         bi._setPythonSupport(python_support)
 
         # Primitive types are based on the ur-type, and have
@@ -3194,7 +3194,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
         """
         assert parent_std
         assert parent_std.__variety in (cls.VARIETY_absent, cls.VARIETY_atomic)
-        bi = cls(name=name, schema=schema, target_namespace=schema.getTargetNamespace(), variety=parent_std.__variety)
+        bi = cls(name=name, schema=schema, target_namespace=schema.targetNamespace(), variety=parent_std.__variety)
         bi._setPythonSupport(python_support)
 
         # We were told the base type.  If this is atomic, we re-use
@@ -3217,7 +3217,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
         that require explicit support to for Pythonic conversion; but
         note that such support is identified by the item_std.
         """
-        bi = cls(name=name, schema=schema, target_namespace=schema.getTargetNamespace(), variety=cls.VARIETY_list)
+        bi = cls(name=name, schema=schema, target_namespace=schema.targetNamespace(), variety=cls.VARIETY_list)
         bi._setPythonSupport(python_support)
 
         # The base type is the ur-type.  We were given the item type.
@@ -3594,7 +3594,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
 
         name = NodeAttribute(node, 'name')
 
-        rv = cls(name=name, target_namespace=wxs.getTargetNamespace(), variety=None, schema=wxs, owner=owner)
+        rv = cls(name=name, target_namespace=wxs.targetNamespace(), variety=None, schema=wxs, owner=owner)
         rv._annotationFromDOM(wxs, node)
 
         # @todo identify supported facets and properties (hfp)
@@ -3718,7 +3718,7 @@ class Schema (_SchemaComponent_mixin):
 
     def orderedComponents (self):
         assert self.completedResolution()
-        return self.OrderedComponents(self.components(), self.getTargetNamespace())
+        return self.OrderedComponents(self.components(), self.targetNamespace())
 
     def completedResolution (self):
         """Return True iff all resolvable elements have been resolved.

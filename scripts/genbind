@@ -27,7 +27,7 @@ wxs = None
 ns = None
 try:
     wxs = pyxb.xmlschema.schema.CreateFromDOM(minidom.parse(schema_file))
-    ns = wxs.getTargetNamespace()
+    ns = wxs.targetNamespace()
     ns.setModulePath('%s.%s' % (module_path, prefix))
     print 'Extracted schema information from %s, yielding namespace %s' % (schema_file, ns)
 except Exception, e:
@@ -53,7 +53,7 @@ except Exception, e:
     sys.exit(3)
 
 try:
-    ns = wxs.getTargetNamespace()
+    ns = wxs.targetNamespace()
     ns.saveToFile(parsed_schema_file)
     print 'Saved parsed schema to %s' % (parsed_schema_file,)
 except Exception, e:

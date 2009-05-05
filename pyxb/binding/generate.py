@@ -943,20 +943,20 @@ def GeneratePython (**kw):
             schema_file = '<not provided>'
 
         generator_kw = kw.copy()
-        generator_kw['binding_target_namespace'] = schema.getTargetNamespace()
+        generator_kw['binding_target_namespace'] = schema.targetNamespace()
 
         emit_order = schema.orderedComponents()
         outf = StringIO.StringIO()
     
         import_prefix = 'pyxb.xmlschema.'
-        if schema.getTargetNamespace() == Namespace.XMLSchema:
+        if schema.targetNamespace() == Namespace.XMLSchema:
             import_prefix = ''
 
         template_map = { }
         template_map['input'] = schema_file
         template_map['date'] = str(datetime.datetime.now())
         template_map['version'] = 'UNSPECIFIED'
-        tns = schema.getTargetNamespace()
+        tns = schema.targetNamespace()
         if tns is not None:
             tns = tns.uri()
         template_map['targetNamespace'] = repr(tns)
@@ -965,7 +965,7 @@ def GeneratePython (**kw):
 
         import_namespaces = [ ]
         for ns in schema.namespaces():
-            if ns == schema.getTargetNamespace():
+            if ns == schema.targetNamespace():
                 continue
             if ns.modulePath() is None:
                 if not ns.isBuiltinNamespace():
