@@ -150,6 +150,9 @@ class Namespace (object):
             self.LoadFromFile(afn)
             self.__inSchemaLoad = False
 
+    def nodeIsNamed (self, node, *local_names):
+        return (node.namespaceURI == self.uri()) and (node.localName in local_names)
+
     def validateSchema (self):
         """Ensure this namespace is ready for use.
 
