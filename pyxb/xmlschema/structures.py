@@ -23,6 +23,7 @@ import copy
 
 def _LookupAttributeDeclaration (ns, context, local_name):
     assert context is not None
+    assert 0 > local_name.find(':')
     rv = None
     if isinstance(context, ComplexTypeDefinition):
         rv = context.lookupScopedAttributeDeclaration(local_name)
@@ -32,6 +33,7 @@ def _LookupAttributeDeclaration (ns, context, local_name):
 
 def _LookupElementDeclaration (ns, context, local_name):
     assert context is not None
+    assert 0 > local_name.find(':')
     rv = None
     if isinstance(context, ComplexTypeDefinition):
         rv = context.lookupScopedElementDeclaration(local_name)
