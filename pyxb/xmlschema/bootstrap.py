@@ -295,7 +295,8 @@ class schema (xsc.Schema):
     def setTargetNamespace (self, namespace):
         """Specify the namespace for which this schema provides
         information."""
-        self._setTargetNamespace(namespace)
+        #self._setTargetNamespace(namespace)
+        assert self.targetNamespace() == namespace
         #print 'TARGET: %s' % (namespace,)
         return namespace
 
@@ -408,17 +409,12 @@ class schema (xsc.Schema):
         tns_uri = attribute_map.get('targetNamespace', None)
         if tns_uri is None:
             tns = Namespace.CreateEmptyNamespace()
-            assert tns is not None
         else:
             tns = Namespace.NamespaceForURI(tns_uri, create_if_missing=True)
-            assert tns is not None
         assert tns is not None
-        schema = None
-        if tns is not None:
-            schema = tns.schema()
+        schema = tns.schema()
         if schema is None:
-            schema = cls()
-        schema._setTargetNamespace(tns)
+            schema = cls(target_namespace=tns)
 
         return schema.__processDocumentRoot(root_node, namespaces, attribute_map, default_namespace)
 

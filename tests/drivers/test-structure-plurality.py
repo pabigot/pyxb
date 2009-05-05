@@ -28,8 +28,7 @@ class _TestBase (unittest.TestCase):
     __mgKW = None
 
     def setUp (self):
-        self.__schema = xs.schema()
-        self.__schema._setTargetNamespace(Namespace.CreateEmptyNamespace())
+        self.__schema = xs.schema(target_namespace=Namespace.CreateEmptyNamespace())
         self.__edKW = { 'schema' : self.__schema
                       , 'scope' : xs.structures._ScopedDeclaration_mixin.SCOPE_global
                       , 'context' : xs.structures._ScopedDeclaration_mixin.SCOPE_global }

@@ -938,7 +938,7 @@ def GeneratePython (**kw):
         if schema is None:
             if schema_file is None:
                 raise Exception('No input provided')
-            schema = xs.schema().CreateFromDOM(minidom.parse(schema_file))
+            schema = xs.schema.CreateFromDOM(minidom.parse(schema_file))
         if schema_file is None:
             schema_file = '<not provided>'
 

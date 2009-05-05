@@ -3650,17 +3650,17 @@ class Schema (_SchemaComponent_mixin):
     # List of annotations
     __annotations = None
 
-    # Target namespace for current schema.  Will be None only if the
-    # schema lacks a 'targetNamespace' attribute.  (Normally would
-    # occur for schemas documents "include"ed in other schema
-    # documents, but some people don't bother at all.)
-    __targetNamespace = None
-    def _setTargetNamespace (self, tns):
-        self.__targetNamespace = tns
-
     def targetNamespace (self):
-        return self.__targetNamespace
+        """The targetNamespace of a componen.
 
+        This is None, or a reference to a Namespace in which the
+        component is declared (either as a global or local to one of
+        the namespace's complex type definitions).  This is immutable
+        after creation.
+        """
+        return self.__targetNamespace
+    __targetNamespace = None
+    
     # Tuple of component classes in order in which they must be generated.
     __ComponentOrder = (
         Annotation                   # no dependencies
@@ -3760,13 +3760,11 @@ class Schema (_SchemaComponent_mixin):
         assert 'schema' not in kw
         kw['schema'] = _SchemaComponent_mixin._SCHEMA_None
         super(Schema, self).__init__(*args, **kw)
+        self.__targetNamespace = kw['target_namespace']
 
         self.__attributeMap = self.__attributeMap.copy()
-
         self.__components = set()
-
         self.__annotations = [ ]
-
         self.__unresolvedDefinitions = []
 
     def _queueForResolution (self, resolvable):

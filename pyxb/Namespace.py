@@ -266,7 +266,7 @@ class Namespace (object):
         if self.__schema is not None:
             raise LogicError('Not allowed to change the schema associated with namespace %s' % (self.uri(),))
         self.__schema = schema
-        self.__schema._setTargetNamespace(self)
+        assert schema.targetNamespace() == self
         return self.__schema
 
     def schema (self):
@@ -686,7 +686,7 @@ class _XMLSchema_instance (Namespace):
         if self.schema() is None:
             if not XMLSchemaModule():
                 raise LogicError('Must invoke SetXMLSchemaModule from Namespace module prior to using system.')
-            schema = XMLSchemaModule().schema()
+            schema = XMLSchemaModule().schema(target_namespace=self)
             self._schema(schema)
             # NOTE: We're explicitly not setting a targetNamespace for this schema.
             xsc = XMLSchemaModule().structures
@@ -718,7 +718,7 @@ class _XMLSchema (Namespace):
 
     def _defineSchema_overload (self):
         """Overload to resolve to built-in schema rather than loaded one."""
-        self._schema(XMLSchemaModule().schema()).setTargetNamespace(self)
+        self._schema(XMLSchemaModule().schema(target_namespace=self))
         XMLSchemaModule().structures._AddSimpleTypes(self.schema())
 
         # In order to load a schema from a file, we need the ability
