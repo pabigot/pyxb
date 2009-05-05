@@ -415,7 +415,7 @@ class Namespace (object):
         This delegates to the associated schema.  It returns an
         IdentityConstraintDefinition, or None if the name does not
         denote an element."""
-        return self._validatedSchema()._lookupIdentityConstraintDefinition(local_name)
+        return self.__identityConstraintDefinitions.get(local_name, None)
 
     def __str__ (self):
         if self.__uri is None:

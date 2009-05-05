@@ -156,11 +156,24 @@ _PrimitiveDatatypes.append(duration)
 
 class _TimeZone (datetime.tzinfo):
     """A tzinfo subclass that helps deal with UTC conversions"""
+
+    # Regular expression that matches valid ISO8601 time zone suffixes
     __Lexical_re = re.compile('^([-+])(\d\d):(\d\d)$')
 
+    # The offset in minutes east of UTC.
     __utcOffset = 0
 
     def __init__ (self, spec=None, flip=False):
+        """Create a time zone instance.
+
+        If spec is not None, it must conform to the ISO8601 time zone
+        sequence (Z, or [+-]HH:MM).
+
+        If flip is True, the time zone offset is flipped, resulting in
+        the conversion from localtime to UTC rather than the default
+        of UTC to localtime.
+        """
+
         if spec is None:
             return
         if 'Z' == spec:
@@ -195,7 +208,9 @@ class dateTime (basis.simpleTypeDefinition, datetime.datetime):
     underlying representation.  Note that per the XMLSchema spec, all
     dateTime objects are in UTC, and that timezone information in the
     string representation in XML is an indication of the local time
-    zone's offset from UTC.
+    zone's offset from UTC.  Presence of time zone information in the
+    lexical space is preserved through the value of the hasTimeZone()
+    field.
     """
 
     __Lexical_re = re.compile('^(?P<negYear>-?)(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})T(?P<hour>\d{2}):(?P<minute>\d{2}):(?P<second>\d{2})(?P<fracsec>\.\d*)?(?P<tzinfo>Z|[-+]\d\d:\d\d)?$')
@@ -205,6 +220,16 @@ class dateTime (basis.simpleTypeDefinition, datetime.datetime):
     # All non-tzinfo keywords for datetime constructor
     __Fields_us = __Fields + ('microsecond',)
     
+    __hasTimeZone = False
+    def hasTimeZone (self):
+        """True iff the time represented included time zone information.
+
+        Whether True or not, the moment denoted by an instance is
+        assumed to be in UTC.  That state is expressed in the lexical
+        space iff hasTimeZone is True.
+        """
+        return self.__hasTimeZone
+
     def __new__ (cls, *args, **kw):
         if 0 == len(args):
             now = python_time.gmtime()
@@ -233,23 +258,30 @@ class dateTime (basis.simpleTypeDefinition, datetime.datetime):
         else:
             raise BadTypeValueError('Unexpected type %s' % (type(value),))
         tzoffs = ctor_kw.pop('tzinfo', None)
+        has_time_zone = False
         if tzoffs is not None:
             dt = datetime.datetime(tzinfo=tzoffs, **ctor_kw)
             dt = tzoffs.fromutc(dt)
             ctor_kw = { }
             [ ctor_kw.setdefault(_field, getattr(dt, _field)) for _field in cls.__Fields_us ]
+            has_time_zone = True
+            
         year = ctor_kw.pop('year')
         month = ctor_kw.pop('month')
         day = ctor_kw.pop('day')
         kw.update(ctor_kw)
-        return super(dateTime, cls).__new__(cls, year, month, day, **kw)
+        rv = super(dateTime, cls).__new__(cls, year, month, day, **kw)
+        rv.__hasTimeZone = has_time_zone
+        return rv
 
     @classmethod
     def XsdLiteral (cls, value):
         iso = value.isoformat()
         if 0 <= iso.find('.'):
             iso = iso.rstrip('0')
-        return '%sZ' % (iso,)
+        if value.hasTimeZone():
+            iso += 'Z'
+        return iso
 
     _XsdBaseType = anySimpleType
     _Namespace = Namespace.XMLSchema
