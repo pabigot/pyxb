@@ -3336,13 +3336,6 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
         app_info = self.annotation().applicationInformation()
         if app_info is  None:
             return self.__defineDefaultFacets(wxs, variety)
-        hfp = None
-        try:
-            hfp = wxs.namespaceForURI(Namespace.XMLSchema_hfp.uri())
-        except SchemaValidationError, e:
-            pass
-        if hfp is None:
-            return None
         facet_map = { }
         fundamental_facets = set()
         seen_facets = set()
