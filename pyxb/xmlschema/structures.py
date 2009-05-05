@@ -3340,14 +3340,12 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
             return None
         facet_map = { }
         fundamental_facets = set()
-        has_facet = wxs.qualifiedNames('hasFacet', hfp)
-        has_property = wxs.qualifiedNames('hasProperty', hfp)
         seen_facets = set()
         for ai in app_info:
             for cn in ai.childNodes:
                 if Node.ELEMENT_NODE != cn.nodeType:
                     continue
-                if cn.nodeName in has_facet:
+                if Namespace.XMLSchema_hfp.nodeIsNamed(cn, 'hasFacet'):
                     assert False
                     facet_name = NodeAttribute(cn, 'name', Namespace.XMLSchema_hfp)
                     if facet_name is None:
@@ -3358,7 +3356,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
                     facet_class = facets.ConstrainingFacet.ClassForFacet(facet_name)
                     #facet_map[facet_class] = facet_class(base_type_definition=self)
                     facet_map[facet_class] = None
-                if cn.nodeName in has_property:
+                if Namespace.XMLSchema_hfp.nodeIsNamed(cn, 'hasProperty'):
                     fundamental_facets.add(facets.FundamentalFacet.CreateFromDOM(wxs, cn, self))
         if 0 < len(facet_map):
             assert self.__baseTypeDefinition == self.SimpleUrTypeDefinition()

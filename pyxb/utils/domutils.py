@@ -51,10 +51,8 @@ def LocateUniqueChild (node, schema, tag, absent_ok=True, namespace=Namespace.XM
     @throw SchemaValidationError if absent_ok is False and no element is identified.
     """
     candidate = None
-    # @todo identify QName children as well as NCName
-    names = schema.qualifiedNames(tag, namespace)
     for cn in node.childNodes:
-        if (Node.ELEMENT_NODE == cn.nodeType) and (cn.nodeName in names):
+        if (Node.ELEMENT_NODE == cn.nodeType) and namespace.nodeIsNamed(cn, tag):
             if candidate:
                 raise SchemaValidationError('Multiple %s elements nested in %s' % (name, node.nodeName))
             candidate = cn
@@ -72,9 +70,8 @@ def LocateMatchingChildren (node, schema, tag, namespace=Namespace.XMLSchema):
     consistent with the given tag.
     """
     matches = []
-    names = schema.qualifiedNames(tag, namespace)
     for cn in node.childNodes:
-        if (Node.ELEMENT_NODE == cn.nodeType) and (cn.nodeName in names):
+        if (Node.ELEMENT_NODE == cn.nodeType) and namespace.nodeIsNamed(cn, tag):
             matches.append(cn)
     return matches
 

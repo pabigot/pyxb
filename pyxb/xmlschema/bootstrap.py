@@ -370,35 +370,10 @@ class schema (xsc.Schema):
         assert isinstance(namespace, Namespace.Namespace)
         return self.__namespaceURIToPrefixMap.get(namespace.uri(), None)
 
-    def qualifiedNames (self, nc_name, namespace):
-        """Returns a tuple containing all valid names for this schema
-        that refer to the named component in the given namespace.  If
-        the namespace is the default namespace and has an associated
-        prefix, both the NCName and QName versions are included;
-        otherwise if the namespace is the default namespace the NCName
-        variant is included; otherwise an exception is thrown.
-        """
-        # @todo There can be multiple prefixes for a namespace
-        prefix = self.prefixForNamespace(namespace)
-        if prefix:
-            qname = '%s:%s' % (prefix, nc_name)
-            if self.__defaultNamespace == namespace:
-                return (qname, nc_name)
-            return (qname,)
-        if self.__defaultNamespace == namespace:
-            return (nc_name,)
-        raise SchemaValidationError('No prefix available to qualify %s in %s' % (nc_name, namespace.uri()))
-
-    def qualifiedName (self, nc_name, namespace):
-        """Given a NCName in the given namespace, return a name
-        (QName or NCName) that identifies the component within this
-        schema."""
-        return self.qualifiedNames(nc_name, namespace)[0]
-
     def createDOMNodeInNamespace (self, dom_document, nc_name, namespace=None):
         if namespace is None:
             namespace = self.getDefaultNamespace()
-        return dom_document.createElementNS(namespace.uri(), self.qualifiedName(nc_name, namespace))
+        return dom_document.createElementNS(namespace.uri(), nc_name)
 
     def createDOMNodeInWXS (self, dom_document, nc_name):
         return self.createDOMNodeInNamespace(dom_document, nc_name, Namespace.XMLSchema)
