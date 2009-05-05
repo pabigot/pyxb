@@ -96,10 +96,6 @@ class schema (xsc.Schema):
     # schema has an 'xmlns' attribute.
     __defaultNamespace = None 
 
-    # The prefix used for qualified names in the XMLSchema namespace,
-    # or None if the default namespace is XMLSchema.
-    __xsPrefix = None
-
     def __init__ (self, **kw):
         super(schema, self).__init__(self, **kw)
         self.__namespaces = set()
@@ -417,10 +413,6 @@ class schema (xsc.Schema):
             # Does not hold for http://www.w3.org/2001/xml.xsd
             ns = self.lookupOrCreateNamespace(default_namespace)
             self.setDefaultNamespace(ns)
-        # Cache the prefix used for XMLSchema names.  If the default
-        # namespace is XMLSchema, do not use a prefix
-        if self.getDefaultNamespace() != Namespace.XMLSchema:
-            self.__xsPrefix = self.prefixForNamespace(Namespace.XMLSchema)
 
         # Apply the targetNamespace attribute.  There is a default,
         # which is to have no associated namespace.
