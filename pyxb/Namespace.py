@@ -425,7 +425,7 @@ class Namespace (object):
         This delegates to the associated schema.  It returns an
         AttributeDeclaration, or None if the name does not denote an
         attribute."""
-        return self.__elementDeclarations.get(local_name, None)
+        return self.__attributeDeclarations.get(local_name, None)
 
     def lookupElementDeclaration (self, local_name, context=None):
         """Look up a named element in the namespace.
@@ -433,7 +433,7 @@ class Namespace (object):
         This delegates to the associated schema.  It returns an
         ElementDeclaration, or None if the name does not denote an
         element."""
-        return self.__attributeDeclarations.get(local_name, None)
+        return self.__elementDeclarations.get(local_name, None)
 
     def lookupNotationDeclaration (self, local_name):
         return self.__notationDeclarations.get(local_name, None)
