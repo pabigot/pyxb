@@ -185,7 +185,7 @@ class schema (xsc.Schema):
         (ns, local_name) = self.__getNamespaceForLookup(qualified_name)
         assert 0 > local_name.find(':')
         if ns is None:
-            rv = self._lookupTypeDefinition(local_name)
+            rv = self.targetNamespace().lookupTypeDefinition(local_name)
         else:
             rv = ns.lookupTypeDefinition(local_name)
         if rv is None:

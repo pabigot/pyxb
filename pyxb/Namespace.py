@@ -374,6 +374,35 @@ class Namespace (object):
         if the name does not denote a type."""
         return self.__typeDefinitions.get(local_name, None)
 
+    def __addNamedObject (self, named_object, name_map):
+        local_name = named_object.ncName()
+        old_object = name_map.get(local_name, None)
+        if (old_object is not None) and (old_object != named_object):
+            raise SchemaValidationError('Name %s used for multiple instances of %s' % (local_name, type(named_object)))
+        name_map[local_name] = named_object
+        return named_object
+
+    def addTypeDefinition (self, type_definition):
+        return self.__addNamedObject(type_definition, self.__typeDefinitions)
+
+    def addAttributeGroupDefinition (self, agd):
+        return self.__addNamedObject(agd, self.__attributeGroupDefinitions)
+
+    def addAttributeDeclaration (self, ad):
+        return self.__addNamedObject(ad, self.__attributeDeclarations)
+
+    def addElementDeclaration (self, ed):
+        return self.__addNamedObject(ed, self.__elementDeclarations)
+
+    def addModelGroupDefinition (self, ed):
+        return self.__addNamedObject(ed, self.__modelGroupDefinitions)
+
+    def addNotationDeclaration (self, ed):
+        return self.__addNamedObject(ed, self.__notationDeclarations)
+
+    def addIdentityConstraintDefinition (self, ed):
+        return self.__addNamedObject(ed, self.__identityConstraintDefinitions)
+
     def lookupAttributeGroupDefinition (self, local_name):
         """Look up a named attribute group in the namespace.
 

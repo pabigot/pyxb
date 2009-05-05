@@ -3837,7 +3837,8 @@ class Schema (_SchemaComponent_mixin):
         return annotation
 
     def _addNamedComponent (self, nc):
-        assert self.targetNamespace() is not None
+        tns = self.targetNamespace()
+        assert tns is not None
         if not isinstance(nc, _NamedComponent_mixin):
             raise LogicError('Attempt to add unnamed %s instance to dictionary' % (nc.__class__,))
         if nc.ncName() is None:
@@ -3848,23 +3849,24 @@ class Schema (_SchemaComponent_mixin):
         if isinstance(nc, (SimpleTypeDefinition, ComplexTypeDefinition)):
             return self.__addTypeDefinition(nc)
         if isinstance(nc, AttributeGroupDefinition):
-            return self.__addAttributeGroupDefinition(nc)
+            return tns.addAttributeGroupDefinition(nc)
         if isinstance(nc, AttributeDeclaration):
-            return self.__addAttributeDeclaration(nc)
+            return tns.addAttributeDeclaration(nc)
         if isinstance(nc, ModelGroupDefinition):
-            return self.__addModelGroupDefinition(nc)
+            return tns.addModelGroupDefinition(nc)
         if isinstance(nc, ElementDeclaration):
-            return self.__addElementDeclaration(nc)
+            return tns.addElementDeclaration(nc)
         if isinstance(nc, NotationDeclaration):
-            return self.__addNotationDeclaration(nc)
+            return tns.addNotationDeclaration(nc)
         if isinstance(nc, IdentityConstraintDefinition):
-            return self.__addIdentityConstraintDefinition(nc)
+            return tns.addIdentityConstraintDefinition(nc)
         raise IncompleteImplementationError('No support to record named component of type %s' % (nc.__class__,))
 
     def __addTypeDefinition (self, td):
         local_name = td.ncName()
         assert self.__targetNamespace
-        old_td = self.__typeDefinitions.get(local_name, None)
+        tns = self.targetNamespace()
+        old_td = tns.lookupTypeDefinition(local_name)
         if (old_td is not None) and (old_td != td):
             # @todo validation error if old_td is not a built-in
             if isinstance(td, ComplexTypeDefinition) != isinstance(old_td, ComplexTypeDefinition):
@@ -3873,44 +3875,10 @@ class Schema (_SchemaComponent_mixin):
             # into the old one, and continue to use the old one.
             td = self.__replaceUnresolvedDefinition(td, old_td._setBuiltinFromInstance(td))
         else:
-            self.__typeDefinitions[local_name] = td
+            tns.addTypeDefinition(td)
         assert td is not None
         return td
     
-    def _typeDefinitions (self):
-        return self.__typeDefinitions.values()
-
-    def _lookupTypeDefinition (self, local_name):
-        return self.targetNamespace().lookupTypeDefinition(local_name)
-
-    def __addAttributeGroupDefinition (self, agd):
-        assert isinstance(agd, AttributeGroupDefinition)
-        local_name = agd.ncName()
-        old_agd = self.__attributeGroupDefinitions.get(local_name, None)
-        if (old_agd is not None) and (old_agd != agd):
-            raise SchemaValidationError('Name %s used for multiple attribute group definitions' % (local_name,))
-        self.__attributeGroupDefinitions[local_name] = agd
-        return agd
-
-    def __addModelGroupDefinition (self, mgd):
-        assert isinstance(mgd, ModelGroupDefinition)
-        local_name = mgd.ncName()
-        #print 'Defining group %s' % (local_name,)
-        old_mgd = self.__modelGroupDefinitions.get(local_name, None)
-        if (old_mgd is not None) and (old_mgd != mgd):
-            raise SchemaValidationError('Name %s used for multiple groups' % (local_name,))
-        self.__modelGroupDefinitions[local_name] = mgd
-        return mgd
-
-    def __addAttributeDeclaration (self, ad):
-        assert isinstance(ad, AttributeDeclaration)
-        local_name = ad.ncName()
-        old_ad = self.__attributeDeclarations.get(local_name, None)
-        if (old_ad is not None) and (old_ad != ad):
-            raise SchemaValidationError('Name %s used for multiple attribute declarations' % (local_name,))
-        self.__attributeDeclarations[local_name] = ad
-        return ad
-
     def _lookupAttributeDeclaration (self, local_name, context):
         assert context is not None
         rv = None
@@ -3920,16 +3888,6 @@ class Schema (_SchemaComponent_mixin):
             rv = self.__attributeDeclarations.get(local_name, None)
         return rv
 
-    def __addElementDeclaration (self, ed):
-        assert isinstance(ed, ElementDeclaration)
-        local_name = ed.ncName()
-        #print 'Defining element %s' % (local_name,)
-        old_ed = self.__elementDeclarations.get(local_name, None)
-        if (old_ed is not None) and (old_ed != ed):
-            raise SchemaValidationError('Name %s used for multiple elements' % (local_name,))
-        self.__elementDeclarations[local_name] = ed
-        return ed
-
     def _lookupElementDeclaration (self, local_name, context):
         assert context is not None
         rv = None
@@ -3938,26 +3896,6 @@ class Schema (_SchemaComponent_mixin):
         if rv is None:
             rv = self.__elementDeclarations.get(local_name, None)
         return rv
-
-    def __addNotationDeclaration (self, nd):
-        assert isinstance(nd, NotationDeclaration)
-        local_name = nd.ncName()
-        #print 'Defining notation %s' % (local_name,)
-        old_nd = self.__notationDeclarations.get(local_name, None)
-        if (old_nd is not None) and (old_nd != nd):
-            raise SchemaValidationError('Name %s used for multiple notations' % (local_name,))
-        self.__notationDeclarations[local_name] = nd
-        return nd
-
-    def __addIdentityConstraintDefinition (self, nd):
-        assert isinstance(nd, IdentityConstraintDefinition)
-        local_name = nd.ncName()
-        #print 'Defining notation %s' % (local_name,)
-        old_nd = self.__identityConstraintDefinitions.get(local_name, None)
-        if (old_nd is not None) and (old_nd != nd):
-            raise SchemaValidationError('Name %s used for multiple notations' % (local_name,))
-        self.__identityConstraintDefinitions[local_name] = nd
-        return nd
 
 def _AddSimpleTypes (schema):
     """Add to the schema the definitions of the built-in types of
@@ -3986,7 +3924,8 @@ def _AddSimpleTypes (schema):
     for dtc in datatypes._ListDatatypes:
         list_name = dtc.__name__.rstrip('_')
         element_name = dtc._ItemType.__name__.rstrip('_')
-        element_std = schema._lookupTypeDefinition(element_name)
+        element_std = schema.targetNamespace().lookupTypeDefinition(element_name)
+        assert element_std is not None
         td = schema._addNamedComponent(SimpleTypeDefinition.CreateListInstance(list_name, schema, element_std, dtc))
         assert td.isResolved()
     return schema
