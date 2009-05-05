@@ -3460,9 +3460,10 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
                     if member_types is not None:
                         for mn in member_types.split():
                             # THROW if type has not been defined
-                            if 0 > mn.find(':'):
-                                mn = wxs.xsQualifiedName(mn)
-                            mtd.append(wxs.lookupSimpleType(mn))
+                            (mn_ns, mn_local) = wxs.getNamespaceForLookup(mn)
+                            std = mn_ns.lookupTypeDefinition(mn_local)
+                            assert isinstance(std, SimpleTypeDefinition)
+                            mtd.append(std)
                     # Now look for local type definitions
                     for cn in body.childNodes:
                         if (Node.ELEMENT_NODE == cn.nodeType):

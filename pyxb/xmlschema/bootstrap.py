@@ -150,10 +150,7 @@ class schema (xsc.Schema):
                     print 'WARNING validating schema for %s: %s' % (ns.uri(), e)
                     traceback.print_exception(*sys.exc_info())
 
-    def namespaceForQName (self, type_name):
-        return self.__getNamespaceForLookup(type_name)[0]
-
-    def __getNamespaceForLookup (self, type_name):
+    def getNamespaceForLookup (self, type_name):
         """Resolve a QName or NCName appropriately for this schema.
 
         Returns a pair consisting of the namespace to be used for
@@ -186,7 +183,7 @@ class schema (xsc.Schema):
         If the name cannot be resolved in the appropriate namespace,
         an exception is thrown."""
 
-        (ns, local_name) = self.__getNamespaceForLookup(qualified_name)
+        (ns, local_name) = self.getNamespaceForLookup(qualified_name)
         assert 0 > local_name.find(':')
         if ns is None:
             rv = self.targetNamespace().lookupTypeDefinition(local_name)
@@ -205,7 +202,7 @@ class schema (xsc.Schema):
 
     def lookupAttributeGroup (self, qualified_name):
         """Like lookupType, but for attribute groups."""
-        (ns, local_name) = self.__getNamespaceForLookup(qualified_name)
+        (ns, local_name) = self.getNamespaceForLookup(qualified_name)
         if ns is None:
             rv = self.targetNamespace().lookupAttributeGroupDefinition(local_name)
         else:
@@ -216,7 +213,7 @@ class schema (xsc.Schema):
 
     def lookupGroup (self, qualified_name):
         """Like lookupType, but for groups."""
-        (ns, local_name) = self.__getNamespaceForLookup(qualified_name)
+        (ns, local_name) = self.getNamespaceForLookup(qualified_name)
         if ns is None:
             rv = self.targetNamespace().lookupModelGroupDefinition(local_name)
         else:
@@ -227,7 +224,7 @@ class schema (xsc.Schema):
 
     def lookupAttribute (self, qualified_name, context=xsc._ScopedDeclaration_mixin.SCOPE_global):
         """Like lookupType, but for attributes."""
-        (ns, local_name) = self.__getNamespaceForLookup(qualified_name)
+        (ns, local_name) = self.getNamespaceForLookup(qualified_name)
         if ns is None:
             rv = self._lookupAttributeDeclaration(local_name, context)
         else:
@@ -238,7 +235,7 @@ class schema (xsc.Schema):
 
     def lookupElement (self, qualified_name, context=xsc._ScopedDeclaration_mixin.SCOPE_global):
         """Like lookupType, but for elements."""
-        (ns, local_name) = self.__getNamespaceForLookup(qualified_name)
+        (ns, local_name) = self.getNamespaceForLookup(qualified_name)
         if ns is None:
             rv = self._lookupElementDeclaration(local_name, context)
         else:
@@ -397,14 +394,6 @@ class schema (xsc.Schema):
         (QName or NCName) that identifies the component within this
         schema."""
         return self.qualifiedNames(nc_name, namespace)[0]
-
-    def xsQualifiedNames (self, nc_name):
-        """Invokes qualifiedNames using the XMLSchema namespace."""
-        return self.qualifiedNames(nc_name, Namespace.XMLSchema)
-
-    def xsQualifiedName (self, nc_name):
-        """Invokes qualifedName using the XMLSchema namespace"""
-        return self.qualifiedName(nc_name, Namespace.XMLSchema)
 
     def createDOMNodeInNamespace (self, dom_document, nc_name, namespace=None):
         if namespace is None:
