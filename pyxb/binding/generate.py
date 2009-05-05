@@ -147,6 +147,8 @@ class ReferenceSchemaComponent (ReferenceLiteral):
             tns = btns
         is_in_binding = (btns == tns) or (tns is None)
             
+        assert (not isinstance(self.__component, xs.structures._Resolvable_mixin)) or self.__component.isResolved()
+
         name = self.__component.nameInBinding()
         if is_in_binding and (name is None):
             global UniqueInBinding
