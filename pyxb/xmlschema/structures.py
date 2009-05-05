@@ -21,6 +21,25 @@ import pyxb.utils.templates as templates
 from pyxb.utils.domutils import *
 import copy
 
+def _LookupAttributeDeclaration (ns, context, local_name):
+    assert context is not None
+    rv = None
+    if isinstance(context, ComplexTypeDefinition):
+        rv = context.lookupScopedAttributeDeclaration(local_name)
+    if rv is None:
+        rv = ns.lookupAttributeDeclaration(local_name)
+    return rv
+
+def _LookupElementDeclaration (ns, context, local_name):
+    assert context is not None
+    rv = None
+    if isinstance(context, ComplexTypeDefinition):
+        rv = context.lookupScopedElementDeclaration(local_name)
+    if rv is None:
+        rv = ns.lookupElementDeclaration(local_name)
+    return rv
+
+
 class _SchemaComponent_mixin (object):
     """A mix-in that marks the class as representing a schema component.
 
@@ -370,9 +389,9 @@ class _NamedComponent_mixin (object):
             elif issubclass(icls, ModelGroupDefinition):
                 rv = ns.lookupModelGroupDefinition(ncname)
             elif issubclass(icls, AttributeDeclaration):
-                rv = ns.lookupAttributeDeclaration(ncname, _ScopedDeclaration_mixin.SCOPE_global)
+                rv = _LookupAttributeDeclaration(ns, _ScopedDeclaration_mixin.SCOPE_global, ncname)
             elif issubclass(icls, ElementDeclaration):
-                rv = ns.lookupElementDeclaration(ncname, _ScopedDeclaration_mixin.SCOPE_global)
+                rv = _LookupElementDeclaration(ns, _ScopedDeclaration_mixin.SCOPE_global, ncname)
             elif issubclass(icls, IdentityConstraintDefinition):
                 rv = ns.lookupIdentityConstraintDefinition(ncname)
             else:
@@ -3879,24 +3898,6 @@ class Schema (_SchemaComponent_mixin):
         assert td is not None
         return td
     
-    def _lookupAttributeDeclaration (self, local_name, context):
-        assert context is not None
-        rv = None
-        if isinstance(context, ComplexTypeDefinition):
-            rv = context.lookupScopedAttributeDeclaration(local_name)
-        if rv is None:
-            rv = self.__attributeDeclarations.get(local_name, None)
-        return rv
-
-    def _lookupElementDeclaration (self, local_name, context):
-        assert context is not None
-        rv = None
-        if isinstance(context, ComplexTypeDefinition):
-            rv = context.lookupScopedElementDeclaration(local_name)
-        if rv is None:
-            rv = self.__elementDeclarations.get(local_name, None)
-        return rv
-
 def _AddSimpleTypes (schema):
     """Add to the schema the definitions of the built-in types of
     XMLSchema."""
