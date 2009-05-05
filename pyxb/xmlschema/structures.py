@@ -203,14 +203,6 @@ class _SchemaComponent_mixin (object):
             wxs._queueForResolution(that)
         return that
 
-    def _copyResolution (self, resolved):
-        """Invoked upon resolution if the resolved object has clones.
-
-        Subclasses should override this method in order to copy the
-        required resolution information from the given instance, which
-        should be the source to this instance as a clone."""
-        pass
-
     def isTypeDefinition (self):
         """Return True iff this component is a simple or complex type
         definition."""
@@ -951,10 +943,6 @@ class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
 
     def isResolved (self):
         return self.__typeDefinition is not None
-
-    def _copyResolution (self, other):
-        self.__typeDefinition = other.__typeDefinition
-        return self
 
     def _resolve (self, wxs):
         if self.isResolved():
@@ -3825,29 +3813,32 @@ class Schema (_SchemaComponent_mixin):
             unresolved = self.__unresolvedDefinitions
             self.__unresolvedDefinitions = []
             for resolvable in unresolved:
+                # Don't resolve things that don't have scope.  We
+                # could, but then we'd have to copy the resolution to
+                # previously-created clones.  It's easier just to
+                # resolve each clone on its own.  Since the only
+                # components that don't have scope are at the top
+                # level (declarations or model group definitions),
+                # delaying resolution can't change the final results.
                 if isinstance(resolvable, _ScopedDeclaration_mixin) and (resolvable.scope() is None):
-                    #print 'NOT RESOLVING unscoped declaration %s' % (resolvable.name(),)
                     continue
-                resolvable._resolve(self)
+
+                # This should be a top-level component, or a
+                # declaration inside a given scope.
                 assert (resolvable in self.__components) \
                     or (isinstance(resolvable, _ScopedDeclaration_mixin) \
                         and (isinstance(resolvable.scope(), ComplexTypeDefinition)))
+
+                resolvable._resolve(self)
+
+                # Either we resolved it, or we queued it to try again later
                 assert resolvable.isResolved() or (resolvable in self.__unresolvedDefinitions)
-                if resolvable.isResolved() and (resolvable._clones() is not None):
-                    # We don't seem to ever get here, but I think we
-                    # might: we clone things when they don't have
-                    # scope, but that doesn't mean they don't have
-                    # context, so we might have resolved them, and in
-                    # fact should have since (for example) element
-                    # declarations in model group definitions are
-                    # resolved at the MGD definition, not in the
-                    # context of where the model group is inserted by
-                    # reference.  I think we'll get here if we ever
-                    # continue on to do more component building after
-                    # resolving something: right now, those are two
-                    # separate stages.
-                    assert False
-                    [ _c._copyResolution(resolvable) for _c in resolvable._clones() ]
+
+                # We only clone things that have scope None.  We never
+                # resolve things that have scope None.  Therefore, we
+                # should never have resolved something that has
+                # clones.
+                assert not (resolvable.isResolved() and (resolvable._clones() is not None))
             if self.__unresolvedDefinitions == unresolved:
                 # This only happens if we didn't code things right, or
                 # the schema actually has a circular dependency in
