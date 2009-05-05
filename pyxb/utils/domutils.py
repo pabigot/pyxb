@@ -5,7 +5,9 @@ from xml.dom import minidom
 import xml.dom as dom
 
 def NodeAttribute (node, schema, attribute_ncname, attribute_ns=Namespace.XMLSchema):
-    """Look up an attribute in a node.
+    """Namespace-aware search for an attribute in a node.
+
+    Be aware that the default namespace does not apply to attributes.
 
     NEVER EVER use node.hasAttribute or node.getAttribute directly.
     The attribute tag can often be in multiple forms.
@@ -23,21 +25,15 @@ def NodeAttribute (node, schema, attribute_ncname, attribute_ns=Namespace.XMLSch
     for "lang" in http://www.w3.org/XML/1998/namespace, The simpleType
     includes a union clause whose memberTypes attribute is
     unqualified, and XMLSchema is not the default namespace."""
-    assert node.namespaceURI is not None
-    container_ns = schema.namespaceForURI(node.namespaceURI)
-    assert container_ns is not None
-    assert attribute_ns is not None
-    candidate_names = schema.qualifiedNames(attribute_ncname, attribute_ns)
-    if (attribute_ns == container_ns) and not (attribute_ncname in candidate_names):
-        candidate_names = candidate_names + (attribute_ncname,)
-    attr_value = None
-    match_name = None
-    for attr_name in candidate_names:
-        if node.hasAttribute(attr_name):
-            if attr_value is not None:
-                raise SchemaValidationError('Multiple instances of attribute %s from %s' % (attribute_ncname, attribute_ns.uri()))
-            attr_value = node.getAttribute(attr_name)
-    return attr_value
+
+    assert node.namespaceURI
+    if node.namespaceURI == attribute_ns.uri():
+        if node.hasAttributeNS(None, attribute_ncname):
+            return node.getAttributeNS(None, attribute_ncname)
+    if node.hasAttributeNS(attribute_ns.uri(), attribute_ncname):
+        assert False
+        return node.getAttributeNS(attribute_ns.uri(), attribute_ncname)
+    return None
 
 def LocateUniqueChild (node, schema, tag, absent_ok=True, namespace=Namespace.XMLSchema):
     """Locate a unique child of the DOM node.
