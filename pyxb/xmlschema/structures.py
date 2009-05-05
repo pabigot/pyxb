@@ -747,6 +747,7 @@ class _PluralityData (types.ListType):
             raise LogicError('Unrecognized compositor value %s' % (model_group.compositor(),))
 
     def __fromParticle (self, particle):
+        assert particle.isResolved()
         pd = particle.term().pluralityData()
 
         # If the particle can't appear at all, there are no results.
@@ -772,6 +773,7 @@ class _PluralityData (types.ListType):
     def __setFromComponent (self, component=None):
         del self[:]
         if isinstance(component, ElementDeclaration):
+            assert component.isResolved()
             self.append( { component: False } )
         elif isinstance(component, ModelGroup):
             self.__fromModelGroup(component)
@@ -1330,7 +1332,9 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Resolv
         return self
 
     def __str__ (self):
-        return 'ED[%s:%s]' % (self.name(), self.typeDefinition().name())
+        if self.typeDefinition() is not None:
+            return 'ED[%s:%s]' % (self.name(), self.typeDefinition().name())
+        return 'ED[%s:?]' % (self.name(),)
 
 
 class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Resolvable_mixin, _Annotated_mixin, _AttributeWildcard_mixin):
@@ -1465,7 +1469,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
         """
         assert self != other
         assert self.isNameEquivalent(other)
-        super(SimpleTypeDefinition, self)._setBuiltinFromInstance(other)
+        super(ComplexTypeDefinition, self)._setBuiltinFromInstance(other)
 
         # The other STD should be an unresolved schema-defined type.
         assert other.__derivationMethod is None
@@ -1906,7 +1910,9 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
 
         # Last chance for failure is if we haven't been able to
         # extract all the element declarations that might appear in
-        # this complex type.
+        # this complex type.  That technically wouldn't stop this from
+        # being resolved, but it does prevent us from using it as a
+        # context.
         if isinstance(self.__contentType, tuple) and isinstance(self.__contentType[1], Particle):
             prt = self.__contentType[1]
             if prt.hasUnresolvableParticle(wxs):
@@ -2256,7 +2262,7 @@ class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
             comp = 'SEQUENCE'
         return '%s:(%s)' % (comp, ",".join( [ str(_p) for _p in self.particles() ] ) )
 
-class Particle (_SchemaComponent_mixin):
+class Particle (_SchemaComponent_mixin, _Resolvable_mixin):
     """Some entity along with occurrence information."""
 
     # The minimum number of times the term may appear.
@@ -2366,10 +2372,8 @@ class Particle (_SchemaComponent_mixin):
         assert _ScopedDeclaration_mixin.IsValidScope(self._context())
         assert (self._scope() is None) or isinstance(self._scope(), ComplexTypeDefinition)
 
-        assert term is not None
-        self.__term = term._adaptForScope(wxs, self, self._scope())
-        if self.__term.owner() is None:
-            self.__term._setOwner(self)
+        if term is not None:
+            self.__term = term._adaptForScope(wxs, self, self._scope())
 
         assert isinstance(min_occurs, (types.IntType, types.LongType))
         self.__minOccurs = min_occurs
@@ -2379,8 +2383,12 @@ class Particle (_SchemaComponent_mixin):
             if self.__minOccurs > self.__maxOccurs:
                 raise LogicError('Particle minOccurs %s is greater than maxOccurs %s on creation' % (min_occurs, max_occurs))
     
-    @classmethod
-    def __GetTerm (cls, wxs, context, node, scope):
+    def _resolve (self, wxs):
+        if self.isResolved():
+            return self
+        node = self.__domNode
+        context = self._context()
+        scope = self._scope()
         ref_attr = NodeAttribute(node, 'ref')
         if xsd.nodeIsNamed(node, 'group'):
             # 3.9.2 says use 3.8.2, which is ModelGroup.  The group
@@ -2391,10 +2399,13 @@ class Particle (_SchemaComponent_mixin):
             # Named groups can only appear at global scope, so no need
             # to use context here.
             group_decl = wxs.lookupGroup(ref_attr)
+            if group_decl is None:
+                wxs._queueForResolution(self)
+                return None
 
-            # Neither group definitions, nor model groups, require
+            # Neither group definitions nor model groups require
             # resolution, so we can just extract the reference.
-            term = group_decl.modelGroup()
+            term = group_decl.modelGroup()._adaptForScope(wxs, self, scope)
             assert term is not None
         elif xsd.nodeIsNamed(node, 'element'):
             assert not xsd.nodeIsNamed(node.parentNode, 'schema')
@@ -2403,6 +2414,9 @@ class Particle (_SchemaComponent_mixin):
             # the one it refers to, or create a local one here.
             if ref_attr is not None:
                 term = wxs.lookupElement(ref_attr, context)
+                if term is None:
+                    wxs._queueForResolution(self)
+                    return term
             else:
                 term = ElementDeclaration.CreateFromDOM(wxs, node, scope)
             assert term is not None
@@ -2417,7 +2431,12 @@ class Particle (_SchemaComponent_mixin):
             term = ModelGroup.CreateFromDOM(wxs, context, node, scope)
         else:
             raise LogicError('Unhandled node in Particle._resolve: %s' % (node.toxml(),))
-        return term
+        self.__domNode = None
+        self.__term = term
+        return self
+
+    def isResolved (self):
+        return self.__term is not None
 
     # CFD:Particle
     @classmethod
@@ -2463,7 +2482,9 @@ class Particle (_SchemaComponent_mixin):
             else:
                 kw['max_occurs'] = datatypes.nonNegativeInteger(attr_val)
 
-        rv = cls(cls.__GetTerm(wxs, context, node, scope), **kw)
+        rv = cls(None, **kw)
+        rv.__domNode = node
+        wxs._queueForResolution(rv)
         return rv
 
     def _adaptForScope (self, wxs, owner, scope):
@@ -2489,7 +2510,7 @@ class Particle (_SchemaComponent_mixin):
         resolvability, not do any resolution.
 
         """
-        return self.term().hasUnresolvableParticle(wxs)
+        return (not self.isResolved()) or self.term().hasUnresolvableParticle(wxs)
         
     @classmethod
     def IsTypedefNode (cls, node):
