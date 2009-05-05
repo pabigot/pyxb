@@ -181,10 +181,10 @@ class ReferenceSchemaComponent (ReferenceLiteral):
                 if isinstance(scope, xs.structures.ComplexTypeDefinition):
                     if scope.targetNamespace() != self.__component.targetNamespace():
                         print 'WARNING: Inner decl %s tns %s scope %s' % (name, self.__component.targetNamespace(), scope.name())
-                    name_prefix = scope.ncName()
+                    name_prefix = scope.localName()
                     if name_prefix is None:
                         assert scope.owner() is not None
-                        name_prefix = scope.owner().ncName()
+                        name_prefix = scope.owner().localName()
                     assert name_prefix is not None
                     name = '%s_%s' % (name_prefix, name)
 
@@ -380,8 +380,8 @@ def GenerateContentModel (ctd, automaton, **kw):
                 if 'eu_field' in template_map:
                     del template_map['eu_field']
                 for (name, ( is_plural, types, ef_map) ) in ctd.__elementFields.items():
-                    type_names = [ _u.ncName() for _u in types ]
-                    if key.ncName() in type_names:
+                    type_names = [ _u.localName() for _u in types ]
+                    if key.localName() in type_names:
                         template_map['eu_field'] = templates.replaceInText('%{ctd}._UseForTag(%{field_tag})', field_tag=ef_map['field_tag'], **template_map)
                         break
             lines3.append(templates.replaceInText('%{content}.ContentModelTransition(term=%{term}, next_state=%{next_state}, element_use=%{eu_field}),',
@@ -451,7 +451,7 @@ def GenerateSTD (std, **kw):
     template_map['superclasses'] = ''
     if 0 < len(parent_classes):
         template_map['superclasses'] = ', '.join(parent_classes)
-    template_map['name'] = pythonLiteral(std.ncName(), **kw)
+    template_map['name'] = pythonLiteral(std.localName(), **kw)
 
     if xs.structures.SimpleTypeDefinition.VARIETY_absent == std.variety():
         assert False
@@ -514,7 +514,7 @@ def TypeSetCompatible (s1, s2):
     for ctd1 in s1:
         match = False
         for ctd2 in s2:
-            if ctd1.ncName() == ctd2.ncName():
+            if ctd1.localName() == ctd2.localName():
                 match = True
                 break
         if not match:
@@ -711,7 +711,7 @@ class %{ctd} (%{superclasses}):
         for au in ctd.attributeUses():
             inherit_attribute = False
             ad = au.attributeDeclaration()
-            name = ad.ncName()
+            name = ad.localName()
             superclass_info = base_type.__attributeFields.get(name, None)
             if superclass_info is not None:
                 this_config = ( au.required(), au.prohibited(), au.attributeDeclaration() )
@@ -735,7 +735,7 @@ class %{ctd} (%{superclasses}):
     for au in element_attribute_uses:
         ad = au.attributeDeclaration()
         au_map = { }
-        attr_name = ad.ncName()
+        attr_name = ad.localName()
         used_attr_name = utility.PrepareIdentifier(attr_name, class_unique, class_keywords)
         attribute_name_map[attr_name] = used_attr_name
         au_map['python_attr_name'] = used_attr_name
@@ -817,7 +817,7 @@ def GenerateED (ed, **kw):
     outf = StringIO.StringIO()
     template_map = { }
     template_map['class'] = pythonLiteral(ed, **kw)
-    template_map['element_name'] = pythonLiteral(ed.ncName(), **kw)
+    template_map['element_name'] = pythonLiteral(ed.localName(), **kw)
     if (ed.SCOPE_global == ed.scope()):
         template_map['element_scope'] = pythonLiteral(None, **kw)
     else:
@@ -859,7 +859,7 @@ def GenerateMG (mg, **kw):
         if e.scope() is None:
             return ''
         assert e.isResolved()
-        field_names.setdefault(e.ncName(), []).append(e)
+        field_names.setdefault(e.localName(), []).append(e)
     field_decls = []
     for fn in field_names.keys():
         decl = []
@@ -889,7 +889,7 @@ def GenerateMG (mg, **kw):
                 assert isinstance(f.ancestorComponent(), xs.structures.ModelGroup)
                 mgd = f.ancestorComponent().modelGroupDefinition()
                 if mgd is not None:
-                    decl.append("%s:%s from group %s" % (fn, pythonLiteral(f.typeDefinition(), **kw), mgd.ncName()))
+                    decl.append("%s:%s from group %s" % (fn, pythonLiteral(f.typeDefinition(), **kw), mgd.localName()))
                 else:
                     decl.append("%s:%s from unnamed group" % (fn, pythonLiteral(f.typeDefinition(), **kw)))
             else:
