@@ -3659,7 +3659,7 @@ class Schema (_SchemaComponent_mixin):
         self.__attributeDeclarations = tns.attributeDeclarations()
         self.__elementDeclarations = tns.elementDeclarations()
         self.__notationDeclarations = tns.notationDeclarations()
-        self.__identityConstraintDefinitions = tns.identityConstraintDefinitions
+        self.__identityConstraintDefinitions = tns.identityConstraintDefinitions()
 
     def targetNamespace (self):
         return self.__targetNamespace
