@@ -1216,14 +1216,10 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Resolv
 
         # Might be top-level, might be local
         name = NodeAttribute(node, 'name')
-        namespace = None
+        namespace = wxs.targetNamespace()
         if xsd.nodeIsNamed(node.parentNode, 'schema'):
-            namespace = wxs.targetNamespace()
             assert _ScopedDeclaration_mixin.SCOPE_global == scope
         elif NodeAttribute(node, 'ref') is None:
-            # NB: It is perfectly legal for namespace to be None when
-            # processing local elements.
-            namespace = wxs.defaultNamespaceFromDOM(node, 'elementFormDefault')
             assert (scope is None) or isinstance(scope, ComplexTypeDefinition)
             # Context may be None or a CTD.
         else:
