@@ -221,11 +221,11 @@ class _SchemaComponent_mixin (object):
         ModelGroupDefinition, if available.  Returns None if no name
         can be inferred."""
         if isinstance(self, _NamedComponent_mixin):
-            return self.localName()
+            return self.name()
         if isinstance(self, ModelGroup):
             agd = self.modelGroupDefinition()
             if agd is not None:
-                return agd.localName()
+                return agd.name()
         return None
 
     def nameInBinding (self):
@@ -300,11 +300,12 @@ class _Annotated_mixin (object):
         return self.__annotation
 
 class _NamedComponent_mixin (object):
-    """Mix-in to hold the local name and namespace of a component.
+    """Mix-in to hold the name and targetNamespace of a component.
 
     The name may be None, indicating an anonymous component.  The
-    namespace is never None, though it could be an empty namespace.
-    The name and namespace values are immutable after creation.
+    targetNamespace is never None, though it could be an empty
+    namespace.  The name and targetNamespace values are immutable
+    after creation.
 
     This class overrides the pickling behavior: when pickling a
     Namespace, objects that do not belong to that namespace are
@@ -312,20 +313,28 @@ class _NamedComponent_mixin (object):
     of objects when multiple namespace definitions are pre-loaded.
     """
 
-    def localName (self):
-        """Local name of the component.
+    def name (self):
+        """Name of the component within its scope or namespace.
 
-        None if the component is anonymous.  This is immutable after
-        creation."""
-        return self.__localName
-    __localName = None
+        This is an NCName.  The value isNone if the component is
+        anonymous.  The attribute is immutable after the component is
+        created creation."""
+        return self.__name
+    __name = None
 
     def isAnonymous (self):
         """Return true iff this instance is locally scoped (has no name)."""
-        return self.__localName is None
+        return self.__name is None
 
-    # None, or a reference to a Namespace in which the component may be found.
-    # This is immutable after creation.
+    def targetNamespace (self):
+        """The targetNamespace of a componen.
+
+        This is None, or a reference to a Namespace in which the
+        component is declared (either as a global or local to one of
+        the namespace's complex type definitions).  This is immutable
+        after creation.
+        """
+        return self.__targetNamespace
     __targetNamespace = None
     
     # The schema from which the component was extracted
@@ -403,33 +412,23 @@ class _NamedComponent_mixin (object):
     def __init__ (self, *args, **kw):
         assert 0 == len(args)
         name = kw.get('name', None)
-        target_namespace = kw.get('target_namespace', None)
+        # Must be None or a valid NCName
         assert (name is None) or (0 > name.find(':'))
-        self.__localName = name
-        if target_namespace is not None:
-            self.__targetNamespace = target_namespace
+        self.__name = name
+        target_namespace = kw.get('target_namespace', None)
+        #assert target_namespace is not None
+        self.__targetNamespace = target_namespace
+
         self.__schema = None
         # Do parent invocations after we've set the name: they might need it.
         super(_NamedComponent_mixin, self).__init__(*args, **kw)
             
-    def targetNamespace (self):
-        """Return the namespace in which the component is located."""
-        return self.__targetNamespace
-
-    def name (self):
-        """Return the QName of the component."""
-        if self.__targetNamespace is not None:
-            if self.localName() is not None:
-                return '%s[%s]' % (self.localName(), self.__targetNamespace.uri())
-            return '#??[%s]' % (self.__targetNamespace.uri(),)
-        return self.localName()
-
     def isNameEquivalent (self, other):
         """Return true iff this and the other component share the same name and target namespace.
         
         Anonymous components are inherently name inequivalent."""
         # Note that unpickled objects 
-        return (not self.isAnonymous()) and (self.localName() == other.localName()) and (self.__targetNamespace == other.__targetNamespace)
+        return (not self.isAnonymous()) and (self.name() == other.name()) and (self.__targetNamespace == other.__targetNamespace)
 
     def __pickleAsReference (self):
         if self.targetNamespace() is None:
@@ -452,7 +451,7 @@ class _NamedComponent_mixin (object):
             # this case (unlike getnewargs) we don't care about trying
             # to look up a previous instance, so we don't need to
             # encode the scope in the reference tuple.
-            return ( self.targetNamespace().uri(), self.localName() )
+            return ( self.targetNamespace().uri(), self.name() )
         if self.targetNamespace() is None:
             # The only internal named objects that should exist are
             # ones that have a non-global scope (including those with
@@ -489,8 +488,8 @@ class _NamedComponent_mixin (object):
                 if self.SCOPE_global != self.scope():
                     if self.scope() is None:
                         raise LogicError('UNBOUND SCOPE %s: %s' % (object.__str__(self), self,))
-                    scope = ( self.scope().targetNamespace().uri(), self.scope().localName() )
-            rv = ( self.targetNamespace().uri(), self.localName(), scope, self.__class__ )
+                    scope = ( self.scope().targetNamespace().uri(), self.scope().name() )
+            rv = ( self.targetNamespace().uri(), self.name(), scope, self.__class__ )
             return rv
         return ()
 
@@ -502,7 +501,7 @@ class _NamedComponent_mixin (object):
             ( ns_uri, nc_name ) = state
             assert self.targetNamespace() is not None
             assert self.targetNamespace().uri() == ns_uri
-            assert self.localName() == nc_name
+            assert self.name() == nc_name
             return
         self.__dict__.update(state)
             
@@ -696,7 +695,7 @@ class _PluralityData (types.ListType):
             npdm = { }
             for (ed, v) in pdm.items():
                 if isinstance(ed, ElementDeclaration):
-                    tag = ed.localName()
+                    tag = ed.name()
                     name_types.setdefault(tag, set()).add(ed)
                     npdm[tag] = npdm.get(tag, False) or v
                 elif isinstance(ed, Wildcard):
@@ -1385,8 +1384,8 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
             scope_map = self.__scopedAttributeDeclarations
         else:
             raise LogicError('Unexpected instance of %s recording as local declaration' % (type(decl),))
-        assert decl.localName() is not None
-        scope_map[decl.localName()] = decl
+        assert decl.name() is not None
+        scope_map[decl.name()] = decl
         return self
 
     CT_EMPTY = 0                #<<< No content
@@ -1515,7 +1514,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
             bi.__abstract = False
 
             # Refer to it by name
-            bi.setNameInBinding(bi.localName())
+            bi.setNameInBinding(bi.name())
 
             # The ur-type is always resolved
             cls.__UrTypeDefinition = bi
@@ -2993,7 +2992,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
     __primitiveTypeDefinition = None
     def primitiveTypeDefinition (self):
         if self.variety() != self.VARIETY_atomic:
-            raise BadPropertyError('[%s] primitiveTypeDefinition only defined for atomic types' % (self.localName(), self.variety()))
+            raise BadPropertyError('[%s] primitiveTypeDefinition only defined for atomic types' % (self.name(), self.variety()))
         if self.__primitiveTypeDefinition is None:
             raise LogicError('Expected primitive type')
         return self.__primitiveTypeDefinition
@@ -3293,7 +3292,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
             self.__facets = { }
             for v in self.pythonSupport().__dict__.values():
                 if isinstance(v, facets.ConstrainingFacet):
-                    #print 'Adding facet %s to %s' % (v, self.localName())
+                    #print 'Adding facet %s to %s' % (v, self.name())
                     self.__facets[v.__class__] = v
                     if v.ownerTypeDefinition() is None:
                         v.setFromKeywords(_constructor=True, owner_type_definition=self)
@@ -3400,7 +3399,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
                     for ai in range(0, cn.attributes.length):
                         attr = cn.attributes.item(ai)
                         # Convert name from unicode to string
-                        kw[str(attr.localName)] = attr.value
+                        kw[str(attr.name)] = attr.value
                     #print 'set %s from %s' % (fi.Name(), kw)
                     fi.setFromKeywords(**kw)
             local_facets[fc] = fi
@@ -3882,7 +3881,7 @@ class Schema (_SchemaComponent_mixin):
         raise IncompleteImplementationError('No support to record named component of type %s' % (nc.__class__,))
 
     def __addTypeDefinition (self, td):
-        local_name = td.localName()
+        local_name = td.name()
         assert self.__targetNamespace
         tns = self.targetNamespace()
         old_td = tns.lookupTypeDefinition(local_name)

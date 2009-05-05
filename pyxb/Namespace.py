@@ -378,7 +378,7 @@ class Namespace (object):
         return self.__typeDefinitions.get(local_name, None)
 
     def __addNamedObject (self, named_object, name_map):
-        local_name = named_object.localName()
+        local_name = named_object.name()
         old_object = name_map.get(local_name, None)
         if (old_object is not None) and (old_object != named_object):
             raise SchemaValidationError('Name %s used for multiple instances of %s' % (local_name, type(named_object)))

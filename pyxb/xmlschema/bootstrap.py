@@ -100,8 +100,8 @@ class schema (xsc.Schema):
     # or None if the default namespace is XMLSchema.
     __xsPrefix = None
 
-    def __init__ (self):
-        xsc.Schema.__init__(self)
+    def __init__ (self, **kw):
+        super(schema, self).__init__(self, **kw)
         self.__namespaces = set()
         self.__namespaceURIToPrefixMap = { }
         self.__prefixToNamespaceMap = { }
