@@ -307,7 +307,8 @@ class _Annotated_mixin (object):
         return self.__annotation
 
 class _NamedComponent_mixin (object):
-    """Mix-in to hold the name and target namespace of a component.
+    """Mix-in to hold the local name and namespace name of a
+    component.
 
     The name may be None, indicating an anonymous component.  The
     targetNamespace is None only in the case of an ElementDeclaration
@@ -3674,13 +3675,6 @@ class Schema (_SchemaComponent_mixin):
     __targetNamespace = None
     def _setTargetNamespace (self, tns):
         self.__targetNamespace = tns
-        self.__typeDefinitions = tns.typeDefinitions()
-        self.__attributeGroupDefinitions = tns.attributeGroupDefinitions()
-        self.__modelGroupDefinitions = tns.modelGroupDefinitions()
-        self.__attributeDeclarations = tns.attributeDeclarations()
-        self.__elementDeclarations = tns.elementDeclarations()
-        self.__notationDeclarations = tns.notationDeclarations()
-        self.__identityConstraintDefinitions = tns.identityConstraintDefinitions()
 
     def targetNamespace (self):
         return self.__targetNamespace
