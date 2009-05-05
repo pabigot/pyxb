@@ -147,3 +147,58 @@ def ToDOM_startup (document, parent, tag=None):
         else:
             element = parent.appendChild(document.createElement(tag))
     return (document, element)
+
+# In-scope namespaces are represented as a map from a prefix to a
+# namespace name.  The prefix is None when representing the default
+# namespace.
+
+__InScopeNamespaceAttribute = '_pyxb_utils_domutils__InScopeNamespaces'
+
+def GetInScopeNamespaces (node):
+    return getattr(node, __InScopeNamespaceAttribute, None)
+
+def __SetInScopeNamespaces (node, namespace_map):
+    adds = []
+    removes = []
+    if Node.ELEMENT_NODE == node.nodeType:
+        attributes = node.attributes
+        for attr in [ attributes.item(_ai) for _ai in range(attributes.length) ]:
+            #print '%s %s %s %s' % (attr.namespaceURI, attr.prefix, attr.localName, attr.value)
+            if attr.namespaceURI == Namespace.XMLNamespaces.uri():
+                #print 'XMLNS %s %s %s' % (attr.prefix, attr.localName, attr.value)
+                if attr.value:
+                    adds.append(attr)
+                else:
+                    removes.append(attr)
+    #overrode_map = None
+    if 0 < (len(adds) + len(removes)):
+        #overrode_map = namespace_map
+        namespace_map = namespace_map.copy()
+        for attr in removes:
+            # NB: XMLNS 6.2 says that you can undefine a default
+            # namespace, but does not say anything explicitly about
+            # undefining a prefixed namespace.  XML-Infoset 2.2
+            # paragraph 6 implies you can do this, but expat blows up
+            # if you try it.  Nonetheless, we'll pretend that it's
+            # legal.
+            if attr.prefix is None:
+                namespace_map.pop(None, None)
+            else:
+                namespace_map.pop(attr.localName, None)
+        for attr in adds:
+            if attr.prefix is None:
+                namespace_map[None] = attr.value
+            else:
+                namespace_map[attr.localName] = attr.value
+        #print 'New xmlns map at %s: %s' % (node.nodeName, namespace_map,)
+    setattr(node, __InScopeNamespaceAttribute, namespace_map)
+    for cn in node.childNodes:
+        __SetInScopeNamespaces(cn, namespace_map)
+    #if overrode_map is not None:
+    #    print 'Restoring xmlns map: %s' % (overrode_map,)
+
+def SetInScopeNamespaces (node):
+    __SetInScopeNamespaces(node, {})
+    return node
+
+    
