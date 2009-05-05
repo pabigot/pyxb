@@ -3760,7 +3760,9 @@ class Schema (_SchemaComponent_mixin):
         assert 'schema' not in kw
         kw['schema'] = _SchemaComponent_mixin._SCHEMA_None
         super(Schema, self).__init__(*args, **kw)
-        self.__targetNamespace = kw['target_namespace']
+        self.__targetNamespace = kw.get('target_namespace', None)
+        if not isinstance(self.__targetNamespace, Namespace.Namespace):
+            raise LogicError('Schema constructor requires valid target_namespace')
 
         self.__attributeMap = self.__attributeMap.copy()
         self.__components = set()
