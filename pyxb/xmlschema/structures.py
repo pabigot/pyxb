@@ -1916,7 +1916,6 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
         if isinstance(self.__contentType, tuple) and isinstance(self.__contentType[1], Particle):
             prt = self.__contentType[1]
             if prt.hasUnresolvableParticle(wxs):
-                print 'CTD %s content cannot be fully resolved' % (self.ncName(),)
                 wxs._queueForResolution(self)
                 return self
 
@@ -3835,7 +3834,18 @@ class Schema (_SchemaComponent_mixin):
                         and (isinstance(resolvable.scope(), ComplexTypeDefinition)))
                 assert resolvable.isResolved() or (resolvable in self.__unresolvedDefinitions)
                 if resolvable.isResolved() and (resolvable._clones() is not None):
-                    print 'COPYING %s RESOLUTION TO CLONES' % (resolvable,)
+                    # We don't seem to ever get here, but I think we
+                    # might: we clone things when they don't have
+                    # scope, but that doesn't mean they don't have
+                    # context, so we might have resolved them, and in
+                    # fact should have since (for example) element
+                    # declarations in model group definitions are
+                    # resolved at the MGD definition, not in the
+                    # context of where the model group is inserted by
+                    # reference.  I think we'll get here if we ever
+                    # continue on to do more component building after
+                    # resolving something: right now, those are two
+                    # separate stages.
                     assert False
                     [ _c._copyResolution(resolvable) for _c in resolvable._clones() ]
             if self.__unresolvedDefinitions == unresolved:
