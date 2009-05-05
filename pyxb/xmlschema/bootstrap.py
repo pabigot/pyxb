@@ -7,6 +7,7 @@ bindings that are generated.
 """
 
 import pyxb.Namespace as Namespace
+from pyxb.Namespace import XMLSchema as xs
 
 import structures as xsc
 
@@ -32,11 +33,11 @@ class schemaTop (xsc.ModelGroup):
         rv = redefinable.Match(wxs, node)
         if rv is not None:
             return rv
-        if node.nodeName in wxs.xsQualifiedNames('element'):
+        if xs.nodeIsNamed(node, 'element'):
             return wxs._processElementDeclaration(node)
-        if node.nodeName in wxs.xsQualifiedNames('attribute'):
+        if xs.nodeIsNamed(node, 'attribute'):
             return wxs._processAttributeDeclaration(node)
-        if node.nodeName in wxs.xsQualifiedNames('notation'):
+        if xs.nodeIsNamed(node, 'notation'):
             return wxs._processNotationDeclaration(node)
         return None
 
@@ -47,13 +48,13 @@ class redefinable (xsc.ModelGroup):
 
     @classmethod
     def Match (cls, wxs, node):
-        if node.nodeName in wxs.xsQualifiedNames('simpleType'):
+        if xs.nodeIsNamed(node, 'simpleType'):
             return wxs._processSimpleType(node)
-        if node.nodeName in wxs.xsQualifiedNames('complexType'):
+        if xs.nodeIsNamed(node, 'complexType'):
             return wxs._processComplexType(node)
-        if node.nodeName in wxs.xsQualifiedNames('group'):
+        if xs.nodeIsNamed(node, 'group'):
             return wxs._processGroup(node)
-        if node.nodeName in wxs.xsQualifiedNames('attributeGroup'):
+        if xs.nodeIsNamed(node, 'attributeGroup'):
             return wxs._processAttributeGroup(node)
         return None
 
@@ -483,7 +484,7 @@ class schema (xsc.Schema):
         self.initializeBuiltins()
 
         # Verify that the root node is an XML schema element
-        if root_node.nodeName not in self.xsQualifiedNames('schema'):
+        if not xs.nodeIsNamed(root_node, 'schema'):
             raise SchemaValidationError('Root node %s of document is not an XML schema element' % (root_node.nodeName,))
 
         self.__domRootNode = root_node
@@ -569,8 +570,8 @@ class schema (xsc.Schema):
         """Walk a simpleType element to create a simple type definition component.
         """
         # Node should be a topLevelSimpleType
-        assert node.nodeName in self.xsQualifiedNames('simpleType')
-        assert node.parentNode.nodeName in self.xsQualifiedNames('schema')
+        assert xs.nodeIsNamed(node, 'simpleType')
+        assert xs.nodeIsNamed(node.parentNode, 'schema')
 
         rv = xsc.SimpleTypeDefinition.CreateFromDOM(self, node)
         return self._addNamedComponent(rv)
@@ -579,38 +580,38 @@ class schema (xsc.Schema):
         """Walk a complexType element to create a complex type definition component.
         """
         # Node should be a topLevelComplexType
-        assert node.nodeName in self.xsQualifiedNames('complexType')
-        assert node.parentNode.nodeName in self.xsQualifiedNames('schema')
+        assert xs.nodeIsNamed(node, 'complexType')
+        assert xs.nodeIsNamed(node.parentNode, 'schema')
 
         rv = xsc.ComplexTypeDefinition.CreateFromDOM(self, node)
         return self._addNamedComponent(rv)
 
     def _processAttributeGroup (self, node):
         # Node should be a namedAttributeGroup
-        assert node.nodeName in self.xsQualifiedNames('attributeGroup')
-        assert node.parentNode.nodeName in self.xsQualifiedNames('schema')
+        assert xs.nodeIsNamed(node, 'attributeGroup')
+        assert xs.nodeIsNamed(node.parentNode, 'schema')
         rv = xsc.AttributeGroupDefinition.CreateFromDOM(self, node)
         return self._addNamedComponent(rv)
 
     def _processGroup (self, node):
         # Node should be a namedGroup
-        assert node.nodeName in self.xsQualifiedNames('group')
-        assert node.parentNode.nodeName in self.xsQualifiedNames('schema')
+        assert xs.nodeIsNamed(node, 'group')
+        assert xs.nodeIsNamed(node.parentNode, 'schema')
         rv = xsc.ModelGroupDefinition.CreateFromDOM(self, node)
         return self._addNamedComponent(rv)
 
     # @todo make process* private
     def _processElementDeclaration (self, node):
         # Node should be a named element
-        assert node.nodeName in self.xsQualifiedNames('element')
-        assert node.parentNode.nodeName in self.xsQualifiedNames('schema')
+        assert xs.nodeIsNamed(node, 'element')
+        assert xs.nodeIsNamed(node.parentNode, 'schema')
         ed = xsc.ElementDeclaration.CreateFromDOM(self, node, xsc._ScopedDeclaration_mixin.SCOPE_global)
         return self._addNamedComponent(ed)
 
     def _processNotationDeclaration (self, node):
         # Node should be a named notation
-        assert node.nodeName in self.xsQualifiedNames('notation')
-        assert node.parentNode.nodeName in self.xsQualifiedNames('schema')
+        assert xs.nodeIsNamed(node, 'notation')
+        assert xs.nodeIsNamed(node.parentNode, 'schema')
         nd = xsc.NotationDeclaration.CreateFromDOM(self, node)
         return self._addNamedComponent(nd)
 
@@ -619,13 +620,13 @@ class schema (xsc.Schema):
 
         This should return a non-None value if the node was
         successfully recognized."""
-        if node.nodeName in self.xsQualifiedNames('include'):
+        if xs.nodeIsNamed(node, 'include'):
             return self._processInclude(node)
-        if node.nodeName in self.xsQualifiedNames('import'):
+        if xs.nodeIsNamed(node,  'import'):
             return self._processImport(node)
-        if node.nodeName in self.xsQualifiedNames('redefine'):
+        if xs.nodeIsNamed(node, 'redefine'):
             return self._processRedefine(node)
-        if node.nodeName in self.xsQualifiedNames('annotation'):
+        if xs.nodeIsNamed(node, 'annotation'):
             return self._processAnnotation(node)
         rv = schemaTop.Match(self, node)
         if rv is not None:
