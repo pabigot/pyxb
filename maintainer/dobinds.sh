@@ -1,4 +1,3 @@
-mkdir -p bindings
 rm pyxb/standard/bindings/[a-z]*
 
 # Some must be done in order, to handle dependencies
