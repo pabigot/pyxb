@@ -583,11 +583,11 @@ class _ValueConstraint_mixin:
         return self.__valueConstraint[0]
 
     def _valueConstraintFromDOM (self, wxs, node):
-        aval = NodeAttribute(node, wxs, 'default')
+        aval = NodeAttribute(node, 'default')
         if aval is not None:
             self.__valueConstraint = (aval, self.VC_default)
             return self
-        aval = NodeAttribute(node, wxs, 'fixed')
+        aval = NodeAttribute(node, 'fixed')
         if aval is not None:
             self.__valueConstraint = (aval, self.VC_fixed)
             return self
@@ -838,7 +838,7 @@ class _AttributeWildcard_mixin (object):
                 attributes.append(node)
             elif node.nodeName in xs_attributeGroup:
                 # This must be an attributeGroupRef
-                ref_attr = NodeAttribute(node, wxs, 'ref')
+                ref_attr = NodeAttribute(node, 'ref')
                 if ref_attr is None:
                     raise SchemaValidationError('Require ref attribute on internal attributeGroup elements')
                 agd = wxs.lookupAttributeGroup(ref_attr)
@@ -926,17 +926,17 @@ class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
         # Node should be an XMLSchema attribute node
         assert node.nodeName in wxs.xsQualifiedNames('attribute')
 
-        name = NodeAttribute(node, wxs, 'name')
+        name = NodeAttribute(node, 'name')
         if name is not None:
             namespace = wxs.getTargetNamespace()
         else:
             # Can't have both ref and name
-            assert NodeAttribute(node, wxs, 'ref') is None
+            assert NodeAttribute(node, 'ref') is None
 
         # Implement per section 3.2.2
         if node.parentNode.nodeName in wxs.xsQualifiedNames('schema'):
             assert cls.SCOPE_global == scope
-        elif NodeAttribute(node, wxs, 'ref') is None:
+        elif NodeAttribute(node, 'ref') is None:
             # This is an anonymous declaration within an attribute use
             assert (scope is None) or isinstance(scope, ComplexTypeDefinition)
         else:
@@ -963,7 +963,7 @@ class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
         node = self.__domNode
 
         st_node = LocateUniqueChild(node, wxs, 'simpleType')
-        type_attr = NodeAttribute(node, wxs, 'type')
+        type_attr = NodeAttribute(node, 'type')
         if st_node is not None:
             self.__typeDefinition = SimpleTypeDefinition.CreateFromDOM(wxs, st_node, owner=self)
         elif type_attr is not None:
@@ -1025,7 +1025,7 @@ class AttributeUse (_SchemaComponent_mixin, _Resolvable_mixin, _ValueConstraint_
         # If it's still not resolved, hold off, and indicate that the
         # caller should hold off too.
         if not self.isResolved():
-            aur = NodeAttribute(self.__domNode, self.__wxs, 'ref')
+            aur = NodeAttribute(self.__domNode, 'ref')
             return None
         this_ad = self.attributeDeclaration()
         rv = set()
@@ -1063,7 +1063,7 @@ class AttributeUse (_SchemaComponent_mixin, _Resolvable_mixin, _ValueConstraint_
         assert node.nodeName in wxs.xsQualifiedNames('attribute')
         rv = cls(schema=wxs, context=context, scope=scope, owner=owner)
         rv.__use = cls.USE_optional
-        use = NodeAttribute(node, wxs, 'use')
+        use = NodeAttribute(node, 'use')
         if use is not None:
             if 'required' == use:
                 rv.__use = cls.USE_required
@@ -1076,7 +1076,7 @@ class AttributeUse (_SchemaComponent_mixin, _Resolvable_mixin, _ValueConstraint_
 
         rv._valueConstraintFromDOM(wxs, node)
         
-        if NodeAttribute(node, wxs, 'ref') is None:
+        if NodeAttribute(node, 'ref') is None:
             # Create an anonymous declaration.  Although this can
             # never be referenced, we need the right scope so when we
             # generate the binding we can place the attribute in the
@@ -1095,7 +1095,7 @@ class AttributeUse (_SchemaComponent_mixin, _Resolvable_mixin, _ValueConstraint_
             return self
         assert self.__domNode
         node = self.__domNode
-        ref_attr = NodeAttribute(node, wxs, 'ref')
+        ref_attr = NodeAttribute(node, 'ref')
         if ref_attr is None:
             raise SchemaValidationError('Attribute uses require reference to attribute declaration')
         # Although the attribute declaration definition may not be
@@ -1230,12 +1230,12 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Resolv
         assert node.nodeName in wxs.xsQualifiedNames('element')
 
         # Might be top-level, might be local
-        name = NodeAttribute(node, wxs, 'name')
+        name = NodeAttribute(node, 'name')
         namespace = None
         if node.parentNode.nodeName in wxs.xsQualifiedNames('schema'):
             namespace = wxs.getTargetNamespace()
             assert _ScopedDeclaration_mixin.SCOPE_global == scope
-        elif NodeAttribute(node, wxs, 'ref') is None:
+        elif NodeAttribute(node, 'ref') is None:
             # NB: It is perfectly legal for namespace to be None when
             # processing local elements.
             namespace = wxs.defaultNamespaceFromDOM(node, 'elementFormDefault')
@@ -1284,7 +1284,7 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Resolv
 
         node = self.__domNode
 
-        sg_attr = NodeAttribute(node, wxs, 'substitutionGroup')
+        sg_attr = NodeAttribute(node, 'substitutionGroup')
         if sg_attr is not None:
             sga = wxs.lookupElement(sg_attr, self.scope())
             if sga is None:
@@ -1312,7 +1312,7 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Resolv
             if td_node is not None:
                 type_def = ComplexTypeDefinition.CreateFromDOM(wxs, td_node, owner=self)
         if type_def is None:
-            type_attr = NodeAttribute(node, wxs, 'type')
+            type_attr = NodeAttribute(node, 'type')
             if type_attr is not None:
                 type_def = wxs.lookupType(type_attr)
             elif self.__substitutionGroupAffiliation is not None:
@@ -1321,13 +1321,13 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Resolv
                 type_def = ComplexTypeDefinition.UrTypeDefinition()
         self._typeDefinition(type_def)
 
-        attr_val = NodeAttribute(node, wxs, 'nillable')
+        attr_val = NodeAttribute(node, 'nillable')
         if attr_val is not None:
             self.__nillable = datatypes.boolean(attr_val)
 
         # @todo disallowed substitutions, substitution group exclusions
 
-        attr_val = NodeAttribute(node, wxs, 'abstract')
+        attr_val = NodeAttribute(node, 'abstract')
         if attr_val is not None:
             self.__abstract = datatypes.boolean(attr_val)
                 
@@ -1564,7 +1564,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
         # Node should be an XMLSchema complexType node
         assert node.nodeName in wxs.xsQualifiedNames('complexType')
 
-        name = NodeAttribute(node, wxs, 'name')
+        name = NodeAttribute(node, 'name')
 
         rv = cls(name=name, target_namespace=wxs.getTargetNamespace(), derivation_method=None, schema=wxs, owner=owner)
 
@@ -1696,9 +1696,9 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
         # Definition 1: effective mixed
         mixed_attr = None
         if content_node is not None:
-            mixed_attr = NodeAttribute(content_node, wxs, 'mixed')
+            mixed_attr = NodeAttribute(content_node, 'mixed')
         if mixed_attr is None:
-            mixed_attr = NodeAttribute(type_node, wxs, 'mixed')
+            mixed_attr = NodeAttribute(type_node, 'mixed')
         if mixed_attr is not None:
             effective_mixed = datatypes.boolean(mixed_attr)
         else:
@@ -1728,7 +1728,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
                 test_2_1_2 = True
             if ((cn.nodeName in xs_choice) \
                     and (not HasNonAnnotationChild(wxs, cn))):
-                mo_attr = NodeAttribute(cn, wxs, 'minOccurs')
+                mo_attr = NodeAttribute(cn, 'minOccurs')
                 if ((mo_attr is not None) \
                         and (0 == datatypes.integer(mo_attr))):
                     test_2_1_3 = True
@@ -1827,7 +1827,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
         node = self.__domNode
         
         #print 'Resolving CTD %s' % (self.name(),)
-        attr_val = NodeAttribute(node, wxs, 'abstract')
+        attr_val = NodeAttribute(node, 'abstract')
         if attr_val is not None:
             self.__abstract = datatypes.boolean(attr_val)
 
@@ -1872,7 +1872,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
                         method = self.DM_extension
                     else:
                         raise SchemaValidationError('Expected restriction or extension as sole child of %s in %s' % (content_node.name(), self.name()))
-                    base_attr = NodeAttribute(ions, wxs, 'base')
+                    base_attr = NodeAttribute(ions, 'base')
                     if base_attr is None:
                         raise SchemaValidationError('Element %s missing base attribute' % (ions.nodeName,))
                     base_type = wxs.lookupType(base_attr)
@@ -1965,7 +1965,7 @@ class AttributeGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _
         """
         
         assert node.nodeName in wxs.xsQualifiedNames('attributeGroup')
-        name = NodeAttribute(node, wxs, 'name')
+        name = NodeAttribute(node, 'name')
 
         # Attribute group definitions can only appear at the top level
         # of the schema, so the context is always SCOPE_global.  Any
@@ -1989,7 +1989,7 @@ class AttributeGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _
         node = self.__domNode
 
         # Attribute group definitions must not be references
-        ref_attr = NodeAttribute(node, wxs, 'ref')
+        ref_attr = NodeAttribute(node, 'ref')
         if ref_attr is not None:
             raise SchemaValidationError('Attribute reference at top level')
 
@@ -2050,9 +2050,9 @@ class ModelGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Anno
         assert isinstance(wxs, Schema)
         assert node.nodeName in wxs.xsQualifiedNames('group')
 
-        assert NodeAttribute(node, wxs, 'ref') is None
+        assert NodeAttribute(node, 'ref') is None
 
-        name = NodeAttribute(node, wxs, 'name')
+        name = NodeAttribute(node, 'name')
         rv = cls(name=name, target_namespace=wxs.getTargetNamespace(), schema=wxs, owner=owner)
         rv._annotationFromDOM(wxs, node)
 
@@ -2393,7 +2393,7 @@ class Particle (_SchemaComponent_mixin):
     
     @classmethod
     def __GetTerm (cls, wxs, context, node, scope):
-        ref_attr = NodeAttribute(node, wxs, 'ref')
+        ref_attr = NodeAttribute(node, 'ref')
         if node.nodeName in wxs.xsQualifiedNames('group'):
             # 3.9.2 says use 3.8.2, which is ModelGroup.  The group
             # inside a particle is a groupRef.  If there is no group
@@ -2465,10 +2465,10 @@ class Particle (_SchemaComponent_mixin):
                
         if not node.nodeName in cls.ParticleTags(wxs):
             raise LogicError('Attempted to create particle from illegal element %s' % (node.nodeName,))
-        attr_val = NodeAttribute(node, wxs, 'minOccurs')
+        attr_val = NodeAttribute(node, 'minOccurs')
         if attr_val is not None:
             kw['min_occurs'] = datatypes.nonNegativeInteger(attr_val)
-        attr_val = NodeAttribute(node, wxs, 'maxOccurs')
+        attr_val = NodeAttribute(node, 'maxOccurs')
         if attr_val is not None:
             if 'unbounded' == attr_val:
                 kw['max_occurs'] = None
@@ -2698,7 +2698,7 @@ class Wildcard (_SchemaComponent_mixin, _Annotated_mixin):
     @classmethod
     def CreateFromDOM (cls, wxs, node, owner=None):
         assert (node.nodeName in wxs.xsQualifiedNames('any')) or (node.nodeName in wxs.xsQualifiedNames('anyAttribute'))
-        nc = NodeAttribute(node, wxs, 'namespace')
+        nc = NodeAttribute(node, 'namespace')
         if nc is None:
             namespace_constraint = cls.NC_any
         else:
@@ -2720,7 +2720,7 @@ class Wildcard (_SchemaComponent_mixin, _Annotated_mixin):
                         ncs.add(namespace)
                 namespace_constraint = frozenset(ncs)
 
-        pc = NodeAttribute(node, wxs, 'processContents')
+        pc = NodeAttribute(node, 'processContents')
         if pc is None:
             process_contents = cls.PC_strict
         else:
@@ -2763,7 +2763,7 @@ class IdentityConstraintDefinition (_SchemaComponent_mixin, _NamedComponent_mixi
     # CFD:ICD CFD:IdentityConstraintDefinition
     @classmethod
     def CreateFromDOM (cls, wxs, node, owner=None):
-        name = NodeAttribute(node, wxs, 'name')
+        name = NodeAttribute(node, 'name')
         rv = cls(name=name, target_namespace=wxs.getTargetNamespace(), schema=wxs, owner=owner)
         #rv._annotationFromDOM(wxs, node);
         if node.nodeName in wxs.xsQualifiedNames('key'):
@@ -2778,13 +2778,13 @@ class IdentityConstraintDefinition (_SchemaComponent_mixin, _NamedComponent_mixi
             raise LogicError('Unexpected identity constraint node %s' % (node.toxml(),))
 
         cn = LocateUniqueChild(node, wxs, 'selector')
-        rv.__selector = NodeAttribute(cn, wxs, 'xpath')
+        rv.__selector = NodeAttribute(cn, 'xpath')
         if rv.__selector is None:
             raise SchemaValidationError('selector element missing xpath attribute')
 
         rv.__fields = []
         for cn in LocateMatchingChildren(node, wxs, 'field'):
-            xp_attr = NodeAttribute(cn, wxs, 'xpath')
+            xp_attr = NodeAttribute(cn, 'xpath')
             if xp_attr is None:
                 raise SchemaValidationError('field element missing xpath attribute')
             rv.__fields.append(xp_attr)
@@ -2827,11 +2827,11 @@ class NotationDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Annot
     # CFD:ND CFD:NotationDeclaration
     @classmethod
     def CreateFromDOM (cls, wxs, node, owner=None):
-        name = NodeAttribute(node, wxs, 'name')
+        name = NodeAttribute(node, 'name')
         rv = cls(name=name, target_namespace=wxs.getTargetNamespace(), schema=wxs, owner=owner)
 
-        rv.__systemIdentifier = NodeAttribute(node, wxs, 'system')
-        rv.__publicIdentifier = NodeAttribute(node, wxs, 'public')
+        rv.__systemIdentifier = NodeAttribute(node, 'system')
+        rv.__publicIdentifier = NodeAttribute(node, 'public')
 
         rv._annotationFromDOM(wxs, node)
         return rv
@@ -3269,7 +3269,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
         return self.__completeResolution(wxs, body, self.VARIETY_list, 'list')
 
     def __initializeFromRestriction (self, wxs, body):
-        base_attr = NodeAttribute(body, wxs, 'base')
+        base_attr = NodeAttribute(body, 'base')
         if base_attr is not None:
             # Look up the base.  If there is no registered type of
             # that name, an exception gets thrown that percolates up
@@ -3364,7 +3364,8 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
                 if Node.ELEMENT_NODE != cn.nodeType:
                     continue
                 if cn.nodeName in has_facet:
-                    facet_name = NodeAttribute(cn, wxs, 'name', Namespace.XMLSchema_hfp)
+                    assert False
+                    facet_name = NodeAttribute(cn, 'name', Namespace.XMLSchema_hfp)
                     if facet_name is None:
                         raise SchemaValidationError('hasFacet missing name attribute')
                     if facet_name in seen_facets:
@@ -3448,7 +3449,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
                 self.__primitiveTypeDefinition = ptd
         elif self.VARIETY_list == variety:
             if 'list' == alternative:
-                attr_val = NodeAttribute(body, wxs, 'itemType')
+                attr_val = NodeAttribute(body, 'itemType')
                 if attr_val is not None:
                     self.__itemTypeDefinition = wxs.lookupSimpleType(attr_val)
                 else:
@@ -3471,7 +3472,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
                     mtd = []
                     # If present, first extract names from memberTypes,
                     # and add each one to the list
-                    member_types = NodeAttribute(body, wxs, 'memberTypes')
+                    member_types = NodeAttribute(body, 'memberTypes')
                     if member_types is not None:
                         for mn in member_types.split():
                             # THROW if type has not been defined
@@ -3607,10 +3608,10 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
 
         # @todo Process "final" attributes
         
-        if NodeAttribute(node, wxs, 'final') is not None:
+        if NodeAttribute(node, 'final') is not None:
             raise IncompleteImplementationError('"final" attribute not currently supported')
 
-        name = NodeAttribute(node, wxs, 'name')
+        name = NodeAttribute(node, 'name')
 
         rv = cls(name=name, target_namespace=wxs.getTargetNamespace(), variety=None, schema=wxs, owner=owner)
         rv._annotationFromDOM(wxs, node)

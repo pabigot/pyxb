@@ -4,7 +4,7 @@ from xml.dom import Node
 from xml.dom import minidom
 import xml.dom as dom
 
-def NodeAttribute (node, schema, attribute_ncname, attribute_ns=Namespace.XMLSchema):
+def NodeAttribute (node, attribute_ncname, attribute_ns=Namespace.XMLSchema):
     """Namespace-aware search for an attribute in a node.
 
     Be aware that the default namespace does not apply to attributes.

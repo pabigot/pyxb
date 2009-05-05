@@ -325,7 +325,7 @@ class schema (xsc.Schema):
         # many right.  Oh, hell, probably not...
         assert default_tag in [ 'attributeFormDefault', 'elementFormDefault' ]
         assert self.schemaHasAttribute(default_tag)
-        form = xsc.NodeAttribute(node, self, 'form')
+        form = xsc.NodeAttribute(node, 'form')
         if form is None:
             form = self.schemaAttribute(default_tag)
         assert form is not None
@@ -539,7 +539,7 @@ class schema (xsc.Schema):
         """
 
         self._requireInProlog(node.nodeName)
-        uri = xsc.NodeAttribute(node, self, 'namespace')
+        uri = xsc.NodeAttribute(node, 'namespace')
         if uri is None:
             raise SchemaValidationError('import directive must provide namespace')
         namespace = self.namespaceForURI(uri)
