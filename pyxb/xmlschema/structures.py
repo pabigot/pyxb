@@ -1705,8 +1705,6 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
         test_2_1_2 = False
         test_2_1_3 = False
         typedef_node = None
-        allseq_particle_tags = []
-        [ allseq_particle_tags.extend(wxs.xsQualifiedNames(_tag)) for _tag in [ 'all', 'sequence' ] ]
         for cn in definition_node_list:
             if Node.ELEMENT_NODE != cn.nodeType:
                 continue
@@ -1716,8 +1714,8 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
             if Particle.IsTypedefNode(cn):
                 typedef_node = cn
                 test_2_1_1 = False
-            if ((cn.nodeName in allseq_particle_tags) \
-                    and (not HasNonAnnotationChild(wxs, cn))):
+            if xsd.nodeIsNamed(cn, 'all', 'sequence') \
+                    and (not HasNonAnnotationChild(wxs, cn)):
                 test_2_1_2 = True
             if xsd.nodeIsNamed(cn, 'choice') \
                     and (not HasNonAnnotationChild(wxs, cn)):
@@ -2049,12 +2047,10 @@ class ModelGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Anno
         rv = cls(name=name, target_namespace=wxs.getTargetNamespace(), schema=wxs, owner=owner)
         rv._annotationFromDOM(wxs, node)
 
-
-        mg_tags = ModelGroup.GroupMemberTags(wxs)
         for cn in node.childNodes:
             if Node.ELEMENT_NODE != cn.nodeType:
                 continue
-            if cn.nodeName in mg_tags:
+            if ModelGroup.IsGroupMemberNode(cn):
                 assert not rv.__modelGroup
                 # Model group definitions always occur at the top level of the
                 # schema, so their lookup context is SCOPE_global.  The
@@ -2204,11 +2200,10 @@ class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
         else:
             raise IncompleteImplementationError('ModelGroup: Got unexpected %s' % (node.nodeName,))
         particles = []
-        particle_tags = Particle.ParticleTags(wxs)
         for cn in node.childNodes:
             if Node.ELEMENT_NODE != cn.nodeType:
                 continue
-            if cn.nodeName in particle_tags:
+            if Particle.IsParticleNode(cn):
                 # NB: Ancestor of particle is set in the ModelGroup constructor
                 particles.append(Particle.CreateFromDOM(wxs, context, cn, scope))
         rv = cls(compositor, particles, schema=wxs, scope=scope, context=context)
@@ -2218,8 +2213,8 @@ class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
         return rv
 
     @classmethod
-    def GroupMemberTags (cls, wxs):
-        return [ wxs.xsQualifiedName(_tag) for _tag in [ 'all', 'choice', 'sequence' ] ]
+    def IsGroupMemberNode (cls, node):
+        return xsd.nodeIsNamed(node, 'all', 'choice', 'sequence')
 
     def elementDeclarations (self, wxs):
         """Return a list of all ElementDeclarations that are at the
@@ -2415,7 +2410,7 @@ class Particle (_SchemaComponent_mixin):
             # 3.9.2 says use 3.10.2, which is Wildcard.
             term = Wildcard.CreateFromDOM(wxs, node)
             assert term is not None
-        elif node.nodeName in ModelGroup.GroupMemberTags(wxs):
+        elif ModelGroup.IsGroupMemberNode(node):
             # Choice, sequence, and all inside a particle are explicit
             # groups (or a restriction of explicit group, in the case
             # of all)
@@ -2456,7 +2451,7 @@ class Particle (_SchemaComponent_mixin):
              , 'owner' : owner
              , 'context' : context }
                
-        if not node.nodeName in cls.ParticleTags(wxs):
+        if not Particle.IsParticleNode(node):
             raise LogicError('Attempted to create particle from illegal element %s' % (node.nodeName,))
         attr_val = NodeAttribute(node, 'minOccurs')
         if attr_val is not None:
@@ -2501,9 +2496,8 @@ class Particle (_SchemaComponent_mixin):
         return xsd.nodeIsNamed(node, 'group', 'all', 'choice', 'sequence')
 
     @classmethod
-    def ParticleTags (cls, wxs):
-        """Return the list of schema element tags for any particle."""
-        return [ wxs.xsQualifiedName(_tag) for _tag in [ 'group', 'all', 'choice', 'sequence', 'element', 'any' ] ]
+    def IsParticleNode (cls, node):
+        return xsd.nodeIsNamed(node, 'group', 'all', 'choice', 'sequence', 'element', 'any')
 
     def __str__ (self):
         #return 'PART{%s:%d,%s}' % (self.term(), self.minOccurs(), self.maxOccurs())
