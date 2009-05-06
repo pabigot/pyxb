@@ -921,7 +921,6 @@ class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
         assert xsd.nodeIsNamed(node, 'attribute')
 
         name = NodeAttribute(node, 'name')
-        namespace = wxs.targetNamespace()
 
         # Implement per section 3.2.2
         if xsd.nodeIsNamed(node.parentNode, 'schema'):
@@ -932,7 +931,7 @@ class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
         else:
             raise SchemaValidationError('Internal attribute declaration by reference')
 
-        rv = cls(name=name, target_namespace=namespace, schema=wxs, scope=scope, owner=owner)
+        rv = cls(name=name, target_namespace=wxs.targetNamespace(), schema=wxs, scope=scope, owner=owner)
         rv._annotationFromDOM(wxs, node)
         rv._valueConstraintFromDOM(wxs, node)
         rv.__domNode = node
@@ -1253,20 +1252,15 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Resolv
 
         # Might be top-level, might be local
         name = NodeAttribute(node, 'name')
-        namespace = None
         if xsd.nodeIsNamed(node.parentNode, 'schema'):
-            namespace = wxs.targetNamespace()
             assert _ScopedDeclaration_mixin.SCOPE_global == scope
         elif NodeAttribute(node, 'ref') is None:
-            # NB: It is perfectly legal for namespace to be None when
-            # processing local elements.
-            namespace = wxs.defaultNamespaceFromDOM(node, 'elementFormDefault')
+            # Scope may be None or a CTD.
             assert (scope is None) or isinstance(scope, ComplexTypeDefinition)
-            # Context may be None or a CTD.
         else:
             raise SchemaValidationError('Created reference as element declaration')
         
-        rv = cls(name=name, target_namespace=namespace, scope=scope, schema=wxs, owner=owner)
+        rv = cls(name=name, target_namespace=wxs.targetNamespace(), scope=scope, schema=wxs, owner=owner)
         rv._annotationFromDOM(wxs, node)
         rv._valueConstraintFromDOM(wxs, node)
 
@@ -2749,10 +2743,7 @@ class Wildcard (_SchemaComponent_mixin, _Annotated_mixin):
                     elif cls.NC_targetNamespace == ns_uri:
                         ncs.add(wxs.targetNamespace())
                     else:
-                        namespace = Namespace.NamespaceForURI(ns_uri)
-                        if namespace is None:
-                            namespace = Namespace.Namespace(ns_uri)
-                        ncs.add(namespace)
+                        ncs.add(Namespace.NamespaceForURI(ns_uri, create_if_missing=True))
                 namespace_constraint = frozenset(ncs)
 
         pc = NodeAttribute(node, 'processContents')

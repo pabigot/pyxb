@@ -117,32 +117,6 @@ class schema (xsc.Schema):
     # Compile-time spelling check
     __UNQUALIFIED = 'unqualified'
 
-    def defaultNamespaceFromDOM (self, node, default_tag):
-        """Determine the approprate namespace for a local
-        attribute/element in the schema.
-
-        This takes the appropriate schema-level attribute default
-        value (identified by the given tag) from the schema,
-        potentially overrides it from an attribute in the node, then
-        returns either this schema's target namespace or None.  See
-        any discussion of the targetNamespace property in the
-        component specification.
-        """
-        # Failure to provide a valid tag for the default is a
-        # programmer error.  There's only two; surely you can get that
-        # many right.  Oh, hell, probably not...
-        assert default_tag in [ 'attributeFormDefault', 'elementFormDefault' ]
-        assert self.schemaHasAttribute(default_tag)
-        form = xsc.NodeAttribute(node, 'form')
-        if form is None:
-            form = self.schemaAttribute(default_tag)
-        assert form is not None
-        if not form in [ self.__QUALIFIED, self.__UNQUALIFIED ]:
-            raise SchemaValidationError('form attribute must be "%s" or "%s"' % (self.__QUALIFIED, self.__UNQUALIFIED))
-        if self.__UNQUALIFIED == form:
-            return self.targetNamespace()
-        return None
-
     def namespaces (self):
         """Return the set of namespaces associated with this schema."""
         return self.__namespaces
@@ -190,8 +164,6 @@ class schema (xsc.Schema):
                 default_namespace = Namespace.NamespaceForURI(attr.nodeValue, create_if_missing=True)
             else:
                 attribute_map[attr.name] = attr.nodeValue
-
-        Namespace.XMLSchema.validateSchema()
 
         tns_uri = attribute_map.get('targetNamespace', None)
         if tns_uri is None:
