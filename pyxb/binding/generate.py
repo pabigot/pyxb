@@ -963,7 +963,8 @@ def GeneratePython (**kw):
         template_map['import_prefix'] = import_prefix
 
         import_namespaces = [ ]
-        for ns in schema.importedNamespaces():
+        for ins in schema.importedNamespaces():
+            ns = ins.namespace()
             if ns == schema.targetNamespace():
                 continue
             if ns.modulePath() is None:
@@ -1013,7 +1014,7 @@ def CreateFromDOM (node):
             if generator is None:
                 continue
             outf.write(generator(td, **generator_kw))
-    
+
         outf.write(''.join(PostscriptItems))
         return outf.getvalue()
     

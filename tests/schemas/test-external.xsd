@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <xs:schema targetNamespace="URN:test-external" xsi:schemaLocation="URN:shared-types /home/pab/pyxb/dev/tests/schemas/shared-types.xsd" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:st="URN:shared-types" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:tns="URN:test-external">
+  <xs:import namespace="URN:shared-types"/>
 	<xs:complexType name="word">
 		<xs:sequence>
 			<xs:element name="from" type="st:english"/>

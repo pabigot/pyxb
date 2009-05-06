@@ -1,7 +1,9 @@
 """Classes corresponding to W3C XML Schema components.
 
 Class names and behavior should conform to the schema components
-described in http://www.w3.org/TR/xmlschema-1/.
+described in http://www.w3.org/TR/xmlschema-1/.  References to
+sections in the documentation of this module generally refers to that
+document.
 
 Each class has a CreateFromDOM class method that creates an instance
 and initializes it from a DOM node.  Only the Wildcard, Particle, and
@@ -74,6 +76,18 @@ class _SchemaComponent_mixin (object):
 
     # The schema components owned by this component.
     __ownedComponents = None
+
+    def __getstate__ (self):
+        state = self._filterCopyState(self.__dict__)
+        #print 'SC State for %s:' % (object.__str__(self),)
+        #for (k, v) in state.items():
+        #    print ' %s: %s' % (k, object.__str__(v))
+        return state
+
+    def _filterCopyState (self, state):
+        for fn in [ '__owner', '__ownedComponents', '__context', '__dependentComponents', '__cloneSource', '__clones', '__schema' ]:
+            state['_SchemaComponent_mixin%s' % (fn,)] = None
+        return getattr(super(_SchemaComponent_mixin, self), '_filterCopyState', lambda _state: _state)(state)
 
     def _context (self):
         """The context within which element and attribute references are
@@ -204,7 +218,8 @@ class _SchemaComponent_mixin (object):
         that._resetClone_vc()
         if isinstance(that, _Resolvable_mixin):
             assert wxs is not None
-            wxs._queueForResolution(that)
+            if not that.isResolved():
+                wxs._queueForResolution(that)
         return that
 
     def isTypeDefinition (self):
@@ -392,7 +407,7 @@ class _NamedComponent_mixin (object):
                 raise IncompleteImplementationError('Local scope reference lookup not implemented for type %s searching %s in %s' % (icls, ncname, uri))
             if rv is None:
                 raise SchemaValidationError('Unable to resolve local %s as %s in %s in %s' % (ncname, icls, scope_ncname, uri))
-        elif (scope is None) or (_ScopedDeclaration_mixin.SCOPE_global == scope):
+        elif _ScopedDeclaration_mixin.ScopeIsIndeterminate(scope) or (_ScopedDeclaration_mixin.SCOPE_global == scope):
             if (issubclass(icls, SimpleTypeDefinition) or issubclass(icls, ComplexTypeDefinition)):
                 rv = ns.lookupTypeDefinition(ncname)
             elif issubclass(icls, AttributeGroupDefinition):
@@ -446,7 +461,7 @@ class _NamedComponent_mixin (object):
         if pickling_namespace == self.targetNamespace():
             return False
         if self.isAnonymous():
-            raise LogicError('Unable to pickle reference to unnamed object %s: %s' % (self.name(), self))
+            raise LogicError('Unable to pickle reference to unnamed object %s in %s: %s' % (self.name(), self.targetNamespace().uri(), object.__str__(self)))
         return True
 
     def __getstate__ (self):
@@ -471,7 +486,11 @@ class _NamedComponent_mixin (object):
             # gonna need some other sort of ID, like a UUID associated
             # with the anonymous class at the time it's written to the
             # preprocessed schema file.
-        return self.__dict__
+        state = self._filterCopyState(self.__dict__)
+        print 'State for %s:' % (object.__str__(self),)
+        for (k, v) in state.items():
+            print ' %s: %s' % (k, object.__str__(v))
+        return state
 
     def __getnewargs__ (self):
         """Pickling support.
@@ -482,16 +501,16 @@ class _NamedComponent_mixin (object):
         instance."""
 
         if self.__pickleAsReference ():
-            scope = None
+            scope = _ScopedDeclaration_mixin.SCOPE_global
             if isinstance(self, _ScopedDeclaration_mixin):
                 # If scope is global, we can look it up in the namespace.
-                # If scope is None, this must be within a group in
+                # If scope is indeterminate, this must be within a group in
                 # another namespace.  Why are we serializing it?
                 # If scope is local, provide the namespace and name of
                 # the type that holds it
                 if self.SCOPE_global != self.scope():
-                    if self.scope() is None:
-                        raise LogicError('UNBOUND SCOPE %s: %s' % (object.__str__(self), self,))
+                    print 'Scope of %s is %s' % (object.__str__(self), object.__str__(self.scope()))
+                    assert isinstance(self.scope(), ComplexTypeDefinition)
                     scope = ( self.scope().targetNamespace().uri(), self.scope().name() )
             rv = ( self.targetNamespace().uri(), self.name(), scope, self.__class__ )
             return rv
@@ -618,7 +637,7 @@ class _ScopedDeclaration_mixin (object):
 
     @classmethod
     def ScopeIsIndeterminate (cls, value):
-        return (value is None) or (cls.XSCOPE_indeterminate == value)
+        return (cls.XSCOPE_indeterminate == value)
 
     def _scopeIsCompatible (self, scope):
         """Return True if this scope currently assigned to this instance is compatible with the given scope.
@@ -652,6 +671,7 @@ class _ScopedDeclaration_mixin (object):
     def __init__ (self, *args, **kw):
         super(_ScopedDeclaration_mixin, self).__init__(*args, **kw)
         assert 'scope' in kw
+        assert kw['scope'] is not None
         # Note: This requires that the _NamedComponent_mixin have
         # already done its thing.
         self._recordInScope()
@@ -1340,7 +1360,7 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Resolv
         else:
             td_node = LocateUniqueChild(node, 'complexType')
             if td_node is not None:
-                type_def = ComplexTypeDefinition.CreateFromDOM(wxs, td_node, owner=self)
+                type_def = ComplexTypeDefinition.CreateFromDOM(wxs, td_node, scope=_ScopedDeclaration_mixin.XSCOPE_indeterminate, owner=self)
         if type_def is None:
             type_qname = wxs.interpretAttributeQName(node, 'type')
             if type_qname is not None:
@@ -1534,7 +1554,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
         #    raise LogicError('Multiple definitions of UrType')
         if cls.__UrTypeDefinition is None:
             # NOTE: We use a singleton subclass of this class
-            bi = _UrTypeDefinition(name='anyType', target_namespace=Namespace.XMLSchema, derivation_method=cls.DM_restriction, schema=_SchemaComponent_mixin._SCHEMA_None)
+            bi = _UrTypeDefinition(name='anyType', target_namespace=Namespace.XMLSchema, derivation_method=cls.DM_restriction, schema=_SchemaComponent_mixin._SCHEMA_None, scope=_ScopedDeclaration_mixin.XSCOPE_indeterminate)
 
             # The ur-type is its own baseTypeDefinition
             bi.__baseTypeDefinition = bi
@@ -1542,15 +1562,14 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
             # No constraints on attributes
             bi._setAttributeWildcard(Wildcard(namespace_constraint=Wildcard.NC_any, process_contents=Wildcard.PC_lax, schema=_SchemaComponent_mixin._SCHEMA_None))
 
-            # There isn't anything to look up, but context is still
-            # global.  No declarations will be created, so use scope
-            # of None to be consistent with validity checks in
-            # Particle constructor.  Content is mixed, with elements
-            # completely unconstrained. @todo not associated with a
-            # schema (it should be)
-            kw = { 'schema' : _SchemaComponent_mixin._SCHEMA_None
+            # There isn't anything to look up, but context is still global.
+            # No declarations will be created, so use indeterminate scope to
+            # be consistent with validity checks in Particle constructor.
+            # Content is mixed, with elements completely unconstrained. @todo
+            # not associated with a schema (it should be)
+            kw = { 'schema' : Namespace.XMLSchema.schema()
                  , 'context': _ScopedDeclaration_mixin.SCOPE_global
-                 , 'scope': None }
+                 , 'scope': _ScopedDeclaration_mixin.XSCOPE_indeterminate }
             w = Wildcard(namespace_constraint=Wildcard.NC_any, process_contents=Wildcard.PC_lax, **kw)
             p = Particle(w, min_occurs=0, max_occurs=None, **kw)
             m = ModelGroup(compositor=ModelGroup.C_SEQUENCE, particles=[ p ], **kw)
@@ -2539,6 +2558,7 @@ class Particle (_SchemaComponent_mixin, _Resolvable_mixin):
         return rv
 
     def _adaptForScope (self, wxs, owner, scope):
+        assert isinstance(wxs, Schema)
         rv = self
         if (self._scopeIsIndeterminate()) and (scope is not None):
             rv = self._clone(wxs)
@@ -2547,7 +2567,7 @@ class Particle (_SchemaComponent_mixin, _Resolvable_mixin):
         else:
             try:
                 assert self.__term._scopeIsCompatible(scope)
-            except AttributeError:
+            except AttributeError, e:
                 pass
         return rv
 
@@ -3191,7 +3211,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
         #    raise LogicError('Multiple definitions of SimpleUrType')
         if cls.__SimpleUrTypeDefinition is None:
             # Note: We use a singleton subclass
-            bi = _SimpleUrTypeDefinition(name='anySimpleType', target_namespace=Namespace.XMLSchema, variety=cls.VARIETY_absent, schema=_SchemaComponent_mixin._SCHEMA_None)
+            bi = _SimpleUrTypeDefinition(name='anySimpleType', target_namespace=Namespace.XMLSchema, variety=cls.VARIETY_absent, schema=_SchemaComponent_mixin._SCHEMA_None, scope=_ScopedDeclaration_mixin.XSCOPE_indeterminate)
             bi._setPythonSupport(datatypes.anySimpleType)
 
             # The baseTypeDefinition is the ur-type.
@@ -3220,7 +3240,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
         All parameters are required and must be non-None.
         """
         
-        bi = cls(name=name, schema=schema, target_namespace=schema.targetNamespace(), variety=cls.VARIETY_atomic)
+        bi = cls(name=name, schema=schema, target_namespace=schema.targetNamespace(), variety=cls.VARIETY_atomic, scope=_ScopedDeclaration_mixin.XSCOPE_indeterminate)
         bi._setPythonSupport(python_support)
 
         # Primitive types are based on the ur-type, and have
@@ -3244,7 +3264,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
         """
         assert parent_std
         assert parent_std.__variety in (cls.VARIETY_absent, cls.VARIETY_atomic)
-        bi = cls(name=name, schema=schema, target_namespace=schema.targetNamespace(), variety=parent_std.__variety)
+        bi = cls(name=name, schema=schema, target_namespace=schema.targetNamespace(), variety=parent_std.__variety, scope=_ScopedDeclaration_mixin.XSCOPE_indeterminate)
         bi._setPythonSupport(python_support)
 
         # We were told the base type.  If this is atomic, we re-use
@@ -3267,7 +3287,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
         that require explicit support to for Pythonic conversion; but
         note that such support is identified by the item_std.
         """
-        bi = cls(name=name, schema=schema, target_namespace=schema.targetNamespace(), variety=cls.VARIETY_list)
+        bi = cls(name=name, schema=schema, target_namespace=schema.targetNamespace(), variety=cls.VARIETY_list, scope=_ScopedDeclaration_mixin.XSCOPE_indeterminate)
         bi._setPythonSupport(python_support)
 
         # The base type is the ur-type.  We were given the item type.
@@ -3702,7 +3722,9 @@ class _SimpleUrTypeDefinition (SimpleTypeDefinition, _Singleton_mixin):
         return frozenset()
 
 class _ImportElementInformationItem (_Annotated_mixin):
-    """A class representing an import statement within a schema."""
+    """A class representing an import statement within a schema.
+
+    See section 4.2.3."""
 
     def id (self):
         """The value of the id attribute from the import statement."""
@@ -3710,14 +3732,10 @@ class _ImportElementInformationItem (_Annotated_mixin):
     __id = None
 
     def namespace (self):
-        """The value of the namespace attribute from the import statement."""
+        """The Namespace instance corresponding to the value of the
+        namespace attribute from the import statement."""
         return self.__namespace
     __namespace = None
-
-    def namespaceInstance (self):
-        """The Namespace instance for the imported namespace."""
-        return self.__namespaceInstance
-    __namespaceInstance = None
 
     def schemaLocation (self):
         """The value of the schemaLocation attribute from the import statement."""
@@ -3736,13 +3754,22 @@ class _ImportElementInformationItem (_Annotated_mixin):
         reference for the imported namespace.
         """
         return self.__prefix
-    def _setPrefix (self, prefix):
+    def setPrefix (self, prefix):
         """Allow override of the import prefix."""
         self.__prefix = prefix
     __prefix = None
     
     def __init__ (self, schema, node, **kw):
         super(_ImportElementInformationItem, self).__init__(**kw)
+        uri = NodeAttribute(node, 'namespace')
+        if uri is None:
+            raise IncompleteImplementationError('import statements without namespace not supported')
+        self.__namespace = Namespace.NamespaceForURI(uri, create_if_missing=True)
+        try:
+            self.__namespace.validateSchema()
+        except Exception, e:
+            print 'ERROR validating imported namespace: %s' % (e,)
+            raise
         self._annotationFromDOM(schema, node)
 
 class Schema (_SchemaComponent_mixin):
@@ -3781,6 +3808,11 @@ class Schema (_SchemaComponent_mixin):
         """The list of Namespace instances that were imported into this schema."""
         return self.__importedNamespaces
     __importedNamespaces = None
+
+    def _filterCopyState (self, state):
+        for fn in [ '__components' ]:
+            state['Schema%s' % (fn,)] = None
+        return getattr(super(_SchemaComponent_mixin, self), '_filterCopyState', lambda _state: _state)(state)
 
     # Tuple of component classes in order in which they must be generated.
     __ComponentOrder = (
@@ -3992,12 +4024,12 @@ class Schema (_SchemaComponent_mixin):
         if self.__pastProlog:
             raise SchemaValidationError('Unexpected node %s after prolog' % (node_name,))
 
-    def _processInclude (self, node):
+    def __processInclude (self, node):
         self.__requireInProlog(node.nodeName)
         # See section 4.2.1 of Structures.
         raise IncompleteImplementationException('include directive not implemented')
 
-    def _processImport (self, node):
+    def __processImport (self, node):
         """Process an import directive.
 
         This attempts to locate schema (named entity) information for
@@ -4005,17 +4037,23 @@ class Schema (_SchemaComponent_mixin):
         """
 
         self.__requireInProlog(node.nodeName)
-        uri = NodeAttribute(node, 'namespace')
-        if uri is None:
-            raise SchemaValidationError('import directive must provide namespace')
-        namespace = Namespace.NamespaceForURI(uri, create_if_missing=True)
+        import_eii = _ImportElementInformationItem(self, node)
+        ns_map = GetInScopeNamespaces(node)
+        for (pfx, ns) in GetInScopeNamespaces(node).items():
+            if import_eii.namespace() == ns:
+                import_eii.setPrefix(pfx)
+                break
+        if import_eii.prefix() is None:
+            print 'NO PREFIX FOR %s'
+        print 'Imported %s, prefix %s' % (import_eii.namespace().uri(), import_eii.prefix())
+        self.__importedNamespaces.append(import_eii)
         return node
 
-    def _processRedefine (self, node):
+    def __processRedefine (self, node):
         self.__requireInProlog(node.nodeName)
         raise IncompleteImplementationException('redefine not implemented')
 
-    def _processAnnotation (self, node):
+    def __processAnnotation (self, node):
         an = self._addAnnotation(Annotation.CreateFromDOM(self, node))
         return self
 
@@ -4025,18 +4063,19 @@ class Schema (_SchemaComponent_mixin):
         This should return a non-None value if the node was
         successfully recognized."""
         if xsd.nodeIsNamed(node, 'include'):
-            return self._processInclude(node)
+            return self.__processInclude(node)
         if xsd.nodeIsNamed(node, 'import'):
-            return self._processImport(node)
+            return self.__processImport(node)
         if xsd.nodeIsNamed(node, 'redefine'):
-            return self._processRedefine(node)
+            return self.__processRedefine(node)
         if xsd.nodeIsNamed(node, 'annotation'):
-            return self._processAnnotation(node)
+            return self.__processAnnotation(node)
 
         component = self.__TopLevelComponentMap.get(node.localName, None)
         if component is not None:
             self.__pastProlog = True
             kw = { 'context' : _ScopedDeclaration_mixin.SCOPE_global,
+                   'scope' : _ScopedDeclaration_mixin.XSCOPE_indeterminate,
                    'owner' : self }
             if issubclass(component, _ScopedDeclaration_mixin):
                 kw['scope'] = _ScopedDeclaration_mixin.SCOPE_global
@@ -4078,16 +4117,6 @@ class Schema (_SchemaComponent_mixin):
             unresolved = self.__unresolvedDefinitions
             self.__unresolvedDefinitions = []
             for resolvable in unresolved:
-                # Don't resolve things that don't have scope.  We
-                # could, but then we'd have to copy the resolution to
-                # previously-created clones.  It's easier just to
-                # resolve each clone on its own.  Since the only
-                # components that don't have scope are at the top
-                # level (declarations or model group definitions),
-                # delaying resolution can't change the final results.
-                if isinstance(resolvable, _ScopedDeclaration_mixin) and (resolvable.scope() is None):
-                    continue
-
                 # This should be a top-level component, or a
                 # declaration inside a given scope.
                 assert (resolvable in self.__components) \
@@ -4103,7 +4132,8 @@ class Schema (_SchemaComponent_mixin):
                 # resolve things that have scope None.  Therefore, we
                 # should never have resolved something that has
                 # clones.
-                assert not (resolvable.isResolved() and (resolvable._clones() is not None))
+                if (resolvable.isResolved() and (resolvable._clones() is not None)):
+                    assert False
             if self.__unresolvedDefinitions == unresolved:
                 # This only happens if we didn't code things right, or
                 # the schema actually has a circular dependency in

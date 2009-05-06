@@ -156,16 +156,24 @@ class Namespace (object):
     def nodeIsNamed (self, node, *local_names):
         return (node.namespaceURI == self.uri()) and (node.localName in local_names)
 
+    __didValidation = False
+    __inValidation = False
     def validateSchema (self):
         """Ensure this namespace is ready for use.
 
         If the namespace does not have an associated schema, the
         system will attempt to load one.  If unsuccessful, an
         exception will be thrown."""
+        assert not self.__inValidation
+        if self.__didValidation:
+            return self.__schema
+        self.__inValidation = True
         if self.__schema is None:
             self._defineSchema_overload()
         if not self.__schema:
             raise PyWXSBException('No schema available for required namespace %s' % (self.uri(),))
+        self.__inValidation = False
+        self.__didValidation = True
         return self.__schema
 
     def __init__ (self, uri,
@@ -458,6 +466,8 @@ class Namespace (object):
         This delegates to the associated schema.  It returns an
         ElementDeclaration, or None if the name does not denote an
         element."""
+        
+        rv = self.__elementDeclarations.get(local_name, None)
         return self.__elementDeclarations.get(local_name, None)
 
     def lookupNotationDeclaration (self, local_name):
@@ -560,6 +570,7 @@ class Namespace (object):
         assert Namespace.PicklingNamespace() is not None
         pickler.dump(self.uri())
         pickler.dump(self)
+        print 'Saving schema'
         pickler.dump(self.__schema)
         pickler.dump(self.__typeDefinitions)
         pickler.dump(self.__attributeGroupDefinitions)
