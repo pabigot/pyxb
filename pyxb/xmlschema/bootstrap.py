@@ -133,7 +133,7 @@ class schema (xsc.Schema):
             # NB: This will blow up if we're trying to parse the XMLSchema
             # itself, because we already have the built-in schema instance
             # bound to the namespace.
-            assert (self.targetNamespace().schema() is None) or (Namespace.XMLSchema == self.targetNamespace())
+            assert (self.targetNamespace().schema() is None) or (self.targetNamespace() in (Namespace.XMLSchema, Namespace.XML) )
             if self.targetNamespace().schema() is None:
                 self.targetNamespace()._schema(self)
 

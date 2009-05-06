@@ -199,7 +199,7 @@ def __SetInScopeNamespaces (node, namespace_map):
     #    print 'Restoring xmlns map: %s' % (overrode_map,)
 
 def SetInScopeNamespaces (node):
-    __SetInScopeNamespaces(node, {})
+    __SetInScopeNamespaces(node, { 'xml' : Namespace.XML })
     return node
 
 def InterpretAttributeQName (node, attribute_ncname, attribute_ns=Namespace.XMLSchema):

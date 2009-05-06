@@ -676,6 +676,7 @@ def SetXMLSchemaModule (xs_module):
     if not issubclass(xs_module.schema, xs_module.structures.Schema):
         raise LogicError('SetXMLSchemaModule: Module does not provide a valid schema class')
     _XMLSchemaModule = xs_module
+    XML.validateSchema()
 
 class _XMLSchema_instance (Namespace):
     """Extension of Namespace that pre-defines types available in the
@@ -692,12 +693,34 @@ class _XMLSchema_instance (Namespace):
                 raise LogicError('Must invoke SetXMLSchemaModule from Namespace module prior to using system.')
             schema = XMLSchemaModule().schema(target_namespace=self)
             self._schema(schema)
-            # NOTE: We're explicitly not setting a targetNamespace for this schema.
             xsc = XMLSchemaModule().structures
             schema._addNamedComponent(xsc.AttributeDeclaration.CreateBaseInstance('type', self))
             schema._addNamedComponent(xsc.AttributeDeclaration.CreateBaseInstance('nil', self))
             schema._addNamedComponent(xsc.AttributeDeclaration.CreateBaseInstance('schemaLocation', self))
             schema._addNamedComponent(xsc.AttributeDeclaration.CreateBaseInstance('noNamespaceSchemaLocation', self))
+        return self
+
+class _XML (Namespace):
+    """Extension of Namespace that pre-defines types available in the
+    XML (xml) namespace."""
+
+    def _defineSchema_overload (self):
+        """Ensure this namespace is ready for use.
+
+        Overrides base class implementation, since there is no schema
+        for this namespace. """
+        
+        if self.schema() is None:
+            if not XMLSchemaModule():
+                raise LogicError('Must invoke SetXMLSchemaModule from Namespace module prior to using system.')
+            schema = XMLSchemaModule().schema(target_namespace=self)
+            self._schema(schema)
+            xsc = XMLSchemaModule().structures
+            schema._addNamedComponent(xsc.AttributeDeclaration.CreateBaseInstance('base', self))
+            schema._addNamedComponent(xsc.AttributeDeclaration.CreateBaseInstance('id', self))
+            schema._addNamedComponent(xsc.AttributeDeclaration.CreateBaseInstance('space', self))
+            schema._addNamedComponent(xsc.AttributeDeclaration.CreateBaseInstance('lang', self))
+            print 'Defined defaults in %s' % (self.uri(),)
         return self
 
 class _XMLSchema (Namespace):
@@ -764,7 +787,7 @@ XMLNamespaces = Namespace('http://www.w3.org/2000/xmlns/',
                           bound_prefix='xmlns')
 
 # Namespace and URI for XML itself (always xml)
-XML = Namespace('http://www.w3.org/XML/1998/namespace',
+XML = _XML('http://www.w3.org/XML/1998/namespace',
                 description='XML namespace',
                 schema_location='http://www.w3.org/2001/xml.xsd',
                 is_builtin_namespace=True,

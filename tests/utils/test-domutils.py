@@ -27,25 +27,29 @@ class TestInScopeNames (unittest.TestCase):
         self.assertEqual('book', book.localName)
         SetInScopeNamespaces(book)
         xmlns_map = self.show(book)
-        self.assertEqual(2, len(xmlns_map))
+        self.assertEqual(3, len(xmlns_map))
+        self.assertEqual('http://www.w3.org/XML/1998/namespace', xmlns_map['xml'].uri())
         self.assertEqual('urn:loc.gov:books', xmlns_map[None].uri())
         self.assertEqual('urn:ISBN:0-395-36341-6', xmlns_map['isbn'].uri())
         title = book.firstChild.nextSibling
         self.assertEqual('title', title.localName)
         xmlns_map =self.show(title)
-        self.assertEqual(2, len(xmlns_map))
+        self.assertEqual(3, len(xmlns_map))
+        self.assertEqual('http://www.w3.org/XML/1998/namespace', xmlns_map['xml'].uri())
         self.assertEqual('urn:loc.gov:books', xmlns_map[None].uri())
         self.assertEqual('urn:ISBN:0-395-36341-6', xmlns_map['isbn'].uri())
         p = title.nextSibling.nextSibling.nextSibling.nextSibling.firstChild.nextSibling.nextSibling.nextSibling
         xmlns_map = self.show(p)
         self.assertEqual('p', p.localName)
-        self.assertEqual(2, len(xmlns_map))
+        self.assertEqual(3, len(xmlns_map))
+        self.assertEqual('http://www.w3.org/XML/1998/namespace', xmlns_map['xml'].uri())
         self.assertEqual('http://www.w3.org/1999/xhtml', xmlns_map[None].uri())
         self.assertEqual('urn:ISBN:0-395-36341-6', xmlns_map['isbn'].uri())
         x = title.nextSibling.nextSibling.nextSibling.nextSibling.nextSibling
         xmlns_map = self.show(x)
         self.assertEqual(x.TEXT_NODE, x.nodeType)
-        self.assertEqual(2, len(xmlns_map))
+        self.assertEqual(3, len(xmlns_map))
+        self.assertEqual('http://www.w3.org/XML/1998/namespace', xmlns_map['xml'].uri())
         self.assertEqual('urn:loc.gov:books', xmlns_map[None].uri())
         self.assertEqual('urn:ISBN:0-395-36341-6', xmlns_map['isbn'].uri())
 
@@ -72,16 +76,19 @@ class TestInScopeNames (unittest.TestCase):
         Beers = minidom.parseString(xml).documentElement
         SetInScopeNamespaces(Beers)
         xmlns_map = self.show(Beers)
-        self.assertEqual(0, len(xmlns_map))
+        self.assertEqual(1, len(xmlns_map))
+        self.assertEqual('http://www.w3.org/XML/1998/namespace', xmlns_map['xml'].uri())
         table = Beers.firstChild.nextSibling.nextSibling.nextSibling
         self.assertEqual('table', table.localName)
         xmlns_map = self.show(table)
-        self.assertEqual(1, len(xmlns_map))
+        self.assertEqual(2, len(xmlns_map))
+        self.assertEqual('http://www.w3.org/XML/1998/namespace', xmlns_map['xml'].uri())
         self.assertEqual('http://www.w3.org/1999/xhtml', xmlns_map[None].uri())
         brandName = table.firstChild.nextSibling.nextSibling.nextSibling.firstChild.nextSibling.nextSibling.nextSibling.firstChild
         self.assertEqual('brandName', brandName.localName)
         xmlns_map = self.show(brandName)
-        self.assertEqual(0, len(xmlns_map))
+        self.assertEqual(1, len(xmlns_map))
+        self.assertEqual('http://www.w3.org/XML/1998/namespace', xmlns_map['xml'].uri())
 
 
 if '__main__' == __name__:

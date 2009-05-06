@@ -140,9 +140,9 @@ class Facet (object):
     def _valueString (self):
         if isinstance(self, _CollectionFacet_mixin):
             return ','.join([ str(_i) for _i in self.items() ])
-        if self.valueDatatype() is not None:
+        if (self.valueDatatype() is not None) and (self.value() is not None):
             try:
-                return self.valueDatatype().XsdToString(self.value())
+                return self.valueDatatype().XsdLiteral(self.value())
             except Exception, e:
                 print 'Stringize facet %s produced %s' % (self.Name(), e)
                 raise

@@ -884,12 +884,16 @@ class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
         assert 'scope' in kw
 
     def __str__ (self):
-        return 'AD[%s:%s]' % (self.name(), self.typeDefinition().name())
+        if self.typeDefinition():
+            return 'AD[%s:%s]' % (self.name(), self.typeDefinition().name())
+        return 'AD[%s:?]' % (self.name(),)
 
     @classmethod
-    def CreateBaseInstance (cls, name, target_namespace=None):
+    def CreateBaseInstance (cls, name, target_namespace, std=None):
         """Create an attribute declaration component for a specified namespace."""
         bi = cls(name=name, target_namespace=target_namespace, schema=target_namespace.schema(), scope=_ScopedDeclaration_mixin.SCOPE_global)
+        if std is not None:
+            bi.__typeDefinition = std
         return bi
 
     # CFD:AD CFD:AttributeDeclaration
@@ -962,6 +966,32 @@ class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
             self.__typeDefinition = SimpleTypeDefinition.SimpleUrTypeDefinition()
 
         self.__domNode = None
+        return self
+
+    def _setBuiltinFromInstance (self, other):
+        """Override fields in this instance with those from the other.
+
+        This method is invoked only by Schema._addNamedComponent, and
+        then only when a built-in type collides with a schema-defined
+        type.  Material like facets is not (currently) held in the
+        built-in copy, so the DOM information is copied over to the
+        built-in STD, which is subsequently re-resolved.
+
+        Returns self.
+        """
+        assert self != other
+        assert self.isNameEquivalent(other)
+        super(AttributeDeclaration, self)._setBuiltinFromInstance(other)
+        assert self.name() is not None
+        assert other.name() is not None
+
+        # The other STD should be an unresolved schema-defined type.
+        assert other.__typeDefinition is None
+        assert other.__domNode is not None
+        self.__domNode = other.__domNode
+
+        # Mark this instance as unresolved so it is re-examined
+        self.__typeDefinition = None
         return self
 
     def _dependentComponents_vx (self):
@@ -1083,14 +1113,18 @@ class AttributeUse (_SchemaComponent_mixin, _Resolvable_mixin, _ValueConstraint_
             return self
         assert self.__domNode
         node = self.__domNode
-        ref_attr = NodeAttribute(node, 'ref')
-        if ref_attr is None:
+        ad_qname = wxs.interpretAttributeQName(node, 'ref')
+        if ad_qname is None:
             raise SchemaValidationError('Attribute uses require reference to attribute declaration')
         # Although the attribute declaration definition may not be
         # resolved, *this* component is resolved, since we don't look
         # into the attribute declaration for anything.
-        self.__attributeDeclaration = wxs.lookupAttribute(ref_attr, self._context())
-        assert self.__attributeDeclaration is not None
+        ( ad_ns, ad_ln ) = ad_qname
+        self.__attributeDeclaration = _LookupAttributeDeclaration(ad_ns, self._context(), ad_ln)
+        if self.__attributeDeclaration is None:
+            wxs._queueForResolution(self)
+            return self
+        assert isinstance(self.__attributeDeclaration, AttributeDeclaration)
         self.__domNode = None
         return self
 
@@ -3079,7 +3113,10 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
             self.__pythonSupport._SimpleTypeDefinition(self)
 
     def __str__ (self):
-        elts = [ self.name(), ': ' ]
+        if self.name() is not None:
+            elts = [ self.name(), ': ' ]
+        else:
+            elts = [ '<anonymous>:' ]
         if self.VARIETY_absent == self.variety():
             elts.append('the ur-type')
         elif self.VARIETY_atomic == self.variety():
@@ -3886,6 +3923,8 @@ class Schema (_SchemaComponent_mixin):
                     if isinstance(d, _NamedComponent_mixin):
                         failed_components.append('%s named %s' % (d.__class__.__name__, d.name()))
                     else:
+                        if isinstance(d, AttributeUse):
+                            print d.attributeDeclaration()
                         failed_components.append('Anonymous %s' % (d.__class__.__name__,))
                 raise LogicError('Infinite loop in resolution:\n  %s' % ("\n  ".join(failed_components),))
         self.__unresolvedDefinitions = None
@@ -3910,7 +3949,7 @@ class Schema (_SchemaComponent_mixin):
         if isinstance(nc, AttributeGroupDefinition):
             return tns.addAttributeGroupDefinition(nc)
         if isinstance(nc, AttributeDeclaration):
-            return tns.addAttributeDeclaration(nc)
+            return self.__addAttributeDeclaration(nc)
         if isinstance(nc, ModelGroupDefinition):
             return tns.addModelGroupDefinition(nc)
         if isinstance(nc, ElementDeclaration):
@@ -3937,6 +3976,23 @@ class Schema (_SchemaComponent_mixin):
             tns.addTypeDefinition(td)
         assert td is not None
         return td
+
+    def __addAttributeDeclaration (self, ad):
+        local_name = ad.name()
+        assert self.__targetNamespace
+        tns = self.targetNamespace()
+        old_ad = tns.lookupAttributeDeclaration(local_name)
+        if (old_ad is not None) and (old_ad != ad):
+            # @todo validation error if old_ad is not a built-in
+            if isinstance(ad, AttributeDeclaration) != isinstance(old_ad, AttributeDeclaration):
+                raise SchemaValidationError('Name %s used for both simple and complex types' % (ad.name(),))
+            # Copy schema-related information from the new definition
+            # into the old one, and continue to use the old one.
+            ad = self.__replaceUnresolvedDefinition(ad, old_ad._setBuiltinFromInstance(ad))
+        else:
+            tns.addAttributeDeclaration(ad)
+        assert ad is not None
+        return ad
 
     def interpretAttributeQName (self, node, attr, attribute_ns=Namespace.XMLSchema):
         qname = InterpretAttributeQName(node, attr, attribute_ns)
