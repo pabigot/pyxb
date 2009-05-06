@@ -149,8 +149,8 @@ def ToDOM_startup (document, parent, tag=None):
     return (document, element)
 
 # In-scope namespaces are represented as a map from a prefix to a
-# namespace name.  The prefix is None when representing the default
-# namespace.
+# Namespace instance.  The prefix is None when representing the
+# default namespace.
 
 __InScopeNamespaceAttribute = '_pyxb_utils_domutils__InScopeNamespaces'
 
@@ -186,10 +186,11 @@ def __SetInScopeNamespaces (node, namespace_map):
             else:
                 namespace_map.pop(attr.localName, None)
         for attr in adds:
+            ns = Namespace.NamespaceForURI(attr.value, create_if_missing=True)
             if attr.prefix is None:
-                namespace_map[None] = attr.value
+                namespace_map[None] = ns
             else:
-                namespace_map[attr.localName] = attr.value
+                namespace_map[attr.localName] = ns
         #print 'New xmlns map at %s: %s' % (node.nodeName, namespace_map,)
     setattr(node, __InScopeNamespaceAttribute, namespace_map)
     for cn in node.childNodes:
@@ -201,4 +202,45 @@ def SetInScopeNamespaces (node):
     __SetInScopeNamespaces(node, {})
     return node
 
-    
+def InterpretAttributeQName (node, attribute_name, absent_ns=None, attribute_ns=Namespace.XMLSchema):
+    """Provide the namespace and local name for the value of the given
+    attribute in the node.
+
+    attribute_ns is the namespace that should be used when locating
+    the attribute within the node.  If no matching attribute can be
+    found, this function returns None.
+
+    If the attribute is found, its value is normalized per QName's
+    whitespace facet (collapse), then QName interpretation per section
+    3.15.3 is performed to identify the namespace name and localname
+    to which the value refers.  If the resulting namespace is absent,
+    the absent_ns is used; otherwise, the Namespace instance for the
+    namespace name is used.
+
+    The return value is then a pair consisting of a Namespace instance
+    and a local name.
+    """
+
+    assert node.namespaceURI
+    attr = None
+    if node.namespaceURI == attribute_ns.uri():
+        if node.hasAttributeNS(None, attribute_ncname):
+            attr = node.getAttributeNS(None, attribute_ncname)
+    if (attr is None) and node.hasAttributeNS(attribute_ns.uri(), attribute_ncname):
+        assert False
+        attr = node.getAttributeNS(attribute_ns.uri(), attribute_ncname)
+    if attr is None:
+        return None
+    # Do QName interpretation
+    name = attr.value
+    if 0 <= name.find(':'):
+        (prefix, local_name) = name.split(':', 1)
+        namespace = GetInScopeNamespaces(node).get(prefix, None)
+        if namespace is None:
+            raise SchemaValidationError('QName %s prefix is not declared' % (name,))
+    else:
+        local_name = name
+        # Get the default namespace, or whatever serves as the absent
+        # namespace
+        namespace = GetInScopeNamespaces(node).get(None, absent_ns)
+    return (namespace, local_name)
