@@ -21,9 +21,6 @@ processing.
 # Get the schema component datatypes
 import structures
 
-# Get the built-in datatypes
-#import datatypes
-
 # Get the bindings relevant to schemas.  NB: Other implementations may
 # be used in the future.
-from bootstrap import schema
+from structures import Schema as schema

@@ -3753,6 +3753,10 @@ class Schema (_SchemaComponent_mixin):
     # List of annotations
     __annotations = None
 
+    # True when we have started seeing elements, attributes, or
+    # notations.
+    __pastProlog = False
+
     def targetNamespace (self):
         """The targetNamespace of a componen.
 
@@ -3889,6 +3893,156 @@ class Schema (_SchemaComponent_mixin):
         self.__annotations = [ ]
         self.__unresolvedDefinitions = []
         self.__importedNamespaces = []
+
+    __TopLevelComponentMap = {
+        'element' : ElementDeclaration,
+        'attribute' : AttributeDeclaration,
+        'notation' : NotationDeclaration,
+        'simpleType' : SimpleTypeDefinition,
+        'complexType' : ComplexTypeDefinition,
+        'group' : ModelGroupDefinition,
+        'attributeGroup' : AttributeGroupDefinition
+        }
+
+    # @todo put these in base class
+    @classmethod
+    def CreateFromDOM (cls, node, attributes=None):
+        """Take the root element of the document, and scan its attributes under
+        the assumption it is an XMLSchema schema element.  That means
+        recognize namespace declarations and process them.  Also look for
+        and set the default namespace.  All other attributes are passed up
+        to the parent class for storage."""
+
+        # Store in each node the in-scope namespaces at that node;
+        # we'll need them for QName interpretation of attribute
+        # values.
+        SetInScopeNamespaces(node)
+
+        default_namespace = None
+        root_node = node
+        if Node.DOCUMENT_NODE == node.nodeType:
+            root_node = root_node.documentElement
+        if Node.ELEMENT_NODE != root_node.nodeType:
+            raise LogicError('Must be given a DOM node of type ELEMENT')
+
+        if attributes is None:
+            attributes = root_node.attributes
+        attribute_map = { }
+        default_namespace = None
+        for attr in attributes.values():
+            if 'xmlns' == attr.prefix:
+                Namespace.NamespaceForURI(attr.nodeValue, create_if_missing=True)
+            elif 'xmlns' == attr.name:
+                default_namespace = Namespace.NamespaceForURI(attr.nodeValue, create_if_missing=True)
+            else:
+                attribute_map[attr.name] = attr.nodeValue
+
+        tns_uri = attribute_map.get('targetNamespace', None)
+        if tns_uri is None:
+            tns = Namespace.CreateAbsentNamespace()
+        else:
+            tns = Namespace.NamespaceForURI(tns_uri, create_if_missing=True)
+        assert tns is not None
+        if tns.schema() is None:
+            tns._schema(cls(target_namespace=tns, default_namespace=default_namespace))
+        schema = tns.schema()
+            
+        assert schema.targetNamespace() == tns
+        assert schema.defaultNamespace() == default_namespace
+
+        # Update the attribute map
+        schema._setAttributesFromMap(attribute_map)
+
+        # Verify that the root node is an XML schema element
+        if not xsd.nodeIsNamed(root_node, 'schema'):
+            raise SchemaValidationError('Root node %s of document is not an XML schema element' % (root_node.nodeName,))
+
+        for cn in root_node.childNodes:
+            if Node.ELEMENT_NODE == cn.nodeType:
+                rv = schema.__processTopLevelNode(cn)
+                if rv is None:
+                    print 'Unrecognized: %s' % (cn.nodeName,)
+            elif Node.TEXT_NODE == cn.nodeType:
+                # Non-element content really should just be whitespace.
+                # If something else is seen, print it for inspection.
+                text = cn.data.strip()
+                if text:
+                    print 'Ignored text: %s' % (text,)
+            elif Node.COMMENT_NODE == cn.nodeType:
+                #print 'comment: %s' % (cn.data.strip(),)
+                pass
+            else:
+                # ATTRIBUTE_NODE
+                # CDATA_SECTION_NODE
+                # ENTITY_NODE
+                # PROCESSING_INSTRUCTION
+                # DOCUMENT_NODE
+                # DOCUMENT_TYPE_NODE
+                # NOTATION_NODE
+                print 'Ignoring non-element: %s' % (cn,)
+
+        schema._resolveDefinitions()
+
+        return schema
+
+    def __requireInProlog (self, node_name):
+        """Throw a SchemaValidationException referencing the given
+        node if we have passed the sequence point representing the end
+        of prolog elements."""
+        if self.__pastProlog:
+            raise SchemaValidationError('Unexpected node %s after prolog' % (node_name,))
+
+    def _processInclude (self, node):
+        self.__requireInProlog(node.nodeName)
+        # See section 4.2.1 of Structures.
+        raise IncompleteImplementationException('include directive not implemented')
+
+    def _processImport (self, node):
+        """Process an import directive.
+
+        This attempts to locate schema (named entity) information for
+        a namespace that is referenced by this schema.
+        """
+
+        self.__requireInProlog(node.nodeName)
+        uri = NodeAttribute(node, 'namespace')
+        if uri is None:
+            raise SchemaValidationError('import directive must provide namespace')
+        namespace = Namespace.NamespaceForURI(uri, create_if_missing=True)
+        return node
+
+    def _processRedefine (self, node):
+        self.__requireInProlog(node.nodeName)
+        raise IncompleteImplementationException('redefine not implemented')
+
+    def _processAnnotation (self, node):
+        an = self._addAnnotation(Annotation.CreateFromDOM(self, node))
+        return self
+
+    def __processTopLevelNode (self, node):
+        """Process a DOM node from the top level of the schema.
+
+        This should return a non-None value if the node was
+        successfully recognized."""
+        if xsd.nodeIsNamed(node, 'include'):
+            return self._processInclude(node)
+        if xsd.nodeIsNamed(node, 'import'):
+            return self._processImport(node)
+        if xsd.nodeIsNamed(node, 'redefine'):
+            return self._processRedefine(node)
+        if xsd.nodeIsNamed(node, 'annotation'):
+            return self._processAnnotation(node)
+
+        component = self.__TopLevelComponentMap.get(node.localName, None)
+        if component is not None:
+            self.__pastProlog = True
+            kw = { 'context' : _ScopedDeclaration_mixin.SCOPE_global,
+                   'owner' : self }
+            if issubclass(component, _ScopedDeclaration_mixin):
+                kw['scope'] = _ScopedDeclaration_mixin.SCOPE_global
+            return self._addNamedComponent(component.CreateFromDOM(self, node, **kw))
+
+        raise SchemaValidationError('Unexpected top-level element %s' % (node.nodeName,))
 
     def _queueForResolution (self, resolvable):
         """Invoked to note that a component may have unresolved references.
