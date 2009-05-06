@@ -2943,25 +2943,7 @@ class Annotation (_SchemaComponent_mixin):
         if 0 < len(user_info):
             rv.__userInformation = user_info
 
-        #n2 = rv.generateDOM(wxs, node.ownerDocument)
-        #print "In: %s\n\nOut: %s\n" % (node.toxml(), n2.toxml())
         return rv
-
-    def generateDOM (self, wxs, document):
-        node = wxs.createDOMNodeInWXS(document, 'annotation')
-        if self.__userInformation is not None:
-            ui_node = wxs.createDOMNodeInWXS(document, 'documentation')
-            for ui in self.__userInformation:
-                for cn in ui.childNodes:
-                    ui_node.appendChild(cn.cloneNode(True))
-            node.appendChild(ui_node)
-        if self.__applicationInformation is not None:
-            ai_node = wxs.createDOMNodeInWXS(document, 'appinfo')
-            for ai in self.__applicationInformation:
-                for cn in ai.childNodes:
-                    ai_node.appendChild(cn.cloneNode(True))
-            node.appendChild(ai_node)
-        return node
 
     def __str__ (self):
         """Return the catenation of all user information elements in the annotation."""

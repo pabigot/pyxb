@@ -22,69 +22,18 @@ import types
 
 import pyxb.utils.domutils
 
-# Hand-written classes used to get to the point where we can subclass
-# generated bindings.
-
-class schemaTop (xsc.ModelGroup):
-    """Hand-written binding to the schemaTop model group of XMLSchema."""
-    def __init__ (self, *args, **kw):
-        super(schemaTop, self).__init__(*args, **kw)
-
-    @classmethod
-    def Match (cls, wxs, node):
-        rv = redefinable.Match(wxs, node)
-        if rv is not None:
-            return rv
-        if xs.nodeIsNamed(node, 'element'):
-            return wxs._processElementDeclaration(node)
-        if xs.nodeIsNamed(node, 'attribute'):
-            return wxs._processAttributeDeclaration(node)
-        if xs.nodeIsNamed(node, 'notation'):
-            return wxs._processNotationDeclaration(node)
-        return None
-
-class redefinable (xsc.ModelGroup):
-    """Hand-written binding to the redefinable model group of XMLSchema."""
-    def __init__ (self, *args, **kw):
-        super(redefinable, self).__init__(*args, **kw)
-
-    @classmethod
-    def Match (cls, wxs, node):
-        if xs.nodeIsNamed(node, 'simpleType'):
-            return wxs._processSimpleType(node)
-        if xs.nodeIsNamed(node, 'complexType'):
-            return wxs._processComplexType(node)
-        if xs.nodeIsNamed(node, 'group'):
-            return wxs._processGroup(node)
-        if xs.nodeIsNamed(node, 'attributeGroup'):
-            return wxs._processAttributeGroup(node)
-        return None
-
 class schema (xsc.Schema):
     """Class corresponding to a W3C XML Schema instance.
 
     This class is a subclass of the corresponding schema component.
     """
     
-    __domRootNode = None
-
     # True when we have started seeing elements, attributes, or
     # notations.
     __pastProlog = False
 
     def __init__ (self, **kw):
         super(schema, self).__init__(self, **kw)
-
-    def createDOMNodeInNamespace (self, dom_document, nc_name, namespace=None):
-        if namespace is None:
-            namespace = self.defaultNamespace()
-        uri = None
-        if namespace is not None:
-            uri = namespace.uri()
-        return dom_document.createElementNS(uri, nc_name)
-
-    def createDOMNodeInWXS (self, dom_document, nc_name):
-        return self.createDOMNodeInNamespace(dom_document, nc_name, Namespace.XMLSchema)
 
     __TopLevelComponentMap = {
         'element' : xsc.ElementDeclaration,
@@ -148,8 +97,6 @@ class schema (xsc.Schema):
         # Verify that the root node is an XML schema element
         if not xs.nodeIsNamed(root_node, 'schema'):
             raise SchemaValidationError('Root node %s of document is not an XML schema element' % (root_node.nodeName,))
-
-        schema.__domRootNode = root_node
 
         for cn in root_node.childNodes:
             if xml.dom.Node.ELEMENT_NODE == cn.nodeType:
@@ -240,5 +187,3 @@ class schema (xsc.Schema):
             return self._addNamedComponent(component.CreateFromDOM(self, node, **kw))
 
         raise SchemaValidationError('Unexpected top-level element %s' % (node.nodeName,))
-    def domRootNode (self):
-        return self.__domRootNode
