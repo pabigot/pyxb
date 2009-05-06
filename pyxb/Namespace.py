@@ -690,7 +690,9 @@ def SetXMLSchemaModule (xs_module):
     if not issubclass(xs_module.schema, xs_module.structures.Schema):
         raise LogicError('SetXMLSchemaModule: Module does not provide a valid schema class')
     _XMLSchemaModule = xs_module
-    XML.validateSchema()
+    # Load built-ins after setting the schema module, to avoid
+    # infinite loop
+    XMLSchema._loadBuiltins()
 
 class _XMLSchema_instance (Namespace):
     """Extension of Namespace that pre-defines types available in the
@@ -755,36 +757,24 @@ class _XHTML (Namespace):
 
 class _XMLSchema (Namespace):
     """Extension of Namespace that pre-defines types available in the
-    XMLSchema namespace."""
+    XMLSchema namespace.
 
-    # Ugliness: The XMLSchema definition refers to the xml namespace
-    # to resolve the xml:lang attribute. That's fine, because we've
-    # probably got the xml namespace schema available in a loadable
-    # form.  However, when we load it, it's going to want to look up
-    # types like xsd:anyURI, which are defined in XMLSchema.  That's
-    # good if we're running on the built-in schema, but if we're going
-    # to try to read one from a loadable file, we've got a recursive
-    # definition problem.  We could get around it by installing the
-    # built in, loading the xml schema, then loading a different
-    # XMLSchema schema on top of the built-in, but at that point there
-    # would be two anyURI instances in the same namespace: one from
-    # the built-in, one frmo the loaded one.
-    #
-    # Just don't try to load the XMLSchema definition from a file
-    # until we figure out how to reconcile the dependency loop.
+    The types are defined when the XMLSchemaModule is set.
+    """
 
-    def _defineSchema_overload (self):
-        """Overload to resolve to built-in schema rather than loaded one."""
-        self._schema(XMLSchemaModule().schema(target_namespace=self, default_namespace=XHTML))
+    def _loadBuiltins (self):
+        """Register the built-in types into the XMLSchema namespace."""
+        if self.schema() is None:
+            self._schema(XMLSchemaModule().schema(target_namespace=self, default_namespace=XHTML))
+
         XMLSchemaModule().structures._AddSimpleTypes(self.schema())
 
         # In order to load a schema from a file, we need the ability
         # for the load infrastructure to update the built-in schema
         # instance we've already associated.  
-        if self.schema() is not None:
-            xsc = XMLSchemaModule().structures
-            assert xsc.ComplexTypeDefinition.UrTypeDefinition() == self.lookupTypeDefinition('anyType')
-            assert xsc.SimpleTypeDefinition.SimpleUrTypeDefinition() == self.lookupTypeDefinition('anySimpleType')
+        xsc = XMLSchemaModule().structures
+        assert xsc.ComplexTypeDefinition.UrTypeDefinition() == self.lookupTypeDefinition('anyType')
+        assert xsc.SimpleTypeDefinition.SimpleUrTypeDefinition() == self.lookupTypeDefinition('anySimpleType')
 
 def AvailableForLoad ():
     """Return a list of namespace URIs for which we may be able to

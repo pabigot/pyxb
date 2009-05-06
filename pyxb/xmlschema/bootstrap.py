@@ -80,43 +80,6 @@ class schema (xsc.Schema):
         super(schema, self).__init__(self, **kw)
         self.__namespaces = set()
 
-    def initializeBuiltins (self):
-        # We're going to need the built-in types from the XMLSchema
-        # namespace.  @todo This will allocate and associate a schema
-        # instance with the XMLSchema namespace.  If we're trying to
-        # parse the XMLSchema schema, then the namespace/schema
-        # association below will fail.  To support both built-in and
-        # loaded schema for XMLSchema is going to get tricky, because
-        # of a dependency loop on xml:lang.
-        Namespace.XMLSchema.validateSchema()
-
-        # It's perfectly legitimate to not specify a target namespace.
-
-        # There better be a target namespace.  Use this as its schema.
-        if self.targetNamespace() is not None:
-            # NB: This will blow up if we're trying to parse the XMLSchema
-            # itself, because we already have the built-in schema instance
-            # bound to the namespace.
-            assert (self.targetNamespace().schema() is None) or (self.targetNamespace() in (Namespace.XMLSchema, Namespace.XML) )
-            if self.targetNamespace().schema() is None:
-                self.targetNamespace()._schema(self)
-
-        # Try to validate anything else we might need.  Ideally,
-        # they'll all exist in pre-parsed format.  We'll need them if
-        # we're going to generate code.
-        for ns in self.namespaces():
-            if self.targetNamespace() != ns:
-                try:
-                    ns.validateSchema()
-                except Exception, e:
-                    print 'WARNING validating schema for %s: %s' % (ns.uri(), e)
-                    traceback.print_exception(*sys.exc_info())
-
-    # Compile-time spelling check
-    __QUALIFIED = 'qualified'
-    # Compile-time spelling check
-    __UNQUALIFIED = 'unqualified'
-
     def namespaces (self):
         """Return the set of namespaces associated with this schema."""
         return self.__namespaces
@@ -171,17 +134,15 @@ class schema (xsc.Schema):
         else:
             tns = Namespace.NamespaceForURI(tns_uri, create_if_missing=True)
         assert tns is not None
+        if tns.schema() is None:
+            tns._schema(cls(target_namespace=tns, default_namespace=default_namespace))
         schema = tns.schema()
-        if schema is None:
-            schema = cls(target_namespace=tns, default_namespace=default_namespace)
+            
         assert schema.targetNamespace() == tns
         assert schema.defaultNamespace() == default_namespace
 
         # Update the attribute map
         schema._setAttributesFromMap(attribute_map)
-
-        # Now pre-load the namespaces that must be available.
-        schema.initializeBuiltins()
 
         # Verify that the root node is an XML schema element
         if not xs.nodeIsNamed(root_node, 'schema'):

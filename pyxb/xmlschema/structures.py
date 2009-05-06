@@ -1307,6 +1307,7 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Resolv
             if sga is None:
                 raise SchemaValidationError('Unable to resolve substitution group %s' % (sg_qname,))
             if not sga.isResolved():
+                print 'Not resolving, unknown substitution group %s' % (sg_qname,)
                 wxs._queueForResolution(self)
                 return self
             self.__substitutionGroupAffiliation = sga
@@ -1330,6 +1331,9 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Resolv
             if type_qname is not None:
                 (type_ns, type_ln) = type_qname
                 type_def = type_ns.lookupTypeDefinition(type_ln)
+                if type_def is None:
+                    wxs._queueForResolution(self)
+                    return self
             elif self.__substitutionGroupAffiliation is not None:
                 type_def = self.__substitutionGroupAffiliation.typeDefinition()
             else:
@@ -1550,6 +1554,8 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
             bi.setNameInBinding(bi.name())
 
             # The ur-type is always resolved
+            bi.__derivationMethod = cls.DM_restriction
+
             cls.__UrTypeDefinition = bi
         return cls.__UrTypeDefinition
 
@@ -3219,6 +3225,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
 
         # Primitive types are built-in
         bi.__resolveBuiltin()
+        assert bi.isResolved()
         return bi
 
     @classmethod
