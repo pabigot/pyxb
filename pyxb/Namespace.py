@@ -720,7 +720,6 @@ class _XML (Namespace):
             schema._addNamedComponent(xsc.AttributeDeclaration.CreateBaseInstance('id', self))
             schema._addNamedComponent(xsc.AttributeDeclaration.CreateBaseInstance('space', self))
             schema._addNamedComponent(xsc.AttributeDeclaration.CreateBaseInstance('lang', self))
-            print 'Defined defaults in %s' % (self.uri(),)
         return self
 
 class _XMLSchema (Namespace):
