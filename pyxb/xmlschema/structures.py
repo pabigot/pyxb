@@ -1306,11 +1306,12 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Resolv
 
         node = self.__domNode
 
-        sg_attr = NodeAttribute(node, 'substitutionGroup')
-        if sg_attr is not None:
-            sga = wxs.lookupElement(sg_attr, self.scope())
+        sg_qname = wxs.interpretAttributeQName(node, 'substitutionGroup')
+        if sg_qname is not None:
+            (sg_ns, sg_ln) = sg_qname
+            sga = _LookupElementDeclaration(sg_ns, self.scope(), sg_ln)
             if sga is None:
-                raise SchemaValidationError('Unable to resolve substitution group %s' % (sg_attr,))
+                raise SchemaValidationError('Unable to resolve substitution group %s' % (sg_qname,))
             if not sga.isResolved():
                 wxs._queueForResolution(self)
                 return self
@@ -1890,10 +1891,11 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
                         method = self.DM_extension
                     else:
                         raise SchemaValidationError('Expected restriction or extension as sole child of %s in %s' % (content_node.name(), self.name()))
-                    base_attr = NodeAttribute(ions, 'base')
-                    if base_attr is None:
+                    base_qname = wxs.interpretAttributeQName(ions, 'base')
+                    if base_qname is None:
                         raise SchemaValidationError('Element %s missing base attribute' % (ions.nodeName,))
-                    base_type = wxs.lookupType(base_attr)
+                    (base_ns, base_ln) = base_qname
+                    base_type = base_ns.lookupTypeDefinition(base_ln)
                     if not base_type.isResolved():
                         # Have to delay resolution until the type this
                         # depends on is available.
@@ -2411,16 +2413,17 @@ class Particle (_SchemaComponent_mixin, _Resolvable_mixin):
         node = self.__domNode
         context = self._context()
         scope = self._scope()
-        ref_attr = NodeAttribute(node, 'ref')
+        ref_qname = wxs.interpretAttributeQName(node, 'ref')
         if xsd.nodeIsNamed(node, 'group'):
             # 3.9.2 says use 3.8.2, which is ModelGroup.  The group
             # inside a particle is a groupRef.  If there is no group
             # with that name, this throws an exception as expected.
-            if ref_attr is None:
+            if ref_qname is None:
                 raise SchemaValidationError('group particle without reference')
             # Named groups can only appear at global scope, so no need
             # to use context here.
-            group_decl = wxs.lookupGroup(ref_attr)
+            (ref_ns, ref_ln) = ref_qname
+            group_decl = ref_ns.lookupModelGroupDefinition(ref_ln)
             if group_decl is None:
                 wxs._queueForResolution(self)
                 return None
@@ -2434,8 +2437,9 @@ class Particle (_SchemaComponent_mixin, _Resolvable_mixin):
             # 3.9.2 says use 3.3.2, which is Element.  The element
             # inside a particle is a localElement, so we either get
             # the one it refers to, or create a local one here.
-            if ref_attr is not None:
-                term = wxs.lookupElement(ref_attr, context)
+            if ref_qname is not None:
+                (ref_ns, ref_ln) = ref_qname
+                term = _LookupElementDeclaration(ref_ns, context, ref_ln)
                 if term is None:
                     wxs._queueForResolution(self)
                     return term
@@ -3299,12 +3303,15 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
         return self.__completeResolution(wxs, body, self.VARIETY_list, 'list')
 
     def __initializeFromRestriction (self, wxs, body):
-        base_attr = NodeAttribute(body, 'base')
-        if base_attr is not None:
+        base_qname = wxs.interpretAttributeQName(body, 'base')
+        if base_qname is not None:
             # Look up the base.  If there is no registered type of
             # that name, an exception gets thrown that percolates up
             # to the user.
-            base_type = wxs.lookupSimpleType(base_attr)
+            (base_ns, base_ln) = base_qname
+            base_type = base_ns.lookupTypeDefinition(base_ln)
+            if not isinstance(base_type, SimpleTypeDefinition):
+                raise InvalidSchemaError('Unable to locate base type %s' % (base_qname,))
             # If the base type exists but has not yet been resolve,
             # delay processing this type until the one it depends on
             # has been completed.
@@ -3470,9 +3477,12 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
                 self.__primitiveTypeDefinition = ptd
         elif self.VARIETY_list == variety:
             if 'list' == alternative:
-                attr_val = NodeAttribute(body, 'itemType')
-                if attr_val is not None:
-                    self.__itemTypeDefinition = wxs.lookupSimpleType(attr_val)
+                attr_qname = wxs.interpretAttributeQName(body, 'itemType')
+                if attr_qname is not None:
+                    (attr_ns, attr_ln) = attr_qname
+                    self.__itemTypeDefinition = attr_ns.lookupTypeDefinition(attr_ln)
+                    if not isinstance(self.__itemTypeDefinition, SimpleTypeDefinition):
+                        raise InvalidSchemaError('Unable to locate STD %s for items' % (attr_qname,))
                 else:
                     # NOTE: The newly created anonymous item type will
                     # not be resolved; the caller needs to handle

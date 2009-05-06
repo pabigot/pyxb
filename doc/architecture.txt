@@ -25,6 +25,17 @@ and extract any arguments it needs from the keywords.  If you do not need to
 do anything in the init method, leave it out.  See
 http://fuhm.net/super-harmful/.
 
+Reliance on DOM
+---------------
+
+We rely on the DOM implementation to provide QName interpretation (per
+section 3.15.3 of XMLSchema part 1).  That is, the DOM implementation should
+be tracking in-scope namespaces as it builds the DOM tree; the PyXB
+implementation assumes that the node namespaceURI and localName values have
+been determined correctly by the DOM.
+
+QName resolution, on the other hand, is the responsibility of PyXB.
+
 PyWXSB
 ------
 
