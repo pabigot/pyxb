@@ -1216,10 +1216,14 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Resolv
 
         # Might be top-level, might be local
         name = NodeAttribute(node, 'name')
-        namespace = wxs.targetNamespace()
+        namespace = None
         if xsd.nodeIsNamed(node.parentNode, 'schema'):
+            namespace = wxs.targetNamespace()
             assert _ScopedDeclaration_mixin.SCOPE_global == scope
         elif NodeAttribute(node, 'ref') is None:
+            # NB: It is perfectly legal for namespace to be None when
+            # processing local elements.
+            namespace = wxs.defaultNamespaceFromDOM(node, 'elementFormDefault')
             assert (scope is None) or isinstance(scope, ComplexTypeDefinition)
             # Context may be None or a CTD.
         else:
@@ -3637,6 +3641,50 @@ class _SimpleUrTypeDefinition (SimpleTypeDefinition, _Singleton_mixin):
     def _dependentComponents_vx (self):
         """The SimpleUrTypeDefinition is not dependent on anything."""
         return frozenset()
+
+class _ImportElementInformationItem (_Annotated_mixin):
+    """A class representing an import statement within a schema."""
+
+    def id (self):
+        """The value of the id attribute from the import statement."""
+        return self.__id
+    __id = None
+
+    def namespace (self):
+        """The value of the namespace attribute from the import statement."""
+        return self.__namespace
+    __namespace = None
+
+    def namespaceInstance (self):
+        """The Namespace instance for the imported namespace."""
+        return self.__namespaceInstance
+    __namespaceInstance = None
+
+    def schemaLocation (self):
+        """The value of the schemaLocation attribute from the import statement."""
+        return self.__schemaLocation
+    __schemaLocation = None
+
+    def prefix (self):
+        """A prefix to be used for this namespace.
+
+        The value is inferred from an XML Namespace declaration in the
+        enclosing schema.  If no such declaration can be found, a
+        prefix is assigned using the form "imported_#" where "#" makes
+        the prefix unique within the enclosing schema.
+
+        The prefix is used in generated bindings as the module
+        reference for the imported namespace.
+        """
+        return self.__prefix
+    def _setPrefix (self, prefix):
+        """Allow override of the import prefix."""
+        self.__prefix = prefix
+    __prefix = None
+    
+    def __init__ (self, schema, node, **kw):
+        super(_ImportElementInformationItem, self).__init__(**kw)
+        self._annotationFromDOM(schema, node)
 
 class Schema (_SchemaComponent_mixin):
     # A set containing all components, named or unnamed, that belong
