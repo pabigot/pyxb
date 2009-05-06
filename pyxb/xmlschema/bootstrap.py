@@ -76,24 +76,6 @@ class schema (xsc.Schema):
     # Namespaces cannot be removed from this set.
     __namespaces = None
 
-    # Map from a prefix to the namespace it represents in this schema.
-    # Namespaces with bound prefixes cannot be reassigned, and the
-    # prefix associated with a namespace cannot change.  This is
-    # prefix->Namespace, not prefix->URI.
-    __prefixToNamespaceMap = None
-
-    # Reverse direction: given a Namespace instance, determine the
-    # prefix used for that namespace.  The map is from URI->prefix; we
-    # use the URI rather than the Namespace instance to lessen the
-    # probability of errors due to Namespace proxies.
-    __namespaceURIToPrefixMap = None
-
-    # Map from the namespace URI to the instance that represents it.
-    # Note: This is not redundant with Namespace.NamespaceForURI,
-    # since the latter may include namespaces not available to this
-    # schema.
-    __namespaceURIMap = None    # Map from URI to a namespace instance
-
     # Default namespace for current schema.  Will be None unless
     # schema has an 'xmlns' attribute.
     __defaultNamespace = None 
@@ -101,21 +83,11 @@ class schema (xsc.Schema):
     def __init__ (self, **kw):
         super(schema, self).__init__(self, **kw)
         self.__namespaces = set()
-        self.__namespaceURIToPrefixMap = { }
-        self.__prefixToNamespaceMap = { }
-        self.__namespaceURIMap = { }
 
     def initializeBuiltins (self):
         # These two are built-in; make sure they're present
         self.lookupOrCreateNamespace(Namespace.XML.uri())
         self.lookupOrCreateNamespace(Namespace.XMLSchema_instance.uri())
-
-        # We're certainly going to need this one, too.  Presumably
-        # it's already been added, with whatever prefix is required
-        # for it in this schema.
-        xs = self.namespaceForURI(Namespace.XMLSchema.uri())
-        if xs is None:
-            raise LogicError('No access to XMLSchema namespace')
 
         # We're going to need the built-in types from the XMLSchema
         # namespace.  @todo This will allocate and associate a schema
@@ -168,21 +140,6 @@ class schema (xsc.Schema):
             # Add the namespace, as well as a mapping between it and
             # the prefix by which it is known in this schema, if any.
             self.__namespaces.add(namespace)
-            self.__namespaceURIMap[namespace.uri()] = namespace
-
-            if prefix is None:
-                prefix = namespace.boundPrefix()
-            # The default namespace will not involve a prefix.
-            if prefix is not None:
-                if prefix in self.__prefixToNamespaceMap:
-                    raise LogicError('Prefix %s already associated with %s' % (prefix, namespace))
-                old_prefix = self.__namespaceURIToPrefixMap.get(namespace.uri(), None)
-                if old_prefix is not None:
-                    # This is not a LogicError because I'm not convinced doing this
-                    # isn't legal.  Even if it does seem a little nonsensical.
-                    raise IncompleteImplementationError('Namespace %s cannot have multiple prefixes (%s, %s)' % (namespace, prefix, old_prefix))
-                self.__prefixToNamespaceMap[prefix] = namespace
-                self.__namespaceURIToPrefixMap[namespace.uri()] = prefix
 
         return namespace
 
@@ -230,16 +187,6 @@ class schema (xsc.Schema):
     def namespaces (self):
         """Return the set of namespaces associated with this schema."""
         return self.__namespaces
-
-    def namespaceForURI (self, uri):
-        """Return the namespace for the URI.
-
-        Throws an exception if the namespace has not been associated
-        with this schema (must be done by processing an xmlns
-        attribute)."""
-        if self.__namespaceURIMap.has_key(uri):
-            return self.__namespaceURIMap[uri]
-        raise SchemaValidationError('Namespace "%s" not recognized' % (uri,))
 
     def createDOMNodeInNamespace (self, dom_document, nc_name, namespace=None):
         if namespace is None:
