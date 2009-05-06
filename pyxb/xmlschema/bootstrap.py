@@ -76,10 +76,6 @@ class schema (xsc.Schema):
     # Namespaces cannot be removed from this set.
     __namespaces = None
 
-    # Default namespace for current schema.  Will be None unless
-    # schema has an 'xmlns' attribute.
-    __defaultNamespace = None 
-
     def __init__ (self, **kw):
         super(schema, self).__init__(self, **kw)
         self.__namespaces = set()
@@ -115,16 +111,6 @@ class schema (xsc.Schema):
                 except Exception, e:
                     print 'WARNING validating schema for %s: %s' % (ns.uri(), e)
                     traceback.print_exception(*sys.exc_info())
-
-    def setDefaultNamespace (self, namespace):
-        """Specify the namespace that should be used for non-qualified
-        lookups.  """
-        #print 'DEFAULT: %s' % (namespace,)
-        self.__defaultNamespace = namespace
-        return namespace
-
-    def getDefaultNamespace (self):
-        return self.__defaultNamespace
 
     # Compile-time spelling check
     __QUALIFIED = 'qualified'
@@ -163,8 +149,11 @@ class schema (xsc.Schema):
 
     def createDOMNodeInNamespace (self, dom_document, nc_name, namespace=None):
         if namespace is None:
-            namespace = self.getDefaultNamespace()
-        return dom_document.createElementNS(namespace.uri(), nc_name)
+            namespace = self.defaultNamespace()
+        uri = None
+        if namespace is not None:
+            uri = namespace.uri()
+        return dom_document.createElementNS(uri, nc_name)
 
     def createDOMNodeInWXS (self, dom_document, nc_name):
         return self.createDOMNodeInNamespace(dom_document, nc_name, Namespace.XMLSchema)
@@ -179,23 +168,26 @@ class schema (xsc.Schema):
         to the parent class for storage."""
 
         # Store in each node the in-scope namespaces at that node;
-        # we'll need them for QName resolution.
+        # we'll need them for QName interpretation of attribute
+        # values.
         pyxb.utils.domutils.SetInScopeNamespaces(node)
 
         default_namespace = None
         root_node = node
         if xml.dom.Node.DOCUMENT_NODE == node.nodeType:
             root_node = root_node.documentElement
-        namespaces = []
+        if xml.dom.Node.ELEMENT_NODE != root_node.nodeType:
+            raise LogicError('Must be given a DOM node of type ELEMENT')
+
         if attributes is None:
             attributes = root_node.attributes
         attribute_map = { }
+        default_namespace = None
         for attr in attributes.values():
             if 'xmlns' == attr.prefix:
-                #print 'Created namespace %s for %s' % (attr.nodeValue, attr.localName)
-                namespaces.append( (attr.nodeValue, attr.localName) )
+                Namespace.NamespaceForURI(attr.nodeValue, create_if_missing=True)
             elif 'xmlns' == attr.name:
-                default_namespace = attr.nodeValue
+                default_namespace = Namespace.NamespaceForURI(attr.nodeValue, create_if_missing=True)
             else:
                 attribute_map[attr.name] = attr.nodeValue
 
@@ -209,28 +201,13 @@ class schema (xsc.Schema):
         assert tns is not None
         schema = tns.schema()
         if schema is None:
-            schema = cls(target_namespace=tns)
+            schema = cls(target_namespace=tns, default_namespace=default_namespace)
 
-        return schema.__processDocumentRoot(root_node, namespaces, attribute_map, default_namespace)
+        return schema.__processDocumentRoot(root_node, attribute_map, default_namespace)
 
-    def __processDocumentRoot (self, root_node, namespaces, attribute_map, default_namespace):
-        for (uri, prefix) in namespaces:
-            Namespace.NamespaceForURI(uri, create_if_missing=True)
+    def __processDocumentRoot (self, root_node, attribute_map, default_namespace):
+        # Update the attribute map
         self._setAttributesFromMap(attribute_map)
-
-        if default_namespace is not None:
-            # TODO: Is it required that the default namespace be recognized?
-            # Does not hold for http://www.w3.org/2001/xml.xsd
-            self.setDefaultNamespace(Namespace.NamespaceForURI(default_namespace, create_if_missing=True))
-
-        # Apply the targetNamespace attribute.  There is a default,
-        # which is to have no associated namespace.
-        assert self.schemaHasAttribute('targetNamespace')
-        target_namespace = self.schemaAttribute('targetNamespace')
-        if target_namespace is None:
-            assert self.targetNamespace().isAbsentNamespace()
-        else:
-            assert self.targetNamespace().uri() == target_namespace
 
         # Now pre-load the namespaces that must be available.
         self.initializeBuiltins()

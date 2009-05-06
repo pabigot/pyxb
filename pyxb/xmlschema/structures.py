@@ -3761,6 +3761,16 @@ class Schema (_SchemaComponent_mixin):
         return self.__targetNamespace
     __targetNamespace = None
     
+    def defaultNamespace (self):
+        """Default namespace of the schema.
+
+        Will be None unless the schema has an 'xmlns' attribute.  The
+        value must currently be provided as a keyword parameter to the
+        constructor.  """
+        return self.__defaultNamespace
+    __defaultNamespace = None
+
+
     # Tuple of component classes in order in which they must be generated.
     __ComponentOrder = (
         Annotation                   # no dependencies
@@ -3862,7 +3872,10 @@ class Schema (_SchemaComponent_mixin):
         super(Schema, self).__init__(*args, **kw)
         self.__targetNamespace = kw.get('target_namespace', None)
         if not isinstance(self.__targetNamespace, Namespace.Namespace):
-            raise LogicError('Schema constructor requires valid target_namespace')
+            raise LogicError('Schema constructor requires valid Namespace instance as target_namespace')
+        self.__defaultNamespace = kw.get('default_namespace', None)
+        if not ((self.__defaultNamespace is None) or isinstance(self.__defaultNamespace, Namespace.Namespace)):
+            raise LogicError('Schema default namespace must be None or a valid Namespace instance')
 
         self.__attributeMap = self.__attributeMap.copy()
         self.__components = set()
