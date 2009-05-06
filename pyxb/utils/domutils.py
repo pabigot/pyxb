@@ -202,7 +202,7 @@ def SetInScopeNamespaces (node):
     __SetInScopeNamespaces(node, {})
     return node
 
-def InterpretAttributeQName (node, attribute_name, attribute_ns=Namespace.XMLSchema):
+def InterpretAttributeQName (node, attribute_ncname, attribute_ns=Namespace.XMLSchema):
     """Provide the namespace and local name for the value of the given
     attribute in the node.
 
@@ -222,17 +222,16 @@ def InterpretAttributeQName (node, attribute_name, attribute_ns=Namespace.XMLSch
     """
 
     assert node.namespaceURI
-    attr = None
+    name = None
     if node.namespaceURI == attribute_ns.uri():
         if node.hasAttributeNS(None, attribute_ncname):
-            attr = node.getAttributeNS(None, attribute_ncname)
-    if (attr is None) and node.hasAttributeNS(attribute_ns.uri(), attribute_ncname):
+            name = node.getAttributeNS(None, attribute_ncname)
+    if (name is None) and node.hasAttributeNS(attribute_ns.uri(), attribute_ncname):
         assert False
-        attr = node.getAttributeNS(attribute_ns.uri(), attribute_ncname)
-    if attr is None:
+        name = node.getAttributeNS(attribute_ns.uri(), attribute_ncname)
+    if name is None:
         return None
     # Do QName interpretation
-    name = attr.value
     if 0 <= name.find(':'):
         (prefix, local_name) = name.split(':', 1)
         namespace = GetInScopeNamespaces(node).get(prefix, None)

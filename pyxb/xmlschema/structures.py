@@ -827,10 +827,11 @@ class _AttributeWildcard_mixin (object):
                 attributes.append(node)
             elif xsd.nodeIsNamed(node, 'attributeGroup'):
                 # This must be an attributeGroupRef
-                ref_attr = NodeAttribute(node, 'ref')
-                if ref_attr is None:
+                agd_qname = wxs.interpretAttributeQName(node, 'ref')
+                if agd_qname is None:
                     raise SchemaValidationError('Require ref attribute on internal attributeGroup elements')
-                agd = wxs.lookupAttributeGroup(ref_attr)
+                ( agd_ns, agd_ln ) = agd_qname
+                agd = agd_ns.lookupAttributeGroupDefinition(agd_ln)
                 if not agd.isResolved():
                     return None
                 attribute_groups.append(agd)
@@ -916,11 +917,7 @@ class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
         assert xsd.nodeIsNamed(node, 'attribute')
 
         name = NodeAttribute(node, 'name')
-        if name is not None:
-            namespace = wxs.targetNamespace()
-        else:
-            # Can't have both ref and name
-            assert NodeAttribute(node, 'ref') is None
+        namespace = wxs.targetNamespace()
 
         # Implement per section 3.2.2
         if xsd.nodeIsNamed(node.parentNode, 'schema'):
@@ -948,13 +945,19 @@ class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
         node = self.__domNode
 
         st_node = LocateUniqueChild(node, 'simpleType')
-        type_attr = NodeAttribute(node, 'type')
+        type_qname = wxs.interpretAttributeQName(node, 'type')
         if st_node is not None:
             self.__typeDefinition = SimpleTypeDefinition.CreateFromDOM(wxs, st_node, owner=self)
-        elif type_attr is not None:
+        elif type_qname is not None:
             # Although the type definition may not be resolved, *this* component
             # is resolved, since we don't look into the type definition for anything.
-            self.__typeDefinition = wxs.lookupSimpleType(type_attr)
+            ( type_ns, type_ln ) = type_qname
+            self.__typeDefinition = type_ns.lookupTypeDefinition(type_ln)
+            if self.__typeDefinition is None:
+                wxs._queueForResolution(self)
+                return self
+            if not isinstance(self.__typeDefinition, SimpleTypeDefinition):
+                raise SchemaValidationError('Need %s to be a simple type' % (type_ln,))
         else:
             self.__typeDefinition = SimpleTypeDefinition.SimpleUrTypeDefinition()
 
@@ -1294,9 +1297,10 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Resolv
             if td_node is not None:
                 type_def = ComplexTypeDefinition.CreateFromDOM(wxs, td_node, owner=self)
         if type_def is None:
-            type_attr = NodeAttribute(node, 'type')
-            if type_attr is not None:
-                type_def = wxs.lookupType(type_attr)
+            type_qname = wxs.interpretAttributeQName(node, 'type')
+            if type_qname is not None:
+                (type_ns, type_ln) = type_qname
+                type_def = type_ns.lookupTypeDefinition(type_ln)
             elif self.__substitutionGroupAffiliation is not None:
                 type_def = self.__substitutionGroupAffiliation.typeDefinition()
             else:
@@ -3933,6 +3937,18 @@ class Schema (_SchemaComponent_mixin):
             tns.addTypeDefinition(td)
         assert td is not None
         return td
+
+    def interpretAttributeQName (self, node, attr, attribute_ns=Namespace.XMLSchema):
+        qname = InterpretAttributeQName(node, attr, attribute_ns)
+        if qname is None:
+            return None
+        ( qname_ns, qname_ln ) = qname
+        if qname_ns is None:
+            if self.targetNamespace().isAbsentNamespace():
+                qname_ns = self.targetNamespace()
+            else:
+                raise IncompleteImplementationError("Need to lookup absent namespace in imports to resolve %s" % (qname_ln,))
+        return (qname_ns, qname_ln)
     
 def _AddSimpleTypes (schema):
     """Add to the schema the definitions of the built-in types of
