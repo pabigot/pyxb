@@ -3507,7 +3507,10 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
                     if member_types is not None:
                         for mn in member_types.split():
                             # THROW if type has not been defined
-                            (mn_ns, mn_local) = wxs.getNamespaceForLookup(mn)
+                            mn_qname = wxs.interpretQName(body, mn)
+                            if mn_qname is None:
+                                raise InvalidSchemaError('Unable to locate member type %s' % (mn,))
+                            (mn_ns, mn_local) = mn_qname
                             std = mn_ns.lookupTypeDefinition(mn_local)
                             assert isinstance(std, SimpleTypeDefinition)
                             mtd.append(std)
@@ -4004,8 +4007,7 @@ class Schema (_SchemaComponent_mixin):
         assert ad is not None
         return ad
 
-    def interpretAttributeQName (self, node, attr, attribute_ns=Namespace.XMLSchema):
-        qname = InterpretAttributeQName(node, attr, attribute_ns)
+    def __interpretQName (self, qname):
         if qname is None:
             return None
         ( qname_ns, qname_ln ) = qname
@@ -4015,6 +4017,12 @@ class Schema (_SchemaComponent_mixin):
             else:
                 raise IncompleteImplementationError("Need to lookup absent namespace in imports to resolve %s" % (qname_ln,))
         return (qname_ns, qname_ln)
+
+    def interpretAttributeQName (self, node, attr, attribute_ns=Namespace.XMLSchema):
+        return self.__interpretQName(InterpretAttributeQName(node, attr, attribute_ns))
+
+    def interpretQName (self, node, qname):
+        return self.__interpretQName(InterpretQName(node, qname))
     
 def _AddSimpleTypes (schema):
     """Add to the schema the definitions of the built-in types of

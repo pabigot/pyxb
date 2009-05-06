@@ -202,6 +202,21 @@ def SetInScopeNamespaces (node):
     __SetInScopeNamespaces(node, { 'xml' : Namespace.XML })
     return node
 
+def InterpretQName (node, name):
+    if name is None:
+        return None
+    # Do QName interpretation
+    if 0 <= name.find(':'):
+        (prefix, local_name) = name.split(':', 1)
+        namespace = GetInScopeNamespaces(node).get(prefix, None)
+        if namespace is None:
+            raise SchemaValidationError('QName %s prefix is not declared' % (name,))
+    else:
+        local_name = name
+        # Get the default namespace, or denote an absent namespace
+        namespace = GetInScopeNamespaces(node).get(None, None)
+    return (namespace, local_name)
+
 def InterpretAttributeQName (node, attribute_ncname, attribute_ns=Namespace.XMLSchema):
     """Provide the namespace and local name for the value of the given
     attribute in the node.
@@ -221,24 +236,4 @@ def InterpretAttributeQName (node, attribute_ncname, attribute_ns=Namespace.XMLS
     instance or None and a local name.
     """
 
-    assert node.namespaceURI
-    name = None
-    if node.namespaceURI == attribute_ns.uri():
-        if node.hasAttributeNS(None, attribute_ncname):
-            name = node.getAttributeNS(None, attribute_ncname)
-    if (name is None) and node.hasAttributeNS(attribute_ns.uri(), attribute_ncname):
-        assert False
-        name = node.getAttributeNS(attribute_ns.uri(), attribute_ncname)
-    if name is None:
-        return None
-    # Do QName interpretation
-    if 0 <= name.find(':'):
-        (prefix, local_name) = name.split(':', 1)
-        namespace = GetInScopeNamespaces(node).get(prefix, None)
-        if namespace is None:
-            raise SchemaValidationError('QName %s prefix is not declared' % (name,))
-    else:
-        local_name = name
-        # Get the default namespace, or denote an absent namespace
-        namespace = GetInScopeNamespaces(node).get(None, None)
-    return (namespace, local_name)
+    return InterpretQName(node, NodeAttribute(node, attribute_ncname, attribute_ns))
