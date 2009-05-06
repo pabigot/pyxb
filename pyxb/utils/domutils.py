@@ -202,7 +202,7 @@ def SetInScopeNamespaces (node):
     __SetInScopeNamespaces(node, {})
     return node
 
-def InterpretAttributeQName (node, attribute_name, absent_ns=None, attribute_ns=Namespace.XMLSchema):
+def InterpretAttributeQName (node, attribute_name, attribute_ns=Namespace.XMLSchema):
     """Provide the namespace and local name for the value of the given
     attribute in the node.
 
@@ -214,11 +214,11 @@ def InterpretAttributeQName (node, attribute_name, absent_ns=None, attribute_ns=
     whitespace facet (collapse), then QName interpretation per section
     3.15.3 is performed to identify the namespace name and localname
     to which the value refers.  If the resulting namespace is absent,
-    the absent_ns is used; otherwise, the Namespace instance for the
+    the value None used; otherwise, the Namespace instance for the
     namespace name is used.
 
-    The return value is then a pair consisting of a Namespace instance
-    and a local name.
+    The return value is None, or a pair consisting of a Namespace
+    instance or None and a local name.
     """
 
     assert node.namespaceURI
@@ -240,7 +240,6 @@ def InterpretAttributeQName (node, attribute_name, absent_ns=None, attribute_ns=
             raise SchemaValidationError('QName %s prefix is not declared' % (name,))
     else:
         local_name = name
-        # Get the default namespace, or whatever serves as the absent
-        # namespace
-        namespace = GetInScopeNamespaces(node).get(None, absent_ns)
+        # Get the default namespace, or denote an absent namespace
+        namespace = GetInScopeNamespaces(node).get(None, None)
     return (namespace, local_name)
