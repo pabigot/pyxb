@@ -3768,6 +3768,10 @@ class Schema (_SchemaComponent_mixin):
         return self.__defaultNamespace
     __defaultNamespace = None
 
+    def importedNamespaces (self):
+        """The list of Namespace instances that were imported into this schema."""
+        return self.__importedNamespaces
+    __importedNamespaces = None
 
     # Tuple of component classes in order in which they must be generated.
     __ComponentOrder = (
@@ -3879,6 +3883,7 @@ class Schema (_SchemaComponent_mixin):
         self.__components = set()
         self.__annotations = [ ]
         self.__unresolvedDefinitions = []
+        self.__importedNamespaces = []
 
     def _queueForResolution (self, resolvable):
         """Invoked to note that a component may have unresolved references.

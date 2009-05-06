@@ -72,17 +72,8 @@ class schema (xsc.Schema):
     # notations.
     __pastProlog = False
 
-    # A set of namespace instances referenced by this schema.
-    # Namespaces cannot be removed from this set.
-    __namespaces = None
-
     def __init__ (self, **kw):
         super(schema, self).__init__(self, **kw)
-        self.__namespaces = set()
-
-    def namespaces (self):
-        """Return the set of namespaces associated with this schema."""
-        return self.__namespaces
 
     def createDOMNodeInNamespace (self, dom_document, nc_name, namespace=None):
         if namespace is None:

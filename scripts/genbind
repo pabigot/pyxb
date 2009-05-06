@@ -35,12 +35,6 @@ except Exception, e:
     traceback.print_exception(*sys.exc_info())
     sys.exit(1)
 
-for ns in wxs.namespaces():
-    try:
-        ns.validateSchema()
-    except:
-        pass
-
 # Save binding source first, so name-in-binding is stored in the
 # parsed schema file
 try:

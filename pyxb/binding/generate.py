@@ -960,11 +960,10 @@ def GeneratePython (**kw):
         if tns is not None:
             tns = tns.uri()
         template_map['targetNamespace'] = repr(tns)
-        template_map['namespaces'] = ', '.join( [ repr(_ns.uri()) for _ns in schema.namespaces() ] )
         template_map['import_prefix'] = import_prefix
 
         import_namespaces = [ ]
-        for ns in schema.namespaces():
+        for ns in schema.importedNamespaces():
             if ns == schema.targetNamespace():
                 continue
             if ns.modulePath() is None:
@@ -983,7 +982,6 @@ from xml.dom import Node
 %{aux_imports}
 
 Namespace = %{targetNamespace}
-NamespaceDependencies = [ %{namespaces} ]
 
 def CreateFromDocument (xml):
     """Parse the given XML and use the document element to create a Python instance."""
