@@ -787,6 +787,16 @@ class _XMLSchema (Namespace):
         assert xsc.ComplexTypeDefinition.UrTypeDefinition() == self.lookupTypeDefinition('anyType')
         assert xsc.SimpleTypeDefinition.SimpleUrTypeDefinition() == self.lookupTypeDefinition('anySimpleType')
 
+    def _defineSchema_overload (self):
+        """Ensure this namespace is ready for use.
+
+        Overrides base class implementation, since there is no
+        serialized schema for this namespace."""
+        
+        xsc = XMLSchemaModule().structures
+        return self
+
+
 def AvailableForLoad ():
     """Return a list of namespace URIs for which we may be able to
     load the namespace contents from a pre-parsed file.

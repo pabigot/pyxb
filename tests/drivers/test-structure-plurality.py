@@ -33,10 +33,10 @@ class _TestBase (unittest.TestCase):
                       , 'scope' : xs.structures._ScopedDeclaration_mixin.SCOPE_global
                       , 'context' : xs.structures._ScopedDeclaration_mixin.SCOPE_global }
         self.__prtKW = { 'schema' : self.__schema
-                       , 'scope' : None
+                       , 'scope' : xs.structures._ScopedDeclaration_mixin.XSCOPE_indeterminate
                        , 'context' : xs.structures._ScopedDeclaration_mixin.SCOPE_global }
         self.__mgKW = { 'schema' : self.__schema
-                      , 'scope' : None
+                      , 'scope' : xs.structures._ScopedDeclaration_mixin.XSCOPE_indeterminate
                       , 'context' : xs.structures._ScopedDeclaration_mixin.SCOPE_global }
 
         for ( name, type ) in [ ( 'selt', 'string' ), ( 'ielt', 'int' ), ( 'belt', 'boolean' ) ]:

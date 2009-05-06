@@ -77,13 +77,6 @@ class _SchemaComponent_mixin (object):
     # The schema components owned by this component.
     __ownedComponents = None
 
-    def __getstate__ (self):
-        state = self._filterCopyState(self.__dict__)
-        #print 'SC State for %s:' % (object.__str__(self),)
-        #for (k, v) in state.items():
-        #    print ' %s: %s' % (k, object.__str__(v))
-        return state
-
     def _filterCopyState (self, state):
         for fn in [ '__owner', '__ownedComponents', '__context', '__dependentComponents', '__cloneSource', '__clones', '__schema' ]:
             state['_SchemaComponent_mixin%s' % (fn,)] = None
@@ -486,11 +479,7 @@ class _NamedComponent_mixin (object):
             # gonna need some other sort of ID, like a UUID associated
             # with the anonymous class at the time it's written to the
             # preprocessed schema file.
-        state = self._filterCopyState(self.__dict__)
-        print 'State for %s:' % (object.__str__(self),)
-        for (k, v) in state.items():
-            print ' %s: %s' % (k, object.__str__(v))
-        return state
+        return self.__dict__
 
     def __getnewargs__ (self):
         """Pickling support.
@@ -508,10 +497,24 @@ class _NamedComponent_mixin (object):
                 # another namespace.  Why are we serializing it?
                 # If scope is local, provide the namespace and name of
                 # the type that holds it
-                if self.SCOPE_global != self.scope():
-                    print 'Scope of %s is %s' % (object.__str__(self), object.__str__(self.scope()))
-                    assert isinstance(self.scope(), ComplexTypeDefinition)
+                if self.SCOPE_global == self.scope():
+                    scope = self.scope()
+                elif isinstance(self.scope(), ComplexTypeDefinition):
                     scope = ( self.scope().targetNamespace().uri(), self.scope().name() )
+                elif self._scopeIsIndeterminate():
+                    # This is actually a serious problem, but only shows up
+                    # when one schema imports another that has a model group
+                    # (or probably attribute group) definition.  For some
+                    # reason, the first schema has a reference to the
+                    # definition (rather than the scope-adapted clones), and
+                    # wants to serialize it.  I haven't yet figured out where
+                    # that definition comes from, or how to remove it.
+                    print 'Indeterminate scope for %s parentage:' % (self,)
+                    owner = self.owner()
+                    while owner is not None:
+                        print ' %s' % (owner,)
+                        owner = owner.owner()
+                    scope = self.scope()
             rv = ( self.targetNamespace().uri(), self.name(), scope, self.__class__ )
             return rv
         return ()
@@ -645,7 +648,7 @@ class _ScopedDeclaration_mixin (object):
         If the incoming scope is None, presume it will ultimately be
         compatible.  Scopes that are equal are compatible, as is a
         local scope if this already has a global scope."""
-        if scope is None:
+        if self.ScopeIsIndeterminate(scope):
             return True
         if self.scope() == scope:
             return True
