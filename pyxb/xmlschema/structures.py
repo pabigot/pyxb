@@ -99,7 +99,7 @@ class _SchemaComponent_mixin (object):
         assert self.__cloneSource is not None
         assert isinstance(self, _ScopedDeclaration_mixin)
         assert isinstance(ctd, ComplexTypeDefinition)
-        assert self.__scope is None
+        assert self._scopeIsIndeterminate()
         self.__scope = ctd
         return self._recordInScope()
 
@@ -194,7 +194,7 @@ class _SchemaComponent_mixin (object):
         # We only care about cloning declarations, and they should
         # have an unassigned scope.  However, we do clone
         # non-declarations that contain cloned declarations.
-        assert (not isinstance(self, _ScopedDeclaration_mixin)) or (self.scope() is None)
+        assert (not isinstance(self, _ScopedDeclaration_mixin)) or self._scopeIsIndeterminate()
 
         that = copy.copy(self)
         that.__cloneSource = self
@@ -1111,7 +1111,8 @@ class AttributeUse (_SchemaComponent_mixin, _Resolvable_mixin, _ValueConstraint_
             # never be referenced, we need the right scope so when we
             # generate the binding we can place the attribute in the
             # correct type.  Is this true?
-            rv.__attributeDeclaration = AttributeDeclaration.CreateFromDOM(wxs, node, scope=scope, owner=rv)
+            kw['owner'] = rv
+            rv.__attributeDeclaration = AttributeDeclaration.CreateFromDOM(wxs, node, **kw)
         else:
             rv.__domNode = node
             wxs._queueForResolution(rv)
@@ -1243,7 +1244,7 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Resolv
 
     # CFD:ED CFD:ElementDeclaration
     @classmethod
-    def CreateFromDOM (cls, wxs, node, scope, owner=None):
+    def CreateFromDOM (cls, wxs, node, **kw):
         """Create an element declaration from the given DOM node.
 
         wxs is a Schema instance within which the element is being
@@ -1258,6 +1259,7 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Resolv
         node must be in the XMLSchema namespace."""
 
         assert isinstance(wxs, Schema)
+        scope = kw['scope']
         assert _ScopedDeclaration_mixin.ScopeIsIndeterminate(scope) or _ScopedDeclaration_mixin.IsValidScope(scope)
 
         # Node should be an XMLSchema element node
@@ -1273,7 +1275,7 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Resolv
         else:
             raise SchemaValidationError('Created reference as element declaration')
         
-        rv = cls(name=name, target_namespace=wxs.targetNamespace(), scope=scope, schema=wxs, owner=owner)
+        rv = cls(name=name, target_namespace=wxs.targetNamespace(), schema=wxs, **kw)
         rv._annotationFromDOM(wxs, node)
         rv._valueConstraintFromDOM(wxs, node)
 
@@ -1596,13 +1598,13 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
 
     # CFD:CTD CFD:ComplexTypeDefinition
     @classmethod
-    def CreateFromDOM (cls, wxs, node, owner=None):
+    def CreateFromDOM (cls, wxs, node, **kw):
         # Node should be an XMLSchema complexType node
         assert xsd.nodeIsNamed(node, 'complexType')
 
         name = NodeAttribute(node, 'name')
 
-        rv = cls(name=name, target_namespace=wxs.targetNamespace(), derivation_method=None, schema=wxs, owner=owner)
+        rv = cls(name=name, target_namespace=wxs.targetNamespace(), derivation_method=None, schema=wxs, **kw)
 
         # Creation does not attempt to do resolution.  Queue up the newly created
         # whatsis so we can resolve it after everything's been read in.
@@ -1784,7 +1786,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
             # Clause 2.2
             assert typedef_node is not None
             # Context and scope are both this CTD
-            effective_content = Particle.CreateFromDOM(wxs, self, typedef_node, self, owner=self)
+            effective_content = Particle.CreateFromDOM(wxs, typedef_node, context=self, scope=self, owner=self)
 
         # Shared from clause 3.1.2
         if effective_mixed:
@@ -1995,7 +1997,7 @@ class AttributeGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _
 
     # CFD:AGD CFD:AttributeGroupDefinition
     @classmethod
-    def CreateFromDOM (cls, wxs, node, owner=None):
+    def CreateFromDOM (cls, wxs, node, **kw):
         """Create an attribute group definition from the given DOM node.
 
         """
@@ -2005,9 +2007,11 @@ class AttributeGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _
 
         # Attribute group definitions can only appear at the top level
         # of the schema, so the context is always SCOPE_global.  Any
-        # definitions in them are scope None, until they're referenced
-        # in a complex type.
-        rv = cls(name=name, target_namespace=wxs.targetNamespace(), context=_ScopedDeclaration_mixin.SCOPE_global, scope=None, schema=wxs, owner=owner)
+        # definitions in them are scope indeterminate, until they're
+        # referenced in a complex type.
+        kw.update({ 'context' : _ScopedDeclaration_mixin.SCOPE_global,
+                    'scope' : _ScopedDeclaration_mixin.XSCOPE_indeterminate })
+        rv = cls(name=name, target_namespace=wxs.targetNamespace(), schema=wxs, **kw)
 
         rv._annotationFromDOM(wxs, node)
         wxs._queueForResolution(rv)
@@ -2073,7 +2077,7 @@ class ModelGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Anno
 
     # CFD:MGD CFD:ModelGroupDefinition
     @classmethod
-    def CreateFromDOM (cls, wxs, node, owner=None):
+    def CreateFromDOM (cls, wxs, node, **kw):
         """Create a Model Group Definition from a DOM element node.
 
         wxs is a Schema instance within which the model group is being
@@ -2089,7 +2093,9 @@ class ModelGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Anno
         assert NodeAttribute(node, 'ref') is None
 
         name = NodeAttribute(node, 'name')
-        rv = cls(name=name, target_namespace=wxs.targetNamespace(), schema=wxs, owner=owner)
+        kw.update({ 'context' : _ScopedDeclaration_mixin.SCOPE_global,
+                    'scope' : _ScopedDeclaration_mixin.XSCOPE_indeterminate })
+        rv = cls(name=name, target_namespace=wxs.targetNamespace(), schema=wxs, **kw)
         rv._annotationFromDOM(wxs, node)
 
         for cn in node.childNodes:
@@ -2100,8 +2106,9 @@ class ModelGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Anno
                 # Model group definitions always occur at the top level of the
                 # schema, so their lookup context is SCOPE_global.  The
                 # element declared in them are not bound to a scope until they
-                # are referenced in a complex type, so the scope is None.
-                rv.__modelGroup = ModelGroup.CreateFromDOM(wxs, _ScopedDeclaration_mixin.SCOPE_global, cn, scope=None, model_group_definition=rv, owner=rv)
+                # are referenced in a complex type, so the scope is
+                # indeterminate.
+                rv.__modelGroup = ModelGroup.CreateFromDOM(wxs, cn, context=_ScopedDeclaration_mixin.SCOPE_global, scope=_ScopedDeclaration_mixin.XSCOPE_indeterminate, model_group_definition=rv, owner=rv)
         assert rv.__modelGroup is not None
         return rv
 
@@ -2212,7 +2219,7 @@ class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
 
     # CFD:MG CFD:ModelGroup
     @classmethod
-    def CreateFromDOM (cls, wxs, context, node, scope, **kw):
+    def CreateFromDOM (cls, wxs, node, **kw):
         """Create a model group from the given DOM node.
 
         wxs is a Schema instance within which the model group is being
@@ -2233,7 +2240,9 @@ class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
         """
         
         assert isinstance(wxs, Schema)
+        context = kw['context']
         assert _ScopedDeclaration_mixin.IsValidScope(context)
+        scope = kw['scope']
         assert _ScopedDeclaration_mixin.ScopeIsIndeterminate(scope) or isinstance(scope, ComplexTypeDefinition)
 
         if xsd.nodeIsNamed(node, 'all'):
@@ -2245,12 +2254,14 @@ class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
         else:
             raise IncompleteImplementationError('ModelGroup: Got unexpected %s' % (node.nodeName,))
         particles = []
+        # Remove the owner from constructed particles: we need to set it later
+        kw.pop('owner', None)
         for cn in node.childNodes:
             if Node.ELEMENT_NODE != cn.nodeType:
                 continue
             if Particle.IsParticleNode(cn):
                 # NB: Ancestor of particle is set in the ModelGroup constructor
-                particles.append(Particle.CreateFromDOM(wxs, context, cn, scope))
+                particles.append(Particle.CreateFromDOM(wxs, cn, **kw))
         rv = cls(compositor, particles, schema=wxs, scope=scope, context=context)
         for p in particles:
             p._setOwner(rv)
@@ -2459,7 +2470,7 @@ class Particle (_SchemaComponent_mixin, _Resolvable_mixin):
                     wxs._queueForResolution(self)
                     return term
             else:
-                term = ElementDeclaration.CreateFromDOM(wxs, node, scope)
+                term = ElementDeclaration.CreateFromDOM(wxs, node, scope=scope)
             assert term is not None
         elif xsd.nodeIsNamed(node, 'any'):
             # 3.9.2 says use 3.10.2, which is Wildcard.
@@ -2469,7 +2480,7 @@ class Particle (_SchemaComponent_mixin, _Resolvable_mixin):
             # Choice, sequence, and all inside a particle are explicit
             # groups (or a restriction of explicit group, in the case
             # of all)
-            term = ModelGroup.CreateFromDOM(wxs, context, node, scope)
+            term = ModelGroup.CreateFromDOM(wxs, node, context=context, scope=scope)
         else:
             raise LogicError('Unhandled node in Particle._resolve: %s' % (node.toxml(),))
         self.__domNode = None
@@ -2481,7 +2492,7 @@ class Particle (_SchemaComponent_mixin, _Resolvable_mixin):
 
     # CFD:Particle
     @classmethod
-    def CreateFromDOM (cls, wxs, context, node, scope, owner=None):
+    def CreateFromDOM (cls, wxs, node, **kw):
         """Create a particle from the given DOM node.
 
         wxs is a Schema instance within which the model group is being
@@ -2501,15 +2512,14 @@ class Particle (_SchemaComponent_mixin, _Resolvable_mixin):
         """
 
         assert isinstance(wxs, Schema)
+        context = kw['context']
         assert _ScopedDeclaration_mixin.IsValidScope(context)
+        scope = kw['scope']
         assert _ScopedDeclaration_mixin.ScopeIsIndeterminate(scope) or isinstance(scope, ComplexTypeDefinition)
 
-        kw = { 'min_occurs' : 1
-             , 'max_occurs' : 1
-             , 'scope' : scope
-             , 'schema' : wxs
-             , 'owner' : owner
-             , 'context' : context }
+        kw.update({ 'min_occurs' : 1
+                  , 'max_occurs' : 1
+                  , 'schema' : wxs })
                
         if not Particle.IsParticleNode(node):
             raise LogicError('Attempted to create particle from illegal element %s' % (node.nodeName,))
@@ -2744,7 +2754,7 @@ class Wildcard (_SchemaComponent_mixin, _Annotated_mixin):
 
     # CFD:Wildcard
     @classmethod
-    def CreateFromDOM (cls, wxs, node, owner=None):
+    def CreateFromDOM (cls, wxs, node, **kw):
         assert xsd.nodeIsNamed(node, 'any', 'anyAttribute')
         nc = NodeAttribute(node, 'namespace')
         if nc is None:
@@ -2774,7 +2784,7 @@ class Wildcard (_SchemaComponent_mixin, _Annotated_mixin):
             else:
                 raise SchemaValidationError('illegal value "%s" for any processContents attribute' % (pc,))
 
-        rv = cls(namespace_constraint=namespace_constraint, process_contents=process_contents, schema=wxs, owner=owner)
+        rv = cls(namespace_constraint=namespace_constraint, process_contents=process_contents, schema=wxs, **kw)
         rv._annotationFromDOM(wxs, node)
         return rv
 
@@ -2807,9 +2817,9 @@ class IdentityConstraintDefinition (_SchemaComponent_mixin, _NamedComponent_mixi
 
     # CFD:ICD CFD:IdentityConstraintDefinition
     @classmethod
-    def CreateFromDOM (cls, wxs, node, owner=None):
+    def CreateFromDOM (cls, wxs, node, **kw):
         name = NodeAttribute(node, 'name')
-        rv = cls(name=name, target_namespace=wxs.targetNamespace(), schema=wxs, owner=owner)
+        rv = cls(name=name, target_namespace=wxs.targetNamespace(), schema=wxs, **kw)
         #rv._annotationFromDOM(wxs, node);
         if xsd.nodeIsNamed(node, 'key'):
             rv.__identityConstraintCategory = cls.ICC_KEY
@@ -2911,8 +2921,8 @@ class Annotation (_SchemaComponent_mixin):
 
     # CFD:Annotation
     @classmethod
-    def CreateFromDOM (cls, wxs, node, owner=None):
-        rv = cls(schema=wxs, owner=owner)
+    def CreateFromDOM (cls, wxs, node, **kw):
+        rv = cls(schema=wxs, **kw)
 
         # @todo: Scan for attributes in the node itself that do not
         # belong to the XMLSchema namespace.
@@ -3650,7 +3660,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
 
     # CFD:STD CFD:SimpleTypeDefinition
     @classmethod
-    def CreateFromDOM (cls, wxs, node, owner=None):
+    def CreateFromDOM (cls, wxs, node, **kw):
         # Node should be an XMLSchema simpleType node
         assert xsd.nodeIsNamed(node, 'simpleType')
 
@@ -3661,7 +3671,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
 
         name = NodeAttribute(node, 'name')
 
-        rv = cls(name=name, target_namespace=wxs.targetNamespace(), variety=None, schema=wxs, owner=owner)
+        rv = cls(name=name, target_namespace=wxs.targetNamespace(), variety=None, schema=wxs, **kw)
         rv._annotationFromDOM(wxs, node)
 
         # @todo identify supported facets and properties (hfp)

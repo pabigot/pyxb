@@ -86,6 +86,16 @@ class schema (xsc.Schema):
     def createDOMNodeInWXS (self, dom_document, nc_name):
         return self.createDOMNodeInNamespace(dom_document, nc_name, Namespace.XMLSchema)
 
+    __TopLevelComponentMap = {
+        'element' : xsc.ElementDeclaration,
+        'attribute' : xsc.AttributeDeclaration,
+        'notation' : xsc.NotationDeclaration,
+        'simpleType' : xsc.SimpleTypeDefinition,
+        'complexType' : xsc.ComplexTypeDefinition,
+        'group' : xsc.ModelGroupDefinition,
+        'attributeGroup' : xsc.AttributeGroupDefinition
+        }
+
     # @todo put these in base class
     @classmethod
     def CreateFromDOM (cls, node, attributes=None):
@@ -206,60 +216,6 @@ class schema (xsc.Schema):
         an = self._addAnnotation(xsc.Annotation.CreateFromDOM(self, node))
         return self
 
-    def _processAttributeDeclaration (self, node):
-        # NB: This is an attribute of the schema itself.
-        an = xsc.AttributeDeclaration.CreateFromDOM(self, node, xsc._ScopedDeclaration_mixin.SCOPE_global)
-        return self._addNamedComponent(an)
-
-    def _processSimpleType (self, node):
-        """Walk a simpleType element to create a simple type definition component.
-        """
-        # Node should be a topLevelSimpleType
-        assert xs.nodeIsNamed(node, 'simpleType')
-        assert xs.nodeIsNamed(node.parentNode, 'schema')
-
-        rv = xsc.SimpleTypeDefinition.CreateFromDOM(self, node)
-        return self._addNamedComponent(rv)
-
-    def _processComplexType (self, node):
-        """Walk a complexType element to create a complex type definition component.
-        """
-        # Node should be a topLevelComplexType
-        assert xs.nodeIsNamed(node, 'complexType')
-        assert xs.nodeIsNamed(node.parentNode, 'schema')
-
-        rv = xsc.ComplexTypeDefinition.CreateFromDOM(self, node)
-        return self._addNamedComponent(rv)
-
-    def _processAttributeGroup (self, node):
-        # Node should be a namedAttributeGroup
-        assert xs.nodeIsNamed(node, 'attributeGroup')
-        assert xs.nodeIsNamed(node.parentNode, 'schema')
-        rv = xsc.AttributeGroupDefinition.CreateFromDOM(self, node)
-        return self._addNamedComponent(rv)
-
-    def _processGroup (self, node):
-        # Node should be a namedGroup
-        assert xs.nodeIsNamed(node, 'group')
-        assert xs.nodeIsNamed(node.parentNode, 'schema')
-        rv = xsc.ModelGroupDefinition.CreateFromDOM(self, node)
-        return self._addNamedComponent(rv)
-
-    # @todo make process* private
-    def _processElementDeclaration (self, node):
-        # Node should be a named element
-        assert xs.nodeIsNamed(node, 'element')
-        assert xs.nodeIsNamed(node.parentNode, 'schema')
-        ed = xsc.ElementDeclaration.CreateFromDOM(self, node, xsc._ScopedDeclaration_mixin.SCOPE_global)
-        return self._addNamedComponent(ed)
-
-    def _processNotationDeclaration (self, node):
-        # Node should be a named notation
-        assert xs.nodeIsNamed(node, 'notation')
-        assert xs.nodeIsNamed(node.parentNode, 'schema')
-        nd = xsc.NotationDeclaration.CreateFromDOM(self, node)
-        return self._addNamedComponent(nd)
-
     def processTopLevelNode (self, node):
         """Process a DOM node from the top level of the schema.
 
@@ -267,17 +223,22 @@ class schema (xsc.Schema):
         successfully recognized."""
         if xs.nodeIsNamed(node, 'include'):
             return self._processInclude(node)
-        if xs.nodeIsNamed(node,  'import'):
+        if xs.nodeIsNamed(node, 'import'):
             return self._processImport(node)
         if xs.nodeIsNamed(node, 'redefine'):
             return self._processRedefine(node)
         if xs.nodeIsNamed(node, 'annotation'):
             return self._processAnnotation(node)
-        rv = schemaTop.Match(self, node)
-        if rv is not None:
-            self.__pastProlog = True
-            return rv
-        raise SchemaValidationError('Unexpected top-level element %s' % (node.nodeName,))
 
+        component = self.__TopLevelComponentMap.get(node.localName, None)
+        if component is not None:
+            self.__pastProlog = True
+            kw = { 'context' : xsc._ScopedDeclaration_mixin.SCOPE_global,
+                   'owner' : self }
+            if issubclass(component, xsc._ScopedDeclaration_mixin):
+                kw['scope'] = scope=xsc._ScopedDeclaration_mixin.SCOPE_global
+            return self._addNamedComponent(component.CreateFromDOM(self, node, **kw))
+
+        raise SchemaValidationError('Unexpected top-level element %s' % (node.nodeName,))
     def domRootNode (self):
         return self.__domRootNode
