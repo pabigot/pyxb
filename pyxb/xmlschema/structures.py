@@ -907,7 +907,7 @@ class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
 
     # CFD:AD CFD:AttributeDeclaration
     @classmethod
-    def CreateFromDOM (cls, wxs, node, scope=None, owner=None, **kw):
+    def CreateFromDOM (cls, wxs, node, **kw):
         """Create an attribute declaration from the given DOM node.
 
         wxs is a Schema instance within which the attribute is being
@@ -925,6 +925,7 @@ class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
         """
         
         assert isinstance(wxs, Schema)
+        scope = kw['scope']
         assert _ScopedDeclaration_mixin.ScopeIsIndeterminate(scope) or _ScopedDeclaration_mixin.IsValidScope(scope)
 
         # Node should be an XMLSchema attribute node
@@ -937,11 +938,11 @@ class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
             assert cls.SCOPE_global == scope
         elif NodeAttribute(node, 'ref') is None:
             # This is an anonymous declaration within an attribute use
-            assert (scope is None) or isinstance(scope, ComplexTypeDefinition)
+            assert _ScopedDeclaration_mixin.ScopeIsIndeterminate(scope) or isinstance(scope, ComplexTypeDefinition)
         else:
             raise SchemaValidationError('Internal attribute declaration by reference')
 
-        rv = cls(name=name, target_namespace=wxs.targetNamespace(), schema=wxs, scope=scope, owner=owner)
+        rv = cls(name=name, target_namespace=wxs.targetNamespace(), schema=wxs, **kw)
         rv._annotationFromDOM(wxs, node)
         rv._valueConstraintFromDOM(wxs, node)
         rv.__domNode = node
@@ -1066,7 +1067,7 @@ class AttributeUse (_SchemaComponent_mixin, _Resolvable_mixin, _ValueConstraint_
 
     # CFD:AU CFD:AttributeUse
     @classmethod
-    def CreateFromDOM (cls, wxs, context, node, scope, owner=None):
+    def CreateFromDOM (cls, wxs, node, **kw):
         """Create an Attribute Use from the given DOM node.
 
         wxs is a Schema instance within which the attribute use is
@@ -1085,10 +1086,12 @@ class AttributeUse (_SchemaComponent_mixin, _Resolvable_mixin, _ValueConstraint_
         """
 
         assert isinstance(wxs, Schema)
+        context = kw['context']
         assert _ScopedDeclaration_mixin.IsValidScope(context)
-        assert (scope is None) or isinstance(scope, ComplexTypeDefinition)
+        scope = kw['scope']
+        assert _ScopedDeclaration_mixin.ScopeIsIndeterminate(scope) or isinstance(scope, ComplexTypeDefinition)
         assert xsd.nodeIsNamed(node, 'attribute')
-        rv = cls(schema=wxs, context=context, scope=scope, owner=owner)
+        rv = cls(schema=wxs, **kw)
         rv.__use = cls.USE_optional
         use = NodeAttribute(node, 'use')
         if use is not None:
@@ -1108,7 +1111,7 @@ class AttributeUse (_SchemaComponent_mixin, _Resolvable_mixin, _ValueConstraint_
             # never be referenced, we need the right scope so when we
             # generate the binding we can place the attribute in the
             # correct type.  Is this true?
-            rv.__attributeDeclaration = AttributeDeclaration.CreateFromDOM(wxs, node, scope, owner=rv)
+            rv.__attributeDeclaration = AttributeDeclaration.CreateFromDOM(wxs, node, scope=scope, owner=rv)
         else:
             rv.__domNode = node
             wxs._queueForResolution(rv)
@@ -1255,7 +1258,7 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Resolv
         node must be in the XMLSchema namespace."""
 
         assert isinstance(wxs, Schema)
-        assert (scope is None) or _ScopedDeclaration_mixin.IsValidScope(scope)
+        assert _ScopedDeclaration_mixin.ScopeIsIndeterminate(scope) or _ScopedDeclaration_mixin.IsValidScope(scope)
 
         # Node should be an XMLSchema element node
         assert xsd.nodeIsNamed(node, 'element')
@@ -1266,7 +1269,7 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Resolv
             assert _ScopedDeclaration_mixin.SCOPE_global == scope
         elif NodeAttribute(node, 'ref') is None:
             # Scope may be None or a CTD.
-            assert (scope is None) or isinstance(scope, ComplexTypeDefinition)
+            assert _ScopedDeclaration_mixin.ScopeIsIndeterminate(scope) or isinstance(scope, ComplexTypeDefinition)
         else:
             raise SchemaValidationError('Created reference as element declaration')
         
@@ -1624,7 +1627,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
         uses_c2 = set()
         uses_c3 = set()
         for cn in attributes:
-            au = AttributeUse.CreateFromDOM(wxs, self, cn, self)
+            au = AttributeUse.CreateFromDOM(wxs, cn, context=self, scope=self)
             uses_c1.add(au)
         for agd in attribute_groups:
             uses_c2.update(agd.attributeUses())
@@ -2035,7 +2038,7 @@ class AttributeGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _
         (attributes, attribute_groups, any_attribute) = rv
         uses = set()
         for cn in attributes:
-            uses.add(AttributeUse.CreateFromDOM(wxs, self._context(), cn, self._scope(), owner=self))
+            uses.add(AttributeUse.CreateFromDOM(wxs, cn, context=self._context(), scope=self._scope(), owner=self))
         for agd in attribute_groups:
             uses = uses.union(agd.attributeUses())
 
@@ -2231,7 +2234,7 @@ class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
         
         assert isinstance(wxs, Schema)
         assert _ScopedDeclaration_mixin.IsValidScope(context)
-        assert (scope is None) or isinstance(scope, ComplexTypeDefinition)
+        assert _ScopedDeclaration_mixin.ScopeIsIndeterminate(scope) or isinstance(scope, ComplexTypeDefinition)
 
         if xsd.nodeIsNamed(node, 'all'):
             compositor = cls.C_ALL
@@ -2499,7 +2502,7 @@ class Particle (_SchemaComponent_mixin, _Resolvable_mixin):
 
         assert isinstance(wxs, Schema)
         assert _ScopedDeclaration_mixin.IsValidScope(context)
-        assert (scope is None) or isinstance(scope, ComplexTypeDefinition)
+        assert _ScopedDeclaration_mixin.ScopeIsIndeterminate(scope) or isinstance(scope, ComplexTypeDefinition)
 
         kw = { 'min_occurs' : 1
              , 'max_occurs' : 1
