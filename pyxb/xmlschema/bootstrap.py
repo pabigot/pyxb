@@ -20,6 +20,8 @@ import xml.dom
 import sys
 import types
 
+import pyxb.utils.domutils
+
 # Hand-written classes used to get to the point where we can subclass
 # generated bindings.
 
@@ -372,6 +374,11 @@ class schema (xsc.Schema):
         recognize namespace declarations and process them.  Also look for
         and set the default namespace.  All other attributes are passed up
         to the parent class for storage."""
+
+        # Store in each node the in-scope namespaces at that node;
+        # we'll need them for QName resolution.
+        pyxb.utils.domutils.SetInScopeNamespaces(node)
+
         default_namespace = None
         root_node = node
         if xml.dom.Node.DOCUMENT_NODE == node.nodeType:
