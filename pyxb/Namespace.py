@@ -75,6 +75,9 @@ class Namespace (object):
     # Indicates whether this namespace is built-in to the system
     __isBuiltinNamespace = False
 
+    # Indicates whether this namespace is undeclared (available always)
+    __isUndeclaredNamespace = False
+
     # A string denoting the path by which this namespace is imported into
     # generated Python modules
     __modulePath = None
@@ -169,6 +172,7 @@ class Namespace (object):
                   schema_location=None,
                   description=None,
                   is_builtin_namespace=False,
+                  is_undeclared_namespace=False,
                   bound_prefix=None):
         """Create a new Namespace.
 
@@ -199,6 +203,7 @@ class Namespace (object):
         self.__schemaLocation = schema_location
         self.__description = description
         self.__isBuiltinNamespace = is_builtin_namespace
+        self.__isUndeclaredNamespace = is_undeclared_namespace
 
         self.__typeDefinitions = { }
         self.__attributeGroupDefinitions = { }
@@ -257,6 +262,15 @@ class Namespace (object):
 
         That is the case for all namespaces in the Namespace module."""
         return self.__isBuiltinNamespace
+
+    def isUndeclaredNamespace (self):
+        """Return True iff this namespace is always available
+        regardless of whether there is a declaration for it.
+
+        This is the case only for the
+        xsi(http://www.w3.org/2001/XMLSchema-instance) and
+        xml(http://www.w3.org/XML/1998/namespace) namespaces."""
+        return self.__isUndeclaredNamespace
 
     def modulePath (self):
         return self.__modulePath
@@ -769,15 +783,16 @@ def AvailableForLoad ():
 # use it as an indicator that the namespace system has been
 # initialized.  See http://www.w3.org/TR/xmlschema-1/#no-xsi
 XMLSchema_instance = _XMLSchema_instance('http://www.w3.org/2001/XMLSchema-instance',
-                                          description='XML Schema Instance',
-                                          is_builtin_namespace=True,
-                                          bound_prefix='xsi')
+                                         description='XML Schema Instance',
+                                         is_builtin_namespace=True,
+                                         is_undeclared_namespace=True,
+                                         bound_prefix='xsi')
 
 ## Namespace and URI for the XMLSchema namespace (often xs, or xsd)
 XMLSchema = _XMLSchema('http://www.w3.org/2001/XMLSchema',
-                        schema_location='http://www.w3.org/2001/XMLSchema.xsd',
-                        description='XML Schema',
-                        is_builtin_namespace=True)
+                       schema_location='http://www.w3.org/2001/XMLSchema.xsd',
+                       description='XML Schema',
+                       is_builtin_namespace=True)
 
 # Namespaces in XML
 XMLNamespaces = Namespace('http://www.w3.org/2000/xmlns/',
@@ -787,10 +802,11 @@ XMLNamespaces = Namespace('http://www.w3.org/2000/xmlns/',
 
 # Namespace and URI for XML itself (always xml)
 XML = _XML('http://www.w3.org/XML/1998/namespace',
-                description='XML namespace',
-                schema_location='http://www.w3.org/2001/xml.xsd',
-                is_builtin_namespace=True,
-                bound_prefix='xml')
+           description='XML namespace',
+           schema_location='http://www.w3.org/2001/xml.xsd',
+           is_builtin_namespace=True,
+           is_undeclared_namespace=True,
+           bound_prefix='xml')
 
 # Elements appearing in appinfo elements to support data types
 XMLSchema_hfp = Namespace('http://www.w3.org/2001/XMLSchema-hasFacetAndProperty',

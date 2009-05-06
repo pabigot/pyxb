@@ -198,8 +198,11 @@ def __SetInScopeNamespaces (node, namespace_map):
     #if overrode_map is not None:
     #    print 'Restoring xmlns map: %s' % (overrode_map,)
 
+__UndeclaredNamespaces = { }
+[ __UndeclaredNamespaces.setdefault(_ns.boundPrefix(), _ns) for _ns in Namespace.PredefinedNamespaces if _ns.isUndeclaredNamespace() ]
+
 def SetInScopeNamespaces (node):
-    __SetInScopeNamespaces(node, { 'xml' : Namespace.XML })
+    __SetInScopeNamespaces(node, __UndeclaredNamespaces)
     return node
 
 def InterpretQName (node, name):
