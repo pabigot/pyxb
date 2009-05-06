@@ -85,10 +85,6 @@ class schema (xsc.Schema):
         self.__namespaces = set()
 
     def initializeBuiltins (self):
-        # These two are built-in; make sure they're present
-        self.lookupOrCreateNamespace(Namespace.XML.uri())
-        self.lookupOrCreateNamespace(Namespace.XMLSchema_instance.uri())
-
         # We're going to need the built-in types from the XMLSchema
         # namespace.  @todo This will allocate and associate a schema
         # instance with the XMLSchema namespace.  If we're trying to
@@ -119,29 +115,6 @@ class schema (xsc.Schema):
                 except Exception, e:
                     print 'WARNING validating schema for %s: %s' % (ns.uri(), e)
                     traceback.print_exception(*sys.exc_info())
-
-    def lookupOrCreateNamespace (self, uri, prefix=None):
-        """Associate a namespace with this schema, potentially
-        providing a prefix by which it will be known.
-
-        The URI must exist.  If there is no namespace corresponding to
-        that URI in the namespace registry, one is created.  The
-        namespace will be known by the given prefix, or a prefix
-        permanently bound to the namespace by specification (if any).
-        Referring to a namespace by multiple prefixes is an error,
-        though it is legitimate for a namespace to both have a prefix
-        and be used as the default namespace.
-        """
-        namespace = Namespace.NamespaceForURI(uri)
-        if namespace is None:
-            # No such namespace exists.  Create one.
-            namespace = Namespace.Namespace(uri)
-        if namespace not in self.__namespaces:
-            # Add the namespace, as well as a mapping between it and
-            # the prefix by which it is known in this schema, if any.
-            self.__namespaces.add(namespace)
-
-        return namespace
 
     def setDefaultNamespace (self, namespace):
         """Specify the namespace that should be used for non-qualified
@@ -242,14 +215,13 @@ class schema (xsc.Schema):
 
     def __processDocumentRoot (self, root_node, namespaces, attribute_map, default_namespace):
         for (uri, prefix) in namespaces:
-            self.lookupOrCreateNamespace(uri, prefix)
+            Namespace.NamespaceForURI(uri, create_if_missing=True)
         self._setAttributesFromMap(attribute_map)
 
         if default_namespace is not None:
             # TODO: Is it required that the default namespace be recognized?
             # Does not hold for http://www.w3.org/2001/xml.xsd
-            ns = self.lookupOrCreateNamespace(default_namespace)
-            self.setDefaultNamespace(ns)
+            self.setDefaultNamespace(Namespace.NamespaceForURI(default_namespace, create_if_missing=True))
 
         # Apply the targetNamespace attribute.  There is a default,
         # which is to have no associated namespace.
@@ -323,14 +295,7 @@ class schema (xsc.Schema):
         uri = xsc.NodeAttribute(node, 'namespace')
         if uri is None:
             raise SchemaValidationError('import directive must provide namespace')
-        namespace = self.namespaceForURI(uri)
-        # @todo 
-        namespace.validateSchema()
-        if namespace.schema() is None:
-            # Just in case somebody imports a namespace but doesn't
-            # actually use it, let this go.  If they do try to use it,
-            # we'll get a NotInNamespace exception then.
-            sys.stderr.write("Warning: No available schema for imported %s, forging ahead\n" % (uri,))
+        namespace = Namespace.NamespaceForURI(uri, create_if_missing=True)
         return node
 
     def _processRedefine (self, node):
