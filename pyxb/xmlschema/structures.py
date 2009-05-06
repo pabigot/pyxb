@@ -82,9 +82,13 @@ class _SchemaComponent_mixin (object):
     __context = None
 
     def _scope (self):
-        """The context into which declarations are placed."""
+        """The context into which declarations in or subordinate to this nodeare placed."""
         return self.__scope
     __scope = None
+
+    def _scopeIsIndeterminate (self):
+        """Return True iff nobody has defined a scope for this node."""
+        return _ScopedDeclaration_mixin.ScopeIsIndeterminate(self._scope())
 
     def _setScope (self, ctd):
         """Set the scope of this instance after construction.
@@ -606,10 +610,15 @@ class _ScopedDeclaration_mixin (object):
     """
 
     SCOPE_global = 'global'     #<<< Marker to indicate global scope
+    XSCOPE_indeterminate = 'indeterminate' #<<< Marker to indicate scope has not been assigned
 
     @classmethod
     def IsValidScope (cls, value):
         return (cls.SCOPE_global == value) or isinstance(value, ComplexTypeDefinition)
+
+    @classmethod
+    def ScopeIsIndeterminate (cls, value):
+        return (value is None) or (cls.XSCOPE_indeterminate == value)
 
     def _scopeIsCompatible (self, scope):
         """Return True if this scope currently assigned to this instance is compatible with the given scope.
@@ -898,7 +907,7 @@ class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
 
     # CFD:AD CFD:AttributeDeclaration
     @classmethod
-    def CreateFromDOM (cls, wxs, node, scope, owner=None):
+    def CreateFromDOM (cls, wxs, node, scope=None, owner=None, **kw):
         """Create an attribute declaration from the given DOM node.
 
         wxs is a Schema instance within which the attribute is being
@@ -910,12 +919,13 @@ class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
 
         scope is the _ScopeDeclaration_mxin context into which the
         attribute declaration is placed.  It can be SCOPE_global, a
-        complex type definition, or None if this is an anonymous
-        declaration within an attribute group.
+        complex type definition, or XSCOPE_indeterminate if this is an
+        anonymous declaration within an attribute group.  It is a
+        required parameter for this function.
         """
         
         assert isinstance(wxs, Schema)
-        assert (scope is None) or _ScopedDeclaration_mixin.IsValidScope(scope)
+        assert _ScopedDeclaration_mixin.ScopeIsIndeterminate(scope) or _ScopedDeclaration_mixin.IsValidScope(scope)
 
         # Node should be an XMLSchema attribute node
         assert xsd.nodeIsNamed(node, 'attribute')
@@ -1276,7 +1286,7 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Resolv
 
     def _adaptForScope (self, wxs, owner, scope):
         rv = self
-        if (self._scope() is None) and (scope is not None):
+        if (self._scopeIsIndeterminate()) and (scope is not None):
             rv = self._clone(wxs)
             assert owner is not None
             rv._setOwner(owner)
@@ -1464,7 +1474,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
     def __init__ (self, *args, **kw):
         super(ComplexTypeDefinition, self).__init__(*args, **kw)
         self.__derivationMethod = kw.get('derivation_method', None)
-        assert self._scope() is None
+        assert self._scopeIsIndeterminate()
         self.__scopedElementDeclarations = { }
         self.__scopedAttributeDeclarations = { }
 
@@ -1978,7 +1988,7 @@ class AttributeGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _
         super(AttributeGroupDefinition, self).__init__(*args, **kw)
         assert _ScopedDeclaration_mixin.SCOPE_global == self._context()
         assert 'scope' in kw
-        assert self._scope() is None
+        assert self._scopeIsIndeterminate()
 
     # CFD:AGD CFD:AttributeGroupDefinition
     @classmethod
@@ -2396,7 +2406,7 @@ class Particle (_SchemaComponent_mixin, _Resolvable_mixin):
         assert 'context' in kw
         assert 'scope' in kw
         assert _ScopedDeclaration_mixin.IsValidScope(self._context())
-        assert (self._scope() is None) or isinstance(self._scope(), ComplexTypeDefinition)
+        assert (self._scopeIsIndeterminate()) or isinstance(self._scope(), ComplexTypeDefinition)
 
         if term is not None:
             self.__term = term._adaptForScope(wxs, self, self._scope())
@@ -2517,7 +2527,7 @@ class Particle (_SchemaComponent_mixin, _Resolvable_mixin):
 
     def _adaptForScope (self, wxs, owner, scope):
         rv = self
-        if (self._scope() is None) and (scope is not None):
+        if (self._scopeIsIndeterminate()) and (scope is not None):
             rv = self._clone(wxs)
             rv._setOwner(owner)
             rv.__term = rv.__term._adaptForScope(wxs, rv, scope)
