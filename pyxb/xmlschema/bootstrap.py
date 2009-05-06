@@ -202,25 +202,24 @@ class schema (xsc.Schema):
         schema = tns.schema()
         if schema is None:
             schema = cls(target_namespace=tns, default_namespace=default_namespace)
+        assert schema.targetNamespace() == tns
+        assert schema.defaultNamespace() == default_namespace
 
-        return schema.__processDocumentRoot(root_node, attribute_map, default_namespace)
-
-    def __processDocumentRoot (self, root_node, attribute_map, default_namespace):
         # Update the attribute map
-        self._setAttributesFromMap(attribute_map)
+        schema._setAttributesFromMap(attribute_map)
 
         # Now pre-load the namespaces that must be available.
-        self.initializeBuiltins()
+        schema.initializeBuiltins()
 
         # Verify that the root node is an XML schema element
         if not xs.nodeIsNamed(root_node, 'schema'):
             raise SchemaValidationError('Root node %s of document is not an XML schema element' % (root_node.nodeName,))
 
-        self.__domRootNode = root_node
+        schema.__domRootNode = root_node
 
         for cn in root_node.childNodes:
             if xml.dom.Node.ELEMENT_NODE == cn.nodeType:
-                rv = self.processTopLevelNode(cn)
+                rv = schema.processTopLevelNode(cn)
                 if rv is None:
                     print 'Unrecognized: %s' % (cn.nodeName,)
             elif xml.dom.Node.TEXT_NODE == cn.nodeType:
@@ -242,9 +241,9 @@ class schema (xsc.Schema):
                 # NOTATION_NODE
                 print 'Ignoring non-element: %s' % (cn,)
 
-        self._resolveDefinitions()
+        schema._resolveDefinitions()
 
-        return self
+        return schema
 
     def reset (self):
         self.__pastProlog = False

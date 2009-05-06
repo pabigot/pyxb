@@ -727,13 +727,30 @@ class _XML (Namespace):
         if self.schema() is None:
             if not XMLSchemaModule():
                 raise LogicError('Must invoke SetXMLSchemaModule from Namespace module prior to using system.')
-            schema = XMLSchemaModule().schema(target_namespace=self)
+            schema = XMLSchemaModule().schema(target_namespace=self, default_namespace=XHTML)
             self._schema(schema)
             xsc = XMLSchemaModule().structures
             schema._addNamedComponent(xsc.AttributeDeclaration.CreateBaseInstance('base', self))
             schema._addNamedComponent(xsc.AttributeDeclaration.CreateBaseInstance('id', self))
             schema._addNamedComponent(xsc.AttributeDeclaration.CreateBaseInstance('space', self))
             schema._addNamedComponent(xsc.AttributeDeclaration.CreateBaseInstance('lang', self))
+        return self
+
+class _XHTML (Namespace):
+    """Extension of Namespace that pre-defines types available in the
+    XHTML namespace."""
+
+    def _defineSchema_overload (self):
+        """Ensure this namespace is ready for use.
+
+        Overrides base class implementation, since there is no schema
+        for this namespace. """
+        
+        if self.schema() is None:
+            if not XMLSchemaModule():
+                raise LogicError('Must invoke SetXMLSchemaModule from Namespace module prior to using system.')
+            schema = XMLSchemaModule().schema(target_namespace=self, default_namespace=XMLSchema)
+            self._schema(schema)
         return self
 
 class _XMLSchema (Namespace):
@@ -758,7 +775,7 @@ class _XMLSchema (Namespace):
 
     def _defineSchema_overload (self):
         """Overload to resolve to built-in schema rather than loaded one."""
-        self._schema(XMLSchemaModule().schema(target_namespace=self))
+        self._schema(XMLSchemaModule().schema(target_namespace=self, default_namespace=XHTML))
         XMLSchemaModule().structures._AddSimpleTypes(self.schema())
 
         # In order to load a schema from a file, we need the ability
@@ -811,8 +828,15 @@ XML = _XML('http://www.w3.org/XML/1998/namespace',
 # Elements appearing in appinfo elements to support data types
 XMLSchema_hfp = Namespace('http://www.w3.org/2001/XMLSchema-hasFacetAndProperty',
                           description='Facets appearing in appinfo section',
-                          schema_location = 'http://www.w3.org/2001/XMLSchema-hasFacetAndProperty',
+                          schema_location='http://www.w3.org/2001/XMLSchema-hasFacetAndProperty',
                           is_builtin_namespace=True)
+
+# There really isn't a schema for this, but it's used as the default
+# namespace in the XML schema, so define it.
+XHTML = _XHTML('http://www.w3.org/1999/xhtml',
+               description='Family of document types that extend HTML',
+               schema_location='http://www.w3.org/1999/xhtml.xsd',
+               is_builtin_namespace=True)
 
 # List of pre-defined namespaces.  NB: XMLSchema_instance must be first.
 PredefinedNamespaces = [
@@ -820,5 +844,6 @@ PredefinedNamespaces = [
   XMLSchema_hfp,
   XMLSchema,
   XMLNamespaces,
-  XML
+  XML,
+  XHTML
 ]
