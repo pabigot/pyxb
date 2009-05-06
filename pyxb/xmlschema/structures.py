@@ -1896,6 +1896,8 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
                         raise SchemaValidationError('Element %s missing base attribute' % (ions.nodeName,))
                     (base_ns, base_ln) = base_qname
                     base_type = base_ns.lookupTypeDefinition(base_ln)
+                    if base_type is None:
+                        raise SchemaValidationError('Cannot locate %s in %s: need import?' % (base_ln, base_ns.uri()))
                     if not base_type.isResolved():
                         # Have to delay resolution until the type this
                         # depends on is available.
