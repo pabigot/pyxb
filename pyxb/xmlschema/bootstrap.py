@@ -148,100 +148,6 @@ class schema (xsc.Schema):
                     print 'WARNING validating schema for %s: %s' % (ns.uri(), e)
                     traceback.print_exception(*sys.exc_info())
 
-    def getNamespaceForLookup (self, type_name):
-        """Resolve a QName or NCName appropriately for this schema.
-
-        Returns a pair consisting of the namespace to be used for
-        lookup, and the NCName to be used in that namespace.  The
-        NCName will never be None; the namespace will be None only if
-        the schema has no target namespace and no default namespace
-        and the type_name is not qualified.  This will raise an
-        exception if the qualifier is present but not associated with
-        a namespace.
-        """
-        ns = None
-        local_name = type_name
-        if 0 <= type_name.find(':'):
-            ( prefix, local_name ) = type_name.split(':', 1)
-            ns = self.namespaceForPrefix(prefix)
-        elif self.__defaultNamespace is not None:
-            # @todo There was some reason why it was important to not
-            # do this for the target namespace...
-            ns = self.__defaultNamespace
-        elif self.targetNamespace() is not None:
-            ns = self.targetNamespace()
-        return (ns, local_name)
-
-    def lookupType (self, qualified_name):
-        """Lookup a type by name.
-
-        If the name is a QName, the prefix part is used identify a
-        namespace, using the prefix map for this schema.  If the name
-        is an NCName, the default namespace for this schema is used.
-        If the name cannot be resolved in the appropriate namespace,
-        an exception is thrown."""
-
-        (ns, local_name) = self.getNamespaceForLookup(qualified_name)
-        assert 0 > local_name.find(':')
-        if ns is None:
-            rv = self.targetNamespace().lookupTypeDefinition(local_name)
-        else:
-            rv = ns.lookupTypeDefinition(local_name)
-        if rv is None:
-            raise NotInNamespaceError('lookupType: No match for "%s" in %s' % (qualified_name, ns))
-        return rv
-
-    def lookupSimpleType (self, qualified_name):
-        """Like lookupType, but restricted to SimpleTypeDefinitions."""
-        rv = self.lookupType(qualified_name)
-        if isinstance(rv, xsc.SimpleTypeDefinition):
-            return rv
-        raise NotInNamespaceError('lookupSimpleType: Name "%s" in %s is not a simple type' % (qualified_name, ns))
-
-    def lookupAttributeGroup (self, qualified_name):
-        """Like lookupType, but for attribute groups."""
-        (ns, local_name) = self.getNamespaceForLookup(qualified_name)
-        if ns is None:
-            rv = self.targetNamespace().lookupAttributeGroupDefinition(local_name)
-        else:
-            rv = ns.lookupAttributeGroupDefinition(local_name)
-        if rv is None:
-            raise NotInNamespaceError('lookupAttributeGroup: No match for "%s" in %s' % (qualified_name, ns))
-        return rv
-
-    def lookupGroup (self, qualified_name):
-        """Like lookupType, but for groups."""
-        (ns, local_name) = self.getNamespaceForLookup(qualified_name)
-        if ns is None:
-            rv = self.targetNamespace().lookupModelGroupDefinition(local_name)
-        else:
-            rv = ns.lookupModelGroupDefinition(local_name)
-        if rv is None:
-            raise NotInNamespaceError('lookupGroup: No match for "%s" in %s' % (qualified_name, ns))
-        return rv
-
-    def lookupAttribute (self, qualified_name, context=xsc._ScopedDeclaration_mixin.SCOPE_global):
-        """Like lookupType, but for attributes."""
-        (ns, local_name) = self.getNamespaceForLookup(qualified_name)
-        if ns is None:
-            rv = self._lookupAttributeDeclaration(local_name, context)
-        else:
-            rv = xsc._LookupAttributeDeclaration(ns, context, local_name)
-        if rv is None:
-            raise NotInNamespaceError('lookupAttributeDeclaration: No match for "%s" in %s' % (qualified_name, ns))
-        return rv
-
-    def lookupElement (self, qualified_name, context=xsc._ScopedDeclaration_mixin.SCOPE_global):
-        """Like lookupType, but for elements."""
-        (ns, local_name) = self.getNamespaceForLookup(qualified_name)
-        if ns is None:
-            rv = self._lookupElementDeclaration(local_name, context)
-        else:
-            rv = xsc._LookupElementDeclaration(ns, context, local_name)
-        if rv is None:
-            raise NotInNamespaceError('lookupElement: No match for "%s" in %s' % (qualified_name, ns))
-        return rv
-
     def lookupOrCreateNamespace (self, uri, prefix=None):
         """Associate a namespace with this schema, potentially
         providing a prefix by which it will be known.
@@ -321,11 +227,6 @@ class schema (xsc.Schema):
             return self.targetNamespace()
         return None
 
-    def targetPrefix (self):
-        if self.targetNamespace():
-            return self.targetNamespace().prefix()
-        return None
-
     def namespaces (self):
         """Return the set of namespaces associated with this schema."""
         return self.__namespaces
@@ -339,24 +240,6 @@ class schema (xsc.Schema):
         if self.__namespaceURIMap.has_key(uri):
             return self.__namespaceURIMap[uri]
         raise SchemaValidationError('Namespace "%s" not recognized' % (uri,))
-
-    def namespaceForPrefix (self, prefix):
-        """Return the namespace associated with the given prefix in this schema.
-
-        The prefix must be a non-empty string associated with a
-        namespace through an xmlns attribute in the schema element."""
-        if self.__prefixToNamespaceMap.has_key(prefix):
-            return self.__prefixToNamespaceMap.get(prefix, None)
-        raise Exception('Namespace prefix "%s" not recognized' % (prefix,))
-
-    def prefixForNamespace (self, namespace):
-        """Return the prefix used in this schema for the given namespace.
-
-        If the namespace was not assigned a prefix in this schema,
-        returns None.  If the default namespace is also available by
-        prefix, the prefix is returned."""
-        assert isinstance(namespace, Namespace.Namespace)
-        return self.__namespaceURIToPrefixMap.get(namespace.uri(), None)
 
     def createDOMNodeInNamespace (self, dom_document, nc_name, namespace=None):
         if namespace is None:
