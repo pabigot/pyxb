@@ -578,11 +578,11 @@ class CF_whiteSpace (ConstrainingFacet, _Fixed_mixin):
     def normalizeString (self, value):
         """Normalize the given string in accordance with the configured whitespace interpretation."""
         if self.value() == _WhiteSpace_enum.preserve:
-            return value
-        value = self.__TabCRLF_re.sub(' ', value)
-        if self.value() == _WhiteSpace_enum.collapse:
-            value = self.__MultiSpace_re.sub(' ', value).strip()
-        return value
+            return utility.NormalizeWhitespace(value, preserve=True)
+        if self.value() == _WhiteSpace_enum.replace:
+            return utility.NormalizeWhitespace(value, replace=True)
+        assert self.value() == _WhiteSpace_enum.collapse
+        return utility.NormalizeWhitespace(value, collapse=True)
     
     def _validateConstraint_vx (self, value):
         """No validation rules for whitespace facet."""

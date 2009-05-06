@@ -111,3 +111,29 @@ class _DeconflictSymbols_mixin (object):
 
     # Base from mixin does not reserve anything.
     _ReservedSymbols = set()
+
+__TabCRLF_re = re.compile("[\t\n\r]")
+__MultiSpace_re = re.compile(" +")
+    
+def NormalizeWhitespace (text, preserve=False, replace=False, collapse=False):
+    """Normalize the given string in accordance with keyword.
+
+    Exactly one of the preserve, replace, and collapse keyword
+    parameters must be assigned the value True by the caller.
+
+    In the case of preserve, the text is returned unchanged.
+
+    In the case of replace, all tabs, newlines, and carriage returns
+    are replaced with ASCII spaces.
+
+    In the case of collapse, the replace normalization is done, then
+    sequences of two or more spaces are replaced by a single space.
+    """
+    if preserve:
+        return text
+    text = __TabCRLF_re.sub(' ', text)
+    if replace:
+        return text
+    if collapse:
+        return __MultiSpace_re.sub(' ', text).strip()
+    raise LogicError('No normalization specified')
