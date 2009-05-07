@@ -10,6 +10,15 @@ import pyxb.utils.utility as utility
 import types
 import pyxb.Namespace
 
+class _Binding_mixin (object):
+    def _domNode (self):
+        return self.__domNode
+    __domNode = None
+
+    def _setDOMNode (self, node):
+        self.__domNode = node
+    
+
 class _DynamicCreate_mixin (object):
     """Helper to allow overriding the implementation class.
 
@@ -41,7 +50,7 @@ class _DynamicCreate_mixin (object):
     def _DynamicCreate (cls, *args, **kw):
         return cls._ClassRef()(*args, **kw)
 
-class simpleTypeDefinition (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
+class simpleTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
     """simpleTypeDefinition is a base mix-in class that is part of the hierarchy
     of any class that represents the Python datatype for a
     SimpleTypeDefinition.
@@ -173,7 +182,9 @@ class simpleTypeDefinition (utility._DeconflictSymbols_mixin, _DynamicCreate_mix
         text."""
         # @todo error if non-text content?
         # @todo support _DynamicCreate
-        return cls.Factory(domutils.ExtractTextContent(node), apply_whitespace_facet=True)
+        rv = cls.Factory(domutils.ExtractTextContent(node), apply_whitespace_facet=True)
+        rv._setDOMNode(node)
+        return rv
 
     # Must override new, because new gets invoked before init, and
     # usually doesn't accept keywords.  In case it does, only remove
@@ -476,7 +487,7 @@ class STD_list (simpleTypeDefinition, types.ListType):
     def _XsdValueLength_vx (cls, value):
         return len(value)
 
-class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
+class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
     """Base class for any Python class that serves as the binding to
     an XMLSchema element.
 
@@ -564,6 +575,7 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
             rv.__setContent(cls._TypeDefinition.CreateFromDOM(node))
         if isinstance(rv, simpleTypeDefinition):
             rv.xsdConstraintsOK()
+        rv._setDOMNode(node)
         return rv
 
     def toDOM (self, document=None, parent=None):
@@ -580,7 +592,7 @@ class enumeration_mixin (object):
     """Marker in case we need to know that a PST has an enumeration constraint facet."""
     pass
 
-class complexTypeDefinition (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
+class complexTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
     """Base for any Python class that serves as the binding for an
     XMLSchema complexType.
 
@@ -676,6 +688,7 @@ class complexTypeDefinition (utility._DeconflictSymbols_mixin, _DynamicCreate_mi
         rv = cls._DynamicCreate(validate_constraints=False)
         rv._setAttributesFromDOM(node)
         rv._setContentFromDOM(node)
+        rv._setDOMNode(node)
         return rv
 
     # Specify the symbols to be reserved for all CTDs.
