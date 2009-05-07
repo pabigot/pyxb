@@ -4,6 +4,11 @@ import pyxb.standard.bindings.raw.wsdl as raw_wsdl
 import pyxb.Namespace
 import pyxb.utils.domutils as domutils
 
+class _WSDL_Binding_mixin (object):
+    """Mix-in class to mark transport-specific elements that appear in
+    WSDL binding elements."""
+    pass
+
 class tPort (raw_wsdl.tPort):
     def bindingReference (self):
         return self.__bindingReference
@@ -21,11 +26,16 @@ class tBinding (raw_wsdl.tBinding):
 raw_wsdl.tBinding._SetClassRef(tBinding)
 
 class definitions (raw_wsdl.definitions):
+    def messageMap (self):
+        return self.__messageMap
     __messageMap = None
 
     def namespaceData (self):
         return self.__namespaceData
     __namespaceData = None
+
+    def bindingMap (self):
+        return self.__bindingMap
 
     def targetNamespace (self):
         return self.namespaceData().targetNamespace()
