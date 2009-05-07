@@ -3948,11 +3948,6 @@ class Schema (_SchemaComponent_mixin):
         and set the default namespace.  All other attributes are passed up
         to the parent class for storage."""
 
-        # Store in each node the in-scope namespaces at that node;
-        # we'll need them for QName interpretation of attribute
-        # values.
-        SetInScopeNamespaces(node)
-
         default_namespace = None
         root_node = node
         if Node.DOCUMENT_NODE == node.nodeType:
@@ -3961,16 +3956,25 @@ class Schema (_SchemaComponent_mixin):
             raise LogicError('Must be given a DOM node of type ELEMENT')
 
         if attributes is None:
-            attributes = root_node.attributes
+            attributes = AttributeMap(root_node)
         attribute_map = { }
         default_namespace = None
-        for attr in attributes.values():
-            if 'xmlns' == attr.prefix:
-                Namespace.NamespaceForURI(attr.nodeValue, create_if_missing=True)
-            elif 'xmlns' == attr.name:
-                default_namespace = Namespace.NamespaceForURI(attr.nodeValue, create_if_missing=True)
+        in_scope_namespaces = { }
+        for (( ns_uri, attr_ln), attr_value) in attributes.items():
+            if Namespace.XMLNamespaces.uri() == ns_uri:
+                if 'xmlns' == attr_ln:
+                    default_namespace = Namespace.NamespaceForURI(attr_value, create_if_missing=True)
+                    in_scope_namespaces[None] = default_namespace
+                else:
+                    in_scope_namespaces[attr_ln] = Namespace.NamespaceForURI(attr_value, create_if_missing=True)
             else:
-                attribute_map[attr.name] = attr.nodeValue
+                # @todo probably should include namespace in this
+                attribute_map[attr_ln] = attr_value
+
+        # Store in each node the in-scope namespaces at that node;
+        # we'll need them for QName interpretation of attribute
+        # values.
+        SetInScopeNamespaces(node, in_scope_namespaces)
 
         tns_uri = attribute_map.get('targetNamespace', None)
         if tns_uri is None:

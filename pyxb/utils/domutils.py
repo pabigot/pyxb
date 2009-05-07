@@ -201,8 +201,12 @@ def __SetInScopeNamespaces (node, namespace_map):
 __UndeclaredNamespaces = { }
 [ __UndeclaredNamespaces.setdefault(_ns.boundPrefix(), _ns) for _ns in Namespace.PredefinedNamespaces if _ns.isUndeclaredNamespace() ]
 
-def SetInScopeNamespaces (node):
-    __SetInScopeNamespaces(node, __UndeclaredNamespaces)
+def SetInScopeNamespaces (node, in_scope_namespaces={}):
+    isn = __UndeclaredNamespaces
+    if in_scope_namespaces:
+        isn = isn.copy()
+        isn.update(in_scope_namespaces)
+    __SetInScopeNamespaces(node, isn)
     return node
 
 def InterpretQName (node, name):
@@ -240,3 +244,11 @@ def InterpretAttributeQName (node, attribute_ncname, attribute_ns=Namespace.XMLS
     """
 
     return InterpretQName(node, NodeAttribute(node, attribute_ncname, attribute_ns))
+
+def AttributeMap (node):
+    attribute_map = { }
+    for ai in range(node.attributes.length):
+        attr = node.attributes.item(ai)
+        attribute_map[(attr.namespaceURI, attr.localName)] = attr.value
+        print '%s %s = %s' % (attr.namespaceURI, attr.localName, attr.value)
+    return attribute_map
