@@ -11,9 +11,12 @@ import pyxb.utils.domutils as domutils
 # nodes.
 pyxb.Namespace.AvailableForLoad()
 
-class _WSDL_Binding_mixin (object):
-    """Mix-in class to mark transport-specific elements that appear in
-    WSDL binding elements."""
+class _WSDL_binding_mixin (object):
+    """Mix-in class to mark elements in WSDL binding elements."""
+    pass
+
+class _WSDL_tBinding_mixin (object):
+    """Mix-in class to mark instances in WSDL binding elements."""
     pass
 
 class tPort (raw_wsdl.tPort):
@@ -30,6 +33,22 @@ class tBinding (raw_wsdl.tBinding):
     def setPortTypeReference (self, port_type_reference):
         self.__portTypeReference = port_type_reference
     __portTypeReference = None
+
+    def protocolBinding (self):
+        """Return the protocol-specific binding information."""
+        return self.__protocolBinding
+    def _setProtocolBinding (self, protocol_binding):
+        self.__protocolBinding = protocol_binding
+    __protocolBinding = None
+
+    def operationMap (self):
+        return self.__operationMap
+    __operationMap = None
+
+    def __init__ (self, *args, **kw):
+        super(tBinding, self).__init__(*args, **kw)
+        self.__operationMap = { }
+
 raw_wsdl.tBinding._SetClassRef(tBinding)
 
 class definitions (raw_wsdl.definitions):
@@ -84,6 +103,12 @@ class definitions (raw_wsdl.definitions):
             print 'Binding: %s' % (binding_qname,)
             port_type_qname = domutils.InterpretQName(b._domNode(), b.type())
             b.setPortTypeReference(self.__portTypeMap[port_type_qname])
+            for wc in b.wildcardElements():
+                if isinstance(wc, _WSDL_binding_mixin):
+                    b._setProtocolBinding(wc)
+                    break
+            for op in b.operation():
+                b.operationMap()[op.name()] = op
         self.__serviceMap = { }
         for s in self.service():
             service_qname = domutils.InterpretQName(s._domNode(), s.name())
