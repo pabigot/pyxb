@@ -1,6 +1,7 @@
 """Helper classes that maintain the content model of XMLSchema in the binding classes."""
 
 from pyxb.exceptions_ import *
+import pyxb.Namespace
 import basis
 
 import xml.dom
@@ -320,6 +321,15 @@ class ContentModelTransition (object):
             if not self.__term.matchesNode(ctd_instance, node_list[0]):
                 raise UnexpectedContentError(node_list[0])
             node = node_list.pop(0)
+            try:
+                ns = pyxb.Namespace.NamespaceForURI(node.namespaceURI)
+                if ns is not None:
+                    if ns.module() is not None:
+                        node = ns.module().CreateFromDOM(node)
+                    elif pyxb.Namespace.XMLSchema == ns:
+                        print 'Need to dynamically create schema'
+            except Exception, e:
+                print 'WARNING: Unable to convert wildcard %s %s to Python instance: %s' % (node.namespaceURI, node.localName, e)
             if store:
                 ctd_instance.wildcardElements().append(node)
         else:

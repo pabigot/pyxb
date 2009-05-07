@@ -287,6 +287,18 @@ class Namespace (object):
         self.__modulePath = module_path
         return self.modulePath()
 
+    def module (self):
+        """Return a reference to the Python module that implements
+        bindings for this namespace."""
+        return self.__module
+    def _setModule (self, module):
+        """Set the module to use for Python bindings for this namespace.
+
+        Should only be called by generated code."""
+        self.__module = module
+        return self
+    __module = None
+
     def _schema (self, schema):
         """Associate a schema instance with this namespace.
 

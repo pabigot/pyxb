@@ -979,10 +979,15 @@ def GeneratePython (**kw):
 import pyxb.binding
 from xml.dom import minidom
 from xml.dom import Node
+import sys
+
 # Import bindings for namespaces listed in schema xmlns
 %{aux_imports}
 
-Namespace = %{targetNamespace}
+# Make sure there's a registered Namespace instance, and that it knows
+# about this module.
+Namespace = pyxb.Namespace.NamespaceForURI(%{targetNamespace}, create_if_missing=True)
+Namespace._setModule(sys.modules[__name__])
 
 def CreateFromDocument (xml):
     """Parse the given XML and use the document element to create a Python instance."""
