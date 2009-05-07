@@ -323,7 +323,6 @@ class ContentModelTransition (object):
             node = node_list.pop(0)
             try:
                 ns = pyxb.Namespace.NamespaceForURI(node.namespaceURI, create_if_missing=True)
-                print 'Namespace lookup for %s (%s) got %s' % (node.namespaceURI, node.localName, ns)
                 if ns.module() is not None:
                     node = ns.module().CreateFromDOM(node)
                 elif pyxb.Namespace.XMLSchema == ns:

@@ -984,6 +984,11 @@ def GeneratePython (**kw):
             import_namespaces.append(ns)
         template_map['aux_imports'] = "\n".join( [ 'import %s' % (_ns.modulePath(),) for _ns in import_namespaces ])
 
+        if schema.targetNamespace().isAbsentNamespace():
+            template_map['NamespaceDefinition'] = 'pyxb.Namespace.CreateAbsentNamespace()'
+        else:
+            template_map['NamespaceDefinition'] = templates.replaceInText('pyxb.Namespace.NamespaceForURI(%{targetNamespace}, create_if_missing=True)', **template_map)
+
         outf.write(templates.replaceInText('''# PyWXSB bindings for %{input}
 # Generated %{date} by PyWXSB version %{version}
 import pyxb.binding
@@ -996,7 +1001,7 @@ import sys
 
 # Make sure there's a registered Namespace instance, and that it knows
 # about this module.
-Namespace = pyxb.Namespace.NamespaceForURI(%{targetNamespace}, create_if_missing=True)
+Namespace = %{NamespaceDefinition}
 Namespace._setModule(sys.modules[__name__])
 
 def CreateFromDocument (xml):
