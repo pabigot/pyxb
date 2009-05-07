@@ -3945,7 +3945,7 @@ class Schema (_SchemaComponent_mixin):
 
     # @todo put these in base class
     @classmethod
-    def CreateFromDOM (cls, node, attributes=None):
+    def CreateFromDOM (cls, node, namespace_environment=None):
         """Take the root element of the document, and scan its attributes under
         the assumption it is an XMLSchema schema element.  That means
         recognize namespace declarations and process them.  Also look for
@@ -3959,7 +3959,8 @@ class Schema (_SchemaComponent_mixin):
         if Node.ELEMENT_NODE != root_node.nodeType:
             raise LogicError('Must be given a DOM node of type ELEMENT')
 
-        nsdata = NamespaceDataFromNode(root_node)
+        assert (namespace_environment is None) or isinstance(namespace_environment, NamespaceDataFromNode)
+        nsdata = NamespaceDataFromNode(root_node, namespace_environment)
 
         tns = nsdata.targetNamespace()
         assert tns is not None
