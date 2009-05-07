@@ -16,12 +16,23 @@ class _WSDL_binding_mixin (object):
     to be wildcard matches in WSDL binding elements."""
     pass
 
+class _WSDL_port_mixin (object):
+    """Mix-in class to mark element Pythong bindings that are expected
+    to bed wildcard matches in WSDL port elements."""
+    pass
+
 class tPort (raw_wsdl.tPort):
     def bindingReference (self):
         return self.__bindingReference
-    def setBindingReference (self, binding_reference):
+    def _setBindingReference (self, binding_reference):
         self.__bindingReference = binding_reference
     __bindingReference = None
+
+    def addressReference (self):
+        return self.__addressReference
+    def _setAddressReference (self, address_reference):
+        self.__addressReference = address_reference
+    __addressReference = None
 raw_wsdl.tPort._SetClassRef(tPort)
 
 class tBinding (raw_wsdl.tBinding):
@@ -45,8 +56,29 @@ class tBinding (raw_wsdl.tBinding):
     def __init__ (self, *args, **kw):
         super(tBinding, self).__init__(*args, **kw)
         self.__operationMap = { }
-
 raw_wsdl.tBinding._SetClassRef(tBinding)
+
+class tPortType (raw_wsdl.tPortType):
+    def operationMap (self):
+        return self.__operationMap
+    __operationMap = None
+
+    def __init__ (self, *args, **kw):
+        super(tPortType, self).__init__(*args, **kw)
+        self.__operationMap = { }
+raw_wsdl.tPortType._SetClassRef(tPortType)
+
+class tParam (raw_wsdl.tParam):
+    def messageReference (self):
+        return self.__messageReference
+    def _setMessageReference (self, message_reference):
+        self.__messageReference = message_reference
+    __messageReference = None
+raw_wsdl.tParam._SetClassRef(tParam)
+
+class tPart (raw_wsdl.tPart):
+    pass
+raw_wsdl.tPart._SetClassRef(tPart)
 
 class definitions (raw_wsdl.definitions):
     def messageMap (self):
@@ -87,17 +119,19 @@ class definitions (raw_wsdl.definitions):
         for m in self.message():
             name_qname = domutils.InterpretQName(m._domNode(), m.name())
             self._addToMap(self.__messageMap, name_qname, m)
-            print 'Message: %s' % (name_qname,)
         self.__portTypeMap = { }
         for pt in self.portType():
             port_type_qname = domutils.InterpretQName(pt._domNode(), pt.name())
             self._addToMap(self.__portTypeMap, port_type_qname, pt)
-            print 'Port type: %s' % (port_type_qname,)
+            for op in pt.operation():
+                pt.operationMap()[op.name()] = op
+                for p in (op.input() + op.output() + op.fault()):
+                    msg_qname = domutils.InterpretQName(m._domNode(), p.message())
+                    p._setMessageReference(self.__messageMap[msg_qname])
         self.__bindingMap = { }
         for b in self.binding():
             binding_qname = domutils.InterpretQName(b._domNode(), b.name())
             self._addToMap(self.__bindingMap, binding_qname, b)
-            print 'Binding: %s' % (binding_qname,)
             port_type_qname = domutils.InterpretQName(b._domNode(), b.type())
             b.setPortTypeReference(self.__portTypeMap[port_type_qname])
             for wc in b.wildcardElements():
@@ -114,32 +148,12 @@ class definitions (raw_wsdl.definitions):
             for p in s.port():
                 port_qname = domutils.InterpretQName(p._domNode(), p.name())
                 port_map[port_qname] = p
-                print 'Service %s port: %s' % (service_qname, port_qname)
                 binding_qname = domutils.InterpretQName(p._domNode(), p.binding())
-                p.setBindingReference(self.__bindingMap[binding_qname])
-
-    def findPort (self, module):
-        for s in self.service():
-            for p in s.port():
+                p._setBindingReference(self.__bindingMap[binding_qname])
                 for wc in p.wildcardElements():
-                    if isinstance(wc, pyxb.binding.basis.element):
-                        if wc._Namespace == module.Namespace:
-                            return (s, p, wc)
-                    else:
-                        if wc.namespaceURI == module.Namespace.uri():
-                            # This shouldn't happen: if we have the module,
-                            # its namespace should have the module registered,
-                            # in which case when we created the raw_wsdl document
-                            # we'd have been able to create a Python instance
-                            # for the wildcard rather than leave it as a DOM
-                            # instance.
-                            return (s, p, module.CreateFromDOM(wc))
-        return None
+                    if isinstance(wc, _WSDL_port_mixin):
+                        p._setAddressReference(wc)
+                        break
 
-    def findPortType (self, port):
-        for pt in self.portType():
-            if pt.name() == port.name():
-                return pt
-        return None
 
 raw_wsdl.definitions._SetClassRef(definitions)
