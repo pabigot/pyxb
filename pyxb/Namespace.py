@@ -5,7 +5,7 @@ import fnmatch
 # Environment variable from which default path to pre-loaded namespaces is read
 PathEnvironmentVariable = 'PYXB_NAMESPACE_PATH'
 import os.path
-DefaultBindingPath = "%s/standard/bindings" % (os.path.dirname(__file__),)
+DefaultBindingPath = "%s/standard/bindings/raw" % (os.path.dirname(__file__),)
 
 # Stuff required for pickling
 import cPickle as pickle
