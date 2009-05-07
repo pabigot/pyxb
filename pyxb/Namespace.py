@@ -149,9 +149,11 @@ class Namespace (object):
         afn = _LoadableNamespaceMap().get(self.uri(), None)
         if afn is not None:
             #print 'Loading %s from %s' % (self.uri(), afn)
-            self.__inSchemaLoad = True
-            self.LoadFromFile(afn)
-            self.__inSchemaLoad = False
+            try:
+                self.__inSchemaLoad = True
+                self.LoadFromFile(afn)
+            finally:
+                self.__inSchemaLoad = False
 
     def nodeIsNamed (self, node, *local_names):
         return (node.namespaceURI == self.uri()) and (node.localName in local_names)
@@ -167,13 +169,15 @@ class Namespace (object):
         assert not self.__inValidation
         if self.__didValidation:
             return self.__schema
-        self.__inValidation = True
-        if self.__schema is None:
-            self._defineSchema_overload()
-        if not self.__schema:
-            raise PyWXSBException('No schema available for required namespace %s' % (self.uri(),))
-        self.__inValidation = False
-        self.__didValidation = True
+        try:
+            self.__inValidation = True
+            if self.__schema is None:
+                self._defineSchema_overload()
+            if not self.__schema:
+                raise PyWXSBException('No schema available for required namespace %s' % (self.uri(),))
+            self.__didValidation = True
+        finally:
+            self.__inValidation = False
         return self.__schema
 
     def __init__ (self, uri,
@@ -478,8 +482,6 @@ class Namespace (object):
         This delegates to the associated schema.  It returns an
         ElementDeclaration, or None if the name does not denote an
         element."""
-        
-        rv = self.__elementDeclarations.get(local_name, None)
         return self.__elementDeclarations.get(local_name, None)
 
     def lookupNotationDeclaration (self, local_name):
