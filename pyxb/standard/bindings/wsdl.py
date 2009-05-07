@@ -104,14 +104,21 @@ class definitions (raw_wsdl.definitions):
             map[(self.targetNamespace(), ln)] = value
         return map
 
+    def schema (self):
+        return self.__schema
+    __schema = None
+
     @classmethod
     def CreateFromDOM (cls, node, *args, **kw):
         # Get the target namespace and other relevant information, and set the
         # per-node in scope namespaces so we can do QName resolution.
+        process_schema = kw.pop('process_schema', False)
         ns_data = domutils.NamespaceDataFromNode(node)
         rv = super(definitions, cls).CreateFromDOM(node, *args, **kw)
         rv.__namespaceData = ns_data
         rv.__buildMaps()
+        if process_schema:
+            rv.__processSchema()
         return rv
 
     def __buildMaps (self):
@@ -155,5 +162,15 @@ class definitions (raw_wsdl.definitions):
                         p._setAddressReference(wc)
                         break
 
+    def __processSchema (self):
+        global pyxb
+        if self.__schema is not None:
+            return self.__schema
+        for t in self.types():
+            for wc in t.wildcardElements():
+                if isinstance(wc, Node) and pyxb.Namespace.XMLSchema.nodeIsNamed(wc, 'schema'):
+                    import pyxb.xmlschema
+                    self.__schema = pyxb.xmlschema.schema.CreateFromDOM(wc, namespace_environment=self.namespaceData())
+                    return self.__schema
 
 raw_wsdl.definitions._SetClassRef(definitions)
