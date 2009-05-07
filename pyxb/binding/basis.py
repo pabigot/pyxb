@@ -66,7 +66,7 @@ class simpleTypeDefinition (utility._DeconflictSymbols_mixin, _DynamicCreate_mix
     _ReservedSymbols = set([ 'Factory', 'CreateFromDOM', 'XsdLiteral', 'xsdLiteral',
                             'XsdSuperType', 'XsdPythonType', 'XsdConstraintsOK',
                             'xsdConstraintsOK', 'XsdValueLength', 'xsdValueLength',
-                            'PythonLiteral', 'pythonLiteral', 'toDOM' ])
+                            'PythonLiteral', 'pythonLiteral', 'toDOM', 'Namespace' ])
 
     # Determine the name of the class-private facet map.  This
     # algorithm should match the one used by Python, so the base class
@@ -504,7 +504,7 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
     # symbols in the type from the content are deconflicted by
     # providing an alternative name in the subclass.  See the
     # _DeconflictSymbols_mixin class.
-    _ReservedSymbols = set([ 'content', 'CreateFromDOM', 'toDOM' ])
+    _ReservedSymbols = set([ 'content', 'CreateFromDOM', 'toDOM', 'Namespace' ])
 
     # Assign to the content field.  This may manipulate the assigned
     # value if doing so results in a cleaner interface for the user.
@@ -679,7 +679,7 @@ class complexTypeDefinition (utility._DeconflictSymbols_mixin, _DynamicCreate_mi
         return rv
 
     # Specify the symbols to be reserved for all CTDs.
-    _ReservedSymbols = set([ 'Factory', 'CreateFromDOM', 'toDOM' ])
+    _ReservedSymbols = set([ 'Factory', 'CreateFromDOM', 'toDOM', 'Namespace' ])
 
     # Class variable which maps complex type attribute names to the
     # name used within the generated binding.  For example, if

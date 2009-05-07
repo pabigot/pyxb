@@ -322,12 +322,12 @@ class ContentModelTransition (object):
                 raise UnexpectedContentError(node_list[0])
             node = node_list.pop(0)
             try:
-                ns = pyxb.Namespace.NamespaceForURI(node.namespaceURI)
-                if ns is not None:
-                    if ns.module() is not None:
-                        node = ns.module().CreateFromDOM(node)
-                    elif pyxb.Namespace.XMLSchema == ns:
-                        print 'Need to dynamically create schema'
+                ns = pyxb.Namespace.NamespaceForURI(node.namespaceURI, create_if_missing=True)
+                print 'Namespace lookup for %s (%s) got %s' % (node.namespaceURI, node.localName, ns)
+                if ns.module() is not None:
+                    node = ns.module().CreateFromDOM(node)
+                elif pyxb.Namespace.XMLSchema == ns:
+                    print 'Need to dynamically create schema'
             except Exception, e:
                 print 'WARNING: Unable to convert wildcard %s %s to Python instance: %s' % (node.namespaceURI, node.localName, e)
             if store:

@@ -464,6 +464,8 @@ class %{std} (%{superclasses}):
 
     # The name of this type definition within the schema
     _XsdName = %{name}
+    # Reference to the namespace to which the type belongs
+    _Namespace = Namespace
 '''
         template_map['description'] = ''
     elif xs.structures.SimpleTypeDefinition.VARIETY_list == std.variety():
@@ -475,6 +477,8 @@ class %{std} (pyxb.binding.basis.STD_list):
 
     # The name of this type definition within the schema
     _XsdName = %{name}
+    # Reference to the namespace to which the type belongs
+    _Namespace = Namespace
 
     # Type for items in the list
     _ItemType = %{itemtype}
@@ -490,6 +494,8 @@ class %{std} (pyxb.binding.basis.STD_union):
 
     # The name of this type definition within the schema
     _XsdName = %{name}
+    # Reference to the namespace to which the type belongs
+    _Namespace = Namespace
 
     # Types of potential union members
     _MemberTypes = ( %{membertypes}, )
@@ -596,6 +602,7 @@ class %{ctd} (%{superclasses}):
 
     definitions = []
 
+    definitions.append('_Namespace = Namespace')
     definitions.append('# Base type is %{base_type}')
 
     # Retain in the ctd the information about the element
@@ -826,7 +833,10 @@ def GenerateED (ed, **kw):
     outf.write(templates.replaceInText('''
 # ElementDeclaration
 class %{class} (pyxb.binding.basis.element):
+    # The name of this element within the schema
     _XsdName = %{element_name}
+    # Reference to the namespace to which the type belongs
+    _Namespace = Namespace
     _ElementScope = %{element_scope}
     _TypeDefinition = %{base_datatype}
 ''', **template_map))
