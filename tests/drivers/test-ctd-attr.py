@@ -12,7 +12,17 @@ from pyxb.exceptions_ import *
 
 import unittest
 
+from pyxb.utils import domutils
+def ToDOM (instance, tag=None):
+    dom_support = domutils.BindingDOMSupport()
+    parent = None
+    if tag is not None:
+        parent = dom_support.document().appendChild(dom_support.document().createElement(tag))
+    dom_support = instance.toDOM(dom_support, parent)
+    return dom_support.finalize().documentElement
+
 class TestCTD (unittest.TestCase):
+
 
     # Make sure that name collisions are deconflicted in favor of the
     # element declaration.
@@ -30,10 +40,10 @@ class TestCTD (unittest.TestCase):
         # interesting stuff.  I suppose that ought to be a
         # configuration option.
         self.assertEqual('test', simple('test').content())
-        xml = '<simple>test</simple>'
+        xml = '<simple xmlns="URN:testCTD">test</simple>'
         instance = CreateFromDocument(xml)
         self.assertEqual('test', instance.content())
-        self.assertEqual(xml, instance.toDOM().toxml())
+        self.assertEqual(xml, ToDOM(instance).toxml())
 
     def testString (self):
         self.assertEqual('test', pyxb.binding.datatypes.string('test'))
@@ -71,7 +81,7 @@ class TestCTD (unittest.TestCase):
         self.assertEqual('irish', instance.language())
         self.assert_(instance.capitalized() is None)
         self.assertEqual(5432, instance.port())
-        self.assertEqual('<emptyWithAttr/>', instance.toDOM().toxml())
+        self.assertEqual('<emptyWithAttr xmlns="URN:testCTD"/>', ToDOM(instance).toxml())
 
         # Test reference attribute
         self.assertEqual('top default', instance.tlAttr())
@@ -80,7 +90,7 @@ class TestCTD (unittest.TestCase):
         instance2 = emptyWithAttr()
         self.assertEqual('irish', instance2.language())
         instance2.setLanguage('french')
-        self.assertEqual('<emptyWithAttr language="french"/>', instance2.toDOM().toxml())
+        self.assertEqual('<emptyWithAttr language="french" xmlns="URN:testCTD"/>', ToDOM(instance2).toxml())
         self.assertNotEqual(instance.language(), instance2.language())
 
         # Verify the use.  Note reference through CTD not element.
@@ -100,14 +110,14 @@ class TestCTD (unittest.TestCase):
         self.assertEqual(restrictedEWA_._AttributeMap['capitalized'], emptyWithAttr_._AttributeMap['capitalized'])
 
     def testEmptyWithAttrGroups (self):
-        xml = '<emptyWithAttrGroups bMember1="xxx"/>'
+        xml = '<emptyWithAttrGroups bMember1="xxx" xmlns="URN:testCTD"/>'
         instance = CreateFromDocument(xml)
         self.assertEqual('gM1', instance.groupMember1())
         self.assertEqual('gM2', instance.groupMember2())
         self.assertEqual('xxx', instance.bMember1())
         self.assertEqual('lA1', instance.localAttr1())
         # Note that defaulted attributes are not generated in the DOM.
-        self.assertEqual(xml, instance.toDOM().toxml())
+        self.assertEqual(xml, ToDOM(instance).toxml())
 
         # Test reference attribute with changed default
         self.assertEqual('refDefault', instance.tlAttr())

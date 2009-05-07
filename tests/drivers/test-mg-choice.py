@@ -10,6 +10,15 @@ eval(rv)
 
 from pyxb.exceptions_ import *
 
+from pyxb.utils import domutils
+def ToDOM (instance, tag=None):
+    dom_support = domutils.BindingDOMSupport()
+    parent = None
+    if tag is not None:
+        parent = dom_support.document().appendChild(dom_support.document().createElement(tag))
+    dom_support = instance.toDOM(dom_support, parent)
+    return dom_support.finalize().documentElement
+
 import unittest
 
 class TestMGChoice (unittest.TestCase):
@@ -29,23 +38,23 @@ class TestMGChoice (unittest.TestCase):
         self.assert_(isinstance(instance.third(), choice_third))
 
     def testSingleChoice (self):
-        xml = '<choice><first/></choice>'
+        xml = '<choice xmlns="URN:test-mg-choice"><first/></choice>'
         dom = minidom.parseString(xml)
         instance = choice.CreateFromDOM(dom.documentElement)
         self.onlyFirst(instance)
-        self.assertEqual(instance.toDOM().toxml(), xml)
+        self.assertEqual(ToDOM(instance).toxml(), xml)
 
-        xml = '<choice><second/></choice>'
+        xml = '<choice xmlns="URN:test-mg-choice"><second/></choice>'
         dom = minidom.parseString(xml)
         instance = choice.CreateFromDOM(dom.documentElement)
         self.onlySecond(instance)
-        self.assertEqual(instance.toDOM().toxml(), xml)
+        self.assertEqual(ToDOM(instance).toxml(), xml)
 
-        xml = '<choice><third/></choice>'
+        xml = '<choice xmlns="URN:test-mg-choice"><third/></choice>'
         dom = minidom.parseString(xml)
         instance = choice.CreateFromDOM(dom.documentElement)
         self.onlyThird(instance)
-        self.assertEqual(instance.toDOM().toxml(), xml)
+        self.assertEqual(ToDOM(instance).toxml(), xml)
 
     def testMissingSingle (self):
         xml = '<choice/>'
@@ -62,68 +71,68 @@ class TestMGChoice (unittest.TestCase):
         self.assertRaises(ExtraContentError, choice.CreateFromDOM, dom.documentElement)
 
     def testMultichoice (self):
-        xml = '<multiplechoice/>'
+        xml = '<multiplechoice xmlns="URN:test-mg-choice"/>'
         dom = minidom.parseString(xml)
         instance = multiplechoice.CreateFromDOM(dom.documentElement)
         self.assertEqual(0, len(instance.first()))
         self.assertEqual(0, len(instance.second()))
         self.assertEqual(0, len(instance.third()))
-        self.assertEqual(instance.toDOM().toxml(), xml)
+        self.assertEqual(ToDOM(instance).toxml(), xml)
 
-        xml = '<multiplechoice><first/></multiplechoice>'
+        xml = '<multiplechoice xmlns="URN:test-mg-choice"><first/></multiplechoice>'
         dom = minidom.parseString(xml)
         instance = multiplechoice.CreateFromDOM(dom.documentElement)
         self.assertEqual(1, len(instance.first()))
         self.assertEqual(0, len(instance.second()))
         self.assertEqual(0, len(instance.third()))
-        self.assertEqual(instance.toDOM().toxml(), xml)
+        self.assertEqual(ToDOM(instance).toxml(), xml)
 
-        xml = '<multiplechoice><first/><first/><first/><third/></multiplechoice>'
+        xml = '<multiplechoice xmlns="URN:test-mg-choice"><first/><first/><first/><third/></multiplechoice>'
         dom = minidom.parseString(xml)
         instance = multiplechoice.CreateFromDOM(dom.documentElement)
         self.assertEqual(3, len(instance.first()))
         self.assertEqual(0, len(instance.second()))
         self.assertEqual(1, len(instance.third()))
-        self.assertEqual(instance.toDOM().toxml(), xml)
+        self.assertEqual(ToDOM(instance).toxml(), xml)
 
     def testMultichoiceOrderImportant (self):
-        xml = '<multiplechoice><first/><third/><first/></multiplechoice>'
+        xml = '<multiplechoice xmlns="URN:test-mg-choice"><first/><third/><first/></multiplechoice>'
         dom = minidom.parseString(xml)
         instance = multiplechoice.CreateFromDOM(dom.documentElement)
         self.assertEqual(2, len(instance.first()))
         self.assertEqual(0, len(instance.second()))
         self.assertEqual(1, len(instance.third()))
         # @todo This test will fail because both firsts will precede the second.
-        #self.assertEqual(instance.toDOM().toxml(), xml)
+        #self.assertEqual(ToDOM(instance).toxml(), xml)
 
 
     def testAltMultichoice (self):
-        xml = '<altmultiplechoice/>'
+        xml = '<altmultiplechoice xmlns="URN:test-mg-choice"/>'
         dom = minidom.parseString(xml)
         instance = altmultiplechoice.CreateFromDOM(dom.documentElement)
         self.assertEqual(0, len(instance.first()))
         self.assertEqual(0, len(instance.second()))
         self.assertEqual(0, len(instance.third()))
-        self.assertEqual(instance.toDOM().toxml(), xml)
+        self.assertEqual(ToDOM(instance).toxml(), xml)
 
-        xml = '<altmultiplechoice><first/></altmultiplechoice>'
+        xml = '<altmultiplechoice xmlns="URN:test-mg-choice"><first/></altmultiplechoice>'
         dom = minidom.parseString(xml)
         instance = altmultiplechoice.CreateFromDOM(dom.documentElement)
         self.assertEqual(1, len(instance.first()))
         self.assertEqual(0, len(instance.second()))
         self.assertEqual(0, len(instance.third()))
-        self.assertEqual(instance.toDOM().toxml(), xml)
+        self.assertEqual(ToDOM(instance).toxml(), xml)
 
-        xml = '<altmultiplechoice><first/><first/><third/></altmultiplechoice>'
+        xml = '<altmultiplechoice xmlns="URN:test-mg-choice"><first/><first/><third/></altmultiplechoice>'
         dom = minidom.parseString(xml)
         instance = altmultiplechoice.CreateFromDOM(dom.documentElement)
         self.assertEqual(2, len(instance.first()))
         self.assertEqual(0, len(instance.second()))
         self.assertEqual(1, len(instance.third()))
-        self.assertEqual(instance.toDOM().toxml(), xml)
+        self.assertEqual(ToDOM(instance).toxml(), xml)
 
     def testTooManyChoices (self):
-        xml = '<altmultiplechoice><first/><first/><first/><third/></altmultiplechoice>'
+        xml = '<altmultiplechoice xmlns="URN:test-mg-choice"><first/><first/><first/><third/></altmultiplechoice>'
         dom = minidom.parseString(xml)
         self.assertRaises(ExtraContentError, altmultiplechoice.CreateFromDOM, dom.documentElement)
 

@@ -374,10 +374,10 @@ class simpleTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _D
         represent the value of this instance."""
         return self.PythonLiteral(self)
 
-    def toDOM (self, tag=None, document=None, parent=None):
-        (document, element) = domutils.ToDOM_startup(document, parent)
-        return element.appendChild(document.createTextNode(self.xsdLiteral()))
-
+    def toDOM (self, dom_support, parent=None):
+        assert parent is not None
+        parent.appendChild(dom_support.document().createTextNode(self.xsdLiteral()))
+        return dom_support
 
 class STD_union (simpleTypeDefinition):
     """Base class for union datatypes.
@@ -578,12 +578,13 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
         rv._setDOMNode(node)
         return rv
 
-    def toDOM (self, document=None, parent=None):
+    def toDOM (self, dom_support, parent=None):
         """Add a DOM representation of this element as a child of
         parent, which should be a DOM Node instance."""
-        (document, element) = domutils.ToDOM_startup(document, parent, self._XsdName)
-        self.__realContent.toDOM(tag=None, document=document, parent=element)
-        return element
+        assert isinstance(dom_support, domutils.BindingDOMSupport)
+        element = dom_support.createChild(self._XsdName, self._Namespace, parent)
+        self.__realContent.toDOM(dom_support, parent=element)
+        return dom_support
 
     def __str__ (self):
         return str(self.content())
@@ -794,17 +795,20 @@ class complexTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _
             au.addDOMAttribute(self, element)
         return element
 
-    def toDOM (self, document=None, parent=None, tag=None):
+    def toDOM (self, dom_support, parent=None, tag=None):
         """Create a DOM element with the given tag holding the content of this instance."""
-        (document, element) = domutils.ToDOM_startup(document, parent, tag)
+        if tag is None:
+            element = parent
+        else:
+            element = dom_support.createChild(tag, namespace, parent)
         for eu in self._ElementMap.values():
             eu.clearGenerationMarkers(self)
-        self._setDOMFromContent(document, element)
+        self._setDOMFromContent(dom_support, element)
         for eu in self._ElementMap.values():
             if eu.hasUngeneratedValues(self):
                 raise DOMGenerationError('Values in %s were not converted to DOM' % (eu.pythonField(),))
         self._setDOMFromAttributes(element)
-        return element
+        return dom_support
 
 class CTD_empty (complexTypeDefinition):
     """Base for any Python class that serves as the binding for an
@@ -815,7 +819,7 @@ class CTD_empty (complexTypeDefinition):
         # @todo Schema validation check?
         return self
 
-    def _setDOMFromContent (self, document, element):
+    def _setDOMFromContent (self, dom_support, element):
         return self
 
 class CTD_simple (complexTypeDefinition):
@@ -844,9 +848,10 @@ class CTD_simple (complexTypeDefinition):
         self.__setContent(self._TypeDefinition.CreateFromDOM(node))
         self.xsdConstraintsOK()
 
-    def _setDOMFromContent (self, document, element):
+    def _setDOMFromContent (self, dom_support, element):
         """Create a DOM element with the given tag holding the content of this instance."""
-        return element.appendChild(document.createTextNode(self.content().xsdLiteral()))
+
+        return element.appendChild(dom_support.document().createTextNode(self.content().xsdLiteral()))
 
     _ReservedSymbols = complexTypeDefinition._ReservedSymbols.union(set([ 'xsdConstraintsOK' ]))
 
@@ -924,11 +929,11 @@ class _CTD_content_mixin (object):
             raise ExtraContentError('Extra content starting with %s' % (node_list[0],))
         return self
 
-    def _setDOMFromContent (self, document, element):
-        self._Content.extendDOMFromContent(document, element, self)
+    def _setDOMFromContent (self, dom_support, element):
+        self._Content.extendDOMFromContent(dom_support, element, self)
         mixed_content = self.content()
         if 0 < len(mixed_content):
-            element.appendChild(document.createTextNode(''.join(mixed_content)))
+            element.appendChild(dom_support.document().createTextNode(''.join(mixed_content)))
         return self
 
 class CTD_mixed (_CTD_content_mixin, complexTypeDefinition):

@@ -123,31 +123,51 @@ def ExtractTextContent (node):
             raise BadDocumentError('Non-text node %s found in content' % (cn,))
     return ''.join(text)
 
-def ToDOM_startup (document, parent, tag=None):
-    """Create the DOM infrastructure necessary to convert a binding instance to DOM.
-    
-    If the document and parent are not defined, a new DOM document
-    instance is created from the default implementation, and it and
-    the document element are returned.
-    
-    Otherwise, if tag is not None a new element that is a child of
-    parent is created.  If tag is None, the parent is returned as the
-    element.
+class BindingDOMSupport (object):
+    # Namespace declarations required on the top element
+    __namespaces = None
 
-    Returns a pair (document, element)."""
-    if document is None:
-        assert parent is None
-        assert tag is not None
-        document = minidom.getDOMImplementation().createDocument(None, tag, None)
-        element = document.documentElement
-    else:
-        assert parent is not None
-        if tag is None:
-            element = parent
-        else:
-            element = parent.appendChild(document.createElement(tag))
-    return (document, element)
+    __namespacePrefixCounter = None
 
+    def document (self):
+        return self.__document
+    __document = None
+
+    def __init__ (self):
+        self.__document = minidom.getDOMImplementation().createDocument(None, None, None)
+        self.__namespaces = { }
+        self.__namespacePrefixCounter = 0
+
+    def finalize (self):
+        for ( ns_uri, pfx ) in self.__namespaces.items():
+            if pfx is None:
+                self.document().documentElement.setAttributeNS(Namespace.XMLNamespaces.uri(), 'xmlns', ns_uri)
+            else:
+                self.document().documentElement.setAttributeNS(Namespace.XMLNamespaces.uri(), 'xmlns:%s' % (pfx,), ns_uri)
+        return self.document()
+
+    def createChild (self, local_name, namespace=None, parent=None):
+        if parent is None:
+            parent = self.document().documentElement
+        if parent is None:
+            parent = self.__document
+        ns_uri = namespace.uri()
+        name = local_name
+        if ns_uri is not None:
+            if ns_uri in self.__namespaces:
+                pfx = self.__namespaces[ns_uri]
+            else:
+                if 0 == len(self.__namespaces):
+                    pfx = None
+                else:
+                    self.__namespacePrefixCounter += 1
+                    pfx = 'ns%d' % (self.__namespacePrefixCounter,)
+                self.__namespaces[ns_uri] = pfx
+            if pfx is not None:
+                name = '%s:%s' % (pfx, local_name)
+        element = self.__document.createElementNS(ns_uri, name)
+        return parent.appendChild(element)
+    
 # In-scope namespaces are represented as a map from a prefix to a
 # Namespace instance.  The prefix is None when representing the
 # default namespace.

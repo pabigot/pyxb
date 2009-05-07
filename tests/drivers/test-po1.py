@@ -11,12 +11,21 @@ eval(rv)
 
 from pyxb.exceptions_ import *
 
+from pyxb.utils import domutils
+def ToDOM (instance, tag=None):
+    dom_support = domutils.BindingDOMSupport()
+    parent = None
+    if tag is not None:
+        parent = dom_support.document().appendChild(dom_support.document().createElement(tag))
+    dom_support = instance.toDOM(dom_support, parent)
+    return dom_support.finalize().documentElement
+
 import unittest
 
 class TestPO1 (unittest.TestCase):
     street_content = '''95 Main St.
 Anytown, AS  12345-6789'''
-    street_xml = '<street>%s</street>' % (street_content,)
+    street_xml = '<street xmlns="http://www.example.com/PO1">%s</street>' % (street_content,)
     street_dom = minidom.parseString(street_xml).documentElement
 
     address1_xml = '<name>Customer</name><street>95 Main St</street>'
@@ -25,32 +34,32 @@ Anytown, AS  12345-6789'''
     def testPythonElementSimpleContent (self):
         elt = USAddress_street(self.street_content)
         self.assertEqual(self.street_content, elt.content())
-        self.assertEqual(elt.toDOM().toxml(), self.street_xml)
+        self.assertEqual(ToDOM(elt).toxml(), self.street_xml)
 
     def testDOMElementSimpleContent (self):
         elt = USAddress_street.CreateFromDOM(self.street_dom)
-        self.assertEqual(elt.toDOM().toxml(), self.street_xml)
+        self.assertEqual(ToDOM(elt).toxml(), self.street_xml)
 
     def testPythonElementComplexContent_Element (self):
         addr = USAddress(name='Customer', street='95 Main St')
         self.assertEqual('95 Main St', addr.street().content())
-        self.assertEqual('<s>%s</s>' % (self.address1_xml,), addr.toDOM(tag='s').toxml())
+        self.assertEqual('<s xmlns="http://www.example.com/PO1">%s</s>' % (self.address1_xml,), ToDOM(addr, tag='s').toxml())
 
     def testDOM_CTD_element (self):
         # NB: USAddress is a CTD, not an element.
-        xml = '<shipTo>%s</shipTo>' % (self.address1_xml,)
+        xml = '<shipTo xmlns="http://www.example.com/PO1">%s</shipTo>' % (self.address1_xml,)
         dom = minidom.parseString(xml)
         addr2 = USAddress.CreateFromDOM(dom.documentElement)
-        self.assertEqual(xml, addr2.toDOM(tag='shipTo').toxml())
+        self.assertEqual(xml, ToDOM(addr2, tag='shipTo').toxml())
 
     def testPurchaseOrder (self):
         po = purchaseOrder(shipTo=USAddress(name='Customer', street='95 Main St'),
                            billTo=USAddress(name='Sugar Mama', street='24 E. Dearling Ave'),
                            comment='Thanks, dear!')
-        xml = po.toDOM().toxml()
+        xml = ToDOM(po).toxml()
         dom = minidom.parseString(xml)
         po2 = purchaseOrder.CreateFromDOM(dom.documentElement)
-        self.assertEqual(xml, po2.toDOM().toxml())
+        self.assertEqual(xml, ToDOM(po2).toxml())
 
 if __name__ == '__main__':
     unittest.main()

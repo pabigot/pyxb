@@ -238,13 +238,6 @@ class ElementUse (object):
                 pass
         raise BadTypeValueError('Cannot assign value of type %s to field %s: legal types %s' % (type(value), self.tag(), ' '.join([str(_dt) for _dt in self.__validElements])))
 
-    def addDOMElement (self, value, document, element):
-        """Add the given value of the corresponding element field to the DOM element."""
-        if value is not None:
-            assert isinstance(value, basis.element)
-            value.toDOM(document, parent=element)
-        return self
-
 class ContentModelTransition (object):
     def term (self):
         """The matching term for this transition to succeed."""
@@ -531,18 +524,19 @@ class Particle (object):
         self.__maxOccurs = max_occurs
         self.__term = term
 
-    def extendDOMFromContent (self, document, element, ctd_instance):
+    def extendDOMFromContent (self, dom_support, element, ctd_instance):
+        document = dom_support.document()
         rep = 0
         assert isinstance(ctd_instance, basis.complexTypeDefinition)
         while ((self.maxOccurs() is None) or (rep < self.maxOccurs())):
             try:
                 if isinstance(self.term(), ModelGroup):
-                    self.term().extendDOMFromContent(document, element, ctd_instance)
+                    self.term().extendDOMFromContent(dom_support, element, ctd_instance)
                 elif isinstance(self.term(), type) and issubclass(self.term(), basis.element):
                     eu = ctd_instance._UseForElement(self.term())
                     assert eu is not None
                     value = eu.nextValueToGenerate(ctd_instance)
-                    value.toDOM(document, element)
+                    value.toDOM(dom_support, element)
                 elif isinstance(self.term(), Wildcard):
                     print 'Generation ignoring wildcard'
                     # @todo handle generation of wildcards
@@ -634,7 +628,7 @@ class ModelGroup (object):
     def __init__ (self, compositor=C_INVALID, particles=None):
         self._setContent(compositor, particles)
 
-    def __extendDOMFromChoice (self, document, element, ctd_instance, candidate_particles):
+    def __extendDOMFromChoice (self, dom_support, element, ctd_instance, candidate_particles):
         # Correct behavior requires that particles with a minOccurs()
         # of 1 preceed any particle with minOccurs() of zero;
         # otherwise we can incorrectly succeed at matching while not
@@ -642,7 +636,7 @@ class ModelGroup (object):
         # done in _setContent.
         for particle in candidate_particles:
             try:
-                particle.extendDOMFromContent(document, element, ctd_instance)
+                particle.extendDOMFromContent(dom_support, element, ctd_instance)
                 return particle
             except DOMGenerationError, e:
                 pass
@@ -651,16 +645,16 @@ class ModelGroup (object):
                 raise
         return None
 
-    def extendDOMFromContent (self, document, element, ctd_instance):
+    def extendDOMFromContent (self, dom_support, element, ctd_instance):
         assert isinstance(ctd_instance, basis.complexTypeDefinition)
         if self.C_SEQUENCE == self.compositor():
             for particle in self.particles():
-                particle.extendDOMFromContent(document, element, ctd_instance)
+                particle.extendDOMFromContent(dom_support, element, ctd_instance)
         elif self.C_ALL == self.compositor():
             mutable_particles = self.particles()[:]
             while 0 < len(mutable_particles):
                 try:
-                    choice = self.__extendDOMFromChoice(document, element, ctd_instance, mutable_particles)
+                    choice = self.__extendDOMFromChoice(dom_support, element, ctd_instance, mutable_particles)
                     mutable_particles.remove(choice)
                 except DOMGenerationError, e:
                     #print 'ALL failed: %s' % (e,)
@@ -669,7 +663,7 @@ class ModelGroup (object):
                 if 0 < particle.minOccurs():
                     raise DOMGenerationError('ALL: Could not generate instance of required %s' % (particle.term(),))
         elif self.C_CHOICE == self.compositor():
-            choice = self.__extendDOMFromChoice(document, element, ctd_instance, self.particles())
+            choice = self.__extendDOMFromChoice(dom_support, element, ctd_instance, self.particles())
             if choice is None:
                 raise DOMGenerationError('CHOICE: No candidates found')
         else:

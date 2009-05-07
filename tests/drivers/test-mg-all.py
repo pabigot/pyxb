@@ -10,6 +10,15 @@ eval(rv)
 
 from pyxb.exceptions_ import *
 
+from pyxb.utils import domutils
+def ToDOM (instance, tag=None):
+    dom_support = domutils.BindingDOMSupport()
+    parent = None
+    if tag is not None:
+        parent = dom_support.document().appendChild(dom_support.document().createElement(tag))
+    dom_support = instance.toDOM(dom_support, parent)
+    return dom_support.finalize().documentElement
+
 import unittest
 
 class TestMGAll (unittest.TestCase):
@@ -98,11 +107,11 @@ class TestMGAll (unittest.TestCase):
 
     def testMany (self):
         for body in [ "abcdefgh", "fghbcd", "bfgcahd" ]:
-            xml = '<many>%s</many>' % (''.join([ '<%s/>' % (_x,) for _x in body ]),)
+            xml = '<many xmlns="URN:test-mg-all">%s</many>' % (''.join([ '<%s/>' % (_x,) for _x in body ]),)
             dom = minidom.parseString(xml)
             instance = many.CreateFromDOM(dom.documentElement)
-            rev = self.stripMembers(instance.toDOM().toxml(), body)
-            self.assertEqual('<many>%s</many>' % (''.join(len(body)*['X']),), rev)
+            rev = self.stripMembers(ToDOM(instance).toxml(), body)
+            self.assertEqual('<many xmlns="URN:test-mg-all">%s</many>' % (''.join(len(body)*['X']),), rev)
 
 if __name__ == '__main__':
     unittest.main()

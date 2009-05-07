@@ -31,6 +31,15 @@ eval(rv)
 
 from pyxb.exceptions_ import *
 
+from pyxb.utils import domutils
+def ToDOM (instance, tag=None):
+    dom_support = domutils.BindingDOMSupport()
+    parent = None
+    if tag is not None:
+        parent = dom_support.document().appendChild(dom_support.document().createElement(tag))
+    dom_support = instance.toDOM(dom_support, parent)
+    return dom_support.finalize().documentElement
+
 import unittest
 
 class TestExternal (unittest.TestCase):
@@ -46,20 +55,20 @@ class TestExternal (unittest.TestCase):
         # Element constructor with out-of-range content is error
         self.assertRaises(BadTypeValueError, english, 'five')
 
-        xml = '<english>one</english>'
+        xml = '<english xmlns="URN:test-external">one</english>'
         dom = minidom.parseString(xml)
         instance = english.CreateFromDOM(dom.documentElement)
         self.assertEqual('one', instance.content())
-        self.assertEqual(xml, instance.toDOM().toxml())
+        self.assertEqual(xml, ToDOM(instance).toxml())
         
 
     def testWords (self):
-        xml = '<word><from>one</from><to>un</to></word>'
+        xml = '<word xmlns="URN:test-external"><from>one</from><to>un</to></word>'
         dom = minidom.parseString(xml)
         instance = word.CreateFromDOM(dom.documentElement)
         self.assertEquals('one', instance.from_().content())
         self.assertEquals('un', instance.to().content())
-        self.assertEqual(xml, instance.toDOM().toxml())
+        self.assertEqual(xml, ToDOM(instance).toxml())
         
     def testBadWords (self):
         xml = '<word><from>five</from><to>pump</to></word>'
