@@ -328,6 +328,7 @@ class ContentModelTransition (object):
                 if ns.module() is not None:
                     node = ns.module().CreateFromDOM(node)
                 elif ns.modulePath() is not None:
+                    print 'Importing %s' % (ns.modulePath(),)
                     mod = __import__(ns.modulePath())
                     for c in ns.modulePath().split('.')[1:]:
                         mod = getattr(mod, c)
