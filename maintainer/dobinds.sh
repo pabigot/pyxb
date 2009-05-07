@@ -12,7 +12,7 @@ scripts/genbind pyxb/standard/schemas/wsdl.xsd pyxb/standard/bindings/raw wsdl
 scripts/genbind pyxb/standard/schemas/xhtml.xsd pyxb/standard/bindings/raw xhtml
 
 # Useful wsdl dependents
-scripts/genbind pyxb/standard/schemas/envsoap.xsd pyxb/standard/bindings/raw soapenv
+scripts/genbind pyxb/standard/schemas/soapenv.xsd pyxb/standard/bindings/raw soapenv
 scripts/genbind pyxb/standard/schemas/soapenc.xsd pyxb/standard/bindings/raw soapenc
 scripts/genbind pyxb/standard/schemas/mime.xsd pyxb/standard/bindings/raw mime
 scripts/genbind pyxb/standard/schemas/soap.xsd pyxb/standard/bindings/raw soap
