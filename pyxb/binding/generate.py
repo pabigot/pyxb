@@ -996,7 +996,7 @@ from xml.dom import minidom
 from xml.dom import Node
 import sys
 
-# Import bindings for namespaces listed in schema xmlns
+# Import bindings for namespaces imported into schema
 %{aux_imports}
 
 # Make sure there's a registered Namespace instance, and that it knows
