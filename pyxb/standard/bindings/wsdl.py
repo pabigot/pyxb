@@ -4,6 +4,13 @@ import pyxb.standard.bindings.raw.wsdl as raw_wsdl
 import pyxb.Namespace
 import pyxb.utils.domutils as domutils
 
+# Scan for available pre-built namespaces.  The effect of this is to
+# register a bunch of namespaces including the path to the module that
+# implements them.  This allows the wildcard handler in the content
+# model to create proper instances rather than leave them as DOM
+# nodes.
+pyxb.Namespace.AvailableForLoad()
+
 class _WSDL_Binding_mixin (object):
     """Mix-in class to mark transport-specific elements that appear in
     WSDL binding elements."""

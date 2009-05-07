@@ -321,10 +321,17 @@ class ContentModelTransition (object):
             if not self.__term.matchesNode(ctd_instance, node_list[0]):
                 raise UnexpectedContentError(node_list[0])
             node = node_list.pop(0)
+            # See if we can convert from DOM into a Python instance.
+            # If not, we'll go ahead and store the DOM node.
             try:
                 ns = pyxb.Namespace.NamespaceForURI(node.namespaceURI, create_if_missing=True)
                 if ns.module() is not None:
                     node = ns.module().CreateFromDOM(node)
+                elif ns.modulePath() is not None:
+                    mod = __import__(ns.modulePath())
+                    for c in ns.modulePath().split('.')[1:]:
+                        mod = getattr(mod, c)
+                    node = mod.CreateFromDOM(node)
                 elif pyxb.Namespace.XMLSchema == ns:
                     print 'Need to dynamically create schema'
             except Exception, e:

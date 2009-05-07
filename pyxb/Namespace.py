@@ -582,9 +582,10 @@ class Namespace (object):
         pickler = pickle.Pickler(output, -1)
         self._PicklingNamespace(self)
         assert Namespace.PicklingNamespace() is not None
+        # Next few are read when scanning for pre-built schemas
         pickler.dump(self.uri())
         pickler.dump(self)
-        print 'Saving schema'
+        # Rest is only read if the schema needs to be loaded
         pickler.dump(self.__schema)
         pickler.dump(self.__typeDefinitions)
         pickler.dump(self.__attributeGroupDefinitions)
@@ -606,10 +607,11 @@ class Namespace (object):
         uri = unpickler.load()
         assert uri is not None
 
-        # Unpack a Namespace instance.  Note that if the namespace was
-        # already defined, the redefinition of __new__ above will
-        # ensure a reference to the existing Namespace instance is
-        # returned.
+        # Unpack a Namespace instance.  This is *not* everything; it's
+        # a small subset.  Note that if the namespace was already
+        # defined, the redefinition of __new__ above will ensure a
+        # reference to the existing Namespace instance is returned and
+        # updated with the new information.
         instance = unpickler.load()
         assert instance.uri() == uri
         assert cls._NamespaceForURI(instance.uri()) == instance
@@ -682,6 +684,11 @@ def _LoadableNamespaceMap ():
                     infile = open(afn, 'rb')
                     unpickler = pickle.Unpickler(infile)
                     uri = unpickler.load()
+                    # Loading the instance simply introduces the
+                    # namespace into the registry, including the path
+                    # to the Python binding module.  It does not
+                    # incorporate any of the schema components.
+                    instance = unpickler.load()
                     __LoadableNamespaces[uri] = afn
                     #print 'pre-parsed schema for %s available in %s' % (uri, afn)
     return __LoadableNamespaces
