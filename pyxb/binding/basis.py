@@ -10,7 +10,38 @@ import pyxb.utils.utility as utility
 import types
 import pyxb.Namespace
 
-class simpleTypeDefinition (utility._DeconflictSymbols_mixin, object):
+class _DynamicCreate_mixin (object):
+    """Helper to allow overriding the implementation class.
+
+    Generally we'll want to augment the generated bindings by
+    subclassing them, and adding functionality to the subclass.  This
+    mix-in provides a way to communicate the existence of the subclass
+    back to the binding infrastructure, so that when it creates an
+    instance it uses the subclass rather than the unaugmented binding
+    class."""
+    
+    @classmethod
+    def __ClassRefAttribute (cls):
+        return '_%s__ClassRef' % (cls.__name__,)
+
+    @classmethod
+    def _ClassRef (cls):
+        return getattr(cls, cls.__ClassRefAttribute(), cls)
+
+    @classmethod
+    def _SetClassRef (cls, superseding):
+        assert (superseding is None) or issubclass(superseding, cls)
+        if superseding is None:
+            self.__dict__.pop(cls.__ClassRefAttribute(), None)
+        else:
+            setattr(cls, cls.__ClassRefAttribute(), superseding)
+        return superseding
+
+    @classmethod
+    def _DynamicCreate (cls, *args, **kw):
+        return cls._ClassRef()(*args, **kw)
+
+class simpleTypeDefinition (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
     """simpleTypeDefinition is a base mix-in class that is part of the hierarchy
     of any class that represents the Python datatype for a
     SimpleTypeDefinition.
@@ -141,6 +172,7 @@ class simpleTypeDefinition (utility._DeconflictSymbols_mixin, object):
         Any whitespace facet constraint is applied to the extracted
         text."""
         # @todo error if non-text content?
+        # @todo support _DynamicCreate
         return cls.Factory(domutils.ExtractTextContent(node), apply_whitespace_facet=True)
 
     # Must override new, because new gets invoked before init, and
@@ -444,7 +476,7 @@ class STD_list (simpleTypeDefinition, types.ListType):
     def _XsdValueLength_vx (cls, value):
         return len(value)
 
-class element (utility._DeconflictSymbols_mixin, object):
+class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
     """Base class for any Python class that serves as the binding to
     an XMLSchema element.
 
@@ -526,9 +558,9 @@ class element (utility._DeconflictSymbols_mixin, object):
         if cls._XsdName != node_name:
             raise UnrecognizedContentError('Attempting to create element %s from DOM node named %s' % (cls._XsdName, node_name))
         if issubclass(cls._TypeDefinition, simpleTypeDefinition):
-            rv = cls(cls._TypeDefinition.CreateFromDOM(node))
+            rv = cls._DynamicCreate(cls._TypeDefinition.CreateFromDOM(node))
         else:
-            rv = cls(validate_constraints=False)
+            rv = cls._DynamicCreate(validate_constraints=False)
             rv.__setContent(cls._TypeDefinition.CreateFromDOM(node))
         if isinstance(rv, simpleTypeDefinition):
             rv.xsdConstraintsOK()
@@ -548,7 +580,7 @@ class enumeration_mixin (object):
     """Marker in case we need to know that a PST has an enumeration constraint facet."""
     pass
 
-class complexTypeDefinition (utility._DeconflictSymbols_mixin, object):
+class complexTypeDefinition (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
     """Base for any Python class that serves as the binding for an
     XMLSchema complexType.
 
@@ -641,7 +673,7 @@ class complexTypeDefinition (utility._DeconflictSymbols_mixin, object):
         Note that only the node attributes and content are used; the
         node name must have been validated against an owning
         element."""
-        rv = cls(validate_constraints=False)
+        rv = cls._DynamicCreate(validate_constraints=False)
         rv._setAttributesFromDOM(node)
         rv._setContentFromDOM(node)
         return rv
