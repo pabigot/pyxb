@@ -271,31 +271,39 @@ class NamespaceDataFromNode (object):
         return self.__attributeMap
     __attributeMap = None
 
-    def __init__ (self, node, attributes=None):
+    def __init__ (self, node, parent_data=None):
 
-        if attributes is None:
-            attributes = AttributeMap(node)
-
-        self.__attributeMap = { }
+        if parent_data is not None:
+            self.__attributeMap = parent_data.attributeMap().copy()
+            self.__inScopeNamespaces = parent_data.inScopeNamespaces().copy()
+        else:
+            self.__attributeMap = { }
+            self.__inScopeNamespaces = { }
         self.__defaultNamespace = None
-        self.__inScopeNamespaces = { }
-        for (( ns_uri, attr_ln), attr_value) in attributes.items():
+        self.__inScopeNamespaces.pop(None, None)
+            
+        for (( ns_uri, attr_ln), attr_value) in AttributeMap(node).items():
             if Namespace.XMLNamespaces.uri() == ns_uri:
-                if 'xmlns' == attr_ln:
-                    self.__defaultNamespace = Namespace.NamespaceForURI(attr_value, create_if_missing=True)
-                    self.__inScopeNamespaces[None] = self.__defaultNamespace
+                if attr_value:
+                    if 'xmlns' == attr_ln:
+                        self.__defaultNamespace = Namespace.NamespaceForURI(attr_value, create_if_missing=True)
+                        self.__inScopeNamespaces[None] = self.__defaultNamespace
+                    else:
+                        self.__inScopeNamespaces[attr_ln] = Namespace.NamespaceForURI(attr_value, create_if_missing=True)
                 else:
-                    self.__inScopeNamespaces[attr_ln] = Namespace.NamespaceForURI(attr_value, create_if_missing=True)
+                    if 'xmlns' == attr_ln:
+                        self.__inScopeNamespaces.pop(None, None)
+                    else:
+                        self.__inScopeNamespaces.pop(attr_ln, None)
             else:
-                # @todo probably should include namespace in this
-                self.__attributeMap[attr_ln] = attr_value
+                self.__attributeMap[(ns_uri, attr_ln)] = attr_value
         
         # Store in each node the in-scope namespaces at that node;
         # we'll need them for QName interpretation of attribute
         # values.
         SetInScopeNamespaces(node, self.inScopeNamespaces())
 
-        tns_uri = self.attributeMap().get('targetNamespace', None)
+        tns_uri = self.attributeMap().get((None, 'targetNamespace'), None)
         if tns_uri is None:
             self.__targetNamespace = Namespace.CreateAbsentNamespace()
         else:
