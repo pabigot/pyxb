@@ -385,8 +385,8 @@ class _NamedComponent_mixin (object):
         # Explicitly validate here: the lookup operations won't do so,
         # but will abort if the namespace hasn't been validated yet.
         ns.validateSchema()
+        #print 'Need to lookup %s in %s' % (ncname, scope)
         if isinstance(scope, tuple):
-            print 'Need to lookup %s in %s' % (ncname, scope)
             ( scope_uri, scope_ncname ) = scope
             assert uri == scope_uri
             scope_ctd = ns.lookupTypeDefinition(scope_ncname)
@@ -400,7 +400,8 @@ class _NamedComponent_mixin (object):
                 raise IncompleteImplementationError('Local scope reference lookup not implemented for type %s searching %s in %s' % (icls, ncname, uri))
             if rv is None:
                 raise SchemaValidationError('Unable to resolve local %s as %s in %s in %s' % (ncname, icls, scope_ncname, uri))
-        elif _ScopedDeclaration_mixin.ScopeIsIndeterminate(scope) or (_ScopedDeclaration_mixin.SCOPE_global == scope):
+        # WRONG WRONG WRONG: Not the right thing for indeterminate
+        elif (_ScopedDeclaration_mixin.SCOPE_global == scope) or _ScopedDeclaration_mixin.ScopeIsIndeterminate(scope):
             if (issubclass(icls, SimpleTypeDefinition) or issubclass(icls, ComplexTypeDefinition)):
                 rv = ns.lookupTypeDefinition(ncname)
             elif issubclass(icls, AttributeGroupDefinition):
@@ -417,8 +418,12 @@ class _NamedComponent_mixin (object):
                 raise IncompleteImplementationError('Reference lookup not implemented for type %s searching %s in %s' % (icls, ncname, uri))
             if rv is None:
                 raise SchemaValidationError('Unable to resolve %s as %s in %s' % (ncname, icls, uri))
+        elif _ScopedDeclaration_mixin.ScopeIsIndeterminate(scope):
+            print 'WARNING: Unable to resolve %s in indeterminate scope' % (ncname,)
+            rv = None
         else:
             raise IncompleteImplementationError('Unable to resolve reference %s in scope %s in %s' % (ncname, scope, uri))
+        #print 'Returning %s' % (rv,)
         return rv
 
     def __init__ (self, *args, **kw):
@@ -490,7 +495,7 @@ class _NamedComponent_mixin (object):
         instance."""
 
         if self.__pickleAsReference ():
-            scope = _ScopedDeclaration_mixin.SCOPE_global
+            scope = self._scope()
             if isinstance(self, _ScopedDeclaration_mixin):
                 # If scope is global, we can look it up in the namespace.
                 # If scope is indeterminate, this must be within a group in
@@ -498,7 +503,7 @@ class _NamedComponent_mixin (object):
                 # If scope is local, provide the namespace and name of
                 # the type that holds it
                 if self.SCOPE_global == self.scope():
-                    scope = self.scope()
+                    pass
                 elif isinstance(self.scope(), ComplexTypeDefinition):
                     scope = ( self.scope().targetNamespace().uri(), self.scope().name() )
                 elif self._scopeIsIndeterminate():
@@ -514,7 +519,6 @@ class _NamedComponent_mixin (object):
                     while owner is not None:
                         print ' %s' % (owner,)
                         owner = owner.owner()
-                    scope = self.scope()
             rv = ( self.targetNamespace().uri(), self.name(), scope, self.__class__ )
             return rv
         return ()
