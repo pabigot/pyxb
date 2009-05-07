@@ -3955,42 +3955,19 @@ class Schema (_SchemaComponent_mixin):
         if Node.ELEMENT_NODE != root_node.nodeType:
             raise LogicError('Must be given a DOM node of type ELEMENT')
 
-        if attributes is None:
-            attributes = AttributeMap(root_node)
-        attribute_map = { }
-        default_namespace = None
-        in_scope_namespaces = { }
-        for (( ns_uri, attr_ln), attr_value) in attributes.items():
-            if Namespace.XMLNamespaces.uri() == ns_uri:
-                if 'xmlns' == attr_ln:
-                    default_namespace = Namespace.NamespaceForURI(attr_value, create_if_missing=True)
-                    in_scope_namespaces[None] = default_namespace
-                else:
-                    in_scope_namespaces[attr_ln] = Namespace.NamespaceForURI(attr_value, create_if_missing=True)
-            else:
-                # @todo probably should include namespace in this
-                attribute_map[attr_ln] = attr_value
+        nsdata = NamespaceDataFromNode(root_node)
 
-        # Store in each node the in-scope namespaces at that node;
-        # we'll need them for QName interpretation of attribute
-        # values.
-        SetInScopeNamespaces(node, in_scope_namespaces)
-
-        tns_uri = attribute_map.get('targetNamespace', None)
-        if tns_uri is None:
-            tns = Namespace.CreateAbsentNamespace()
-        else:
-            tns = Namespace.NamespaceForURI(tns_uri, create_if_missing=True)
+        tns = nsdata.targetNamespace()
         assert tns is not None
         if tns.schema() is None:
-            tns._schema(cls(target_namespace=tns, default_namespace=default_namespace))
+            tns._schema(cls(target_namespace=tns, default_namespace=nsdata.defaultNamespace()))
         schema = tns.schema()
             
-        assert schema.targetNamespace() == tns
-        assert schema.defaultNamespace() == default_namespace
+        assert schema.targetNamespace() == nsdata.targetNamespace()
+        assert schema.defaultNamespace() == nsdata.defaultNamespace()
 
         # Update the attribute map
-        schema._setAttributesFromMap(attribute_map)
+        schema._setAttributesFromMap(nsdata.attributeMap())
 
         # Verify that the root node is an XML schema element
         if not xsd.nodeIsNamed(root_node, 'schema'):

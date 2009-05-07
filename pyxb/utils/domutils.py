@@ -252,3 +252,52 @@ def AttributeMap (node):
         attribute_map[(attr.namespaceURI, attr.localName)] = attr.value
         print '%s %s = %s' % (attr.namespaceURI, attr.localName, attr.value)
     return attribute_map
+
+class NamespaceDataFromNode (object):
+
+    def defaultNamespace (self):
+        return self.__defaultNamespace
+    __defaultNamespace = None
+
+    def targetNamespace (self):
+        return self.__targetNamespace
+    __targetNamespace = None
+
+    def inScopeNamespaces (self):
+        return self.__inScopeNamespaces
+    __inScopeNamespaces = None
+
+    def attributeMap (self):
+        return self.__attributeMap
+    __attributeMap = None
+
+    def __init__ (self, node, attributes=None):
+
+        if attributes is None:
+            attributes = AttributeMap(node)
+
+        self.__attributeMap = { }
+        self.__defaultNamespace = None
+        self.__inScopeNamespaces = { }
+        for (( ns_uri, attr_ln), attr_value) in attributes.items():
+            if Namespace.XMLNamespaces.uri() == ns_uri:
+                if 'xmlns' == attr_ln:
+                    self.__defaultNamespace = Namespace.NamespaceForURI(attr_value, create_if_missing=True)
+                    self.__inScopeNamespaces[None] = self.__defaultNamespace
+                else:
+                    self.__inScopeNamespaces[attr_ln] = Namespace.NamespaceForURI(attr_value, create_if_missing=True)
+            else:
+                # @todo probably should include namespace in this
+                self.__attributeMap[attr_ln] = attr_value
+        
+        # Store in each node the in-scope namespaces at that node;
+        # we'll need them for QName interpretation of attribute
+        # values.
+        SetInScopeNamespaces(node, self.inScopeNamespaces())
+
+        tns_uri = self.attributeMap().get('targetNamespace', None)
+        if tns_uri is None:
+            self.__targetNamespace = Namespace.CreateAbsentNamespace()
+        else:
+            self.__targetNamespace = Namespace.NamespaceForURI(tns_uri, create_if_missing=True)
+
