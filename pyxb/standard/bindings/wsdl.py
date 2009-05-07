@@ -12,11 +12,8 @@ import pyxb.utils.domutils as domutils
 pyxb.Namespace.AvailableForLoad()
 
 class _WSDL_binding_mixin (object):
-    """Mix-in class to mark elements in WSDL binding elements."""
-    pass
-
-class _WSDL_tBinding_mixin (object):
-    """Mix-in class to mark instances in WSDL binding elements."""
+    """Mix-in class to mark element Python bindings that are expected
+    to be wildcard matches in WSDL binding elements."""
     pass
 
 class tPort (raw_wsdl.tPort):
