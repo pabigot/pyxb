@@ -10,50 +10,45 @@ DefaultBindingPath = "%s/standard/bindings/raw" % (os.path.dirname(__file__),)
 # Stuff required for pickling
 import cPickle as pickle
 
+class NamedObjectMap (dict):
+    def namespace (self):
+        return self.__namespace
+    __namespace = None
+    
+    def category (self):
+        return self.__category
+    __category = None
+
+    def __init__ (self, category, namespace, *args, **kw):
+        self.__category = category
+        self.__namespace = namespace
+        super(NamedObjectMap, self).__init__(self, *args, **kw)
+        setattr(self.namespace(), self.category() + 's', lambda _this=self: _this)
+
 class Namespace (object):
     """Represents an XML namespace, viz. a URI.
 
     There is at most one Namespace class instance per namespace (URI).
-    The instance also supports associating XMLSchema structure
-    components such as groups, complexTypes, etc. with the namespace.
-    If an XML schema is not available, these types can be loaded from
-    a pre-parsed file.  See LoadFromFile(path) for information.
+    The instance also supports associating arbitrary maps from names
+    to objects, in separate categories.  The default categories
+    correspond to the named components in XMLSchema, but others can be
+    added: for example, the customizing subclass for WSDL definitions
+    is a namespace that holds its bindings, messages, etc.
 
-    The PyWXSB system permits variant implementations of the
-    underlying XML schema components and namespace-specific
-    constructs.  To support this, you, or whoever wrote your XMLSchema
-    support module, must register the schema component module and
-    schema class definition prior to using Namespace instances,
-    through the SetXMLSchemaModule interface.  If no module is
-    registered, a default one will be assumed.
-
-    @todo Section 4.2.1 of Structures specifies that, indeed, one can
-    have multiple schema documents that define the schema components
-    for a namespace.  This is what the include element does.  On the
-    other hand, I haven't found a namespace that had more than one
-    schema document.  For now, this only associates namespaces with a
-    single schema.
-
+    Namespaces can be written to and loaded from pickled files
+    file.  See LoadFromFile(path) for information.
     """
 
     # The URI for the namespace.  If the URI is None, this is an absent
     # namespace.
     __uri = None
 
-    # Map from name to SimpleTypeDefinition or ComplexTypeDefinition
-    __typeDefinitions = None
-    # Map from name to AttributeGroupDefinition
-    __attributeGroupDefinitions = None
-    # Map from name to ModelGroupDefinition
-    __modelGroupDefinitions = None
-    # Map from name to AttributeDeclaration
-    __attributeDeclarations = None
-    # Map from name to ElementDeclaration
-    __elementDeclarations = None
-    # Map from name to NotationDeclaration
-    __notationDeclarations = None
-    # Map from name to IdentityConstraintDefinition
-    __identityConstraintDefinitions = None
+    # Map from category strings to NamedObjectMap instances that
+    # contain the dictionary for that category.
+    __categoryMap = None
+
+    def categories (self):
+        return self.__categoryMap.keys()
 
     # A prefix bound to this namespace by standard.  Current set known are applies to
     # xml, xmlns, and xsi.
@@ -180,6 +175,10 @@ class Namespace (object):
             self.__inValidation = False
         return self.__schema
 
+    __DefaultCategories = ( 'typeDefinition', 'attributeGroupDefinition', 'modelGroupDefinition',
+                           'attributeDeclaration', 'elementDeclaration', 'notationDeclaration',
+                           'identityConstraintDefinitions' )
+
     def __init__ (self, uri,
                   schema_location=None,
                   description=None,
@@ -217,23 +216,11 @@ class Namespace (object):
         self.__isBuiltinNamespace = is_builtin_namespace
         self.__isUndeclaredNamespace = is_undeclared_namespace
 
-        self.__typeDefinitions = { }
-        self.__attributeGroupDefinitions = { }
-        self.__modelGroupDefinitions = { }
-        self.__attributeDeclarations = { }
-        self.__elementDeclarations = { }
-        self.__notationDeclarations = { }
-        self.__identityConstraintDefinitions = { }
+        self.__categoryMap = { }
+        for cat in self.__DefaultCategories:
+            self.__categoryMap[cat] = NamedObjectMap(cat, self)
 
         assert (self.__uri is None) or (self.__Registry[self.__uri] == self)
-
-    def typeDefinitions (self): return self.__typeDefinitions
-    def attributeGroupDefinitions (self): return self.__attributeGroupDefinitions
-    def modelGroupDefinitions (self): return self.__modelGroupDefinitions
-    def attributeDeclarations (self): return self.__attributeDeclarations
-    def elementDeclarations (self): return self.__elementDeclarations
-    def notationDeclarations (self): return self.__notationDeclarations
-    def identityConstraintDefinitions (self): return self.__identityConstraintDefinitions
 
     __absentNamespaceID = 0
 
@@ -430,7 +417,7 @@ class Namespace (object):
         This delegates to the associated schema.  It returns a
         SimpleTypeDefnition or ComplexTypeDefinition instance, or None
         if the name does not denote a type."""
-        return self.__typeDefinitions.get(local_name, None)
+        return self.typeDefinitions().get(local_name, None)
 
     def __addNamedObject (self, named_object, name_map):
         local_name = named_object.name()
@@ -441,25 +428,25 @@ class Namespace (object):
         return named_object
 
     def addTypeDefinition (self, type_definition):
-        return self.__addNamedObject(type_definition, self.__typeDefinitions)
+        return self.__addNamedObject(type_definition, self.typeDefinitions())
 
     def addAttributeGroupDefinition (self, agd):
-        return self.__addNamedObject(agd, self.__attributeGroupDefinitions)
+        return self.__addNamedObject(agd, self.attributeGroupDefinitions())
 
     def addAttributeDeclaration (self, ad):
-        return self.__addNamedObject(ad, self.__attributeDeclarations)
+        return self.__addNamedObject(ad, self.attributeDeclarations())
 
     def addElementDeclaration (self, ed):
-        return self.__addNamedObject(ed, self.__elementDeclarations)
+        return self.__addNamedObject(ed, self.elementDeclarations())
 
     def addModelGroupDefinition (self, ed):
-        return self.__addNamedObject(ed, self.__modelGroupDefinitions)
+        return self.__addNamedObject(ed, self.modelGroupDefinitions())
 
     def addNotationDeclaration (self, ed):
-        return self.__addNamedObject(ed, self.__notationDeclarations)
+        return self.__addNamedObject(ed, self.__notationDeclarations())
 
     def addIdentityConstraintDefinition (self, ed):
-        return self.__addNamedObject(ed, self.__identityConstraintDefinitions)
+        return self.__addNamedObject(ed, self.identityConstraintDefinitions())
 
     def lookupAttributeGroupDefinition (self, local_name):
         """Look up a named attribute group in the namespace.
@@ -467,7 +454,7 @@ class Namespace (object):
         This delegates to the associated schema.  It returns an
         AttributeGroupDefinition, or None if the name does not denote
         an attribute group."""
-        return self.__attributeGroupDefinitions.get(local_name, None)
+        return self.attributeGroupDefinitions().get(local_name, None)
         
     def lookupModelGroupDefinition (self, local_name):
         """Look up a named model group in the namespace.
@@ -475,7 +462,7 @@ class Namespace (object):
         This delegates to the associated schema.  It returns a
         ModelGroupDefinition, or None if the name does not denote a
         model group."""
-        return self.__modelGroupDefinitions.get(local_name, None)
+        return self.modelGroupDefinitions().get(local_name, None)
 
     def lookupAttributeDeclaration (self, local_name):
         """Look up a named attribute in the namespace.
@@ -483,7 +470,7 @@ class Namespace (object):
         This delegates to the associated schema.  It returns an
         AttributeDeclaration, or None if the name does not denote an
         attribute."""
-        return self.__attributeDeclarations.get(local_name, None)
+        return self.attributeDeclarations().get(local_name, None)
 
     def lookupElementDeclaration (self, local_name, context=None):
         """Look up a named element in the namespace.
@@ -491,10 +478,10 @@ class Namespace (object):
         This delegates to the associated schema.  It returns an
         ElementDeclaration, or None if the name does not denote an
         element."""
-        return self.__elementDeclarations.get(local_name, None)
+        return self.elementDeclarations().get(local_name, None)
 
     def lookupNotationDeclaration (self, local_name):
-        return self.__notationDeclarations.get(local_name, None)
+        return self.notationDeclarations().get(local_name, None)
 
     def lookupIdentityConstraintDefinition (self, local_name):
         """Look up an identity constraint definition in the namespace.
@@ -502,7 +489,7 @@ class Namespace (object):
         This delegates to the associated schema.  It returns an
         IdentityConstraintDefinition, or None if the name does not
         denote an element."""
-        return self.__identityConstraintDefinitions.get(local_name, None)
+        return self.identityConstraintDefinitions().get(local_name, None)
 
     def __str__ (self):
         if self.__uri is None:
@@ -596,13 +583,7 @@ class Namespace (object):
         pickler.dump(self)
         # Rest is only read if the schema needs to be loaded
         pickler.dump(self.__schema)
-        pickler.dump(self.__typeDefinitions)
-        pickler.dump(self.__attributeGroupDefinitions)
-        pickler.dump(self.__modelGroupDefinitions)
-        pickler.dump(self.__attributeDeclarations)
-        pickler.dump(self.__elementDeclarations)
-        pickler.dump(self.__notationDeclarations)
-        pickler.dump(self.__identityConstraintDefinitions)
+        pickler.dump(self.__categoryMap)
         self._PicklingNamespace(None)
 
     @classmethod
@@ -627,16 +608,10 @@ class Namespace (object):
 
         # Unpack the schema instance, verify that it describes the
         # namespace, and associate it with the namespace.
-        assert (instance.__typeDefinitions is None) or (0 == len(instance.__typeDefinitions))
+        assert (instance.__categoryMap is None) or (0 == len(instance.__categoryMap))
 
         schema = unpickler.load()
-        instance.__typeDefinitions = unpickler.load()
-        instance.__attributeGroupDefinitions = unpickler.load()
-        instance.__modelGroupDefinitions = unpickler.load()
-        instance.__attributeDeclarations = unpickler.load()
-        instance.__elementDeclarations = unpickler.load()
-        instance.__notationDeclarations = unpickler.load()
-        instance.__identityConstraintDefinitions = unpickler.load()
+        instance.__categoryMap = unpickler.load()
 
         assert schema.targetNamespace() == instance
         instance.__schema = schema
