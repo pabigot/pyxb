@@ -60,6 +60,8 @@ class Namespace (object):
     # @todo replace with collection
     __schema = None                     # The schema in which this namespace is used
 
+    __noSchemaAssigned = None
+
     # A map from URIs to Namespace instances.  Namespaces instances
     # must be unique for their URI.  See __new__().
     __Registry = { }
@@ -171,7 +173,7 @@ class Namespace (object):
             self.__inValidation = True
             if self.__schema is None:
                 self._defineSchema_overload()
-            if not self.__schema:
+            if not (self.__schema or self.__noSchemaDefined):
                 raise PyWXSBException('No schema available for required namespace %s' % (self.uri(),))
             self.__didValidation = True
         finally:
@@ -209,6 +211,7 @@ class Namespace (object):
         # We actually set the uri when this instance was allocated;
         # see __new__().
         assert self.__uri == uri
+        self.__noSchemaDefined = True
         self.__boundPrefix = bound_prefix
         self.__schemaLocation = schema_location
         self.__description = description
@@ -536,6 +539,7 @@ class Namespace (object):
         """Create a Namespace instance with schema contents loaded
         from the given file.
         """
+        print 'Attempting to load from %s' % (file_path,)
         unpickler = pickle.Unpickler(open(file_path, 'rb'))
 
         # Get the URI out of the way
@@ -554,9 +558,11 @@ class Namespace (object):
         # Unpack the schema instance, verify that it describes the
         # namespace, and associate it with the namespace.
         schema = unpickler.load()
+        instance.__noSchemaDefined = (schema is None)
         if schema is not None:
             assert schema.targetNamespace() == instance
             instance.__schema = schema
+            schema._postUnpickle()
 
         # Augment the categories and their contents with data from the
         # saved namespace.  Note that the category maps may be
@@ -568,7 +574,7 @@ class Namespace (object):
             instance.categoryMap(category).update(new_category_map[category])
         instance.__defineCategoryAccessors()
 
-        #print 'Completed load of %s from %s' % (instance.uri(), file_path)
+        #print 'Completed load of %s from %s: %s' % (instance.uri(), file_path, " ".join(instance.categories()))
         return instance
 
 def NamespaceForURI (uri, create_if_missing=False):
