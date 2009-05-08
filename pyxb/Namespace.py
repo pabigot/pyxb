@@ -443,49 +443,6 @@ class Namespace (object):
     def addIdentityConstraintDefinition (self, ed):
         return self.__addNamedObject(ed, self.identityConstraintDefinitions())
 
-    def lookupAttributeGroupDefinition (self, local_name):
-        """Look up a named attribute group in the namespace.
-
-        This delegates to the associated schema.  It returns an
-        AttributeGroupDefinition, or None if the name does not denote
-        an attribute group."""
-        return self.attributeGroupDefinitions().get(local_name, None)
-        
-    def lookupModelGroupDefinition (self, local_name):
-        """Look up a named model group in the namespace.
-
-        This delegates to the associated schema.  It returns a
-        ModelGroupDefinition, or None if the name does not denote a
-        model group."""
-        return self.modelGroupDefinitions().get(local_name, None)
-
-    def lookupAttributeDeclaration (self, local_name):
-        """Look up a named attribute in the namespace.
-
-        This delegates to the associated schema.  It returns an
-        AttributeDeclaration, or None if the name does not denote an
-        attribute."""
-        return self.attributeDeclarations().get(local_name, None)
-
-    def lookupElementDeclaration (self, local_name, context=None):
-        """Look up a named element in the namespace.
-
-        This delegates to the associated schema.  It returns an
-        ElementDeclaration, or None if the name does not denote an
-        element."""
-        return self.elementDeclarations().get(local_name, None)
-
-    def lookupNotationDeclaration (self, local_name):
-        return self.notationDeclarations().get(local_name, None)
-
-    def lookupIdentityConstraintDefinition (self, local_name):
-        """Look up an identity constraint definition in the namespace.
-
-        This delegates to the associated schema.  It returns an
-        IdentityConstraintDefinition, or None if the name does not
-        denote an element."""
-        return self.identityConstraintDefinitions().get(local_name, None)
-
     def __str__ (self):
         if self.__uri is None:
             return 'AbsentNamespace%d' % (self.__absentNamespaceID,)

@@ -32,7 +32,7 @@ def _LookupAttributeDeclaration (ns, context, local_name):
     if isinstance(context, ComplexTypeDefinition):
         rv = context.lookupScopedAttributeDeclaration(local_name)
     if rv is None:
-        rv = ns.lookupAttributeDeclaration(local_name)
+        rv = ns.attributeDeclarations().get(local_name, None)
     return rv
 
 def _LookupElementDeclaration (ns, context, local_name):
@@ -42,7 +42,7 @@ def _LookupElementDeclaration (ns, context, local_name):
     if isinstance(context, ComplexTypeDefinition):
         rv = context.lookupScopedElementDeclaration(local_name)
     if rv is None:
-        rv = ns.lookupElementDeclaration(local_name)
+        rv = ns.elementDeclarations().get(local_name, None)
     return rv
 
 def _LookupIdentityConstraintDefinition (ns, context, local_name):
@@ -52,7 +52,7 @@ def _LookupIdentityConstraintDefinition (ns, context, local_name):
     if isinstance(context, ComplexTypeDefinition):
         rv = context.lookupScopedIdentityConstraintDefinition(local_name)
     if rv is None:
-        rv = ns.lookupIdentityConstraintDefinition(local_name)
+        rv = ns.identityConstraintDefinitions().get(local_name, None)
     return rv
 
 
@@ -419,9 +419,9 @@ class _NamedComponent_mixin (object):
             if (issubclass(icls, SimpleTypeDefinition) or issubclass(icls, ComplexTypeDefinition)):
                 rv = ns.typeDefinitions().get(ncname, None)
             elif issubclass(icls, AttributeGroupDefinition):
-                rv = ns.lookupAttributeGroupDefinition(ncname)
+                rv = ns.attributeGroupDefinitions().get(ncname, None)
             elif issubclass(icls, ModelGroupDefinition):
-                rv = ns.lookupModelGroupDefinition(ncname)
+                rv = ns.modelGroupDefinitions().get(ncname, None)
             elif issubclass(icls, AttributeDeclaration):
                 rv = _LookupAttributeDeclaration(ns, _ScopedDeclaration_mixin.SCOPE_global, ncname)
             elif issubclass(icls, ElementDeclaration):
@@ -881,7 +881,7 @@ class _AttributeWildcard_mixin (object):
                 if agd_qname is None:
                     raise SchemaValidationError('Require ref attribute on internal attributeGroup elements')
                 ( agd_ns, agd_ln ) = agd_qname
-                agd = agd_ns.lookupAttributeGroupDefinition(agd_ln)
+                agd = agd_ns.attributeGroupDefinitions().get(agd_ln, None)
                 if not agd.isResolved():
                     return None
                 attribute_groups.append(agd)
@@ -2503,7 +2503,7 @@ class Particle (_SchemaComponent_mixin, _Resolvable_mixin):
             # Named groups can only appear at global scope, so no need
             # to use context here.
             (ref_ns, ref_ln) = ref_qname
-            group_decl = ref_ns.lookupModelGroupDefinition(ref_ln)
+            group_decl = ref_ns.modelGroupDefinitions().get(ref_ln, None)
             if group_decl is None:
                 wxs._queueForResolution(self)
                 return None
@@ -4263,7 +4263,7 @@ class Schema (_SchemaComponent_mixin):
         local_name = ad.name()
         assert self.__targetNamespace
         tns = self.targetNamespace()
-        old_ad = tns.lookupAttributeDeclaration(local_name)
+        old_ad = tns.attributeDeclarations().get(local_name, None)
         if (old_ad is not None) and (old_ad != ad):
             # @todo validation error if old_ad is not a built-in
             if isinstance(ad, AttributeDeclaration) != isinstance(old_ad, AttributeDeclaration):
