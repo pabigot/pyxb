@@ -18,5 +18,4 @@ class operation (raw_soap.operation, _WSDL_operation_mixin):
         if self.style() is not None:
             rvl.append('style=%s' % (self.style(),))
         return ','.join(rvl)
-        
 raw_soap.operation._SetClassRef(operation)
