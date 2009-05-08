@@ -137,11 +137,11 @@ class definitions (raw_wsdl.definitions):
     def __buildMaps (self):
         self.__messageMap = { }
         for m in self.message():
-            name_qname = domutils.InterpretQName(m._domNode(), m.name())
+            name_qname = (self.targetNamespace(), m.name())
             self._addToMap(self.__messageMap, name_qname, m)
         self.__portTypeMap = { }
         for pt in self.portType():
-            port_type_qname = domutils.InterpretQName(pt._domNode(), pt.name())
+            port_type_qname = (self.targetNamespace(), pt.name())
             self._addToMap(self.__portTypeMap, port_type_qname, pt)
             for op in pt.operation():
                 pt.operationMap()[op.name()] = op
@@ -150,7 +150,7 @@ class definitions (raw_wsdl.definitions):
                     p._setMessageReference(self.__messageMap[msg_qname])
         self.__bindingMap = { }
         for b in self.binding():
-            binding_qname = domutils.InterpretQName(b._domNode(), b.name())
+            binding_qname = (self.targetNamespace(), b.name())
             self._addToMap(self.__bindingMap, binding_qname, b)
             port_type_qname = domutils.InterpretQName(b._domNode(), b.type())
             b.setPortTypeReference(self.__portTypeMap[port_type_qname])
@@ -166,7 +166,7 @@ class definitions (raw_wsdl.definitions):
                         break
         self.__serviceMap = { }
         for s in self.service():
-            service_qname = domutils.InterpretQName(s._domNode(), s.name())
+            service_qname = (self.targetNamespace(), s.name())
             self._addToMap(self.__serviceMap, service_qname, s)
             port_map = { }
             for p in s.port():
