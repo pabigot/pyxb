@@ -11,6 +11,47 @@ import pyxb.utils.domutils as domutils
 # nodes.
 pyxb.Namespace.AvailableForLoad()
 
+class _NamespaceAwareMap (dict):
+    def namespaceData (self):
+        return self.__namespaceData
+    __namespaceData = None
+
+    def __init__ (self, namespace_data, *args, **kw):
+        super(_NamespaceAwareMap, self).__init__(*args, **kw)
+        assert namespace_data is not None
+        self.__namespaceData = namespace_data
+
+    def __keyToPair (self, key, is_definition=False):
+        if isinstance(key, tuple):
+            (ns, ln) = key
+        else:
+            ns = None
+            if 0 <= key.find(':'):
+                (pfx, ln) = key.split(':', 1)
+                ns = self.namespaceData().inScopeNamespaces().get(pfx, None)
+                assert ns is not None
+            else:
+                ln = key
+        if ns is None:
+            if is_definition:
+                ns = self.namespaceData().targetNamespace()
+            else:
+                ns = self.namespaceData().defaultNamespace()
+        return (ns, ln)
+
+    def __pairToSet (self, qkey):
+        pass
+
+    def __getitem__ (self, key):
+        qkey = self.__keyToPair(key)
+        #print 'Looking up with key %s as %s uri %s' % (key, qkey, qkey[0].uri())
+        return super(_NamespaceAwareMap, self).__getitem__(qkey)
+
+    def __setitem__ (self, key, value):
+        qkey = self.__keyToPair(key, is_definition=True)
+        #print 'Setting with key %s as %s uri %s' % (key, qkey, qkey[0].uri())
+        return super(_NamespaceAwareMap, self).__setitem__(qkey, value)
+
 class _WSDL_binding_mixin (object):
     """Mix-in class to mark element Python bindings that are expected
     to be wildcard matches in WSDL binding elements."""
@@ -104,9 +145,14 @@ class definitions (raw_wsdl.definitions):
 
     def bindingMap (self):
         return self.__bindingMap
+    __bindingMap = None
 
     def targetNamespace (self):
         return self.namespaceData().targetNamespace()
+
+    def namespace (self):
+        return self.__namespace
+    __namespace = None
 
     def _addToMap (self, map, qname, value):
         map[qname] = value
@@ -129,29 +175,30 @@ class definitions (raw_wsdl.definitions):
         ns_data = domutils.NamespaceDataFromNode(node)
         rv = super(definitions, cls).CreateFromDOM(node, *args, **kw)
         rv.__namespaceData = ns_data
+        rv.__namespace = pyxb.Namespace.NamespaceForURI(ns_data.targetNamespace(), create_if_missing=True)
         rv.__buildMaps()
         if process_schema:
             rv.__processSchema()
         return rv
 
     def __buildMaps (self):
-        self.__messageMap = { }
+        self.__messageMap = _NamespaceAwareMap(self.namespaceData())
         for m in self.message():
             name_qname = (self.targetNamespace(), m.name())
-            self._addToMap(self.__messageMap, name_qname, m)
-        self.__portTypeMap = { }
+            self.__messageMap[name_qname] = m
+        self.__portTypeMap = _NamespaceAwareMap(self.namespaceData())
         for pt in self.portType():
             port_type_qname = (self.targetNamespace(), pt.name())
-            self._addToMap(self.__portTypeMap, port_type_qname, pt)
+            self.__portTypeMap[port_type_qname] = pt
             for op in pt.operation():
                 pt.operationMap()[op.name()] = op
                 for p in (op.input() + op.output() + op.fault()):
                     msg_qname = domutils.InterpretQName(m._domNode(), p.message())
                     p._setMessageReference(self.__messageMap[msg_qname])
-        self.__bindingMap = { }
+        self.__bindingMap = _NamespaceAwareMap(self.namespaceData())
         for b in self.binding():
             binding_qname = (self.targetNamespace(), b.name())
-            self._addToMap(self.__bindingMap, binding_qname, b)
+            self.__bindingMap[binding_qname] = b
             port_type_qname = domutils.InterpretQName(b._domNode(), b.type())
             b.setPortTypeReference(self.__portTypeMap[port_type_qname])
             for wc in b.wildcardElements():
@@ -164,10 +211,10 @@ class definitions (raw_wsdl.definitions):
                     if isinstance(wc, _WSDL_operation_mixin):
                         op._setOperationReference(wc)
                         break
-        self.__serviceMap = { }
+        self.__serviceMap = _NamespaceAwareMap(self.namespaceData())
         for s in self.service():
             service_qname = (self.targetNamespace(), s.name())
-            self._addToMap(self.__serviceMap, service_qname, s)
+            self.__serviceMap[service_qname] = s
             port_map = { }
             for p in s.port():
                 port_qname = domutils.InterpretQName(p._domNode(), p.name())
