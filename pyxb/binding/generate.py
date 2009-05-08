@@ -147,6 +147,8 @@ class ReferenceSchemaComponent (ReferenceLiteral):
             tns = btns
         is_in_binding = (btns == tns) or (tns is None)
             
+        if not ((not isinstance(self.__component, xs.structures._Resolvable_mixin)) or self.__component.isResolved()):
+            print '%s not resolved' % (self.__component,)
         assert (not isinstance(self.__component, xs.structures._Resolvable_mixin)) or self.__component.isResolved()
 
         name = self.__component.nameInBinding()
@@ -246,7 +248,7 @@ class ReferenceEnumerationMember (ReferenceLiteral):
 
         super(ReferenceEnumerationMember, self).__init__(**kw)
 
-        self.setLiteral(self._addTypePrefix(self.enumerationElement.tag(), **kw))
+        self.setLiteral(self._addTypePrefix(utility.PrepareIdentifier(self.enumerationElement.tag(), kw['class_unique'], kw['class_keywords']), **kw))
 
 def pythonLiteral (value, **kw):
     # For dictionaries, apply translation to all values (not keys)
@@ -440,6 +442,11 @@ def GenerateFacets (outf, td, **kw):
 def GenerateSTD (std, **kw):
     generate_facets = kw.get('generate_facets', False)
     outf = StringIO.StringIO()
+
+    class_keywords = frozenset(basis.simpleTypeDefinition._ReservedSymbols)
+    class_unique = set()
+    kw['class_keywords'] = class_keywords
+    kw['class_unique'] = class_unique
 
     parent_classes = [ pythonLiteral(std.baseTypeDefinition(), **kw) ]
     enum_facet = std.facets().get(facets.CF_enumeration, None)
