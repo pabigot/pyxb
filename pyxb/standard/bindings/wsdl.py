@@ -17,8 +17,13 @@ class _WSDL_binding_mixin (object):
     pass
 
 class _WSDL_port_mixin (object):
-    """Mix-in class to mark element Pythong bindings that are expected
-    to bed wildcard matches in WSDL port elements."""
+    """Mix-in class to mark element Python bindings that are expected
+    to be wildcard matches in WSDL port elements."""
+    pass
+
+class _WSDL_operation_mixin (object):
+    """Mix-in class to mark element Python bindings that are expected
+    to be wildcard matches in WSDL (binding) operation elements."""
     pass
 
 class tPort (raw_wsdl.tPort):
@@ -79,6 +84,14 @@ raw_wsdl.tParam._SetClassRef(tParam)
 class tPart (raw_wsdl.tPart):
     pass
 raw_wsdl.tPart._SetClassRef(tPart)
+
+class tBindingOperation (raw_wsdl.tBindingOperation):
+    def operationReference (self):
+        return self.__operationReference
+    def _setOperationReference (self, operation_reference):
+        self.__operationReference = operation_reference
+    __operationReference = None
+raw_wsdl.tBindingOperation._SetClassRef(tBindingOperation)
 
 class definitions (raw_wsdl.definitions):
     def messageMap (self):
@@ -147,6 +160,10 @@ class definitions (raw_wsdl.definitions):
                     break
             for op in b.operation():
                 b.operationMap()[op.name()] = op
+                for wc in op.wildcardElements():
+                    if isinstance(wc, _WSDL_operation_mixin):
+                        op._setOperationReference(wc)
+                        break
         self.__serviceMap = { }
         for s in self.service():
             service_qname = domutils.InterpretQName(s._domNode(), s.name())
