@@ -992,6 +992,7 @@ def GeneratePython (**kw):
         outf.write(templates.replaceInText('''# PyWXSB bindings for %{input}
 # Generated %{date} by PyWXSB version %{version}
 import pyxb.binding
+import pyxb.exceptions_
 from xml.dom import minidom
 from xml.dom import Node
 import sys
@@ -1017,9 +1018,9 @@ def CreateFromDOM (node):
         ncname = ncname.split(':', 1)[1]
     cls = globals().get(ncname, None)
     if cls is None:
-        raise UnrecognizedElementError('No class available for %s' % (ncname,))
+        raise pyxb.exceptions_.UnrecognizedElementError('No class available for %s' % (ncname,))
     if not issubclass(cls, pyxb.binding.basis.element):
-        raise NotAnElementError('Tag %s does not exist as element in module' % (ncname,))
+        raise pyxb.exceptions_.NotAnElementError('Tag %s does not exist as element in module' % (ncname,))
     return cls.CreateFromDOM(node)
 
 ''', **template_map))
