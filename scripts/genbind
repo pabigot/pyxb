@@ -52,7 +52,7 @@ try:
     if ns.isAbsentNamespace():
         ns._overrideAbsentNamespace('URN:%s' % (prefix,))
     ns.saveToFile(parsed_schema_file)
-    print 'Saved parsed schema to %s' % (parsed_schema_file,)
+    print 'Saved parsed schema to %s URI %s' % (parsed_schema_file, ns.uri())
 except Exception, e:
     print 'Exception saving preprocessed schema to %s: %s' % (parsed_schema_file, e)
     traceback.print_exception(*sys.exc_info())
