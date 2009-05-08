@@ -61,6 +61,9 @@ class BasicTest (unittest.TestCase):
         self.assertEquals('global__', PrepareIdentifier('global', in_use))
         self.assertEquals('global__2', PrepareIdentifier('global', in_use))
 
+        in_use = set()
+        self.assertEquals('n24_hours', PrepareIdentifier('24 hours', in_use))
+
     def testQuotedEscape (self):
         for ( expected, input ) in self.cases:
             result = QuotedEscaped(input)

@@ -13,16 +13,22 @@ def QuotedEscaped (s):
 _UnderscoreSubstitute_re = re.compile(r'[- .]')
 _NonIdentifier_re = re.compile(r'[^a-zA-Z0-9_]')
 _PrefixUnderscore_re = re.compile(r'^_+')
+_PrefixDigit_re = re.compile(r'^\d+')
 
 def MakeIdentifier (s):
     """Convert a string into something suitable to be a Python identifier.
 
     The string is converted to unicode; spaces and periods replaced by
     underscores; non-printables stripped.  Furthermore, any leading
-    underscores are removed.  No check is made for conflicts with
-    keywords.
+    underscores are removed.  If the result begins with a digit, the
+    character 'n' is prepended.  If the result is the empty string,
+    the string 'emptyString' is substituted.
+
+    No check is made for conflicts with keywords.
     """
     s = _PrefixUnderscore_re.sub('', _NonIdentifier_re.sub('',_UnderscoreSubstitute_re.sub('_', str(s))))
+    if _PrefixDigit_re.match(s):
+        s = 'n' + s
     if 0 == len(s):
         s = 'emptyString'
     return s
