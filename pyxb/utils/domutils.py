@@ -270,7 +270,6 @@ def AttributeMap (node):
     for ai in range(node.attributes.length):
         attr = node.attributes.item(ai)
         attribute_map[(attr.namespaceURI, attr.localName)] = attr.value
-        print '%s %s = %s' % (attr.namespaceURI, attr.localName, attr.value)
     return attribute_map
 
 class NamespaceDataFromNode (object):
