@@ -39,6 +39,7 @@ except Exception, e:
 # parsed schema file
 try:
     binding_source = GeneratePython(schema=wxs, schema_file=schema_file)
+    print 'Binding source is %d long to %s' % (len(binding_source), binding_file)
     file(binding_file, "w").write(binding_source)
     print 'Saved binding source to %s' % (binding_file,)
 except Exception, e:
@@ -48,6 +49,8 @@ except Exception, e:
 
 try:
     ns = wxs.targetNamespace()
+    if ns.isAbsentNamespace():
+        ns._overrideAbsentNamespace('URN:%s' % (prefix,))
     ns.saveToFile(parsed_schema_file)
     print 'Saved parsed schema to %s' % (parsed_schema_file,)
 except Exception, e:
