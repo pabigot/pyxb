@@ -764,6 +764,9 @@ class complexTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _
             if not prefix:
                 prefix = None
             value = attr.value
+            # hack to make some QName attribute tags work
+            if (attr.namespaceURI == node.namespaceURI):
+                prefix = None
             # @todo handle cross-namespace attributes
             if prefix is not None:
                 raise IncompleteImplementationError('No support for namespace-qualified attributes like %s:%s' % (prefix, local_name))
