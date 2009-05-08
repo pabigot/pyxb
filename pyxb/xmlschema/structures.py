@@ -3969,6 +3969,10 @@ class Schema (_SchemaComponent_mixin):
         """Return the schema attribute value associated with the given (nc)name."""
         return self.__attributeMap[attr_name]
 
+    __SchemaCategories = ( 'typeDefinition', 'attributeGroupDefinition', 'modelGroupDefinition',
+                           'attributeDeclaration', 'elementDeclaration', 'notationDeclaration',
+                           'identityConstraintDefinitions' )
+
     def __init__ (self, *args, **kw):
         assert 'schema' not in kw
         kw['schema'] = _SchemaComponent_mixin._SCHEMA_None
@@ -3979,6 +3983,10 @@ class Schema (_SchemaComponent_mixin):
         self.__defaultNamespace = kw.get('default_namespace')
         if not ((self.__defaultNamespace is None) or isinstance(self.__defaultNamespace, Namespace.Namespace)):
             raise LogicError('Schema default namespace must be None or a valid Namespace instance')
+
+        self.__targetNamespace.configureCategories(self.__SchemaCategories)
+        if self.__defaultNamespace is not None:
+            self.__defaultNamespace.configureCategories(self.__SchemaCategories)
 
         self.__attributeMap = self.__attributeMap.copy()
         self.__components = set()

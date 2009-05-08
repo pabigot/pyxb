@@ -19,24 +19,21 @@ class NamedObjectMap (dict):
         return self.__category
     __category = None
 
-    def __init__ (self, category, namespace, inhibit_namespace_accessor=False, *args, **kw):
+    def __init__ (self, category, namespace, *args, **kw):
         self.__category = category
         self.__namespace = namespace
         super(NamedObjectMap, self).__init__(self, *args, **kw)
-        if not inhibit_namespace_accessor:
-            accessor_name = self.category() + 's'
-            assert not hasattr(self.namespace(), accessor_name)
-            setattr(self.namespace(), accessor_name, lambda _this=self: _this)
 
 class Namespace (object):
     """Represents an XML namespace, viz. a URI.
 
     There is at most one Namespace class instance per namespace (URI).
     The instance also supports associating arbitrary maps from names
-    to objects, in separate categories.  The default categories
-    correspond to the named components in XMLSchema, but others can be
-    added: for example, the customizing subclass for WSDL definitions
-    is a namespace that holds its bindings, messages, etc.
+    to objects, in separate categories.  The default categories are
+    configured externally; for example, the Schema component defines a
+    category for each named component in XMLSchema, and the
+    customizing subclass for WSDL definitions adds categories for the
+    service bindings, messages, etc.
 
     Namespaces can be written to and loaded from pickled files
     file.  See LoadFromFile(path) for information.
@@ -145,7 +142,7 @@ class Namespace (object):
         assert not self.__inSchemaLoad
 
         # Absent namespaces cannot load schemas
-        if self.uri() is None:
+        if self.isAbsentNamespace():
             return None
         afn = _LoadableNamespaceMap().get(self.uri(), None)
         if afn is not None:
@@ -180,10 +177,6 @@ class Namespace (object):
         finally:
             self.__inValidation = False
         return self.__schema
-
-    __DefaultCategories = ( 'typeDefinition', 'attributeGroupDefinition', 'modelGroupDefinition',
-                           'attributeDeclaration', 'elementDeclaration', 'notationDeclaration',
-                           'identityConstraintDefinitions' )
 
     def __init__ (self, uri,
                   schema_location=None,
@@ -223,12 +216,22 @@ class Namespace (object):
         self.__isUndeclaredNamespace = is_undeclared_namespace
 
         self.__categoryMap = { }
-        for cat in self.__DefaultCategories:
-            self.__categoryMap[cat] = NamedObjectMap(cat, self)
 
         assert (self.__uri is None) or (self.__Registry[self.__uri] == self)
 
     __absentNamespaceID = 0
+
+    def __defineCategoryAccessors (self):
+        for category in self.categories():
+            accessor_name = category + 's'
+            setattr(self, accessor_name, lambda _map=self.categoryMap(category): _map)
+
+    def configureCategories (self, categories):
+        for category in categories:
+            if not (category in self.__categoryMap):
+                self.__categoryMap[category] = NamedObjectMap(category, self)
+        self.__defineCategoryAccessors()
+        return self
 
     @classmethod
     def CreateAbsentNamespace (cls):
@@ -503,11 +506,6 @@ class Namespace (object):
         
         if self.uri() is None:
             raise LogicError('Illegal to serialize absent namespaces')
-        #if self.isBuiltinNamespace():
-        #    raise LogicError("Won't serialize a built-in namespace")
-        if self.__schema is None:
-            # @todo use a better exception
-            raise LogicError("Won't save namespace that does not have associated schema: %s", self.uri())
         output = open(file_path, 'wb')
         pickler = pickle.Pickler(output, -1)
         self._PicklingNamespace(self)
@@ -546,6 +544,7 @@ class Namespace (object):
 
         schema = unpickler.load()
         instance.__categoryMap = unpickler.load()
+        instance.__defineCategoryAccessors()
 
         assert schema.targetNamespace() == instance
         instance.__schema = schema
