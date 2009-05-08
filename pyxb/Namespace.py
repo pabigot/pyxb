@@ -618,7 +618,7 @@ class Namespace (object):
 
         # Unpack the schema instance, verify that it describes the
         # namespace, and associate it with the namespace.
-        assert 0 == len(instance.__typeDefinitions)
+        assert (instance.__typeDefinitions is None) or (0 == len(instance.__typeDefinitions))
 
         schema = unpickler.load()
         instance.__typeDefinitions = unpickler.load()
