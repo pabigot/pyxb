@@ -139,16 +139,16 @@ class definitions (raw_wsdl.definitions):
         return self.__messageMap
     __messageMap = None
 
-    def namespaceData (self):
-        return self.__namespaceData
-    __namespaceData = None
+    def namespaceContext (self):
+        return self.__namespaceContext
+    __namespaceContext = None
 
     def bindingMap (self):
         return self.__bindingMap
     __bindingMap = None
 
     def targetNamespace (self):
-        return self.namespaceData().targetNamespace()
+        return self.namespaceContext().targetNamespace()
 
     def namespace (self):
         return self.__namespace
@@ -172,21 +172,19 @@ class definitions (raw_wsdl.definitions):
         # Get the target namespace and other relevant information, and set the
         # per-node in scope namespaces so we can do QName resolution.
         process_schema = kw.pop('process_schema', False)
-        ns_data = domutils.NamespaceDataFromNode(node)
         rv = super(definitions, cls).CreateFromDOM(node, *args, **kw)
-        rv.__namespaceData = ns_data
-        rv.__namespace = pyxb.Namespace.NamespaceForURI(ns_data.targetNamespace(), create_if_missing=True)
+        rv.__namespaceContext = domutils.NamespaceContext(node)
         rv.__buildMaps()
         if process_schema:
             rv.__processSchema()
         return rv
 
     def __buildMaps (self):
-        self.__messageMap = _NamespaceAwareMap(self.namespaceData())
+        self.__messageMap = _NamespaceAwareMap(self.namespaceContext())
         for m in self.message():
             name_qname = (self.targetNamespace(), m.name())
             self.__messageMap[name_qname] = m
-        self.__portTypeMap = _NamespaceAwareMap(self.namespaceData())
+        self.__portTypeMap = _NamespaceAwareMap(self.namespaceContext())
         for pt in self.portType():
             port_type_qname = (self.targetNamespace(), pt.name())
             self.__portTypeMap[port_type_qname] = pt
@@ -195,7 +193,7 @@ class definitions (raw_wsdl.definitions):
                 for p in (op.input() + op.output() + op.fault()):
                     msg_qname = domutils.InterpretQName(m._domNode(), p.message())
                     p._setMessageReference(self.__messageMap[msg_qname])
-        self.__bindingMap = _NamespaceAwareMap(self.namespaceData())
+        self.__bindingMap = _NamespaceAwareMap(self.namespaceContext())
         for b in self.binding():
             binding_qname = (self.targetNamespace(), b.name())
             self.__bindingMap[binding_qname] = b
@@ -211,7 +209,7 @@ class definitions (raw_wsdl.definitions):
                     if isinstance(wc, _WSDL_operation_mixin):
                         op._setOperationReference(wc)
                         break
-        self.__serviceMap = _NamespaceAwareMap(self.namespaceData())
+        self.__serviceMap = _NamespaceAwareMap(self.namespaceContext())
         for s in self.service():
             service_qname = (self.targetNamespace(), s.name())
             self.__serviceMap[service_qname] = s
@@ -234,7 +232,7 @@ class definitions (raw_wsdl.definitions):
             for wc in t.wildcardElements():
                 if isinstance(wc, Node) and pyxb.Namespace.XMLSchema.nodeIsNamed(wc, 'schema'):
                     import pyxb.xmlschema
-                    self.__schema = pyxb.xmlschema.schema.CreateFromDOM(wc, namespace_environment=self.namespaceData())
+                    self.__schema = pyxb.xmlschema.schema.CreateFromDOM(wc, namespace_context=self.namespaceContext())
                     return self.__schema
 
 raw_wsdl.definitions._SetClassRef(definitions)

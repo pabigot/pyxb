@@ -168,23 +168,24 @@ class BindingDOMSupport (object):
         element = self.__document.createElementNS(ns_uri, name)
         return parent.appendChild(element)
     
-def GetInScopeNamespaces (node):
-    ns_ctx = NamespaceContext.GetNodeContext(node)
-    return ns_ctx.inScopeNamespaces()
-
-def InterpretQName (node, name):
+def InterpretQName (node, name, is_definition=False):
     if name is None:
         return None
     # Do QName interpretation
+    ns_ctx = NamespaceContext.GetNodeContext(node)
     if 0 <= name.find(':'):
+        assert not is_definition
         (prefix, local_name) = name.split(':', 1)
-        namespace = GetInScopeNamespaces(node).get(prefix, None)
+        namespace = ns_ctx.inScopeNamespaces().get(prefix, None)
         if namespace is None:
             raise SchemaValidationError('QName %s prefix is not declared' % (name,))
     else:
         local_name = name
         # Get the default namespace, or denote an absent namespace
-        namespace = GetInScopeNamespaces(node).get(None, None)
+        if is_definition:
+            namespace = ns_ctx.targetNamespace()
+        else:
+            namespace = ns_ctx.defaultNamespace()
     return (namespace, local_name)
 
 def InterpretAttributeQName (node, attribute_ncname, attribute_ns=Namespace.XMLSchema):
@@ -245,6 +246,7 @@ class NamespaceContext (object):
         if dom_node is not None:
             dom_node.__namespaceContext = self
         self.__defaultNamespace = None
+        self.__targetNamespace = None
         self.__attributeMap = { }
         self.__mutableInScopeNamespaces = False
         if parent_context is not None:

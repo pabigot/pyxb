@@ -4103,8 +4103,8 @@ class Schema (_SchemaComponent_mixin):
 
         self.__requireInProlog(node.nodeName)
         import_eii = _ImportElementInformationItem(self, node)
-        ns_map = GetInScopeNamespaces(node)
-        for (pfx, ns) in GetInScopeNamespaces(node).items():
+        ns_map = NamespaceContext.GetNodeContext(node).inScopeNamespaces()
+        for (pfx, ns) in ns_map.items():
             if import_eii.namespace() == ns:
                 import_eii.setPrefix(pfx)
                 break

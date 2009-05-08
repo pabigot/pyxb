@@ -5,7 +5,7 @@ from xml.dom import Node
 
 class TestInScopeNames (unittest.TestCase):
     def show (self, node):
-        xmlns_map = GetInScopeNamespaces(node)
+        xmlns_map = NamespaceContext.GetNodeContext(node).inScopeNamespaces()
         #print '%s xmlns map %s' % (node.nodeName, GetInScopeNamespaces(node))
         return xmlns_map
 
