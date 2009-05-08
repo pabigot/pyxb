@@ -235,13 +235,18 @@ class Namespace (object):
     def notationDeclarations (self): return self.__notationDeclarations
     def identityConstraintDefinitions (self): return self.__identityConstraintDefinitions
 
+    __absentNamespaceID = 0
+
     @classmethod
     def CreateAbsentNamespace (cls):
         """Create an absent namespace.
 
         Use this instead of the standard constructor, in case we need
         to augment it with a uuid or the like."""
-        return Namespace(None)
+        rv = Namespace(None)
+        rv.__absentNamespaceID = cls.__absentNamespaceID
+        cls.__absentNamespaceID += 1
+        return rv
 
     def uri (self):
         """Return the URI for the namespace represented by this instance.
@@ -250,6 +255,10 @@ class Namespace (object):
         declarations not associated with a namespace (e.g., from
         schema with no target namespace)."""
         return self.__uri
+
+    def _overrideAbsentNamespace (self, uri):
+        assert self.isAbsentNamespace()
+        self.__uri = uri
 
     def isAbsentNamespace (self):
         """Return True iff this namespace is an absent namespace.
@@ -303,16 +312,16 @@ class Namespace (object):
         return self
     __module = None
 
-    def _schema (self, schema):
+    def _schema (self, schema, allow_override=False):
         """Associate a schema instance with this namespace.
 
         The schema must be not be None, and the namespace must not
         already have a schema associated with it."""
-        assert schema is not None
-        if self.__schema is not None:
+        assert (schema is not None) or allow_override
+        if (self.__schema is not None) and (not allow_override):
             raise LogicError('Not allowed to change the schema associated with namespace %s' % (self.uri(),))
         self.__schema = schema
-        assert schema.targetNamespace() == self
+        assert (schema is None) or (schema.targetNamespace() == self)
         return self.__schema
 
     def schema (self):
@@ -497,7 +506,7 @@ class Namespace (object):
 
     def __str__ (self):
         if self.__uri is None:
-            return 'AbsentNamespace'
+            return 'AbsentNamespace%d' % (self.__absentNamespaceID,)
         assert self.__uri is not None
         if self.__boundPrefix is not None:
             rv = '%s=%s' % (self.__boundPrefix, self.__uri)
