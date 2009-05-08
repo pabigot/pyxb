@@ -401,7 +401,7 @@ class _NamedComponent_mixin (object):
         if isinstance(scope, tuple):
             ( scope_uri, scope_ncname ) = scope
             assert uri == scope_uri
-            scope_ctd = ns.lookupTypeDefinition(scope_ncname)
+            scope_ctd = ns.typeDefinitions().get(scope_ncname, None)
             if scope_ctd is None:
                 raise SchemaValidationError('Unable to resolve local scope %s in %s' % (scope_ncname, scope_uri))
             if issubclass(icls, AttributeDeclaration):
@@ -417,7 +417,7 @@ class _NamedComponent_mixin (object):
         # WRONG WRONG WRONG: Not the right thing for indeterminate
         elif (_ScopedDeclaration_mixin.SCOPE_global == scope) or _ScopedDeclaration_mixin.ScopeIsIndeterminate(scope):
             if (issubclass(icls, SimpleTypeDefinition) or issubclass(icls, ComplexTypeDefinition)):
-                rv = ns.lookupTypeDefinition(ncname)
+                rv = ns.typeDefinitions().get(ncname, None)
             elif issubclass(icls, AttributeGroupDefinition):
                 rv = ns.lookupAttributeGroupDefinition(ncname)
             elif issubclass(icls, ModelGroupDefinition):
@@ -1007,7 +1007,7 @@ class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
             # Although the type definition may not be resolved, *this* component
             # is resolved, since we don't look into the type definition for anything.
             ( type_ns, type_ln ) = type_qname
-            self.__typeDefinition = type_ns.lookupTypeDefinition(type_ln)
+            self.__typeDefinition = type_ns.typeDefinitions().get(type_ln, None)
             if self.__typeDefinition is None:
                 wxs._queueForResolution(self)
                 return self
@@ -1386,7 +1386,7 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Resolv
             type_qname = wxs.interpretAttributeQName(node, 'type')
             if type_qname is not None:
                 (type_ns, type_ln) = type_qname
-                type_def = type_ns.lookupTypeDefinition(type_ln)
+                type_def = type_ns.typeDefinitions().get(type_ln, None)
                 if type_def is None:
                     #print 'Not resolving ED, missing %s %s' % type_qname
                     wxs._queueForResolution(self)
@@ -1965,7 +1965,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
                     if base_qname is None:
                         raise SchemaValidationError('Element %s missing base attribute' % (ions.nodeName,))
                     (base_ns, base_ln) = base_qname
-                    base_type = base_ns.lookupTypeDefinition(base_ln)
+                    base_type = base_ns.typeDefinitions().get(base_ln, None)
                     if base_type is None:
                         raise SchemaValidationError('Cannot locate %s in %s: need import?' % (base_ln, base_ns.uri()))
                     if not base_type.isResolved():
@@ -3395,7 +3395,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
             # that name, an exception gets thrown that percolates up
             # to the user.
             (base_ns, base_ln) = base_qname
-            base_type = base_ns.lookupTypeDefinition(base_ln)
+            base_type = base_ns.typeDefinitions().get(base_ln, None)
             if not isinstance(base_type, SimpleTypeDefinition):
                 raise InvalidSchemaError('Unable to locate base type %s' % (base_qname,))
             # If the base type exists but has not yet been resolve,
@@ -3565,7 +3565,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
                 attr_qname = wxs.interpretAttributeQName(body, 'itemType')
                 if attr_qname is not None:
                     (attr_ns, attr_ln) = attr_qname
-                    self.__itemTypeDefinition = attr_ns.lookupTypeDefinition(attr_ln)
+                    self.__itemTypeDefinition = attr_ns.typeDefinitions().get(attr_ln, None)
                     if not isinstance(self.__itemTypeDefinition, SimpleTypeDefinition):
                         raise InvalidSchemaError('Unable to locate STD %s for items' % (attr_qname,))
                 else:
@@ -3596,7 +3596,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
                             if mn_qname is None:
                                 raise InvalidSchemaError('Unable to locate member type %s' % (mn,))
                             (mn_ns, mn_local) = mn_qname
-                            std = mn_ns.lookupTypeDefinition(mn_local)
+                            std = mn_ns.typeDefinitions().get(mn_local, None)
                             assert isinstance(std, SimpleTypeDefinition)
                             mtd.append(std)
                     # Now look for local type definitions
@@ -4246,7 +4246,7 @@ class Schema (_SchemaComponent_mixin):
         local_name = td.name()
         assert self.__targetNamespace
         tns = self.targetNamespace()
-        old_td = tns.lookupTypeDefinition(local_name)
+        old_td = tns.typeDefinitions().get(local_name, None)
         if (old_td is not None) and (old_td != td):
             # @todo validation error if old_td is not a built-in
             if isinstance(td, ComplexTypeDefinition) != isinstance(old_td, ComplexTypeDefinition):
@@ -4320,7 +4320,7 @@ def _AddSimpleTypes (schema):
     for dtc in datatypes._ListDatatypes:
         list_name = dtc.__name__.rstrip('_')
         element_name = dtc._ItemType.__name__.rstrip('_')
-        element_std = schema.targetNamespace().lookupTypeDefinition(element_name)
+        element_std = schema.targetNamespace().typeDefinitions().get(element_name, None)
         assert element_std is not None
         td = schema._addNamedComponent(SimpleTypeDefinition.CreateListInstance(list_name, schema, element_std, dtc))
         assert td.isResolved()

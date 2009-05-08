@@ -19,11 +19,14 @@ class NamedObjectMap (dict):
         return self.__category
     __category = None
 
-    def __init__ (self, category, namespace, *args, **kw):
+    def __init__ (self, category, namespace, inhibit_namespace_accessor=False, *args, **kw):
         self.__category = category
         self.__namespace = namespace
         super(NamedObjectMap, self).__init__(self, *args, **kw)
-        setattr(self.namespace(), self.category() + 's', lambda _this=self: _this)
+        if not inhibit_namespace_accessor:
+            accessor_name = self.category() + 's'
+            assert not hasattr(self.namespace(), accessor_name)
+            setattr(self.namespace(), accessor_name, lambda _this=self: _this)
 
 class Namespace (object):
     """Represents an XML namespace, viz. a URI.
@@ -411,14 +414,6 @@ class Namespace (object):
             components = new_components
         return emit_order
 
-    def lookupTypeDefinition (self, local_name):
-        """Look up a named type in the namespace.
-
-        This delegates to the associated schema.  It returns a
-        SimpleTypeDefnition or ComplexTypeDefinition instance, or None
-        if the name does not denote a type."""
-        return self.typeDefinitions().get(local_name, None)
-
     def __addNamedObject (self, named_object, name_map):
         local_name = named_object.name()
         old_object = name_map.get(local_name, None)
@@ -789,8 +784,8 @@ class _XMLSchema (Namespace):
         # for the load infrastructure to update the built-in schema
         # instance we've already associated.  
         xsc = XMLSchemaModule().structures
-        assert xsc.ComplexTypeDefinition.UrTypeDefinition() == self.lookupTypeDefinition('anyType')
-        assert xsc.SimpleTypeDefinition.SimpleUrTypeDefinition() == self.lookupTypeDefinition('anySimpleType')
+        assert xsc.ComplexTypeDefinition.UrTypeDefinition() == self.typeDefinitions()['anyType']
+        assert xsc.SimpleTypeDefinition.SimpleUrTypeDefinition() == self.typeDefinitions()['anySimpleType']
 
     def _defineSchema_overload (self):
         """Ensure this namespace is ready for use.
