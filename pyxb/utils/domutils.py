@@ -269,8 +269,11 @@ class NamespaceContext (object):
             else:
                 self.__attributeMap[(attr.namespaceURI, attr.localName)] = attr.value
         
-        if self.__targetNamespace is None:
-            tns_uri = self.attributeMap().get((None, 'targetNamespace'), None)
+        tns_uri = self.attributeMap().get((None, 'targetNamespace'), None)
+        if tns_uri is not None:
+            assert 0 < len(tns_uri)
+            self.__targetNamespace = Namespace.NamespaceForURI(tns_uri, create_if_missing=True)
+        elif self.__targetNamespace is None:
             if tns_uri is None:
                 self.__targetNamespace = Namespace.CreateAbsentNamespace()
             else:
