@@ -32,7 +32,7 @@ def _LookupAttributeDeclaration (ns, context, local_name):
     if isinstance(context, ComplexTypeDefinition):
         rv = context.lookupScopedAttributeDeclaration(local_name)
     if rv is None:
-        rv = ns.attributeDeclarations().get(local_name, None)
+        rv = ns.attributeDeclarations().get(local_name)
     return rv
 
 def _LookupElementDeclaration (ns, context, local_name):
@@ -42,7 +42,7 @@ def _LookupElementDeclaration (ns, context, local_name):
     if isinstance(context, ComplexTypeDefinition):
         rv = context.lookupScopedElementDeclaration(local_name)
     if rv is None:
-        rv = ns.elementDeclarations().get(local_name, None)
+        rv = ns.elementDeclarations().get(local_name)
     return rv
 
 def _LookupIdentityConstraintDefinition (ns, context, local_name):
@@ -52,7 +52,7 @@ def _LookupIdentityConstraintDefinition (ns, context, local_name):
     if isinstance(context, ComplexTypeDefinition):
         rv = context.lookupScopedIdentityConstraintDefinition(local_name)
     if rv is None:
-        rv = ns.identityConstraintDefinitions().get(local_name, None)
+        rv = ns.identityConstraintDefinitions().get(local_name)
     return rv
 
 
@@ -123,8 +123,8 @@ class _SchemaComponent_mixin (object):
 
     def __init__ (self, *args, **kw):
         self.__ownedComponents = set()
-        self.__scope = kw.get('scope', None)
-        self.__context = kw.get('context', None)
+        self.__scope = kw.get('scope')
+        self.__context = kw.get('context')
         super(_SchemaComponent_mixin, self).__init__(*args, **kw)
         if 'schema' not in kw:
             raise LogicError('Constructor failed to provide owning schema')
@@ -133,7 +133,7 @@ class _SchemaComponent_mixin (object):
             self.__schema = None
         if self.__schema is not None:
             self.__schema._associateComponent(self)
-        self._setOwner(kw.get('owner', None))
+        self._setOwner(kw.get('owner'))
 
     def _setOwner (self, owner):
         if owner is not None:
@@ -301,7 +301,7 @@ class _Annotated_mixin (object):
 
     def __init__ (self, *args, **kw):
         super(_Annotated_mixin, self).__init__(*args, **kw)
-        self.__annotation = kw.get('annotation', None)
+        self.__annotation = kw.get('annotation')
 
     def _annotationFromDOM (self, wxs, node):
         cn = LocateUniqueChild(node, 'annotation')
@@ -401,7 +401,7 @@ class _NamedComponent_mixin (object):
         if isinstance(scope, tuple):
             ( scope_uri, scope_ncname ) = scope
             assert uri == scope_uri
-            scope_ctd = ns.typeDefinitions().get(scope_ncname, None)
+            scope_ctd = ns.typeDefinitions().get(scope_ncname)
             if scope_ctd is None:
                 raise SchemaValidationError('Unable to resolve local scope %s in %s' % (scope_ncname, scope_uri))
             if issubclass(icls, AttributeDeclaration):
@@ -417,11 +417,11 @@ class _NamedComponent_mixin (object):
         # WRONG WRONG WRONG: Not the right thing for indeterminate
         elif (_ScopedDeclaration_mixin.SCOPE_global == scope) or _ScopedDeclaration_mixin.ScopeIsIndeterminate(scope):
             if (issubclass(icls, SimpleTypeDefinition) or issubclass(icls, ComplexTypeDefinition)):
-                rv = ns.typeDefinitions().get(ncname, None)
+                rv = ns.typeDefinitions().get(ncname)
             elif issubclass(icls, AttributeGroupDefinition):
-                rv = ns.attributeGroupDefinitions().get(ncname, None)
+                rv = ns.attributeGroupDefinitions().get(ncname)
             elif issubclass(icls, ModelGroupDefinition):
-                rv = ns.modelGroupDefinitions().get(ncname, None)
+                rv = ns.modelGroupDefinitions().get(ncname)
             elif issubclass(icls, AttributeDeclaration):
                 rv = _LookupAttributeDeclaration(ns, _ScopedDeclaration_mixin.SCOPE_global, ncname)
             elif issubclass(icls, ElementDeclaration):
@@ -442,11 +442,11 @@ class _NamedComponent_mixin (object):
 
     def __init__ (self, *args, **kw):
         assert 0 == len(args)
-        name = kw.get('name', None)
+        name = kw.get('name')
         # Must be None or a valid NCName
         assert (name is None) or (0 > name.find(':'))
         self.__name = name
-        target_namespace = kw.get('target_namespace', None)
+        target_namespace = kw.get('target_namespace')
         #assert target_namespace is not None
         self.__targetNamespace = target_namespace
 
@@ -881,7 +881,7 @@ class _AttributeWildcard_mixin (object):
                 if agd_qname is None:
                     raise SchemaValidationError('Require ref attribute on internal attributeGroup elements')
                 ( agd_ns, agd_ln ) = agd_qname
-                agd = agd_ns.attributeGroupDefinitions().get(agd_ln, None)
+                agd = agd_ns.attributeGroupDefinitions().get(agd_ln)
                 if not agd.isResolved():
                     return None
                 attribute_groups.append(agd)
@@ -1007,7 +1007,7 @@ class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
             # Although the type definition may not be resolved, *this* component
             # is resolved, since we don't look into the type definition for anything.
             ( type_ns, type_ln ) = type_qname
-            self.__typeDefinition = type_ns.typeDefinitions().get(type_ln, None)
+            self.__typeDefinition = type_ns.typeDefinitions().get(type_ln)
             if self.__typeDefinition is None:
                 wxs._queueForResolution(self)
                 return self
@@ -1386,7 +1386,7 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Resolv
             type_qname = wxs.interpretAttributeQName(node, 'type')
             if type_qname is not None:
                 (type_ns, type_ln) = type_qname
-                type_def = type_ns.typeDefinitions().get(type_ln, None)
+                type_def = type_ns.typeDefinitions().get(type_ln)
                 if type_def is None:
                     #print 'Not resolving ED, missing %s %s' % type_qname
                     wxs._queueForResolution(self)
@@ -1455,7 +1455,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
         Returns None if there is no such local attribute declaration."""
         if self.__scopedAttributeDeclarations is None:
             return None
-        return self.__scopedAttributeDeclarations.get(ncname, None)
+        return self.__scopedAttributeDeclarations.get(ncname)
 
     # A map from NCNames to ElementDeclaration instances that are
     # local to this type.
@@ -1466,7 +1466,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
         Returns None if there is no such local element declaration."""
         if self.__scopedElementDeclarations is None:
             return None
-        return self.__scopedElementDeclarations.get(ncname, None)
+        return self.__scopedElementDeclarations.get(ncname)
 
     # A map from NCNames to ElementDeclaration instances that are
     # local to this type.
@@ -1477,7 +1477,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
         Returns None if there is no such local element declaration."""
         if self.__scopedIdentityConstraintDefinitions is None:
             return None
-        return self.__scopedIdentityConstraintDefinitions.get(ncname, None)
+        return self.__scopedIdentityConstraintDefinitions.get(ncname)
 
     def _recordLocalDeclaration (self, decl):
         """Record the given declaration as being locally scoped in
@@ -1533,7 +1533,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
     
     def __init__ (self, *args, **kw):
         super(ComplexTypeDefinition, self).__init__(*args, **kw)
-        self.__derivationMethod = kw.get('derivation_method', None)
+        self.__derivationMethod = kw.get('derivation_method')
         assert self._scopeIsIndeterminate()
         self.__scopedElementDeclarations = { }
         self.__scopedAttributeDeclarations = { }
@@ -1965,7 +1965,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
                     if base_qname is None:
                         raise SchemaValidationError('Element %s missing base attribute' % (ions.nodeName,))
                     (base_ns, base_ln) = base_qname
-                    base_type = base_ns.typeDefinitions().get(base_ln, None)
+                    base_type = base_ns.typeDefinitions().get(base_ln)
                     if base_type is None:
                         raise SchemaValidationError('Cannot locate %s in %s: need import?' % (base_ln, base_ns.uri()))
                     if not base_type.isResolved():
@@ -2250,7 +2250,7 @@ class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
         self.__compositor = compositor
         #print 'Incoming particles %s with scope %s' % (particles, self._scope())
         self.__particles = particles
-        self.__modelGroupDefinition = kw.get('model_group_definition', None)
+        self.__modelGroupDefinition = kw.get('model_group_definition')
 
     def isPlural (self):
         """A model group is multi-valued if it has a multi-valued particle."""
@@ -2466,7 +2466,7 @@ class Particle (_SchemaComponent_mixin, _Resolvable_mixin):
 
         super(Particle, self).__init__(*args, **kw)
 
-        wxs = kw.get('schema', None)
+        wxs = kw.get('schema')
         assert wxs is not None
         min_occurs = kw.get('min_occurs', 1)
         max_occurs = kw.get('max_occurs', 1)
@@ -2503,7 +2503,7 @@ class Particle (_SchemaComponent_mixin, _Resolvable_mixin):
             # Named groups can only appear at global scope, so no need
             # to use context here.
             (ref_ns, ref_ln) = ref_qname
-            group_decl = ref_ns.modelGroupDefinitions().get(ref_ln, None)
+            group_decl = ref_ns.modelGroupDefinitions().get(ref_ln)
             if group_decl is None:
                 wxs._queueForResolution(self)
                 return None
@@ -3395,7 +3395,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
             # that name, an exception gets thrown that percolates up
             # to the user.
             (base_ns, base_ln) = base_qname
-            base_type = base_ns.typeDefinitions().get(base_ln, None)
+            base_type = base_ns.typeDefinitions().get(base_ln)
             if not isinstance(base_type, SimpleTypeDefinition):
                 raise InvalidSchemaError('Unable to locate base type %s' % (base_qname,))
             # If the base type exists but has not yet been resolve,
@@ -3440,8 +3440,8 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
         pattern restrictions."""
         if self.VARIETY_union != variety:
             return self
-        self.__facets.setdefault(facets.CF_pattern, None)
-        self.__facets.setdefault(facets.CF_enumeration, None)
+        self.__facets.setdefault(facets.CF_pattern)
+        self.__facets.setdefault(facets.CF_enumeration)
         return self
 
     def __processHasFacetAndProperty (self, wxs, variety):
@@ -3565,7 +3565,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
                 attr_qname = wxs.interpretAttributeQName(body, 'itemType')
                 if attr_qname is not None:
                     (attr_ns, attr_ln) = attr_qname
-                    self.__itemTypeDefinition = attr_ns.typeDefinitions().get(attr_ln, None)
+                    self.__itemTypeDefinition = attr_ns.typeDefinitions().get(attr_ln)
                     if not isinstance(self.__itemTypeDefinition, SimpleTypeDefinition):
                         raise InvalidSchemaError('Unable to locate STD %s for items' % (attr_qname,))
                 else:
@@ -3596,7 +3596,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
                             if mn_qname is None:
                                 raise InvalidSchemaError('Unable to locate member type %s' % (mn,))
                             (mn_ns, mn_local) = mn_qname
-                            std = mn_ns.typeDefinitions().get(mn_local, None)
+                            std = mn_ns.typeDefinitions().get(mn_local)
                             assert isinstance(std, SimpleTypeDefinition)
                             mtd.append(std)
                     # Now look for local type definitions
@@ -3973,10 +3973,10 @@ class Schema (_SchemaComponent_mixin):
         assert 'schema' not in kw
         kw['schema'] = _SchemaComponent_mixin._SCHEMA_None
         super(Schema, self).__init__(*args, **kw)
-        self.__targetNamespace = kw.get('target_namespace', None)
+        self.__targetNamespace = kw.get('target_namespace')
         if not isinstance(self.__targetNamespace, Namespace.Namespace):
             raise LogicError('Schema constructor requires valid Namespace instance as target_namespace')
-        self.__defaultNamespace = kw.get('default_namespace', None)
+        self.__defaultNamespace = kw.get('default_namespace')
         if not ((self.__defaultNamespace is None) or isinstance(self.__defaultNamespace, Namespace.Namespace)):
             raise LogicError('Schema default namespace must be None or a valid Namespace instance')
 
@@ -4128,7 +4128,7 @@ class Schema (_SchemaComponent_mixin):
         if xsd.nodeIsNamed(node, 'annotation'):
             return self.__processAnnotation(node)
 
-        component = self.__TopLevelComponentMap.get(node.localName, None)
+        component = self.__TopLevelComponentMap.get(node.localName)
         if component is not None:
             self.__pastProlog = True
             kw = { 'context' : _ScopedDeclaration_mixin.SCOPE_global,
@@ -4228,25 +4228,25 @@ class Schema (_SchemaComponent_mixin):
         #print 'Adding %s as %s' % (nc.__class__.__name__, nc.name())
         if isinstance(nc, (SimpleTypeDefinition, ComplexTypeDefinition)):
             return self.__addTypeDefinition(nc)
-        if isinstance(nc, AttributeGroupDefinition):
-            return tns.addAttributeGroupDefinition(nc)
         if isinstance(nc, AttributeDeclaration):
             return self.__addAttributeDeclaration(nc)
+        if isinstance(nc, AttributeGroupDefinition):
+            return tns.addCategoryObject('attributeGroupDefinition', nc.name(), nc)
         if isinstance(nc, ModelGroupDefinition):
-            return tns.addModelGroupDefinition(nc)
+            return tns.addCategoryObject('modelGroupDefinition', nc.name(), nc)
         if isinstance(nc, ElementDeclaration):
-            return tns.addElementDeclaration(nc)
+            return tns.addCategoryObject('elementDeclaration', nc.name(), nc)
         if isinstance(nc, NotationDeclaration):
-            return tns.addNotationDeclaration(nc)
+            return tns.addCategoryObject('notationDeclaration', nc.name(), nc)
         if isinstance(nc, IdentityConstraintDefinition):
-            return tns.addIdentityConstraintDefinition(nc)
+            return tns.addCategoryObject('identityConstraintDefinition', nc.name(), nc)
         raise IncompleteImplementationError('No support to record named component of type %s' % (nc.__class__,))
 
     def __addTypeDefinition (self, td):
         local_name = td.name()
         assert self.__targetNamespace
         tns = self.targetNamespace()
-        old_td = tns.typeDefinitions().get(local_name, None)
+        old_td = tns.typeDefinitions().get(local_name)
         if (old_td is not None) and (old_td != td):
             # @todo validation error if old_td is not a built-in
             if isinstance(td, ComplexTypeDefinition) != isinstance(old_td, ComplexTypeDefinition):
@@ -4255,7 +4255,7 @@ class Schema (_SchemaComponent_mixin):
             # into the old one, and continue to use the old one.
             td = self.__replaceUnresolvedDefinition(td, old_td._setBuiltinFromInstance(td))
         else:
-            tns.addTypeDefinition(td)
+            tns.addCategoryObject('typeDefinition', td.name(), td)
         assert td is not None
         return td
 
@@ -4263,7 +4263,7 @@ class Schema (_SchemaComponent_mixin):
         local_name = ad.name()
         assert self.__targetNamespace
         tns = self.targetNamespace()
-        old_ad = tns.attributeDeclarations().get(local_name, None)
+        old_ad = tns.attributeDeclarations().get(local_name)
         if (old_ad is not None) and (old_ad != ad):
             # @todo validation error if old_ad is not a built-in
             if isinstance(ad, AttributeDeclaration) != isinstance(old_ad, AttributeDeclaration):
@@ -4272,7 +4272,7 @@ class Schema (_SchemaComponent_mixin):
             # into the old one, and continue to use the old one.
             ad = self.__replaceUnresolvedDefinition(ad, old_ad._setBuiltinFromInstance(ad))
         else:
-            tns.addAttributeDeclaration(ad)
+            tns.addCategoryObject('attributeDeclaration', ad.name(), ad)
         assert ad is not None
         return ad
 
@@ -4320,7 +4320,7 @@ def _AddSimpleTypes (schema):
     for dtc in datatypes._ListDatatypes:
         list_name = dtc.__name__.rstrip('_')
         element_name = dtc._ItemType.__name__.rstrip('_')
-        element_std = schema.targetNamespace().typeDefinitions().get(element_name, None)
+        element_std = schema.targetNamespace().typeDefinitions().get(element_name)
         assert element_std is not None
         td = schema._addNamedComponent(SimpleTypeDefinition.CreateListInstance(list_name, schema, element_std, dtc))
         assert td.isResolved()

@@ -53,6 +53,9 @@ class Namespace (object):
     def categories (self):
         return self.__categoryMap.keys()
 
+    def categoryMap (self, category):
+        return self.__categoryMap[category]
+
     # A prefix bound to this namespace by standard.  Current set known are applies to
     # xml, xmlns, and xsi.
     __boundPrefix = None
@@ -414,34 +417,13 @@ class Namespace (object):
             components = new_components
         return emit_order
 
-    def __addNamedObject (self, named_object, name_map):
-        local_name = named_object.name()
-        old_object = name_map.get(local_name, None)
+    def addCategoryObject (self, category, local_name, named_object):
+        name_map = self.categoryMap(category)
+        old_object = name_map.get(local_name)
         if (old_object is not None) and (old_object != named_object):
-            raise SchemaValidationError('Name %s used for multiple instances of %s' % (local_name, type(named_object)))
+            raise SchemaValidationError('Name %s used for multiple values in %s' % (local_name, category))
         name_map[local_name] = named_object
         return named_object
-
-    def addTypeDefinition (self, type_definition):
-        return self.__addNamedObject(type_definition, self.typeDefinitions())
-
-    def addAttributeGroupDefinition (self, agd):
-        return self.__addNamedObject(agd, self.attributeGroupDefinitions())
-
-    def addAttributeDeclaration (self, ad):
-        return self.__addNamedObject(ad, self.attributeDeclarations())
-
-    def addElementDeclaration (self, ed):
-        return self.__addNamedObject(ed, self.elementDeclarations())
-
-    def addModelGroupDefinition (self, ed):
-        return self.__addNamedObject(ed, self.modelGroupDefinitions())
-
-    def addNotationDeclaration (self, ed):
-        return self.__addNamedObject(ed, self.__notationDeclarations())
-
-    def addIdentityConstraintDefinition (self, ed):
-        return self.__addNamedObject(ed, self.identityConstraintDefinitions())
 
     def __str__ (self):
         if self.__uri is None:
