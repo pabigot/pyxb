@@ -23,6 +23,7 @@ import pyxb.utils.templates as templates
 from pyxb.utils.domutils import *
 import copy
 from pyxb.Namespace import XMLSchema as xsd
+import urllib2
 
 def _LookupAttributeDeclaration (ns, context, local_name):
     assert context is not None
@@ -42,6 +43,16 @@ def _LookupElementDeclaration (ns, context, local_name):
         rv = context.lookupScopedElementDeclaration(local_name)
     if rv is None:
         rv = ns.lookupElementDeclaration(local_name)
+    return rv
+
+def _LookupIdentityConstraintDefinition (ns, context, local_name):
+    assert context is not None
+    assert 0 > local_name.find(':')
+    rv = None
+    if isinstance(context, ComplexTypeDefinition):
+        rv = context.lookupScopedIdentityConstraintDefinition(local_name)
+    if rv is None:
+        rv = ns.lookupIdentityConstraintDefinition(local_name)
     return rv
 
 
@@ -212,6 +223,7 @@ class _SchemaComponent_mixin (object):
         if isinstance(that, _Resolvable_mixin):
             assert wxs is not None
             if not that.isResolved():
+                #print 'Queuing clone for resolution'
                 wxs._queueForResolution(that)
         return that
 
@@ -396,6 +408,8 @@ class _NamedComponent_mixin (object):
                 rv = scope_ctd.lookupScopedAttributeDeclaration(ncname)
             elif issubclass(icls, ElementDeclaration):
                 rv = scope_ctd.lookupScopedElementDeclaration(ncname)
+            elif issubclass(icls, IdentityConstraintDefinition):
+                rv = scope_ctd.lookupScopedIdentityConstraintDefinition(ncname)
             else:
                 raise IncompleteImplementationError('Local scope reference lookup not implemented for type %s searching %s in %s' % (icls, ncname, uri))
             if rv is None:
@@ -413,7 +427,7 @@ class _NamedComponent_mixin (object):
             elif issubclass(icls, ElementDeclaration):
                 rv = _LookupElementDeclaration(ns, _ScopedDeclaration_mixin.SCOPE_global, ncname)
             elif issubclass(icls, IdentityConstraintDefinition):
-                rv = ns.lookupIdentityConstraintDefinition(ncname)
+                rv = _LookupIdentityConstraintDefinition(ns, _ScopedDeclaration_mixin.SCOPE_global, ncname)
             else:
                 raise IncompleteImplementationError('Reference lookup not implemented for type %s searching %s in %s' % (icls, ncname, uri))
             if rv is None:
@@ -1357,13 +1371,13 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Resolv
         identity_constraints = []
         for cn in node.childNodes:
             if (Node.ELEMENT_NODE == cn.nodeType) and xsd.nodeIsNamed(cn, 'key', 'unique', 'keyref'):
-                identity_constraints.append(IdentityConstraintDefinition.CreateFromDOM(wxs, cn, owner=self))
+                identity_constraints.append(IdentityConstraintDefinition.CreateFromDOM(wxs, cn, owner=self, scope=self.scope()))
         self.__identityConstraintDefinitions = identity_constraints
 
         type_def = None
         td_node = LocateUniqueChild(node, 'simpleType')
         if td_node is not None:
-            type_def = SimpleTypeDefinition.CreateFromDOM(wxs, node, owner=self)
+            type_def = SimpleTypeDefinition.CreateFromDOM(wxs, td_node, owner=self)
         else:
             td_node = LocateUniqueChild(node, 'complexType')
             if td_node is not None:
@@ -1374,6 +1388,7 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Resolv
                 (type_ns, type_ln) = type_qname
                 type_def = type_ns.lookupTypeDefinition(type_ln)
                 if type_def is None:
+                    #print 'Not resolving ED, missing %s %s' % type_qname
                     wxs._queueForResolution(self)
                     return self
             elif self.__substitutionGroupAffiliation is not None:
@@ -1453,6 +1468,17 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
             return None
         return self.__scopedElementDeclarations.get(ncname, None)
 
+    # A map from NCNames to ElementDeclaration instances that are
+    # local to this type.
+    __scopedIdentityConstraintDefinitions = None
+    def lookupScopedIdentityConstraintDefinition (self, ncname):
+        """Find an element declaration with the given name that is local to this type.
+
+        Returns None if there is no such local element declaration."""
+        if self.__scopedIdentityConstraintDefinitions is None:
+            return None
+        return self.__scopedIdentityConstraintDefinitions.get(ncname, None)
+
     def _recordLocalDeclaration (self, decl):
         """Record the given declaration as being locally scoped in
         this type."""
@@ -1461,6 +1487,8 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
             scope_map = self.__scopedElementDeclarations
         elif isinstance(decl, AttributeDeclaration):
             scope_map = self.__scopedAttributeDeclarations
+        elif isinstance(decl, IdentityConstraintDefinition):
+            scope_map = self.__scopedIdentityConstraintDefinitions
         else:
             raise LogicError('Unexpected instance of %s recording as local declaration' % (type(decl),))
         assert decl.name() is not None
@@ -1509,6 +1537,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
         assert self._scopeIsIndeterminate()
         self.__scopedElementDeclarations = { }
         self.__scopedAttributeDeclarations = { }
+        self.__scopedIdentityConstraintDefinitions = { }
 
     def hasWildcardElement (self):
         """Return True iff this type includes a wildcard element in
@@ -2062,7 +2091,6 @@ class AttributeGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _
         rv = self._attributeRelevantChildren(wxs, node.childNodes)
         if rv is None:
             wxs._queueForResolution(self)
-            print 'Holding off AGD %s resolution due to unresolved attribute or attribute group' % (self.name(),)
             return self
 
         (attributes, attribute_groups, any_attribute) = rv
@@ -2511,6 +2539,7 @@ class Particle (_SchemaComponent_mixin, _Resolvable_mixin):
             raise LogicError('Unhandled node in Particle._resolve: %s' % (node.toxml(),))
         self.__domNode = None
         self.__term = term
+        assert self.__term is not None
         return self
 
     def isResolved (self):
@@ -2816,7 +2845,7 @@ class Wildcard (_SchemaComponent_mixin, _Annotated_mixin):
         return rv
 
 # 3.11.1
-class IdentityConstraintDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Annotated_mixin):
+class IdentityConstraintDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Annotated_mixin, _Resolvable_mixin, _ScopedDeclaration_mixin):
     ICC_KEY = 0x01
     ICC_KEYREF = 0x02
     ICC_UNIQUE = 0x04
@@ -2846,35 +2875,59 @@ class IdentityConstraintDefinition (_SchemaComponent_mixin, _NamedComponent_mixi
     @classmethod
     def CreateFromDOM (cls, wxs, node, **kw):
         name = NodeAttribute(node, 'name')
+        scope = kw['scope']
+        assert _ScopedDeclaration_mixin.ScopeIsIndeterminate(scope) or _ScopedDeclaration_mixin.IsValidScope(scope)
         rv = cls(name=name, target_namespace=wxs.targetNamespace(), schema=wxs, **kw)
-        #rv._annotationFromDOM(wxs, node);
+        rv.__domNode = node
+        wxs._queueForResolution(rv)
+        return rv
+
+    def isResolved (self):
+        return self.__identityConstraintCategory is not None
+
+    # res:ICD res:IdentityConstraintDefinition
+    def _resolve (self, wxs):
+        if self.isResolved():
+            return self
+        node = self.__domNode
+
+        #self._annotationFromDOM(wxs, node);
+        icc = None
         if xsd.nodeIsNamed(node, 'key'):
-            rv.__identityConstraintCategory = cls.ICC_KEY
+            icc = self.ICC_KEY
         elif xsd.nodeIsNamed(node, 'keyref'):
-            rv.__identityConstraintCategory = cls.ICC_KEYREF
-            # Look up the constraint identified by the refer attribute.
-            raise IncompleteImplementationError('Need to support keyref')
+            icc = self.ICC_KEYREF
+            refer_qname = wxs.interpretAttributeQName(node, 'refer')
+            if refer_qname is None:
+                raise SchemaValidationError('Require refer attribute on keyref elements')
+            (refer_ns, refer_ln) = refer_qname
+            refer = _LookupIdentityConstraintDefinition(refer_ns, self.scope(), refer_ln)
+            if refer is None:
+                wxs._queueForResolution(self)
+                return self
+            self.__referencedKey = refer
         elif xsd.nodeIsNamed(node, 'unique'):
-            rv.__identityConstraintCategory = cls.ICC_UNIQUE
+            icc = self.ICC_UNIQUE
         else:
             raise LogicError('Unexpected identity constraint node %s' % (node.toxml(),))
 
         cn = LocateUniqueChild(node, 'selector')
-        rv.__selector = NodeAttribute(cn, 'xpath')
-        if rv.__selector is None:
+        self.__selector = NodeAttribute(cn, 'xpath')
+        if self.__selector is None:
             raise SchemaValidationError('selector element missing xpath attribute')
 
-        rv.__fields = []
+        self.__fields = []
         for cn in LocateMatchingChildren(node, 'field'):
             xp_attr = NodeAttribute(cn, 'xpath')
             if xp_attr is None:
                 raise SchemaValidationError('field element missing xpath attribute')
-            rv.__fields.append(xp_attr)
+            self.__fields.append(xp_attr)
 
-        rv._annotationFromDOM(wxs, node)
-        rv.__annotations = []
-        if rv.annotation() is not None:
-            rv.__annotations.append(rv)
+        self._annotationFromDOM(wxs, node)
+        self.__annotations = []
+        if self.annotation() is not None:
+            self.__annotations.append(self)
+
         for cn in node.childNodes:
             if (Node.ELEMENT_NODE != cn.nodeType):
                 continue
@@ -2884,10 +2937,11 @@ class IdentityConstraintDefinition (_SchemaComponent_mixin, _NamedComponent_mixi
             elif xsd.nodeIsNamed(cn, 'annotation'):
                 an = cn
             if an is not None:
-                rv.__annotations.append(Annotation.CreateFromDOM(wxs, an, owner=rv))
+                self.__annotations.append(Annotation.CreateFromDOM(wxs, an, owner=self))
 
-        wxs._addNamedComponent(rv)
-        return rv
+        self.__identityConstraintCategory = icc
+        self.__domNode = None
+        return self
     
 # 3.12.1
 class NotationDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Annotated_mixin):
@@ -3348,7 +3402,6 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
             # delay processing this type until the one it depends on
             # has been completed.
             if not base_type.isResolved():
-                print 'Holding off resolution of anonymous simple type due to dependence on unresolved %s' % (base_type.name(),)
                 wxs._queueForResolution(self)
                 return self
             self.__baseTypeDefinition = base_type
@@ -3945,7 +3998,7 @@ class Schema (_SchemaComponent_mixin):
 
     # @todo put these in base class
     @classmethod
-    def CreateFromDOM (cls, node, namespace_environment=None):
+    def CreateFromDOM (cls, node, namespace_environment=None, inherit_default_namespace=False, skip_resolution=False):
         """Take the root element of the document, and scan its attributes under
         the assumption it is an XMLSchema schema element.  That means
         recognize namespace declarations and process them.  Also look for
@@ -3960,13 +4013,14 @@ class Schema (_SchemaComponent_mixin):
             raise LogicError('Must be given a DOM node of type ELEMENT')
 
         assert (namespace_environment is None) or isinstance(namespace_environment, NamespaceDataFromNode)
-        nsdata = NamespaceDataFromNode(root_node, namespace_environment)
+        nsdata = NamespaceDataFromNode(root_node, namespace_environment, inherit_default_namespace=inherit_default_namespace)
 
         tns = nsdata.targetNamespace()
         assert tns is not None
         if tns.schema() is None:
             tns._schema(cls(target_namespace=tns, default_namespace=nsdata.defaultNamespace()))
         schema = tns.schema()
+        schema.__namespaceData = nsdata
             
         assert schema.targetNamespace() == nsdata.targetNamespace()
         assert schema.defaultNamespace() == nsdata.defaultNamespace()
@@ -3982,7 +4036,7 @@ class Schema (_SchemaComponent_mixin):
             if Node.ELEMENT_NODE == cn.nodeType:
                 rv = schema.__processTopLevelNode(cn)
                 if rv is None:
-                    print 'Unrecognized: %s' % (cn.nodeName,)
+                    print 'Unrecognized: %s %s' % (cn.nodeName, cn.toxml())
             elif Node.TEXT_NODE == cn.nodeType:
                 # Non-element content really should just be whitespace.
                 # If something else is seen, print it for inspection.
@@ -4002,7 +4056,8 @@ class Schema (_SchemaComponent_mixin):
                 # NOTATION_NODE
                 print 'Ignoring non-element: %s' % (cn,)
 
-        schema._resolveDefinitions()
+        if not skip_resolution:
+            schema._resolveDefinitions()
 
         return schema
 
@@ -4010,13 +4065,26 @@ class Schema (_SchemaComponent_mixin):
         """Throw a SchemaValidationException referencing the given
         node if we have passed the sequence point representing the end
         of prolog elements."""
+        
         if self.__pastProlog:
+            print '%s past prolog' % (object.__str__(self),)
             raise SchemaValidationError('Unexpected node %s after prolog' % (node_name,))
 
     def __processInclude (self, node):
         self.__requireInProlog(node.nodeName)
         # See section 4.2.1 of Structures.
-        raise IncompleteImplementationException('include directive not implemented')
+        uri = NodeAttribute(node, 'schemaLocation')
+        xml = urllib2.urlopen(uri).read()
+        self.targetNamespace()._schema(None, allow_override=True)
+        included_schema = self.CreateFromDOM(minidom.parseString(xml), self.__namespaceData, inherit_default_namespace=True, skip_resolution=True)
+        print '%s completed including %s' % (object.__str__(self), object.__str__(included_schema))
+        self.__components.update(included_schema.__components)
+        self.__unresolvedDefinitions.extend(included_schema.__unresolvedDefinitions)
+        assert self.targetNamespace() == included_schema.targetNamespace()
+        self.targetNamespace()._schema(self, allow_override=True)
+        #print xml
+        #raise IncompleteImplementationException('include directive not implemented')
+        return node
 
     def __processImport (self, node):
         """Process an import directive.
@@ -4098,12 +4166,17 @@ class Schema (_SchemaComponent_mixin):
     def _resolveDefinitions (self):
         """Loop until all components associated with a name are
         sufficiently defined."""
+        num_loops = 0
         while 0 < len(self.__unresolvedDefinitions):
             # Save the list of unresolved TDs, reset the list to
             # capture any new TDs defined during resolution (or TDs
             # that depend on an unresolved type), and attempt the
             # resolution for everything that isn't resolved.
             unresolved = self.__unresolvedDefinitions
+            #print 'Looping for %d unresolved definitions: %s' % (len(unresolved), ' '.join([ str(_r) for _r in unresolved]))
+            num_loops += 1
+            #assert num_loops < 18
+            
             self.__unresolvedDefinitions = []
             for resolvable in unresolved:
                 # This should be a top-level component, or a
