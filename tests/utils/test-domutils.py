@@ -21,11 +21,12 @@ class TestInScopeNames (unittest.TestCase):
       <p xmlns='http://www.w3.org/1999/xhtml'>
           This is a <i>funny</i> book!
       </p>
+      <p>another graf without namespace change</p>
     </notes>
 </book>'''
         book = minidom.parseString(xml).documentElement
         self.assertEqual('book', book.localName)
-        SetInScopeNamespaces(book)
+        ns_ctx = NamespaceContext(book)
         xmlns_map = self.show(book)
         self.assertEqual(4, len(xmlns_map))
         self.assertEqual('http://www.w3.org/2001/XMLSchema-instance', xmlns_map['xsi'].uri())
@@ -48,9 +49,9 @@ class TestInScopeNames (unittest.TestCase):
         self.assertEqual('http://www.w3.org/XML/1998/namespace', xmlns_map['xml'].uri())
         self.assertEqual('http://www.w3.org/1999/xhtml', xmlns_map[None].uri())
         self.assertEqual('urn:ISBN:0-395-36341-6', xmlns_map['isbn'].uri())
-        x = title.nextSibling.nextSibling.nextSibling.nextSibling.nextSibling
+        x = p.nextSibling.nextSibling
         xmlns_map = self.show(x)
-        self.assertEqual(x.TEXT_NODE, x.nodeType)
+        self.assertEqual('p', x.localName)
         self.assertEqual(4, len(xmlns_map))
         self.assertEqual('http://www.w3.org/2001/XMLSchema-instance', xmlns_map['xsi'].uri())
         self.assertEqual('http://www.w3.org/XML/1998/namespace', xmlns_map['xml'].uri())
@@ -78,7 +79,7 @@ class TestInScopeNames (unittest.TestCase):
     </table>
   </Beers>'''
         Beers = minidom.parseString(xml).documentElement
-        SetInScopeNamespaces(Beers)
+        ns_ctx = NamespaceContext(Beers)
         xmlns_map = self.show(Beers)
         self.assertEqual(2, len(xmlns_map))
         self.assertEqual('http://www.w3.org/2001/XMLSchema-instance', xmlns_map['xsi'].uri())

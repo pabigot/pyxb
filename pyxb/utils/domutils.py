@@ -168,66 +168,9 @@ class BindingDOMSupport (object):
         element = self.__document.createElementNS(ns_uri, name)
         return parent.appendChild(element)
     
-# In-scope namespaces are represented as a map from a prefix to a
-# Namespace instance.  The prefix is None when representing the
-# default namespace.
-
-__InScopeNamespaceAttribute = '_pyxb_utils_domutils__InScopeNamespaces'
-
 def GetInScopeNamespaces (node):
-    return getattr(node, __InScopeNamespaceAttribute, None)
-
-def __SetInScopeNamespaces (node, namespace_map):
-    adds = []
-    removes = []
-    if Node.ELEMENT_NODE == node.nodeType:
-        attributes = node.attributes
-        for attr in [ attributes.item(_ai) for _ai in range(attributes.length) ]:
-            #print '%s %s %s %s' % (attr.namespaceURI, attr.prefix, attr.localName, attr.value)
-            if attr.namespaceURI == Namespace.XMLNamespaces.uri():
-                #print 'XMLNS %s %s %s' % (attr.prefix, attr.localName, attr.value)
-                if attr.value:
-                    adds.append(attr)
-                else:
-                    removes.append(attr)
-    #overrode_map = None
-    if 0 < (len(adds) + len(removes)):
-        #overrode_map = namespace_map
-        namespace_map = namespace_map.copy()
-        for attr in removes:
-            # NB: XMLNS 6.2 says that you can undefine a default
-            # namespace, but does not say anything explicitly about
-            # undefining a prefixed namespace.  XML-Infoset 2.2
-            # paragraph 6 implies you can do this, but expat blows up
-            # if you try it.  Nonetheless, we'll pretend that it's
-            # legal.
-            if attr.prefix is None:
-                namespace_map.pop(None, None)
-            else:
-                namespace_map.pop(attr.localName, None)
-        for attr in adds:
-            ns = Namespace.NamespaceForURI(attr.value, create_if_missing=True)
-            if attr.prefix is None:
-                namespace_map[None] = ns
-            else:
-                namespace_map[attr.localName] = ns
-        #print 'New xmlns map at %s: %s' % (node.nodeName, namespace_map,)
-    setattr(node, __InScopeNamespaceAttribute, namespace_map)
-    for cn in node.childNodes:
-        __SetInScopeNamespaces(cn, namespace_map)
-    #if overrode_map is not None:
-    #    print 'Restoring xmlns map: %s' % (overrode_map,)
-
-__UndeclaredNamespaces = { }
-[ __UndeclaredNamespaces.setdefault(_ns.boundPrefix(), _ns) for _ns in Namespace.PredefinedNamespaces if _ns.isUndeclaredNamespace() ]
-
-def SetInScopeNamespaces (node, in_scope_namespaces={}):
-    isn = __UndeclaredNamespaces
-    if in_scope_namespaces:
-        isn = isn.copy()
-        isn.update(in_scope_namespaces)
-    __SetInScopeNamespaces(node, isn)
-    return node
+    ns_ctx = NamespaceContext.GetNodeContext(node)
+    return ns_ctx.inScopeNamespaces()
 
 def InterpretQName (node, name):
     if name is None:
@@ -272,7 +215,11 @@ def AttributeMap (node):
         attribute_map[(attr.namespaceURI, attr.localName)] = attr.value
     return attribute_map
 
-class NamespaceDataFromNode (object):
+# Set up the prefixes for xml, xsi, etc.
+_UndeclaredNamespaceMap = { }
+[ _UndeclaredNamespaceMap.setdefault(_ns.boundPrefix(), _ns) for _ns in Namespace.PredefinedNamespaces if _ns.isUndeclaredNamespace() ]
+
+class NamespaceContext (object):
 
     def defaultNamespace (self):
         return self.__defaultNamespace
@@ -290,44 +237,63 @@ class NamespaceDataFromNode (object):
         return self.__attributeMap
     __attributeMap = None
 
-    def __init__ (self, node, parent_data=None, inherit_default_namespace=False):
+    @classmethod
+    def GetNodeContext (cls, node):
+        return node.__namespaceContext
+
+    def __init__ (self, dom_node, parent_context=None, recurse=True):
+        if dom_node is not None:
+            dom_node.__namespaceContext = self
         self.__defaultNamespace = None
-        if parent_data is not None:
-            self.__attributeMap = parent_data.attributeMap().copy()
-            self.__inScopeNamespaces = parent_data.inScopeNamespaces().copy()
-            self.__defaultNamespace = parent_data.defaultNamespace()
-            self.__targetNamespace = parent_data.targetNamespace()
+        self.__attributeMap = { }
+        self.__mutableInScopeNamespaces = False
+        if parent_context is not None:
+            self.__inScopeNamespaces = parent_context.inScopeNamespaces()
+            self.__defaultNamespace = parent_context.defaultNamespace()
+            self.__targetNamespace = parent_context.targetNamespace()
         else:
-            self.__attributeMap = { }
-            self.__inScopeNamespaces = { }
-        if self.__defaultNamespace is None:
-            self.__inScopeNamespaces.pop(None, None)
+            self.__inScopeNamespaces = _UndeclaredNamespaceMap
             
-        for (( ns_uri, attr_ln), attr_value) in AttributeMap(node).items():
-            if Namespace.XMLNamespaces.uri() == ns_uri:
-                if attr_value:
-                    if 'xmlns' == attr_ln:
-                        self.__defaultNamespace = Namespace.NamespaceForURI(attr_value, create_if_missing=True)
+        for ai in range(dom_node.attributes.length):
+            attr = dom_node.attributes.item(ai)
+            if Namespace.XMLNamespaces.uri() == attr.namespaceURI:
+                if not self.__mutableInScopeNamespaces:
+                    self.__inScopeNamespaces = self.__inScopeNamespaces.copy()
+                    self.__mutableInScopeNamespaces = True
+                if attr.value:
+                    if 'xmlns' == attr.localName:
+                        self.__defaultNamespace = Namespace.NamespaceForURI(attr.value, create_if_missing=True)
                         self.__inScopeNamespaces[None] = self.__defaultNamespace
                     else:
-                        self.__inScopeNamespaces[attr_ln] = Namespace.NamespaceForURI(attr_value, create_if_missing=True)
+                        self.__inScopeNamespaces[attr.localName] = Namespace.NamespaceForURI(attr.value, create_if_missing=True)
                 else:
-                    if 'xmlns' == attr_ln:
+                    # NB: XMLNS 6.2 says that you can undefine a default
+                    # namespace, but does not say anything explicitly about
+                    # undefining a prefixed namespace.  XML-Infoset 2.2
+                    # paragraph 6 implies you can do this, but expat blows up
+                    # if you try it.  Nonetheless, we'll pretend that it's
+                    # legal.
+                    if 'xmlns' == attr.localName:
+                        self.__defaultNamespace = None
                         self.__inScopeNamespaces.pop(None, None)
                     else:
-                        self.__inScopeNamespaces.pop(attr_ln, None)
+                        self.__inScopeNamespaces.pop(attr.localName, None)
             else:
-                self.__attributeMap[(ns_uri, attr_ln)] = attr_value
+                self.__attributeMap[(attr.namespaceURI, attr.localName)] = attr.value
         
-        # Store in each node the in-scope namespaces at that node;
-        # we'll need them for QName interpretation of attribute
-        # values.
-        SetInScopeNamespaces(node, self.inScopeNamespaces())
-
         if self.__targetNamespace is None:
             tns_uri = self.attributeMap().get((None, 'targetNamespace'), None)
             if tns_uri is None:
                 self.__targetNamespace = Namespace.CreateAbsentNamespace()
             else:
                 self.__targetNamespace = Namespace.NamespaceForURI(tns_uri, create_if_missing=True)
+
+        # Store in each node the in-scope namespaces at that node;
+        # we'll need them for QName interpretation of attribute
+        # values.
+        if recurse and (dom_node is not None):
+            assert Node.ELEMENT_NODE == dom_node.nodeType
+            for cn in dom_node.childNodes:
+                if Node.ELEMENT_NODE == cn.nodeType:
+                    NamespaceContext(cn, self, True)
 
