@@ -290,16 +290,18 @@ class NamespaceDataFromNode (object):
         return self.__attributeMap
     __attributeMap = None
 
-    def __init__ (self, node, parent_data=None):
-
+    def __init__ (self, node, parent_data=None, inherit_default_namespace=False):
+        self.__defaultNamespace = None
         if parent_data is not None:
             self.__attributeMap = parent_data.attributeMap().copy()
             self.__inScopeNamespaces = parent_data.inScopeNamespaces().copy()
+            self.__defaultNamespace = parent_data.defaultNamespace()
+            self.__targetNamespace = parent_data.targetNamespace()
         else:
             self.__attributeMap = { }
             self.__inScopeNamespaces = { }
-        self.__defaultNamespace = None
-        self.__inScopeNamespaces.pop(None, None)
+        if self.__defaultNamespace is None:
+            self.__inScopeNamespaces.pop(None, None)
             
         for (( ns_uri, attr_ln), attr_value) in AttributeMap(node).items():
             if Namespace.XMLNamespaces.uri() == ns_uri:
@@ -322,9 +324,10 @@ class NamespaceDataFromNode (object):
         # values.
         SetInScopeNamespaces(node, self.inScopeNamespaces())
 
-        tns_uri = self.attributeMap().get((None, 'targetNamespace'), None)
-        if tns_uri is None:
-            self.__targetNamespace = Namespace.CreateAbsentNamespace()
-        else:
-            self.__targetNamespace = Namespace.NamespaceForURI(tns_uri, create_if_missing=True)
+        if self.__targetNamespace is None:
+            tns_uri = self.attributeMap().get((None, 'targetNamespace'), None)
+            if tns_uri is None:
+                self.__targetNamespace = Namespace.CreateAbsentNamespace()
+            else:
+                self.__targetNamespace = Namespace.NamespaceForURI(tns_uri, create_if_missing=True)
 
