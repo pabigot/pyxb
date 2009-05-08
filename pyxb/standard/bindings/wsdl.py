@@ -1,6 +1,7 @@
 from pyxb.standard.bindings.raw.wsdl import *
 import pyxb.standard.bindings.raw.wsdl as raw_wsdl
 
+import DWML
 import pyxb.Namespace
 import pyxb.utils.domutils as domutils
 
@@ -10,47 +11,6 @@ import pyxb.utils.domutils as domutils
 # model to create proper instances rather than leave them as DOM
 # nodes.
 pyxb.Namespace.AvailableForLoad()
-
-class _NamespaceAwareMap (dict):
-    def namespaceData (self):
-        return self.__namespaceData
-    __namespaceData = None
-
-    def __init__ (self, namespace_data, *args, **kw):
-        super(_NamespaceAwareMap, self).__init__(*args, **kw)
-        assert namespace_data is not None
-        self.__namespaceData = namespace_data
-
-    def __keyToPair (self, key, is_definition=False):
-        if isinstance(key, tuple):
-            (ns, ln) = key
-        else:
-            ns = None
-            if 0 <= key.find(':'):
-                (pfx, ln) = key.split(':', 1)
-                ns = self.namespaceData().inScopeNamespaces().get(pfx, None)
-                assert ns is not None
-            else:
-                ln = key
-        if ns is None:
-            if is_definition:
-                ns = self.namespaceData().targetNamespace()
-            else:
-                ns = self.namespaceData().defaultNamespace()
-        return (ns, ln)
-
-    def __pairToSet (self, qkey):
-        pass
-
-    def __getitem__ (self, key):
-        qkey = self.__keyToPair(key)
-        #print 'Looking up with key %s as %s uri %s' % (key, qkey, qkey[0].uri())
-        return super(_NamespaceAwareMap, self).__getitem__(qkey)
-
-    def __setitem__ (self, key, value):
-        qkey = self.__keyToPair(key, is_definition=True)
-        #print 'Setting with key %s as %s uri %s' % (key, qkey, qkey[0].uri())
-        return super(_NamespaceAwareMap, self).__setitem__(qkey, value)
 
 class _WSDL_binding_mixin (object):
     """Mix-in class to mark element Python bindings that are expected
@@ -123,7 +83,18 @@ class tParam (raw_wsdl.tParam):
 raw_wsdl.tParam._SetClassRef(tParam)
 
 class tPart (raw_wsdl.tPart):
-    pass
+    def elementReference (self):
+        return self.__elementReference
+    def _setElementReference (self, element_reference):
+        self.__elementReference = element_reference
+    __elementReference = None
+
+    def typeReference (self):
+        return self.__typeReference
+    def _setTypeReference (self, type_reference):
+        self.__typeReference = type_reference
+    __typeReference = None
+
 raw_wsdl.tPart._SetClassRef(tPart)
 
 class tBindingOperation (raw_wsdl.tBindingOperation):
@@ -136,8 +107,7 @@ raw_wsdl.tBindingOperation._SetClassRef(tBindingOperation)
 
 class definitions (raw_wsdl.definitions):
     def messageMap (self):
-        return self.__messageMap
-    __messageMap = None
+        return self.targetNamespace().messages()
 
     def namespaceContext (self):
         return self.__namespaceContext
@@ -177,28 +147,29 @@ class definitions (raw_wsdl.definitions):
         rv.__buildMaps()
         if process_schema:
             rv.__processSchema()
+        rv.__finalizeReferences()
         return rv
 
+    __WSDLCategories = ( 'service', 'port', 'message', 'binding', 'portType' )
     def __buildMaps (self):
-        self.__messageMap = _NamespaceAwareMap(self.namespaceContext())
+        tns = self.namespaceContext().targetNamespace()
+        tns.configureCategories(self.__WSDLCategories)
         for m in self.message():
-            name_qname = (self.targetNamespace(), m.name())
-            self.__messageMap[name_qname] = m
-        self.__portTypeMap = _NamespaceAwareMap(self.namespaceContext())
+            tns.messages()[m.name()] = m
+            print 'message %s in %s' % (m.name(), tns.uri())
         for pt in self.portType():
-            port_type_qname = (self.targetNamespace(), pt.name())
-            self.__portTypeMap[port_type_qname] = pt
+            tns.portTypes()[pt.name()] = pt
             for op in pt.operation():
                 pt.operationMap()[op.name()] = op
                 for p in (op.input() + op.output() + op.fault()):
-                    msg_qname = domutils.InterpretQName(m._domNode(), p.message())
-                    p._setMessageReference(self.__messageMap[msg_qname])
-        self.__bindingMap = _NamespaceAwareMap(self.namespaceContext())
+                    (msg_ns, msg_ln) = domutils.InterpretQName(m._domNode(), p.message())
+                    p._setMessageReference(msg_ns.messages()[msg_ln])
         for b in self.binding():
-            binding_qname = (self.targetNamespace(), b.name())
-            self.__bindingMap[binding_qname] = b
+            tns.bindings()[b.name()] = b
             port_type_qname = domutils.InterpretQName(b._domNode(), b.type())
-            b.setPortTypeReference(self.__portTypeMap[port_type_qname])
+            assert port_type_qname is not None
+            (port_type_ns, port_type_ln) = port_type_qname
+            b.setPortTypeReference(port_type_ns.portTypes()[port_type_ln])
             for wc in b.wildcardElements():
                 if isinstance(wc, _WSDL_binding_mixin):
                     b._setProtocolBinding(wc)
@@ -209,16 +180,16 @@ class definitions (raw_wsdl.definitions):
                     if isinstance(wc, _WSDL_operation_mixin):
                         op._setOperationReference(wc)
                         break
-        self.__serviceMap = _NamespaceAwareMap(self.namespaceContext())
         for s in self.service():
-            service_qname = (self.targetNamespace(), s.name())
-            self.__serviceMap[service_qname] = s
-            port_map = { }
+            tns.services()[s.name()] = s
             for p in s.port():
                 port_qname = domutils.InterpretQName(p._domNode(), p.name())
-                port_map[port_qname] = p
+                assert port_qname is not None
+                (port_ns, port_ln) = port_qname
                 binding_qname = domutils.InterpretQName(p._domNode(), p.binding())
-                p._setBindingReference(self.__bindingMap[binding_qname])
+                assert binding_qname is not None
+                (binding_ns, binding_ln) = binding_qname
+                p._setBindingReference(binding_ns.bindings()[binding_ln])
                 for wc in p.wildcardElements():
                     if isinstance(wc, _WSDL_port_mixin):
                         p._setAddressReference(wc)
@@ -226,13 +197,37 @@ class definitions (raw_wsdl.definitions):
 
     def __processSchema (self):
         global pyxb
+        import pyxb.xmlschema
+
         if self.__schema is not None:
+            print 'Already have schema'
             return self.__schema
         for t in self.types():
             for wc in t.wildcardElements():
                 if isinstance(wc, Node) and pyxb.Namespace.XMLSchema.nodeIsNamed(wc, 'schema'):
-                    import pyxb.xmlschema
                     self.__schema = pyxb.xmlschema.schema.CreateFromDOM(wc, namespace_context=self.namespaceContext())
+                elif isinstance(wc, pyxb.xmlschema.schema):
+                    self.__schema = wc
+                else:
+                    print 'No match: %s %s' % (wc.namespaceURI, namepsace.localName)
+                if self.__schema is not None:
                     return self.__schema
+        return None
+
+    def __finalizeReferences (self):
+        tns = self.namespaceContext().targetNamespace()
+        for m in tns.messages().values():
+            for p in m.part():
+                if (p.element() is not None) and (p.elementReference() is None):
+                    elt_qname = p._namespaceContext().interpretQName(p.element())
+                    assert elt_qname is not None
+                    (elt_ns, elt_ln) = elt_qname
+                    p._setElementReference(elt_ns.elements()[elt_ln])
+                if (p.type() is not None) and (p.typeReference() is None):
+                    type_qname = p._namespaceContext().interpretQName(p.type())
+                    assert type_qname is not None
+                    (type_ns, type_ln) = type_qname
+                    type_ns.validateSchema()
+                    p._setTypeReference(type_ns.typeDefinitions()[type_ln])
 
 raw_wsdl.definitions._SetClassRef(definitions)
