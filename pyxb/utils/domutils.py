@@ -169,24 +169,7 @@ class BindingDOMSupport (object):
         return parent.appendChild(element)
     
 def InterpretQName (node, name, is_definition=False):
-    if name is None:
-        return None
-    # Do QName interpretation
-    ns_ctx = NamespaceContext.GetNodeContext(node)
-    if 0 <= name.find(':'):
-        assert not is_definition
-        (prefix, local_name) = name.split(':', 1)
-        namespace = ns_ctx.inScopeNamespaces().get(prefix, None)
-        if namespace is None:
-            raise SchemaValidationError('QName %s prefix is not declared' % (name,))
-    else:
-        local_name = name
-        # Get the default namespace, or denote an absent namespace
-        if is_definition:
-            namespace = ns_ctx.targetNamespace()
-        else:
-            namespace = ns_ctx.defaultNamespace()
-    return (namespace, local_name)
+    return NamespaceContext.GetNodeContext(node).interpretQName(name, is_definition)
 
 def InterpretAttributeQName (node, attribute_ncname, attribute_ns=Namespace.XMLSchema):
     """Provide the namespace and local name for the value of the given
@@ -207,7 +190,10 @@ def InterpretAttributeQName (node, attribute_ncname, attribute_ns=Namespace.XMLS
     instance or None and a local name.
     """
 
-    return InterpretQName(node, NodeAttribute(node, attribute_ncname, attribute_ns))
+    name = NodeAttribute(node, attribute_ncname, attribute_ns)
+    if name is None:
+        return None
+    return InterpretQName(node, name)
 
 def AttributeMap (node):
     attribute_map = { }
@@ -299,3 +285,19 @@ class NamespaceContext (object):
                 if Node.ELEMENT_NODE == cn.nodeType:
                     NamespaceContext(cn, self, True)
 
+    def interpretQName (self, name, is_definition=False):
+        assert isinstance(name, (str, unicode))
+        if 0 <= name.find(':'):
+            assert not is_definition
+            (prefix, local_name) = name.split(':', 1)
+            namespace = self.inScopeNamespaces().get(prefix, None)
+            if namespace is None:
+                raise SchemaValidationError('QName %s prefix is not declared' % (name,))
+        else:
+            local_name = name
+            # Get the default namespace, or denote an absent namespace
+            if is_definition:
+                namespace = self.targetNamespace()
+            else:
+                namespace = self.defaultNamespace()
+        return (namespace, local_name)
