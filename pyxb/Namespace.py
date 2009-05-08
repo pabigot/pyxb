@@ -227,6 +227,8 @@ class Namespace (object):
             setattr(self, accessor_name, lambda _map=self.categoryMap(category): _map)
 
     def configureCategories (self, categories):
+        if self.__categoryMap is None:
+            self.__categoryMap = { }
         for category in categories:
             if not (category in self.__categoryMap):
                 self.__categoryMap[category] = NamedObjectMap(category, self)
@@ -518,6 +520,17 @@ class Namespace (object):
         pickler.dump(self.__categoryMap)
         self._PicklingNamespace(None)
 
+    def __checkCategoriesEmpty (self):
+        if self.__categoryMap is None:
+            return True
+        assert isinstance(self.__categoryMap, dict)
+        if 0 == len(self.__categoryMap):
+            return True
+        for k in self.categories():
+            if 0 < len(self.categoryMap(k)):
+                return False
+        return True
+
     @classmethod
     def LoadFromFile (cls, file_path):
         """Create a Namespace instance with schema contents loaded
@@ -540,14 +553,21 @@ class Namespace (object):
 
         # Unpack the schema instance, verify that it describes the
         # namespace, and associate it with the namespace.
-        assert (instance.__categoryMap is None) or (0 == len(instance.__categoryMap))
-
         schema = unpickler.load()
-        instance.__categoryMap = unpickler.load()
+        if schema is not None:
+            assert schema.targetNamespace() == instance
+            instance.__schema = schema
+
+        # Augment the categories and their contents with data from the
+        # saved namespace.  Note that the category maps may be
+        # defined, but if so should be empty.
+        assert instance.__checkCategoriesEmpty
+        new_category_map = unpickler.load()
+        instance.configureCategories(new_category_map.keys())
+        for category in new_category_map.keys():
+            instance.categoryMap(category).update(new_category_map[category])
         instance.__defineCategoryAccessors()
 
-        assert schema.targetNamespace() == instance
-        instance.__schema = schema
         #print 'Completed load of %s from %s' % (instance.uri(), file_path)
         return instance
 
