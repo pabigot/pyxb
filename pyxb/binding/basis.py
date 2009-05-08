@@ -17,7 +17,12 @@ class _Binding_mixin (object):
 
     def _setDOMNode (self, node):
         self.__domNode = node
-    
+
+    def toxml (self):
+        bds = domutils.BindingDOMSupport()
+        self.toDOM(bds)
+        bds.finalize()
+        return bds.document().toxml()
 
 class _DynamicCreate_mixin (object):
     """Helper to allow overriding the implementation class.
