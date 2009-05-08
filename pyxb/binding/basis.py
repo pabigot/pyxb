@@ -15,8 +15,15 @@ class _Binding_mixin (object):
         return self.__domNode
     __domNode = None
 
-    def _setDOMNode (self, node):
+    def _namespaceContext (self):
+        return domutils.NamespaceContext.GetNodeContext(self.__domNode)
+    
+    def _instanceRoot (self):
+        return self.__instanceRoot
+
+    def _setBindingContext (self, node, instance_root):
         self.__domNode = node
+        self.__instanceRoot = instance_root
 
     def toxml (self):
         bds = domutils.BindingDOMSupport()
@@ -180,15 +187,16 @@ class simpleTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _D
             raise
 
     @classmethod
-    def CreateFromDOM (cls, node):
+    def CreateFromDOM (cls, node, **kw):
         """Create a simple type instance from the given DOM Node instance.
 
         Any whitespace facet constraint is applied to the extracted
         text."""
         # @todo error if non-text content?
         # @todo support _DynamicCreate
+        instance_root = kw.pop('instance_root', None)
         rv = cls.Factory(domutils.ExtractTextContent(node), apply_whitespace_facet=True)
-        rv._setDOMNode(node)
+        rv._setBindingContext(node, instance_root)
         return rv
 
     # Must override new, because new gets invoked before init, and
@@ -563,11 +571,12 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
         return self.__content
     
     @classmethod
-    def CreateFromDOM (cls, node):
+    def CreateFromDOM (cls, node, **kw):
         """Create an instance of this element from the given DOM node.
 
         Raises LogicError if the name of the node is not consistent
         with the _XsdName of this class."""
+        instance_root = kw.pop('instance_root', None)
         node_name = node.nodeName
         if 0 < node_name.find(':'):
             node_name = node_name.split(':')[1]
@@ -580,7 +589,7 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
             rv.__setContent(cls._TypeDefinition.CreateFromDOM(node))
         if isinstance(rv, simpleTypeDefinition):
             rv.xsdConstraintsOK()
-        rv._setDOMNode(node)
+        rv._setBindingContext(node, instance_root)
         return rv
 
     def toDOM (self, dom_support, parent=None):
@@ -685,16 +694,17 @@ class complexTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _
         return rv
 
     @classmethod
-    def CreateFromDOM (cls, node):
+    def CreateFromDOM (cls, node, **kw):
         """Create an instance from a DOM node.
 
         Note that only the node attributes and content are used; the
         node name must have been validated against an owning
         element."""
+        instance_root = kw.pop('instance_root', None)
         rv = cls._DynamicCreate(validate_constraints=False)
         rv._setAttributesFromDOM(node)
         rv._setContentFromDOM(node)
-        rv._setDOMNode(node)
+        rv._setBindingContext(node, instance_root)
         return rv
 
     # Specify the symbols to be reserved for all CTDs.
