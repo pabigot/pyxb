@@ -11,6 +11,8 @@ ModelGroup components are created from non-DOM sources.
 
 """
 
+IGNORED_ARGUMENT = 'ignored argument'
+
 from pyxb.exceptions_ import *
 from xml.dom import Node
 import types
@@ -234,7 +236,6 @@ class _SchemaComponent_mixin (object):
         # have an unassigned scope.  However, we do clone
         # non-declarations that contain cloned declarations.
         assert (not isinstance(self, _ScopedDeclaration_mixin)) or self._scopeIsIndeterminate()
-        wxs = namespace_context.targetNamespace().schema()
 
         that = copy.copy(self)
         that.__cloneSource = self
@@ -243,10 +244,9 @@ class _SchemaComponent_mixin (object):
         self.__clones.add(that)
         that._resetClone_vc()
         if isinstance(that, Namespace._Resolvable_mixin):
-            assert wxs is not None
             if not that.isResolved():
                 #print 'Queuing clone for resolution'
-                wxs._queueForResolution(that)
+                namespace_context.targetNamespace().schema()._queueForResolution(that)
         return that
 
     def isTypeDefinition (self):
@@ -325,10 +325,11 @@ class _Annotated_mixin (object):
         super(_Annotated_mixin, self).__init__(*args, **kw)
         self.__annotation = kw.get('annotation')
 
-    def _annotationFromDOM (self, wxs, node):
+    def _annotationFromDOM (self, ignored_parameter, node):
+        assert IGNORED_ARGUMENT == ignored_parameter
         cn = LocateUniqueChild(node, 'annotation')
         if cn is not None:
-            self.__annotation = Annotation.CreateFromDOM(wxs, cn, owner=self)
+            self.__annotation = Annotation.CreateFromDOM(IGNORED_ARGUMENT, cn, owner=self)
 
     def _setBuiltinFromInstance (self, other):
         """Override fields in this instance with those from the other.
@@ -976,7 +977,7 @@ class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, Names
             raise SchemaValidationError('Internal attribute declaration by reference')
 
         rv = cls(name=name, node=node, **kw)
-        rv._annotationFromDOM(wxs, node)
+        rv._annotationFromDOM(IGNORED_ARGUMENT, node)
         rv._valueConstraintFromDOM(wxs, node)
         rv.__domNode = node
         wxs._queueForResolution(rv)
@@ -1185,7 +1186,7 @@ class AttributeUse (_SchemaComponent_mixin, Namespace._Resolvable_mixin, _ValueC
         ad = self.__attributeDeclaration
         rv = self
         if ad.scope() is None:
-            rv = self._clone(wxs)
+            rv = self._clone(namespace_context)
             rv._setOwner(ctd)
             rv.__attributeDeclaration = ad._clone(namespace_context)
             rv.__attributeDeclaration._setOwner(rv)
@@ -1309,7 +1310,7 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, Namespa
             raise SchemaValidationError('Created reference as element declaration')
         
         rv = cls(name=name, node=node, **kw)
-        rv._annotationFromDOM(wxs, node)
+        rv._annotationFromDOM(IGNORED_ARGUMENT, node)
         rv._valueConstraintFromDOM(wxs, node)
 
         # Creation does not attempt to do resolution.  Queue up the newly created
@@ -1658,7 +1659,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, Name
         # Creation does not attempt to do resolution.  Queue up the newly created
         # whatsis so we can resolve it after everything's been read in.
         rv.__domNode = node
-        rv._annotationFromDOM(wxs, node)
+        rv._annotationFromDOM(IGNORED_ARGUMENT, node)
         wxs._queueForResolution(rv)
         
         return rv
@@ -2063,7 +2064,7 @@ class AttributeGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, N
                     'scope' : _ScopedDeclaration_mixin.XSCOPE_indeterminate })
         rv = cls(name=name, node=node, **kw)
 
-        rv._annotationFromDOM(wxs, node)
+        rv._annotationFromDOM(IGNORED_ARGUMENT, node)
         wxs._queueForResolution(rv)
         rv.__domNode = node
         return rv
@@ -2145,7 +2146,7 @@ class ModelGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Anno
         kw.update({ 'context' : _ScopedDeclaration_mixin.SCOPE_global,
                     'scope' : _ScopedDeclaration_mixin.XSCOPE_indeterminate })
         rv = cls(name=name, node=node, **kw)
-        rv._annotationFromDOM(wxs, node)
+        rv._annotationFromDOM(IGNORED_ARGUMENT, node)
 
         for cn in node.childNodes:
             if Node.ELEMENT_NODE != cn.nodeType:
@@ -2314,7 +2315,7 @@ class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
         rv = cls(compositor, particles, node=node, scope=scope, context=context)
         for p in particles:
             p._setOwner(rv)
-        rv._annotationFromDOM(wxs, node)
+        rv._annotationFromDOM(IGNORED_ARGUMENT, node)
         return rv
 
     @classmethod
@@ -2836,7 +2837,7 @@ class Wildcard (_SchemaComponent_mixin, _Annotated_mixin):
                 raise SchemaValidationError('illegal value "%s" for any processContents attribute' % (pc,))
 
         rv = cls(node=node, namespace_constraint=namespace_constraint, process_contents=process_contents, **kw)
-        rv._annotationFromDOM(wxs, node)
+        rv._annotationFromDOM(IGNORED_ARGUMENT, node)
         return rv
 
 # 3.11.1
@@ -2886,7 +2887,7 @@ class IdentityConstraintDefinition (_SchemaComponent_mixin, _NamedComponent_mixi
             return self
         node = self.__domNode
 
-        #self._annotationFromDOM(wxs, node);
+        #self._annotationFromDOM(IGNORED_ARGUMENT, node);
         icc = None
         if xsd.nodeIsNamed(node, 'key'):
             icc = self.ICC_KEY
@@ -2918,7 +2919,7 @@ class IdentityConstraintDefinition (_SchemaComponent_mixin, _NamedComponent_mixi
                 raise SchemaValidationError('field element missing xpath attribute')
             self.__fields.append(xp_attr)
 
-        self._annotationFromDOM(wxs, node)
+        self._annotationFromDOM(IGNORED_ARGUMENT, node)
         self.__annotations = []
         if self.annotation() is not None:
             self.__annotations.append(self)
@@ -2932,7 +2933,7 @@ class IdentityConstraintDefinition (_SchemaComponent_mixin, _NamedComponent_mixi
             elif xsd.nodeIsNamed(cn, 'annotation'):
                 an = cn
             if an is not None:
-                self.__annotations.append(Annotation.CreateFromDOM(wxs, an, owner=self))
+                self.__annotations.append(Annotation.CreateFromDOM(IGNORED_ARGUMENT, an, owner=self))
 
         self.__identityConstraintCategory = icc
         self.__domNode = None
@@ -2962,7 +2963,7 @@ class NotationDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Annot
         rv.__systemIdentifier = NodeAttribute(node, 'system')
         rv.__publicIdentifier = NodeAttribute(node, 'public')
 
-        rv._annotationFromDOM(wxs, node)
+        rv._annotationFromDOM(IGNORED_ARGUMENT, node)
         return rv
 
 # 3.13.1
@@ -2997,7 +2998,8 @@ class Annotation (_SchemaComponent_mixin):
 
     # CFD:Annotation
     @classmethod
-    def CreateFromDOM (cls, wxs, node, **kw):
+    def CreateFromDOM (cls, ignored_parameter, node, **kw):
+        assert IGNORED_ARGUMENT == ignored_parameter
         rv = cls(node=node, **kw)
 
         # @todo: Scan for attributes in the node itself that do not
@@ -3729,7 +3731,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, Names
         name = NodeAttribute(node, 'name')
 
         rv = cls(name=name, node=node, variety=None, **kw)
-        rv._annotationFromDOM(wxs, node)
+        rv._annotationFromDOM(IGNORED_ARGUMENT, node)
 
         # @todo identify supported facets and properties (hfp)
 
@@ -3825,7 +3827,7 @@ class _ImportElementInformationItem (_Annotated_mixin):
         except Exception, e:
             print 'ERROR validating imported namespace: %s' % (e,)
             raise
-        self._annotationFromDOM(schema, node)
+        self._annotationFromDOM(IGNORED_ARGUMENT, node)
 
 class Schema (_SchemaComponent_mixin):
     # A set containing all components, named or unnamed, that belong
@@ -4114,7 +4116,7 @@ class Schema (_SchemaComponent_mixin):
         raise IncompleteImplementationException('redefine not implemented')
 
     def __processAnnotation (self, node):
-        an = self._addAnnotation(Annotation.CreateFromDOM(self, node))
+        an = self._addAnnotation(Annotation.CreateFromDOM(IGNORED_ARGUMENT, node))
         return self
 
     def __processTopLevelNode (self, node):
