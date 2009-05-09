@@ -17,8 +17,8 @@ import nfa
 import types
 import sys
 import traceback
-from xml.dom import minidom
-from xml.dom import Node
+import xml.dom.minidom
+import xml.dom
 
 IGNORED_ARGUMENT = 'ignored argument'
 
@@ -960,7 +960,7 @@ def GeneratePython (**kw):
         if schema is None:
             if schema_file is None:
                 raise Exception('No input provided')
-            schema = xs.schema.CreateFromDOM(minidom.parse(schema_file))
+            schema = xs.schema.CreateFromDOM(xml.dom.minidom.parse(schema_file))
         if schema_file is None:
             schema_file = '<not provided>'
 
@@ -1016,9 +1016,9 @@ import sys
 Namespace = %{NamespaceDefinition}
 Namespace._setModule(sys.modules[__name__])
 
-def CreateFromDocument (xml):
+def CreateFromDocument (xml_text):
     """Parse the given XML and use the document element to create a Python instance."""
-    dom = xml.dom.minidom.parseString(xml)
+    dom = xml.dom.minidom.parseString(xml_text)
     return CreateFromDOM(dom.documentElement)
 
 def CreateFromDOM (node):

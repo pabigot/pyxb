@@ -3,6 +3,7 @@ import pyxb.standard.bindings.raw.wsdl as raw_wsdl
 
 import pyxb.Namespace
 import pyxb.utils.domutils as domutils
+import xml.dom
 
 # Scan for available pre-built namespaces.  The effect of this is to
 # register a bunch of namespaces including the path to the module that
@@ -203,7 +204,7 @@ class definitions (raw_wsdl.definitions):
             return self.__schema
         for t in self.types():
             for wc in t.wildcardElements():
-                if isinstance(wc, Node) and pyxb.Namespace.XMLSchema.nodeIsNamed(wc, 'schema'):
+                if isinstance(wc, xml.dom.Node) and pyxb.Namespace.XMLSchema.nodeIsNamed(wc, 'schema'):
                     self.__schema = pyxb.xmlschema.schema.CreateFromDOM(wc, namespace_context=self.namespaceContext())
                 elif isinstance(wc, pyxb.xmlschema.schema):
                     self.__schema = wc
