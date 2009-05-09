@@ -147,9 +147,9 @@ class ReferenceSchemaComponent (ReferenceLiteral):
             tns = btns
         is_in_binding = (btns == tns) or (tns is None)
             
-        if not ((not isinstance(self.__component, xs.structures._Resolvable_mixin)) or self.__component.isResolved()):
+        if not ((not isinstance(self.__component, xs.structures.Namespace._Resolvable_mixin)) or self.__component.isResolved()):
             print '%s not resolved' % (self.__component,)
-        assert (not isinstance(self.__component, xs.structures._Resolvable_mixin)) or self.__component.isResolved()
+        assert (not isinstance(self.__component, xs.structures.Namespace._Resolvable_mixin)) or self.__component.isResolved()
 
         name = self.__component.nameInBinding()
         if is_in_binding and (name is None):

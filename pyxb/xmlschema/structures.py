@@ -150,7 +150,7 @@ class _SchemaComponent_mixin (object):
 
     def dependentComponents (self):
         if self.__dependentComponents is None:
-            if isinstance(self, _Resolvable_mixin) and not (self.isResolved()):
+            if isinstance(self, Namespace._Resolvable_mixin) and not (self.isResolved()):
                 raise LogicError('Unresolved %s in %s: %s' % (self.__class__.__name__, self.schema().targetNamespace(), self.name()))
             self.__dependentComponents = self._dependentComponents_vx()
             if self in self.__dependentComponents:
@@ -220,7 +220,7 @@ class _SchemaComponent_mixin (object):
             self.__clones = set()
         self.__clones.add(that)
         that._resetClone_vc()
-        if isinstance(that, _Resolvable_mixin):
+        if isinstance(that, Namespace._Resolvable_mixin):
             assert wxs is not None
             if not that.isResolved():
                 #print 'Queuing clone for resolution'
@@ -549,36 +549,6 @@ class _NamedComponent_mixin (object):
             return
         self.__dict__.update(state)
             
-class _Resolvable_mixin (object):
-    """Mix-in indicating that this component may have references to unseen named components."""
-    def isResolved (self):
-        """Determine whether this named component is resolved.
-
-        Override this in the child class."""
-        raise LogicError('Resolved check not implemented in %s' % (self.__class__,))
-    
-    def _resolve (self, wxs):
-        """Perform whatever steps are required to resolve this component.
-
-        Resolution is performed in the context of the provided schema.
-        Invoking this method may fail to complete the resolution
-        process if the component itself depends on unresolved
-        components.  The sole caller of this should be
-        schema._resolveDefinitions().
-        
-        Override this in the child class.  In the prefix, if
-        isResolved() is true, return right away.  If something
-        prevents you from completing resolution, invoke
-        wxs._queueForResolution(self) so it is retried later, then
-        immediately return self.  Prior to leaving after successful
-        resolution discard any cached dom node by setting
-        self.__domNode=None.
-
-        The method should return self, whether or not resolution
-        succeeds.
-        """
-        raise LogicError('Resolution not implemented in %s' % (self.__class__,))
-
 class _ValueConstraint_mixin:
     """Mix-in indicating that the component contains a simple-type
     value that may be constrained."""
@@ -916,7 +886,7 @@ class _AttributeWildcard_mixin (object):
                         namespace_constraint=Wildcard.IntensionalIntersection(agd_constraints),
                         schema=wxs)
 
-class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Resolvable_mixin, _Annotated_mixin, _ValueConstraint_mixin, _ScopedDeclaration_mixin):
+class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, Namespace._Resolvable_mixin, _Annotated_mixin, _ValueConstraint_mixin, _ScopedDeclaration_mixin):
     """An XMLSchema Attribute Declaration component.
 
     See http://www.w3.org/TR/xmlschema-1/index.html#cAttribute_Declarations
@@ -1052,7 +1022,7 @@ class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
         """
         return frozenset([self.__typeDefinition])
 
-class AttributeUse (_SchemaComponent_mixin, _Resolvable_mixin, _ValueConstraint_mixin):
+class AttributeUse (_SchemaComponent_mixin, Namespace._Resolvable_mixin, _ValueConstraint_mixin):
     """An XMLSchema Attribute Use component.
 
     See http://www.w3.org/TR/xmlschema-1/index.html#cAttribute_Use
@@ -1204,7 +1174,7 @@ class AttributeUse (_SchemaComponent_mixin, _Resolvable_mixin, _ValueConstraint_
         return 'AU[%s]' % (self.attributeDeclaration(),)
 
 
-class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Resolvable_mixin, _Annotated_mixin, _ValueConstraint_mixin, _ScopedDeclaration_mixin):
+class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, Namespace._Resolvable_mixin, _Annotated_mixin, _ValueConstraint_mixin, _ScopedDeclaration_mixin):
     """An XMLSchema Element Declaration component.
 
     See http://www.w3.org/TR/xmlschema-1/index.html#cElement_Declarations
@@ -1416,7 +1386,7 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Resolv
         return 'ED[%s:?]' % (self.name(),)
 
 
-class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Resolvable_mixin, _Annotated_mixin, _AttributeWildcard_mixin):
+class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, Namespace._Resolvable_mixin, _Annotated_mixin, _AttributeWildcard_mixin):
     # The type resolved from the base attribute.
     __baseTypeDefinition = None
     def baseTypeDefinition (self):
@@ -2029,7 +1999,7 @@ class _UrTypeDefinition (ComplexTypeDefinition, _Singleton_mixin):
         return frozenset()
 
 
-class AttributeGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Resolvable_mixin, _Annotated_mixin, _AttributeWildcard_mixin):
+class AttributeGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, Namespace._Resolvable_mixin, _Annotated_mixin, _AttributeWildcard_mixin):
     # A frozenset of AttributeUse instances
     __attributeUses = None
 
@@ -2366,7 +2336,7 @@ class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
             comp = 'SEQUENCE'
         return '%s:(%s)' % (comp, ",".join( [ str(_p) for _p in self.particles() ] ) )
 
-class Particle (_SchemaComponent_mixin, _Resolvable_mixin):
+class Particle (_SchemaComponent_mixin, Namespace._Resolvable_mixin):
     """Some entity along with occurrence information."""
 
     # The minimum number of times the term may appear.
@@ -2845,7 +2815,7 @@ class Wildcard (_SchemaComponent_mixin, _Annotated_mixin):
         return rv
 
 # 3.11.1
-class IdentityConstraintDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Annotated_mixin, _Resolvable_mixin, _ScopedDeclaration_mixin):
+class IdentityConstraintDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Annotated_mixin, Namespace._Resolvable_mixin, _ScopedDeclaration_mixin):
     ICC_KEY = 0x01
     ICC_KEYREF = 0x02
     ICC_UNIQUE = 0x04
@@ -3039,7 +3009,7 @@ class Annotation (_SchemaComponent_mixin):
 
 
 # Section 3.14.
-class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Resolvable_mixin, _Annotated_mixin):
+class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, Namespace._Resolvable_mixin, _Annotated_mixin):
     """The schema component for simple type definitions.
 
     This component supports the basic datatypes of XML schema, and
@@ -3891,7 +3861,7 @@ class Schema (_SchemaComponent_mixin):
       , Particle                     # ModelGroup, WildCard, ElementDeclaration
         )
 
-    # A set of _Resolvable_mixin instances that have yet to be
+    # A set of Namespace._Resolvable_mixin instances that have yet to be
     # resolved.
     __unresolvedDefinitions = None
 
@@ -4159,7 +4129,7 @@ class Schema (_SchemaComponent_mixin):
         components which, in the course of resolution, are found to
         depend on another unresolved component.
         """
-        assert isinstance(resolvable, _Resolvable_mixin)
+        assert isinstance(resolvable, Namespace._Resolvable_mixin)
         self.__unresolvedDefinitions.append(resolvable)
         return resolvable
 
@@ -4167,7 +4137,7 @@ class Schema (_SchemaComponent_mixin):
         assert existing_def in self.__unresolvedDefinitions
         self.__unresolvedDefinitions.remove(existing_def)
         assert replacement_def not in self.__unresolvedDefinitions
-        assert isinstance(replacement_def, _Resolvable_mixin)
+        assert isinstance(replacement_def, Namespace._Resolvable_mixin)
         self.__unresolvedDefinitions.append(replacement_def)
         # Throw away the reference to the previous component and use
         # the replacement one

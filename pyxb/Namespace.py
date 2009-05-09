@@ -10,6 +10,36 @@ DefaultBindingPath = "%s/standard/bindings/raw" % (os.path.dirname(__file__),)
 # Stuff required for pickling
 import cPickle as pickle
 
+class _Resolvable_mixin (object):
+    """Mix-in indicating that this component may have references to unseen named components."""
+    def isResolved (self):
+        """Determine whether this named component is resolved.
+
+        Override this in the child class."""
+        raise LogicError('Resolved check not implemented in %s' % (self.__class__,))
+    
+    def _resolve (self, wxs):
+        """Perform whatever steps are required to resolve this component.
+
+        Resolution is performed in the context of the provided schema.
+        Invoking this method may fail to complete the resolution
+        process if the component itself depends on unresolved
+        components.  The sole caller of this should be
+        schema._resolveDefinitions().
+        
+        Override this in the child class.  In the prefix, if
+        isResolved() is true, return right away.  If something
+        prevents you from completing resolution, invoke
+        wxs._queueForResolution(self) so it is retried later, then
+        immediately return self.  Prior to leaving after successful
+        resolution discard any cached dom node by setting
+        self.__domNode=None.
+
+        The method should return self, whether or not resolution
+        succeeds.
+        """
+        raise LogicError('Resolution not implemented in %s' % (self.__class__,))
+
 class NamedObjectMap (dict):
     def namespace (self):
         return self.__namespace
