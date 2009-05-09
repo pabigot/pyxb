@@ -245,8 +245,7 @@ class _SchemaComponent_mixin (object):
         self.__clones.add(that)
         that._resetClone_vc()
         if isinstance(that, Namespace._Resolvable_mixin):
-            if not that.isResolved():
-                that._queueForResolution()
+            assert that.isResolved()
         return that
 
     def isTypeDefinition (self):
@@ -1325,9 +1324,8 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, Namespa
         
         return rv
 
-    def hasUnresolvableParticle (self, ignored_parameter):
-        assert IGNORED_ARGUMENT == ignored_parameter
-        return False
+    def isDeepResolved (self):
+        return True
 
     def _adaptForScope (self, ignored_parameter, owner, scope):
         assert IGNORED_ARGUMENT == ignored_parameter
@@ -2023,7 +2021,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, Name
         # context.
         if isinstance(self.__contentType, tuple) and isinstance(self.__contentType[1], Particle):
             prt = self.__contentType[1]
-            if prt.hasUnresolvableParticle(IGNORED_ARGUMENT):
+            if not prt.isDeepResolved():
                 self._queueForResolution()
                 return self
 
@@ -2215,14 +2213,13 @@ class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
     __particles = None
     def particles (self): return self.__particles
 
-    def hasUnresolvableParticle (self, ignored_parameter):
+    def isDeepResolved (self):
         """A model group has an unresolvable particle if any of its
         particles is unresolvable.  Duh."""
-        assert IGNORED_ARGUMENT == ignored_parameter
         for p in self.particles():
-            if p.hasUnresolvableParticle(IGNORED_ARGUMENT):
-                return True
-        return False
+            if not p.isDeepResolved():
+                return False
+        return True
 
     # The ModelGroupDefinition that names this ModelGroup, or None if
     # the ModelGroup is anonymous.  This is set at construction time
@@ -2624,7 +2621,7 @@ class Particle (_SchemaComponent_mixin, Namespace._Resolvable_mixin):
                 pass
         return rv
 
-    def hasUnresolvableParticle (self, ignored_parameter):
+    def isDeepResolved (self):
         """A particle has an unresolvable particle if it cannot be
         resolved, or if it has resolved to a term which is a model
         group that has an unresolvable particle.
@@ -2634,8 +2631,9 @@ class Particle (_SchemaComponent_mixin, Namespace._Resolvable_mixin):
         resolvability, not do any resolution.
 
         """
-        assert IGNORED_ARGUMENT == ignored_parameter
-        return (not self.isResolved()) or self.term().hasUnresolvableParticle(IGNORED_ARGUMENT)
+        if not self.isResolved():
+            return False
+        return self.term().isDeepResolved()
         
     @classmethod
     def IsTypedefNode (cls, node):
@@ -2819,9 +2817,8 @@ class Wildcard (_SchemaComponent_mixin, _Annotated_mixin):
         """
         return frozenset()
 
-    def hasUnresolvableParticle (self, ignored_parameter):
-        assert IGNORED_ARGUMENT == ignored_parameter
-        return False
+    def isDeepResolved (self):
+        return True
 
     def _adaptForScope (self, ignored_parameter, owner, ctd):
         """Wildcards are scope-independent; return self"""
