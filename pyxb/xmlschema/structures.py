@@ -47,17 +47,6 @@ def _LookupElementDeclaration (ns, context, local_name):
         rv = ns.elementDeclarations().get(local_name)
     return rv
 
-def _LookupIdentityConstraintDefinition (ns, context, local_name):
-    assert context is not None
-    assert 0 > local_name.find(':')
-    rv = None
-    if isinstance(context, ComplexTypeDefinition):
-        rv = context.lookupScopedIdentityConstraintDefinition(local_name)
-    if rv is None:
-        rv = ns.identityConstraintDefinitions().get(local_name)
-    return rv
-
-
 class _SchemaComponent_mixin (object):
     """A mix-in that marks the class as representing a schema component.
 
@@ -432,8 +421,6 @@ class _NamedComponent_mixin (object):
                 rv = scope_ctd.lookupScopedAttributeDeclaration(ncname)
             elif issubclass(icls, ElementDeclaration):
                 rv = scope_ctd.lookupScopedElementDeclaration(ncname)
-            elif issubclass(icls, IdentityConstraintDefinition):
-                rv = scope_ctd.lookupScopedIdentityConstraintDefinition(ncname)
             else:
                 raise IncompleteImplementationError('Local scope reference lookup not implemented for type %s searching %s in %s' % (icls, ncname, uri))
             if rv is None:
@@ -451,7 +438,7 @@ class _NamedComponent_mixin (object):
             elif issubclass(icls, ElementDeclaration):
                 rv = _LookupElementDeclaration(ns, _ScopedDeclaration_mixin.SCOPE_global, ncname)
             elif issubclass(icls, IdentityConstraintDefinition):
-                rv = _LookupIdentityConstraintDefinition(ns, _ScopedDeclaration_mixin.SCOPE_global, ncname)
+                rv = ns.identityConstraintDefinitions().get(ncname)
             else:
                 raise IncompleteImplementationError('Reference lookup not implemented for type %s searching %s in %s' % (icls, ncname, uri))
             if rv is None:
@@ -1471,17 +1458,6 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, Name
             return None
         return self.__scopedElementDeclarations.get(ncname)
 
-    # A map from NCNames to ElementDeclaration instances that are
-    # local to this type.
-    __scopedIdentityConstraintDefinitions = None
-    def lookupScopedIdentityConstraintDefinition (self, ncname):
-        """Find an element declaration with the given name that is local to this type.
-
-        Returns None if there is no such local element declaration."""
-        if self.__scopedIdentityConstraintDefinitions is None:
-            return None
-        return self.__scopedIdentityConstraintDefinitions.get(ncname)
-
     def _recordLocalDeclaration (self, decl):
         """Record the given declaration as being locally scoped in
         this type."""
@@ -1490,8 +1466,6 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, Name
             scope_map = self.__scopedElementDeclarations
         elif isinstance(decl, AttributeDeclaration):
             scope_map = self.__scopedAttributeDeclarations
-        elif isinstance(decl, IdentityConstraintDefinition):
-            scope_map = self.__scopedIdentityConstraintDefinitions
         else:
             raise LogicError('Unexpected instance of %s recording as local declaration' % (type(decl),))
         assert decl.name() is not None
@@ -1540,7 +1514,6 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, Name
         assert self._scopeIsIndeterminate()
         self.__scopedElementDeclarations = { }
         self.__scopedAttributeDeclarations = { }
-        self.__scopedIdentityConstraintDefinitions = { }
 
     def hasWildcardElement (self):
         """Return True iff this type includes a wildcard element in
@@ -2868,7 +2841,7 @@ class Wildcard (_SchemaComponent_mixin, _Annotated_mixin):
         return rv
 
 # 3.11.1
-class IdentityConstraintDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Annotated_mixin, Namespace._Resolvable_mixin, _ScopedDeclaration_mixin):
+class IdentityConstraintDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Annotated_mixin, Namespace._Resolvable_mixin):
     ICC_KEY = 0x01
     ICC_KEYREF = 0x02
     ICC_UNIQUE = 0x04
@@ -2923,10 +2896,12 @@ class IdentityConstraintDefinition (_SchemaComponent_mixin, _NamedComponent_mixi
         elif xsd.nodeIsNamed(node, 'keyref'):
             icc = self.ICC_KEYREF
             refer_attr = NodeAttribute(node, 'refer')
+            print 'Refer attribute %s' % (refer_attr,)
             if refer_attr is None:
                 raise SchemaValidationError('Require refer attribute on keyref elements')
             (refer_ns, refer_ln) = self._namespaceContext().interpretQName(refer_attr)
-            refer = _LookupIdentityConstraintDefinition(refer_ns, self.scope(), refer_ln)
+            refer = refer_ns.identityConstraintDefinitions().get(refer_ln)
+            print 'ICD %s in %s is %s' % (refer_ln, refer_ns, refer)
             if refer is None:
                 self._queueForResolution()
                 return self
@@ -2965,6 +2940,9 @@ class IdentityConstraintDefinition (_SchemaComponent_mixin, _NamedComponent_mixi
                 self.__annotations.append(Annotation.CreateFromDOM(IGNORED_ARGUMENT, an, owner=self))
 
         self.__identityConstraintCategory = icc
+        if self.ICC_KEYREF != self.__identityConstraintCategory:
+            self._namespaceContext().targetNamespace().addCategoryObject('identityConstraintDefinition', self.name(), self)
+
         self.__domNode = None
         return self
     
@@ -4008,7 +3986,7 @@ class Schema (_SchemaComponent_mixin):
 
     __SchemaCategories = ( 'typeDefinition', 'attributeGroupDefinition', 'modelGroupDefinition',
                            'attributeDeclaration', 'elementDeclaration', 'notationDeclaration',
-                           'identityConstraintDefinitions' )
+                           'identityConstraintDefinition' )
 
     def __init__ (self, *args, **kw):
         assert 'schema' not in kw
