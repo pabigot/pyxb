@@ -18,7 +18,7 @@ class _Resolvable_mixin (object):
         Override this in the child class."""
         raise LogicError('Resolved check not implemented in %s' % (self.__class__,))
     
-    def _resolve (self, wxs):
+    def _resolve (self, ignored_parameter):
         """Perform whatever steps are required to resolve this component.
 
         Resolution is performed in the context of the provided schema.
@@ -39,6 +39,9 @@ class _Resolvable_mixin (object):
         succeeds.
         """
         raise LogicError('Resolution not implemented in %s' % (self.__class__,))
+
+    def _queueForResolution (self):
+        self._namespaceContext().queueForResolution(self)
 
 class NamedObjectMap (dict):
     def namespace (self):

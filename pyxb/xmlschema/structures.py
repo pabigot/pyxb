@@ -246,7 +246,7 @@ class _SchemaComponent_mixin (object):
         that._resetClone_vc()
         if isinstance(that, Namespace._Resolvable_mixin):
             if not that.isResolved():
-                that._namespaceContext().queueForResolution(that)
+                that._queueForResolution()
         return that
 
     def isTypeDefinition (self):
@@ -982,7 +982,7 @@ class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, Names
         rv._annotationFromDOM(IGNORED_ARGUMENT, node)
         rv._valueConstraintFromDOM(IGNORED_ARGUMENT, node)
         rv.__domNode = node
-        rv._namespaceContext().queueForResolution(rv)
+        rv._queueForResolution()
         return rv
 
     def isResolved (self):
@@ -1005,7 +1005,7 @@ class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, Names
             ( type_ns, type_ln ) = type_qname
             self.__typeDefinition = type_ns.typeDefinitions().get(type_ln)
             if self.__typeDefinition is None:
-                self._namespaceContext().queueForResolution(self)
+                self._queueForResolution()
                 return self
             if not isinstance(self.__typeDefinition, SimpleTypeDefinition):
                 raise SchemaValidationError('Need %s to be a simple type' % (type_ln,))
@@ -1152,7 +1152,7 @@ class AttributeUse (_SchemaComponent_mixin, Namespace._Resolvable_mixin, _ValueC
             rv.__attributeDeclaration = AttributeDeclaration.CreateFromDOM(IGNORED_ARGUMENT, node, **kw)
         else:
             rv.__domNode = node
-            rv._namespaceContext().queueForResolution(rv)
+            rv._queueForResolution()
         return rv
 
     def isResolved (self):
@@ -1173,7 +1173,7 @@ class AttributeUse (_SchemaComponent_mixin, Namespace._Resolvable_mixin, _ValueC
         ( ad_ns, ad_ln ) = ad_qname
         self.__attributeDeclaration = _LookupAttributeDeclaration(ad_ns, self._context(), ad_ln)
         if self.__attributeDeclaration is None:
-            self._namespaceContext().queueForResolution(self)
+            self._queueForResolution()
             return self
         assert isinstance(self.__attributeDeclaration, AttributeDeclaration)
         self.__domNode = None
@@ -1321,7 +1321,7 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, Namespa
         # Creation does not attempt to do resolution.  Queue up the newly created
         # whatsis so we can resolve it after everything's been read in.
         rv.__domNode = node
-        rv._namespaceContext().queueForResolution(rv)
+        rv._queueForResolution()
         
         return rv
 
@@ -1365,7 +1365,7 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, Namespa
                 raise SchemaValidationError('Unable to resolve substitution group %s' % (sg_qname,))
             if not sga.isResolved():
                 print 'Not resolving, unknown substitution group %s' % (sg_qname,)
-                self._namespaceContext().queueForResolution(self)
+                self._queueForResolution()
                 return self
             self.__substitutionGroupAffiliation = sga
             
@@ -1390,7 +1390,7 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, Namespa
                 type_def = type_ns.typeDefinitions().get(type_ln)
                 if type_def is None:
                     #print 'Not resolving ED, missing %s %s' % type_qname
-                    self._namespaceContext().queueForResolution(self)
+                    self._queueForResolution()
                     return self
             elif self.__substitutionGroupAffiliation is not None:
                 type_def = self.__substitutionGroupAffiliation.typeDefinition()
@@ -1670,7 +1670,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, Name
         # whatsis so we can resolve it after everything's been read in.
         rv.__domNode = node
         rv._annotationFromDOM(IGNORED_ARGUMENT, node)
-        rv._namespaceContext().queueForResolution(rv)
+        rv._queueForResolution()
         
         return rv
 
@@ -1679,7 +1679,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, Name
         assert IGNORED_ARGUMENT == ignored_parameter
         rv = self._attributeRelevantChildren(IGNORED_ARGUMENT, definition_node_list)
         if rv is None:
-            self._namespaceContext().queueForResolution(self)
+            self._queueForResolution()
             print 'Holding off CTD %s resolution due to unresolved attribute or group' % (self.name(),)
             return self
 
@@ -1711,7 +1711,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, Name
                 for au in uses_c12:
                     matching_uses = au.matchingQNameMembers(IGNORED_ARGUMENT, uses_c3)
                     if matching_uses is None:
-                        self._namespaceContext().queueForResolution(self)
+                        self._queueForResolution()
                         print 'Holding off CTD %s resolution to check for attribute restrictions' % (self.name(),)
                         return self
                     uses_c3 = uses_c3.difference(matching_uses)
@@ -1983,7 +1983,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, Name
                         # Have to delay resolution until the type this
                         # depends on is available.
                         #print 'Holding off resolution of %s due to dependence on unresolved %s' % (self.name(), base_type.name())
-                        self._namespaceContext().queueForResolution(self)
+                        self._queueForResolution()
                         return self
                     # The content is defined by the restriction/extension element
                     definition_node_list = ions.childNodes
@@ -1994,7 +1994,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, Name
             self.__contentNode = content_node
 
         if self.__baseTypeDefinition is None:
-            self._namespaceContext().queueForResolution(self)
+            self._queueForResolution()
             return self
 
         # Only build the content once.  This all completes now that we
@@ -2013,7 +2013,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, Name
         # If something went wrong building the content, we'll have to
         # try again later
         if self.__contentType is None:
-            self._namespaceContext().queueForResolution(self)
+            self._queueForResolution()
             return self
 
         # Last chance for failure is if we haven't been able to
@@ -2024,7 +2024,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, Name
         if isinstance(self.__contentType, tuple) and isinstance(self.__contentType[1], Particle):
             prt = self.__contentType[1]
             if prt.hasUnresolvableParticle(IGNORED_ARGUMENT):
-                self._namespaceContext().queueForResolution(self)
+                self._queueForResolution()
                 return self
 
         return self.__completeProcessing(IGNORED_ARGUMENT, self.__definitionNodeList, self.__pendingDerivationMethod, self.__contentStyle)
@@ -2081,7 +2081,7 @@ class AttributeGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, N
         rv = cls(name=name, node=node, **kw)
 
         rv._annotationFromDOM(IGNORED_ARGUMENT, node)
-        rv._namespaceContext().queueForResolution(rv)
+        rv._queueForResolution()
         rv.__domNode = node
         return rv
 
@@ -2103,7 +2103,7 @@ class AttributeGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, N
 
         rv = self._attributeRelevantChildren(IGNORED_ARGUMENT, node.childNodes)
         if rv is None:
-            self._namespaceContext().queueForResolution(self)
+            self._queueForResolution()
             return self
 
         (attributes, attribute_groups, any_attribute) = rv
@@ -2522,7 +2522,7 @@ class Particle (_SchemaComponent_mixin, Namespace._Resolvable_mixin):
             (ref_ns, ref_ln) = ref_qname
             group_decl = ref_ns.modelGroupDefinitions().get(ref_ln)
             if group_decl is None:
-                self._namespaceContext().queueForResolution(self)
+                self._queueForResolution()
                 return None
 
             # Neither group definitions nor model groups require
@@ -2538,7 +2538,7 @@ class Particle (_SchemaComponent_mixin, Namespace._Resolvable_mixin):
                 (ref_ns, ref_ln) = ref_qname
                 term = _LookupElementDeclaration(ref_ns, context, ref_ln)
                 if term is None:
-                    self._namespaceContext().queueForResolution(self)
+                    self._queueForResolution()
                     return term
             else:
                 term = ElementDeclaration.CreateFromDOM(IGNORED_ARGUMENT, node=node, scope=scope)
@@ -2607,7 +2607,7 @@ class Particle (_SchemaComponent_mixin, Namespace._Resolvable_mixin):
 
         rv = cls(None, **kw)
         rv.__domNode = node
-        rv._namespaceContext().queueForResolution(rv)
+        rv._queueForResolution()
         return rv
 
     def _adaptForScope (self, ignored_parameter, owner, scope):
@@ -2902,7 +2902,7 @@ class IdentityConstraintDefinition (_SchemaComponent_mixin, _NamedComponent_mixi
         assert _ScopedDeclaration_mixin.ScopeIsIndeterminate(scope) or _ScopedDeclaration_mixin.IsValidScope(scope)
         rv = cls(name=name, node=node, **kw)
         rv.__domNode = node
-        rv._namespaceContext().queueForResolution(rv)
+        rv._queueForResolution()
         return rv
 
     def isResolved (self):
@@ -2927,7 +2927,7 @@ class IdentityConstraintDefinition (_SchemaComponent_mixin, _NamedComponent_mixi
             (refer_ns, refer_ln) = refer_qname
             refer = _LookupIdentityConstraintDefinition(refer_ns, self.scope(), refer_ln)
             if refer is None:
-                self._namespaceContext().queueForResolution(self)
+                self._queueForResolution()
                 return self
             self.__referencedKey = refer
         elif xsd.nodeIsNamed(node, 'unique'):
@@ -3431,7 +3431,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, Names
             # delay processing this type until the one it depends on
             # has been completed.
             if not base_type.isResolved():
-                self._namespaceContext().queueForResolution(self)
+                self._queueForResolution()
                 return self
             self.__baseTypeDefinition = base_type
         else:
@@ -3591,7 +3591,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, Names
             else:
                 if (ptd != self) and (not ptd.isResolved()):
                     assert False
-                    self._namespaceContext().queueForResolution(self)
+                    self._queueForResolution()
                     return self
                 self.__primitiveTypeDefinition = ptd
         elif self.VARIETY_list == variety:
@@ -3653,7 +3653,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, Names
                 for mt in self.__memberTypeDefinitions:
                     assert isinstance(mt, SimpleTypeDefinition)
                     if not mt.isResolved():
-                        self._namespaceContext().queueForResolution(self)
+                        self._queueForResolution()
                         return self
                     if self.VARIETY_union == mt.variety():
                         mtd.extend(mt.memberTypeDefinitions())
@@ -3777,7 +3777,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, Names
         # Creation does not attempt to do resolution.  Queue up the newly created
         # whatsis so we can resolve it after everything's been read in.
         rv.__domNode = node
-        rv._namespaceContext().queueForResolution(rv)
+        rv._queueForResolution()
         
         return rv
 
