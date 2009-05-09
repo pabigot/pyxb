@@ -112,6 +112,31 @@ class Namespace (object):
     # generated Python modules
     __modulePath = None
 
+    __contextDefaultNamespace = None
+    __contextInScopeNamespaces = None
+    __initialNamespaceContext = None
+    def initialNamespaceContext (self):
+        import pyxb.utils.domutils
+        if self.__initialNamespaceContext is None:
+            isn = { }
+            if self.__contextInScopeNamespaces is not None:
+                for (k, v) in self.__contextInScopeNamespaces.items():
+                    isn[k] = self.__identifyNamespace(v)
+            kw = { 'target_namespace' : self
+                 , 'default_namespace' : self.__identifyNamespace(self.__contextDefaultNamespace)
+                 , 'in_scope_namespaces' : isn }
+            self.__initialNamespaceContext = pyxb.utils.domutils.NamespaceContext(None, **kw)
+        return self.__initialNamespaceContext
+
+    def __identifyNamespace (self, nsval):
+        if nsval is None:
+            return self
+        if isinstance(nsval, (str, unicode)):
+            nsval = globals().get(nsval)
+        if isinstance(nsval, Namespace):
+            return nsval
+        raise LogicError('Cannot identify namespace from %s' % (nsval,))
+
     # A set of options defining how the Python bindings for this
     # namespace were generated.
     __bindingConfiguration = None
@@ -215,7 +240,9 @@ class Namespace (object):
                   description=None,
                   is_builtin_namespace=False,
                   is_undeclared_namespace=False,
-                  bound_prefix=None):
+                  bound_prefix=None,
+                  default_namespace=None,
+                  in_scope_namespaces=None):
         """Create a new Namespace.
 
         The URI must be non-None, and must not already be assigned to
@@ -226,9 +253,14 @@ class Namespace (object):
 
         Users should never provide a is_builtin_namespace parameter.
         """
+        import pyxb.utils.domutils
 
         # New-style superclass invocation
         super(Namespace, self).__init__()
+
+        self.__contextDefaultNamespace = default_namespace
+        self.__contextInScopeNamespaces = in_scope_namespaces
+        self.__initialNamespaceContext = None
 
         # Make sure we have namespace support loaded before use, and
         # that we're not trying to do something restricted to built-in
@@ -709,10 +741,11 @@ class _XMLSchema_instance (Namespace):
         Overrides base class implementation, since there is no schema
         for this namespace. """
         
+        import pyxb.utils.domutils
         if self.schema() is None:
             if not XMLSchemaModule():
                 raise LogicError('Must invoke SetXMLSchemaModule from Namespace module prior to using system.')
-            schema = XMLSchemaModule().schema(target_namespace=self)
+            schema = XMLSchemaModule().schema(namespace_context=self.initialNamespaceContext())
             self._schema(schema)
             xsc = XMLSchemaModule().structures
             schema._addNamedComponent(xsc.AttributeDeclaration.CreateBaseInstance('type', self))
@@ -734,7 +767,7 @@ class _XML (Namespace):
         if self.schema() is None:
             if not XMLSchemaModule():
                 raise LogicError('Must invoke SetXMLSchemaModule from Namespace module prior to using system.')
-            schema = XMLSchemaModule().schema(target_namespace=self, default_namespace=XHTML)
+            schema = XMLSchemaModule().schema(self.initialNamespaceContext())
             self._schema(schema)
             xsc = XMLSchemaModule().structures
             schema._addNamedComponent(xsc.AttributeDeclaration.CreateBaseInstance('base', self))
@@ -766,6 +799,8 @@ class _XMLSchema (Namespace):
 
     The types are defined when the XMLSchemaModule is set.
     """
+
+    # No default namespace for XMLSchema
 
     def _loadBuiltins (self):
         """Register the built-in types into the XMLSchema namespace."""
@@ -810,16 +845,11 @@ XMLSchema_instance = _XMLSchema_instance('http://www.w3.org/2001/XMLSchema-insta
                                          is_undeclared_namespace=True,
                                          bound_prefix='xsi')
 
-## Namespace and URI for the XMLSchema namespace (often xs, or xsd)
-XMLSchema = _XMLSchema('http://www.w3.org/2001/XMLSchema',
-                       schema_location='http://www.w3.org/2001/XMLSchema.xsd',
-                       description='XML Schema',
-                       is_builtin_namespace=True)
-
-# Namespaces in XML
+# Namespaces in XML.  Not really a namespace, but is always available as xmlns.
 XMLNamespaces = Namespace('http://www.w3.org/2000/xmlns/',
                           description='Namespaces in XML',
                           is_builtin_namespace=True,
+                          is_undeclared_namespace = True,
                           bound_prefix='xmlns')
 
 # Namespace and URI for XML itself (always xml)
@@ -828,20 +858,34 @@ XML = _XML('http://www.w3.org/XML/1998/namespace',
            schema_location='http://www.w3.org/2001/xml.xsd',
            is_builtin_namespace=True,
            is_undeclared_namespace=True,
-           bound_prefix='xml')
+           bound_prefix='xml',
+           default_namespace='XHTML')
 
-# Elements appearing in appinfo elements to support data types
-XMLSchema_hfp = Namespace('http://www.w3.org/2001/XMLSchema-hasFacetAndProperty',
-                          description='Facets appearing in appinfo section',
-                          schema_location='http://www.w3.org/2001/XMLSchema-hasFacetAndProperty',
-                          is_builtin_namespace=True)
+
+## Namespace and URI for the XMLSchema namespace (often xs, or xsd)
+XMLSchema = _XMLSchema('http://www.w3.org/2001/XMLSchema',
+                       schema_location='http://www.w3.org/2001/XMLSchema.xsd',
+                       description='XML Schema',
+                       is_builtin_namespace=True,
+                       in_scope_namespaces = { 'xs' : None })
 
 # There really isn't a schema for this, but it's used as the default
 # namespace in the XML schema, so define it.
 XHTML = _XHTML('http://www.w3.org/1999/xhtml',
                description='Family of document types that extend HTML',
                schema_location='http://www.w3.org/1999/xhtml.xsd',
-               is_builtin_namespace=True)
+               is_builtin_namespace=True,
+               default_namespace=XMLSchema)
+
+
+# Elements appearing in appinfo elements to support data types
+XMLSchema_hfp = Namespace('http://www.w3.org/2001/XMLSchema-hasFacetAndProperty',
+                          description='Facets appearing in appinfo section',
+                          schema_location='http://www.w3.org/2001/XMLSchema-hasFacetAndProperty',
+                          is_builtin_namespace=True,
+                          default_namespace='XMLSchema',
+                          in_scope_namespaces = { 'hfp' : None
+                                                , 'xhtml' : XHTML })
 
 # List of pre-defined namespaces.  NB: XMLSchema_instance must be first.
 PredefinedNamespaces = [
