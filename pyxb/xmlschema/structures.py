@@ -237,6 +237,8 @@ class _SchemaComponent_mixin (object):
         # non-declarations that contain cloned declarations.
         assert IGNORED_ARGUMENT == ignored_parameter
         assert (not isinstance(self, _ScopedDeclaration_mixin)) or self._scopeIsIndeterminate()
+        if isinstance(self, Namespace._Resolvable_mixin):
+            assert self.isResolved()
 
         that = copy.copy(self)
         that.__cloneSource = self
