@@ -12,16 +12,6 @@ ModelGroup components are created from non-DOM sources.
 """
 
 IGNORED_ARGUMENT = 'ignored argument'
-class QUEUE_ARGUMENT (object):
-    def __init__ (self, wxs):
-        assert isinstance(wxs, Schema)
-        self.__wxs = wxs
-
-    def schema (self):
-        return self.__wxs
-
-    def queueComponent (self, component):
-        self.__wxs._queueForResolution(component)
 
 from pyxb.exceptions_ import *
 from xml.dom import Node
@@ -1089,8 +1079,9 @@ class AttributeUse (_SchemaComponent_mixin, Namespace._Resolvable_mixin, _ValueC
         """
         return frozenset([self.__attributeDeclaration])
 
-    def matchingQNameMembers (self, wxs, au_set):
+    def matchingQNameMembers (self, ignored_parameter, au_set):
         """Return the subset of au_set for which the use names match this use."""
+        assert IGNORED_ARGUMENT == ignored_parameter
 
         # This use may be brand new, and temporary, and if we don't
         # resolve it now it may be thrown away and we'll loop forever
@@ -1100,7 +1091,6 @@ class AttributeUse (_SchemaComponent_mixin, Namespace._Resolvable_mixin, _ValueC
         # If it's still not resolved, hold off, and indicate that the
         # caller should hold off too.
         if not self.isResolved():
-            aur = NodeAttribute(self.__domNode, 'ref')
             return None
         this_ad = self.attributeDeclaration()
         rv = set()
@@ -1334,7 +1324,8 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, Namespa
         
         return rv
 
-    def hasUnresolvableParticle (self, wxs):
+    def hasUnresolvableParticle (self, ignored_parameter):
+        assert IGNORED_ARGUMENT == ignored_parameter
         return False
 
     def _adaptForScope (self, namespace_context, owner, scope):
@@ -1716,7 +1707,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, Name
                 # not yet filtered uses_c1 for prohibited attributes.
                 uses_c12 = uses_c1.union(uses_c2)
                 for au in uses_c12:
-                    matching_uses = au.matchingQNameMembers(self._namespaceContext().targetNamespace().schema(), uses_c3)
+                    matching_uses = au.matchingQNameMembers(IGNORED_ARGUMENT, uses_c3)
                     if matching_uses is None:
                         self._namespaceContext().queueForResolution(self)
                         print 'Holding off CTD %s resolution to check for attribute restrictions' % (self.name(),)
@@ -2030,7 +2021,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, Name
         # context.
         if isinstance(self.__contentType, tuple) and isinstance(self.__contentType[1], Particle):
             prt = self.__contentType[1]
-            if prt.hasUnresolvableParticle(self._namespaceContext().targetNamespace().schema()):
+            if prt.hasUnresolvableParticle(IGNORED_ARGUMENT):
                 self._namespaceContext().queueForResolution(self)
                 return self
 
@@ -2222,11 +2213,12 @@ class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
     __particles = None
     def particles (self): return self.__particles
 
-    def hasUnresolvableParticle (self, wxs):
+    def hasUnresolvableParticle (self, ignored_parameter):
         """A model group has an unresolvable particle if any of its
         particles is unresolvable.  Duh."""
+        assert IGNORED_ARGUMENT == ignored_parameter
         for p in self.particles():
-            if p.hasUnresolvableParticle(wxs):
+            if p.hasUnresolvableParticle(IGNORED_ARGUMENT):
                 return True
         return False
 
@@ -2347,10 +2339,11 @@ class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
     def IsGroupMemberNode (cls, node):
         return xsd.nodeIsNamed(node, 'all', 'choice', 'sequence')
 
-    def elementDeclarations (self, wxs):
+    def elementDeclarations (self, ignored_parameter):
         """Return a list of all ElementDeclarations that are at the
         top level of this model group, in the order in which they can
         occur."""
+        assert IGNORED_ARGUMENT == ignored_parameter
         element_decls = []
         model_groups = [ self ]
         #print 'Extracting element declarations from model group with %d particles: %s'  % (len(self.particles()), self.particles())
@@ -2360,7 +2353,7 @@ class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
                 if isinstance(p.term(), ModelGroup):
                     model_groups.append(p.term())
                 elif isinstance(p.term(), ElementDeclaration):
-                    element_decls.extend(p.elementDeclarations(wxs))
+                    element_decls.extend(p.elementDeclarations(IGNORED_ARGUMENT))
                 else:
                     assert p.term() is not None
                     pass
@@ -2416,10 +2409,11 @@ class Particle (_SchemaComponent_mixin, Namespace._Resolvable_mixin):
         """A reference to a ModelGroup, Wildcard, or ElementDeclaration."""
         return self.__term
 
-    def elementDeclarations (self, wxs):
+    def elementDeclarations (self, ignored_parameter):
+        assert IGNORED_ARGUMENT == ignored_parameter
         assert self.__term is not None
         if isinstance(self.__term, ModelGroup):
-            return self.__term.elementDeclarations(wxs)
+            return self.__term.elementDeclarations(IGNORED_ARGUMENT)
         if isinstance(self.__term, ElementDeclaration):
             return [ self.__term ]
         if isinstance(self.__term, Wildcard):
@@ -2627,7 +2621,7 @@ class Particle (_SchemaComponent_mixin, Namespace._Resolvable_mixin):
                 pass
         return rv
 
-    def hasUnresolvableParticle (self, wxs):
+    def hasUnresolvableParticle (self, ignored_parameter):
         """A particle has an unresolvable particle if it cannot be
         resolved, or if it has resolved to a term which is a model
         group that has an unresolvable particle.
@@ -2637,7 +2631,8 @@ class Particle (_SchemaComponent_mixin, Namespace._Resolvable_mixin):
         resolvability, not do any resolution.
 
         """
-        return (not self.isResolved()) or self.term().hasUnresolvableParticle(wxs)
+        assert IGNORED_ARGUMENT == ignored_parameter
+        return (not self.isResolved()) or self.term().hasUnresolvableParticle(IGNORED_ARGUMENT)
         
     @classmethod
     def IsTypedefNode (cls, node):
@@ -2821,7 +2816,8 @@ class Wildcard (_SchemaComponent_mixin, _Annotated_mixin):
         """
         return frozenset()
 
-    def hasUnresolvableParticle (self, wxs):
+    def hasUnresolvableParticle (self, ignored_parameter):
+        assert IGNORED_ARGUMENT == ignored_parameter
         return False
 
     def _adaptForScope (self, namespace_context, owner, ctd):

@@ -20,6 +20,8 @@ import traceback
 from xml.dom import minidom
 from xml.dom import Node
 
+IGNORED_ARGUMENT = 'ignored argument'
+
 UniqueInBinding = set()
 PostscriptItems = []
 
@@ -872,7 +874,7 @@ def GenerateMG (mg, **kw):
     # @todo Gotta handle wildcards in here too.
 
     field_names = { }
-    for e in mg.elementDeclarations(None):
+    for e in mg.elementDeclarations(IGNORED_ARGUMENT):
         if e.scope() is None:
             return ''
         assert e.isResolved()
