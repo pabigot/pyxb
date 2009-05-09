@@ -221,7 +221,7 @@ class definitions (raw_wsdl.definitions):
                     elt_qname = p._namespaceContext().interpretQName(p.element())
                     assert elt_qname is not None
                     (elt_ns, elt_ln) = elt_qname
-                    p._setElementReference(elt_ns.elements()[elt_ln])
+                    p._setElementReference(elt_ns.elementDeclarations()[elt_ln])
                 if (p.type() is not None) and (p.typeReference() is None):
                     type_qname = p._namespaceContext().interpretQName(p.type())
                     assert type_qname is not None
