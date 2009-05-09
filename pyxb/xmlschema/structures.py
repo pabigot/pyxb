@@ -225,7 +225,7 @@ class _SchemaComponent_mixin (object):
             self.__schema._associateComponent(self)
         return getattr(super(_SchemaComponent_mixin, self), '_resetClone_vc', lambda *args, **kw: self)()
 
-    def _clone (self, namespace_context):
+    def _clone (self, ignored_parameter):
         """Create a copy of this instance suitable for adoption by
         some other component.
         
@@ -235,6 +235,7 @@ class _SchemaComponent_mixin (object):
         # We only care about cloning declarations, and they should
         # have an unassigned scope.  However, we do clone
         # non-declarations that contain cloned declarations.
+        assert IGNORED_ARGUMENT == ignored_parameter
         assert (not isinstance(self, _ScopedDeclaration_mixin)) or self._scopeIsIndeterminate()
 
         that = copy.copy(self)
@@ -245,8 +246,7 @@ class _SchemaComponent_mixin (object):
         that._resetClone_vc()
         if isinstance(that, Namespace._Resolvable_mixin):
             if not that.isResolved():
-                #print 'Queuing clone for resolution'
-                namespace_context._queueForResolution(that)
+                that._namespaceContext().queueForResolution(that)
         return that
 
     def isTypeDefinition (self):
@@ -1179,7 +1179,7 @@ class AttributeUse (_SchemaComponent_mixin, Namespace._Resolvable_mixin, _ValueC
         self.__domNode = None
         return self
 
-    def _adaptForScope (self, namespace_context, ctd):
+    def _adaptForScope (self, ignored_parameter, ctd):
         """Adapt this instance for the given complex type.
 
         If the attribute declaration for this instance has scope None,
@@ -1187,12 +1187,13 @@ class AttributeUse (_SchemaComponent_mixin, Namespace._Resolvable_mixin, _ValueC
         into the given CTD.  In that case, clone this instance and
         return the clone with its attribute declaration also set to a
         clone with proper scope."""
+        assert IGNORED_ARGUMENT == ignored_parameter
         ad = self.__attributeDeclaration
         rv = self
         if ad.scope() is None:
-            rv = self._clone(namespace_context)
+            rv = self._clone(IGNORED_ARGUMENT)
             rv._setOwner(ctd)
-            rv.__attributeDeclaration = ad._clone(namespace_context)
+            rv.__attributeDeclaration = ad._clone(IGNORED_ARGUMENT)
             rv.__attributeDeclaration._setOwner(rv)
             rv.__attributeDeclaration._setScope(ctd)
         return rv
@@ -1328,10 +1329,11 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, Namespa
         assert IGNORED_ARGUMENT == ignored_parameter
         return False
 
-    def _adaptForScope (self, namespace_context, owner, scope):
+    def _adaptForScope (self, ignored_parameter, owner, scope):
+        assert IGNORED_ARGUMENT == ignored_parameter
         rv = self
         if (self._scopeIsIndeterminate()) and (scope is not None):
-            rv = self._clone(namespace_context)
+            rv = self._clone(IGNORED_ARGUMENT)
             assert owner is not None
             rv._setOwner(owner)
             rv._setScope(scope)
@@ -1717,7 +1719,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, Name
         # Past the last point where we might not resolve this
         # instance.  Store the attribute uses, also recording local
         # attribute declarations.
-        self.__attributeUses = frozenset([ _u._adaptForScope(self._namespaceContext(), self) for _u in uses_c1.union(uses_c2).union(uses_c3) ])
+        self.__attributeUses = frozenset([ _u._adaptForScope(IGNORED_ARGUMENT, self) for _u in uses_c1.union(uses_c2).union(uses_c3) ])
 
         # @todo Handle attributeWildcard
         # Clause 1
@@ -2361,11 +2363,12 @@ class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
         #print 'Model group with %d particles produced %d element declarations' % (len(self.particles()), len(element_decls))
         return element_decls
 
-    def _adaptForScope (self, namespace_context, owner, scope):
+    def _adaptForScope (self, ignored_parameter, owner, scope):
+        assert IGNORED_ARGUMENT == ignored_parameter
         rv = self
-        scoped_particles = [ _p._adaptForScope(namespace_context, None, scope) for _p in self.particles() ]
+        scoped_particles = [ _p._adaptForScope(IGNORED_ARGUMENT, None, scope) for _p in self.particles() ]
         if scoped_particles != self.particles():
-            rv = self._clone(namespace_context)
+            rv = self._clone(IGNORED_ARGUMENT)
             rv._setOwner(owner)
             rv.__particles = scoped_particles
         return rv
@@ -2490,7 +2493,7 @@ class Particle (_SchemaComponent_mixin, Namespace._Resolvable_mixin):
         assert (self._scopeIsIndeterminate()) or isinstance(self._scope(), ComplexTypeDefinition)
 
         if term is not None:
-            self.__term = term._adaptForScope(self._namespaceContext(), self, self._scope())
+            self.__term = term._adaptForScope(IGNORED_ARGUMENT, self, self._scope())
 
         assert isinstance(min_occurs, (types.IntType, types.LongType))
         self.__minOccurs = min_occurs
@@ -2524,7 +2527,7 @@ class Particle (_SchemaComponent_mixin, Namespace._Resolvable_mixin):
 
             # Neither group definitions nor model groups require
             # resolution, so we can just extract the reference.
-            term = group_decl.modelGroup()._adaptForScope(self._namespaceContext(), self, scope)
+            term = group_decl.modelGroup()._adaptForScope(IGNORED_ARGUMENT, self, scope)
             assert term is not None
         elif xsd.nodeIsNamed(node, 'element'):
             assert not xsd.nodeIsNamed(node.parentNode, 'schema')
@@ -2607,13 +2610,13 @@ class Particle (_SchemaComponent_mixin, Namespace._Resolvable_mixin):
         rv._namespaceContext().queueForResolution(rv)
         return rv
 
-    def _adaptForScope (self, namespace_context, owner, scope):
-        assert isinstance(namespace_context, Namespace.NamespaceContext)
+    def _adaptForScope (self, ignored_parameter, owner, scope):
+        assert IGNORED_ARGUMENT == ignored_parameter
         rv = self
         if (self._scopeIsIndeterminate()) and (scope is not None):
-            rv = self._clone(namespace_context)
+            rv = self._clone(IGNORED_ARGUMENT)
             rv._setOwner(owner)
-            rv.__term = rv.__term._adaptForScope(namespace_context, rv, scope)
+            rv.__term = rv.__term._adaptForScope(IGNORED_ARGUMENT, rv, scope)
         else:
             try:
                 assert self.__term._scopeIsCompatible(scope)
@@ -2820,8 +2823,9 @@ class Wildcard (_SchemaComponent_mixin, _Annotated_mixin):
         assert IGNORED_ARGUMENT == ignored_parameter
         return False
 
-    def _adaptForScope (self, namespace_context, owner, ctd):
+    def _adaptForScope (self, ignored_parameter, owner, ctd):
         """Wildcards are scope-independent; return self"""
+        assert IGNORED_ARGUMENT == ignored_parameter
         return self
 
     # CFD:Wildcard
