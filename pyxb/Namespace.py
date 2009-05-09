@@ -767,7 +767,7 @@ class _XML (Namespace):
         if self.schema() is None:
             if not XMLSchemaModule():
                 raise LogicError('Must invoke SetXMLSchemaModule from Namespace module prior to using system.')
-            schema = XMLSchemaModule().schema(self.initialNamespaceContext())
+            schema = XMLSchemaModule().schema(namespace_context=self.initialNamespaceContext())
             self._schema(schema)
             xsc = XMLSchemaModule().structures
             schema._addNamedComponent(xsc.AttributeDeclaration.CreateBaseInstance('base', self))
@@ -784,13 +784,15 @@ class _XHTML (Namespace):
         """Ensure this namespace is ready for use.
 
         Overrides base class implementation, since there is no schema
-        for this namespace. """
+        for this namespace.  In fact, there's nothing at all in it
+        that we plan to use, so this doesn't do anything."""
         
         if self.schema() is None:
             if not XMLSchemaModule():
                 raise LogicError('Must invoke SetXMLSchemaModule from Namespace module prior to using system.')
-            schema = XMLSchemaModule().schema(target_namespace=self, default_namespace=XMLSchema)
+            schema = XMLSchemaModule().schema(namespace_context=self.initialNamespaceContext())
             self._schema(schema)
+            # @todo Define a wildcard element declaration 'p' that takes anything.
         return self
 
 class _XMLSchema (Namespace):
@@ -804,14 +806,14 @@ class _XMLSchema (Namespace):
 
     def _loadBuiltins (self):
         """Register the built-in types into the XMLSchema namespace."""
+
         if self.schema() is None:
-            self._schema(XMLSchemaModule().schema(target_namespace=self, default_namespace=XHTML))
+            self._schema(XMLSchemaModule().schema(namespace_context=self.initialNamespaceContext()))
 
-        XMLSchemaModule().structures._AddSimpleTypes(self.schema())
+        # Defer the definitions to the structures module
+        XMLSchemaModule().structures._AddSimpleTypes(self)
 
-        # In order to load a schema from a file, we need the ability
-        # for the load infrastructure to update the built-in schema
-        # instance we've already associated.  
+        # A little validation here
         xsc = XMLSchemaModule().structures
         assert xsc.ComplexTypeDefinition.UrTypeDefinition() == self.typeDefinitions()['anyType']
         assert xsc.SimpleTypeDefinition.SimpleUrTypeDefinition() == self.typeDefinitions()['anySimpleType']
@@ -849,7 +851,7 @@ XMLSchema_instance = _XMLSchema_instance('http://www.w3.org/2001/XMLSchema-insta
 XMLNamespaces = Namespace('http://www.w3.org/2000/xmlns/',
                           description='Namespaces in XML',
                           is_builtin_namespace=True,
-                          is_undeclared_namespace = True,
+#                          is_undeclared_namespace = True,
                           bound_prefix='xmlns')
 
 # Namespace and URI for XML itself (always xml)

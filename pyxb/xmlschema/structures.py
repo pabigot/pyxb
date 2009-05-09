@@ -64,11 +64,21 @@ class _SchemaComponent_mixin (object):
     time by passing a schema=val parameter to the constructor.  
     """
 
+    # The namespace context for this schema: where it looks things up,
+    # where it puts things it createas, the in-scope namespace
+    # declarations, etc.  Must be defined for all but the most trivial
+    # components, so in fact we require it of everything.
+    __namespaceContext = None
+    def _namespaceContext (self):
+        return self.__namespaceContext
+
     # A special tag to pass in the constructor when the schema is
     # known to be unavailable.  This allows us to detect cases where
     # the system is not providing the schema.  The only such cases
     # should be the ur types and a schema itself.
     _SCHEMA_None = 'ExplicitNoSchema'
+
+    # The namespace context associated with this component.
 
     # The schema to which this component belongs.  If None, assume it
     # belongs to the XMLSchema namespace.  The value cannot be changed
@@ -125,6 +135,15 @@ class _SchemaComponent_mixin (object):
         self.__ownedComponents = set()
         self.__scope = kw.get('scope')
         self.__context = kw.get('context')
+        self.__namespaceContext = kw.get('namespace_context')
+        if self.__namespaceContext is None:
+            node = kw.get('node')
+            if node is None:
+                raise LogicError('Schema component constructor must be given namespace_context or node')
+            self.__namespaceContext = NamespaceContext.GetNodeContext(node)
+        if self.__namespaceContext is None:
+            raise LogicError('No namespace_context for schema component')
+
         super(_SchemaComponent_mixin, self).__init__(*args, **kw)
         if 'schema' not in kw:
             raise LogicError('Constructor failed to provide owning schema')
@@ -446,7 +465,7 @@ class _NamedComponent_mixin (object):
         # Must be None or a valid NCName
         assert (name is None) or (0 > name.find(':'))
         self.__name = name
-        target_namespace = kw.get('target_namespace')
+        target_namespace = kw.get('target_namespace', self._namespaceContext().targetNamespace())
         #assert target_namespace is not None
         self.__targetNamespace = target_namespace
 
@@ -911,7 +930,7 @@ class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, Names
     @classmethod
     def CreateBaseInstance (cls, name, target_namespace, std=None):
         """Create an attribute declaration component for a specified namespace."""
-        bi = cls(name=name, target_namespace=target_namespace, schema=target_namespace.schema(), scope=_ScopedDeclaration_mixin.SCOPE_global)
+        bi = cls(name=name, namespace_context=target_namespace.initialNamespaceContext(), schema=target_namespace.schema(), scope=_ScopedDeclaration_mixin.SCOPE_global)
         if std is not None:
             bi.__typeDefinition = std
         return bi
@@ -1560,20 +1579,22 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, Name
         #    raise LogicError('Multiple definitions of UrType')
         if cls.__UrTypeDefinition is None:
             # NOTE: We use a singleton subclass of this class
-            bi = _UrTypeDefinition(name='anyType', target_namespace=Namespace.XMLSchema, derivation_method=cls.DM_restriction, schema=_SchemaComponent_mixin._SCHEMA_None, scope=_ScopedDeclaration_mixin.XSCOPE_indeterminate)
+            ns_ctx = Namespace.XMLSchema.initialNamespaceContext()
+            bi = _UrTypeDefinition(name='anyType', namespace_context=ns_ctx, derivation_method=cls.DM_restriction, schema=_SchemaComponent_mixin._SCHEMA_None, scope=_ScopedDeclaration_mixin.XSCOPE_indeterminate)
 
             # The ur-type is its own baseTypeDefinition
             bi.__baseTypeDefinition = bi
 
             # No constraints on attributes
-            bi._setAttributeWildcard(Wildcard(namespace_constraint=Wildcard.NC_any, process_contents=Wildcard.PC_lax, schema=_SchemaComponent_mixin._SCHEMA_None))
+            bi._setAttributeWildcard(Wildcard(namespace_context=ns_ctx, namespace_constraint=Wildcard.NC_any, process_contents=Wildcard.PC_lax, schema=_SchemaComponent_mixin._SCHEMA_None))
 
             # There isn't anything to look up, but context is still global.
             # No declarations will be created, so use indeterminate scope to
             # be consistent with validity checks in Particle constructor.
             # Content is mixed, with elements completely unconstrained. @todo
             # not associated with a schema (it should be)
-            kw = { 'schema' : Namespace.XMLSchema.schema()
+            kw = { 'namespace_context' : ns_ctx
+                 , 'schema' : Namespace.XMLSchema.schema()
                  , 'context': _ScopedDeclaration_mixin.SCOPE_global
                  , 'scope': _ScopedDeclaration_mixin.XSCOPE_indeterminate }
             w = Wildcard(namespace_constraint=Wildcard.NC_any, process_contents=Wildcard.PC_lax, **kw)
@@ -2436,7 +2457,7 @@ class Particle (_SchemaComponent_mixin, Namespace._Resolvable_mixin):
 
         super(Particle, self).__init__(*args, **kw)
 
-        wxs = kw.get('schema')
+        wxs = self._namespaceContext().targetNamespace().schema()
         assert wxs is not None
         min_occurs = kw.get('min_occurs', 1)
         max_occurs = kw.get('max_occurs', 1)
@@ -3242,7 +3263,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, Names
         #    raise LogicError('Multiple definitions of SimpleUrType')
         if cls.__SimpleUrTypeDefinition is None:
             # Note: We use a singleton subclass
-            bi = _SimpleUrTypeDefinition(name='anySimpleType', target_namespace=Namespace.XMLSchema, variety=cls.VARIETY_absent, schema=_SchemaComponent_mixin._SCHEMA_None, scope=_ScopedDeclaration_mixin.XSCOPE_indeterminate)
+            bi = _SimpleUrTypeDefinition(name='anySimpleType', namespace_context=Namespace.XMLSchema.initialNamespaceContext(), variety=cls.VARIETY_absent, schema=_SchemaComponent_mixin._SCHEMA_None, scope=_ScopedDeclaration_mixin.XSCOPE_indeterminate)
             bi._setPythonSupport(datatypes.anySimpleType)
 
             # The baseTypeDefinition is the ur-type.
@@ -3271,7 +3292,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, Names
         All parameters are required and must be non-None.
         """
         
-        bi = cls(name=name, schema=schema, target_namespace=schema.targetNamespace(), variety=cls.VARIETY_atomic, scope=_ScopedDeclaration_mixin.XSCOPE_indeterminate)
+        bi = cls(name=name, schema=schema, namespace_context=schema.targetNamespace().initialNamespaceContext(), variety=cls.VARIETY_atomic, scope=_ScopedDeclaration_mixin.XSCOPE_indeterminate)
         bi._setPythonSupport(python_support)
 
         # Primitive types are based on the ur-type, and have
@@ -3295,7 +3316,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, Names
         """
         assert parent_std
         assert parent_std.__variety in (cls.VARIETY_absent, cls.VARIETY_atomic)
-        bi = cls(name=name, schema=schema, target_namespace=schema.targetNamespace(), variety=parent_std.__variety, scope=_ScopedDeclaration_mixin.XSCOPE_indeterminate)
+        bi = cls(name=name, schema=schema, namespace_context=schema.targetNamespace().initialNamespaceContext(), variety=parent_std.__variety, scope=_ScopedDeclaration_mixin.XSCOPE_indeterminate)
         bi._setPythonSupport(python_support)
 
         # We were told the base type.  If this is atomic, we re-use
@@ -3318,7 +3339,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, Names
         that require explicit support to for Pythonic conversion; but
         note that such support is identified by the item_std.
         """
-        bi = cls(name=name, schema=schema, target_namespace=schema.targetNamespace(), variety=cls.VARIETY_list, scope=_ScopedDeclaration_mixin.XSCOPE_indeterminate)
+        bi = cls(name=name, schema=schema, namespace_context=schema.targetNamespace().initialNamespaceContext(), variety=cls.VARIETY_list, scope=_ScopedDeclaration_mixin.XSCOPE_indeterminate)
         bi._setPythonSupport(python_support)
 
         # The base type is the ur-type.  We were given the item type.
@@ -3947,7 +3968,7 @@ class Schema (_SchemaComponent_mixin):
         assert 'schema' not in kw
         kw['schema'] = _SchemaComponent_mixin._SCHEMA_None
         super(Schema, self).__init__(*args, **kw)
-        self.__targetNamespace = kw.get('target_namespace')
+        self.__targetNamespace = kw.get('target_namespace', self._namespaceContext().targetNamespace())
         if not isinstance(self.__targetNamespace, Namespace.Namespace):
             raise LogicError('Schema constructor requires valid Namespace instance as target_namespace')
         self.__defaultNamespace = kw.get('default_namespace')
@@ -4264,10 +4285,11 @@ class Schema (_SchemaComponent_mixin):
     def interpretQName (self, node, qname):
         return InterpretQName(node, qname)
     
-def _AddSimpleTypes (schema):
+def _AddSimpleTypes (namespace):
     """Add to the schema the definitions of the built-in types of
     XMLSchema."""
     # Add the ur type
+    schema = namespace.schema()
     td = schema._addNamedComponent(ComplexTypeDefinition.UrTypeDefinition(in_builtin_definition=True))
     assert td.isResolved()
     # Add the simple ur type
