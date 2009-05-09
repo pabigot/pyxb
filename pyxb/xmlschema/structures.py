@@ -886,7 +886,6 @@ class _AttributeWildcard_mixin (object):
     @classmethod
     def CompleteWildcard (cls, namespace_context, attribute_groups, any_attribute, local_wildcard):
         # Non-absent wildcard properties of attribute groups
-        wxs = namespace_context.targetNamespace().schema()
         agd_wildcards = []
         for agd in attribute_groups:
             if agd.attributeWildcard() is not None:
@@ -933,7 +932,7 @@ class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, Names
     @classmethod
     def CreateBaseInstance (cls, name, target_namespace, std=None):
         """Create an attribute declaration component for a specified namespace."""
-        bi = cls(name=name, namespace_context=target_namespace.initialNamespaceContext(), schema=target_namespace.schema(), scope=_ScopedDeclaration_mixin.SCOPE_global)
+        bi = cls(name=name, namespace_context=target_namespace.initialNamespaceContext(), scope=_ScopedDeclaration_mixin.SCOPE_global)
         if std is not None:
             bi.__typeDefinition = std
         return bi
@@ -975,7 +974,7 @@ class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, Names
         else:
             raise SchemaValidationError('Internal attribute declaration by reference')
 
-        rv = cls(name=name, node=node, schema=wxs, **kw)
+        rv = cls(name=name, node=node, **kw)
         rv._annotationFromDOM(wxs, node)
         rv._valueConstraintFromDOM(wxs, node)
         rv.__domNode = node
@@ -1308,7 +1307,7 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, Namespa
         else:
             raise SchemaValidationError('Created reference as element declaration')
         
-        rv = cls(name=name, node=node, schema=wxs, **kw)
+        rv = cls(name=name, node=node, **kw)
         rv._annotationFromDOM(wxs, node)
         rv._valueConstraintFromDOM(wxs, node)
 
@@ -1583,13 +1582,13 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, Name
         if cls.__UrTypeDefinition is None:
             # NOTE: We use a singleton subclass of this class
             ns_ctx = Namespace.XMLSchema.initialNamespaceContext()
-            bi = _UrTypeDefinition(name='anyType', namespace_context=ns_ctx, derivation_method=cls.DM_restriction, schema=_SchemaComponent_mixin._SCHEMA_None, scope=_ScopedDeclaration_mixin.XSCOPE_indeterminate)
+            bi = _UrTypeDefinition(name='anyType', namespace_context=ns_ctx, derivation_method=cls.DM_restriction, scope=_ScopedDeclaration_mixin.XSCOPE_indeterminate)
 
             # The ur-type is its own baseTypeDefinition
             bi.__baseTypeDefinition = bi
 
             # No constraints on attributes
-            bi._setAttributeWildcard(Wildcard(namespace_context=ns_ctx, namespace_constraint=Wildcard.NC_any, process_contents=Wildcard.PC_lax, schema=_SchemaComponent_mixin._SCHEMA_None))
+            bi._setAttributeWildcard(Wildcard(namespace_context=ns_ctx, namespace_constraint=Wildcard.NC_any, process_contents=Wildcard.PC_lax))
 
             # There isn't anything to look up, but context is still global.
             # No declarations will be created, so use indeterminate scope to
@@ -1653,7 +1652,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, Name
 
         name = NodeAttribute(node, 'name')
 
-        rv = cls(name=name, node=node, derivation_method=None, schema=wxs, **kw)
+        rv = cls(name=name, node=node, derivation_method=None, **kw)
 
         # Creation does not attempt to do resolution.  Queue up the newly created
         # whatsis so we can resolve it after everything's been read in.
@@ -2061,7 +2060,7 @@ class AttributeGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, N
         # referenced in a complex type.
         kw.update({ 'context' : _ScopedDeclaration_mixin.SCOPE_global,
                     'scope' : _ScopedDeclaration_mixin.XSCOPE_indeterminate })
-        rv = cls(name=name, node=node, schema=wxs, **kw)
+        rv = cls(name=name, node=node, **kw)
 
         rv._annotationFromDOM(wxs, node)
         wxs._queueForResolution(rv)
@@ -2144,7 +2143,7 @@ class ModelGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Anno
         name = NodeAttribute(node, 'name')
         kw.update({ 'context' : _ScopedDeclaration_mixin.SCOPE_global,
                     'scope' : _ScopedDeclaration_mixin.XSCOPE_indeterminate })
-        rv = cls(name=name, node=node, schema=wxs, **kw)
+        rv = cls(name=name, node=node, **kw)
         rv._annotationFromDOM(wxs, node)
 
         for cn in node.childNodes:
@@ -2835,7 +2834,7 @@ class Wildcard (_SchemaComponent_mixin, _Annotated_mixin):
             else:
                 raise SchemaValidationError('illegal value "%s" for any processContents attribute' % (pc,))
 
-        rv = cls(node=node, namespace_constraint=namespace_constraint, process_contents=process_contents, schema=wxs, **kw)
+        rv = cls(node=node, namespace_constraint=namespace_constraint, process_contents=process_contents, **kw)
         rv._annotationFromDOM(wxs, node)
         return rv
 
@@ -2872,7 +2871,7 @@ class IdentityConstraintDefinition (_SchemaComponent_mixin, _NamedComponent_mixi
         name = NodeAttribute(node, 'name')
         scope = kw['scope']
         assert _ScopedDeclaration_mixin.ScopeIsIndeterminate(scope) or _ScopedDeclaration_mixin.IsValidScope(scope)
-        rv = cls(name=name, node=node, schema=wxs, **kw)
+        rv = cls(name=name, node=node, **kw)
         rv.__domNode = node
         wxs._queueForResolution(rv)
         return rv
@@ -2957,7 +2956,7 @@ class NotationDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Annot
     @classmethod
     def CreateFromDOM (cls, wxs, node, owner=None):
         name = NodeAttribute(node, 'name')
-        rv = cls(name=name, node=node, schema=wxs, owner=owner)
+        rv = cls(name=name, node=node, owner=owner)
 
         rv.__systemIdentifier = NodeAttribute(node, 'system')
         rv.__publicIdentifier = NodeAttribute(node, 'public')
@@ -3267,7 +3266,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, Names
         #    raise LogicError('Multiple definitions of SimpleUrType')
         if cls.__SimpleUrTypeDefinition is None:
             # Note: We use a singleton subclass
-            bi = _SimpleUrTypeDefinition(name='anySimpleType', namespace_context=Namespace.XMLSchema.initialNamespaceContext(), variety=cls.VARIETY_absent, schema=_SchemaComponent_mixin._SCHEMA_None, scope=_ScopedDeclaration_mixin.XSCOPE_indeterminate)
+            bi = _SimpleUrTypeDefinition(name='anySimpleType', namespace_context=Namespace.XMLSchema.initialNamespaceContext(), variety=cls.VARIETY_absent, scope=_ScopedDeclaration_mixin.XSCOPE_indeterminate)
             bi._setPythonSupport(datatypes.anySimpleType)
 
             # The baseTypeDefinition is the ur-type.
@@ -3296,7 +3295,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, Names
         All parameters are required and must be non-None.
         """
         
-        bi = cls(name=name, schema=schema, namespace_context=schema.targetNamespace().initialNamespaceContext(), variety=cls.VARIETY_atomic, scope=_ScopedDeclaration_mixin.XSCOPE_indeterminate)
+        bi = cls(name=name, namespace_context=schema.targetNamespace().initialNamespaceContext(), variety=cls.VARIETY_atomic, scope=_ScopedDeclaration_mixin.XSCOPE_indeterminate)
         bi._setPythonSupport(python_support)
 
         # Primitive types are based on the ur-type, and have
@@ -3320,7 +3319,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, Names
         """
         assert parent_std
         assert parent_std.__variety in (cls.VARIETY_absent, cls.VARIETY_atomic)
-        bi = cls(name=name, schema=schema, namespace_context=schema.targetNamespace().initialNamespaceContext(), variety=parent_std.__variety, scope=_ScopedDeclaration_mixin.XSCOPE_indeterminate)
+        bi = cls(name=name, namespace_context=schema.targetNamespace().initialNamespaceContext(), variety=parent_std.__variety, scope=_ScopedDeclaration_mixin.XSCOPE_indeterminate)
         bi._setPythonSupport(python_support)
 
         # We were told the base type.  If this is atomic, we re-use
@@ -3343,7 +3342,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, Names
         that require explicit support to for Pythonic conversion; but
         note that such support is identified by the item_std.
         """
-        bi = cls(name=name, schema=schema, namespace_context=schema.targetNamespace().initialNamespaceContext(), variety=cls.VARIETY_list, scope=_ScopedDeclaration_mixin.XSCOPE_indeterminate)
+        bi = cls(name=name, namespace_context=schema.targetNamespace().initialNamespaceContext(), variety=cls.VARIETY_list, scope=_ScopedDeclaration_mixin.XSCOPE_indeterminate)
         bi._setPythonSupport(python_support)
 
         # The base type is the ur-type.  We were given the item type.
@@ -3728,7 +3727,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, Names
 
         name = NodeAttribute(node, 'name')
 
-        rv = cls(name=name, node=node, variety=None, schema=wxs, **kw)
+        rv = cls(name=name, node=node, variety=None, **kw)
         rv._annotationFromDOM(wxs, node)
 
         # @todo identify supported facets and properties (hfp)
