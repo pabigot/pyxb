@@ -28,14 +28,19 @@ class _TestBase (unittest.TestCase):
     __mgKW = None
 
     def setUp (self):
-        self.__schema = xs.schema(target_namespace=Namespace.CreateAbsentNamespace())
+        target_namespace=Namespace.CreateAbsentNamespace()
+        self.__schema = xs.schema(namespace_context = target_namespace.initialNamespaceContext())
+        target_namespace._schema(self.__schema)
         self.__edKW = { 'schema' : self.__schema
+                      , 'namespace_context' : self.__schema.targetNamespace().initialNamespaceContext()
                       , 'scope' : xs.structures._ScopedDeclaration_mixin.SCOPE_global
                       , 'context' : xs.structures._ScopedDeclaration_mixin.SCOPE_global }
-        self.__prtKW = { 'schema' : self.__schema
+        self.__prtKW = {'schema' : self.__schema
+                       , 'namespace_context' : self.__schema.targetNamespace().initialNamespaceContext()
                        , 'scope' : xs.structures._ScopedDeclaration_mixin.XSCOPE_indeterminate
                        , 'context' : xs.structures._ScopedDeclaration_mixin.SCOPE_global }
         self.__mgKW = { 'schema' : self.__schema
+                      , 'namespace_context' : self.__schema.targetNamespace().initialNamespaceContext()
                       , 'scope' : xs.structures._ScopedDeclaration_mixin.XSCOPE_indeterminate
                       , 'context' : xs.structures._ScopedDeclaration_mixin.SCOPE_global }
 
