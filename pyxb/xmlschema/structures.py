@@ -172,7 +172,7 @@ class _SchemaComponent_mixin (object):
     def dependentComponents (self):
         if self.__dependentComponents is None:
             if isinstance(self, Namespace._Resolvable_mixin) and not (self.isResolved()):
-                raise LogicError('Unresolved %s in %s: %s' % (self.__class__.__name__, self.schema().targetNamespace(), self.name()))
+                raise LogicError('Unresolved %s in %s: %s' % (self.__class__.__name__, self.namespaceContext().targetNamespace(), self.name()))
             self.__dependentComponents = self._dependentComponents_vx()
             if self in self.__dependentComponents:
                 raise LogicError('Self-dependency with %s %s' % (self.__class__.__name__, self))
@@ -223,7 +223,7 @@ class _SchemaComponent_mixin (object):
             self.__schema._associateComponent(self)
         return getattr(super(_SchemaComponent_mixin, self), '_resetClone_vc', lambda *args, **kw: self)()
 
-    def _clone (self, wxs):
+    def _clone (self, namespace_context):
         """Create a copy of this instance suitable for adoption by
         some other component.
         
@@ -234,6 +234,7 @@ class _SchemaComponent_mixin (object):
         # have an unassigned scope.  However, we do clone
         # non-declarations that contain cloned declarations.
         assert (not isinstance(self, _ScopedDeclaration_mixin)) or self._scopeIsIndeterminate()
+        wxs = namespace_context.targetNamespace().schema()
 
         that = copy.copy(self)
         that.__cloneSource = self
@@ -1173,7 +1174,7 @@ class AttributeUse (_SchemaComponent_mixin, Namespace._Resolvable_mixin, _ValueC
         self.__domNode = None
         return self
 
-    def _adaptForScope (self, wxs, ctd):
+    def _adaptForScope (self, namespace_context, ctd):
         """Adapt this instance for the given complex type.
 
         If the attribute declaration for this instance has scope None,
@@ -1186,7 +1187,7 @@ class AttributeUse (_SchemaComponent_mixin, Namespace._Resolvable_mixin, _ValueC
         if ad.scope() is None:
             rv = self._clone(wxs)
             rv._setOwner(ctd)
-            rv.__attributeDeclaration = ad._clone(wxs)
+            rv.__attributeDeclaration = ad._clone(namespace_context)
             rv.__attributeDeclaration._setOwner(rv)
             rv.__attributeDeclaration._setScope(ctd)
         return rv
@@ -1321,10 +1322,10 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, Namespa
     def hasUnresolvableParticle (self, wxs):
         return False
 
-    def _adaptForScope (self, wxs, owner, scope):
+    def _adaptForScope (self, namespace_context, owner, scope):
         rv = self
         if (self._scopeIsIndeterminate()) and (scope is not None):
-            rv = self._clone(wxs)
+            rv = self._clone(namespace_context)
             assert owner is not None
             rv._setOwner(owner)
             rv._setScope(scope)
@@ -1706,7 +1707,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, Name
         # Past the last point where we might not resolve this
         # instance.  Store the attribute uses, also recording local
         # attribute declarations.
-        self.__attributeUses = frozenset([ _u._adaptForScope(wxs, self) for _u in uses_c1.union(uses_c2).union(uses_c3) ])
+        self.__attributeUses = frozenset([ _u._adaptForScope(self._namespaceContext(), self) for _u in uses_c1.union(uses_c2).union(uses_c3) ])
 
         # @todo Handle attributeWildcard
         # Clause 1
@@ -2341,11 +2342,11 @@ class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
         #print 'Model group with %d particles produced %d element declarations' % (len(self.particles()), len(element_decls))
         return element_decls
 
-    def _adaptForScope (self, wxs, owner, scope):
+    def _adaptForScope (self, namespace_context, owner, scope):
         rv = self
-        scoped_particles = [ _p._adaptForScope(wxs, None, scope) for _p in self.particles() ]
+        scoped_particles = [ _p._adaptForScope(namespace_context, None, scope) for _p in self.particles() ]
         if scoped_particles != self.particles():
-            rv = self._clone(wxs)
+            rv = self._clone(namespace_context)
             rv._setOwner(owner)
             rv.__particles = scoped_particles
         return rv
@@ -2471,7 +2472,7 @@ class Particle (_SchemaComponent_mixin, Namespace._Resolvable_mixin):
         assert (self._scopeIsIndeterminate()) or isinstance(self._scope(), ComplexTypeDefinition)
 
         if term is not None:
-            self.__term = term._adaptForScope(wxs, self, self._scope())
+            self.__term = term._adaptForScope(self._namespaceContext(), self, self._scope())
 
         assert isinstance(min_occurs, (types.IntType, types.LongType))
         self.__minOccurs = min_occurs
@@ -2504,7 +2505,7 @@ class Particle (_SchemaComponent_mixin, Namespace._Resolvable_mixin):
 
             # Neither group definitions nor model groups require
             # resolution, so we can just extract the reference.
-            term = group_decl.modelGroup()._adaptForScope(wxs, self, scope)
+            term = group_decl.modelGroup()._adaptForScope(self._namespaceContext(), self, scope)
             assert term is not None
         elif xsd.nodeIsNamed(node, 'element'):
             assert not xsd.nodeIsNamed(node.parentNode, 'schema')
@@ -2587,13 +2588,13 @@ class Particle (_SchemaComponent_mixin, Namespace._Resolvable_mixin):
         wxs._queueForResolution(rv)
         return rv
 
-    def _adaptForScope (self, wxs, owner, scope):
-        assert isinstance(wxs, Schema)
+    def _adaptForScope (self, namespace_context, owner, scope):
+        assert isinstance(namespace_context, Namespace.NamespaceContext)
         rv = self
         if (self._scopeIsIndeterminate()) and (scope is not None):
-            rv = self._clone(wxs)
+            rv = self._clone(namespace_context)
             rv._setOwner(owner)
-            rv.__term = rv.__term._adaptForScope(wxs, rv, scope)
+            rv.__term = rv.__term._adaptForScope(namespace_context, rv, scope)
         else:
             try:
                 assert self.__term._scopeIsCompatible(scope)
@@ -2798,7 +2799,7 @@ class Wildcard (_SchemaComponent_mixin, _Annotated_mixin):
     def hasUnresolvableParticle (self, wxs):
         return False
 
-    def _adaptForScope (self, wxs, owner, ctd):
+    def _adaptForScope (self, namespace_context, owner, ctd):
         """Wildcards are scope-independent; return self"""
         return self
 
