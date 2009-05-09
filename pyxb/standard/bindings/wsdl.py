@@ -1,7 +1,6 @@
 from pyxb.standard.bindings.raw.wsdl import *
 import pyxb.standard.bindings.raw.wsdl as raw_wsdl
 
-import DWML
 import pyxb.Namespace
 import pyxb.utils.domutils as domutils
 
