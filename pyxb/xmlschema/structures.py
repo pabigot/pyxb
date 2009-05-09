@@ -609,7 +609,8 @@ class _ValueConstraint_mixin:
             return None
         return self.__valueConstraint[0]
 
-    def _valueConstraintFromDOM (self, wxs, node):
+    def _valueConstraintFromDOM (self, ignored_parameter, node):
+        assert IGNORED_ARGUMENT == ignored_parameter
         aval = NodeAttribute(node, 'default')
         if aval is not None:
             self.__valueConstraint = (aval, self.VC_default)
@@ -978,7 +979,7 @@ class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, Names
 
         rv = cls(name=name, node=node, **kw)
         rv._annotationFromDOM(IGNORED_ARGUMENT, node)
-        rv._valueConstraintFromDOM(wxs, node)
+        rv._valueConstraintFromDOM(IGNORED_ARGUMENT, node)
         rv.__domNode = node
         wxs._queueForResolution(rv)
         return rv
@@ -1138,7 +1139,7 @@ class AttributeUse (_SchemaComponent_mixin, Namespace._Resolvable_mixin, _ValueC
             else:
                 raise SchemaValidationError('Unexpected value %s for attribute use attribute' % (use,))
 
-        rv._valueConstraintFromDOM(wxs, node)
+        rv._valueConstraintFromDOM(IGNORED_ARGUMENT, node)
         
         if NodeAttribute(node, 'ref') is None:
             # Create an anonymous declaration.  Although this can
@@ -1311,7 +1312,7 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, Namespa
         
         rv = cls(name=name, node=node, **kw)
         rv._annotationFromDOM(IGNORED_ARGUMENT, node)
-        rv._valueConstraintFromDOM(wxs, node)
+        rv._valueConstraintFromDOM(IGNORED_ARGUMENT, node)
 
         # Creation does not attempt to do resolution.  Queue up the newly created
         # whatsis so we can resolve it after everything's been read in.
