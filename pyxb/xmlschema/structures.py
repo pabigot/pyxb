@@ -877,7 +877,7 @@ class _AttributeWildcard_mixin (object):
                 attributes.append(node)
             elif xsd.nodeIsNamed(node, 'attributeGroup'):
                 # This must be an attributeGroupRef
-                agd_qname = wxs.interpretAttributeQName(node, 'ref')
+                agd_qname = InterpretAttributeQName(node, 'ref')
                 if agd_qname is None:
                     raise SchemaValidationError('Require ref attribute on internal attributeGroup elements')
                 ( agd_ns, agd_ln ) = agd_qname
@@ -1000,7 +1000,7 @@ class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
         node = self.__domNode
 
         st_node = LocateUniqueChild(node, 'simpleType')
-        type_qname = wxs.interpretAttributeQName(node, 'type')
+        type_qname = InterpretAttributeQName(node, 'type')
         if st_node is not None:
             self.__typeDefinition = SimpleTypeDefinition.CreateFromDOM(wxs, st_node, owner=self)
         elif type_qname is not None:
@@ -1167,7 +1167,7 @@ class AttributeUse (_SchemaComponent_mixin, _Resolvable_mixin, _ValueConstraint_
             return self
         assert self.__domNode
         node = self.__domNode
-        ad_qname = wxs.interpretAttributeQName(node, 'ref')
+        ad_qname = InterpretAttributeQName(node, 'ref')
         if ad_qname is None:
             raise SchemaValidationError('Attribute uses require reference to attribute declaration')
         # Although the attribute declaration definition may not be
@@ -1356,7 +1356,7 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Resolv
 
         node = self.__domNode
 
-        sg_qname = wxs.interpretAttributeQName(node, 'substitutionGroup')
+        sg_qname = InterpretAttributeQName(node, 'substitutionGroup')
         if sg_qname is not None:
             (sg_ns, sg_ln) = sg_qname
             sga = _LookupElementDeclaration(sg_ns, self.scope(), sg_ln)
@@ -1383,7 +1383,7 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Resolv
             if td_node is not None:
                 type_def = ComplexTypeDefinition.CreateFromDOM(wxs, td_node, scope=_ScopedDeclaration_mixin.XSCOPE_indeterminate, owner=self)
         if type_def is None:
-            type_qname = wxs.interpretAttributeQName(node, 'type')
+            type_qname = InterpretAttributeQName(node, 'type')
             if type_qname is not None:
                 (type_ns, type_ln) = type_qname
                 type_def = type_ns.typeDefinitions().get(type_ln)
@@ -1961,7 +1961,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Res
                         method = self.DM_extension
                     else:
                         raise SchemaValidationError('Expected restriction or extension as sole child of %s in %s' % (content_node.name(), self.name()))
-                    base_qname = wxs.interpretAttributeQName(ions, 'base')
+                    base_qname = InterpretAttributeQName(ions, 'base')
                     if base_qname is None:
                         raise SchemaValidationError('Element %s missing base attribute' % (ions.nodeName,))
                     (base_ns, base_ln) = base_qname
@@ -2493,7 +2493,7 @@ class Particle (_SchemaComponent_mixin, _Resolvable_mixin):
         node = self.__domNode
         context = self._context()
         scope = self._scope()
-        ref_qname = wxs.interpretAttributeQName(node, 'ref')
+        ref_qname = InterpretAttributeQName(node, 'ref')
         if xsd.nodeIsNamed(node, 'group'):
             # 3.9.2 says use 3.8.2, which is ModelGroup.  The group
             # inside a particle is a groupRef.  If there is no group
@@ -2897,7 +2897,7 @@ class IdentityConstraintDefinition (_SchemaComponent_mixin, _NamedComponent_mixi
             icc = self.ICC_KEY
         elif xsd.nodeIsNamed(node, 'keyref'):
             icc = self.ICC_KEYREF
-            refer_qname = wxs.interpretAttributeQName(node, 'refer')
+            refer_qname = InterpretAttributeQName(node, 'refer')
             if refer_qname is None:
                 raise SchemaValidationError('Require refer attribute on keyref elements')
             (refer_ns, refer_ln) = refer_qname
@@ -3389,7 +3389,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
         return self.__completeResolution(wxs, body, self.VARIETY_list, 'list')
 
     def __initializeFromRestriction (self, wxs, body):
-        base_qname = wxs.interpretAttributeQName(body, 'base')
+        base_qname = InterpretAttributeQName(body, 'base')
         if base_qname is not None:
             # Look up the base.  If there is no registered type of
             # that name, an exception gets thrown that percolates up
@@ -3562,7 +3562,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
                 self.__primitiveTypeDefinition = ptd
         elif self.VARIETY_list == variety:
             if 'list' == alternative:
-                attr_qname = wxs.interpretAttributeQName(body, 'itemType')
+                attr_qname = InterpretAttributeQName(body, 'itemType')
                 if attr_qname is not None:
                     (attr_ns, attr_ln) = attr_qname
                     self.__itemTypeDefinition = attr_ns.typeDefinitions().get(attr_ln)
@@ -3592,7 +3592,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Reso
                     if member_types is not None:
                         for mn in member_types.split():
                             # THROW if type has not been defined
-                            mn_qname = wxs.interpretQName(body, mn)
+                            mn_qname = InterpretQName(body, mn)
                             if mn_qname is None:
                                 raise InvalidSchemaError('Unable to locate member type %s' % (mn,))
                             (mn_ns, mn_local) = mn_qname
@@ -4148,6 +4148,10 @@ class Schema (_SchemaComponent_mixin):
 
         raise SchemaValidationError('Unexpected top-level element %s' % (node.nodeName,))
 
+    def _postUnpickle (self):
+        print 'Loaded up schema, preparing to keep going components %d' % (len(self.__components),)
+        self.__unresolvedDefinitions = [ ]
+
     def _queueForResolution (self, resolvable):
         """Invoked to note that a component may have unresolved references.
 
@@ -4284,22 +4288,11 @@ class Schema (_SchemaComponent_mixin):
         assert ad is not None
         return ad
 
-    def __interpretQName (self, qname):
-        if qname is None:
-            return None
-        ( qname_ns, qname_ln ) = qname
-        if qname_ns is None:
-            if self.targetNamespace().isAbsentNamespace():
-                qname_ns = self.targetNamespace()
-            else:
-                raise IncompleteImplementationError("Need to lookup absent namespace in imports to resolve %s" % (qname_ln,))
-        return (qname_ns, qname_ln)
-
     def interpretAttributeQName (self, node, attr, attribute_ns=Namespace.XMLSchema):
-        return self.__interpretQName(InterpretAttributeQName(node, attr, attribute_ns))
+        return InterpretAttributeQName(node, attr, attribute_ns)
 
     def interpretQName (self, node, qname):
-        return self.__interpretQName(InterpretQName(node, qname))
+        return InterpretQName(node, qname)
     
 def _AddSimpleTypes (schema):
     """Add to the schema the definitions of the built-in types of

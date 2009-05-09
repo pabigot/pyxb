@@ -278,6 +278,11 @@ class NamespaceContext (object):
                 self.__targetNamespace = Namespace.CreateAbsentNamespace()
             else:
                 self.__targetNamespace = Namespace.NamespaceForURI(tns_uri, create_if_missing=True)
+        # If neither default namespace nor targetnamespace were
+        # declared, use the absent target namespace as the default so
+        # we can find things we just created.
+        if (self.__defaultNamespace is None) and self.__targetNamespace.isAbsentNamespace():
+            self.__defaultNamespace = self.__targetNamespace
 
         # Store in each node the in-scope namespaces at that node;
         # we'll need them for QName interpretation of attribute
