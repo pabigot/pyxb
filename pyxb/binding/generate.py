@@ -22,7 +22,9 @@ from xml.dom import Node
 
 IGNORED_ARGUMENT = 'ignored argument'
 
-UniqueInBinding = set()
+# Initialize UniqueInBinding with the public identifiers we generate,
+# import, or otherwise can't have mucked about with.
+UniqueInBinding = set([ 'pyxb', 'xml', 'sys', 'Namespace', 'CreateFromDOM', 'ElementToBindingMap' ])
 PostscriptItems = []
 
 def PrefixModule (value, text=None):
@@ -848,6 +850,7 @@ class %{class} (pyxb.binding.basis.element):
     _Namespace = Namespace
     _ElementScope = %{element_scope}
     _TypeDefinition = %{base_datatype}
+ElementToBindingMap[%{element_name}] = %{class}
 ''', **template_map))
     return outf.getvalue()
 
@@ -1002,8 +1005,7 @@ def GeneratePython (**kw):
 # Generated %{date} by PyWXSB version %{version}
 import pyxb.binding
 import pyxb.exceptions_
-from xml.dom import minidom
-from xml.dom import Node
+import xml.dom.minidom
 import sys
 
 # Import bindings for namespaces imported into schema
@@ -1016,7 +1018,7 @@ Namespace._setModule(sys.modules[__name__])
 
 def CreateFromDocument (xml):
     """Parse the given XML and use the document element to create a Python instance."""
-    dom = minidom.parseString(xml)
+    dom = xml.dom.minidom.parseString(xml)
     return CreateFromDOM(dom.documentElement)
 
 def CreateFromDOM (node):
@@ -1032,6 +1034,7 @@ def CreateFromDOM (node):
         raise pyxb.exceptions_.NotAnElementError('Tag %s does not exist as element in module' % (ncname,))
     return cls.CreateFromDOM(node)
 
+ElementToBindingMap = { }
 ''', **template_map))
     
         # Give priority for identifiers to scoped element declarations
