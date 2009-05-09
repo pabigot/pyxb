@@ -10,6 +10,8 @@ DefaultBindingPath = "%s/standard/bindings/raw" % (os.path.dirname(__file__),)
 # Stuff required for pickling
 import cPickle as pickle
 
+IGNORED_ARGUMENT = 'ignored argument'
+
 class _Resolvable_mixin (object):
     """Mix-in indicating that this component may have references to unseen named components."""
     def isResolved (self):
@@ -139,6 +141,10 @@ class Namespace (object):
         if isinstance(nsval, Namespace):
             return nsval
         raise LogicError('Cannot identify namespace from %s' % (nsval,))
+
+    # A set of Namespace._Resolvable_mixin instances that have yet to be
+    # resolved.
+    __unresolvedComponents = None
 
     # A set of options defining how the Python bindings for this
     # namespace were generated.
@@ -283,7 +289,10 @@ class Namespace (object):
 
         self.__categoryMap = { }
 
+        self.__unresolvedComponents = []
+
         assert (self.__uri is None) or (self.__Registry[self.__uri] == self)
+
 
     __absentNamespaceID = 0
 
@@ -300,6 +309,69 @@ class Namespace (object):
                 self.__categoryMap[category] = NamedObjectMap(category, self)
         self.__defineCategoryAccessors()
         return self
+
+    def queueForResolution (self, resolvable):
+        """Invoked to note that a component may have unresolved references.
+
+        Newly created named components are unresolved, as are
+        components which, in the course of resolution, are found to
+        depend on another unresolved component.
+        """
+        assert isinstance(resolvable, _Resolvable_mixin)
+        self.__unresolvedComponents.append(resolvable)
+        return resolvable
+
+    def resolveDefinitions (self):
+        """Loop until all components associated with a name are
+        sufficiently defined."""
+        num_loops = 0
+        while 0 < len(self.__unresolvedComponents):
+            # Save the list of unresolved TDs, reset the list to
+            # capture any new TDs defined during resolution (or TDs
+            # that depend on an unresolved type), and attempt the
+            # resolution for everything that isn't resolved.
+            unresolved = self.__unresolvedComponents
+            #print 'Looping for %d unresolved definitions: %s' % (len(unresolved), ' '.join([ str(_r) for _r in unresolved]))
+            num_loops += 1
+            #assert num_loops < 18
+            
+            self.__unresolvedComponents = []
+            for resolvable in unresolved:
+                # This should be a top-level component, or a
+                # declaration inside a given scope.
+#                assert (resolvable in self.__components) \
+#                    or (isinstance(resolvable, _ScopedDeclaration_mixin) \
+#                        and (isinstance(resolvable.scope(), ComplexTypeDefinition)))
+
+                resolvable._resolve(IGNORED_ARGUMENT)
+
+                # Either we resolved it, or we queued it to try again later
+                assert resolvable.isResolved() or (resolvable in self.__unresolvedComponents)
+
+                # We only clone things that have scope None.  We never
+                # resolve things that have scope None.  Therefore, we
+                # should never have resolved something that has
+                # clones.
+                if (resolvable.isResolved() and (resolvable._clones() is not None)):
+                    assert False
+            if self.__unresolvedComponents == unresolved:
+                # This only happens if we didn't code things right, or
+                # the schema actually has a circular dependency in
+                # some named component.
+                failed_components = []
+                for d in self.__unresolvedComponents:
+                    if isinstance(d, _NamedComponent_mixin):
+                        failed_components.append('%s named %s' % (d.__class__.__name__, d.name()))
+                    else:
+                        if isinstance(d, AttributeUse):
+                            print d.attributeDeclaration()
+                        failed_components.append('Anonymous %s' % (d.__class__.__name__,))
+                raise LogicError('Infinite loop in resolution:\n  %s' % ("\n  ".join(failed_components),))
+        self.__unresolvedComponents = None
+        return self
+    
+    def _unresolvedComponents (self):
+        return self.__unresolvedComponents
 
     @classmethod
     def CreateAbsentNamespace (cls):
@@ -1013,4 +1085,4 @@ class NamespaceContext (object):
 
     def queueForResolution (self, component):
         assert isinstance(component, _Resolvable_mixin)
-        return self.targetNamespace().schema()._queueForResolution(component)
+        return self.targetNamespace().queueForResolution(component)

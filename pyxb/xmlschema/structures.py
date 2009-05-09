@@ -457,6 +457,7 @@ class _NamedComponent_mixin (object):
         # Must be None or a valid NCName
         assert (name is None) or (0 > name.find(':'))
         self.__name = name
+        assert 'target_namespace' not in kw
         target_namespace = kw.get('target_namespace', self._namespaceContext().targetNamespace())
         #assert target_namespace is not None
         self.__targetNamespace = target_namespace
@@ -3904,10 +3905,6 @@ class Schema (_SchemaComponent_mixin):
       , Particle                     # ModelGroup, WildCard, ElementDeclaration
         )
 
-    # A set of Namespace._Resolvable_mixin instances that have yet to be
-    # resolved.
-    __unresolvedDefinitions = None
-
     def _dependentComponents_vx (self):
         """Implement base class method.
 
@@ -3951,7 +3948,7 @@ class Schema (_SchemaComponent_mixin):
 
         After this point, nobody should be messing with the any of the
         definition or declaration maps."""
-        return self.__unresolvedDefinitions is None
+        return self.targetNamespace()._unresolvedComponents() is None
 
     # Default values for standard recognized schema attributes
     __attributeMap = { 'attributeFormDefault' : 'unqualified'
@@ -4004,7 +4001,6 @@ class Schema (_SchemaComponent_mixin):
         self.__attributeMap = self.__attributeMap.copy()
         self.__components = set()
         self.__annotations = [ ]
-        self.__unresolvedDefinitions = []
         self.__importedNamespaces = []
 
     __TopLevelComponentMap = {
@@ -4078,7 +4074,7 @@ class Schema (_SchemaComponent_mixin):
                 print 'Ignoring non-element: %s' % (cn,)
 
         if not skip_resolution:
-            schema._resolveDefinitions()
+            schema.targetNamespace().resolveDefinitions()
 
         return schema
 
@@ -4100,7 +4096,6 @@ class Schema (_SchemaComponent_mixin):
         included_schema = self.CreateFromDOM(minidom.parseString(xml), self.__namespaceData, inherit_default_namespace=True, skip_resolution=True)
         print '%s completed including %s' % (object.__str__(self), object.__str__(included_schema))
         self.__components.update(included_schema.__components)
-        self.__unresolvedDefinitions.extend(included_schema.__unresolvedDefinitions)
         assert self.targetNamespace() == included_schema.targetNamespace()
         self.targetNamespace()._schema(self, allow_override=True)
         #print xml
@@ -4161,81 +4156,18 @@ class Schema (_SchemaComponent_mixin):
 
         raise SchemaValidationError('Unexpected top-level element %s' % (node.nodeName,))
 
-    def _postUnpickle (self):
-        print 'Loaded up schema, preparing to keep going components %d' % (len(self.__components),)
-        self.__unresolvedDefinitions = [ ]
-
-    def _queueForResolution (self, resolvable):
-        """Invoked to note that a component may have unresolved references.
-
-        Newly created named components are unresolved, as are
-        components which, in the course of resolution, are found to
-        depend on another unresolved component.
-        """
-        assert isinstance(resolvable, Namespace._Resolvable_mixin)
-        self.__unresolvedDefinitions.append(resolvable)
-        return resolvable
-
     def __replaceUnresolvedDefinition (self, existing_def, replacement_def):
-        assert existing_def in self.__unresolvedDefinitions
-        self.__unresolvedDefinitions.remove(existing_def)
-        assert replacement_def not in self.__unresolvedDefinitions
+        unresolved_components = self.targetNamespace()._unresolvedComponents()
+        assert existing_def in unresolved_components
+        unresolved_components.remove(existing_def)
+        assert replacement_def not in unresolved_components
         assert isinstance(replacement_def, Namespace._Resolvable_mixin)
-        self.__unresolvedDefinitions.append(replacement_def)
+        unresolved_components.append(replacement_def)
         # Throw away the reference to the previous component and use
         # the replacement one
         self.__components.remove(existing_def)
         self.__components.add(replacement_def)
         return replacement_def
-
-    def _resolveDefinitions (self):
-        """Loop until all components associated with a name are
-        sufficiently defined."""
-        num_loops = 0
-        while 0 < len(self.__unresolvedDefinitions):
-            # Save the list of unresolved TDs, reset the list to
-            # capture any new TDs defined during resolution (or TDs
-            # that depend on an unresolved type), and attempt the
-            # resolution for everything that isn't resolved.
-            unresolved = self.__unresolvedDefinitions
-            #print 'Looping for %d unresolved definitions: %s' % (len(unresolved), ' '.join([ str(_r) for _r in unresolved]))
-            num_loops += 1
-            #assert num_loops < 18
-            
-            self.__unresolvedDefinitions = []
-            for resolvable in unresolved:
-                # This should be a top-level component, or a
-                # declaration inside a given scope.
-                assert (resolvable in self.__components) \
-                    or (isinstance(resolvable, _ScopedDeclaration_mixin) \
-                        and (isinstance(resolvable.scope(), ComplexTypeDefinition)))
-
-                resolvable._resolve(IGNORED_ARGUMENT)
-
-                # Either we resolved it, or we queued it to try again later
-                assert resolvable.isResolved() or (resolvable in self.__unresolvedDefinitions)
-
-                # We only clone things that have scope None.  We never
-                # resolve things that have scope None.  Therefore, we
-                # should never have resolved something that has
-                # clones.
-                if (resolvable.isResolved() and (resolvable._clones() is not None)):
-                    assert False
-            if self.__unresolvedDefinitions == unresolved:
-                # This only happens if we didn't code things right, or
-                # the schema actually has a circular dependency in
-                # some named component.
-                failed_components = []
-                for d in self.__unresolvedDefinitions:
-                    if isinstance(d, _NamedComponent_mixin):
-                        failed_components.append('%s named %s' % (d.__class__.__name__, d.name()))
-                    else:
-                        if isinstance(d, AttributeUse):
-                            print d.attributeDeclaration()
-                        failed_components.append('Anonymous %s' % (d.__class__.__name__,))
-                raise LogicError('Infinite loop in resolution:\n  %s' % ("\n  ".join(failed_components),))
-        self.__unresolvedDefinitions = None
-        return self
 
     def _addAnnotation (self, annotation):
         self.__annotations.append(annotation)
