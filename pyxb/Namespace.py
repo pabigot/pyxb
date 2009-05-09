@@ -1007,3 +1007,7 @@ class NamespaceContext (object):
             else:
                 namespace = self.defaultNamespace()
         return (namespace, local_name)
+
+    def queueForResolution (self, component):
+        assert isinstance(component, _Resolvable_mixin)
+        return self.targetNamespace().schema()._queueForResolution(component)

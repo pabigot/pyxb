@@ -687,21 +687,21 @@ class FundamentalFacet (Facet):
     _FacetPrefix = 'FF'
 
     @classmethod
-    def CreateFromDOM (cls, wxs, node, owner_type_definition, base_type_definition=None):
+    def CreateFromDOM (cls, node, owner_type_definition, base_type_definition=None):
         facet_class = cls.ClassForFacet(node.getAttribute('name'))
         rv = facet_class(base_type_definition=base_type_definition,
                          owner_type_definition=owner_type_definition)
         rv.updateFromDOM(wxs, node)
 
-    def updateFromDOM (self, wxs, node):
+    def updateFromDOM (self, node):
         if not node.hasAttribute('name'):
             raise SchemaValidationError('No name attribute in facet')
         assert node.getAttribute('name') == self.Name()
         self._updateFromDOM(wxs, node)
 
-    def _updateFromDOM (self, wxs, node):
+    def _updateFromDOM (self, node):
         try:
-            super(FundamentalFacet, self)._updateFromDOM(wxs, node)
+            super(FundamentalFacet, self)._updateFromDOM(node)
         except AttributeError, e:
             pass
         if (self.valueDatatype() is not None) and node.hasAttribute('value'):
