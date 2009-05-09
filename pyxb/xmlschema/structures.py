@@ -3625,7 +3625,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, Names
                     if member_types is not None:
                         for mn in member_types.split():
                             # THROW if type has not been defined
-                            mn_qname = InterpretQName(body, mn)
+                            mn_qname = self._namespaceContext().interpretQName(mn)
                             if mn_qname is None:
                                 raise InvalidSchemaError('Unable to locate member type %s' % (mn,))
                             (mn_ns, mn_local) = mn_qname

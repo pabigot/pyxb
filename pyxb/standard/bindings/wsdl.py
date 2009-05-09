@@ -161,11 +161,11 @@ class definitions (raw_wsdl.definitions):
             for op in pt.operation():
                 pt.operationMap()[op.name()] = op
                 for p in (op.input() + op.output() + op.fault()):
-                    (msg_ns, msg_ln) = domutils.InterpretQName(m._domNode(), p.message())
+                    (msg_ns, msg_ln) = m._namespaceContext().interpretQName(p.message())
                     p._setMessageReference(msg_ns.messages()[msg_ln])
         for b in self.binding():
             tns.bindings()[b.name()] = b
-            port_type_qname = domutils.InterpretQName(b._domNode(), b.type())
+            port_type_qname = b._namespaceContext().interpretQName(b.type())
             assert port_type_qname is not None
             (port_type_ns, port_type_ln) = port_type_qname
             b.setPortTypeReference(port_type_ns.portTypes()[port_type_ln])
@@ -182,10 +182,10 @@ class definitions (raw_wsdl.definitions):
         for s in self.service():
             tns.services()[s.name()] = s
             for p in s.port():
-                port_qname = domutils.InterpretQName(p._domNode(), p.name())
+                port_qname = p._namespaceContext().interpretQName(p.name())
                 assert port_qname is not None
                 (port_ns, port_ln) = port_qname
-                binding_qname = domutils.InterpretQName(p._domNode(), p.binding())
+                binding_qname = p._namespaceContext().interpretQName(p.binding())
                 assert binding_qname is not None
                 (binding_ns, binding_ln) = binding_qname
                 p._setBindingReference(binding_ns.bindings()[binding_ln])

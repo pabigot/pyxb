@@ -168,33 +168,6 @@ class BindingDOMSupport (object):
         element = self.__document.createElementNS(ns_uri, name)
         return parent.appendChild(element)
     
-def InterpretQName (node, name, is_definition=False):
-    return NamespaceContext.GetNodeContext(node).interpretQName(name, is_definition)
-
-def InterpretAttributeQName (node, attribute_ncname, attribute_ns=Namespace.XMLSchema):
-    """Provide the namespace and local name for the value of the given
-    attribute in the node.
-
-    attribute_ns is the namespace that should be used when locating
-    the attribute within the node.  If no matching attribute can be
-    found, this function returns None.
-
-    If the attribute is found, its value is normalized per QName's
-    whitespace facet (collapse), then QName interpretation per section
-    3.15.3 is performed to identify the namespace name and localname
-    to which the value refers.  If the resulting namespace is absent,
-    the value None used; otherwise, the Namespace instance for the
-    namespace name is used.
-
-    The return value is None, or a pair consisting of a Namespace
-    instance or None and a local name.
-    """
-
-    name = NodeAttribute(node, attribute_ncname, attribute_ns)
-    if name is None:
-        return None
-    return InterpretQName(node, name)
-
 def AttributeMap (node):
     attribute_map = { }
     for ai in range(node.attributes.length):
