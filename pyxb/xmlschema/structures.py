@@ -2896,12 +2896,10 @@ class IdentityConstraintDefinition (_SchemaComponent_mixin, _NamedComponent_mixi
         elif xsd.nodeIsNamed(node, 'keyref'):
             icc = self.ICC_KEYREF
             refer_attr = NodeAttribute(node, 'refer')
-            print 'Refer attribute %s' % (refer_attr,)
             if refer_attr is None:
                 raise SchemaValidationError('Require refer attribute on keyref elements')
             (refer_ns, refer_ln) = self._namespaceContext().interpretQName(refer_attr)
             refer = refer_ns.identityConstraintDefinitions().get(refer_ln)
-            print 'ICD %s in %s is %s' % (refer_ln, refer_ns, refer)
             if refer is None:
                 self._queueForResolution()
                 return self
