@@ -92,11 +92,6 @@ class Namespace (object):
     # xml, xmlns, and xsi.
     __boundPrefix = None
 
-    # @todo replace with collection
-    __schema = None                     # The schema in which this namespace is used
-
-    __noSchemaAssigned = None
-
     # A map from URIs to Namespace instances.  Namespaces instances
     # must be unique for their URI.  See __new__().
     __Registry = { }
@@ -205,7 +200,6 @@ class Namespace (object):
         There is no guarantee that a schema has been located when this
         returns.  Caller must check.
         """
-        assert self.__schema is None
         assert not self.__inSchemaLoad
 
         # Absent namespaces cannot load schemas
@@ -231,19 +225,15 @@ class Namespace (object):
         If the namespace does not have an associated schema, the
         system will attempt to load one.  If unsuccessful, an
         exception will be thrown."""
-        assert not self.__inValidation
-        if self.__didValidation:
-            return self.__schema
-        try:
-            self.__inValidation = True
-            if self.__schema is None:
+        if not self.__didValidation:
+            assert not self.__inValidation
+            try:
+                self.__inValidation = True
                 self._defineSchema_overload()
-            if not (self.__schema or self.__noSchemaDefined):
-                raise PyWXSBException('No schema available for required namespace %s' % (self.uri(),))
-            self.__didValidation = True
-        finally:
-            self.__inValidation = False
-        return self.__schema
+                self.__didValidation = True
+            finally:
+                self.__inValidation = False
+        return
 
     def __reset (self):
         self.__categoryMap = { }
@@ -286,7 +276,6 @@ class Namespace (object):
         # We actually set the uri when this instance was allocated;
         # see __new__().
         assert self.__uri == uri
-        self.__noSchemaDefined = True
         self.__boundPrefix = bound_prefix
         self.__schemaLocation = schema_location
         self.__description = description
@@ -487,26 +476,6 @@ class Namespace (object):
         return self
     __module = None
 
-    def _schema (self, schema, allow_override=False):
-        """Associate a schema instance with this namespace.
-
-        The schema must be not be None, and the namespace must not
-        already have a schema associated with it."""
-        assert False
-        assert (schema is not None) or allow_override
-        if (self.__schema is not None) and (not allow_override):
-            raise LogicError('Not allowed to change the schema associated with namespace %s' % (self.uri(),))
-        self.__schema = schema
-        assert (schema is None) or (schema.targetNamespace() == self)
-        return self.__schema
-
-    def schema (self):
-        """Return the schema instance associated with this namespace.
-
-        If no schema has been associated, this returns None."""
-        assert False
-        return self.__schema
-
     def schemaLocation (self, schema_location=None):
         """Get, or set, a URI that says where the XML document defining the namespace can be found."""
         if schema_location is not None:
@@ -518,12 +487,6 @@ class Namespace (object):
         if description is not None:
             self.__description = description
         return self.__description
-
-    def _validatedSchema (self):
-        """Return a reference to the associated schema, or throw an exception if none available."""
-        if self.__schema is None:
-            raise PyWXSBException('Cannot resolve in namespace %s: no associated schema' % (self.uri(),))
-        return self.__schema
 
     @classmethod
     def SortByDependency (cls, components, dependent_class_filter, target_namespace):
@@ -640,7 +603,7 @@ class Namespace (object):
             '__modulePath' : self.__modulePath,
             '__bindingConfiguration': self.__bindingConfiguration,
             '__contextDefaultNamespace' : self.__contextDefaultNamespace,
-            '__contextTargetNamespace' : self.__contextTargetNamespace,
+            '__contextInScopeNamespaces' : self.__contextInScopeNamespaces,
             }
         args = ( self.__uri, )
         return ( self.__PICKLE_FORMAT, args, kw )
@@ -697,7 +660,6 @@ class Namespace (object):
         pickler.dump(self.uri())
         pickler.dump(self)
         # Rest is only read if the schema needs to be loaded
-        pickler.dump(self.__schema)
         pickler.dump(self.__categoryMap)
         self._PicklingNamespace(None)
 
@@ -732,14 +694,6 @@ class Namespace (object):
         instance = unpickler.load()
         assert instance.uri() == uri
         assert cls._NamespaceForURI(instance.uri()) == instance
-
-        # Unpack the schema instance, verify that it describes the
-        # namespace, and associate it with the namespace.
-        schema = unpickler.load()
-        instance.__noSchemaDefined = (schema is None)
-        if schema is not None:
-            assert schema.targetNamespace() == instance
-            instance.__schema = schema
 
         # Augment the categories and their contents with data from the
         # saved namespace.  Note that the category maps may be
@@ -862,7 +816,6 @@ class _XMLSchema_instance (Namespace):
             if not XMLSchemaModule():
                 raise LogicError('Must invoke SetXMLSchemaModule from Namespace module prior to using system.')
             schema = XMLSchemaModule().schema(namespace_context=self.initialNamespaceContext())
-            #self._schema(schema)
             xsc = XMLSchemaModule().structures
             schema._addNamedComponent(xsc.AttributeDeclaration.CreateBaseInstance('type', self))
             schema._addNamedComponent(xsc.AttributeDeclaration.CreateBaseInstance('nil', self))
@@ -888,7 +841,6 @@ class _XML (Namespace):
             if not XMLSchemaModule():
                 raise LogicError('Must invoke SetXMLSchemaModule from Namespace module prior to using system.')
             schema = XMLSchemaModule().schema(namespace_context=self.initialNamespaceContext())
-            #self._schema(schema)
             xsc = XMLSchemaModule().structures
             schema._addNamedComponent(xsc.AttributeDeclaration.CreateBaseInstance('base', self))
             schema._addNamedComponent(xsc.AttributeDeclaration.CreateBaseInstance('id', self))
@@ -932,9 +884,6 @@ class _XMLSchema (Namespace):
     def _loadBuiltins (self):
         """Register the built-in types into the XMLSchema namespace."""
 
-        #if self.schema() is None:
-        #    self._schema(XMLSchemaModule().schema(namespace_context=self.initialNamespaceContext()))
-        
         if not self.__doneThis:
             # Defer the definitions to the structures module
             XMLSchemaModule().structures._AddSimpleTypes(self)

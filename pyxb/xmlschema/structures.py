@@ -138,15 +138,6 @@ class _SchemaComponent_mixin (object):
         super(_SchemaComponent_mixin, self).__init__(*args, **kw)
         self._namespaceContext().targetNamespace()._associateComponent(self)
 
-        #self.__schema = self._namespaceContext().targetNamespace().schema()
-        #if self.__schema is None:
-        #    assert isinstance(self, Schema)
-        #    self.__schema = self
-        #assert self.__schema is not None
-        #if self._SCHEMA_None == self.__schema:
-        #    self.__schema = None
-        #if (self.__schema is not None) and (self.__schema != self):
-        #    self.__schema._associateComponent(self)
         self._setOwner(kw.get('owner'))
 
     def _setOwner (self, owner):
@@ -3843,7 +3834,7 @@ class _ImportElementInformationItem (_Annotated_mixin):
         try:
             self.__namespace.validateSchema()
         except Exception, e:
-            print 'ERROR validating imported namespace: %s' % (e,)
+            print 'ERROR validating imported namespace %s: %s' % (uri, e)
             raise
         self._annotationFromDOM(IGNORED_ARGUMENT, node)
 
@@ -4004,9 +3995,6 @@ class Schema (_SchemaComponent_mixin):
 
         tns = ns_ctx.targetNamespace()
         assert tns is not None
-#        if tns.schema() is None:
-#            tns._schema(cls(namespace_context=ns_ctx))
-#        schema = tns.schema()
         schema = cls(namespace_context=ns_ctx)
         schema.__namespaceData = ns_ctx
             
@@ -4063,11 +4051,9 @@ class Schema (_SchemaComponent_mixin):
         # See section 4.2.1 of Structures.
         uri = NodeAttribute(node, 'schemaLocation')
         xml = urllib2.urlopen(uri).read()
-        self.targetNamespace()._schema(None, allow_override=True)
         included_schema = self.CreateFromDOM(minidom.parseString(xml), self.__namespaceData, inherit_default_namespace=True, skip_resolution=True)
         print '%s completed including %s' % (object.__str__(self), object.__str__(included_schema))
         assert self.targetNamespace() == included_schema.targetNamespace()
-        self.targetNamespace()._schema(self, allow_override=True)
         #print xml
         #raise IncompleteImplementationException('include directive not implemented')
         return node
