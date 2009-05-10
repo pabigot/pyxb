@@ -94,7 +94,16 @@ class simpleTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _D
     # value can be read.
     @classmethod
     def __FacetMapAttributeName (cls):
-        return '_%s__FacetMap' % (cls.__name__.strip('_'),)
+        if cls == simpleTypeDefinition:
+            return '_%s__FacetMap' % (cls.__name__.strip('_'),)
+        ns = ''
+        try:
+            ns = cls._Namespace.uri()
+        except Exception, e:
+            pass
+        nm = '_' + utility.MakeIdentifier('%s_%s_FacetMap' % (ns, cls.__name__.strip('_')))
+        return nm
+        
 
     @classmethod
     def _FacetMap (cls):
@@ -122,11 +131,14 @@ class simpleTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _D
         except AttributeError:
             pass
         if fm is not None:
-            raise LogicError('%s facet map initialized multiple times' % (cls.__name__,))
+            raise LogicError('%s facet map initialized multiple times: %s' % (cls.__name__,cls.__FacetMapAttributeName()))
         for super_class in cls.mro()[1:]:
             if issubclass(super_class, simpleTypeDefinition):
-                fm = super_class._FacetMap()
-                break
+                try:
+                    fm = super_class._FacetMap()
+                    break
+                except AttributeError:
+                    pass
         if fm is None:
             raise LogicError('%s is not a child of simpleTypeDefinition' % (cls.__name__,))
         fm = fm.copy()
@@ -785,6 +797,7 @@ class complexTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _
             # @todo handle cross-namespace attributes
             if prefix is not None:
                 raise IncompleteImplementationError('No support for namespace-qualified attributes like %s:%s' % (prefix, local_name))
+                continue
             au = self._AttributeMap.get(local_name, None)
             if au is None:
                 if self._AttributeWildcard is None:
