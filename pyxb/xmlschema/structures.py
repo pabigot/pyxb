@@ -1583,7 +1583,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, Name
             # Content is mixed, with elements completely unconstrained. @todo
             # not associated with a schema (it should be)
             kw = { 'namespace_context' : ns_ctx
-                 , 'schema' : Namespace.XMLSchema.schema()
+#                 , 'schema' : Namespace.XMLSchema.schema()
                  , 'context': _ScopedDeclaration_mixin.SCOPE_global
                  , 'scope': _ScopedDeclaration_mixin.XSCOPE_indeterminate }
             w = Wildcard(namespace_constraint=Wildcard.NC_any, process_contents=Wildcard.PC_lax, **kw)
@@ -4004,9 +4004,10 @@ class Schema (_SchemaComponent_mixin):
 
         tns = ns_ctx.targetNamespace()
         assert tns is not None
-        if tns.schema() is None:
-            tns._schema(cls(namespace_context=ns_ctx))
-        schema = tns.schema()
+#        if tns.schema() is None:
+#            tns._schema(cls(namespace_context=ns_ctx))
+#        schema = tns.schema()
+        schema = cls(namespace_context=ns_ctx)
         schema.__namespaceData = ns_ctx
             
         assert schema.targetNamespace() == ns_ctx.targetNamespace()
@@ -4204,8 +4205,8 @@ def _AddSimpleTypes (namespace):
     """Add to the schema the definitions of the built-in types of
     XMLSchema."""
     # Add the ur type
-    schema = namespace.schema()
-    #schema = XMLSchemaModule().schema(namespace_context=Namespace.XMLSchema.initialNamespaceContext())
+    #schema = namespace.schema()
+    schema = Namespace.XMLSchemaModule().schema(namespace_context=Namespace.XMLSchema.initialNamespaceContext())
     td = schema._addNamedComponent(ComplexTypeDefinition.UrTypeDefinition(in_builtin_definition=True))
     assert td.isResolved()
     # Add the simple ur type

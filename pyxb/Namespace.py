@@ -174,6 +174,7 @@ class Namespace (object):
             instance = object.__new__(cls)
             # Do this one step of __init__ so we can do checks during unpickling
             instance.__uri = uri
+            instance.__reset()
             # Absent namespaces are not stored in the registry.
             if uri is None:
                 return instance
@@ -244,6 +245,12 @@ class Namespace (object):
             self.__inValidation = False
         return self.__schema
 
+    def __reset (self):
+        self.__categoryMap = { }
+        self.__unresolvedComponents = []
+        self.__components = set()
+        self.__initialNamespaceContext = None
+
     def __init__ (self, uri,
                   schema_location=None,
                   description=None,
@@ -267,7 +274,6 @@ class Namespace (object):
 
         self.__contextDefaultNamespace = default_namespace
         self.__contextInScopeNamespaces = in_scope_namespaces
-        self.__initialNamespaceContext = None
 
         # Make sure we have namespace support loaded before use, and
         # that we're not trying to do something restricted to built-in
@@ -287,10 +293,7 @@ class Namespace (object):
         self.__isBuiltinNamespace = is_builtin_namespace
         self.__isUndeclaredNamespace = is_undeclared_namespace
 
-        self.__categoryMap = { }
-
-        self.__unresolvedComponents = []
-        self.__components = set()
+        self.__reset()
 
         assert (self.__uri is None) or (self.__Registry[self.__uri] == self)
 
@@ -380,6 +383,8 @@ class Namespace (object):
 
     def _associateComponent (self, component):
         """Record that the given component is found within this schema."""
+        if self.__components is None:
+            print 'LOST COMPONENTS in %s' % (self.uri(),)
         assert component not in self.__components
         self.__components.add(component)
 
@@ -487,6 +492,7 @@ class Namespace (object):
 
         The schema must be not be None, and the namespace must not
         already have a schema associated with it."""
+        assert False
         assert (schema is not None) or allow_override
         if (self.__schema is not None) and (not allow_override):
             raise LogicError('Not allowed to change the schema associated with namespace %s' % (self.uri(),))
@@ -498,6 +504,7 @@ class Namespace (object):
         """Return the schema instance associated with this namespace.
 
         If no schema has been associated, this returns None."""
+        assert False
         return self.__schema
 
     def schemaLocation (self, schema_location=None):
@@ -625,13 +632,15 @@ class Namespace (object):
         if self.uri() is None:
             raise LogicError('Illegal to serialize absent namespaces')
         kw = {
-            'schema_location': self.__schemaLocation,
-            'description':self.__description,
+            '__schemaLocation': self.__schemaLocation,
+            '__description':self.__description,
             # * Do not include __boundPrefix: bound namespaces should
             # have already been created by the infrastructure, so the
             # unpickler should never create one.
             '__modulePath' : self.__modulePath,
-            '__bindingConfiguration': self.__bindingConfiguration
+            '__bindingConfiguration': self.__bindingConfiguration,
+            '__contextDefaultNamespace' : self.__contextDefaultNamespace,
+            '__contextTargetNamespace' : self.__contextTargetNamespace,
             }
         args = ( self.__uri, )
         return ( self.__PICKLE_FORMAT, args, kw )
@@ -841,50 +850,58 @@ class _XMLSchema_instance (Namespace):
     """Extension of Namespace that pre-defines types available in the
     XMLSchema Instance (xsi) namespace."""
 
+    __doneThis = False
+    
     def _defineSchema_overload (self):
         """Ensure this namespace is ready for use.
 
         Overrides base class implementation, since there is no schema
         for this namespace. """
         
-        import pyxb.utils.domutils
-        if self.schema() is None:
+        if not self.__doneThis:
             if not XMLSchemaModule():
                 raise LogicError('Must invoke SetXMLSchemaModule from Namespace module prior to using system.')
             schema = XMLSchemaModule().schema(namespace_context=self.initialNamespaceContext())
-            self._schema(schema)
+            #self._schema(schema)
             xsc = XMLSchemaModule().structures
             schema._addNamedComponent(xsc.AttributeDeclaration.CreateBaseInstance('type', self))
             schema._addNamedComponent(xsc.AttributeDeclaration.CreateBaseInstance('nil', self))
             schema._addNamedComponent(xsc.AttributeDeclaration.CreateBaseInstance('schemaLocation', self))
             schema._addNamedComponent(xsc.AttributeDeclaration.CreateBaseInstance('noNamespaceSchemaLocation', self))
+            self.__doneThis = True
         return self
 
 class _XML (Namespace):
     """Extension of Namespace that pre-defines types available in the
     XML (xml) namespace."""
 
+    __doneThis = False
+
     def _defineSchema_overload (self):
         """Ensure this namespace is ready for use.
 
         Overrides base class implementation, since there is no schema
         for this namespace. """
         
-        if self.schema() is None:
+        if not self.__doneThis:
+        # if self.schema() is None:
             if not XMLSchemaModule():
                 raise LogicError('Must invoke SetXMLSchemaModule from Namespace module prior to using system.')
             schema = XMLSchemaModule().schema(namespace_context=self.initialNamespaceContext())
-            self._schema(schema)
+            #self._schema(schema)
             xsc = XMLSchemaModule().structures
             schema._addNamedComponent(xsc.AttributeDeclaration.CreateBaseInstance('base', self))
             schema._addNamedComponent(xsc.AttributeDeclaration.CreateBaseInstance('id', self))
             schema._addNamedComponent(xsc.AttributeDeclaration.CreateBaseInstance('space', self))
             schema._addNamedComponent(xsc.AttributeDeclaration.CreateBaseInstance('lang', self))
+            self.__doneThis = True
         return self
 
 class _XHTML (Namespace):
     """Extension of Namespace that pre-defines types available in the
     XHTML namespace."""
+
+    __doneThis = False
 
     def _defineSchema_overload (self):
         """Ensure this namespace is ready for use.
@@ -893,11 +910,11 @@ class _XHTML (Namespace):
         for this namespace.  In fact, there's nothing at all in it
         that we plan to use, so this doesn't do anything."""
         
-        if self.schema() is None:
+        if not self.__doneThis:
             if not XMLSchemaModule():
                 raise LogicError('Must invoke SetXMLSchemaModule from Namespace module prior to using system.')
             schema = XMLSchemaModule().schema(namespace_context=self.initialNamespaceContext())
-            self._schema(schema)
+            self.__doneThis = True
             # @todo Define a wildcard element declaration 'p' that takes anything.
         return self
 
@@ -910,14 +927,18 @@ class _XMLSchema (Namespace):
 
     # No default namespace for XMLSchema
 
+    __doneThis = False
+
     def _loadBuiltins (self):
         """Register the built-in types into the XMLSchema namespace."""
 
-        if self.schema() is None:
-            self._schema(XMLSchemaModule().schema(namespace_context=self.initialNamespaceContext()))
+        #if self.schema() is None:
+        #    self._schema(XMLSchemaModule().schema(namespace_context=self.initialNamespaceContext()))
         
-        # Defer the definitions to the structures module
-        XMLSchemaModule().structures._AddSimpleTypes(self)
+        if not self.__doneThis:
+            # Defer the definitions to the structures module
+            XMLSchemaModule().structures._AddSimpleTypes(self)
+            self.__doneThis = True
 
         # A little validation here
         xsc = XMLSchemaModule().structures
