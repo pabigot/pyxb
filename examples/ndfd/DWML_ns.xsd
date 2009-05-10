@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<!-- Wrapper around the DWML schema to give it target and default namespaces -->
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+	    targetNamespace="http://www.weather.gov/forecasts/xml/DWMLgen/schema/DWML.xsd"
+	    xmlns="http://www.weather.gov/forecasts/xml/DWMLgen/schema/DWML.xsd">
+   <xsd:include schemaLocation="http://www.weather.gov/forecasts/xml/DWMLgen/schema/DWML.xsd"/>
+</xsd:schema>
