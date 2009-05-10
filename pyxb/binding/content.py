@@ -81,10 +81,11 @@ class AttributeUse (object):
             # Must be optional and absent
             self.__setValue(ctd_instance, None, False)
         else:
-            if self.__fixed and (unicode_value != self.__defaultValue):
-                raise AttributeChangeError('Attempt to change value of fixed attribute %s' % (self.__tag,))
+            new_value = self.__dataType(unicode_value)
+            if self.__fixed and (new_value != self.__defaultValue):
+                raise AttributeChangeError('Attempt to change value of fixed attribute %s (%s to %s)' % (self.__tag, repr(self.__defaultValue), repr(new_value)))
             # NB: Do not set provided here; this may be the default
-            self.__setValue(ctd_instance, self.__dataType(unicode_value), provided)
+            self.__setValue(ctd_instance, new_value, provided)
         return self
 
     def addDOMAttribute (self, ctd_instance, element):
