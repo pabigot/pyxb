@@ -290,6 +290,7 @@ class Namespace (object):
         self.__categoryMap = { }
 
         self.__unresolvedComponents = []
+        self.__components = set()
 
         assert (self.__uri is None) or (self.__Registry[self.__uri] == self)
 
@@ -372,6 +373,39 @@ class Namespace (object):
     
     def _unresolvedComponents (self):
         return self.__unresolvedComponents
+
+    # A set containing all components, named or unnamed, that belong
+    # to this schema.
+    __components = None
+
+    def _associateComponent (self, component):
+        """Record that the given component is found within this schema."""
+        assert component not in self.__components
+        self.__components.add(component)
+
+    def _replaceComponent (self, existing_def, replacement_def):
+        self.__components.remove(existing_def)
+        self.__components.add(replacement_def)
+        return replacement_def
+
+    def components (self):
+        """Return a frozenset of all components, named or unnamed, belonging to this namespace."""
+        return frozenset(self.__components)
+
+    def _orderedComponents (self, component_order):
+        components = self.__components
+        component_by_class = {}
+        for c in components:
+            component_by_class.setdefault(c.__class__, []).append(c)
+        ordered_components = []
+        for cc in component_order:
+            if cc not in component_by_class:
+                continue
+            component_list = component_by_class[cc]
+            orig_length = len(component_list)
+            component_list = self.SortByDependency(component_list, dependent_class_filter=cc, target_namespace=self)
+            ordered_components.extend(component_list)
+        return ordered_components
 
     @classmethod
     def CreateAbsentNamespace (cls):
@@ -697,7 +731,6 @@ class Namespace (object):
         if schema is not None:
             assert schema.targetNamespace() == instance
             instance.__schema = schema
-            schema._postUnpickle()
 
         # Augment the categories and their contents with data from the
         # saved namespace.  Note that the category maps may be
@@ -882,7 +915,7 @@ class _XMLSchema (Namespace):
 
         if self.schema() is None:
             self._schema(XMLSchemaModule().schema(namespace_context=self.initialNamespaceContext()))
-
+        
         # Defer the definitions to the structures module
         XMLSchemaModule().structures._AddSimpleTypes(self)
 

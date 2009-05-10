@@ -136,15 +136,17 @@ class _SchemaComponent_mixin (object):
             raise LogicError('No namespace_context for schema component')
 
         super(_SchemaComponent_mixin, self).__init__(*args, **kw)
-        self.__schema = self._namespaceContext().targetNamespace().schema()
-        if self.__schema is None:
-            assert isinstance(self, Schema)
-            self.__schema = self
-        assert self.__schema is not None
-        if self._SCHEMA_None == self.__schema:
-            self.__schema = None
-        if (self.__schema is not None) and (self.__schema != self):
-            self.__schema._associateComponent(self)
+        self._namespaceContext().targetNamespace()._associateComponent(self)
+
+        #self.__schema = self._namespaceContext().targetNamespace().schema()
+        #if self.__schema is None:
+        #    assert isinstance(self, Schema)
+        #    self.__schema = self
+        #assert self.__schema is not None
+        #if self._SCHEMA_None == self.__schema:
+        #    self.__schema = None
+        #if (self.__schema is not None) and (self.__schema != self):
+        #    self.__schema._associateComponent(self)
         self._setOwner(kw.get('owner'))
 
     def _setOwner (self, owner):
@@ -210,8 +212,7 @@ class _SchemaComponent_mixin (object):
         self.__dependentComponents = None
         self.__clones = None
         assert self.__nameInBinding is None
-        if self.__schema:
-            self.__schema._associateComponent(self)
+        self._namespaceContext().targetNamespace()._associateComponent(self)
         return getattr(super(_SchemaComponent_mixin, self), '_resetClone_vc', lambda *args, **kw: self)()
 
     def _clone (self, ignored_parameter):
@@ -3847,10 +3848,6 @@ class _ImportElementInformationItem (_Annotated_mixin):
         self._annotationFromDOM(IGNORED_ARGUMENT, node)
 
 class Schema (_SchemaComponent_mixin):
-    # A set containing all components, named or unnamed, that belong
-    # to this schema.
-    __components = None
-
     # List of annotations
     __annotations = None
 
@@ -3913,35 +3910,9 @@ class Schema (_SchemaComponent_mixin):
         """
         return frozenset()
 
-    def _associateComponent (self, component):
-        """Record that the given component is found within this schema."""
-        assert component not in self.__components
-        self.__components.add(component)
-
-    def components (self):
-        """Return a frozenset of all components, named or unnamed, belonging to this schema."""
-        return frozenset(self.__components)
-
-    @classmethod
-    def OrderedComponents (self, components, namespace):
-        if components is None:
-            components = self.components()
-        component_by_class = {}
-        for c in components:
-            component_by_class.setdefault(c.__class__, []).append(c)
-        ordered_components = []
-        for cc in self.__ComponentOrder:
-            if cc not in component_by_class:
-                continue
-            component_list = component_by_class[cc]
-            orig_length = len(component_list)
-            component_list = Namespace.Namespace.SortByDependency(component_list, dependent_class_filter=cc, target_namespace=namespace)
-            ordered_components.extend(component_list)
-        return ordered_components
-
     def orderedComponents (self):
         assert self.completedResolution()
-        return self.OrderedComponents(self.components(), self.targetNamespace())
+        return self.targetNamespace()._orderedComponents(self.__ComponentOrder)
 
     def completedResolution (self):
         """Return True iff all resolvable elements have been resolved.
@@ -3999,7 +3970,6 @@ class Schema (_SchemaComponent_mixin):
             self.__defaultNamespace.configureCategories(self.__SchemaCategories)
 
         self.__attributeMap = self.__attributeMap.copy()
-        self.__components = set()
         self.__annotations = [ ]
         self.__importedNamespaces = []
 
@@ -4095,7 +4065,6 @@ class Schema (_SchemaComponent_mixin):
         self.targetNamespace()._schema(None, allow_override=True)
         included_schema = self.CreateFromDOM(minidom.parseString(xml), self.__namespaceData, inherit_default_namespace=True, skip_resolution=True)
         print '%s completed including %s' % (object.__str__(self), object.__str__(included_schema))
-        self.__components.update(included_schema.__components)
         assert self.targetNamespace() == included_schema.targetNamespace()
         self.targetNamespace()._schema(self, allow_override=True)
         #print xml
@@ -4165,9 +4134,7 @@ class Schema (_SchemaComponent_mixin):
         unresolved_components.append(replacement_def)
         # Throw away the reference to the previous component and use
         # the replacement one
-        self.__components.remove(existing_def)
-        self.__components.add(replacement_def)
-        return replacement_def
+        return self.targetNamespace()._replaceComponent(existing_def, replacement_def)
 
     def _addAnnotation (self, annotation):
         self.__annotations.append(annotation)
@@ -4238,6 +4205,7 @@ def _AddSimpleTypes (namespace):
     XMLSchema."""
     # Add the ur type
     schema = namespace.schema()
+    #schema = XMLSchemaModule().schema(namespace_context=Namespace.XMLSchema.initialNamespaceContext())
     td = schema._addNamedComponent(ComplexTypeDefinition.UrTypeDefinition(in_builtin_definition=True))
     assert td.isResolved()
     # Add the simple ur type
