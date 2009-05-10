@@ -20,9 +20,12 @@ class cscRoot (object):
     we'll just make this thing the root of all cooperative super
     calling hierarchies."""
     def __init__ (self, *args, **kw):
-        pass
-
-    #def __new__ (cls, *args, **kw):
-    #    return object.__new__(cls)
+        # Oh gross.  If this class descends from unicode or string, we
+        # get here when object is *not* our direct superclass.  In
+        # that case, we have to pass the arguments on up, or the
+        # strings don't get created right.  Below is the only way I've
+        # figured out to detect the situation.
+        if self.__class__ != self.__class__.mro()[-1]:
+            super(cscRoot, self).__init__(*args, **kw)
 
 from exceptions_ import *
