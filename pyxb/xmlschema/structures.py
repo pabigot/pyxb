@@ -13,6 +13,7 @@ ModelGroup components are created from non-DOM sources.
 
 IGNORED_ARGUMENT = 'ignored argument'
 
+import pyxb
 from pyxb.exceptions_ import *
 from xml.dom import Node
 import types
@@ -47,7 +48,7 @@ def _LookupElementDeclaration (ns, context, local_name):
         rv = ns.elementDeclarations().get(local_name)
     return rv
 
-class _SchemaComponent_mixin (object):
+class _SchemaComponent_mixin (pyxb.cscRoot):
     """A mix-in that marks the class as representing a schema component.
 
     This exists so that we can determine the owning schema for any
@@ -281,7 +282,7 @@ class _SchemaComponent_mixin (object):
             self.__nameInBinding = other.__nameInBinding
         return self
 
-class _Singleton_mixin (object):
+class _Singleton_mixin (pyxb.cscRoot):
     """This class is a mix-in which guarantees that only one instance
     of the class will be created.  It is used to ensure that the
     ur-type instances are pointer-equivalent even when unpickling.
@@ -292,7 +293,7 @@ class _Singleton_mixin (object):
             setattr(cls, singleton_property, object.__new__(cls, *args, **kw))
         return cls.__dict__[singleton_property]
 
-class _Annotated_mixin (object):
+class _Annotated_mixin (pyxb.cscRoot):
     """Mix-in that supports an optional single annotation that describes the component.
 
     Most schema components have annotations.  The ones that don't are
@@ -326,7 +327,7 @@ class _Annotated_mixin (object):
     def annotation (self):
         return self.__annotation
 
-class _NamedComponent_mixin (object):
+class _NamedComponent_mixin (pyxb.cscRoot):
     """Mix-in to hold the name and targetNamespace of a component.
 
     The name may be None, indicating an anonymous component.  The
@@ -600,7 +601,7 @@ class _ValueConstraint_mixin:
         self.__valueConstraint = None
         return self
         
-class _ScopedDeclaration_mixin (object):
+class _ScopedDeclaration_mixin (pyxb.cscRoot):
     """Mix-in class for named components that have a scope.
 
     Scope is important when doing cross-namespace inheritance,
@@ -799,7 +800,7 @@ class _PluralityData (types.ListType):
         super(_PluralityData, self).__init__()
         self.__setFromComponent(component)
 
-class _AttributeWildcard_mixin (object):
+class _AttributeWildcard_mixin (pyxb.cscRoot):
     """Support for components that accept attribute wildcards.
 
     That is AttributeGroupDefinition and ComplexType.  The
@@ -1790,7 +1791,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, Name
             if effective_mixed:
                 # Clause 2.1.4
                 assert typedef_node is None
-                m = ModelGroup(compositor=ModelGroup.C_SEQUENCE, **ckw)
+                m = ModelGroup(compositor=ModelGroup.C_SEQUENCE, particles=[], **ckw)
                 effective_content = Particle(m, **ckw)
             else:
                 # Clause 2.1.5
@@ -3776,17 +3777,34 @@ class _ImportElementInformationItem (_Annotated_mixin):
         self.__prefix = prefix
     __prefix = None
     
+    def schema (self):
+        return self.__schema
+    __schema = None
+
     def __init__ (self, schema, node, **kw):
         super(_ImportElementInformationItem, self).__init__(**kw)
         uri = NodeAttribute(node, 'namespace')
         if uri is None:
             raise IncompleteImplementationError('import statements without namespace not supported')
+        self.__schemaLocation = NodeAttribute(node, 'schemaLocation')
         self.__namespace = Namespace.NamespaceForURI(uri, create_if_missing=True)
-        try:
-            self.__namespace.validateSchema()
-        except Exception, e:
-            print 'ERROR validating imported namespace %s: %s' % (uri, e)
-            raise
+        if uri in Namespace.AvailableForLoad():
+            try:
+                self.__namespace.validateSchema()
+            except Exception, e:
+                print 'ERROR validating imported namespace %s: %s' % (uri, e)
+            # @todo validate that something got loaded
+        elif self.schemaLocation() is not None:
+            print 'Attempt to read %s from %s' % (uri, self.schemaLocation())
+            ns_ctx = Namespace.NamespaceContext.GetNodeContext(node)
+            try:
+                xmls = urllib2.urlopen(self.schemaLocation()).read()
+            except ValueError, e:
+                print 'Caught with urllib: %s' % (e,)
+                xmls = open(self.schemaLocation()).read()
+            dom = minidom.parseString(xmls)
+            self.__schema = Schema.CreateFromDOM(dom, ns_ctx)
+
         self._annotationFromDOM(node)
 
 class Schema (_SchemaComponent_mixin):
@@ -4025,7 +4043,7 @@ class Schema (_SchemaComponent_mixin):
                 break
         if import_eii.prefix() is None:
             print 'NO PREFIX FOR %s'
-        print 'Imported %s, prefix %s' % (import_eii.namespace().uri(), import_eii.prefix())
+        print 'Imported %s, prefix %s, %d types' % (import_eii.namespace().uri(), import_eii.prefix(), len(import_eii.namespace().typeDefinitions()))
         self.__importedNamespaces.append(import_eii)
         return node
 

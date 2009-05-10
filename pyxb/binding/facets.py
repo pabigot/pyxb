@@ -8,6 +8,7 @@ datatype that constrain its lexical and value spaces.
 
 from pyxb.exceptions_ import *
 from xml.dom import Node
+import pyxb
 import types
 import datatypes
 import basis
@@ -15,7 +16,7 @@ from pyxb.utils import utility
 from pyxb.utils import domutils
 import re
 
-class Facet (object):
+class Facet (pyxb.cscRoot):
     """The base class for facets.
 
     This provides association with STDs, a name, and a value for the facet.
@@ -213,7 +214,7 @@ class ConstrainingFacet (Facet):
         self.__setFromKeywords(**kw)
         return rv
         
-class _LateDatatype_mixin (object):
+class _LateDatatype_mixin (pyxb.cscRoot):
     """Marker class to indicate that the facet instance must be told
     its datatype when it is constructed.
 
@@ -260,7 +261,7 @@ class _LateDatatype_mixin (object):
     def bindValueDatatype (self, value_datatype):
         self.setFromKeywords(_constructor=True, value_datatype=self.BindingValueDatatype(value_datatype))
 
-class _Fixed_mixin (object):
+class _Fixed_mixin (pyxb.cscRoot):
     """Mix-in to a constraining facet that adds support for the 'fixed' property."""
     __fixed = None
     def fixed (self): return self.__fixed
@@ -282,7 +283,7 @@ class _Fixed_mixin (object):
         super_fn = getattr(super(_Fixed_mixin, self), '_setFromKeywords_vb', lambda *a,**kw: self)
         return super_fn(**kw)
     
-class _CollectionFacet_mixin (object):
+class _CollectionFacet_mixin (pyxb.cscRoot):
     """Mix-in to handle facets whose values are collections, not scalars.
 
     For example, the enumeration and pattern facets maintain a list of
@@ -293,9 +294,6 @@ class _CollectionFacet_mixin (object):
     which is a reference to a class that is used to construct members
     of the collection.
     """
-
-    def __init__ (self, *args, **kw):
-        super(_CollectionFacet_mixin, self).__init__(*args, **kw)
 
     __items = None
     def _setFromKeywords_vb (self, **kw):
@@ -546,7 +544,7 @@ class CF_enumeration (ConstrainingFacet, _CollectionFacet_mixin, _LateDatatype_m
                 return True
         return False
 
-class _Enumeration_mixin (object):
+class _Enumeration_mixin (pyxb.cscRoot):
     """Marker class to indicate that the generated binding has enumeration members."""
     @classmethod
     def valueForUnicode (cls, ustr):

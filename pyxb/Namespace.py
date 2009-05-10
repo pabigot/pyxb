@@ -1030,7 +1030,12 @@ class NamespaceContext (object):
                             self.__defaultNamespace = NamespaceForURI(attr.value, create_if_missing=True)
                             self.__inScopeNamespaces[None] = self.__defaultNamespace
                         else:
-                            self.__inScopeNamespaces[attr.localName] = NamespaceForURI(attr.value, create_if_missing=True)
+                            uri = NamespaceForURI(attr.value, create_if_missing=True)
+                            pfx = attr.localName
+                            self.__inScopeNamespaces[pfx] = uri
+                            # @todo record prefix in namespace so we can use
+                            # it during generation?  I'd rather make the user
+                            # specify what to use.
                     else:
                         # NB: XMLNS 6.2 says that you can undefine a default
                         # namespace, but does not say anything explicitly about

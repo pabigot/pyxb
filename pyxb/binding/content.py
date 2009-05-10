@@ -1,12 +1,12 @@
 """Helper classes that maintain the content model of XMLSchema in the binding classes."""
 
-from pyxb.exceptions_ import *
+import pyxb
 import pyxb.Namespace
 import basis
 
 import xml.dom
 
-class AttributeUse (object):
+class AttributeUse (pyxb.cscRoot):
     """A helper class that encapsulates everything we need to know
     about the way an attribute is used within a binding class."""
     __tag = None       # Unicode XML tag @todo not including namespace
@@ -71,19 +71,19 @@ class AttributeUse (object):
         assert isinstance(node, xml.dom.Node)
         if node.hasAttribute(self.__tag):
             if self.__prohibited:
-                raise ProhibitedAttributeError('Prohibited attribute %s found' % (self.__tag,))
+                raise pyxb.ProhibitedAttributeError('Prohibited attribute %s found' % (self.__tag,))
             unicode_value = node.getAttribute(self.__tag)
             provided = True
         else:
             if self.__required:
-                raise MissingAttributeError('Required attribute %s not found' % (self.__tag,))
+                raise pyxb.MissingAttributeError('Required attribute %s not found' % (self.__tag,))
         if unicode_value is None:
             # Must be optional and absent
             self.__setValue(ctd_instance, None, False)
         else:
             new_value = self.__dataType(unicode_value)
             if self.__fixed and (new_value != self.__defaultValue):
-                raise AttributeChangeError('Attempt to change value of fixed attribute %s (%s to %s)' % (self.__tag, repr(self.__defaultValue), repr(new_value)))
+                raise pyxb.AttributeChangeError('Attempt to change value of fixed attribute %s (%s to %s)' % (self.__tag, repr(self.__defaultValue), repr(new_value)))
             # NB: Do not set provided here; this may be the default
             self.__setValue(ctd_instance, new_value, provided)
         return self
@@ -104,11 +104,11 @@ class AttributeUse (object):
         if not isinstance(new_value, self.__dataType):
             new_value = self.__dataType(new_value)
         if self.__fixed and (new_value != self.__defaultValue):
-            raise AttributeChangeError('Attempt to change value of fixed attribute %s' % (self.__tag,))
+            raise pyxb.AttributeChangeError('Attempt to change value of fixed attribute %s' % (self.__tag,))
         self.__setValue(ctd_instance, new_value, True)
         return new_value
 
-class ElementUse (object):
+class ElementUse (pyxb.cscRoot):
     """Aggregate the information relevant to an element of a complex type.
 
     This includes the original tag name, the spelling of the
@@ -184,13 +184,13 @@ class ElementUse (object):
         value = self.value(ctd_instance)
         if not self.isPlural():
             if value is None:
-                raise DOMGenerationError('Optional %s value is not available' % (self.pythonField(),))
+                raise pyxb.DOMGenerationError('Optional %s value is not available' % (self.pythonField(),))
             value = [ value ]
         for v in value:
             if not v.__generated:
                 v.__generated = True
                 return v
-        raise DOMGenerationError('No %s values remain to be generated' % (self.pythonField(),))
+        raise pyxb.DOMGenerationError('No %s values remain to be generated' % (self.pythonField(),))
 
     def hasUngeneratedValues (self, ctd_instance):
         value = self.value(ctd_instance)
@@ -235,11 +235,11 @@ class ElementUse (object):
                 self.__setValue(ctd_instance, iv)
                 ctd_instance._addContent(iv)
                 return self
-            except BadTypeValueError, e:
+            except pyxb.BadTypeValueError, e:
                 pass
-        raise BadTypeValueError('Cannot assign value of type %s to field %s: legal types %s' % (type(value), self.tag(), ' '.join([str(_dt) for _dt in self.__validElements])))
+        raise pyxb.BadTypeValueError('Cannot assign value of type %s to field %s: legal types %s' % (type(value), self.tag(), ' '.join([str(_dt) for _dt in self.__validElements])))
 
-class ContentModelTransition (object):
+class ContentModelTransition (pyxb.cscRoot):
     def term (self):
         """The matching term for this transition to succeed."""
         return self.__term
@@ -276,7 +276,7 @@ class ContentModelTransition (object):
         elif isinstance(self.__term, Wildcard):
             self.__termType = self.TT_wildcard
         else:
-            raise LogicError('Unexpected transition term %s' % (self.__term,))
+            raise pyxb.LogicError('Unexpected transition term %s' % (self.__term,))
 
     def __cmp__ (self, other):
         """Sort transitions so elements precede model groups precede
@@ -299,7 +299,7 @@ class ContentModelTransition (object):
 
         if self.TT_element == self.__termType:
             if 0 == len(node_list):
-                raise MissingContentError('No DOM nodes for reduction of %s' % (self.__term,))
+                raise pyxb.MissingContentError('No DOM nodes for reduction of %s' % (self.__term,))
             #print 'Element reduction attempt attempt for %s' % (self.__term,)
             element = self.__term.CreateFromDOM(node_list[0])
             node_list.pop(0)
@@ -311,9 +311,9 @@ class ContentModelTransition (object):
         elif self.TT_wildcard == self.__termType:
             #print 'Wildcard reduction attempt'
             if 0 == len(node_list):
-                raise MissingContentError()
+                raise pyxb.MissingContentError()
             if not self.__term.matchesNode(ctd_instance, node_list[0]):
-                raise UnexpectedContentError(node_list[0])
+                raise pyxb.UnexpectedContentError(node_list[0])
             node = node_list.pop(0)
             # See if we can convert from DOM into a Python instance.
             # If not, we'll go ahead and store the DOM node.
@@ -334,9 +334,9 @@ class ContentModelTransition (object):
             if store:
                 ctd_instance.wildcardElements().append(node)
         else:
-            raise LogicError('Unexpected transition term %s' % (self.__term,))
+            raise pyxb.LogicError('Unexpected transition term %s' % (self.__term,))
 
-class ContentModelState (object):
+class ContentModelState (pyxb.cscRoot):
     """Represents a state in a ContentModel DFA.
 
     The state identifier is an integer.  A flag indicates whether the
@@ -379,16 +379,16 @@ class ContentModelState (object):
                 #print 'Transition succeeded with %s' % (transition.term(),)
 
                 return transition.nextState()
-            except StructuralBadDocumentError, e:
+            except pyxb.StructuralBadDocumentError, e:
                 #print 'Transition failed with %s: %s' % (transition.term(), e)
                 pass
         if self.isFinal():
             return None
         if 0 < len(node_list):
-            raise UnrecognizedContentError(node_list[0])
-        raise MissingContentError()
+            raise pyxb.UnrecognizedContentError(node_list[0])
+        raise pyxb.MissingContentError()
 
-class ContentModel (object):
+class ContentModel (pyxb.cscRoot):
     """The ContentModel is a deterministic finite state automaton
     which can be traversed using a sequence of DOM nodes which are
     matched on transitions against the legal content model of a
@@ -414,10 +414,10 @@ class ContentModel (object):
             state = self.__stateMap[state].evaluateContent(ctd_instance, node_list, store)
         node_list = ctd_instance._stripMixedContent(node_list)
         if state is not None:
-            raise MissingContentError()
+            raise pyxb.MissingContentError()
 
 
-class ModelGroupAllAlternative (object):
+class ModelGroupAllAlternative (pyxb.cscRoot):
     __contentModel = None
     __required = None
 
@@ -429,7 +429,7 @@ class ModelGroupAllAlternative (object):
     def required (self): return self.__required
     def contentModel (self): return self.__contentModel
 
-class ModelGroupAll (object):
+class ModelGroupAll (pyxb.cscRoot):
     """Class that represents a ModelGroup with an "all" compositor."""
 
     __alternatives = None
@@ -464,7 +464,7 @@ class ModelGroupAll (object):
                         alternatives.remove(alt)
                         found_match = True
                         break
-                except BadDocumentError, e:
+                except pyxb.BadDocumentError, e:
                     #print 'Failed with alternative %s: %s' % (alt, type(e))
                     pass
         # If there's a required alternative that wasn't matched, raise
@@ -474,7 +474,7 @@ class ModelGroupAll (object):
             for alt in alternatives:
                 #print 'Alternative %s required %s' % (alt, alt.required())
                 if alt.required():
-                    raise MissingContentError(alt)
+                    raise pyxb.MissingContentError(alt)
         # If this isn't a dry run, re-execute the alternatives in the
         # successful order.
         if store:
@@ -484,7 +484,7 @@ class ModelGroupAll (object):
                 alt.contentModel().interprete(ctd_instance, saved_node_list)
             assert saved_node_list == node_list
 
-class Particle (object):
+class Particle (pyxb.cscRoot):
     """Record defining the structure and number of an XML object.
     This is a min and max count associated with a
     ModelGroup, ElementDeclaration, or Wildcard."""
@@ -543,17 +543,17 @@ class Particle (object):
                     # @todo handle generation of wildcards
                     break
                 else:
-                    raise IncompleteImplementationError('Particle.extendFromDOM: No support for term type %s' % (self.term(),))
-            except IncompleteImplementationError, e:
+                    raise pyxb.IncompleteImplementationError('Particle.extendFromDOM: No support for term type %s' % (self.term(),))
+            except pyxb.IncompleteImplementationError, e:
                 raise
-            except DOMGenerationError, e:
+            except pyxb.DOMGenerationError, e:
                 break
             except Exception, e:
                 #print 'Caught extending DOM from term %s: %s' % (self.term(), e)
                 raise
             rep += 1
         if rep < self.minOccurs():
-            raise DOMGenerationError('Expected at least %d instances of %s, got only %d' % (self.minOccurs(), self.term(), rep))
+            raise pyxb.DOMGenerationError('Expected at least %d instances of %s, got only %d' % (self.minOccurs(), self.term(), rep))
 
     def extendFromDOM (self, ctd_instance, node_list):
         """Extend the content of the given ctd_instance from the DOM
@@ -571,20 +571,20 @@ class Particle (object):
                     self.term().extendFromDOM(ctd_instance, node_list)
                 elif isinstance(self.term(), type) and issubclass(self.term(), basis.element):
                     if 0 == len(node_list):
-                        raise MissingContentError('Expected element %s' % (self.term()._XsdName,))
+                        raise pyxb.MissingContentError('Expected element %s' % (self.term()._XsdName,))
                     element = self.term().CreateFromDOM(node_list[0])
                     node_list.pop(0)
                     ctd_instance._addElement(element)
                 elif isinstance(self.term(), Wildcard):
                     if 0 == len(node_list):
-                        raise MissingContentError('Expected wildcard')
+                        raise pyxb.MissingContentError('Expected wildcard')
                     self.term().validateAndAdd(ctd_instance, node_list.pop(0))
                 else:
-                    raise IncompleteImplementationError('Particle.extendFromDOM: No support for term type %s' % (self.term(),))
-            except StructuralBadDocumentError, e:
+                    raise pyxb.IncompleteImplementationError('Particle.extendFromDOM: No support for term type %s' % (self.term(),))
+            except pyxb.StructuralBadDocumentError, e:
                 #print 'Informational MCE: %s' % (e,)
                 break
-            except IncompleteImplementationError, e:
+            except pyxb.IncompleteImplementationError, e:
                 raise
             except Exception, e:
                 #print 'Caught creating term from DOM: %s' % (e,)
@@ -592,11 +592,11 @@ class Particle (object):
             rep += 1
         if rep < self.minOccurs():
             if 0 < len(node_list):
-                raise UnrecognizedContentError('Expected at least %d instances of %s, got only %d before %s' % (self.minOccurs(), self.term(), rep, node_list[0].nodeName))
-            raise MissingContentError('Expected at least %d instances of %s, got only %d' % (self.minOccurs(), self.term(), rep))
+                raise pyxb.UnrecognizedContentError('Expected at least %d instances of %s, got only %d before %s' % (self.minOccurs(), self.term(), rep, node_list[0].nodeName))
+            raise pyxb.MissingContentError('Expected at least %d instances of %s, got only %d' % (self.minOccurs(), self.term(), rep))
         return node_list
 
-class ModelGroup (object):
+class ModelGroup (pyxb.cscRoot):
     """Record the structure of a model group.
 
     This is used when interpreting a DOM document fragment, to be sure
@@ -639,7 +639,7 @@ class ModelGroup (object):
             try:
                 particle.extendDOMFromContent(dom_support, element, ctd_instance)
                 return particle
-            except DOMGenerationError, e:
+            except pyxb.DOMGenerationError, e:
                 pass
             except Exception, e:
                 #print 'GEN CHOICE failed: %s' % (e,)
@@ -657,16 +657,16 @@ class ModelGroup (object):
                 try:
                     choice = self.__extendDOMFromChoice(dom_support, element, ctd_instance, mutable_particles)
                     mutable_particles.remove(choice)
-                except DOMGenerationError, e:
+                except pyxb.DOMGenerationError, e:
                     #print 'ALL failed: %s' % (e,)
                     break
             for particle in mutable_particles:
                 if 0 < particle.minOccurs():
-                    raise DOMGenerationError('ALL: Could not generate instance of required %s' % (particle.term(),))
+                    raise pyxb.DOMGenerationError('ALL: Could not generate instance of required %s' % (particle.term(),))
         elif self.C_CHOICE == self.compositor():
             choice = self.__extendDOMFromChoice(dom_support, element, ctd_instance, self.particles())
             if choice is None:
-                raise DOMGenerationError('CHOICE: No candidates found')
+                raise pyxb.DOMGenerationError('CHOICE: No candidates found')
         else:
             assert False
         
@@ -679,12 +679,12 @@ class ModelGroup (object):
             try:
                 particle.extendFromDOM(ctd_instance, node_list)
                 return particle
-            except BadDocumentError, e:
+            except pyxb.BadDocumentError, e:
                 #print 'CHOICE failed: %s' % (e,)
                 pass
         if 0 < len(node_list):
-            raise UnrecognizedContentError(node_list[0])
-        raise MissingContentError('No match for required choice')
+            raise pyxb.UnrecognizedContentError(node_list[0])
+        raise pyxb.MissingContentError('No match for required choice')
 
     def extendFromDOM (self, ctd_instance, node_list):
         assert isinstance(ctd_instance, basis.complexTypeDefinition)
@@ -692,7 +692,7 @@ class ModelGroup (object):
             for particle in self.particles():
                 try:
                     particle.extendFromDOM(ctd_instance, node_list)
-                except BadDocumentError, e:
+                except pyxb.BadDocumentError, e:
                     #print 'SEQUENCE failed: %s' % (e,)
                     raise
             return
@@ -702,12 +702,12 @@ class ModelGroup (object):
                 try:
                     choice = self.__extendContentFromChoice(ctd_instance, node_list, mutable_particles)
                     mutable_particles.remove(choice)
-                except BadDocumentError, e:
+                except pyxb.BadDocumentError, e:
                     #print 'ALL failed: %s' % (e,)
                     break
             for particle in mutable_particles:
                 if 0 < particle.minOccurs():
-                    raise MissingContentError('ALL: Expected an instance of %s' % (particle.term(),))
+                    raise pyxb.MissingContentError('ALL: Expected an instance of %s' % (particle.term(),))
             #print 'Ignored unused %s' % (mutable_particles,)
             return
         elif self.C_CHOICE == self.compositor():
@@ -716,7 +716,7 @@ class ModelGroup (object):
         else:
             assert False
 
-class Wildcard (object):
+class Wildcard (pyxb.cscRoot):
     """Placeholder for wildcard objects."""
 
     NC_any = '##any'            #<<< The namespace constraint "##any"

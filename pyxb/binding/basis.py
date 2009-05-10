@@ -2,7 +2,7 @@
 bindings inherit, and that describe the content models of those
 schema."""
 
-from pyxb.exceptions_ import *
+import pyxb
 import xml.dom as dom
 from xml.dom import minidom
 import pyxb.utils.domutils as domutils
@@ -10,7 +10,7 @@ import pyxb.utils.utility as utility
 import types
 import pyxb.Namespace
 
-class _Binding_mixin (object):
+class _Binding_mixin (pyxb.cscRoot):
     def _domNode (self):
         return self.__domNode
     __domNode = None
@@ -31,7 +31,7 @@ class _Binding_mixin (object):
         bds.finalize()
         return bds.document().toxml()
 
-class _DynamicCreate_mixin (object):
+class _DynamicCreate_mixin (pyxb.cscRoot):
     """Helper to allow overriding the implementation class.
 
     Generally we'll want to augment the generated bindings by
@@ -123,7 +123,7 @@ class simpleTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _D
         This must be called exactly once, after all facets belonging
         to the datatype have been created.
 
-        Raises LogicError if called multiple times, or if called when
+        Raises pyxb.LogicError if called multiple times, or if called when
         a parent class facet map has not been initialized."""
         fm = None
         try:
@@ -131,7 +131,7 @@ class simpleTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _D
         except AttributeError:
             pass
         if fm is not None:
-            raise LogicError('%s facet map initialized multiple times: %s' % (cls.__name__,cls.__FacetMapAttributeName()))
+            raise pyxb.LogicError('%s facet map initialized multiple times: %s' % (cls.__name__,cls.__FacetMapAttributeName()))
         for super_class in cls.mro()[1:]:
             if issubclass(super_class, simpleTypeDefinition):
                 try:
@@ -140,7 +140,7 @@ class simpleTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _D
                 except AttributeError:
                     pass
         if fm is None:
-            raise LogicError('%s is not a child of simpleTypeDefinition' % (cls.__name__,))
+            raise pyxb.LogicError('%s is not a child of simpleTypeDefinition' % (cls.__name__,))
         fm = fm.copy()
         for facet in args:
             fm[type(facet)] = facet
@@ -227,9 +227,9 @@ class simpleTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _D
         try:
             return super(simpleTypeDefinition, cls).__new__(cls, *args, **kw)
         except ValueError, e:
-            raise BadTypeValueError(e)
+            raise pyxb.BadTypeValueError(e)
         except OverflowError, e:
-            raise BadTypeValueError(e)
+            raise pyxb.BadTypeValueError(e)
 
     # Validate the constraints after invoking the parent constructor,
     # unless told not to.
@@ -239,7 +239,7 @@ class simpleTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _D
         try:
             super(simpleTypeDefinition, self).__init__(*args, **kw)
         except OverflowError, e:
-            raise BadTypeValueError(e)
+            raise pyxb.BadTypeValueError(e)
         if validate_constraints:
             self.xsdConstraintsOK()
 
@@ -263,25 +263,25 @@ class simpleTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _D
         if hasattr(cls, attr_name):
             old_value = getattr(cls, attr_name)
             if old_value != std:
-                raise LogicError('%s: Attempt to override existing STD %s with %s' % (cls, old_value.name(), std.name()))
+                raise pyxb.LogicError('%s: Attempt to override existing STD %s with %s' % (cls, old_value.name(), std.name()))
         setattr(cls, attr_name, std)
 
     @classmethod
     def SimpleTypeDefinition (cls):
         """Return the SimpleTypeDefinition instance for the given
         class.  This should only be invoked when generating bindings.
-        Raise IncompleteImplementationError if no STD instance has
+        Raise pyxb.IncompleteImplementationError if no STD instance has
         been associated with the class."""
         attr_name = cls.__STDAttrName()
         if hasattr(cls, attr_name):
             return getattr(cls, attr_name)
-        raise IncompleteImplementationError('%s: No STD available' % (cls,))
+        raise pyxb.IncompleteImplementationError('%s: No STD available' % (cls,))
 
     @classmethod
     def XsdLiteral (cls, value):
         """Convert from a python value to a string usable in an XML
         document."""
-        raise LogicError('%s does not implement XsdLiteral' % (cls,))
+        raise pyxb.LogicError('%s does not implement XsdLiteral' % (cls,))
 
     def xsdLiteral (self):
         """Return text suitable for representing the value of this
@@ -304,7 +304,7 @@ class simpleTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _D
                 return cls._XsdBaseType
             if issubclass(sc, simpleTypeDefinition):
                 return sc
-        raise LogicError('No supertype found for %s' % (cls,))
+        raise pyxb.LogicError('No supertype found for %s' % (cls,))
 
     @classmethod
     def XsdPythonType (cls):
@@ -316,7 +316,7 @@ class simpleTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _D
                 continue
             if not issubclass(sc, simpleTypeDefinition):
                 return sc
-        raise LogicError('No python type found for %s' % (cls,))
+        raise pyxb.LogicError('No python type found for %s' % (cls,))
 
     @classmethod
     def _XsdConstraintsPreCheck_vb (cls, value):
@@ -334,7 +334,7 @@ class simpleTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _D
     def XsdConstraintsOK (cls, value):
         """Validate the given value against the constraints on this class.
 
-        Throws BadTypeValueError if any constraint is violated.
+        Throws pyxb.BadTypeValueError if any constraint is violated.
         """
 
         value = cls._XsdConstraintsPreCheck_vb(value)
@@ -351,7 +351,7 @@ class simpleTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _D
             return value
         for f in facet_values:
             if not f.validateConstraint(value):
-                raise BadTypeValueError('%s violation for %s in %s' % (f.Name(), value, cls.__name__))
+                raise pyxb.BadTypeValueError('%s violation for %s in %s' % (f.Name(), value, cls.__name__))
             #print '%s ok for %s' % (f.Name(), value)
         return value
 
@@ -371,15 +371,15 @@ class simpleTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _D
         constraints should be considered trivially satisfied (as with
         QName and NOTATION).
 
-        Raise LogicError if the provided value is not an instance of cls.
+        Raise pyxb.LogicError if the provided value is not an instance of cls.
 
-        Raise LogicError if an attempt is made to calculate a length
+        Raise pyxb.LogicError if an attempt is made to calculate a length
         for an instance of a type that does not support length
         calculations.
         """
         assert isinstance(value, cls)
         if not hasattr(cls, '_XsdValueLength_vx'):
-            raise LogicError('Class %s does not support length validation' % (cls.__name__,))
+            raise pyxb.LogicError('Class %s does not support length validation' % (cls.__name__,))
         return cls._XsdValueLength_vx(value)
 
     def xsdValueLength (self):
@@ -407,7 +407,7 @@ class simpleTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _D
 class STD_union (simpleTypeDefinition):
     """Base class for union datatypes.
 
-    This class descends only from simpleTypeDefinition.  A LogicError is raised
+    This class descends only from simpleTypeDefinition.  A pyxb.LogicError is raised
     if an attempt is made to construct an instance of a subclass of
     STD_union.  Values consistent with the member types are
     constructed using the Factory class method.  Values are validated
@@ -421,6 +421,11 @@ class STD_union (simpleTypeDefinition):
     # @todo Ensure that pattern and enumeration are valid constraints
     __FacetMap = {}
 
+    # Filter arguments out from call to new to avoid deprecation
+    # warning in Python 2.6.
+    def __new__ (cls, *args, **kw):
+        return super(STD_union, cls).__new__(cls)
+
     @classmethod
     def Factory (cls, *args, **kw):
         """Given a value, attempt to create an instance of some member
@@ -428,7 +433,7 @@ class STD_union (simpleTypeDefinition):
 
         The first instance which can be legally created is returned.
         If no member type instance can be created from the given
-        value, a BadTypeValueError is raised.
+        value, a pyxb.BadTypeValueError is raised.
 
         The value generated from the member types is further validated
         against any constraints that apply to the union."""
@@ -438,7 +443,7 @@ class STD_union (simpleTypeDefinition):
             try:
                 rv = mt(*args, **kw)
                 break
-            except BadTypeValueError:
+            except pyxb.BadTypeValueError:
                 pass
             except ValueError:
                 pass
@@ -448,26 +453,26 @@ class STD_union (simpleTypeDefinition):
             if validate_constraints:
                 cls.XsdConstraintsOK(rv)
             return rv
-        raise BadTypeValueError('%s cannot construct union member from args %s' % (cls.__name__, args))
+        raise pyxb.BadTypeValueError('%s cannot construct union member from args %s' % (cls.__name__, args))
 
     @classmethod
     def _ValidateMember (cls, value):
         """Validate the given value as a potential union member.
 
-        Raises BadTypeValueError if the value is not an instance of a
+        Raises pyxb.BadTypeValueError if the value is not an instance of a
         member type."""
         if not isinstance(value, cls._MemberTypes):
             for mt in cls._MemberTypes:
                 try:
                     value = mt(value)
                     return value
-                except BadTypeValueError:
+                except pyxb.BadTypeValueError:
                     pass
-            raise BadTypeValueError('%s cannot hold a member of type %s' % (cls.__name__, value.__class__.__name__))
+            raise pyxb.BadTypeValueError('%s cannot hold a member of type %s' % (cls.__name__, value.__class__.__name__))
         return value
 
     def __init__ (self, *args, **kw):
-        raise LogicError('%s: cannot construct instances of union' % (self.__class__.__name__,))
+        raise pyxb.LogicError('%s: cannot construct instances of union' % (self.__class__.__name__,))
 
 class STD_list (simpleTypeDefinition, types.ListType):
     """Base class for collection datatypes.
@@ -495,8 +500,8 @@ class STD_list (simpleTypeDefinition, types.ListType):
             if not isinstance(value, cls._ItemType):
                 try:
                     value = cls._ItemType(value)
-                except BadTypeValueError:
-                    raise BadTypeValueError('Type %s has member of type %s, must be %s' % (cls.__name__, type(value).__name__, cls._ItemType.__name__))
+                except pyxb.BadTypeValueError:
+                    raise pyxb.BadTypeValueError('Type %s has member of type %s, must be %s' % (cls.__name__, type(value).__name__, cls._ItemType.__name__))
         return value
 
     @classmethod
@@ -586,14 +591,14 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
     def CreateFromDOM (cls, node, **kw):
         """Create an instance of this element from the given DOM node.
 
-        Raises LogicError if the name of the node is not consistent
+        Raises pyxb.LogicError if the name of the node is not consistent
         with the _XsdName of this class."""
         instance_root = kw.pop('instance_root', None)
         node_name = node.nodeName
         if 0 < node_name.find(':'):
             node_name = node_name.split(':')[1]
         if cls._XsdName != node_name:
-            raise UnrecognizedContentError('Attempting to create element %s from DOM node named %s' % (cls._XsdName, node_name))
+            raise pyxb.UnrecognizedContentError('Attempting to create element %s from DOM node named %s' % (cls._XsdName, node_name))
         if issubclass(cls._TypeDefinition, simpleTypeDefinition):
             rv = cls._DynamicCreate(cls._TypeDefinition.CreateFromDOM(node))
         else:
@@ -613,9 +618,11 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
         return dom_support
 
     def __str__ (self):
-        return str(self.content())
+        if isinstance(self.content(), simpleTypeDefinition):
+            return str(self.content())
+        return '%s: %s' % (self._XsdName, str(self.content()))
 
-class enumeration_mixin (object):
+class enumeration_mixin (pyxb.cscRoot):
     """Marker in case we need to know that a PST has an enumeration constraint facet."""
     pass
 
@@ -686,7 +693,7 @@ class complexTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _
             if isinstance(args[0], self.__class__):
                 that = args[0]
             else:
-                raise IncompleteImplementationError('No %s constructor support for argument %s' % (type(self), args[0]))
+                raise pyxb.IncompleteImplementationError('No %s constructor support for argument %s' % (type(self), args[0]))
         if isinstance(self, _CTD_content_mixin):
             self._resetContent()
         for fu in self._PythonMap().values():
@@ -773,7 +780,7 @@ class complexTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _
     def _setAttributesFromDOM (self, node):
         """Initialize the attributes of this element from those of the DOM node.
 
-        Raises UnrecognizedAttributeError if the DOM node has
+        Raises pyxb.UnrecognizedAttributeError if the DOM node has
         attributes that are not allowed in this type.  May raise other
         errors if prohibited or required attributes are not
         present."""
@@ -796,12 +803,13 @@ class complexTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _
                 prefix = None
             # @todo handle cross-namespace attributes
             if prefix is not None:
-                raise IncompleteImplementationError('No support for namespace-qualified attributes like %s:%s' % (prefix, local_name))
+                print 'IGNORING namespace-qualified attribute %s:%s' % (prefix, local_name)
+                #raise pyxb.IncompleteImplementationError('No support for namespace-qualified attributes like %s:%s' % (prefix, local_name))
                 continue
             au = self._AttributeMap.get(local_name, None)
             if au is None:
                 if self._AttributeWildcard is None:
-                    raise UnrecognizedAttributeError('Attribute %s is not permitted in type' % (local_name,))
+                    raise pyxb.UnrecognizedAttributeError('Attribute %s is not permitted in type' % (local_name,))
                 self.__wildcardAttributeMap[local_name] = value
                 continue
             au.setFromDOM(self, node)
@@ -814,7 +822,7 @@ class complexTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _
 
     def _setContentFromDOM_vx (self, node):
         """Override this in subclasses that expect to process content."""
-        raise LogicError('%s did not implement _setContentFromDOM_vx' % (self.__class__.__name__,))
+        raise pyxb.LogicError('%s did not implement _setContentFromDOM_vx' % (self.__class__.__name__,))
 
     def _setContentFromDOM (self, node):
         """Initialize the content of this element from the content of the DOM node."""
@@ -837,7 +845,7 @@ class complexTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _
         self._setDOMFromContent(dom_support, element)
         for eu in self._ElementMap.values():
             if eu.hasUngeneratedValues(self):
-                raise DOMGenerationError('Values in %s were not converted to DOM' % (eu.pythonField(),))
+                raise pyxb.DOMGenerationError('Values in %s were not converted to DOM' % (eu.pythonField(),))
         self._setDOMFromAttributes(element)
         return dom_support
 
@@ -889,7 +897,7 @@ class CTD_simple (complexTypeDefinition):
     def xsdConstraintsOK (self):
         self.content().xsdConstraintsOK()
 
-class _CTD_content_mixin (object):
+class _CTD_content_mixin (pyxb.cscRoot):
     """Retain information about element and mixed content in a complex type instance.
 
     This is used to generate the XML from the binding in the same
@@ -921,7 +929,7 @@ class _CTD_content_mixin (object):
     def _addElement (self, element):
         eu = self._ElementMap.get(element._XsdName, None)
         if eu is None:
-            raise LogicError('Element %s is not registered within CTD %s' % (element._XsdName, self.__class__.__name__))
+            raise pyxb.LogicError('Element %s is not registered within CTD %s' % (element._XsdName, self.__class__.__name__))
         eu.setValue(self, element)
 
     def _addContent (self, child):
@@ -957,7 +965,7 @@ class _CTD_content_mixin (object):
             self._ContentModel.interprete(self, node_list)
             self._stripMixedContent(node_list)
         if 0 < len(node_list):
-            raise ExtraContentError('Extra content starting with %s' % (node_list[0],))
+            raise pyxb.ExtraContentError('Extra content starting with %s' % (node_list[0],))
         return self
 
     def _setDOMFromContent (self, dom_support, element):
