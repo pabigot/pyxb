@@ -20,7 +20,7 @@ class _Resolvable_mixin (object):
         Override this in the child class."""
         raise LogicError('Resolved check not implemented in %s' % (self.__class__,))
     
-    def _resolve (self, ignored_parameter):
+    def _resolve (self):
         """Perform whatever steps are required to resolve this component.
 
         Resolution is performed in the context of the provided schema.
@@ -336,7 +336,7 @@ class Namespace (object):
 #                    or (isinstance(resolvable, _ScopedDeclaration_mixin) \
 #                        and (isinstance(resolvable.scope(), ComplexTypeDefinition)))
 
-                resolvable._resolve(IGNORED_ARGUMENT)
+                resolvable._resolve()
 
                 # Either we resolved it, or we queued it to try again later
                 assert resolvable.isResolved() or (resolvable in self.__unresolvedComponents)

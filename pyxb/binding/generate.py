@@ -20,8 +20,6 @@ import traceback
 import xml.dom.minidom
 import xml.dom
 
-IGNORED_ARGUMENT = 'ignored argument'
-
 # Initialize UniqueInBinding with the public identifiers we generate,
 # import, or otherwise can't have mucked about with.
 UniqueInBinding = set([ 'pyxb', 'xml', 'sys', 'Namespace', 'CreateFromDOM', 'ElementToBindingMap' ])
@@ -877,7 +875,7 @@ def GenerateMG (mg, **kw):
     # @todo Gotta handle wildcards in here too.
 
     field_names = { }
-    for e in mg.elementDeclarations(IGNORED_ARGUMENT):
+    for e in mg.elementDeclarations():
         if e.scope() is None:
             return ''
         assert e.isResolved()

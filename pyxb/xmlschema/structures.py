@@ -206,7 +206,7 @@ class _SchemaComponent_mixin (object):
         self._namespaceContext().targetNamespace()._associateComponent(self)
         return getattr(super(_SchemaComponent_mixin, self), '_resetClone_vc', lambda *args, **kw: self)()
 
-    def _clone (self, ignored_parameter):
+    def _clone (self):
         """Create a copy of this instance suitable for adoption by
         some other component.
         
@@ -216,7 +216,6 @@ class _SchemaComponent_mixin (object):
         # We only care about cloning declarations, and they should
         # have an unassigned scope.  However, we do clone
         # non-declarations that contain cloned declarations.
-        assert IGNORED_ARGUMENT == ignored_parameter
         assert (not isinstance(self, _ScopedDeclaration_mixin)) or self._scopeIsIndeterminate()
         if isinstance(self, Namespace._Resolvable_mixin):
             assert self.isResolved()
@@ -307,11 +306,10 @@ class _Annotated_mixin (object):
         super(_Annotated_mixin, self).__init__(*args, **kw)
         self.__annotation = kw.get('annotation')
 
-    def _annotationFromDOM (self, ignored_parameter, node):
-        assert IGNORED_ARGUMENT == ignored_parameter
+    def _annotationFromDOM (self, node):
         cn = LocateUniqueChild(node, 'annotation')
         if cn is not None:
-            self.__annotation = Annotation.CreateFromDOM(IGNORED_ARGUMENT, cn, owner=self)
+            self.__annotation = Annotation.CreateFromDOM(cn, owner=self)
 
     def _setBuiltinFromInstance (self, other):
         """Override fields in this instance with those from the other.
@@ -590,8 +588,7 @@ class _ValueConstraint_mixin:
             return None
         return self.__valueConstraint[0]
 
-    def _valueConstraintFromDOM (self, ignored_parameter, node):
-        assert IGNORED_ARGUMENT == ignored_parameter
+    def _valueConstraintFromDOM (self, node):
         aval = NodeAttribute(node, 'default')
         if aval is not None:
             self.__valueConstraint = (aval, self.VC_default)
@@ -824,7 +821,7 @@ class _AttributeWildcard_mixin (object):
         self.__attributeWildcard = attribute_wildcard
         return self
 
-    def _attributeRelevantChildren (self, ignored_parameter, node_list):
+    def _attributeRelevantChildren (self, node_list):
         """Return the nodes that are relevant for attribute processing.
 
         The input is a schema, and a sequence of nodes found in the
@@ -839,7 +836,6 @@ class _AttributeWildcard_mixin (object):
 
         The return value will be None if any of the children involve a
         reference to an unresolved component."""
-        assert IGNORED_ARGUMENT == ignored_parameter
         
         attributes = []
         attribute_groups = []
@@ -924,7 +920,7 @@ class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, Names
 
     # CFD:AD CFD:AttributeDeclaration
     @classmethod
-    def CreateFromDOM (cls, ignored_parameter, node, **kw):
+    def CreateFromDOM (cls, node, **kw):
         """Create an attribute declaration from the given DOM node.
 
         wxs is a Schema instance within which the attribute is being
@@ -941,7 +937,6 @@ class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, Names
         required parameter for this function.
         """
         
-        assert IGNORED_ARGUMENT == ignored_parameter
         scope = kw['scope']
         assert _ScopedDeclaration_mixin.ScopeIsIndeterminate(scope) or _ScopedDeclaration_mixin.IsValidScope(scope)
 
@@ -960,8 +955,8 @@ class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, Names
             raise SchemaValidationError('Internal attribute declaration by reference')
 
         rv = cls(name=name, node=node, **kw)
-        rv._annotationFromDOM(IGNORED_ARGUMENT, node)
-        rv._valueConstraintFromDOM(IGNORED_ARGUMENT, node)
+        rv._annotationFromDOM(node)
+        rv._valueConstraintFromDOM(node)
         rv.__domNode = node
         rv._queueForResolution()
         return rv
@@ -969,8 +964,7 @@ class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, Names
     def isResolved (self):
         return self.__typeDefinition is not None
 
-    def _resolve (self, ignored_parameter):
-        assert IGNORED_ARGUMENT == ignored_parameter
+    def _resolve (self):
         if self.isResolved():
             return self
         #print 'Resolving AD %s' % (self.name(),)
@@ -979,7 +973,7 @@ class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, Names
         st_node = LocateUniqueChild(node, 'simpleType')
         type_attr = NodeAttribute(node, 'type')
         if st_node is not None:
-            self.__typeDefinition = SimpleTypeDefinition.CreateFromDOM(IGNORED_ARGUMENT, st_node, owner=self)
+            self.__typeDefinition = SimpleTypeDefinition.CreateFromDOM(st_node, owner=self)
         elif type_attr is not None:
             # Although the type definition may not be resolved, *this* component
             # is resolved, since we don't look into the type definition for anything.
@@ -1060,15 +1054,14 @@ class AttributeUse (_SchemaComponent_mixin, Namespace._Resolvable_mixin, _ValueC
         """
         return frozenset([self.__attributeDeclaration])
 
-    def matchingQNameMembers (self, ignored_parameter, au_set):
+    def matchingQNameMembers (self, au_set):
         """Return the subset of au_set for which the use names match this use."""
-        assert IGNORED_ARGUMENT == ignored_parameter
 
         # This use may be brand new, and temporary, and if we don't
         # resolve it now it may be thrown away and we'll loop forever
         # creating new instances that aren't resolved.
         if not self.isResolved():
-            self._resolve(IGNORED_ARGUMENT)
+            self._resolve()
         # If it's still not resolved, hold off, and indicate that the
         # caller should hold off too.
         if not self.isResolved():
@@ -1085,7 +1078,7 @@ class AttributeUse (_SchemaComponent_mixin, Namespace._Resolvable_mixin, _ValueC
 
     # CFD:AU CFD:AttributeUse
     @classmethod
-    def CreateFromDOM (cls, ignored_parameter, node, **kw):
+    def CreateFromDOM (cls, node, **kw):
         """Create an Attribute Use from the given DOM node.
 
         wxs is a Schema instance within which the attribute use is
@@ -1103,7 +1096,6 @@ class AttributeUse (_SchemaComponent_mixin, Namespace._Resolvable_mixin, _ValueC
         attribute group.
         """
 
-        assert IGNORED_ARGUMENT == ignored_parameter
         context = kw['context']
         assert _ScopedDeclaration_mixin.IsValidScope(context)
         scope = kw['scope']
@@ -1122,7 +1114,7 @@ class AttributeUse (_SchemaComponent_mixin, Namespace._Resolvable_mixin, _ValueC
             else:
                 raise SchemaValidationError('Unexpected value %s for attribute use attribute' % (use,))
 
-        rv._valueConstraintFromDOM(IGNORED_ARGUMENT, node)
+        rv._valueConstraintFromDOM(node)
         
         if NodeAttribute(node, 'ref') is None:
             # Create an anonymous declaration.  Although this can
@@ -1130,7 +1122,7 @@ class AttributeUse (_SchemaComponent_mixin, Namespace._Resolvable_mixin, _ValueC
             # generate the binding we can place the attribute in the
             # correct type.  Is this true?
             kw['owner'] = rv
-            rv.__attributeDeclaration = AttributeDeclaration.CreateFromDOM(IGNORED_ARGUMENT, node, **kw)
+            rv.__attributeDeclaration = AttributeDeclaration.CreateFromDOM(node, **kw)
         else:
             rv.__domNode = node
             rv._queueForResolution()
@@ -1139,8 +1131,7 @@ class AttributeUse (_SchemaComponent_mixin, Namespace._Resolvable_mixin, _ValueC
     def isResolved (self):
         return self.__attributeDeclaration is not None
 
-    def _resolve (self, ignored_parameter):
-        assert IGNORED_ARGUMENT == ignored_parameter
+    def _resolve (self):
         if self.isResolved():
             return self
         assert self.__domNode
@@ -1160,7 +1151,7 @@ class AttributeUse (_SchemaComponent_mixin, Namespace._Resolvable_mixin, _ValueC
         self.__domNode = None
         return self
 
-    def _adaptForScope (self, ignored_parameter, ctd):
+    def _adaptForScope (self, ctd):
         """Adapt this instance for the given complex type.
 
         If the attribute declaration for this instance has scope None,
@@ -1168,13 +1159,12 @@ class AttributeUse (_SchemaComponent_mixin, Namespace._Resolvable_mixin, _ValueC
         into the given CTD.  In that case, clone this instance and
         return the clone with its attribute declaration also set to a
         clone with proper scope."""
-        assert IGNORED_ARGUMENT == ignored_parameter
         ad = self.__attributeDeclaration
         rv = self
         if ad.scope() is None:
-            rv = self._clone(IGNORED_ARGUMENT)
+            rv = self._clone()
             rv._setOwner(ctd)
-            rv.__attributeDeclaration = ad._clone(IGNORED_ARGUMENT)
+            rv.__attributeDeclaration = ad._clone()
             rv.__attributeDeclaration._setOwner(rv)
             rv.__attributeDeclaration._setScope(ctd)
         return rv
@@ -1264,7 +1254,7 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, Namespa
 
     # CFD:ED CFD:ElementDeclaration
     @classmethod
-    def CreateFromDOM (cls, ignored_parameter, node, **kw):
+    def CreateFromDOM (cls, node, **kw):
         """Create an element declaration from the given DOM node.
 
         wxs is a Schema instance within which the element is being
@@ -1278,7 +1268,6 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, Namespa
         node is a DOM element.  The name must be 'element', and the
         node must be in the XMLSchema namespace."""
 
-        assert IGNORED_ARGUMENT == ignored_parameter
         scope = kw['scope']
         assert _ScopedDeclaration_mixin.ScopeIsIndeterminate(scope) or _ScopedDeclaration_mixin.IsValidScope(scope)
 
@@ -1296,8 +1285,8 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, Namespa
             raise SchemaValidationError('Created reference as element declaration')
         
         rv = cls(name=name, node=node, **kw)
-        rv._annotationFromDOM(IGNORED_ARGUMENT, node)
-        rv._valueConstraintFromDOM(IGNORED_ARGUMENT, node)
+        rv._annotationFromDOM(node)
+        rv._valueConstraintFromDOM(node)
 
         # Creation does not attempt to do resolution.  Queue up the newly created
         # whatsis so we can resolve it after everything's been read in.
@@ -1309,11 +1298,10 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, Namespa
     def isDeepResolved (self):
         return True
 
-    def _adaptForScope (self, ignored_parameter, owner, scope):
-        assert IGNORED_ARGUMENT == ignored_parameter
+    def _adaptForScope (self, owner, scope):
         rv = self
         if (self._scopeIsIndeterminate()) and (scope is not None):
-            rv = self._clone(IGNORED_ARGUMENT)
+            rv = self._clone()
             assert owner is not None
             rv._setOwner(owner)
             rv._setScope(scope)
@@ -1325,8 +1313,7 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, Namespa
         return self.__typeDefinition is not None
 
     # res:ED res:ElementDeclaration
-    def _resolve (self, ignored_parameter):
-        assert IGNORED_ARGUMENT == ignored_parameter
+    def _resolve (self):
         if self.isResolved():
             return self
 
@@ -1354,17 +1341,17 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, Namespa
         identity_constraints = []
         for cn in node.childNodes:
             if (Node.ELEMENT_NODE == cn.nodeType) and xsd.nodeIsNamed(cn, 'key', 'unique', 'keyref'):
-                identity_constraints.append(IdentityConstraintDefinition.CreateFromDOM(IGNORED_ARGUMENT, cn, owner=self, scope=self.scope()))
+                identity_constraints.append(IdentityConstraintDefinition.CreateFromDOM(cn, owner=self, scope=self.scope()))
         self.__identityConstraintDefinitions = identity_constraints
 
         type_def = None
         td_node = LocateUniqueChild(node, 'simpleType')
         if td_node is not None:
-            type_def = SimpleTypeDefinition.CreateFromDOM(IGNORED_ARGUMENT, td_node, owner=self)
+            type_def = SimpleTypeDefinition.CreateFromDOM(td_node, owner=self)
         else:
             td_node = LocateUniqueChild(node, 'complexType')
             if td_node is not None:
-                type_def = ComplexTypeDefinition.CreateFromDOM(IGNORED_ARGUMENT, td_node, scope=_ScopedDeclaration_mixin.XSCOPE_indeterminate, owner=self)
+                type_def = ComplexTypeDefinition.CreateFromDOM(td_node, scope=_ScopedDeclaration_mixin.XSCOPE_indeterminate, owner=self)
         if type_def is None:
             type_attr = NodeAttribute(node, 'type')
             if type_attr is not None:
@@ -1624,9 +1611,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, Name
 
     # CFD:CTD CFD:ComplexTypeDefinition
     @classmethod
-    def CreateFromDOM (cls, ignored_parameter, node, **kw):
-        assert IGNORED_ARGUMENT == ignored_parameter
-
+    def CreateFromDOM (cls, node, **kw):
         # Node should be an XMLSchema complexType node
         assert xsd.nodeIsNamed(node, 'complexType')
 
@@ -1637,15 +1622,14 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, Name
         # Creation does not attempt to do resolution.  Queue up the newly created
         # whatsis so we can resolve it after everything's been read in.
         rv.__domNode = node
-        rv._annotationFromDOM(IGNORED_ARGUMENT, node)
+        rv._annotationFromDOM(node)
         rv._queueForResolution()
         
         return rv
 
     # Handle attributeUses, attributeWildcard, contentType
-    def __completeProcessing (self, ignored_parameter, definition_node_list, method, content_style):
-        assert IGNORED_ARGUMENT == ignored_parameter
-        rv = self._attributeRelevantChildren(IGNORED_ARGUMENT, definition_node_list)
+    def __completeProcessing (self, definition_node_list, method, content_style):
+        rv = self._attributeRelevantChildren(definition_node_list)
         if rv is None:
             self._queueForResolution()
             print 'Holding off CTD %s resolution due to unresolved attribute or group' % (self.name(),)
@@ -1658,7 +1642,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, Name
         uses_c2 = set()
         uses_c3 = set()
         for cn in attributes:
-            au = AttributeUse.CreateFromDOM(IGNORED_ARGUMENT, cn, context=self, scope=self)
+            au = AttributeUse.CreateFromDOM(cn, context=self, scope=self)
             uses_c1.add(au)
         for agd in attribute_groups:
             uses_c2.update(agd.attributeUses())
@@ -1677,7 +1661,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, Name
                 # not yet filtered uses_c1 for prohibited attributes.
                 uses_c12 = uses_c1.union(uses_c2)
                 for au in uses_c12:
-                    matching_uses = au.matchingQNameMembers(IGNORED_ARGUMENT, uses_c3)
+                    matching_uses = au.matchingQNameMembers(uses_c3)
                     if matching_uses is None:
                         self._queueForResolution()
                         print 'Holding off CTD %s resolution to check for attribute restrictions' % (self.name(),)
@@ -1687,13 +1671,13 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, Name
         # Past the last point where we might not resolve this
         # instance.  Store the attribute uses, also recording local
         # attribute declarations.
-        self.__attributeUses = frozenset([ _u._adaptForScope(IGNORED_ARGUMENT, self) for _u in uses_c1.union(uses_c2).union(uses_c3) ])
+        self.__attributeUses = frozenset([ _u._adaptForScope(self) for _u in uses_c1.union(uses_c2).union(uses_c3) ])
 
         # @todo Handle attributeWildcard
         # Clause 1
         local_wildcard = None
         if any_attribute is not None:
-            local_wildcard = Wildcard.CreateFromDOM(IGNORED_ARGUMENT, any_attribute)
+            local_wildcard = Wildcard.CreateFromDOM(any_attribute)
 
         # Clause 2
         complete_wildcard = _AttributeWildcard_mixin.CompleteWildcard(self._namespaceContext(), attribute_groups, any_attribute, local_wildcard)
@@ -1731,8 +1715,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, Name
         self.__derivationMethod = method
         return self
 
-    def __simpleContent (self, ignored_parameter, method):
-        assert IGNORED_ARGUMENT == ignored_parameter
+    def __simpleContent (self, method):
         # Do content type
         if isinstance(self.__baseTypeDefinition, ComplexTypeDefinition):
             # Clauses 1, 2, and 3 might apply
@@ -1754,9 +1737,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, Name
             return ( self.CT_SIMPLE, self.__baseTypeDefinition )
         assert False
 
-    def __complexContent (self, ignored_parameter, type_node, content_node, definition_node_list, method):
-        assert IGNORED_ARGUMENT == ignored_parameter
-        
+    def __complexContent (self, type_node, content_node, definition_node_list, method):
         # Do content type.  Cache the keywords that need to be used
         # for newly created schema components.
         ckw = { 'node' : type_node
@@ -1818,7 +1799,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, Name
             # Clause 2.2
             assert typedef_node is not None
             # Context and scope are both this CTD
-            effective_content = Particle.CreateFromDOM(IGNORED_ARGUMENT, typedef_node, context=self, scope=self, owner=self)
+            effective_content = Particle.CreateFromDOM(typedef_node, context=self, scope=self, owner=self)
 
         # Shared from clause 3.1.2
         if effective_mixed:
@@ -1886,9 +1867,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, Name
     #
     # * The content model includes a particle which cannot be resolved
     #   (so has not contributed any local element declarations).
-    def _resolve (self, ignored_parameter):
-        assert IGNORED_ARGUMENT == ignored_parameter
-
+    def _resolve (self):
         if self.isResolved():
             return self
         assert self.__domNode
@@ -1969,11 +1948,11 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, Name
         # have a base type.
         if self.__contentType is None:
             if is_complex_content:
-                content_type = self.__complexContent(IGNORED_ARGUMENT, node, self.__contentNode, self.__definitionNodeList, self.__pendingDerivationMethod)
+                content_type = self.__complexContent(node, self.__contentNode, self.__definitionNodeList, self.__pendingDerivationMethod)
                 self.__contentStyle = 'complex'
             else:
                 # The definition node list is not relevant to simple content
-                content_type = self.__simpleContent(IGNORED_ARGUMENT, self.__pendingDerivationMethod)
+                content_type = self.__simpleContent(self.__pendingDerivationMethod)
                 self.__contentStyle = 'simple'
             assert content_type is not None
             self.__contentType = content_type
@@ -1995,7 +1974,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, Name
                 self._queueForResolution()
                 return self
 
-        return self.__completeProcessing(IGNORED_ARGUMENT, self.__definitionNodeList, self.__pendingDerivationMethod, self.__contentStyle)
+        return self.__completeProcessing(self.__definitionNodeList, self.__pendingDerivationMethod, self.__contentStyle)
 
     def __str__ (self):
         return 'CTD[%s]' % (self.name(),)
@@ -2031,12 +2010,11 @@ class AttributeGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, N
 
     # CFD:AGD CFD:AttributeGroupDefinition
     @classmethod
-    def CreateFromDOM (cls, ignored_parameter, node, **kw):
+    def CreateFromDOM (cls, node, **kw):
         """Create an attribute group definition from the given DOM node.
 
         """
         
-        assert IGNORED_ARGUMENT == ignored_parameter
         assert xsd.nodeIsNamed(node, 'attributeGroup')
         name = NodeAttribute(node, 'name')
 
@@ -2048,7 +2026,7 @@ class AttributeGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, N
                     'scope' : _ScopedDeclaration_mixin.XSCOPE_indeterminate })
         rv = cls(name=name, node=node, **kw)
 
-        rv._annotationFromDOM(IGNORED_ARGUMENT, node)
+        rv._annotationFromDOM(node)
         rv._queueForResolution()
         rv.__domNode = node
         return rv
@@ -2058,8 +2036,7 @@ class AttributeGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, N
     def isResolved (self):
         return self.__isResolved
 
-    def _resolve (self, ignored_parameter):
-        assert IGNORED_ARGUMENT == ignored_parameter
+    def _resolve (self):
         if self.__isResolved:
             return self
         node = self.__domNode
@@ -2069,7 +2046,7 @@ class AttributeGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, N
         if ref_attr is not None:
             raise SchemaValidationError('Attribute reference at top level')
 
-        rv = self._attributeRelevantChildren(IGNORED_ARGUMENT, node.childNodes)
+        rv = self._attributeRelevantChildren(node.childNodes)
         if rv is None:
             self._queueForResolution()
             return self
@@ -2077,15 +2054,15 @@ class AttributeGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, N
         (attributes, attribute_groups, any_attribute) = rv
         uses = set()
         for cn in attributes:
-            uses.add(AttributeUse.CreateFromDOM(IGNORED_ARGUMENT, cn, context=self._context(), scope=self._scope(), owner=self))
+            uses.add(AttributeUse.CreateFromDOM(cn, context=self._context(), scope=self._scope(), owner=self))
         for agd in attribute_groups:
             uses = uses.union(agd.attributeUses())
 
         # "Complete wildcard" per CTD
         local_wildcard = None
         if any_attribute is not None:
-            local_wildcard = Wildcard.CreateFromDOM(IGNORED_ARGUMENT, any_attribute)
-        self._setAttributeWildcard(_AttributeWildcard_mixin.CompleteWildcard(IGNORED_ARGUMENT, attribute_groups, any_attribute, local_wildcard))
+            local_wildcard = Wildcard.CreateFromDOM(any_attribute)
+        self._setAttributeWildcard(_AttributeWildcard_mixin.CompleteWildcard(self._namespaceContext(), attribute_groups, any_attribute, local_wildcard))
 
         self.__attributeUses = frozenset(uses)
         self.__isResolved = True
@@ -2112,7 +2089,7 @@ class ModelGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Anno
 
     # CFD:MGD CFD:ModelGroupDefinition
     @classmethod
-    def CreateFromDOM (cls, ignored_parameter, node, **kw):
+    def CreateFromDOM (cls, node, **kw):
         """Create a Model Group Definition from a DOM element node.
 
         wxs is a Schema instance within which the model group is being
@@ -2122,8 +2099,6 @@ class ModelGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Anno
         must be in the XMLSchema namespace.  The node must have a
         'name' attribute, and must not have a 'ref' attribute.
         """
-        assert IGNORED_ARGUMENT == ignored_parameter
-
         assert xsd.nodeIsNamed(node, 'group')
 
         assert NodeAttribute(node, 'ref') is None
@@ -2132,7 +2107,7 @@ class ModelGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Anno
         kw.update({ 'context' : _ScopedDeclaration_mixin.SCOPE_global,
                     'scope' : _ScopedDeclaration_mixin.XSCOPE_indeterminate })
         rv = cls(name=name, node=node, **kw)
-        rv._annotationFromDOM(IGNORED_ARGUMENT, node)
+        rv._annotationFromDOM(node)
 
         for cn in node.childNodes:
             if Node.ELEMENT_NODE != cn.nodeType:
@@ -2144,7 +2119,7 @@ class ModelGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Anno
                 # element declared in them are not bound to a scope until they
                 # are referenced in a complex type, so the scope is
                 # indeterminate.
-                rv.__modelGroup = ModelGroup.CreateFromDOM(IGNORED_ARGUMENT, cn, context=_ScopedDeclaration_mixin.SCOPE_global, scope=_ScopedDeclaration_mixin.XSCOPE_indeterminate, model_group_definition=rv, owner=rv)
+                rv.__modelGroup = ModelGroup.CreateFromDOM(cn, context=_ScopedDeclaration_mixin.SCOPE_global, scope=_ScopedDeclaration_mixin.XSCOPE_indeterminate, model_group_definition=rv, owner=rv)
         assert rv.__modelGroup is not None
         return rv
 
@@ -2255,7 +2230,7 @@ class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
 
     # CFD:MG CFD:ModelGroup
     @classmethod
-    def CreateFromDOM (cls, ignored_parameter, node, **kw):
+    def CreateFromDOM (cls, node, **kw):
         """Create a model group from the given DOM node.
 
         wxs is a Schema instance within which the model group is being
@@ -2275,7 +2250,6 @@ class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
         definition.
         """
         
-        assert IGNORED_ARGUMENT == ignored_parameter
         context = kw['context']
         assert _ScopedDeclaration_mixin.IsValidScope(context)
         scope = kw['scope']
@@ -2297,22 +2271,21 @@ class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
                 continue
             if Particle.IsParticleNode(cn):
                 # NB: Ancestor of particle is set in the ModelGroup constructor
-                particles.append(Particle.CreateFromDOM(ignored_parameter, node=cn, **kw))
+                particles.append(Particle.CreateFromDOM(node=cn, **kw))
         rv = cls(compositor, particles, node=node, scope=scope, context=context)
         for p in particles:
             p._setOwner(rv)
-        rv._annotationFromDOM(IGNORED_ARGUMENT, node)
+        rv._annotationFromDOM(node)
         return rv
 
     @classmethod
     def IsGroupMemberNode (cls, node):
         return xsd.nodeIsNamed(node, 'all', 'choice', 'sequence')
 
-    def elementDeclarations (self, ignored_parameter):
+    def elementDeclarations (self):
         """Return a list of all ElementDeclarations that are at the
         top level of this model group, in the order in which they can
         occur."""
-        assert IGNORED_ARGUMENT == ignored_parameter
         element_decls = []
         model_groups = [ self ]
         #print 'Extracting element declarations from model group with %d particles: %s'  % (len(self.particles()), self.particles())
@@ -2322,7 +2295,7 @@ class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
                 if isinstance(p.term(), ModelGroup):
                     model_groups.append(p.term())
                 elif isinstance(p.term(), ElementDeclaration):
-                    element_decls.extend(p.elementDeclarations(IGNORED_ARGUMENT))
+                    element_decls.extend(p.elementDeclarations())
                 else:
                     assert p.term() is not None
                     pass
@@ -2330,12 +2303,11 @@ class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
         #print 'Model group with %d particles produced %d element declarations' % (len(self.particles()), len(element_decls))
         return element_decls
 
-    def _adaptForScope (self, ignored_parameter, owner, scope):
-        assert IGNORED_ARGUMENT == ignored_parameter
+    def _adaptForScope (self, owner, scope):
         rv = self
-        scoped_particles = [ _p._adaptForScope(IGNORED_ARGUMENT, None, scope) for _p in self.particles() ]
+        scoped_particles = [ _p._adaptForScope(None, scope) for _p in self.particles() ]
         if scoped_particles != self.particles():
-            rv = self._clone(IGNORED_ARGUMENT)
+            rv = self._clone()
             rv._setOwner(owner)
             rv.__particles = scoped_particles
         return rv
@@ -2379,11 +2351,10 @@ class Particle (_SchemaComponent_mixin, Namespace._Resolvable_mixin):
         """A reference to a ModelGroup, Wildcard, or ElementDeclaration."""
         return self.__term
 
-    def elementDeclarations (self, ignored_parameter):
-        assert IGNORED_ARGUMENT == ignored_parameter
+    def elementDeclarations (self):
         assert self.__term is not None
         if isinstance(self.__term, ModelGroup):
-            return self.__term.elementDeclarations(IGNORED_ARGUMENT)
+            return self.__term.elementDeclarations()
         if isinstance(self.__term, ElementDeclaration):
             return [ self.__term ]
         if isinstance(self.__term, Wildcard):
@@ -2460,7 +2431,7 @@ class Particle (_SchemaComponent_mixin, Namespace._Resolvable_mixin):
         assert (self._scopeIsIndeterminate()) or isinstance(self._scope(), ComplexTypeDefinition)
 
         if term is not None:
-            self.__term = term._adaptForScope(IGNORED_ARGUMENT, self, self._scope())
+            self.__term = term._adaptForScope(self, self._scope())
 
         assert isinstance(min_occurs, (types.IntType, types.LongType))
         self.__minOccurs = min_occurs
@@ -2470,8 +2441,7 @@ class Particle (_SchemaComponent_mixin, Namespace._Resolvable_mixin):
             if self.__minOccurs > self.__maxOccurs:
                 raise LogicError('Particle minOccurs %s is greater than maxOccurs %s on creation' % (min_occurs, max_occurs))
     
-    def _resolve (self, ignored_parameter):
-        assert IGNORED_ARGUMENT == ignored_parameter
+    def _resolve (self):
         if self.isResolved():
             return self
         node = self.__domNode
@@ -2494,7 +2464,7 @@ class Particle (_SchemaComponent_mixin, Namespace._Resolvable_mixin):
 
             # Neither group definitions nor model groups require
             # resolution, so we can just extract the reference.
-            term = group_decl.modelGroup()._adaptForScope(IGNORED_ARGUMENT, self, scope)
+            term = group_decl.modelGroup()._adaptForScope(self, scope)
             assert term is not None
         elif xsd.nodeIsNamed(node, 'element'):
             assert not xsd.nodeIsNamed(node.parentNode, 'schema')
@@ -2508,17 +2478,17 @@ class Particle (_SchemaComponent_mixin, Namespace._Resolvable_mixin):
                     self._queueForResolution()
                     return term
             else:
-                term = ElementDeclaration.CreateFromDOM(IGNORED_ARGUMENT, node=node, scope=scope)
+                term = ElementDeclaration.CreateFromDOM(node=node, scope=scope)
             assert term is not None
         elif xsd.nodeIsNamed(node, 'any'):
             # 3.9.2 says use 3.10.2, which is Wildcard.
-            term = Wildcard.CreateFromDOM(IGNORED_ARGUMENT, node=node)
+            term = Wildcard.CreateFromDOM(node=node)
             assert term is not None
         elif ModelGroup.IsGroupMemberNode(node):
             # Choice, sequence, and all inside a particle are explicit
             # groups (or a restriction of explicit group, in the case
             # of all)
-            term = ModelGroup.CreateFromDOM(IGNORED_ARGUMENT, node=node, context=context, scope=scope)
+            term = ModelGroup.CreateFromDOM(node=node, context=context, scope=scope)
         else:
             raise LogicError('Unhandled node in Particle._resolve: %s' % (node.toxml(),))
         self.__domNode = None
@@ -2531,7 +2501,7 @@ class Particle (_SchemaComponent_mixin, Namespace._Resolvable_mixin):
 
     # CFD:Particle
     @classmethod
-    def CreateFromDOM (cls, ignored_parameter, node, **kw):
+    def CreateFromDOM (cls, node, **kw):
         """Create a particle from the given DOM node.
 
         wxs is a Schema instance within which the model group is being
@@ -2549,8 +2519,6 @@ class Particle (_SchemaComponent_mixin, Namespace._Resolvable_mixin):
         None, indicating no scope defined, or a complex type
         definition.
         """
-        assert IGNORED_ARGUMENT == ignored_parameter
-
         context = kw['context']
         assert _ScopedDeclaration_mixin.IsValidScope(context)
         scope = kw['scope']
@@ -2577,13 +2545,12 @@ class Particle (_SchemaComponent_mixin, Namespace._Resolvable_mixin):
         rv._queueForResolution()
         return rv
 
-    def _adaptForScope (self, ignored_parameter, owner, scope):
-        assert IGNORED_ARGUMENT == ignored_parameter
+    def _adaptForScope (self, owner, scope):
         rv = self
         if (self._scopeIsIndeterminate()) and (scope is not None):
-            rv = self._clone(IGNORED_ARGUMENT)
+            rv = self._clone()
             rv._setOwner(owner)
-            rv.__term = rv.__term._adaptForScope(IGNORED_ARGUMENT, rv, scope)
+            rv.__term = rv.__term._adaptForScope(rv, scope)
         else:
             try:
                 assert self.__term._scopeIsCompatible(scope)
@@ -2790,16 +2757,14 @@ class Wildcard (_SchemaComponent_mixin, _Annotated_mixin):
     def isDeepResolved (self):
         return True
 
-    def _adaptForScope (self, ignored_parameter, owner, ctd):
+    def _adaptForScope (self, owner, ctd):
         """Wildcards are scope-independent; return self"""
-        assert IGNORED_ARGUMENT == ignored_parameter
         return self
 
     # CFD:Wildcard
     @classmethod
-    def CreateFromDOM (cls, ignored_parameter, node, **kw):
+    def CreateFromDOM (cls, node, **kw):
         namespace_context = Namespace.NamespaceContext.GetNodeContext(node)
-        assert IGNORED_ARGUMENT == ignored_parameter
         assert xsd.nodeIsNamed(node, 'any', 'anyAttribute')
         nc = NodeAttribute(node, 'namespace')
         if nc is None:
@@ -2830,7 +2795,7 @@ class Wildcard (_SchemaComponent_mixin, _Annotated_mixin):
                 raise SchemaValidationError('illegal value "%s" for any processContents attribute' % (pc,))
 
         rv = cls(node=node, namespace_constraint=namespace_constraint, process_contents=process_contents, **kw)
-        rv._annotationFromDOM(IGNORED_ARGUMENT, node)
+        rv._annotationFromDOM(node)
         return rv
 
 # 3.11.1
@@ -2862,8 +2827,7 @@ class IdentityConstraintDefinition (_SchemaComponent_mixin, _NamedComponent_mixi
 
     # CFD:ICD CFD:IdentityConstraintDefinition
     @classmethod
-    def CreateFromDOM (cls, ignored_parameter, node, **kw):
-        assert IGNORED_ARGUMENT == ignored_parameter
+    def CreateFromDOM (cls, node, **kw):
         name = NodeAttribute(node, 'name')
         scope = kw['scope']
         assert _ScopedDeclaration_mixin.ScopeIsIndeterminate(scope) or _ScopedDeclaration_mixin.IsValidScope(scope)
@@ -2876,13 +2840,12 @@ class IdentityConstraintDefinition (_SchemaComponent_mixin, _NamedComponent_mixi
         return self.__identityConstraintCategory is not None
 
     # res:ICD res:IdentityConstraintDefinition
-    def _resolve (self, ignored_parameter):
-        assert IGNORED_ARGUMENT == ignored_parameter
+    def _resolve (self):
         if self.isResolved():
             return self
         node = self.__domNode
 
-        #self._annotationFromDOM(IGNORED_ARGUMENT, node);
+        #self._annotationFromDOM(node);
         icc = None
         if xsd.nodeIsNamed(node, 'key'):
             icc = self.ICC_KEY
@@ -2914,7 +2877,7 @@ class IdentityConstraintDefinition (_SchemaComponent_mixin, _NamedComponent_mixi
                 raise SchemaValidationError('field element missing xpath attribute')
             self.__fields.append(xp_attr)
 
-        self._annotationFromDOM(IGNORED_ARGUMENT, node)
+        self._annotationFromDOM(node)
         self.__annotations = []
         if self.annotation() is not None:
             self.__annotations.append(self)
@@ -2928,7 +2891,7 @@ class IdentityConstraintDefinition (_SchemaComponent_mixin, _NamedComponent_mixi
             elif xsd.nodeIsNamed(cn, 'annotation'):
                 an = cn
             if an is not None:
-                self.__annotations.append(Annotation.CreateFromDOM(IGNORED_ARGUMENT, an, owner=self))
+                self.__annotations.append(Annotation.CreateFromDOM(an, owner=self))
 
         self.__identityConstraintCategory = icc
         if self.ICC_KEYREF != self.__identityConstraintCategory:
@@ -2954,15 +2917,14 @@ class NotationDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Annot
 
     # CFD:ND CFD:NotationDeclaration
     @classmethod
-    def CreateFromDOM (cls, ignored_parameter, node, owner=None):
-        assert IGNORED_ARGUMENT == ignored_parameter
+    def CreateFromDOM (cls, node, owner=None):
         name = NodeAttribute(node, 'name')
         rv = cls(name=name, node=node, owner=owner)
 
         rv.__systemIdentifier = NodeAttribute(node, 'system')
         rv.__publicIdentifier = NodeAttribute(node, 'public')
 
-        rv._annotationFromDOM(IGNORED_ARGUMENT, node)
+        rv._annotationFromDOM(node)
         return rv
 
 # 3.13.1
@@ -2997,8 +2959,7 @@ class Annotation (_SchemaComponent_mixin):
 
     # CFD:Annotation
     @classmethod
-    def CreateFromDOM (cls, ignored_parameter, node, **kw):
-        assert IGNORED_ARGUMENT == ignored_parameter
+    def CreateFromDOM (cls, node, **kw):
         rv = cls(node=node, **kw)
 
         # @todo: Scan for attributes in the node itself that do not
@@ -3363,8 +3324,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, Names
         This function has not been implemented."""
         raise IncompleteImplementationError('No support for built-in union types')
 
-    def __singleSimpleTypeChild (self, ignored_parameter, body):
-        assert IGNORED_ARGUMENT == ignored_parameter
+    def __singleSimpleTypeChild (self, body):
         simple_type_child = None
         for cn in body.childNodes:
             if (Node.ELEMENT_NODE == cn.nodeType):
@@ -3381,13 +3341,11 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, Names
     # variety is not saved until it is complete.  All this stuff is
     # from section 3.14.2.
 
-    def __initializeFromList (self, ignored_parameter, body):
-        assert IGNORED_ARGUMENT == ignored_parameter
+    def __initializeFromList (self, body):
         self.__baseTypeDefinition = self.SimpleUrTypeDefinition()
-        return self.__completeResolution(IGNORED_ARGUMENT, body, self.VARIETY_list, 'list')
+        return self.__completeResolution(body, self.VARIETY_list, 'list')
 
-    def __initializeFromRestriction (self, ignored_parameter, body):
-        assert IGNORED_ARGUMENT == ignored_parameter
+    def __initializeFromRestriction (self, body):
         base_attr = NodeAttribute(body, 'base')
         if base_attr is not None:
             # Look up the base.  If there is no registered type of
@@ -3413,12 +3371,11 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, Names
         variety = self.__baseTypeDefinition.__variety
         if self.__baseTypeDefinition == self.SimpleUrTypeDefinition():
             variety = self.VARIETY_atomic
-        return self.__completeResolution(IGNORED_ARGUMENT, body, variety, 'restriction')
+        return self.__completeResolution(body, variety, 'restriction')
 
-    def __initializeFromUnion (self, ignored_parameter, body):
-        assert IGNORED_ARGUMENT == ignored_parameter
+    def __initializeFromUnion (self, body):
         self.__baseTypeDefinition = self.SimpleUrTypeDefinition()
-        return self.__completeResolution(IGNORED_ARGUMENT, body, self.VARIETY_union, 'union')
+        return self.__completeResolution(body, self.VARIETY_union, 'union')
 
     def __resolveBuiltin (self):
         if self.hasPythonSupport():
@@ -3432,20 +3389,19 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, Names
         self.__isBuiltin = True
         return self
 
-    def __defineDefaultFacets (self, ignored_parameter, variety):
+    def __defineDefaultFacets (self, variety):
         """Create facets for varieties that can take facets that are undeclared.
 
         This means unions, which per section 4.1.2.3 of
         http://www.w3.org/TR/xmlschema-2/ can have enumeration or
         pattern restrictions."""
-        assert IGNORED_ARGUMENT == ignored_parameter
         if self.VARIETY_union != variety:
             return self
         self.__facets.setdefault(facets.CF_pattern)
         self.__facets.setdefault(facets.CF_enumeration)
         return self
 
-    def __processHasFacetAndProperty (self, ignored_parameter, variety):
+    def __processHasFacetAndProperty (self, variety):
         """Identify the facets and properties for this stype.
 
         This method simply identifies the facets that apply to this
@@ -3463,14 +3419,13 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, Names
 
         The return value is self.
         """
-        assert IGNORED_ARGUMENT == ignored_parameter
         self.__facets = { }
         self.__fundamentalFacets = frozenset()
         if self.annotation() is None:
-            return self.__defineDefaultFacets(IGNORED_ARGUMENT, variety)
+            return self.__defineDefaultFacets(variety)
         app_info = self.annotation().applicationInformation()
         if app_info is  None:
-            return self.__defineDefaultFacets(IGNORED_ARGUMENT, variety)
+            return self.__defineDefaultFacets(variety)
         facet_map = { }
         fundamental_facets = set()
         seen_facets = set()
@@ -3499,8 +3454,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, Names
             self.__fundamentalFacets = frozenset(fundamental_facets)
         return self
 
-    def __updateFacets (self, ignored_parameter, body):
-        assert IGNORED_ARGUMENT == ignored_parameter
+    def __updateFacets (self, body):
         # We want a map from the union of the facet classes from this
         # STD and the baseTypeDefinition (if present), to None if the
         # facet has not been constrained, or a ConstrainingFacet
@@ -3538,8 +3492,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, Names
     # Complete the resolution of some variety of STD.  Note that the
     # variety is compounded by an alternative, since there is no
     # 'restriction' variety.
-    def __completeResolution (self, ignored_parameter, body, variety, alternative):
-        assert IGNORED_ARGUMENT == ignored_parameter
+    def __completeResolution (self, body, variety, alternative):
         assert self.__variety is None
         assert variety is not None
         if self.VARIETY_absent == variety:
@@ -3576,7 +3529,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, Names
                     # NOTE: The newly created anonymous item type will
                     # not be resolved; the caller needs to handle
                     # that.
-                    self.__itemTypeDefinition = self.CreateFromDOM(IGNORED_ARGUMENT, self.__singleSimpleTypeChild(IGNORED_ARGUMENT, body), owner=self)
+                    self.__itemTypeDefinition = self.CreateFromDOM(self.__singleSimpleTypeChild(body), owner=self)
             elif 'restriction' == alternative:
                 self.__itemTypeDefinition = self.__baseTypeDefinition.__itemTypeDefinition
             else:
@@ -3610,7 +3563,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, Names
                                 # NB: Attempt resolution right away to
                                 # eliminate unnecessary delay below
                                 # when looking for union expansions.
-                                mtd.append(self.CreateFromDOM(IGNORED_ARGUMENT, cn, owner=self)._resolve(IGNORED_ARGUMENT))
+                                mtd.append(self.CreateFromDOM(cn, owner=self)._resolve())
                     self.__memberTypeDefinitions = mtd[:]
                     assert None not in self.__memberTypeDefinitions
 
@@ -3645,8 +3598,8 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, Names
 
         # Determine what facets, if any, apply to this type.  This
         # should only do something if this is a primitive type.
-        self.__processHasFacetAndProperty(IGNORED_ARGUMENT, variety)
-        self.__updateFacets(IGNORED_ARGUMENT, body)
+        self.__processHasFacetAndProperty(variety)
+        self.__updateFacets(body)
 
         self.__variety = variety
         self.__domNode = None
@@ -3665,7 +3618,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, Names
         # Only unresolved nodes have an unset variety
         return (self.__variety is not None)
 
-    def _resolve (self, ignored_parameter):
+    def _resolve (self):
         """Attempt to resolve the type.
 
         Type resolution for simple types means that the corresponding
@@ -3691,7 +3644,6 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, Names
         unresolved type, this method simply queues it for resolution
         in a later pass and returns.
         """
-        assert IGNORED_ARGUMENT == ignored_parameter
         if self.__variety is not None:
             return self
         #print 'Resolving STD %s' % (self.name(),)
@@ -3703,19 +3655,19 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, Names
         # exactly one of these three types.
         candidate = LocateUniqueChild(node, 'list')
         if candidate:
-            self.__initializeFromList(IGNORED_ARGUMENT, candidate)
+            self.__initializeFromList(candidate)
 
         candidate = LocateUniqueChild(node, 'restriction')
         if candidate:
             if self.__variety is None:
-                self.__initializeFromRestriction(IGNORED_ARGUMENT, candidate)
+                self.__initializeFromRestriction(candidate)
             else:
                 bad_instance = True
 
         candidate = LocateUniqueChild(node, 'union')
         if candidate:
             if self.__variety is None:
-                self.__initializeFromUnion(IGNORED_ARGUMENT, candidate)
+                self.__initializeFromUnion(candidate)
             else:
                 bad_instance = True
 
@@ -3727,8 +3679,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, Names
 
     # CFD:STD CFD:SimpleTypeDefinition
     @classmethod
-    def CreateFromDOM (cls, ignored_parameter, node, **kw):
-        assert IGNORED_ARGUMENT == ignored_parameter
+    def CreateFromDOM (cls, node, **kw):
         # Node should be an XMLSchema simpleType node
         assert xsd.nodeIsNamed(node, 'simpleType')
 
@@ -3740,7 +3691,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, Names
         name = NodeAttribute(node, 'name')
 
         rv = cls(name=name, node=node, variety=None, **kw)
-        rv._annotationFromDOM(IGNORED_ARGUMENT, node)
+        rv._annotationFromDOM(node)
 
         # @todo identify supported facets and properties (hfp)
 
@@ -3836,7 +3787,7 @@ class _ImportElementInformationItem (_Annotated_mixin):
         except Exception, e:
             print 'ERROR validating imported namespace %s: %s' % (uri, e)
             raise
-        self._annotationFromDOM(IGNORED_ARGUMENT, node)
+        self._annotationFromDOM(node)
 
 class Schema (_SchemaComponent_mixin):
     # List of annotations
@@ -4083,7 +4034,7 @@ class Schema (_SchemaComponent_mixin):
         raise IncompleteImplementationException('redefine not implemented')
 
     def __processAnnotation (self, node):
-        an = self._addAnnotation(Annotation.CreateFromDOM(IGNORED_ARGUMENT, node))
+        an = self._addAnnotation(Annotation.CreateFromDOM(node))
         return self
 
     def __processTopLevelNode (self, node):
@@ -4108,7 +4059,7 @@ class Schema (_SchemaComponent_mixin):
                    'owner' : self }
             if issubclass(component, _ScopedDeclaration_mixin):
                 kw['scope'] = _ScopedDeclaration_mixin.SCOPE_global
-            return self._addNamedComponent(component.CreateFromDOM(IGNORED_ARGUMENT, node, **kw))
+            return self._addNamedComponent(component.CreateFromDOM(node, **kw))
 
         raise SchemaValidationError('Unexpected top-level element %s' % (node.nodeName,))
 
