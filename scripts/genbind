@@ -38,7 +38,15 @@ except Exception, e:
 # Save binding source first, so name-in-binding is stored in the
 # parsed schema file
 try:
-    binding_source = GeneratePython(schema=wxs, schema_file=schema_file)
+    for ins in wxs.importedNamespaces():
+        if ins.schema() is not None:
+            ns = ins.namespace()
+            if ns.isAbsentNamespace():
+                ns._overrideAbsentNamespace('URN:%s' % (prefix,))
+            print 'Need to generate binding for imported %s as %s' % (ns.uri(), ns.modulePath())
+            binding_source = GeneratePython(schema=ins.schema())
+            ns.saveToFile('%s/%s.wxs' % (binding_path, ns.modulePath()))
+    binding_source = GeneratePython(schema=wxs)
     print 'Binding source is %d long to %s' % (len(binding_source), binding_file)
     file(binding_file, "w").write(binding_source)
     print 'Saved binding source to %s' % (binding_file,)
@@ -49,8 +57,6 @@ except Exception, e:
 
 try:
     ns = wxs.targetNamespace()
-    if ns.isAbsentNamespace():
-        ns._overrideAbsentNamespace('URN:%s' % (prefix,))
     ns.saveToFile(parsed_schema_file)
     print 'Saved parsed schema to %s URI %s' % (parsed_schema_file, ns.uri())
 except Exception, e:
