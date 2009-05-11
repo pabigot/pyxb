@@ -489,7 +489,11 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
     __uri = None
 
     # An identifier, unique within a program using PyXB, used to distinguish
-    # absent namespaces.  Currently this value is not accessible.
+    # absent namespaces.  Currently this value is not accessible to the user,
+    # and exists solely to provide a unique identifier when printing the
+    # namespace as a string.  The class variable is used as a one-up counter,
+    # which is assigned to the instance variable when an absent namespace
+    # instance is created.
     __absentNamespaceID = 0
 
     # A prefix bound to this namespace by standard.  Current set known are applies to
@@ -516,38 +520,36 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
     # generated Python modules
     __modulePath = None
 
-    __contextDefaultNamespace = None
-    __contextInScopeNamespaces = None
-    __initialNamespaceContext = None
-    def initialNamespaceContext (self):
-        import pyxb.utils.domutils
-        if self.__initialNamespaceContext is None:
-            isn = { }
-            if self.__contextInScopeNamespaces is not None:
-                for (k, v) in self.__contextInScopeNamespaces.items():
-                    isn[k] = self.__identifyNamespace(v)
-            kw = { 'target_namespace' : self
-                 , 'default_namespace' : self.__identifyNamespace(self.__contextDefaultNamespace)
-                 , 'in_scope_namespaces' : isn }
-            self.__initialNamespaceContext = pyxb.utils.domutils.NamespaceContext(None, **kw)
-        return self.__initialNamespaceContext
-
-    def __identifyNamespace (self, nsval):
-        if nsval is None:
-            return self
-        if isinstance(nsval, (str, unicode)):
-            nsval = globals().get(nsval)
-        if isinstance(nsval, Namespace):
-            return nsval
-        raise pyxb.LogicError('Cannot identify namespace from %s' % (nsval,))
-
-    # A set of options defining how the Python bindings for this
-    # namespace were generated.
+    # A set of options defining how the Python bindings for this namespace
+    # were generated.  Not currently used, since we don't have different
+    # binding configurations yet.
     __bindingConfiguration = None
-    def bindingConfiguration (self, bc=None):
-        if bc is not None:
-            self.__bindingConfiguration = bc
-        return self.__bindingConfiguration
+ 
+    # The namespace to use as the default namespace when constructing the
+    # The namespace context used when creating built-in components that belong
+    # to this namespace.  This is used to satisfy the low-level requirement
+    # that all schema component have a namespace context; normally, that
+    # context is built dynamically from the schema element.
+    __initialNamespaceContext = None
+
+    # The default_namespace parameter when creating the initial namespace
+    # context.  Only used with built-in namespaces.
+    __contextDefaultNamespace = None
+
+    # The map from prefixes to namespaces as defined by the schema element for
+    # this namespace.  Only used with built-in namespaces.
+    __contextInScopeNamespaces = None
+
+    @classmethod
+    def _NamespaceForURI (cls, uri):
+        """If a Namespace instance for the given URI exists, return it; otherwise return None.
+
+        Note; Absent namespaces are not stored in the registry.  If you
+        use one (e.g., for a schema with no target namespace), don't
+        lose hold of it."""
+        assert uri is not None
+        return cls.__Registry.get(uri, None)
+
 
     def __getnewargs__ (self):
         """Pickling support.
@@ -575,69 +577,6 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
                 return instance
             cls.__Registry[uri] = instance
         return cls.__Registry[uri]
-
-    @classmethod
-    def _NamespaceForURI (cls, uri):
-        """If a Namespace instance for the given URI exists, return it; otherwise return None.
-
-        Note; Absent namespaces are not stored in the registry.  If you
-        use one (e.g., for a schema with no target namespace), don't
-        lose hold of it."""
-        assert uri is not None
-        return cls.__Registry.get(uri, None)
-
-    __inSchemaLoad = False
-    def _defineSchema_overload (self):
-        """Attempts to load a schema for this namespace.
-
-        The base class implementation looks at the set of available
-        pre-parsed schemas, and if one matches this namespace
-        unserializes it and uses it.
-
-        Sub-classes may choose to look elsewhere, if this version
-        fails or before attempting it.
-
-        There is no guarantee that a schema has been located when this
-        returns.  Caller must check.
-        """
-        assert not self.__inSchemaLoad
-
-        # Absent namespaces cannot load schemas
-        if self.isAbsentNamespace():
-            return None
-        afn = _LoadableNamespaceMap().get(self.uri(), None)
-        if afn is not None:
-            #print 'Loading %s from %s' % (self.uri(), afn)
-            try:
-                self.__inSchemaLoad = True
-                self.LoadFromFile(afn)
-            finally:
-                self.__inSchemaLoad = False
-
-    def nodeIsNamed (self, node, *local_names):
-        return (node.namespaceURI == self.uri()) and (node.localName in local_names)
-
-    __didValidation = False
-    __inValidation = False
-    def validateSchema (self):
-        """Ensure this namespace is ready for use.
-
-        If the namespace does not have an associated schema, the
-        system will attempt to load one.  If unsuccessful, an
-        exception will be thrown."""
-        if not self.__didValidation:
-            assert not self.__inValidation
-            try:
-                self.__inValidation = True
-                self._defineSchema_overload()
-                self.__didValidation = True
-            finally:
-                self.__inValidation = False
-        return
-
-    def _reset (self):
-        getattr(super(Namespace, self), '_reset', lambda *args, **kw: None)()
-        self.__initialNamespaceContext = None
 
     def __init__ (self, uri,
                   schema_location=None,
@@ -683,6 +622,10 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
         self._reset()
 
         assert (self.__uri is None) or (self.__Registry[self.__uri] == self)
+
+    def _reset (self):
+        getattr(super(Namespace, self), '_reset', lambda *args, **kw: None)()
+        self.__initialNamespaceContext = None
 
     def uri (self):
         """Return the URI for the namespace represented by this instance.
@@ -771,15 +714,8 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
             self.__description = description
         return self.__description
 
-    def __str__ (self):
-        if self.__uri is None:
-            return 'AbsentNamespace%d' % (self.__absentNamespaceID,)
-        assert self.__uri is not None
-        if self.__boundPrefix is not None:
-            rv = '%s=%s' % (self.__boundPrefix, self.__uri)
-        else:
-            rv = self.__uri
-        return rv
+    def nodeIsNamed (self, node, *local_names):
+        return (node.namespaceURI == self.uri()) and (node.localName in local_names)
 
     __PICKLE_FORMAT = '200905041925'
 
@@ -918,6 +854,92 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
         print 'Attempting to load a namespace from %s' % (file_path,)
         unpickler = pickle.Unpickler(open(file_path, 'rb'))
         return cls._LoadFromFile(None, unpickler)
+
+    __inSchemaLoad = False
+    def _defineSchema_overload (self):
+        """Attempts to load a schema for this namespace.
+
+        The base class implementation looks at the set of available
+        pre-parsed schemas, and if one matches this namespace
+        unserializes it and uses it.
+
+        Sub-classes may choose to look elsewhere, if this version
+        fails or before attempting it.
+
+        There is no guarantee that a schema has been located when this
+        returns.  Caller must check.
+        """
+        assert not self.__inSchemaLoad
+
+        # Absent namespaces cannot load schemas
+        if self.isAbsentNamespace():
+            return None
+        afn = _LoadableNamespaceMap().get(self.uri(), None)
+        if afn is not None:
+            #print 'Loading %s from %s' % (self.uri(), afn)
+            try:
+                self.__inSchemaLoad = True
+                self.LoadFromFile(afn)
+            finally:
+                self.__inSchemaLoad = False
+
+    __didValidation = False
+    __inValidation = False
+    def validateSchema (self):
+        """Ensure this namespace is ready for use.
+
+        If the namespace does not have an associated schema, the
+        system will attempt to load one.  If unsuccessful, an
+        exception will be thrown."""
+        if not self.__didValidation:
+            assert not self.__inValidation
+            try:
+                self.__inValidation = True
+                self._defineSchema_overload()
+                self.__didValidation = True
+            finally:
+                self.__inValidation = False
+        return
+
+    def initialNamespaceContext (self):
+        import pyxb.utils.domutils
+        if self.__initialNamespaceContext is None:
+            isn = { }
+            if self.__contextInScopeNamespaces is not None:
+                for (k, v) in self.__contextInScopeNamespaces.items():
+                    isn[k] = self.__identifyNamespace(v)
+            kw = { 'target_namespace' : self
+                 , 'default_namespace' : self.__identifyNamespace(self.__contextDefaultNamespace)
+                 , 'in_scope_namespaces' : isn }
+            self.__initialNamespaceContext = pyxb.utils.domutils.NamespaceContext(None, **kw)
+        return self.__initialNamespaceContext
+
+
+    def __identifyNamespace (self, nsval):
+        """Identify the specified namespace, which should be a built-in.
+
+        Normally we can just use a reference to the Namespace module instance,
+        but when creating those instances we sometimes need to refer to ones
+        for which the instance has not yet been created.  In that case, we use
+        the name of the instance, and resolve the namespace when we need to
+        create the initial context."""
+        if nsval is None:
+            return self
+        if isinstance(nsval, (str, unicode)):
+            nsval = globals().get(nsval)
+        if isinstance(nsval, Namespace):
+            return nsval
+        raise pyxb.LogicError('Cannot identify namespace from %s' % (nsval,))
+
+    def __str__ (self):
+        if self.__uri is None:
+            return 'AbsentNamespace%d' % (self.__absentNamespaceID,)
+        assert self.__uri is not None
+        if self.__boundPrefix is not None:
+            rv = '%s=%s' % (self.__boundPrefix, self.__uri)
+        else:
+            rv = self.__uri
+        return rv
 
 def NamespaceForURI (uri, create_if_missing=False):
     """Given a URI, provide the Namespace instance corresponding to
