@@ -902,7 +902,14 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
         return
 
     def initialNamespaceContext (self):
-        import pyxb.utils.domutils
+        """Obtain the namespace context to be used when creating components in this namespace.
+
+        Usually applies only to built-in namespaces, but is also used in the
+        autotests when creating a namespace without a xs:schema element.  .
+        Note that we must create the instance dynamically, since the
+        information that goes into it has cross-dependencies that can't be
+        resolved until this module has been completely loaded."""
+        
         if self.__initialNamespaceContext is None:
             isn = { }
             if self.__contextInScopeNamespaces is not None:
@@ -911,7 +918,7 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
             kw = { 'target_namespace' : self
                  , 'default_namespace' : self.__identifyNamespace(self.__contextDefaultNamespace)
                  , 'in_scope_namespaces' : isn }
-            self.__initialNamespaceContext = pyxb.utils.domutils.NamespaceContext(None, **kw)
+            self.__initialNamespaceContext = NamespaceContext(None, **kw)
         return self.__initialNamespaceContext
 
 
@@ -945,11 +952,16 @@ def NamespaceForURI (uri, create_if_missing=False):
     """Given a URI, provide the Namespace instance corresponding to
     it.
 
+    The uri must be a non-empty string value, else a pyxb.LogicError is
+    raised.  To create absent namespaces, use CreateAbsentNamespace.
+
     If no Namespace instance exists for the URI, the None value is
     returned, unless create_is_missing is True in which case a new
     Namespace instance for the given URI is returned."""
-    if uri is None:
+    if not isinstance(uri, (str, unicode)):
         raise pyxb.LogicError('Cannot lookup absent namespaces')
+    if 0 == len(uri):
+        raise pyxb.LogicError('Namespace URIs must not be empty strings')
     rv = Namespace._NamespaceForURI(uri)
     if (rv is None) and create_if_missing:
         rv = Namespace(uri)
@@ -964,41 +976,11 @@ def CreateAbsentNamespace ():
     reference you get from this."""
     return Namespace.CreateAbsentNamespace()
 
-# The XMLSchema module used to represent namespace schemas.  This must
-# be set, by invoking SetStructureModule, prior to attempting to use
-# any namespace.  This is configurable since we may use different
-# implementations for different purposes.
+# The XMLSchema module used to represent namespace schemas.  This must be set,
+# by invoking SetStructureModule, prior to attempting to use any namespace.
+# This is configurable since we had at one point intended to use different
+# implementations for different purposes; now, it's important because it eliminates
 _XMLSchemaModule = None
-
-# A mapping from namespace URIs to names of files which appear to
-# provide a serialized version of the namespace with schema.
-__LoadableNamespaces = None
-
-def _LoadableNamespaceMap ():
-    """Get the map from URIs to files from which the namespace data
-    can be loaded."""
-    global __LoadableNamespaces
-    if __LoadableNamespaces is None:
-        # Look for pre-existing pickled schema
-        __LoadableNamespaces = { }
-        bindings_path = os.environ.get(PathEnvironmentVariable, DefaultBindingPath)
-        for bp in bindings_path.split(':'):
-            if '+' == bp:
-                bp = DefaultBindingPath
-            for fn in os.listdir(bp):
-                if fnmatch.fnmatch(fn, '*.wxs'):
-                    afn = os.path.join(bp, fn)
-                    infile = open(afn, 'rb')
-                    unpickler = pickle.Unpickler(infile)
-                    uri = unpickler.load()
-                    # Loading the instance simply introduces the
-                    # namespace into the registry, including the path
-                    # to the Python binding module.  It does not
-                    # incorporate any of the schema components.
-                    instance = unpickler.load()
-                    __LoadableNamespaces[uri] = afn
-                    #print 'pre-parsed schema for %s available in %s' % (uri, afn)
-    return __LoadableNamespaces
 
 def XMLSchemaModule ():
     """Return the Python module used for XMLSchema support.
@@ -1032,6 +1014,36 @@ def SetXMLSchemaModule (xs_module):
     # Load built-ins after setting the schema module, to avoid
     # infinite loop
     XMLSchema._loadBuiltins()
+
+# A mapping from namespace URIs to names of files which appear to
+# provide a serialized version of the namespace with schema.
+__LoadableNamespaces = None
+
+def _LoadableNamespaceMap ():
+    """Get the map from URIs to files from which the namespace data
+    can be loaded."""
+    global __LoadableNamespaces
+    if __LoadableNamespaces is None:
+        # Look for pre-existing pickled schema
+        __LoadableNamespaces = { }
+        bindings_path = os.environ.get(PathEnvironmentVariable, DefaultBindingPath)
+        for bp in bindings_path.split(':'):
+            if '+' == bp:
+                bp = DefaultBindingPath
+            for fn in os.listdir(bp):
+                if fnmatch.fnmatch(fn, '*.wxs'):
+                    afn = os.path.join(bp, fn)
+                    infile = open(afn, 'rb')
+                    unpickler = pickle.Unpickler(infile)
+                    uri = unpickler.load()
+                    # Loading the instance simply introduces the
+                    # namespace into the registry, including the path
+                    # to the Python binding module.  It does not
+                    # incorporate any of the schema components.
+                    instance = unpickler.load()
+                    __LoadableNamespaces[uri] = afn
+                    #print 'pre-parsed schema for %s available in %s' % (uri, afn)
+    return __LoadableNamespaces
 
 class _XMLSchema_instance (Namespace):
     """Extension of Namespace that pre-defines types available in the
