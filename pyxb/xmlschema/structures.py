@@ -48,7 +48,7 @@ def _LookupElementDeclaration (ns, context, local_name):
         rv = ns.elementDeclarations().get(local_name)
     return rv
 
-class _SchemaComponent_mixin (pyxb.cscRoot):
+class _SchemaComponent_mixin (Namespace._ComponentDependency_mixin):
     """A mix-in that marks the class as representing a schema component.
 
     This exists so that we can determine the owning schema for any
@@ -151,24 +151,6 @@ class _SchemaComponent_mixin (pyxb.cscRoot):
     def schema (self): return self.__schema
     def owner (self): return self.__owner
 
-    # Cached frozenset of components on which this component depends.
-    __dependentComponents = None
-
-    def dependentComponents (self):
-        if self.__dependentComponents is None:
-            if isinstance(self, Namespace._Resolvable_mixin) and not (self.isResolved()):
-                raise LogicError('Unresolved %s in %s: %s' % (self.__class__.__name__, self.namespaceContext().targetNamespace(), self.name()))
-            self.__dependentComponents = self._dependentComponents_vx()
-            if self in self.__dependentComponents:
-                raise LogicError('Self-dependency with %s %s' % (self.__class__.__name__, self))
-        return self.__dependentComponents
-
-    def _dependentComponents_vx (self):
-        """Return a frozenset of component instance on which this component depends.
-
-        Implement in subclasses."""
-        raise LogicError('%s does not implement _dependentComponents_vx' % (self.__class__,))
-
     # A reference to the instance from which this instance was cloned.
     __cloneSource = None
 
@@ -201,7 +183,6 @@ class _SchemaComponent_mixin (pyxb.cscRoot):
         assert self.__cloneSource is not None
         self.__owner = None
         self.__ownedComponents = set()
-        self.__dependentComponents = None
         self.__clones = None
         assert self.__nameInBinding is None
         self._namespaceContext().targetNamespace()._associateComponent(self)
@@ -3845,7 +3826,9 @@ class Schema (_SchemaComponent_mixin):
             state['Schema%s' % (fn,)] = None
         return getattr(super(_SchemaComponent_mixin, self), '_filterCopyState', lambda _state: _state)(state)
 
-    # Tuple of component classes in order in which they must be generated.
+    # Tuple of component classes in order in which they must be generated in
+    # order to satisfy the Python references between bindings.
+    # 
     __ComponentOrder = (
         Annotation                   # no dependencies
       , IdentityConstraintDefinition # no dependencies
@@ -3872,7 +3855,7 @@ class Schema (_SchemaComponent_mixin):
 
     def orderedComponents (self):
         assert self.completedResolution()
-        return self.targetNamespace()._orderedComponents(self.__ComponentOrder)
+        return self.targetNamespace().orderedComponents(self.__ComponentOrder)
 
     def completedResolution (self):
         """Return True iff all resolvable elements have been resolved.

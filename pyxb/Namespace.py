@@ -21,7 +21,8 @@ class _Resolvable_mixin (object):
     This class is mixed-in to those XMLSchema components that have a reference
     to another component that is identified by a QName.  Resolution of that
     component may need to be delayed if the definition of the component has
-    not yet been read."""
+    not yet been read.
+    """
     def isResolved (self):
         """Determine whether this named component is resolved.
 
@@ -39,17 +40,18 @@ class _Resolvable_mixin (object):
         
         Override this in the child class.  In the prefix, if isResolved() is
         true, return right away.  If something prevents you from completing
-        resolution, invoke wxs._queueForResolution(self) so it is retried
-        later, then immediately return self.  Prior to leaving after
-        successful resolution discard any cached dom node by setting
-        self.__domNode=None.
+        resolution, invoke self._queueForResolution(self) for whatever
+        namespace the component belongs to (so it is retried later) and
+        immediately return self.  Prior to leaving after successful resolution
+        discard any cached dom node by setting self.__domNode=None.
 
-        The method should return self, whether or not resolution
-        succeeds.
+        The method should return self, whether or not resolution succeeds.
         """
         raise pyxb.LogicError('Resolution not implemented in %s' % (self.__class__,))
 
     def _queueForResolution (self):
+        """Short-hand to requeue an object if the class implements _namespaceContext().
+        """
         self._namespaceContext().queueForResolution(self)
 
 class NamedObjectMap (dict):
@@ -75,7 +77,7 @@ class NamedObjectMap (dict):
         self.__namespace = namespace
         super(NamedObjectMap, self).__init__(self, *args, **kw)
 
-class _NamespaceCategory_mixin (object):
+class _NamespaceCategory_mixin (pyxb.cscRoot):
     """Mix-in that aggregates those aspects of XMLNamespaces that hold
     references to categories of named objects.
 
@@ -188,7 +190,286 @@ class _NamespaceCategory_mixin (object):
         instance.__defineCategoryAccessors()
         return getattr(super(_NamespaceCategory_mixin, cls), '_LoadFromFile', lambda *args, **kw: None)(unpickler)
 
-class Namespace (_NamespaceCategory_mixin):
+class _NamespaceResolution_mixin (pyxb.cscRoot):
+    """Mix-in that aggregates those aspects of XMLNamespaces relevant to
+    resolving component references.
+    """
+
+    # A set of Namespace._Resolvable_mixin instances that have yet to be
+    # resolved.
+    __unresolvedComponents = None
+
+    def _reset (self):
+        """CSC extension to reset fields of a Namespace.
+
+        This one handles component-resolution--related data."""
+        getattr(super(_NamespaceResolution_mixin, self), '_reset', lambda *args, **kw: None)()
+        self.__unresolvedComponents = []
+
+    def queueForResolution (self, resolvable):
+        """Invoked to note that a component may have references that will need
+        to be resolved.
+
+        Newly created named components are often unresolved, as are components
+        which, in the course of resolution, are found to depend on another
+        unresolved component.
+
+        The provided object must be an instance of _Resolvable_mixin.  This
+        method returns the resolvable object.
+        """
+        assert isinstance(resolvable, _Resolvable_mixin)
+        if not resolvable.isResolved():
+            self.__unresolvedComponents.append(resolvable)
+        return resolvable
+
+    def resolveDefinitions (self):
+        """Loop until all references within the associated resolvable objects
+        have been resolved.
+
+        This method iterates through all components on the unresolved list,
+        invoking the _resolve method of each.  If the component could not be
+        resolved in this pass, it iis placed back on the list for the next
+        iteration.  If an iteration completes without resolving any of the
+        unresolved components, a pyxb.NotInNamespaceError exception is raised.
+        """
+        num_loops = 0
+        while 0 < len(self.__unresolvedComponents):
+            # Save the list of unresolved objects, reset the list to capture
+            # any new objects defined during resolution, and attempt the
+            # resolution for everything that isn't resolved.
+            unresolved = self.__unresolvedComponents
+            #print 'Looping for %d unresolved definitions: %s' % (len(unresolved), ' '.join([ str(_r) for _r in unresolved]))
+            num_loops += 1
+            #assert num_loops < 18
+            
+            self.__unresolvedComponents = []
+            for resolvable in unresolved:
+                # Attempt the resolution.
+                resolvable._resolve()
+
+                # Either we resolved it, or we queued it to try again later
+                assert resolvable.isResolved() or (resolvable in self.__unresolvedComponents)
+
+                # We only clone things that have scope None.  We never
+                # resolve things that have scope None.  Therefore, we
+                # should never have resolved something that has
+                # clones.
+                if (resolvable.isResolved() and (resolvable._clones() is not None)):
+                    assert False
+            if self.__unresolvedComponents == unresolved:
+                # This only happens if we didn't code things right, or the
+                # schema actually has a circular dependency in some named
+                # component.
+                failed_components = []
+                for d in self.__unresolvedComponents:
+                    if isinstance(d, _NamedComponent_mixin):
+                        failed_components.append('%s named %s' % (d.__class__.__name__, d.name()))
+                    else:
+                        if isinstance(d, AttributeUse):
+                            print d.attributeDeclaration()
+                        failed_components.append('Anonymous %s' % (d.__class__.__name__,))
+                raise pyxb.NotInNamespaceError('Infinite loop in resolution:\n  %s' % ("\n  ".join(failed_components),))
+
+        # Replace the list of unresolved components with None, so that
+        # attempts to subsequently add another component fail.
+        self.__unresolvedComponents = None
+        return self
+    
+    def _unresolvedComponents (self):
+        """Returns a reference to the list of unresolved components."""
+        return self.__unresolvedComponents
+
+class _ComponentDependency_mixin (pyxb.cscRoot):
+    # Cached frozenset of components on which this component depends.
+    __dependentComponents = None
+
+    def _resetClone_vc (self):
+        """CSC extension to reset fields of a component.
+
+        This one clears dependency-related data, since the clone will have to
+        revise its dependencies."""
+        getattr(super(_ComponentDependency_mixin, self), '_resetClone_vc', lambda *args, **kw: None)()
+        self.__dependentComponents = None
+
+    def dependentComponents (self):
+        """Return a set of components upon which this component depends.
+
+        This is essentially those components to which a reference was
+        resolved, plus those that are sub-component (e.g., the particles in a
+        model group)."""
+        if self.__dependentComponents is None:
+            if isinstance(self, _Resolvable_mixin) and not (self.isResolved()):
+                raise pyxb.LogicError('Unresolved %s in %s: %s' % (self.__class__.__name__, self.namespaceContext().targetNamespace(), self.name()))
+            self.__dependentComponents = self._dependentComponents_vx()
+            if self in self.__dependentComponents:
+                raise pyxb.LogicError('Self-dependency with %s %s' % (self.__class__.__name__, self))
+        return self.__dependentComponents
+
+    def _dependentComponents_vx (self):
+        """Return a frozenset of component instance on which this component depends.
+
+        Implement in subclasses."""
+        raise LogicError('%s does not implement _dependentComponents_vx' % (self.__class__,))
+
+class _NamespaceComponentAssociation_mixin (object):
+    """Mix-in for managing components defined within this namespace.
+
+    The component set includes not only top-level named components (such as
+    those accessible through category maps), but internal anonymous
+    components, such as those involved in representing the content model of a
+    complex type definition..  We need to be able to get a list of these
+    components, sorted in dependency order, so that generated bindings do not
+    attempt to refer to a binding that has not yet been generated."""
+
+    # A set containing all components, named or unnamed, that belong to this
+    # namespace.
+    __components = None
+
+    def _reset (self):
+        """CSC extension to reset fields of a Namespace.
+
+        This one handles data related to component association with a
+        namespace."""
+        getattr(super(_NamespaceComponentAssociation_mixin, self), '_reset', lambda *args, **kw: None)()
+        self.__components = set()
+
+    def _associateComponent (self, component):
+        """Record that the responsibility for the component belongs to this namespace."""
+        assert self.__components is not None
+        assert isinstance(component, _ComponentDependency_mixin)
+        assert component not in self.__components
+        self.__components.add(component)
+
+    def _replaceComponent (self, existing_def, replacement_def):
+        """Replace the existing definition with another.
+
+        This is used in a situation where building the component model
+        resulted in a new component instance being created and registered, but
+        for which an existing component is to be preferred.  An example is
+        when parsing the schema for XMLSchema itself: the built-in datatype
+        components should be retained instead of the simple type definition
+        components dynamically created from the schema.
+        """
+        self.__components.remove(existing_def)
+        self.__components.add(replacement_def)
+        return replacement_def
+
+    def components (self):
+        """Return a frozenset of all components, named or unnamed, belonging
+        to this namespace."""
+        return frozenset(self.__components)
+
+    def orderedComponents (self, component_order):
+        """Return a list of all associated components, ordered by dependency.
+
+        component_order is a list specifying the categories of components in
+        their preferred order.  For example, in the component model complex
+        types should be generated before elements, so that the element
+        declaration can include a reference to the complex type that holds its
+        state.  For cases where a reverse dependency exists (e.g., a complex
+        type that holds an element), the code generator must provide a second
+        stage that inserts those dependencies.
+        """
+        components = self.__components
+
+        # Segregate the components by type, ensuring each is listed only once.
+        component_by_class = {}
+        for c in components:
+            component_by_class.setdefault(c.__class__, []).append(c)
+        ordered_components = []
+
+        # For each component type, add the matching components in order of
+        # dependency.  Some of the provided components may be dropped from the
+        # list (@todo is this true?)
+        for cc in component_order:
+            if cc not in component_by_class:
+                continue
+            component_list = component_by_class[cc]
+            component_list = self.__sortByDependency(component_list, dependent_class_filter=cc)
+            ordered_components.extend(component_list)
+        return ordered_components
+    
+    def __sortByDependency (self, components, dependent_class_filter):
+        """Return a list of components sorted by dependency.
+
+        Specifically, if the resultting list is processed in order components
+        will not be referenced in any component that precedes them in the
+        returned sequence.
+
+        dependent_class_filter is an optional class that specifies that
+        dependencies on components not of that class should be ignored."""
+        emit_order = []
+        while 0 < len(components):
+            new_components = []
+            ready_components = []
+            for td in components:
+                # There should be no components that do not belong to this
+                # namespace.
+                try:
+                    assert td.targetNamespace() == self
+                except AttributeError:
+                    # Unnamed things don't get discarded this way
+                    pass
+                # Scoped declarations that don't have a scope are tossed out
+                # too: those exist only in model and attribute groups that
+                # have not been cloned into a specific scope, so are never
+                # referenced in the bindings.
+                try:
+                    if td.scope() is None:
+                        print 'Discarding %s: no scope defined' % (td.name(),)
+                        continue
+                except AttributeError, e:
+                    # Some components don't have a scope.
+                    pass
+
+                dep_types = td.dependentComponents()
+                #print 'Type %s depends on %s' % (td, dep_types)
+                ready = True
+                for dtd in dep_types:
+                    # If the component depends on something that is not a type
+                    # we care about, just move along; those are handled in
+                    # another group.
+                    if (dependent_class_filter is not None) and not isinstance(dtd, dependent_class_filter):
+                        continue
+
+                    # Ignore dependencies that go outside the namespace
+                    try:
+                        if dtd.targetNamespace() != self:
+                            continue
+                    except AttributeError:
+                        # Ignore dependencies on unnamable things
+                        continue
+
+                    # Better not be a dependency loop
+                    assert dtd != td
+
+                    # Ignore dependencies on the ur types
+                    if dtd.isUrTypeDefinition():
+                        continue
+
+                    # Do not include components that are ready but
+                    # have not been placed on emit_order yet.  Doing
+                    # so might result in order violations after
+                    # they've been sorted by name.
+                    if not (dtd in emit_order):
+                        #print '%s depends on %s, not emitting' % (td.name(), dtd.name())
+                        ready = False
+                        break
+                if ready:
+                    ready_components.append(td)
+                else:
+                    new_components.append(td)
+            # Sort the components within the ready subsequence by name, to
+            # make it easier to locate specific ones in the generated
+            # bindings.
+            ready_components.sort(lambda _x, _y: cmp(_x.bestNCName(), _y.bestNCName()))
+            emit_order.extend(ready_components)
+            if components == new_components:
+                raise pyxb.LogicError('Infinite loop in order calculation:\n  %s' % ("\n  ".join( ['%s: %s' % (_c.name(),  ' '.join([ _dtd.name() for _dtd in _c.dependentComponents()])) for _c in components] ),))
+            components = new_components
+        return emit_order
+
+class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _NamespaceComponentAssociation_mixin):
     """Represents an XML namespace, viz. a URI.
 
     There is at most one Namespace class instance per namespace (URI).
@@ -259,10 +540,6 @@ class Namespace (_NamespaceCategory_mixin):
         if isinstance(nsval, Namespace):
             return nsval
         raise pyxb.LogicError('Cannot identify namespace from %s' % (nsval,))
-
-    # A set of Namespace._Resolvable_mixin instances that have yet to be
-    # resolved.
-    __unresolvedComponents = None
 
     # A set of options defining how the Python bindings for this
     # namespace were generated.
@@ -360,8 +637,6 @@ class Namespace (_NamespaceCategory_mixin):
 
     def _reset (self):
         getattr(super(Namespace, self), '_reset', lambda *args, **kw: None)()
-        self.__unresolvedComponents = []
-        self.__components = set()
         self.__initialNamespaceContext = None
 
     def __init__ (self, uri,
@@ -408,104 +683,6 @@ class Namespace (_NamespaceCategory_mixin):
         self._reset()
 
         assert (self.__uri is None) or (self.__Registry[self.__uri] == self)
-
-    def queueForResolution (self, resolvable):
-        """Invoked to note that a component may have unresolved references.
-
-        Newly created named components are unresolved, as are
-        components which, in the course of resolution, are found to
-        depend on another unresolved component.
-        """
-        assert isinstance(resolvable, _Resolvable_mixin)
-        self.__unresolvedComponents.append(resolvable)
-        return resolvable
-
-    def resolveDefinitions (self):
-        """Loop until all components associated with a name are
-        sufficiently defined."""
-        num_loops = 0
-        while 0 < len(self.__unresolvedComponents):
-            # Save the list of unresolved TDs, reset the list to
-            # capture any new TDs defined during resolution (or TDs
-            # that depend on an unresolved type), and attempt the
-            # resolution for everything that isn't resolved.
-            unresolved = self.__unresolvedComponents
-            #print 'Looping for %d unresolved definitions: %s' % (len(unresolved), ' '.join([ str(_r) for _r in unresolved]))
-            num_loops += 1
-            #assert num_loops < 18
-            
-            self.__unresolvedComponents = []
-            for resolvable in unresolved:
-                # This should be a top-level component, or a
-                # declaration inside a given scope.
-#                assert (resolvable in self.__components) \
-#                    or (isinstance(resolvable, _ScopedDeclaration_mixin) \
-#                        and (isinstance(resolvable.scope(), ComplexTypeDefinition)))
-
-                resolvable._resolve()
-
-                # Either we resolved it, or we queued it to try again later
-                assert resolvable.isResolved() or (resolvable in self.__unresolvedComponents)
-
-                # We only clone things that have scope None.  We never
-                # resolve things that have scope None.  Therefore, we
-                # should never have resolved something that has
-                # clones.
-                if (resolvable.isResolved() and (resolvable._clones() is not None)):
-                    assert False
-            if self.__unresolvedComponents == unresolved:
-                # This only happens if we didn't code things right, or
-                # the schema actually has a circular dependency in
-                # some named component.
-                failed_components = []
-                for d in self.__unresolvedComponents:
-                    if isinstance(d, _NamedComponent_mixin):
-                        failed_components.append('%s named %s' % (d.__class__.__name__, d.name()))
-                    else:
-                        if isinstance(d, AttributeUse):
-                            print d.attributeDeclaration()
-                        failed_components.append('Anonymous %s' % (d.__class__.__name__,))
-                raise pyxb.LogicError('Infinite loop in resolution:\n  %s' % ("\n  ".join(failed_components),))
-        self.__unresolvedComponents = None
-        return self
-    
-    def _unresolvedComponents (self):
-        return self.__unresolvedComponents
-
-    # A set containing all components, named or unnamed, that belong
-    # to this schema.
-    __components = None
-
-    def _associateComponent (self, component):
-        """Record that the given component is found within this schema."""
-        if self.__components is None:
-            print 'LOST COMPONENTS in %s' % (self.uri(),)
-        assert component not in self.__components
-        self.__components.add(component)
-
-    def _replaceComponent (self, existing_def, replacement_def):
-        self.__components.remove(existing_def)
-        self.__components.add(replacement_def)
-        return replacement_def
-
-    def components (self):
-        """Return a frozenset of all components, named or unnamed, belonging to this namespace."""
-        return frozenset(self.__components)
-
-    def _orderedComponents (self, component_order):
-        components = self.__components
-        component_by_class = {}
-        for c in components:
-            component_by_class.setdefault(c.__class__, []).append(c)
-        ordered_components = []
-        for cc in component_order:
-            if cc not in component_by_class:
-                continue
-            component_list = component_by_class[cc]
-            orig_length = len(component_list)
-            component_list = self.SortByDependency(component_list, dependent_class_filter=cc, target_namespace=self)
-            ordered_components.extend(component_list)
-        return ordered_components
 
     def uri (self):
         """Return the URI for the namespace represented by this instance.
@@ -593,82 +770,6 @@ class Namespace (_NamespaceCategory_mixin):
         if description is not None:
             self.__description = description
         return self.__description
-
-    @classmethod
-    def SortByDependency (cls, components, dependent_class_filter, target_namespace):
-        """Return the components that belong to this namespace, in order of dependency.
-
-        Specifically, components are not referenced in any component
-        that precedes them in the returned sequence.  Any dependency
-        that is not an instance of the dependent_class_filter is
-        ignored.  Declaration components that do not have a scope are
-        also ignored, as nothing can depend on them except things like
-        model groups which in turn are not depended on."""
-        emit_order = []
-        while 0 < len(components):
-            new_components = []
-            ready_components = []
-            for td in components:
-                # Anything not in this namespace is just thrown away.
-                try:
-                    if (target_namespace != td.targetNamespace()) and (td.targetNamespace() is not None):
-                        print 'Discarding %s: tns=%s not %s' % (td, td.targetNamespace(), target_namespace)
-                        continue
-                except AttributeError:
-                    # Unnamed things don't get discarded this way
-                    pass
-                # Scoped declarations that don't have a scope are tossed out too
-                try:
-                    if td.scope() is None:
-                        print 'Discarding %s: no scope defined' % (td.name(),)
-                        continue
-                except AttributeError, e:
-                    pass
-
-                dep_types = td.dependentComponents()
-                #print 'Type %s depends on %s' % (td, dep_types)
-                ready = True
-                for dtd in dep_types:
-                    # If the component depends on something that is
-                    # not a type we care about, just move along
-                    if (dependent_class_filter is not None) and not isinstance(dtd, dependent_class_filter):
-                        continue
-
-                    # Ignore dependencies that go outside the namespace
-                    try:
-                        if target_namespace != dtd.targetNamespace():
-                            continue
-                    except AttributeError:
-                        # Ignore dependencies on unnameable things
-                        continue
-
-                    # Ignore dependencies on the ur types
-                    if dtd.isUrTypeDefinition():
-                        continue
-
-                    # Ignore self-dependencies
-                    if dtd == td:
-                        continue
-
-                    # Do not include components that are ready but
-                    # have not been placed on emit_order yet.  Doing
-                    # so might result in order violations after
-                    # they've been sorted.
-                    if not (dtd in emit_order):
-                        #print '%s depends on %s, not emitting' % (td.name(), dtd.name())
-                        ready = False
-                        break
-                if ready:
-                    ready_components.append(td)
-                else:
-                    new_components.append(td)
-            ready_components.sort(lambda _x, _y: cmp(_x.bestNCName(), _y.bestNCName()))
-            emit_order.extend(ready_components)
-            if components == new_components:
-                #raise pyxb.LogicError('Infinite loop in order calculation:\n  %s' % ("\n  ".join( [str(_c) for _c in components] ),))
-                raise pyxb.LogicError('Infinite loop in order calculation:\n  %s' % ("\n  ".join( ['%s: %s' % (_c.name(),  ' '.join([ _dtd.name() for _dtd in _c.dependentComponents()])) for _c in components] ),))
-            components = new_components
-        return emit_order
 
     def __str__ (self):
         if self.__uri is None:
