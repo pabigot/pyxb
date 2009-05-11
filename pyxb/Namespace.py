@@ -1,4 +1,9 @@
-from exceptions_ import *
+"""Classes and global objects related to XML Namespaces.
+
+http://www.w3.org/TR/2006/REC-xml-names-20060816/index.html
+"""
+
+import pyxb
 import os
 import fnmatch
 
@@ -10,47 +15,58 @@ DefaultBindingPath = "%s/standard/bindings/raw" % (os.path.dirname(__file__),)
 # Stuff required for pickling
 import cPickle as pickle
 
-IGNORED_ARGUMENT = 'ignored argument'
-
 class _Resolvable_mixin (object):
-    """Mix-in indicating that this component may have references to unseen named components."""
+    """Mix-in indicating that this object may have references to unseen named components.
+
+    This class is mixed-in to those XMLSchema components that have a reference
+    to another component that is identified by a QName.  Resolution of that
+    component may need to be delayed if the definition of the component has
+    not yet been read."""
     def isResolved (self):
         """Determine whether this named component is resolved.
 
         Override this in the child class."""
-        raise LogicError('Resolved check not implemented in %s' % (self.__class__,))
+        raise pyxb.LogicError('Resolved check not implemented in %s' % (self.__class__,))
     
     def _resolve (self):
         """Perform whatever steps are required to resolve this component.
 
-        Resolution is performed in the context of the provided schema.
-        Invoking this method may fail to complete the resolution
-        process if the component itself depends on unresolved
+        Resolution is performed in the context of the namespace to which the
+        component belongs.  Invoking this method may fail to complete the
+        resolution process if the component itself depends on unresolved
         components.  The sole caller of this should be
-        schema._resolveDefinitions().
+        Namespace._resolveDefinitions().
         
-        Override this in the child class.  In the prefix, if
-        isResolved() is true, return right away.  If something
-        prevents you from completing resolution, invoke
-        wxs._queueForResolution(self) so it is retried later, then
-        immediately return self.  Prior to leaving after successful
-        resolution discard any cached dom node by setting
+        Override this in the child class.  In the prefix, if isResolved() is
+        true, return right away.  If something prevents you from completing
+        resolution, invoke wxs._queueForResolution(self) so it is retried
+        later, then immediately return self.  Prior to leaving after
+        successful resolution discard any cached dom node by setting
         self.__domNode=None.
 
         The method should return self, whether or not resolution
         succeeds.
         """
-        raise LogicError('Resolution not implemented in %s' % (self.__class__,))
+        raise pyxb.LogicError('Resolution not implemented in %s' % (self.__class__,))
 
     def _queueForResolution (self):
         self._namespaceContext().queueForResolution(self)
 
 class NamedObjectMap (dict):
+    """An extended dictionary intended to assist with QName resolution.
+
+    These dictionaries have an attribute that identifies a category of named
+    objects within a Namespace; the specifications for various documents
+    require that certain groups of objects must be unique, while uniqueness is
+    not required between groups.  The dictionary also retains a pointer to the
+    Namespace instance for which it holds objects."""
     def namespace (self):
+        """The namespace to which the object map belongs."""
         return self.__namespace
     __namespace = None
     
     def category (self):
+        """The category of objects (e.g., typeDefinition, elementDeclaration)."""
         return self.__category
     __category = None
 
@@ -59,7 +75,120 @@ class NamedObjectMap (dict):
         self.__namespace = namespace
         super(NamedObjectMap, self).__init__(self, *args, **kw)
 
-class Namespace (object):
+class _NamespaceCategory_mixin (object):
+    """Mix-in that aggregates those aspects of XMLNamespaces that hold
+    references to categories of named objects.
+
+    Arbitrary groups of named objects, each requiring unique names within
+    themselves, can be saved.  Unless configured otherwise, the Namespace
+    instance is extended with accessors that provide direct access to
+    individual category maps.  The name of the method is the category name
+    with a suffix of "s"; e.g., if a category "typeDefinition" exists, its may
+    can be accessed from the namespace using the syntax ns.typeDefinitions().
+
+    Note that the returned value from the accessor is a live reference to
+    the category map; changes made to the map are reflected in the
+    namespace.
+    """
+    
+    # Map from category strings to NamedObjectMap instances that
+    # contain the dictionary for that category.
+    __categoryMap = None
+
+    def _reset (self):
+        """CSC extension to reset fields of a Namespace.
+
+        This one handles category-related data."""
+        getattr(super(_NamespaceCategory_mixin, self), '_reset', lambda *args, **kw: None)()
+        self.__categoryMap = { }
+
+    def categories (self):
+        """The list of individual categories held in this namespace."""
+        return self.__categoryMap.keys()
+
+    def categoryMap (self, category):
+        """Map from category names to NamedObjectMap instances."""
+        return self.__categoryMap[category]
+
+    def __defineCategoryAccessors (self):
+        """Define public methods on the Namespace which provide access to
+        individual NamedObjectMaps based on their category.
+
+        """
+        for category in self.categories():
+            accessor_name = category + 's'
+            setattr(self, accessor_name, lambda _map=self.categoryMap(category): _map)
+
+    def configureCategories (self, categories):
+        """Ensure there is a map for each of the given categories.
+
+        Existing maps are not affected."""
+        if self.__categoryMap is None:
+            self.__categoryMap = { }
+        for category in categories:
+            if not (category in self.__categoryMap):
+                self.__categoryMap[category] = NamedObjectMap(category, self)
+        self.__defineCategoryAccessors()
+        return self
+
+    def addCategoryObject (self, category, local_name, named_object):
+        """Allow access to the named_object by looking up the local_name in
+        the given category.
+
+        Raises pyxb.NamespaceUniquenessError if an object with the same name
+        already exists in the category."""
+        name_map = self.categoryMap(category)
+        old_object = name_map.get(local_name)
+        if (old_object is not None) and (old_object != named_object):
+            raise pyxb.NamespaceUniquenessError('Name %s used for multiple values in %s' % (local_name, category))
+        name_map[local_name] = named_object
+        return named_object
+
+    # Verify that the namespace category map has no components recorded.  This
+    # is the state that should hold prior to loading a saved namespace; at
+    # tthe moment, we do not support aggregating components defined separately
+    # into the same namespace.  That should be done at the schema level using
+    # the "include" element.
+    def __checkCategoriesEmpty (self):
+        if self.__categoryMap is None:
+            return True
+        assert isinstance(self.__categoryMap, dict)
+        if 0 == len(self.__categoryMap):
+            return True
+        for k in self.categories():
+            if 0 < len(self.categoryMap(k)):
+                return False
+        return True
+
+    def _saveToFile (self, pickler):
+        """CSC function to save Namespace state to a file.
+
+        This one saves the category map, including all objects held in the categories."""
+        pickler.dump(self.__categoryMap)
+        return getattr(super(_NamespaceCategory_mixin, self), '_saveToFile', lambda _pickler: _pickler)(pickler)
+
+    @classmethod
+    def _LoadFromFile (cls, instance, unpickler):
+        """CSC function to load Namespace state from a file.
+        
+        This one reads the saved category map, then incorporates its
+        information into the existing maps. and their contents with data from
+        the saved namespace.
+
+        @todo For now, we do not allow aggregation of named object maps from
+        different sources (e.g., schema nd one or more saved files).  However,
+        it may be useful to do so in the future, especially if the categories
+        are disjoint.
+        """
+        assert instance.__checkCategoriesEmpty
+        new_category_map = unpickler.load()
+        instance.configureCategories(new_category_map.keys())
+        for category in new_category_map.keys():
+            instance.categoryMap(category).update(new_category_map[category])
+        instance.__defineCategoryAccessors()
+        return getattr(super(_NamespaceCategory_mixin, cls), '_LoadFromFile', lambda *args, **kw: None)(unpickler)
+
+class Namespace (_NamespaceCategory_mixin):
     """Represents an XML namespace, viz. a URI.
 
     There is at most one Namespace class instance per namespace (URI).
@@ -70,23 +199,17 @@ class Namespace (object):
     customizing subclass for WSDL definitions adds categories for the
     service bindings, messages, etc.
 
-    Namespaces can be written to and loaded from pickled files
-    file.  See LoadFromFile(path) for information.
+    Namespaces can be written to and loaded from pickled files.  See
+    LoadFromFile(path) for information.
     """
 
     # The URI for the namespace.  If the URI is None, this is an absent
     # namespace.
     __uri = None
 
-    # Map from category strings to NamedObjectMap instances that
-    # contain the dictionary for that category.
-    __categoryMap = None
-
-    def categories (self):
-        return self.__categoryMap.keys()
-
-    def categoryMap (self, category):
-        return self.__categoryMap[category]
+    # An identifier, unique within a program using PyXB, used to distinguish
+    # absent namespaces.  Currently this value is not accessible.
+    __absentNamespaceID = 0
 
     # A prefix bound to this namespace by standard.  Current set known are applies to
     # xml, xmlns, and xsi.
@@ -135,7 +258,7 @@ class Namespace (object):
             nsval = globals().get(nsval)
         if isinstance(nsval, Namespace):
             return nsval
-        raise LogicError('Cannot identify namespace from %s' % (nsval,))
+        raise pyxb.LogicError('Cannot identify namespace from %s' % (nsval,))
 
     # A set of Namespace._Resolvable_mixin instances that have yet to be
     # resolved.
@@ -169,7 +292,7 @@ class Namespace (object):
             instance = object.__new__(cls)
             # Do this one step of __init__ so we can do checks during unpickling
             instance.__uri = uri
-            instance.__reset()
+            instance._reset()
             # Absent namespaces are not stored in the registry.
             if uri is None:
                 return instance
@@ -235,8 +358,8 @@ class Namespace (object):
                 self.__inValidation = False
         return
 
-    def __reset (self):
-        self.__categoryMap = { }
+    def _reset (self):
+        getattr(super(Namespace, self), '_reset', lambda *args, **kw: None)()
         self.__unresolvedComponents = []
         self.__components = set()
         self.__initialNamespaceContext = None
@@ -271,7 +394,7 @@ class Namespace (object):
         if not is_builtin_namespace:
             XMLSchema_instance.validateSchema()
             if bound_prefix is not None:
-                raise LogicError('Only permanent Namespaces may have bound prefixes')
+                raise pyxb.LogicError('Only permanent Namespaces may have bound prefixes')
 
         # We actually set the uri when this instance was allocated;
         # see __new__().
@@ -282,26 +405,9 @@ class Namespace (object):
         self.__isBuiltinNamespace = is_builtin_namespace
         self.__isUndeclaredNamespace = is_undeclared_namespace
 
-        self.__reset()
+        self._reset()
 
         assert (self.__uri is None) or (self.__Registry[self.__uri] == self)
-
-
-    __absentNamespaceID = 0
-
-    def __defineCategoryAccessors (self):
-        for category in self.categories():
-            accessor_name = category + 's'
-            setattr(self, accessor_name, lambda _map=self.categoryMap(category): _map)
-
-    def configureCategories (self, categories):
-        if self.__categoryMap is None:
-            self.__categoryMap = { }
-        for category in categories:
-            if not (category in self.__categoryMap):
-                self.__categoryMap[category] = NamedObjectMap(category, self)
-        self.__defineCategoryAccessors()
-        return self
 
     def queueForResolution (self, resolvable):
         """Invoked to note that a component may have unresolved references.
@@ -359,7 +465,7 @@ class Namespace (object):
                         if isinstance(d, AttributeUse):
                             print d.attributeDeclaration()
                         failed_components.append('Anonymous %s' % (d.__class__.__name__,))
-                raise LogicError('Infinite loop in resolution:\n  %s' % ("\n  ".join(failed_components),))
+                raise pyxb.LogicError('Infinite loop in resolution:\n  %s' % ("\n  ".join(failed_components),))
         self.__unresolvedComponents = None
         return self
     
@@ -401,6 +507,22 @@ class Namespace (object):
             ordered_components.extend(component_list)
         return ordered_components
 
+    def uri (self):
+        """Return the URI for the namespace represented by this instance.
+
+        If the URI is None, this is an absent namespace, used to hold
+        declarations not associated with a namespace (e.g., from schema with
+        no target namespace)."""
+        return self.__uri
+
+    def isAbsentNamespace (self):
+        """Return True iff this namespace is an absent namespace.
+
+        Absent namespaces have no namespace URI; they exist only to
+        hold components created from schemas with no target
+        namespace."""
+        return self.__uri is None
+
     @classmethod
     def CreateAbsentNamespace (cls):
         """Create an absent namespace.
@@ -412,25 +534,9 @@ class Namespace (object):
         cls.__absentNamespaceID += 1
         return rv
 
-    def uri (self):
-        """Return the URI for the namespace represented by this instance.
-
-        If the URI is None, this is an absent namespace, used to hold
-        declarations not associated with a namespace (e.g., from
-        schema with no target namespace)."""
-        return self.__uri
-
     def _overrideAbsentNamespace (self, uri):
         assert self.isAbsentNamespace()
         self.__uri = uri
-
-    def isAbsentNamespace (self):
-        """Return True iff this namespace is an absent namespace.
-
-        Absent namespaces have no namespace URI; they exist only to
-        hold components created from schemas with no target
-        namespace."""
-        return self.__uri is None
 
     def boundPrefix (self):
         """Return the standard prefix to be used for this namespace.
@@ -559,18 +665,10 @@ class Namespace (object):
             ready_components.sort(lambda _x, _y: cmp(_x.bestNCName(), _y.bestNCName()))
             emit_order.extend(ready_components)
             if components == new_components:
-                #raise LogicError('Infinite loop in order calculation:\n  %s' % ("\n  ".join( [str(_c) for _c in components] ),))
-                raise LogicError('Infinite loop in order calculation:\n  %s' % ("\n  ".join( ['%s: %s' % (_c.name(),  ' '.join([ _dtd.name() for _dtd in _c.dependentComponents()])) for _c in components] ),))
+                #raise pyxb.LogicError('Infinite loop in order calculation:\n  %s' % ("\n  ".join( [str(_c) for _c in components] ),))
+                raise pyxb.LogicError('Infinite loop in order calculation:\n  %s' % ("\n  ".join( ['%s: %s' % (_c.name(),  ' '.join([ _dtd.name() for _dtd in _c.dependentComponents()])) for _c in components] ),))
             components = new_components
         return emit_order
-
-    def addCategoryObject (self, category, local_name, named_object):
-        name_map = self.categoryMap(category)
-        old_object = name_map.get(local_name)
-        if (old_object is not None) and (old_object != named_object):
-            raise SchemaValidationError('Name %s used for multiple values in %s' % (local_name, category))
-        name_map[local_name] = named_object
-        return named_object
 
     def __str__ (self):
         if self.__uri is None:
@@ -593,7 +691,7 @@ class Namespace (object):
         Namespace instance for the URI, or create a new one, depending
         on whether the namespace has already been encountered."""
         if self.uri() is None:
-            raise LogicError('Illegal to serialize absent namespaces')
+            raise pyxb.LogicError('Illegal to serialize absent namespaces')
         kw = {
             '__schemaLocation': self.__schemaLocation,
             '__description':self.__description,
@@ -618,7 +716,7 @@ class Namespace (object):
         recognized by this method."""
         ( format, args, kw ) = state
         if self.__PICKLE_FORMAT != format:
-            raise pickle.UnpicklingError('Got Namespace pickle format %s, require %s' % (format, self.__PICKLE_FORMAT))
+            raise pyxb.pickle.UnpicklingError('Got Namespace pickle format %s, require %s' % (format, self.__PICKLE_FORMAT))
         ( uri, ) = args
         assert self.__uri == uri
         # Convert private keys into proper form
@@ -643,6 +741,24 @@ class Namespace (object):
     def PicklingNamespace (cls):
         return Namespace.__PicklingNamespace
 
+    def _saveToFile (self, pickler):
+        """CSC function to save Namespace state to a file.
+
+        This one handles the base operations.  Implementers should tail-call
+        the next implementation in the chain, returning the pickler at the end
+        of the chain.
+
+        If this method is implemented, the corresponding _LoadFromFile
+        function should also be implemented
+        """
+
+        # Next few are read when scanning for pre-built schemas
+        pickler.dump(self.uri())
+        pickler.dump(self)
+
+        # Rest is only read if the schema needs to be loaded
+        return getattr(super(Namespace, self), '_saveToFile', lambda _pickler: _pickler)(pickler)
+
     def saveToFile (self, file_path):
         """Save this namespace, with its defining schema, to the given
         file so it can be loaded later.
@@ -651,62 +767,56 @@ class Namespace (object):
         namespace."""
         
         if self.uri() is None:
-            raise LogicError('Illegal to serialize absent namespaces')
+            raise pyxb.LogicError('Illegal to serialize absent namespaces')
         output = open(file_path, 'wb')
         pickler = pickle.Pickler(output, -1)
         self._PicklingNamespace(self)
         assert Namespace.PicklingNamespace() is not None
-        # Next few are read when scanning for pre-built schemas
-        pickler.dump(self.uri())
-        pickler.dump(self)
-        # Rest is only read if the schema needs to be loaded
-        pickler.dump(self.__categoryMap)
+
+        self._saveToFile(pickler)
+
         self._PicklingNamespace(None)
 
-    def __checkCategoriesEmpty (self):
-        if self.__categoryMap is None:
-            return True
-        assert isinstance(self.__categoryMap, dict)
-        if 0 == len(self.__categoryMap):
-            return True
-        for k in self.categories():
-            if 0 < len(self.categoryMap(k)):
-                return False
-        return True
-
     @classmethod
-    def LoadFromFile (cls, file_path):
-        """Create a Namespace instance with schema contents loaded
-        from the given file.
+    def _LoadFromFile (cls, instance, unpickler):
+        """CSC function to load Namespace state from a file.
+
+        This one handles the base operation, including identifying the
+        appropriate Namespace instance.  Implementers of this method should
+        tail-call the next implementation in the chain, returning the instance
+        if this is the last one.
+        
+        If this function is implemented, the corresponding _saveToFile method
+        should also be implemented
         """
-        print 'Attempting to load from %s' % (file_path,)
-        unpickler = pickle.Unpickler(open(file_path, 'rb'))
 
         # Get the URI out of the way
         uri = unpickler.load()
         assert uri is not None
 
-        # Unpack a Namespace instance.  This is *not* everything; it's
-        # a small subset.  Note that if the namespace was already
-        # defined, the redefinition of __new__ above will ensure a
-        # reference to the existing Namespace instance is returned and
-        # updated with the new information.
+        # Unpack a Namespace instance.  This is *not* everything; it's a small
+        # subset; see __getstate__.  Note that if the namespace was already
+        # defined, the redefinition of __new__ above will ensure a reference
+        # to the existing Namespace instance is returned and updated with the
+        # new information.
         instance = unpickler.load()
         assert instance.uri() == uri
         assert cls._NamespaceForURI(instance.uri()) == instance
 
-        # Augment the categories and their contents with data from the
-        # saved namespace.  Note that the category maps may be
-        # defined, but if so should be empty.
-        assert instance.__checkCategoriesEmpty
-        new_category_map = unpickler.load()
-        instance.configureCategories(new_category_map.keys())
-        for category in new_category_map.keys():
-            instance.categoryMap(category).update(new_category_map[category])
-        instance.__defineCategoryAccessors()
+        # Handle any loading or postprocessing required by the mix-ins.
+        return getattr(super(Namespace, cls), '_LoadFromFile', lambda _instance, _unpickler: _instance)(instance, unpickler)
 
-        #print 'Completed load of %s from %s: %s' % (instance.uri(), file_path, " ".join(instance.categories()))
-        return instance
+    @classmethod
+    def LoadFromFile (cls, file_path):
+        """Create a Namespace instance with schema contents loaded
+        from the given file.
+
+        Mix-ins should define a CSC function that performs any state loading
+        required and returns the instance.
+        """
+        print 'Attempting to load a namespace from %s' % (file_path,)
+        unpickler = pickle.Unpickler(open(file_path, 'rb'))
+        return cls._LoadFromFile(None, unpickler)
 
 def NamespaceForURI (uri, create_if_missing=False):
     """Given a URI, provide the Namespace instance corresponding to
@@ -716,7 +826,7 @@ def NamespaceForURI (uri, create_if_missing=False):
     returned, unless create_is_missing is True in which case a new
     Namespace instance for the given URI is returned."""
     if uri is None:
-        raise LogicError('Cannot lookup absent namespaces')
+        raise pyxb.LogicError('Cannot lookup absent namespaces')
     rv = Namespace._NamespaceForURI(uri)
     if (rv is None) and create_if_missing:
         rv = Namespace(uri)
@@ -790,11 +900,11 @@ def SetXMLSchemaModule (xs_module):
     """
     global _XMLSchemaModule
     if _XMLSchemaModule is not None:
-        raise LogicError('Cannot SetXMLSchemaModule multiple times')
+        raise pyxb.LogicError('Cannot SetXMLSchemaModule multiple times')
     if xs_module is None:
-        raise LogicError('Cannot SetXMLSchemaModule without a valid schema module')
+        raise pyxb.LogicError('Cannot SetXMLSchemaModule without a valid schema module')
     if not issubclass(xs_module.schema, xs_module.structures.Schema):
-        raise LogicError('SetXMLSchemaModule: Module does not provide a valid schema class')
+        raise pyxb.LogicError('SetXMLSchemaModule: Module does not provide a valid schema class')
     _XMLSchemaModule = xs_module
     # Load built-ins after setting the schema module, to avoid
     # infinite loop
@@ -814,7 +924,7 @@ class _XMLSchema_instance (Namespace):
         
         if not self.__doneThis:
             if not XMLSchemaModule():
-                raise LogicError('Must invoke SetXMLSchemaModule from Namespace module prior to using system.')
+                raise pyxb.LogicError('Must invoke SetXMLSchemaModule from Namespace module prior to using system.')
             schema = XMLSchemaModule().schema(namespace_context=self.initialNamespaceContext())
             xsc = XMLSchemaModule().structures
             schema._addNamedComponent(xsc.AttributeDeclaration.CreateBaseInstance('type', self))
@@ -839,7 +949,7 @@ class _XML (Namespace):
         if not self.__doneThis:
         # if self.schema() is None:
             if not XMLSchemaModule():
-                raise LogicError('Must invoke SetXMLSchemaModule from Namespace module prior to using system.')
+                raise pyxb.LogicError('Must invoke SetXMLSchemaModule from Namespace module prior to using system.')
             schema = XMLSchemaModule().schema(namespace_context=self.initialNamespaceContext())
             xsc = XMLSchemaModule().structures
             schema._addNamedComponent(xsc.AttributeDeclaration.CreateBaseInstance('base', self))
@@ -864,7 +974,7 @@ class _XHTML (Namespace):
         
         if not self.__doneThis:
             if not XMLSchemaModule():
-                raise LogicError('Must invoke SetXMLSchemaModule from Namespace module prior to using system.')
+                raise pyxb.LogicError('Must invoke SetXMLSchemaModule from Namespace module prior to using system.')
             schema = XMLSchemaModule().schema(namespace_context=self.initialNamespaceContext())
             self.__doneThis = True
             # @todo Define a wildcard element declaration 'p' that takes anything.
@@ -1081,7 +1191,7 @@ class NamespaceContext (object):
             (prefix, local_name) = name.split(':', 1)
             namespace = self.inScopeNamespaces().get(prefix, None)
             if namespace is None:
-                raise SchemaValidationError('QName %s prefix is not declared' % (name,))
+                raise pyxb.SchemaValidationError('QName %s prefix is not declared' % (name,))
         else:
             local_name = name
             # Get the default namespace, or denote an absent namespace
