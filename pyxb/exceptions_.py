@@ -15,6 +15,10 @@ class SchemaValidationError (PyWXSBException):
     """Raised when the XML hierarchy does not appear to be valid for an XML schema."""
     pass
 
+class NamespaceUniquenessError (PyWXSBException):
+    """Raised when an attempt is made to record multiple objects of the same name in the same namespace category."""
+    pass
+
 class BadTypeValueError (PyWXSBException):
     """Raised when a value in an XML attribute does not conform to the simple type."""
     pass
