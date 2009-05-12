@@ -14,6 +14,7 @@ ModelGroup components are created from non-DOM sources.
 IGNORED_ARGUMENT = 'ignored argument'
 
 import pyxb
+import pyxb.xmlschema
 from pyxb.exceptions_ import *
 from xml.dom import Node
 import types
@@ -4144,7 +4145,7 @@ def _AddSimpleTypes (namespace):
     XMLSchema."""
     # Add the ur type
     #schema = namespace.schema()
-    schema = Namespace.XMLSchemaModule().schema(namespace_context=Namespace.XMLSchema.initialNamespaceContext())
+    schema = pyxb.xmlschema.schema(namespace_context=Namespace.XMLSchema.initialNamespaceContext())
     td = schema._addNamedComponent(ComplexTypeDefinition.UrTypeDefinition(in_builtin_definition=True))
     assert td.isResolved()
     # Add the simple ur type

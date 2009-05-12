@@ -606,7 +606,7 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
         # that we're not trying to do something restricted to built-in
         # namespaces
         if not is_builtin_namespace:
-            XMLSchema_instance.validateSchema()
+            _InitializeBuiltinNamespaces()
             if bound_prefix is not None:
                 raise pyxb.LogicError('Only permanent Namespaces may have bound prefixes')
 
@@ -976,45 +976,6 @@ def CreateAbsentNamespace ():
     reference you get from this."""
     return Namespace.CreateAbsentNamespace()
 
-# The XMLSchema module used to represent namespace schemas.  This must be set,
-# by invoking SetStructureModule, prior to attempting to use any namespace.
-# This is configurable since we had at one point intended to use different
-# implementations for different purposes; now, it's important because it eliminates
-_XMLSchemaModule = None
-
-def XMLSchemaModule ():
-    """Return the Python module used for XMLSchema support.
-
-    See SetXMLSchemaModule.  If SetXMLSchemaModule has not been
-    invoked, this will return the default schema module
-    (PyWXSB.XMLSchema)."""
-    global _XMLSchemaModule
-    if _XMLSchemaModule is None:
-        import pyxb.xmlschema
-        SetXMLSchemaModule(pyxb.xmlschema)
-    return _XMLSchemaModule
-
-def SetXMLSchemaModule (xs_module):
-    """Provide the XMLSchema module that will be used for processing.
-
-    xs_module must contain an element "structures" which includes
-    class definitions for the XMLSchema structure components; an
-    element "datatypes" which contains support for the built-in
-    XMLSchema data types; and a class "schema" that will be used to
-    create the schema instance used for in built-in namespaces.
-    """
-    global _XMLSchemaModule
-    if _XMLSchemaModule is not None:
-        raise pyxb.LogicError('Cannot SetXMLSchemaModule multiple times')
-    if xs_module is None:
-        raise pyxb.LogicError('Cannot SetXMLSchemaModule without a valid schema module')
-    if not issubclass(xs_module.schema, xs_module.structures.Schema):
-        raise pyxb.LogicError('SetXMLSchemaModule: Module does not provide a valid schema class')
-    _XMLSchemaModule = xs_module
-    # Load built-ins after setting the schema module, to avoid
-    # infinite loop
-    XMLSchema._loadBuiltins()
-
 # A mapping from namespace URIs to names of files which appear to
 # provide a serialized version of the namespace with schema.
 __LoadableNamespaces = None
@@ -1058,14 +1019,13 @@ class _XMLSchema_instance (Namespace):
         for this namespace. """
         
         if not self.__doneThis:
-            if not XMLSchemaModule():
-                raise pyxb.LogicError('Must invoke SetXMLSchemaModule from Namespace module prior to using system.')
-            schema = XMLSchemaModule().schema(namespace_context=self.initialNamespaceContext())
-            xsc = XMLSchemaModule().structures
-            schema._addNamedComponent(xsc.AttributeDeclaration.CreateBaseInstance('type', self))
-            schema._addNamedComponent(xsc.AttributeDeclaration.CreateBaseInstance('nil', self))
-            schema._addNamedComponent(xsc.AttributeDeclaration.CreateBaseInstance('schemaLocation', self))
-            schema._addNamedComponent(xsc.AttributeDeclaration.CreateBaseInstance('noNamespaceSchemaLocation', self))
+            import pyxb.xmlschema
+            import pyxb.xmlschema.structures
+            schema = pyxb.xmlschema.schema(namespace_context=self.initialNamespaceContext())
+            schema._addNamedComponent(pyxb.xmlschema.structures.AttributeDeclaration.CreateBaseInstance('type', self))
+            schema._addNamedComponent(pyxb.xmlschema.structures.AttributeDeclaration.CreateBaseInstance('nil', self))
+            schema._addNamedComponent(pyxb.xmlschema.structures.AttributeDeclaration.CreateBaseInstance('schemaLocation', self))
+            schema._addNamedComponent(pyxb.xmlschema.structures.AttributeDeclaration.CreateBaseInstance('noNamespaceSchemaLocation', self))
             self.__doneThis = True
         return self
 
@@ -1083,14 +1043,14 @@ class _XML (Namespace):
         
         if not self.__doneThis:
         # if self.schema() is None:
-            if not XMLSchemaModule():
+            if not pyxb.xmlschema:
                 raise pyxb.LogicError('Must invoke SetXMLSchemaModule from Namespace module prior to using system.')
-            schema = XMLSchemaModule().schema(namespace_context=self.initialNamespaceContext())
-            xsc = XMLSchemaModule().structures
-            schema._addNamedComponent(xsc.AttributeDeclaration.CreateBaseInstance('base', self))
-            schema._addNamedComponent(xsc.AttributeDeclaration.CreateBaseInstance('id', self))
-            schema._addNamedComponent(xsc.AttributeDeclaration.CreateBaseInstance('space', self))
-            schema._addNamedComponent(xsc.AttributeDeclaration.CreateBaseInstance('lang', self))
+            schema = pyxb.xmlschema.schema(namespace_context=self.initialNamespaceContext())
+            pyxb.xmlschema.structures = pyxb.xmlschema.structures
+            schema._addNamedComponent(pyxb.xmlschema.structures.AttributeDeclaration.CreateBaseInstance('base', self))
+            schema._addNamedComponent(pyxb.xmlschema.structures.AttributeDeclaration.CreateBaseInstance('id', self))
+            schema._addNamedComponent(pyxb.xmlschema.structures.AttributeDeclaration.CreateBaseInstance('space', self))
+            schema._addNamedComponent(pyxb.xmlschema.structures.AttributeDeclaration.CreateBaseInstance('lang', self))
             self.__doneThis = True
         return self
 
@@ -1108,9 +1068,8 @@ class _XHTML (Namespace):
         that we plan to use, so this doesn't do anything."""
         
         if not self.__doneThis:
-            if not XMLSchemaModule():
-                raise pyxb.LogicError('Must invoke SetXMLSchemaModule from Namespace module prior to using system.')
-            schema = XMLSchemaModule().schema(namespace_context=self.initialNamespaceContext())
+            import pyxb.xmlschema
+            schema = pyxb.xmlschema.schema(namespace_context=self.initialNamespaceContext())
             self.__doneThis = True
             # @todo Define a wildcard element declaration 'p' that takes anything.
         return self
@@ -1122,22 +1081,19 @@ class _XMLSchema (Namespace):
     The types are defined when the XMLSchemaModule is set.
     """
 
-    # No default namespace for XMLSchema
-
     __doneThis = False
-
     def _loadBuiltins (self):
         """Register the built-in types into the XMLSchema namespace."""
 
+        import pyxb.xmlschema.structures
         if not self.__doneThis:
             # Defer the definitions to the structures module
-            XMLSchemaModule().structures._AddSimpleTypes(self)
+            pyxb.xmlschema.structures._AddSimpleTypes(self)
             self.__doneThis = True
 
         # A little validation here
-        xsc = XMLSchemaModule().structures
-        assert xsc.ComplexTypeDefinition.UrTypeDefinition() == self.typeDefinitions()['anyType']
-        assert xsc.SimpleTypeDefinition.SimpleUrTypeDefinition() == self.typeDefinitions()['anySimpleType']
+        assert pyxb.xmlschema.structures.ComplexTypeDefinition.UrTypeDefinition() == self.typeDefinitions()['anyType']
+        assert pyxb.xmlschema.structures.SimpleTypeDefinition.SimpleUrTypeDefinition() == self.typeDefinitions()['anySimpleType']
 
     def _defineSchema_overload (self):
         """Ensure this namespace is ready for use.
@@ -1145,7 +1101,6 @@ class _XMLSchema (Namespace):
         Overrides base class implementation, since there is no
         serialized schema for this namespace."""
         
-        xsc = XMLSchemaModule().structures
         return self
 
 
@@ -1210,7 +1165,7 @@ XMLSchema_hfp = Namespace('http://www.w3.org/2001/XMLSchema-hasFacetAndProperty'
                           in_scope_namespaces = { 'hfp' : None
                                                 , 'xhtml' : XHTML })
 
-# List of pre-defined namespaces.  NB: XMLSchema_instance must be first.
+# List of pre-defined namespaces.
 PredefinedNamespaces = [
   XMLSchema_instance,
   XMLSchema_hfp,
@@ -1219,6 +1174,20 @@ PredefinedNamespaces = [
   XML,
   XHTML
 ]
+
+__InitializedBuiltinNamespaces = False
+def _InitializeBuiltinNamespaces ():
+    global __InitializedBuiltinNamespaces
+    if not __InitializedBuiltinNamespaces:
+        __InitializedBuiltinNamespaces = True
+        # Only certain namespaces must be initialized explicitly: the
+        # XMLSchema one (which defines the datatypes that the code
+        # references), and the undeclared ones (which have no schema but are
+        # always present).
+        XMLSchema._loadBuiltins()
+        for ns in PredefinedNamespaces:
+            if ns.isUndeclaredNamespace():
+                ns.validateSchema()
 
 # Set up the prefixes for xml, xsi, etc.
 _UndeclaredNamespaceMap = { }

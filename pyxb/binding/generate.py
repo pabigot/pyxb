@@ -5,7 +5,6 @@ import datetime
 from pyxb.exceptions_ import *
 from pyxb.utils import utility
 from pyxb.utils import templates
-from pyxb.xmlschema import structures
 import basis
 import content
 import datatypes
@@ -132,11 +131,11 @@ class ReferenceSchemaComponent (ReferenceLiteral):
         return cls.__anonymousIndex
 
     __ComponentTagMap = {
-        Namespace.XMLSchemaModule().structures.SimpleTypeDefinition: 'STD'
-        , Namespace.XMLSchemaModule().structures.ComplexTypeDefinition: 'CTD'
-        , Namespace.XMLSchemaModule().structures.ElementDeclaration: 'ED'
-        , Namespace.XMLSchemaModule().structures.ModelGroup: 'MG'
-        , Namespace.XMLSchemaModule().structures.Wildcard: 'WC'
+        xs.structures.SimpleTypeDefinition: 'STD'
+        , xs.structures.ComplexTypeDefinition: 'CTD'
+        , xs.structures.ElementDeclaration: 'ED'
+        , xs.structures.ModelGroup: 'MG'
+        , xs.structures.Wildcard: 'WC'
         }
 
     def __init__ (self, component, **kw):
@@ -590,7 +589,7 @@ class %{ctd} (%{superclasses}):
     # elements and attributes can be re-used.
     inherits_from_base = True
     template_map['superclasses'] = pythonLiteral(base_type, **kw)
-    if isinstance(base_type, structures.SimpleTypeDefinition) or base_type.isUrTypeDefinition():
+    if isinstance(base_type, xs.structures.SimpleTypeDefinition) or base_type.isUrTypeDefinition():
         inherits_from_base = False
         template_map['superclasses'] = 'pyxb.binding.basis.CTD_%s' % (content_type,)
         assert base_type.nameInBinding() is not None
