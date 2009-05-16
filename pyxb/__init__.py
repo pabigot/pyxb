@@ -28,4 +28,5 @@ class cscRoot (object):
         if self.__class__ != self.__class__.mro()[-1]:
             super(cscRoot, self).__init__(*args, **kw)
 
+# Bring in the exception hierarchy
 from exceptions_ import *

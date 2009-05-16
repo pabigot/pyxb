@@ -1,6 +1,5 @@
-"""This file contains support classes from which schema-specific
-bindings inherit, and that describe the content models of those
-schema."""
+"""This file contains support classes from which schema-specific bindings
+inherit, and that describe the content models of those schema."""
 
 import pyxb
 import xml.dom as dom
@@ -11,11 +10,15 @@ import types
 import pyxb.Namespace
 
 class _Binding_mixin (pyxb.cscRoot):
+    """Mix-in used to identify classes that are bindings to some XML schema
+    object."""
     def _domNode (self):
+        """The DOM node from which the object was initialized."""
         return self.__domNode
     __domNode = None
 
     def _namespaceContext (self):
+        """The namespace context applicable to the object."""
         return domutils.NamespaceContext.GetNodeContext(self.__domNode)
     
     def _instanceRoot (self):
@@ -26,6 +29,7 @@ class _Binding_mixin (pyxb.cscRoot):
         self.__instanceRoot = instance_root
 
     def toxml (self):
+        """Shorthand to get the object as an XML document."""
         bds = domutils.BindingDOMSupport()
         self.toDOM(bds)
         bds.finalize()
@@ -34,12 +38,20 @@ class _Binding_mixin (pyxb.cscRoot):
 class _DynamicCreate_mixin (pyxb.cscRoot):
     """Helper to allow overriding the implementation class.
 
-    Generally we'll want to augment the generated bindings by
-    subclassing them, and adding functionality to the subclass.  This
-    mix-in provides a way to communicate the existence of the subclass
-    back to the binding infrastructure, so that when it creates an
-    instance it uses the subclass rather than the unaugmented binding
-    class."""
+    Generally we'll want to augment the generated bindings by subclassing
+    them, and adding functionality to the subclass.  This mix-in provides a
+    way to communicate the existence of the subclass back to the binding
+    infrastructure, so that when it creates an instance it uses the subclass
+    rather than the unaugmented binding class.
+
+    When a raw generated binding is subclassed, _SetClassRef should be invoked
+    on the raw class passing the subclass in.  E.g.:
+
+    class mywsdl (raw.wsdl):
+      pass
+    raw.wsdl._SetClassRef(mywsdl)
+
+    """
     
     @classmethod
     def __ClassRefAttribute (cls):
@@ -63,8 +75,8 @@ class _DynamicCreate_mixin (pyxb.cscRoot):
         return cls._ClassRef()(*args, **kw)
 
 class simpleTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
-    """simpleTypeDefinition is a base mix-in class that is part of the hierarchy
-    of any class that represents the Python datatype for a
+    """simpleTypeDefinition is a base mix-in class that is part of the
+    hierarchy of any class that represents the Python datatype for a
     SimpleTypeDefinition.
 
     Note: This class, or a descendent of it, must be the first class
@@ -113,18 +125,19 @@ class simpleTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _D
         those classes that constrain or otherwise apply to the lexical
         or value space of the datatype.
 
-        Raises AttributeError if the facet map has not been defined."""
+        :raise AttributeError: if the facet map has not been defined"""
         return getattr(cls, cls.__FacetMapAttributeName())
     
     @classmethod
     def _InitializeFacetMap (cls, *args):
         """Initialize the facet map for this datatype.
 
-        This must be called exactly once, after all facets belonging
-        to the datatype have been created.
+        This must be called exactly once, after all facets belonging to the
+        datatype have been created.
 
-        Raises pyxb.LogicError if called multiple times, or if called when
-        a parent class facet map has not been initialized."""
+        :raise pyxb.LogicError: if called multiple times (on the same class)
+        :raise pyxb.LogicError: if called when a parent class facet map has not been initialized
+        :return: the facet map"""
         fm = None
         try:
             fm = cls._FacetMap()
@@ -149,13 +162,13 @@ class simpleTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _D
 
     @classmethod
     def __ConvertArgs (cls, args):
-        """If the first argument is a string, and this class has a
-        whitespace facet, replace the first argument with the results
-        of applying whitespace normalization.
+        """If the first argument is a string, and this class has a whitespace
+        facet, replace the first argument with the results of applying
+        whitespace normalization.
 
-        We need to do this for both __new__ and __init__, because in
-        some cases (e.g., str/unicode) the value is assigned during
-        __new__ not __init__."""
+        We need to do this for both __new__ and __init__, because in some
+        cases (e.g., str/unicode) the value is assigned during __new__ not
+        __init__."""
         if (0 < len(args)) and isinstance(args[0], types.StringTypes):
             cf_whitespace = getattr(cls, '_CF_whiteSpace', None)
             if cf_whitespace is not None:
@@ -167,11 +180,11 @@ class simpleTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _D
     def _ConvertArguments (cls, args, kw):
         """Pre-process the arguments.
 
-        This is used before invoking the parent constructor.  One
-        application is to apply the whitespace facet processing; if
-        such a request is in the keywords, it is removed so it does
-        not propagate to the superclass.  Another application is to
-        convert the arguments from a string to a list."""
+        This is used before invoking the parent constructor.  One application
+        is to apply the whitespace facet processing; if such a request is in
+        the keywords, it is removed so it does not propagate to the
+        superclass.  Another application is to convert the arguments from a
+        string to a list."""
         apply_whitespace_facet = kw.pop('apply_whitespace_facet', False)
         if apply_whitespace_facet:
             args = cls.__ConvertArgs(args)
@@ -202,8 +215,7 @@ class simpleTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _D
     def CreateFromDOM (cls, node, **kw):
         """Create a simple type instance from the given DOM Node instance.
 
-        Any whitespace facet constraint is applied to the extracted
-        text."""
+        Any whitespace facet constraint is applied to the extracted text."""
         # @todo error if non-text content?
         # @todo support _DynamicCreate
         instance_root = kw.pop('instance_root', None)
@@ -234,6 +246,14 @@ class simpleTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _D
     # Validate the constraints after invoking the parent constructor,
     # unless told not to.
     def __init__ (self, *args, **kw):
+        """Initialize a newly created STD instance.
+        
+        Usually there is one positional argument, which is a value that can be
+        converted to the underlying Python type.
+
+        Keyword arguments:
+        validate_constraints -- Validate the datatype constraints after initialization (default True)
+        """
         validate_constraints = kw.pop('validate_constraints', True)
         args = self._ConvertArguments(args, kw)
         try:
@@ -243,16 +263,11 @@ class simpleTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _D
         if validate_constraints:
             self.xsdConstraintsOK()
 
-    # This is a placeholder for a class method that will retrieve the
-    # set of facets associated with the class.  We can't define it
-    # here because the facets module has a dependency on this module.
-    _GetConstrainingFacets = None
-
     # The class attribute name used to store the reference to the STD
-    # instance must be unique to the class, not to this base class.
-    # Otherwise we mistakenly believe we've already associated a STD
-    # instance with a class (e.g., xsd:normalizedString) when in fact it's
-    # associated with the superclass (e.g., xsd:string)
+    # component instance must be unique to the class, not to this base class.
+    # Otherwise we mistakenly believe we've already associated a STD instance
+    # with a class (e.g., xsd:normalizedString) when in fact it's associated
+    # with the superclass (e.g., xsd:string)
     @classmethod
     def __STDAttrName (cls):
         return '_%s__SimpleTypeDefinition' % (cls.__name__,)
@@ -269,9 +284,11 @@ class simpleTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _D
     @classmethod
     def SimpleTypeDefinition (cls):
         """Return the SimpleTypeDefinition instance for the given
-        class.  This should only be invoked when generating bindings.
-        Raise pyxb.IncompleteImplementationError if no STD instance has
-        been associated with the class."""
+        class.
+
+        This should only be invoked when generating bindings.  Raise
+        pyxb.IncompleteImplementationError if no STD instance has been
+        associated with the class."""
         attr_name = cls.__STDAttrName()
         if hasattr(cls, attr_name):
             return getattr(cls, attr_name)
@@ -280,12 +297,17 @@ class simpleTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _D
     @classmethod
     def XsdLiteral (cls, value):
         """Convert from a python value to a string usable in an XML
-        document."""
+        document.
+
+        This should be implemented in the subclass."""
         raise pyxb.LogicError('%s does not implement XsdLiteral' % (cls,))
 
     def xsdLiteral (self):
         """Return text suitable for representing the value of this
-        instance in an XML document."""
+        instance in an XML document.
+
+        The base class implementation delegates to the object class's
+        XsdLiteral method."""
         return self.XsdLiteral(self)
 
     @classmethod
@@ -305,18 +327,6 @@ class simpleTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _D
             if issubclass(sc, simpleTypeDefinition):
                 return sc
         raise pyxb.LogicError('No supertype found for %s' % (cls,))
-
-    @classmethod
-    def XsdPythonType (cls):
-        """Find the first parent class that isn't part of the
-        PST_mixin hierarchy.  This is expected to be the Python value
-        class."""
-        for sc in cls.mro():
-            if sc == object:
-                continue
-            if not issubclass(sc, simpleTypeDefinition):
-                return sc
-        raise pyxb.LogicError('No python type found for %s' % (cls,))
 
     @classmethod
     def _XsdConstraintsPreCheck_vb (cls, value):
@@ -371,11 +381,9 @@ class simpleTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _D
         constraints should be considered trivially satisfied (as with
         QName and NOTATION).
 
-        Raise pyxb.LogicError if the provided value is not an instance of cls.
-
-        Raise pyxb.LogicError if an attempt is made to calculate a length
-        for an instance of a type that does not support length
-        calculations.
+        :raise pyxb.LogicError: the provided value is not an instance of cls.
+        :raise pyxb.LogicError: an attempt is made to calculate a length for
+        an instance of a type that does not support length calculations.
         """
         assert isinstance(value, cls)
         if not hasattr(cls, '_XsdValueLength_vx'):
@@ -384,6 +392,7 @@ class simpleTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _D
 
     def xsdValueLength (self):
         """Return the length of this instance within its value space.
+
         See XsdValueLength."""
         return self.XsdValueLength(self)
 
@@ -407,11 +416,11 @@ class simpleTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _D
 class STD_union (simpleTypeDefinition):
     """Base class for union datatypes.
 
-    This class descends only from simpleTypeDefinition.  A pyxb.LogicError is raised
-    if an attempt is made to construct an instance of a subclass of
-    STD_union.  Values consistent with the member types are
-    constructed using the Factory class method.  Values are validated
-    using the _ValidateMember class method.
+    This class descends only from simpleTypeDefinition.  A pyxb.LogicError is
+    raised if an attempt is made to construct an instance of a subclass of
+    STD_union.  Values consistent with the member types are constructed using
+    the Factory class method.  Values are validated using the _ValidateMember
+    class method.
 
     Subclasses must provide a class variable _MemberTypes which is a
     tuple of legal members of the union."""
@@ -479,8 +488,7 @@ class STD_list (simpleTypeDefinition, types.ListType):
 
     This class descends from the Python list type, and incorporates
     simpleTypeDefinition.  Subclasses must define a class variable _ItemType
-    which is a reference to the class of which members must be
-    instances."""
+    which is a reference to the class of which members must be instances."""
 
     # Ick: If we don't declare this here, this class's map doesn't get
     # initialized.  Alternative is to not descend from simpleTypeDefinition.
@@ -591,8 +599,8 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
     def CreateFromDOM (cls, node, **kw):
         """Create an instance of this element from the given DOM node.
 
-        Raises pyxb.LogicError if the name of the node is not consistent
-        with the _XsdName of this class."""
+        :raise pyxb.LogicError: the name of the node is not consistent with
+        the _XsdName of this class."""
         instance_root = kw.pop('instance_root', None)
         node_name = node.nodeName
         if 0 < node_name.find(':'):
@@ -630,42 +638,37 @@ class complexTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _
     """Base for any Python class that serves as the binding for an
     XMLSchema complexType.
 
-    Subclasses should define a class-level _AttributeMap variable
-    which maps from the unicode tag of an attribute to the
-    AttributeUse instance that defines it.  Similarly, subclasses
-    should define an _ElementMap variable.
+    Subclasses should define a class-level _AttributeMap variable which maps
+    from the unicode tag of an attribute to the AttributeUse instance that
+    defines it.  Similarly, subclasses should define an _ElementMap variable.
     """
 
     # If the type supports wildcard attributes, this describes their
-    # constraints.  (If it doesn't, this should remain None.)
-    # Supporting classes should override this value.
+    # constraints.  (If it doesn't, this should remain None.)  Supporting
+    # classes should override this value.
     _AttributeWildcard = None
 
-    # Map from ncNames in the binding namespace to AttributeUse
-    # instances
+    # Map from ncNames in the binding namespace to AttributeUse instances
     _AttributeMap = { }
 
-    # A value that indicates whether the content model for this type
-    # supports wildcard elements.  Supporting classes should override
-    # this value.
+    # A value that indicates whether the content model for this type supports
+    # wildcard elements.  Supporting classes should override this value.
     _HasWildcardElement = False
 
-    # Map from ncNames in the binding namespace to ElementUse
-    # instances
+    # Map from ncNames in the binding namespace to ElementUse instances
     _ElementMap = { }
 
-    # Per-instance map from tags to attribute values for wildcard
-    # attributes.  Value is None if the type does not support wildcard
-    # attributes.
+    # Per-instance map from tags to attribute values for wildcard attributes.
+    # Value is None if the type does not support wildcard attributes.
     __wildcardAttributeMap = None
 
     def wildcardAttributeMap (self):
         """Obtain access to wildcard attributes.
 
-        The return value is None if this type does not support
-        wildcard attributes.  If wildcard attributes are allowed, the
-        return value is a map from tags to the unicode string value of
-        the corresponding attribute."""
+        The return value is None if this type does not support wildcard
+        attributes.  If wildcard attributes are allowed, the return value is a
+        map from QNames to the unicode string value of the corresponding
+        attribute."""
         return self.__wildcardAttributeMap
 
     # Per-instance list of DOM nodes interpreted as wildcard elements.
@@ -675,11 +678,11 @@ class complexTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _
     def wildcardElements (self):
         """Obtain access to wildcard elements.
 
-        The return value is None if the content model for this type
-        does not support wildcard elements.  If wildcard elements are
-        allowed, the return value is a list of DOM Element nodes
-        corresponding to conformant unrecognized elements, in the
-        order in which they were encountered."""
+        The return value is None if the content model for this type does not
+        support wildcard elements.  If wildcard elements are allowed, the
+        return value is a list of DOM Element nodes corresponding to
+        conformant unrecognized elements, in the order in which they were
+        encountered."""
         return self.__wildcardElements
 
     def __init__ (self, *args, **kw):
@@ -696,6 +699,7 @@ class complexTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _
                 raise pyxb.IncompleteImplementationError('No %s constructor support for argument %s' % (type(self), args[0]))
         if isinstance(self, _CTD_content_mixin):
             self._resetContent()
+        # Extract keywords that match field names
         for fu in self._PythonMap().values():
             fu.reset(self)
             iv = None
@@ -729,21 +733,20 @@ class complexTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _
     # Specify the symbols to be reserved for all CTDs.
     _ReservedSymbols = set([ 'Factory', 'CreateFromDOM', 'toDOM', 'Namespace' ])
 
-    # Class variable which maps complex type attribute names to the
-    # name used within the generated binding.  For example, if
-    # somebody's gone and decided that the word Factory would make an
-    # awesome attribute for some complex type, the binding will
-    # rewrite it so the accessor method is Factory_.  This is only
-    # overridden in generated bindings where an attribute name
-    # conflicted with a reserved symbol.
+    # Class variable which maps complex type attribute names to the name used
+    # within the generated binding.  For example, if somebody's gone and
+    # decided that the word Factory would make an awesome attribute for some
+    # complex type, the binding will rewrite it so the accessor method is
+    # Factory_.  This is only overridden in generated bindings where an
+    # attribute name conflicted with a reserved symbol.
     _AttributeDeconflictMap = { }
 
-    # Class variable which maps complex type element names to the name
-    # used within the generated binding.  See _AttributeDeconflictMap.
+    # Class variable which maps complex type element names to the name used
+    # within the generated binding.  See _AttributeDeconflictMap.
     _ElementDeconflictMap = { }
 
-    # None, or a reference to a ContentModel instance that defines how
-    # to reduce a DOM node list to the body of this element.
+    # None, or a reference to a ContentModel instance that defines how to
+    # reduce a DOM node list to the body of this element.
     _ContentModel = None
 
     @classmethod
@@ -756,6 +759,15 @@ class complexTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _
 
     @classmethod
     def _UpdateElementDatatypes (cls, datatype_map):
+        """Sets the _ElementMap contents and pre-calculates maps from Python
+        field names to element and attribute uses.
+
+        :param datatype_map: Map from NCNames representing element tags to a
+        list of Python classes corresponding to types that are stored in the
+        field associated with the element.
+
+        This is invoked at the module level after all binding classes have
+        been defined and are available for reference."""
         for (k, v) in datatype_map.items():
             cls._ElementMap[k]._setValidElements(v)
         python_map = { }
@@ -768,6 +780,10 @@ class complexTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _
 
     @classmethod
     def _UseForElement (cls, element):
+        """Return the ElementUse object corresponding to the element type.
+
+        :param element: A Python class corresponding to an element binding.
+        """
         for eu in cls._ElementMap.values():
             if element in eu.validElements():
                 return eu
@@ -775,15 +791,17 @@ class complexTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _
 
     @classmethod
     def _UseForTag (cls, tag):
+        """Return the ElementUse object corresponding to the element name.
+
+        :param tag: The NCName of an element in the class"""
         return cls._ElementMap[tag]
 
     def _setAttributesFromDOM (self, node):
         """Initialize the attributes of this element from those of the DOM node.
 
-        Raises pyxb.UnrecognizedAttributeError if the DOM node has
-        attributes that are not allowed in this type.  May raise other
-        errors if prohibited or required attributes are not
-        present."""
+        Raises pyxb.UnrecognizedAttributeError if the DOM node has attributes
+        that are not allowed in this type.  May raise other errors if
+        prohibited or required attributes are or are not present."""
         
         # Handle all the attributes that are present in the node
         attrs_available = set(self._AttributeMap.values())
@@ -794,6 +812,7 @@ class complexTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _
             # Ignore xmlns attributes; DOM got those
             if pyxb.Namespace.XMLNamespaces.uri() == namespace_name:
                 continue
+
             prefix = attr.prefix
             if not prefix:
                 prefix = None
@@ -801,6 +820,7 @@ class complexTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _
             # hack to make some QName attribute tags work
             if (attr.namespaceURI == node.namespaceURI):
                 prefix = None
+
             # @todo handle cross-namespace attributes
             if prefix is not None:
                 print 'IGNORING namespace-qualified attribute %s:%s' % (prefix, local_name)
@@ -814,8 +834,10 @@ class complexTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _
                 continue
             au.setFromDOM(self, node)
             attrs_available.remove(au)
-        # Handle all the ones that aren't present.  NB: Don't just
-        # reset the attribute; we need to check for missing ones.
+
+        # Handle all the ones that aren't present.  NB: Don't just reset the
+        # attribute; we need to check for missing ones, which is done by
+        # au.setFromDOM.
         for au in attrs_available:
             au.setFromDOM(self, node)
         return self
@@ -993,3 +1015,9 @@ class CTD_element (_CTD_content_mixin, complexTypeDefinition):
     def _setContentFromDOM_vx (self, node):
         """Delegate processing to content mixin, with mixed content disabled."""
         return self._setMixableContentFromDOM(node, is_mixed=False)
+
+
+## Local Variables:
+## fill-column:78
+## End:
+    

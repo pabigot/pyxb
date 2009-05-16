@@ -1,4 +1,22 @@
-"""Helper classes that maintain the content model of XMLSchema in the binding classes."""
+"""Helper classes that maintain the content model of XMLSchema in the binding classes.
+
+AttributeUse and ElementUse record information associated with a binding
+class, for example the types of values, the original XML QName or NCName, and
+the Python field in which the values are stored.
+
+ContentModelTransition, ContentModelState, and ContentModel are used to store
+a deterministic finite automaton which is used to translate DOM nodes into
+values stored in an instance corresponding to a complex type definition.
+
+ModelGroupAllAlternative and ModelGroupAll represent special nodes in the DFA
+that support a model group with compositor "all" in a way that does not result
+in an exponential state explosion in the DFA.
+
+Particle, ModelGroup, and Wildcard are used to encode an alternative
+representation of the content model, suitable for generating DOM instances
+from bindings (as opposed to the other direction handled by ContentModel).
+
+"""
 
 import pyxb
 import pyxb.Namespace
@@ -8,7 +26,16 @@ import xml.dom
 
 class AttributeUse (pyxb.cscRoot):
     """A helper class that encapsulates everything we need to know
-    about the way an attribute is used within a binding class."""
+    about the way an attribute is used within a binding class.
+
+    Attributes are stored as pairs of (provided, value), where provided is a
+    boolean indicating whether a value for the attribute was provided by the
+    DOM node, and value is an instance of the attribute datatype.  The
+    provided flag is used to determine whether an XML attribute should be
+    added to a created DOM node when generating the XML corresponding to a
+    binding instance.
+    """
+
     __tag = None       # Unicode XML tag @todo not including namespace
     __pythonField = None # Identifier used for this attribute within the owning class
     __valueAttributeName = None # Private attribute used in instances to hold the attribute value
@@ -59,12 +86,13 @@ class AttributeUse (pyxb.cscRoot):
         self.__setValue(ctd_instance, self.__defaultValue, False)
 
     def setFromDOM (self, ctd_instance, node):
-        """Set the value of the attribute in the given instance from
-        the corresponding attribute of the DOM Element node.  If node
-        is None, or does not have an attribute, the default value is
-        assigned.  Raises ProhibitedAttributeError and
-        MissingAttributeError in the cases of prohibited and required
-        attributes.
+        """Set the value of the attribute in the given instance from the
+        corresponding attribute of the DOM Element node.
+
+        :param ctd_instance: instance of ComplexTypeDefinition to which attribute belongs
+        :param node: DOM node from which attribute value should be taken
+        :raise ProhibitedAttributeError: an attempt was made to set a prohibited attribute
+        :raise MissingAttributeError: a required attribute did not receive a value
         """
         unicode_value = self.__unicodeDefault
         provided = False
@@ -111,28 +139,28 @@ class AttributeUse (pyxb.cscRoot):
 class ElementUse (pyxb.cscRoot):
     """Aggregate the information relevant to an element of a complex type.
 
-    This includes the original tag name, the spelling of the
-    corresponding object in Python, an indicator of whether multiple
-    instances might be associated with the field, and a list of types
-    for legal values of the field."""
+    This includes the original tag name, the spelling of the corresponding
+    object in Python, an indicator of whether multiple instances might be
+    associated with the field, and a list of types for legal values of the
+    field."""
 
     def tag (self):
-        """The tag is the unicode XML NCName of the element"""
+        """The Unicode XML NCName of the element."""
         return self.__tag
     __tag = None
 
     def pythonField (self):
-        """The pythonField is the string name of the binding class
-        field used to hold the element values.  This is the
-        user-visible name, and excepting namespace disambiguation will
-        be equal to the tag."""
+        """The string name of the binding class field used to hold the element
+        values.
+
+        This is the user-visible name, and excepting namespace disambiguation
+        will be equal to the tag."""
         return self.__pythonField
     __pythonField = None
 
-    # The dictionary key used to identify the value of the element.
-    # The value is the same as that used for private member variables
-    # in the binding class within which the element declaration
-    # occurred.
+    # The dictionary key used to identify the value of the element.  The value
+    # is the same as that used for private member variables in the binding
+    # class within which the element declaration occurred.
     __valueElementName = None
 
     def validElements (self):
@@ -143,9 +171,11 @@ class ElementUse (pyxb.cscRoot):
 
     def isPlural (self):
         """True iff the content model indicates that more than one element
-        can legitimately belong to this use.  This includes elements in
-        particles with maxOccurs greater than one, and when multiple
-        elements with the same NCName are declared in the same type."""
+        can legitimately belong to this use.
+
+        This includes elements in particles with maxOccurs greater than one,
+        and when multiple elements with the same NCName are declared in the
+        same type."""
         return self.__isPlural
     __isPlural = False
 
@@ -240,6 +270,11 @@ class ElementUse (pyxb.cscRoot):
         raise pyxb.BadTypeValueError('Cannot assign value of type %s to field %s: legal types %s' % (type(value), self.tag(), ' '.join([str(_dt) for _dt in self.__validElements])))
 
 class ContentModelTransition (pyxb.cscRoot):
+    """Represents a transition in the content model DFA.
+
+    If the next object in the DOM model conforms to the specified term, it is
+    consumed and the specified next state is entered."""
+
     def term (self):
         """The matching term for this transition to succeed."""
         return self.__term
@@ -289,12 +324,12 @@ class ContentModelTransition (pyxb.cscRoot):
     def attemptTransition (self, ctd_instance, node_list, store):
         """Attempt to make the appropriate transition.
 
-        If something goes wrong, a BadDocumentError will be propagated
-        through this call, and node_list will remain unchanged.  If
-        everything works, the prefix of the node_list that matches the
-        transition will have been stripped away, and if the store
-        parameter is True, the resulting binding instances will be
-        stored in the proper location of ctd_instance.
+        If something goes wrong, a BadDocumentError will be propagated through
+        this call, and node_list will remain unchanged.  If everything works,
+        the prefix of the node_list that matches the transition will have been
+        stripped away, and if the store parameter is True, the resulting
+        binding instances will be stored in the proper location of
+        ctd_instance.
         """
 
         if self.TT_element == self.__termType:
@@ -339,9 +374,10 @@ class ContentModelTransition (pyxb.cscRoot):
 class ContentModelState (pyxb.cscRoot):
     """Represents a state in a ContentModel DFA.
 
-    The state identifier is an integer.  A flag indicates whether the
-    state is a legitimate final state for the DFA.  The transitions
-    are an ordered sequence of ContentModelTransition instances."""
+    The state identifier is an integer.  State 1 is the starting state of the
+    DFA.  A flag indicates whether the state is a legitimate final state for
+    the DFA.  The transitions are an ordered sequence of
+    ContentModelTransition instances."""
 
     # Integer
     __state = None
@@ -363,14 +399,20 @@ class ContentModelState (pyxb.cscRoot):
     def evaluateContent (self, ctd_instance, node_list, store):
         """Determine where to go from this state.
 
-        If a transition matches, the consumed prefix of node_list has
-        been stripped, the resulting data stored in ctd_instance if
-        store is True, and the next state is returned.
+        If a transition matches, the consumed prefix of node_list has been
+        stripped, the resulting data stored in ctd_instance if store is True,
+        and the next state is returned.
 
-        If no transition can be made, and this state is a final state
-        for the DFA, the value None is returned.
+        If no transition can be made, and this state is a final state for the
+        DFA, the value None is returned.
 
-        Otherwise a StructuralBadDocumentError is raised."""
+        :param ctd_instance: The binding instance holding the content
+        :param node_list: in/out list of DOM nodes that comprise instance content
+        :param store: whether this actually consumes or just tests
+        :raise pyxb.UnrecognizedContentError: trailing material that does not match content model
+        :raise pyxb.MissingContentError: content model requires additional data
+        """
+
         for transition in self.__transitions:
             # @todo check nodeName against element
             try:
@@ -389,10 +431,9 @@ class ContentModelState (pyxb.cscRoot):
         raise pyxb.MissingContentError()
 
 class ContentModel (pyxb.cscRoot):
-    """The ContentModel is a deterministic finite state automaton
-    which can be traversed using a sequence of DOM nodes which are
-    matched on transitions against the legal content model of a
-    complex type."""
+    """The ContentModel is a deterministic finite state automaton which can be
+    traversed using a sequence of DOM nodes which are matched on transitions
+    against the legal content model of a complex type."""
 
     # Map from integers to ContentModelState instances
     __stateMap = None
@@ -403,11 +444,11 @@ class ContentModel (pyxb.cscRoot):
     def interprete (self, ctd_instance, node_list, store=True):
         """Attempt to match the content model against the node_list.
 
-        When a state has been reached from which no transition is
-        possible, this method returns (if the end state is a final
-        state), or throws a MissingContentError.  There may be
-        material remaining on the node_list; it is up to the caller to
-        determine whether this is acceptable."""
+        When a state has been reached from which no transition is possible,
+        this method returns (if the end state is a final state), or throws a
+        MissingContentError.  There may be material remaining on the
+        node_list; it is up to the caller to determine whether this is
+        acceptable."""
         state = 1
         while state is not None:
             node_list = ctd_instance._stripMixedContent(node_list)
@@ -418,7 +459,16 @@ class ContentModel (pyxb.cscRoot):
 
 
 class ModelGroupAllAlternative (pyxb.cscRoot):
+    """Represents a single alternative in an "all" model group."""
+
+    def contentModel (self):
+        """The content model definition for the alternative."""
+        return self.__contentModel
     __contentModel = None
+
+    def required (self):
+        """True iff this alternative must be present (min_occurs=1)"""
+        return self.__required
     __required = None
 
     def __init__ (self, content_model, required):
@@ -426,11 +476,10 @@ class ModelGroupAllAlternative (pyxb.cscRoot):
         self.__contentModel = content_model
         self.__required = required
 
-    def required (self): return self.__required
-    def contentModel (self): return self.__contentModel
 
 class ModelGroupAll (pyxb.cscRoot):
-    """Class that represents a ModelGroup with an "all" compositor."""
+    """Content model class that represents a ModelGroup with an "all"
+    compositor."""
 
     __alternatives = None
 
@@ -526,6 +575,14 @@ class Particle (pyxb.cscRoot):
         self.__term = term
 
     def extendDOMFromContent (self, dom_support, element, ctd_instance):
+        """Add DOM constructs corresponding to data from a binding instance.
+
+        :param dom_support: A pyxb.utils.domutils.BindingDOMSupport instance
+        :param element: A DOM Element node into which binding values are written
+        :param ctd_instance: A binding instance holding values
+        """
+
+        assert isinstance(dom_support, pyxb.utils.domutils.BindingDOMSupport)
         document = dom_support.document()
         rep = 0
         assert isinstance(ctd_instance, basis.complexTypeDefinition)
@@ -543,7 +600,7 @@ class Particle (pyxb.cscRoot):
                     # @todo handle generation of wildcards
                     break
                 else:
-                    raise pyxb.IncompleteImplementationError('Particle.extendFromDOM: No support for term type %s' % (self.term(),))
+                    raise pyxb.IncompleteImplementationError('Particle.extendDOMFromContent: No support for term type %s' % (self.term(),))
             except pyxb.IncompleteImplementationError, e:
                 raise
             except pyxb.DOMGenerationError, e:
@@ -556,12 +613,11 @@ class Particle (pyxb.cscRoot):
             raise pyxb.DOMGenerationError('Expected at least %d instances of %s, got only %d' % (self.minOccurs(), self.term(), rep))
 
     def extendFromDOM (self, ctd_instance, node_list):
-        """Extend the content of the given ctd_instance from the DOM
-        nodes in the list.
+        """Extend the content of the given ctd_instance from the DOM nodes in
+        the list.
 
-        Nodes are removed from the front of the list as their content
-        is extracted and saved.  The unconsumed portion of the list is
-        returned."""
+        Nodes are removed from the front of the list as their content is
+        extracted and saved.  The unconsumed portion of the list is returned."""
         rep = 0
         assert isinstance(ctd_instance, basis.complexTypeDefinition)
         while ((self.maxOccurs() is None) or (rep < self.maxOccurs())):
@@ -630,11 +686,10 @@ class ModelGroup (pyxb.cscRoot):
         self._setContent(compositor, particles)
 
     def __extendDOMFromChoice (self, dom_support, element, ctd_instance, candidate_particles):
-        # Correct behavior requires that particles with a minOccurs()
-        # of 1 preceed any particle with minOccurs() of zero;
-        # otherwise we can incorrectly succeed at matching while not
-        # consuming everything that's available.  This sorting was
-        # done in _setContent.
+        # Correct behavior requires that particles with a minOccurs() of 1
+        # precede any particle with minOccurs() of zero; otherwise we can
+        # incorrectly succeed at matching while not consuming everything
+        # that's available.  This sorting was done in _setContent.
         for particle in candidate_particles:
             try:
                 particle.extendDOMFromContent(dom_support, element, ctd_instance)
@@ -761,4 +816,8 @@ class Wildcard (pyxb.cscRoot):
         # @todo check node against namespace constraint and process contents
         #print 'WARNING: Accepting node as wildcard match without validating.'
         return True
-        
+
+## Local Variables:
+## fill-column:78
+## End:
+    

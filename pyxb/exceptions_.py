@@ -1,4 +1,4 @@
-"""Extensions of standard exceptions for PyWXSB events.
+"""Extensions of standard exceptions for PyXB events.
 
 Yeah, I'd love this module to be named exceptions.py, but it can't
 because the standard library has one of those, and we need to
@@ -7,32 +7,32 @@ reference it below.
 
 import exceptions
 
-class PyWXSBException (exceptions.Exception):
+class PyXBException (exceptions.Exception):
     """Base class for exceptions that indicate a problem that the user should fix."""
     pass
 
-class SchemaValidationError (PyWXSBException):
+class SchemaValidationError (PyXBException):
     """Raised when the XML hierarchy does not appear to be valid for an XML schema."""
     pass
 
-class NamespaceUniquenessError (PyWXSBException):
+class NamespaceUniquenessError (PyXBException):
     """Raised when an attempt is made to record multiple objects of the same name in the same namespace category."""
     pass
 
-class BadTypeValueError (PyWXSBException):
+class BadTypeValueError (PyXBException):
     """Raised when a value in an XML attribute does not conform to the simple type."""
     pass
 
-class NotInNamespaceError (PyWXSBException):
+class NotInNamespaceError (PyXBException):
     '''Raised when a name is referenced that is not defined in the appropriate namespace.'''
     __namespace = None
     __ncName = None
 
-class BadPropertyError (PyWXSBException):
+class BadPropertyError (PyXBException):
     """Raised when a schema component property is accessed on a component instance that does not define that property."""
     pass
 
-class BadDocumentError (PyWXSBException):
+class BadDocumentError (PyXBException):
     """Raised when processing document content and an error is encountered."""
     pass
 
@@ -66,15 +66,15 @@ class MissingAttributeError (BadDocumentError):
 class AttributeChangeError (BadDocumentError):
     """Raised when an attribute with a fixed value constraint is set to a different value."""
 
-class DOMGenerationError (PyWXSBException):
+class DOMGenerationError (PyXBException):
     """Raised when converting binding to DOM and something goes wrong."""
     pass
 
-class PyWXSBError (exceptions.Exception):
+class PyXBError (exceptions.Exception):
     """Base class for exceptions that indicate a problem that the user probably can't fix."""
     pass
     
-class LogicError (PyWXSBError):
+class LogicError (PyXBError):
     """Raised when the code detects an implementation problem."""
 
 class IncompleteImplementationError (LogicError):
