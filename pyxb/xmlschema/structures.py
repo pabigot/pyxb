@@ -382,7 +382,7 @@ class _NamedComponent_mixin (pyxb.cscRoot):
             raise IncompleteImplementationError('Unable to resolve namespace %s in external reference' % (uri,))
         # Explicitly validate here: the lookup operations won't do so,
         # but will abort if the namespace hasn't been validated yet.
-        ns.validateSchema()
+        ns.validateComponentModel()
         #print 'Need to lookup %s in %s' % (ncname, scope)
         if isinstance(scope, tuple):
             ( scope_uri, scope_ncname ) = scope
@@ -3772,9 +3772,10 @@ class _ImportElementInformationItem (_Annotated_mixin):
         self.__namespace = Namespace.NamespaceForURI(uri, create_if_missing=True)
         if uri in Namespace.AvailableForLoad():
             try:
-                self.__namespace.validateSchema()
+                self.__namespace.validateComponentModel()
             except Exception, e:
                 print 'ERROR validating imported namespace %s: %s' % (uri, e)
+
             # @todo validate that something got loaded
         elif self.schemaLocation() is not None:
             print 'Attempt to read %s from %s' % (uri, self.schemaLocation())
@@ -4145,7 +4146,7 @@ def _AddSimpleTypes (namespace):
     XMLSchema."""
     # Add the ur type
     #schema = namespace.schema()
-    schema = pyxb.xmlschema.schema(namespace_context=Namespace.XMLSchema.initialNamespaceContext())
+    schema = Schema(namespace_context=Namespace.XMLSchema.initialNamespaceContext())
     td = schema._addNamedComponent(ComplexTypeDefinition.UrTypeDefinition(in_builtin_definition=True))
     assert td.isResolved()
     # Add the simple ur type
@@ -4175,3 +4176,5 @@ def _AddSimpleTypes (namespace):
         assert td.isResolved()
     return schema
 
+import sys
+Namespace._InitializeBuiltinNamespaces(sys.modules[__name__])

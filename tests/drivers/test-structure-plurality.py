@@ -9,7 +9,7 @@ from pyxb.xmlschema.structures import ModelGroup
 
 import unittest
 
-Namespace.XMLSchema.validateSchema()
+Namespace.XMLSchema.validateComponentModel()
 
 class _TestBase (unittest.TestCase):
     __schema = None

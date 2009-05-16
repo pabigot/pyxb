@@ -227,7 +227,7 @@ class definitions (raw_wsdl.definitions):
                     type_qname = p._namespaceContext().interpretQName(p.type())
                     assert type_qname is not None
                     (type_ns, type_ln) = type_qname
-                    type_ns.validateSchema()
+                    type_ns.validateComponentModel()
                     p._setTypeReference(type_ns.typeDefinitions()[type_ln])
 
 raw_wsdl.definitions._SetClassRef(definitions)
