@@ -101,13 +101,17 @@ class simpleTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _D
                             'xsdConstraintsOK', 'XsdValueLength', 'xsdValueLength',
                             'PythonLiteral', 'pythonLiteral', 'toDOM', 'Namespace' ])
 
-    # Determine the name of the class-private facet map.  This
-    # algorithm should match the one used by Python, so the base class
-    # value can be read.
+    # Determine the name of the class-private facet map.  For the base class
+    # this should produce the same attribute name as Python's privatization
+    # scheme.
     @classmethod
     def __FacetMapAttributeName (cls):
         if cls == simpleTypeDefinition:
             return '_%s__FacetMap' % (cls.__name__.strip('_'),)
+
+        # It is not uncommon for a class in one namespace to extend a class of
+        # the same name in a different namespace, so encode the namespace URI
+        # in the attribute name (if it is part of a namespace).
         ns = ''
         try:
             ns = cls._Namespace.uri()
