@@ -5,8 +5,8 @@ touch pyxb/standard/bindings/raw/__init__.py
 mkdir -p ${SCHEMA_DIR}
 
 # Get a couple that we don't actually generate bindings for
-wget -O ${SCHEMA_DIR}/xml.xsd http://www.w3.org/2001/xml.xsd
-wget -O ${SCHEMA_DIR}/XMLSchema.xsd http://www.w3.org/2001/XMLSchema.xsd
+test -f ${SCHEMA_DIR}/xml.xsd || wget -O ${SCHEMA_DIR}/xml.xsd http://www.w3.org/2001/xml.xsd
+test -f ${SCHEMA_DIR}/XMLSchema.xsd || wget -O ${SCHEMA_DIR}/XMLSchema.xsd http://www.w3.org/2001/XMLSchema.xsd
 
 ( cat <<EOList
 # NOTE: Use prefix xml_ instead of xml because xml conflicts with standard package
@@ -33,11 +33,15 @@ http://docs.oasis-open.org/security/saml/v2.0/saml-schema-protocol-2.0.xsd saml_
 EOList
 ) | sed -e '/^#/d' \
   | while read uri prefix ; do
+  cached_schema=${SCHEMA_DIR}/${prefix}.xsd
+  if [ ! -f ${cached_schema} ] ; then
+     echo "Retrieving ${prefix} from ${uri}"
+     wget -O ${cached_schema}.xsd ${uri}
+  fi
   scripts/genbind \
     --module-path-prefix pyxb.standard.bindings \
-    --schema-uri ${uri} \
+    --schema-uri ${cached_schema} \
     --schema-prefix ${prefix} \
-    --write-schema-path ${SCHEMA_DIR} \
     --generate-raw-binding \
     --save-component-model
 done
