@@ -1,5 +1,5 @@
 SCHEMA_DIR=pyxb/standard/schemas
-rm pyxb/standard/bindings/raw/[a-z]*
+rm -rf pyxb/standard/bindings/raw
 mkdir -p pyxb/standard/bindings/raw
 touch pyxb/standard/bindings/raw/__init__.py
 mkdir -p ${SCHEMA_DIR}
