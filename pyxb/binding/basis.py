@@ -961,9 +961,11 @@ class _CTD_content_mixin (pyxb.cscRoot):
     __isMixed = False
     def _stripMixedContent (self, node_list):
         while 0 < len(node_list):
-            if not (node_list[0].nodeType in (dom.Node.TEXT_NODE, dom.Node.CDATA_SECTION_NODE)):
+            if not (node_list[0].nodeType in (dom.Node.TEXT_NODE, dom.Node.CDATA_SECTION_NODE, dom.Node.COMMENT_NODE)):
                 break
             cn = node_list.pop(0)
+            if dom.Node.COMMENT_NODE == cn.nodeType:
+                continue
             if self.__isMixed:
                 #print 'Adding mixed content'
                 self._addContent(cn.data)
