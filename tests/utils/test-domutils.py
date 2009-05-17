@@ -2,6 +2,8 @@ import unittest
 from pyxb.utils.domutils import *
 from xml.dom import minidom
 from xml.dom import Node
+import xml.dom
+import pyxb.Namespace
 
 class TestInScopeNames (unittest.TestCase):
     def show (self, node):
@@ -98,6 +100,13 @@ class TestInScopeNames (unittest.TestCase):
         self.assertEqual('http://www.w3.org/2001/XMLSchema-instance', xmlns_map['xsi'].uri())
         self.assertEqual('http://www.w3.org/XML/1998/namespace', xmlns_map['xml'].uri())
 
+
+class TestNamespaceURIs (unittest.TestCase):
+    # Make sure we agree with xml.dom on what the core namespace URIs are
+    def testURI (self):
+        self.assertEqual(xml.dom.XML_NAMESPACE, pyxb.Namespace.XML.uri())
+        self.assertEqual(xml.dom.XMLNS_NAMESPACE, pyxb.Namespace.XMLNamespaces.uri())
+        self.assertEqual(xml.dom.XHTML_NAMESPACE, pyxb.Namespace.XHTML.uri())
 
 if '__main__' == __name__:
     unittest.main()
