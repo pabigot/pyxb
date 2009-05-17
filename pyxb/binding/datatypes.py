@@ -72,7 +72,7 @@ _PrimitiveDatatypes.append(string)
 
 # It is illegal to subclass the bool type in Python, so we subclass
 # int instead.
-class boolean (basis.simpleTypeDefinition, int):
+class boolean (basis.simpleTypeDefinition, types.IntType):
     """boolean.
 
     http://www.w3.org/TR/xmlschema-2/#boolean"""
@@ -623,7 +623,7 @@ class ENTITIES (basis.STD_list):
     _ItemType = ENTITY
 _ListDatatypes.append(ENTITIES)
 
-class integer (basis.simpleTypeDefinition, long):
+class integer (basis.simpleTypeDefinition, types.LongType):
     """integer.
 
     http://www.w3.org/TR/xmlschema-2/#integer"""
