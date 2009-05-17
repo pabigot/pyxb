@@ -261,11 +261,12 @@ class _NamespaceResolution_mixin (pyxb.cscRoot):
                 # schema actually has a circular dependency in some named
                 # component.
                 failed_components = []
+                import pyxb.xmlschema.structures
                 for d in self.__unresolvedComponents:
-                    if isinstance(d, _NamedComponent_mixin):
+                    if isinstance(d, pyxb.xmlschema.structures._NamedComponent_mixin):
                         failed_components.append('%s named %s' % (d.__class__.__name__, d.name()))
                     else:
-                        if isinstance(d, AttributeUse):
+                        if isinstance(d, pyxb.xmlschema.structures.AttributeUse):
                             print d.attributeDeclaration()
                         failed_components.append('Anonymous %s' % (d.__class__.__name__,))
                 raise pyxb.NotInNamespaceError('Infinite loop in resolution:\n  %s' % ("\n  ".join(failed_components),))
@@ -1135,7 +1136,8 @@ XML = _XML('http://www.w3.org/XML/1998/namespace',
            is_builtin_namespace=True,
            is_undeclared_namespace=True,
            bound_prefix='xml',
-           default_namespace='XHTML')
+           default_namespace='XHTML',
+           in_scope_namespaces = { 'xs' : None })
 
 
 ## Namespace and URI for the XMLSchema namespace (often xs, or xsd)
@@ -1224,6 +1226,7 @@ class NamespaceContext (object):
         return node.__namespaceContext
 
     def __init__ (self, dom_node, parent_context=None, recurse=True, default_namespace=None, target_namespace=None, in_scope_namespaces=None):
+        global _UndeclaredNamespaceMap
         if dom_node is not None:
             dom_node.__namespaceContext = self
         self.__defaultNamespace = default_namespace
@@ -1232,7 +1235,8 @@ class NamespaceContext (object):
         self.__inScopeNamespaces = _UndeclaredNamespaceMap
         self.__mutableInScopeNamespaces = False
         if in_scope_namespaces is not None:
-            self.__inScopeNamespaces = _UndeclaredNamespaceMap.copy().update(in_scope_namespaces)
+            self.__inScopeNamespaces = _UndeclaredNamespaceMap.copy()
+            self.__inScopeNamespaces.update(in_scope_namespaces)
             self.__mutableInScopeNamespaces = True
         if parent_context is not None:
             self.__inScopeNamespaces = parent_context.inScopeNamespaces()
@@ -1301,6 +1305,7 @@ class NamespaceContext (object):
         if 0 <= name.find(':'):
             assert not is_definition
             (prefix, local_name) = name.split(':', 1)
+            assert self.inScopeNamespaces() is not None
             namespace = self.inScopeNamespaces().get(prefix, None)
             if namespace is None:
                 raise pyxb.SchemaValidationError('QName %s prefix is not declared' % (name,))
