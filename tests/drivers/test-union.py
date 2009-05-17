@@ -1,5 +1,5 @@
 import pyxb.binding.generate
-from xml.dom import minidom
+import pyxb.utils.domutils
 from xml.dom import Node
 
 import os.path
@@ -59,22 +59,22 @@ class TestUnion (unittest.TestCase):
         self.assertRaises(UnrecognizedElementError, CreateFromDocument, '<myelement>un</myelement>')
 
     def testMyElementDOM (self):
-        self.assertEqual(0, myElement.CreateFromDOM(minidom.parseString('<myElement>0</myElement>').documentElement).content())
+        self.assertEqual(0, myElement.CreateFromDOM(pyxb.utils.domutils.StringToDOM('<myElement>0</myElement>').documentElement).content())
         self.assertEqual(0, CreateFromDocument('<myElement>0</myElement>').content())
 
-        self.assertEqual(english.one, myElement.CreateFromDOM(minidom.parseString('<myElement>one</myElement>').documentElement).content())
-        self.assertEqual(welsh.un, myElement.CreateFromDOM(minidom.parseString('<myElement>un</myElement>').documentElement).content())
+        self.assertEqual(english.one, myElement.CreateFromDOM(pyxb.utils.domutils.StringToDOM('<myElement>one</myElement>').documentElement).content())
+        self.assertEqual(welsh.un, myElement.CreateFromDOM(pyxb.utils.domutils.StringToDOM('<myElement>un</myElement>').documentElement).content())
 
-        self.assertEqual(english.one, myElement.CreateFromDOM(minidom.parseString('<myElement>one<!-- with comment --></myElement>').documentElement).content())
-        self.assertEqual(welsh.un, myElement.CreateFromDOM(minidom.parseString('<myElement><!-- with comment -->un</myElement>').documentElement).content())
+        self.assertEqual(english.one, myElement.CreateFromDOM(pyxb.utils.domutils.StringToDOM('<myElement>one<!-- with comment --></myElement>').documentElement).content())
+        self.assertEqual(welsh.un, myElement.CreateFromDOM(pyxb.utils.domutils.StringToDOM('<myElement><!-- with comment -->un</myElement>').documentElement).content())
 
-        self.assertEqual(english.one, myElement.CreateFromDOM(minidom.parseString('<myElement> one <!-- with comment and whitespace --></myElement>').documentElement).content())
-        self.assertRaises(BadTypeValueError, myElement.CreateFromDOM, minidom.parseString('<myElement><!-- whitespace is error for welsh --> un</myElement>').documentElement)
+        self.assertEqual(english.one, myElement.CreateFromDOM(pyxb.utils.domutils.StringToDOM('<myElement> one <!-- with comment and whitespace --></myElement>').documentElement).content())
+        self.assertRaises(BadTypeValueError, myElement.CreateFromDOM, pyxb.utils.domutils.StringToDOM('<myElement><!-- whitespace is error for welsh --> un</myElement>').documentElement)
 
-        self.assertEqual(english.one, myElement.CreateFromDOM(minidom.parseString('''<myElement><!-- whitespace is collapsed for english -->
+        self.assertEqual(english.one, myElement.CreateFromDOM(pyxb.utils.domutils.StringToDOM('''<myElement><!-- whitespace is collapsed for english -->
 one
 </myElement>''').documentElement).content())
-        self.assertRaises(BadTypeValueError, myElement.CreateFromDOM, minidom.parseString('''<myElement><!--whitespace is only reduced for welsh -->
+        self.assertRaises(BadTypeValueError, myElement.CreateFromDOM, pyxb.utils.domutils.StringToDOM('''<myElement><!--whitespace is only reduced for welsh -->
 un
 </myElement>''').documentElement)
 

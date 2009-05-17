@@ -1,6 +1,5 @@
 import unittest
 from pyxb.utils.domutils import *
-from xml.dom import minidom
 from xml.dom import Node
 import xml.dom
 import pyxb.Namespace
@@ -26,7 +25,7 @@ class TestInScopeNames (unittest.TestCase):
       <p>another graf without namespace change</p>
     </notes>
 </book>'''
-        book = minidom.parseString(xml).documentElement
+        book = StringToDOM(xml).documentElement
         self.assertEqual('book', book.localName)
         ns_ctx = pyxb.Namespace.NamespaceContext(book)
         xmlns_map = self.show(book)
@@ -80,7 +79,7 @@ class TestInScopeNames (unittest.TestCase):
       </tr>
     </table>
   </Beers>'''
-        Beers = minidom.parseString(xml).documentElement
+        Beers = StringToDOM(xml).documentElement
         ns_ctx = pyxb.Namespace.NamespaceContext(Beers)
         xmlns_map = self.show(Beers)
         self.assertEqual(2, len(xmlns_map))

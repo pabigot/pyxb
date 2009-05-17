@@ -1,5 +1,4 @@
 import pyxb.binding.generate
-from xml.dom import minidom
 from xml.dom import Node
 
 import os.path

@@ -5,6 +5,7 @@ import datetime
 
 from pyxb.utils import utility
 from pyxb.utils import templates
+from pyxb.utils import domutils
 import basis
 import content
 import datatypes
@@ -15,7 +16,6 @@ import nfa
 import types
 import sys
 import traceback
-import xml.dom.minidom
 import xml.dom
 
 # Initialize UniqueInBinding with the public identifiers we generate,
@@ -963,7 +963,7 @@ def GeneratePython (**kw):
         if schema is None:
             if schema_file is None:
                 raise Exception('No input provided')
-            schema = xs.schema.CreateFromDOM(xml.dom.minidom.parse(schema_file))
+            schema = xs.schema.CreateFromDOM(domutils.StringToDOM(file(schema_file).read()))
         if schema_file is None:
             schema_file = '<not provided>'
 
@@ -1008,7 +1008,7 @@ def GeneratePython (**kw):
 # Generated %{date} by PyWXSB version %{version}
 import pyxb.binding
 import pyxb.exceptions_
-import xml.dom.minidom
+import pyxb.utils.domutils
 import sys
 
 # Import bindings for namespaces imported into schema
@@ -1021,7 +1021,7 @@ Namespace._setModule(sys.modules[__name__])
 
 def CreateFromDocument (xml_text):
     """Parse the given XML and use the document element to create a Python instance."""
-    dom = xml.dom.minidom.parseString(xml_text)
+    dom = pyxb.utils.domutils.StringToDOM(xml_text)
     return CreateFromDOM(dom.documentElement)
 
 def CreateFromDOM (node):

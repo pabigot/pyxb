@@ -3,7 +3,6 @@ inherit, and that describe the content models of those schema."""
 
 import pyxb
 import xml.dom as dom
-from xml.dom import minidom
 import pyxb.utils.domutils as domutils
 import pyxb.utils.utility as utility
 import types

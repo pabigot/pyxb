@@ -1,5 +1,5 @@
 import pyxb.binding.generate
-from xml.dom import minidom
+import pyxb.utils.domutils
 from xml.dom import Node
 
 import os.path
@@ -29,7 +29,7 @@ class TestCTDExtension (unittest.TestCase):
    <forename>Arnold</forename>
    <surname>Gore</surname>
   </oldAddressee>'''
-        doc = minidom.parseString(xml)
+        doc = pyxb.utils.domutils.StringToDOM(xml)
         instance = oldAddressee.CreateFromDOM(doc.documentElement)
         self.assertEqual(2, len(instance.forename()))
         self.assertEqual('Albert', instance.forename()[0].content())
@@ -44,7 +44,7 @@ class TestCTDExtension (unittest.TestCase):
    <surname>Gore</surname>
    <generation>Jr</generation>
   </addressee>'''
-        doc = minidom.parseString(xml)
+        doc = pyxb.utils.domutils.StringToDOM(xml)
         instance = addressee.CreateFromDOM(doc.documentElement)
         self.assertEqual(2, len(instance.forename()))
         self.assertEqual('Albert', instance.forename()[0].content())
@@ -56,7 +56,7 @@ class TestCTDExtension (unittest.TestCase):
 
     def testMidWildcard (self):
         xml = '<defs><documentation/><something/><message/><message/><import/><message/></defs>'
-        doc = minidom.parseString(xml)
+        doc = pyxb.utils.domutils.StringToDOM(xml)
         instance = defs.CreateFromDOM(doc.documentElement)
         self.assertFalse(instance.documentation() is None)
         self.assertEqual(3, len(instance.message()))
@@ -64,7 +64,7 @@ class TestCTDExtension (unittest.TestCase):
         self.assertEqual(1, len(instance.wildcardElements()))
 
         xml = '<defs><something/><else/><message/><message/><import/><message/></defs>'
-        doc = minidom.parseString(xml)
+        doc = pyxb.utils.domutils.StringToDOM(xml)
         instance = defs.CreateFromDOM(doc.documentElement)
         self.assertTrue(instance.documentation() is None)
         self.assertEqual(3, len(instance.message()))
@@ -73,7 +73,7 @@ class TestCTDExtension (unittest.TestCase):
 
     def testEndWildcard (self):
         xml = '<defs><message/><something/></defs>'
-        doc = minidom.parseString(xml)
+        doc = pyxb.utils.domutils.StringToDOM(xml)
         self.assertRaises(ExtraContentError, defs.CreateFromDOM, doc.documentElement)
 
 if __name__ == '__main__':

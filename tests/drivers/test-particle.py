@@ -1,5 +1,5 @@
 import pyxb.binding.generate
-from xml.dom import minidom
+import pyxb.utils.domutils
 from xml.dom import Node
 
 import os.path
@@ -24,56 +24,56 @@ def ToDOM (instance, tag=None):
 class TestParticle (unittest.TestCase):
     def test_bad_creation (self):
         xml = '<h01 xmlns="URN:test"/>'
-        dom = minidom.parseString(xml)
+        dom = pyxb.utils.domutils.StringToDOM(xml)
         # Creating with wrong element
         self.assertRaises(UnrecognizedContentError, h01b.CreateFromDOM, dom.documentElement)
 
     def test_h01_empty (self):
         xml = '<h01 xmlns="URN:test"/>'
-        dom = minidom.parseString(xml)
+        dom = pyxb.utils.domutils.StringToDOM(xml)
         instance = h01.CreateFromDOM(dom.documentElement)
         self.assert_(instance.elt() is None)
         self.assertEqual(ToDOM(instance).toxml(), xml)
 
     def test_h01_elt (self):
         xml = '<h01 xmlns="URN:test"><elt/></h01>'
-        dom = minidom.parseString(xml)
+        dom = pyxb.utils.domutils.StringToDOM(xml)
         instance = h01.CreateFromDOM(dom.documentElement)
         self.assert_(instance.elt() is not None)
         self.assertEqual(ToDOM(instance).toxml(), xml)
 
     def test_h01_elt2 (self):
         xml = '<h01 xmlns="URN:test"><elt/><elt/></h01>'
-        dom = minidom.parseString(xml)
+        dom = pyxb.utils.domutils.StringToDOM(xml)
         self.assertRaises(ExtraContentError, h01.CreateFromDOM, dom.documentElement)
 
     def test_h01b_empty (self):
         xml = '<h01b xmlns="URN:test"/>'
-        dom = minidom.parseString(xml)
+        dom = pyxb.utils.domutils.StringToDOM(xml)
         instance = h01b.CreateFromDOM(dom.documentElement)
         self.assert_(instance.elt() is None)
         self.assertEqual(ToDOM(instance).toxml(), xml)
 
     def test_h01b_elt (self):
         xml = '<h01b xmlns="URN:test"><elt/></h01b>'
-        dom = minidom.parseString(xml)
+        dom = pyxb.utils.domutils.StringToDOM(xml)
         instance = h01b.CreateFromDOM(dom.documentElement)
         self.assert_(instance.elt() is not None)
         self.assertEqual(ToDOM(instance).toxml(), xml)
 
     def test_h01b_elt2 (self):
         xml = '<h01b xmlns="URN:test"><elt/><elt/></h01b>'
-        dom = minidom.parseString(xml)
+        dom = pyxb.utils.domutils.StringToDOM(xml)
         self.assertRaises(ExtraContentError, h01b.CreateFromDOM, dom.documentElement)
 
     def test_h11_empty (self):
         xml = '<h11 xmlns="URN:test"/>'
-        dom = minidom.parseString(xml)
+        dom = pyxb.utils.domutils.StringToDOM(xml)
         self.assertRaises(MissingContentError, h11.CreateFromDOM, dom.documentElement)
 
     def test_h11_elt (self):
         xml = '<h11 xmlns="URN:test"><elt/></h11>'
-        dom = minidom.parseString(xml)
+        dom = pyxb.utils.domutils.StringToDOM(xml)
         instance = h11.CreateFromDOM(dom.documentElement)
         self.assert_(instance.elt() is not None)
         self.assertEqual(ToDOM(instance).toxml(), xml)
@@ -81,12 +81,12 @@ class TestParticle (unittest.TestCase):
 
     def test_h24 (self):
         xml = '<h24 xmlns="URN:test"></h24>'
-        dom = minidom.parseString(xml)
+        dom = pyxb.utils.domutils.StringToDOM(xml)
         self.assertRaises(MissingContentError, h24.CreateFromDOM, dom.documentElement)
         
         for num_elt in range(0, 5):
             xml = '<h24 xmlns="URN:test">%s</h24>' % (''.join(num_elt * ['<elt/>']),)
-            dom = minidom.parseString(xml)
+            dom = pyxb.utils.domutils.StringToDOM(xml)
             if 2 > num_elt:
                 self.assertRaises(MissingContentError, h24.CreateFromDOM, dom.documentElement)
             elif 4 >= num_elt:
@@ -98,12 +98,12 @@ class TestParticle (unittest.TestCase):
 
     def test_h24b (self):
         xml = '<h24b xmlns="URN:test"></h24b>'
-        dom = minidom.parseString(xml)
+        dom = pyxb.utils.domutils.StringToDOM(xml)
         self.assertRaises(MissingContentError, h24b.CreateFromDOM, dom.documentElement)
         
         for num_elt in range(0, 5):
             xml = '<h24b xmlns="URN:test">%s</h24b>' % (''.join(num_elt * ['<elt/>']),)
-            dom = minidom.parseString(xml)
+            dom = pyxb.utils.domutils.StringToDOM(xml)
             if 2 > num_elt:
                 self.assertRaises(MissingContentError, h24b.CreateFromDOM, dom.documentElement)
             elif 4 >= num_elt:

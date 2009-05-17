@@ -6,14 +6,34 @@ import xml.dom
 # your Python install uses.  If it's minidom, it should work.
 __DOMImplementation = xml.dom.getDOMImplementation()
 
-def getDOMImplementation ():
+def GetDOMImplementation ():
+    """Return the DOMImplementation object used for pyxb operations.
+
+    This is primarily used as the default implementation when generating DOM
+    trees from a binding instance.  It defaults to whatever
+    xml.dom.getDOMImplementation() returns in your installation (often
+    xml.dom.minidom).  It can be overridden with SetDOMImplementation()."""
+
     global __DOMImplementation
     return __DOMImplementation
 
-def setDOMImplementation (dom_implementation):
+def SetDOMImplementation (dom_implementation):
+    """Override the default DOMImplementation object."""
     global __DOMImplementation
     __DOMImplementation = dom_implementation
     return __DOMImplementation
+
+# Unfortunately, the DOMImplementation interface doesn't provide a parser.  So
+# abstract this in case somebody wants to substitute a different one.  Haven't
+# decided how to express that yet.
+def StringToDOM (text):
+    """Convert string to a DOM instance.
+
+    This is abstracted to allow future use of alternative parsers.
+    Unfortunately, the interface for parsing a string does not appear to be
+    consistent across implementations, so for now this always uses
+    xml.dom.minidom."""
+    return xml.dom.minidom.parseString(text)
 
 def NodeAttribute (node, attribute_ncname, attribute_ns=pyxb.Namespace.XMLSchema):
     """Namespace-aware search for an attribute in a node.
@@ -139,12 +159,23 @@ class BindingDOMSupport (object):
 
     __namespacePrefixCounter = None
 
+    def implementation (self):
+        """The DOMImplementation object to be used.
+
+        Defaults to pyxb.utils.domutils.GetDOMImplementation(), but can be
+        overridden in the BindingDOMSupport constructor call."""
+        return self.__implementation
+    __implementation = None
+
     def document (self):
         return self.__document
     __document = None
 
-    def __init__ (self):
-        self.__document = getDOMImplementation().createDocument(None, None, None)
+    def __init__ (self, implementation=None):
+        if implementation is None:
+            implementation = GetDOMImplementation()
+        self.__implementation = implementation
+        self.__document = self.implementation().createDocument(None, None, None)
         self.__namespaces = { }
         self.__namespacePrefixCounter = 0
 

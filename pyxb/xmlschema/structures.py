@@ -3784,7 +3784,7 @@ class _ImportElementInformationItem (_Annotated_mixin):
             except ValueError, e:
                 print 'Caught with urllib: %s' % (e,)
                 xmls = open(self.schemaLocation()).read()
-            dom = minidom.parseString(xmls)
+            dom = StringToDOM(xmls)
             self.__schema = Schema.CreateFromDOM(dom, ns_ctx)
 
         self._annotationFromDOM(node)
@@ -4004,7 +4004,7 @@ class Schema (_SchemaComponent_mixin):
         # See section 4.2.1 of Structures.
         uri = NodeAttribute(node, 'schemaLocation')
         xml = urllib2.urlopen(uri).read()
-        included_schema = self.CreateFromDOM(minidom.parseString(xml), self.__namespaceData, inherit_default_namespace=True, skip_resolution=True)
+        included_schema = self.CreateFromDOM(StringToDOM(xml), self.__namespaceData, inherit_default_namespace=True, skip_resolution=True)
         print '%s completed including %s' % (object.__str__(self), object.__str__(included_schema))
         assert self.targetNamespace() == included_schema.targetNamespace()
         #print xml

@@ -1,5 +1,5 @@
 import pyxb.binding.generate
-from xml.dom import minidom
+import pyxb.utils.domutils
 from xml.dom import Node
 
 import os.path
@@ -124,7 +124,7 @@ class TestCTD (unittest.TestCase):
 
     def testUnrecognizedAttribute (self):
         xml = '<emptyWithAttr capitalized="false" garbage="what is this"/>'
-        doc = minidom.parseString(xml)
+        doc = pyxb.utils.domutils.StringToDOM(xml)
         self.assertRaises(UnrecognizedAttributeError, emptyWithAttr.CreateFromDOM, doc.documentElement)
 
 if __name__ == '__main__':

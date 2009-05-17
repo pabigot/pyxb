@@ -1,5 +1,5 @@
 import pyxb.binding.generate
-from xml.dom import minidom
+import pyxb.utils.domutils
 from xml.dom import Node
 
 import os.path
@@ -26,7 +26,7 @@ class TestPO1 (unittest.TestCase):
     street_content = '''95 Main St.
 Anytown, AS  12345-6789'''
     street_xml = '<street xmlns="http://www.example.com/PO1">%s</street>' % (street_content,)
-    street_dom = minidom.parseString(street_xml).documentElement
+    street_dom = pyxb.utils.domutils.StringToDOM(street_xml).documentElement
 
     address1_xml = '<name>Customer</name><street>95 Main St</street>'
     address2_xml = '<name>Sugar Mama</name><street>24 E. Dearling Ave.</street>'
@@ -48,7 +48,7 @@ Anytown, AS  12345-6789'''
     def testDOM_CTD_element (self):
         # NB: USAddress is a CTD, not an element.
         xml = '<shipTo xmlns="http://www.example.com/PO1">%s</shipTo>' % (self.address1_xml,)
-        dom = minidom.parseString(xml)
+        dom = pyxb.utils.domutils.StringToDOM(xml)
         addr2 = USAddress.CreateFromDOM(dom.documentElement)
         self.assertEqual(xml, ToDOM(addr2, tag='shipTo').toxml())
 
@@ -57,7 +57,7 @@ Anytown, AS  12345-6789'''
                            billTo=USAddress(name='Sugar Mama', street='24 E. Dearling Ave'),
                            comment='Thanks, dear!')
         xml = ToDOM(po).toxml()
-        dom = minidom.parseString(xml)
+        dom = pyxb.utils.domutils.StringToDOM(xml)
         po2 = purchaseOrder.CreateFromDOM(dom.documentElement)
         self.assertEqual(xml, ToDOM(po2).toxml())
 

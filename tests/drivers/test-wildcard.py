@@ -1,5 +1,6 @@
 import pyxb.binding.generate
-from xml.dom import minidom
+import pyxb.utils.domutils
+
 from xml.dom import Node
 
 import os.path
@@ -139,7 +140,7 @@ class TestWildcard (unittest.TestCase):
         # NB: Test on CTD, not element
         self.assert_(wrapper_._HasWildcardElement)
         xml = '<wrapper><first/><second/><third/></wrapper>'
-        doc = minidom.parseString(xml)
+        doc = pyxb.utils.domutils.StringToDOM(xml)
         instance = wrapper.CreateFromDOM(doc.documentElement)
         self.assert_(isinstance(instance.wildcardElements(), list))
         self.assertEquals(1, len(instance.wildcardElements()))
@@ -148,7 +149,7 @@ class TestWildcard (unittest.TestCase):
         tested_overmax = False
         for rep in range(0, 6):
             xml = '<wrapper><first/><second/>%s</wrapper>' % (''.join(rep * ['<third/>']),)
-            doc = minidom.parseString(xml)
+            doc = pyxb.utils.domutils.StringToDOM(xml)
             if 3 >= rep:
                 instance = wrapper.CreateFromDOM(doc.documentElement)
                 self.assert_(isinstance(instance.wildcardElements(), list))
@@ -164,7 +165,7 @@ class TestWildcard (unittest.TestCase):
         # NB: Test on CTD, not element
         self.assert_(isinstance(wrapper_._AttributeWildcard, pyxb.binding.content.Wildcard))
         xml = '<wrapper myattr="true" auxattr="somevalue"/>'
-        doc = minidom.parseString(xml)
+        doc = pyxb.utils.domutils.StringToDOM(xml)
         instance = wrapper.CreateFromDOM(doc.documentElement)
         self.assert_(isinstance(instance.wildcardAttributeMap(), dict))
         self.assertEquals(1, len(instance.wildcardAttributeMap()))

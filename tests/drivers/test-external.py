@@ -1,5 +1,5 @@
 import pyxb.binding.generate
-from xml.dom import minidom
+import pyxb.utils.domutils
 from xml.dom import Node
 import pyxb.Namespace
 import sys
@@ -56,7 +56,7 @@ class TestExternal (unittest.TestCase):
         self.assertRaises(BadTypeValueError, english, 'five')
 
         xml = '<english xmlns="URN:test-external">one</english>'
-        dom = minidom.parseString(xml)
+        dom = pyxb.utils.domutils.StringToDOM(xml)
         instance = english.CreateFromDOM(dom.documentElement)
         self.assertEqual('one', instance.content())
         self.assertEqual(xml, ToDOM(instance).toxml())
@@ -64,7 +64,7 @@ class TestExternal (unittest.TestCase):
 
     def testWords (self):
         xml = '<word xmlns="URN:test-external"><from>one</from><to>un</to></word>'
-        dom = minidom.parseString(xml)
+        dom = pyxb.utils.domutils.StringToDOM(xml)
         instance = word.CreateFromDOM(dom.documentElement)
         self.assertEquals('one', instance.from_().content())
         self.assertEquals('un', instance.to().content())
@@ -72,12 +72,12 @@ class TestExternal (unittest.TestCase):
         
     def testBadWords (self):
         xml = '<word><from>five</from><to>pump</to></word>'
-        dom = minidom.parseString(xml)
+        dom = pyxb.utils.domutils.StringToDOM(xml)
         self.assertRaises(BadTypeValueError, word.CreateFromDOM, dom.documentElement)
 
     def testComplexShared (self):
         xml = '<lwords language="english" newlanguage="welsh">un</lwords>'
-        dom = minidom.parseString(xml)
+        dom = pyxb.utils.domutils.StringToDOM(xml)
         instance = lwords.CreateFromDOM(dom.documentElement)
         self.assertTrue(isinstance(instance, lwords))
         self.assertTrue(isinstance(instance.content(), st.welsh))
@@ -94,16 +94,16 @@ class TestExternal (unittest.TestCase):
         self.assertEqual(st.extendedName._ElementMap['generation'], restExtName._ElementMap['generation'])
 
         xml = '<personName><surname>Smith</surname></personName>'
-        dom = minidom.parseString(xml)
+        dom = pyxb.utils.domutils.StringToDOM(xml)
         instance = st.personName.CreateFromDOM(dom.documentElement)
         xml = '<personName><surname>Smith</surname><generation>Jr.</generation></personName>'
-        dom = minidom.parseString(xml)
+        dom = pyxb.utils.domutils.StringToDOM(xml)
         self.assertRaises(ExtraContentError, st.personName.CreateFromDOM, dom.documentElement)
         xml = xml.replace('personName', 'extendedName')
-        dom = minidom.parseString(xml)
+        dom = pyxb.utils.domutils.StringToDOM(xml)
         instance = st.extendedName.CreateFromDOM(dom.documentElement)
         xml = xml.replace('extendedName', 'restExtName')
-        dom = minidom.parseString(xml)
+        dom = pyxb.utils.domutils.StringToDOM(xml)
         instance = restExtName.CreateFromDOM(dom.documentElement)
 
 if __name__ == '__main__':

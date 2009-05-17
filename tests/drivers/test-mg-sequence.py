@@ -1,5 +1,5 @@
 import pyxb.binding.generate
-from xml.dom import minidom
+import pyxb.utils.domutils
 from xml.dom import Node
 
 import os.path
@@ -26,12 +26,12 @@ class TestMGSeq (unittest.TestCase):
     def testBad (self):
         # Second is wrong element tag
         xml = '<wrapper xmlns="URN:test-mg-sequence"><first/><second/><third/><fourth_0_2/></wrapper>'
-        dom = minidom.parseString(xml)
+        dom = pyxb.utils.domutils.StringToDOM(xml)
         self.assertRaises(UnrecognizedContentError, wrapper.CreateFromDOM, dom.documentElement)
 
     def testBasics (self):
         xml = '<wrapper xmlns="URN:test-mg-sequence"><first/><second_opt/><third/><fourth_0_2/></wrapper>'
-        dom = minidom.parseString(xml)
+        dom = pyxb.utils.domutils.StringToDOM(xml)
         instance = wrapper.CreateFromDOM(dom.documentElement)
         self.assert_(isinstance(instance.first(), sequence_first))
         self.assert_(isinstance(instance.second_opt(), sequence_second_opt))
@@ -43,7 +43,7 @@ class TestMGSeq (unittest.TestCase):
 
     def testMultiplesAtEnd (self):
         xml = '<wrapper xmlns="URN:test-mg-sequence"><first/><third/><fourth_0_2/><fourth_0_2/></wrapper>'
-        dom = minidom.parseString(xml)
+        dom = pyxb.utils.domutils.StringToDOM(xml)
         instance = wrapper.CreateFromDOM(dom.documentElement)
         self.assert_(isinstance(instance.first(), sequence_first))
         self.assert_(instance.second_opt() is None)
@@ -55,7 +55,7 @@ class TestMGSeq (unittest.TestCase):
 
     def testMultiplesInMiddle (self):
         xml = '<altwrapper xmlns="URN:test-mg-sequence"><first/><second_multi/><second_multi/><third/></altwrapper>'
-        dom = minidom.parseString(xml)
+        dom = pyxb.utils.domutils.StringToDOM(xml)
         instance = altwrapper.CreateFromDOM(dom.documentElement)
         self.assert_(isinstance(instance.first(), list))
         self.assertEqual(1, len(instance.first()))
@@ -65,7 +65,7 @@ class TestMGSeq (unittest.TestCase):
 
     def testMultiplesAtStart (self):
         xml = '<altwrapper xmlns="URN:test-mg-sequence"><first/><first/><third/></altwrapper>'
-        dom = minidom.parseString(xml)
+        dom = pyxb.utils.domutils.StringToDOM(xml)
         instance = altwrapper.CreateFromDOM(dom.documentElement)
         self.assert_(isinstance(instance.first(), list))
         self.assertEqual(2, len(instance.first()))
@@ -75,7 +75,7 @@ class TestMGSeq (unittest.TestCase):
 
     def testMissingInMiddle (self):
         xml = '<wrapper xmlns="URN:test-mg-sequence"><first/><third/></wrapper>'
-        dom = minidom.parseString(xml)
+        dom = pyxb.utils.domutils.StringToDOM(xml)
         instance = wrapper.CreateFromDOM(dom.documentElement)
         self.assert_(isinstance(instance.first(), sequence_first))
         self.assert_(instance.second_opt() is None)
@@ -86,32 +86,32 @@ class TestMGSeq (unittest.TestCase):
 
     def testMissingAtStart (self):
         xml = '<altwrapper xmlns="URN:test-mg-sequence"><third/></altwrapper>'
-        dom = minidom.parseString(xml)
+        dom = pyxb.utils.domutils.StringToDOM(xml)
         self.assertRaises(UnrecognizedContentError, altwrapper.CreateFromDOM, dom.documentElement)
 
     def testMissingAtEndLeadingContent (self):
         xml = '<altwrapper xmlns="URN:test-mg-sequence"><first/></altwrapper>'
-        dom = minidom.parseString(xml)
+        dom = pyxb.utils.domutils.StringToDOM(xml)
         self.assertRaises(MissingContentError, altwrapper.CreateFromDOM, dom.documentElement)
 
     def testMissingAtEndNoContent (self):
         xml = '<altwrapper xmlns="URN:test-mg-sequence"></altwrapper>'
-        dom = minidom.parseString(xml)
+        dom = pyxb.utils.domutils.StringToDOM(xml)
         self.assertRaises(MissingContentError, altwrapper.CreateFromDOM, dom.documentElement)
 
     def testTooManyAtEnd (self):
         xml = '<wrapper xmlns="URN:test-mg-sequence"><first/><third/><fourth_0_2/><fourth_0_2/><fourth_0_2/></wrapper>'
-        dom = minidom.parseString(xml)
+        dom = pyxb.utils.domutils.StringToDOM(xml)
         self.assertRaises(ExtraContentError, wrapper.CreateFromDOM, dom.documentElement)
 
     def testTooManyAtStart (self):
         xml = '<altwrapper xmlns="URN:test-mg-sequence"><first/><first/><first/><third/></altwrapper>'
-        dom = minidom.parseString(xml)
+        dom = pyxb.utils.domutils.StringToDOM(xml)
         self.assertRaises(UnrecognizedContentError, altwrapper.CreateFromDOM, dom.documentElement)
 
     def testTooManyInMiddle (self):
         xml = '<altwrapper xmlns="URN:test-mg-sequence"><second_multi/><second_multi/><second_multi/><third/></altwrapper>'
-        dom = minidom.parseString(xml)
+        dom = pyxb.utils.domutils.StringToDOM(xml)
         self.assertRaises(UnrecognizedContentError, altwrapper.CreateFromDOM, dom.documentElement)
 
 
