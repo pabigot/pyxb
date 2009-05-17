@@ -825,7 +825,10 @@ class %{ctd} (%{superclasses}):
 
     return templates.replaceInText(template, **template_map)
 
+ElementClassMap = { }
+
 def GenerateED (ed, **kw):
+    global ElementClassMap
     # Unscoped declarations should never be referenced in the binding.
     if ed.scope() is None:
         return ''
@@ -849,6 +852,8 @@ class %{class} (pyxb.binding.basis.element):
     _TypeDefinition = %{base_datatype}
 ElementToBindingMap[%{element_name}] = %{class}
 ''', **template_map))
+    ElementClassMap.setdefault(ed.name(), []).append(template_map['class'])
+
     return outf.getvalue()
 
 def GenerateMG (mg, **kw):
@@ -949,8 +954,10 @@ GeneratorMap = {
 def GeneratePython (**kw):
     global UniqueInBinding
     global PostscriptItems
+    global ElementClassMap
     UniqueInBinding.clear()
     PostscriptItems = []
+    ElementClassMap.clear()
     try:
         schema = kw.get('schema', None)
         schema_file = kw.get('schema_file', None)
@@ -1046,6 +1053,11 @@ ElementToBindingMap = { }
             outf.write(generator(td, **generator_kw))
 
         outf.write(''.join(PostscriptItems))
+
+        outf.write("_ElementClassMap = {\n")
+        for (tag, class_names) in ElementClassMap.items():
+            outf.write("    %s: [ %s ],\n" % (repr(tag), ",".join(class_names)))
+        outf.write("    }")
         return outf.getvalue()
     
     except Exception, e:
