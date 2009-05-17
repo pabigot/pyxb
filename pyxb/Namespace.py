@@ -1137,7 +1137,7 @@ XML = _XML('http://www.w3.org/XML/1998/namespace',
            is_undeclared_namespace=True,
            bound_prefix='xml',
            default_namespace='XHTML',
-           in_scope_namespaces = { 'xs' : None })
+           in_scope_namespaces = { 'xs' : 'XMLSchema' })
 
 
 ## Namespace and URI for the XMLSchema namespace (often xs, or xsd)
