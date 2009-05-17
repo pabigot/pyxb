@@ -3,8 +3,6 @@ import xml.dom
 import xml.dom.minidom
 import pyxb.Namespace
 
-pyxb.Namespace.XML.validateComponentModel()
-
 # Structure
 #import DWML
 #print 'Validating DWML'
