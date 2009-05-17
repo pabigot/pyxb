@@ -9,7 +9,7 @@ import urllib2
 
 #uri = 'http://ws.cdyne.com/WeatherWS/Weather.asmx/GetCityForecastByZIP?ZIP=55108'
 
-query = weather.GetCityForecastByZIP(ZIP=85711)
+query = weather.GetCityForecastByZIP(ZIP=55108)
 
 bds = domutils.BindingDOMSupport()
 doc = query.toDOM(bds).finalize()
@@ -26,7 +26,7 @@ host = 'http://ws.cdyne.com'
 uri = urllib2.Request(host + '/WeatherWS/Weather.asmx', query_xml, { 'SOAPAction' : "http://ws.cdyne.com/WeatherWS/GetCityForecastByZIP", 'Content-Type': 'text/xml' } )
 
 xml = urllib2.urlopen(uri).read()
-print xml
+#print xml
 doc = minidom.parseString(xml)
 
 body = doc.documentElement.firstChild
