@@ -12,7 +12,7 @@ from pyxb.binding.generate import GeneratePython
 # whether component model should be saved
 # map for imported namespaces
 
-module_path_prefix = None       # -m
+module_path_prefix = ''         # -m
 schema_uri = None               # -u
 schema_prefix = None            # -p
 generate_raw_binding = False    # -r
@@ -20,17 +20,17 @@ save_component_model = False    # -C
 uri_is_wsdl = False             # -W
 
 options = [
-    ('m', 'module-path-prefix', True, 'The Python module path for the generated bindings, excluding the binding module itself'),
-    ('u', 'schema-uri', True, 'The URI for the schema from which bindings are to be generated'),
-    ('p', 'schema-prefix', True, 'The prefix (base module name) for the generated schema'),
-    ('r', 'generate-raw-binding', False, 'Generate the bindings in a subdirectory "raw" so that customized wrappers can be written'),
-    ('C', 'save-component-model', False, 'Save the XMLSchema component model in a serialized format'),
-    ('W', 'uri-is-wsdl', False, 'The schema-uri refers to a WSDL definition')
+    ('m', 'module-path-prefix', True, 'The Python module path for the generated bindings, excluding the binding module itself', 'pyxb.standard.bindings'),
+    ('u', 'schema-uri', True, 'The URI for the schema from which bindings are to be generated', 'http://schemas.xmlsoap.org/wsdl/'),
+    ('p', 'schema-prefix', True, 'The prefix (base module name) for the generated schema', 'wsdl'),
+    ('r', 'generate-raw-binding', False, 'Generate the bindings in a subdirectory "raw" so that customized wrappers can be written', None),
+    ('C', 'save-component-model', False, 'Save the XMLSchema component model in a serialized format', None),
+    ('W', 'uri-is-wsdl', False, 'The schema-uri refers to a WSDL definition', None)
 ]
     
 short_opt = ''
 long_opt = []
-for (flag, long_flag, has_arg, description) in options:
+for (flag, long_flag, has_arg, description, example) in options:
     if has_arg:
         short_opt += flag + ':'
         long_opt.append('%s=' % (long_flag,))
@@ -38,9 +38,23 @@ for (flag, long_flag, has_arg, description) in options:
         short_opt += flag
         long_opt.append(long_flag)
 
+def usage ():
+    global options
+    print 'Usage: %s options' % (sys.argv[0],)
+    for (flag, long_flag, has_arg, description, example) in options:
+        arg = ""
+        if has_arg:
+            arg = " arg"
+        print "  --%s%s\n      %s" % (long_flag, arg, description)
+        if example is not None:
+            print "      Example: --%s %s" % (long_flag, example)
+        if flag is not None:
+            print "      Alternative: -%s%s" % (flag, arg)
+
 try:
     (opts, args) = getopt.getopt(sys.argv[1:], short_opt, long_opt)
 except getopt.GetoptError:
+    usage()
     sys.exit(1)
 for (o, a) in opts:
     if o in ('-m', '--module-path-prefix'):
@@ -57,6 +71,7 @@ for (o, a) in opts:
         uri_is_wsdl = True
     else:
         print 'Unrecognized option %s' % (o,)
+        usage()
         sys.exit(1)
 
 if module_path_prefix is None:
