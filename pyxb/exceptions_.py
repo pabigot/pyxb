@@ -51,7 +51,7 @@ class ExtraContentError (StructuralBadDocumentError):
 class MissingContentError (StructuralBadDocumentError):
     """Raised when processing document and expected content is not present.  See also UnrecognizedContentError."""
 
-class NotAnElementError (UnrecognizedElementError):
+class NotAnElementError (UnrecognizedContentError):
     """Raised when processing document and a tag that is a type but not an element is encountered."""
 
 class UnrecognizedAttributeError (BadDocumentError):
