@@ -627,7 +627,10 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
 
     def __str__ (self):
         if isinstance(self.content(), simpleTypeDefinition):
-            return str(self.content())
+            rv = self.content()
+            if isinstance(rv, unicode):
+                return rv.encode('utf-8')
+            return str(rv)
         return '%s: %s' % (self._XsdName, str(self.content()))
 
 class enumeration_mixin (pyxb.cscRoot):
