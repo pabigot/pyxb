@@ -144,7 +144,7 @@ class BindingDOMSupport (object):
     __document = None
 
     def __init__ (self):
-        self.__document = DOMImplementation.createDocument(None, None, None)
+        self.__document = getDOMImplementation().createDocument(None, None, None)
         self.__namespaces = { }
         self.__namespacePrefixCounter = 0
 

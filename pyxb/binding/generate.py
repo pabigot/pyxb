@@ -1,15 +1,14 @@
+import pyxb
 import pyxb.xmlschema as xs
 import StringIO
 import datetime
 
-from pyxb.exceptions_ import *
 from pyxb.utils import utility
 from pyxb.utils import templates
 import basis
 import content
 import datatypes
 import facets
-import pyxb.Namespace as Namespace
 
 import nfa
 
@@ -31,7 +30,7 @@ def PrefixModule (value, text=None):
         return 'pyxb.binding.datatypes.%s' % (text,)
     if value.__module__ == facets.__name__:
         return 'pyxb.binding.facets.%s' % (text,)
-    raise IncompleteImplementationError('PrefixModule needs support for non-builtin instances')
+    raise pyxb.IncompleteImplementationError('PrefixModule needs support for non-builtin instances')
 
 class ReferenceLiteral (object):
     """Base class for something that requires fairly complex activity
@@ -148,9 +147,9 @@ class ReferenceSchemaComponent (ReferenceLiteral):
             tns = btns
         is_in_binding = (btns == tns) or (tns is None)
             
-        if not ((not isinstance(self.__component, xs.structures.Namespace._Resolvable_mixin)) or self.__component.isResolved()):
+        if not ((not isinstance(self.__component, pyxb.Namespace._Resolvable_mixin)) or self.__component.isResolved()):
             print '%s not resolved' % (self.__component,)
-        assert (not isinstance(self.__component, xs.structures.Namespace._Resolvable_mixin)) or self.__component.isResolved()
+        assert (not isinstance(self.__component, pyxb.Namespace._Resolvable_mixin)) or self.__component.isResolved()
 
         name = self.__component.nameInBinding()
         if is_in_binding and (name is None):
@@ -159,8 +158,8 @@ class ReferenceSchemaComponent (ReferenceLiteral):
             # The only components that are allowed to be nameless at
             # this point are ones in the binding we're generating.
             # @todo should not have to special case XMLSchema
-            if not (is_in_binding or (Namespace.XMLSchema == tns)):
-                raise LogicError('Attempt to reference unnamed component not in binding: %s' % (component,))
+            if not (is_in_binding or (pyxb.Namespace.XMLSchema == tns)):
+                raise pyxb.LogicError('Attempt to reference unnamed component not in binding: %s' % (component,))
 
             # The initial name is the name of the component, or if the
             # component can't be named the name of something else
@@ -170,7 +169,7 @@ class ReferenceSchemaComponent (ReferenceLiteral):
             if name is None:
                 tag = self.__ComponentTagMap.get(type(self.__component), None)
                 if tag is None:
-                    raise LogicError('Not prepared for reference to component type %s' % (self.__component.__class__.__name__,))
+                    raise pyxb.LogicError('Not prepared for reference to component type %s' % (self.__component.__class__.__name__,))
                 name = '_%s_ANON_%d' % (tag, self.__NextAnonymousIndex())
                 protected = True
 
@@ -195,7 +194,7 @@ class ReferenceSchemaComponent (ReferenceLiteral):
             self.__component.setNameInBinding(name)
         if not is_in_binding:
             mp = None
-            if Namespace.XMLSchema == tns:
+            if pyxb.Namespace.XMLSchema == tns:
                 mp = 'pyxb.binding.datatypes'
             elif tns is not None:
                 mp = tns.modulePath()
@@ -313,7 +312,7 @@ def pythonLiteral (value, **kw):
         return value.asLiteral()
 
     # Represent namespaces by their URI
-    if isinstance(value, Namespace.Namespace):
+    if isinstance(value, pyxb.Namespace.Namespace):
         return repr(value.uri())
 
     # Standard Python types
@@ -645,7 +644,7 @@ class %{ctd} (%{superclasses}):
                         ctd.__elementFields[name] = superclass_info
                     else:
                         if (ctd.DM_restriction == ctd.derivationMethod()):
-                            raise IncompleteImplementationError('Restriction invalid or re-use incomplete')
+                            raise pyxb.IncompleteImplementationError('Restriction invalid or re-use incomplete')
                         definitions.append(templates.replaceInText('''
 # Element %{field_tag} will override parent %{superclasses} field %{python_field_name}
 # due to content model differences:
@@ -975,7 +974,7 @@ def GeneratePython (**kw):
         outf = StringIO.StringIO()
     
         import_prefix = 'pyxb.xmlschema.'
-        if schema.targetNamespace() == Namespace.XMLSchema:
+        if schema.targetNamespace() == pyxb.Namespace.XMLSchema:
             import_prefix = ''
 
         template_map = { }

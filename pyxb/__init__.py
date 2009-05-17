@@ -30,3 +30,6 @@ class cscRoot (object):
 
 # Bring in the exception hierarchy
 from exceptions_ import *
+
+# Bring in Namespace
+import Namespace

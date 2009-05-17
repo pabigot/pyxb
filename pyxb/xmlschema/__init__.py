@@ -1,26 +1,19 @@
 """XMLSchema -- Classes to support processing W3C XML Schema definitions.
 
-This module supports processing DOM model representations of XML
-schema.  It contains several sub-modules:
+This module supports processing DOM model representations of XML schema into a
+Python object representation of the schema component model.
 
-* structures defines XML Schema structure components corresponding to
-  the schema data model.  These classes closely conform to
-  http://www.w3.org/TR/xmlschema-1/.
-
-* datatypes addes the pre-defined schema datatypes such as string and
-  integer to the XMLSchema namespace.  These classes closely conform
-  to http://www.w3.org/TR/xmlschema-2/.
-
-* facets defines structures that constrain the lexical and value space
-  of simple types.
-
-The module also provides a top-level class that supports schema
-processing.
+The module also provides a top-level class that supports schema processing.
 """
 
 # Get the schema component datatypes
 import structures
 
-# Get the bindings relevant to schemas.  NB: Other implementations may
-# be used in the future.
+# Get the bindings relevant to schemas.  NB: Other implementations may be used
+# in the future.
 from structures import Schema as schema
+
+## Local Variables:
+## fill-column:78
+## End:
+    
