@@ -1,11 +1,21 @@
-import pyxb.Namespace as Namespace
-from pyxb.exceptions_ import *
-from xml.dom import Node
-from xml.dom import minidom
-import xml.dom as dom
-from pyxb.Namespace import XMLSchema as xsd
+import pyxb
+import pyxb.Namespace
+import xml.dom
 
-def NodeAttribute (node, attribute_ncname, attribute_ns=Namespace.XMLSchema):
+# The DOM implementation to be used for all processing.  Default is whatever
+# your Python install uses.  If it's minidom, it should work.
+__DOMImplementation = xml.dom.getDOMImplementation()
+
+def getDOMImplementation ():
+    global __DOMImplementation
+    return __DOMImplementation
+
+def setDOMImplementation (dom_implementation):
+    global __DOMImplementation
+    __DOMImplementation = dom_implementation
+    return __DOMImplementation
+
+def NodeAttribute (node, attribute_ncname, attribute_ns=pyxb.Namespace.XMLSchema):
     """Namespace-aware search for an attribute in a node.
 
     Be aware that the default namespace does not apply to attributes.
@@ -36,7 +46,7 @@ def NodeAttribute (node, attribute_ncname, attribute_ns=Namespace.XMLSchema):
         return node.getAttributeNS(attribute_ns.uri(), attribute_ncname)
     return None
 
-def LocateUniqueChild (node, tag, absent_ok=True, namespace=Namespace.XMLSchema):
+def LocateUniqueChild (node, tag, absent_ok=True, namespace=pyxb.Namespace.XMLSchema):
     """Locate a unique child of the DOM node.
 
     The node should be a xml.dom.Node ELEMENT_NODE instance.  tag is
@@ -52,7 +62,7 @@ def LocateUniqueChild (node, tag, absent_ok=True, namespace=Namespace.XMLSchema)
     """
     candidate = None
     for cn in node.childNodes:
-        if (Node.ELEMENT_NODE == cn.nodeType) and namespace.nodeIsNamed(cn, tag):
+        if (xml.dom.Node.ELEMENT_NODE == cn.nodeType) and namespace.nodeIsNamed(cn, tag):
             if candidate:
                 raise SchemaValidationError('Multiple %s elements nested in %s' % (name, node.nodeName))
             candidate = cn
@@ -60,7 +70,7 @@ def LocateUniqueChild (node, tag, absent_ok=True, namespace=Namespace.XMLSchema)
         raise SchemaValidationError('Expected %s elements nested in %s' % (name, node.nodeName))
     return candidate
 
-def LocateMatchingChildren (node, tag, namespace=Namespace.XMLSchema):
+def LocateMatchingChildren (node, tag, namespace=pyxb.Namespace.XMLSchema):
     """Locate all children of the DOM node that have a particular tag.
 
     The node should be a xml.dom.Node ELEMENT_NODE instance.  tag is
@@ -71,7 +81,7 @@ def LocateMatchingChildren (node, tag, namespace=Namespace.XMLSchema):
     """
     matches = []
     for cn in node.childNodes:
-        if (Node.ELEMENT_NODE == cn.nodeType) and namespace.nodeIsNamed(cn, tag):
+        if (xml.dom.Node.ELEMENT_NODE == cn.nodeType) and namespace.nodeIsNamed(cn, tag):
             matches.append(cn)
     return matches
 
@@ -86,8 +96,8 @@ def LocateFirstChildElement (node, absent_ok=True, require_unique=False, ignore_
     
     candidate = None
     for cn in node.childNodes:
-        if Node.ELEMENT_NODE == cn.nodeType:
-            if ignore_annotations and xsd.nodeIsNamed(cn, 'annotation'):
+        if xml.dom.Node.ELEMENT_NODE == cn.nodeType:
+            if ignore_annotations and pyxb.Namespace.XMLSchema.nodeIsNamed(cn, 'annotation'):
                 continue
             if require_unique:
                 if candidate:
@@ -103,7 +113,7 @@ def HasNonAnnotationChild (node):
     """Return True iff node has an ELEMENT_NODE child that is not an
     XMLSchema annotation node."""
     for cn in node.childNodes:
-        if (Node.ELEMENT_NODE == cn.nodeType) and (not xsd.nodeIsNamed(cn, 'annotation')):
+        if (xml.dom.Node.ELEMENT_NODE == cn.nodeType) and (not pyxb.Namespace.XMLSchema.nodeIsNamed(cn, 'annotation')):
             return True
     return False
 
@@ -113,11 +123,11 @@ def ExtractTextContent (node):
     content of complex elements with simple types."""
     text = []
     for cn in node.childNodes:
-        if Node.TEXT_NODE == cn.nodeType:
+        if xml.dom.Node.TEXT_NODE == cn.nodeType:
             text.append(cn.data)
-        elif Node.CDATA_SECTION_NODE == cn.nodeType:
+        elif xml.dom.Node.CDATA_SECTION_NODE == cn.nodeType:
             text.append(cn.data)
-        elif Node.COMMENT_NODE == cn.nodeType:
+        elif xml.dom.Node.COMMENT_NODE == cn.nodeType:
             pass
         else:
             raise BadDocumentError('Non-text node %s found in content' % (cn,))
@@ -134,16 +144,16 @@ class BindingDOMSupport (object):
     __document = None
 
     def __init__ (self):
-        self.__document = minidom.getDOMImplementation().createDocument(None, None, None)
+        self.__document = DOMImplementation.createDocument(None, None, None)
         self.__namespaces = { }
         self.__namespacePrefixCounter = 0
 
     def finalize (self):
         for ( ns_uri, pfx ) in self.__namespaces.items():
             if pfx is None:
-                self.document().documentElement.setAttributeNS(Namespace.XMLNamespaces.uri(), 'xmlns', ns_uri)
+                self.document().documentElement.setAttributeNS(pyxb.Namespace.XMLNamespaces.uri(), 'xmlns', ns_uri)
             else:
-                self.document().documentElement.setAttributeNS(Namespace.XMLNamespaces.uri(), 'xmlns:%s' % (pfx,), ns_uri)
+                self.document().documentElement.setAttributeNS(pyxb.Namespace.XMLNamespaces.uri(), 'xmlns:%s' % (pfx,), ns_uri)
         return self.document()
 
     def createChild (self, local_name, namespace=None, parent=None):
@@ -175,4 +185,7 @@ def AttributeMap (node):
         attribute_map[(attr.namespaceURI, attr.localName)] = attr.value
     return attribute_map
 
-from pyxb.Namespace import NamespaceContext
+## Local Variables:
+## fill-column:78
+## End:
+    
