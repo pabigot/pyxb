@@ -1,39 +1,118 @@
 #!/usr/bin/env python
 
+import getopt
+import sys
 import pyxb.xmlschema
 from pyxb.binding.generate import GeneratePython
+
+# module path prefix
+# schema uri
+# prefix to use for schema
+# whether generated bindings should be marked as raw
+# whether component model should be saved
+# map for imported namespaces
+
+module_path_prefix = None       # -m
+schema_uri = None               # -u
+schema_prefix = None            # -p
+generate_raw_binding = False    # -r
+save_component_model = False    # -C
+uri_is_wsdl = False             # -W
+
+options = [
+    ('m', 'module-path-prefix', True, 'The Python module path for the generated bindings, excluding the binding module itself'),
+    ('u', 'schema-uri', True, 'The URI for the schema from which bindings are to be generated'),
+    ('p', 'schema-prefix', True, 'The prefix (base module name) for the generated schema'),
+    ('r', 'generate-raw-binding', False, 'Generate the bindings in a subdirectory "raw" so that customized wrappers can be written'),
+    ('C', 'save-component-model', False, 'Save the XMLSchema component model in a serialized format'),
+    ('W', 'uri-is-wsdl', False, 'The schema-uri refers to a WSDL definition')
+]
+    
+short_opt = ''
+long_opt = []
+for (flag, long_flag, has_arg, description) in options:
+    if has_arg:
+        short_opt += flag + ':'
+        long_opt.append('%s=' % (long_flag,))
+    else:
+        short_opt += flag
+        long_opt.append(long_flag)
+
+try:
+    (opts, args) = getopt.getopt(sys.argv[1:], short_opt, long_opt)
+except getopt.GetoptError:
+    sys.exit(1)
+for (o, a) in opts:
+    if o in ('-m', '--module-path-prefix'):
+        module_path_prefix = a
+    elif o in ('-u', '--schema-uri'):
+        schema_uri = a
+    elif o in ('-p', '--schema-prefix'):
+        schema_prefix = a
+    elif o in ('-r', '--generate-raw-binding'):
+        generate_raw_binding = True
+    elif o in ('-C', '--save-component-model'):
+        save_component_model = True
+    elif o in ('-W', '--uri-is-wsdl'):
+        uri_is_wsdl = True
+    else:
+        print 'Unrecognized option %s' % (o,)
+        sys.exit(1)
+
+if module_path_prefix is None:
+    print 'Require --module-path-prefix'
+    sys.exit(1)
+
+if not schema_prefix:
+    print 'Require --schema-prefix'
+    sys.exit(1)
+
+binding_path = module_path_prefix.replace('.', '/')
+if not binding_path:
+    binding_path = '.'
+if generate_raw_binding:
+    binding_path += '/raw'
+if save_component_model:
+    component_model_file = '%s/%s.wxs' % (binding_path, schema_prefix)
+binding_file = '%s/%s.py' % (binding_path, schema_prefix)
 
 import sys
 import traceback
 from xml.dom import minidom
 from xml.dom import Node
+import urllib2
      
-module_path = 'pyxb.standard.bindings'
-schema_file = 'pyxb/standard/schemas/xml.xsd'
-binding_path = 'pyxb/standard/bindings'
-prefix = 'xml'
-
-if 1 < len(sys.argv):
-    schema_file = sys.argv[1]
-if 2 < len(sys.argv):
-    binding_path = sys.argv[2]
-if 3 < len(sys.argv):
-    prefix = sys.argv[3]
-
-parsed_schema_file = '%s/%s.wxs' % (binding_path, prefix)
-binding_file = '%s/%s.py' % (binding_path, prefix)
-
-wxs = None
-ns = None
-try:
-    wxs = pyxb.xmlschema.schema.CreateFromDOM(minidom.parse(schema_file))
-    ns = wxs.targetNamespace()
-    ns.setModulePath('%s.%s' % (module_path, prefix))
-    print 'Extracted schema information from %s, yielding namespace %s' % (schema_file, ns)
-except Exception, e:
-    print  'Exception processing %s: %s' % (schema_file, e)
-    traceback.print_exception(*sys.exc_info())
+if schema_uri is None:
+    print 'Require --schema-uri'
     sys.exit(1)
+
+schema_reader = None
+try:
+    schema_reader = open(schema_uri, 'r')
+except IOError, e:
+    pass
+if schema_reader is None:
+    try:
+        schema_reader = urllib2.urlopen(schema_uri)
+    except Exception, e:
+        print 'Unable to read schema URI: %s' % (e,)
+        sys.exit(1)
+
+schema = schema_reader.read()
+#print schema
+
+doc = minidom.parseString(schema)
+dom = doc.documentElement
+
+if uri_is_wsdl:
+    import pyxb.standard.bindings.wsdl as wsdl
+    spec = wsdl.definitions.CreateFromDOM(dom, process_schema=True)
+    wxs = spec.schema()
+else:
+    wxs = pyxb.xmlschema.schema.CreateFromDOM(dom)
+
+ns = wxs.targetNamespace()
+ns.setModulePath('%s.%s' % (module_path_prefix, schema_prefix))
 
 # Save binding source first, so name-in-binding is stored in the
 # parsed schema file
@@ -55,14 +134,15 @@ except Exception, e:
     traceback.print_exception(*sys.exc_info())
     sys.exit(3)
 
-try:
-    ns = wxs.targetNamespace()
-    ns.saveToFile(parsed_schema_file)
-    print 'Saved parsed schema to %s URI %s' % (parsed_schema_file, ns.uri())
-except Exception, e:
-    print 'Exception saving preprocessed schema to %s: %s' % (parsed_schema_file, e)
-    traceback.print_exception(*sys.exc_info())
-    sys.exit(2)
+if save_component_model:
+    try:
+        ns = wxs.targetNamespace()
+        ns.saveToFile(component_model_file)
+        print 'Saved parsed schema to %s URI %s' % (component_model_file, ns.uri())
+    except Exception, e:
+        print 'Exception saving preprocessed schema to %s: %s' % (componen_model_file, e)
+        traceback.print_exception(*sys.exc_info())
+        sys.exit(2)
 
 # LocalVariables:
 # mode:python
