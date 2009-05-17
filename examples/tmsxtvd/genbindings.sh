@@ -17,3 +17,6 @@ touch raw/__init__.py
 if [ ! -f ${PREFIX}.py ] ; then
   echo "from raw.${PREFIX} import *" > ${PREFIX}.py
 fi
+if [ ! -f tmsdatadirect_sample.xml ] ; then
+  wget http://tmsdatadirect.com/docs/tv/tmsdatadirect_sample.xml
+fi
