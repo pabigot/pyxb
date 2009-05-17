@@ -18,12 +18,14 @@ schema_prefix = None            # -p
 generate_raw_binding = False    # -r
 save_component_model = False    # -C
 uri_is_wsdl = False             # -W
+write_schema_path = None        # -s
 
 options = [
     ('m', 'module-path-prefix', True, 'The Python module path for the generated bindings, excluding the binding module itself', 'pyxb.standard.bindings'),
     ('u', 'schema-uri', True, 'The URI for the schema from which bindings are to be generated', 'http://schemas.xmlsoap.org/wsdl/'),
     ('p', 'schema-prefix', True, 'The prefix (base module name) for the generated schema', 'wsdl'),
     ('r', 'generate-raw-binding', False, 'Generate the bindings in a subdirectory "raw" so that customized wrappers can be written', None),
+    ('s', 'write-schema-path', True, 'Write the retrieved schema to the path/uri.xsd', 'pyxb/standard/schemas'),
     ('C', 'save-component-model', False, 'Save the XMLSchema component model in a serialized format', None),
     ('W', 'uri-is-wsdl', False, 'The schema-uri refers to a WSDL definition', None)
 ]
@@ -63,6 +65,8 @@ for (o, a) in opts:
         schema_uri = a
     elif o in ('-p', '--schema-prefix'):
         schema_prefix = a
+    elif o in ('-s', '--write-schema-path'):
+        write_schema_path = a
     elif o in ('-r', '--generate-raw-binding'):
         generate_raw_binding = True
     elif o in ('-C', '--save-component-model'):
@@ -114,6 +118,13 @@ if schema_reader is None:
         sys.exit(1)
 
 schema = schema_reader.read()
+
+if write_schema_path is not None:
+    ext = 'xsd'
+    if uri_is_wsdl:
+        ext = 'wsdl'
+    file('%s/%s.%s' % (write_schema_path, schema_prefix, ext), 'w').write(schema)
+
 #print schema
 
 doc = minidom.parseString(schema)
