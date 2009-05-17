@@ -16,7 +16,7 @@ in an exponential state explosion in the DFA.
 Particle, ModelGroup, and Wildcard are used to encode an earlier
 representation of the content model, now used only for generating DOM
 instances from bindings (as opposed to the other direction handled by
-ContentModel).
+ContentModel).  Wildcard is also used in the DFA-based content model.
 """
 
 import pyxb
