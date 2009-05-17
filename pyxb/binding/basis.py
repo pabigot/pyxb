@@ -121,9 +121,11 @@ class simpleTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _D
     def _FacetMap (cls):
         """Return a reference to the facet map for this datatype.
 
-        The facet map is a map from leaf facet classes to instances of
-        those classes that constrain or otherwise apply to the lexical
-        or value space of the datatype.
+        The facet map is a map from leaf facet classes to instances of those
+        classes that constrain or otherwise apply to the lexical or value
+        space of the datatype.  Classes may inherit their facet map from their
+        superclass, or may create a new class instance if the class adds a new
+        constraint type.
 
         :raise AttributeError: if the facet map has not been defined"""
         return getattr(cls, cls.__FacetMapAttributeName())
