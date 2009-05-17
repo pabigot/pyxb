@@ -1,13 +1,12 @@
 """Classes corresponding to W3C XML Schema components.
 
-Class names and behavior should conform to the schema components
-described in http://www.w3.org/TR/xmlschema-1/.  References to
-sections in the documentation of this module generally refers to that
-document.
+Class names and behavior should conform to the schema components described in
+http://www.w3.org/TR/xmlschema-1/.  References to sections in the
+documentation of this module generally refers to that document.
 
-Each class has a CreateFromDOM class method that creates an instance
-and initializes it from a DOM node.  Only the Wildcard, Particle, and
-ModelGroup components are created from non-DOM sources.
+Each class has a CreateFromDOM class method that creates an instance and
+initializes it from a DOM node.  Only the Wildcard, Particle, and ModelGroup
+components are created from non-DOM sources.
 
 """
 
@@ -133,7 +132,7 @@ class _SchemaComponent_mixin (Namespace._ComponentDependency_mixin):
             node = kw.get('node')
             if node is None:
                 raise LogicError('Schema component constructor must be given namespace_context or node')
-            self.__namespaceContext = NamespaceContext.GetNodeContext(node)
+            self.__namespaceContext = Namespace.NamespaceContext.GetNodeContext(node)
         if self.__namespaceContext is None:
             raise LogicError('No namespace_context for schema component')
 
@@ -3944,8 +3943,8 @@ class Schema (_SchemaComponent_mixin):
         if Node.ELEMENT_NODE != root_node.nodeType:
             raise LogicError('Must be given a DOM node of type ELEMENT')
 
-        assert (namespace_context is None) or isinstance(namespace_context, NamespaceContext)
-        ns_ctx = NamespaceContext(root_node, parent_context=namespace_context)
+        assert (namespace_context is None) or isinstance(namespace_context, Namespace.NamespaceContext)
+        ns_ctx = Namespace.NamespaceContext(root_node, parent_context=namespace_context)
 
         tns = ns_ctx.targetNamespace()
         assert tns is not None
@@ -4021,7 +4020,7 @@ class Schema (_SchemaComponent_mixin):
 
         self.__requireInProlog(node.nodeName)
         import_eii = _ImportElementInformationItem(self, node)
-        ns_map = NamespaceContext.GetNodeContext(node).inScopeNamespaces()
+        ns_map = Namespace.NamespaceContext.GetNodeContext(node).inScopeNamespaces()
         for (pfx, ns) in ns_map.items():
             if import_eii.namespace() == ns:
                 import_eii.setPrefix(pfx)
@@ -4178,3 +4177,10 @@ def _AddSimpleTypes (namespace):
 
 import sys
 Namespace._InitializeBuiltinNamespaces(sys.modules[__name__])
+
+
+
+## Local Variables:
+## fill-column:78
+## End:
+    
