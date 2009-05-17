@@ -1,4 +1,5 @@
-"""Helper classes that maintain the content model of XMLSchema in the binding classes.
+"""Helper classes that maintain the content model of XMLSchema in the binding
+classes.
 
 AttributeUse and ElementUse record information associated with a binding
 class, for example the types of values, the original XML QName or NCName, and
@@ -12,10 +13,10 @@ ModelGroupAllAlternative and ModelGroupAll represent special nodes in the DFA
 that support a model group with compositor "all" in a way that does not result
 in an exponential state explosion in the DFA.
 
-Particle, ModelGroup, and Wildcard are used to encode an alternative
-representation of the content model, suitable for generating DOM instances
-from bindings (as opposed to the other direction handled by ContentModel).
-
+Particle, ModelGroup, and Wildcard are used to encode an earlier
+representation of the content model, now used only for generating DOM
+instances from bindings (as opposed to the other direction handled by
+ContentModel).
 """
 
 import pyxb
@@ -487,6 +488,26 @@ class ModelGroupAll (pyxb.cscRoot):
         self.__alternatives = alternatives
 
     def matchAlternatives (self, ctd_instance, node_list, store=True):
+        """Match the node_list against the alternatives in this model group.
+
+        This method creates a set holding all the alternatives, then walks the
+        node list attempting to match against the content model of each
+        alternative in turn.  The store flag is cleared during this process,
+        so that the ctd_instance fields are not updated but the node_list
+        values are removed.  Upon successful recognition of all required
+        alternatives, the node_list is restored and the content model matching
+        repeated with store set to update the ctd_instance values.
+
+        @todo This method complicates things because it won't commit to the
+        consumptions until the whole model is matched.  This step is taken
+        because the match operation corresponds to a single transition in the
+        DFA, and we are not sure whether the transition will be successful.
+        Almost certainly this is not necessary, since the UPA should require
+        that when a prefix of the node list from matches this transition, the
+        whole transition is valid.  On the other hand, that assumes that we're
+        getting valid documents.
+        """
+
         # Save the incoming node list so we can re-execute the
         # alternatives if they match.
         saved_node_list = node_list[:]
@@ -495,6 +516,9 @@ class ModelGroupAll (pyxb.cscRoot):
         match_order = []
         found_match = True
         #print 'Starting to match ALL with %d alternatives and %d nodes, store is %s' % (len(alternatives), len(node_list), store)
+
+        # The alternatives can match in arbitrary order, so repeatedly try
+        # them until they're all gone or no match can be found.
         while (0 < len(alternatives)) and found_match:
             found_match = False
             #if 0 < len(node_list):
@@ -612,46 +636,6 @@ class Particle (pyxb.cscRoot):
         if rep < self.minOccurs():
             raise pyxb.DOMGenerationError('Expected at least %d instances of %s, got only %d' % (self.minOccurs(), self.term(), rep))
 
-    def extendFromDOM (self, ctd_instance, node_list):
-        """Extend the content of the given ctd_instance from the DOM nodes in
-        the list.
-
-        Nodes are removed from the front of the list as their content is
-        extracted and saved.  The unconsumed portion of the list is returned."""
-        rep = 0
-        assert isinstance(ctd_instance, basis.complexTypeDefinition)
-        while ((self.maxOccurs() is None) or (rep < self.maxOccurs())):
-            ctd_instance._stripMixedContent(node_list)
-            try:
-                if isinstance(self.term(), ModelGroup):
-                    self.term().extendFromDOM(ctd_instance, node_list)
-                elif isinstance(self.term(), type) and issubclass(self.term(), basis.element):
-                    if 0 == len(node_list):
-                        raise pyxb.MissingContentError('Expected element %s' % (self.term()._XsdName,))
-                    element = self.term().CreateFromDOM(node_list[0])
-                    node_list.pop(0)
-                    ctd_instance._addElement(element)
-                elif isinstance(self.term(), Wildcard):
-                    if 0 == len(node_list):
-                        raise pyxb.MissingContentError('Expected wildcard')
-                    self.term().validateAndAdd(ctd_instance, node_list.pop(0))
-                else:
-                    raise pyxb.IncompleteImplementationError('Particle.extendFromDOM: No support for term type %s' % (self.term(),))
-            except pyxb.StructuralBadDocumentError, e:
-                #print 'Informational MCE: %s' % (e,)
-                break
-            except pyxb.IncompleteImplementationError, e:
-                raise
-            except Exception, e:
-                #print 'Caught creating term from DOM: %s' % (e,)
-                raise
-            rep += 1
-        if rep < self.minOccurs():
-            if 0 < len(node_list):
-                raise pyxb.UnrecognizedContentError('Expected at least %d instances of %s, got only %d before %s' % (self.minOccurs(), self.term(), rep, node_list[0].nodeName))
-            raise pyxb.MissingContentError('Expected at least %d instances of %s, got only %d' % (self.minOccurs(), self.term(), rep))
-        return node_list
-
 class ModelGroup (pyxb.cscRoot):
     """Record the structure of a model group.
 
@@ -722,52 +706,6 @@ class ModelGroup (pyxb.cscRoot):
             choice = self.__extendDOMFromChoice(dom_support, element, ctd_instance, self.particles())
             if choice is None:
                 raise pyxb.DOMGenerationError('CHOICE: No candidates found')
-        else:
-            assert False
-        
-    def __extendContentFromChoice (self, ctd_instance, node_list, candidate_particles):
-        # @todo Is there a preference to match particles that have a
-        # minOccurs of 1?  Probably....
-        for particle in candidate_particles:
-            assert particle.minOccurs() in (0, 1)
-            assert 1 == particle.maxOccurs()
-            try:
-                particle.extendFromDOM(ctd_instance, node_list)
-                return particle
-            except pyxb.BadDocumentError, e:
-                #print 'CHOICE failed: %s' % (e,)
-                pass
-        if 0 < len(node_list):
-            raise pyxb.UnrecognizedContentError(node_list[0])
-        raise pyxb.MissingContentError('No match for required choice')
-
-    def extendFromDOM (self, ctd_instance, node_list):
-        assert isinstance(ctd_instance, basis.complexTypeDefinition)
-        if self.C_SEQUENCE == self.compositor():
-            for particle in self.particles():
-                try:
-                    particle.extendFromDOM(ctd_instance, node_list)
-                except pyxb.BadDocumentError, e:
-                    #print 'SEQUENCE failed: %s' % (e,)
-                    raise
-            return
-        elif self.C_ALL == self.compositor():
-            mutable_particles = self.particles()[:]
-            while 0 < len(mutable_particles):
-                try:
-                    choice = self.__extendContentFromChoice(ctd_instance, node_list, mutable_particles)
-                    mutable_particles.remove(choice)
-                except pyxb.BadDocumentError, e:
-                    #print 'ALL failed: %s' % (e,)
-                    break
-            for particle in mutable_particles:
-                if 0 < particle.minOccurs():
-                    raise pyxb.MissingContentError('ALL: Expected an instance of %s' % (particle.term(),))
-            #print 'Ignored unused %s' % (mutable_particles,)
-            return
-        elif self.C_CHOICE == self.compositor():
-            choice = self.__extendContentFromChoice(ctd_instance, node_list, self.particles())
-            return
         else:
             assert False
 
