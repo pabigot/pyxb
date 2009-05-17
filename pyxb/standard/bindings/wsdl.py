@@ -94,7 +94,6 @@ class tPart (raw_wsdl.tPart):
     def _setTypeReference (self, type_reference):
         self.__typeReference = type_reference
     __typeReference = None
-
 raw_wsdl.tPart._SetClassRef(tPart)
 
 class tBindingOperation (raw_wsdl.tBindingOperation):
@@ -156,7 +155,6 @@ class definitions (raw_wsdl.definitions):
         tns.configureCategories(self.__WSDLCategories)
         for m in self.message():
             tns.messages()[m.name()] = m
-            print 'message %s in %s' % (m.name(), tns.uri())
         for pt in self.portType():
             tns.portTypes()[pt.name()] = pt
             for op in pt.operation():
@@ -205,6 +203,13 @@ class definitions (raw_wsdl.definitions):
         for t in self.types():
             for wc in t.wildcardElements():
                 if isinstance(wc, xml.dom.Node) and pyxb.Namespace.XMLSchema.nodeIsNamed(wc, 'schema'):
+                    # Try to load component models for any namespace referenced by this.
+                    # Probably shouldn't need to do this except for imported ones.
+                    for ns in self.namespaceContext().inScopeNamespaces().values():
+                        try:
+                            ns.validateComponentModel()
+                        except Exception, e:
+                            print 'Error validating component model for %s: %s' % (ns.uri(), e)
                     self.__schema = pyxb.xmlschema.schema.CreateFromDOM(wc, namespace_context=self.namespaceContext())
                 elif isinstance(wc, pyxb.xmlschema.schema):
                     self.__schema = wc
