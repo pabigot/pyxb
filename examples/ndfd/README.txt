@@ -10,3 +10,5 @@ structures is the need to dereference the element content when comparing
 complex elements with simple types with strings.  (This example uses the
 REST interface rather than the SOAP one, just b'cuz.)
 
+The showreq.py script is an in-progress playground for parsing the example
+query, mostly showing how to pair messages with DOM elements.

@@ -18,4 +18,14 @@ WSDL_URI='http://www.weather.gov/forecasts/xml/DWMLgen/wsdl/ndfdXML.wsdl'
 if [ ! -f ndfdXML.wsdl ] ; then
   wget ${WSDL_URI}
 fi
+../../scripts/genbind \
+   -u "${WSDL_URI}" \
+   -p ndfd \
+   -r -W
+
 ../../scripts/showwsdl file:ndfdXML.wsdl
+
+# Get an example query
+if [ ! -f NDFDgen.xml ] ; then
+  wget http://www.weather.gov/forecasts/xml/docs/SOAP_Requests/NDFDgen.xml
+fi

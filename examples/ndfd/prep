@@ -1,7 +1,0 @@
-PYTHONPATH=../..
-PYXB_NAMESPACE_PATH=raw:+
-mkdir -p raw
-export PYTHONPATH PYXB_NAMESPACE_PATH
-../../scripts/genbind DWML_ns.xsd raw DWML
-echo '@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@'
-python gensvcbind.py
