@@ -2471,10 +2471,15 @@ class Particle (_SchemaComponent_mixin, pyxb.Namespace._Resolvable_mixin):
             group_decl = ref_ns.modelGroupDefinitions().get(ref_ln)
             if group_decl is None:
                 self._queueForResolution()
-                return None
+                return self
 
-            # Neither group definitions nor model groups require
-            # resolution, so we can just extract the reference.
+            # Neither group definitions nor model groups require themselves,
+            # but model groups contain things that do require resolution, and
+            # we can't adapt the group for scope if it isn't deep-resolved.
+            if not group_decl.modelGroup().isDeepResolved():
+                self._queueForResolution()
+                return self
+
             term = group_decl.modelGroup()._adaptForScope(self, scope)
             assert term is not None
         elif xsd.nodeIsNamed(node, 'element'):
@@ -2487,7 +2492,7 @@ class Particle (_SchemaComponent_mixin, pyxb.Namespace._Resolvable_mixin):
                 term = _LookupElementDeclaration(ref_ns, context, ref_ln)
                 if term is None:
                     self._queueForResolution()
-                    return term
+                    return self
             else:
                 term = ElementDeclaration.CreateFromDOM(node=node, scope=scope)
             assert term is not None
