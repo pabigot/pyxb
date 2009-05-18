@@ -150,18 +150,44 @@ class simpleTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _D
             pass
         if fm is not None:
             raise pyxb.LogicError('%s facet map initialized multiple times: %s' % (cls.__name__,cls.__FacetMapAttributeName()))
-        for super_class in cls.mro()[1:]:
-            if issubclass(super_class, simpleTypeDefinition):
+
+        # Search up the type hierarchy to find the nearest ancestor that has a
+        # facet map.  This gets a bit tricky: if we hit the ceiling early
+        # because the PSTD hierarchy re-based itself on a new Python type, we
+        # have to jump to the XsdSuperType.
+        source_class = cls
+        while fm is None:
+            # Assume we're staying in this hierarchy.  Include source_class in
+            # the candidates, since we might have jumped to it.
+            for super_class in source_class.mro():
+                print 'Superclass for %s is %s' % (source_class, super_class)
+                assert super_class is not None
                 try:
-                    fm = super_class._FacetMap()
-                    break
+                    if (super_class == simpleTypeDefinition) and (source_class.XsdSuperType() is not None):
+                        break;
                 except AttributeError:
                     pass
+                if issubclass(super_class, simpleTypeDefinition):
+                    try:
+                        fm = super_class._FacetMap()
+                        #print 'Selected facet map for %s from %s: %s' % (cls, super_class, fm)
+                        break
+                    except AttributeError:
+                        #print '%s has no facet map' % (super_class,)
+                        pass
+            if fm is None:
+                source_class = source_class.XsdSuperType()
+                #print 'Nothing acceptable found, jumped to %s' % (source_class,)
+                assert source_class is not None
+        #print 'Done with set'
         if fm is None:
             raise pyxb.LogicError('%s is not a child of simpleTypeDefinition' % (cls.__name__,))
         fm = fm.copy()
+        #print 'Augmenting %s map had %d elts with %d from args' % (cls, len(fm), len(args))
         for facet in args:
             fm[type(facet)] = facet
+        for (fc, fi) in fm.items():
+            print ' %s : %s' % (fc, fi)
         setattr(cls, cls.__FacetMapAttributeName(), fm)
         return fm
 
@@ -367,7 +393,7 @@ class simpleTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _D
         for f in facet_values:
             if not f.validateConstraint(value):
                 raise pyxb.BadTypeValueError('%s violation for %s in %s' % (f.Name(), value, cls.__name__))
-            #print '%s ok for %s' % (f.Name(), value)
+            #print '%s ok for %s' % (f, value)
         return value
 
     def xsdConstraintsOK (self):
@@ -636,7 +662,8 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
             if isinstance(rv, unicode):
                 return rv.encode('utf-8')
             return str(rv)
-        return '%s: %s' % (self._XsdName, str(self.content()))
+        #return '%s: %s' % (self._XsdName, str(self.content()))
+        return str(self.content())
 
 class enumeration_mixin (pyxb.cscRoot):
     """Marker in case we need to know that a PST has an enumeration constraint facet."""
