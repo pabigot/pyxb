@@ -1853,6 +1853,12 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         # Only unresolved nodes have an unset derivationMethod
         return (self.__derivationMethod is not None)
 
+    # Back door to allow the ur-type to re-resolve itself.  Only needed when
+    # we're generating bindings for XMLSchema itself.
+    def _setDerivationMethod (self, derivation_method):
+        self.__derivationMethod = derivation_method
+        return self
+
     # Resolution of a CTD can be delayed for the following reasons:
     #
     # * It extends or restricts a base type that has not been resolved
@@ -1986,6 +1992,11 @@ class _UrTypeDefinition (ComplexTypeDefinition, _Singleton_mixin):
         """The UrTypeDefinition is not dependent on anything."""
         return frozenset()
 
+    def _resolve (self):
+        # The ur type is always resolved, except when it gets unresolved
+        # through being updated from an instance read from the schema.
+        return self._setDerivationMethod(self.DM_restriction)
+ 
 
 class AttributeGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.Namespace._Resolvable_mixin, _Annotated_mixin, _AttributeWildcard_mixin):
     # A frozenset of AttributeUse instances
