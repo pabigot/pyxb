@@ -3051,10 +3051,11 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
     def baseTypeDefinition (self):
         return self.__baseTypeDefinition
 
-    # A map from a subclass of facets.Facet to an instance of that
-    # class.  Presence of a facet class as a key in this map is the
-    # indicator that the type definition and its subtypes are
-    # permitted to use the corresponding facet.
+    # A map from a subclass of facets.Facet to an instance of that class.
+    # Presence of a facet class as a key in this map is the indicator that the
+    # type definition and its subtypes are permitted to use the corresponding
+    # facet.  NB: This contains only those facets defined in this type, not
+    # those inherited from parent types.
     __facets = None
     def facets (self):
         assert (self.__facets is None) or (type(self.__facets) == types.DictType)
@@ -3493,20 +3494,30 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
         return self
 
     def __updateFacets (self, body):
-        # We want a map from the union of the facet classes from this
-        # STD and the baseTypeDefinition (if present), to None if the
-        # facet has not been constrained, or a ConstrainingFacet
-        # instance if it is.  ConstrainingFacet instances created for
-        # local constraints also need a pointer to the corresponding
-        # facet from the base type definition, because those
+        # We want a map from the union of the facet classes from this STD up
+        # through its baseTypeDefinition (if present).  Map elements should be
+        # to None if the facet has not been constrained, or to the nearest
+        # ConstrainingFacet instance if it is.  ConstrainingFacet instances
+        # created for local constraints also need a pointer to the
+        # corresponding facet from the ancestor type definition, because those
         # constraints also affect this type.
         base_facets = {}
-        base_facets.update(self.__facets)
-        if self.__baseTypeDefinition.facets():
-            assert type(self.__baseTypeDefinition.facets()) == types.DictType
-            base_facets.update(self.__baseTypeDefinition.facets())
+        facet_contributors = [ self ]
+        td = self.__baseTypeDefinition
+        while td.facets():
+            facet_contributors.append(td)
+            td = td.__baseTypeDefinition
+        facet_contributors.reverse()
+        for td in facet_contributors:
+            print 'Adding facets to %s from %s' % (self, td)
+            base_facets.update(td.facets())
+        #print '%s base type is %s' % (self, self.__baseTypeDefinition)
+        #if self.__baseTypeDefinition.facets():
+        #    assert type(self.__baseTypeDefinition.facets()) == types.DictType
+        #    base_facets.update(self.__baseTypeDefinition.facets())
         local_facets = {}
         for fc in base_facets.keys():
+            print 'Checking for %s' % (fc,)
             children = LocateMatchingChildren(body, fc.Name())
             fi = base_facets[fc]
             if 0 < len(children):
