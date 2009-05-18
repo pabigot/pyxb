@@ -1,11 +1,16 @@
 import sys
-import PyWXSB.generate
+import pyxb.xmlschema
+import pyxb.binding.generate
+import pyxb.utils.domutils
 
 files = sys.argv[1:]
 if 0 == len(files):
-    files = [ 'schemas/XMLSchema.xsd' ]
+    files = [ 'pyxb/standard/schemas/XMLSchema.xsd' ]
 
-rv = PyWXSB.generate.GeneratePython(files[0], generate_facets=True)
+f = file(files[0])
+doc = pyxb.utils.domutils.StringToDOM(file(files[0]).read())
+wxs = pyxb.xmlschema.schema.CreateFromDOM(doc.documentElement, skip_resolution=True)
+rv = pyxb.binding.generate.GeneratePython(schema=wxs, generate_facets=True)
 print '''# ---------
 %s
 # -------------''' % (rv,)

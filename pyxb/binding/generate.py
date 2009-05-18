@@ -969,9 +969,36 @@ def GeneratePython (**kw):
 
         generator_kw = kw.copy()
         generator_kw['binding_target_namespace'] = schema.targetNamespace()
+        outf = StringIO.StringIO()
+
+        generate_facets = kw.get('generate_facets', False)
+        if generate_facets:
+            ns = schema.targetNamespace()
+            generator_kw['class_unique'] = set()
+            generator_kw['class_keywords'] = set()
+            stds = [ ]
+            num_unresolved = 0
+            for td in ns.typeDefinitions().values():
+                if isinstance(td, xs.structures.SimpleTypeDefinition):
+                    td._resolve()
+                    stds.append(td)
+                    if not td.isResolved():
+                        num_unresolved += 1
+            while 0 < num_unresolved:
+                num_unresolved = 0
+                for td in stds:
+                    if not td.isResolved():
+                        td._resolve()
+                    if (not td.isResolved()) and td.isBuiltin():
+                        print 'No resolution for %s' % (td,)
+                        num_unresolved += 1
+            for td in stds:
+                if td.isBuiltin():
+                    assert td.isResolved()
+                    GenerateFacets(outf, td, **generator_kw)
+            return outf.getvalue()
 
         emit_order = schema.orderedComponents()
-        outf = StringIO.StringIO()
     
         import_prefix = 'pyxb.xmlschema.'
         if schema.targetNamespace() == pyxb.Namespace.XMLSchema:
