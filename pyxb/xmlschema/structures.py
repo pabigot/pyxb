@@ -1667,9 +1667,8 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
                 self._queueForResolution()
                 return self
 
-        # Past the last point where we might not resolve this
-        # instance.  Store the attribute uses, also recording local
-        # attribute declarations.
+        # Past the last point where we might not resolve this instance.  Store
+        # the attribute uses, also recording local attribute declarations.
         self.__attributeUses = frozenset([ _u._adaptForScope(self) for _u in all_uses ])
 
         # @todo Handle attributeWildcard
@@ -2918,9 +2917,9 @@ class NotationDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Annot
 
     # CFD:ND CFD:NotationDeclaration
     @classmethod
-    def CreateFromDOM (cls, node, owner=None):
+    def CreateFromDOM (cls, node, **kw):
         name = NodeAttribute(node, 'name')
-        rv = cls(name=name, node=node, owner=owner)
+        rv = cls(name=name, node=node, **kw)
 
         rv.__systemIdentifier = NodeAttribute(node, 'system')
         rv.__publicIdentifier = NodeAttribute(node, 'public')
