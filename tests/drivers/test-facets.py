@@ -18,9 +18,12 @@ class TestFacets (unittest.TestCase):
         xml = '<quantity>35</quantity>'
         instance = CreateFromDOM(pyxb.utils.domutils.StringToDOM(xml).documentElement)
         self.assertEqual(35, instance.content())
-        self.assertEqual(_STD_ANON_1, instance._TypeDefinition)
-        self.assertRaises(Exception, _STD_ANON_1, -52)
-        self.assertRaises(Exception, _STD_ANON_1, 100)
+        for (k,v) in globals().items():
+            if k.startswith('_STD_ANON'):
+                break
+        self.assertEqual(v, instance._TypeDefinition)
+        self.assertRaises(Exception, v, -52)
+        self.assertRaises(Exception, v, 100)
 
 if __name__ == '__main__':
     unittest.main()
