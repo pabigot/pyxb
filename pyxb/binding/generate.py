@@ -403,9 +403,11 @@ def GenerateFacets (outf, td, **kw):
         #    continue
         if (fi is None) and (fc in td.baseTypeDefinition().facets()):
             # Nothing new here
+            #print 'Skipping %s in %s: already registered' % (fc, td)
             continue
         if (fi is not None) and (fi.ownerTypeDefinition() != td):
             # Did this one in an ancestor
+            #print 'Skipping %s in %s: found in ancestor' % (fc, td)
             continue
         argset = { }
         is_collection = issubclass(fc, facets._CollectionFacet_mixin)
@@ -990,7 +992,7 @@ def GeneratePython (**kw):
                     if not td.isResolved():
                         td._resolve()
                     if (not td.isResolved()) and td.isBuiltin():
-                        print 'No resolution for %s' % (td,)
+                        #print 'No resolution for %s' % (td,)
                         num_unresolved += 1
             for td in stds:
                 if td.isBuiltin():
