@@ -3435,7 +3435,6 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
                 if Node.ELEMENT_NODE != cn.nodeType:
                     continue
                 if pyxb.Namespace.XMLSchema_hfp.nodeIsNamed(cn, 'hasFacet'):
-                    assert False
                     facet_name = NodeAttribute(cn, 'name', pyxb.Namespace.XMLSchema_hfp)
                     if facet_name is None:
                         raise pyxb.SchemaValidationError('hasFacet missing name attribute')
