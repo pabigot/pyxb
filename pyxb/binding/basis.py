@@ -27,6 +27,15 @@ class _Binding_mixin (pyxb.cscRoot):
         self.__domNode = node
         self.__instanceRoot = instance_root
 
+    @classmethod
+    def _IsSimpleTypeContent (cls):
+        """Return True iff the content of this binding object is a simple type.
+
+        This is true only for descendents of simpleTypeDefinition, instances
+        of complexTypeDefinition that have simple type content, and elements
+        with a type that is either one of those."""
+        return False
+
     def toxml (self):
         """Shorthand to get the object as an XML document."""
         bds = domutils.BindingDOMSupport()
@@ -394,7 +403,7 @@ class simpleTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _D
             if not f.validateConstraint(value):
                 raise pyxb.BadTypeValueError('%s violation for %s in %s' % (f.Name(), value, cls.__name__))
             #print '%s ok for %s' % (f, value)
-        return value
+        return None
 
     def xsdConstraintsOK (self):
         """Validate the value of this instance against its constraints."""
@@ -443,6 +452,11 @@ class simpleTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _D
         assert parent is not None
         parent.appendChild(dom_support.document().createTextNode(self.xsdLiteral()))
         return dom_support
+
+    @classmethod
+    def _IsSimpleTypeContent (cls):
+        """STDs have simple type content."""
+        return True
 
 class STD_union (simpleTypeDefinition):
     """Base class for union datatypes.
@@ -607,15 +621,19 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
         """
         self.__setContent(self._TypeDefinition.Factory(*args, **kw))
         
-    # Delegate unrecognized attribute accesses to the content or, if
-    # this is a CTD_simple and the real content has the attribute,
-    # prefer that.
-    def __getattr__ (self, name):
+    # Determine which content should be used to dereference a particular
+    # attribute.
+    def __contentForAttribute (self, name):
         content = self.__content
         if self.__content != self.__realContent:
             if hasattr(self.__realContent, name):
                 content = self.__realContent
-        return getattr(content, name)
+        return content
+
+    # Delegate unrecognized attribute accesses to the nearest content that has
+    # the attribute.
+    def __getattr__ (self, name):
+        return getattr(self.__contentForAttribute(name), name)
 
     def content (self):
         """Return the element content, which is an instance of the
@@ -664,6 +682,11 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
             return str(rv)
         #return '%s: %s' % (self._XsdName, str(self.content()))
         return str(self.content())
+
+    @classmethod
+    def _IsSimpleTypeContent (cls):
+        """Elements with types that are smple are themselves simple"""
+        return cls._TypeDefinition._IsSimpleTypeContent()
 
 class enumeration_mixin (pyxb.cscRoot):
     """Marker in case we need to know that a PST has an enumeration constraint facet."""
@@ -952,7 +975,12 @@ class CTD_simple (complexTypeDefinition):
     _ReservedSymbols = complexTypeDefinition._ReservedSymbols.union(set([ 'xsdConstraintsOK' ]))
 
     def xsdConstraintsOK (self):
-        self.content().xsdConstraintsOK()
+        return self.content().xsdConstraintsOK()
+
+    @classmethod
+    def _IsSimpleTypeContent (cls):
+        """CTDs with simple content are simple"""
+        return True
 
 class _CTD_content_mixin (pyxb.cscRoot):
     """Retain information about element and mixed content in a complex type instance.

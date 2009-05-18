@@ -261,13 +261,18 @@ class ElementUse (pyxb.cscRoot):
                 ctd_instance._addContent(value)
                 return self
         for dt in self.__validElements:
+            # Ignore elements that we just can't convert to, but pass through
+            # exceptions when a constraint is violated.
             try:
-                iv = dt(value)
-                self.__setValue(ctd_instance, iv)
-                ctd_instance._addContent(iv)
-                return self
+                iv = dt(value, validate_constraints=False)
             except pyxb.BadTypeValueError, e:
-                pass
+                continue
+            assert isinstance(iv, basis._Binding_mixin)
+            if iv._IsSimpleTypeContent():
+                iv.xsdConstraintsOK()
+            self.__setValue(ctd_instance, iv)
+            ctd_instance._addContent(iv)
+            return self
         raise pyxb.BadTypeValueError('Cannot assign value of type %s to field %s: legal types %s' % (type(value), self.tag(), ' '.join([str(_dt) for _dt in self.__validElements])))
 
 class ContentModelTransition (pyxb.cscRoot):
