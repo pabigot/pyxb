@@ -49,7 +49,7 @@ class Facet (pyxb.cscRoot):
 
     __ownerDatatype = None
     def ownerDatatype (self):
-        """The PyWXSB_simpleTypeDefinition subclass to which this facet belongs."""
+        """The PyXB_simpleTypeDefinition subclass to which this facet belongs."""
         return self.__ownerDatatype
     def _ownerDatatype (self, owner_datatype):
         self.__ownerDatatype = owner_datatype
@@ -689,13 +689,13 @@ class FundamentalFacet (Facet):
         facet_class = cls.ClassForFacet(node.getAttribute('name'))
         rv = facet_class(base_type_definition=base_type_definition,
                          owner_type_definition=owner_type_definition)
-        rv.updateFromDOM(wxs, node)
+        rv.updateFromDOM(node)
 
     def updateFromDOM (self, node):
         if not node.hasAttribute('name'):
             raise SchemaValidationError('No name attribute in facet')
         assert node.getAttribute('name') == self.Name()
-        self._updateFromDOM(wxs, node)
+        self._updateFromDOM(node)
 
     def _updateFromDOM (self, node):
         try:
