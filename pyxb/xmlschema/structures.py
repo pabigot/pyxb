@@ -2442,6 +2442,10 @@ class Particle (_SchemaComponent_mixin, pyxb.Namespace._Resolvable_mixin):
         assert (self._scopeIsIndeterminate()) or isinstance(self._scope(), ComplexTypeDefinition)
 
         if term is not None:
+            # It may be possible to get here with an unresolved term.  I
+            # thought I saw that once when processing XMLSchema.  If so, we
+            # need to hold off resolution of this particle.
+            assert (not isinstance(term, pyxb.Namespace._Resolvable_mixin)) or term.isResolved()
             self.__term = term._adaptForScope(self, self._scope())
 
         assert isinstance(min_occurs, (types.IntType, types.LongType))
@@ -2477,6 +2481,13 @@ class Particle (_SchemaComponent_mixin, pyxb.Namespace._Resolvable_mixin):
             # but model groups contain things that do require resolution, and
             # we can't adapt the group for scope if it isn't deep-resolved.
             if not group_decl.modelGroup().isDeepResolved():
+                self._queueForResolution()
+                return self
+
+            # Only time this gets hit is in processing the XMLSchema schema.
+            # Suspending results in the namespace being unresolvable; for now,
+            # don't know why, nor need to.
+            if self._scopeIsIndeterminate():
                 self._queueForResolution()
                 return self
 
