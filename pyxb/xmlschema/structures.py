@@ -3054,8 +3054,8 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
     # A map from a subclass of facets.Facet to an instance of that class.
     # Presence of a facet class as a key in this map is the indicator that the
     # type definition and its subtypes are permitted to use the corresponding
-    # facet.  NB: This contains only those facets defined in this type, not
-    # those inherited from parent types.
+    # facet.  All facets in force for this type are present in the map,
+    # including those constraints inherited parent types.
     __facets = None
     def facets (self):
         assert (self.__facets is None) or (type(self.__facets) == types.DictType)
@@ -3502,22 +3502,20 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
         # corresponding facet from the ancestor type definition, because those
         # constraints also affect this type.
         base_facets = {}
-        facet_contributors = [ self ]
-        td = self.__baseTypeDefinition
-        while td.facets():
-            facet_contributors.append(td)
-            td = td.__baseTypeDefinition
-        facet_contributors.reverse()
-        for td in facet_contributors:
-            print 'Adding facets to %s from %s' % (self, td)
-            base_facets.update(td.facets())
-        #print '%s base type is %s' % (self, self.__baseTypeDefinition)
-        #if self.__baseTypeDefinition.facets():
-        #    assert type(self.__baseTypeDefinition.facets()) == types.DictType
-        #    base_facets.update(self.__baseTypeDefinition.facets())
+
+        # Built-ins didn't get their facets() setting configured, so use the
+        # _FacetMap() instead.
+        if self.__baseTypeDefinition.isBuiltin():
+            pstd = self.__baseTypeDefinition.pythonSupport()
+            if pstd != datatypes.anySimpleType:
+                base_facets.update(pstd._FacetMap())
+        elif self.__baseTypeDefinition.facets():
+            assert type(self.__baseTypeDefinition.facets()) == types.DictType
+            base_facets.update(self.__baseTypeDefinition.facets())
+        base_facets.update(self.facets())
+
         local_facets = {}
         for fc in base_facets.keys():
-            print 'Checking for %s' % (fc,)
             children = LocateMatchingChildren(body, fc.Name())
             fi = base_facets[fc]
             if 0 < len(children):
