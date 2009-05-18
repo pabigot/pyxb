@@ -291,7 +291,10 @@ class _Annotated_mixin (pyxb.cscRoot):
     def _annotationFromDOM (self, node):
         cn = LocateUniqueChild(node, 'annotation')
         if cn is not None:
-            self.__annotation = Annotation.CreateFromDOM(cn, owner=self)
+            kw = { }
+            if isinstance(self, _SchemaComponent_mixin):
+                kw['owner'] = self
+            self.__annotation = Annotation.CreateFromDOM(cn, **kw)
 
     def _setBuiltinFromInstance (self, other):
         """Override fields in this instance with those from the other.
@@ -617,10 +620,10 @@ class _ScopedDeclaration_mixin (pyxb.cscRoot):
     def _scopeIsCompatible (self, scope):
         """Return True if this scope currently assigned to this instance is compatible with the given scope.
 
-        If the incoming scope is None, presume it will ultimately be
-        compatible.  Scopes that are equal are compatible, as is a
-        local scope if this already has a global scope."""
-        if self.ScopeIsIndeterminate(scope):
+        If either scope is indeterminate, presume they will ultimately be
+        compatible.  Scopes that are equal are compatible, as is a local scope
+        if this already has a global scope."""
+        if self.ScopeIsIndeterminate(scope) or self.ScopeIsIndeterminate(self.scope()):
             return True
         if self.scope() == scope:
             return True
@@ -946,6 +949,7 @@ class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
     def isResolved (self):
         return self.__typeDefinition is not None
 
+    # res:AD res:AttributeDeclaration
     def _resolve (self):
         if self.isResolved():
             return self
@@ -962,6 +966,7 @@ class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
             ( type_ns, type_ln ) = self._namespaceContext().interpretQName(type_attr)
             self.__typeDefinition = type_ns.typeDefinitions().get(type_ln)
             if self.__typeDefinition is None:
+                #print 'Unable to find type %s in %s' % (type_attr, type_ns)
                 self._queueForResolution()
                 return self
             if not isinstance(self.__typeDefinition, SimpleTypeDefinition):
@@ -1124,6 +1129,7 @@ class AttributeUse (_SchemaComponent_mixin, pyxb.Namespace._Resolvable_mixin, _V
         (ad_ns, ad_ln) = self._namespaceContext().interpretQName(ref_attr)
         self.__attributeDeclaration = _LookupAttributeDeclaration(ad_ns, self._context(), ad_ln)
         if self.__attributeDeclaration is None:
+            #print 'Attribute use cannot resolve %s' % (ref_attr,)
             self._queueForResolution()
             return self
         # Although the attribute declaration definition may not be
@@ -1141,6 +1147,7 @@ class AttributeUse (_SchemaComponent_mixin, pyxb.Namespace._Resolvable_mixin, _V
         into the given CTD.  In that case, clone this instance and
         return the clone with its attribute declaration also set to a
         clone with proper scope."""
+        assert self.isResolved()
         ad = self.__attributeDeclaration
         rv = self
         if ad.scope() is None:
@@ -1311,11 +1318,11 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.Na
             (sg_ns, sg_ln) = self._namespaceContext().interpretQName(sg_attr)
             sga = _LookupElementDeclaration(sg_ns, self.scope(), sg_ln)
             if sga is None:
-                # print 'Holding off ED resolution, unrecognized substitution group %s in %s' % (sg_ln, sg_ns.uri())
+                #print 'Holding off ED resolution, unrecognized substitution group %s in %s' % (sg_ln, sg_ns.uri())
                 self._queueForResolution()
                 return self
             if not sga.isResolved():
-                print 'Not resolving, substitutiongroup %s in %s unresolved' % (sg_ln, sg_ns.uri())
+                #print 'Not resolving, substitutiongroup %s in %s unresolved' % (sg_ln, sg_ns.uri())
                 self._queueForResolution()
                 return self
             self.__substitutionGroupAffiliation = sga
@@ -1609,23 +1616,28 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         
         return rv
 
+    __usesC1 = None
+    
     # Handle attributeUses, attributeWildcard, contentType
     def __completeProcessing (self, definition_node_list, method, content_style):
         rv = self._attributeRelevantChildren(definition_node_list)
         if rv is None:
+            #print 'Holding off CTD %s resolution due to unresolved attribute or group' % (self.name(),)
             self._queueForResolution()
-            print 'Holding off CTD %s resolution due to unresolved attribute or group' % (self.name(),)
             return self
 
         (attributes, attribute_groups, any_attribute) = rv
         
         # Handle clauses 1 and 2 (common between simple and complex types)
-        uses_c1 = set()
+        uses_c1 = self.__usesC1
         uses_c2 = set()
         uses_c3 = set()
-        for cn in attributes:
-            au = AttributeUse.CreateFromDOM(cn, context=self, scope=self)
-            uses_c1.add(au)
+        if uses_c1 is None:
+            uses_c1 = set()
+            for cn in attributes:
+                au = AttributeUse.CreateFromDOM(cn, context=self, scope=self)
+                uses_c1.add(au)
+            self.__usesC1 = uses_c1
         for agd in attribute_groups:
             uses_c2.update(agd.attributeUses())
 
@@ -1645,15 +1657,21 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
                 for au in uses_c12:
                     matching_uses = au.matchingQNameMembers(uses_c3)
                     if matching_uses is None:
+                        #print 'Holding off CTD %s resolution to check for attribute restrictions' % (self.name(),)
                         self._queueForResolution()
-                        print 'Holding off CTD %s resolution to check for attribute restrictions' % (self.name(),)
                         return self
                     uses_c3 = uses_c3.difference(matching_uses)
 
         # Past the last point where we might not resolve this
         # instance.  Store the attribute uses, also recording local
         # attribute declarations.
-        self.__attributeUses = frozenset([ _u._adaptForScope(self) for _u in uses_c1.union(uses_c2).union(uses_c3) ])
+        all_uses = uses_c1.union(uses_c2).union(uses_c3)
+        for au in all_uses:
+            if not au.isResolved():
+                #print 'Unresolved attribute use in CTD'
+                self._queueForResolution()
+                return self
+        self.__attributeUses = frozenset([ _u._adaptForScope(self) for _u in all_uses ])
 
         # @todo Handle attributeWildcard
         # Clause 1
@@ -1691,6 +1709,8 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
                 self._setAttributeWildcard(complete_wildcard)
 
         # @todo Make sure we didn't miss any child nodes
+
+        self.__usesC1 = None
 
         # Only now that we've succeeded do we store the method, which
         # marks this component resolved.
@@ -1835,6 +1855,12 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         # Only unresolved nodes have an unset derivationMethod
         return (self.__derivationMethod is not None)
 
+    # Back door to allow the ur-type to re-resolve itself.  Only needed when
+    # we're generating bindings for XMLSchema itself.
+    def _setDerivationMethod (self, derivation_method):
+        self.__derivationMethod = derivation_method
+        return self
+
     # Resolution of a CTD can be delayed for the following reasons:
     #
     # * It extends or restricts a base type that has not been resolved
@@ -1923,6 +1949,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
             self.__contentNode = content_node
 
         if self.__baseTypeDefinition is None:
+            #print 'Holding off CTD resolution, no base type'
             self._queueForResolution()
             return self
 
@@ -1942,6 +1969,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         # If something went wrong building the content, we'll have to
         # try again later
         if self.__contentType is None:
+            #print 'Holding off CTD resolution, no content'
             self._queueForResolution()
             return self
 
@@ -1953,6 +1981,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         if isinstance(self.__contentType, tuple) and isinstance(self.__contentType[1], Particle):
             prt = self.__contentType[1]
             if not prt.isDeepResolved():
+                #print 'Holding off CTD resolution, content not deep-resolved'
                 self._queueForResolution()
                 return self
 
@@ -1967,6 +1996,9 @@ class _UrTypeDefinition (ComplexTypeDefinition, _Singleton_mixin):
     def _dependentComponents_vx (self):
         """The UrTypeDefinition is not dependent on anything."""
         return frozenset()
+
+    def _resolve (self):
+        return self._setDerivationMethod(self.DM_restriction)
 
 
 class AttributeGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.Namespace._Resolvable_mixin, _Annotated_mixin, _AttributeWildcard_mixin):
@@ -2030,6 +2062,7 @@ class AttributeGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, p
 
         rv = self._attributeRelevantChildren(node.childNodes)
         if rv is None:
+            #print 'Attribute information missing'
             self._queueForResolution()
             return self
 
@@ -2333,6 +2366,10 @@ class Particle (_SchemaComponent_mixin, pyxb.Namespace._Resolvable_mixin):
         """A reference to a ModelGroup, Wildcard, or ElementDeclaration."""
         return self.__term
 
+    # Where we stick a term that we were given in the constructor but which
+    # has not been resolved so we can't adapt and use it.
+    __pendingTerm = None
+
     def elementDeclarations (self):
         assert self.__term is not None
         if isinstance(self.__term, ModelGroup):
@@ -2412,8 +2449,10 @@ class Particle (_SchemaComponent_mixin, pyxb.Namespace._Resolvable_mixin):
         assert _ScopedDeclaration_mixin.IsValidScope(self._context())
         assert (self._scopeIsIndeterminate()) or isinstance(self._scope(), ComplexTypeDefinition)
 
+        # Can't just assign this here, since it might not be resolved, and we
+        # need that done before we can adapt it for scope.
         if term is not None:
-            self.__term = term._adaptForScope(self, self._scope())
+            self.__pendingTerm = term
 
         assert isinstance(min_occurs, (types.IntType, types.LongType))
         self.__minOccurs = min_occurs
@@ -2426,6 +2465,16 @@ class Particle (_SchemaComponent_mixin, pyxb.Namespace._Resolvable_mixin):
     def _resolve (self):
         if self.isResolved():
             return self
+
+        if self.__pendingTerm is not None:
+            if self.__pendingTerm.isResolved():
+                self.__term = self.__pendingTerm._adaptForScope(self, self._scope())
+                self.__pendingTerm = None
+            else:
+                #print 'Unresolved pending term for particle'
+                self._queueForResolution()
+            return self
+
         node = self.__domNode
         context = self._context()
         scope = self._scope()
@@ -2441,11 +2490,18 @@ class Particle (_SchemaComponent_mixin, pyxb.Namespace._Resolvable_mixin):
             (ref_ns, ref_ln) = self._namespaceContext().interpretQName(ref_attr)
             group_decl = ref_ns.modelGroupDefinitions().get(ref_ln)
             if group_decl is None:
+                #print 'No group declaration for %s' % (ref_attr,)
                 self._queueForResolution()
-                return None
+                return self
 
-            # Neither group definitions nor model groups require
-            # resolution, so we can just extract the reference.
+            # Group definitions and model groups don't require resolution
+            # themselves, but model groups contain things that do require
+            # resolution, and we can't adapt the group for scope if it isn't
+            # deep-resolved.
+            if not group_decl.modelGroup().isDeepResolved():
+                self._queueForResolution()
+                return self
+
             term = group_decl.modelGroup()._adaptForScope(self, scope)
             assert term is not None
         elif xsd.nodeIsNamed(node, 'element'):
@@ -2458,7 +2514,7 @@ class Particle (_SchemaComponent_mixin, pyxb.Namespace._Resolvable_mixin):
                 term = _LookupElementDeclaration(ref_ns, context, ref_ln)
                 if term is None:
                     self._queueForResolution()
-                    return term
+                    return self
             else:
                 term = ElementDeclaration.CreateFromDOM(node=node, scope=scope)
             assert term is not None
@@ -2529,7 +2585,7 @@ class Particle (_SchemaComponent_mixin, pyxb.Namespace._Resolvable_mixin):
 
     def _adaptForScope (self, owner, scope):
         rv = self
-        if (self._scopeIsIndeterminate()) and (scope is not None):
+        if (not self._scopeIsIndeterminate()) and (scope is not None):
             rv = self._clone()
             rv._setOwner(owner)
             rv.__term = rv.__term._adaptForScope(rv, scope)
@@ -2899,9 +2955,10 @@ class NotationDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Annot
 
     # CFD:ND CFD:NotationDeclaration
     @classmethod
-    def CreateFromDOM (cls, node, owner=None):
+    def CreateFromDOM (cls, node, **kw):
+        owner = kw.get('owner')
         name = NodeAttribute(node, 'name')
-        rv = cls(name=name, node=node, owner=owner)
+        rv = cls(name=name, node=node, **kw)
 
         rv.__systemIdentifier = NodeAttribute(node, 'system')
         rv.__publicIdentifier = NodeAttribute(node, 'public')
@@ -3416,7 +3473,6 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
                 if Node.ELEMENT_NODE != cn.nodeType:
                     continue
                 if pyxb.Namespace.XMLSchema_hfp.nodeIsNamed(cn, 'hasFacet'):
-                    assert False
                     facet_name = NodeAttribute(cn, 'name', pyxb.Namespace.XMLSchema_hfp)
                     if facet_name is None:
                         raise pyxb.SchemaValidationError('hasFacet missing name attribute')
