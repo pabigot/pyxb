@@ -1614,6 +1614,8 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         
         return rv
 
+    __usesC1 = None
+
     # Handle attributeUses, attributeWildcard, contentType
     def __completeProcessing (self, definition_node_list, method, content_style):
         rv = self._attributeRelevantChildren(definition_node_list)
@@ -1625,12 +1627,15 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         (attributes, attribute_groups, any_attribute) = rv
         
         # Handle clauses 1 and 2 (common between simple and complex types)
-        uses_c1 = set()
+        uses_c1 = self.__usesC1
         uses_c2 = set()
         uses_c3 = set()
-        for cn in attributes:
-            au = AttributeUse.CreateFromDOM(cn, context=self, scope=self)
-            uses_c1.add(au)
+        if uses_c1 is None:
+            uses_c1 = set()
+            for cn in attributes:
+                au = AttributeUse.CreateFromDOM(cn, context=self, scope=self)
+                uses_c1.add(au)
+            self.__usesC1 = uses_c1
         for agd in attribute_groups:
             uses_c2.update(agd.attributeUses())
 
@@ -1655,10 +1660,17 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
                         return self
                     uses_c3 = uses_c3.difference(matching_uses)
 
+        # Can't adapt for scope things that have not been resolved.
+        all_uses = uses_c1.union(uses_c2).union(uses_c3)
+        for au in all_uses:
+            if not au.isResolved():
+                self._queueForResolution()
+                return self
+
         # Past the last point where we might not resolve this
         # instance.  Store the attribute uses, also recording local
         # attribute declarations.
-        self.__attributeUses = frozenset([ _u._adaptForScope(self) for _u in uses_c1.union(uses_c2).union(uses_c3) ])
+        self.__attributeUses = frozenset([ _u._adaptForScope(self) for _u in all_uses ])
 
         # @todo Handle attributeWildcard
         # Clause 1
@@ -1696,6 +1708,8 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
                 self._setAttributeWildcard(complete_wildcard)
 
         # @todo Make sure we didn't miss any child nodes
+
+        self.__usesC1 = None
 
         # Only now that we've succeeded do we store the method, which
         # marks this component resolved.
