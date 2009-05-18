@@ -36,11 +36,11 @@ EOList
   cached_schema=${SCHEMA_DIR}/${prefix}.xsd
   if [ ! -f ${cached_schema} ] ; then
      echo "Retrieving ${prefix} from ${uri}"
-     wget -O ${cached_schema}.xsd ${uri}
+     wget -O ${cached_schema} ${uri}
   fi
   scripts/genbind \
     --module-path-prefix pyxb.standard.bindings \
-    --schema-uri ${cached_schema} \
+    --schema-uri file:${cached_schema} \
     --schema-prefix ${prefix} \
     --generate-raw-binding \
     --save-component-model
