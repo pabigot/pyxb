@@ -1,0 +1,4 @@
+Component Model
+===============
+
+The component model represents the XML Schema components.

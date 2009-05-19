@@ -1,0 +1,5 @@
+Content Model
+=============
+
+The content model describes how incoming documents are interpreted to
+generate instance objects from Python bindings.

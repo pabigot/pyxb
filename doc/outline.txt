@@ -1,0 +1,70 @@
+What Is PyXB?
+*************
+
+PyXB is a pure Python package that generates Python code for classes that
+correspond to data structures defined by XMLSchema.  In concept it is
+similar to JAXB for Java and CodeSynthesis for C++.
+
+The major goals of PyXB are:
+
+* Provide a generated Python interface that is "Pythonic", meaning similar
+  to one that would have been hand-written:
+
+  + Attributes and elements are Python fields (currently accessed through
+    inspector/mutator methods), with name conflicts resolved in favor of
+    elements
+  + Elements with maxOccurs larger than 1 are stored as Python lists
+  + Bindings for type extensions inherit from the binding for the base type
+  + Enumeration constraints are exposed as class (constant) variables
+
+* Support bi-directional conversion (DOM to Python and back)
+
+* Allow easy customization of the generated bindings to provide
+  functionality along with content
+
+* Support all XMLSchema features that are in common use, including:
+
+  + complex content models (nested all/choice/sequence)
+  + cross-namespace dependencies
+  + include and import directives
+  + constraints on simple types
+
+Secondary goals, some of which have been achieved in this release, are
+listed in :ref:`pyxb_vision`.
+
+PyXB can parse the following namespaces and create bindings for them (though
+not all have been rigorously tested)::
+
+ http://www.w3.org/2001/XMLSchema-hasFacetAndProperty
+ http://schemas.xmlsoap.org/wsdl/
+ http://www.w3.org/1999/xhtml.xsd
+ http://schemas.xmlsoap.org/soap/envelope/
+ http://schemas.xmlsoap.org/soap/encoding/
+ http://schemas.xmlsoap.org/wsdl/mime/
+ http://schemas.xmlsoap.org/wsdl/soap/
+ http://schemas.xmlsoap.org/wsdl/http/
+ http://schemas.xmlsoap.org/wsdl/soap12/wsdl11soap12.xsd
+ http://code.google.com/apis/kml/schema/kml21.xsd
+ http://www.w3.org/TR/2002/REC-xmldsig-core-20020212/xmldsig-core-schema.xsd
+ http://www.w3.org/TR/2002/REC-xmlenc-core-20021210/xenc-schema.xsd
+ http://docs.oasis-open.org/security/saml/v2.0/saml-schema-assertion-2.0.xsd
+ http://docs.oasis-open.org/security/saml/v2.0/saml-schema-protocol-2.0.xsd
+
+How to use it
+*************
+
+Install in the usual manner (python setup.py install).
+
+``scripts/genbind`` is used to generate bindings.  The URI to the schema is
+required, as is the name that will be used for generated modules.
+
+Examples
+********
+
+Five web service examples of varying complexity are provided in the examples
+subdirectory.  Some are WSDL services, and others are simply XMLSchema
+documents.  Generally, invoke ``genbindings.sh`` which will retrieve the
+source schema and perform the binding transformations.  Often there are a
+couple trivial programs that show how the bindings are used.
+
+See the README.txt file in each example subdirectory for more information.

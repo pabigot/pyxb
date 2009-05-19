@@ -1,3 +1,6 @@
+Limitations
+***********
+
 Things That Work
 ----------------
 
@@ -74,3 +77,12 @@ Things That Mostly Work, But They're Ugly
   (http://bugs.python.org/issue3338 and many related issues).
 
 * Processing of include and import directives is a little too fragile.
+
+Intended Future Enhancements
+----------------------------
+
+* Use the new content model to generate DOM instances from objects
+
+* Implement xsi:type
+
+* Support custom generation templates

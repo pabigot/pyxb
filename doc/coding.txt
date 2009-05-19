@@ -1,5 +1,5 @@
-Coding Standards
-================
+Coding Practices
+****************
 
 PyWXSB follows generally follows coding practices consistent with those
 described in the Python coding standard in PEP8.  However, the primary
@@ -17,7 +17,7 @@ of the implementation details visible to the user.  A single underscore is
 used to represent the concepts of protected/friend interfaces.
 
 Exceptions
-----------
+==========
 
 PyWXSB provides a standard exception hierarchy that extends that built into
 Python.
@@ -39,20 +39,20 @@ The exception behavior of methods SHOULD be documented.  Documentation of
 asserts is not required.
 
 Annotations
------------
+===========
 
 Use decorators to mark class methods.
 http://www.python.org/dev/peps/pep-0318/.  Note that this restricts us to
 Python 2.4 or later.  Sigh with disappointment and move on.
 
 Documentation
--------------
+=============
 
 Use docstrings for all public and implementation-shared methods and classes.
 See http://www.python.org/dev/peps/pep-0257/.
 
 Comments
---------
+========
 
 Use comments copiously.  Do not duplicate detailed information from
 standards, but do include pertinent summaries and a reference to the section
@@ -62,7 +62,7 @@ to open the standard to figure out what the coder intended to accomplish.
 Use ReStructured Text constructs where appropriate.
 
 Terminology
------------
+===========
 
 The term "attribute" has different meanings in Python and XML.
 
@@ -80,7 +80,7 @@ When it holds a reference to an invokable object, it is an "instance (class)
 method".
 
 Use of new-style classes
-------------------------
+========================
 
 Too many things, such as clean hooking into the pickling system, require the
 use of new-style classes.  Namespaces, schema components, and types (simple
@@ -93,17 +93,17 @@ do anything in the init method, leave it out.  See
 http://fuhm.net/super-harmful/.
 
 Inheritance
------------
+===========
 
 Mix-in classes
-~~~~~~~~~~~~~~
+--------------
 
 PyXB makes heavy use of multiple inheritance through mix-in classes.  If
 there are constraints on where the mix-in must appear in the method
 resolution order (mro), note that clearly in the mix-in documentation.
 
 Invoking Superclass Instances
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-----------------------------
 
 Cooperative super calling is a pattern where a class may inherit multiple
 implementations of the same method, and want to call all of them.  Normally
@@ -127,7 +127,7 @@ cooperative super calling.
 See http://code.activestate.com/recipes/52236/
 
 Class Instance Variables At Multiple Levels
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-------------------------------------------
 
 There are several cases where we want to store information in a class, but
 allow subclasses (not instances) to override it.  An example is in the
