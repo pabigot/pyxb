@@ -1,6 +1,5 @@
-PyXB is intended to support automated generation of Python language
-classes that conform in structure to data types defined with the W3C XML
-Schema.
+PyXB is intended to support automated generation of Python language classes
+that conform in structure to data types defined with the W3C XML Schema.
 
 Origins
 =======
@@ -16,15 +15,17 @@ much less developed.  Built-in support is limited to processing of XML
 documents.
 
 Some external packages are available to support SOAP and WSDL, but they were
-found to be unsatisfactory for a variety of reasons.
+found to be unsatisfactory for a variety of reasons, both an inability to
+process complex schema like those for KML or SAML and a Python interface
+that was not natural.
 
 generateDS
 ----------
 
-The version evaluated was unable to process certain XML Schema constructs.
-Reliance on a SAX processor, and *** a braindead code generation scheme ***
-made it difficult to extend the implementation to support Pythonic bindings
-for schema that used different styles.
+Reliance on a SAX processor, and use of a code generation scheme that was
+difficult to modify, made the code difficult to work with.  It seemed
+infeasible to extend the implementation to support Pythonic schema bindings
+that used different styles.
 
 ZSI
 ---

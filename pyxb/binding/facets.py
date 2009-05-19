@@ -1,8 +1,10 @@
 """Classes related to XMLSchema facets.
 
-The definitions herein are from section 4 of
-http://www.w3.org/TR/xmlschema-2/.  Facets are attributes of a
-datatype that constrain its lexical and value spaces.
+The definitions herein are from sections U{4.2<http://www.w3.org/TR/xmlschema-2/index.html#rf-facets>}
+and U{4.3<http://www.w3.org/TR/xmlschema-2/index.html#rf-facets>} of
+U{XML Schema Part 2: Datatypes<http://www.w3.org/TR/xmlschema-2/>}.
+Facets are attributes of a datatype that constrain its lexical and
+value spaces.
 
 """
 

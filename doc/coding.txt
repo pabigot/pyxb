@@ -4,8 +4,8 @@ Coding Standards
 PyWXSB follows generally follows coding practices consistent with those
 described in the Python coding standard in PEP8.  However, the primary
 maintainer's pet peeves on whitespace differ: spaces are used around
-operators to reveal precedence assumptions, and around parenthesis to
-distinguish tuple values boundaries:
+operators to reveal precedence assumptions, and sometimes around parenthesis
+to distinguish tuple values boundaries:
 
     hypot2 = x*x + y*y
     pair_of_pairs = ( (a, b), (b, c) )
@@ -47,6 +47,7 @@ Python 2.4 or later.  Sigh with disappointment and move on.
 
 Documentation
 -------------
+
 Use docstrings for all public and implementation-shared methods and classes.
 See http://www.python.org/dev/peps/pep-0257/.
 
@@ -60,22 +61,10 @@ to open the standard to figure out what the coder intended to accomplish.
 
 Use ReStructured Text constructs where appropriate.
 
-Invoking Superclass Instances
------------------------------
-
-Use the following idiom to conditionally invoke superclass methods when you
-are not sure the superclass has such a method.
-
-    def method (self, *args, **kw):
-        super_fn = getattr(super(ThisClass, self), 'method', lambda *a,**kw: None)
-        return super_fn(*args, **kw)
-
-See http://code.activestate.com/recipes/52236/
-
 Terminology
 -----------
 
-The term "attribute" has different meanings in Python and XML.  Ick.
+The term "attribute" has different meanings in Python and XML.
 
 tag : Refers to the text that opens an XML element
 
@@ -89,3 +78,68 @@ field : Refers to a named attribute of a Python class.  When the attribute
 holds a value, it is an "instance (class) variable" or "instance field".
 When it holds a reference to an invokable object, it is an "instance (class)
 method".
+
+Use of new-style classes
+------------------------
+
+Too many things, such as clean hooking into the pickling system, require the
+use of new-style classes.  Namespaces, schema components, and types (simple
+and complex) all use new-style classes.
+
+For this to work properly, if you implement an __init__ method, it must take
+arbitrary args and keywords, invoke super(Class, self).__init__(*args,**kw),
+and extract any arguments it needs from the keywords.  If you do not need to
+do anything in the init method, leave it out.  See
+http://fuhm.net/super-harmful/.
+
+Inheritance
+-----------
+
+Mix-in classes
+~~~~~~~~~~~~~~
+
+PyXB makes heavy use of multiple inheritance through mix-in classes.  If
+there are constraints on where the mix-in must appear in the method
+resolution order (mro), note that clearly in the mix-in documentation.
+
+Invoking Superclass Instances
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Cooperative super calling is a pattern where a class may inherit multiple
+implementations of the same method, and want to call all of them.  Normally
+this is done by invoking the parent class implementation before or after the
+subclass implementation.  In non-trivial inheritance hierarchies (as result
+from using many mix-ins), it's not obvious who the next parent to call is,
+so the Python C{super} function is used.  However, at some point a class
+will be reached that has no more definitions for the called method, and
+attempting to invoke one would produce an C{AttributeError}.
+
+Use the following idiom to conditionally invoke superclass methods when you
+are not sure the superclass has such a method.
+
+    def method_csc (self, *args, **kw):
+        super_fn = getattr(super(ThisClass, self), 'method_csc', lambda *a,**kw: self)
+        return super_fn(*args, **kw)
+
+Note the use of the C{_csc} suffix to denote a method that partakes of
+cooperative super calling.
+
+See http://code.activestate.com/recipes/52236/
+
+Class Instance Variables At Multiple Levels
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+There are several cases where we want to store information in a class, but
+allow subclasses (not instances) to override it.  An example is in the
+pyxb.basis.simpleTypeDefinition hierarchy where each class maintains a set
+of pyxb.binding.Facet instances that are available for constraining values
+of the class.  In many cases, a subclass will not change the set of facets
+that affect instances, so we want to be able to inherit the parent class
+map; but in other cases we may need to add constraints that only affect the
+new class and its descendents.
+
+This sort of thing is supported by implementing a private class method in
+the base class which combines the dynamically-determined actual class name
+with a constant identifier and uses getattr/setattr to access the
+class-specific value.
+

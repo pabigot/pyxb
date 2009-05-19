@@ -1,12 +1,76 @@
+Things That Work
+----------------
+
+* Simple and complex type definitions
+
+* List and union datatypes
+
+* Constraints on (simple) datatypes (e.g., minInclusive, length)
+
+* Model groups and attribute groups
+
+* Complex content models (all, sequence, choice); minOccurs and maxOccurs
+
+* Most everything that isn't in the next section.
+
+Things That Don't Work
+----------------------
+
+* Substitution groups are not supported.  This is expected to be addressed
+  in a future release.
+
+* The redefine directive is not supported.
+
+* Wildcards ("any") elements are supported in the sense that classes that
+  enable them in the content model provide access to unrecognized DOM
+  instances through the wildcardElements() method.  However, neither the
+  namespace constraint nor process contents attributes are applied.
+
+* Wildcard ("any") attributes are supported in the same sense as wildcard
+  elements: no constraints are checked.
+
+* The XMLSchema instance attributes (xsi:nil, xsi:type) are not currently
+  supported.  It is relatively clear how to do so, though, and this will be
+  addressed in a future release.
+
+* Identity constraints ("key", "unique", "keyref") are stored in the content
+  model, but are not used.
+
+* Pattern constraints don't do anything.
+
+* The only date/time-related datatype that is implemented in this release is
+  dateTime.
+
 * When generating a DOM instance from a binding instance, the resulting
-  document will validate against the schema, but the order of elements
+  document should validate against the schema, but the order of elements
   within it may be different from the original order of creation.  For an
   example of this, see
   tests/test-mg-choice:TestMGChoice.testMultichoiceOrderImportant
 
-* Wildcards are not supported.
+* Documentation present in the schema is not made available in the bindings
+  (viz., I want the annotations to become docstrings).
 
-* Substitution groups are not supported.
+Things That Mostly Work, But They're Ugly
+-----------------------------------------
 
-* Wildcard attributes are not supported.
+* Cross-namespace attribute handling and attribute namespace identification
+  needs a thorough overhaul, due to misunderstandings when PyXB was being
+  developed.
 
+* There are two content models: the DFA that's used to convert from DOM to
+  binding instances, and an older model based on sequences of visible
+  elements which is used to convert from binding instances to DOM.  Both
+  models were kept because of a fear that generation would require
+  non-determinism; I know suspect that's wrong, and there's no reason why
+  generation can't be accomplished using the DFA content model.  This is
+  expected to change in a future release.
+
+* The ability to use templates to customize binding generation was promised
+  in the vision document.  That has not yet been done, though it should be
+  fairly straightforward.
+
+* Very complex schemas for which it is necessary to save a component model
+  run afoul of a long-running Python bug when pickling deep structures
+  (http://bugs.python.org/issue3338 and many related issues).
+
+* Processing of include and import directives is a little too fragile.

@@ -8,9 +8,11 @@ Each class has a CreateFromDOM class method that creates an instance and
 initializes it from a DOM node.  Only the Wildcard, Particle, and ModelGroup
 components are created from non-DOM sources.
 
-"""
+@group Mixins: *_mixin
+@group Ur Type Specializations: *UrType*
+@group Utilities: _PluralityData, _ImportElementInformationItem
 
-IGNORED_ARGUMENT = 'ignored argument'
+"""
 
 import pyxb
 import pyxb.xmlschema
@@ -90,11 +92,6 @@ class _SchemaComponent_mixin (pyxb.Namespace._ComponentDependency_mixin):
     # The schema components owned by this component.
     __ownedComponents = None
 
-    def _filterCopyState (self, state):
-        for fn in [ '__owner', '__ownedComponents', '__context', '__dependentComponents', '__cloneSource', '__clones', '__schema' ]:
-            state['_SchemaComponent_mixin%s' % (fn,)] = None
-        return getattr(super(_SchemaComponent_mixin, self), '_filterCopyState', lambda _state: _state)(state)
-
     def _context (self):
         """The context within which element and attribute references are
         looked up."""
@@ -169,7 +166,7 @@ class _SchemaComponent_mixin (pyxb.Namespace._ComponentDependency_mixin):
         Returns None if no instances have been cloned from this."""
         return self.__clones
 
-    def _resetClone_vc (self):
+    def _resetClone_csc (self):
         """Virtual method to clear whatever attributes should be reset
         in a cloned component.
 
@@ -186,7 +183,7 @@ class _SchemaComponent_mixin (pyxb.Namespace._ComponentDependency_mixin):
         self.__clones = None
         assert self.__nameInBinding is None
         self._namespaceContext().targetNamespace()._associateComponent(self)
-        return getattr(super(_SchemaComponent_mixin, self), '_resetClone_vc', lambda *args, **kw: self)()
+        return getattr(super(_SchemaComponent_mixin, self), '_resetClone_csc', lambda *args, **kw: self)()
 
     def _clone (self):
         """Create a copy of this instance suitable for adoption by
@@ -207,7 +204,7 @@ class _SchemaComponent_mixin (pyxb.Namespace._ComponentDependency_mixin):
         if self.__clones is None:
             self.__clones = set()
         self.__clones.add(that)
-        that._resetClone_vc()
+        that._resetClone_csc()
         if isinstance(that, pyxb.Namespace._Resolvable_mixin):
             assert that.isResolved()
         return that
@@ -304,7 +301,7 @@ class _Annotated_mixin (pyxb.cscRoot):
         assert self != other
         super_fn = getattr(super(_Annotated_mixin, self), '_setBuiltinFromInstance', lambda *args, **kw: None)
         super_fn(other)
-        # @todo make this a copy?
+        # @todo: make this a copy?
         self.__annotation = other.__annotation
         return self
 
@@ -474,7 +471,7 @@ class _NamedComponent_mixin (pyxb.cscRoot):
             # The only internal named objects that should exist are
             # ones that have a non-global scope (including those with
             # absent scope).
-            # @todo this is wrong for schema that are not bound to a
+            # @todo: this is wrong for schema that are not bound to a
             # namespace, unless we use an unbound Namespace instance
             assert isinstance(self, _ScopedDeclaration_mixin)
             assert self.SCOPE_global != self.scope()
@@ -603,7 +600,7 @@ class _ScopedDeclaration_mixin (pyxb.cscRoot):
     possible to extend or restrict it.  (Should this be untrue, there
     are comments in the code about a possible solution.)
 
-    @warning This mix-in must follow _NamedComponent_mixin in the mro.
+    @warning: This mix-in must follow L{_NamedComponent_mixin} in the C{mro}.
     """
 
     SCOPE_global = 'global'     #<<< Marker to indicate global scope
@@ -640,7 +637,7 @@ class _ScopedDeclaration_mixin (pyxb.cscRoot):
         owned by a complex type definition.  These can only appear in
         attribute group definitions or model group definitions.
 
-        @todo For declarations in named model groups (viz., local
+        @todo: For declarations in named model groups (viz., local
         elements that aren't references), the scope needs to be set by
         the owning complex type.
         """
@@ -1358,7 +1355,7 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.Na
         if attr_val is not None:
             self.__nillable = datatypes.boolean(attr_val)
 
-        # @todo disallowed substitutions, substitution group exclusions
+        # @todo: disallowed substitutions, substitution group exclusions
 
         attr_val = NodeAttribute(node, 'abstract')
         if attr_val is not None:
@@ -1450,10 +1447,10 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         """Identify the sort of content in this type.
 
         Valid values are:
-         * CT_EMPTY
-         * ( CT_SIMPLE, simple_type_definition )
-         * ( CT_MIXED, particle )
-         * ( CT_ELEMENT_ONLY, particle )
+         - C{CT_EMPTY}
+         - ( C{CT_SIMPLE}, a L{SimpleTypeDefinition} instance )
+         - ( C{CT_MIXED}, a L{Particle} instance )
+         - ( C{CT_ELEMENT_ONLY}, a L{Particle} instance )
         """
         return self.__contentType
 
@@ -1472,7 +1469,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
     # Derived from the block and blockDefault attributes
     __prohibitedSubstitutions = DM_empty
 
-    # @todo Extracted from children of various types
+    # @todo: Extracted from children of various types
     __annotations = None
     
     def __init__ (self, *args, **kw):
@@ -1545,7 +1542,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
             # There isn't anything to look up, but context is still global.
             # No declarations will be created, so use indeterminate scope to
             # be consistent with validity checks in Particle constructor.
-            # Content is mixed, with elements completely unconstrained. @todo
+            # Content is mixed, with elements completely unconstrained. @todo:
             # not associated with a schema (it should be)
             kw = { 'namespace_context' : ns_ctx
 #                 , 'schema' : pyxb.Namespace.XMLSchema.schema()
@@ -1671,7 +1668,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         # the attribute uses, also recording local attribute declarations.
         self.__attributeUses = frozenset([ _u._adaptForScope(self) for _u in all_uses ])
 
-        # @todo Handle attributeWildcard
+        # @todo: Handle attributeWildcard
         # Clause 1
         local_wildcard = None
         if any_attribute is not None:
@@ -1706,7 +1703,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
                 # 3.2.2.2
                 self._setAttributeWildcard(complete_wildcard)
 
-        # @todo Make sure we didn't miss any child nodes
+        # @todo: Make sure we didn't miss any child nodes
 
         self.__usesC1 = None
 
@@ -1884,7 +1881,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         if attr_val is not None:
             self.__abstract = datatypes.boolean(attr_val)
 
-        # @todo implement prohibitedSubstitutions, final, annotations
+        # @todo: implement prohibitedSubstitutions, final, annotations
 
         # See whether we've resolved through to the base type
         if self.__baseTypeDefinition is None:
@@ -2384,7 +2381,7 @@ class Particle (_SchemaComponent_mixin, pyxb.Namespace._Resolvable_mixin):
         """Return true iff the term might appear multiple times."""
         if (self.maxOccurs() is None) or 1 < self.maxOccurs():
             return True
-        # @todo is this correct?
+        # @todo: is this correct?
         return self.term().isPlural()
 
     def hasWildcardElement (self):
@@ -2624,13 +2621,14 @@ class Wildcard (_SchemaComponent_mixin, _Annotated_mixin):
         """A constraint on the namespace for the wildcard.
 
         Valid values are:
-         * Wildcard.NC_any
-         * A tuple ( Wildcard.NC_not, a_namespace )
-         * set(of_namespaces)
+         - L{Wildcard.NC_any}
+         - A tuple ( L{Wildcard.NC_not}, a_namespace )
+         - set(of_namespaces)
 
-        Note that namespace are represented by Namespace instances,
-        not the URIs that actually define a namespace.  Absence is
-        represented by None, both in the "not" pair and in the set.
+        Note that namespace are represented by
+        L{Namespace<pyxb.Namespace.Namespace>} instances, not the URIs that
+        actually define a namespace.  Absence of a namespace is represented by
+        C{None}, both in the "not" pair and in the set.
         """
         return self.__namespaceConstraint
 
@@ -2975,7 +2973,7 @@ class Annotation (_SchemaComponent_mixin):
         """
         return frozenset()
 
-    # @todo what the hell is this?  From 3.13.2, I think it's a place
+    # @todo: what the hell is this?  From 3.13.2, I think it's a place
     # to stuff attributes from the annotation element, which makes
     # sense, as well as from the annotation's parent element, which
     # doesn't.  Apparently it's for attributes that don't belong to
@@ -2989,7 +2987,7 @@ class Annotation (_SchemaComponent_mixin):
     def CreateFromDOM (cls, node, **kw):
         rv = cls(node=node, **kw)
 
-        # @todo: Scan for attributes in the node itself that do not
+        # @todo:: Scan for attributes in the node itself that do not
         # belong to the XMLSchema namespace.
 
         # Node should be an XMLSchema annotation node
@@ -3028,8 +3026,6 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
 
     This component supports the basic datatypes of XML schema, and
     those that define the values for attributes.
-
-    @see PythonSimpleTypeSupport for additional information.
     """
 
     # Reference to the SimpleTypeDefinition on which this is based.
@@ -3235,7 +3231,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
 
         # Preserve the python support
         if other.__pythonSupport is not None:
-            # @todo ERROR multiple references
+            # @todo: ERROR multiple references
             self.__pythonSupport = other.__pythonSupport
 
         # Mark this instance as unresolved so it is re-examined
@@ -3718,7 +3714,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
         # Node should be an XMLSchema simpleType node
         assert xsd.nodeIsNamed(node, 'simpleType')
 
-        # @todo Process "final" attributes
+        # @todo: Process "final" attributes
         
         if NodeAttribute(node, 'final') is not None:
             raise pyxb.IncompleteImplementationError('"final" attribute not currently supported')
@@ -3728,7 +3724,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
         rv = cls(name=name, node=node, variety=None, **kw)
         rv._annotationFromDOM(node)
 
-        # @todo identify supported facets and properties (hfp)
+        # @todo: identify supported facets and properties (hfp)
 
         # Creation does not attempt to do resolution.  Queue up the newly created
         # whatsis so we can resolve it after everything's been read in.
@@ -3828,7 +3824,7 @@ class _ImportElementInformationItem (_Annotated_mixin):
             except Exception, e:
                 print 'ERROR validating imported namespace %s: %s' % (uri, e)
 
-            # @todo validate that something got loaded
+            # @todo: validate that something got loaded
         elif self.schemaLocation() is not None:
             print 'Attempt to read %s from %s' % (uri, self.schemaLocation())
             ns_ctx = pyxb.Namespace.NamespaceContext.GetNodeContext(node)
@@ -3874,11 +3870,6 @@ class Schema (_SchemaComponent_mixin):
         """The list of Namespace instances that were imported into this schema."""
         return self.__importedNamespaces
     __importedNamespaces = None
-
-    def _filterCopyState (self, state):
-        for fn in [ '__components' ]:
-            state['Schema%s' % (fn,)] = None
-        return getattr(super(_SchemaComponent_mixin, self), '_filterCopyState', lambda _state: _state)(state)
 
     # Tuple of component classes in order in which they must be generated in
     # order to satisfy the Python references between bindings.
@@ -3980,7 +3971,7 @@ class Schema (_SchemaComponent_mixin):
         'attributeGroup' : AttributeGroupDefinition
         }
 
-    # @todo put these in base class
+    # @todo: put these in base class
     @classmethod
     def CreateFromDOM (cls, node, namespace_context=None, inherit_default_namespace=False, skip_resolution=False):
         """Take the root element of the document, and scan its attributes under
@@ -4165,7 +4156,7 @@ class Schema (_SchemaComponent_mixin):
         tns = self.targetNamespace()
         old_td = tns.typeDefinitions().get(local_name)
         if (old_td is not None) and (old_td != td):
-            # @todo validation error if old_td is not a built-in
+            # @todo: validation error if old_td is not a built-in
             if isinstance(td, ComplexTypeDefinition) != isinstance(old_td, ComplexTypeDefinition):
                 raise pyxb.SchemaValidationError('Name %s used for both simple and complex types' % (td.name(),))
             # Copy schema-related information from the new definition
@@ -4182,7 +4173,7 @@ class Schema (_SchemaComponent_mixin):
         tns = self.targetNamespace()
         old_ad = tns.attributeDeclarations().get(local_name)
         if (old_ad is not None) and (old_ad != ad):
-            # @todo validation error if old_ad is not a built-in
+            # @todo: validation error if old_ad is not a built-in
             if isinstance(ad, AttributeDeclaration) != isinstance(old_ad, AttributeDeclaration):
                 raise pyxb.SchemaValidationError('Name %s used for both simple and complex types' % (ad.name(),))
             # Copy schema-related information from the new definition
@@ -4194,8 +4185,9 @@ class Schema (_SchemaComponent_mixin):
         return ad
 
 def _AddSimpleTypes (namespace):
-    """Add to the schema the definitions of the built-in types of
-    XMLSchema."""
+    """Add to the schema the definitions of the built-in types of XMLSchema.
+    This should only be invoked by L{pyxb.Namespace} when the built-in
+    namespaces are initialized. """
     # Add the ur type
     #schema = namespace.schema()
     schema = Schema(namespace_context=pyxb.Namespace.XMLSchema.initialNamespaceContext())

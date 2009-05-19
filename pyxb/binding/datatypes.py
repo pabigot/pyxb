@@ -1,9 +1,10 @@
-"""Classes supporting XMLSchema Part 2: Datatypes.
+"""Classes supporting U{XMLSchema Part 2: Datatypes<http://www/Documentation/W3C/www.w3.org/TR/xmlschema-2/index.html>}.
 
-Each SimpleTypeDefinition component instance is paired with at most
-one PythonSimpleType (PST), which is a subclass of a Python type
-augmented with facets and other constraining information.  This file
-contains the definitions of these types.
+Each L{simple type definition<pyxb.xmlschema.structures.SimpleTypeDefinition>} component
+instance is paired with at most one L{basis.simpleTypeDefinition}
+class, which is a subclass of a Python type augmented with facets and
+other constraining information.  This file contains the definitions of
+these types.
 
 We want the simple datatypes to be efficient Python values, but to
 also hold specific constraints that don't apply to the Python types.
@@ -14,11 +15,12 @@ constraint infrastructure.  Derived PSTs inherit from the parent PST.
 
 There is an exception to this when the Python type best suited for a
 derived SimpleTypeDefinition differs from the type associated with its
-parent STD: for example, xsd:integer has a value range that requires
-it be represented by a Python long, but xsd:int allows representation
-by a Python int.  In this case, the derived PST class is structured
-like a primitive type, but the PST associated with the STD superclass
-is recorded in a class variable _XsdBaseType.
+parent STD: for example, L{xsd:integer<integer>} has a value range
+that requires it be represented by a Python C{long}, but
+L{xsd:int<int>} allows representation by a Python C{int}.  In this
+case, the derived PST class is structured like a primitive type, but
+the PST associated with the STD superclass is recorded in a class
+variable C{_XsdBaseType}.
 
 Note the strict terminology: "datatype" refers to a class which is a
 subclass of a Python type, while "type definition" refers to an
@@ -42,7 +44,7 @@ _ListDatatypes = []
 # primitive type.  Presumably, only enumeration and pattern facets
 # will be applied.
 class anySimpleType (basis.simpleTypeDefinition, unicode):
-    """http://www.w3.org/TR/xmlschema-2/#dt-anySimpleType"""
+    """See U{http://www.w3.org/TR/xmlschema-2/#dt-anySimpleType}"""
     _XsdBaseType = None
     _Namespace = Namespace.XMLSchema
 
@@ -55,7 +57,7 @@ class anySimpleType (basis.simpleTypeDefinition, unicode):
 class string (basis.simpleTypeDefinition, unicode):
     """string.
     
-    http://www.w3.org/TR/xmlschema-2/#string"""
+    U{http://www.w3.org/TR/xmlschema-2/#string}"""
     _XsdBaseType = anySimpleType
     _Namespace = Namespace.XMLSchema
 
@@ -75,7 +77,7 @@ _PrimitiveDatatypes.append(string)
 class boolean (basis.simpleTypeDefinition, types.IntType):
     """boolean.
 
-    http://www.w3.org/TR/xmlschema-2/#boolean"""
+    U{http://www.w3.org/TR/xmlschema-2/#boolean}"""
     _XsdBaseType = anySimpleType
     _Namespace = Namespace.XMLSchema
     
@@ -108,10 +110,10 @@ _PrimitiveDatatypes.append(boolean)
 class decimal (basis.simpleTypeDefinition, types.FloatType):
     """decimal.
     
-    http://www.w3.org/TR/xmlschema-2/#decimal
+    U{http://www.w3.org/TR/xmlschema-2/#decimal}
 
-    @todo The Python base type for this is wrong. Consider
-    http://code.google.com/p/mpmath/.
+    @todo: The Python base type for this is wrong. Consider
+    U{http://code.google.com/p/mpmath/}.
 
     """
     _XsdBaseType = anySimpleType
@@ -126,7 +128,7 @@ _PrimitiveDatatypes.append(decimal)
 class float (basis.simpleTypeDefinition, types.FloatType):
     """float.
 
-    http://www.w3.org/TR/xmlschema-2/#float"""
+    U{http://www.w3.org/TR/xmlschema-2/#float}"""
     _XsdBaseType = anySimpleType
     _Namespace = Namespace.XMLSchema
 
@@ -137,6 +139,9 @@ class float (basis.simpleTypeDefinition, types.FloatType):
 _PrimitiveDatatypes.append(float)
 
 class double (basis.simpleTypeDefinition, types.FloatType):
+    """double.
+
+    U{http://www.w3.org/TR/xmlschema-2/#double}"""
     _XsdBaseType = anySimpleType
     _Namespace = Namespace.XMLSchema
 
@@ -150,6 +155,7 @@ import time as python_time
 import datetime
 
 class duration (basis.simpleTypeDefinition):
+    """@attention: Not implemented"""
     _XsdBaseType = anySimpleType
     _Namespace = Namespace.XMLSchema
 _PrimitiveDatatypes.append(duration)
@@ -202,14 +208,14 @@ class _TimeZone (datetime.tzinfo):
 
 
 class dateTime (basis.simpleTypeDefinition, datetime.datetime):
-    """http://www.w3.org/TR/xmlschema-2/index.html#dateTime
+    """U{http://www.w3.org/TR/xmlschema-2/index.html#dateTime}
 
-    This class uses the Python datetime.datetime class as its
+    This class uses the Python C{datetime.datetime} class as its
     underlying representation.  Note that per the XMLSchema spec, all
     dateTime objects are in UTC, and that timezone information in the
     string representation in XML is an indication of the local time
     zone's offset from UTC.  Presence of time zone information in the
-    lexical space is preserved through the value of the hasTimeZone()
+    lexical space is preserved through the value of the L{hasTimeZone()}
     field.
     """
 
@@ -288,36 +294,43 @@ class dateTime (basis.simpleTypeDefinition, datetime.datetime):
 _PrimitiveDatatypes.append(dateTime)
 
 class time (basis.simpleTypeDefinition):
+    """@attention: Not implemented"""
     _XsdBaseType = anySimpleType
     _Namespace = Namespace.XMLSchema
 _PrimitiveDatatypes.append(time)
 
 class date (basis.simpleTypeDefinition):
+    """@attention: Not implemented"""
     _XsdBaseType = anySimpleType
     _Namespace = Namespace.XMLSchema
 _PrimitiveDatatypes.append(date)
 
 class gYearMonth (basis.simpleTypeDefinition):
+    """@attention: Not implemented"""
     _XsdBaseType = anySimpleType
     _Namespace = Namespace.XMLSchema
 _PrimitiveDatatypes.append(gYearMonth)
 
 class gYear (basis.simpleTypeDefinition):
+    """@attention: Not implemented"""
     _XsdBaseType = anySimpleType
     _Namespace = Namespace.XMLSchema
 _PrimitiveDatatypes.append(gYear)
 
 class gMonthDay (basis.simpleTypeDefinition):
+    """@attention: Not implemented"""
     _XsdBaseType = anySimpleType
     _Namespace = Namespace.XMLSchema
 _PrimitiveDatatypes.append(gMonthDay)
 
 class gDay (basis.simpleTypeDefinition):
+    """@attention: Not implemented"""
     _XsdBaseType = anySimpleType
     _Namespace = Namespace.XMLSchema
 _PrimitiveDatatypes.append(gDay)
 
 class gMonth (basis.simpleTypeDefinition):
+    """@attention: Not implemented"""
     _XsdBaseType = anySimpleType
     _Namespace = Namespace.XMLSchema
 _PrimitiveDatatypes.append(gMonth)
@@ -397,6 +410,7 @@ class hexBinary (basis.simpleTypeDefinition, types.LongType):
 _PrimitiveDatatypes.append(hexBinary)
 
 class base64Binary (basis.simpleTypeDefinition):
+    """@attention: Not implemented"""
     _XsdBaseType = anySimpleType
     _Namespace = Namespace.XMLSchema
     @classmethod

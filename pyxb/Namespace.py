@@ -1,16 +1,27 @@
-"""Classes and global objects related to XML Namespaces.
+"""Classes and global objects related to U{XML Namespaces<http://www.w3.org/TR/2006/REC-xml-names-20060816/index.html>}.
 
-http://www.w3.org/TR/2006/REC-xml-names-20060816/index.html
+Since namespaces hold all referenceable objects, this module also defines the
+infrastructure for resolving schema component references.
+
+@group Resolution: _Resolvable_mixin, _NamespaceResolution_mixin
+@group Component Management: _ComponentDependency_mixin, _NamespaceComponentAssociation_mixin
+@group Schema Specializations: _XML, _XHTML, _XMLSchema, _XMLSchema_instance
+@group Named Object Management: _NamespaceCategory_mixin, NamedObjectMap
 """
 
 import pyxb
 import os
 import fnmatch
 
-# Environment variable from which default path to pre-loaded namespaces is read
 PathEnvironmentVariable = 'PYXB_NAMESPACE_PATH'
+"""Environment variable from which default path to pre-loaded namespaces is
+read.  The value should be a colon-separated list of absolute paths.  A path
+of C{+} will be replaced by the system default path (normally
+C{pyxb/standard/bindings/raw})."""
+
 import os.path
 DefaultBindingPath = "%s/standard/bindings/raw" % (os.path.dirname(__file__),)
+"""Default location for reading C{.wxs} files"""
 
 # Stuff required for pickling
 import cPickle as pickle
@@ -36,16 +47,15 @@ class _Resolvable_mixin (object):
         component belongs.  Invoking this method may fail to complete the
         resolution process if the component itself depends on unresolved
         components.  The sole caller of this should be
-        Namespace._resolveDefinitions().
+        L{Namespace.resolveDefinitions}.
         
-        Override this in the child class.  In the prefix, if isResolved() is
+        Override this in the child class.  In the prefix, if L{isResolved} is
         true, return right away.  If something prevents you from completing
-        resolution, invoke self._queueForResolution(self) for whatever
-        namespace the component belongs to (so it is retried later) and
-        immediately return self.  Prior to leaving after successful resolution
-        discard any cached dom node by setting self.__domNode=None.
+        resolution, invoke L{self._queueForResolution()} (so it is retried
+        later) and immediately return self.  Prior to leaving after successful
+        resolution discard any cached dom node by setting C{self.__domNode=None}.
 
-        The method should return self, whether or not resolution succeeds.
+        @return: C{self}, whether or not resolution succeeds.
         """
         raise pyxb.LogicError('Resolution not implemented in %s' % (self.__class__,))
 
@@ -177,8 +187,8 @@ class _NamespaceCategory_mixin (pyxb.cscRoot):
         information into the existing maps. and their contents with data from
         the saved namespace.
 
-        @todo For now, we do not allow aggregation of named object maps from
-        different sources (e.g., schema nd one or more saved files).  However,
+        @todo: For now, we do not allow aggregation of named object maps from
+        different sources (e.g., schema and one or more saved files).  However,
         it may be useful to do so in the future, especially if the categories
         are disjoint.
         """
@@ -281,23 +291,25 @@ class _NamespaceResolution_mixin (pyxb.cscRoot):
         return self.__unresolvedComponents
 
 class _ComponentDependency_mixin (pyxb.cscRoot):
+    """Mix-in for components that can depend on other components."""
     # Cached frozenset of components on which this component depends.
     __dependentComponents = None
 
-    def _resetClone_vc (self):
-        """CSC extension to reset fields of a component.
-
-        This one clears dependency-related data, since the clone will have to
-        revise its dependencies."""
-        getattr(super(_ComponentDependency_mixin, self), '_resetClone_vc', lambda *args, **kw: None)()
+    def _resetClone_csc (self):
+        """CSC extension to reset fields of a component.  This one clears
+        dependency-related data, since the clone will have to revise its
+        dependencies.
+        @rtype: C{None}"""
+        getattr(super(_ComponentDependency_mixin, self), '_resetClone_csc', lambda *args, **kw: None)()
         self.__dependentComponents = None
 
     def dependentComponents (self):
-        """Return a set of components upon which this component depends.
+        """Return a set of components upon which this component depends.  This
+        is essentially those components to which a reference was resolved,
+        plus those that are sub-component (e.g., the particles in a model
+        group).
 
-        This is essentially those components to which a reference was
-        resolved, plus those that are sub-component (e.g., the particles in a
-        model group)."""
+        @rtype: C{set(L{pyxb.xmlschema.structures._SchemaComponent_mixin})}"""
         if self.__dependentComponents is None:
             if isinstance(self, _Resolvable_mixin) and not (self.isResolved()):
                 raise pyxb.LogicError('Unresolved %s in %s: %s' % (self.__class__.__name__, self.namespaceContext().targetNamespace(), self.name()))
@@ -307,9 +319,14 @@ class _ComponentDependency_mixin (pyxb.cscRoot):
         return self.__dependentComponents
 
     def _dependentComponents_vx (self):
-        """Return a frozenset of component instance on which this component depends.
+        """Placeholder for subclass method that identifies the necessary components.
 
-        Implement in subclasses."""
+        @note: Override in subclasses.
+
+        @return: The component instances on which this component depends
+        @rtype: C{frozenset}
+        @raise LogicError: A subclass failed to implement this method
+        """
         raise LogicError('%s does not implement _dependentComponents_vx' % (self.__class__,))
 
 class _NamespaceComponentAssociation_mixin (object):
@@ -471,18 +488,18 @@ class _NamespaceComponentAssociation_mixin (object):
         return emit_order
 
 class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _NamespaceComponentAssociation_mixin):
-    """Represents an XML namespace, viz. a URI.
+    """Represents an XML namespace (a URI).
 
-    There is at most one Namespace class instance per namespace (URI).
-    The instance also supports associating arbitrary maps from names
-    to objects, in separate categories.  The default categories are
-    configured externally; for example, the Schema component defines a
-    category for each named component in XMLSchema, and the
-    customizing subclass for WSDL definitions adds categories for the
-    service bindings, messages, etc.
+    There is at most one L{Namespace} class instance per namespace (URI).  The
+    instance also supports associating arbitrary L{maps<NamedObjectMap>} from
+    names to objects, in separate categories.  The default categories are
+    configured externally; for example, the
+    L{Schema<pyxb.xmlschema.structures.Schema>} component defines a category
+    for each named component in XMLSchema, and the customizing subclass for
+    WSDL definitions adds categories for the service bindings, messages, etc.
 
     Namespaces can be written to and loaded from pickled files.  See
-    LoadFromFile(path) for information.
+    L{LoadFromFile} for information.
     """
 
     # The URI for the namespace.  If the URI is None, this is an absent
@@ -949,15 +966,20 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
         return rv
 
 def NamespaceForURI (uri, create_if_missing=False):
-    """Given a URI, provide the Namespace instance corresponding to
-    it.
+    """Given a URI, provide the L{Namespace} instance corresponding to it.
 
-    The uri must be a non-empty string value, else a pyxb.LogicError is
-    raised.  To create absent namespaces, use CreateAbsentNamespace.
+    This can only be used to lookup or create real namespaces.  To create
+    absent namespaces, use L{CreateAbsentNamespace}.
 
-    If no Namespace instance exists for the URI, the None value is
-    returned, unless create_is_missing is True in which case a new
-    Namespace instance for the given URI is returned."""
+    @param uri: The URI that identifies the namespace
+    @type uri: A non-empty C{str} or C{unicode} string
+    @keyword create_if_missing: If C{True}, a namespace for the given URI is
+    created if one has not already been registered.  Default is C{False}.
+    @type create_if_missing: C{bool}
+    @return: The Namespace corresponding to C{uri}, if available
+    @rtype: L{Namespace} or C{None}
+    @raise pyxb.LogicError: The uri is not a non-empty string
+    """
     if not isinstance(uri, (str, unicode)):
         raise pyxb.LogicError('Cannot lookup absent namespaces')
     if 0 == len(uri):
@@ -970,19 +992,21 @@ def NamespaceForURI (uri, create_if_missing=False):
 def CreateAbsentNamespace ():
     """Create an absent namespace.
 
-    Use this when you need a namespace for declarations in a schema
-    with no target namespace.  Absent namespaces are not stored in the
-    infrastructure; it is your responsibility to hold on to the
-    reference you get from this."""
+    Use this when you need a namespace for declarations in a schema with no
+    target namespace.  Absent namespaces are not stored in the infrastructure;
+    it is your responsibility to hold on to the reference you get from this,
+    because you won't be able to look it up."""
     return Namespace.CreateAbsentNamespace()
 
-# A mapping from namespace URIs to names of files which appear to
-# provide a serialized version of the namespace with schema.
 __LoadableNamespaces = None
+"""A mapping from namespace URIs to names of files which appear to
+provide a serialized version of the namespace with schema."""
 
 def _LoadableNamespaceMap ():
     """Get the map from URIs to files from which the namespace data
-    can be loaded."""
+    can be loaded.  This looks for files with the extension C{.wxs} in any
+    directory in the default binding path, which is read from the environment
+    variable L{PathEnvironmentVariable}, or C{pyxb/standard/bindings/raw}."""
     global __LoadableNamespaces
     if __LoadableNamespaces is None:
         # Look for pre-existing pickled schema
@@ -1007,7 +1031,7 @@ def _LoadableNamespaceMap ():
     return __LoadableNamespaces
 
 class _XMLSchema_instance (Namespace):
-    """Extension of Namespace that pre-defines types available in the
+    """Extension of L{Namespace} that pre-defines components available in the
     XMLSchema Instance (xsi) namespace."""
 
     __doneThis = False
@@ -1029,7 +1053,7 @@ class _XMLSchema_instance (Namespace):
         return self
 
 class _XML (Namespace):
-    """Extension of Namespace that pre-defines types available in the
+    """Extension of L{Namespace} that pre-defines components available in the
     XML (xml) namespace."""
 
     __doneThis = False
@@ -1051,7 +1075,7 @@ class _XML (Namespace):
         return self
 
 class _XHTML (Namespace):
-    """Extension of Namespace that pre-defines types available in the
+    """Extension of L{Namespace} that pre-defines comonents available in the
     XHTML namespace."""
 
     __doneThis = False
@@ -1070,10 +1094,10 @@ class _XHTML (Namespace):
         return self
 
 class _XMLSchema (Namespace):
-    """Extension of Namespace that pre-defines types available in the
+    """Extension of L{Namespace} that pre-defines components available in the
     XMLSchema namespace.
 
-    The types are defined when the XMLSchemaModule is set.
+    The types are defined when L{pyxb.xmlschema.structures} is imported.
     """
 
     __doneThis = False
@@ -1104,32 +1128,34 @@ class _XMLSchema (Namespace):
 
 
 def AvailableForLoad ():
-    """Return a list of namespace URIs for which we may be able to
-    load the namespace contents from a pre-parsed file.
+    """Return a list of namespace URIs for which we may be able to load the
+    namespace contents from a pre-parsed file.  The corresponding L{Namespace}
+    can be retrieved using L{NamespaceForURI}, and the declared objects in
+    that namespace loaded with L{Namespace.validateComponentModel}.
 
     Note that success of the load is not guaranteed if the packed file
     is not compatible with the schema class being used."""
     # Invoke this to ensure we have searched for loadable namespaces
     return _LoadableNamespaceMap().keys()
 
-# Namespace and URI for the XMLSchema Instance namespace (always xsi).
-# This is always built-in, and cannot have an associated schema.  We
-# use it as an indicator that the namespace system has been
-# initialized.  See http://www.w3.org/TR/xmlschema-1/#no-xsi
 XMLSchema_instance = _XMLSchema_instance('http://www.w3.org/2001/XMLSchema-instance',
                                          description='XML Schema Instance',
                                          is_builtin_namespace=True,
                                          is_undeclared_namespace=True,
                                          bound_prefix='xsi')
+"""Namespace and URI for the XMLSchema Instance namespace (always xsi).
+This is always built-in, and cannot have an associated schema.  We
+use it as an indicator that the namespace system has been
+initialized.  See U{http://www.w3.org/TR/xmlschema-1/#no-xsi}"""
 
-# Namespaces in XML.  Not really a namespace, but is always available as xmlns.
+
 XMLNamespaces = Namespace('http://www.w3.org/2000/xmlns/',
                           description='Namespaces in XML',
                           is_builtin_namespace=True,
 #                          is_undeclared_namespace = True,
                           bound_prefix='xmlns')
+"""Namespaces in XML.  Not really a namespace, but is always available as C{xmlns}."""
 
-# Namespace and URI for XML itself (always xml)
 XML = _XML('http://www.w3.org/XML/1998/namespace',
            description='XML namespace',
            schema_location='http://www.w3.org/2001/xml.xsd',
@@ -1138,25 +1164,25 @@ XML = _XML('http://www.w3.org/XML/1998/namespace',
            bound_prefix='xml',
            default_namespace='XHTML',
            in_scope_namespaces = { 'xs' : 'XMLSchema' })
+"""Namespace and URI for XML itself (always available as C{xml})"""
 
 
-## Namespace and URI for the XMLSchema namespace (often xs, or xsd)
 XMLSchema = _XMLSchema('http://www.w3.org/2001/XMLSchema',
                        schema_location='http://www.w3.org/2001/XMLSchema.xsd',
                        description='XML Schema',
                        is_builtin_namespace=True,
                        in_scope_namespaces = { 'xs' : None })
+"""Namespace and URI for the XMLSchema namespace (often C{xs}, or C{xsd})"""
 
-# There really isn't a schema for this, but it's used as the default
-# namespace in the XML schema, so define it.
 XHTML = _XHTML('http://www.w3.org/1999/xhtml',
                description='Family of document types that extend HTML',
                schema_location='http://www.w3.org/1999/xhtml.xsd',
                is_builtin_namespace=True,
                default_namespace=XMLSchema)
+"""There really isn't a schema for this, but it's used as the default
+namespace in the XML schema, so define it."""
 
 
-# Elements appearing in appinfo elements to support data types
 XMLSchema_hfp = Namespace('http://www.w3.org/2001/XMLSchema-hasFacetAndProperty',
                           description='Facets appearing in appinfo section',
                           schema_location='http://www.w3.org/2001/XMLSchema-hasFacetAndProperty',
@@ -1164,6 +1190,7 @@ XMLSchema_hfp = Namespace('http://www.w3.org/2001/XMLSchema-hasFacetAndProperty'
                           default_namespace='XMLSchema',
                           in_scope_namespaces = { 'hfp' : None
                                                 , 'xhtml' : XHTML })
+"""Elements appearing in appinfo elements to support data types."""
 
 # List of pre-defined namespaces.
 PredefinedNamespaces = [
@@ -1178,12 +1205,12 @@ PredefinedNamespaces = [
 __InitializedBuiltinNamespaces = False
 
 def _InitializeBuiltinNamespaces (structures_module):
-    """Invoked within pyxb.xmlschema.structures to initialize the component
-    model for the built-in namespaces.
+    """Invoked at the end of the L{pyxb.xmlschema.structures} module to
+    initialize the component models of the built-in namespaces.
 
-    The pyxb.xmlschema.structures module may not be loadable at the time this
-    is invoked (because it is still being processed), so it gets passed in as
-    a parameter."""
+    @param structures_module: The L{pyxb.xmlschema.structures} module may not
+    be importable by that name at the time this is invoked (because it is
+    still being processed), so it gets passed in as a parameter."""
     global __InitializedBuiltinNamespaces
     if not __InitializedBuiltinNamespaces:
         __InitializedBuiltinNamespaces = True
@@ -1203,29 +1230,63 @@ _UndeclaredNamespaceMap = { }
 class NamespaceContext (object):
     """Records information associated with namespaces at a DOM node.
     """
-    
 
     def defaultNamespace (self):
+        """The default namespace in effect at this node.  E.g., C{xmlns="URN:default"}."""
         return self.__defaultNamespace
     __defaultNamespace = None
 
     def targetNamespace (self):
+        """The target namespace in effect at this node.  Usually from the
+        C{targetNamespace} attribute.  If no namespace is specified for the
+        schema, an absent namespace is assigned."""
         return self.__targetNamespace
     __targetNamespace = None
 
     def inScopeNamespaces (self):
+        """Map from prefix strings to L{Namespace} instances associated with those
+        prefixes.  The prefix C{None} identifies the default namespace."""
         return self.__inScopeNamespaces
     __inScopeNamespaces = None
 
     def attributeMap (self):
+        """Map from pairs of namespace URI and local name to the value of that
+        attribute.  The namespace URI and local name are taken from the DOM
+        node C{namespaceURI} and C{localName} instance members."""
         return self.__attributeMap
     __attributeMap = None
 
     @classmethod
     def GetNodeContext (cls, node):
+        """Get the L{NamespaceContext} instance that was assigned to the node."""
         return node.__namespaceContext
 
     def __init__ (self, dom_node, parent_context=None, recurse=True, default_namespace=None, target_namespace=None, in_scope_namespaces=None):
+        """Determine the namespace context that should be associated with the
+        given node and, optionally, its element children.
+
+        @param dom_node: The DOM node
+        @type dom_node: C{xml.dom.Element}
+        @keyword parent_context: Optional value that specifies the context
+        associated with C{dom_node}'s parent node.  If not provided, only the
+        C{xml} and C{xsi} namespaces are in scope.
+        @type parent_context: L{NamespaceContext}
+        @keyword recurse: If True (default), create namespace contexts for all
+        element children of C{dom_node}
+        @type recurse: C{bool}
+        @keyword default_namespace: Optional value to set as the default
+        namespace.  Values from C{parent_context} would override this, as
+        would an C{xmlns} attribute in the C{dom_node}.
+        @type default_namespace: L{NamespaceContext}
+        @keyword target_namespace: Optional value to set as the target
+        namespace.  Values from C{parent_context} would override this, as
+        would a C{targetNamespace} attribute in the C{dom_node}
+        @type target_namespace: L{NamespaceContext}
+        @keyword in_scope_namespaces: Optional value to set as the initial set
+        of in-scope namespaces.  The always-present namespaces are added to
+        this if necessary.
+        @type in_scope_namespaces: C{dict} mapping C{string} to L{Namespace}.
+        """
         global _UndeclaredNamespaceMap
         if dom_node is not None:
             dom_node.__namespaceContext = self
@@ -1301,6 +1362,22 @@ class NamespaceContext (object):
                     NamespaceContext(cn, self, True)
 
     def interpretQName (self, name, is_definition=False):
+        """Convert the provided name into a tuple of L{Namespace} and local name.
+
+        If the name includes a prefix, that prefix must map to an in-scope
+        namespace in this context.  Absence of a prefix maps to either
+        L{defaultNamespace()} or L{targetNamespace()}, depending on
+        C{is_definition}.
+        
+        @param name: A QName.
+        @type name: C{str} or C{unicode}
+        @param is_definition: Indicates whether this QName is used in a
+        context where it declares an object (True) or references an object
+        (False).
+        @type is_definition: C{bool}
+        @return: A tuple: ( L{Namespace}, C{str} )
+        @raise pyxb.SchemaValidationError: The prefix is not in scope
+        """
         assert isinstance(name, (str, unicode))
         if 0 <= name.find(':'):
             assert not is_definition
@@ -1319,7 +1396,7 @@ class NamespaceContext (object):
         return (namespace, local_name)
 
     def queueForResolution (self, component):
-        """Forward to queueForResolution in target namespace."""
+        """Forwards to L{queueForResolution()<Namespace.queueForResolution>} in L{targetNamespace()}."""
         assert isinstance(component, _Resolvable_mixin)
         return self.targetNamespace().queueForResolution(component)
 

@@ -144,6 +144,12 @@ list is exhausted, the current state is a final state (has a None transition
 to state zero), the content model is satisfied and the element is created.
 If not, a MissingContentError is raised.
 
+Element uses are defined within the body of the binding class, as is the map
+from tags to those uses.  The set of legitimate datatypes for an element use
+is not configured until all binding classes have been generated.
+
+
+
 Handling of Model Groups with compositor "all"
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 The "all" compositor model group represents zero or one instances of a set

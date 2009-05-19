@@ -1,4 +1,4 @@
-"""This file contains support classes from which schema-specific bindings
+"""This module contains support classes from which schema-specific bindings
 inherit, and that describe the content models of those schema."""
 
 import pyxb
@@ -83,11 +83,11 @@ class _DynamicCreate_mixin (pyxb.cscRoot):
         return cls._ClassRef()(*args, **kw)
 
 class simpleTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
-    """simpleTypeDefinition is a base mix-in class that is part of the
+    """L{simpleTypeDefinition} is a base class that is part of the
     hierarchy of any class that represents the Python datatype for a
-    SimpleTypeDefinition.
+    L{SimpleTypeDefinition<pyxb.xmlschema.structures.SimpleTypeDefinition>}.
 
-    Note: This class, or a descendent of it, must be the first class
+    @note: This class, or a descendent of it, must be the first class
     in the method resolution order when a subclass has multiple
     parents.  Otherwise, constructor keyword arguments may not be
     removed before passing them on to Python classes that do not
@@ -99,15 +99,16 @@ class simpleTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _D
     # Note that each descendent of simpleTypeDefinition has its own map.
     __FacetMap = {}
 
-    # Symbols that remain the responsibility of this class.  Any
-    # public symbols in generated binding subclasses are deconflicted
-    # by providing an alternative name in the subclass.  (There
-    # currently are no public symbols in generated SimpleTypeDefinion
-    # bindings.)
     _ReservedSymbols = set([ 'Factory', 'CreateFromDOM', 'XsdLiteral', 'xsdLiteral',
                             'XsdSuperType', 'XsdPythonType', 'XsdConstraintsOK',
                             'xsdConstraintsOK', 'XsdValueLength', 'xsdValueLength',
                             'PythonLiteral', 'pythonLiteral', 'toDOM', 'Namespace' ])
+    """Symbols that remain the responsibility of this class.  Any
+    public symbols in generated binding subclasses are deconflicted
+    by providing an alternative name in the subclass.  (There
+    currently are no public symbols in generated SimpleTypeDefinion
+    bindings."""
+
 
     # Determine the name of the class-private facet map.  For the base class
     # this should produce the same attribute name as Python's privatization
