@@ -103,6 +103,7 @@ class TestInScopeNames (unittest.TestCase):
 class TestNamespaceURIs (unittest.TestCase):
     # Make sure we agree with xml.dom on what the core namespace URIs are
     def testURI (self):
+        self.assertTrue(xml.dom.EMPTY_NAMESPACE is None)
         self.assertEqual(xml.dom.XML_NAMESPACE, pyxb.Namespace.XML.uri())
         self.assertEqual(xml.dom.XMLNS_NAMESPACE, pyxb.Namespace.XMLNamespaces.uri())
         self.assertEqual(xml.dom.XHTML_NAMESPACE, pyxb.Namespace.XHTML.uri())

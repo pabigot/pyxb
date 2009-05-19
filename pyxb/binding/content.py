@@ -503,7 +503,7 @@ class ModelGroupAll (pyxb.cscRoot):
         alternatives, the node_list is restored and the content model matching
         repeated with store set to update the ctd_instance values.
 
-        @todo This method complicates things because it won't commit to the
+        @todo: This method complicates things because it won't commit to the
         consumptions until the whole model is matched.  This step is taken
         because the match operation corresponds to a single transition in the
         DFA, and we are not sure whether the transition will be successful.
@@ -727,9 +727,10 @@ class Wildcard (pyxb.cscRoot):
         """A constraint on the namespace for the wildcard.
 
         Valid values are:
-         * Wildcard.NC_any
-         * A tuple ( Wildcard.NC_not, a_namespace )
-         * set(of_namespaces)
+
+         - L{Wildcard.NC_any}
+         - A tuple ( L{Wildcard.NC_not}, a L{namespace<pyxb.Namespace.Namespace>} instance )
+         - set(of L{namespace<pyxb.Namespace.Namespace>} instances)
 
         Namespaces are represented by their URIs.  Absence is
         represented by None, both in the "not" pair and in the set.

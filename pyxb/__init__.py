@@ -1,20 +1,25 @@
-"""PyXB stands for Python U{W3C XML Schema<http://www.w3.org/XML/Schema>} Bindings, and is pronounced
-"pixbee".
+"""PyXB stands for Python U{W3C XML
+Schema<http://www.w3.org/XML/Schema>} Bindings, and is pronounced
+"pixbee".  It enables translation between XML instance documents and
+Python objects following rules specified by an XML Schema document.
 
 This is the top-level entrypoint to the PyXB system.  Importing this
 gets you all the L{exceptions<pyxb.exceptions_.PyXBException>}, and
 L{pyxb.Namespace}.  For more functionality, delve into these
 submodules:
- - L{pyxb.binding} Module used to generate the bindings and at runtime to
-   support the generated bindings
-
- - L{pyxb.utils} Common utilities used in parsing, generating, and
-   executing.  These modules must be imported separately.
 
  - L{pyxb.xmlschema} Module holding the
    L{structures<pyxb.xmlschema.structures>} that convert XMLSchema
    from a DOM model to a Python class model based on the XMLSchema
-   components
+   components.  Use this when you need to operate on the component
+   model.
+
+ - L{pyxb.binding} Module used to generate the bindings and at runtime
+   to support the generated bindings.  Use this if you need to use the
+   binding model or content model.
+
+ - L{pyxb.utils} Common utilities used in parsing, generating, and
+   executing.  The submodules must be imported separately.
 
 """
 

@@ -98,14 +98,14 @@ class Facet (pyxb.cscRoot):
         This method is pre-extended; subclasses should invoke the
         parent method after setting their local configuration.
 
-        Keywords recognized:
-        * _reset -- If false or missing, existing values will be
-          retained if they do not appear in the keywords.  If true,
-          members not defined in the keywords are set to a default.
-        * base_type_definition
-        * owner_type_definition
-        * owner_datatype
-        * value_datatype
+        @keyword _reset: If C{False} or missing, existing values will
+                         be retained if they do not appear in the
+                         keywords.  If C{True}, members not defined in
+                         the keywords are set to a default.
+        @keyword base_type_definition:
+        @keyword owner_type_definition:
+        @keyword owner_datatype:
+        @keyword value_datatype:
         """
 
         if not kw.get('_reset', False):
@@ -220,22 +220,28 @@ class _LateDatatype_mixin (pyxb.cscRoot):
     """Marker class to indicate that the facet instance must be told
     its datatype when it is constructed.
 
-    This is necessary for facets like minExclusive, for which the
-    value is determined by the base type definition of the associated
-    STD.
-
-    Subclasses must define a class variable
-    _LateDatatypeBindsSuperclass with a value of True or False.  The
-    value is True iff the value of this facet is not within the value
-    space of the corresponding value datatype; for example,
-    minExclusive.
+    This is necessary for facets like L{CF_minInclusive} and
+    L{CF_minExclusive}, for which the value is determined by the base
+    type definition of the associated STD.  In some cases the value
+    that must be used in the facet cannot be represented in the Python
+    type used for the facet; see L{LateDatatypeBindsSuperclass}.
     """
+
+    _LateDatatypeBindsSuperclass = None
+    """The class variable that indicates that the Subclasses must
+    override this variable with a value of C{True} or C{False}.  The
+    value is C{True} iff the value used for the facet is not within
+    the value space of the corresponding value datatype; for example,
+    L{CF_minExclusive}."""
+
 
     @classmethod
     def LateDatatypeBindsSuperclass (cls):
         """Return true if false if the proposed datatype should be
         used, or True if the base type definition of the proposed
         datatype should be used."""
+        if cls._LateDatatypeBindsSuperclass is None:
+            raise pyxb.LogicError('Class %s did not set _LateDatatypeBindsSuperclass variable.')
         return cls._LateDatatypeBindsSuperclass
 
     @classmethod
@@ -243,7 +249,7 @@ class _LateDatatype_mixin (pyxb.cscRoot):
         """Find the datatype for facet values when this facet is bound
         to the given value_type.
 
-        If the value_type is an STD, the associated python support
+        If the C{value_type} is an STD, the associated Python support
         datatype from this value_type scanning up through the base
         type hierarchy is used.
         """
@@ -300,11 +306,11 @@ class _CollectionFacet_mixin (pyxb.cscRoot):
     __items = None
     def _setFromKeywords_vb (self, **kw):
         """Extend base class.
-
-        Additional keywords:
-        * _constructor: If False or absent, the object being set is a
-          member of the collection.  If True, the object being set is
-          the collection itself.
+        
+        @keyword _constructor: If C{False} or absent, the object being
+                               set is a member of the collection.  If
+                               C{True}, the object being set is the
+                               collection itself.
         """
         if kw.get('_reset', False):
             self.__items = []
@@ -327,7 +333,7 @@ class _CollectionFacet_mixin (pyxb.cscRoot):
 class CF_length (ConstrainingFacet, _Fixed_mixin):
     """A facet that specifies the length of the lexical representation of a value.
     
-    See http://www.w3.org/TR/xmlschema-2/#rf-length
+    See U{http://www.w3.org/TR/xmlschema-2/#rf-length}
     """
     _Name = 'length'
     _ValueDatatype = datatypes.nonNegativeInteger
@@ -339,7 +345,7 @@ class CF_length (ConstrainingFacet, _Fixed_mixin):
 class CF_minLength (ConstrainingFacet, _Fixed_mixin):
     """A facet that constrains the length of the lexical representation of a value.
     
-    See http://www.w3.org/TR/xmlschema-2/#rf-minLength
+    See U{http://www.w3.org/TR/xmlschema-2/#rf-minLength}
     """
     _Name = 'minLength'
     _ValueDatatype = datatypes.nonNegativeInteger
@@ -351,7 +357,7 @@ class CF_minLength (ConstrainingFacet, _Fixed_mixin):
 class CF_maxLength (ConstrainingFacet, _Fixed_mixin):
     """A facet that constrains the length of the lexical representation of a value.
     
-    See http://www.w3.org/TR/xmlschema-2/#rf-minLength
+    See U{http://www.w3.org/TR/xmlschema-2/#rf-minLength}
     """
     _Name = 'maxLength'
     _ValueDatatype = datatypes.nonNegativeInteger
@@ -378,7 +384,7 @@ class _PatternElement:
 class CF_pattern (ConstrainingFacet, _CollectionFacet_mixin):
     """A facet that constrains the lexical representation of a value to match one of a set of patterns.
     
-    See http://www.w3.org/TR/xmlschema-2/#rf-pattern
+    See U{http://www.w3.org/TR/xmlschema-2/#rf-pattern}
     """
     _Name = 'pattern'
     _CollectionFacet_itemType = _PatternElement
@@ -401,14 +407,15 @@ class CF_pattern (ConstrainingFacet, _CollectionFacet_mixin):
         return True
 
 class _EnumerationElement:
-    """This class represents individual values that appear within a CF_enumeration collection."""
+    """This class represents individual values that appear within a
+    L{CF_enumeration} collection."""
     
     __value = None
     def value (self):
         """The Python value that is used for equality testing
         against this enumeration. 
 
-        This is an instance of enumeration.valueDatatype(),
+        This is an instance of L{enumeration.valueDatatype()<CF_enumeration.valueDatatype>},
         initialized from the unicodeValue."""
         return self.__value
 
@@ -422,7 +429,7 @@ class _EnumerationElement:
 
     __enumeration = None
     def enumeration (self):
-        """A reference to the CF_enumeration instance that owns this element."""
+        """A reference to the L{CF_enumeration} instance that owns this element."""
         return self.__enumeration
 
     __unicodeValue = None
@@ -469,8 +476,9 @@ class CF_enumeration (ConstrainingFacet, _CollectionFacet_mixin, _LateDatatype_m
     """Capture a constraint that restricts valid values to a fixed set.
 
     A STD that has an enumeration restriction should mix-in
-    _Enumeration_mixin, and should have a class variable titled
-    _CF_enumeration that is an instance of this class.
+    L{pyxb.binding.basis.enumeration_mixin}, and should have a class
+    variable titled C{_CF_enumeration} that is an instance of this
+    class.
 
     "unicode" refers to the Unicode string by which the value is
     represented in XML.
@@ -483,7 +491,7 @@ class CF_enumeration (ConstrainingFacet, _CollectionFacet_mixin, _LateDatatype_m
     
     "value" refers to the Python value held in the tag
 
-    See http://www.w3.org/TR/xmlschema-2/#rf-enumeration
+    See U{http://www.w3.org/TR/xmlschema-2/#rf-enumeration}
     """
     _Name = 'enumeration'
     _CollectionFacet_itemType = _EnumerationElement
@@ -522,9 +530,9 @@ class CF_enumeration (ConstrainingFacet, _CollectionFacet_mixin, _LateDatatype_m
         return value
 
     def elementForValue (self, value):
-        """Return the EnumerationElement instance that has the given value.
+        """Return the L{_EnumerationElement} instance that has the given value.
 
-        Raises KeyError if the value is not valid for the enumeration."""
+        @raise KeyError: the value is not valid for the enumeration."""
         return self.__valueToElement[value]
 
     def valueForUnicode (self, ustr):
@@ -568,7 +576,7 @@ _WhiteSpace_enum.collapse = _WhiteSpace_enum._CF_enumeration.addEnumeration(unic
 class CF_whiteSpace (ConstrainingFacet, _Fixed_mixin):
     """Specify the value-space interpretation of whitespace.
 
-    See http://www.w3.org/TR/xmlschema-2/#rf-whiteSpace
+    See U{http://www.w3.org/TR/xmlschema-2/#rf-whiteSpace}
     """
     _Name = 'whiteSpace'
     _ValueDatatype = _WhiteSpace_enum
@@ -591,7 +599,7 @@ class CF_whiteSpace (ConstrainingFacet, _Fixed_mixin):
 class CF_minInclusive (ConstrainingFacet, _Fixed_mixin, _LateDatatype_mixin):
     """Specify the minimum legal value for the constrained type.
 
-    See http://www.w3.org/TR/xmlschema-2/#rf-minInclusive
+    See U{http://www.w3.org/TR/xmlschema-2/#rf-minInclusive}
     """
     _Name = 'minInclusive'
     _LateDatatypeBindsSuperclass = False
@@ -603,7 +611,7 @@ class CF_minInclusive (ConstrainingFacet, _Fixed_mixin, _LateDatatype_mixin):
 class CF_maxInclusive (ConstrainingFacet, _Fixed_mixin, _LateDatatype_mixin):
     """Specify the maximum legal value for the constrained type.
 
-    See http://www.w3.org/TR/xmlschema-2/#rf-maxInclusive
+    See U{http://www.w3.org/TR/xmlschema-2/#rf-maxInclusive}
     """
     _Name = 'maxInclusive'
     _LateDatatypeBindsSuperclass = False
@@ -614,7 +622,7 @@ class CF_maxInclusive (ConstrainingFacet, _Fixed_mixin, _LateDatatype_mixin):
 class CF_minExclusive (ConstrainingFacet, _Fixed_mixin, _LateDatatype_mixin):
     """Specify the exclusive lower bound of legal values for the constrained type.
 
-    See http://www.w3.org/TR/xmlschema-2/#rf-minExclusive
+    See U{http://www.w3.org/TR/xmlschema-2/#rf-minExclusive}
     """
     _Name = 'minExclusive'
     _LateDatatypeBindsSuperclass = True
@@ -625,7 +633,7 @@ class CF_minExclusive (ConstrainingFacet, _Fixed_mixin, _LateDatatype_mixin):
 class CF_maxExclusive (ConstrainingFacet, _Fixed_mixin, _LateDatatype_mixin):
     """Specify the exclusive upper bound of legal values for the constrained type.
 
-    See http://www.w3.org/TR/xmlschema-2/#rf-maxExclusive
+    See U{http://www.w3.org/TR/xmlschema-2/#rf-maxExclusive}
     """
     _Name = 'maxExclusive'
     _LateDatatypeBindsSuperclass = True
@@ -636,7 +644,7 @@ class CF_maxExclusive (ConstrainingFacet, _Fixed_mixin, _LateDatatype_mixin):
 class CF_totalDigits (ConstrainingFacet, _Fixed_mixin):
     """Specify the number of digits in the *value* space of the type.
 
-    See http://www.w3.org/TR/xmlschema-2/#rf-totalDigits
+    See U{http://www.w3.org/TR/xmlschema-2/#rf-totalDigits}
     """
     _Name = 'totalDigits'
     _ValueDatatype = datatypes.positiveInteger
@@ -663,7 +671,7 @@ class CF_totalDigits (ConstrainingFacet, _Fixed_mixin):
 class CF_fractionDigits (ConstrainingFacet, _Fixed_mixin):
     """Specify the number of sub-unit digits in the *value* space of the type.
 
-    See http://www.w3.org/TR/xmlschema-2/#rf-fractionDigits
+    See U{http://www.w3.org/TR/xmlschema-2/#rf-fractionDigits}
     """
     _Name = 'fractionDigits'
     _ValueDatatype = datatypes.nonNegativeInteger
@@ -713,7 +721,7 @@ class FundamentalFacet (Facet):
 class FF_equal (FundamentalFacet):
     """Specifies that the associated type supports a notion of equality.
 
-    See http://www.w3.org/TR/xmlschema-2/#equal
+    See U{http://www.w3.org/TR/xmlschema-2/#equal}
     """
     
     _Name = 'equal'
@@ -721,7 +729,7 @@ class FF_equal (FundamentalFacet):
 class FF_ordered (FundamentalFacet):
     """Specifies that the associated type supports a notion of order.
 
-    See http://www.w3.org/TR/xmlschema-2/#rf-ordered
+    See U{http://www.w3.org/TR/xmlschema-2/#rf-ordered}
     """
 
     _LegalValues = ( 'false', 'partial', 'total' )
@@ -729,13 +737,13 @@ class FF_ordered (FundamentalFacet):
     _ValueDatatype = datatypes.string
 
     def __init__ (self, **kw):
-        # @todo correct value type definition
+        # @todo: correct value type definition
         super(FF_ordered, self).__init__(**kw)
 
 class FF_bounded (FundamentalFacet):
     """Specifies that the associated type supports a notion of bounds.
 
-    See http://www.w3.org/TR/xmlschema-2/#rf-bounded
+    See U{http://www.w3.org/TR/xmlschema-2/#rf-bounded}
     """
 
     _Name = 'bounded'
@@ -744,7 +752,7 @@ class FF_bounded (FundamentalFacet):
 class FF_cardinality (FundamentalFacet):
     """Specifies that the associated type supports a notion of length.
 
-    See http://www.w3.org/TR/xmlschema-2/#rf-cardinality
+    See U{http://www.w3.org/TR/xmlschema-2/#rf-cardinality}
     """
 
     _LegalValues = ( 'finite', 'countably infinite' )
@@ -757,7 +765,7 @@ class FF_cardinality (FundamentalFacet):
 class FF_numeric (FundamentalFacet):
     """Specifies that the associated type represents a number.
 
-    See http://www.w3.org/TR/xmlschema-2/#rf-numeric
+    See U{http://www.w3.org/TR/xmlschema-2/#rf-numeric}
     """
 
     _Name = 'numeric'

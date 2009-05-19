@@ -1,3 +1,5 @@
+"""Finite automata classes that support content model management."""
+
 from pyxb.xmlschema.structures import Particle, ModelGroup
 
 # Represent state transitions as a map from states to maps from

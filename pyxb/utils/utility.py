@@ -38,6 +38,8 @@ _Keywords = frozenset( ( "and", "del", "from", "not", "while", "as", "elif", "gl
               "break", "except", "import", "print", "class", "exec",
               "in", "raise", "continue", "finally", "is", "return",
               "def", "for", "lambda", "try" ) )
+"""The keywords reserved for Python."""
+
 def DeconflictKeyword (s, aux_keywords=frozenset()):
     """If the provide string matches a keyword, append an underscore to distinguish them."""
     if (s in _Keywords) or (s in aux_keywords):
@@ -103,37 +105,39 @@ class _DeconflictSymbols_mixin (object):
     Subclasses should create a class-level variable that contains a
     set of strings denoting the symbols reserved in this class,
     combined with those from any superclasses that also have reserved
-    symbols.  Code like the following is suggested:
+    symbols.  Code like the following is suggested::
+
        # For base classes (direct mix-in):
-        _ReservedSymbols = set([ 'one', 'two' ])
+       _ReservedSymbols = set([ 'one', 'two' ])
        # For subclasses:
-        _ReservedSymbols = SuperClass._ReservedSymbols.union(set([ 'three' ]))
+       _ReservedSymbols = SuperClass._ReservedSymbols.union(set([ 'three' ]))
 
     Only public symbols (those with no underscores) are current
-    supported.  (Private symbols can't be deconflict that easily, and
-    no protected symbols that derive from the XML are created by the
-    binding generator.)
+    supported.  (Private symbols can't be deconflicted that easily,
+    and no protected symbols that derive from the XML are created by
+    the binding generator.)
     """
 
-    # Base from mixin does not reserve anything.
     _ReservedSymbols = set()
+    """There are no reserved symbols in the base class."""
 
 __TabCRLF_re = re.compile("[\t\n\r]")
 __MultiSpace_re = re.compile(" +")
     
 def NormalizeWhitespace (text, preserve=False, replace=False, collapse=False):
-    """Normalize the given string in accordance with keyword.
+    """Normalize the given string.
 
-    Exactly one of the preserve, replace, and collapse keyword
-    parameters must be assigned the value True by the caller.
+    Exactly one of the C{preserve}, C{replace}, and C{collapse} keyword
+    parameters must be assigned the value C{True} by the caller.
 
-    In the case of preserve, the text is returned unchanged.
+    In the case of C{preserve}, the text is returned unchanged.
 
-    In the case of replace, all tabs, newlines, and carriage returns
+    In the case of C{replace}, all tabs, newlines, and carriage returns
     are replaced with ASCII spaces.
 
-    In the case of collapse, the replace normalization is done, then
-    sequences of two or more spaces are replaced by a single space.
+    In the case of C{collapse}, the C{replace} normalization is done,
+    then sequences of two or more spaces are replaced by a single
+    space.
     """
     if preserve:
         return text

@@ -1,3 +1,7 @@
+"""The really ugly code that generates the Python bindings.  This
+whole thing is going to be refactored once customized generation makes
+it to the top of the task queue."""
+
 import pyxb
 import pyxb.xmlschema as xs
 import StringIO

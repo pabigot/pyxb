@@ -79,8 +79,8 @@ def LocateUniqueChild (node, tag, absent_ok=True, namespace=pyxb.Namespace.XMLSc
     or abesnt_ok is False and no matching tag is found, an exception
     is raised.
 
-    @throw SchemaValidationError if multiple elements are identified
-    @throw SchemaValidationError if absent_ok is False and no element is identified.
+    @raise pyxb.SchemaValidationError: multiple elements are identified
+    @raise pyxb.SchemaValidationError: C{absent_ok} is C{False} and no element is identified.
     """
     candidate = None
     for cn in node.childNodes:
@@ -156,6 +156,8 @@ def ExtractTextContent (node):
     return ''.join(text)
 
 class BindingDOMSupport (object):
+    """This holds DOM-related information used when generating a DOM tree from
+    a binding instance."""
     # Namespace declarations required on the top element
     __namespaces = None
 
@@ -164,8 +166,9 @@ class BindingDOMSupport (object):
     def implementation (self):
         """The DOMImplementation object to be used.
 
-        Defaults to pyxb.utils.domutils.GetDOMImplementation(), but can be
-        overridden in the BindingDOMSupport constructor call."""
+        Defaults to L{pyxb.utils.domutils.GetDOMImplementation}, but can be
+        overridden in the constructor call using the C{implementation}
+        keyword."""
         return self.__implementation
     __implementation = None
 
@@ -182,6 +185,12 @@ class BindingDOMSupport (object):
         self.__namespacePrefixCounter = 0
 
     def finalize (self):
+        """Do the final cleanup after generating the tree.  This makes sure
+        that the document element includes XML Namespace declarations for all
+        namespaces referenced in the tree.
+
+        @return: The document that has been created.
+        @rtype: xml.dom.Document"""
         for ( ns_uri, pfx ) in self.__namespaces.items():
             if pfx is None:
                 self.document().documentElement.setAttributeNS(pyxb.Namespace.XMLNamespaces.uri(), 'xmlns', ns_uri)
@@ -190,11 +199,34 @@ class BindingDOMSupport (object):
         return self.document()
 
     def createChild (self, local_name, namespace=None, parent=None):
+        """Create a new element node in the tree.
+
+        If the namespace for the node has not been used in this document
+        before, the prefix assigned to it, or a unique sequentially allocated
+        prefix, is recorded for addition to the XML Namespace attributes in
+        the document root element.
+
+        @todo: Need to record namespaces associated with attributes as well.
+
+        @param local_name: The NCName to be used for the element tag.
+        @keyword namespace: The namespace to which the created child will
+                            belong.  This may be an absent namespace.
+        @type namespace: L{pyxb.Namespace.Namespace}
+        @keyword parent: The node in the tree that will serve as the child's
+                         parent.  If none is provided, the document element is
+                         used.  (If there is no document element, then this
+                         call creates it.)
+        @return: A newly created DOM element
+        @rtype: C{xml.dom.Element}
+        """
+
         if parent is None:
             parent = self.document().documentElement
         if parent is None:
             parent = self.__document
-        ns_uri = namespace.uri()
+        ns_uri = xml.dom.EMPTY_NAMESPACE
+        if namespace is not None:
+            ns_uri = namespace.uri()
         name = local_name
         if ns_uri is not None:
             if ns_uri in self.__namespaces:
@@ -210,13 +242,7 @@ class BindingDOMSupport (object):
                 name = '%s:%s' % (pfx, local_name)
         element = self.__document.createElementNS(ns_uri, name)
         return parent.appendChild(element)
-    
-def AttributeMap (node):
-    attribute_map = { }
-    for ai in range(node.attributes.length):
-        attr = node.attributes.item(ai)
-        attribute_map[(attr.namespaceURI, attr.localName)] = attr.value
-    return attribute_map
+
 
 ## Local Variables:
 ## fill-column:78

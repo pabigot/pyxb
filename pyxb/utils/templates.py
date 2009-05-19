@@ -1,3 +1,5 @@
+"""Functions that aid with generating text from templates and maps."""
+
 import re
 
 # POSIX shell variable syntax:
