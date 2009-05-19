@@ -1032,7 +1032,7 @@ def _LoadableNamespaceMap ():
 
 class _XMLSchema_instance (Namespace):
     """Extension of L{Namespace} that pre-defines components available in the
-    XMLSchema Instance (xsi) namespace."""
+    XMLSchema Instance namespace."""
 
     __doneThis = False
     
@@ -1140,19 +1140,13 @@ def AvailableForLoad ():
 
 XMLSchema_instance = _XMLSchema_instance('http://www.w3.org/2001/XMLSchema-instance',
                                          description='XML Schema Instance',
-                                         is_builtin_namespace=True,
-                                         is_undeclared_namespace=True,
-                                         bound_prefix='xsi')
-"""Namespace and URI for the XMLSchema Instance namespace (always xsi).
-This is always built-in, and cannot have an associated schema.  We
-use it as an indicator that the namespace system has been
-initialized.  See U{http://www.w3.org/TR/xmlschema-1/#no-xsi}"""
-
+                                         is_builtin_namespace=True)
+"""Namespace and URI for the XMLSchema Instance namespace.  This is always
+built-in, and does not (cannot) have an associated schema."""
 
 XMLNamespaces = Namespace('http://www.w3.org/2000/xmlns/',
                           description='Namespaces in XML',
                           is_builtin_namespace=True,
-#                          is_undeclared_namespace = True,
                           bound_prefix='xmlns')
 """Namespaces in XML.  Not really a namespace, but is always available as C{xmlns}."""
 
@@ -1192,8 +1186,8 @@ XMLSchema_hfp = Namespace('http://www.w3.org/2001/XMLSchema-hasFacetAndProperty'
                                                 , 'xhtml' : XHTML })
 """Elements appearing in appinfo elements to support data types."""
 
-# List of pre-defined namespaces.
-PredefinedNamespaces = [
+# List of built-in namespaces.
+BuiltInNamespaces = [
   XMLSchema_instance,
   XMLSchema_hfp,
   XMLSchema,
@@ -1219,13 +1213,13 @@ def _InitializeBuiltinNamespaces (structures_module):
         # references), and the undeclared ones (which have no schema but are
         # always present).
         XMLSchema._loadBuiltins(structures_module)
-        for ns in PredefinedNamespaces:
+        for ns in BuiltInNamespaces:
             if ns.isUndeclaredNamespace():
                 ns.validateComponentModel(structures_module)
 
 # Set up the prefixes for xml, xsi, etc.
 _UndeclaredNamespaceMap = { }
-[ _UndeclaredNamespaceMap.setdefault(_ns.boundPrefix(), _ns) for _ns in PredefinedNamespaces if _ns.isUndeclaredNamespace() ]
+[ _UndeclaredNamespaceMap.setdefault(_ns.boundPrefix(), _ns) for _ns in BuiltInNamespaces if _ns.isUndeclaredNamespace() ]
 
 class NamespaceContext (object):
     """Records information associated with namespaces at a DOM node.
