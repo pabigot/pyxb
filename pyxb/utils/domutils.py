@@ -1,3 +1,5 @@
+"""Functions that support activities related to the Document Object Model."""
+
 import pyxb
 import pyxb.Namespace
 import xml.dom
@@ -50,11 +52,11 @@ def NodeAttribute (node, attribute_ncname, attribute_ns=pyxb.Namespace.XMLSchema
 
     Return the requested attribute, or None if the attribute is not
     present in the node.  Raises SchemaValidationError if the
-    attribute appears multiple times.  @todo Not sure that's right.
+    attribute appears multiple times.  @todo: Not sure that's right.
 
     An example of where this is necessary is the attribute declaration
-    for "lang" in http://www.w3.org/XML/1998/namespace, The simpleType
-    includes a union clause whose memberTypes attribute is
+    for C{lang} in U{http://www.w3.org/XML/1998/namespace}, The C{simpleType}
+    includes a union clause whose C{memberTypes} attribute is
     unqualified, and XMLSchema is not the default namespace."""
 
     assert node.namespaceURI

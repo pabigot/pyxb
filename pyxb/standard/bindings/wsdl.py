@@ -39,7 +39,7 @@ class tPort (raw_wsdl.tPort):
     def _setAddressReference (self, address_reference):
         self.__addressReference = address_reference
     __addressReference = None
-raw_wsdl.tPort._SetClassRef(tPort)
+raw_wsdl.tPort._SetSupersedingClass(tPort)
 
 class tBinding (raw_wsdl.tBinding):
     def portTypeReference (self):
@@ -62,7 +62,7 @@ class tBinding (raw_wsdl.tBinding):
     def __init__ (self, *args, **kw):
         super(tBinding, self).__init__(*args, **kw)
         self.__operationMap = { }
-raw_wsdl.tBinding._SetClassRef(tBinding)
+raw_wsdl.tBinding._SetSupersedingClass(tBinding)
 
 class tPortType (raw_wsdl.tPortType):
     def operationMap (self):
@@ -72,7 +72,7 @@ class tPortType (raw_wsdl.tPortType):
     def __init__ (self, *args, **kw):
         super(tPortType, self).__init__(*args, **kw)
         self.__operationMap = { }
-raw_wsdl.tPortType._SetClassRef(tPortType)
+raw_wsdl.tPortType._SetSupersedingClass(tPortType)
 
 class tParam (raw_wsdl.tParam):
     def messageReference (self):
@@ -80,7 +80,7 @@ class tParam (raw_wsdl.tParam):
     def _setMessageReference (self, message_reference):
         self.__messageReference = message_reference
     __messageReference = None
-raw_wsdl.tParam._SetClassRef(tParam)
+raw_wsdl.tParam._SetSupersedingClass(tParam)
 
 class tPart (raw_wsdl.tPart):
     def elementReference (self):
@@ -94,7 +94,7 @@ class tPart (raw_wsdl.tPart):
     def _setTypeReference (self, type_reference):
         self.__typeReference = type_reference
     __typeReference = None
-raw_wsdl.tPart._SetClassRef(tPart)
+raw_wsdl.tPart._SetSupersedingClass(tPart)
 
 class tBindingOperation (raw_wsdl.tBindingOperation):
     def operationReference (self):
@@ -102,7 +102,7 @@ class tBindingOperation (raw_wsdl.tBindingOperation):
     def _setOperationReference (self, operation_reference):
         self.__operationReference = operation_reference
     __operationReference = None
-raw_wsdl.tBindingOperation._SetClassRef(tBindingOperation)
+raw_wsdl.tBindingOperation._SetSupersedingClass(tBindingOperation)
 
 class definitions (raw_wsdl.definitions):
     def messageMap (self):
@@ -142,7 +142,7 @@ class definitions (raw_wsdl.definitions):
         # per-node in scope namespaces so we can do QName resolution.
         process_schema = kw.pop('process_schema', False)
         rv = super(definitions, cls).CreateFromDOM(node, *args, **kw)
-        rv.__namespaceContext = domutils.NamespaceContext(node)
+        rv.__namespaceContext = pyxb.Namespace.NamespaceContext(node)
         rv.__buildMaps()
         if process_schema:
             rv.__processSchema()
@@ -235,4 +235,4 @@ class definitions (raw_wsdl.definitions):
                     type_ns.validateComponentModel()
                     p._setTypeReference(type_ns.typeDefinitions()[type_ln])
 
-raw_wsdl.definitions._SetClassRef(definitions)
+raw_wsdl.definitions._SetSupersedingClass(definitions)

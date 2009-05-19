@@ -18,7 +18,7 @@ class _Binding_mixin (pyxb.cscRoot):
 
     def _namespaceContext (self):
         """The namespace context applicable to the object."""
-        return domutils.NamespaceContext.GetNodeContext(self.__domNode)
+        return pyxb.Namespace.NamespaceContext.GetNodeContext(self.__domNode)
     
     def _instanceRoot (self):
         return self.__instanceRoot
@@ -48,39 +48,45 @@ class _DynamicCreate_mixin (pyxb.cscRoot):
 
     Generally we'll want to augment the generated bindings by subclassing
     them, and adding functionality to the subclass.  This mix-in provides a
-    way to communicate the existence of the subclass back to the binding
-    infrastructure, so that when it creates an instance it uses the subclass
-    rather than the unaugmented binding class.
+    way to communicate the existence of the superseding subclass back to the
+    binding infrastructure, so that when it creates an instance it uses the
+    subclass rather than the unaugmented binding class.
 
-    When a raw generated binding is subclassed, _SetClassRef should be invoked
-    on the raw class passing the subclass in.  E.g.:
+    When a raw generated binding is subclassed, L{_SetSupersedingClass} should be
+    invoked on the raw class passing in the superseding subclass.  E.g.::
 
-    class mywsdl (raw.wsdl):
-      pass
-    raw.wsdl._SetClassRef(mywsdl)
+      class mywsdl (raw.wsdl):
+        pass
+      raw.wsdl._SetSupersedingClass(mywsdl)
 
     """
     
     @classmethod
-    def __ClassRefAttribute (cls):
-        return '_%s__ClassRef' % (cls.__name__,)
+    def __SupersedingClassAttribute (cls):
+        return '_%s__SupersedingClass' % (cls.__name__,)
 
     @classmethod
-    def _ClassRef (cls):
-        return getattr(cls, cls.__ClassRefAttribute(), cls)
+    def _SupersedingClass (cls):
+        """Return the class stored in the class reference attribute."""
+        return getattr(cls, cls.__SupersedingClassAttribute(), cls)
 
     @classmethod
-    def _SetClassRef (cls, superseding):
+    def _SetSupersedingClass (cls, superseding):
+        """Set the class reference attribute.
+
+        @param superseding: A Python class that is a subclass of this class.
+        """
         assert (superseding is None) or issubclass(superseding, cls)
         if superseding is None:
-            self.__dict__.pop(cls.__ClassRefAttribute(), None)
+            self.__dict__.pop(cls.__SupersedingClassAttribute(), None)
         else:
-            setattr(cls, cls.__ClassRefAttribute(), superseding)
+            setattr(cls, cls.__SupersedingClassAttribute(), superseding)
         return superseding
 
     @classmethod
     def _DynamicCreate (cls, *args, **kw):
-        return cls._ClassRef()(*args, **kw)
+        """Invoke the constructor for the class that supersedes this one."""
+        return cls._SupersedingClass()(*args, **kw)
 
 class simpleTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
     """L{simpleTypeDefinition} is a base class that is part of the
