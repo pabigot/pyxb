@@ -1,0 +1,150 @@
+Namespaces
+----------
+
+The most important concept to understand when working with complex XML
+documents is the `namespace <http://www.w3.org/TR/REC-xml-names/>`_.  A
+namespace is nothing more than a map from names to objects, partitioned into
+groups within which the names must denote a single object.
+
+A namespace is identified by its name, which is a `URI
+<http://www.rfc-editor.org/rfc/rfc3986.txt>`_.  Although it is common to use
+URIs like ``http://www.w3.org/2001/XMLSchema`` as namespace names, the name
+is simply an opaque identifier: it does not have to resolve to a Web site or
+anything helpful.  ``dinner:ParsnipsOnTuesday`` is a perfectly valid
+namespace name.
+
+Equally, namespaces and XML schemas are not the same thing.  A schema is
+simply a mechanism for specifying the contents of a namespace.  It is common
+to use the ``include`` directive in XMLSchema to combine multiple schema
+into a single namespace.  It is less common, though equally valid, to use
+``xmlns`` or ``xs:schemaLocation`` to select alternative schemas to use for
+the same namespace in different instance documents, as in the `dangling type
+<http://www.xfront.com/VariableContentContainers.html>`_ pattern.
+
+This diagram shows the class structure of the PyXB namespace
+infrastructure.  The central object is the :api:`pyxb.Namespace.Namespace`.
+Three mix-in classes provide implementations of separate namespace
+functions, and the :api:`pyxb.Namespace.NamespaceContext` class provides
+information related to the use of namespaces in XML documents.
+
+.. image:: Images/Namespace.jpg
+
+Namespace Category Maps
+^^^^^^^^^^^^^^^^^^^^^^^
+
+The :api:`pyxb.Namespace._NamespaceCategory_mixin` provides the support of
+discrete categories of named objects.  It allows arbitrary,
+runtime-identified, groups of objects to be registered in individual
+dictionaries within the namespace.  For example, XML Schema require that
+type definitions, element declarations, and attribute declarations be
+distinct categories of named objects in a namespace.  PyXB also maintains
+separate categories for attribute groups, model groups, identity constraint
+definitions, and notation declarations, which also must be unique within
+their category.
+
+Other groups of objects can be stored in a namespace.  For example, the WSDL
+definition of a service may choose to use the same namespace name for its
+types as for its definitions, adding services, ports, messages, bindings,
+and portTypes as named objects that can be identified.
+
+Namespace Resolution
+^^^^^^^^^^^^^^^^^^^^
+
+Named objects are often associated with namespaces through XML elements in a
+document.  For example::
+
+  <xs:attribute xmlns:xs="http://www.w3.org/2001/XMLSchema"
+   name="vegetable" type="xs:string" default="parsnip"/>
+
+specifies an attribute declaration.  In turn, references to names appear
+within XML elements, usually as values of specific attributes.
+
+The ``type`` portion of the attribute declaration above also identifies an
+object by name, and it must be possible to resolve the named object.  The
+following `concepts <http://www.w3.org/TR/REC-xml-names/#concepts>`_ are
+important to understand:
+
+- A `NCName <http://www.w3.org/TR/xmlschema-2/#NCName>`_ ("no-colon name")
+  is an identifier, specifically one without any colon (":") characters,
+  serving as a local name.
+
+- A `QName <http://www.w3.org/TR/xmlschema-2/#QName>`_ ("qualified name") is
+  an local name with an optional prefix, separated from it by a colon, which
+  identifies a context for the local name.
+
+- The prefix is mapped using `xmlns
+  <http://www.w3.org/TR/REC-xml-names/#ns-decl>`_ attributes to a namespace
+  name, which is a URI.
+
+- The combination of a namespace URI and the local name comprise an
+  extended namespace name.
+
+- The category within which the local name must be resolved in the namespace
+  is determined through external information, in the above case the fact of
+  the QName's appearance in a ``type`` attribute in an ``attribute``
+  declaration of an XML schema.
+
+.. index:
+   pair: resolution; name
+   pair: resolution; object (component)
+
+:api:`pyxb.Namespace._NamespaceCategory_mixin` is used to define the set of
+categories supported by a namespace and to add named objects to those
+categories.  A name is **resolved** when the object with which it is
+associated has been identified.  Objects are **resolved** when any names on
+which they depend have been resolved.
+:api:`pyxb.Namespace._NamespaceResolution_mixin` provides a mechanism to
+hold on to names that have been encountered but whose associated objects
+have not yet been resolved (perhaps because the named object on which they
+depend has not been defined).
+
+Because one named object (e.g., a model group definition) might require
+resolution of another (e.g., an element reference), resolution is an
+iterative process, implemented by
+:api:`pyxb.Namespace._NamespaceResolution_mixin.resolveDefinitions`, and
+executed when all named objects have been added to the namespace.  It
+depends on :api:`pyxb.Namespace.NamespaceContext` to identify named objects
+using the :api:`pyxb.Namespace.NamespaceContext.interpretQName` method.
+
+
+Namespace Context
+^^^^^^^^^^^^^^^^^
+
+`Namespaces in XML <http://www.w3.org/TR/REC-xml-names/>`_ specifies how the
+``xmlns`` attributes are used to associate prefix strings with namespaces.
+The :api:`pyxb.Namespace.NamespaceContext` class supports this by walking a
+DOM document and associating with each node the contextual information
+extracted from ``xmlns`` and other namespace-relevant attributes.
+
+The namespace context consists of three main parts:
+
+- The `default namespace <http://www.w3.org/TR/REC-xml-names/#defaulting>`_
+  specifies the namespace in which unqualified names are resolved.
+
+- The `target namespace <http://www.w3.org/TR/xmlschema-1/#key-targetNS>`_
+  is the namespace into which new name-to-component associations will be
+  recorded.
+
+- The `in-scope namespaces <http://www.w3.org/TR/REC-xml-names/#scoping>`_
+  of a DOM node are those which can be identified by a prefix applied to
+  names that appear in the node.
+
+Other Concepts
+^^^^^^^^^^^^^^
+
+.. index::
+   pair: namespace; absent
+   single: no namespace
+
+Absent Namespaces
+"""""""""""""""""
+
+Some schemas fail to specify a default namespace, a target namespace, or
+both.  These cases are described by the term "absent namespace"; sometimes
+it is said that an object for which the target namespace is absent is in "no
+namespace".  Since "no namespace" still requires support for resolving names
+within the schema, absent namespaces are represented as normal
+:api:`pyxb.Namespace.Namespace` instances, except that the associated URI is
+``None``.  The main effect of this is that some external handle on the
+Namespace instance must be retained, because the namespace cannot be
+identified in other contexts.

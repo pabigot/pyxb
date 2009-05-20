@@ -5,6 +5,10 @@ Architecture
 Conceptual Models
 =================
 
+.. toctree::
+
+   arch_namespaces
+
 Component Model
 ---------------
 
