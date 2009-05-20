@@ -34,6 +34,7 @@ clean:
 	-rm -rf _build/*
 
 apihtml:
+	mkdir -p _build/html/api
 	$(EPYDOC) $(EPYDOCOPTS)
 
 html:
