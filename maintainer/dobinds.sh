@@ -38,7 +38,7 @@ EOList
      echo "Retrieving ${prefix} from ${uri}"
      wget -O ${cached_schema} ${uri}
   fi
-  scripts/genbind \
+  scripts/pyxbgen \
     --module-path-prefix pyxb.standard.bindings \
     --schema-uri file:${cached_schema} \
     --schema-prefix ${prefix} \

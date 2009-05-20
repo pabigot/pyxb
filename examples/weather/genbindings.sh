@@ -9,7 +9,7 @@ fi
 
 mkdir -p raw
 touch raw/__init__.py
-../../scripts/genbind \
+../../scripts/pyxbgen \
    -m '' \
    -p "${PREFIX}" \
    -u "${WSDL}" \

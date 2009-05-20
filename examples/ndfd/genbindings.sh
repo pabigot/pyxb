@@ -5,7 +5,7 @@ PREFIX='DWML'
 
 mkdir -p raw
 touch raw/__init__.py
-../../scripts/genbind \
+../../scripts/pyxbgen \
    -u "${URI}" \
    -p "${PREFIX}" \
    -r 
@@ -18,7 +18,7 @@ WSDL_URI='http://www.weather.gov/forecasts/xml/DWMLgen/wsdl/ndfdXML.wsdl'
 if [ ! -f ndfdXML.wsdl ] ; then
   wget ${WSDL_URI}
 fi
-../../scripts/genbind \
+../../scripts/pyxbgen \
    -u "${WSDL_URI}" \
    -p ndfd \
    -r -W
