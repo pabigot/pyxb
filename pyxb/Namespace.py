@@ -95,8 +95,8 @@ class _NamespaceCategory_mixin (pyxb.cscRoot):
     themselves, can be saved.  Unless configured otherwise, the Namespace
     instance is extended with accessors that provide direct access to
     individual category maps.  The name of the method is the category name
-    with a suffix of "s"; e.g., if a category "typeDefinition" exists, its may
-    can be accessed from the namespace using the syntax ns.typeDefinitions().
+    with a suffix of "s"; e.g., if a category "typeDefinition" exists, it can
+    be accessed from the namespace using the syntax C{ns.typeDefinitions()}.
 
     Note that the returned value from the accessor is a live reference to
     the category map; changes made to the map are reflected in the
