@@ -1,0 +1,18 @@
+********************
+Maintainer Reference
+********************
+
+The `API <api/index.html>`_
+***************************
+
+The `API <api/index.html>`_ for PyXB was generated using `Epydoc
+<http://epydoc.sourceforge.net/>`_.  Most of the public API is commented,
+though not all docstrings have been updated to use Epydoc syntax.
+
+.. toctree::
+   :hidden:
+
+   coding
+
+.. include:: coding.txt
+

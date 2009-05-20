@@ -1,3 +1,22 @@
+************
+Architecture
+************
+
+Conceptual Models
+=================
+
+Component Model
+---------------
+
+Binding Model
+-------------
+
+Content Model
+-------------
+
+Binding Generation
+==================
+
 The Python structures that hold schema-related data are directly related to
 the schema components defined in the XMLSchema specification.  Familiarity
 with the material in http://www.w3.org/TR/xmlschema-1 is valuable.
@@ -16,14 +35,17 @@ Design Choices
 Reliance on DOM
 ---------------
 
-We rely on a DOM implementation to provide QName interpretation (per section
-3.15.3 of XMLSchema part 1).  That is, the DOM implementation should be
-tracking in-scope namespaces as it builds the DOM tree; the PyXB
-implementation assumes that the node namespaceURI and localName values have
-been determined correctly by the DOM.
+We rely on a DOM implementation to provide `QName interpretation
+<http://www.w3.org/TR/xmlschema-1/#src-qname>`_.  That is, the DOM
+implementation should be tracking in-scope namespaces as it builds the DOM
+tree; the PyXB implementation assumes that the node ``namespaceURI`` and
+``localName`` values have been determined correctly by the DOM
+implementation.
 
-QName resolution, on the other hand, is the responsibility of PyXB, and is
-managed through the pyxb.NamespaceContext class.
+`QName resolution
+<http://www.w3.org/TR/xmlschema-1/#cvc-resolve-instance>`_, on the other
+hand, is the responsibility of PyXB, and is managed through the
+:api:`pyxb.Namespace.NamespaceContext` class.
 
 PyXB
 ----
@@ -48,8 +70,6 @@ Generated Bindings
 The default templates for generated code use the Document Object Model as
 their source for instance documents.  They assume the implementation
 supports a Pythonic interface.  If an implementation supports only a strict
-
-
 
 Preloaded Namespaces
 --------------------

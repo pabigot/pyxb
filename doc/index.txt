@@ -1,28 +1,65 @@
-.. PyXB documentation master file, created by
-   sphinx-quickstart on Tue May 19 03:28:52 2009.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+.. PyXB documentation master file
 
-Welcome to PyXB's documentation!
-================================
+################################
+PyXB: Python XML Schema Bindings
+################################
 
-The API reference is :api:`pyxb`.
+PyXB ("pixbee") is a pure `Python <http://www.python.org>`_ package that
+generates Python source code for classes that correspond to data structures
+defined by `XMLSchema <http://www.w3.org/XML/Schema>`_.  In concept it is
+similar to `JAXB <http://en.wikipedia.org/wiki/JAXB>`_ for Java and
+`CodeSynthesis XSD <http://www.codesynthesis.com/products/xsd/>`_ for C++.
+It supports conversion between `DOM <http://www.w3.org/DOM/>`_
+representations of `XML <http://www.w3.org/XML/>`_ documents and Python
+instances.  A :ref:`thirty_sec_example` is at the bottom of this page.
 
-Contents:
-
+********
+Contents
+********
 .. toctree::
    :maxdepth: 2
 
-   outline
-   vision
-   model
-   limitations
-   coding
+   overview
+   examples
    architecture
-   models
+   userref
+   maintref
 
+.. _thirty_sec_example:
+
+*********************
+Thirty Second Example
+*********************
+
+An example of a program using PyXB to interact with a `web service
+<http://wiki.cdyne.com/wiki/index.php?title=CDYNE_Weather>`_ using an
+automatically-generated module.  First, retrieve the WSDL and generate the
+bindings::
+
+ $ pyxbgen -p weather -u 'http://ws.cdyne.com/WeatherWS/Weather.asmx?wsdl' -W
+ Need to dynamically create schema
+ Importing pyxb.standard.bindings.soap
+ Importing pyxb.standard.bindings.soap12
+ Importing pyxb.standard.bindings.http
+ Importing pyxb.standard.bindings.mime
+ Attempting to load a namespace from /home/pab/pyxb/dev/pyxb/standard/bindings/raw/http.wxs
+ Attempting to load a namespace from /home/pab/pyxb/dev/pyxb/standard/bindings/raw/wsdl.wxs
+ Attempting to load a namespace from /home/pab/pyxb/dev/pyxb/standard/bindings/raw/soapenc.wxs
+ Attempting to load a namespace from /home/pab/pyxb/dev/pyxb/standard/bindings/raw/mime.wxs
+ Attempting to load a namespace from /home/pab/pyxb/dev/pyxb/standard/bindings/raw/soap12.wxs
+ Attempting to load a namespace from /home/pab/pyxb/dev/pyxb/standard/bindings/raw/soap.wxs
+ Binding source is 83253 long to ./weather.py
+ Saved binding source to ./weather.py
+
+Then write a program that uses them:
+
+.. literalinclude:: ../examples/weather/client_get.py
+
+That's it.
+
+******************
 Indices and tables
-==================
+******************
 
 * :ref:`genindex`
 * :ref:`modindex`

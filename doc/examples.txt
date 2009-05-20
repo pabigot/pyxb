@@ -1,0 +1,26 @@
+.. _examples:
+
+********
+Examples
+********
+
+Four web service examples of varying complexity are provided in the examples
+subdirectory.  Some are WSDL services, and others are simply XMLSchema
+documents.  Generally, invoke ``genbindings.sh`` which will retrieve the
+source schema and perform the binding transformations.  Often there are a
+couple trivial programs that show how the bindings are used.
+
+See the README.txt file in each example subdirectory for more information.
+
+Dictionary (Aonaware)
+=====================
+
+Simple Weather (CDyne)
+======================
+
+Professional Weather (National Digital Forecast Data)
+=====================================================
+
+Television Schedules (Tribune Media Services)
+=============================================
+

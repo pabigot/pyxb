@@ -1,9 +1,11 @@
 What Is PyXB?
-*************
+=============
 
-PyXB is a pure Python package that generates Python code for classes that
-correspond to data structures defined by XMLSchema.  In concept it is
-similar to JAXB for Java and CodeSynthesis for C++.
+PyXB is a pure `Python <http://www.python.org>`_ package that generates
+Python code for classes that correspond to data structures defined by
+`XMLSchema <http://www.w3.org/XML/Schema>`_.  In concept it is similar to
+`JAXB <http://en.wikipedia.org/wiki/JAXB>`_ for Java and `CodeSynthesis XSD
+<http://www.codesynthesis.com/products/xsd/>`_ for C++.
 
 The major goals of PyXB are:
 
@@ -29,42 +31,28 @@ The major goals of PyXB are:
   + include and import directives
   + constraints on simple types
 
-Secondary goals, some of which have been achieved in this release, are
+Secondary goals, some of which have been achieved in the current release, are
 listed in :ref:`pyxb_vision`.
 
 PyXB can parse the following namespaces and create bindings for them (though
 not all have been rigorously tested)::
 
- http://www.w3.org/2001/XMLSchema-hasFacetAndProperty
- http://schemas.xmlsoap.org/wsdl/
- http://www.w3.org/1999/xhtml.xsd
+
+ :namespace:`http://www.weather.gov/forecasts/xml/DWMLgen/schema/DWML.xsd`
+
  http://schemas.xmlsoap.org/soap/envelope/
  http://schemas.xmlsoap.org/soap/encoding/
+
+ http://schemas.xmlsoap.org/wsdl/
  http://schemas.xmlsoap.org/wsdl/mime/
  http://schemas.xmlsoap.org/wsdl/soap/
  http://schemas.xmlsoap.org/wsdl/http/
  http://schemas.xmlsoap.org/wsdl/soap12/wsdl11soap12.xsd
+
  http://code.google.com/apis/kml/schema/kml21.xsd
+
  http://www.w3.org/TR/2002/REC-xmldsig-core-20020212/xmldsig-core-schema.xsd
  http://www.w3.org/TR/2002/REC-xmlenc-core-20021210/xenc-schema.xsd
  http://docs.oasis-open.org/security/saml/v2.0/saml-schema-assertion-2.0.xsd
  http://docs.oasis-open.org/security/saml/v2.0/saml-schema-protocol-2.0.xsd
 
-How to use it
-*************
-
-Install in the usual manner (python setup.py install).
-
-``scripts/genbind`` is used to generate bindings.  The URI to the schema is
-required, as is the name that will be used for generated modules.
-
-Examples
-********
-
-Five web service examples of varying complexity are provided in the examples
-subdirectory.  Some are WSDL services, and others are simply XMLSchema
-documents.  Generally, invoke ``genbindings.sh`` which will retrieve the
-source schema and perform the binding transformations.  Often there are a
-couple trivial programs that show how the bindings are used.
-
-See the README.txt file in each example subdirectory for more information.

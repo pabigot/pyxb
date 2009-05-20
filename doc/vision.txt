@@ -1,13 +1,13 @@
 .. _pyxb_vision:
 
 PyXB Vision
-***********
+===========
 
 PyXB is intended to support automated generation of Python language classes
 that conform in structure to data types defined with the W3C XML Schema.
 
 Origins
-=======
+-------
 
 PyXB was developed to support interaction with arbitrary web services from
 Python.
@@ -25,7 +25,7 @@ process complex schema like those for KML or SAML and a Python interface
 that was not natural.
 
 generateDS
-----------
+^^^^^^^^^^
 
 Reliance on a SAX processor, and use of a code generation scheme that was
 difficult to modify, made the code difficult to work with.  It seemed
@@ -33,22 +33,23 @@ infeasible to extend the implementation to support Pythonic schema bindings
 that used different styles.
 
 ZSI
----
+^^^
 
 This system supports generation of bindings that allow web services to be
 invoked.
 
 Design Goals
-============
+------------
 
 PyXB must be able to process the schema used to describe standard web
 services documents, including but not limited to the following namespaces:
- [XMLSchema]
- [wsdl]
- [soap]
- [soap bindings]
- [http bindings]
- [mime bindings]
+
+- [XMLSchema]
+- [wsdl]
+- [soap]
+- [soap bindings]
+- [http bindings]
+- [mime bindings]
 
 Standard conformance is a high priority.  In addition to official standards
 such as those from W3C and OASIS, industry prevalence should guide selection

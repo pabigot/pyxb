@@ -48,13 +48,13 @@ def api_role(role, rawtext, text, lineno, inliner, options={}, content=[]):
     uri = file = '%s/%s-module.html' % (basedir, text)
     chunks = text.split('.')
 
-    print 'Trying module file %s' % (file,)
+    #print 'Trying module file %s' % (file,)
 
     # if not module, then a class
     if not exists(file):
         name = text.split('.')[-1]
         uri = file = '%s/%s-class.html' % (basedir, text)
-    print 'Trying class file %s' % (file,)
+    #print 'Trying class file %s' % (file,)
 
     # if not a class, then function or class method 
     if not exists(file):
@@ -62,7 +62,7 @@ def api_role(role, rawtext, text, lineno, inliner, options={}, content=[]):
         fprefix = '.'.join(chunks[:-1])
         # assume function is referenced
         file = '%s/%s-module.html' % (basedir, fprefix)
-        print 'Trying method file %s' % (file,)
+        #print 'Trying method file %s' % (file,)
         if exists(file):
             uri = '%s#%s' % (file, method)
         else:
@@ -76,6 +76,7 @@ def api_role(role, rawtext, text, lineno, inliner, options={}, content=[]):
         node = nodes.reference(rawtext, name, refuri=uri, **options)
     else:
         # cannot find reference, then just inline the text
+        print 'WARNING: Unable to find %s in API' % (text,)
         node = nodes.literal(rawtext, text)
 
     return [node], []

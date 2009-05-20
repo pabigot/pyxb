@@ -1,0 +1,8 @@
+How to use it
+=============
+
+Install in the usual manner (python setup.py install).
+
+``scripts/genbind`` is used to generate bindings.  The URI to the schema is
+required, as is the name that will be used for generated modules.
+

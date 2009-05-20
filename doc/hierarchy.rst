@@ -31,7 +31,6 @@ Examples
   Simple Weather (CDyne)
   Professional Weather (National Digital Forecast Data)
   Television Schedules (Tribune Media Services)
-  RSS Feeds
 Architecture
   Conceptual Models
     Component Model

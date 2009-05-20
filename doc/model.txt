@@ -1,0 +1,31 @@
+Complex Type Attributes
+=======================
+
+Extension
+---------
+
+If an attribute in the CTD matches the namespace and localname of an
+attribute in the base type, a schema validation error occurs.
+
+Restriction
+-----------
+
+If an attribute in the CTD matches the namespace and localname of an
+attribute in the base type, the type of the attribute must be a subclass of
+the type of the base type and the use of the attribute must be no less
+restrictive than the use in the base type
+
+Complex Type Content
+====================
+
+Extension
+---------
+
+The binding is a subclass of the binding for the base type; new elements are
+defined, and the content model refers to elements throughout the class
+hierarchy.
+
+Restriction
+-----------
+
+The binding is a subclass of the binding for the base type.  

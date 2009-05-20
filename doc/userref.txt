@@ -1,0 +1,25 @@
+**************
+User Reference
+**************
+
+Creating bindings with genbind
+==============================
+
+Self-contained schema
+---------------------
+
+Multi-document schema
+---------------------
+
+Saving pre-processed namespaces
+-------------------------------
+
+Customized bindings
+-------------------
+
+Standard bindings
+=================
+
+WSDL
+----
+
