@@ -39,9 +39,8 @@ EOList
      wget -O ${cached_schema} ${uri}
   fi
   scripts/pyxbgen \
-    --module-path-prefix pyxb.standard.bindings \
+    --module-path pyxb.standard.bindings.${prefix} \
     --schema-uri file:${cached_schema} \
-    --schema-prefix ${prefix} \
     --generate-raw-binding \
     --save-component-model
 done
