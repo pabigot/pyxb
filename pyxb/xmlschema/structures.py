@@ -533,7 +533,7 @@ class _NamedComponent_mixin (pyxb.cscRoot):
             return
         self.__dict__.update(state)
             
-class _ValueConstraint_mixin:
+class _ValueConstraint_mixin (pyxb.cscRoot):
     """Mix-in indicating that the component contains a simple-type
     value that may be constrained."""
     

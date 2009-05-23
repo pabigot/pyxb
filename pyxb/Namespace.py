@@ -26,7 +26,7 @@ DefaultBindingPath = "%s/standard/bindings/raw" % (os.path.dirname(__file__),)
 # Stuff required for pickling
 import cPickle as pickle
 
-class _Resolvable_mixin (object):
+class _Resolvable_mixin (pyxb.cscRoot):
     """Mix-in indicating that this object may have references to unseen named components.
 
     This class is mixed-in to those XMLSchema components that have a reference
@@ -329,7 +329,7 @@ class _ComponentDependency_mixin (pyxb.cscRoot):
         """
         raise LogicError('%s does not implement _dependentComponents_vx' % (self.__class__,))
 
-class _NamespaceComponentAssociation_mixin (object):
+class _NamespaceComponentAssociation_mixin (pyxb.cscRoot):
     """Mix-in for managing components defined within this namespace.
 
     The component set includes not only top-level named components (such as
