@@ -1,5 +1,7 @@
 .. PyXB documentation master file
 
+.. role:: namespace(literal)
+
 ################################
 PyXB: Python XML Schema Bindings
 ################################
@@ -54,6 +56,19 @@ bindings::
 Then write a program that uses them:
 
 .. literalinclude:: ../examples/weather/client_get.py
+
+And run it::
+
+ vmfed9[24]$ PYTHONPATH=../.. python client_get.py
+ Weather forecast for Saint Paul, MN:
+   Saturday, May 02 2009: Partly Cloudy, from  to 64
+   Sunday, May 03 2009: Sunny, from 43 to 66
+   Monday, May 04 2009: Partly Cloudy, from 45 to 69
+   Tuesday, May 05 2009: Mostly Cloudy, from 54 to 69
+   Wednesday, May 06 2009: Partly Cloudy, from 47 to 69
+   Thursday, May 07 2009: Mostly Cloudy, from 49 to 66
+   Friday, May 08 2009: Partly Cloudy, from 48 to 67
+ vmfed9[25]$ 
 
 That's it.
 

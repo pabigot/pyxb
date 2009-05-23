@@ -34,25 +34,47 @@ The major goals of PyXB are:
 Secondary goals, some of which have been achieved in the current release, are
 listed in :ref:`pyxb_vision`.
 
+Demonstrated Capabilities
+-------------------------
+
 PyXB can parse the following namespaces and create bindings for them (though
-not all have been rigorously tested)::
+not all have been rigorously tested).
 
+* The `National Digital Forecast Database <http://www.nws.noaa.gov/ndfd/>`_
 
- :namespace:`http://www.weather.gov/forecasts/xml/DWMLgen/schema/DWML.xsd`
+::
 
- http://schemas.xmlsoap.org/soap/envelope/
- http://schemas.xmlsoap.org/soap/encoding/
+  http://www.weather.gov/forecasts/xml/DWMLgen/schema/DWML.xsd
 
- http://schemas.xmlsoap.org/wsdl/
- http://schemas.xmlsoap.org/wsdl/mime/
- http://schemas.xmlsoap.org/wsdl/soap/
- http://schemas.xmlsoap.org/wsdl/http/
- http://schemas.xmlsoap.org/wsdl/soap12/wsdl11soap12.xsd
+* `SOAP infrastructure <http://www.w3.org/TR/soap/>`_
 
- http://code.google.com/apis/kml/schema/kml21.xsd
+::
 
- http://www.w3.org/TR/2002/REC-xmldsig-core-20020212/xmldsig-core-schema.xsd
- http://www.w3.org/TR/2002/REC-xmlenc-core-20021210/xenc-schema.xsd
- http://docs.oasis-open.org/security/saml/v2.0/saml-schema-assertion-2.0.xsd
- http://docs.oasis-open.org/security/saml/v2.0/saml-schema-protocol-2.0.xsd
+  http://schemas.xmlsoap.org/soap/envelope/
+  http://schemas.xmlsoap.org/soap/encoding/
+  http://schemas.xmlsoap.org/wsdl/soap12/
+
+* `Web Services Description Language <http://www.w3.org/TR/wsdl>`_
+
+::
+
+  http://schemas.xmlsoap.org/wsdl/
+  http://schemas.xmlsoap.org/wsdl/mime/
+  http://schemas.xmlsoap.org/wsdl/soap/
+  http://schemas.xmlsoap.org/wsdl/http/
+
+* `Keyhole Markup Language <http://code.google.com/apis/kml/>`_ (v 2.1)
+
+::
+
+  http://code.google.com/apis/kml/schema/kml21.xsd
+
+* Others (parsed only, no testing)
+
+::
+
+  http://www.w3.org/TR/2002/REC-xmldsig-core-20020212/xmldsig-core-schema.xsd
+  http://www.w3.org/TR/2002/REC-xmlenc-core-20021210/xenc-schema.xsd
+  http://docs.oasis-open.org/security/saml/v2.0/saml-schema-assertion-2.0.xsd
+  http://docs.oasis-open.org/security/saml/v2.0/saml-schema-protocol-2.0.xsd
 

@@ -1,8 +1,114 @@
 How to use it
 =============
 
-Install in the usual manner (python setup.py install).
+The current release of PyXB is 0.2.0, the first public release.  Early
+adopters are asked to be patient as installation and operation problems are
+worked out.
 
-``scripts/genbind`` is used to generate bindings.  The URI to the schema is
-required, as is the name that will be used for generated modules.
+Installation
+------------
 
+PyXB requires Python version 2.4 or higher (not including 3.x).  Among other
+things the implementation relies on decorators (:PEP:`318`) like
+``@classref`` that are not present in earlier versions.  The distribution is
+regularly tested with the latest release in each of the 2.4, 2.5, and 2.6
+series.
+
+Install in the usual manner::
+
+ python setup.py install
+
+You can test the distribution with::
+
+ python setup.py test
+
+which will run all the unit tests.  Some of them will print warnings and
+other noise, but if at the end they all pass, don't worry about it.
+
+If you need more help with installation, see
+http://docs.python.org/install/index.html.
+
+Generating Bindings
+-------------------
+
+The ``pyxbgen`` script is used to translate XML schema and WSDL documents
+into Python data bindings.
+
+There are two key components to generating bindings:
+
+- The URI to the definition of the data structures.  This can be a URL, or a
+  path to a local file.
+
+- The module path into which the binding will be installed.  This is the
+  path that users of the binding will import.
+
+.. table:: Command line parameters to ``pyxbgen``
+
+   ==========================  ===============  ======  =============================================
+   Long Option                 Argument         Alt     Description
+   ==========================  ===============  ======  =============================================
+   ``--module-path``           *module-path*    ``-m``  The python module path for the generated
+                                                        bindings, excluding the binding module itself
+   ``--schema-uri``            *uri*            ``-u``  The URI for the schema from which bindings 
+                                                        are to be generated.
+   ``--generate-raw-binding``                           Generate the bindings in a subdirectory ``raw``
+                                                        so that customized wrappers can be written
+   ``--write-schema-path``     *xsd-file*       ``-s``  Write the schema text to the specified file
+   ``--uri-is-wsdl``                            ``-W``  Indicate that the URI is a WSDL definition
+                                                        (schema is extracted from ``types`` element)
+   ``--save-component-model``                   ``-C``  Save a pickled copy of the namespace component
+                                                        model in the same directory as the binding
+   ==========================  ===============  ======  =============================================
+
+The module path and schema URI are required.  Raw bindings allow the user to
+import the module and obtain customized classes that augment the pure data
+with functionality or additional data.  Optionally, the XML document retrieved
+from the URI can be stored into a local file for review (usually important
+when working with WSDL definitions).  If the XML document is a WSDL
+definition, only the ``types`` portion is extracted.  Last, the component
+model must be saved if the subsequent bindings are to be generated for
+namespaces that refer to defined objects in this namespace.
+
+An example of translating the schema for WSDL documents is::
+
+ pyxbgen --module-path pyxb.standard.bindings.wsdl \
+    --schema-uri http://schemas.xmlsoap.org/wsdl/
+
+For more details, including how to customize modules, see :ref:`pyxbgen reference`.
+
+WSDL Functions
+--------------
+
+The ``pyxbwsdl`` script is used to examine and operate on WSDL definition
+documents.  In this release, it retrieves the WSDL document specified by the
+URI passed as an argument, and prints the available services with their
+operations and parameters.  For example::
+
+  vmfed9[343]$ pyxbwsdl http://api.google.com/GoogleSearch.wsdl
+  Need to dynamically create schema
+  Importing pyxb.standard.bindings.soap
+  Attempting to load a namespace from /home/pab/pyxb/dev/pyxb/standard/bindings/raw/wsdl.wxs
+  Attempting to load a namespace from /home/pab/pyxb/dev/pyxb/standard/bindings/raw/soapenc.wxs
+  Attempting to load a namespace from /home/pab/pyxb/dev/pyxb/standard/bindings/raw/soap.wxs
+  Service: GoogleSearchService
+    Port GoogleSearchPort at http://api.google.com/search/beta2
+      doGetCachedPage (at action=urn:GoogleSearchAction)
+        Input: typens:doGetCachedPage
+        Output: typens:doGetCachedPageResponse
+      doSpellingSuggestion (at action=urn:GoogleSearchAction)
+        Input: typens:doSpellingSuggestion
+        Output: typens:doSpellingSuggestionResponse
+      doGoogleSearch (at action=urn:GoogleSearchAction)
+        Input: typens:doGoogleSearch
+        Output: typens:doGoogleSearchResponse
+
+In the future, this script is expected to provide more powerful display of
+available services, and perhaps to generate functions which interact with the
+service using the appropriate encoding.
+
+.. ignored
+   ## Local Variables:
+   ## fill-column:78
+   ## indent-tabs-mode:nil
+   ## End:
+    
