@@ -857,8 +857,10 @@ def GenerateED (ed, **kw):
     template_map['element_name'] = pythonLiteral(ed.name(), **kw)
     if (ed.SCOPE_global == ed.scope()):
         template_map['element_scope'] = pythonLiteral(None, **kw)
+        template_map['map_update'] = templates.replaceInText('ElementToBindingMap[%{element_name}] = %{class}', **template_map)
     else:
         template_map['element_scope'] = pythonLiteral(ed.scope(), **kw)
+        template_map['map_update'] = ''
     template_map['base_datatype'] = pythonLiteral(ed.typeDefinition(), **kw)
     outf.write(templates.replaceInText('''
 # ElementDeclaration
@@ -869,7 +871,7 @@ class %{class} (pyxb.binding.basis.element):
     _Namespace = Namespace
     _ElementScope = %{element_scope}
     _TypeDefinition = %{base_datatype}
-ElementToBindingMap[%{element_name}] = %{class}
+%{map_update}
 ''', **template_map))
     ElementClassMap.setdefault(ed.name(), []).append(template_map['class'])
 
