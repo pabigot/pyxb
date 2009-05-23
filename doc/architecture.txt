@@ -8,9 +8,7 @@ Conceptual Models
 .. toctree::
 
    arch_namespaces
-
-Component Model
----------------
+   arch_component
 
 Binding Model
 -------------

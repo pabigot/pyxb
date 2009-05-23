@@ -135,6 +135,8 @@ description of the intricacies of ``super``.
 Inheritance
 ===========
 
+.. _mixins:
+
 Mix-in classes
 --------------
 

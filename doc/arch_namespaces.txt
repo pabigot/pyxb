@@ -47,6 +47,8 @@ definition of a service may choose to use the same namespace name for its
 types as for its definitions, adding services, ports, messages, bindings,
 and portTypes as named objects that can be identified.
 
+.. _resolution:
+
 Namespace Resolution
 ^^^^^^^^^^^^^^^^^^^^
 

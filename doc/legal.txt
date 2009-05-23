@@ -15,7 +15,7 @@ provide an interesting capability that does not require significant effort
 to demonstrate in an satisfactory way.
 
 The :ref:`examples` in the PyXB documentation refer to web services found
-through `Google <http://www.google.com/>` and other search engines.  Some of
+through `Google <http://www.google.com/>`_ and other search engines.  Some of
 these services are free; for others the API schemas could be obtained by
 anonymous download but use of the service would require a paid subscription.
 

@@ -2,14 +2,45 @@
 User Reference
 **************
 
-Creating bindings with genbind
-==============================
+.. _pyxbgen:
+
+Creating bindings with ``pyxbgen``
+==================================
+
+.. table:: Command line parameters to ``pyxbgen``
+
+   ==========================  ===============  ======  =============================================
+   Long Option                 Argument         Alt     Description
+   ==========================  ===============  ======  =============================================
+   ``--module-path``           *module-path*    ``-m``  The python module path for the generated
+                                                        bindings, excluding the binding module itself
+   ``--schema-uri``            *uri*            ``-u``  The URI for the schema from which bindings 
+                                                        are to be generated.
+   ``--generate-raw-binding``                           Generate the bindings in a subdirectory ``raw``
+                                                        so that customized wrappers can be written
+   ``--write-schema-path``     *xsd-file*       ``-s``  Write the schema text to the specified file
+   ``--uri-is-wsdl``                            ``-W``  Indicate that the URI is a WSDL definition
+                                                        (schema is extracted from ``types`` element)
+   ``--save-component-model``                   ``-C``  Save a pickled copy of the namespace component
+                                                        model in the same directory as the binding
+   ==========================  ===============  ======  =============================================
+
+The module path and schema URI are required.  Raw bindings allow the user to
+import the module and obtain customized classes that augment the pure data
+with functionality or additional data.  Optionally, the XML document retrieved
+from the URI can be stored into a local file for review (usually important
+when working with WSDL definitions).  If the XML document is a WSDL
+definition, only the ``types`` portion is extracted.  Last, the component
+model must be saved if the subsequent bindings are to be generated for
+namespaces that refer to defined objects in this namespace.
 
 Self-contained schema
 ---------------------
 
 Multi-document schema
 ---------------------
+
+TODO: Add a facility to specify the paths for imported namespaces.
 
 Saving pre-processed namespaces
 -------------------------------
