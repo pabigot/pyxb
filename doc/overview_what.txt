@@ -34,11 +34,12 @@ The major goals of PyXB are:
 Secondary goals, some of which have been achieved in the current release, are
 listed in :ref:`pyxb_vision`.
 
-Demonstrated Capabilities
--------------------------
+Examples of Processable Schema
+------------------------------
 
 PyXB can parse the following namespaces and create bindings for them (though
-not all have been rigorously tested).
+not all have been rigorously tested).  For examples of how to use PyXB with
+schemas like these, see :ref:`examples`.
 
 * The `National Digital Forecast Database <http://www.nws.noaa.gov/ndfd/>`_
 

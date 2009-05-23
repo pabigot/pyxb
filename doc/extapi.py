@@ -16,6 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 #
+# Modifications by PAB to override reference text
 
 import os.path
 from docutils import nodes

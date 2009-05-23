@@ -4,10 +4,9 @@ Component Model
 PyXB's component model is the representation of XML schema components as a
 complex relation of data objects.  Each object class corresponds to one of
 the thirteen `XML Schema Components
-<www.w3.org/TR/xmlschema-1/index.html#components>`_.  Names of components
-and names of their properties follow the model in the specification.  All
-classes specific to the component model are found in the
-:api:`pyxb.xmlschema.structures` module.
+<www.w3.org/TR/xmlschema-1/index.html#components>`_, and names of components
+and their properties follow those definitions.  All classes specific to the
+component model are found in the :api:`pyxb.xmlschema.structures` module.
 
 The relationships amongst components is depicted in the following diagram.
 

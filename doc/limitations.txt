@@ -4,6 +4,8 @@ Limitations
 Things That Work
 ----------------
 
+* Class constants corresponding to string enumeration constraints
+
 * Simple and complex type definitions
 
 * List and union datatypes
@@ -19,30 +21,23 @@ Things That Work
 Things That Don't Work
 ----------------------
 
+...but should soon
+^^^^^^^^^^^^^^^^^^
+
 * Substitution groups are not supported.  This is expected to be addressed
-  in a future release.
-
-* The redefine directive is not supported.
-
-* Wildcards ("any") elements are supported in the sense that classes that
-  enable them in the content model provide access to unrecognized DOM
-  instances through the wildcardElements() method.  However, neither the
-  namespace constraint nor process contents attributes are applied.
-
-* Wildcard ("any") attributes are supported in the same sense as wildcard
-  elements: no constraints are checked.
+  in the next major release.
 
 * The XMLSchema instance attributes (xsi:nil, xsi:type) are not currently
   supported.  It is relatively clear how to do so, though, and this will be
-  addressed in a future release.
-
-* Identity constraints ("key", "unique", "keyref") are stored in the content
-  model, but are not used.
+  addressed in the next major release.
 
 * Pattern constraints don't do anything.
 
 * The only date/time-related datatype that is implemented in this release is
   dateTime.
+
+* Documentation present in the schema is not made available in the bindings
+  (viz., I want the annotations to become docstrings).
 
 * When generating a DOM instance from a binding instance, the resulting
   document should validate against the schema, but the order of elements
@@ -50,8 +45,24 @@ Things That Don't Work
   example of this, see
   tests/test-mg-choice:TestMGChoice.testMultichoiceOrderImportant
 
-* Documentation present in the schema is not made available in the bindings
-  (viz., I want the annotations to become docstrings).
+...and probably never will
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+* The redefine directive is not supported.
+
+* Identity constraints ("key", "unique", "keyref") are stored in the content
+  model, but are not used.
+
+* Wildcards ("any") elements are supported in the sense that classes that
+  enable them in the content model provide access to unrecognized DOM
+  instances through the
+  :api:`pyxb.binding.basis.complexTypeDefinition.wildcardElements` method.
+  However, neither the namespace constraint nor process contents attributes
+  are applied.
+
+* Wildcard ("any") attributes are supported in the same sense as wildcard
+  elements: no constraints are checked, and all are aggregated into the
+  :api:`pyxb.binding.basis.complexTypeDefinition.wildcardAttributeMap`.
 
 Things That Mostly Work, But They're Ugly
 -----------------------------------------
@@ -80,13 +91,15 @@ Things That Mostly Work, But They're Ugly
 
 * Processing of include and import directives is a little too fragile.
 
-Intended Future Enhancements
-----------------------------
+Intended Near-Term Enhancements
+-------------------------------
 
-* Use the new content model to generate DOM instances from objects
+* Use the :api:`new content model <pyxb.binding.content.ContentModel>` to
+  generate DOM instances from objects
 
-* Implement xsi:type
+* Implement `xsi:type <http://www.w3.org/TR/xmlschema-1/#xsi_type>`_
 
-* Support substitution groups
+* Support `substitution groups
+  <http://www.w3.org/TR/xmlschema-1/#key-equivalenceClass>`_
 
 * Support custom generation templates

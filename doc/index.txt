@@ -8,12 +8,13 @@ PyXB: Python XML Schema Bindings
 
 PyXB ("pixbee") is a pure `Python <http://www.python.org>`_ package that
 generates Python source code for classes that correspond to data structures
-defined by `XMLSchema <http://www.w3.org/XML/Schema>`_.  In concept it is
-similar to `JAXB <http://en.wikipedia.org/wiki/JAXB>`_ for Java and
-`CodeSynthesis XSD <http://www.codesynthesis.com/products/xsd/>`_ for C++.
-It supports conversion between `DOM <http://www.w3.org/DOM/>`_
+defined by `XMLSchema <http://www.w3.org/XML/Schema>`_.  The generated classes
+support bi-directional conversion between `DOM <http://www.w3.org/DOM/>`_
 representations of `XML <http://www.w3.org/XML/>`_ documents and Python
-instances.  A :ref:`thirty_sec_example` is at the bottom of this page.
+instances.  In concept it is similar to `JAXB
+<http://en.wikipedia.org/wiki/JAXB>`_ for Java and `CodeSynthesis XSD
+<http://www.codesynthesis.com/products/xsd/>`_ for C++.  A
+:ref:`thirty_sec_example` is at the bottom of this page.
 
 ********
 Contents
@@ -80,3 +81,8 @@ Indices and tables
 * :ref:`modindex`
 * :ref:`search`
 
+.. ignored
+   ## Local Variables:
+   ## fill-column:78
+   ## indent-tabs-mode:nil
+   ## End:

@@ -150,3 +150,9 @@ within the schema, absent namespaces are represented as normal
 ``None``.  The main effect of this is that some external handle on the
 Namespace instance must be retained, because the namespace cannot be
 identified in other contexts.
+
+.. ignored
+   ## Local Variables:
+   ## fill-column:78
+   ## indent-tabs-mode:nil
+   ## End:
