@@ -109,8 +109,9 @@ class _DeconflictSymbols_mixin (object):
     """Mix-in used to deconflict public symbols in classes that may be
     inherited by generated binding classes.
 
-    Some classes, like the element or simpleTypeDefinition classes in
-    pyxb.binding.basis, have public symbols associated with
+    Some classes, like the L{pyxb.binding.basis.element} or
+    L{pyxb.binding.basis.simpleTypeDefinition} classes in
+    L{pyxb.binding.basis}, have public symbols associated with
     functions and variables.  It is possible that an XML schema might
     include tags and attribute names that match these symbols.  To
     avoid conflict, the reserved symbols marked in this class are
