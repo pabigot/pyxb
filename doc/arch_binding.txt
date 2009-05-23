@@ -26,11 +26,11 @@ Deconflicting Names
 In XML schema, the namespaces for element declarations, type definitions,
 and attribute definitions are all distinct.  Python uses the same namespace
 for everything.  So, if you have a schema that defines a simple type
-``color``, it can also have a complex type that has both a child element
-named ``color`` and a distinct attribute (of type ``color``) that is also
-named ``color``.  Since the natural representation of elements and
-attributes inside complex types is also by their XML name, the chances of
-conflict are high.
+``color``, it can also have an element named ``color`` with a complex type
+that itself has both a child element named ``color`` and a distinct
+attribute (of type ``color``) that is also named ``color``.  Since the
+natural representation of elements and attributes inside complex types is
+also by their XML name, the chances of conflict are high.
 
 PyWXSB resolves this by ensuring every identifiable object has a unique
 identifier within its context.  The steps involved are:
@@ -92,7 +92,7 @@ This class provides a :api:`method
 the generated bindings to create new instances of themselves.  The raw
 bindings are generated into a sub-module with the prefix ``raw``, and the
 extensions modify the generated class to record the real class that should
-be used when new instances are created as a result of convering an XML
+be used when new instances are created as a result of converting an XML
 document into a binding object.
 
 For example, if a binding is to be created in a module ``dinner``, the
@@ -121,10 +121,77 @@ Simple Type Definitions
 ^^^^^^^^^^^^^^^^^^^^^^^
 
 Simple type definitions derive from
-:api:`pyxb.binding.basis.simpleTypeDefinition`.  These classes support a
+:api:`pyxb.binding.basis.simpleTypeDefinition` and a standard Python type.
+These classes support a
 :api:`pyxb.binding.basis.simpleTypeDefinition.Factory` method which is used
-as a generic mechanism to create new instances of the class.
+as a generic mechanism to create new instances of the class.  New instance
+creation is validated against the `facets
+<http://www.w3.org/TR/xmlschema-2/#rf-facets>`_ recorded in the binding
+class.
 
+Constraining Facets
+"""""""""""""""""""
+
+Each class corresponding to a simple type definition has class variables for
+the `constraining facets <http://www.w3.org/TR/xmlschema-2/#rf-facets>`_
+that are valid for that class.  These variables are named by prefixing the
+facet name with ``_CF_``, and have a value that is an instance of the
+corresponding :api:`facet class <pyxb.binding.facets>`.  Where possible, the
+variables are inherited from the parent class; when a simple type is derived
+by restriction, the restricted class overrides its parent with a new value
+for the corresponding facet.
+
+Facets incorporate schema-specific constraining values with some code that
+validates potential instances of the type against the constraints.
+Constraining values may:
+
+- be of a fixed type, as with `length
+  <http://www.w3.org/TR/xmlschema-2/#rf-length>`_;
+
+- take on a value in the value space of the simple type in which the facet
+  appears, as with `minInclusive
+  <http://www.w3.org/TR/xmlschema-2/#rf-minInclusive>`_; or
+
+- take on a value in the value space of the superclass of the simple type in
+  which the facet appears, as with `minExclusive
+  <http://www.w3.org/TR/xmlschema-2/#rf-minExclusive>`_;
+
+Enumeration and pattern constraints maintain a list of the respective
+acceptable enumeration and pattern values.  Currently, enumeration
+constraints are checked, while patterns are ignored.
+
+Facets implement the
+:api:`pyxb.binding.facets.ConstrainingFacet.validateConstraint` method,
+which in turn is invoked by the
+:api:`pyxb.binding.basis.simpleTypeDefinition.XsdConstraintsOK` clas method
+when given a value that may or may not satisfy the constraints.
+The :api:`pyxb.binding.basis.simpleTypeDefinition.Factory` will normally
+validate the constraints before allowing a new instance to be returned.
+
+List Types
+""""""""""
+
+Simple types that derive by `list
+<http://www.w3.org/TR/xmlschema-2/#atomic-vs-list>`_ extend from
+:api:`pyxb.binding.basis.STD_list` which in turn descends from the Python
+``list`` type.  These derived classes must override the base class
+:api:`pyxb.binding.basis.STD_list._ItemType` value with the appropriate
+class to use when creating or validating list members.
+
+Union Types
+"""""""""""
+
+Union types are classes that are never instantiated.  Instead, the binding
+classes must define a :api:`pyxb.binding.basis.STD_union._MemberTypes`
+variable which contains a list of binding classes that are permitted as
+members of the union.  The :api:`pyxb.binding.basis.STD_union.Factory`
+method attempts, in turn, to create an instance of each potential member
+type using the arguments passed into it.  The returned value is the first
+instance that was successfully created.
+
+Note that this means the fact that a particular attribute in an element is a
+member of a union is not recorded in the attribute value.  See
+:ref:`attributeUse`.
 
 
 .. ignored
