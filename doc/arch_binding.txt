@@ -1,0 +1,135 @@
+Binding Model
+-------------
+
+The binding model represents the relations between Python classes that
+correspond to schema components.  The class hierarchy for the binding model
+is depicted in the following diagram.
+
+.. image:: Images/BindingModel.jpg
+
+There are three primary groups of classes, which in turn depend on some
+supporting capabilities, all of which are described in the following
+sections.
+
+Supporting Capabilities
+^^^^^^^^^^^^^^^^^^^^^^^
+
+:api:`pyxb.binding.basis._Binding_mixin` is a marker class which also holds
+the :api:`pyxb.Namespace.NamespaceContext` information about the binding.
+The context is used both for translating XML documents into instances of the
+binding class, and for generating multi-namespace XML documents from
+instances.
+
+Deconflicting Names
+"""""""""""""""""""
+
+In XML schema, the namespaces for element declarations, type definitions,
+and attribute definitions are all distinct.  Python uses the same namespace
+for everything.  So, if you have a schema that defines a simple type
+``color``, it can also have a complex type that has both a child element
+named ``color`` and a distinct attribute (of type ``color``) that is also
+named ``color``.  Since the natural representation of elements and
+attributes inside complex types is also by their XML name, the chances of
+conflict are high.
+
+PyWXSB resolves this by ensuring every identifiable object has a unique
+identifier within its context.  The steps involved are:
+
+#. Make object name into an :api:`identifier
+   <pyxb.utils.utility.MakeIdentifier>` by stripping out non-printable
+   characters, replacing characters that cannot appear in identifiers with
+   underscores, stripping leading underscores, and prefixing an initial
+   digit with the character 'n'.
+
+#. :api:`Deconflicting <pyxb.utils.utility.DeconflictKeyword>` the resulting
+   identifier from Python :api:`reserved identifiers
+   <pyxb.utils.utility._Keywords>` and other context-specific keywords.
+
+#. Prepending the standard prefix that denotes the identifier's
+   :ref:`visibility <identifier_naming>` (public, protected, private)
+
+#. Making the resulting identifier :api:`unique
+   <pyxb.utils.utility.MakeUnique>` within its context (containing class or
+   module).
+
+These steps are encapsulated into a single function
+:api:`pyxb.utils.utility.PrepareIdentifier` which takes parameters that
+customize the context for the identifier.
+
+In addition to name conflicts with namespace-global identifiers appearing
+directly in the module, conflicts may also appear within a binding class as
+a result of collision with names from Python keywords, public class names,
+and public field or method names in the class.  The
+:api:`pyxb.utils.utility._DeconflictSymbols_mixin` is used to refine the
+set of type-specific public names.  If you customize a generated binding
+class by extending from it, you must specific your own class variable
+``_ReservedSymbols`` with a value that is the union of your symbols and
+those of the superclass(es).
+
+Deconfliction of module-level names occurs prior to :api:`code generation
+<pyxb.binding.generate.GeneratePython>`.  Identifiers are deconflicted in
+favor of higher items on this list:
+
+- Python keywords
+- Public class identifiers
+- Element tags
+- Complex or simple type definition tags
+- Enumeration tags
+- Attribute tags
+
+Support for Customization
+"""""""""""""""""""""""""
+
+One of the primary goals of PyXB is to support Python modules which
+customize the generated bindings by adding both functionality and derived
+content.  Maintenance issues require that these extensions exist separately
+from the automatically-generated binding modules, and inherit from them.
+This is supported by the :api:`pyxb.binding.basis._DynamicCreate_mixin`
+class.
+
+This class provides a :api:`method
+<pyxb.binding.basis._DynamicCreate_mixin._DynamicCreate>` which is used by
+the generated bindings to create new instances of themselves.  The raw
+bindings are generated into a sub-module with the prefix ``raw``, and the
+extensions modify the generated class to record the real class that should
+be used when new instances are created as a result of convering an XML
+document into a binding object.
+
+For example, if a binding is to be created in a module ``dinner``, the
+``--generate-raw-binding`` flag would be used on :ref:`pyxbgen <pyxbgen>` to
+generate the binding in a file named ``raw/dinner.py``.  The wrapper module
+``dinner.py`` would contain the following code (assuming that the class
+``parsnip`` was to be extended)::
+
+  # Bring all public symbols up from the generated one
+  from raw.dinner import *
+  # Rename the generated parsnip so we can reference it
+  import raw.dinner.parsnip as raw_parsnip
+  # Replace the generated parsnip with a customizing extension
+  class parsnip (raw_parsnip):
+    # Customization here
+    pass
+  # Register the customization for use by the binding infrastructure
+  raw_parsnip._SetSupersedingClass(parsnip)
+
+With this pattern, objects created by the user through ``dinner.parsnip()``
+and from XML documents by the ``CreateFromDOM`` infrastructure will both be
+instances of the extending wrapper class.
+
+
+Simple Type Definitions
+^^^^^^^^^^^^^^^^^^^^^^^
+
+Simple type definitions derive from
+:api:`pyxb.binding.basis.simpleTypeDefinition`.  These classes support a
+:api:`pyxb.binding.basis.simpleTypeDefinition.Factory` method which is used
+as a generic mechanism to create new instances of the class.
+
+
+
+.. ignored
+   ## Local Variables:
+   ## fill-column:78
+   ## indent-tabs-mode:nil
+   ## End:
+

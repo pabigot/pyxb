@@ -32,11 +32,15 @@ parenthesis; invocations never do:
        if recurse:
            self.declaration(False)
 
+.. _identifier_naming:
+
 Naming
 ------
 
 PyXB heavily uses a single leading underscore as an indication of
-protected/friend status, as suggested in :PEP:`8`.
+protected/friend status, as suggested in :PEP:`8`.  Wherever possible,
+double leading underscores are used to hide class member fields, restricting
+access to them through protected or public accessor methods.
 
 Class members that are specifically *class* (as opposed to *instance*)
 members begin with a capital letter.

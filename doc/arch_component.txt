@@ -9,6 +9,8 @@ and their properties follow those definitions.  All classes specific to the
 component model are found in the :api:`pyxb.xmlschema.structures` module.
 
 The relationships amongst components is depicted in the following diagram.
+Composite aggregation generally denotes ownership and shared aggregation
+reference, but don't look for consistency.
 
 .. image:: Images/ComponentModel.jpg
 
@@ -72,3 +74,9 @@ from the :api:`PyXB component model API <pyxb.xmlschema.structures>`.
 Tidbits of other relevant information:
 
 - An understanding of :ref:`resolution` is important.
+
+.. ignored
+   ## Local Variables:
+   ## fill-column:78
+   ## indent-tabs-mode:nil
+   ## End:

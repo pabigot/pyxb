@@ -9,9 +9,8 @@ Conceptual Models
 
    arch_namespaces
    arch_component
+   arch_binding
 
-Binding Model
--------------
 
 Content Model
 -------------
