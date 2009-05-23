@@ -1,4 +1,4 @@
-#!/usr/bin/env pythong
+#!/usr/bin/env python
 
 import distutils.sysconfig
 
@@ -20,9 +20,15 @@ class test (Command):
 
     # List of option tuples: long name, short name (None if no short
     # name), and help string.
-    user_options = [ ( 'testdirs', None, 'colon separated list of directories to search for tests' ) ]
+    user_options = [ ( 'testdirs=', None, 'colon separated list of directories to search for tests' ),
+                     ( 'trace-tests', 'v', 'trace search for tests' ),
+                     ( 'inhibit-output', 'q', 'inhibit test output' ),
+                     ]
+    boolean_options = [ 'trace-tests', 'inhibit-output' ]
 
     def initialize_options (self):
+        self.trace_tests = None
+        self.inhibit_output = None
         self.testdirs = 'tests'
 
     def finalize_options (self):
@@ -37,7 +43,8 @@ class test (Command):
         tests = [ ]
         while dirs:
             dir = dirs.pop(0)
-            print 'Searching for tests in %s' % (dir,)
+            if self.trace_tests:
+                print 'Searching for tests in %s' % (dir,)
             for f in os.listdir(dir):
                 fn = os.path.join(dir, f)
                 statb = os.stat(fn)
@@ -92,13 +99,20 @@ class test (Command):
                 for (nm, obj) in g.items():
                     if (type == type(obj)) and issubclass(obj, unittest.TestCase):
                         suite.addTest(loader.loadTestsFromTestCase(obj))
-                print '%s imported' % (fn,)
+                if self.trace_tests:
+                    print '%s imported' % (fn,)
             except Exception, e:
                 print '%s failed in %s: %s' % (fn, state, e)
                 traceback.print_exception(*sys.exc_info())
 
         # Run everything
-        runner = unittest.TextTestRunner()
+        verbosity = 1
+        if self.trace_tests:
+            verbosity = 2
+        elif self.inhibit_output:
+            # Don't know how to do this for real
+            verbosity = 0
+        runner = unittest.TextTestRunner(verbosity=verbosity)
         runner.run(suite)
 
 import glob
