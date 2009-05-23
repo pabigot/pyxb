@@ -1,4 +1,5 @@
 *.pyc
+*.pyo
 .nfs*
 build
 dist
