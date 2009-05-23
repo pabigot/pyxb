@@ -95,9 +95,10 @@ def PrepareIdentifier (s, in_use, aux_keywords=frozenset(), private=False, prote
     If private is False, all leading underscores are stripped,
     guaranteeing the identifier will not be private.
 
-    NOTE: Only module-level identifiers should be treated as
+    @note: Only module-level identifiers should be treated as
     protected.  The class-level _ReservedSymbol infrastructure does
-    not include protected symbols."""
+    not include protected symbols.  All class members beginning with a
+    single underscore are reserved for the PyXB infrastructure."""
     s = DeconflictKeyword(MakeIdentifier(s).strip('_'), aux_keywords)
     if private:
         s = '__' + s

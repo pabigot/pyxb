@@ -31,6 +31,13 @@ class _Binding_mixin (pyxb.cscRoot):
     documents from instances that were not created by CreateFromDOM.
 
     """
+
+    _Namespace = None
+    """The namespace to which the component belongs."""
+
+    _XsdName = None
+    """The name of the component within its namespace category."""
+
     def _domNode (self):
         """The DOM node from which the object was initialized."""
         return self.__domNode
@@ -128,7 +135,7 @@ class simpleTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _D
     _ReservedSymbols = set([ 'Factory', 'CreateFromDOM', 'XsdLiteral', 'xsdLiteral',
                             'XsdSuperType', 'XsdPythonType', 'XsdConstraintsOK',
                             'xsdConstraintsOK', 'XsdValueLength', 'xsdValueLength',
-                            'PythonLiteral', 'pythonLiteral', 'toDOM', 'Namespace' ])
+                            'PythonLiteral', 'pythonLiteral', 'toDOM' ])
     """Symbols that remain the responsibility of this class.  Any
     public symbols in generated binding subclasses are deconflicted
     by providing an alternative name in the subclass.  (There
@@ -497,6 +504,9 @@ class STD_union (simpleTypeDefinition):
     Subclasses must provide a class variable _MemberTypes which is a
     tuple of legal members of the union."""
 
+    _MemberTypes = None
+    """A list of classes which are permitted as values of the union."""
+
     # Ick: If we don't declare this here, this class's map doesn't get
     # initialized.  Alternative is to not descend from simpleTypeDefinition.
     # @todo Ensure that pattern and enumeration are valid constraints
@@ -509,15 +519,16 @@ class STD_union (simpleTypeDefinition):
 
     @classmethod
     def Factory (cls, *args, **kw):
-        """Given a value, attempt to create an instance of some member
-        of this union.
+        """Given a value, attempt to create an instance of some member of this
+        union.  The first instance which can be legally created is returned.
 
-        The first instance which can be legally created is returned.
-        If no member type instance can be created from the given
-        value, a pyxb.BadTypeValueError is raised.
+        @keyword validate_constraints: If True (default), any constructed
+        value is checked against constraints applied to the union as well as
+        the member type.
 
-        The value generated from the member types is further validated
-        against any constraints that apply to the union."""
+        @raise pyxb.BadTypeValueError: no member type will permit creation of
+        an instance from the parameters in C{args} and C{kw}.
+        """
         rv = None
         validate_constraints = kw.get('validate_constraints', True)
         for mt in cls._MemberTypes:
@@ -561,6 +572,9 @@ class STD_list (simpleTypeDefinition, types.ListType):
     This class descends from the Python list type, and incorporates
     simpleTypeDefinition.  Subclasses must define a class variable _ItemType
     which is a reference to the class of which members must be instances."""
+
+    _ItemType = None
+    """A reference to the binding class for items within this list."""
 
     # Ick: If we don't declare this here, this class's map doesn't get
     # initialized.  Alternative is to not descend from simpleTypeDefinition.
@@ -613,6 +627,7 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
     # the content of this element.
     # MUST BE SET IN SUBCLASS
     _TypeDefinition = None
+    """The subclass of complexTypeDefinition that is used to represent content in this element."""
 
     # Reference to the instance of the underlying type
     __realContent = None
@@ -625,16 +640,15 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
     # symbols in the type from the content are deconflicted by
     # providing an alternative name in the subclass.  See the
     # _DeconflictSymbols_mixin class.
-    _ReservedSymbols = set([ 'content', 'CreateFromDOM', 'toDOM', 'Namespace' ])
+    _ReservedSymbols = set([ 'content', 'CreateFromDOM', 'toDOM' ])
 
     # Assign to the content field.  This may manipulate the assigned
     # value if doing so results in a cleaner interface for the user.
     def __setContent (self, content):
         self.__realContent = content
         self.__content = self.__realContent
-        if content is not None:
-            if issubclass(self._TypeDefinition, CTD_simple):
-                self.__content = self.__realContent.content()
+        if isinstance(content, complexTypeDefinition) and content._IsSimpleTypeContent():
+            self.__content = self.__realContent.content()
         return self
 
     def __init__ (self, *args, **kw):
@@ -649,7 +663,7 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
         self.__setContent(self._TypeDefinition.Factory(*args, **kw))
         
     # Determine which content should be used to dereference a particular
-    # attribute.
+    # (Python) attribute.
     def __contentForAttribute (self, name):
         content = self.__content
         if self.__content != self.__realContent:
@@ -667,7 +681,8 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
         _TypeDefinition for this class.  Or, in the case that
         _TypeDefinition is a complex type with simple content, the
         dereferenced simple content is returned."""
-        if isinstance(self.__content, CTD_mixed):
+        #if isinstance(self.__content, _Binding_mixin) and self.__content._IsSimpleTypeContent():
+        if isinstance(self.__content, _CTD_content_mixin):
             return self.__content.content()
         return self.__content
     
@@ -821,7 +836,7 @@ class complexTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _
         return rv
 
     # Specify the symbols to be reserved for all CTDs.
-    _ReservedSymbols = set([ 'Factory', 'CreateFromDOM', 'toDOM', 'Namespace' ])
+    _ReservedSymbols = set([ 'Factory', 'CreateFromDOM', 'toDOM' ])
 
     # Class variable which maps complex type attribute names to the name used
     # within the generated binding.  For example, if somebody's gone and
@@ -966,8 +981,8 @@ class CTD_empty (complexTypeDefinition):
     XMLSchema complexType with empty content."""
 
     def _setContentFromDOM_vx (self, node):
-        """CTD with empty content does nothing with node content."""
-        # @todo Schema validation check?
+        """CTD with empty content does nothing with node content.
+        @todo: Schema validation check (make sure node children are contentless)? """
         return self
 
     def _setDOMFromContent (self, dom_support, element):
@@ -976,6 +991,9 @@ class CTD_empty (complexTypeDefinition):
 class CTD_simple (complexTypeDefinition):
     """Base for any Python class that serves as the binding for an
     XMLSchema complexType with simple content."""
+
+    _TypeDefinition = None
+    """Subclass of simpleTypeDefinition that corresponds to the type content."""
 
     __content = None
     def content (self):

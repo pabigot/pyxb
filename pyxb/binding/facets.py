@@ -399,6 +399,8 @@ class CF_pattern (ConstrainingFacet, _CollectionFacet_mixin):
     """A facet that constrains the lexical representation of a value to match one of a set of patterns.
     
     See U{http://www.w3.org/TR/xmlschema-2/#rf-pattern}
+
+    @todo: Make this do something
     """
     _Name = 'pattern'
     _CollectionFacet_itemType = _PatternElement

@@ -561,6 +561,7 @@ def GenerateCTD (ctd, **kw):
     template_map['ctd'] = pythonLiteral(ctd, **kw)
     base_type = ctd.baseTypeDefinition()
     template_map['base_type'] = pythonLiteral(base_type, **kw)
+    template_map['name'] = pythonLiteral(ctd.name(), **kw)
 
     need_content = False
     content_basis = None
@@ -603,6 +604,13 @@ class %{ctd} (%{superclasses}):
 class %{ctd} (%{superclasses}):
 '''
 
+    prolog_template += '''
+    # The name of this type definition within the schema
+    _XsdName = %{name}
+    # Reference to the namespace to which the type belongs
+    _Namespace = Namespace
+'''
+
     # Complex types that inherit from non-ur-type complex types should
     # have their base type as their Python superclass, so pre-existing
     # elements and attributes can be re-used.
@@ -629,7 +637,6 @@ class %{ctd} (%{superclasses}):
 
     definitions = []
 
-    definitions.append('_Namespace = Namespace')
     definitions.append('# Base type is %{base_type}')
 
     # Retain in the ctd the information about the element
