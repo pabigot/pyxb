@@ -20,7 +20,9 @@
 import os.path
 from docutils import nodes
 import sys
+import re
 
+__Reference_re = re.compile('\s*(.*)\s+<(.*)>\s*$')
 
 def api_role(role, rawtext, text, lineno, inliner, options={}, content=[]):
     """
@@ -44,7 +46,13 @@ def api_role(role, rawtext, text, lineno, inliner, options={}, content=[]):
     exists = lambda f: os.path.exists(prefix + f)
 
     # assume module is references
-    name = '%s' % text
+    
+    mo = __Reference_re.match(text)
+    label = None
+    if mo is not None:
+        ( label, text ) = mo.group(1, 2)
+    name = text.strip()
+
     uri = file = '%s/%s-module.html' % (basedir, text)
     chunks = text.split('.')
 
@@ -72,8 +80,10 @@ def api_role(role, rawtext, text, lineno, inliner, options={}, content=[]):
                 name = '.'.join(chunks[-2:]) # name should be Class.method
                 uri = '%s/%s-class.html#%s' % (basedir, fprefix, method)
 
+    if label is None:
+        label = name
     if exists(file):
-        node = nodes.reference(rawtext, name, refuri=uri, **options)
+        node = nodes.reference(rawtext, label, refuri=uri, **options)
     else:
         # cannot find reference, then just inline the text
         print 'WARNING: Unable to find %s in API' % (text,)
