@@ -24,7 +24,13 @@ import pyxb.Namespace
 
 class _Binding_mixin (pyxb.cscRoot):
     """Mix-in used to identify classes that are bindings to some XML schema
-    object."""
+    object.
+
+    @todo: Hide (or remove) domNode, leaving only namespaceContext visible.
+    Define the process for providing a namespace context when creating
+    documents from instances that were not created by CreateFromDOM.
+
+    """
     def _domNode (self):
         """The DOM node from which the object was initialized."""
         return self.__domNode
