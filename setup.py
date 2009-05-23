@@ -1,14 +1,22 @@
 #!/usr/bin/env pythong
 
-from distutils.core import setup, Command
+import distutils.sysconfig
+
+# Require Python 2.4 or higher, but not 3.x
+py_ver = distutils.sysconfig.get_python_version()
+if (py_ver < '2.4') or (py_ver >= '3.0'):
+    raise ValueError('PyXB requires Python version 2.x where x >= 4 (you have %s)' % (py_ver,))
+
 import os
 import stat
 import re
 
+from distutils.core import setup, Command
+
 class test (Command):
 
     # Brief (40-50 characters) description of the command
-    description = "Run all unit tests found "
+    description = "Run all unit tests found in testdirs"
 
     # List of option tuples: long name, short name (None if no short
     # name), and help string.
@@ -17,10 +25,11 @@ class test (Command):
     def initialize_options (self):
         self.testdirs = 'tests'
 
-
-    __TestFile_re = re.compile('^test.*\.py$')
     def finalize_options (self):
         pass
+
+    # Regular expression that matches unittest sources
+    __TestFile_re = re.compile('^test.*\.py$')
 
     def run (self):
         # Walk the tests hierarchy looking for tests
@@ -91,8 +100,6 @@ class test (Command):
         # Run everything
         runner = unittest.TextTestRunner()
         runner.run(suite)
-
-# Require Python 2.4
 
 setup(name='PyXB',
       description = 'Python W3C XML Schema Bindings',
