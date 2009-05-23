@@ -33,17 +33,27 @@ class cscRoot (object):
     we'll just make this thing the root of all U{cooperative super
     calling<http://www.geocities.com/foetsch/python/new_style_classes.htm#super>}
     hierarchies."""
+
     def __init__ (self, *args, **kw):
-        # Oh gross.  If this class descends from unicode or string, we
-        # get here when object is *not* our direct superclass.  In
-        # that case, we have to pass the arguments on up, or the
-        # strings don't get created right.  Below is the only way I've
-        # figured out to detect the situation.
-        if self.__class__ != self.__class__.mro()[-1]:
-            super(cscRoot, self).__init__(*args, **kw)
+        # Oh gross.  If this class descends from list (and probably dict), we
+        # get here when object is *not* our direct superclass.  In that case,
+        # we have to pass the arguments on up, or the strings don't get
+        # created right.  Below is the only way I've figured out to detect the
+        # situation.
+        #
+        # Note that we might also get here if you mix-in a class that used
+        # object as a parent instead of cscRoot.  Don't do that.  If you do,
+        # comment out the print in the if body to see where you screwed up.
+        if issubclass(self.__class__.mro()[-2], ( list, dict )):
+            super(cscRoot, self).__init__(*args)
 
 # Bring in the exception hierarchy
 from exceptions_ import *
 
 # Bring in Namespace
 import Namespace
+
+
+## Local Variables:
+## fill-column:78
+## End:
