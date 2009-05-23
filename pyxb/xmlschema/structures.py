@@ -1,3 +1,17 @@
+# Copyright 2009, Peter A. Bigot
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain a
+# copy of the License at:
+#
+#            http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+
 """Classes corresponding to W3C XML Schema components.
 
 Class names and behavior should conform to the schema components described in
@@ -74,11 +88,6 @@ class _SchemaComponent_mixin (pyxb.Namespace._ComponentDependency_mixin):
 
     # The namespace context associated with this component.
 
-    # The schema to which this component belongs.  If None, assume it
-    # belongs to the XMLSchema namespace.  The value cannot be changed
-    # after construction.
-    __schema = None
-
     # The name by which this component is known within the binding
     # module.  This is in component rather than _NamedComponent_mixin
     # because some unnamed components (like ModelGroup and Wildcard)
@@ -145,7 +154,6 @@ class _SchemaComponent_mixin (pyxb.Namespace._ComponentDependency_mixin):
             owner.__ownedComponents.add(self)
         return self
 
-    def schema (self): return self.__schema
     def owner (self): return self.__owner
 
     # A reference to the instance from which this instance was cloned.

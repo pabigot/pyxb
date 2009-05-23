@@ -1,3 +1,17 @@
+# Copyright 2009, Peter A. Bigot
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain a
+# copy of the License at:
+#
+#            http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+
 """This module contains support classes from which schema-specific bindings
 inherit, and that describe the content models of those schema."""
 
@@ -733,7 +747,12 @@ class complexTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _
         The return value is None if this type does not support wildcard
         attributes.  If wildcard attributes are allowed, the return value is a
         map from QNames to the unicode string value of the corresponding
-        attribute."""
+        attribute.
+
+        @todo: The map keys should be namespace extended names rather than
+        QNames, as the in-scope namespace may not be readily available to the
+        user.
+        """
         return self.__wildcardAttributeMap
 
     # Per-instance list of DOM nodes interpreted as wildcard elements.
