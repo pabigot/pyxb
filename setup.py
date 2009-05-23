@@ -101,6 +101,8 @@ class test (Command):
         runner = unittest.TextTestRunner()
         runner.run(suite)
 
+import glob
+
 setup(name='PyXB',
       description = 'Python W3C XML Schema Bindings',
       author='Peter A. Bigot',
@@ -108,7 +110,9 @@ setup(name='PyXB',
       url='http://pyxb.sourceforge.net',
       version='0.1.3',
       packages=[ 'pyxb', 'pyxb.binding', 'pyxb.utils', 'pyxb.xmlschema', 'pyxb.standard.bindings' ],
-      data_files= [ ('pyxb/standard/schemas', [ '*.xsd' ] ) ],
+      # I normally keep these in $purelib, but distutils won't tell me where that is.
+      # We don't need them in the installation anyway.
+      #data_files= [ ('pyxb/standard/schemas', glob.glob(os.path.join(*'pyxb/standard/schemas/*.xsd'.split('/'))) ) ],
       scripts=[ 'scripts/pyxbgen', 'scripts/pyxbwsdl' ],
       cmdclass = { 'test' : test } )
       

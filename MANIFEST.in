@@ -1,7 +1,7 @@
 # Legal stuff
 include LICENSE NOTICE
 # Include the pre-built bindings for standard schema
-recursive-include pyxb/standard *.py *.xsd *.wxs
+recursive-include pyxb/standard *.py *.wxs
 # Include all the unit tests
 recursive-include tests *.py *.xsd *.xml
 # Include the scripts and any other garbage helpful to the maintainer
