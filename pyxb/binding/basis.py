@@ -663,7 +663,7 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
         self.__setContent(self._TypeDefinition.Factory(*args, **kw))
         
     # Determine which content should be used to dereference a particular
-    # (Python) attribute.
+    # (Python) attribute.  Priority deferral to the real content.
     def __contentForAttribute (self, name):
         content = self.__content
         if self.__content != self.__realContent:
@@ -676,15 +676,25 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
     def __getattr__ (self, name):
         return getattr(self.__contentForAttribute(name), name)
 
-    def content (self):
-        """Return the element content, which is an instance of the
-        _TypeDefinition for this class.  Or, in the case that
-        _TypeDefinition is a complex type with simple content, the
-        dereferenced simple content is returned."""
-        #if isinstance(self.__content, _Binding_mixin) and self.__content._IsSimpleTypeContent():
-        if isinstance(self.__content, _CTD_content_mixin):
-            return self.__content.content()
-        return self.__content
+    def content (self, dereference_if_simple=True):
+        """Return the element content
+
+        The element content is normally an instance of the _TypeDefinition for
+        this class.  If that type is a subclass of L{CTD_simple}, then the
+        content is the content of that instance, i.e. the underlying simple
+        type.  This normally works because by overloading C{__getattr__} here
+        all attribute references automaticallly delegate to the appropriate
+        content level.
+
+        @keyword dereference_if_simple: If True (default), the contained
+        simple data type instance is returned if the type of the element is a
+        complex type with simple content.  If False, will always return the
+        immediate content node which is an instance of L{_TypeDefinition}.
+        @ptype dereference_if_simple: C{bool}
+        """
+        if dereference_if_simple:
+            return self.__content
+        return self.__realContent
     
     @classmethod
     def CreateFromDOM (cls, node, **kw):
@@ -1022,7 +1032,7 @@ class CTD_simple (complexTypeDefinition):
 
         return element.appendChild(dom_support.document().createTextNode(self.content().xsdLiteral()))
 
-    _ReservedSymbols = complexTypeDefinition._ReservedSymbols.union(set([ 'xsdConstraintsOK' ]))
+    _ReservedSymbols = complexTypeDefinition._ReservedSymbols.union(set([ 'xsdConstraintsOK', 'content' ]))
 
     def xsdConstraintsOK (self):
         return self.content().xsdConstraintsOK()
@@ -1117,6 +1127,8 @@ class CTD_mixed (_CTD_content_mixin, complexTypeDefinition):
     XMLSchema complexType with mixed content.
     """
 
+    _ReservedSymbols = complexTypeDefinition._ReservedSymbols.union(set([ 'content' ]))
+
     def _setContentFromDOM_vx (self, node):
         """Delegate processing to content mixin, with mixed content enabled."""
         return self._setMixableContentFromDOM(node, is_mixed=True)
@@ -1126,6 +1138,8 @@ class CTD_element (_CTD_content_mixin, complexTypeDefinition):
     """Base for any Python class that serves as the binding for an
     XMLSchema complexType with element-only content.
     """
+
+    _ReservedSymbols = complexTypeDefinition._ReservedSymbols.union(set([ 'content' ]))
 
     def _setContentFromDOM_vx (self, node):
         """Delegate processing to content mixin, with mixed content disabled."""
