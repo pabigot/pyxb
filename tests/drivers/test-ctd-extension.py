@@ -32,9 +32,11 @@ class TestCTDExtension (unittest.TestCase):
         doc = pyxb.utils.domutils.StringToDOM(xml)
         instance = oldAddressee.CreateFromDOM(doc.documentElement)
         self.assertEqual(2, len(instance.forename()))
-        self.assertEqual('Albert', instance.forename()[0].content())
-        self.assertEqual('Arnold', instance.forename()[1].content())
-        self.assertEqual('Gore', instance.surname().content())
+        # Note double dereference required because xs:anyType was used
+        # as the element type
+        self.assertEqual('Albert', instance.forename()[0].content().content())
+        self.assertEqual('Arnold', instance.forename()[1].content().content())
+        self.assertEqual('Gore', instance.surname().content().content())
         self.assertEqual('old', instance.pAttr())
 
     def testExtendedName (self):
@@ -47,10 +49,10 @@ class TestCTDExtension (unittest.TestCase):
         doc = pyxb.utils.domutils.StringToDOM(xml)
         instance = addressee.CreateFromDOM(doc.documentElement)
         self.assertEqual(2, len(instance.forename()))
-        self.assertEqual('Albert', instance.forename()[0].content())
-        self.assertEqual('Arnold', instance.forename()[1].content())
-        self.assertEqual('Gore', instance.surname().content())
-        self.assertEqual('Jr', instance.generation().content())
+        self.assertEqual('Albert', instance.forename()[0].content().content())
+        self.assertEqual('Arnold', instance.forename()[1].content().content())
+        self.assertEqual('Gore', instance.surname().content().content())
+        self.assertEqual('Jr', instance.generation().content().content())
         self.assertEqual('new', instance.pAttr())
         self.assertEqual('add generation', instance.eAttr())
 
