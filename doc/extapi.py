@@ -23,7 +23,7 @@ from docutils import nodes
 import sys
 import re
 
-__Reference_re = re.compile('\s*(.*)\s+<(.*)>\s*$')
+__Reference_re = re.compile('\s*(.*)\s+<(.*)>\s*$', re.MULTILINE + re.DOTALL)
 
 def api_role(role, rawtext, text, lineno, inliner, options={}, content=[]):
     """
@@ -48,6 +48,7 @@ def api_role(role, rawtext, text, lineno, inliner, options={}, content=[]):
 
     # assume module is references
     
+    #print 'Text "%s"' % (text,)
     mo = __Reference_re.match(text)
     label = None
     if mo is not None:
