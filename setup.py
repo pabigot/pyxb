@@ -64,12 +64,18 @@ class test (Command):
         # cases in it to a complete suite.
         loader = unittest.defaultTestLoader
         suite = unittest.TestSuite()
+        used_names = set()
         for fn in tests:
             stage = 'compile'
             try:
                 # Assign a unique name for this test
-                test_name = 'test%d' % (number,)
-                number += 1
+                test_name = os.path.basename(fn).split('.')[0]
+                test_name = test_name.replace('-', '_')
+                number = 2
+                base_name = test_name
+                while test_name in used_names:
+                    test_name = '%s%d' % (base_name, number)
+                    number += 1
 
                 # Read the test source in and compile it
                 rv = compile(file(fn).read(), test_name, 'exec')
