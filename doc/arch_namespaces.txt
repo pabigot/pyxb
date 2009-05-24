@@ -151,6 +151,27 @@ within the schema, absent namespaces are represented as normal
 Namespace instance must be retained, because the namespace cannot be
 identified in other contexts.
 
+Storage of Namespaces
+^^^^^^^^^^^^^^^^^^^^^
+
+In PyXB, when the :ref:`componentModel` is used to define various elements,
+attributes, and types by representing them in Python instances, those instance
+objects are stored in a :api:`pyxb.Namespace.Namespace` instance.  In addition
+to generating code corresponding to those objects, it is possible to save the
+pre-computed objects into a file so that they can be referenced in other
+namespaces.
+
+PyXB uses the Python pickling infrastructure to store the namespace component
+model into a file in the same directory as the generated binding, but with a
+suffix ``.wxs``.  When a schema is processed that refers to a namespace, the
+serialized component model for the namespace is read in so that the referring
+namespace can resolve types in it.
+
+There are a variety of intricacies involved in this serialization; see the
+source code starting at :api:`pyxb.Namespace.Namespace.saveToFile` for
+details.
+
+
 .. ignored
    ## Local Variables:
    ## fill-column:78

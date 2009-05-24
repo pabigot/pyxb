@@ -6,14 +6,12 @@ Conceptual Models
 =================
 
 .. toctree::
+   :maxdepth: 2
 
    arch_namespaces
    arch_component
    arch_binding
-
-
-Content Model
--------------
+   arch_content
 
 Binding Generation
 ==================

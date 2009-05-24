@@ -1,3 +1,5 @@
+.. _bindingModel:
+
 Binding Model
 -------------
 
@@ -27,19 +29,21 @@ and its :api:`pyxb.binding.basis._Binding_mixin._XsdName` to be the unicode
 name of the component within its namespace category.  This allows
 introspection and eventually support for ``xsi:type`` resolution.
 
+.. _binding_deconflictingNames:
+
 Deconflicting Names
 """""""""""""""""""
 
-In XML schema, the namespaces for element declarations, type definitions,
-and attribute definitions are all distinct.  Python uses the same namespace
-for everything.  So, if you have a schema that defines a simple type
-``color``, it can also have an element named ``color`` with a complex type
-that itself has both a child element named ``color`` and a distinct
-attribute (of type ``color``) that is also named ``color``.  Since the
-natural representation of elements and attributes inside complex types is
-also by their XML name, the chances of conflict are high.
+In XML schema, the namespaces for element declarations, type definitions, and
+attribute definitions are all distinct.  Python uses the same namespace for
+everything.  So, if you have a schema that defines a simple type ``color``,
+the schema can also have an element named ``color`` with a complex type that
+itself has both a child element named ``color`` and a distinct attribute (of
+type ``color``) that is also named ``color``.  Since the natural
+representation of elements and attributes inside complex types is also by
+their XML name, the chances of conflict are high.
 
-PyWXSB resolves this by ensuring every identifiable object has a unique
+PyXB resolves this by ensuring every identifiable object has a unique
 identifier within its context.  The steps involved are:
 
 #. Make object name into an :api:`identifier
@@ -48,30 +52,30 @@ identifier within its context.  The steps involved are:
    underscores, stripping leading underscores, and prefixing an initial
    digit with the character 'n'.
 
-#. :api:`Deconflicting <pyxb.utils.utility.DeconflictKeyword>` the resulting
+#. :api:`Deconflict <pyxb.utils.utility.DeconflictKeyword>` the resulting
    identifier from Python :api:`reserved identifiers
    <pyxb.utils.utility._Keywords>` and other context-specific keywords.
 
-#. Prepending the standard prefix that denotes the identifier's
-   :ref:`visibility <identifier_naming>` (public, protected, private)
+#. Prepend the standard prefix that denotes the identifier's :ref:`visibility
+   <identifier_naming>` (public, protected, private)
 
-#. Making the resulting identifier :api:`unique
-   <pyxb.utils.utility.MakeUnique>` within its context (containing class or
-   module).
+#. Make the resulting identifier :api:`unique <pyxb.utils.utility.MakeUnique>`
+   within its context (containing class or module).
 
 These steps are encapsulated into a single function
 :api:`pyxb.utils.utility.PrepareIdentifier` which takes parameters that
 customize the context for the identifier.
 
 In addition to name conflicts with namespace-global identifiers appearing
-directly in the module, conflicts may also appear within a binding class as
-a result of collision with names from Python keywords, public class names,
-and public field or method names in the class.  The
-:api:`pyxb.utils.utility._DeconflictSymbols_mixin` is used to refine the
-set of type-specific public names.  If you customize a generated binding
-class by extending from it, you must specific your own class variable
-``_ReservedSymbols`` with a value that is the union of your symbols and
-those of the superclass(es).
+directly in the module, conflicts may also appear within a binding class as a
+result of collision with names from Python keywords, public class names, and
+public field or method names in the class.  The
+:api:`pyxb.utils.utility._DeconflictSymbols_mixin` is used to refine the set
+of type-specific public names.  If you customize a generated binding class by
+extending from it, you must specific your own class variable
+``_ReservedSymbols`` with a value that is the union of your symbols and those
+of the superclass(es) (see :api:`pyxb.utils.utility._DeconflictSymbols_mixin`
+for details).
 
 Deconfliction of module-level names occurs prior to :api:`code generation
 <pyxb.binding.generate.GeneratePython>`.  Identifiers are deconflicted in
@@ -87,12 +91,12 @@ favor of higher items on this list:
 Support for Customization
 """""""""""""""""""""""""
 
-One of the primary goals of PyXB is to support Python modules which
-customize the generated bindings by adding both functionality and derived
-content.  Maintenance issues require that these extensions exist separately
-from the automatically-generated binding modules, and inherit from them.
-This is supported by the :api:`pyxb.binding.basis._DynamicCreate_mixin`
-class.
+One of the primary goals of PyXB is to support Python modules which customize
+the generated bindings by adding both functionality and derived content.
+Maintenance issues require that these extensions exist separately from the
+automatically-generated binding modules; usability requires that they inherit
+from the automatically-generated modules.  This is supported by the
+:api:`pyxb.binding.basis._DynamicCreate_mixin` class.
 
 This class provides a :api:`method
 <pyxb.binding.basis._DynamicCreate_mixin._DynamicCreate>` which is used by
@@ -199,7 +203,7 @@ instance that was successfully created.
 
 Note that this means the fact that a particular attribute in an element is a
 member of a union is not recorded in the attribute value.  See
-:ref:`attribute_use`.
+:ref:`attributeUse`.
 
 Complex Type Definitions
 ^^^^^^^^^^^^^^^^^^^^^^^^
@@ -261,7 +265,7 @@ the mapping from XML schema element names to class members.  The element and
 attribute names are distinct.  These classes also associate a :api:`content
 model <pyxb.binding.content.ContentModel>` to ensure the constraints of the
 schema are satisfied.  These structures are described in
-:ref:`content_model`.
+:ref:`contentModel`.
 
 The :api:`pyxb.binding.basis._CTD_content_mixin.content` method returns a
 list, in parsed order, of the Python objects and (if mixed) non-element
