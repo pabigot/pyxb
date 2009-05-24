@@ -239,6 +239,17 @@ that serves as content is specified in
 :api:`pyxb.binding.basis.CTD_simple.content` method returns the instance of
 that type that corresponds to the content of the object.
 
+Be aware that the need to invoke can be a little confusing: if you have an
+object that is a subclass of :api:`pyxb.binding.basis.CTD_simple`, it is
+natural to treat it the way you would treat a
+:api:`pyxb.binding.basis.simpleTypeDefinition` instance.  This won't work: the
+simple type instance is substitutable for its Python base type, where the
+complex type instance is not.
+
+As a convenience, the ``__str__`` method of
+:api:``pyxb.binding.basis.CTD_simple`` has been overridden to be equivalent to
+``str(self.content())``.
+
 Mixed and Element-Only Content
 """"""""""""""""""""""""""""""
 
@@ -265,10 +276,20 @@ A binding class representing an `element declaration
 of :api:`pyxb.binding.basis.complexTypeDefinition` of which values of the
 element must be an instance.
 
-:api:`pyxb.binding.basis.element` overrides its ``__getattr__`` method so
-that references to (Python) attributes that are not defined in the class are
-delegated to the underlying content value.  This allows user code to
-reference complex type definition elements and attributes more conveniently.
+An element instance maintains a reference to the instance of its type as a
+private variable ``__realContent``.  It also maintains a reference
+``__content`` which is equivalent to either ``__realContent`` or
+``__realContent.content()``.  The latter case holds when ``__realContent`` is
+an instance of :api:`pyxb.binding.basis.CTD_simple`.  This means that if the
+element type is a complex type with simple content, invoking
+``element.content()`` will automatically dereference to get the underlying
+simple type object that is held by the complex type object.
+
+:api:`pyxb.binding.basis.element` overrides its ``__getattr__`` method so that
+references to (Python) attributes that are not defined in the class are
+delegated to the underlying content value (``__realContent`` preferred over
+``__content``).  This allows user code to reference complex type definition
+elements and attributes more conveniently.
 
 .. ignored
    ## Local Variables:
