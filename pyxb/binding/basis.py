@@ -690,7 +690,7 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
         simple data type instance is returned if the type of the element is a
         complex type with simple content.  If False, will always return the
         immediate content node which is an instance of L{_TypeDefinition}.
-        @ptype dereference_if_simple: C{bool}
+        @type dereference_if_simple: C{bool}
         """
         if dereference_if_simple:
             return self.__content

@@ -43,12 +43,14 @@ class AttributeUse (pyxb.cscRoot):
     """A helper class that encapsulates everything we need to know
     about the way an attribute is used within a binding class.
 
-    Attributes are stored as pairs of (provided, value), where provided is a
+    Attributes are stored as pairs C{(provided, value)}, where C{provided} is a
     boolean indicating whether a value for the attribute was provided by the
-    DOM node, and value is an instance of the attribute datatype.  The
+    DOM node, and C{value} is an instance of the attribute datatype.  The
     provided flag is used to determine whether an XML attribute should be
     added to a created DOM node when generating the XML corresponding to a
     binding instance.
+
+    @todo: Store the extended namespace name of the attribute.
     """
 
     __tag = None       # Unicode XML tag @todo not including namespace
@@ -62,13 +64,63 @@ class AttributeUse (pyxb.cscRoot):
     __prohibited = False        # If True, attribute must not appear
 
     def __init__ (self, tag, python_field, value_attribute_name, data_type, unicode_default=None, fixed=False, required=False, prohibited=False):
+        """Create an AttributeUse instance.
+
+        @param tag: The name by which the attribute is referenced in the XML
+        @type tag: C{unicode}
+
+        @param python_field: The Python name for the attribute within the
+        containing L{pyxb.basis.binding.complexTypeDefinition}.  This is a
+        public identifier, albeit modified to be unique, and is usually
+        used as the name of the attribute's inspector method.
+        @type python_field: C{str}
+
+        @param value_attribute_name: The string used to store the attribute
+        value in the dictionary of the containing
+        L{pyxb.basis.binding.complexTypeDefinition}.  This is mangled so
+        that it is unique among and is treated as a Python private member.
+        @type value_attribute_name: C{str}
+
+        @param data_type: The class reference to the subclass of
+        L{pyxb.binding.basis.simpleTypeDefinition} of which the attribute
+        values must be instances.
+        @type data_type: C{type}
+
+        @keyword unicode_default: The default value of the attribute as
+        specified in the schema, or None if there is no default attribute
+        value.  The default value (of the keyword) is C{None}.
+        @type unicode_default: C{unicode}
+
+        @keyword fixed: If C{True}, indicates that the attribute, if present,
+        must have the value that was given via C{unicode_default}.  The
+        default value is C{False}.
+        @type fixed: C{bool}
+
+        @keyword required: If C{True}, indicates that the attribute must appear
+        in the DOM node used to create an instance of the corresponding
+        L{pyxb.binding.basis.complexTypeDefinition}.  The default value is
+        C{False}.  No more that one of L{required} and L{prohibited} should be
+        assigned C{True}.
+        @type required: C{bool}
+
+        @keyword prohibited: If C{True}, indicates that the attribute must
+        B{not} appear in the DOM node used to create an instance of the
+        corresponding L{pyxb.binding.basis.complexTypeDefinition}.  The
+        default value is C{False}.  No more that one of L{required} and
+        L{prohibited} should be assigned C{True}.
+        @type prohibited: C{bool}
+
+        @raise pyxb.BadTypeValueError: the L{unicode_default} cannot be used
+        to initialize an instance of L{data_type}
+        """
+        
         self.__tag = tag
         self.__pythonField = python_field
         self.__valueAttributeName = value_attribute_name
         self.__dataType = data_type
         self.__unicodeDefault = unicode_default
         if self.__unicodeDefault is not None:
-            self.__defaultValue = self.__dataType(self.__unicodeDefault)
+            self.__defaultValue = self.__dataType.Factory(self.__unicodeDefault)
         self.__fixed = fixed
         self.__required = required
         self.__prohibited = prohibited
@@ -77,41 +129,73 @@ class AttributeUse (pyxb.cscRoot):
         """Unicode tag for the attribute in its element"""
         return self.__tag
     
-    def prohibited (self): return self.__prohibited
-    def required (self): return self.__required
+    def required (self):
+        """Return True iff the attribute must be assigned a value."""
+        return self.__required
+
+    def prohibited (self):
+        """Return True iff the attribute must not be assigned a value."""
+        return self.__prohibited
+
+    def provided (self, ctd_instance):
+        """Return True iff the given instance has been explicitly given a
+        value for the attribute.
+
+        This is used for things like only generating an XML attribute
+        assignment when a value was originally given (even if that value
+        happens to be the default).
+        """
+        return self.__getProvided(ctd_instance)
 
     def pythonField (self):
-        """Tag used within Python code for the attribute"""
+        """Tag used within Python code for the attribute.
+
+        This is not used directly in the default code generation template."""
         return self.__pythonField
 
+    def dataType (self):
+        """The subclass of L{pyxb.binding.basis.simpleTypeDefinition} of which any attribute value must be an instance."""
+        return self.__dataType
+
     def __getValue (self, ctd_instance):
+        """Retrieve the value information for this attribute in a binding instance.
+
+        @param ctd_instance: The instance object from which the attribute is to be retrieved.
+        @type ctd_instance: subclass of L{pyxb.binding.basis.complexTypeDefinition}
+        @return: C{(provided, value)} where C{provided} is a C{bool} and
+        C{value} is C{None} or an instance of the attribute's datatype.
+
+        """
         return getattr(ctd_instance, self.__valueAttributeName, (False, None))
 
     def __getProvided (self, ctd_instance):
         return self.__getValue(ctd_instance)[0]
 
     def value (self, ctd_instance):
-        """Get the value of the attribute."""
+        """Get the value of the attribute from the instance."""
         return self.__getValue(ctd_instance)[1]
 
     def __setValue (self, ctd_instance, new_value, provided):
         return setattr(ctd_instance, self.__valueAttributeName, (provided, new_value))
 
     def reset (self, ctd_instance):
+        """Set the value of the attribute in the given instance to be its
+        default value, and mark that it has not been provided."""
         self.__setValue(ctd_instance, self.__defaultValue, False)
 
     def setFromDOM (self, ctd_instance, node):
         """Set the value of the attribute in the given instance from the
         corresponding attribute of the DOM Element node.
 
-        :param ctd_instance: instance of ComplexTypeDefinition to which attribute belongs
-        :param node: DOM node from which attribute value should be taken
-        :raise ProhibitedAttributeError: an attempt was made to set a prohibited attribute
-        :raise MissingAttributeError: a required attribute did not receive a value
+        @param ctd_instance: instance of ComplexTypeDefinition to which attribute belongs
+        @param node: DOM node from which attribute value should be taken
+        @raise ProhibitedAttributeError: an attempt was made to set a prohibited attribute
+        @raise MissingAttributeError: a required attribute did not receive a value
         """
         unicode_value = self.__unicodeDefault
         provided = False
         assert isinstance(node, xml.dom.Node)
+        # @todo: namespace-aware lookup
         if node.hasAttribute(self.__tag):
             if self.__prohibited:
                 raise pyxb.ProhibitedAttributeError('Prohibited attribute %s found' % (self.__tag,))
@@ -142,10 +226,18 @@ class AttributeUse (pyxb.cscRoot):
     def setValue (self, ctd_instance, new_value):
         """Set the value of the attribute.
 
-        This validates the value against the data type."""
+        This validates the value against the data type, creating a new instance if necessary.
+
+        @param ctd_instance: The binding instance for which the attribute
+        value is to be set
+        @type ctd_instance: subclass of L{pyxb.binding.basis.complexTypeDefinition}
+        @param new_value: The value for the attribute
+        @type new_value: any object that is permitted as the input parameter
+        to the C{Factory} method of the attribute's datatype.
+        """
         assert new_value is not None
         if not isinstance(new_value, self.__dataType):
-            new_value = self.__dataType(new_value)
+            new_value = self.__dataType.Factory(new_value)
         if self.__fixed and (new_value != self.__defaultValue):
             raise pyxb.AttributeChangeError('Attempt to change value of fixed attribute %s' % (self.__tag,))
         self.__setValue(ctd_instance, new_value, True)
@@ -157,7 +249,10 @@ class ElementUse (pyxb.cscRoot):
     This includes the original tag name, the spelling of the corresponding
     object in Python, an indicator of whether multiple instances might be
     associated with the field, and a list of types for legal values of the
-    field."""
+    field.
+
+    @todo: Store the extended namespace name of the element.
+    """
 
     def tag (self):
         """The Unicode XML NCName of the element."""
@@ -190,7 +285,12 @@ class ElementUse (pyxb.cscRoot):
 
         This includes elements in particles with maxOccurs greater than one,
         and when multiple elements with the same NCName are declared in the
-        same type."""
+        same type.
+
+        @todo Fix this: if a type has a reference to ns1:foo and a different
+        one to ns2:foo, the two should not end up in the same python field.
+
+        """
         return self.__isPlural
     __isPlural = False
 
@@ -200,7 +300,38 @@ class ElementUse (pyxb.cscRoot):
     # them against validElements at this level.
     __parentUse = None
 
-    def __init__ (self, tag, python_field, value_element_name, is_plural, default=None, valid_elements=[]):
+    def __init__ (self, tag, python_field, value_element_name, is_plural, valid_elements=[]):
+        """Create an ElementUse instance.
+
+        @param tag: The name by which the attribute is referenced in the XML
+        @type tag: C{unicode}
+
+        @param python_field: The Python name for the element within the
+        containing L{pyxb.basis.binding.complexTypeDefinition}.  This is a
+        public identifier, albeit modified to be unique, and is usually
+        used as the name of the element's inspector method.
+        @type python_field: C{str}
+
+        @param value_element_name: The string used to store the element
+        value in the dictionary of the containing
+        L{pyxb.basis.binding.complexTypeDefinition}.  This is mangled so
+        that it is unique among and is treated as a Python private member.
+        @type value_element_name: C{str}
+
+        @param is_plural: If C{True}, documents for the corresponding type may
+        have multiple instances of this element.  As a consequence, the value
+        of the element will be a list.  If C{False}, the value will be C{None}
+        if the element is absent, and a reference to an instance of
+        L{pyxb.binding.basis.element._TypeDefinition} if present.
+        @type is_plural: C{bool}
+
+        @param valid_elements: Outdated field used in old content model.  Do
+        not use this.
+
+        @todo: Ensure that an element referenced from multiple complex types
+        uses the correct name in each context.
+
+        """
         self.__tag = tag
         self.__pythonField = python_field
         self.__valueElementName = value_element_name
@@ -426,11 +557,11 @@ class ContentModelState (pyxb.cscRoot):
         If no transition can be made, and this state is a final state for the
         DFA, the value None is returned.
 
-        :param ctd_instance: The binding instance holding the content
-        :param node_list: in/out list of DOM nodes that comprise instance content
-        :param store: whether this actually consumes or just tests
-        :raise pyxb.UnrecognizedContentError: trailing material that does not match content model
-        :raise pyxb.MissingContentError: content model requires additional data
+        @param ctd_instance: The binding instance holding the content
+        @param node_list: in/out list of DOM nodes that comprise instance content
+        @param store: whether this actually consumes or just tests
+        @raise pyxb.UnrecognizedContentError: trailing material that does not match content model
+        @raise pyxb.MissingContentError: content model requires additional data
         """
 
         for transition in self.__transitions:
@@ -620,9 +751,9 @@ class Particle (pyxb.cscRoot):
     def extendDOMFromContent (self, dom_support, element, ctd_instance):
         """Add DOM constructs corresponding to data from a binding instance.
 
-        :param dom_support: A pyxb.utils.domutils.BindingDOMSupport instance
-        :param element: A DOM Element node into which binding values are written
-        :param ctd_instance: A binding instance holding values
+        @param dom_support: A pyxb.utils.domutils.BindingDOMSupport instance
+        @param element: A DOM Element node into which binding values are written
+        @param ctd_instance: A binding instance holding values
         """
 
         assert isinstance(dom_support, pyxb.utils.domutils.BindingDOMSupport)

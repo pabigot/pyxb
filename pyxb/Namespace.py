@@ -186,15 +186,15 @@ class _NamespaceCategory_mixin (pyxb.cscRoot):
                 return False
         return True
 
-    def _saveToFile (self, pickler):
+    def _saveToFile_csc (self, pickler):
         """CSC function to save Namespace state to a file.
 
         This one saves the category map, including all objects held in the categories."""
         pickler.dump(self.__categoryMap)
-        return getattr(super(_NamespaceCategory_mixin, self), '_saveToFile', lambda _pickler: _pickler)(pickler)
+        return getattr(super(_NamespaceCategory_mixin, self), '_saveToFile_csc', lambda _pickler: _pickler)(pickler)
 
     @classmethod
-    def _LoadFromFile (cls, instance, unpickler):
+    def _LoadFromFile_csc (cls, instance, unpickler):
         """CSC function to load Namespace state from a file.
         
         This one reads the saved category map, then incorporates its
@@ -212,7 +212,7 @@ class _NamespaceCategory_mixin (pyxb.cscRoot):
         for category in new_category_map.keys():
             instance.categoryMap(category).update(new_category_map[category])
         instance.__defineCategoryAccessors()
-        return getattr(super(_NamespaceCategory_mixin, cls), '_LoadFromFile', lambda *args, **kw: None)(unpickler)
+        return getattr(super(_NamespaceCategory_mixin, cls), '_LoadFromFile_csc', lambda *args, **kw: None)(unpickler)
 
 class _NamespaceResolution_mixin (pyxb.cscRoot):
     """Mix-in that aggregates those aspects of XMLNamespaces relevant to
@@ -808,14 +808,14 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
     def PicklingNamespace (cls):
         return Namespace.__PicklingNamespace
 
-    def _saveToFile (self, pickler):
+    def _saveToFile_csc (self, pickler):
         """CSC function to save Namespace state to a file.
 
         This one handles the base operations.  Implementers should tail-call
         the next implementation in the chain, returning the pickler at the end
         of the chain.
 
-        If this method is implemented, the corresponding _LoadFromFile
+        If this method is implemented, the corresponding _LoadFromFile_csc
         function should also be implemented
         """
 
@@ -824,7 +824,7 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
         pickler.dump(self)
 
         # Rest is only read if the schema needs to be loaded
-        return getattr(super(Namespace, self), '_saveToFile', lambda _pickler: _pickler)(pickler)
+        return getattr(super(Namespace, self), '_saveToFile_csc', lambda _pickler: _pickler)(pickler)
 
     def saveToFile (self, file_path):
         """Save this namespace, with its defining schema, to the given
@@ -840,12 +840,12 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
         self._PicklingNamespace(self)
         assert Namespace.PicklingNamespace() is not None
 
-        self._saveToFile(pickler)
+        self._saveToFile_csc(pickler)
 
         self._PicklingNamespace(None)
 
     @classmethod
-    def _LoadFromFile (cls, instance, unpickler):
+    def _LoadFromFile_csc (cls, instance, unpickler):
         """CSC function to load Namespace state from a file.
 
         This one handles the base operation, including identifying the
@@ -853,7 +853,7 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
         tail-call the next implementation in the chain, returning the instance
         if this is the last one.
         
-        If this function is implemented, the corresponding _saveToFile method
+        If this function is implemented, the corresponding _saveToFile_csc method
         should also be implemented
         """
 
@@ -871,7 +871,7 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
         assert cls._NamespaceForURI(instance.uri()) == instance
 
         # Handle any loading or postprocessing required by the mix-ins.
-        return getattr(super(Namespace, cls), '_LoadFromFile', lambda _instance, _unpickler: _instance)(instance, unpickler)
+        return getattr(super(Namespace, cls), '_LoadFromFile_csc', lambda _instance, _unpickler: _instance)(instance, unpickler)
 
     @classmethod
     def LoadFromFile (cls, file_path):
@@ -883,7 +883,7 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
         """
         print 'Attempting to load a namespace from %s' % (file_path,)
         unpickler = pickle.Unpickler(open(file_path, 'rb'))
-        return cls._LoadFromFile(None, unpickler)
+        return cls._LoadFromFile_csc(None, unpickler)
 
     __inSchemaLoad = False
     def _defineSchema_overload (self, structures_module):
