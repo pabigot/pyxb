@@ -41,10 +41,10 @@ Self-contained schema
 Multi-document schema
 ---------------------
 
-TODO: Add a facility to specify the paths for imported namespaces.
+Multi-namespace documents
+-------------------------
 
-Saving pre-processed namespaces
--------------------------------
+TODO: Add a facility to specify the paths for imported namespaces.
 
 Customized bindings
 -------------------
