@@ -758,8 +758,9 @@ class complexTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _
     # classes should override this value.
     _AttributeWildcard = None
 
-    # Map from ncNames in the binding namespace to AttributeUse instances
     _AttributeMap = { }
+    """Map from ncNames in the binding namespace to AttributeUse instances.
+    @todo support extended namespace names """
 
     # A value that indicates whether the content model for this type supports
     # wildcard elements.  Supporting classes should override this value.
@@ -767,6 +768,8 @@ class complexTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _
 
     # Map from ncNames in the binding namespace to ElementUse instances
     _ElementMap = { }
+    """Map from ncNames in the binding namespace to ElementUse instances.
+    @todo support extended namespace names."""
 
     # Per-instance map from tags to attribute values for wildcard attributes.
     # Value is None if the type does not support wildcard attributes.
