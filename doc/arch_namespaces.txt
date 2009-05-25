@@ -1,5 +1,7 @@
+.. _namespaces:
+
 Namespaces
-----------
+==========
 
 The most important concept to understand when working with complex XML
 documents is the `namespace <http://www.w3.org/TR/REC-xml-names/>`_.  A
@@ -30,7 +32,7 @@ information related to the use of namespaces in XML documents.
 .. image:: Images/Namespace.jpg
 
 Namespace Category Maps
-^^^^^^^^^^^^^^^^^^^^^^^
+-----------------------
 
 The :api:`pyxb.Namespace._NamespaceCategory_mixin` provides the support of
 discrete categories of named objects.  It allows arbitrary,
@@ -50,7 +52,7 @@ and portTypes as named objects that can be identified.
 .. _resolution:
 
 Namespace Resolution
-^^^^^^^^^^^^^^^^^^^^
+--------------------
 
 Named objects are often associated with namespaces through XML elements in a
 document.  For example::
@@ -110,7 +112,7 @@ using the :api:`pyxb.Namespace.NamespaceContext.interpretQName` method.
 
 
 Namespace Context
-^^^^^^^^^^^^^^^^^
+-----------------
 
 `Namespaces in XML <http://www.w3.org/TR/REC-xml-names/>`_ specifies how the
 ``xmlns`` attributes are used to associate prefix strings with namespaces.
@@ -132,14 +134,14 @@ The namespace context consists of three main parts:
   names that appear in the node.
 
 Other Concepts
-^^^^^^^^^^^^^^
+--------------
 
 .. index::
    pair: namespace; absent
    single: no namespace
 
 Absent Namespaces
-"""""""""""""""""
+^^^^^^^^^^^^^^^^^
 
 Some schemas fail to specify a default namespace, a target namespace, or
 both.  These cases are described by the term "absent namespace"; sometimes
@@ -152,7 +154,7 @@ Namespace instance must be retained, because the namespace cannot be
 identified in other contexts.
 
 Storage of Namespaces
-^^^^^^^^^^^^^^^^^^^^^
+---------------------
 
 In PyXB, when the :ref:`componentModel` is used to define various elements,
 attributes, and types by representing them in Python instances, those instance

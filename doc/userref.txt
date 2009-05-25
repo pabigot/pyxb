@@ -26,13 +26,14 @@ Creating bindings with ``pyxbgen``
    ==========================  ===============  ======  =============================================
 
 The module path and schema URI are required.  Raw bindings allow the user to
-import the module and obtain customized classes that augment the pure data
-with functionality or additional data.  Optionally, the XML document retrieved
-from the URI can be stored into a local file for review (usually important
-when working with WSDL definitions).  If the XML document is a WSDL
-definition, only the ``types`` portion is extracted.  Last, the component
-model must be saved if the subsequent bindings are to be generated for
-namespaces that refer to defined objects in this namespace.
+import the module and obtain :ref:`customized classes
+<binding_customization>` that augment the pure data with functionality or
+additional data.  Optionally, the XML document retrieved from the URI can be
+stored into a local file for review (usually important when working with
+WSDL definitions).  If the XML document is a WSDL definition, only the
+``types`` portion is extracted.  Last, the component model must be saved if
+the subsequent bindings are to be generated for namespaces that refer to
+defined objects in this namespace.
 
 Self-contained schema
 ---------------------

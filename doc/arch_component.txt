@@ -1,7 +1,7 @@
 .. _componentModel:
 
 Component Model
----------------
+===============
 
 PyXB's component model is the representation of XML schema components as a
 complex relation of data objects.  Each object class corresponds to one of
@@ -17,7 +17,7 @@ reference, but don't look for consistency.
 .. image:: Images/ComponentModel.jpg
 
 Component Model Mix-ins
-^^^^^^^^^^^^^^^^^^^^^^^
+-----------------------
    
 A variety of :ref:`mixins` are used to allow common code to be abstracted or
 to mark objects as having certain capabilities.  These mixins are:
@@ -68,7 +68,7 @@ to mark objects as having certain capabilities.  These mixins are:
   attributes.
 
 Other Information
-^^^^^^^^^^^^^^^^^
+-----------------
 
 Most of the important information about the component model is best obtained
 from the `specification <http://www.w3.org/TR/xmlschema-1/#components>`_ or

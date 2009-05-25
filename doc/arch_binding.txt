@@ -1,7 +1,7 @@
 .. _bindingModel:
 
 Binding Model
--------------
+=============
 
 The binding model represents the relations between Python classes that
 correspond to schema components.  The class hierarchy for the binding model
@@ -14,7 +14,7 @@ supporting capabilities, all of which are described in the following
 sections.
 
 Supporting Capabilities
-^^^^^^^^^^^^^^^^^^^^^^^
+-----------------------
 
 :api:`pyxb.binding.basis._Binding_mixin` is a marker class which also holds
 the :api:`pyxb.Namespace.NamespaceContext` information about the binding.
@@ -32,7 +32,7 @@ introspection and eventually support for ``xsi:type`` resolution.
 .. _binding_deconflictingNames:
 
 Deconflicting Names
-"""""""""""""""""""
+^^^^^^^^^^^^^^^^^^^
 
 In XML schema, the namespaces for element declarations, type definitions, and
 attribute definitions are all distinct.  Python uses the same namespace for
@@ -88,8 +88,10 @@ favor of higher items on this list:
 - Enumeration tags
 - Attribute tags
 
+.. _binding_customization:
+
 Support for Customization
-"""""""""""""""""""""""""
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
 One of the primary goals of PyXB is to support Python modules which customize
 the generated bindings by adding both functionality and derived content.
@@ -129,7 +131,7 @@ instances of the extending wrapper class.
 
 
 Simple Type Definitions
-^^^^^^^^^^^^^^^^^^^^^^^
+-----------------------
 
 `Simple type definitions
 <http://www.w3.org/TR/xmlschema-1/#Simple_Type_Definitions>`_ derive from
@@ -142,7 +144,7 @@ creation is validated against the `facets
 class.
 
 Constraining Facets
-"""""""""""""""""""
+^^^^^^^^^^^^^^^^^^^
 
 Each class corresponding to a simple type definition has class variables for
 the `constraining facets <http://www.w3.org/TR/xmlschema-2/#rf-facets>`_
@@ -181,7 +183,7 @@ The :api:`pyxb.binding.basis.simpleTypeDefinition.Factory` will normally
 validate the constraints before allowing a new instance to be returned.
 
 List Types
-""""""""""
+^^^^^^^^^^
 
 Simple types that derive by `list
 <http://www.w3.org/TR/xmlschema-2/#atomic-vs-list>`_ extend from
@@ -191,7 +193,7 @@ Simple types that derive by `list
 class to use when creating or validating list members.
 
 Union Types
-"""""""""""
+^^^^^^^^^^^
 
 Union types are classes that are never instantiated.  Instead, the binding
 classes must define a :api:`pyxb.binding.basis.STD_union._MemberTypes`
@@ -206,7 +208,7 @@ member of a union is not recorded in the attribute value.  See
 :ref:`attributeUse`.
 
 Complex Type Definitions
-^^^^^^^^^^^^^^^^^^^^^^^^
+------------------------
 
 `Complex type definitions
 <http://www.w3.org/TR/xmlschema-1/#Complex_Type_Definitions>`_ derive from
@@ -227,13 +229,13 @@ stored in a map from their extended namespace name to the unicode value of
 the attribute.
 
 Empty Content
-"""""""""""""
+^^^^^^^^^^^^^
 
 There is no content in these classes.
 
 
 Simple Content
-""""""""""""""
+^^^^^^^^^^^^^^
 
 The :api:`pyxb.binding.basis.CTD_simple` class supports complex types with
 simple content (i.e., those in which the body of the element is an octet
@@ -255,7 +257,7 @@ As a convenience, the ``__str__`` method of
 ``str(self.content())``.
 
 Mixed and Element-Only Content
-""""""""""""""""""""""""""""""
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 `Mixed and element-only content
 <http://www.w3.org/TR/xmlschema-1/#content_type>`_ nodes assign values to
@@ -272,7 +274,7 @@ list, in parsed order, of the Python objects and (if mixed) non-element
 content that belongs to the instance.
 
 Elements
-^^^^^^^^
+--------
 
 A binding class representing an `element declaration
 <http://www.w3.org/TR/xmlschema-1/#cElement_Declarations>`_ assigns to its

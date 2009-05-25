@@ -2,8 +2,15 @@
 Architecture
 ************
 
-Conceptual Models
-=================
+The architecture of PyXB requires an understanding of four models.
+:ref:`namespaces` describe how objects are aggregated by name and kind.  The
+:ref:`componentModel` represents XML schema using the thirteen component
+types defined in the `XML schema specification
+<http://www.w3.org/TR/xmlschema-1/>`_.  The :ref:`bindingModel` describes
+how Python classes provide a Pythonic representation of the information
+within specific components.  Finally, the :ref:`contentModel` describes how
+the component model of a specific schema supports transition between XML
+documents and Python bindings.
 
 .. toctree::
    :maxdepth: 2
@@ -13,76 +20,3 @@ Conceptual Models
    arch_binding
    arch_content
 
-Binding Generation
-==================
-
-The Python structures that hold schema-related data are directly related to
-the schema components defined in the XMLSchema specification.  Familiarity
-with the material in http://www.w3.org/TR/xmlschema-1 is valuable.
-
-A set of UML diagrams hand-extracted from the XMLSchema schema was used to
-gain initial understanding of the relationship between elements of a schema
-XML representation.
-
-A companion set of UML diagrams displays the relationship between the Python
-classes that comprise the XMLSchema.structures module, which is the core of
-the system.
-
-Design Choices
-==============
-
-Reliance on DOM
----------------
-
-We rely on a DOM implementation to provide `QName interpretation
-<http://www.w3.org/TR/xmlschema-1/#src-qname>`_.  That is, the DOM
-implementation should be tracking in-scope namespaces as it builds the DOM
-tree; the PyXB implementation assumes that the node ``namespaceURI`` and
-``localName`` values have been determined correctly by the DOM
-implementation.
-
-`QName resolution
-<http://www.w3.org/TR/xmlschema-1/#cvc-resolve-instance>`_, on the other
-hand, is the responsibility of PyXB, and is managed through the
-:api:`pyxb.Namespace.NamespaceContext` class.
-
-PyXB
-----
-
-Most XMLSchema are relatively small, so holding the entire definition in
-memory is not an issue.  The complexity of XMLSchema can require multiple
-passes over the element structure to resolve forward references or select
-child nodes of interest at different stages.  As a consequence of these
-points, the Document Object Model was selected as the internal
-representation of XML within PyXB.  Level 2 DOM conformance is assumed.
-
-Though PyXB currently uses the xml.dom.minidom implementation, there is no
-intention to rely on any implementation-specific features of this.  It is,
-however, assumed that certain DOM constructs will be available in a
-"Pythonic" manner.  For example, NodeList instances should support the
-capabilities of a Python sequence rather than requiring invocation of the
-item() method in an iteration up to the list length.
-
-Generated Bindings
-------------------
-
-The default templates for generated code use the Document Object Model as
-their source for instance documents.  They assume the implementation
-supports a Pythonic interface.  If an implementation supports only a strict
-
-Preloaded Namespaces
---------------------
-
-Parsing of schemas is simplified by supporting pre-compiled namespace
-structures corresponding to other schema; for example, the XMLSchema
-namespace is likely to be referenced in everything, and it should not be
-necessary to download and reconstruct it each time it is needed.
-
-PyXB supports a serialized file that contains the Namespace definition
-including all of its contained objects.  Upon first reference to a
-Namespace, if a pre-loaded definition is available, it is loaded into the
-system and used for subsequent resolution.
-
-To avoid ambiguity, references to components that do not belong to the
-pickled namespace are stored as references rather than pickled values.  See
-structures._NamedComponent_mixin for details.
