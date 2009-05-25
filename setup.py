@@ -109,7 +109,7 @@ class test (Command):
                     print '%s imported' % (fn,)
             except Exception, e:
                 print '%s failed in %s: %s' % (fn, state, e)
-                traceback.print_exception(*sys.exc_info())
+                raise
 
         # Run everything
         verbosity = 1
