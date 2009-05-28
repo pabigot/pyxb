@@ -3386,7 +3386,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
             (base_ns, base_ln) = self._namespaceContext().interpretQName(base_attr)
             base_type = base_ns.typeDefinitions().get(base_ln)
             if not isinstance(base_type, SimpleTypeDefinition):
-                raise pyxb.InvalidSchemaError('Unable to locate base type %s in %s' % (base_ln, base_ns.uri()))
+                raise pyxb.SchemaValidationError('Unable to locate base type %s in %s' % (base_ln, base_ns.uri()))
             # If the base type exists but has not yet been resolve,
             # delay processing this type until the one it depends on
             # has been completed.
@@ -4060,7 +4060,6 @@ class Schema (_SchemaComponent_mixin):
         print '%s completed including %s' % (object.__str__(self), object.__str__(included_schema))
         assert self.targetNamespace() == included_schema.targetNamespace()
         #print xml
-        #raise IncompleteImplementationException('include directive not implemented')
         return node
 
     def __processImport (self, node):
