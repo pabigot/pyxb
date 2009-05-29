@@ -129,7 +129,14 @@ setup(name='PyXB',
       author_email='pyxb@comcast.net',
       url='http://pyxb.sourceforge.net',
       version='0.2.0',
-      packages=[ 'pyxb', 'pyxb.binding', 'pyxb.utils', 'pyxb.xmlschema', 'pyxb.standard.bindings' ],
+      provides='pyxb',
+      packages=[ 'pyxb', 'pyxb.binding', 'pyxb.utils', 'pyxb.xmlschema',
+                 'pyxb.standard', 'pyxb.standard.bindings', 'pyxb.standard.bindings.raw' ],
+
+      package_data={ 'pyxb.standard.bindings.raw' :  [ 'xsd_hfp.wxs', 'wsdl.wxs', 'xhtml.wxs', 'soapenv.wxs',
+                                                       'soapenc.wxs', 'mime.wxs', 'soap.wxs', 'http.wxs',
+                                                       'soap12.wxs', 'xmldsig.wxs', 'xenc.wxs', 'saml_assert.wxs',
+                                                       'saml_protocol.wxs' ] },
       # I normally keep these in $purelib, but distutils won't tell me where that is.
       # We don't need them in the installation anyway.
       #data_files= [ ('pyxb/standard/schemas', glob.glob(os.path.join(*'pyxb/standard/schemas/*.xsd'.split('/'))) ) ],

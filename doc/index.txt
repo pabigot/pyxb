@@ -39,7 +39,7 @@ An example of a program using PyXB to interact with a `web service
 automatically-generated module.  First, retrieve the WSDL and generate the
 bindings::
 
- $ pyxbgen -p weather -u 'http://ws.cdyne.com/WeatherWS/Weather.asmx?wsdl' -W
+ $ pyxbgen -m weather -u 'http://ws.cdyne.com/WeatherWS/Weather.asmx?wsdl' -W
  Need to dynamically create schema
  Importing pyxb.standard.bindings.soap
  Importing pyxb.standard.bindings.soap12
@@ -60,7 +60,7 @@ Then write a program that uses them:
 
 And run it::
 
- vmfed9[24]$ PYTHONPATH=../.. python client_get.py
+ vmfed9[24]$ python client_get.py
  Weather forecast for Saint Paul, MN:
    Saturday, May 02 2009: Partly Cloudy, from  to 64
    Sunday, May 03 2009: Sunny, from 43 to 66
