@@ -279,7 +279,7 @@ class AllWalker (object):
 class Thompson:
     """Create a NFA from a content model.  Reminiscent of Thompson's
     algorithm for creating an NFA from a regular expression.  See
-    R{http://portal.acm.org/citation.cfm?doid=363387}"""
+    U{http://portal.acm.org/citation.cfm?doid=363387}"""
 
     # The NFA 
     __nfa = None
