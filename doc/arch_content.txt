@@ -1,0 +1,118 @@
+.. _contentModel:
+
+Content Model
+=============
+
+PyXB's content model is used to complete the link between the
+:ref:`componentModel` and the :ref:`bindingModel`.  These classes are the
+ones that:
+
+- determine what Python class attribute is used to store which XML
+  element or attribute; 
+- distinguish those elements that can occur at most once from those that
+  require an aggregation; and
+- ensure that the ordering and occurrence constraints imposed by the XML
+  `model group <http://www.w3.org/TR/xmlschema-1/#Model_Groups>`_ are
+  satisfied, both when XML is converted to Python instances and vice-versa.
+
+The classes involved in the content model are in the
+:api:`pyxb.binding.content` module, and their relationships are displayed in
+the following diagram.
+
+.. image:: Images/ContentModel.jpg
+
+Associating XML and Python Objects
+----------------------------------
+
+In the standard code generation template, both element and attribute values
+are stored in Python class fields.  As noted in
+:ref:`binding_deconflictingNames` it is necessary to ensure an attribute and
+an element which have the same name in their containing complex type have
+distinct names in the Python class corresponding to that type.  Use
+information for each of these is maintained in the type class.  This use
+information comprises:
+
+- the original name of the element/attribute in the XML
+- its deconflicted name in Python
+- the private name by which the value is stored in the Python instance dictionary
+
+.. todo:: Note that the deconflicted name may be the same as a name in a
+          superclass if the superclass attribute was prohibited and its tag
+          subsequently used for a new attribute.  Assuming the UPA permits
+          this.
+
+Other information is specific to the type of use.  The
+:api:`pyxb.binding.basis.complexTypeDefinition` retains maps from the
+component's name the attribute use or element use instance corresponding to
+the component's use.
+
+.. _attributeUse:
+
+Attribute Uses
+^^^^^^^^^^^^^^
+
+The information associated with an `attribute use
+<http://www.w3.org/TR/xmlschema-1/#cAttributeUse>`_ is recorded in a
+:api:`pyxb.binding.content.AttributeUse` instance.  This class provides:
+
+- The type of the attribute, as a subclass of
+  :api:`pyxb.binding.basis.simpleTypeDefinition`
+- The default value of the attribute
+- Whether the `attribute use
+  <http://www.w3.org/TR/xmlschema-1/#cAttributeUse>`_ is 
+  ``required`` or ``prohibited``
+- Whether the attribute value is ``fixed``
+
+A :api:`map <pyxb.binding.basis.complexTypeDefinition._AttributeMap>` is used
+to map from (future namespace extended) names to AttributeUse instances.  This
+map is defined within the class definition itself.
+
+Element Uses
+^^^^^^^^^^^^
+
+The element analog to an attribute use is an `element declaration
+<http://www.w3.org/TR/xmlschema-1/#cElement_Declarations>`_, and the
+corresponding information is stored in a
+:api:`pyxb.binding.content.ElementUse` instance.  This class contains an
+indication of whether multiple element instances can be associated with the
+use; this drives whether the default value is ``None`` or an empty list.
+
+(future) There is no map from names to ElementUse instances; this association
+is managed via transitions in the content model automaton.
+
+Content Model Automata
+----------------------
+
+The XML `model group <http://www.w3.org/TR/xmlschema-1/#Model_Groups>`_
+construct permits a nested specification of legal type instances through
+ordered sequences (``sequence``), conjunctions or unordered sequences
+(``all``), choices (``choice``), and wildcards (``any``).  The model group can
+be considered a form of regular expression, and as such we use `Thompson's
+algorithm <http://portal.acm.org/citation.cfm?doid=363387>`_ to construct a
+non-deterministic finite automaton which recognizes the set of conforming
+documents.  A `powerset construction
+<http://en.wikipedia.org/wiki/Powerset_construction>`_ is then used to make
+the automaton deterministic, and the resulting automaton is stored as a
+:api:`pyxb.binding.content.ContentModel` instance, with a set of :api:`states
+<pyxb.binding.content.ContentModelState>` each of which has :api:`transitions
+<pyxb.binding.content.ContentModelTransition>` on elements and wildcards.
+
+The sole complication in the automaton construction is dealing with with
+``all`` model groups, which accept subsets of a set of nodes in any order.
+This construct produces an exponential increase in the size of the
+deterministic finite automaton, so is left as a single :api:`transition
+<pyxb.binding.content.ModelGroupAll>` which iteratively matches against the
+head of the node list until all alternatives have been matched or the head
+fails to match an alternative.
+
+The binding instance is then constructed by identifying the content model for
+the corresponding complex type, then walking the model using a sequence of DOM
+nodes to select the appropriate transition.  Element matches are prefered over
+``all`` matches, which in turn are preferred over wildcard matches.
+
+.. ignored
+   ## Local Variables:
+   ## fill-column:78
+   ## indent-tabs-mode:nil
+   ## End:
+
