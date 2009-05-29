@@ -947,7 +947,7 @@ class complexTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _
             au = self._AttributeMap.get(local_name, None)
             if au is None:
                 if self._AttributeWildcard is None:
-                    raise pyxb.UnrecognizedAttributeError('Attribute %s is not permitted in type' % (local_name,))
+                    raise pyxb.UnrecognizedAttributeError('Attribute %s is not permitted in type %s' % (local_name, self._XsdName))
                 self.__wildcardAttributeMap[local_name] = value
                 continue
             au.setFromDOM(self, node)
