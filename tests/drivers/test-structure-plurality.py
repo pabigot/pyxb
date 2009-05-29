@@ -3,7 +3,7 @@
 
 import pyxb.xmlschema as xs
 from pyxb.exceptions_ import *
-import pyxb.Namespace as Namespace
+import pyxb.namespace as Namespace
 from pyxb.xmlschema.structures import _PluralityData
 from pyxb.xmlschema.structures import ModelGroup
 

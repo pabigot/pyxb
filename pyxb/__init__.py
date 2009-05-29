@@ -5,7 +5,7 @@ Python objects following rules specified by an XML Schema document.
 
 This is the top-level entrypoint to the PyXB system.  Importing this
 gets you all the L{exceptions<pyxb.exceptions_.PyXBException>}, and
-L{pyxb.Namespace}.  For more functionality, delve into these
+L{pyxb.namespace}.  For more functionality, delve into these
 submodules:
 
  - L{pyxb.xmlschema} Module holding the

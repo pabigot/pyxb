@@ -24,9 +24,9 @@ the same namespace in different instance documents, as in the `dangling type
 <http://www.xfront.com/VariableContentContainers.html>`_ pattern.
 
 This diagram shows the class structure of the PyXB namespace
-infrastructure.  The central object is the :api:`pyxb.Namespace.Namespace`.
+infrastructure.  The central object is the :api:`pyxb.namespace.Namespace`.
 Three mix-in classes provide implementations of separate namespace
-functions, and the :api:`pyxb.Namespace.NamespaceContext` class provides
+functions, and the :api:`pyxb.namespace.NamespaceContext` class provides
 information related to the use of namespaces in XML documents.
 
 .. image:: Images/Namespace.jpg
@@ -34,7 +34,7 @@ information related to the use of namespaces in XML documents.
 Namespace Category Maps
 -----------------------
 
-The :api:`pyxb.Namespace._NamespaceCategory_mixin` provides the support of
+The :api:`pyxb.namespace._NamespaceCategory_mixin` provides the support of
 discrete categories of named objects.  It allows arbitrary,
 runtime-identified, groups of objects to be registered in individual
 dictionaries within the namespace.  For example, XML Schema require that
@@ -92,12 +92,12 @@ important to understand:
    pair: resolution; name
    pair: resolution; object (component)
 
-:api:`pyxb.Namespace._NamespaceCategory_mixin` is used to define the set of
+:api:`pyxb.namespace._NamespaceCategory_mixin` is used to define the set of
 categories supported by a namespace and to add named objects to those
 categories.  A name is **resolved** when the object with which it is
 associated has been identified.  Objects are **resolved** when any names on
 which they depend have been resolved.
-:api:`pyxb.Namespace._NamespaceResolution_mixin` provides a mechanism to
+:api:`pyxb.namespace._NamespaceResolution_mixin` provides a mechanism to
 hold on to names that have been encountered but whose associated objects
 have not yet been resolved (perhaps because the named object on which they
 depend has not been defined).
@@ -105,10 +105,10 @@ depend has not been defined).
 Because one named object (e.g., a model group definition) might require
 resolution of another (e.g., an element reference), resolution is an
 iterative process, implemented by
-:api:`pyxb.Namespace._NamespaceResolution_mixin.resolveDefinitions`, and
+:api:`pyxb.namespace._NamespaceResolution_mixin.resolveDefinitions`, and
 executed when all named objects have been added to the namespace.  It
-depends on :api:`pyxb.Namespace.NamespaceContext` to identify named objects
-using the :api:`pyxb.Namespace.NamespaceContext.interpretQName` method.
+depends on :api:`pyxb.namespace.NamespaceContext` to identify named objects
+using the :api:`pyxb.namespace.NamespaceContext.interpretQName` method.
 
 
 Namespace Context
@@ -116,7 +116,7 @@ Namespace Context
 
 `Namespaces in XML <http://www.w3.org/TR/REC-xml-names/>`_ specifies how the
 ``xmlns`` attributes are used to associate prefix strings with namespaces.
-The :api:`pyxb.Namespace.NamespaceContext` class supports this by walking a
+The :api:`pyxb.namespace.NamespaceContext` class supports this by walking a
 DOM document and associating with each node the contextual information
 extracted from ``xmlns`` and other namespace-relevant attributes.
 
@@ -150,7 +150,7 @@ both.  These cases are described by the term "absent namespace"; sometimes
 it is said that an object for which the target namespace is absent is in "no
 namespace".  Since "no namespace" still requires support for resolving names
 within the schema, absent namespaces are represented as normal
-:api:`pyxb.Namespace.Namespace` instances, except that the associated URI is
+:api:`pyxb.namespace.Namespace` instances, except that the associated URI is
 ``None``.  The main effect of this is that some external handle on the
 Namespace instance must be retained, because the namespace cannot be
 identified in other contexts.
@@ -162,7 +162,7 @@ Storage of Namespaces
 
 In PyXB, when the :ref:`componentModel` is used to define various elements,
 attributes, and types by representing them in Python instances, those instance
-objects are stored in a :api:`pyxb.Namespace.Namespace` instance.  In addition
+objects are stored in a :api:`pyxb.namespace.Namespace` instance.  In addition
 to generating code corresponding to those objects, it is possible to save the
 pre-computed objects into a file so that they can be referenced in other
 namespaces.
@@ -178,7 +178,7 @@ of the Python module into which bindings for the namespace were generated, and
 the Python binding names for all types, elements, and content model instances.
 
 There are a variety of intricacies involved in this serialization; see the
-source code starting at :api:`pyxb.Namespace.Namespace.saveToFile` for
+source code starting at :api:`pyxb.namespace.Namespace.saveToFile` for
 details.
 
 

@@ -121,7 +121,7 @@ namespace::
   pyxbgen -u po3.xsd -m po3
 
 The ``PYXB_NAMESPACE_PATH`` environment variable is a colon-separated set of
-directories.  Upon startup, the :api:`pyxb.Namespace` module walks all the
+directories.  Upon startup, the :api:`pyxb.namespace` module walks all the
 specified directories looking for files that end with ``.wxs``.  Any that it
 finds that it can correctly read are recorded, and namespaces created, so
 that if they are referenced in a schema the namespace contents can be

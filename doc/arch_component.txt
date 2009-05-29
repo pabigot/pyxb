@@ -24,7 +24,7 @@ to mark objects as having certain capabilities.  These mixins are:
 
 - :api:`pyxb.xmlschema.structures._SchemaComponent_mixin` marks the object
   as being a schema component and holds its
-  :api:`pyxb.Namespace.NamespaceContext`.  It also records relations between
+  :api:`pyxb.namespace.NamespaceContext`.  It also records relations between
   components in a global definition and their clones where those definitions
   are expanded.
 

@@ -44,7 +44,7 @@ instance of either SimpleTypeDefinition or ComplexTypeDefinition.
 
 from pyxb.exceptions_ import *
 import types
-import pyxb.Namespace as Namespace
+import pyxb.namespace as Namespace
 import pyxb.utils.domutils as domutils
 import pyxb.utils.utility as utility
 import basis

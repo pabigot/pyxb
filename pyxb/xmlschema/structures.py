@@ -41,7 +41,7 @@ import copy
 import urllib2
 
 # Make it easier to check node names in the XMLSchema namespace
-from pyxb.Namespace import XMLSchema as xsd
+from pyxb.namespace import XMLSchema as xsd
 
 
 def _LookupAttributeDeclaration (ns, context, local_name):
@@ -64,7 +64,7 @@ def _LookupElementDeclaration (ns, context, local_name):
         rv = ns.elementDeclarations().get(local_name)
     return rv
 
-class _SchemaComponent_mixin (pyxb.Namespace._ComponentDependency_mixin):
+class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin):
     """A mix-in that marks the class as representing a schema component.
 
     This exists so that we can determine the owning schema for any
@@ -138,7 +138,7 @@ class _SchemaComponent_mixin (pyxb.Namespace._ComponentDependency_mixin):
             node = kw.get('node')
             if node is None:
                 raise pyxb.LogicError('Schema component constructor must be given namespace_context or node')
-            self.__namespaceContext = pyxb.Namespace.NamespaceContext.GetNodeContext(node)
+            self.__namespaceContext = pyxb.namespace.NamespaceContext.GetNodeContext(node)
         if self.__namespaceContext is None:
             raise pyxb.LogicError('No namespace_context for schema component')
 
@@ -204,7 +204,7 @@ class _SchemaComponent_mixin (pyxb.Namespace._ComponentDependency_mixin):
         # have an unassigned scope.  However, we do clone
         # non-declarations that contain cloned declarations.
         assert (not isinstance(self, _ScopedDeclaration_mixin)) or self._scopeIsIndeterminate()
-        if isinstance(self, pyxb.Namespace._Resolvable_mixin):
+        if isinstance(self, pyxb.namespace._Resolvable_mixin):
             assert self.isResolved()
 
         that = copy.copy(self)
@@ -213,7 +213,7 @@ class _SchemaComponent_mixin (pyxb.Namespace._ComponentDependency_mixin):
             self.__clones = set()
         self.__clones.add(that)
         that._resetClone_csc()
-        if isinstance(that, pyxb.Namespace._Resolvable_mixin):
+        if isinstance(that, pyxb.namespace._Resolvable_mixin):
             assert that.isResolved()
         return that
 
@@ -372,14 +372,14 @@ class _NamedComponent_mixin (pyxb.cscRoot):
         been validated (or that it be validated here).  That shouldn't
         be a problem, except for the dependency loop resulting from
         use of xml:lang in the XMLSchema namespace.  For that issue,
-        see pyxb.Namespace._XMLSchema.
+        see pyxb.namespace._XMLSchema.
         """
 
         if 0 == len(args):
             rv = super(_NamedComponent_mixin, cls).__new__(cls)
             return rv
         ( uri, ncname, scope, icls ) = args
-        ns = pyxb.Namespace.NamespaceForURI(uri)
+        ns = pyxb.namespace.NamespaceForURI(uri)
 
         if ns is None:
             # This shouldn't happen: it implies somebody's unpickling
@@ -459,7 +459,7 @@ class _NamedComponent_mixin (pyxb.cscRoot):
         # Get the namespace we're pickling.  If the namespace is None,
         # we're not pickling; we're probably cloning, and in that case
         # we don't want to use the reference state encoding.
-        pickling_namespace = pyxb.Namespace.Namespace.PicklingNamespace()
+        pickling_namespace = pyxb.namespace.Namespace.PicklingNamespace()
         if pickling_namespace is None:
             return False
         if pickling_namespace == self.targetNamespace():
@@ -878,7 +878,7 @@ class _AttributeWildcard_mixin (pyxb.cscRoot):
                         namespace_constraint=Wildcard.IntensionalIntersection(agd_constraints),
                         namespace_context=namespace_context)
 
-class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.Namespace._Resolvable_mixin, _Annotated_mixin, _ValueConstraint_mixin, _ScopedDeclaration_mixin):
+class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.namespace._Resolvable_mixin, _Annotated_mixin, _ValueConstraint_mixin, _ScopedDeclaration_mixin):
     """An XMLSchema Attribute Declaration component.
 
     See http://www.w3.org/TR/xmlschema-1/index.html#cAttribute_Declarations
@@ -1014,7 +1014,7 @@ class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
         """
         return frozenset([self.__typeDefinition])
 
-class AttributeUse (_SchemaComponent_mixin, pyxb.Namespace._Resolvable_mixin, _ValueConstraint_mixin):
+class AttributeUse (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin, _ValueConstraint_mixin):
     """An XMLSchema Attribute Use component.
 
     See http://www.w3.org/TR/xmlschema-1/index.html#cAttribute_Use
@@ -1165,7 +1165,7 @@ class AttributeUse (_SchemaComponent_mixin, pyxb.Namespace._Resolvable_mixin, _V
         return 'AU[%s]' % (self.attributeDeclaration(),)
 
 
-class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.Namespace._Resolvable_mixin, _Annotated_mixin, _ValueConstraint_mixin, _ScopedDeclaration_mixin):
+class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.namespace._Resolvable_mixin, _Annotated_mixin, _ValueConstraint_mixin, _ScopedDeclaration_mixin):
     """An XMLSchema Element Declaration component.
 
     See http://www.w3.org/TR/xmlschema-1/index.html#cElement_Declarations
@@ -1378,7 +1378,7 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.Na
         return 'ED[%s:?]' % (self.name(),)
 
 
-class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.Namespace._Resolvable_mixin, _Annotated_mixin, _AttributeWildcard_mixin):
+class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.namespace._Resolvable_mixin, _Annotated_mixin, _AttributeWildcard_mixin):
     # The type resolved from the base attribute.
     __baseTypeDefinition = None
     def baseTypeDefinition (self):
@@ -1538,7 +1538,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         #    raise pyxb.LogicError('Multiple definitions of UrType')
         if cls.__UrTypeDefinition is None:
             # NOTE: We use a singleton subclass of this class
-            ns_ctx = pyxb.Namespace.XMLSchema.initialNamespaceContext()
+            ns_ctx = pyxb.namespace.XMLSchema.initialNamespaceContext()
             bi = _UrTypeDefinition(name='anyType', namespace_context=ns_ctx, derivation_method=cls.DM_restriction, scope=_ScopedDeclaration_mixin.XSCOPE_indeterminate)
 
             # The ur-type is its own baseTypeDefinition
@@ -1553,7 +1553,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
             # Content is mixed, with elements completely unconstrained. @todo:
             # not associated with a schema (it should be)
             kw = { 'namespace_context' : ns_ctx
-#                 , 'schema' : pyxb.Namespace.XMLSchema.schema()
+#                 , 'schema' : pyxb.namespace.XMLSchema.schema()
                  , 'context': _ScopedDeclaration_mixin.SCOPE_global
                  , 'scope': _ScopedDeclaration_mixin.XSCOPE_indeterminate }
             w = Wildcard(namespace_constraint=Wildcard.NC_any, process_contents=Wildcard.PC_lax, **kw)
@@ -2003,7 +2003,7 @@ class _UrTypeDefinition (ComplexTypeDefinition, _Singleton_mixin):
         return self._setDerivationMethod(self.DM_restriction)
  
 
-class AttributeGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.Namespace._Resolvable_mixin, _Annotated_mixin, _AttributeWildcard_mixin):
+class AttributeGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.namespace._Resolvable_mixin, _Annotated_mixin, _AttributeWildcard_mixin):
     # A frozenset of AttributeUse instances
     __attributeUses = None
 
@@ -2338,7 +2338,7 @@ class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
             comp = 'SEQUENCE'
         return '%s:(%s)' % (comp, ",".join( [ str(_p) for _p in self.particles() ] ) )
 
-class Particle (_SchemaComponent_mixin, pyxb.Namespace._Resolvable_mixin):
+class Particle (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin):
     """Some entity along with occurrence information."""
 
     # The minimum number of times the term may appear.
@@ -2450,7 +2450,7 @@ class Particle (_SchemaComponent_mixin, pyxb.Namespace._Resolvable_mixin):
             # It may be possible to get here with an unresolved term.  I
             # thought I saw that once when processing XMLSchema.  If so, we
             # need to hold off resolution of this particle.
-            assert (not isinstance(term, pyxb.Namespace._Resolvable_mixin)) or term.isResolved()
+            assert (not isinstance(term, pyxb.namespace._Resolvable_mixin)) or term.isResolved()
             self.__term = term._adaptForScope(self, self._scope())
 
         assert isinstance(min_occurs, (types.IntType, types.LongType))
@@ -2634,7 +2634,7 @@ class Wildcard (_SchemaComponent_mixin, _Annotated_mixin):
          - set(of_namespaces)
 
         Note that namespace are represented by
-        L{Namespace<pyxb.Namespace.Namespace>} instances, not the URIs that
+        L{Namespace<pyxb.namespace.Namespace>} instances, not the URIs that
         actually define a namespace.  Absence of a namespace is represented by
         C{None}, both in the "not" pair and in the set.
         """
@@ -2797,7 +2797,7 @@ class Wildcard (_SchemaComponent_mixin, _Annotated_mixin):
     # CFD:Wildcard
     @classmethod
     def CreateFromDOM (cls, node, **kw):
-        namespace_context = pyxb.Namespace.NamespaceContext.GetNodeContext(node)
+        namespace_context = pyxb.namespace.NamespaceContext.GetNodeContext(node)
         assert xsd.nodeIsNamed(node, 'any', 'anyAttribute')
         nc = NodeAttribute(node, 'namespace')
         if nc is None:
@@ -2815,7 +2815,7 @@ class Wildcard (_SchemaComponent_mixin, _Annotated_mixin):
                     elif cls.NC_targetNamespace == ns_uri:
                         ncs.add(namespace_context.targetNamespace())
                     else:
-                        ncs.add(pyxb.Namespace.NamespaceForURI(ns_uri, create_if_missing=True))
+                        ncs.add(pyxb.namespace.NamespaceForURI(ns_uri, create_if_missing=True))
                 namespace_constraint = frozenset(ncs)
 
         pc = NodeAttribute(node, 'processContents')
@@ -2832,7 +2832,7 @@ class Wildcard (_SchemaComponent_mixin, _Annotated_mixin):
         return rv
 
 # 3.11.1
-class IdentityConstraintDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Annotated_mixin, pyxb.Namespace._Resolvable_mixin):
+class IdentityConstraintDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Annotated_mixin, pyxb.namespace._Resolvable_mixin):
     ICC_KEY = 0x01
     ICC_KEYREF = 0x02
     ICC_UNIQUE = 0x04
@@ -3029,7 +3029,7 @@ class Annotation (_SchemaComponent_mixin):
 
 
 # Section 3.14.
-class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.Namespace._Resolvable_mixin, _Annotated_mixin):
+class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.namespace._Resolvable_mixin, _Annotated_mixin):
     """The schema component for simple type definitions.
 
     This component supports the basic datatypes of XML schema, and
@@ -3261,7 +3261,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
         #    raise pyxb.LogicError('Multiple definitions of SimpleUrType')
         if cls.__SimpleUrTypeDefinition is None:
             # Note: We use a singleton subclass
-            bi = _SimpleUrTypeDefinition(name='anySimpleType', namespace_context=pyxb.Namespace.XMLSchema.initialNamespaceContext(), variety=cls.VARIETY_absent, scope=_ScopedDeclaration_mixin.XSCOPE_indeterminate)
+            bi = _SimpleUrTypeDefinition(name='anySimpleType', namespace_context=pyxb.namespace.XMLSchema.initialNamespaceContext(), variety=cls.VARIETY_absent, scope=_ScopedDeclaration_mixin.XSCOPE_indeterminate)
             bi._setPythonSupport(datatypes.anySimpleType)
 
             # The baseTypeDefinition is the ur-type.
@@ -3465,8 +3465,8 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
             for cn in ai.childNodes:
                 if Node.ELEMENT_NODE != cn.nodeType:
                     continue
-                if pyxb.Namespace.XMLSchema_hfp.nodeIsNamed(cn, 'hasFacet'):
-                    facet_name = NodeAttribute(cn, 'name', pyxb.Namespace.XMLSchema_hfp)
+                if pyxb.namespace.XMLSchema_hfp.nodeIsNamed(cn, 'hasFacet'):
+                    facet_name = NodeAttribute(cn, 'name', pyxb.namespace.XMLSchema_hfp)
                     if facet_name is None:
                         raise pyxb.SchemaValidationError('hasFacet missing name attribute')
                     if facet_name in seen_facets:
@@ -3475,7 +3475,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
                     facet_class = facets.ConstrainingFacet.ClassForFacet(facet_name)
                     #facet_map[facet_class] = facet_class(base_type_definition=self)
                     facet_map[facet_class] = None
-                if pyxb.Namespace.XMLSchema_hfp.nodeIsNamed(cn, 'hasProperty'):
+                if pyxb.namespace.XMLSchema_hfp.nodeIsNamed(cn, 'hasProperty'):
                     fundamental_facets.add(facets.FundamentalFacet.CreateFromDOM(cn, self))
         if 0 < len(facet_map):
             assert self.__baseTypeDefinition == self.SimpleUrTypeDefinition()
@@ -3825,8 +3825,8 @@ class _ImportElementInformationItem (_Annotated_mixin):
         if uri is None:
             raise pyxb.IncompleteImplementationError('import statements without namespace not supported')
         self.__schemaLocation = NodeAttribute(node, 'schemaLocation')
-        self.__namespace = pyxb.Namespace.NamespaceForURI(uri, create_if_missing=True)
-        if uri in pyxb.Namespace.AvailableForLoad():
+        self.__namespace = pyxb.namespace.NamespaceForURI(uri, create_if_missing=True)
+        if uri in pyxb.namespace.AvailableForLoad():
             try:
                 self.__namespace.validateComponentModel()
             except Exception, e:
@@ -3835,7 +3835,7 @@ class _ImportElementInformationItem (_Annotated_mixin):
             # @todo: validate that something got loaded
         elif self.schemaLocation() is not None:
             print 'Attempt to read %s from %s' % (uri, self.schemaLocation())
-            ns_ctx = pyxb.Namespace.NamespaceContext.GetNodeContext(node)
+            ns_ctx = pyxb.namespace.NamespaceContext.GetNodeContext(node)
             try:
                 xmls = urllib2.urlopen(self.schemaLocation()).read()
             except ValueError, e:
@@ -3955,10 +3955,10 @@ class Schema (_SchemaComponent_mixin):
         kw['schema'] = _SchemaComponent_mixin._SCHEMA_None
         super(Schema, self).__init__(*args, **kw)
         self.__targetNamespace = kw.get('target_namespace', self._namespaceContext().targetNamespace())
-        if not isinstance(self.__targetNamespace, pyxb.Namespace.Namespace):
+        if not isinstance(self.__targetNamespace, pyxb.namespace.Namespace):
             raise pyxb.LogicError('Schema constructor requires valid Namespace instance as target_namespace')
         self.__defaultNamespace = kw.get('default_namespace', self._namespaceContext().defaultNamespace())
-        if not ((self.__defaultNamespace is None) or isinstance(self.__defaultNamespace, pyxb.Namespace.Namespace)):
+        if not ((self.__defaultNamespace is None) or isinstance(self.__defaultNamespace, pyxb.namespace.Namespace)):
             raise pyxb.LogicError('Schema default namespace must be None or a valid Namespace instance')
 
         self.__targetNamespace.configureCategories(self.__SchemaCategories)
@@ -3995,8 +3995,8 @@ class Schema (_SchemaComponent_mixin):
         if Node.ELEMENT_NODE != root_node.nodeType:
             raise pyxb.LogicError('Must be given a DOM node of type ELEMENT')
 
-        assert (namespace_context is None) or isinstance(namespace_context, pyxb.Namespace.NamespaceContext)
-        ns_ctx = pyxb.Namespace.NamespaceContext(root_node, parent_context=namespace_context)
+        assert (namespace_context is None) or isinstance(namespace_context, pyxb.namespace.NamespaceContext)
+        ns_ctx = pyxb.namespace.NamespaceContext(root_node, parent_context=namespace_context)
 
         tns = ns_ctx.targetNamespace()
         assert tns is not None
@@ -4071,7 +4071,7 @@ class Schema (_SchemaComponent_mixin):
 
         self.__requireInProlog(node.nodeName)
         import_eii = _ImportElementInformationItem(self, node)
-        ns_map = pyxb.Namespace.NamespaceContext.GetNodeContext(node).inScopeNamespaces()
+        ns_map = pyxb.namespace.NamespaceContext.GetNodeContext(node).inScopeNamespaces()
         for (pfx, ns) in ns_map.items():
             if import_eii.namespace() == ns:
                 import_eii.setPrefix(pfx)
@@ -4121,7 +4121,7 @@ class Schema (_SchemaComponent_mixin):
         assert existing_def in unresolved_components
         unresolved_components.remove(existing_def)
         assert replacement_def not in unresolved_components
-        assert isinstance(replacement_def, pyxb.Namespace._Resolvable_mixin)
+        assert isinstance(replacement_def, pyxb.namespace._Resolvable_mixin)
         unresolved_components.append(replacement_def)
         # Throw away the reference to the previous component and use
         # the replacement one
@@ -4193,11 +4193,11 @@ class Schema (_SchemaComponent_mixin):
 
 def _AddSimpleTypes (namespace):
     """Add to the schema the definitions of the built-in types of XMLSchema.
-    This should only be invoked by L{pyxb.Namespace} when the built-in
+    This should only be invoked by L{pyxb.namespace} when the built-in
     namespaces are initialized. """
     # Add the ur type
     #schema = namespace.schema()
-    schema = Schema(namespace_context=pyxb.Namespace.XMLSchema.initialNamespaceContext())
+    schema = Schema(namespace_context=pyxb.namespace.XMLSchema.initialNamespaceContext())
     td = schema._addNamedComponent(ComplexTypeDefinition.UrTypeDefinition(in_builtin_definition=True))
     assert td.isResolved()
     # Add the simple ur type
@@ -4228,7 +4228,7 @@ def _AddSimpleTypes (namespace):
     return schema
 
 import sys
-pyxb.Namespace._InitializeBuiltinNamespaces(sys.modules[__name__])
+pyxb.namespace._InitializeBuiltinNamespaces(sys.modules[__name__])
 
 
 

@@ -17,14 +17,14 @@ Supporting Capabilities
 -----------------------
 
 :api:`pyxb.binding.basis._Binding_mixin` is a marker class which also holds
-the :api:`pyxb.Namespace.NamespaceContext` information about the binding.
+the :api:`pyxb.namespace.NamespaceContext` information about the binding.
 The context is used both for translating XML documents into instances of the
 binding class, and for generating multi-namespace XML documents from
 instances.
 
 Every class that is bound to a nameable schema component overrides its
 :api:`pyxb.binding.basis._Binding_mixin._Namespace` to be a reference to the
-:api:`pyxb.Namespace.Namespace` instance for the module to which it belongs,
+:api:`pyxb.namespace.Namespace` instance for the module to which it belongs,
 and its :api:`pyxb.binding.basis._Binding_mixin._XsdName` to be the unicode
 name of the component within its namespace category.  This allows
 introspection and eventually support for ``xsi:type`` resolution.

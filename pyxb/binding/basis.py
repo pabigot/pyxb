@@ -20,7 +20,7 @@ import xml.dom as dom
 import pyxb.utils.domutils as domutils
 import pyxb.utils.utility as utility
 import types
-import pyxb.Namespace
+import pyxb.namespace
 
 class _Binding_mixin (pyxb.cscRoot):
     """Mix-in used to identify classes that are bindings to some XML schema
@@ -45,7 +45,7 @@ class _Binding_mixin (pyxb.cscRoot):
 
     def _namespaceContext (self):
         """The namespace context applicable to the object."""
-        return pyxb.Namespace.NamespaceContext.GetNodeContext(self.__domNode)
+        return pyxb.namespace.NamespaceContext.GetNodeContext(self.__domNode)
     
     def _instanceRoot (self):
         return self.__instanceRoot
@@ -928,7 +928,7 @@ class complexTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _
             local_name = attr.localName
             namespace_name = attr.namespaceURI
             # Ignore xmlns attributes; DOM got those
-            if pyxb.Namespace.XMLNamespaces.uri() == namespace_name:
+            if pyxb.namespace.XMLNamespaces.uri() == namespace_name:
                 continue
 
             prefix = attr.prefix

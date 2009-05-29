@@ -1,7 +1,7 @@
 import pyxb.binding.generate
 import pyxb.utils.domutils
 from xml.dom import Node
-import pyxb.Namespace
+import pyxb.namespace
 import sys
 import imp
 
@@ -21,7 +21,7 @@ rv = compile(code, 'shared-types', 'exec')
 exec code in st.__dict__
 
 # Set the path by which we expect to reference the module
-stns = pyxb.Namespace.NamespaceForURI('URN:shared-types')
+stns = pyxb.namespace.NamespaceForURI('URN:shared-types')
 stns.setModulePath('st')
 
 # Now get and build a module that refers to that module.

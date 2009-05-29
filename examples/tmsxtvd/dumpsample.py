@@ -2,7 +2,7 @@ import tmstvd
 import pyxb.utils.domutils
 import xml.dom
 import xml.dom.minidom
-import pyxb.Namespace
+import pyxb.namespace
 import time
 
 t1 = time.time()

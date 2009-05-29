@@ -15,7 +15,7 @@
 from pyxb.standard.bindings.raw.wsdl import *
 import pyxb.standard.bindings.raw.wsdl as raw_wsdl
 
-import pyxb.Namespace
+import pyxb.namespace
 import pyxb.utils.domutils as domutils
 import xml.dom
 
@@ -24,7 +24,7 @@ import xml.dom
 # implements them.  This allows the wildcard handler in the content
 # model to create proper instances rather than leave them as DOM
 # nodes.
-pyxb.Namespace.AvailableForLoad()
+pyxb.namespace.AvailableForLoad()
 
 class _WSDL_binding_mixin (object):
     """Mix-in class to mark element Python bindings that are expected
@@ -156,7 +156,7 @@ class definitions (raw_wsdl.definitions):
         # per-node in scope namespaces so we can do QName resolution.
         process_schema = kw.pop('process_schema', False)
         rv = super(definitions, cls).CreateFromDOM(node, *args, **kw)
-        rv.__namespaceContext = pyxb.Namespace.NamespaceContext(node)
+        rv.__namespaceContext = pyxb.namespace.NamespaceContext(node)
         rv.__buildMaps()
         if process_schema:
             rv.__processSchema()
@@ -216,7 +216,7 @@ class definitions (raw_wsdl.definitions):
             return self.__schema
         for t in self.types():
             for wc in t.wildcardElements():
-                if isinstance(wc, xml.dom.Node) and pyxb.Namespace.XMLSchema.nodeIsNamed(wc, 'schema'):
+                if isinstance(wc, xml.dom.Node) and pyxb.namespace.XMLSchema.nodeIsNamed(wc, 'schema'):
                     # Try to load component models for any namespace referenced by this.
                     # Probably shouldn't need to do this except for imported ones.
                     for ns in self.namespaceContext().inScopeNamespaces().values():

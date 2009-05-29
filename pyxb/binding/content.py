@@ -34,7 +34,7 @@ ContentModel).  Wildcard is also used in the DFA-based content model.
 """
 
 import pyxb
-import pyxb.Namespace
+import pyxb.namespace
 import basis
 
 import xml.dom
@@ -504,7 +504,7 @@ class ContentModelTransition (pyxb.cscRoot):
             # See if we can convert from DOM into a Python instance.
             # If not, we'll go ahead and store the DOM node.
             try:
-                ns = pyxb.Namespace.NamespaceForURI(node.namespaceURI, create_if_missing=True)
+                ns = pyxb.namespace.NamespaceForURI(node.namespaceURI, create_if_missing=True)
                 if ns.module() is not None:
                     node = ns.module().CreateFromDOM(node)
                 elif ns.modulePath() is not None:
@@ -513,7 +513,7 @@ class ContentModelTransition (pyxb.cscRoot):
                     for c in ns.modulePath().split('.')[1:]:
                         mod = getattr(mod, c)
                     node = mod.CreateFromDOM(node)
-                elif pyxb.Namespace.XMLSchema == ns:
+                elif pyxb.namespace.XMLSchema == ns:
                     print 'Need to dynamically create schema'
             except Exception, e:
                 print 'WARNING: Unable to convert wildcard %s %s to Python instance: %s' % (node.namespaceURI, node.localName, e)
@@ -874,8 +874,8 @@ class Wildcard (pyxb.cscRoot):
         Valid values are:
 
          - L{Wildcard.NC_any}
-         - A tuple ( L{Wildcard.NC_not}, a L{namespace<pyxb.Namespace.Namespace>} instance )
-         - set(of L{namespace<pyxb.Namespace.Namespace>} instances)
+         - A tuple ( L{Wildcard.NC_not}, a L{namespace<pyxb.namespace.Namespace>} instance )
+         - set(of L{namespace<pyxb.namespace.Namespace>} instances)
 
         Namespaces are represented by their URIs.  Absence is
         represented by None, both in the "not" pair and in the set.

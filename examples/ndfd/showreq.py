@@ -1,7 +1,7 @@
 import pyxb.utils.domutils
 import xml.dom
 import xml.dom.minidom
-import pyxb.Namespace
+import pyxb.namespace
 
 # Structure
 #import DWML
@@ -44,7 +44,7 @@ msg = im_ns.messages()[im_ln]
 print msg
 for p in msg.part():
     print p.toxml()
-msg_ns = pyxb.Namespace.NamespaceForURI(body_dom.namespaceURI)
+msg_ns = pyxb.namespace.NamespaceForURI(body_dom.namespaceURI)
 print '%s %s' % (body_dom.namespaceURI, msg_ns)
 
 parts = msg.part()

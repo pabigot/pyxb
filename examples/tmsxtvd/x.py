@@ -2,7 +2,7 @@ import tms
 import pyxb.utils.domutils
 import xml.dom
 import xml.dom.minidom
-import pyxb.Namespace
+import pyxb.namespace
 
 print 'Reading'
 xmls = open('tmsdatadirect_sample.xml').read()

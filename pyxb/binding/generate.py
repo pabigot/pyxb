@@ -162,9 +162,9 @@ class ReferenceSchemaComponent (ReferenceLiteral):
         assert tns is not None
         is_in_binding = (btns == tns)
             
-        if not ((not isinstance(self.__component, pyxb.Namespace._Resolvable_mixin)) or self.__component.isResolved()):
+        if not ((not isinstance(self.__component, pyxb.namespace._Resolvable_mixin)) or self.__component.isResolved()):
             print '%s not resolved' % (self.__component,)
-        assert (not isinstance(self.__component, pyxb.Namespace._Resolvable_mixin)) or self.__component.isResolved()
+        assert (not isinstance(self.__component, pyxb.namespace._Resolvable_mixin)) or self.__component.isResolved()
 
         name = self.__component.nameInBinding()
         if is_in_binding and (name is None):
@@ -173,7 +173,7 @@ class ReferenceSchemaComponent (ReferenceLiteral):
             # The only components that are allowed to be nameless at
             # this point are ones in the binding we're generating.
             # @todo should not have to special case XMLSchema
-            if not (is_in_binding or (pyxb.Namespace.XMLSchema == tns)):
+            if not (is_in_binding or (pyxb.namespace.XMLSchema == tns)):
                 raise pyxb.LogicError('Attempt to reference unnamed component not in binding: %s' % (component,))
 
             # The initial name is the name of the component, or if the
@@ -210,7 +210,7 @@ class ReferenceSchemaComponent (ReferenceLiteral):
         if not is_in_binding:
             assert name is not None
             mp = None
-            if pyxb.Namespace.XMLSchema == tns:
+            if pyxb.namespace.XMLSchema == tns:
                 mp = 'pyxb.binding.datatypes'
             elif tns is not None:
                 mp = tns.modulePath()
@@ -328,7 +328,7 @@ def pythonLiteral (value, **kw):
         return value.asLiteral()
 
     # Represent namespaces by their URI
-    if isinstance(value, pyxb.Namespace.Namespace):
+    if isinstance(value, pyxb.namespace.Namespace):
         return repr(value.uri())
 
     # Standard Python types
@@ -1028,7 +1028,7 @@ def GeneratePython (**kw):
         emit_order = schema.orderedComponents()
     
         import_prefix = 'pyxb.xmlschema.'
-        if schema.targetNamespace() == pyxb.Namespace.XMLSchema:
+        if schema.targetNamespace() == pyxb.namespace.XMLSchema:
             import_prefix = ''
 
         template_map = { }
@@ -1064,9 +1064,9 @@ def GeneratePython (**kw):
         template_map['aux_imports'] = "\n".join( [ 'import %s' % (_ns.modulePath(),) for _ns in import_namespaces ])
 
         if schema.targetNamespace().isAbsentNamespace():
-            template_map['NamespaceDefinition'] = 'pyxb.Namespace.CreateAbsentNamespace()'
+            template_map['NamespaceDefinition'] = 'pyxb.namespace.CreateAbsentNamespace()'
         else:
-            template_map['NamespaceDefinition'] = templates.replaceInText('pyxb.Namespace.NamespaceForURI(%{targetNamespace}, create_if_missing=True)', **template_map)
+            template_map['NamespaceDefinition'] = templates.replaceInText('pyxb.namespace.NamespaceForURI(%{targetNamespace}, create_if_missing=True)', **template_map)
 
         outf.write(templates.replaceInText('''# PyWXSB bindings for %{input}
 # Generated %{date} by PyWXSB version %{version}

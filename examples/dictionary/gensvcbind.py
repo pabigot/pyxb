@@ -1,4 +1,4 @@
-import pyxb.Namespace
+import pyxb.namespace
 import pyxb.xmlschema as xs
 import sys
 import urllib2

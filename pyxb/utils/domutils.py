@@ -15,7 +15,7 @@
 """Functions that support activities related to the Document Object Model."""
 
 import pyxb
-import pyxb.Namespace
+import pyxb.namespace
 import xml.dom
 
 # The DOM implementation to be used for all processing.  Default is whatever
@@ -51,7 +51,7 @@ def StringToDOM (text):
     xml.dom.minidom."""
     return xml.dom.minidom.parseString(text)
 
-def NodeAttribute (node, attribute_ncname, attribute_ns=pyxb.Namespace.XMLSchema):
+def NodeAttribute (node, attribute_ncname, attribute_ns=pyxb.namespace.XMLSchema):
     """Namespace-aware search for an attribute in a node.
 
     Be aware that the default namespace does not apply to attributes.
@@ -82,7 +82,7 @@ def NodeAttribute (node, attribute_ncname, attribute_ns=pyxb.Namespace.XMLSchema
         return node.getAttributeNS(attribute_ns.uri(), attribute_ncname)
     return None
 
-def LocateUniqueChild (node, tag, absent_ok=True, namespace=pyxb.Namespace.XMLSchema):
+def LocateUniqueChild (node, tag, absent_ok=True, namespace=pyxb.namespace.XMLSchema):
     """Locate a unique child of the DOM node.
 
     The node should be a xml.dom.Node ELEMENT_NODE instance.  tag is
@@ -106,7 +106,7 @@ def LocateUniqueChild (node, tag, absent_ok=True, namespace=pyxb.Namespace.XMLSc
         raise SchemaValidationError('Expected %s elements nested in %s' % (name, node.nodeName))
     return candidate
 
-def LocateMatchingChildren (node, tag, namespace=pyxb.Namespace.XMLSchema):
+def LocateMatchingChildren (node, tag, namespace=pyxb.namespace.XMLSchema):
     """Locate all children of the DOM node that have a particular tag.
 
     The node should be a xml.dom.Node ELEMENT_NODE instance.  tag is
@@ -133,7 +133,7 @@ def LocateFirstChildElement (node, absent_ok=True, require_unique=False, ignore_
     candidate = None
     for cn in node.childNodes:
         if xml.dom.Node.ELEMENT_NODE == cn.nodeType:
-            if ignore_annotations and pyxb.Namespace.XMLSchema.nodeIsNamed(cn, 'annotation'):
+            if ignore_annotations and pyxb.namespace.XMLSchema.nodeIsNamed(cn, 'annotation'):
                 continue
             if require_unique:
                 if candidate:
@@ -149,7 +149,7 @@ def HasNonAnnotationChild (node):
     """Return True iff node has an ELEMENT_NODE child that is not an
     XMLSchema annotation node."""
     for cn in node.childNodes:
-        if (xml.dom.Node.ELEMENT_NODE == cn.nodeType) and (not pyxb.Namespace.XMLSchema.nodeIsNamed(cn, 'annotation')):
+        if (xml.dom.Node.ELEMENT_NODE == cn.nodeType) and (not pyxb.namespace.XMLSchema.nodeIsNamed(cn, 'annotation')):
             return True
     return False
 
@@ -207,9 +207,9 @@ class BindingDOMSupport (object):
         @rtype: xml.dom.Document"""
         for ( ns_uri, pfx ) in self.__namespaces.items():
             if pfx is None:
-                self.document().documentElement.setAttributeNS(pyxb.Namespace.XMLNamespaces.uri(), 'xmlns', ns_uri)
+                self.document().documentElement.setAttributeNS(pyxb.namespace.XMLNamespaces.uri(), 'xmlns', ns_uri)
             else:
-                self.document().documentElement.setAttributeNS(pyxb.Namespace.XMLNamespaces.uri(), 'xmlns:%s' % (pfx,), ns_uri)
+                self.document().documentElement.setAttributeNS(pyxb.namespace.XMLNamespaces.uri(), 'xmlns:%s' % (pfx,), ns_uri)
         return self.document()
 
     def createChild (self, local_name, namespace=None, parent=None):
@@ -225,7 +225,7 @@ class BindingDOMSupport (object):
         @param local_name: The NCName to be used for the element tag.
         @keyword namespace: The namespace to which the created child will
                             belong.  This may be an absent namespace.
-        @type namespace: L{pyxb.Namespace.Namespace}
+        @type namespace: L{pyxb.namespace.Namespace}
         @keyword parent: The node in the tree that will serve as the child's
                          parent.  If none is provided, the document element is
                          used.  (If there is no document element, then this
