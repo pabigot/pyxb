@@ -79,7 +79,11 @@ if module_path is None:
     print 'Require --module-path'
     sys.exit(1)
 
-(module_path_prefix, schema_prefix) = module_path.rsplit('.', 1)
+if 0 <= module_path.find('.'):
+    (module_path_prefix, schema_prefix) = module_path.rsplit('.', 1)
+else:
+    module_path_prefix = ''
+    schema_prefix = module_path
 
 if not schema_prefix:
     print 'Require --schema-prefix'
