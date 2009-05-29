@@ -158,12 +158,9 @@ class ReferenceSchemaComponent (ReferenceLiteral):
     def __init__ (self, component, **kw):
         self.__component = component
         btns = kw['binding_target_namespace']
-        tns = None
-        try:
-            tns = self.__component.targetNamespace()
-        except:
-            tns = btns
-        is_in_binding = (btns == tns) or (tns is None)
+        tns = self.__component._namespaceContext().targetNamespace()
+        assert tns is not None
+        is_in_binding = (btns == tns)
             
         if not ((not isinstance(self.__component, pyxb.Namespace._Resolvable_mixin)) or self.__component.isResolved()):
             print '%s not resolved' % (self.__component,)
@@ -211,6 +208,7 @@ class ReferenceSchemaComponent (ReferenceLiteral):
             name = utility.PrepareIdentifier(name, UniqueInBinding, protected=protected)
             self.__component.setNameInBinding(name)
         if not is_in_binding:
+            assert name is not None
             mp = None
             if pyxb.Namespace.XMLSchema == tns:
                 mp = 'pyxb.binding.datatypes'
@@ -1043,7 +1041,7 @@ def GeneratePython (**kw):
         template_map['targetNamespace'] = repr(tns)
         template_map['import_prefix'] = import_prefix
 
-        import_namespaces = [ ]
+        import_namespaces = set()
         for ins in schema.importedNamespaces():
             ns = ins.namespace()
             if ns == schema.targetNamespace():
@@ -1052,7 +1050,17 @@ def GeneratePython (**kw):
                 if not ns.isBuiltinNamespace():
                     print 'WARNING: Dependency on %s with no module path' % (ns.uri(),)
                 continue
-            import_namespaces.append(ns)
+            import_namespaces.add(ns)
+        for ns in schema._namespaceContext().inScopeNamespaces().values():
+            if ns == schema.targetNamespace():
+                continue
+            if ns.modulePath() is None:
+                if not ns.isBuiltinNamespace():
+                    print 'WARNING: Dependency on %s with no module path' % (ns.uri(),)
+                continue
+            print 'Adding due to dependency %s' % (ns,)
+            import_namespaces.add(ns)
+            
         template_map['aux_imports'] = "\n".join( [ 'import %s' % (_ns.modulePath(),) for _ns in import_namespaces ])
 
         if schema.targetNamespace().isAbsentNamespace():
