@@ -8,7 +8,6 @@ Overview
    overview_what
    overview_how
    limitations
-   references
    legal
    vision
 
@@ -38,9 +37,3 @@ conjunction with PyXB:
   and has references to `RELAX NG <http://relaxng.org/>`_ and `Schematron
   <http://www.schematron.com/>`_, but does not address `XML Schema
   <http://www.w3.org/XML/Schema>`_.
-
-.. Why am I directing people to "competing" packages?  I evolved in an
-   academic environment, where (at least in theory) it is truth and sharing
-   of information that's important, not who is right or wrong.  My
-   requirements were not satisfied by any of these packages, but yours
-   might.

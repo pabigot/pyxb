@@ -1,5 +1,0 @@
-Binding Model
-=============
-
-The binding model describes the relationships between classes and instances
-corresponding to generated Python bindings.
