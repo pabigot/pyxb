@@ -15,12 +15,51 @@ See the README.txt file in each example subdirectory for more information.
 Dictionary (Aonaware)
 =====================
 
+The `Dictionary web service at Aonaware <http://www.aonaware.com/services.htm>`_.
+
+Use ``genbindings.sh`` to retrieve the wsdl and generate the bindings for the
+schema used in it.
+
+Try ``showdict.py`` for an example of interacting with the service.  Sorry,
+no automatic generation of classes corresponding to the WSDL operations.
+Next release, maybe.
+
 Simple Weather (CDyne)
 ======================
+
+A `free weather service <http://ws.cdyne.com/WeatherWS/Weather.asmx>`_.
+
+Use ``genbindings.sh`` to retrieve the wsdl and generate the bindings for
+the schema used in it.  Use ``client.py`` to retrieve the forecast for a
+given zip code.
+
+Note the various misspellings in the schema (e.g., "Desciption").  The
+weather information in this service does not get updated often, and for some
+locations has bogus dates.
 
 Professional Weather (National Digital Forecast Data)
 =====================================================
 
+Interact with the `National Digital Forecast Database
+<http://www.nws.noaa.gov/xml>`_.
+
+Use the ``genbindings.sh`` script to retrieve the schema for Digital Weather
+Markup Language and generate the bindings.  (Note that the schema has two
+levels of ``include`` directives, which PyXB follows.)
+
+Use ``forecast.py`` to get the forecast temperature data for two locations, and
+print it in several ways.  The sole inconvenience with the Python data
+structures is the need to dereference the element content when comparing
+complex elements with simple types with strings.  (This example uses the
+REST interface rather than the SOAP one, just b'cuz.)
+
+The ``showreq.py`` script is an in-progress playground for parsing the
+example query, mostly showing how to pair messages with DOM elements.
+
+
 Television Schedules (Tribune Media Services)
 =============================================
 
+A commercial service for `television listings
+<http://www.tribunemediaservices.com/product-and-services/television/services/>`_.
+Only one sample document is available for testing.

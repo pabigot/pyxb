@@ -7,9 +7,9 @@ from xml.dom import minidom
 
 import urllib2
 
-#uri = 'http://ws.cdyne.com/WeatherWS/Weather.asmx/GetCityForecastByZIP?ZIP=55108'
+#uri = 'http://ws.cdyne.com/WeatherWS/Weather.asmx/GetCityForecastByZIP?ZIP=85711'
 
-query = weather.GetCityForecastByZIP(ZIP=55108)
+query = weather.GetCityForecastByZIP(ZIP=85711)
 
 bds = domutils.BindingDOMSupport()
 doc = query.toDOM(bds).finalize()

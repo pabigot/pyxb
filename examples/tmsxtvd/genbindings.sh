@@ -6,8 +6,7 @@ PREFIX='tmstvd'
 mkdir -p raw
 touch raw/__init__.py
 ../../scripts/pyxbgen \
-   -m '' \
-   -p "${PREFIX}" \
+   -m "${PREFIX}" \
    -u "${URI}" \
    -r 
 if [ ! -f ${PREFIX}.py ] ; then

@@ -155,6 +155,8 @@ within the schema, absent namespaces are represented as normal
 Namespace instance must be retained, because the namespace cannot be
 identified in other contexts.
 
+.. _namespaceStorage:
+
 Storage of Namespaces
 ---------------------
 
@@ -170,6 +172,10 @@ model into a file in the same directory as the generated binding, but with a
 suffix ``.wxs``.  When a schema is processed that refers to a namespace, the
 serialized component model for the namespace is read in so that the referring
 namespace can resolve types in it.
+
+In addition to the raw component model, the stored namespace includes the name
+of the Python module into which bindings for the namespace were generated, and
+the Python binding names for all types, elements, and content model instances.
 
 There are a variety of intricacies involved in this serialization; see the
 source code starting at :api:`pyxb.Namespace.Namespace.saveToFile` for

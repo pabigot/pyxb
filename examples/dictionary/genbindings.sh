@@ -10,8 +10,7 @@ fi
 mkdir -p raw
 touch raw/__init__.py
 ../../scripts/pyxbgen \
-   -m '' \
-   -p "${PREFIX}" \
+   -m "${PREFIX}" \
    -u "${WSDL}" \
    -r -W
 if [ ! -f ${PREFIX}.py ] ; then
