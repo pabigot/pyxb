@@ -25,7 +25,7 @@ http://schemas.xmlsoap.org/wsdl/mime/ mime
 http://schemas.xmlsoap.org/wsdl/soap/ soap
 http://schemas.xmlsoap.org/wsdl/http/ http
 http://schemas.xmlsoap.org/wsdl/soap12/wsdl11soap12.xsd soap12
-http://code.google.com/apis/kml/schema/kml21.xsd kml
+#http://code.google.com/apis/kml/schema/kml21.xsd kml
 http://www.w3.org/TR/2002/REC-xmldsig-core-20020212/xmldsig-core-schema.xsd xmldsig
 http://www.w3.org/TR/2002/REC-xmlenc-core-20021210/xenc-schema.xsd xenc
 http://docs.oasis-open.org/security/saml/v2.0/saml-schema-assertion-2.0.xsd saml_assert

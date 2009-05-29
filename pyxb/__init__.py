@@ -47,12 +47,19 @@ class cscRoot (object):
         if issubclass(self.__class__.mro()[-2], ( list, dict )):
             super(cscRoot, self).__init__(*args)
 
+__version__ = '0.2.0'
+"""The version of PyXB"""
+
+__url__ = 'http://pyxb.sourceforge.net'
+"""The URL for PyXB's homepage"""
+
+__license__ = 'Apache License 2.0'
+
 # Bring in the exception hierarchy
 from exceptions_ import *
 
-# Bring in Namespace
-import Namespace
-
+# Bring in namespace stuff
+import namespace
 
 ## Local Variables:
 ## fill-column:78

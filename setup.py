@@ -128,7 +128,7 @@ setup(name='PyXB',
       author='Peter A. Bigot',
       author_email='pyxb@comcast.net',
       url='http://pyxb.sourceforge.net',
-      version='0.1.3',
+      version='0.2.0',
       packages=[ 'pyxb', 'pyxb.binding', 'pyxb.utils', 'pyxb.xmlschema', 'pyxb.standard.bindings' ],
       # I normally keep these in $purelib, but distutils won't tell me where that is.
       # We don't need them in the installation anyway.
