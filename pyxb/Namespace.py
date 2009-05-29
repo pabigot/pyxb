@@ -1402,7 +1402,7 @@ class NamespaceContext (object):
             else:
                 namespace = self.defaultNamespace()
         # Anything we're going to look stuff up in requires a component model.
-        if namespace != self.targetNamespace():
+        if (namespace is not None) and (namespace != self.targetNamespace()):
             namespace.validateComponentModel()
         return (namespace, local_name)
 
