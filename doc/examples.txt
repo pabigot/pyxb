@@ -4,11 +4,15 @@
 Examples
 ********
 
-Four web service examples of varying complexity are provided in the examples
-subdirectory.  Some are WSDL services, and others are simply XMLSchema
-documents.  Generally, invoke ``genbindings.sh`` which will retrieve the
-source schema and perform the binding transformations.  Often there are a
-couple trivial programs that show how the bindings are used.
+A detailed, albeit contrived, example of how to use PyXB is in
+:ref:`pyxbgen`.
+
+Four real-world XML and web service examples of varying complexity are
+provided in the examples subdirectory.  Some are WSDL services, and others
+are simply XMLSchema documents.  Generally, invoke ``genbindings.sh`` which
+will retrieve the source schema and perform the binding transformations.
+Often there are a couple trivial programs that show how the bindings are
+used.
 
 See the README.txt file in each example subdirectory for more information.
 
