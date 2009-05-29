@@ -4,7 +4,7 @@ mkdir -p raw
 touch raw/__init__.py
 ../../scripts/pyxbgen \
   -u ipo.xsd \
-  -p ipo \
+  -m ipo \
   -r
   
   
