@@ -35,16 +35,77 @@ WSDL definitions).  If the XML document is a WSDL definition, only the
 the subsequent bindings are to be generated for namespaces that refer to
 defined objects in this namespace.
 
+The following sections reference example schema and programs that are
+available in the ``examples/manual`` subdirectory of the PyXB distribution.
+
 Self-contained schema
 ---------------------
+
+The following schema ``po1.xsd`` is a condensed version of the `purchase
+order schema <http://www.w3.org/TR/xmlschema-0/#POSchema>`_ in the XMLSchema
+Primer:
+
+.. literalinclude:: ../examples/manual/po1.xsd
+
+Translate this into Python with the following command::
+
+  pyxbgen -u po1.xsd  -m po1
+
+Then this program:
+
+.. literalinclude:: ../examples/manual/demo1.py
+
+when processing this document:
+
+.. literalinclude:: ../examples/manual/po1.xml
+
+produces the following output::
+
+ Robert Smith is sending Alice Smith 2 thing(s):
+   Quantity 1 of Lapis necklace at $99.95
+   Quantity 4 of Plastic necklace at $3.95
 
 Multi-document schema
 ---------------------
 
+Complex schema are more easy to manage when they are separated into multiple
+documents, each of which contains a cohesive set of types.  In the example
+above, the USAddress can be abstracted to handle a variety of addresses, and
+maintained as its own document ``address.xsd``:
+
+.. literalinclude:: ../examples/manual/address.xsd
+
+The XMLSchema `include directive
+<http://www.w3.org/TR/xmlschema-1/#compound-schema>`_ can be used to
+incorporate this document into ``po2.xsd``:
+
+.. literalinclude:: ../examples/manual/po2.xsd
+
+Translation of this document and execution of the test program is just as it
+was in the previous section.
+
 Multi-namespace documents
 -------------------------
 
-TODO: Add a facility to specify the paths for imported namespaces.
+Documents of significant complexity are likely to require references to
+multiple namespaces.  You may have noticed that the schemas we've looked at
+so far have :ref:`no namespace <absentNamespaces>` for both their target and
+default namespaces.  The following schema ``nsaddress.xsd`` places the types
+that are in ``address.xsd`` into the namespace ``URN:address``:
+
+.. literalinclude:: ../examples/manual/nsaddress.xsd
+
+A third variant of the purchase order schema can reference this namespace by
+using the `import directive
+<http://www.w3.org/TR/xmlschema-1/#composition-schemaImport>`_:
+
+.. literalinclude:: ../examples/manual/po3.xsd
+
+For this schema, it is necessary to first translate the address schema.  In
+addition to generating the Python bindings, we must also save the namespace
+as a Python object so we can look up types in it when processing the
+purchase order schema.
+
 
 Customized bindings
 -------------------

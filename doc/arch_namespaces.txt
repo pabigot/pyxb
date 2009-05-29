@@ -140,6 +140,8 @@ Other Concepts
    pair: namespace; absent
    single: no namespace
 
+.. _absentNamespaces:
+
 Absent Namespaces
 ^^^^^^^^^^^^^^^^^
 
