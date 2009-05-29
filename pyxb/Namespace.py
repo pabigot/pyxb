@@ -1402,7 +1402,8 @@ class NamespaceContext (object):
             else:
                 namespace = self.defaultNamespace()
         # Anything we're going to look stuff up in requires a component model.
-        namespace.validateComponentModel()
+        if namespace != self.targetNamespace():
+            namespace.validateComponentModel()
         return (namespace, local_name)
 
     def queueForResolution (self, component):
