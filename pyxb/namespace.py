@@ -40,7 +40,7 @@ DefaultBindingPath = "%s/standard/bindings/raw" % (os.path.dirname(__file__),)
 # Stuff required for pickling
 import cPickle as pickle
 
-class ExpandedName (pyxb.cscRoot):
+class ExpandedName (tuple):
     """Represent an extended name
     U{http://www.w3.org/TR/REC-xml-names/#dt-expname}, which pairs a namespace
     with a local name.
@@ -53,6 +53,8 @@ class ExpandedName (pyxb.cscRoot):
       en.typeDefinition()
       en.namespace().categoryMap('typeDefinition').get(en.localName())
 
+    This class descends from C{tuple} so that its values can be used as map
+    indexes without concern for pointer equivalence.
     """
     def namespace (self):
         """The L{Namespace} part of the expanded name."""
@@ -64,9 +66,17 @@ class ExpandedName (pyxb.cscRoot):
         return self.__localName
     __localName = None
 
+    def validateComponentModel (self):
+        """Pass model validation through to namespace part."""
+        return self.namespace().validateComponentModel()
+
     # Treat unrecognized attributes as potential accessor functions
     def __getattr__ (self, name):
         return lambda _value=self.namespace().categoryMap(name).get(self.localName()): _value
+
+    # Tuples pass their parameters in the allocator method
+    def __new__ (cls, namespace, local_name):
+        return super(ExpandedName, cls).__new__(cls, (namespace, local_name) )
 
     def __init__ (self, namespace, local_name):
         """Create an expanded name.
@@ -78,6 +88,7 @@ class ExpandedName (pyxb.cscRoot):
         """
         if not isinstance(namespace, Namespace):
             raise LogicError('ExpandedName must include a valid (perhaps absent) namespace.')
+        super(ExpandedName, self).__init__( (namespace, local_name) )
         self.__namespace = namespace
         self.__localName = local_name
 
