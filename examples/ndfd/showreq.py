@@ -36,11 +36,9 @@ input = pop.input()[0]
 print input.toxml()
 print type(input)
 print input.message()
-im_qname = input._namespaceContext().interpretQName(input.message())
-assert im_qname is not None
-(im_ns, im_ln) = im_qname
-print '%s %s' % im_qname
-msg = im_ns.messages()[im_ln]
+im_en = input._namespaceContext().interpretQName(input.message())
+print '%s %s' % im_en
+msg = im_en.message()
 print msg
 for p in msg.part():
     print p.toxml()

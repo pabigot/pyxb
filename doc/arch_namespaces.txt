@@ -80,8 +80,8 @@ important to understand:
   <http://www.w3.org/TR/REC-xml-names/#ns-decl>`_ attributes to a namespace
   name, which is a URI.
 
-- The combination of a namespace URI and the local name comprise an
-  extended namespace name.
+- The combination of a namespace URI and the local name comprise an `expanded
+  namespace name <http://www.w3.org/TR/REC-xml-names/#dt-expname>`_.
 
 - The category within which the local name must be resolved in the namespace
   is determined through external information, in the above case the fact of
@@ -148,12 +148,19 @@ Absent Namespaces
 Some schemas fail to specify a default namespace, a target namespace, or
 both.  These cases are described by the term "absent namespace"; sometimes
 it is said that an object for which the target namespace is absent is in "no
-namespace".  Since "no namespace" still requires support for resolving names
-within the schema, absent namespaces are represented as normal
-:api:`pyxb.namespace.Namespace` instances, except that the associated URI is
-``None``.  The main effect of this is that some external handle on the
-Namespace instance must be retained, because the namespace cannot be
-identified in other contexts.
+namespace".
+
+If the target namespace for a schema is absent, we still need to be able to
+store things somewhere, so we represent the target namespace as a normal
+:api:`pyxb.namespace.Namespace` instance, except that the associated URI is
+``None``.  If in the same schema there is no default namespace, the default
+namespace is assigned to be this absent (but valid) target namespace, so that
+QName resolution works.  Absence of a target namespace is the only situation
+in which resolution can succeed without some sort of namespace declaration.
+
+The main effect of this is that some external handle on the Namespace instance
+must be retained, because the namespace cannot be identified in other
+contexts.
 
 .. _namespaceStorage:
 

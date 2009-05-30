@@ -174,14 +174,12 @@ class definitions (raw_wsdl.definitions):
             for op in pt.operation():
                 pt.operationMap()[op.name()] = op
                 for p in (op.input() + op.output() + op.fault()):
-                    (msg_ns, msg_ln) = m._namespaceContext().interpretQName(p.message())
-                    p._setMessageReference(msg_ns.messages()[msg_ln])
+                    msg_en = m._namespaceContext().interpretQName(p.message())
+                    p._setMessageReference(msg_en.message())
         for b in self.binding():
             tns.bindings()[b.name()] = b
-            port_type_qname = b._namespaceContext().interpretQName(b.type())
-            assert port_type_qname is not None
-            (port_type_ns, port_type_ln) = port_type_qname
-            b.setPortTypeReference(port_type_ns.portTypes()[port_type_ln])
+            port_type_en = b._namespaceContext().interpretQName(b.type())
+            b.setPortTypeReference(port_type_en.portType())
             for wc in b.wildcardElements():
                 if isinstance(wc, _WSDL_binding_mixin):
                     b._setProtocolBinding(wc)
@@ -195,13 +193,9 @@ class definitions (raw_wsdl.definitions):
         for s in self.service():
             tns.services()[s.name()] = s
             for p in s.port():
-                port_qname = p._namespaceContext().interpretQName(p.name())
-                assert port_qname is not None
-                (port_ns, port_ln) = port_qname
-                binding_qname = p._namespaceContext().interpretQName(p.binding())
-                assert binding_qname is not None
-                (binding_ns, binding_ln) = binding_qname
-                p._setBindingReference(binding_ns.bindings()[binding_ln])
+                port_en = p._namespaceContext().interpretQName(p.name())
+                binding_en = p._namespaceContext().interpretQName(p.binding())
+                p._setBindingReference(binding_en.binding())
                 for wc in p.wildcardElements():
                     if isinstance(wc, _WSDL_port_mixin):
                         p._setAddressReference(wc)
@@ -238,15 +232,10 @@ class definitions (raw_wsdl.definitions):
         for m in tns.messages().values():
             for p in m.part():
                 if (p.element() is not None) and (p.elementReference() is None):
-                    elt_qname = p._namespaceContext().interpretQName(p.element())
-                    assert elt_qname is not None
-                    (elt_ns, elt_ln) = elt_qname
-                    p._setElementReference(elt_ns.elementDeclarations()[elt_ln])
+                    elt_en = p._namespaceContext().interpretQName(p.element())
+                    p._setElementReference(elt_en.elementDeclaration())
                 if (p.type() is not None) and (p.typeReference() is None):
-                    type_qname = p._namespaceContext().interpretQName(p.type())
-                    assert type_qname is not None
-                    (type_ns, type_ln) = type_qname
-                    type_ns.validateComponentModel()
-                    p._setTypeReference(type_ns.typeDefinitions()[type_ln])
+                    type_en = p._namespaceContext().interpretQName(p.type())
+                    p._setTypeReference(type_en.typeDefinition())
 
 raw_wsdl.definitions._SetSupersedingClass(definitions)

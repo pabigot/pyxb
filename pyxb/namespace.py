@@ -40,6 +40,50 @@ DefaultBindingPath = "%s/standard/bindings/raw" % (os.path.dirname(__file__),)
 # Stuff required for pickling
 import cPickle as pickle
 
+class ExpandedName (pyxb.cscRoot):
+    """Represent an extended name
+    U{http://www.w3.org/TR/REC-xml-names/#dt-expname}, which pairs a namespace
+    with a local name.
+
+    This class allows direct lookup of the named object within a category by
+    using the category name as an accessor function.  That is, if the
+    namespace of the expanded name C{en} has a category 'typeDefinition', then
+    the following two expressions are equivalent::
+    
+      en.typeDefinition()
+      en.namespace().categoryMap('typeDefinition').get(en.localName())
+
+    """
+    def namespace (self):
+        """The L{Namespace} part of the expanded name."""
+        return self.__namespace
+    __namespace = None
+
+    def localName (self):
+        """The local part of the expanded name."""
+        return self.__localName
+    __localName = None
+
+    # Treat unrecognized attributes as potential accessor functions
+    def __getattr__ (self, name):
+        return lambda _value=self.namespace().categoryMap(name).get(self.localName()): _value
+
+    def __init__ (self, namespace, local_name):
+        """Create an expanded name.
+
+        @param namespace: The L{Namespace} to which the name belongs.
+        @type namespace: L{Namespace}
+        @param local_name: The local name within the namespace.
+        @type local_name: C{str} or C{unicode}
+        """
+        if not isinstance(namespace, Namespace):
+            raise LogicError('ExpandedName must include a valid (perhaps absent) namespace.')
+        self.__namespace = namespace
+        self.__localName = local_name
+
+    def __str__ (self):
+        return '%s in %s' % (self.localName(), self.namespace().uri())
+
 class _Resolvable_mixin (pyxb.cscRoot):
     """Mix-in indicating that this object may have references to unseen named components.
 
@@ -1298,15 +1342,20 @@ class NamespaceContext (object):
         global _UndeclaredNamespaceMap
         if dom_node is not None:
             dom_node.__namespaceContext = self
+
         self.__defaultNamespace = default_namespace
         self.__targetNamespace = target_namespace
         self.__attributeMap = { }
         self.__inScopeNamespaces = _UndeclaredNamespaceMap
         self.__mutableInScopeNamespaces = False
+
         if in_scope_namespaces is not None:
+            if parent_context is not None:
+                raise LogicError('Cannot provide both parent_context and in_scope_namespaces')
             self.__inScopeNamespaces = _UndeclaredNamespaceMap.copy()
             self.__inScopeNamespaces.update(in_scope_namespaces)
             self.__mutableInScopeNamespaces = True
+        
         if parent_context is not None:
             self.__inScopeNamespaces = parent_context.inScopeNamespaces()
             self.__mutableInScopeNamespaces = False
@@ -1351,6 +1400,7 @@ class NamespaceContext (object):
         if tns_uri is not None:
             assert 0 < len(tns_uri)
             self.__targetNamespace = NamespaceForURI(tns_uri, create_if_missing=True)
+            #assert self.__defaultNamespace is not None
         elif self.__targetNamespace is None:
             if tns_uri is None:
                 self.__targetNamespace = CreateAbsentNamespace()
@@ -1358,6 +1408,8 @@ class NamespaceContext (object):
                 self.__targetNamespace = NamespaceForURI(tns_uri, create_if_missing=True)
             if self.__defaultNamespace is None:
                 self.__defaultNamespace = self.__targetNamespace
+
+        assert self.__targetNamespace is not None
 
         # Store in each node the in-scope namespaces at that node;
         # we'll need them for QName interpretation of attribute
@@ -1369,42 +1421,39 @@ class NamespaceContext (object):
                 if Node.ELEMENT_NODE == cn.nodeType:
                     NamespaceContext(cn, self, True)
 
-    def interpretQName (self, name, is_definition=False):
-        """Convert the provided name into a tuple of L{Namespace} and local name.
+    def interpretQName (self, name):
+        """Convert the provided name into an L{ExpandedName}, i.e. a tuple of
+        L{Namespace} and local name.
 
         If the name includes a prefix, that prefix must map to an in-scope
-        namespace in this context.  Absence of a prefix maps to either
-        L{defaultNamespace()} or L{targetNamespace()}, depending on
-        C{is_definition}.
+        namespace in this context.  Absence of a prefix maps to
+        L{defaultNamespace()}, which must be provided (or defaults to the
+        target namespace, if that is absent).
         
         @param name: A QName.
         @type name: C{str} or C{unicode}
-        @param is_definition: Indicates whether this QName is used in a
-        context where it declares an object (True) or references an object
-        (False).
-        @type is_definition: C{bool}
-        @return: A tuple: ( L{Namespace}, C{str} )
+        @return: An L{ExpandedName} tuple: ( L{Namespace}, C{str} )
         @raise pyxb.SchemaValidationError: The prefix is not in scope
+        @raise pyxb.SchemaValidationError: No prefix is given and the default namespace is absent
         """
         assert isinstance(name, (str, unicode))
         if 0 <= name.find(':'):
-            assert not is_definition
             (prefix, local_name) = name.split(':', 1)
             assert self.inScopeNamespaces() is not None
             namespace = self.inScopeNamespaces().get(prefix, None)
             if namespace is None:
-                raise pyxb.SchemaValidationError('QName %s prefix is not declared' % (name,))
+                raise pyxb.SchemaValidationError('No namespace declared for QName %s prefix' % (name,))
         else:
             local_name = name
-            # Get the default namespace, or denote an absent namespace
-            if is_definition:
-                namespace = self.targetNamespace()
-            else:
-                namespace = self.defaultNamespace()
+            namespace = self.defaultNamespace()
+            if namespace is None:
+                raise pyxb.SchemaValidationError('QName %s with absent default namespace' % (local_name,))
         # Anything we're going to look stuff up in requires a component model.
-        if (namespace is not None) and (namespace != self.targetNamespace()):
+        # Make sure we can load one, unless we're looking up in the thing
+        # we're constructing (in which case it's being built right now).
+        if (namespace != self.targetNamespace()):
             namespace.validateComponentModel()
-        return (namespace, local_name)
+        return ExpandedName(namespace, local_name)
 
     def queueForResolution (self, component):
         """Forwards to L{queueForResolution()<Namespace.queueForResolution>} in L{targetNamespace()}."""

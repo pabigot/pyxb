@@ -842,8 +842,10 @@ class _AttributeWildcard_mixin (pyxb.cscRoot):
                 agd_attr = NodeAttribute(node, 'ref')
                 if agd_attr is None:
                     raise pyxb.SchemaValidationError('Require ref attribute on internal attributeGroup elements')
-                ( agd_ns, agd_ln ) = self._namespaceContext().interpretQName(agd_attr)
-                agd = agd_ns.attributeGroupDefinitions().get(agd_ln)
+                agen = self._namespaceContext().interpretQName(agd_attr) 
+                agd = agen.attributeGroupDefinition()
+                if agd is None:
+                    raise pyxb.SchemaValidationError('No attribute group definition %s in %s' % (agen.localName(), agen.namespace()))
                 if not agd.isResolved():
                     return None
                 attribute_groups.append(agd)
@@ -968,8 +970,8 @@ class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
         elif type_attr is not None:
             # Although the type definition may not be resolved, *this* component
             # is resolved, since we don't look into the type definition for anything.
-            ( type_ns, type_ln ) = self._namespaceContext().interpretQName(type_attr)
-            self.__typeDefinition = type_ns.typeDefinitions().get(type_ln)
+            type_en = self._namespaceContext().interpretQName(type_attr)
+            self.__typeDefinition = type_en.typeDefinition()
             if self.__typeDefinition is None:
                 self._queueForResolution()
                 return self
@@ -1130,8 +1132,8 @@ class AttributeUse (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin, _V
         ref_attr = NodeAttribute(node, 'ref')
         if ref_attr is None:
             raise pyxb.SchemaValidationError('Attribute uses require reference to attribute declaration')
-        (ad_ns, ad_ln) = self._namespaceContext().interpretQName(ref_attr)
-        self.__attributeDeclaration = _LookupAttributeDeclaration(ad_ns, self._context(), ad_ln)
+        ad_en = self._namespaceContext().interpretQName(ref_attr)
+        self.__attributeDeclaration = _LookupAttributeDeclaration(ad_en.namespace(), self._context(), ad_en.localName())
         if self.__attributeDeclaration is None:
             self._queueForResolution()
             return self
@@ -1318,14 +1320,14 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.na
 
         sg_attr = NodeAttribute(node, 'substitutionGroup')
         if sg_attr is not None:
-            (sg_ns, sg_ln) = self._namespaceContext().interpretQName(sg_attr)
-            sga = _LookupElementDeclaration(sg_ns, self.scope(), sg_ln)
+            sg_en = self._namespaceContext().interpretQName(sg_attr)
+            sga = _LookupElementDeclaration(sg_en.namespace(), self.scope(), sg_en.localName())
             if sga is None:
-                # print 'Holding off ED resolution, unrecognized substitution group %s in %s' % (sg_ln, sg_ns.uri())
+                # print 'Holding off ED resolution, unrecognized substitution group %s' % (sg_en,)
                 self._queueForResolution()
                 return self
             if not sga.isResolved():
-                print 'Not resolving, substitutiongroup %s in %s unresolved' % (sg_ln, sg_ns.uri())
+                print 'Not resolving, substitutiongroup %s unresolved' % (sg_en,)
                 self._queueForResolution()
                 return self
             self.__substitutionGroupAffiliation = sga
@@ -1347,8 +1349,8 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.na
         if type_def is None:
             type_attr = NodeAttribute(node, 'type')
             if type_attr is not None:
-                (type_ns, type_ln) = self._namespaceContext().interpretQName(type_attr)
-                type_def = type_ns.typeDefinitions().get(type_ln)
+                type_en = self._namespaceContext().interpretQName(type_attr)
+                type_def = type_en.typeDefinition()
                 if type_def is None:
                     #print 'Not resolving ED, missing %s %s' % type_qname
                     self._queueForResolution()
@@ -1933,10 +1935,10 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
                     base_attr = NodeAttribute(ions, 'base')
                     if base_attr is None:
                         raise pyxb.SchemaValidationError('Element %s missing base attribute' % (ions.nodeName,))
-                    (base_ns, base_ln) = self._namespaceContext().interpretQName(base_attr)
-                    base_type = base_ns.typeDefinitions().get(base_ln)
+                    base_en = self._namespaceContext().interpretQName(base_attr)
+                    base_type = base_en.typeDefinition()
                     if base_type is None:
-                        raise pyxb.SchemaValidationError('Cannot locate %s in %s: need import?' % (base_ln, base_ns.uri()))
+                        raise pyxb.SchemaValidationError('Cannot locate %s: need import?' % (base_en,))
                     if not base_type.isResolved():
                         # Have to delay resolution until the type this
                         # depends on is available.
@@ -2476,8 +2478,8 @@ class Particle (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin):
                 raise pyxb.SchemaValidationError('group particle without reference')
             # Named groups can only appear at global scope, so no need
             # to use context here.
-            (ref_ns, ref_ln) = self._namespaceContext().interpretQName(ref_attr)
-            group_decl = ref_ns.modelGroupDefinitions().get(ref_ln)
+            ref_en = self._namespaceContext().interpretQName(ref_attr)
+            group_decl = ref_en.modelGroupDefinition()
             if group_decl is None:
                 self._queueForResolution()
                 return self
@@ -2504,8 +2506,8 @@ class Particle (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin):
             # inside a particle is a localElement, so we either get
             # the one it refers to, or create a local one here.
             if ref_attr is not None:
-                (ref_ns, ref_ln) = self._namespaceContext().interpretQName(ref_attr)
-                term = _LookupElementDeclaration(ref_ns, context, ref_ln)
+                ref_en = self._namespaceContext().interpretQName(ref_attr)
+                term = _LookupElementDeclaration(ref_en.namespace(), context, ref_en.localName())
                 if term is None:
                     self._queueForResolution()
                     return self
@@ -2887,8 +2889,8 @@ class IdentityConstraintDefinition (_SchemaComponent_mixin, _NamedComponent_mixi
             refer_attr = NodeAttribute(node, 'refer')
             if refer_attr is None:
                 raise pyxb.SchemaValidationError('Require refer attribute on keyref elements')
-            (refer_ns, refer_ln) = self._namespaceContext().interpretQName(refer_attr)
-            refer = refer_ns.identityConstraintDefinitions().get(refer_ln)
+            refer_en = self._namespaceContext().interpretQName(refer_attr)
+            refer = refer_en.identityConstraintDefinition()
             if refer is None:
                 self._queueForResolution()
                 return self
@@ -3383,10 +3385,10 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
             # Look up the base.  If there is no registered type of
             # that name, an exception gets thrown that percolates up
             # to the user.
-            (base_ns, base_ln) = self._namespaceContext().interpretQName(base_attr)
-            base_type = base_ns.typeDefinitions().get(base_ln)
+            base_en = self._namespaceContext().interpretQName(base_attr)
+            base_type = base_en.typeDefinition()
             if not isinstance(base_type, SimpleTypeDefinition):
-                raise pyxb.SchemaValidationError('Unable to locate base type %s in %s' % (base_ln, base_ns.uri()))
+                raise pyxb.SchemaValidationError('Unable to locate base type %s' % (base_en,))
             # If the base type exists but has not yet been resolve,
             # delay processing this type until the one it depends on
             # has been completed.
@@ -3560,10 +3562,10 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
             if 'list' == alternative:
                 it_attr = NodeAttribute(body, 'itemType')
                 if it_attr is not None:
-                    (it_ns, it_ln) = self._namespaceContext().interpretQName(it_attr)
-                    self.__itemTypeDefinition = it_ns.typeDefinitions().get(it_ln)
+                    it_en = self._namespaceContext().interpretQName(it_attr)
+                    self.__itemTypeDefinition = it_en.typeDefinition()
                     if not isinstance(self.__itemTypeDefinition, SimpleTypeDefinition):
-                        raise pyxb.InvalidSchemaError('Unable to locate STD %s for items' % (it_ln, it_ns.uri()))
+                        raise pyxb.InvalidSchemaError('Unable to locate STD %s for items' % (it_en,))
                 else:
                     # NOTE: The newly created anonymous item type will
                     # not be resolved; the caller needs to handle
@@ -3588,11 +3590,10 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
                     if member_types is not None:
                         for mn in member_types.split():
                             # THROW if type has not been defined
-                            mn_qname = self._namespaceContext().interpretQName(mn)
-                            if mn_qname is None:
-                                raise pyxb.InvalidSchemaError('Unable to locate member type %s' % (mn,))
-                            (mn_ns, mn_local) = mn_qname
-                            std = mn_ns.typeDefinitions().get(mn_local)
+                            mn_en = self._namespaceContext().interpretQName(mn)
+                            std = mn_en.typeDefinition()
+                            if std is None:
+                                raise pyxb.InvalidSchemaError('Unable to locate member type %s' % (mn_en,))
                             assert isinstance(std, SimpleTypeDefinition)
                             mtd.append(std)
                     # Now look for local type definitions
