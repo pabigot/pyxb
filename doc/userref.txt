@@ -51,11 +51,11 @@ Translate this into Python with the following command::
 
   pyxbgen -u po1.xsd  -m po1
 
-Then this program:
+Then this program (``demo1.py``):
 
 .. literalinclude:: ../examples/manual/demo1.py
 
-when processing this document:
+processing this document:
 
 .. literalinclude:: ../examples/manual/po1.xml
 
