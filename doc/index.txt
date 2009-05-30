@@ -16,6 +16,9 @@ instances.  In concept it is similar to `JAXB
 <http://www.codesynthesis.com/products/xsd/>`_ for C++.  A
 :ref:`thirty_sec_example` is at the bottom of this page.
 
+For downloads, support, etc. please see the `PyXB project page
+<http://sourceforge.net/projects/pyxb>`_ on SourceForge.
+
 ********
 Contents
 ********
