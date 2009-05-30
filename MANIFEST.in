@@ -7,7 +7,6 @@ recursive-include tests *.py *.xsd *.xml
 # Include the scripts and any other garbage helpful to the maintainer
 recursive-include maintainer *.sh
 # Documentation, not including cached W3C material
-recursive-include doc *.txt
+recursive-include doc * *.*
 # Examples
 recursive-include examples *.txt *.py *.sh *.xsd *.xml
-prune doc/W3C
