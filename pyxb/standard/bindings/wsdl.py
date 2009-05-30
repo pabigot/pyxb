@@ -221,7 +221,7 @@ class definitions (raw_wsdl.definitions):
                 elif isinstance(wc, pyxb.xmlschema.schema):
                     self.__schema = wc
                 else:
-                    print 'No match: %s %s' % (wc.namespaceURI, namepsace.localName)
+                    print 'No match: %s %s' % (wc.namespaceURI, namespace.localName)
                 if self.__schema is not None:
                     return self.__schema
         return None
