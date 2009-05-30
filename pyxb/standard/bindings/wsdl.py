@@ -193,7 +193,6 @@ class definitions (raw_wsdl.definitions):
         for s in self.service():
             tns.services()[s.name()] = s
             for p in s.port():
-                port_en = p._namespaceContext().interpretQName(p.name())
                 binding_en = p._namespaceContext().interpretQName(p.binding())
                 p._setBindingReference(binding_en.binding())
                 for wc in p.wildcardElements():
