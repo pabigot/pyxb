@@ -772,6 +772,12 @@ class complexTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _
     # Value is None if the type does not support wildcard attributes.
     __wildcardAttributeMap = None
 
+    @classmethod
+    def _AttributeUse (cls, expanded_name):
+        if isinstance(expanded_name, (str, unicode)):
+            expanded_name = pyxb.namespace.ExpandedName(None, expanded_name)
+        return cls._AttributeMap.get(expanded_name)
+
     def wildcardAttributeMap (self):
         """Obtain access to wildcard attributes.
 
@@ -924,29 +930,20 @@ class complexTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _
         for ai in range(0, node.attributes.length):
             attr = node.attributes.item(ai)
             local_name = attr.localName
-            namespace_name = attr.namespaceURI
+            namespace = None
+            if attr.namespaceURI:
+                namespace = pyxb.namespace.NamespaceForURI(attr.namespaceURI)
+                assert namespace is not None
             # Ignore xmlns attributes; DOM got those
-            if pyxb.namespace.XMLNamespaces.uri() == namespace_name:
+            if pyxb.namespace.XMLNamespaces == namespace:
                 continue
-
-            prefix = attr.prefix
-            if not prefix:
-                prefix = None
-            value = attr.value
-            # hack to make some QName attribute tags work
-            if (attr.namespaceURI == node.namespaceURI):
-                prefix = None
-
-            # @todo handle cross-namespace attributes
-            if prefix is not None:
-                print 'IGNORING namespace-qualified attribute %s:%s' % (prefix, local_name)
-                #raise pyxb.IncompleteImplementationError('No support for namespace-qualified attributes like %s:%s' % (prefix, local_name))
-                continue
-            au = self._AttributeMap.get(local_name, None)
+            attr_en = pyxb.namespace.ExpandedName(namespace, local_name)
+            print 'Checking attribute %s in %s' % (attr_en, self._ExpandedName)
+            au = self._AttributeMap.get(attr_en)
             if au is None:
                 if self._AttributeWildcard is None:
-                    raise pyxb.UnrecognizedAttributeError('Attribute %s is not permitted in type %s' % (local_name, self._ExpandedName))
-                self.__wildcardAttributeMap[local_name] = value
+                    raise pyxb.UnrecognizedAttributeError('Attribute %s is not permitted in type %s' % (attr_en, self._ExpandedName))
+                self.__wildcardAttributeMap[attr_en] = attr.value
                 continue
             au.setFromDOM(self, node)
             attrs_available.remove(au)

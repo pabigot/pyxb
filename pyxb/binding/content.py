@@ -53,7 +53,8 @@ class AttributeUse (pyxb.cscRoot):
     @todo: Store the extended namespace name of the attribute.
     """
 
-    __tag = None       # Unicode XML tag @todo not including namespace
+    __expandedName = None       # Expanded namespace name of attribute
+    __namespaceURI = None
     __pythonField = None # Identifier used for this attribute within the owning class
     __valueAttributeName = None # Private attribute used in instances to hold the attribute value
     __dataType = None  # PST datatype
@@ -63,11 +64,11 @@ class AttributeUse (pyxb.cscRoot):
     __required = False          # If True, attribute must appear
     __prohibited = False        # If True, attribute must not appear
 
-    def __init__ (self, tag, python_field, value_attribute_name, data_type, unicode_default=None, fixed=False, required=False, prohibited=False):
+    def __init__ (self, expanded_name, python_field, value_attribute_name, data_type, unicode_default=None, fixed=False, required=False, prohibited=False):
         """Create an AttributeUse instance.
 
-        @param tag: The name by which the attribute is referenced in the XML
-        @type tag: C{unicode}
+        @param expanded_name: The name by which the attribute is referenced in the XML
+        @type expanded_name: L{pyxb.namespace.ExpandedName}
 
         @param python_field: The Python name for the attribute within the
         containing L{pyxb.basis.binding.complexTypeDefinition}.  This is a
@@ -114,7 +115,9 @@ class AttributeUse (pyxb.cscRoot):
         to initialize an instance of L{data_type}
         """
         
-        self.__tag = tag
+        self.__expandedName = expanded_name
+        if self.__expandedName.namespace() is not None:
+            self.__namespaceURI = self.__expandedName.namespace().uri()
         self.__pythonField = python_field
         self.__valueAttributeName = value_attribute_name
         self.__dataType = data_type
@@ -127,7 +130,11 @@ class AttributeUse (pyxb.cscRoot):
 
     def tag (self):
         """Unicode tag for the attribute in its element"""
-        return self.__tag
+        return self.__expandedName.localName()
+    
+    def expandedName (self):
+        """Unicode tag for the attribute in its element"""
+        return self.__expandedName
     
     def required (self):
         """Return True iff the attribute must be assigned a value."""
@@ -196,21 +203,21 @@ class AttributeUse (pyxb.cscRoot):
         provided = False
         assert isinstance(node, xml.dom.Node)
         # @todo: namespace-aware lookup
-        if node.hasAttribute(self.__tag):
+        if node.hasAttributeNS(self.__namespaceURI, self.tag()):
             if self.__prohibited:
-                raise pyxb.ProhibitedAttributeError('Prohibited attribute %s found' % (self.__tag,))
-            unicode_value = node.getAttribute(self.__tag)
+                raise pyxb.ProhibitedAttributeError('Prohibited attribute %s found' % (self.__expandedName,))
+            unicode_value = node.getAttributeNS(self.__namespaceURI, self.tag())
             provided = True
         else:
             if self.__required:
-                raise pyxb.MissingAttributeError('Required attribute %s not found' % (self.__tag,))
+                raise pyxb.MissingAttributeError('Required attribute %s not found' % (self.__expandedName,))
         if unicode_value is None:
             # Must be optional and absent
             self.__setValue(ctd_instance, None, False)
         else:
             new_value = self.__dataType(unicode_value)
             if self.__fixed and (new_value != self.__defaultValue):
-                raise pyxb.AttributeChangeError('Attempt to change value of fixed attribute %s (%s to %s)' % (self.__tag, repr(self.__defaultValue), repr(new_value)))
+                raise pyxb.AttributeChangeError('Attempt to change value of fixed attribute %s (%s to %s)' % (self.__expandedName, repr(self.__defaultValue), repr(new_value)))
             # NB: Do not set provided here; this may be the default
             self.__setValue(ctd_instance, new_value, provided)
         return self
@@ -220,7 +227,7 @@ class AttributeUse (pyxb.cscRoot):
         ( provided, value ) = self.__getValue(ctd_instance)
         if provided:
             assert value is not None
-            element.setAttribute(self.__tag, value.xsdLiteral())
+            element.setAttributeNS(self.__namespaceURI, self.tag(), value.xsdLiteral())
         return self
 
     def setValue (self, ctd_instance, new_value):
@@ -239,7 +246,7 @@ class AttributeUse (pyxb.cscRoot):
         if not isinstance(new_value, self.__dataType):
             new_value = self.__dataType.Factory(new_value)
         if self.__fixed and (new_value != self.__defaultValue):
-            raise pyxb.AttributeChangeError('Attempt to change value of fixed attribute %s' % (self.__tag,))
+            raise pyxb.AttributeChangeError('Attempt to change value of fixed attribute %s' % (self.__expandedName,))
         self.__setValue(ctd_instance, new_value, True)
         return new_value
 

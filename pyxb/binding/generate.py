@@ -373,7 +373,7 @@ def pythonLiteral (value, **kw):
 class ReachableState (dict):
     def unionNoTransition (self, other):
         changed = False
-        print 'UnionNoTransition %s to %s' % (self, other)
+        #print 'UnionNoTransition %s to %s' % (self, other)
         for (k, v) in other.items():
             this_v = self.get(k)
             if this_v is None:
@@ -382,12 +382,12 @@ class ReachableState (dict):
             else:
                 self[k] = this_v or v
                 changed = (self[k] != this_v)
-        print 'UnionNoTransition changed %s result %s' % (changed, self)
+        #print 'UnionNoTransition changed %s result %s' % (changed, self)
         return changed
 
     def unionOfTransitions (self, other):
         changed = False
-        print 'UnionOfTransition %s to %s' % (self, other)
+        #print 'UnionOfTransition %s to %s' % (self, other)
         for (k, v) in other.items():
             this_v = self.get(k)
             if this_v is None:
@@ -396,11 +396,11 @@ class ReachableState (dict):
             else:
                 self[k] = True
                 changed = (self[k] != this_v)
-        print 'UnionOfTransition changed %s result %s' % (changed, self)
+        #print 'UnionOfTransition changed %s result %s' % (changed, self)
         return changed
 
     def addTransition (self, k):
-        print 'AddTransition %s with %s' % (self, k)
+        #print 'AddTransition %s with %s' % (self, k)
         this_v = self.get(k)
         if this_v is None:
             self[k] = False
@@ -408,7 +408,7 @@ class ReachableState (dict):
         else:
             self[k] = True
             changed = (this_v != True)
-        print 'AddTransition changed %s result %s' % (changed, self)
+        #print 'AddTransition changed %s result %s' % (changed, self)
         return changed
 
 class AutomatonContent:
@@ -421,11 +421,11 @@ class AutomatonContent:
         for state in dfa.keys():
             self.__stateReachable[state] = ReachableState()
         need_visit = set([ self.__dfa.start()])
-        print 'Constructing content map for automaton'
+        #print 'Constructing content map for automaton'
         while 0 < len(need_visit):
             state = need_visit.pop()
             this_reaches = self.__stateReachable[state]
-            print 'Content from state %s, reachable %s' % (state, this_reaches)
+            #print 'Content from state %s, reachable %s' % (state, this_reaches)
             transitions = self.__dfa[state]
             for term in transitions.keys():
                 next_states = transitions[term]
@@ -434,22 +434,22 @@ class AutomatonContent:
                 next_state = next_states.copy().pop()
                 if isinstance(term, xs.structures.ElementDeclaration):
                     state_term = term.expandedName()
-                print ' Term %s using %s from %s to %s' % (term, state_term, state, next_state)
+                #print ' Term %s using %s from %s to %s' % (term, state_term, state, next_state)
                 changed = self.__stateReachable[next_state].unionNoTransition(this_reaches)
                 if isinstance(state_term, nfa.AllWalker):
                     content_map = ReachableState()
-                    print 'ALL WALKER Start: %s' % (content_map,)
+                    #print 'ALL WALKER Start: %s' % (content_map,)
                     for (dfa, is_required) in state_term.particles():
                         changed = content_map.unionOfTransitions(AutomatonContent(dfa).pluralityMap()) or changed
                     changed = self.__stateReachable[next_state].unionNoTransition(content_map) or changed
-                    print 'ALL WALKER End: %s' % (content_map,)
+                    #print 'ALL WALKER End: %s' % (content_map,)
                 elif state_term is None:
                     # Epsilon transition to final state
-                    print 'Epsilon transition skipped'
+                    #print 'Epsilon transition skipped'
                     pass
                 else:
                     # Wildcard or ElementDeclaration
-                    print 'Term transition adding'
+                    #print 'Term transition adding'
                     assert isinstance(state_term, (xs.structures.Wildcard, pyxb.namespace.ExpandedName))
                     #changed = self.__stateReachable[next_state].addTransition(state_term) or changed
                     alt_reachable = ReachableState()
@@ -457,14 +457,14 @@ class AutomatonContent:
                     changed = alt_reachable.addTransition(state_term) or changed
                     changed = self.__stateReachable[next_state].unionNoTransition(alt_reachable) or changed
                 if changed:
-                    print 'Adding next state %s' % (next_state,)
+                    #print 'Adding next state %s' % (next_state,)
                     need_visit.add(next_state)
-            print 'End state %s: %s' % (state, self.__stateReachable[state])
+            #print 'End state %s: %s' % (state, self.__stateReachable[state])
         self.__pluralityMap = self.__stateReachable[self.__dfa.end()]
-        for (en, is_plural) in self.__pluralityMap.items():
-            if isinstance(en, pyxb.namespace.ExpandedName):
-                print '%s %s' % (en, is_plural)
-        print "\n\n\n"
+        #for (en, is_plural) in self.__pluralityMap.items():
+        #    if isinstance(en, pyxb.namespace.ExpandedName):
+        #        print '%s %s' % (en, is_plural)
+        #print "\n\n\n"
 
     def pluralityMap (self):
         return self.__pluralityMap
@@ -612,6 +612,7 @@ def GenerateSTD (std, **kw):
     if 0 < len(parent_classes):
         template_map['superclasses'] = ', '.join(parent_classes)
     template_map['name'] = pythonLiteral(std.name(), **kw)
+    template_map['expanded_name'] = pythonLiteral(std.expandedName(), **kw)
 
     if xs.structures.SimpleTypeDefinition.VARIETY_absent == std.variety():
         assert False
@@ -622,10 +623,7 @@ def GenerateSTD (std, **kw):
 class %{std} (%{superclasses}):
     """%{description}"""
 
-    # The name of this type definition within the schema
-    _XsdName = %{name}
-    # Reference to the namespace to which the type belongs
-    _Namespace = Namespace
+    _ExpandedName = %{expanded_name}
 '''
         template_map['description'] = ''
     elif xs.structures.SimpleTypeDefinition.VARIETY_list == std.variety():
@@ -635,11 +633,7 @@ class %{std} (%{superclasses}):
 class %{std} (pyxb.binding.basis.STD_list):
     """%{description}"""
 
-    # The name of this type definition within the schema
-    _XsdName = %{name}
-    # Reference to the namespace to which the type belongs
-    _Namespace = Namespace
-
+    _ExpandedName = %{expanded_name}
     # Type for items in the list
     _ItemType = %{itemtype}
 '''
@@ -652,10 +646,7 @@ class %{std} (pyxb.binding.basis.STD_list):
 class %{std} (pyxb.binding.basis.STD_union):
     """%{description}"""
 
-    # The name of this type definition within the schema
-    _XsdName = %{name}
-    # Reference to the namespace to which the type belongs
-    _Namespace = Namespace
+    _ExpandedName = %{expanded_name}
 
     # Types of potential union members
     _MemberTypes = ( %{membertypes}, )
@@ -695,6 +686,7 @@ def GenerateCTD (ctd, **kw):
     base_type = ctd.baseTypeDefinition()
     template_map['base_type'] = pythonLiteral(base_type, **kw)
     template_map['name'] = pythonLiteral(ctd.name(), **kw)
+    template_map['expanded_name'] = pythonLiteral(ctd.expandedName(), **kw)
 
     need_content = False
     content_basis = None
@@ -738,10 +730,7 @@ class %{ctd} (%{superclasses}):
 '''
 
     prolog_template += '''
-    # The name of this type definition within the schema
-    _XsdName = %{name}
-    # Reference to the namespace to which the type belongs
-    _Namespace = Namespace
+    _ExpandedName = %{expanded_name}
 '''
 
     # Complex types that inherit from non-ur-type complex types should
@@ -822,7 +811,7 @@ class %{ctd} (%{superclasses}):
             element_uses.append(templates.replaceInText('%{field_expandedName} : %{field_name}', **ef_map))
             element_class_items.append('%s : %s' % (ef_map['field_expandedName'], pythonLiteral(ed, **kw)))
 
-            ctd.__elementFields[name] = ( is_plural, types, ef_map )
+            ctd.__elementFields[name] = ef_map
             definitions.append(templates.replaceInText('''
     # Element %{field_expandedName} uses Python identifier %{python_field_name}
     %{field_name} = pyxb.binding.content.ElementUse(%{field_expandedName}, '%{python_field_name}', '%{value_field_name}', %{is_plural})
