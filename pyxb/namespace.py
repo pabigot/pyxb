@@ -72,6 +72,8 @@ class ExpandedName (tuple):
 
     # Treat unrecognized attributes as potential accessor functions
     def __getattr__ (self, name):
+        if self.namespace() is None:
+            raise pyxb.LogicError('Attempt to locate unrecognized field %s in absent namespace' % (name,))
         return lambda _value=self.namespace().categoryMap(name).get(self.localName()): _value
 
     # Tuples pass their parameters in the allocator method
