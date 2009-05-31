@@ -778,6 +778,12 @@ class complexTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _
             expanded_name = pyxb.namespace.ExpandedName(None, expanded_name)
         return cls._AttributeMap.get(expanded_name)
 
+    @classmethod
+    def _ElementUse (cls, expanded_name):
+        if isinstance(expanded_name, (str, unicode)):
+            expanded_name = pyxb.namespace.ExpandedName(None, expanded_name)
+        return cls._ElementMap.get(expanded_name)
+
     def wildcardAttributeMap (self):
         """Obtain access to wildcard attributes.
 
@@ -791,6 +797,13 @@ class complexTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _
         user.
         """
         return self.__wildcardAttributeMap
+
+    def getWildcardAttribute (self, key):
+        if self.__wildcardAttributeMap is None:
+            return None
+        if isinstance(key, (str, unicode)):
+            key = pyxb.namespace.ExpandedName(None, key)
+        return self.__wildcardAttributeMap.get(key)
 
     # Per-instance list of DOM nodes interpreted as wildcard elements.
     # Value is None if the type does not support wildcard elements.
@@ -852,7 +865,7 @@ class complexTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _
         return rv
 
     # Specify the symbols to be reserved for all CTDs.
-    _ReservedSymbols = set([ 'Factory', 'CreateFromDOM', 'toDOM' ])
+    _ReservedSymbols = set([ 'Factory', 'CreateFromDOM', 'toDOM', 'wildcardAttributeMap', 'wildcardElements' ])
 
     # Class variable which maps complex type attribute names to the name used
     # within the generated binding.  For example, if somebody's gone and
@@ -915,7 +928,6 @@ class complexTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _
         """Return the ElementUse object corresponding to the element name.
 
         :param tag: The NCName of an element in the class"""
-        print '%s in %s' % (tag, cls._ElementMap.keys())
         return cls._ElementMap[tag]
 
     def _setAttributesFromDOM (self, node):

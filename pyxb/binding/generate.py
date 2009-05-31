@@ -811,7 +811,7 @@ class %{ctd} (%{superclasses}):
             element_uses.append(templates.replaceInText('%{field_expandedName} : %{field_name}', **ef_map))
             element_class_items.append('%s : %s' % (ef_map['field_expandedName'], pythonLiteral(ed, **kw)))
 
-            ctd.__elementFields[name] = ef_map
+            ctd.__elementFields[en] = ef_map
             definitions.append(templates.replaceInText('''
     # Element %{field_expandedName} uses Python identifier %{python_field_name}
     %{field_name} = pyxb.binding.content.ElementUse(%{field_expandedName}, '%{python_field_name}', '%{value_field_name}', %{is_plural})
