@@ -273,11 +273,10 @@ class ElementUse (pyxb.cscRoot):
     # class within which the element declaration occurred.
     __valueElementName = None
 
-    def validElements (self):
-        """A list of binding classes that express the permissible types of
-        element instances for this use."""
-        return self.__validElements
-    __validElements = None
+    def elementBinding (self):
+        """The binding class used for the element"""
+        return self.__elementBinding
+    __elementBinding = None
 
     def isPlural (self):
         """True iff the content model indicates that more than one element
@@ -300,7 +299,7 @@ class ElementUse (pyxb.cscRoot):
     # them against validElements at this level.
     __parentUse = None
 
-    def __init__ (self, tag, python_field, value_element_name, is_plural, valid_elements=[]):
+    def __init__ (self, tag, python_field, value_element_name, is_plural, element_binding=None):
         """Create an ElementUse instance.
 
         @param tag: The name by which the attribute is referenced in the XML
@@ -325,9 +324,6 @@ class ElementUse (pyxb.cscRoot):
         L{pyxb.binding.basis.element._TypeDefinition} if present.
         @type is_plural: C{bool}
 
-        @param valid_elements: Outdated field used in old content model.  Do
-        not use this.
-
         @todo: Ensure that an element referenced from multiple complex types
         uses the correct name in each context.
 
@@ -336,10 +332,11 @@ class ElementUse (pyxb.cscRoot):
         self.__pythonField = python_field
         self.__valueElementName = value_element_name
         self.__isPlural = is_plural
-        self.__validElements = valid_elements
+        self.__elementBinding = element_binding
 
-    def _setValidElements (self, valid_elements):
-        self.__validElements = valid_elements
+    def _setElementBinding (self, element_binding):
+        assert issubclass(element_binding, pyxb.binding.basis.element)
+        self.__elementBinding = element_binding
 
     def defaultValue (self):
         if self.isPlural():
@@ -399,26 +396,17 @@ class ElementUse (pyxb.cscRoot):
         """Set the value of this element in the given instance."""
         if value is None:
             return self.reset(ctd_instance)
-        assert self.__validElements is not None
-        for dt in self.__validElements:
-            if isinstance(value, dt):
-                self.__setValue(ctd_instance, value)
-                ctd_instance._addContent(value)
-                return self
-        for dt in self.__validElements:
-            # Ignore elements that we just can't convert to, but pass through
-            # exceptions when a constraint is violated.
-            try:
-                iv = dt(value, validate_constraints=False)
-            except pyxb.BadTypeValueError, e:
-                continue
-            assert isinstance(iv, basis._Binding_mixin)
-            if iv._IsSimpleTypeContent():
-                iv.xsdConstraintsOK()
-            self.__setValue(ctd_instance, iv)
-            ctd_instance._addContent(iv)
+        assert self.__elementBinding is not None
+        if isinstance(value, self.__elementBinding):
+            self.__setValue(ctd_instance, value)
+            ctd_instance._addContent(value)
             return self
-        raise pyxb.BadTypeValueError('Cannot assign value of type %s to field %s: legal types %s' % (type(value), self.tag(), ' '.join([str(_dt) for _dt in self.__validElements])))
+        # Ignore elements that we just can't convert to, but pass through
+        # exceptions when a constraint is violated.
+        iv = self.__elementBinding(value)
+        self.__setValue(ctd_instance, iv)
+        ctd_instance._addContent(iv)
+        return self
 
 class ContentModelTransition (pyxb.cscRoot):
     """Represents a transition in the content model DFA.
