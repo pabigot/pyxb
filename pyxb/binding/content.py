@@ -523,7 +523,7 @@ class ContentModelTransition (pyxb.cscRoot):
             try:
                 value = self.__elementUse.nextValueToGenerate(ctd_instance)
                 value.toDOM(dom_support, element)
-                print 'Element %s' % (self.__term._ExpandedName,)
+                print 'Element %s value %s' % (self.__term._ExpandedName, value)
                 return True
             except pyxb.DOMGenerationError, e:
                 print 'Failed to produce element %s'
@@ -647,38 +647,6 @@ class ContentModel (pyxb.cscRoot):
         state = 1
         while state is not None:
             state = self.__stateMap[state].extendDOM(dom_support, element, ctd_instance)
-            
-        '''
-
-        rep = 0
-        assert isinstance(ctd_instance, basis.complexTypeDefinition)
-        while ((self.maxOccurs() is None) or (rep < self.maxOccurs())):
-            try:
-                if isinstance(self.term(), ModelGroup):
-                    self.term().extendDOMFromContent(dom_support, element, ctd_instance)
-                elif isinstance(self.term(), type) and issubclass(self.term(), basis.element):
-                    eu = ctd_instance._UseForElement(self.term())
-                    assert eu is not None
-                    value = eu.nextValueToGenerate(ctd_instance)
-                    value.toDOM(dom_support, element)
-                elif isinstance(self.term(), Wildcard):
-                    print 'Generation ignoring wildcard'
-                    # @todo handle generation of wildcards
-                    break
-                else:
-                    raise pyxb.IncompleteImplementationError('Particle.extendDOMFromContent: No support for term type %s' % (self.term(),))
-            except pyxb.IncompleteImplementationError, e:
-                raise
-            except pyxb.DOMGenerationError, e:
-                break
-            except Exception, e:
-                #print 'Caught extending DOM from term %s: %s' % (self.term(), e)
-                raise
-            rep += 1
-        if rep < self.minOccurs():
-            raise pyxb.DOMGenerationError('Expected at least %d instances of %s, got only %d' % (self.minOccurs(), self.term(), rep))
-
-        '''
 
 class ModelGroupAllAlternative (pyxb.cscRoot):
     """Represents a single alternative in an "all" model group."""
