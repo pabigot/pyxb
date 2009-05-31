@@ -53,8 +53,8 @@ class ExpandedName (tuple):
       en.typeDefinition()
       en.namespace().categoryMap('typeDefinition').get(en.localName())
 
-    This class descends from C{tuple} so that its values can be used as map
-    indexes without concern for pointer equivalence.
+    This class descends from C{tuple} so that its values can be used as
+    dictionary keys without concern for pointer equivalence.
     """
     def namespace (self):
         """The L{Namespace} part of the expanded name."""
@@ -81,19 +81,32 @@ class ExpandedName (tuple):
     def __init__ (self, namespace, local_name):
         """Create an expanded name.
 
+        The only time the namespace can be None is if the expanded name refers
+        to an attribute which does not have a namespace prefix.
+
         @param namespace: The L{Namespace} to which the name belongs.
-        @type namespace: L{Namespace}
+        @type namespace: L{Namespace} or None
         @param local_name: The local name within the namespace.
         @type local_name: C{str} or C{unicode}
         """
-        if not isinstance(namespace, Namespace):
-            raise LogicError('ExpandedName must include a valid (perhaps absent) namespace.')
+        if (namespace is not None) and not isinstance(namespace, Namespace):
+            raise LogicError('ExpandedName must include a valid (perhaps absent) namespace, or None.')
         super(ExpandedName, self).__init__( (namespace, local_name) )
         self.__namespace = namespace
         self.__localName = local_name
 
     def __str__ (self):
-        return '%s in %s' % (self.localName(), self.namespace().uri())
+        if self.namespace():
+            return '{%s}%s' % (self.namespace().uri(), self.localName())
+        return self.localName()
+
+    def getAttribute (self, dom_node):
+        uri = None
+        if self.__namespace is not None:
+            uri = self.__namespace.uri()
+        if dom_node.hasAttributeNS(uri, self.localName()):
+            return dom_node.getAttributeNS(uri, self.localName())
+        return None
 
 class _Resolvable_mixin (pyxb.cscRoot):
     """Mix-in indicating that this object may have references to unseen named components.

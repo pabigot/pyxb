@@ -219,6 +219,32 @@ class ReferenceSchemaComponent (ReferenceLiteral):
                 name = '%s.%s' % (mp, name)
         self.setLiteral(name)
 
+class ReferenceNamespace (ReferenceLiteral):
+    __namespace = None
+
+    def __init__ (self, **kw):
+        self.__namespace = kw['namespace']
+        btns = kw['binding_target_namespace']
+        super(ReferenceNamespace, self).__init__(**kw)
+        assert self.__namespace is not None
+        ns = None
+        if pyxb.namespace.XMLSchema == self.__namespace:
+            ns = 'pyxb.namespace.XMLSchema'
+        elif btns == self.__namespace:
+            ns = 'Namespace'
+        else:
+            mp = self.__namespace.modulePath()
+            assert mp is not None
+            ns = '%s.Namespace' % (mp,)
+        self.setLiteral(ns)
+
+class ReferenceExpandedName (ReferenceLiteral):
+    __expandedName = None
+
+    def __init__ (self, **kw):
+        self.__expandedName = kw['expanded_name']
+        self.setLiteral('pyxb.namespace.ExpandedName(%s, %s)' % (pythonLiteral(self.__expandedName.namespace(), **kw), pythonLiteral(self.__expandedName.localName(), **kw)))
+
 class ReferenceFacet (ReferenceLiteral):
     __facet = None
 
@@ -275,6 +301,10 @@ def pythonLiteral (value, **kw):
     if isinstance(value, types.ListType):
         return [ pythonLiteral(_v, **kw) for _v in value ]
 
+    # ExpandedName is a tuple, but not here
+    if isinstance(value, pyxb.namespace.ExpandedName):
+        return pythonLiteral(ReferenceExpandedName(expanded_name=value, **kw))
+
     # For other collection types, do what you do for list
     if isinstance(value, (types.TupleType, set)):
         return type(value)(pythonLiteral(list(value), **kw))
@@ -289,6 +319,9 @@ def pythonLiteral (value, **kw):
     # for the module.
     if isinstance(value, basis.simpleTypeDefinition):
         return PrefixModule(value, value.pythonLiteral())
+
+    if isinstance(value, pyxb.namespace.Namespace):
+        return pythonLiteral(ReferenceNamespace(namespace=value, **kw))
 
     if isinstance(value, type):
         if issubclass(value, basis.simpleTypeDefinition):
@@ -782,11 +815,14 @@ class %{ctd} (%{superclasses}):
         au_map['attr_mutator'] = utility.PrepareIdentifier('set' + used_attr_name[0].upper() + used_attr_name[1:], class_unique, class_keywords)
         au_map['attr_name'] = utility.PrepareIdentifier(attr_name, class_unique, class_keywords, private=True)
         au_map['value_attr_name'] = utility.PrepareIdentifier('%s_%s' % (template_map['ctd'], attr_name), class_unique, class_keywords, private=True)
+        au_map['attr_en_val'] = pythonLiteral(ad.expandedName(), **kw)
+        au_map['attr_en_ref'] = '%s_en' % (au_map['attr_name'],)
         au_map['attr_tag'] = pythonLiteral(attr_name, **kw)
         assert ad.typeDefinition() is not None
         au_map['attr_type'] = pythonLiteral(ad.typeDefinition(), **kw)
         au_map['constraint_value'] = pythonLiteral(None, **kw)
         au_map['attr_ns'] = pythonLiteral(ad.targetNamespace(), **kw)
+                        
         vc_source = ad
         if au.valueConstraint() is not None:
             vc_source = au
@@ -809,6 +845,7 @@ class %{ctd} (%{superclasses}):
         attribute_uses.append(templates.replaceInText('%{attr_tag} : %{attr_name}', **au_map))
         definitions.append(templates.replaceInText('''
     # Attribute %{attr_tag} from %{attr_ns} uses Python identifier %{python_attr_name}
+    %{attr_en_ref} = %{attr_en_val}
     %{attr_name} = pyxb.binding.content.AttributeUse(%{attr_tag}, '%{python_attr_name}', '%{value_attr_name}', %{attr_type}%{aux_init})
     def %{attr_inspector} (self):
         """Get the value of the %{attr_tag} attribute."""

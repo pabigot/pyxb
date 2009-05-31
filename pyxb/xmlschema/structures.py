@@ -354,6 +354,10 @@ class _NamedComponent_mixin (pyxb.cscRoot):
         return self.__targetNamespace
     __targetNamespace = None
     
+    def expandedName (self):
+        """Return the L{pyxb.namespace.ExpandedName} of this object."""
+        return pyxb.namespace.ExpandedName(self.targetNamespace(), self.name())
+
     # The schema from which the component was extracted
     __schema = None
 
