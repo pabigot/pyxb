@@ -597,7 +597,7 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
     __absentNamespaceID = 0
 
     # A prefix bound to this namespace by standard.  Current set known are applies to
-    # xml, xmlns, and xsi.
+    # xml and xmlns.
     __boundPrefix = None
 
     # A map from URIs to Namespace instances.  Namespaces instances
@@ -759,11 +759,10 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
     def boundPrefix (self):
         """Return the standard prefix to be used for this namespace.
 
-        Only a few namespace prefixes are bound to namespaces: xml,
-        xmlns, and xsi are three.  In all other cases, this method
-        should return None.  The infrastructure attempts to prevent
-        user creation of Namespace instances that have bound
-        prefixes."""
+        Only a few namespace prefixes are bound to namespaces: xml and xmlns
+        are two.  In all other cases, this method should return None.  The
+        infrastructure attempts to prevent user creation of Namespace
+        instances that have bound prefixes."""
         return self.__boundPrefix
 
     def isBuiltinNamespace (self):
@@ -777,8 +776,8 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
         regardless of whether there is a declaration for it.
 
         This is the case only for the
-        xsi(http://www.w3.org/2001/XMLSchema-instance) and
-        xml(http://www.w3.org/XML/1998/namespace) namespaces."""
+        xml(http://www.w3.org/XML/1998/namespace) and
+        xmlns(http://www.w3.org/2000/xmlns/) namespaces."""
         return self.__isUndeclaredNamespace
 
     def modulePath (self):
@@ -1299,7 +1298,7 @@ def _InitializeBuiltinNamespaces (structures_module):
             if ns.isUndeclaredNamespace():
                 ns.validateComponentModel(structures_module)
 
-# Set up the prefixes for xml, xsi, etc.
+# Set up the prefixes for xml, xmlns, etc.
 _UndeclaredNamespaceMap = { }
 [ _UndeclaredNamespaceMap.setdefault(_ns.boundPrefix(), _ns) for _ns in BuiltInNamespaces if _ns.isUndeclaredNamespace() ]
 
@@ -1345,7 +1344,7 @@ class NamespaceContext (object):
         @type dom_node: C{xml.dom.Element}
         @keyword parent_context: Optional value that specifies the context
         associated with C{dom_node}'s parent node.  If not provided, only the
-        C{xml} and C{xsi} namespaces are in scope.
+        C{xml} namespace is in scope.
         @type parent_context: L{NamespaceContext}
         @keyword recurse: If True (default), create namespace contexts for all
         element children of C{dom_node}
@@ -1409,13 +1408,11 @@ class NamespaceContext (object):
                         # namespace, but does not say anything explicitly about
                         # undefining a prefixed namespace.  XML-Infoset 2.2
                         # paragraph 6 implies you can do this, but expat blows up
-                        # if you try it.  Nonetheless, we'll pretend that it's
-                        # legal.
-                        if 'xmlns' == attr.localName:
-                            self.__defaultNamespace = None
-                            self.__inScopeNamespaces.pop(None, None)
-                        else:
-                            self.__inScopeNamespaces.pop(attr.localName, None)
+                        # if you try it.  I don't think it's legal.
+                        if 'xmlns' != attr.localName:
+                            raise pyxb.SchemaValidationError('Attempt to undefine non-default namespace %s' % (attr.localName,))
+                        self.__defaultNamespace = None
+                        self.__inScopeNamespaces.pop(None, None)
                 else:
                     self.__attributeMap[(attr.namespaceURI, attr.localName)] = attr.value
         
