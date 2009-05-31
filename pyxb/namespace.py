@@ -146,6 +146,28 @@ class _Resolvable_mixin (pyxb.cscRoot):
         """
         self._namespaceContext().queueForResolution(self)
 
+    __ResolvingSchema = None
+    @classmethod
+    def _SetResolvingSchema (cls, schema):
+        """Record the schema that is currently being resolved."""
+        cls.__ResolvingSchema = schema
+
+    @classmethod
+    def _ResolvingSchema (cls):
+        """Return the schema currently being resolved.
+
+        We need this so that we can reference the schema
+        C{attributeFormDefault} and C{elementFormDefault} attributes when
+        determining the target namespace for local declarations.  Normally,
+        components are not associated with schemas, only with namespaces, so
+        the component model doesn't provide what's needed to get this
+        information."""
+        return cls.__ResolvingSchema
+
+    def _resolvingSchema (self):
+        """Pass to class-level L{_ResolvingSchema}"""
+        return self._ResolvingSchema()
+
 class NamedObjectMap (dict):
     """An extended dictionary intended to assist with QName resolution.
 
@@ -314,7 +336,7 @@ class _NamespaceResolution_mixin (pyxb.cscRoot):
             self.__unresolvedComponents.append(resolvable)
         return resolvable
 
-    def resolveDefinitions (self):
+    def resolveDefinitions (self, schema):
         """Loop until all references within the associated resolvable objects
         have been resolved.
 
@@ -323,7 +345,13 @@ class _NamespaceResolution_mixin (pyxb.cscRoot):
         resolved in this pass, it iis placed back on the list for the next
         iteration.  If an iteration completes without resolving any of the
         unresolved components, a pyxb.NotInNamespaceError exception is raised.
+
+        @param schema: The schema for which resolution is being performed.
+        @type schema: L{pyxb.xmlschema.structures.Schema}
         """
+        assert _Resolvable_mixin._ResolvingSchema() is None
+        assert schema is not None
+        _Resolvable_mixin._SetResolvingSchema(schema)
         num_loops = 0
         while 0 < len(self.__unresolvedComponents):
             # Save the list of unresolved objects, reset the list to capture
@@ -366,6 +394,7 @@ class _NamespaceResolution_mixin (pyxb.cscRoot):
         # Replace the list of unresolved components with None, so that
         # attempts to subsequently add another component fail.
         self.__unresolvedComponents = None
+        _Resolvable_mixin._SetResolvingSchema(None)
         return self
     
     def _unresolvedComponents (self):
@@ -504,9 +533,10 @@ class _NamespaceComponentAssociation_mixin (pyxb.cscRoot):
             ready_components = []
             for td in components:
                 # There should be no components that do not belong to this
-                # namespace.
+                # namespace.  Components that belong to no namespace are
+                # presumably local to a type in this namespace.
                 try:
-                    assert td.targetNamespace() == self
+                    assert (td.targetNamespace() == self) or (td.targetNamespace() is None)
                 except AttributeError:
                     # Unnamed things don't get discarded this way
                     pass
