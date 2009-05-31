@@ -548,6 +548,9 @@ class _NamespaceComponentAssociation_mixin (pyxb.cscRoot):
                     if td.scope() is None:
                         print 'Discarding %s: no scope defined' % (td.name(),)
                         continue
+                    if td._scopeIsIndeterminate():
+                        print 'Discarding %s: indeterminate scope' % (td.name(),)
+                        continue
                 except AttributeError, e:
                     # Some components don't have a scope.
                     pass
