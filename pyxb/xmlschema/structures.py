@@ -43,27 +43,6 @@ import urllib2
 # Make it easier to check node names in the XMLSchema namespace
 from pyxb.namespace import XMLSchema as xsd
 
-
-def _LookupAttributeDeclaration (ns, context, local_name):
-    assert context is not None
-    assert 0 > local_name.find(':')
-    rv = None
-    if isinstance(context, ComplexTypeDefinition):
-        rv = context.lookupScopedAttributeDeclaration(local_name)
-    if rv is None:
-        rv = ns.attributeDeclarations().get(local_name)
-    return rv
-
-def _LookupElementDeclaration (ns, context, local_name):
-    assert context is not None
-    assert 0 > local_name.find(':')
-    rv = None
-    if isinstance(context, ComplexTypeDefinition):
-        rv = context.lookupScopedElementDeclaration(local_name)
-    if rv is None:
-        rv = ns.elementDeclarations().get(local_name)
-    return rv
-
 class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin):
     """A mix-in that marks the class as representing a schema component.
 
@@ -411,6 +390,7 @@ class _NamedComponent_mixin (pyxb.cscRoot):
                 raise pyxb.SchemaValidationError('Unable to resolve local %s as %s in %s in %s' % (ncname, icls, scope_ncname, uri))
         # WRONG WRONG WRONG: Not the right thing for indeterminate
         elif (_ScopedDeclaration_mixin.SCOPE_global == scope) or _ScopedDeclaration_mixin.ScopeIsIndeterminate(scope):
+            #assert not _ScopedDeclaration_mixin.ScopeIsIndeterminate(scope)
             if (issubclass(icls, SimpleTypeDefinition) or issubclass(icls, ComplexTypeDefinition)):
                 rv = ns.typeDefinitions().get(ncname)
             elif issubclass(icls, AttributeGroupDefinition):
@@ -418,9 +398,9 @@ class _NamedComponent_mixin (pyxb.cscRoot):
             elif issubclass(icls, ModelGroupDefinition):
                 rv = ns.modelGroupDefinitions().get(ncname)
             elif issubclass(icls, AttributeDeclaration):
-                rv = _LookupAttributeDeclaration(ns, _ScopedDeclaration_mixin.SCOPE_global, ncname)
+                rv = ns.attributeDeclarations().get(ncname)
             elif issubclass(icls, ElementDeclaration):
-                rv = _LookupElementDeclaration(ns, _ScopedDeclaration_mixin.SCOPE_global, ncname)
+                rv = ns.elementDeclarations().get(ncname)
             elif issubclass(icls, IdentityConstraintDefinition):
                 rv = ns.identityConstraintDefinitions().get(ncname)
             else:
@@ -1137,7 +1117,7 @@ class AttributeUse (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin, _V
         if ref_attr is None:
             raise pyxb.SchemaValidationError('Attribute uses require reference to attribute declaration')
         ad_en = self._namespaceContext().interpretQName(ref_attr)
-        self.__attributeDeclaration = _LookupAttributeDeclaration(ad_en.namespace(), self._context(), ad_en.localName())
+        self.__attributeDeclaration = ad_en.attributeDeclaration()
         if self.__attributeDeclaration is None:
             self._queueForResolution()
             return self
@@ -1325,7 +1305,7 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.na
         sg_attr = NodeAttribute(node, 'substitutionGroup')
         if sg_attr is not None:
             sg_en = self._namespaceContext().interpretQName(sg_attr)
-            sga = _LookupElementDeclaration(sg_en.namespace(), self.scope(), sg_en.localName())
+            sga = sg_en.elementDeclaration()
             if sga is None:
                 # print 'Holding off ED resolution, unrecognized substitution group %s' % (sg_en,)
                 self._queueForResolution()
@@ -2506,12 +2486,12 @@ class Particle (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin):
             assert term is not None
         elif xsd.nodeIsNamed(node, 'element'):
             assert not xsd.nodeIsNamed(node.parentNode, 'schema')
-            # 3.9.2 says use 3.3.2, which is Element.  The element
-            # inside a particle is a localElement, so we either get
-            # the one it refers to, or create a local one here.
+            # 3.9.2 says use 3.3.2, which is Element.  The element inside a
+            # particle is a localElement, so we either get the one it refers
+            # to (which is top-level), or create a local one here.
             if ref_attr is not None:
                 ref_en = self._namespaceContext().interpretQName(ref_attr)
-                term = _LookupElementDeclaration(ref_en.namespace(), context, ref_en.localName())
+                term = ref_en.elementDeclaration()
                 if term is None:
                     self._queueForResolution()
                     return self
