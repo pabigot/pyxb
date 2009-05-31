@@ -22,10 +22,16 @@ from pyxb.xmlschema.structures import Particle, ModelGroup
 class FiniteAutomaton (dict):
     """Represent a finite automaton.
 
+    The FiniteAutomaton instance is a map from states to sets of transitions.
+
+    A transition is a map from a key to a set of states.
+
     States are integers.  The start and end state are distinguished.
     Transitions are by value, and are one of ElementDeclaration,
     ModelGroup[all], and Wildcard.  The value None represents an
-    epsilon transition."""
+    epsilon transition.
+
+    """
 
     # A unique identifier used for creating states
     __stateID = -1
@@ -81,8 +87,8 @@ class FiniteAutomaton (dict):
     def alphabet (self):
         """Determine the keys that allow transitions in the automaton."""
         elements = set()
-        for k in self.keys():
-            transitions = self[k]
+        for s in self.keys():
+            transitions = self[s]
             elements = elements.union(transitions.keys())
         elements.discard(None)
         return elements
