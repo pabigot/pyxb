@@ -15,17 +15,17 @@ import unittest
 class TestDeconflict (unittest.TestCase):
     def testAttributes (self):
         self.assertEqual(2, len(CTD_empty._ElementMap))
-        ef = CTD_empty._ElementMap['CreateFromDOM']
+        ef = CTD_empty._ElementUse('CreateFromDOM')
         self.assertEqual('CreateFromDOM_', ef.pythonField())
         self.assertFalse(ef.isPlural())
         self.assertTrue(ef.defaultValue() is None)
-        ef = CTD_empty._ElementMap['Factory']
+        ef = CTD_empty._ElementUse('Factory')
         self.assertEqual('Factory_', ef.pythonField())
         self.assertFalse(ef.isPlural())
         self.assertTrue(ef.defaultValue() is None)
         self.assertEqual(2, len(CTD_empty._AttributeMap))
-        self.assertEqual('toDOM_', CTD_empty._AttributeMap['toDOM'].pythonField())
-        self.assertEqual('Factory__', CTD_empty._AttributeMap['Factory'].pythonField())
+        self.assertEqual('toDOM_', CTD_empty._AttributeUse('toDOM').pythonField())
+        self.assertEqual('Factory__', CTD_empty._AttributeUse('Factory').pythonField())
 
 if __name__ == '__main__':
     unittest.main()

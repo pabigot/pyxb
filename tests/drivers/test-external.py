@@ -88,10 +88,10 @@ class TestExternal (unittest.TestCase):
         # Content model elements that are consistent with parent
         # should share its fields; those that change something should
         # override it.
-        self.assertEqual(st.extendedName._ElementMap['title'], restExtName._ElementMap['title'])
-        self.assertEqual(st.extendedName._ElementMap['forename'], restExtName._ElementMap['forename'])
-        self.assertEqual(st.extendedName._ElementMap['surname'], restExtName._ElementMap['surname'])
-        self.assertEqual(st.extendedName._ElementMap['generation'], restExtName._ElementMap['generation'])
+        self.assertEqual(st.extendedName._ElementUse('title'), restExtName._ElementUse('title'))
+        self.assertEqual(st.extendedName._ElementUse('forename'), restExtName._ElementUse('forename'))
+        self.assertEqual(st.extendedName._ElementUse('surname'), restExtName._ElementUse('surname'))
+        self.assertEqual(st.extendedName._ElementUse('generation'), restExtName._ElementUse('generation'))
 
         xml = '<personName><surname>Smith</surname></personName>'
         dom = pyxb.utils.domutils.StringToDOM(xml)

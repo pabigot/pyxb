@@ -169,7 +169,7 @@ class TestWildcard (unittest.TestCase):
         instance = wrapper.CreateFromDOM(doc.documentElement)
         self.assert_(isinstance(instance.wildcardAttributeMap(), dict))
         self.assertEquals(1, len(instance.wildcardAttributeMap()))
-        self.assertEquals('somevalue', instance.wildcardAttributeMap()['auxattr'])
+        self.assertEquals('somevalue', instance.getWildcardAttribute('auxattr'))
 
 if __name__ == '__main__':
     unittest.main()
