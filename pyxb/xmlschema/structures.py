@@ -31,6 +31,7 @@ components are created from non-DOM sources.
 import pyxb
 import pyxb.xmlschema
 from xml.dom import Node
+import xml.dom
 import types
 
 from pyxb.binding import basis
@@ -58,14 +59,6 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin):
     __namespaceContext = None
     def _namespaceContext (self):
         return self.__namespaceContext
-
-    # A special tag to pass in the constructor when the schema is
-    # known to be unavailable.  This allows us to detect cases where
-    # the system is not providing the schema.  The only such cases
-    # should be the ur types and a schema itself.
-    _SCHEMA_None = 'ExplicitNoSchema'
-
-    # The namespace context associated with this component.
 
     # The name by which this component is known within the binding
     # module.  This is in component rather than _NamedComponent_mixin
@@ -299,14 +292,15 @@ class _NamedComponent_mixin (pyxb.cscRoot):
     """Mix-in to hold the name and targetNamespace of a component.
 
     The name may be None, indicating an anonymous component.  The
-    targetNamespace is never None, though it could be an empty
-    namespace.  The name and targetNamespace values are immutable
-    after creation.
+    targetNamespace is never None, though it could be an empty namespace.  The
+    name and targetNamespace values are immutable after creation.
 
-    This class overrides the pickling behavior: when pickling a
-    Namespace, objects that do not belong to that namespace are
-    pickled as references, not as values.  This ensures the uniqueness
-    of objects when multiple namespace definitions are pre-loaded.
+    This class overrides the pickling behavior: when pickling a Namespace,
+    objects that do not belong to that namespace are pickled as references,
+    not as values.  This ensures the uniqueness of objects when multiple
+    namespace definitions are pre-loaded.
+
+    This class must follow L{_SchemaComponent_mixin} in the MRO.
     """
 
     def name (self):
@@ -336,9 +330,6 @@ class _NamedComponent_mixin (pyxb.cscRoot):
     def expandedName (self):
         """Return the L{pyxb.namespace.ExpandedName} of this object."""
         return pyxb.namespace.ExpandedName(self.targetNamespace(), self.name())
-
-    # The schema from which the component was extracted
-    __schema = None
 
     def __new__ (cls, *args, **kw):
         """Pickling support.
@@ -388,7 +379,7 @@ class _NamedComponent_mixin (pyxb.cscRoot):
                 raise pyxb.IncompleteImplementationError('Local scope reference lookup not implemented for type %s searching %s in %s' % (icls, ncname, uri))
             if rv is None:
                 raise pyxb.SchemaValidationError('Unable to resolve local %s as %s in %s in %s' % (ncname, icls, scope_ncname, uri))
-        # WRONG WRONG WRONG: Not the right thing for indeterminate
+        # @todo WRONG WRONG WRONG: Not the right thing for indeterminate
         elif (_ScopedDeclaration_mixin.SCOPE_global == scope) or _ScopedDeclaration_mixin.ScopeIsIndeterminate(scope):
             #assert not _ScopedDeclaration_mixin.ScopeIsIndeterminate(scope)
             if (issubclass(icls, SimpleTypeDefinition) or issubclass(icls, ComplexTypeDefinition)):
@@ -421,12 +412,12 @@ class _NamedComponent_mixin (pyxb.cscRoot):
         # Must be None or a valid NCName
         assert (name is None) or (0 > name.find(':'))
         self.__name = name
-        assert 'target_namespace' not in kw
-        target_namespace = kw.get('target_namespace', self._namespaceContext().targetNamespace())
-        #assert target_namespace is not None
-        self.__targetNamespace = target_namespace
+        
+        # Target namespace is taken from the context, unless somebody
+        # overrides it (as is done for local declarations if the form is
+        # unqualified).
+        self.__targetNamespace = kw.get('target_namespace', self._namespaceContext().targetNamespace())
 
-        self.__schema = None
         # Do parent invocations after we've set the name: they might need it.
         super(_NamedComponent_mixin, self).__init__(*args, **kw)
             
@@ -1092,17 +1083,8 @@ class AttributeUse (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin, _V
                 raise pyxb.SchemaValidationError('Unexpected value %s for attribute use attribute' % (use,))
 
         rv._valueConstraintFromDOM(node)
-        
-        if NodeAttribute(node, 'ref') is None:
-            # Create an anonymous declaration.  Although this can
-            # never be referenced, we need the right scope so when we
-            # generate the binding we can place the attribute in the
-            # correct type.  Is this true?
-            kw['owner'] = rv
-            rv.__attributeDeclaration = AttributeDeclaration.CreateFromDOM(node, **kw)
-        else:
-            rv.__domNode = node
-            rv._queueForResolution()
+        rv.__domNode = node
+        rv._queueForResolution()
         return rv
 
     def isResolved (self):
@@ -1115,9 +1097,18 @@ class AttributeUse (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin, _V
         node = self.__domNode
         ref_attr = NodeAttribute(node, 'ref')
         if ref_attr is None:
-            raise pyxb.SchemaValidationError('Attribute uses require reference to attribute declaration')
-        ad_en = self._namespaceContext().interpretQName(ref_attr)
-        self.__attributeDeclaration = ad_en.attributeDeclaration()
+            # Create an anonymous declaration.  Although this can
+            # never be referenced, we need the right scope so when we
+            # generate the binding we can place the attribute in the
+            # correct type.  Is this true?
+            kw = { }
+            kw['owner'] = self
+            kw['scope'] = self._scope()
+            kw['target_namespace'] = self._resolvingSchema().targetNamespaceForNode(node, AttributeDeclaration)
+            self.__attributeDeclaration = AttributeDeclaration.CreateFromDOM(node, **kw)
+        else:
+            ad_en = self._namespaceContext().interpretQName(ref_attr)
+            self.__attributeDeclaration = ad_en.attributeDeclaration()
         if self.__attributeDeclaration is None:
             self._queueForResolution()
             return self
@@ -1539,7 +1530,6 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
             # Content is mixed, with elements completely unconstrained. @todo:
             # not associated with a schema (it should be)
             kw = { 'namespace_context' : ns_ctx
-#                 , 'schema' : pyxb.namespace.XMLSchema.schema()
                  , 'context': _ScopedDeclaration_mixin.SCOPE_global
                  , 'scope': _ScopedDeclaration_mixin.XSCOPE_indeterminate }
             w = Wildcard(namespace_constraint=Wildcard.NC_any, process_contents=Wildcard.PC_lax, **kw)
@@ -1624,7 +1614,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         if uses_c1 is None:
             uses_c1 = set()
             for cn in attributes:
-                au = AttributeUse.CreateFromDOM(cn, context=self, scope=self)
+                au = AttributeUse.CreateFromDOM(cn, context=self, scope=self, owner=self)
                 uses_c1.add(au)
             self.__usesC1 = uses_c1
         for agd in attribute_groups:
@@ -1733,6 +1723,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         # for newly created schema components.
         ckw = { 'node' : type_node
               , 'context' : self
+              , 'owner' : self
               , 'scope' : self }
 
         # Definition 1: effective mixed
@@ -1790,7 +1781,9 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
             # Clause 2.2
             assert typedef_node is not None
             # Context and scope are both this CTD
-            effective_content = Particle.CreateFromDOM(typedef_node, context=self, scope=self, owner=self)
+            pkw = ckw.copy()
+            del pkw['node']
+            effective_content = Particle.CreateFromDOM(typedef_node, **pkw)
 
         # Shared from clause 3.1.2
         if effective_mixed:
@@ -2274,7 +2267,7 @@ class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
             if Particle.IsParticleNode(cn):
                 # NB: Ancestor of particle is set in the ModelGroup constructor
                 particles.append(Particle.CreateFromDOM(node=cn, **kw))
-        rv = cls(compositor, particles, node=node, scope=scope, context=context)
+        rv = cls(compositor, particles, node=node, **kw)
         for p in particles:
             p._setOwner(rv)
         rv._annotationFromDOM(node)
@@ -2447,6 +2440,7 @@ class Particle (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin):
             if self.__minOccurs > self.__maxOccurs:
                 raise pyxb.LogicError('Particle minOccurs %s is greater than maxOccurs %s on creation' % (min_occurs, max_occurs))
     
+    # res:Particle
     def _resolve (self):
         if self.isResolved():
             return self
@@ -2496,7 +2490,7 @@ class Particle (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin):
                     self._queueForResolution()
                     return self
             else:
-                term = ElementDeclaration.CreateFromDOM(node=node, scope=scope)
+                term = ElementDeclaration.CreateFromDOM(node=node, scope=scope, owner=self, target_namespace=self._resolvingSchema().targetNamespaceForNode(node, ElementDeclaration))
             assert term is not None
         elif xsd.nodeIsNamed(node, 'any'):
             # 3.9.2 says use 3.10.2, which is Wildcard.
@@ -2506,7 +2500,7 @@ class Particle (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin):
             # Choice, sequence, and all inside a particle are explicit
             # groups (or a restriction of explicit group, in the case
             # of all)
-            term = ModelGroup.CreateFromDOM(node=node, context=context, scope=scope)
+            term = ModelGroup.CreateFromDOM(node=node, context=context, scope=scope, owner=self)
         else:
             raise pyxb.LogicError('Unhandled node in Particle._resolve: %s' % (node.toxml(),))
         self.__domNode = None
@@ -3902,9 +3896,12 @@ class Schema (_SchemaComponent_mixin):
         definition or declaration maps."""
         return self.targetNamespace()._unresolvedComponents() is None
 
+    _QUALIFIED = "qualified"
+    _UNQUALIFIED = "unqualified"
+    
     # Default values for standard recognized schema attributes
-    __attributeMap = { 'attributeFormDefault' : 'unqualified'
-                     , 'elementFormDefault' : 'unqualified'
+    __attributeMap = { 'attributeFormDefault' : _UNQUALIFIED
+                     , 'elementFormDefault' : _UNQUALIFIED
                      , 'blockDefault' : ''
                      , 'finalDefault' : ''
                      , 'id' : None
@@ -3937,7 +3934,6 @@ class Schema (_SchemaComponent_mixin):
 
     def __init__ (self, *args, **kw):
         assert 'schema' not in kw
-        kw['schema'] = _SchemaComponent_mixin._SCHEMA_None
         super(Schema, self).__init__(*args, **kw)
         self.__targetNamespace = kw.get('target_namespace', self._namespaceContext().targetNamespace())
         if not isinstance(self.__targetNamespace, pyxb.namespace.Namespace):
@@ -4023,9 +4019,44 @@ class Schema (_SchemaComponent_mixin):
                 print 'Ignoring non-element: %s' % (cn,)
 
         if not skip_resolution:
-            schema.targetNamespace().resolveDefinitions()
+            schema.targetNamespace().resolveDefinitions(schema)
 
         return schema
+
+    def targetNamespaceForNode (self, dom_node, declaration_type):
+        """Determine the target namespace for a local attribute or element declaration.
+
+        Look at the node's C{form} attribute, or if none the schema's
+        C{attributeFormDefault} or C{elementFormDefault} value.  If the
+        resulting value is C{"qualified"} and the parent schema has a
+        non-absent target namespace, return it to use as the declaration
+        target namespace.  Otherwise, return None to indicate that the
+        declaration has no namespace.
+
+        @param dom_node: The node defining an element or attribute declaration
+        @param declaration_type: Either L{AttributeDeclaration} or L{ElementDeclaration}
+        @return: L{pyxb.namespace.Namespace} or None
+        """
+
+        form_type = None
+        if dom_node.hasAttributeNS(xml.dom.EMPTY_NAMESPACE, 'form'):
+            form_type = dom_node.getAttributeNS(xml.dom.EMPTY_NAMESPACE, 'form')
+        if form_type is None:
+            if declaration_type == ElementDeclaration:
+                form_type = self.schemaAttribute('elementFormDefault')
+            elif declaration_type == AttributeDeclaration:
+                form_type = self.schemaAttribute('attributeFormDefault')
+            else:
+                raise LogicError('Expected ElementDeclaration or AttributeDeclaration: got %s' % (declaration_type,))
+        tns = None
+        if (self._QUALIFIED == form_type):
+            tns = schema.targetNamespace()
+            if tns.isAbsentNamespace():
+                tns = None
+        else:
+            if (self._UNQUALIFIED != form_type):
+                raise pyxb.SchemaValidationError('Form type neither %s nor %s' % (self._QUALIFIED, self._UNQUALIFIED))
+        return tns
 
     def __requireInProlog (self, node_name):
         """Throw a SchemaValidationException referencing the given
@@ -4215,9 +4246,6 @@ def _AddSimpleTypes (namespace):
 import sys
 pyxb.namespace._InitializeBuiltinNamespaces(sys.modules[__name__])
 
-
-
 ## Local Variables:
 ## fill-column:78
 ## End:
-    
