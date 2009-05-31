@@ -196,8 +196,6 @@ class ReferenceSchemaComponent (ReferenceLiteral):
                     print 'NO SCOPE for %s' % (self.__component,)
                 assert scope is not None
                 if isinstance(scope, xs.structures.ComplexTypeDefinition):
-                    if scope.targetNamespace() != self.__component.targetNamespace():
-                        print 'WARNING: Inner decl %s tns %s scope %s' % (name, self.__component.targetNamespace(), scope.name())
                     name_prefix = scope.name()
                     if name_prefix is None:
                         assert scope.owner() is not None
