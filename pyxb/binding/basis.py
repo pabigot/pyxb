@@ -1119,7 +1119,8 @@ class _CTD_content_mixin (pyxb.cscRoot):
         return self
 
     def _setDOMFromContent (self, dom_support, element):
-        self._Content.extendDOMFromContent(dom_support, element, self)
+        if self._ContentModel is not None:
+            self._ContentModel.extendDOMFromContent(dom_support, element, self)
         mixed_content = self.content()
         if 0 < len(mixed_content):
             element.appendChild(dom_support.document().createTextNode(''.join(mixed_content)))

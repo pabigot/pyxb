@@ -522,6 +522,16 @@ class ContentModelTransition (pyxb.cscRoot):
         else:
             raise pyxb.LogicError('Unexpected transition term %s' % (self.__term,))
 
+    def extendDOM (self, dom_support, element, ctd_instance):
+        if self.TT_element == self.__termType:
+            print 'Element %s' % (self.__term._ExpandedName,)
+        elif self.TT_modelGroupAll == self.__termType:
+            pass
+        elif self.TT_wildcard == self.__termType:
+            pass
+        else:
+            raise pyxb.LogicError('Unexpected transition term %s' % (self.__term,))
+
 class ContentModelState (pyxb.cscRoot):
     """Represents a state in a ContentModel DFA.
 
@@ -581,6 +591,13 @@ class ContentModelState (pyxb.cscRoot):
             raise pyxb.UnrecognizedContentError(node_list[0])
         raise pyxb.MissingContentError()
 
+    def extendDOM (self, dom_support, element, ctd_instance):
+        for transition in self.__transitions:
+            if transition.extendDOM(dom_support, element, ctd_instance):
+                return transition.nextState()
+        assert False
+
+
 class ContentModel (pyxb.cscRoot):
     """The ContentModel is a deterministic finite state automaton which can be
     traversed using a sequence of DOM nodes which are matched on transitions
@@ -608,6 +625,51 @@ class ContentModel (pyxb.cscRoot):
         if state is not None:
             raise pyxb.MissingContentError()
 
+    def extendDOMFromContent (self, dom_support, element, ctd_instance):
+        """Add DOM constructs corresponding to data from a binding instance.
+
+        @param dom_support: A pyxb.utils.domutils.BindingDOMSupport instance
+        @param element: A DOM Element node into which binding values are written
+        @param ctd_instance: A binding instance holding values
+        """
+
+        assert isinstance(dom_support, pyxb.utils.domutils.BindingDOMSupport)
+        document = dom_support.document()
+        state = 1
+        while state is not None:
+            state = self.__stateMap[state].extendDOM(dom_support, element, ctd_instance)
+            
+        '''
+
+        rep = 0
+        assert isinstance(ctd_instance, basis.complexTypeDefinition)
+        while ((self.maxOccurs() is None) or (rep < self.maxOccurs())):
+            try:
+                if isinstance(self.term(), ModelGroup):
+                    self.term().extendDOMFromContent(dom_support, element, ctd_instance)
+                elif isinstance(self.term(), type) and issubclass(self.term(), basis.element):
+                    eu = ctd_instance._UseForElement(self.term())
+                    assert eu is not None
+                    value = eu.nextValueToGenerate(ctd_instance)
+                    value.toDOM(dom_support, element)
+                elif isinstance(self.term(), Wildcard):
+                    print 'Generation ignoring wildcard'
+                    # @todo handle generation of wildcards
+                    break
+                else:
+                    raise pyxb.IncompleteImplementationError('Particle.extendDOMFromContent: No support for term type %s' % (self.term(),))
+            except pyxb.IncompleteImplementationError, e:
+                raise
+            except pyxb.DOMGenerationError, e:
+                break
+            except Exception, e:
+                #print 'Caught extending DOM from term %s: %s' % (self.term(), e)
+                raise
+            rep += 1
+        if rep < self.minOccurs():
+            raise pyxb.DOMGenerationError('Expected at least %d instances of %s, got only %d' % (self.minOccurs(), self.term(), rep))
+
+        '''
 
 class ModelGroupAllAlternative (pyxb.cscRoot):
     """Represents a single alternative in an "all" model group."""

@@ -371,6 +371,67 @@ def pythonLiteral (value, **kw):
     return str(value)
 
 
+class AutomatonContent:
+    __dfa = None
+    __stateReachable = None
+    __pluralityMap = None
+    def __init__ (self, dfa):
+        self.__dfa = dfa
+        self.__stateReachable = { }
+        for state in dfa.keys():
+            self.__stateReachable[state] = { }
+        need_visit = set([ self.__dfa.start()])
+        #print 'Constructing content map for automaton'
+        while 0 < len(need_visit):
+            state = need_visit.pop()
+            #print 'Content from state %s, reachable %s' % (state, self.__stateReachable[state])
+            transitions = self.__dfa[state]
+            for term in transitions.keys():
+                next_states = transitions[term]
+                assert 1 == len(next_states)
+                next_state = next_states.copy().pop()
+                this_reaches = self.__stateReachable[state].get(term, None)
+                next_reaches = self.__stateReachable[next_state].get(term, None)
+                #print '%d %s via %s to %d %s' % (state, this_reaches, term, next_state, next_reaches)
+                if isinstance(term, nfa.AllWalker):
+                    content_map = self.__stateReachable[next_state]
+                    #print 'ALL WALKER Start: %s' % (content_map,)
+                    for (dfa, is_required) in term.particles():
+                        branch_content = AutomatonContent(dfa).pluralityMap()
+                        for (t, p) in branch_content.items():
+                            nr = content_map.get(t, None)
+                            if nr is None:
+                                content_map[t] = False
+                                need_visit.add(next_state)
+                            else:
+                                content_map[t] = True
+                    self.__stateReachable[next_state].update(content_map)
+                    #print 'ALL WALKER End: %s' % (content_map,)
+                elif term is None:
+                    assert this_reaches is None
+                    for (t, p) in self.__stateReachable[state].items():
+                        next_reaches = self.__stateReachable[next_state].get(t, None)
+                        if next_reaches is None:
+                            self.__stateReachable[next_state][t] = False
+                        else:
+                            self.__stateReachable[next_state][t] = True
+                else:
+                    if (this_reaches is None) and (next_reaches is None):
+                        self.__stateReachable[next_state][term] = False
+                        need_visit.add(next_state)
+                    else:
+                        self.__stateReachable[next_state][term] = True
+                        if True != next_reaches:
+                            need_visit.add(next_state)
+        self.__pluralityMap = self.__stateReachable[self.__dfa.end()]
+        for (ed, is_plural) in self.__pluralityMap.items():
+            if isinstance(ed, xs.structures.ElementDeclaration):
+                print '%s %s %s' % (ed.expandedName(), ed.typeDefinition().expandedName(), is_plural)
+
+    def pluralityMap (self):
+        return self.__pluralityMap
+
+
 def GenerateModelGroupAll (ctd, mga, template_map, **kw):
     mga_tag = '__AModelGroup'
     template_map['mga_tag'] = mga_tag
@@ -425,6 +486,7 @@ def GenerateContentModel (ctd, automaton, **kw):
                 lines.extend(mga_defns)
                 template_map['eu_field'] = pythonLiteral(None, **kw)
             else:
+                assert isinstance(key, xs.structures.ElementDeclaration)
                 template_map['term'] = pythonLiteral(key, **kw)
                 if 'eu_field' in template_map:
                     del template_map['eu_field']
@@ -717,6 +779,9 @@ class %{ctd} (%{superclasses}):
             # and the plurality data is identical, then inherit the
             # element infrastructure from the parent
             
+            if 1 != len(types):
+                print 'Plurality for %s is %s, types %s' % (name, is_plural, types)
+            
             ef_map = { }
             aux_init = []
             used_field_name = utility.PrepareIdentifier(name, class_unique, class_keywords)
@@ -754,11 +819,13 @@ class %{ctd} (%{superclasses}):
         #print "Non-deterministic FA for %s:\n%s\n\n" % (ctd.name(), fa)
         fa = fa.buildDFA()
         #print "Minimized deterministic FA for %s:\n%s\n\n" % (ctd.name(), fa)
+        AutomatonContent(fa)
+
         (cmi, cmi_defn) = GenerateContentModel(ctd=ctd, automaton=fa, **kw)
         PostscriptItems.append("\n".join(cmi_defn))
         PostscriptItems.append("\n")
 
-    if need_content:
+    if False: # need_content:
         PostscriptItems.append(templates.replaceInText('''
 %{ctd}._Content = %{particle}
 ''', **template_map))
@@ -895,6 +962,7 @@ def GenerateED (ed, **kw):
     template_map = { }
     template_map['class'] = pythonLiteral(ed, **kw)
     template_map['element_name'] = pythonLiteral(ed.name(), **kw)
+    template_map['expanded_name'] = pythonLiteral(ed.expandedName(), **kw)
     if (ed.SCOPE_global == ed.scope()):
         template_map['element_scope'] = pythonLiteral(None, **kw)
         template_map['map_update'] = templates.replaceInText('ElementToBindingMap[%{element_name}] = %{class}', **template_map)
@@ -911,6 +979,7 @@ class %{class} (pyxb.binding.basis.element):
     _Namespace = Namespace
     _ElementScope = %{element_scope}
     _TypeDefinition = %{base_datatype}
+    _ExpandedName = %{expanded_name}
 %{map_update}
 ''', **template_map))
     ElementClassMap.setdefault(ed.name(), []).append(template_map['class'])
@@ -1009,7 +1078,6 @@ GeneratorMap = {
     xs.structures.SimpleTypeDefinition : GenerateSTD
   , xs.structures.ElementDeclaration : GenerateED
   , xs.structures.ComplexTypeDefinition : GenerateCTD
-  , xs.structures.ModelGroup : GenerateMG
 }
 
 def GeneratePython (**kw):
