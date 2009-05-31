@@ -993,6 +993,7 @@ class complexTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _
         for eu in self._ElementMap.values():
             if eu.hasUngeneratedValues(self):
                 raise pyxb.DOMGenerationError('Values in %s were not converted to DOM' % (eu.pythonField(),))
+        # @todo: generate wildcard elements
         self._setDOMFromAttributes(element)
         return dom_support
 
@@ -1060,12 +1061,8 @@ class _CTD_content_mixin (pyxb.cscRoot):
     It can also be used if order is critical to the interpretation of
     interleaved elements.
 
-    Subclasses must define a class variable _Content with a
-    bindings.Particle instance as its value.
-
-    Subclasses should define a class-level _ElementMap variable which
-    maps from unicode element tags (not including namespace
-    qualifiers) to the corresponding ElementUse information
+    Subclasses must define a class variable _ContentModel which is an instance
+    of pyxb.bindings.content.ContentModel.
     """
 
     # A list containing just the content
@@ -1109,7 +1106,6 @@ class _CTD_content_mixin (pyxb.cscRoot):
 
     def _setMixableContentFromDOM (self, node, is_mixed):
         """Set the content of this instance from the content of the given node."""
-        #assert isinstance(self._Content, Particle)
         # The child nodes may include text which should be saved as
         # mixed content.  Use _stripMixedContent prior to extracting
         # element data to save them in the correct relative position,

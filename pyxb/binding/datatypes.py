@@ -727,11 +727,3 @@ class anyType (basis.CTD_mixed):
     def Factory (cls, *args, **kw):
         return anyType()
 
-    _Content = content.Particle(1, 1,
-                                content.ModelGroup(content.ModelGroup.C_SEQUENCE,
-                                                   [ content.Particle(0, None,
-                                                                      content.Wildcard(namespace_constraint=content.Wildcard.NC_any,
-                                                                                       process_contents=content.Wildcard.PC_lax)
-                                                                      ) # end Particle
-                                                     ]) # end ModelGroup
-                                ) # end Particle

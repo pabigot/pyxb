@@ -100,6 +100,8 @@ class ReferenceParticle (ReferenceLiteral):
         self.__particle = particle
         super(ReferenceParticle, self).__init__(**kw)
 
+        assert False
+        
         template_map = { }
         template_map['min_occurs'] = pythonLiteral(int(particle.minOccurs()), **kw)
         if particle.maxOccurs() is None:
@@ -151,7 +153,6 @@ class ReferenceSchemaComponent (ReferenceLiteral):
         xs.structures.SimpleTypeDefinition: 'STD'
         , xs.structures.ComplexTypeDefinition: 'CTD'
         , xs.structures.ElementDeclaration: 'ED'
-        , xs.structures.ModelGroup: 'MG'
         , xs.structures.Wildcard: 'WC'
         }
 
@@ -712,7 +713,6 @@ class %{ctd} (%{superclasses}):
         content_type = 'mixed'
         ctd_parent_class = basis.CTD_mixed
         content_basis = ctd.contentType()[1]
-        template_map['particle'] = pythonLiteral(content_basis, **kw)
         need_content = True
         prolog_template = '''
 # Complex type %{ctd} with mixed content
@@ -722,7 +722,6 @@ class %{ctd} (%{superclasses}):
         content_type = 'element'
         ctd_parent_class = basis.CTD_element
         content_basis = ctd.contentType()[1]
-        template_map['particle'] = pythonLiteral(content_basis, **kw)
         need_content = True
         prolog_template = '''
 # Complex type %{ctd} with element-only content
@@ -969,94 +968,6 @@ class %{class} (pyxb.binding.basis.element):
 ''', **template_map))
     ElementClassMap.setdefault(ed.name(), []).append(template_map['class'])
 
-    return outf.getvalue()
-
-def GenerateMG (mg, **kw):
-    outf = StringIO.StringIO()
-    template_map = { }
-    template_map['model_group'] = pythonLiteral(mg, **kw)
-
-    # My this gets ugly.  What we're doing here is looking at all
-    # elements that can appear immediately in the XML at this group;
-    # i.e., the top level elements in this model group and any
-    # contained model groups.  We're figuring out what unique element
-    # tags might appear.  For each tag, we're looking at the occurence
-    # ranges and types of the elements it might represent.  We're
-    # gonna spit all that out as a comment near the model group
-    # declaration.
-    #
-    # @todo Handle the obscure case where the same tag is used for two
-    # distinct elements both of which can appear.  This might happen
-    # with a sequence of sequences, for example, and results in the
-    # wrong occurence counts.  NB: This can't be handled at this
-    # level; needs to be done within the element.
-    #
-    # @todo Gotta handle wildcards in here too.
-
-    field_names = { }
-    for e in mg.elementDeclarations():
-        if e.scope() is None:
-            return ''
-        assert e.isResolved()
-        field_names.setdefault(e.name(), []).append(e)
-    field_decls = []
-    for fn in field_names.keys():
-        decl = []
-        may_be_plural = False
-        field_type = None
-        min_occurs = None
-        max_occurs = -1
-        for f in field_names.get(fn):
-            if field_type is None:
-                field_type = f.typeDefinition()
-            if field_type == f.typeDefinition():
-                # Nothing technically wrong with this, though it might
-                # confuse the user.
-                pass
-            if isinstance(f.owner(), xs.structures.Particle):
-                p = f.owner()
-                may_be_plural = may_be_plural or p.isPlural()
-                if min_occurs is None:
-                    min_occurs = p.minOccurs()
-                elif p.minOccurs() < min_occurs:
-                    min_occurs = p.minOccurs()
-                if p.maxOccurs() is None:
-                    max_occurs = None
-                elif (max_occurs is not None) and (p.maxOccurs() > max_occurs):
-                    max_occurs = p.maxOccurs()
-            if f.ancestorComponent() is not None:
-                assert isinstance(f.ancestorComponent(), xs.structures.ModelGroup)
-                mgd = f.ancestorComponent().modelGroupDefinition()
-                if mgd is not None:
-                    decl.append("%s:%s from group %s" % (fn, pythonLiteral(f.typeDefinition(), **kw), mgd.name()))
-                else:
-                    decl.append("%s:%s from unnamed group" % (fn, pythonLiteral(f.typeDefinition(), **kw)))
-            else:
-                decl.append("%s:%s from orphan %s" % (fn, pythonLiteral(f.typeDefinition(), **kw), f))
-        if min_occurs is None:
-            min_occurs = 1
-        min_occurs = int(min_occurs)
-        if max_occurs is None:
-            max_occurs = '*'
-        elif -1 == max_occurs:
-            max_occurs = 1
-        else:
-            max_occurs = int(max_occurs)
-        field_decls.append("# + %s %s [%d..%s]" % (fn, pythonLiteral(f.typeDefinition(), **kw), min_occurs, max_occurs))
-        if decl:
-            field_decls.append("#  - " + "\n#  - ".join(decl))
-    template_map['field_descr'] = "\n".join(field_decls)
-
-    outf.write(templates.replaceInText('''
-# %{model_group} top level elements:
-%{field_descr}
-%{model_group} = pyxb.binding.content.ModelGroup()
-''', **template_map))
-    template_map['compositor'] = 'pyxb.binding.content.ModelGroup.C_%s' % (mg.compositorToString().upper(),)
-    template_map['particles'] = ','.join( [ pythonLiteral(_p, **kw) for _p in mg.particles() ])
-    PostscriptItems.append(templates.replaceInText('''
-%{model_group}._setContent(%{compositor}, [ %{particles} ])
-''', **template_map))
     return outf.getvalue()
 
 GeneratorMap = {

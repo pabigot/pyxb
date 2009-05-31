@@ -519,13 +519,25 @@ class ContentModelTransition (pyxb.cscRoot):
 
     def extendDOM (self, dom_support, element, ctd_instance):
         if self.TT_element == self.__termType:
-            print 'Element %s' % (self.__term._ExpandedName,)
+            assert self.__elementUse is not None
+            try:
+                value = self.__elementUse.nextValueToGenerate(ctd_instance)
+                value.toDOM(dom_support, element)
+                print 'Element %s' % (self.__term._ExpandedName,)
+                return True
+            except pyxb.DOMGenerationError, e:
+                print 'Failed to produce element %s'
+                pass
         elif self.TT_modelGroupAll == self.__termType:
+            assert False
+            print 'Model group all'
             pass
         elif self.TT_wildcard == self.__termType:
+            print 'Wildcard'
             pass
         else:
             raise pyxb.LogicError('Unexpected transition term %s' % (self.__term,))
+        return False
 
 class ContentModelState (pyxb.cscRoot):
     """Represents a state in a ContentModel DFA.
@@ -590,6 +602,8 @@ class ContentModelState (pyxb.cscRoot):
         for transition in self.__transitions:
             if transition.extendDOM(dom_support, element, ctd_instance):
                 return transition.nextState()
+        if self.isFinal():
+            return None
         assert False
 
 
@@ -763,158 +777,6 @@ class ModelGroupAll (pyxb.cscRoot):
                 #print 'Re-executing alternative %s with %d nodes left' % (alt, len(saved_node_list),)
                 alt.contentModel().interprete(ctd_instance, saved_node_list)
             assert saved_node_list == node_list
-
-class Particle (pyxb.cscRoot):
-    """Record defining the structure and number of an XML object.
-    This is a min and max count associated with a
-    ModelGroup, ElementDeclaration, or Wildcard."""
-    # The minimum number of times the term may appear.
-    __minOccurs = 1
-    def minOccurs (self):
-        """The minimum number of times the term may appear.
-
-        Defaults to 1."""
-        return self.__minOccurs
-
-    # Upper limit on number of times the term may appear.
-    __maxOccurs = 1
-    def maxOccurs (self):
-        """Upper limit on number of times the term may appear.
-
-        If None, the term may appear any number of times; otherwise,
-        this is an integral value indicating the maximum number of times
-        the term may appear.  The default value is 1; the value, unless
-        None, must always be at least minOccurs().
-        """
-        return self.__maxOccurs
-
-    # A reference to a ModelGroup, WildCard, or ElementDeclaration
-    __term = None
-    def term (self):
-        """A reference to a ModelGroup, Wildcard, or ElementDeclaration."""
-        return self.__term
-
-    def isPlural (self):
-        """Return true iff the term might appear multiple times."""
-        if (self.maxOccurs() is None) or 1 < self.maxOccurs():
-            return True
-        return self.term().isPlural()
-
-    def __init__ (self, min_occurs, max_occurs, term):
-        self.__minOccurs = min_occurs
-        self.__maxOccurs = max_occurs
-        self.__term = term
-
-    def extendDOMFromContent (self, dom_support, element, ctd_instance):
-        """Add DOM constructs corresponding to data from a binding instance.
-
-        @param dom_support: A pyxb.utils.domutils.BindingDOMSupport instance
-        @param element: A DOM Element node into which binding values are written
-        @param ctd_instance: A binding instance holding values
-        """
-
-        assert isinstance(dom_support, pyxb.utils.domutils.BindingDOMSupport)
-        document = dom_support.document()
-        rep = 0
-        assert isinstance(ctd_instance, basis.complexTypeDefinition)
-        while ((self.maxOccurs() is None) or (rep < self.maxOccurs())):
-            try:
-                if isinstance(self.term(), ModelGroup):
-                    self.term().extendDOMFromContent(dom_support, element, ctd_instance)
-                elif isinstance(self.term(), type) and issubclass(self.term(), basis.element):
-                    eu = ctd_instance._UseForElement(self.term())
-                    assert eu is not None
-                    value = eu.nextValueToGenerate(ctd_instance)
-                    value.toDOM(dom_support, element)
-                elif isinstance(self.term(), Wildcard):
-                    print 'Generation ignoring wildcard'
-                    # @todo handle generation of wildcards
-                    break
-                else:
-                    raise pyxb.IncompleteImplementationError('Particle.extendDOMFromContent: No support for term type %s' % (self.term(),))
-            except pyxb.IncompleteImplementationError, e:
-                raise
-            except pyxb.DOMGenerationError, e:
-                break
-            except Exception, e:
-                #print 'Caught extending DOM from term %s: %s' % (self.term(), e)
-                raise
-            rep += 1
-        if rep < self.minOccurs():
-            raise pyxb.DOMGenerationError('Expected at least %d instances of %s, got only %d' % (self.minOccurs(), self.term(), rep))
-
-class ModelGroup (pyxb.cscRoot):
-    """Record the structure of a model group.
-
-    This is used when interpreting a DOM document fragment, to be sure
-    the correct binding structure is used to extract the contents of
-    each element.  It almost does something like validation, as a side
-    effect."""
-
-    C_INVALID = 0
-    C_ALL = 0x01
-    C_CHOICE = 0x02
-    C_SEQUENCE = 0x03
-
-    # One of the C_* values above.  Set at construction time from the
-    # keyword parameter "compositor".
-    __compositor = C_INVALID
-    def compositor (self):
-        return self.__compositor
-
-    # A list of _Particle instances.  Set at construction time from
-    # the keyword parameter "particles".  May be sorted; see
-    # _setContent.
-    __particles = None
-    def particles (self):
-        return self.__particles
-
-    def _setContent (self, compositor, particles):
-        self.__compositor = compositor
-        self.__particles = particles
-
-    def __init__ (self, compositor=C_INVALID, particles=None):
-        self._setContent(compositor, particles)
-
-    def __extendDOMFromChoice (self, dom_support, element, ctd_instance, candidate_particles):
-        # Correct behavior requires that particles with a minOccurs() of 1
-        # precede any particle with minOccurs() of zero; otherwise we can
-        # incorrectly succeed at matching while not consuming everything
-        # that's available.  This sorting was done in _setContent.
-        for particle in candidate_particles:
-            try:
-                particle.extendDOMFromContent(dom_support, element, ctd_instance)
-                return particle
-            except pyxb.DOMGenerationError, e:
-                pass
-            except Exception, e:
-                #print 'GEN CHOICE failed: %s' % (e,)
-                raise
-        return None
-
-    def extendDOMFromContent (self, dom_support, element, ctd_instance):
-        assert isinstance(ctd_instance, basis.complexTypeDefinition)
-        if self.C_SEQUENCE == self.compositor():
-            for particle in self.particles():
-                particle.extendDOMFromContent(dom_support, element, ctd_instance)
-        elif self.C_ALL == self.compositor():
-            mutable_particles = self.particles()[:]
-            while 0 < len(mutable_particles):
-                try:
-                    choice = self.__extendDOMFromChoice(dom_support, element, ctd_instance, mutable_particles)
-                    mutable_particles.remove(choice)
-                except pyxb.DOMGenerationError, e:
-                    #print 'ALL failed: %s' % (e,)
-                    break
-            for particle in mutable_particles:
-                if 0 < particle.minOccurs():
-                    raise pyxb.DOMGenerationError('ALL: Could not generate instance of required %s' % (particle.term(),))
-        elif self.C_CHOICE == self.compositor():
-            choice = self.__extendDOMFromChoice(dom_support, element, ctd_instance, self.particles())
-            if choice is None:
-                raise pyxb.DOMGenerationError('CHOICE: No candidates found')
-        else:
-            assert False
 
 class Wildcard (pyxb.cscRoot):
     """Placeholder for wildcard objects."""
