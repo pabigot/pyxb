@@ -502,7 +502,7 @@ def GenerateSTD (std, **kw):
     template_map['superclasses'] = ''
     if 0 < len(parent_classes):
         template_map['superclasses'] = ', '.join(parent_classes)
-    template_map['name'] = pythonLiteral(std.name(), **kw)
+    template_map['expanded_name'] = pythonLiteral(std.expandedName(), **kw)
 
     if xs.structures.SimpleTypeDefinition.VARIETY_absent == std.variety():
         assert False
@@ -513,10 +513,7 @@ def GenerateSTD (std, **kw):
 class %{std} (%{superclasses}):
     """%{description}"""
 
-    # The name of this type definition within the schema
-    _XsdName = %{name}
-    # Reference to the namespace to which the type belongs
-    _Namespace = Namespace
+    _ExpandedName = %{expanded_name}
 '''
         template_map['description'] = ''
     elif xs.structures.SimpleTypeDefinition.VARIETY_list == std.variety():
@@ -526,12 +523,7 @@ class %{std} (%{superclasses}):
 class %{std} (pyxb.binding.basis.STD_list):
     """%{description}"""
 
-    # The name of this type definition within the schema
-    _XsdName = %{name}
-    # Reference to the namespace to which the type belongs
-    _Namespace = Namespace
-
-    # Type for items in the list
+    _ExpandedName = %{expanded_name}
     _ItemType = %{itemtype}
 '''
         template_map['itemtype'] = pythonLiteral(std.itemTypeDefinition(), **kw)
@@ -543,12 +535,7 @@ class %{std} (pyxb.binding.basis.STD_list):
 class %{std} (pyxb.binding.basis.STD_union):
     """%{description}"""
 
-    # The name of this type definition within the schema
-    _XsdName = %{name}
-    # Reference to the namespace to which the type belongs
-    _Namespace = Namespace
-
-    # Types of potential union members
+    _ExpandedName = %{expanded_name}
     _MemberTypes = ( %{membertypes}, )
 '''
         template_map['membertypes'] = ", ".join( [ pythonLiteral(_mt, **kw) for _mt in std.memberTypeDefinitions() ])
@@ -585,7 +572,7 @@ def GenerateCTD (ctd, **kw):
     template_map['ctd'] = pythonLiteral(ctd, **kw)
     base_type = ctd.baseTypeDefinition()
     template_map['base_type'] = pythonLiteral(base_type, **kw)
-    template_map['name'] = pythonLiteral(ctd.name(), **kw)
+    template_map['expanded_name'] = pythonLiteral(ctd.expandedName(), **kw)
 
     need_content = False
     content_basis = None
@@ -629,10 +616,7 @@ class %{ctd} (%{superclasses}):
 '''
 
     prolog_template += '''
-    # The name of this type definition within the schema
-    _XsdName = %{name}
-    # Reference to the namespace to which the type belongs
-    _Namespace = Namespace
+    _ExpandedName = %{expanded_name}
 '''
 
     # Complex types that inherit from non-ur-type complex types should
@@ -886,9 +870,10 @@ def GenerateED (ed, **kw):
     template_map = { }
     template_map['class'] = pythonLiteral(ed, **kw)
     template_map['element_name'] = pythonLiteral(ed.name(), **kw)
+    template_map['expanded_name'] = pythonLiteral(ed.expandedName(), **kw)
     if (ed.SCOPE_global == ed.scope()):
         template_map['element_scope'] = pythonLiteral(None, **kw)
-        template_map['map_update'] = templates.replaceInText('ElementToBindingMap[%{element_name}] = %{class}', **template_map)
+        template_map['map_update'] = templates.replaceInText('ElementToBindingMap[%{expanded_name}] = %{class}', **template_map)
     else:
         template_map['element_scope'] = pythonLiteral(ed.scope(), **kw)
         template_map['map_update'] = ''
@@ -896,10 +881,7 @@ def GenerateED (ed, **kw):
     outf.write(templates.replaceInText('''
 # ElementDeclaration
 class %{class} (pyxb.binding.basis.element):
-    # The name of this element within the schema
-    _XsdName = %{element_name}
-    # Reference to the namespace to which the type belongs
-    _Namespace = Namespace
+    _ExpandedName = %{expanded_name}
     _ElementScope = %{element_scope}
     _TypeDefinition = %{base_datatype}
 %{map_update}

@@ -32,11 +32,8 @@ class _Binding_mixin (pyxb.cscRoot):
 
     """
 
-    _Namespace = None
-    """The namespace to which the component belongs."""
-
-    _XsdName = None
-    """The name of the component within its namespace category."""
+    _ExpandedName = None
+    """The expanded name of the component."""
 
     def _domNode (self):
         """The DOM node from which the object was initialized."""
@@ -701,13 +698,13 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
         """Create an instance of this element from the given DOM node.
 
         :raise pyxb.LogicError: the name of the node is not consistent with
-        the _XsdName of this class."""
+        the _ExpandedName of this class."""
         instance_root = kw.pop('instance_root', None)
         node_name = node.nodeName
         if 0 < node_name.find(':'):
             node_name = node_name.split(':')[1]
-        if cls._XsdName != node_name:
-            raise pyxb.UnrecognizedContentError('Attempting to create element %s from DOM node named %s' % (cls._XsdName, node_name))
+        if cls._ExpandedName.localName() != node_name:
+            raise pyxb.UnrecognizedContentError('Attempting to create element %s from DOM node named %s' % (cls._ExpandedName, node_name))
         if issubclass(cls._TypeDefinition, simpleTypeDefinition):
             rv = cls._DynamicCreate(cls._TypeDefinition.CreateFromDOM(node))
         else:
@@ -722,7 +719,7 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
         """Add a DOM representation of this element as a child of
         parent, which should be a DOM Node instance."""
         assert isinstance(dom_support, domutils.BindingDOMSupport)
-        element = dom_support.createChild(self._XsdName, self._Namespace, parent)
+        element = dom_support.createChild(self._ExpandedName.localName(), self._ExpandedName.namespace(), parent)
         self.__realContent.toDOM(dom_support, parent=element)
         return dom_support
 
@@ -732,7 +729,6 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
             if isinstance(rv, unicode):
                 return rv.encode('utf-8')
             return str(rv)
-        #return '%s: %s' % (self._XsdName, str(self.content()))
         return str(self.content())
 
     @classmethod
@@ -947,7 +943,7 @@ class complexTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _
             au = self._AttributeMap.get(local_name, None)
             if au is None:
                 if self._AttributeWildcard is None:
-                    raise pyxb.UnrecognizedAttributeError('Attribute %s is not permitted in type %s' % (local_name, self._XsdName))
+                    raise pyxb.UnrecognizedAttributeError('Attribute %s is not permitted in type %s' % (local_name, self._ExpandedName))
                 self.__wildcardAttributeMap[local_name] = value
                 continue
             au.setFromDOM(self, node)
@@ -1075,9 +1071,9 @@ class _CTD_content_mixin (pyxb.cscRoot):
         self.__content = []
 
     def _addElement (self, element):
-        eu = self._ElementMap.get(element._XsdName, None)
+        eu = self._ElementMap.get(element._ExpandedName)
         if eu is None:
-            raise pyxb.LogicError('Element %s is not registered within CTD %s' % (element._XsdName, self.__class__.__name__))
+            raise pyxb.LogicError('Element %s is not registered within CTD %s' % (element._ExpandedName, self.__class__.__name__))
         eu.setValue(self, element)
 
     def _addContent (self, child):
