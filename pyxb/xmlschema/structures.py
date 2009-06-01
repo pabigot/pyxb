@@ -4123,7 +4123,7 @@ class Schema (_SchemaComponent_mixin):
                 raise LogicError('Expected ElementDeclaration or AttributeDeclaration: got %s' % (declaration_type,))
         tns = None
         if (self._QUALIFIED == form_type):
-            tns = schema.targetNamespace()
+            tns = self.targetNamespace()
             if tns.isAbsentNamespace():
                 tns = None
         else:
