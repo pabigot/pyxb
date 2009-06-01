@@ -425,14 +425,9 @@ def GenerateContentModel (ctd, automaton, **kw):
                 lines.extend(mga_defns)
                 template_map['eu_field'] = pythonLiteral(None, **kw)
             else:
+                assert isinstance(key, xs.structures.ElementDeclaration)
                 template_map['term'] = pythonLiteral(key, **kw)
-                if 'eu_field' in template_map:
-                    del template_map['eu_field']
-                for (name, ( is_plural, types, ef_map) ) in ctd.__elementFields.items():
-                    type_names = [ _u.name() for _u in types ]
-                    if key.name() in type_names:
-                        template_map['eu_field'] = templates.replaceInText('%{ctd}._UseForTag(%{field_tag})', field_tag=ef_map['field_tag'], **template_map)
-                        break
+                template_map['eu_field'] = templates.replaceInText('%{ctd}._UseForTag(%{field_tag})', field_tag=pythonLiteral(key.expandedName(), **kw), **template_map)
             lines3.append(templates.replaceInText('%{content}.ContentModelTransition(term=%{term}, next_state=%{next_state}, element_use=%{eu_field}),',
                           **template_map))
         lines2.extend([ '    '+_l for _l in lines3 ])
@@ -682,14 +677,14 @@ class %{ctd} (%{superclasses}):
         # associated with those superclass instances are marked as
         # reserved.
         if inherits_from_base:
-            for (name, (is_plural, types)) in plurality_data.items():
+            for (name, (is_plural, ed)) in plurality_data.items():
                 superclass_info = base_type.__elementFields.get(name, None)
                 if superclass_info is not None:
-                    ( superclass_is_plural, superclass_types, superclass_ef_map ) = superclass_info
+                    ( superclass_is_plural, superclass_ed, superclass_ef_map ) = superclass_info
                     # Not checking plurality: should only matter with
                     # restriction, and there it should be compatible
                     # if the schema is valid.
-                    if TypeSetCompatible(types, superclass_types):
+                    if ed.typeDefinition().isTypeEquivalent(superclass_ed.typeDefinition()):
                         definitions.append(templates.replaceInText('# Element %{field_tag} inherits from parent %{superclasses} as %{python_field_name}', superclasses=template_map['superclasses'], **superclass_ef_map))
                         del plurality_data[name]
                         class_unique.add(superclass_ef_map['python_field_name'])
@@ -707,12 +702,12 @@ class %{ctd} (%{superclasses}):
 # plural %{plural} vs %{sc_plural}
 # types %{types} vs %{sc_types}
 ''', plural=str(is_plural), sc_plural=str(superclass_is_plural),
-   types=' '.join([ _t.name() for _t in types]),
-   sc_types=' '.join([ _t.name() for _t in superclass_types]),
+   types=ed.expandedName(),
+   sc_types=superclass_ed.expandedName(),
    superclasses=template_map['superclasses'], **superclass_ef_map))
 
         PostscriptItems.append("\n\n")
-        for (name, (is_plural, types)) in plurality_data.items():
+        for (name, (is_plural, ed)) in plurality_data.items():
             # If this name exists as an element in the parent class,
             # and the plurality data is identical, then inherit the
             # element infrastructure from the parent
@@ -729,15 +724,14 @@ class %{ctd} (%{superclasses}):
             ef_map['value_field_name'] = utility.PrepareIdentifier('%s_%s' % (template_map['ctd'], name), class_unique, class_keywords, private=True)
             ef_map['is_plural'] = repr(is_plural)
             ef_map['field_tag'] = pythonLiteral(name, **kw)
-            ef_map['element_ref'] = ' '.join([ object.__str__(_t) for _t in types ])
             element_uses.append(templates.replaceInText('%{field_tag} : %{field_name}', **ef_map))
-            datatype_items.append("%s : [ %s ]" % (ef_map['field_tag'], ','.join(pythonLiteral(types, **kw))))
+            datatype_items.append("%s : %s" % (ef_map['field_tag'], pythonLiteral(ed, **kw)))
             if 0 == len(aux_init):
                 ef_map['aux_init'] = ''
             else:
                 ef_map['aux_init'] = ', ' + ', '.join(aux_init)
 
-            ctd.__elementFields[name] = ( is_plural, types, ef_map )
+            ctd.__elementFields[name] = ( is_plural, ed, ef_map )
             definitions.append(templates.replaceInText('''
     # Element %{field_tag} uses Python identifier %{python_field_name}
     %{field_name} = pyxb.binding.content.ElementUse(%{field_tag}, '%{python_field_name}', '%{value_field_name}', %{is_plural}%{aux_init})
@@ -884,10 +878,7 @@ class %{ctd} (%{superclasses}):
 
     return templates.replaceInText(template, **template_map)
 
-ElementClassMap = { }
-
 def GenerateED (ed, **kw):
-    global ElementClassMap
     # Unscoped declarations should never be referenced in the binding.
     if ed.scope() is None:
         return ''
@@ -913,7 +904,6 @@ class %{class} (pyxb.binding.basis.element):
     _TypeDefinition = %{base_datatype}
 %{map_update}
 ''', **template_map))
-    ElementClassMap.setdefault(ed.name(), []).append(template_map['class'])
 
     return outf.getvalue()
 
@@ -1015,10 +1005,8 @@ GeneratorMap = {
 def GeneratePython (**kw):
     global UniqueInBinding
     global PostscriptItems
-    global ElementClassMap
     UniqueInBinding.clear()
     PostscriptItems = []
-    ElementClassMap.clear()
     try:
         schema = kw.get('schema', None)
         schema_file = kw.get('schema_file', None)
@@ -1152,10 +1140,6 @@ ElementToBindingMap = { }
 
         outf.write(''.join(PostscriptItems))
 
-        outf.write("_ElementClassMap = {\n")
-        for (tag, class_names) in ElementClassMap.items():
-            outf.write("    %s: [ %s ],\n" % (repr(tag), ",".join(class_names)))
-        outf.write("    }")
         return outf.getvalue()
     
     except Exception, e:

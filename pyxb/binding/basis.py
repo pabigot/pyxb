@@ -887,7 +887,7 @@ class complexTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _
         This is invoked at the module level after all binding classes have
         been defined and are available for reference."""
         for (k, v) in datatype_map.items():
-            cls._ElementMap[k]._setValidElements(v)
+            cls._ElementMap[k]._setElementBinding(v)
         python_map = { }
         for eu in cls._ElementMap.values():
             python_map[eu.pythonField()] = eu
@@ -903,7 +903,7 @@ class complexTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _
         :param element: A Python class corresponding to an element binding.
         """
         for eu in cls._ElementMap.values():
-            if element in eu.validElements():
+            if element == eu.elementBinding():
                 return eu
         return None
 

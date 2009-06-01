@@ -668,25 +668,23 @@ class _ScopedDeclaration_mixin (pyxb.cscRoot):
 
 
 class _PluralityData (types.ListType):
-    """This class represents an abstraction of the set of documents
-    conformant to a particle or particle term.
+    """This class represents an abstraction of the set of documents conformant
+    to a particle or particle term.
 
-    The abstraction of a given document is a map from element
-    declarations that can appear in it to a boolean that is true iff
-    there could be multiple instances of that element declaration at
-    the top level of the document fragment.  The abstraction of the
-    set is a list of document abstractions.
+    The abstraction of a given document is a map from element declarations
+    that can appear at the top level of the document to a boolean that is true
+    iff there could be multiple instances of that element declaration at the
+    top level of a valid document.  The abstraction of the set is a list of
+    document abstractions.
 
-    This information is used in binding generation to determine
-    whether a field associated with a tag might need to hold multiple
-    instances, and whether those instances might be of different
-    types.
+    This information is used in binding generation to determine whether a
+    field associated with a tag might need to hold multiple instances.
     """
     
     @classmethod
     def _MapUnion (self, map1, map2):
-        """Given two maps, return an updated map indicating the
-        unified plurality."""
+        """Given two maps, return an updated map indicating the unified
+        plurality."""
         umap = { }
         for k in set(map1.keys()).union(map2.keys()):
             if k in map1:
@@ -696,9 +694,13 @@ class _PluralityData (types.ListType):
         return umap
 
     def nameBasedPlurality (self):
-        """Return a map from NCNames to pairs consisting of a boolean
-        representing the plurality of the aggregated name, and a set
-        denoting the element declarations with that name."""
+        """Return a map from expanded names to pairs consisting of a boolean
+        representing the plurality of the aggregated name, and the element
+        declaration with that name.
+
+        Note that this requires cos-element-consistent to have been validated,
+        and element declarations with the same expanded name to have been
+        replaced with a single element declaration."""
 
         name_plurality = { }
         name_types = { }
@@ -706,8 +708,10 @@ class _PluralityData (types.ListType):
             npdm = { }
             for (ed, v) in pdm.items():
                 if isinstance(ed, ElementDeclaration):
-                    tag = ed.name()
-                    name_types.setdefault(tag, set()).add(ed)
+                    tag = ed.expandedName()
+                    name_types.setdefault(tag, ed)
+                    # Should only be one with that name
+                    assert name_types[tag] == ed
                     npdm[tag] = npdm.get(tag, False) or v
                 elif isinstance(ed, Wildcard):
                     pass
@@ -715,9 +719,8 @@ class _PluralityData (types.ListType):
                     raise pyxb.LogicError('Unexpected plurality index %s' % (ed,))
             name_plurality = self._MapUnion(name_plurality, npdm)
         rv = { }
-        for (name, types) in name_types.items():
-            is_plural = name_plurality[name] or (1 < len(types))
-            rv[name] = ( is_plural, types )
+        for (name, ed) in name_types.items():
+            rv[name] = ( name_plurality[name], ed )
         return rv
 
     def __fromModelGroup (self, model_group):
