@@ -72,7 +72,9 @@ class ExpandedName (pyxb.cscRoot):
         return self.__namespace
     __namespace = None
 
-    # Cached namespace URI, or None if absent
+    def namespaceURI (self):
+        """Return the URI of the namespace, or C{None} if the namespace is absent."""
+        return self.__namespaceURI
     __namespaceURI = None
 
     def localName (self):
@@ -86,6 +88,14 @@ class ExpandedName (pyxb.cscRoot):
     def validateComponentModel (self):
         """Pass model validation through to namespace part."""
         return self.namespace().validateComponentModel()
+
+    def uriTuple (self):
+        """Return a tuple consisting of the namespace URI and the local name.
+
+        This presents the expanded name as base Python types for persistent
+        storage.  Be aware, though, that it will lose the association of the
+        name with an absent namespace, if that matters to you."""
+        return ( self.__namespaceURI, self.__localName )
 
     # Treat unrecognized attributes as potential accessor functions
     def __getattr__ (self, name):
@@ -123,7 +133,8 @@ class ExpandedName (pyxb.cscRoot):
 
     def __hash__ (self):
         if self.__namespaceURI is None:
-            return str.__hash__(self.__localName)
+            # Handle both str and unicode hashes
+            return type(self.__localName).__hash__(self.__localName)
         return tuple.__hash__(self.__expandedName)
 
     def __cmp__ (self, other):
@@ -161,6 +172,10 @@ class _Resolvable_mixin (pyxb.cscRoot):
         components.  The sole caller of this should be
         L{Namespace.resolveDefinitions}.
         
+        This method is permitted (nay, encouraged) to raise an exception if
+        resolution requires interpreting a QName and the named component
+        cannot be found.
+
         Override this in the child class.  In the prefix, if L{isResolved} is
         true, return right away.  If something prevents you from completing
         resolution, invoke L{self._queueForResolution()} (so it is retried
@@ -168,6 +183,7 @@ class _Resolvable_mixin (pyxb.cscRoot):
         resolution discard any cached dom node by setting C{self.__domNode=None}.
 
         @return: C{self}, whether or not resolution succeeds.
+        @raise pyxb.SchemaValidationError: if resolution requlres a reference to an unknown component
         """
         raise pyxb.LogicError('Resolution not implemented in %s' % (self.__class__,))
 
@@ -375,6 +391,11 @@ class _NamespaceResolution_mixin (pyxb.cscRoot):
         resolved in this pass, it iis placed back on the list for the next
         iteration.  If an iteration completes without resolving any of the
         unresolved components, a pyxb.NotInNamespaceError exception is raised.
+
+        @note: Do not invoke this until all top-level definitions for the
+        namespace have been provided.  The resolution routines are entitled to
+        raise a validation exception if a reference to an unrecognized
+        component is encountered.
 
         @param schema: The schema for which resolution is being performed.
         @type schema: L{pyxb.xmlschema.structures.Schema}

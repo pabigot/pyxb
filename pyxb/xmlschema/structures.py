@@ -352,7 +352,8 @@ class _NamedComponent_mixin (pyxb.cscRoot):
         if 0 == len(args):
             rv = super(_NamedComponent_mixin, cls).__new__(cls)
             return rv
-        ( uri, ncname, scope, icls ) = args
+        ( expanded_name_tuple, scope, icls ) = args
+        (uri, ncname) = expanded_name_tuple
         ns = pyxb.namespace.NamespaceForURI(uri)
 
         if ns is None:
@@ -367,14 +368,15 @@ class _NamedComponent_mixin (pyxb.cscRoot):
         #print 'Need to lookup %s in %s' % (ncname, scope)
         if isinstance(scope, tuple):
             ( scope_uri, scope_ncname ) = scope
+            # Expect following to fail when we test qualified form defaults
             assert uri == scope_uri
             scope_ctd = ns.typeDefinitions().get(scope_ncname)
             if scope_ctd is None:
                 raise pyxb.SchemaValidationError('Unable to resolve local scope %s in %s' % (scope_ncname, scope_uri))
             if issubclass(icls, AttributeDeclaration):
-                rv = scope_ctd.lookupScopedAttributeDeclaration(ncname)
+                rv = scope_ctd.lookupScopedAttributeDeclaration(expanded_name)
             elif issubclass(icls, ElementDeclaration):
-                rv = scope_ctd.lookupScopedElementDeclaration(ncname)
+                rv = scope_ctd.lookupScopedElementDeclaration(expanded_name)
             else:
                 raise pyxb.IncompleteImplementationError('Local scope reference lookup not implemented for type %s searching %s in %s' % (icls, ncname, uri))
             if rv is None:
@@ -449,7 +451,7 @@ class _NamedComponent_mixin (pyxb.cscRoot):
             # this case (unlike getnewargs) we don't care about trying
             # to look up a previous instance, so we don't need to
             # encode the scope in the reference tuple.
-            return ( self.targetNamespace().uri(), self.name() )
+            return self.expandedName().uriTuple()
         if self.targetNamespace() is None:
             # The only internal named objects that should exist are
             # ones that have a non-global scope (including those with
@@ -486,7 +488,7 @@ class _NamedComponent_mixin (pyxb.cscRoot):
                 if self.SCOPE_global == self.scope():
                     pass
                 elif isinstance(self.scope(), ComplexTypeDefinition):
-                    scope = ( self.scope().targetNamespace().uri(), self.scope().name() )
+                    scope = self.scope().expandedName().uriTuple()
                 elif self._scopeIsIndeterminate():
                     # This is actually a serious problem, but only shows up
                     # when one schema imports another that has a model group
@@ -500,7 +502,8 @@ class _NamedComponent_mixin (pyxb.cscRoot):
                     while owner is not None:
                         print ' %s' % (owner,)
                         owner = owner.owner()
-            rv = ( self.targetNamespace().uri(), self.name(), scope, self.__class__ )
+                    assert False
+            rv = ( self.expandedName().uriTuple(), scope, self.__class__ )
             return rv
         return ()
 
@@ -509,10 +512,9 @@ class _NamedComponent_mixin (pyxb.cscRoot):
             # We don't actually have to set any state here; we just
             # make sure that we resolved to an already-configured
             # instance.
-            ( ns_uri, nc_name ) = state
             assert self.targetNamespace() is not None
-            assert self.targetNamespace().uri() == ns_uri
-            assert self.name() == nc_name
+            assert self.targetNamespace().uri() == state[0]
+            assert self.name() == state[1]
             return
         self.__dict__.update(state)
             
@@ -1388,24 +1390,24 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
     # A map from NCNames to AttributeDeclaration instances that are
     # local to this type.
     __scopedAttributeDeclarations = None
-    def lookupScopedAttributeDeclaration (self, ncname):
+    def lookupScopedAttributeDeclaration (self, expanded_name):
         """Find an attribute declaration with the given name that is local to this type.
 
         Returns None if there is no such local attribute declaration."""
         if self.__scopedAttributeDeclarations is None:
             return None
-        return self.__scopedAttributeDeclarations.get(ncname)
+        return self.__scopedAttributeDeclarations.get(expanded_name)
 
     # A map from NCNames to ElementDeclaration instances that are
     # local to this type.
     __scopedElementDeclarations = None
-    def lookupScopedElementDeclaration (self, ncname):
+    def lookupScopedElementDeclaration (self, expanded_name):
         """Find an element declaration with the given name that is local to this type.
 
         Returns None if there is no such local element declaration."""
         if self.__scopedElementDeclarations is None:
             return None
-        return self.__scopedElementDeclarations.get(ncname)
+        return self.__scopedElementDeclarations.get(expanded_name)
 
     def _recordLocalDeclaration (self, decl):
         """Record the given declaration as being locally scoped in
@@ -1417,8 +1419,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
             scope_map = self.__scopedAttributeDeclarations
         else:
             raise pyxb.LogicError('Unexpected instance of %s recording as local declaration' % (type(decl),))
-        assert decl.name() is not None
-        scope_map[decl.name()] = decl
+        scope_map[decl.expandedName()] = decl
         return self
 
     CT_EMPTY = 0                #<<< No content
@@ -2487,9 +2488,12 @@ class Particle (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin):
                 ref_en = self._namespaceContext().interpretQName(ref_attr)
                 term = ref_en.elementDeclaration()
                 if term is None:
-                    self._queueForResolution()
-                    return self
+                    raise pyxb.SchemaValidationError('Unable to locate element referenced by %s' % (ref_en,))
             else:
+                if isinstance(scope, ComplexTypeDefinition):
+                    # Look for an existing local element declaration with the
+                    # same expanded name.
+                    pass
                 term = ElementDeclaration.CreateFromDOM(node=node, scope=scope, owner=self, target_namespace=self._resolvingSchema().targetNamespaceForNode(node, ElementDeclaration))
             assert term is not None
         elif xsd.nodeIsNamed(node, 'any'):
