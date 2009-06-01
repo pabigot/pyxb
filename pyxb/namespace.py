@@ -72,12 +72,20 @@ class ExpandedName (tuple):
 
     # Treat unrecognized attributes as potential accessor functions
     def __getattr__ (self, name):
+        # Don't try to recognize private names (like __setstate__)
+        if name.startswith('__'):
+            return super(ExpandedName, self).__getattr__(name)
         if self.namespace() is None:
             raise pyxb.LogicError('Attempt to locate unrecognized field %s in absent namespace' % (name,))
         return lambda _value=self.namespace().categoryMap(name).get(self.localName()): _value
 
     # Tuples pass their parameters in the allocator method
-    def __new__ (cls, namespace, local_name):
+    def __new__ (cls, namespace, local_name=None):
+        # Deconstruct initializer when being invoked from unpickler
+        if isinstance(namespace, tuple):
+            assert local_name is None
+            local_name = namespace[1]
+            namespace = namespace[0]
         return super(ExpandedName, cls).__new__(cls, (namespace, local_name) )
 
     def __init__ (self, namespace, local_name):
