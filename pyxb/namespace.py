@@ -40,10 +40,21 @@ DefaultBindingPath = "%s/standard/bindings/raw" % (os.path.dirname(__file__),)
 # Stuff required for pickling
 import cPickle as pickle
 
-class ExpandedName (tuple):
+class ExpandedName (pyxb.cscRoot):
     """Represent an extended name
     U{http://www.w3.org/TR/REC-xml-names/#dt-expname}, which pairs a namespace
     with a local name.
+
+    Because a large number of local elements, and most attributes, have no
+    namespace associated with them, this is optimized for representing names
+    with an absent namespace.  The hash and equality test methods are set so
+    that a plain string is equivalent to a tuple of None and that string.
+
+    Note that absent namespaces can be represented in two ways: with a
+    namespace of None, and with a namespace that is an absent namespace.  Hash
+    code calculations are done so that the two alternatives produce the same
+    hash; however, comparison is done so that the two are distinguished.  The
+    latter is the intended behavior; the former should not be counted upon.
 
     This class allows direct lookup of the named object within a category by
     using the category name as an accessor function.  That is, if the
@@ -61,10 +72,16 @@ class ExpandedName (tuple):
         return self.__namespace
     __namespace = None
 
+    # Cached namespace URI, or None if absent
+    __namespaceURI = None
+
     def localName (self):
         """The local part of the expanded name."""
         return self.__localName
     __localName = None
+
+    # Cached tuple representation
+    __expandedName = None
 
     def validateComponentModel (self):
         """Pass model validation through to namespace part."""
@@ -78,15 +95,6 @@ class ExpandedName (tuple):
         if self.namespace() is None:
             raise pyxb.LogicError('Attempt to locate unrecognized field %s in absent namespace' % (name,))
         return lambda _value=self.namespace().categoryMap(name).get(self.localName()): _value
-
-    # Tuples pass their parameters in the allocator method
-    def __new__ (cls, namespace, local_name=None):
-        # Deconstruct initializer when being invoked from unpickler
-        if isinstance(namespace, tuple):
-            assert local_name is None
-            local_name = namespace[1]
-            namespace = namespace[0]
-        return super(ExpandedName, cls).__new__(cls, (namespace, local_name) )
 
     def __init__ (self, namespace, local_name):
         """Create an expanded name.
@@ -103,19 +111,31 @@ class ExpandedName (tuple):
             raise LogicError('ExpandedName must include a valid (perhaps absent) namespace, or None.')
         super(ExpandedName, self).__init__( (namespace, local_name) )
         self.__namespace = namespace
+        if (self.__namespace is not None) and (not self.__namespace.isAbsentNamespace()):
+            self.__namespaceURI = self.__namespace.uri()
         self.__localName = local_name
+        self.__expandedName = ( self.__namespace, self.__localName )
 
     def __str__ (self):
-        if self.namespace():
-            return '{%s}%s' % (self.namespace().uri(), self.localName())
+        if self.__namespaceURI is not None:
+            return '{%s}%s' % (self.__namespaceURI, self.__localName)
         return self.localName()
 
+    def __hash__ (self):
+        if self.__namespaceURI is None:
+            return str.__hash__(self.__localName)
+        return tuple.__hash__(self.__expandedName)
+
+    def __cmp__ (self, other):
+        if isinstance(other, (str, unicode)):
+            other = ( None, other )
+        if not isinstance(other, tuple):
+            other = other.__expandedName
+        return cmp(self.__expandedName, other)
+
     def getAttribute (self, dom_node):
-        uri = None
-        if self.__namespace is not None:
-            uri = self.__namespace.uri()
-        if dom_node.hasAttributeNS(uri, self.localName()):
-            return dom_node.getAttributeNS(uri, self.localName())
+        if dom_node.hasAttributeNS(self.__namespaceURI, self.__localName):
+            return dom_node.getAttributeNS(self.__namespaceURI, self.__localName)
         return None
 
 class _Resolvable_mixin (pyxb.cscRoot):
