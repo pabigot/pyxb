@@ -25,7 +25,7 @@ import unittest
 class TestPO1 (unittest.TestCase):
     street_content = '''95 Main St.
 Anytown, AS  12345-6789'''
-    street_xml = '<street>%s</street>' % (street_content,)
+    street_xml = '<street xmlns="http://www.example.com/PO1">%s</street>' % (street_content,)
     street_dom = pyxb.utils.domutils.StringToDOM(street_xml).documentElement
 
     address1_xml = '<name>Customer</name><street>95 Main St</street>'
@@ -43,11 +43,11 @@ Anytown, AS  12345-6789'''
     def testPythonElementComplexContent_Element (self):
         addr = USAddress(name='Customer', street='95 Main St')
         self.assertEqual('95 Main St', addr.street().content())
-        self.assertEqual('<s>%s</s>' % (self.address1_xml,), ToDOM(addr, tag='s').toxml())
+        self.assertEqual('<s xmlns="http://www.example.com/PO1">%s</s>' % (self.address1_xml,), ToDOM(addr, tag='s').toxml())
 
     def testDOM_CTD_element (self):
         # NB: USAddress is a CTD, not an element.
-        xml = '<shipTo>%s</shipTo>' % (self.address1_xml,)
+        xml = '<shipTo xmlns="http://www.example.com/PO1">%s</shipTo>' % (self.address1_xml,)
         dom = pyxb.utils.domutils.StringToDOM(xml)
         addr2 = USAddress.CreateFromDOM(dom.documentElement)
         self.assertEqual(xml, ToDOM(addr2, tag='shipTo').toxml())

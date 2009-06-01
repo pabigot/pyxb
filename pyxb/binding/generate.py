@@ -100,8 +100,6 @@ class ReferenceParticle (ReferenceLiteral):
         self.__particle = particle
         super(ReferenceParticle, self).__init__(**kw)
 
-        assert False
-        
         template_map = { }
         template_map['min_occurs'] = pythonLiteral(int(particle.minOccurs()), **kw)
         if particle.maxOccurs() is None:
@@ -153,6 +151,7 @@ class ReferenceSchemaComponent (ReferenceLiteral):
         xs.structures.SimpleTypeDefinition: 'STD'
         , xs.structures.ComplexTypeDefinition: 'CTD'
         , xs.structures.ElementDeclaration: 'ED'
+        , xs.structures.ModelGroup: 'MG'
         , xs.structures.Wildcard: 'WC'
         }
 
@@ -371,113 +370,14 @@ def pythonLiteral (value, **kw):
     print 'Unexpected literal type %s' % (type(value),)
     return str(value)
 
-class ReachableState (dict):
-    def unionNoTransition (self, other):
-        changed = False
-        #print 'UnionNoTransition %s to %s' % (self, other)
-        for (k, v) in other.items():
-            this_v = self.get(k)
-            if this_v is None:
-                self[k] = v
-                changed = True
-            else:
-                self[k] = this_v or v
-                changed = (self[k] != this_v)
-        #print 'UnionNoTransition changed %s result %s' % (changed, self)
-        return changed
 
-    def unionOfTransitions (self, other):
-        changed = False
-        #print 'UnionOfTransition %s to %s' % (self, other)
-        for (k, v) in other.items():
-            this_v = self.get(k)
-            if this_v is None:
-                self[k] = v
-                changed = True
-            else:
-                self[k] = True
-                changed = (self[k] != this_v)
-        #print 'UnionOfTransition changed %s result %s' % (changed, self)
-        return changed
-
-    def addTransition (self, k):
-        #print 'AddTransition %s with %s' % (self, k)
-        this_v = self.get(k)
-        if this_v is None:
-            self[k] = False
-            changed = True
-        else:
-            self[k] = True
-            changed = (this_v != True)
-        #print 'AddTransition changed %s result %s' % (changed, self)
-        return changed
-
-class AutomatonContent:
-    __dfa = None
-    __stateReachable = None
-    __pluralityMap = None
-    def __init__ (self, dfa):
-        self.__dfa = dfa
-        self.__stateReachable = { }
-        for state in dfa.keys():
-            self.__stateReachable[state] = ReachableState()
-        need_visit = set([ self.__dfa.start()])
-        #print 'Constructing content map for automaton'
-        while 0 < len(need_visit):
-            state = need_visit.pop()
-            this_reaches = self.__stateReachable[state]
-            #print 'Content from state %s, reachable %s' % (state, this_reaches)
-            transitions = self.__dfa[state]
-            for term in transitions.keys():
-                next_states = transitions[term]
-                state_term = term
-                assert 1 == len(next_states)
-                next_state = next_states.copy().pop()
-                if isinstance(term, xs.structures.ElementDeclaration):
-                    state_term = term.expandedName()
-                #print ' Term %s using %s from %s to %s' % (term, state_term, state, next_state)
-                changed = self.__stateReachable[next_state].unionNoTransition(this_reaches)
-                if isinstance(state_term, nfa.AllWalker):
-                    content_map = ReachableState()
-                    #print 'ALL WALKER Start: %s' % (content_map,)
-                    for (dfa, is_required) in state_term.particles():
-                        changed = content_map.unionOfTransitions(AutomatonContent(dfa).pluralityMap()) or changed
-                    changed = self.__stateReachable[next_state].unionNoTransition(content_map) or changed
-                    #print 'ALL WALKER End: %s' % (content_map,)
-                elif state_term is None:
-                    # Epsilon transition to final state
-                    #print 'Epsilon transition skipped'
-                    pass
-                else:
-                    # Wildcard or ElementDeclaration
-                    #print 'Term transition adding'
-                    assert isinstance(state_term, (xs.structures.Wildcard, pyxb.namespace.ExpandedName))
-                    #changed = self.__stateReachable[next_state].addTransition(state_term) or changed
-                    alt_reachable = ReachableState()
-                    alt_reachable.unionNoTransition(this_reaches)
-                    changed = alt_reachable.addTransition(state_term) or changed
-                    changed = self.__stateReachable[next_state].unionNoTransition(alt_reachable) or changed
-                if changed:
-                    #print 'Adding next state %s' % (next_state,)
-                    need_visit.add(next_state)
-            #print 'End state %s: %s' % (state, self.__stateReachable[state])
-        self.__pluralityMap = self.__stateReachable[self.__dfa.end()]
-        #for (en, is_plural) in self.__pluralityMap.items():
-        #    if isinstance(en, pyxb.namespace.ExpandedName):
-        #        print '%s %s' % (en, is_plural)
-        #print "\n\n\n"
-
-    def pluralityMap (self):
-        return self.__pluralityMap
-
-
-def GenerateModelGroupAll (ctd, mga, template_map, element_decl_map, **kw):
+def GenerateModelGroupAll (ctd, mga, template_map, **kw):
     mga_tag = '__AModelGroup'
     template_map['mga_tag'] = mga_tag
     lines = []
     lines2 = []
     for ( dfa, is_required ) in mga.particles():
-        ( dfa_tag, dfa_lines ) = GenerateContentModel(ctd, dfa, element_decl_map, **kw)
+        ( dfa_tag, dfa_lines ) = GenerateContentModel(ctd, dfa, **kw)
         lines.extend(dfa_lines)
         template_map['dfa_tag'] = dfa_tag
         template_map['is_required'] = pythonLiteral(is_required, **kw)
@@ -487,9 +387,7 @@ def GenerateModelGroupAll (ctd, mga, template_map, element_decl_map, **kw):
     lines.append('])')
     return (mga_tag, lines)
 
-def GenerateContentModel (ctd, automaton, element_decl_map=None, **kw):
-    if element_decl_map is None:
-        element_decl_map = { }
+def GenerateContentModel (ctd, automaton, **kw):
     cmi = None
     template_map = { }
     template_map['ctd'] = pythonLiteral(ctd, **kw)
@@ -522,22 +420,19 @@ def GenerateContentModel (ctd, automaton, element_decl_map=None, **kw):
                 template_map['eu_field'] = pythonLiteral(None, **kw)
                 template_map['term'] = pythonLiteral(key, **kw)
             elif isinstance(key, nfa.AllWalker):
-                (mga_tag, mga_defns) = GenerateModelGroupAll(ctd, key, template_map.copy(), element_decl_map, **kw)
+                (mga_tag, mga_defns) = GenerateModelGroupAll(ctd, key, template_map.copy(), **kw)
                 template_map['term'] = mga_tag
                 lines.extend(mga_defns)
                 template_map['eu_field'] = pythonLiteral(None, **kw)
             else:
-                assert isinstance(key, xs.structures.ElementDeclaration)
-                en = key.expandedName()
-                alt_ed = element_decl_map.get(en)
-                if alt_ed is None:
-                    element_decl_map[en] = key
-                else:
-                    if (alt_ed.typeDefinition() != key.typeDefinition()):
-                        raise pyxb.SchemaValidationError('Violation of cos-element-consistent with name %s in %s' % (en, ctd.name()))
-                    key = alt_ed
                 template_map['term'] = pythonLiteral(key, **kw)
-                template_map['eu_field'] = templates.replaceInText('%{ctd}._UseForTag(%{field_expandedName})', field_expandedName=pythonLiteral(en, **kw), **template_map)
+                if 'eu_field' in template_map:
+                    del template_map['eu_field']
+                for (name, ( is_plural, types, ef_map) ) in ctd.__elementFields.items():
+                    type_names = [ _u.name() for _u in types ]
+                    if key.name() in type_names:
+                        template_map['eu_field'] = templates.replaceInText('%{ctd}._UseForTag(%{field_tag})', field_tag=ef_map['field_tag'], **template_map)
+                        break
             lines3.append(templates.replaceInText('%{content}.ContentModelTransition(term=%{term}, next_state=%{next_state}, element_use=%{eu_field}),',
                           **template_map))
         lines2.extend([ '    '+_l for _l in lines3 ])
@@ -613,7 +508,6 @@ def GenerateSTD (std, **kw):
     if 0 < len(parent_classes):
         template_map['superclasses'] = ', '.join(parent_classes)
     template_map['name'] = pythonLiteral(std.name(), **kw)
-    template_map['expanded_name'] = pythonLiteral(std.expandedName(), **kw)
 
     if xs.structures.SimpleTypeDefinition.VARIETY_absent == std.variety():
         assert False
@@ -624,7 +518,10 @@ def GenerateSTD (std, **kw):
 class %{std} (%{superclasses}):
     """%{description}"""
 
-    _ExpandedName = %{expanded_name}
+    # The name of this type definition within the schema
+    _XsdName = %{name}
+    # Reference to the namespace to which the type belongs
+    _Namespace = Namespace
 '''
         template_map['description'] = ''
     elif xs.structures.SimpleTypeDefinition.VARIETY_list == std.variety():
@@ -634,7 +531,11 @@ class %{std} (%{superclasses}):
 class %{std} (pyxb.binding.basis.STD_list):
     """%{description}"""
 
-    _ExpandedName = %{expanded_name}
+    # The name of this type definition within the schema
+    _XsdName = %{name}
+    # Reference to the namespace to which the type belongs
+    _Namespace = Namespace
+
     # Type for items in the list
     _ItemType = %{itemtype}
 '''
@@ -647,7 +548,10 @@ class %{std} (pyxb.binding.basis.STD_list):
 class %{std} (pyxb.binding.basis.STD_union):
     """%{description}"""
 
-    _ExpandedName = %{expanded_name}
+    # The name of this type definition within the schema
+    _XsdName = %{name}
+    # Reference to the namespace to which the type belongs
+    _Namespace = Namespace
 
     # Types of potential union members
     _MemberTypes = ( %{membertypes}, )
@@ -687,7 +591,6 @@ def GenerateCTD (ctd, **kw):
     base_type = ctd.baseTypeDefinition()
     template_map['base_type'] = pythonLiteral(base_type, **kw)
     template_map['name'] = pythonLiteral(ctd.name(), **kw)
-    template_map['expanded_name'] = pythonLiteral(ctd.expandedName(), **kw)
 
     need_content = False
     content_basis = None
@@ -713,6 +616,7 @@ class %{ctd} (%{superclasses}):
         content_type = 'mixed'
         ctd_parent_class = basis.CTD_mixed
         content_basis = ctd.contentType()[1]
+        template_map['particle'] = pythonLiteral(content_basis, **kw)
         need_content = True
         prolog_template = '''
 # Complex type %{ctd} with mixed content
@@ -722,6 +626,7 @@ class %{ctd} (%{superclasses}):
         content_type = 'element'
         ctd_parent_class = basis.CTD_element
         content_basis = ctd.contentType()[1]
+        template_map['particle'] = pythonLiteral(content_basis, **kw)
         need_content = True
         prolog_template = '''
 # Complex type %{ctd} with element-only content
@@ -729,7 +634,10 @@ class %{ctd} (%{superclasses}):
 '''
 
     prolog_template += '''
-    _ExpandedName = %{expanded_name}
+    # The name of this type definition within the schema
+    _XsdName = %{name}
+    # Reference to the namespace to which the type belongs
+    _Namespace = Namespace
 '''
 
     # Complex types that inherit from non-ur-type complex types should
@@ -740,7 +648,7 @@ class %{ctd} (%{superclasses}):
     if isinstance(base_type, xs.structures.SimpleTypeDefinition) or base_type.isUrTypeDefinition():
         inherits_from_base = False
         template_map['superclasses'] = 'pyxb.binding.basis.CTD_%s' % (content_type,)
-    assert base_type.nameInBinding() is not None
+        assert base_type.nameInBinding() is not None
 
     # Support for deconflicting attributes, elements, and reserved symbols
     class_keywords = frozenset(ctd_parent_class._ReservedSymbols)
@@ -765,55 +673,74 @@ class %{ctd} (%{superclasses}):
     # subclasses.
     ctd.__elementFields = { }
 
-    element_class_items = []
-
     if isinstance(content_basis, xs.structures.Particle):
-        fa = nfa.Thompson(content_basis).nfa()
-        fa = fa.buildDFA()
-        element_decl_map = { }
-        (cmi, cmi_defn) = GenerateContentModel(ctd=ctd, automaton=fa, element_decl_map=element_decl_map, **kw)
+        plurality_data = content_basis.pluralityData().nameBasedPlurality()
 
-        PostscriptItems.append("\n".join(cmi_defn))
-        PostscriptItems.append("\n")
-
-        plurality_map = AutomatonContent(fa).pluralityMap()
-
+        # Throw out the plurality nodes for elements that should be
+        # inherited from a superclass, which are those for which the
+        # plurality data matches that of a parent class.  Ensure names
+        # associated with those superclass instances are marked as
+        # reserved.
         if inherits_from_base:
-            for en in plurality_map.keys():
-                base_info = base_type.__elementFields.get(en)
-                if base_info is not None:
-                    definitions.append(templates.replaceInText('# Element %{field_tag} inherits from parent %{superclasses} as %{python_field_name}', superclasses=template_map['superclasses'], **base_info))
-                    del plurality_map[en]
-                    class_unique.add(base_info['python_field_name'])
-                    class_unique.add(base_info['field_inspector'])
-                    class_unique.add(base_info['field_mutator'])
-                    class_unique.add(base_info['field_name'])
-                    class_unique.add(base_info['value_field_name'])
-                    ctd.__elementFields[en] = base_info
+            for (name, (is_plural, types)) in plurality_data.items():
+                superclass_info = base_type.__elementFields.get(name, None)
+                if superclass_info is not None:
+                    ( superclass_is_plural, superclass_types, superclass_ef_map ) = superclass_info
+                    # Not checking plurality: should only matter with
+                    # restriction, and there it should be compatible
+                    # if the schema is valid.
+                    if TypeSetCompatible(types, superclass_types):
+                        definitions.append(templates.replaceInText('# Element %{field_tag} inherits from parent %{superclasses} as %{python_field_name}', superclasses=template_map['superclasses'], **superclass_ef_map))
+                        del plurality_data[name]
+                        class_unique.add(superclass_ef_map['python_field_name'])
+                        class_unique.add(superclass_ef_map['field_inspector'])
+                        class_unique.add(superclass_ef_map['field_mutator'])
+                        class_unique.add(superclass_ef_map['field_name'])
+                        class_unique.add(superclass_ef_map['value_field_name'])
+                        ctd.__elementFields[name] = superclass_info
+                    else:
+                        if (ctd.DM_restriction == ctd.derivationMethod()):
+                            raise pyxb.IncompleteImplementationError('Restriction invalid or re-use incomplete')
+                        definitions.append(templates.replaceInText('''
+# Element %{field_tag} will override parent %{superclasses} field %{python_field_name}
+# due to content model differences:
+# plural %{plural} vs %{sc_plural}
+# types %{types} vs %{sc_types}
+''', plural=str(is_plural), sc_plural=str(superclass_is_plural),
+   types=' '.join([ _t.name() for _t in types]),
+   sc_types=' '.join([ _t.name() for _t in superclass_types]),
+   superclasses=template_map['superclasses'], **superclass_ef_map))
 
-        for (en, is_plural) in plurality_map.items():
-            if not isinstance(en, pyxb.namespace.ExpandedName):
-                continue
-            ed = element_decl_map[en]
-
+        PostscriptItems.append("\n\n")
+        for (name, (is_plural, types)) in plurality_data.items():
+            # If this name exists as an element in the parent class,
+            # and the plurality data is identical, then inherit the
+            # element infrastructure from the parent
+            
             ef_map = { }
-            name = en.localName()
+            aux_init = []
             used_field_name = utility.PrepareIdentifier(name, class_unique, class_keywords)
+            element_name_map[name] = used_field_name
+
             ef_map['python_field_name'] = used_field_name
             ef_map['field_inspector'] = used_field_name
             ef_map['field_mutator'] = utility.PrepareIdentifier('set' + used_field_name[0].upper() + used_field_name[1:], class_unique, class_keywords)
-            ef_map['field_tag'] = pythonLiteral(name, **kw)
             ef_map['field_name'] = utility.PrepareIdentifier(name, class_unique, class_keywords, private=True)
             ef_map['value_field_name'] = utility.PrepareIdentifier('%s_%s' % (template_map['ctd'], name), class_unique, class_keywords, private=True)
             ef_map['is_plural'] = repr(is_plural)
-            ef_map['field_expandedName'] = pythonLiteral(en, **kw)
-            element_uses.append(templates.replaceInText('%{field_expandedName} : %{field_name}', **ef_map))
-            element_class_items.append('%s : %s' % (ef_map['field_expandedName'], pythonLiteral(ed, **kw)))
+            ef_map['field_tag'] = pythonLiteral(name, **kw)
+            ef_map['element_ref'] = ' '.join([ object.__str__(_t) for _t in types ])
+            element_uses.append(templates.replaceInText('%{field_tag} : %{field_name}', **ef_map))
+            datatype_items.append("%s : [ %s ]" % (ef_map['field_tag'], ','.join(pythonLiteral(types, **kw))))
+            if 0 == len(aux_init):
+                ef_map['aux_init'] = ''
+            else:
+                ef_map['aux_init'] = ', ' + ', '.join(aux_init)
 
-            ctd.__elementFields[en] = ef_map
+            ctd.__elementFields[name] = ( is_plural, types, ef_map )
             definitions.append(templates.replaceInText('''
-    # Element %{field_expandedName} uses Python identifier %{python_field_name}
-    %{field_name} = pyxb.binding.content.ElementUse(%{field_expandedName}, '%{python_field_name}', '%{value_field_name}', %{is_plural})
+    # Element %{field_tag} uses Python identifier %{python_field_name}
+    %{field_name} = pyxb.binding.content.ElementUse(%{field_tag}, '%{python_field_name}', '%{value_field_name}', %{is_plural}%{aux_init})
     def %{field_inspector} (self):
         """Get the value of the %{field_tag} element."""
         return self.%{field_name}.value(self)
@@ -822,11 +749,27 @@ class %{ctd} (%{superclasses}):
         if the new value is not consistent with the element's type."""
         return self.%{field_name}.setValue(self, new_value)''', **ef_map))
 
+        #print 'Building FA for %s' % (ctd.name(),)
+        fa = nfa.Thompson(content_basis).nfa()
+        #print "Non-deterministic FA for %s:\n%s\n\n" % (ctd.name(), fa)
+        fa = fa.buildDFA()
+        #print "Minimized deterministic FA for %s:\n%s\n\n" % (ctd.name(), fa)
+        (cmi, cmi_defn) = GenerateContentModel(ctd=ctd, automaton=fa, **kw)
+        PostscriptItems.append("\n".join(cmi_defn))
+        PostscriptItems.append("\n")
+
+    if need_content:
+        PostscriptItems.append(templates.replaceInText('''
+%{ctd}._Content = %{particle}
+''', **template_map))
+        
+
     PostscriptItems.append('''
-%s._UpdateElementBindings({
+%s._UpdateElementDatatypes({
     %s
 })
-''' % (template_map['ctd'], ",\n    ".join(element_class_items)))
+''' % (template_map['ctd'], ",\n    ".join(datatype_items)))
+
 
     # Create definitions for all attributes.
     attribute_name_map = { }
@@ -870,7 +813,8 @@ class %{ctd} (%{superclasses}):
         au_map['attr_mutator'] = utility.PrepareIdentifier('set' + used_attr_name[0].upper() + used_attr_name[1:], class_unique, class_keywords)
         au_map['attr_name'] = utility.PrepareIdentifier(attr_name, class_unique, class_keywords, private=True)
         au_map['value_attr_name'] = utility.PrepareIdentifier('%s_%s' % (template_map['ctd'], attr_name), class_unique, class_keywords, private=True)
-        au_map['attr_expandedName'] = pythonLiteral(ad.expandedName(), **kw)
+        au_map['attr_en_val'] = pythonLiteral(ad.expandedName(), **kw)
+        au_map['attr_en_ref'] = '%s_en' % (au_map['attr_name'],)
         au_map['attr_tag'] = pythonLiteral(attr_name, **kw)
         assert ad.typeDefinition() is not None
         au_map['attr_type'] = pythonLiteral(ad.typeDefinition(), **kw)
@@ -896,10 +840,11 @@ class %{ctd} (%{superclasses}):
             aux_init.insert(0, '')
             au_map['aux_init'] = ', '.join(aux_init)
         ctd.__attributeFields[attr_name] = ( ( au.required(), au.prohibited(), au.attributeDeclaration() ), au_map )
-        attribute_uses.append(templates.replaceInText('%{attr_expandedName} : %{attr_name}', **au_map))
+        attribute_uses.append(templates.replaceInText('%{attr_tag} : %{attr_name}', **au_map))
         definitions.append(templates.replaceInText('''
     # Attribute %{attr_tag} from %{attr_ns} uses Python identifier %{python_attr_name}
-    %{attr_name} = pyxb.binding.content.AttributeUse(%{attr_expandedName}, '%{python_attr_name}', '%{value_attr_name}', %{attr_type}%{aux_init})
+    %{attr_en_ref} = %{attr_en_val}
+    %{attr_name} = pyxb.binding.content.AttributeUse(%{attr_tag}, '%{python_attr_name}', '%{value_attr_name}', %{attr_type}%{aux_init})
     def %{attr_inspector} (self):
         """Get the value of the %{attr_tag} attribute."""
         return self.%{attr_name}.value(self)
@@ -950,7 +895,6 @@ def GenerateED (ed, **kw):
     template_map = { }
     template_map['class'] = pythonLiteral(ed, **kw)
     template_map['element_name'] = pythonLiteral(ed.name(), **kw)
-    template_map['expanded_name'] = pythonLiteral(ed.expandedName(), **kw)
     if (ed.SCOPE_global == ed.scope()):
         template_map['element_scope'] = pythonLiteral(None, **kw)
         template_map['map_update'] = templates.replaceInText('ElementToBindingMap[%{element_name}] = %{class}', **template_map)
@@ -961,7 +905,10 @@ def GenerateED (ed, **kw):
     outf.write(templates.replaceInText('''
 # ElementDeclaration
 class %{class} (pyxb.binding.basis.element):
-    _ExpandedName = %{expanded_name}
+    # The name of this element within the schema
+    _XsdName = %{element_name}
+    # Reference to the namespace to which the type belongs
+    _Namespace = Namespace
     _ElementScope = %{element_scope}
     _TypeDefinition = %{base_datatype}
 %{map_update}
@@ -970,10 +917,99 @@ class %{class} (pyxb.binding.basis.element):
 
     return outf.getvalue()
 
+def GenerateMG (mg, **kw):
+    outf = StringIO.StringIO()
+    template_map = { }
+    template_map['model_group'] = pythonLiteral(mg, **kw)
+
+    # My this gets ugly.  What we're doing here is looking at all
+    # elements that can appear immediately in the XML at this group;
+    # i.e., the top level elements in this model group and any
+    # contained model groups.  We're figuring out what unique element
+    # tags might appear.  For each tag, we're looking at the occurence
+    # ranges and types of the elements it might represent.  We're
+    # gonna spit all that out as a comment near the model group
+    # declaration.
+    #
+    # @todo Handle the obscure case where the same tag is used for two
+    # distinct elements both of which can appear.  This might happen
+    # with a sequence of sequences, for example, and results in the
+    # wrong occurence counts.  NB: This can't be handled at this
+    # level; needs to be done within the element.
+    #
+    # @todo Gotta handle wildcards in here too.
+
+    field_names = { }
+    for e in mg.elementDeclarations():
+        if e.scope() is None:
+            return ''
+        assert e.isResolved()
+        field_names.setdefault(e.name(), []).append(e)
+    field_decls = []
+    for fn in field_names.keys():
+        decl = []
+        may_be_plural = False
+        field_type = None
+        min_occurs = None
+        max_occurs = -1
+        for f in field_names.get(fn):
+            if field_type is None:
+                field_type = f.typeDefinition()
+            if field_type == f.typeDefinition():
+                # Nothing technically wrong with this, though it might
+                # confuse the user.
+                pass
+            if isinstance(f.owner(), xs.structures.Particle):
+                p = f.owner()
+                may_be_plural = may_be_plural or p.isPlural()
+                if min_occurs is None:
+                    min_occurs = p.minOccurs()
+                elif p.minOccurs() < min_occurs:
+                    min_occurs = p.minOccurs()
+                if p.maxOccurs() is None:
+                    max_occurs = None
+                elif (max_occurs is not None) and (p.maxOccurs() > max_occurs):
+                    max_occurs = p.maxOccurs()
+            if f.ancestorComponent() is not None:
+                assert isinstance(f.ancestorComponent(), xs.structures.ModelGroup)
+                mgd = f.ancestorComponent().modelGroupDefinition()
+                if mgd is not None:
+                    decl.append("%s:%s from group %s" % (fn, pythonLiteral(f.typeDefinition(), **kw), mgd.name()))
+                else:
+                    decl.append("%s:%s from unnamed group" % (fn, pythonLiteral(f.typeDefinition(), **kw)))
+            else:
+                decl.append("%s:%s from orphan %s" % (fn, pythonLiteral(f.typeDefinition(), **kw), f))
+        if min_occurs is None:
+            min_occurs = 1
+        min_occurs = int(min_occurs)
+        if max_occurs is None:
+            max_occurs = '*'
+        elif -1 == max_occurs:
+            max_occurs = 1
+        else:
+            max_occurs = int(max_occurs)
+        field_decls.append("# + %s %s [%d..%s]" % (fn, pythonLiteral(f.typeDefinition(), **kw), min_occurs, max_occurs))
+        if decl:
+            field_decls.append("#  - " + "\n#  - ".join(decl))
+    template_map['field_descr'] = "\n".join(field_decls)
+
+    outf.write(templates.replaceInText('''
+# %{model_group} top level elements:
+%{field_descr}
+%{model_group} = pyxb.binding.content.ModelGroup()
+''', **template_map))
+    template_map['compositor'] = 'pyxb.binding.content.ModelGroup.C_%s' % (mg.compositorToString().upper(),)
+    template_map['particles'] = ','.join( [ pythonLiteral(_p, **kw) for _p in mg.particles() ])
+    PostscriptItems.append(templates.replaceInText('''
+%{model_group}._setContent(%{compositor}, [ %{particles} ])
+''', **template_map))
+    return outf.getvalue()
+
 GeneratorMap = {
     xs.structures.SimpleTypeDefinition : GenerateSTD
   , xs.structures.ElementDeclaration : GenerateED
   , xs.structures.ComplexTypeDefinition : GenerateCTD
+  , xs.structures.ModelGroup : GenerateMG
 }
 
 def GeneratePython (**kw):

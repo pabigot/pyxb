@@ -53,8 +53,7 @@ class AttributeUse (pyxb.cscRoot):
     @todo: Store the extended namespace name of the attribute.
     """
 
-    __expandedName = None       # Expanded namespace name of attribute
-    __namespaceURI = None
+    __tag = None       # Unicode XML tag @todo not including namespace
     __pythonField = None # Identifier used for this attribute within the owning class
     __valueAttributeName = None # Private attribute used in instances to hold the attribute value
     __dataType = None  # PST datatype
@@ -64,11 +63,11 @@ class AttributeUse (pyxb.cscRoot):
     __required = False          # If True, attribute must appear
     __prohibited = False        # If True, attribute must not appear
 
-    def __init__ (self, expanded_name, python_field, value_attribute_name, data_type, unicode_default=None, fixed=False, required=False, prohibited=False):
+    def __init__ (self, tag, python_field, value_attribute_name, data_type, unicode_default=None, fixed=False, required=False, prohibited=False):
         """Create an AttributeUse instance.
 
-        @param expanded_name: The name by which the attribute is referenced in the XML
-        @type expanded_name: L{pyxb.namespace.ExpandedName}
+        @param tag: The name by which the attribute is referenced in the XML
+        @type tag: C{unicode}
 
         @param python_field: The Python name for the attribute within the
         containing L{pyxb.basis.binding.complexTypeDefinition}.  This is a
@@ -115,9 +114,7 @@ class AttributeUse (pyxb.cscRoot):
         to initialize an instance of L{data_type}
         """
         
-        self.__expandedName = expanded_name
-        if self.__expandedName.namespace() is not None:
-            self.__namespaceURI = self.__expandedName.namespace().uri()
+        self.__tag = tag
         self.__pythonField = python_field
         self.__valueAttributeName = value_attribute_name
         self.__dataType = data_type
@@ -130,11 +127,7 @@ class AttributeUse (pyxb.cscRoot):
 
     def tag (self):
         """Unicode tag for the attribute in its element"""
-        return self.__expandedName.localName()
-    
-    def expandedName (self):
-        """Unicode tag for the attribute in its element"""
-        return self.__expandedName
+        return self.__tag
     
     def required (self):
         """Return True iff the attribute must be assigned a value."""
@@ -203,21 +196,21 @@ class AttributeUse (pyxb.cscRoot):
         provided = False
         assert isinstance(node, xml.dom.Node)
         # @todo: namespace-aware lookup
-        if node.hasAttributeNS(self.__namespaceURI, self.tag()):
+        if node.hasAttribute(self.__tag):
             if self.__prohibited:
-                raise pyxb.ProhibitedAttributeError('Prohibited attribute %s found' % (self.__expandedName,))
-            unicode_value = node.getAttributeNS(self.__namespaceURI, self.tag())
+                raise pyxb.ProhibitedAttributeError('Prohibited attribute %s found' % (self.__tag,))
+            unicode_value = node.getAttribute(self.__tag)
             provided = True
         else:
             if self.__required:
-                raise pyxb.MissingAttributeError('Required attribute %s not found' % (self.__expandedName,))
+                raise pyxb.MissingAttributeError('Required attribute %s not found' % (self.__tag,))
         if unicode_value is None:
             # Must be optional and absent
             self.__setValue(ctd_instance, None, False)
         else:
             new_value = self.__dataType(unicode_value)
             if self.__fixed and (new_value != self.__defaultValue):
-                raise pyxb.AttributeChangeError('Attempt to change value of fixed attribute %s (%s to %s)' % (self.__expandedName, repr(self.__defaultValue), repr(new_value)))
+                raise pyxb.AttributeChangeError('Attempt to change value of fixed attribute %s (%s to %s)' % (self.__tag, repr(self.__defaultValue), repr(new_value)))
             # NB: Do not set provided here; this may be the default
             self.__setValue(ctd_instance, new_value, provided)
         return self
@@ -227,7 +220,7 @@ class AttributeUse (pyxb.cscRoot):
         ( provided, value ) = self.__getValue(ctd_instance)
         if provided:
             assert value is not None
-            element.setAttributeNS(self.__namespaceURI, self.tag(), value.xsdLiteral())
+            element.setAttribute(self.__tag, value.xsdLiteral())
         return self
 
     def setValue (self, ctd_instance, new_value):
@@ -246,7 +239,7 @@ class AttributeUse (pyxb.cscRoot):
         if not isinstance(new_value, self.__dataType):
             new_value = self.__dataType.Factory(new_value)
         if self.__fixed and (new_value != self.__defaultValue):
-            raise pyxb.AttributeChangeError('Attempt to change value of fixed attribute %s' % (self.__expandedName,))
+            raise pyxb.AttributeChangeError('Attempt to change value of fixed attribute %s' % (self.__tag,))
         self.__setValue(ctd_instance, new_value, True)
         return new_value
 
@@ -280,10 +273,11 @@ class ElementUse (pyxb.cscRoot):
     # class within which the element declaration occurred.
     __valueElementName = None
 
-    def elementBinding (self):
-        """The binding class used for the element"""
-        return self.__elementBinding
-    __elementBinding = None
+    def validElements (self):
+        """A list of binding classes that express the permissible types of
+        element instances for this use."""
+        return self.__validElements
+    __validElements = None
 
     def isPlural (self):
         """True iff the content model indicates that more than one element
@@ -306,7 +300,7 @@ class ElementUse (pyxb.cscRoot):
     # them against validElements at this level.
     __parentUse = None
 
-    def __init__ (self, tag, python_field, value_element_name, is_plural, element_binding=None):
+    def __init__ (self, tag, python_field, value_element_name, is_plural, valid_elements=[]):
         """Create an ElementUse instance.
 
         @param tag: The name by which the attribute is referenced in the XML
@@ -331,6 +325,9 @@ class ElementUse (pyxb.cscRoot):
         L{pyxb.binding.basis.element._TypeDefinition} if present.
         @type is_plural: C{bool}
 
+        @param valid_elements: Outdated field used in old content model.  Do
+        not use this.
+
         @todo: Ensure that an element referenced from multiple complex types
         uses the correct name in each context.
 
@@ -339,11 +336,10 @@ class ElementUse (pyxb.cscRoot):
         self.__pythonField = python_field
         self.__valueElementName = value_element_name
         self.__isPlural = is_plural
-        self.__elementBinding = element_binding
+        self.__validElements = valid_elements
 
-    def _setElementBinding (self, element_binding):
-        assert issubclass(element_binding, pyxb.binding.basis.element)
-        self.__elementBinding = element_binding
+    def _setValidElements (self, valid_elements):
+        self.__validElements = valid_elements
 
     def defaultValue (self):
         if self.isPlural():
@@ -403,17 +399,26 @@ class ElementUse (pyxb.cscRoot):
         """Set the value of this element in the given instance."""
         if value is None:
             return self.reset(ctd_instance)
-        assert self.__elementBinding is not None
-        if isinstance(value, self.__elementBinding):
-            self.__setValue(ctd_instance, value)
-            ctd_instance._addContent(value)
+        assert self.__validElements is not None
+        for dt in self.__validElements:
+            if isinstance(value, dt):
+                self.__setValue(ctd_instance, value)
+                ctd_instance._addContent(value)
+                return self
+        for dt in self.__validElements:
+            # Ignore elements that we just can't convert to, but pass through
+            # exceptions when a constraint is violated.
+            try:
+                iv = dt(value, validate_constraints=False)
+            except pyxb.BadTypeValueError, e:
+                continue
+            assert isinstance(iv, basis._Binding_mixin)
+            if iv._IsSimpleTypeContent():
+                iv.xsdConstraintsOK()
+            self.__setValue(ctd_instance, iv)
+            ctd_instance._addContent(iv)
             return self
-        # Ignore elements that we just can't convert to, but pass through
-        # exceptions when a constraint is violated.
-        iv = self.__elementBinding(value)
-        self.__setValue(ctd_instance, iv)
-        ctd_instance._addContent(iv)
-        return self
+        raise pyxb.BadTypeValueError('Cannot assign value of type %s to field %s: legal types %s' % (type(value), self.tag(), ' '.join([str(_dt) for _dt in self.__validElements])))
 
 class ContentModelTransition (pyxb.cscRoot):
     """Represents a transition in the content model DFA.
@@ -517,28 +522,6 @@ class ContentModelTransition (pyxb.cscRoot):
         else:
             raise pyxb.LogicError('Unexpected transition term %s' % (self.__term,))
 
-    def extendDOM (self, dom_support, element, ctd_instance):
-        if self.TT_element == self.__termType:
-            assert self.__elementUse is not None
-            try:
-                value = self.__elementUse.nextValueToGenerate(ctd_instance)
-                value.toDOM(dom_support, element)
-                print 'Element %s value %s' % (self.__term._ExpandedName, value)
-                return True
-            except pyxb.DOMGenerationError, e:
-                print 'Failed to produce element %s'
-                pass
-        elif self.TT_modelGroupAll == self.__termType:
-            assert False
-            print 'Model group all'
-            pass
-        elif self.TT_wildcard == self.__termType:
-            print 'Wildcard'
-            pass
-        else:
-            raise pyxb.LogicError('Unexpected transition term %s' % (self.__term,))
-        return False
-
 class ContentModelState (pyxb.cscRoot):
     """Represents a state in a ContentModel DFA.
 
@@ -598,15 +581,6 @@ class ContentModelState (pyxb.cscRoot):
             raise pyxb.UnrecognizedContentError(node_list[0])
         raise pyxb.MissingContentError()
 
-    def extendDOM (self, dom_support, element, ctd_instance):
-        for transition in self.__transitions:
-            if transition.extendDOM(dom_support, element, ctd_instance):
-                return transition.nextState()
-        if self.isFinal():
-            return None
-        assert False
-
-
 class ContentModel (pyxb.cscRoot):
     """The ContentModel is a deterministic finite state automaton which can be
     traversed using a sequence of DOM nodes which are matched on transitions
@@ -634,19 +608,6 @@ class ContentModel (pyxb.cscRoot):
         if state is not None:
             raise pyxb.MissingContentError()
 
-    def extendDOMFromContent (self, dom_support, element, ctd_instance):
-        """Add DOM constructs corresponding to data from a binding instance.
-
-        @param dom_support: A pyxb.utils.domutils.BindingDOMSupport instance
-        @param element: A DOM Element node into which binding values are written
-        @param ctd_instance: A binding instance holding values
-        """
-
-        assert isinstance(dom_support, pyxb.utils.domutils.BindingDOMSupport)
-        document = dom_support.document()
-        state = 1
-        while state is not None:
-            state = self.__stateMap[state].extendDOM(dom_support, element, ctd_instance)
 
 class ModelGroupAllAlternative (pyxb.cscRoot):
     """Represents a single alternative in an "all" model group."""
@@ -745,6 +706,158 @@ class ModelGroupAll (pyxb.cscRoot):
                 #print 'Re-executing alternative %s with %d nodes left' % (alt, len(saved_node_list),)
                 alt.contentModel().interprete(ctd_instance, saved_node_list)
             assert saved_node_list == node_list
+
+class Particle (pyxb.cscRoot):
+    """Record defining the structure and number of an XML object.
+    This is a min and max count associated with a
+    ModelGroup, ElementDeclaration, or Wildcard."""
+    # The minimum number of times the term may appear.
+    __minOccurs = 1
+    def minOccurs (self):
+        """The minimum number of times the term may appear.
+
+        Defaults to 1."""
+        return self.__minOccurs
+
+    # Upper limit on number of times the term may appear.
+    __maxOccurs = 1
+    def maxOccurs (self):
+        """Upper limit on number of times the term may appear.
+
+        If None, the term may appear any number of times; otherwise,
+        this is an integral value indicating the maximum number of times
+        the term may appear.  The default value is 1; the value, unless
+        None, must always be at least minOccurs().
+        """
+        return self.__maxOccurs
+
+    # A reference to a ModelGroup, WildCard, or ElementDeclaration
+    __term = None
+    def term (self):
+        """A reference to a ModelGroup, Wildcard, or ElementDeclaration."""
+        return self.__term
+
+    def isPlural (self):
+        """Return true iff the term might appear multiple times."""
+        if (self.maxOccurs() is None) or 1 < self.maxOccurs():
+            return True
+        return self.term().isPlural()
+
+    def __init__ (self, min_occurs, max_occurs, term):
+        self.__minOccurs = min_occurs
+        self.__maxOccurs = max_occurs
+        self.__term = term
+
+    def extendDOMFromContent (self, dom_support, element, ctd_instance):
+        """Add DOM constructs corresponding to data from a binding instance.
+
+        @param dom_support: A pyxb.utils.domutils.BindingDOMSupport instance
+        @param element: A DOM Element node into which binding values are written
+        @param ctd_instance: A binding instance holding values
+        """
+
+        assert isinstance(dom_support, pyxb.utils.domutils.BindingDOMSupport)
+        document = dom_support.document()
+        rep = 0
+        assert isinstance(ctd_instance, basis.complexTypeDefinition)
+        while ((self.maxOccurs() is None) or (rep < self.maxOccurs())):
+            try:
+                if isinstance(self.term(), ModelGroup):
+                    self.term().extendDOMFromContent(dom_support, element, ctd_instance)
+                elif isinstance(self.term(), type) and issubclass(self.term(), basis.element):
+                    eu = ctd_instance._UseForElement(self.term())
+                    assert eu is not None
+                    value = eu.nextValueToGenerate(ctd_instance)
+                    value.toDOM(dom_support, element)
+                elif isinstance(self.term(), Wildcard):
+                    print 'Generation ignoring wildcard'
+                    # @todo handle generation of wildcards
+                    break
+                else:
+                    raise pyxb.IncompleteImplementationError('Particle.extendDOMFromContent: No support for term type %s' % (self.term(),))
+            except pyxb.IncompleteImplementationError, e:
+                raise
+            except pyxb.DOMGenerationError, e:
+                break
+            except Exception, e:
+                #print 'Caught extending DOM from term %s: %s' % (self.term(), e)
+                raise
+            rep += 1
+        if rep < self.minOccurs():
+            raise pyxb.DOMGenerationError('Expected at least %d instances of %s, got only %d' % (self.minOccurs(), self.term(), rep))
+
+class ModelGroup (pyxb.cscRoot):
+    """Record the structure of a model group.
+
+    This is used when interpreting a DOM document fragment, to be sure
+    the correct binding structure is used to extract the contents of
+    each element.  It almost does something like validation, as a side
+    effect."""
+
+    C_INVALID = 0
+    C_ALL = 0x01
+    C_CHOICE = 0x02
+    C_SEQUENCE = 0x03
+
+    # One of the C_* values above.  Set at construction time from the
+    # keyword parameter "compositor".
+    __compositor = C_INVALID
+    def compositor (self):
+        return self.__compositor
+
+    # A list of _Particle instances.  Set at construction time from
+    # the keyword parameter "particles".  May be sorted; see
+    # _setContent.
+    __particles = None
+    def particles (self):
+        return self.__particles
+
+    def _setContent (self, compositor, particles):
+        self.__compositor = compositor
+        self.__particles = particles
+
+    def __init__ (self, compositor=C_INVALID, particles=None):
+        self._setContent(compositor, particles)
+
+    def __extendDOMFromChoice (self, dom_support, element, ctd_instance, candidate_particles):
+        # Correct behavior requires that particles with a minOccurs() of 1
+        # precede any particle with minOccurs() of zero; otherwise we can
+        # incorrectly succeed at matching while not consuming everything
+        # that's available.  This sorting was done in _setContent.
+        for particle in candidate_particles:
+            try:
+                particle.extendDOMFromContent(dom_support, element, ctd_instance)
+                return particle
+            except pyxb.DOMGenerationError, e:
+                pass
+            except Exception, e:
+                #print 'GEN CHOICE failed: %s' % (e,)
+                raise
+        return None
+
+    def extendDOMFromContent (self, dom_support, element, ctd_instance):
+        assert isinstance(ctd_instance, basis.complexTypeDefinition)
+        if self.C_SEQUENCE == self.compositor():
+            for particle in self.particles():
+                particle.extendDOMFromContent(dom_support, element, ctd_instance)
+        elif self.C_ALL == self.compositor():
+            mutable_particles = self.particles()[:]
+            while 0 < len(mutable_particles):
+                try:
+                    choice = self.__extendDOMFromChoice(dom_support, element, ctd_instance, mutable_particles)
+                    mutable_particles.remove(choice)
+                except pyxb.DOMGenerationError, e:
+                    #print 'ALL failed: %s' % (e,)
+                    break
+            for particle in mutable_particles:
+                if 0 < particle.minOccurs():
+                    raise pyxb.DOMGenerationError('ALL: Could not generate instance of required %s' % (particle.term(),))
+        elif self.C_CHOICE == self.compositor():
+            choice = self.__extendDOMFromChoice(dom_support, element, ctd_instance, self.particles())
+            if choice is None:
+                raise pyxb.DOMGenerationError('CHOICE: No candidates found')
+        else:
+            assert False
 
 class Wildcard (pyxb.cscRoot):
     """Placeholder for wildcard objects."""

@@ -72,17 +72,12 @@ class ExpandedName (tuple):
 
     # Treat unrecognized attributes as potential accessor functions
     def __getattr__ (self, name):
-        if name.startswith('__'):
-            return super(ExpandedName, self).__getattr__(name)
         if self.namespace() is None:
             raise pyxb.LogicError('Attempt to locate unrecognized field %s in absent namespace' % (name,))
         return lambda _value=self.namespace().categoryMap(name).get(self.localName()): _value
 
     # Tuples pass their parameters in the allocator method
-    def __new__ (cls, namespace, local_name=None):
-        if isinstance(namespace, tuple):
-            local_name = namespace[1]
-            namespace = namespace[0]
+    def __new__ (cls, namespace, local_name):
         return super(ExpandedName, cls).__new__(cls, (namespace, local_name) )
 
     def __init__ (self, namespace, local_name):
@@ -555,9 +550,9 @@ class _NamespaceComponentAssociation_mixin (pyxb.cscRoot):
                     if td.scope() is None:
                         print 'Discarding %s: no scope defined' % (td.name(),)
                         continue
-                    if td._scopeIsIndeterminate():
-                        print 'Discarding %s: indeterminate scope' % (td.name(),)
-                        continue
+                    #if td._scopeIsIndeterminate():
+                    #    print 'Discarding %s: indeterminate scope' % (td.name(),)
+                    #    continue
                 except AttributeError, e:
                     # Some components don't have a scope.
                     pass

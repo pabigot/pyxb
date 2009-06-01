@@ -32,8 +32,11 @@ class _Binding_mixin (pyxb.cscRoot):
 
     """
 
-    _ExpandedName = None
-    """The expanded namespace name of the component."""
+    _Namespace = None
+    """The namespace to which the component belongs."""
+
+    _XsdName = None
+    """The name of the component within its namespace category."""
 
     def _domNode (self):
         """The DOM node from which the object was initialized."""
@@ -698,13 +701,13 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
         """Create an instance of this element from the given DOM node.
 
         :raise pyxb.LogicError: the name of the node is not consistent with
-        the _ExpandedName of this class."""
+        the _XsdName of this class."""
         instance_root = kw.pop('instance_root', None)
         node_name = node.nodeName
         if 0 < node_name.find(':'):
             node_name = node_name.split(':')[1]
-        if cls._ExpandedName.localName() != node_name:
-            raise pyxb.UnrecognizedContentError('Attempting to create element %s from DOM node named %s' % (cls._ExpandedName.localName(), node_name))
+        if cls._XsdName != node_name:
+            raise pyxb.UnrecognizedContentError('Attempting to create element %s from DOM node named %s' % (cls._XsdName, node_name))
         if issubclass(cls._TypeDefinition, simpleTypeDefinition):
             rv = cls._DynamicCreate(cls._TypeDefinition.CreateFromDOM(node))
         else:
@@ -719,7 +722,7 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
         """Add a DOM representation of this element as a child of
         parent, which should be a DOM Node instance."""
         assert isinstance(dom_support, domutils.BindingDOMSupport)
-        element = dom_support.createChild(self._ExpandedName.localName(), self._ExpandedName.namespace(), parent)
+        element = dom_support.createChild(self._XsdName, self._Namespace, parent)
         self.__realContent.toDOM(dom_support, parent=element)
         return dom_support
 
@@ -729,7 +732,7 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
             if isinstance(rv, unicode):
                 return rv.encode('utf-8')
             return str(rv)
-        #return '%s: %s' % (self._ExpandedName, str(self.content()))
+        #return '%s: %s' % (self._XsdName, str(self.content()))
         return str(self.content())
 
     @classmethod
@@ -772,18 +775,6 @@ class complexTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _
     # Value is None if the type does not support wildcard attributes.
     __wildcardAttributeMap = None
 
-    @classmethod
-    def _AttributeUse (cls, expanded_name):
-        if isinstance(expanded_name, (str, unicode)):
-            expanded_name = pyxb.namespace.ExpandedName(None, expanded_name)
-        return cls._AttributeMap.get(expanded_name)
-
-    @classmethod
-    def _ElementUse (cls, expanded_name):
-        if isinstance(expanded_name, (str, unicode)):
-            expanded_name = pyxb.namespace.ExpandedName(None, expanded_name)
-        return cls._ElementMap.get(expanded_name)
-
     def wildcardAttributeMap (self):
         """Obtain access to wildcard attributes.
 
@@ -797,13 +788,6 @@ class complexTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _
         user.
         """
         return self.__wildcardAttributeMap
-
-    def getWildcardAttribute (self, key):
-        if self.__wildcardAttributeMap is None:
-            return None
-        if isinstance(key, (str, unicode)):
-            key = pyxb.namespace.ExpandedName(None, key)
-        return self.__wildcardAttributeMap.get(key)
 
     # Per-instance list of DOM nodes interpreted as wildcard elements.
     # Value is None if the type does not support wildcard elements.
@@ -865,7 +849,7 @@ class complexTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _
         return rv
 
     # Specify the symbols to be reserved for all CTDs.
-    _ReservedSymbols = set([ 'Factory', 'CreateFromDOM', 'toDOM', 'wildcardAttributeMap', 'wildcardElements' ])
+    _ReservedSymbols = set([ 'Factory', 'CreateFromDOM', 'toDOM' ])
 
     # Class variable which maps complex type attribute names to the name used
     # within the generated binding.  For example, if somebody's gone and
@@ -892,18 +876,18 @@ class complexTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _
         return getattr(cls, cls.__PythonMapAttribute(), { })
 
     @classmethod
-    def _UpdateElementBindings (cls, binding_map):
+    def _UpdateElementDatatypes (cls, datatype_map):
         """Sets the _ElementMap contents and pre-calculates maps from Python
         field names to element and attribute uses.
 
-        :param binding_map: Map from NCNames representing element tags to a
-        Python class to which values stored in the field associated with the
-        element must conform.
+        :param datatype_map: Map from NCNames representing element tags to a
+        list of Python classes corresponding to types that are stored in the
+        field associated with the element.
 
         This is invoked at the module level after all binding classes have
         been defined and are available for reference."""
-        for (k, v) in binding_map.items():
-            cls._ElementMap[k]._setElementBinding(v)
+        for (k, v) in datatype_map.items():
+            cls._ElementMap[k]._setValidElements(v)
         python_map = { }
         for eu in cls._ElementMap.values():
             python_map[eu.pythonField()] = eu
@@ -942,20 +926,29 @@ class complexTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _
         for ai in range(0, node.attributes.length):
             attr = node.attributes.item(ai)
             local_name = attr.localName
-            namespace = None
-            if attr.namespaceURI:
-                namespace = pyxb.namespace.NamespaceForURI(attr.namespaceURI)
-                assert namespace is not None
+            namespace_name = attr.namespaceURI
             # Ignore xmlns attributes; DOM got those
-            if pyxb.namespace.XMLNamespaces == namespace:
+            if pyxb.namespace.XMLNamespaces.uri() == namespace_name:
                 continue
-            attr_en = pyxb.namespace.ExpandedName(namespace, local_name)
-            print 'Checking attribute %s in %s' % (attr_en, self._ExpandedName)
-            au = self._AttributeMap.get(attr_en)
+
+            prefix = attr.prefix
+            if not prefix:
+                prefix = None
+            value = attr.value
+            # hack to make some QName attribute tags work
+            if (attr.namespaceURI == node.namespaceURI):
+                prefix = None
+
+            # @todo handle cross-namespace attributes
+            if prefix is not None:
+                print 'IGNORING namespace-qualified attribute %s:%s' % (prefix, local_name)
+                #raise pyxb.IncompleteImplementationError('No support for namespace-qualified attributes like %s:%s' % (prefix, local_name))
+                continue
+            au = self._AttributeMap.get(local_name, None)
             if au is None:
                 if self._AttributeWildcard is None:
-                    raise pyxb.UnrecognizedAttributeError('Attribute %s is not permitted in type %s' % (attr_en, self._ExpandedName))
-                self.__wildcardAttributeMap[attr_en] = attr.value
+                    raise pyxb.UnrecognizedAttributeError('Attribute %s is not permitted in type %s' % (local_name, self._XsdName))
+                self.__wildcardAttributeMap[local_name] = value
                 continue
             au.setFromDOM(self, node)
             attrs_available.remove(au)
@@ -993,7 +986,6 @@ class complexTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _
         for eu in self._ElementMap.values():
             if eu.hasUngeneratedValues(self):
                 raise pyxb.DOMGenerationError('Values in %s were not converted to DOM' % (eu.pythonField(),))
-        # @todo: generate wildcard elements
         self._setDOMFromAttributes(element)
         return dom_support
 
@@ -1061,8 +1053,12 @@ class _CTD_content_mixin (pyxb.cscRoot):
     It can also be used if order is critical to the interpretation of
     interleaved elements.
 
-    Subclasses must define a class variable _ContentModel which is an instance
-    of pyxb.bindings.content.ContentModel.
+    Subclasses must define a class variable _Content with a
+    bindings.Particle instance as its value.
+
+    Subclasses should define a class-level _ElementMap variable which
+    maps from unicode element tags (not including namespace
+    qualifiers) to the corresponding ElementUse information
     """
 
     # A list containing just the content
@@ -1079,9 +1075,9 @@ class _CTD_content_mixin (pyxb.cscRoot):
         self.__content = []
 
     def _addElement (self, element):
-        eu = self._ElementMap.get(element._ExpandedName)
+        eu = self._ElementMap.get(element._XsdName, None)
         if eu is None:
-            raise pyxb.LogicError('Element %s is not registered within CTD %s' % (element._ExpandedName, self.__class__.__name__))
+            raise pyxb.LogicError('Element %s is not registered within CTD %s' % (element._XsdName, self.__class__.__name__))
         eu.setValue(self, element)
 
     def _addContent (self, child):
@@ -1106,6 +1102,7 @@ class _CTD_content_mixin (pyxb.cscRoot):
 
     def _setMixableContentFromDOM (self, node, is_mixed):
         """Set the content of this instance from the content of the given node."""
+        #assert isinstance(self._Content, Particle)
         # The child nodes may include text which should be saved as
         # mixed content.  Use _stripMixedContent prior to extracting
         # element data to save them in the correct relative position,
@@ -1122,8 +1119,7 @@ class _CTD_content_mixin (pyxb.cscRoot):
         return self
 
     def _setDOMFromContent (self, dom_support, element):
-        if self._ContentModel is not None:
-            self._ContentModel.extendDOMFromContent(dom_support, element, self)
+        self._Content.extendDOMFromContent(dom_support, element, self)
         mixed_content = self.content()
         if 0 < len(mixed_content):
             element.appendChild(dom_support.document().createTextNode(''.join(mixed_content)))

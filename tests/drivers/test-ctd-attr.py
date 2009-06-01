@@ -94,20 +94,20 @@ class TestCTD (unittest.TestCase):
         self.assertNotEqual(instance.language(), instance2.language())
 
         # Verify the use.  Note reference through CTD not element.
-        au = emptyWithAttr_._AttributeUse('language')
+        au = emptyWithAttr_._AttributeMap['language']
         self.assertFalse(au.required())
         self.assertFalse(au.prohibited())
-        au = emptyWithAttr_._AttributeUse('capitalized')
+        au = emptyWithAttr_._AttributeMap['capitalized']
         self.assertTrue(au.required())
         self.assertFalse(au.prohibited())
 
     def testRestrictedEWA (self):
         # Verify the use.  Note reference through CTD not element.
-        self.assertNotEqual(restrictedEWA_._AttributeUse('language'), emptyWithAttr_._AttributeUse('language'))
-        au = restrictedEWA_._AttributeUse('language')
+        self.assertNotEqual(restrictedEWA_._AttributeMap['language'], emptyWithAttr_._AttributeMap['language'])
+        au = restrictedEWA_._AttributeMap['language']
         self.assertFalse(au.required())
         self.assertTrue(au.prohibited())
-        self.assertEqual(restrictedEWA_._AttributeUse('capitalized'), emptyWithAttr_._AttributeUse('capitalized'))
+        self.assertEqual(restrictedEWA_._AttributeMap['capitalized'], emptyWithAttr_._AttributeMap['capitalized'])
 
     def testEmptyWithAttrGroups (self):
         xml = '<emptyWithAttrGroups bMember1="xxx" xmlns="URN:testCTD"/>'
