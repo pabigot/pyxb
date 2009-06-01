@@ -550,6 +550,9 @@ class _NamespaceComponentAssociation_mixin (pyxb.cscRoot):
                     if td.scope() is None:
                         print 'Discarding %s: no scope defined' % (td.name(),)
                         continue
+                    # @todo: Eliminate indeterminate objects.  Can't do this
+                    # until we clean up the generation content model, because
+                    # it references these things.
                     #if td._scopeIsIndeterminate():
                     #    print 'Discarding %s: indeterminate scope' % (td.name(),)
                     #    continue
