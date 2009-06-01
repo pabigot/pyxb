@@ -1416,9 +1416,9 @@ class NamespaceContext (object):
     __inScopeNamespaces = None
 
     def attributeMap (self):
-        """Map from pairs of namespace URI and local name to the value of that
-        attribute.  The namespace URI and local name are taken from the DOM
-        node C{namespaceURI} and C{localName} instance members."""
+        """Map from L{ExpandedName} instances (for non-absent namespace) or
+        C{str} or C{unicode} values (for absent namespace) to the value of the
+        named attribute."""
         return self.__attributeMap
     __attributeMap = None
 
@@ -1505,10 +1505,15 @@ class NamespaceContext (object):
                         self.__defaultNamespace = None
                         self.__inScopeNamespaces.pop(None, None)
                 else:
-                    self.__attributeMap[(attr.namespaceURI, attr.localName)] = attr.value
+                    if attr.namespaceURI is not None:
+                        uri = NamespaceForURI(attr.namespaceURI, create_if_missing=True)
+                        key = ExpandedName(uri, attr.localName)
+                    else:
+                        key = attr.localName
+                    self.__attributeMap[key] = attr.value
         
         had_target_namespace = True
-        tns_uri = self.attributeMap().get((None, 'targetNamespace'), None)
+        tns_uri = self.attributeMap().get('targetNamespace')
         if tns_uri is not None:
             assert 0 < len(tns_uri)
             self.__targetNamespace = NamespaceForURI(tns_uri, create_if_missing=True)
@@ -1552,7 +1557,7 @@ class NamespaceContext (object):
         if 0 <= name.find(':'):
             (prefix, local_name) = name.split(':', 1)
             assert self.inScopeNamespaces() is not None
-            namespace = self.inScopeNamespaces().get(prefix, None)
+            namespace = self.inScopeNamespaces().get(prefix)
             if namespace is None:
                 raise pyxb.SchemaValidationError('No namespace declared for QName %s prefix' % (name,))
         else:

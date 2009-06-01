@@ -700,11 +700,17 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
         :raise pyxb.LogicError: the name of the node is not consistent with
         the _ExpandedName of this class."""
         instance_root = kw.pop('instance_root', None)
-        node_name = node.nodeName
-        if 0 < node_name.find(':'):
-            node_name = node_name.split(':')[1]
-        if cls._ExpandedName.localName() != node_name:
-            raise pyxb.UnrecognizedContentError('Attempting to create element %s from DOM node named %s' % (cls._ExpandedName, node_name))
+        if node.namespaceURI is None:
+            # If the target namespace of the class is absent, use it instead
+            # of the really absent one represented by None.
+            if cls._ExpandedName.namespaceURI() is None:
+                node_en = pyxb.namespace.ExpandedName(cls._ExpandedName.namespace(), node.localName)
+            else:
+                node_en = pyxb.namespace.ExpandedName(None, node.localName)
+        else:
+            node_en = pyxb.namespace.ExpandedName(pyxb.namespace.NamespaceForURI(node.namespaceURI, create_if_missing=True), node.localName)
+        if cls._ExpandedName != node_en:
+            raise pyxb.UnrecognizedContentError('Attempting to create element %s from DOM node named %s' % (cls._ExpandedName, node_en))
         if issubclass(cls._TypeDefinition, simpleTypeDefinition):
             rv = cls._DynamicCreate(cls._TypeDefinition.CreateFromDOM(node))
         else:

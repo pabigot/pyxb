@@ -7,9 +7,17 @@ class TestExpandedName (unittest.TestCase):
         an1 = ExpandedName(None, 'string')
         en1 = ExpandedName(pyxb.namespace.XMLSchema, 'string')
         en2 = ExpandedName(pyxb.namespace.XMLSchema, 'string')
+        en3 = ExpandedName(pyxb.namespace.XMLSchema, 'notString')
         self.assertEqual(en1, en2)
         self.assertEqual(0, cmp(en1, en2))
         self.assertEqual(en1, ( en1.namespace(), en1.localName() ))
+        self.assertTrue(en1 == en2)
+        self.assertFalse(en1 == en3)
+        self.assertTrue(en1 != en3)
+        self.assertTrue(an1 == an1.localName())
+        self.assertFalse(an1 == en3.localName())
+        self.assertTrue(an1 != en3.localName())
+        self.assertFalse(an1 != an1.localName())
 
     def testMapping (self):
         an1 = ExpandedName(None, 'string')
