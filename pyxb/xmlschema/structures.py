@@ -119,6 +119,13 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin):
 
         self._setOwner(kw.get('owner'))
 
+    def _dissociateFromNamespace (self):
+        """Dissociate this component from its owning namespace.  This should
+        only be done whwen there are no other references to the component, and
+        you want to ensure it does not appear in the model."""
+        self._namespaceContext().targetNamespace()._replaceComponent(self, None)
+        return self
+
     def _setOwner (self, owner):
         if owner is not None:
             assert (self.__owner is None) or (self.__owner == owner)
@@ -428,7 +435,15 @@ class _NamedComponent_mixin (pyxb.cscRoot):
         
         Anonymous components are inherently name inequivalent."""
         # Note that unpickled objects 
-        return (not self.isAnonymous()) and (self.name() == other.name()) and (self.__targetNamespace == other.__targetNamespace)
+        return (not self.isAnonymous()) and (self.expandedName() == other.expandedName())
+
+    def isTypeEquivalent (self, other):
+        """Return True iff this and the other component have matching types.
+
+        For now, this uses name equivalence within types.  In the future,
+        structural equivalence may be used."""
+        print 'Testing type equivalence %s %s' % (self, other)
+        return (type(self) == type(other)) and self.isNameEquivalent(other)
 
     def __pickleAsReference (self):
         if self.targetNamespace() is None:
@@ -633,8 +648,15 @@ class _ScopedDeclaration_mixin (pyxb.cscRoot):
         assert 'scope' in kw
         assert kw['scope'] is not None
         # Note: This requires that the _NamedComponent_mixin have
-        # already done its thing.
-        self._recordInScope()
+        # already done its thing and recorded the scope.
+
+        # Provide a back door to prevent this from being recorded (or, more
+        # specifically, to prevent a collision with an alternative declaration
+        # we know is already recorded).  For example, we do this when we don't
+        # know whether we have a type violation with multiple local elements
+        # with the same expanded name.
+        if not kw.get('scope_inhibit_record', False):
+            self._recordInScope()
 
     def _recordInScope (self):
         # Absent scope doesn't get recorded anywhere.  Global scope is
@@ -1272,6 +1294,15 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.na
     def _adaptForScope (self, owner, scope):
         rv = self
         if (self._scopeIsIndeterminate()) and (scope is not None):
+            if isinstance(scope, ComplexTypeDefinition):
+                rv = scope.lookupScopedElementDeclaration(self.expandedName())
+                if rv is not None:
+                    assert rv.isResolved()
+                    assert self.isResolved()
+                    if not rv.typeDefinition().isTypeEquivalent(self.typeDefinition()):
+                        raise pyxb.SchemaValidationError('Conflicting element declarations for %s' % (self.expandedName(),))
+                    print 'Re-using existing scoped element'
+                    return rv
             rv = self._clone()
             assert owner is not None
             rv._setOwner(owner)
@@ -1419,6 +1450,8 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
             scope_map = self.__scopedAttributeDeclarations
         else:
             raise pyxb.LogicError('Unexpected instance of %s recording as local declaration' % (type(decl),))
+        if decl.expandedName() in scope_map:
+            raise pyxb.SchemaValidationError('Multiple definitions of %s as %s local to %s' % (decl.expandedName(), type(decl).__name__, self.expandedName()))
         scope_map[decl.expandedName()] = decl
         return self
 
@@ -2260,7 +2293,7 @@ class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
         else:
             raise pyxb.IncompleteImplementationError('ModelGroup: Got unexpected %s' % (node.nodeName,))
         particles = []
-        # Remove the owner from constructed particles: we need to set it later
+        # Remove the owner from particle constructor arguments: we need to set it later
         kw.pop('owner', None)
         for cn in node.childNodes:
             if Node.ELEMENT_NODE != cn.nodeType:
@@ -2346,6 +2379,7 @@ class Particle (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin):
     def term (self):
         """A reference to a ModelGroup, Wildcard, or ElementDeclaration."""
         return self.__term
+    __pendingTerm = None
 
     def elementDeclarations (self):
         assert self.__term is not None
@@ -2490,11 +2524,43 @@ class Particle (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin):
                 if term is None:
                     raise pyxb.SchemaValidationError('Unable to locate element referenced by %s' % (ref_en,))
             else:
+                target_namespace = self._resolvingSchema().targetNamespaceForNode(node, ElementDeclaration)
+                alt_term = None
                 if isinstance(scope, ComplexTypeDefinition):
                     # Look for an existing local element declaration with the
                     # same expanded name.
-                    pass
-                term = ElementDeclaration.CreateFromDOM(node=node, scope=scope, owner=self, target_namespace=self._resolvingSchema().targetNamespaceForNode(node, ElementDeclaration))
+                    name = NodeAttribute(node, 'name')
+                    assert name is not None
+                    elt_en = pyxb.namespace.ExpandedName(target_namespace, name)
+                    alt_term = scope.lookupScopedElementDeclaration(elt_en)
+
+                # If we haven't already created a component for this
+                # declaration, do so.  Note that we won't record it if we
+                # already have one with the same name.
+                if self.__pendingTerm is None:
+                    aux_kw = { }
+                    if alt_term is not None:
+                        aux_kw['scope_inhibit_record'] = True
+                    self.__pendingTerm = ElementDeclaration.CreateFromDOM(node=node, scope=scope, owner=self, target_namespace=target_namespace, **aux_kw)
+
+                if alt_term is None:
+                    # No pre-existing element with same name; go with the one we created
+                    term = self.__pendingTerm
+                    self.__pendingTerm = None
+                else:
+                    # Might be a conflict.  Both candidates must be resolved before we can tell.
+                    if not (alt_term.isResolved() and self.__pendingTerm.isResolved()):
+                        self._queueForResolution()
+                        return self
+                    # Test cos-element-consistent
+                    alt_type = alt_term.typeDefinition()
+                    pending_type = self.__pendingTerm.typeDefinition()
+                    if not alt_type.isTypeEquivalent(pending_type):
+                        raise pyxb.SchemaValidationError('Conflicting element declarations for %s: %s versus %s' % (alt_term.expandedName(), alt_type, pending_type))
+                    # They're equivalent; just re-use the old one, discarding the new one.
+                    self.__pendingTerm._dissociateFromNamespace()
+                    self.__pendingTerm = None
+                    term = alt_term
             assert term is not None
         elif xsd.nodeIsNamed(node, 'any'):
             # 3.9.2 says use 3.10.2, which is Wildcard.

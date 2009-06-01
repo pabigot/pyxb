@@ -529,9 +529,13 @@ class _NamespaceComponentAssociation_mixin (pyxb.cscRoot):
         when parsing the schema for XMLSchema itself: the built-in datatype
         components should be retained instead of the simple type definition
         components dynamically created from the schema.
+
+        By providing the value C{None} as the replacement definition, this can
+        also be used to remove components.
         """
         self.__components.remove(existing_def)
-        self.__components.add(replacement_def)
+        if replacement_def is not None:
+            self.__components.add(replacement_def)
         return replacement_def
 
     def components (self):
