@@ -1341,9 +1341,7 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.na
             sg_en = self._namespaceContext().interpretQName(sg_attr)
             sga = sg_en.elementDeclaration()
             if sga is None:
-                # print 'Holding off ED resolution, unrecognized substitution group %s' % (sg_en,)
-                self._queueForResolution()
-                return self
+                raise pyxb.SchemaValidationError('Element declaration refers to unrecognized substitution group %s' % (sg_en,))
             if not sga.isResolved():
                 print 'Not resolving, substitutiongroup %s unresolved' % (sg_en,)
                 self._queueForResolution()

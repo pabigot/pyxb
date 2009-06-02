@@ -878,12 +878,18 @@ def GenerateED (ed, **kw):
         template_map['element_scope'] = pythonLiteral(ed.scope(), **kw)
         template_map['map_update'] = ''
     template_map['base_datatype'] = pythonLiteral(ed.typeDefinition(), **kw)
+    template_map['substitutionGroupAffiliation'] = pythonLiteral(None, **kw)
+
+    if ed.substitutionGroupAffiliation() is not None:
+        template_map['substitutionGroupAffiliation'] = pythonLiteral(ctd.substitutionGroupAffiliation(), **kw)
+
     outf.write(templates.replaceInText('''
 # ElementDeclaration
 class %{class} (pyxb.binding.basis.element):
     _ExpandedName = %{expanded_name}
     _ElementScope = %{element_scope}
     _TypeDefinition = %{base_datatype}
+    _SubstitutionGroupAffiliation = %{substitutionGroupAffiliation}
 %{map_update}
 ''', **template_map))
 
