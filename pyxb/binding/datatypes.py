@@ -727,6 +727,7 @@ class anyType (basis.CTD_mixed):
     def Factory (cls, *args, **kw):
         return anyType()
 
+    _Abstract = False
     _Content = content.Particle(1, 1,
                                 content.ModelGroup(content.ModelGroup.C_SEQUENCE,
                                                    [ content.Particle(0, None,
