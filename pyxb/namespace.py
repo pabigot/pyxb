@@ -1467,9 +1467,16 @@ class NamespaceContext (object):
     __attributeMap = None
 
     @classmethod
-    def GetNodeContext (cls, node):
-        """Get the L{NamespaceContext} instance that was assigned to the node."""
-        return node.__namespaceContext
+    def GetNodeContext (cls, node, **kw):
+        """Get the L{NamespaceContext} instance that was assigned to the node.
+
+        If none has been assigned, create one treating this as the root node,
+        and the keyword parameters as configuration information (e.g.,
+        default_namespace)."""
+        try:
+            return node.__namespaceContext
+        except AttributeError:
+            return NamespaceContext(node, **kw)
 
     def __init__ (self, dom_node, parent_context=None, recurse=True, default_namespace=None, target_namespace=None, in_scope_namespaces=None):
         """Determine the namespace context that should be associated with the
