@@ -804,6 +804,8 @@ class complexTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _
             self.__wildcardAttributeMap = { }
         if self._HasWildcardElement:
             self.__wildcardElements = []
+        if self._Abstract:
+            raise pyxb.AbstractInstantiationError(type(self))
         super(complexTypeDefinition, self).__init__(*args, **kw)
         that = None
         if 0 < len(args):

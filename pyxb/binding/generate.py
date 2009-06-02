@@ -504,6 +504,8 @@ def GenerateSTD (std, **kw):
         template_map['superclasses'] = ', '.join(parent_classes)
     template_map['expanded_name'] = pythonLiteral(std.expandedName(), **kw)
 
+    # @todo: Extensions of LIST will be wrong in below
+
     if xs.structures.SimpleTypeDefinition.VARIETY_absent == std.variety():
         assert False
         return None
@@ -552,6 +554,10 @@ class %{std} (pyxb.binding.basis.STD_union):
             GenerateFacets(outf, std, **kw)
     else:
         GenerateFacets(outf, std, **kw)
+
+    if std.name() is not None:
+        outf.write(templates.replaceInText("Namespace.addCategoryObject('typeBinding', %{localName}, %{std})\n",
+                                           localName=pythonLiteral(std.name(), **kw), **template_map))
     return outf.getvalue()
 
 def TypeSetCompatible (s1, s2):
@@ -615,7 +621,9 @@ class %{ctd} (%{superclasses}):
 class %{ctd} (%{superclasses}):
 '''
 
+    template_map['is_abstract'] = repr(not not ctd.abstract())
     prolog_template += '''
+    _Abstract = %{is_abstract}
     _ExpandedName = %{expanded_name}
 '''
 
@@ -859,9 +867,17 @@ class %{ctd} (%{superclasses}):
         %{attribute_uses}
     }'''
 
+    template_map['registration'] = ''
+    if ctd.name() is not None:
+        template_map['registration'] = templates.replaceInText("Namespace.addCategoryObject('typeBinding', %{localName}, %{ctd})",
+                                                               localName=pythonLiteral(ctd.name(), **kw), **template_map)
+    
     template = ''.join([prolog_template,
                "    ", "\n    ".join(definitions), "\n",
-               map_decl, "\n\n" ])
+               map_decl, '''
+%{registration}
+
+'''])
 
     return templates.replaceInText(template, **template_map)
 
@@ -876,7 +892,7 @@ def GenerateED (ed, **kw):
     template_map['expanded_name'] = pythonLiteral(ed.expandedName(), **kw)
     if (ed.SCOPE_global == ed.scope()):
         template_map['element_scope'] = pythonLiteral(None, **kw)
-        template_map['map_update'] = templates.replaceInText('ElementToBindingMap[%{expanded_name}] = %{class}', **template_map)
+        template_map['map_update'] = templates.replaceInText("Namespace.addCategoryObject('elementBinding', %{element_name}, %{class})", **template_map)
     else:
         template_map['element_scope'] = pythonLiteral(ed.scope(), **kw)
         template_map['map_update'] = ''
@@ -1090,6 +1106,7 @@ import sys
 # about this module.
 Namespace = %{NamespaceDefinition}
 Namespace._setModule(sys.modules[__name__])
+Namespace.configureCategories(['typeBinding', 'elementBinding'])
 
 def CreateFromDocument (xml_text):
     """Parse the given XML and use the document element to create a Python instance."""

@@ -80,6 +80,9 @@ class MissingAttributeError (BadDocumentError):
 class AttributeChangeError (BadDocumentError):
     """Raised when an attribute with a fixed value constraint is set to a different value."""
 
+class AbstractInstantiationError (PyXBException):
+    """Raised when somebody tries to instantiate an abstract complex type."""
+
 class DOMGenerationError (PyXBException):
     """Raised when converting binding to DOM and something goes wrong."""
     pass

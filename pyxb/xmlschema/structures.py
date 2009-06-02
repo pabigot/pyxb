@@ -88,6 +88,10 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin):
         """Return True iff nobody has defined a scope for this node."""
         return _ScopedDeclaration_mixin.ScopeIsIndeterminate(self._scope())
 
+    def _scopeIsGlobal (self):
+        """Return True iff this component has global scope."""
+        return _ScopedDeclaration_mixin.ScopeIsGlobal(self._scope())
+
     def _setScope (self, ctd):
         """Set the scope of this instance after construction.
 
@@ -612,6 +616,10 @@ class _ScopedDeclaration_mixin (pyxb.cscRoot):
     @classmethod
     def ScopeIsIndeterminate (cls, value):
         return (cls.XSCOPE_indeterminate == value)
+
+    @classmethod
+    def ScopeIsGlobal (cls, value):
+        return (cls.SCOPE_global == value)
 
     def _scopeIsCompatible (self, scope):
         """Return True if this scope currently assigned to this instance is compatible with the given scope.
@@ -1413,6 +1421,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
 
     # Derived from the abstract attribute
     __abstract = False
+    def abstract (self): return self.__abstract
     
     # A frozenset() of AttributeUse instances.
     __attributeUses = None
