@@ -1117,8 +1117,6 @@ def CreateFromDOM (node):
     """Create a Python instance from the given DOM node.
     The node tag must correspond to an element declaration in this module."""
     return pyxb.binding.basis.element.AnyCreateFromDOM(node, Namespace)
-
-ElementToBindingMap = { }
 ''', **template_map))
     
         # Give priority for identifiers to scoped element declarations
