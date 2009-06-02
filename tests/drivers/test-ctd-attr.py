@@ -40,7 +40,7 @@ class TestCTD (unittest.TestCase):
         # interesting stuff.  I suppose that ought to be a
         # configuration option.
         self.assertEqual('test', simple('test').content())
-        xml = '<simple xmlns="URN:testCTD">test</simple>'
+        xml = '<ns1:simple xmlns:ns1="URN:testCTD">test</ns1:simple>'
         instance = CreateFromDocument(xml)
         self.assertEqual('test', instance.content())
         self.assertEqual(xml, ToDOM(instance).toxml())
@@ -50,14 +50,14 @@ class TestCTD (unittest.TestCase):
         rv = string('test')
         self.assert_(isinstance(rv.content(), pyxb.binding.datatypes.string))
         self.assertEqual('test', rv.content())
-        rv = CreateFromDocument('<string>test</string>')
+        rv = CreateFromDocument('<string xmlns="URN:testCTD">test</string>')
         self.assert_(isinstance(rv, string))
         self.assertEqual('test', rv.content())
 
     def testEmptyWithAttr (self):
         self.assertEqual(5, len(emptyWithAttr._TypeDefinition._AttributeMap))
-        self.assertRaises(MissingAttributeError, CreateFromDocument, '<emptyWithAttr/>')
-        instance = CreateFromDocument('<emptyWithAttr capitalized="false"/>')
+        self.assertRaises(MissingAttributeError, CreateFromDocument, '<emptyWithAttr xmlns="URN:testCTD"/>')
+        instance = CreateFromDocument('<emptyWithAttr capitalized="false" xmlns="URN:testCTD"/>')
         self.assertEqual('irish', instance.language())
         self.assert_(not instance.capitalized())
         self.assertEqual(5432, instance.port())
@@ -69,9 +69,9 @@ class TestCTD (unittest.TestCase):
 
         # Can't change immutable attributes
         self.assertRaises(AttributeChangeError, instance.setImmutable, 'water')
-        self.assertRaises(AttributeChangeError, CreateFromDocument, '<emptyWithAttr capitalized="true" immutable="water"/>')
+        self.assertRaises(AttributeChangeError, CreateFromDocument, '<emptyWithAttr capitalized="true" immutable="water"  xmlns="URN:testCTD"/>')
 
-        instance = CreateFromDocument('<emptyWithAttr capitalized="true" language="hebrew"/>')
+        instance = CreateFromDocument('<emptyWithAttr capitalized="true" language="hebrew"  xmlns="URN:testCTD"/>')
         self.assertEqual('hebrew', instance.language())
         self.assert_(instance.capitalized())
         self.assertEqual(5432, instance.port())
@@ -81,7 +81,7 @@ class TestCTD (unittest.TestCase):
         self.assertEqual('irish', instance.language())
         self.assert_(instance.capitalized() is None)
         self.assertEqual(5432, instance.port())
-        self.assertEqual('<emptyWithAttr xmlns="URN:testCTD"/>', ToDOM(instance).toxml())
+        self.assertEqual('<ns1:emptyWithAttr xmlns:ns1="URN:testCTD"/>', ToDOM(instance).toxml())
 
         # Test reference attribute
         self.assertEqual('top default', instance.tlAttr())
@@ -90,7 +90,7 @@ class TestCTD (unittest.TestCase):
         instance2 = emptyWithAttr()
         self.assertEqual('irish', instance2.language())
         instance2.setLanguage('french')
-        self.assertEqual('<emptyWithAttr language="french" xmlns="URN:testCTD"/>', ToDOM(instance2).toxml())
+        self.assertEqual('<ns1:emptyWithAttr language="french" xmlns:ns1="URN:testCTD"/>', ToDOM(instance2).toxml())
         self.assertNotEqual(instance.language(), instance2.language())
 
         # Verify the use.  Note reference through CTD not element.
@@ -110,7 +110,7 @@ class TestCTD (unittest.TestCase):
         self.assertEqual(restrictedEWA_._AttributeMap['capitalized'], emptyWithAttr_._AttributeMap['capitalized'])
 
     def testEmptyWithAttrGroups (self):
-        xml = '<emptyWithAttrGroups bMember1="xxx" xmlns="URN:testCTD"/>'
+        xml = '<ns1:emptyWithAttrGroups bMember1="xxx" xmlns:ns1="URN:testCTD"/>'
         instance = CreateFromDocument(xml)
         self.assertEqual('gM1', instance.groupMember1())
         self.assertEqual('gM2', instance.groupMember2())
@@ -123,7 +123,7 @@ class TestCTD (unittest.TestCase):
         self.assertEqual('refDefault', instance.tlAttr())
 
     def testUnrecognizedAttribute (self):
-        xml = '<emptyWithAttr capitalized="false" garbage="what is this"/>'
+        xml = '<emptyWithAttr capitalized="false" garbage="what is this" xmlns="URN:testCTD"/>'
         doc = pyxb.utils.domutils.StringToDOM(xml)
         self.assertRaises(UnrecognizedAttributeError, emptyWithAttr.CreateFromDOM, doc.documentElement)
 

@@ -29,14 +29,14 @@ class TestParticle (unittest.TestCase):
         self.assertRaises(UnrecognizedContentError, h01b.CreateFromDOM, dom.documentElement)
 
     def test_h01_empty (self):
-        xml = '<h01 xmlns="URN:test"/>'
+        xml = '<ns1:h01 xmlns:ns1="URN:test"/>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
         instance = h01.CreateFromDOM(dom.documentElement)
         self.assert_(instance.elt() is None)
         self.assertEqual(ToDOM(instance).toxml(), xml)
 
     def test_h01_elt (self):
-        xml = '<h01 xmlns="URN:test"><elt/></h01>'
+        xml = '<ns1:h01 xmlns:ns1="URN:test"><elt/></ns1:h01>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
         instance = h01.CreateFromDOM(dom.documentElement)
         self.assert_(instance.elt() is not None)
@@ -48,31 +48,31 @@ class TestParticle (unittest.TestCase):
         self.assertRaises(ExtraContentError, h01.CreateFromDOM, dom.documentElement)
 
     def test_h01b_empty (self):
-        xml = '<h01b xmlns="URN:test"/>'
+        xml = '<ns1:h01b xmlns:ns1="URN:test"/>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
         instance = h01b.CreateFromDOM(dom.documentElement)
         self.assert_(instance.elt() is None)
         self.assertEqual(ToDOM(instance).toxml(), xml)
 
     def test_h01b_elt (self):
-        xml = '<h01b xmlns="URN:test"><elt/></h01b>'
+        xml = '<ns1:h01b xmlns:ns1="URN:test"><elt/></ns1:h01b>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
         instance = h01b.CreateFromDOM(dom.documentElement)
         self.assert_(instance.elt() is not None)
         self.assertEqual(ToDOM(instance).toxml(), xml)
 
     def test_h01b_elt2 (self):
-        xml = '<h01b xmlns="URN:test"><elt/><elt/></h01b>'
+        xml = '<ns1:h01b xmlns:ns1="URN:test"><elt/><elt/></ns1:h01b>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
         self.assertRaises(ExtraContentError, h01b.CreateFromDOM, dom.documentElement)
 
     def test_h11_empty (self):
-        xml = '<h11 xmlns="URN:test"/>'
+        xml = '<ns1:h11 xmlns:ns1="URN:test"/>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
         self.assertRaises(MissingContentError, h11.CreateFromDOM, dom.documentElement)
 
     def test_h11_elt (self):
-        xml = '<h11 xmlns="URN:test"><elt/></h11>'
+        xml = '<ns1:h11 xmlns:ns1="URN:test"><elt/></ns1:h11>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
         instance = h11.CreateFromDOM(dom.documentElement)
         self.assert_(instance.elt() is not None)
@@ -85,7 +85,7 @@ class TestParticle (unittest.TestCase):
         self.assertRaises(MissingContentError, h24.CreateFromDOM, dom.documentElement)
         
         for num_elt in range(0, 5):
-            xml = '<h24 xmlns="URN:test">%s</h24>' % (''.join(num_elt * ['<elt/>']),)
+            xml = '<ns1:h24 xmlns:ns1="URN:test">%s</ns1:h24>' % (''.join(num_elt * ['<elt/>']),)
             dom = pyxb.utils.domutils.StringToDOM(xml)
             if 2 > num_elt:
                 self.assertRaises(MissingContentError, h24.CreateFromDOM, dom.documentElement)
@@ -97,12 +97,12 @@ class TestParticle (unittest.TestCase):
                 self.assertRaises(ExtraContentError, h24.CreateFromDOM, dom.documentElement)
 
     def test_h24b (self):
-        xml = '<h24b xmlns="URN:test"></h24b>'
+        xml = '<ns1:h24b xmlns:ns1="URN:test"></ns1:h24b>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
         self.assertRaises(MissingContentError, h24b.CreateFromDOM, dom.documentElement)
         
         for num_elt in range(0, 5):
-            xml = '<h24b xmlns="URN:test">%s</h24b>' % (''.join(num_elt * ['<elt/>']),)
+            xml = '<ns1:h24b xmlns:ns1="URN:test">%s</ns1:h24b>' % (''.join(num_elt * ['<elt/>']),)
             dom = pyxb.utils.domutils.StringToDOM(xml)
             if 2 > num_elt:
                 self.assertRaises(MissingContentError, h24b.CreateFromDOM, dom.documentElement)

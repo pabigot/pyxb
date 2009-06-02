@@ -55,15 +55,14 @@ class TestExternal (unittest.TestCase):
         # Element constructor with out-of-range content is error
         self.assertRaises(BadTypeValueError, english, 'five')
 
-        xml = '<english xmlns="URN:test-external">one</english>'
+        xml = '<ns1:english xmlns:ns1="URN:test-external">one</ns1:english>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
         instance = english.CreateFromDOM(dom.documentElement)
         self.assertEqual('one', instance.content())
         self.assertEqual(xml, ToDOM(instance).toxml())
-        
 
     def testWords (self):
-        xml = '<word xmlns="URN:test-external"><from>one</from><to>un</to></word>'
+        xml = '<ns1:word xmlns:ns1="URN:test-external"><from>one</from><to>un</to></ns1:word>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
         instance = word.CreateFromDOM(dom.documentElement)
         self.assertEquals('one', instance.from_().content())
@@ -71,12 +70,12 @@ class TestExternal (unittest.TestCase):
         self.assertEqual(xml, ToDOM(instance).toxml())
         
     def testBadWords (self):
-        xml = '<word><from>five</from><to>pump</to></word>'
+        xml = '<ns1:word xmlns:ns1="URN:test-external"><from>five</from><to>pump</to></ns1:word>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
         self.assertRaises(BadTypeValueError, word.CreateFromDOM, dom.documentElement)
 
     def testComplexShared (self):
-        xml = '<lwords language="english" newlanguage="welsh">un</lwords>'
+        xml = '<ns1:lwords language="english" newlanguage="welsh" xmlns:ns1="URN:test-external">un</ns1:lwords>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
         instance = lwords.CreateFromDOM(dom.documentElement)
         self.assertTrue(isinstance(instance, lwords))
