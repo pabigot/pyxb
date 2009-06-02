@@ -1466,10 +1466,18 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         scope_map[decl.expandedName()] = decl
         return self
 
-    CT_EMPTY = 0                #<<< No content
-    CT_SIMPLE = 1               #<<< Simple (character) content
-    CT_MIXED = 2                #<<< Children may be elements or other (e.g., character) content
-    CT_ELEMENT_ONLY = 3         #<<< Expect only element content.
+    CT_EMPTY = 'EMPTY'                 #<<< No content
+    CT_SIMPLE = 'SIMPLE'               #<<< Simple (character) content
+    CT_MIXED = 'MIXED'                 #<<< Children may be elements or other (e.g., character) content
+    CT_ELEMENT_ONLY = 'ELEMENT_ONLY'   #<<< Expect only element content.
+
+    def _contentTypeTag (self):
+        """Return the value of the content type identifier, i.e. one of the
+        CT_ constants.  Return value is None if no content type has been
+        defined."""
+        if isinstance(self.__contentType, tuple):
+            return self.__contentType[0]
+        return self.__contentType
 
     # Identify the sort of content in this type.
     __contentType = None

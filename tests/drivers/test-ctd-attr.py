@@ -28,7 +28,8 @@ class TestCTD (unittest.TestCase):
     # element declaration.
     def testDeconflict (self):
         self.assert_(issubclass(structure, pyxb.binding.basis.element))
-        self.assert_(issubclass(structure_, pyxb.binding.basis.CTD_element))
+        self.assert_(issubclass(structure_, pyxb.binding.basis.complexTypeDefinition))
+        self.assert_(pyxb.binding.basis.complexTypeDefinition._CT_ELEMENT_ONLY == structure_._ContentTypeTag)
 
     def testSimple (self):
         self.assertEqual('test', simple_('test').content())

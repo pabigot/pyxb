@@ -790,23 +790,32 @@ class complexTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _
     defines it.  Similarly, subclasses should define an _ElementMap variable.
     """
 
+    _CT_EMPTY = 'EMPTY'                 #<<< No content
+    _CT_SIMPLE = 'SIMPLE'               #<<< Simple (character) content
+    _CT_MIXED = 'MIXED'                 #<<< Children may be elements or other (e.g., character) content
+    _CT_ELEMENT_ONLY = 'ELEMENT_ONLY'   #<<< Expect only element content.
+
+    _ContentType = None
+
+    _TypeDefinition = None
+    """Subclass of simpleTypeDefinition that corresponds to the type content.
+    Only valid if _ContentType is _CT_SIMPLE"""
+
     # If the type supports wildcard attributes, this describes their
     # constraints.  (If it doesn't, this should remain None.)  Supporting
     # classes should override this value.
     _AttributeWildcard = None
 
     _AttributeMap = { }
-    """Map from ncNames in the binding namespace to AttributeUse instances.
-    @todo: support extended namespace names """
+    """Map from expanded names to AttributeUse instances."""
 
     # A value that indicates whether the content model for this type supports
     # wildcard elements.  Supporting classes should override this value.
     _HasWildcardElement = False
 
-    # Map from ncNames in the binding namespace to ElementUse instances
+    # Map from expanded names to ElementUse instances
     _ElementMap = { }
-    """Map from ncNames in the binding namespace to ElementUse instances.
-    @todo: support extended namespace names."""
+    """Map from expanded names to ElementUse instances."""
 
     # Per-instance map from tags to attribute values for wildcard attributes.
     # Value is None if the type does not support wildcard attributes.
@@ -847,15 +856,16 @@ class complexTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _
             self.__wildcardElements = []
         if self._Abstract:
             raise pyxb.AbstractInstantiationError(type(self))
-        super(complexTypeDefinition, self).__init__(*args, **kw)
+        self._resetContent()
+        super(complexTypeDefinition, self).__init__(**kw)
+        if self._CT_SIMPLE == self._ContentTypeTag:
+            self.__setContent(self._TypeDefinition.Factory(*args, **kw))
         that = None
         if 0 < len(args):
             if isinstance(args[0], self.__class__):
                 that = args[0]
-            else:
+            elif self._CT_SIMPLE != self._ContentTypeTag:
                 raise pyxb.IncompleteImplementationError('No %s constructor support for argument %s' % (type(self), args[0]))
-        if isinstance(self, _CTD_content_mixin):
-            self._resetContent()
         # Extract keywords that match field names
         for fu in self._PythonMap().values():
             fu.reset(self)
@@ -888,7 +898,8 @@ class complexTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _
         return rv
 
     # Specify the symbols to be reserved for all CTDs.
-    _ReservedSymbols = set([ 'Factory', 'CreateFromDOM', 'toDOM' ])
+    _ReservedSymbols = set([ 'Factory', 'CreateFromDOM', 'toDOM', 'wildcardElements', 'wildcardAttributeMap',
+                             'xsdConstraintsOK', 'content' ])
 
     # Class variable which maps complex type attribute names to the name used
     # within the generated binding.  For example, if somebody's gone and
@@ -988,14 +999,65 @@ class complexTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _
             au.setFromDOM(self, node)
         return self
 
-    def _setContentFromDOM_vx (self, node):
-        """Override this in subclasses that expect to process content."""
-        raise pyxb.LogicError('%s did not implement _setContentFromDOM_vx' % (self.__class__.__name__,))
+    def xsdConstraintsOK (self):
+        # @todo: type check
+        return self.content().xsdConstraintsOK()
+
+    __content = None
+    def content (self):
+        if self._CT_EMPTY == self._ContentTypeTag:
+            # @todo: raise exception
+            pass
+        elif self._CT_SIMPLE == self._ContentTypeTag:
+            return self.__content
+        assert self._ContentTypeTag in (self._CT_MIXED, self._CT_ELEMENT_ONLY)
+        return ''.join([ _x for _x in self.__content if isinstance(_x, types.StringTypes) ])
+
+    def _resetContent (self):
+        if self._ContentTypeTag in (self._CT_MIXED, self._CT_ELEMENT_ONLY):
+            self.__setContent([])
+
+    def __setContent (self, value):
+        self.__content = value
+
+    def _addContent (self, child):
+        assert isinstance(child, element) or isinstance(child, types.StringTypes)
+        self.__content.append(child)
+
+    __isMixed = False
+    def _stripMixedContent (self, node_list):
+        while 0 < len(node_list):
+            if not (node_list[0].nodeType in (dom.Node.TEXT_NODE, dom.Node.CDATA_SECTION_NODE, dom.Node.COMMENT_NODE)):
+                break
+            cn = node_list.pop(0)
+            if dom.Node.COMMENT_NODE == cn.nodeType:
+                continue
+            if self.__isMixed:
+                #print 'Adding mixed content'
+                self._addContent(cn.data)
+            else:
+                #print 'Ignoring mixed content'
+                pass
+        return node_list
 
     def _setContentFromDOM (self, node):
         """Initialize the content of this element from the content of the DOM node."""
         print '%s setting content from node %s' % (self._ExpandedName, node)
-        return self._setContentFromDOM_vx(node)
+        if self._CT_EMPTY == self._ContentTypeTag:
+            return
+        if self._CT_SIMPLE == self._ContentTypeTag:
+            self.__setContent(self._TypeDefinition.CreateFromDOM(node))
+            self.xsdConstraintsOK()
+            return
+        self.__isMixed = (self._CT_MIXED == self._ContentTypeTag)
+        node_list = node.childNodes[:]
+        self._stripMixedContent(node_list)
+        if self._ContentModel is not None:
+            self._ContentModel.interprete(self, node_list)
+            self._stripMixedContent(node_list)
+        if 0 < len(node_list):
+            raise pyxb.ExtraContentError('Extra content starting with %s' % (node_list[0],))
+        return self
 
     def _setDOMFromAttributes (self, element):
         """Add any appropriate attributes from this instance into the DOM element."""
@@ -1018,165 +1080,21 @@ class complexTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _
         self._setDOMFromAttributes(element)
         return dom_support
 
-class CTD_empty (complexTypeDefinition):
-    """Base for any Python class that serves as the binding for an
-    XMLSchema complexType with empty content."""
-
-    def _setContentFromDOM_vx (self, node):
-        """CTD with empty content does nothing with node content.
-        @todo: Schema validation check (make sure node children are contentless)? """
-        return self
-
     def _setDOMFromContent (self, dom_support, element):
-        return self
-
-class CTD_simple (complexTypeDefinition):
-    """Base for any Python class that serves as the binding for an
-    XMLSchema complexType with simple content."""
-
-    _TypeDefinition = None
-    """Subclass of simpleTypeDefinition that corresponds to the type content."""
-
-    __content = None
-    def content (self):
-        return self.__content
-
-    def __setContent (self, value):
-        self.__content = value
-
-    def __init__ (self, *args, **kw):
-        assert issubclass(self._TypeDefinition, simpleTypeDefinition)
-        super(CTD_simple, self).__init__(**kw)
-        self.__setContent(self._TypeDefinition.Factory(*args, **kw))
-
-    @classmethod
-    def Factory (cls, *args, **kw):
-        rv = cls(*args, **kw)
-        return rv
-
-    def _setContentFromDOM_vx (self, node):
-        """CTD with simple content type creates a PST instance from the node body."""
-        self.__setContent(self._TypeDefinition.CreateFromDOM(node))
-        self.xsdConstraintsOK()
-
-    def _setDOMFromContent (self, dom_support, element):
-        """Create a DOM element with the given tag holding the content of this instance."""
-
-        return element.appendChild(dom_support.document().createTextNode(self.content().xsdLiteral()))
-
-    _ReservedSymbols = complexTypeDefinition._ReservedSymbols.union(set([ 'xsdConstraintsOK', 'content' ]))
-
-    def xsdConstraintsOK (self):
-        return self.content().xsdConstraintsOK()
-
-    @classmethod
-    def _IsSimpleTypeContent (cls):
-        """CTDs with simple content are simple"""
-        return True
-
-class _CTD_content_mixin (pyxb.cscRoot):
-    """Retain information about element and mixed content in a complex type instance.
-
-    This is used to generate the XML from the binding in the same
-    order as it was read in, with mixed content in the right position.
-    It can also be used if order is critical to the interpretation of
-    interleaved elements.
-
-    Subclasses must define a class variable _Content with a
-    bindings.Particle instance as its value.
-
-    Subclasses should define a class-level _ElementMap variable which
-    maps from unicode element tags (not including namespace
-    qualifiers) to the corresponding ElementUse information
-    """
-
-    # A list containing just the content
-    __content = None
-
-    def __init__ (self, *args, **kw):
-        self._resetContent()
-        super(_CTD_content_mixin, self).__init__(*args, **kw)
-
-    def content (self):
-        return ''.join([ _x for _x in self.__content if isinstance(_x, types.StringTypes) ])
-
-    def _resetContent (self):
-        self.__content = []
-
-    def _addElement (self, element):
-        eu = self._ElementMap.get(element._ExpandedName)
-        if eu is None:
-            raise pyxb.LogicError('Element %s is not registered within CTD %s' % (element._ExpandedName, self.__class__.__name__))
-        eu.setValue(self, element)
-
-    def _addContent (self, child):
-        assert isinstance(child, element) or isinstance(child, types.StringTypes)
-        self.__content.append(child)
-
-    __isMixed = False
-    def _stripMixedContent (self, node_list):
-        while 0 < len(node_list):
-            if not (node_list[0].nodeType in (dom.Node.TEXT_NODE, dom.Node.CDATA_SECTION_NODE, dom.Node.COMMENT_NODE)):
-                break
-            cn = node_list.pop(0)
-            if dom.Node.COMMENT_NODE == cn.nodeType:
-                continue
-            if self.__isMixed:
-                #print 'Adding mixed content'
-                self._addContent(cn.data)
-            else:
-                #print 'Ignoring mixed content'
-                pass
-        return node_list
-
-    def _setMixableContentFromDOM (self, node, is_mixed):
-        """Set the content of this instance from the content of the given node."""
-        #assert isinstance(self._Content, Particle)
-        # The child nodes may include text which should be saved as
-        # mixed content.  Use _stripMixedContent prior to extracting
-        # element data to save them in the correct relative position,
-        # while not losing track of where we are in the content model.
-        self.__isMixed = is_mixed
-        node_list = node.childNodes[:]
-        print 'Setting mixable control of %s from %s' % (self.__class__, node_list)
-        self._stripMixedContent(node_list)
-        if self._ContentModel is not None:
-            self._ContentModel.interprete(self, node_list)
-            self._stripMixedContent(node_list)
-        if 0 < len(node_list):
-            raise pyxb.ExtraContentError('Extra content starting with %s' % (node_list[0],))
-        return self
-
-    def _setDOMFromContent (self, dom_support, element):
+        if self._CT_EMPTY == self._ContentTypeTag:
+            return
+        if self._CT_SIMPLE == self._ContentTypeTag:
+            return element.appendChild(dom_support.document().createTextNode(self.content().xsdLiteral()))
         self._Content.extendDOMFromContent(dom_support, element, self)
         mixed_content = self.content()
         if 0 < len(mixed_content):
             element.appendChild(dom_support.document().createTextNode(''.join(mixed_content)))
         return self
 
-class CTD_mixed (_CTD_content_mixin, complexTypeDefinition):
-    """Base for any Python class that serves as the binding for an
-    XMLSchema complexType with mixed content.
-    """
-
-    _ReservedSymbols = complexTypeDefinition._ReservedSymbols.union(set([ 'content' ]))
-
-    def _setContentFromDOM_vx (self, node):
-        """Delegate processing to content mixin, with mixed content enabled."""
-        return self._setMixableContentFromDOM(node, is_mixed=True)
-
-
-class CTD_element (_CTD_content_mixin, complexTypeDefinition):
-    """Base for any Python class that serves as the binding for an
-    XMLSchema complexType with element-only content.
-    """
-
-    _ReservedSymbols = complexTypeDefinition._ReservedSymbols.union(set([ 'content' ]))
-
-    def _setContentFromDOM_vx (self, node):
-        """Delegate processing to content mixin, with mixed content disabled."""
-        return self._setMixableContentFromDOM(node, is_mixed=False)
-
+    @classmethod
+    def _IsSimpleTypeContent (cls):
+        """CTDs with simple content are simple"""
+        return cls._CT_SIMPLE == cls._ContentTypeTag
 
 ## Local Variables:
 ## fill-column:78

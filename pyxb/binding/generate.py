@@ -577,52 +577,33 @@ def GenerateCTD (ctd, **kw):
     template_map = { }
     template_map['ctd'] = pythonLiteral(ctd, **kw)
     base_type = ctd.baseTypeDefinition()
+    content_type_tag = ctd._contentTypeTag()
+
     template_map['base_type'] = pythonLiteral(base_type, **kw)
     template_map['expanded_name'] = pythonLiteral(ctd.expandedName(), **kw)
+    template_map['simple_base_type'] = pythonLiteral(None, **kw)
+    template_map['contentTypeTag'] = content_type_tag
+    template_map['is_abstract'] = repr(not not ctd.abstract())
 
     need_content = False
     content_basis = None
-    if (ctd.CT_EMPTY == ctd.contentType()):
-        content_type = 'empty'
-        ctd_parent_class = basis.CTD_empty
-        prolog_template = '''
-# Complex type %{ctd} with empty content
-class %{ctd} (%{superclasses}):
-'''
-        pass
-    elif (ctd.CT_SIMPLE == ctd.contentType()[0]):
-        content_type = 'simple'
-        ctd_parent_class = basis.CTD_simple
+    if (ctd.CT_SIMPLE == content_type_tag):
         content_basis = ctd.contentType()[1]
-        prolog_template = '''
-# Complex type %{ctd} with simple content type %{basetype}
-class %{ctd} (%{superclasses}):
-    _TypeDefinition = %{basetype}
-'''
-        template_map['basetype'] = pythonLiteral(content_basis, **kw)
-    elif (ctd.CT_MIXED == ctd.contentType()[0]):
-        content_type = 'mixed'
-        ctd_parent_class = basis.CTD_mixed
+        template_map['simple_base_type'] = pythonLiteral(content_basis, **kw)
+    elif (ctd.CT_MIXED == content_type_tag):
         content_basis = ctd.contentType()[1]
         template_map['particle'] = pythonLiteral(content_basis, **kw)
         need_content = True
-        prolog_template = '''
-# Complex type %{ctd} with mixed content
-class %{ctd} (%{superclasses}):
-'''
-    elif (ctd.CT_ELEMENT_ONLY == ctd.contentType()[0]):
-        content_type = 'element'
-        ctd_parent_class = basis.CTD_element
+    elif (ctd.CT_ELEMENT_ONLY == content_type_tag):
         content_basis = ctd.contentType()[1]
         template_map['particle'] = pythonLiteral(content_basis, **kw)
         need_content = True
-        prolog_template = '''
-# Complex type %{ctd} with element-only content
-class %{ctd} (%{superclasses}):
-'''
 
-    template_map['is_abstract'] = repr(not not ctd.abstract())
-    prolog_template += '''
+    prolog_template = '''
+# Complex type %{ctd} with content type %{contentTypeTag}
+class %{ctd} (%{superclasses}):
+    _TypeDefinition = %{simple_base_type}
+    _ContentTypeTag = pyxb.binding.basis.complexTypeDefinition._CT_%{contentTypeTag}
     _Abstract = %{is_abstract}
     _ExpandedName = %{expanded_name}
 '''
@@ -634,11 +615,11 @@ class %{ctd} (%{superclasses}):
     template_map['superclasses'] = pythonLiteral(base_type, **kw)
     if isinstance(base_type, xs.structures.SimpleTypeDefinition) or base_type.isUrTypeDefinition():
         inherits_from_base = False
-        template_map['superclasses'] = 'pyxb.binding.basis.CTD_%s' % (content_type,)
+        template_map['superclasses'] = 'pyxb.binding.basis.complexTypeDefinition'
         assert base_type.nameInBinding() is not None
 
     # Support for deconflicting attributes, elements, and reserved symbols
-    class_keywords = frozenset(ctd_parent_class._ReservedSymbols)
+    class_keywords = frozenset(basis.complexTypeDefinition._ReservedSymbols)
     class_unique = set()
 
     # Deconflict elements first, attributes are lower priority.

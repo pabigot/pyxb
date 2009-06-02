@@ -949,6 +949,9 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
     def nodeIsNamed (self, node, *local_names):
         return (node.namespaceURI == self.uri()) and (node.localName in local_names)
 
+    def createExpandedName (self, local_name):
+        return ExpandedName(self, local_name)
+
     __PICKLE_FORMAT = '200905041925'
 
     def __getstate__ (self):
