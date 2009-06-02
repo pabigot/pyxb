@@ -21,10 +21,26 @@ class TestXSIType (unittest.TestCase):
         doc = pyxb.utils.domutils.StringToDOM(xml)
         self.assertRaises(pyxb.AbstractInstantiationError, CreateFromDOM, doc.documentElement)
 
-    def testSubstitutions (self):
-        xml = '<elt xsi:type="alt1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><first/></elt>'
+    def testDirect (self):
+        xml = '<notAlt attrOne="low"><first>content</first></notAlt>'
         doc = pyxb.utils.domutils.StringToDOM(xml)
         instance = CreateFromDOM(doc.documentElement)
+        print xml
+        print instance.first()
+        print instance.attrOne()
+
+    def testSubstitutions (self):
+        xml = '<elt attrOne="low" xsi:type="alt1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><first>content</first></elt>'
+        doc = pyxb.utils.domutils.StringToDOM(xml)
+        instance = CreateFromDOM(doc.documentElement)
+        print xml
+        print instance.first()
+        print instance.attrOne()
+        xml = '<elt attrTwo="hi" xsi:type="alt2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><second/></elt>'
+        doc = pyxb.utils.domutils.StringToDOM(xml)
+        instance = CreateFromDOM(doc.documentElement)
+        print instance.second()
+        print instance.attrTwo()
 
 if __name__ == '__main__':
     unittest.main()
