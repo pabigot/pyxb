@@ -15,7 +15,7 @@ import unittest
 
 class TestFacets (unittest.TestCase):
     def testQuantity (self):
-        xml = '<quantity>35</quantity>'
+        xml = '<quantity xmlns="URN:test-facets">35</quantity>'
         instance = CreateFromDOM(pyxb.utils.domutils.StringToDOM(xml).documentElement)
         self.assertEqual(35, instance.content())
         for (k,v) in globals().items():

@@ -54,27 +54,27 @@ class TestUnion (unittest.TestCase):
         self.assertTrue(isinstance(uv, welsh))
 
     def testXMLErrors (self):
-        self.assertEqual(welsh.un, CreateFromDocument('<myElement>un</myElement>').content())
+        self.assertEqual(welsh.un, CreateFromDocument('<myElement xmlns="URN:unionTest">un</myElement>').content())
         self.assertRaises(NotAnElementError, CreateFromDocument, '<welsh>un</welsh>')
         self.assertRaises(UnrecognizedElementError, CreateFromDocument, '<myelement>un</myelement>')
 
     def testMyElementDOM (self):
-        self.assertEqual(0, myElement.CreateFromDOM(pyxb.utils.domutils.StringToDOM('<myElement>0</myElement>').documentElement).content())
-        self.assertEqual(0, CreateFromDocument('<myElement>0</myElement>').content())
+        self.assertEqual(0, myElement.CreateFromDOM(pyxb.utils.domutils.StringToDOM('<myElement xmlns="URN:unionTest">0</myElement>').documentElement).content())
+        self.assertEqual(0, CreateFromDocument('<myElement xmlns="URN:unionTest">0</myElement>').content())
 
-        self.assertEqual(english.one, myElement.CreateFromDOM(pyxb.utils.domutils.StringToDOM('<myElement>one</myElement>').documentElement).content())
-        self.assertEqual(welsh.un, myElement.CreateFromDOM(pyxb.utils.domutils.StringToDOM('<myElement>un</myElement>').documentElement).content())
+        self.assertEqual(english.one, myElement.CreateFromDOM(pyxb.utils.domutils.StringToDOM('<myElement xmlns="URN:unionTest">one</myElement>').documentElement).content())
+        self.assertEqual(welsh.un, myElement.CreateFromDOM(pyxb.utils.domutils.StringToDOM('<myElement xmlns="URN:unionTest">un</myElement>').documentElement).content())
 
-        self.assertEqual(english.one, myElement.CreateFromDOM(pyxb.utils.domutils.StringToDOM('<myElement>one<!-- with comment --></myElement>').documentElement).content())
-        self.assertEqual(welsh.un, myElement.CreateFromDOM(pyxb.utils.domutils.StringToDOM('<myElement><!-- with comment -->un</myElement>').documentElement).content())
+        self.assertEqual(english.one, myElement.CreateFromDOM(pyxb.utils.domutils.StringToDOM('<myElement xmlns="URN:unionTest">one<!-- with comment --></myElement>').documentElement).content())
+        self.assertEqual(welsh.un, myElement.CreateFromDOM(pyxb.utils.domutils.StringToDOM('<myElement xmlns="URN:unionTest"><!-- with comment -->un</myElement>').documentElement).content())
 
-        self.assertEqual(english.one, myElement.CreateFromDOM(pyxb.utils.domutils.StringToDOM('<myElement> one <!-- with comment and whitespace --></myElement>').documentElement).content())
-        self.assertRaises(BadTypeValueError, myElement.CreateFromDOM, pyxb.utils.domutils.StringToDOM('<myElement><!-- whitespace is error for welsh --> un</myElement>').documentElement)
+        self.assertEqual(english.one, myElement.CreateFromDOM(pyxb.utils.domutils.StringToDOM('<myElement xmlns="URN:unionTest"> one <!-- with comment and whitespace --></myElement>').documentElement).content())
+        self.assertRaises(BadTypeValueError, myElement.CreateFromDOM, pyxb.utils.domutils.StringToDOM('<myElement xmlns="URN:unionTest"><!-- whitespace is error for welsh --> un</myElement>').documentElement)
 
-        self.assertEqual(english.one, myElement.CreateFromDOM(pyxb.utils.domutils.StringToDOM('''<myElement><!-- whitespace is collapsed for english -->
+        self.assertEqual(english.one, myElement.CreateFromDOM(pyxb.utils.domutils.StringToDOM('''<myElement xmlns="URN:unionTest"><!-- whitespace is collapsed for english -->
 one
 </myElement>''').documentElement).content())
-        self.assertRaises(BadTypeValueError, myElement.CreateFromDOM, pyxb.utils.domutils.StringToDOM('''<myElement><!--whitespace is only reduced for welsh -->
+        self.assertRaises(BadTypeValueError, myElement.CreateFromDOM, pyxb.utils.domutils.StringToDOM('''<myElement xmlns="URN:unionTest"><!--whitespace is only reduced for welsh -->
 un
 </myElement>''').documentElement)
 

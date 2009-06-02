@@ -55,8 +55,10 @@ Anytown, AS  12345-6789'''
     def testPurchaseOrder (self):
         po = purchaseOrder(shipTo=USAddress(name='Customer', street='95 Main St'),
                            billTo=USAddress(name='Sugar Mama', street='24 E. Dearling Ave'),
-                           comment='Thanks, dear!')
+                           comment='Thanks!')
+        print po.comment()
         xml = ToDOM(po).toxml()
+        print xml
         dom = pyxb.utils.domutils.StringToDOM(xml)
         po2 = purchaseOrder.CreateFromDOM(dom.documentElement)
         self.assertEqual(xml, ToDOM(po2).toxml())
