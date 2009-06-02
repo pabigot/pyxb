@@ -442,7 +442,6 @@ class _NamedComponent_mixin (pyxb.cscRoot):
 
         For now, this uses name equivalence within types.  In the future,
         structural equivalence may be used."""
-        print 'Testing type equivalence %s %s' % (self, other)
         return (type(self) == type(other)) and self.isNameEquivalent(other)
 
     def __pickleAsReference (self):
