@@ -55,7 +55,7 @@ class TestUnion (unittest.TestCase):
 
     def testXMLErrors (self):
         self.assertEqual(welsh.un, CreateFromDocument('<myElement xmlns="URN:unionTest">un</myElement>').content())
-        self.assertRaises(NotAnElementError, CreateFromDocument, '<welsh>un</welsh>')
+        self.assertRaises(UnrecognizedElementError, CreateFromDocument, '<welsh>un</welsh>')
         self.assertRaises(UnrecognizedElementError, CreateFromDocument, '<myelement>un</myelement>')
 
     def testMyElementDOM (self):
