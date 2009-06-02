@@ -44,7 +44,7 @@ instance of either SimpleTypeDefinition or ComplexTypeDefinition.
 
 from pyxb.exceptions_ import *
 import types
-import pyxb.namespace as Namespace
+import pyxb.namespace
 import pyxb.utils.domutils as domutils
 import pyxb.utils.utility as utility
 import basis
@@ -60,7 +60,7 @@ _ListDatatypes = []
 class anySimpleType (basis.simpleTypeDefinition, unicode):
     """See U{http://www.w3.org/TR/xmlschema-2/#dt-anySimpleType}"""
     _XsdBaseType = None
-    _Namespace = Namespace.XMLSchema
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('anySimpleType')
 
     @classmethod
     def XsdLiteral (cls, value):
@@ -73,7 +73,7 @@ class string (basis.simpleTypeDefinition, unicode):
     
     U{http://www.w3.org/TR/xmlschema-2/#string}"""
     _XsdBaseType = anySimpleType
-    _Namespace = Namespace.XMLSchema
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('string')
 
     @classmethod
     def XsdLiteral (cls, value):
@@ -93,7 +93,7 @@ class boolean (basis.simpleTypeDefinition, types.IntType):
 
     U{http://www.w3.org/TR/xmlschema-2/#boolean}"""
     _XsdBaseType = anySimpleType
-    _Namespace = Namespace.XMLSchema
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('boolean')
     
     @classmethod
     def XsdLiteral (cls, value):
@@ -131,7 +131,7 @@ class decimal (basis.simpleTypeDefinition, types.FloatType):
 
     """
     _XsdBaseType = anySimpleType
-    _Namespace = Namespace.XMLSchema
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('decimal')
 
     @classmethod
     def XsdLiteral (cls, value):
@@ -144,7 +144,7 @@ class float (basis.simpleTypeDefinition, types.FloatType):
 
     U{http://www.w3.org/TR/xmlschema-2/#float}"""
     _XsdBaseType = anySimpleType
-    _Namespace = Namespace.XMLSchema
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('float')
 
     @classmethod
     def XsdLiteral (cls, value):
@@ -157,7 +157,7 @@ class double (basis.simpleTypeDefinition, types.FloatType):
 
     U{http://www.w3.org/TR/xmlschema-2/#double}"""
     _XsdBaseType = anySimpleType
-    _Namespace = Namespace.XMLSchema
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('double')
 
     @classmethod
     def XsdLiteral (cls, value):
@@ -171,7 +171,7 @@ import datetime
 class duration (basis.simpleTypeDefinition):
     """@attention: Not implemented"""
     _XsdBaseType = anySimpleType
-    _Namespace = Namespace.XMLSchema
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('duration')
 _PrimitiveDatatypes.append(duration)
 
 class _TimeZone (datetime.tzinfo):
@@ -232,6 +232,9 @@ class dateTime (basis.simpleTypeDefinition, datetime.datetime):
     lexical space is preserved through the value of the L{hasTimeZone()}
     field.
     """
+
+    _XsdBaseType = anySimpleType
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('dateType')
 
     __Lexical_re = re.compile('^(?P<negYear>-?)(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})T(?P<hour>\d{2}):(?P<minute>\d{2}):(?P<second>\d{2})(?P<fracsec>\.\d*)?(?P<tzinfo>Z|[-+]\d\d:\d\d)?$')
 
@@ -303,55 +306,53 @@ class dateTime (basis.simpleTypeDefinition, datetime.datetime):
             iso += 'Z'
         return iso
 
-    _XsdBaseType = anySimpleType
-    _Namespace = Namespace.XMLSchema
 _PrimitiveDatatypes.append(dateTime)
 
 class time (basis.simpleTypeDefinition):
     """@attention: Not implemented"""
     _XsdBaseType = anySimpleType
-    _Namespace = Namespace.XMLSchema
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('time')
 _PrimitiveDatatypes.append(time)
 
 class date (basis.simpleTypeDefinition):
     """@attention: Not implemented"""
     _XsdBaseType = anySimpleType
-    _Namespace = Namespace.XMLSchema
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('date')
 _PrimitiveDatatypes.append(date)
 
 class gYearMonth (basis.simpleTypeDefinition):
     """@attention: Not implemented"""
     _XsdBaseType = anySimpleType
-    _Namespace = Namespace.XMLSchema
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('gYearMonth')
 _PrimitiveDatatypes.append(gYearMonth)
 
 class gYear (basis.simpleTypeDefinition):
     """@attention: Not implemented"""
     _XsdBaseType = anySimpleType
-    _Namespace = Namespace.XMLSchema
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('gYear')
 _PrimitiveDatatypes.append(gYear)
 
 class gMonthDay (basis.simpleTypeDefinition):
     """@attention: Not implemented"""
     _XsdBaseType = anySimpleType
-    _Namespace = Namespace.XMLSchema
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('gMonthDay')
 _PrimitiveDatatypes.append(gMonthDay)
 
 class gDay (basis.simpleTypeDefinition):
     """@attention: Not implemented"""
     _XsdBaseType = anySimpleType
-    _Namespace = Namespace.XMLSchema
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('gDay')
 _PrimitiveDatatypes.append(gDay)
 
 class gMonth (basis.simpleTypeDefinition):
     """@attention: Not implemented"""
     _XsdBaseType = anySimpleType
-    _Namespace = Namespace.XMLSchema
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('gMonth')
 _PrimitiveDatatypes.append(gMonth)
 
 class hexBinary (basis.simpleTypeDefinition, types.LongType):
     _XsdBaseType = anySimpleType
-    _Namespace = Namespace.XMLSchema
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('hexBinary')
 
     __length = None
     def length (self):
@@ -426,7 +427,8 @@ _PrimitiveDatatypes.append(hexBinary)
 class base64Binary (basis.simpleTypeDefinition):
     """@attention: Not implemented"""
     _XsdBaseType = anySimpleType
-    _Namespace = Namespace.XMLSchema
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('base64Binary')
+
     @classmethod
     def XsdValueLength (cls, value):
         raise NotImplementedError('No length calculation for base64Binary')
@@ -435,7 +437,7 @@ _PrimitiveDatatypes.append(base64Binary)
 
 class anyURI (basis.simpleTypeDefinition, types.UnicodeType):
     _XsdBaseType = anySimpleType
-    _Namespace = Namespace.XMLSchema
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('anyURI')
 
     @classmethod
     def XsdValueLength (cls, value):
@@ -449,7 +451,8 @@ _PrimitiveDatatypes.append(anyURI)
 
 class QName (basis.simpleTypeDefinition, unicode):
     _XsdBaseType = anySimpleType
-    _Namespace = Namespace.XMLSchema
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('QName')
+
     @classmethod
     def XsdValueLength (cls, value):
         """Section 4.3.1.3: Legacy length return None to indicate no check"""
@@ -499,7 +502,8 @@ _PrimitiveDatatypes.append(QName)
 
 class NOTATION (basis.simpleTypeDefinition):
     _XsdBaseType = anySimpleType
-    _Namespace = Namespace.XMLSchema
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('NOTATION')
+
     @classmethod
     def XsdValueLength (cls, value):
         """Section 4.3.1.3: Legacy length return None to indicate no check"""
@@ -522,6 +526,8 @@ class normalizedString (string):
     # Alternatively, subclasses can override the _ValidateString
     # class.
     
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('normalizedString')
+
     # @todo Implement pattern constraints and just rely on them
 
     # No CR, LF, or TAB
@@ -582,6 +588,8 @@ class token (normalizedString):
     carriage return, line feed, or tab characters; nor any occurrence
     of two or more consecutive space characters."""
     
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('token')
+
     @classmethod
     def _ValidateString_va (cls, value):
         super_fn = getattr(super(token, cls), '_ValidateString_va', lambda *a,**kw: True)
@@ -598,6 +606,7 @@ _DerivedDatatypes.append(token)
 
 class language (token):
     """See http:///www.w3.org/TR/xmlschema-2/index.html#language"""
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('language')
     _ValidRE = re.compile('^[a-zA-Z]{1,8}(-[a-zA-Z0-9]{1,8})*$')
 _DerivedDatatypes.append(language)
 
@@ -606,6 +615,7 @@ class NMTOKEN (token):
 
     NMTOKEN is an identifier that can start with any character that is
     legal in it."""
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('NMTOKEN')
     _ValidRE = re.compile('^[-_.:A-Za-z0-9]*$')
 _DerivedDatatypes.append(NMTOKEN)
 
@@ -615,25 +625,30 @@ _ListDatatypes.append(NMTOKENS)
 
 class Name (token):
     """See http://www.w3.org/TR/2000/WD-xml-2e-20000814.html#NT-Name"""
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('Name')
     _ValidRE = re.compile('^[A-Za-z_:][-_.:A-Za-z0-9]*$')
 _DerivedDatatypes.append(Name)
 
 class NCName (Name):
     """See http://www.w3.org/TR/1999/REC-xml-names-19990114/index.html#NT-NCName"""
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('NCName')
     _ValidRE = re.compile('^[A-Za-z_][-_.A-Za-z0-9]*$')
 _DerivedDatatypes.append(NCName)
 
 class ID (NCName):
     # Lexical and value space match that of parent NCName
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('ID')
     pass
 _DerivedDatatypes.append(ID)
 
 class IDREF (NCName):
     # Lexical and value space match that of parent NCName
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('IDREF')
     pass
 _DerivedDatatypes.append(IDREF)
 
 class IDREFS (basis.STD_list):
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('IDREFS')
     _ItemType = IDREF
 _ListDatatypes.append(IDREFS)
 
@@ -644,10 +659,12 @@ class ENTITY (NCName):
     #
     # @todo Don't ignore the requirement that this be declared as an
     # unparsed entity.
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('ENTITY')
     pass
 _DerivedDatatypes.append(ENTITY)
 
 class ENTITIES (basis.STD_list):
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('ENTITIES')
     _ItemType = ENTITY
 _ListDatatypes.append(ENTITIES)
 
@@ -656,7 +673,8 @@ class integer (basis.simpleTypeDefinition, types.LongType):
 
     http://www.w3.org/TR/xmlschema-2/#integer"""
     _XsdBaseType = decimal
-    _Namespace = Namespace.XMLSchema
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('integer')
+
     @classmethod
     def XsdLiteral (cls, value):
         return '%d' % (value,)
@@ -664,20 +682,20 @@ class integer (basis.simpleTypeDefinition, types.LongType):
 _DerivedDatatypes.append(integer)
 
 class nonPositiveInteger (integer):
-    pass
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('nonPositiveInteger')
 _DerivedDatatypes.append(nonPositiveInteger)
 
 class negativeInteger (nonPositiveInteger):
-    pass
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('negativeInteger')
 _DerivedDatatypes.append(negativeInteger)
 
 class long (integer):
-    pass
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('long')
 _DerivedDatatypes.append(long)
 
 class int (basis.simpleTypeDefinition, types.IntType):
     _XsdBaseType = long
-    _Namespace = Namespace.XMLSchema
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('int')
 
     @classmethod
     def XsdLiteral (cls, value):
@@ -687,46 +705,48 @@ class int (basis.simpleTypeDefinition, types.IntType):
 _DerivedDatatypes.append(int)
 
 class short (int):
-    pass
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('short')
 _DerivedDatatypes.append(short)
 
 class byte (short):
-    pass
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('byte')
 _DerivedDatatypes.append(byte)
 
 class nonNegativeInteger (integer):
-    pass
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('nonNegativeInteger')
 _DerivedDatatypes.append(nonNegativeInteger)
 
 class unsignedLong (nonNegativeInteger):
-    pass
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('unsignedLong')
 _DerivedDatatypes.append(unsignedLong)
 
 class unsignedInt (unsignedLong):
-    pass
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('unsignedInt')
 _DerivedDatatypes.append(unsignedInt)
 
 class unsignedShort (unsignedInt):
-    pass
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('unsignedShort')
 _DerivedDatatypes.append(unsignedShort)
 
 class unsignedByte (unsignedShort):
-    pass
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('unsignedByte')
 _DerivedDatatypes.append(unsignedByte)
 
 class positiveInteger (nonNegativeInteger):
-    pass
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('positiveInteger')
 _DerivedDatatypes.append(positiveInteger)
 
 import datatypes_facets
 import content
 
-class anyType (basis.CTD_mixed):
+class anyType (basis.complexTypeDefinition):
     """http://www.w3.org/TR/2001/REC-xmlschema-1-20010502/#key-urType"""
     @classmethod
     def Factory (cls, *args, **kw):
         return anyType()
 
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('anyType')
+    _ContentTypeTag = basis.complexTypeDefinition._CT_MIXED
     _Abstract = False
     _Content = content.Particle(1, 1,
                                 content.ModelGroup(content.ModelGroup.C_SEQUENCE,
