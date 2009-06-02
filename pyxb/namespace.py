@@ -106,7 +106,7 @@ class ExpandedName (pyxb.cscRoot):
             return lambda: None
         return lambda _value=self.namespace().categoryMap(name).get(self.localName()): _value
 
-    def __init__ (self, *args):
+    def __init__ (self, *args, **kw):
         """Create an expanded name.
 
         Expected argument patterns are:
@@ -119,7 +119,12 @@ class ExpandedName (pyxb.cscRoot):
 
         Wherever C{str} occurs C{unicode} is also permitted.
         
+        @keyword fallback_namespace: Optional Namespace instance to use if the
+        namespace would otherwise be None.  This is only used if it is an
+        absent namespace.
+
         """
+        fallback_namespace = kw.get('fallback_namespace')
         if 0 == len(args):
             raise pyxb.LogicError('Too few arguments to ExpandedName constructor')
         if 2 < len(args):
@@ -128,6 +133,7 @@ class ExpandedName (pyxb.cscRoot):
             # Namespace(str, unicode, Namespace) and local name (str, unicode)
             ( ns, ln ) = args
         else:
+            # Local name (str, unicode) or ExpandedName or Node
             assert 1 == len(args)
             ln = args[0]
             ns = None
@@ -142,10 +148,13 @@ class ExpandedName (pyxb.cscRoot):
                     ln = ln.localName
                 except AttributeError:
                     pass
+        if (ns is None) and (fallback_namespace is not None):
+            if fallback_namespace.isAbsentNamespace():
+                ns = fallback_namespace
         if isinstance(ns, (str, unicode)):
             ns = NamespaceForURI(ns, create_if_missing=True)
         if (ns is not None) and not isinstance(ns, Namespace):
-            raise LogicError('ExpandedName must include a valid (perhaps absent) namespace, or None.')
+            raise pyxb.LogicError('ExpandedName must include a valid (perhaps absent) namespace, or None.')
         self.__namespace = ns
         if self.__namespace is not None:
             self.__namespaceURI = self.__namespace.uri()
