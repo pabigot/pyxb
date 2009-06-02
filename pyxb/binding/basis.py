@@ -657,7 +657,8 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
         If the element is a complex type with simple content, the
         value of the content() is dereferenced once, as a convenience.
         """
-        self.__setContent(self._TypeDefinition.Factory(*args, **kw))
+        content_type = kw.get('_content_type', self._TypeDefinition)
+        self.__setContent(content_type.Factory(*args, **kw))
         
     # Determine which content should be used to dereference a particular
     # (Python) attribute.  Priority deferral to the real content.
@@ -694,14 +695,9 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
         return self.__realContent
     
     @classmethod
-    def AnyCreateFromDOM (cls, node, target_namespace):
-        expanded_name = pyxb.namespace.ExpandedName(node)
-        if (expanded_name.namespace() is None) and target_namespace.isAbsentNamespace():
-            print 'Overriding empty namespace with %s' % (target_namespace,)
-            expanded_name = pyxb.namespace.ExpandedName(target_namespace, expanded_name.localName())
-        print '%s %s' % (expanded_name, expanded_name.namespace())
+    def AnyCreateFromDOM (cls, node, fallback_namespace):
+        expanded_name = pyxb.namespace.ExpandedName(node, fallback_namespace=fallback_namespace)
         cls = expanded_name.elementBinding()
-        print '%s %s %s' % (expanded_name, expanded_name.namespace(), cls)
         if cls is None:
             raise pyxb.exceptions_.UnrecognizedElementError('No class available for %s' % (expanded_name,))
         if not issubclass(cls, pyxb.binding.basis.element):
@@ -714,17 +710,47 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
 
         :raise pyxb.LogicError: the name of the node is not consistent with
         the _ExpandedName of this class."""
+
+        # Identify the element binding to be used for the given node.  In the
+        # case of substitution groups, it may not be what we expect.
+        elt_ns = cls._ExpandedName.namespace()
+        node_name = pyxb.namespace.ExpandedName(node, fallback_namespace=elt_ns)
+        elt_cls = node_name.elementBinding()
+        if elt_cls is not None:
+            assert cls == elt_cls
+
+        # Now determine the type binding for the content.  If xsi:type is
+        # used, it won't be the one built into the element binding.
+        type_class = cls._TypeDefinition
+        xsi_type = pyxb.namespace.ExpandedName(pyxb.namespace.XMLSchema_instance, 'type')
+        type_name = xsi_type.getAttribute(node)
+        dc_kw = { }
+        if type_name is not None:
+            # xsi:type should only be provided when using an abstract class
+            if not (issubclass(type_class, complexTypeDefinition) and type_class._Abstract):
+                raise pyxb.BadDocumentError('%s attribute on element with non-abstract type' % (xsi_type,))
+            # Get the node context.  In case none has been assigned, create
+            # it, using the element namespace as the default environment
+            # (since we only need this in order to resolve the xsi:type qname,
+            # that should be okay, right?)  @todo: verify this
+            ns_ctx = pyxb.namespace.NamespaceContext.GetNodeContext(node, target_namespace=elt_ns, default_namespace=elt_ns)
+            assert ns_ctx
+            type_name = ns_ctx.interpretQName(type_name)
+            alternative_type_class = type_name.typeBinding()
+            if not issubclass(alternative_type_class, type_class):
+                raise pyxb.BadDocumentError('%s value %s is not subclass of element type %s' % (xsi_type, type_name, type_class._ExpandedName))
+            print 'Overriding type class %s with %s' % (type_class._ExpandedName, type_name)
+            type_class = alternative_type_class
+            dc_kw['_content_type'] = type_class
         instance_root = kw.pop('instance_root', None)
         if not cls._ExpandedName.nodeMatches(node):
             node_en = pyxb.namespace.ExpandedName(node)
-            if node.localName == cls._ExpandedName.localName():
-                raise pyxb.UnrecognizedContentError('Match to %s requires namespace %s, but received %s' % (cls._ExpandedName.localName(), cls._ExpandedName.namespace(), node.namespaceURI))
-            raise pyxb.UnrecognizedContentError('Attempting to create element %s from DOM node named %s' % (cls._ExpandedName, node_en))
-        if issubclass(cls._TypeDefinition, simpleTypeDefinition):
-            rv = cls._DynamicCreate(cls._TypeDefinition.CreateFromDOM(node))
+            
+        if issubclass(type_class, simpleTypeDefinition):
+            rv = cls._DynamicCreate(type_class.CreateFromDOM(node))
         else:
-            rv = cls._DynamicCreate(validate_constraints=False)
-            rv.__setContent(cls._TypeDefinition.CreateFromDOM(node))
+            rv = cls._DynamicCreate(validate_constraints=False, **dc_kw)
+            rv.__setContent(type_class.CreateFromDOM(node))
         if isinstance(rv, simpleTypeDefinition):
             rv.xsdConstraintsOK()
         rv._setBindingContext(node, instance_root)
@@ -938,30 +964,19 @@ class complexTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _
         attrs_available = set(self._AttributeMap.values())
         for ai in range(0, node.attributes.length):
             attr = node.attributes.item(ai)
-            local_name = attr.localName
-            namespace_name = attr.namespaceURI
+            attr_en = pyxb.namespace.ExpandedName(attr)
             # Ignore xmlns attributes; DOM got those
-            if pyxb.namespace.XMLNamespaces.uri() == namespace_name:
+            if attr_en.namespace() in ( pyxb.namespace.XMLNamespaces, pyxb.namespace.XMLSchema_instance ):
                 continue
 
-            prefix = attr.prefix
-            if not prefix:
-                prefix = None
             value = attr.value
-            # hack to make some QName attribute tags work
-            if (attr.namespaceURI == node.namespaceURI):
-                prefix = None
 
             # @todo handle cross-namespace attributes
-            if prefix is not None:
-                print 'IGNORING namespace-qualified attribute %s:%s' % (prefix, local_name)
-                #raise pyxb.IncompleteImplementationError('No support for namespace-qualified attributes like %s:%s' % (prefix, local_name))
-                continue
-            au = self._AttributeMap.get(local_name, None)
+            au = self._AttributeMap.get(attr_en, None)
             if au is None:
                 if self._AttributeWildcard is None:
-                    raise pyxb.UnrecognizedAttributeError('Attribute %s is not permitted in type %s' % (local_name, self._ExpandedName))
-                self.__wildcardAttributeMap[local_name] = value
+                    raise pyxb.UnrecognizedAttributeError('Attribute %s is not permitted in type %s' % (attr_en, self._ExpandedName))
+                self.__wildcardAttributeMap[attr_en] = value
                 continue
             au.setFromDOM(self, node)
             attrs_available.remove(au)
@@ -979,6 +994,7 @@ class complexTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _
 
     def _setContentFromDOM (self, node):
         """Initialize the content of this element from the content of the DOM node."""
+        print '%s setting content from node %s' % (self._ExpandedName, node)
         return self._setContentFromDOM_vx(node)
 
     def _setDOMFromAttributes (self, element):
@@ -1122,7 +1138,7 @@ class _CTD_content_mixin (pyxb.cscRoot):
         # while not losing track of where we are in the content model.
         self.__isMixed = is_mixed
         node_list = node.childNodes[:]
-        #print 'Setting mixable control of %s from %s' % (self.__class__, node_list)
+        print 'Setting mixable control of %s from %s' % (self.__class__, node_list)
         self._stripMixedContent(node_list)
         if self._ContentModel is not None:
             self._ContentModel.interprete(self, node_list)
