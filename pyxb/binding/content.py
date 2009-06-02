@@ -474,19 +474,18 @@ class ContentModelTransition (pyxb.cscRoot):
 
         if self.TT_element == self.__termType:
             if 0 == len(node_list):
-                raise pyxb.MissingContentError('No DOM nodes for reduction of %s' % (self.__term,))
-            #print 'Element reduction attempt attempt for %s' % (self.__term,)
+                return False
+            if not self.__term._ExpandedName.nodeMatches(node_list[0]):
+                return False
             element = self.__term.CreateFromDOM(node_list[0])
             node_list.pop(0)
             if store:
                 self.__elementUse.setValue(ctd_instance, element)
         elif self.TT_modelGroupAll == self.__termType:
-            #print 'All model group reduction attempt'
             self.__term.matchAlternatives(ctd_instance, node_list, store)
         elif self.TT_wildcard == self.__termType:
-            #print 'Wildcard reduction attempt'
             if 0 == len(node_list):
-                raise pyxb.MissingContentError()
+                return False
             if not self.__term.matchesNode(ctd_instance, node_list[0]):
                 raise pyxb.UnexpectedContentError(node_list[0])
             node = node_list.pop(0)
@@ -510,6 +509,7 @@ class ContentModelTransition (pyxb.cscRoot):
                 ctd_instance.wildcardElements().append(node)
         else:
             raise pyxb.LogicError('Unexpected transition term %s' % (self.__term,))
+        return True
 
 class ContentModelState (pyxb.cscRoot):
     """Represents a state in a ContentModel DFA.
@@ -555,15 +555,8 @@ class ContentModelState (pyxb.cscRoot):
 
         for transition in self.__transitions:
             # @todo check nodeName against element
-            try:
-                #print 'Attempting transition at %s' % (transition.term(),)
-                transition.attemptTransition(ctd_instance, node_list, store)
-                #print 'Transition succeeded with %s' % (transition.term(),)
-
+            if transition.attemptTransition(ctd_instance, node_list, store):
                 return transition.nextState()
-            except pyxb.StructuralBadDocumentError, e:
-                #print 'Transition failed with %s: %s' % (transition.term(), e)
-                pass
         if self.isFinal():
             return None
         if 0 < len(node_list):
