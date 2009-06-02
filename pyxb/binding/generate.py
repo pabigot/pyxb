@@ -691,13 +691,16 @@ class %{ctd} (%{superclasses}):
    superclasses=template_map['superclasses'], **superclass_ef_map))
 
         PostscriptItems.append("\n\n")
-        for (name, (is_plural, ed)) in plurality_data.items():
+        for (expanded_name, (is_plural, ed)) in plurality_data.items():
             # If this name exists as an element in the parent class,
             # and the plurality data is identical, then inherit the
             # element infrastructure from the parent
             
             ef_map = { }
             aux_init = []
+            name = expanded_name
+            if isinstance(name, pyxb.namespace.ExpandedName):
+                name = expanded_name.localName()
             used_field_name = utility.PrepareIdentifier(name, class_unique, class_keywords)
             element_name_map[name] = used_field_name
 
@@ -707,7 +710,7 @@ class %{ctd} (%{superclasses}):
             ef_map['field_name'] = utility.PrepareIdentifier(name, class_unique, class_keywords, private=True)
             ef_map['value_field_name'] = utility.PrepareIdentifier('%s_%s' % (template_map['ctd'], name), class_unique, class_keywords, private=True)
             ef_map['is_plural'] = repr(is_plural)
-            ef_map['field_tag'] = pythonLiteral(name, **kw)
+            ef_map['field_tag'] = pythonLiteral(expanded_name, **kw)
             element_uses.append(templates.replaceInText('%{field_tag} : %{field_name}', **ef_map))
             datatype_items.append("%s : %s" % (ef_map['field_tag'], pythonLiteral(ed, **kw)))
             if 0 == len(aux_init):
@@ -715,7 +718,7 @@ class %{ctd} (%{superclasses}):
             else:
                 ef_map['aux_init'] = ', ' + ', '.join(aux_init)
 
-            ctd.__elementFields[name] = ( is_plural, ed, ef_map )
+            ctd.__elementFields[expanded_name] = ( is_plural, ed, ef_map )
             definitions.append(templates.replaceInText('''
     # Element %{field_tag} uses Python identifier %{python_field_name}
     %{field_name} = pyxb.binding.content.ElementUse(%{field_tag}, '%{python_field_name}', '%{value_field_name}', %{is_plural}%{aux_init})
