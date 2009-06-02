@@ -739,7 +739,6 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
             alternative_type_class = type_name.typeBinding()
             if not issubclass(alternative_type_class, type_class):
                 raise pyxb.BadDocumentError('%s value %s is not subclass of element type %s' % (xsi_type, type_name, type_class._ExpandedName))
-            print 'Overriding type class %s with %s' % (type_class._ExpandedName, type_name)
             type_class = alternative_type_class
             dc_kw['_content_type'] = type_class
         instance_root = kw.pop('instance_root', None)
@@ -1042,7 +1041,6 @@ class complexTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _
 
     def _setContentFromDOM (self, node):
         """Initialize the content of this element from the content of the DOM node."""
-        print '%s setting content from node %s' % (self._ExpandedName, node)
         if self._CT_EMPTY == self._ContentTypeTag:
             return
         if self._CT_SIMPLE == self._ContentTypeTag:

@@ -466,7 +466,6 @@ class ContentModelTransition (pyxb.cscRoot):
         if not self.__term._ExpandedName.nodeMatches(node):
             return None
         elt_name = pyxb.namespace.ExpandedName(node)
-        print '%s %s' % (elt_name, elt_name.namespace())
         element = self.__term.CreateFromDOM(node)
         return element
 
