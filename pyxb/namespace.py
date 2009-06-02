@@ -106,25 +106,53 @@ class ExpandedName (pyxb.cscRoot):
             raise pyxb.LogicError('Attempt to locate unrecognized field %s in absent namespace' % (name,))
         return lambda _value=self.namespace().categoryMap(name).get(self.localName()): _value
 
-    def __init__ (self, namespace, local_name):
+    def __init__ (self, *args):
         """Create an expanded name.
 
-        The only time the namespace can be None is if the expanded name refers
-        to an attribute which does not have a namespace prefix.
+        Expected argument patterns are:
 
-        @param namespace: The L{Namespace} to which the name belongs.
-        @type namespace: L{Namespace} or None
-        @param local_name: The local name within the namespace.
-        @type local_name: C{str} or C{unicode}
+        ( C{str} ) -- the local name in an absent namespace
+        ( L{ExpandedName} ) -- a copy of the given expanded name
+        ( C{xml.dom.Node} ) -- The name extracted from node.namespaceURI and node.localName
+        ( C{str}, C{str} ) -- the namespace URI and the local name
+        ( L{Namespace}, C{str} ) -- the namespace and the local name
+
+        Wherever C{str} occurs C{unicode} is also permitted.
+        
         """
-        if (namespace is not None) and not isinstance(namespace, Namespace):
+        if 0 == len(args):
+            raise pyxb.LogicError('Too few arguments to ExpandedName constructor')
+        if 2 < len(args):
+            raise pyxb.LogicError('Too many arguments to ExpandedName constructor')
+        if 2 == len(args):
+            # Namespace(str, unicode, Namespace) and local name (str, unicode)
+            ( ns, ln ) = args
+        else:
+            assert 1 == len(args)
+            ln = args[0]
+            ns = None
+            if isinstance(ln, (str, unicode)):
+                pass
+            elif isinstance(ln, ExpandedName):
+                ns = ln.namespace()
+                ln = ln.localName()
+            else:
+                try:
+                    ns = ln.namespaceURI
+                    ln = ln.localName
+                except AttributeError:
+                    pass
+        if isinstance(ns, (str, unicode)):
+            ns = NamespaceForURI(ns, create_if_missing=True)
+        if (ns is not None) and not isinstance(ns, Namespace):
             raise LogicError('ExpandedName must include a valid (perhaps absent) namespace, or None.')
-        super(ExpandedName, self).__init__( (namespace, local_name) )
-        self.__namespace = namespace
-        if (self.__namespace is not None) and (not self.__namespace.isAbsentNamespace()):
+        self.__namespace = ns
+        if self.__namespace is not None:
             self.__namespaceURI = self.__namespace.uri()
-        self.__localName = local_name
+        self.__localName = ln
         self.__expandedName = ( self.__namespace, self.__localName )
+        self.__uriTuple = ( self.__namespaceURI, self.__localName )
+
 
     def __str__ (self):
         if self.__namespaceURI is not None:
@@ -141,13 +169,20 @@ class ExpandedName (pyxb.cscRoot):
         if isinstance(other, (str, unicode)):
             other = ( None, other )
         if not isinstance(other, tuple):
-            other = other.__expandedName
-        return cmp(self.__expandedName, other)
+            other = other.__uriTuple
+        if isinstance(other[0], Namespace):
+            other = ( other[0].uri(), other[1] )
+        return cmp(self.__uriTuple, other)
 
     def getAttribute (self, dom_node):
+        """Return the value of the attribute identified by this name in the given node."""
         if dom_node.hasAttributeNS(self.__namespaceURI, self.__localName):
             return dom_node.getAttributeNS(self.__namespaceURI, self.__localName)
         return None
+
+    def nodeMatches (self, dom_node):
+        """Return True iff the dom node expanded name matches this expanded name."""
+        return (dom_node.localName == self.__localName) and (dom_node.namespaceURI == self.__namespaceURI)
 
 class _Resolvable_mixin (pyxb.cscRoot):
     """Mix-in indicating that this object may have references to unseen named components.

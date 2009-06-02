@@ -19,6 +19,29 @@ class TestExpandedName (unittest.TestCase):
         self.assertTrue(an1 != en3.localName())
         self.assertFalse(an1 != an1.localName())
 
+    class FakeDOM:
+        namespaceURI = None
+        localName = None
+
+    def testConstructor (self):
+        ln = 'local'
+        ns_uri = 'urn:ns'
+        en = ExpandedName(ln)
+        self.assertEqual(en.namespace(), None)
+        self.assertEqual(en.localName(), ln)
+        en2 = ExpandedName(en)
+        self.assertEqual(en2, en)
+        dom = self.FakeDOM()
+        dom.namespaceURI = ns_uri
+        dom.localName = ln
+        en = ExpandedName(dom)
+        ns = pyxb.namespace.NamespaceForURI(ns_uri)
+        self.assertTrue(ns is not None)
+        self.assertEqual(ns, en.namespace())
+        self.assertEqual(ln, en.localName())
+        en2 = ExpandedName(ns, ln)
+        self.assertEqual(en, en2)
+
     def testMapping (self):
         an1 = ExpandedName(None, 'string')
         en1 = ExpandedName(pyxb.namespace.XMLSchema, 'string')
@@ -58,9 +81,9 @@ class TestExpandedName (unittest.TestCase):
         en1 = ExpandedName(None, ln)
         en2 = ExpandedName(an, ln)
         en3 = ExpandedName(an2, ln)
-        self.assertNotEqual(en1, en2)
-        self.assertNotEqual(en1, en3)
-        self.assertNotEqual(en2, en3)
+        self.assertEqual(en1, en2)
+        self.assertEqual(en1, en3)
+        self.assertEqual(en2, en3)
         self.assertEqual(hash(en1), hash(en2))
         self.assertEqual(hash(en1), hash(en3))
         self.assertEqual(hash(en2), hash(en3))
