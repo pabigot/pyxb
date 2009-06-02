@@ -103,7 +103,7 @@ class ExpandedName (pyxb.cscRoot):
         if name.startswith('__'):
             return super(ExpandedName, self).__getattr__(name)
         if self.namespace() is None:
-            raise pyxb.LogicError('Attempt to locate unrecognized field %s in absent namespace' % (name,))
+            return lambda: None
         return lambda _value=self.namespace().categoryMap(name).get(self.localName()): _value
 
     def __init__ (self, *args):
