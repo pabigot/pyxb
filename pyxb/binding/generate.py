@@ -1116,15 +1116,7 @@ def CreateFromDocument (xml_text):
 def CreateFromDOM (node):
     """Create a Python instance from the given DOM node.
     The node tag must correspond to an element declaration in this module."""
-    ncname = node.tagName
-    if 0 <= ncname.find(':'):
-        ncname = ncname.split(':', 1)[1]
-    cls = globals().get(ncname, None)
-    if cls is None:
-        raise pyxb.exceptions_.UnrecognizedElementError('No class available for %s' % (ncname,))
-    if not issubclass(cls, pyxb.binding.basis.element):
-        raise pyxb.exceptions_.NotAnElementError('Tag %s does not exist as element in module' % (ncname,))
-    return cls.CreateFromDOM(node)
+    return pyxb.binding.basis.element.AnyCreateFromDOM(node, Namespace)
 
 ElementToBindingMap = { }
 ''', **template_map))

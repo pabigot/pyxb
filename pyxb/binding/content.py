@@ -461,6 +461,15 @@ class ContentModelTransition (pyxb.cscRoot):
             rv = cmp(self.__term, other.__term)
         return rv
 
+    def __processElementTransition (self, node):
+        # First, identify the element
+        if not self.__term._ExpandedName.nodeMatches(node):
+            return None
+        elt_name = pyxb.namespace.ExpandedName(node)
+        print '%s %s' % (elt_name, elt_name.namespace())
+        element = self.__term.CreateFromDOM(node)
+        return element
+
     def attemptTransition (self, ctd_instance, node_list, store):
         """Attempt to make the appropriate transition.
 
@@ -475,9 +484,9 @@ class ContentModelTransition (pyxb.cscRoot):
         if self.TT_element == self.__termType:
             if 0 == len(node_list):
                 return False
-            if not self.__term._ExpandedName.nodeMatches(node_list[0]):
+            element = self.__processElementTransition(node_list[0])
+            if element is None:
                 return False
-            element = self.__term.CreateFromDOM(node_list[0])
             node_list.pop(0)
             if store:
                 self.__elementUse.setValue(ctd_instance, element)

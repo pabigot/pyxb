@@ -694,6 +694,21 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
         return self.__realContent
     
     @classmethod
+    def AnyCreateFromDOM (cls, node, target_namespace):
+        expanded_name = pyxb.namespace.ExpandedName(node)
+        if (expanded_name.namespace() is None) and target_namespace.isAbsentNamespace():
+            print 'Overriding empty namespace with %s' % (target_namespace,)
+            expanded_name = pyxb.namespace.ExpandedName(target_namespace, expanded_name.localName())
+        print '%s %s' % (expanded_name, expanded_name.namespace())
+        cls = expanded_name.elementBinding()
+        print '%s %s %s' % (expanded_name, expanded_name.namespace(), cls)
+        if cls is None:
+            raise pyxb.exceptions_.UnrecognizedElementError('No class available for %s' % (expanded_name,))
+        if not issubclass(cls, pyxb.binding.basis.element):
+            raise pyxb.exceptions_.NotAnElementError('Tag %s does not exist as element in module' % (expanded_name,))
+        return cls.CreateFromDOM(node)
+        
+    @classmethod
     def CreateFromDOM (cls, node, **kw):
         """Create an instance of this element from the given DOM node.
 
