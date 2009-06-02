@@ -177,6 +177,8 @@ class BindingDOMSupport (object):
 
     __namespacePrefixCounter = None
 
+    __defaultNamespace = None
+
     def implementation (self):
         """The DOMImplementation object to be used.
 
@@ -190,13 +192,21 @@ class BindingDOMSupport (object):
         return self.__document
     __document = None
 
-    def __init__ (self, implementation=None):
+    def __init__ (self, implementation=None, default_namespace=None):
         if implementation is None:
             implementation = GetDOMImplementation()
         self.__implementation = implementation
         self.__document = self.implementation().createDocument(None, None, None)
         self.__namespaces = { }
         self.__namespacePrefixCounter = 0
+        self.setDefaultNamespace(default_namespace)
+
+    def setDefaultNamespace (self, default_namespace):
+        if self.__defaultNamespace is not None:
+            del self.__namespaces[self.__defaultNamespace]
+        self.__defaultNamespace = default_namespace
+        if self.__defaultNamespace is not None:
+            self.__namespaces[self.__defaultNamespace] = None
 
     def finalize (self):
         """Do the final cleanup after generating the tree.  This makes sure
@@ -246,11 +256,8 @@ class BindingDOMSupport (object):
             if ns_uri in self.__namespaces:
                 pfx = self.__namespaces[ns_uri]
             else:
-                if 0 == len(self.__namespaces):
-                    pfx = None
-                else:
-                    self.__namespacePrefixCounter += 1
-                    pfx = 'ns%d' % (self.__namespacePrefixCounter,)
+                self.__namespacePrefixCounter += 1
+                pfx = 'ns%d' % (self.__namespacePrefixCounter,)
                 self.__namespaces[ns_uri] = pfx
             if pfx is not None:
                 name = '%s:%s' % (pfx, local_name)
