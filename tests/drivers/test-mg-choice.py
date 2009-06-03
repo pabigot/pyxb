@@ -136,6 +136,17 @@ class TestMGChoice (unittest.TestCase):
         dom = pyxb.utils.domutils.StringToDOM(xml)
         self.assertRaises(ExtraContentError, altmultiplechoice.CreateFromDOM, dom.documentElement)
 
+    def testFixedMultichoice (self):
+        xml = '<fixedMultichoice xmlns="URN:test-mg-choice"></fixedMultichoice>'
+        dom = pyxb.utils.domutils.StringToDOM(xml)
+        instance = fixedMultichoice.CreateFromDOM(dom.documentElement)
+        xml = '<ns1:fixedMultichoice xmlns:ns1="URN:test-mg-choice"><A/><A/></ns1:fixedMultichoice>'
+        dom = pyxb.utils.domutils.StringToDOM(xml)
+        instance = fixedMultichoice.CreateFromDOM(dom.documentElement)
+        xml = '<ns1:fixedMultichoice xmlns:ns1="URN:test-mg-choice"><A/><B/></ns1:fixedMultichoice>'
+        dom = pyxb.utils.domutils.StringToDOM(xml)
+        self.assertRaises(ExtraContentError, fixedMultichoice.CreateFromDOM, dom.documentElement)
+
 if __name__ == '__main__':
     unittest.main()
     

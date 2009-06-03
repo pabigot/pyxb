@@ -4,6 +4,7 @@
 	<element name="choice" type="tns:choice"/>
 	<element name="multiplechoice" type="tns:multiplechoice"/>
 	<element name="altmultiplechoice" type="tns:altmultiplechoice"/>
+	<element name="fixedMultichoice" type="tns:fixedMultichoice"/>
 	<complexType name="choice">
 		<choice>
 			<element name="first"/>
@@ -27,4 +28,12 @@
 			<element name="third"/>
 		</choice>
 	</complexType>
+	<complexType name="fixedMultichoice">
+		<choice>
+			<element name="A" type="string" minOccurs="0" maxOccurs="unbounded"/>
+			<element name="B" type="string" minOccurs="0" maxOccurs="unbounded"/>
+			<element name="C" type="string" minOccurs="0" maxOccurs="unbounded"/>
+		</choice>
+	</complexType>
+
 </schema>

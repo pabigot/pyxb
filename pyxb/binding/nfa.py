@@ -363,10 +363,15 @@ class Thompson:
         self.addTransition(None, start, end)
 
     def __fromMGChoice (self, particles, start, end):
-        # Trivial: start to end for each possibility
-        #print '# Choice of %s' % (particles,)
+        # Start to end for each choice, but make the choice stage
+        # occur once (in case a particle adds a transition from end to
+        # start.
         for p in particles:
-            self.addTransition(p, start, end)
+            choice_start = self.__nfa.newState()
+            choice_end = self.__nfa.newState()
+            self.addTransition(None, start, choice_start)
+            self.addTransition(p, choice_start, choice_end)
+            self.addTransition(None, choice_end, end)
 
     def __fromMGAll (self, particles, start, end):
         # All is too ugly: exponential state growth.  Use a special
