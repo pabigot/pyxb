@@ -336,7 +336,7 @@ class simpleTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _D
 
         This method may be overridden in subclasses (like STD_union)."""
         try:
-            return cls(*args, **kw)
+            return cls._DynamicCreate(*args, **kw)
         except TypeError, e:
             print 'ERROR in %s: %s' % (cls, e)
             raise
@@ -666,6 +666,12 @@ class STD_list (simpleTypeDefinition, types.ListType):
     @classmethod
     def _XsdValueLength_vx (cls, value):
         return len(value)
+
+    @classmethod
+    def XsdLiteral (cls, value):
+        """Convert from a binding value to a string usable in an XML document."""
+        return ' '.join([ cls.XsdLiteral(_v) for _v in value ])
+
 
 class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
     """Base class for any Python class that serves as the binding to
@@ -1028,7 +1034,7 @@ class complexTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _
     def _UseForTag (cls, tag):
         """Return the ElementUse object corresponding to the element name.
 
-        :param tag: The NCName of an element in the class"""
+        :param tag: The L{ExpandedName} of an element in the class."""
         return cls._ElementMap[tag]
 
     def _setAttributesFromDOM (self, node):
@@ -1148,7 +1154,7 @@ class complexTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _
         self._Content.extendDOMFromContent(dom_support, element, self)
         mixed_content = self.content()
         for mc in mixed_content:
-            print 'Skipping mixed content %s' % (mc,)
+            #print 'Skipping mixed content %s' % (mc,)
             pass
             #if isinstance(mc, types.StringTypes):
             #    element.appendChild(dom_support.document().createTextNode(mc))
