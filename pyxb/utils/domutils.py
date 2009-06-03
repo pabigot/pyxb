@@ -210,6 +210,37 @@ class BindingDOMSupport (object):
         if self.__defaultNamespace is not None:
             self.__namespaces[self.__defaultNamespace] = None
 
+    def declareNamespace (self, namespace, prefix=None):
+        # @todo: ensure multiple namespaces do not share the same prefix
+        # @todo: support multiple prefixes for each namespace
+        if isinstance(namespace, pyxb.namespace.Namespace):
+            namespace = namespace.uri()
+        if prefix is None:
+            self.__namespacePrefixCounter += 1
+            prefix = 'ns%d' % (self.__namespacePrefixCounter,)
+        self.__namespaces[namespace] = prefix
+        return prefix
+
+    def namespacePrefix (self, namespace):
+        if isinstance(namespace, pyxb.namespace.Namespace):
+            namespace = namespace.uri()
+        if namespace is None:
+            return None
+        if not (namespace in self.__namespaces):
+            return self.declareNamespace(namespace)
+        return self.__namespaces[namespace]
+
+    def addAttribute (self, element, expanded_name, value):
+        name = expanded_name
+        namespace = None
+        if isinstance(name, pyxb.namespace.ExpandedName):
+            name = expanded_name.localName()
+            namespace = expanded_name.namespace()
+            prefix = self.namespacePrefix(namespace)
+            if prefix is not None:
+                name = '%s:%s' % (prefix, name)
+        element.setAttributeNS(namespace, name, value)
+
     def finalize (self):
         """Do the final cleanup after generating the tree.  This makes sure
         that the document element includes XML Namespace declarations for all
@@ -258,9 +289,7 @@ class BindingDOMSupport (object):
             if ns_uri in self.__namespaces:
                 pfx = self.__namespaces[ns_uri]
             else:
-                self.__namespacePrefixCounter += 1
-                pfx = 'ns%d' % (self.__namespacePrefixCounter,)
-                self.__namespaces[ns_uri] = pfx
+                pfx = self.declareNamespace(ns_uri)
             if pfx is not None:
                 name = '%s:%s' % (pfx, local_name)
         element = self.__document.createElementNS(ns_uri, name)

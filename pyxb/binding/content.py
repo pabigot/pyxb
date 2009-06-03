@@ -401,6 +401,17 @@ class ElementUse (pyxb.cscRoot):
     def toDOM (self, dom_support, parent, value):
         element = dom_support.createChild(self.tag().localName(), self.tag().namespace(), parent)
         if isinstance(value, basis._Binding_mixin):
+            elt_type = self.__elementBinding._TypeDefinition
+            assert isinstance(value, elt_type)
+            val_type = type(value)
+            if (val_type != elt_type):
+                print 'Type %s versus %s' % (self.__elementBinding._TypeDefinition, type(value))
+                val_type_qname = value._ExpandedName.localName()
+                print val_type_qname
+                tns_prefix = dom_support.namespacePrefix(value._ExpandedName.namespace())
+                if tns_prefix is not None:
+                    val_type_qname = '%s:%s' % (tns_prefix, val_type_qname)
+                dom_support.addAttribute(element, pyxb.namespace.XMLSchema_instance.createExpandedName('type'), val_type_qname)
             value._toDOM_vx(dom_support, element)
         elif isinstance(value, (str, unicode)):
             element.appendChild(dom_support.document().createTextNode(value))
