@@ -62,13 +62,17 @@ class _Binding_mixin (pyxb.cscRoot):
         with a type that is either one of those."""
         return False
 
-    def _toDOM_vx (self, bds):
+    def _toDOM_vx (self, bds, parent):
         raise pyxb.LogicError('Class %s did not override _toDOM_vx' % (type(self),))
 
     def toDOM (self, bds=None):
         if bds is None:
             bds = domutils.BindingDOMSupport()
-        self._toDOM_vx(bds)
+        if isinstance(self, element):
+            parent = None
+        else:
+            parent = bds.createChild(self._ExpandedName.localName(), self._ExpandedName.namespaceURI())
+        self._toDOM_vx(bds, parent)
         bds.finalize()
         return bds.document()
 
@@ -505,7 +509,7 @@ class simpleTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _D
         represent the value of this instance."""
         return self.PythonLiteral(self)
 
-    def _toDOM_vx (self, dom_support, parent=None):
+    def _toDOM_vx (self, dom_support, parent):
         assert parent is not None
         parent.appendChild(dom_support.document().createTextNode(self.xsdLiteral()))
         return dom_support
@@ -786,7 +790,7 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
         rv._setBindingContext(node, instance_root)
         return rv
 
-    def _toDOM_vx (self, dom_support, parent=None):
+    def _toDOM_vx (self, dom_support, parent):
         """Add a DOM representation of this element as a child of
         parent, which should be a DOM Node instance."""
         assert isinstance(dom_support, domutils.BindingDOMSupport)
@@ -1093,12 +1097,9 @@ class complexTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _
             au.addDOMAttribute(self, element)
         return element
 
-    def _toDOM_vx (self, dom_support, parent=None, tag=None):
+    def _toDOM_vx (self, dom_support, parent):
         """Create a DOM element with the given tag holding the content of this instance."""
-        if tag is None:
-            element = parent
-        else:
-            element = dom_support.createChild(tag, namespace, parent)
+        element = parent
         for eu in self._ElementMap.values():
             eu.clearGenerationMarkers(self)
         self._setDOMFromContent(dom_support, element)
@@ -1116,6 +1117,7 @@ class complexTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _
         self._Content.extendDOMFromContent(dom_support, element, self)
         mixed_content = self.content()
         for mc in mixed_content:
+            print 'Skipping mixed content %s' % (mc,)
             pass
             #if isinstance(mc, types.StringTypes):
             #    element.appendChild(dom_support.document().createTextNode(mc))

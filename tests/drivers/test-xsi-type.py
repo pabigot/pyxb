@@ -50,15 +50,25 @@ class TestXSIType (unittest.TestCase):
         instance = CreateFromDOM(doc.documentElement)
         self.assertEqual(concreteBase_.basement, instance.content().__class__.basement)
         self.assertEqual(oneFloor_.lobby, instance.content().__class__.lobby)
-        self.assertEqual(restaurant.room, instance.content().__class__.room)
+        self.assertEqual(restaurant_.room, instance.content().__class__.room)
         self.assertEqual('tiled', instance.lobby())
         self.assertEqual('eats', instance.room())
 
     def testConstructor (self):
-        rest = restaurant(basement='concrete', lobby='tiled', room='eats')
+        kw = { 'basement' : 'concrete',
+               'lobby' : 'tiled',
+               'room' : 'eats' }
+        ctd = restaurant_(**kw)
+        dom = ctd.toDOM().documentElement
+        xml = '<restaurant><basement>concrete</basement><lobby>tiled</lobby><room>eats</room></restaurant>'
+        self.assertEqual(xml, dom.toxml())
+
+        rest = restaurant(**kw)
         dom = rest.toDOM().documentElement
-        xml = '<basement>concrete<lobby>tiled</lobby><room>eats</room></basement>'
-        print dom.toxml()
+        self.assertEqual(xml, dom.toxml())
+
+        self.assertRaises(pyxb.AbstractInstantiationError, oneFloor, **kw)
+
 
 if __name__ == '__main__':
     unittest.main()

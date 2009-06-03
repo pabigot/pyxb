@@ -75,4 +75,10 @@
 	<xs:element name="notAlt" type="notAlt"/>
 	<xs:element name="alt1" type="alt1"/>
 	<xs:element name="oneFloor" type="oneFloor"/>
+	<xs:element name="restaurant" type="restaurant"/>
+	<xs:element name="block">
+	  <xs:sequence>
+	    <xs:element ref="oneFloor" minOccurs="0" maxOccurs="unbounded"/>
+	  </xs:sequence>
+	</xs:element>
 </xs:schema>
