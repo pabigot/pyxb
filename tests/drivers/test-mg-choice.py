@@ -23,19 +23,19 @@ import unittest
 
 class TestMGChoice (unittest.TestCase):
     def onlyFirst (self, instance):
-        self.assert_(isinstance(instance.first(), choice_first))
+        self.assert_(isinstance(instance.first(), choice_first._TypeDefinition))
         self.assert_(instance.second() is None)
         self.assert_(instance.third() is None)
 
     def onlySecond (self, instance):
         self.assert_(instance.first() is None)
-        self.assert_(isinstance(instance.second(), choice_second))
+        self.assert_(isinstance(instance.second(), choice_second._TypeDefinition))
         self.assert_(instance.third() is None)
 
     def onlyThird (self, instance):
         self.assert_(instance.first() is None)
         self.assert_(instance.second() is None)
-        self.assert_(isinstance(instance.third(), choice_third))
+        self.assert_(isinstance(instance.third(), choice_third._TypeDefinition))
 
     def testSingleChoice (self):
         xml = '<ns1:choice xmlns:ns1="URN:test-mg-choice"><first/></ns1:choice>'

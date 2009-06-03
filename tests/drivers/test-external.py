@@ -65,8 +65,8 @@ class TestExternal (unittest.TestCase):
         xml = '<ns1:word xmlns:ns1="URN:test-external"><from>one</from><to>un</to></ns1:word>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
         instance = word.CreateFromDOM(dom.documentElement)
-        self.assertEquals('one', instance.from_().content())
-        self.assertEquals('un', instance.to().content())
+        self.assertEquals('one', instance.from_())
+        self.assertEquals('un', instance.to())
         self.assertEqual(xml, ToDOM(instance).toxml())
         
     def testBadWords (self):

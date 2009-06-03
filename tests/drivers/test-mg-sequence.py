@@ -33,24 +33,24 @@ class TestMGSeq (unittest.TestCase):
         xml = '<ns1:wrapper xmlns:ns1="URN:test-mg-sequence"><first/><second_opt/><third/><fourth_0_2/></ns1:wrapper>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
         instance = wrapper.CreateFromDOM(dom.documentElement)
-        self.assert_(isinstance(instance.first(), sequence_first))
-        self.assert_(isinstance(instance.second_opt(), sequence_second_opt))
-        self.assert_(isinstance(instance.third(), sequence_third))
+        self.assert_(isinstance(instance.first(), sequence_first._TypeDefinition))
+        self.assert_(isinstance(instance.second_opt(), sequence_second_opt._TypeDefinition))
+        self.assert_(isinstance(instance.third(), sequence_third._TypeDefinition))
         self.assert_(isinstance(instance.fourth_0_2(), list))
         self.assertEqual(1, len(instance.fourth_0_2()))
-        self.assert_(isinstance(instance.fourth_0_2()[0], sequence_fourth_0_2))
+        self.assert_(isinstance(instance.fourth_0_2()[0], sequence_fourth_0_2._TypeDefinition))
         self.assertEqual(xml, ToDOM(instance).toxml())
 
     def testMultiplesAtEnd (self):
         xml = '<ns1:wrapper xmlns:ns1="URN:test-mg-sequence"><first/><third/><fourth_0_2/><fourth_0_2/></ns1:wrapper>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
         instance = wrapper.CreateFromDOM(dom.documentElement)
-        self.assert_(isinstance(instance.first(), sequence_first))
+        self.assert_(isinstance(instance.first(), sequence_first._TypeDefinition))
         self.assert_(instance.second_opt() is None)
-        self.assert_(isinstance(instance.third(), sequence_third))
+        self.assert_(isinstance(instance.third(), sequence_third._TypeDefinition))
         self.assert_(isinstance(instance.fourth_0_2(), list))
         self.assertEqual(2, len(instance.fourth_0_2()))
-        self.assert_(isinstance(instance.fourth_0_2()[0], sequence_fourth_0_2))
+        self.assert_(isinstance(instance.fourth_0_2()[0], sequence_fourth_0_2._TypeDefinition))
         self.assertEqual(xml, ToDOM(instance).toxml())
 
     def testMultiplesInMiddle (self):
@@ -60,7 +60,7 @@ class TestMGSeq (unittest.TestCase):
         self.assert_(isinstance(instance.first(), list))
         self.assertEqual(1, len(instance.first()))
         self.assertEqual(2, len(instance.second_multi()))
-        self.assert_(isinstance(instance.third(), altsequence_third))
+        self.assert_(isinstance(instance.third(), altsequence_third._TypeDefinition))
         self.assertEqual(xml, ToDOM(instance).toxml())
 
     def testMultiplesAtStart (self):
@@ -70,16 +70,16 @@ class TestMGSeq (unittest.TestCase):
         self.assert_(isinstance(instance.first(), list))
         self.assertEqual(2, len(instance.first()))
         self.assertEqual(0, len(instance.second_multi()))
-        self.assert_(isinstance(instance.third(), altsequence_third))
+        self.assert_(isinstance(instance.third(), altsequence_third._TypeDefinition))
         self.assertEqual(xml, ToDOM(instance).toxml())
 
     def testMissingInMiddle (self):
         xml = '<ns1:wrapper xmlns:ns1="URN:test-mg-sequence"><first/><third/></ns1:wrapper>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
         instance = wrapper.CreateFromDOM(dom.documentElement)
-        self.assert_(isinstance(instance.first(), sequence_first))
+        self.assert_(isinstance(instance.first(), sequence_first._TypeDefinition))
         self.assert_(instance.second_opt() is None)
-        self.assert_(isinstance(instance.third(), sequence_third))
+        self.assert_(isinstance(instance.third(), sequence_third._TypeDefinition))
         self.assert_(isinstance(instance.fourth_0_2(), list))
         self.assertEqual(0, len(instance.fourth_0_2()))
         self.assertEqual(xml, ToDOM(instance).toxml())
