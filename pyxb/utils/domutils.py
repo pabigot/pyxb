@@ -204,6 +204,8 @@ class BindingDOMSupport (object):
     def setDefaultNamespace (self, default_namespace):
         if self.__defaultNamespace is not None:
             del self.__namespaces[self.__defaultNamespace]
+        if isinstance(default_namespace, pyxb.namespace.Namespace):
+            default_namespace = default_namespace.uri()
         self.__defaultNamespace = default_namespace
         if self.__defaultNamespace is not None:
             self.__namespaces[self.__defaultNamespace] = None
