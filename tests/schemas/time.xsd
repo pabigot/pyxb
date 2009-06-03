@@ -21,4 +21,11 @@
 		</xs:complexContent>
 	</xs:complexType>
 	<xs:element name="time" type="tTime"/>
+	<xs:element name="times">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="time" minOccurs="0" maxOccurs="6"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
 </xs:schema>
