@@ -910,8 +910,10 @@ class complexTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _
                 iv = fu.value(that)
             iv = kw.get(fu.pythonField(), iv)
             if iv is not None:
-                fu.setValue(self, iv)
-           
+                if isinstance(iv, list):
+                    [ fu.setValue(self, _elt) for _elt in iv ]
+                else:
+                    fu.setValue(self, iv)
 
     @classmethod
     def Factory (cls, *args, **kw):

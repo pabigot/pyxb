@@ -392,15 +392,20 @@ class ElementUse (pyxb.cscRoot):
         #if not isinstance(value, self.__elementBinding):
         #    value = self.__elementBinding(value)
         self.__setValue(ctd_instance, value)
-        ctd_instance._addContent(value)
+        if isinstance(value, list):
+            [ ctd_instance._addContent(_elt) for _elt in value ]
+        else:
+            ctd_instance._addContent(value)
         return self
 
     def toDOM (self, dom_support, parent, value):
         element = dom_support.createChild(self.tag().localName(), self.tag().namespace(), parent)
         if isinstance(value, basis._Binding_mixin):
             value._toDOM_vx(dom_support, element)
-        else:
+        elif isinstance(value, (str, unicode)):
             element.appendChild(dom_support.document().createTextNode(value))
+        else:
+            raise pyxb.LogicError('toDOM with unrecognized value type %s: %s' % (type(value), value))
 
 class ContentModelTransition (pyxb.cscRoot):
     """Represents a transition in the content model DFA.
