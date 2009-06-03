@@ -132,7 +132,7 @@ class TestMGChoice (unittest.TestCase):
         self.assertEqual(ToDOM(instance).toxml(), xml)
 
     def testTooManyChoices (self):
-        xml = '<altmultiplechoice xmlns="URN:test-mg-choice"><first/><first/><first/><third/></altmultiplechoice>'
+        xml = '<ns1:altmultiplechoice xmlns:ns1="URN:test-mg-choice"><first/><first/><first/><third/></ns1:altmultiplechoice>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
         self.assertRaises(ExtraContentError, altmultiplechoice.CreateFromDOM, dom.documentElement)
 
