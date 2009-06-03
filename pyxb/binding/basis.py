@@ -1037,6 +1037,21 @@ class complexTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _
         :param tag: The L{ExpandedName} of an element in the class."""
         return cls._ElementMap[tag]
 
+    def _childrenForDOM (self):
+        """Generate a list of children in the order in which they should be
+        added to the parent when creating a DOM representation of this
+        object."""
+        order = []
+        for eu in self._ElementMap.values():
+            value = eu.value(self)
+            if value is None:
+                continue
+            if isinstance(value, list):
+                order.extend([ (eu, _v) for _v in value ])
+                continue
+            order.append( (eu, value) )
+        return order
+
     def _setAttributesFromDOM (self, node):
         """Initialize the attributes of this element from those of the DOM node.
 
@@ -1137,28 +1152,21 @@ class complexTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _
     def _toDOM_vx (self, dom_support, parent):
         """Create a DOM element with the given tag holding the content of this instance."""
         element = parent
-        for eu in self._ElementMap.values():
-            eu.clearGenerationMarkers(self)
-        self._setDOMFromContent(dom_support, element)
-        for eu in self._ElementMap.values():
-            if eu.hasUngeneratedValues(self):
-                raise pyxb.DOMGenerationError('Values in %s were not converted to DOM' % (eu.pythonField(),))
         self._setDOMFromAttributes(element)
-        return dom_support
-
-    def _setDOMFromContent (self, dom_support, element):
         if self._CT_EMPTY == self._ContentTypeTag:
             return
         if self._CT_SIMPLE == self._ContentTypeTag:
             return element.appendChild(dom_support.document().createTextNode(self.content().xsdLiteral()))
-        self._Content.extendDOMFromContent(dom_support, element, self)
+        order = self._childrenForDOM()
+        for (eu, v) in order:
+            eu.toDOM(dom_support, parent, v)
         mixed_content = self.content()
         for mc in mixed_content:
             #print 'Skipping mixed content %s' % (mc,)
             pass
             #if isinstance(mc, types.StringTypes):
             #    element.appendChild(dom_support.document().createTextNode(mc))
-        return self
+        return dom_support
 
     @classmethod
     def _IsSimpleTypeContent (cls):
