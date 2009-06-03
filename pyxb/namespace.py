@@ -350,6 +350,16 @@ class _NamespaceCategory_mixin (pyxb.cscRoot):
         name_map[local_name] = named_object
         return named_object
 
+    def replaceCategoryObject (self, category, local_name, old_object, new_object):
+        """Replace the referenced object in the category.
+
+        The new object will be added only if the old_object matches the
+        current entry for local_name in the category."""
+        name_map = self.categoryMap(category)
+        if old_object == name_map.get(local_name):
+            name_map[local_name] = new_object
+        return name_map[local_name]
+
     # Verify that the namespace category map has no components recorded.  This
     # is the state that should hold prior to loading a saved namespace; at
     # tthe moment, we do not support aggregating components defined separately
