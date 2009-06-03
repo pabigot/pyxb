@@ -7,7 +7,7 @@ mkdir -p raw
 touch raw/__init__.py
 ../../scripts/pyxbgen \
    -u "${URI}" \
-   -p "${PREFIX}" \
+   -m "${PREFIX}" \
    -r 
 if [ ! -f ${PREFIX}.py ] ; then
   echo "from raw.${PREFIX} import *" > ${PREFIX}.py
@@ -20,7 +20,7 @@ if [ ! -f ndfdXML.wsdl ] ; then
 fi
 ../../scripts/pyxbgen \
    -u "${WSDL_URI}" \
-   -p ndfd \
+   -m ndfd \
    -r -W
 
 ../../scripts/showwsdl file:ndfdXML.wsdl
