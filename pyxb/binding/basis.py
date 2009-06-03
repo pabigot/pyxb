@@ -32,6 +32,8 @@ class _Binding_mixin (pyxb.cscRoot):
 
     """
 
+    _NamespaceCategory = None
+
     _ExpandedName = None
     """The expanded name of the component."""
 
@@ -105,6 +107,13 @@ class _DynamicCreate_mixin (pyxb.cscRoot):
             self.__dict__.pop(cls.__SupersedingClassAttribute(), None)
         else:
             setattr(cls, cls.__SupersedingClassAttribute(), superseding)
+            if issubclass(cls, element):
+                en = cls._ExpandedName
+                ns = en.namespace()
+                # @todo: When elementFormDefault is qualified, make sure we
+                # don't override non-global elements or types.
+                if (ns is not None) and (cls._NamespaceCategory is not None):
+                    ns.replaceCategoryObject(cls._NamespaceCategory, en.localName(), cls, superseding)
         return superseding
 
     @classmethod
@@ -123,6 +132,8 @@ class simpleTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _D
     removed before passing them on to Python classes that do not
     accept them.
     """
+
+    _NamespaceCategory = 'typeBinding'
 
     # A map from leaf classes in the facets module to instance of
     # those classes that constrain or otherwise affect the datatype.
@@ -620,6 +631,8 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
     underlying content object.
     """
 
+    _NamespaceCategory = 'elementBinding'
+
     # Reference to the simple or complex type binding that serves as
     # the content of this element.
     # MUST BE SET IN SUBCLASS
@@ -714,10 +727,13 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
         # Identify the element binding to be used for the given node.  In the
         # case of substitution groups, it may not be what we expect.
         elt_ns = cls._ExpandedName.namespace()
-        node_name = pyxb.namespace.ExpandedName(node, fallback_namespace=elt_ns)
-        elt_cls = node_name.elementBinding()
-        if elt_cls is not None:
-            assert cls == elt_cls
+        if cls._ElementScope is None:
+            node_name = pyxb.namespace.ExpandedName(node, fallback_namespace=elt_ns)
+            elt_cls = node_name.elementBinding()
+            if elt_cls is not None:
+                if cls != elt_cls:
+                    print 'Node %s cls %s elt_cls %s' % (node, cls, elt_cls)
+                assert cls == elt_cls
 
         # Now determine the type binding for the content.  If xsi:type is
         # used, it won't be the one built into the element binding.
@@ -788,6 +804,8 @@ class complexTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _
     from the unicode tag of an attribute to the AttributeUse instance that
     defines it.  Similarly, subclasses should define an _ElementMap variable.
     """
+
+    _NamespaceCategory = 'typeBinding'
 
     _CT_EMPTY = 'EMPTY'                 #<<< No content
     _CT_SIMPLE = 'SIMPLE'               #<<< Simple (character) content
@@ -1007,10 +1025,7 @@ class complexTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _
         if self._CT_EMPTY == self._ContentTypeTag:
             # @todo: raise exception
             pass
-        elif self._CT_SIMPLE == self._ContentTypeTag:
-            return self.__content
-        assert self._ContentTypeTag in (self._CT_MIXED, self._CT_ELEMENT_ONLY)
-        return ''.join([ _x for _x in self.__content if isinstance(_x, types.StringTypes) ])
+        return self.__content
 
     def _resetContent (self):
         if self._ContentTypeTag in (self._CT_MIXED, self._CT_ELEMENT_ONLY):
@@ -1020,7 +1035,7 @@ class complexTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _
         self.__content = value
 
     def _addContent (self, child):
-        assert isinstance(child, element) or isinstance(child, types.StringTypes)
+        assert isinstance(child, _Binding_mixin) or isinstance(child, types.StringTypes)
         self.__content.append(child)
 
     __isMixed = False

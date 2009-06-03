@@ -400,13 +400,12 @@ class ElementUse (pyxb.cscRoot):
         if value is None:
             return self.reset(ctd_instance)
         assert self.__elementBinding is not None
-        if isinstance(value, self.__elementBinding):
-            self.__setValue(ctd_instance, value)
-            ctd_instance._addContent(value)
-            return self
-        iv = self.__elementBinding(value)
-        self.__setValue(ctd_instance, iv)
-        ctd_instance._addContent(iv)
+        if isinstance(value, basis.element):
+            value = value.content()
+        #if not isinstance(value, self.__elementBinding):
+        #    value = self.__elementBinding(value)
+        self.__setValue(ctd_instance, value)
+        ctd_instance._addContent(value)
         return self
 
 class ContentModelTransition (pyxb.cscRoot):
