@@ -12,8 +12,9 @@ eval(rv)
 from pyxb.exceptions_ import *
 
 from pyxb.utils import domutils
-def ToDOM (instance, tag=None):
-    dom_support = domutils.BindingDOMSupport()
+def ToDOM (instance, tag=None, dom_support=None):
+    if dom_support is None:
+        dom_support = domutils.BindingDOMSupport()
     parent = None
     if tag is not None:
         parent = dom_support.document().appendChild(dom_support.document().createElement(tag))
@@ -57,9 +58,17 @@ Anytown, AS  12345-6789'''
                            billTo=USAddress(name='Sugar Mama', street='24 E. Dearling Ave'),
                            comment='Thanks!')
         xml = ToDOM(po).toxml()
+        xml1 = '<ns1:purchaseOrder xmlns:ns1="http://www.example.com/PO1"><shipTo><name>Customer</name><street>95 Main St</street></shipTo><billTo><name>Sugar Mama</name><street>24 E. Dearling Ave</street></billTo><ns1:comment>Thanks!</ns1:comment></ns1:purchaseOrder>'
+        self.assertEqual(xml, xml1)
+
         dom = pyxb.utils.domutils.StringToDOM(xml)
         po2 = purchaseOrder.CreateFromDOM(dom.documentElement)
-        self.assertEqual(xml, ToDOM(po2).toxml())
+        self.assertEqual(xml1, ToDOM(po2).toxml())
+
+        xml2 = '<purchaseOrder xmlns="http://www.example.com/PO1"><shipTo><name>Customer</name><street>95 Main St</street></shipTo><billTo><name>Sugar Mama</name><street>24 E. Dearling Ave</street></billTo><comment>Thanks!</comment></purchaseOrder>'
+        bds = pyxb.utils.domutils.BindingDOMSupport()
+        bds.setDefaultNamespace(Namespace)
+        self.assertEqual(xml2, ToDOM(po2, dom_support=bds).toxml())
 
 if __name__ == '__main__':
     unittest.main()

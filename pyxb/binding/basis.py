@@ -62,9 +62,18 @@ class _Binding_mixin (pyxb.cscRoot):
         with a type that is either one of those."""
         return False
 
-    def toxml (self):
-        """Shorthand to get the object as an XML document."""
-        bds = domutils.BindingDOMSupport()
+    def toxml (self, bds=None):
+        """Shorthand to get the object as an XML document.
+
+        If you want to set the default namespace, pass in a pre-configured
+        C{bds}.
+
+        @param bds: Optional L{pyxb.utils.domutils.BindingDOMSupport} instance
+        to use for creation. If not provided (default), a new generic one is
+        created.
+        """
+        if bds is None:
+            bds = domutils.BindingDOMSupport()
         self.toDOM(bds)
         bds.finalize()
         return bds.document().toxml()
