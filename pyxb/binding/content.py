@@ -404,8 +404,12 @@ class ElementUse (pyxb.cscRoot):
         element = dom_support.createChild(self.tag().localName(), self.tag().namespace(), parent)
         if isinstance(value, basis._Binding_mixin):
             elt_type = self.__elementBinding._TypeDefinition
-            assert isinstance(value, elt_type)
             val_type = type(value)
+            if isinstance(value, basis.complexTypeDefinition):
+                assert isinstance(value, elt_type)
+            else:
+                if isinstance(value, basis.STD_union) and isinstance(value, elt_type._MemberTypes):
+                    val_type = elt_type
             if (val_type != elt_type):
                 val_type_qname = value._ExpandedName.localName()
                 tns_prefix = dom_support.namespacePrefix(value._ExpandedName.namespace())
