@@ -390,6 +390,9 @@ class ElementUse (pyxb.cscRoot):
             value = value.content()
         #if not isinstance(value, self.__elementBinding):
         #    value = self.__elementBinding(value)
+        elt_type = self.__elementBinding._TypeDefinition
+        if not isinstance(value, elt_type):
+            value = elt_type.Factory(value)
         self.__setValue(ctd_instance, value)
         if isinstance(value, list):
             [ ctd_instance._addContent(_elt) for _elt in value ]

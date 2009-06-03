@@ -12,6 +12,10 @@ rv = compile(code, 'test', 'exec')
 eval(rv)
 
 originalOneFloor = oneFloor
+def oneFloorCtor (*args, **kw):
+    return restaurant(*args, **kw)
+print oneFloorCtor
+originalOneFloor._SetAlternativeConstructor(oneFloorCtor)
 
 from pyxb.exceptions_ import *
 
@@ -74,6 +78,10 @@ class TestXSIType (unittest.TestCase):
     def testNesting (self):
         instance = block(oneFloor=[ restaurant(basement="dirt", lobby="tile", room="messy"),
                                     restaurant(basement="concrete", lobby="carpet", room="tidy")])
+        self.assertEqual('dirt', instance.oneFloor()[0].basement())
+        self.assertEqual('messy', instance.oneFloor()[0].room())
+        self.assertEqual('concrete', instance.oneFloor()[1].basement())
+        self.assertEqual('tidy', instance.oneFloor()[1].room())
         xml = instance.toxml()
         dom = pyxb.utils.domutils.StringToDOM(xml)
         instance2 = CreateFromDOM(dom.documentElement)

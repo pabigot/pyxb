@@ -111,9 +111,21 @@ class _DynamicCreate_mixin (pyxb.cscRoot):
         return '_%s__SupersedingClass' % (cls.__name__,)
 
     @classmethod
+    def __AlternativeConstructorAttribute (cls):
+        return '_%s__AlternativeConstructor' % (cls.__name__,)
+
+    @classmethod
     def _SupersedingClass (cls):
         """Return the class stored in the class reference attribute."""
         return getattr(cls, cls.__SupersedingClassAttribute(), cls)
+
+    @classmethod
+    def _AlternativeConstructor (cls):
+        """Return the class stored in the class reference attribute."""
+        rv = getattr(cls, cls.__AlternativeConstructorAttribute(), None)
+        if isinstance(rv, tuple):
+            rv = rv[0]
+        return rv
 
     @classmethod
     def _SetSupersedingClass (cls, superseding):
@@ -123,7 +135,7 @@ class _DynamicCreate_mixin (pyxb.cscRoot):
         """
         assert (superseding is None) or issubclass(superseding, cls)
         if superseding is None:
-            self.__dict__.pop(cls.__SupersedingClassAttribute(), None)
+            cls.__dict__.pop(cls.__SupersedingClassAttribute(), None)
         else:
             setattr(cls, cls.__SupersedingClassAttribute(), superseding)
             if issubclass(cls, element):
@@ -136,8 +148,25 @@ class _DynamicCreate_mixin (pyxb.cscRoot):
         return superseding
 
     @classmethod
+    def _SetAlternativeConstructor (cls, alternative_constructor):
+        attr = cls.__AlternativeConstructorAttribute()
+        if alternative_constructor is None:
+            cls.__dict__.pop(attr, None)
+        else:
+            # Need to use a tuple as the value: if you use an invokable, this
+            # ends up converting it from a function to an unbound method,
+            # which is not what we want.
+            setattr(cls, attr, (alternative_constructor,))
+        assert cls._AlternativeConstructor() == alternative_constructor
+        return alternative_constructor
+
+    @classmethod
     def _DynamicCreate (cls, *args, **kw):
         """Invoke the constructor for the class that supersedes this one."""
+        ctor = cls._AlternativeConstructor()
+        if ctor is not None:
+            print 'Invoking %s on %s %s' % (ctor, args, kw)
+            return ctor(*args, **kw)
         return cls._SupersedingClass()(*args, **kw)
 
 class simpleTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
@@ -918,7 +947,7 @@ class complexTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _
     @classmethod
     def Factory (cls, *args, **kw):
         """Create an instance from parameters and keywords."""
-        rv = cls(*args, **kw)
+        rv = cls._DynamicCreate(*args, **kw)
         return rv
 
     @classmethod
@@ -929,7 +958,7 @@ class complexTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _
         node name must have been validated against an owning
         element."""
         instance_root = kw.pop('instance_root', None)
-        rv = cls._DynamicCreate(validate_constraints=False)
+        rv = cls.Factory(validate_constraints=False)
         rv._setAttributesFromDOM(node)
         rv._setContentFromDOM(node)
         rv._setBindingContext(node, instance_root)
