@@ -397,11 +397,10 @@ class ElementUse (pyxb.cscRoot):
 
     def toDOM (self, dom_support, parent, value):
         element = dom_support.createChild(self.tag().localName(), self.tag().namespace(), parent)
-        try:
-            value.toDOM(dom_support, element)
-        except AttributeError, e:
+        if isinstance(value, basis._Binding_mixin):
+            value._toDOM_vx(dom_support, element)
+        else:
             element.appendChild(dom_support.document().createTextNode(value))
-        self.__elementBinding.toDOM
 
 class ContentModelTransition (pyxb.cscRoot):
     """Represents a transition in the content model DFA.

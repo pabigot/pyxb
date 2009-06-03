@@ -62,6 +62,16 @@ class _Binding_mixin (pyxb.cscRoot):
         with a type that is either one of those."""
         return False
 
+    def _toDOM_vx (self, bds):
+        raise pyxb.LogicError('Class %s did not override _toDOM_vx' % (type(self),))
+
+    def toDOM (self, bds=None):
+        if bds is None:
+            bds = domutils.BindingDOMSupport()
+        self._toDOM_vx(bds)
+        bds.finalize()
+        return bds.document()
+
     def toxml (self, bds=None):
         """Shorthand to get the object as an XML document.
 
@@ -72,11 +82,7 @@ class _Binding_mixin (pyxb.cscRoot):
         to use for creation. If not provided (default), a new generic one is
         created.
         """
-        if bds is None:
-            bds = domutils.BindingDOMSupport()
-        self.toDOM(bds)
-        bds.finalize()
-        return bds.document().toxml()
+        return self.toDOM(bds).toxml()
 
 class _DynamicCreate_mixin (pyxb.cscRoot):
     """Helper to allow overriding the implementation class.
@@ -499,7 +505,7 @@ class simpleTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _D
         represent the value of this instance."""
         return self.PythonLiteral(self)
 
-    def toDOM (self, dom_support, parent=None):
+    def _toDOM_vx (self, dom_support, parent=None):
         assert parent is not None
         parent.appendChild(dom_support.document().createTextNode(self.xsdLiteral()))
         return dom_support
@@ -780,12 +786,12 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
         rv._setBindingContext(node, instance_root)
         return rv
 
-    def toDOM (self, dom_support, parent=None):
+    def _toDOM_vx (self, dom_support, parent=None):
         """Add a DOM representation of this element as a child of
         parent, which should be a DOM Node instance."""
         assert isinstance(dom_support, domutils.BindingDOMSupport)
         element = dom_support.createChild(self._ExpandedName.localName(), self._ExpandedName.namespace(), parent)
-        self.__realContent.toDOM(dom_support, parent=element)
+        self.__realContent._toDOM_vx(dom_support, parent=element)
         return dom_support
 
     def __str__ (self):
@@ -1087,7 +1093,7 @@ class complexTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _
             au.addDOMAttribute(self, element)
         return element
 
-    def toDOM (self, dom_support, parent=None, tag=None):
+    def _toDOM_vx (self, dom_support, parent=None, tag=None):
         """Create a DOM element with the given tag holding the content of this instance."""
         if tag is None:
             element = parent
