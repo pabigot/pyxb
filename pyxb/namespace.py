@@ -106,6 +106,11 @@ class ExpandedName (pyxb.cscRoot):
             return lambda: None
         return lambda _value=self.namespace().categoryMap(name).get(self.localName()): _value
 
+    def createName (self, local_name):
+        """Return a new expanded name that pairs the namespace of this name
+        with the given local name."""
+        return ExpandedName(self.namespace(), local_name)
+
     def __init__ (self, *args, **kw):
         """Create an expanded name.
 
@@ -116,6 +121,7 @@ class ExpandedName (pyxb.cscRoot):
         ( C{xml.dom.Node} ) -- The name extracted from node.namespaceURI and node.localName
         ( C{str}, C{str} ) -- the namespace URI and the local name
         ( L{Namespace}, C{str} ) -- the namespace and the local name
+        ( L{ExpandedName}, C{str}) -- the namespace from the expanded name, and the local name
 
         Wherever C{str} occurs C{unicode} is also permitted.
         
@@ -153,6 +159,8 @@ class ExpandedName (pyxb.cscRoot):
                 ns = fallback_namespace
         if isinstance(ns, (str, unicode)):
             ns = NamespaceForURI(ns, create_if_missing=True)
+        if isinstance(ns, ExpandedName):
+            ns = ns.namespace()
         if (ns is not None) and not isinstance(ns, Namespace):
             raise pyxb.LogicError('ExpandedName must include a valid (perhaps absent) namespace, or None.')
         self.__namespace = ns
