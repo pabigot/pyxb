@@ -4158,7 +4158,11 @@ class Schema (_SchemaComponent_mixin):
         self.__requireInProlog(node.nodeName)
         # See section 4.2.1 of Structures.
         uri = NodeAttribute(node, 'schemaLocation')
-        xml = urllib2.urlopen(uri).read()
+        if 0 <= uri.find(':'):
+            source = urllib2.urlopen(uri)
+        else:
+            source = file(uri)
+        xml = source.read()
         included_schema = self.CreateFromDOM(StringToDOM(xml), self.__namespaceData, inherit_default_namespace=True, skip_resolution=True)
         print '%s completed including %s' % (object.__str__(self), object.__str__(included_schema))
         assert self.targetNamespace() == included_schema.targetNamespace()
