@@ -1100,8 +1100,10 @@ class complexTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _
             return element.appendChild(dom_support.document().createTextNode(self.content().xsdLiteral()))
         self._Content.extendDOMFromContent(dom_support, element, self)
         mixed_content = self.content()
-        if 0 < len(mixed_content):
-            element.appendChild(dom_support.document().createTextNode(''.join(mixed_content)))
+        for mc in mixed_content:
+            pass
+            #if isinstance(mc, types.StringTypes):
+            #    element.appendChild(dom_support.document().createTextNode(mc))
         return self
 
     @classmethod

@@ -346,38 +346,25 @@ class ElementUse (pyxb.cscRoot):
             return []
         return None
 
+    __generatableValues = None
     def clearGenerationMarkers (self, ctd_instance):
         value = self.value(ctd_instance)
         if not self.isPlural():
             if value is None:
+                self.__generatableValues = None
                 return
             value = [ value ]
-        for v in value:
-            assert v is not None
-            v.__generated = False
+        self.__generatableValues = value
 
     def nextValueToGenerate (self, ctd_instance):
-        value = self.value(ctd_instance)
-        if not self.isPlural():
-            if value is None:
-                raise pyxb.DOMGenerationError('Optional %s value is not available' % (self.pythonField(),))
-            value = [ value ]
-        for v in value:
-            if not v.__generated:
-                v.__generated = True
-                return v
+        if self.__generatableValues is None:
+            raise pyxb.DOMGenerationError('Optional %s value is not available' % (self.pythonField(),))
+        if 0 < len(self.__generatableValues):
+            return self.__generatableValues.pop(0)
         raise pyxb.DOMGenerationError('No %s values remain to be generated' % (self.pythonField(),))
 
     def hasUngeneratedValues (self, ctd_instance):
-        value = self.value(ctd_instance)
-        if not self.isPlural():
-            if value is None:
-                return False
-            value = [ value ]
-        for v in value:
-            if not v.__generated:
-                return True
-        return False
+        return (self.__generatableValues is not None) and (0 < len(self.__generatableValues))
 
     def value (self, ctd_instance):
         return getattr(ctd_instance, self.__valueElementName, self.defaultValue())
@@ -407,6 +394,14 @@ class ElementUse (pyxb.cscRoot):
         self.__setValue(ctd_instance, value)
         ctd_instance._addContent(value)
         return self
+
+    def toDOM (self, dom_support, parent, value):
+        element = dom_support.createChild(self.tag().localName(), self.tag().namespace(), parent)
+        try:
+            value.toDOM(dom_support, element)
+        except AttributeError, e:
+            element.appendChild(dom_support.document().createTextNode(value))
+        self.__elementBinding.toDOM
 
 class ContentModelTransition (pyxb.cscRoot):
     """Represents a transition in the content model DFA.
@@ -753,11 +748,11 @@ class Particle (pyxb.cscRoot):
             try:
                 if isinstance(self.term(), ModelGroup):
                     self.term().extendDOMFromContent(dom_support, element, ctd_instance)
-                elif isinstance(self.term(), type) and issubclass(self.term(), basis.element):
+                elif isinstance(self.term(), type): # and issubclass(self.term(), basis.element):
                     eu = ctd_instance._UseForElement(self.term())
                     assert eu is not None
                     value = eu.nextValueToGenerate(ctd_instance)
-                    value.toDOM(dom_support, element)
+                    eu.toDOM(dom_support, element, value)
                 elif isinstance(self.term(), Wildcard):
                     print 'Generation ignoring wildcard'
                     # @todo handle generation of wildcards
