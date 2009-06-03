@@ -348,14 +348,13 @@ class ElementUse (pyxb.cscRoot):
 
     __generatableValues = None
     def clearGenerationMarkers (self, ctd_instance):
-        value = self.value(ctd_instance)
+        self.__generatableValues = self.value(ctd_instance)
         if not self.isPlural():
-            if value is None:
-                self.__generatableValues = None
-                return
-            value = [ value ]
-        self.__generatableValues = value
-
+            if self.__generatableValues is not None:
+                self.__generatableValues = [ self.__generatableValues ]
+        else:
+            self.__generatableValues = self.__generatableValues[:]
+            
     def nextValueToGenerate (self, ctd_instance):
         if self.__generatableValues is None:
             raise pyxb.DOMGenerationError('Optional %s value is not available' % (self.pythonField(),))
@@ -405,9 +404,7 @@ class ElementUse (pyxb.cscRoot):
             assert isinstance(value, elt_type)
             val_type = type(value)
             if (val_type != elt_type):
-                print 'Type %s versus %s' % (self.__elementBinding._TypeDefinition, type(value))
                 val_type_qname = value._ExpandedName.localName()
-                print val_type_qname
                 tns_prefix = dom_support.namespacePrefix(value._ExpandedName.namespace())
                 if tns_prefix is not None:
                     val_type_qname = '%s:%s' % (tns_prefix, val_type_qname)

@@ -74,9 +74,13 @@ class TestXSIType (unittest.TestCase):
     def testNesting (self):
         instance = block(oneFloor=[ restaurant(basement="dirt", lobby="tile", room="messy"),
                                     restaurant(basement="concrete", lobby="carpet", room="tidy")])
-        print instance.content().content()
-        print instance.oneFloor()
-        print instance.toxml()
+        xml = instance.toxml()
+        dom = pyxb.utils.domutils.StringToDOM(xml)
+        instance2 = CreateFromDOM(dom.documentElement)
+        r2 = instance2.toxml()
+        r3 = instance2.toxml()
+        self.assertEqual(r2, r3)
+        self.assertEqual(xml, r2)
 
 if __name__ == '__main__':
     unittest.main()
