@@ -11,6 +11,8 @@ code = pyxb.binding.generate.GeneratePython(schema_file=schema_path)
 rv = compile(code, 'test', 'exec')
 eval(rv)
 
+originalOneFloor = oneFloor
+
 from pyxb.exceptions_ import *
 
 import unittest
@@ -67,8 +69,14 @@ class TestXSIType (unittest.TestCase):
         dom = rest.toDOM().documentElement
         self.assertEqual(xml, dom.toxml())
 
-        self.assertRaises(pyxb.AbstractInstantiationError, oneFloor, **kw)
+        self.assertRaises(pyxb.AbstractInstantiationError, originalOneFloor, **kw)
 
+    def testNesting (self):
+        instance = block(oneFloor=[ restaurant(basement="dirt", lobby="tile", room="messy"),
+                                    restaurant(basement="concrete", lobby="carpet", room="tidy")])
+        print instance.content().content()
+        print instance.oneFloor()
+        print instance.toxml()
 
 if __name__ == '__main__':
     unittest.main()
