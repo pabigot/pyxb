@@ -13,13 +13,8 @@ from pyxb.exceptions_ import *
 import unittest
 
 from pyxb.utils import domutils
-def ToDOM (instance, tag=None):
-    dom_support = domutils.BindingDOMSupport()
-    parent = None
-    if tag is not None:
-        parent = dom_support.document().appendChild(dom_support.document().createElement(tag))
-    dom_support = instance.toDOM(dom_support, parent)
-    return dom_support.finalize().documentElement
+def ToDOM (instance):
+    return instance.toDOM().documentElement
 
 class TestCTD (unittest.TestCase):
 

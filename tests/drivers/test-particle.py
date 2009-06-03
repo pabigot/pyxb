@@ -14,12 +14,7 @@ import unittest
 
 from pyxb.utils import domutils
 def ToDOM (instance, tag=None):
-    dom_support = domutils.BindingDOMSupport()
-    parent = None
-    if tag is not None:
-        parent = dom_support.document().appendChild(dom_support.document().createElement(tag))
-    dom_support = instance.toDOM(dom_support, parent)
-    return dom_support.finalize().documentElement
+    return instance.toDOM().documentElement
 
 class TestParticle (unittest.TestCase):
     def test_bad_creation (self):

@@ -54,6 +54,12 @@ class TestXSIType (unittest.TestCase):
         self.assertEqual('tiled', instance.lobby())
         self.assertEqual('eats', instance.room())
 
+    def testConstructor (self):
+        rest = restaurant(basement='concrete', lobby='tiled', room='eats')
+        dom = rest.toDOM().documentElement
+        xml = '<basement>concrete<lobby>tiled</lobby><room>eats</room></basement>'
+        print dom.toxml()
+
 if __name__ == '__main__':
     unittest.main()
     
