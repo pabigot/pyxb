@@ -748,6 +748,7 @@ class anyType (basis.complexTypeDefinition):
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('anyType')
     _ContentTypeTag = basis.complexTypeDefinition._CT_MIXED
     _Abstract = False
+    '''
     _Content = content.Particle(1, 1,
                                 content.ModelGroup(content.ModelGroup.C_SEQUENCE,
                                                    [ content.Particle(0, None,
@@ -756,3 +757,4 @@ class anyType (basis.complexTypeDefinition):
                                                                       ) # end Particle
                                                      ]) # end ModelGroup
                                 ) # end Particle
+'''
