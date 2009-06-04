@@ -1065,7 +1065,7 @@ class complexTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _
             if value is None:
                 continue
             if not isinstance(value, list):
-                rv[eu] = [ value]
+                rv[eu] = [ value ]
             elif 0 < len(value):
                 rv[eu] = value[:]
         wce = self.wildcardElements()

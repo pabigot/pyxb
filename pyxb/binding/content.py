@@ -477,7 +477,12 @@ class ContentModelTransition (pyxb.cscRoot):
         wildcards.  Also sort within each subsequence."""
         rv = cmp(self.__termType, other.__termType)
         if 0 == rv:
-            rv = cmp(self.__term, other.__term)
+            # In a vain attempt at determinism, sort the element transitions
+            # by name.
+            if (self.TT_element == self.__termType):
+                rv = cmp(self.__term._ExpandedName, other.__term._ExpandedName)
+            else:
+                rv = cmp(self.__term, other.__term)
         return rv
 
     def __processElementTransition (self, node):
@@ -489,34 +494,34 @@ class ContentModelTransition (pyxb.cscRoot):
         return element
 
     def __validateConsume (self, key, available_symbols_im, output_sequence_im, candidates):
-        prepend = False
+        next_symbols = available_symbols_im.copy()
         if self.__nextState == self.__currentStateRef.state():
-            next_symbols = available_symbols_im.copy()
-            consumed = next_symbols[self.__elementUse]
-            del next_symbols[self.__elementUse]
-            prepend = True
+            consumed = next_symbols[key]
+            del next_symbols[key]
         else:
-            next_symbols = available_symbols_im.copy()
-            consumed = [ next_symbols[self.__elementUse].pop(0) ]
-            if 0 == len(next_symbols[self.__elementUse]):
-                del next_symbols[self.__elementUse]
+            next_left = next_symbols[key][:]
+            consumed = [ next_left.pop(0) ]
+            if 0 == len(next_left):
+                del next_symbols[key]
+            else:
+                next_symbols[key] = next_left
+        assert (not (key in next_symbols)) or (0 < len(next_symbols[key]))
         candidate = (self.__nextState, next_symbols, output_sequence_im + [ (key, _c) for _c in consumed ])
-        if prepend:
-            candidates.insert(0, candidate)
-        else:
-            candidates.append(candidate)
+        candidates.append(candidate)
         return True
 
     def validate (self, ctd_instance, available_symbols_im, output_sequence_im, candidates):
         if self.TT_element == self.__termType:
             if not (self.__elementUse in available_symbols_im):
                 return False
+            assert 0 < len(available_symbols_im[self.__elementUse])
             return self.__validateConsume(self.__elementUse, available_symbols_im, output_sequence_im, candidates)
         elif self.TT_modelGroupAll == self.__termType:
             raise pyxb.IncompleteImplementationError('DOM generation for modelGroupAll unimplemented')
         elif self.TT_wildcard == self.__termType:
             if not (None in available_symbols_im):
                 return False
+            assert 0 < len(available_symbols_im[None])
             return self.__validateConsume(None, available_symbols_im, output_sequence_im, candidates)
         return False
 
@@ -659,9 +664,10 @@ class ContentModel (pyxb.cscRoot):
     def validate (self, ctd_instance, available_symbols, output_sequence):
         if available_symbols is None:
             available_symbols = ctd_instance._symbolSet()
+
         candidates = []
         candidates.append( (1, available_symbols, []) )
-        while candidates:
+        while 0 < len(candidates):
             (state_id, symbols, sequence) = candidates.pop(0)
             state = self.__stateMap[state_id]
             if 0 == len(symbols):
@@ -670,8 +676,12 @@ class ContentModel (pyxb.cscRoot):
                         output_sequence.extend(sequence)
                     return output_sequence
                 continue
+            for (k, v) in symbols.items():
+                assert 0 < len(v)
+            tmp = symbols.copy()
             for transition in state.transitions():
                 transition.validate(ctd_instance, symbols, sequence, candidates)
+            assert symbols == tmp
         return None
 
 class ModelGroupAllAlternative (pyxb.cscRoot):
