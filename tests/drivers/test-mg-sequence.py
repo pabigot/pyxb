@@ -67,6 +67,8 @@ class TestMGSeq (unittest.TestCase):
         self.assertEqual(0, len(instance.second_multi()))
         self.assert_(isinstance(instance.third(), altsequence_third._TypeDefinition))
         self.assertEqual(xml, ToDOM(instance).toxml())
+        instance = altwrapper(first=[ altsequence_first(), altsequence_first() ], third=[altsequence_third()])
+        self.assertEqual(xml, ToDOM(instance).toxml())
 
     def testMissingInMiddle (self):
         xml = '<ns1:wrapper xmlns:ns1="URN:test-mg-sequence"><first/><third/></ns1:wrapper>'
@@ -83,6 +85,8 @@ class TestMGSeq (unittest.TestCase):
         xml = '<ns1:altwrapper xmlns:ns1="URN:test-mg-sequence"><third/></ns1:altwrapper>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
         self.assertRaises(UnrecognizedContentError, altwrapper.CreateFromDOM, dom.documentElement)
+        instance = altwrapper(third=[altsequence_third()])
+        self.assertRaises(pyxb.DOMGenerationError, ToDOM, instance)
 
     def testMissingAtEndLeadingContent (self):
         xml = '<ns1:altwrapper xmlns:ns1="URN:test-mg-sequence"><first/></ns1:altwrapper>'
@@ -103,6 +107,8 @@ class TestMGSeq (unittest.TestCase):
         xml = '<ns1:altwrapper xmlns:ns1="URN:test-mg-sequence"><first/><first/><first/><third/></ns1:altwrapper>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
         self.assertRaises(UnrecognizedContentError, altwrapper.CreateFromDOM, dom.documentElement)
+        instance = altwrapper(first=[ altsequence_first(), altsequence_first(), altsequence_first() ], third=[altsequence_third()])
+        self.assertRaises(pyxb.DOMGenerationError, ToDOM, instance)
 
     def testTooManyInMiddle (self):
         xml = '<ns1:altwrapper xmlns:ns1="URN:test-mg-sequence"><second_multi/><second_multi/><second_multi/><third/></ns1:altwrapper>'
