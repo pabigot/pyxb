@@ -209,6 +209,9 @@ class _Resolvable_mixin (pyxb.cscRoot):
     component may need to be delayed if the definition of the component has
     not yet been read.
     """
+
+    _TraceResolution = True
+
     def isResolved (self):
         """Determine whether this named component is resolved.
 
@@ -239,9 +242,11 @@ class _Resolvable_mixin (pyxb.cscRoot):
         """
         raise pyxb.LogicError('Resolution not implemented in %s' % (self.__class__,))
 
-    def _queueForResolution (self):
+    def _queueForResolution (self, why=None):
         """Short-hand to requeue an object if the class implements _namespaceContext().
         """
+        if (why is not None) and self._TraceResolution:
+            print 'Resolution delayed for %s: %s' % (self, why)
         self._namespaceContext().queueForResolution(self)
 
     __ResolvingSchema = None
