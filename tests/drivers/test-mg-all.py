@@ -105,9 +105,12 @@ class TestMGAll (unittest.TestCase):
             xml = '<ns1:many xmlns:ns1="URN:test-mg-all">%s</ns1:many>' % (''.join([ '<%s/>' % (_x,) for _x in body ]),)
             dom = pyxb.utils.domutils.StringToDOM(xml)
             instance = many.CreateFromDOM(dom.documentElement)
-            rev = self.stripMembers(ToDOM(instance).toxml(), body)
+            instance.validateBinding()
+            xml2 = ToDOM(instance).toxml()
+            rev = self.stripMembers(xml2, body)
             self.assertEqual('<ns1:many xmlns:ns1="URN:test-mg-all">%s</ns1:many>' % (''.join(len(body)*['X']),), rev)
         instance = many(a=many_a(), c=many_c(), d=many_d(), e=many_e(), f=many_f(), g=many_g(), h=many_h())
+        self.assertRaises(pyxb.BindingValidationError, instance.validateBinding)
         self.assertRaises(pyxb.DOMGenerationError, ToDOM, instance)
 
 if __name__ == '__main__':
