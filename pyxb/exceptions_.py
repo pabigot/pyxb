@@ -87,6 +87,10 @@ class DOMGenerationError (PyXBException):
     """Raised when converting binding to DOM and something goes wrong."""
     pass
 
+class BindingValidationError (PyXBException):
+    """Raised when the content of a binding object is not consistent with its content model"""
+    pass
+
 class PyXBError (exceptions.Exception):
     """Base class for exceptions that indicate a problem that the user probably can't fix."""
     pass

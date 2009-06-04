@@ -88,6 +88,12 @@ class _Binding_mixin (pyxb.cscRoot):
         """
         return self.toDOM(bds).toxml()
 
+    def _validateBinding_vx (self):
+        raise pyxb.IncompleteImplementationError('%s did not override _validateBinding_vx' % (type(self),))
+
+    def validateBinding (self):
+        return self._validateBinding_vx()
+
 class _DynamicCreate_mixin (pyxb.cscRoot):
     """Helper to allow overriding the implementation class.
 
@@ -499,6 +505,9 @@ class simpleTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _D
         """Validate the value of this instance against its constraints."""
         return self.XsdConstraintsOK(self)
 
+    def _validateBinding_vx (self):
+        self.xsdConstraintsOK()
+
     @classmethod
     def XsdValueLength (cls, value):
         """Return the length of the given value.
@@ -846,6 +855,9 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
         """Elements with types that are smple are themselves simple"""
         return cls._TypeDefinition._IsSimpleTypeContent()
 
+    def _validateBinding_vx (self):
+        self.__realContent.validateBinding()
+
 class enumeration_mixin (pyxb.cscRoot):
     """Marker in case we need to know that a PST has an enumeration constraint facet."""
     pass
@@ -1052,14 +1064,14 @@ class complexTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _
             order.append( (eu, value) )
         return order
 
-    def _childrenForDOM (self):
+    def _validatedChildren (self):
         assert self._ContentModel is not None
         matches = self._ContentModel.validate(self._symbolSet())
         if 0 < len(matches):
             ( symbols, sequence ) = matches[0]
             if 0 == len(symbols):
                 return sequence
-            raise pyxb.DOMGenerationError('Ungenerated symbols: %s' % (symbols,) )
+            raise pyxb.BindingValidationError('Ungenerated symbols: %s' % (symbols,) )
         return None
 
     def _symbolSet (self):
@@ -1076,6 +1088,16 @@ class complexTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _
         if (wce is not None) and (0 < len(wce)):
             rv[None] = wce
         return rv
+
+    def _validateBinding_vx (self):
+        order = self._validatedChildren()
+        if order is None:
+            raise pyxb.BindingValidationError('No match from content to binding model')
+        for (eu, value) in order:
+            if isinstance(value, _Binding_mixin):
+                value.validateBinding()
+            else:
+                print 'WARNING: Cannot validate value %s in field %s' % (value, eu.pythonField())
 
     def _setAttributesFromDOM (self, node):
         """Initialize the attributes of this element from those of the DOM node.
@@ -1182,7 +1204,7 @@ class complexTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _
             return
         if self._CT_SIMPLE == self._ContentTypeTag:
             return element.appendChild(dom_support.document().createTextNode(self.content().xsdLiteral()))
-        order = self._childrenForDOM()
+        order = self._validatedChildren()
         if order is None:
             raise pyxb.DOMGenerationError('Binding value inconsistent with content model')
         for (eu, v) in order:
