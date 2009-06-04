@@ -510,14 +510,18 @@ class ContentModelTransition (pyxb.cscRoot):
         candidates.append(candidate)
         return True
 
-    def validate (self, ctd_instance, available_symbols_im, output_sequence_im, candidates):
+    def validate (self, available_symbols_im, output_sequence_im, candidates):
+        """Make the best transition from this node.
+
+        Updates candidates.
+        Return True iff a transition could be made."""
         if self.TT_element == self.__termType:
             if not (self.__elementUse in available_symbols_im):
                 return False
             assert 0 < len(available_symbols_im[self.__elementUse])
             return self.__validateConsume(self.__elementUse, available_symbols_im, output_sequence_im, candidates)
         elif self.TT_modelGroupAll == self.__termType:
-            raise pyxb.IncompleteImplementationError('DOM generation for modelGroupAll unimplemented')
+            return self.__term.validate(available_symbols_im, output_sequence_im, self.__nextState, candidates)
         elif self.TT_wildcard == self.__termType:
             if not (None in available_symbols_im):
                 return False
@@ -661,7 +665,7 @@ class ContentModel (pyxb.cscRoot):
         if state is not None:
             raise pyxb.MissingContentError()
 
-    def validate (self, ctd_instance, available_symbols, stop_on_success=True):
+    def validate (self, available_symbols, stop_on_success=True, allow_residual=False):
         matches = []
         candidates = []
         candidates.append( (1, available_symbols, []) )
@@ -677,8 +681,13 @@ class ContentModel (pyxb.cscRoot):
             for (k, v) in symbols.items(): # cleanup
                 assert 0 < len(v)
             tmp = symbols.copy() # cleanup
+            num_transitions = 0
             for transition in state.transitions():
-                transition.validate(ctd_instance, symbols, sequence, candidates)
+                num_transitions += transition.validate(symbols, sequence, candidates)
+            print 'State %s produced %d transitions' % (state, num_transitions)
+            if (0 == num_transitions) and allow_residual:
+                matches.append( (symbols, sequence) )
+                print 'Possible remainder'
             assert symbols == tmp # cleanup
         return matches
 
@@ -710,9 +719,37 @@ class ModelGroupAll (pyxb.cscRoot):
     def __init__ (self, alternatives):
         self.__alternatives = alternatives
 
-    def validate (self, available_symbols_im, output_sequence_im, candidates):
-        for alternative in self.__alternatives:
-            paths = alternative.contentModel().validate()
+    def validate (self, available_symbols_im, output_sequence_im, next_state, candidates):
+        num_matches = 0
+        alternatives = set(self.__alternatives)
+        symbols = available_symbols_im
+        output_sequence = output_sequence_im[:]
+        found_match = True
+        while (0 < len(alternatives)) and found_match:
+            print '%d alternatives left:' % (len(alternatives),)
+            for (k, v) in symbols.items():
+                print ' %s: %d instances' % (k.pythonField(), len(v))
+
+            found_match = False
+            for alt in alternatives:
+                matches = alt.contentModel().validate(symbols, allow_residual=True)
+                if 0 == len(matches):
+                    break
+                (new_symbols, new_sequence) = matches[0]
+                found_match = (0 < len(new_sequence))
+                if found_match:
+                    output_sequence.extend(new_sequence)
+                    symbols = new_symbols
+                    alternatives.remove(alt)
+                    found_match = True
+                    break
+        print 'Match %s, %d left' % (found_match, len(alternatives))
+        if 0 < len(alternatives):
+            for alt in alternatives:
+                if alt.required():
+                    return False
+        candidates.append( (next_state, symbols, output_sequence) )
+        return True
 
     def matchAlternatives (self, ctd_instance, node_list, store=True):
         """Match the node_list against the alternatives in this model group.

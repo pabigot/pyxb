@@ -1054,7 +1054,7 @@ class complexTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _
 
     def _childrenForDOM (self):
         assert self._ContentModel is not None
-        matches = self._ContentModel.validate(self, self._symbolSet())
+        matches = self._ContentModel.validate(self._symbolSet())
         if 0 < len(matches):
             ( symbols, sequence ) = matches[0]
             if 0 == len(symbols):
