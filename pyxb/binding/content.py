@@ -410,7 +410,7 @@ class ElementUse (pyxb.cscRoot):
             else:
                 if isinstance(value, basis.STD_union) and isinstance(value, elt_type._MemberTypes):
                     val_type = elt_type
-            if (val_type != elt_type):
+            if (val_type != elt_type._SupersedingClass()):
                 val_type_qname = value._ExpandedName.localName()
                 tns_prefix = dom_support.namespacePrefix(value._ExpandedName.namespace())
                 if tns_prefix is not None:
@@ -495,7 +495,22 @@ class ContentModelTransition (pyxb.cscRoot):
 
     def __validateConsume (self, key, available_symbols_im, output_sequence_im, candidates):
         next_symbols = available_symbols_im.copy()
-        if self.__nextState == self.__currentStateRef.state():
+        # If the transition is a loop back to the current state, or if the
+        # transition is a simple type definition with variety list, we can
+        # consume multiple instances.  Might as well consume all of them.
+        key_type = None
+        if key is not None:
+            key_type = key.elementBinding()._TypeDefinition
+        if issubclass(key_type, basis.STD_list):
+            consume_all = True
+            consume_singles = False
+        elif (self.__nextState == self.__currentStateRef.state()):
+            consume_all = True
+            consume_singles = True
+        else:
+            consume_all = False
+            consume_singles = True
+        if consume_all:
             consumed = next_symbols[key]
             del next_symbols[key]
         else:
@@ -505,8 +520,12 @@ class ContentModelTransition (pyxb.cscRoot):
                 del next_symbols[key]
             else:
                 next_symbols[key] = next_left
+        if consume_singles:
+            output_sequence = output_sequence_im + [ (key, _c) for _c in consumed ]
+        else:
+            output_sequence = output_sequence_im + [ (key, key_type(consumed)) ]
         assert (not (key in next_symbols)) or (0 < len(next_symbols[key]))
-        candidate = (self.__nextState, next_symbols, output_sequence_im + [ (key, _c) for _c in consumed ])
+        candidate = (self.__nextState, next_symbols, output_sequence)
         candidates.append(candidate)
         return True
 

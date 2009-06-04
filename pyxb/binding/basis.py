@@ -171,7 +171,6 @@ class _DynamicCreate_mixin (pyxb.cscRoot):
         """Invoke the constructor for the class that supersedes this one."""
         ctor = cls._AlternativeConstructor()
         if ctor is not None:
-            print 'Invoking %s on %s %s' % (ctor, args, kw)
             return ctor(*args, **kw)
         return cls._SupersedingClass()(*args, **kw)
 
@@ -679,7 +678,7 @@ class STD_list (simpleTypeDefinition, types.ListType):
     @classmethod
     def XsdLiteral (cls, value):
         """Convert from a binding value to a string usable in an XML document."""
-        return ' '.join([ cls.XsdLiteral(_v) for _v in value ])
+        return ' '.join([ _v.xsdLiteral() for _v in value ])
 
 
 class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
@@ -734,7 +733,10 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
         value of the content() is dereferenced once, as a convenience.
         """
         content_type = kw.get('_content_type', self._TypeDefinition)
-        self.__setContent(content_type.Factory(*args, **kw))
+        if (1 == len(args)) and isinstance(args[0], content_type):
+            self.__setContent(args[0])
+        else:
+            self.__setContent(content_type.Factory(*args, **kw))
         
     # Determine which content should be used to dereference a particular
     # (Python) attribute.  Priority deferral to the real content.
@@ -1043,6 +1045,17 @@ class complexTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _
         return None
 
     @classmethod
+    def _UseForValue (cls, value):
+        """Return the ElementUse object corresponding to the type of the value.
+ 
+        :param value: An instance of _Binding_mixin.
+        """
+        for eu in cls._ElementMap.values():
+            if isinstance(value, eu.elementBinding()._TypeDefinition):
+                return eu
+        return None
+
+    @classmethod
     def _UseForTag (cls, tag):
         """Return the ElementUse object corresponding to the element name.
 
@@ -1222,6 +1235,14 @@ class complexTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _
     def _IsSimpleTypeContent (cls):
         """CTDs with simple content are simple"""
         return cls._CT_SIMPLE == cls._ContentTypeTag
+
+    def _setContent (self, value):
+        for eu in self._ElementMap.values():
+            if isinstance(value, eu.elementBinding()._TypeDefinition):
+                eu.setValue(self, value)
+                return
+        raise pyxb.PyXBError('Unable to store value of type %s into complex type %s' % (type(value), self._ExpandedName))
+ 
 
 ## Local Variables:
 ## fill-column:78
