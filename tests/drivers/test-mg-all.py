@@ -107,6 +107,8 @@ class TestMGAll (unittest.TestCase):
             instance = many.CreateFromDOM(dom.documentElement)
             rev = self.stripMembers(ToDOM(instance).toxml(), body)
             self.assertEqual('<ns1:many xmlns:ns1="URN:test-mg-all">%s</ns1:many>' % (''.join(len(body)*['X']),), rev)
+        instance = many(a=many_a(), c=many_c(), d=many_d(), e=many_e(), f=many_f(), g=many_g(), h=many_h())
+        self.assertRaises(pyxb.DOMGenerationError, ToDOM, instance)
 
 if __name__ == '__main__':
     unittest.main()
