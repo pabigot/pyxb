@@ -1037,7 +1037,7 @@ class complexTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _
         :param tag: The L{ExpandedName} of an element in the class."""
         return cls._ElementMap[tag]
 
-    def _childrenForDOM (self):
+    def __childrenForDOM (self):
         """Generate a list of children in the order in which they should be
         added to the parent when creating a DOM representation of this
         object."""
@@ -1051,6 +1051,27 @@ class complexTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _
                 continue
             order.append( (eu, value) )
         return order
+
+    def _childrenForDOM (self):
+        output_sequence = []
+        assert self._ContentModel is not None
+        order = self._ContentModel.validate(self, self._symbolSet(), output_sequence)
+        return order
+
+    def _symbolSet (self):
+        rv = { }
+        for eu in self._ElementMap.values():
+            value = eu.value(self)
+            if value is None:
+                continue
+            if not isinstance(value, list):
+                rv[eu] = [ value]
+            elif 0 < len(value):
+                rv[eu] = value[:]
+        wce = self.wildcardElements()
+        if (wce is not None) and (0 < len(wce)):
+            rv[None] = wce
+        return rv
 
     def _setAttributesFromDOM (self, node):
         """Initialize the attributes of this element from those of the DOM node.
@@ -1159,6 +1180,7 @@ class complexTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _
             return element.appendChild(dom_support.document().createTextNode(self.content().xsdLiteral()))
         order = self._childrenForDOM()
         for (eu, v) in order:
+            assert v != self
             eu.toDOM(dom_support, parent, v)
         mixed_content = self.content()
         for mc in mixed_content:

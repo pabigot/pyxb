@@ -748,13 +748,11 @@ class anyType (basis.complexTypeDefinition):
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('anyType')
     _ContentTypeTag = basis.complexTypeDefinition._CT_MIXED
     _Abstract = False
-    '''
-    _Content = content.Particle(1, 1,
-                                content.ModelGroup(content.ModelGroup.C_SEQUENCE,
-                                                   [ content.Particle(0, None,
-                                                                      content.Wildcard(namespace_constraint=content.Wildcard.NC_any,
-                                                                                       process_contents=content.Wildcard.PC_lax)
-                                                                      ) # end Particle
-                                                     ]) # end ModelGroup
-                                ) # end Particle
-'''
+    
+    # Generate from tests/schemas/anyType.xsd
+    _ContentModel = content.ContentModel(state_map = {
+      1 : content.ContentModelState(state=1, is_final=True, transitions=[
+        content.ContentModelTransition(term=content.Wildcard(process_contents=content.Wildcard.PC_lax, namespace_constraint=content.Wildcard.NC_any), next_state=1, element_use=None),
+    ])
+})
+

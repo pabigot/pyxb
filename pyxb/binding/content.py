@@ -433,6 +433,12 @@ class ContentModelTransition (pyxb.cscRoot):
         return self.__term
     __term = None
 
+    def currentStateRef (self):
+        return self.__currentStateRef
+    __currentStateRef = None
+    def _currentStateRef (self, current_state_ref):
+        self.__currentStateRef = current_state_ref
+
     def nextState (self):
         """The next state in the DFA"""
         return self.__nextState
@@ -481,6 +487,38 @@ class ContentModelTransition (pyxb.cscRoot):
         elt_name = pyxb.namespace.ExpandedName(node)
         element = self.__term.CreateFromDOM(node)
         return element
+
+    def __validateConsume (self, key, available_symbols_im, output_sequence_im, candidates):
+        prepend = False
+        if self.__nextState == self.__currentStateRef.state():
+            next_symbols = available_symbols_im.copy()
+            consumed = next_symbols[self.__elementUse]
+            del next_symbols[self.__elementUse]
+            prepend = True
+        else:
+            next_symbols = available_symbols_im.copy()
+            consumed = [ next_symbols[self.__elementUse].pop(0) ]
+            if 0 == len(next_symbols[self.__elementUse]):
+                del next_symbols[self.__elementUse]
+        candidate = (self.__nextState, next_symbols, output_sequence_im + [ (key, _c) for _c in consumed ])
+        if prepend:
+            candidates.insert(0, candidate)
+        else:
+            candidates.append(candidate)
+        return True
+
+    def validate (self, ctd_instance, available_symbols_im, output_sequence_im, candidates):
+        if self.TT_element == self.__termType:
+            if not (self.__elementUse in available_symbols_im):
+                return False
+            return self.__validateConsume(self.__elementUse, available_symbols_im, output_sequence_im, candidates)
+        elif self.TT_modelGroupAll == self.__termType:
+            raise pyxb.IncompleteImplementationError('DOM generation for modelGroupAll unimplemented')
+        elif self.TT_wildcard == self.__termType:
+            if not (None in available_symbols_im):
+                return False
+            return self.__validateConsume(None, available_symbols_im, output_sequence_im, candidates)
+        return False
 
     def attemptTransition (self, ctd_instance, node_list, store):
         """Attempt to make the appropriate transition.
@@ -551,12 +589,19 @@ class ContentModelState (pyxb.cscRoot):
         return self.__isFinal
     __isFinal = None
 
+    def state (self):
+        return self.__state
+
     def __init__ (self, state, is_final, transitions):
         self.__state = state
         self.__isFinal = is_final
         self.__transitions = transitions
+        [ _t._currentStateRef(self) for _t in self.__transitions ]
         self.__transitions.sort()
 
+    def transitions (self):
+        return self.__transitions
+    
     def evaluateContent (self, ctd_instance, node_list, store):
         """Determine where to go from this state.
 
@@ -611,6 +656,23 @@ class ContentModel (pyxb.cscRoot):
         if state is not None:
             raise pyxb.MissingContentError()
 
+    def validate (self, ctd_instance, available_symbols, output_sequence):
+        if available_symbols is None:
+            available_symbols = ctd_instance._symbolSet()
+        candidates = []
+        candidates.append( (1, available_symbols, []) )
+        while candidates:
+            (state_id, symbols, sequence) = candidates.pop(0)
+            state = self.__stateMap[state_id]
+            if 0 == len(symbols):
+                if state.isFinal():
+                    if output_sequence is not None:
+                        output_sequence.extend(sequence)
+                    return output_sequence
+                continue
+            for transition in state.transitions():
+                transition.validate(ctd_instance, symbols, sequence, candidates)
+        return None
 
 class ModelGroupAllAlternative (pyxb.cscRoot):
     """Represents a single alternative in an "all" model group."""
