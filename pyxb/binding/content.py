@@ -665,7 +665,7 @@ class ContentModel (pyxb.cscRoot):
         if state is not None:
             raise pyxb.MissingContentError()
 
-    def validate (self, available_symbols, stop_on_success=True, allow_residual=False):
+    def validate (self, available_symbols, allow_residual=False):
         matches = []
         candidates = []
         candidates.append( (1, available_symbols, []) )
@@ -675,20 +675,14 @@ class ContentModel (pyxb.cscRoot):
             if 0 == len(symbols):
                 if state.isFinal():
                     matches.append( (symbols, sequence) )
-                    if stop_on_success:
-                        return matches
+                    return matches
                 continue
-            for (k, v) in symbols.items(): # cleanup
-                assert 0 < len(v)
-            tmp = symbols.copy() # cleanup
             num_transitions = 0
             for transition in state.transitions():
                 num_transitions += transition.validate(symbols, sequence, candidates)
-            print 'State %s produced %d transitions' % (state, num_transitions)
             if (0 == num_transitions) and allow_residual:
                 matches.append( (symbols, sequence) )
-                print 'Possible remainder'
-            assert symbols == tmp # cleanup
+                return matches
         return matches
 
 class ModelGroupAllAlternative (pyxb.cscRoot):
@@ -726,10 +720,6 @@ class ModelGroupAll (pyxb.cscRoot):
         output_sequence = output_sequence_im[:]
         found_match = True
         while (0 < len(alternatives)) and found_match:
-            print '%d alternatives left:' % (len(alternatives),)
-            for (k, v) in symbols.items():
-                print ' %s: %d instances' % (k.pythonField(), len(v))
-
             found_match = False
             for alt in alternatives:
                 matches = alt.contentModel().validate(symbols, allow_residual=True)
@@ -743,11 +733,9 @@ class ModelGroupAll (pyxb.cscRoot):
                     alternatives.remove(alt)
                     found_match = True
                     break
-        print 'Match %s, %d left' % (found_match, len(alternatives))
-        if 0 < len(alternatives):
-            for alt in alternatives:
-                if alt.required():
-                    return False
+        for alt in alternatives:
+            if alt.required():
+                return False
         candidates.append( (next_state, symbols, output_sequence) )
         return True
 
