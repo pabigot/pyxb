@@ -1053,10 +1053,14 @@ class complexTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _
         return order
 
     def _childrenForDOM (self):
-        output_sequence = []
         assert self._ContentModel is not None
-        order = self._ContentModel.validate(self, self._symbolSet(), output_sequence)
-        return order
+        matches = self._ContentModel.validate(self, self._symbolSet())
+        if 0 < len(matches):
+            ( symbols, sequence ) = matches[0]
+            if 0 == len(symbols):
+                return sequence
+            raise pyxb.DOMGenerationError('Ungenerated symbols: %s' % (symbols,) )
+        return None
 
     def _symbolSet (self):
         rv = { }
@@ -1179,6 +1183,8 @@ class complexTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _
         if self._CT_SIMPLE == self._ContentTypeTag:
             return element.appendChild(dom_support.document().createTextNode(self.content().xsdLiteral()))
         order = self._childrenForDOM()
+        if order is None:
+            raise pyxb.DOMGenerationError('Binding value inconsistent with content model')
         for (eu, v) in order:
             assert v != self
             eu.toDOM(dom_support, parent, v)

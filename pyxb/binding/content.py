@@ -661,10 +661,8 @@ class ContentModel (pyxb.cscRoot):
         if state is not None:
             raise pyxb.MissingContentError()
 
-    def validate (self, ctd_instance, available_symbols, output_sequence):
-        if available_symbols is None:
-            available_symbols = ctd_instance._symbolSet()
-
+    def validate (self, ctd_instance, available_symbols, stop_on_success=True):
+        matches = []
         candidates = []
         candidates.append( (1, available_symbols, []) )
         while 0 < len(candidates):
@@ -672,17 +670,17 @@ class ContentModel (pyxb.cscRoot):
             state = self.__stateMap[state_id]
             if 0 == len(symbols):
                 if state.isFinal():
-                    if output_sequence is not None:
-                        output_sequence.extend(sequence)
-                    return output_sequence
+                    matches.append( (symbols, sequence) )
+                    if stop_on_success:
+                        return matches
                 continue
-            for (k, v) in symbols.items():
+            for (k, v) in symbols.items(): # cleanup
                 assert 0 < len(v)
-            tmp = symbols.copy()
+            tmp = symbols.copy() # cleanup
             for transition in state.transitions():
                 transition.validate(ctd_instance, symbols, sequence, candidates)
-            assert symbols == tmp
-        return None
+            assert symbols == tmp # cleanup
+        return matches
 
 class ModelGroupAllAlternative (pyxb.cscRoot):
     """Represents a single alternative in an "all" model group."""
@@ -711,6 +709,10 @@ class ModelGroupAll (pyxb.cscRoot):
 
     def __init__ (self, alternatives):
         self.__alternatives = alternatives
+
+    def validate (self, available_symbols_im, output_sequence_im, candidates):
+        for alternative in self.__alternatives:
+            paths = alternative.contentModel().validate()
 
     def matchAlternatives (self, ctd_instance, node_list, store=True):
         """Match the node_list against the alternatives in this model group.
