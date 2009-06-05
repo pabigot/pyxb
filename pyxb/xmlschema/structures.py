@@ -3465,6 +3465,10 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
     def __initializeFromUnion (self, body):
         self.__baseTypeDefinition = self.SimpleUrTypeDefinition()
         self.__memberTypesAttribute = NodeAttribute(body, 'memberTypes')
+        self.__localMemberTypes = []
+        for cn in body.childNodes:
+            if (Node.ELEMENT_NODE == cn.nodeType) and xsd.nodeIsNamed(cn, 'simpleType'):
+                self.__localMemberTypes.append(self.CreateFromDOM(cn, owner=self))
         return self.__completeResolution(body, self.VARIETY_union, 'union')
 
     def __resolveBuiltin (self):
@@ -3652,10 +3656,9 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
         elif self.VARIETY_union == variety:
             if 'union' == alternative:
                 # First time we try to resolve, create the member type
-                # definitions.  If something later prevents us from
-                # resolving this type, we don't want to create them
-                # again, because we might already have references to
-                # them.
+                # definitions.  If something later prevents us from resolving
+                # this type, we don't want to create them again, because we
+                # might already have references to them.
                 if self.__memberTypeDefinitions is None:
                     mtd = []
                     # If present, first extract names from memberTypes,
@@ -3667,24 +3670,19 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
                             std = mn_en.typeDefinition()
                             if std is None:
                                 raise pyxb.InvalidSchemaError('Unable to locate member type %s' % (mn_en,))
+                            # Note: We do not need these to be resolved (here)
                             assert isinstance(std, SimpleTypeDefinition)
                             mtd.append(std)
                     # Now look for local type definitions
-                    for cn in body.childNodes:
-                        if (Node.ELEMENT_NODE == cn.nodeType):
-                            if xsd.nodeIsNamed(cn, 'simpleType'):
-                                # NB: Attempt resolution right away to
-                                # eliminate unnecessary delay below
-                                # when looking for union expansions.
-                                mtd.append(self.CreateFromDOM(cn, owner=self)._resolve())
-                    self.__memberTypeDefinitions = mtd[:]
+                    mtd.extend(self.__localMemberTypes)
+                    self.__memberTypeDefinitions = mtd
                     assert None not in self.__memberTypeDefinitions
 
-                # Replace any member types that are themselves unions
-                # with the members of those unions, in order.  Note
-                # that doing this might indicate we can't resolve this
-                # type yet, which is why we separated the member list
-                # creation and the substitution phases
+                # Replace any member types that are themselves unions with the
+                # members of those unions, in order.  Note that doing this
+                # might indicate we can't resolve this type yet, which is why
+                # we separated the member list creation and the substitution
+                # phases
                 mtd = []
                 for mt in self.__memberTypeDefinitions:
                     assert isinstance(mt, SimpleTypeDefinition)
