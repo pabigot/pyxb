@@ -718,6 +718,7 @@ class _PluralityData (types.ListType):
                     tag = ed.expandedName()
                     name_types.setdefault(tag, ed)
                     # Should only be one with that name
+                    # @todo: Not true if same name is used in parent complex type
                     assert name_types[tag] == ed
                     npdm[tag] = npdm.get(tag, False) or v
                 elif isinstance(ed, Wildcard):
@@ -2536,51 +2537,52 @@ class Particle (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin):
             # 3.9.2 says use 3.3.2, which is Element.  The element inside a
             # particle is a localElement, so we either get the one it refers
             # to (which is top-level), or create a local one here.
+            target_namespace = self._resolvingSchema().targetNamespaceForNode(node, ElementDeclaration)
             if self.__refAttribute is not None:
                 ref_en = self._namespaceContext().interpretQName(self.__refAttribute)
-                term = ref_en.elementDeclaration()
-                if term is None:
+                self.__pendingTerm = ref_en.elementDeclaration()
+                if self.__pendingTerm is None:
                     raise pyxb.SchemaValidationError('Unable to locate element referenced by %s' % (ref_en,))
             else:
-                target_namespace = self._resolvingSchema().targetNamespaceForNode(node, ElementDeclaration)
-                alt_term = None
-                if isinstance(scope, ComplexTypeDefinition):
-                    # Look for an existing local element declaration with the
-                    # same expanded name.
-                    name = NodeAttribute(node, 'name')
-                    assert name is not None
-                    elt_en = pyxb.namespace.ExpandedName(target_namespace, name)
-                    alt_term = scope.lookupScopedElementDeclaration(elt_en)
-
                 # If we haven't already created a component for this
                 # declaration, do so.  Note that we won't record it if we
                 # already have one with the same name.
                 if self.__pendingTerm is None:
-                    aux_kw = { }
-                    if alt_term is not None:
-                        aux_kw['scope_inhibit_record'] = True
-                    self.__pendingTerm = ElementDeclaration.CreateFromDOM(node=node, scope=scope, owner=self, target_namespace=target_namespace, **aux_kw)
+                    self.__pendingTerm = ElementDeclaration.CreateFromDOM(node=node, scope=scope, owner=self, target_namespace=target_namespace)
 
-                if alt_term is None:
-                    # No pre-existing element with same name; go with the one we created
-                    term = self.__pendingTerm
-                    self.__pendingTerm = None
-                else:
-                    # Might be a conflict.  Both candidates must be resolved before we can tell.
-                    if not (alt_term.isResolved() and self.__pendingTerm.isResolved()):
-                        self._queueForResolution('cannot check conflict with unresolved candidates')
-                        return self
-                    # Test cos-element-consistent
-                    alt_type = alt_term.typeDefinition()
-                    pending_type = self.__pendingTerm.typeDefinition()
-                    if not alt_type.isTypeEquivalent(pending_type):
-                        raise pyxb.SchemaValidationError('Conflicting element declarations for %s: %s versus %s' % (alt_term.expandedName(), alt_type, pending_type))
-                    # They're equivalent; just re-use the old one, discarding the new one.
-                    self.__pendingTerm._dissociateFromNamespace()
-                    self.__pendingTerm = None
-                    term = alt_term
-                if isinstance(scope, ComplexTypeDefinition):
-                    term._recordInScope()
+            alt_term = None
+            if isinstance(scope, ComplexTypeDefinition):
+                # Look for an existing local element declaration with the
+                # same expanded name.
+                name = NodeAttribute(node, 'name')
+                if name is not None:
+                    elt_en = pyxb.namespace.ExpandedName(target_namespace, name)
+                    alt_term = scope.lookupScopedElementDeclaration(elt_en)
+
+            if alt_term is None:
+                # No pre-existing element with same name; go with the one we created
+                term = self.__pendingTerm
+                self.__pendingTerm = None
+            else:
+                # Might be a conflict.  Both candidates must be resolved before we can tell.
+                if not (alt_term.isResolved() and self.__pendingTerm.isResolved()):
+                    self._queueForResolution('cannot check conflict with unresolved candidates')
+                    return self
+                # Test cos-element-consistent
+                alt_type = alt_term.typeDefinition()
+                pending_type = self.__pendingTerm.typeDefinition()
+                if not alt_type.isTypeEquivalent(pending_type):
+                    raise pyxb.SchemaValidationError('Conflicting element declarations for %s: %s versus %s' % (alt_term.expandedName(), alt_type, pending_type))
+                # They're equivalent; just re-use the old one, discarding the new one.
+                self.__pendingTerm._dissociateFromNamespace()
+                self.__pendingTerm = None
+                term = alt_term
+
+            # Whether this is a local declaration or one pulled in from the
+            # namespace, its name is now reserved in this type.
+            assert term is not None
+            if isinstance(scope, ComplexTypeDefinition):
+                term._recordInScope()
 
             assert term is not None
         elif xsd.nodeIsNamed(node, 'any'):
