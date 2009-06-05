@@ -2498,16 +2498,16 @@ class Particle (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin):
         node = self.__domNode
         context = self._context()
         scope = self._scope()
-        ref_attr = NodeAttribute(node, 'ref')
+
         if xsd.nodeIsNamed(node, 'group'):
             # 3.9.2 says use 3.8.2, which is ModelGroup.  The group
             # inside a particle is a groupRef.  If there is no group
             # with that name, this throws an exception as expected.
-            if ref_attr is None:
+            if self.__refAttribute is None:
                 raise pyxb.SchemaValidationError('group particle without reference')
             # Named groups can only appear at global scope, so no need
             # to use context here.
-            ref_en = self._namespaceContext().interpretQName(ref_attr)
+            ref_en = self._namespaceContext().interpretQName(self.__refAttribute)
             group_decl = ref_en.modelGroupDefinition()
             if group_decl is None:
                 raise pyxb.SchemaValidationError('Model group reference %s cannot be found' % (ref_en,))
@@ -2533,8 +2533,8 @@ class Particle (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin):
             # 3.9.2 says use 3.3.2, which is Element.  The element inside a
             # particle is a localElement, so we either get the one it refers
             # to (which is top-level), or create a local one here.
-            if ref_attr is not None:
-                ref_en = self._namespaceContext().interpretQName(ref_attr)
+            if self.__refAttribute is not None:
+                ref_en = self._namespaceContext().interpretQName(self.__refAttribute)
                 term = ref_en.elementDeclaration()
                 if term is None:
                     raise pyxb.SchemaValidationError('Unable to locate element referenced by %s' % (ref_en,))
@@ -2638,6 +2638,9 @@ class Particle (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin):
                 kw['max_occurs'] = datatypes.nonNegativeInteger(attr_val)
 
         rv = cls(None, **kw)
+
+        rv.__refAttribute = NodeAttribute(node, 'ref')
+        
         rv.__domNode = node
         rv._queueForResolution('creation')
         return rv
