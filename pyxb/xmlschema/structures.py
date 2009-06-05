@@ -1608,13 +1608,15 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         rv = cls(name=name, node=node, derivation_method=None, **kw)
         kw.pop('node', None)
         kw['owner'] = rv
-
+        if rv._scopeIsGlobal():
+            kw['scope'] = rv
+        
         return rv.__setContentFromDOM(node, **kw)
 
     __usesC1 = None
 
     # Handle attributeUses, attributeWildcard, contentType
-    def __completeProcessing (self, definition_node_list, method, content_style):
+    def __completeProcessing (self, method, content_style):
         # Handle clauses 1 and 2 (common between simple and complex types)
         uses_c1 = self.__usesC1
         uses_c2 = set()
@@ -1990,7 +1992,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
                 self._queueForResolution('content particle %s is not deep-resolved' % (prt,))
                 return self
 
-        return self.__completeProcessing(self.__definitionNodeList, self.__pendingDerivationMethod, self.__contentStyle)
+        return self.__completeProcessing(self.__pendingDerivationMethod, self.__contentStyle)
 
     def __str__ (self):
         return 'CTD[%s]' % (self.name(),)
