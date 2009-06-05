@@ -176,11 +176,6 @@ class ConstrainingFacet (Facet):
     """One of the facets defined in section 4.3, which provide
     constraints on the lexical space of a type definition."""
     
-    # The fixed set of expected facets
-    _Facets = [ 'length', 'minLength', 'maxLength', 'pattern', 'enumeration',
-                'whiteSpace', 'maxInclusive', 'maxExclusive',
-                'minExclusive', 'minInclusive', 'totalDigits', 'fractionDigits' ]
-
     # The prefix used for Python classes used for a constraining
     # facet.  Note that this is not the prefix used when generating a
     # Python class member that specifies a constraining instance, even
@@ -695,7 +690,6 @@ class CF_fractionDigits (ConstrainingFacet, _Fixed_mixin):
 class FundamentalFacet (Facet):
     """A fundamental facet provides information on the value space of the associated type."""
     
-    _Facets = [ 'equal', 'ordered', 'bounded', 'cardinality', 'numeric' ]
     _FacetPrefix = 'FF'
 
     @classmethod
@@ -775,3 +769,15 @@ class FF_numeric (FundamentalFacet):
     _Name = 'numeric'
     _ValueDatatype = datatypes.boolean
 
+# The fixed set of expected facets
+ConstrainingFacet.Facets = [
+    CF_length, CF_minLength, CF_maxLength, CF_pattern, CF_enumeration,
+    CF_whiteSpace, CF_minInclusive, CF_maxInclusive, CF_minExclusive,
+    CF_maxExclusive, CF_totalDigits, CF_fractionDigits ]
+
+FundamentalFacet.Facets = [
+    FF_equal, FF_ordered, FF_bounded, FF_cardinality, FF_numeric ]
+
+Facet.Facets = []
+Facet.Facets.extend(ConstrainingFacet.Facets)
+Facet.Facets.extend(FundamentalFacet.Facets)

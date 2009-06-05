@@ -1003,10 +1003,9 @@ class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
         assert other.name() is not None
 
         # The other STD should be an unresolved schema-defined type.
-        assert other.__typeDefinition is None
-
         # Mark this instance as unresolved so it is re-examined
-        self.__typeDefinition = None
+        if not other.isResolved():
+            self.__typeDefinition = None
         return self
 
     def _dependentComponents_vx (self):
@@ -3545,6 +3544,24 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
         return self
 
     def __updateFacets (self, body):
+        local_facets = {}
+        for fc in facets.Facet.Facets:
+            children = LocateMatchingChildren(body, fc.Name())
+            if 0 < len(children):
+                fi = fc(base_type_definition=self.__baseTypeDefinition,
+                        owner_type_definition=self)
+                if isinstance(fi, facets._LateDatatype_mixin):
+                    fi.bindValueDatatype(self)
+                for cn in children:
+                    kw = { 'annotation': LocateUniqueChild(cn, 'annotation') }
+                    for ai in range(0, cn.attributes.length):
+                        attr = cn.attributes.item(ai)
+                        # Convert name from unicode to string
+                        kw[str(attr.name)] = attr.value
+                    #print 'set %s from %s' % (fi.Name(), kw)
+                    fi.setFromKeywords(**kw)
+                local_facets[fc] = fi
+
         # We want a map from the union of the facet classes from this STD up
         # through its baseTypeDefinition (if present).  Map elements should be
         # to None if the facet has not been constrained, or to the nearest
@@ -3565,25 +3582,9 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
             base_facets.update(self.__baseTypeDefinition.facets())
         base_facets.update(self.facets())
 
-        local_facets = {}
+
         for fc in base_facets.keys():
-            children = LocateMatchingChildren(body, fc.Name())
-            fi = base_facets[fc]
-            if 0 < len(children):
-                fi = fc(base_type_definition=self.__baseTypeDefinition,
-                        owner_type_definition=self,
-                        super_facet=fi)
-                if isinstance(fi, facets._LateDatatype_mixin):
-                    fi.bindValueDatatype(self)
-                for cn in children:
-                    kw = { 'annotation': LocateUniqueChild(cn, 'annotation') }
-                    for ai in range(0, cn.attributes.length):
-                        attr = cn.attributes.item(ai)
-                        # Convert name from unicode to string
-                        kw[str(attr.name)] = attr.value
-                    #print 'set %s from %s' % (fi.Name(), kw)
-                    fi.setFromKeywords(**kw)
-            local_facets[fc] = fi
+            local_facets.setdefault(fc, base_facets[fc])
         self.__facets = local_facets
         assert type(self.__facets) == types.DictType
 
@@ -4233,11 +4234,11 @@ class Schema (_SchemaComponent_mixin):
 
     def __replaceUnresolvedDefinition (self, existing_def, replacement_def):
         unresolved_components = self.targetNamespace()._unresolvedComponents()
-        assert existing_def in unresolved_components
-        unresolved_components.remove(existing_def)
-        assert replacement_def not in unresolved_components
-        assert isinstance(replacement_def, pyxb.namespace._Resolvable_mixin)
-        unresolved_components.append(replacement_def)
+        if existing_def in unresolved_components:
+            unresolved_components.remove(existing_def)
+            assert replacement_def not in unresolved_components
+            assert isinstance(replacement_def, pyxb.namespace._Resolvable_mixin)
+            unresolved_components.append(replacement_def)
         # Throw away the reference to the previous component and use
         # the replacement one
         return self.targetNamespace()._replaceComponent(existing_def, replacement_def)
