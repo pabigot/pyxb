@@ -2503,6 +2503,11 @@ class Particle (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin):
         context = self._context()
         scope = self._scope()
 
+        if self.__pendingTerm is None:
+            if (self.__refAttribute is None) and xsd.nodeIsNamed(node, 'element'):
+                target_namespace = self._resolvingSchema().targetNamespaceForNode(node, ElementDeclaration)
+                self.__pendingTerm = ElementDeclaration.CreateFromDOM(node=node, scope=scope, owner=self, target_namespace=target_namespace)
+
         if xsd.nodeIsNamed(node, 'group'):
             # 3.9.2 says use 3.8.2, which is ModelGroup.  The group
             # inside a particle is a groupRef.  If there is no group
@@ -2530,40 +2535,28 @@ class Particle (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin):
                 self._queueForResolution('particle scope is indeterminate')
                 return self
 
-            term = group_decl.modelGroup()._adaptForScope(self, scope)
-            assert term is not None
+            self.__pendingTerm = group_decl.modelGroup()._adaptForScope(self, scope)
+            assert self.__pendingTerm is not None
         elif xsd.nodeIsNamed(node, 'element'):
             assert not xsd.nodeIsNamed(node.parentNode, 'schema')
             # 3.9.2 says use 3.3.2, which is Element.  The element inside a
             # particle is a localElement, so we either get the one it refers
             # to (which is top-level), or create a local one here.
-            target_namespace = self._resolvingSchema().targetNamespaceForNode(node, ElementDeclaration)
             if self.__refAttribute is not None:
+                assert self.__pendingTerm is None
                 ref_en = self._namespaceContext().interpretQName(self.__refAttribute)
                 self.__pendingTerm = ref_en.elementDeclaration()
                 if self.__pendingTerm is None:
                     raise pyxb.SchemaValidationError('Unable to locate element referenced by %s' % (ref_en,))
-            else:
-                # If we haven't already created a component for this
-                # declaration, do so.  Note that we won't record it if we
-                # already have one with the same name.
-                if self.__pendingTerm is None:
-                    self.__pendingTerm = ElementDeclaration.CreateFromDOM(node=node, scope=scope, owner=self, target_namespace=target_namespace)
+            assert self.__pendingTerm
 
             alt_term = None
             if isinstance(scope, ComplexTypeDefinition):
                 # Look for an existing local element declaration with the
                 # same expanded name.
-                name = NodeAttribute(node, 'name')
-                if name is not None:
-                    elt_en = pyxb.namespace.ExpandedName(target_namespace, name)
-                    alt_term = scope.lookupScopedElementDeclaration(elt_en)
+                alt_term = scope.lookupScopedElementDeclaration(self.__pendingTerm.expandedName())
 
-            if alt_term is None:
-                # No pre-existing element with same name; go with the one we created
-                term = self.__pendingTerm
-                self.__pendingTerm = None
-            else:
+            if alt_term is not None:
                 # Might be a conflict.  Both candidates must be resolved before we can tell.
                 if not (alt_term.isResolved() and self.__pendingTerm.isResolved()):
                     self._queueForResolution('cannot check conflict with unresolved candidates')
@@ -2575,29 +2568,21 @@ class Particle (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin):
                     raise pyxb.SchemaValidationError('Conflicting element declarations for %s: %s versus %s' % (alt_term.expandedName(), alt_type, pending_type))
                 # They're equivalent; just re-use the old one, discarding the new one.
                 self.__pendingTerm._dissociateFromNamespace()
-                self.__pendingTerm = None
-                term = alt_term
+                self.__pendingTerm = alt_term
 
             # Whether this is a local declaration or one pulled in from the
             # namespace, its name is now reserved in this type.
-            assert term is not None
+            assert self.__pendingTerm is not None
             if isinstance(scope, ComplexTypeDefinition):
-                term._recordInScope()
-
-            assert term is not None
+                self.__pendingTerm._recordInScope()
         elif xsd.nodeIsNamed(node, 'any'):
-            # 3.9.2 says use 3.10.2, which is Wildcard.
-            term = Wildcard.CreateFromDOM(node=node)
-            assert term is not None
+            pass
         elif ModelGroup.IsGroupMemberNode(node):
-            # Choice, sequence, and all inside a particle are explicit
-            # groups (or a restriction of explicit group, in the case
-            # of all)
-            term = ModelGroup.CreateFromDOM(node=node, context=context, scope=scope, owner=self)
+            pass
         else:
             raise pyxb.LogicError('Unhandled node in Particle._resolve: %s' % (node.toxml(),))
         self.__domNode = None
-        self.__term = term
+        self.__term = self.__pendingTerm
         assert self.__term is not None
         return self
 
@@ -2648,6 +2633,18 @@ class Particle (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin):
         rv = cls(None, **kw)
 
         rv.__refAttribute = NodeAttribute(node, 'ref')
+        rv.__pendingTerm = None
+        if xsd.nodeIsNamed(node, 'element'):
+            # @todo: when schema is available here, create the declaration
+            pass
+        elif xsd.nodeIsNamed(node, 'any'):
+            # 3.9.2 says use 3.10.2, which is Wildcard.
+            rv.__pendingTerm = Wildcard.CreateFromDOM(node=node)
+        elif ModelGroup.IsGroupMemberNode(node):
+            # Choice, sequence, and all inside a particle are explicit
+            # groups (or a restriction of explicit group, in the case
+            # of all)
+            rv.__pendingTerm = ModelGroup.CreateFromDOM(node=node, context=context, scope=scope, owner=rv)
         
         rv.__domNode = node
         rv._queueForResolution('creation')
