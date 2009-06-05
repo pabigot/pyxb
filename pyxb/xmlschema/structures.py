@@ -1314,7 +1314,8 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.na
 
     def _adaptForScope (self, owner, scope):
         rv = self
-        if (self._scopeIsIndeterminate()) and (scope is not None):
+        if (self._scopeIsIndeterminate()) and (scope != self._scope()):
+            print scope
             if isinstance(scope, ComplexTypeDefinition):
                 rv = scope.lookupScopedElementDeclaration(self.expandedName())
                 if rv is not None:
@@ -1728,13 +1729,12 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
             return ( self.CT_SIMPLE, self.__baseTypeDefinition )
         assert False
 
-    def __setComplexContentFromDOM (self, type_node, content_node, definition_node_list, method):
+    def __setComplexContentFromDOM (self, type_node, content_node, definition_node_list, method, **kw):
         # Do content type.  Cache the keywords that need to be used
         # for newly created schema components.
-        ckw = { 'node' : type_node
-              , 'owner' : self
-              , 'scope' : self
-              , 'schema' : self._resolvingSchema() }
+        ckw = kw.copy()
+        ckw['node'] = type_node
+        ckw['scope'] = self
 
         # Definition 1: effective mixed
         mixed_attr = None
@@ -1792,7 +1792,8 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
             assert typedef_node is not None
             # scope is this CTD
             pkw = ckw.copy()
-            del pkw['node']
+            pkw.pop('node', None)
+            pkw['scope'] = self
             effective_content = Particle.CreateFromDOM(typedef_node, **pkw)
 
         self.__effectiveMixed = effective_mixed
@@ -1924,6 +1925,9 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         self.__attributeGroupAttributes = attribute_group_attrs
         self.__anyAttribute = any_attribute
 
+        if self.__isComplexContent:
+            self.__setComplexContentFromDOM(node, self.__contentNode, self.__definitionNodeList, self.__pendingDerivationMethod, **kw)
+
         # Creation does not attempt to do resolution.  Queue up the newly created
         # whatsis so we can resolve it after everything's been read in.
         self.__domNode = node
@@ -1971,7 +1975,6 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         # have a base type.
         if self.__contentType is None:
             if self.__isComplexContent:
-                self.__setComplexContentFromDOM(node, self.__contentNode, self.__definitionNodeList, self.__pendingDerivationMethod)
                 content_type = self.__complexContent(self.__pendingDerivationMethod)
                 self.__contentStyle = 'complex'
             else:
@@ -2326,11 +2329,12 @@ class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
 
     def _adaptForScope (self, owner, scope):
         rv = self
-        scoped_particles = [ _p._adaptForScope(None, scope) for _p in self.particles() ]
-        if scoped_particles != self.particles():
-            rv = self._clone()
-            rv._setOwner(owner)
-            rv.__particles = scoped_particles
+        if self._scopeIsIndeterminate() and (scope != self._scope()):
+            scoped_particles = [ _p._adaptForScope(None, scope) for _p in self.particles() ]
+            if scoped_particles != self.particles():
+                rv = self._clone()
+                rv._setOwner(owner)
+                rv.__particles = scoped_particles
         return rv
 
     def __str__ (self):
@@ -2442,7 +2446,7 @@ class Particle (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin):
         max_occurs is a positive integer value with default 1, or None
         indicating unbounded, denoting the maximum number of terms
         allowed by the content model.
-
+        
         scope is the _ScopeDeclaration_mxin context that is assigned
         to declarations that appear within the particle.  It can be
         None, indicating no scope defined, or a complex type
@@ -2567,6 +2571,7 @@ class Particle (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin):
         scope = kw['scope']
         assert _ScopedDeclaration_mixin.ScopeIsIndeterminate(scope) or isinstance(scope, ComplexTypeDefinition)
         schema = kw['schema']
+        assert schema is not None
 
         kw.update({ 'min_occurs' : 1
                   , 'max_occurs' : 1
