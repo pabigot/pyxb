@@ -443,8 +443,6 @@ def GenerateFacets (outf, td, **kw):
         if fi is not None:
             if not is_collection:
                 argset['value'] = fi.value()
-            if (fi.superFacet() is not None):
-                argset['super_facet'] = fi.superFacet()
             if isinstance(fi, facets.CF_enumeration):
                 argset['enum_prefix'] = fi.enumPrefix()
         facet_var = ReferenceFacetMember(type_definition=td, facet_class=fc, **kw)

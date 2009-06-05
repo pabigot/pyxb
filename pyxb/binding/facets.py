@@ -187,20 +187,8 @@ class ConstrainingFacet (Facet):
     # if it happens to be the same digraph.
     _FacetPrefix = 'CF'
     
-    __superFacet = None
-    def superFacet (self):
-        """Return the constraining facet instance from the base type, if any.
-
-        For example, if this is a CF_length instance, the super-facet
-        is a CF_length instance in the base type definition, or None
-        if the neither base type definition nor its ancesters
-        constrains CF_length.
-        """
-        return self.__superFacet
-
     def __init__ (self, **kw):
         super(ConstrainingFacet, self).__init__(**kw)
-        self.__superFacet = kw.get('super_facet', None)
 
     def _validateConstraint_vx (self, value):
         raise LogicError("Facet %s does not implement constraints" % (self.Name(),))
