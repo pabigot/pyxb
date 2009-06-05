@@ -959,12 +959,12 @@ class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
         rv._annotationFromDOM(node)
         rv._valueConstraintFromDOM(node)
 
-        rv.__typeDefinitionAttribute = NodeAttribute(node, 'type')
+        rv.__typeAttribute = NodeAttribute(node, 'type')
 
         st_node = LocateUniqueChild(node, 'simpleType')
         if st_node is not None:
             rv.__typeDefinition = SimpleTypeDefinition.CreateFromDOM(st_node, owner=rv)
-        elif rv.__typeDefinitionAttribute is None:
+        elif rv.__typeAttribute is None:
             rv.__typeDefinition = SimpleTypeDefinition.SimpleUrTypeDefinition()
 
         if rv.__typeDefinition is None:
@@ -981,7 +981,7 @@ class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
 
         # Although the type definition may not be resolved, *this* component
         # is resolved, since we don't look into the type definition for anything.
-        type_en = self._namespaceContext().interpretQName(self.__typeDefinitionAttribute)
+        type_en = self._namespaceContext().interpretQName(self.__typeAttribute)
         self.__typeDefinition = type_en.typeDefinition()
         if self.__typeDefinition is None:
             raise pyxb.SchemaValidationError('Type reference %s cannot be found' % (type_en,))
@@ -1009,8 +1009,6 @@ class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
 
         # The other STD should be an unresolved schema-defined type.
         assert other.__typeDefinition is None
-        assert other.__domNode is not None
-        self.__domNode = other.__domNode
 
         # Mark this instance as unresolved so it is re-examined
         self.__typeDefinition = None
@@ -1102,6 +1100,7 @@ class AttributeUse (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin, _V
         assert _ScopedDeclaration_mixin.ScopeIsIndeterminate(scope) or isinstance(scope, ComplexTypeDefinition)
         assert xsd.nodeIsNamed(node, 'attribute')
         rv = cls(node=node, **kw)
+
         rv.__use = cls.USE_optional
         use = NodeAttribute(node, 'use')
         if use is not None:
@@ -1115,8 +1114,22 @@ class AttributeUse (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin, _V
                 raise pyxb.SchemaValidationError('Unexpected value %s for attribute use attribute' % (use,))
 
         rv._valueConstraintFromDOM(node)
-        rv.__domNode = node
-        rv._queueForResolution('creation')
+
+        rv.__refAttribute = NodeAttribute(node, 'ref')
+        if rv.__refAttribute is None:
+            # Create an anonymous declaration.  Although this can
+            # never be referenced, we need the right scope so when we
+            # generate the binding we can place the attribute in the
+            # correct type.  Is this true?
+            kw = { }
+            kw['owner'] = rv
+            kw['scope'] = rv._scope()
+            kw['target_namespace'] = rv._resolvingSchema().targetNamespaceForNode(node, AttributeDeclaration)
+            rv.__attributeDeclaration = AttributeDeclaration.CreateFromDOM(node, **kw)
+
+        if rv.__attributeDeclaration is None:
+            rv._queueForResolution('creation')
+
         return rv
 
     def isResolved (self):
@@ -1125,29 +1138,13 @@ class AttributeUse (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin, _V
     def _resolve (self):
         if self.isResolved():
             return self
-        assert self.__domNode
-        node = self.__domNode
-        ref_attr = NodeAttribute(node, 'ref')
-        if ref_attr is None:
-            # Create an anonymous declaration.  Although this can
-            # never be referenced, we need the right scope so when we
-            # generate the binding we can place the attribute in the
-            # correct type.  Is this true?
-            kw = { }
-            kw['owner'] = self
-            kw['scope'] = self._scope()
-            kw['target_namespace'] = self._resolvingSchema().targetNamespaceForNode(node, AttributeDeclaration)
-            self.__attributeDeclaration = AttributeDeclaration.CreateFromDOM(node, **kw)
-        else:
-            ad_en = self._namespaceContext().interpretQName(ref_attr)
-            self.__attributeDeclaration = ad_en.attributeDeclaration()
-            if self.__attributeDeclaration is None:
-                raise pyxb.SchemaValidationError('Attribute declaration %s cannot be found' % (ad_en,))
-        # Although the attribute declaration definition may not be
-        # resolved, *this* component is resolved, since we don't look
-        # into the attribute declaration for anything.
+        ad_en = self._namespaceContext().interpretQName(self.__refAttribute)
+        self.__attributeDeclaration = ad_en.attributeDeclaration()
+        if self.__attributeDeclaration is None:
+            raise pyxb.SchemaValidationError('Attribute declaration %s cannot be found' % (ad_en,))
+
         assert isinstance(self.__attributeDeclaration, AttributeDeclaration)
-        self.__domNode = None
+
         return self
 
     def _adaptForScope (self, ctd):
