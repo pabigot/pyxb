@@ -1737,7 +1737,8 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         # for newly created schema components.
         ckw = { 'node' : type_node
               , 'owner' : self
-              , 'scope' : self }
+              , 'scope' : self
+              , 'schema' : self._resolvingSchema() }
 
         # Definition 1: effective mixed
         mixed_attr = None
@@ -2476,11 +2477,6 @@ class Particle (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin):
         scope = self._scope()
 
         # @RESOLUTION@
-        if self.__pendingTerm is None:
-            if (self.__refAttribute is None) and xsd.nodeIsNamed(node, 'element'):
-                target_namespace = self._resolvingSchema().targetNamespaceForNode(node, ElementDeclaration)
-                self.__pendingTerm = ElementDeclaration.CreateFromDOM(node=node, scope=scope, owner=self, target_namespace=target_namespace)
-
         if xsd.nodeIsNamed(node, 'group'):
             ref_en = self._namespaceContext().interpretQName(self.__refAttribute)
             group_decl = ref_en.modelGroupDefinition()
@@ -2569,6 +2565,7 @@ class Particle (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin):
         """
         scope = kw['scope']
         assert _ScopedDeclaration_mixin.ScopeIsIndeterminate(scope) or isinstance(scope, ComplexTypeDefinition)
+        schema = kw['schema']
 
         kw.update({ 'min_occurs' : 1
                   , 'max_occurs' : 1
@@ -2600,8 +2597,9 @@ class Particle (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin):
             if rv.__refAttribute is None:
                 raise pyxb.SchemaValidationError('group particle without reference')
         elif xsd.nodeIsNamed(node, 'element'):
-            # @todo: when schema is available here, create the declaration
-            pass
+            if rv.__refAttribute is None:
+                target_namespace = schema.targetNamespaceForNode(node, ElementDeclaration)
+                rv.__pendingTerm = ElementDeclaration.CreateFromDOM(node=node, target_namespace=target_namespace, **kw)
         elif xsd.nodeIsNamed(node, 'any'):
             # 3.9.2 says use 3.10.2, which is Wildcard.
             rv.__pendingTerm = Wildcard.CreateFromDOM(node=node)
