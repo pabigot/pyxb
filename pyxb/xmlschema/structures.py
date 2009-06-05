@@ -1606,6 +1606,8 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         name = NodeAttribute(node, 'name')
 
         rv = cls(name=name, node=node, derivation_method=None, **kw)
+        kw.pop('node', None)
+        kw['owner'] = rv
 
         return rv.__setContentFromDOM(node, **kw)
 
@@ -1619,12 +1621,6 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         uses_c1 = self.__usesC1
         uses_c2 = set()
         uses_c3 = set()
-        if uses_c1 is None:
-            uses_c1 = set()
-            for cn in attributes:
-                au = AttributeUse.CreateFromDOM(cn, scope=self, owner=self, schema=self._resolvingSchema())
-                uses_c1.add(au)
-            self.__usesC1 = uses_c1
         attribute_groups = []
         for ag_attr in attribute_group_attrs:
             ag_en = self._namespaceContext().interpretQName(ag_attr)
@@ -1919,6 +1915,12 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         self.__definitionNodeList = definition_node_list
         self.__contentNode = content_node
         self.__isComplexContent = is_complex_content
+
+        (attributes, attribute_group_attrs, any_attribute) = self._attributeRelevantChildren(definition_node_list)
+        self.__usesC1 = set()
+        for cn in attributes:
+            au = AttributeUse.CreateFromDOM(cn, **kw)
+            self.__usesC1.add(au)
 
         # Creation does not attempt to do resolution.  Queue up the newly created
         # whatsis so we can resolve it after everything's been read in.
