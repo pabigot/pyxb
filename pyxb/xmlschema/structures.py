@@ -1614,13 +1614,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
 
         rv = cls(name=name, node=node, derivation_method=None, **kw)
 
-        # Creation does not attempt to do resolution.  Queue up the newly created
-        # whatsis so we can resolve it after everything's been read in.
-        rv.__domNode = node
-        rv._annotationFromDOM(node)
-        rv._queueForResolution('creation')
-        
-        return rv
+        return rv.__setContentFromDOM(node, **kw)
 
     __usesC1 = None
 
@@ -1870,6 +1864,19 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         self.__derivationMethod = derivation_method
         return self
 
+    def __setContentFromDOM (self, node, **kw):
+        attr_val = NodeAttribute(node, 'abstract')
+        if attr_val is not None:
+            self.__abstract = datatypes.boolean(attr_val)
+        
+        # Creation does not attempt to do resolution.  Queue up the newly created
+        # whatsis so we can resolve it after everything's been read in.
+        self.__domNode = node
+        self._annotationFromDOM(node)
+        self._queueForResolution('creation')
+        
+        return self
+
     # Resolution of a CTD can be delayed for the following reasons:
     #
     # * It extends or restricts a base type that has not been resolved
@@ -1890,11 +1897,6 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         assert self.__domNode
         node = self.__domNode
         
-        #print 'Resolving CTD %s' % (self.name(),)
-        attr_val = NodeAttribute(node, 'abstract')
-        if attr_val is not None:
-            self.__abstract = datatypes.boolean(attr_val)
-
         # @todo: implement prohibitedSubstitutions, final, annotations
 
         # See whether we've resolved through to the base type
