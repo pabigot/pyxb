@@ -1739,7 +1739,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
             return ( self.CT_SIMPLE, self.__baseTypeDefinition )
         assert False
 
-    def __complexContent (self, type_node, content_node, definition_node_list, method):
+    def __setComplexContentFromDOM (self, type_node, content_node, definition_node_list, method):
         # Do content type.  Cache the keywords that need to be used
         # for newly created schema components.
         ckw = { 'node' : type_node
@@ -1806,6 +1806,18 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
             del pkw['node']
             effective_content = Particle.CreateFromDOM(typedef_node, **pkw)
 
+        self.__effectiveMixed = effective_mixed
+        self.__method = method
+        self.__effectiveContent = effective_content
+        self.__ckw = ckw
+
+    def __complexContent (self, type_node, content_node, definition_node_list, method):
+        self.__setComplexContentFromDOM(type_node, content_node, definition_node_list, method)
+        effective_mixed = self.__effectiveMixed
+        method = self.__method
+        effective_content = self.__effectiveContent
+        ckw = self.__ckw
+        
         # Shared from clause 3.1.2
         if effective_mixed:
             ct = self.CT_MIXED
