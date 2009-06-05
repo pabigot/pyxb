@@ -1807,14 +1807,11 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
             effective_content = Particle.CreateFromDOM(typedef_node, **pkw)
 
         self.__effectiveMixed = effective_mixed
-        self.__method = method
         self.__effectiveContent = effective_content
         self.__ckw = ckw
 
-    def __complexContent (self, type_node, content_node, definition_node_list, method):
-        self.__setComplexContentFromDOM(type_node, content_node, definition_node_list, method)
+    def __complexContent (self, method):
         effective_mixed = self.__effectiveMixed
-        method = self.__method
         effective_content = self.__effectiveContent
         ckw = self.__ckw
         
@@ -1975,7 +1972,8 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         # have a base type.
         if self.__contentType is None:
             if is_complex_content:
-                content_type = self.__complexContent(node, self.__contentNode, self.__definitionNodeList, self.__pendingDerivationMethod)
+                self.__setComplexContentFromDOM(node, self.__contentNode, self.__definitionNodeList, self.__pendingDerivationMethod)
+                content_type = self.__complexContent(self.__pendingDerivationMethod)
                 self.__contentStyle = 'complex'
             else:
                 # The definition node list is not relevant to simple content
