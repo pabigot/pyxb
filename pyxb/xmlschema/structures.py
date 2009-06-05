@@ -1182,7 +1182,6 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.na
         """The simple or complex type to which the element value conforms."""
         return self.__typeDefinition
     def _typeDefinition (self, type_definition):
-        """Set the type of the element."""
         self.__typeDefinition = type_definition
         return self
 
@@ -1285,11 +1284,41 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.na
         rv._annotationFromDOM(node)
         rv._valueConstraintFromDOM(node)
 
-        # Creation does not attempt to do resolution.  Queue up the newly created
-        # whatsis so we can resolve it after everything's been read in.
-        rv.__domNode = node
-        rv._queueForResolution('creation')
+        rv.__substitutionGroupAttribute = NodeAttribute(node, 'substitutionGroup')
         
+        identity_constraints = []
+        for cn in node.childNodes:
+            if (Node.ELEMENT_NODE == cn.nodeType) and xsd.nodeIsNamed(cn, 'key', 'unique', 'keyref'):
+                identity_constraints.append(IdentityConstraintDefinition.CreateFromDOM(cn, owner=rv, scope=rv.scope()))
+        rv.__identityConstraintDefinitions = identity_constraints
+
+        rv.__typeDefinition = None
+        rv.__typeAttribute = NodeAttribute(node, 'type')
+
+        if rv.__typeDefinition is None:
+            td_node = LocateUniqueChild(node, 'simpleType')
+            if td_node is not None:
+                rv.__typeDefinition = SimpleTypeDefinition.CreateFromDOM(td_node, owner=rv)
+        if rv.__typeDefinition is None:
+            td_node = LocateUniqueChild(node, 'complexType')
+            if td_node is not None:
+                rv.__typeDefinition = ComplexTypeDefinition.CreateFromDOM(td_node, scope=_ScopedDeclaration_mixin.XSCOPE_indeterminate, owner=rv)
+        if rv.__typeDefinition is None:
+            if rv.__typeAttribute is None:
+                rv.__typeDefinition = ComplexTypeDefinition.UrTypeDefinition()
+        if rv.__typeDefinition is None:
+            rv._queueForResolution('creation')
+
+        attr_val = NodeAttribute(node, 'nillable')
+        if attr_val is not None:
+            rv.__nillable = datatypes.boolean(attr_val)
+
+        attr_val = NodeAttribute(node, 'abstract')
+        if attr_val is not None:
+            rv.__abstract = datatypes.boolean(attr_val)
+                
+        # @todo: disallowed substitutions, substitution group exclusions
+
         return rv
 
     def isDeepResolved (self):
@@ -1323,62 +1352,22 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.na
         if self.isResolved():
             return self
 
-        if self.scope() is None:
-            print 'Not resolving unscoped ElementDeclaration %s' % (self.name(),)
-            # DO NOT REQUEUE
-            return self
-
-        node = self.__domNode
-
-        sg_attr = NodeAttribute(node, 'substitutionGroup')
-        if sg_attr is not None:
-            sg_en = self._namespaceContext().interpretQName(sg_attr)
+        if self._scopeIsIndeterminate():
+            print 'WARNING: Resolving ED with indeterminate scope (is this a problem?)'
+        assert self.scope() is not None
+        if self.__substitutionGroupAttribute is not None:
+            sg_en = self._namespaceContext().interpretQName(self.__substitutionGroupAttribute)
             sga = sg_en.elementDeclaration()
             if sga is None:
                 raise pyxb.SchemaValidationError('Element declaration refers to unrecognized substitution group %s' % (sg_en,))
-            if not sga.isResolved():
-                self._queueForResolution('unresolved substitution group %s' % (sg_en,))
-                return self
             self.__substitutionGroupAffiliation = sga
-            
-        identity_constraints = []
-        for cn in node.childNodes:
-            if (Node.ELEMENT_NODE == cn.nodeType) and xsd.nodeIsNamed(cn, 'key', 'unique', 'keyref'):
-                identity_constraints.append(IdentityConstraintDefinition.CreateFromDOM(cn, owner=self, scope=self.scope()))
-        self.__identityConstraintDefinitions = identity_constraints
 
-        type_def = None
-        td_node = LocateUniqueChild(node, 'simpleType')
-        if td_node is not None:
-            type_def = SimpleTypeDefinition.CreateFromDOM(td_node, owner=self)
-        else:
-            td_node = LocateUniqueChild(node, 'complexType')
-            if td_node is not None:
-                type_def = ComplexTypeDefinition.CreateFromDOM(td_node, scope=_ScopedDeclaration_mixin.XSCOPE_indeterminate, owner=self)
-        if type_def is None:
-            type_attr = NodeAttribute(node, 'type')
-            if type_attr is not None:
-                type_en = self._namespaceContext().interpretQName(type_attr)
-                type_def = type_en.typeDefinition()
-                if type_def is None:
-                    raise pyxb.SchemaValidationError('Type declaration %s cannot be found' % (type_en,))
-            elif self.__substitutionGroupAffiliation is not None:
-                type_def = self.__substitutionGroupAffiliation.typeDefinition()
-            else:
-                type_def = ComplexTypeDefinition.UrTypeDefinition()
-        self._typeDefinition(type_def)
+        assert(self.__typeAttribute is not None)
+        type_en = self._namespaceContext().interpretQName(self.__typeAttribute)
+        self.__typeDefinition = type_en.typeDefinition()
+        if self.__typeDefinition is None:
+            raise pyxb.SchemaValidationError('Type declaration %s cannot be found' % (type_en,))
 
-        attr_val = NodeAttribute(node, 'nillable')
-        if attr_val is not None:
-            self.__nillable = datatypes.boolean(attr_val)
-
-        # @todo: disallowed substitutions, substitution group exclusions
-
-        attr_val = NodeAttribute(node, 'abstract')
-        if attr_val is not None:
-            self.__abstract = datatypes.boolean(attr_val)
-                
-        self.__domNode = None
         return self
 
     def __str__ (self):
