@@ -69,8 +69,9 @@ def NodeAttribute (node, attribute_ncname, attribute_ns=None):
     ns_uri = attribute_ns
     if isinstance(attribute_ns, pyxb.namespace.Namespace):
         ns_uri = attribute_ns.uri()
-    if node.hasAttributeNS(ns_uri, attribute_ncname):
-        return node.getAttributeNS(ns_uri, attribute_ncname)
+    attr = node.getAttributeNodeNS(ns_uri, attribute_ncname)
+    if attr is not None:
+        return attr.value
     return None
 
 def LocateUniqueChild (node, tag, absent_ok=True, namespace=pyxb.namespace.XMLSchema):
