@@ -851,13 +851,7 @@ class _AttributeWildcard_mixin (pyxb.cscRoot):
                 agd_attr = NodeAttribute(node, 'ref')
                 if agd_attr is None:
                     raise pyxb.SchemaValidationError('Require ref attribute on internal attributeGroup elements')
-                agen = self._namespaceContext().interpretQName(agd_attr) 
-                agd = agen.attributeGroupDefinition()
-                if agd is None:
-                    raise pyxb.SchemaValidationError('No attribute group definition %s in %s' % (agen.localName(), agen.namespace()))
-                if not agd.isResolved():
-                    return None
-                attribute_groups.append(agd)
+                attribute_groups.append(agd_attr)
             elif xsd.nodeIsNamed(node, 'anyAttribute'):
                 if any_attribute is not None:
                     raise pyxb.SchemaValidationError('Multiple anyAttribute children are not allowed')
@@ -870,6 +864,7 @@ class _AttributeWildcard_mixin (pyxb.cscRoot):
         # Non-absent wildcard properties of attribute groups
         agd_wildcards = []
         for agd in attribute_groups:
+            assert isinstance(agd, AttributeGroupDefinition)
             if agd.attributeWildcard() is not None:
                 agd_wildcards.append(agd.attributeWildcard())
         agd_constraints = [ _agd.namespaceConstraint() for _agd in agd_wildcards ]
@@ -1630,13 +1625,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
 
     # Handle attributeUses, attributeWildcard, contentType
     def __completeProcessing (self, definition_node_list, method, content_style):
-        rv = self._attributeRelevantChildren(definition_node_list)
-        if rv is None:
-            self._queueForResolution('missing attribute relevant children')
-            print 'Holding off CTD %s resolution due to unresolved attribute or group' % (self.name(),)
-            return self
-
-        (attributes, attribute_groups, any_attribute) = rv
+        (attributes, attribute_group_attrs, any_attribute) = self._attributeRelevantChildren(definition_node_list)
         
         # Handle clauses 1 and 2 (common between simple and complex types)
         uses_c1 = self.__usesC1
@@ -1648,7 +1637,13 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
                 au = AttributeUse.CreateFromDOM(cn, context=self, scope=self, owner=self)
                 uses_c1.add(au)
             self.__usesC1 = uses_c1
-        for agd in attribute_groups:
+        attribute_groups = []
+        for ag_attr in attribute_group_attrs:
+            ag_en = self._namespaceContext().interpretQName(ag_attr)
+            agd = ag_en.attributeGroupDefinition()
+            if agd is None:
+                raise pyxb.SchemaValidationError('Attribute group %s cannot be found' % (ag_en,))
+            attribute_groups.append(agd)
             uses_c2.update(agd.attributeUses())
 
         # Handle clause 3.  Note the slight difference in description
@@ -2067,11 +2062,17 @@ class AttributeGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, p
             self._queueForResolution('missing attribute relevant children')
             return self
 
-        (attributes, attribute_groups, any_attribute) = rv
+        (attributes, attribute_group_attrs, any_attribute) = rv
         uses = set()
         for cn in attributes:
             uses.add(AttributeUse.CreateFromDOM(cn, context=self._context(), scope=self._scope(), owner=self))
-        for agd in attribute_groups:
+        attribute_groups = []
+        for ag_attr in attribute_group_attrs:
+            ag_en = self._namespaceContext().interpretQName(ag_attr)
+            agd = ag_en.attributeGroupDefinition()
+            if agd is None:
+                raise pyxb.SchemaValidationError('Attribute group %s cannot be found' % (ag_en,))
+            attribute_groups.append(agd)
             uses = uses.union(agd.attributeUses())
 
         # "Complete wildcard" per CTD
