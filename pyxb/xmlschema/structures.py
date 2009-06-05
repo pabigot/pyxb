@@ -1315,7 +1315,6 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.na
     def _adaptForScope (self, owner, scope):
         rv = self
         if (self._scopeIsIndeterminate()) and (scope != self._scope()):
-            print scope
             if isinstance(scope, ComplexTypeDefinition):
                 rv = scope.lookupScopedElementDeclaration(self.expandedName())
                 if rv is not None:
@@ -1609,8 +1608,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         rv = cls(name=name, node=node, derivation_method=None, **kw)
         kw.pop('node', None)
         kw['owner'] = rv
-        if rv._scopeIsGlobal():
-            kw['scope'] = rv
+        kw['scope'] = rv
         
         return rv.__setContentFromDOM(node, **kw)
 
@@ -1734,7 +1732,6 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         # for newly created schema components.
         ckw = kw.copy()
         ckw['node'] = type_node
-        ckw['scope'] = self
 
         # Definition 1: effective mixed
         mixed_attr = None
@@ -1790,11 +1787,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         else:
             # Clause 2.2
             assert typedef_node is not None
-            # scope is this CTD
-            pkw = ckw.copy()
-            pkw.pop('node', None)
-            pkw['scope'] = self
-            effective_content = Particle.CreateFromDOM(typedef_node, **pkw)
+            effective_content = Particle.CreateFromDOM(typedef_node, **kw)
 
         self.__effectiveMixed = effective_mixed
         self.__effectiveContent = effective_content
