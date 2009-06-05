@@ -51,35 +51,26 @@ def StringToDOM (text):
     xml.dom.minidom."""
     return xml.dom.minidom.parseString(text)
 
-def NodeAttribute (node, attribute_ncname, attribute_ns=pyxb.namespace.XMLSchema):
-    """Namespace-aware search for an attribute in a node.
+def NodeAttribute (node, attribute_ncname, attribute_ns=None):
+    """Namespace-aware search for an optional attribute in a node.
 
-    Be aware that the default namespace does not apply to attributes.
+    @param attribute_ncname: The local name of the attribute.
+    @type attribute_ncname: C{str} or C{unicode}
 
-    NEVER EVER use node.hasAttribute or node.getAttribute directly.
-    The attribute tag can often be in multiple forms.
+    @param attribute_ns: The namespace of the attribute.  Defaults to None
+    since most attributes are not in a namespace.  Can be provided as either a
+    L{pyxb.namespace.Namespace} instance, or a string URI.
+    @type attribute_ns: C{None} or C{str} or C{unicode} or L{pyxb.namespace.Namespace}
 
-    This gets tricky because the attribute tag may or may not be
-    qualified with a namespace.  The qualifier may be elided if the
-    attribute is defined in the namespace of the containing element,
-    even if that is not the default namespace for the schema.
+    @return: The value of the attribute, or C{None} if the attribute is not
+    present.  (Unless C{None}, the value will always be a (unicode) string.)
+    """
 
-    Return the requested attribute, or None if the attribute is not
-    present in the node.  Raises SchemaValidationError if the
-    attribute appears multiple times.  @todo: Not sure that's right.
-
-    An example of where this is necessary is the attribute declaration
-    for C{lang} in U{http://www.w3.org/XML/1998/namespace}, The C{simpleType}
-    includes a union clause whose C{memberTypes} attribute is
-    unqualified, and XMLSchema is not the default namespace."""
-
-    assert node.namespaceURI
-    if node.namespaceURI == attribute_ns.uri():
-        if node.hasAttributeNS(None, attribute_ncname):
-            return node.getAttributeNS(None, attribute_ncname)
-    if node.hasAttributeNS(attribute_ns.uri(), attribute_ncname):
-        assert False
-        return node.getAttributeNS(attribute_ns.uri(), attribute_ncname)
+    ns_uri = attribute_ns
+    if isinstance(attribute_ns, pyxb.namespace.Namespace):
+        ns_uri = attribute_ns.uri()
+    if node.hasAttributeNS(ns_uri, attribute_ncname):
+        return node.getAttributeNS(ns_uri, attribute_ncname)
     return None
 
 def LocateUniqueChild (node, tag, absent_ok=True, namespace=pyxb.namespace.XMLSchema):
