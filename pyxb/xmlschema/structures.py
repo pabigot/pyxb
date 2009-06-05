@@ -3565,6 +3565,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
                     #print 'set %s from %s' % (fi.Name(), kw)
                     fi.setFromKeywords(**kw)
                 local_facets[fc] = fi
+        self.__localFacets = local_facets
 
         # We want a map from the union of the facet classes from this STD up
         # through its baseTypeDefinition (if present).  Map elements should be
@@ -3586,10 +3587,9 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
             base_facets.update(self.__baseTypeDefinition.facets())
         base_facets.update(self.facets())
 
-
+        self.__facets = self.__localFacets
         for fc in base_facets.keys():
-            local_facets.setdefault(fc, base_facets[fc])
-        self.__facets = local_facets
+            self.__facets.setdefault(fc, base_facets[fc])
         assert type(self.__facets) == types.DictType
 
     # Complete the resolution of some variety of STD.  Note that the
