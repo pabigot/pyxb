@@ -2473,11 +2473,10 @@ class Particle (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin):
     def _resolve (self):
         if self.isResolved():
             return self
-        node = self.__domNode
         scope = self._scope()
 
         # @RESOLUTION@
-        if xsd.nodeIsNamed(node, 'group'):
+        if ModelGroup == self.__resolvableType:
             ref_en = self._namespaceContext().interpretQName(self.__refAttribute)
             group_decl = ref_en.modelGroupDefinition()
             if group_decl is None:
@@ -2499,8 +2498,7 @@ class Particle (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin):
 
             self.__pendingTerm = group_decl.modelGroup()._adaptForScope(self, scope)
             assert self.__pendingTerm is not None
-        elif xsd.nodeIsNamed(node, 'element'):
-            assert not xsd.nodeIsNamed(node.parentNode, 'schema')
+        elif ElementDeclaration == self.__resolvableType:
             # 3.9.2 says use 3.3.2, which is Element.  The element inside a
             # particle is a localElement, so we either get the one it refers
             # to (which is top-level), or create a local one here.
@@ -2538,7 +2536,6 @@ class Particle (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin):
             if isinstance(scope, ComplexTypeDefinition):
                 self.__pendingTerm._recordInScope()
 
-        self.__domNode = None
         self.__term = self.__pendingTerm
         assert self.__term is not None
         return self
@@ -2590,16 +2587,21 @@ class Particle (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin):
 
         rv.__refAttribute = NodeAttribute(node, 'ref')
         rv.__pendingTerm = None
+        rv.__resolvableType = None
         if xsd.nodeIsNamed(node, 'group'):
             # 3.9.2 says use 3.8.2, which is ModelGroup.  The group
             # inside a particle is a groupRef.  If there is no group
             # with that name, this throws an exception as expected.
             if rv.__refAttribute is None:
                 raise pyxb.SchemaValidationError('group particle without reference')
+            rv.__resolvableType = ModelGroup
         elif xsd.nodeIsNamed(node, 'element'):
             if rv.__refAttribute is None:
                 target_namespace = schema.targetNamespaceForNode(node, ElementDeclaration)
                 rv.__pendingTerm = ElementDeclaration.CreateFromDOM(node=node, target_namespace=target_namespace, **kw)
+            else:
+                rv.__resolvableType = ElementDeclaration
+                assert not xsd.nodeIsNamed(node.parentNode, 'schema')
         elif xsd.nodeIsNamed(node, 'any'):
             # 3.9.2 says use 3.10.2, which is Wildcard.
             rv.__pendingTerm = Wildcard.CreateFromDOM(node=node)
@@ -2611,8 +2613,8 @@ class Particle (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin):
         else:
             raise pyxb.LogicError('Unhandled node in Particle.CreateFromDOM: %s' % (node.toxml(),))
         
-        rv.__domNode = node
-        rv._queueForResolution('creation')
+        if not rv.isResolved():
+            rv._queueForResolution('creation')
         return rv
 
     def _adaptForScope (self, owner, scope):
