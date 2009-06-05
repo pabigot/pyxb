@@ -662,8 +662,8 @@ class _ScopedDeclaration_mixin (pyxb.cscRoot):
         # we know is already recorded).  For example, we do this when we don't
         # know whether we have a type violation with multiple local elements
         # with the same expanded name.
-        if not kw.get('scope_inhibit_record', False):
-            self._recordInScope()
+        #if not kw.get('scope_inhibit_record', False):
+        #    self._recordInScope()
 
     def _recordInScope (self):
         # Absent scope doesn't get recorded anywhere.  Global scope is
@@ -1434,9 +1434,12 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
             scope_map = self.__scopedAttributeDeclarations
         else:
             raise pyxb.LogicError('Unexpected instance of %s recording as local declaration' % (type(decl),))
-        if decl.expandedName() in scope_map:
-            raise pyxb.SchemaValidationError('Multiple definitions of %s as %s local to %s' % (decl.expandedName(), type(decl).__name__, self.expandedName()))
-        scope_map[decl.expandedName()] = decl
+        decl_en = decl.expandedName()
+        old_decl = scope_map.get(decl_en)
+        if old_decl is None:
+            scope_map[decl_en] = decl
+        elif old_decl != decl:
+            raise pyxb.SchemaValidationError('Multiple definitions of %s as %s local to %s' % (decl_en, type(decl).__name__, self.expandedName()))
         return self
 
     CT_EMPTY = 'EMPTY'                 #<<< No content
@@ -2576,6 +2579,9 @@ class Particle (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin):
                     self.__pendingTerm._dissociateFromNamespace()
                     self.__pendingTerm = None
                     term = alt_term
+                if isinstance(scope, ComplexTypeDefinition):
+                    term._recordInScope()
+
             assert term is not None
         elif xsd.nodeIsNamed(node, 'any'):
             # 3.9.2 says use 3.10.2, which is Wildcard.
