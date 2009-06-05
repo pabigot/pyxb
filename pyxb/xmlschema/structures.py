@@ -2931,54 +2931,40 @@ class IdentityConstraintDefinition (_SchemaComponent_mixin, _NamedComponent_mixi
         scope = kw['scope']
         assert _ScopedDeclaration_mixin.ScopeIsIndeterminate(scope) or _ScopedDeclaration_mixin.IsValidScope(scope)
         rv = cls(name=name, node=node, **kw)
-        rv.__domNode = node
-        rv._queueForResolution('creation')
-        return rv
-
-    def isResolved (self):
-        return self.__identityConstraintCategory is not None
-
-    # res:ICD res:IdentityConstraintDefinition
-    def _resolve (self):
-        if self.isResolved():
-            return self
-        node = self.__domNode
 
         #self._annotationFromDOM(node);
+        rv.__isResolved = True
         icc = None
         if xsd.nodeIsNamed(node, 'key'):
-            icc = self.ICC_KEY
+            icc = rv.ICC_KEY
         elif xsd.nodeIsNamed(node, 'keyref'):
-            icc = self.ICC_KEYREF
-            refer_attr = NodeAttribute(node, 'refer')
-            if refer_attr is None:
+            icc = rv.ICC_KEYREF
+            rv.__referAttribute = NodeAttribute(node, 'refer')
+            if rv.__referAttribute is None:
                 raise pyxb.SchemaValidationError('Require refer attribute on keyref elements')
-            refer_en = self._namespaceContext().interpretQName(refer_attr)
-            refer = refer_en.identityConstraintDefinition()
-            if refer is None:
-                raise pyxb.SchemaValidationError('Identity constraint definition %s cannot be found' % (refer_en,))
-            self.__referencedKey = refer
+            rv.__isResolved = False
         elif xsd.nodeIsNamed(node, 'unique'):
-            icc = self.ICC_UNIQUE
+            icc = rv.ICC_UNIQUE
         else:
             raise pyxb.LogicError('Unexpected identity constraint node %s' % (node.toxml(),))
+        rv.__icc = icc
 
         cn = LocateUniqueChild(node, 'selector')
-        self.__selector = NodeAttribute(cn, 'xpath')
-        if self.__selector is None:
+        rv.__selector = NodeAttribute(cn, 'xpath')
+        if rv.__selector is None:
             raise pyxb.SchemaValidationError('selector element missing xpath attribute')
 
-        self.__fields = []
+        rv.__fields = []
         for cn in LocateMatchingChildren(node, 'field'):
             xp_attr = NodeAttribute(cn, 'xpath')
             if xp_attr is None:
                 raise pyxb.SchemaValidationError('field element missing xpath attribute')
-            self.__fields.append(xp_attr)
+            rv.__fields.append(xp_attr)
 
-        self._annotationFromDOM(node)
-        self.__annotations = []
-        if self.annotation() is not None:
-            self.__annotations.append(self)
+        rv._annotationFromDOM(node)
+        rv.__annotations = []
+        if rv.annotation() is not None:
+            rv.__annotations.append(rv)
 
         for cn in node.childNodes:
             if (Node.ELEMENT_NODE != cn.nodeType):
@@ -2989,11 +2975,33 @@ class IdentityConstraintDefinition (_SchemaComponent_mixin, _NamedComponent_mixi
             elif xsd.nodeIsNamed(cn, 'annotation'):
                 an = cn
             if an is not None:
-                self.__annotations.append(Annotation.CreateFromDOM(an, owner=self))
+                rv.__annotations.append(Annotation.CreateFromDOM(an, owner=rv))
 
-        self.__identityConstraintCategory = icc
-        if self.ICC_KEYREF != self.__identityConstraintCategory:
-            self._namespaceContext().targetNamespace().addCategoryObject('identityConstraintDefinition', self.name(), self)
+        rv.__identityConstraintCategory = icc
+        if rv.ICC_KEYREF != rv.__identityConstraintCategory:
+            rv._namespaceContext().targetNamespace().addCategoryObject('identityConstraintDefinition', rv.name(), rv)
+
+        if not rv.isResolved():
+            rv._queueForResolution('creation')
+        return rv
+
+    __isResolved = False
+    def isResolved (self):
+        return self.__isResolved
+
+    # res:ICD res:IdentityConstraintDefinition
+    def _resolve (self):
+        if self.isResolved():
+            return self
+
+        icc = self.__icc
+        if self.ICC_KEYREF == icc:
+            refer_en = self._namespaceContext().interpretQName(self.__referAttribute)
+            refer = refer_en.identityConstraintDefinition()
+            if refer is None:
+                self._queueForResolution('Identity constraint definition %s cannot be found' % (refer_en,))
+                return self
+            self.__referencedKey = refer
 
         self.__domNode = None
         return self
