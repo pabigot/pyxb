@@ -3452,32 +3452,11 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
         return self.__completeResolution(body, self.VARIETY_list, 'list')
 
     def __initializeFromRestriction (self, body):
+        self.__baseTypeDefinition = None
         self.__baseAttribute = NodeAttribute(body, 'base')
-        if self.__baseAttribute is not None:
-            # Look up the base.  If there is no registered type of
-            # that name, an exception gets thrown that percolates up
-            # to the user.
-            base_en = self._namespaceContext().interpretQName(self.__baseAttribute)
-            base_type = base_en.typeDefinition()
-            if not isinstance(base_type, SimpleTypeDefinition):
-                raise pyxb.SchemaValidationError('Unable to locate base type %s' % (base_en,))
-            # If the base type exists but has not yet been resolve,
-            # delay processing this type until the one it depends on
-            # has been completed.
-            if not base_type.isResolved():
-                self._queueForResolution('base type %s is not resolved' % (base_en,))
-                return self
-            self.__baseTypeDefinition = base_type
-        else:
+        if self.__baseAttribute is None:
             self.__baseTypeDefinition = self.SimpleUrTypeDefinition()
-        # NOTE: 3.14.1 specifies that the variety is the variety of
-        # the base type definition; but if that is an ur type, whose
-        # variety is absent per 3.14.5, I'm really certain that they mean it to
-        # be atomic instead.
-        variety = self.__baseTypeDefinition.__variety
-        if self.__baseTypeDefinition == self.SimpleUrTypeDefinition():
-            variety = self.VARIETY_atomic
-        return self.__completeResolution(body, variety, 'restriction')
+        return self.__completeResolution(body, None, 'restriction')
 
     def __initializeFromUnion (self, body):
         self.__baseTypeDefinition = self.SimpleUrTypeDefinition()
@@ -3608,7 +3587,29 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
     # 'restriction' variety.
     def __completeResolution (self, body, variety, alternative):
         assert self.__variety is None
+        if self.__baseTypeDefinition is None:
+            assert self.__baseAttribute is not None
+            base_en = self._namespaceContext().interpretQName(self.__baseAttribute)
+            base_type = base_en.typeDefinition()
+            if not isinstance(base_type, SimpleTypeDefinition):
+                raise pyxb.SchemaValidationError('Unable to locate base type %s' % (base_en,))
+            # If the base type exists but has not yet been resolve,
+            # delay processing this type until the one it depends on
+            # has been completed.
+            if not base_type.isResolved():
+                self._queueForResolution('base type %s is not resolved' % (base_en,))
+                return self
+            self.__baseTypeDefinition = base_type
+        if variety is None:
+            variety = self.__baseTypeDefinition.__variety
+            # NOTE: 3.14.1 specifies that the variety is the variety of
+            # the base type definition; but if that is an ur type, whose
+            # variety is absent per 3.14.5, I'm really certain that they mean it to
+            # be atomic instead.
+            if self.__baseTypeDefinition == self.SimpleUrTypeDefinition():
+                variety = self.VARIETY_atomic
         assert variety is not None
+
         if self.VARIETY_absent == variety:
             # The ur-type is always resolved.  So are restrictions of it,
             # which is how we might get here.
