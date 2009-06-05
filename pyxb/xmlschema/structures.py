@@ -1048,13 +1048,6 @@ class AttributeUse (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin, _V
     def matchingQNameMembers (self, au_set):
         """Return the subset of au_set for which the use names match this use."""
 
-        # This use may be brand new, and temporary, and if we don't
-        # resolve it now it may be thrown away and we'll loop forever
-        # creating new instances that aren't resolved.
-        if not self.isResolved():
-            self._resolve()
-        # If it's still not resolved, hold off, and indicate that the
-        # caller should hold off too.
         if not self.isResolved():
             return None
         this_ad = self.attributeDeclaration()
@@ -1112,7 +1105,7 @@ class AttributeUse (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin, _V
             kw['target_namespace'] = schema.targetNamespaceForNode(node, AttributeDeclaration)
             rv.__attributeDeclaration = AttributeDeclaration.CreateFromDOM(node, **kw)
 
-        if rv.__attributeDeclaration is None:
+        if not rv.isResolved():
             rv._queueForResolution('creation')
 
         return rv
@@ -1143,6 +1136,7 @@ class AttributeUse (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin, _V
         assert self.isResolved()
         ad = self.__attributeDeclaration
         rv = self
+        assert ad.scope() is not None
         if ad.scope() is None:
             rv = self._clone()
             rv._setOwner(ctd)
@@ -1794,37 +1788,35 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         self.__ckw = ckw
 
     def __complexContent (self, method):
-        effective_mixed = self.__effectiveMixed
-        effective_content = self.__effectiveContent
         ckw = self.__ckw
         
         # Shared from clause 3.1.2
-        if effective_mixed:
+        if self.__effectiveMixed:
             ct = self.CT_MIXED
         else:
             ct = self.CT_ELEMENT_ONLY
         # Clause 3
         if self.DM_restriction == method:
             # Clause 3.1
-            if self.CT_EMPTY == effective_content:
+            if self.CT_EMPTY == self.__effectiveContent:
                 # Clause 3.1.1
                 content_type = self.CT_EMPTY                     # ASSIGN CT_EMPTY
             else:
                 # Clause 3.1.2(.2)
-                content_type = ( ct, effective_content )         # ASSIGN RESTRICTION
+                content_type = ( ct, self.__effectiveContent )         # ASSIGN RESTRICTION
         else:
             # Clause 3.2
             assert self.DM_extension == method
             assert self.__baseTypeDefinition.isResolved()
             parent_content_type = self.__baseTypeDefinition.contentType()
-            if self.CT_EMPTY == effective_content:
+            if self.CT_EMPTY == self.__effectiveContent:
                 content_type = parent_content_type               # ASSIGN EXTENSION PARENT ONLY
             elif self.CT_EMPTY == parent_content_type:
                 # Clause 3.2.2
-                content_type = ( ct, effective_content )         # ASSIGN EXTENSION LOCAL ONLY
+                content_type = ( ct, self.__effectiveContent )         # ASSIGN EXTENSION LOCAL ONLY
             else:
                 assert type(parent_content_type) == tuple
-                m = ModelGroup(compositor=ModelGroup.C_SEQUENCE, particles=[ parent_content_type[1], effective_content ], **ckw)
+                m = ModelGroup(compositor=ModelGroup.C_SEQUENCE, particles=[ parent_content_type[1], self.__effectiveContent ], **ckw)
                 content_type = ( ct, Particle(m, **ckw) )        # ASSIGN EXTENSION PARENT AND LOCAL
 
         assert (self.CT_EMPTY == content_type) or ((type(content_type) == tuple) and (content_type[1] is not None))
