@@ -1737,15 +1737,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
               , 'schema' : self._resolvingSchema() }
 
         # Definition 1: effective mixed
-        mixed_attr = None
-        if content_node is not None:
-            mixed_attr = NodeAttribute(content_node, 'mixed')
-        if mixed_attr is None:
-            mixed_attr = NodeAttribute(type_node, 'mixed')
-        if mixed_attr is not None:
-            effective_mixed = datatypes.boolean(mixed_attr)
-        else:
-            effective_mixed = False
+        effective_mixed = self.__effectiveMixed
 
         # Definition 2: effective content
         case_2_1_predicate_count = 0
@@ -1923,6 +1915,17 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
             self.__usesC1.add(au)
         self.__attributeGroupAttributes = attribute_group_attrs
         self.__anyAttribute = any_attribute
+
+        # Section 3.4.2, Complex Content, Definition 1: effective mixed
+        mixed_attr = None
+        if content_node is not None:
+            mixed_attr = NodeAttribute(self.__contentNode, 'mixed')
+        if mixed_attr is None:
+            mixed_attr = NodeAttribute(node, 'mixed')
+        if mixed_attr is not None:
+            self.__effectiveMixed = datatypes.boolean(mixed_attr)
+        else:
+            self.__effectiveMixed = False
 
         # Creation does not attempt to do resolution.  Queue up the newly created
         # whatsis so we can resolve it after everything's been read in.
