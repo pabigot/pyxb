@@ -73,12 +73,6 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin):
     # The schema components owned by this component.
     __ownedComponents = None
 
-    def _context (self):
-        """The context within which element and attribute references are
-        looked up."""
-        return self.__context
-    __context = None
-
     def _scope (self):
         """The context into which declarations in or subordinate to this nodeare placed."""
         return self.__scope
@@ -108,7 +102,6 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin):
     def __init__ (self, *args, **kw):
         self.__ownedComponents = set()
         self.__scope = kw.get('scope')
-        self.__context = kw.get('context')
         self.__namespaceContext = kw.get('namespace_context')
         if self.__namespaceContext is None:
             node = kw.get('node')
@@ -1077,9 +1070,6 @@ class AttributeUse (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin, _V
         wxs is a Schema instance within which the attribute use is
         being defined.
 
-        context is the _ScopeDeclaration_mixin context that is used to
-        resolve attribute references.
-
         node is a DOM element.  The name must be 'attribute', and the
         node must be in the XMLSchema namespace.
 
@@ -1089,8 +1079,6 @@ class AttributeUse (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin, _V
         attribute group.
         """
 
-        context = kw['context']
-        assert _ScopedDeclaration_mixin.IsValidScope(context)
         scope = kw['scope']
         assert _ScopedDeclaration_mixin.ScopeIsIndeterminate(scope) or isinstance(scope, ComplexTypeDefinition)
         assert xsd.nodeIsNamed(node, 'attribute')
@@ -1560,7 +1548,6 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
             # Content is mixed, with elements completely unconstrained. @todo:
             # not associated with a schema (it should be)
             kw = { 'namespace_context' : ns_ctx
-                 , 'context': _ScopedDeclaration_mixin.SCOPE_global
                  , 'scope': _ScopedDeclaration_mixin.XSCOPE_indeterminate }
             w = Wildcard(namespace_constraint=Wildcard.NC_any, process_contents=Wildcard.PC_lax, **kw)
             p = Particle(w, min_occurs=0, max_occurs=None, **kw)
@@ -1632,7 +1619,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         if uses_c1 is None:
             uses_c1 = set()
             for cn in attributes:
-                au = AttributeUse.CreateFromDOM(cn, context=self, scope=self, owner=self, schema=self._resolvingSchema())
+                au = AttributeUse.CreateFromDOM(cn, scope=self, owner=self, schema=self._resolvingSchema())
                 uses_c1.add(au)
             self.__usesC1 = uses_c1
         attribute_groups = []
@@ -1746,7 +1733,6 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         # Do content type.  Cache the keywords that need to be used
         # for newly created schema components.
         ckw = { 'node' : type_node
-              , 'context' : self
               , 'owner' : self
               , 'scope' : self }
 
@@ -1804,7 +1790,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         else:
             # Clause 2.2
             assert typedef_node is not None
-            # Context and scope are both this CTD
+            # scope is this CTD
             pkw = ckw.copy()
             del pkw['node']
             effective_content = Particle.CreateFromDOM(typedef_node, **pkw)
@@ -2033,7 +2019,6 @@ class AttributeGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, p
 
     def __init__ (self, *args, **kw):
         super(AttributeGroupDefinition, self).__init__(*args, **kw)
-        assert _ScopedDeclaration_mixin.SCOPE_global == self._context()
         assert 'scope' in kw
         assert self._scopeIsIndeterminate()
 
@@ -2048,12 +2033,10 @@ class AttributeGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, p
         name = NodeAttribute(node, 'name')
         schema = kw['schema']
 
-        # Attribute group definitions can only appear at the top level
-        # of the schema, so the context is always SCOPE_global.  Any
-        # definitions in them are scope indeterminate, until they're
-        # referenced in a complex type.
-        kw.update({ 'context' : _ScopedDeclaration_mixin.SCOPE_global,
-                    'scope' : _ScopedDeclaration_mixin.XSCOPE_indeterminate })
+        # Attribute group definitions can only appear at the top level of the
+        # schema, and any definitions in them are scope indeterminate until
+        # they're referenced in a complex type.
+        kw.update({ 'scope' : _ScopedDeclaration_mixin.XSCOPE_indeterminate })
         rv = cls(name=name, node=node, **kw)
 
         rv._annotationFromDOM(node)
@@ -2066,7 +2049,7 @@ class AttributeGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, p
         (attributes, attribute_group_attrs, any_attribute) = rv._attributeRelevantChildren(node.childNodes)
         rv.__attributeUses = set()
         for cn in attributes:
-            rv.__attributeUses.add(AttributeUse.CreateFromDOM(cn, context=rv._context(), scope=rv._scope(), owner=rv, schema=schema))
+            rv.__attributeUses.add(AttributeUse.CreateFromDOM(cn, scope=rv._scope(), owner=rv, schema=schema))
         rv.__attributeGroupAttributes = attribute_group_attrs
         rv.__anyAttribute = any_attribute
 
@@ -2141,8 +2124,7 @@ class ModelGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Anno
         assert NodeAttribute(node, 'ref') is None
 
         name = NodeAttribute(node, 'name')
-        kw.update({ 'context' : _ScopedDeclaration_mixin.SCOPE_global,
-                    'scope' : _ScopedDeclaration_mixin.XSCOPE_indeterminate })
+        kw.update({ 'scope' : _ScopedDeclaration_mixin.XSCOPE_indeterminate })
         rv = cls(name=name, node=node, **kw)
         rv._annotationFromDOM(node)
 
@@ -2152,11 +2134,9 @@ class ModelGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Anno
             if ModelGroup.IsGroupMemberNode(cn):
                 assert not rv.__modelGroup
                 # Model group definitions always occur at the top level of the
-                # schema, so their lookup context is SCOPE_global.  The
-                # element declared in them are not bound to a scope until they
-                # are referenced in a complex type, so the scope is
-                # indeterminate.
-                rv.__modelGroup = ModelGroup.CreateFromDOM(cn, context=_ScopedDeclaration_mixin.SCOPE_global, scope=_ScopedDeclaration_mixin.XSCOPE_indeterminate, model_group_definition=rv, owner=rv)
+                # schema, so the elements declared in them are not bound to a
+                # scope until they are referenced in a complex type.
+                rv.__modelGroup = ModelGroup.CreateFromDOM(cn, scope=_ScopedDeclaration_mixin.XSCOPE_indeterminate, model_group_definition=rv, owner=rv)
         assert rv.__modelGroup is not None
         return rv
 
@@ -2225,9 +2205,6 @@ class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
 
         particles must be a list of zero or more Particle instances.
         
-        context must be a valid scope in which declaration references found
-        within this model will be resolved.
-
         scope is the _ScopeDeclaration_mixin context into which new
         declarations are recorded.  It can be SCOPE_global, a complex
         type definition, or None if this is (or is within) a named
@@ -2239,7 +2216,6 @@ class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
         """
 
         super(ModelGroup, self).__init__(*args, **kw)
-        assert 'context' in kw
         assert 'scope' in kw
         self.__compositor = compositor
         #print 'Incoming particles %s with scope %s' % (particles, self._scope())
@@ -2273,10 +2249,6 @@ class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
         wxs is a Schema instance within which the model group is being
         defined.
 
-        context is the _ScopeDeclaration_mixin context that is used to
-        resolve references internal to the model group.  The context
-        is passed down to child particles that are being created.
-
         node is a DOM element.  The name must be one of ( 'all',
         'choice', 'sequence' ), and the node must be in the XMLSchema
         namespace.
@@ -2287,8 +2259,6 @@ class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
         definition.
         """
         
-        context = kw['context']
-        assert _ScopedDeclaration_mixin.IsValidScope(context)
         scope = kw['scope']
         assert _ScopedDeclaration_mixin.ScopeIsIndeterminate(scope) or isinstance(scope, ComplexTypeDefinition)
 
@@ -2459,10 +2429,6 @@ class Particle (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin):
         indicating unbounded, denoting the maximum number of terms
         allowed by the content model.
 
-        context is the _ScopeDeclaration_mixin context that is used to
-        resolve element references.  The context is passed down to
-        child model groups that are created.
-
         scope is the _ScopeDeclaration_mxin context that is assigned
         to declarations that appear within the particle.  It can be
         None, indicating no scope defined, or a complex type
@@ -2475,9 +2441,7 @@ class Particle (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin):
         min_occurs = kw.get('min_occurs', 1)
         max_occurs = kw.get('max_occurs', 1)
 
-        assert 'context' in kw
         assert 'scope' in kw
-        assert _ScopedDeclaration_mixin.IsValidScope(self._context())
         assert (self._scopeIsIndeterminate()) or isinstance(self._scope(), ComplexTypeDefinition)
 
         if term is not None:
@@ -2500,17 +2464,15 @@ class Particle (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin):
         if self.isResolved():
             return self
         node = self.__domNode
-        context = self._context()
         scope = self._scope()
 
+        # @RESOLUTION@
         if self.__pendingTerm is None:
             if (self.__refAttribute is None) and xsd.nodeIsNamed(node, 'element'):
                 target_namespace = self._resolvingSchema().targetNamespaceForNode(node, ElementDeclaration)
                 self.__pendingTerm = ElementDeclaration.CreateFromDOM(node=node, scope=scope, owner=self, target_namespace=target_namespace)
 
         if xsd.nodeIsNamed(node, 'group'):
-            # Named groups can only appear at global scope, so no need
-            # to use context here.
             ref_en = self._namespaceContext().interpretQName(self.__refAttribute)
             group_decl = ref_en.modelGroupDefinition()
             if group_decl is None:
@@ -2587,9 +2549,6 @@ class Particle (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin):
         wxs is a Schema instance within which the model group is being
         defined.
 
-        context is the _ScopeDeclaration_mixin context that is used to
-        resolve element references.
-
         node is a DOM element.  The name must be one of ( 'group',
         'element', 'any', 'all', 'choice', 'sequence' ), and the node
         must be in the XMLSchema namespace.
@@ -2599,8 +2558,6 @@ class Particle (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin):
         None, indicating no scope defined, or a complex type
         definition.
         """
-        context = kw['context']
-        assert _ScopedDeclaration_mixin.IsValidScope(context)
         scope = kw['scope']
         assert _ScopedDeclaration_mixin.ScopeIsIndeterminate(scope) or isinstance(scope, ComplexTypeDefinition)
 
@@ -2640,7 +2597,7 @@ class Particle (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin):
             # Choice, sequence, and all inside a particle are explicit
             # groups (or a restriction of explicit group, in the case
             # of all)
-            rv.__pendingTerm = ModelGroup.CreateFromDOM(node=node, context=context, scope=scope, owner=rv)
+            rv.__pendingTerm = ModelGroup.CreateFromDOM(node=node, scope=scope, owner=rv)
         else:
             raise pyxb.LogicError('Unhandled node in Particle.CreateFromDOM: %s' % (node.toxml(),))
         
@@ -4226,8 +4183,7 @@ class Schema (_SchemaComponent_mixin):
         component = self.__TopLevelComponentMap.get(node.localName)
         if component is not None:
             self.__pastProlog = True
-            kw = { 'context' : _ScopedDeclaration_mixin.SCOPE_global,
-                   'scope' : _ScopedDeclaration_mixin.XSCOPE_indeterminate,
+            kw = { 'scope' : _ScopedDeclaration_mixin.XSCOPE_indeterminate,
                    'schema' : self,
                    'owner' : self }
             if issubclass(component, _ScopedDeclaration_mixin):
