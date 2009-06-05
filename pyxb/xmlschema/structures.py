@@ -1615,14 +1615,12 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
 
     # Handle attributeUses, attributeWildcard, contentType
     def __completeProcessing (self, definition_node_list, method, content_style):
-        (attributes, attribute_group_attrs, any_attribute) = self._attributeRelevantChildren(definition_node_list)
-        
         # Handle clauses 1 and 2 (common between simple and complex types)
         uses_c1 = self.__usesC1
         uses_c2 = set()
         uses_c3 = set()
         attribute_groups = []
-        for ag_attr in attribute_group_attrs:
+        for ag_attr in self.__attributeGroupAttributes:
             ag_en = self._namespaceContext().interpretQName(ag_attr)
             agd = ag_en.attributeGroupDefinition()
             if agd is None:
@@ -1665,11 +1663,11 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         # @todo: Handle attributeWildcard
         # Clause 1
         local_wildcard = None
-        if any_attribute is not None:
-            local_wildcard = Wildcard.CreateFromDOM(any_attribute)
+        if self.__anyAttribute is not None:
+            local_wildcard = Wildcard.CreateFromDOM(self.__anyAttribute)
 
         # Clause 2
-        complete_wildcard = _AttributeWildcard_mixin.CompleteWildcard(self._namespaceContext(), attribute_groups, any_attribute, local_wildcard)
+        complete_wildcard = _AttributeWildcard_mixin.CompleteWildcard(self._namespaceContext(), attribute_groups, self.__anyAttribute, local_wildcard)
 
         # Clause 3
         if self.DM_restriction == method:
@@ -1921,6 +1919,8 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         for cn in attributes:
             au = AttributeUse.CreateFromDOM(cn, **kw)
             self.__usesC1.add(au)
+        self.__attributeGroupAttributes = attribute_group_attrs
+        self.__anyAttribute = any_attribute
 
         # Creation does not attempt to do resolution.  Queue up the newly created
         # whatsis so we can resolve it after everything's been read in.
