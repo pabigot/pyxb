@@ -3449,6 +3449,11 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
     def __initializeFromList (self, body):
         self.__baseTypeDefinition = self.SimpleUrTypeDefinition()
         self.__itemTypeAttribute = NodeAttribute(body, 'itemType')
+        if self.__itemTypeAttribute is None:
+            # NOTE: The newly created anonymous item type will
+            # not be resolved; the caller needs to handle
+            # that.
+            self.__itemTypeDefinition = self.CreateFromDOM(self.__singleSimpleTypeChild(body), owner=self)
         return self.__completeResolution(body, self.VARIETY_list, 'list')
 
     def __initializeFromRestriction (self, body):
@@ -3602,10 +3607,10 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
             self.__baseTypeDefinition = base_type
         if variety is None:
             variety = self.__baseTypeDefinition.__variety
-            # NOTE: 3.14.1 specifies that the variety is the variety of
-            # the base type definition; but if that is an ur type, whose
-            # variety is absent per 3.14.5, I'm really certain that they mean it to
-            # be atomic instead.
+            # NOTE: 3.14.1 specifies that the variety is the variety of the
+            # base type definition; but if that is an ur type, whose variety
+            # is absent per 3.14.5, I'm really certain that they mean it to be
+            # atomic instead.
             if self.__baseTypeDefinition == self.SimpleUrTypeDefinition():
                 variety = self.VARIETY_atomic
         assert variety is not None
@@ -3639,11 +3644,6 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
                     self.__itemTypeDefinition = it_en.typeDefinition()
                     if not isinstance(self.__itemTypeDefinition, SimpleTypeDefinition):
                         raise pyxb.InvalidSchemaError('Unable to locate STD %s for items' % (it_en,))
-                else:
-                    # NOTE: The newly created anonymous item type will
-                    # not be resolved; the caller needs to handle
-                    # that.
-                    self.__itemTypeDefinition = self.CreateFromDOM(self.__singleSimpleTypeChild(body), owner=self)
             elif 'restriction' == alternative:
                 self.__itemTypeDefinition = self.__baseTypeDefinition.__itemTypeDefinition
             else:
