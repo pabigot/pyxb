@@ -1731,7 +1731,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         # Do content type.  Cache the keywords that need to be used
         # for newly created schema components.
         ckw = kw.copy()
-        ckw['node'] = type_node
+        ckw['namespace_context'] = pyxb.namespace.NamespaceContext.GetNodeContext(type_node)
 
         # Definition 1: effective mixed
         mixed_attr = None
@@ -1921,7 +1921,6 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
 
         # Creation does not attempt to do resolution.  Queue up the newly created
         # whatsis so we can resolve it after everything's been read in.
-        self.__domNode = node
         self._annotationFromDOM(node)
         self._queueForResolution('creation')
         
@@ -1944,8 +1943,6 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
     def _resolve (self):
         if self.isResolved():
             return self
-        assert self.__domNode
-        node = self.__domNode
         
         # @todo: implement prohibitedSubstitutions, final, annotations
 
