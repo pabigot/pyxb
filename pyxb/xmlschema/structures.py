@@ -2509,11 +2509,6 @@ class Particle (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin):
                 self.__pendingTerm = ElementDeclaration.CreateFromDOM(node=node, scope=scope, owner=self, target_namespace=target_namespace)
 
         if xsd.nodeIsNamed(node, 'group'):
-            # 3.9.2 says use 3.8.2, which is ModelGroup.  The group
-            # inside a particle is a groupRef.  If there is no group
-            # with that name, this throws an exception as expected.
-            if self.__refAttribute is None:
-                raise pyxb.SchemaValidationError('group particle without reference')
             # Named groups can only appear at global scope, so no need
             # to use context here.
             ref_en = self._namespaceContext().interpretQName(self.__refAttribute)
@@ -2575,12 +2570,7 @@ class Particle (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin):
             assert self.__pendingTerm is not None
             if isinstance(scope, ComplexTypeDefinition):
                 self.__pendingTerm._recordInScope()
-        elif xsd.nodeIsNamed(node, 'any'):
-            pass
-        elif ModelGroup.IsGroupMemberNode(node):
-            pass
-        else:
-            raise pyxb.LogicError('Unhandled node in Particle._resolve: %s' % (node.toxml(),))
+
         self.__domNode = None
         self.__term = self.__pendingTerm
         assert self.__term is not None
@@ -2634,7 +2624,13 @@ class Particle (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin):
 
         rv.__refAttribute = NodeAttribute(node, 'ref')
         rv.__pendingTerm = None
-        if xsd.nodeIsNamed(node, 'element'):
+        if xsd.nodeIsNamed(node, 'group'):
+            # 3.9.2 says use 3.8.2, which is ModelGroup.  The group
+            # inside a particle is a groupRef.  If there is no group
+            # with that name, this throws an exception as expected.
+            if rv.__refAttribute is None:
+                raise pyxb.SchemaValidationError('group particle without reference')
+        elif xsd.nodeIsNamed(node, 'element'):
             # @todo: when schema is available here, create the declaration
             pass
         elif xsd.nodeIsNamed(node, 'any'):
@@ -2645,6 +2641,8 @@ class Particle (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin):
             # groups (or a restriction of explicit group, in the case
             # of all)
             rv.__pendingTerm = ModelGroup.CreateFromDOM(node=node, context=context, scope=scope, owner=rv)
+        else:
+            raise pyxb.LogicError('Unhandled node in Particle.CreateFromDOM: %s' % (node.toxml(),))
         
         rv.__domNode = node
         rv._queueForResolution('creation')
