@@ -1914,7 +1914,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
             # implicitly wrapped in a complex restriction of the ur-type.
             definition_node_list = node.childNodes
             is_complex_content = True
-            base_type = ComplexTypeDefinition.UrTypeDefinition()
+            self.__baseTypeDefinition = ComplexTypeDefinition.UrTypeDefinition()
             method = self.DM_restriction
     
             # Determine whether above assumption is correct by looking for
@@ -1947,26 +1947,28 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
                         method = self.DM_extension
                     else:
                         raise pyxb.SchemaValidationError('Expected restriction or extension as sole child of %s in %s' % (content_node.name(), self.name()))
-                    base_attr = NodeAttribute(ions, 'base')
-                    if base_attr is None:
+                    self.__baseAttribute = NodeAttribute(ions, 'base')
+                    if self.__baseAttribute is None:
                         raise pyxb.SchemaValidationError('Element %s missing base attribute' % (ions.nodeName,))
-                    base_en = self._namespaceContext().interpretQName(base_attr)
-                    base_type = base_en.typeDefinition()
-                    if base_type is None:
-                        raise pyxb.SchemaValidationError('Cannot locate %s: need import?' % (base_en,))
-                    if not base_type.isResolved():
-                        # Have to delay resolution until the type this
-                        # depends on is available.
-                        #print 'Holding off resolution of %s due to dependence on unresolved %s' % (self.name(), base_type.name())
-                        self._queueForResolution('unresolved base type %s' % (base_en,))
-                        return self
+                    self.__baseTypeDefinition = None
                     # The content is defined by the restriction/extension element
                     definition_node_list = ions.childNodes
             # deriviationMethod is assigned after resolution completes
-            self.__baseTypeDefinition = base_type
             self.__pendingDerivationMethod = method
             self.__definitionNodeList = definition_node_list
             self.__contentNode = content_node
+
+        if self.__baseTypeDefinition is None:
+            base_en = self._namespaceContext().interpretQName(self.__baseAttribute)
+            base_type = base_en.typeDefinition()
+            if base_type is None:
+                raise pyxb.SchemaValidationError('Cannot locate %s: need import?' % (base_en,))
+            if not base_type.isResolved():
+                # Have to delay resolution until the type this
+                # depends on is available.
+                self._queueForResolution('unresolved base type %s' % (base_en,))
+                return self
+            self.__baseTypeDefinition = base_type
 
         # Only build the content once.  This all completes now that we
         # have a base type.
