@@ -1094,6 +1094,7 @@ class AttributeUse (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin, _V
         scope = kw['scope']
         assert _ScopedDeclaration_mixin.ScopeIsIndeterminate(scope) or isinstance(scope, ComplexTypeDefinition)
         assert xsd.nodeIsNamed(node, 'attribute')
+        schema = kw['schema']
         rv = cls(node=node, **kw)
 
         rv.__use = cls.USE_optional
@@ -1119,7 +1120,7 @@ class AttributeUse (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin, _V
             kw = { }
             kw['owner'] = rv
             kw['scope'] = rv._scope()
-            kw['target_namespace'] = rv._resolvingSchema().targetNamespaceForNode(node, AttributeDeclaration)
+            kw['target_namespace'] = schema.targetNamespaceForNode(node, AttributeDeclaration)
             rv.__attributeDeclaration = AttributeDeclaration.CreateFromDOM(node, **kw)
 
         if rv.__attributeDeclaration is None:
@@ -1634,7 +1635,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         if uses_c1 is None:
             uses_c1 = set()
             for cn in attributes:
-                au = AttributeUse.CreateFromDOM(cn, context=self, scope=self, owner=self)
+                au = AttributeUse.CreateFromDOM(cn, context=self, scope=self, owner=self, schema=self._resolvingSchema())
                 uses_c1.add(au)
             self.__usesC1 = uses_c1
         attribute_groups = []
@@ -2028,6 +2029,7 @@ class AttributeGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, p
         
         assert xsd.nodeIsNamed(node, 'attributeGroup')
         name = NodeAttribute(node, 'name')
+        schema = kw['schema']
 
         # Attribute group definitions can only appear at the top level
         # of the schema, so the context is always SCOPE_global.  Any
@@ -2038,8 +2040,23 @@ class AttributeGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, p
         rv = cls(name=name, node=node, **kw)
 
         rv._annotationFromDOM(node)
+
+        # Attribute group definitions must not be references
+        rv.__refAttribute = NodeAttribute(node, 'ref')
+        if rv.__refAttribute is not None:
+            raise pyxb.SchemaValidationError('Attribute reference at top level')
+
+        (attributes, attribute_group_attrs, any_attribute) = rv._attributeRelevantChildren(node.childNodes)
+        rv.__attributeUses = set()
+        for cn in attributes:
+            rv.__attributeUses.add(AttributeUse.CreateFromDOM(cn, context=rv._context(), scope=rv._scope(), owner=rv, schema=schema))
+        rv.__attributeGroupAttributes = attribute_group_attrs
+        rv.__anyAttribute = any_attribute
+
+        # Unconditionally queue for resolution, to avoid repeating the
+        # wildcard code.
         rv._queueForResolution('creation')
-        rv.__domNode = node
+
         return rv
 
     # Indicates whether we have resolved any references
@@ -2050,24 +2067,10 @@ class AttributeGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, p
     def _resolve (self):
         if self.__isResolved:
             return self
-        node = self.__domNode
 
-        # Attribute group definitions must not be references
-        ref_attr = NodeAttribute(node, 'ref')
-        if ref_attr is not None:
-            raise pyxb.SchemaValidationError('Attribute reference at top level')
-
-        rv = self._attributeRelevantChildren(node.childNodes)
-        if rv is None:
-            self._queueForResolution('missing attribute relevant children')
-            return self
-
-        (attributes, attribute_group_attrs, any_attribute) = rv
-        uses = set()
-        for cn in attributes:
-            uses.add(AttributeUse.CreateFromDOM(cn, context=self._context(), scope=self._scope(), owner=self))
+        uses = self.__attributeUses
         attribute_groups = []
-        for ag_attr in attribute_group_attrs:
+        for ag_attr in self.__attributeGroupAttributes:
             ag_en = self._namespaceContext().interpretQName(ag_attr)
             agd = ag_en.attributeGroupDefinition()
             if agd is None:
@@ -2075,15 +2078,15 @@ class AttributeGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, p
             attribute_groups.append(agd)
             uses = uses.union(agd.attributeUses())
 
+        self.__attributeUses = frozenset(uses)
+
         # "Complete wildcard" per CTD
         local_wildcard = None
-        if any_attribute is not None:
-            local_wildcard = Wildcard.CreateFromDOM(any_attribute)
-        self._setAttributeWildcard(_AttributeWildcard_mixin.CompleteWildcard(self._namespaceContext(), attribute_groups, any_attribute, local_wildcard))
+        if self.__anyAttribute is not None:
+            local_wildcard = Wildcard.CreateFromDOM(self.__anyAttribute)
+        self._setAttributeWildcard(_AttributeWildcard_mixin.CompleteWildcard(self._namespaceContext(), attribute_groups, self.__anyAttribute, local_wildcard))
 
-        self.__attributeUses = frozenset(uses)
         self.__isResolved = True
-        self.__domNode = None
         return self
         
     def attributeUses (self):
@@ -4197,6 +4200,7 @@ class Schema (_SchemaComponent_mixin):
             self.__pastProlog = True
             kw = { 'context' : _ScopedDeclaration_mixin.SCOPE_global,
                    'scope' : _ScopedDeclaration_mixin.XSCOPE_indeterminate,
+                   'schema' : self,
                    'owner' : self }
             if issubclass(component, _ScopedDeclaration_mixin):
                 kw['scope'] = _ScopedDeclaration_mixin.SCOPE_global
