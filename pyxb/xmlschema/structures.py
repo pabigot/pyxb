@@ -1878,6 +1878,55 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         if attr_val is not None:
             self.__abstract = datatypes.boolean(attr_val)
         
+        # Assume we're in the short-hand case: the entire content is
+        # implicitly wrapped in a complex restriction of the ur-type.
+        definition_node_list = node.childNodes
+        is_complex_content = True
+        self.__baseTypeDefinition = ComplexTypeDefinition.UrTypeDefinition()
+        method = self.DM_restriction
+    
+        # Determine whether above assumption is correct by looking for
+        # element content and seeing if it's one of the wrapper
+        # elements.
+        first_elt = LocateFirstChildElement(node)
+        content_node = None
+        if first_elt:
+            have_content = False
+            if xsd.nodeIsNamed(first_elt, 'simpleContent'):
+                have_content = True
+                is_complex_content = False
+            elif xsd.nodeIsNamed(first_elt, 'complexContent'):
+                have_content = True
+            else:
+                # Not one of the wrappers; use implicit wrapper around
+                # the children
+                pass
+            if have_content:
+                # Repeat the search to verify that only the one child is present.
+                content_node = LocateFirstChildElement(node, require_unique=True)
+                assert content_node == first_elt
+                
+                # Identify the contained restriction or extension
+                # element, and extract the base type.
+                ions = LocateFirstChildElement(content_node, absent_ok=False)
+                if xsd.nodeIsNamed(ions, 'restriction'):
+                    method = self.DM_restriction
+                elif xsd.nodeIsNamed(ions, 'extension'):
+                    method = self.DM_extension
+                else:
+                    raise pyxb.SchemaValidationError('Expected restriction or extension as sole child of %s in %s' % (content_node.name(), self.name()))
+                self.__baseAttribute = NodeAttribute(ions, 'base')
+                if self.__baseAttribute is None:
+                    raise pyxb.SchemaValidationError('Element %s missing base attribute' % (ions.nodeName,))
+                self.__baseTypeDefinition = None
+                # The content is defined by the restriction/extension element
+                definition_node_list = ions.childNodes
+        # deriviationMethod is assigned after resolution completes
+        self.__pendingDerivationMethod = method
+        self.__definitionNodeList = definition_node_list
+        self.__contentNode = content_node
+        self.__isComplexContent = is_complex_content
+
         # Creation does not attempt to do resolution.  Queue up the newly created
         # whatsis so we can resolve it after everything's been read in.
         self.__domNode = node
@@ -1910,55 +1959,6 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
 
         # See whether we've resolved through to the base type
         if self.__baseTypeDefinition is None:
-            # Assume we're in the short-hand case: the entire content is
-            # implicitly wrapped in a complex restriction of the ur-type.
-            definition_node_list = node.childNodes
-            is_complex_content = True
-            self.__baseTypeDefinition = ComplexTypeDefinition.UrTypeDefinition()
-            method = self.DM_restriction
-    
-            # Determine whether above assumption is correct by looking for
-            # element content and seeing if it's one of the wrapper
-            # elements.
-            first_elt = LocateFirstChildElement(node)
-            content_node = None
-            if first_elt:
-                have_content = False
-                if xsd.nodeIsNamed(first_elt, 'simpleContent'):
-                    have_content = True
-                    is_complex_content = False
-                elif xsd.nodeIsNamed(first_elt, 'complexContent'):
-                    have_content = True
-                else:
-                    # Not one of the wrappers; use implicit wrapper around
-                    # the children
-                    pass
-                if have_content:
-                    # Repeat the search to verify that only the one child is present.
-                    content_node = LocateFirstChildElement(node, require_unique=True)
-                    assert content_node == first_elt
-                    
-                    # Identify the contained restriction or extension
-                    # element, and extract the base type.
-                    ions = LocateFirstChildElement(content_node, absent_ok=False)
-                    if xsd.nodeIsNamed(ions, 'restriction'):
-                        method = self.DM_restriction
-                    elif xsd.nodeIsNamed(ions, 'extension'):
-                        method = self.DM_extension
-                    else:
-                        raise pyxb.SchemaValidationError('Expected restriction or extension as sole child of %s in %s' % (content_node.name(), self.name()))
-                    self.__baseAttribute = NodeAttribute(ions, 'base')
-                    if self.__baseAttribute is None:
-                        raise pyxb.SchemaValidationError('Element %s missing base attribute' % (ions.nodeName,))
-                    self.__baseTypeDefinition = None
-                    # The content is defined by the restriction/extension element
-                    definition_node_list = ions.childNodes
-            # deriviationMethod is assigned after resolution completes
-            self.__pendingDerivationMethod = method
-            self.__definitionNodeList = definition_node_list
-            self.__contentNode = content_node
-
-        if self.__baseTypeDefinition is None:
             base_en = self._namespaceContext().interpretQName(self.__baseAttribute)
             base_type = base_en.typeDefinition()
             if base_type is None:
@@ -1973,7 +1973,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         # Only build the content once.  This all completes now that we
         # have a base type.
         if self.__contentType is None:
-            if is_complex_content:
+            if self.__isComplexContent:
                 self.__setComplexContentFromDOM(node, self.__contentNode, self.__definitionNodeList, self.__pendingDerivationMethod)
                 content_type = self.__complexContent(self.__pendingDerivationMethod)
                 self.__contentStyle = 'complex'
