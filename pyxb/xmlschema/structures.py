@@ -1906,8 +1906,6 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
                 definition_node_list = ions.childNodes
         # deriviationMethod is assigned after resolution completes
         self.__pendingDerivationMethod = method
-        self.__definitionNodeList = definition_node_list
-        self.__contentNode = content_node
         self.__isComplexContent = is_complex_content
 
         (attributes, attribute_group_attrs, any_attribute) = self._attributeRelevantChildren(definition_node_list)
@@ -1919,7 +1917,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         self.__anyAttribute = any_attribute
 
         if self.__isComplexContent:
-            self.__setComplexContentFromDOM(node, self.__contentNode, self.__definitionNodeList, self.__pendingDerivationMethod, **kw)
+            self.__setComplexContentFromDOM(node, content_node, definition_node_list, self.__pendingDerivationMethod, **kw)
 
         # Creation does not attempt to do resolution.  Queue up the newly created
         # whatsis so we can resolve it after everything's been read in.
