@@ -210,7 +210,7 @@ class _Resolvable_mixin (pyxb.cscRoot):
     not yet been read.
     """
 
-    _TraceResolution = True
+    _TraceResolution = False
 
     def isResolved (self):
         """Determine whether this named component is resolved.
