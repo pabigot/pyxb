@@ -469,7 +469,7 @@ class _EnumerationElement:
             self.__description = str(self.__annotation)
 
     def __str__ (self):
-        return utility.QuotedEscaped(self.unicodeValue)
+        return utility.QuotedEscaped(self.unicodeValue())
 
 class CF_enumeration (ConstrainingFacet, _CollectionFacet_mixin, _LateDatatype_mixin):
     """Capture a constraint that restricts valid values to a fixed set.
