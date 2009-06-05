@@ -3448,15 +3448,16 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
 
     def __initializeFromList (self, body):
         self.__baseTypeDefinition = self.SimpleUrTypeDefinition()
+        self.__itemTypeAttribute = NodeAttribute(body, 'itemType')
         return self.__completeResolution(body, self.VARIETY_list, 'list')
 
     def __initializeFromRestriction (self, body):
-        base_attr = NodeAttribute(body, 'base')
-        if base_attr is not None:
+        self.__baseAttribute = NodeAttribute(body, 'base')
+        if self.__baseAttribute is not None:
             # Look up the base.  If there is no registered type of
             # that name, an exception gets thrown that percolates up
             # to the user.
-            base_en = self._namespaceContext().interpretQName(base_attr)
+            base_en = self._namespaceContext().interpretQName(self.__baseAttribute)
             base_type = base_en.typeDefinition()
             if not isinstance(base_type, SimpleTypeDefinition):
                 raise pyxb.SchemaValidationError('Unable to locate base type %s' % (base_en,))
@@ -3480,6 +3481,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
 
     def __initializeFromUnion (self, body):
         self.__baseTypeDefinition = self.SimpleUrTypeDefinition()
+        self.__memberTypesAttribute = NodeAttribute(body, 'memberTypes')
         return self.__completeResolution(body, self.VARIETY_union, 'union')
 
     def __resolveBuiltin (self):
@@ -3631,9 +3633,8 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
                 self.__primitiveTypeDefinition = ptd
         elif self.VARIETY_list == variety:
             if 'list' == alternative:
-                it_attr = NodeAttribute(body, 'itemType')
-                if it_attr is not None:
-                    it_en = self._namespaceContext().interpretQName(it_attr)
+                if self.__itemTypeAttribute is not None:
+                    it_en = self._namespaceContext().interpretQName(self.__itemTypeAttribute)
                     self.__itemTypeDefinition = it_en.typeDefinition()
                     if not isinstance(self.__itemTypeDefinition, SimpleTypeDefinition):
                         raise pyxb.InvalidSchemaError('Unable to locate STD %s for items' % (it_en,))
@@ -3657,9 +3658,8 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
                     mtd = []
                     # If present, first extract names from memberTypes,
                     # and add each one to the list
-                    member_types = NodeAttribute(body, 'memberTypes')
-                    if member_types is not None:
-                        for mn in member_types.split():
+                    if self.__memberTypesAttribute is not None:
+                        for mn in self.__memberTypesAttribute.split():
                             # THROW if type has not been defined
                             mn_en = self._namespaceContext().interpretQName(mn)
                             std = mn_en.typeDefinition()
