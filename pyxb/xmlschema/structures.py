@@ -958,8 +958,17 @@ class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
         rv = cls(name=name, node=node, **kw)
         rv._annotationFromDOM(node)
         rv._valueConstraintFromDOM(node)
-        rv.__domNode = node
-        rv._queueForResolution('creation')
+
+        rv.__typeDefinitionAttribute = NodeAttribute(node, 'type')
+
+        st_node = LocateUniqueChild(node, 'simpleType')
+        if st_node is not None:
+            rv.__typeDefinition = SimpleTypeDefinition.CreateFromDOM(st_node, owner=rv)
+        elif rv.__typeDefinitionAttribute is None:
+            rv.__typeDefinition = SimpleTypeDefinition.SimpleUrTypeDefinition()
+
+        if rv.__typeDefinition is None:
+            rv._queueForResolution('creation')
         return rv
 
     def isResolved (self):
@@ -969,26 +978,16 @@ class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
     def _resolve (self):
         if self.isResolved():
             return self
-        #print 'Resolving AD %s' % (self.name(),)
-        node = self.__domNode
 
-        st_node = LocateUniqueChild(node, 'simpleType')
-        type_attr = NodeAttribute(node, 'type')
-        if st_node is not None:
-            self.__typeDefinition = SimpleTypeDefinition.CreateFromDOM(st_node, owner=self)
-        elif type_attr is not None:
-            # Although the type definition may not be resolved, *this* component
-            # is resolved, since we don't look into the type definition for anything.
-            type_en = self._namespaceContext().interpretQName(type_attr)
-            self.__typeDefinition = type_en.typeDefinition()
-            if self.__typeDefinition is None:
-                raise pyxb.SchemaValidationError('Type reference %s cannot be found' % (type_en,))
-            if not isinstance(self.__typeDefinition, SimpleTypeDefinition):
-                raise pyxb.SchemaValidationError('Need %s to be a simple type' % (type_ln,))
-        else:
-            self.__typeDefinition = SimpleTypeDefinition.SimpleUrTypeDefinition()
+        # Although the type definition may not be resolved, *this* component
+        # is resolved, since we don't look into the type definition for anything.
+        type_en = self._namespaceContext().interpretQName(self.__typeDefinitionAttribute)
+        self.__typeDefinition = type_en.typeDefinition()
+        if self.__typeDefinition is None:
+            raise pyxb.SchemaValidationError('Type reference %s cannot be found' % (type_en,))
+        if not isinstance(self.__typeDefinition, SimpleTypeDefinition):
+            raise pyxb.SchemaValidationError('Need %s to be a simple type' % (type_ln,))
 
-        self.__domNode = None
         return self
 
     def _setBuiltinFromInstance (self, other):
