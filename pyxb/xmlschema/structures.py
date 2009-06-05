@@ -469,8 +469,9 @@ class _NamedComponent_mixin (pyxb.cscRoot):
             # absent scope).
             # @todo: this is wrong for schema that are not bound to a
             # namespace, unless we use an unbound Namespace instance
-            assert isinstance(self, _ScopedDeclaration_mixin)
-            assert self.SCOPE_global != self.scope()
+            #print type(self)
+            #assert isinstance(self, _ScopedDeclaration_mixin)
+            #assert self.SCOPE_global != self.scope()
             # NOTE: The name of the scope may be None.  This is not a
             # problem unless somebody tries to extend or restrict the
             # scope type, which at the moment I'm thinking is
@@ -478,6 +479,7 @@ class _NamedComponent_mixin (pyxb.cscRoot):
             # gonna need some other sort of ID, like a UUID associated
             # with the anonymous class at the time it's written to the
             # preprocessed schema file.
+            pass
         return self.__dict__
 
     def __getnewargs__ (self):
@@ -950,9 +952,12 @@ class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
 
         rv.__typeAttribute = NodeAttribute(node, 'type')
 
+        kw.pop('node', None)
+        kw['owner'] = rv
+
         st_node = LocateUniqueChild(node, 'simpleType')
         if st_node is not None:
-            rv.__typeDefinition = SimpleTypeDefinition.CreateFromDOM(st_node, owner=rv)
+            rv.__typeDefinition = SimpleTypeDefinition.CreateFromDOM(st_node, **kw)
         elif rv.__typeAttribute is None:
             rv.__typeDefinition = SimpleTypeDefinition.SimpleUrTypeDefinition()
 
@@ -1101,13 +1106,9 @@ class AttributeUse (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin, _V
 
         rv.__refAttribute = NodeAttribute(node, 'ref')
         if rv.__refAttribute is None:
-            # Create an anonymous declaration.  Although this can
-            # never be referenced, we need the right scope so when we
-            # generate the binding we can place the attribute in the
-            # correct type.  Is this true?
-            kw = { }
+            # Create an anonymous declaration
+            kw.pop('node', None)
             kw['owner'] = rv
-            kw['scope'] = rv._scope()
             kw['target_namespace'] = schema.targetNamespaceForNode(node, AttributeDeclaration)
             rv.__attributeDeclaration = AttributeDeclaration.CreateFromDOM(node, **kw)
 
@@ -1270,10 +1271,13 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.na
 
         rv.__substitutionGroupAttribute = NodeAttribute(node, 'substitutionGroup')
         
+        kw.pop('node', None)
+        kw['owner'] = rv
+
         identity_constraints = []
         for cn in node.childNodes:
             if (Node.ELEMENT_NODE == cn.nodeType) and xsd.nodeIsNamed(cn, 'key', 'unique', 'keyref'):
-                identity_constraints.append(IdentityConstraintDefinition.CreateFromDOM(cn, owner=rv, scope=rv.scope()))
+                identity_constraints.append(IdentityConstraintDefinition.CreateFromDOM(cn, **kw))
         rv.__identityConstraintDefinitions = identity_constraints
 
         rv.__typeDefinition = None
@@ -1282,11 +1286,11 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.na
         if rv.__typeDefinition is None:
             td_node = LocateUniqueChild(node, 'simpleType')
             if td_node is not None:
-                rv.__typeDefinition = SimpleTypeDefinition.CreateFromDOM(td_node, owner=rv)
+                rv.__typeDefinition = SimpleTypeDefinition.CreateFromDOM(td_node, **kw)
         if rv.__typeDefinition is None:
             td_node = LocateUniqueChild(node, 'complexType')
             if td_node is not None:
-                rv.__typeDefinition = ComplexTypeDefinition.CreateFromDOM(td_node, scope=_ScopedDeclaration_mixin.XSCOPE_indeterminate, owner=rv)
+                rv.__typeDefinition = ComplexTypeDefinition.CreateFromDOM(td_node, **kw)
         if rv.__typeDefinition is None:
             if rv.__typeAttribute is None:
                 rv.__typeDefinition = ComplexTypeDefinition.UrTypeDefinition()
@@ -1478,7 +1482,6 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
     def __init__ (self, *args, **kw):
         super(ComplexTypeDefinition, self).__init__(*args, **kw)
         self.__derivationMethod = kw.get('derivation_method')
-        assert self._scopeIsIndeterminate()
         self.__scopedElementDeclarations = { }
         self.__scopedAttributeDeclarations = { }
 
@@ -2046,10 +2049,13 @@ class AttributeGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, p
         if rv.__refAttribute is not None:
             raise pyxb.SchemaValidationError('Attribute reference at top level')
 
+        kw.pop('node', None)
+        kw['owner'] = rv
+
         (attributes, attribute_group_attrs, any_attribute) = rv._attributeRelevantChildren(node.childNodes)
         rv.__attributeUses = set()
         for cn in attributes:
-            rv.__attributeUses.add(AttributeUse.CreateFromDOM(cn, scope=rv._scope(), owner=rv, schema=schema))
+            rv.__attributeUses.add(AttributeUse.CreateFromDOM(cn, **kw))
         rv.__attributeGroupAttributes = attribute_group_attrs
         rv.__anyAttribute = any_attribute
 
@@ -2124,9 +2130,12 @@ class ModelGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Anno
         assert NodeAttribute(node, 'ref') is None
 
         name = NodeAttribute(node, 'name')
-        kw.update({ 'scope' : _ScopedDeclaration_mixin.XSCOPE_indeterminate })
+        kw['scope'] = _ScopedDeclaration_mixin.XSCOPE_indeterminate
         rv = cls(name=name, node=node, **kw)
         rv._annotationFromDOM(node)
+
+        kw.pop('node', None)
+        kw['owner'] = rv
 
         for cn in node.childNodes:
             if Node.ELEMENT_NODE != cn.nodeType:
@@ -2136,7 +2145,7 @@ class ModelGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Anno
                 # Model group definitions always occur at the top level of the
                 # schema, so the elements declared in them are not bound to a
                 # scope until they are referenced in a complex type.
-                rv.__modelGroup = ModelGroup.CreateFromDOM(cn, scope=_ScopedDeclaration_mixin.XSCOPE_indeterminate, model_group_definition=rv, owner=rv)
+                rv.__modelGroup = ModelGroup.CreateFromDOM(cn, model_group_definition=rv, **kw)
         assert rv.__modelGroup is not None
         return rv
 
@@ -2579,6 +2588,9 @@ class Particle (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin):
 
         rv = cls(None, **kw)
 
+        kw.pop('node', None)
+        kw['owner'] = rv
+
         rv.__refAttribute = NodeAttribute(node, 'ref')
         rv.__pendingTerm = None
         if xsd.nodeIsNamed(node, 'group'):
@@ -2597,7 +2609,7 @@ class Particle (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin):
             # Choice, sequence, and all inside a particle are explicit
             # groups (or a restriction of explicit group, in the case
             # of all)
-            rv.__pendingTerm = ModelGroup.CreateFromDOM(node=node, scope=scope, owner=rv)
+            rv.__pendingTerm = ModelGroup.CreateFromDOM(node, **kw)
         else:
             raise pyxb.LogicError('Unhandled node in Particle.CreateFromDOM: %s' % (node.toxml(),))
         
@@ -2894,6 +2906,9 @@ class IdentityConstraintDefinition (_SchemaComponent_mixin, _NamedComponent_mixi
         assert _ScopedDeclaration_mixin.ScopeIsIndeterminate(scope) or _ScopedDeclaration_mixin.IsValidScope(scope)
         rv = cls(name=name, node=node, **kw)
 
+        kw.pop('node', None)
+        kw['owner'] = rv
+
         #self._annotationFromDOM(node);
         rv.__isResolved = True
         icc = None
@@ -2937,7 +2952,7 @@ class IdentityConstraintDefinition (_SchemaComponent_mixin, _NamedComponent_mixi
             elif xsd.nodeIsNamed(cn, 'annotation'):
                 an = cn
             if an is not None:
-                rv.__annotations.append(Annotation.CreateFromDOM(an, owner=rv))
+                rv.__annotations.append(Annotation.CreateFromDOM(an, **kw))
 
         rv.__identityConstraintCategory = icc
         if rv.ICC_KEYREF != rv.__identityConstraintCategory:
@@ -3408,30 +3423,30 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
     # variety is not saved until it is complete.  All this stuff is
     # from section 3.14.2.
 
-    def __initializeFromList (self, body):
+    def __initializeFromList (self, body, **kw):
         self.__baseTypeDefinition = self.SimpleUrTypeDefinition()
         self.__itemTypeAttribute = NodeAttribute(body, 'itemType')
         if self.__itemTypeAttribute is None:
             # NOTE: The newly created anonymous item type will
             # not be resolved; the caller needs to handle
             # that.
-            self.__itemTypeDefinition = self.CreateFromDOM(self.__singleSimpleTypeChild(body), owner=self)
+            self.__itemTypeDefinition = self.CreateFromDOM(self.__singleSimpleTypeChild(body), **kw)
         return self.__completeResolution(body, self.VARIETY_list, 'list')
 
-    def __initializeFromRestriction (self, body):
+    def __initializeFromRestriction (self, body, **kw):
         self.__baseTypeDefinition = None
         self.__baseAttribute = NodeAttribute(body, 'base')
         if self.__baseAttribute is None:
             self.__baseTypeDefinition = self.SimpleUrTypeDefinition()
         return self.__completeResolution(body, None, 'restriction')
 
-    def __initializeFromUnion (self, body):
+    def __initializeFromUnion (self, body, **kw):
         self.__baseTypeDefinition = self.SimpleUrTypeDefinition()
         self.__memberTypesAttribute = NodeAttribute(body, 'memberTypes')
         self.__localMemberTypes = []
         for cn in body.childNodes:
             if (Node.ELEMENT_NODE == cn.nodeType) and xsd.nodeIsNamed(cn, 'simpleType'):
-                self.__localMemberTypes.append(self.CreateFromDOM(cn, owner=self))
+                self.__localMemberTypes.append(self.CreateFromDOM(cn, **kw))
         return self.__completeResolution(body, self.VARIETY_union, 'union')
 
     def __resolveBuiltin (self):
@@ -3724,24 +3739,26 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
         assert self.__domNode
         node = self.__domNode
         
+        kw = { 'owner' : self }
+
         bad_instance = False
         # The guts of the node should be exactly one instance of
         # exactly one of these three types.
         candidate = LocateUniqueChild(node, 'list')
         if candidate:
-            self.__initializeFromList(candidate)
+            self.__initializeFromList(candidate, **kw)
 
         candidate = LocateUniqueChild(node, 'restriction')
         if candidate:
             if self.__variety is None:
-                self.__initializeFromRestriction(candidate)
+                self.__initializeFromRestriction(candidate, **kw)
             else:
                 bad_instance = True
 
         candidate = LocateUniqueChild(node, 'union')
         if candidate:
             if self.__variety is None:
-                self.__initializeFromUnion(candidate)
+                self.__initializeFromUnion(candidate, **kw)
             else:
                 bad_instance = True
 
