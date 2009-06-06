@@ -366,6 +366,8 @@ class _NamedComponent_mixin (pyxb.cscRoot):
         # but will abort if the namespace hasn't been validated yet.
         expanded_name.validateComponentModel()
         if isinstance(scope, tuple):
+            # Scope is the expanded name of the complex type in which the
+            # named value can be located.
             scope_en = pyxb.namespace.ExpandedName(scope)
             if expanded_name.namespace() != scope_en.namespace():
                 print 'Attempting to look up %s in %s' % (expanded_name, scope_en)
@@ -382,8 +384,7 @@ class _NamedComponent_mixin (pyxb.cscRoot):
                 raise pyxb.IncompleteImplementationError('Scope %s reference lookup of %s not implemented for type %s' % (scope_en, expanded_name, icls))
             if rv is None:
                 raise pyxb.SchemaValidationError('Unable to resolve %s as %s in scope %s' % (expanded_name, icls, scope_en))
-        # 
-        elif (_ScopedDeclaration_mixin.SCOPE_global == scope) or _ScopedDeclaration_mixin.ScopeIsIndeterminate(scope):
+        elif _ScopedDeclaration_mixin.SCOPE_global == scope:
             #assert not _ScopedDeclaration_mixin.ScopeIsIndeterminate(scope)
             if (issubclass(icls, SimpleTypeDefinition) or issubclass(icls, ComplexTypeDefinition)):
                 rv = expanded_name.typeDefinition()
@@ -402,7 +403,7 @@ class _NamedComponent_mixin (pyxb.cscRoot):
             if rv is None:
                 raise pyxb.SchemaValidationError('Unable to resolve %s as %s' % (expanded_name, icls))
         elif _ScopedDeclaration_mixin.ScopeIsIndeterminate(scope):
-            raise LogicError('Attempt to resolve %s in indeterminate scope' % (expanded_name,))
+            raise pyxb.LogicError('Attempt to resolve %s in indeterminate scope' % (expanded_name,))
         else:
             raise pyxb.IncompleteImplementationError('Unable to resolve reference %s' % (expanded_name,))
         return rv
@@ -492,6 +493,8 @@ class _NamedComponent_mixin (pyxb.cscRoot):
         instance."""
 
         if self.__pickleAsReference ():
+            if self._scopeIsIndeterminate():
+                raise pyxb.LogicError('Attempt to pickle reference to %s tns %s in indeterminate scope in %s' % (self, self.targetNamespace(), pyxb.namespace.Namespace.PicklingNamespace()))
             scope = self._scope()
             if isinstance(self, _ScopedDeclaration_mixin):
                 # If scope is global, we can look it up in the namespace.
@@ -504,18 +507,6 @@ class _NamedComponent_mixin (pyxb.cscRoot):
                 elif isinstance(self.scope(), ComplexTypeDefinition):
                     scope = self.scope().expandedName().uriTuple()
                 elif self._scopeIsIndeterminate():
-                    # This is actually a serious problem, but only shows up
-                    # when one schema imports another that has a model group
-                    # (or probably attribute group) definition.  For some
-                    # reason, the first schema has a reference to the
-                    # definition (rather than the scope-adapted clones), and
-                    # wants to serialize it.  I haven't yet figured out where
-                    # that definition comes from, or how to remove it.
-                    print 'Indeterminate scope for %s parentage:' % (self,)
-                    owner = self.owner()
-                    while owner is not None:
-                        print ' %s' % (owner,)
-                        owner = owner.owner()
                     assert False
             rv = ( self.expandedName().uriTuple(), scope, self.__class__ )
             return rv
@@ -1522,7 +1513,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         if cls.__UrTypeDefinition is None:
             # NOTE: We use a singleton subclass of this class
             ns_ctx = pyxb.namespace.XMLSchema.initialNamespaceContext()
-            bi = _UrTypeDefinition(name='anyType', namespace_context=ns_ctx, derivation_method=cls.DM_restriction, scope=_ScopedDeclaration_mixin.XSCOPE_indeterminate)
+            bi = _UrTypeDefinition(name='anyType', namespace_context=ns_ctx, derivation_method=cls.DM_restriction, scope=_ScopedDeclaration_mixin.SCOPE_global)
 
             # The ur-type is its own baseTypeDefinition
             bi.__baseTypeDefinition = bi
@@ -1591,6 +1582,10 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         name = NodeAttribute(node, 'name')
 
         rv = cls(name=name, node=node, derivation_method=None, **kw)
+
+        if not rv._scopeIsGlobal():
+            raise LogicError('Attempt to create non-global complex type definition')
+
         kw.pop('node', None)
         kw['owner'] = rv
         kw['scope'] = rv
@@ -1942,6 +1937,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
     #
     # * The content model includes a particle which cannot be resolved
     #   (so has not contributed any local element declarations).
+    # res:CTD
     def _resolve (self):
         if self.isResolved():
             return self
@@ -3292,7 +3288,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
         #    raise pyxb.LogicError('Multiple definitions of SimpleUrType')
         if cls.__SimpleUrTypeDefinition is None:
             # Note: We use a singleton subclass
-            bi = _SimpleUrTypeDefinition(name='anySimpleType', namespace_context=pyxb.namespace.XMLSchema.initialNamespaceContext(), variety=cls.VARIETY_absent, scope=_ScopedDeclaration_mixin.XSCOPE_indeterminate)
+            bi = _SimpleUrTypeDefinition(name='anySimpleType', namespace_context=pyxb.namespace.XMLSchema.initialNamespaceContext(), variety=cls.VARIETY_absent, scope=_ScopedDeclaration_mixin.SCOPE_global)
             bi._setPythonSupport(datatypes.anySimpleType)
 
             # The baseTypeDefinition is the ur-type.
@@ -3321,7 +3317,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
         All parameters are required and must be non-None.
         """
         
-        bi = cls(name=name, namespace_context=schema.targetNamespace().initialNamespaceContext(), variety=cls.VARIETY_atomic, scope=_ScopedDeclaration_mixin.XSCOPE_indeterminate)
+        bi = cls(name=name, namespace_context=schema.targetNamespace().initialNamespaceContext(), variety=cls.VARIETY_atomic, scope=_ScopedDeclaration_mixin.SCOPE_global)
         bi._setPythonSupport(python_support)
 
         # Primitive types are based on the ur-type, and have
@@ -3345,7 +3341,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
         """
         assert parent_std
         assert parent_std.__variety in (cls.VARIETY_absent, cls.VARIETY_atomic)
-        bi = cls(name=name, namespace_context=schema.targetNamespace().initialNamespaceContext(), variety=parent_std.__variety, scope=_ScopedDeclaration_mixin.XSCOPE_indeterminate)
+        bi = cls(name=name, namespace_context=schema.targetNamespace().initialNamespaceContext(), variety=parent_std.__variety, scope=_ScopedDeclaration_mixin.SCOPE_global)
         bi._setPythonSupport(python_support)
 
         # We were told the base type.  If this is atomic, we re-use
@@ -3368,7 +3364,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
         that require explicit support to for Pythonic conversion; but
         note that such support is identified by the item_std.
         """
-        bi = cls(name=name, namespace_context=schema.targetNamespace().initialNamespaceContext(), variety=cls.VARIETY_list, scope=_ScopedDeclaration_mixin.XSCOPE_indeterminate)
+        bi = cls(name=name, namespace_context=schema.targetNamespace().initialNamespaceContext(), variety=cls.VARIETY_list, scope=_ScopedDeclaration_mixin.SCOPE_global)
         bi._setPythonSupport(python_support)
 
         # The base type is the ur-type.  We were given the item type.
@@ -4181,11 +4177,9 @@ class Schema (_SchemaComponent_mixin):
         component = self.__TopLevelComponentMap.get(node.localName)
         if component is not None:
             self.__pastProlog = True
-            kw = { 'scope' : _ScopedDeclaration_mixin.XSCOPE_indeterminate,
+            kw = { 'scope' : _ScopedDeclaration_mixin.SCOPE_global,
                    'schema' : self,
                    'owner' : self }
-            if issubclass(component, _ScopedDeclaration_mixin):
-                kw['scope'] = _ScopedDeclaration_mixin.SCOPE_global
             return self._addNamedComponent(component.CreateFromDOM(node, **kw))
 
         raise pyxb.SchemaValidationError('Unexpected top-level element %s' % (node.nodeName,))
