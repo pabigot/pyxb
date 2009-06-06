@@ -2979,7 +2979,7 @@ class IdentityConstraintDefinition (_SchemaComponent_mixin, _NamedComponent_mixi
                 self._queueForResolution('Identity constraint definition %s cannot be found' % (refer_en,))
                 return self
             self.__referencedKey = refer
-
+        self.__isResolved = True
         return self
     
 # 3.12.1
