@@ -2489,11 +2489,15 @@ class Particle (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin):
             if self.__refAttribute is not None:
                 assert self.__pendingTerm is None
                 ref_en = self._namespaceContext().interpretQName(self.__refAttribute)
-                self.__pendingTerm = ref_en.elementDeclaration()
-                if self.__pendingTerm is None:
+                term = ref_en.elementDeclaration()
+                if term is None:
                     raise pyxb.SchemaValidationError('Unable to locate element referenced by %s' % (ref_en,))
                 if isinstance(scope, ComplexTypeDefinition):
-                    self.__pendingTerm = self.__pendingTerm._adaptForScope(self, scope)
+                    if not term.isResolved():
+                        self._queueForResolution('referenced element declaration must be resolved for adaptation')
+                        return self
+                    term = term._adaptForScope(self, scope)
+                self.__pendingTerm = term
             assert self.__pendingTerm
 
             alt_term = None
