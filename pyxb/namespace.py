@@ -528,12 +528,12 @@ class _ComponentDependency_mixin (pyxb.cscRoot):
     # Cached frozenset of components on which this component depends.
     __dependentComponents = None
 
-    def _resetClone_csc (self):
+    def _resetClone_csc (self, **kw):
         """CSC extension to reset fields of a component.  This one clears
         dependency-related data, since the clone will have to revise its
         dependencies.
         @rtype: C{None}"""
-        getattr(super(_ComponentDependency_mixin, self), '_resetClone_csc', lambda *args, **kw: None)()
+        getattr(super(_ComponentDependency_mixin, self), '_resetClone_csc', lambda *_args, **_kw: None)(**kw)
         self.__dependentComponents = None
 
     def dependentComponents (self):
@@ -662,7 +662,7 @@ class _NamespaceComponentAssociation_mixin (pyxb.cscRoot):
                 # namespace.  Components that belong to no namespace are
                 # presumably local to a type in this namespace.
                 try:
-                    assert (td.targetNamespace() == self) or (td.targetNamespace() is None)
+                    assert td._belongsToNamespace(self)
                 except AttributeError:
                     # Unnamed things don't get discarded this way
                     pass

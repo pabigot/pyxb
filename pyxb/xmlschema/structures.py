@@ -52,13 +52,17 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin):
     time by passing a schema=val parameter to the constructor.  
     """
 
-    # The namespace context for this schema: where it looks things up,
-    # where it puts things it createas, the in-scope namespace
-    # declarations, etc.  Must be defined for all but the most trivial
-    # components, so in fact we require it of everything.
+    # The namespace context for this schema: where it looks things up, where
+    # it puts things it createas, the in-scope namespace declarations, etc.
+    # Must be defined for anything that does any sort of QName interpretation.
     __namespaceContext = None
     def _namespaceContext (self):
+        if self.__namespaceContext is None:
+            raise pyxb.LogicError('Attempt to access missing namespace context for %s' % (self,))
         return self.__namespaceContext
+    def _clearNamespaceContext (self):
+        self.__namespaceContext = None
+        return self
 
     # The name by which this component is known within the binding
     # module.  This is in component rather than _NamedComponent_mixin
@@ -151,7 +155,7 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin):
         Returns None if no instances have been cloned from this."""
         return self.__clones
 
-    def _resetClone_csc (self):
+    def _resetClone_csc (self, **kw):
         """Virtual method to clear whatever attributes should be reset
         in a cloned component.
 
@@ -163,19 +167,19 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin):
         Returns self.
         """
         assert self.__cloneSource is not None
-        self.__owner = None
+        owner = kw['owner']
+        self.__owner = owner
         self.__ownedComponents = set()
         self.__clones = None
-        self._namespaceContext().targetNamespace()._associateComponent(self)
-        assert self.owner() is None
-        return getattr(super(_SchemaComponent_mixin, self), '_resetClone_csc', lambda *args, **kw: self)()
+        owner._namespaceContext().targetNamespace()._associateComponent(self)
+        return getattr(super(_SchemaComponent_mixin, self), '_resetClone_csc', lambda *_args,**_kw: self)(**kw)
 
-    def _clone (self):
+    def _clone (self, owner):
         """Create a copy of this instance suitable for adoption by
         some other component.
         
-        This is used for things like creating a locally-scoped
-        declaration from a group declaration."""
+        This is used for things like creating a locally-scoped declaration
+        from a declaration in a model or attribute group."""
 
         # We only care about cloning declarations, and they should
         # have an unassigned scope.  However, we do clone
@@ -184,12 +188,13 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin):
         if isinstance(self, pyxb.namespace._Resolvable_mixin):
             assert self.isResolved()
 
+        assert owner is not None
         that = copy.copy(self)
         that.__cloneSource = self
         if self.__clones is None:
             self.__clones = set()
         self.__clones.add(that)
-        that._resetClone_csc()
+        that._resetClone_csc(owner=owner)
         if isinstance(that, pyxb.namespace._Resolvable_mixin):
             assert that.isResolved()
         return that
@@ -332,6 +337,17 @@ class _NamedComponent_mixin (pyxb.cscRoot):
         return self.__targetNamespace
     __targetNamespace = None
     
+    def _belongsToNamespace (self, ns):
+        """Return C{True} if this component belongs to the given namespace.
+
+        Not just as simple as checking for target namespace equality: clones
+        of objects from other namespaces retain their target namespace, but
+        are still local if they're in scope of a component in the
+        namespace.  Have C{None} as a namespace is as good as matching."""
+        if isinstance(self._scope(), ComplexTypeDefinition):
+            return self._scope()._belongsToNamespace(ns)
+        return self.targetNamespace() in (ns, None)
+
     def expandedName (self):
         """Return the L{pyxb.namespace.ExpandedName} of this object."""
         if self.name() is None:
@@ -449,10 +465,7 @@ class _NamedComponent_mixin (pyxb.cscRoot):
         # If this thing is scoped in a complex type that belongs to the
         # namespace being pickled, then it gets pickled as an object even if
         # its target namespace isn't this one.
-        scope = self._scope()
-        if isinstance(scope, ComplexTypeDefinition) and (scope.targetNamespace() == pickling_namespace):
-            return False
-        elif pickling_namespace == self.targetNamespace():
+        if self._belongsToNamespace(pickling_namespace):
             return False
         if self.isAnonymous():
             raise pyxb.LogicError('Unable to pickle reference to unnamed object %s in %s: %s' % (self.name(), self.targetNamespace().uri(), object.__str__(self)))
@@ -1116,10 +1129,8 @@ class AttributeUse (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin, _V
         assert ad.scope() is not None
         assert isinstance(ctd, ComplexTypeDefinition)
         if not ad.scope()  == ctd:
-            rv = self._clone()
-            rv._setOwner(ctd)
-            rv.__attributeDeclaration = ad._clone()
-            rv.__attributeDeclaration._setOwner(rv)
+            rv = self._clone(ctd)
+            rv.__attributeDeclaration = ad._clone(rv)
             rv.__attributeDeclaration._setScope(ctd)
         rv.__attributeDeclaration._recordInScope()
         return rv
@@ -1303,9 +1314,8 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.na
             #rv._dissociateFromNamespace()
             return previous
         if self.scope() != ctd:
-            rv = self._clone()
             assert owner is not None
-            rv._setOwner(owner)
+            rv = self._clone(owner)
             rv._setScope(ctd)
         rv._recordInScope()
         return rv
@@ -2320,11 +2330,11 @@ class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
         #print 'aFS:MG - %s' % (ctd.expandedName(),)
         rv = self
         assert isinstance(ctd, ComplexTypeDefinition)
-        scoped_particles = [ _p._adaptForScope(None, ctd) for _p in self.particles() ]
+        maybe_rv = self._clone(owner)
+        scoped_particles = [ _p._adaptForScope(maybe_rv, ctd) for _p in self.particles() ]
         do_clone = (self._scope() != ctd) or (self.particles() != scoped_particles)
         if do_clone:
-            rv = self._clone()
-            rv._setOwner(owner)
+            rv = maybe_rv
             rv.__particles = scoped_particles
         return rv
 
@@ -2348,9 +2358,9 @@ class Particle (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin):
         cls.__SequenceNumber += 1
         return rv
     __sequenceNumber = None
-    def _resetClone_csc (self):
+    def _resetClone_csc (self, **kw):
         self.__sequenceNumber = self.__NextSequenceNumber()
-        return getattr(super(Particle, self), '_resetClone_csc', lambda *args, **kw: self)()
+        return getattr(super(Particle, self), '_resetClone_csc', lambda *_args,**_kw: self)(**kw)
 
     # The minimum number of times the term may appear.
     __minOccurs = 1
@@ -2602,9 +2612,7 @@ class Particle (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin):
         term = rv.__term._adaptForScope(rv, ctd)
         do_clone = (self._scope() != ctd) or (rv.__term != term)
         if  do_clone:
-            rv = self._clone()
-            assert rv.owner() is None
-            rv._setOwner(owner)
+            rv = self._clone(owner)
             rv.__term = term
         return rv
 
