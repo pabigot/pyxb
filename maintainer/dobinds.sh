@@ -45,4 +45,7 @@ EOList
     --schema-uri file:${cached_schema} \
     --generate-raw-binding \
     --save-component-model
+  if [ 0 != $? ] ; then
+    break
+  fi
 done
