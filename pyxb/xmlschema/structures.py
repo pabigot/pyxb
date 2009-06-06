@@ -172,6 +172,11 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin):
         self.__ownedComponents = set()
         self.__clones = None
         owner._namespaceContext().targetNamespace()._associateComponent(self)
+        if self.__namespaceContext is None:
+            # When cloning imported components, loan them the owner's
+            # namespace context, only so that their cloned children can be
+            # associated with the same namespace.
+            self.__namespaceContext = owner._namespaceContext()
         return getattr(super(_SchemaComponent_mixin, self), '_resetClone_csc', lambda *_args,**_kw: self)(**kw)
 
     def _clone (self, owner):
@@ -3916,6 +3921,10 @@ class Schema (_SchemaComponent_mixin):
         return self.__importedNamespaces
     __importedNamespaces = None
 
+    def referencedNamespaces (self):
+        return self.__referencedNamespaces
+    __referencedNamespaces = None
+
     # Tuple of component classes in order in which they must be generated in
     # order to satisfy the Python references between bindings.
     # 
@@ -4005,7 +4014,9 @@ class Schema (_SchemaComponent_mixin):
             self.__defaultNamespace.configureCategories(self.__SchemaCategories)
 
         self.__attributeMap = self.__attributeMap.copy()
-        self.__annotations = [ ]
+        self.__annotations = []
+        # @todo: This isn't right if namespaces are introduced deeper in the document
+        self.__referencedNamespaces = self._namespaceContext().inScopeNamespaces().values()
         self.__importedNamespaces = []
 
     __TopLevelComponentMap = {

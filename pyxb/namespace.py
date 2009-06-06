@@ -516,7 +516,12 @@ class _NamespaceResolution_mixin (pyxb.cscRoot):
         # Replace the list of unresolved components with None, so that
         # attempts to subsequently add another component fail.
         self.__unresolvedComponents = None
+
+        # Remove the namespace context from everything, since we won't be
+        # resolving anything else.
         _Resolvable_mixin._SetResolvingSchema(None)
+        self._releaseNamespaceContexts()
+
         return self
     
     def _unresolvedComponents (self):
@@ -613,6 +618,10 @@ class _NamespaceComponentAssociation_mixin (pyxb.cscRoot):
         """Return a frozenset of all components, named or unnamed, belonging
         to this namespace."""
         return frozenset(self.__components)
+
+    def _releaseNamespaceContexts (self):
+        for c in self.__components:
+            c._clearNamespaceContext()
 
     def orderedComponents (self, component_order):
         """Return a list of all associated components, ordered by dependency.

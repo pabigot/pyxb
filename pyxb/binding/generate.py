@@ -941,6 +941,7 @@ def GeneratePython (**kw):
         template_map['targetNamespace'] = repr(tns)
         template_map['import_prefix'] = import_prefix
 
+        # "import" in import_namespaces means Python import, not XSD import
         import_namespaces = set()
         for ins in schema.importedNamespaces():
             ns = ins.namespace()
@@ -951,7 +952,7 @@ def GeneratePython (**kw):
                     print 'WARNING: Dependency on %s with no module path' % (ns.uri(),)
                 continue
             import_namespaces.add(ns)
-        for ns in schema._namespaceContext().inScopeNamespaces().values():
+        for ns in schema.referencedNamespaces():
             if ns == schema.targetNamespace():
                 continue
             if ns.modulePath() is None:
