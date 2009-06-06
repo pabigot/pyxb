@@ -38,6 +38,8 @@ EOList
      echo "Retrieving ${prefix} from ${uri}"
      wget -O ${cached_schema} ${uri}
   fi
+  echo
+  echo "Translating to ${prefix} from ${cached_schema}"
   scripts/pyxbgen \
     --module-path pyxb.standard.bindings.${prefix} \
     --schema-uri file:${cached_schema} \
