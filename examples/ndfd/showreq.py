@@ -37,7 +37,7 @@ print input.toxml()
 print type(input)
 print input.message()
 im_en = input._namespaceContext().interpretQName(input.message())
-print '%s %s' % im_en
+print im_en
 msg = im_en.message()
 print msg
 for p in msg.part():
@@ -50,7 +50,6 @@ nodes = body_dom.childNodes
 
 while parts and nodes:
     p = parts.pop(0)
-    p
     while nodes and (not (xml.dom.Node.ELEMENT_NODE == nodes[0].nodeType)):
         nodes.pop(0)
     assert nodes
