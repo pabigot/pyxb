@@ -447,15 +447,17 @@ class _NamedComponent_mixin (pyxb.cscRoot):
     def isNameEquivalent (self, other):
         """Return true iff this and the other component share the same name and target namespace.
         
-        Anonymous components are inherently name inequivalent."""
+        Anonymous components are inherently name inequivalent, except to themselves."""
         # Note that unpickled objects 
-        return (not self.isAnonymous()) and (self.expandedName() == other.expandedName())
+        return (self == other) or ((not self.isAnonymous()) and (self.expandedName() == other.expandedName()))
 
     def isTypeEquivalent (self, other):
         """Return True iff this and the other component have matching types.
 
-        For now, this uses name equivalence within types.  In the future,
-        structural equivalence may be used."""
+        It appears that name equivalence is used; two complex type definitions
+        with identical structures are not considered equivalent (at least, per
+        XMLSpy).
+        """
         return (type(self) == type(other)) and self.isNameEquivalent(other)
 
     def __pickleAsReference (self):

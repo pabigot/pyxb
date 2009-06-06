@@ -652,9 +652,11 @@ class %{ctd} (%{superclasses}):
 # due to content model differences:
 # plural %{plural} vs %{sc_plural}
 # types %{types} vs %{sc_types}
+# iTE %{isTE}
 ''', plural=str(is_plural), sc_plural=str(superclass_is_plural),
-   types=ed.expandedName(),
-   sc_types=superclass_ed.expandedName(),
+   types='%s %s' % (type(ed.typeDefinition()), ed.expandedName()),
+   sc_types='%s %s' % (type(superclass_ed.typeDefinition()), superclass_ed.expandedName()),
+   isTE=pythonLiteral(ed.typeDefinition().isTypeEquivalent(superclass_ed.typeDefinition()), **kw),
    superclasses=template_map['superclasses'], **superclass_ef_map))
 
         PostscriptItems.append("\n\n")
@@ -859,7 +861,7 @@ def GenerateED (ed, **kw):
     template_map['substitutionGroupAffiliation'] = pythonLiteral(None, **kw)
 
     if ed.substitutionGroupAffiliation() is not None:
-        template_map['substitutionGroupAffiliation'] = pythonLiteral(ctd.substitutionGroupAffiliation(), **kw)
+        template_map['substitutionGroupAffiliation'] = pythonLiteral(ed.substitutionGroupAffiliation(), **kw)
 
     outf.write(templates.replaceInText('''
 # ElementDeclaration
