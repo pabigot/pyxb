@@ -1295,13 +1295,15 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.na
         return rv
 
     def isDeepResolved (self):
-        return True
+        return self.isResolved()
 
     # aFS:ED
     def _adaptForScope (self, owner, ctd):
+        #print 'aFS:ED %s %s' % (self.expandedName(), ctd.expandedName())
         rv = self
         assert isinstance(ctd, ComplexTypeDefinition), '%s is not a CTD' % (ctd,)
         previous = ctd.lookupScopedElementDeclaration(rv.expandedName())
+        assert self.isResolved()
         if previous is not None:
             # Test cos-element-consistent
             alt_type = previous.typeDefinition()
@@ -1986,6 +1988,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
                 self._queueForResolution('content particle %s is not deep-resolved' % (prt,))
                 return self
             self.__contentType = (self.__contentType[0], prt._adaptForScope(self, self))
+            #print 'Done adapting %s content' % (self.expandedName(),)
 
         return self.__completeProcessing(self.__pendingDerivationMethod, self.__contentStyle)
 
@@ -2321,6 +2324,7 @@ class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
 
     # aFS:MG
     def _adaptForScope (self, owner, ctd):
+        #print 'aFS:MG - %s' % (ctd.expandedName(),)
         rv = self
         assert isinstance(ctd, ComplexTypeDefinition)
         scoped_particles = [ _p._adaptForScope(None, ctd) for _p in self.particles() ]
@@ -2599,6 +2603,7 @@ class Particle (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin):
 
     # aFS:PRT
     def _adaptForScope (self, owner, ctd):
+        #print 'aFS:PRT - %s' % (ctd.expandedName(),)
         rv = self
         assert isinstance(ctd, ComplexTypeDefinition)
         term = rv.__term._adaptForScope(rv, ctd)
