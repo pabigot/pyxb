@@ -21,7 +21,6 @@ class TestCTDExtension (unittest.TestCase):
         # should be the same, unless content model requires they be
         # different.
         self.assertEqual(extendedName.title, personName.title)
-        self.assertEqual(extendedName.pAttr, personName.pAttr)
 
     def testPersonName (self):
         xml = '''<oldAddressee pAttr="old">

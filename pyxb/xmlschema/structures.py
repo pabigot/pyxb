@@ -95,7 +95,7 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin):
         assert self.__cloneSource is not None
         assert isinstance(self, _ScopedDeclaration_mixin)
         assert isinstance(ctd, ComplexTypeDefinition)
-        assert self._scopeIsIndeterminate()
+        #assert self._scopeIsIndeterminate()
         self.__scope = ctd
         return self._recordInScope()
 
@@ -179,7 +179,7 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin):
         # We only care about cloning declarations, and they should
         # have an unassigned scope.  However, we do clone
         # non-declarations that contain cloned declarations.
-        assert (not isinstance(self, _ScopedDeclaration_mixin)) or self._scopeIsIndeterminate()
+        #assert (not isinstance(self, _ScopedDeclaration_mixin)) or self._scopeIsIndeterminate()
         if isinstance(self, pyxb.namespace._Resolvable_mixin):
             assert self.isResolved()
 
@@ -1133,11 +1133,12 @@ class AttributeUse (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin, _V
         into the given CTD.  In that case, clone this instance and
         return the clone with its attribute declaration also set to a
         clone with proper scope."""
+        rv = self
         assert self.isResolved()
         ad = self.__attributeDeclaration
-        rv = self
         assert ad.scope() is not None
-        if ad.scope() is None:
+        assert isinstance(ctd, ComplexTypeDefinition)
+        if not ad.scope() in (ad.SCOPE_global, ctd):
             rv = self._clone()
             rv._setOwner(ctd)
             rv.__attributeDeclaration = ad._clone()
@@ -1620,8 +1621,19 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
             agd = ag_en.attributeGroupDefinition()
             if agd is None:
                 raise pyxb.SchemaValidationError('Attribute group %s cannot be found' % (ag_en,))
+            if not agd.isResolved():
+                self._queueForResolution('unresolved attribute group')
+                return self
             attribute_groups.append(agd)
             uses_c2.update(agd.attributeUses())
+
+        uses_c12 = uses_c1.union(uses_c2)
+        uses_c12_map = { }
+        for au in uses_c12:
+            if not au.isResolved():
+                self._queueForResolution('attribute use not resolved')
+                return self
+            uses_c12_map[au.attributeDeclaration().expandedName()] = au
 
         # Handle clause 3.  Note the slight difference in description
         # between simple and complex content is just that the complex
@@ -1630,30 +1642,38 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         # should work for both, and we don't bother to check
         # content_style.
         if isinstance(self.__baseTypeDefinition, ComplexTypeDefinition):
-            uses_c3 = uses_c3.union(self.__baseTypeDefinition.__attributeUses)
+            uses_c3_map = { }
+            for au in self.__baseTypeDefinition.__attributeUses:
+                if not au.isResolved():
+                    self._queueForResolution('unresolved attribute use from base type')
+                    return self
+                uses_c3_map[au.attributeDeclaration().expandedName()] = au
             if self.DM_restriction == method:
-                # Exclude attributes per clause 3.  Note that this
-                # process handles both 3.1 and 3.2, since we have
-                # not yet filtered uses_c1 for prohibited attributes.
-                uses_c12 = uses_c1.union(uses_c2)
+                # Exclude attributes per clause 3.  Note that this process
+                # handles both 3.1 and 3.2, since we have not yet filtered
+                # uses_c1 for prohibited attributes.
                 for au in uses_c12:
-                    matching_uses = au.matchingQNameMembers(uses_c3)
+                    matching_uses = au.matchingQNameMembers(uses_c3_map.values())
                     if matching_uses is None:
                         self._queueForResolution('missing au qname member match')
-                        print 'Holding off CTD %s resolution to check for attribute restrictions' % (self.name(),)
                         return self
-                    uses_c3 = uses_c3.difference(matching_uses)
+                    for au2 in matching_uses:
+                        assert au2.isResolved()
+                        uses_c3_map.pop(au2.attributeDeclaration().expandedName(), None)
+            uses_c3 = uses_c3_map.values()
 
-        # Can't adapt for scope things that have not been resolved.
-        all_uses = uses_c1.union(uses_c2).union(uses_c3)
+        all_uses = uses_c12.union(uses_c3)
+        use_map = { }
         for au in all_uses:
-            if not au.isResolved():
-                self._queueForResolution('unresolved attribute use')
-                return self
-
+            assert au.isResolved()
+            ad_en = au.attributeDeclaration().expandedName()
+            if ad_en in use_map:
+                raise pyxb.SchemaValidationError('Multiple definitions for %s in CTD %s' % (ad_en, self.expandedName()))
+            use_map[ad_en] = au
+        
         # Past the last point where we might not resolve this instance.  Store
         # the attribute uses, also recording local attribute declarations.
-        self.__attributeUses = frozenset([ _u._adaptForScope(self) for _u in all_uses ])
+        self.__attributeUses = frozenset([ _u._adaptForScope(self) for _u in use_map.values() ])
 
         # @todo: Handle attributeWildcard
         # Clause 1

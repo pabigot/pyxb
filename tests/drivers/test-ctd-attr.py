@@ -103,7 +103,7 @@ class TestCTD (unittest.TestCase):
         au = restrictedEWA_._AttributeMap['language']
         self.assertFalse(au.required())
         self.assertTrue(au.prohibited())
-        self.assertEqual(restrictedEWA_._AttributeMap['capitalized'], emptyWithAttr_._AttributeMap['capitalized'])
+        self.assertNotEqual(restrictedEWA_._AttributeMap['capitalized'], emptyWithAttr_._AttributeMap['capitalized'])
 
     def testEmptyWithAttrGroups (self):
         xml = '<ns1:emptyWithAttrGroups bMember1="xxx" xmlns:ns1="URN:testCTD"/>'
