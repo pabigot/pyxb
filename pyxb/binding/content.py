@@ -498,7 +498,7 @@ class ContentModelTransition (pyxb.cscRoot):
         # If the transition is a loop back to the current state, or if the
         # transition is a simple type definition with variety list, we can
         # consume multiple instances.  Might as well consume all of them.
-        key_type = None
+        key_type = type(None)
         if key is not None:
             key_type = key.elementBinding()._TypeDefinition
         if issubclass(key_type, basis.STD_list):

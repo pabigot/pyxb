@@ -1222,7 +1222,10 @@ class complexTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _
             raise pyxb.DOMGenerationError('Binding value inconsistent with content model')
         for (eu, v) in order:
             assert v != self
-            eu.toDOM(dom_support, parent, v)
+            if eu is None:
+                print 'IGNORING wildcard generation'
+            else:
+                eu.toDOM(dom_support, parent, v)
         mixed_content = self.content()
         for mc in mixed_content:
             #print 'Skipping mixed content %s' % (mc,)
