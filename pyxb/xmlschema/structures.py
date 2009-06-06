@@ -1635,12 +1635,11 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
                 return self
             uses_c12_map[au.attributeDeclaration().expandedName()] = au
 
-        # Handle clause 3.  Note the slight difference in description
-        # between simple and complex content is just that the complex
-        # content doesn't bother to check that the base type
-        # definition is a complex type definition.  So the same code
-        # should work for both, and we don't bother to check
-        # content_style.
+        # Handle clause 3.  Note the slight difference in description between
+        # simple and complex content is just that the complex content doesn't
+        # bother to check that the base type definition is a complex type
+        # definition.  So the same code should work for both, and we don't
+        # bother to check content_style.
         if isinstance(self.__baseTypeDefinition, ComplexTypeDefinition):
             uses_c3_map = { }
             for au in self.__baseTypeDefinition.__attributeUses:
@@ -1662,9 +1661,8 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
                         uses_c3_map.pop(au2.attributeDeclaration().expandedName(), None)
             uses_c3 = uses_c3_map.values()
 
-        all_uses = uses_c12.union(uses_c3)
         use_map = { }
-        for au in all_uses:
+        for au in uses_c12.union(uses_c3):
             assert au.isResolved()
             ad_en = au.attributeDeclaration().expandedName()
             if ad_en in use_map:
