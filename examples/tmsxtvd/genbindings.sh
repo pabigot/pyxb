@@ -8,7 +8,7 @@ touch raw/__init__.py
 ../../scripts/pyxbgen \
    -m "${PREFIX}" \
    -u "${URI}" \
-   -r 
+   -r --write-schema-path .
 if [ ! -f ${PREFIX}.py ] ; then
   echo "from raw.${PREFIX} import *" > ${PREFIX}.py
 fi
