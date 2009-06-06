@@ -167,11 +167,13 @@ class ExpandedName (pyxb.cscRoot):
         if self.__namespace is not None:
             self.__namespaceURI = self.__namespace.uri()
         self.__localName = ln
+        assert self.__localName is not None
         self.__expandedName = ( self.__namespace, self.__localName )
         self.__uriTuple = ( self.__namespaceURI, self.__localName )
 
 
     def __str__ (self):
+        assert self.__localName is not None
         if self.__namespaceURI is not None:
             return '{%s}%s' % (self.__namespaceURI, self.__localName)
         return self.localName()
