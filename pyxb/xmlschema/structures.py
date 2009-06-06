@@ -335,6 +335,8 @@ class _NamedComponent_mixin (pyxb.cscRoot):
     
     def expandedName (self):
         """Return the L{pyxb.namespace.ExpandedName} of this object."""
+        if self.name() is None:
+            return None
         return pyxb.namespace.ExpandedName(self.targetNamespace(), self.name())
 
     def __new__ (cls, *args, **kw):
@@ -1131,6 +1133,7 @@ class AttributeUse (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin, _V
             rv.__attributeDeclaration = ad._clone()
             rv.__attributeDeclaration._setOwner(rv)
             rv.__attributeDeclaration._setScope(ctd)
+        rv.__attributeDeclaration._recordInScope()
         return rv
 
     def __str__ (self):
@@ -1298,11 +1301,23 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.na
     def _adaptForScope (self, owner, ctd):
         rv = self
         assert isinstance(ctd, ComplexTypeDefinition), '%s is not a CTD' % (ctd,)
+        previous = ctd.lookupScopedElementDeclaration(rv.expandedName())
+        if previous is not None:
+            # Test cos-element-consistent
+            alt_type = previous.typeDefinition()
+            pending_type = rv.typeDefinition()
+            if not alt_type.isTypeEquivalent(pending_type):
+                raise pyxb.SchemaValidationError('Conflicting element declarations for %s: %s versus %s' % (previous.expandedName(), alt_type, pending_type))
+            # They're equivalent; just re-use the old one, discarding the new one.
+            print 'NOT Discarding redundant %s' % (rv.expandedName(),)
+            #rv._dissociateFromNamespace()
+            return previous
         if self.scope() != ctd:
             rv = self._clone()
             assert owner is not None
             rv._setOwner(owner)
             rv._setScope(ctd)
+        rv._recordInScope()
         return rv
 
     def isResolved (self):
@@ -2308,12 +2323,12 @@ class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
     def _adaptForScope (self, owner, ctd):
         rv = self
         assert isinstance(ctd, ComplexTypeDefinition)
-        if self._scope() != ctd:
-            scoped_particles = [ _p._adaptForScope(None, ctd) for _p in self.particles() ]
-            if scoped_particles != self.particles():
-                rv = self._clone()
-                rv._setOwner(owner)
-                rv.__particles = scoped_particles
+        scoped_particles = [ _p._adaptForScope(None, ctd) for _p in self.particles() ]
+        do_clone = (self._scope() != ctd) or (self.particles() != scoped_particles)
+        if do_clone:
+            rv = self._clone()
+            rv._setOwner(owner)
+            rv.__particles = scoped_particles
         return rv
 
     def __str__ (self):
@@ -2491,27 +2506,7 @@ class Particle (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin):
                 self.__pendingTerm = ref_en.elementDeclaration()
                 if self.__pendingTerm is None:
                     raise pyxb.SchemaValidationError('Unable to locate element referenced by %s' % (ref_en,))
-            assert self.__pendingTerm
-
-            alt_term = None
-            if isinstance(scope, ComplexTypeDefinition):
-                # Look for an existing local element declaration with the
-                # same expanded name.
-                alt_term = scope.lookupScopedElementDeclaration(self.__pendingTerm.expandedName())
-
-            if alt_term is not None:
-                # Might be a conflict.  Both candidates must be resolved before we can tell.
-                if not (alt_term.isResolved() and self.__pendingTerm.isResolved()):
-                    self._queueForResolution('cannot check conflict with unresolved candidates')
-                    return self
-                # Test cos-element-consistent
-                alt_type = alt_term.typeDefinition()
-                pending_type = self.__pendingTerm.typeDefinition()
-                if not alt_type.isTypeEquivalent(pending_type):
-                    raise pyxb.SchemaValidationError('Conflicting element declarations for %s: %s versus %s' % (alt_term.expandedName(), alt_type, pending_type))
-                # They're equivalent; just re-use the old one, discarding the new one.
-                self.__pendingTerm._dissociateFromNamespace()
-                self.__pendingTerm = alt_term
+            assert self.__pendingTerm is not None
 
             # Whether this is a local declaration or one pulled in from the
             # global type definition symbol space, its name is now reserved in
@@ -2602,14 +2597,17 @@ class Particle (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin):
             rv._queueForResolution('creation')
         return rv
 
+    # aFS:PRT
     def _adaptForScope (self, owner, ctd):
         rv = self
         assert isinstance(ctd, ComplexTypeDefinition)
-        if self._scope() != ctd:
+        term = rv.__term._adaptForScope(rv, ctd)
+        do_clone = (self._scope() != ctd) or (rv.__term != term)
+        if  do_clone:
             rv = self._clone()
             assert rv.owner() is None
             rv._setOwner(owner)
-            rv.__term = rv.__term._adaptForScope(rv, ctd)
+            rv.__term = term
         return rv
 
     def isDeepResolved (self):
