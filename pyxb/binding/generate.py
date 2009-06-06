@@ -188,7 +188,7 @@ class ReferenceSchemaComponent (ReferenceLiteral):
             name = utility.PrepareIdentifier(name, UniqueInBinding, protected=protected)
             self.__component.setNameInBinding(name)
         if not is_in_binding:
-            assert name is not None
+            assert name is not None, 'name %s component %s' % (name, self.__component)
             mp = None
             if pyxb.namespace.XMLSchema == tns:
                 mp = 'pyxb.binding.datatypes'
