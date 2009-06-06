@@ -2498,20 +2498,6 @@ class Particle (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin):
             if group_decl is None:
                 raise pyxb.SchemaValidationError('Model group reference %s cannot be found' % (ref_en,))
 
-            # Neither group definitions nor model groups require themselves,
-            # but model groups contain things that do require resolution, and
-            # we can't adapt the group for scope if it isn't deep-resolved.
-            if not group_decl.modelGroup().isDeepResolved():
-                self._queueForResolution('model group is not deep-resolved')
-                return self
-
-            # Only time this gets hit is in processing the XMLSchema schema.
-            # Suspending results in the namespace being unresolvable; for now,
-            # don't know why, nor need to.
-            if self._scopeIsIndeterminate():
-                self._queueForResolution('particle scope is indeterminate')
-                return self
-
             self.__pendingTerm = group_decl.modelGroup()
             assert self.__pendingTerm is not None
         elif ElementDeclaration == self.__resolvableType:
