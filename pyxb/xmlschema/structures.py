@@ -166,7 +166,6 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin):
         self.__owner = None
         self.__ownedComponents = set()
         self.__clones = None
-        assert self.__nameInBinding is None
         self._namespaceContext().targetNamespace()._associateComponent(self)
         assert self.owner() is None
         return getattr(super(_SchemaComponent_mixin, self), '_resetClone_csc', lambda *args, **kw: self)()
@@ -361,59 +360,51 @@ class _NamedComponent_mixin (pyxb.cscRoot):
             rv = super(_NamedComponent_mixin, cls).__new__(cls)
             return rv
         ( expanded_name_tuple, scope, icls ) = args
-        (uri, ncname) = expanded_name_tuple
-        ns = pyxb.namespace.NamespaceForURI(uri)
+        expanded_name = pyxb.namespace.ExpandedName(expanded_name_tuple)
 
-        if ns is None:
-            # This shouldn't happen: it implies somebody's unpickling
-            # a schema that includes references to components in a
-            # namespace that was not associated with the schema.
-            print 'URI %s ncname %s scope %s icls %s' % args
-            raise pyxb.IncompleteImplementationError('Unable to resolve namespace %s in external reference' % (uri,))
         # Explicitly validate here: the lookup operations won't do so,
         # but will abort if the namespace hasn't been validated yet.
-        ns.validateComponentModel()
-        #print 'Need to lookup %s in %s' % (ncname, scope)
+        expanded_name.validateComponentModel()
         if isinstance(scope, tuple):
-            ( scope_uri, scope_ncname ) = scope
-            # Expect following to fail when we test qualified form defaults
-            assert uri == scope_uri
-            scope_ctd = ns.typeDefinitions().get(scope_ncname)
+            scope_en = pyxb.namespace.ExpandedName(scope)
+            if expanded_name.namespace() != scope_en.namespace():
+                print 'Attempting to look up %s in %s' % (expanded_name, scope_en)
+                scope_en.validateComponentModel()
+                assert 'typeDefinition' in scope_en.namespace().categories()
+            scope_ctd = scope_en.typeDefinition()
             if scope_ctd is None:
-                raise pyxb.SchemaValidationError('Unable to resolve local scope %s in %s' % (scope_ncname, scope_uri))
+                raise pyxb.SchemaValidationError('Unable to resolve local scope %s' % (scope_en,))
             if issubclass(icls, AttributeDeclaration):
                 rv = scope_ctd.lookupScopedAttributeDeclaration(expanded_name)
             elif issubclass(icls, ElementDeclaration):
                 rv = scope_ctd.lookupScopedElementDeclaration(expanded_name)
             else:
-                raise pyxb.IncompleteImplementationError('Local scope reference lookup not implemented for type %s searching %s in %s' % (icls, ncname, uri))
+                raise pyxb.IncompleteImplementationError('Scope %s reference lookup of %s not implemented for type %s' % (scope_en, expanded_name, icls))
             if rv is None:
-                raise pyxb.SchemaValidationError('Unable to resolve local %s as %s in %s in %s' % (ncname, icls, scope_ncname, uri))
-        # @todo WRONG WRONG WRONG: Not the right thing for indeterminate
+                raise pyxb.SchemaValidationError('Unable to resolve %s as %s in scope %s' % (expanded_name, icls, scope_en))
+        # 
         elif (_ScopedDeclaration_mixin.SCOPE_global == scope) or _ScopedDeclaration_mixin.ScopeIsIndeterminate(scope):
             #assert not _ScopedDeclaration_mixin.ScopeIsIndeterminate(scope)
             if (issubclass(icls, SimpleTypeDefinition) or issubclass(icls, ComplexTypeDefinition)):
-                rv = ns.typeDefinitions().get(ncname)
+                rv = expanded_name.typeDefinition()
             elif issubclass(icls, AttributeGroupDefinition):
-                rv = ns.attributeGroupDefinitions().get(ncname)
+                rv = expanded_name.attributeGroupDefinition()
             elif issubclass(icls, ModelGroupDefinition):
-                rv = ns.modelGroupDefinitions().get(ncname)
+                rv = expanded_name.modelGroupDefinition()
             elif issubclass(icls, AttributeDeclaration):
-                rv = ns.attributeDeclarations().get(ncname)
+                rv = expanded_name.attributeDeclaration()
             elif issubclass(icls, ElementDeclaration):
-                rv = ns.elementDeclarations().get(ncname)
+                rv = expanded_name.elementDeclaration()
             elif issubclass(icls, IdentityConstraintDefinition):
-                rv = ns.identityConstraintDefinitions().get(ncname)
+                rv = expanded_name.identityConstraintDefinition()
             else:
-                raise pyxb.IncompleteImplementationError('Reference lookup not implemented for type %s searching %s in %s' % (icls, ncname, uri))
+                raise pyxb.IncompleteImplementationError('Reference lookup of %s not implemented for type %s' % (expanded_name, icls))
             if rv is None:
-                raise pyxb.SchemaValidationError('Unable to resolve %s as %s in %s' % (ncname, icls, uri))
+                raise pyxb.SchemaValidationError('Unable to resolve %s as %s' % (expanded_name, icls))
         elif _ScopedDeclaration_mixin.ScopeIsIndeterminate(scope):
-            print 'WARNING: Unable to resolve %s in indeterminate scope' % (ncname,)
-            rv = None
+            raise LogicError('Attempt to resolve %s in indeterminate scope' % (expanded_name,))
         else:
-            raise pyxb.IncompleteImplementationError('Unable to resolve reference %s in scope %s in %s' % (ncname, scope, uri))
-        #print 'Returning %s' % (rv,)
+            raise pyxb.IncompleteImplementationError('Unable to resolve reference %s' % (expanded_name,))
         return rv
 
     def __init__ (self, *args, **kw):
@@ -454,7 +445,13 @@ class _NamedComponent_mixin (pyxb.cscRoot):
         pickling_namespace = pyxb.namespace.Namespace.PicklingNamespace()
         if pickling_namespace is None:
             return False
-        if pickling_namespace == self.targetNamespace():
+        # If this thing is scoped in a complex type that belongs to the
+        # namespace being pickled, then it gets pickled as an object even if
+        # its target namespace isn't this one.
+        scope = self._scope()
+        if isinstance(scope, ComplexTypeDefinition) and (scope.targetNamespace() == pickling_namespace):
+            return False
+        elif pickling_namespace == self.targetNamespace():
             return False
         if self.isAnonymous():
             raise pyxb.LogicError('Unable to pickle reference to unnamed object %s in %s: %s' % (self.name(), self.targetNamespace().uri(), object.__str__(self)))
