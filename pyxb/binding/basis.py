@@ -215,12 +215,12 @@ class simpleTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _D
         # It is not uncommon for a class in one namespace to extend a class of
         # the same name in a different namespace, so encode the namespace URI
         # in the attribute name (if it is part of a namespace).
-        ns = ''
+        ns_uri = ''
         try:
-            ns = cls._Namespace.uri()
+            ns_uri = cls._ExpandedName.namespaceURI()
         except Exception, e:
             pass
-        nm = '_' + utility.MakeIdentifier('%s_%s_FacetMap' % (ns, cls.__name__.strip('_')))
+        nm = '_' + utility.MakeIdentifier('%s_%s_FacetMap' % (ns_uri, cls.__name__.strip('_')))
         return nm
         
 
