@@ -490,7 +490,7 @@ class _NamespaceResolution_mixin (pyxb.cscRoot):
                 resolvable._resolve()
 
                 # Either we resolved it, or we queued it to try again later
-                assert resolvable.isResolved() or (resolvable in self.__unresolvedComponents)
+                assert resolvable.isResolved() or (resolvable in self.__unresolvedComponents), 'Lost resolvable %s' % (resolvable,)
 
                 # We only clone things that have scope None.  We never
                 # resolve things that have scope None.  Therefore, we
