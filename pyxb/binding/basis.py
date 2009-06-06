@@ -1060,7 +1060,10 @@ class complexTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _
         """Return the ElementUse object corresponding to the element name.
 
         :param tag: The L{ExpandedName} of an element in the class."""
-        return cls._ElementMap[tag]
+        rv = cls._ElementMap.get(tag)
+        if rv is None:
+            raise pyxb.LogicError('Unable to locate element %s in type %s' % (tag, self._ExpandedName))
+        return rv
 
     def __childrenForDOM (self):
         """Generate a list of children in the order in which they should be
