@@ -89,15 +89,16 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin):
     def _setScope (self, ctd):
         """Set the scope of this instance after construction.
 
-        This should only be invoked on cloned declarations belonging
-        to a group and being incorporated into a complex type
-        definition."""
+        This should only be invoked on cloned declarations being incorporated
+        into a complex type definition.  Note that the source of the clone may
+        be any scope: indeterminate if from a model (attribute) group
+        definition; global if a reference to a global component; or ctd if
+        inherited from a complex base type."""
         assert self.__cloneSource is not None
         assert isinstance(self, _ScopedDeclaration_mixin)
         assert isinstance(ctd, ComplexTypeDefinition)
-        #assert self._scopeIsIndeterminate()
         self.__scope = ctd
-        return self._recordInScope()
+        return self
 
     def __init__ (self, *args, **kw):
         self.__ownedComponents = set()
@@ -645,27 +646,12 @@ class _ScopedDeclaration_mixin (pyxb.cscRoot):
         """
         return self._scope()
 
-    def __init__ (self, *args, **kw):
-        super(_ScopedDeclaration_mixin, self).__init__(*args, **kw)
-        assert 'scope' in kw
-        assert kw['scope'] is not None
-        # Note: This requires that the _NamedComponent_mixin have
-        # already done its thing and recorded the scope.
-
-        # Provide a back door to prevent this from being recorded (or, more
-        # specifically, to prevent a collision with an alternative declaration
-        # we know is already recorded).  For example, we do this when we don't
-        # know whether we have a type violation with multiple local elements
-        # with the same expanded name.
-        #if not kw.get('scope_inhibit_record', False):
-        #    self._recordInScope()
-
     def _recordInScope (self):
         # Absent scope doesn't get recorded anywhere.  Global scope is
         # recorded in the namespace by somebody else.  Local scopes
         # are recorded here.
-        if isinstance(self.scope(), ComplexTypeDefinition):
-            self.scope()._recordLocalDeclaration(self)
+        assert isinstance(self.scope(), ComplexTypeDefinition)
+        self.scope()._recordLocalDeclaration(self)
         return self
 
 
@@ -1138,7 +1124,7 @@ class AttributeUse (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin, _V
         ad = self.__attributeDeclaration
         assert ad.scope() is not None
         assert isinstance(ctd, ComplexTypeDefinition)
-        if not ad.scope() in (ad.SCOPE_global, ctd):
+        if not ad.scope()  == ctd:
             rv = self._clone()
             rv._setOwner(ctd)
             rv.__attributeDeclaration = ad._clone()
@@ -1307,24 +1293,14 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.na
     def isDeepResolved (self):
         return True
 
-    def _adaptForScope (self, owner, scope):
+    def _adaptForScope (self, owner, ctd):
         rv = self
-        if (self._scopeIsIndeterminate()) and (scope != self._scope()):
-            if isinstance(scope, ComplexTypeDefinition):
-                rv = scope.lookupScopedElementDeclaration(self.expandedName())
-                if rv is not None:
-                    assert rv.isResolved()
-                    assert self.isResolved()
-                    if not rv.typeDefinition().isTypeEquivalent(self.typeDefinition()):
-                        raise pyxb.SchemaValidationError('Conflicting element declarations for %s' % (self.expandedName(),))
-                    print 'Re-using existing scoped element'
-                    return rv
+        assert isinstance(ctd, ComplexTypeDefinition), '%s is not a CTD' % (ctd,)
+        if self.scope() != ctd:
             rv = self._clone()
             assert owner is not None
             rv._setOwner(owner)
-            rv._setScope(scope)
-        else:
-            assert self._scopeIsCompatible(scope)
+            rv._setScope(ctd)
         return rv
 
     def isResolved (self):
@@ -1505,10 +1481,8 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         assert self.isNameEquivalent(other)
         super(ComplexTypeDefinition, self)._setBuiltinFromInstance(other)
 
-        # The other STD should be an unresolved schema-defined type.
+        # The other CTD should be an unresolved schema-defined type.
         assert other.__derivationMethod is None
-        assert other.__domNode is not None
-        self.__domNode = other.__domNode
 
         # Mark this instance as unresolved so it is re-examined
         self.__derivationMethod = None
@@ -1932,7 +1906,9 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         # Creation does not attempt to do resolution.  Queue up the newly created
         # whatsis so we can resolve it after everything's been read in.
         self._annotationFromDOM(node)
-        self._queueForResolution('creation')
+
+        if not self.isResolved():
+            self._queueForResolution('creation')
         
         return self
 
@@ -2465,7 +2441,9 @@ class Particle (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin):
             # thought I saw that once when processing XMLSchema.  If so, we
             # need to hold off resolution of this particle.
             assert (not isinstance(term, pyxb.namespace._Resolvable_mixin)) or term.isResolved()
-            self.__term = term._adaptForScope(self, self._scope())
+            if isinstance(self._scope(), ComplexTypeDefinition):
+                term = term._adaptForScope(self, self._scope())
+            self.__term = term
 
         assert isinstance(min_occurs, (types.IntType, types.LongType))
         self.__minOccurs = min_occurs
@@ -2514,6 +2492,8 @@ class Particle (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin):
                 self.__pendingTerm = ref_en.elementDeclaration()
                 if self.__pendingTerm is None:
                     raise pyxb.SchemaValidationError('Unable to locate element referenced by %s' % (ref_en,))
+                if isinstance(scope, ComplexTypeDefinition):
+                    self.__pendingTerm = self.__pendingTerm._adaptForScope(self, scope)
             assert self.__pendingTerm
 
             alt_term = None
@@ -2537,7 +2517,8 @@ class Particle (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin):
                 self.__pendingTerm = alt_term
 
             # Whether this is a local declaration or one pulled in from the
-            # namespace, its name is now reserved in this type.
+            # global type definition symbol space, its name is now reserved in
+            # this type.
             assert self.__pendingTerm is not None
             if isinstance(scope, ComplexTypeDefinition):
                 self.__pendingTerm._recordInScope()
@@ -2987,7 +2968,6 @@ class IdentityConstraintDefinition (_SchemaComponent_mixin, _NamedComponent_mixi
                 return self
             self.__referencedKey = refer
 
-        self.__domNode = None
         return self
     
 # 3.12.1
