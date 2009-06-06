@@ -1598,8 +1598,12 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
 
         rv = cls(name=name, node=node, derivation_method=None, **kw)
 
-        if not rv._scopeIsGlobal():
-            raise LogicError('Attempt to create non-global complex type definition')
+        # Most of the time, the scope will be global.  It can be something
+        # else only if this is an anonymous CTD (created within an element
+        # declaration which itself may be global, in a containing CTD, or in a
+        # model group).
+        if not (rv._scopeIsGlobal() or rv.isAnonymous()):
+            raise pyxb.LogicError('Attempt to create non-global complex type definition')
 
         kw.pop('node', None)
         kw['owner'] = rv
@@ -2590,7 +2594,12 @@ class Particle (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin):
         elif xsd.nodeIsNamed(node, 'element'):
             if rv.__refAttribute is None:
                 target_namespace = schema.targetNamespaceForNode(node, ElementDeclaration)
-                rv.__term = ElementDeclaration.CreateFromDOM(node=node, target_namespace=target_namespace, **kw)
+                incoming_tns = kw.get('target_namespace')
+                if incoming_tns is not None:
+                    assert incoming_tns == target_namespace
+                else:
+                    kw['target_namespace'] = target_namespace
+                rv.__term = ElementDeclaration.CreateFromDOM(node=node, **kw)
             else:
                 rv.__resolvableType = ElementDeclaration
                 assert not xsd.nodeIsNamed(node.parentNode, 'schema')
@@ -4116,7 +4125,7 @@ class Schema (_SchemaComponent_mixin):
             elif declaration_type == AttributeDeclaration:
                 form_type = self.schemaAttribute('attributeFormDefault')
             else:
-                raise LogicError('Expected ElementDeclaration or AttributeDeclaration: got %s' % (declaration_type,))
+                raise pyxb.LogicError('Expected ElementDeclaration or AttributeDeclaration: got %s' % (declaration_type,))
         tns = None
         if (self._QUALIFIED == form_type):
             tns = self.targetNamespace()
