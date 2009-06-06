@@ -162,4 +162,5 @@ def NormalizeWhitespace (text, preserve=False, replace=False, collapse=False):
         return text
     if collapse:
         return __MultiSpace_re.sub(' ', text).strip()
-    raise LogicError('No normalization specified')
+    # pyxb not imported here; could be.
+    raise Exception('NormalizeWhitespace: No normalization specified')

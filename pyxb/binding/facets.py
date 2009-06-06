@@ -22,7 +22,6 @@ value spaces.
 
 """
 
-from pyxb.exceptions_ import *
 from xml.dom import Node
 import pyxb
 import types
@@ -149,7 +148,7 @@ class Facet (pyxb.cscRoot):
         if 0 <= name.find(':'):
             name = name.split(':', 1)[1]
         if not name in cls._Facets:
-            raise LogicError('Unrecognized facet name %s: expect %s' % (name, ','.join(cls._Facets)))
+            raise pyxb.LogicError('Unrecognized facet name %s: expect %s' % (name, ','.join(cls._Facets)))
         facet_class = globals().get('%s_%s' % (cls._FacetPrefix, name), None)
         assert facet_class is not None
         return facet_class
@@ -186,7 +185,7 @@ class ConstrainingFacet (Facet):
         super(ConstrainingFacet, self).__init__(**kw)
 
     def _validateConstraint_vx (self, value):
-        raise LogicError("Facet %s does not implement constraints" % (self.Name(),))
+        raise pyxb.LogicError("Facet %s does not implement constraints" % (self.Name(),))
 
     def validateConstraint (self, value):
         """Return True iff the given value satisfies the constraint represented by this facet instance.
@@ -520,7 +519,7 @@ class CF_enumeration (ConstrainingFacet, _CollectionFacet_mixin, _LateDatatype_m
         kw['enumeration'] = self
         ee = _EnumerationElement(**kw)
         if ee.tag in self.__tagToElement:
-            raise IncompleteImplementationError('Duplicate enumeration tags')
+            raise pyxb.IncompleteImplementationError('Duplicate enumeration tags')
         self.__tagToElement[ee.tag()] = ee
         self.__unicodeToElement[ee.unicodeValue()] = ee
         value = ee.value()
@@ -701,7 +700,7 @@ class FundamentalFacet (Facet):
 
     def updateFromDOM (self, node):
         if not node.hasAttribute('name'):
-            raise SchemaValidationError('No name attribute in facet')
+            raise pyxb.SchemaValidationError('No name attribute in facet')
         assert node.getAttribute('name') == self.Name()
         self._updateFromDOM(node)
 
