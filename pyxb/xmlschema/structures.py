@@ -126,7 +126,7 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin):
 
     def _setOwner (self, owner):
         if owner is not None:
-            assert (self.__owner is None) or (self.__owner == owner)
+            assert (self.__owner is None) or (self.__owner == owner), 'Owner was %s set to %s' % (self.__owner, owner)
             self.__owner = owner
             owner.__ownedComponents.add(self)
         return self
@@ -168,6 +168,7 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin):
         self.__clones = None
         assert self.__nameInBinding is None
         self._namespaceContext().targetNamespace()._associateComponent(self)
+        assert self.owner() is None
         return getattr(super(_SchemaComponent_mixin, self), '_resetClone_csc', lambda *args, **kw: self)()
 
     def _clone (self):
@@ -1293,6 +1294,7 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.na
     def isDeepResolved (self):
         return True
 
+    # aFS:ED
     def _adaptForScope (self, owner, ctd):
         rv = self
         assert isinstance(ctd, ComplexTypeDefinition), '%s is not a CTD' % (ctd,)
@@ -1968,6 +1970,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
             if not prt.isDeepResolved():
                 self._queueForResolution('content particle %s is not deep-resolved' % (prt,))
                 return self
+            self.__contentType = (self.__contentType[0], prt._adaptForScope(self, self))
 
         return self.__completeProcessing(self.__pendingDerivationMethod, self.__contentStyle)
 
@@ -2301,10 +2304,12 @@ class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
         #print 'Model group with %d particles produced %d element declarations' % (len(self.particles()), len(element_decls))
         return element_decls
 
-    def _adaptForScope (self, owner, scope):
+    # aFS:MG
+    def _adaptForScope (self, owner, ctd):
         rv = self
-        if self._scopeIsIndeterminate() and (scope != self._scope()):
-            scoped_particles = [ _p._adaptForScope(None, scope) for _p in self.particles() ]
+        assert isinstance(ctd, ComplexTypeDefinition)
+        if self._scope() != ctd:
+            scoped_particles = [ _p._adaptForScope(None, ctd) for _p in self.particles() ]
             if scoped_particles != self.particles():
                 rv = self._clone()
                 rv._setOwner(owner)
@@ -2333,7 +2338,7 @@ class Particle (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin):
     __sequenceNumber = None
     def _resetClone_csc (self):
         self.__sequenceNumber = self.__NextSequenceNumber()
-        return getattr(super(_SchemaComponent_mixin, self), '_resetClone_csc', lambda *args, **kw: self)()
+        return getattr(super(Particle, self), '_resetClone_csc', lambda *args, **kw: self)()
 
     # The minimum number of times the term may appear.
     __minOccurs = 1
@@ -2437,12 +2442,6 @@ class Particle (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin):
         assert (self._scopeIsIndeterminate()) or isinstance(self._scope(), ComplexTypeDefinition)
 
         if term is not None:
-            # It may be possible to get here with an unresolved term.  I
-            # thought I saw that once when processing XMLSchema.  If so, we
-            # need to hold off resolution of this particle.
-            assert (not isinstance(term, pyxb.namespace._Resolvable_mixin)) or term.isResolved()
-            if isinstance(self._scope(), ComplexTypeDefinition):
-                term = term._adaptForScope(self, self._scope())
             self.__term = term
 
         assert isinstance(min_occurs, (types.IntType, types.LongType))
@@ -2480,7 +2479,7 @@ class Particle (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin):
                 self._queueForResolution('particle scope is indeterminate')
                 return self
 
-            self.__pendingTerm = group_decl.modelGroup()._adaptForScope(self, scope)
+            self.__pendingTerm = group_decl.modelGroup()
             assert self.__pendingTerm is not None
         elif ElementDeclaration == self.__resolvableType:
             # 3.9.2 says use 3.3.2, which is Element.  The element inside a
@@ -2489,15 +2488,9 @@ class Particle (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin):
             if self.__refAttribute is not None:
                 assert self.__pendingTerm is None
                 ref_en = self._namespaceContext().interpretQName(self.__refAttribute)
-                term = ref_en.elementDeclaration()
-                if term is None:
+                self.__pendingTerm = ref_en.elementDeclaration()
+                if self.__pendingTerm is None:
                     raise pyxb.SchemaValidationError('Unable to locate element referenced by %s' % (ref_en,))
-                if isinstance(scope, ComplexTypeDefinition):
-                    if not term.isResolved():
-                        self._queueForResolution('referenced element declaration must be resolved for adaptation')
-                        return self
-                    term = term._adaptForScope(self, scope)
-                self.__pendingTerm = term
             assert self.__pendingTerm
 
             alt_term = None
@@ -2524,8 +2517,8 @@ class Particle (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin):
             # global type definition symbol space, its name is now reserved in
             # this type.
             assert self.__pendingTerm is not None
-            if isinstance(scope, ComplexTypeDefinition):
-                self.__pendingTerm._recordInScope()
+        else:
+            assert False
 
         self.__term = self.__pendingTerm
         assert self.__term is not None
@@ -2590,18 +2583,18 @@ class Particle (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin):
         elif xsd.nodeIsNamed(node, 'element'):
             if rv.__refAttribute is None:
                 target_namespace = schema.targetNamespaceForNode(node, ElementDeclaration)
-                rv.__pendingTerm = ElementDeclaration.CreateFromDOM(node=node, target_namespace=target_namespace, **kw)
+                rv.__term = ElementDeclaration.CreateFromDOM(node=node, target_namespace=target_namespace, **kw)
             else:
                 rv.__resolvableType = ElementDeclaration
                 assert not xsd.nodeIsNamed(node.parentNode, 'schema')
         elif xsd.nodeIsNamed(node, 'any'):
             # 3.9.2 says use 3.10.2, which is Wildcard.
-            rv.__pendingTerm = Wildcard.CreateFromDOM(node=node)
+            rv.__term = Wildcard.CreateFromDOM(node=node)
         elif ModelGroup.IsGroupMemberNode(node):
             # Choice, sequence, and all inside a particle are explicit
             # groups (or a restriction of explicit group, in the case
             # of all)
-            rv.__pendingTerm = ModelGroup.CreateFromDOM(node, **kw)
+            rv.__term = ModelGroup.CreateFromDOM(node, **kw)
         else:
             raise pyxb.LogicError('Unhandled node in Particle.CreateFromDOM: %s' % (node.toxml(),))
         
@@ -2609,17 +2602,14 @@ class Particle (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin):
             rv._queueForResolution('creation')
         return rv
 
-    def _adaptForScope (self, owner, scope):
+    def _adaptForScope (self, owner, ctd):
         rv = self
-        if (self._scopeIsIndeterminate()) and (scope is not None):
+        assert isinstance(ctd, ComplexTypeDefinition)
+        if self._scope() != ctd:
             rv = self._clone()
+            assert rv.owner() is None
             rv._setOwner(owner)
-            rv.__term = rv.__term._adaptForScope(rv, scope)
-        else:
-            try:
-                assert self.__term._scopeIsCompatible(scope)
-            except AttributeError, e:
-                pass
+            rv.__term = rv.__term._adaptForScope(rv, ctd)
         return rv
 
     def isDeepResolved (self):
