@@ -145,6 +145,8 @@ class ExpandedName (pyxb.cscRoot):
             ns = None
             if isinstance(ln, (str, unicode)):
                 pass
+            elif isinstance(ln, tuple) and (2 == len(ln)):
+                (ns, ln) = ln
             elif isinstance(ln, ExpandedName):
                 ns = ln.namespace()
                 ln = ln.localName()
@@ -1151,7 +1153,7 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
         If the namespace does not have an associated schema, the system will
         attempt to load one.  If unsuccessful, an exception will be thrown."""
         if not self.__didValidation:
-            assert not self.__inValidation
+            assert not self.__inValidation, 'Nested validation of %s' % (self.uri(),)
             if structures_module is None:
                 import pyxb.xmlschema.structures as structures_module
             try:
