@@ -1266,15 +1266,15 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.na
 
         rv.__typeDefinition = None
         rv.__typeAttribute = NodeAttribute(node, 'type')
-
-        if rv.__typeDefinition is None:
-            td_node = LocateUniqueChild(node, 'simpleType')
-            if td_node is not None:
-                rv.__typeDefinition = SimpleTypeDefinition.CreateFromDOM(td_node, **kw)
-        if rv.__typeDefinition is None:
-            td_node = LocateUniqueChild(node, 'complexType')
-            if td_node is not None:
-                rv.__typeDefinition = ComplexTypeDefinition.CreateFromDOM(td_node, **kw)
+        simpleType_node = LocateUniqueChild(node, 'simpleType')
+        complexType_node = LocateUniqueChild(node, 'complexType')
+        if rv.__typeAttribute is not None:
+            if (simpleType_node is not None) and (complexType_node is not None):
+                raise pyxb.SchemaValidationError('Cannot combine type attribute with simpleType or complexType child')
+        if (rv.__typeDefinition is None) and (simpleType_node is not None):
+            rv.__typeDefinition = SimpleTypeDefinition.CreateFromDOM(simpleType_node, **kw)
+        if (rv.__typeDefinition is None) and (complexType_node is not None):
+            rv.__typeDefinition = ComplexTypeDefinition.CreateFromDOM(complexType_node, **kw)
         if rv.__typeDefinition is None:
             if rv.__typeAttribute is None:
                 rv.__typeDefinition = ComplexTypeDefinition.UrTypeDefinition()
@@ -1301,13 +1301,12 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.na
         #print 'aFS:ED %s %s' % (self.expandedName(), ctd.expandedName())
         rv = self
         assert isinstance(ctd, ComplexTypeDefinition), '%s is not a CTD' % (ctd,)
-        if self.scope() != ctd:
+        if not isinstance(self.scope(), ComplexTypeDefinition):
             assert owner is not None
             rv = self._clone(owner)
             rv._setScope(ctd)
-        if self._scopeIsGlobal():
-            rv._baseDeclaration(self)
-        ctd._recordLocalDeclaration(rv)
+        if rv.scope() == ctd:
+            ctd._recordLocalDeclaration(rv)
         return rv
 
     def isResolved (self):
@@ -2581,6 +2580,9 @@ class Particle (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin):
                     kw['target_namespace'] = target_namespace
                 rv.__term = ElementDeclaration.CreateFromDOM(node=node, **kw)
             else:
+                # NOTE: 3.3.3 clause 2.2 specifies that if ref is used, all
+                # the other configuration attributes like nillable and default
+                # must be absent.  We don't even bother looking for them.
                 rv.__resolvableType = ElementDeclaration
                 assert not xsd.nodeIsNamed(node.parentNode, 'schema')
         elif xsd.nodeIsNamed(node, 'any'):
