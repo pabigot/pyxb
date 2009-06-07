@@ -953,11 +953,16 @@ class complexTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _
                 raise pyxb.IncompleteImplementationError('No %s constructor support for argument %s' % (type(self), args[0]))
         # Extract keywords that match field names
         for fu in self._PythonMap().values():
+            import content
             fu.reset(self)
             iv = None
             if that is not None:
                 iv = fu.value(that)
-            iv = kw.get(fu.pythonField(), iv)
+            if isinstance(fu, content.AttributeUse):
+                id = fu.id()
+            else:
+                id = fu.pythonField()
+            iv = kw.get(id, iv)
             if iv is not None:
                 if isinstance(iv, list):
                     [ fu.setValue(self, _elt) for _elt in iv ]
@@ -1029,7 +1034,7 @@ class complexTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _
         for eu in cls._ElementMap.values():
             python_map[eu.pythonField()] = eu
         for au in cls._AttributeMap.values():
-            python_map[au.pythonField()] = au
+            python_map[au.id()] = au
         assert(len(python_map) == (len(cls._ElementMap) + len(cls._AttributeMap)))
         setattr(cls, cls.__PythonMapAttribute(), python_map)
 

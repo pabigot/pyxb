@@ -765,11 +765,11 @@ class %{ctd} (%{superclasses}):
         attr_name = ad.name()
         used_attr_name = utility.PrepareIdentifier(attr_name, class_unique, class_keywords)
         attribute_name_map[attr_name] = used_attr_name
-        au_map['python_attr_name'] = used_attr_name
-        au_map['attr_inspector'] = used_attr_name
-        au_map['attr_mutator'] = utility.PrepareIdentifier('set' + used_attr_name[0].upper() + used_attr_name[1:], class_unique, class_keywords)
+        au_map['id'] = used_attr_name
+        au_map['inspector'] = used_attr_name
+        au_map['mutator'] = utility.PrepareIdentifier('set' + used_attr_name[0].upper() + used_attr_name[1:], class_unique, class_keywords)
         au_map['use'] = utility.PrepareIdentifier(attr_name, class_unique, class_keywords, private=True)
-        au_map['value_attr_name'] = utility.PrepareIdentifier('%s_%s' % (template_map['ctd'], attr_name), class_unique, class_keywords, private=True)
+        au_map['key'] = utility.PrepareIdentifier('%s_%s' % (template_map['ctd'], attr_name), class_unique, class_keywords, private=True)
         au_map['name'] = str(ad.expandedName())
         au_map['name_expr'] = pythonLiteral(ad.expandedName(), **kw)
         assert ad.typeDefinition() is not None
@@ -796,12 +796,12 @@ class %{ctd} (%{superclasses}):
         ctd.__attributeFields[attr_name] = ( ( au.required(), au.prohibited(), au.attributeDeclaration() ), au_map )
         attribute_uses.append(templates.replaceInText('%{name_expr} : %{use}', **au_map))
         definitions.append(templates.replaceInText('''
-    # Attribute %{name} uses Python identifier %{python_attr_name}
-    %{use} = pyxb.binding.content.AttributeUse(%{name_expr}, '%{python_attr_name}', '%{value_attr_name}', %{attr_type}%{aux_init})
-    def %{attr_inspector} (self):
+    # Attribute %{name} uses Python identifier %{id}
+    %{use} = pyxb.binding.content.AttributeUse(%{name_expr}, '%{id}', '%{key}', %{attr_type}%{aux_init})
+    def %{inspector} (self):
         """Get the attribute value for %{name}."""
         return self.%{use}.value(self)
-    def %{attr_mutator} (self, new_value):
+    def %{mutator} (self, new_value):
         """Set the attribute value for %{name}.  Raises BadValueTypeException
         if the new value is not consistent with the attribute's type."""
         return self.%{use}.setValue(self, new_value)''', **au_map))

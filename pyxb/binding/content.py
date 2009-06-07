@@ -53,9 +53,9 @@ class AttributeUse (pyxb.cscRoot):
     @todo: Store the extended namespace name of the attribute.
     """
 
-    __name = None       # Unicode XML tag @todo not including namespace
-    __pythonField = None # Identifier used for this attribute within the owning class
-    __valueAttributeName = None # Private attribute used in instances to hold the attribute value
+    __name = None       # ExpandedName of the attribute
+    __id = None         # Identifier used for this attribute within the owning class
+    __key = None        # Private attribute used in instances to hold the attribute value
     __dataType = None  # PST datatype
     __unicodeDefault = None     # Default value as a unicode string, or None
     __defaultValue = None       # Default value as an instance of datatype, or None
@@ -63,23 +63,23 @@ class AttributeUse (pyxb.cscRoot):
     __required = False          # If True, attribute must appear
     __prohibited = False        # If True, attribute must not appear
 
-    def __init__ (self, name, python_field, value_attribute_name, data_type, unicode_default=None, fixed=False, required=False, prohibited=False):
+    def __init__ (self, name, id, key, data_type, unicode_default=None, fixed=False, required=False, prohibited=False):
         """Create an AttributeUse instance.
 
         @param name: The name by which the attribute is referenced in the XML
         @type name: C{unicode}
 
-        @param python_field: The Python name for the attribute within the
+        @param id: The Python identifier for the attribute within the
         containing L{pyxb.basis.binding.complexTypeDefinition}.  This is a
-        public identifier, albeit modified to be unique, and is usually
-        used as the name of the attribute's inspector method.
-        @type python_field: C{str}
+        public identifier, albeit modified to be unique, and is usually used
+        as the name of the attribute's inspector method.
+        @type id: C{str}
 
-        @param value_attribute_name: The string used to store the attribute
+        @param key: The string used to store the attribute
         value in the dictionary of the containing
         L{pyxb.basis.binding.complexTypeDefinition}.  This is mangled so
         that it is unique among and is treated as a Python private member.
-        @type value_attribute_name: C{str}
+        @type key: C{str}
 
         @param data_type: The class reference to the subclass of
         L{pyxb.binding.basis.simpleTypeDefinition} of which the attribute
@@ -115,8 +115,8 @@ class AttributeUse (pyxb.cscRoot):
         """
         
         self.__name = name
-        self.__pythonField = python_field
-        self.__valueAttributeName = value_attribute_name
+        self.__id = id
+        self.__key = key
         self.__dataType = data_type
         self.__unicodeDefault = unicode_default
         if self.__unicodeDefault is not None:
@@ -147,11 +147,11 @@ class AttributeUse (pyxb.cscRoot):
         """
         return self.__getProvided(ctd_instance)
 
-    def pythonField (self):
+    def id (self):
         """Tag used within Python code for the attribute.
 
         This is not used directly in the default code generation template."""
-        return self.__pythonField
+        return self.__id
 
     def dataType (self):
         """The subclass of L{pyxb.binding.basis.simpleTypeDefinition} of which any attribute value must be an instance."""
@@ -166,7 +166,7 @@ class AttributeUse (pyxb.cscRoot):
         C{value} is C{None} or an instance of the attribute's datatype.
 
         """
-        return getattr(ctd_instance, self.__valueAttributeName, (False, None))
+        return getattr(ctd_instance, self.__key, (False, None))
 
     def __getProvided (self, ctd_instance):
         return self.__getValue(ctd_instance)[0]
@@ -176,7 +176,7 @@ class AttributeUse (pyxb.cscRoot):
         return self.__getValue(ctd_instance)[1]
 
     def __setValue (self, ctd_instance, new_value, provided):
-        return setattr(ctd_instance, self.__valueAttributeName, (provided, new_value))
+        return setattr(ctd_instance, self.__key, (provided, new_value))
 
     def reset (self, ctd_instance):
         """Set the value of the attribute in the given instance to be its
