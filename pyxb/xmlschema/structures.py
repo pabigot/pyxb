@@ -1188,16 +1188,6 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.na
     __abstract = False
     def abstract (self): return self.__abstract
 
-    # The containing component which provides the scope
-    __ancestorComponent = None
-    def ancestorComponent (self):
-        """The containing component which will ultimately provide the
-        scope.
-
-        None if at the top level, or a ComplexTypeDefinition or a
-        ModelGroup.  """
-        return self.__ancestorComponent
-
     def pluralityData (self):
         """Return the plurality information for this component.
 
@@ -2437,11 +2427,6 @@ class Particle (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin):
         Particles depend on their term.
         """
         return frozenset([self.__term])
-
-    # The ComplexTypeDefinition or ModelGroup in which this particle
-    # appears.  Need this during resolution to handle non-reference
-    # local ElementDeclarations.
-    __ancestorComponent = None
 
     def __init__ (self, term, *args, **kw):
         """Create a particle from the given DOM node.
