@@ -722,35 +722,8 @@ class %{ctd} (%{superclasses}):
 
 
     # Create definitions for all attributes.
-    attribute_name_map = { }
     attribute_uses = []
     ctd.__attributeFields = { }
-
-    if inherits_from_base:
-        element_attribute_uses = set()
-        for au in ctd.attributeUses():
-            inherit_attribute = False
-            ad = au.attributeDeclaration()
-            name = ad.name()
-            superclass_info = base_type.__attributeFields.get(name, None)
-            if superclass_info is not None:
-                this_config = ( au.required(), au.prohibited(), au.attributeDeclaration() )
-                ( superclass_config, superclass_au_map ) = superclass_info
-                if this_config == superclass_config:
-                    definitions.append(templates.replaceInText('# Attribute %{name} inherits from parent %{superclasses} as %{python_attr_name}', superclasses=template_map['superclasses'], **superclass_au_map))
-                    class_unique.add(superclass_au_map['python_attr_name'])
-                    class_unique.add(superclass_au_map['attr_inspector'])
-                    class_unique.add(superclass_au_map['attr_mutator'])
-                    class_unique.add(superclass_au_map['attr_name'])
-                    class_unique.add(superclass_au_map['value_attr_name'])
-                    ctd.__attributeFields[name] = superclass_info
-                    inherit_attribute = True
-                else:
-                    definitions.append(templates.replaceInText('# Attribute %{name} will override parent %{superclasses} field %{python_attr_name} due to use or declaration differences', superclasses=template_map['superclasses'], **superclass_au_map))
-            if not inherit_attribute:
-                element_attribute_uses.add(au)
-    else:
-        element_attribute_uses = set(ctd.attributeUses())
 
     # name - String value of expanded name of the attribute (attr_tag, attr_ns)
     # name_expr - Python expression for an expanded name identifying the attribute (attr_tag)
@@ -759,41 +732,56 @@ class %{ctd} (%{superclasses}):
     # key - String used as dictionary key holding instance value of attribute (value_attr_name)
     # inspector - Name of the method used for inspection (attr_inspector)
     # mutator - Name of the method use for mutation (attr_mutator)
-    for au in element_attribute_uses:
+    for au in ctd.attributeUses():
         ad = au.attributeDeclaration()
-        au_map = { }
-        attr_name = ad.name()
-        used_attr_name = utility.PrepareIdentifier(attr_name, class_unique, class_keywords)
-        attribute_name_map[attr_name] = used_attr_name
-        au_map['id'] = used_attr_name
-        au_map['inspector'] = used_attr_name
-        au_map['mutator'] = utility.PrepareIdentifier('set' + used_attr_name[0].upper() + used_attr_name[1:], class_unique, class_keywords)
-        au_map['use'] = utility.PrepareIdentifier(attr_name, class_unique, class_keywords, private=True)
-        au_map['key'] = utility.PrepareIdentifier('%s_%s' % (template_map['ctd'], attr_name), class_unique, class_keywords, private=True)
-        au_map['name'] = str(ad.expandedName())
-        au_map['name_expr'] = pythonLiteral(ad.expandedName(), **kw)
-        assert ad.typeDefinition() is not None
-        au_map['attr_type'] = pythonLiteral(ad.typeDefinition(), **kw)
-                        
-        vc_source = ad
-        if au.valueConstraint() is not None:
-            vc_source = au
-        aux_init = []
-        if vc_source.fixed() is not None:
-            aux_init.append('fixed=True')
-            aux_init.append('unicode_default=%s' % (pythonLiteral(vc_source.fixed(), **kw),))
-        elif vc_source.default() is not None:
-            aux_init.append('unicode_default=%s' % (pythonLiteral(vc_source.default(), **kw),))
-        if au.required():
-            aux_init.append('required=True')
+        assert isinstance(ad.scope(), xs.structures.ComplexTypeDefinition)
+        if ad.scope() == ctd:
+            au_map = { }
+            unique_name = utility.PrepareIdentifier(ad.expandedName().localName(), class_unique, class_keywords)
+            au_map['id'] = unique_name
+            au_map['inspector'] = unique_name
+            au_map['mutator'] = utility.PrepareIdentifier('set' + unique_name[0].upper() + unique_name[1:], class_unique, class_keywords)
+            au_map['use'] = utility.MakeUnique('__' + unique_name, class_unique)
+            au_map['key'] = utility.PrepareIdentifier('%s_%s' % (template_map['ctd'], ad.expandedName()), class_unique, class_keywords, private=True)
+            au_map['name'] = str(ad.expandedName())
+            au_map['name_expr'] = pythonLiteral(ad.expandedName(), **kw)
+            assert ad.typeDefinition() is not None
+            au_map['attr_type'] = pythonLiteral(ad.typeDefinition(), **kw)
+                            
+            vc_source = ad
+            if au.valueConstraint() is not None:
+                vc_source = au
+            aux_init = []
+            if vc_source.fixed() is not None:
+                aux_init.append('fixed=True')
+                aux_init.append('unicode_default=%s' % (pythonLiteral(vc_source.fixed(), **kw),))
+            elif vc_source.default() is not None:
+                aux_init.append('unicode_default=%s' % (pythonLiteral(vc_source.default(), **kw),))
+            if au.required():
+                aux_init.append('required=True')
+            if au.prohibited():
+                aux_init.append('prohibited=True')
+            if 0 == len(aux_init):
+                au_map['aux_init'] = ''
+            else:
+                aux_init.insert(0, '')
+                au_map['aux_init'] = ', '.join(aux_init)
+            ad.__attributeFields = au_map
+        au_map = ad.__attributeFields
         if au.prohibited():
-            aux_init.append('prohibited=True')
-        if 0 == len(aux_init):
-            au_map['aux_init'] = ''
-        else:
-            aux_init.insert(0, '')
-            au_map['aux_init'] = ', '.join(aux_init)
-        ctd.__attributeFields[attr_name] = ( ( au.required(), au.prohibited(), au.attributeDeclaration() ), au_map )
+            attribute_uses.append(templates.replaceInText('%{name_expr} : None', **au_map))
+            definitions.append(templates.replaceInText('''
+    # Attribute %{id} marked prohibited in this type
+    def %{inspector} (self):
+        raise pyxb.ProhibitedAttributeError("Attribute %{name} is prohibited in %{ctd}")
+    def %{mutator} (self, new_value):
+        raise pyxb.ProhibitedAttributeError("Attribute %{name} is prohibited in %{ctd}")
+''', ctd=template_map['ctd'], **au_map))
+            continue
+        if ad.scope() != ctd:
+            continue
+
+        ctd.__attributeFields[ad.expandedName()] = ( ( au.required(), au.prohibited(), au.attributeDeclaration() ), au_map )
         attribute_uses.append(templates.replaceInText('%{name_expr} : %{use}', **au_map))
         definitions.append(templates.replaceInText('''
     # Attribute %{name} uses Python identifier %{id}

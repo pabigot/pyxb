@@ -1031,11 +1031,15 @@ class complexTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _
         for (k, v) in datatype_map.items():
             cls._ElementMap[k]._setElementBinding(v)
         python_map = { }
+        removed = 0
         for eu in cls._ElementMap.values():
             python_map[eu.pythonField()] = eu
         for au in cls._AttributeMap.values():
-            python_map[au.id()] = au
-        assert(len(python_map) == (len(cls._ElementMap) + len(cls._AttributeMap)))
+            if au is None:
+                removed += 1
+            else:
+                python_map[au.id()] = au
+        assert (len(python_map) + removed) == (len(cls._ElementMap) + len(cls._AttributeMap)), '%d + %d != %d + %d' % (len(python_map), removed, len(cls._ElementMap), len(cls._AttributeMap))
         setattr(cls, cls.__PythonMapAttribute(), python_map)
 
     @classmethod

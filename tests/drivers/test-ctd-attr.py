@@ -99,11 +99,12 @@ class TestCTD (unittest.TestCase):
 
     def testRestrictedEWA (self):
         # Verify the use.  Note reference through CTD not element.
+        # language is marked prohibited in the restriction
         self.assertNotEqual(restrictedEWA_._AttributeMap['language'], emptyWithAttr_._AttributeMap['language'])
         au = restrictedEWA_._AttributeMap['language']
-        self.assertFalse(au.required())
-        self.assertTrue(au.prohibited())
-        self.assertNotEqual(restrictedEWA_._AttributeMap['capitalized'], emptyWithAttr_._AttributeMap['capitalized'])
+        self.assertTrue(au is None)
+        # capitalized passes through the restriction untouched
+        self.assertEqual(restrictedEWA_._AttributeMap['capitalized'], emptyWithAttr_._AttributeMap['capitalized'])
 
     def testEmptyWithAttrGroups (self):
         xml = '<ns1:emptyWithAttrGroups bMember1="xxx" xmlns:ns1="URN:testCTD"/>'

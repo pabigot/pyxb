@@ -1137,11 +1137,12 @@ class AttributeUse (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin, _V
         ad = self.__attributeDeclaration
         assert ad.scope() is not None
         assert isinstance(ctd, ComplexTypeDefinition)
-        if not ad.scope()  == ctd:
+        if not isinstance(ad.scope(), ComplexTypeDefinition):
             rv = self._clone(ctd)
             rv.__attributeDeclaration = ad._clone(rv)
             rv.__attributeDeclaration._setScope(ctd)
-        ctd._recordLocalDeclaration(rv.__attributeDeclaration)
+        if ad.scope() == ctd:
+            ctd._recordLocalDeclaration(rv.__attributeDeclaration)
         return rv
 
     def __str__ (self):
