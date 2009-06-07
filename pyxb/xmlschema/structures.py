@@ -1127,11 +1127,11 @@ class AttributeUse (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin, _V
     def _adaptForScope (self, ctd):
         """Adapt this instance for the given complex type.
 
-        If the attribute declaration for this instance has scope None,
-        then it's part of an attribute group that was incorporated
-        into the given CTD.  In that case, clone this instance and
-        return the clone with its attribute declaration also set to a
-        clone with proper scope."""
+        If the attribute declaration for this use is not associated with a
+        complex type definition, then associate a clone of it with this CTD,
+        and clone a new attribute use that uses the associated declaration.
+        This attribute use is then inherited by extensions and restrictions,
+        while retaining its original scope."""
         rv = self
         assert self.isResolved()
         ad = self.__attributeDeclaration
