@@ -1647,7 +1647,8 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
                 if not au.isResolved():
                     self._queueForResolution('unresolved attribute use from base type')
                     return self
-                uses_c3_map[au.attributeDeclaration().expandedName()] = au
+                if not au.prohibited():
+                    uses_c3_map[au.attributeDeclaration().expandedName()] = au
             if self.DM_restriction == method:
                 # Exclude attributes per clause 3.  Note that this process
                 # handles both 3.1 and 3.2, since we have not yet filtered
