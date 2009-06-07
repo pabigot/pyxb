@@ -697,7 +697,7 @@ class _PluralityData (types.ListType):
     def nameBasedPlurality (self):
         """Return a map from expanded names to pairs consisting of a boolean
         representing the plurality of the aggregated name, and the element
-        declaration with that name.
+        base declaration with that name.
 
         Note that this requires cos-element-consistent to have been validated,
         and element declarations with the same expanded name to have been
@@ -711,8 +711,8 @@ class _PluralityData (types.ListType):
                 if isinstance(ed, ElementDeclaration):
                     tag = ed.expandedName()
                     name_types.setdefault(tag, ed)
-                    # Should only be one with that name
-                    # @todo: Not true if same name is used in parent complex type
+                    # All declarations with the same name should have the same
+                    # base declaration.
                     assert name_types[tag].baseDeclaration() == ed.baseDeclaration()
                     npdm[tag] = npdm.get(tag, False) or v
                 elif isinstance(ed, Wildcard):
@@ -736,9 +736,9 @@ class _PluralityData (types.ListType):
                     union_map = self._MapUnion(union_map, pdm)
                 self.append(union_map)
         elif ((ModelGroup.C_SEQUENCE == model_group.compositor()) or (ModelGroup.C_ALL == model_group.compositor())):
-            # Sequence means all of them, in all their glory
-            # All is treated the same way
-            # Essentially this is a pointwise OR of the pluralities of the particles.
+            # Sequence means all of them, in all their glory.  All is treated
+            # the same way.  Essentially this is a pointwise OR of the
+            # pluralities of the particles.
             if 0 < len(pdll):
                 new_pd = pdll.pop()
                 for pd in pdll:
