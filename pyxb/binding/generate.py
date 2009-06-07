@@ -752,6 +752,13 @@ class %{ctd} (%{superclasses}):
     else:
         element_attribute_uses = set(ctd.attributeUses())
 
+    # name - String value of expanded name of the attribute 
+    # name_expr - Python expression for an expanded name identifying the attribute (attr_tag)
+    # use - Binding variable name holding AttributeUse instance (attr_name)
+    # id - Python identifier for attribute (python_attr_name)
+    # key - String used as dictionary key holding instance value of attribute (value_attr_name)
+    # inspector - Name of the method used for inspection (attr_inspector)
+    # mutator - Name of the method use for mutation (attr_mutator)
     for au in element_attribute_uses:
         ad = au.attributeDeclaration()
         au_map = { }
@@ -763,12 +770,9 @@ class %{ctd} (%{superclasses}):
         au_map['attr_mutator'] = utility.PrepareIdentifier('set' + used_attr_name[0].upper() + used_attr_name[1:], class_unique, class_keywords)
         au_map['attr_name'] = utility.PrepareIdentifier(attr_name, class_unique, class_keywords, private=True)
         au_map['value_attr_name'] = utility.PrepareIdentifier('%s_%s' % (template_map['ctd'], attr_name), class_unique, class_keywords, private=True)
-        au_map['attr_en_val'] = pythonLiteral(ad.expandedName(), **kw)
-        au_map['attr_en_ref'] = '%s_en' % (au_map['attr_name'],)
         au_map['attr_tag'] = pythonLiteral(attr_name, **kw)
         assert ad.typeDefinition() is not None
         au_map['attr_type'] = pythonLiteral(ad.typeDefinition(), **kw)
-        au_map['constraint_value'] = pythonLiteral(None, **kw)
         au_map['attr_ns'] = pythonLiteral(ad.targetNamespace(), **kw)
                         
         vc_source = ad
@@ -793,7 +797,6 @@ class %{ctd} (%{superclasses}):
         attribute_uses.append(templates.replaceInText('%{attr_tag} : %{attr_name}', **au_map))
         definitions.append(templates.replaceInText('''
     # Attribute %{attr_tag} from %{attr_ns} uses Python identifier %{python_attr_name}
-    %{attr_en_ref} = %{attr_en_val}
     %{attr_name} = pyxb.binding.content.AttributeUse(%{attr_tag}, '%{python_attr_name}', '%{value_attr_name}', %{attr_type}%{aux_init})
     def %{attr_inspector} (self):
         """Get the value of the %{attr_tag} attribute."""
