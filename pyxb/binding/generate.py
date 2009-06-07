@@ -737,7 +737,7 @@ class %{ctd} (%{superclasses}):
                 this_config = ( au.required(), au.prohibited(), au.attributeDeclaration() )
                 ( superclass_config, superclass_au_map ) = superclass_info
                 if this_config == superclass_config:
-                    definitions.append(templates.replaceInText('# Attribute %{attr_tag} inherits from parent %{superclasses} as %{python_attr_name}', superclasses=template_map['superclasses'], **superclass_au_map))
+                    definitions.append(templates.replaceInText('# Attribute %{name} inherits from parent %{superclasses} as %{python_attr_name}', superclasses=template_map['superclasses'], **superclass_au_map))
                     class_unique.add(superclass_au_map['python_attr_name'])
                     class_unique.add(superclass_au_map['attr_inspector'])
                     class_unique.add(superclass_au_map['attr_mutator'])
@@ -746,13 +746,13 @@ class %{ctd} (%{superclasses}):
                     ctd.__attributeFields[name] = superclass_info
                     inherit_attribute = True
                 else:
-                    definitions.append(templates.replaceInText('# Attribute %{attr_tag} will override parent %{superclasses} field %{python_attr_name} due to use or declaration differences', superclasses=template_map['superclasses'], **superclass_au_map))
+                    definitions.append(templates.replaceInText('# Attribute %{name} will override parent %{superclasses} field %{python_attr_name} due to use or declaration differences', superclasses=template_map['superclasses'], **superclass_au_map))
             if not inherit_attribute:
                 element_attribute_uses.add(au)
     else:
         element_attribute_uses = set(ctd.attributeUses())
 
-    # name - String value of expanded name of the attribute 
+    # name - String value of expanded name of the attribute (attr_tag, attr_ns)
     # name_expr - Python expression for an expanded name identifying the attribute (attr_tag)
     # use - Binding variable name holding AttributeUse instance (attr_name)
     # id - Python identifier for attribute (python_attr_name)
@@ -770,10 +770,10 @@ class %{ctd} (%{superclasses}):
         au_map['attr_mutator'] = utility.PrepareIdentifier('set' + used_attr_name[0].upper() + used_attr_name[1:], class_unique, class_keywords)
         au_map['attr_name'] = utility.PrepareIdentifier(attr_name, class_unique, class_keywords, private=True)
         au_map['value_attr_name'] = utility.PrepareIdentifier('%s_%s' % (template_map['ctd'], attr_name), class_unique, class_keywords, private=True)
-        au_map['attr_tag'] = pythonLiteral(attr_name, **kw)
+        au_map['name'] = str(ad.expandedName())
+        au_map['name_expr'] = pythonLiteral(ad.expandedName(), **kw)
         assert ad.typeDefinition() is not None
         au_map['attr_type'] = pythonLiteral(ad.typeDefinition(), **kw)
-        au_map['attr_ns'] = pythonLiteral(ad.targetNamespace(), **kw)
                         
         vc_source = ad
         if au.valueConstraint() is not None:
@@ -794,15 +794,15 @@ class %{ctd} (%{superclasses}):
             aux_init.insert(0, '')
             au_map['aux_init'] = ', '.join(aux_init)
         ctd.__attributeFields[attr_name] = ( ( au.required(), au.prohibited(), au.attributeDeclaration() ), au_map )
-        attribute_uses.append(templates.replaceInText('%{attr_tag} : %{attr_name}', **au_map))
+        attribute_uses.append(templates.replaceInText('%{name_expr} : %{attr_name}', **au_map))
         definitions.append(templates.replaceInText('''
-    # Attribute %{attr_tag} from %{attr_ns} uses Python identifier %{python_attr_name}
-    %{attr_name} = pyxb.binding.content.AttributeUse(%{attr_tag}, '%{python_attr_name}', '%{value_attr_name}', %{attr_type}%{aux_init})
+    # Attribute %{name} uses Python identifier %{python_attr_name}
+    %{attr_name} = pyxb.binding.content.AttributeUse(%{name_expr}, '%{python_attr_name}', '%{value_attr_name}', %{attr_type}%{aux_init})
     def %{attr_inspector} (self):
-        """Get the value of the %{attr_tag} attribute."""
+        """Get the attribute value for %{name}."""
         return self.%{attr_name}.value(self)
     def %{attr_mutator} (self, new_value):
-        """Set the value of the %{attr_tag} attribute.  Raises BadValueTypeException
+        """Set the attribute value for %{name}.  Raises BadValueTypeException
         if the new value is not consistent with the attribute's type."""
         return self.%{attr_name}.setValue(self, new_value)''', **au_map))
 
