@@ -126,7 +126,7 @@ class AttributeUse (pyxb.cscRoot):
         self.__prohibited = prohibited
 
     def name (self):
-        """Unicode expanded name for the attribute in its element"""
+        """Expanded name of the attribute in its element"""
         return self.__name
     
     def required (self):
