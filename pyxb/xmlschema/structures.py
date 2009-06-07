@@ -657,14 +657,16 @@ class _ScopedDeclaration_mixin (pyxb.cscRoot):
         """
         return self._scope()
 
-    def _recordInScope (self):
-        # Absent scope doesn't get recorded anywhere.  Global scope is
-        # recorded in the namespace by somebody else.  Local scopes
-        # are recorded here.
-        assert isinstance(self.scope(), ComplexTypeDefinition)
-        self.scope()._recordLocalDeclaration(self)
-        return self
-
+    # The base declaration is the original _ScopedDeclaration_mixin which
+    # introduced the element into its scope.  This is used to retain a
+    # particular defining declaration when each extension type gets its own
+    # clone adapted for its scope.
+    __baseDeclaration = None
+    def baseDeclaration (self):
+        return self.__baseDeclaration or self
+    def _baseDeclaration (self, referenced_declaration):
+        self.__baseDeclaration = referenced_declaration.baseDeclaration()
+        return self.__baseDeclaration
 
 class _PluralityData (types.ListType):
     """This class represents an abstraction of the set of documents conformant
@@ -711,7 +713,7 @@ class _PluralityData (types.ListType):
                     name_types.setdefault(tag, ed)
                     # Should only be one with that name
                     # @todo: Not true if same name is used in parent complex type
-                    assert name_types[tag] == ed
+                    assert name_types[tag].baseDeclaration() == ed.baseDeclaration()
                     npdm[tag] = npdm.get(tag, False) or v
                 elif isinstance(ed, Wildcard):
                     pass
@@ -1139,7 +1141,7 @@ class AttributeUse (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin, _V
             rv = self._clone(ctd)
             rv.__attributeDeclaration = ad._clone(rv)
             rv.__attributeDeclaration._setScope(ctd)
-        rv.__attributeDeclaration._recordInScope()
+        ctd._recordLocalDeclaration(rv.__attributeDeclaration)
         return rv
 
     def __str__ (self):
@@ -1298,23 +1300,13 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.na
         #print 'aFS:ED %s %s' % (self.expandedName(), ctd.expandedName())
         rv = self
         assert isinstance(ctd, ComplexTypeDefinition), '%s is not a CTD' % (ctd,)
-        previous = ctd.lookupScopedElementDeclaration(rv.expandedName())
-        assert self.isResolved()
-        if previous is not None:
-            # Test cos-element-consistent
-            alt_type = previous.typeDefinition()
-            pending_type = rv.typeDefinition()
-            if not alt_type.isTypeEquivalent(pending_type):
-                raise pyxb.SchemaValidationError('Conflicting element declarations for %s: %s versus %s' % (previous.expandedName(), alt_type, pending_type))
-            # They're equivalent; just re-use the old one, discarding the new one.
-            print 'NOT Discarding redundant %s' % (rv.expandedName(),)
-            #rv._dissociateFromNamespace()
-            return previous
         if self.scope() != ctd:
             assert owner is not None
             rv = self._clone(owner)
             rv._setScope(ctd)
-        rv._recordInScope()
+        if self._scopeIsGlobal():
+            rv._baseDeclaration(self)
+        ctd._recordLocalDeclaration(rv)
         return rv
 
     def isResolved (self):
@@ -1413,11 +1405,24 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         else:
             raise pyxb.LogicError('Unexpected instance of %s recording as local declaration' % (type(decl),))
         decl_en = decl.expandedName()
-        old_decl = scope_map.get(decl_en)
-        if old_decl is None:
-            scope_map[decl_en] = decl
-        elif old_decl != decl:
-            raise pyxb.SchemaValidationError('Multiple definitions of %s as %s local to %s' % (decl_en, type(decl).__name__, self.expandedName()))
+        existing_decls = scope_map.setdefault(decl_en, [])
+        base_decl = decl.baseDeclaration()
+        if 0 < len(existing_decls):
+            assert not (decl in existing_decls)
+            base_decl = existing_decls[0].baseDeclaration()
+            assert decl != base_decl
+            if isinstance(decl, ElementDeclaration):
+                # Test cos-element-consistent
+                alt_type = base_decl.typeDefinition()
+                pending_type = decl.typeDefinition()
+                if not alt_type.isTypeEquivalent(pending_type):
+                    raise pyxb.SchemaValidationError('Conflicting element declarations for %s: %s versus %s' % (decl.expandedName(), alt_type, pending_type))
+            elif isinstance(decl, AttributeDeclaration):
+                raise pyxb.SchemaValidationError('Multiple attribute declarations for %s' % (decl.expandedName(),))
+            else:
+                raise pyxb.LogicError('Unexpected attempt to record local declaration of tpye %s' % (type(decl),))
+        decl._baseDeclaration(base_decl)
+        existing_decls.append(decl)
         return self
 
     CT_EMPTY = 'EMPTY'                 #<<< No content
