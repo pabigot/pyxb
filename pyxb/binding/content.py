@@ -243,6 +243,26 @@ class AttributeUse (pyxb.cscRoot):
         self.__setValue(ctd_instance, new_value, True)
         return new_value
 
+class ElementBase (pyxb.cscRoot):
+    __expandedName = None
+    __typeDefinition = None
+
+class ElementDeclaration (pyxb.cscRoot):
+    __elementBase = None
+    __nillable = False
+    __defaultValue = None
+    __fixedValue = False
+    __substitutionGroup = None  # reference to a global element
+
+class GlobalElement (pyxb.cscRoot):
+    __elementDeclaration = None
+
+class ElementStorage (pyxb.cscRoot):
+    __elementBase = None
+    __pythonField = None
+    __isPlural = False
+    __scope = None
+
 class ElementUse (pyxb.cscRoot):
     """Aggregate the information relevant to an element of a complex type.
 
@@ -345,25 +365,6 @@ class ElementUse (pyxb.cscRoot):
         if self.isPlural():
             return []
         return None
-
-    __generatableValues = None
-    def clearGenerationMarkers (self, ctd_instance):
-        self.__generatableValues = self.value(ctd_instance)
-        if not self.isPlural():
-            if self.__generatableValues is not None:
-                self.__generatableValues = [ self.__generatableValues ]
-        else:
-            self.__generatableValues = self.__generatableValues[:]
-            
-    def nextValueToGenerate (self, ctd_instance):
-        if self.__generatableValues is None:
-            raise pyxb.DOMGenerationError('Optional %s value is not available' % (self.pythonField(),))
-        if 0 < len(self.__generatableValues):
-            return self.__generatableValues.pop(0)
-        raise pyxb.DOMGenerationError('No %s values remain to be generated' % (self.pythonField(),))
-
-    def hasUngeneratedValues (self, ctd_instance):
-        return (self.__generatableValues is not None) and (0 < len(self.__generatableValues))
 
     def value (self, ctd_instance):
         return getattr(ctd_instance, self.__valueElementName, self.defaultValue())
