@@ -53,13 +53,13 @@ class BasicTest (unittest.TestCase):
         reserved = frozenset([ 'Factory' ])
         in_use = set()
         self.assertEquals('Factory_', PrepareIdentifier('Factory', in_use, reserved))
-        self.assertEquals('Factory__', PrepareIdentifier('Factory', in_use, reserved))
-        self.assertEquals('Factory__2', PrepareIdentifier('Factory', in_use, reserved))
+        self.assertEquals('Factory_2', PrepareIdentifier('Factory', in_use, reserved))
+        self.assertEquals('Factory_3', PrepareIdentifier('Factory', in_use, reserved))
 
         in_use = set()
         self.assertEquals('global_', PrepareIdentifier('global', in_use))
-        self.assertEquals('global__', PrepareIdentifier('global', in_use))
-        self.assertEquals('global__2', PrepareIdentifier('global', in_use))
+        self.assertEquals('global_2', PrepareIdentifier('global', in_use))
+        self.assertEquals('global_3', PrepareIdentifier('global', in_use))
 
         in_use = set()
         self.assertEquals('n24_hours', PrepareIdentifier('24 hours', in_use))

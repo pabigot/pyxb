@@ -68,6 +68,7 @@ def MakeUnique (s, in_use):
     by appending an underscore and, if necessary, a serial number.
     """
     if s in in_use:
+        s = s.rstrip('_')
         candidate = '%s_' % (s,)
         ctr = 2
         while candidate in in_use:
