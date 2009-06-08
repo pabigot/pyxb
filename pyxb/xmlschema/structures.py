@@ -1297,7 +1297,7 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.na
 
     # aFS:ED
     def _adaptForScope (self, owner, ctd):
-        #print 'aFS:ED %s %s' % (self.expandedName(), ctd.expandedName())
+        #print 'aFS:ED %s %s old scope %s' % (self.expandedName(), ctd.expandedName(), self.scope())
         rv = self
         assert isinstance(ctd, ComplexTypeDefinition), '%s is not a CTD' % (ctd,)
         if not isinstance(self.scope(), ComplexTypeDefinition):
@@ -1817,6 +1817,12 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
             else:
                 # Clause 3.1.2(.2)
                 content_type = ( ct, self.__effectiveContent )         # ASSIGN RESTRICTION
+                assert 0 == len(self.__scopedElementDeclarations)
+                # Reference the parent element declarations; normally this
+                # would happen naturally as a consequence of appending this
+                # type's content model to the parent's, but with restriction
+                # there is no such re-use unless we do this.
+                self.__scopedElementDeclarations.update(self.__baseTypeDefinition.__scopedElementDeclarations)
         else:
             # Clause 3.2
             assert self.DM_extension == method
