@@ -66,11 +66,13 @@ def MakeUnique (s, in_use):
     in_use must be an instance of set().  in_use is updated to contain
     the returned identifier.  The returned identifier is made unique
     by appending an underscore and, if necessary, a serial number.
+
+    The order is : x, x_, x_2, x_3, ...
     """
     if s in in_use:
+        ctr = 2
         s = s.rstrip('_')
         candidate = '%s_' % (s,)
-        ctr = 2
         while candidate in in_use:
             candidate = '%s_%d' % (s, ctr)
             ctr += 1
