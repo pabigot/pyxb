@@ -710,10 +710,10 @@ class _PluralityData (types.ListType):
             for (ed, v) in pdm.items():
                 if isinstance(ed, ElementDeclaration):
                     tag = ed.expandedName()
-                    name_types.setdefault(tag, ed)
+                    name_types.setdefault(tag, ed.baseDeclaration())
                     # All declarations with the same name should have the same
                     # base declaration.
-                    assert name_types[tag].baseDeclaration() == ed.baseDeclaration()
+                    assert name_types[tag] == ed.baseDeclaration()
                     npdm[tag] = npdm.get(tag, False) or v
                 elif isinstance(ed, Wildcard):
                     pass
