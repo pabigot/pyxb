@@ -25,7 +25,7 @@ class TestDeconflict (unittest.TestCase):
         self.assertTrue(ef.defaultValue() is None)
         self.assertEqual(2, len(CTD_empty._AttributeMap))
         self.assertEqual('toDOM_', CTD_empty._AttributeMap['toDOM'].id())
-        self.assertEqual('Factory__', CTD_empty._AttributeMap['Factory'].id())
+        self.assertEqual('Factory_2', CTD_empty._AttributeMap['Factory'].id())
 
 if __name__ == '__main__':
     unittest.main()
