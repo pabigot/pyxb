@@ -550,6 +550,18 @@ def TypeSetCompatible (s1, s2):
             return False
     return True
 
+def expandedNameToUseMap (expanded_name, container_name, class_unique, class_keywords, kw):
+    use_map = { }
+    unique_name = utility.PrepareIdentifier(expanded_name.localName(), class_unique, class_keywords)
+    use_map['id'] = unique_name
+    use_map['inspector'] = unique_name
+    use_map['mutator'] = utility.PrepareIdentifier('set' + unique_name[0].upper() + unique_name[1:], class_unique, class_keywords)
+    use_map['use'] = utility.MakeUnique('__' + unique_name.strip('_'), class_unique)
+    use_map['key'] = utility.PrepareIdentifier('%s_%s' % (container_name, expanded_name), class_unique, class_keywords, private=True)
+    use_map['name'] = str(expanded_name)
+    use_map['name_expr'] = pythonLiteral(expanded_name, **kw)
+    return use_map
+
 def GenerateCTD (ctd, **kw):
     content_type = None
     prolog_template = None
@@ -617,93 +629,52 @@ class %{ctd} (%{superclasses}):
     # Retain in the ctd the information about the element
     # infrastructure, so it can be inherited where appropriate in
     # subclasses.
-    ctd.__elementFields = { }
 
     if isinstance(content_basis, xs.structures.Particle):
         plurality_data = content_basis.pluralityData().nameBasedPlurality()
 
-        # Throw out the plurality nodes for elements that should be
-        # inherited from a superclass, which are those for which the
-        # plurality data matches that of a parent class.  Ensure names
-        # associated with those superclass instances are marked as
-        # reserved.
-        if inherits_from_base:
-            for (name, (is_plural, ed)) in plurality_data.items():
-                superclass_info = base_type.__elementFields.get(name, None)
-                if superclass_info is not None:
-                    ( superclass_is_plural, superclass_ed, superclass_ef_map ) = superclass_info
-                    # Not checking plurality: should only matter with
-                    # restriction, and there it should be compatible
-                    # if the schema is valid.
-                    if ed.typeDefinition().isTypeEquivalent(superclass_ed.typeDefinition()):
-                        definitions.append(templates.replaceInText('# Element %{field_tag} inherits from parent %{superclasses} as %{python_field_name}', superclasses=template_map['superclasses'], **superclass_ef_map))
-                        del plurality_data[name]
-                        class_unique.add(superclass_ef_map['python_field_name'])
-                        class_unique.add(superclass_ef_map['field_inspector'])
-                        class_unique.add(superclass_ef_map['field_mutator'])
-                        class_unique.add(superclass_ef_map['field_name'])
-                        class_unique.add(superclass_ef_map['value_field_name'])
-                        ctd.__elementFields[name] = superclass_info
-                    else:
-                        if (ctd.DM_restriction == ctd.derivationMethod()):
-                            raise pyxb.IncompleteImplementationError('Restriction invalid or re-use incomplete')
-                        definitions.append(templates.replaceInText('''
-# Element %{field_tag} will override parent %{superclasses} field %{python_field_name}
-# due to content model differences:
-# plural %{plural} vs %{sc_plural}
-# types %{types} vs %{sc_types}
-# iTE %{isTE}
-''', plural=str(is_plural), sc_plural=str(superclass_is_plural),
-   types='%s %s' % (type(ed.typeDefinition()), ed.expandedName()),
-   sc_types='%s %s' % (type(superclass_ed.typeDefinition()), superclass_ed.expandedName()),
-   isTE=pythonLiteral(ed.typeDefinition().isTypeEquivalent(superclass_ed.typeDefinition()), **kw),
-   superclasses=template_map['superclasses'], **superclass_ef_map))
+        # name - String value of expanded name of the attribute (attr_tag, attr_ns)
+        # name_expr - Python expression for an expanded name identifying the attribute (attr_tag)
+        # use - Binding variable name holding AttributeUse instance (attr_name)
+        # id - Python identifier for attribute (python_attr_name)
+        # key - String used as dictionary key holding instance value of attribute (value_attr_name)
+        # inspector - Name of the method used for inspection (attr_inspector)
+        # mutator - Name of the method use for mutation (attr_mutator)
 
         PostscriptItems.append("\n\n")
         for (expanded_name, (is_plural, ed)) in plurality_data.items():
-            # If this name exists as an element in the parent class,
-            # and the plurality data is identical, then inherit the
-            # element infrastructure from the parent
-            
-            ef_map = { }
-            aux_init = []
-            name = expanded_name
-            if isinstance(name, pyxb.namespace.ExpandedName):
-                name = expanded_name.localName()
-            used_field_name = utility.PrepareIdentifier(name, class_unique, class_keywords)
-            element_name_map[name] = used_field_name
+            # @todo Detect and account for plurality change between this and base
+            if ed.scope() == ctd:
+                ef_map = expandedNameToUseMap(ed.expandedName(), template_map['ctd'], class_unique, class_keywords, kw)
+                aux_init = []
+                ef_map['is_plural'] = repr(is_plural)
+                element_uses.append(templates.replaceInText('%{name_expr} : %{use}', **ef_map))
+                datatype_items.append("%s : %s" % (ef_map['name_expr'], pythonLiteral(ed, **kw)))
+                if 0 == len(aux_init):
+                    ef_map['aux_init'] = ''
+                else:
+                    ef_map['aux_init'] = ', ' + ', '.join(aux_init)
+                ed.__elementFields = ef_map
+            ef_map = ed.__elementFields
 
-            ef_map['python_field_name'] = used_field_name
-            ef_map['field_inspector'] = used_field_name
-            ef_map['field_mutator'] = utility.PrepareIdentifier('set' + used_field_name[0].upper() + used_field_name[1:], class_unique, class_keywords)
-            ef_map['field_name'] = utility.PrepareIdentifier(name, class_unique, class_keywords, private=True)
-            ef_map['value_field_name'] = utility.PrepareIdentifier('%s_%s' % (template_map['ctd'], name), class_unique, class_keywords, private=True)
-            ef_map['is_plural'] = repr(is_plural)
-            ef_map['field_tag'] = pythonLiteral(expanded_name, **kw)
-            element_uses.append(templates.replaceInText('%{field_tag} : %{field_name}', **ef_map))
-            datatype_items.append("%s : %s" % (ef_map['field_tag'], pythonLiteral(ed, **kw)))
-            if 0 == len(aux_init):
-                ef_map['aux_init'] = ''
-            else:
-                ef_map['aux_init'] = ', ' + ', '.join(aux_init)
+            if ed.scope() != ctd:
+                definitions.append(templates.replaceInText('''
+    # Element %{id} inherited from %{decl_type_en}''', decl_type_en=str(ed.scope().expandedName()), **ef_map))
+                continue
 
-            ctd.__elementFields[expanded_name] = ( is_plural, ed, ef_map )
             definitions.append(templates.replaceInText('''
-    # Element %{field_tag} uses Python identifier %{python_field_name}
-    %{field_name} = pyxb.binding.content.ElementUse(%{field_tag}, '%{python_field_name}', '%{value_field_name}', %{is_plural}%{aux_init})
-    def %{field_inspector} (self):
-        """Get the value of the %{field_tag} element."""
-        return self.%{field_name}.value(self)
-    def %{field_mutator} (self, new_value):
-        """Set the value of the %{field_tag} element.  Raises BadValueTypeException
+    # Element %{name} uses Python identifier %{id}
+    %{use} = pyxb.binding.content.ElementUse(%{name_expr}, '%{id}', '%{key}', %{is_plural}%{aux_init})
+    def %{inspector} (self):
+        """Get the value of the %{name} element."""
+        return self.%{use}.value(self)
+    def %{mutator} (self, new_value):
+        """Set the value of the %{name} element.  Raises BadValueTypeException
         if the new value is not consistent with the element's type."""
-        return self.%{field_name}.setValue(self, new_value)''', **ef_map))
+        return self.%{use}.setValue(self, new_value)''', **ef_map))
 
-        #print 'Building FA for %s' % (ctd.name(),)
         fa = nfa.Thompson(content_basis).nfa()
-        #print "Non-deterministic FA for %s:\n%s\n\n" % (ctd.name(), fa)
         fa = fa.buildDFA()
-        #print "Minimized deterministic FA for %s:\n%s\n\n" % (ctd.name(), fa)
         (cmi, cmi_defn) = GenerateContentModel(ctd=ctd, automaton=fa, **kw)
         PostscriptItems.append("\n".join(cmi_defn))
         PostscriptItems.append("\n")
@@ -723,7 +694,6 @@ class %{ctd} (%{superclasses}):
 
     # Create definitions for all attributes.
     attribute_uses = []
-    ctd.__attributeFields = { }
 
     # name - String value of expanded name of the attribute (attr_tag, attr_ns)
     # name_expr - Python expression for an expanded name identifying the attribute (attr_tag)
@@ -736,15 +706,8 @@ class %{ctd} (%{superclasses}):
         ad = au.attributeDeclaration()
         assert isinstance(ad.scope(), xs.structures.ComplexTypeDefinition)
         if ad.scope() == ctd:
-            au_map = { }
-            unique_name = utility.PrepareIdentifier(ad.expandedName().localName(), class_unique, class_keywords)
-            au_map['id'] = unique_name
-            au_map['inspector'] = unique_name
-            au_map['mutator'] = utility.PrepareIdentifier('set' + unique_name[0].upper() + unique_name[1:], class_unique, class_keywords)
-            au_map['use'] = utility.MakeUnique('__' + unique_name, class_unique)
-            au_map['key'] = utility.PrepareIdentifier('%s_%s' % (template_map['ctd'], ad.expandedName()), class_unique, class_keywords, private=True)
-            au_map['name'] = str(ad.expandedName())
-            au_map['name_expr'] = pythonLiteral(ad.expandedName(), **kw)
+            au_map = expandedNameToUseMap(ad.expandedName(), template_map['ctd'], class_unique, class_keywords, kw)
+
             assert ad.typeDefinition() is not None
             au_map['attr_type'] = pythonLiteral(ad.typeDefinition(), **kw)
                             
@@ -779,9 +742,10 @@ class %{ctd} (%{superclasses}):
 ''', ctd=template_map['ctd'], **au_map))
             continue
         if ad.scope() != ctd:
+            definitions.append(templates.replaceInText('''
+    # Attribute %{id} inherited from %{decl_type_en}''', decl_type_en=str(ad.scope().expandedName()), **au_map))
             continue
 
-        ctd.__attributeFields[ad.expandedName()] = ( ( au.required(), au.prohibited(), au.attributeDeclaration() ), au_map )
         attribute_uses.append(templates.replaceInText('%{name_expr} : %{use}', **au_map))
         definitions.append(templates.replaceInText('''
     # Attribute %{name} uses Python identifier %{id}
