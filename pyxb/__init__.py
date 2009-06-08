@@ -47,7 +47,7 @@ class cscRoot (object):
         if issubclass(self.__class__.mro()[-2], ( list, dict )):
             super(cscRoot, self).__init__(*args)
 
-__version__ = '0.3.5'
+__version__ = '0.3.6'
 """The version of PyXB"""
 
 __url__ = 'http://pyxb.sourceforge.net'
