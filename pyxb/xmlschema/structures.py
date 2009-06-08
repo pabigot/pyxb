@@ -1397,6 +1397,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
     def _recordLocalDeclaration (self, decl):
         """Record the given declaration as being locally scoped in
         this type."""
+        assert isinstance(decl, _ScopedDeclaration_mixin)
         assert decl.scope() == self
         if isinstance(decl, ElementDeclaration):
             scope_map = self.__scopedElementDeclarations
@@ -1405,24 +1406,18 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         else:
             raise pyxb.LogicError('Unexpected instance of %s recording as local declaration' % (type(decl),))
         decl_en = decl.expandedName()
-        existing_decls = scope_map.setdefault(decl_en, [])
-        base_decl = decl.baseDeclaration()
-        if 0 < len(existing_decls):
-            assert not (decl in existing_decls)
-            base_decl = existing_decls[0].baseDeclaration()
-            assert decl != base_decl
+        existing_decl = scope_map.setdefault(decl_en, decl)
+        if decl != existing_decl:
             if isinstance(decl, ElementDeclaration):
                 # Test cos-element-consistent
-                alt_type = base_decl.typeDefinition()
+                existing_type = existing_decl.typeDefinition()
                 pending_type = decl.typeDefinition()
-                if not alt_type.isTypeEquivalent(pending_type):
-                    raise pyxb.SchemaValidationError('Conflicting element declarations for %s: %s versus %s' % (decl.expandedName(), alt_type, pending_type))
+                if not existing_type.isTypeEquivalent(pending_type):
+                    raise pyxb.SchemaValidationError('Conflicting element declarations for %s: %s versus %s' % (decl.expandedName(), existing_type, pending_type))
             elif isinstance(decl, AttributeDeclaration):
                 raise pyxb.SchemaValidationError('Multiple attribute declarations for %s' % (decl.expandedName(),))
             else:
-                raise pyxb.LogicError('Unexpected attempt to record local declaration of tpye %s' % (type(decl),))
-        decl._baseDeclaration(base_decl)
-        existing_decls.append(decl)
+                assert False, 'Unrecognized type %s' % (type(decl),)
         return self
 
     CT_EMPTY = 'EMPTY'                 #<<< No content
