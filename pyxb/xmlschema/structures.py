@@ -785,7 +785,7 @@ class _PluralityData (types.ListType):
         elif isinstance(component, Particle):
             self.__fromParticle(component)
         elif isinstance(component, Wildcard):
-            self.append( { component: False } )
+            pass
         elif component is not None:
             raise pyxb.NotImplementedError("No support for plurality of component type %s" % (type(component),))
 
@@ -1141,8 +1141,7 @@ class AttributeUse (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin, _V
             rv = self._clone(ctd)
             rv.__attributeDeclaration = ad._clone(rv)
             rv.__attributeDeclaration._setScope(ctd)
-        if ad.scope() == ctd:
-            ctd._recordLocalDeclaration(rv.__attributeDeclaration)
+        ctd._recordLocalDeclaration(rv.__attributeDeclaration)
         return rv
 
     def __str__ (self):
@@ -1305,8 +1304,7 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.na
             assert owner is not None
             rv = self._clone(owner)
             rv._setScope(ctd)
-        if rv.scope() == ctd:
-            ctd._recordLocalDeclaration(rv)
+        ctd._recordLocalDeclaration(rv)
         return rv
 
     def isResolved (self):
@@ -1398,7 +1396,6 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         """Record the given declaration as being locally scoped in
         this type."""
         assert isinstance(decl, _ScopedDeclaration_mixin)
-        assert decl.scope() == self
         if isinstance(decl, ElementDeclaration):
             scope_map = self.__scopedElementDeclarations
         elif isinstance(decl, AttributeDeclaration):
@@ -1418,6 +1415,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
                 raise pyxb.SchemaValidationError('Multiple attribute declarations for %s' % (decl.expandedName(),))
             else:
                 assert False, 'Unrecognized type %s' % (type(decl),)
+        decl._baseDeclaration(existing_decl)
         return self
 
     CT_EMPTY = 'EMPTY'                 #<<< No content
