@@ -16,11 +16,11 @@ class TestDeconflict (unittest.TestCase):
     def testAttributes (self):
         self.assertEqual(2, len(CTD_empty._ElementMap))
         ef = CTD_empty._ElementMap['CreateFromDOM']
-        self.assertEqual('CreateFromDOM_', ef.pythonField())
+        self.assertEqual('CreateFromDOM_', ef.id())
         self.assertFalse(ef.isPlural())
         self.assertTrue(ef.defaultValue() is None)
         ef = CTD_empty._ElementMap['Factory']
-        self.assertEqual('Factory_', ef.pythonField())
+        self.assertEqual('Factory_', ef.id())
         self.assertFalse(ef.isPlural())
         self.assertTrue(ef.defaultValue() is None)
         self.assertEqual(2, len(CTD_empty._AttributeMap))

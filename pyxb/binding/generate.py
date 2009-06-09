@@ -591,7 +591,7 @@ def GenerateCTD (ctd, **kw):
 
     prolog_template = '''
 # Complex type %{ctd} with content type %{contentTypeTag}
-class %{ctd} (%{superclasses}):
+class %{ctd} (%{superclass}):
     _TypeDefinition = %{simple_base_type}
     _ContentTypeTag = pyxb.binding.basis.complexTypeDefinition._CT_%{contentTypeTag}
     _Abstract = %{is_abstract}
@@ -602,10 +602,10 @@ class %{ctd} (%{superclasses}):
     # have their base type as their Python superclass, so pre-existing
     # elements and attributes can be re-used.
     inherits_from_base = True
-    template_map['superclasses'] = pythonLiteral(base_type, **kw)
+    template_map['superclass'] = pythonLiteral(base_type, **kw)
     if isinstance(base_type, xs.structures.SimpleTypeDefinition) or base_type.isUrTypeDefinition():
         inherits_from_base = False
-        template_map['superclasses'] = 'pyxb.binding.basis.complexTypeDefinition'
+        template_map['superclass'] = 'pyxb.binding.basis.complexTypeDefinition'
         assert base_type.nameInBinding() is not None
 
     # Support for deconflicting attributes, elements, and reserved symbols
@@ -766,11 +766,11 @@ class %{ctd} (%{superclasses}):
     template_map['element_uses'] = ",\n        ".join(element_uses)
     if inherits_from_base:
         map_decl = '''
-    _ElementMap = %{superclasses}._ElementMap.copy()
+    _ElementMap = %{superclass}._ElementMap.copy()
     _ElementMap.update({
         %{element_uses}
     })
-    _AttributeMap = %{superclasses}._AttributeMap.copy()
+    _AttributeMap = %{superclass}._AttributeMap.copy()
     _AttributeMap.update({
         %{attribute_uses}
     })'''

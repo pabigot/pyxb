@@ -273,24 +273,24 @@ class ElementUse (pyxb.cscRoot):
     @todo: Store the extended namespace name of the element.
     """
 
-    def tag (self):
+    def name (self):
         """The Unicode XML NCName of the element."""
-        return self.__tag
-    __tag = None
+        return self.__name
+    __name = None
 
-    def pythonField (self):
+    def id (self):
         """The string name of the binding class field used to hold the element
         values.
 
         This is the user-visible name, and excepting namespace disambiguation
-        will be equal to the tag."""
-        return self.__pythonField
-    __pythonField = None
+        will be equal to the name."""
+        return self.__id
+    __id = None
 
     # The dictionary key used to identify the value of the element.  The value
     # is the same as that used for private member variables in the binding
     # class within which the element declaration occurred.
-    __valueElementName = None
+    __key = None
 
     def elementBinding (self):
         """A list of binding classes that express the permissible types of
@@ -319,23 +319,23 @@ class ElementUse (pyxb.cscRoot):
     # them against elementBinding at this level.
     __parentUse = None
 
-    def __init__ (self, tag, python_field, value_element_name, is_plural, element_binding=None):
+    def __init__ (self, name, id, key, is_plural, element_binding=None):
         """Create an ElementUse instance.
 
-        @param tag: The name by which the attribute is referenced in the XML
-        @type tag: C{unicode}
+        @param name: The name by which the attribute is referenced in the XML
+        @type name: C{unicode}
 
-        @param python_field: The Python name for the element within the
+        @param id: The Python name for the element within the
         containing L{pyxb.basis.binding.complexTypeDefinition}.  This is a
         public identifier, albeit modified to be unique, and is usually
         used as the name of the element's inspector method.
-        @type python_field: C{str}
+        @type id: C{str}
 
-        @param value_element_name: The string used to store the element
+        @param key: The string used to store the element
         value in the dictionary of the containing
         L{pyxb.basis.binding.complexTypeDefinition}.  This is mangled so
         that it is unique among and is treated as a Python private member.
-        @type value_element_name: C{str}
+        @type key: C{str}
 
         @param is_plural: If C{True}, documents for the corresponding type may
         have multiple instances of this element.  As a consequence, the value
@@ -351,9 +351,9 @@ class ElementUse (pyxb.cscRoot):
         uses the correct name in each context.
 
         """
-        self.__tag = tag
-        self.__pythonField = python_field
-        self.__valueElementName = value_element_name
+        self.__name = name
+        self.__id = id
+        self.__key = key
         self.__isPlural = is_plural
         self.__elementBinding = element_binding
 
@@ -366,19 +366,19 @@ class ElementUse (pyxb.cscRoot):
         return None
 
     def value (self, ctd_instance):
-        return getattr(ctd_instance, self.__valueElementName, self.defaultValue())
+        return getattr(ctd_instance, self.__key, self.defaultValue())
 
     def reset (self, ctd_instance):
-        setattr(ctd_instance, self.__valueElementName, self.defaultValue())
+        setattr(ctd_instance, self.__key, self.defaultValue())
         return self
 
     def __setValue (self, ctd_instance, value):
-        #print 'Set value of %s to %s' % (self.tag(), value)
+        #print 'Set value of %s to %s' % (self.name(), value)
         if self.isPlural():
             values = self.value(ctd_instance)
             values.append(value)
             return values
-        return setattr(ctd_instance, self.__valueElementName, value)
+        return setattr(ctd_instance, self.__key, value)
 
     # @todo Distinguish based on plurality
     def setValue (self, ctd_instance, value):
@@ -401,7 +401,7 @@ class ElementUse (pyxb.cscRoot):
         return self
 
     def toDOM (self, dom_support, parent, value):
-        element = dom_support.createChild(self.tag().localName(), self.tag().namespace(), parent)
+        element = dom_support.createChild(self.name().localName(), self.name().namespace(), parent)
         if isinstance(value, basis._Binding_mixin):
             elt_type = self.__elementBinding._TypeDefinition
             val_type = type(value)

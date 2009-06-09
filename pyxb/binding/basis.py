@@ -958,10 +958,7 @@ class complexTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _
             iv = None
             if that is not None:
                 iv = fu.value(that)
-            if isinstance(fu, content.AttributeUse):
-                id = fu.id()
-            else:
-                id = fu.pythonField()
+            id = fu.id()
             iv = kw.get(id, iv)
             if iv is not None:
                 if isinstance(iv, list):
@@ -1033,7 +1030,7 @@ class complexTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _
         python_map = { }
         removed = 0
         for eu in cls._ElementMap.values():
-            python_map[eu.pythonField()] = eu
+            python_map[eu.id()] = eu
         for au in cls._AttributeMap.values():
             if au is None:
                 removed += 1
@@ -1122,7 +1119,7 @@ class complexTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _
             if isinstance(value, _Binding_mixin):
                 value.validateBinding()
             else:
-                print 'WARNING: Cannot validate value %s in field %s' % (value, eu.pythonField())
+                print 'WARNING: Cannot validate value %s in field %s' % (value, eu.id())
 
     def _setAttributesFromDOM (self, node):
         """Initialize the attributes of this element from those of the DOM node.
