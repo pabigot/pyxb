@@ -797,34 +797,56 @@ class %{ctd} (%{superclass}):
 
     return templates.replaceInText(template, **template_map)
 
-def GenerateED (ed, **kw):
-    # Unscoped declarations should never be referenced in the binding.
-    if ed.scope() is None:
-        return ''
-    outf = StringIO.StringIO()
+def elementDeclarationMap (ed, **kw):
     template_map = { }
     template_map['class'] = pythonLiteral(ed, **kw)
-    template_map['element_name'] = pythonLiteral(ed.name(), **kw)
-    template_map['expanded_name'] = pythonLiteral(ed.expandedName(), **kw)
+    template_map['localName'] = pythonLiteral(ed.name(), **kw)
+    template_map['name'] = str(ed.expandedName())
+    template_map['name_expr'] = pythonLiteral(ed.expandedName(), **kw)
     if (ed.SCOPE_global == ed.scope()):
-        template_map['element_scope'] = pythonLiteral(None, **kw)
-        template_map['map_update'] = templates.replaceInText("Namespace.addCategoryObject('elementBinding', %{element_name}, %{class})", **template_map)
+        template_map['map_update'] = templates.replaceInText("Namespace.addCategoryObject('elementBinding', %{localName}, %{class})", **template_map)
     else:
-        template_map['element_scope'] = pythonLiteral(ed.scope(), **kw)
-        template_map['map_update'] = ''
-    template_map['base_datatype'] = pythonLiteral(ed.typeDefinition(), **kw)
-    template_map['substitutionGroupAffiliation'] = pythonLiteral(None, **kw)
-
+        template_map['scope'] = pythonLiteral(ed.scope(), **kw)
+    if ed.abstract():
+        template_map['abstract'] = pythonLiteral(ed.abstract(), **kw)
+    if ed.nillable():
+        template_map['nillable'] = pythonLiteral(ed.nillable(), **kw)
+    if ed.default():
+        template_map['defaultValue'] = pythonLiteral(ed.default(), **kw)
+    template_map['typeDefinition'] = pythonLiteral(ed.typeDefinition(), **kw)
     if ed.substitutionGroupAffiliation() is not None:
         template_map['substitutionGroupAffiliation'] = pythonLiteral(ed.substitutionGroupAffiliation(), **kw)
+    return template_map
+
+def GenerateED (ed, **kw):
+    # Unscoped declarations should never be referenced in the binding.
+    if ed._scopeIsIndeterminate():
+        return ''
+
+    outf = StringIO.StringIO()
+    template_map = elementDeclarationMap(ed, **kw)
+    template_map.setdefault('scope', pythonLiteral(None, **kw))
+    template_map.setdefault('map_update', '')
+
+    aux_init = { }
+    for (k, p) in [ ('nillable', 'nillable'), ('abstract', 'abstract'), ('substitutionGroupAffiliation', 'substitution_group_affiliation'), ('scope', 'scope')]:
+        v = template_map.get(k)
+        if v is not None:
+            aux_init[p] = v
+    template_map['aux_init'] = ''
+    if 0 < len(aux_init):
+        template_map['aux_init'] = ',' + ','.join([ '%s=%s' % _i for _i in aux_init.items() ])
 
     outf.write(templates.replaceInText('''
+
+__ignore = pyxb.binding.basis.element2(%{name_expr}, %{typeDefinition}%{aux_init})
+
 # ElementDeclaration
 class %{class} (pyxb.binding.basis.element):
-    _ExpandedName = %{expanded_name}
-    _ElementScope = %{element_scope}
-    _TypeDefinition = %{base_datatype}
-    _SubstitutionGroupAffiliation = %{substitutionGroupAffiliation}
+    _ExpandedName = %{name_expr}
+    _ElementScope = %{scope}
+    _TypeDefinition = %{typeDefinition}
+    #_SubstitutionGroupAffiliation = %{substitutionGroupAffiliation}
 %{map_update}
 ''', **template_map))
 

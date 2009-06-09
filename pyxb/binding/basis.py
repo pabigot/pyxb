@@ -94,6 +94,9 @@ class _Binding_mixin (pyxb.cscRoot):
     def validateBinding (self):
         return self._validateBinding_vx()
 
+class _TypeBinding_mixin (_Binding_mixin):
+    pass
+
 class _DynamicCreate_mixin (pyxb.cscRoot):
     """Helper to allow overriding the implementation class.
 
@@ -174,7 +177,7 @@ class _DynamicCreate_mixin (pyxb.cscRoot):
             return ctor(*args, **kw)
         return cls._SupersedingClass()(*args, **kw)
 
-class simpleTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
+class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
     """L{simpleTypeDefinition} is a base class that is part of the
     hierarchy of any class that represents the Python datatype for a
     L{SimpleTypeDefinition<pyxb.xmlschema.structures.SimpleTypeDefinition>}.
@@ -860,11 +863,155 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
     def _validateBinding_vx (self):
         self.__realContent.validateBinding()
 
+class element2 (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
+    """Base class for any Python class that serves as the binding to
+    an XMLSchema element.
+
+    The subclass must define a class variable _TypeDefinition which is
+    a reference to the simpleTypeDefinition or complexTypeDefinition
+    subclass that serves as the information holder for the element.
+
+    Most actions on instances of these clases are delegated to the
+    underlying content object.
+    """
+
+    _NamespaceCategory = 'elementBinding'
+
+    # Reference to the simple or complex type binding that serves as
+    # the content of this element.
+    # MUST BE SET IN SUBCLASS
+    _typeDefinition = None
+    """The subclass of complexTypeDefinition that is used to represent content in this element."""
+
+    def name (self):
+        return self.__name
+    __name = None
+
+    def typeDefinition (self):
+        return self.__typeDefinition
+    __typeDefinition = None
+
+    def scope (self):
+        return self.__scope
+    __scope = None
+
+    def nillable (self):
+        return self.__nillable
+    __nillable = False
+
+    def abstract (self):
+        return self.__abstract
+    __abstract = False
+
+    def defaultValue (self):
+        return self.__defaultValue
+    __defaultValue = None
+
+    def substitutionGroup (self):
+        return self.__substitutionGroup
+    __substitutionGroup = None
+
+    def __init__ (self, name, type_definition, scope=None, nillable=False, abstract=False, default_value=None, substitution_group=None):
+        """Create a new element binding.
+        """
+        assert isinstance(name, pyxb.namespace.ExpandedName)
+        self.__name = name
+        self.__typeDefinition = type_definition
+        self.__scope = scope
+        self.__nillable = nillable
+        self.__abstract = abstract
+        self.__defaultValue = default_value
+        self.__substitutionGroup = substitution_group
+        
+    def __call__ (self, *args, **kw):
+        dom_node = kw.pop('dom_node', None)
+        if dom_node is not None:
+            return self.createFromDOM(dom_node, **kw)
+        return None
+
+    @classmethod
+    def AnyCreateFromDOM (cls, node, fallback_namespace):
+        expanded_name = pyxb.namespace.ExpandedName(node, fallback_namespace=fallback_namespace)
+        elt = expanded_name.elementBinding()
+        if elt is None:
+            raise pyxb.UnrecognizedElementError('No element binding available for %s' % (expanded_name,))
+        assert isinstance(elt, pyxb.binding.basis.element)
+        return elt(dom_node=node)
+        
+    def createFromDOM (self, node, **kw):
+        """Create an instance of this element from the given DOM node.
+
+        :raise pyxb.LogicError: the name of the node is not consistent with
+        the _ExpandedName of this class."""
+
+        # Identify the element binding to be used for the given node.  In the
+        # case of substitution groups, it may not be what we expect.
+        elt_ns = self.__name.namespace()
+        if cls._ElementScope is None:
+            node_name = pyxb.namespace.ExpandedName(node, fallback_namespace=elt_ns)
+            elt_cls = node_name.elementBinding()
+            if elt_cls is not None:
+                if cls != elt_cls:
+                    print 'Node %s cls %s elt_cls %s' % (node, cls, elt_cls)
+                assert cls == elt_cls
+
+        # Now determine the type binding for the content.  If xsi:type is
+        # used, it won't be the one built into the element binding.
+        type_class = cls._TypeDefinition
+        xsi_type = pyxb.namespace.ExpandedName(pyxb.namespace.XMLSchema_instance, 'type')
+        type_name = xsi_type.getAttribute(node)
+        dc_kw = { }
+        if type_name is not None:
+            # xsi:type should only be provided when using an abstract class
+            if not (issubclass(type_class, complexTypeDefinition) and type_class._Abstract):
+                raise pyxb.BadDocumentError('%s attribute on element with non-abstract type' % (xsi_type,))
+            # Get the node context.  In case none has been assigned, create
+            # it, using the element namespace as the default environment
+            # (since we only need this in order to resolve the xsi:type qname,
+            # that should be okay, right?)  @todo: verify this
+            ns_ctx = pyxb.namespace.NamespaceContext.GetNodeContext(node, target_namespace=elt_ns, default_namespace=elt_ns)
+            assert ns_ctx
+            type_name = ns_ctx.interpretQName(type_name)
+            alternative_type_class = type_name.typeBinding()
+            if not issubclass(alternative_type_class, type_class):
+                raise pyxb.BadDocumentError('%s value %s is not subclass of element type %s' % (xsi_type, type_name, type_class._ExpandedName))
+            type_class = alternative_type_class
+            dc_kw['_content_type'] = type_class
+        instance_root = kw.pop('instance_root', None)
+        if not cls._ExpandedName.nodeMatches(node):
+            node_en = pyxb.namespace.ExpandedName(node)
+            
+        if issubclass(type_class, simpleTypeDefinition):
+            rv = cls._DynamicCreate(type_class.CreateFromDOM(node))
+        else:
+            rv = cls._DynamicCreate(validate_constraints=False, **dc_kw)
+            rv.__setContent(type_class.CreateFromDOM(node))
+        if isinstance(rv, simpleTypeDefinition):
+            rv.xsdConstraintsOK()
+        rv._setBindingContext(node, instance_root)
+        return rv
+
+    def _toDOM_vx (self, dom_support, parent):
+        """Add a DOM representation of this element as a child of
+        parent, which should be a DOM Node instance."""
+        assert isinstance(dom_support, domutils.BindingDOMSupport)
+        element = dom_support.createChild(self._ExpandedName.localName(), self._ExpandedName.namespace(), parent)
+        self.__realContent._toDOM_vx(dom_support, parent=element)
+        return dom_support
+
+    def __str__ (self):
+        if isinstance(self.content(), simpleTypeDefinition):
+            rv = self.content()
+            if isinstance(rv, unicode):
+                return rv.encode('utf-8')
+            return str(rv)
+        return str(self.content())
+
 class enumeration_mixin (pyxb.cscRoot):
     """Marker in case we need to know that a PST has an enumeration constraint facet."""
     pass
 
-class complexTypeDefinition (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
+class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
     """Base for any Python class that serves as the binding for an
     XMLSchema complexType.
 
