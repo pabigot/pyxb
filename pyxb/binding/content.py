@@ -410,7 +410,7 @@ class ElementUse (pyxb.cscRoot):
             else:
                 if isinstance(value, basis.STD_union) and isinstance(value, elt_type._MemberTypes):
                     val_type = elt_type
-            if (val_type != elt_type._SupersedingClass()):
+            if (val_type != elt_type._SupersedingClass()) and elt_type._Abstract:
                 val_type_qname = value._ExpandedName.localName()
                 tns_prefix = dom_support.namespacePrefix(value._ExpandedName.namespace())
                 if tns_prefix is not None:
@@ -503,7 +503,7 @@ class ContentModelTransition (pyxb.cscRoot):
             key_type = key.elementBinding()._TypeDefinition
         if issubclass(key_type, basis.STD_list):
             consume_all = True
-            consume_singles = False
+            consume_singles = isinstance(next_symbols[key][0], (list, tuple))
         elif (self.__nextState == self.__currentStateRef.state()):
             consume_all = True
             consume_singles = True
