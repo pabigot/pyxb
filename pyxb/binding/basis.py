@@ -95,7 +95,9 @@ class _Binding_mixin (pyxb.cscRoot):
         return self._validateBinding_vx()
 
 class _TypeBinding_mixin (_Binding_mixin):
-    pass
+    @classmethod
+    def _IsCompatibleValue (cls, instance):
+        return isinstance(instance, cls) or issubclass(cls, type(instance))
 
 class _DynamicCreate_mixin (pyxb.cscRoot):
     """Helper to allow overriding the implementation class.
@@ -652,13 +654,15 @@ class STD_list (simpleTypeDefinition, types.ListType):
         """Verify that the given value is permitted as an item of this list.
 
         This may convert the value to the proper type, if it is
-        compatible but not an instance of the iitem type.  Returns the
+        compatible but not an instance of the item type.  Returns the
         value that should be used as the item, or raises an exception
         if the value cannot be converted."""
-        if issubclass(cls._ItemType, STD_union):
+        if isinstance(value, cls):
+            pass
+        elif issubclass(cls._ItemType, STD_union):
             value = cls._ItemType._ValidateMember(value)
         else:
-            if not isinstance(value, cls._ItemType):
+            if not cls._ItemType._IsCompatibleValue(value):
                 try:
                     value = cls._ItemType(value)
                 except pyxb.BadTypeValueError:
@@ -830,7 +834,8 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
             node_en = pyxb.namespace.ExpandedName(node)
             
         if issubclass(type_class, simpleTypeDefinition):
-            rv = cls._DynamicCreate(type_class.CreateFromDOM(node))
+            value = type_class._SupersedingClass().CreateFromDOM(node)
+            rv = cls._DynamicCreate(value)
         else:
             rv = cls._DynamicCreate(validate_constraints=False, **dc_kw)
             rv.__setContent(type_class.CreateFromDOM(node))
@@ -1215,7 +1220,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         :param tag: The L{ExpandedName} of an element in the class."""
         rv = cls._ElementMap.get(tag)
         if rv is None:
-            raise pyxb.LogicError('Unable to locate element %s in type %s' % (tag, self._ExpandedName))
+            raise pyxb.LogicError('Unable to locate element %s in type %s' % (tag, cls._ExpandedName))
         return rv
 
     def __childrenForDOM (self):
