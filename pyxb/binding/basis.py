@@ -95,6 +95,13 @@ class _Binding_mixin (pyxb.cscRoot):
         return self._validateBinding_vx()
 
 class _TypeBinding_mixin (_Binding_mixin):
+
+    # While simple type definitions cannot be abstract, they can appear in
+    # many places where complex types can, so we want it to be legal to test
+    # for abstractness without checking whether the object is a complex type.
+    _Abstract = False
+
+
     @classmethod
     def _IsCompatibleValue (cls, instance):
         return isinstance(instance, cls) or issubclass(cls, type(instance))
@@ -833,12 +840,12 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
         if not cls._ExpandedName.nodeMatches(node):
             node_en = pyxb.namespace.ExpandedName(node)
             
+        value = type_class._SupersedingClass().CreateFromDOM(node)
         if issubclass(type_class, simpleTypeDefinition):
-            value = type_class._SupersedingClass().CreateFromDOM(node)
             rv = cls._DynamicCreate(value)
         else:
             rv = cls._DynamicCreate(validate_constraints=False, **dc_kw)
-            rv.__setContent(type_class.CreateFromDOM(node))
+            rv.__setContent(value)
         if isinstance(rv, simpleTypeDefinition):
             rv.xsdConstraintsOK()
         rv._setBindingContext(node, instance_root)
