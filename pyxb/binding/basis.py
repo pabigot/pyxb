@@ -809,9 +809,7 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
                 raise pyxb.BadDocumentError('%s value %s is not subclass of element type %s' % (xsi_type, type_name, type_class._ExpandedName))
             type_class = alternative_type_class
             
-        rv = type_class._SupersedingClass().CreateFromDOM(node, **kw)
-        if isinstance(rv, simpleTypeDefinition):
-            rv.xsdConstraintsOK()
+        rv = type_class.Factory(_dom_node=node, **kw)
         rv._setElement(self)
         rv._setNamespaceContext(ns_ctx)
         return rv
