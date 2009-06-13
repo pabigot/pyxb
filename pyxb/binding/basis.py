@@ -694,15 +694,10 @@ class STD_list (simpleTypeDefinition, types.ListType):
         return ' '.join([ _v.xsdLiteral() for _v in value ])
 
 class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
-    """Base class for any Python class that serves as the binding to
-    an XMLSchema element.
+    """Class that represents a schema element.
 
-    The subclass must define a class variable _TypeDefinition which is
-    a reference to the simpleTypeDefinition or complexTypeDefinition
-    subclass that serves as the information holder for the element.
-
-    Most actions on instances of these clases are delegated to the
-    underlying content object.
+    Both global and local elements are represented by an instance of this
+    class.
     """
 
     _NamespaceCategory = 'elementBinding'
@@ -740,6 +735,13 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
     def substitutionGroup (self):
         return self.__substitutionGroup
     __substitutionGroup = None
+
+    def memberElement (self, name):
+        """Return a reference to the element instance used for the given name
+        within this element.
+
+        The type for this element must be a complex type definition."""
+        return self.typeDefinition()._UseForTag(name).elementBinding()
 
     def __init__ (self, name, type_definition, scope=None, nillable=False, abstract=False, default_value=None, substitution_group=None):
         """Create a new element binding.
