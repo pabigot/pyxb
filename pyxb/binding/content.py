@@ -785,7 +785,6 @@ class ModelGroupAll (pyxb.cscRoot):
         """
 
         alternatives = set(self.__alternatives)
-        match_order = []
         found_match = True
 
         # The alternatives can match in arbitrary order, so repeatedly try
@@ -797,7 +796,6 @@ class ModelGroupAll (pyxb.cscRoot):
                     node_count = len(node_list)
                     alt.contentModel().interprete(ctd_instance, node_list)
                     if len(node_list) < node_count:
-                        match_order.append(alt)
                         alternatives.remove(alt)
                         found_match = True
                         break
