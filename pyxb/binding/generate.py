@@ -562,6 +562,35 @@ def expandedNameToUseMap (expanded_name, container_name, class_unique, class_key
     use_map['name_expr'] = pythonLiteral(expanded_name, **kw)
     return use_map
 
+def elementDeclarationMap (ed, **kw):
+    template_map = { }
+    template_map['class'] = pythonLiteral(ed, **kw)
+    template_map['localName'] = pythonLiteral(ed.name(), **kw)
+    template_map['name'] = str(ed.expandedName())
+    template_map['name_expr'] = pythonLiteral(ed.expandedName(), **kw)
+    if (ed.SCOPE_global == ed.scope()):
+        template_map['map_update'] = templates.replaceInText("Namespace.addCategoryObject('elementBinding', %{localName}, %{class})", **template_map)
+    else:
+        template_map['scope'] = pythonLiteral(ed.scope(), **kw)
+    if ed.abstract():
+        template_map['abstract'] = pythonLiteral(ed.abstract(), **kw)
+    if ed.nillable():
+        template_map['nillable'] = pythonLiteral(ed.nillable(), **kw)
+    if ed.default():
+        template_map['defaultValue'] = pythonLiteral(ed.default(), **kw)
+    template_map['typeDefinition'] = pythonLiteral(ed.typeDefinition(), **kw)
+    if ed.substitutionGroupAffiliation() is not None:
+        template_map['substitution_group_affiliation'] = pythonLiteral(ed.substitutionGroupAffiliation(), **kw)
+    aux_init = []
+    for k in ( 'nillable', 'abstract', 'substitution_group_affiliation', 'scope' ):
+        if k in template_map:
+            aux_init.append('%s=%s' % (k, template_map[k]))
+    template_map['element_aux_init'] = ''
+    if 0 < len(aux_init):
+        template_map['element_aux_init'] = ', ' + ', '.join(aux_init)
+        
+    return template_map
+
 def GenerateCTD (ctd, **kw):
     content_type = None
     prolog_template = None
@@ -633,19 +662,12 @@ class %{ctd} (%{superclass}):
     if isinstance(content_basis, xs.structures.Particle):
         plurality_data = content_basis.pluralityData().nameBasedPlurality()
 
-        # name - String value of expanded name of the attribute (attr_tag, attr_ns)
-        # name_expr - Python expression for an expanded name identifying the attribute (attr_tag)
-        # use - Binding variable name holding AttributeUse instance (attr_name)
-        # id - Python identifier for attribute (python_attr_name)
-        # key - String used as dictionary key holding instance value of attribute (value_attr_name)
-        # inspector - Name of the method used for inspection (attr_inspector)
-        # mutator - Name of the method use for mutation (attr_mutator)
-
         PostscriptItems.append("\n\n")
         for (expanded_name, (is_plural, ed)) in plurality_data.items():
             # @todo Detect and account for plurality change between this and base
             if ed.scope() == ctd:
                 ef_map = expandedNameToUseMap(ed.expandedName(), template_map['ctd'], class_unique, class_keywords, kw)
+                ef_map.update(elementDeclarationMap(ed, **kw))
                 aux_init = []
                 ef_map['is_plural'] = repr(is_plural)
                 element_uses.append(templates.replaceInText('%{name_expr} : %{use}', **ef_map))
@@ -655,6 +677,7 @@ class %{ctd} (%{superclass}):
                 else:
                     ef_map['aux_init'] = ', ' + ', '.join(aux_init)
                 ed.__elementFields = ef_map
+                ef_map['element_binding'] = utility.PrepareIdentifier('%s_elt' % (ef_map['id'],), class_unique, class_keywords, private=True)
             ef_map = ed.__elementFields
 
             if ed.scope() != ctd:
@@ -672,6 +695,10 @@ class %{ctd} (%{superclass}):
         """Set the value of the %{name} element.  Raises BadValueTypeException
         if the new value is not consistent with the element's type."""
         return self.%{use}.setValue(self, new_value)''', **ef_map))
+
+            PostscriptItems.append(templates.replaceInText('''
+%{ctd}._AddElement(%{name_expr}, %{typeDefinition}%{element_aux_init})
+''', ctd=template_map['ctd'], **ef_map))
 
         fa = nfa.Thompson(content_basis).nfa()
         fa = fa.buildDFA()
@@ -797,27 +824,6 @@ class %{ctd} (%{superclass}):
 
     return templates.replaceInText(template, **template_map)
 
-def elementDeclarationMap (ed, **kw):
-    template_map = { }
-    template_map['class'] = pythonLiteral(ed, **kw)
-    template_map['localName'] = pythonLiteral(ed.name(), **kw)
-    template_map['name'] = str(ed.expandedName())
-    template_map['name_expr'] = pythonLiteral(ed.expandedName(), **kw)
-    if (ed.SCOPE_global == ed.scope()):
-        template_map['map_update'] = templates.replaceInText("Namespace.addCategoryObject('elementBinding', %{localName}, %{class})", **template_map)
-    else:
-        template_map['scope'] = pythonLiteral(ed.scope(), **kw)
-    if ed.abstract():
-        template_map['abstract'] = pythonLiteral(ed.abstract(), **kw)
-    if ed.nillable():
-        template_map['nillable'] = pythonLiteral(ed.nillable(), **kw)
-    if ed.default():
-        template_map['defaultValue'] = pythonLiteral(ed.default(), **kw)
-    template_map['typeDefinition'] = pythonLiteral(ed.typeDefinition(), **kw)
-    if ed.substitutionGroupAffiliation() is not None:
-        template_map['substitutionGroupAffiliation'] = pythonLiteral(ed.substitutionGroupAffiliation(), **kw)
-    return template_map
-
 def GenerateED (ed, **kw):
     # Unscoped declarations should never be referenced in the binding.
     if ed._scopeIsIndeterminate():
@@ -828,25 +834,16 @@ def GenerateED (ed, **kw):
     template_map.setdefault('scope', pythonLiteral(None, **kw))
     template_map.setdefault('map_update', '')
 
-    aux_init = { }
-    for (k, p) in [ ('nillable', 'nillable'), ('abstract', 'abstract'), ('substitutionGroupAffiliation', 'substitution_group_affiliation'), ('scope', 'scope')]:
-        v = template_map.get(k)
-        if v is not None:
-            aux_init[p] = v
-    template_map['aux_init'] = ''
-    if 0 < len(aux_init):
-        template_map['aux_init'] = ',' + ','.join([ '%s=%s' % _i for _i in aux_init.items() ])
-
     outf.write(templates.replaceInText('''
 
-__ignore = pyxb.binding.basis.element2(%{name_expr}, %{typeDefinition}%{aux_init})
+__ignore = pyxb.binding.basis.element2(%{name_expr}, %{typeDefinition}%{element_aux_init})
 
 # ElementDeclaration
 class %{class} (pyxb.binding.basis.element):
     _ExpandedName = %{name_expr}
     _ElementScope = %{scope}
     _TypeDefinition = %{typeDefinition}
-    #_SubstitutionGroupAffiliation = %{substitutionGroupAffiliation}
+    #_SubstitutionGroupAffiliation = %{substitution_group_affiliation}
 %{map_update}
 ''', **template_map))
 

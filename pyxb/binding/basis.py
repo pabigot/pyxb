@@ -1199,6 +1199,11 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         setattr(cls, cls.__PythonMapAttribute(), python_map)
 
     @classmethod
+    def _AddElement (cls, expanded_name, *args, **kw):
+        eu = cls._ElementMap.get(expanded_name)
+        eu.setElement(element2(expanded_name, *args, **kw))
+
+    @classmethod
     def _UseForElement (cls, element):
         """Return the ElementUse object corresponding to the element type.
 
