@@ -1117,21 +1117,6 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         self.__content.append(child)
 
     __isMixed = False
-    def _stripMixedContent (self, node_list):
-        while 0 < len(node_list):
-            if not (node_list[0].nodeType in (dom.Node.TEXT_NODE, dom.Node.CDATA_SECTION_NODE, dom.Node.COMMENT_NODE)):
-                break
-            cn = node_list.pop(0)
-            if dom.Node.COMMENT_NODE == cn.nodeType:
-                continue
-            if self.__isMixed:
-                #print 'Adding mixed content'
-                self._addContent(cn.data)
-            else:
-                #print 'Ignoring mixed content'
-                pass
-        return node_list
-
     def _setContentFromDOM (self, node):
         """Initialize the content of this element from the content of the DOM node."""
         if self._CT_EMPTY == self._ContentTypeTag:
@@ -1141,18 +1126,9 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             self.xsdConstraintsOK()
             return
         self.__isMixed = (self._CT_MIXED == self._ContentTypeTag)
-        if False:
-            node_list = node.childNodes[:]
-            self._stripMixedContent(node_list)
-            if self._ContentModel is not None:
-                self._ContentModel.interprete(self, node_list)
-                self._stripMixedContent(node_list)
-            if 0 < len(node_list):
-                raise pyxb.ExtraContentError('Extra content starting with %s' % (node_list[0],))
-        else:
-            self.extend(node.childNodes[:])
-            if (self._ContentModel is not None) and not self._ContentModel.isFinal(self.__dfaState):
-                raise pyxb.MissingContentError()
+        self.extend(node.childNodes[:])
+        if (self._ContentModel is not None) and not self._ContentModel.isFinal(self.__dfaState):
+            raise pyxb.MissingContentError()
         return self
 
     def _setDOMFromAttributes (self, element):

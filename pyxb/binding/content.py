@@ -681,6 +681,7 @@ class ContentModel (pyxb.cscRoot):
         MissingContentError.  There may be material remaining on the
         node_list; it is up to the caller to determine whether this is
         acceptable."""
+        assert False
         state = self.initialState()
         while state is not None:
             node_list = ctd_instance._stripMixedContent(node_list)
