@@ -54,9 +54,9 @@ class TestXSIType (unittest.TestCase):
         xml = '<oneFloor xsi:type="restaurant" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><basement>concrete</basement><lobby>tiled</lobby><room>eats</room></oneFloor>'
         doc = pyxb.utils.domutils.StringToDOM(xml)
         instance = CreateFromDOM(doc.documentElement)
-        self.assertEqual(concreteBase_.basement, instance.content().__class__.basement)
-        self.assertEqual(oneFloor_.lobby, instance.content().__class__.lobby)
-        self.assertEqual(restaurant_.room, instance.content().__class__.room)
+        self.assertEqual(concreteBase_.basement, instance.__class__.basement)
+        self.assertEqual(oneFloor_.lobby, instance.__class__.lobby)
+        self.assertEqual(restaurant_.room, instance.__class__.room)
         self.assertEqual('tiled', instance.lobby())
         self.assertEqual('eats', instance.room())
 

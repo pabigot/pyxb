@@ -276,6 +276,8 @@ class BindingDOMSupport (object):
         ns_uri = xml.dom.EMPTY_NAMESPACE
         if isinstance(namespace, pyxb.namespace.Namespace):
             ns_uri = namespace.uri()
+        else:
+            assert namespace is None
         name = local_name
         if ns_uri is not None:
             if ns_uri in self.__namespaces:

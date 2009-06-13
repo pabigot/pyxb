@@ -44,10 +44,12 @@ class TestCTD (unittest.TestCase):
     def testString (self):
         self.assertEqual('test', pyxb.binding.datatypes.string('test'))
         rv = string('test')
-        self.assert_(isinstance(rv.content(), pyxb.binding.datatypes.string))
+        self.assertTrue(isinstance(rv.content(), pyxb.binding.datatypes.string))
         self.assertEqual('test', rv.content())
         rv = CreateFromDocument('<string xmlns="URN:testCTD">test</string>')
-        self.assert_(isinstance(rv, string))
+        self.assertTrue(isinstance(rv, pyxb.binding.datatypes.string))
+        # Temporarily fails because string is an element, not an element2
+        self.assertEqual(string, rv._element())
         self.assertEqual('test', rv.content())
 
     def testEmptyWithAttr (self):

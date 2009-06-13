@@ -834,9 +834,13 @@ def GenerateED (ed, **kw):
     template_map.setdefault('scope', pythonLiteral(None, **kw))
     template_map.setdefault('map_update', '')
 
-    outf.write(templates.replaceInText('''
-
+    if ed._scopeIsGlobal():
+        outf.write(templates.replaceInText('''
 __ignore = pyxb.binding.basis.element2(%{name_expr}, %{typeDefinition}%{element_aux_init})
+Namespace.addCategoryObject('element2Binding', __ignore.name().localName(), __ignore)
+''', **template_map))
+
+    outf.write(templates.replaceInText('''
 
 # ElementDeclaration
 class %{class} (pyxb.binding.basis.element):
@@ -959,7 +963,7 @@ import sys
 # about this module.
 Namespace = %{NamespaceDefinition}
 Namespace._setModule(sys.modules[__name__])
-Namespace.configureCategories(['typeBinding', 'elementBinding'])
+Namespace.configureCategories(['typeBinding', 'elementBinding', 'element2Binding'])
 
 def CreateFromDocument (xml_text):
     """Parse the given XML and use the document element to create a Python instance."""
@@ -969,7 +973,7 @@ def CreateFromDocument (xml_text):
 def CreateFromDOM (node):
     """Create a Python instance from the given DOM node.
     The node tag must correspond to an element declaration in this module."""
-    return pyxb.binding.basis.element.AnyCreateFromDOM(node, Namespace)
+    return pyxb.binding.basis.element2.AnyCreateFromDOM(node, Namespace)
 ''', **template_map))
     
         # Give priority for identifiers to scoped element declarations

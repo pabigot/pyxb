@@ -54,13 +54,13 @@ class TestUnion (unittest.TestCase):
         self.assertTrue(isinstance(uv, welsh))
 
     def testXMLErrors (self):
-        self.assertEqual(welsh.un, CreateFromDocument('<myElement xmlns="URN:unionTest">un</myElement>').content())
+        self.assertEqual(welsh.un, CreateFromDocument('<myElement xmlns="URN:unionTest">un</myElement>'))
         self.assertRaises(UnrecognizedElementError, CreateFromDocument, '<welsh>un</welsh>')
         self.assertRaises(UnrecognizedElementError, CreateFromDocument, '<myelement>un</myelement>')
 
     def testMyElementDOM (self):
         self.assertEqual(0, myElement.CreateFromDOM(pyxb.utils.domutils.StringToDOM('<myElement xmlns="URN:unionTest">0</myElement>').documentElement).content())
-        self.assertEqual(0, CreateFromDocument('<myElement xmlns="URN:unionTest">0</myElement>').content())
+        self.assertEqual(0, CreateFromDocument('<myElement xmlns="URN:unionTest">0</myElement>'))
 
         self.assertEqual(english.one, myElement.CreateFromDOM(pyxb.utils.domutils.StringToDOM('<myElement xmlns="URN:unionTest">one</myElement>').documentElement).content())
         self.assertEqual(welsh.un, myElement.CreateFromDOM(pyxb.utils.domutils.StringToDOM('<myElement xmlns="URN:unionTest">un</myElement>').documentElement).content())

@@ -70,8 +70,10 @@ class _Binding_mixin (pyxb.cscRoot):
             bds = domutils.BindingDOMSupport()
         if isinstance(self, element):
             parent = None
+        elif self._element() is not None:
+            parent = bds.createChild(self._element().name().localName(), self._element().name().namespace())
         else:
-            parent = bds.createChild(self._ExpandedName.localName(), self._ExpandedName.namespaceURI())
+            parent = bds.createChild(self._ExpandedName.localName(), self._ExpandedName.namespace())
         self._toDOM_vx(bds, parent)
         bds.finalize()
         return bds.document()
@@ -101,10 +103,15 @@ class _TypeBinding_mixin (_Binding_mixin):
     # for abstractness without checking whether the object is a complex type.
     _Abstract = False
 
-
     @classmethod
     def _IsCompatibleValue (cls, instance):
         return isinstance(instance, cls) or issubclass(cls, type(instance))
+
+    def _setElement (self, element):
+        self.__element = element
+    def _element (self):
+        return self.__element
+    __element = None
 
 class _DynamicCreate_mixin (pyxb.cscRoot):
     """Helper to allow overriding the implementation class.
@@ -941,13 +948,14 @@ class element2 (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate
             return self.createFromDOM(dom_node, **kw)
         return None
 
+    # element2
     @classmethod
     def AnyCreateFromDOM (cls, node, fallback_namespace):
         expanded_name = pyxb.namespace.ExpandedName(node, fallback_namespace=fallback_namespace)
-        elt = expanded_name.elementBinding()
+        elt = expanded_name.element2Binding()
         if elt is None:
             raise pyxb.UnrecognizedElementError('No element binding available for %s' % (expanded_name,))
-        assert isinstance(elt, pyxb.binding.basis.element)
+        assert isinstance(elt, pyxb.binding.basis.element2)
         return elt(dom_node=node)
         
     def createFromDOM (self, node, **kw):
@@ -961,11 +969,11 @@ class element2 (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate
         elt_ns = self.__name.namespace()
         if self.scope() is None:
             node_name = pyxb.namespace.ExpandedName(node, fallback_namespace=elt_ns)
-            elt_cls = node_name.elementBinding()
-            if elt_cls is not None:
-                if cls != elt_cls:
-                    print 'Node %s cls %s elt_cls %s' % (node, cls, elt_cls)
-                assert cls == elt_cls
+            node_elt = node_name.element2Binding()
+            if node_elt is not None:
+                if self != node_elt:
+                    print 'Node %s self %s node_elt %s' % (node, self, node_elt)
+                assert self == node_elt
 
         # Now determine the type binding for the content.  If xsi:type is
         # used, it won't be the one built into the element binding.
@@ -997,6 +1005,7 @@ class element2 (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate
         if isinstance(rv, simpleTypeDefinition):
             rv.xsdConstraintsOK()
         rv._setBindingContext(node, instance_root)
+        rv._setElement(self)
         return rv
 
     def _toDOM_vx (self, dom_support, parent):
