@@ -102,6 +102,27 @@ class _TypeBinding_mixin (_Binding_mixin):
         return self.__element
     __element = None
 
+
+    @classmethod
+    def Factory (cls, *args, **kw):
+        """Provide a common mechanism to create new instances of this type.
+
+        The class constructor won't do, because you can't create
+        instances of union types.
+
+        This method may be overridden in subclasses (like STD_union).
+
+        @keyword _dom_node: If provided, the value must be a DOM node, the
+        content of which will be used to set the value of the instance.
+
+        @keyword _apply_whitespace_facet: If set to C{True} and this is a
+        simpleTypeDefinition with a whiteSpace facet, the first argument will
+        be normalized in accordance with that facet prior to invoking the
+        parent constructor.
+
+        """
+        return cls._DynamicCreate(*args, **kw)
+
 class _DynamicCreate_mixin (pyxb.cscRoot):
     """Helper to allow overriding the implementation class.
 
@@ -336,20 +357,6 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
                 if isinstance(arg1, types.StringTypes):
                     args = (arg1.split(),) + args[1:]
         return args
-
-    @classmethod
-    def Factory (cls, *args, **kw):
-        """Provide a common mechanism to create new instances of this type.
-
-        The class constructor won't do, because you can't create
-        instances of union types.
-
-        This method may be overridden in subclasses (like STD_union)."""
-        try:
-            return cls._DynamicCreate(*args, **kw)
-        except TypeError, e:
-            print 'ERROR in %s: %s' % (cls, e)
-            raise
 
     @classmethod
     def CreateFromDOM (cls, node, **kw):
@@ -596,10 +603,11 @@ class STD_union (simpleTypeDefinition):
         an instance from the parameters in C{args} and C{kw}.
         """
         rv = None
+        # NB: get, not pop: preserve it for the member type invocations
         validate_constraints = kw.get('_validate_constraints', True)
         for mt in cls._MemberTypes:
             try:
-                rv = mt(*args, **kw)
+                rv = mt.Factory(*args, **kw)
                 break
             except pyxb.BadTypeValueError:
                 pass
@@ -752,7 +760,7 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
         self.__substitutionGroup = substitution_group
         
     def __call__ (self, *args, **kw):
-        dom_node = kw.pop('dom_node', None)
+        dom_node = kw.pop('_dom_node', None)
         if dom_node is not None:
             return self.createFromDOM(dom_node, **kw)
         return self.typeDefinition().Factory(*args,**kw)._setElement(self)
@@ -894,6 +902,9 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         return self.__wildcardElements
 
     def __init__ (self, *args, **kw):
+        dom_node = kw.pop('_dom_node', None)
+        if dom_node is not None:
+            kw['_validate_constraints'] = False
         if self._AttributeWildcard is not None:
             self.__wildcardAttributeMap = { }
         if self._HasWildcardElement:
@@ -924,12 +935,9 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
                     [ fu.setValue(self, _elt) for _elt in iv ]
                 else:
                     fu.setValue(self, iv)
-
-    @classmethod
-    def Factory (cls, *args, **kw):
-        """Create an instance from parameters and keywords."""
-        rv = cls._DynamicCreate(*args, **kw)
-        return rv
+        if dom_node is not None:
+            self._setAttributesFromDOM(dom_node)
+            self._setContentFromDOM(dom_node)
 
     @classmethod
     def CreateFromDOM (cls, node, **kw):
@@ -942,6 +950,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         rv._setAttributesFromDOM(node)
         rv._setContentFromDOM(node)
         return rv
+    #return cls.Factory(_dom_node=node)
 
     # Specify the symbols to be reserved for all CTDs.
     _ReservedSymbols = set([ 'Factory', 'CreateFromDOM', 'toDOM', 'wildcardElements', 'wildcardAttributeMap',
