@@ -89,16 +89,16 @@ class TestExternal (unittest.TestCase):
 
         xml = '<personName><surname>Smith</surname></personName>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
-        instance = st.personName.CreateFromDOM(dom.documentElement)
+        instance = st.personName.Factory(_dom_node=dom.documentElement)
         xml = '<personName><surname>Smith</surname><generation>Jr.</generation></personName>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
-        self.assertRaises(ExtraContentError, st.personName.CreateFromDOM, dom.documentElement)
+        self.assertRaises(ExtraContentError, st.personName.Factory, _dom_node=dom.documentElement)
         xml = xml.replace('personName', 'extendedName')
         dom = pyxb.utils.domutils.StringToDOM(xml)
-        instance = st.extendedName.CreateFromDOM(dom.documentElement)
+        instance = st.extendedName.Factory(_dom_node=dom.documentElement)
         xml = xml.replace('extendedName', 'restExtName')
         dom = pyxb.utils.domutils.StringToDOM(xml)
-        instance = restExtName.CreateFromDOM(dom.documentElement)
+        instance = restExtName.Factory(_dom_node=dom.documentElement)
 
 if __name__ == '__main__':
     unittest.main()

@@ -215,7 +215,7 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
     # Note that each descendent of simpleTypeDefinition has its own map.
     __FacetMap = {}
 
-    _ReservedSymbols = set([ 'Factory', 'CreateFromDOM', 'XsdLiteral', 'xsdLiteral',
+    _ReservedSymbols = set([ 'Factory', 'XsdLiteral', 'xsdLiteral',
                             'XsdSuperType', 'XsdPythonType', 'XsdConstraintsOK',
                             'xsdConstraintsOK', 'XsdValueLength', 'xsdValueLength',
                             'PythonLiteral', 'pythonLiteral', 'toDOM' ])
@@ -357,15 +357,6 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
                 if isinstance(arg1, types.StringTypes):
                     args = (arg1.split(),) + args[1:]
         return args
-
-    @classmethod
-    def CreateFromDOM (cls, node, **kw):
-        """Create a simple type instance from the given DOM Node instance.
-
-        Any whitespace facet constraint is applied to the extracted text."""
-        # @todo error if non-text content?
-        rv = cls.Factory(_dom_node=node)
-        return rv
 
     # Must override new, because new gets invoked before init, and
     # usually doesn't accept keywords.  In case it does, only remove
@@ -937,17 +928,8 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             self._setAttributesFromDOM(dom_node)
             self._setContentFromDOM(dom_node)
 
-    @classmethod
-    def CreateFromDOM (cls, node, **kw):
-        """Create an instance from a DOM node.
-
-        Note that only the node attributes and content are used; the
-        node name must have been validated against an owning
-        element."""
-        return cls.Factory(_dom_node=node, **kw)
-
     # Specify the symbols to be reserved for all CTDs.
-    _ReservedSymbols = set([ 'Factory', 'CreateFromDOM', 'toDOM', 'wildcardElements', 'wildcardAttributeMap',
+    _ReservedSymbols = set([ 'Factory', 'toDOM', 'wildcardElements', 'wildcardAttributeMap',
                              'xsdConstraintsOK', 'content' ])
 
     # Class variable which maps complex type attribute names to the name used
@@ -1129,7 +1111,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         if self._CT_EMPTY == self._ContentTypeTag:
             return
         if self._CT_SIMPLE == self._ContentTypeTag:
-            self.__setContent(self._TypeDefinition.CreateFromDOM(node))
+            self.__setContent(self._TypeDefinition.Factory(_dom_node=node))
             self.xsdConstraintsOK()
             return
         self.__isMixed = (self._CT_MIXED == self._ContentTypeTag)

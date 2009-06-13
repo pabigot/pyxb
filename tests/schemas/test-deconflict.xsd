@@ -5,7 +5,7 @@
 	<xs:complexType name="CTD_empty">
 		<xs:sequence>
 			<xs:element name="Factory" type="xs:double"/>
-			<xs:element name="CreateFromDOM" type="xs:boolean"/>
+			<xs:element name="content" type="xs:boolean"/>
 		</xs:sequence>
 		<xs:attribute name="Factory" type="xs:string"/>
 		<xs:attribute name="toDOM" type="xs:boolean"/>

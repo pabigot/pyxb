@@ -15,8 +15,8 @@ import unittest
 class TestDeconflict (unittest.TestCase):
     def testAttributes (self):
         self.assertEqual(2, len(CTD_empty._ElementMap))
-        ef = CTD_empty._ElementMap['CreateFromDOM']
-        self.assertEqual('CreateFromDOM_', ef.id())
+        ef = CTD_empty._ElementMap['content']
+        self.assertEqual('content_', ef.id())
         self.assertFalse(ef.isPlural())
         self.assertTrue(ef.defaultValue() is None)
         ef = CTD_empty._ElementMap['Factory']
