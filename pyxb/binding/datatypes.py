@@ -741,10 +741,6 @@ import content
 
 class anyType (basis.complexTypeDefinition):
     """http://www.w3.org/TR/2001/REC-xmlschema-1-20010502/#key-urType"""
-    @classmethod
-    def Factory (cls, *args, **kw):
-        return anyType()
-
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('anyType')
     _ContentTypeTag = basis.complexTypeDefinition._CT_MIXED
     _Abstract = False

@@ -914,7 +914,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         self._resetContent()
         super(complexTypeDefinition, self).__init__(**kw)
         if self._CT_SIMPLE == self._ContentTypeTag:
-            self.__setContent(self._TypeDefinition.Factory(*args, **kw))
+            self.__setContent(self._TypeDefinition.Factory(_dom_node=dom_node, *args, **kw))
         that = None
         if 0 < len(args):
             if isinstance(args[0], self.__class__):
@@ -946,11 +946,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         Note that only the node attributes and content are used; the
         node name must have been validated against an owning
         element."""
-        rv = cls.Factory(_validate_constraints=False)
-        rv._setAttributesFromDOM(node)
-        rv._setContentFromDOM(node)
-        return rv
-    #return cls.Factory(_dom_node=node)
+        return cls.Factory(_dom_node=node, **kw)
 
     # Specify the symbols to be reserved for all CTDs.
     _ReservedSymbols = set([ 'Factory', 'CreateFromDOM', 'toDOM', 'wildcardElements', 'wildcardAttributeMap',
