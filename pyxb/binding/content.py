@@ -183,9 +183,6 @@ class AttributeUse (pyxb.cscRoot):
         default value, and mark that it has not been provided."""
         self.__setValue(ctd_instance, self.__defaultValue, False)
 
-    def setValue (self, ctd_instance, value):
-        return self.set(ctd_instance, value)
-
     def addDOMAttribute (self, ctd_instance, element):
         """If this attribute as been set, add the corresponding attribute to the DOM element."""
         ( provided, value ) = self.__getValue(ctd_instance)
@@ -352,7 +349,7 @@ class ElementUse (pyxb.cscRoot):
         return setattr(ctd_instance, self.__key, value)
 
     # @todo Distinguish based on plurality
-    def setValue (self, ctd_instance, value):
+    def set (self, ctd_instance, value):
         """Set the value of this element in the given instance."""
         if value is None:
             return self.reset(ctd_instance)
@@ -540,7 +537,7 @@ class ContentModelTransition (pyxb.cscRoot):
                 return False
             node_list.pop(0)
             if store:
-                self.__elementUse.setValue(ctd_instance, element)
+                self.__elementUse.set(ctd_instance, element)
         elif self.TT_modelGroupAll == self.__termType:
             self.__term.matchAlternatives(ctd_instance, node_list, store)
         elif self.TT_wildcard == self.__termType:

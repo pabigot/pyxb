@@ -694,7 +694,7 @@ class %{ctd} (%{superclass}):
     def %{mutator} (self, new_value):
         """Set the value of the %{name} element.  Raises BadValueTypeException
         if the new value is not consistent with the element's type."""
-        return self.%{use}.setValue(self, new_value)''', **ef_map))
+        return self.%{use}.set(self, new_value)''', **ef_map))
 
             PostscriptItems.append(templates.replaceInText('''
 %{ctd}._AddElement(pyxb.binding.basis.element(%{name_expr}, %{typeDefinition}%{element_aux_init}))
@@ -775,7 +775,7 @@ class %{ctd} (%{superclass}):
     def %{mutator} (self, new_value):
         """Set the attribute value for %{name}.  Raises BadValueTypeException
         if the new value is not consistent with the attribute's type."""
-        return self.%{use}.setValue(self, new_value)''', **au_map))
+        return self.%{use}.set(self, new_value)''', **au_map))
 
     if ctd.attributeWildcard() is not None:
         definitions.append('_AttributeWildcard = %s' % (pythonLiteral(ctd.attributeWildcard(), **kw),))
