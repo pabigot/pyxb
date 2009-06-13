@@ -1066,14 +1066,14 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
                     raise pyxb.UnrecognizedAttributeError('Attribute %s is not permitted in type %s' % (attr_en, self._ExpandedName))
                 self.__wildcardAttributeMap[attr_en] = value
                 continue
-            au.setFromDOM(self, node)
+            au.set(self, node)
             attrs_available.remove(au)
 
         # Handle all the ones that aren't present.  NB: Don't just reset the
         # attribute; we need to check for missing ones, which is done by
-        # au.setFromDOM.
+        # au.set.
         for au in attrs_available:
-            au.setFromDOM(self, node)
+            au.set(self, node)
         return self
 
     def xsdConstraintsOK (self):

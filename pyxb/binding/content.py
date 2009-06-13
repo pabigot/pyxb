@@ -186,9 +186,6 @@ class AttributeUse (pyxb.cscRoot):
     def setValue (self, ctd_instance, value):
         return self.set(ctd_instance, value)
 
-    def setFromDOM (self, ctd_instance, node):
-        return self.set(ctd_instance, node)
-
     def addDOMAttribute (self, ctd_instance, element):
         """If this attribute as been set, add the corresponding attribute to the DOM element."""
         ( provided, value ) = self.__getValue(ctd_instance)
@@ -235,26 +232,6 @@ class AttributeUse (pyxb.cscRoot):
             raise pyxb.AttributeChangeError('Attempt to change value of fixed attribute %s' % (self.__name,))
         self.__setValue(ctd_instance, new_value, provided)
         return new_value
-
-class ElementBase (pyxb.cscRoot):
-    __expandedName = None
-    __typeDefinition = None
-
-class ElementDeclaration (pyxb.cscRoot):
-    __elementBase = None
-    __nillable = False
-    __defaultValue = None
-    __fixedValue = False
-    __substitutionGroup = None  # reference to a global element
-
-class GlobalElement (pyxb.cscRoot):
-    __elementDeclaration = None
-
-class ElementStorage (pyxb.cscRoot):
-    __elementBase = None
-    __pythonField = None
-    __isPlural = False
-    __scope = None
 
 class ElementUse (pyxb.cscRoot):
     """Aggregate the information relevant to an element of a complex type.
