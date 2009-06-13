@@ -1188,31 +1188,6 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         return rv
 
     @classmethod
-    def _UpdateElementDatatypes (cls, datatype_map):
-        """Sets the _ElementMap contents and pre-calculates maps from Python
-        field names to element and attribute uses.
-
-        :param datatype_map: Map from NCNames representing element tags to a
-        list of Python classes corresponding to types that are stored in the
-        field associated with the element.
-
-        This is invoked at the module level after all binding classes have
-        been defined and are available for reference."""
-        for (k, v) in datatype_map.items():
-            cls._ElementMap[k]._setElementBinding(v)
-        python_map = { }
-        removed = 0
-        for eu in cls._ElementMap.values():
-            python_map[eu.id()] = eu
-        for au in cls._AttributeMap.values():
-            if au is None:
-                removed += 1
-            else:
-                python_map[au.id()] = au
-        assert (len(python_map) + removed) == (len(cls._ElementMap) + len(cls._AttributeMap)), '%d + %d != %d + %d' % (len(python_map), removed, len(cls._ElementMap), len(cls._AttributeMap))
-        setattr(cls, cls.__PythonMapAttribute(), python_map)
-
-    @classmethod
     def _AddElement (cls, element):
         eu = cls._ElementMap.get(element.name())
         eu._setElement2(element)

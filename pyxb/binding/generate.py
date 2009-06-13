@@ -711,14 +711,6 @@ class %{ctd} (%{superclass}):
 %{ctd}._Content = %{particle}
 ''', **template_map))
         
-
-#    PostscriptItems.append('''
-#%s._UpdateElementDatatypes({
-#    %s
-#})
-#''' % (template_map['ctd'], ",\n    ".join(datatype_items)))
-
-
     # Create definitions for all attributes.
     attribute_uses = []
 
@@ -826,7 +818,7 @@ class %{ctd} (%{superclass}):
 
 def GenerateED (ed, **kw):
     # Unscoped declarations should never be referenced in the binding.
-    if ed._scopeIsIndeterminate():
+    if not ed._scopeIsGlobal():
         return ''
 
     outf = StringIO.StringIO()
@@ -834,21 +826,9 @@ def GenerateED (ed, **kw):
     template_map.setdefault('scope', pythonLiteral(None, **kw))
     template_map.setdefault('map_update', '')
 
-    if ed._scopeIsGlobal():
-        outf.write(templates.replaceInText('''
+    outf.write(templates.replaceInText('''
 %{class} = pyxb.binding.basis.element2(%{name_expr}, %{typeDefinition}%{element_aux_init})
 Namespace.addCategoryObject('element2Binding', %{class}.name().localName(), %{class})
-''', **template_map))
-    elif False:
-        outf.write(templates.replaceInText('''
-
-# ElementDeclaration
-class %{class} (pyxb.binding.basis.element):
-    _ExpandedName = %{name_expr}
-    _ElementScope = %{scope}
-    _TypeDefinition = %{typeDefinition}
-    #_SubstitutionGroupAffiliation = %{substitution_group_affiliation}
-%{map_update}
 ''', **template_map))
 
     return outf.getvalue()
