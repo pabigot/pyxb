@@ -924,27 +924,13 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         self.reset()
         if self._CT_SIMPLE == self._ContentTypeTag:
             self.__setContent(self._TypeDefinition.Factory(_dom_node=dom_node, *args, **kw))
-        that = None
-        if 0 < len(args):
-            if isinstance(args[0], self.__class__):
-                that = args[0]
-            elif self._CT_SIMPLE != self._ContentTypeTag:
-                raise pyxb.IncompleteImplementationError('No %s constructor support for argument %s' % (type(self), args[0]))
         # Extract keywords that match field names
         for fu in self._AttributeMap.values():
-            iv = None
-            if that is not None:
-                iv = fu.value(that)
-            id = fu.id()
-            iv = kw.get(id, iv)
+            iv = kw.get(fu.id())
             if iv is not None:
                 fu.set(self, iv)
         for fu in self._ElementMap.values():
-            iv = None
-            if that is not None:
-                iv = fu.value(that)
-            id = fu.id()
-            iv = kw.get(id, iv)
+            iv = kw.get(fu.id())
             if iv is not None:
                if isinstance(iv, list):
                    [ fu.append(self, _elt) for _elt in iv ]
