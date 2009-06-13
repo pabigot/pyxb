@@ -169,11 +169,11 @@ class _DynamicCreate_mixin (pyxb.cscRoot):
 
     @classmethod
     def _DynamicCreate (cls, *args, **kw):
-        """Invoke the constructor for the class that supersedes this one."""
+        """Invoke the constructor for this class or the one that supersedes it."""
         ctor = cls._AlternativeConstructor()
-        if ctor is not None:
-            return ctor(*args, **kw)
-        return cls._SupersedingClass()(*args, **kw)
+        if ctor is None:
+            ctor = cls._SupersedingClass()
+        return ctor(*args, **kw)
 
 class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
     """L{simpleTypeDefinition} is a base class that is part of the
@@ -321,7 +321,7 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
         the keywords, it is removed so it does not propagate to the
         superclass.  Another application is to convert the arguments from a
         string to a list."""
-        apply_whitespace_facet = kw.pop('apply_whitespace_facet', False)
+        apply_whitespace_facet = kw.pop('_apply_whitespace_facet', False)
         if apply_whitespace_facet:
             args = cls.__ConvertArgs(args)
         if issubclass(cls, STD_list):
@@ -353,8 +353,7 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
 
         Any whitespace facet constraint is applied to the extracted text."""
         # @todo error if non-text content?
-        # @todo support _DynamicCreate
-        rv = cls.Factory(domutils.ExtractTextContent(node), apply_whitespace_facet=True)
+        rv = cls.Factory(domutils.ExtractTextContent(node), _apply_whitespace_facet=True)
         return rv
 
     # Must override new, because new gets invoked before init, and
@@ -368,7 +367,7 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
     # of building a value that eventually will be legal, but isn't
     # yet.
     def __new__ (cls, *args, **kw):
-        kw.pop('validate_constraints', None)
+        kw.pop('_validate_constraints', None)
         args = cls._ConvertArguments(args, kw)
         try:
             return super(simpleTypeDefinition, cls).__new__(cls, *args, **kw)
@@ -386,9 +385,9 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
         converted to the underlying Python type.
 
         Keyword arguments:
-        validate_constraints -- Validate the datatype constraints after initialization (default True)
+        _validate_constraints -- Validate the datatype constraints after initialization (default True)
         """
-        validate_constraints = kw.pop('validate_constraints', True)
+        validate_constraints = kw.pop('_validate_constraints', True)
         args = self._ConvertArguments(args, kw)
         try:
             super(simpleTypeDefinition, self).__init__(*args, **kw)
@@ -585,7 +584,7 @@ class STD_union (simpleTypeDefinition):
         """Given a value, attempt to create an instance of some member of this
         union.  The first instance which can be legally created is returned.
 
-        @keyword validate_constraints: If True (default), any constructed
+        @keyword _validate_constraints: If True (default), any constructed
         value is checked against constraints applied to the union as well as
         the member type.
 
@@ -593,7 +592,7 @@ class STD_union (simpleTypeDefinition):
         an instance from the parameters in C{args} and C{kw}.
         """
         rv = None
-        validate_constraints = kw.get('validate_constraints', True)
+        validate_constraints = kw.get('_validate_constraints', True)
         for mt in cls._MemberTypes:
             try:
                 rv = mt(*args, **kw)
@@ -935,7 +934,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         Note that only the node attributes and content are used; the
         node name must have been validated against an owning
         element."""
-        rv = cls.Factory(validate_constraints=False)
+        rv = cls.Factory(_validate_constraints=False)
         rv._setAttributesFromDOM(node)
         rv._setContentFromDOM(node)
         return rv
