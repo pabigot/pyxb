@@ -524,7 +524,7 @@ class ContentModelTransition (pyxb.cscRoot):
             return self.__validateConsume(None, available_symbols_im, output_sequence_im, candidates)
         return False
 
-    def attemptTransition (self, ctd_instance, node_list):
+    def attemptTransition (self, ctd_instance, node):
         """Attempt to make the appropriate transition.
 
         If something goes wrong, a BadDocumentError will be propagated through
@@ -536,12 +536,9 @@ class ContentModelTransition (pyxb.cscRoot):
         """
 
         if self.TT_element == self.__termType:
-            if 0 == len(node_list):
-                return False
-            element = self.__processElementTransition(node_list[0])
+            element = self.__processElementTransition(node)
             if element is None:
                 return False
-            node_list.pop(0)
             if self.__elementUse.isPlural():
                 self.__elementUse.append(ctd_instance, element)
             else:
@@ -549,11 +546,8 @@ class ContentModelTransition (pyxb.cscRoot):
         elif self.TT_modelGroupAll == self.__termType:
             self.__term.matchAlternatives(ctd_instance, node_list)
         elif self.TT_wildcard == self.__termType:
-            if 0 == len(node_list):
-                return False
-            if not self.__term.matchesNode(ctd_instance, node_list[0]):
-                raise pyxb.UnexpectedContentError(node_list[0])
-            node = node_list.pop(0)
+            if not self.__term.matchesNode(ctd_instance, node):
+                raise pyxb.UnexpectedContentError(node)
             # See if we can convert from DOM into a Python instance.
             # If not, we'll go ahead and store the DOM node.
             try:
@@ -624,10 +618,12 @@ class ContentModelState (pyxb.cscRoot):
         @raise pyxb.MissingContentError: content model requires additional data
         """
 
-        for transition in self.__transitions:
-            # @todo check nodeName against element
-            if transition.attemptTransition(ctd_instance, node_list):
-                return transition.nextState()
+        if 0 < len(node_list):
+            for transition in self.__transitions:
+                # @todo check nodeName against element
+                if transition.attemptTransition(ctd_instance, node_list[0]):
+                    node_list.pop(0)
+                    return transition.nextState()
         if self.isFinal():
             return None
         if 0 < len(node_list):
