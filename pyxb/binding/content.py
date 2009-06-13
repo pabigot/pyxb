@@ -670,6 +670,12 @@ class ContentModel (pyxb.cscRoot):
     def __init__ (self, state_map=None):
         self.__stateMap = state_map
 
+    def initialState (self):
+        return 1
+
+    def step (self, ctd_instance, state, value):
+        state = self.__stateMap[state].evaluateContent(ctd_instance, node_list)
+
     def interprete (self, ctd_instance, node_list, store=True):
         """Attempt to match the content model against the node_list.
 
@@ -678,7 +684,7 @@ class ContentModel (pyxb.cscRoot):
         MissingContentError.  There may be material remaining on the
         node_list; it is up to the caller to determine whether this is
         acceptable."""
-        state = 1
+        state = self.initialState()
         while state is not None:
             node_list = ctd_instance._stripMixedContent(node_list)
             state = self.__stateMap[state].evaluateContent(ctd_instance, node_list, store)

@@ -920,8 +920,8 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             self.__wildcardElements = []
         if self._Abstract:
             raise pyxb.AbstractInstantiationError(type(self))
-        self._resetContent()
         super(complexTypeDefinition, self).__init__(**kw)
+        self.reset()
         if self._CT_SIMPLE == self._ContentTypeTag:
             self.__setContent(self._TypeDefinition.Factory(_dom_node=dom_node, *args, **kw))
         that = None
@@ -951,18 +951,6 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
     # Specify the symbols to be reserved for all CTDs.
     _ReservedSymbols = set([ 'Factory', 'toDOM', 'wildcardElements', 'wildcardAttributeMap',
                              'xsdConstraintsOK', 'content' ])
-
-    # Class variable which maps complex type attribute names to the name used
-    # within the generated binding.  For example, if somebody's gone and
-    # decided that the word Factory would make an awesome attribute for some
-    # complex type, the binding will rewrite it so the accessor method is
-    # Factory_.  This is only overridden in generated bindings where an
-    # attribute name conflicted with a reserved symbol.
-    _AttributeDeconflictMap = { }
-
-    # Class variable which maps complex type element names to the name used
-    # within the generated binding.  See _AttributeDeconflictMap.
-    _ElementDeconflictMap = { }
 
     # None, or a reference to a ContentModel instance that defines how to
     # reduce a DOM node list to the body of this element.
@@ -1099,9 +1087,36 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             pass
         return self.__content
 
-    def _resetContent (self):
+    __dfaState = None
+    def reset (self):
         if self._ContentTypeTag in (self._CT_MIXED, self._CT_ELEMENT_ONLY):
             self.__setContent([])
+        for au in self._AttributeMap.values():
+            au.reset(self)
+        for eu in self._ElementMap.values():
+            eu.reset(self)
+        if self._ContentModel is not None:
+            self.__dfaState = self._ContentModel.initialState()
+        return self
+
+    def append (self, value):
+        if self.__dfaState is None:
+            raise pyxb.StructuralBadDocumentError("Cannot append when state undefined")
+        if isinstance(value, xml.dom.Node):
+            if dom.node.COMMENT_NODE == value.nodeType:
+                return self
+            if value.nodeType in (dom.Node.TEXT_NODE, dom.Node.CDATA_SECTION_NODE):
+                if self.__isMixed:
+                    self._addContent(cn.data)
+                else:
+                    #print 'Ignoring mixed content'
+                    pass
+                return self
+            value = value
+        self.__dfaState = self._ContentModel.step(self, self.__dfaState, value)
+
+    def extend (self, value_list):
+        [ self.append(_v) for _v in value_list ]
 
     def __setContent (self, value):
         self.__content = value
