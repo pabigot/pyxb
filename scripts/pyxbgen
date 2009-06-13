@@ -136,7 +136,7 @@ dom = doc.documentElement
 
 if uri_is_wsdl:
     import pyxb.standard.bindings.wsdl as wsdl
-    spec = wsdl.definitions.CreateFromDOM(dom, process_schema=True)
+    spec = wsdl.definitions.createFromDOM(dom, process_schema=True)
     wxs = spec.schema()
 else:
     wxs = pyxb.xmlschema.schema.CreateFromDOM(dom)
