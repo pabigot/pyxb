@@ -1085,8 +1085,6 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         return self
 
     def append (self, value):
-        if self.__dfaState is None:
-            raise pyxb.StructuralBadDocumentError("Cannot append when state undefined")
         if isinstance(value, dom.Node):
             if dom.Node.COMMENT_NODE == value.nodeType:
                 return self
@@ -1099,7 +1097,12 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
                 return self
             # Do type conversion here
             value = value
-        self.__dfaState = self._ContentModel._step(self, self.__dfaState, value)
+        if self._ContentModel is not None:
+            if self.__dfaState is None:
+                raise pyxb.StructuralBadDocumentError("Cannot append when state undefined")
+            self.__dfaState = self._ContentModel._step(self, self.__dfaState, value)
+            if self.__dfaState is None:
+                raise pyxb.ExtraContentError('Extra content starting with %s' % (value,))
         return self
 
     def extend (self, value_list):
@@ -1138,16 +1141,18 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             self.xsdConstraintsOK()
             return
         self.__isMixed = (self._CT_MIXED == self._ContentTypeTag)
-        node_list = node.childNodes[:]
-        self._stripMixedContent(node_list)
-        if self._ContentModel is not None:
-            self._ContentModel.interprete(self, node_list)
+        if False:
+            node_list = node.childNodes[:]
             self._stripMixedContent(node_list)
-        if 0 < len(node_list):
-            raise pyxb.ExtraContentError('Extra content starting with %s' % (node_list[0],))
-        #self.extend(node.childNodes[:])
-        #if self.__dfaState is not None:
-        #    raise pyxb.MissingContentError()
+            if self._ContentModel is not None:
+                self._ContentModel.interprete(self, node_list)
+                self._stripMixedContent(node_list)
+            if 0 < len(node_list):
+                raise pyxb.ExtraContentError('Extra content starting with %s' % (node_list[0],))
+        else:
+            self.extend(node.childNodes[:])
+            if (self._ContentModel is not None) and not self._ContentModel.isFinal(self.__dfaState):
+                raise pyxb.MissingContentError()
         return self
 
     def _setDOMFromAttributes (self, element):

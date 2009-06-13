@@ -670,6 +670,9 @@ class ContentModel (pyxb.cscRoot):
     def _step (self, ctd_instance, state, value):
         return self.__stateMap[state].evaluateContent(ctd_instance, value)
 
+    def isFinal (self, state):
+        return self.__stateMap[state].isFinal()
+
     def interprete (self, ctd_instance, node_list):
         """Attempt to match the content model against the node_list.
 
@@ -691,8 +694,6 @@ class ContentModel (pyxb.cscRoot):
                     raise pyxb.MissingContentError()
             state = next_state
         node_list = ctd_instance._stripMixedContent(node_list)
-        if state is not None:
-            raise pyxb.MissingContentError()
 
     def validate (self, available_symbols, allow_residual=False):
         matches = []
