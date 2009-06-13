@@ -151,17 +151,21 @@ class tDefinitions (raw_wsdl.tDefinitions):
     __schema = None
 
     @classmethod
-    def CreateFromDOM (cls, node, *args, **kw):
-        # Get the target namespace and other relevant information, and set the
-        # per-node in scope namespaces so we can do QName resolution.
-        process_schema = kw.pop('process_schema', False)
-        rv = super(tDefinitions, cls).CreateFromDOM(node, *args, **kw)
-        rv.__namespaceContext = pyxb.namespace.NamespaceContext(node)
-        rv.__buildMaps()
+    def _PreFactory_vx (self, args, kw):
+        state = ( kw.pop('process_schema', False),
+                  kw.get('_dom_node', None) )
+        return state
+
+    def _postFactory_vx (self, state):
+        (process_schema, dom_node) = state
+        assert isinstance(dom_node, xml.dom.Node)
+        node_en = pyxb.namespace.ExpandedName(dom_node)
+        self.__namespaceContext = pyxb.namespace.NamespaceContext.GetNodeContext(dom_node)
+        self.__buildMaps()
         if process_schema:
-            rv.__processSchema()
-        rv.__finalizeReferences()
-        return rv
+            self.__processSchema()
+        self.__finalizeReferences()
+        return self
 
     __WSDLCategories = ( 'service', 'port', 'message', 'binding', 'portType' )
     def __buildMaps (self):

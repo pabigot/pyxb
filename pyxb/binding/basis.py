@@ -102,6 +102,20 @@ class _TypeBinding_mixin (_Binding_mixin):
         return self.__element
     __element = None
 
+    @classmethod
+    def _PreFactory_vx (cls, args, kw):
+        """Method invoked upon entry to the Factory method.
+
+        This method is entitled to modify the keywords array.  It can also
+        return a state value which is passed to _postFactory_vx."""
+        return None
+
+    def _postFactory_vx (cls, state):
+        """Method invoked prior to leaving the Factory method.
+
+        This is an instance method, and is given the state that was returned
+        by _PreFactory_vx."""
+        return None
 
     @classmethod
     def Factory (cls, *args, **kw):
@@ -121,7 +135,13 @@ class _TypeBinding_mixin (_Binding_mixin):
         parent constructor.
 
         """
-        return cls._DynamicCreate(*args, **kw)
+        # Invoke _PreFactory_vx for the superseding class, which is where
+        # customizations will be found.
+        used_cls = cls._SupersedingClass()
+        state = used_cls._PreFactory_vx(args, kw)
+        rv = cls._DynamicCreate(*args, **kw)
+        rv._postFactory_vx(state)
+        return rv
 
 class _DynamicCreate_mixin (pyxb.cscRoot):
     """Helper to allow overriding the implementation class.

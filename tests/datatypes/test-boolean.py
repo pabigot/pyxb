@@ -14,9 +14,9 @@ class Test_boolean (unittest.TestCase):
         self.assertFalse(xsd.boolean("false"))
         self.assertFalse(xsd.boolean(0))
         self.assertFalse(xsd.boolean("0"))
+        self.assertFalse(xsd.boolean())
         
     def testInvalid (self):
-        self.assertRaises(TypeError, xsd.boolean)
         self.assertRaises(BadTypeValueError, xsd.boolean, "True")
         self.assertRaises(BadTypeValueError, xsd.boolean, "FALSE")
 

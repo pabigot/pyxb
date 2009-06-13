@@ -106,18 +106,19 @@ class boolean (basis.simpleTypeDefinition, types.IntType):
             return 'true'
         return 'false'
 
-    def __new__ (cls, value, *args, **kw):
-        # Strictly speaking, only 'true' and 'false' should be
-        # recognized; however, since the base type is a built-in,
-        # @todo ensure pickle value is str(self)
-        if value in (1, 0, '1', '0', 'true', 'false'):
-            if value in (1, '1', 'true'):
-                iv = True
-            else:
-                iv = False
-            return super(boolean, cls).__new__(cls, iv, *args, **kw)
-        raise BadTypeValueError('[xsd:boolean] Initializer "%s" not valid for type' % (value,))
-
+    def __new__ (cls, *args, **kw):
+        args = cls._ConvertArguments(args, kw)
+        if 0 < len(args):
+            value = args[0]
+            args = args[1:]
+            if value in (1, 0, '1', '0', 'true', 'false'):
+                if value in (1, '1', 'true'):
+                    iv = True
+                else:
+                    iv = False
+                return super(boolean, cls).__new__(cls, iv, *args, **kw)
+            raise BadTypeValueError('[xsd:boolean] Initializer "%s" not valid for type' % (value,))
+        return super(boolean, cls).__new__(cls, *args, **kw)
 
 _PrimitiveDatatypes.append(boolean)
 
@@ -254,6 +255,7 @@ class dateTime (basis.simpleTypeDefinition, datetime.datetime):
         return self.__hasTimeZone
 
     def __new__ (cls, *args, **kw):
+        args = cls._ConvertArguments(args, kw)
         if 0 == len(args):
             now = python_time.gmtime()
             args = (datetime.datetime(*(now[:7])),)
@@ -397,12 +399,15 @@ class hexBinary (basis.simpleTypeDefinition, types.LongType):
             length = (length+1) >> 1
         return (length, value)
 
-    def __new__ (cls, value, *args, **kw):
+    def __new__ (cls, *args, **kw):
+        args = cls._ConvertArguments(args, kw)
+        value = args[0]
+        rem_args = args[1:]
         if isinstance(value, types.StringTypes):
             (length, binary_value) = cls._ConvertString(value)
         else:
             (length, binary_value) = cls._ConvertValue(value)
-        rv = super(hexBinary, cls).__new__(cls, binary_value, *args, **kw)
+        rv = super(hexBinary, cls).__new__(cls, binary_value, *rem_args, **kw)
         rv.__length = length
         return rv
 
