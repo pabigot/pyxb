@@ -712,11 +712,11 @@ class %{ctd} (%{superclass}):
 ''', **template_map))
         
 
-    PostscriptItems.append('''
-%s._UpdateElementDatatypes({
-    %s
-})
-''' % (template_map['ctd'], ",\n    ".join(datatype_items)))
+#    PostscriptItems.append('''
+#%s._UpdateElementDatatypes({
+#    %s
+#})
+#''' % (template_map['ctd'], ",\n    ".join(datatype_items)))
 
 
     # Create definitions for all attributes.
@@ -839,7 +839,7 @@ def GenerateED (ed, **kw):
 %{class} = pyxb.binding.basis.element2(%{name_expr}, %{typeDefinition}%{element_aux_init})
 Namespace.addCategoryObject('element2Binding', %{class}.name().localName(), %{class})
 ''', **template_map))
-    else:
+    elif False:
         outf.write(templates.replaceInText('''
 
 # ElementDeclaration

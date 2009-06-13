@@ -1172,7 +1172,20 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
 
     @classmethod
     def _PythonMap (cls):
-        return getattr(cls, cls.__PythonMapAttribute(), { })
+        rv = getattr(cls, cls.__PythonMapAttribute(), None)
+        if rv is None:
+            rv = { }
+            removed = 0
+            for eu in cls._ElementMap.values():
+                rv[eu.id()] = eu
+            for au in cls._AttributeMap.values():
+                if au is None:
+                    removed += 1
+                else:
+                    rv[au.id()] = au
+            assert (len(rv) + removed) == (len(cls._ElementMap) + len(cls._AttributeMap)), '%d + %d != %d + %d' % (len(rv), removed, len(cls._ElementMap), len(cls._AttributeMap))
+            setattr(cls, cls.__PythonMapAttribute(), rv)
+        return rv
 
     @classmethod
     def _UpdateElementDatatypes (cls, datatype_map):

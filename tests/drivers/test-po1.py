@@ -28,12 +28,12 @@ Anytown, AS  12345-6789'''
     address2_xml = '<name>Sugar Mama</name><street>24 E. Dearling Ave.</street>'
 
     def testPythonElementSimpleContent (self):
-        elt = USAddress_street(self.street_content)
-        self.assertEqual(self.street_content, elt.content())
+        elt = USAddress._ElementMap['street'].element2()(self.street_content)
+        self.assertEqual(self.street_content, elt)
         self.assertEqual(ToDOM(elt).toxml(), self.street_xml)
 
     def testDOMElementSimpleContent (self):
-        elt = USAddress_street.CreateFromDOM(self.street_dom)
+        elt = USAddress._ElementMap['street'].element2().createFromDOM(self.street_dom)
         self.assertEqual(ToDOM(elt).toxml(), self.street_xml)
 
     def testPythonElementComplexContent_Element (self):
