@@ -360,8 +360,12 @@ class ElementUse (pyxb.cscRoot):
     def _setElementBinding (self, element_binding):
         self.__elementBinding = element_binding
 
+    def element2 (self):
+        return self.__element2
+
     def _setElement2 (self, element2):
         self.__element2 = element2
+    __element2 = None
 
     def defaultValue (self):
         if self.isPlural():
@@ -388,12 +392,10 @@ class ElementUse (pyxb.cscRoot):
         """Set the value of this element in the given instance."""
         if value is None:
             return self.reset(ctd_instance)
-        assert self.__elementBinding is not None
+        assert self.__element2 is not None
         if isinstance(value, basis.element):
             value = value.content()
-        #if not isinstance(value, self.__elementBinding):
-        #    value = self.__elementBinding(value)
-        elt_type = self.__elementBinding._TypeDefinition
+        elt_type = self.__element2.typeDefinition()
         if not isinstance(value, elt_type):
             value = elt_type.Factory(value)
         self.__setValue(ctd_instance, value)
@@ -406,7 +408,7 @@ class ElementUse (pyxb.cscRoot):
     def toDOM (self, dom_support, parent, value):
         element = dom_support.createChild(self.name().localName(), self.name().namespace(), parent)
         if isinstance(value, basis._Binding_mixin):
-            elt_type = self.__elementBinding._TypeDefinition
+            elt_type = self.__element2.typeDefinition()
             val_type = type(value)
             if isinstance(value, basis.complexTypeDefinition):
                 assert isinstance(value, elt_type)
