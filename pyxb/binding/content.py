@@ -607,7 +607,7 @@ class ContentModelState (pyxb.cscRoot):
     def transitions (self):
         return self.__transitions
     
-    def evaluateContent (self, ctd_instance, node_list):
+    def evaluateContent (self, ctd_instance, node_list, model_stack=None):
         """Determine where to go from this state.
 
         If a transition matches, the consumed prefix of node_list has been
@@ -634,6 +634,33 @@ class ContentModelState (pyxb.cscRoot):
             raise pyxb.UnrecognizedContentError(node_list[0])
         raise pyxb.MissingContentError()
 
+class ContentModelStack (object):
+    """A stack of states and content models."""
+
+    __stack = None
+    def __init__ (self, content_model, state=1):
+        self.__stack = []
+        self.pushModelState(content_model, state)
+
+    def pushModelState (self, content_model, state):
+        self.__stack.append( (content_model, state) )
+        return self
+
+    def isTerminal (self):
+        return 0 == len(self.__stack)
+
+    def popModelState (self):
+        if self.isTerminal():
+            raise pyxb.LogicError('Attempt to underflow content model stack')
+        return self.__stack.pop()
+
+    def step (self, ctd_instance, value):
+        (content_model, state) = self.popModelState()
+        state = content_model.step(ctd_instance, state, value, model_stack)
+        if state is not None:
+            self.pushModelState(content_model, state)
+        return self.isTerminal()
+
 class ContentModel (pyxb.cscRoot):
     """The ContentModel is a deterministic finite state automaton which can be
     traversed using a sequence of DOM nodes which are matched on transitions
@@ -646,10 +673,10 @@ class ContentModel (pyxb.cscRoot):
         self.__stateMap = state_map
 
     def initialState (self):
-        return 1
+        return ContentModelStack(self)
 
-    def step (self, ctd_instance, state, value):
-        state = self.__stateMap[state].evaluateContent(ctd_instance, node_list)
+    def _step (self, ctd_instance, state, value, model_stack):
+        state = self.__stateMap[state].evaluateContent(ctd_instance, node_list, model_stack)
 
     def interprete (self, ctd_instance, node_list):
         """Attempt to match the content model against the node_list.
@@ -659,7 +686,7 @@ class ContentModel (pyxb.cscRoot):
         MissingContentError.  There may be material remaining on the
         node_list; it is up to the caller to determine whether this is
         acceptable."""
-        state = self.initialState()
+        state = 1 # self.initialState()
         while state is not None:
             node_list = ctd_instance._stripMixedContent(node_list)
             state = self.__stateMap[state].evaluateContent(ctd_instance, node_list)
@@ -752,41 +779,22 @@ class ModelGroupAll (pyxb.cscRoot):
         alternatives, the node_list is restored and the content model matching
         repeated with store set to update the ctd_instance values.
 
-        @todo: This method complicates things because it won't commit to the
-        consumptions until the whole model is matched.  This step is taken
-        because the match operation corresponds to a single transition in the
-        DFA, and we are not sure whether the transition will be successful.
-        Almost certainly this is not necessary, since the UPA should require
-        that when a prefix of the node list from matches this transition, the
-        whole transition is valid.  On the other hand, that assumes that we're
-        getting valid documents.
+        @note: The UPA ensures that this can be greedy.
         """
-
-        # Save the incoming node list so we can re-execute the
-        # alternatives if they match.
-        saved_node_list = node_list[:]
 
         alternatives = set(self.__alternatives)
         match_order = []
         found_match = True
-        #print 'Starting to match ALL with %d alternatives and %d nodes' % (len(alternatives), len(node_list))
 
         # The alternatives can match in arbitrary order, so repeatedly try
         # them until they're all gone or no match can be found.
         while (0 < len(alternatives)) and found_match:
             found_match = False
-            #if 0 < len(node_list):
-            #    print 'Next up: %s' % (node_list[0],)
-            #else:
-            #    print 'Next up: nothing'
             for alt in alternatives:
                 try:
-                    #print 'Trying alternative %s, required %s: %s' % (alt, alt.required(), alt.contentModel())
                     node_count = len(node_list)
                     alt.contentModel().interprete(ctd_instance, node_list)
-                    #print 'Completed interpret with %d nodes out of %d left' % (len(node_list), node_count)
                     if len(node_list) < node_count:
-                        #print 'Succeeded with alternative %s' % (alt,)
                         match_order.append(alt)
                         alternatives.remove(alt)
                         found_match = True
@@ -796,19 +804,10 @@ class ModelGroupAll (pyxb.cscRoot):
                     pass
         # If there's a required alternative that wasn't matched, raise
         # an error
-        #print 'Checking %d remaining alternatives for required' % (len(alternatives),)
         if 0 < len(alternatives):
             for alt in alternatives:
-                #print 'Alternative %s required %s' % (alt, alt.required())
                 if alt.required():
                     raise pyxb.MissingContentError(alt)
-        # If this isn't a dry run, re-execute the alternatives in the
-        # successful order.
-        #print 'Storing by matching %d alternatives in order' % (len(match_order),)
-        for alt in match_order:
-            #print 'Re-executing alternative %s with %d nodes left' % (alt, len(saved_node_list),)
-            alt.contentModel().interprete(ctd_instance, saved_node_list)
-        assert saved_node_list == node_list
 
 class Wildcard (pyxb.cscRoot):
     """Placeholder for wildcard objects."""
