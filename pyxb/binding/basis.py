@@ -1087,22 +1087,24 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
     def append (self, value):
         if self.__dfaState is None:
             raise pyxb.StructuralBadDocumentError("Cannot append when state undefined")
-        if isinstance(value, xml.dom.Node):
-            if dom.node.COMMENT_NODE == value.nodeType:
+        if isinstance(value, dom.Node):
+            if dom.Node.COMMENT_NODE == value.nodeType:
                 return self
             if value.nodeType in (dom.Node.TEXT_NODE, dom.Node.CDATA_SECTION_NODE):
                 if self.__isMixed:
-                    self._addContent(cn.data)
+                    self._addContent(value.data)
                 else:
                     #print 'Ignoring mixed content'
                     pass
                 return self
             # Do type conversion here
             value = value
-        self.__dfaState = self._ContentModel.step(self, self.__dfaState, value)
+        self.__dfaState = self._ContentModel._step(self, self.__dfaState, value)
+        return self
 
     def extend (self, value_list):
         [ self.append(_v) for _v in value_list ]
+        return self
 
     def __setContent (self, value):
         self.__content = value
@@ -1143,6 +1145,9 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             self._stripMixedContent(node_list)
         if 0 < len(node_list):
             raise pyxb.ExtraContentError('Extra content starting with %s' % (node_list[0],))
+        #self.extend(node.childNodes[:])
+        #if self.__dfaState is not None:
+        #    raise pyxb.MissingContentError()
         return self
 
     def _setDOMFromAttributes (self, element):

@@ -665,7 +665,7 @@ class ContentModel (pyxb.cscRoot):
         self.__stateMap = state_map
 
     def initialState (self):
-        return ContentModelStack(self)
+        return 1 # ContentModelStack(self)
 
     def _step (self, ctd_instance, state, value):
         return self.__stateMap[state].evaluateContent(ctd_instance, value)
@@ -678,7 +678,7 @@ class ContentModel (pyxb.cscRoot):
         MissingContentError.  There may be material remaining on the
         node_list; it is up to the caller to determine whether this is
         acceptable."""
-        state = 1 # self.initialState()
+        state = self.initialState()
         while state is not None:
             node_list = ctd_instance._stripMixedContent(node_list)
             next_state = None
