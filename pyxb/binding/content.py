@@ -392,6 +392,33 @@ class ElementUse (pyxb.cscRoot):
         else:
             raise pyxb.LogicError('toDOM with unrecognized value type %s: %s' % (type(value), value))
 
+class ContentModelStack (object):
+    """A stack of states and content models."""
+
+    __stack = None
+    def __init__ (self, content_model, state=1):
+        self.__stack = []
+        self.pushModelState(content_model, state)
+
+    def pushModelState (self, content_model, state):
+        self.__stack.append( (content_model, state) )
+        return self
+
+    def isTerminal (self):
+        return 0 == len(self.__stack)
+
+    def popModelState (self):
+        if self.isTerminal():
+            raise pyxb.LogicError('Attempt to underflow content model stack')
+        return self.__stack.pop()
+
+    def step (self, ctd_instance, value):
+        (content_model, state) = self.popModelState()
+        state = content_model.step(ctd_instance, state, value, model_stack)
+        if state is not None:
+            self.pushModelState(content_model, state)
+        return self.isTerminal()
+
 class ContentModelTransition (pyxb.cscRoot):
     """Represents a transition in the content model DFA.
 
@@ -601,7 +628,7 @@ class ContentModelState (pyxb.cscRoot):
     def transitions (self):
         return self.__transitions
     
-    def evaluateContent (self, ctd_instance, node_list, model_stack=None):
+    def evaluateContent (self, ctd_instance, node, model_stack=None):
         """Determine where to go from this state.
 
         If a transition matches, the consumed prefix of node_list has been
@@ -618,44 +645,13 @@ class ContentModelState (pyxb.cscRoot):
         @raise pyxb.MissingContentError: content model requires additional data
         """
 
-        if 0 < len(node_list):
-            for transition in self.__transitions:
-                # @todo check nodeName against element
-                if transition.attemptTransition(ctd_instance, node_list[0]):
-                    node_list.pop(0)
-                    return transition.nextState()
+        for transition in self.__transitions:
+            # @todo check nodeName against element
+            if transition.attemptTransition(ctd_instance, node):
+                return transition.nextState()
         if self.isFinal():
             return None
-        if 0 < len(node_list):
-            raise pyxb.UnrecognizedContentError(node_list[0])
-        raise pyxb.MissingContentError()
-
-class ContentModelStack (object):
-    """A stack of states and content models."""
-
-    __stack = None
-    def __init__ (self, content_model, state=1):
-        self.__stack = []
-        self.pushModelState(content_model, state)
-
-    def pushModelState (self, content_model, state):
-        self.__stack.append( (content_model, state) )
-        return self
-
-    def isTerminal (self):
-        return 0 == len(self.__stack)
-
-    def popModelState (self):
-        if self.isTerminal():
-            raise pyxb.LogicError('Attempt to underflow content model stack')
-        return self.__stack.pop()
-
-    def step (self, ctd_instance, value):
-        (content_model, state) = self.popModelState()
-        state = content_model.step(ctd_instance, state, value, model_stack)
-        if state is not None:
-            self.pushModelState(content_model, state)
-        return self.isTerminal()
+        raise pyxb.UnrecognizedContentError(node)
 
 class ContentModel (pyxb.cscRoot):
     """The ContentModel is a deterministic finite state automaton which can be
@@ -685,7 +681,15 @@ class ContentModel (pyxb.cscRoot):
         state = 1 # self.initialState()
         while state is not None:
             node_list = ctd_instance._stripMixedContent(node_list)
-            state = self.__stateMap[state].evaluateContent(ctd_instance, node_list)
+            next_state = None
+            if 0 < len(node_list):
+                next_state = self.__stateMap[state].evaluateContent(ctd_instance, node_list[0])
+                if next_state is not None:
+                    node_list.pop(0)
+            if next_state is None:
+                if not self.__stateMap[state].isFinal():
+                    raise pyxb.MissingContentError()
+            state = next_state
         node_list = ctd_instance._stripMixedContent(node_list)
         if state is not None:
             raise pyxb.MissingContentError()
