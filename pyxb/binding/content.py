@@ -393,8 +393,6 @@ class ElementUse (pyxb.cscRoot):
         if value is None:
             return self.reset(ctd_instance)
         assert self.__element2 is not None
-        if isinstance(value, basis.element):
-            value = value.content()
         elt_type = self.__element2.typeDefinition()
         if not isinstance(value, elt_type):
             value = elt_type.Factory(value)

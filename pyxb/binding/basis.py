@@ -68,9 +68,7 @@ class _Binding_mixin (pyxb.cscRoot):
     def toDOM (self, bds=None):
         if bds is None:
             bds = domutils.BindingDOMSupport()
-        if isinstance(self, element):
-            parent = None
-        elif self._element() is not None:
+        if self._element() is not None:
             parent = bds.createChild(self._element().name().localName(), self._element().name().namespace())
         else:
             parent = bds.createChild(self._ExpandedName.localName(), self._ExpandedName.namespace())
@@ -164,13 +162,6 @@ class _DynamicCreate_mixin (pyxb.cscRoot):
             cls.__dict__.pop(cls.__SupersedingClassAttribute(), None)
         else:
             setattr(cls, cls.__SupersedingClassAttribute(), superseding)
-            if issubclass(cls, element):
-                en = cls._ExpandedName
-                ns = en.namespace()
-                # @todo: When elementFormDefault is qualified, make sure we
-                # don't override non-global elements or types.
-                if (ns is not None) and (cls._NamespaceCategory is not None):
-                    ns.replaceCategoryObject(cls._NamespaceCategory, en.localName(), cls, superseding)
         return superseding
 
     @classmethod
@@ -702,187 +693,6 @@ class STD_list (simpleTypeDefinition, types.ListType):
         """Convert from a binding value to a string usable in an XML document."""
         return ' '.join([ _v.xsdLiteral() for _v in value ])
 
-
-class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
-    """Base class for any Python class that serves as the binding to
-    an XMLSchema element.
-
-    The subclass must define a class variable _TypeDefinition which is
-    a reference to the simpleTypeDefinition or complexTypeDefinition
-    subclass that serves as the information holder for the element.
-
-    Most actions on instances of these clases are delegated to the
-    underlying content object.
-    """
-
-    _NamespaceCategory = 'elementBinding'
-
-    # Reference to the simple or complex type binding that serves as
-    # the content of this element.
-    # MUST BE SET IN SUBCLASS
-    _TypeDefinition = None
-    """The subclass of complexTypeDefinition that is used to represent content in this element."""
-
-    # Reference to the instance of the underlying type
-    __realContent = None
-
-    # Reference to the instance of the underlying type, or to that
-    # type's content if that is a complex type with simple content.
-    __content = None
-    
-    # Symbols that remain the responsibility of this class.  Any
-    # symbols in the type from the content are deconflicted by
-    # providing an alternative name in the subclass.  See the
-    # _DeconflictSymbols_mixin class.
-    _ReservedSymbols = set([ 'content', 'CreateFromDOM', 'toDOM' ])
-
-    # Assign to the content field.  This may manipulate the assigned
-    # value if doing so results in a cleaner interface for the user.
-    def __setContent (self, content):
-        self.__realContent = content
-        self.__content = self.__realContent
-        if isinstance(content, complexTypeDefinition) and content._IsSimpleTypeContent():
-            self.__content = self.__realContent.content()
-        return self
-
-    def __init__ (self, *args, **kw):
-        """Create a new element.
-
-        This sets the content to be an instance created by invoking
-        the Factory method of the element type definition.
-        
-        If the element is a complex type with simple content, the
-        value of the content() is dereferenced once, as a convenience.
-        """
-        content_type = kw.get('_content_type', self._TypeDefinition)
-        if (1 == len(args)) and isinstance(args[0], content_type):
-            self.__setContent(args[0])
-        else:
-            self.__setContent(content_type.Factory(*args, **kw))
-        
-    # Determine which content should be used to dereference a particular
-    # (Python) attribute.  Priority deferral to the real content.
-    def __contentForAttribute (self, name):
-        content = self.__content
-        if self.__content != self.__realContent:
-            if hasattr(self.__realContent, name):
-                content = self.__realContent
-        return content
-
-    # Delegate unrecognized attribute accesses to the nearest content that has
-    # the attribute.
-    def __getattr__ (self, name):
-        return getattr(self.__contentForAttribute(name), name)
-
-    def content (self, dereference_if_simple=True):
-        """Return the element content
-
-        The element content is normally an instance of the _TypeDefinition for
-        this class.  If that type is a subclass of L{CTD_simple}, then the
-        content is the content of that instance, i.e. the underlying simple
-        type.  This normally works because by overloading C{__getattr__} here
-        all attribute references automaticallly delegate to the appropriate
-        content level.
-
-        @keyword dereference_if_simple: If True (default), the contained
-        simple data type instance is returned if the type of the element is a
-        complex type with simple content.  If False, will always return the
-        immediate content node which is an instance of L{_TypeDefinition}.
-        @type dereference_if_simple: C{bool}
-        """
-        if dereference_if_simple:
-            return self.__content
-        return self.__realContent
-    
-    @classmethod
-    def AnyCreateFromDOM (cls, node, fallback_namespace):
-        expanded_name = pyxb.namespace.ExpandedName(node, fallback_namespace=fallback_namespace)
-        cls = expanded_name.elementBinding()
-        if cls is None:
-            raise pyxb.exceptions_.UnrecognizedElementError('No class available for %s' % (expanded_name,))
-        if not issubclass(cls, pyxb.binding.basis.element):
-            raise pyxb.exceptions_.NotAnElementError('Tag %s does not exist as element in module' % (expanded_name,))
-        return cls.CreateFromDOM(node)
-        
-    @classmethod
-    def CreateFromDOM (cls, node, **kw):
-        """Create an instance of this element from the given DOM node.
-
-        :raise pyxb.LogicError: the name of the node is not consistent with
-        the _ExpandedName of this class."""
-
-        # Identify the element binding to be used for the given node.  In the
-        # case of substitution groups, it may not be what we expect.
-        elt_ns = cls._ExpandedName.namespace()
-        if cls._ElementScope is None:
-            node_name = pyxb.namespace.ExpandedName(node, fallback_namespace=elt_ns)
-            elt_cls = node_name.elementBinding()
-            if elt_cls is not None:
-                if cls != elt_cls:
-                    print 'Node %s cls %s elt_cls %s' % (node, cls, elt_cls)
-                assert cls == elt_cls
-
-        # Now determine the type binding for the content.  If xsi:type is
-        # used, it won't be the one built into the element binding.
-        type_class = cls._TypeDefinition
-        xsi_type = pyxb.namespace.ExpandedName(pyxb.namespace.XMLSchema_instance, 'type')
-        type_name = xsi_type.getAttribute(node)
-        dc_kw = { }
-        if type_name is not None:
-            # xsi:type should only be provided when using an abstract class
-            if not (issubclass(type_class, complexTypeDefinition) and type_class._Abstract):
-                raise pyxb.BadDocumentError('%s attribute on element with non-abstract type' % (xsi_type,))
-            # Get the node context.  In case none has been assigned, create
-            # it, using the element namespace as the default environment
-            # (since we only need this in order to resolve the xsi:type qname,
-            # that should be okay, right?)  @todo: verify this
-            ns_ctx = pyxb.namespace.NamespaceContext.GetNodeContext(node, target_namespace=elt_ns, default_namespace=elt_ns)
-            assert ns_ctx
-            type_name = ns_ctx.interpretQName(type_name)
-            alternative_type_class = type_name.typeBinding()
-            if not issubclass(alternative_type_class, type_class):
-                raise pyxb.BadDocumentError('%s value %s is not subclass of element type %s' % (xsi_type, type_name, type_class._ExpandedName))
-            type_class = alternative_type_class
-            dc_kw['_content_type'] = type_class
-        instance_root = kw.pop('instance_root', None)
-        if not cls._ExpandedName.nodeMatches(node):
-            node_en = pyxb.namespace.ExpandedName(node)
-            
-        value = type_class._SupersedingClass().CreateFromDOM(node)
-        if issubclass(type_class, simpleTypeDefinition):
-            rv = cls._DynamicCreate(value)
-        else:
-            rv = cls._DynamicCreate(validate_constraints=False, **dc_kw)
-            rv.__setContent(value)
-        if isinstance(rv, simpleTypeDefinition):
-            rv.xsdConstraintsOK()
-        rv._setBindingContext(node, instance_root)
-        return rv
-
-    def _toDOM_vx (self, dom_support, parent):
-        """Add a DOM representation of this element as a child of
-        parent, which should be a DOM Node instance."""
-        assert isinstance(dom_support, domutils.BindingDOMSupport)
-        element = dom_support.createChild(self._ExpandedName.localName(), self._ExpandedName.namespace(), parent)
-        self.__realContent._toDOM_vx(dom_support, parent=element)
-        return dom_support
-
-    def __str__ (self):
-        if isinstance(self.content(), simpleTypeDefinition):
-            rv = self.content()
-            if isinstance(rv, unicode):
-                return rv.encode('utf-8')
-            return str(rv)
-        return str(self.content())
-
-    @classmethod
-    def _IsSimpleTypeContent (cls):
-        """Elements with types that are smple are themselves simple"""
-        return cls._TypeDefinition._IsSimpleTypeContent()
-
-    def _validateBinding_vx (self):
-        self.__realContent.validateBinding()
-
 class element2 (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
     """Base class for any Python class that serves as the binding to
     an XMLSchema element.
@@ -1002,7 +812,7 @@ class element2 (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate
         if not self.name().nodeMatches(node):
             node_en = pyxb.namespace.ExpandedName(node)
             
-        rv = type_class._SupersedingClass().CreateFromDOM(node)
+        rv = type_class._SupersedingClass().CreateFromDOM(node, **kw)
         if isinstance(rv, simpleTypeDefinition):
             rv.xsdConstraintsOK()
         rv._setBindingContext(node, instance_root)
