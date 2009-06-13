@@ -357,14 +357,12 @@ class ElementUse (pyxb.cscRoot):
         self.__isPlural = is_plural
         self.__elementBinding = element_binding
 
-    def _setElementBinding (self, element_binding):
-        self.__elementBinding = element_binding
-
     def element2 (self):
         return self.__element2
 
     def _setElement2 (self, element2):
         self.__element2 = element2
+        
     __element2 = None
 
     def defaultValue (self):

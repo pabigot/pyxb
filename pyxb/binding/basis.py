@@ -999,30 +999,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
 
     @classmethod
     def _AddElement (cls, element):
-        eu = cls._ElementMap.get(element.name())
-        eu._setElement2(element)
-
-    @classmethod
-    def _UseForElement (cls, element):
-        """Return the ElementUse object corresponding to the element type.
-
-        :param element: A Python class corresponding to an element binding.
-        """
-        for eu in cls._ElementMap.values():
-            if element == eu.elementBinding():
-                return eu
-        return None
-
-    @classmethod
-    def _UseForValue (cls, value):
-        """Return the ElementUse object corresponding to the type of the value.
- 
-        :param value: An instance of _Binding_mixin.
-        """
-        for eu in cls._ElementMap.values():
-            if isinstance(value, eu.elementBinding()._TypeDefinition):
-                return eu
-        return None
+        return cls._UseForTag(element.name())._setElement2(element)
 
     @classmethod
     def _UseForTag (cls, tag):
@@ -1210,14 +1187,6 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
     def _IsSimpleTypeContent (cls):
         """CTDs with simple content are simple"""
         return cls._CT_SIMPLE == cls._ContentTypeTag
-
-    def _setContent (self, value):
-        for eu in self._ElementMap.values():
-            if isinstance(value, eu.elementBinding()._TypeDefinition):
-                eu.setValue(self, value)
-                return
-        raise pyxb.PyXBError('Unable to store value of type %s into complex type %s' % (type(value), self._ExpandedName))
- 
 
 ## Local Variables:
 ## fill-column:78
