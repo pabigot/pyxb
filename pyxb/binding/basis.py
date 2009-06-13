@@ -926,10 +926,8 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             self.__setContent(self._TypeDefinition.Factory(_dom_node=dom_node, *args, **kw))
         # Extract keywords that match field names
         attribute_settings = { }
-        validate_attributes=False
         if dom_node is not None:
             attribute_settings.update(self.__AttributesFromDOM(dom_node))
-            validate_attributes=True
         for fu in self._AttributeMap.values():
             iv = kw.get(fu.id())
             if iv is not None:
@@ -1099,6 +1097,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
                     #print 'Ignoring mixed content'
                     pass
                 return self
+            # Do type conversion here
             value = value
         self.__dfaState = self._ContentModel.step(self, self.__dfaState, value)
 

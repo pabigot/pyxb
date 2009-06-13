@@ -524,7 +524,7 @@ class ContentModelTransition (pyxb.cscRoot):
             return self.__validateConsume(None, available_symbols_im, output_sequence_im, candidates)
         return False
 
-    def attemptTransition (self, ctd_instance, node_list, store):
+    def attemptTransition (self, ctd_instance, node_list):
         """Attempt to make the appropriate transition.
 
         If something goes wrong, a BadDocumentError will be propagated through
@@ -542,13 +542,12 @@ class ContentModelTransition (pyxb.cscRoot):
             if element is None:
                 return False
             node_list.pop(0)
-            if store:
-                if self.__elementUse.isPlural():
-                    self.__elementUse.append(ctd_instance, element)
-                else:
-                    self.__elementUse.set(ctd_instance, element)
+            if self.__elementUse.isPlural():
+                self.__elementUse.append(ctd_instance, element)
+            else:
+                self.__elementUse.set(ctd_instance, element)
         elif self.TT_modelGroupAll == self.__termType:
-            self.__term.matchAlternatives(ctd_instance, node_list, store)
+            self.__term.matchAlternatives(ctd_instance, node_list)
         elif self.TT_wildcard == self.__termType:
             if 0 == len(node_list):
                 return False
@@ -571,8 +570,7 @@ class ContentModelTransition (pyxb.cscRoot):
                     print 'Need to dynamically create schema'
             except Exception, e:
                 print 'WARNING: Unable to convert wildcard %s %s to Python instance: %s' % (node.namespaceURI, node.localName, e)
-            if store:
-                ctd_instance.wildcardElements().append(node)
+            ctd_instance.wildcardElements().append(node)
         else:
             raise pyxb.LogicError('Unexpected transition term %s' % (self.__term,))
         return True
@@ -609,7 +607,7 @@ class ContentModelState (pyxb.cscRoot):
     def transitions (self):
         return self.__transitions
     
-    def evaluateContent (self, ctd_instance, node_list, store):
+    def evaluateContent (self, ctd_instance, node_list):
         """Determine where to go from this state.
 
         If a transition matches, the consumed prefix of node_list has been
@@ -628,7 +626,7 @@ class ContentModelState (pyxb.cscRoot):
 
         for transition in self.__transitions:
             # @todo check nodeName against element
-            if transition.attemptTransition(ctd_instance, node_list, store):
+            if transition.attemptTransition(ctd_instance, node_list):
                 return transition.nextState()
         if self.isFinal():
             return None
@@ -653,7 +651,7 @@ class ContentModel (pyxb.cscRoot):
     def step (self, ctd_instance, state, value):
         state = self.__stateMap[state].evaluateContent(ctd_instance, node_list)
 
-    def interprete (self, ctd_instance, node_list, store=True):
+    def interprete (self, ctd_instance, node_list):
         """Attempt to match the content model against the node_list.
 
         When a state has been reached from which no transition is possible,
@@ -664,7 +662,7 @@ class ContentModel (pyxb.cscRoot):
         state = self.initialState()
         while state is not None:
             node_list = ctd_instance._stripMixedContent(node_list)
-            state = self.__stateMap[state].evaluateContent(ctd_instance, node_list, store)
+            state = self.__stateMap[state].evaluateContent(ctd_instance, node_list)
         node_list = ctd_instance._stripMixedContent(node_list)
         if state is not None:
             raise pyxb.MissingContentError()
@@ -743,7 +741,7 @@ class ModelGroupAll (pyxb.cscRoot):
         candidates.append( (next_state, symbols, output_sequence) )
         return True
 
-    def matchAlternatives (self, ctd_instance, node_list, store=True):
+    def matchAlternatives (self, ctd_instance, node_list):
         """Match the node_list against the alternatives in this model group.
 
         This method creates a set holding all the alternatives, then walks the
@@ -771,7 +769,7 @@ class ModelGroupAll (pyxb.cscRoot):
         alternatives = set(self.__alternatives)
         match_order = []
         found_match = True
-        #print 'Starting to match ALL with %d alternatives and %d nodes, store is %s' % (len(alternatives), len(node_list), store)
+        #print 'Starting to match ALL with %d alternatives and %d nodes' % (len(alternatives), len(node_list))
 
         # The alternatives can match in arbitrary order, so repeatedly try
         # them until they're all gone or no match can be found.
@@ -785,7 +783,7 @@ class ModelGroupAll (pyxb.cscRoot):
                 try:
                     #print 'Trying alternative %s, required %s: %s' % (alt, alt.required(), alt.contentModel())
                     node_count = len(node_list)
-                    alt.contentModel().interprete(ctd_instance, node_list, store=False)
+                    alt.contentModel().interprete(ctd_instance, node_list)
                     #print 'Completed interpret with %d nodes out of %d left' % (len(node_list), node_count)
                     if len(node_list) < node_count:
                         #print 'Succeeded with alternative %s' % (alt,)
@@ -794,7 +792,7 @@ class ModelGroupAll (pyxb.cscRoot):
                         found_match = True
                         break
                 except pyxb.BadDocumentError, e:
-                    #print 'Failed with alternative %s: %s' % (alt, type(e))
+                    print 'Failed with alternative %s: %s' % (alt, type(e))
                     pass
         # If there's a required alternative that wasn't matched, raise
         # an error
@@ -806,12 +804,11 @@ class ModelGroupAll (pyxb.cscRoot):
                     raise pyxb.MissingContentError(alt)
         # If this isn't a dry run, re-execute the alternatives in the
         # successful order.
-        if store:
-            #print 'Storing by matching %d alternatives in order' % (len(match_order),)
-            for alt in match_order:
-                #print 'Re-executing alternative %s with %d nodes left' % (alt, len(saved_node_list),)
-                alt.contentModel().interprete(ctd_instance, saved_node_list)
-            assert saved_node_list == node_list
+        #print 'Storing by matching %d alternatives in order' % (len(match_order),)
+        for alt in match_order:
+            #print 'Re-executing alternative %s with %d nodes left' % (alt, len(saved_node_list),)
+            alt.contentModel().interprete(ctd_instance, saved_node_list)
+        assert saved_node_list == node_list
 
 class Wildcard (pyxb.cscRoot):
     """Placeholder for wildcard objects."""
