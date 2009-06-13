@@ -2,15 +2,15 @@ from raw.soap import *
 import pyxb.standard.bindings.raw.soap as raw_soap
 from pyxb.standard.bindings.wsdl import _WSDL_binding_mixin, _WSDL_port_mixin, _WSDL_operation_mixin
 
-class binding (raw_soap.binding, _WSDL_binding_mixin):
+class tBinding (raw_soap.tBinding, _WSDL_binding_mixin):
     pass
-raw_soap.binding._SetSupersedingClass(binding)
+raw_soap.tBinding._SetSupersedingClass(tBinding)
 
-class address (raw_soap.address, _WSDL_port_mixin):
+class tAddress (raw_soap.tAddress, _WSDL_port_mixin):
     pass
-raw_soap.address._SetSupersedingClass(address)
+raw_soap.tAddress._SetSupersedingClass(tAddress)
 
-class operation (raw_soap.operation, _WSDL_operation_mixin):
+class tOperation (raw_soap.tOperation, _WSDL_operation_mixin):
     def locationInformation (self):
         rvl = []
         if self.soapAction() is not None:
@@ -18,4 +18,4 @@ class operation (raw_soap.operation, _WSDL_operation_mixin):
         if self.style() is not None:
             rvl.append('style=%s' % (self.style(),))
         return ','.join(rvl)
-raw_soap.operation._SetSupersedingClass(operation)
+raw_soap.tOperation._SetSupersedingClass(tOperation)

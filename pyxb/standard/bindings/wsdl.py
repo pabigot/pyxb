@@ -118,7 +118,7 @@ class tBindingOperation (raw_wsdl.tBindingOperation):
     __operationReference = None
 raw_wsdl.tBindingOperation._SetSupersedingClass(tBindingOperation)
 
-class definitions (raw_wsdl.definitions):
+class tDefinitions (raw_wsdl.tDefinitions):
     def messageMap (self):
         return self.targetNamespace().messages()
 
@@ -155,7 +155,7 @@ class definitions (raw_wsdl.definitions):
         # Get the target namespace and other relevant information, and set the
         # per-node in scope namespaces so we can do QName resolution.
         process_schema = kw.pop('process_schema', False)
-        rv = super(definitions, cls).CreateFromDOM(node, *args, **kw)
+        rv = super(tDefinitions, cls).CreateFromDOM(node, *args, **kw)
         rv.__namespaceContext = pyxb.namespace.NamespaceContext(node)
         rv.__buildMaps()
         if process_schema:
@@ -237,4 +237,4 @@ class definitions (raw_wsdl.definitions):
                     type_en = p._namespaceContext().interpretQName(p.type())
                     p._setTypeReference(type_en.typeDefinition())
 
-raw_wsdl.definitions._SetSupersedingClass(definitions)
+raw_wsdl.tDefinitions._SetSupersedingClass(tDefinitions)
