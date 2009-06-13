@@ -26,8 +26,7 @@ class _Binding_mixin (pyxb.cscRoot):
     """Mix-in used to identify classes that are bindings to some XML schema
     object.
 
-    @todo: Hide (or remove) domNode, leaving only namespaceContext visible.
-    Define the process for providing a namespace context when creating
+    @todo: Define the process for providing a namespace context when creating
     documents from instances that were not created by CreateFromDOM.
 
     """
@@ -36,22 +35,6 @@ class _Binding_mixin (pyxb.cscRoot):
 
     _ExpandedName = None
     """The expanded name of the component."""
-
-    def _domNode (self):
-        """The DOM node from which the object was initialized."""
-        return self.__domNode
-    __domNode = None
-
-    def _namespaceContext (self):
-        """The namespace context applicable to the object."""
-        return pyxb.namespace.NamespaceContext.GetNodeContext(self.__domNode)
-    
-    def _instanceRoot (self):
-        return self.__instanceRoot
-
-    def _setBindingContext (self, node, instance_root):
-        self.__domNode = node
-        self.__instanceRoot = instance_root
 
     @classmethod
     def _IsSimpleTypeContent (cls):
@@ -366,7 +349,6 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
         # @todo support _DynamicCreate
         instance_root = kw.pop('instance_root', None)
         rv = cls.Factory(domutils.ExtractTextContent(node), apply_whitespace_facet=True)
-        rv._setBindingContext(node, instance_root)
         return rv
 
     # Must override new, because new gets invoked before init, and
@@ -817,7 +799,6 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
         rv = type_class._SupersedingClass().CreateFromDOM(node, **kw)
         if isinstance(rv, simpleTypeDefinition):
             rv.xsdConstraintsOK()
-        rv._setBindingContext(node, instance_root)
         rv._setElement(self)
         return rv
 
@@ -955,7 +936,6 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         rv = cls.Factory(validate_constraints=False)
         rv._setAttributesFromDOM(node)
         rv._setContentFromDOM(node)
-        rv._setBindingContext(node, instance_root)
         return rv
 
     # Specify the symbols to be reserved for all CTDs.
