@@ -343,10 +343,8 @@ class ElementUse (pyxb.cscRoot):
     def __setValue (self, ctd_instance, value):
         #print 'Set value of %s to %s' % (self.name(), value)
         if self.isPlural():
-            values = self.value(ctd_instance)
-            values.append(value)
             return values
-        return setattr(ctd_instance, self.__key, value)
+        return 
 
     # @todo Distinguish based on plurality
     def set (self, ctd_instance, value):
@@ -357,12 +355,20 @@ class ElementUse (pyxb.cscRoot):
         elt_type = self.__elementBinding.typeDefinition()
         if not isinstance(value, elt_type):
             value = elt_type.Factory(value)
-        self.__setValue(ctd_instance, value)
+        setattr(ctd_instance, self.__key, value)
         if isinstance(value, list):
             [ ctd_instance._addContent(_elt) for _elt in value ]
         else:
             ctd_instance._addContent(value)
         return self
+
+    def append (self, ctd_instance, value):
+        if not self.isPlural():
+            raise pyxb.StructuralBadDocumentError('Cannot append to element with non-plural multiplicity')
+        values = self.value(ctd_instance)
+        values.append(value)
+        ctd_instance._addContent(value)
+        return values
 
     def toDOM (self, dom_support, parent, value):
         element = dom_support.createChild(self.name().localName(), self.name().namespace(), parent)
@@ -537,7 +543,10 @@ class ContentModelTransition (pyxb.cscRoot):
                 return False
             node_list.pop(0)
             if store:
-                self.__elementUse.set(ctd_instance, element)
+                if self.__elementUse.isPlural():
+                    self.__elementUse.append(ctd_instance, element)
+                else:
+                    self.__elementUse.set(ctd_instance, element)
         elif self.TT_modelGroupAll == self.__termType:
             self.__term.matchAlternatives(ctd_instance, node_list, store)
         elif self.TT_wildcard == self.__termType:

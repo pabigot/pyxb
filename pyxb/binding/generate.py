@@ -670,6 +670,9 @@ class %{ctd} (%{superclass}):
                 ef_map.update(elementDeclarationMap(ed, **kw))
                 aux_init = []
                 ef_map['is_plural'] = repr(is_plural)
+                if is_plural:
+                    unique_name = ef_map['id']
+                    ef_map['appender'] = utility.PrepareIdentifier('add' + unique_name[0].upper() + unique_name[1:], class_unique, class_keywords)
                 element_uses.append(templates.replaceInText('%{name_expr} : %{use}', **ef_map))
                 datatype_items.append("%s : %s" % (ef_map['name_expr'], pythonLiteral(ed, **kw)))
                 if 0 == len(aux_init):
@@ -695,6 +698,13 @@ class %{ctd} (%{superclass}):
         """Set the value of the %{name} element.  Raises BadValueTypeException
         if the new value is not consistent with the element's type."""
         return self.%{use}.set(self, new_value)''', **ef_map))
+            if is_plural:
+                definitions.append(templates.replaceInText('''
+    def %{appender} (self, new_value):
+        """Add the value as another occurrence of the %{name} element.  Raises
+        BadValueTypeException if the new value is not consistent with the
+        element's type."""
+        return self.%{use}.append(self, new_value)''', **ef_map))
 
             PostscriptItems.append(templates.replaceInText('''
 %{ctd}._AddElement(pyxb.binding.basis.element(%{name_expr}, %{typeDefinition}%{element_aux_init}))
@@ -776,6 +786,8 @@ class %{ctd} (%{superclass}):
         """Set the attribute value for %{name}.  Raises BadValueTypeException
         if the new value is not consistent with the attribute's type."""
         return self.%{use}.set(self, new_value)''', **au_map))
+        
+
 
     if ctd.attributeWildcard() is not None:
         definitions.append('_AttributeWildcard = %s' % (pythonLiteral(ctd.attributeWildcard(), **kw),))

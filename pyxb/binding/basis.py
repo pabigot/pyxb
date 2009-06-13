@@ -941,7 +941,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             iv = kw.get(id, iv)
             if iv is not None:
                 if isinstance(iv, list):
-                    [ fu.set(self, _elt) for _elt in iv ]
+                    [ fu.append(self, _elt) for _elt in iv ]
                 else:
                     fu.set(self, iv)
         if dom_node is not None:
