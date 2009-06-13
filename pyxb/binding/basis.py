@@ -931,19 +931,25 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             elif self._CT_SIMPLE != self._ContentTypeTag:
                 raise pyxb.IncompleteImplementationError('No %s constructor support for argument %s' % (type(self), args[0]))
         # Extract keywords that match field names
-        for fu in self._PythonMap().values():
-            import content
-            fu.reset(self)
+        for fu in self._AttributeMap.values():
             iv = None
             if that is not None:
                 iv = fu.value(that)
             id = fu.id()
             iv = kw.get(id, iv)
             if iv is not None:
-                if isinstance(iv, list):
-                    [ fu.append(self, _elt) for _elt in iv ]
-                else:
-                    fu.set(self, iv)
+                fu.set(self, iv)
+        for fu in self._ElementMap.values():
+            iv = None
+            if that is not None:
+                iv = fu.value(that)
+            id = fu.id()
+            iv = kw.get(id, iv)
+            if iv is not None:
+               if isinstance(iv, list):
+                   [ fu.append(self, _elt) for _elt in iv ]
+               else:
+                   fu.set(self, iv)
         if dom_node is not None:
             self._setAttributesFromDOM(dom_node)
             self._setContentFromDOM(dom_node)
@@ -955,27 +961,6 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
     # None, or a reference to a ContentModel instance that defines how to
     # reduce a DOM node list to the body of this element.
     _ContentModel = None
-
-    @classmethod
-    def __PythonMapAttribute (cls):
-        return '_%s_PythonMap' % (cls.__name__,)
-
-    @classmethod
-    def _PythonMap (cls):
-        rv = getattr(cls, cls.__PythonMapAttribute(), None)
-        if rv is None:
-            rv = { }
-            removed = 0
-            for eu in cls._ElementMap.values():
-                rv[eu.id()] = eu
-            for au in cls._AttributeMap.values():
-                if au is None:
-                    removed += 1
-                else:
-                    rv[au.id()] = au
-            assert (len(rv) + removed) == (len(cls._ElementMap) + len(cls._AttributeMap)), '%d + %d != %d + %d' % (len(rv), removed, len(cls._ElementMap), len(cls._AttributeMap))
-            setattr(cls, cls.__PythonMapAttribute(), rv)
-        return rv
 
     @classmethod
     def _AddElement (cls, element):
