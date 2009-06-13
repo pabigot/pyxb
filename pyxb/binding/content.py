@@ -298,9 +298,6 @@ class ElementUse (pyxb.cscRoot):
         return self.__elementBinding
     __elementBinding = None
 
-    def setElement (self, elt):
-        self.__element2 = elt
-
     def isPlural (self):
         """True iff the content model indicates that more than one element
         can legitimately belong to this use.
@@ -362,6 +359,9 @@ class ElementUse (pyxb.cscRoot):
 
     def _setElementBinding (self, element_binding):
         self.__elementBinding = element_binding
+
+    def _setElement2 (self, element2):
+        self.__element2 = element2
 
     def defaultValue (self):
         if self.isPlural():

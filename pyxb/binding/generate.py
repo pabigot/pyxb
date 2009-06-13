@@ -697,7 +697,7 @@ class %{ctd} (%{superclass}):
         return self.%{use}.setValue(self, new_value)''', **ef_map))
 
             PostscriptItems.append(templates.replaceInText('''
-%{ctd}._AddElement(%{name_expr}, %{typeDefinition}%{element_aux_init})
+%{ctd}._AddElement(pyxb.binding.basis.element2(%{name_expr}, %{typeDefinition}%{element_aux_init}))
 ''', ctd=template_map['ctd'], **ef_map))
 
         fa = nfa.Thompson(content_basis).nfa()
