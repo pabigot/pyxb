@@ -392,23 +392,43 @@ class ElementUse (pyxb.cscRoot):
         else:
             raise pyxb.LogicError('toDOM with unrecognized value type %s: %s' % (type(value), value))
 
+class _DFAState (object):
+    __contentModel = None
+    __state = None
+
+    def __init__ (self, content_model, state=1):
+        self.__contentModel = content_model
+        self.__state = state
+
+    def state (self):
+        return self.__state
+    def contentModel (self):
+        return self.__contentModel
+    def updateState (self, state):
+        self.__state = state
+        return self
+
+    def step (self, ctd_instance, value):
+        self.__state = self.contentModel()._step(ctd_instance, self.state(), value)
+        return self.__state
+
+    def isFinal (self):
+        return self.contentModel().isFinal(self.state())
+
 class ContentModelStack (object):
     """A stack of states and content models."""
 
     __stack = None
     def __init__ (self, content_model, state=1):
         self.__stack = []
-        self.pushModelState(content_model, state)
+        self.pushModelState(_DFAState(content_model, state))
 
-    def pushModelState (self, content_model, state):
-        self.__stack.append( (content_model, state) )
+    def pushModelState (self, model_state):
+        self.__stack.append(model_state)
         return self
 
     def isTerminal (self):
-        if 0 == len(self.__stack):
-            return True
-        (content_model, state) = self.topModelState()
-        return content_model.isFinal(state)
+        return (0 == len(self.__stack)) or self.topModelState().isFinal()
 
     def popModelState (self):
         if 0 == len(self.__stack):
@@ -421,10 +441,9 @@ class ContentModelStack (object):
         return self.__stack[-1]
 
     def step (self, ctd_instance, value):
-        (content_model, state) = self.popModelState()
-        state = content_model._step(ctd_instance, state, value)
-        if state is not None:
-            self.pushModelState(content_model, state)
+        state = self.topModelState().step(ctd_instance, value)
+        if state is None:
+            self.popModelState()
         return state is not None
 
 class ContentModelTransition (pyxb.cscRoot):
