@@ -925,10 +925,16 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         if self._CT_SIMPLE == self._ContentTypeTag:
             self.__setContent(self._TypeDefinition.Factory(_dom_node=dom_node, *args, **kw))
         # Extract keywords that match field names
+        attribute_settings = { }
+        validate_attributes=False
+        if dom_node is not None:
+            attribute_settings.update(self.__AttributesFromDOM(dom_node))
+            validate_attributes=True
         for fu in self._AttributeMap.values():
             iv = kw.get(fu.id())
             if iv is not None:
-                fu.set(self, iv)
+                attribute_settings[fu.name()] = iv
+        self.__setAttributes(attribute_settings, dom_node)
         for fu in self._ElementMap.values():
             iv = kw.get(fu.id())
             if iv is not None:
@@ -937,7 +943,6 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
                else:
                    fu.set(self, iv)
         if dom_node is not None:
-            self._setAttributesFromDOM(dom_node)
             self._setContentFromDOM(dom_node)
 
     # Specify the symbols to be reserved for all CTDs.
@@ -1012,7 +1017,26 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             else:
                 print 'WARNING: Cannot validate value %s in field %s' % (value, eu.id())
 
-    def _setAttributesFromDOM (self, node):
+    @classmethod
+    def __AttributesFromDOM (cls, node):
+        attribute_settings = { }
+        for ai in range(0, node.attributes.length):
+            attr = node.attributes.item(ai)
+            attr_en = pyxb.namespace.ExpandedName(attr)
+
+            # Ignore xmlns and xsi attributes; we've already handled those
+            if attr_en.namespace() in ( pyxb.namespace.XMLNamespaces, pyxb.namespace.XMLSchema_instance ):
+                continue
+
+            value = attr.value
+            au = cls._AttributeMap.get(attr_en)
+            if au is None:
+                if cls._AttributeWildcard is None:
+                    raise pyxb.UnrecognizedAttributeError('Attribute %s is not permitted in type %s' % (attr_en, cls._ExpandedName))
+            attribute_settings[attr_en] = value
+        return attribute_settings
+
+    def __setAttributes (self, attribute_settings, dom_node):
         """Initialize the attributes of this element from those of the DOM node.
 
         Raises pyxb.UnrecognizedAttributeError if the DOM node has attributes
@@ -1021,30 +1045,22 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         
         # Handle all the attributes that are present in the node
         attrs_available = set(self._AttributeMap.values())
-        for ai in range(0, node.attributes.length):
-            attr = node.attributes.item(ai)
-            attr_en = pyxb.namespace.ExpandedName(attr)
-            # Ignore xmlns attributes; DOM got those
-            if attr_en.namespace() in ( pyxb.namespace.XMLNamespaces, pyxb.namespace.XMLSchema_instance ):
-                continue
-
-            value = attr.value
-
-            # @todo handle cross-namespace attributes
+        for (attr_en, value) in attribute_settings.items():
             au = self._AttributeMap.get(attr_en, None)
             if au is None:
                 if self._AttributeWildcard is None:
                     raise pyxb.UnrecognizedAttributeError('Attribute %s is not permitted in type %s' % (attr_en, self._ExpandedName))
                 self.__wildcardAttributeMap[attr_en] = value
                 continue
-            au.set(self, node)
+            au.set(self, value)
             attrs_available.remove(au)
 
         # Handle all the ones that aren't present.  NB: Don't just reset the
         # attribute; we need to check for missing ones, which is done by
         # au.set.
-        for au in attrs_available:
-            au.set(self, node)
+        if dom_node is not None:
+            for au in attrs_available:
+                au.set(self, dom_node)
         return self
 
     def xsdConstraintsOK (self):
