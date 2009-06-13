@@ -20,11 +20,11 @@ class TestMGAll (unittest.TestCase):
     def testRequired (self):
         xml = '<ns1:required xmlns:ns1="URN:test-mg-all"/>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
-        self.assertRaises(MissingContentError, required.CreateFromDOM, dom.documentElement)
+        self.assertRaises(MissingContentError, required.createFromDOM, dom.documentElement)
 
         xml = '<ns1:required xmlns:ns1="URN:test-mg-all"><first/><second/><third/></ns1:required>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
-        instance = required.CreateFromDOM(dom.documentElement)
+        instance = required.createFromDOM(dom.documentElement)
         self.assert_(isinstance(instance.first(), required_first._TypeDefinition))
         self.assert_(isinstance(instance.second(), required_second._TypeDefinition))
         self.assert_(isinstance(instance.third(), required_third._TypeDefinition))
@@ -32,7 +32,7 @@ class TestMGAll (unittest.TestCase):
     def testRequiredMisordered (self):
         xml = '<ns1:required xmlns:ns1="URN:test-mg-all"><third/><first/><second/></ns1:required>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
-        instance = required.CreateFromDOM(dom.documentElement)
+        instance = required.createFromDOM(dom.documentElement)
         self.assert_(isinstance(instance.first(), required_first._TypeDefinition))
         self.assert_(isinstance(instance.second(), required_second._TypeDefinition))
         self.assert_(isinstance(instance.third(), required_third._TypeDefinition))
@@ -40,7 +40,7 @@ class TestMGAll (unittest.TestCase):
     def testRequiredTooMany (self):
         xml = '<ns1:required xmlns:ns1="URN:test-mg-all"><third/><first/><second/><third/></ns1:required>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
-        self.assertRaises(ExtraContentError, required.CreateFromDOM, dom.documentElement)
+        self.assertRaises(ExtraContentError, required.createFromDOM, dom.documentElement)
 
     def testThirdOptional (self):
         xml = '<ns1:thirdOptional xmlns:ns1="URN:test-mg-all"><first/><second/></ns1:thirdOptional>'
@@ -64,28 +64,28 @@ class TestMGAll (unittest.TestCase):
     def testOptional (self):
         xml = '<ns1:optional xmlns:ns1="URN:test-mg-all"/>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
-        instance = optional.CreateFromDOM(dom.documentElement)
+        instance = optional.createFromDOM(dom.documentElement)
         self.assert_(instance.first() is None)
         self.assert_(instance.second() is None)
         self.assert_(instance.third() is None)
 
         xml = '<ns1:optional xmlns:ns1="URN:test-mg-all"><first/><second/><third/></ns1:optional>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
-        instance = optional.CreateFromDOM(dom.documentElement)
+        instance = optional.createFromDOM(dom.documentElement)
         self.assert_(isinstance(instance.first(), optional_first._TypeDefinition))
         self.assert_(isinstance(instance.second(), optional_second._TypeDefinition))
         self.assert_(isinstance(instance.third(), optional_third._TypeDefinition))
 
         xml = '<ns1:optional xmlns:ns1="URN:test-mg-all"><first/><third/></ns1:optional>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
-        instance = optional.CreateFromDOM(dom.documentElement)
+        instance = optional.createFromDOM(dom.documentElement)
         self.assert_(isinstance(instance.first(), optional_first._TypeDefinition))
         self.assert_(instance.second() is None)
         self.assert_(isinstance(instance.third(), optional_third._TypeDefinition))
 
         xml = '<ns1:optional xmlns:ns1="URN:test-mg-all"><third/></ns1:optional>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
-        instance = optional.CreateFromDOM(dom.documentElement)
+        instance = optional.createFromDOM(dom.documentElement)
         self.assert_(instance.first() is None)
         self.assert_(instance.second() is None)
         self.assert_(isinstance(instance.third(), optional_third._TypeDefinition))
@@ -93,7 +93,7 @@ class TestMGAll (unittest.TestCase):
     def testOptionalTooMany (self):
         xml = '<ns1:optional xmlns:ns1="URN:test-mg-all"><third/><first/><third/></ns1:optional>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
-        self.assertRaises(ExtraContentError, optional.CreateFromDOM, dom.documentElement)
+        self.assertRaises(ExtraContentError, optional.createFromDOM, dom.documentElement)
 
     def stripMembers (self, xml, body):
         for b in body:
@@ -104,7 +104,7 @@ class TestMGAll (unittest.TestCase):
         for body in [ "abcdefgh", "fghbcd", "bfgcahd" ]:
             xml = '<ns1:many xmlns:ns1="URN:test-mg-all">%s</ns1:many>' % (''.join([ '<%s/>' % (_x,) for _x in body ]),)
             dom = pyxb.utils.domutils.StringToDOM(xml)
-            instance = many.CreateFromDOM(dom.documentElement)
+            instance = many.createFromDOM(dom.documentElement)
             instance.validateBinding()
             xml2 = ToDOM(instance).toxml()
             rev = self.stripMembers(xml2, body)

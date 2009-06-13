@@ -46,20 +46,20 @@ class TestExternal (unittest.TestCase):
         self.assertRaises(BadTypeValueError, st.english, 'five')
         # Element constructor without content is error
         self.assertRaises(BadTypeValueError, english)
-        self.assertEqual('one', english('one').content())
+        self.assertEqual('one', english('one'))
         # Element constructor with out-of-range content is error
         self.assertRaises(BadTypeValueError, english, 'five')
 
         xml = '<ns1:english xmlns:ns1="URN:test-external">one</ns1:english>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
-        instance = english.CreateFromDOM(dom.documentElement)
-        self.assertEqual('one', instance.content())
+        instance = english.createFromDOM(dom.documentElement)
+        self.assertEqual('one', instance)
         self.assertEqual(xml, ToDOM(instance).toxml())
 
     def testWords (self):
         xml = '<ns1:word xmlns:ns1="URN:test-external"><from>one</from><to>un</to></ns1:word>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
-        instance = word.CreateFromDOM(dom.documentElement)
+        instance = word.createFromDOM(dom.documentElement)
         self.assertEquals('one', instance.from_())
         self.assertEquals('un', instance.to())
         self.assertEqual(xml, ToDOM(instance).toxml())
@@ -67,13 +67,13 @@ class TestExternal (unittest.TestCase):
     def testBadWords (self):
         xml = '<ns1:word xmlns:ns1="URN:test-external"><from>five</from><to>pump</to></ns1:word>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
-        self.assertRaises(BadTypeValueError, word.CreateFromDOM, dom.documentElement)
+        self.assertRaises(BadTypeValueError, word.createFromDOM, dom.documentElement)
 
     def testComplexShared (self):
         xml = '<ns1:lwords language="english" newlanguage="welsh" xmlns:ns1="URN:test-external">un</ns1:lwords>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
-        instance = lwords.CreateFromDOM(dom.documentElement)
-        self.assertTrue(isinstance(instance, lwords))
+        instance = lwords.createFromDOM(dom.documentElement)
+        self.assertEquals(instance._element(), lwords)
         self.assertTrue(isinstance(instance.content(), st.welsh))
         self.assertEquals('english', instance.language())
         self.assertEquals('welsh', instance.newlanguage())

@@ -57,7 +57,7 @@ Anytown, AS  12345-6789'''
         self.assertEqual(xml, xml1)
 
         dom = pyxb.utils.domutils.StringToDOM(xml)
-        po2 = purchaseOrder.CreateFromDOM(dom.documentElement)
+        po2 = purchaseOrder.createFromDOM(dom.documentElement)
         self.assertEqual(xml1, ToDOM(po2).toxml())
 
         xml2 = '<purchaseOrder xmlns="http://www.example.com/PO1"><shipTo><name>Customer</name><street>95 Main St</street></shipTo><billTo><name>Sugar Mama</name><street>24 E. Dearling Ave</street></billTo><comment>Thanks!</comment></purchaseOrder>'

@@ -22,7 +22,7 @@ class TestCTD (unittest.TestCase):
     # Make sure that name collisions are deconflicted in favor of the
     # element declaration.
     def testDeconflict (self):
-        self.assert_(issubclass(structure, pyxb.binding.basis.element))
+        self.assert_(isinstance(structure, pyxb.binding.basis.element2))
         self.assert_(issubclass(structure_, pyxb.binding.basis.complexTypeDefinition))
         self.assert_(pyxb.binding.basis.complexTypeDefinition._CT_ELEMENT_ONLY == structure_._ContentTypeTag)
 
@@ -44,16 +44,16 @@ class TestCTD (unittest.TestCase):
     def testString (self):
         self.assertEqual('test', pyxb.binding.datatypes.string('test'))
         rv = string('test')
-        self.assertTrue(isinstance(rv.content(), pyxb.binding.datatypes.string))
-        self.assertEqual('test', rv.content())
+        self.assertTrue(isinstance(rv, pyxb.binding.datatypes.string))
+        self.assertEqual('test', rv)
         rv = CreateFromDocument('<string xmlns="URN:testCTD">test</string>')
         self.assertTrue(isinstance(rv, pyxb.binding.datatypes.string))
         # Temporarily fails because string is an element, not an element2
         self.assertEqual(string, rv._element())
-        self.assertEqual('test', rv.content())
+        self.assertEqual('test', rv)
 
     def testEmptyWithAttr (self):
-        self.assertEqual(5, len(emptyWithAttr._TypeDefinition._AttributeMap))
+        self.assertEqual(5, len(emptyWithAttr.typeDefinition()._AttributeMap))
         self.assertRaises(MissingAttributeError, CreateFromDocument, '<emptyWithAttr xmlns="URN:testCTD"/>')
         instance = CreateFromDocument('<emptyWithAttr capitalized="false" xmlns="URN:testCTD"/>')
         self.assertEqual('irish', instance.language())
@@ -124,7 +124,7 @@ class TestCTD (unittest.TestCase):
     def testUnrecognizedAttribute (self):
         xml = '<emptyWithAttr capitalized="false" garbage="what is this" xmlns="URN:testCTD"/>'
         doc = pyxb.utils.domutils.StringToDOM(xml)
-        self.assertRaises(UnrecognizedAttributeError, emptyWithAttr.CreateFromDOM, doc.documentElement)
+        self.assertRaises(UnrecognizedAttributeError, emptyWithAttr.createFromDOM, doc.documentElement)
 
 if __name__ == '__main__':
     unittest.main()

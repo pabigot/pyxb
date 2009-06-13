@@ -109,6 +109,7 @@ class _TypeBinding_mixin (_Binding_mixin):
 
     def _setElement (self, element):
         self.__element = element
+        return self
     def _element (self):
         return self.__element
     __element = None
@@ -946,7 +947,7 @@ class element2 (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate
         dom_node = kw.pop('dom_node', None)
         if dom_node is not None:
             return self.createFromDOM(dom_node, **kw)
-        return None
+        return self.typeDefinition().Factory(*args,**kw)._setElement(self)
 
     # element2
     @classmethod
@@ -1017,12 +1018,7 @@ class element2 (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate
         return dom_support
 
     def __str__ (self):
-        if isinstance(self.content(), simpleTypeDefinition):
-            rv = self.content()
-            if isinstance(rv, unicode):
-                return rv.encode('utf-8')
-            return str(rv)
-        return str(self.content())
+        return 'Element %s' % (self.name(),)
 
 class enumeration_mixin (pyxb.cscRoot):
     """Marker in case we need to know that a PST has an enumeration constraint facet."""

@@ -836,11 +836,11 @@ def GenerateED (ed, **kw):
 
     if ed._scopeIsGlobal():
         outf.write(templates.replaceInText('''
-__ignore = pyxb.binding.basis.element2(%{name_expr}, %{typeDefinition}%{element_aux_init})
-Namespace.addCategoryObject('element2Binding', __ignore.name().localName(), __ignore)
+%{class} = pyxb.binding.basis.element2(%{name_expr}, %{typeDefinition}%{element_aux_init})
+Namespace.addCategoryObject('element2Binding', %{class}.name().localName(), %{class})
 ''', **template_map))
-
-    outf.write(templates.replaceInText('''
+    else:
+        outf.write(templates.replaceInText('''
 
 # ElementDeclaration
 class %{class} (pyxb.binding.basis.element):

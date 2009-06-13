@@ -141,7 +141,7 @@ class TestWildcard (unittest.TestCase):
         self.assert_(wrapper_._HasWildcardElement)
         xml = '<wrapper><first/><second/><third/></wrapper>'
         doc = pyxb.utils.domutils.StringToDOM(xml)
-        instance = wrapper.CreateFromDOM(doc.documentElement)
+        instance = wrapper.createFromDOM(doc.documentElement)
         self.assert_(isinstance(instance.wildcardElements(), list))
         self.assertEquals(1, len(instance.wildcardElements()))
 
@@ -151,14 +151,14 @@ class TestWildcard (unittest.TestCase):
             xml = '<wrapper><first/><second/>%s</wrapper>' % (''.join(rep * ['<third/>']),)
             doc = pyxb.utils.domutils.StringToDOM(xml)
             if 3 >= rep:
-                instance = wrapper.CreateFromDOM(doc.documentElement)
+                instance = wrapper.createFromDOM(doc.documentElement)
                 self.assert_(isinstance(instance.wildcardElements(), list))
                 self.assertEquals(rep, len(instance.wildcardElements()))
                 for i in range(0, rep):
                     self.assertEquals('third', instance.wildcardElements()[i].nodeName)
             else:
                 tested_overmax = True
-                self.assertRaises(ExtraContentError, wrapper.CreateFromDOM, doc.documentElement)
+                self.assertRaises(ExtraContentError, wrapper.createFromDOM, doc.documentElement)
         self.assert_(tested_overmax)
 
     def testAttribute (self):
@@ -166,7 +166,7 @@ class TestWildcard (unittest.TestCase):
         self.assert_(isinstance(wrapper_._AttributeWildcard, pyxb.binding.content.Wildcard))
         xml = '<wrapper myattr="true" auxattr="somevalue"/>'
         doc = pyxb.utils.domutils.StringToDOM(xml)
-        instance = wrapper.CreateFromDOM(doc.documentElement)
+        instance = wrapper.createFromDOM(doc.documentElement)
         self.assert_(isinstance(instance.wildcardAttributeMap(), dict))
         self.assertEquals(1, len(instance.wildcardAttributeMap()))
         self.assertEquals('somevalue', instance.wildcardAttributeMap()['auxattr'])

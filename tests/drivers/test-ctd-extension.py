@@ -29,7 +29,7 @@ class TestCTDExtension (unittest.TestCase):
    <surname>Gore</surname>
   </oldAddressee>'''
         doc = pyxb.utils.domutils.StringToDOM(xml)
-        instance = oldAddressee.CreateFromDOM(doc.documentElement)
+        instance = oldAddressee.createFromDOM(doc.documentElement)
         self.assertEqual(2, len(instance.forename()))
         # Note double dereference required because xs:anyType was used
         # as the element type
@@ -46,7 +46,7 @@ class TestCTDExtension (unittest.TestCase):
    <generation>Jr</generation>
   </addressee>'''
         doc = pyxb.utils.domutils.StringToDOM(xml)
-        instance = addressee.CreateFromDOM(doc.documentElement)
+        instance = addressee.createFromDOM(doc.documentElement)
         self.assertEqual(2, len(instance.forename()))
         self.assertEqual('Albert', instance.forename()[0].content()[0])
         self.assertEqual('Arnold', instance.forename()[1].content()[0])
@@ -58,7 +58,7 @@ class TestCTDExtension (unittest.TestCase):
     def testMidWildcard (self):
         xml = '<defs><documentation/><something/><message/><message/><import/><message/></defs>'
         doc = pyxb.utils.domutils.StringToDOM(xml)
-        instance = defs.CreateFromDOM(doc.documentElement)
+        instance = defs.createFromDOM(doc.documentElement)
         self.assertFalse(instance.documentation() is None)
         self.assertEqual(3, len(instance.message()))
         self.assertEqual(1, len(instance.import_()))
@@ -66,7 +66,7 @@ class TestCTDExtension (unittest.TestCase):
 
         xml = '<defs><something/><else/><message/><message/><import/><message/></defs>'
         doc = pyxb.utils.domutils.StringToDOM(xml)
-        instance = defs.CreateFromDOM(doc.documentElement)
+        instance = defs.createFromDOM(doc.documentElement)
         self.assertTrue(instance.documentation() is None)
         self.assertEqual(3, len(instance.message()))
         self.assertEqual(1, len(instance.import_()))
@@ -75,7 +75,7 @@ class TestCTDExtension (unittest.TestCase):
     def testEndWildcard (self):
         xml = '<defs><message/><something/></defs>'
         doc = pyxb.utils.domutils.StringToDOM(xml)
-        self.assertRaises(ExtraContentError, defs.CreateFromDOM, doc.documentElement)
+        self.assertRaises(ExtraContentError, defs.createFromDOM, doc.documentElement)
 
 if __name__ == '__main__':
     unittest.main()
