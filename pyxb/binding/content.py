@@ -436,7 +436,7 @@ class ContentModelTransition (pyxb.cscRoot):
     def term (self):
         """The matching term for this transition to succeed."""
         if self.__term is None:
-            self.__term = self.__elementUse.elementBinding()
+            self.__term = self.__elementUse.element2()
             assert self.__term is not None
         return self.__term
     __term = None
@@ -498,10 +498,10 @@ class ContentModelTransition (pyxb.cscRoot):
 
     def __processElementTransition (self, node):
         # First, identify the element
-        if not self.term()._ExpandedName.nodeMatches(node):
+        if not self.term().name().nodeMatches(node):
             return None
         elt_name = pyxb.namespace.ExpandedName(node)
-        element = self.term().CreateFromDOM(node)
+        element = self.term().createFromDOM(node)
         return element
 
     def __validateConsume (self, key, available_symbols_im, output_sequence_im, candidates):
@@ -511,7 +511,7 @@ class ContentModelTransition (pyxb.cscRoot):
         # consume multiple instances.  Might as well consume all of them.
         key_type = type(None)
         if key is not None:
-            key_type = key.elementBinding()._TypeDefinition
+            key_type = key.element2().typeDefinition()
         if issubclass(key_type, basis.STD_list):
             consume_all = True
             consume_singles = isinstance(next_symbols[key][0], (list, tuple))

@@ -959,7 +959,7 @@ class element2 (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate
         # Identify the element binding to be used for the given node.  In the
         # case of substitution groups, it may not be what we expect.
         elt_ns = self.__name.namespace()
-        if cls._ElementScope is None:
+        if self.scope() is None:
             node_name = pyxb.namespace.ExpandedName(node, fallback_namespace=elt_ns)
             elt_cls = node_name.elementBinding()
             if elt_cls is not None:
@@ -969,7 +969,7 @@ class element2 (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate
 
         # Now determine the type binding for the content.  If xsi:type is
         # used, it won't be the one built into the element binding.
-        type_class = cls._TypeDefinition
+        type_class = self.typeDefinition()
         xsi_type = pyxb.namespace.ExpandedName(pyxb.namespace.XMLSchema_instance, 'type')
         type_name = xsi_type.getAttribute(node)
         dc_kw = { }
@@ -990,14 +990,10 @@ class element2 (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate
             type_class = alternative_type_class
             dc_kw['_content_type'] = type_class
         instance_root = kw.pop('instance_root', None)
-        if not cls._ExpandedName.nodeMatches(node):
+        if not self.name().nodeMatches(node):
             node_en = pyxb.namespace.ExpandedName(node)
             
-        if issubclass(type_class, simpleTypeDefinition):
-            rv = cls._DynamicCreate(type_class.CreateFromDOM(node))
-        else:
-            rv = cls._DynamicCreate(validate_constraints=False, **dc_kw)
-            rv.__setContent(type_class.CreateFromDOM(node))
+        rv = type_class._SupersedingClass().CreateFromDOM(node)
         if isinstance(rv, simpleTypeDefinition):
             rv.xsdConstraintsOK()
         rv._setBindingContext(node, instance_root)
