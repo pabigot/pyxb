@@ -297,7 +297,7 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
         return fm
 
     @classmethod
-    def __ConvertArgs (cls, args):
+    def __ApplyWhitespaceToFirstArgument (cls, args):
         """If the first argument is a string, and this class has a whitespace
         facet, replace the first argument with the results of applying
         whitespace normalization.
@@ -321,16 +321,20 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
         the keywords, it is removed so it does not propagate to the
         superclass.  Another application is to convert the arguments from a
         string to a list."""
+        dom_node = kw.pop('_dom_node', None)
+        if dom_node is not None:
+            args = (domutils.ExtractTextContent(dom_node),) + args
+            kw['_apply_whitespace_facet'] = True
         apply_whitespace_facet = kw.pop('_apply_whitespace_facet', False)
         if apply_whitespace_facet:
-            args = cls.__ConvertArgs(args)
+            args = cls.__ApplyWhitespaceToFirstArgument(args)
         if issubclass(cls, STD_list):
             # If the first argument is a string, split it on spaces
             # and use the resulting list of tokens.
             if 0 < len(args):
                 arg1 = args[0]
                 if isinstance(arg1, types.StringTypes):
-                    args = (arg1.split(),) +  args[1:]
+                    args = (arg1.split(),) + args[1:]
         return args
 
     @classmethod
@@ -353,7 +357,7 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
 
         Any whitespace facet constraint is applied to the extracted text."""
         # @todo error if non-text content?
-        rv = cls.Factory(domutils.ExtractTextContent(node), _apply_whitespace_facet=True)
+        rv = cls.Factory(_dom_node=node)
         return rv
 
     # Must override new, because new gets invoked before init, and
