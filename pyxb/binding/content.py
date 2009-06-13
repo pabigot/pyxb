@@ -412,8 +412,8 @@ class _DFAState (object):
         self.__state = state
         return self
 
-    def step (self, value):
-        self.__state = self.contentModel()._step(self.ctdInstance(), self.state(), value)
+    def step (self, dfa_stack, value):
+        self.__state = self.contentModel().step(self.ctdInstance(), self.state(), value, dfa_stack)
         return self.__state
 
     def isFinal (self):
@@ -445,7 +445,7 @@ class DFAStack (object):
         return self.__stack[-1]
 
     def step (self, ctd_instance, value):
-        state = self.topModelState().step(value)
+        state = self.topModelState().step(self, value)
         if state is None:
             self.popModelState()
         return state is not None
@@ -582,7 +582,7 @@ class ContentModelTransition (pyxb.cscRoot):
             return self.__validateConsume(None, available_symbols_im, output_sequence_im, candidates)
         return False
 
-    def attemptTransition (self, ctd_instance, node):
+    def attemptTransition (self, ctd_instance, node, dfa_stack):
         """Attempt to make the appropriate transition.
 
         If something goes wrong, a BadDocumentError will be propagated through
@@ -659,7 +659,7 @@ class ContentModelState (pyxb.cscRoot):
     def transitions (self):
         return self.__transitions
     
-    def evaluateContent (self, ctd_instance, node, model_stack=None):
+    def evaluateContent (self, ctd_instance, node, dfa_stack):
         """Determine where to go from this state.
 
         If a transition matches, the consumed prefix of node_list has been
@@ -678,7 +678,7 @@ class ContentModelState (pyxb.cscRoot):
 
         for transition in self.__transitions:
             # @todo check nodeName against element
-            if transition.attemptTransition(ctd_instance, node):
+            if transition.attemptTransition(ctd_instance, node, dfa_stack):
                 return transition.nextState()
         if self.isFinal():
             return None
@@ -698,8 +698,8 @@ class ContentModel (pyxb.cscRoot):
     def initialDFAStack (self, ctd_instance):
         return DFAStack(self, ctd_instance)
 
-    def _step (self, ctd_instance, state, value):
-        return self.__stateMap[state].evaluateContent(ctd_instance, value)
+    def step (self, ctd_instance, state, value, dfa_stack):
+        return self.__stateMap[state].evaluateContent(ctd_instance, value, dfa_stack)
 
     def isFinal (self, state):
         return self.__stateMap[state].isFinal()
