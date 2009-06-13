@@ -398,18 +398,18 @@ def GenerateContentModel (ctd, automaton, **kw):
             assert 1 == len(destinations)
             template_map['next_state'] = pythonLiteral(list(destinations)[0], **kw)
             if isinstance(key, xs.structures.Wildcard):
-                template_map['eu_field'] = pythonLiteral(None, **kw)
-                template_map['term'] = pythonLiteral(key, **kw)
+                template_map['kw_key'] = 'term'
+                template_map['kw_val'] = pythonLiteral(key, **kw)
             elif isinstance(key, nfa.AllWalker):
                 (mga_tag, mga_defns) = GenerateModelGroupAll(ctd, key, template_map.copy(), **kw)
-                template_map['term'] = mga_tag
+                template_map['kw_key'] = 'term'
+                template_map['kw_val'] = mga_tag
                 lines.extend(mga_defns)
-                template_map['eu_field'] = pythonLiteral(None, **kw)
             else:
                 assert isinstance(key, xs.structures.ElementDeclaration)
-                template_map['term'] = pythonLiteral(key, **kw)
-                template_map['eu_field'] = templates.replaceInText('%{ctd}._UseForTag(%{field_tag})', field_tag=pythonLiteral(key.expandedName(), **kw), **template_map)
-            lines3.append(templates.replaceInText('%{content}.ContentModelTransition(term=%{term}, next_state=%{next_state}, element_use=%{eu_field}),',
+                template_map['kw_key'] = 'element_use'
+                template_map['kw_val'] = templates.replaceInText('%{ctd}._UseForTag(%{field_tag})', field_tag=pythonLiteral(key.expandedName(), **kw), **template_map)
+            lines3.append(templates.replaceInText('%{content}.ContentModelTransition(next_state=%{next_state}, %{kw_key}=%{kw_val}),',
                           **template_map))
         lines2.extend([ '    '+_l for _l in lines3 ])
         lines2.append("])")

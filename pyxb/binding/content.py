@@ -433,6 +433,9 @@ class ContentModelTransition (pyxb.cscRoot):
 
     def term (self):
         """The matching term for this transition to succeed."""
+        if self.__term is None:
+            self.__term = self.__elementUse.elementBinding()
+            assert self.__term is not None
         return self.__term
     __term = None
 
@@ -459,21 +462,24 @@ class ContentModelTransition (pyxb.cscRoot):
     # What type of term this transition covers
     __termType = None
 
-    def __init__ (self, term, next_state, element_use=None):
+    def __init__ (self, next_state, element_use=None, term=None):
         """Create a transition to a new state upon receipt of a term,
         storing the successful match using the provided ElementUse."""
-        self.__term = term
         self.__nextState = next_state
         assert self.__nextState is not None
         self.__elementUse = element_use
-        if isinstance(self.__term, type) and issubclass(self.__term, basis.element):
+        if self.__elementUse is not None:
+            self.__term = None
             self.__termType = self.TT_element
-        elif isinstance(self.__term, ModelGroupAll):            
-            self.__termType = self.TT_modelGroupAll
-        elif isinstance(self.__term, Wildcard):
-            self.__termType = self.TT_wildcard
         else:
-            raise pyxb.LogicError('Unexpected transition term %s' % (self.__term,))
+            self.__term = term
+            assert self.__term is not None
+            if isinstance(self.__term, ModelGroupAll):            
+                self.__termType = self.TT_modelGroupAll
+            elif isinstance(self.__term, Wildcard):
+                self.__termType = self.TT_wildcard
+            else:
+                raise pyxb.LogicError('Unexpected transition term %s' % (self.__term,))
 
     def __cmp__ (self, other):
         """Sort transitions so elements precede model groups precede
@@ -483,17 +489,17 @@ class ContentModelTransition (pyxb.cscRoot):
             # In a vain attempt at determinism, sort the element transitions
             # by name.
             if (self.TT_element == self.__termType):
-                rv = cmp(self.__term._ExpandedName, other.__term._ExpandedName)
+                rv = cmp(self.__elementUse.name(), other.__elementUse.name())
             else:
                 rv = cmp(self.__term, other.__term)
         return rv
 
     def __processElementTransition (self, node):
         # First, identify the element
-        if not self.__term._ExpandedName.nodeMatches(node):
+        if not self.term()._ExpandedName.nodeMatches(node):
             return None
         elt_name = pyxb.namespace.ExpandedName(node)
-        element = self.__term.CreateFromDOM(node)
+        element = self.term().CreateFromDOM(node)
         return element
 
     def __validateConsume (self, key, available_symbols_im, output_sequence_im, candidates):
@@ -543,7 +549,7 @@ class ContentModelTransition (pyxb.cscRoot):
             assert 0 < len(available_symbols_im[self.__elementUse])
             return self.__validateConsume(self.__elementUse, available_symbols_im, output_sequence_im, candidates)
         elif self.TT_modelGroupAll == self.__termType:
-            return self.__term.validate(available_symbols_im, output_sequence_im, self.__nextState, candidates)
+            return self.term().validate(available_symbols_im, output_sequence_im, self.__nextState, candidates)
         elif self.TT_wildcard == self.__termType:
             if not (None in available_symbols_im):
                 return False
