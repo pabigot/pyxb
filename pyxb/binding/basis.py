@@ -84,6 +84,13 @@ class _TypeBinding_mixin (_Binding_mixin):
     # for abstractness without checking whether the object is a complex type.
     _Abstract = False
 
+    def _namespaceContext (self):
+        return self.__namespaceContext
+    def _setNamespaceContext (self, namespace_context):
+        self.__namespaceContext = namespace_context
+        return self
+    __namespaceContext = None
+
     @classmethod
     def _IsCompatibleValue (cls, instance):
         return isinstance(instance, cls) or issubclass(cls, type(instance))
@@ -775,6 +782,7 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
         type_class = self.typeDefinition()
         xsi_type = pyxb.namespace.ExpandedName(pyxb.namespace.XMLSchema_instance, 'type')
         type_name = xsi_type.getAttribute(node)
+        ns_ctx = pyxb.namespace.NamespaceContext.GetNodeContext(node, target_namespace=elt_ns, default_namespace=elt_ns)
         if type_name is not None:
             # xsi:type should only be provided when using an abstract class
             if not (issubclass(type_class, complexTypeDefinition) and type_class._Abstract):
@@ -783,7 +791,6 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
             # it, using the element namespace as the default environment
             # (since we only need this in order to resolve the xsi:type qname,
             # that should be okay, right?)  @todo: verify this
-            ns_ctx = pyxb.namespace.NamespaceContext.GetNodeContext(node, target_namespace=elt_ns, default_namespace=elt_ns)
             assert ns_ctx
             type_name = ns_ctx.interpretQName(type_name)
             alternative_type_class = type_name.typeBinding()
@@ -795,6 +802,7 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
         if isinstance(rv, simpleTypeDefinition):
             rv.xsdConstraintsOK()
         rv._setElement(self)
+        rv._setNamespaceContext(ns_ctx)
         return rv
 
     def _toDOM_vx (self, dom_support, parent):
