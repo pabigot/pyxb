@@ -347,7 +347,6 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
         Any whitespace facet constraint is applied to the extracted text."""
         # @todo error if non-text content?
         # @todo support _DynamicCreate
-        instance_root = kw.pop('instance_root', None)
         rv = cls.Factory(domutils.ExtractTextContent(node), apply_whitespace_facet=True)
         return rv
 
@@ -725,6 +724,11 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
         The type for this element must be a complex type definition."""
         return self.typeDefinition()._UseForTag(name).elementBinding()
 
+    def __create (self, use_type=None, *args, **kw):
+        if use_type is None:
+            use_type = self.typeDefinition()
+        return use_type.Factory(*args, **kw)
+
     def __init__ (self, name, type_definition, scope=None, nillable=False, abstract=False, default_value=None, substitution_group=None):
         """Create a new element binding.
         """
@@ -751,7 +755,7 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
         if elt is None:
             raise pyxb.UnrecognizedElementError('No element binding available for %s' % (expanded_name,))
         assert isinstance(elt, pyxb.binding.basis.element)
-        return elt(dom_node=node)
+        return elt.createFromDOM(node)
         
     def createFromDOM (self, node, **kw):
         """Create an instance of this element from the given DOM node.
@@ -763,19 +767,14 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
         # case of substitution groups, it may not be what we expect.
         elt_ns = self.__name.namespace()
         if self.scope() is None:
-            node_name = pyxb.namespace.ExpandedName(node, fallback_namespace=elt_ns)
-            node_elt = node_name.elementBinding()
-            if node_elt is not None:
-                if self != node_elt:
-                    print 'Node %s self %s node_elt %s' % (node, self, node_elt)
-                assert self == node_elt
+            node_elt = pyxb.namespace.ExpandedName(node, fallback_namespace=elt_ns).elementBinding()
+            assert self == node_elt, 'Node %s self %s node_elt %s' % (node, self, node_elt)
 
         # Now determine the type binding for the content.  If xsi:type is
         # used, it won't be the one built into the element binding.
         type_class = self.typeDefinition()
         xsi_type = pyxb.namespace.ExpandedName(pyxb.namespace.XMLSchema_instance, 'type')
         type_name = xsi_type.getAttribute(node)
-        dc_kw = { }
         if type_name is not None:
             # xsi:type should only be provided when using an abstract class
             if not (issubclass(type_class, complexTypeDefinition) and type_class._Abstract):
@@ -791,10 +790,6 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
             if not issubclass(alternative_type_class, type_class):
                 raise pyxb.BadDocumentError('%s value %s is not subclass of element type %s' % (xsi_type, type_name, type_class._ExpandedName))
             type_class = alternative_type_class
-            dc_kw['_content_type'] = type_class
-        instance_root = kw.pop('instance_root', None)
-        if not self.name().nodeMatches(node):
-            node_en = pyxb.namespace.ExpandedName(node)
             
         rv = type_class._SupersedingClass().CreateFromDOM(node, **kw)
         if isinstance(rv, simpleTypeDefinition):
@@ -932,7 +927,6 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         Note that only the node attributes and content are used; the
         node name must have been validated against an owning
         element."""
-        instance_root = kw.pop('instance_root', None)
         rv = cls.Factory(validate_constraints=False)
         rv._setAttributesFromDOM(node)
         rv._setContentFromDOM(node)
