@@ -1072,7 +1072,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             pass
         return self.__content
 
-    __dfaState = None
+    __contentState = None
     def reset (self):
         if self._ContentTypeTag in (self._CT_MIXED, self._CT_ELEMENT_ONLY):
             self.__setContent([])
@@ -1081,7 +1081,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         for eu in self._ElementMap.values():
             eu.reset(self)
         if self._ContentModel is not None:
-            self.__dfaState = self._ContentModel.initialState()
+            self.__contentState = self._ContentModel.initialState()
         return self
 
     def append (self, value):
@@ -1097,11 +1097,8 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
                 return self
             # Do type conversion here
             value = value
-        if self._ContentModel is not None:
-            if self.__dfaState is None:
-                raise pyxb.StructuralBadDocumentError("Cannot append when state undefined")
-            self.__dfaState = self._ContentModel._step(self, self.__dfaState, value)
-            if self.__dfaState is None:
+        if self.__contentState is not None:
+            if not self.__contentState.step(self, value):
                 raise pyxb.ExtraContentError('Extra content starting with %s' % (value,))
         return self
 
@@ -1127,7 +1124,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             return
         self.__isMixed = (self._CT_MIXED == self._ContentTypeTag)
         self.extend(node.childNodes[:])
-        if (self._ContentModel is not None) and not self._ContentModel.isFinal(self.__dfaState):
+        if (self.__contentState is not None) and not self.__contentState.isTerminal():
             raise pyxb.MissingContentError()
         return self
 

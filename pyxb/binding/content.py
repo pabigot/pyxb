@@ -405,19 +405,27 @@ class ContentModelStack (object):
         return self
 
     def isTerminal (self):
-        return 0 == len(self.__stack)
+        if 0 == len(self.__stack):
+            return True
+        (content_model, state) = self.topModelState()
+        return content_model.isFinal(state)
 
     def popModelState (self):
-        if self.isTerminal():
+        if 0 == len(self.__stack):
             raise pyxb.LogicError('Attempt to underflow content model stack')
         return self.__stack.pop()
 
+    def topModelState (self):
+        if 0 == len(self.__stack):
+            raise pyxb.LogicError('Attempt to underflow content model stack')
+        return self.__stack[-1]
+
     def step (self, ctd_instance, value):
         (content_model, state) = self.popModelState()
-        state = content_model.step(ctd_instance, state, value, model_stack)
+        state = content_model._step(ctd_instance, state, value)
         if state is not None:
             self.pushModelState(content_model, state)
-        return self.isTerminal()
+        return state is not None
 
 class ContentModelTransition (pyxb.cscRoot):
     """Represents a transition in the content model DFA.
@@ -665,7 +673,7 @@ class ContentModel (pyxb.cscRoot):
         self.__stateMap = state_map
 
     def initialState (self):
-        return 1 # ContentModelStack(self)
+        return ContentModelStack(self)
 
     def _step (self, ctd_instance, state, value):
         return self.__stateMap[state].evaluateContent(ctd_instance, value)
