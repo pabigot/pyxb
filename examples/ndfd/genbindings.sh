@@ -23,7 +23,7 @@ fi
    -m ndfd \
    -r -W
 
-../../scripts/showwsdl file:ndfdXML.wsdl
+../../scripts/pyxbwsdl file:ndfdXML.wsdl
 
 # Get an example query
 if [ ! -f NDFDgen.xml ] ; then

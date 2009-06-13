@@ -15,7 +15,7 @@ import pyxb.standard.bindings.wsdl as wsdl
 for uri in sys.argv[1:]:
     uri_src = urllib2.urlopen(uri)
     doc = xml.dom.minidom.parseString(uri_src.read())
-    spec = wsdl.definitions.CreateFromDOM(doc.documentElement, process_schema=True)
+    spec = wsdl.definitions.createFromDOM(doc.documentElement, process_schema=True)
 
     for s in spec.service():
     	print 'Service: %s' % (s.name(),)

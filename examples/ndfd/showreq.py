@@ -22,7 +22,7 @@ import pyxb.standard.bindings.wsdl as wsdl
 
 uri_src = open('ndfdXML.wsdl')
 doc = xml.dom.minidom.parseString(uri_src.read())
-spec = wsdl.definitions.CreateFromDOM(doc.documentElement, process_schema=True)
+spec = wsdl.definitions.createFromDOM(doc.documentElement, process_schema=True)
 
 binding = spec.binding()[0]
 print binding.name()
