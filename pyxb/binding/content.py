@@ -296,6 +296,9 @@ class ElementUse (pyxb.cscRoot):
         """A list of binding classes that express the permissible types of
         element instances for this use."""
         return self.__elementBinding
+    def _setElementBinding (self, element_binding):
+        self.__elementBinding = element_binding
+        return self
     __elementBinding = None
 
     def isPlural (self):
@@ -357,14 +360,6 @@ class ElementUse (pyxb.cscRoot):
         self.__isPlural = is_plural
         self.__elementBinding = element_binding
 
-    def element2 (self):
-        return self.__element2
-
-    def _setElement2 (self, element2):
-        self.__element2 = element2
-        
-    __element2 = None
-
     def defaultValue (self):
         if self.isPlural():
             return []
@@ -390,8 +385,8 @@ class ElementUse (pyxb.cscRoot):
         """Set the value of this element in the given instance."""
         if value is None:
             return self.reset(ctd_instance)
-        assert self.__element2 is not None
-        elt_type = self.__element2.typeDefinition()
+        assert self.__elementBinding is not None
+        elt_type = self.__elementBinding.typeDefinition()
         if not isinstance(value, elt_type):
             value = elt_type.Factory(value)
         self.__setValue(ctd_instance, value)
@@ -404,7 +399,7 @@ class ElementUse (pyxb.cscRoot):
     def toDOM (self, dom_support, parent, value):
         element = dom_support.createChild(self.name().localName(), self.name().namespace(), parent)
         if isinstance(value, basis._Binding_mixin):
-            elt_type = self.__element2.typeDefinition()
+            elt_type = self.__elementBinding.typeDefinition()
             val_type = type(value)
             if isinstance(value, basis.complexTypeDefinition):
                 assert isinstance(value, elt_type)
@@ -432,7 +427,7 @@ class ContentModelTransition (pyxb.cscRoot):
     def term (self):
         """The matching term for this transition to succeed."""
         if self.__term is None:
-            self.__term = self.__elementUse.element2()
+            self.__term = self.__elementUse.elementBinding()
             assert self.__term is not None
         return self.__term
     __term = None
@@ -507,7 +502,7 @@ class ContentModelTransition (pyxb.cscRoot):
         # consume multiple instances.  Might as well consume all of them.
         key_type = type(None)
         if key is not None:
-            key_type = key.element2().typeDefinition()
+            key_type = key.elementBinding().typeDefinition()
         if issubclass(key_type, basis.STD_list):
             consume_all = True
             consume_singles = isinstance(next_symbols[key][0], (list, tuple))

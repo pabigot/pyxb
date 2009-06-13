@@ -22,7 +22,7 @@ class TestCTD (unittest.TestCase):
     # Make sure that name collisions are deconflicted in favor of the
     # element declaration.
     def testDeconflict (self):
-        self.assert_(isinstance(structure, pyxb.binding.basis.element2))
+        self.assert_(isinstance(structure, pyxb.binding.basis.element))
         self.assert_(issubclass(structure_, pyxb.binding.basis.complexTypeDefinition))
         self.assert_(pyxb.binding.basis.complexTypeDefinition._CT_ELEMENT_ONLY == structure_._ContentTypeTag)
 
@@ -48,7 +48,7 @@ class TestCTD (unittest.TestCase):
         self.assertEqual('test', rv)
         rv = CreateFromDocument('<string xmlns="URN:testCTD">test</string>')
         self.assertTrue(isinstance(rv, pyxb.binding.datatypes.string))
-        # Temporarily fails because string is an element, not an element2
+        # Temporarily fails because string is an element, not an elementBinding
         self.assertEqual(string, rv._element())
         self.assertEqual('test', rv)
 

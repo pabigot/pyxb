@@ -40,8 +40,8 @@ import unittest
 class TestExternal (unittest.TestCase):
 
     def testSharedTypes (self):
-        self.assertEqual(word.typeDefinition()._ElementMap['from'].element2().typeDefinition(), st.english)
-        self.assertEqual(word.typeDefinition()._ElementMap['to'].element2().typeDefinition(), st.welsh)
+        self.assertEqual(word.typeDefinition()._ElementMap['from'].elementBinding().typeDefinition(), st.english)
+        self.assertEqual(word.typeDefinition()._ElementMap['to'].elementBinding().typeDefinition(), st.welsh)
         one = st.english('one')
         self.assertRaises(BadTypeValueError, st.english, 'five')
         # Element constructor without content is error

@@ -697,7 +697,7 @@ class %{ctd} (%{superclass}):
         return self.%{use}.setValue(self, new_value)''', **ef_map))
 
             PostscriptItems.append(templates.replaceInText('''
-%{ctd}._AddElement(pyxb.binding.basis.element2(%{name_expr}, %{typeDefinition}%{element_aux_init}))
+%{ctd}._AddElement(pyxb.binding.basis.element(%{name_expr}, %{typeDefinition}%{element_aux_init}))
 ''', ctd=template_map['ctd'], **ef_map))
 
         fa = nfa.Thompson(content_basis).nfa()
@@ -827,8 +827,8 @@ def GenerateED (ed, **kw):
     template_map.setdefault('map_update', '')
 
     outf.write(templates.replaceInText('''
-%{class} = pyxb.binding.basis.element2(%{name_expr}, %{typeDefinition}%{element_aux_init})
-Namespace.addCategoryObject('element2Binding', %{class}.name().localName(), %{class})
+%{class} = pyxb.binding.basis.element(%{name_expr}, %{typeDefinition}%{element_aux_init})
+Namespace.addCategoryObject('elementBinding', %{class}.name().localName(), %{class})
 ''', **template_map))
 
     return outf.getvalue()
@@ -943,7 +943,7 @@ import sys
 # about this module.
 Namespace = %{NamespaceDefinition}
 Namespace._setModule(sys.modules[__name__])
-Namespace.configureCategories(['typeBinding', 'elementBinding', 'element2Binding'])
+Namespace.configureCategories(['typeBinding', 'elementBinding'])
 
 def CreateFromDocument (xml_text):
     """Parse the given XML and use the document element to create a Python instance."""
@@ -953,7 +953,7 @@ def CreateFromDocument (xml_text):
 def CreateFromDOM (node):
     """Create a Python instance from the given DOM node.
     The node tag must correspond to an element declaration in this module."""
-    return pyxb.binding.basis.element2.AnyCreateFromDOM(node, Namespace)
+    return pyxb.binding.basis.element.AnyCreateFromDOM(node, Namespace)
 ''', **template_map))
     
         # Give priority for identifiers to scoped element declarations

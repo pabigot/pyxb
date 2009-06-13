@@ -693,7 +693,7 @@ class STD_list (simpleTypeDefinition, types.ListType):
         """Convert from a binding value to a string usable in an XML document."""
         return ' '.join([ _v.xsdLiteral() for _v in value ])
 
-class element2 (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
+class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
     """Base class for any Python class that serves as the binding to
     an XMLSchema element.
 
@@ -759,14 +759,14 @@ class element2 (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate
             return self.createFromDOM(dom_node, **kw)
         return self.typeDefinition().Factory(*args,**kw)._setElement(self)
 
-    # element2
+    # element
     @classmethod
     def AnyCreateFromDOM (cls, node, fallback_namespace):
         expanded_name = pyxb.namespace.ExpandedName(node, fallback_namespace=fallback_namespace)
-        elt = expanded_name.element2Binding()
+        elt = expanded_name.elementBinding()
         if elt is None:
             raise pyxb.UnrecognizedElementError('No element binding available for %s' % (expanded_name,))
-        assert isinstance(elt, pyxb.binding.basis.element2)
+        assert isinstance(elt, pyxb.binding.basis.element)
         return elt(dom_node=node)
         
     def createFromDOM (self, node, **kw):
@@ -780,7 +780,7 @@ class element2 (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate
         elt_ns = self.__name.namespace()
         if self.scope() is None:
             node_name = pyxb.namespace.ExpandedName(node, fallback_namespace=elt_ns)
-            node_elt = node_name.element2Binding()
+            node_elt = node_name.elementBinding()
             if node_elt is not None:
                 if self != node_elt:
                     print 'Node %s self %s node_elt %s' % (node, self, node_elt)
@@ -999,7 +999,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
 
     @classmethod
     def _AddElement (cls, element):
-        return cls._UseForTag(element.name())._setElement2(element)
+        return cls._UseForTag(element.name())._setElementBinding(element)
 
     @classmethod
     def _UseForTag (cls, tag):
