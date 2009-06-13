@@ -183,36 +183,11 @@ class AttributeUse (pyxb.cscRoot):
         default value, and mark that it has not been provided."""
         self.__setValue(ctd_instance, self.__defaultValue, False)
 
-    def setFromDOM (self, ctd_instance, node):
-        """Set the value of the attribute in the given instance from the
-        corresponding attribute of the DOM Element node.
+    def setValue (self, ctd_instance, value):
+        return self.set(ctd_instance, value)
 
-        @param ctd_instance: instance of ComplexTypeDefinition to which attribute belongs
-        @param node: DOM node from which attribute value should be taken
-        @raise ProhibitedAttributeError: an attempt was made to set a prohibited attribute
-        @raise MissingAttributeError: a required attribute did not receive a value
-        """
-        provided = False
-        assert isinstance(node, xml.dom.Node)
-        unicode_value = self.__name.getAttribute(node)
-        if unicode_value is not None:
-            if self.__prohibited:
-                raise pyxb.ProhibitedAttributeError('Prohibited attribute %s found' % (self.__name,))
-            provided = True
-        else:
-            if self.__required:
-                raise pyxb.MissingAttributeError('Required attribute %s not found' % (self.__name,))
-            unicode_value = self.__unicodeDefault
-        if unicode_value is None:
-            # Must be optional and absent
-            self.__setValue(ctd_instance, None, False)
-        else:
-            new_value = self.__dataType(unicode_value)
-            if self.__fixed and (new_value != self.__defaultValue):
-                raise pyxb.AttributeChangeError('Attempt to change value of fixed attribute %s (%s to %s)' % (self.__name, repr(self.__defaultValue), repr(new_value)))
-            # NB: Do not set provided here; this may be the default
-            self.__setValue(ctd_instance, new_value, provided)
-        return self
+    def setFromDOM (self, ctd_instance, node):
+        return self.set(ctd_instance, node)
 
     def addDOMAttribute (self, ctd_instance, element):
         """If this attribute as been set, add the corresponding attribute to the DOM element."""
@@ -222,7 +197,7 @@ class AttributeUse (pyxb.cscRoot):
             element.setAttributeNS(self.__name.namespaceURI(), self.__name.localName(), value.xsdLiteral())
         return self
 
-    def setValue (self, ctd_instance, new_value):
+    def set (self, ctd_instance, new_value):
         """Set the value of the attribute.
 
         This validates the value against the data type, creating a new instance if necessary.
@@ -231,15 +206,34 @@ class AttributeUse (pyxb.cscRoot):
         value is to be set
         @type ctd_instance: subclass of L{pyxb.binding.basis.complexTypeDefinition}
         @param new_value: The value for the attribute
-        @type new_value: any object that is permitted as the input parameter
-        to the C{Factory} method of the attribute's datatype.
+        @type new_value: An C{xml.dom.Node} instance, or any value that is
+        permitted as the input parameter to the C{Factory} method of the
+        attribute's datatype.
         """
-        assert new_value is not None
-        if not isinstance(new_value, self.__dataType):
-            new_value = self.__dataType.Factory(new_value)
+        provided = True
+        if isinstance(new_value, xml.dom.Node):
+            unicode_value = self.__name.getAttribute(new_value)
+            if unicode_value is not None:
+                if self.__prohibited:
+                    raise pyxb.ProhibitedAttributeError('Prohibited attribute %s found' % (self.__name,))
+            else:
+                if self.__required:
+                    raise pyxb.MissingAttributeError('Required attribute %s not found' % (self.__name,))
+                provided = False
+                unicode_value = self.__unicodeDefault
+            if unicode_value is None:
+                # Must be optional and absent
+                provided = False
+                new_value = None
+            else:
+                new_value = self.__dataType(unicode_value)
+        else:
+            assert new_value is not None
+            if not isinstance(new_value, self.__dataType):
+                new_value = self.__dataType.Factory(new_value)
         if self.__fixed and (new_value != self.__defaultValue):
             raise pyxb.AttributeChangeError('Attempt to change value of fixed attribute %s' % (self.__name,))
-        self.__setValue(ctd_instance, new_value, True)
+        self.__setValue(ctd_instance, new_value, provided)
         return new_value
 
 class ElementBase (pyxb.cscRoot):
