@@ -949,10 +949,11 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         for fu in self._ElementMap.values():
             iv = kw.get(fu.id())
             if iv is not None:
-               if isinstance(iv, list):
-                   [ fu.append(self, _elt) for _elt in iv ]
-               else:
-                   fu.set(self, iv)
+                if isinstance(iv, list):
+                    assert fu.isPlural()
+                    [ fu.append(self, _elt) for _elt in iv ]
+                else:
+                    fu.set(self, iv)
         if dom_node is not None:
             self._setContentFromDOM(dom_node)
         elif 0 < len(args):
