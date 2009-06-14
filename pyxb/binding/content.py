@@ -356,7 +356,7 @@ class ElementUse (pyxb.cscRoot):
         if not isinstance(value, elt_type):
             value = elt_type.Factory(value)
         setattr(ctd_instance, self.__key, value)
-        if isinstance(value, list):
+        if isinstance(value, list): # and not elt_type._IsSimpleTypeContent():
             [ ctd_instance._addContent(_elt) for _elt in value ]
         else:
             ctd_instance._addContent(value)
