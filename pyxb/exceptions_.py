@@ -29,6 +29,10 @@ class SchemaValidationError (PyXBException):
     """Raised when the XML hierarchy does not appear to be valid for an XML schema."""
     pass
 
+class NamespaceError (PyXBException):
+    """Violation of some rule relevant to XML Namespaces"""
+    pass
+
 class NamespaceUniquenessError (PyXBException):
     """Raised when an attempt is made to record multiple objects of the same name in the same namespace category."""
     pass

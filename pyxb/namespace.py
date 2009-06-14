@@ -1501,7 +1501,9 @@ class NamespaceContext (object):
     def attributeMap (self):
         """Map from L{ExpandedName} instances (for non-absent namespace) or
         C{str} or C{unicode} values (for absent namespace) to the value of the
-        named attribute."""
+        named attribute.
+
+        Only defined if the context was built from a DOM node."""
         return self.__attributeMap
     __attributeMap = None
 
@@ -1517,7 +1519,47 @@ class NamespaceContext (object):
         except AttributeError:
             return NamespaceContext(node, **kw)
 
-    def __init__ (self, dom_node, parent_context=None, recurse=True, default_namespace=None, target_namespace=None, in_scope_namespaces=None):
+    def processXMLNS (self, prefix, uri):
+        if not self.__mutableInScopeNamespaces:
+            self.__inScopeNamespaces = self.__inScopeNamespaces.copy()
+            self.__mutableInScopeNamespaces = True
+        if uri:
+            if prefix is None:
+                self.__defaultNamespace = NamespaceForURI(uri, create_if_missing=True)
+                self.__inScopeNamespaces[None] = self.__defaultNamespace
+            else:
+                uri = NamespaceForURI(uri, create_if_missing=True)
+                self.__inScopeNamespaces[prefix] = uri
+                # @todo record prefix in namespace so we can use
+                # it during generation?  I'd rather make the user
+                # specify what to use.
+        else:
+            # NB: XMLNS 6.2 says that you can undefine a default
+            # namespace, but does not say anything explicitly about
+            # undefining a prefixed namespace.  XML-Infoset 2.2
+            # paragraph 6 implies you can do this, but expat blows up
+            # if you try it.  I don't think it's legal.
+            if prefix is not None:
+                raise pyxb.NamespaceError('Attempt to undefine non-default namespace %s' % (attr.localName,))
+            self.__defaultNamespace = None
+            self.__inScopeNamespaces.pop(None, None)
+
+    def finalizeTargetNamespace (self, tns_uri=None):
+        had_target_namespace = True
+        if tns_uri is not None:
+            assert 0 < len(tns_uri)
+            self.__targetNamespace = NamespaceForURI(tns_uri, create_if_missing=True)
+            #assert self.__defaultNamespace is not None
+        elif self.__targetNamespace is None:
+            if tns_uri is None:
+                self.__targetNamespace = CreateAbsentNamespace()
+            else:
+                self.__targetNamespace = NamespaceForURI(tns_uri, create_if_missing=True)
+            if self.__defaultNamespace is None:
+                self.__defaultNamespace = self.__targetNamespace
+        assert self.__targetNamespace is not None
+
+    def __init__ (self, dom_node=None, parent_context=None, recurse=True, default_namespace=None, target_namespace=None, in_scope_namespaces=None):
         """Determine the namespace context that should be associated with the
         given node and, optionally, its element children.
 
@@ -1570,6 +1612,7 @@ class NamespaceContext (object):
             for ai in range(dom_node.attributes.length):
                 attr = dom_node.attributes.item(ai)
                 if XMLNamespaces.uri() == attr.namespaceURI:
+                    '''
                     if not self.__mutableInScopeNamespaces:
                         self.__inScopeNamespaces = self.__inScopeNamespaces.copy()
                         self.__mutableInScopeNamespaces = True
@@ -1594,6 +1637,11 @@ class NamespaceContext (object):
                             raise pyxb.SchemaValidationError('Attempt to undefine non-default namespace %s' % (attr.localName,))
                         self.__defaultNamespace = None
                         self.__inScopeNamespaces.pop(None, None)
+                    '''
+                    prefix = attr.localName
+                    if 'xmlns' == prefix:
+                        prefix = None
+                    self.processXMLNS(prefix, attr.value)
                 else:
                     if attr.namespaceURI is not None:
                         uri = NamespaceForURI(attr.namespaceURI, create_if_missing=True)
@@ -1602,21 +1650,7 @@ class NamespaceContext (object):
                         key = attr.localName
                     self.__attributeMap[key] = attr.value
         
-        had_target_namespace = True
-        tns_uri = self.attributeMap().get('targetNamespace')
-        if tns_uri is not None:
-            assert 0 < len(tns_uri)
-            self.__targetNamespace = NamespaceForURI(tns_uri, create_if_missing=True)
-            #assert self.__defaultNamespace is not None
-        elif self.__targetNamespace is None:
-            if tns_uri is None:
-                self.__targetNamespace = CreateAbsentNamespace()
-            else:
-                self.__targetNamespace = NamespaceForURI(tns_uri, create_if_missing=True)
-            if self.__defaultNamespace is None:
-                self.__defaultNamespace = self.__targetNamespace
-
-        assert self.__targetNamespace is not None
+        self.finalizeTargetNamespace(self.attributeMap().get('targetNamespace'))
 
         # Store in each node the in-scope namespaces at that node;
         # we'll need them for QName interpretation of attribute
