@@ -414,10 +414,47 @@ class _DFAState (object):
 
     def step (self, dfa_stack, value):
         self.__state = self.contentModel().step(self.ctdInstance(), self.state(), value, dfa_stack)
-        return self.__state
+        return self.__state is not None
 
     def isFinal (self):
         return self.contentModel().isFinal(self.state())
+
+class _MGAllState (object):
+    __ctdInstance = None
+    __modelGroup = None
+    __alternatives = None
+    __currentStack = None
+    __isFinal = None
+    
+    def __init__ (self, model_group, ctd_instance):
+        self.__modelGroup = model_group
+        self.__ctdInstance = ctd_instance
+        self.__alternatives = self.__modelGroup.alternatives()
+
+    def step (self, dfa_stack, value):
+        if self.__currentStack is not None:
+            if self.__currentStack.step(self.__ctdInstance, value):
+                return True
+            self.__currentStack = None
+        found_match = True
+        for alt in self.__alternatives:
+            try:
+                new_stack = alt.contentModel().initialDFAStack(self.__ctdInstance)
+                if new_stack.step(self.__ctdInstance, value):
+                    self.__currentStack = new_stack
+                    self.__alternatives.remove(alt)
+                    return True
+            except pyxb.BadDocumentError, e:
+                #print 'Failed with alternative %s: %s' % (alt, type(e))
+                pass
+        return False
+
+    def isFinal (self):
+        for alt in self.__alternatives:
+            if alt.required():
+                #print "\n\n***Required alternative %s still present\n\n" % (alt,)
+                return False
+        return True
 
 class DFAStack (object):
     """A stack of states and content models."""
@@ -429,7 +466,7 @@ class DFAStack (object):
 
     def pushModelState (self, model_state):
         self.__stack.append(model_state)
-        return self
+        return model_state
 
     def isTerminal (self):
         return (0 == len(self.__stack)) or self.topModelState().isFinal()
@@ -445,10 +482,10 @@ class DFAStack (object):
         return self.__stack[-1]
 
     def step (self, ctd_instance, value):
-        state = self.topModelState().step(self, value)
-        if state is None:
+        ok = self.topModelState().step(self, value)
+        if not ok:
             self.popModelState()
-        return state is not None
+        return ok
 
 class ContentModelTransition (pyxb.cscRoot):
     """Represents a transition in the content model DFA.
@@ -582,6 +619,12 @@ class ContentModelTransition (pyxb.cscRoot):
             return self.__validateConsume(None, available_symbols_im, output_sequence_im, candidates)
         return False
 
+    def allowsEpsilonTransition (self):
+        if self.TT_modelGroupAll != self.__termType:
+            return False
+        dfa_state = _MGAllState(self.__term, None)
+        return dfa_state.isFinal()
+
     def attemptTransition (self, ctd_instance, node, dfa_stack):
         """Attempt to make the appropriate transition.
 
@@ -602,7 +645,7 @@ class ContentModelTransition (pyxb.cscRoot):
             else:
                 self.__elementUse.set(ctd_instance, element)
         elif self.TT_modelGroupAll == self.__termType:
-            self.__term.matchAlternatives(ctd_instance, node_list)
+            return dfa_stack.pushModelState(_MGAllState(self.__term, ctd_instance)).step(ctd_instance, node)
         elif self.TT_wildcard == self.__termType:
             if not self.__term.matchesNode(ctd_instance, node):
                 raise pyxb.UnexpectedContentError(node)
@@ -659,6 +702,12 @@ class ContentModelState (pyxb.cscRoot):
     def transitions (self):
         return self.__transitions
     
+    def allowsEpsilonTransition (self):
+        for transition in self.__transitions:
+            if transition.allowsEpsilonTransition():
+                return True
+        return False
+
     def evaluateContent (self, ctd_instance, node, dfa_stack):
         """Determine where to go from this state.
 
@@ -702,7 +751,9 @@ class ContentModel (pyxb.cscRoot):
         return self.__stateMap[state].evaluateContent(ctd_instance, value, dfa_stack)
 
     def isFinal (self, state):
-        return self.__stateMap[state].isFinal()
+        if self.__stateMap[state].isFinal():
+            return True
+        return self.__stateMap[state].allowsEpsilonTransition()
 
     def interprete (self, ctd_instance, node_list):
         """Attempt to match the content model against the node_list.
@@ -771,6 +822,8 @@ class ModelGroupAll (pyxb.cscRoot):
     compositor."""
 
     __alternatives = None
+    def alternatives (self):
+        return set(self.__alternatives)
 
     def __init__ (self, alternatives):
         self.__alternatives = alternatives
@@ -815,7 +868,7 @@ class ModelGroupAll (pyxb.cscRoot):
         @note: The UPA ensures that this can be greedy.
         """
 
-        alternatives = set(self.__alternatives)
+        alternatives = self.alternatives()
         found_match = True
 
         # The alternatives can match in arbitrary order, so repeatedly try
@@ -831,7 +884,7 @@ class ModelGroupAll (pyxb.cscRoot):
                         found_match = True
                         break
                 except pyxb.BadDocumentError, e:
-                    print 'Failed with alternative %s: %s' % (alt, type(e))
+                    #print 'Failed with alternative %s: %s' % (alt, type(e))
                     pass
         # If there's a required alternative that wasn't matched, raise
         # an error
