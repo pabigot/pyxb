@@ -4,9 +4,12 @@ import datetime
 import pyxb.binding.datatypes as xsd
 import urllib2
 import time
+import sys
 
 # Get the next seven days forecast for two locations
 zip = [ 85711, 55108 ]
+if 1 < len(sys.argv):
+    zip = sys.argv[1:]
 begin = xsd.dateTime()
 end = xsd.dateTime(begin + datetime.timedelta(7))
 
@@ -16,6 +19,7 @@ print uri
 
 # Retrieve the data
 xmls = urllib2.urlopen(uri).read()
+file('forecast.xml', 'w').write(xmls)
 #print xmls
 
 # Convert it to  DWML object
@@ -26,7 +30,7 @@ r = DWML.CreateFromDOM(dom)
 product = r.head().product()
 print '%s %s' % (product.title(), product.category())
 source = r.head().source()
-print '%s (%s)' % (source.production_center(), source.production_center().sub_center())
+print ", ".join(source.production_center().content())
 data = r.data()
 
 for i in range(len(data.location())):
@@ -43,7 +47,7 @@ for i in range(len(data.location())):
                     maxt = t
                 elif 'minimum' == t.type():
                     mint = t
-                print '%s (%s): %s' % (t.name()[0], t.units(), " ".join([ str(_v) for _v in t.value() ]))
+                print '%s (%s): %s' % (t.name()[0], t.units(), " ".join([ str(_v.content()) for _v in t.value() ]))
             time_layout = None
             for tl in data.time_layout():
                 if tl.layout_key() == mint.time_layout():
@@ -52,7 +56,6 @@ for i in range(len(data.location())):
             for ti in range(len(time_layout.start_valid_time())):
                 start = time_layout.start_valid_time()[ti].content()
                 end = time_layout.end_valid_time()[ti]
-                print '%s to %s: min %s, max %s' % (time.strftime('%A, %B %d %H:%M:%S', start.timetuple()),
-                                                    time.strftime('%H:%M:%S', end.timetuple()),
-                                                    mint.value()[ti].content(), maxt.value()[ti].content())
+                print '%s: min %s, max %s' % (time.strftime('%A, %B %d %Y', start.timetuple()),
+                                              mint.value()[ti].content(), maxt.value()[ti].content())
                 
