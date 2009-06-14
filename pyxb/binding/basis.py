@@ -723,7 +723,7 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
     __name = None
 
     def typeDefinition (self):
-        return self.__typeDefinition
+        return self.__typeDefinition._SupersedingClass()
     __typeDefinition = None
 
     def scope (self):
