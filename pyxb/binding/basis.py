@@ -678,7 +678,7 @@ class STD_list (simpleTypeDefinition, types.ListType):
         elif issubclass(cls._ItemType, STD_union):
             value = cls._ItemType._ValidateMember(value)
         else:
-            if not cls._ItemType._IsCompatibleValue(value):
+            if not isinstance(value, cls._ItemType):
                 try:
                     value = cls._ItemType(value)
                 except pyxb.BadTypeValueError:
@@ -785,8 +785,12 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
         if str == value_type:
             value_type = unicode
         if issubclass(self.typeDefinition(), value_type):
-            return self(value)
-        print 'Compatibility failed with %s as %s for %s' % (value, value_type, self.typeDefinition())
+            #print 'Compatibility OK for %s as %s for %s' % (value, value_type, self.typeDefinition())
+            try:
+                return self(value)
+            except pyxb.BadTypeValueError, e:
+                pass
+        #print 'Compatibility failed with %s as %s for %s' % (value, value_type, self.typeDefinition())
         return None
 
     # element
@@ -1126,7 +1130,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         self.__content = value
 
     def _addContent (self, child):
-        assert isinstance(child, _Binding_mixin) or isinstance(child, types.StringTypes)
+        assert isinstance(child, _Binding_mixin) or isinstance(child, types.StringTypes), 'Unrecognized child %s type %s' % (child, type(child))
         self.__content.append(child)
 
     __isMixed = False
