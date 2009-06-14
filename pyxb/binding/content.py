@@ -558,11 +558,14 @@ class ContentModelTransition (pyxb.cscRoot):
 
     def __processElementTransition (self, node):
         # First, identify the element
-        if not self.term().name().nodeMatches(node):
-            return None
-        elt_name = pyxb.namespace.ExpandedName(node)
-        element = self.term().createFromDOM(node)
-        return element
+        if isinstance(node, xml.dom.Node):
+            # @todo: inadequate for substitution group checks
+            if not self.term().name().nodeMatches(node):
+                return None
+            elt_name = pyxb.namespace.ExpandedName(node)
+            element = self.term().createFromDOM(node)
+            return element
+        return self.term().valueIfCompatible(node)
 
     def __validateConsume (self, key, available_symbols_im, output_sequence_im, candidates):
         next_symbols = available_symbols_im.copy()

@@ -39,6 +39,8 @@ Anytown, AS  12345-6789'''
     def testPythonElementComplexContent_Element (self):
         addr = USAddress(name='Customer', street='95 Main St')
         self.assertEqual('95 Main St', addr.street())
+        addr = USAddress('Customer', '95 Main St')
+        self.assertEqual('95 Main St', addr.street())
         #self.assertEqual('<s>%s</s>' % (self.address1_xml,), ToDOM(addr, tag='s').toxml())
 
     def testDOM_CTD_element (self):

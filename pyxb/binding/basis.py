@@ -776,6 +776,19 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
             return self.createFromDOM(dom_node, **kw)
         return self.typeDefinition().Factory(*args,**kw)._setElement(self)
 
+    def valueIfCompatible (self, value):
+        if value is None:
+            return None
+        if isinstance(value, self.typeDefinition()):
+            return value
+        value_type = type(value)
+        if str == value_type:
+            value_type = unicode
+        if issubclass(self.typeDefinition(), value_type):
+            return self(value)
+        print 'Compatibility failed with %s as %s for %s' % (value, value_type, self.typeDefinition())
+        return None
+
     # element
     @classmethod
     def AnyCreateFromDOM (cls, node, fallback_namespace):
@@ -942,6 +955,8 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
                    fu.set(self, iv)
         if dom_node is not None:
             self._setContentFromDOM(dom_node)
+        elif 0 < len(args):
+            self.extend(args)
 
     # Specify the symbols to be reserved for all CTDs.
     _ReservedSymbols = set([ 'Factory', 'toDOM', 'wildcardElements', 'wildcardAttributeMap',
