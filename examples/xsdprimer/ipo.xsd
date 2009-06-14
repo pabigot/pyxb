@@ -18,11 +18,10 @@
 
   <element name="comment" type="string"/>
 
-  <!-- *** pyxb mod: explicitly use ipo:USAddress *** -->
   <complexType name="PurchaseOrderType">
     <sequence>
-      <element name="shipTo"     type="ipo:USAddress"/>
-      <element name="billTo"     type="ipo:USAddress"/>
+      <element name="shipTo"     type="ipo:Address"/>
+      <element name="billTo"     type="ipo:Address"/>
       <element ref="ipo:comment" minOccurs="0"/>
       <element name="items"      type="ipo:Items"/>
     </sequence>
