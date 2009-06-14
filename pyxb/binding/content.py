@@ -362,6 +362,11 @@ class ElementUse (pyxb.cscRoot):
             ctd_instance._addContent(value)
         return self
 
+    def setOrAppend (self, ctd_instance, value):
+        if self.isPlural():
+            return self.append(ctd_instance, value)
+        return self.set(ctd_instance, value)
+
     def append (self, ctd_instance, value):
         if not self.isPlural():
             raise pyxb.StructuralBadDocumentError('Cannot append to element with non-plural multiplicity')
