@@ -16,7 +16,7 @@ print uri
 
 # Retrieve the data
 xmls = urllib2.urlopen(uri).read()
-print xmls
+#print xmls
 
 # Convert it to  DWML object
 doc = xml.dom.minidom.parseString(xmls)
@@ -26,13 +26,13 @@ r = DWML.CreateFromDOM(dom)
 product = r.head().product()
 print '%s %s' % (product.title(), product.category())
 source = r.head().source()
-print '%s (%s)' % (source.production_center().content(), source.production_center().sub_center())
+print '%s (%s)' % (source.production_center(), source.production_center().sub_center())
 data = r.data()
 
 for i in range(len(data.location())):
     loc = data.location()[i]
     for j in range(len(loc.location_key())):
-        key = loc.location_key()[j].content()
+        key = loc.location_key()[j]
         print '%s [%s %s]' % (key, loc.point()[j].latitude(), loc.point()[j].longitude())
         for p in data.parameters():
             if p.applicable_location() != key:
@@ -43,16 +43,16 @@ for i in range(len(data.location())):
                     maxt = t
                 elif 'minimum' == t.type():
                     mint = t
-                print '%s (%s): %s' % (t.name()[0], t.units(), " ".join([ str(_v.content()) for _v in t.value() ]))
+                print '%s (%s): %s' % (t.name()[0], t.units(), " ".join([ str(_v) for _v in t.value() ]))
             time_layout = None
             for tl in data.time_layout():
-                if tl.layout_key().content() == mint.time_layout():
+                if tl.layout_key() == mint.time_layout():
                     time_layout = tl
                     break
             for ti in range(len(time_layout.start_valid_time())):
-                start = time_layout.start_valid_time()[ti]
+                start = time_layout.start_valid_time()[ti].content()
                 end = time_layout.end_valid_time()[ti]
                 print '%s to %s: min %s, max %s' % (time.strftime('%A, %B %d %H:%M:%S', start.timetuple()),
                                                     time.strftime('%H:%M:%S', end.timetuple()),
-                                                    mint.value()[ti], maxt.value()[ti])
+                                                    mint.value()[ti].content(), maxt.value()[ti].content())
                 
