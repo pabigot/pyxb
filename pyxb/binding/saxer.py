@@ -1,10 +1,6 @@
-xml_file = 'examples/xsdprimer/ipo.xml'
-
-import sys
 import xml.sax
 import xml.sax.handler
 import pyxb.namespace
-import ipo
 
 class _SAXElementState (object):
     __parentState = None
@@ -62,22 +58,26 @@ class _SAXElementState (object):
         return self.bindingObject
 
 class PyXBSAXHandler (xml.sax.handler.ContentHandler):
-    __nextNamespaceContext = None
-    __namespaceContext = None
     __XSITypeTuple = pyxb.namespace.XMLSchema_instance.createExpandedName('type').uriTuple()
 
-    __elementState = None
+    __nextNamespaceContext = None
+    __namespaceContext = None
 
-    def _updateNamespaceContext (self):
-        if self.__nextNamespaceContext is not None:
-            self.__namespaceContext = self.__nextNamespaceContext
-            self.__nextNamespaceContext = None
-        return self.__namespaceContext
+    __locator = None
+    __elementState = None
+    __elementStateStack = []
+
+    def rootObject (self):
+        return self.__rootObject
+    __rootObject = None
 
     def reset (self):
         self.__namespaceContext = pyxb.namespace.NamespaceContext()
-        self.__elementState = _SAXElementState(self.__namespaceContext, None)
         self.__nextNamespaceContext = None
+        self.__locator = None
+        self.__elementState = _SAXElementState(self.__namespaceContext, None)
+        self.__elementStateStack = []
+        self.__rootObject = None
 
     def __init__ (self):
         self.reset()
@@ -86,39 +86,34 @@ class PyXBSAXHandler (xml.sax.handler.ContentHandler):
         self.reset()
 
     def setDocumentLocator (self, locator):
-        print 'setDocumentLocator %s' % (locator,)
+        self.__locator = locator
 
     def namespaceContext (self):
         return self.__namespaceContext
     
+    def _updateNamespaceContext (self):
+        if self.__nextNamespaceContext is not None:
+            self.__namespaceContext = self.__nextNamespaceContext
+            self.__nextNamespaceContext = None
+        return self.__namespaceContext
+
     def startPrefixMapping (self, prefix, uri):
-        print 'Begin prefix %s uri %s' % (prefix, uri)
         self._updateNamespaceContext().processXMLNS(prefix, uri)
+
     def endPrefixMapping (self, prefix):
-        print 'End prefix %s' % (prefix,)
-
-    def rootObject (self):
-        return self.__rootObject
-    __rootObject = None
-
-    __elementStateStack = []
+        #
+        pass
 
     def startElementNS (self, name, qname, attrs):
-
         name_en = pyxb.namespace.ExpandedName(name)
         ns_ctx = self._updateNamespaceContext()
+        self.__nextNamespaceContext = pyxb.namespace.NamespaceContext(parent_context=ns_ctx)
 
+        # Save the state of the enclosing element, and create a new
+        # state for this element.
         parent_state = self.__elementState
         self.__elementStateStack.append(self.__elementState)
         self.__elementState = this_state = _SAXElementState(ns_ctx, parent_state)
-
-        self.__nextNamespaceContext = pyxb.namespace.NamespaceContext(parent_context=ns_ctx)
-
-        print 'Start element %s with %d attrs' % (pyxb.namespace.ExpandedName(name), len(attrs))
-        for attr_name in attrs.getNames():
-            attr_en = pyxb.namespace.ExpandedName(attr_name)
-            attr_val = attrs.getValue(attr_name)
-            print '  %s %s' % (attr_en, attr_val)
 
         type_class = element_use = element_binding = None
 
@@ -127,7 +122,6 @@ class PyXBSAXHandler (xml.sax.handler.ContentHandler):
             type_class = ns_ctx.interpretQName(xsi_type).typeBinding()
 
         # @todo: handle substitution groups
-        print 'Parent enclosing CTD %s' % (parent_state.enclosingCTD,)
         if parent_state.enclosingCTD is not None:
             element_use = parent_state.enclosingCTD._UseForTag(name_en)
         else:
@@ -159,40 +153,22 @@ class PyXBSAXHandler (xml.sax.handler.ContentHandler):
     def endElementNS (self, name, qname):
         this_state = self.__elementState
         parent_state = self.__elementState = self.__elementStateStack.pop()
+
         binding_object = this_state.endElement()
         assert binding_object is not None
 
         if self.__rootObject is None:
             self.__rootObject = binding_object
 
-        print 'End element %s' % (pyxb.namespace.ExpandedName(name),)
-
     def characters (self, content):
-        print 'Content %s' % (content,)
         self.__elementState.addContent(content)
 
     def ignorableWhitespace (self, whitespace):
-        print 'Whitespace %s' % (whitespace,)
         self.__elementState.addContent(whitespace)
-        pass
 
-def ShowOrder (order):
-    print '%s is sending %s %d thing(s):' % (order.billTo().name(), order.shipTo().name(), len(order.items().item()))
-    for item in order.items().item():
-        print '  Quantity %d of %s at $%s' % (item.quantity(), item.productName(), item.USPrice())
-
-if False:
-    import pyxb.utils.domutils
-    xmld = pyxb.utils.domutils.StringToDOM(file(xml_file).read())
-    dom_value = ipo.CreateFromDOM(xmld.documentElement)
-    ShowOrder(dom_value)
-
-saxer = xml.sax.make_parser()
-# Without this, the NS handlers aren't invoked
-saxer.setFeature(xml.sax.handler.feature_namespaces, True)
-saxer.setFeature(xml.sax.handler.feature_namespace_prefixes, False)
-
-handler = PyXBSAXHandler()
-saxer.setContentHandler(handler)
-saxer.parse(file(xml_file))
-ShowOrder(handler.rootObject())
+def make_parser (*args, **kw):
+    parser = xml.sax.make_parser(*args, **kw)
+    parser.setFeature(xml.sax.handler.feature_namespaces, True)
+    parser.setFeature(xml.sax.handler.feature_namespace_prefixes, False)
+    parser.setContentHandler(PyXBSAXHandler())
+    return parser
