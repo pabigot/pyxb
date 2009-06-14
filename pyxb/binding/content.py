@@ -702,9 +702,9 @@ class ContentModelState (pyxb.cscRoot):
     def transitions (self):
         return self.__transitions
     
-    def allowsEpsilonTransition (self):
+    def allowsEpsilonTransitionToFinal (self, content_model):
         for transition in self.__transitions:
-            if transition.allowsEpsilonTransition():
+            if transition.allowsEpsilonTransition() and content_model.isFinal(transition.nextState()):
                 return True
         return False
 
@@ -753,30 +753,8 @@ class ContentModel (pyxb.cscRoot):
     def isFinal (self, state):
         if self.__stateMap[state].isFinal():
             return True
-        return self.__stateMap[state].allowsEpsilonTransition()
-
-    def interprete (self, ctd_instance, node_list):
-        """Attempt to match the content model against the node_list.
-
-        When a state has been reached from which no transition is possible,
-        this method returns (if the end state is a final state), or throws a
-        MissingContentError.  There may be material remaining on the
-        node_list; it is up to the caller to determine whether this is
-        acceptable."""
-        assert False
-        state = self.initialState()
-        while state is not None:
-            node_list = ctd_instance._stripMixedContent(node_list)
-            next_state = None
-            if 0 < len(node_list):
-                next_state = self._step(ctd_instance, state, node_list[0])
-                if next_state is not None:
-                    node_list.pop(0)
-            if next_state is None:
-                if not self.__stateMap[state].isFinal():
-                    raise pyxb.MissingContentError()
-            state = next_state
-        node_list = ctd_instance._stripMixedContent(node_list)
+        # A non-final state can be final if it has an epsilon transition to a final state
+        return self.__stateMap[state].allowsEpsilonTransitionToFinal(self)
 
     def validate (self, available_symbols, allow_residual=False):
         matches = []
@@ -853,45 +831,6 @@ class ModelGroupAll (pyxb.cscRoot):
                 return False
         candidates.append( (next_state, symbols, output_sequence) )
         return True
-
-    def matchAlternatives (self, ctd_instance, node_list):
-        """Match the node_list against the alternatives in this model group.
-
-        This method creates a set holding all the alternatives, then walks the
-        node list attempting to match against the content model of each
-        alternative in turn.  The store flag is cleared during this process,
-        so that the ctd_instance fields are not updated but the node_list
-        values are removed.  Upon successful recognition of all required
-        alternatives, the node_list is restored and the content model matching
-        repeated with store set to update the ctd_instance values.
-
-        @note: The UPA ensures that this can be greedy.
-        """
-
-        alternatives = self.alternatives()
-        found_match = True
-
-        # The alternatives can match in arbitrary order, so repeatedly try
-        # them until they're all gone or no match can be found.
-        while (0 < len(alternatives)) and found_match:
-            found_match = False
-            for alt in alternatives:
-                try:
-                    node_count = len(node_list)
-                    alt.contentModel().interprete(ctd_instance, node_list)
-                    if len(node_list) < node_count:
-                        alternatives.remove(alt)
-                        found_match = True
-                        break
-                except pyxb.BadDocumentError, e:
-                    #print 'Failed with alternative %s: %s' % (alt, type(e))
-                    pass
-        # If there's a required alternative that wasn't matched, raise
-        # an error
-        if 0 < len(alternatives):
-            for alt in alternatives:
-                if alt.required():
-                    raise pyxb.MissingContentError(alt)
 
 class Wildcard (pyxb.cscRoot):
     """Placeholder for wildcard objects."""
