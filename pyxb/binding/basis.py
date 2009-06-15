@@ -105,11 +105,11 @@ class _TypeBinding_mixin (_Binding_mixin):
     __xsiNil = None
     def _isNil (self):
         if self.__xsiNil is None:
-            raise pyxb.NoNillableSupportError(self)
+            raise pyxb.NoNillableSupportError(type(self))
         return self.__xsiNil
     def _setIsNil (self):
         if self.__xsiNil is None:
-            raise pyxb.NoNillableSupportError(self)
+            raise pyxb.NoNillableSupportError(type(self))
         self.__xsiNil = True
 
     # Flag used to control whether we print a warning when creating a complex
@@ -121,10 +121,11 @@ class _TypeBinding_mixin (_Binding_mixin):
     # After creating the object, set its associated element (if provided).
     def __new__ (cls, *args, **kw):
         element = kw.pop('_element', None)
-        nillable = kw.pop('_nillable', None)
+        is_nil = kw.pop('_nil', False)
         rv = super(_TypeBinding_mixin, cls).__new__(cls, *args, **kw)
-        if nillable or ((element is not None) and element.nillable()):
-            rv.__xsiNil = False
+        # In the absence of an element, assume the value is nillable.
+        if (element is None) or element.nillable():
+            rv.__xsiNil = is_nil
         if element is not None:
             rv._setElement(element)
         elif not cls.__WarnedUnassociatedElement:
@@ -140,7 +141,7 @@ class _TypeBinding_mixin (_Binding_mixin):
     def __init__ (self, *args, **kw):
         # Strip keyword not used above this level.
         element = kw.pop('_element', None)
-        nillable = kw.pop('_nillable', None)
+        nillable = kw.pop('_nil', None)
         super(_TypeBinding_mixin, self).__init__(*args, **kw)
 
     @classmethod
@@ -817,8 +818,6 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
         if '_element' in kw:
             raise pyxb.LogicError('Cannot set _element in element-based instance creation')
         kw['_element'] = self
-        if self.nillable():
-            kw['_nillable'] = True
         if dom_node is not None:
             return self.createFromDOM(dom_node, **kw)
         return self.typeDefinition().Factory(*args,**kw)
@@ -908,6 +907,11 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
                 raise pyxb.BadDocumentError('%s value %s is not subclass of element type %s' % (xsi_type, type_name, type_class._ExpandedName))
             type_class = alternative_type_class
             
+        xsi_nil = pyxb.namespace.ExpandedName(pyxb.namespace.XMLSchema_instance, 'nil')
+        is_nil = xsi_nil.getAttribute(node)
+        if is_nil is not None:
+            kw['_nil'] = pyxb.binding.datatypes.boolean(is_nil)
+
         rv = type_class.Factory(_dom_node=node, **kw)
         assert rv._element() == self
         rv._setNamespaceContext(ns_ctx)
