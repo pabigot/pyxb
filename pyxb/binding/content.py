@@ -220,11 +220,11 @@ class AttributeUse (pyxb.cscRoot):
                 provided = False
                 new_value = None
             else:
-                new_value = self.__dataType(unicode_value)
+                new_value = unicode_value
         else:
             assert new_value is not None
-            if not isinstance(new_value, self.__dataType):
-                new_value = self.__dataType.Factory(new_value)
+        if (new_value is not None) and (not isinstance(new_value, self.__dataType)):
+            new_value = self.__dataType.Factory(new_value)
         if self.__fixed and (new_value != self.__defaultValue):
             raise pyxb.AttributeChangeError('Attempt to change value of fixed attribute %s' % (self.__name,))
         self.__setValue(ctd_instance, new_value, provided)

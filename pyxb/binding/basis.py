@@ -116,7 +116,8 @@ class _TypeBinding_mixin (_Binding_mixin):
             rv._setElement(element)
         elif not cls.__WarnedUnassociatedElement:
             # Don't warn for simpleTypeDefinition values: too many (e.g.,
-            # facet values) are legitimately unassociated with elements.
+            # facet and attribute values) are legitimately unassociated with
+            # elements.
             if issubclass(cls, complexTypeDefinition):
                 print '**WARNING: Creating new %s instance without associated element' % (cls._ExpandedName,)
                 #raise pyxb.LogicError('Creating new _TypeBinding_mixin without associated element')
