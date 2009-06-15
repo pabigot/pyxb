@@ -185,6 +185,12 @@ class _TypeBinding_mixin (_Binding_mixin):
         rv._postFactory_vx(state)
         return rv
 
+    def _toDOM_csc (self, dom_support, parent):
+        assert parent is not None
+        if self.__xsiNil:
+            dom_support.addAttribute(parent, pyxb.namespace.XMLSchema_instance.createExpandedName('nil'), 'true')
+        return getattr(super(_TypeBinding_mixin, self), '_toDOM_csc', lambda *_args,**_kw: dom_support)(dom_support, parent)
+
 class _DynamicCreate_mixin (pyxb.cscRoot):
     """Helper to allow overriding the implementation class.
 
