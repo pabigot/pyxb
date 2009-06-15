@@ -208,8 +208,11 @@ class BindingDOMSupport (object):
         if isinstance(namespace, pyxb.namespace.Namespace):
             namespace = namespace.uri()
         if prefix is None:
-            self.__namespacePrefixCounter += 1
-            prefix = 'ns%d' % (self.__namespacePrefixCounter,)
+            if (pyxb.namespace.XMLSchema_instance.uri() == namespace) and not ('xsi' in self.__namespaces):
+                prefix = 'xsi'
+            else:
+                self.__namespacePrefixCounter += 1
+                prefix = 'ns%d' % (self.__namespacePrefixCounter,)
         self.__namespaces[namespace] = prefix
         return prefix
 
