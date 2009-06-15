@@ -77,6 +77,11 @@ class _Binding_mixin (pyxb.cscRoot):
         raise pyxb.IncompleteImplementationError('%s did not override _validateBinding_vx' % (type(self),))
 
     def validateBinding (self):
+        """Check whether the binding content matches its content model.
+
+        Returns None if successful
+        @raise pyxb.BindingValidationError: if content does not match model.
+        """
         return self._validateBinding_vx()
 
 class _TypeBinding_mixin (_Binding_mixin):
@@ -108,8 +113,6 @@ class _TypeBinding_mixin (_Binding_mixin):
 
     __xsiNil = None
     def _isNil (self):
-        if self.__xsiNil is None:
-            raise pyxb.NoNillableSupportError(type(self))
         return self.__xsiNil
     def _setIsNil (self):
         if self.__xsiNil is None:

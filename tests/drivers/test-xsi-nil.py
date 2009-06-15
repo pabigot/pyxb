@@ -23,7 +23,7 @@ class TestXSIType (unittest.TestCase):
         doc = pyxb.utils.domutils.StringToDOM(xml)
         instance = CreateFromDOM(doc.documentElement)
         self.assertEqual(instance, 'content')
-        self.assertRaises(pyxb.NoNillableSupportError, instance._isNil)
+        self.assertFalse(instance._isNil())
         self.assertRaises(pyxb.NoNillableSupportError, instance._setIsNil)
 
     def testXFull (self):
@@ -31,7 +31,7 @@ class TestXSIType (unittest.TestCase):
         doc = pyxb.utils.domutils.StringToDOM(xml)
         instance = CreateFromDOM(doc.documentElement)
         self.assertEqual(instance, 'content')
-        self.assertRaises(pyxb.NoNillableSupportError, instance._isNil)
+        self.assertFalse(instance._isNil())
         self.assertRaises(pyxb.NoNillableSupportError, instance._setIsNil)
 
     def testOptional (self):
@@ -74,7 +74,7 @@ class TestXSIType (unittest.TestCase):
         self.assertEqual(instance, '')
         self.assertTrue(instance._isNil())
 
-    def testComplex (self):
+    def testComplexInternal (self):
         xml = '<complex><full>full content</full><optional>optional content</optional></complex>'
         doc = pyxb.utils.domutils.StringToDOM(xml)
         instance = CreateFromDOM(doc.documentElement)
@@ -82,6 +82,7 @@ class TestXSIType (unittest.TestCase):
         self.assertEqual(instance.optional(), 'optional content')
         self.assertFalse(instance.optional()._isNil())
         self.assertEqual(instance.toDOM().documentElement.toxml(), xml)
+        instance.validateBinding()
 
         saxer = pyxb.binding.saxer.make_parser(fallback_namespace=Namespace)
         handler = saxer.getContentHandler()
@@ -98,6 +99,7 @@ class TestXSIType (unittest.TestCase):
         self.assertEqual(instance.optional(), '')
         self.assertTrue(instance.optional()._isNil())
         self.assertEqual(instance.toDOM().documentElement.toxml(), xml)
+        instance.validateBinding()
 
         saxer = pyxb.binding.saxer.make_parser(fallback_namespace=Namespace)
         handler = saxer.getContentHandler()
@@ -106,6 +108,13 @@ class TestXSIType (unittest.TestCase):
         self.assertEqual(instance.full(), 'full content')
         self.assertEqual(instance.optional(), '')
         self.assertTrue(instance.optional()._isNil())
+
+    def testComplex (self):
+        xml = '<complex xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true"></complex>'
+        doc = pyxb.utils.domutils.StringToDOM(xml)
+        instance = CreateFromDOM(doc.documentElement)
+        self.assertTrue(instance._isNil())
+        instance.validateBinding()
 
 if __name__ == '__main__':
     unittest.main()
