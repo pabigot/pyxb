@@ -102,6 +102,11 @@ class _TypeBinding_mixin (_Binding_mixin):
         return self.__element
     __element = None
 
+    # Flag used to control whether we print a warning when creating a complex
+    # type instance that does not have an associated element.  Not sure yet
+    # whether that'll be common practice or common error.
+    __WarnedUnassociatedElement = False
+
     # Strip _element away before invoking parent new, which may not accept it.
     # After creating the object, set its associated element (if provided).
     def __new__ (cls, *args, **kw):
@@ -109,6 +114,13 @@ class _TypeBinding_mixin (_Binding_mixin):
         rv = super(_TypeBinding_mixin, cls).__new__(cls, *args, **kw)
         if element is not None:
             rv._setElement(element)
+        elif not cls.__WarnedUnassociatedElement:
+            # Don't warn for simpleTypeDefinition values: too many (e.g.,
+            # facet values) are legitimately unassociated with elements.
+            if issubclass(cls, complexTypeDefinition):
+                print '**WARNING: Creating new %s instance without associated element' % (cls._ExpandedName,)
+                #raise pyxb.LogicError('Creating new _TypeBinding_mixin without associated element')
+                cls.__WarnedUnassociatedElement = True
         return rv
 
     def __init__ (self, *args, **kw):
@@ -795,13 +807,19 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
         return self.typeDefinition().Factory(*args,**kw)
 
     def valueIfCompatible (self, value):
+        # None is always None
         if value is None:
             return None
+        # Already an instance?
         if isinstance(value, self.typeDefinition()):
+            # @todo: Consider whether we should change the associated _element
+            # of this value.
             return value
         value_type = type(value)
         if str == value_type:
             value_type = unicode
+        # See if we got passed a Python value which needs to be "downcasted"
+        # to the _TypeBinding_mixin version.
         if issubclass(self.typeDefinition(), value_type):
             #print 'Compatibility OK for %s as %s for %s' % (value, value_type, self.typeDefinition())
             try:
