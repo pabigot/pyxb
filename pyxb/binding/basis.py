@@ -45,8 +45,8 @@ class _Binding_mixin (pyxb.cscRoot):
         with a type that is either one of those."""
         return False
 
-    def _toDOM_vx (self, bds, parent):
-        raise pyxb.LogicError('Class %s did not override _toDOM_vx' % (type(self),))
+    def _toDOM_csc (self, bds, parent):
+        pass
 
     def toDOM (self, bds=None):
         if bds is None:
@@ -55,7 +55,7 @@ class _Binding_mixin (pyxb.cscRoot):
             parent = bds.createChild(self._element().name().localName(), self._element().name().namespace())
         else:
             parent = bds.createChild(self._ExpandedName.localName(), self._ExpandedName.namespace())
-        self._toDOM_vx(bds, parent)
+        self._toDOM_csc(bds, parent)
         bds.finalize()
         return bds.document()
 
@@ -609,10 +609,10 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
         represent the value of this instance."""
         return self.PythonLiteral(self)
 
-    def _toDOM_vx (self, dom_support, parent):
+    def _toDOM_csc (self, dom_support, parent):
         assert parent is not None
         parent.appendChild(dom_support.document().createTextNode(self.xsdLiteral()))
-        return dom_support
+        return getattr(super(simpleTypeDefinition, self), '_toDOM_csc', lambda *_args,**_kw: dom_support)(dom_support, parent)
 
     @classmethod
     def _IsSimpleTypeContent (cls):
@@ -917,13 +917,13 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
         rv._setNamespaceContext(ns_ctx)
         return rv
 
-    def _toDOM_vx (self, dom_support, parent):
+    def _toDOM_csc (self, dom_support, parent):
         """Add a DOM representation of this element as a child of
         parent, which should be a DOM Node instance."""
         assert isinstance(dom_support, domutils.BindingDOMSupport)
         element = dom_support.createChild(self._ExpandedName.localName(), self._ExpandedName.namespace(), parent)
-        self.__realContent._toDOM_vx(dom_support, parent=element)
-        return dom_support
+        self.__realContent._toDOM_csc(dom_support, parent=element)
+        return getattr(super(element, self), '_toDOM_csc', lambda *_args,**_kw: dom_support)(dom_support, parent)
 
     def __str__ (self):
         return 'Element %s' % (self.name(),)
@@ -1229,30 +1229,28 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             au.addDOMAttribute(self, element)
         return element
 
-    def _toDOM_vx (self, dom_support, parent):
+    def _toDOM_csc (self, dom_support, parent):
         """Create a DOM element with the given tag holding the content of this instance."""
         element = parent
         self._setDOMFromAttributes(element)
         if self._CT_EMPTY == self._ContentTypeTag:
-            return
-        if self._CT_SIMPLE == self._ContentTypeTag:
-            return element.appendChild(dom_support.document().createTextNode(self.content().xsdLiteral()))
-        order = self._validatedChildren()
-        if order is None:
-            raise pyxb.DOMGenerationError('Binding value inconsistent with content model')
-        for (eu, v) in order:
-            assert v != self
-            if eu is None:
-                print 'IGNORING wildcard generation'
-            else:
-                eu.toDOM(dom_support, parent, v)
-        mixed_content = self.content()
-        for mc in mixed_content:
-            #print 'Skipping mixed content %s' % (mc,)
             pass
-            #if isinstance(mc, types.StringTypes):
-            #    element.appendChild(dom_support.document().createTextNode(mc))
-        return dom_support
+        elif self._CT_SIMPLE == self._ContentTypeTag:
+            element.appendChild(dom_support.document().createTextNode(self.content().xsdLiteral()))
+        else:
+            order = self._validatedChildren()
+            if order is None:
+                raise pyxb.DOMGenerationError('Binding value inconsistent with content model')
+            for (eu, v) in order:
+                assert v != self
+                if eu is None:
+                    print 'IGNORING wildcard generation'
+                else:
+                    eu.toDOM(dom_support, parent, v)
+            mixed_content = self.content()
+            for mc in mixed_content:
+                pass
+        return getattr(super(complexTypeDefinition, self), '_toDOM_csc', lambda *_args,**_kw: dom_support)(dom_support, parent)
 
     @classmethod
     def _IsSimpleTypeContent (cls):

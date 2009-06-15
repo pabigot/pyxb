@@ -384,7 +384,7 @@ class ElementUse (pyxb.cscRoot):
                 if tns_prefix is not None:
                     val_type_qname = '%s:%s' % (tns_prefix, val_type_qname)
                 dom_support.addAttribute(element, pyxb.namespace.XMLSchema_instance.createExpandedName('type'), val_type_qname)
-            value._toDOM_vx(dom_support, element)
+            value._toDOM_csc(dom_support, element)
         elif isinstance(value, (str, unicode)):
             element.appendChild(dom_support.document().createTextNode(value))
         else:
