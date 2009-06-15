@@ -22,6 +22,9 @@ import pyxb.namespace
 class _SAXElementState (object):
     """State corresponding to processing a given element."""
 
+    # An expanded name corresponding to xsi:nil
+    __XSINilTuple = pyxb.namespace.XMLSchema_instance.createExpandedName('nil').uriTuple()
+
     # Reference to the _SAXElementState of the element enclosing this one
     __parentState = None
 
@@ -84,10 +87,17 @@ class _SAXElementState (object):
 
     # Create the binding instance for this element.
     def __constructElement (self, new_object_factory, attrs, content=None):
+
+        kw = {}
+
+        # Note whether the node is marked nil
+        if attrs.has_key(self.__XSINilTuple):
+            kw['_nil'] = pyxb.binding.datatypes.boolean(attrs.getValue(self.__XSINilTuple))
+
         if content is not None:
-            self.__bindingObject = new_object_factory(content)
+            self.__bindingObject = new_object_factory(content, **kw)
         else:
-            self.__bindingObject = new_object_factory()
+            self.__bindingObject = new_object_factory(**kw)
         # Set the attributes.
         if isinstance(self.__bindingObject, pyxb.binding.basis.complexTypeDefinition):
             for attr_name in self.__attributes.getNames():
@@ -126,6 +136,10 @@ class _SAXElementState (object):
         return self.__bindingObject
 
 class PyXBSAXHandler (xml.sax.handler.ContentHandler):
+    # The namespace to use when processing a document with an absent default
+    # namespace.
+    __fallbackNamespace = None
+
     # An expanded name corresponding to xsi:type
     __XSITypeTuple = pyxb.namespace.XMLSchema_instance.createExpandedName('type').uriTuple()
 
@@ -158,14 +172,15 @@ class PyXBSAXHandler (xml.sax.handler.ContentHandler):
     def reset (self):
         """Reset the state of the handler in preparation for
         processing a new document."""
-        self.__namespaceContext = pyxb.namespace.NamespaceContext()
+        self.__namespaceContext = pyxb.namespace.NamespaceContext(default_namespace=self.__fallbackNamespace)
         self.__nextNamespaceContext = None
         self.__locator = None
         self.__elementState = _SAXElementState(self.__namespaceContext, None)
         self.__elementStateStack = []
         self.__rootObject = None
 
-    def __init__ (self):
+    def __init__ (self, fallback_namespace=None):
+        self.__fallbackNamespace = fallback_namespace
         self.reset()
 
     def namespaceContext (self):
@@ -198,13 +213,17 @@ class PyXBSAXHandler (xml.sax.handler.ContentHandler):
     #    pass
 
     def startElementNS (self, name, qname, attrs):
-        # Get the element name including namespace information
-        name_en = pyxb.namespace.ExpandedName(name)
-
         # Get the context to be used for this element, and create a
         # new context for the next contained element to be found.
         ns_ctx = self.__updateNamespaceContext()
         self.__nextNamespaceContext = pyxb.namespace.NamespaceContext(parent_context=ns_ctx)
+
+        # Get the element name including namespace information.  Note that we
+        # might have a default (absent) namespace even though SAX doesn't know
+        # about it.
+        if name[0] is None:
+            name = ( self.__fallbackNamespace, name[1] )
+        name_en = pyxb.namespace.ExpandedName(name)
 
         # Save the state of the enclosing element, and create a new
         # state for this element.
@@ -302,10 +321,11 @@ def make_parser (*args, **kw):
       above but still...)
     - The content handler is set to a fresh instance of L{PyXBSAXHandler}.
     """
+    fallback_namespace = kw.pop('fallback_namespace', None)
     parser = xml.sax.make_parser(*args, **kw)
     parser.setFeature(xml.sax.handler.feature_namespaces, True)
     parser.setFeature(xml.sax.handler.feature_namespace_prefixes, False)
-    parser.setContentHandler(PyXBSAXHandler())
+    parser.setContentHandler(PyXBSAXHandler(fallback_namespace=fallback_namespace))
     return parser
 
 ## Local Variables:

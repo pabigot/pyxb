@@ -1,6 +1,8 @@
 import pyxb
 import pyxb.binding.generate
 import pyxb.utils.domutils
+import pyxb.binding.saxer
+import StringIO
 
 from xml.dom import Node
 
@@ -41,6 +43,14 @@ class TestXSIType (unittest.TestCase):
         instance._setIsNil()
         self.assertTrue(instance._isNil())
 
+        saxer = pyxb.binding.saxer.make_parser(fallback_namespace=Namespace)
+        handler = saxer.getContentHandler()
+        saxer.parse(StringIO.StringIO(xml))
+        instance = handler.rootObject()
+        self.assertEqual(instance, 'content')
+        self.assertFalse(instance._isNil())
+
+
     def testOptionalNilFalse (self):
         xml = '<optional xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="false">content</optional>'
         doc = pyxb.utils.domutils.StringToDOM(xml)
@@ -54,6 +64,13 @@ class TestXSIType (unittest.TestCase):
         xml = '<optional xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true"/>'
         doc = pyxb.utils.domutils.StringToDOM(xml)
         instance = CreateFromDOM(doc.documentElement)
+        self.assertEqual(instance, '')
+        self.assertTrue(instance._isNil())
+
+        saxer = pyxb.binding.saxer.make_parser(fallback_namespace=Namespace)
+        handler = saxer.getContentHandler()
+        saxer.parse(StringIO.StringIO(xml))
+        instance = handler.rootObject()
         self.assertEqual(instance, '')
         self.assertTrue(instance._isNil())
 
