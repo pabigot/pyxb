@@ -570,7 +570,11 @@ class ContentModelTransition (pyxb.cscRoot):
             elt_name = pyxb.namespace.ExpandedName(node)
             element = self.term().createFromDOM(node)
             return element
-        return self.term().valueIfCompatible(node)
+        try:
+            return self.term().compatibleValue(node)
+        except pyxb.BadValueTypeError, e:
+            pass
+        return None
 
     def __validateConsume (self, key, available_symbols_im, output_sequence_im, candidates):
         next_symbols = available_symbols_im.copy()

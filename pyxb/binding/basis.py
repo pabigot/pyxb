@@ -806,7 +806,22 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
             return self.createFromDOM(dom_node, **kw)
         return self.typeDefinition().Factory(*args,**kw)
 
-    def valueIfCompatible (self, value):
+    def compatibleValue (self, value):
+        """Return a variant of the value that is compatible with this element.
+
+        Compatibility is defined relative to the type definition associated
+        with the element.  The value C{None} is always compatible.  If
+        C{value} has a Python type (e.g., C{int}) that is a superclass of the
+        required L{_TypeBasis_mixin} class (e.g., C{xs:byte}), C{value} is
+        used as a constructor parameter to return a new instance of the
+        required type.  Note that constraining facets are applied here if
+        necessary (e.g., although a Python C{int} with value C{500} is
+        type-compatible with C{xs:byte}, it is outside the value space, and
+        compatibility will fail.
+
+        @raise pyxb.BadTypeValueError: if the value is not both
+        type-consistent and value-consistent with the element's type.
+        """
         # None is always None
         if value is None:
             return None
@@ -816,18 +831,14 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
             # of this value.
             return value
         value_type = type(value)
+        # All string-based PyXB binding types use unicode, not str
         if str == value_type:
             value_type = unicode
         # See if we got passed a Python value which needs to be "downcasted"
         # to the _TypeBinding_mixin version.
         if issubclass(self.typeDefinition(), value_type):
-            #print 'Compatibility OK for %s as %s for %s' % (value, value_type, self.typeDefinition())
-            try:
-                return self(value)
-            except pyxb.BadTypeValueError, e:
-                pass
-        #print 'Compatibility failed with %s as %s for %s' % (value, value_type, self.typeDefinition())
-        return None
+            return self(value)
+        raise pyxb.BadTypeValueError('Value of class %s not compatible with element %s type %s' % (value_type.__name__, self.name(), self.typeDefinition()._ExpandedName()))
 
     # element
     @classmethod
