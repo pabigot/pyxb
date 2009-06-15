@@ -835,10 +835,11 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
         if str == value_type:
             value_type = unicode
         # See if we got passed a Python value which needs to be "downcasted"
-        # to the _TypeBinding_mixin version.
-        if issubclass(self.typeDefinition(), value_type):
-            return self(value)
-        raise pyxb.BadTypeValueError('Value of class %s not compatible with element %s type %s' % (value_type.__name__, self.name(), self.typeDefinition()._ExpandedName()))
+        # to the _TypeBinding_mixin version.  We can't actually test this
+        # any other way than trying it; even if the type definition isn't a
+        # subclass of the value type, its constructor may accept the value
+        # type.
+        return self(value)
 
     # element
     @classmethod

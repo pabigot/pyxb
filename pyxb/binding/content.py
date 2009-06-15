@@ -340,21 +340,13 @@ class ElementUse (pyxb.cscRoot):
         setattr(ctd_instance, self.__key, self.defaultValue())
         return self
 
-    def __setValue (self, ctd_instance, value):
-        #print 'Set value of %s to %s' % (self.name(), value)
-        if self.isPlural():
-            return values
-        return 
-
     # @todo Distinguish based on plurality
     def set (self, ctd_instance, value):
         """Set the value of this element in the given instance."""
         if value is None:
             return self.reset(ctd_instance)
         assert self.__elementBinding is not None
-        elt_type = self.__elementBinding.typeDefinition()
-        if not isinstance(value, elt_type):
-            value = elt_type.Factory(value)
+        value = self.__elementBinding.compatibleValue(value)
         setattr(ctd_instance, self.__key, value)
         if isinstance(value, list): # and not elt_type._IsSimpleTypeContent():
             [ ctd_instance._addContent(_elt) for _elt in value ]
@@ -371,6 +363,7 @@ class ElementUse (pyxb.cscRoot):
         if not self.isPlural():
             raise pyxb.StructuralBadDocumentError('Cannot append to element with non-plural multiplicity')
         values = self.value(ctd_instance)
+        value = self.__elementBinding.compatibleValue(value)
         values.append(value)
         ctd_instance._addContent(value)
         return values
