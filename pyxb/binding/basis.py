@@ -1269,7 +1269,9 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         """Create a DOM element with the given tag holding the content of this instance."""
         element = parent
         self._setDOMFromAttributes(element)
-        if self._CT_EMPTY == self._ContentTypeTag:
+        if self._isNil():
+            pass
+        elif self._CT_EMPTY == self._ContentTypeTag:
             pass
         elif self._CT_SIMPLE == self._ContentTypeTag:
             element.appendChild(dom_support.document().createTextNode(self.content().xsdLiteral()))

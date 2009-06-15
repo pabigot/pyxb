@@ -109,11 +109,18 @@ class TestXSIType (unittest.TestCase):
         self.assertEqual(instance.optional(), '')
         self.assertTrue(instance.optional()._isNil())
 
+        xml = '<complex xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true"/>'
+        instance._setIsNil()
+        self.assertEqual(instance.toDOM().documentElement.toxml(), xml)
+        instance.validateBinding()
+
     def testComplex (self):
-        xml = '<complex xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true"></complex>'
+
+        xml = '<complex xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true"/>'
         doc = pyxb.utils.domutils.StringToDOM(xml)
         instance = CreateFromDOM(doc.documentElement)
         self.assertTrue(instance._isNil())
+        self.assertEqual(instance.toDOM().documentElement.toxml(), xml)
         instance.validateBinding()
 
 if __name__ == '__main__':
