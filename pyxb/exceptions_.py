@@ -91,6 +91,10 @@ class DOMGenerationError (PyXBException):
     """Raised when converting binding to DOM and something goes wrong."""
     pass
 
+class NoNillableSupportError (PyXBException):
+    """Raised when checking _isNil on a type that does not support nillable."""
+    pass
+
 class BindingValidationError (PyXBException):
     """Raised when the content of a binding object is not consistent with its content model"""
     pass
