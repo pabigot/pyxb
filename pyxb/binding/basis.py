@@ -36,6 +36,8 @@ class _Binding_mixin (pyxb.cscRoot):
     _ExpandedName = None
     """The expanded name of the component."""
 
+    _ReservedSymbols = set([ 'validateBinding', 'toDOM', 'toxml' ])
+
     @classmethod
     def _IsSimpleTypeContent (cls):
         """Return True iff the content of this binding object is a simple type.
@@ -78,6 +80,8 @@ class _Binding_mixin (pyxb.cscRoot):
         return self._validateBinding_vx()
 
 class _TypeBinding_mixin (_Binding_mixin):
+
+    _ReservedSymbols = _Binding_mixin._ReservedSymbols.union(set([ 'Factory' ]))
 
     # While simple type definitions cannot be abstract, they can appear in
     # many places where complex types can, so we want it to be legal to test
@@ -283,10 +287,10 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
     # Note that each descendent of simpleTypeDefinition has its own map.
     __FacetMap = {}
 
-    _ReservedSymbols = set([ 'Factory', 'XsdLiteral', 'xsdLiteral',
+    _ReservedSymbols = _TypeBinding_mixin._ReservedSymbols.union(set([ 'XsdLiteral', 'xsdLiteral',
                             'XsdSuperType', 'XsdPythonType', 'XsdConstraintsOK',
                             'xsdConstraintsOK', 'XsdValueLength', 'xsdValueLength',
-                            'PythonLiteral', 'pythonLiteral', 'toDOM' ])
+                            'PythonLiteral', 'pythonLiteral' ]))
     """Symbols that remain the responsibility of this class.  Any
     public symbols in generated binding subclasses are deconflicted
     by providing an alternative name in the subclass.  (There
@@ -1045,8 +1049,8 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             self.extend(args)
 
     # Specify the symbols to be reserved for all CTDs.
-    _ReservedSymbols = set([ 'Factory', 'toDOM', 'wildcardElements', 'wildcardAttributeMap',
-                             'xsdConstraintsOK', 'content' ])
+    _ReservedSymbols = _TypeBinding_mixin._ReservedSymbols.union(set([ 'wildcardElements', 'wildcardAttributeMap',
+                             'xsdConstraintsOK', 'content' ]))
 
     # None, or a reference to a ContentModel instance that defines how to
     # reduce a DOM node list to the body of this element.
