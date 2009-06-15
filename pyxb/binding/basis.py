@@ -102,6 +102,20 @@ class _TypeBinding_mixin (_Binding_mixin):
         return self.__element
     __element = None
 
+    # Strip _element away before invoking parent new, which may not accept it.
+    # After creating the object, set its associated element (if provided).
+    def __new__ (cls, *args, **kw):
+        element = kw.pop('_element', None)
+        rv = super(_TypeBinding_mixin, cls).__new__(cls, *args, **kw)
+        if element is not None:
+            rv._setElement(element)
+        return rv
+
+    def __init__ (self, *args, **kw):
+        # Strip keyword not used above this level.
+        element = kw.pop('_element', None)
+        super(_TypeBinding_mixin, self).__init__(*args, **kw)
+
     @classmethod
     def _PreFactory_vx (cls, args, kw):
         """Method invoked upon entry to the Factory method.
@@ -391,6 +405,7 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
     def __new__ (cls, *args, **kw):
         kw.pop('_validate_constraints', None)
         args = cls._ConvertArguments(args, kw)
+        assert issubclass(cls, _TypeBinding_mixin)
         try:
             return super(simpleTypeDefinition, cls).__new__(cls, *args, **kw)
         except ValueError, e:
@@ -772,9 +787,12 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
         
     def __call__ (self, *args, **kw):
         dom_node = kw.pop('_dom_node', None)
+        if '_element' in kw:
+            raise pyxb.LogicError('Cannot set _element in element-based instance creation')
+        kw['_element'] = self
         if dom_node is not None:
             return self.createFromDOM(dom_node, **kw)
-        return self.typeDefinition().Factory(*args,**kw)._setElement(self)
+        return self.typeDefinition().Factory(*args,**kw)
 
     def valueIfCompatible (self, value):
         if value is None:
@@ -809,12 +827,18 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
         :raise pyxb.LogicError: the name of the node is not consistent with
         the _ExpandedName of this class."""
 
-        # Identify the element binding to be used for the given node.  In the
-        # case of substitution groups, it may not be what we expect.
+
+        # Identify the element binding to be used for the given node.
         elt_ns = self.__name.namespace()
         if self.scope() is None:
             node_elt = pyxb.namespace.ExpandedName(node, fallback_namespace=elt_ns).elementBinding()
             assert self == node_elt, 'Node %s self %s node_elt %s' % (node, self, node_elt)
+
+        # Mark that the created _TypeBinding_mixin instance should be
+        # associated with this element.
+        if '_element' in kw:
+            raise pyxb.LogicError('Cannot set _element in element-based instance creation')
+        kw['_element'] = self
 
         # Now determine the type binding for the content.  If xsi:type is
         # used, it won't be the one built into the element binding.
@@ -838,7 +862,7 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
             type_class = alternative_type_class
             
         rv = type_class.Factory(_dom_node=node, **kw)
-        rv._setElement(self)
+        assert rv._element() == self
         rv._setNamespaceContext(ns_ctx)
         return rv
 
