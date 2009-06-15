@@ -148,7 +148,7 @@ class _TypeBinding_mixin (_Binding_mixin):
     def __init__ (self, *args, **kw):
         # Strip keyword not used above this level.
         element = kw.pop('_element', None)
-        nillable = kw.pop('_nil', None)
+        is_nil = kw.pop('_nil', None)
         super(_TypeBinding_mixin, self).__init__(*args, **kw)
 
     @classmethod
@@ -1015,10 +1015,18 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         encountered."""
         return self.__wildcardElements
 
+    __XSINil = pyxb.namespace.XMLSchema_instance.createExpandedName('nil')
     def __init__ (self, *args, **kw):
         dom_node = kw.pop('_dom_node', None)
+        is_nil = False
         if dom_node is not None:
             kw['_validate_constraints'] = False
+            is_nil = self.__XSINil.getAttribute(dom_node)
+            if is_nil is not None:
+                is_nil = kw['_nil'] = pyxb.binding.datatypes.boolean(is_nil)
+                # Verify that the _nil keyword was set at the time this
+                # instance was allocated.
+                assert is_nil == self._isNil()
         if self._AttributeWildcard is not None:
             self.__wildcardAttributeMap = { }
         if self._HasWildcardElement:
@@ -1114,6 +1122,9 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         return rv
 
     def _validateBinding_vx (self):
+        # @todo: validate attributes?
+        if self._isNil():
+            return None
         order = self._validatedChildren()
         if order is None:
             raise pyxb.BindingValidationError('No match from content to binding model')
@@ -1224,7 +1235,19 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
     __isMixed = False
     def _setContentFromDOM (self, node):
         """Initialize the content of this element from the content of the DOM node."""
+
+        has_content = False
+        for cn in node.childNodes:
+            if cn.nodeType in (dom.Node.TEXT_NODE, dom.Node.CDATA_SECTION_NODE, dom.Node.ELEMENT_NODE):
+                has_content = True
+                break
+        if self._isNil():
+            if has_content:
+                raise pyxb.ExtraContentError('Content present in element with xsi:nil')
+            return
         if self._CT_EMPTY == self._ContentTypeTag:
+            if has_content:
+                raise pyxb.ExtraContentError('Content present in complex type with empty content')
             return
         if self._CT_SIMPLE == self._ContentTypeTag:
             self.__setContent(self._TypeDefinition.Factory(_dom_node=node))

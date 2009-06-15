@@ -4,7 +4,7 @@
 	<xs:element name="full" type="xs:string"/>
 	<xs:element name="xfull" nillable="false" type="xs:string"/>
 	<xs:element name="optional" nillable="true" type="xs:string"/>
-	<xs:element name="complex">
+	<xs:element name="complex" nillable="true">
 		<xs:complexType>
 			<xs:sequence>
 				<xs:element ref="full"/>
