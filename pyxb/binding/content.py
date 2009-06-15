@@ -719,16 +719,13 @@ class ContentModelState (pyxb.cscRoot):
     def evaluateContent (self, ctd_instance, node, dfa_stack):
         """Determine where to go from this state.
 
-        If a transition matches, the consumed prefix of node_list has been
-        stripped, the resulting data stored in ctd_instance if store is True,
-        and the next state is returned.
-
         If no transition can be made, and this state is a final state for the
         DFA, the value None is returned.
 
         @param ctd_instance: The binding instance holding the content
-        @param node_list: in/out list of DOM nodes that comprise instance content
-        @param store: whether this actually consumes or just tests
+        @param node: the next value from the actual content
+        @type node: C{xml.dom.Node} or L{_TypeBinding_mixin} or C{object}
+        @param dfa_stack: parsing context
         @raise pyxb.UnrecognizedContentError: trailing material that does not match content model
         @raise pyxb.MissingContentError: content model requires additional data
         """

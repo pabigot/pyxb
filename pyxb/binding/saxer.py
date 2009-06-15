@@ -300,7 +300,7 @@ def make_parser (*args, **kw):
     - C{feature_namespace_prefixes} is set to C{False} so we don't get
       prefixes encoded into our names (probably redundant with the
       above but still...)
-    - The content handler is set to a fresh instance of R{PyXBSAXHandler}.
+    - The content handler is set to a fresh instance of L{PyXBSAXHandler}.
     """
     parser = xml.sax.make_parser(*args, **kw)
     parser.setFeature(xml.sax.handler.feature_namespaces, True)
