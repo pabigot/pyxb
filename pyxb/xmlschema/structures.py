@@ -2015,6 +2015,9 @@ class _UrTypeDefinition (ComplexTypeDefinition, _Singleton_mixin):
         """The UrTypeDefinition is not dependent on anything."""
         return frozenset()
 
+    def pythonSupport (self):
+        return datatypes.anyType
+
     def _resolve (self):
         # The ur type is always resolved, except when it gets unresolved
         # through being updated from an instance read from the schema.
