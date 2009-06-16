@@ -565,23 +565,10 @@ class ContentModelTransition (pyxb.cscRoot):
     def __processElementTransition (self, value):
         # First, identify the element
         if isinstance(value, xml.dom.Node):
-            if not self.term().name().nodeMatches(value):
-                # Name doesn't match.  Probably not this term, but check for
-                # substitution groups just in case.
-                term_elt = self.term().name().elementBinding()
-                if term_elt is not None:
-                    # There's a global element which might serve as a
-                    # substitution group head.  See if the element identified
-                    # by the node is in that group.  (It has to be a top-level
-                    # element for this to be true.)
-                    node_en = self.term().name().adoptName(value)
-                    node_elt = node_en.elementBinding()
-                    if (node_elt is not None) and (node_elt != term_elt):
-                        if node_elt.substitutesFor(term_elt):
-                            return node_elt.createFromDOM(value)
-                    print 'WARNING: Cannot substitute %s for %s' % (node_en, term_elt.name())
+            element_binding = self.term().elementForDOM(value)
+            if element_binding is None:
                 return None
-            element = self.term().createFromDOM(value)
+            element = element_binding.createFromDOM(value)
             return element
         try:
             return self.term().compatibleValue(value)

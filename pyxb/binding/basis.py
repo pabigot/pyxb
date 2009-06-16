@@ -821,7 +821,12 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
             if other is None:
                 return False
             assert other.scope() is None
-        return (self.substitutionGroup() is not None) and ((self.substitutionGroup() == other) or self.substitutionGroup().substitutesFor(other))
+        # Do both these refer to the same (top-level) element?
+        if self.name().elementBinding() == other:
+            return True
+        if self.substitutionGroup() is None:
+            return False
+        return (self.substitutionGroup() == other) or self.substitutionGroup().substitutesFor(other)
 
     def memberElement (self, name):
         """Return a reference to the element instance used for the given name
@@ -906,6 +911,31 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
         assert isinstance(elt, pyxb.binding.basis.element)
         return elt.createFromDOM(node)
         
+    def elementForDOM (self, node):
+        """Return the element that should be used for the given DOM node.
+
+        Assumes that this element is permitted at this point in the content
+        model."""
+
+        # Name match means OK.
+        if self.name().nodeMatches(node):
+            return self
+        # No name match means only hope is a substitution group, for which the
+        # element must be top-level.
+        top_elt = self.name().elementBinding()
+        if top_elt is None:
+            return None
+        # Members of the substitution group must also be top-level.  NB: If
+        # node_elt == top_elt, then the adoptName call below improperly
+        # associated the global namespace with a local element of the same
+        # name; cf. test-namespace-uu:testBad.
+        node_elt = top_elt.name().adoptName(node).elementBinding()
+        if (node_elt is None) or (node_elt == top_elt):
+            return None
+        if node_elt.substitutesFor(top_elt):
+            return node_elt
+        return None
+
     def createFromDOM (self, node, **kw):
         """Create an instance of this element from the given DOM node.
 
