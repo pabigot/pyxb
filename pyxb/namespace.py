@@ -51,10 +51,11 @@ class ExpandedName (pyxb.cscRoot):
     that a plain string is equivalent to a tuple of None and that string.
 
     Note that absent namespaces can be represented in two ways: with a
-    namespace of None, and with a namespace that is an absent namespace.  Hash
-    code calculations are done so that the two alternatives produce the same
-    hash; however, comparison is done so that the two are distinguished.  The
-    latter is the intended behavior; the former should not be counted upon.
+    namespace of None (the name "has no namespace"), and with a namespace that
+    is an absent namespace (the name "has an absent namespace").  Hash code
+    calculations are done so that the two alternatives produce the same hash;
+    however, comparison is done so that the two are distinguished.  The latter
+    is the intended behavior; the former should not be counted upon.
 
     This class allows direct lookup of the named object within a category by
     using the category name as an accessor function.  That is, if the
@@ -110,6 +111,20 @@ class ExpandedName (pyxb.cscRoot):
         """Return a new expanded name that pairs the namespace of this name
         with the given local name."""
         return ExpandedName(self.namespace(), local_name)
+
+    def adoptName (self, name):
+        """Return the input name, except if the input name has no namespace,
+        return a name that uses the namespace from this name with the local
+        name from the input name.
+
+        Use this when the XML document has an unqualified name and we're
+        processing using an absent default namespace."""
+
+        if not isinstance(name, ExpandedName):
+            name = ExpandedName(name)
+        if name.namespace() is None:
+            name = self.createName(name.localName())
+        return name
 
     def __init__ (self, *args, **kw):
         """Create an expanded name.
