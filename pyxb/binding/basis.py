@@ -942,29 +942,32 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
         :raise pyxb.LogicError: the name of the node is not consistent with
         the _ExpandedName of this class."""
 
+        # Identify the element binding to be used for the given node.  NB:
+        # Even if found, this may not be equal to self, since we allow you to
+        # use an abstract substitution group head to create instances from DOM
+        # nodes that are in that group.
+        element_binding = self.elementForDOM(node)
+        if element_binding is None:
+            raise pyxb.StructuralBadDocumentError('Element %s cannot create from node %s' % (self.name(), pyxb.namespace.ExpandedName(node)))
+
         # Can't create instances of abstract elements.  @todo: Is there any
         # way this could be legal given an xsi:type attribute?  I'm pretty
         # sure "no"...
-        if self.abstract():
-            raise pyxb.AbstractElementError(self)
-
-        # Identify the element binding to be used for the given node.
-        elt_ns = self.__name.namespace()
-        if self.scope() is None:
-            node_elt = pyxb.namespace.ExpandedName(node, fallback_namespace=elt_ns).elementBinding()
-            assert self == node_elt, 'Node %s self %s node_elt %s' % (node, self, node_elt)
+        if element_binding.abstract():
+            raise pyxb.AbstractElementError(element_binding)
 
         # Mark that the created _TypeBinding_mixin instance should be
         # associated with this element.
         if '_element' in kw:
             raise pyxb.LogicError('Cannot set _element in element-based instance creation')
-        kw['_element'] = self
+        kw['_element'] = element_binding
 
         # Now determine the type binding for the content.  If xsi:type is
         # used, it won't be the one built into the element binding.
-        type_class = self.typeDefinition()
+        type_class = element_binding.typeDefinition()
         xsi_type = pyxb.namespace.ExpandedName(pyxb.namespace.XMLSchema_instance, 'type')
         type_name = xsi_type.getAttribute(node)
+        elt_ns = element_binding.name().namespace()
         ns_ctx = pyxb.namespace.NamespaceContext.GetNodeContext(node, target_namespace=elt_ns, default_namespace=elt_ns)
         if type_name is not None:
             # xsi:type should only be provided when using an abstract class
@@ -987,7 +990,7 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
             kw['_nil'] = pyxb.binding.datatypes.boolean(is_nil)
 
         rv = type_class.Factory(_dom_node=node, **kw)
-        assert rv._element() == self
+        assert rv._element() == element_binding
         rv._setNamespaceContext(ns_ctx)
         return rv
 

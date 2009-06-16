@@ -20,10 +20,8 @@ class TestParticle (unittest.TestCase):
     def test_bad_creation (self):
         xml = '<h01 xmlns="URN:test"/>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
-        # Creating with wrong element NB: This will fail until we get
-        # substitution groups implemented and can detect that the
-        # replacement is invalid
-        self.assertRaises(UnrecognizedContentError, h01b.createFromDOM, dom.documentElement)
+        # Creating with wrong element
+        self.assertRaises(pyxb.StructuralBadDocumentError, h01b.createFromDOM, dom.documentElement)
 
     def test_h01_empty (self):
         xml = '<ns1:h01 xmlns:ns1="URN:test"/>'

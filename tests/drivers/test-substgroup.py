@@ -20,23 +20,32 @@ import unittest
 class TestXSIType (unittest.TestCase):
     def testISO8601 (self):
         xml = '<when><ISO8601>2009-06-15T17:50:00Z</ISO8601></when>'
-        doc = pyxb.utils.domutils.StringToDOM(xml)
-        instance = CreateFromDOM(doc.documentElement)
+        dom = pyxb.utils.domutils.StringToDOM(xml)
+        instance = CreateFromDOM(dom.documentElement)
         self.assertEqual(instance.sgTime()._element(), ISO8601)
         self.assertEqual(instance.toDOM().documentElement.toxml(), xml)
  
     def testPairTime (self):
         xml = '<when><pairTime><seconds>34.0</seconds><fractionalSeconds>0.21</fractionalSeconds></pairTime></when>'
-        doc = pyxb.utils.domutils.StringToDOM(xml)
-        instance = CreateFromDOM(doc.documentElement)
+        dom = pyxb.utils.domutils.StringToDOM(xml)
+        instance = CreateFromDOM(dom.documentElement)
         self.assertEqual(instance.sgTime()._element(), pairTime)
         self.assertEqual(instance.sgTime().seconds(), 34)
         self.assertEqual(instance.toDOM().documentElement.toxml(), xml)
  
     def testSGTime (self):
         xml = '<when><sgTime>2009-06-15T17:50:00Z</sgTime></when>'
-        doc = pyxb.utils.domutils.StringToDOM(xml)
-        self.assertRaises(pyxb.AbstractElementError, CreateFromDOM, doc.documentElement)
+        dom = pyxb.utils.domutils.StringToDOM(xml)
+        self.assertRaises(pyxb.AbstractElementError, CreateFromDOM, dom.documentElement)
+
+        xml = '<sgTime>2009-06-15T17:50:00Z</sgTime>'
+        dom = pyxb.utils.domutils.StringToDOM(xml)
+        self.assertRaises(pyxb.AbstractElementError, sgTime.createFromDOM, dom.documentElement)
+
+        xml = '<ISO8601>2009-06-15T17:50:00Z</ISO8601>'
+        dom = pyxb.utils.domutils.StringToDOM(xml)
+        instance = sgTime.createFromDOM(dom.documentElement)
+        self.assertEqual(instance._element(), ISO8601)
 
     def testGenAbstract (self):
         xml = '<when><pairTime><seconds>34.0</seconds><fractionalSeconds>0.21</fractionalSeconds></pairTime></when>'

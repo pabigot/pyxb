@@ -118,7 +118,15 @@ class ExpandedName (pyxb.cscRoot):
         name from the input name.
 
         Use this when the XML document has an unqualified name and we're
-        processing using an absent default namespace."""
+        processing using an absent default namespace.
+
+        @warning: Be careful when using a global name to adopt a name from a
+        local element: if the local element (with no namespace) has the same
+        localName as but is different from the global element (with a
+        namespace), this will improperly provide a namespace when one should
+        not be present.  See the comments in
+        L{pyxb.binding.basis.element.ElementForDOM}.
+        """
 
         if not isinstance(name, ExpandedName):
             name = ExpandedName(name)
