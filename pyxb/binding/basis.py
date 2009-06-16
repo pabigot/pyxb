@@ -50,14 +50,14 @@ class _Binding_mixin (pyxb.cscRoot):
     def _toDOM_csc (self, bds, parent):
         pass
 
-    def toDOM (self, bds=None):
+    def toDOM (self, bds=None, parent=None):
         if bds is None:
             bds = domutils.BindingDOMSupport()
         if self._element() is not None:
-            parent = bds.createChild(self._element().name().localName(), self._element().name().namespace())
+            element = bds.createChild(self._element().name().localName(), self._element().name().namespace(), parent)
         else:
-            parent = bds.createChild(self._ExpandedName.localName(), self._ExpandedName.namespace())
-        self._toDOM_csc(bds, parent)
+            element = bds.createChild(self._ExpandedName.localName(), self._ExpandedName.namespace(), parent)
+        self._toDOM_csc(bds, element)
         bds.finalize()
         return bds.document()
 
@@ -1348,7 +1348,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             for (eu, v) in order:
                 assert v != self
                 if eu is None:
-                    print 'IGNORING wildcard generation'
+                    v.toDOM(dom_support, parent)
                 else:
                     eu.toDOM(dom_support, parent, v)
             mixed_content = self.content()
