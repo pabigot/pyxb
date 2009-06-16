@@ -369,9 +369,14 @@ class ElementUse (pyxb.cscRoot):
         return values
 
     def toDOM (self, dom_support, parent, value):
-        element = dom_support.createChild(self.name().localName(), self.name().namespace(), parent)
         if isinstance(value, basis._Binding_mixin):
-            elt_type = self.__elementBinding.typeDefinition()
+            assert isinstance(value, basis._TypeBinding_mixin)
+            element_binding = self.__elementBinding
+            if value._substitutesFor(element_binding):
+                element_binding = value._element()
+            assert element_binding is not None
+            element = dom_support.createChild(element_binding.name().localName(), element_binding.name().namespace(), parent)
+            elt_type = element_binding.typeDefinition()
             val_type = type(value)
             if isinstance(value, basis.complexTypeDefinition):
                 assert isinstance(value, elt_type)
@@ -386,6 +391,7 @@ class ElementUse (pyxb.cscRoot):
                 dom_support.addAttribute(element, pyxb.namespace.XMLSchema_instance.createExpandedName('type'), val_type_qname)
             value._toDOM_csc(dom_support, element)
         elif isinstance(value, (str, unicode)):
+            element = dom_support.createChild(self.name().localName(), self.name().namespace(), parent)
             element.appendChild(dom_support.document().createTextNode(value))
         else:
             raise pyxb.LogicError('toDOM with unrecognized value type %s: %s' % (type(value), value))

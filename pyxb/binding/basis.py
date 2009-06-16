@@ -192,6 +192,11 @@ class _TypeBinding_mixin (_Binding_mixin):
         rv._postFactory_vx(state)
         return rv
 
+    def _substitutesFor (self, element):
+        if (element is None) or (self._element() is None):
+            return False
+        return self._element().substitutesFor(element)
+
     def _toDOM_csc (self, dom_support, parent):
         assert parent is not None
         if self.__xsiNil:
@@ -806,13 +811,15 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
     __substitutionGroup = None
 
     def substitutesFor (self, other):
+        if other is None:
+            return False
         assert isinstance(other, element)
-
         # On the first call, other is likely to be the local element.  We need
         # the global one.
         if other.scope() is not None:
             other = other.name().elementBinding()
-            assert other is not None
+            if other is None:
+                return False
             assert other.scope() is None
         return (self.substitutionGroup() is not None) and ((self.substitutionGroup() == other) or self.substitutionGroup().substitutesFor(other))
 
@@ -949,6 +956,7 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
     def _toDOM_csc (self, dom_support, parent):
         """Add a DOM representation of this element as a child of
         parent, which should be a DOM Node instance."""
+        assert False 
         assert isinstance(dom_support, domutils.BindingDOMSupport)
         element = dom_support.createChild(self._ExpandedName.localName(), self._ExpandedName.namespace(), parent)
         self.__realContent._toDOM_csc(dom_support, parent=element)
