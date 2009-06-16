@@ -1395,6 +1395,11 @@ class _XMLSchema (Namespace):
             assert structures_module.ComplexTypeDefinition.UrTypeDefinition() == self.typeDefinitions()['anyType']
             assert structures_module.SimpleTypeDefinition.SimpleUrTypeDefinition() == self.typeDefinitions()['anySimpleType']
 
+        self.configureCategories(['typeBinding'])
+        for ( en, td ) in self.typeDefinitions().items():
+            assert td.pythonSupport() is not None
+            self.addCategoryObject('typeBinding', en, td.pythonSupport())
+
     def _defineSchema_overload (self, structures_module):
         """Ensure this namespace is ready for use.
 
