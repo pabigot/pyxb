@@ -805,6 +805,17 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
         return self
     __substitutionGroup = None
 
+    def substitutesFor (self, other):
+        assert isinstance(other, element)
+
+        # On the first call, other is likely to be the local element.  We need
+        # the global one.
+        if other.scope() is not None:
+            other = other.name().elementBinding()
+            assert other is not None
+            assert other.scope() is None
+        return (self.substitutionGroup() is not None) and ((self.substitutionGroup() == other) or self.substitutionGroup().substitutesFor(other))
+
     def memberElement (self, name):
         """Return a reference to the element instance used for the given name
         within this element.
@@ -861,6 +872,8 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
         if isinstance(value, self.typeDefinition()):
             # @todo: Consider whether we should change the associated _element
             # of this value.
+            return value
+        if isinstance(value, _TypeBinding_mixin) and (value._element() is not None) and value._element().substitutesFor(self):
             return value
         value_type = type(value)
         # All string-based PyXB binding types use unicode, not str
