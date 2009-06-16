@@ -911,14 +911,15 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
         assert isinstance(elt, pyxb.binding.basis.element)
         return elt.createFromDOM(node)
         
-    def elementForDOM (self, node):
-        """Return the element that should be used for the given DOM node.
+    def elementForName (self, name):
+        """Return the element that should be used if this element binding is
+        permitted and an element with the given name is encountered.
 
-        Assumes that this element is permitted at this point in the content
-        model."""
+        This is used primarily to check for substitution groups.
+        """
 
         # Name match means OK.
-        if self.name().nodeMatches(node):
+        if self.name() == name:
             return self
         # No name match means only hope is a substitution group, for which the
         # element must be top-level.
@@ -926,14 +927,14 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
         if top_elt is None:
             return None
         # Members of the substitution group must also be top-level.  NB: If
-        # node_elt == top_elt, then the adoptName call below improperly
+        # named_elt == top_elt, then the adoptName call below improperly
         # associated the global namespace with a local element of the same
         # name; cf. test-namespace-uu:testBad.
-        node_elt = top_elt.name().adoptName(node).elementBinding()
-        if (node_elt is None) or (node_elt == top_elt):
+        named_elt = top_elt.name().adoptName(name).elementBinding()
+        if (named_elt is None) or (named_elt == top_elt):
             return None
-        if node_elt.substitutesFor(top_elt):
-            return node_elt
+        if named_elt.substitutesFor(top_elt):
+            return named_elt
         return None
 
     def createFromDOM (self, node, **kw):
@@ -946,7 +947,7 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
         # Even if found, this may not be equal to self, since we allow you to
         # use an abstract substitution group head to create instances from DOM
         # nodes that are in that group.
-        element_binding = self.elementForDOM(node)
+        element_binding = self.elementForName(pyxb.namespace.ExpandedName(node))
         if element_binding is None:
             raise pyxb.StructuralBadDocumentError('Element %s cannot create from node %s' % (self.name(), pyxb.namespace.ExpandedName(node)))
 
@@ -1137,12 +1138,12 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         return cls._UseForTag(element.name())._setElementBinding(element)
 
     @classmethod
-    def _UseForTag (cls, tag):
+    def _UseForTag (cls, tag, raise_if_fail=True):
         """Return the ElementUse object corresponding to the element name.
 
         :param tag: The L{ExpandedName} of an element in the class."""
         rv = cls._ElementMap.get(tag)
-        if rv is None:
+        if (rv is None) and raise_if_fail:
             raise pyxb.LogicError('Unable to locate element %s in type %s' % (tag, cls._ExpandedName))
         return rv
 

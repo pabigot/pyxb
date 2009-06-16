@@ -565,7 +565,7 @@ class ContentModelTransition (pyxb.cscRoot):
     def __processElementTransition (self, value):
         # First, identify the element
         if isinstance(value, xml.dom.Node):
-            element_binding = self.term().elementForDOM(value)
+            element_binding = self.term().elementForName(pyxb.namespace.ExpandedName(value))
             if element_binding is None:
                 return None
             element = element_binding.createFromDOM(value)

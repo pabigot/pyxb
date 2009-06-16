@@ -244,13 +244,23 @@ class PyXBSAXHandler (xml.sax.handler.ContentHandler):
         # Resolve the element within the appropriate context.  Note
         # that global elements have no use, only the binding.
         if parent_state.enclosingCTD() is not None:
-            element_use = parent_state.enclosingCTD()._UseForTag(name_en)
+            element_use = parent_state.enclosingCTD()._UseForTag(name_en, raise_if_fail=False)
+            # Use will be None if this element is in a substitution group.  If
+            # so, identify the element binding, then search for a use that has
+            # a substitution group it belongs to.
+            if element_use is None:
+                element_binding = name_en.elementBinding()
+                if element_binding is not None:
+                    eb = element_binding
+                    while (element_use is None) and (eb is not None):
+                        element_use = parent_state.enclosingCTD()._UseForTag(eb.name(), raise_if_fail=False)
+                        eb = eb.substitutionGroup()
         else:
             element_binding = name_en.elementBinding()
 
-        # Non-root elements should have an element use, from which we
-        # can extract the binding.
-        if element_use is not None:
+        # Non-root elements should have an element use, from which we can
+        # extract the binding.  Don't throw away substitution group bindings.
+        if (element_use is not None) and (element_binding is None):
             assert self.__rootObject is not None
             element_binding = element_use.elementBinding()
             assert element_binding is not None
@@ -261,6 +271,7 @@ class PyXBSAXHandler (xml.sax.handler.ContentHandler):
             new_object_factory = type_class.Factory
         else:
             assert element_binding is not None
+            element_binding = element_binding.elementForName(name)
             new_object_factory = element_binding
             type_class = element_binding.typeDefinition()
 

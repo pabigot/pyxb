@@ -25,6 +25,13 @@ class TestXSIType (unittest.TestCase):
         self.assertEqual(instance.sgTime()._element(), ISO8601)
         self.assertEqual(instance.toDOM().documentElement.toxml(), xml)
  
+        saxer = pyxb.binding.saxer.make_parser(fallback_namespace=Namespace)
+        handler = saxer.getContentHandler()
+        saxer.parse(StringIO.StringIO(xml))
+        instance = handler.rootObject()
+        self.assertEqual(instance.sgTime()._element(), ISO8601)
+        self.assertEqual(instance.toDOM().documentElement.toxml(), xml)
+
     def testPairTime (self):
         xml = '<when><pairTime><seconds>34.0</seconds><fractionalSeconds>0.21</fractionalSeconds></pairTime></when>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
@@ -33,10 +40,23 @@ class TestXSIType (unittest.TestCase):
         self.assertEqual(instance.sgTime().seconds(), 34)
         self.assertEqual(instance.toDOM().documentElement.toxml(), xml)
  
+        saxer = pyxb.binding.saxer.make_parser(fallback_namespace=Namespace)
+        handler = saxer.getContentHandler()
+        saxer.parse(StringIO.StringIO(xml))
+        instance = handler.rootObject()
+        self.assertEqual(instance.sgTime()._element(), pairTime)
+        self.assertEqual(instance.sgTime().seconds(), 34)
+        self.assertEqual(instance.toDOM().documentElement.toxml(), xml)
+
+
     def testSGTime (self):
         xml = '<when><sgTime>2009-06-15T17:50:00Z</sgTime></when>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
         self.assertRaises(pyxb.AbstractElementError, CreateFromDOM, dom.documentElement)
+
+        saxer = pyxb.binding.saxer.make_parser(fallback_namespace=Namespace)
+        handler = saxer.getContentHandler()
+        self.assertRaises(pyxb.AbstractElementError, saxer.parse, StringIO.StringIO(xml))
 
         xml = '<sgTime>2009-06-15T17:50:00Z</sgTime>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
@@ -45,6 +65,9 @@ class TestXSIType (unittest.TestCase):
         xml = '<ISO8601>2009-06-15T17:50:00Z</ISO8601>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
         instance = sgTime.createFromDOM(dom.documentElement)
+        self.assertEqual(instance._element(), ISO8601)
+        saxer.parse(StringIO.StringIO(xml))
+        instance = handler.rootObject()
         self.assertEqual(instance._element(), ISO8601)
 
     def testGenAbstract (self):
@@ -57,7 +80,6 @@ class TestXSIType (unittest.TestCase):
         instance.sgTime()._setElement(None)
         self.assertRaises(pyxb.DOMGenerationError, instance.toDOM)
         self.assertRaises(pyxb.AbstractElementError, sgTime)
-
 
 if __name__ == '__main__':
     unittest.main()
