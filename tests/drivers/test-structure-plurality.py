@@ -43,6 +43,8 @@ class _TestBase (unittest.TestCase):
         for ( name, type ) in [ ( 'selt', 'string' ), ( 'ielt', 'int' ), ( 'belt', 'boolean' ) ]:
             ed = xs.structures.ElementDeclaration(name=name, **self._edKW())
             ed._typeDefinition(Namespace.XMLSchema.typeDefinitions().get(type, None))
+            # Fake out resolution, which we don't care about for this test
+            ed._ElementDeclaration__isResolved = True
             self.__schema._addNamedComponent(ed)
             setattr(self, name, ed)
 
