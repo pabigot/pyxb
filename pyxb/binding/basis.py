@@ -854,6 +854,9 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
         kw['_element'] = self
         if dom_node is not None:
             return self.createFromDOM(dom_node, **kw)
+        # Can't create instances of abstract elements.
+        if self.abstract():
+            raise pyxb.AbstractElementError(self)
         return self.typeDefinition().Factory(*args,**kw)
 
     def compatibleValue (self, value):
@@ -909,6 +912,11 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
         :raise pyxb.LogicError: the name of the node is not consistent with
         the _ExpandedName of this class."""
 
+        # Can't create instances of abstract elements.  @todo: Is there any
+        # way this could be legal given an xsi:type attribute?  I'm pretty
+        # sure "no"...
+        if self.abstract():
+            raise pyxb.AbstractElementError(self)
 
         # Identify the element binding to be used for the given node.
         elt_ns = self.__name.namespace()

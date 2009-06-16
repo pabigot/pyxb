@@ -375,6 +375,8 @@ class ElementUse (pyxb.cscRoot):
             if value._substitutesFor(element_binding):
                 element_binding = value._element()
             assert element_binding is not None
+            if element_binding.abstract():
+                raise pyxb.DOMGenerationError('Element %s is abstract but content %s not associated with substitution group member' % (self.name(), value))
             element = dom_support.createChild(element_binding.name().localName(), element_binding.name().namespace(), parent)
             elt_type = element_binding.typeDefinition()
             val_type = type(value)
@@ -576,7 +578,6 @@ class ContentModelTransition (pyxb.cscRoot):
                     node_elt = node_en.elementBinding()
                     if (node_elt is not None) and (node_elt != term_elt):
                         if node_elt.substitutesFor(term_elt):
-                            print 'Substituting %s for %s' % (node_en, term_elt.name())
                             return node_elt.createFromDOM(value)
                     print 'WARNING: Cannot substitute %s for %s' % (node_en, term_elt.name())
                 return None

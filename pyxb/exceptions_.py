@@ -57,6 +57,10 @@ class BadDocumentError (PyXBException):
 class StructuralBadDocumentError (BadDocumentError):
     """Raised when processing document and the content model is not satisfied."""
 
+class AbstractElementError (StructuralBadDocumentError):
+    """Raised when attempting to construct an element that is abstract."""
+    pass
+
 class UnrecognizedContentError (StructuralBadDocumentError):
     """Raised when processing document and an element does not match the content model."""
 
