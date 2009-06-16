@@ -1277,7 +1277,8 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.na
         if rv.__typeDefinition is None:
             if rv.__typeAttribute is None:
                 rv.__typeDefinition = ComplexTypeDefinition.UrTypeDefinition()
-        if rv.__typeDefinition is None:
+        rv.__isResolved = (rv.__typeDefinition is not None) and (rv.__substitutionGroupAttribute is None)
+        if not rv.__isResolved:
             rv._queueForResolution('creation')
 
         attr_val = NodeAttribute(node, 'nillable')
@@ -1307,8 +1308,9 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.na
         ctd._recordLocalDeclaration(rv)
         return rv
 
+    __isResolved = False
     def isResolved (self):
-        return self.__typeDefinition is not None
+        return self.__isResolved
 
     # res:ED res:ElementDeclaration
     def _resolve (self):
@@ -1325,12 +1327,14 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.na
                 raise pyxb.SchemaValidationError('Element declaration refers to unrecognized substitution group %s' % (sg_en,))
             self.__substitutionGroupAffiliation = sga
 
-        assert(self.__typeAttribute is not None)
-        type_en = self._namespaceContext().interpretQName(self.__typeAttribute)
-        self.__typeDefinition = type_en.typeDefinition()
         if self.__typeDefinition is None:
-            raise pyxb.SchemaValidationError('Type declaration %s cannot be found' % (type_en,))
+            assert self.__typeAttribute is not None
+            type_en = self._namespaceContext().interpretQName(self.__typeAttribute)
+            self.__typeDefinition = type_en.typeDefinition()
+            if self.__typeDefinition is None:
+                raise pyxb.SchemaValidationError('Type declaration %s cannot be found' % (type_en,))
 
+        self.__isResolved = True
         return self
 
     def __str__ (self):
