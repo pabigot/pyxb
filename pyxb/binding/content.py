@@ -659,24 +659,28 @@ class ContentModelTransition (pyxb.cscRoot):
         elif self.TT_modelGroupAll == self.__termType:
             return dfa_stack.pushModelState(_MGAllState(self.__term, ctd_instance)).step(ctd_instance, node)
         elif self.TT_wildcard == self.__termType:
-            if not self.__term.matchesNode(ctd_instance, node):
-                raise pyxb.UnexpectedContentError(node)
-            # See if we can convert from DOM into a Python instance.
-            # If not, we'll go ahead and store the DOM node.
-            try:
-                ns = pyxb.namespace.NamespaceForURI(node.namespaceURI, create_if_missing=True)
-                if ns.module() is not None:
-                    node = ns.module().CreateFromDOM(node)
-                elif ns.modulePath() is not None:
-                    print 'Importing %s' % (ns.modulePath(),)
-                    mod = __import__(ns.modulePath())
-                    for c in ns.modulePath().split('.')[1:]:
-                        mod = getattr(mod, c)
-                    node = mod.CreateFromDOM(node)
-                elif pyxb.namespace.XMLSchema == ns:
-                    print 'Need to dynamically create schema'
-            except Exception, e:
-                print 'WARNING: Unable to convert wildcard %s %s to Python instance: %s' % (node.namespaceURI, node.localName, e)
+            if not isinstance(node, basis._TypeBinding_mixin):
+                if not self.__term.matchesNode(ctd_instance, node):
+                    raise pyxb.UnexpectedContentError(node)
+                # See if we can convert from DOM into a Python instance.
+                # If not, we'll go ahead and store the DOM node.
+                try:
+                    ns = pyxb.namespace.NamespaceForURI(node.namespaceURI, create_if_missing=True)
+                    if ns.module() is not None:
+                        node = ns.module().CreateFromDOM(node)
+                    elif ns.modulePath() is not None:
+                        print 'Importing %s' % (ns.modulePath(),)
+                        mod = __import__(ns.modulePath())
+                        for c in ns.modulePath().split('.')[1:]:
+                            mod = getattr(mod, c)
+                        node = mod.CreateFromDOM(node)
+                    elif pyxb.namespace.XMLSchema == ns:
+                        print 'Need to dynamically create schema'
+                except Exception, e:
+                    if isinstance(node, xml.dom.Node):
+                        print 'WARNING: Unable to convert wildcard %s %s to Python instance: %s' % (node.namespaceURI, node.localName, e)
+                    else:
+                        print 'WARNING: Unable to convert wildcard %s to Python instance: %s' % (node, e)
             ctd_instance.wildcardElements().append(node)
         else:
             raise pyxb.LogicError('Unexpected transition term %s' % (self.__term,))
@@ -738,6 +742,7 @@ class ContentModelState (pyxb.cscRoot):
             # @todo check nodeName against element
             if transition.attemptTransition(ctd_instance, node, dfa_stack):
                 return transition.nextState()
+            print 'Failed to match %s against %s (%s)' % (pyxb.namespace.ExpandedName(node), transition.term().name(), node.namespaceURI)
         if self.isFinal():
             return None
         raise pyxb.UnrecognizedContentError(node)
