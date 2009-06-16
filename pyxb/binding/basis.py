@@ -800,6 +800,9 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
 
     def substitutionGroup (self):
         return self.__substitutionGroup
+    def _setSubstitutionGroup (self, substitution_group):
+        self.__substitutionGroup = substitution_group
+        return self
     __substitutionGroup = None
 
     def memberElement (self, name):

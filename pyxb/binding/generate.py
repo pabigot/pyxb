@@ -579,10 +579,10 @@ def elementDeclarationMap (ed, **kw):
     if ed.default():
         template_map['defaultValue'] = pythonLiteral(ed.default(), **kw)
     template_map['typeDefinition'] = pythonLiteral(ed.typeDefinition(), **kw)
-    if ed.substitutionGroupAffiliation() is not None:
-        template_map['substitution_group_affiliation'] = pythonLiteral(ed.substitutionGroupAffiliation(), **kw)
+    if ed.substitutionGroupAffiliation():
+        template_map['substitution_group'] = pythonLiteral(ed.substitutionGroupAffiliation(), **kw)
     aux_init = []
-    for k in ( 'nillable', 'abstract', 'substitution_group_affiliation', 'scope' ):
+    for k in ( 'nillable', 'abstract', 'scope' ):
         if k in template_map:
             aux_init.append('%s=%s' % (k, template_map[k]))
     template_map['element_aux_init'] = ''
@@ -841,6 +841,11 @@ def GenerateED (ed, **kw):
     outf.write(templates.replaceInText('''
 %{class} = pyxb.binding.basis.element(%{name_expr}, %{typeDefinition}%{element_aux_init})
 Namespace.addCategoryObject('elementBinding', %{class}.name().localName(), %{class})
+''', **template_map))
+
+    if ed.substitutionGroupAffiliation() is not None:
+        PostscriptItems.append(templates.replaceInText('''
+%{class}._setSubstitutionGroup(%{substitution_group})
 ''', **template_map))
 
     return outf.getvalue()
