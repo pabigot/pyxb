@@ -424,8 +424,10 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
         string to a list."""
         dom_node = kw.pop('_dom_node', None)
         if dom_node is not None:
-            args = (domutils.ExtractTextContent(dom_node),) + args
-            kw['_apply_whitespace_facet'] = True
+            text_content = domutils.ExtractTextContent(dom_node)
+            if text_content is not None:
+                args = (domutils.ExtractTextContent(dom_node),) + args
+                kw['_apply_whitespace_facet'] = True
         apply_whitespace_facet = kw.pop('_apply_whitespace_facet', False)
         if apply_whitespace_facet:
             args = cls.__ApplyWhitespaceToFirstArgument(args)
@@ -971,16 +973,22 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
         elt_ns = element_binding.name().namespace()
         ns_ctx = pyxb.namespace.NamespaceContext.GetNodeContext(node, target_namespace=elt_ns, default_namespace=elt_ns)
         if type_name is not None:
-            # xsi:type should only be provided when using an abstract class
-            if not (issubclass(type_class, complexTypeDefinition) and type_class._Abstract):
-                raise pyxb.BadDocumentError('%s attribute on element with non-abstract type' % (xsi_type,))
+
+            # xsi:type should only be provided when using an abstract class,
+            # or a concrete class that happens to be the same, but in practice
+            # web services tend to set it on nodes just to inform their
+            # lax-processing clients that the value is not present.
+
             # Get the node context.  In case none has been assigned, create
             # it, using the element namespace as the default environment
             # (since we only need this in order to resolve the xsi:type qname,
             # that should be okay, right?)  @todo: verify this
             assert ns_ctx
             type_name = ns_ctx.interpretQName(type_name)
-            alternative_type_class = type_name.typeBinding()
+            try:
+                alternative_type_class = type_name.typeBinding()
+            except KeyError, e:
+                raise pyxb.BadDocumentError('No type binding for %s' % (type_name,))
             if not issubclass(alternative_type_class, type_class):
                 raise pyxb.BadDocumentError('%s value %s is not subclass of element type %s' % (xsi_type, type_name, type_class._ExpandedName))
             type_class = alternative_type_class
