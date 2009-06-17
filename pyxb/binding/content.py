@@ -568,8 +568,7 @@ class ContentModelTransition (pyxb.cscRoot):
             element_binding = self.term().elementForName(pyxb.namespace.ExpandedName(value))
             if element_binding is None:
                 return None
-            element = element_binding.createFromDOM(value)
-            return element
+            return element_binding.createFromDOM(value)
         try:
             return self.term().compatibleValue(value)
         except pyxb.BadValueTypeError, e:
@@ -649,7 +648,12 @@ class ContentModelTransition (pyxb.cscRoot):
         """
 
         if self.TT_element == self.__termType:
-            element = self.__processElementTransition(node)
+            element = None
+            try:
+                element = self.__processElementTransition(node)
+            except Exception, e:
+                print 'Warning: Element transition failed: %s' % (e,)
+                raise
             if element is None:
                 return False
             if self.__elementUse.isPlural():
@@ -742,7 +746,6 @@ class ContentModelState (pyxb.cscRoot):
             # @todo check nodeName against element
             if transition.attemptTransition(ctd_instance, node, dfa_stack):
                 return transition.nextState()
-            print 'Failed to match %s against %s (%s)' % (pyxb.namespace.ExpandedName(node), transition.term().name(), node.namespaceURI)
         if self.isFinal():
             return None
         raise pyxb.UnrecognizedContentError(node)
