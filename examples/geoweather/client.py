@@ -30,6 +30,10 @@ uri = urllib2.Request('http://rpc.geocoder.us/service/soap/',
 
 rxml = urllib2.urlopen(uri).read()
 doc = minidom.parseString(rxml)
+
+encoding_style = soapenv.Namespace.createName('encodingStyle').nodeAttribute(doc.documentElement)
+print encoding_style
+
 print doc.toprettyxml()
 response = soapenv.CreateFromDOM(doc.documentElement)
 
