@@ -26,6 +26,17 @@ class TestXSIType (unittest.TestCase):
         self.assertFalse(instance._isNil())
         self.assertRaises(pyxb.NoNillableSupportError, instance._setIsNil)
 
+        xml = '<full xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="false">content</full>'
+        instance = CreateFromDOM(doc.documentElement)
+        self.assertEqual(instance, 'content')
+        self.assertFalse(instance._isNil())
+
+        xml = '<full xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true">content</full>'
+        instance = CreateFromDOM(doc.documentElement)
+        self.assertEqual(instance, 'content')
+        self.assertFalse(instance._isNil())
+
+
     def testXFull (self):
         xml = '<xfull xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">content</xfull>'
         doc = pyxb.utils.domutils.StringToDOM(xml)
