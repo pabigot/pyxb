@@ -1800,6 +1800,12 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
             assert typedef_node is not None
             effective_content = Particle.CreateFromDOM(typedef_node, **kw)
 
+        # For issues related to soapenc:Array and the fact that PyXB
+        # determines the content of types derived from it is empty, see
+        # http://tech.groups.yahoo.com/group/soapbuilders/message/5879 and
+        # lament the fact that the WSDL spec is not compatible with XSD.  It
+        # is *not* an error in PyXB.
+
         self.__effectiveMixed = effective_mixed
         self.__effectiveContent = effective_content
         self.__ckw = ckw
@@ -1912,7 +1918,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
                 elif xsd.nodeIsNamed(ions, 'extension'):
                     method = self.DM_extension
                 else:
-                    raise pyxb.SchemaValidationError('Expected restriction or extension as sole child of %s in %s' % (content_node.name(), self.name()))
+                    raise pyxb.SchemaValidationError('Expected restriction or extension as sole child of %s in %s' % (content_node.nodeName, self.name()))
                 self.__baseAttribute = NodeAttribute(ions, 'base')
                 if self.__baseAttribute is None:
                     raise pyxb.SchemaValidationError('Element %s missing base attribute' % (ions.nodeName,))
