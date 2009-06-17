@@ -147,8 +147,12 @@ def HasNonAnnotationChild (node):
 
 def ExtractTextContent (node):
     """Walk all the children, extracting all text content and
-    catenating it.  This is mainly used to strip comments out of the
-    content of complex elements with simple types."""
+    catenating it.
+
+    Returns None if no text content (including whitespace) is found.
+    
+    This is mainly used to strip comments out of the content of complex
+    elements with simple types."""
     text = []
     for cn in node.childNodes:
         if xml.dom.Node.TEXT_NODE == cn.nodeType:
@@ -159,6 +163,8 @@ def ExtractTextContent (node):
             pass
         else:
             raise BadDocumentError('Non-text node %s found in content' % (cn,))
+    if 0 == len(text):
+        return None
     return ''.join(text)
 
 class BindingDOMSupport (object):
