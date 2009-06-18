@@ -237,7 +237,7 @@ class dateTime (basis.simpleTypeDefinition, datetime.datetime):
     _XsdBaseType = anySimpleType
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('dateType')
 
-    __Lexical_re = re.compile('^(?P<negYear>-?)(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})T(?P<hour>\d{2}):(?P<minute>\d{2}):(?P<second>\d{2})(?P<fracsec>\.\d*)?(?P<tzinfo>Z|[-+]\d\d:\d\d)?$')
+    __Lexical_re = re.compile('^(?P<negYear>-?)(?P<year>\d{4,})-(?P<month>\d{2})-(?P<day>\d{2})T(?P<hour>\d{2}):(?P<minute>\d{2}):(?P<second>\d{2})(?P<fracsec>\.\d*)?(?P<tzinfo>Z|[-+]\d\d:\d\d)?$')
 
     # The fields in order of appearance in a time.struct_time instance
     __Fields = ( 'year', 'month', 'day', 'hour', 'minute', 'second' )
@@ -440,7 +440,7 @@ class base64Binary (basis.simpleTypeDefinition):
 
 _PrimitiveDatatypes.append(base64Binary)
 
-class anyURI (basis.simpleTypeDefinition, types.UnicodeType):
+class anyURI (basis.simpleTypeDefinition, unicode):
     _XsdBaseType = anySimpleType
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('anyURI')
 
@@ -659,7 +659,7 @@ _ListDatatypes.append(IDREFS)
 
 class ENTITY (NCName):
     # Lexical and value space match that of parent NCName; we're gonna
-    # ignore the additioanl requirement that it be declared as an
+    # ignore the additional requirement that it be declared as an
     # unparsed entity
     #
     # @todo Don't ignore the requirement that this be declared as an

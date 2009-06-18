@@ -311,8 +311,8 @@ class ElementUse (pyxb.cscRoot):
         @param is_plural: If C{True}, documents for the corresponding type may
         have multiple instances of this element.  As a consequence, the value
         of the element will be a list.  If C{False}, the value will be C{None}
-        if the element is absent, and a reference to an instance of
-        L{pyxb.binding.basis.element._TypeDefinition} if present.
+        if the element is absent, and a reference to an instance of the type
+        identified by L{pyxb.binding.basis.element.typeDefinition} if present.
         @type is_plural: C{bool}
 
         @param element_binding: Reference to the class that serves as the
@@ -377,7 +377,7 @@ class ElementUse (pyxb.cscRoot):
             assert element_binding is not None
             if element_binding.abstract():
                 raise pyxb.DOMGenerationError('Element %s is abstract but content %s not associated with substitution group member' % (self.name(), value))
-            element = dom_support.createChild(element_binding.name().localName(), element_binding.name().namespace(), parent)
+            element = dom_support.createChildElement(element_binding.name(), parent)
             elt_type = element_binding.typeDefinition()
             val_type = type(value)
             if isinstance(value, basis.complexTypeDefinition):
@@ -393,7 +393,7 @@ class ElementUse (pyxb.cscRoot):
                 dom_support.addAttribute(element, pyxb.namespace.XMLSchema_instance.createExpandedName('type'), val_type_qname)
             value._toDOM_csc(dom_support, element)
         elif isinstance(value, (str, unicode)):
-            element = dom_support.createChild(self.name().localName(), self.name().namespace(), parent)
+            element = dom_support.createChildElement(self.name(), parent)
             element.appendChild(dom_support.document().createTextNode(value))
         else:
             raise pyxb.LogicError('toDOM with unrecognized value type %s: %s' % (type(value), value))

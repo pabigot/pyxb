@@ -51,12 +51,26 @@ class _Binding_mixin (pyxb.cscRoot):
         pass
 
     def toDOM (self, bds=None, parent=None):
+        """Convert this instance to a DOM node.
+
+        The name of the top-level element is either the name of the L{element}
+        instance associated with this instance, or the XML name of the type of
+        this instance.
+
+        @param bds: Support for customizing the generated document
+        @type bds: L{pyxb.utils.domutils.BindingDOMSupport}
+        @param parent: If C{None}, a standalone document is created;
+        otherwise, the created element is a child of the given element.
+        @type parent: C{xml.dom.Element} or C{None}
+        @rtype: C{xml.dom.Document}
+        """
+
         if bds is None:
             bds = domutils.BindingDOMSupport()
         if self._element() is not None:
-            element = bds.createChild(self._element().name().localName(), self._element().name().namespace(), parent)
+            element = bds.createChildElement(self._element().name(), parent)
         else:
-            element = bds.createChild(self._ExpandedName.localName(), self._ExpandedName.namespace(), parent)
+            element = bds.createChildElement(self._ExpandedName, parent)
         self._toDOM_csc(bds, element)
         bds.finalize()
         return bds.document()
@@ -872,7 +886,7 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
         Compatibility is defined relative to the type definition associated
         with the element.  The value C{None} is always compatible.  If
         C{value} has a Python type (e.g., C{int}) that is a superclass of the
-        required L{_TypeBasis_mixin} class (e.g., C{xs:byte}), C{value} is
+        required L{_TypeBinding_mixin} class (e.g., C{xs:byte}), C{value} is
         used as a constructor parameter to return a new instance of the
         required type.  Note that constraining facets are applied here if
         necessary (e.g., although a Python C{int} with value C{500} is
@@ -917,7 +931,14 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
         """Return the element that should be used if this element binding is
         permitted and an element with the given name is encountered.
 
-        This is used primarily to check for substitution groups.
+        Normally, the incoming name matches the name of this binding, and
+        C{self} is returned.  If the incoming name is different, it is
+        expected to be the name of a global element which is within this
+        element's substitution group.  In that case, the binding corresponding
+        to the named element is return.
+
+        @return: An instance of L{element}, or C{None} if no element with the
+        given name can be found.
         """
 
         # Name match means OK.
@@ -940,10 +961,31 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
         return None
 
     def createFromDOM (self, node, **kw):
-        """Create an instance of this element from the given DOM node.
+        """Create a binding instance from the given DOM node.
 
-        :raise pyxb.LogicError: the name of the node is not consistent with
-        the _ExpandedName of this class."""
+        The context and information associated with this element is used to
+        identify the actual element binding to use.  By default, C{self} is
+        used.  If this element represents a term in a content model, the name
+        and namespace of the incoming node may identify a different element.
+        If that element is a member of this element's substitution group, the
+        binding associated with the node's name will be used instead.
+
+        The type of object returned is determined by the type definition
+        associated with the element binding and the value of any U{xsi:type
+        <http://www.w3.org/TR/xmlschema-1/#xsi_type>} attribute found in the
+        node.
+
+        Keyword parameters are passed to the factory method of the type
+        associated with the selected element binding.
+
+        @param node: The DOM node specifying the element content.
+        @type node: C{xml.dom.Node}
+        @return: An instance of L{_TypeBinding_mixin}
+        @raise pyxb.StructuralBadDocumentError: The node's name does identify an element binding.
+        @raise pyxb.AbstractElementError: The element binding associated with the node is abstract.
+        @raise pyxb.BadDocumentError: An U{xsi:type <http://www.w3.org/TR/xmlschema-1/#xsi_type>} attribute in the node fails to resolve to a recognized type
+        @raise pyxb.BadDocumentError: An U{xsi:type <http://www.w3.org/TR/xmlschema-1/#xsi_type>} attribute in the node resolves to a type that is not a subclass of the type of the element binding.
+        """
 
         # Identify the element binding to be used for the given node.  NB:
         # Even if found, this may not be equal to self, since we allow you to
@@ -977,7 +1019,7 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
             # xsi:type should only be provided when using an abstract class,
             # or a concrete class that happens to be the same, but in practice
             # web services tend to set it on nodes just to inform their
-            # lax-processing clients that the value is not present.
+            # lax-processing clients how to interpret the value.
 
             # Get the node context.  In case none has been assigned, create
             # it, using the element namespace as the default environment
@@ -1002,15 +1044,6 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
         assert rv._element() == element_binding
         rv._setNamespaceContext(ns_ctx)
         return rv
-
-    def _toDOM_csc (self, dom_support, parent):
-        """Add a DOM representation of this element as a child of
-        parent, which should be a DOM Node instance."""
-        assert False 
-        assert isinstance(dom_support, domutils.BindingDOMSupport)
-        element = dom_support.createChild(self._ExpandedName.localName(), self._ExpandedName.namespace(), parent)
-        self.__realContent._toDOM_csc(dom_support, parent=element)
-        return getattr(super(element, self), '_toDOM_csc', lambda *_args,**_kw: dom_support)(dom_support, parent)
 
     def __str__ (self):
         return 'Element %s' % (self.name(),)

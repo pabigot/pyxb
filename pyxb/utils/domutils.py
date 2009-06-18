@@ -180,13 +180,14 @@ class BindingDOMSupport (object):
     def implementation (self):
         """The DOMImplementation object to be used.
 
-        Defaults to L{pyxb.utils.domutils.GetDOMImplementation}, but can be
+        Defaults to L{pyxb.utils.domutils.GetDOMImplementation()}, but can be
         overridden in the constructor call using the C{implementation}
         keyword."""
         return self.__implementation
     __implementation = None
 
     def document (self):
+        """Return the document generated using this instance."""
         return self.__document
     __document = None
 
@@ -200,6 +201,16 @@ class BindingDOMSupport (object):
         self.setDefaultNamespace(default_namespace)
 
     def setDefaultNamespace (self, default_namespace):
+        """Set the default namespace for the generated document.
+
+        @param default_namespace: The namespace to be defined as the default
+        namespace in the top-level element of the document.  May be provided
+        as a real namespace, or just its URI.
+
+        @type default_namespace: L{pyxb.namespace.Namespace} or C{str} or
+        C{unicode}.
+        """
+
         if self.__defaultNamespace is not None:
             del self.__namespaces[self.__defaultNamespace]
         if isinstance(default_namespace, pyxb.namespace.Namespace):
@@ -209,8 +220,22 @@ class BindingDOMSupport (object):
             self.__namespaces[self.__defaultNamespace] = None
 
     def declareNamespace (self, namespace, prefix=None):
-        # @todo: ensure multiple namespaces do not share the same prefix
-        # @todo: support multiple prefixes for each namespace
+        """Add the given namespace as one to be used in this document.
+
+        @param namespace: The namespace to be associated with the document.  May be provided
+        as a real namespace, or just its URI.
+
+        @type namespace: L{pyxb.namespace.Namespace} or C{str} or
+        C{unicode}.
+
+        @param prefix: Optional prefix to be used with this namespace.  If not
+        provided, a unique prefix is generated or a standard prefix is used,
+        depending on the namespace.
+
+        @todo: ensure multiple namespaces do not share the same prefix
+        @todo: provide default prefix in L{pyxb.namespace.Namespace}
+        @todo: support multiple prefixes for each namespace
+        """
         if isinstance(namespace, pyxb.namespace.Namespace):
             namespace = namespace.uri()
         if prefix is None:
@@ -223,6 +248,12 @@ class BindingDOMSupport (object):
         return prefix
 
     def namespacePrefix (self, namespace):
+        """Return the prefix to be used for the given namespace.
+
+        This will L{declare <declareNamespace>} the namespace if it has not
+        yet been observed.
+        """
+        
         if isinstance(namespace, pyxb.namespace.Namespace):
             namespace = namespace.uri()
         if namespace is None:
@@ -232,6 +263,16 @@ class BindingDOMSupport (object):
         return self.__namespaces[namespace]
 
     def addAttribute (self, element, expanded_name, value):
+        """Add an attribute to the given element.
+
+        @param element: The element to which the attribute should be added
+        @type element: C{xml.dom.Element}
+        @param expanded_name: The name of the attribute.  This may be a local
+        name if the attribute is not in a namespace.
+        @type expanded_name: L{pyxb.namespace.Namespace} or C{str} or C{unicode}
+        @param value: The value of the attribute
+        @type value: C{str} or C{unicode}
+        """
         name = expanded_name
         namespace = None
         if isinstance(name, pyxb.namespace.ExpandedName):
@@ -256,24 +297,17 @@ class BindingDOMSupport (object):
                 self.document().documentElement.setAttributeNS(pyxb.namespace.XMLNamespaces.uri(), 'xmlns:%s' % (pfx,), ns_uri)
         return self.document()
 
-    def createChild (self, local_name, namespace=None, parent=None):
+    def createChildElement (self, expanded_name, parent=None):
         """Create a new element node in the tree.
 
-        If the namespace for the node has not been used in this document
-        before, the prefix assigned to it, or a unique sequentially allocated
-        prefix, is recorded for addition to the XML Namespace attributes in
-        the document root element.
+        @param expanded_name: The name of the element.  A plain string
+        indicates a name in no namespace.
+        @type expanded_name: L{pyxb.namespace.ExpandedName} or C{str} or C{unicode}
 
-        @todo: Need to record namespaces associated with attributes as well.
-
-        @param local_name: The NCName to be used for the element tag.
-        @keyword namespace: The namespace to which the created child will
-                            belong.  This may be an absent namespace.
-        @type namespace: L{pyxb.namespace.Namespace}
         @keyword parent: The node in the tree that will serve as the child's
-                         parent.  If none is provided, the document element is
-                         used.  (If there is no document element, then this
-                         call creates it.)
+        parent.  If C{None}, the document element is used.  (If there is no
+        document element, then this call creates it as a side-effect.)
+
         @return: A newly created DOM element
         @rtype: C{xml.dom.Element}
         """
@@ -283,18 +317,20 @@ class BindingDOMSupport (object):
         if parent is None:
             parent = self.__document
         ns_uri = xml.dom.EMPTY_NAMESPACE
-        if isinstance(namespace, pyxb.namespace.Namespace):
-            ns_uri = namespace.uri()
+        if isinstance(expanded_name, pyxb.namespace.ExpandedName):
+            name = expanded_name.localName()
+            ns_uri = expanded_name.namespaceURI()
+        elif isintance(expanded_name, (str, unicode)):
+            name = expanded_name
         else:
-            assert namespace is None
-        name = local_name
+            raise pyxb.LogicError('Invalid type %s for expanded name' % (type(expanded_name),))
         if ns_uri is not None:
             if ns_uri in self.__namespaces:
                 pfx = self.__namespaces[ns_uri]
             else:
                 pfx = self.declareNamespace(ns_uri)
             if pfx is not None:
-                name = '%s:%s' % (pfx, local_name)
+                name = '%s:%s' % (pfx, name)
         element = self.__document.createElementNS(ns_uri, name)
         return parent.appendChild(element)
 

@@ -108,8 +108,11 @@ class ExpandedName (pyxb.cscRoot):
         return lambda _value=self.namespace().categoryMap(name).get(self.localName()): _value
 
     def createName (self, local_name):
-        """Return a new expanded name that pairs the namespace of this name
-        with the given local name."""
+        """Return a new expanded name in the namespace of this name.
+
+        @param local_name: The local name portion of an expanded name.
+        @return: An instance of L{ExpandedName}.
+        """
         return ExpandedName(self.namespace(), local_name)
 
     def adoptName (self, name):
@@ -125,7 +128,7 @@ class ExpandedName (pyxb.cscRoot):
         localName as but is different from the global element (with a
         namespace), this will improperly provide a namespace when one should
         not be present.  See the comments in
-        L{pyxb.binding.basis.element.ElementForDOM}.
+        L{pyxb.binding.basis.element.elementForName}.
         """
 
         if not isinstance(name, ExpandedName):
@@ -219,13 +222,17 @@ class ExpandedName (pyxb.cscRoot):
         return cmp(self.__uriTuple, other)
 
     def getAttribute (self, dom_node):
-        """Return the value of the attribute identified by this name in the given node."""
+        """Return the value of the attribute identified by this name in the given node.
+
+        @return: An instance of C{xml.dom.Attr}, or C{None} if the node does
+        not have an attribute with this name.
+        """
         if dom_node.hasAttributeNS(self.__namespaceURI, self.__localName):
             return dom_node.getAttributeNS(self.__namespaceURI, self.__localName)
         return None
 
     def nodeMatches (self, dom_node):
-        """Return True iff the dom node expanded name matches this expanded name."""
+        """Return C{True} iff the dom node expanded name matches this expanded name."""
         return (dom_node.localName == self.__localName) and (dom_node.namespaceURI == self.__namespaceURI)
 
 class _Resolvable_mixin (pyxb.cscRoot):

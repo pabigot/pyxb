@@ -16,6 +16,13 @@ Things That Work
 
 * Complex content models (all, sequence, choice); minOccurs and maxOccurs
 
+* Abstract types, `xsi:type <http://www.w3.org/TR/xmlschema-1/#xsi_type>`_,
+  substitution groups
+
+* Nillable elements with `xsi:nil <http://www.w3.org/TR/xmlschema-1/#xsi_nil>`_
+
+* Namespace qualifications on attributes and elements
+
 * Most everything that isn't in the next section.
 
 Things That Don't Work
@@ -23,13 +30,6 @@ Things That Don't Work
 
 ...but should soon
 ^^^^^^^^^^^^^^^^^^
-
-* Substitution groups are not supported.  This is expected to be addressed
-  in the next major release.
-
-* The XMLSchema instance attributes (xsi:nil, xsi:type) are not currently
-  supported.  It is relatively clear how to do so, though, and this will be
-  addressed in the next major release.
 
 * Pattern constraints don't do anything.
 
@@ -67,39 +67,13 @@ Things That Don't Work
 Things That Mostly Work, But They're Ugly
 -----------------------------------------
 
-* Cross-namespace attribute handling and attribute namespace identification
-  needs a thorough overhaul, due to misunderstandings when PyXB was being
-  developed.
-
-* There are two content models: the DFA that's used to convert from DOM to
-  binding instances, and an older model based on sequences of visible
-  elements which is used to convert from binding instances to DOM.  Both
-  models were kept because of a fear that generation would require
-  non-determinism; I now suspect that's wrong, and there's no reason why
-  generation can't be accomplished using the DFA content model.  This is
-  expected to change in a future release.
-
 * The ability to use templates to customize binding generation was promised
   in the vision document.  That has not yet been done, though it should be
   fairly straightforward.
-
-* Very complex schemas for which it is necessary to save a component model
-  run afoul of a long-running Python bug when pickling deep structures
-  (http://bugs.python.org/issue3338 and many related issues).  There may be
-  a way to work around that by reducing the complexity of the pickled
-  components
 
 * Processing of include and import directives is a little too fragile.
 
 Intended Near-Term Enhancements
 -------------------------------
 
-* Use the :api:`new content model <pyxb.binding.content.ContentModel>` to
-  generate DOM instances from objects
-
-* Implement `xsi:type <http://www.w3.org/TR/xmlschema-1/#xsi_type>`_
-
-* Support `substitution groups
-  <http://www.w3.org/TR/xmlschema-1/#key-equivalenceClass>`_
-
-* Support custom generation templates
+* What do you want?
