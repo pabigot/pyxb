@@ -21,7 +21,7 @@ Things That Work
 
 * Nillable elements with `xsi:nil <http://www.w3.org/TR/xmlschema-1/#xsi_nil>`_
 
-* Namespace qualifications on attributes and elements
+* Namespace qualified attributes and elements
 
 * Most everything that isn't in the next section.
 
@@ -39,14 +39,16 @@ Things That Don't Work
 * Documentation present in the schema is not made available in the bindings
   (viz., I want the annotations to become docstrings).
 
+...and probably never will
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 * When generating a DOM instance from a binding instance, the resulting
   document should validate against the schema, but the order of elements
   within it may be different from the original order of creation.  For an
   example of this, see
-  tests/test-mg-choice:TestMGChoice.testMultichoiceOrderImportant
-
-...and probably never will
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+  tests/test-mg-choice:TestMGChoice.testMultichoiceOrderImportant.  See also
+  :api:`pyxb.binding.basis.complexTypeDefinition._validatedChildren` for a
+  work-around.
 
 * The redefine directive is not supported.
 
@@ -54,11 +56,12 @@ Things That Don't Work
   model, but are not used.
 
 * Wildcards ("any") elements are supported in the sense that classes that
-  enable them in the content model provide access to unrecognized DOM
-  instances through the
+  enable them in the content model provide access to unrecognized values
+  through the
   :api:`pyxb.binding.basis.complexTypeDefinition.wildcardElements` method.
-  However, neither the namespace constraint nor process contents attributes
-  are applied.
+  Where the type of the node is recognized, it is converted to a Python
+  binding instance.  However, neither the namespace constraint nor process
+  contents attributes are applied.
 
 * Wildcard ("any") attributes are supported in the same sense as wildcard
   elements: no constraints are checked, and all are aggregated into the
@@ -76,4 +79,6 @@ Things That Mostly Work, But They're Ugly
 Intended Near-Term Enhancements
 -------------------------------
 
-* What do you want?
+* Customized WSDL support to work around inconsistencies in the SOAP
+  encoding handling of schema.
+

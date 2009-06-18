@@ -6,7 +6,7 @@ Namespaces
 The most important concept to understand when working with complex XML
 documents is the `namespace <http://www.w3.org/TR/REC-xml-names/>`_.  A
 namespace is nothing more than a map from names to objects, partitioned into
-groups within which the names must denote a single object.
+groups within which the names must uniquely identify an object.
 
 A namespace is identified by its name, which is a `URI
 <http://www.rfc-editor.org/rfc/rfc3986.txt>`_.  Although it is common to use
@@ -23,11 +23,13 @@ into a single namespace.  It is less common, though equally valid, to use
 the same namespace in different instance documents, as in the `dangling type
 <http://www.xfront.com/VariableContentContainers.html>`_ pattern.
 
-This diagram shows the class structure of the PyXB namespace
-infrastructure.  The central object is the :api:`pyxb.namespace.Namespace`.
-Three mix-in classes provide implementations of separate namespace
-functions, and the :api:`pyxb.namespace.NamespaceContext` class provides
-information related to the use of namespaces in XML documents.
+This diagram shows the class structure of the PyXB namespace infrastructure.
+The central object is the :api:`pyxb.namespace.Namespace`.  Three mix-in
+classes provide implementations of separate namespace functions.  The
+:api:`pyxb.namespace.ExpandedName` is used ubiquitously to pair local names
+with their namespaces.  The :api:`pyxb.namespace.NamespaceContext` class
+provides information related to the use of namespaces in XML documents,
+including mappings from prefixes to namespaces.
 
 .. image:: Images/Namespace.jpg
 
@@ -68,7 +70,7 @@ object by name, and it must be possible to resolve the named object.  The
 following `concepts <http://www.w3.org/TR/REC-xml-names/#concepts>`_ are
 important to understand:
 
-- A `NCName <http://www.w3.org/TR/xmlschema-2/#NCName>`_ ("no-colon name")
+- An `NCName <http://www.w3.org/TR/xmlschema-2/#NCName>`_ ("no-colon name")
   is an identifier, specifically one without any colon (":") characters,
   serving as a local name.
 
@@ -81,7 +83,8 @@ important to understand:
   name, which is a URI.
 
 - The combination of a namespace URI and the local name comprise an `expanded
-  namespace name <http://www.w3.org/TR/REC-xml-names/#dt-expname>`_.
+  namespace name <http://www.w3.org/TR/REC-xml-names/#dt-expname>`_, which is
+  represented by :api:`pyxb.namespace.ExpandedName`.
 
 - The category within which the local name must be resolved in the namespace
   is determined through external information, in the above case the fact of
@@ -110,6 +113,24 @@ executed when all named objects have been added to the namespace.  It
 depends on :api:`pyxb.namespace.NamespaceContext` to identify named objects
 using the :api:`pyxb.namespace.NamespaceContext.interpretQName` method.
 
+Expanded Names
+--------------
+
+An :api:`pyxb.namespace.ExpandedName` instance couples a local name with
+(optionally) a namespace.  This class also integrates with namespace
+categories, permitting lookup of the object with its name in a specific
+category by using  the category name as a method.  For example::
+  en.typeDefinition()
+  en.namespace().categoryMap('typeDefinition').get(en.localName())
+produce the type definition with the given namme, or ``None`` if there is no
+such definition.  Methods are also present to test whether the name matches a
+DOM node, and to retrieve the named attribute (if present) from a DOM node.
+
+In this version of PyXB, the hash codes and comparison methods for
+:api:`ExpandedName <pyxb.namespace.ExpandedName>` have been overridden so that
+an expanded name with no namespace is treated equivalently to a string holding
+the local name portion.  This simplified management of default namespace
+lookups in earlier versions of PyXB, but may no longer be necessary.
 
 Namespace Context
 -----------------
@@ -132,6 +153,10 @@ The namespace context consists of three main parts:
 - The `in-scope namespaces <http://www.w3.org/TR/REC-xml-names/#scoping>`_
   of a DOM node are those which can be identified by a prefix applied to
   names that appear in the node.
+
+Methods are provided to define context on a per-node basis within a DOM
+structure, or to dynamically generate contexts based on parent contexts and
+local namespace declarations as needed when using the SAX parser.
 
 Other Concepts
 --------------
