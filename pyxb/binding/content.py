@@ -480,8 +480,11 @@ class _MGAllState (object):
         return False
 
     def isFinal (self):
+        """Return C{True} iff no required alternatives remain."""
         for alt in self.__alternatives:
-            if alt.required():
+            # Any required alternative that must consume a symbol prevents
+            # this from being an acceptable final state for the model group.
+            if alt.required() and not alt.contentModel().allowsEpsilonTransitionToFinal():
                 #print "\n\n***Required alternative %s still present\n\n" % (alt,)
                 return False
         return True
@@ -638,12 +641,15 @@ class ContentModelTransition (pyxb.cscRoot):
         return True
 
     def validate (self, available_symbols_im, output_sequence_im, candidates):
-        """Take the best transition from this node.
+        """Determine whether it is possible to take this transition using the available symbols.
+
+        @param candidates
 
         Updates candidates.
         Return True iff a transition could be made."""
         if self.TT_element == self.__termType:
             if not (self.__elementUse in available_symbols_im):
+                # No symbol available for this transition
                 return False
             assert 0 < len(available_symbols_im[self.__elementUse])
             return self.__validateConsume(self.__elementUse, available_symbols_im, output_sequence_im, candidates)
@@ -656,12 +662,13 @@ class ContentModelTransition (pyxb.cscRoot):
             return self.__validateConsume(None, available_symbols_im, output_sequence_im, candidates)
         return False
 
-    def allowsEpsilonTransitionToFinal (self):
-        """Determine whether it is possible to reach a final state by taking
-        this transition.
+    def allowsEpsilonTransition (self):
+        """Determine whether it is possible to take this transition without
+        consuming any symbols.
 
         This is only possible if this is a transition to a final state using
-        an "all" model group for which every alternative is optional.
+        an "all" model group for which every alternative is effectively
+        optional.
         """
         if self.TT_modelGroupAll != self.__termType:
             return False
@@ -755,8 +762,12 @@ class ContentModelState (pyxb.cscRoot):
         return self.__transitions
     
     def allowsEpsilonTransitionToFinal (self, content_model):
+        """Determine whether this is a final state, or it can reach a final
+        state without consuming anything."""
+        if self.isFinal():
+            return True
         for transition in self.__transitions:
-            if transition.allowsEpsilonTransitionToFinal() and content_model.isFinal(transition.nextState()):
+            if transition.allowsEpsilonTransition() and content_model.isFinal(transition.nextState()):
                 return True
         return False
 
@@ -790,6 +801,8 @@ class ContentModel (pyxb.cscRoot):
     # Map from integers to ContentModelState instances
     __stateMap = None
 
+    __InitialState = 1
+
     def __init__ (self, state_map=None):
         self.__stateMap = state_map
 
@@ -804,6 +817,9 @@ class ContentModel (pyxb.cscRoot):
             return True
         # A non-final state can be final if it has an epsilon transition to a final state
         return self.__stateMap[state].allowsEpsilonTransitionToFinal(self)
+
+    def allowsEpsilonTransitionToFinal (self):
+        return self.__stateMap[self.__InitialState].allowsEpsilonTransitionToFinal(self)
 
     def validate (self, available_symbols, succeed_at_dead_end=False):
         """Determine whether this content model can be satisfied using the
@@ -836,9 +852,15 @@ class ContentModel (pyxb.cscRoot):
             (state_id, symbols, sequence) = candidates.pop(0)
             state = self.__stateMap[state_id]
             if 0 == len(symbols):
-                if state.isFinal():
+                # No symbols available for transitions in this state.  If this
+                # places us in a final state, we've got a successful path and
+                # should return it.  Otherwise, this path failed, and we go on
+                # to the next candidate.
+                if state.allowsEpsilonTransitionToFinal(self):
                     return (symbols, sequence)
                 continue
+            # Collect all the alternatives that are possible by taking
+            # transitions from this state.
             num_transitions = 0
             for transition in state.transitions():
                 num_transitions += transition.validate(symbols, sequence, candidates)
