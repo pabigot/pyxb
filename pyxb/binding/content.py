@@ -830,7 +830,6 @@ class ContentModel (pyxb.cscRoot):
         alternatives.
         """
 
-        matches = []
         candidates = []
         candidates.append( (1, available_symbols, []) )
         while 0 < len(candidates):
@@ -838,16 +837,14 @@ class ContentModel (pyxb.cscRoot):
             state = self.__stateMap[state_id]
             if 0 == len(symbols):
                 if state.isFinal():
-                    matches.append( (symbols, sequence) )
-                    return matches
+                    return (symbols, sequence)
                 continue
             num_transitions = 0
             for transition in state.transitions():
                 num_transitions += transition.validate(symbols, sequence, candidates)
             if (0 == num_transitions) and succeed_at_dead_end:
-                matches.append( (symbols, sequence) )
-                return matches
-        return matches
+                return (symbols, sequence)
+        return None
 
 class ModelGroupAllAlternative (pyxb.cscRoot):
     """Represents a single alternative in an "all" model group."""
@@ -888,10 +885,10 @@ class ModelGroupAll (pyxb.cscRoot):
         while (0 < len(alternatives)) and found_match:
             found_match = False
             for alt in alternatives:
-                matches = alt.contentModel().validate(symbols, succeed_at_dead_end=True)
-                if 0 == len(matches):
+                path = alt.contentModel().validate(symbols, succeed_at_dead_end=True)
+                if path is None:
                     break
-                (new_symbols, new_sequence) = matches[0]
+                (new_symbols, new_sequence) = path
                 found_match = (0 < len(new_sequence))
                 if found_match:
                     output_sequence.extend(new_sequence)

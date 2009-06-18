@@ -1205,9 +1205,9 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
 
     def _validatedChildren (self):
         assert self._ContentModel is not None
-        matches = self._ContentModel.validate(self._symbolSet())
-        if 0 < len(matches):
-            ( symbols, sequence ) = matches[0]
+        path = self._ContentModel.validate(self._symbolSet())
+        if path is not None:
+            ( symbols, sequence ) = path
             if 0 == len(symbols):
                 return sequence
             raise pyxb.BindingValidationError('Ungenerated symbols: %s' % (symbols,) )
