@@ -41,9 +41,10 @@ DefaultBindingPath = "%s/standard/bindings/raw" % (os.path.dirname(__file__),)
 import cPickle as pickle
 
 class ExpandedName (pyxb.cscRoot):
-    """Represent an extended name
-    U{http://www.w3.org/TR/REC-xml-names/#dt-expname}, which pairs a namespace
-    with a local name.
+
+    """Represent an U{extended name
+    <http://www.w3.org/TR/REC-xml-names/#dt-expname>}, which pairs a
+    namespace with a local name.
 
     Because a large number of local elements, and most attributes, have no
     namespace associated with them, this is optimized for representing names

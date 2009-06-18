@@ -25,13 +25,7 @@ import pyxb.namespace
 class _Binding_mixin (pyxb.cscRoot):
     """Mix-in used to identify classes that are bindings to some XML schema
     object.
-
-    @todo: Define the process for providing a namespace context when creating
-    documents from instances that were not created by CreateFromDOM.
-
     """
-
-    _NamespaceCategory = None
 
     _ExpandedName = None
     """The expanded name of the component."""
@@ -301,8 +295,6 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
     removed before passing them on to Python classes that do not
     accept them.
     """
-
-    _NamespaceCategory = 'typeBinding'
 
     # A map from leaf classes in the facets module to instance of
     # those classes that constrain or otherwise affect the datatype.
@@ -786,8 +778,6 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
     Global and local elements are represented by instances of this class.
     """
 
-    _NamespaceCategory = 'elementBinding'
-
     # Reference to the simple or complex type binding that serves as
     # the content of this element.
     # MUST BE SET IN SUBCLASS
@@ -1076,8 +1066,6 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
     from the unicode tag of an attribute to the AttributeUse instance that
     defines it.  Similarly, subclasses should define an _ElementMap variable.
     """
-
-    _NamespaceCategory = 'typeBinding'
 
     _CT_EMPTY = 'EMPTY'                 #<<< No content
     _CT_SIMPLE = 'SIMPLE'               #<<< Simple (character) content
