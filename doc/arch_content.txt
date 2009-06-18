@@ -13,7 +13,7 @@ ones that:
   require an aggregation; and
 - ensure that the ordering and occurrence constraints imposed by the XML
   `model group <http://www.w3.org/TR/xmlschema-1/#Model_Groups>`_ are
-  satisfied, both when XML is converted to Python instances and vice-versa.
+  satisfied, when XML is converted to Python instances and vice-versa.
 
 The classes involved in the content model are in the
 :api:`pyxb.binding.content` module, and their relationships are displayed in
@@ -35,11 +35,6 @@ information comprises:
 - the original name of the element/attribute in the XML
 - its deconflicted name in Python
 - the private name by which the value is stored in the Python instance dictionary
-
-.. todo:: Note that the deconflicted name may be the same as a name in a
-          superclass if the superclass attribute was prohibited and its tag
-          subsequently used for a new attribute.  Assuming the UPA permits
-          this.
 
 Other information is specific to the type of use.  The
 :api:`pyxb.binding.basis.complexTypeDefinition` retains maps from the
@@ -77,9 +72,6 @@ corresponding information is stored in a
 indication of whether multiple element instances can be associated with the
 use; this drives whether the default value is ``None`` or an empty list.
 
-(future) There is no map from names to ElementUse instances; this association
-is managed via transitions in the content model automaton.
-
 Content Model Automata
 ----------------------
 
@@ -109,6 +101,12 @@ The binding instance is then constructed by identifying the content model for
 the corresponding complex type, then walking the model using a sequence of DOM
 nodes to select the appropriate transition.  Element matches are prefered over
 ``all`` matches, which in turn are preferred over wildcard matches.
+
+Parsing With Automata
+^^^^^^^^^^^^^^^^^^^^^
+
+Generation With Automata
+^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. ignored
    ## Local Variables:
