@@ -32,7 +32,13 @@ class cscRoot (object):
     figure out how to do that, 'cuz the obvious solutions don't work),
     we'll just make this thing the root of all U{cooperative super
     calling<http://www.geocities.com/foetsch/python/new_style_classes.htm#super>}
-    hierarchies."""
+    hierarchies.  The standard syntax in PyXB for this pattern is::
+
+      def method_csc (self, *args, **kw):
+        super_fn = getattr(super(ThisClass, self), 'method_csc', lambda *a,**kw: self)
+        return super_fn(*args, **kw)
+
+    """
 
     def __init__ (self, *args, **kw):
         # Oh gross.  If this class descends from list (and probably dict), we
@@ -42,8 +48,8 @@ class cscRoot (object):
         # situation.
         #
         # Note that we might also get here if you mix-in a class that used
-        # object as a parent instead of cscRoot.  Don't do that.  If you do,
-        # comment out the print in the if body to see where you screwed up.
+        # object as a parent instead of cscRoot.  Don't do that.  Printing the
+        # mro() is a decent way of identifying the problem.
         if issubclass(self.__class__.mro()[-2], ( list, dict )):
             super(cscRoot, self).__init__(*args)
 

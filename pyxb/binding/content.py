@@ -15,22 +15,24 @@
 """Helper classes that maintain the content model of XMLSchema in the binding
 classes.
 
-AttributeUse and ElementUse record information associated with a binding
+L{AttributeUse} and L{ElementUse} record information associated with a binding
 class, for example the types of values, the original XML QName or NCName, and
-the Python field in which the values are stored.
+the Python field in which the values are stored.  They also provide the
+low-level interface to set and get the corresponding values in a binding
+instance.
 
-ContentModelTransition, ContentModelState, and ContentModel are used to store
-a deterministic finite automaton which is used to translate DOM nodes into
-values stored in an instance corresponding to a complex type definition.
+L{ContentModelTransition}, L{ContentModelState}, and L{ContentModel} are used
+to store a deterministic finite automaton which is used to translate between
+binding instances and other representations (e.g., DOM nodes)
 
-ModelGroupAllAlternative and ModelGroupAll represent special nodes in the DFA
-that support a model group with compositor "all" in a way that does not result
-in an exponential state explosion in the DFA.
+L{ModelGroupAllAlternative} and L{ModelGroupAll} represent special nodes in
+the DFA that support a model group with compositor "all" in a way that does
+not result in an exponential state explosion in the DFA.
 
-Particle, ModelGroup, and Wildcard are used to encode an earlier
-representation of the content model, now used only for generating DOM
-instances from bindings (as opposed to the other direction handled by
-ContentModel).  Wildcard is also used in the DFA-based content model.
+L{DFAStack} and its related internal classes are used in stream-based
+processing of content.
+
+L{Wildcard} holds content-related information used in the content model.
 """
 
 import pyxb
@@ -43,14 +45,12 @@ class AttributeUse (pyxb.cscRoot):
     """A helper class that encapsulates everything we need to know
     about the way an attribute is used within a binding class.
 
-    Attributes are stored as pairs C{(provided, value)}, where C{provided} is a
-    boolean indicating whether a value for the attribute was provided by the
-    DOM node, and C{value} is an instance of the attribute datatype.  The
-    provided flag is used to determine whether an XML attribute should be
-    added to a created DOM node when generating the XML corresponding to a
-    binding instance.
-
-    @todo: Store the extended namespace name of the attribute.
+    Attributes are stored internally as pairs C{(provided, value)}, where
+    C{provided} is a boolean indicating whether a value for the attribute was
+    provided externally, and C{value} is an instance of the attribute
+    datatype.  The C{provided} flag is used to determine whether an XML
+    attribute should be added to a created DOM node when generating the XML
+    corresponding to a binding instance.
     """
 
     __name = None       # ExpandedName of the attribute
@@ -67,12 +67,13 @@ class AttributeUse (pyxb.cscRoot):
         """Create an AttributeUse instance.
 
         @param name: The name by which the attribute is referenced in the XML
-        @type name: C{unicode}
+        @type name: L{pyxb.namespace.ExpandedName}
 
         @param id: The Python identifier for the attribute within the
         containing L{pyxb.basis.binding.complexTypeDefinition}.  This is a
-        public identifier, albeit modified to be unique, and is usually used
-        as the name of the attribute's inspector method.
+        public identifier, derived from the local part of the attribute name
+        and modified to be unique, and is usually used as the name of the
+        attribute's inspector method.
         @type id: C{str}
 
         @param key: The string used to store the attribute
@@ -126,7 +127,10 @@ class AttributeUse (pyxb.cscRoot):
         self.__prohibited = prohibited
 
     def name (self):
-        """Expanded name of the attribute in its element"""
+        """The expanded name of the element.
+
+        @rtype: L{pyxb.namespace.ExpandedName}
+        """
         return self.__name
     
     def required (self):
@@ -237,12 +241,13 @@ class ElementUse (pyxb.cscRoot):
     object in Python, an indicator of whether multiple instances might be
     associated with the field, and a list of types for legal values of the
     field.
-
-    @todo: Store the extended namespace name of the element.
     """
 
     def name (self):
-        """The Unicode XML NCName of the element."""
+        """The expanded name of the element.
+
+        @rtype: L{pyxb.namespace.ExpandedName}
+        """
         return self.__name
     __name = None
 
@@ -250,8 +255,8 @@ class ElementUse (pyxb.cscRoot):
         """The string name of the binding class field used to hold the element
         values.
 
-        This is the user-visible name, and excepting namespace disambiguation
-        will be equal to the name."""
+        This is the user-visible name, and excepting disambiguation will be
+        equal to the local name of the element."""
         return self.__id
     __id = None
 
@@ -261,10 +266,14 @@ class ElementUse (pyxb.cscRoot):
     __key = None
 
     def elementBinding (self):
-        """A list of binding classes that express the permissible types of
-        element instances for this use."""
+        """The L{basis.element} instance identifying the information
+        associated with the element declaration.
+        """
         return self.__elementBinding
     def _setElementBinding (self, element_binding):
+        # Set the element binding for this use.  Only visible at all because
+        # we have to define the uses before the element instances have been
+        # created.
         self.__elementBinding = element_binding
         return self
     __elementBinding = None
@@ -284,22 +293,16 @@ class ElementUse (pyxb.cscRoot):
         return self.__isPlural
     __isPlural = False
 
-    # If not None, this specifies an ElementUse in a binding class for
-    # which this element use is a restriction.  That element use is
-    # what is used to store the corresponding values, after validating
-    # them against elementBinding at this level.
-    __parentUse = None
-
     def __init__ (self, name, id, key, is_plural, element_binding=None):
         """Create an ElementUse instance.
 
-        @param name: The name by which the attribute is referenced in the XML
-        @type name: C{unicode}
+        @param name: The name by which the element is referenced in the XML
+        @type name: L{pyxb.namespace.ExpandedName}
 
-        @param id: The Python name for the element within the
-        containing L{pyxb.basis.binding.complexTypeDefinition}.  This is a
-        public identifier, albeit modified to be unique, and is usually
-        used as the name of the element's inspector method.
+        @param id: The Python name for the element within the containing
+        L{pyxb.basis.binding.complexTypeDefinition}.  This is a public
+        identifier, albeit modified to be unique, and is usually used as the
+        name of the element's inspector method.
         @type id: C{str}
 
         @param key: The string used to store the element
@@ -317,10 +320,6 @@ class ElementUse (pyxb.cscRoot):
 
         @param element_binding: Reference to the class that serves as the
         binding for the element.
-
-        @todo: Ensure that an element referenced from multiple complex types
-        uses the correct name in each context.
-
         """
         self.__name = name
         self.__id = id
@@ -329,14 +328,22 @@ class ElementUse (pyxb.cscRoot):
         self.__elementBinding = element_binding
 
     def defaultValue (self):
+        """Return the default value for this element.
+
+        @todo: Right now, this returns C{None} for non-plural and an empty
+        list for plural elements.  Need to support schema-specified default
+        values for non-element content.
+        """
         if self.isPlural():
             return []
         return None
 
     def value (self, ctd_instance):
+        """Return the value for this use within the given instance."""
         return getattr(ctd_instance, self.__key, self.defaultValue())
 
     def reset (self, ctd_instance):
+        """Set the value for this use in the given element to its default."""
         setattr(ctd_instance, self.__key, self.defaultValue())
         return self
 
@@ -355,11 +362,16 @@ class ElementUse (pyxb.cscRoot):
         return self
 
     def setOrAppend (self, ctd_instance, value):
+        """Invoke either L{set} or L{apend}, depending on whether the element
+        use is plural."""
         if self.isPlural():
             return self.append(ctd_instance, value)
         return self.set(ctd_instance, value)
 
     def append (self, ctd_instance, value):
+        """Add the given value as another instance of this element within the binding instance.
+        @raise pyxb.StructuralBadDocumentError: invoked on an element use that is not plural
+        """
         if not self.isPlural():
             raise pyxb.StructuralBadDocumentError('Cannot append to element with non-plural multiplicity')
         values = self.value(ctd_instance)
@@ -369,8 +381,17 @@ class ElementUse (pyxb.cscRoot):
         return values
 
     def toDOM (self, dom_support, parent, value):
-        if isinstance(value, basis._Binding_mixin):
-            assert isinstance(value, basis._TypeBinding_mixin)
+        """Convert the given value to DOM as an instance of this element.
+
+        @param dom_support: Helper for managing DOM properties
+        @type dom_support: L{pyxb.utils.domutils.BindingDOMSupport}
+        @param parent: The DOM node within which this element should be generated.
+        @type parent: C{xml.dom.Element}
+        @param value: The content for this element.  May be text (if the
+        element allows mixed content), or an instance of
+        L{basis._TypeBinding_mixin}.
+        """
+        if isinstance(value, basis._TypeBinding_mixin):
             element_binding = self.__elementBinding
             if value._substitutesFor(element_binding):
                 element_binding = value._element()
@@ -399,6 +420,7 @@ class ElementUse (pyxb.cscRoot):
             raise pyxb.LogicError('toDOM with unrecognized value type %s: %s' % (type(value), value))
 
 class _DFAState (object):
+    """Base class for a suspended DFA interpretation."""
     __ctdInstance = None
     __contentModel = None
     __state = None
@@ -426,6 +448,8 @@ class _DFAState (object):
         return self.contentModel().isFinal(self.state())
 
 class _MGAllState (object):
+    """The state of a suspended interpretation of a ModelGroupAll transition."""
+
     __ctdInstance = None
     __modelGroup = None
     __alternatives = None
@@ -463,7 +487,9 @@ class _MGAllState (object):
         return True
 
 class DFAStack (object):
-    """A stack of states and content models."""
+    """A stack of states and content models representing the current status of
+    an interpretation of a content model, including invocations of nested
+    content models reached through L{ModelGroupAll} instances."""
 
     __stack = None
     def __init__ (self, content_model, ctd_instance):
@@ -612,7 +638,7 @@ class ContentModelTransition (pyxb.cscRoot):
         return True
 
     def validate (self, available_symbols_im, output_sequence_im, candidates):
-        """Make the best transition from this node.
+        """Take the best transition from this node.
 
         Updates candidates.
         Return True iff a transition could be made."""
@@ -630,7 +656,13 @@ class ContentModelTransition (pyxb.cscRoot):
             return self.__validateConsume(None, available_symbols_im, output_sequence_im, candidates)
         return False
 
-    def allowsEpsilonTransition (self):
+    def allowsEpsilonTransitionToFinal (self):
+        """Determine whether it is possible to reach a final state by taking
+        this transition.
+
+        This is only possible if this is a transition to a final state using
+        an "all" model group for which every alternative is optional.
+        """
         if self.TT_modelGroupAll != self.__termType:
             return False
         dfa_state = _MGAllState(self.__term, None)
@@ -724,7 +756,7 @@ class ContentModelState (pyxb.cscRoot):
     
     def allowsEpsilonTransitionToFinal (self, content_model):
         for transition in self.__transitions:
-            if transition.allowsEpsilonTransition() and content_model.isFinal(transition.nextState()):
+            if transition.allowsEpsilonTransitionToFinal() and content_model.isFinal(transition.nextState()):
                 return True
         return False
 
@@ -773,7 +805,31 @@ class ContentModel (pyxb.cscRoot):
         # A non-final state can be final if it has an epsilon transition to a final state
         return self.__stateMap[state].allowsEpsilonTransitionToFinal(self)
 
-    def validate (self, available_symbols, allow_residual=False):
+    def validate (self, available_symbols, succeed_at_dead_end=False):
+        """Determine whether this content model can be satisfied using the
+        provided elements.
+
+        The general idea is to treat the transitions of the DFA as symbols in
+        an alphabet.  For each such transition, a sequence of values is
+        provided to be associated with the transition.  This abstracts
+        multiple paths through the DFA using the values of each transition to
+        create a path.
+
+        If a path is found that uses every symbol in valid transitions and
+        ends in a final state, the sequence of term/value pairs along the path
+        is returned to the caller.
+        
+
+        @param available_symbols: A map from DFA terms to a sequence of values
+        associated with the term in a binding instance.
+
+        @param succeed_at_dead_end: If C{True}, states from which no transition can
+        be made are accepted as final states.  (This is only used when
+        processing "all" model groups, where the alternative content model
+        must complete while retaining the symbols that are needed for other
+        alternatives.
+        """
+
         matches = []
         candidates = []
         candidates.append( (1, available_symbols, []) )
@@ -788,7 +844,7 @@ class ContentModel (pyxb.cscRoot):
             num_transitions = 0
             for transition in state.transitions():
                 num_transitions += transition.validate(symbols, sequence, candidates)
-            if (0 == num_transitions) and allow_residual:
+            if (0 == num_transitions) and succeed_at_dead_end:
                 matches.append( (symbols, sequence) )
                 return matches
         return matches
@@ -832,7 +888,7 @@ class ModelGroupAll (pyxb.cscRoot):
         while (0 < len(alternatives)) and found_match:
             found_match = False
             for alt in alternatives:
-                matches = alt.contentModel().validate(symbols, allow_residual=True)
+                matches = alt.contentModel().validate(symbols, succeed_at_dead_end=True)
                 if 0 == len(matches):
                     break
                 (new_symbols, new_sequence) = matches[0]
