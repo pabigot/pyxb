@@ -22,6 +22,11 @@ The context is used both for translating XML documents into instances of the
 binding class, and for generating multi-namespace XML documents from
 instances.
 
+:api:`pyxb.binding.basis._TypeBinding_mixin` extends
+:api:`pyxb.binding.basis._Binding_mixin` to indicate that the incorporating
+class represents a binding associated with a type definition (whether simple
+or complex).
+
 Every class that is bound to a nameable schema component overrides its
 :api:`pyxb.binding.basis._Binding_mixin._Namespace` to be a reference to the
 :api:`pyxb.namespace.Namespace` instance for the module to which it belongs,

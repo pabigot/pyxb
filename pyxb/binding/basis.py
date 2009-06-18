@@ -22,79 +22,12 @@ import pyxb.utils.utility as utility
 import types
 import pyxb.namespace
 
-class _Binding_mixin (pyxb.cscRoot):
-    """Mix-in used to identify classes that are bindings to some XML schema
-    object.
-    """
+class _TypeBinding_mixin (pyxb.cscRoot):
 
     _ExpandedName = None
     """The expanded name of the component."""
 
-    _ReservedSymbols = set([ 'validateBinding', 'toDOM', 'toxml' ])
-
-    @classmethod
-    def _IsSimpleTypeContent (cls):
-        """Return True iff the content of this binding object is a simple type.
-
-        This is true only for descendents of simpleTypeDefinition, instances
-        of complexTypeDefinition that have simple type content, and elements
-        with a type that is either one of those."""
-        return False
-
-    def _toDOM_csc (self, bds, parent):
-        pass
-
-    def toDOM (self, bds=None, parent=None):
-        """Convert this instance to a DOM node.
-
-        The name of the top-level element is either the name of the L{element}
-        instance associated with this instance, or the XML name of the type of
-        this instance.
-
-        @param bds: Support for customizing the generated document
-        @type bds: L{pyxb.utils.domutils.BindingDOMSupport}
-        @param parent: If C{None}, a standalone document is created;
-        otherwise, the created element is a child of the given element.
-        @type parent: C{xml.dom.Element} or C{None}
-        @rtype: C{xml.dom.Document}
-        """
-
-        if bds is None:
-            bds = domutils.BindingDOMSupport()
-        if self._element() is not None:
-            element = bds.createChildElement(self._element().name(), parent)
-        else:
-            element = bds.createChildElement(self._ExpandedName, parent)
-        self._toDOM_csc(bds, element)
-        bds.finalize()
-        return bds.document()
-
-    def toxml (self, bds=None):
-        """Shorthand to get the object as an XML document.
-
-        If you want to set the default namespace, pass in a pre-configured
-        C{bds}.
-
-        @param bds: Optional L{pyxb.utils.domutils.BindingDOMSupport} instance
-        to use for creation. If not provided (default), a new generic one is
-        created.
-        """
-        return self.toDOM(bds).toxml()
-
-    def _validateBinding_vx (self):
-        raise pyxb.IncompleteImplementationError('%s did not override _validateBinding_vx' % (type(self),))
-
-    def validateBinding (self):
-        """Check whether the binding content matches its content model.
-
-        Returns None if successful
-        @raise pyxb.BindingValidationError: if content does not match model.
-        """
-        return self._validateBinding_vx()
-
-class _TypeBinding_mixin (_Binding_mixin):
-
-    _ReservedSymbols = _Binding_mixin._ReservedSymbols.union(set([ 'Factory' ]))
+    _ReservedSymbols = set([ 'validateBinding', 'toDOM', 'toxml', 'Factory' ])
 
     # While simple type definitions cannot be abstract, they can appear in
     # many places where complex types can, so we want it to be legal to test
@@ -205,11 +138,70 @@ class _TypeBinding_mixin (_Binding_mixin):
             return False
         return self._element().substitutesFor(element)
 
+    @classmethod
+    def _IsSimpleTypeContent (cls):
+        """Return True iff the content of this binding object is a simple type.
+
+        This is true only for descendents of simpleTypeDefinition, instances
+        of complexTypeDefinition that have simple type content, and elements
+        with a type that is either one of those."""
+        return False
+
+    def toDOM (self, bds=None, parent=None):
+        """Convert this instance to a DOM node.
+
+        The name of the top-level element is either the name of the L{element}
+        instance associated with this instance, or the XML name of the type of
+        this instance.
+
+        @param bds: Support for customizing the generated document
+        @type bds: L{pyxb.utils.domutils.BindingDOMSupport}
+        @param parent: If C{None}, a standalone document is created;
+        otherwise, the created element is a child of the given element.
+        @type parent: C{xml.dom.Element} or C{None}
+        @rtype: C{xml.dom.Document}
+        """
+
+        if bds is None:
+            bds = domutils.BindingDOMSupport()
+        if self._element() is not None:
+            element = bds.createChildElement(self._element().name(), parent)
+        else:
+            element = bds.createChildElement(self._ExpandedName, parent)
+        self._toDOM_csc(bds, element)
+        bds.finalize()
+        return bds.document()
+
+    def toxml (self, bds=None):
+        """Shorthand to get the object as an XML document.
+
+        If you want to set the default namespace, pass in a pre-configured
+        C{bds}.
+
+        @param bds: Optional L{pyxb.utils.domutils.BindingDOMSupport} instance
+        to use for creation. If not provided (default), a new generic one is
+        created.
+        """
+        return self.toDOM(bds).toxml()
+
     def _toDOM_csc (self, dom_support, parent):
         assert parent is not None
         if self.__xsiNil:
             dom_support.addAttribute(parent, pyxb.namespace.XMLSchema_instance.createExpandedName('nil'), 'true')
         return getattr(super(_TypeBinding_mixin, self), '_toDOM_csc', lambda *_args,**_kw: dom_support)(dom_support, parent)
+
+    def _validateBinding_vx (self):
+        raise pyxb.IncompleteImplementationError('%s did not override _validateBinding_vx' % (type(self),))
+
+    def validateBinding (self):
+        """Check whether the binding content matches its content model.
+
+        Returns None if successful
+        @raise pyxb.BindingValidationError: if content does not match model.
+        """
+        return self._validateBinding_vx()
+
+
 
 class _DynamicCreate_mixin (pyxb.cscRoot):
     """Helper to allow overriding the implementation class.
@@ -772,11 +764,14 @@ class STD_list (simpleTypeDefinition, types.ListType):
         """Convert from a binding value to a string usable in an XML document."""
         return ' '.join([ _v.xsdLiteral() for _v in value ])
 
-class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
+class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
     """Class that represents a schema element.
 
     Global and local elements are represented by instances of this class.
     """
+
+    _ExpandedName = None
+    """The expanded name of the component."""
 
     # Reference to the simple or complex type binding that serves as
     # the content of this element.
@@ -1252,7 +1247,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         if order is None:
             raise pyxb.BindingValidationError('No match from content to binding model')
         for (eu, value) in order:
-            if isinstance(value, _Binding_mixin):
+            if isinstance(value, _TypeBinding_mixin):
                 value.validateBinding()
             else:
                 print 'WARNING: Cannot validate value %s in field %s' % (value, eu.id())
@@ -1352,7 +1347,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         self.__content = value
 
     def _addContent (self, child):
-        assert isinstance(child, _Binding_mixin) or isinstance(child, types.StringTypes), 'Unrecognized child %s type %s' % (child, type(child))
+        assert isinstance(child, _TypeBinding_mixin) or isinstance(child, types.StringTypes), 'Unrecognized child %s type %s' % (child, type(child))
         self.__content.append(child)
 
     __isMixed = False
