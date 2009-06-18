@@ -605,15 +605,28 @@ class ContentModelTransition (pyxb.cscRoot):
         return None
 
     def __validateConsume (self, key, available_symbols_im, output_sequence_im, candidates):
+        # Update candidates to incorporate the path abstraction associated
+        # with the element that is this term.
+
+        # Create a mutable copy of the available symbols
         next_symbols = available_symbols_im.copy()
+
         # If the transition is a loop back to the current state, or if the
         # transition is a simple type definition with variety list, we can
         # consume multiple instances.  Might as well consume all of them.
+        # When we do consume, we can do either one transition, or one
+        # transition for each element in a list/vector.
         key_type = type(None)
         if key is not None:
             key_type = key.elementBinding().typeDefinition()
         if issubclass(key_type, basis.STD_list):
+            # @todo: This is too greedy if there are length limitations on the
+            # list.
             consume_all = True
+            # If the individual values are also lists, then this represents a
+            # plural element, and we take a transition for each value.
+            # Otherwise, we assume this is a non-plural element, and the
+            # values comprise a single symbol.
             consume_singles = isinstance(next_symbols[key][0], (list, tuple))
         elif (self.__nextState == self.__currentStateRef.state()):
             consume_all = True
@@ -625,6 +638,7 @@ class ContentModelTransition (pyxb.cscRoot):
             consumed = next_symbols[key]
             del next_symbols[key]
         else:
+            # Make sure we pop from a copy of the available_symbols_im entry value.
             next_left = next_symbols[key][:]
             consumed = [ next_left.pop(0) ]
             if 0 == len(next_left):
@@ -641,12 +655,19 @@ class ContentModelTransition (pyxb.cscRoot):
         return True
 
     def validate (self, available_symbols_im, output_sequence_im, candidates):
-        """Determine whether it is possible to take this transition using the available symbols.
+        """Determine whether it is possible to take this transition using the
+        available symbols.
 
-        @param candidates
+        @param available_symbols_im: As with L{ContentModel.validate}.  The
+        map will not be modified by this method.
+        
+        @param output_sequence_im: As with the return value of
+        L{ContentModel.validate}.  The sequence will not be modified by this
+        event (it is used as a prefix for new candidates).
 
-        Updates candidates.
-        Return True iff a transition could be made."""
+        @param candidates: A list of candidate validation paths.
+
+        @return: C{True} iff the transition could be made."""
         if self.TT_element == self.__termType:
             if not (self.__elementUse in available_symbols_im):
                 # No symbol available for this transition
@@ -675,21 +696,29 @@ class ContentModelTransition (pyxb.cscRoot):
         dfa_state = _MGAllState(self.__term, None)
         return dfa_state.isFinal()
 
-    def attemptTransition (self, ctd_instance, node, dfa_stack):
+    def attemptTransition (self, ctd_instance, value, dfa_stack):
         """Attempt to make the appropriate transition.
 
-        If something goes wrong, a BadDocumentError will be propagated through
-        this call, and node_list will remain unchanged.  If everything works,
-        the prefix of the node_list that matches the transition will have been
-        stripped away, and if the store parameter is True, the resulting
-        binding instances will be stored in the proper location of
-        ctd_instance.
+        @param ctd_instance: The binding instance for which we are attempting
+        to set values by walking the content model.
+        @type ctd_instance: L{basis.complexTypeDefinition}
+
+        @param value: The potential value that would be consumed if this
+        transition can be made.
+        @type value: C{xml.dom.Node} or L{basis._TypeBinding_mixin}
+
+        @param dfa_stack: The current state of processing this and enclosing
+        content models.
+        @type dfa_stack: L{DFAStack}
+
+        @return: C{True} iff C{value} is acceptable for this transition
+
         """
 
         if self.TT_element == self.__termType:
             element = None
             try:
-                element = self.__processElementTransition(node)
+                element = self.__processElementTransition(value)
             except Exception, e:
                 print 'Warning: Element transition failed: %s' % (e,)
                 raise
@@ -700,23 +729,22 @@ class ContentModelTransition (pyxb.cscRoot):
             else:
                 self.__elementUse.set(ctd_instance, element)
         elif self.TT_modelGroupAll == self.__termType:
-            return dfa_stack.pushModelState(_MGAllState(self.__term, ctd_instance)).step(ctd_instance, node)
+            return dfa_stack.pushModelState(_MGAllState(self.__term, ctd_instance)).step(ctd_instance, value)
         elif self.TT_wildcard == self.__termType:
-            if not isinstance(node, basis._TypeBinding_mixin):
-                if not self.__term.matchesNode(ctd_instance, node):
-                    raise pyxb.UnexpectedContentError(node)
+            if isinstance(value, xml.dom.Node):
                 # See if we can convert from DOM into a Python instance.
                 # If not, we'll go ahead and store the DOM node.
+                node = value
                 try:
                     ns = pyxb.namespace.NamespaceForURI(node.namespaceURI, create_if_missing=True)
                     if ns.module() is not None:
-                        node = ns.module().CreateFromDOM(node)
+                        value = ns.module().CreateFromDOM(node)
                     elif ns.modulePath() is not None:
                         print 'Importing %s' % (ns.modulePath(),)
                         mod = __import__(ns.modulePath())
                         for c in ns.modulePath().split('.')[1:]:
                             mod = getattr(mod, c)
-                        node = mod.CreateFromDOM(node)
+                        value = mod.CreateFromDOM(node)
                     elif pyxb.namespace.XMLSchema == ns:
                         print 'Need to dynamically create schema'
                 except Exception, e:
@@ -724,7 +752,9 @@ class ContentModelTransition (pyxb.cscRoot):
                         print 'WARNING: Unable to convert wildcard %s %s to Python instance: %s' % (node.namespaceURI, node.localName, e)
                     else:
                         print 'WARNING: Unable to convert wildcard %s to Python instance: %s' % (node, e)
-            ctd_instance.wildcardElements().append(node)
+            if not self.__term.matches(ctd_instance, value):
+                raise pyxb.UnexpectedContentError(value)
+            ctd_instance.wildcardElements().append(value)
         else:
             raise pyxb.LogicError('Unexpected transition term %s' % (self.__term,))
         return True
@@ -762,8 +792,8 @@ class ContentModelState (pyxb.cscRoot):
         return self.__transitions
     
     def allowsEpsilonTransitionToFinal (self, content_model):
-        """Determine whether this is a final state, or it can reach a final
-        state without consuming anything."""
+        """Determine can reach a final state in the content model without
+        consuming anything."""
         if self.isFinal():
             return True
         for transition in self.__transitions:
@@ -771,27 +801,35 @@ class ContentModelState (pyxb.cscRoot):
                 return True
         return False
 
-    def evaluateContent (self, ctd_instance, node, dfa_stack):
-        """Determine where to go from this state.
+    def evaluateContent (self, ctd_instance, value, dfa_stack):
+        """Try to make a single transition with the given value.
 
-        If no transition can be made, and this state is a final state for the
-        DFA, the value None is returned.
+        @param ctd_instance: The binding instance for which we are attempting
+        to set values by walking the content model.
+        @type ctd_instance: L{basis.complexTypeDefinition}
 
-        @param ctd_instance: The binding instance holding the content
-        @param node: the next value from the actual content
-        @type node: C{xml.dom.Node} or L{_TypeBinding_mixin} or C{object}
-        @param dfa_stack: parsing context
-        @raise pyxb.UnrecognizedContentError: trailing material that does not match content model
-        @raise pyxb.MissingContentError: content model requires additional data
+        @param value: The value that would be consumed if a transition can be
+        made.
+        @type value: C{xml.dom.Node} or L{basis._TypeBinding_mixin}
+
+        @param dfa_stack: The current state of processing this and enclosing
+        content models.
+        @type dfa_stack: L{DFAStack}
+
+        @return: If a transition could be taken, the next state in the content
+        model.  C{None} if no transition could be taken and this state is
+        final.
+
+        @raise pyxb.UnrecognizedContentError: No transition on C{value} is
+        possible, and this is not a final state.
         """
 
         for transition in self.__transitions:
-            # @todo check nodeName against element
-            if transition.attemptTransition(ctd_instance, node, dfa_stack):
+            if transition.attemptTransition(ctd_instance, value, dfa_stack):
                 return transition.nextState()
         if self.isFinal():
             return None
-        raise pyxb.UnrecognizedContentError(node)
+        raise pyxb.UnrecognizedContentError(value)
 
 class ContentModel (pyxb.cscRoot):
     """The ContentModel is a deterministic finite state automaton which can be
@@ -810,12 +848,16 @@ class ContentModel (pyxb.cscRoot):
         return DFAStack(self, ctd_instance)
 
     def step (self, ctd_instance, state, value, dfa_stack):
+        """Perform a single step in the content model.  This is a pass-through
+        to L{ContentModelState.evaluateContent} for the appropriate state.
+
+        @param state: The starting state in this content model.
+        @type state: C{int}
+        """
+
         return self.__stateMap[state].evaluateContent(ctd_instance, value, dfa_stack)
 
     def isFinal (self, state):
-        if self.__stateMap[state].isFinal():
-            return True
-        # A non-final state can be final if it has an epsilon transition to a final state
         return self.__stateMap[state].allowsEpsilonTransitionToFinal(self)
 
     def allowsEpsilonTransitionToFinal (self):
@@ -827,23 +869,25 @@ class ContentModel (pyxb.cscRoot):
 
         The general idea is to treat the transitions of the DFA as symbols in
         an alphabet.  For each such transition, a sequence of values is
-        provided to be associated with the transition.  This abstracts
-        multiple paths through the DFA using the values of each transition to
-        create a path.
+        provided to be associated with the transition.  One transition is
+        permitted for each value associated with the symbol.  The symbol (key)
+        C{None} represents wildcard values.
 
         If a path is found that uses every symbol in valid transitions and
-        ends in a final state, the sequence of term/value pairs along the path
-        is returned to the caller.
+        ends in a final state, the return value is a pair consisting of the
+        unconsumed symbols and a sequence of term, value pairs that define the
+        acceptable path.  If no valid path through the DFA can be taken,
+        C{None} is returned.
         
-
         @param available_symbols: A map from DFA terms to a sequence of values
-        associated with the term in a binding instance.
+        associated with the term in a binding instance.  The key C{None} is
+        used to represent wildcard elements.
 
-        @param succeed_at_dead_end: If C{True}, states from which no transition can
-        be made are accepted as final states.  (This is only used when
-        processing "all" model groups, where the alternative content model
-        must complete while retaining the symbols that are needed for other
-        alternatives.
+        @param succeed_at_dead_end: If C{True}, states from which no
+        transition can be made are accepted as final states.  This is used
+        when processing "all" model groups, where the alternative content
+        model must succeed while retaining the symbols that are needed for
+        other alternatives.
         """
 
         candidates = []
@@ -960,11 +1004,10 @@ class Wildcard (pyxb.cscRoot):
         self.__namespaceConstraint = kw['namespace_constraint']
         self.__processContents = kw['process_contents']
 
-    def matchesNode (self, ctd_instance, node):
-        """Return True iff the node is a valid match against this wildcard.
+    def matches (self, ctd_instance, value):
+        """Return True iff the value is a valid match against this wildcard.
 
-        Not implemented yet: all wildcards are assumed to match all
-        nodes.
+        Not implemented yet: all wildcards are assumed to match all values.
 
         """
         # @todo check node against namespace constraint and process contents
