@@ -285,10 +285,6 @@ class ElementUse (pyxb.cscRoot):
         This includes elements in particles with maxOccurs greater than one,
         and when multiple elements with the same NCName are declared in the
         same type.
-
-        @todo Fix this: if a type has a reference to ns1:foo and a different
-        one to ns2:foo, the two should not end up in the same python field.
-
         """
         return self.__isPlural
     __isPlural = False
@@ -362,7 +358,7 @@ class ElementUse (pyxb.cscRoot):
         return self
 
     def setOrAppend (self, ctd_instance, value):
-        """Invoke either L{set} or L{apend}, depending on whether the element
+        """Invoke either L{set} or L{append}, depending on whether the element
         use is plural."""
         if self.isPlural():
             return self.append(ctd_instance, value)

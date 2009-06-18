@@ -783,8 +783,7 @@ class STD_list (simpleTypeDefinition, types.ListType):
 class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
     """Class that represents a schema element.
 
-    Both global and local elements are represented by an instance of this
-    class.
+    Global and local elements are represented by instances of this class.
     """
 
     _NamespaceCategory = 'elementBinding'
@@ -796,22 +795,30 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
     """The subclass of complexTypeDefinition that is used to represent content in this element."""
 
     def name (self):
+        """The expanded name of the element within its scope."""
         return self.__name
     __name = None
 
     def typeDefinition (self):
+        """The L{_TypeBinding_mixin} subclass for values of this element."""
         return self.__typeDefinition._SupersedingClass()
     __typeDefinition = None
 
     def scope (self):
+        """The scope of the element.  This is either C{None}, representing a
+        top-level element, or an instance of C{complexTypeDefinition} for
+        local elements."""
         return self.__scope
     __scope = None
 
     def nillable (self):
+        """Indicate whether values matching this element can have xsi:nil set."""
         return self.__nillable
     __nillable = False
 
     def abstract (self):
+        """Indicate whether this element is abstract (must use substitution
+        group members for matches)."""
         return self.__abstract
     __abstract = False
 
@@ -820,6 +827,9 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
     __defaultValue = None
 
     def substitutionGroup (self):
+        """The L{element} instance to whose substitution group this element
+        belongs.  C{None} if this element is not part of a substitution
+        group."""
         return self.__substitutionGroup
     def _setSubstitutionGroup (self, substitution_group):
         self.__substitutionGroup = substitution_group
@@ -827,6 +837,13 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
     __substitutionGroup = None
 
     def substitutesFor (self, other):
+        """Determine whether an instance of this element can substitute for the other element.
+        
+        See U{Substitution Group OK<http://www.w3.org/TR/xmlschema-1/#cos-equiv-derived-ok-rec>)}.
+
+        @todo: Do something about blocking constraints.  This ignores them, as
+        does everything leading to this point.
+        """
         if other is None:
             return False
         assert isinstance(other, element)
@@ -850,11 +867,6 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
 
         The type for this element must be a complex type definition."""
         return self.typeDefinition()._UseForTag(name).elementBinding()
-
-    def __create (self, use_type=None, *args, **kw):
-        if use_type is None:
-            use_type = self.typeDefinition()
-        return use_type.Factory(*args, **kw)
 
     def __init__ (self, name, type_definition, scope=None, nillable=False, abstract=False, default_value=None, substitution_group=None):
         """Create a new element binding.
@@ -976,7 +988,8 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
         node.
 
         Keyword parameters are passed to the factory method of the type
-        associated with the selected element binding.
+        associated with the selected element binding.  See
+        L{_TypeBinding_mixin} and any specializations of it.
 
         @param node: The DOM node specifying the element content.
         @type node: C{xml.dom.Node}
@@ -1001,8 +1014,8 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
         if element_binding.abstract():
             raise pyxb.AbstractElementError(element_binding)
 
-        # Mark that the created _TypeBinding_mixin instance should be
-        # associated with this element.
+        # Record the element to be associated with the created binding
+        # instance.
         if '_element' in kw:
             raise pyxb.LogicError('Cannot set _element in element-based instance creation')
         kw['_element'] = element_binding
@@ -1013,19 +1026,19 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
         xsi_type = pyxb.namespace.ExpandedName(pyxb.namespace.XMLSchema_instance, 'type')
         type_name = xsi_type.getAttribute(node)
         elt_ns = element_binding.name().namespace()
+
+        # Get the namespace context for the value being created.  If we
+        # somehow got here without having assigned namespaces, create a
+        # context assuming we're within the element's namespace.  @todo:
+        # Figure out what circumstance required that we support a default
+        # context.
         ns_ctx = pyxb.namespace.NamespaceContext.GetNodeContext(node, target_namespace=elt_ns, default_namespace=elt_ns)
         if type_name is not None:
-
             # xsi:type should only be provided when using an abstract class,
             # or a concrete class that happens to be the same, but in practice
             # web services tend to set it on nodes just to inform their
             # lax-processing clients how to interpret the value.
 
-            # Get the node context.  In case none has been assigned, create
-            # it, using the element namespace as the default environment
-            # (since we only need this in order to resolve the xsi:type qname,
-            # that should be okay, right?)  @todo: verify this
-            assert ns_ctx
             type_name = ns_ctx.interpretQName(type_name)
             try:
                 alternative_type_class = type_name.typeBinding()
@@ -1035,6 +1048,9 @@ class element (_Binding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_
                 raise pyxb.BadDocumentError('%s value %s is not subclass of element type %s' % (xsi_type, type_name, type_class._ExpandedName))
             type_class = alternative_type_class
             
+        # Pass xsi:nil on to the constructor regardless of whether the element
+        # is nillable.  Another sop to SOAP-encoding WSDL fans who don't
+        # bother to provide valid schema for their message content.
         xsi_nil = pyxb.namespace.ExpandedName(pyxb.namespace.XMLSchema_instance, 'nil')
         is_nil = xsi_nil.getAttribute(node)
         if is_nil is not None:
@@ -1124,6 +1140,18 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
 
     __XSINil = pyxb.namespace.XMLSchema_instance.createExpandedName('nil')
     def __init__ (self, *args, **kw):
+        """Create a new instance of this binding.
+
+        Arguments are used as transition values along the content model.
+        Keywords are passed to the constructor of any simple content, or used
+        to initialize attribute and element values whose L{id
+        <content.ElementUse.id>} matches the keyword.
+
+        @keyword _dom_node: The node to use as the source of binding content.
+        @type _dom_node: C{xml.dom.Element}
+
+        """
+
         dom_node = kw.pop('_dom_node', None)
         is_nil = False
         if dom_node is not None:

@@ -109,6 +109,7 @@ def PrepareIdentifier (s, in_use, aux_keywords=frozenset(), private=False, prote
         s = '_' + s
     return MakeUnique(s, in_use)
 
+# @todo: descend from pyxb.cscRoot, if we import pyxb
 class _DeconflictSymbols_mixin (object):
     """Mix-in used to deconflict public symbols in classes that may be
     inherited by generated binding classes.
