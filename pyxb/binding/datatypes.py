@@ -222,7 +222,80 @@ class _TimeZone (datetime.tzinfo):
         return datetime.timedelta()
 
 
-class dateTime (basis.simpleTypeDefinition, datetime.datetime):
+class _PyxbDateTime_base (basis.simpleTypeDefinition):
+
+    __PatternMap = { '%-' : '(?P<negYear>-?)'
+                   , '%Y' : '(?P<year>\d{4,})'
+                   , '%m' : '(?P<month>\d{2})'
+                   , '%d' : '(?P<day>\d{2})'
+                   , '%H' : '(?P<hour>\d{2})'
+                   , '%M' : '(?P<minute>\d{2})'
+                   , '%S' : '(?P<second>\d{2})(?P<fracsec>\.\d+)?'
+                   , '%Z' : '(?P<tzinfo>Z|[-+]\d\d:\d\d)' }
+    @classmethod
+    def _DateTimePattern (cls, pattern):
+        for (k, v) in cls.__PatternMap.items():
+            pattern = pattern.replace(k, v)
+        return pattern
+
+    __hasTimeZone = False
+    def _XhasTimeZone (self):
+        """True iff the time represented included time zone information.
+
+        Whether True or not, the moment denoted by an instance is
+        assumed to be in UTC.  That state is expressed in the lexical
+        space iff hasTimeZone is True.
+        """
+        return self.__hasTimeZone
+
+    def __Xnew__ (cls, *args, **kw):
+        args = cls._ConvertArguments(args, kw)
+        if 0 == len(args):
+            now = python_time.gmtime()
+            args = (datetime.datetime(*(now[:7])),)
+        value = args[0]
+        tzoffs = None
+        ctor_kw = { }
+        if isinstance(value, types.StringTypes):
+            match = cls.__Lexical_re.match(value)
+            if match is None:
+                raise BadTypeValueError('Value not in dateTime lexical space') 
+            match_map = match.groupdict()
+            for f in cls.__Fields:
+                ctor_kw[f] = int(match_map[f])
+            if match_map['negYear']:
+                ctor_kw['year'] = - year
+            if match_map['fracsec']:
+                ctor_kw['microsecond'] = int(1000000 * float('0%s' % (match_map['fracsec'],)))
+            if match_map['tzinfo']:
+                ctor_kw['tzinfo'] = _TimeZone(match_map['tzinfo'], flip=True)
+        elif isinstance(value, datetime.datetime):
+            for f in cls.__Fields_us:
+                ctor_kw[f] = getattr(value, f)
+            if value.tzinfo is not None:
+                ctor_kw['tzinfo'] = _TimeZone(value.tzinfo.utcoffset(), flip=True)
+        else:
+            raise BadTypeValueError('Unexpected type %s' % (type(value),))
+        tzoffs = ctor_kw.pop('tzinfo', None)
+        has_time_zone = False
+        if tzoffs is not None:
+            dt = datetime.datetime(tzinfo=tzoffs, **ctor_kw)
+            dt = tzoffs.fromutc(dt)
+            ctor_kw = { }
+            [ ctor_kw.setdefault(_field, getattr(dt, _field)) for _field in cls.__Fields_us ]
+            has_time_zone = True
+            
+        year = ctor_kw.pop('year')
+        month = ctor_kw.pop('month')
+        day = ctor_kw.pop('day')
+        kw.update(ctor_kw)
+        rv = super(dateTime, cls).__new__(cls, year, month, day, **kw)
+        rv.__hasTimeZone = has_time_zone
+        return rv
+
+    
+
+class dateTime (_PyxbDateTime_base, datetime.datetime):
     """U{http://www.w3.org/TR/xmlschema-2/index.html#dateTime}
 
     This class uses the Python C{datetime.datetime} class as its
@@ -237,7 +310,7 @@ class dateTime (basis.simpleTypeDefinition, datetime.datetime):
     _XsdBaseType = anySimpleType
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('dateType')
 
-    __Lexical_re = re.compile('^(?P<negYear>-?)(?P<year>\d{4,})-(?P<month>\d{2})-(?P<day>\d{2})T(?P<hour>\d{2}):(?P<minute>\d{2}):(?P<second>\d{2})(?P<fracsec>\.\d*)?(?P<tzinfo>Z|[-+]\d\d:\d\d)?$')
+    __Lexical_re = re.compile(_PyxbDateTime_base._DateTimePattern('^%-%Y-%m-%dT%H:%M:%S%Z?$'))
 
     # The fields in order of appearance in a time.struct_time instance
     __Fields = ( 'year', 'month', 'day', 'hour', 'minute', 'second' )
