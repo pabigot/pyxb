@@ -261,6 +261,16 @@ class _PyXBDateTime_base (basis.simpleTypeDefinition):
             kw.pop('tzinfo', None)
         return kw
 
+    @classmethod
+    def _SetKeysFromPython_csc (cls, python_value, kw, fields):
+        for f in fields:
+            kw[f] = getattr(value, f)
+        return getattr(super(_PyXBDateTime_base, cls), '_SetKeysFromPython_csc', lambda *a,**kw: None)(python_value, kw, fields)
+
+    @classmethod
+    def _SetKeysFromPython (cls, python_value, kw, fields):
+        return cls._SetKeysFromPython_csc(python_value, kw, fields)
+
 class _TimeZone_mixin (pyxb.cscRoot):
 
     def hasTimeZone (self):
@@ -287,6 +297,14 @@ class _TimeZone_mixin (pyxb.cscRoot):
             has_time_zone = True
         return has_time_zone
         
+    @classmethod
+    def _SetKeysFromPython_csc (cls, python_value, kw, fields):
+        if value.tzinfo is not None:
+            kw['tzinfo'] = _TimeZone(value.tzinfo.utcoffset(), flip=True)
+        else:
+            del kw['tzinfo']
+        return getattr(super(_TimeZone_mixin, cls), '_SetKeysFromPython_csc', lambda *a,**kw: None)(python_value, kw, fields)
+
 class dateTime (_PyXBDateTime_base, _TimeZone_mixin, datetime.datetime):
     """U{http://www.w3.org/TR/xmlschema-2/index.html#dateTime}
 
@@ -323,15 +341,11 @@ class dateTime (_PyXBDateTime_base, _TimeZone_mixin, datetime.datetime):
             now = python_time.gmtime()
             args = (datetime.datetime(*(now[:7])),)
         value = args[0]
-        tzoffs = None
         ctor_kw = { }
         if isinstance(value, types.StringTypes):
             ctor_kw.update(_PyXBDateTime_base._LexicalToKeywords(value, cls.__Lexical_re))
         elif isinstance(value, datetime.datetime):
-            for f in cls.__Fields_us:
-                ctor_kw[f] = getattr(value, f)
-            if value.tzinfo is not None:
-                ctor_kw['tzinfo'] = _TimeZone(value.tzinfo.utcoffset(), flip=True)
+            cls._SetKeysFromPython(value, ctor_kw, self.__Fields_us)
         else:
             raise BadTypeValueError('Unexpected type %s' % (type(value),))
 
