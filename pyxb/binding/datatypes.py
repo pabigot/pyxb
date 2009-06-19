@@ -330,14 +330,17 @@ class _TimeZone (datetime.tzinfo):
 
         if spec is None:
             return
-        if 'Z' == spec:
-            return
-        match = self.__Lexical_re.match(spec)
-        if match is None:
-            raise ValueError('Bad time zone: %s' % (spec,))
-        self.__utcOffset = int(match.group(2)) * 60 + int(match.group(3))
-        if '-' == match.group(1):
-            self.__utcOffset = - self.__utcOffset
+        if isinstance(spec, (str, unicode)):
+            if 'Z' == spec:
+                return
+            match = self.__Lexical_re.match(spec)
+            if match is None:
+                raise ValueError('Bad time zone: %s' % (spec,))
+            self.__utcOffset = int(match.group(2)) * 60 + int(match.group(3))
+            if '-' == match.group(1):
+                self.__utcOffset = - self.__utcOffset
+        elif isinstance(spec, int):
+            self.__utcOffset = spec
         if flip:
             self.__utcOffset = - self.__utcOffset
 
@@ -425,7 +428,7 @@ class _PyXBDateTimeZone_base (_PyXBDateTime_base):
     @classmethod
     def _AdjustForTimezone (cls, kw):
         tzoffs = kw.pop('tzinfo', None)
-        has_time_zone = False
+        has_time_zone = kw.pop('_force_timezone', False)
         if tzoffs is not None:
             use_kw = kw.copy()
             use_kw.setdefault('year', cls._DefaultYear)
@@ -467,7 +470,7 @@ class dateTime (_PyXBDateTimeZone_base, datetime.datetime):
     """
 
     _XsdBaseType = anySimpleType
-    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('dateType')
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('dateTime')
 
     __Lexical_re = re.compile(_PyXBDateTime_base._DateTimePattern('^%Y-%m-%dT%H:%M:%S%Z?$'))
     __Fields = ( 'year', 'month', 'day', 'hour', 'minute', 'second', 'microsecond', 'tzinfo' )
@@ -479,15 +482,23 @@ class dateTime (_PyXBDateTimeZone_base, datetime.datetime):
             value = args[0]
             if isinstance(value, types.StringTypes):
                 ctor_kw.update(cls._LexicalToKeywords(value, cls.__Lexical_re))
-            elif isinstance(value, datetime.datetime):
+            elif isinstance(value, (datetime.datetime, datetime.date, datetime.time)):
                 cls._SetKeysFromPython(value, ctor_kw, cls.__Fields)
+                if isinstance(value, _PyXBDateTimeZone_base):
+                    ctor_kw['_force_timezone'] = True
             elif isinstance(value, (types.IntType, types.LongType)):
                 raise TypeError('function takes at least 3 arguments (%d given)' % (len(args),))
             else:
-                raise BadTypeValueError('Unexpected type %s' % (type(value),))
+                raise BadTypeValueError('Unexpected type %s in %s' % (type(value), cls._ExpandedName))
         elif 3 <= len(args):
-            for fn in range(min(len(args), len(cls.__Fields))):
-                ctor_kw[cls.__Fields[fn]] = args[fn]
+            for fi in range(len(cls.__Fields)):
+                fn = cls.__Fields[fi]
+                if fi < len(args):
+                    ctor_kw[fn] = args[fi]
+                elif fn in kw:
+                    ctor_kw[fn] = kw[fn]
+                kw.pop(fn, None)
+                fi += 1
         else:
             raise TypeError('function takes at least 3 arguments (%d given)' % (len(args),))
 
@@ -508,6 +519,15 @@ class dateTime (_PyXBDateTimeZone_base, datetime.datetime):
         if value.hasTimeZone():
             iso += 'Z'
         return iso
+
+    __LocalZone = _TimeZone(-python_time.timezone/60)
+    @classmethod
+    def today (cls):
+        """Return today.
+
+        Just like datetime.datetime.today(), except this one incorporates the time zone."""
+        now = python_time.gmtime()
+        return cls(tzinfo=cls.__LocalZone, *(now[:7]))
 
 _PrimitiveDatatypes.append(dateTime)
 
