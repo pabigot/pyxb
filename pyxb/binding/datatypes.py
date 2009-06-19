@@ -240,8 +240,8 @@ class _PyXBDateTime_base (basis.simpleTypeDefinition):
     __Fields = ( 'year', 'month', 'day', 'hour', 'minute', 'second' )
 
     @classmethod
-    def _StringToKeywords (cls, text, regexp):
-        match = regexp.match(text)
+    def _LexicalToKeywords (cls, text, lexical_re):
+        match = lexical_re.match(text)
         if match is None:
             raise BadTypeValueError('Value not in %s lexical space' % (cls.__name__,)) 
         match_map = match.groupdict()
@@ -252,9 +252,28 @@ class _PyXBDateTime_base (basis.simpleTypeDefinition):
             kw['year'] = - kw['year']
         if match_map.get('fracsec', None) is not None:
             kw['microsecond'] = int(1000000 * float('0%s' % (match_map['fracsec'],)))
+        else:
+            # Discard any bogosity passed in by the caller
+            kw.pop('microsecond', None)
         if match_map.get('tzinfo', None) is not None:
             kw['tzinfo'] = _TimeZone(match_map['tzinfo'], flip=True)
+        else:
+            kw.pop('tzinfo', None)
         return kw
+
+class _TimeZone_mixin (pyxb.cscRoot):
+
+    def hasTimeZone (self):
+        """True iff the time represented included time zone information.
+
+        Whether True or not, the moment denoted by an instance is
+        assumed to be in UTC.  That state is expressed in the lexical
+        space iff hasTimeZone is True.
+        """
+        return self.__hasTimeZone
+    def _setHasTimeZone (self, has_time_zone):
+        self.__hasTimeZone = has_time_zone
+    __hasTimeZone = False
 
     @classmethod
     def _AdjustForTimezone (cls, kw):
@@ -268,17 +287,7 @@ class _PyXBDateTime_base (basis.simpleTypeDefinition):
             has_time_zone = True
         return has_time_zone
         
-    __hasTimeZone = False
-    def _XhasTimeZone (self):
-        """True iff the time represented included time zone information.
-
-        Whether True or not, the moment denoted by an instance is
-        assumed to be in UTC.  That state is expressed in the lexical
-        space iff hasTimeZone is True.
-        """
-        return self.__hasTimeZone
-
-class dateTime (_PyXBDateTime_base, datetime.datetime):
+class dateTime (_PyXBDateTime_base, _TimeZone_mixin, datetime.datetime):
     """U{http://www.w3.org/TR/xmlschema-2/index.html#dateTime}
 
     This class uses the Python C{datetime.datetime} class as its
@@ -308,16 +317,6 @@ class dateTime (_PyXBDateTime_base, datetime.datetime):
     # All non-tzinfo keywords for datetime constructor
     __Fields_us = __Fields + ('microsecond',)
     
-    __hasTimeZone = False
-    def hasTimeZone (self):
-        """True iff the time represented included time zone information.
-
-        Whether True or not, the moment denoted by an instance is
-        assumed to be in UTC.  That state is expressed in the lexical
-        space iff hasTimeZone is True.
-        """
-        return self.__hasTimeZone
-
     def __new__ (cls, *args, **kw):
         args = cls._ConvertArguments(args, kw)
         if 0 == len(args):
@@ -327,7 +326,7 @@ class dateTime (_PyXBDateTime_base, datetime.datetime):
         tzoffs = None
         ctor_kw = { }
         if isinstance(value, types.StringTypes):
-            ctor_kw.update(_PyXBDateTime_base._StringToKeywords(value, cls.__Lexical_re))
+            ctor_kw.update(_PyXBDateTime_base._LexicalToKeywords(value, cls.__Lexical_re))
         elif isinstance(value, datetime.datetime):
             for f in cls.__Fields_us:
                 ctor_kw[f] = getattr(value, f)
@@ -342,7 +341,7 @@ class dateTime (_PyXBDateTime_base, datetime.datetime):
         day = ctor_kw.pop('day')
         kw.update(ctor_kw)
         rv = super(dateTime, cls).__new__(cls, year, month, day, **kw)
-        rv.__hasTimeZone = has_time_zone
+        rv._setHasTimeZone(has_time_zone)
         return rv
 
     @classmethod
