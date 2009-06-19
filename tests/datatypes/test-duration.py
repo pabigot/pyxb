@@ -53,17 +53,16 @@ class Test_duration (unittest.TestCase):
         self.assertRaises(pyxb.BadTypeValueError, xsd.duration, 'P1Y2MT')
 
         v = xsd.duration('P3DT4H7M')
-        
 
     def testNegative (self):
         v = xsd.duration('-P3DT4H7M23.5S')
-        # Time is 19H52M37.5S into day -4
+        # Time is 19H52M36.5S into day -4
         base_date = xsd.dateTime('2000-01-10T00:00:00')
         delta_date = xsd.dateTime(base_date + v)
         self.assertEqual(-4, v.days)
-        self.assertEqual(37 + 60 * (52 + 60 * 19), v.seconds)
+        self.assertEqual(36 + 60 * (52 + 60 * 19), v.seconds)
         self.assertEqual(500000, v.microseconds)
-        self.assertEqual('2000-01-06T19:52:37.5', delta_date.xsdLiteral())
+        self.assertEqual('2000-01-06T19:52:36.5', delta_date.xsdLiteral())
 
     def testAddition (self):
         date = xsd.dateTime(2002, 10, 27, 12, 14, 32)
@@ -71,6 +70,15 @@ class Test_duration (unittest.TestCase):
         self.assertEqual('2002-10-30T17:17:32', xsd.dateTime(date + duration).xsdLiteral())
         self.assertEqual('2002-10-24T07:11:32', xsd.dateTime(date - duration).xsdLiteral())
         
+    def testCreation (self):
+        base_date = xsd.dateTime('2000-01-10T00:00:00')
+        delta_date = xsd.dateTime('2000-01-06T19:52:37.5')
+        v = xsd.duration(base_date - delta_date)
+        self.assertEqual(3, v.days)
+        self.assertEqual(14842, v.seconds)
+        self.assertEqual('P3DT4H7M22.5S', v.xsdLiteral())
+        
+
 
 if __name__ == '__main__':
     unittest.main()

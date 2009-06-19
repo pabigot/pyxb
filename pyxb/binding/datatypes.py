@@ -204,34 +204,80 @@ class duration (basis.simpleTypeDefinition, datetime.timedelta):
     def __new__ (cls, *args, **kw):
         args = cls._ConvertArguments(args, kw)
         text = args[0]
-        match = cls.__Lexical_re.match(text)
-        if match is None:
-            raise BadTypeValueError('Value "%s" not in %s lexical space' % (text, cls._ExpandedName)) 
-        match_map = match.groupdict()
-        if 'T' == match_map.get('Time', None):
-            # Can't have T without additional time information
-            raise BadTypeValueError('Value "%s" not in %s lexical space' % (text, cls._ExpandedName)) 
+        have_kw_update = False
+        if isinstance(text, (str, unicode)):
+            match = cls.__Lexical_re.match(text)
+            if match is None:
+                raise BadTypeValueError('Value "%s" not in %s lexical space' % (text, cls._ExpandedName)) 
+            match_map = match.groupdict()
+            if 'T' == match_map.get('Time', None):
+                # Can't have T without additional time information
+                raise BadTypeValueError('Value "%s" not in %s lexical space' % (text, cls._ExpandedName)) 
 
-        fractional_seconds = 0.0
-        if match_map.get('fracsec', None) is not None:
-            fractional_seconds = types.FloatType('0%s' % (match_map['fracsec'],))
-            kw['microseconds'] = types.IntType(1000000 * fractional_seconds)
-        else:
-            # Discard any bogosity passed in by the caller
-            kw.pop('microsecond', None)
-        data = { }
-        negative_duration = ('-' == match_map.get('neg', None))
-        for fn in cls.__XSDFields:
-            v = match_map.get(fn, 0)
-            if v is None:
-                v = 0
-            data[fn] = int(v)
-            if fn in cls.__PythonFields:
+            negative_duration = ('-' == match_map.get('neg', None))
+
+            fractional_seconds = 0.0
+            if match_map.get('fracsec', None) is not None:
+                fractional_seconds = types.FloatType('0%s' % (match_map['fracsec'],))
+                usec = types.IntType(1000000 * fractional_seconds)
                 if negative_duration:
-                    kw[fn] = - data[fn]
+                    kw['microseconds'] = - usec
                 else:
-                    kw[fn] = data[fn]
-        data['seconds'] += fractional_seconds
+                    kw['microseconds'] = usec
+            else:
+                # Discard any bogosity passed in by the caller
+                kw.pop('microsecond', None)
+
+            data = { }
+            for fn in cls.__XSDFields:
+                v = match_map.get(fn, 0)
+                if v is None:
+                    v = 0
+                data[fn] = int(v)
+                if fn in cls.__PythonFields:
+                    if negative_duration:
+                        kw[fn] = - data[fn]
+                    else:
+                        kw[fn] = data[fn]
+            data['seconds'] += fractional_seconds
+            have_kw_update = True
+        elif isinstance(text, cls):
+            data = text.durationData()
+            negative_duration = text.negativeDuration()
+        elif isinstance(text, datetime.timedelta):
+            data = { 'days' : text.days,
+                     'seconds' : text.seconds + (text.microseconds / 1000000.0) }
+            negative_duration = (0 > data['days'])
+            if negative_duration:
+                data['days'] = 1 - data['days']
+                data['seconds'] = 24 * 60 * 60.0 - data['seconds']
+            data['minutes'] = 0
+            data['hours'] = 0
+        if not have_kw_update:
+            rem_time = data['seconds']
+            use_seconds = rem_time
+            if (0 != (rem_time % 1)):
+                data['microseconds'] = types.IntType(1000000 * (rem_time % 1))
+                rem_time = rem_time // 1
+            if 60 <= rem_time:
+                data['seconds'] = rem_time % 60
+                rem_time = data['minutes'] + (rem_time // 60)
+            if 60 <= rem_time:
+                data['minutes'] = rem_time % 60
+                rem_time = data['hours'] + (rem_time // 60)
+            data['hours'] = rem_time % 24
+            data['days'] += (rem_time // 24)
+            for fn in cls.__PythonFields:
+                if fn in data:
+                    if negative_duration:
+                        kw[fn] = - data[fn]
+                    else:
+                        kw[fn] = data[fn]
+                else:
+                    kw.pop(fn, None)
+            kw['microseconds'] = data.pop('microseconds', 0)
+            data['seconds'] += kw['microseconds'] / 1000000.0
+            
         rv = super(duration, cls).__new__(cls, **kw)
         rv.__durationData = data
         rv.__negativeDuration = negative_duration
@@ -248,10 +294,13 @@ class duration (basis.simpleTypeDefinition, datetime.timedelta):
             if 0 != v:
                 elts.append('%d%s' % (v, k[0].upper()))
         time_elts = []
-        for k in ( 'hours', 'minutes', 'seconds' ):
+        for k in ( 'hours', 'minutes' ):
             v = value.__durationData.get(k, 0)
             if 0 != v:
                 time_elts.append('%d%s' % (v, k[0].upper()))
+        v = value.__durationData.get('seconds', 0)
+        if 0 != v:
+            time_elts.append('%gS' % (v,))
         if 0 < len(time_elts):
             elts.append('T')
             elts.extend(time_elts)
