@@ -320,7 +320,7 @@ class BindingDOMSupport (object):
         if isinstance(expanded_name, pyxb.namespace.ExpandedName):
             name = expanded_name.localName()
             ns_uri = expanded_name.namespaceURI()
-        elif isintance(expanded_name, (str, unicode)):
+        elif isinstance(expanded_name, (str, unicode)):
             name = expanded_name
         else:
             raise pyxb.LogicError('Invalid type %s for expanded name' % (type(expanded_name),))
