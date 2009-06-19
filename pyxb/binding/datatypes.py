@@ -329,11 +329,7 @@ class dateTime (_PyXBDateTime_base, _TimeZone_mixin, datetime.datetime):
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('dateType')
 
     __Lexical_re = re.compile(_PyXBDateTime_base._DateTimePattern('^%Y-%m-%dT%H:%M:%S%Z?$'))
-
-    # The fields in order of appearance in a time.struct_time instance
-    __Fields = ( 'year', 'month', 'day', 'hour', 'minute', 'second' )
-    # All non-tzinfo keywords for datetime constructor
-    __Fields_us = __Fields + ('microsecond',)
+    __Fields = ( 'year', 'month', 'day', 'hour', 'minute', 'second', 'microsecond' )
     
     def __new__ (cls, *args, **kw):
         args = cls._ConvertArguments(args, kw)
@@ -350,10 +346,10 @@ class dateTime (_PyXBDateTime_base, _TimeZone_mixin, datetime.datetime):
             raise BadTypeValueError('Unexpected type %s' % (type(value),))
 
         has_time_zone = cls._AdjustForTimezone(ctor_kw)
-        year = ctor_kw.pop('year')
-        month = ctor_kw.pop('month')
-        day = ctor_kw.pop('day')
         kw.update(ctor_kw)
+        year = kw.pop('year')
+        month = kw.pop('month')
+        day = kw.pop('day')
         rv = super(dateTime, cls).__new__(cls, year, month, day, **kw)
         rv._setHasTimeZone(has_time_zone)
         return rv
