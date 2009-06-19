@@ -239,6 +239,10 @@ class _PyXBDateTime_base (basis.simpleTypeDefinition):
 
     __Fields = ( 'year', 'month', 'day', 'hour', 'minute', 'second' )
 
+    _DefaultYear = 1983
+    _DefaultMonth = 6
+    _DefaultDay = 18
+
     @classmethod
     def _LexicalToKeywords (cls, text, lexical_re):
         match = lexical_re.match(text)
@@ -272,8 +276,7 @@ class _PyXBDateTime_base (basis.simpleTypeDefinition):
     def _SetKeysFromPython (cls, python_value, kw, fields):
         return cls._SetKeysFromPython_csc(python_value, kw, fields)
 
-class _TimeZone_mixin (pyxb.cscRoot):
-
+class _PyXBDateTimeZone_base (_PyXBDateTime_base):
     def hasTimeZone (self):
         """True iff the time represented included time zone information.
 
@@ -292,9 +295,9 @@ class _TimeZone_mixin (pyxb.cscRoot):
         has_time_zone = False
         if tzoffs is not None:
             use_kw = kw.copy()
-            use_kw.setdefault('year', 1983)
-            use_kw.setdefault('month', 6)
-            use_kw.setdefault('day', 18)
+            use_kw.setdefault('year', cls._DefaultYear)
+            use_kw.setdefault('month', cls._DefaultMonth)
+            use_kw.setdefault('day', cls._DefaultDay)
             dt = datetime.datetime(tzinfo=tzoffs, **use_kw)
             dt = tzoffs.fromutc(dt)
             for k in kw.iterkeys():
@@ -310,7 +313,7 @@ class _TimeZone_mixin (pyxb.cscRoot):
             kw.pop('tzinfo', None)
         return getattr(super(_TimeZone_mixin, cls), '_SetKeysFromPython_csc', lambda *a,**kw: None)(python_value, kw, fields)
 
-class dateTime (_PyXBDateTime_base, _TimeZone_mixin, datetime.datetime):
+class dateTime (_PyXBDateTimeZone_base, datetime.datetime):
     """U{http://www.w3.org/TR/xmlschema-2/index.html#dateTime}
 
     This class uses the Python C{datetime.datetime} class as its
@@ -370,7 +373,7 @@ class dateTime (_PyXBDateTime_base, _TimeZone_mixin, datetime.datetime):
 
 _PrimitiveDatatypes.append(dateTime)
 
-class time (_PyXBDateTime_base, _TimeZone_mixin, datetime.time):
+class time (_PyXBDateTimeZone_base, datetime.time):
     """U{http://www.w3.org/TR/xmlschema-2/index.html#time}
 
     This class uses the Python C{datetime.time} class as its
@@ -439,7 +442,6 @@ class date (_PyXBDateTime_base, datetime.date):
             args = (datetime.today(),)
         value = args[0]
         ctor_kw = { }
-        print cls._ExpandedName
         if isinstance(value, types.StringTypes):
             ctor_kw.update(cls._LexicalToKeywords(value, cls.__Lexical_re))
         elif isinstance(value, datetime.date):
