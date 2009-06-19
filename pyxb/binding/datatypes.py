@@ -255,6 +255,18 @@ class _PyXBDateTime_base (basis.simpleTypeDefinition):
         if match_map.get('tzinfo', None) is not None:
             kw['tzinfo'] = _TimeZone(match_map['tzinfo'], flip=True)
         return kw
+
+    @classmethod
+    def _AdjustForTimezone (cls, kw):
+        tzoffs = kw.pop('tzinfo', None)
+        has_time_zone = False
+        if tzoffs is not None:
+            dt = datetime.datetime(tzinfo=tzoffs, **kw)
+            dt = tzoffs.fromutc(dt)
+            for k in kw.iterkeys():
+                kw[k] = getattr(dt, k)
+            has_time_zone = True
+        return has_time_zone
         
     __hasTimeZone = False
     def _XhasTimeZone (self):
@@ -265,43 +277,6 @@ class _PyXBDateTime_base (basis.simpleTypeDefinition):
         space iff hasTimeZone is True.
         """
         return self.__hasTimeZone
-
-    def __Xnew__ (cls, *args, **kw):
-        args = cls._ConvertArguments(args, kw)
-        if 0 == len(args):
-            now = python_time.gmtime()
-            args = (datetime.datetime(*(now[:7])),)
-        value = args[0]
-        tzoffs = None
-        ctor_kw = { }
-        if isinstance(value, types.StringTypes):
-            ctor_kw.update(_PyXBDateTime_base._StringToKeywords(value, cls.__Lexical_re))
-        elif isinstance(value, datetime.datetime):
-            for f in cls.__Fields_us:
-                ctor_kw[f] = getattr(value, f)
-            if value.tzinfo is not None:
-                ctor_kw['tzinfo'] = _TimeZone(value.tzinfo.utcoffset(), flip=True)
-        else:
-            raise BadTypeValueError('Unexpected type %s' % (type(value),))
-
-        tzinfo = ctor_kw.pop('tzinfo', None)
-        has_time_zone = False
-        if tzinfo is not None:
-            assert isinstance(tzinfo, datetime.tzinfo)
-            hour = ctor_kw.pop('hour')
-            minute = ctor_kw.pop('minute', 0)
-            adjusted_time = tzinfo.fromutc(datetime.time(hour, minute, tzinfo=tzinfo, **ctor_kw))
-            ctor_kw['hour'] = adjusted_time.hour
-            ctor_kw['minute'] = adjusted_time.minute
-            has_time_zone = True
-
-        year = ctor_kw.pop('year')
-        month = ctor_kw.pop('month')
-        day = ctor_kw.pop('day')
-        kw.update(ctor_kw)
-        rv = super(dateTime, cls).__new__(cls, year, month, day, **kw)
-        rv.__hasTimeZone = has_time_zone
-        return rv
 
 class dateTime (_PyXBDateTime_base, datetime.datetime):
     """U{http://www.w3.org/TR/xmlschema-2/index.html#dateTime}
@@ -360,15 +335,8 @@ class dateTime (_PyXBDateTime_base, datetime.datetime):
                 ctor_kw['tzinfo'] = _TimeZone(value.tzinfo.utcoffset(), flip=True)
         else:
             raise BadTypeValueError('Unexpected type %s' % (type(value),))
-        tzoffs = ctor_kw.pop('tzinfo', None)
-        has_time_zone = False
-        if tzoffs is not None:
-            dt = datetime.datetime(tzinfo=tzoffs, **ctor_kw)
-            dt = tzoffs.fromutc(dt)
-            ctor_kw = { }
-            [ ctor_kw.setdefault(_field, getattr(dt, _field)) for _field in cls.__Fields_us ]
-            has_time_zone = True
-            
+
+        has_time_zone = cls._AdjustForTimezone(ctor_kw)
         year = ctor_kw.pop('year')
         month = ctor_kw.pop('month')
         day = ctor_kw.pop('day')
