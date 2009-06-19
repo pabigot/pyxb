@@ -147,7 +147,7 @@ class _TypeBinding_mixin (pyxb.cscRoot):
         with a type that is either one of those."""
         return False
 
-    def toDOM (self, bds=None, parent=None):
+    def toDOM (self, bds=None, parent=None, element_name=None):
         """Convert this instance to a DOM node.
 
         The name of the top-level element is either the name of the L{element}
@@ -164,10 +164,11 @@ class _TypeBinding_mixin (pyxb.cscRoot):
 
         if bds is None:
             bds = domutils.BindingDOMSupport()
-        if self._element() is not None:
-            element = bds.createChildElement(self._element().name(), parent)
-        else:
-            element = bds.createChildElement(self._ExpandedName, parent)
+        if (element_name is None) and (self._element() is not None):
+            element_name = self._element().name()
+        if element_name is None:
+            element_name = self._ExpandedName
+        element = bds.createChildElement(element_name, parent)
         self._toDOM_csc(bds, element)
         bds.finalize()
         return bds.document()
