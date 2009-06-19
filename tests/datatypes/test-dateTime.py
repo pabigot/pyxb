@@ -1,4 +1,4 @@
-from pyxb.exceptions_ import *
+import pyxb
 import unittest
 import pyxb.binding.datatypes as xsd
 import datetime
@@ -18,12 +18,12 @@ class Test_dateTime (unittest.TestCase):
         self.assertEqual(with_tzinfo, dt.hasTimeZone())
 
     def testBad (self):
-        self.assertRaises(BadTypeValueError, xsd.dateTime, '  2002-10-27T12:14:32')
-        self.assertRaises(BadTypeValueError, xsd.dateTime, '2002-10-27T12:14:32  ')
-        self.assertRaises(BadTypeValueError, xsd.dateTime, '2002-10-27 12:14:32  ')
-        self.assertRaises(BadTypeValueError, xsd.dateTime, '2002-10-27 12:14:32.Z')
-        self.assertRaises(BadTypeValueError, xsd.dateTime, '2002-10-27 12:14:32.123405:00')
-        self.assertRaises(BadTypeValueError, xsd.dateTime, '2002-10-27 12:14:32.1234+05')
+        self.assertRaises(pyxb.BadTypeValueError, xsd.dateTime, '  2002-10-27T12:14:32')
+        self.assertRaises(pyxb.BadTypeValueError, xsd.dateTime, '2002-10-27T12:14:32  ')
+        self.assertRaises(pyxb.BadTypeValueError, xsd.dateTime, '2002-10-27 12:14:32  ')
+        self.assertRaises(pyxb.BadTypeValueError, xsd.dateTime, '2002-10-27 12:14:32.Z')
+        self.assertRaises(pyxb.BadTypeValueError, xsd.dateTime, '2002-10-27 12:14:32.123405:00')
+        self.assertRaises(pyxb.BadTypeValueError, xsd.dateTime, '2002-10-27 12:14:32.1234+05')
         
     def testFromText (self):
         self.verifyTime(xsd.dateTime('2002-10-27T12:14:32'), with_usec=False, with_tzinfo=False)
@@ -32,6 +32,11 @@ class Test_dateTime (unittest.TestCase):
         self.verifyTime(xsd.dateTime('2002-10-27T12:14:32.1234Z'))
         self.verifyTime(xsd.dateTime('2002-10-27T12:14:32.1234+05:00'), with_adj=(-5,0))
         self.verifyTime(xsd.dateTime('2002-10-27T12:14:32.1234Z'))
+
+    def testYear (self):
+        # This test can't succeed because Python doesn't support negative years.
+        self.assertRaises(pyxb.BadTypeValueError, xsd.dateTime, '-0024-01-01T00:00:00')
+        print xsd.dateTime().xsdLiteral()
 
     def testXsdLiteral (self):
         dt = xsd.dateTime('2002-10-27T12:14:32Z')
