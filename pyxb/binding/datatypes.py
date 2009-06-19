@@ -251,7 +251,7 @@ class _PyXBDateTime_base (basis.simpleTypeDefinition):
         if '-' == match_map.get('negYear', None):
             kw['year'] = - kw['year']
         if match_map.get('fracsec', None) is not None:
-            kw['microsecond'] = int(1000000 * float('0%s' % (match_map['fracsec'],)))
+            kw['microsecond'] = types.IntType(1000000 * types.FloatType('0%s' % (match_map['fracsec'],)))
         else:
             # Discard any bogosity passed in by the caller
             kw.pop('microsecond', None)
