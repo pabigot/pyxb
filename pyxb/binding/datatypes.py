@@ -222,10 +222,9 @@ class _TimeZone (datetime.tzinfo):
         return datetime.timedelta()
 
 
-class _PyxbDateTime_base (basis.simpleTypeDefinition):
+class _PyXBDateTime_base (basis.simpleTypeDefinition):
 
-    __PatternMap = { '%-' : '(?P<negYear>-?)'
-                   , '%Y' : '(?P<year>\d{4,})'
+    __PatternMap = { '%Y' : '(?P<negYear>-?)(?P<year>\d{4,})'
                    , '%m' : '(?P<month>\d{2})'
                    , '%d' : '(?P<day>\d{2})'
                    , '%H' : '(?P<hour>\d{2})'
@@ -238,6 +237,25 @@ class _PyxbDateTime_base (basis.simpleTypeDefinition):
             pattern = pattern.replace(k, v)
         return pattern
 
+    __Fields = ( 'year', 'month', 'day', 'hour', 'minute', 'second' )
+
+    @classmethod
+    def _StringToKeywords (cls, text, regexp):
+        match = regexp.match(text)
+        if match is None:
+            raise BadTypeValueError('Value not in %s lexical space' % (cls.__name__,)) 
+        match_map = match.groupdict()
+        kw = { }
+        for f in cls.__Fields:
+            kw[f] = int(match_map[f])
+        if '-' == match_map.get('negYear', None):
+            kw['year'] = - kw['year']
+        if match_map.get('fracsec', None) is not None:
+            kw['microsecond'] = int(1000000 * float('0%s' % (match_map['fracsec'],)))
+        if match_map.get('tzinfo', None) is not None:
+            kw['tzinfo'] = _TimeZone(match_map['tzinfo'], flip=True)
+        return kw
+        
     __hasTimeZone = False
     def _XhasTimeZone (self):
         """True iff the time represented included time zone information.
@@ -257,18 +275,7 @@ class _PyxbDateTime_base (basis.simpleTypeDefinition):
         tzoffs = None
         ctor_kw = { }
         if isinstance(value, types.StringTypes):
-            match = cls.__Lexical_re.match(value)
-            if match is None:
-                raise BadTypeValueError('Value not in dateTime lexical space') 
-            match_map = match.groupdict()
-            for f in cls.__Fields:
-                ctor_kw[f] = int(match_map[f])
-            if match_map['negYear']:
-                ctor_kw['year'] = - year
-            if match_map['fracsec']:
-                ctor_kw['microsecond'] = int(1000000 * float('0%s' % (match_map['fracsec'],)))
-            if match_map['tzinfo']:
-                ctor_kw['tzinfo'] = _TimeZone(match_map['tzinfo'], flip=True)
+            ctor_kw.update(_PyXBDateTime_base._StringToKeywords(value, cls.__Lexical_re))
         elif isinstance(value, datetime.datetime):
             for f in cls.__Fields_us:
                 ctor_kw[f] = getattr(value, f)
@@ -293,9 +300,7 @@ class _PyxbDateTime_base (basis.simpleTypeDefinition):
         rv.__hasTimeZone = has_time_zone
         return rv
 
-    
-
-class dateTime (_PyxbDateTime_base, datetime.datetime):
+class dateTime (_PyXBDateTime_base, datetime.datetime):
     """U{http://www.w3.org/TR/xmlschema-2/index.html#dateTime}
 
     This class uses the Python C{datetime.datetime} class as its
@@ -305,12 +310,20 @@ class dateTime (_PyxbDateTime_base, datetime.datetime):
     zone's offset from UTC.  Presence of time zone information in the
     lexical space is preserved through the value of the L{hasTimeZone()}
     field.
+
+    @warning: The value space of Python's C{datetime.datetime} class
+    is more restricted than that of C{xs:datetime}.  As a specific
+    example, Python does not support negative years or years with more
+    than four digits.  For now, the convenience of having an object
+    that is compatible with Python is more important than supporting
+    the full value space.  In the future, the choice may be left up to
+    the developer.
     """
 
     _XsdBaseType = anySimpleType
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('dateType')
 
-    __Lexical_re = re.compile(_PyxbDateTime_base._DateTimePattern('^%-%Y-%m-%dT%H:%M:%S%Z?$'))
+    __Lexical_re = re.compile(_PyXBDateTime_base._DateTimePattern('^%Y-%m-%dT%H:%M:%S%Z?$'))
 
     # The fields in order of appearance in a time.struct_time instance
     __Fields = ( 'year', 'month', 'day', 'hour', 'minute', 'second' )
@@ -336,18 +349,7 @@ class dateTime (_PyxbDateTime_base, datetime.datetime):
         tzoffs = None
         ctor_kw = { }
         if isinstance(value, types.StringTypes):
-            match = cls.__Lexical_re.match(value)
-            if match is None:
-                raise BadTypeValueError('Value not in dateTime lexical space') 
-            match_map = match.groupdict()
-            for f in cls.__Fields:
-                ctor_kw[f] = int(match_map[f])
-            if match_map['negYear']:
-                ctor_kw['year'] = - year
-            if match_map['fracsec']:
-                ctor_kw['microsecond'] = int(1000000 * float('0%s' % (match_map['fracsec'],)))
-            if match_map['tzinfo']:
-                ctor_kw['tzinfo'] = _TimeZone(match_map['tzinfo'], flip=True)
+            ctor_kw.update(_PyXBDateTime_base._StringToKeywords(value, cls.__Lexical_re))
         elif isinstance(value, datetime.datetime):
             for f in cls.__Fields_us:
                 ctor_kw[f] = getattr(value, f)
