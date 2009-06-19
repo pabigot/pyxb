@@ -22,6 +22,12 @@ class Test_date (unittest.TestCase):
         # This test can't succeed because Python doesn't support negative years.
         self.assertRaises(pyxb.BadTypeValueError, xsd.date, '-0024-01-01')
 
+    def testArguments (self):
+        self.assertRaises(TypeError, xsd.date)
+        self.assertRaises(TypeError, xsd.date, 2002)
+        self.assertRaises(TypeError, xsd.date, 2002, 10)
+        self.verifyTime(xsd.date(2002, 10, 27))
+
     def testXsdLiteral (self):
         dt = xsd.date('2002-10-27')
         self.assertEqual('2002-10-27', dt.xsdLiteral())

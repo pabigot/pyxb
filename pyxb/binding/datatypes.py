@@ -337,21 +337,26 @@ class dateTime (_PyXBDateTimeZone_base, datetime.datetime):
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('dateType')
 
     __Lexical_re = re.compile(_PyXBDateTime_base._DateTimePattern('^%Y-%m-%dT%H:%M:%S%Z?$'))
-    __Fields = ( 'year', 'month', 'day', 'hour', 'minute', 'second', 'microsecond' )
+    __Fields = ( 'year', 'month', 'day', 'hour', 'minute', 'second', 'microsecond', 'tzinfo' )
     
     def __new__ (cls, *args, **kw):
         args = cls._ConvertArguments(args, kw)
-        if 0 == len(args):
-            now = python_time.gmtime()
-            args = (datetime.datetime(now.tm_year, now.tm_mon, now.tm_mday, now.tm_hour, now.tm_min, now.tm_sec),)
-        value = args[0]
         ctor_kw = { }
-        if isinstance(value, types.StringTypes):
-            ctor_kw.update(cls._LexicalToKeywords(value, cls.__Lexical_re))
-        elif isinstance(value, datetime.datetime):
-            cls._SetKeysFromPython(value, ctor_kw, cls.__Fields)
+        if 1 == len(args):
+            value = args[0]
+            if isinstance(value, types.StringTypes):
+                ctor_kw.update(cls._LexicalToKeywords(value, cls.__Lexical_re))
+            elif isinstance(value, datetime.datetime):
+                cls._SetKeysFromPython(value, ctor_kw, cls.__Fields)
+            elif isinstance(value, (types.IntType, types.LongType)):
+                raise TypeError('function takes at least 3 arguments (%d given)' % (len(args),))
+            else:
+                raise BadTypeValueError('Unexpected type %s' % (type(value),))
+        elif 3 <= len(args):
+            for fn in range(len(cls.__Fields)):
+                ctor_kw[cls.__Fields[fn]] = args[fn]
         else:
-            raise BadTypeValueError('Unexpected type %s' % (type(value),))
+            raise TypeError('function takes at least 3 arguments (%d given)' % (len(args),))
 
         has_time_zone = cls._AdjustForTimezone(ctor_kw)
         kw.update(ctor_kw)
@@ -393,22 +398,22 @@ class time (_PyXBDateTimeZone_base, datetime.time):
     
     def __new__ (cls, *args, **kw):
         args = cls._ConvertArguments(args, kw)
-        if 0 == len(args):
-            now = python_time.gmtime()
-            args = (datetime.time(now.tm_hour, now.tm_min, now.tm_sec),)
-        value = args[0]
         ctor_kw = { }
-        if isinstance(value, types.StringTypes):
-            ctor_kw.update(cls._LexicalToKeywords(value, cls.__Lexical_re))
-        elif isinstance(value, datetime.time):
-            cls._SetKeysFromPython(value, ctor_kw, cls.__Fields)
-        else:
-            raise BadTypeValueError('Unexpected type %s' % (type(value),))
+        if 1 <= len(args):
+            value = args[0]
+            if isinstance(value, types.StringTypes):
+                ctor_kw.update(cls._LexicalToKeywords(value, cls.__Lexical_re))
+            elif isinstance(value, datetime.time):
+                cls._SetKeysFromPython(value, ctor_kw, cls.__Fields)
+            elif isinstance(value, (types.IntType, types.LongType)):
+                for fn in range(min(len(args), len(cls.__Fields))):
+                    ctor_kw[cls.__Fields[fn]] = args[fn]
+            else:
+                raise BadTypeValueError('Unexpected type %s' % (type(value),))
 
         has_time_zone = cls._AdjustForTimezone(ctor_kw)
         kw.update(ctor_kw)
-        hour = kw.pop('hour')
-        rv = super(time, cls).__new__(cls, hour, **kw)
+        rv = super(time, cls).__new__(cls, **kw)
         rv._setHasTimeZone(has_time_zone)
         return rv
 
@@ -438,16 +443,21 @@ class date (_PyXBDateTime_base, datetime.date):
     
     def __new__ (cls, *args, **kw):
         args = cls._ConvertArguments(args, kw)
-        if 0 == len(args):
-            args = (datetime.today(),)
-        value = args[0]
         ctor_kw = { }
-        if isinstance(value, types.StringTypes):
-            ctor_kw.update(cls._LexicalToKeywords(value, cls.__Lexical_re))
-        elif isinstance(value, datetime.date):
-            cls._SetKeysFromPython(value, ctor_kw, cls.__Fields)
+        if 1 == len(args):
+            value = args[0]
+            if isinstance(value, types.StringTypes):
+                ctor_kw.update(cls._LexicalToKeywords(value, cls.__Lexical_re))
+            elif isinstance(value, datetime.date):
+                cls._SetKeysFromPython(value, ctor_kw, cls.__Fields)
+            elif isinstance(value, (types.IntType, types.LongType)):
+                raise TypeError('function takes at least 3 arguments (%d given)' % (len(args),))
+            else:
+                raise BadTypeValueError('Unexpected type %s' % (type(value),))
+        elif 3 == len(args):
+            (ctor_kw['year'], ctor_kw['month'], ctor_kw['day']) = args
         else:
-            raise BadTypeValueError('Unexpected type %s' % (type(value),))
+            raise TypeError('function takes exactly 3 arguments (%d given)' % (len(args),))
 
         kw.update(ctor_kw)
         year = kw.pop('year')
