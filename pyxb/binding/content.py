@@ -596,7 +596,7 @@ class ContentModelTransition (pyxb.cscRoot):
             return element_binding.createFromDOM(value)
         try:
             return self.term().compatibleValue(value)
-        except pyxb.BadValueTypeError, e:
+        except pyxb.BadTypeValueError, e:
             pass
         return None
 
