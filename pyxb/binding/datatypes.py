@@ -243,7 +243,7 @@ class _PyXBDateTime_base (basis.simpleTypeDefinition):
     def _LexicalToKeywords (cls, text, lexical_re):
         match = lexical_re.match(text)
         if match is None:
-            raise BadTypeValueError('Value not in %s lexical space' % (cls.__name__,)) 
+            raise BadTypeValueError('Value "%s" not in %s lexical space' % (text, cls._ExpandedName)) 
         match_map = match.groupdict()
         kw = { }
         for (k, v) in match_map.iteritems():
@@ -344,7 +344,7 @@ class dateTime (_PyXBDateTime_base, _TimeZone_mixin, datetime.datetime):
         value = args[0]
         ctor_kw = { }
         if isinstance(value, types.StringTypes):
-            ctor_kw.update(_PyXBDateTime_base._LexicalToKeywords(value, cls.__Lexical_re))
+            ctor_kw.update(cls._LexicalToKeywords(value, cls.__Lexical_re))
         elif isinstance(value, datetime.datetime):
             cls._SetKeysFromPython(value, ctor_kw, cls.__Fields)
         else:
@@ -396,7 +396,7 @@ class time (_PyXBDateTime_base, _TimeZone_mixin, datetime.time):
         value = args[0]
         ctor_kw = { }
         if isinstance(value, types.StringTypes):
-            ctor_kw.update(_PyXBDateTime_base._LexicalToKeywords(value, cls.__Lexical_re))
+            ctor_kw.update(cls._LexicalToKeywords(value, cls.__Lexical_re))
         elif isinstance(value, datetime.time):
             cls._SetKeysFromPython(value, ctor_kw, cls.__Fields)
         else:
@@ -420,10 +420,43 @@ class time (_PyXBDateTime_base, _TimeZone_mixin, datetime.time):
 
 _PrimitiveDatatypes.append(time)
 
-class date (basis.simpleTypeDefinition):
-    """@attention: Not implemented"""
+class date (_PyXBDateTime_base, datetime.date):
+    """U{http://www.w3.org/TR/xmlschema-2/index.html#date}
+
+    This class uses the Python C{datetime.date} class as its
+    underlying representation.
+    """
+    
     _XsdBaseType = anySimpleType
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('date')
+
+    __Lexical_re = re.compile(_PyXBDateTime_base._DateTimePattern('^%Y-%m-%d$'))
+    __Fields = ( 'year', 'month', 'day' )
+    
+    def __new__ (cls, *args, **kw):
+        args = cls._ConvertArguments(args, kw)
+        if 0 == len(args):
+            args = (datetime.today(),)
+        value = args[0]
+        ctor_kw = { }
+        print cls._ExpandedName
+        if isinstance(value, types.StringTypes):
+            ctor_kw.update(cls._LexicalToKeywords(value, cls.__Lexical_re))
+        elif isinstance(value, datetime.date):
+            cls._SetKeysFromPython(value, ctor_kw, cls.__Fields)
+        else:
+            raise BadTypeValueError('Unexpected type %s' % (type(value),))
+
+        kw.update(ctor_kw)
+        year = kw.pop('year')
+        month = kw.pop('month')
+        day = kw.pop('day')
+        return super(date, cls).__new__(cls, year, month, day, **kw)
+
+    @classmethod
+    def XsdLiteral (cls, value):
+        return value.isoformat()
+
 _PrimitiveDatatypes.append(date)
 
 class gYearMonth (basis.simpleTypeDefinition):
