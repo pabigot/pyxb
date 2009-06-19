@@ -428,6 +428,9 @@ class time (_PyXBDateTimeZone_base, datetime.time):
 
 _PrimitiveDatatypes.append(time)
 
+#class _PyXBDateOnly_base (_PyXBDateTime_base):
+    
+
 class date (_PyXBDateTime_base, datetime.date):
     """U{http://www.w3.org/TR/xmlschema-2/index.html#date}
 
@@ -438,8 +441,8 @@ class date (_PyXBDateTime_base, datetime.date):
     _XsdBaseType = anySimpleType
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('date')
 
-    __Lexical_re = re.compile(_PyXBDateTime_base._DateTimePattern('^%Y-%m-%d$'))
-    __Fields = ( 'year', 'month', 'day' )
+    _Lexical_re = re.compile(_PyXBDateTime_base._DateTimePattern('^%Y-%m-%d$'))
+    _Fields = ( 'year', 'month', 'day' )
     
     def __new__ (cls, *args, **kw):
         args = cls._ConvertArguments(args, kw)
@@ -447,23 +450,24 @@ class date (_PyXBDateTime_base, datetime.date):
         if 1 == len(args):
             value = args[0]
             if isinstance(value, types.StringTypes):
-                ctor_kw.update(cls._LexicalToKeywords(value, cls.__Lexical_re))
+                ctor_kw.update(cls._LexicalToKeywords(value, cls._Lexical_re))
             elif isinstance(value, datetime.date):
-                cls._SetKeysFromPython(value, ctor_kw, cls.__Fields)
+                cls._SetKeysFromPython(value, ctor_kw, cls._Fields)
             elif isinstance(value, (types.IntType, types.LongType)):
                 raise TypeError('function takes at least 3 arguments (%d given)' % (len(args),))
             else:
                 raise BadTypeValueError('Unexpected type %s' % (type(value),))
-        elif 3 == len(args):
-            (ctor_kw['year'], ctor_kw['month'], ctor_kw['day']) = args
+        elif len(cls._Fields) == len(args):
+            for fi in range(len(cls._Fields)):
+                ctor_kw[cls._Fields[fi]] = args[fi]
         else:
-            raise TypeError('function takes exactly 3 arguments (%d given)' % (len(args),))
+            raise TypeError('function takes exactly %d arguments (%d given)' % (len(cls._Fields), len(args)))
 
         kw.update(ctor_kw)
-        year = kw.pop('year')
-        month = kw.pop('month')
-        day = kw.pop('day')
-        return super(date, cls).__new__(cls, year, month, day, **kw)
+        argv = []
+        for f in cls._Fields:
+            argv.append(kw.pop(f))
+        return super(date, cls).__new__(cls, *argv, **kw)
 
     @classmethod
     def XsdLiteral (cls, value):
@@ -471,8 +475,7 @@ class date (_PyXBDateTime_base, datetime.date):
 
 _PrimitiveDatatypes.append(date)
 
-class gYearMonth (basis.simpleTypeDefinition):
-    """@attention: Not implemented"""
+class gYearMonth (date):
     _XsdBaseType = anySimpleType
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('gYearMonth')
 _PrimitiveDatatypes.append(gYearMonth)
