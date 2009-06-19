@@ -36,7 +36,6 @@ class Test_dateTime (unittest.TestCase):
     def testYear (self):
         # This test can't succeed because Python doesn't support negative years.
         self.assertRaises(pyxb.BadTypeValueError, xsd.dateTime, '-0024-01-01T00:00:00')
-        print xsd.dateTime().xsdLiteral()
 
     def testXsdLiteral (self):
         dt = xsd.dateTime('2002-10-27T12:14:32Z')

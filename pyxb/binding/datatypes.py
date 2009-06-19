@@ -246,8 +246,9 @@ class _PyXBDateTime_base (basis.simpleTypeDefinition):
             raise BadTypeValueError('Value not in %s lexical space' % (cls.__name__,)) 
         match_map = match.groupdict()
         kw = { }
-        for f in cls.__Fields:
-            kw[f] = int(match_map[f])
+        for (k, v) in match_map.iteritems():
+            if (k in cls.__Fields) and (v is not None):
+                kw[k] = int(v)
         if '-' == match_map.get('negYear', None):
             kw['year'] = - kw['year']
         if match_map.get('fracsec', None) is not None:
@@ -264,7 +265,7 @@ class _PyXBDateTime_base (basis.simpleTypeDefinition):
     @classmethod
     def _SetKeysFromPython_csc (cls, python_value, kw, fields):
         for f in fields:
-            kw[f] = getattr(value, f)
+            kw[f] = getattr(python_value, f)
         return getattr(super(_PyXBDateTime_base, cls), '_SetKeysFromPython_csc', lambda *a,**kw: None)(python_value, kw, fields)
 
     @classmethod
@@ -290,7 +291,11 @@ class _TimeZone_mixin (pyxb.cscRoot):
         tzoffs = kw.pop('tzinfo', None)
         has_time_zone = False
         if tzoffs is not None:
-            dt = datetime.datetime(tzinfo=tzoffs, **kw)
+            use_kw = kw.copy()
+            use_kw.setdefault('year', 1983)
+            use_kw.setdefault('month', 6)
+            use_kw.setdefault('day', 18)
+            dt = datetime.datetime(tzinfo=tzoffs, **use_kw)
             dt = tzoffs.fromutc(dt)
             for k in kw.iterkeys():
                 kw[k] = getattr(dt, k)
@@ -299,10 +304,10 @@ class _TimeZone_mixin (pyxb.cscRoot):
         
     @classmethod
     def _SetKeysFromPython_csc (cls, python_value, kw, fields):
-        if value.tzinfo is not None:
-            kw['tzinfo'] = _TimeZone(value.tzinfo.utcoffset(), flip=True)
+        if python_value.tzinfo is not None:
+            kw['tzinfo'] = _TimeZone(python_value.tzinfo.utcoffset(), flip=True)
         else:
-            del kw['tzinfo']
+            kw.pop('tzinfo', None)
         return getattr(super(_TimeZone_mixin, cls), '_SetKeysFromPython_csc', lambda *a,**kw: None)(python_value, kw, fields)
 
 class dateTime (_PyXBDateTime_base, _TimeZone_mixin, datetime.datetime):
@@ -335,13 +340,13 @@ class dateTime (_PyXBDateTime_base, _TimeZone_mixin, datetime.datetime):
         args = cls._ConvertArguments(args, kw)
         if 0 == len(args):
             now = python_time.gmtime()
-            args = (datetime.datetime(*(now[:7])),)
+            args = (datetime.datetime(now.tm_year, now.tm_mon, now.tm_mday, now.tm_hour, now.tm_min, now.tm_sec),)
         value = args[0]
         ctor_kw = { }
         if isinstance(value, types.StringTypes):
             ctor_kw.update(_PyXBDateTime_base._LexicalToKeywords(value, cls.__Lexical_re))
         elif isinstance(value, datetime.datetime):
-            cls._SetKeysFromPython(value, ctor_kw, self.__Fields_us)
+            cls._SetKeysFromPython(value, ctor_kw, cls.__Fields)
         else:
             raise BadTypeValueError('Unexpected type %s' % (type(value),))
 
@@ -365,10 +370,54 @@ class dateTime (_PyXBDateTime_base, _TimeZone_mixin, datetime.datetime):
 
 _PrimitiveDatatypes.append(dateTime)
 
-class time (basis.simpleTypeDefinition):
-    """@attention: Not implemented"""
+class time (_PyXBDateTime_base, _TimeZone_mixin, datetime.time):
+    """U{http://www.w3.org/TR/xmlschema-2/index.html#time}
+
+    This class uses the Python C{datetime.time} class as its
+    underlying representation.  Note that per the XMLSchema spec, all
+    dateTime objects are in UTC, and that timezone information in the
+    string representation in XML is an indication of the local time
+    zone's offset from UTC.  Presence of time zone information in the
+    lexical space is preserved through the value of the
+    L{hasTimeZone()} field.
+    """
+    
     _XsdBaseType = anySimpleType
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('time')
+
+    __Lexical_re = re.compile(_PyXBDateTime_base._DateTimePattern('^%H:%M:%S%Z?$'))
+    __Fields = ( 'hour', 'minute', 'second', 'microsecond' )
+    
+    def __new__ (cls, *args, **kw):
+        args = cls._ConvertArguments(args, kw)
+        if 0 == len(args):
+            now = python_time.gmtime()
+            args = (datetime.time(now.tm_hour, now.tm_min, now.tm_sec),)
+        value = args[0]
+        ctor_kw = { }
+        if isinstance(value, types.StringTypes):
+            ctor_kw.update(_PyXBDateTime_base._LexicalToKeywords(value, cls.__Lexical_re))
+        elif isinstance(value, datetime.time):
+            cls._SetKeysFromPython(value, ctor_kw, cls.__Fields)
+        else:
+            raise BadTypeValueError('Unexpected type %s' % (type(value),))
+
+        has_time_zone = cls._AdjustForTimezone(ctor_kw)
+        kw.update(ctor_kw)
+        hour = kw.pop('hour')
+        rv = super(time, cls).__new__(cls, hour, **kw)
+        rv._setHasTimeZone(has_time_zone)
+        return rv
+
+    @classmethod
+    def XsdLiteral (cls, value):
+        iso = value.isoformat()
+        if 0 <= iso.find('.'):
+            iso = iso.rstrip('0')
+        if value.hasTimeZone():
+            iso += 'Z'
+        return iso
+
 _PrimitiveDatatypes.append(time)
 
 class date (basis.simpleTypeDefinition):
