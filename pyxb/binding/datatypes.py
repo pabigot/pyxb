@@ -169,10 +169,94 @@ _PrimitiveDatatypes.append(double)
 import time as python_time
 import datetime
 
-class duration (basis.simpleTypeDefinition):
-    """@attention: Not implemented"""
+class duration (basis.simpleTypeDefinition, datetime.timedelta):
+    """U{http://www.w3.org/TR/xmlschema-2/#duration}
+
+    This class uses the Python C{datetime.timedelta} class as its
+    underlying representation.  This works fine as long as no months
+    or years are involved, and no negative durations are involved.
+    Because the XML Schema value space is so much larger, it is kept
+    distinct from the Python value space, which reduces to integral
+    days, seconds, and microseconds.
+
+    In other words, the implementation of this type is a little
+    shakey.
+
+    """
+
     _XsdBaseType = anySimpleType
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('duration')
+
+    __Lexical_re = re.compile('^(?P<neg>-?)P((?P<years>\d+)Y)?((?P<months>\d+)M)?((?P<days>\d+)D)?(?P<Time>T((?P<hours>\d+)H)?((?P<minutes>\d+)M)?(((?P<seconds>\d+)(?P<fracsec>\.\d+)?)S)?)?$')
+
+    # We do not use weeks
+    __XSDFields = ( 'years', 'months', 'days', 'hours', 'minutes', 'seconds' )
+    __PythonFields = ( 'days', 'seconds', 'microseconds', 'minutes', 'hours' )
+
+    def negativeDuration (self):
+        return self.__negativeDuration
+    __negativeDuration = None
+
+    def durationData (self):
+        return self.__durationData
+    __durationData = None
+
+    def __new__ (cls, *args, **kw):
+        args = cls._ConvertArguments(args, kw)
+        text = args[0]
+        match = cls.__Lexical_re.match(text)
+        if match is None:
+            raise BadTypeValueError('Value "%s" not in %s lexical space' % (text, cls._ExpandedName)) 
+        match_map = match.groupdict()
+        if 'T' == match_map.get('Time', None):
+            # Can't have T without additional time information
+            raise BadTypeValueError('Value "%s" not in %s lexical space' % (text, cls._ExpandedName)) 
+
+        fractional_seconds = 0.0
+        if match_map.get('fracsec', None) is not None:
+            fractional_seconds = types.FloatType('0%s' % (match_map['fracsec'],))
+            kw['microseconds'] = types.IntType(1000000 * fractional_seconds)
+        else:
+            # Discard any bogosity passed in by the caller
+            kw.pop('microsecond', None)
+        data = { }
+        negative_duration = ('-' == match_map.get('neg', None))
+        for fn in cls.__XSDFields:
+            v = match_map.get(fn, 0)
+            if v is None:
+                v = 0
+            data[fn] = int(v)
+            if fn in cls.__PythonFields:
+                if negative_duration:
+                    kw[fn] = - data[fn]
+                else:
+                    kw[fn] = data[fn]
+        data['seconds'] += fractional_seconds
+        rv = super(duration, cls).__new__(cls, **kw)
+        rv.__durationData = data
+        rv.__negativeDuration = negative_duration
+        return rv
+
+    @classmethod
+    def XsdLiteral (cls, value):
+        elts = []
+        if value.negativeDuration():
+            elts.append('-')
+        elts.append('P')
+        for k in ( 'years', 'months', 'days' ):
+            v = value.__durationData.get(k, 0)
+            if 0 != v:
+                elts.append('%d%s' % (v, k[0].upper()))
+        time_elts = []
+        for k in ( 'hours', 'minutes', 'seconds' ):
+            v = value.__durationData.get(k, 0)
+            if 0 != v:
+                time_elts.append('%d%s' % (v, k[0].upper()))
+        if 0 < len(time_elts):
+            elts.append('T')
+            elts.extend(time_elts)
+        return ''.join(elts)
+        
 _PrimitiveDatatypes.append(duration)
 
 class _TimeZone (datetime.tzinfo):
@@ -311,7 +395,7 @@ class _PyXBDateTimeZone_base (_PyXBDateTime_base):
             kw['tzinfo'] = _TimeZone(python_value.tzinfo.utcoffset(), flip=True)
         else:
             kw.pop('tzinfo', None)
-        return getattr(super(_TimeZone_mixin, cls), '_SetKeysFromPython_csc', lambda *a,**kw: None)(python_value, kw, fields)
+        return getattr(super(_PyXBDateTimeZone_base, cls), '_SetKeysFromPython_csc', lambda *a,**kw: None)(python_value, kw, fields)
 
 class dateTime (_PyXBDateTimeZone_base, datetime.datetime):
     """U{http://www.w3.org/TR/xmlschema-2/index.html#dateTime}
@@ -353,7 +437,7 @@ class dateTime (_PyXBDateTimeZone_base, datetime.datetime):
             else:
                 raise BadTypeValueError('Unexpected type %s' % (type(value),))
         elif 3 <= len(args):
-            for fn in range(len(cls.__Fields)):
+            for fn in range(min(len(args), len(cls.__Fields))):
                 ctor_kw[cls.__Fields[fn]] = args[fn]
         else:
             raise TypeError('function takes at least 3 arguments (%d given)' % (len(args),))
