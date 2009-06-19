@@ -428,22 +428,7 @@ class time (_PyXBDateTimeZone_base, datetime.time):
 
 _PrimitiveDatatypes.append(time)
 
-#class _PyXBDateOnly_base (_PyXBDateTime_base):
-    
-
-class date (_PyXBDateTime_base, datetime.date):
-    """U{http://www.w3.org/TR/xmlschema-2/index.html#date}
-
-    This class uses the Python C{datetime.date} class as its
-    underlying representation.
-    """
-    
-    _XsdBaseType = anySimpleType
-    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('date')
-
-    _Lexical_re = re.compile(_PyXBDateTime_base._DateTimePattern('^%Y-%m-%d$'))
-    _Fields = ( 'year', 'month', 'day' )
-    
+class _PyXBDateOnly_base (_PyXBDateTime_base, datetime.date):
     def __new__ (cls, *args, **kw):
         args = cls._ConvertArguments(args, kw)
         ctor_kw = { }
@@ -467,8 +452,21 @@ class date (_PyXBDateTime_base, datetime.date):
         argv = []
         for f in cls._Fields:
             argv.append(kw.pop(f))
-        return super(date, cls).__new__(cls, *argv, **kw)
+        return super(_PyXBDateOnly_base, cls).__new__(cls, *argv, **kw)
 
+class date (_PyXBDateOnly_base):
+    """U{http://www.w3.org/TR/xmlschema-2/index.html#date}
+
+    This class uses the Python C{datetime.date} class as its
+    underlying representation.
+    """
+    
+    _XsdBaseType = anySimpleType
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('date')
+
+    _Lexical_re = re.compile(_PyXBDateTime_base._DateTimePattern('^%Y-%m-%d$'))
+    _Fields = ( 'year', 'month', 'day' )
+    
     @classmethod
     def XsdLiteral (cls, value):
         return value.isoformat()
