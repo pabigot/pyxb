@@ -283,15 +283,18 @@ class _PyXBDateTime_base (basis.simpleTypeDefinition):
                 ctor_kw['tzinfo'] = _TimeZone(value.tzinfo.utcoffset(), flip=True)
         else:
             raise BadTypeValueError('Unexpected type %s' % (type(value),))
-        tzoffs = ctor_kw.pop('tzinfo', None)
+
+        tzinfo = ctor_kw.pop('tzinfo', None)
         has_time_zone = False
-        if tzoffs is not None:
-            dt = datetime.datetime(tzinfo=tzoffs, **ctor_kw)
-            dt = tzoffs.fromutc(dt)
-            ctor_kw = { }
-            [ ctor_kw.setdefault(_field, getattr(dt, _field)) for _field in cls.__Fields_us ]
+        if tzinfo is not None:
+            assert isinstance(tzinfo, datetime.tzinfo)
+            hour = ctor_kw.pop('hour')
+            minute = ctor_kw.pop('minute', 0)
+            adjusted_time = tzinfo.fromutc(datetime.time(hour, minute, tzinfo=tzinfo, **ctor_kw))
+            ctor_kw['hour'] = adjusted_time.hour
+            ctor_kw['minute'] = adjusted_time.minute
             has_time_zone = True
-            
+
         year = ctor_kw.pop('year')
         month = ctor_kw.pop('month')
         day = ctor_kw.pop('day')
