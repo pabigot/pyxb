@@ -429,9 +429,31 @@ class time (_PyXBDateTimeZone_base, datetime.time):
 _PrimitiveDatatypes.append(time)
 
 class _PyXBDateOnly_base (_PyXBDateTime_base, datetime.date):
+    _XsdBaseType = anySimpleType
+
+    __DateFields = ( 'year', 'month', 'day' )
+    _ISO_beginYear = 0
+    _ISO_endYear = 4
+    _ISO_beginMonth = 5
+    _ISO_endMonth = 7
+    _ISO_beginDay = 8
+    _ISO_endDay = 10
+    _ISOBegin = _ISO_beginYear
+    _ISOEnd = _ISO_endDay
+
+    def __getattribute__ (self, attr):
+        ga = super(_PyXBDateOnly_base, self).__getattribute__
+        cls = ga('__class__')
+        if (attr in cls.__DateFields) and not (attr in cls._Fields):
+            raise AttributeError(self, attr)
+        return ga(attr)
+
     def __new__ (cls, *args, **kw):
         args = cls._ConvertArguments(args, kw)
         ctor_kw = { }
+        ctor_kw['year'] = cls._DefaultYear
+        ctor_kw['month'] = cls._DefaultMonth
+        ctor_kw['day'] = cls._DefaultDay
         if 1 == len(args):
             value = args[0]
             if isinstance(value, types.StringTypes):
@@ -439,7 +461,9 @@ class _PyXBDateOnly_base (_PyXBDateTime_base, datetime.date):
             elif isinstance(value, datetime.date):
                 cls._SetKeysFromPython(value, ctor_kw, cls._Fields)
             elif isinstance(value, (types.IntType, types.LongType)):
-                raise TypeError('function takes at least 3 arguments (%d given)' % (len(args),))
+                if (1 != len(cls._Fields)):                
+                    raise TypeError('function takes exactly %d arguments (%d given)' % (len(cls._Fields), len(args)))
+                ctor_kw[cls._Fields[0]] = value
             else:
                 raise BadTypeValueError('Unexpected type %s' % (type(value),))
         elif len(cls._Fields) == len(args):
@@ -450,9 +474,13 @@ class _PyXBDateOnly_base (_PyXBDateTime_base, datetime.date):
 
         kw.update(ctor_kw)
         argv = []
-        for f in cls._Fields:
+        for f in cls.__DateFields:
             argv.append(kw.pop(f))
         return super(_PyXBDateOnly_base, cls).__new__(cls, *argv, **kw)
+
+    @classmethod
+    def XsdLiteral (cls, value):
+        return value.isoformat()[cls._ISOBegin:cls._ISOEnd]
 
 class date (_PyXBDateOnly_base):
     """U{http://www.w3.org/TR/xmlschema-2/index.html#date}
@@ -461,45 +489,72 @@ class date (_PyXBDateOnly_base):
     underlying representation.
     """
     
-    _XsdBaseType = anySimpleType
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('date')
-
     _Lexical_re = re.compile(_PyXBDateTime_base._DateTimePattern('^%Y-%m-%d$'))
     _Fields = ( 'year', 'month', 'day' )
-    
-    @classmethod
-    def XsdLiteral (cls, value):
-        return value.isoformat()
 
 _PrimitiveDatatypes.append(date)
 
-class gYearMonth (date):
-    _XsdBaseType = anySimpleType
+class gYearMonth (_PyXBDateOnly_base):
+    """U{http://www.w3.org/TR/xmlschema-2/index.html#gYearMonth}
+
+    This class uses the Python C{datetime.date} class as its
+    underlying representation.
+    """
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('gYearMonth')
+    _Lexical_re = re.compile(_PyXBDateTime_base._DateTimePattern('^%Y-%m$'))
+    _Fields = ( 'year', 'month' )
+    _ISOEnd = _PyXBDateOnly_base._ISO_endMonth
+
 _PrimitiveDatatypes.append(gYearMonth)
 
-class gYear (basis.simpleTypeDefinition):
-    """@attention: Not implemented"""
-    _XsdBaseType = anySimpleType
+class gYear (_PyXBDateOnly_base):
+    """U{http://www.w3.org/TR/xmlschema-2/index.html#gYear}
+
+    This class uses the Python C{datetime.date} class as its
+    underlying representation.
+    """
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('gYear')
+    _Lexical_re = re.compile(_PyXBDateTime_base._DateTimePattern('^%Y$'))
+    _Fields = ( 'year', )
+    _ISOEnd = _PyXBDateOnly_base._ISO_endYear
 _PrimitiveDatatypes.append(gYear)
 
-class gMonthDay (basis.simpleTypeDefinition):
-    """@attention: Not implemented"""
-    _XsdBaseType = anySimpleType
+class gMonthDay (_PyXBDateOnly_base):
+    """U{http://www.w3.org/TR/xmlschema-2/index.html#gMonthDay}
+
+    This class uses the Python C{datetime.date} class as its
+    underlying representation.
+    """
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('gMonthDay')
+    _Lexical_re = re.compile(_PyXBDateTime_base._DateTimePattern('^%m-%d$'))
+    _Fields = ( 'month', 'day' )
+    _ISOBegin = _PyXBDateOnly_base._ISO_beginMonth
 _PrimitiveDatatypes.append(gMonthDay)
 
-class gDay (basis.simpleTypeDefinition):
-    """@attention: Not implemented"""
-    _XsdBaseType = anySimpleType
+class gDay (_PyXBDateOnly_base):
+    """U{http://www.w3.org/TR/xmlschema-2/index.html#gDay}
+
+    This class uses the Python C{datetime.date} class as its
+    underlying representation.
+    """
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('gDay')
+    _Lexical_re = re.compile(_PyXBDateTime_base._DateTimePattern('^%d$'))
+    _Fields = ( 'day', )
+    _ISOBegin = _PyXBDateOnly_base._ISO_beginDay
 _PrimitiveDatatypes.append(gDay)
 
-class gMonth (basis.simpleTypeDefinition):
-    """@attention: Not implemented"""
-    _XsdBaseType = anySimpleType
+class gMonth (_PyXBDateOnly_base):
+    """U{http://www.w3.org/TR/xmlschema-2/index.html#gMonth}
+
+    This class uses the Python C{datetime.date} class as its
+    underlying representation.
+    """
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('gMonth')
+    _Lexical_re = re.compile(_PyXBDateTime_base._DateTimePattern('^%m$'))
+    _Fields = ( 'month', )
+    _ISOBegin = _PyXBDateOnly_base._ISO_beginMonth
+    _ISOEnd = _PyXBDateOnly_base._ISO_endMonth
 _PrimitiveDatatypes.append(gMonth)
 
 class hexBinary (basis.simpleTypeDefinition, types.LongType):
