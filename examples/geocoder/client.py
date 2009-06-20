@@ -1,15 +1,9 @@
 import GeoCoder
 import sys
-import pyxb
+import pyxb.utils.domutils as domutils
 import pyxb.standard.bindings.soapenv as soapenv
 import pyxb.standard.bindings.soapenc as soapenc
-
-import xml.dom
-from xml.dom import minidom
-
 import urllib2
-
-pyxb.namespace.XMLSchema.validateComponentModel()
 
 address = '1600 Pennsylvania Ave., Washington, DC'
 if 1 < len(sys.argv):
@@ -18,17 +12,14 @@ if 1 < len(sys.argv):
 env = soapenv.Envelope()
 env.setBody(GeoCoder.geocode(address))
 
-query_xml = env.toDOM().toxml()
-#print query_xml
 uri = urllib2.Request('http://rpc.geocoder.us/service/soap/',
-                      query_xml,
+                      env.toxml(),
                       { 'SOAPAction' : "http://rpc.geocoder.us/Geo/Coder/US#geocode", 'Content-Type': 'text/xml' } )
 
 rxml = urllib2.urlopen(uri).read()
-doc = minidom.parseString(rxml)
-response = soapenv.CreateFromDOM(doc.documentElement)
-
-#print doc.toprettyxml()
+file('response.xml', 'w').write(rxml)
+doc_root = domutils.StringToDOM(rxml).documentElement
+response = soapenv.CreateFromDOM(doc_root)
 
 # OK, here we get into ugliness due to WSDL's concept of schema in the
 # SOAP encoding not being consistent with XML Schema, even though it
@@ -42,12 +33,13 @@ response = soapenv.CreateFromDOM(doc.documentElement)
 # of the DOM node, and we have to skip over the wildcard items to find
 # something we can deal with.
 
-encoding_style = soapenv.Namespace.createExpandedName('encodingStyle').getAttribute(doc.documentElement)
+encoding_style = soapenv.Namespace.createExpandedName('encodingStyle').getAttribute(doc_root)
 if encoding_style == soapenc.Namespace.uri():
     gcr = response.Body().wildcardElements()[0]
     items = [ GeoCoder.GeocoderAddressResult(_dom_node=_i) for _i in gcr.childNodes[0].childNodes ]
 else:
     pass
+
 for item in items:
     if (item.lat() is None) or item.lat()._isNil():
         print 'Warning: Address did not resolve'
@@ -57,5 +49,4 @@ for item in items:
 %s %s''' % (item.number(), item.prefix(), item.street(), item.type(), item.suffix(),
             item.city(), item.state(), item.zip(),
             item.lat(), item.long())
-    print item
     
