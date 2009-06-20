@@ -359,7 +359,9 @@ class ElementUse (pyxb.cscRoot):
         assert self.__elementBinding is not None
         value = self.__elementBinding.compatibleValue(value)
         setattr(ctd_instance, self.__key, value)
-        if isinstance(value, list): # and not elt_type._IsSimpleTypeContent():
+        if isinstance(value, list):
+            # @todo: This is almost certainly wrong for simple types that
+            # derive by list.  Consider using _IsSimpleTypeContent.
             [ ctd_instance._addContent(_elt) for _elt in value ]
         else:
             ctd_instance._addContent(value)
@@ -885,7 +887,8 @@ class ContentModel (pyxb.cscRoot):
         
         @param available_symbols: A map from DFA terms to a sequence of values
         associated with the term in a binding instance.  The key C{None} is
-        used to represent wildcard elements.
+        used to represent wildcard elements.  If a key appears in this map, it
+        must have at least one value in its sequence.
 
         @param succeed_at_dead_end: If C{True}, states from which no
         transition can be made are accepted as final states.  This is used

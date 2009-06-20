@@ -42,21 +42,22 @@ import cPickle as pickle
 
 class ExpandedName (pyxb.cscRoot):
 
-    """Represent an U{extended name
+    """Represent an U{expanded name
     <http://www.w3.org/TR/REC-xml-names/#dt-expname>}, which pairs a
     namespace with a local name.
 
     Because a large number of local elements, and most attributes, have no
     namespace associated with them, this is optimized for representing names
     with an absent namespace.  The hash and equality test methods are set so
-    that a plain string is equivalent to a tuple of None and that string.
+    that a plain string is equivalent to a tuple of C{None} and that string.
 
     Note that absent namespaces can be represented in two ways: with a
-    namespace of None (the name "has no namespace"), and with a namespace that
-    is an absent namespace (the name "has an absent namespace").  Hash code
-    calculations are done so that the two alternatives produce the same hash;
-    however, comparison is done so that the two are distinguished.  The latter
-    is the intended behavior; the former should not be counted upon.
+    namespace of C{None} (the name "has no namespace"), and with a namespace
+    that is an L{absent namespace <Namespace.CreateAbsentNamespace>} (the name
+    "has an absent namespace").  Hash code calculations are done so that the
+    two alternatives produce the same hash; however, comparison is done so
+    that the two are distinguished.  The latter is the intended behavior; the
+    former should not be counted upon.
 
     This class allows direct lookup of the named object within a category by
     using the category name as an accessor function.  That is, if the

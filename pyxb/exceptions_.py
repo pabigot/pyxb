@@ -103,6 +103,15 @@ class BindingValidationError (PyXBException):
     """Raised when the content of a binding object is not consistent with its content model"""
     pass
 
+class NotSimpleContentError (BindingValidationError):
+    """Raised when an operation that requires simple content is
+    invoked on a complex type that does not have simple content."""
+    pass
+
+class NoContentModel (BindingValidationError):
+    """Raised when an operation is attempted that requires a content
+    model, but the complex type has empty or simple content."""
+
 class PyXBError (exceptions.Exception):
     """Base class for exceptions that indicate a problem that the user probably can't fix."""
     pass
