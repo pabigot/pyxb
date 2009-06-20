@@ -31,7 +31,7 @@ help:
 	@echo "  doctest   to run all doctests embedded in the documentation (if enabled)"
 
 clean:
-	-rm -rf html sfhtml
+	-rm -rf html _build
 
 apihtml:
 	mkdir -p html/api
@@ -41,11 +41,3 @@ html:
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) html
 	@echo
 	@echo "Build finished. The HTML pages are in _build/html."
-
-sfhtml:
-	
-	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) -Dtemplates_path=_sftemplates sfhtml
-	cp -pr html/api sfhtml
-	@echo
-	@echo "Build finished. The HTML pages are in _build/html."
-
