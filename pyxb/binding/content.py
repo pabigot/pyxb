@@ -437,24 +437,52 @@ class _DFAState (object):
         self.__state = state
 
     def ctdInstance (self):
+        """The L{basis.complexTypeDefinition} instance that is being
+        configured through execution of the automaton."""
         return self.__ctdInstance
     def state (self):
+        """The current state of the automaton, represented as an integer."""
         return self.__state
     def contentModel (self):
+        """The L{ContentModel} to which the state belongs."""
         return self.__contentModel
     def updateState (self, state):
+        """Change the automaton state recorded in this DFA state."""
         self.__state = state
         return self
 
     def step (self, dfa_stack, value):
+        """Execute a step within the content model.
+
+        This determines whether the current state in the content model allows
+        a transition on the given value.  If a transition can be performed,
+        the instance element use corresponding to the value is used to record
+        the value.
+
+        The input value should be an instance of L{basis._TypeBinding_mixin},
+        or a value that can be uniquely converted into such a instance using
+        the transitions from the current state as clues.
+
+        @param dfa_stack: The current state of the parse.  Upon return, this may have been augmented with suspended content models.
+        @type dfa_stack: L{DFAStack}
+        @param value: A value upon which transition should occur.
+        @type value: C{xml.dom.Node} or L{basis._TypeBinding_mixin} or other value
+        @return: C{True} iff a transition successfully consumed the value
+        """
+
         self.__state = self.contentModel().step(self.ctdInstance(), self.state(), value, dfa_stack)
         return self.__state is not None
 
     def isFinal (self):
+        """Return C{True} iff the current state of the content model is a final state."""
         return self.contentModel().isFinal(self.state())
 
 class _MGAllState (object):
-    """The state of a suspended interpretation of a ModelGroupAll transition."""
+    """The state of a suspended interpretation of a L{ModelGroupAll}
+    transition.  This state comprises a set of alternatives, and optionally a
+    L{DFAStack} corresponding to the current position within one of the
+    alternatives.
+    """
 
     __ctdInstance = None
     __modelGroup = None
@@ -468,9 +496,38 @@ class _MGAllState (object):
         self.__alternatives = self.__modelGroup.alternatives()
 
     def step (self, dfa_stack, value):
+        """Execute a step within the model group.
+
+        If an automaton stack is currently being executed, the step defers to
+        that automaton.  If a step is succesfully taken, the invocation
+        returns; otherwise, the automaton stack is discarded.
+
+        If no automaton stack is active, a step is attempted on each automaton
+        remaining in the alternatives.  If the step is successful, that
+        automaton is recorded as being the current one for execution, and the
+        invocation returns.
+
+        If no automaton can be found within which progress can be made, the
+        step fails.
+
+        @param dfa_stack: The current state of the parse.  Upon return, this
+        may have been augmented with suspended content models.
+        @type dfa_stack: L{DFAStack}
+        @param value: A value upon which transition should occur.
+        @type value: C{xml.dom.Node} or L{basis._TypeBinding_mixin} or other value
+        @return: C{True} iff a transition was found that consumed the value.
+        """
+
         if self.__currentStack is not None:
             if self.__currentStack.step(self.__ctdInstance, value):
                 return True
+            if not self.__currentStack.isTerminal():
+                # I think this is probably a problem, but don't have an
+                # example yet to use to analyze it.  The issue is that we've
+                # already committed to executing the automaton; if we end up
+                # in a non-final state, then that execution failed, and
+                # probably the whole validation should just abort.
+                print '******** Non-terminal state reached in all group parsing; please contact support'
             self.__currentStack = None
         found_match = True
         for alt in self.__alternatives:
@@ -506,23 +563,35 @@ class DFAStack (object):
         self.pushModelState(_DFAState(content_model, ctd_instance))
 
     def pushModelState (self, model_state):
+        """Add the given model state as the new top (actively executing) model ."""
         self.__stack.append(model_state)
         return model_state
 
     def isTerminal (self):
+        """Return C{True} iff the stack is in a state where the top-level
+        model execution has reached a final state."""
         return (0 == len(self.__stack)) or self.topModelState().isFinal()
 
     def popModelState (self):
+        """Remove and return the model state currently being executed."""
         if 0 == len(self.__stack):
             raise pyxb.LogicError('Attempt to underflow content model stack')
         return self.__stack.pop()
 
     def topModelState (self):
+        """Return a reference to the model state currently being executed.
+
+        The state is not removed from the stack."""
         if 0 == len(self.__stack):
             raise pyxb.LogicError('Attempt to underflow content model stack')
         return self.__stack[-1]
 
     def step (self, ctd_instance, value):
+        """Take a step using the value and the current model state.
+
+        Execution of the step may add a new model state to the stack.
+
+        @return: C{True} iff the value was consumed by a transition."""
         ok = self.topModelState().step(self, value)
         if not ok:
             self.popModelState()

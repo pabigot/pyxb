@@ -16,7 +16,7 @@
 inherit, and that describe the content models of those schema."""
 
 import pyxb
-import xml.dom as dom
+import xml.dom
 import pyxb.utils.domutils as domutils
 import pyxb.utils.utility as utility
 import types
@@ -1040,7 +1040,8 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
         associated with the selected element binding.  See
         L{_TypeBinding_mixin} and any specializations of it.
 
-        @param node: The DOM node specifying the element content.
+        @param node: The DOM node specifying the element content.  If this is
+        a (top-level) Document node, its element node is used.
         @type node: C{xml.dom.Node}
         @return: An instance of L{_TypeBinding_mixin}
         @raise pyxb.StructuralBadDocumentError: The node's name does identify an element binding.
@@ -1048,6 +1049,11 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
         @raise pyxb.BadDocumentError: An U{xsi:type <http://www.w3.org/TR/xmlschema-1/#xsi_type>} attribute in the node fails to resolve to a recognized type
         @raise pyxb.BadDocumentError: An U{xsi:type <http://www.w3.org/TR/xmlschema-1/#xsi_type>} attribute in the node resolves to a type that is not a subclass of the type of the element binding.
         """
+
+        # Bypass the useless top-level node and start with the element beneath
+        # it.
+        if xml.dom.Node.DOCUMENT_NODE == node.nodeType:
+            node = node.documentElement
 
         # Identify the element binding to be used for the given node.  NB:
         # Even if found, this may not be equal to self, since we allow you to
@@ -1206,6 +1212,8 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         dom_node = kw.pop('_dom_node', None)
         is_nil = False
         if dom_node is not None:
+            if xml.dom.Node.DOCUMENT_NODE == dom_node.nodeType:
+                dom_node = dom_node.documentElement
             #kw['_validate_constraints'] = False
             is_nil = self.__XSINil.getAttribute(dom_node)
             if is_nil is not None:
@@ -1477,10 +1485,10 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         current state of the content model.
         """
         
-        if isinstance(value, dom.Node):
-            if dom.Node.COMMENT_NODE == value.nodeType:
+        if isinstance(value, xml.dom.Node):
+            if xml.dom.Node.COMMENT_NODE == value.nodeType:
                 return self
-            if value.nodeType in (dom.Node.TEXT_NODE, dom.Node.CDATA_SECTION_NODE):
+            if value.nodeType in (xml.dom.Node.TEXT_NODE, xml.dom.Node.CDATA_SECTION_NODE):
                 if self.__isMixed:
                     self._addContent(value.data)
                 else:
@@ -1512,7 +1520,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
 
         has_content = False
         for cn in node.childNodes:
-            if cn.nodeType in (dom.Node.TEXT_NODE, dom.Node.CDATA_SECTION_NODE, dom.Node.ELEMENT_NODE):
+            if cn.nodeType in (xml.dom.Node.TEXT_NODE, xml.dom.Node.CDATA_SECTION_NODE, xml.dom.Node.ELEMENT_NODE):
                 has_content = True
                 break
         if self._isNil():
