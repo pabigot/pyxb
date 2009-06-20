@@ -1439,7 +1439,8 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         to be an instance of some L{simpleTypeDefinition} class.
 
         If this type has mixed or element-only content, the return value is a
-        list of the non-element content in the order in which it was added.
+        list of the element and non-element content in the order in which it
+        was added.
         """
         if self._CT_EMPTY == self._ContentTypeTag:
             # @todo: raise exception
