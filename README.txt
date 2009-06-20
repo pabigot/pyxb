@@ -1,6 +1,6 @@
 PyXB -- Python W3C XML Schema Bindings
-Version 0.2.0
+Version 0.4.0
 
 Installation:  python setup.py install
 
-Documentation: doc/_build/html
+Documentation: doc/html
