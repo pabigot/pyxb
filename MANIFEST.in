@@ -10,4 +10,4 @@ recursive-include maintainer *.sh
 recursive-include doc * *.*
 prune doc/_build
 # Examples
-recursive-include examples *.txt *.py *.sh *.xsd *.xml
+recursive-include examples *.txt *.py *.sh *.xsd *.xml *-patch
