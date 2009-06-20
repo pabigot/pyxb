@@ -970,6 +970,9 @@ def CreateFromDocument (xml_text):
 def CreateFromDOM (node):
     """Create a Python instance from the given DOM node.
     The node tag must correspond to an element declaration in this module."""
+    import xml.dom
+    if node.nodeType == xml.dom.Node.DOCUMENT_NODE:
+        node = node.documentElement
     return pyxb.binding.basis.element.AnyCreateFromDOM(node, Namespace)
 ''', **template_map))
     
