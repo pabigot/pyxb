@@ -1289,7 +1289,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         object.
 
         @note: This is not currently used; it is retained as an example of one
-        way to override _validatedChildren in cases where content model
+        way to override L{_validatedChildren} in cases where content model
         validation is not required.
         """
         order = []
@@ -1402,7 +1402,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         @raise pyxb.UnrecognizedAttributeError: if the DOM node has attributes
         that are not allowed in this type
         @raise pyxb.ProhibitedAttributeError: a prohibited attribute was encountered
-        @raise pyxb.RequiredAttributeError: a required attribute could not be found
+        @raise pyxb.MissingAttributeError: a required attribute could not be found
         """
         
         # Handle all the attributes that are present in the node

@@ -123,7 +123,8 @@ documents.  A `powerset construction
 the automaton deterministic, and the resulting automaton is stored as a
 :api:`pyxb.binding.content.ContentModel` instance, with a set of :api:`states
 <pyxb.binding.content.ContentModelState>` each of which has :api:`transitions
-<pyxb.binding.content.ContentModelTransition>` on elements and wildcards.
+<pyxb.binding.content.ContentModelTransition>` on elements, wildcards, and
+model groups with an ``all`` compositor.
 
 The sole complication in the automaton construction is dealing with with
 ``all`` model groups, which accept subsets of a set of nodes in any order.
@@ -137,17 +138,51 @@ candidate value until an alternative is found.
 Parsing With Automata
 ^^^^^^^^^^^^^^^^^^^^^
 
-A binding instance is built incrementally from a content model
+Automata-based parsing is used for building up a binding instance from a
+series of values.
 
-The binding instance is then constructed by identifying the content model for
-the corresponding complex type, then walking the model using a sequence of
-values to select the appropriate transition.  Element matches are prefered
-over ``all`` matches, which in turn are preferred over wildcard matches.
+To allow incremental construction of instances, as required by the :api:`SAX
+interface <pyxb.binding.saxer.PyXBSAXHandler>` or initialization by constructor
+arguments, each complex type with a content model contains a :api:`DFA stack
+<pyxb.binding.content.DFAStack>`.  Each level of the stack contains an instance
+of :api:`DFA state <pyxb.binding.content._DFAState>`.  Normally the state
+specifies the content model and automaton state within that model that
+represents the instance's position in a path through the automata, where the
+path so far comprises the member elements added to the instance.
 
-
+The need for a stack of states comes when automaton execution reaches a
+transition that involves an :api:`"all" model group
+<pyxb.binding.content.ModelGroupAll>`.  Evaluation of such a transition
+requires suspending the parent execution and continuing with the evaluation of
+the automata that represent alternatives in the model group.
 
 Generation With Automata
 ^^^^^^^^^^^^^^^^^^^^^^^^
+
+Automata-based parsing is also used to validate that the content of a binding
+instance is consistent with type's content model, and to determine a sequence
+of contained elements that define a valid path through the automaton.  This
+technique is used to create a valid DOM document from a binding instance.
+
+A memoization technique is used, where the state of the system is represented
+by a set of element uses (which identify valid consuming transitions), with a
+sequence of values for each such use.  The element uses are symbols in the
+alphabet of the automaton; the values are a token that permits a transition on
+that symbol.  The state of the system also incorporates a sequence of
+symbol-value pairs that record the path up to the current position.
+
+The automaton starts in the initial state, then each transition is examined
+until one is found for which there is a value available.  The state resulting
+from executing that transition is pushed onto a stack, and the remaining
+transitions are examined as well.  If no transition can proceed, the state is
+discarded and the top state from the stack is evaluated.
+
+When no more symbols remain, if the current state is a final state, the
+validation succeeds, and the corresponding sequence is returned as a valid
+path.  If a final state cannot be reached, the validation fails.
+
+See the :api:`validation method <pyxb.binding.content.ContentModel.validate>`
+for details on how all this really works.
 
 .. ignored
    ## Local Variables:

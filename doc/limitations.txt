@@ -37,6 +37,10 @@ Things That Don't Work
 * Documentation present in the schema is not made available in the bindings
   (viz., I want the annotations to become docstrings).
 
+* The ability to use templates to customize binding generation was promised
+  in the vision document.  That has not yet been done, though it should be
+  fairly straightforward.
+
 ...and probably never will
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -44,7 +48,8 @@ Things That Don't Work
   document should validate against the schema, but the order of elements
   within it may be different from the original order of creation.  For an
   example of this, see
-  tests/test-mg-choice:TestMGChoice.testMultichoiceOrderImportant.  See also
+  :file:`tests/test-mg-choice:TestMGChoice.testMultichoiceOrderImportant`.
+  See also
   :api:`pyxb.binding.basis.complexTypeDefinition._validatedChildren` for a
   work-around.
 
@@ -53,24 +58,22 @@ Things That Don't Work
 * Identity constraints ("key", "unique", "keyref") are stored in the content
   model, but are not used.
 
-* Wildcards ("any") elements are supported in the sense that classes that
-  enable them in the content model provide access to unrecognized values
-  through the
+* `Wildcard elements <http://www.w3.org/TR/xmlschema-1/#Wildcards>`_ are
+  supported in the sense that classes that enable them in the content model
+  provide access to unrecognized values through the
   :api:`pyxb.binding.basis.complexTypeDefinition.wildcardElements` method.
   Where the type of the node is recognized, it is converted to a Python
   binding instance.  However, neither the namespace constraint nor process
   contents attributes are applied.
 
-* Wildcard ("any") attributes are supported in the same sense as wildcard
-  elements: no constraints are checked, and all are aggregated into the
+* `Wildcard attributes
+  <http://www.w3.org/TR/xmlschema-1/#ag-attribute_wildcard>`_ are supported
+  in the same sense as wildcard elements: no constraints are checked, and
+  all are aggregated into the
   :api:`pyxb.binding.basis.complexTypeDefinition.wildcardAttributeMap`.
 
 Things That Mostly Work, But They're Ugly
 -----------------------------------------
-
-* The ability to use templates to customize binding generation was promised
-  in the vision document.  That has not yet been done, though it should be
-  fairly straightforward.
 
 * Processing of include and import directives is a little too fragile.  In
   particular, relative URIs in schemaLocation values probably won't be

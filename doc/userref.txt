@@ -148,11 +148,11 @@ example showing this is also available in the ``examples/manual``
 subdirectory.
 
 Customized bindings
--------------------
+===================
 
-Standard bindings
-=================
-
-WSDL
-----
+To customize bindings, you need to be familiar with the
+:api:`pyxb.binding.basis._DynamicCreate_mixin` class.  One readily-available
+example is :ref:`ex_tmsxtvd`.  A more complex example is the customized
+standard binding for WSDL, available in
+:file:`pyxb/standard/bindings/wsdl.py`.
 

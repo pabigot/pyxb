@@ -42,7 +42,7 @@ An example of a program using PyXB to interact with a `web service
 automatically-generated module.  First, retrieve the WSDL and generate the
 bindings::
 
- $ pyxbgen -m weather -u 'http://ws.cdyne.com/WeatherWS/Weather.asmx?wsdl' -m weather -W
+ vmfed9[23]$ pyxbgen -m weather -u 'http://ws.cdyne.com/WeatherWS/Weather.asmx?wsdl' -m weather -W
  Need to dynamically create schema
  Importing pyxb.standard.bindings.soap
  Importing pyxb.standard.bindings.soap12
@@ -54,8 +54,15 @@ bindings::
  Attempting to load a namespace from /home/pab/pyxb/dev/pyxb/standard/bindings/raw/mime.wxs
  Attempting to load a namespace from /home/pab/pyxb/dev/pyxb/standard/bindings/raw/soap12.wxs
  Attempting to load a namespace from /home/pab/pyxb/dev/pyxb/standard/bindings/raw/soap.wxs
- Binding source is 83253 long to ./weather.py
- Saved binding source to ./weather.py
+ Adding due to dependency http://schemas.xmlsoap.org/wsdl/http/
+ Adding due to dependency http://schemas.xmlsoap.org/soap/encoding/
+ WARNING: Dependency on http://microsoft.com/wsdl/mime/textMatching/ with no module path
+ Adding due to dependency http://schemas.xmlsoap.org/wsdl/mime/
+ Adding due to dependency http://schemas.xmlsoap.org/wsdl/soap12/
+ Adding due to dependency http://schemas.xmlsoap.org/wsdl/soap/
+ Adding due to dependency http://schemas.xmlsoap.org/wsdl/
+ Binding source is 67639 long to weather.py
+ Saved binding source to weather.py
 
 Then write a program that uses them:
 
@@ -64,7 +71,7 @@ Then write a program that uses them:
 And run it::
 
  vmfed9[24]$ python client_get.py
- Weather forecast for Saint Paul, MN:
+ Weather forecast for Tucson, AZ:
    Saturday, May 02 2009: Partly Cloudy, from  to 64
    Sunday, May 03 2009: Sunny, from 43 to 66
    Monday, May 04 2009: Partly Cloudy, from 45 to 69
