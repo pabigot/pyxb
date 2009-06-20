@@ -175,6 +175,14 @@ class BindingDOMSupport (object):
 
     __namespacePrefixCounter = None
 
+    def defaultNamespace (self):
+        """The registered default namespace.
+
+        The default namespace can be set in the constructor, or using the
+        L{setDefaultNamespace} method.  @rtype: L{pyxb.namespace.Namespace} or
+        C{None}
+        """
+        return self.__defaultNamespace
     __defaultNamespace = None
 
     def implementation (self):
@@ -191,17 +199,44 @@ class BindingDOMSupport (object):
         return self.__document
     __document = None
 
-    def __init__ (self, implementation=None, default_namespace=None):
+    def requireXSIType (self):
+        """Indicates whether xsi:type should be added to all elements.
+
+        Certain WSDL styles and encodings seem to require explicit notation of
+        the type of each element, even if it was specified in the schema.
+
+        This value can only be set in the constructor."""
+        return self.__requireXSIType
+    __requireXSIType = None
+
+    def __init__ (self, implementation=None, default_namespace=None, require_xsi_type=False):
+        """Create a new instance used for building a single document.
+
+        @keyword implementation: The C{xml.dom} implementation to use.
+        Defaults to the one selected by L{GetDOMImplementation}.
+
+        @keyword default_namespace: The namespace to configure as the default
+        for the document.  If not provided, there is no default namespace.
+
+        @keyword require_xsi_type: If C{True}, an U{xsi:type
+        <http://www.w3.org/TR/xmlschema-1/#xsi_type>} attribute should be
+        placed in every element.
+        """
         if implementation is None:
             implementation = GetDOMImplementation()
         self.__implementation = implementation
         self.__document = self.implementation().createDocument(None, None, None)
         self.__namespaces = { }
         self.__namespacePrefixCounter = 0
+        self.__requireXSIType = require_xsi_type
         self.setDefaultNamespace(default_namespace)
 
     def setDefaultNamespace (self, default_namespace):
         """Set the default namespace for the generated document.
+
+        Even if invoked post construction, the default namespace will affect
+        the entire document, as all namespace declarations are placed in the
+        document root.
 
         @param default_namespace: The namespace to be defined as the default
         namespace in the top-level element of the document.  May be provided

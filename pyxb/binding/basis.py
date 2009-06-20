@@ -164,11 +164,19 @@ class _TypeBinding_mixin (pyxb.cscRoot):
 
         if bds is None:
             bds = domutils.BindingDOMSupport()
+        if isinstance(element_name, (str, unicode)):
+            element_name = pyxb.namespace.ExpandedName(bds.defaultNamespace(), element_name)
         if (element_name is None) and (self._element() is not None):
             element_name = self._element().name()
         if element_name is None:
             element_name = self._ExpandedName
         element = bds.createChildElement(element_name, parent)
+        if bds.requireXSIType():
+            val_type_qname = self._ExpandedName.localName()
+            tns_prefix = bds.namespacePrefix(self._ExpandedName.namespace())
+            if tns_prefix is not None:
+                val_type_qname = '%s:%s' % (tns_prefix, val_type_qname)
+            bds.addAttribute(element, pyxb.namespace.XMLSchema_instance.createExpandedName('type'), val_type_qname)
         self._toDOM_csc(bds, element)
         bds.finalize()
         return bds.document()
