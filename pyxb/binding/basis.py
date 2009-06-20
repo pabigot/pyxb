@@ -981,6 +981,8 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
     # element
     @classmethod
     def AnyCreateFromDOM (cls, node, fallback_namespace):
+        if xml.dom.Node.DOCUMENT_NODE == node.nodeType:
+            node = node.documentElement
         expanded_name = pyxb.namespace.ExpandedName(node, fallback_namespace=fallback_namespace)
         elt = expanded_name.elementBinding()
         if elt is None:
