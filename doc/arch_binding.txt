@@ -242,7 +242,7 @@ recognized, and otherwise are left as DOM nodes.  Wildcard attributes are
 stored in a map from their extended namespace name to the unicode value of
 the attribute.
 
-For information on validating the content of a complex type, see ***.
+For information on validating the content of a complex type, see TBD.
 
 
 Simple Content

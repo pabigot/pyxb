@@ -120,8 +120,10 @@ An :api:`pyxb.namespace.ExpandedName` instance couples a local name with
 (optionally) a namespace.  This class also integrates with namespace
 categories, permitting lookup of the object with its name in a specific
 category by using  the category name as a method.  For example::
+
   en.typeDefinition()
   en.namespace().categoryMap('typeDefinition').get(en.localName())
+
 produce the type definition with the given namme, or ``None`` if there is no
 such definition.  Methods are also present to test whether the name matches a
 DOM node, and to retrieve the named attribute (if present) from a DOM node.
