@@ -11,7 +11,7 @@ import urllib2
 
 pyxb.namespace.XMLSchema.validateComponentModel()
 
-address = '111 Main St, Anytown, KS'
+address = '1600 Pennsylvania Ave., Washington, DC'
 if 1 < len(sys.argv):
     address = sys.argv[1]
 
