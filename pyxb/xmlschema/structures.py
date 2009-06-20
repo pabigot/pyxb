@@ -1317,9 +1317,8 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.na
         if self.isResolved():
             return self
 
-        if self._scopeIsIndeterminate():
-            print 'WARNING: Resolving ED with indeterminate scope (is this a problem?)'
-        assert self.scope() is not None
+        #if self._scopeIsIndeterminate():
+        #   print 'WARNING: Resolving ED %s with indeterminate scope (is this a problem?)' % (self.expandedName(),)
         if self.__substitutionGroupAttribute is not None:
             sg_en = self._namespaceContext().interpretQName(self.__substitutionGroupAttribute)
             sga = sg_en.elementDeclaration()
