@@ -745,7 +745,7 @@ class ContentModelTransition (pyxb.cscRoot):
                         print 'Need to dynamically create schema'
                 except Exception, e:
                     if isinstance(node, xml.dom.Node):
-                        print 'WARNING: Unable to convert wildcard %s %s to Python instance: %s' % (node.namespaceURI, node.localName, e)
+                        print 'WARNING: Unable to convert wildcard %s to Python instance: %s' % (pyxb.namespace.ExpandedName(node), e)
                     else:
                         print 'WARNING: Unable to convert wildcard %s to Python instance: %s' % (node, e)
             if not self.__term.matches(ctd_instance, value):
