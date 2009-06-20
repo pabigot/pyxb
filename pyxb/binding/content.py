@@ -133,6 +133,14 @@ class AttributeUse (pyxb.cscRoot):
         """
         return self.__name
     
+    def defaultValue (self):
+        """The default value of the attribute."""
+        return self.__defaultValue
+
+    def fixed (self):
+        """C{True} iff the value of the attribute cannot be changed."""
+        return self.__fixed
+
     def required (self):
         """Return True iff the attribute must be assigned a value."""
         return self.__required
