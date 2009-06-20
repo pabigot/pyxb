@@ -1,7 +1,6 @@
 import dict
 import urllib2
 import pyxb.utils.domutils as domutils
-from xml.dom import minidom
 import sys
 
 word = 'python'
