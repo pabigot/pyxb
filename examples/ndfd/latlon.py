@@ -86,7 +86,7 @@ dom = bds.finalize()
 
 # We don't have a facility to add DOM values (as opposed to binding
 # instances) to a soap binding instance, so just directly generate the
-# message by wedging the request into a SOAP envelope body.
+# message by wedging the request into a generic SOAP envelope body.
 soap_message = '''<?xml version="1.0" encoding="ISO-8859-1"?>
 <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/" SOAP-ENV:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
   <SOAP-ENV:Body>''' + dom.documentElement.toxml() + '''</SOAP-ENV:Body>
@@ -140,38 +140,20 @@ for i in range(len(data.location())):
             mint = maxt = None
             for t in p.temperature():
                 if 'maximum' == t.type():
-                    maxt = t
+                    maxt = t.value()
                 elif 'minimum' == t.type():
-                    mint = t
-                print '%s (%s): %s' % (t.name()[0], t.units(), " ".join([ str(_v.content()) for _v in t.value() ]))
-            aux_params = []
-            if p.cloud_amount() is not None:
-                aux_params.append(p.cloud_amount()[0])
-            if p.probability_of_precipitation() is not None:
-                aux_params.append(p.probability_of_precipitation()[0])
-            if p.humidity() is not None:
-                aux_params.append(p.humidity()[0])
-            for aux in aux_params:
-                name = aux.name()
-                if isinstance(aux.name(), list):
-                    name = name[0]
-                # NOTE: Changing this to delve into the type-specific
-                # values and print something readable is left as an
-                # exercise.
-                print '%s: %s' % (name, " ".join([ str(_v) for _v in aux.value() ]))
-            if mint is None:
-                mint = maxt
-            if maxt is None:
-                maxt = mint
-            if maxt is None:
-                continue
+                    mint = t.value()
+                print '%d values for %s (%s): %s' % (len(t.value()), t.name()[0], t.units(), " ".join([ str(_v.content()) for _v in t.value() ]))
+            # Printing the other properties is left as an exercise.
             time_layout = None
             for tl in data.time_layout():
                 if tl.layout_key() == maxt.time_layout():
                     time_layout = tl
                     break
-            for ti in range(len(time_layout.start_valid_time())):
+            for ti in range(min(len(mint), len(maxt), len(time_layout.start_valid_time()))):
+                # NB: start-valid-time is a complex type with simple
+                # content; end-valid-time is a simple type.
                 start = time_layout.start_valid_time()[ti].content()
                 end = time_layout.end_valid_time()[ti]
                 print '%s: min %s, max %s' % (time.strftime('%A, %B %d %Y', start.timetuple()),
-                                              mint.value()[ti].content(), maxt.value()[ti].content())
+                                              mint[ti].content(), maxt[ti].content())
