@@ -34,16 +34,16 @@ def api_role(role, rawtext, text, lineno, inliner, options={}, content=[]):
 
     First generate the documentation to be referenced, i.e. with EpyDoc::
 
-        $ mkdir -p doc/_build/html/api
-        $ epydoc -o doc/_build/html/api ...
+        $ mkdir -p doc/html/api
+        $ epydoc -o doc/html/api ...
 
     Next step is to generate documentation with Sphinx::
 
-        $ sphinx-build doc doc/_build/html
+        $ sphinx-build doc doc/html
 
     """
     basedir = 'api'
-    prefix = '_build/html/' # fixme: fetch it from configuration
+    prefix = 'html/' # fixme: fetch it from configuration
     exists = lambda f: os.path.exists(prefix + f)
 
     # assume module is references
@@ -96,5 +96,5 @@ def api_role(role, rawtext, text, lineno, inliner, options={}, content=[]):
 def setup(app):
     app.add_role('api', api_role)
     app.add_config_value('epydoc_basedir', 'api', False)
-    app.add_config_value('epydic_prefix', 'doc/_build/html/', False)
+    app.add_config_value('epydic_prefix', 'doc/html/', False)
     

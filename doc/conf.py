@@ -64,7 +64,7 @@ release = '0.3.7'
 
 # List of directories, relative to source directory, that shouldn't be searched
 # for source files.
-exclude_trees = ['_build', 'W3C', 'api' ]
+exclude_trees = [ 'W3C', 'api', 'html', 'Images', '_sftemplates' ]
 
 # The reST default role (used for this markup: `text`) to use for all documents.
 #default_role = None
