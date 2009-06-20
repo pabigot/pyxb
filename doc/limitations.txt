@@ -23,18 +23,16 @@ Things That Work
 
 * Namespace qualified attributes and elements
 
-* Most everything that isn't in the next section.
 
 Things That Don't Work
 ----------------------
 
-...but should soon
-^^^^^^^^^^^^^^^^^^
+...but could someday
+^^^^^^^^^^^^^^^^^^^^
 
 * Pattern constraints don't do anything.
 
-* The only date/time-related datatype that is implemented in this release is
-  dateTime.
+* Prohibited attributes
 
 * Documentation present in the schema is not made available in the bindings
   (viz., I want the annotations to become docstrings).
@@ -74,11 +72,21 @@ Things That Mostly Work, But They're Ugly
   in the vision document.  That has not yet been done, though it should be
   fairly straightforward.
 
-* Processing of include and import directives is a little too fragile.
+* Processing of include and import directives is a little too fragile.  In
+  particular, relative URIs in schemaLocation values probably won't be
+  resolvable.
+
+* The `duration <http://www.w3.org/TR/xmlschema-2/#duration>`_ type is based
+  on the Python ``datetime.timedelta`` class, which works reasonably well
+  for small deltas but does not handle month and year deltas.  The PyXB
+  version records that information, but the ``timedelta`` functionality
+  (adding/substracting from ``datetime`` instances) does not incorporate
+  that portion of the delta.  Negative durations also may not work properly.
+
 
 Intended Near-Term Enhancements
 -------------------------------
 
 * Customized WSDL support to work around inconsistencies in the SOAP
-  encoding handling of schema.
+  encoding handling of schema, and lack of bindings for defined messages.
 

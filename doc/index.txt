@@ -42,7 +42,7 @@ An example of a program using PyXB to interact with a `web service
 automatically-generated module.  First, retrieve the WSDL and generate the
 bindings::
 
- $ pyxbgen -m weather -u 'http://ws.cdyne.com/WeatherWS/Weather.asmx?wsdl' -W
+ $ pyxbgen -m weather -u 'http://ws.cdyne.com/WeatherWS/Weather.asmx?wsdl' -m weather -W
  Need to dynamically create schema
  Importing pyxb.standard.bindings.soap
  Importing pyxb.standard.bindings.soap12
