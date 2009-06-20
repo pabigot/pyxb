@@ -10,8 +10,11 @@ import sys
 zip = [ 85711, 55108 ]
 if 1 < len(sys.argv):
     zip = sys.argv[1:]
-begin = xsd.dateTime()
+begin = xsd.dateTime.today()
 end = xsd.dateTime(begin + datetime.timedelta(7))
+
+endpoint = 'http://www.weather.gov/forecasts/xml/SOAP_server/ndfdXMLserver.php'
+soap_action = 'http://www.weather.gov/forecasts/xml/DWMLgen/wsdl/ndfdXML.wsdl#NDFDgen'
 
 # Create the REST URI for this query
 uri = 'http://www.weather.gov/forecasts/xml/sample_products/browser_interface/ndfdXMLclient.php?zipCodeList=%s&product=time-series&begin=%s&end=%s&maxt=maxt&mint=mint' % ("+".join([ str(_zc) for _zc in zip ]), begin.xsdLiteral(), end.xsdLiteral())
