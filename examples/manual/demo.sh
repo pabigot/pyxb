@@ -12,5 +12,5 @@ python demo2.py
 rm po3.py
 ../../scripts/pyxbgen -u po3.xsd -m po3
 python demo3.py
-rm po4.py
-../../scripts/pyxbgen -u po4.xsd -m po4
+#rm po4.py
+#../../scripts/pyxbgen -u po4.xsd -m po4
