@@ -1,23 +1,21 @@
 import dict
-import urlparse
 import urllib2
+import pyxb.utils.domutils as domutils
 from xml.dom import minidom
 
+# Get the list of dictionaries available from the service.
 port_uri = 'http://services.aonaware.com/DictService/DictService.asmx'
-op_path = '/DictionaryList'
-uri = '%s%s' % (port_uri, op_path)
+uri = port_uri + '/DictionaryList'
 dle_xml = urllib2.urlopen(uri).read()
-dle_dom = minidom.parseString(dle_xml)
-dle = dict.ArrayOfDictionary.createFromDOM(dle_dom.documentElement)
+dle_dom = domutils.StringToDOM(dle_xml)
+dle = dict.ArrayOfDictionary.createFromDOM(dle_dom)
 
 op_path = '/DictionaryInfo'
 for d in dle.Dictionary():
-    print '%s (%s)' % (d.Name(), d.Id())
-    di_req = dict.DictionaryInfo(dictId=d.Id())
-    args = { }
-    for (t, eu) in di_req._ElementMap.items():
-        args[eu.name().localName()] = eu.value(di_req)
-    uri = '%s%s?%s' % (port_uri, op_path, '&'.join(['%s=%s' % _i for _i in args.items()]))
+    # Create a REST-style query to retrieve the information about this dictionary.
+    uri = '%s%s?dictId=%s' % (port_uri, op_path, d.Id())
     resp = urllib2.urlopen(uri).read()
-    di_resp = dict.CreateFromDOM(minidom.parseString(resp).documentElement)
-    print di_resp
+    # The response is a simple type derived from string, so we can
+    # just extract and print it.
+    di_resp = dict.CreateFromDOM(domutils.StringToDOM(resp))
+    print "%s (%s)\n%s\n" % (d.Name(), d.Id(), di_resp)
