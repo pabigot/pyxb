@@ -649,7 +649,6 @@ class %{ctd} (%{superclass}):
     # name.
     element_name_map = { }
     element_uses = []
-    datatype_items = []
 
     definitions = []
 
@@ -673,8 +672,7 @@ class %{ctd} (%{superclass}):
                 if is_plural:
                     unique_name = ef_map['id']
                     ef_map['appender'] = utility.PrepareIdentifier('add' + unique_name[0].upper() + unique_name[1:], class_unique, class_keywords)
-                element_uses.append(templates.replaceInText('%{name_expr} : %{use}', **ef_map))
-                datatype_items.append("%s : %s" % (ef_map['name_expr'], pythonLiteral(ed, **kw)))
+                element_uses.append(templates.replaceInText('%{use}.name() : %{use}', **ef_map))
                 if 0 == len(aux_init):
                     ef_map['aux_init'] = ''
                 else:
@@ -775,7 +773,7 @@ class %{ctd} (%{superclass}):
     # Attribute %{id} inherited from %{decl_type_en}''', decl_type_en=str(ad.scope().expandedName()), **au_map))
             continue
 
-        attribute_uses.append(templates.replaceInText('%{name_expr} : %{use}', **au_map))
+        attribute_uses.append(templates.replaceInText('%{use}.name() : %{use}', **au_map))
         definitions.append(templates.replaceInText('''
     # Attribute %{name} uses Python identifier %{id}
     %{use} = pyxb.binding.content.AttributeUse(%{name_expr}, '%{id}', '%{key}', %{attr_type}%{aux_init})
