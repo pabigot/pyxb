@@ -18,11 +18,18 @@ class TestCTDSimple (unittest.TestCase):
     def testClause4 (self):
         self.assertTrue(clause4._IsSimpleTypeContent())
         self.assertTrue(clause4._TypeDefinition == xsd.string)
+        self.assertEqual(None, clause4._TypeDefinition._CF_length.value())
 
     def testClause3 (self):
         self.assertTrue(clause3._IsSimpleTypeContent())
         self.assertTrue(issubclass(clause3, clause4))
         self.assertTrue(clause3._TypeDefinition == xsd.string)
+
+    def testClause2 (self):
+        self.assertTrue(clause2._IsSimpleTypeContent())
+        self.assertTrue(issubclass(clause2, ctype))
+        self.assertTrue(issubclass(clause2._TypeDefinition, xsd.string))
+        self.assertEqual(6, clause2._TypeDefinition._CF_length.value())
 
 if __name__ == '__main__':
     unittest.main()

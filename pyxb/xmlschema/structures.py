@@ -1711,20 +1711,22 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         self.__derivationMethod = method
         return self
 
-    def __simpleContent (self, method):
+    def __simpleContent (self, method, **kw):
         # Do content type
         if isinstance(self.__baseTypeDefinition, ComplexTypeDefinition):
             # Clauses 1, 2, and 3 might apply
             parent_content_type = self.__baseTypeDefinition.__contentType
+            print '%s %s %s' % (self.expandedName(), self.__baseTypeDefinition.expandedName(), parent_content_type)
             if (isinstance(parent_content_type, SimpleTypeDefinition) \
                     and (self.DM_restriction == method)):
                 # Clause 1
                 raise pyxb.IncompleteImplementationError("contentType clause 1 of simple content in CTD")
             elif ((type(parent_content_type) == tuple) \
-                    and (self.CT_MIXED == parent_content_type[1]) \
-                    and parent_content_type[0].isEmptiable()):
+                    and (self.CT_MIXED == parent_content_type[0]) \
+                    and parent_content_type[1].isEmptiable()):
                 # Clause 2
-                raise pyxb.IncompleteImplementationError("contentType clause 2 of simple content in CTD")
+                assert isinstance(self.__ctscClause2STD, SimpleTypeDefinition)
+                return ( self.CT_SIMPLE, self.__ctscClause2STD )
             else:
                 # Clause 3
                 return parent_content_type
@@ -1733,6 +1735,8 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
             return ( self.CT_SIMPLE, self.__baseTypeDefinition )
         assert False
 
+    __ctscClause2STD = None
+    
     def __setComplexContentFromDOM (self, type_node, content_node, definition_node_list, method, **kw):
         # Do content type.  Cache the keywords that need to be used
         # for newly created schema components.
@@ -1892,6 +1896,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         # elements.
         first_elt = LocateFirstChildElement(node)
         content_node = None
+        clause2_std = None
         if first_elt:
             have_content = False
             if xsd.nodeIsNamed(first_elt, 'simpleContent'):
@@ -1913,6 +1918,9 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
                 ions = LocateFirstChildElement(content_node, absent_ok=False)
                 if xsd.nodeIsNamed(ions, 'restriction'):
                     method = self.DM_restriction
+                    if not is_complex_content:
+                        # Clause 2 of complex type with simple content
+                        clause2_std = SimpleTypeDefinition.CreateFromDOM(LocateUniqueChild(ions,'simpleType'), **kw)
                 elif xsd.nodeIsNamed(ions, 'extension'):
                     method = self.DM_extension
                 else:
@@ -1926,6 +1934,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         # deriviationMethod is assigned after resolution completes
         self.__pendingDerivationMethod = method
         self.__isComplexContent = is_complex_content
+        self.__ctscClause2STD = clause2_std
 
         (attributes, attribute_group_attrs, any_attribute) = self._attributeRelevantChildren(definition_node_list)
         self.__usesC1 = set()
