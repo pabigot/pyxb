@@ -1721,14 +1721,17 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
                     and (self.CT_SIMPLE == parent_content_type[0]) \
                     and (self.DM_restriction == method)):
                 # Clause 1
-                if self.__ctscClause2STD is None:
-                    # We need to create a simple type definition from the
-                    # parent content type in conjunction with facet
-                    # restrictions from the DOM node that we lost hold of some
-                    # time back before we figured out the base type.
-                    raise pyxb.IncompleteImplementationError("contentType clause 1.2 of simple content in CTD")
-                assert isinstance(self.__ctscClause2STD, SimpleTypeDefinition)
-                return ( self.CT_SIMPLE, self.__ctscClause2STD )
+                assert self.__ctscRestrictionNode is not None
+                std = self.__ctscClause2STD
+                if std is None:
+                    std = parent_content_type[1]
+                assert isinstance(std, SimpleTypeDefinition)
+                if not std.isResolved():
+                    return None
+                restriction_node = self.__ctscRestrictionNode
+                self.__ctscClause2STD = None
+                self.__ctscRestrictionNode = None
+                return ( self.CT_SIMPLE, std._createRestriction(self, restriction_node) )
             elif ((type(parent_content_type) == tuple) \
                     and (self.CT_MIXED == parent_content_type[0]) \
                     and parent_content_type[1].isEmptiable()):
@@ -1744,6 +1747,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         assert False
 
     __ctscClause2STD = None
+    __ctscRestrictioNode = None
     
     def __setComplexContentFromDOM (self, type_node, content_node, definition_node_list, method, **kw):
         # Do content type.  Cache the keywords that need to be used
@@ -1905,6 +1909,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         first_elt = LocateFirstChildElement(node)
         content_node = None
         clause2_std = None
+        ctsc_restriction_node = None
         if first_elt:
             have_content = False
             if xsd.nodeIsNamed(first_elt, 'simpleContent'):
@@ -1929,7 +1934,10 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
                     method = self.DM_restriction
                     if not is_complex_content:
                         # Clause 2 of complex type with simple content
-                        clause2_std = SimpleTypeDefinition.CreateFromDOM(LocateUniqueChild(ions,'simpleType'), **kw)
+                        ctsc_restriction_node = ions
+                        ions_st = LocateUniqueChild(ions,'simpleType')
+                        if ions_st is not None:
+                            clause2_std = SimpleTypeDefinition.CreateFromDOM(ions_st, **kw)
                 elif xsd.nodeIsNamed(ions, 'extension'):
                     method = self.DM_extension
                 else:
@@ -1943,6 +1951,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         # deriviationMethod is assigned after resolution completes
         self.__pendingDerivationMethod = method
         self.__isComplexContent = is_complex_content
+        self.__ctscRestrictionNode = ctsc_restriction_node
         self.__ctscClause2STD = clause2_std
 
         (attributes, attribute_group_attrs, any_attribute) = self._attributeRelevantChildren(definition_node_list)
@@ -1999,8 +2008,9 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
                 return self
             self.__baseTypeDefinition = base_type
 
-        # Only build the content once.  This all completes now that we
-        # have a base type.
+        # Only build the content once.  This will not complete if the content
+        # is a restriction of an unresolved simple type; otherwise, it only
+        # depends on the base type which we know is good.
         if self.__contentType is None:
             if self.__isComplexContent:
                 content_type = self.__complexContent(self.__pendingDerivationMethod)
@@ -2008,6 +2018,9 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
             else:
                 # The definition node list is not relevant to simple content
                 content_type = self.__simpleContent(self.__pendingDerivationMethod)
+                if content_type is None:
+                    self._queueForResolution('restriction of unresolved simple type')
+                    return self
                 self.__contentStyle = 'simple'
             assert content_type is not None
             self.__contentType = content_type
@@ -3620,6 +3633,22 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
         for fc in base_facets.keys():
             self.__facets.setdefault(fc, base_facets[fc])
         assert type(self.__facets) == types.DictType
+
+    def _createRestriction (self, owner, body):
+        """Create a new simple type with this as its base.
+
+        The type is owned by the provided owner, and may have facet
+        restrictions defined by the body.
+        @param owner: the owner for the newly created type
+        @type owner: L{ComplexTypeDefinition}
+        @param body: the DOM node from which facet information will be extracted
+        @type body: C{xml.dom.Node}
+        @rtype: L{SimpleTypeDefinition}
+        """
+        std = SimpleTypeDefinition(owner=owner, namespace_context=owner._namespaceContext(), variety=None, scope=self._scope())
+        print '%s tns %s' % (self.expandedName(), std.targetNamespace())
+        std.__baseTypeDefinition = self
+        return std.__completeResolution(body, None, 'restriction')
 
     # Complete the resolution of some variety of STD.  Note that the
     # variety is compounded by an alternative, since there is no
