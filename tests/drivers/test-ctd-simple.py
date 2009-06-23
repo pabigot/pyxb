@@ -31,6 +31,12 @@ class TestCTDSimple (unittest.TestCase):
         self.assertTrue(issubclass(clause2._TypeDefinition, xsd.string))
         self.assertEqual(6, clause2._TypeDefinition._CF_length.value())
 
+    def testClause1_1 (self):
+        self.assertTrue(clause1_1._IsSimpleTypeContent())
+        self.assertTrue(issubclass(clause1_1, clause4))
+        self.assertTrue(issubclass(clause1_1._TypeDefinition, xsd.string))
+        self.assertEqual(6, clause1_1._TypeDefinition._CF_length.value())
+
 if __name__ == '__main__':
     unittest.main()
     

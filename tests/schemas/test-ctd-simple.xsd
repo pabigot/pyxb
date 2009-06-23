@@ -32,4 +32,15 @@
 			</xs:restriction>
 		</xs:simpleContent>
 	</xs:complexType>
+	<xs:complexType name="clause1_1">
+		<xs:simpleContent>
+			<xs:restriction base="clause4">
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:length value="6"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:restriction>
+		</xs:simpleContent>
+	</xs:complexType>
 </xs:schema>

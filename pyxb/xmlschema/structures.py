@@ -1716,11 +1716,19 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         if isinstance(self.__baseTypeDefinition, ComplexTypeDefinition):
             # Clauses 1, 2, and 3 might apply
             parent_content_type = self.__baseTypeDefinition.__contentType
-            print '%s %s %s' % (self.expandedName(), self.__baseTypeDefinition.expandedName(), parent_content_type)
-            if (isinstance(parent_content_type, SimpleTypeDefinition) \
+            #print '%s %s %s' % (self.expandedName(), self.__baseTypeDefinition.expandedName(), parent_content_type)
+            if ((type(parent_content_type) == tuple) \
+                    and (self.CT_SIMPLE == parent_content_type[0]) \
                     and (self.DM_restriction == method)):
                 # Clause 1
-                raise pyxb.IncompleteImplementationError("contentType clause 1 of simple content in CTD")
+                if self.__ctscClause2STD is None:
+                    # We need to create a simple type definition from the
+                    # parent content type in conjunction with facet
+                    # restrictions from the DOM node that we lost hold of some
+                    # time back before we figured out the base type.
+                    raise pyxb.IncompleteImplementationError("contentType clause 1.2 of simple content in CTD")
+                assert isinstance(self.__ctscClause2STD, SimpleTypeDefinition)
+                return ( self.CT_SIMPLE, self.__ctscClause2STD )
             elif ((type(parent_content_type) == tuple) \
                     and (self.CT_MIXED == parent_content_type[0]) \
                     and parent_content_type[1].isEmptiable()):
@@ -1809,8 +1817,8 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         self.__effectiveContent = effective_content
         self.__ckw = ckw
 
-        if isinstance(effective_content, Particle):
-            print 'Effective total range: %s %s' % effective_content.effectiveTotalRange()
+        #if isinstance(effective_content, Particle):
+        #    print 'Effective total range: %s %s' % effective_content.effectiveTotalRange()
 
     def __complexContent (self, method):
         ckw = self.__ckw
@@ -1913,6 +1921,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
                 content_node = LocateFirstChildElement(node, require_unique=True)
                 assert content_node == first_elt
                 
+
                 # Identify the contained restriction or extension
                 # element, and extract the base type.
                 ions = LocateFirstChildElement(content_node, absent_ok=False)
