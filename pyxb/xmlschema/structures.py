@@ -1725,7 +1725,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
                 # Clause 1
                 raise pyxb.IncompleteImplementationError("contentType clause 1 of simple content in CTD")
             elif ((type(parent_content_type) == tuple) \
-                    and (self.CT_mixed == parent_content_type[1]) \
+                    and (self.CT_MIXED == parent_content_type[1]) \
                     and parent_content_type[0].isEmptiable()):
                 # Clause 2
                 raise pyxb.IncompleteImplementationError("contentType clause 2 of simple content in CTD")
