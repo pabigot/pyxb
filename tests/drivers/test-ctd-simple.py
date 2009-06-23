@@ -19,6 +19,11 @@ class TestCTDSimple (unittest.TestCase):
         self.assertTrue(clause4._IsSimpleTypeContent())
         self.assertTrue(clause4._TypeDefinition == xsd.string)
 
+    def testClause3 (self):
+        self.assertTrue(clause3._IsSimpleTypeContent())
+        self.assertTrue(issubclass(clause3, clause4))
+        self.assertTrue(clause3._TypeDefinition == xsd.string)
+
 if __name__ == '__main__':
     unittest.main()
     

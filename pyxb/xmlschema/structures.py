@@ -1727,7 +1727,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
                 raise pyxb.IncompleteImplementationError("contentType clause 2 of simple content in CTD")
             else:
                 # Clause 3
-                raise pyxb.IncompleteImplementationError("contentType clause 3 of simple content in CTD")
+                return parent_content_type
         else:
             # Clause 4
             return ( self.CT_SIMPLE, self.__baseTypeDefinition )
