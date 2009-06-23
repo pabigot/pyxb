@@ -1181,6 +1181,11 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.na
     SGE_restriction = 0x02      #<<< Substitution by a restriction of the base type
     SGE_substitution = 0x04     #<<< Substitution by replacement (?)
 
+    _SGE_Map = { 'extension' : SGE_extension
+               , 'restriction' : SGE_restriction }
+    _DS_Map = _SGE_Map.copy()
+    _DS_Map.update( { 'substitution' : SGE_substitution } )
+
     # Subset of SGE marks formed by bitmask.  SGE_substitution is disallowed.
     __substitutionGroupExclusions = SGE_none
 
@@ -1285,7 +1290,9 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.na
         if attr_val is not None:
             rv.__abstract = datatypes.boolean(attr_val)
                 
-        # @todo: disallowed substitutions, substitution group exclusions
+        schema = kw['schema']
+        rv.__disallowedSubstitutions = schema.blockForNode(node, cls._DS_Map)
+        rv.__substitutionGroupExclusions = schema.finalForNode(node, cls._SGE_Map)
 
         return rv
 
@@ -1348,6 +1355,9 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
     DM_empty = 0                #<<< No derivation method specified
     DM_extension = 0x01         #<<< Derivation by extension
     DM_restriction = 0x02       #<<< Derivation by restriction
+
+    _DM_Map = { 'extension' : DM_extension
+              , 'restriction' : DM_restriction }
 
     # How the type was derived (a DM_* value)
     # (This field is used to identify unresolved definitions.)
@@ -1892,6 +1902,11 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         return self
 
     def __setContentFromDOM (self, node, **kw):
+        schema = kw.get('schema', None)
+        assert schema is not None
+        self.__prohibitedSubstitutions = schema.blockForNode(node, self._DM_Map)
+        self.__final = schema.finalForNode(node, self._DM_Map)
+
         attr_val = NodeAttribute(node, 'abstract')
         if attr_val is not None:
             self.__abstract = datatypes.boolean(attr_val)
@@ -1971,7 +1986,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
 
         if not self.isResolved():
             self._queueForResolution('creation')
-        
+
         return self
 
     # Resolution of a CTD can be delayed for the following reasons:
@@ -3179,6 +3194,11 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
     STD_restriction = 0x04 #<<< Representation of restriction in a set of STD forms
     STD_union = 0x08       #<<< Representation of union in a set of STD forms
 
+    _STD_Map = { 'extension' : STD_extension
+               , 'list' : STD_list
+               , 'restriction' : STD_restriction
+               , 'union' : STD_union }
+
     # Bitmask defining the subset that comprises the final property
     __final = STD_empty
     @classmethod
@@ -3819,7 +3839,8 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
         assert self.__domNode
         node = self.__domNode
         
-        kw = { 'owner' : self }
+        kw = { 'owner' : self
+              , 'schema' : self.__schema }
 
         bad_instance = False
         # The guts of the node should be exactly one instance of
@@ -3842,6 +3863,8 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
             else:
                 bad_instance = True
 
+        self.__final = self.__schema.finalForNode(node, self._STD_Map)
+
         # It is NOT an error to fail to resolve the type.
         if bad_instance:
             raise pyxb.SchemaValidationError('Expected exactly one of list, restriction, union as child of simpleType')
@@ -3854,21 +3877,15 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
         # Node should be an XMLSchema simpleType node
         assert xsd.nodeIsNamed(node, 'simpleType')
 
-        # @todo: Process "final" attributes
-        
-        if NodeAttribute(node, 'final') is not None:
-            raise pyxb.IncompleteImplementationError('"final" attribute not currently supported')
-
         name = NodeAttribute(node, 'name')
 
         rv = cls(name=name, node=node, variety=None, **kw)
         rv._annotationFromDOM(node)
 
-        # @todo: identify supported facets and properties (hfp)
-
         # Creation does not attempt to do resolution.  Queue up the newly created
         # whatsis so we can resolve it after everything's been read in.
         rv.__domNode = node
+        rv.__schema = kw['schema']
         rv._queueForResolution('creation')
         
         return rv
@@ -4182,6 +4199,48 @@ class Schema (_SchemaComponent_mixin):
 
         return schema
 
+    _SA_All = '#all'
+
+    def __ebvForNode (self, attr, dom_node, candidate_map):
+        ebv = NodeAttribute(dom_node, attr)
+        if ebv is None:
+            ebv = self.schemaAttribute('%sDefault' % (attr,))
+        rv = 0
+        if ebv == self._SA_All:
+            for v in candidate_map.values():
+                rv += v
+        else:
+            for candidate in ebv.split():
+                rv += candidate_map.get(candidate, 0)
+        return rv
+
+    def blockForNode (self, dom_node, candidate_map):
+        """Return a bit mask indicating a set of options read from the node's "block" attribute or the schema's "blockDefault" attribute.
+
+        A value of '#all' means enable every options; otherwise, the attribute
+        value should be a list of tokens, for which the corresponding value
+        will be added to the return value.
+        
+        @param dom_node: the node from which the "block" attribute will be retrieved
+        @type dom_node: C{xml.dom.Node}
+        @param candidate_map: map from strings to bitmask values
+        """
+        return self.__ebvForNode('block', dom_node, candidate_map)
+
+    def finalForNode (self, dom_node, candidate_map):
+        """Return a bit mask indicating a set of options read from the node's
+        "final" attribute or the schema's "finalDefault" attribute.
+
+        A value of '#all' means enable every options; otherwise, the attribute
+        value should be a list of tokens, for which the corresponding value
+        will be added to the return value.
+        
+        @param dom_node: the node from which the "final" attribute will be retrieved
+        @type dom_node: C{xml.dom.Node}
+        @param candidate_map: map from strings to bitmask values
+        """
+        return self.__ebvForNode('final', dom_node, candidate_map)
+
     def targetNamespaceForNode (self, dom_node, declaration_type):
         """Determine the target namespace for a local attribute or element declaration.
 
@@ -4197,9 +4256,7 @@ class Schema (_SchemaComponent_mixin):
         @return: L{pyxb.namespace.Namespace} or None
         """
 
-        form_type = None
-        if dom_node.hasAttributeNS(xml.dom.EMPTY_NAMESPACE, 'form'):
-            form_type = dom_node.getAttributeNS(xml.dom.EMPTY_NAMESPACE, 'form')
+        form_type = NodeAttribute(dom_node, 'form')
         if form_type is None:
             if declaration_type == ElementDeclaration:
                 form_type = self.schemaAttribute('elementFormDefault')
