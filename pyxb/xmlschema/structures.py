@@ -1212,10 +1212,6 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.na
     def __init__ (self, *args, **kw):
         super(ElementDeclaration, self).__init__(*args, **kw)
 
-    def isPlural (self):
-        """Element declarations are not multivalued in themselves."""
-        return False
-
     # CFD:ED CFD:ElementDeclaration
     @classmethod
     def CreateFromDOM (cls, node, **kw):
@@ -1809,6 +1805,9 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         self.__effectiveContent = effective_content
         self.__ckw = ckw
 
+        if isinstance(effective_content, Particle):
+            print 'Effective total range: %s %s' % effective_content.effectiveTotalRange()
+
     def __complexContent (self, method):
         ckw = self.__ckw
         
@@ -2216,6 +2215,49 @@ class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
                 return False
         return True
 
+    def effectiveTotalRange (self, particle):
+        """Return the minimum and maximum of the number of elements that can
+        appear in a sequence matched by this particle.
+
+        See http://www.w3.org/TR/xmlschema-1/#cos-seq-range
+        """
+        if self.__compositor in (self.C_ALL, self.C_SEQUENCE):
+            sum_minoccurs = 0
+            sum_maxoccurs = 0
+            for prt in self.__particles:
+                (prt_min, prt_max) = prt.effectiveTotalRange()
+                sum_minoccurs += prt_min
+                if sum_maxoccurs is not None:
+                    if prt_max is None:
+                        sum_maxoccurs = None
+                    else:
+                        sum_maxoccurs += prt_max
+            prod_maxoccurs = particle.maxOccurs()
+            if prod_maxoccurs is not None:
+                if sum_maxoccurs is None:
+                    prod_maxoccurs = None
+                else:
+                    prod_maxoccurs *= sum_maxoccurs
+            return (sum_minoccurs * particle.minOccurs(), prod_maxoccurs)
+        assert self.__compositor == self.C_CHOICE
+        if 0 == len(self.__particles):
+            min_minoccurs = 0
+            max_maxoccurs = 0
+        else:
+            (min_minoccurs, max_maxoccurs) = self.__particles[0].effectiveTotalRange()
+            for prt in self.__particles[1:]:
+                (prt_min, prt_max) = prt.effectiveTotalRange()
+                if prt_min < min_minoccurs:
+                    min_minoccurs = prt_min
+                if prt_max is None:
+                    max_maxoccurs = None
+                elif (max_maxoccurs is not None) and (prt_max > max_maxoccurs):
+                    max_maxoccurs = prt_max
+        min_minoccurs *= particle.minOccurs()
+        if (max_maxoccurs is not None) and (particle.maxOccurs() is not None):
+            max_maxoccurs *=  particle.maxOccurs()
+        return (min_minoccurs, max_maxoccurs)
+
     # The ModelGroupDefinition that names this ModelGroup, or None if
     # the ModelGroup is anonymous.  This is set at construction time
     # from the keyword parameter "model_group_definition".
@@ -2254,13 +2296,6 @@ class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
         #print 'Incoming particles %s with scope %s' % (particles, self._scope())
         self.__particles = particles
         self.__modelGroupDefinition = kw.get('model_group_definition')
-
-    def isPlural (self):
-        """A model group is multi-valued if it has a multi-valued particle."""
-        for p in self.particles():
-            if p.isPlural():
-                return True
-        return False
 
     def pluralityData (self):
         """Get the plurality data for this model group.
@@ -2425,12 +2460,22 @@ class Particle (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin):
         maxOccurs."""
         return _PluralityData(self)
 
-    def isPlural (self):
-        """Return true iff the term might appear multiple times."""
-        if (self.maxOccurs() is None) or 1 < self.maxOccurs():
-            return True
-        # @todo: is this correct?
-        return self.term().isPlural()
+    def effectiveTotalRange (self):
+        """Extend the concept of effective total range to all particles.
+
+        See http://www.w3.org/TR/xmlschema-1/#cos-seq-range
+        """
+        if isinstance(self.__term, ModelGroup):
+            return self.__term.effectiveTotalRange(self)
+        return (self.minOccurs(), self.maxOccurs())
+
+    def isEmptiable (self):
+        """Return C{True} iff this particle can legitimately match an empty
+        sequence (no content).
+
+        See http://www.w3.org/TR/xmlschema-1/#cos-group-emptiable.
+        """
+        return 0 == self.effectiveTotalRange()[0]
 
     def hasWildcardElement (self):
         """Return True iff this particle has a wildcard in its term.
@@ -2798,10 +2843,6 @@ class Wildcard (_SchemaComponent_mixin, _Annotated_mixin):
         """Get the plurality data for this wildcard
         """
         return _PluralityData(self)
-
-    def isPlural (self):
-        """Wildcards are not multi-valued."""
-        return False
 
     def hasWildcardElement (self):
         """Return True, since Wildcard components are wildcards."""
