@@ -285,28 +285,6 @@ class _Resolvable_mixin (pyxb.cscRoot):
             print 'Resolution delayed for %s: %s' % (self, why)
         self._namespaceContext().queueForResolution(self)
 
-    __ResolvingSchema = None
-    @classmethod
-    def _SetResolvingSchema (cls, schema):
-        """Record the schema that is currently being resolved."""
-        cls.__ResolvingSchema = schema
-
-    @classmethod
-    def _ResolvingSchema (cls):
-        """Return the schema currently being resolved.
-
-        We need this so that we can reference the schema
-        C{attributeFormDefault} and C{elementFormDefault} attributes when
-        determining the target namespace for local declarations.  Normally,
-        components are not associated with schemas, only with namespaces, so
-        the component model doesn't provide what's needed to get this
-        information."""
-        return cls.__ResolvingSchema
-
-    def _resolvingSchema (self):
-        """Pass to class-level L{_ResolvingSchema}"""
-        return self._ResolvingSchema()
-
 class NamedObjectMap (dict):
     """An extended dictionary intended to assist with QName resolution.
 
@@ -485,7 +463,7 @@ class _NamespaceResolution_mixin (pyxb.cscRoot):
             self.__unresolvedComponents.append(resolvable)
         return resolvable
 
-    def resolveDefinitions (self, schema):
+    def resolveDefinitions (self):
         """Loop until all references within the associated resolvable objects
         have been resolved.
 
@@ -503,9 +481,6 @@ class _NamespaceResolution_mixin (pyxb.cscRoot):
         @param schema: The schema for which resolution is being performed.
         @type schema: L{pyxb.xmlschema.structures.Schema}
         """
-        assert _Resolvable_mixin._ResolvingSchema() is None
-        assert schema is not None
-        _Resolvable_mixin._SetResolvingSchema(schema)
         num_loops = 0
         while 0 < len(self.__unresolvedComponents):
             # Save the list of unresolved objects, reset the list to capture
@@ -551,7 +526,6 @@ class _NamespaceResolution_mixin (pyxb.cscRoot):
 
         # Remove the namespace context from everything, since we won't be
         # resolving anything else.
-        _Resolvable_mixin._SetResolvingSchema(None)
         self._releaseNamespaceContexts()
 
         return self
@@ -807,6 +781,9 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
     # must be unique for their URI.  See __new__().
     __Registry = { }
 
+    # A set of all absent namespaces created.
+    __AbsentNamespaces = set()
+
     # Optional URI specifying the source for the schema for this namespace
     __schemaLocation = None
 
@@ -877,9 +854,15 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
             instance._reset()
             # Absent namespaces are not stored in the registry.
             if uri is None:
+                cls.__AbsentNamespaces.add(instance)
                 return instance
             cls.__Registry[uri] = instance
         return cls.__Registry[uri]
+
+    @classmethod
+    def AvailableNamespaces (cls):
+        """Return a set of all Namespace instances defined so far."""
+        return cls.__AbsentNamespaces.union(cls.__Registry.values())
 
     def __init__ (self, uri,
                   schema_location=None,
