@@ -1810,7 +1810,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         if 1 == satisfied_predicates:
             if effective_mixed:
                 # Clause 2.1.4
-                assert typedef_node is None
+                assert (typedef_node is None) or test_2_1_2
                 m = ModelGroup(compositor=ModelGroup.C_SEQUENCE, particles=[], **ckw)
                 effective_content = Particle(m, **ckw)
             else:
