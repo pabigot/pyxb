@@ -40,6 +40,7 @@ from pyxb.binding import facets
 from pyxb.utils.domutils import *
 import copy
 import urllib2
+import urlparse
 
 # Make it easier to check node names in the XMLSchema namespace
 from pyxb.namespace import XMLSchema as xsd
@@ -1668,6 +1669,9 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         use_map = { }
         for au in uses_c12.union(uses_c3):
             assert au.isResolved()
+            if not au.attributeDeclaration().isResolved():
+                self._queueForResolution('unresolved attribute declaration from base type')
+                return self
             ad_en = au.attributeDeclaration().expandedName()
             if ad_en in use_map:
                 raise pyxb.SchemaValidationError('Multiple definitions for %s in CTD %s' % (ad_en, self.expandedName()))
@@ -1676,7 +1680,10 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         # Past the last point where we might not resolve this instance.  Store
         # the attribute uses, also recording local attribute declarations.
         self.__attributeUses = frozenset([ _u._adaptForScope(self) for _u in use_map.values() ])
-
+        if not self._scopeIsIndeterminate():
+            for au in self.__attributeUses:
+                assert not au.attributeDeclaration()._scopeIsIndeterminate(), 'indeterminate scope for %s' % (au,)
+        
         # @todo: Handle attributeWildcard
         # Clause 1
         local_wildcard = None
@@ -3936,6 +3943,15 @@ class _ImportElementInformationItem (_Annotated_mixin):
         return self.__id
     __id = None
 
+    __Bookmarks = set()
+    @classmethod
+    def _BookmarkIngest (cls, schema_uri):
+        if schema_uri in cls.__Bookmarks:
+            return True
+        print 'INGEST %s' % (schema_uri,)
+        cls.__Bookmarks.add(schema_uri)
+        return False
+
     def namespace (self):
         """The Namespace instance corresponding to the value of the
         namespace attribute from the import statement."""
@@ -3968,6 +3984,10 @@ class _ImportElementInformationItem (_Annotated_mixin):
         return self.__schema
     __schema = None
 
+    def redundant (self):
+        return self.__redundant
+    __redundant = None
+
     def __init__ (self, schema, node, **kw):
         super(_ImportElementInformationItem, self).__init__(**kw)
         uri = NodeAttribute(node, 'namespace')
@@ -3975,6 +3995,7 @@ class _ImportElementInformationItem (_Annotated_mixin):
             raise pyxb.IncompleteImplementationError('import statements without namespace not supported')
         self.__schemaLocation = NodeAttribute(node, 'schemaLocation')
         self.__namespace = pyxb.namespace.NamespaceForURI(uri, create_if_missing=True)
+        self.__redundant = False
         if uri in pyxb.namespace.AvailableForLoad():
             try:
                 self.__namespace.validateComponentModel()
@@ -3983,15 +4004,26 @@ class _ImportElementInformationItem (_Annotated_mixin):
 
             # @todo: validate that something got loaded
         elif self.schemaLocation() is not None:
-            print 'Attempt to read %s from %s' % (uri, self.schemaLocation())
+            schema_uri = urlparse.urljoin(schema.schemaLocation(), self.__schemaLocation)
+            print 'import %s + %s = %s' % (schema.schemaLocation(), self.__schemaLocation, schema_uri)
+            if self._BookmarkIngest(schema_uri):
+                print 'SKIPPING REDUNDANT IMPORT of %s' % (schema_uri,)
+                self.__redundant = True
+                return None
+            #raise pyxb.NamespaceError('Please generate bindings for namespace %s available at %s, prefix %s' % (uri, schema_uri, '??'))
             ns_ctx = pyxb.namespace.NamespaceContext.GetNodeContext(node)
+            xmls = None
             try:
-                xmls = urllib2.urlopen(self.schemaLocation()).read()
-            except ValueError, e:
-                print 'Caught with urllib: %s' % (e,)
-                xmls = open(self.schemaLocation()).read()
+                if 0 <= schema_uri.find(':'):
+                    xmls = urllib2.urlopen(schema_uri).read()
+                else:
+                    xmls = file(schema_uri).read()
+                    
+            except Exception, e:
+                print 'IMPORT %s caught: %s' % (schema_uri, e)
+                raise
             dom = StringToDOM(xmls)
-            self.__schema = Schema.CreateFromDOM(dom, ns_ctx)
+            self.__schema = Schema.CreateFromDOM(dom, ns_ctx, schema_location=schema_uri)
 
         self._annotationFromDOM(node)
 
@@ -4002,6 +4034,19 @@ class Schema (_SchemaComponent_mixin):
     # True when we have started seeing elements, attributes, or
     # notations.
     __pastProlog = False
+
+    def schemaLocation (self):
+        """URI or path to where the schema can be found.
+
+        For schema created by a user, the location should be provided to the
+        constructor using the C{schema_location} keyword.  In the case of
+        imported or included schema, the including schema's location is used
+        as the base URI for determining the absolute URI of the included
+        schema from its (possibly relative) schemaLocation value.  For files,
+        the scheme and authority portions are generally absent, as is often
+        the abs_path part."""
+        return self.__schemaLocation
+    __schemaLocation = None
 
     def targetNamespace (self):
         """The targetNamespace of a componen.
@@ -4060,7 +4105,9 @@ class Schema (_SchemaComponent_mixin):
         return frozenset()
 
     def orderedComponents (self):
-        assert self.completedResolution()
+        if not self.completedResolution():
+            self.targetNamespace().resolveDefinitions()
+        assert self.completedResolution(), '%s has not completed resolution' % (self.targetNamespace().uri(),)
         return self.targetNamespace().orderedComponents(self.__ComponentOrder)
 
     def completedResolution (self):
@@ -4108,6 +4155,10 @@ class Schema (_SchemaComponent_mixin):
 
     def __init__ (self, *args, **kw):
         assert 'schema' not in kw
+        self.__schemaLocation = kw.get('schema_location', None)
+        if self.__schemaLocation is not None:
+            redundant = _ImportElementInformationItem._BookmarkIngest(self.__schemaLocation)
+            #assert not redundant
         super(Schema, self).__init__(*args, **kw)
         self.__targetNamespace = kw.get('target_namespace', self._namespaceContext().targetNamespace())
         if not isinstance(self.__targetNamespace, pyxb.namespace.Namespace):
@@ -4138,7 +4189,7 @@ class Schema (_SchemaComponent_mixin):
 
     # @todo: put these in base class
     @classmethod
-    def CreateFromDOM (cls, node, namespace_context=None, inherit_default_namespace=False, skip_resolution=False):
+    def CreateFromDOM (cls, node, namespace_context=None, inherit_default_namespace=False, skip_resolution=False, schema_location=None):
         """Take the root element of the document, and scan its attributes under
         the assumption it is an XMLSchema schema element.  That means
         recognize namespace declarations and process them.  Also look for
@@ -4157,7 +4208,7 @@ class Schema (_SchemaComponent_mixin):
 
         tns = ns_ctx.targetNamespace()
         assert tns is not None
-        schema = cls(namespace_context=ns_ctx)
+        schema = cls(namespace_context=ns_ctx, schema_location=schema_location)
         schema.__namespaceData = ns_ctx
             
         assert schema.targetNamespace() == ns_ctx.targetNamespace()
@@ -4194,6 +4245,8 @@ class Schema (_SchemaComponent_mixin):
                 # NOTATION_NODE
                 print 'Ignoring non-element: %s' % (cn,)
 
+        # @todo: Hold off on resolution until we've finished all
+        # include/import processing.
         if not skip_resolution:
             schema.targetNamespace().resolveDefinitions(schema)
 
@@ -4286,14 +4339,27 @@ class Schema (_SchemaComponent_mixin):
     def __processInclude (self, node):
         self.__requireInProlog(node.nodeName)
         # See section 4.2.1 of Structures.
-        uri = NodeAttribute(node, 'schemaLocation')
-        if 0 <= uri.find(':'):
-            source = urllib2.urlopen(uri)
-        else:
-            source = file(uri)
-        xml = source.read()
-        included_schema = self.CreateFromDOM(StringToDOM(xml), self.__namespaceData, inherit_default_namespace=True, skip_resolution=True)
-        print '%s completed including %s' % (object.__str__(self), object.__str__(included_schema))
+        rel_uri = NodeAttribute(node, 'schemaLocation')
+        abs_uri = urlparse.urljoin(self.__schemaLocation, rel_uri)
+        if 0 > abs_uri.find(':'):
+            abs_uri = os.path.realpath(abs_uri)
+        print 'include %s + %s = %s' % (self.__schemaLocation, rel_uri, abs_uri)
+        if _ImportElementInformationItem._BookmarkIngest(abs_uri):
+            print 'WARNING: Not including %s multiple times' % (abs_uri,)
+            return node
+        included_schema = None
+        try:
+            if 0 <= abs_uri.find(':'):
+                source = urllib2.urlopen(abs_uri)
+            else:
+                source = file(abs_uri)
+            xml = source.read()
+            included_schema = self.CreateFromDOM(StringToDOM(xml), self.__namespaceData, inherit_default_namespace=True, skip_resolution=True, schema_location=abs_uri)
+        except Exception, e:
+            print 'INCLUDE %s caught: %s' % (abs_uri, e)
+            #traceback.print_exception(*sys.exc_info())
+            raise
+        print '%s completed including %s from %s' % (self.__schemaLocation, included_schema.targetNamespace(), abs_uri)
         assert self.targetNamespace() == included_schema.targetNamespace()
         #print xml
         return node
@@ -4307,15 +4373,16 @@ class Schema (_SchemaComponent_mixin):
 
         self.__requireInProlog(node.nodeName)
         import_eii = _ImportElementInformationItem(self, node)
-        ns_map = pyxb.namespace.NamespaceContext.GetNodeContext(node).inScopeNamespaces()
-        for (pfx, ns) in ns_map.items():
-            if import_eii.namespace() == ns:
-                import_eii.setPrefix(pfx)
-                break
-        if import_eii.prefix() is None:
-            print 'NO PREFIX FOR %s'
-        print 'Imported %s, prefix %s, %d types' % (import_eii.namespace().uri(), import_eii.prefix(), len(import_eii.namespace().typeDefinitions()))
-        self.__importedNamespaces.append(import_eii)
+        if not import_eii.redundant():
+            ns_map = pyxb.namespace.NamespaceContext.GetNodeContext(node).inScopeNamespaces()
+            for (pfx, ns) in ns_map.items():
+                if import_eii.namespace() == ns:
+                    import_eii.setPrefix(pfx)
+                    break
+            if import_eii.prefix() is None:
+                print 'NO PREFIX FOR %s'
+            print 'Imported %s, prefix %s, %d types, back to %s' % (import_eii.namespace().uri(), import_eii.prefix(), len(import_eii.namespace().typeDefinitions()), self.__schemaLocation)
+            self.__importedNamespaces.append(import_eii)
         return node
 
     def __processRedefine (self, node):
@@ -4352,11 +4419,12 @@ class Schema (_SchemaComponent_mixin):
 
     def __replaceUnresolvedDefinition (self, existing_def, replacement_def):
         unresolved_components = self.targetNamespace()._unresolvedComponents()
+        assert existing_def != replacement_def
         if existing_def in unresolved_components:
             unresolved_components.remove(existing_def)
-            assert replacement_def not in unresolved_components
-            assert isinstance(replacement_def, pyxb.namespace._Resolvable_mixin)
-            unresolved_components.append(replacement_def)
+            if replacement_def not in unresolved_components:
+                assert isinstance(replacement_def, pyxb.namespace._Resolvable_mixin)
+                unresolved_components.append(replacement_def)
         # Throw away the reference to the previous component and use
         # the replacement one
         return self.targetNamespace()._replaceComponent(existing_def, replacement_def)
