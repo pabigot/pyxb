@@ -347,12 +347,11 @@ class _NamedComponent_mixin (pyxb.cscRoot):
     def _belongsToNamespace (self, ns):
         """Return C{True} if this component belongs to the given namespace.
 
-        Not just as simple as checking for target namespace equality: clones
-        of objects from other namespaces retain their target namespace, but
-        are still local if they're in scope of a component in the
-        namespace.  Have C{None} as a namespace is as good as matching."""
-        if isinstance(self._scope(), ComplexTypeDefinition):
-            return self._scope()._belongsToNamespace(ns)
+        It's also allowed to have there be no associated namespace (but not an
+        absent namespace).  Be aware that cross-namespace inheritance means
+        you will get references to elements in another namespace when
+        generating code for a subclass; that's fine, and those references are
+        not re-generated locally."""
         return self.targetNamespace() in (ns, None)
 
     def expandedName (self):
@@ -4108,6 +4107,7 @@ class Schema (_SchemaComponent_mixin):
     def orderedComponents (self):
         if not self.completedResolution():
             self.targetNamespace().resolveDefinitions()
+        # This can fail if there are dependences on other unresolved namespaces.
         assert self.completedResolution(), '%s has not completed resolution' % (self.targetNamespace().uri(),)
         return self.targetNamespace().orderedComponents(self.__ComponentOrder)
 
@@ -4190,7 +4190,7 @@ class Schema (_SchemaComponent_mixin):
 
     # @todo: put these in base class
     @classmethod
-    def CreateFromDOM (cls, node, namespace_context=None, inherit_default_namespace=False, skip_resolution=False, schema_location=None):
+    def CreateFromDOM (cls, node, namespace_context=None, inherit_default_namespace=False, schema_location=None):
         """Take the root element of the document, and scan its attributes under
         the assumption it is an XMLSchema schema element.  That means
         recognize namespace declarations and process them.  Also look for
@@ -4246,11 +4246,9 @@ class Schema (_SchemaComponent_mixin):
                 # NOTATION_NODE
                 print 'Ignoring non-element: %s' % (cn,)
 
-        # @todo: Hold off on resolution until we've finished all
-        # include/import processing.
-        if not skip_resolution:
-            schema.targetNamespace().resolveDefinitions(schema)
-
+        # Do not perform resolution yet: we may be done with this schema, but
+        # the namespace may incorporate additional ones, and we can't resolve
+        # until everything's present.
         return schema
 
     _SA_All = '#all'
@@ -4355,7 +4353,7 @@ class Schema (_SchemaComponent_mixin):
             else:
                 source = file(abs_uri)
             xml = source.read()
-            included_schema = self.CreateFromDOM(StringToDOM(xml), self.__namespaceData, inherit_default_namespace=True, skip_resolution=True, schema_location=abs_uri)
+            included_schema = self.CreateFromDOM(StringToDOM(xml), self.__namespaceData, inherit_default_namespace=True, schema_location=abs_uri)
         except Exception, e:
             print 'INCLUDE %s caught: %s' % (abs_uri, e)
             #traceback.print_exception(*sys.exc_info())

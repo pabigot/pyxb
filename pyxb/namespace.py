@@ -463,7 +463,7 @@ class _NamespaceResolution_mixin (pyxb.cscRoot):
             self.__unresolvedComponents.append(resolvable)
         return resolvable
 
-    def resolveDefinitions (self):
+    def resolveDefinitions (self, allow_unresolved=False):
         """Loop until all references within the associated resolvable objects
         have been resolved.
 
@@ -482,6 +482,9 @@ class _NamespaceResolution_mixin (pyxb.cscRoot):
         @type schema: L{pyxb.xmlschema.structures.Schema}
         """
         num_loops = 0
+        if self.__unresolvedComponents is None:
+            return True
+        
         while 0 < len(self.__unresolvedComponents):
             # Save the list of unresolved objects, reset the list to capture
             # any new objects defined during resolution, and attempt the
@@ -506,6 +509,8 @@ class _NamespaceResolution_mixin (pyxb.cscRoot):
                 if (resolvable.isResolved() and (resolvable._clones() is not None)):
                     assert False
             if self.__unresolvedComponents == unresolved:
+                if allow_unresolved:
+                    return False
                 # This only happens if we didn't code things right, or the
                 # schema actually has a circular dependency in some named
                 # component.
@@ -524,11 +529,14 @@ class _NamespaceResolution_mixin (pyxb.cscRoot):
         # attempts to subsequently add another component fail.
         self.__unresolvedComponents = None
 
+        # NOTE: Dependencies may require that we keep these around for a while
+        # longer.
+        #
         # Remove the namespace context from everything, since we won't be
         # resolving anything else.
         self._releaseNamespaceContexts()
 
-        return self
+        return True
     
     def _unresolvedComponents (self):
         """Returns a reference to the list of unresolved components."""
@@ -677,7 +685,9 @@ class _NamespaceComponentAssociation_mixin (pyxb.cscRoot):
                 # namespace.  Components that belong to no namespace are
                 # presumably local to a type in this namespace.
                 try:
-                    assert td._belongsToNamespace(self)
+                    if not td._belongsToNamespace(self):
+                        print '*** belongtonamespace'
+                        continue
                 except AttributeError:
                     # Unnamed things don't get discarded this way
                     pass

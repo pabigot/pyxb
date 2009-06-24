@@ -147,6 +147,19 @@ ns.setModulePath(module_path)
 # Save binding source first, so name-in-binding is stored in the
 # parsed schema file
 try:
+    nslist = pyxb.namespace.Namespace.AvailableNamespaces()
+    while nslist:
+        new_nslist = set()
+        while nslist:
+            ns = nslist.pop()
+            print 'Attempting resolution %s' % (ns.uri(),)
+            if not ns.resolveDefinitions(allow_unresolved=True):
+                print 'Holding incomplete resolution %s' % (ns.uri(),)
+                new_nslist.add(ns)
+        nslist = new_nslist
+
+    print "Imported:\n%s\nEnd of imports" % ("\n".join([ _ins.namespace().uri() for _ins in wxs.importedNamespaces() ]),)
+    print "Identified:\n%s\nEnd of identified" % ("\n".join([ str(_ns.uri()) for _ns in pyxb.namespace.Namespace.AvailableNamespaces() ]),)
     for ins in wxs.importedNamespaces():
         if ins.schema() is not None:
             ns = ins.namespace()
@@ -177,6 +190,10 @@ if save_component_model:
     except Exception, e:
         print 'Exception saving preprocessed schema to %s: %s' % (component_model_file, e)
         traceback.print_exception(*sys.exc_info())
+        try:
+            os.unlink(component_model_file)
+        except:
+            pass
         sys.exit(2)
 
 # LocalVariables:
