@@ -41,6 +41,7 @@ from pyxb.utils.domutils import *
 import copy
 import urllib2
 import urlparse
+import os.path
 
 # Make it easier to check node names in the XMLSchema namespace
 from pyxb.namespace import XMLSchema as xsd

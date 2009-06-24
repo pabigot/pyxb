@@ -136,10 +136,10 @@ dom = doc.documentElement
 
 if uri_is_wsdl:
     import pyxb.standard.bindings.wsdl as wsdl
-    spec = wsdl.definitions.createFromDOM(dom, process_schema=True)
+    spec = wsdl.definitions.createFromDOM(dom, process_schema=True, wsdl_location=schema_uri)
     wxs = spec.schema()
 else:
-    wxs = pyxb.xmlschema.schema.CreateFromDOM(dom)
+    wxs = pyxb.xmlschema.schema.CreateFromDOM(dom, schema_location=schema_uri)
 
 ns = wxs.targetNamespace()
 ns.setModulePath(module_path)
