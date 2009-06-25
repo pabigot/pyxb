@@ -1125,6 +1125,7 @@ class AttributeUse (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin, _V
 
         return self
 
+    # aFS:AU
     def _adaptForScope (self, ctd):
         """Adapt this instance for the given complex type.
 
@@ -2714,10 +2715,11 @@ class Particle (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin):
         #print 'aFS:PRT - %s' % (ctd.expandedName(),)
         rv = self
         assert isinstance(ctd, ComplexTypeDefinition)
-        term = rv.__term._adaptForScope(rv, ctd)
+        maybe_rv = self._clone(owner)
+        term = rv.__term._adaptForScope(maybe_rv, ctd)
         do_clone = (self._scope() != ctd) or (rv.__term != term)
         if  do_clone:
-            rv = self._clone(owner)
+            rv = maybe_rv
             rv.__term = term
         return rv
 
@@ -2917,6 +2919,7 @@ class Wildcard (_SchemaComponent_mixin, _Annotated_mixin):
     def isDeepResolved (self):
         return True
 
+    # aFS:WC
     def _adaptForScope (self, owner, ctd):
         """Wildcards are scope-independent; return self"""
         return self
