@@ -452,7 +452,7 @@ class _NamespaceResolution_mixin (pyxb.cscRoot):
         self.__unresolvedComponents = []
         self.__importedNamespaces = set()
 
-    def addNamespaceImport (self, namespace):
+    def importNamespace (self, namespace):
         self.__importedNamespaces.add(namespace)
         return self
 
@@ -801,6 +801,10 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
     # xml and xmlns.
     __boundPrefix = None
 
+    # A prefix set as a preferred prefix, generally by processing a namespace
+    # declaration.
+    __prefix = None
+
     # A map from URIs to Namespace instances.  Namespaces instances
     # must be unique for their URI.  See __new__().
     __Registry = { }
@@ -942,6 +946,17 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
         declarations not associated with a namespace (e.g., from schema with
         no target namespace)."""
         return self.__uri
+
+    def setPrefix (self, prefix):
+        if self.__boundPrefix is not None:
+            raise pyxb.NamespaceError('Cannot change the prefix of a bound namespace')
+        self.__prefix = prefix
+        return self
+
+    def prefix (self):
+        if self.__boundPrefix:
+            return self.__boundPrefix
+        return self.__prefix
 
     def isAbsentNamespace (self):
         """Return True iff this namespace is an absent namespace.

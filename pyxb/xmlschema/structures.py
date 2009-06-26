@@ -3981,6 +3981,8 @@ class _ImportElementInformationItem (_Annotated_mixin):
     def setPrefix (self, prefix):
         """Allow override of the import prefix."""
         self.__prefix = prefix
+        if self.namespace().prefix() is None:
+            self.namespace().setPrefix(prefix)
     __prefix = None
     
     def schema (self):
@@ -4027,6 +4029,8 @@ class _ImportElementInformationItem (_Annotated_mixin):
                 raise
             dom = StringToDOM(xmls)
             self.__schema = Schema.CreateFromDOM(dom, ns_ctx, schema_location=schema_uri)
+        else:
+            print 'WARNING: No information available on imported namespace %s' % (uri,)
 
         self._annotationFromDOM(node)
 
@@ -4384,6 +4388,7 @@ class Schema (_SchemaComponent_mixin):
             if import_eii.prefix() is None:
                 print 'NO PREFIX FOR %s'
             print 'Imported %s, prefix %s, %d types, back to %s' % (import_eii.namespace().uri(), import_eii.prefix(), len(import_eii.namespace().typeDefinitions()), self.__schemaLocation)
+            self.targetNamespace().importNamespace(import_eii.namespace())
             self.__importedNamespaces.append(import_eii)
         return node
 
