@@ -1,0 +1,348 @@
+INGEST iso19139/gco/gco.xsd
+include iso19139/gco/gco.xsd + ../gco/basicTypes.xsd = /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gco/basicTypes.xsd
+INGEST /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gco/basicTypes.xsd
+import /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gco/basicTypes.xsd + ../../gml/gml.xsd = /home/pab/pyxb/dev/bugs/XMLSchemas/gml/gml.xsd
+INGEST /home/pab/pyxb/dev/bugs/XMLSchemas/gml/gml.xsd
+include /home/pab/pyxb/dev/bugs/XMLSchemas/gml/gml.xsd + dynamicFeature.xsd = /home/pab/pyxb/dev/bugs/XMLSchemas/gml/dynamicFeature.xsd
+INGEST /home/pab/pyxb/dev/bugs/XMLSchemas/gml/dynamicFeature.xsd
+include /home/pab/pyxb/dev/bugs/XMLSchemas/gml/dynamicFeature.xsd + feature.xsd = /home/pab/pyxb/dev/bugs/XMLSchemas/gml/feature.xsd
+INGEST /home/pab/pyxb/dev/bugs/XMLSchemas/gml/feature.xsd
+include /home/pab/pyxb/dev/bugs/XMLSchemas/gml/feature.xsd + geometryAggregates.xsd = /home/pab/pyxb/dev/bugs/XMLSchemas/gml/geometryAggregates.xsd
+INGEST /home/pab/pyxb/dev/bugs/XMLSchemas/gml/geometryAggregates.xsd
+include /home/pab/pyxb/dev/bugs/XMLSchemas/gml/geometryAggregates.xsd + geometryPrimitives.xsd = /home/pab/pyxb/dev/bugs/XMLSchemas/gml/geometryPrimitives.xsd
+INGEST /home/pab/pyxb/dev/bugs/XMLSchemas/gml/geometryPrimitives.xsd
+include /home/pab/pyxb/dev/bugs/XMLSchemas/gml/geometryPrimitives.xsd + geometryBasic2d.xsd = /home/pab/pyxb/dev/bugs/XMLSchemas/gml/geometryBasic2d.xsd
+INGEST /home/pab/pyxb/dev/bugs/XMLSchemas/gml/geometryBasic2d.xsd
+include /home/pab/pyxb/dev/bugs/XMLSchemas/gml/geometryBasic2d.xsd + geometryBasic0d1d.xsd = /home/pab/pyxb/dev/bugs/XMLSchemas/gml/geometryBasic0d1d.xsd
+INGEST /home/pab/pyxb/dev/bugs/XMLSchemas/gml/geometryBasic0d1d.xsd
+include /home/pab/pyxb/dev/bugs/XMLSchemas/gml/geometryBasic0d1d.xsd + measures.xsd = /home/pab/pyxb/dev/bugs/XMLSchemas/gml/measures.xsd
+INGEST /home/pab/pyxb/dev/bugs/XMLSchemas/gml/measures.xsd
+include /home/pab/pyxb/dev/bugs/XMLSchemas/gml/measures.xsd + units.xsd = /home/pab/pyxb/dev/bugs/XMLSchemas/gml/units.xsd
+INGEST /home/pab/pyxb/dev/bugs/XMLSchemas/gml/units.xsd
+include /home/pab/pyxb/dev/bugs/XMLSchemas/gml/units.xsd + dictionary.xsd = /home/pab/pyxb/dev/bugs/XMLSchemas/gml/dictionary.xsd
+INGEST /home/pab/pyxb/dev/bugs/XMLSchemas/gml/dictionary.xsd
+include /home/pab/pyxb/dev/bugs/XMLSchemas/gml/dictionary.xsd + gmlBase.xsd = /home/pab/pyxb/dev/bugs/XMLSchemas/gml/gmlBase.xsd
+INGEST /home/pab/pyxb/dev/bugs/XMLSchemas/gml/gmlBase.xsd
+include /home/pab/pyxb/dev/bugs/XMLSchemas/gml/gmlBase.xsd + basicTypes.xsd = /home/pab/pyxb/dev/bugs/XMLSchemas/gml/basicTypes.xsd
+INGEST /home/pab/pyxb/dev/bugs/XMLSchemas/gml/basicTypes.xsd
+/home/pab/pyxb/dev/bugs/XMLSchemas/gml/gmlBase.xsd completed including http://www.opengis.net/gml from /home/pab/pyxb/dev/bugs/XMLSchemas/gml/basicTypes.xsd
+Attempting to load a namespace from /home/pab/pyxb/dev/bugs/XMLSchemas/bindings/xlinks.wxs
+Imported http://www.w3.org/1999/xlink, prefix xlink, 0 types, back to /home/pab/pyxb/dev/bugs/XMLSchemas/gml/gmlBase.xsd
+/home/pab/pyxb/dev/bugs/XMLSchemas/gml/dictionary.xsd completed including http://www.opengis.net/gml from /home/pab/pyxb/dev/bugs/XMLSchemas/gml/gmlBase.xsd
+/home/pab/pyxb/dev/bugs/XMLSchemas/gml/units.xsd completed including http://www.opengis.net/gml from /home/pab/pyxb/dev/bugs/XMLSchemas/gml/dictionary.xsd
+/home/pab/pyxb/dev/bugs/XMLSchemas/gml/measures.xsd completed including http://www.opengis.net/gml from /home/pab/pyxb/dev/bugs/XMLSchemas/gml/units.xsd
+/home/pab/pyxb/dev/bugs/XMLSchemas/gml/geometryBasic0d1d.xsd completed including http://www.opengis.net/gml from /home/pab/pyxb/dev/bugs/XMLSchemas/gml/measures.xsd
+/home/pab/pyxb/dev/bugs/XMLSchemas/gml/geometryBasic2d.xsd completed including http://www.opengis.net/gml from /home/pab/pyxb/dev/bugs/XMLSchemas/gml/geometryBasic0d1d.xsd
+/home/pab/pyxb/dev/bugs/XMLSchemas/gml/geometryPrimitives.xsd completed including http://www.opengis.net/gml from /home/pab/pyxb/dev/bugs/XMLSchemas/gml/geometryBasic2d.xsd
+/home/pab/pyxb/dev/bugs/XMLSchemas/gml/geometryAggregates.xsd completed including http://www.opengis.net/gml from /home/pab/pyxb/dev/bugs/XMLSchemas/gml/geometryPrimitives.xsd
+/home/pab/pyxb/dev/bugs/XMLSchemas/gml/feature.xsd completed including http://www.opengis.net/gml from /home/pab/pyxb/dev/bugs/XMLSchemas/gml/geometryAggregates.xsd
+include /home/pab/pyxb/dev/bugs/XMLSchemas/gml/feature.xsd + temporal.xsd = /home/pab/pyxb/dev/bugs/XMLSchemas/gml/temporal.xsd
+INGEST /home/pab/pyxb/dev/bugs/XMLSchemas/gml/temporal.xsd
+include /home/pab/pyxb/dev/bugs/XMLSchemas/gml/temporal.xsd + gmlBase.xsd = /home/pab/pyxb/dev/bugs/XMLSchemas/gml/gmlBase.xsd
+WARNING: Not including /home/pab/pyxb/dev/bugs/XMLSchemas/gml/gmlBase.xsd multiple times
+/home/pab/pyxb/dev/bugs/XMLSchemas/gml/feature.xsd completed including http://www.opengis.net/gml from /home/pab/pyxb/dev/bugs/XMLSchemas/gml/temporal.xsd
+/home/pab/pyxb/dev/bugs/XMLSchemas/gml/dynamicFeature.xsd completed including http://www.opengis.net/gml from /home/pab/pyxb/dev/bugs/XMLSchemas/gml/feature.xsd
+include /home/pab/pyxb/dev/bugs/XMLSchemas/gml/dynamicFeature.xsd + direction.xsd = /home/pab/pyxb/dev/bugs/XMLSchemas/gml/direction.xsd
+INGEST /home/pab/pyxb/dev/bugs/XMLSchemas/gml/direction.xsd
+include /home/pab/pyxb/dev/bugs/XMLSchemas/gml/direction.xsd + geometryBasic0d1d.xsd = /home/pab/pyxb/dev/bugs/XMLSchemas/gml/geometryBasic0d1d.xsd
+WARNING: Not including /home/pab/pyxb/dev/bugs/XMLSchemas/gml/geometryBasic0d1d.xsd multiple times
+/home/pab/pyxb/dev/bugs/XMLSchemas/gml/dynamicFeature.xsd completed including http://www.opengis.net/gml from /home/pab/pyxb/dev/bugs/XMLSchemas/gml/direction.xsd
+/home/pab/pyxb/dev/bugs/XMLSchemas/gml/gml.xsd completed including http://www.opengis.net/gml from /home/pab/pyxb/dev/bugs/XMLSchemas/gml/dynamicFeature.xsd
+include /home/pab/pyxb/dev/bugs/XMLSchemas/gml/gml.xsd + topology.xsd = /home/pab/pyxb/dev/bugs/XMLSchemas/gml/topology.xsd
+INGEST /home/pab/pyxb/dev/bugs/XMLSchemas/gml/topology.xsd
+include /home/pab/pyxb/dev/bugs/XMLSchemas/gml/topology.xsd + geometryComplexes.xsd = /home/pab/pyxb/dev/bugs/XMLSchemas/gml/geometryComplexes.xsd
+INGEST /home/pab/pyxb/dev/bugs/XMLSchemas/gml/geometryComplexes.xsd
+include /home/pab/pyxb/dev/bugs/XMLSchemas/gml/geometryComplexes.xsd + geometryAggregates.xsd = /home/pab/pyxb/dev/bugs/XMLSchemas/gml/geometryAggregates.xsd
+WARNING: Not including /home/pab/pyxb/dev/bugs/XMLSchemas/gml/geometryAggregates.xsd multiple times
+/home/pab/pyxb/dev/bugs/XMLSchemas/gml/topology.xsd completed including http://www.opengis.net/gml from /home/pab/pyxb/dev/bugs/XMLSchemas/gml/geometryComplexes.xsd
+/home/pab/pyxb/dev/bugs/XMLSchemas/gml/gml.xsd completed including http://www.opengis.net/gml from /home/pab/pyxb/dev/bugs/XMLSchemas/gml/topology.xsd
+include /home/pab/pyxb/dev/bugs/XMLSchemas/gml/gml.xsd + coverage.xsd = /home/pab/pyxb/dev/bugs/XMLSchemas/gml/coverage.xsd
+INGEST /home/pab/pyxb/dev/bugs/XMLSchemas/gml/coverage.xsd
+include /home/pab/pyxb/dev/bugs/XMLSchemas/gml/coverage.xsd + feature.xsd = /home/pab/pyxb/dev/bugs/XMLSchemas/gml/feature.xsd
+WARNING: Not including /home/pab/pyxb/dev/bugs/XMLSchemas/gml/feature.xsd multiple times
+include /home/pab/pyxb/dev/bugs/XMLSchemas/gml/coverage.xsd + valueObjects.xsd = /home/pab/pyxb/dev/bugs/XMLSchemas/gml/valueObjects.xsd
+INGEST /home/pab/pyxb/dev/bugs/XMLSchemas/gml/valueObjects.xsd
+include /home/pab/pyxb/dev/bugs/XMLSchemas/gml/valueObjects.xsd + geometryBasic0d1d.xsd = /home/pab/pyxb/dev/bugs/XMLSchemas/gml/geometryBasic0d1d.xsd
+WARNING: Not including /home/pab/pyxb/dev/bugs/XMLSchemas/gml/geometryBasic0d1d.xsd multiple times
+include /home/pab/pyxb/dev/bugs/XMLSchemas/gml/valueObjects.xsd + temporal.xsd = /home/pab/pyxb/dev/bugs/XMLSchemas/gml/temporal.xsd
+WARNING: Not including /home/pab/pyxb/dev/bugs/XMLSchemas/gml/temporal.xsd multiple times
+/home/pab/pyxb/dev/bugs/XMLSchemas/gml/coverage.xsd completed including http://www.opengis.net/gml from /home/pab/pyxb/dev/bugs/XMLSchemas/gml/valueObjects.xsd
+include /home/pab/pyxb/dev/bugs/XMLSchemas/gml/coverage.xsd + grids.xsd = /home/pab/pyxb/dev/bugs/XMLSchemas/gml/grids.xsd
+INGEST /home/pab/pyxb/dev/bugs/XMLSchemas/gml/grids.xsd
+include /home/pab/pyxb/dev/bugs/XMLSchemas/gml/grids.xsd + geometryBasic0d1d.xsd = /home/pab/pyxb/dev/bugs/XMLSchemas/gml/geometryBasic0d1d.xsd
+WARNING: Not including /home/pab/pyxb/dev/bugs/XMLSchemas/gml/geometryBasic0d1d.xsd multiple times
+/home/pab/pyxb/dev/bugs/XMLSchemas/gml/coverage.xsd completed including http://www.opengis.net/gml from /home/pab/pyxb/dev/bugs/XMLSchemas/gml/grids.xsd
+include /home/pab/pyxb/dev/bugs/XMLSchemas/gml/coverage.xsd + geometryAggregates.xsd = /home/pab/pyxb/dev/bugs/XMLSchemas/gml/geometryAggregates.xsd
+WARNING: Not including /home/pab/pyxb/dev/bugs/XMLSchemas/gml/geometryAggregates.xsd multiple times
+/home/pab/pyxb/dev/bugs/XMLSchemas/gml/gml.xsd completed including http://www.opengis.net/gml from /home/pab/pyxb/dev/bugs/XMLSchemas/gml/coverage.xsd
+include /home/pab/pyxb/dev/bugs/XMLSchemas/gml/gml.xsd + coordinateReferenceSystems.xsd = /home/pab/pyxb/dev/bugs/XMLSchemas/gml/coordinateReferenceSystems.xsd
+INGEST /home/pab/pyxb/dev/bugs/XMLSchemas/gml/coordinateReferenceSystems.xsd
+include /home/pab/pyxb/dev/bugs/XMLSchemas/gml/coordinateReferenceSystems.xsd + coordinateSystems.xsd = /home/pab/pyxb/dev/bugs/XMLSchemas/gml/coordinateSystems.xsd
+INGEST /home/pab/pyxb/dev/bugs/XMLSchemas/gml/coordinateSystems.xsd
+include /home/pab/pyxb/dev/bugs/XMLSchemas/gml/coordinateSystems.xsd + referenceSystems.xsd = /home/pab/pyxb/dev/bugs/XMLSchemas/gml/referenceSystems.xsd
+INGEST /home/pab/pyxb/dev/bugs/XMLSchemas/gml/referenceSystems.xsd
+include /home/pab/pyxb/dev/bugs/XMLSchemas/gml/referenceSystems.xsd + dictionary.xsd = /home/pab/pyxb/dev/bugs/XMLSchemas/gml/dictionary.xsd
+WARNING: Not including /home/pab/pyxb/dev/bugs/XMLSchemas/gml/dictionary.xsd multiple times
+import /home/pab/pyxb/dev/bugs/XMLSchemas/gml/referenceSystems.xsd + ../iso19139/gmd/gmd.xsd = /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/gmd.xsd
+INGEST /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/gmd.xsd
+include /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/gmd.xsd + ../gmd/metadataApplication.xsd = /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/metadataApplication.xsd
+INGEST /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/metadataApplication.xsd
+Attempting to load a namespace from /home/pab/pyxb/dev/bugs/XMLSchemas/bindings/gco.wxs
+ERROR validating imported namespace http://www.isotc211.org/2005/gco: 
+Imported http://www.isotc211.org/2005/gco, prefix gco, 0 types, back to /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/metadataApplication.xsd
+include /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/metadataApplication.xsd + ../gmd/metadataEntity.xsd = /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/metadataEntity.xsd
+INGEST /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/metadataEntity.xsd
+Attempting to load a namespace from /home/pab/pyxb/dev/bugs/XMLSchemas/bindings/gco.wxs
+ERROR validating imported namespace http://www.isotc211.org/2005/gco: 
+Imported http://www.isotc211.org/2005/gco, prefix gco, 0 types, back to /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/metadataEntity.xsd
+include /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/metadataEntity.xsd + ../gmd/spatialRepresentation.xsd = /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/spatialRepresentation.xsd
+INGEST /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/spatialRepresentation.xsd
+import /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/spatialRepresentation.xsd + ../gss/geometry.xsd = /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gss/geometry.xsd
+INGEST /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gss/geometry.xsd
+import /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gss/geometry.xsd + ../../gml/gml.xsd = /home/pab/pyxb/dev/bugs/XMLSchemas/gml/gml.xsd
+SKIPPING REDUNDANT IMPORT of /home/pab/pyxb/dev/bugs/XMLSchemas/gml/gml.xsd
+Attempting to load a namespace from /home/pab/pyxb/dev/bugs/XMLSchemas/bindings/gco.wxs
+ERROR validating imported namespace http://www.isotc211.org/2005/gco: 
+Imported http://www.isotc211.org/2005/gco, prefix gco, 0 types, back to /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gss/geometry.xsd
+Imported http://www.isotc211.org/2005/gss, prefix gss, 2 types, back to /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/spatialRepresentation.xsd
+Attempting to load a namespace from /home/pab/pyxb/dev/bugs/XMLSchemas/bindings/gco.wxs
+ERROR validating imported namespace http://www.isotc211.org/2005/gco: 
+Imported http://www.isotc211.org/2005/gco, prefix gco, 0 types, back to /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/spatialRepresentation.xsd
+include /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/spatialRepresentation.xsd + ../gmd/citation.xsd = /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/citation.xsd
+INGEST /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/citation.xsd
+Attempting to load a namespace from /home/pab/pyxb/dev/bugs/XMLSchemas/bindings/gco.wxs
+ERROR validating imported namespace http://www.isotc211.org/2005/gco: 
+Imported http://www.isotc211.org/2005/gco, prefix gco, 0 types, back to /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/citation.xsd
+include /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/citation.xsd + ../gmd/referenceSystem.xsd = /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/referenceSystem.xsd
+INGEST /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/referenceSystem.xsd
+Attempting to load a namespace from /home/pab/pyxb/dev/bugs/XMLSchemas/bindings/gco.wxs
+ERROR validating imported namespace http://www.isotc211.org/2005/gco: 
+Imported http://www.isotc211.org/2005/gco, prefix gco, 0 types, back to /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/referenceSystem.xsd
+include /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/referenceSystem.xsd + ../gmd/citation.xsd = /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/citation.xsd
+WARNING: Not including /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/citation.xsd multiple times
+include /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/referenceSystem.xsd + ../gmd/extent.xsd = /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/extent.xsd
+INGEST /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/extent.xsd
+import /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/extent.xsd + ../gss/gss.xsd = /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gss/gss.xsd
+INGEST /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gss/gss.xsd
+include /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gss/gss.xsd + ../gss/geometry.xsd = /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gss/geometry.xsd
+WARNING: Not including /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gss/geometry.xsd multiple times
+Imported http://www.isotc211.org/2005/gss, prefix gss, 2 types, back to /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/extent.xsd
+import /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/extent.xsd + ../gts/gts.xsd = /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gts/gts.xsd
+INGEST /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gts/gts.xsd
+include /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gts/gts.xsd + ../gts/temporalObjects.xsd = /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gts/temporalObjects.xsd
+INGEST /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gts/temporalObjects.xsd
+import /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gts/temporalObjects.xsd + ../../gml/gml.xsd = /home/pab/pyxb/dev/bugs/XMLSchemas/gml/gml.xsd
+SKIPPING REDUNDANT IMPORT of /home/pab/pyxb/dev/bugs/XMLSchemas/gml/gml.xsd
+Attempting to load a namespace from /home/pab/pyxb/dev/bugs/XMLSchemas/bindings/gco.wxs
+ERROR validating imported namespace http://www.isotc211.org/2005/gco: 
+Imported http://www.isotc211.org/2005/gco, prefix gco, 0 types, back to /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gts/temporalObjects.xsd
+/home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gts/gts.xsd completed including http://www.isotc211.org/2005/gts from /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gts/temporalObjects.xsd
+Imported http://www.isotc211.org/2005/gts, prefix gts, 2 types, back to /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/extent.xsd
+Attempting to load a namespace from /home/pab/pyxb/dev/bugs/XMLSchemas/bindings/gco.wxs
+ERROR validating imported namespace http://www.isotc211.org/2005/gco: 
+Imported http://www.isotc211.org/2005/gco, prefix gco, 0 types, back to /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/extent.xsd
+import /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/extent.xsd + ../gsr/gsr.xsd = /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gsr/gsr.xsd
+INGEST /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gsr/gsr.xsd
+include /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gsr/gsr.xsd + ../gsr/spatialReferencing.xsd = /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gsr/spatialReferencing.xsd
+INGEST /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gsr/spatialReferencing.xsd
+Attempting to load a namespace from /home/pab/pyxb/dev/bugs/XMLSchemas/bindings/gco.wxs
+ERROR validating imported namespace http://www.isotc211.org/2005/gco: 
+Imported http://www.isotc211.org/2005/gco, prefix gco, 0 types, back to /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gsr/spatialReferencing.xsd
+import /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gsr/spatialReferencing.xsd + ../../gml/gml.xsd = /home/pab/pyxb/dev/bugs/XMLSchemas/gml/gml.xsd
+SKIPPING REDUNDANT IMPORT of /home/pab/pyxb/dev/bugs/XMLSchemas/gml/gml.xsd
+/home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gsr/gsr.xsd completed including http://www.isotc211.org/2005/gsr from /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gsr/spatialReferencing.xsd
+Imported http://www.isotc211.org/2005/gsr, prefix gsr, 1 types, back to /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/extent.xsd
+include /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/extent.xsd + ../gmd/referenceSystem.xsd = /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/referenceSystem.xsd
+WARNING: Not including /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/referenceSystem.xsd multiple times
+/home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/referenceSystem.xsd completed including http://www.isotc211.org/2005/gmd from /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/extent.xsd
+/home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/citation.xsd completed including http://www.isotc211.org/2005/gmd from /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/referenceSystem.xsd
+/home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/spatialRepresentation.xsd completed including http://www.isotc211.org/2005/gmd from /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/citation.xsd
+/home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/metadataEntity.xsd completed including http://www.isotc211.org/2005/gmd from /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/spatialRepresentation.xsd
+include /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/metadataEntity.xsd + ../gmd/metadataExtension.xsd = /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/metadataExtension.xsd
+INGEST /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/metadataExtension.xsd
+Attempting to load a namespace from /home/pab/pyxb/dev/bugs/XMLSchemas/bindings/gco.wxs
+ERROR validating imported namespace http://www.isotc211.org/2005/gco: 
+Imported http://www.isotc211.org/2005/gco, prefix gco, 0 types, back to /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/metadataExtension.xsd
+include /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/metadataExtension.xsd + ../gmd/citation.xsd = /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/citation.xsd
+WARNING: Not including /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/citation.xsd multiple times
+/home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/metadataEntity.xsd completed including http://www.isotc211.org/2005/gmd from /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/metadataExtension.xsd
+include /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/metadataEntity.xsd + ../gmd/content.xsd = /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/content.xsd
+INGEST /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/content.xsd
+Attempting to load a namespace from /home/pab/pyxb/dev/bugs/XMLSchemas/bindings/gco.wxs
+ERROR validating imported namespace http://www.isotc211.org/2005/gco: 
+Imported http://www.isotc211.org/2005/gco, prefix gco, 0 types, back to /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/content.xsd
+include /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/content.xsd + ../gmd/citation.xsd = /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/citation.xsd
+WARNING: Not including /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/citation.xsd multiple times
+/home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/metadataEntity.xsd completed including http://www.isotc211.org/2005/gmd from /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/content.xsd
+include /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/metadataEntity.xsd + ../gmd/metadataApplication.xsd = /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/metadataApplication.xsd
+WARNING: Not including /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/metadataApplication.xsd multiple times
+include /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/metadataEntity.xsd + ../gmd/applicationSchema.xsd = /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/applicationSchema.xsd
+INGEST /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/applicationSchema.xsd
+Attempting to load a namespace from /home/pab/pyxb/dev/bugs/XMLSchemas/bindings/gco.wxs
+ERROR validating imported namespace http://www.isotc211.org/2005/gco: 
+Imported http://www.isotc211.org/2005/gco, prefix gco, 0 types, back to /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/applicationSchema.xsd
+include /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/applicationSchema.xsd + ../gmd/citation.xsd = /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/citation.xsd
+WARNING: Not including /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/citation.xsd multiple times
+/home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/metadataEntity.xsd completed including http://www.isotc211.org/2005/gmd from /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/applicationSchema.xsd
+include /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/metadataEntity.xsd + ../gmd/portrayalCatalogue.xsd = /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/portrayalCatalogue.xsd
+INGEST /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/portrayalCatalogue.xsd
+Attempting to load a namespace from /home/pab/pyxb/dev/bugs/XMLSchemas/bindings/gco.wxs
+ERROR validating imported namespace http://www.isotc211.org/2005/gco: 
+Imported http://www.isotc211.org/2005/gco, prefix gco, 0 types, back to /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/portrayalCatalogue.xsd
+include /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/portrayalCatalogue.xsd + ../gmd/citation.xsd = /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/citation.xsd
+WARNING: Not including /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/citation.xsd multiple times
+/home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/metadataEntity.xsd completed including http://www.isotc211.org/2005/gmd from /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/portrayalCatalogue.xsd
+include /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/metadataEntity.xsd + ../gmd/dataQuality.xsd = /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/dataQuality.xsd
+INGEST /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/dataQuality.xsd
+Attempting to load a namespace from /home/pab/pyxb/dev/bugs/XMLSchemas/bindings/gco.wxs
+ERROR validating imported namespace http://www.isotc211.org/2005/gco: 
+Imported http://www.isotc211.org/2005/gco, prefix gco, 0 types, back to /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/dataQuality.xsd
+include /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/dataQuality.xsd + ../gmd/identification.xsd = /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/identification.xsd
+INGEST /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/identification.xsd
+Attempting to load a namespace from /home/pab/pyxb/dev/bugs/XMLSchemas/bindings/gco.wxs
+ERROR validating imported namespace http://www.isotc211.org/2005/gco: 
+Imported http://www.isotc211.org/2005/gco, prefix gco, 0 types, back to /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/identification.xsd
+include /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/identification.xsd + ../gmd/constraints.xsd = /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/constraints.xsd
+INGEST /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/constraints.xsd
+Attempting to load a namespace from /home/pab/pyxb/dev/bugs/XMLSchemas/bindings/gco.wxs
+ERROR validating imported namespace http://www.isotc211.org/2005/gco: 
+Imported http://www.isotc211.org/2005/gco, prefix gco, 0 types, back to /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/constraints.xsd
+/home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/identification.xsd completed including http://www.isotc211.org/2005/gmd from /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/constraints.xsd
+include /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/identification.xsd + ../gmd/distribution.xsd = /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/distribution.xsd
+INGEST /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/distribution.xsd
+Attempting to load a namespace from /home/pab/pyxb/dev/bugs/XMLSchemas/bindings/gco.wxs
+ERROR validating imported namespace http://www.isotc211.org/2005/gco: 
+Imported http://www.isotc211.org/2005/gco, prefix gco, 0 types, back to /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/distribution.xsd
+include /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/distribution.xsd + ../gmd/citation.xsd = /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/citation.xsd
+WARNING: Not including /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/citation.xsd multiple times
+/home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/identification.xsd completed including http://www.isotc211.org/2005/gmd from /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/distribution.xsd
+include /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/identification.xsd + ../gmd/maintenance.xsd = /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/maintenance.xsd
+INGEST /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/maintenance.xsd
+import /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/maintenance.xsd + ../gts/gts.xsd = /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gts/gts.xsd
+SKIPPING REDUNDANT IMPORT of /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gts/gts.xsd
+Attempting to load a namespace from /home/pab/pyxb/dev/bugs/XMLSchemas/bindings/gco.wxs
+ERROR validating imported namespace http://www.isotc211.org/2005/gco: 
+Imported http://www.isotc211.org/2005/gco, prefix gco, 0 types, back to /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/maintenance.xsd
+include /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/maintenance.xsd + ../gmd/citation.xsd = /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/citation.xsd
+WARNING: Not including /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/citation.xsd multiple times
+/home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/identification.xsd completed including http://www.isotc211.org/2005/gmd from /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/maintenance.xsd
+/home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/dataQuality.xsd completed including http://www.isotc211.org/2005/gmd from /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/identification.xsd
+/home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/metadataEntity.xsd completed including http://www.isotc211.org/2005/gmd from /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/dataQuality.xsd
+include /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/metadataEntity.xsd + ../gmd/freeText.xsd = /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/freeText.xsd
+INGEST /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/freeText.xsd
+Attempting to load a namespace from /home/pab/pyxb/dev/bugs/XMLSchemas/bindings/gco.wxs
+ERROR validating imported namespace http://www.isotc211.org/2005/gco: 
+Imported http://www.isotc211.org/2005/gco, prefix gco, 0 types, back to /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/freeText.xsd
+include /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/freeText.xsd + ../gmd/identification.xsd = /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/identification.xsd
+WARNING: Not including /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/identification.xsd multiple times
+/home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/metadataEntity.xsd completed including http://www.isotc211.org/2005/gmd from /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/freeText.xsd
+/home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/metadataApplication.xsd completed including http://www.isotc211.org/2005/gmd from /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/metadataEntity.xsd
+/home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/gmd.xsd completed including http://www.isotc211.org/2005/gmd from /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/metadataApplication.xsd
+Imported http://www.isotc211.org/2005/gmd, prefix gmd, 236 types, back to /home/pab/pyxb/dev/bugs/XMLSchemas/gml/referenceSystems.xsd
+/home/pab/pyxb/dev/bugs/XMLSchemas/gml/coordinateSystems.xsd completed including http://www.opengis.net/gml from /home/pab/pyxb/dev/bugs/XMLSchemas/gml/referenceSystems.xsd
+/home/pab/pyxb/dev/bugs/XMLSchemas/gml/coordinateReferenceSystems.xsd completed including http://www.opengis.net/gml from /home/pab/pyxb/dev/bugs/XMLSchemas/gml/coordinateSystems.xsd
+include /home/pab/pyxb/dev/bugs/XMLSchemas/gml/coordinateReferenceSystems.xsd + datums.xsd = /home/pab/pyxb/dev/bugs/XMLSchemas/gml/datums.xsd
+INGEST /home/pab/pyxb/dev/bugs/XMLSchemas/gml/datums.xsd
+include /home/pab/pyxb/dev/bugs/XMLSchemas/gml/datums.xsd + referenceSystems.xsd = /home/pab/pyxb/dev/bugs/XMLSchemas/gml/referenceSystems.xsd
+WARNING: Not including /home/pab/pyxb/dev/bugs/XMLSchemas/gml/referenceSystems.xsd multiple times
+include /home/pab/pyxb/dev/bugs/XMLSchemas/gml/datums.xsd + measures.xsd = /home/pab/pyxb/dev/bugs/XMLSchemas/gml/measures.xsd
+WARNING: Not including /home/pab/pyxb/dev/bugs/XMLSchemas/gml/measures.xsd multiple times
+/home/pab/pyxb/dev/bugs/XMLSchemas/gml/coordinateReferenceSystems.xsd completed including http://www.opengis.net/gml from /home/pab/pyxb/dev/bugs/XMLSchemas/gml/datums.xsd
+include /home/pab/pyxb/dev/bugs/XMLSchemas/gml/coordinateReferenceSystems.xsd + coordinateOperations.xsd = /home/pab/pyxb/dev/bugs/XMLSchemas/gml/coordinateOperations.xsd
+INGEST /home/pab/pyxb/dev/bugs/XMLSchemas/gml/coordinateOperations.xsd
+include /home/pab/pyxb/dev/bugs/XMLSchemas/gml/coordinateOperations.xsd + referenceSystems.xsd = /home/pab/pyxb/dev/bugs/XMLSchemas/gml/referenceSystems.xsd
+WARNING: Not including /home/pab/pyxb/dev/bugs/XMLSchemas/gml/referenceSystems.xsd multiple times
+include /home/pab/pyxb/dev/bugs/XMLSchemas/gml/coordinateOperations.xsd + measures.xsd = /home/pab/pyxb/dev/bugs/XMLSchemas/gml/measures.xsd
+WARNING: Not including /home/pab/pyxb/dev/bugs/XMLSchemas/gml/measures.xsd multiple times
+import /home/pab/pyxb/dev/bugs/XMLSchemas/gml/coordinateOperations.xsd + ../iso19139/gmd/gmd.xsd = /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/gmd.xsd
+SKIPPING REDUNDANT IMPORT of /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gmd/gmd.xsd
+/home/pab/pyxb/dev/bugs/XMLSchemas/gml/coordinateReferenceSystems.xsd completed including http://www.opengis.net/gml from /home/pab/pyxb/dev/bugs/XMLSchemas/gml/coordinateOperations.xsd
+/home/pab/pyxb/dev/bugs/XMLSchemas/gml/gml.xsd completed including http://www.opengis.net/gml from /home/pab/pyxb/dev/bugs/XMLSchemas/gml/coordinateReferenceSystems.xsd
+include /home/pab/pyxb/dev/bugs/XMLSchemas/gml/gml.xsd + observation.xsd = /home/pab/pyxb/dev/bugs/XMLSchemas/gml/observation.xsd
+INGEST /home/pab/pyxb/dev/bugs/XMLSchemas/gml/observation.xsd
+include /home/pab/pyxb/dev/bugs/XMLSchemas/gml/observation.xsd + feature.xsd = /home/pab/pyxb/dev/bugs/XMLSchemas/gml/feature.xsd
+WARNING: Not including /home/pab/pyxb/dev/bugs/XMLSchemas/gml/feature.xsd multiple times
+include /home/pab/pyxb/dev/bugs/XMLSchemas/gml/observation.xsd + direction.xsd = /home/pab/pyxb/dev/bugs/XMLSchemas/gml/direction.xsd
+WARNING: Not including /home/pab/pyxb/dev/bugs/XMLSchemas/gml/direction.xsd multiple times
+include /home/pab/pyxb/dev/bugs/XMLSchemas/gml/observation.xsd + valueObjects.xsd = /home/pab/pyxb/dev/bugs/XMLSchemas/gml/valueObjects.xsd
+WARNING: Not including /home/pab/pyxb/dev/bugs/XMLSchemas/gml/valueObjects.xsd multiple times
+/home/pab/pyxb/dev/bugs/XMLSchemas/gml/gml.xsd completed including http://www.opengis.net/gml from /home/pab/pyxb/dev/bugs/XMLSchemas/gml/observation.xsd
+include /home/pab/pyxb/dev/bugs/XMLSchemas/gml/gml.xsd + temporalReferenceSystems.xsd = /home/pab/pyxb/dev/bugs/XMLSchemas/gml/temporalReferenceSystems.xsd
+INGEST /home/pab/pyxb/dev/bugs/XMLSchemas/gml/temporalReferenceSystems.xsd
+include /home/pab/pyxb/dev/bugs/XMLSchemas/gml/temporalReferenceSystems.xsd + temporalTopology.xsd = /home/pab/pyxb/dev/bugs/XMLSchemas/gml/temporalTopo<class 'pyxb.exceptions_.NotInNamespaceError'> processing <type 'file'>:
+Traceback (most recent call last):
+  File "/home/pab/pyxb/dev/pyxb/binding/generate.py", line 903, in GeneratePython
+    emit_order = schema.orderedComponents()
+  File "/home/pab/pyxb/dev/pyxb/xmlschema/structures.py", line 4110, in orderedComponents
+    self.targetNamespace().resolveDefinitions()
+  File "/home/pab/pyxb/dev/pyxb/namespace.py", line 521, in resolveDefinitions
+    raise pyxb.NotInNamespaceError('Infinite loop in resolution:\n  %s' % ("\n  ".join(failed_components),))
+NotInNamespaceError: Infinite loop in resolution:
+  ComplexTypeDefinition named UomAngle_PropertyType
+  ComplexTypeDefinition named UomLength_PropertyType
+  ComplexTypeDefinition named UomScale_PropertyType
+  ComplexTypeDefinition named UnitOfMeasure_PropertyType
+  ComplexTypeDefinition named UomArea_PropertyType
+  ComplexTypeDefinition named UomVelocity_PropertyType
+  ComplexTypeDefinition named UomTime_PropertyType
+  ComplexTypeDefinition named UomVolume_PropertyType
+Traceback (most recent call last):
+  File "/home/pab/pyxb/dev/scripts/pyxbgen", line 177, in <module>
+    ns.saveToFile(component_model_file)
+  File "/home/pab/pyxb/dev/pyxb/namespace.py", line 1099, in saveToFile
+    self._saveToFile_csc(pickler)
+  File "/home/pab/pyxb/dev/pyxb/namespace.py", line 1083, in _saveToFile_csc
+    return getattr(super(Namespace, self), '_saveToFile_csc', lambda _pickler: _pickler)(pickler)
+  File "/home/pab/pyxb/dev/pyxb/namespace.py", line 410, in _saveToFile_csc
+    pickler.dump(self.__categoryMap)
+  File "/home/pab/pyxb/dev/pyxb/xmlschema/structures.py", line 519, in __getnewargs__
+    raise pyxb.LogicError('Attempt to pickle reference to %s tns %s in indeterminate scope in %s' % (self, self.targetNamespace(), pyxb.namespace.Namespace.PicklingNamespace()))
+LogicError: Attempt to pickle reference to AD[type:string] tns http://www.w3.org/1999/xlink in indeterminate scope in http://www.isotc211.org/2005/gco
+logy.xsd
+INGEST /home/pab/pyxb/dev/bugs/XMLSchemas/gml/temporalTopology.xsd
+include /home/pab/pyxb/dev/bugs/XMLSchemas/gml/temporalTopology.xsd + temporal.xsd = /home/pab/pyxb/dev/bugs/XMLSchemas/gml/temporal.xsd
+WARNING: Not including /home/pab/pyxb/dev/bugs/XMLSchemas/gml/temporal.xsd multiple times
+/home/pab/pyxb/dev/bugs/XMLSchemas/gml/temporalReferenceSystems.xsd completed including http://www.opengis.net/gml from /home/pab/pyxb/dev/bugs/XMLSchemas/gml/temporalTopology.xsd
+include /home/pab/pyxb/dev/bugs/XMLSchemas/gml/temporalReferenceSystems.xsd + dictionary.xsd = /home/pab/pyxb/dev/bugs/XMLSchemas/gml/dictionary.xsd
+WARNING: Not including /home/pab/pyxb/dev/bugs/XMLSchemas/gml/dictionary.xsd multiple times
+/home/pab/pyxb/dev/bugs/XMLSchemas/gml/gml.xsd completed including http://www.opengis.net/gml from /home/pab/pyxb/dev/bugs/XMLSchemas/gml/temporalReferenceSystems.xsd
+Imported http://www.opengis.net/gml, prefix gml, 392 types, back to /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gco/basicTypes.xsd
+Imported http://www.w3.org/1999/xlink, prefix xlink, 0 types, back to /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gco/basicTypes.xsd
+include /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gco/basicTypes.xsd + ../gco/gcoBase.xsd = /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gco/gcoBase.xsd
+INGEST /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gco/gcoBase.xsd
+Imported http://www.w3.org/1999/xlink, prefix xlink, 0 types, back to /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gco/gcoBase.xsd
+import /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gco/gcoBase.xsd + ../../gml/gml.xsd = /home/pab/pyxb/dev/bugs/XMLSchemas/gml/gml.xsd
+SKIPPING REDUNDANT IMPORT of /home/pab/pyxb/dev/bugs/XMLSchemas/gml/gml.xsd
+/home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gco/basicTypes.xsd completed including http://www.isotc211.org/2005/gco from /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gco/gcoBase.xsd
+iso19139/gco/gco.xsd completed including http://www.isotc211.org/2005/gco from /home/pab/pyxb/dev/bugs/XMLSchemas/iso19139/gco/basicTypes.xsd
+Imported:
+
+End of imports
+Identified:
+http://www.isotc211.org/2005/gsr
+http://schemas.xmlsoap.org/wsdl/soap12/
+http://www.w3.org/2000/09/xmldsig#
+http://www.w3.org/2001/XMLSchema-instance
+http://www.opengis.net/gml
+urn:oasis:names:tc:SAML:2.0:assertion
+http://www.ascc.net/xml/schematron
+urn:oasis:names:tc:SAML:2.0:protocol
+http://www.w3.org/2001/04/xmlenc#
+http://www.w3.org/2000/xmlns/
+http://www.w3.org/XML/1998/namespace
+http://www.w3.org/2001/XMLSchema
+http://www.w3.org/1999/xhtml
+http://www.w3.org/2001/XMLSchema-hasFacetAndProperty
+http://www.isotc211.org/2005/gco
+http://schemas.xmlsoap.org/wsdl/
+http://www.isotc211.org/2005/gss
+http://schemas.xmlsoap.org/soap/envelope/
+http://www.isotc211.org/2005/gts
+http://schemas.xmlsoap.org/wsdl/http/
+http://www.isotc211.org/2005/gmd
+http://www.w3.org/1999/xlink
+http://schemas.xmlsoap.org/wsdl/soap/
+http://schemas.xmlsoap.org/soap/encoding/
+http://schemas.xmlsoap.org/wsdl/mime/
+End of identified
+Exception saving preprocessed schema to bindings/gco.wxs: Attempt to pickle reference to AD[type:string] tns http://www.w3.org/1999/xlink in indeterminate scope in http://www.isotc211.org/2005/gco

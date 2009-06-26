@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Dataset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:schemaLocation="http://ndg.nerc.ac.uk/csml ../../eclipsewkspace/CSMLSchema/csmlDataset.xsd"
+ xmlns="http://ndg.nerc.ac.uk/csml"
+ xmlns:xlink="http://www.w3.org/1999/xlink"
+ xmlns:om="http://www.opengis.net/om"
+ xmlns:gml="http://www.opengis.net/gml"
+ xmlns:swe="http://www.opengis.net/swe"
+ xmlns:moles="http://ndg.nerc.ac.uk/moles"
+ id="windDataset1">
+    <name>Sample wind data from MST</name>
+    <CSMLFeatureCollection gml:id="testcollection1">
+        <featureMember>
+            <ProfileFeature gml:id="testprofile1">
+                <location srsName="EPSG:4326">52.42 -4.05</location>
+                <time frame="#ISO-8601">2009-01-01T00:00:00.0</time>
+                <value>
+                    <ProfileCoverage gml:id="domain1">
+                        <profileDomain>
+                            <CSMLMultiPoint gml:id="profile1.domain" srsName="urn:ogc:def:crs:EPSG:5798"
+                                srsDimension="1" axisLabels="Gravity-related-height" uomLabels="m">
+                                <position> 0 2 10 15 20 30 43 50 53 64</position>
+                            </CSMLMultiPoint>                     
+                        </profileDomain>
+                        <gml:rangeSet>
+                            <gml:ValueArray gml:id="windRangeset1">
+                                <gml:valueComponent><gml:QuantityList uom="udunits.xml#ms-1">2.0 2.4 3.3 missing 5.6 4.5 6.3 5.7 4.2 3.2</gml:QuantityList></gml:valueComponent>
+                                <gml:valueComponent><gml:QuantityList uom="udunits.xml#ms-1">1.1 0.8 0.1 -0.2 0.1 1.3 missing 0.9 1.1 -0.1</gml:QuantityList></gml:valueComponent>
+                            </gml:ValueArray>                  
+                        </gml:rangeSet>
+                    </ProfileCoverage>
+                </value>
+                <parameter>
+                    <swe:CompositePhenomenon dimension="2" gml:id="wind1">
+                        <gml:description>Vector wind</gml:description>
+                        <gml:identifier codeSpace="somereference">vector_wind</gml:identifier>
+                        <swe:component xlink:href="CFStandardNames.xml#eastward_wind"/>
+                        <swe:component xlink:href="CFStandardNames.xml#northward_wind"/>
+                    </swe:CompositePhenomenon>
+                </parameter>
+            </ProfileFeature>
+        </featureMember>       
+    </CSMLFeatureCollection>
+</Dataset>

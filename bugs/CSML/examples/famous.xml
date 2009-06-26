@@ -1,0 +1,558 @@
+<?xml version="1.0" encoding="UTF-8"?><Dataset xmlns="http://ndg.nerc.ac.uk/csml"  xmlns:gml="http://www.opengis.net/gml" xmlns:om="http://www.opengis.net/om" xmlns:swe="http://www.opengis.net/swe"  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:moles="http://ndg.nerc.ac.uk/moles"  xmlns:xlink="http://www.w3.org/1999/xlink" xsi:schemaLocation="http://ndg.nerc.ac.uk/csml/ schemas/csmlDataset.xsd" id="famous">
+   <name>NAME OF DATASET GOES HERE</name>
+   <AccessControlPolicy>
+      <dgSecurityCondition>
+         <moles:effect>allow</moles:effect>
+         <moles:simpleCondition>
+            <moles:dgAttributeAuthority>http://aa.ceda.rl.ac.uk/</moles:dgAttributeAuthority>
+            <moles:attrauthRole>badc</moles:attrauthRole>
+         </moles:simpleCondition>
+      </dgSecurityCondition>
+   </AccessControlPolicy>
+   <CSMLFeatureCollection gml:id="Esk0pwxg">
+      <gml:boundedBy>
+         <gml:EnvelopeWithTimePeriod srsName="WGS84">
+            <gml:lowerCorner>0.0 -90.0</gml:lowerCorner>
+            <gml:upperCorner>360.0 90.0</gml:upperCorner>
+            <gml:beginPosition>2793-06-01T00:00:00.0</gml:beginPosition>
+            <gml:endPosition>2932-06-01T00:00:00.0</gml:endPosition>
+         </gml:EnvelopeWithTimePeriod>
+      </gml:boundedBy>
+      <featureMember>
+         <GridSeriesFeature gml:id="air_temperature">
+            <gml:description>temperature on pressure levels</gml:description>
+            <gml:name>air_temperature</gml:name>
+            <gml:boundedBy>
+               <gml:EnvelopeWithTimePeriod srsName="ndg:crs:undefined_lonlatz">
+                  <gml:lowerCorner>0.0 -90.0 0.0</gml:lowerCorner>
+                  <gml:upperCorner>360.0 90.0 1010.0</gml:upperCorner>
+                  <gml:beginPosition>2793-06-01T00:00:00.0</gml:beginPosition>
+                  <gml:endPosition>2932-06-01T00:00:00.0</gml:endPosition>
+               </gml:EnvelopeWithTimePeriod>
+            </gml:boundedBy>
+            <value>
+               <GridSeriesCoverage gml:id="PXOHOyNO">
+                  <gridSeriesDomain>
+                     <GridSeriesDomain srsName="ndg:crs:undefined_lonlatzt" uomLabels="degrees_east degrees_north hPa days_since_2792-1-1" gml:id="JTNJmzYI" axisLabels="longitude latitude air_pressure time " dimension="4" srsDimension="4">
+                        <limits>
+                           <gml:GridEnvelope>
+                              <gml:low>0 0 0</gml:low>
+                              <gml:high>0 0 0</gml:high>
+                           </gml:GridEnvelope>
+                        </limits>
+                        <axisLabels>time air_pressure latitude longitude</axisLabels>
+                        <coordTransformTable>
+                           <GridCoordinatesTable>
+                              <gridOrdinate>
+                                 <GridOrdinateDescription>
+                                    <coordAxisLabel>time</coordAxisLabel>
+                                    <coordAxisValues>
+                                       <SpatialOrTemporalPositionList gml:id="XtMa9igC">
+                                          <timePositionList frame="ndg:360_day">2793-06-01T00:00:00.0 2794-06-01T00:00:00.0 2795-06-01T00:00:00.0 2796-06-01T00:00:00.0 2797-06-01T00:00:00.0 2798-06-01T00:00:00.0 2799-06-01T00:00:00.0 2800-06-01T00:00:00.0 2801-06-01T00:00:00.0 2802-06-01T00:00:00.0 2803-06-01T00:00:00.0 2804-06-01T00:00:00.0 2805-06-01T00:00:00.0 2806-06-01T00:00:00.0 2807-06-01T00:00:00.0 2808-06-01T00:00:00.0 2809-06-01T00:00:00.0 2810-06-01T00:00:00.0 2811-06-01T00:00:00.0 2812-06-01T00:00:00.0 2813-06-01T00:00:00.0 2814-06-01T00:00:00.0 2815-06-01T00:00:00.0 2816-06-01T00:00:00.0 2817-06-01T00:00:00.0 2818-06-01T00:00:00.0 2819-06-01T00:00:00.0 2820-06-01T00:00:00.0 2821-06-01T00:00:00.0 2822-06-01T00:00:00.0 2823-06-01T00:00:00.0 2824-06-01T00:00:00.0 2825-06-01T00:00:00.0 2826-06-01T00:00:00.0 2827-06-01T00:00:00.0 2828-06-01T00:00:00.0 2829-06-01T00:00:00.0 2830-06-01T00:00:00.0 2831-06-01T00:00:00.0 2832-06-01T00:00:00.0 2833-06-01T00:00:00.0 2834-06-01T00:00:00.0 2835-06-01T00:00:00.0 2836-06-01T00:00:00.0 2837-06-01T00:00:00.0 2838-06-01T00:00:00.0 2839-06-01T00:00:00.0 2840-06-01T00:00:00.0 2841-06-01T00:00:00.0 2842-06-01T00:00:00.0 2843-06-01T00:00:00.0 2844-06-01T00:00:00.0 2845-06-01T00:00:00.0 2846-06-01T00:00:00.0 2847-06-01T00:00:00.0 2848-06-01T00:00:00.0 2849-06-01T00:00:00.0 2850-06-01T00:00:00.0 2851-06-01T00:00:00.0 2852-06-01T00:00:00.0 2853-06-01T00:00:00.0 2854-06-01T00:00:00.0 2855-06-01T00:00:00.0 2856-06-01T00:00:00.0 2857-06-01T00:00:00.0 2858-06-01T00:00:00.0 2859-06-01T00:00:00.0 2860-06-01T00:00:00.0 2861-06-01T00:00:00.0 2862-06-01T00:00:00.0 2863-06-01T00:00:00.0 2864-06-01T00:00:00.0 2865-06-01T00:00:00.0 2866-06-01T00:00:00.0 2867-06-01T00:00:00.0 2868-06-01T00:00:00.0 2869-06-01T00:00:00.0 2870-06-01T00:00:00.0 2871-06-01T00:00:00.0 2872-06-01T00:00:00.0 2873-06-01T00:00:00.0 2874-06-01T00:00:00.0 2875-06-01T00:00:00.0 2876-06-01T00:00:00.0 2877-06-01T00:00:00.0 2878-06-01T00:00:00.0 2879-06-01T00:00:00.0 2880-06-01T00:00:00.0 2881-06-01T00:00:00.0 2882-06-01T00:00:00.0 2883-06-01T00:00:00.0 2884-06-01T00:00:00.0 2885-06-01T00:00:00.0 2886-06-01T00:00:00.0 2887-06-01T00:00:00.0 2888-06-01T00:00:00.0 2889-06-01T00:00:00.0 2890-06-01T00:00:00.0 2891-06-01T00:00:00.0 2892-06-01T00:00:00.0 2893-06-01T00:00:00.0 2894-06-01T00:00:00.0 2895-06-01T00:00:00.0 2896-06-01T00:00:00.0 2897-06-01T00:00:00.0 2898-06-01T00:00:00.0 2899-06-01T00:00:00.0 2900-06-01T00:00:00.0 2901-06-01T00:00:00.0 2902-06-01T00:00:00.0 2903-06-01T00:00:00.0 2904-06-01T00:00:00.0 2905-06-01T00:00:00.0 2906-06-01T00:00:00.0 2907-06-01T00:00:00.0 2908-06-01T00:00:00.0 2909-06-01T00:00:00.0 2910-06-01T00:00:00.0 2911-06-01T00:00:00.0 2912-06-01T00:00:00.0 2913-06-01T00:00:00.0 2914-06-01T00:00:00.0 2915-06-01T00:00:00.0 2916-06-01T00:00:00.0 2917-06-01T00:00:00.0 2918-06-01T00:00:00.0 2919-06-01T00:00:00.0 2920-06-01T00:00:00.0 2921-06-01T00:00:00.0 2922-06-01T00:00:00.0 2923-06-01T00:00:00.0 2924-06-01T00:00:00.0 2925-06-01T00:00:00.0 2926-06-01T00:00:00.0 2927-06-01T00:00:00.0 2928-06-01T00:00:00.0 2929-06-01T00:00:00.0 2930-06-01T00:00:00.0 2931-06-01T00:00:00.0 2932-06-01T00:00:00.0</timePositionList>
+                                       </SpatialOrTemporalPositionList>
+                                    </coordAxisValues>
+                                    <gridAxesSpanned>time</gridAxesSpanned>
+                                    <sequenceRule axisOrder="+1">Linear</sequenceRule>
+                                 </GridOrdinateDescription>
+                              </gridOrdinate>
+                              <gridOrdinate>
+                                 <GridOrdinateDescription>
+                                    <coordAxisLabel>air_pressure</coordAxisLabel>
+                                    <coordAxisValues xlink:href="#EqNi8vOE" xlink:show="embed" xlink:arcrole="http://ndg.nerc.ac.uk/xlinkUsage/insert#coordinateList" xlink:role="http://ndg.nerc.ac.uk/fileFormat/csmlStorageDescriptor">
+                                       <SpatialOrTemporalPositionList gml:id="ZxJ9XL46">
+                                          <coordinateList></coordinateList>
+                                       </SpatialOrTemporalPositionList>
+                                    </coordAxisValues>
+                                    <gridAxesSpanned>air_pressure</gridAxesSpanned>
+                                    <sequenceRule axisOrder="+1">Linear</sequenceRule>
+                                 </GridOrdinateDescription>
+                              </gridOrdinate>
+                              <gridOrdinate>
+                                 <GridOrdinateDescription>
+                                    <coordAxisLabel>latitude</coordAxisLabel>
+                                    <coordAxisValues xlink:href="#ZL2P8z6h" xlink:show="embed" xlink:arcrole="http://ndg.nerc.ac.uk/xlinkUsage/insert#coordinateList" xlink:role="http://ndg.nerc.ac.uk/fileFormat/csmlStorageDescriptor">
+                                       <SpatialOrTemporalPositionList gml:id="ZvT30h99">
+                                          <coordinateList></coordinateList>
+                                       </SpatialOrTemporalPositionList>
+                                    </coordAxisValues>
+                                    <gridAxesSpanned>latitude</gridAxesSpanned>
+                                    <sequenceRule axisOrder="+1">Linear</sequenceRule>
+                                 </GridOrdinateDescription>
+                              </gridOrdinate>
+                              <gridOrdinate>
+                                 <GridOrdinateDescription>
+                                    <coordAxisLabel>longitude</coordAxisLabel>
+                                    <coordAxisValues xlink:href="#Rc4lMosd" xlink:show="embed" xlink:arcrole="http://ndg.nerc.ac.uk/xlinkUsage/insert#coordinateList" xlink:role="http://ndg.nerc.ac.uk/fileFormat/csmlStorageDescriptor">
+                                       <SpatialOrTemporalPositionList gml:id="X22U0HBq">
+                                          <coordinateList></coordinateList>
+                                       </SpatialOrTemporalPositionList>
+                                    </coordAxisValues>
+                                    <gridAxesSpanned>longitude</gridAxesSpanned>
+                                    <sequenceRule axisOrder="+1">Linear</sequenceRule>
+                                 </GridOrdinateDescription>
+                              </gridOrdinate>
+                           </GridCoordinatesTable>
+                        </coordTransformTable>
+                     </GridSeriesDomain>
+                  </gridSeriesDomain>
+                  <gml:rangeSet>
+                     <gml:ValueArray gml:id="IZLsCiyZ">
+                        <gml:valueComponent xlink:href="#EXBzxeCu" xlink:show="embed" xlink:arcrole="http://ndg.nerc.ac.uk/xlinkUsage/insert#QuantityList" xlink:role="http://ndg.nerc.ac.uk/fileFormat/csmlStorageDescriptor">
+                           <gml:QuantityList uom="K"></gml:QuantityList>
+                        </gml:valueComponent>
+                     </gml:ValueArray>
+                  </gml:rangeSet>
+               </GridSeriesCoverage>
+            </value>
+            <parameter xlink:href="http://cfconventions.org/standard_names/air_temperature"></parameter>
+         </GridSeriesFeature>
+      </featureMember>
+      <featureMember>
+         <GridSeriesFeature gml:id="cloud_area_fraction">
+            <gml:description>total cloud amount in lw radiation</gml:description>
+            <gml:name>cloud_area_fraction</gml:name>
+            <gml:boundedBy>
+               <gml:EnvelopeWithTimePeriod srsName="WGS84">
+                  <gml:lowerCorner>0.0 -90.0</gml:lowerCorner>
+                  <gml:upperCorner>360.0 90.0</gml:upperCorner>
+                  <gml:beginPosition>2793-06-01T00:00:00.0</gml:beginPosition>
+                  <gml:endPosition>2932-06-01T00:00:00.0</gml:endPosition>
+               </gml:EnvelopeWithTimePeriod>
+            </gml:boundedBy>
+            <value>
+               <GridSeriesCoverage gml:id="OyLfwWv5">
+                  <gridSeriesDomain>
+                     <GridSeriesDomain srsName="ndg:crs:lonlatt" uomLabels="degrees_east degrees_north days_since_2792-1-1" gml:id="AdSDrErO" axisLabels="longitude latitude time" dimension="3" srsDimension="3">
+                        <limits>
+                           <gml:GridEnvelope>
+                              <gml:low>0 0 0</gml:low>
+                              <gml:high>0 0 0</gml:high>
+                           </gml:GridEnvelope>
+                        </limits>
+                        <axisLabels>time latitude longitude</axisLabels>
+                        <coordTransformTable>
+                           <GridCoordinatesTable>
+                              <gridOrdinate>
+                                 <GridOrdinateDescription>
+                                    <coordAxisLabel>time</coordAxisLabel>
+                                    <coordAxisValues xlink:href="#XtMa9igC" xlink:show="embed" xlink:arcrole="http://ndg.nerc.ac.uk/xlinkUsage/insert#timePositionList" xlink:role="http://ndg.nerc.ac.uk/fileFormat/csmlStorageDescriptor">
+                                       <SpatialOrTemporalPositionList gml:id="ONdb5AoB">
+                                          <timePositionList></timePositionList>
+                                       </SpatialOrTemporalPositionList>
+                                    </coordAxisValues>
+                                    <gridAxesSpanned>time</gridAxesSpanned>
+                                    <sequenceRule axisOrder="+1">Linear</sequenceRule>
+                                 </GridOrdinateDescription>
+                              </gridOrdinate>
+                              <gridOrdinate>
+                                 <GridOrdinateDescription>
+                                    <coordAxisLabel>latitude</coordAxisLabel>
+                                    <coordAxisValues xlink:href="#O6iVRDB7" xlink:show="embed" xlink:arcrole="http://ndg.nerc.ac.uk/xlinkUsage/insert#coordinateList" xlink:role="http://ndg.nerc.ac.uk/fileFormat/csmlStorageDescriptor">
+                                       <SpatialOrTemporalPositionList gml:id="Z7sHEpVO">
+                                          <coordinateList></coordinateList>
+                                       </SpatialOrTemporalPositionList>
+                                    </coordAxisValues>
+                                    <gridAxesSpanned>latitude</gridAxesSpanned>
+                                    <sequenceRule axisOrder="+1">Linear</sequenceRule>
+                                 </GridOrdinateDescription>
+                              </gridOrdinate>
+                              <gridOrdinate>
+                                 <GridOrdinateDescription>
+                                    <coordAxisLabel>longitude</coordAxisLabel>
+                                    <coordAxisValues xlink:href="#IvyLrXwl" xlink:show="embed" xlink:arcrole="http://ndg.nerc.ac.uk/xlinkUsage/insert#coordinateList" xlink:role="http://ndg.nerc.ac.uk/fileFormat/csmlStorageDescriptor">
+                                       <SpatialOrTemporalPositionList gml:id="G5iiRvmI">
+                                          <coordinateList></coordinateList>
+                                       </SpatialOrTemporalPositionList>
+                                    </coordAxisValues>
+                                    <gridAxesSpanned>longitude</gridAxesSpanned>
+                                    <sequenceRule axisOrder="+1">Linear</sequenceRule>
+                                 </GridOrdinateDescription>
+                              </gridOrdinate>
+                           </GridCoordinatesTable>
+                        </coordTransformTable>
+                     </GridSeriesDomain>
+                  </gridSeriesDomain>
+                  <gml:rangeSet>
+                     <gml:ValueArray gml:id="Hfr5TWQy">
+                        <gml:valueComponent xlink:href="#QJHrrMlF" xlink:show="embed" xlink:arcrole="http://ndg.nerc.ac.uk/xlinkUsage/insert#QuantityList" xlink:role="http://ndg.nerc.ac.uk/fileFormat/csmlStorageDescriptor">
+                           <gml:QuantityList uom="1"></gml:QuantityList>
+                        </gml:valueComponent>
+                     </gml:ValueArray>
+                  </gml:rangeSet>
+               </GridSeriesCoverage>
+            </value>
+            <parameter xlink:href="http://cfconventions.org/standard_names/cloud_area_fraction"></parameter>
+         </GridSeriesFeature>
+      </featureMember>
+      <featureMember>
+         <GridSeriesFeature gml:id="sea_ice_thickness">
+            <gml:description>hice: mean ice depth over gridbox m</gml:description>
+            <gml:name>sea_ice_thickness</gml:name>
+            <gml:boundedBy>
+               <gml:EnvelopeWithTimePeriod srsName="WGS84">
+                  <gml:lowerCorner>0.0 -90.0</gml:lowerCorner>
+                  <gml:upperCorner>360.0 90.0</gml:upperCorner>
+                  <gml:beginPosition>2793-06-01T00:00:00.0</gml:beginPosition>
+                  <gml:endPosition>2932-06-01T00:00:00.0</gml:endPosition>
+               </gml:EnvelopeWithTimePeriod>
+            </gml:boundedBy>
+            <value>
+               <GridSeriesCoverage gml:id="Wz3bEVMU">
+                  <gridSeriesDomain>
+                     <GridSeriesDomain srsName="ndg:crs:lonlatt" uomLabels="degrees_east degrees_north days_since_2792-1-1" gml:id="GvwHeHkM" axisLabels="longitude latitude time" dimension="3" srsDimension="3">
+                        <limits>
+                           <gml:GridEnvelope>
+                              <gml:low>0 0 0</gml:low>
+                              <gml:high>0 0 0</gml:high>
+                           </gml:GridEnvelope>
+                        </limits>
+                        <axisLabels>time latitude longitude</axisLabels>
+                        <coordTransformTable>
+                           <GridCoordinatesTable>
+                              <gridOrdinate>
+                                 <GridOrdinateDescription>
+                                    <coordAxisLabel>time</coordAxisLabel>
+                                    <coordAxisValues xlink:href="#XtMa9igC" xlink:show="embed" xlink:arcrole="http://ndg.nerc.ac.uk/xlinkUsage/insert#timePositionList" xlink:role="http://ndg.nerc.ac.uk/fileFormat/csmlStorageDescriptor">
+                                       <SpatialOrTemporalPositionList gml:id="Mu1JokFa">
+                                          <timePositionList></timePositionList>
+                                       </SpatialOrTemporalPositionList>
+                                    </coordAxisValues>
+                                    <gridAxesSpanned>time</gridAxesSpanned>
+                                    <sequenceRule axisOrder="+1">Linear</sequenceRule>
+                                 </GridOrdinateDescription>
+                              </gridOrdinate>
+                              <gridOrdinate>
+                                 <GridOrdinateDescription>
+                                    <coordAxisLabel>latitude</coordAxisLabel>
+                                    <coordAxisValues xlink:href="#GWDiBrAh" xlink:show="embed" xlink:arcrole="http://ndg.nerc.ac.uk/xlinkUsage/insert#coordinateList" xlink:role="http://ndg.nerc.ac.uk/fileFormat/csmlStorageDescriptor">
+                                       <SpatialOrTemporalPositionList gml:id="YgW0nZg7">
+                                          <coordinateList></coordinateList>
+                                       </SpatialOrTemporalPositionList>
+                                    </coordAxisValues>
+                                    <gridAxesSpanned>latitude</gridAxesSpanned>
+                                    <sequenceRule axisOrder="+1">Linear</sequenceRule>
+                                 </GridOrdinateDescription>
+                              </gridOrdinate>
+                              <gridOrdinate>
+                                 <GridOrdinateDescription>
+                                    <coordAxisLabel>longitude</coordAxisLabel>
+                                    <coordAxisValues xlink:href="#TDNv85Oc" xlink:show="embed" xlink:arcrole="http://ndg.nerc.ac.uk/xlinkUsage/insert#coordinateList" xlink:role="http://ndg.nerc.ac.uk/fileFormat/csmlStorageDescriptor">
+                                       <SpatialOrTemporalPositionList gml:id="NzaqmSSC">
+                                          <coordinateList></coordinateList>
+                                       </SpatialOrTemporalPositionList>
+                                    </coordAxisValues>
+                                    <gridAxesSpanned>longitude</gridAxesSpanned>
+                                    <sequenceRule axisOrder="+1">Linear</sequenceRule>
+                                 </GridOrdinateDescription>
+                              </gridOrdinate>
+                           </GridCoordinatesTable>
+                        </coordTransformTable>
+                     </GridSeriesDomain>
+                  </gridSeriesDomain>
+                  <gml:rangeSet>
+                     <gml:ValueArray gml:id="Ltbi0cfv">
+                        <gml:valueComponent xlink:href="#L1BOuwS3" xlink:show="embed" xlink:arcrole="http://ndg.nerc.ac.uk/xlinkUsage/insert#QuantityList" xlink:role="http://ndg.nerc.ac.uk/fileFormat/csmlStorageDescriptor">
+                           <gml:QuantityList uom="m"></gml:QuantityList>
+                        </gml:valueComponent>
+                     </gml:ValueArray>
+                  </gml:rangeSet>
+               </GridSeriesCoverage>
+            </value>
+            <parameter xlink:href="http://cfconventions.org/standard_names/sea_ice_thickness"></parameter>
+         </GridSeriesFeature>
+      </featureMember>
+      <featureMember>
+         <GridSeriesFeature gml:id="sea_water_salinity">
+            <gml:description>salinity (ocean) (psu-35)/1000</gml:description>
+            <gml:name>sea_water_salinity</gml:name>
+            <gml:boundedBy>
+               <gml:EnvelopeWithTimePeriod srsName="ndg:crs:undefined_lonlatz">
+                  <gml:lowerCorner>0.0 -90.0 0.0</gml:lowerCorner>
+                  <gml:upperCorner>360.0 90.0 5197.64990234</gml:upperCorner>
+                  <gml:beginPosition>2793-06-01T00:00:00.0</gml:beginPosition>
+                  <gml:endPosition>2932-06-01T00:00:00.0</gml:endPosition>
+               </gml:EnvelopeWithTimePeriod>
+            </gml:boundedBy>
+            <value>
+               <GridSeriesCoverage gml:id="LlFHgzXA">
+                  <gridSeriesDomain>
+                     <GridSeriesDomain srsName="ndg:crs:undefined_lonlatzt" uomLabels="degrees_east degrees_north m days_since_2792-1-1" gml:id="PDGpOlUt" axisLabels="longitude latitude depth time " dimension="4" srsDimension="4">
+                        <limits>
+                           <gml:GridEnvelope>
+                              <gml:low>0 0 0</gml:low>
+                              <gml:high>0 0 0</gml:high>
+                           </gml:GridEnvelope>
+                        </limits>
+                        <axisLabels>time depth latitude longitude</axisLabels>
+                        <coordTransformTable>
+                           <GridCoordinatesTable>
+                              <gridOrdinate>
+                                 <GridOrdinateDescription>
+                                    <coordAxisLabel>time</coordAxisLabel>
+                                    <coordAxisValues xlink:href="#XtMa9igC" xlink:show="embed" xlink:arcrole="http://ndg.nerc.ac.uk/xlinkUsage/insert#timePositionList" xlink:role="http://ndg.nerc.ac.uk/fileFormat/csmlStorageDescriptor">
+                                       <SpatialOrTemporalPositionList gml:id="BEONd0eH">
+                                          <timePositionList></timePositionList>
+                                       </SpatialOrTemporalPositionList>
+                                    </coordAxisValues>
+                                    <gridAxesSpanned>time</gridAxesSpanned>
+                                    <sequenceRule axisOrder="+1">Linear</sequenceRule>
+                                 </GridOrdinateDescription>
+                              </gridOrdinate>
+                              <gridOrdinate>
+                                 <GridOrdinateDescription>
+                                    <coordAxisLabel>depth</coordAxisLabel>
+                                    <coordAxisValues xlink:href="#D2hInUDT" xlink:show="embed" xlink:arcrole="http://ndg.nerc.ac.uk/xlinkUsage/insert#coordinateList" xlink:role="http://ndg.nerc.ac.uk/fileFormat/csmlStorageDescriptor">
+                                       <SpatialOrTemporalPositionList gml:id="OK4TVKtB">
+                                          <coordinateList></coordinateList>
+                                       </SpatialOrTemporalPositionList>
+                                    </coordAxisValues>
+                                    <gridAxesSpanned>depth</gridAxesSpanned>
+                                    <sequenceRule axisOrder="+1">Linear</sequenceRule>
+                                 </GridOrdinateDescription>
+                              </gridOrdinate>
+                              <gridOrdinate>
+                                 <GridOrdinateDescription>
+                                    <coordAxisLabel>latitude</coordAxisLabel>
+                                    <coordAxisValues xlink:href="#W0oQG3nR" xlink:show="embed" xlink:arcrole="http://ndg.nerc.ac.uk/xlinkUsage/insert#coordinateList" xlink:role="http://ndg.nerc.ac.uk/fileFormat/csmlStorageDescriptor">
+                                       <SpatialOrTemporalPositionList gml:id="O55sQYJP">
+                                          <coordinateList></coordinateList>
+                                       </SpatialOrTemporalPositionList>
+                                    </coordAxisValues>
+                                    <gridAxesSpanned>latitude</gridAxesSpanned>
+                                    <sequenceRule axisOrder="+1">Linear</sequenceRule>
+                                 </GridOrdinateDescription>
+                              </gridOrdinate>
+                              <gridOrdinate>
+                                 <GridOrdinateDescription>
+                                    <coordAxisLabel>longitude</coordAxisLabel>
+                                    <coordAxisValues xlink:href="#QyIotpF4" xlink:show="embed" xlink:arcrole="http://ndg.nerc.ac.uk/xlinkUsage/insert#coordinateList" xlink:role="http://ndg.nerc.ac.uk/fileFormat/csmlStorageDescriptor">
+                                       <SpatialOrTemporalPositionList gml:id="YIg1oklK">
+                                          <coordinateList></coordinateList>
+                                       </SpatialOrTemporalPositionList>
+                                    </coordAxisValues>
+                                    <gridAxesSpanned>longitude</gridAxesSpanned>
+                                    <sequenceRule axisOrder="+1">Linear</sequenceRule>
+                                 </GridOrdinateDescription>
+                              </gridOrdinate>
+                           </GridCoordinatesTable>
+                        </coordTransformTable>
+                     </GridSeriesDomain>
+                  </gridSeriesDomain>
+                  <gml:rangeSet>
+                     <gml:ValueArray gml:id="KM76mRnU">
+                        <gml:valueComponent xlink:href="#FRz70uAi" xlink:show="embed" xlink:arcrole="http://ndg.nerc.ac.uk/xlinkUsage/insert#QuantityList" xlink:role="http://ndg.nerc.ac.uk/fileFormat/csmlStorageDescriptor">
+                           <gml:QuantityList uom="psu"></gml:QuantityList>
+                        </gml:valueComponent>
+                     </gml:ValueArray>
+                  </gml:rangeSet>
+               </GridSeriesCoverage>
+            </value>
+            <parameter xlink:href="http://cfconventions.org/standard_names/sea_water_salinity"></parameter>
+         </GridSeriesFeature>
+      </featureMember>
+   </CSMLFeatureCollection>
+   <CSMLStorageDescriptor>
+      <descriptor>
+         <NetCDFExtract id="ZL2P8z6h">
+            <arraySize>37</arraySize>
+            <fileName>/home/dom/testdata/ndg3_test_data/famous/air_temperature.nc</fileName>
+            <variableName>latitude</variableName>
+         </NetCDFExtract>
+      </descriptor>
+      <descriptor>
+         <NetCDFExtract id="Y2702cHf">
+            <arraySize>2</arraySize>
+            <fileName>/home/dom/testdata/ndg3_test_data/famous/air_temperature.nc</fileName>
+            <variableName>n2</variableName>
+         </NetCDFExtract>
+      </descriptor>
+      <descriptor>
+         <NetCDFExtract id="EqNi8vOE">
+            <arraySize>15</arraySize>
+            <fileName>/home/dom/testdata/ndg3_test_data/famous/air_temperature.nc</fileName>
+            <variableName>air_pressure</variableName>
+         </NetCDFExtract>
+      </descriptor>
+      <descriptor>
+         <NetCDFExtract id="Rc4lMosd">
+            <arraySize>48</arraySize>
+            <fileName>/home/dom/testdata/ndg3_test_data/famous/air_temperature.nc</fileName>
+            <variableName>longitude</variableName>
+         </NetCDFExtract>
+      </descriptor>
+      <descriptor>
+         <NetCDFExtract id="MAm4FgpK">
+            <arraySize>140</arraySize>
+            <fileName>/home/dom/testdata/ndg3_test_data/famous/air_temperature.nc</fileName>
+            <variableName>time</variableName>
+         </NetCDFExtract>
+      </descriptor>
+      <descriptor>
+         <NetCDFExtract id="O6iVRDB7">
+            <arraySize>37</arraySize>
+            <fileName>/home/dom/testdata/ndg3_test_data/famous/cloud_area_fraction.nc</fileName>
+            <variableName>latitude</variableName>
+         </NetCDFExtract>
+      </descriptor>
+      <descriptor>
+         <NetCDFExtract id="JZ7bz4mL">
+            <arraySize>2</arraySize>
+            <fileName>/home/dom/testdata/ndg3_test_data/famous/cloud_area_fraction.nc</fileName>
+            <variableName>n2</variableName>
+         </NetCDFExtract>
+      </descriptor>
+      <descriptor>
+         <NetCDFExtract id="IvyLrXwl">
+            <arraySize>48</arraySize>
+            <fileName>/home/dom/testdata/ndg3_test_data/famous/cloud_area_fraction.nc</fileName>
+            <variableName>longitude</variableName>
+         </NetCDFExtract>
+      </descriptor>
+      <descriptor>
+         <NetCDFExtract id="Re4E85da">
+            <arraySize>140</arraySize>
+            <fileName>/home/dom/testdata/ndg3_test_data/famous/cloud_area_fraction.nc</fileName>
+            <variableName>time</variableName>
+         </NetCDFExtract>
+      </descriptor>
+      <descriptor>
+         <NetCDFExtract id="GWDiBrAh">
+            <arraySize>73</arraySize>
+            <fileName>/home/dom/testdata/ndg3_test_data/famous/sea_ice_thickness.nc</fileName>
+            <variableName>latitude</variableName>
+         </NetCDFExtract>
+      </descriptor>
+      <descriptor>
+         <NetCDFExtract id="Uj3Rszw8">
+            <arraySize>2</arraySize>
+            <fileName>/home/dom/testdata/ndg3_test_data/famous/sea_ice_thickness.nc</fileName>
+            <variableName>n2</variableName>
+         </NetCDFExtract>
+      </descriptor>
+      <descriptor>
+         <NetCDFExtract id="TDNv85Oc">
+            <arraySize>96</arraySize>
+            <fileName>/home/dom/testdata/ndg3_test_data/famous/sea_ice_thickness.nc</fileName>
+            <variableName>longitude</variableName>
+         </NetCDFExtract>
+      </descriptor>
+      <descriptor>
+         <NetCDFExtract id="SGZMzIIj">
+            <arraySize>140</arraySize>
+            <fileName>/home/dom/testdata/ndg3_test_data/famous/sea_ice_thickness.nc</fileName>
+            <variableName>time</variableName>
+         </NetCDFExtract>
+      </descriptor>
+      <descriptor>
+         <NetCDFExtract id="W0oQG3nR">
+            <arraySize>73</arraySize>
+            <fileName>/home/dom/testdata/ndg3_test_data/famous/sea_water_salinity.nc</fileName>
+            <variableName>latitude</variableName>
+         </NetCDFExtract>
+      </descriptor>
+      <descriptor>
+         <NetCDFExtract id="VTBNqAHc">
+            <arraySize>2</arraySize>
+            <fileName>/home/dom/testdata/ndg3_test_data/famous/sea_water_salinity.nc</fileName>
+            <variableName>n2</variableName>
+         </NetCDFExtract>
+      </descriptor>
+      <descriptor>
+         <NetCDFExtract id="D2hInUDT">
+            <arraySize>20</arraySize>
+            <fileName>/home/dom/testdata/ndg3_test_data/famous/sea_water_salinity.nc</fileName>
+            <variableName>depth</variableName>
+         </NetCDFExtract>
+      </descriptor>
+      <descriptor>
+         <NetCDFExtract id="QyIotpF4">
+            <arraySize>96</arraySize>
+            <fileName>/home/dom/testdata/ndg3_test_data/famous/sea_water_salinity.nc</fileName>
+            <variableName>longitude</variableName>
+         </NetCDFExtract>
+      </descriptor>
+      <descriptor>
+         <NetCDFExtract id="QPKiVI4y">
+            <arraySize>140</arraySize>
+            <fileName>/home/dom/testdata/ndg3_test_data/famous/sea_water_salinity.nc</fileName>
+            <variableName>time</variableName>
+         </NetCDFExtract>
+      </descriptor>
+      <descriptor>
+         <AggregatedArray id="EXBzxeCu">
+            <arraySize>3729600</arraySize>
+            <uom>K</uom>
+            <aggType>new</aggType>
+            <aggIndex>1</aggIndex>
+            <component>
+               <NetCDFExtract>
+                  <arraySize>15  37  48</arraySize>
+                  <fileList>
+                     <FileList id="XVqokPjT">
+                        <fileNames>/home/dom/testdata/ndg3_test_data/famous/air_temperature.nc</fileNames>
+                     </FileList>
+                  </fileList>
+                  <variableName>air_temperature</variableName>
+               </NetCDFExtract>
+            </component>
+         </AggregatedArray>
+      </descriptor>
+      <descriptor>
+         <AggregatedArray id="QJHrrMlF">
+            <arraySize>248640</arraySize>
+            <uom>1</uom>
+            <aggType>new</aggType>
+            <aggIndex>1</aggIndex>
+            <component>
+               <NetCDFExtract>
+                  <arraySize>37  48</arraySize>
+                  <fileList>
+                     <FileList id="FhpUX2YT">
+                        <fileNames>/home/dom/testdata/ndg3_test_data/famous/cloud_area_fraction.nc</fileNames>
+                     </FileList>
+                  </fileList>
+                  <variableName>cloud_area_fraction</variableName>
+               </NetCDFExtract>
+            </component>
+         </AggregatedArray>
+      </descriptor>
+      <descriptor>
+         <AggregatedArray id="L1BOuwS3">
+            <arraySize>981120</arraySize>
+            <uom>m</uom>
+            <aggType>new</aggType>
+            <aggIndex>1</aggIndex>
+            <component>
+               <NetCDFExtract>
+                  <arraySize>73  96</arraySize>
+                  <fileList>
+                     <FileList id="Mb6kcEKw">
+                        <fileNames>/home/dom/testdata/ndg3_test_data/famous/sea_ice_thickness.nc</fileNames>
+                     </FileList>
+                  </fileList>
+                  <variableName>sea_ice_thickness</variableName>
+               </NetCDFExtract>
+            </component>
+         </AggregatedArray>
+      </descriptor>
+      <descriptor>
+         <AggregatedArray id="FRz70uAi">
+            <arraySize>19622400</arraySize>
+            <uom>psu</uom>
+            <aggType>new</aggType>
+            <aggIndex>1</aggIndex>
+            <component>
+               <NetCDFExtract>
+                  <arraySize>20  73  96</arraySize>
+                  <fileList>
+                     <FileList id="V93VUdTy">
+                        <fileNames>/home/dom/testdata/ndg3_test_data/famous/sea_water_salinity.nc</fileNames>
+                     </FileList>
+                  </fileList>
+                  <variableName>sea_water_salinity</variableName>
+               </NetCDFExtract>
+            </component>
+         </AggregatedArray>
+      </descriptor>
+   </CSMLStorageDescriptor>
+</Dataset>
