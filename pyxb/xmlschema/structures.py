@@ -4084,25 +4084,6 @@ class Schema (_SchemaComponent_mixin):
         return self.__referencedNamespaces
     __referencedNamespaces = None
 
-    # Tuple of component classes in order in which they must be generated in
-    # order to satisfy the Python references between bindings.
-    # 
-    __ComponentOrder = (
-        Annotation                   # no dependencies
-      , IdentityConstraintDefinition # no dependencies
-      , NotationDeclaration          # no dependencies
-      , Wildcard                     # no dependencies
-      , SimpleTypeDefinition         # no dependencies
-      , AttributeDeclaration         # SimpleTypeDefinition
-      , AttributeUse                 # AttributeDeclaration
-      , AttributeGroupDefinition     # AttributeUse
-      , ComplexTypeDefinition        # SimpleTypeDefinition, AttributeUse
-      , ElementDeclaration           # *TypeDefinition
-      , ModelGroup                   # ComplexTypeDefinition, ElementDeclaration, Wildcard
-      , ModelGroupDefinition         # ModelGroup
-      , Particle                     # ModelGroup, WildCard, ElementDeclaration
-        )
-
     def _dependentComponents_vx (self):
         """Implement base class method.
 
@@ -4110,20 +4091,6 @@ class Schema (_SchemaComponent_mixin):
         control over, at least).
         """
         return frozenset()
-
-    def orderedComponents (self):
-        if not self.completedResolution():
-            self.targetNamespace().resolveDefinitions()
-        # This can fail if there are dependences on other unresolved namespaces.
-        assert self.completedResolution(), '%s has not completed resolution' % (self.targetNamespace().uri(),)
-        return self.targetNamespace().orderedComponents(self.__ComponentOrder)
-
-    def completedResolution (self):
-        """Return True iff all resolvable elements have been resolved.
-
-        After this point, nobody should be messing with the any of the
-        definition or declaration maps."""
-        return self.targetNamespace()._unresolvedComponents() is None
 
     _QUALIFIED = "qualified"
     _UNQUALIFIED = "unqualified"

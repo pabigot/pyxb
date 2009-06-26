@@ -854,33 +854,53 @@ GeneratorMap = {
   , xs.structures.ComplexTypeDefinition : GenerateCTD
 }
 
+# Tuple of component classes in order in which they must be generated in
+# order to satisfy the Python references between bindings.
+# 
+__ComponentOrder = (
+    xs.structures.Annotation                   # no dependencies
+  , xs.structures.IdentityConstraintDefinition # no dependencies
+  , xs.structures.NotationDeclaration          # no dependencies
+  , xs.structures.Wildcard                     # no dependencies
+  , xs.structures.SimpleTypeDefinition         # no dependencies
+  , xs.structures.AttributeDeclaration         # SimpleTypeDefinition
+  , xs.structures.AttributeUse                 # AttributeDeclaration
+  , xs.structures.AttributeGroupDefinition     # AttributeUse
+  , xs.structures.ComplexTypeDefinition        # SimpleTypeDefinition, AttributeUse
+  , xs.structures.ElementDeclaration           # *TypeDefinition
+  , xs.structures.ModelGroup                   # ComplexTypeDefinition, ElementDeclaration, Wildcard
+  , xs.structures.ModelGroupDefinition         # ModelGroup
+  , xs.structures.Particle                     # ModelGroup, WildCard, ElementDeclaration
+    )
+
 def GeneratePython (**kw):
     global UniqueInBinding
     global PostscriptItems
     UniqueInBinding.clear()
     PostscriptItems = []
     try:
-        schema = kw.get('schema', None)
-        schema_file = kw.get('schema_file', None)
-        if schema is None:
-            if schema_file is None:
-                raise Exception('No input provided')
-            schema = xs.schema.CreateFromDOM(domutils.StringToDOM(file(schema_file).read()))
-        if schema_file is None:
-            schema_file = '<not provided>'
+        namespace = kw.get('namespace', None)
+        if namespace is None:
+            schema = kw.get('schema', None)
+            if schema is None:
+                schema_location = kw.get('schema_location', None)
+                if schema_location is None:
+                    raise Exception('No input provided')
+                schema = xs.schema.CreateFromDOM(domutils.StringToDOM(file(schema_location).read()))
+            namespace = schema.targetNamespace()
 
         generator_kw = kw.copy()
-        generator_kw['binding_target_namespace'] = schema.targetNamespace()
+        generator_kw['binding_target_namespace'] = namespace
         outf = StringIO.StringIO()
 
+        # Special case when generating the core facet definitions
         generate_facets = kw.get('generate_facets', False)
         if generate_facets:
-            ns = schema.targetNamespace()
             generator_kw['class_unique'] = set()
             generator_kw['class_keywords'] = set()
             stds = [ ]
             num_unresolved = 0
-            for td in ns.typeDefinitions().values():
+            for td in namespace.typeDefinitions().values():
                 if isinstance(td, xs.structures.SimpleTypeDefinition):
                     td._resolve()
                     stds.append(td)
@@ -900,46 +920,35 @@ def GeneratePython (**kw):
                     GenerateFacets(outf, td, **generator_kw)
             return outf.getvalue()
 
-        emit_order = schema.orderedComponents()
+        if namespace.needResolution():
+            namespace.resolveDefinitions()
+            assert not namespace.needResolution()
+        emit_order = namespace.orderedComponents(__ComponentOrder)
     
         import_prefix = 'pyxb.xmlschema.'
-        if schema.targetNamespace() == pyxb.namespace.XMLSchema:
+        if namespace == pyxb.namespace.XMLSchema:
             import_prefix = ''
 
         template_map = { }
-        template_map['input'] = schema_file
+        #template_map['input'] = schema_file
         template_map['date'] = str(datetime.datetime.now())
         template_map['version'] = 'UNSPECIFIED'
-        tns = schema.targetNamespace()
-        if tns is not None:
-            tns = tns.uri()
-        template_map['targetNamespace'] = repr(tns)
+        tns_uri = namespace.uri()
+        template_map['targetNamespace'] = repr(tns_uri)
         template_map['import_prefix'] = import_prefix
 
         # "import" in import_namespaces means Python import, not XSD import
         import_namespaces = set()
-        for ins in schema.importedNamespaces():
-            ns = ins.namespace()
-            if ns == schema.targetNamespace():
+        for ins in namespace.importedNamespaces():
+            if ins.modulePath() is None:
+                if not ins.isBuiltinNamespace():
+                    print 'WARNING: Dependency on %s with no module path' % (ins.uri(),)
                 continue
-            if ns.modulePath() is None:
-                if not ns.isBuiltinNamespace():
-                    print 'WARNING: Dependency on %s with no module path' % (ns.uri(),)
-                continue
-            import_namespaces.add(ns)
-        for ns in schema.referencedNamespaces():
-            if ns == schema.targetNamespace():
-                continue
-            if ns.modulePath() is None:
-                if not ns.isBuiltinNamespace():
-                    print 'WARNING: Dependency on %s with no module path' % (ns.uri(),)
-                continue
-            print 'Adding due to dependency %s' % (ns,)
-            import_namespaces.add(ns)
-            
+            import_namespaces.add(ins)
+
         template_map['aux_imports'] = "\n".join( [ 'import %s' % (_ns.modulePath(),) for _ns in import_namespaces ])
 
-        if schema.targetNamespace().isAbsentNamespace():
+        if namespace.isAbsentNamespace():
             template_map['NamespaceDefinition'] = 'pyxb.namespace.CreateAbsentNamespace()'
         else:
             template_map['NamespaceDefinition'] = templates.replaceInText('pyxb.namespace.NamespaceForURI(%{targetNamespace}, create_if_missing=True)', **template_map)

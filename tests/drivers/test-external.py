@@ -16,7 +16,7 @@ sys.modules['st'] = st
 
 # Now get the code for the shared types bindings, and evaluate it
 # within the new module.
-code = pyxb.binding.generate.GeneratePython(schema_file=schema_path + '/shared-types.xsd')
+code = pyxb.binding.generate.GeneratePython(schema_location=schema_path + '/shared-types.xsd')
 rv = compile(code, 'shared-types', 'exec')
 exec code in st.__dict__
 
@@ -25,7 +25,7 @@ stns = pyxb.namespace.NamespaceForURI('URN:shared-types')
 stns.setModulePath('st')
 
 # Now get and build a module that refers to that module.
-code = pyxb.binding.generate.GeneratePython(schema_file=schema_path + '/test-external.xsd')
+code = pyxb.binding.generate.GeneratePython(schema_location=schema_path + '/test-external.xsd')
 rv = compile(code, 'test-external', 'exec')
 eval(rv)
 
