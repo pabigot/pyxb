@@ -436,6 +436,10 @@ class _NamespaceResolution_mixin (pyxb.cscRoot):
     resolving component references.
     """
 
+    # A set of namespaces which some schema imported while processing with
+    # this namespace as target.
+    __importedNamespaces = None
+
     # A set of Namespace._Resolvable_mixin instances that have yet to be
     # resolved.
     __unresolvedComponents = None
@@ -446,6 +450,16 @@ class _NamespaceResolution_mixin (pyxb.cscRoot):
         This one handles component-resolution--related data."""
         getattr(super(_NamespaceResolution_mixin, self), '_reset', lambda *args, **kw: None)()
         self.__unresolvedComponents = []
+        self.__importedNamespaces = set()
+
+    def addNamespaceImport (self, namespace):
+        self.__importedNamespaces.add(namespace)
+        return self
+
+    def importedNamespaces (self):
+        """Return the set of namespaces which some schema imported while
+        processing with this namespace as target."""
+        return frozenset(self.__importedNamespaces)
 
     def queueForResolution (self, resolvable):
         """Invoked to note that a component may have references that will need
