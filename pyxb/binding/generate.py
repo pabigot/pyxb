@@ -141,7 +141,7 @@ class ReferenceSchemaComponent (ReferenceLiteral):
         self.__component = component
         btns = kw['binding_target_namespace']
         tns = self.__component.targetNamespace()
-        is_in_binding = (btns == tns) or (tns is None)
+        is_in_binding = self.__component._belongsToNamespace(tns)
 
         if not ((not isinstance(self.__component, pyxb.namespace._Resolvable_mixin)) or self.__component.isResolved()):
             print '%s not resolved' % (self.__component,)
