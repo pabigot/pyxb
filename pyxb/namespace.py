@@ -477,6 +477,10 @@ class _NamespaceResolution_mixin (pyxb.cscRoot):
             self.__unresolvedComponents.append(resolvable)
         return resolvable
 
+    def needResolution (self):
+        """Return C{True} iff this namespace has not been resolved."""
+        return self.__unresolvedComponents is not None
+
     def resolveDefinitions (self, allow_unresolved=False):
         """Loop until all references within the associated resolvable objects
         have been resolved.
@@ -496,7 +500,7 @@ class _NamespaceResolution_mixin (pyxb.cscRoot):
         @type schema: L{pyxb.xmlschema.structures.Schema}
         """
         num_loops = 0
-        if self.__unresolvedComponents is None:
+        if not self.needResolution():
             return True
         
         while 0 < len(self.__unresolvedComponents):
@@ -700,7 +704,6 @@ class _NamespaceComponentAssociation_mixin (pyxb.cscRoot):
                 # presumably local to a type in this namespace.
                 try:
                     if not td._belongsToNamespace(self):
-                        print '*** belongtonamespace'
                         continue
                 except AttributeError:
                     # Unnamed things don't get discarded this way
