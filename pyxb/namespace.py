@@ -440,6 +440,10 @@ class _NamespaceResolution_mixin (pyxb.cscRoot):
     # this namespace as target.
     __importedNamespaces = None
 
+    # A set of namespaces which appear in namespace declarations of schema
+    # with this namespace as target.
+    __referencedNamespaces = None
+
     # A set of Namespace._Resolvable_mixin instances that have yet to be
     # resolved.
     __unresolvedComponents = None
@@ -451,15 +455,25 @@ class _NamespaceResolution_mixin (pyxb.cscRoot):
         getattr(super(_NamespaceResolution_mixin, self), '_reset', lambda *args, **kw: None)()
         self.__unresolvedComponents = []
         self.__importedNamespaces = set()
+        self.__referencedNamespaces = set()
 
     def importNamespace (self, namespace):
         self.__importedNamespaces.add(namespace)
+        return self
+
+    def _referenceNamespace (self, namespace):
+        self.__referencedNamespaces.add(namespace)
         return self
 
     def importedNamespaces (self):
         """Return the set of namespaces which some schema imported while
         processing with this namespace as target."""
         return frozenset(self.__importedNamespaces)
+
+    def referencedNamespaces (self):
+        """Return the set of namespaces which appear in namespace declarations
+        of schema with this namespace as target."""
+        return frozenset(self.__referencedNamespaces)
 
     def queueForResolution (self, resolvable):
         """Invoked to note that a component may have references that will need
@@ -582,7 +596,7 @@ class _ComponentDependency_mixin (pyxb.cscRoot):
         @rtype: C{set(L{pyxb.xmlschema.structures._SchemaComponent_mixin})}"""
         if self.__dependentComponents is None:
             if isinstance(self, _Resolvable_mixin) and not (self.isResolved()):
-                raise pyxb.LogicError('Unresolved %s in %s: %s' % (self.__class__.__name__, self.namespaceContext().targetNamespace(), self.name()))
+                raise pyxb.LogicError('Unresolved %s in %s: %s' % (self.__class__.__name__, self._namespaceContext().targetNamespace(), self.name()))
             self.__dependentComponents = self._dependentComponents_vx()
             if self in self.__dependentComponents:
                 raise pyxb.LogicError('Self-dependency with %s %s' % (self.__class__.__name__, self))
@@ -1542,6 +1556,10 @@ class NamespaceContext (object):
     """Records information associated with namespaces at a DOM node.
     """
 
+    # Support for holding onto referenced namespaces until we have a target
+    # namespace to give them to.
+    __pendingReferencedNamespaces = None
+    
     def defaultNamespace (self):
         """The default namespace in effect at this node.  E.g., C{xmlns="URN:default"}."""
         return self.__defaultNamespace
@@ -1587,14 +1605,18 @@ class NamespaceContext (object):
             self.__mutableInScopeNamespaces = True
         if uri:
             if prefix is None:
-                self.__defaultNamespace = NamespaceForURI(uri, create_if_missing=True)
+                ns = self.__defaultNamespace = NamespaceForURI(uri, create_if_missing=True)
                 self.__inScopeNamespaces[None] = self.__defaultNamespace
             else:
-                uri = NamespaceForURI(uri, create_if_missing=True)
-                self.__inScopeNamespaces[prefix] = uri
+                ns = NamespaceForURI(uri, create_if_missing=True)
+                self.__inScopeNamespaces[prefix] = ns
                 # @todo record prefix in namespace so we can use
                 # it during generation?  I'd rather make the user
                 # specify what to use.
+            if self.__targetNamespace:
+                self.__targetNamespace._referenceNamespace(ns)
+            else:
+                self.__pendingReferencedNamespaces.add(ns)
         else:
             # NB: XMLNS 6.2 says that you can undefine a default
             # namespace, but does not say anything explicitly about
@@ -1607,7 +1629,6 @@ class NamespaceContext (object):
             self.__inScopeNamespaces.pop(None, None)
 
     def finalizeTargetNamespace (self, tns_uri=None):
-        had_target_namespace = True
         if tns_uri is not None:
             assert 0 < len(tns_uri)
             self.__targetNamespace = NamespaceForURI(tns_uri, create_if_missing=True)
@@ -1619,6 +1640,9 @@ class NamespaceContext (object):
                 self.__targetNamespace = NamespaceForURI(tns_uri, create_if_missing=True)
             if self.__defaultNamespace is None:
                 self.__defaultNamespace = self.__targetNamespace
+        if self.__pendingReferencedNamespaces is not None:
+            [ self.__targetNamespace._referenceNamespace(_ns) for _ns in self.__pendingReferencedNamespaces ]
+            self.__pendingReferencedNamespace = None
         assert self.__targetNamespace is not None
 
     def __init__ (self, dom_node=None, parent_context=None, recurse=True, default_namespace=None, target_namespace=None, in_scope_namespaces=None):
@@ -1670,6 +1694,8 @@ class NamespaceContext (object):
             self.__defaultNamespace = parent_context.defaultNamespace()
             self.__targetNamespace = parent_context.targetNamespace()
             
+        if self.__targetNamespace is None:
+            self.__pendingReferencedNamespaces = set()
         if dom_node is not None:
             for ai in range(dom_node.attributes.length):
                 attr = dom_node.attributes.item(ai)
