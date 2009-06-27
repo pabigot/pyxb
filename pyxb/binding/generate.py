@@ -667,13 +667,10 @@ class %{ctd} (%{superclass}):
         for (expanded_name, (is_plural, ed)) in plurality_data.items():
             # @todo Detect and account for plurality change between this and base
             if ed.scope() == ctd:
-                ef_map = expandedNameToUseMap(ed.expandedName(), template_map['ctd'], class_unique, class_keywords, kw)
+                ef_map = ed.__useMap
                 ef_map.update(elementDeclarationMap(ed, **kw))
                 aux_init = []
                 ef_map['is_plural'] = repr(is_plural)
-                if is_plural:
-                    unique_name = ef_map['id']
-                    ef_map['appender'] = utility.PrepareIdentifier('add' + unique_name[0].upper() + unique_name[1:], class_unique, class_keywords)
                 element_uses.append(templates.replaceInText('%{use}.name() : %{use}', **ef_map))
                 if 0 == len(aux_init):
                     ef_map['aux_init'] = ''
@@ -735,7 +732,8 @@ class %{ctd} (%{superclass}):
         ad = au.attributeDeclaration()
         assert isinstance(ad.scope(), xs.structures.ComplexTypeDefinition)
         if ad.scope() == ctd:
-            au_map = expandedNameToUseMap(ad.expandedName(), template_map['ctd'], class_unique, class_keywords, kw)
+            au_map = ad.__useMap
+            assert isinstance(au_map, dict)
 
             assert ad.typeDefinition() is not None
             au_map['attr_type'] = pythonLiteral(ad.typeDefinition(), **kw)
@@ -962,7 +960,7 @@ def _PrepareSimpleTypeDefinitions (all_std):
                 std.__bindingNamespace.__anonSTDIndex += 1
             std.setNameInBinding(utility.PrepareIdentifier(name, std.__bindingNamespace.__uniqueInModule, protected=protected))
             std.__bindingNamespace.__simpleTypeDefinitions.append(std)
-            print '%s represents %s in %s' % (std.nameInBinding(), std.expandedName(), std.__bindingNamespace)
+            #print '%s represents %s in %s' % (std.nameInBinding(), std.expandedName(), std.__bindingNamespace)
             std.__uniqueInBindingClass = basis.simpleTypeDefinition._ReservedSymbols.copy()
             ptd = std.primitiveTypeDefinition(throw_if_absent=False)
             if (ptd is None) or not ptd.hasPythonSupport():
@@ -976,7 +974,7 @@ def _PrepareSimpleTypeDefinitions (all_std):
                     for ei in enum_facet.items():
                         assert ei.tag() is None
                         ei._setTag(utility.PrepareIdentifier(ei.unicodeValue(), std.__uniqueInBindingClass))
-                        print ' Enum %s represents %s' % (ei.tag(), ei.unicodeValue())
+                        #print ' Enum %s represents %s' % (ei.tag(), ei.unicodeValue())
                 #print '%s unique: %s' % (std.expandedName(), std.__uniqueInBindingClass)
 
 def _SetNameWithAccessors (component, container, is_plural, kw):
@@ -1051,7 +1049,7 @@ def AltGenerate(schema_location=None,
                 ctd.__bindingNamespace.__anonCTDIndex += 1
             ctd.setNameInBinding(utility.PrepareIdentifier(name, ctd.__bindingNamespace.__uniqueInModule))
             ctd.__bindingNamespace.__complexTypeDefinitions.append(ctd)
-            print '%s represents %s in %s' % (ctd.nameInBinding(), ctd.expandedName(), ctd.__bindingNamespace)
+            #print '%s represents %s in %s' % (ctd.nameInBinding(), ctd.expandedName(), ctd.__bindingNamespace)
             if ctd._isHierarchyRoot():
                 ctd.__uniqueInBindingClass = basis.complexTypeDefinition._ReservedSymbols.copy()
             else:
@@ -1073,10 +1071,9 @@ def AltGenerate(schema_location=None,
             for cd in ctd.localScopedDeclarations():
                 use_map = _SetNameWithAccessors(cd, ctd, plurality_map.get(cd.expandedName(), (False, None))[0], kw)
                 cd.__useMap = use_map
-                print '  %s %s uses %s stored in %s' % (cd.__class__.__name__, cd.expandedName(), use_map['id'], use_map['key'])
+                #print '  %s %s uses %s stored in %s' % (cd.__class__.__name__, cd.expandedName(), use_map['id'], use_map['key'])
 
     for sns in namespace.siblingNamespaces():
-        print 'GENERATING FOR %s' % (sns,)
         generator_kw = { }
         generator_kw['binding_target_namespace'] = sns
         outf = StringIO.StringIO()
@@ -1138,13 +1135,13 @@ def CreateFromDOM (node):
 ''', **template_map))
     
         # Give priority for identifiers to scoped element declarations
-        print 'Generating %d STDs' % (len(sns.__simpleTypeDefinitions),)
+        #print 'Generating %d STDs' % (len(sns.__simpleTypeDefinitions),)
         for std in sns.__simpleTypeDefinitions:
             outf.write(GenerateSTD(std, **generator_kw))
-        print 'Generating %d CTDs' % (len(sns.__complexTypeDefinitions),)
+        #print 'Generating %d CTDs' % (len(sns.__complexTypeDefinitions),)
         for ctd in sns.__complexTypeDefinitions:
             outf.write(GenerateCTD(ctd, **generator_kw))
-        print 'Generating %d ED' % (len(sns.__elementDeclarations),)
+        #print 'Generating %d ED' % (len(sns.__elementDeclarations),)
         for ed in sns.__elementDeclarations:
             outf.write(GenerateED(ed, **generator_kw))
 

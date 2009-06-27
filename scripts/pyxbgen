@@ -150,66 +150,13 @@ tns = wxs.targetNamespace()
 # parsed schema file
 try:
     AltGenerate(namespace=tns, module_path_prefix=module_path_prefix)
-    binding_source = namespace.__bindingSource
-    assert binding_source is not None
-
-    '''
-    tns.setModulePath(module_path)
-    resolved_ns = set()
-
-    nslist = set([ wxs.targetNamespace() ])
-    while nslist:
-        new_nslist = set()
-        while nslist:
-            ns = nslist.pop()
-            if not ns.needsResolution():
-                continue
-            for ins in ns.referencedNamespaces():
-                print '%s imports %s' % (ns.uri(), ins.uri())
-                if ins.needsResolution():
-                    print 'Adding imported namespace %s' % (ins.uri(),)
-                    new_nslist.add(ins)
-            print 'Attempting resolution %s' % (ns.uri(),)
-            if not ns.resolveDefinitions(allow_unresolved=True):
-                print 'Holding incomplete resolution %s' % (ns.uri(),)
-                new_nslist.add(ns)
-            else:
-                resolved_ns.add(ns)
-        nslist = new_nslist
-
-    for ns in resolved_ns:
-        ns.validateComponentModel()
-
-    print "Imported:\n%s\nEnd of imports" % ("\n".join([ _ins.uri() for _ins in tns.importedNamespaces() ]),)
-    print "Identified:"
-    for ns in resolved_ns:
-        print '%s %s' % (ns.prefix(), ns.uri())
-        for ins in ns.importedNamespaces():
-            print "\timp %s %s" % (ins.prefix(), ins.uri())
-        for ins in ns.referencedNamespaces():
-            print "\tref %s %s" % (ins.prefix(), ins.uri())
-    print "Sibling:\n%s\nEnd of siblings" % ("\n".join([ str(_ins.uri(),) for _ins in tns.siblingNamespaces() ]),)
-
-    for ins in tns.importedNamespaces():
-        if ns.isAbsentNamespace():
-            print 'WARNING Unable to save generated bindings for imported %s' % (ns,)
-            continue
-        if ns.isLoadable():
-            print 'NOTE: %s available in pre-load format' % (ns,)
-            continue
-        if ns.modulePath() is None:
-            print 'WARNING: No module path available for imported %s' % (ns,)
-            continue
-        print 'Need to generate binding for imported %s as %s' % (ns.uri(), ns.modulePath())
-        binding_source = GeneratePython(namespace=ins)
-        ns.saveToFile('%s/%s.wxs' % (binding_path, ns.modulePath()))
-
-    binding_source = GeneratePython(namespace=tns)
-    '''
-    if binding_source is not None:
-        print 'Binding source is %d long to %s' % (len(binding_source), binding_file)
-        file(binding_file, "w").write(binding_source)
-        print 'Saved binding source to %s' % (binding_file,)
+    for sns in tns.siblingNamespaces():
+        binding_source = sns.__bindingSource
+        if binding_source is not None:
+            print 'Binding source is %d long to %s' % (len(binding_source), binding_file)
+            binding_file = sns.modulePath().replace('.', '/') + '.py'
+            file(binding_file, "w").write(binding_source)
+            print 'Saved binding source to %s' % (binding_file,)
 except Exception, e:
     print 'Exception generating bindings to %s: %s' % (binding_file, e)
     traceback.print_exception(*sys.exc_info())
