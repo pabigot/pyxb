@@ -4044,19 +4044,7 @@ class _ImportElementInformationItem (_Annotated_mixin):
                 self.__redundant = True
                 return None
             #raise pyxb.NamespaceError('Please generate bindings for namespace %s available at %s, prefix %s' % (uri, schema_uri, '??'))
-            ns_ctx = pyxb.namespace.NamespaceContext.GetNodeContext(node)
-            xmls = None
-            try:
-                if 0 <= schema_uri.find(':'):
-                    xmls = urllib2.urlopen(schema_uri).read()
-                else:
-                    xmls = file(schema_uri).read()
-                    
-            except Exception, e:
-                print 'IMPORT %s caught: %s' % (schema_uri, e)
-                raise
-            dom = StringToDOM(xmls)
-            self.__schema = Schema.CreateFromDOM(dom, ns_ctx, schema_location=schema_uri)
+            self.__schema = Schema.CreateFromLocation(schema_location=schema_uri, namespace_context=pyxb.namespace.NamespaceContext.GetNodeContext(node))
         else:
             print 'WARNING: No information available on imported namespace %s' % (uri,)
 
@@ -4184,7 +4172,28 @@ class Schema (_SchemaComponent_mixin):
         'attributeGroup' : AttributeGroupDefinition
         }
 
-    # @todo: put these in base class
+    @classmethod
+    def CreateFromLocation (cls, schema_location, **kw):
+        """Create a schema from a schema location.
+
+        Reads an XML document from the schema location and creates a schema
+        using it.  All keyword parameters are passed to L{CreateFromDOM}.
+
+        @param schema_location: A file path or a URI
+        """
+        kw['schema_location'] = schema_location
+        xmls = None
+        try:
+            if 0 <= schema_location.find(':'):
+                xmls = urllib2.urlopen(schema_location).read()
+            else:
+                xmls = file(schema_location).read()
+        except Exception, e:
+            print 'CreateFromLocation: open %s caught: %s' % (schema_location, e)
+            raise
+        dom = StringToDOM(xmls)
+        return cls.CreateFromDOM(dom, **kw)
+
     @classmethod
     def CreateFromDOM (cls, node, namespace_context=None, inherit_default_namespace=False, schema_location=None):
         """Take the root element of the document, and scan its attributes under
@@ -4344,12 +4353,7 @@ class Schema (_SchemaComponent_mixin):
             return node
         included_schema = None
         try:
-            if 0 <= abs_uri.find(':'):
-                source = urllib2.urlopen(abs_uri)
-            else:
-                source = file(abs_uri)
-            xml = source.read()
-            included_schema = self.CreateFromDOM(StringToDOM(xml), self.__namespaceData, inherit_default_namespace=True, schema_location=abs_uri)
+            included_schema = self.CreateFromLocation(abs_uri, namespace_context=self.__namespaceData, inherit_default_namespace=True)
         except Exception, e:
             print 'INCLUDE %s caught: %s' % (abs_uri, e)
             #traceback.print_exception(*sys.exc_info())

@@ -878,6 +878,12 @@ def AltGenerate(schema_location=None,
     pass
 
 def GeneratePython (**kw):
+    """
+    @keyword namespace: The namespace for which bindings should be generated
+    @keyword schema_location: If namespace is C{None}, the location where a schema defining the namespace can be found
+    @keyword generate_facets: Utility generating only the facet definitions for the XMLSchema namespace
+    """
+
     global UniqueInBinding
     global PostscriptItems
     UniqueInBinding.clear()
@@ -888,7 +894,7 @@ def GeneratePython (**kw):
             schema_location = kw.get('schema_location', None)
             if schema_location is None:
                 raise Exception('No input provided')
-            schema = xs.schema.CreateFromDOM(domutils.StringToDOM(file(schema_location).read()))
+            schema = xs.schema.CreateFromLocation(schema_location)
             namespace = schema.targetNamespace()
 
         generator_kw = kw.copy()
