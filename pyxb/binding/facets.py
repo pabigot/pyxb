@@ -422,8 +422,14 @@ class _EnumerationElement:
         """The Python identifier used for the named constant representing
         the enumeration value.
 
-        This does not include any prefix."""
+        This should include any desired prefix, since it must be
+        unique within its binding class.  If C{None}, no enumeration
+        constant will be generated."""
         return self.__tag
+    def _setTag (self, tag):
+        """Set the tag to be used for this enumeration."""
+        self.__tag = tag
+
 
     __enumeration = None
     def enumeration (self):
@@ -438,8 +444,6 @@ class _EnumerationElement:
     def __init__ (self, enumeration=None, unicode_value=None,
                   description=None, annotation=None,
                   **kw):
-        #if 0 < len(kw):
-        #    print 'EnumerationElement kw: %s' % (kw,)
         # The preferred keyword is "unicode_value", but when being
         # generically applied by
         # structures.SimpleTypeDefinition.__updateFacets, the unicode
@@ -455,8 +459,6 @@ class _EnumerationElement:
         self.__annotation = annotation
 
         assert self.__enumeration is not None
-
-        self.__tag = utility.MakeIdentifier(self.unicodeValue())
 
         value_datatype = self.enumeration().valueDatatype()
         self.__value = value_datatype.Factory(self.unicodeValue(), _validate_constraints=False)
