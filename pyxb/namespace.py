@@ -541,7 +541,7 @@ class _NamespaceResolution_mixin (pyxb.cscRoot):
             self.__unresolvedComponents.append(resolvable)
         return resolvable
 
-    def needResolution (self):
+    def needsResolution (self):
         """Return C{True} iff this namespace has not been resolved."""
         return self.__unresolvedComponents is not None
 
@@ -561,7 +561,7 @@ class _NamespaceResolution_mixin (pyxb.cscRoot):
         component is encountered.
         """
         num_loops = 0
-        if not self.needResolution():
+        if not self.needsResolution():
             return True
         
         while 0 < len(self.__unresolvedComponents):

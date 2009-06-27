@@ -920,9 +920,9 @@ def GeneratePython (**kw):
                     GenerateFacets(outf, td, **generator_kw)
             return outf.getvalue()
 
-        if namespace.needResolution():
+        if namespace.needsResolution():
             namespace.resolveDefinitions()
-            assert not namespace.needResolution()
+            assert not namespace.needsResolution()
         emit_order = namespace.orderedComponents(__ComponentOrder)
     
         import_prefix = 'pyxb.xmlschema.'
