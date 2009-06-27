@@ -47,6 +47,7 @@ def MakeIdentifier (s):
         s = 'emptyString'
     return s
 
+# Note that types like int and float are not keywords
 _Keywords = frozenset( ( "and", "del", "from", "not", "while", "as", "elif", "global",
               "or", "with", "assert", "else", "if", "pass", "yield",
               "break", "except", "import", "print", "class", "exec",
