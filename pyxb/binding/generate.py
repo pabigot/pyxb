@@ -879,7 +879,7 @@ def GeneratePython (**kw):
     UniqueInBinding.clear()
     PostscriptItems = []
     try:
-        namespace = kw.get('namespace', None)
+        namespace = kw.pop('namespace', None)
         if namespace is None:
             schema = kw.get('schema', None)
             if schema is None:
