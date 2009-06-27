@@ -3,7 +3,7 @@
 import getopt
 import sys
 import pyxb.xmlschema
-from pyxb.binding.generate import GeneratePython
+from pyxb.binding.generate import GeneratePython, AltGenerate
 import os.path
 
 # module path prefix
@@ -99,6 +99,9 @@ if save_component_model:
     component_model_file = os.path.join(binding_path, '%s.wxs' % (schema_prefix,))
 binding_file = os.path.join(binding_path,'%s.py' % (schema_prefix,))
 
+if module_path_prefix:
+    module_path_prefix += '.'
+
 import sys
 import traceback
 from xml.dom import minidom
@@ -142,11 +145,13 @@ else:
     wxs = pyxb.xmlschema.schema.CreateFromDOM(dom, schema_location=schema_uri)
 
 tns = wxs.targetNamespace()
-tns.setModulePath(module_path)
 
 # Save binding source first, so name-in-binding is stored in the
 # parsed schema file
 try:
+    #AltGenerate(namespace=tns, module_path_prefix=module_path_prefix)
+
+    tns.setModulePath(module_path)
     resolved_ns = set()
 
     nslist = set([ wxs.targetNamespace() ])
@@ -156,7 +161,7 @@ try:
             ns = nslist.pop()
             if not ns.needsResolution():
                 continue
-            for ins in ns.importedNamespaces():
+            for ins in ns.referencedNamespaces():
                 print '%s imports %s' % (ns.uri(), ins.uri())
                 if ins.needsResolution():
                     print 'Adding imported namespace %s' % (ins.uri(),)
@@ -169,8 +174,10 @@ try:
                 resolved_ns.add(ns)
         nslist = new_nslist
 
-    print "Imported:\n%s\nEnd of imports" % ("\n".join([ _ins.uri() for _ins in tns.importedNamespaces() ]),)
+    for ns in resolved_ns:
+        ns.validateComponentModel()
 
+    print "Imported:\n%s\nEnd of imports" % ("\n".join([ _ins.uri() for _ins in tns.importedNamespaces() ]),)
     print "Identified:"
     for ns in resolved_ns:
         print '%s %s' % (ns.prefix(), ns.uri())
@@ -178,18 +185,17 @@ try:
             print "\timp %s %s" % (ins.prefix(), ins.uri())
         for ins in ns.referencedNamespaces():
             print "\tref %s %s" % (ins.prefix(), ins.uri())
-
-
     print "Sibling:\n%s\nEnd of siblings" % ("\n".join([ str(_ins.uri(),) for _ins in tns.siblingNamespaces() ]),)
+
     for ins in tns.importedNamespaces():
         if ns.isAbsentNamespace():
             print 'WARNING Unable to save generated bindings for imported %s' % (ns,)
             continue
-        if ns.modulePath() is None:
-            print 'WARNING: No module path available for imported %s' % (ns,)
-            continue
         if ns.isLoadable():
             print 'NOTE: %s available in pre-load format' % (ns,)
+            continue
+        if ns.modulePath() is None:
+            print 'WARNING: No module path available for imported %s' % (ns,)
             continue
         print 'Need to generate binding for imported %s as %s' % (ns.uri(), ns.modulePath())
         binding_source = GeneratePython(namespace=ins)
