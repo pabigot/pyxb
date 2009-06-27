@@ -345,25 +345,34 @@ class _NamedComponent_mixin (pyxb.cscRoot):
         return self.__targetNamespace
     __targetNamespace = None
     
-    def _belongsToNamespace (self, ns, scope_adopts=False):
-        """Return C{True} if this component belongs to the given namespace.
+    def _picklesInNamespace (self, ns):
+        """Return C{True} if this component should be pickled by value in the
+        given namespace.
 
         When pickling, a declaration component is considered to belong to the
         namespace if it has a local scope which belongs to the namespace.  In
         that case, the declaration is a clone of something that does not
         belong to the namespace; but the clone does.
 
-        It's also allowed to have there be no associated namespace (but not an
-        absent namespace).  Be aware that cross-namespace inheritance means
-        you will get references to elements in another namespace when
-        generating code for a subclass; that's fine, and those references are
-        not re-generated locally.
+        @see: L{_bindsInNamespace}
 
-        @keyword scope_adopts: If C{True}, a scoped declaration belongs to the
-        namespace of its scope.  Default is C{False}.
+        @return: C{False} if the component should be pickled by reference.
         """
-        if scope_adopts and isinstance(self._scope(), ComplexTypeDefinition):
-            return self._scope()._belongsToNamespace(ns)
+        if isinstance(self._scope(), ComplexTypeDefinition):
+            return self._scope()._picklesInNamespace(ns)
+        return self.targetNamespace() in (ns, None)
+
+    def _bindsInNamespace (self, ns):
+        """Return C{True} if the binding for this component should be
+        generated in the given namespace.
+
+        This is the case when the component is in the given namespace.  It's
+        also the case when the component has no associated namespace (but not
+        an absent namespace).  Be aware that cross-namespace inheritance means
+        you will get references to elements in another namespace when
+        generating code for a subclass; that's fine, and those references
+        should not be generated locally.
+        """
         return self.targetNamespace() in (ns, None)
 
     def expandedName (self):
@@ -485,7 +494,7 @@ class _NamedComponent_mixin (pyxb.cscRoot):
         # If this thing is scoped in a complex type that belongs to the
         # namespace being pickled, then it gets pickled as an object even if
         # its target namespace isn't this one.
-        if self._belongsToNamespace(pickling_namespace, scope_adopts=True):
+        if self._picklesInNamespace(pickling_namespace):
             return False
         if self.isAnonymous():
             raise pyxb.LogicError('Unable to pickle reference to unnamed object %s in %s: %s' % (self.name(), self.targetNamespace().uri(), object.__str__(self)))
