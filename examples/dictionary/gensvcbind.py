@@ -24,4 +24,4 @@ except Exception, e:
     print 'ERROR building schema: %s' % (e,)
     sys.exit(1)
 
-open('raw_dictservice.py', 'w').write(pyxb.binding.generate.GeneratePython(schema=spec.schema()))
+open('raw_dictservice.py', 'w').write(pyxb.binding.generate.GeneratePython(namespace=spec.schema().targetNamespace()))

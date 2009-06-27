@@ -873,6 +873,10 @@ __ComponentOrder = (
   , xs.structures.Particle                     # ModelGroup, WildCard, ElementDeclaration
     )
 
+def AltGenerate(schema_location=None,
+                namespace=None):
+    pass
+
 def GeneratePython (**kw):
     global UniqueInBinding
     global PostscriptItems

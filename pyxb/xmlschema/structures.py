@@ -3336,6 +3336,10 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
     # than from a DOM instance.
     __isBuiltin = False
 
+    # The schema that defined this type.  Required to obtain final
+    # information.
+    __schema = None
+
     # Allocate one of these.  Users should use one of the Create*
     # factory methods instead.
     def __init__ (self, *args, **kw):
@@ -3621,9 +3625,9 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
                 if Node.ELEMENT_NODE != cn.nodeType:
                     continue
                 if pyxb.namespace.XMLSchema_hfp.nodeIsNamed(cn, 'hasFacet'):
-                    facet_name = NodeAttribute(cn, 'name', pyxb.namespace.XMLSchema_hfp)
+                    facet_name = NodeAttribute(cn, 'name')# , pyxb.namespace.XMLSchema_hfp)
                     if facet_name is None:
-                        raise pyxb.SchemaValidationError('hasFacet missing name attribute')
+                        raise pyxb.SchemaValidationError('hasFacet missing name attribute in %s' % (cn,))
                     if facet_name in seen_facets:
                         raise pyxb.SchemaValidationError('Multiple hasFacet specifications for %s' % (facet_name,))
                     seen_facets.add(facet_name)
@@ -3838,6 +3842,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
         # Only unresolved nodes have an unset variety
         return (self.__variety is not None)
 
+    # STD:res
     def _resolve (self):
         """Attempt to resolve the type.
 
@@ -3894,7 +3899,8 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
             else:
                 bad_instance = True
 
-        self.__final = self.__schema.finalForNode(node, self._STD_Map)
+        if self.__schema:
+            self.__final = self.__schema.finalForNode(node, self._STD_Map)
 
         # It is NOT an error to fail to resolve the type.
         if bad_instance:

@@ -147,9 +147,9 @@ class Facet (pyxb.cscRoot):
         assert cls != Facet
         if 0 <= name.find(':'):
             name = name.split(':', 1)[1]
-        if not name in cls._Facets:
-            raise pyxb.LogicError('Unrecognized facet name %s: expect %s' % (name, ','.join(cls._Facets)))
         facet_class = globals().get('%s_%s' % (cls._FacetPrefix, name), None)
+        if facet_class is None:
+            raise pyxb.LogicError('Unrecognized facet name %s: expect %s' % (name, ','.join([_f._Name for _f in cls.Facets])))
         assert facet_class is not None
         return facet_class
 
