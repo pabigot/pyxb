@@ -415,7 +415,7 @@ class _NamespaceCategory_mixin (pyxb.cscRoot):
         for category in category_map.keys():
             current_map = self.categoryMap(category)
             new_map = category_map[category]
-            for ln in obj_map.keys():
+            for ln in new_map.keys():
                 if ln in current_map:
                     raise pyxb.NamespaceError('Load attempted to override %s %s in %s' % (category, ln, self.uri()))
             self.categoryMap(category).update(category_map[category])
