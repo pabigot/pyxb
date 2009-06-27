@@ -44,6 +44,9 @@ import urllib2
 import urlparse
 import os.path
 
+# Flag indicating that the built in types have been registered
+_PastAddBuiltInTypes = False
+
 # Make it easier to check node names in the XMLSchema namespace
 from pyxb.namespace import XMLSchema as xsd
 
@@ -107,6 +110,15 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin):
         self.__scope = ctd
         return self
 
+    def _schema (self):
+        """Return the schema component from which this component was defined.
+
+        Needed so we can distinguish components that came from different
+        locations, since that imposes an external order dependency on them and
+        on cross-namespace inclusions."""
+        return self.__schema
+    __schema = None
+
     def __init__ (self, *args, **kw):
         self.__ownedComponents = set()
         self.__scope = kw.get('scope')
@@ -121,6 +133,8 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin):
 
         super(_SchemaComponent_mixin, self).__init__(*args, **kw)
         self._namespaceContext().targetNamespace()._associateComponent(self)
+
+        self.__schema = kw.get('schema')
 
         self._setOwner(kw.get('owner'))
 
@@ -3365,10 +3379,6 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
     # than from a DOM instance.
     __isBuiltin = False
 
-    # The schema that defined this type.  Required to obtain final
-    # information.
-    __schema = None
-
     # Allocate one of these.  Users should use one of the Create*
     # factory methods instead.
     def __init__ (self, *args, **kw):
@@ -3729,7 +3739,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
         @type body: C{xml.dom.Node}
         @rtype: L{SimpleTypeDefinition}
         """
-        std = SimpleTypeDefinition(owner=owner, namespace_context=owner._namespaceContext(), variety=None, scope=self._scope())
+        std = SimpleTypeDefinition(owner=owner, namespace_context=owner._namespaceContext(), variety=None, scope=self._scope(), schema=owner._schema())
         print '%s tns %s' % (self.expandedName(), std.targetNamespace())
         std.__baseTypeDefinition = self
         return std.__completeResolution(body, None, 'restriction')
@@ -3896,7 +3906,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
         node = self.__domNode
         
         kw = { 'owner' : self
-              , 'schema' : self.__schema }
+              , 'schema' : self._schema() }
 
         bad_instance = False
         # The guts of the node should be exactly one instance of
@@ -3919,8 +3929,8 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
             else:
                 bad_instance = True
 
-        if self.__schema:
-            self.__final = self.__schema.finalForNode(node, self._STD_Map)
+        if self._schema() is not None:
+            self.__final = self._schema().finalForNode(node, self._STD_Map)
 
         # It is NOT an error to fail to resolve the type.
         if bad_instance:
@@ -3942,7 +3952,6 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
         # Creation does not attempt to do resolution.  Queue up the newly created
         # whatsis so we can resolve it after everything's been read in.
         rv.__domNode = node
-        rv.__schema = kw['schema']
         rv._queueForResolution('creation')
         
         return rv
@@ -4545,6 +4554,9 @@ def _AddSimpleTypes (namespace):
         assert element_std is not None
         td = schema._addNamedComponent(SimpleTypeDefinition.CreateListInstance(list_name, schema, element_std, dtc))
         assert td.isResolved()
+    global _PastAddBuiltInTypes
+    _PastAddBuiltInTypes = True
+    
     return schema
 
 import sys

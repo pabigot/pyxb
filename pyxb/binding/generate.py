@@ -921,8 +921,15 @@ def _PrepareNamespaceForGeneration (sns, module_path_prefix, all_std, all_ctd, a
             ctd.add(c)
         elif isinstance(c, xs.structures.ElementDeclaration) and c._scopeIsGlobal():
             ed.add(c)
+    schemas = set()
     for c in std.union(ctd).union(ed):
         c.__bindingNamespace = sns
+        assert c._schema() is not None, '%s has no schema' % (c,)
+        schemas.add(c._schema())
+    assert not (None in schemas)
+    if 1 < len(schemas):
+        print '*** %s requires multiple schemas: %s' % (sns.uri(), "  \n".join([ _s.schemaLocation() for _s in schemas ]))
+
     sns.__uniqueInModule = UniqueInBinding.copy()
     sns.__simpleTypeDefinitions = []
     sns.__complexTypeDefinitions = []
