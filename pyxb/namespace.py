@@ -444,6 +444,14 @@ class _NamespaceResolution_mixin (pyxb.cscRoot):
     # with this namespace as target.
     __referencedNamespaces = None
 
+    # A set of namespaces with which this namespaces has a dependency loop.
+    # The named objects held by these namespaces must be pickled together in a
+    # single object so that the ordering dependencies in unpickling are
+    # handled by Python.  Sibling namespaces are the subset of the referenced
+    # namespaces which transitively reference this namespace, closed under
+    # union.
+    __siblingNamespaces = None
+
     # A set of Namespace._Resolvable_mixin instances that have yet to be
     # resolved.
     __unresolvedComponents = None
@@ -457,6 +465,20 @@ class _NamespaceResolution_mixin (pyxb.cscRoot):
         self.__importedNamespaces = set()
         self.__referencedNamespaces = set()
 
+    def _getState_csc (self, kw):
+        kw.update({
+                'importedNamespaces': self.__importedNamespaces,
+                'referencedNamespaces': self.__referencedNamespaces,
+                'siblingNamespaces': self.siblingNamespaces()
+                })
+        return getattr(super(_NamespaceResolution_mixin, self), '_getState_csc', lambda _kw: _kw)(kw)
+
+    def _setState_csc (self, kw):
+        self.__importedNamespaces = kw['importedNamespaces']
+        self.__referencedNamespaces = kw['referencedNamespaces']
+        self.__siblingNamespaces = kw['siblingNamespaces']
+        return getattr(super(_NamespaceResolution_mixin, self), '_setState_csc', lambda _kw: self)(kw)
+
     def importNamespace (self, namespace):
         self.__importedNamespaces.add(namespace)
         return self
@@ -469,6 +491,43 @@ class _NamespaceResolution_mixin (pyxb.cscRoot):
         """Return the set of namespaces which some schema imported while
         processing with this namespace as target."""
         return frozenset(self.__importedNamespaces)
+
+    def siblingNamespaces (self, reset=False):
+        """Return the set of sibling namespaces.
+
+        A sibling namespace is one which is referenecd by this namespace and
+        which in turn transitively reference this namespace.  I.e., those
+        namespaces that participate in a dependency cycle.  These namespaces
+        must all be pickled in the same file.  (Note that the relation used is
+        reference, not import, since the Python bindings don't care whether
+        the reference is used structurally.)
+
+        A namespace is considered a sibling of itself, so that the returned
+        set is closed under cyclic import.
+
+        @keyword reset: If C{False} (default), the result from a previous
+        invocation will be returned without recalculating it.  Set to C{True}
+        to force recalculation based on current imported namespaces.
+        @rtype: set of L{Namespace}.
+        """
+        if reset or (self.__siblingNamespaces is None):
+            transitive_refs = set()
+            new_tr = set(self.referencedNamespaces())
+            while 0 < len(new_tr):
+                transitive_refs.update(new_tr)
+                new_tr = set()
+                for ns in transitive_refs:
+                    new_tr.update(ns.referencedNamespaces().difference(transitive_refs))
+            transitive_refs.discard(self)
+            self.__siblingNamespaces = set()
+            new_sibs = set([ self ])
+            while 0 < len(new_sibs):
+                self.__siblingNamespaces.update(new_sibs)
+                new_sibs = set()
+                for ns in transitive_refs:
+                    if (ns not in self.__siblingNamespaces) and (0 < len(ns.referencedNamespaces().intersection(self.__siblingNamespaces))):
+                        new_sibs.add(ns)
+        return self.__siblingNamespaces
 
     def referencedNamespaces (self):
         """Return the set of namespaces which appear in namespace declarations
@@ -1059,7 +1118,25 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
     def createExpandedName (self, local_name):
         return ExpandedName(self, local_name)
 
-    __PICKLE_FORMAT = '200905041925'
+    __PICKLE_FORMAT = '200906270603'
+
+    def _getState_csc (self, kw):
+        kw.update({
+            'schemaLocation': self.__schemaLocation,
+            'description': self.__description,
+            'prefix': self.__prefix,
+            'modulePath' : self.__modulePath,
+            'bindingConfiguration': self.__bindingConfiguration,
+            })
+        return getattr(super(Namespace, self), '_getState_csc', lambda _kw: _kw)(kw)
+
+    def _setState_csc (self, kw):
+        self.__schemaLocation = kw['schemaLocation']
+        self.__description = kw['description']
+        self.__prefix = kw['prefix']
+        self.__modulePath = kw['modulePath']
+        self.__bindingConfiguration = kw['bindingConfiguration']
+        return getattr(super(Namespace, self), '_setState_csc', lambda _kw: self)(kw)
 
     def __getstate__ (self):
         """Support pickling.
@@ -1071,39 +1148,23 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
         on whether the namespace has already been encountered."""
         if self.uri() is None:
             raise pyxb.LogicError('Illegal to serialize absent namespaces')
-        kw = {
-            '__schemaLocation': self.__schemaLocation,
-            '__description':self.__description,
-            # * Do not include __boundPrefix: bound namespaces should
-            # have already been created by the infrastructure, so the
-            # unpickler should never create one.
-            '__modulePath' : self.__modulePath,
-            '__bindingConfiguration': self.__bindingConfiguration,
-            '__contextDefaultNamespace' : self.__contextDefaultNamespace,
-            '__contextInScopeNamespaces' : self.__contextInScopeNamespaces,
-            }
+        kw = self._getState_csc({ })
         args = ( self.__uri, )
-        return ( self.__PICKLE_FORMAT, args, kw )
+        return ( self.__PICKLE_FORMAT, pyxb.__version__, args, kw )
 
     def __setstate__ (self, state):
         """Support pickling.
 
-        We used to do this to ensure uniqueness; now we just do it to
-        eliminate pickling the schema.
-
         This will throw an exception if the state is not in a format
         recognized by this method."""
-        ( format, args, kw ) = state
+        format = state[0]
         if self.__PICKLE_FORMAT != format:
             raise pyxb.pickle.UnpicklingError('Got Namespace pickle format %s, require %s' % (format, self.__PICKLE_FORMAT))
+        ( format, version, args, kw ) = state
         ( uri, ) = args
         assert self.__uri == uri
         # Convert private keys into proper form
-        for (k, v) in kw.items():
-            if k.startswith('__'):
-                del kw[k]
-                kw['_%s%s' % (self.__class__.__name__, k)] = v
-        self.__dict__.update(kw)
+        return self._setState_csc(kw)
 
     # Class variable recording the namespace that is currently being
     # pickled.  Used to prevent storing components that belong to
@@ -1182,6 +1243,14 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
         assert instance.uri() == uri
         assert cls._NamespaceForURI(instance.uri()) == instance
 
+        for ns in instance.referencedNamespaces():
+            if ns == instance:
+                continue
+            if not (ns in instance.siblingNamespaces()):
+                print 'Need to validate %s before continuing with %s' % (ns.uri(), uri)
+                ns.validateComponentModel()
+                print 'Completed validation of %s, continuing with %s' % (ns.uri(), uri)
+
         # Handle any loading or postprocessing required by the mix-ins.
         return getattr(super(Namespace, cls), '_LoadFromFile_csc', lambda _instance, _unpickler: _instance)(instance, unpickler)
 
@@ -1196,6 +1265,11 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
         print 'Attempting to load a namespace from %s' % (file_path,)
         unpickler = pickle.Unpickler(open(file_path, 'rb'))
         return cls._LoadFromFile_csc(None, unpickler)
+
+    def isLoadable (self):
+        """Return C{True} iff the component model for this namespace can be
+        loaded from a namespace archive."""
+        return _LoadableNamespaceMap().get(self.uri(), None) is not None
 
     __inSchemaLoad = False
     def _defineSchema_overload (self, structures_module):

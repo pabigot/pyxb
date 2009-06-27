@@ -170,20 +170,31 @@ try:
         nslist = new_nslist
 
     print "Imported:\n%s\nEnd of imports" % ("\n".join([ _ins.uri() for _ins in tns.importedNamespaces() ]),)
-    print "Identified:\n%s\nEnd of identified" % ("\n".join([ str(_ns.uri()) for _ns in resolved_ns ]),)
+
+    print "Identified:"
+    for ns in resolved_ns:
+        print '%s %s' % (ns.prefix(), ns.uri())
+        for ins in ns.importedNamespaces():
+            print "\timp %s %s" % (ins.prefix(), ins.uri())
+        for ins in ns.referencedNamespaces():
+            print "\tref %s %s" % (ins.prefix(), ins.uri())
+
+
+    print "Sibling:\n%s\nEnd of siblings" % ("\n".join([ str(_ins.uri(),) for _ins in tns.siblingNamespaces() ]),)
     for ins in tns.importedNamespaces():
-        if ins.schema() is not None:
-            ns = ins.namespace()
-            if ns.isAbsentNamespace():
-                print 'WARNING Unable to save generated bindings for imported %s' % (ns,)
-                continue
-            if ns.modulePath() is None:
-                print 'WARNING: No module path available for imported %s' % (ns,)
-                continue
-            print 'Need to generate binding for imported %s as %s' % (ns.uri(), ns.modulePath())
-            binding_source = GeneratePython(schema=ins.schema())
-            ns.saveToFile('%s/%s.wxs' % (binding_path, ns.modulePath()))
-    binding_source = GeneratePython(schema=wxs)
+        if ns.isAbsentNamespace():
+            print 'WARNING Unable to save generated bindings for imported %s' % (ns,)
+            continue
+        if ns.modulePath() is None:
+            print 'WARNING: No module path available for imported %s' % (ns,)
+            continue
+        if ns.isLoadable():
+            print 'NOTE: %s available in pre-load format' % (ns,)
+            continue
+        print 'Need to generate binding for imported %s as %s' % (ns.uri(), ns.modulePath())
+        binding_source = GeneratePython(namespace=ins)
+        ns.saveToFile('%s/%s.wxs' % (binding_path, ns.modulePath()))
+    binding_source = GeneratePython(namespace=tns)
     if binding_source is not None:
         print 'Binding source is %d long to %s' % (len(binding_source), binding_file)
         file(binding_file, "w").write(binding_source)
@@ -194,6 +205,7 @@ except Exception, e:
     sys.exit(3)
 
 if save_component_model:
+    assert 'typeDefinition' in tns.categories()
     try:
         tns.saveToFile(component_model_file)
         print 'Saved parsed schema to %s URI %s' % (component_model_file, tns.uri())

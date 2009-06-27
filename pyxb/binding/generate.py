@@ -939,7 +939,7 @@ def GeneratePython (**kw):
 
         # "import" in import_namespaces means Python import, not XSD import
         import_namespaces = set()
-        for ins in namespace.importedNamespaces():
+        for ins in namespace.referencedNamespaces():
             if ins.modulePath() is None:
                 if not ins.isBuiltinNamespace():
                     print 'WARNING: Dependency on %s with no module path' % (ins.uri(),)
