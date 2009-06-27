@@ -15,7 +15,8 @@
 """Classes and global objects related to U{XML Namespaces<http://www.w3.org/TR/2006/REC-xml-names-20060816/index.html>}.
 
 Since namespaces hold all referenceable objects, this module also defines the
-infrastructure for resolving schema component references.
+infrastructure for resolving named object references, such as schema
+components.
 
 @group Resolution: _Resolvable_mixin, _NamespaceResolution_mixin
 @group Component Management: _ComponentDependency_mixin, _NamespaceComponentAssociation_mixin
@@ -568,9 +569,6 @@ class _NamespaceResolution_mixin (pyxb.cscRoot):
         namespace have been provided.  The resolution routines are entitled to
         raise a validation exception if a reference to an unrecognized
         component is encountered.
-
-        @param schema: The schema for which resolution is being performed.
-        @type schema: L{pyxb.xmlschema.structures.Schema}
         """
         num_loops = 0
         if not self.needResolution():
@@ -603,8 +601,8 @@ class _NamespaceResolution_mixin (pyxb.cscRoot):
                 if allow_unresolved:
                     return False
                 # This only happens if we didn't code things right, or the
-                # schema actually has a circular dependency in some named
-                # component.
+                # there is a circular dependency in some named component
+                # (i.e., the schema designer didn't do things right).
                 failed_components = []
                 import pyxb.xmlschema.structures
                 for d in self.__unresolvedComponents:
@@ -888,7 +886,7 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
     # A set of all absent namespaces created.
     __AbsentNamespaces = set()
 
-    # Optional URI specifying the source for the schema for this namespace
+    # Optional URI specifying the source for a (primary) schema for this namespace
     __schemaLocation = None
 
     # Optional description of the namespace
@@ -899,6 +897,12 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
 
     # Indicates whether this namespace is undeclared (available always)
     __isUndeclaredNamespace = False
+
+    # Indicates whether this namespace was loaded from an archive
+    __isLoadedNamespace = False
+
+    # Indicates whether this namespace has been written to an archive
+    __hasBeenArchived = False
 
     # A string denoting the path by which this namespace is imported into
     # generated Python modules
@@ -912,7 +916,7 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
     # The namespace to use as the default namespace when constructing the
     # The namespace context used when creating built-in components that belong
     # to this namespace.  This is used to satisfy the low-level requirement
-    # that all schema component have a namespace context; normally, that
+    # that all schema components have a namespace context; normally, that
     # context is built dynamically from the schema element.
     __initialNamespaceContext = None
 
@@ -928,9 +932,9 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
     def _NamespaceForURI (cls, uri):
         """If a Namespace instance for the given URI exists, return it; otherwise return None.
 
-        Note; Absent namespaces are not stored in the registry.  If you
-        use one (e.g., for a schema with no target namespace), don't
-        lose hold of it."""
+        Note; Absent namespaces are not stored in the registry.  If you use
+        one (e.g., for a schema with no target namespace), don't lose hold of
+        it."""
         assert uri is not None
         return cls.__Registry.get(uri, None)
 
@@ -973,6 +977,7 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
                   description=None,
                   is_builtin_namespace=False,
                   is_undeclared_namespace=False,
+                  is_loaded_namespace=False,
                   bound_prefix=None,
                   default_namespace=None,
                   in_scope_namespaces=None):
@@ -1006,6 +1011,7 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
         self.__description = description
         self.__isBuiltinNamespace = is_builtin_namespace
         self.__isUndeclaredNamespace = is_undeclared_namespace
+        self.__isLoadedNamespace = is_loaded_namespace
 
         self._reset()
 
@@ -1081,6 +1087,15 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
         xmlns(http://www.w3.org/2000/xmlns/) namespaces."""
         return self.__isUndeclaredNamespace
 
+    def isLoadedNamespace (self):
+        """Return C{True} iff this namespace was loaded from a namespace archive."""
+        return self.__isLoadedNamespace
+
+    def hasBeenArchived (self):
+        """Return C{True} iff this namespace has been saved to a namespace archive.
+        See also L{isLoadedNamespace}."""
+        return self.__hasBeenArchived
+
     def modulePath (self):
         return self.__modulePath
 
@@ -1131,6 +1146,7 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
         return getattr(super(Namespace, self), '_getState_csc', lambda _kw: _kw)(kw)
 
     def _setState_csc (self, kw):
+        self.__isLoadedNamespace = True
         self.__schemaLocation = kw['schemaLocation']
         self.__description = kw['description']
         self.__prefix = kw['prefix']
@@ -1196,15 +1212,12 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
         pickler.dump(self.uri())
         pickler.dump(self)
 
-        # Rest is only read if the schema needs to be loaded
+        # Rest is only read if the named objects need to be loaded
         return getattr(super(Namespace, self), '_saveToFile_csc', lambda _pickler: _pickler)(pickler)
 
     def saveToFile (self, file_path):
-        """Save this namespace, with its defining schema, to the given
-        file so it can be loaded later.
-
-        This method requires that a schema be associated with the
-        namespace."""
+        """Save this namespace, with its named objects, to the given file so
+        it can be loaded later."""
         
         if self.uri() is None:
             raise pyxb.LogicError('Illegal to serialize absent namespaces')
@@ -1214,7 +1227,8 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
         assert Namespace.PicklingNamespace() is not None
 
         self._saveToFile_csc(pickler)
-
+        self.__hasBeenArchived = True
+        
         self._PicklingNamespace(None)
 
     @classmethod
@@ -1243,6 +1257,9 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
         assert instance.uri() == uri
         assert cls._NamespaceForURI(instance.uri()) == instance
 
+        # For every namespace this one depends on that isn't saved in this
+        # archive, make sure its component model is valid so we can resolve to
+        # its members when loading this one.
         for ns in instance.referencedNamespaces():
             if ns == instance:
                 continue
@@ -1256,8 +1273,8 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
 
     @classmethod
     def LoadFromFile (cls, file_path):
-        """Create a Namespace instance with schema contents loaded
-        from the given file.
+        """Create a Namespace instance with named objects loaded from the
+        given file.
 
         Mix-ins should define a CSC function that performs any state loading
         required and returns the instance.
@@ -1273,21 +1290,22 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
 
     __inSchemaLoad = False
     def _defineSchema_overload (self, structures_module):
-        """Attempts to load a schema for this namespace.
+        """Attempts to load the named objects held in this namespace.
 
-        The base class implementation looks at the set of available pre-parsed
-        schemas, and if one matches this namespace unserializes it and uses
-        it.
+        The base class implementation looks at the set of available archived
+        namespaces, and if one contains this namespace unserializes its named
+        object maps.
 
         Sub-classes may choose to look elsewhere, if this version fails or
         before attempting it.
 
-        There is no guarantee that a schema has been located when this
-        returns.  Caller must check.
+        There is no guarantee that any particular category of named object has
+        been located when this returns.  Caller must check.
         """
         assert not self.__inSchemaLoad
 
-        # Absent namespaces cannot load schemas
+        # Absent namespaces cannot load objects (because they can't be
+        # archived).
         if self.isAbsentNamespace():
             return None
         afn = _LoadableNamespaceMap().get(self.uri(), None)
@@ -1304,7 +1322,7 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
     def validateComponentModel (self, structures_module=None):
         """Ensure this namespace is ready for use.
 
-        If the namespace does not have an associated schema, the system will
+        If the namespace does not have a map of named objects, the system will
         attempt to load one.  If unsuccessful, an exception will be thrown."""
         if not self.__didValidation:
             assert not self.__inValidation, 'Nested validation of %s' % (self.uri(),)
@@ -1642,7 +1660,8 @@ class NamespaceContext (object):
     def targetNamespace (self):
         """The target namespace in effect at this node.  Usually from the
         C{targetNamespace} attribute.  If no namespace is specified for the
-        schema, an absent namespace is assigned."""
+        schema, an absent namespace was assigned upon creation and will be
+        returned."""
         return self.__targetNamespace
     __targetNamespace = None
 
@@ -1774,32 +1793,6 @@ class NamespaceContext (object):
             for ai in range(dom_node.attributes.length):
                 attr = dom_node.attributes.item(ai)
                 if XMLNamespaces.uri() == attr.namespaceURI:
-                    '''
-                    if not self.__mutableInScopeNamespaces:
-                        self.__inScopeNamespaces = self.__inScopeNamespaces.copy()
-                        self.__mutableInScopeNamespaces = True
-                    if attr.value:
-                        if 'xmlns' == attr.localName:
-                            self.__defaultNamespace = NamespaceForURI(attr.value, create_if_missing=True)
-                            self.__inScopeNamespaces[None] = self.__defaultNamespace
-                        else:
-                            uri = NamespaceForURI(attr.value, create_if_missing=True)
-                            pfx = attr.localName
-                            self.__inScopeNamespaces[pfx] = uri
-                            # @todo record prefix in namespace so we can use
-                            # it during generation?  I'd rather make the user
-                            # specify what to use.
-                    else:
-                        # NB: XMLNS 6.2 says that you can undefine a default
-                        # namespace, but does not say anything explicitly about
-                        # undefining a prefixed namespace.  XML-Infoset 2.2
-                        # paragraph 6 implies you can do this, but expat blows up
-                        # if you try it.  I don't think it's legal.
-                        if 'xmlns' != attr.localName:
-                            raise pyxb.SchemaValidationError('Attempt to undefine non-default namespace %s' % (attr.localName,))
-                        self.__defaultNamespace = None
-                        self.__inScopeNamespaces.pop(None, None)
-                    '''
                     prefix = attr.localName
                     if 'xmlns' == prefix:
                         prefix = None
