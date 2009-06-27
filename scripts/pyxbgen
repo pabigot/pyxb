@@ -154,11 +154,11 @@ try:
         new_nslist = set()
         while nslist:
             ns = nslist.pop()
-            if not ns.needResolution():
+            if not ns.needsResolution():
                 continue
             for ins in ns.importedNamespaces():
                 print '%s imports %s' % (ns.uri(), ins.uri())
-                if ins.needResolution():
+                if ins.needsResolution():
                     print 'Adding imported namespace %s' % (ins.uri(),)
                     new_nslist.add(ins)
             print 'Attempting resolution %s' % (ns.uri(),)
