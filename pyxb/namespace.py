@@ -421,6 +421,15 @@ class _NamespaceCategory_mixin (pyxb.cscRoot):
             self.categoryMap(category).update(category_map[category])
         self.__defineCategoryAccessors()
 
+    def hasSchemaComponents (self):
+        """Return C{True} iff schema components have been associated with this namespace.
+
+        Note that this only checks whether the corresponding categories have
+        been added, not whether there are any entries in those categories.  It
+        is useful for identifying namespaces that were incorporated through a
+        declaration but never actually referenced."""
+        return 'typeDefinition' in self.__categoryMap
+
 
 class _NamespaceResolution_mixin (pyxb.cscRoot):
     """Mix-in that aggregates those aspects of XMLNamespaces relevant to
@@ -1277,7 +1286,8 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
         """Ensure this namespace is ready for use.
 
         If the namespace does not have a map of named objects, the system will
-        attempt to load one.  If unsuccessful, an exception will be thrown."""
+        attempt to load one.
+        """
         if not self.__didValidation:
             assert not self.__inValidation, 'Nested validation of %s' % (self.uri(),)
             if structures_module is None:
@@ -1288,7 +1298,8 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
                 self.__didValidation = True
             finally:
                 self.__inValidation = False
-        return
+        #if not self.hasSchemaComponents():
+        #   raise pyxb.NamespaceError('%s has no components' % (self.uri(),))
 
     def initialNamespaceContext (self):
         """Obtain the namespace context to be used when creating components in this namespace.
