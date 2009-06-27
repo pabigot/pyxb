@@ -879,6 +879,7 @@ __ComponentOrder = (
 def _ResolveReferencedNamespaces (namespace):
     # Make sure all referenced namespaces have valid components
     need_check = set(namespace.referencedNamespaces())
+    need_check.add(namespace)
     done_check = set()
     while 0 < len(need_check):
         ns = need_check.pop()
@@ -926,9 +927,9 @@ def _PrepareNamespaceForGeneration (sns, module_path_prefix, all_std, all_ctd, a
     for c in std.union(ctd).union(ed):
         c.__bindingNamespace = sns
     sns.__uniqueInModule = UniqueInBinding.copy()
-    sns.__simpleTypeDefinitions = std
-    sns.__complexTypeDefinitions = ctd
-    sns.__elementDeclarations = ed
+    sns.__simpleTypeDefinitions = []
+    sns.__complexTypeDefinitions = []
+    sns.__elementDeclarations = []
     sns.__anonSTDIndex = 1
     sns.__anonCTDIndex = 1
     all_std.update(std)
@@ -943,17 +944,24 @@ def _PrepareSimpleTypeDefinitions (all_std):
         next_need_names = []
         while need_names:
             std = need_names.pop(0)
-            base = std.baseTypeDefinition()
-            assert base is not None
-            if base.nameInBinding() is None:
-                assert (base in need_names) or (base in next_need_names)
-                next_need_names.append(std)
+            deps = std.dependentComponents()
+            ok_to_proceed = True
+            for dep in std.dependentComponents():
+                if dep.nameInBinding() is None:
+                    assert (dep in need_names) or (dep in next_need_names)
+                    next_need_names.append(std)
+                    ok_to_proceed = False
+                    break
+            if not ok_to_proceed:
                 continue
             name = std.bestNCName()
+            protected = False
             if name is None:
                 name = '_STD_ANON_%d' % (std.__bindingNamespace.__anonSTDIndex,)
+                protected = True
                 std.__bindingNamespace.__anonSTDIndex += 1
-            std.setNameInBinding(utility.PrepareIdentifier(name, std.__bindingNamespace.__uniqueInModule))
+            std.setNameInBinding(utility.PrepareIdentifier(name, std.__bindingNamespace.__uniqueInModule, protected=protected))
+            std.__bindingNamespace.__simpleTypeDefinitions.append(std)
             print '%s represents %s in %s' % (std.nameInBinding(), std.expandedName(), std.__bindingNamespace)
             std.__uniqueInBindingClass = basis.simpleTypeDefinition._ReservedSymbols.copy()
             ptd = std.primitiveTypeDefinition(throw_if_absent=False)
@@ -971,21 +979,31 @@ def _PrepareSimpleTypeDefinitions (all_std):
                         print ' Enum %s represents %s' % (ei.tag(), ei.unicodeValue())
                 #print '%s unique: %s' % (std.expandedName(), std.__uniqueInBindingClass)
 
-def _SetNameWithAccessors (expanded_name, container_name, class_unique, kw):
+def _SetNameWithAccessors (component, container, is_plural, kw):
     use_map = { }
-    unique_name = utility.PrepareIdentifier(expanded_name.localName(), class_unique)
+    class_unique = container.__uniqueInBindingClass
+    assert isinstance(component, xs.structures._ScopedDeclaration_mixin)
+    unique_name = utility.PrepareIdentifier(component.expandedName().localName(), class_unique)
     use_map['id'] = unique_name
     use_map['inspector'] = unique_name
     use_map['mutator'] = utility.PrepareIdentifier('set' + unique_name[0].upper() + unique_name[1:], class_unique)
     use_map['use'] = utility.MakeUnique('__' + unique_name.strip('_'), class_unique)
-    use_map['key'] = utility.PrepareIdentifier('%s_%s' % (container_name, expanded_name), class_unique, private=True)
-    use_map['name'] = str(expanded_name)
-    use_map['name_expr'] = pythonLiteral(expanded_name, **kw)
+    key_name = '%s_%s_%s' % (str(container.__bindingNamespace), container.nameInBinding(), component.expandedName())
+    use_map['key'] = utility.PrepareIdentifier(key_name, class_unique, private=True)
+    use_map['name'] = str(component.expandedName())
+    use_map['name_expr'] = pythonLiteral(component.expandedName(), **kw)
+    if isinstance(component, xs.structures.ElementDeclaration) and is_plural:
+        use_map['appender'] = utility.PrepareIdentifier('add' + unique_name[0].upper() + unique_name[1:], class_unique)
     return use_map
 
 def AltGenerate(schema_location=None,
                 namespace=None,
                 module_path_prefix=''):
+    global UniqueInBinding
+    global PostscriptItems
+    UniqueInBinding.clear()
+    PostscriptItems = []
+
     if namespace is None:
         if schema_location is None:
             raise Exception('No input provided')
@@ -1002,14 +1020,11 @@ def AltGenerate(schema_location=None,
         _PrepareNamespaceForGeneration(sns, module_path_prefix, all_std, all_ctd, all_ed)
         if sns.modulePath() in used_modules:
             raise pyxb.BindingGenerationError('Module path %s used for both %s and %s' % (sns.modulePath(), used_modules[sns.modulePath()], sns))
-    all_components = set()
-    all_components.update(all_std)
-    all_components.update(all_ctd)
-    all_components.update(all_ed)
 
     # Element declarations take precedence over types as far as names go
     for ed in all_ed:
         ed.setNameInBinding(utility.PrepareIdentifier(ed.bestNCName(), ed.__bindingNamespace.__uniqueInModule))
+        ed.__bindingNamespace.__elementDeclarations.append(ed)
 
     # Simple type definitions have to have bindings assigned first, so
     # attributes that refer to them can be configured.
@@ -1022,7 +1037,10 @@ def AltGenerate(schema_location=None,
         next_need_names = []
         while need_names:
             ctd = need_names.pop(0)
+            assert ctd.isResolved()
             base = ctd.baseTypeDefinition()
+            assert base is not None, 'No base for %s' % (ctd,)
+            assert base.isTypeDefinition(), 'Base of %s is not type' % (ctd,)
             if base.nameInBinding() is None:
                 assert (base in need_names) or (base in next_need_names)
                 next_need_names.append(ctd)
@@ -1032,89 +1050,53 @@ def AltGenerate(schema_location=None,
                 name = '_CTD_ANON_%d' % (ctd.__bindingNamespace.__anonCTDIndex,)
                 ctd.__bindingNamespace.__anonCTDIndex += 1
             ctd.setNameInBinding(utility.PrepareIdentifier(name, ctd.__bindingNamespace.__uniqueInModule))
+            ctd.__bindingNamespace.__complexTypeDefinitions.append(ctd)
             print '%s represents %s in %s' % (ctd.nameInBinding(), ctd.expandedName(), ctd.__bindingNamespace)
             if ctd._isHierarchyRoot():
                 ctd.__uniqueInBindingClass = basis.complexTypeDefinition._ReservedSymbols.copy()
             else:
                 ctd.__uniqueInBindingClass = base.__uniqueInBindingClass.copy()
+            content_basis = None
+            content_type_tag = ctd._contentTypeTag()
+            if (ctd.CT_SIMPLE == content_type_tag):
+                content_basis = ctd.contentType()[1]
+                #template_map['simple_base_type'] = pythonLiteral(content_basis, **kw)
+            elif (ctd.CT_MIXED == content_type_tag):
+                content_basis = ctd.contentType()[1]
+            elif (ctd.CT_ELEMENT_ONLY == content_type_tag):
+                content_basis = ctd.contentType()[1]
             kw = { 'binding_target_namespace' : ctd.__bindingNamespace }
+            if isinstance(content_basis, xs.structures.Particle):
+                plurality_map = content_basis.pluralityData().nameBasedPlurality()
+            else:
+                plurality_map = {}
             for cd in ctd.localScopedDeclarations():
-                use_map = _SetNameWithAccessors(cd.expandedName(), '%s_%s' % (str(ctd.__bindingNamespace), ctd.nameInBinding()), ctd.__uniqueInBindingClass, kw)
+                use_map = _SetNameWithAccessors(cd, ctd, plurality_map.get(cd.expandedName(), (False, None))[0], kw)
+                cd.__useMap = use_map
                 print '  %s %s uses %s stored in %s' % (cd.__class__.__name__, cd.expandedName(), use_map['id'], use_map['key'])
 
-    sys.exit(0)
-
-def GeneratePython (**kw):
-    """
-    @keyword namespace: The namespace for which bindings should be generated
-    @keyword schema_location: If namespace is C{None}, the location where a schema defining the namespace can be found
-    @keyword generate_facets: Utility generating only the facet definitions for the XMLSchema namespace
-    """
-
-    global UniqueInBinding
-    global PostscriptItems
-    UniqueInBinding.clear()
-    PostscriptItems = []
-    try:
-        namespace = kw.pop('namespace', None)
-        if namespace is None:
-            schema_location = kw.get('schema_location', None)
-            if schema_location is None:
-                raise Exception('No input provided')
-            schema = xs.schema.CreateFromLocation(schema_location)
-            namespace = schema.targetNamespace()
-
-        generator_kw = kw.copy()
-        generator_kw['binding_target_namespace'] = namespace
+    for sns in namespace.siblingNamespaces():
+        print 'GENERATING FOR %s' % (sns,)
+        generator_kw = { }
+        generator_kw['binding_target_namespace'] = sns
         outf = StringIO.StringIO()
 
-        # Special case when generating the core facet definitions
-        generate_facets = kw.get('generate_facets', False)
-        if generate_facets:
-            generator_kw['class_unique'] = set()
-            generator_kw['class_keywords'] = set()
-            stds = [ ]
-            num_unresolved = 0
-            for td in namespace.typeDefinitions().values():
-                if isinstance(td, xs.structures.SimpleTypeDefinition):
-                    td._resolve()
-                    stds.append(td)
-                    if not td.isResolved():
-                        num_unresolved += 1
-            while 0 < num_unresolved:
-                num_unresolved = 0
-                for td in stds:
-                    if not td.isResolved():
-                        td._resolve()
-                    if (not td.isResolved()) and td.isBuiltin():
-                        #print 'No resolution for %s' % (td,)
-                        num_unresolved += 1
-            for td in stds:
-                if td.isBuiltin():
-                    assert td.isResolved()
-                    GenerateFacets(outf, td, **generator_kw)
-            return outf.getvalue()
-
-        if namespace.needsResolution():
-            namespace.resolveDefinitions()
-            assert not namespace.needsResolution()
-        emit_order = namespace.orderedComponents(__ComponentOrder)
-    
         import_prefix = 'pyxb.xmlschema.'
-        if namespace == pyxb.namespace.XMLSchema:
+        if sns == pyxb.namespace.XMLSchema:
             import_prefix = ''
 
         template_map = { }
-        #template_map['input'] = schema_file
+        template_map['input'] = sns.schemaLocation()
         template_map['date'] = str(datetime.datetime.now())
-        template_map['version'] = 'UNSPECIFIED'
-        tns_uri = namespace.uri()
-        template_map['targetNamespace'] = repr(tns_uri)
+        template_map['version'] = pyxb.__version__
+        template_map['targetNamespace'] = repr(sns.uri(),)
         template_map['import_prefix'] = import_prefix
 
         # "import" in import_namespaces means Python import, not XSD import
         import_namespaces = set()
-        for ins in namespace.referencedNamespaces():
+        for ins in sns.referencedNamespaces():
+            if ins == sns:
+                continue
             if ins.modulePath() is None:
                 if not ins.isBuiltinNamespace():
                     print 'WARNING: Dependency on %s with no module path' % (ins.uri(),)
@@ -1123,7 +1105,7 @@ def GeneratePython (**kw):
 
         template_map['aux_imports'] = "\n".join( [ 'import %s' % (_ns.modulePath(),) for _ns in import_namespaces ])
 
-        if namespace.isAbsentNamespace():
+        if sns.isAbsentNamespace():
             template_map['NamespaceDefinition'] = 'pyxb.namespace.CreateAbsentNamespace()'
         else:
             template_map['NamespaceDefinition'] = templates.replaceInText('pyxb.namespace.NamespaceForURI(%{targetNamespace}, create_if_missing=True)', **template_map)
@@ -1156,22 +1138,55 @@ def CreateFromDOM (node):
 ''', **template_map))
     
         # Give priority for identifiers to scoped element declarations
-        for td in emit_order:
-            if (isinstance(td, xs.structures.ElementDeclaration)) and (td.scope() is not None):
-                _ignored = ReferenceSchemaComponent(td, **generator_kw).asLiteral()
-
-        for td in emit_order:
-            generator = GeneratorMap.get(type(td), None)
-            if generator is None:
-                continue
-            outf.write(generator(td, **generator_kw))
+        print 'Generating %d STDs' % (len(sns.__simpleTypeDefinitions),)
+        for std in sns.__simpleTypeDefinitions:
+            outf.write(GenerateSTD(std, **generator_kw))
+        print 'Generating %d CTDs' % (len(sns.__complexTypeDefinitions),)
+        for ctd in sns.__complexTypeDefinitions:
+            outf.write(GenerateCTD(ctd, **generator_kw))
+        print 'Generating %d ED' % (len(sns.__elementDeclarations),)
+        for ed in sns.__elementDeclarations:
+            outf.write(GenerateED(ed, **generator_kw))
 
         outf.write(''.join(PostscriptItems))
+        sns.__bindingSource = outf.getvalue()
 
-        return outf.getvalue()
-    
-    except Exception, e:
-        sys.stderr.write("%s processing %s:\n" % (e.__class__, file))
-        traceback.print_exception(*sys.exc_info())
-        return None
-    
+    return namespace
+
+def _GenerateFacets ():
+    return '''
+    generator_kw['class_unique'] = set()
+    generator_kw['class_keywords'] = set()
+    stds = [ ]
+    num_unresolved = 0
+    for td in namespace.typeDefinitions().values():
+        if isinstance(td, xs.structures.SimpleTypeDefinition):
+            td._resolve()
+            stds.append(td)
+            if not td.isResolved():
+                num_unresolved += 1
+    while 0 < num_unresolved:
+        num_unresolved = 0
+        for td in stds:
+            if not td.isResolved():
+                td._resolve()
+            if (not td.isResolved()) and td.isBuiltin():
+                #print 'No resolution for %s' % (td,)
+                num_unresolved += 1
+    for td in stds:
+        if td.isBuiltin():
+            assert td.isResolved()
+            GenerateFacets(outf, td, **generator_kw)
+    return outf.getvalue()
+'''
+
+
+def GeneratePython (**kw):
+    """
+    @keyword namespace: The namespace for which bindings should be generated
+    @keyword schema_location: If namespace is C{None}, the location where a schema defining the namespace can be found
+    @keyword generate_facets: Utility generating only the facet definitions for the XMLSchema namespace
+    """
+
+    ns = AltGenerate(**kw)
+    return ns.__bindingSource

@@ -149,8 +149,11 @@ tns = wxs.targetNamespace()
 # Save binding source first, so name-in-binding is stored in the
 # parsed schema file
 try:
-    #AltGenerate(namespace=tns, module_path_prefix=module_path_prefix)
+    AltGenerate(namespace=tns, module_path_prefix=module_path_prefix)
+    binding_source = namespace.__bindingSource
+    assert binding_source is not None
 
+    '''
     tns.setModulePath(module_path)
     resolved_ns = set()
 
@@ -200,7 +203,9 @@ try:
         print 'Need to generate binding for imported %s as %s' % (ns.uri(), ns.modulePath())
         binding_source = GeneratePython(namespace=ins)
         ns.saveToFile('%s/%s.wxs' % (binding_path, ns.modulePath()))
+
     binding_source = GeneratePython(namespace=tns)
+    '''
     if binding_source is not None:
         print 'Binding source is %d long to %s' % (len(binding_source), binding_file)
         file(binding_file, "w").write(binding_source)
