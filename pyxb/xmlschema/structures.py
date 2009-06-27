@@ -234,10 +234,13 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin):
 
     def nameInBinding (self):
         """Return the name by which this component is known in the XSD
-        binding.  NB: To support builtin datatypes,
-        SimpleTypeDefinitions with an associated pythonSupport class
-        initialize their binding name from the class name when the
-        support association is created."""
+        binding.
+
+        @note: To support builtin datatypes, type definitions with an
+        associated pythonSupport class initialize their binding name from the
+        class name when the support association is created.  As long as no
+        built-in datatype conflicts with a language keyword, this should be
+        fine."""
         return self.__nameInBinding
 
     def setNameInBinding (self, name_in_binding):
@@ -1423,6 +1426,21 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         if self.__scopedElementDeclarations is None:
             return None
         return self.__scopedElementDeclarations.get(expanded_name)
+
+    __localScopedDeclarations = None
+    def localScopedDeclarations (self, reset=False):
+        """Return a list of element and attribute declarations that were
+        introduced in this definition (i.e., their scope is this CTD).
+
+        @keyword reset: If C{False} (default), a cached previous value (if it
+        exists) will be returned.
+        """
+        if reset or (self.__localScopedDeclarations is None):
+            rv = set()
+            [ rv.add(_ad) for _ad in self.__scopedAttributeDeclarations.values() if (self == _ad.scope()) ]
+            [ rv.add(_ed) for _ed in self.__scopedElementDeclarations.values() if (self == _ed.scope()) ]
+            self.__localScopedDeclarations = frozenset(rv)
+        return self.__localScopedDeclarations
 
     def _recordLocalDeclaration (self, decl):
         """Record the given declaration as being locally scoped in
@@ -3271,11 +3289,12 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
 
     # For atomic variety only, the root (excepting ur-type) type.
     __primitiveTypeDefinition = None
-    def primitiveTypeDefinition (self):
-        if self.variety() != self.VARIETY_atomic:
-            raise pyxb.BadPropertyError('[%s] primitiveTypeDefinition only defined for atomic types' % (self.name(), self.variety()))
-        if self.__primitiveTypeDefinition is None:
-            raise pyxb.LogicError('Expected primitive type')
+    def primitiveTypeDefinition (self, throw_if_absent=True):
+        if throw_if_absent:
+            if self.variety() != self.VARIETY_atomic:
+                raise pyxb.BadPropertyError('[%s] primitiveTypeDefinition only defined for atomic types' % (self.name(), self.variety()))
+            if self.__primitiveTypeDefinition is None:
+                raise pyxb.LogicError('Expected primitive type')
         return self.__primitiveTypeDefinition
 
     # For list variety only, the type of items in the list
@@ -3742,19 +3761,10 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
             # type, which is the highest type that is below the
             # ur-type (which is not atomic).
             ptd = self
-            while isinstance(ptd, SimpleTypeDefinition) and (self.VARIETY_atomic == ptd.variety()):
-                assert ptd.__baseTypeDefinition
+            while isinstance(ptd, SimpleTypeDefinition) and (self.VARIETY_atomic == ptd.__baseTypeDefinition.variety()):
                 ptd = ptd.__baseTypeDefinition
-            if not isinstance(ptd, SimpleTypeDefinition):
-                assert False
-                assert ComplexTypeDefinition.UrTypeDefinition() == ptd
-                self.__primitiveTypeDefinition = self.SimpleUrTypeDefinition()
-            else:
-                if (ptd != self) and (not ptd.isResolved()):
-                    assert False
-                    self._queueForResolution()
-                    return self
-                self.__primitiveTypeDefinition = ptd
+                
+            self.__primitiveTypeDefinition = ptd
         elif self.VARIETY_list == variety:
             if 'list' == alternative:
                 if self.__itemTypeAttribute is not None:
@@ -3927,10 +3937,9 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
         
         return rv
 
-    # pythonSupport is None, or a subclass of datatypes._PSTS_mixin.
+    # pythonSupport is None, or a subclass of datatypes.simpleTypeDefinition.
     # When set, this simple type definition instance must be uniquely
-    # associated with the PST class using
-    # _PSTS_mixin._SimpleTypeDefinition().
+    # associated with the python support type.
     __pythonSupport = None
 
     def _setPythonSupport (self, python_support):
