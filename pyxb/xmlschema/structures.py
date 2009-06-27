@@ -28,6 +28,7 @@ components are created from non-DOM sources.
 
 """
 
+import traceback
 import pyxb
 import pyxb.xmlschema
 from xml.dom import Node
@@ -344,14 +345,25 @@ class _NamedComponent_mixin (pyxb.cscRoot):
         return self.__targetNamespace
     __targetNamespace = None
     
-    def _belongsToNamespace (self, ns):
+    def _belongsToNamespace (self, ns, scope_adopts=False):
         """Return C{True} if this component belongs to the given namespace.
+
+        When pickling, a declaration component is considered to belong to the
+        namespace if it has a local scope which belongs to the namespace.  In
+        that case, the declaration is a clone of something that does not
+        belong to the namespace; but the clone does.
 
         It's also allowed to have there be no associated namespace (but not an
         absent namespace).  Be aware that cross-namespace inheritance means
         you will get references to elements in another namespace when
         generating code for a subclass; that's fine, and those references are
-        not re-generated locally."""
+        not re-generated locally.
+
+        @keyword scope_adopts: If C{True}, a scoped declaration belongs to the
+        namespace of its scope.  Default is C{False}.
+        """
+        if scope_adopts and isinstance(self._scope(), ComplexTypeDefinition):
+            return self._scope()._belongsToNamespace(ns)
         return self.targetNamespace() in (ns, None)
 
     def expandedName (self):
@@ -473,7 +485,7 @@ class _NamedComponent_mixin (pyxb.cscRoot):
         # If this thing is scoped in a complex type that belongs to the
         # namespace being pickled, then it gets pickled as an object even if
         # its target namespace isn't this one.
-        if self._belongsToNamespace(pickling_namespace):
+        if self._belongsToNamespace(pickling_namespace, scope_adopts=True):
             return False
         if self.isAnonymous():
             raise pyxb.LogicError('Unable to pickle reference to unnamed object %s in %s: %s' % (self.name(), self.targetNamespace().uri(), object.__str__(self)))
@@ -513,7 +525,7 @@ class _NamedComponent_mixin (pyxb.cscRoot):
         the appropriate component rather than create a duplicate
         instance."""
 
-        if self.__pickleAsReference ():
+        if self.__pickleAsReference():
             if self._scopeIsIndeterminate():
                 raise pyxb.LogicError('Attempt to pickle reference to %s tns %s in indeterminate scope in %s' % (self, self.targetNamespace(), pyxb.namespace.Namespace.PicklingNamespace()))
             scope = self._scope()
@@ -4006,6 +4018,7 @@ class _ImportElementInformationItem (_Annotated_mixin):
                 self.__namespace.validateComponentModel()
             except Exception, e:
                 print 'ERROR validating imported namespace %s: %s' % (uri, e)
+                traceback.print_exception(*sys.exc_info())
 
             # @todo: validate that something got loaded
         elif self.schemaLocation() is not None:
@@ -4074,11 +4087,6 @@ class Schema (_SchemaComponent_mixin):
         constructor.  """
         return self.__defaultNamespace
     __defaultNamespace = None
-
-    def importedNamespaces (self):
-        """The list of Namespace instances that were imported into this schema."""
-        return self.__importedNamespaces
-    __importedNamespaces = None
 
     def referencedNamespaces (self):
         return self.__referencedNamespaces
@@ -4150,7 +4158,6 @@ class Schema (_SchemaComponent_mixin):
         self.__annotations = []
         # @todo: This isn't right if namespaces are introduced deeper in the document
         self.__referencedNamespaces = self._namespaceContext().inScopeNamespaces().values()
-        self.__importedNamespaces = []
 
     __TopLevelComponentMap = {
         'element' : ElementDeclaration,
@@ -4354,9 +4361,8 @@ class Schema (_SchemaComponent_mixin):
                     break
             if import_eii.prefix() is None:
                 print 'NO PREFIX FOR %s'
-            print 'Imported %s, prefix %s, %d types, back to %s' % (import_eii.namespace().uri(), import_eii.prefix(), len(import_eii.namespace().typeDefinitions()), self.__schemaLocation)
-            self.targetNamespace().importNamespace(import_eii.namespace())
-            self.__importedNamespaces.append(import_eii)
+            print 'Imported %s, prefix %s, back to %s' % (import_eii.namespace().uri(), import_eii.prefix(), self.__schemaLocation)
+        self.targetNamespace().importNamespace(import_eii.namespace())
         return node
 
     def __processRedefine (self, node):
