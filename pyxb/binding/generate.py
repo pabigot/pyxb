@@ -38,7 +38,7 @@ import xml.dom
 
 # Initialize UniqueInBinding with the public identifiers we generate,
 # import, or otherwise can't have mucked about with.
-UniqueInBinding = set([ 'pyxb', 'xml', 'sys', 'Namespace', 'CreateFromDOM', 'ElementToBindingMap' ])
+UniqueInBinding = set([ 'pyxb', 'sys', 'Namespace', 'CreateFromDocument', 'CreateFromDOM' ])
 PostscriptItems = []
 
 def PrefixModule (value, text=None):
@@ -141,11 +141,9 @@ class ReferenceSchemaComponent (ReferenceLiteral):
         self.__component = component
         btns = kw['binding_target_namespace']
         tns = self.__component.targetNamespace()
-        is_in_binding = self.__component._bindsInNamespace(btns)
+        is_in_binding = self.__component._picklesInNamespace(btns)
 
-        if not ((not isinstance(self.__component, pyxb.namespace._Resolvable_mixin)) or self.__component.isResolved()):
-            print '%s not resolved' % (self.__component,)
-        assert (not isinstance(self.__component, pyxb.namespace._Resolvable_mixin)) or self.__component.isResolved()
+        assert (not isinstance(self.__component, pyxb.namespace._Resolvable_mixin)) or self.__component.isResolved(), '%s not resolved' % (self.__component,)
 
         name = self.__component.nameInBinding()
         if is_in_binding and (name is None):
@@ -262,10 +260,14 @@ class ReferenceEnumerationMember (ReferenceLiteral):
             assert value is not None
             self.enumerationElement = facet_instance.elementForValue(value)
         assert isinstance(self.enumerationElement, facets._EnumerationElement)
+        if self.enumerationElement.tag() is None:
+            self.enumerationElement._setTag(utility.MakeIdentifier(self.enumerationElement.unicodeValue()))
 
         # If no type definition was provided, use the value datatype
         # for the facet.
         kw.setdefault('type_definition', facet_instance.valueDatatype())
+
+        
 
         super(ReferenceEnumerationMember, self).__init__(**kw)
 
@@ -632,7 +634,7 @@ class %{ctd} (%{superclass}):
     # elements and attributes can be re-used.
     inherits_from_base = True
     template_map['superclass'] = pythonLiteral(base_type, **kw)
-    if isinstance(base_type, xs.structures.SimpleTypeDefinition) or base_type.isUrTypeDefinition():
+    if ctd._isHierarchyRoot():
         inherits_from_base = False
         template_map['superclass'] = 'pyxb.binding.basis.complexTypeDefinition'
         assert base_type.nameInBinding() is not None
@@ -873,9 +875,174 @@ __ComponentOrder = (
   , xs.structures.Particle                     # ModelGroup, WildCard, ElementDeclaration
     )
 
+
+def _ResolveReferencedNamespaces (namespace):
+    # Make sure all referenced namespaces have valid components
+    need_check = set(namespace.referencedNamespaces())
+    done_check = set()
+    while 0 < len(need_check):
+        ns = need_check.pop()
+        for rns in ns.referencedNamespaces():
+            if not rns in done_check:
+                need_check.add(rns)
+        ns.validateComponentModel()
+        if not ns.hasSchemaComponents():
+            print 'WARNING: Referenced %s has no schema components' % (ns.uri(),)
+        done_check.add(ns)
+
+    # Resolve all named objects in the referenced namespaces.  Iterate
+    # where there are dependencies.
+    need_resolved = set(done_check)
+    while need_resolved:
+        new_nr = set()
+        for ns in need_resolved:
+            if not ns.needsResolution():
+                continue
+            print 'Attempting resolution %s' % (ns.uri(),)
+            if not ns.resolveDefinitions(allow_unresolved=True):
+                print 'Holding incomplete resolution %s' % (ns.uri(),)
+                new_nr.add(ns)
+        if need_resolved == new_nr:
+            raise pyxb.SchemaValidationError('Loop in namespace resolution')
+        need_resolved = new_nr
+
+def _PrepareNamespaceForGeneration (sns, module_path_prefix, all_std, all_ctd, all_ed):
+    assert sns.modulePath() is None
+    if sns.prefix() is None:
+        sns.setPrefix('prefix')
+    assert sns.prefix() is not None
+    sns.setModulePath('%s%s' % (module_path_prefix, sns.prefix()))
+    print '%s module %s' % (sns.uri(), sns.modulePath())
+    std = set()
+    ctd = set()
+    ed = set()
+    for c in sns.components():
+        if isinstance(c, xs.structures.SimpleTypeDefinition):
+            std.add(c)
+        elif isinstance(c, xs.structures.ComplexTypeDefinition):
+            ctd.add(c)
+        elif isinstance(c, xs.structures.ElementDeclaration) and c._scopeIsGlobal():
+            ed.add(c)
+    for c in std.union(ctd).union(ed):
+        c.__bindingNamespace = sns
+    sns.__uniqueInModule = UniqueInBinding.copy()
+    sns.__simpleTypeDefinitions = std
+    sns.__complexTypeDefinitions = ctd
+    sns.__elementDeclarations = ed
+    sns.__anonSTDIndex = 1
+    sns.__anonCTDIndex = 1
+    all_std.update(std)
+    all_ctd.update(ctd)
+    all_ed.update(ed)
+
+def _PrepareSimpleTypeDefinitions (all_std):
+    need_names = []
+    next_need_names = list(all_std)
+    while next_need_names:
+        need_names = next_need_names
+        next_need_names = []
+        while need_names:
+            std = need_names.pop(0)
+            base = std.baseTypeDefinition()
+            assert base is not None
+            if base.nameInBinding() is None:
+                assert (base in need_names) or (base in next_need_names)
+                next_need_names.append(std)
+                continue
+            name = std.bestNCName()
+            if name is None:
+                name = '_STD_ANON_%d' % (std.__bindingNamespace.__anonSTDIndex,)
+                std.__bindingNamespace.__anonSTDIndex += 1
+            std.setNameInBinding(utility.PrepareIdentifier(name, std.__bindingNamespace.__uniqueInModule))
+            print '%s represents %s in %s' % (std.nameInBinding(), std.expandedName(), std.__bindingNamespace)
+            std.__uniqueInBindingClass = basis.simpleTypeDefinition._ReservedSymbols.copy()
+            ptd = std.primitiveTypeDefinition(throw_if_absent=False)
+            if (ptd is None) or not ptd.hasPythonSupport():
+                continue
+            # Only generate enumeration constants for named simple
+            # type definitions that are fundamentally xsd:string
+            # values.
+            if issubclass(ptd.pythonSupport(), pyxb.binding.datatypes.string):
+                enum_facet = std.facets().get(pyxb.binding.facets.CF_enumeration, None)
+                if (enum_facet is not None) and (std.expandedName() is not None):
+                    for ei in enum_facet.items():
+                        assert ei.tag() is None
+                        ei._setTag(utility.PrepareIdentifier(ei.unicodeValue(), std.__uniqueInBindingClass))
+                        print ' Enum %s represents %s' % (ei.tag(), ei.unicodeValue())
+                #print '%s unique: %s' % (std.expandedName(), std.__uniqueInBindingClass)
+
+def _SetNameWithAccessors (expanded_name, container_name, class_unique, kw):
+    use_map = { }
+    unique_name = utility.PrepareIdentifier(expanded_name.localName(), class_unique)
+    use_map['id'] = unique_name
+    use_map['inspector'] = unique_name
+    use_map['mutator'] = utility.PrepareIdentifier('set' + unique_name[0].upper() + unique_name[1:], class_unique)
+    use_map['use'] = utility.MakeUnique('__' + unique_name.strip('_'), class_unique)
+    use_map['key'] = utility.PrepareIdentifier('%s_%s' % (container_name, expanded_name), class_unique, private=True)
+    use_map['name'] = str(expanded_name)
+    use_map['name_expr'] = pythonLiteral(expanded_name, **kw)
+    return use_map
+
 def AltGenerate(schema_location=None,
-                namespace=None):
-    pass
+                namespace=None,
+                module_path_prefix=''):
+    if namespace is None:
+        if schema_location is None:
+            raise Exception('No input provided')
+        schema = xs.schema.CreateFromLocation(schema_location)
+        namespace = schema.targetNamespace()
+
+    _ResolveReferencedNamespaces(namespace)
+        
+    used_modules = {}
+    all_std = set()
+    all_ctd = set()
+    all_ed = set()
+    for sns in namespace.siblingNamespaces():
+        _PrepareNamespaceForGeneration(sns, module_path_prefix, all_std, all_ctd, all_ed)
+        if sns.modulePath() in used_modules:
+            raise pyxb.BindingGenerationError('Module path %s used for both %s and %s' % (sns.modulePath(), used_modules[sns.modulePath()], sns))
+    all_components = set()
+    all_components.update(all_std)
+    all_components.update(all_ctd)
+    all_components.update(all_ed)
+
+    # Element declarations take precedence over types as far as names go
+    for ed in all_ed:
+        ed.setNameInBinding(utility.PrepareIdentifier(ed.bestNCName(), ed.__bindingNamespace.__uniqueInModule))
+
+    # Simple type definitions have to have bindings assigned first, so
+    # attributes that refer to them can be configured.
+    _PrepareSimpleTypeDefinitions(all_std)
+
+    need_names = []
+    next_need_names = list(all_ctd)
+    while next_need_names:
+        need_names = next_need_names
+        next_need_names = []
+        while need_names:
+            ctd = need_names.pop(0)
+            base = ctd.baseTypeDefinition()
+            if base.nameInBinding() is None:
+                assert (base in need_names) or (base in next_need_names)
+                next_need_names.append(ctd)
+                continue
+            name = ctd.bestNCName()
+            if name is None:
+                name = '_CTD_ANON_%d' % (ctd.__bindingNamespace.__anonCTDIndex,)
+                ctd.__bindingNamespace.__anonCTDIndex += 1
+            ctd.setNameInBinding(utility.PrepareIdentifier(name, ctd.__bindingNamespace.__uniqueInModule))
+            print '%s represents %s in %s' % (ctd.nameInBinding(), ctd.expandedName(), ctd.__bindingNamespace)
+            if ctd._isHierarchyRoot():
+                ctd.__uniqueInBindingClass = basis.complexTypeDefinition._ReservedSymbols.copy()
+            else:
+                ctd.__uniqueInBindingClass = base.__uniqueInBindingClass.copy()
+            kw = { 'binding_target_namespace' : ctd.__bindingNamespace }
+            for cd in ctd.localScopedDeclarations():
+                use_map = _SetNameWithAccessors(cd.expandedName(), '%s_%s' % (str(ctd.__bindingNamespace), ctd.nameInBinding()), ctd.__uniqueInBindingClass, kw)
+                print '  %s %s uses %s stored in %s' % (cd.__class__.__name__, cd.expandedName(), use_map['id'], use_map['key'])
+
+    sys.exit(0)
 
 def GeneratePython (**kw):
     """

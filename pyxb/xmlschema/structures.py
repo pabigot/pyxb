@@ -1432,14 +1432,18 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         """Return a list of element and attribute declarations that were
         introduced in this definition (i.e., their scope is this CTD).
 
+        @note: This specifically returns a list, with element declarations
+        first, because name binding should privilege the elements over the
+        attributes.
+
         @keyword reset: If C{False} (default), a cached previous value (if it
         exists) will be returned.
         """
         if reset or (self.__localScopedDeclarations is None):
-            rv = set()
-            [ rv.add(_ad) for _ad in self.__scopedAttributeDeclarations.values() if (self == _ad.scope()) ]
-            [ rv.add(_ed) for _ed in self.__scopedElementDeclarations.values() if (self == _ed.scope()) ]
-            self.__localScopedDeclarations = frozenset(rv)
+            rv = []
+            [ rv.append(_ed) for _ed in self.__scopedElementDeclarations.values() if (self == _ed.scope()) ]
+            [ rv.append(_ad) for _ad in self.__scopedAttributeDeclarations.values() if (self == _ad.scope()) ]
+            self.__localScopedDeclarations = rv
         return self.__localScopedDeclarations
 
     def _recordLocalDeclaration (self, decl):
@@ -1467,6 +1471,12 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
                 assert False, 'Unrecognized type %s' % (type(decl),)
         decl._baseDeclaration(existing_decl)
         return self
+
+    def _isHierarchyRoot (self):
+        """Return C{True} iff this is the root of a complex type definition hierarchy.
+        """
+        base = self.__baseTypeDefinition
+        return isinstance(base, SimpleTypeDefinition) or base.isUrTypeDefinition()
 
     CT_EMPTY = 'EMPTY'                 #<<< No content
     CT_SIMPLE = 'SIMPLE'               #<<< Simple (character) content
