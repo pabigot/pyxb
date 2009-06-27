@@ -340,8 +340,12 @@ class _NamespaceCategory_mixin (pyxb.cscRoot):
         """The list of individual categories held in this namespace."""
         return self.__categoryMap.keys()
 
+    def _categoryMap (self):
+        """Return the whole map from categories to named objects."""
+        return self.__categoryMap
+
     def categoryMap (self, category):
-        """Map from category names to NamedObjectMap instances."""
+        """Map from local names to NamedObjectMap instances for the given category."""
         return self.__categoryMap[category]
 
     def __defineCategoryAccessors (self):
@@ -404,33 +408,19 @@ class _NamespaceCategory_mixin (pyxb.cscRoot):
                 return False
         return True
 
-    def _saveToFile_csc (self, pickler):
-        """CSC function to save Namespace state to a file.
+    def _loadNamedObjects (self, category_map):
+        """Add the named objects from the given map into the set held by this namespace.
+        It is an error to name something which is already present."""
+        self.configureCategories(category_map.keys())
+        for category in category_map.keys():
+            current_map = self.categoryMap(category)
+            new_map = category_map[category]
+            for ln in obj_map.keys():
+                if ln in current_map:
+                    raise pyxb.NamespaceError('Load attempted to override %s %s in %s' % (category, ln, self.uri()))
+            self.categoryMap(category).update(category_map[category])
+        self.__defineCategoryAccessors()
 
-        This one saves the category map, including all objects held in the categories."""
-        pickler.dump(self.__categoryMap)
-        return getattr(super(_NamespaceCategory_mixin, self), '_saveToFile_csc', lambda _pickler: _pickler)(pickler)
-
-    @classmethod
-    def _LoadFromFile_csc (cls, instance, unpickler):
-        """CSC function to load Namespace state from a file.
-        
-        This one reads the saved category map, then incorporates its
-        information into the existing maps. and their contents with data from
-        the saved namespace.
-
-        @todo: For now, we do not allow aggregation of named object maps from
-        different sources (e.g., schema and one or more saved files).  However,
-        it may be useful to do so in the future, especially if the categories
-        are disjoint.
-        """
-        assert instance.__checkCategoriesEmpty
-        new_category_map = unpickler.load()
-        instance.configureCategories(new_category_map.keys())
-        for category in new_category_map.keys():
-            instance.categoryMap(category).update(new_category_map[category])
-        instance.__defineCategoryAccessors()
-        return getattr(super(_NamespaceCategory_mixin, cls), '_LoadFromFile_csc', lambda *args, **kw: None)(unpickler)
 
 class _NamespaceResolution_mixin (pyxb.cscRoot):
     """Mix-in that aggregates those aspects of XMLNamespaces relevant to
@@ -1133,7 +1123,7 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
     def createExpandedName (self, local_name):
         return ExpandedName(self, local_name)
 
-    __PICKLE_FORMAT = '200906270603'
+    __PICKLE_FORMAT = '200906270803'
 
     def _getState_csc (self, kw):
         kw.update({
@@ -1175,7 +1165,7 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
         recognized by this method."""
         format = state[0]
         if self.__PICKLE_FORMAT != format:
-            raise pyxb.pickle.UnpicklingError('Got Namespace pickle format %s, require %s' % (format, self.__PICKLE_FORMAT))
+            raise pickle.UnpicklingError('Got Namespace pickle format %s, require %s' % (format, self.__PICKLE_FORMAT))
         ( format, version, args, kw ) = state
         ( uri, ) = args
         assert self.__uri == uri
@@ -1197,24 +1187,6 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
     def PicklingNamespace (cls):
         return Namespace.__PicklingNamespace
 
-    def _saveToFile_csc (self, pickler):
-        """CSC function to save Namespace state to a file.
-
-        This one handles the base operations.  Implementers should tail-call
-        the next implementation in the chain, returning the pickler at the end
-        of the chain.
-
-        If this method is implemented, the corresponding _LoadFromFile_csc
-        function should also be implemented
-        """
-
-        # Next few are read when scanning for pre-built schemas
-        pickler.dump(self.uri())
-        pickler.dump(self)
-
-        # Rest is only read if the named objects need to be loaded
-        return getattr(super(Namespace, self), '_saveToFile_csc', lambda _pickler: _pickler)(pickler)
-
     def saveToFile (self, file_path):
         """Save this namespace, with its named objects, to the given file so
         it can be loaded later."""
@@ -1226,50 +1198,14 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
         self._PicklingNamespace(self)
         assert Namespace.PicklingNamespace() is not None
 
-        self._saveToFile_csc(pickler)
-        self.__hasBeenArchived = True
-        
+        pickler.dump(self.siblingNamespaces())
+        object_map = { }
+        for ns in self.siblingNamespaces():
+            object_map[ns] = ns._categoryMap()
+            ns.__hasBeenArchived = True
+        pickler.dump(object_map)
+
         self._PicklingNamespace(None)
-
-    @classmethod
-    def _LoadFromFile_csc (cls, instance, unpickler):
-        """CSC function to load Namespace state from a file.
-
-        This one handles the base operation, including identifying the
-        appropriate Namespace instance.  Implementers of this method should
-        tail-call the next implementation in the chain, returning the instance
-        if this is the last one.
-        
-        If this function is implemented, the corresponding _saveToFile_csc method
-        should also be implemented
-        """
-
-        # Get the URI out of the way
-        uri = unpickler.load()
-        assert uri is not None
-
-        # Unpack a Namespace instance.  This is *not* everything; it's a small
-        # subset; see __getstate__.  Note that if the namespace was already
-        # defined, the redefinition of __new__ above will ensure a reference
-        # to the existing Namespace instance is returned and updated with the
-        # new information.
-        instance = unpickler.load()
-        assert instance.uri() == uri
-        assert cls._NamespaceForURI(instance.uri()) == instance
-
-        # For every namespace this one depends on that isn't saved in this
-        # archive, make sure its component model is valid so we can resolve to
-        # its members when loading this one.
-        for ns in instance.referencedNamespaces():
-            if ns == instance:
-                continue
-            if not (ns in instance.siblingNamespaces()):
-                print 'Need to validate %s before continuing with %s' % (ns.uri(), uri)
-                ns.validateComponentModel()
-                print 'Completed validation of %s, continuing with %s' % (ns.uri(), uri)
-
-        # Handle any loading or postprocessing required by the mix-ins.
-        return getattr(super(Namespace, cls), '_LoadFromFile_csc', lambda _instance, _unpickler: _instance)(instance, unpickler)
 
     @classmethod
     def LoadFromFile (cls, file_path):
@@ -1281,7 +1217,25 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
         """
         print 'Attempting to load a namespace from %s' % (file_path,)
         unpickler = pickle.Unpickler(open(file_path, 'rb'))
-        return cls._LoadFromFile_csc(None, unpickler)
+
+        archived_namespaces = unpickler.load()
+
+        # For every namespace this one depends on that isn't saved in this
+        # archive, make sure its component model is valid so we can resolve to
+        # its members when loading this one.
+        for ns in archived_namespaces:
+            for rns in ns.referencedNamespaces():
+                if rns in archived_namespaces:
+                    continue
+                print 'Need to validate %s before continuing with %s' % (rns.uri(), ns.uri())
+                rns.validateComponentModel()
+                print 'Completed validation of %s, continuing with %s' % (rns.uri(), ns.uri())
+
+        object_maps = unpickler.load()
+        for instance in archived_namespaces:
+            instance._loadNamedObjects(object_maps[instance])
+            # @todo: clean up the validation flag/defineoverload garbage
+            instance.__didValidation = True
 
     def isLoadable (self):
         """Return C{True} iff the component model for this namespace can be
@@ -1437,15 +1391,13 @@ def _LoadableNamespaceMap ():
                 if fnmatch.fnmatch(fn, '*.wxs'):
                     afn = os.path.join(bp, fn)
                     infile = open(afn, 'rb')
-                    unpickler = pickle.Unpickler(infile)
-                    uri = unpickler.load()
-                    # Loading the instance simply introduces the
-                    # namespace into the registry, including the path
-                    # to the Python binding module.  It does not
-                    # incorporate any of the schema components.
-                    instance = unpickler.load()
-                    __LoadableNamespaces[uri] = afn
-                    #print 'pre-parsed schema for %s available in %s' % (uri, afn)
+                    try:
+                        unpickler = pickle.Unpickler(infile)
+                        archived_namespaces = unpickler.load()
+                        for ns in archived_namespaces:
+                            __LoadableNamespaces[ns.uri()] = afn
+                    except pickle.UnpicklingError, e:
+                        print 'ERROR reading from archive %s: %s' % (afn, e)
     return __LoadableNamespaces
 
 class _XMLSchema_instance (Namespace):
