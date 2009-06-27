@@ -169,3 +169,122 @@ def NormalizeWhitespace (text, preserve=False, replace=False, collapse=False):
         return __MultiSpace_re.sub(' ', text).strip()
     # pyxb not imported here; could be.
     raise Exception('NormalizeWhitespace: No normalization specified')
+
+class Graph:
+    """Represent some sort of graph.
+
+    This is used to determine order dependencies among components
+    within a namespace, and schema that comprise various
+    namespaces."""
+    
+    def __init__ (self, root=None):
+        self.__root = root
+        self.__edges = set()
+        self.__edgeMap = { }
+        self.__reverseMap = { }
+        self.__nodes = set()
+
+    __scc = None
+    __sccMap = None
+    __dfsOrder = None
+
+    def addEdge (self, source, target):
+        self.__edges.add( (source, target) )
+        self.__edgeMap.setdefault(source, []).append(target)
+        self.__reverseMap.setdefault(target, []).append(source)
+        self.__nodes.add(source)
+        self.__nodes.add(target)
+
+    def root (self):
+        if self.__root is None:
+            for n in self.__nodes:
+                if not (n in self.__reverseMap):
+                    self.__root = n
+                    break
+        return self.__root
+
+    def edgeMap (self):
+        return self.__edgeMap
+
+    def edges (self):
+        return self.__edges
+
+    def nodes (self):
+        return self.__nodes
+
+    def tarjan (self):
+        if self.__scc is not None:
+            return
+        self.__sccMap = { }
+        self.__stack = []
+        self.__scc = []
+        self.__index = 0
+        self.__tarjanIndex = { }
+        self.__tarjanLowLink = { }
+        for v in self.__nodes:
+            self.__tarjanIndex[v] = None
+        root = self.root()
+        if root is not None:
+            self._tarjan(root)
+        self.__didTarjan = True
+
+    def _tarjan (self, v):
+        self.__tarjanIndex[v] = self.__tarjanLowLink[v] = self.__index
+        #print "Adding %s" % v
+        self.__index += 1
+        self.__stack.append(v)
+        source = v
+        for target in self.__edgeMap.get(source, []):
+            if self.__tarjanIndex[target] is None:
+                #print "Target %s not found in processed" % (target,)
+                self._tarjan(target)
+                self.__tarjanLowLink[v] = min(self.__tarjanLowLink[v], self.__tarjanLowLink[target])
+            elif target in self.__stack:
+                #print "Found %s in stack" % (target,)
+                self.__tarjanLowLink[v] = min(self.__tarjanLowLink[v], self.__tarjanLowLink[target])
+            else:
+                #print "No %s in stack" % (target,)
+                pass
+
+        if self.__tarjanLowLink[v] == self.__tarjanIndex[v]:
+            scc = []
+            while True:
+                scc.append(self.__stack.pop())
+                if v == scc[-1]:
+                    break;
+            if 1 < len(scc):
+                self.__scc.append(scc)
+                [ self.__sccMap.setdefault(_v, scc) for _v in scc ]
+                #print 'SCC at %s' % (' '.join( [str(_s) for _s in scc ]),)
+
+    def scc (self, reset=False):
+        if reset or (self.__scc is None):
+            self.tarjan()
+        return self.__scc
+
+    def sccMap (self, reset=False):
+        if reset or (self.__sccMap is None):
+            self.tarjan()
+        return self.__sccMap
+
+    def sccForNode (self, node, **kw):
+        return self.sccMap(**kw).get(node, None)
+
+    def cyclomaticComplexity (self):
+        self.tarjan()
+        return len(self.__edges) - len(self.__nodes) + 2 * len(self.__scc)
+
+    def __dfsWalk (self, source):
+        self.__dfsWalked.add(source)
+        for target in self.__edgeMap.get(source, []):
+            if not (target in self.__dfsWalked): 
+                self.__dfsWalk(target)
+        self.__dfsOrder.append(source)
+
+    def dfsOrder (self, reset=False):
+        if reset or (self.__dfsOrder is None):
+            self.__dfsWalked = set()
+            self.__dfsOrder = []
+            self.__dfsWalk(self.__root)
+        return self.__dfsOrder
+        

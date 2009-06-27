@@ -98,6 +98,45 @@ class BasicTest (unittest.TestCase):
         self.assertEquals(3, len(in_use))
         self.assertEquals(set(( 'id', 'id_', 'id_2' )), in_use)
 
+class TestGraph (unittest.TestCase):
+
+    _Edges = [
+        (1, 2),
+        (2, 3),
+        (2, 4),
+        (4, 8),
+        (5, 6),
+        (5, 7),
+        (6, 10),
+        (7, 8),
+        (8, 5),
+        (8, 9),
+        (9, 10),
+        (10, 0)
+        ]
+
+    def testRoot (self):
+        graph = Graph()
+        [ graph.addEdge(*_e) for _e in self._Edges ]
+        self.assertEquals(graph.root(), 1)
+
+    def testTarjan (self):
+        graph = Graph()
+        [ graph.addEdge(*_e) for _e in self._Edges ]
+        scc = graph.scc()
+        self.assertEquals(1, len(scc))
+        self.assertEquals(set([5, 7, 8]), set(scc[0]))
+
+    def testDFSOrder (self):
+        graph = Graph()
+        [ graph.addEdge(*_e) for _e in self._Edges ]
+        order = graph.dfsOrder()
+        walked = set()
+        for source in order:
+            for target in graph.edgeMap().get(source, []):
+                self.assertTrue((target in walked) or (graph.sccForNode(source) == graph.sccForNode(target)), '%s -> %s not satisfied, seen' % (source, target))
+            walked.add(source)
+
 if '__main__' == __name__:
     unittest.main()
     
