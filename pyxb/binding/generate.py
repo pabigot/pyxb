@@ -885,12 +885,10 @@ def GeneratePython (**kw):
     try:
         namespace = kw.pop('namespace', None)
         if namespace is None:
-            schema = kw.get('schema', None)
-            if schema is None:
-                schema_location = kw.get('schema_location', None)
-                if schema_location is None:
-                    raise Exception('No input provided')
-                schema = xs.schema.CreateFromDOM(domutils.StringToDOM(file(schema_location).read()))
+            schema_location = kw.get('schema_location', None)
+            if schema_location is None:
+                raise Exception('No input provided')
+            schema = xs.schema.CreateFromDOM(domutils.StringToDOM(file(schema_location).read()))
             namespace = schema.targetNamespace()
 
         generator_kw = kw.copy()
