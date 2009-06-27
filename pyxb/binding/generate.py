@@ -906,11 +906,9 @@ def _ResolveReferencedNamespaces (namespace):
         need_resolved = new_nr
 
 def _PrepareNamespaceForGeneration (sns, module_path_prefix, all_std, all_ctd, all_ed):
-    assert sns.modulePath() is None
-    if sns.prefix() is None:
-        sns.setPrefix('prefix')
-    assert sns.prefix() is not None
-    sns.setModulePath('%s%s' % (module_path_prefix, sns.prefix()))
+    if sns.modulePath() is None:
+        assert sns.prefix() is not None
+        sns.setModulePath('%s%s' % (module_path_prefix, sns.prefix()))
     print '%s module %s' % (sns.uri(), sns.modulePath())
     std = set()
     ctd = set()

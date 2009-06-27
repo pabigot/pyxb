@@ -149,14 +149,18 @@ tns = wxs.targetNamespace()
 # Save binding source first, so name-in-binding is stored in the
 # parsed schema file
 try:
+    tns.setModulePath(module_path)
     AltGenerate(namespace=tns, module_path_prefix=module_path_prefix)
     for sns in tns.siblingNamespaces():
         binding_source = sns.__bindingSource
         if binding_source is not None:
             print 'Binding source is %d long to %s' % (len(binding_source), binding_file)
-            binding_file = sns.modulePath().replace('.', '/') + '.py'
-            file(binding_file, "w").write(binding_source)
-            print 'Saved binding source to %s' % (binding_file,)
+            if sns != tns:
+                use_binding_file = os.path.join(binding_path,'%s.py' % (sns.prefix(),))
+            else:
+                use_binding_file = binding_file
+            file(use_binding_file, "w").write(binding_source)
+            print 'Saved binding source to %s' % (use_binding_file,)
 except Exception, e:
     print 'Exception generating bindings to %s: %s' % (binding_file, e)
     traceback.print_exception(*sys.exc_info())
