@@ -894,6 +894,13 @@ def _PrepareNamespaceForGeneration (sns, module_path_prefix, all_std, all_ctd, a
             ctd.add(c)
         elif isinstance(c, xs.structures.ElementDeclaration) and c._scopeIsGlobal():
             ed.add(c)
+        else:
+            continue
+        # Cache the namespace into which the component will be bound.
+        # It certainly might not be reached by c.targetNamespace()
+        # when c is an anonymous declaration.
+        c.__bindingNamespace = sns
+        assert c._schema().targetNamespace() == c.__bindingNamespace
     all_std.update(std)
     all_ctd.update(ctd)
     all_ed.update(ed)
@@ -904,16 +911,8 @@ def _PrepareNamespaceForGeneration (sns, module_path_prefix, all_std, all_ctd, a
     sns.__anonSTDIndex = 1
     sns.__anonCTDIndex = 1
 
-def _PrepareSimpleTypeDefinition (std, nsm):
-    name = std.bestNCName()
-    protected = False
-    if name is None:
-        name = '_STD_ANON_%d' % (std.__bindingNamespace.__anonSTDIndex,)
-        protected = True
-        std.__bindingNamespace.__anonSTDIndex += 1
-    std.setNameInBinding(utility.PrepareIdentifier(name, std.__bindingNamespace.__uniqueInModule, protected=protected))
+def _PrepareSimpleTypeDefinition (std, module_context):
     std.__bindingNamespace.__simpleTypeDefinitions.append(std)
-    #print '%s represents %s in %s' % (std.nameInBinding(), std.expandedName(), std.__bindingNamespace)
     std.__uniqueInBindingClass = basis.simpleTypeDefinition._ReservedSymbols.copy()
     ptd = std.primitiveTypeDefinition(throw_if_absent=False)
     if (ptd is not None) and ptd.hasPythonSupport():
@@ -929,12 +928,7 @@ def _PrepareSimpleTypeDefinition (std, nsm):
                     #print ' Enum %s represents %s' % (ei.tag(), ei.unicodeValue())
             #print '%s unique: %s' % (std.expandedName(), std.__uniqueInBindingClass)
 
-def _PrepareComplexTypeDefinition (ctd):
-    name = ctd.bestNCName()
-    if name is None:
-        name = '_CTD_ANON_%d' % (ctd.__bindingNamespace.__anonCTDIndex,)
-        ctd.__bindingNamespace.__anonCTDIndex += 1
-    ctd.setNameInBinding(utility.PrepareIdentifier(name, ctd.__bindingNamespace.__uniqueInModule))
+def _PrepareComplexTypeDefinition (ctd, module_context):
     ctd.__bindingNamespace.__complexTypeDefinitions.append(ctd)
     #print '%s represents %s in %s' % (ctd.nameInBinding(), ctd.expandedName(), ctd.__bindingNamespace)
     if ctd._isHierarchyRoot():
@@ -1068,16 +1062,33 @@ class BindingModuleIO (StringIO.StringIO):
     def schema (self):
         return self.__schema
 
-class _AnonymousName_mixin (object):
+class _ModuleNaming_mixin (object):
     __anonSTDIndex = None
     __anonCTDIndex = None
+    __uniqueInModule = None
 
     def __init__ (self, *args, **kw):
-        super(_AnonymousName_mixin, self).__init__(*args, **kw)
+        super(_ModuleNaming_mixin, self).__init__(*args, **kw)
         self.__anonSTDIndex = 1
         self.__anonCTDIndex = 1
+        self.__components = []
+        self.__componentNameMap = {}
+        self.__uniqueInModule = set()
 
-    def componentNameInModule (self, component, kw):
+    def modulePath (self):
+        return self.__modulePath
+    def _setModulePath (self, module_path):
+        self.__modulePath = module_path
+    __modulePath = None
+
+    def _initializeUniqueInModule (self, unique_in_module):
+        self.__uniqueInModule = set(unique_in_module)
+
+    def uniqueInModule (self):
+        return self.__uniqueInModule
+
+    def _bindComponentInModule (self, component):
+        kw = {}
         rv = component.bestNCName()
         if rv is None:
             if isinstance(component, xs.structures.ComplexTypeDefinition):
@@ -1089,9 +1100,15 @@ class _AnonymousName_mixin (object):
             else:
                 assert False
             kw['protected'] = True
+        rv = utility.PrepareIdentifier(rv, self.__uniqueInModule, kw)
+        self.__components.append(component)
+        self.__componentNameMap[component] = rv
         return rv
 
-class NamespaceModule (_AnonymousName_mixin):
+    def nameInModule (self, component):
+        return self.__componentNameMap.get(component)
+
+class NamespaceModule (_ModuleNaming_mixin):
     """This class represents a Python module that holds all the
     declarations belonging to a specific namespace."""
 
@@ -1099,11 +1116,6 @@ class NamespaceModule (_AnonymousName_mixin):
         return self.__namespace
     __namespace = None
 
-    def modulePath (self):
-        return self.__modulePath
-    __modulePath = None
-
-    __uniqueInNamespace = None
     __modulePrefix = None
 
     def namespaceGroupModule (self):
@@ -1112,21 +1124,21 @@ class NamespaceModule (_AnonymousName_mixin):
         self.__namespaceGroupModule = namespace_group_module
     __namespaceGroupModule = None
 
-    _UniqueInNamespace = set([ 'pyxb', 'sys', 'Namespace', 'CreateFromDOM' ])
+    _UniqueInModule = set([ 'pyxb', 'sys', 'Namespace', 'CreateFromDOM' ])
 
     def __init__ (self, namespace, module_prefix):
         super(NamespaceModule, self).__init__(self)
         self.__namespace = namespace
         self.__modulePrefix = module_prefix[:]
-        self.__modulePath = None
-        self.__uniqueInNamespace = self._UniqueInNamespace.copy()
         self.__namespaceBindingNames = {}
         self.__components = []
         self.__componentBindingName = {}
+        self._initializeUniqueInModule(self._UniqueInModule)
 
     def setBaseModule (self, base_module):
         assert base_module is not None
-        self.__modulePath = '.'.join(self.__modulePrefix + [ base_module ])
+        self._setModulePath('.'.join(self.__modulePrefix + [ base_module ]))
+        self.__namespace.setModulePath(self.modulePath())
 
     def setSchemaGroupPrefix (self, schema_group_prefix):
         self.__schemaGroupPrefix = schema_group_prefix[:]
@@ -1141,28 +1153,23 @@ class NamespaceModule (_AnonymousName_mixin):
     __components = None
     __componentBindingName = None
 
-    def setBindingName (self, component, schema_group_module):
-        visibility_kw = { }
-        ns_name = self.componentNameInModule(component, visibility_kw)
-        ns_name = utility.PrepareIdentifier(ns_name, self.__uniqueInNamespace, visibility_kw)
-        self.__components.append(component)
-        self.__componentBindingName[component] = ns_name
-        binding_name = ns_name
+    def bindComponentInModule (self, component, schema_group_module):
+        ns_name = self._bindComponentInModule(component)
         print '%s NS %s' % (component.expandedName(), ns_name)
-        if schema_group_module is not None:
-            binding_name = schema_group_module.setBindingName(component)
-        component.setNameInBinding(binding_name)
-        if self.__namespaceGroupModule:
-            self.__namespaceGroupModule.setBindingName(component)
 
-class NamespaceGroupModule (_AnonymousName_mixin):
+        binding_context = self
+        if schema_group_module is not None:
+            binding_context = schema_group_module.bindComponentInModule(component)
+        if self.__namespaceGroupModule:
+            self.__namespaceGroupModule.bindComponentInModule(component)
+
+        component.setNameInBinding(binding_context.nameInModule(component))
+        return binding_context
+
+class NamespaceGroupModule (_ModuleNaming_mixin):
     """This class represents a Python module that holds all the
     declarations belonging to a set of namespaces which have
     interdependencies."""
-
-    def modulePath (self):
-        return self.__modulePath
-    __modulePath = None
 
     def namespaceModules (self):
         return self.__namespaceModules
@@ -1173,7 +1180,6 @@ class NamespaceGroupModule (_AnonymousName_mixin):
     __uniqueInModule = None
 
     _UniqueInModule = set()
-
     __UniqueInGroups = set()
     _GroupPrefix = '_group'
 
@@ -1184,22 +1190,17 @@ class NamespaceGroupModule (_AnonymousName_mixin):
 
         module_prefix = module_prefix[:]
         module_prefix.append(self._GroupPrefix)
-        self.__modulePath = '.'.join(module_prefix + [ utility.MakeUnique('_'.join([ _nsm.namespace().prefix() for _nsm in namespace_modules]), self.__UniqueInGroups) ])
+        self._setModulePath('.'.join(module_prefix + [ utility.MakeUnique('_'.join([ _nsm.namespace().prefix() for _nsm in namespace_modules]), self.__UniqueInGroups) ]))
         for nsm in namespace_modules:
             nsm.setSchemaGroupPrefix(module_prefix + [ utility.MakeUnique('_%s' % (nsm.namespace().prefix(),), self.__UniqueInGroups) ])
-        self.__components = []
-        self.__componentBindingName = { }
-        self.__uniqueInModule = self._UniqueInModule.copy()
+        self._initializeUniqueInModule(self._UniqueInModule)
 
-    def setBindingName (self, component):
-        visibility_kw = { }
-        ngm_name = self.componentNameInModule(component, visibility_kw)
-        ngm_name = utility.PrepareIdentifier(ngm_name, self.__uniqueInModule, visibility_kw)
-        self.__components.append(component)
-        self.__componentBindingName[component] = ngm_name
+    def bindComponentInModule (self, component):
+        ngm_name = self._bindComponentInModule(component)
         print '%s NGM %s' % (component.expandedName(), ngm_name)
+        return self
             
-class SchemaGroupModule (_AnonymousName_mixin):
+class SchemaGroupModule (_ModuleNaming_mixin):
     """This class represents a Python module that holds all bindings
     associated with components defined in a set of schema.
 
@@ -1207,11 +1208,6 @@ class SchemaGroupModule (_AnonymousName_mixin):
     a cycle in the schema dependency graph all components in the cycle
     are aggregated into a single module."""
 
-    def modulePath (self):
-        return self.__modulePath
-    __modulePath = None
-
-    __uniqueInModule = None
     __bindingOutput = None
 
     def namespaceModule (self):
@@ -1222,7 +1218,6 @@ class SchemaGroupModule (_AnonymousName_mixin):
         return self.__schemaGroup
     __schemaGroup = None
 
-    __components = None
     _UniqueInModule = set([ 'pyxb', 'sys', 'Namespace' ])
     
     def __init__ (self, namespace_module, schema_group):
@@ -1230,19 +1225,13 @@ class SchemaGroupModule (_AnonymousName_mixin):
         self.__namespaceModule = namespace_module
         self.__schemaGroup = schema_group
         assert isinstance(self.__schemaGroup, list)
-        self.__modulePath = self.__namespaceModule.schemaGroupModulePath(self)
-        self.__components = []
-        self.__componentNameMap = {}
-        self.__uniqueInModule = self._UniqueInModule.copy()
+        self._setModulePath(self.__namespaceModule.schemaGroupModulePath(self))
+        self._initializeUniqueInModule(self._UniqueInModule)
 
-    def setBindingName (self, component):
-        visibility_kw = { }
-        sgm_name = self.componentNameInModule(component, visibility_kw)
-        sgm_name = utility.PrepareIdentifier(sgm_name, self.__uniqueInModule, visibility_kw)
-        self.__components.append(component)
-        self.__componentNameMap[component] = sgm_name
+    def bindComponentInModule (self, component):
+        sgm_name = self._bindComponentInModule(component)
         print '%s SGM %s' % (component.expandedName(), sgm_name)
-        return sgm_name
+        return self
 
 def AltGenerate(schema_location=None,
                 namespace=None,
@@ -1282,7 +1271,7 @@ def AltGenerate(schema_location=None,
     for c in component_graph.nodes():
         assert c._schema() is not None
         component_schemas.add(c._schema().__schemaGroupHead)
-        c._schema().targetNamespace().__namespaceGroupHead.__schemasForEmit.add(c._schema())
+        c.__bindingNamespace.__namespaceGroupHead.__schemasForEmit.add(c._schema())
 
     component_order = [ _scc[0] for _scc in component_graph.sccOrder() ]
     assert len(component_order) == len(component_graph.nodes())
@@ -1321,21 +1310,21 @@ def AltGenerate(schema_location=None,
 
     type_defs = []
     for c in component_order:
-        c.__bindingNamespace = c.targetNamespace()
         if isinstance(c, xs.structures.ElementDeclaration) and c._scopeIsGlobal():
-            ed = c
-            nsm = namespace_module_map[c.targetNamespace()]
-            nsm.setBindingName(ed, ed._schema().__schemaGroupModule)
-            ed.__bindingNamespace.__elementDeclarations.append(ed)
+            nsm = namespace_module_map[c.__bindingNamespace]
+            nsm.bindComponentInModule(c, c._schema().__schemaGroupModule)
+            c.__bindingNamespace.__elementDeclarations.append(c)
         else:
             type_defs.append(c)
 
     for td in type_defs:
-        nsm = namespace_module_map[td.targetNamespace()]
+        nsm = namespace_module_map.get(td.__bindingNamespace, None)
+        assert nsm is not None, 'No namespace module for %s type %s scope %s namespace %s' % (td.expandedName(), type(td), td._scope(), td.__bindingNamespace)
+        module_context = nsm.bindComponentInModule(td, td._schema().__schemaGroupModule)
         if isinstance(td, xs.structures.SimpleTypeDefinition):
-            _PrepareSimpleTypeDefinition(td, nsm)
+            _PrepareSimpleTypeDefinition(td, module_context)
         elif isinstance(td, xs.structures.ComplexTypeDefinition):
-            _PrepareComplexTypeDefinition(td, nsm)
+            _PrepareComplexTypeDefinition(td, module_context)
         else:
             assert False, 'Unexpected component type %s' % (type(td),)
 
