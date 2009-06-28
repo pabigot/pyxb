@@ -4117,6 +4117,10 @@ class Schema (_SchemaComponent_mixin):
         return self.__schemaLocation
     __schemaLocation = None
 
+    def schemaLocationTag (self):
+        return self.__schemaLocationTag
+    __schemaLocationTag = None
+
     def targetNamespace (self):
         """The targetNamespace of a componen.
 
@@ -4195,6 +4199,12 @@ class Schema (_SchemaComponent_mixin):
     def __init__ (self, *args, **kw):
         assert 'schema' not in kw
         self.__schemaLocation = kw.get('schema_location', None)
+        if self.__schemaLocation is not None:
+            schema_path = self.__schemaLocation
+            if 0 <= schema_path.find(':'):
+                schema_path = urlparse.urlparse(schema_path).path
+            self.__schemaLocationTag = os.path.split(schema_path)[1].split('.')[0]
+
         super(Schema, self).__init__(*args, **kw)
         self.__includedSchema = set()
         self.__importedSchema = set()
