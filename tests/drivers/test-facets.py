@@ -21,7 +21,7 @@ class TestFacets (unittest.TestCase):
         for (k,v) in globals().items():
             if k.startswith('_STD_ANON'):
                 break
-        self.assertEqual(v, type(instance))
+        self.assertEqual(v.typeDefinition(), type(instance))
         self.assertRaises(Exception, v, -52)
         self.assertRaises(Exception, v, 100)
 
