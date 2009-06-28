@@ -946,7 +946,10 @@ def _PrepareNamespaceForGeneration (sns, module_path_prefix, all_std, all_ctd, a
         schemas.add(c._schema())
 
     for schema in schema_graph.nodes():
-        schema.__moduleLeaf = os.path.split(schema.schemaLocation())[1].split('.')[0]
+        if schema.schemaLocation() is not None:
+            schema.__moduleLeaf = os.path.split(schema.schemaLocation())[1].split('.')[0]
+        else:
+            schema.__moduleLeaf = None
 
     scc_list = schema_graph.scc()
     assert 0 == len(scc_list), '''Look, sunshine, I'm willing to put up with dependency cycles in namespaces.
@@ -1089,7 +1092,7 @@ I'm not willing to put up with dependency cycles among schema.
 
 Not until somebody pays me.  (http://www.rhapsody.com/goto?rcid=tra.9575689)
 '''
-    print "Schema order:\n  %s" % ("\n  ".join([ _s.schemaLocation() for _s in schema_graph.dfsOrder() ]),)
+    print "Schema order:\n  %s" % ("\n  ".join([ str(_s.schemaLocation()) for _s in schema_graph.dfsOrder() ]),)
 
     type_defs = []
     for c in component_graph.dfsOrder():
