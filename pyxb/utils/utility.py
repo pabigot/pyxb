@@ -208,14 +208,6 @@ class Graph:
                     self.__roots.add(n)
         return self.__roots
 
-    def root (self):
-        if self.__root is None:
-            for n in self.__nodes:
-                if not (n in self.__reverseMap):
-                    self.__root = n
-                    break
-        return self.__root
-
     def edgeMap (self):
         return self.__edgeMap
 
@@ -236,9 +228,8 @@ class Graph:
         self.__tarjanLowLink = { }
         for v in self.__nodes:
             self.__tarjanIndex[v] = None
-        root = self.root()
-        if root is not None:
-            self._tarjan(root)
+        for r in self.roots():
+            self._tarjan(r)
         self.__didTarjan = True
 
     def _tarjan (self, v):
@@ -288,11 +279,28 @@ class Graph:
         return len(self.__edges) - len(self.__nodes) + 2 * len(self.__scc)
 
     def __dfsWalk (self, source):
+        assert not (source in self.__dfsWalked)
         self.__dfsWalked.add(source)
         for target in self.__edgeMap.get(source, []):
             if not (target in self.__dfsWalked): 
                 self.__dfsWalk(target)
         self.__dfsOrder.append(source)
+
+    def _generateDOT (self):
+        print 'GENERATING DOT'
+        node_map = { }
+        idx = 1
+        for n in self.__nodes:
+            node_map[n] = idx
+            idx += 1
+        text = "digraph %s {\n" % ('UNKNOWN',)
+        text += "\n".join( [ '%s [shape=box,label="%s"];' % (node_map[_n], str(_n)) for _n in self.__nodes ])
+        for s in self.__nodes:
+            for d in self.__edgeMap.get(s, []):
+                if s != d:
+                    text += "%s -> %s;\n" % (node_map[s], node_map[d])
+        text += "};\n"
+        return text
 
     def dfsOrder (self, reset=False):
         if reset or (self.__dfsOrder is None):
@@ -300,6 +308,8 @@ class Graph:
             self.__dfsOrder = []
             for root in self.roots(reset=reset):
                 self.__dfsWalk(root)
-            assert len(self.__dfsOrder) == len(self.__nodes), 'DFS walk did not cover all nodes (walk %d versus nodes %d)' % (len(self.__dfsOrder), len(self.__nodes))
+            self.__dfsWalked = None
+            if len(self.__dfsOrder) != len(self.__nodes):
+                raise Exception('DFS walk did not cover all nodes (walk %d versus nodes %d)' % (len(self.__dfsOrder), len(self.__nodes)))
         return self.__dfsOrder
         
