@@ -1094,7 +1094,6 @@ Not until somebody pays me.  (http://www.rhapsody.com/goto?rcid=tra.9575689)
     type_defs = []
     for c in component_graph.dfsOrder():
         if isinstance(c, xs.structures.ElementDeclaration):
-            print 'Element declaration %s' % (c.expandedName(),)
             ed = c
             # Element declarations take precedence over types as far as names go
             ed.setNameInBinding(utility.PrepareIdentifier(ed.bestNCName(), ed.__bindingNamespace.__uniqueInModule))
