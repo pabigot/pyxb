@@ -913,13 +913,6 @@ def _PrepareNamespaceForGeneration (sns, module_path_prefix, all_std, all_ctd, a
                 schema_graph.addEdge(c._schema(), target._schema())
         schemas.add(c._schema())
 
-    for schema in schema_graph.nodes():
-        if schema.schemaLocation() is not None:
-            schema_path = urlparse.urlparse(schema.schemaLocation()).path
-            schema.__moduleLeaf = os.path.split(schema_path)[1].split('.')[0]
-        else:
-            schema.__moduleLeaf = None
-
     scc_list = schema_graph.scc()
 
     #if 1 < len(schemas):
@@ -1017,8 +1010,6 @@ def _SetNameWithAccessors (component, container, is_plural, kw):
 
 def CheckDependencies (namespace):
     ns_graph = utility.Graph()
-
-    
     ns_set = set([namespace])
     while ns_set:
         ns = ns_set.pop()
@@ -1030,29 +1021,57 @@ def CheckDependencies (namespace):
 
     ns_graph.setRoot(namespace)
     scc_order = ns_graph.sccOrder()
+    namespace.__namespaceOrder = scc_order
+    namespace.__namespaceSet = ns_graph.nodes()
     print "Namespace ordering:"
-    for n in scc_order:
-        print 'SCC: %s' % (" ".join([ str(_n) for _n in n]))
+    for scc in scc_order:
+        elts = []
+        for ns in scc:
+            ns.__namespaceGroupHead = scc[0]
+            ns.__namespaceGroupMulti = (1 < len(scc))
+            elts.append(str(ns))
+        print 'SCC: %s' % ("\n  ".join(elts))
 
     schema_ii_graph = utility.Graph()
-    schemas = set(namespace.schemas())
+    schemas = set()
+    for sch in namespace.schemas():
+        if sch.schemaLocation() is not None:
+            schemas.add(sch)
     while schemas:
         schema = schemas.pop()
         assert schema is not None
-        for sch in schema.includedSchema(): # .union(schema.importedSchema()):
-            if not (sch in schema_ii_graph.nodes()):
-                assert sch is not None, '%s imports none?' % (schema.schemaLocation(),)
+        assert schema.schemaLocation() is not None
+        for sch in schema.includedSchema().union(schema.importedSchema()):
+            assert sch is not None, '%s imports none?' % (schema.schemaLocation(),)
+            if not ((sch.schemaLocation() is None) or (sch in schema_ii_graph.nodes())):
                 schemas.add(sch)
                 schema_ii_graph.addNode(sch)
-            schema_ii_graph.addEdge(schema, sch)
-        schemas.update(schema.importedSchema())
-        
+            if sch in schema.includedSchema():
+                schema_ii_graph.addEdge(schema, sch)
+
     schema = iter(namespace.schemas()).next()
-    ns_graph.setRoot(schema)
+    schema_ii_graph.setRoot(schema)
     scc_order = schema_ii_graph.sccOrder()
+    namespace.__schemaOrder = scc_order
+    namespace.__schemaSet = schema_ii_graph.nodes()
     print "Schema ordering:"
-    for n in scc_order:
-        print 'SCC: %s' % ("\n  ".join([ _s.schemaLocation() for _s in n]))
+    for scc in scc_order:
+        elts = []
+        group_head = scc[0]
+        if group_head.schemaLocation() is not None:
+            schema_path = urlparse.urlparse(group_head.schemaLocation()).path
+            module_leaf = os.path.split(schema_path)[1].split('.')[0]
+        else:
+            module_leaf = None
+        for s in scc:
+            if s.schemaLocation() is None:
+                print 'No schema location in %s' % (s.targetNamespace(),)
+            elts.append(str(s.schemaLocation()))
+            s.__schemaGroupHead = scc[0]
+            s.__schemaGroupMulti = (1 < len(scc))
+            s.__moduleLeaf = module_leaf
+        print 'SCC: %s' % ("\n  ".join(elts))
+
 
 def AltGenerate(schema_location=None,
                 namespace=None,
@@ -1069,7 +1088,7 @@ def AltGenerate(schema_location=None,
         namespace = schema.targetNamespace()
 
     _ResolveReferencedNamespaces(namespace)
-        
+
     CheckDependencies(namespace)
 
     used_modules = {}
@@ -1087,25 +1106,32 @@ def AltGenerate(schema_location=None,
     for c in all_components:
         component_graph.addNode(c)
         deps = c.dependentComponents()
+        schema_graph.addNode(c._schema())
         for target in deps:
-            # This is failing to detect element declarations which are references to global declarations that are in the all_components set
             if target in all_components:
                 component_graph.addEdge(c, target)
                 assert target._schema() is not None
                 schema_graph.addEdge(c._schema(), target._schema())
-        
-    scc_list = schema_graph.scc()
-    if 0 != len(scc_list):
-        print 'Schema graph has %d SCCs' % (len(scc_list),)
-        for scc in scc_list:
-            print " ".join([ '%s.%s' % (_s.targetNamespace().prefix(), _s.__moduleLeaf) for _s in scc ])
-        assert False
 
-    for schema in schema_graph.dfsOrder():
+    schema = iter(namespace.schemas()).next()
+    schema_graph.setRoot(schema)
+    scc_order = schema_graph.sccOrder()
+    print "Component Schema ordering:"
+    for scc in scc_order:
+        elts = []
+        schema = scc[0]
         sns = schema.targetNamespace()
         schema.__modulePath = '%s_%s.%s' % (module_path_prefix, sns.prefix(), schema.__moduleLeaf)
-        sns.__schemaOrder.append(schema)
-        sns.__schemaHaveModules = (1 < len(sns.__schemaOrder)) and (not sns.isAbsentNamespace())
+        for s in scc:
+            assert not(s.schemaLocation() is None)
+            elts.append(str(s.schemaLocation()))
+            s.__modulePath = schema.__modulePath
+            s.__isMultiSchema = 1 < len(scc)
+
+        print 'SCC: %s' % ("\n  ".join(elts))
+
+    scc_order = component_graph.sccOrder()
+    assert len(scc_order) == len(component_graph.nodes())
 
     type_defs = []
     for c in component_graph.dfsOrder():
