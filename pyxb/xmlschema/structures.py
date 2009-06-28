@@ -4201,6 +4201,7 @@ class Schema (_SchemaComponent_mixin):
         self.__targetNamespace = kw.get('target_namespace', self._namespaceContext().targetNamespace())
         if not isinstance(self.__targetNamespace, pyxb.namespace.Namespace):
             raise pyxb.LogicError('Schema constructor requires valid Namespace instance as target_namespace')
+        self.__targetNamespace.addSchema(self)
         _ImportElementInformationItem._RecordSchemaLocation(self)        
         self.__defaultNamespace = kw.get('default_namespace', self._namespaceContext().defaultNamespace())
         if not ((self.__defaultNamespace is None) or isinstance(self.__defaultNamespace, pyxb.namespace.Namespace)):
@@ -4234,6 +4235,8 @@ class Schema (_SchemaComponent_mixin):
 
         @param schema_location: A file path or a URI
         """
+        if 0 > schema_location.find(':'):
+            schema_location = os.path.realpath(schema_location)
         kw['schema_location'] = schema_location
         xmls = None
         try:
@@ -4431,7 +4434,8 @@ class Schema (_SchemaComponent_mixin):
                     import_eii.namespace().setPrefix(pfx)
                     break
         print 'Imported %s, prefix %s, back to %s' % (import_eii.namespace().uri(), import_eii.prefix(), self.__schemaLocation)
-        self.__importedSchema.add(import_eii.schema())
+        if import_eii.schema() is not None:
+            self.__importedSchema.add(import_eii.schema())
         self.targetNamespace().importNamespace(import_eii.namespace())
         return node
 
