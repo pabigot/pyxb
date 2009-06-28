@@ -199,6 +199,11 @@ class Graph:
     def addNode (self, node):
         self.__nodes.add(node)
 
+    def root (self):
+        return self.__root
+    def setRoot (self, root):
+        self.__root = root
+
     __roots = None
     def roots (self, reset=False):
         if reset or (self.__roots is None):
@@ -217,18 +222,24 @@ class Graph:
     def nodes (self):
         return self.__nodes
 
-    def tarjan (self):
-        if self.__scc is not None:
+    def tarjan (self, reset=False):
+        if (self.__scc is not None) and (not reset):
             return
         self.__sccMap = { }
         self.__stack = []
+        self.__sccOrder = []
         self.__scc = []
         self.__index = 0
         self.__tarjanIndex = { }
         self.__tarjanLowLink = { }
         for v in self.__nodes:
             self.__tarjanIndex[v] = None
-        for r in self.roots():
+        roots = self.roots()
+        if (0 == len(roots)) and (self.root() is not None):
+            roots = set([self.root()])
+        if (0 == len(roots)) and (0 < len(self.__nodes)):
+            raise Exception('TARJAN: No roots found in graph with %d nodes' % (len(self.__nodes),))
+        for r in roots:
             self._tarjan(r)
         self.__didTarjan = True
 
@@ -256,6 +267,7 @@ class Graph:
                 scc.append(self.__stack.pop())
                 if v == scc[-1]:
                     break;
+            self.__sccOrder.append(scc)
             if 1 < len(scc):
                 self.__scc.append(scc)
                 [ self.__sccMap.setdefault(_v, scc) for _v in scc ]
@@ -263,13 +275,18 @@ class Graph:
 
     def scc (self, reset=False):
         if reset or (self.__scc is None):
-            self.tarjan()
+            self.tarjan(reset)
         return self.__scc
 
     def sccMap (self, reset=False):
         if reset or (self.__sccMap is None):
-            self.tarjan()
+            self.tarjan(reset)
         return self.__sccMap
+
+    def sccOrder (self, reset=False):
+        if reset or (self.__sccOrder is None):
+            self.tarjan(reset)
+        return self.__sccOrder
 
     def sccForNode (self, node, **kw):
         return self.sccMap(**kw).get(node, None)
@@ -301,6 +318,27 @@ class Graph:
                     text += "%s -> %s;\n" % (node_map[s], node_map[d])
         text += "};\n"
         return text
+
+    def getIndependentOrder (self):
+        reverse_map = self.__reverseMap.copy()
+        need_nodes = self.__nodes.copy()
+        prune_order = []
+        cycle_groups = set()
+        did_prune = True
+        while (0 < len(need_nodes)) and did_prune:
+            did_prune = False
+            for n in need_nodes:
+                if not (n in reverse_map):
+                    prune_order.append(n)
+                    did_prune = True
+                    need_nodes.remove(n)
+                    for hn in reverse_map.keys():
+                        hset = reverse_map[hn]
+                        hset.discard(n)
+                        if 0 == len(hset):
+                            del reverse_map[hn]
+                    break
+        return (prune_order, need_nodes)
 
     def dfsOrder (self, reset=False):
         if reset or (self.__dfsOrder is None):

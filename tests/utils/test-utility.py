@@ -140,6 +140,16 @@ class TestGraph (unittest.TestCase):
             for target in graph.edgeMap().get(source, []):
                 self.assertTrue((target in walked) or (graph.sccForNode(source) == graph.sccForNode(target)), '%s -> %s not satisfied, seen' % (source, target))
             walked.add(source)
+        order = graph.sccOrder()
+        self.assertEqual(len(graph.nodes()), len(order) + 2)
+        walked = set()
+        for source in order:
+            if isinstance(source, list):
+                walked.update(source)
+                continue
+            for target in graph.edgeMap().get(source, []):
+                self.assertTrue((target in walked) or (graph.sccForNode(source) == graph.sccForNode(target)), '%s -> %s not satisfied, seen' % (source, target))
+            walked.add(source)
 
     def testDFSOrder2 (self):
         graph = Graph()
@@ -155,12 +165,19 @@ class TestGraph (unittest.TestCase):
                 self.assertTrue((target in walked) or (graph.sccForNode(source) == graph.sccForNode(target)), '%s -> %s not satisfied, seen' % (source, target))
             walked.add(source)
 
-    def testDFSOrder3 (self):
+    def testDFSOrder_Loop (self):
         graph = Graph()
         graph.addEdge(1, 2)
         graph.addEdge(2, 3)
         graph.addEdge(3, 1)
         self.assertEqual(0, len(graph.roots()))
+        self.assertEqual(None, graph.root())
+        graph.setRoot(1)
+        self.assertEqual(0, len(graph.roots(reset=True)))
+        self.assertEqual(1, graph.root())
+        scc = graph.scc()
+        self.assertEqual(1, len(scc))
+        self.assertEqual(set([1, 2, 3]), set(scc[0]))
         self.assertRaises(Exception, graph.dfsOrder)
 
     def testDFSOrder4 (self):
@@ -302,9 +319,13 @@ class TestGraph (unittest.TestCase):
         graph.addEdge(5, 1)
         graph.addEdge(5, 6)
         graph.addEdge(6, 2)
-        self.assertEqual(0, len(graph.scc()))
+        self.assertRaises(Exception, graph.scc)
         self.assertRaises(Exception, graph.dfsOrder)
-
+        graph.setRoot(1)
+        order = graph.sccOrder(reset=True)
+        self.assertEqual(4, len(order))
+        self.assertEqual(1, len(graph.scc()))
+        self.assertEqual(set([1, 3, 5]), set(graph.scc()[0]))
 
 if '__main__' == __name__:
     unittest.main()
