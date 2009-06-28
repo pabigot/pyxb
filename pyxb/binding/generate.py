@@ -20,6 +20,7 @@ import pyxb
 import pyxb.xmlschema as xs
 import StringIO
 import datetime
+import urlparse
 
 from pyxb.utils import utility
 from pyxb.utils import templates
@@ -144,7 +145,7 @@ class ReferenceSchemaComponent (ReferenceLiteral):
         bsm = kw.get('binding_schema')
         tns = self.__component.targetNamespace()
         is_in_binding = self.__component._picklesInNamespace(btns)
-        is_in_module = is_in_binding and ((bsm is None) or (bsm == self.__component._schema()))
+        is_in_module = is_in_binding and ((not btns.__dict__.get('__schemaHaveModules')) or ((bsm is None) or (bsm == self.__component._schema())))
 
         assert (not isinstance(self.__component, pyxb.namespace._Resolvable_mixin)) or self.__component.isResolved(), '%s not resolved' % (self.__component,)
 
@@ -859,6 +860,7 @@ def _ResolveReferencedNamespaces (namespace):
     done_check = set()
     while 0 < len(need_check):
         ns = need_check.pop()
+        ns.__schemaHaveModules = False
         for rns in ns.referencedNamespaces():
             ns_graph.addEdge(ns, rns)
             if not rns in done_check:
@@ -922,7 +924,8 @@ def _PrepareNamespaceForGeneration (sns, module_path_prefix, all_std, all_ctd, a
 
     for schema in schema_graph.nodes():
         if schema.schemaLocation() is not None:
-            schema.__moduleLeaf = os.path.split(schema.schemaLocation())[1].split('.')[0]
+            schema_path = urlparse.urlparse(schema.schemaLocation()).path
+            schema.__moduleLeaf = os.path.split(schema_path)[1].split('.')[0]
         else:
             schema.__moduleLeaf = None
 
@@ -1080,7 +1083,7 @@ Not until somebody pays me.  (http://www.rhapsody.com/goto?rcid=tra.9575689)
         schema.__modulePath = '%s.%s' % (sns.modulePath(), schema.__moduleLeaf)
         print 'Assign schema %s module path %s' % (schema.schemaLocation(), schema.__modulePath,)
         sns.__schemaOrder.append(schema)
-        sns.__schemaHaveModules = (1 < len(sns.__schemaOrder))
+        sns.__schemaHaveModules = (1 < len(sns.__schemaOrder)) and (not sns.isAbsentNamespace())
 
     type_defs = []
     for c in component_graph.dfsOrder():
@@ -1103,6 +1106,7 @@ Not until somebody pays me.  (http://www.rhapsody.com/goto?rcid=tra.9575689)
     for sns in namespace.siblingNamespaces():
         generator_kw = { }
         generator_kw['binding_target_namespace'] = sns
+        assert sns.__schemaHaveModules is not None
         ns_outf = StringIO.StringIO()
 
         import_prefix = 'pyxb.xmlschema.'
@@ -1132,6 +1136,7 @@ Not until somebody pays me.  (http://www.rhapsody.com/goto?rcid=tra.9575689)
                 import_namespaces.append('import %s # ref namespace' % (ins.modulePath(),))
 
         if sns.__schemaHaveModules:
+            assert not sns.isAbsentNamespace()
             print 'WARNING: Using multiple schema for output for %s' % (sns,)
             
             module_imports = []
