@@ -35,6 +35,7 @@ import types
 import sys
 import traceback
 import xml.dom
+import os.path
 
 # Initialize UniqueInBinding with the public identifiers we generate,
 # import, or otherwise can't have mucked about with.
@@ -875,6 +876,8 @@ __ComponentOrder = (
 
 
 def _ResolveReferencedNamespaces (namespace):
+    ns_graph = utility.Graph(root=namespace)
+
     # Make sure all referenced namespaces have valid components
     need_check = set(namespace.referencedNamespaces())
     need_check.add(namespace)
@@ -882,12 +885,19 @@ def _ResolveReferencedNamespaces (namespace):
     while 0 < len(need_check):
         ns = need_check.pop()
         for rns in ns.referencedNamespaces():
+            ns_graph.addEdge(ns, rns)
             if not rns in done_check:
                 need_check.add(rns)
         ns.validateComponentModel()
         if not ns.hasSchemaComponents():
             print 'WARNING: Referenced %s has no schema components' % (ns.uri(),)
         done_check.add(ns)
+
+    scc_list = ns_graph.scc()
+    if 0 < len(scc_list):
+        print 'There are %d dependency cycles in the namespaces' % (len(scc_list),)
+        for scc in scc_list:
+            print " ".join([ str(_ns.prefix()) for _ns in scc])
 
     # Resolve all named objects in the referenced namespaces.  Iterate
     # where there are dependencies.
@@ -914,6 +924,8 @@ def _PrepareNamespaceForGeneration (sns, module_path_prefix, all_std, all_ctd, a
     std = set()
     ctd = set()
     ed = set()
+    schema_graph = utility.Graph()
+    component_graph = utility.Graph()
     for c in sns.components():
         if isinstance(c, xs.structures.SimpleTypeDefinition):
             std.add(c)
@@ -925,10 +937,27 @@ def _PrepareNamespaceForGeneration (sns, module_path_prefix, all_std, all_ctd, a
     for c in std.union(ctd).union(ed):
         c.__bindingNamespace = sns
         assert c._schema() is not None, '%s has no schema' % (c,)
+        deps = c.dependentComponents()
+        for target in deps:
+            component_graph.addEdge(c, target)
+            if target._schema() is not None:
+                schema_graph.addEdge(c._schema(), target._schema())
         schemas.add(c._schema())
-    assert not (None in schemas)
+
+    for schema in schema_graph.nodes():
+        schema.__moduleLeaf = os.path.split(schema.schemaLocation())[1].split('.')[0]
+
+    scc_list = schema_graph.scc()
+    assert 0 == len(scc_list), '''Look, sunshine, I'm willing to put up with dependency cycles in namespaces.
+Seems ugly, but technically it's legal.
+
+I'm not willing to put up with dependency cycles among schema.
+
+Not unless somebody pays me.
+'''
+
     if 1 < len(schemas):
-        print '*** %s requires multiple schemas: %s' % (sns.uri(), "  \n".join([ _s.schemaLocation() for _s in schemas ]))
+        print '*** %s requires multiple schemas: %s' % (sns.uri(), "  \n".join([ _s.__moduleLeaf for _s in schema_graph.dfsOrder() if (_s.targetNamespace() == sns)]))
 
     sns.__uniqueInModule = UniqueInBinding.copy()
     sns.__simpleTypeDefinitions = []

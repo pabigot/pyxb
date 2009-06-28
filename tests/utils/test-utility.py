@@ -127,15 +127,25 @@ class TestGraph (unittest.TestCase):
         self.assertEquals(1, len(scc))
         self.assertEquals(set([5, 7, 8]), set(scc[0]))
 
-    def testDFSOrder (self):
+    def testDFSOrder1 (self):
         graph = Graph()
         [ graph.addEdge(*_e) for _e in self._Edges ]
         order = graph.dfsOrder()
+        self.assertTrue(isinstance(order, list))
+        self.assertEqual(len(graph.nodes()), len(order))
         walked = set()
         for source in order:
             for target in graph.edgeMap().get(source, []):
                 self.assertTrue((target in walked) or (graph.sccForNode(source) == graph.sccForNode(target)), '%s -> %s not satisfied, seen' % (source, target))
             walked.add(source)
+
+    def testDFSOrder2 (self):
+        graph = Graph()
+        graph.addEdge(2, 2)
+        graph.addEdge(2, 1)
+        order = graph.dfsOrder()
+        self.assertTrue(isinstance(order, list))
+        self.assertEqual(len(graph.nodes()), len(order))
 
 if '__main__' == __name__:
     unittest.main()

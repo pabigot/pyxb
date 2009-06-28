@@ -212,6 +212,8 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin):
 
         assert owner is not None
         that = copy.copy(self)
+        assert (self not in (ElementDeclaration, ComplexTypeDefinition, SimpleTypeDefinition)) or self._schema() is not None, '%s has no schema' % (self,)
+        #assert that._schema() is not None
         that.__cloneSource = self
         if self.__clones is None:
             self.__clones = set()
@@ -1256,6 +1258,7 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.na
 
     def __init__ (self, *args, **kw):
         super(ElementDeclaration, self).__init__(*args, **kw)
+        assert self._schema() is not None
 
     # CFD:ED CFD:ElementDeclaration
     @classmethod
@@ -1541,6 +1544,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         self.__derivationMethod = kw.get('derivation_method')
         self.__scopedElementDeclarations = { }
         self.__scopedAttributeDeclarations = { }
+        assert (self._schema() is not None) or not _PastAddBuiltInTypes
 
     def hasWildcardElement (self):
         """Return True iff this type includes a wildcard element in
@@ -2709,8 +2713,6 @@ class Particle (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin):
         """
         scope = kw['scope']
         assert _ScopedDeclaration_mixin.ScopeIsIndeterminate(scope) or isinstance(scope, ComplexTypeDefinition)
-        schema = kw['schema']
-        assert schema is not None
 
         kw.update({ 'min_occurs' : 1
                   , 'max_occurs' : 1
@@ -2745,7 +2747,8 @@ class Particle (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin):
             rv.__resolvableType = ModelGroup
         elif xsd.nodeIsNamed(node, 'element'):
             if rv.__refAttribute is None:
-                target_namespace = schema.targetNamespaceForNode(node, ElementDeclaration)
+                assert rv._schema() is not None
+                target_namespace = rv._schema().targetNamespaceForNode(node, ElementDeclaration)
                 incoming_tns = kw.get('target_namespace')
                 if incoming_tns is not None:
                     assert incoming_tns == target_namespace

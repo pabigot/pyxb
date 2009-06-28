@@ -190,10 +190,20 @@ class Graph:
 
     def addEdge (self, source, target):
         self.__edges.add( (source, target) )
-        self.__edgeMap.setdefault(source, []).append(target)
-        self.__reverseMap.setdefault(target, []).append(source)
+        self.__edgeMap.setdefault(source, set()).add(target)
+        if source != target:
+            self.__reverseMap.setdefault(target, set()).add(source)
         self.__nodes.add(source)
         self.__nodes.add(target)
+
+    __roots = None
+    def roots (self, reset=False):
+        if reset or (self.__roots is None):
+            self.__roots = set()
+            for n in self.__nodes:
+                if not (n in self.__reverseMap):
+                    self.__roots.add(n)
+        return self.__roots
 
     def root (self):
         if self.__root is None:
@@ -285,6 +295,8 @@ class Graph:
         if reset or (self.__dfsOrder is None):
             self.__dfsWalked = set()
             self.__dfsOrder = []
-            self.__dfsWalk(self.__root)
+            for root in self.roots(reset=reset):
+                self.__dfsWalk(root)
+            assert len(self.__dfsOrder) == len(self.__nodes), 'DFS walk did not cover all nodes (walk %d versus nodes %d)' % (len(self.__dfsOrder), len(self.__nodes))
         return self.__dfsOrder
         
