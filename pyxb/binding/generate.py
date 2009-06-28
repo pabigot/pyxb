@@ -126,44 +126,12 @@ class ReferenceWildcard (ReferenceLiteral):
 class ReferenceSchemaComponent (ReferenceLiteral):
     __component = None
 
-    __anonymousIndex = 0
-    @classmethod
-    def __NextAnonymousIndex (cls):
-        cls.__anonymousIndex += 1
-        return cls.__anonymousIndex
-
-    __ComponentTagMap = {
-        xs.structures.SimpleTypeDefinition: 'STD'
-        , xs.structures.ComplexTypeDefinition: 'CTD'
-        , xs.structures.ElementDeclaration: 'ED'
-        , xs.structures.Wildcard: 'WC'
-        }
-
     def __init__ (self, component, **kw):
         self.__component = component
-        btns = kw['binding_target_namespace']
-        bsm = kw.get('binding_schema')
-        tns = self.__component.targetNamespace()
-        is_in_binding = self.__component._picklesInNamespace(btns)
-        is_in_module = is_in_binding and ((not btns.__dict__.get('__schemaHaveModules')) or ((bsm is None) or (bsm == self.__component._schema())))
-
-        assert (not isinstance(self.__component, pyxb.namespace._Resolvable_mixin)) or self.__component.isResolved(), '%s not resolved' % (self.__component,)
-
-        name = self.__component.nameInBinding()
-        assert not(is_in_binding and (name is None)), 'Component %s is in binding but has no name' % (self.__component.expandedName(),)
-        if not is_in_module:
-            assert name is not None, 'name %s component %s' % (name, self.__component)
-            mp = None
-            if pyxb.namespace.XMLSchema == tns:
-                mp = 'pyxb.binding.datatypes'
-            elif not is_in_binding:
-                mp = tns.modulePath()
-                assert mp is not None
-            else:
-                mp = self.__component._schema().__dict__.get('__modulePath')
-            if mp is not None:
-                name = '%s.%s' % (mp, name)
-        self.setLiteral(name)
+        binding_module = kw['binding_module']
+        rv = binding_module.referenceSchemaComponent(component)
+        print '%s in %s is %s' % (component.expandedName(), binding_module, rv)
+        self.setLiteral(rv)
 
 class ReferenceNamespace (ReferenceLiteral):
     __namespace = None
@@ -235,8 +203,6 @@ class ReferenceEnumerationMember (ReferenceLiteral):
         # If no type definition was provided, use the value datatype
         # for the facet.
         kw.setdefault('type_definition', facet_instance.valueDatatype())
-
-        
 
         super(ReferenceEnumerationMember, self).__init__(**kw)
 
@@ -433,12 +399,16 @@ def GenerateFacets (outf, td, **kw):
         map_args = ','.join(facet_instances)
     outf.write("%s._InitializeFacetMap(%s)\n" % (pythonLiteral(td, **kw), map_args))
 
-def GenerateSTD (std, **kw):
-    generate_facets = kw.get('generate_facets', False)
-    outf = StringIO.StringIO()
+def GenerateSTD (std):
 
+    binding_module = _ModuleNaming_mixin.ComponentBindingModule(std)
+    outf = binding_module.bindingIO()
+    
     class_keywords = frozenset(basis.simpleTypeDefinition._ReservedSymbols)
     class_unique = set()
+
+    kw = { }
+    kw['binding_module'] = binding_module
     kw['class_keywords'] = class_keywords
     kw['class_unique'] = class_unique
 
@@ -458,7 +428,6 @@ def GenerateSTD (std, **kw):
 
     if xs.structures.SimpleTypeDefinition.VARIETY_absent == std.variety():
         assert False
-        return None
     elif xs.structures.SimpleTypeDefinition.VARIETY_atomic == std.variety():
         template = '''
 # Atomic SimpleTypeDefinition
@@ -497,6 +466,7 @@ class %{std} (pyxb.binding.basis.STD_union):
         template_map['description'] = 'No information'
     outf.write(templates.replaceInText(template, **template_map))
 
+    generate_facets = False
     if generate_facets:
         # If generating datatype_facets, throw away the class garbage
         outf = StringIO.StringIO()
@@ -508,8 +478,6 @@ class %{std} (pyxb.binding.basis.STD_union):
     if std.name() is not None:
         outf.write(templates.replaceInText("Namespace.addCategoryObject('typeBinding', %{localName}, %{std})\n",
                                            localName=pythonLiteral(std.name(), **kw), **template_map))
-    return outf.getvalue()
-
 def TypeSetCompatible (s1, s2):
     for ctd1 in s1:
         match = False
@@ -814,8 +782,6 @@ Namespace.addCategoryObject('elementBinding', %{class}.name().localName(), %{cla
 %{class}._setSubstitutionGroup(%{substitution_group})
 ''', **template_map))
 
-    return outf.getvalue()
-
 GeneratorMap = {
     xs.structures.SimpleTypeDefinition : GenerateSTD
   , xs.structures.ElementDeclaration : GenerateED
@@ -1044,6 +1010,7 @@ class BindingIO (object):
         self.__postscript = []
         self.__templateMap = kw.copy()
         self.__templateMap.update({ 'date' : str(datetime.datetime.now()),
+                                    'binding_module' : binding_module,
                                     'pyxbVersion' : pyxb.__version__ })
         self.__stringIO = StringIO.StringIO()
 
@@ -1051,6 +1018,9 @@ class BindingIO (object):
         tm = self.__templateMap.copy()
         tm.update(kw)
         return templates.replaceInText(template, **tm)
+
+    def write (self, template, **kw):
+        self.__stringIO.write(self.expand(template, **kw))
 
     def bindingModule (self):
         return self.__bindingModule
@@ -1076,6 +1046,16 @@ class _ModuleNaming_mixin (object):
         self.__componentNameMap = {}
         self.__uniqueInModule = set()
         self.__bindingIO = None
+        self.__importedSchema = set()
+        self.__importedNamespaces = set()
+
+    def _importSchema (self, schema):
+        # NB: Can be a schema or a SchemaGroupModule
+        self.__importedSchema.add(schema)
+
+    def _importNamespace (self, namespace_module):
+        # NB: Can be a namespace or a NamespaceModule
+        self.__importedNamespaces.add(namespace_module)
 
     def bindingIO (self):
         return self.__bindingIO
@@ -1084,8 +1064,8 @@ class _ModuleNaming_mixin (object):
         return self.__modulePath
     def _setModulePath (self, module_path):
         self.__modulePath = module_path
-        
-        self.__bindingIO = BindingIO(self, ** self._initialBindingTemplateMap())
+        kw = self._initialBindingTemplateMap()
+        self.__bindingIO = BindingIO(self, **kw)
     __modulePath = None
 
     def _initializeUniqueInModule (self, unique_in_module):
@@ -1102,6 +1082,28 @@ class _ModuleNaming_mixin (object):
     @classmethod
     def ComponentBindingModule (cls, component):
         return cls.__ComponentBindingModuleMap.get(component)
+
+    @classmethod
+    def _RecordNamespace (cls, module):
+        cls.__NamespaceModuleMap[module.namespace()] = module
+        return module
+    @classmethod
+    def ForNamespace (cls, namespace):
+        return cls.__NamespaceModuleMap.get(namespace)
+    __NamespaceModuleMap = { }
+
+    __SchemaModuleMap = { }
+    @classmethod
+    def _RecordSchemaGroup (cls, module):
+        for sch in module.schemaGroup():
+            cls.__SchemaModuleMap[sch] = module
+        return module
+    @classmethod
+    def ForSchema (cls, schema, fallback_to_namespace=False):
+        rv = cls.__SchemaModuleMap.get(schema, None)
+        if (rv is None) and fallback_to_namespace:
+            rv = cls.ForNamespace(schema.targetNamespace())
+        return rv
 
     def _bindComponent (self, component):
         kw = {}
@@ -1121,8 +1123,12 @@ class _ModuleNaming_mixin (object):
         self.__componentNameMap[component] = rv
         return rv
 
-    def nameInModule (self, component):
-        return self.__componentNameMap.get(component)
+    def nameInModule (self, component, qualified=False):
+        rv = self.__componentNameMap.get(component)
+        assert rv is not None
+        if qualified:
+            rv = '%s.%s' % (self.modulePath(), rv)
+        return rv
 
 class NamespaceModule (_ModuleNaming_mixin):
     """This class represents a Python module that holds all the
@@ -1142,25 +1148,20 @@ class NamespaceModule (_ModuleNaming_mixin):
 
     _UniqueInModule = set([ 'pyxb', 'sys', 'Namespace', 'CreateFromDOM' ])
 
-    __NamespaceModuleMap = { }
-    @classmethod
-    def ForNamespace (cls, namespace):
-        return cls.__NamespaceModuleMap.get(namespace)
-    
     def namespaceGroupHead (self):
         return self.__namespaceGroupHead
     __namespaceGroupHead = None
+    __namespaceGroup = None
 
     def namespaceGroupMulti (self):
-        return self.__namespaceGroupMulti
-    __namespaceGroupMulti = None
+        return 1 < len(self.__namespaceGroup)
 
     def __init__ (self, namespace, module_prefix, ns_scc):
         super(NamespaceModule, self).__init__(self)
         self.__namespace = namespace
-        self.__NamespaceModuleMap[self.__namespace] = self
+        self.__namespaceGroup = ns_scc
+        self._RecordNamespace(self)
         self.__namespaceGroupHead = self.ForNamespace(ns_scc[0])
-        self.__namespaceGroupMulti = (1 < len(ns_scc))
         self.__modulePrefix = module_prefix[:]
         self.__namespaceBindingNames = {}
         self.__components = []
@@ -1192,7 +1193,7 @@ class NamespaceModule (_ModuleNaming_mixin):
 
     def bindComponent (self, component, schema_group_module):
         ns_name = self._bindComponent(component)
-        print '%s NS %s' % (component.expandedName(), ns_name)
+        #print '%s NS %s' % (component.expandedName(), ns_name)
 
         binding_module = self
         if schema_group_module is not None:
@@ -1202,6 +1203,24 @@ class NamespaceModule (_ModuleNaming_mixin):
 
         component.setNameInBinding(binding_module.nameInModule(component))
         return _ModuleNaming_mixin.BindComponentInModule(component, binding_module)
+
+    def referenceSchemaComponent (self, component):
+        namespace = component.targetNamespace()
+        if component._schema() is not None:
+            component_module = _ModuleNaming_mixin.ForSchema(component._schema())
+            if component_module is not None:
+                self._importSchema(component_module)
+                return component_module.nameInModule(component, qualified=True)
+            namespace = component._schema().targetNamespace()
+        if namespace is None:
+            # Must be local
+            return self.nameInModule(component)
+        component_module = _ModuleNaming_mixin.ForNamespace(namespace)
+        assert component_module is not None
+        return component_module.nameInModule(component, self != component_module)
+
+    def __str__ (self):
+        return 'NM:%s' % (self.modulePath(),)
 
 class NamespaceGroupModule (_ModuleNaming_mixin):
     """This class represents a Python module that holds all the
@@ -1242,9 +1261,12 @@ class NamespaceGroupModule (_ModuleNaming_mixin):
 
     def bindComponent (self, component):
         ngm_name = self._bindComponent(component)
-        print '%s NGM %s' % (component.expandedName(), ngm_name)
+        #print '%s NGM %s' % (component.expandedName(), ngm_name)
         return self
             
+    def __str__ (self):
+        return 'NGM:%s' % (self.modulePath(),)
+
 class SchemaGroupModule (_ModuleNaming_mixin):
     """This class represents a Python module that holds all bindings
     associated with components defined in a set of schema.
@@ -1266,11 +1288,8 @@ class SchemaGroupModule (_ModuleNaming_mixin):
     def schemaGroupHead (self):
         return self.__schemaGroupHead
     __schemaGroupHead = None
-
-    __SchemaModuleMap = { }
-    @classmethod
-    def ForSchema (cls, schema):
-        return cls.__SchemaModuleMap.get(schema)
+    def schemaGroupMulti (self):
+        return (1 < len(self.__schemaGroup))
 
     _UniqueInModule = set([ 'pyxb', 'sys', 'Namespace' ])
     
@@ -1279,21 +1298,36 @@ class SchemaGroupModule (_ModuleNaming_mixin):
         self.__namespaceModule = namespace_module
         self.__schemaGroup = schema_group
         self.__schemaGroupHead = schema_group[0]
-        for sch in self.__schemaGroup:
-            self.__SchemaModuleMap[sch] = self
+        self._RecordSchemaGroup(self)
         assert isinstance(self.__schemaGroup, list)
         self._setModulePath(self.__namespaceModule.schemaGroupModulePath(self))
         self._initializeUniqueInModule(self._UniqueInModule)
 
     def _initialBindingTemplateMap (self):
         kw = { 'moduleType' : 'namespaceGroup'
-             , 'schemaGroupHead' : self.__schemaGroupHead.schemaLocation() }
+             , 'schemaLocation' : self.__schemaGroupHead.schemaLocation()
+             , 'schemaGroupMulti' : repr(self.schemaGroupMulti())
+             }
         return kw
 
     def bindComponent (self, component):
         sgm_name = self._bindComponent(component)
-        print '%s SGM %s' % (component.expandedName(), sgm_name)
+        #print '%s SGM %s' % (component.expandedName(), sgm_name)
         return self
+
+    def referenceSchemaComponent (self, component):
+        schema = component._schema()
+        if schema is not None:
+            component_module = _ModuleNaming_mixin.ForSchema(component._schema())
+            assert component_module is not None
+            return component_module.nameInModule(component, self == component_module)
+        # If it doesn't have a schema, it can't be in this namespace
+        namespace = component.targetNamespace()
+        assert namespace is not None
+        return '%s.%s' % (namespace.modulePath(), component.nameInBinding())
+
+    def __str__ (self):
+        return 'SGM:%s' % (self.modulePath(),)
 
 def AltGenerate(schema_location=None,
                 namespace=None,
@@ -1305,6 +1339,8 @@ def AltGenerate(schema_location=None,
     global PostscriptItems
     UniqueInBinding.clear()
     PostscriptItems = []
+
+    pyxb.namespace.XMLSchema.setModulePath('pyxb.binding.datatypes')
 
     if namespace is None:
         if schema_location is None:
@@ -1366,25 +1402,39 @@ def AltGenerate(schema_location=None,
         for sc in sc_scc:
             sc.__schemaGroupModule = sgm
 
-    type_defs = []
+    element_declarations = []
+    type_definitions = []
     for c in component_order:
         if isinstance(c, xs.structures.ElementDeclaration) and c._scopeIsGlobal():
             nsm = namespace_module_map[c.__bindingNamespace]
-            nsm.bindComponent(c, c._schema().__schemaGroupModule)
-            c.__bindingNamespace.__elementDeclarations.append(c)
+            nsm.bindComponent(c, SchemaGroupModule.ForSchema(c._schema()))
+            element_declarations.append(c)
         else:
-            type_defs.append(c)
+            type_definitions.append(c)
 
-    for td in type_defs:
+    simple_type_definitions = []
+    complex_type_definitions = []
+    for td in type_definitions:
         nsm = namespace_module_map.get(td.__bindingNamespace, None)
         assert nsm is not None, 'No namespace module for %s type %s scope %s namespace %s' % (td.expandedName(), type(td), td._scope(), td.__bindingNamespace)
         module_context = nsm.bindComponent(td, td._schema().__schemaGroupModule)
         if isinstance(td, xs.structures.SimpleTypeDefinition):
             _PrepareSimpleTypeDefinition(td, module_context)
+            simple_type_definitions.append(td)
         elif isinstance(td, xs.structures.ComplexTypeDefinition):
             _PrepareComplexTypeDefinition(td, module_context)
+            complex_type_definitions.append(td)
         else:
             assert False, 'Unexpected component type %s' % (type(td),)
+
+    print "\n\n\nStarting generation\n\n"
+
+    for std in simple_type_definitions:
+        GenerateSTD(std)
+    for ctd in complex_type_definitions:
+        GenerateCTD(std)
+    for ed in element_declarations:
+        GenerateED(std)
 
     assert False
 
@@ -1396,9 +1446,6 @@ def AltGenerate(schema_location=None,
 
         template_map = { }
         template_map['input'] = sns.schemaLocation()
-        template_map['date'] = str(datetime.datetime.now())
-        template_map['version'] = pyxb.__version__
-        template_map['targetNamespace'] = repr(sns.uri(),)
         if sns.isAbsentNamespace():
             template_map['NamespaceDefinition'] = 'pyxb.namespace.CreateAbsentNamespace()'
         else:
