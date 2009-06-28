@@ -138,19 +138,10 @@ class ReferenceNamespace (ReferenceLiteral):
 
     def __init__ (self, **kw):
         self.__namespace = kw['namespace']
-        btns = kw['binding_target_namespace']
-        super(ReferenceNamespace, self).__init__(**kw)
-        assert self.__namespace is not None
-        ns = None
-        if pyxb.namespace.XMLSchema == self.__namespace:
-            ns = 'pyxb.namespace.XMLSchema'
-        elif btns == self.__namespace:
-            ns = 'Namespace'
-        else:
-            mp = self.__namespace.modulePath()
-            assert mp is not None
-            ns = '%s.Namespace' % (mp,)
-        self.setLiteral(ns)
+        binding_module = kw['binding_module']
+        rv = binding_module.referenceNamespace(self.__namespace)
+        print '%s in %s is %s' % (self.__namespace, binding_module, rv)
+        self.setLiteral(rv)
 
 class ReferenceExpandedName (ReferenceLiteral):
     __expandedName = None
@@ -298,17 +289,17 @@ def GenerateModelGroupAll (ctd, mga, template_map, **kw):
         ( dfa_tag, dfa_lines ) = GenerateContentModel(ctd, dfa, **kw)
         lines.extend(dfa_lines)
         template_map['dfa_tag'] = dfa_tag
-        template_map['is_required'] = pythonLiteral(is_required, **kw)
+        template_map['is_required'] = binding_module.literal(is_required, **kw)
         lines2.append(templates.replaceInText('    %{content}.ModelGroupAllAlternative(%{ctd}.%{dfa_tag}, %{is_required}),', **template_map))
     lines.append(templates.replaceInText('%{mga_tag} = %{content}.ModelGroupAll(alternatives=[', **template_map))
     lines.extend(lines2)
     lines.append('])')
     return (mga_tag, lines)
 
-def GenerateContentModel (ctd, automaton, **kw):
+def GenerateContentModel (ctd, automaton, binding_module, **kw):
     cmi = None
     template_map = { }
-    template_map['ctd'] = pythonLiteral(ctd, **kw)
+    template_map['ctd'] = binding_module.literal(ctd, **kw)
     try:
         cmi = '_ContentModel_%d' % (ctd.__contentModelIndex,)
         ctd.__contentModelIndex += 1
@@ -323,8 +314,8 @@ def GenerateContentModel (ctd, automaton, **kw):
     for (state, transitions) in automaton.items():
         if automaton.end() == state:
             continue
-        template_map['state'] = pythonLiteral(state)
-        template_map['is_final'] = pythonLiteral(None in transitions)
+        template_map['state'] = binding_module.literal(state)
+        template_map['is_final'] = binding_module.literal(None in transitions)
 
         lines2.append(templates.replaceInText('%{state_comma} %{state} : %{content}.ContentModelState(state=%{state}, is_final=%{is_final}, transitions=[', **template_map))
         template_map['state_comma'] = ','
@@ -333,10 +324,10 @@ def GenerateContentModel (ctd, automaton, **kw):
             if key is None:
                 continue
             assert 1 == len(destinations)
-            template_map['next_state'] = pythonLiteral(list(destinations)[0], **kw)
+            template_map['next_state'] = binding_module.literal(list(destinations)[0], **kw)
             if isinstance(key, xs.structures.Wildcard):
                 template_map['kw_key'] = 'term'
-                template_map['kw_val'] = pythonLiteral(key, **kw)
+                template_map['kw_val'] = binding_module.literal(key, **kw)
             elif isinstance(key, nfa.AllWalker):
                 (mga_tag, mga_defns) = GenerateModelGroupAll(ctd, key, template_map.copy(), **kw)
                 template_map['kw_key'] = 'term'
@@ -345,7 +336,7 @@ def GenerateContentModel (ctd, automaton, **kw):
             else:
                 assert isinstance(key, xs.structures.ElementDeclaration)
                 template_map['kw_key'] = 'element_use'
-                template_map['kw_val'] = templates.replaceInText('%{ctd}._UseForTag(%{field_tag})', field_tag=pythonLiteral(key.expandedName(), **kw), **template_map)
+                template_map['kw_val'] = templates.replaceInText('%{ctd}._UseForTag(%{field_tag})', field_tag=binding_module.literal(key.expandedName(), **kw), **template_map)
             lines3.append(templates.replaceInText('%{content}.ContentModelTransition(next_state=%{next_state}, %{kw_key}=%{kw_val}),',
                           **template_map))
         lines2.extend([ '    '+_l for _l in lines3 ])
@@ -382,22 +373,22 @@ def GenerateFacets (outf, td, **kw):
             if isinstance(fi, facets.CF_enumeration):
                 argset['enum_prefix'] = fi.enumPrefix()
         facet_var = ReferenceFacetMember(type_definition=td, facet_class=fc, **kw)
-        outf.write("%s = %s(%s)\n" % pythonLiteral( (facet_var, fc, argset ), **kw))
-        facet_instances.append(pythonLiteral(facet_var, **kw))
+        outf.write("%s = %s(%s)\n" % binding_module.literal( (facet_var, fc, argset ), **kw))
+        facet_instances.append(binding_module.literal(facet_var, **kw))
         if (fi is not None) and is_collection:
             for i in fi.items():
                 if isinstance(i, facets._EnumerationElement):
                     enum_member = ReferenceEnumerationMember(type_definition=td, facet_instance=fi, enumeration_element=i, **kw)
-                    outf.write("%s = %s.addEnumeration(unicode_value=%s)\n" % pythonLiteral( (enum_member, facet_var, i.unicodeValue() ), **kw))
+                    outf.write("%s = %s.addEnumeration(unicode_value=%s)\n" % binding_module.literal( (enum_member, facet_var, i.unicodeValue() ), **kw))
                     if fi.enumPrefix() is not None:
-                        outf.write("%s_%s = %s\n" % (fi.enumPrefix(), i.tag(), pythonLiteral(enum_member, **kw)))
+                        outf.write("%s_%s = %s\n" % (fi.enumPrefix(), i.tag(), binding_module.literal(enum_member, **kw)))
                 if isinstance(i, facets._PatternElement):
-                    outf.write("%s.addPattern(pattern=%s)\n" % pythonLiteral( (facet_var, i.pattern ), **kw))
+                    outf.write("%s.addPattern(pattern=%s)\n" % binding_module.literal( (facet_var, i.pattern ), **kw))
     if 2 <= len(facet_instances):
         map_args = ",\n   ".join(facet_instances)
     else:
         map_args = ','.join(facet_instances)
-    outf.write("%s._InitializeFacetMap(%s)\n" % (pythonLiteral(td, **kw), map_args))
+    outf.write("%s._InitializeFacetMap(%s)\n" % (binding_module.literal(td, **kw), map_args))
 
 def GenerateSTD (std):
 
@@ -412,17 +403,17 @@ def GenerateSTD (std):
     kw['class_keywords'] = class_keywords
     kw['class_unique'] = class_unique
 
-    parent_classes = [ pythonLiteral(std.baseTypeDefinition(), **kw) ]
+    parent_classes = [ binding_module.literal(std.baseTypeDefinition(), **kw) ]
     enum_facet = std.facets().get(facets.CF_enumeration, None)
     if (enum_facet is not None) and (enum_facet.ownerTypeDefinition() == std):
         parent_classes.append('pyxb.binding.basis.enumeration_mixin')
         
     template_map = { }
-    template_map['std'] = pythonLiteral(std, **kw)
+    template_map['std'] = binding_module.literal(std, **kw)
     template_map['superclasses'] = ''
     if 0 < len(parent_classes):
         template_map['superclasses'] = ', '.join(parent_classes)
-    template_map['expanded_name'] = pythonLiteral(std.expandedName(), **kw)
+    template_map['expanded_name'] = binding_module.literal(std.expandedName(), **kw)
 
     # @todo: Extensions of LIST will be wrong in below
 
@@ -447,7 +438,7 @@ class %{std} (pyxb.binding.basis.STD_list):
     _ExpandedName = %{expanded_name}
     _ItemType = %{itemtype}
 '''
-        template_map['itemtype'] = pythonLiteral(std.itemTypeDefinition(), **kw)
+        template_map['itemtype'] = binding_module.literal(std.itemTypeDefinition(), **kw)
         template_map['description'] = templates.replaceInText('Simple type that is a list of %{itemtype}', **template_map)
     elif xs.structures.SimpleTypeDefinition.VARIETY_union == std.variety():
         template = '''
@@ -459,7 +450,7 @@ class %{std} (pyxb.binding.basis.STD_union):
     _ExpandedName = %{expanded_name}
     _MemberTypes = ( %{membertypes}, )
 '''
-        template_map['membertypes'] = ", ".join( [ pythonLiteral(_mt, **kw) for _mt in std.memberTypeDefinitions() ])
+        template_map['membertypes'] = ", ".join( [ binding_module.literal(_mt, **kw) for _mt in std.memberTypeDefinitions() ])
         template_map['description'] = templates.replaceInText('Simple type that is a union of %{membertypes}', **template_map)
 
     if 0 == len(template_map['description']):
@@ -477,7 +468,7 @@ class %{std} (pyxb.binding.basis.STD_union):
 
     if std.name() is not None:
         outf.write(templates.replaceInText("Namespace.addCategoryObject('typeBinding', %{localName}, %{std})\n",
-                                           localName=pythonLiteral(std.name(), **kw), **template_map))
+                                           localName=binding_module.literal(std.name(), **kw), **template_map))
 def TypeSetCompatible (s1, s2):
     for ctd1 in s1:
         match = False
@@ -498,28 +489,28 @@ def expandedNameToUseMap (expanded_name, container_name, class_unique, class_key
     use_map['use'] = utility.MakeUnique('__' + unique_name.strip('_'), class_unique)
     use_map['key'] = utility.PrepareIdentifier('%s_%s' % (container_name, expanded_name), class_unique, class_keywords, private=True)
     use_map['name'] = str(expanded_name)
-    use_map['name_expr'] = pythonLiteral(expanded_name, **kw)
+    use_map['name_expr'] = binding_module.literal(expanded_name, **kw)
     return use_map
 
-def elementDeclarationMap (ed, **kw):
+def elementDeclarationMap (ed, binding_module, **kw):
     template_map = { }
-    template_map['class'] = pythonLiteral(ed, **kw)
-    template_map['localName'] = pythonLiteral(ed.name(), **kw)
+    template_map['class'] = binding_module.literal(ed, **kw)
+    template_map['localName'] = binding_module.literal(ed.name(), **kw)
     template_map['name'] = str(ed.expandedName())
-    template_map['name_expr'] = pythonLiteral(ed.expandedName(), **kw)
+    template_map['name_expr'] = binding_module.literal(ed.expandedName(), **kw)
     if (ed.SCOPE_global == ed.scope()):
         template_map['map_update'] = templates.replaceInText("Namespace.addCategoryObject('elementBinding', %{localName}, %{class})", **template_map)
     else:
-        template_map['scope'] = pythonLiteral(ed.scope(), **kw)
+        template_map['scope'] = binding_module.literal(ed.scope(), **kw)
     if ed.abstract():
-        template_map['abstract'] = pythonLiteral(ed.abstract(), **kw)
+        template_map['abstract'] = binding_module.literal(ed.abstract(), **kw)
     if ed.nillable():
-        template_map['nillable'] = pythonLiteral(ed.nillable(), **kw)
+        template_map['nillable'] = binding_module.literal(ed.nillable(), **kw)
     if ed.default():
-        template_map['defaultValue'] = pythonLiteral(ed.default(), **kw)
-    template_map['typeDefinition'] = pythonLiteral(ed.typeDefinition(), **kw)
+        template_map['defaultValue'] = binding_module.literal(ed.default(), **kw)
+    template_map['typeDefinition'] = binding_module.literal(ed.typeDefinition(), **kw)
     if ed.substitutionGroupAffiliation():
-        template_map['substitution_group'] = pythonLiteral(ed.substitutionGroupAffiliation(), **kw)
+        template_map['substitution_group'] = binding_module.literal(ed.substitutionGroupAffiliation(), **kw)
     aux_init = []
     for k in ( 'nillable', 'abstract', 'scope' ):
         if k in template_map:
@@ -531,16 +522,19 @@ def elementDeclarationMap (ed, **kw):
     return template_map
 
 def GenerateCTD (ctd, **kw):
+    binding_module = _ModuleNaming_mixin.ComponentBindingModule(ctd)
+    outf = binding_module.bindingIO()
+
     content_type = None
     prolog_template = None
     template_map = { }
-    template_map['ctd'] = pythonLiteral(ctd, **kw)
+    template_map['ctd'] = binding_module.literal(ctd, **kw)
     base_type = ctd.baseTypeDefinition()
     content_type_tag = ctd._contentTypeTag()
 
-    template_map['base_type'] = pythonLiteral(base_type, **kw)
-    template_map['expanded_name'] = pythonLiteral(ctd.expandedName(), **kw)
-    template_map['simple_base_type'] = pythonLiteral(None, **kw)
+    template_map['base_type'] = binding_module.literal(base_type, **kw)
+    template_map['expanded_name'] = binding_module.literal(ctd.expandedName(), **kw)
+    template_map['simple_base_type'] = binding_module.literal(None, **kw)
     template_map['contentTypeTag'] = content_type_tag
     template_map['is_abstract'] = repr(not not ctd.abstract())
 
@@ -548,7 +542,7 @@ def GenerateCTD (ctd, **kw):
     content_basis = None
     if (ctd.CT_SIMPLE == content_type_tag):
         content_basis = ctd.contentType()[1]
-        template_map['simple_base_type'] = pythonLiteral(content_basis, **kw)
+        template_map['simple_base_type'] = binding_module.literal(content_basis, **kw)
     elif (ctd.CT_MIXED == content_type_tag):
         content_basis = ctd.contentType()[1]
         need_content = True
@@ -570,7 +564,7 @@ class %{ctd} (%{superclass}):
     # have their base type as their Python superclass, so pre-existing
     # elements and attributes can be re-used.
     inherits_from_base = True
-    template_map['superclass'] = pythonLiteral(base_type, **kw)
+    template_map['superclass'] = binding_module.literal(base_type, **kw)
     if ctd._isHierarchyRoot():
         inherits_from_base = False
         template_map['superclass'] = 'pyxb.binding.basis.complexTypeDefinition'
@@ -605,7 +599,7 @@ class %{ctd} (%{superclass}):
             # @todo Detect and account for plurality change between this and base
             if ed.scope() == ctd:
                 ef_map = ed.__useMap
-                ef_map.update(elementDeclarationMap(ed, **kw))
+                ef_map.update(elementDeclarationMap(ed, binding_module, **kw))
                 aux_init = []
                 ef_map['is_plural'] = repr(is_plural)
                 element_uses.append(templates.replaceInText('%{use}.name() : %{use}', **ef_map))
@@ -645,7 +639,7 @@ class %{ctd} (%{superclass}):
 
         fa = nfa.Thompson(content_basis).nfa()
         fa = fa.buildDFA()
-        (cmi, cmi_defn) = GenerateContentModel(ctd=ctd, automaton=fa, **kw)
+        (cmi, cmi_defn) = GenerateContentModel(ctd=ctd, automaton=fa, binding_module=binding_module, **kw)
         PostscriptItems.append("\n".join(cmi_defn))
         PostscriptItems.append("\n")
 
@@ -672,7 +666,7 @@ class %{ctd} (%{superclass}):
             assert isinstance(au_map, dict)
 
             assert ad.typeDefinition() is not None
-            au_map['attr_type'] = pythonLiteral(ad.typeDefinition(), **kw)
+            au_map['attr_type'] = binding_module.literal(ad.typeDefinition(), **kw)
                             
             vc_source = ad
             if au.valueConstraint() is not None:
@@ -680,9 +674,9 @@ class %{ctd} (%{superclass}):
             aux_init = []
             if vc_source.fixed() is not None:
                 aux_init.append('fixed=True')
-                aux_init.append('unicode_default=%s' % (pythonLiteral(vc_source.fixed(), **kw),))
+                aux_init.append('unicode_default=%s' % (binding_module.literal(vc_source.fixed(), **kw),))
             elif vc_source.default() is not None:
-                aux_init.append('unicode_default=%s' % (pythonLiteral(vc_source.default(), **kw),))
+                aux_init.append('unicode_default=%s' % (binding_module.literal(vc_source.default(), **kw),))
             if au.required():
                 aux_init.append('required=True')
             if au.prohibited():
@@ -724,7 +718,7 @@ class %{ctd} (%{superclass}):
 
 
     if ctd.attributeWildcard() is not None:
-        definitions.append('_AttributeWildcard = %s' % (pythonLiteral(ctd.attributeWildcard(), **kw),))
+        definitions.append('_AttributeWildcard = %s' % (binding_module.literal(ctd.attributeWildcard(), **kw),))
     if ctd.hasWildcardElement():
         definitions.append('_HasWildcardElement = True')
     template_map['attribute_uses'] = ",\n        ".join(attribute_uses)
@@ -751,7 +745,7 @@ class %{ctd} (%{superclass}):
     template_map['registration'] = ''
     if ctd.name() is not None:
         template_map['registration'] = templates.replaceInText("Namespace.addCategoryObject('typeBinding', %{localName}, %{ctd})",
-                                                               localName=pythonLiteral(ctd.name(), **kw), **template_map)
+                                                               localName=binding_module.literal(ctd.name(), **kw), **template_map)
     
     template = ''.join([prolog_template,
                "    ", "\n    ".join(definitions), "\n",
@@ -760,16 +754,17 @@ class %{ctd} (%{superclass}):
 
 '''])
 
-    return templates.replaceInText(template, **template_map)
+    outf.write(template, **template_map)
 
 def GenerateED (ed, **kw):
     # Unscoped declarations should never be referenced in the binding.
-    if not ed._scopeIsGlobal():
-        return ''
+    assert ed._scopeIsGlobal()
 
-    outf = StringIO.StringIO()
-    template_map = elementDeclarationMap(ed, **kw)
-    template_map.setdefault('scope', pythonLiteral(None, **kw))
+    binding_module = _ModuleNaming_mixin.ComponentBindingModule(ed)
+    outf = binding_module.bindingIO()
+
+    template_map = elementDeclarationMap(ed, binding_module, **kw)
+    template_map.setdefault('scope', binding_module.literal(None, **kw))
     template_map.setdefault('map_update', '')
 
     outf.write(templates.replaceInText('''
@@ -905,24 +900,24 @@ def _PrepareComplexTypeDefinition (ctd, module_context):
     content_type_tag = ctd._contentTypeTag()
     if (ctd.CT_SIMPLE == content_type_tag):
         content_basis = ctd.contentType()[1]
-        #template_map['simple_base_type'] = pythonLiteral(content_basis, **kw)
+        #template_map['simple_base_type'] = binding_module.literal(content_basis, **kw)
     elif (ctd.CT_MIXED == content_type_tag):
         content_basis = ctd.contentType()[1]
     elif (ctd.CT_ELEMENT_ONLY == content_type_tag):
         content_basis = ctd.contentType()[1]
-    kw = { 'binding_target_namespace' : ctd.__bindingNamespace
+    kw = { 'binding_module' : module_context
          , 'binding_schema' : ctd._schema() }
     if isinstance(content_basis, xs.structures.Particle):
         plurality_map = content_basis.pluralityData().nameBasedPlurality()
     else:
         plurality_map = {}
     for cd in ctd.localScopedDeclarations():
-        use_map = _SetNameWithAccessors(cd, ctd, plurality_map.get(cd.expandedName(), (False, None))[0], kw)
+        use_map = _SetNameWithAccessors(cd, ctd, plurality_map.get(cd.expandedName(), (False, None))[0], module_context, kw)
         cd.__useMap = use_map
         #print '  %s %s uses %s stored in %s' % (cd.__class__.__name__, cd.expandedName(), use_map['id'], use_map['key'])
 
 
-def _SetNameWithAccessors (component, container, is_plural, kw):
+def _SetNameWithAccessors (component, container, is_plural, binding_module, kw):
     use_map = { }
     class_unique = container.__uniqueInBindingClass
     assert isinstance(component, xs.structures._ScopedDeclaration_mixin)
@@ -937,7 +932,7 @@ def _SetNameWithAccessors (component, container, is_plural, kw):
     key_name = '%s_%s_%s' % (str(container.__bindingNamespace), container.nameInBinding(), component.expandedName())
     use_map['key'] = utility.PrepareIdentifier(key_name, class_unique, private=True)
     use_map['name'] = str(component.expandedName())
-    use_map['name_expr'] = pythonLiteral(component.expandedName(), **kw)
+    use_map['name_expr'] = binding_module.literal(component.expandedName(), **kw)
     if isinstance(component, xs.structures.ElementDeclaration) and is_plural:
         use_map['appender'] = utility.PrepareIdentifier('add' + unique_name[0].upper() + unique_name[1:], class_unique)
     return use_map
@@ -1020,7 +1015,8 @@ class BindingIO (object):
         return templates.replaceInText(template, **tm)
 
     def write (self, template, **kw):
-        self.__stringIO.write(self.expand(template, **kw))
+        txt = self.expand(template, **kw)
+        self.__stringIO.write(txt)
 
     def bindingModule (self):
         return self.__bindingModule
@@ -1030,6 +1026,16 @@ class BindingIO (object):
         return self.__prolog
     def postscript (self):
         return self.__postscript
+
+    def literal (self, *args, **kw):
+        kw.update(self.__templateMap)
+        return pythonLiteral(*args, **kw)
+
+    def contents (self):
+        rv = self.__prolog
+        rv.append(self.__stringIO.getvalue())
+        rv.extend(self.__postscript)
+        return ''.join(rv)
 
 class _ModuleNaming_mixin (object):
     __anonSTDIndex = None
@@ -1060,11 +1066,56 @@ class _ModuleNaming_mixin (object):
     def bindingIO (self):
         return self.__bindingIO
 
+    def moduleContents (self):
+        aux_imports = []
+        print 'imported namespaces: %s' % (self.__importedNamespaces,)
+        for ns in self.__importedNamespaces:
+            if isinstance(ns, NamespaceModule):
+                ns = ns.namespace()
+            aux_imports.append('import %s' % (ns.modulePath(),))
+        schema_set = set()
+        for sc in self.__importedSchema:
+            if not isinstance(sc, SchemaGroupModule):
+                sc = self.ForSchema(sc)
+            assert sc is not None
+            schema_set.add(sc)
+        for sgm in schema_set:
+            aux_imports.append('import %s' % (sgm.modulePath(),))
+        self.__bindingIO.prolog().append(self.__bindingIO.expand('''# PyWXSB bindings for %{input}
+# Generated %{date} by PyWXSB version %{pyxbVersion}
+import pyxb.binding
+import pyxb.exceptions_
+import pyxb.utils.domutils
+import sys
+
+# Import bindings for namespaces imported into schema
+%{aux_imports}
+
+# Make sure there's a registered Namespace instance, and that it knows
+# about this module.
+Namespace = %{NamespaceDefinition}
+Namespace._setModule(sys.modules[__name__])
+Namespace.configureCategories(['typeBinding', 'elementBinding'])
+
+def CreateFromDocument (xml_text):
+    """Parse the given XML and use the document element to create a Python instance."""
+    dom = pyxb.utils.domutils.StringToDOM(xml_text)
+    return CreateFromDOM(dom.documentElement)
+
+def CreateFromDOM (node):
+    """Create a Python instance from the given DOM node.
+    The node tag must correspond to an element declaration in this module."""
+    return pyxb.binding.basis.element.AnyCreateFromDOM(node, Namespace)
+''', aux_imports="\n".join(aux_imports)))
+
+        return self.__bindingIO.contents()
+
     def modulePath (self):
         return self.__modulePath
     def _setModulePath (self, module_path):
         self.__modulePath = module_path
         kw = self._initialBindingTemplateMap()
+        print kw
         self.__bindingIO = BindingIO(self, **kw)
     __modulePath = None
 
@@ -1125,10 +1176,14 @@ class _ModuleNaming_mixin (object):
 
     def nameInModule (self, component, qualified=False):
         rv = self.__componentNameMap.get(component)
-        assert rv is not None
+        if rv is None:
+            rv = component.nameInBinding()
         if qualified:
             rv = '%s.%s' % (self.modulePath(), rv)
         return rv
+
+    def literal (self, *args, **kw):
+        return self.__bindingIO.literal(*args, **kw)
 
 class NamespaceModule (_ModuleNaming_mixin):
     """This class represents a Python module that holds all the
@@ -1170,12 +1225,18 @@ class NamespaceModule (_ModuleNaming_mixin):
 
     def _initialBindingTemplateMap (self):
         kw = { 'moduleType' : 'namespace'
+             , 'targetNamespace' : repr(self.__namespace.uri())
              , 'namespaceURI' : self.__namespace.uri() }
+        if self.__namespace.isAbsentNamespace():
+            kw['NamespaceDefinition'] = 'pyxb.namespace.CreateAbsentNamespace()'
+        else:
+            kw['NamespaceDefinition'] = templates.replaceInText('pyxb.namespace.NamespaceForURI(%{targetNamespace}, create_if_missing=True)', **kw)
         return kw
 
     def setBaseModule (self, base_module):
-        assert base_module is not None
-        self._setModulePath('.'.join(self.__modulePrefix + [ base_module ]))
+        if base_module is not None:
+            base_module = '.'.join(self.__modulePrefix + [ base_module ])
+        self._setModulePath(base_module)
         self.__namespace.setModulePath(self.modulePath())
 
     def setSchemaGroupPrefix (self, schema_group_prefix):
@@ -1215,9 +1276,22 @@ class NamespaceModule (_ModuleNaming_mixin):
         if namespace is None:
             # Must be local
             return self.nameInModule(component)
+        if pyxb.namespace.XMLSchema == namespace:
+            return '%s.%s' % (namespace.modulePath(), component.name())
         component_module = _ModuleNaming_mixin.ForNamespace(namespace)
         assert component_module is not None
         return component_module.nameInModule(component, self != component_module)
+
+    def referenceNamespace (self, namespace):
+        if pyxb.namespace.XMLSchema == namespace:
+            return 'pyxb.namespace.XMLSchema'
+        if self.__namespace == namespace:
+            return 'Namespace'
+        namespace_module = self.ForNamespace(namespace)
+        if namespace_module is None:
+            return 'pyxb.namespace.NamespaceForURI(%s)' % (repr(namespace.uri()),)
+        assert not namespace_module.namespaceGroupModule()
+        return '%s.Namespace' % (namespace_module.modulePath(),)
 
     def __str__ (self):
         return 'NM:%s' % (self.modulePath(),)
@@ -1326,12 +1400,23 @@ class SchemaGroupModule (_ModuleNaming_mixin):
         assert namespace is not None
         return '%s.%s' % (namespace.modulePath(), component.nameInBinding())
 
+    def referenceNamespace (self, namespace):
+        if pyxb.namespace.XMLSchema == namespace:
+            return 'pyxb.namespace.XMLSchema'
+        if self.__namespace == namespace:
+            return 'Namespace'
+        namespace_module = self.ForNamespace(namespace)
+        if namespace_module is None:
+            return 'pyxb.namespace.NamespaceForURI(%s)' % (repr(namespace.uri()),)
+        assert not namespace_module.namespaceGroupModule()
+        return '%s.Namespace' % (namespace_module.modulePath(),)
+
     def __str__ (self):
         return 'SGM:%s' % (self.modulePath(),)
 
-def AltGenerate(schema_location=None,
-                namespace=None,
-                module_path_prefix=''):
+def GeneratePython(schema_location=None,
+                   namespace=None,
+                   module_path_prefix=''):
 
     binding_module_prefix = ['binding']
 
@@ -1381,8 +1466,11 @@ def AltGenerate(schema_location=None,
             ns.__namespaceModule = nsm
             assert ns == nsm.namespace()
             if not ns.isBuiltinNamespace():
-                assert nsm.namespace().prefix() is not None, 'No prefix for %s' % (ns,)
-                nsm.setBaseModule(utility.MakeUnique(nsm.namespace().prefix(), unique_in_bindings))
+                if nsm.namespace().prefix() is not None:
+                    assert nsm.namespace().prefix() is not None, 'No prefix for %s' % (ns,)
+                    nsm.setBaseModule(utility.MakeUnique(nsm.namespace().prefix(), unique_in_bindings))
+                else:
+                    nsm.setBaseModule(None)
                 print '%s stores in %s' % (ns, nsm.modulePath())
             namespace_modules.append(nsm)
 
@@ -1407,6 +1495,7 @@ def AltGenerate(schema_location=None,
     for c in component_order:
         if isinstance(c, xs.structures.ElementDeclaration) and c._scopeIsGlobal():
             nsm = namespace_module_map[c.__bindingNamespace]
+            print 'binding %s' % (c.expandedName(),)
             nsm.bindComponent(c, SchemaGroupModule.ForSchema(c._schema()))
             element_declarations.append(c)
         else:
@@ -1432,10 +1521,11 @@ def AltGenerate(schema_location=None,
     for std in simple_type_definitions:
         GenerateSTD(std)
     for ctd in complex_type_definitions:
-        GenerateCTD(std)
+        GenerateCTD(ctd)
     for ed in element_declarations:
-        GenerateED(std)
+        GenerateED(ed)
 
+    return namespace_module_map[namespace].moduleContents()
     assert False
 
     for sns in namespace.siblingNamespaces():
@@ -1579,14 +1669,3 @@ def _GenerateFacets ():
             GenerateFacets(outf, td, **generator_kw)
     return outf.getvalue()
 '''
-
-
-def GeneratePython (**kw):
-    """
-    @keyword namespace: The namespace for which bindings should be generated
-    @keyword schema_location: If namespace is C{None}, the location where a schema defining the namespace can be found
-    @keyword generate_facets: Utility generating only the facet definitions for the XMLSchema namespace
-    """
-
-    ns = AltGenerate(**kw)
-    return ns.__bindingSource
