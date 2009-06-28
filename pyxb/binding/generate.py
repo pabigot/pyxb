@@ -159,12 +159,8 @@ class ReferenceSchemaComponent (ReferenceLiteral):
             elif not is_in_binding:
                 mp = tns.modulePath()
                 assert mp is not None
-            else: # if self.__component._schema() is not None:
-                try:
-                    mp = self.__component._schema().__dict__.get('__modulePath')
-                    print 'Component %s in binding gets module path %s' % (self.__component.expandedName(), mp)
-                except AttributeError, e:
-                    print 'Component %s not in module, but no module path found; bsm %s, component schema %s' % (self.__component.expandedName(), bsm.schemaLocation(), self.__component._schema().schemaLocation())
+            else:
+                mp = self.__component._schema().__dict__.get('__modulePath')
             if mp is not None:
                 name = '%s.%s' % (mp, name)
         self.setLiteral(name)
@@ -652,7 +648,6 @@ class %{ctd} (%{superclass}):
                 ed.__elementFields = ef_map
                 ef_map['element_binding'] = utility.PrepareIdentifier('%s_elt' % (ef_map['id'],), class_unique, class_keywords, private=True)
             ef_map = ed.__elementFields
-
             if ed.scope() != ctd:
                 definitions.append(templates.replaceInText('''
     # Element %{id} inherited from %{decl_type_en}''', decl_type_en=str(ed.scope().expandedName()), **ef_map))
@@ -730,11 +725,7 @@ class %{ctd} (%{superclass}):
                 aux_init.insert(0, '')
                 au_map['aux_init'] = ', '.join(aux_init)
             ad.__attributeFields = au_map
-        try:
-            au_map = ad.__attributeFields
-        except AttributeError, e:
-            print 'ad %s in %s: %s' % (ad.expandedName(), ctd.expandedName(), e)
-            raise
+        au_map = ad.__attributeFields
         if au.prohibited():
             attribute_uses.append(templates.replaceInText('%{name_expr} : None', **au_map))
             definitions.append(templates.replaceInText('''
@@ -930,16 +921,9 @@ def _PrepareNamespaceForGeneration (sns, module_path_prefix, all_std, all_ctd, a
             schema.__moduleLeaf = None
 
     scc_list = schema_graph.scc()
-    assert 0 == len(scc_list), '''Look, sunshine, I'm willing to put up with dependency cycles in namespaces.
-Seems ugly, but technically it's legal.
 
-I'm not willing to put up with dependency cycles among schema.
-
-Not until somebody pays me.  (http://www.rhapsody.com/goto?rcid=tra.9575689)
-'''
-
-    if 1 < len(schemas):
-        print '*** %s requires multiple schemas: %s' % (sns.uri(), "  \n".join([ _s.__moduleLeaf for _s in schema_graph.dfsOrder() if (_s.targetNamespace() == sns)]))
+    #if 1 < len(schemas):
+    #    print '*** %s requires multiple schemas: %s' % (sns.uri(), "  \n".join([ _s.__moduleLeaf for _s in schema_graph.dfsOrder() if (_s.targetNamespace() == sns)]))
 
     sns.__uniqueInModule = UniqueInBinding.copy()
     sns.__simpleTypeDefinitions = []
@@ -1063,25 +1047,22 @@ def AltGenerate(schema_location=None,
         component_graph.addNode(c)
         deps = c.dependentComponents()
         for target in deps:
+            # This is failing to detect element declarations which are references to global declarations that are in the all_components set
             if target in all_components:
                 component_graph.addEdge(c, target)
                 assert target._schema() is not None
-                print '%s includes %s due to %s and %s' % (c._schema().schemaLocation(), target._schema().schemaLocation(), c.expandedName(), target.expandedName())
                 schema_graph.addEdge(c._schema(), target._schema())
         
     scc_list = schema_graph.scc()
-    assert 0 == len(scc_list), '''Look, sunshine, I'm willing to put up with dependency cycles in namespaces.
-Seems ugly, but technically it's legal.
-
-I'm not willing to put up with dependency cycles among schema.
-
-Not until somebody pays me.  (http://www.rhapsody.com/goto?rcid=tra.9575689)
-'''
+    if 0 != len(scc_list):
+        print 'Schema graph has %d SCCs' % (len(scc_list),)
+        for scc in scc_list:
+            print " ".join([ '%s.%s' % (_s.targetNamespace().prefix(), _s.__moduleLeaf) for _s in scc ])
+        assert False
 
     for schema in schema_graph.dfsOrder():
         sns = schema.targetNamespace()
-        schema.__modulePath = '%s.%s' % (sns.modulePath(), schema.__moduleLeaf)
-        print 'Assign schema %s module path %s' % (schema.schemaLocation(), schema.__modulePath,)
+        schema.__modulePath = '%s_%s.%s' % (module_path_prefix, sns.prefix(), schema.__moduleLeaf)
         sns.__schemaOrder.append(schema)
         sns.__schemaHaveModules = (1 < len(sns.__schemaOrder)) and (not sns.isAbsentNamespace())
 
@@ -1140,14 +1121,14 @@ Not until somebody pays me.  (http://www.rhapsody.com/goto?rcid=tra.9575689)
             print 'WARNING: Using multiple schema for output for %s' % (sns,)
             
             module_imports = []
+            ns_module_imports = []
             for schema in sns.__schemaOrder:
-                module_imports.append('import %s # schema module' % (schema.__modulePath,))
+                module_imports.append('from %s import * # schema module' % (schema.__modulePath,))
                 schema.__outputFile = StringIO.StringIO()
                 imports = []
                 for dep_schema in schema_graph.edgeMap().get(schema, []):
                     if dep_schema == schema:
                         continue
-                    print 'Schema %s included %s' % (schema.schemaLocation(), dep_schema.schemaLocation())
                     imports.append('import %s # schema' % (dep_schema.__modulePath,))
                 imports.extend(import_namespaces)
                 template_map['aux_imports'] = "\n".join(imports)
@@ -1219,7 +1200,7 @@ def CreateFromDOM (node):
                 outf = ed._schema().__outputFile
             else:
                 outf = ns_outf
-            outf.write(GenerateED(ed, **generator_kw))
+            outf.write(GenerateED(ed, binding_schema=ed._schema(), **generator_kw))
 
         ns_outf.write(''.join(PostscriptItems))
         sns.__bindingSource = ns_outf.getvalue()

@@ -166,13 +166,12 @@ try:
                     print e
                     pass
                 (binding_dir, base_name) = os.path.split(use_binding_file)
-                binding_dir = os.path.join(binding_dir, base_name.split('.')[0])
+                binding_dir = os.path.join(binding_dir, '_%s' % base_name.split('.')[0])
                 try:
                     os.mkdir(binding_dir)
                 except Exception, e:
                     print e
                     pass
-                use_binding_file = '%s/__init__.py' % (binding_dir,)
                 for schema in sns.__schemaOrder:
                     file('%s/%s.py' % (binding_dir, schema.__moduleLeaf), 'w').write(schema.__outputFile.getvalue())
             file(use_binding_file, "w").write(binding_source)

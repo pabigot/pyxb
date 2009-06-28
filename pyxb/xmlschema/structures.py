@@ -1648,12 +1648,9 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         assert self.__baseTypeDefinition is not None
         rv.add(self.__baseTypeDefinition)
         assert self.__attributeUses is not None
-        for au in self.__attributeUses:
-            rv.add(au)
-            ad = au.attributeDeclaration()
-            assert ad is not None
-            rv.add(ad)
-            rv.update(ad.dependentComponents())
+        for decl in self.localScopedDeclarations():
+            if isinstance(decl, AttributeDeclaration):
+                rv.add(decl.typeDefinition())
         if self.attributeWildcard() is not None:
             rv.add(self.attributeWildcard())
         if self.CT_EMPTY != self.contentType():
