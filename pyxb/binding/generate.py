@@ -938,6 +938,7 @@ def _PrepareNamespaceForGeneration (sns, module_path_prefix, all_std, all_ctd, a
         c.__bindingNamespace = sns
         assert c._schema() is not None, '%s has no schema' % (c,)
         deps = c.dependentComponents()
+        component_graph.addNode(c)
         for target in deps:
             component_graph.addEdge(c, target)
             if target._schema() is not None:
@@ -953,7 +954,7 @@ Seems ugly, but technically it's legal.
 
 I'm not willing to put up with dependency cycles among schema.
 
-Not unless somebody pays me.
+Not until somebody pays me.  (http://www.rhapsody.com/goto?rcid=tra.9575689)
 '''
 
     if 1 < len(schemas):
@@ -969,48 +970,62 @@ Not unless somebody pays me.
     all_ctd.update(ctd)
     all_ed.update(ed)
 
-def _PrepareSimpleTypeDefinitions (all_std):
-    need_names = []
-    next_need_names = list(all_std)
-    while next_need_names:
-        need_names = next_need_names
-        next_need_names = []
-        while need_names:
-            std = need_names.pop(0)
-            deps = std.dependentComponents()
-            ok_to_proceed = True
-            for dep in std.dependentComponents():
-                if dep.nameInBinding() is None:
-                    assert (dep in need_names) or (dep in next_need_names)
-                    next_need_names.append(std)
-                    ok_to_proceed = False
-                    break
-            if not ok_to_proceed:
-                continue
-            name = std.bestNCName()
-            protected = False
-            if name is None:
-                name = '_STD_ANON_%d' % (std.__bindingNamespace.__anonSTDIndex,)
-                protected = True
-                std.__bindingNamespace.__anonSTDIndex += 1
-            std.setNameInBinding(utility.PrepareIdentifier(name, std.__bindingNamespace.__uniqueInModule, protected=protected))
-            std.__bindingNamespace.__simpleTypeDefinitions.append(std)
-            #print '%s represents %s in %s' % (std.nameInBinding(), std.expandedName(), std.__bindingNamespace)
-            std.__uniqueInBindingClass = basis.simpleTypeDefinition._ReservedSymbols.copy()
-            ptd = std.primitiveTypeDefinition(throw_if_absent=False)
-            if (ptd is None) or not ptd.hasPythonSupport():
-                continue
-            # Only generate enumeration constants for named simple
-            # type definitions that are fundamentally xsd:string
-            # values.
-            if issubclass(ptd.pythonSupport(), pyxb.binding.datatypes.string):
-                enum_facet = std.facets().get(pyxb.binding.facets.CF_enumeration, None)
-                if (enum_facet is not None) and (std.expandedName() is not None):
-                    for ei in enum_facet.items():
-                        assert ei.tag() is None
-                        ei._setTag(utility.PrepareIdentifier(ei.unicodeValue(), std.__uniqueInBindingClass))
-                        #print ' Enum %s represents %s' % (ei.tag(), ei.unicodeValue())
-                #print '%s unique: %s' % (std.expandedName(), std.__uniqueInBindingClass)
+def _PrepareSimpleTypeDefinition (std):
+    name = std.bestNCName()
+    protected = False
+    if name is None:
+        name = '_STD_ANON_%d' % (std.__bindingNamespace.__anonSTDIndex,)
+        protected = True
+        std.__bindingNamespace.__anonSTDIndex += 1
+    std.setNameInBinding(utility.PrepareIdentifier(name, std.__bindingNamespace.__uniqueInModule, protected=protected))
+    std.__bindingNamespace.__simpleTypeDefinitions.append(std)
+    #print '%s represents %s in %s' % (std.nameInBinding(), std.expandedName(), std.__bindingNamespace)
+    std.__uniqueInBindingClass = basis.simpleTypeDefinition._ReservedSymbols.copy()
+    ptd = std.primitiveTypeDefinition(throw_if_absent=False)
+    if (ptd is not None) and ptd.hasPythonSupport():
+        # Only generate enumeration constants for named simple
+        # type definitions that are fundamentally xsd:string
+        # values.
+        if issubclass(ptd.pythonSupport(), pyxb.binding.datatypes.string):
+            enum_facet = std.facets().get(pyxb.binding.facets.CF_enumeration, None)
+            if (enum_facet is not None) and (std.expandedName() is not None):
+                for ei in enum_facet.items():
+                    assert ei.tag() is None
+                    ei._setTag(utility.PrepareIdentifier(ei.unicodeValue(), std.__uniqueInBindingClass))
+                    #print ' Enum %s represents %s' % (ei.tag(), ei.unicodeValue())
+            #print '%s unique: %s' % (std.expandedName(), std.__uniqueInBindingClass)
+
+def _PrepareComplexTypeDefinition (ctd):
+    name = ctd.bestNCName()
+    if name is None:
+        name = '_CTD_ANON_%d' % (ctd.__bindingNamespace.__anonCTDIndex,)
+        ctd.__bindingNamespace.__anonCTDIndex += 1
+    ctd.setNameInBinding(utility.PrepareIdentifier(name, ctd.__bindingNamespace.__uniqueInModule))
+    ctd.__bindingNamespace.__complexTypeDefinitions.append(ctd)
+    #print '%s represents %s in %s' % (ctd.nameInBinding(), ctd.expandedName(), ctd.__bindingNamespace)
+    if ctd._isHierarchyRoot():
+        ctd.__uniqueInBindingClass = basis.complexTypeDefinition._ReservedSymbols.copy()
+    else:
+        ctd.__uniqueInBindingClass = ctd.baseTypeDefinition().__uniqueInBindingClass.copy()
+    content_basis = None
+    content_type_tag = ctd._contentTypeTag()
+    if (ctd.CT_SIMPLE == content_type_tag):
+        content_basis = ctd.contentType()[1]
+        #template_map['simple_base_type'] = pythonLiteral(content_basis, **kw)
+    elif (ctd.CT_MIXED == content_type_tag):
+        content_basis = ctd.contentType()[1]
+    elif (ctd.CT_ELEMENT_ONLY == content_type_tag):
+        content_basis = ctd.contentType()[1]
+    kw = { 'binding_target_namespace' : ctd.__bindingNamespace }
+    if isinstance(content_basis, xs.structures.Particle):
+        plurality_map = content_basis.pluralityData().nameBasedPlurality()
+    else:
+        plurality_map = {}
+    for cd in ctd.localScopedDeclarations():
+        use_map = _SetNameWithAccessors(cd, ctd, plurality_map.get(cd.expandedName(), (False, None))[0], kw)
+        cd.__useMap = use_map
+        #print '  %s %s uses %s stored in %s' % (cd.__class__.__name__, cd.expandedName(), use_map['id'], use_map['key'])
+
 
 def _SetNameWithAccessors (component, container, is_plural, kw):
     use_map = { }
@@ -1054,59 +1069,46 @@ def AltGenerate(schema_location=None,
         if sns.modulePath() in used_modules:
             raise pyxb.BindingGenerationError('Module path %s used for both %s and %s' % (sns.modulePath(), used_modules[sns.modulePath()], sns))
 
-    # Element declarations take precedence over types as far as names go
-    for ed in all_ed:
-        ed.setNameInBinding(utility.PrepareIdentifier(ed.bestNCName(), ed.__bindingNamespace.__uniqueInModule))
-        ed.__bindingNamespace.__elementDeclarations.append(ed)
+    component_graph = utility.Graph()
+    schema_graph = utility.Graph()
+    all_components = all_std.union(all_ctd).union(all_ed)
+    for c in all_components:
+        deps = c.dependentComponents()
+        component_graph.addNode(c)
+        for target in deps:
+            if target in all_components:
+                component_graph.addEdge(c, target)
+                assert target._schema() is not None
+                schema_graph.addEdge(c._schema(), target._schema())
+        
+    scc_list = schema_graph.scc()
+    assert 0 == len(scc_list), '''Look, sunshine, I'm willing to put up with dependency cycles in namespaces.
+Seems ugly, but technically it's legal.
 
-    # Simple type definitions have to have bindings assigned first, so
-    # attributes that refer to them can be configured.
-    _PrepareSimpleTypeDefinitions(all_std)
+I'm not willing to put up with dependency cycles among schema.
 
-    need_names = []
-    next_need_names = list(all_ctd)
-    while next_need_names:
-        need_names = next_need_names
-        next_need_names = []
-        while need_names:
-            ctd = need_names.pop(0)
-            assert ctd.isResolved()
-            base = ctd.baseTypeDefinition()
-            assert base is not None, 'No base for %s' % (ctd,)
-            assert base.isTypeDefinition(), 'Base of %s is not type' % (ctd,)
-            if base.nameInBinding() is None:
-                assert (base in need_names) or (base in next_need_names)
-                next_need_names.append(ctd)
-                continue
-            name = ctd.bestNCName()
-            if name is None:
-                name = '_CTD_ANON_%d' % (ctd.__bindingNamespace.__anonCTDIndex,)
-                ctd.__bindingNamespace.__anonCTDIndex += 1
-            ctd.setNameInBinding(utility.PrepareIdentifier(name, ctd.__bindingNamespace.__uniqueInModule))
-            ctd.__bindingNamespace.__complexTypeDefinitions.append(ctd)
-            #print '%s represents %s in %s' % (ctd.nameInBinding(), ctd.expandedName(), ctd.__bindingNamespace)
-            if ctd._isHierarchyRoot():
-                ctd.__uniqueInBindingClass = basis.complexTypeDefinition._ReservedSymbols.copy()
-            else:
-                ctd.__uniqueInBindingClass = base.__uniqueInBindingClass.copy()
-            content_basis = None
-            content_type_tag = ctd._contentTypeTag()
-            if (ctd.CT_SIMPLE == content_type_tag):
-                content_basis = ctd.contentType()[1]
-                #template_map['simple_base_type'] = pythonLiteral(content_basis, **kw)
-            elif (ctd.CT_MIXED == content_type_tag):
-                content_basis = ctd.contentType()[1]
-            elif (ctd.CT_ELEMENT_ONLY == content_type_tag):
-                content_basis = ctd.contentType()[1]
-            kw = { 'binding_target_namespace' : ctd.__bindingNamespace }
-            if isinstance(content_basis, xs.structures.Particle):
-                plurality_map = content_basis.pluralityData().nameBasedPlurality()
-            else:
-                plurality_map = {}
-            for cd in ctd.localScopedDeclarations():
-                use_map = _SetNameWithAccessors(cd, ctd, plurality_map.get(cd.expandedName(), (False, None))[0], kw)
-                cd.__useMap = use_map
-                #print '  %s %s uses %s stored in %s' % (cd.__class__.__name__, cd.expandedName(), use_map['id'], use_map['key'])
+Not until somebody pays me.  (http://www.rhapsody.com/goto?rcid=tra.9575689)
+'''
+    print "Schema order:\n  %s" % ("\n  ".join([ _s.schemaLocation() for _s in schema_graph.dfsOrder() ]),)
+
+    type_defs = []
+    for c in component_graph.dfsOrder():
+        if isinstance(c, xs.structures.ElementDeclaration):
+            print 'Element declaration %s' % (c.expandedName(),)
+            ed = c
+            # Element declarations take precedence over types as far as names go
+            ed.setNameInBinding(utility.PrepareIdentifier(ed.bestNCName(), ed.__bindingNamespace.__uniqueInModule))
+            ed.__bindingNamespace.__elementDeclarations.append(ed)
+        else:
+            type_defs.append(c)
+
+    for td in type_defs:
+        if isinstance(td, xs.structures.SimpleTypeDefinition):
+            _PrepareSimpleTypeDefinition(td)
+        elif isinstance(td, xs.structures.ComplexTypeDefinition):
+            _PrepareComplexTypeDefinition(td)
+        else:
+            assert False, 'Unexpected component type %s' % (type(td),)
 
     for sns in namespace.siblingNamespaces():
         generator_kw = { }
