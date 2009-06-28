@@ -901,6 +901,7 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
     def _reset (self):
         getattr(super(Namespace, self), '_reset', lambda *args, **kw: None)()
         self.__initialNamespaceContext = None
+        self.__schemas = set()
 
     def uri (self):
         """Return the URI for the namespace represented by this instance.
@@ -995,6 +996,12 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
         self.__module = module
         return self
     __module = None
+
+    def addSchema (self, schema):
+        self.__schemas.add(schema)
+    def schemas (self):
+        return self.__schemas
+    __schemas = None
 
     def schemaLocation (self, schema_location=None):
         """Get, or set, a URI that says where the XML document defining the namespace can be found."""
