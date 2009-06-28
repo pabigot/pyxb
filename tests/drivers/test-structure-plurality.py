@@ -29,7 +29,7 @@ class _TestBase (unittest.TestCase):
 
     def setUp (self):
         target_namespace=Namespace.CreateAbsentNamespace()
-        self.__schema = xs.schema(namespace_context = target_namespace.initialNamespaceContext())
+        self.__schema = xs.schema(namespace_context=target_namespace.initialNamespaceContext(), schema_location=str(target_namespace))
         self.__edKW = { 'namespace_context' : self.__schema.targetNamespace().initialNamespaceContext()
                       , 'scope' : xs.structures._ScopedDeclaration_mixin.SCOPE_global
                       , 'context' : xs.structures._ScopedDeclaration_mixin.SCOPE_global }

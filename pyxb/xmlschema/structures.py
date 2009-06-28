@@ -4014,14 +4014,20 @@ class _ImportElementInformationItem (_Annotated_mixin):
         return self.__id
     __id = None
 
-    __Bookmarks = set()
+    __LocationSchemaMap = { }
     @classmethod
-    def _BookmarkIngest (cls, schema_uri):
-        if schema_uri in cls.__Bookmarks:
-            return True
-        print 'INGEST %s' % (schema_uri,)
-        cls.__Bookmarks.add(schema_uri)
-        return False
+    def _SchemaForLocation (cls, schema_location):
+        return cls.__LocationSchemaMap.get(schema_location, None)
+
+    @classmethod
+    def _RecordSchemaLocation (cls, schema):
+        schema_location = schema.schemaLocation()
+        if schema_location is None:
+            assert schema.targetNamespace().isBuiltinNamespace()
+            return None
+        assert not (schema_location in cls.__LocationSchemaMap)
+        cls.__LocationSchemaMap[schema_location] = schema
+        return schema
 
     def namespace (self):
         """The Namespace instance corresponding to the value of the
@@ -4080,12 +4086,11 @@ class _ImportElementInformationItem (_Annotated_mixin):
         elif self.schemaLocation() is not None:
             schema_uri = urlparse.urljoin(schema.schemaLocation(), self.__schemaLocation)
             print 'import %s + %s = %s' % (schema.schemaLocation(), self.__schemaLocation, schema_uri)
-            if self._BookmarkIngest(schema_uri):
-                print 'SKIPPING REDUNDANT IMPORT of %s' % (schema_uri,)
-                self.__redundant = True
-                return None
+            schema = self._SchemaForLocation(schema_uri)
+            if schema is None:
+                schema = Schema.CreateFromLocation(schema_location=schema_uri, namespace_context=pyxb.namespace.NamespaceContext.GetNodeContext(node))
             #raise pyxb.NamespaceError('Please generate bindings for namespace %s available at %s, prefix %s' % (uri, schema_uri, '??'))
-            self.__schema = Schema.CreateFromLocation(schema_location=schema_uri, namespace_context=pyxb.namespace.NamespaceContext.GetNodeContext(node))
+            self.__schema = schema
         else:
             print 'WARNING: No information available on imported namespace %s' % (uri,)
 
@@ -4136,6 +4141,13 @@ class Schema (_SchemaComponent_mixin):
         return self.__referencedNamespaces
     __referencedNamespaces = None
 
+    def importedSchema (self):
+        return self.__importedSchema
+    __importedSchema = None
+    def includedSchema (self):
+        return self.__includedSchema
+    __includedSchema = None
+
     def _dependentComponents_vx (self):
         """Implement base class method.
 
@@ -4183,13 +4195,13 @@ class Schema (_SchemaComponent_mixin):
     def __init__ (self, *args, **kw):
         assert 'schema' not in kw
         self.__schemaLocation = kw.get('schema_location', None)
-        if self.__schemaLocation is not None:
-            redundant = _ImportElementInformationItem._BookmarkIngest(self.__schemaLocation)
-            #assert not redundant
         super(Schema, self).__init__(*args, **kw)
+        self.__includedSchema = set()
+        self.__importedSchema = set()
         self.__targetNamespace = kw.get('target_namespace', self._namespaceContext().targetNamespace())
         if not isinstance(self.__targetNamespace, pyxb.namespace.Namespace):
             raise pyxb.LogicError('Schema constructor requires valid Namespace instance as target_namespace')
+        _ImportElementInformationItem._RecordSchemaLocation(self)        
         self.__defaultNamespace = kw.get('default_namespace', self._namespaceContext().defaultNamespace())
         if not ((self.__defaultNamespace is None) or isinstance(self.__defaultNamespace, pyxb.namespace.Namespace)):
             raise pyxb.LogicError('Schema default namespace must be None or a valid Namespace instance')
@@ -4389,17 +4401,15 @@ class Schema (_SchemaComponent_mixin):
         if 0 > abs_uri.find(':'):
             abs_uri = os.path.realpath(abs_uri)
         print 'include %s + %s = %s' % (self.__schemaLocation, rel_uri, abs_uri)
-        if _ImportElementInformationItem._BookmarkIngest(abs_uri):
-            print 'WARNING: Not including %s multiple times' % (abs_uri,)
-            return node
-        included_schema = None
-        try:
-            included_schema = self.CreateFromLocation(abs_uri, namespace_context=self.__namespaceData, inherit_default_namespace=True)
-        except Exception, e:
-            print 'INCLUDE %s caught: %s' % (abs_uri, e)
-            #traceback.print_exception(*sys.exc_info())
-            raise
-        print '%s completed including %s from %s' % (self.__schemaLocation, included_schema.targetNamespace(), abs_uri)
+        included_schema = _ImportElementInformationItem._SchemaForLocation(abs_uri)
+        if included_schema is None:
+            try:
+                included_schema = self.CreateFromLocation(abs_uri, namespace_context=self.__namespaceData, inherit_default_namespace=True)
+            except Exception, e:
+                print 'INCLUDE %s caught: %s' % (abs_uri, e)
+                #traceback.print_exception(*sys.exc_info())
+                raise
+            print '%s completed including %s from %s' % (self.__schemaLocation, included_schema.targetNamespace(), abs_uri)
         assert self.targetNamespace() == included_schema.targetNamespace()
         #print xml
         return node
