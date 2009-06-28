@@ -924,7 +924,6 @@ def _PrepareNamespaceForGeneration (sns, module_path_prefix, all_std, all_ctd, a
     sns.__elementDeclarations = []
     sns.__anonSTDIndex = 1
     sns.__anonCTDIndex = 1
-    sns.__schemaOrder = []
     sns.__schemaHaveModules = False
     all_std.update(std)
     all_ctd.update(ctd)
@@ -1026,10 +1025,13 @@ def CheckDependencies (namespace):
     print "Namespace ordering:"
     for scc in scc_order:
         elts = []
+        nsg_head = scc[0]
         for ns in scc:
             ns.__namespaceGroupHead = scc[0]
             ns.__namespaceGroupMulti = (1 < len(scc))
+            ns.__schemasForEmit = None
             elts.append(str(ns))
+        nsg_head.__schemasForEmit = set()
         print 'SCC: %s' % ("\n  ".join(elts))
 
     schema_ii_graph = utility.Graph()
@@ -1059,8 +1061,7 @@ def CheckDependencies (namespace):
         elts = []
         group_head = scc[0]
         if group_head.schemaLocation() is not None:
-            schema_path = urlparse.urlparse(group_head.schemaLocation()).path
-            module_leaf = os.path.split(schema_path)[1].split('.')[0]
+            module_leaf = group_head.schemaLocationTag()
         else:
             module_leaf = None
         for s in scc:
@@ -1070,8 +1071,130 @@ def CheckDependencies (namespace):
             s.__schemaGroupHead = scc[0]
             s.__schemaGroupMulti = (1 < len(scc))
             s.__moduleLeaf = module_leaf
+            s.__modulePath = None
         print 'SCC: %s' % ("\n  ".join(elts))
 
+
+class BindingModuleIO (StringIO.StringIO):
+    __prolog = None
+    __postscript = None
+    __namespace = None
+    __schema = None
+
+    def __init__ (self, namespace, schema=None, module_path=None):
+        super(BindingModuleIO, self).__init__(self)
+        self.__namespace = namespace
+        self.__schema = schema
+        self.__prolog = []
+        self.__postscript = []
+
+    def prolog (self):
+        return self.__prolog
+    def postscript (self):
+        return self.__postscript
+    def namespace (self):
+        return self.__namespace
+    def schema (self):
+        return self.__schema
+
+
+class NamespaceModule:
+    """This class represents a Python module that holds all the
+    declarations belonging to a specific namespace."""
+
+    def namespace (self):
+        return self.__namespace
+    __namespace = None
+
+    def modulePath (self):
+        return self.__modulePath
+    __modulePath = None
+
+    __uniqueInNamespace = None
+    __modulePrefix = None
+
+    def namespaceGroupModule (self):
+        return self.__namespaceGroupModule
+    def setNamespaceGroupModule (self, namespace_group_module):
+        self.__namespaceGroupModule = namespace_group_module
+    __namespaceGroupModule = None
+
+    _UniqueInNamespace = set([ 'pyxb', 'sys', 'Namespace', 'CreateFromDOM' ])
+
+    def __init__ (self, namespace, module_prefix):
+        self.__namespace = namespace
+        self.__modulePrefix = module_prefix[:]
+        self.__modulePath = None
+        self.__uniqueInNamespace = self._UniqueInNamespace.copy()
+
+    def setBaseModule (self, base_module):
+        assert base_module is not None
+        self.__modulePath = '.'.join(self.__modulePrefix + [ base_module ])
+
+    def setSchemaGroupPrefix (self, schema_group_prefix):
+        self.__schemaGroupPrefix = schema_group_prefix[:]
+        self.__uniqueInSchemaGroup = set()
+    __schemaGroupPrefix = None
+    __uniqueInSchemaGroup = None
+    
+    def schemaGroupModulePath (self, schema_group_module):
+        module_base = utility.MakeUnique('_'.join([ _s.schemaLocationTag() for _s in schema_group_module.schemaGroup() ]), self.__uniqueInSchemaGroup)
+        return '.'.join(self.__schemaGroupPrefix + [ module_base ])
+
+class NamespaceGroupModule:
+    """This class represents a Python module that holds all the
+    declarations belonging to a set of namespaces which have
+    interdependencies."""
+
+    def modulePath (self):
+        return self.__modulePath
+    __modulePath = None
+
+    def namespaceModules (self):
+        return self.__namespaceModules
+    __namespaceModules = None
+
+    __UniqueInGroups = set()
+    _GroupPrefix = '_group'
+
+    def __init__ (self, namespace_modules, module_prefix):
+        assert 1 < len(namespace_modules)
+        self.__namespaceModules = namespace_modules
+
+        module_prefix = module_prefix[:]
+        module_prefix.append(self._GroupPrefix)
+        self.__modulePath = '.'.join(module_prefix + [ utility.MakeUnique('_'.join([ _nsm.namespace().prefix() for _nsm in namespace_modules]), self.__UniqueInGroups) ])
+        for nsm in namespace_modules:
+            nsm.setSchemaGroupPrefix(module_prefix + [ utility.MakeUnique('_%s' % (nsm.namespace().prefix(),), self.__UniqueInGroups) ])
+            
+class SchemaGroupModule:
+    """This class represents a Python module that holds all bindings
+    associated with components defined in a set of schema.
+
+    Normally an instance represents a single schema, but when there is
+    a cycle in the schema dependency graph all components in the cycle
+    are aggregated into a single module."""
+
+    def modulePath (self):
+        return self.__modulePath
+    __modulePath = None
+
+    __uniqueInModule = None
+    __bindingOutput = None
+
+    def namespaceModule (self):
+        return self.__namespaceModule
+    __namespaceModule = None
+
+    def schemaGroup (self):
+        return self.__schemaGroup
+    __schemaGroup = None
+
+    def __init__ (self, namespace_module, schema_group):
+        self.__namespaceModule = namespace_module
+        self.__schemaGroup = schema_group
+        assert isinstance(self.__schemaGroup, list)
+        self.__modulePath = self.__namespaceModule.schemaGroupModulePath(self)
 
 def AltGenerate(schema_location=None,
                 namespace=None,
@@ -1101,43 +1224,61 @@ def AltGenerate(schema_location=None,
             raise pyxb.BindingGenerationError('Module path %s used for both %s and %s' % (sns.modulePath(), used_modules[sns.modulePath()], sns))
 
     component_graph = utility.Graph()
-    schema_graph = utility.Graph()
     all_components = all_std.union(all_ctd).union(all_ed)
     for c in all_components:
         component_graph.addNode(c)
         deps = c.dependentComponents()
-        schema_graph.addNode(c._schema())
         for target in deps:
             if target in all_components:
                 component_graph.addEdge(c, target)
-                assert target._schema() is not None
-                schema_graph.addEdge(c._schema(), target._schema())
 
-    schema = iter(namespace.schemas()).next()
-    schema_graph.setRoot(schema)
-    scc_order = schema_graph.sccOrder()
-    print "Component Schema ordering:"
-    for scc in scc_order:
-        elts = []
-        schema = scc[0]
-        sns = schema.targetNamespace()
-        schema.__modulePath = '%s_%s.%s' % (module_path_prefix, sns.prefix(), schema.__moduleLeaf)
-        for s in scc:
-            assert not(s.schemaLocation() is None)
-            elts.append(str(s.schemaLocation()))
-            s.__modulePath = schema.__modulePath
-            s.__isMultiSchema = 1 < len(scc)
+    component_schemas = set()
+    for c in component_graph.nodes():
+        assert c._schema() is not None
+        component_schemas.add(c._schema().__schemaGroupHead)
+        c._schema().targetNamespace().__namespaceGroupHead.__schemasForEmit.add(c._schema())
 
-        print 'SCC: %s' % ("\n  ".join(elts))
+    component_order = [ _scc[0] for _scc in component_graph.sccOrder() ]
+    assert len(component_order) == len(component_graph.nodes())
 
-    scc_order = component_graph.sccOrder()
-    assert len(scc_order) == len(component_graph.nodes())
+    binding_module_prefix = ['binding']
+    namespace_module_map = {}
+    unique_in_bindings = set([NamespaceGroupModule._GroupPrefix])
+    for ns_scc in namespace.__namespaceOrder:
+        namespace_modules = []
+        for ns in ns_scc:
+            nsm = NamespaceModule(ns, binding_module_prefix)
+            namespace_module_map[ns] = nsm
+            ns.__namespaceModule = nsm
+            assert ns == nsm.namespace()
+            if not ns.isBuiltinNamespace():
+                assert nsm.namespace().prefix() is not None, 'No prefix for %s' % (ns,)
+                nsm.setBaseModule(utility.MakeUnique(nsm.namespace().prefix(), unique_in_bindings))
+                print '%s stores in %s' % (ns, nsm.modulePath())
+            namespace_modules.append(nsm)
 
+        nsg_head = ns_scc[0].__namespaceGroupHead
+        if nsg_head.__namespaceGroupMulti:
+            ngm = NamespaceGroupModule(namespace_modules, binding_module_prefix)
+            [ _nsm.setNamespaceGroupModule(ngm) for _nsm in namespace_modules ]
+            assert namespace_module_map[nsg_head].namespaceGroupModule() == ngm
+            print 'Group headed by %s stores in %s' % (nsg_head, ngm.modulePath())
+    for sc_scc in namespace.__schemaOrder:
+        scg_head = sc_scc[0].__schemaGroupHead
+        nsm = scg_head.targetNamespace().__namespaceModule
+        sgm = None
+        if nsm.namespaceGroupModule() is not None:
+            sgm = SchemaGroupModule(nsm, sc_scc)
+            print 'Schema group stores in %s: %s' % (sgm.modulePath(), ' '.join([ _s.schemaLocationTag() for _s in sc_scc]))
+        for sc in sc_scc:
+            sc.__schemaGroupModule = sgm
+
+    assert False
     type_defs = []
-    for c in component_graph.dfsOrder():
+    for c in component_order:
         if isinstance(c, xs.structures.ElementDeclaration) and c._scopeIsGlobal():
             ed = c
-            # Element declarations take precedence over types as far as names go
+            # Element declaration names take precedence over type names
             ed.setNameInBinding(utility.PrepareIdentifier(ed.bestNCName(), ed.__bindingNamespace.__uniqueInModule))
             ed.__bindingNamespace.__elementDeclarations.append(ed)
         else:
@@ -1150,6 +1291,9 @@ def AltGenerate(schema_location=None,
             _PrepareComplexTypeDefinition(td)
         else:
             assert False, 'Unexpected component type %s' % (type(td),)
+
+    # If the namespace is not a multi, it gets a binding, and all schemas in it get the same binding.
+    # If the namespace is a multi, it gets a binding, and all schema groups in it get their own bindings
 
     for sns in namespace.siblingNamespaces():
         generator_kw = { }
