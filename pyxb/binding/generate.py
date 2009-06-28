@@ -996,11 +996,7 @@ def CheckDependencies (namespace):
         elts = []
         nsg_head = scc[0]
         for ns in scc:
-            ns.__namespaceGroupHead = scc[0]
-            ns.__namespaceGroupMulti = (1 < len(scc))
-            ns.__schemasForEmit = None
             elts.append(str(ns))
-        nsg_head.__schemasForEmit = set()
         print 'SCC: %s' % ("\n  ".join(elts))
 
     schema_ii_graph = utility.Graph()
@@ -1032,35 +1028,38 @@ def CheckDependencies (namespace):
             if s.schemaLocation() is None:
                 print 'No schema location in %s' % (s.targetNamespace(),)
             elts.append(str(s.schemaLocation()))
-            s.__schemaGroupHead = scc[0]
-            s.__schemaGroupMulti = (1 < len(scc))
-            s.__modulePath = None
-            s.__requiredSchema = set()
-            s.__requiredNamespaces = set()
         print 'SCC: %s' % ("\n  ".join(elts))
 
 
-class BindingModuleIO (StringIO.StringIO):
+class BindingIO (object):
     __prolog = None
     __postscript = None
-    __namespace = None
-    __schema = None
+    __templateMap = None
+    __stringIO = None
 
-    def __init__ (self, namespace, schema=None, module_path=None):
-        super(BindingModuleIO, self).__init__(self)
-        self.__namespace = namespace
-        self.__schema = schema
+    def __init__ (self, binding_module, **kw):
+        super(BindingIO, self).__init__(self)
+        self.__bindingModule = binding_module
         self.__prolog = []
         self.__postscript = []
+        self.__templateMap = kw.copy()
+        self.__templateMap.update({ 'date' : str(datetime.datetime.now()),
+                                    'pyxbVersion' : pyxb.__version__ })
+        self.__stringIO = StringIO.StringIO()
+
+    def expand (self, template, **kw):
+        tm = self.__templateMap.copy()
+        tm.update(kw)
+        return templates.replaceInText(template, **tm)
+
+    def bindingModule (self):
+        return self.__bindingModule
+    __bindingModule = None
 
     def prolog (self):
         return self.__prolog
     def postscript (self):
         return self.__postscript
-    def namespace (self):
-        return self.__namespace
-    def schema (self):
-        return self.__schema
 
 class _ModuleNaming_mixin (object):
     __anonSTDIndex = None
@@ -1076,11 +1075,17 @@ class _ModuleNaming_mixin (object):
         self.__components = []
         self.__componentNameMap = {}
         self.__uniqueInModule = set()
+        self.__bindingIO = None
+
+    def bindingIO (self):
+        return self.__bindingIO
 
     def modulePath (self):
         return self.__modulePath
     def _setModulePath (self, module_path):
         self.__modulePath = module_path
+        
+        self.__bindingIO = BindingIO(self, ** self._initialBindingTemplateMap())
     __modulePath = None
 
     def _initializeUniqueInModule (self, unique_in_module):
@@ -1088,7 +1093,6 @@ class _ModuleNaming_mixin (object):
 
     def uniqueInModule (self):
         return self.__uniqueInModule
-
 
     @classmethod
     def BindComponentInModule (cls, component, module):
@@ -1138,14 +1142,35 @@ class NamespaceModule (_ModuleNaming_mixin):
 
     _UniqueInModule = set([ 'pyxb', 'sys', 'Namespace', 'CreateFromDOM' ])
 
-    def __init__ (self, namespace, module_prefix):
+    __NamespaceModuleMap = { }
+    @classmethod
+    def ForNamespace (cls, namespace):
+        return cls.__NamespaceModuleMap.get(namespace)
+    
+    def namespaceGroupHead (self):
+        return self.__namespaceGroupHead
+    __namespaceGroupHead = None
+
+    def namespaceGroupMulti (self):
+        return self.__namespaceGroupMulti
+    __namespaceGroupMulti = None
+
+    def __init__ (self, namespace, module_prefix, ns_scc):
         super(NamespaceModule, self).__init__(self)
         self.__namespace = namespace
+        self.__NamespaceModuleMap[self.__namespace] = self
+        self.__namespaceGroupHead = self.ForNamespace(ns_scc[0])
+        self.__namespaceGroupMulti = (1 < len(ns_scc))
         self.__modulePrefix = module_prefix[:]
         self.__namespaceBindingNames = {}
         self.__components = []
         self.__componentBindingName = {}
         self._initializeUniqueInModule(self._UniqueInModule)
+
+    def _initialBindingTemplateMap (self):
+        kw = { 'moduleType' : 'namespace'
+             , 'namespaceURI' : self.__namespace.uri() }
+        return kw
 
     def setBaseModule (self, base_module):
         assert base_module is not None
@@ -1200,12 +1225,20 @@ class NamespaceGroupModule (_ModuleNaming_mixin):
         assert 1 < len(namespace_modules)
         self.__namespaceModules = namespace_modules
 
+        print namespace_modules[0].namespace()
+        self.__namespaceGroupHead = namespace_modules[0].namespaceGroupHead()
+
         module_prefix = module_prefix[:]
         module_prefix.append(self._GroupPrefix)
         self._setModulePath('.'.join(module_prefix + [ utility.MakeUnique('_'.join([ _nsm.namespace().prefix() for _nsm in namespace_modules]), self.__UniqueInGroups) ]))
         for nsm in namespace_modules:
             nsm.setSchemaGroupPrefix(module_prefix + [ utility.MakeUnique('_%s' % (nsm.namespace().prefix(),), self.__UniqueInGroups) ])
         self._initializeUniqueInModule(self._UniqueInModule)
+
+    def _initialBindingTemplateMap (self):
+        kw = { 'moduleType' : 'namespaceGroup'
+             , 'namespaceHeadURI' : self.__namespaceGroupHead.namespace().uri() }
+        return kw
 
     def bindComponent (self, component):
         ngm_name = self._bindComponent(component)
@@ -1230,15 +1263,32 @@ class SchemaGroupModule (_ModuleNaming_mixin):
         return self.__schemaGroup
     __schemaGroup = None
 
+    def schemaGroupHead (self):
+        return self.__schemaGroupHead
+    __schemaGroupHead = None
+
+    __SchemaModuleMap = { }
+    @classmethod
+    def ForSchema (cls, schema):
+        return cls.__SchemaModuleMap.get(schema)
+
     _UniqueInModule = set([ 'pyxb', 'sys', 'Namespace' ])
     
     def __init__ (self, namespace_module, schema_group):
         super(SchemaGroupModule, self).__init__(self)
         self.__namespaceModule = namespace_module
         self.__schemaGroup = schema_group
+        self.__schemaGroupHead = schema_group[0]
+        for sch in self.__schemaGroup:
+            self.__SchemaModuleMap[sch] = self
         assert isinstance(self.__schemaGroup, list)
         self._setModulePath(self.__namespaceModule.schemaGroupModulePath(self))
         self._initializeUniqueInModule(self._UniqueInModule)
+
+    def _initialBindingTemplateMap (self):
+        kw = { 'moduleType' : 'namespaceGroup'
+             , 'schemaGroupHead' : self.__schemaGroupHead.schemaLocation() }
+        return kw
 
     def bindComponent (self, component):
         sgm_name = self._bindComponent(component)
@@ -1248,6 +1298,9 @@ class SchemaGroupModule (_ModuleNaming_mixin):
 def AltGenerate(schema_location=None,
                 namespace=None,
                 module_path_prefix=''):
+
+    binding_module_prefix = ['binding']
+
     global UniqueInBinding
     global PostscriptItems
     UniqueInBinding.clear()
@@ -1279,22 +1332,15 @@ def AltGenerate(schema_location=None,
             if target in all_components:
                 component_graph.addEdge(c, target)
 
-    component_schemas = set()
-    for c in component_graph.nodes():
-        assert c._schema() is not None
-        component_schemas.add(c._schema().__schemaGroupHead)
-        c.__bindingNamespace.__namespaceGroupHead.__schemasForEmit.add(c._schema())
-
     component_order = [ _scc[0] for _scc in component_graph.sccOrder() ]
     assert len(component_order) == len(component_graph.nodes())
 
-    binding_module_prefix = ['binding']
     namespace_module_map = {}
     unique_in_bindings = set([NamespaceGroupModule._GroupPrefix])
     for ns_scc in namespace.__namespaceOrder:
         namespace_modules = []
         for ns in ns_scc:
-            nsm = NamespaceModule(ns, binding_module_prefix)
+            nsm = NamespaceModule(ns, binding_module_prefix, ns_scc)
             namespace_module_map[ns] = nsm
             ns.__namespaceModule = nsm
             assert ns == nsm.namespace()
@@ -1304,15 +1350,15 @@ def AltGenerate(schema_location=None,
                 print '%s stores in %s' % (ns, nsm.modulePath())
             namespace_modules.append(nsm)
 
-        nsg_head = ns_scc[0].__namespaceGroupHead
-        if nsg_head.__namespaceGroupMulti:
+        nsg_head = nsm.namespaceGroupHead()
+        if nsg_head.namespaceGroupMulti():
             ngm = NamespaceGroupModule(namespace_modules, binding_module_prefix)
             [ _nsm.setNamespaceGroupModule(ngm) for _nsm in namespace_modules ]
-            assert namespace_module_map[nsg_head].namespaceGroupModule() == ngm
+            assert namespace_module_map[nsg_head.namespace()].namespaceGroupModule() == ngm
             print 'Group headed by %s stores in %s' % (nsg_head, ngm.modulePath())
     for sc_scc in namespace.__schemaOrder:
-        scg_head = sc_scc[0].__schemaGroupHead
-        nsm = scg_head.targetNamespace().__namespaceModule
+        scg_head = sc_scc[0]
+        nsm = NamespaceModule.ForNamespace(scg_head.targetNamespace())
         sgm = None
         if nsm.namespaceGroupModule() is not None:
             sgm = SchemaGroupModule(nsm, sc_scc)
@@ -1348,16 +1394,11 @@ def AltGenerate(schema_location=None,
         assert sns.__schemaHaveModules is not None
         ns_outf = StringIO.StringIO()
 
-        import_prefix = 'pyxb.xmlschema.'
-        if sns == pyxb.namespace.XMLSchema:
-            import_prefix = ''
-
         template_map = { }
         template_map['input'] = sns.schemaLocation()
         template_map['date'] = str(datetime.datetime.now())
         template_map['version'] = pyxb.__version__
         template_map['targetNamespace'] = repr(sns.uri(),)
-        template_map['import_prefix'] = import_prefix
         if sns.isAbsentNamespace():
             template_map['NamespaceDefinition'] = 'pyxb.namespace.CreateAbsentNamespace()'
         else:
