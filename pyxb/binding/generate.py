@@ -1015,6 +1015,45 @@ def _SetNameWithAccessors (component, container, is_plural, kw):
         use_map['appender'] = utility.PrepareIdentifier('add' + unique_name[0].upper() + unique_name[1:], class_unique)
     return use_map
 
+def CheckDependencies (namespace):
+    ns_graph = utility.Graph()
+
+    
+    ns_set = set([namespace])
+    while ns_set:
+        ns = ns_set.pop()
+        for rns in ns.referencedNamespaces():
+            if not (rns in ns_graph.nodes()):
+                ns_set.add(rns)
+                ns_graph.addNode(rns)
+            ns_graph.addEdge(ns, rns)
+
+    ns_graph.setRoot(namespace)
+    scc_order = ns_graph.sccOrder()
+    print "Namespace ordering:"
+    for n in scc_order:
+        print 'SCC: %s' % (" ".join([ str(_n) for _n in n]))
+
+    schema_ii_graph = utility.Graph()
+    schemas = set(namespace.schemas())
+    while schemas:
+        schema = schemas.pop()
+        assert schema is not None
+        for sch in schema.includedSchema(): # .union(schema.importedSchema()):
+            if not (sch in schema_ii_graph.nodes()):
+                assert sch is not None, '%s imports none?' % (schema.schemaLocation(),)
+                schemas.add(sch)
+                schema_ii_graph.addNode(sch)
+            schema_ii_graph.addEdge(schema, sch)
+        schemas.update(schema.importedSchema())
+        
+    schema = iter(namespace.schemas()).next()
+    ns_graph.setRoot(schema)
+    scc_order = schema_ii_graph.sccOrder()
+    print "Schema ordering:"
+    for n in scc_order:
+        print 'SCC: %s' % ("\n  ".join([ _s.schemaLocation() for _s in n]))
+
 def AltGenerate(schema_location=None,
                 namespace=None,
                 module_path_prefix=''):
@@ -1031,6 +1070,8 @@ def AltGenerate(schema_location=None,
 
     _ResolveReferencedNamespaces(namespace)
         
+    CheckDependencies(namespace)
+
     used_modules = {}
     all_std = set()
     all_ctd = set()
