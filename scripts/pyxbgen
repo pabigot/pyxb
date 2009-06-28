@@ -156,9 +156,25 @@ try:
         if binding_source is not None:
             print 'Binding source is %d long to %s' % (len(binding_source), binding_file)
             if sns != tns:
-                use_binding_file = os.path.join(binding_path,'%s.py' % (sns.prefix(),))
+                use_binding_file = os.path.join(binding_path, '%s.py' % (sns.prefix(),))
             else:
                 use_binding_file = binding_file
+            if sns.__schemaHaveModules:
+                try:
+                    os.unlink(use_binding_file)
+                except Exception, e:
+                    print e
+                    pass
+                (binding_dir, base_name) = os.path.split(use_binding_file)
+                binding_dir = os.path.join(binding_dir, base_name.split('.')[0])
+                try:
+                    os.mkdir(binding_dir)
+                except Exception, e:
+                    print e
+                    pass
+                use_binding_file = '%s/__init__.py' % (binding_dir,)
+                for schema in sns.__schemaOrder:
+                    file('%s/%s.py' % (binding_dir, schema.__moduleLeaf), 'w').write(schema.__outputFile.getvalue())
             file(use_binding_file, "w").write(binding_source)
             print 'Saved binding source to %s' % (use_binding_file,)
 except Exception, e:

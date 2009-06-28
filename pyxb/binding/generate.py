@@ -141,58 +141,29 @@ class ReferenceSchemaComponent (ReferenceLiteral):
     def __init__ (self, component, **kw):
         self.__component = component
         btns = kw['binding_target_namespace']
+        bsm = kw.get('binding_schema')
         tns = self.__component.targetNamespace()
         is_in_binding = self.__component._picklesInNamespace(btns)
+        is_in_module = is_in_binding and ((bsm is None) or (bsm == self.__component._schema()))
 
         assert (not isinstance(self.__component, pyxb.namespace._Resolvable_mixin)) or self.__component.isResolved(), '%s not resolved' % (self.__component,)
 
         name = self.__component.nameInBinding()
-        if is_in_binding and (name is None):
-            global UniqueInBinding
-
-            # The only components that are allowed to be nameless at
-            # this point are ones in the binding we're generating.
-            # @todo should not have to special case XMLSchema
-            if not (is_in_binding or (pyxb.namespace.XMLSchema == tns)):
-                raise pyxb.LogicError('Attempt to reference unnamed component not in binding: %s' % (component,))
-
-            # The initial name is the name of the component, or if the
-            # component can't be named the name of something else
-            # relevant.
-            name = self.__component.bestNCName()
-            protected = False
-            if name is None:
-                tag = self.__ComponentTagMap.get(type(self.__component), None)
-                if tag is None:
-                    raise pyxb.LogicError('Not prepared for reference to component type %s' % (self.__component.__class__.__name__,))
-                name = '_%s_ANON_%d' % (tag, self.__NextAnonymousIndex())
-                protected = True
-
-            # Element declarations may be local, in which case we want
-            # to incorporate the parentage in the name.
-            if isinstance(self.__component, xs.structures._ScopedDeclaration_mixin):
-                scope = self.__component.scope()
-                if scope is None:
-                    print 'NO SCOPE for %s' % (self.__component,)
-                assert scope is not None
-                if isinstance(scope, xs.structures.ComplexTypeDefinition):
-                    name_prefix = scope.name()
-                    if name_prefix is None:
-                        assert scope.owner() is not None
-                        name_prefix = scope.owner().name()
-                    assert name_prefix is not None
-                    name = '%s_%s' % (name_prefix, name)
-
-            name = utility.PrepareIdentifier(name, UniqueInBinding, protected=protected)
-            self.__component.setNameInBinding(name)
-        if not is_in_binding:
+        assert not(is_in_binding and (name is None)), 'Component %s is in binding but has no name' % (self.__component.expandedName(),)
+        if not is_in_module:
             assert name is not None, 'name %s component %s' % (name, self.__component)
             mp = None
             if pyxb.namespace.XMLSchema == tns:
                 mp = 'pyxb.binding.datatypes'
-            elif tns is not None:
+            elif not is_in_binding:
                 mp = tns.modulePath()
                 assert mp is not None
+            else: # if self.__component._schema() is not None:
+                try:
+                    mp = self.__component._schema().__dict__.get('__modulePath')
+                    print 'Component %s in binding gets module path %s' % (self.__component.expandedName(), mp)
+                except AttributeError, e:
+                    print 'Component %s not in module, but no module path found; bsm %s, component schema %s' % (self.__component.expandedName(), bsm.schemaLocation(), self.__component._schema().schemaLocation())
             if mp is not None:
                 name = '%s.%s' % (mp, name)
         self.setLiteral(name)
@@ -758,7 +729,11 @@ class %{ctd} (%{superclass}):
                 aux_init.insert(0, '')
                 au_map['aux_init'] = ', '.join(aux_init)
             ad.__attributeFields = au_map
-        au_map = ad.__attributeFields
+        try:
+            au_map = ad.__attributeFields
+        except AttributeError, e:
+            print 'ad %s in %s: %s' % (ad.expandedName(), ctd.expandedName(), e)
+            raise
         if au.prohibited():
             attribute_uses.append(templates.replaceInText('%{name_expr} : None', **au_map))
             definitions.append(templates.replaceInText('''
@@ -969,6 +944,8 @@ Not until somebody pays me.  (http://www.rhapsody.com/goto?rcid=tra.9575689)
     sns.__elementDeclarations = []
     sns.__anonSTDIndex = 1
     sns.__anonCTDIndex = 1
+    sns.__schemaOrder = []
+    sns.__schemaHaveModules = False
     all_std.update(std)
     all_ctd.update(ctd)
     all_ed.update(ed)
@@ -1019,7 +996,8 @@ def _PrepareComplexTypeDefinition (ctd):
         content_basis = ctd.contentType()[1]
     elif (ctd.CT_ELEMENT_ONLY == content_type_tag):
         content_basis = ctd.contentType()[1]
-    kw = { 'binding_target_namespace' : ctd.__bindingNamespace }
+    kw = { 'binding_target_namespace' : ctd.__bindingNamespace
+         , 'binding_schema' : ctd._schema() }
     if isinstance(content_basis, xs.structures.Particle):
         plurality_map = content_basis.pluralityData().nameBasedPlurality()
     else:
@@ -1039,6 +1017,9 @@ def _SetNameWithAccessors (component, container, is_plural, kw):
     use_map['inspector'] = unique_name
     use_map['mutator'] = utility.PrepareIdentifier('set' + unique_name[0].upper() + unique_name[1:], class_unique)
     use_map['use'] = utility.MakeUnique('__' + unique_name.strip('_'), class_unique)
+    assert component._scope() == container
+    assert component.nameInBinding() is None, 'Use %s but binding name %s for %s' % (use_map['use'], component.nameInBinding(), component.expandedName())
+    component.setNameInBinding(use_map['use'])
     key_name = '%s_%s_%s' % (str(container.__bindingNamespace), container.nameInBinding(), component.expandedName())
     use_map['key'] = utility.PrepareIdentifier(key_name, class_unique, private=True)
     use_map['name'] = str(component.expandedName())
@@ -1076,12 +1057,13 @@ def AltGenerate(schema_location=None,
     schema_graph = utility.Graph()
     all_components = all_std.union(all_ctd).union(all_ed)
     for c in all_components:
-        deps = c.dependentComponents()
         component_graph.addNode(c)
+        deps = c.dependentComponents()
         for target in deps:
             if target in all_components:
                 component_graph.addEdge(c, target)
                 assert target._schema() is not None
+                print '%s includes %s due to %s and %s' % (c._schema().schemaLocation(), target._schema().schemaLocation(), c.expandedName(), target.expandedName())
                 schema_graph.addEdge(c._schema(), target._schema())
         
     scc_list = schema_graph.scc()
@@ -1092,11 +1074,17 @@ I'm not willing to put up with dependency cycles among schema.
 
 Not until somebody pays me.  (http://www.rhapsody.com/goto?rcid=tra.9575689)
 '''
-    print "Schema order:\n  %s" % ("\n  ".join([ str(_s.schemaLocation()) for _s in schema_graph.dfsOrder() ]),)
+
+    for schema in schema_graph.dfsOrder():
+        sns = schema.targetNamespace()
+        schema.__modulePath = '%s.%s' % (sns.modulePath(), schema.__moduleLeaf)
+        print 'Assign schema %s module path %s' % (schema.schemaLocation(), schema.__modulePath,)
+        sns.__schemaOrder.append(schema)
+        sns.__schemaHaveModules = (1 < len(sns.__schemaOrder))
 
     type_defs = []
     for c in component_graph.dfsOrder():
-        if isinstance(c, xs.structures.ElementDeclaration):
+        if isinstance(c, xs.structures.ElementDeclaration) and c._scopeIsGlobal():
             ed = c
             # Element declarations take precedence over types as far as names go
             ed.setNameInBinding(utility.PrepareIdentifier(ed.bestNCName(), ed.__bindingNamespace.__uniqueInModule))
@@ -1115,7 +1103,7 @@ Not until somebody pays me.  (http://www.rhapsody.com/goto?rcid=tra.9575689)
     for sns in namespace.siblingNamespaces():
         generator_kw = { }
         generator_kw['binding_target_namespace'] = sns
-        outf = StringIO.StringIO()
+        ns_outf = StringIO.StringIO()
 
         import_prefix = 'pyxb.xmlschema.'
         if sns == pyxb.namespace.XMLSchema:
@@ -1127,9 +1115,12 @@ Not until somebody pays me.  (http://www.rhapsody.com/goto?rcid=tra.9575689)
         template_map['version'] = pyxb.__version__
         template_map['targetNamespace'] = repr(sns.uri(),)
         template_map['import_prefix'] = import_prefix
+        if sns.isAbsentNamespace():
+            template_map['NamespaceDefinition'] = 'pyxb.namespace.CreateAbsentNamespace()'
+        else:
+            template_map['NamespaceDefinition'] = templates.replaceInText('pyxb.namespace.NamespaceForURI(%{targetNamespace}, create_if_missing=True)', **template_map)
 
-        # "import" in import_namespaces means Python import, not XSD import
-        import_namespaces = set()
+        import_namespaces = []
         for ins in sns.referencedNamespaces():
             if ins == sns:
                 continue
@@ -1137,16 +1128,45 @@ Not until somebody pays me.  (http://www.rhapsody.com/goto?rcid=tra.9575689)
                 if not ins.isBuiltinNamespace():
                     print 'WARNING: Dependency on %s with no module path' % (ins.uri(),)
                 continue
-            import_namespaces.add(ins)
+            if not (sns.__schemaHaveModules and (ins in sns.siblingNamespaces()) and ins.__schemaHaveModules):
+                import_namespaces.append('import %s # ref namespace' % (ins.modulePath(),))
 
-        template_map['aux_imports'] = "\n".join( [ 'import %s' % (_ns.modulePath(),) for _ns in import_namespaces ])
+        if sns.__schemaHaveModules:
+            print 'WARNING: Using multiple schema for output for %s' % (sns,)
+            
+            module_imports = []
+            for schema in sns.__schemaOrder:
+                module_imports.append('import %s # schema module' % (schema.__modulePath,))
+                schema.__outputFile = StringIO.StringIO()
+                imports = []
+                for dep_schema in schema_graph.edgeMap().get(schema, []):
+                    if dep_schema == schema:
+                        continue
+                    print 'Schema %s included %s' % (schema.schemaLocation(), dep_schema.schemaLocation())
+                    imports.append('import %s # schema' % (dep_schema.__modulePath,))
+                imports.extend(import_namespaces)
+                template_map['aux_imports'] = "\n".join(imports)
+                schema.__outputFile.write(templates.replaceInText('''# PyWXSB bindings for schema %{schema_location}
 
-        if sns.isAbsentNamespace():
-            template_map['NamespaceDefinition'] = 'pyxb.namespace.CreateAbsentNamespace()'
-        else:
-            template_map['NamespaceDefinition'] = templates.replaceInText('pyxb.namespace.NamespaceForURI(%{targetNamespace}, create_if_missing=True)', **template_map)
+# Generated %{date} by PyWXSB version %{version}
+import pyxb.binding
+import pyxb.exceptions_
+import sys
 
-        outf.write(templates.replaceInText('''# PyWXSB bindings for %{input}
+# Import bindings for namespaces imported into schema
+%{aux_imports}
+
+# Make sure there's a registered Namespace instance, and that it knows
+# about this module.
+Namespace = %{NamespaceDefinition}
+Namespace._setModule(sys.modules[__name__])
+Namespace.configureCategories(['typeBinding', 'elementBinding'])
+''', schema_location=schema.schemaLocation(), **template_map))
+            import_namespaces.extend(module_imports)
+        # "import" in import_namespaces means Python import, not XSD import
+        template_map['aux_imports'] = "\n".join(import_namespaces)
+
+        ns_outf.write(templates.replaceInText('''# PyWXSB bindings for %{input}
 # Generated %{date} by PyWXSB version %{version}
 import pyxb.binding
 import pyxb.exceptions_
@@ -1176,16 +1196,28 @@ def CreateFromDOM (node):
         # Give priority for identifiers to scoped element declarations
         #print 'Generating %d STDs' % (len(sns.__simpleTypeDefinitions),)
         for std in sns.__simpleTypeDefinitions:
-            outf.write(GenerateSTD(std, **generator_kw))
+            if sns.__schemaHaveModules:
+                outf = std._schema().__outputFile
+            else:
+                outf = ns_outf
+            outf.write(GenerateSTD(std, binding_schema=std._schema(), **generator_kw))
         #print 'Generating %d CTDs' % (len(sns.__complexTypeDefinitions),)
         for ctd in sns.__complexTypeDefinitions:
-            outf.write(GenerateCTD(ctd, **generator_kw))
+            if sns.__schemaHaveModules:
+                outf = ctd._schema().__outputFile
+            else:
+                outf = ns_outf
+            outf.write(GenerateCTD(ctd, binding_schema=ctd._schema(), **generator_kw))
         #print 'Generating %d ED' % (len(sns.__elementDeclarations),)
         for ed in sns.__elementDeclarations:
+            if sns.__schemaHaveModules:
+                outf = ed._schema().__outputFile
+            else:
+                outf = ns_outf
             outf.write(GenerateED(ed, **generator_kw))
 
-        outf.write(''.join(PostscriptItems))
-        sns.__bindingSource = outf.getvalue()
+        ns_outf.write(''.join(PostscriptItems))
+        sns.__bindingSource = ns_outf.getvalue()
 
     return namespace
 

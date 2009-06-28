@@ -1076,6 +1076,7 @@ class AttributeUse (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin, _V
     def __init__ (self, **kw):
         super(AttributeUse, self).__init__(**kw)
 
+    # dC:AU
     def _dependentComponents_vx (self):
         """Implement base class method.
 
@@ -1245,6 +1246,7 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.na
         """Return False, since element declarations are not wildcards."""
         return False
 
+    # dC:ED
     def _dependentComponents_vx (self):
         """Implement base class method.
 
@@ -1634,6 +1636,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         """Indicate whether this simple type is a built-in type."""
         return (self.UrTypeDefinition() == self)
 
+    # dC:CTD
     def _dependentComponents_vx (self):
         """Implement base class method.
 
@@ -1645,7 +1648,12 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         assert self.__baseTypeDefinition is not None
         rv.add(self.__baseTypeDefinition)
         assert self.__attributeUses is not None
-        rv.update(self.__attributeUses)
+        for au in self.__attributeUses:
+            rv.add(au)
+            ad = au.attributeDeclaration()
+            assert ad is not None
+            rv.add(ad)
+            rv.update(ad.dependentComponents())
         if self.attributeWildcard() is not None:
             rv.add(self.attributeWildcard())
         if self.CT_EMPTY != self.contentType():
@@ -2149,6 +2157,7 @@ class AttributeGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, p
     # A frozenset of AttributeUse instances
     __attributeUses = None
 
+    # dC:AGD
     def _dependentComponents_vx (self):
         """Implement base class method.
 
@@ -2246,6 +2255,7 @@ class ModelGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Anno
         """The model group for which this definition provides a name."""
         return self.__modelGroup
 
+    # dC:MGD
     def _dependentComponents_vx (self):
         """Implement base class method.
 
@@ -2383,6 +2393,7 @@ class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
         """The ModelGroupDefinition that names this group, or None if it is unnamed."""
         return self.__modelGroupDefinition
 
+    # dC:MG
     def _dependentComponents_vx (self):
         """Implement base class method.
 
@@ -2600,6 +2611,7 @@ class Particle (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin):
         Note that the wildcard may be in a nested model group."""
         return self.term().hasWildcardElement()
 
+    # dC:PRT
     def _dependentComponents_vx (self):
         """Implement base class method.
 
@@ -2971,6 +2983,7 @@ class Wildcard (_SchemaComponent_mixin, _Annotated_mixin):
         self.__namespaceConstraint = kw['namespace_constraint']
         self.__processContents = kw['process_contents']
 
+    # dC:WC
     def _dependentComponents_vx (self):
         """Implement base class method.
 
@@ -3043,6 +3056,7 @@ class IdentityConstraintDefinition (_SchemaComponent_mixin, _NamedComponent_mixi
     __annotations = None
     def annotations (self): return self.__annotations
 
+    # dC:ICD
     def _dependentComponents_vx (self):
         """Implement base class method.
 
@@ -3142,6 +3156,7 @@ class NotationDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Annot
     __publicIdentifier = None
     def publicIdentifier (self): return self.__publicIdentifier
 
+    # dC:ND
     def _dependentComponents_vx (self):
         """Implement base class method.
 
@@ -3175,6 +3190,7 @@ class Annotation (_SchemaComponent_mixin):
     def __init__ (self, **kw):
         super(Annotation, self).__init__(**kw)
 
+    # dC:Annotation
     def _dependentComponents_vx (self):
         """Implement base class method.
 
@@ -3338,6 +3354,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
             raise pyxb.LogicError('Expected member types')
         return self.__memberTypeDefinitions
 
+    # dC:STD
     def _dependentComponents_vx (self):
         """Implement base class method.
 
