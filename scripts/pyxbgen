@@ -134,15 +134,14 @@ if write_schema_path is not None:
 
 #print schema
 
-doc = minidom.parseString(schema)
-dom = doc.documentElement
-
 if uri_is_wsdl:
     import pyxb.standard.bindings.wsdl as wsdl
+    doc = minidom.parseString(schema)
+    dom = doc.documentElement
     spec = wsdl.definitions.createFromDOM(dom, process_schema=True, wsdl_location=schema_uri)
     wxs = spec.schema()
 else:
-    wxs = pyxb.xmlschema.schema.CreateFromDOM(dom, schema_location=schema_uri)
+    wxs = pyxb.xmlschema.schema.CreateFromLocation(schema_uri)
 
 tns = wxs.targetNamespace()
 
