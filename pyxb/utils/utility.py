@@ -277,16 +277,19 @@ class Graph:
         if reset or (self.__scc is None):
             self.tarjan(reset)
         return self.__scc
+    __scc = None
 
     def sccMap (self, reset=False):
         if reset or (self.__sccMap is None):
             self.tarjan(reset)
         return self.__sccMap
+    __sccMap = None
 
     def sccOrder (self, reset=False):
         if reset or (self.__sccOrder is None):
             self.tarjan(reset)
         return self.__sccOrder
+    __sccOrder = None
 
     def sccForNode (self, node, **kw):
         return self.sccMap(**kw).get(node, None)
