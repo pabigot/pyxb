@@ -4411,6 +4411,7 @@ class Schema (_SchemaComponent_mixin):
                 raise
             print '%s completed including %s from %s' % (self.__schemaLocation, included_schema.targetNamespace(), abs_uri)
         assert self.targetNamespace() == included_schema.targetNamespace()
+        self.__includedSchema.add(included_schema)
         #print xml
         return node
 
@@ -4423,15 +4424,14 @@ class Schema (_SchemaComponent_mixin):
 
         self.__requireInProlog(node.nodeName)
         import_eii = _ImportElementInformationItem(self, node)
-        if not import_eii.redundant():
+        if import_eii.namespace().prefix() is None:
             ns_map = pyxb.namespace.NamespaceContext.GetNodeContext(node).inScopeNamespaces()
             for (pfx, ns) in ns_map.items():
                 if import_eii.namespace() == ns:
-                    import_eii.setPrefix(pfx)
+                    import_eii.namespace().setPrefix(pfx)
                     break
-            if import_eii.prefix() is None:
-                print 'NO PREFIX FOR %s'
-            print 'Imported %s, prefix %s, back to %s' % (import_eii.namespace().uri(), import_eii.prefix(), self.__schemaLocation)
+        print 'Imported %s, prefix %s, back to %s' % (import_eii.namespace().uri(), import_eii.prefix(), self.__schemaLocation)
+        self.__importedSchema.add(import_eii.schema())
         self.targetNamespace().importNamespace(import_eii.namespace())
         return node
 
