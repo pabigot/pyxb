@@ -444,8 +444,7 @@ class _NamedComponent_mixin (pyxb.cscRoot):
                 raise pyxb.IncompleteImplementationError('Scope %s reference lookup of %s not implemented for type %s' % (scope_en, expanded_name, icls))
             if rv is None:
                 raise pyxb.SchemaValidationError('Unable to resolve %s as %s in scope %s' % (expanded_name, icls, scope_en))
-        elif _ScopedDeclaration_mixin.SCOPE_global == scope:
-            #assert not _ScopedDeclaration_mixin.ScopeIsIndeterminate(scope)
+        elif _ScopedDeclaration_mixin.ScopeIsGlobal(scope) or _ScopedDeclaration_mixin.ScopeIsIndeterminate(scope):
             if (issubclass(icls, SimpleTypeDefinition) or issubclass(icls, ComplexTypeDefinition)):
                 rv = expanded_name.typeDefinition()
             elif issubclass(icls, AttributeGroupDefinition):
@@ -462,8 +461,6 @@ class _NamedComponent_mixin (pyxb.cscRoot):
                 raise pyxb.IncompleteImplementationError('Reference lookup of %s not implemented for type %s' % (expanded_name, icls))
             if rv is None:
                 raise pyxb.SchemaValidationError('Unable to resolve %s as %s' % (expanded_name, icls))
-        elif _ScopedDeclaration_mixin.ScopeIsIndeterminate(scope):
-            raise pyxb.LogicError('Attempt to resolve %s in indeterminate scope' % (expanded_name,))
         else:
             raise pyxb.IncompleteImplementationError('Unable to resolve reference %s' % (expanded_name,))
         return rv
@@ -552,8 +549,6 @@ class _NamedComponent_mixin (pyxb.cscRoot):
         instance."""
 
         if self.__pickleAsReference():
-            if self._scopeIsIndeterminate():
-                raise pyxb.LogicError('Attempt to pickle reference to %s tns %s in indeterminate scope in %s' % (self, self.targetNamespace(), pyxb.namespace.Namespace.PicklingNamespace()))
             scope = self._scope()
             if isinstance(self, _ScopedDeclaration_mixin):
                 # If scope is global, we can look it up in the namespace.
@@ -566,7 +561,11 @@ class _NamedComponent_mixin (pyxb.cscRoot):
                 elif isinstance(self.scope(), ComplexTypeDefinition):
                     scope = self.scope().expandedName().uriTuple()
                 elif self._scopeIsIndeterminate():
+                    raise pyxb.LogicError('Attempt to pickle reference to %s tns %s in indeterminate scope in %s' % (self, self.targetNamespace(), pyxb.namespace.Namespace.PicklingNamespace()))
                     assert False
+            else:
+                assert isinstance(self, _NamedComponent_mixin), 'Pickling unnamed component %s in indeterminate scope by reference' % (self,)
+
             rv = ( self.expandedName().uriTuple(), scope, self.__class__ )
             return rv
         return ()
