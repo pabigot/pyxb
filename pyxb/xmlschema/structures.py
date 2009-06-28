@@ -212,8 +212,6 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin):
 
         assert owner is not None
         that = copy.copy(self)
-        assert (self not in (ElementDeclaration, ComplexTypeDefinition, SimpleTypeDefinition)) or self._schema() is not None, '%s has no schema' % (self,)
-        #assert that._schema() is not None
         that.__cloneSource = self
         if self.__clones is None:
             self.__clones = set()
@@ -1258,7 +1256,6 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.na
 
     def __init__ (self, *args, **kw):
         super(ElementDeclaration, self).__init__(*args, **kw)
-        assert self._schema() is not None
 
     # CFD:ED CFD:ElementDeclaration
     @classmethod
@@ -1544,7 +1541,6 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         self.__derivationMethod = kw.get('derivation_method')
         self.__scopedElementDeclarations = { }
         self.__scopedAttributeDeclarations = { }
-        assert (self._schema() is not None) or not _PastAddBuiltInTypes
 
     def hasWildcardElement (self):
         """Return True iff this type includes a wildcard element in
