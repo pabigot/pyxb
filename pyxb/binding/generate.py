@@ -41,7 +41,6 @@ import os.path
 # Initialize UniqueInBinding with the public identifiers we generate,
 # import, or otherwise can't have mucked about with.
 UniqueInBinding = set([ 'pyxb', 'sys', 'Namespace', 'CreateFromDocument', 'CreateFromDOM' ])
-PostscriptItems = []
 
 def PrefixModule (value, text=None):
     if text is None:
@@ -130,7 +129,7 @@ class ReferenceSchemaComponent (ReferenceLiteral):
         self.__component = component
         binding_module = kw['binding_module']
         rv = binding_module.referenceSchemaComponent(component)
-        print '%s in %s is %s' % (component.expandedName(), binding_module, rv)
+        #print '%s in %s is %s' % (component.expandedName(), binding_module, rv)
         self.setLiteral(rv)
 
 class ReferenceNamespace (ReferenceLiteral):
@@ -140,7 +139,7 @@ class ReferenceNamespace (ReferenceLiteral):
         self.__namespace = kw['namespace']
         binding_module = kw['binding_module']
         rv = binding_module.referenceNamespace(self.__namespace)
-        print '%s in %s is %s' % (self.__namespace, binding_module, rv)
+        #print '%s in %s is %s' % (self.__namespace, binding_module, rv)
         self.setLiteral(rv)
 
 class ReferenceExpandedName (ReferenceLiteral):
@@ -280,13 +279,13 @@ def pythonLiteral (value, **kw):
     return str(value)
 
 
-def GenerateModelGroupAll (ctd, mga, template_map, **kw):
+def GenerateModelGroupAll (ctd, mga, binding_module, template_map, **kw):
     mga_tag = '__AModelGroup'
     template_map['mga_tag'] = mga_tag
     lines = []
     lines2 = []
     for ( dfa, is_required ) in mga.particles():
-        ( dfa_tag, dfa_lines ) = GenerateContentModel(ctd, dfa, **kw)
+        ( dfa_tag, dfa_lines ) = GenerateContentModel(ctd, dfa, binding_module, **kw)
         lines.extend(dfa_lines)
         template_map['dfa_tag'] = dfa_tag
         template_map['is_required'] = binding_module.literal(is_required, **kw)
@@ -329,7 +328,7 @@ def GenerateContentModel (ctd, automaton, binding_module, **kw):
                 template_map['kw_key'] = 'term'
                 template_map['kw_val'] = binding_module.literal(key, **kw)
             elif isinstance(key, nfa.AllWalker):
-                (mga_tag, mga_defns) = GenerateModelGroupAll(ctd, key, template_map.copy(), **kw)
+                (mga_tag, mga_defns) = GenerateModelGroupAll(ctd, key, binding_module, template_map.copy(), **kw)
                 template_map['kw_key'] = 'term'
                 template_map['kw_val'] = mga_tag
                 lines.extend(mga_defns)
@@ -347,7 +346,9 @@ def GenerateContentModel (ctd, automaton, binding_module, **kw):
     lines.append("})")
     return (cmi, lines)
 
-def GenerateFacets (outf, td, **kw):
+def GenerateFacets (td, **kw):
+    binding_module = kw['binding_module']
+    outf = binding_module.bindingIO()
     facet_instances = []
     for (fc, fi) in td.facets().items():
         #if (fi is None) or (fi.ownerTypeDefinition() != td):
@@ -462,9 +463,9 @@ class %{std} (pyxb.binding.basis.STD_union):
         # If generating datatype_facets, throw away the class garbage
         outf = StringIO.StringIO()
         if std.isBuiltin():
-            GenerateFacets(outf, std, **kw)
+            GenerateFacets(std, **kw)
     else:
-        GenerateFacets(outf, std, **kw)
+        GenerateFacets(std, **kw)
 
     if std.name() is not None:
         outf.write(templates.replaceInText("Namespace.addCategoryObject('typeBinding', %{localName}, %{std})\n",
@@ -594,7 +595,7 @@ class %{ctd} (%{superclass}):
     if isinstance(content_basis, xs.structures.Particle):
         plurality_data = content_basis.pluralityData().nameBasedPlurality()
 
-        PostscriptItems.append("\n\n")
+        outf.postscript().append("\n\n")
         for (expanded_name, (is_plural, ed)) in plurality_data.items():
             # @todo Detect and account for plurality change between this and base
             if ed.scope() == ctd:
@@ -633,15 +634,15 @@ class %{ctd} (%{superclass}):
         element's type."""
         return self.%{use}.append(self, new_value)''', **ef_map))
 
-            PostscriptItems.append(templates.replaceInText('''
+            outf.postscript().append(templates.replaceInText('''
 %{ctd}._AddElement(pyxb.binding.basis.element(%{name_expr}, %{typeDefinition}%{element_aux_init}))
 ''', ctd=template_map['ctd'], **ef_map))
 
         fa = nfa.Thompson(content_basis).nfa()
         fa = fa.buildDFA()
         (cmi, cmi_defn) = GenerateContentModel(ctd=ctd, automaton=fa, binding_module=binding_module, **kw)
-        PostscriptItems.append("\n".join(cmi_defn))
-        PostscriptItems.append("\n")
+        outf.postscript().append("\n".join(cmi_defn))
+        outf.postscript().append("\n")
 
     if need_content:
         PostscriptItems.append(templates.replaceInText('''
@@ -773,7 +774,7 @@ Namespace.addCategoryObject('elementBinding', %{class}.name().localName(), %{cla
 ''', **template_map))
 
     if ed.substitutionGroupAffiliation() is not None:
-        PostscriptItems.append(templates.replaceInText('''
+        outf.postscript().append(templates.replaceInText('''
 %{class}._setSubstitutionGroup(%{substitution_group})
 ''', **template_map))
 
@@ -1419,11 +1420,6 @@ def GeneratePython(schema_location=None,
                    module_path_prefix=''):
 
     binding_module_prefix = ['binding']
-
-    global UniqueInBinding
-    global PostscriptItems
-    UniqueInBinding.clear()
-    PostscriptItems = []
 
     pyxb.namespace.XMLSchema.setModulePath('pyxb.binding.datatypes')
 
