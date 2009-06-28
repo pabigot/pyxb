@@ -1082,7 +1082,7 @@ class AttributeUse (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin, _V
 
         Attribute uses depend only on their attribute declarations.
         """
-        return frozenset([self.__attributeDeclaration])
+        return frozenset() # [self.__attributeDeclaration])
 
     def matchingQNameMembers (self, au_set):
         """Return the subset of au_set for which the use names match this use."""
@@ -1647,14 +1647,9 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         rv = set()
         assert self.__baseTypeDefinition is not None
         rv.add(self.__baseTypeDefinition)
-        assert self.__attributeUses is not None
         for decl in self.localScopedDeclarations():
             if isinstance(decl, AttributeDeclaration):
                 rv.add(decl.typeDefinition())
-        if self.attributeWildcard() is not None:
-            rv.add(self.attributeWildcard())
-        if self.CT_EMPTY != self.contentType():
-            rv.add(self.contentType()[1])
         return frozenset(rv)
 
     # CFD:CTD CFD:ComplexTypeDefinition
@@ -2161,10 +2156,7 @@ class AttributeGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, p
         Attribute group definitions depend on their attribute uses and
         any associated wildcard.
         """
-        rv = set(self.__attributeUses)
-        if self.attributeWildcard() is not None:
-            rv.add(self.attributeWildcard())
-        return frozenset(rv)
+        return frozenset()
 
     def __init__ (self, *args, **kw):
         super(AttributeGroupDefinition, self).__init__(*args, **kw)
@@ -2258,7 +2250,7 @@ class ModelGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Anno
 
         Model group definitions depend only on their model group.
         """
-        return frozenset([self.__modelGroup])
+        return frozenset() #[self.__modelGroup])
 
     # CFD:MGD CFD:ModelGroupDefinition
     @classmethod
@@ -2396,7 +2388,7 @@ class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
 
         Model groups depend on their particles.
         """
-        return frozenset(self.__particles)
+        return frozenset() # self.__particles)
 
     def __init__ (self, compositor, particles, *args, **kw):
         """Create a new model group.
@@ -2614,7 +2606,7 @@ class Particle (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin):
 
         Particles depend on their term.
         """
-        return frozenset([self.__term])
+        return frozenset() # [self.__term])
 
     def __init__ (self, term, *args, **kw):
         """Create a particle from the given DOM node.
