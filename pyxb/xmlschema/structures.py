@@ -185,6 +185,7 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin):
         """
         assert self.__cloneSource is not None
         owner = kw['owner']
+        self.__nameInBinding = None
         self.__owner = owner
         self.__ownedComponents = set()
         self.__clones = None
