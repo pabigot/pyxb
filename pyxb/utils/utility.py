@@ -196,6 +196,9 @@ class Graph:
         self.__nodes.add(source)
         self.__nodes.add(target)
 
+    def addNode (self, node):
+        self.__nodes.add(node)
+
     __roots = None
     def roots (self, reset=False):
         if reset or (self.__roots is None):

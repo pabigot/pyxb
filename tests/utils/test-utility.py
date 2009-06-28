@@ -143,9 +143,15 @@ class TestGraph (unittest.TestCase):
         graph = Graph()
         graph.addEdge(2, 2)
         graph.addEdge(2, 1)
+        graph.addNode(3)
         order = graph.dfsOrder()
         self.assertTrue(isinstance(order, list))
         self.assertEqual(len(graph.nodes()), len(order))
+        walked = set()
+        for source in order:
+            for target in graph.edgeMap().get(source, []):
+                self.assertTrue((target in walked) or (graph.sccForNode(source) == graph.sccForNode(target)), '%s -> %s not satisfied, seen' % (source, target))
+            walked.add(source)
 
 if '__main__' == __name__:
     unittest.main()
