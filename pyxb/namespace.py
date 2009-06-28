@@ -1314,7 +1314,7 @@ class _XMLSchema_instance (Namespace):
         
         if not self.__doneThis:
             assert structures_module is not None
-            schema = structures_module.Schema(namespace_context=self.initialNamespaceContext())
+            schema = structures_module.Schema(namespace_context=self.initialNamespaceContext(), schema_location="URN:noLocation:xsi")
             schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('type', self))
             schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('nil', self))
             schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('schemaLocation', self))
@@ -1336,7 +1336,7 @@ class _XML (Namespace):
         
         if not self.__doneThis:
             assert structures_module is not None
-            schema = structures_module.Schema(namespace_context=self.initialNamespaceContext())
+            schema = structures_module.Schema(namespace_context=self.initialNamespaceContext(), schema_location="URN:noLocation:XML")
             schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('base', self))
             schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('id', self))
             schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('space', self))
@@ -1358,7 +1358,7 @@ class _XHTML (Namespace):
         that we plan to use, so this doesn't do anything."""
         
         if not self.__doneThis:
-            schema = structures_module.Schema(namespace_context=self.initialNamespaceContext())
+            schema = structures_module.Schema(namespace_context=self.initialNamespaceContext(), schema_location='URN:noLocation:XHTML')
             self.__doneThis = True
             # @todo Define a wildcard element declaration 'p' that takes anything.
         return self
