@@ -1067,6 +1067,8 @@ class _ModuleNaming_mixin (object):
     __anonCTDIndex = None
     __uniqueInModule = None
 
+    __ComponentBindingModuleMap = {}
+
     def __init__ (self, *args, **kw):
         super(_ModuleNaming_mixin, self).__init__(*args, **kw)
         self.__anonSTDIndex = 1
@@ -1087,7 +1089,17 @@ class _ModuleNaming_mixin (object):
     def uniqueInModule (self):
         return self.__uniqueInModule
 
-    def _bindComponentInModule (self, component):
+
+    @classmethod
+    def BindComponentInModule (cls, component, module):
+        cls.__ComponentBindingModuleMap[component] = module
+        return module
+
+    @classmethod
+    def ComponentBindingModule (cls, component):
+        return cls.__ComponentBindingModuleMap.get(component)
+
+    def _bindComponent (self, component):
         kw = {}
         rv = component.bestNCName()
         if rv is None:
@@ -1153,18 +1165,18 @@ class NamespaceModule (_ModuleNaming_mixin):
     __components = None
     __componentBindingName = None
 
-    def bindComponentInModule (self, component, schema_group_module):
-        ns_name = self._bindComponentInModule(component)
+    def bindComponent (self, component, schema_group_module):
+        ns_name = self._bindComponent(component)
         print '%s NS %s' % (component.expandedName(), ns_name)
 
-        binding_context = self
+        binding_module = self
         if schema_group_module is not None:
-            binding_context = schema_group_module.bindComponentInModule(component)
+            binding_module = schema_group_module.bindComponent(component)
         if self.__namespaceGroupModule:
-            self.__namespaceGroupModule.bindComponentInModule(component)
+            self.__namespaceGroupModule.bindComponent(component)
 
-        component.setNameInBinding(binding_context.nameInModule(component))
-        return binding_context
+        component.setNameInBinding(binding_module.nameInModule(component))
+        return _ModuleNaming_mixin.BindComponentInModule(component, binding_module)
 
 class NamespaceGroupModule (_ModuleNaming_mixin):
     """This class represents a Python module that holds all the
@@ -1195,8 +1207,8 @@ class NamespaceGroupModule (_ModuleNaming_mixin):
             nsm.setSchemaGroupPrefix(module_prefix + [ utility.MakeUnique('_%s' % (nsm.namespace().prefix(),), self.__UniqueInGroups) ])
         self._initializeUniqueInModule(self._UniqueInModule)
 
-    def bindComponentInModule (self, component):
-        ngm_name = self._bindComponentInModule(component)
+    def bindComponent (self, component):
+        ngm_name = self._bindComponent(component)
         print '%s NGM %s' % (component.expandedName(), ngm_name)
         return self
             
@@ -1228,8 +1240,8 @@ class SchemaGroupModule (_ModuleNaming_mixin):
         self._setModulePath(self.__namespaceModule.schemaGroupModulePath(self))
         self._initializeUniqueInModule(self._UniqueInModule)
 
-    def bindComponentInModule (self, component):
-        sgm_name = self._bindComponentInModule(component)
+    def bindComponent (self, component):
+        sgm_name = self._bindComponent(component)
         print '%s SGM %s' % (component.expandedName(), sgm_name)
         return self
 
@@ -1312,7 +1324,7 @@ def AltGenerate(schema_location=None,
     for c in component_order:
         if isinstance(c, xs.structures.ElementDeclaration) and c._scopeIsGlobal():
             nsm = namespace_module_map[c.__bindingNamespace]
-            nsm.bindComponentInModule(c, c._schema().__schemaGroupModule)
+            nsm.bindComponent(c, c._schema().__schemaGroupModule)
             c.__bindingNamespace.__elementDeclarations.append(c)
         else:
             type_defs.append(c)
@@ -1320,7 +1332,7 @@ def AltGenerate(schema_location=None,
     for td in type_defs:
         nsm = namespace_module_map.get(td.__bindingNamespace, None)
         assert nsm is not None, 'No namespace module for %s type %s scope %s namespace %s' % (td.expandedName(), type(td), td._scope(), td.__bindingNamespace)
-        module_context = nsm.bindComponentInModule(td, td._schema().__schemaGroupModule)
+        module_context = nsm.bindComponent(td, td._schema().__schemaGroupModule)
         if isinstance(td, xs.structures.SimpleTypeDefinition):
             _PrepareSimpleTypeDefinition(td, module_context)
         elif isinstance(td, xs.structures.ComplexTypeDefinition):
@@ -1329,9 +1341,6 @@ def AltGenerate(schema_location=None,
             assert False, 'Unexpected component type %s' % (type(td),)
 
     assert False
-
-    # If the namespace is not a multi, it gets a binding, and all schemas in it get the same binding.
-    # If the namespace is a multi, it gets a binding, and all schema groups in it get their own bindings
 
     for sns in namespace.siblingNamespaces():
         generator_kw = { }
