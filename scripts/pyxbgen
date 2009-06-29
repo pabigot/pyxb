@@ -3,7 +3,7 @@
 import getopt
 import sys
 import pyxb.xmlschema
-from pyxb.binding.generate import GeneratePython, AltGenerate
+from pyxb.binding.generate import GeneratePython
 import os.path
 
 # module path prefix
@@ -149,7 +149,7 @@ tns = wxs.targetNamespace()
 # parsed schema file
 try:
     tns.setModulePath(module_path)
-    AltGenerate(namespace=tns, module_path_prefix=module_path_prefix)
+    GeneratePython(namespace=tns, module_path_prefix=module_path_prefix)
     for sns in tns.siblingNamespaces():
         binding_source = sns.__bindingSource
         if binding_source is not None:
