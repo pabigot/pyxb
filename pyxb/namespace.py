@@ -1555,8 +1555,8 @@ class NamespaceContext (object):
             else:
                 ns = NamespaceForURI(uri, create_if_missing=True)
                 self.__inScopeNamespaces[prefix] = ns
-                if ns.prefix() is None:
-                    ns.setPrefix(prefix)
+                #if ns.prefix() is None:
+                #    ns.setPrefix(prefix)
                 # @todo should we record prefix in namespace so we can use it
                 # during generation?  I'd rather make the user specify what to
                 # use.
