@@ -322,27 +322,6 @@ class Graph:
         text += "};\n"
         return text
 
-    def getIndependentOrder (self):
-        reverse_map = self.__reverseMap.copy()
-        need_nodes = self.__nodes.copy()
-        prune_order = []
-        cycle_groups = set()
-        did_prune = True
-        while (0 < len(need_nodes)) and did_prune:
-            did_prune = False
-            for n in need_nodes:
-                if not (n in reverse_map):
-                    prune_order.append(n)
-                    did_prune = True
-                    need_nodes.remove(n)
-                    for hn in reverse_map.keys():
-                        hset = reverse_map[hn]
-                        hset.discard(n)
-                        if 0 == len(hset):
-                            del reverse_map[hn]
-                    break
-        return (prune_order, need_nodes)
-
     def dfsOrder (self, reset=False):
         if reset or (self.__dfsOrder is None):
             self.__dfsWalked = set()
