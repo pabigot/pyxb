@@ -1109,7 +1109,6 @@ class NamespaceModule (_ModuleNaming_mixin):
         self.__namespaceGroup = ns_scc
         self._RecordNamespace(self)
         self.__namespaceGroupHead = self.ForNamespace(ns_scc[0])
-        assert 0 < len(components)
         self.__modulePrefix = module_prefix[:]
         self.__components = components
         # wow! fromkeys actually IS useful!
