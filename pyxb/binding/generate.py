@@ -470,17 +470,6 @@ class %{std} (pyxb.binding.basis.STD_union):
     if std.name() is not None:
         outf.write(templates.replaceInText("Namespace.addCategoryObject('typeBinding', %{localName}, %{std})\n",
                                            localName=binding_module.literal(std.name(), **kw), **template_map))
-def TypeSetCompatible (s1, s2):
-    for ctd1 in s1:
-        match = False
-        for ctd2 in s2:
-            if ctd1.name() == ctd2.name():
-                match = True
-                break
-        if not match:
-            return False
-    return True
-
 def expandedNameToUseMap (expanded_name, container_name, class_unique, class_keywords, kw):
     use_map = { }
     unique_name = utility.PrepareIdentifier(expanded_name.localName(), class_unique, class_keywords)
@@ -785,7 +774,6 @@ GeneratorMap = {
 }
 
 def _PrepareSimpleTypeDefinition (std, nsm, module_context):
-    std.__uniqueInBindingClass = basis.simpleTypeDefinition._ReservedSymbols.copy()
     ptd = std.primitiveTypeDefinition(throw_if_absent=False)
     if (ptd is not None) and ptd.hasPythonSupport():
         # Only generate enumeration constants for named simple
@@ -796,16 +784,12 @@ def _PrepareSimpleTypeDefinition (std, nsm, module_context):
             if (enum_facet is not None) and (std.expandedName() is not None):
                 for ei in enum_facet.items():
                     assert ei.tag() is None
-                    ei._setTag(utility.PrepareIdentifier(ei.unicodeValue(), std.__uniqueInBindingClass))
+                    ei._setTag(utility.PrepareIdentifier(ei.unicodeValue(), nsm.uniqueInClass(std)))
                     #print ' Enum %s represents %s' % (ei.tag(), ei.unicodeValue())
-            #print '%s unique: %s' % (std.expandedName(), std.__uniqueInBindingClass)
+            #print '%s unique: %s' % (std.expandedName(), nsm.uniqueInClass(std))
 
 def _PrepareComplexTypeDefinition (ctd, nsm, module_context):
     #print '%s represents %s in %s' % (ctd.nameInBinding(), ctd.expandedName(), nsm.namespace())
-    if ctd._isHierarchyRoot():
-        ctd.__uniqueInBindingClass = basis.complexTypeDefinition._ReservedSymbols.copy()
-    else:
-        ctd.__uniqueInBindingClass = ctd.baseTypeDefinition().__uniqueInBindingClass.copy()
     content_basis = None
     content_type_tag = ctd._contentTypeTag()
     if (ctd.CT_SIMPLE == content_type_tag):
@@ -829,7 +813,7 @@ def _PrepareComplexTypeDefinition (ctd, nsm, module_context):
 
 def _SetNameWithAccessors (component, container, is_plural, binding_module, nsm, kw):
     use_map = { }
-    class_unique = container.__uniqueInBindingClass
+    class_unique = nsm.uniqueInClass(container)
     assert isinstance(component, xs.structures._ScopedDeclaration_mixin)
     unique_name = utility.PrepareIdentifier(component.expandedName().localName(), class_unique)
     use_map['id'] = unique_name
@@ -902,6 +886,7 @@ class _ModuleNaming_mixin (object):
     __anonSTDIndex = None
     __anonCTDIndex = None
     __uniqueInModule = None
+    __uniqueInClass = None
 
     __ComponentBindingModuleMap = {}
 
@@ -915,6 +900,7 @@ class _ModuleNaming_mixin (object):
         self.__bindingIO = None
         self.__importedSchema = set()
         self.__importedNamespaces = set()
+        self.__uniqueInClass = {}
 
     def _import (self, module):
         if isinstance(module, (SchemaGroupModule, xs.structures.Schema)):
@@ -923,6 +909,23 @@ class _ModuleNaming_mixin (object):
             self._importNamespace(module)
         else:
             raise pyxb.LogicError('Import of unrecognized object type s' % (type(module),))
+
+    def uniqueInClass (self, component):
+        rv = self.__uniqueInClass.get(component)
+        if rv is None:
+            rv = set()
+            if isinstance(component, xs.structures.SimpleTypeDefinition):
+                rv.update(basis.simpleTypeDefinition._ReservedSymbols)
+            else:
+                assert isinstance(component, xs.structures.ComplexTypeDefinition)
+                if component._isHierarchyRoot():
+                    rv.update(basis.complexTypeDefinition._ReservedSymbols)
+                else:
+                    base_td = component.baseTypeDefinition()
+                    base_nsm = NamespaceModule.ForComponent(base_td)
+                    rv.update(base_nsm.uniqueInClass(base_td))
+            self.__uniqueInClass[component] = rv
+        return rv
 
     def _importSchema (self, schema_group_module):
         assert isinstance(schema_group_module, _ModuleNaming_mixin)
@@ -1087,10 +1090,19 @@ class NamespaceModule (_ModuleNaming_mixin):
     __namespaceGroupHead = None
     __namespaceGroup = None
 
+    def componentsInNamespace (self):
+        return self.__components
+    __components = None
+
+    @classmethod
+    def ForComponent (cls, component):
+        return cls.__ComponentModuleMap.get(component)
+    __ComponentModuleMap = { }
+
     def namespaceGroupMulti (self):
         return 1 < len(self.__namespaceGroup)
 
-    def __init__ (self, namespace, module_prefix, ns_scc):
+    def __init__ (self, namespace, module_prefix, ns_scc, components):
         super(NamespaceModule, self).__init__(self)
         self.__namespace = namespace
         print 'NSM Namespace %s' % (namespace,)
@@ -1103,8 +1115,10 @@ class NamespaceModule (_ModuleNaming_mixin):
         self.__namespaceGroupHead = self.ForNamespace(ns_scc[0])
         print 'PREFIX %s' % (module_prefix,)
         self.__modulePrefix = module_prefix[:]
+        self.__components = components
+        # wow! fromkeys actually IS useful!
+        self.__ComponentModuleMap.update(dict.fromkeys(self.__components, self))
         self.__namespaceBindingNames = {}
-        self.__components = []
         self.__componentBindingName = {}
         self._initializeUniqueInModule(self._UniqueInModule)
 
@@ -1335,32 +1349,23 @@ def GeneratePython(schema_location=None,
     siblings = nsdep.siblingNamespaces()
 
     used_modules = {}
-    component_namespace_map = { }
+    component_namespace_map = {}
+    namespace_component_map = {}
     for sns in siblings:
         for c in sns.components():
             if (isinstance(c, xs.structures.ElementDeclaration) and c._scopeIsGlobal()) or c.isTypeDefinition():
                 assert c._schema().targetNamespace() == sns
                 component_namespace_map[c] = sns
+                namespace_component_map.setdefault(sns, set()).add(c)
+    
     all_components = component_namespace_map.keys()
-
-    component_graph = utility.Graph()
-    for c in all_components:
-        component_graph.addNode(c)
-        deps = c.dependentComponents()
-        for target in deps:
-            if target in all_components:
-                component_graph.addEdge(c, target)
-
-    if len(component_graph.sccOrder()) != len(component_graph.nodes()):
-        raise pyxb.SchemaValidationError('Dependency loop in component graph.')
-    component_order = [ _scc[0] for _scc in component_graph.sccOrder() ]
 
     namespace_module_map = {}
     unique_in_bindings = set([NamespaceGroupModule._GroupPrefix])
     for ns_scc in nsdep.namespaceOrder():
         namespace_modules = []
         for ns in ns_scc:
-            nsm = NamespaceModule(ns, binding_module_prefix, ns_scc)
+            nsm = NamespaceModule(ns, binding_module_prefix, ns_scc, namespace_component_map.get(ns, set()))
             namespace_module_map[ns] = nsm
             ns.__namespaceModule = nsm
             assert ns == nsm.namespace()
@@ -1382,6 +1387,7 @@ def GeneratePython(schema_location=None,
             assert namespace_module_map[nsg_head.namespace()].namespaceGroupModule() == ngm
             print 'Group headed by %s stores in %s' % (nsg_head, ngm.modulePath())
 
+    schema_module_map = {}
     for sc_scc in nsdep.schemaOrder():
         print 'Schema set: %s' % (SchemaLocations(sc_scc),)
         scg_head = sc_scc[0]
@@ -1391,7 +1397,19 @@ def GeneratePython(schema_location=None,
             sgm = SchemaGroupModule(nsm, sc_scc)
             print 'Schema group stores in %s: %s' % (sgm.modulePath(), ' '.join([ _s.schemaLocationTag() for _s in sc_scc]))
         for sc in sc_scc:
-            sc.__schemaGroupModule = sgm
+            schema_module_map[sc] = sgm
+
+    component_graph = utility.Graph()
+    for c in all_components:
+        component_graph.addNode(c)
+        deps = c.dependentComponents()
+        for target in deps:
+            if target in all_components:
+                component_graph.addEdge(c, target)
+
+    if len(component_graph.sccOrder()) != len(component_graph.nodes()):
+        raise pyxb.SchemaValidationError('Dependency loop in component graph.')
+    component_order = [ _scc[0] for _scc in component_graph.sccOrder() ]
 
     element_declarations = []
     type_definitions = []
@@ -1409,7 +1427,7 @@ def GeneratePython(schema_location=None,
     for td in type_definitions:
         nsm = namespace_module_map.get(component_namespace_map[td])
         assert nsm is not None, 'No namespace module for %s type %s scope %s namespace %s' % (td.expandedName(), type(td), td._scope(), component_namespace_map[td])
-        module_context = nsm.bindComponent(td, td._schema().__schemaGroupModule)
+        module_context = nsm.bindComponent(td, schema_module_map[td._schema()])
         if isinstance(td, xs.structures.SimpleTypeDefinition):
             _PrepareSimpleTypeDefinition(td, nsm, module_context)
             simple_type_definitions.append(td)
