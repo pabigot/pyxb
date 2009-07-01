@@ -25,9 +25,13 @@ stns = pyxb.namespace.NamespaceForURI('URN:shared-types')
 stns.setModulePath('st')
 
 # Now get and build a module that refers to that module.
-code = pyxb.binding.generate.GeneratePython(schema_location=schema_path + '/test-external.xsd')
-rv = compile(code, 'test-external', 'exec')
-eval(rv)
+modules = pyxb.binding.generate.GenerateAllPython(schema_location=schema_path + '/test-external.xsd')
+for m in modules:
+    if m.namespace() != stns:
+        code = m.moduleContents()
+        rv = compile(code, 'test-external', 'exec')
+        eval(rv)
+        break
 
 from pyxb.exceptions_ import *
 

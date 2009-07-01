@@ -918,6 +918,7 @@ class _ModuleNaming_mixin (object):
                 else:
                     base_td = component.baseTypeDefinition()
                     base_nsm = NamespaceModule.ForComponent(base_td)
+                    assert base_nsm is not None, 'No module for base type %s for component %s' % (base_td, component)
                     rv.update(base_nsm.uniqueInClass(base_td))
             self.__uniqueInClass[component] = rv
         return rv
@@ -957,8 +958,8 @@ class _ModuleNaming_mixin (object):
             assert sgm.modulePath() is not None
             aux_imports.append('import %s' % (sgm.modulePath(),))
         self.__bindingIO.prolog().append(self.__bindingIO.expand('''# %{filePath}
-# PyWXSB bindings for %{input}
-# Generated %{date} by PyWXSB version %{pyxbVersion}
+# PyXB bindings for %{input}
+# Generated %{date} by PyXB version %{pyxbVersion}
 import pyxb.binding
 import pyxb.exceptions_
 import pyxb.utils.domutils
@@ -1108,7 +1109,7 @@ class NamespaceModule (_ModuleNaming_mixin):
         self.__namespaceGroup = ns_scc
         self._RecordNamespace(self)
         self.__namespaceGroupHead = self.ForNamespace(ns_scc[0])
-        print 'PREFIX %s' % (module_prefix,)
+        assert 0 < len(components)
         self.__modulePrefix = module_prefix[:]
         self.__components = components
         # wow! fromkeys actually IS useful!
@@ -1320,10 +1321,22 @@ def SchemaLocations (sc_set):
             rvs.append("no location for %s" % (sc.targetNamespace(),))
     return "\n  ".join(rvs)
 
-def GeneratePython(schema_location=None,
-                   namespace=None,
-                   module_path_prefix=[]):
+def GeneratePython (schema_location=None,
+                    namespace=None,
+                    module_path_prefix=[]):
 
+    modules = GenerateAllPython(schema_location, namespace, module_path_prefix)
+
+
+    assert 1 == len(modules), '%s produced %d modules: %s' % (namespace, len(modules), " ".join([ str(_m) for _m in modules]))
+    return modules.pop().moduleContents()
+
+def GenerateAllPython (schema_location=None,
+                       namespace=None,
+                       module_path_prefix=[],
+                       _process_builtins=False):
+    modules = set()
+    
     if module_path_prefix:
         binding_module_prefix = module_path_prefix.split('.')
     else:
@@ -1347,8 +1360,11 @@ def GeneratePython(schema_location=None,
     component_namespace_map = {}
     namespace_component_map = {}
     for sns in siblings:
+        if sns.isBuiltinNamespace() and (not _process_builtins):
+            continue
         for c in sns.components():
             if (isinstance(c, xs.structures.ElementDeclaration) and c._scopeIsGlobal()) or c.isTypeDefinition():
+                assert c._schema() is not None, '%s has no schema' % (c._schema(),)
                 assert c._schema().targetNamespace() == sns
                 component_namespace_map[c] = sns
                 namespace_component_map.setdefault(sns, set()).add(c)
@@ -1359,37 +1375,43 @@ def GeneratePython(schema_location=None,
     unique_in_bindings = set([NamespaceGroupModule._GroupPrefix])
     for ns_scc in nsdep.namespaceOrder():
         namespace_modules = []
+        nsg_head = None
         for ns in ns_scc:
-            nsm = NamespaceModule(ns, binding_module_prefix, ns_scc, namespace_component_map.get(ns, set()))
+            if ns.isBuiltinNamespace() and (not _process_builtins):
+                continue
+            nsm = NamespaceModule(ns, binding_module_prefix, ns_scc, namespace_component_map.get(ns, ns.components()))
+            modules.add(nsm)
             namespace_module_map[ns] = nsm
-            ns.__namespaceModule = nsm
             assert ns == nsm.namespace()
-            if not ns.isBuiltinNamespace():
-                if nsm.namespace().prefix() is not None:
-                    assert nsm.namespace().prefix() is not None, 'No prefix for %s' % (ns,)
-                    print 'Prefix store namespace %s' % (nsm.namespace().prefix(),)
-                    nsm.setBaseModule(utility.MakeUnique(nsm.namespace().prefix(), unique_in_bindings))
-                else:
-                    print 'None store no prefix'
-                    nsm.setBaseModule(None)
-                print '%s stores in %s' % (ns, nsm.modulePath())
+
+            if nsg_head is None:
+                nsg_head = nsm.namespaceGroupHead()
+
+            if nsm.namespace().prefix() is not None:
+                assert nsm.namespace().prefix() is not None, 'No prefix for %s' % (ns,)
+                print 'Prefix store namespace %s' % (nsm.namespace().prefix(),)
+                nsm.setBaseModule(utility.MakeUnique(nsm.namespace().prefix(), unique_in_bindings))
+            else:
+                print 'None store no prefix'
+                nsm.setBaseModule(None)
+            print '%s stores in %s' % (ns, nsm.modulePath())
             namespace_modules.append(nsm)
 
-        nsg_head = nsm.namespaceGroupHead()
-        if nsg_head.namespaceGroupMulti():
+        if (nsg_head is not None) and nsg_head.namespaceGroupMulti():
             ngm = NamespaceGroupModule(namespace_modules, binding_module_prefix)
+            modules.add(ngm)
             [ _nsm.setNamespaceGroupModule(ngm) for _nsm in namespace_modules ]
             assert namespace_module_map[nsg_head.namespace()].namespaceGroupModule() == ngm
             print 'Group headed by %s stores in %s' % (nsg_head, ngm.modulePath())
 
     schema_module_map = {}
     for sc_scc in nsdep.schemaOrder():
-        print 'Schema set: %s' % (SchemaLocations(sc_scc),)
         scg_head = sc_scc[0]
         nsm = NamespaceModule.ForNamespace(scg_head.targetNamespace())
         sgm = None
         if nsm.namespaceGroupModule() is not None:
             sgm = SchemaGroupModule(nsm, sc_scc)
+            modules.add(sgm)
             print 'Schema group stores in %s: %s' % (sgm.modulePath(), ' '.join([ _s.schemaLocationTag() for _s in sc_scc]))
         for sc in sc_scc:
             schema_module_map[sc] = sgm
@@ -1422,7 +1444,7 @@ def GeneratePython(schema_location=None,
     for td in type_definitions:
         nsm = namespace_module_map.get(component_namespace_map[td])
         assert nsm is not None, 'No namespace module for %s type %s scope %s namespace %s' % (td.expandedName(), type(td), td._scope(), component_namespace_map[td])
-        module_context = nsm.bindComponent(td, schema_module_map[td._schema()])
+        module_context = nsm.bindComponent(td, schema_module_map.get(td._schema(), None))
         if isinstance(td, xs.structures.SimpleTypeDefinition):
             _PrepareSimpleTypeDefinition(td, nsm, module_context)
             simple_type_definitions.append(td)
@@ -1439,7 +1461,7 @@ def GeneratePython(schema_location=None,
     for ed in element_declarations:
         GenerateED(ed)
 
-    return namespace_module_map[namespace].moduleContents()
+    return modules
 
 def _GenerateFacets ():
     return '''
