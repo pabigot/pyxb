@@ -557,7 +557,7 @@ class _Enumeration_mixin (pyxb.cscRoot):
     def valueForUnicode (cls, ustr):
         return cls._CF_enumeration.valueForUnicode(ustr)
 
-class _WhiteSpace_enum (datatypes.string, _Enumeration_mixin):
+class _WhiteSpace_enum (datatypes.NCName, _Enumeration_mixin):
     """The enumeration used to constrain the whiteSpace facet"""
     pass
 _WhiteSpace_enum._CF_enumeration = CF_enumeration(value_datatype=_WhiteSpace_enum)
@@ -566,8 +566,8 @@ _WhiteSpace_enum.replace = _WhiteSpace_enum._CF_enumeration.addEnumeration(unico
 _WhiteSpace_enum.collapse = _WhiteSpace_enum._CF_enumeration.addEnumeration(unicode_value=u'collapse')
 # NOTE: For correctness we really need to initialize the facet map for
 # WhiteSpace_enum, even though at the moment it isn't necessary.  We
-# can't right now, because its parent datatypes.string hasn't been
-# initialized.
+# can't right now, because its parent datatypes.NCName hasn't been
+# initialized yet
 #_WhiteSpace_enum._InitializeFacetMap(_WhiteSpace_enum._CF_enumeration)
 
 class CF_whiteSpace (ConstrainingFacet, _Fixed_mixin):
