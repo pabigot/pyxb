@@ -822,28 +822,30 @@ def _ResolveReferencedNamespaces (namespace):
         if not ns.hasSchemaComponents():
             print 'WARNING: Referenced %s has no schema components' % (ns.uri(),)
         done_check.add(ns)
+    assert done_check == ns_graph.nodes()
 
-    scc_list = ns_graph.scc()
-    if 0 < len(scc_list):
-        print 'There are %d dependency cycles in the namespaces' % (len(scc_list),)
-        for scc in scc_list:
-            print " ".join([ str(_ns.prefix()) for _ns in scc])
+    namespace.__namespaceOrder = ns_graph.sccOrder()
+    namespace.__namespaceSet = ns_graph.nodes()
 
     # Resolve all named objects in the referenced namespaces.  Iterate
     # where there are dependencies.
-    need_resolved = set(done_check)
-    while need_resolved:
-        new_nr = set()
-        for ns in need_resolved:
-            if not ns.needsResolution():
-                continue
-            print 'Attempting resolution %s' % (ns.uri(),)
-            if not ns.resolveDefinitions(allow_unresolved=True):
-                print 'Holding incomplete resolution %s' % (ns.uri(),)
-                new_nr.add(ns)
-        if need_resolved == new_nr:
-            raise pyxb.SchemaValidationError('Loop in namespace resolution')
-        need_resolved = new_nr
+    for ns_set in ns_graph.sccOrder():
+        print "Resolving self-dependent set of %d namespaces:\n  %s" % (len(ns_set), "\n  ".join([ str(_ns) for _ns in ns_set ]))
+        need_resolved = set(ns_set)
+        while need_resolved:
+            new_nr = set()
+            for ns in need_resolved:
+                if not ns.needsResolution():
+                    continue
+                print 'Attempting resolution %s' % (ns.uri(),)
+                if not ns.resolveDefinitions(allow_unresolved=True):
+                    print 'Holding incomplete resolution %s' % (ns.uri(),)
+                    new_nr.add(ns)
+            if need_resolved == new_nr:
+                raise pyxb.SchemaValidationError('Loop in namespace resolution')
+            need_resolved = new_nr
+
+    return ns_graph.sccMap().get(namespace)
 
 def _PrepareNamespaceForGeneration (sns, module_path_prefix, all_std, all_ctd, all_ed):
     std = set()
@@ -939,27 +941,6 @@ def _SetNameWithAccessors (component, container, is_plural, binding_module, kw):
     return use_map
 
 def CheckDependencies (namespace):
-    ns_graph = utility.Graph()
-    ns_set = set([namespace])
-    while ns_set:
-        ns = ns_set.pop()
-        for rns in ns.referencedNamespaces():
-            if not (rns in ns_graph.nodes()):
-                ns_set.add(rns)
-                ns_graph.addNode(rns)
-            ns_graph.addEdge(ns, rns)
-
-    ns_graph.setRoot(namespace)
-    scc_order = ns_graph.sccOrder()
-    namespace.__namespaceOrder = scc_order
-    namespace.__namespaceSet = ns_graph.nodes()
-    print "Namespace ordering:"
-    for scc in scc_order:
-        elts = []
-        nsg_head = scc[0]
-        for ns in scc:
-            elts.append(str(ns))
-        print 'SCC: %s' % ("\n  ".join(elts))
 
     schema_ii_graph = utility.Graph()
     schemas = set()
@@ -1465,7 +1446,9 @@ def GeneratePython(schema_location=None,
         schema = xs.schema.CreateFromLocation(schema_location)
         namespace = schema.targetNamespace()
 
-    _ResolveReferencedNamespaces(namespace)
+    sibling_namespaces = _ResolveReferencedNamespaces(namespace)
+    if sibling_namespaces is None:
+        sibling_namespaces = set([namespace])
 
     CheckDependencies(namespace)
 
@@ -1473,7 +1456,7 @@ def GeneratePython(schema_location=None,
     all_std = set()
     all_ctd = set()
     all_ed = set()
-    for sns in namespace.siblingNamespaces():
+    for sns in sibling_namespaces:
         _PrepareNamespaceForGeneration(sns, module_path_prefix, all_std, all_ctd, all_ed)
     all_components = all_std.union(all_ctd).union(all_ed)
 

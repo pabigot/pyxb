@@ -444,14 +444,6 @@ class _NamespaceResolution_mixin (pyxb.cscRoot):
     # with this namespace as target.
     __referencedNamespaces = None
 
-    # A set of namespaces with which this namespaces has a dependency loop.
-    # The named objects held by these namespaces must be pickled together in a
-    # single object so that the ordering dependencies in unpickling are
-    # handled by Python.  Sibling namespaces are the subset of the referenced
-    # namespaces which transitively reference this namespace, closed under
-    # union.
-    __siblingNamespaces = None
-
     # A set of Namespace._Resolvable_mixin instances that have yet to be
     # resolved.
     __unresolvedComponents = None
@@ -469,14 +461,12 @@ class _NamespaceResolution_mixin (pyxb.cscRoot):
         kw.update({
                 'importedNamespaces': self.__importedNamespaces,
                 'referencedNamespaces': self.__referencedNamespaces,
-                'siblingNamespaces': self.siblingNamespaces()
                 })
         return getattr(super(_NamespaceResolution_mixin, self), '_getState_csc', lambda _kw: _kw)(kw)
 
     def _setState_csc (self, kw):
         self.__importedNamespaces = kw['importedNamespaces']
         self.__referencedNamespaces = kw['referencedNamespaces']
-        self.__siblingNamespaces = kw['siblingNamespaces']
         return getattr(super(_NamespaceResolution_mixin, self), '_setState_csc', lambda _kw: self)(kw)
 
     def importNamespace (self, namespace):
@@ -491,43 +481,6 @@ class _NamespaceResolution_mixin (pyxb.cscRoot):
         """Return the set of namespaces which some schema imported while
         processing with this namespace as target."""
         return frozenset(self.__importedNamespaces)
-
-    def siblingNamespaces (self, reset=False):
-        """Return the set of sibling namespaces.
-
-        A sibling namespace is one which is referenecd by this namespace and
-        which in turn transitively reference this namespace.  I.e., those
-        namespaces that participate in a dependency cycle.  These namespaces
-        must all be pickled in the same file.  (Note that the relation used is
-        reference, not import, since the Python bindings don't care whether
-        the reference is used structurally.)
-
-        A namespace is considered a sibling of itself, so that the returned
-        set is closed under cyclic import.
-
-        @keyword reset: If C{False} (default), the result from a previous
-        invocation will be returned without recalculating it.  Set to C{True}
-        to force recalculation based on current imported namespaces.
-        @rtype: set of L{Namespace}.
-        """
-        if reset or (self.__siblingNamespaces is None):
-            transitive_refs = set()
-            new_tr = set(self.referencedNamespaces())
-            while 0 < len(new_tr):
-                transitive_refs.update(new_tr)
-                new_tr = set()
-                for ns in transitive_refs:
-                    new_tr.update(ns.referencedNamespaces().difference(transitive_refs))
-            transitive_refs.discard(self)
-            self.__siblingNamespaces = set()
-            new_sibs = set([ self ])
-            while 0 < len(new_sibs):
-                self.__siblingNamespaces.update(new_sibs)
-                new_sibs = set()
-                for ns in transitive_refs:
-                    if (ns not in self.__siblingNamespaces) and (0 < len(ns.referencedNamespaces().intersection(self.__siblingNamespaces))):
-                        new_sibs.add(ns)
-        return self.__siblingNamespaces
 
     def referencedNamespaces (self):
         """Return the set of namespaces which appear in namespace declarations
@@ -1073,7 +1026,7 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
     # Class variable recording the namespace that is currently being
     # pickled.  Used to prevent storing components that belong to
     # other namespaces.  Should be None unless within an invocation of
-    # saveToFile.
+    # SaveToFile.
     __PicklingNamespace = None
     @classmethod
     def _PicklingNamespace (cls, value):
@@ -1085,9 +1038,31 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
     def PicklingNamespace (cls):
         return Namespace.__PicklingNamespace
 
-    def saveToFile (self, file_path):
-        """Save this namespace, with its named objects, to the given file so
-        it can be loaded later."""
+    @classmethod
+    def SaveToFile (self, namespace_set, file_path):
+        """Save the set of namespaces to an archive file so they can be loaded
+        later.
+
+        The archive file contains the information for each namespace in the
+        set, including all named objects that are stored in its categories.
+
+        Recall that these objects tend to have references to other objects
+        (e.g., baseTypeDefinition or memberType).  A reference that is to an
+        object in a namespace that is not in the set is saved by name,
+        requiring that it be resolvable upon load of the archive.  For this to
+        occur, it must be possible to resolve that namespace without reference
+        to objects in any namespace in this set.
+
+        This imposes the requirement that the set be closed under reference
+        cycles: i.e., if a member A in this set has a reference path back to
+        itself, all namespaces on that reference path must also be in the set.
+        That is, the set must form a strongly-connected component in the graph
+        of namespaces where edges are references.
+
+        In the vast majority of cases, an archive contains only a single
+        namespace, but dependency loops do exist in complicated systems (like
+        ISO 19139).
+        """
         
         if self.uri() is None:
             raise pyxb.LogicError('Illegal to serialize absent namespaces')
@@ -1096,9 +1071,9 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
         self._PicklingNamespace(self)
         assert Namespace.PicklingNamespace() is not None
 
-        pickler.dump(self.siblingNamespaces())
+        pickler.dump(namespace_set)
         object_map = { }
-        for ns in self.siblingNamespaces():
+        for ns in namespace_set:
             object_map[ns] = ns._categoryMap()
             ns.__hasBeenArchived = True
         pickler.dump(object_map)
