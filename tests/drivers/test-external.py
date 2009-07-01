@@ -14,15 +14,15 @@ schema_path = '%s/../schemas' % (os.path.dirname(__file__),)
 st = imp.new_module('st')
 sys.modules['st'] = st
 
+# Set the path by which we expect to reference the module
+stns = pyxb.namespace.NamespaceForURI('URN:shared-types', create_if_missing=True)
+stns.setModulePath('st')
+
 # Now get the code for the shared types bindings, and evaluate it
 # within the new module.
 code = pyxb.binding.generate.GeneratePython(schema_location=schema_path + '/shared-types.xsd')
 rv = compile(code, 'shared-types', 'exec')
 exec code in st.__dict__
-
-# Set the path by which we expect to reference the module
-stns = pyxb.namespace.NamespaceForURI('URN:shared-types')
-stns.setModulePath('st')
 
 # Now get and build a module that refers to that module.
 modules = pyxb.binding.generate.GenerateAllPython(schema_location=schema_path + '/test-external.xsd')
