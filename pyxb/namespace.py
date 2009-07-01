@@ -1750,15 +1750,25 @@ class NamespaceDependencies (object):
 
     def schemaGraph (self, reset=False, namespace=None):
         if reset or (self.__schemaGraph is None):
+            if namespace is None:
+                namespace = self.rootNamespace()
+            nsg = self.namespaceGraph(reset)
             siblings = self.siblingNamespaces(namespace)
             self.__schemaGraph = pyxb.utils.utility.Graph()
             schemas = set()
-            for sch in self.rootNamespace().schemas():
-                schemas.add(sch)
+            for sns in siblings:
+                for sch in sns.schemas():
+                    schemas.add(sch)
+            did_schema = set()
             while schemas:
                 schema = schemas.pop()
                 assert schema is not None
-                assert schema.schemaLocation() is not None
+                if schema.schemaLocation() is None:
+                    continue
+                assert schema.schemaLocation() is not None, 'No location for schema for %s' % (schema.targetNamespace(),)
+                if schema in did_schema:
+                    continue
+                did_schema.add(schema)
                 self.__schemaGraph.addNode(schema)
                 for sch in schema.includedSchema().union(schema.importedSchema()):
 
