@@ -804,75 +804,6 @@ __ComponentOrder = (
     )
 
 
-def _ComputeDependencies (namespace):
-    ns_graph = utility.Graph(root=namespace)
-
-    # Make sure all referenced namespaces have valid components
-    need_check = set(namespace.referencedNamespaces())
-    need_check.add(namespace)
-    done_check = set()
-    while 0 < len(need_check):
-        ns = need_check.pop()
-        ns.__schemaHaveModules = False
-        for rns in ns.referencedNamespaces():
-            ns_graph.addEdge(ns, rns)
-            if not rns in done_check:
-                need_check.add(rns)
-        ns.validateComponentModel()
-        if not ns.hasSchemaComponents():
-            print 'WARNING: Referenced %s has no schema components' % (ns.uri(),)
-        done_check.add(ns)
-    assert done_check == ns_graph.nodes()
-
-    namespace.__namespaceOrder = ns_graph.sccOrder()
-    namespace.__namespaceSet = ns_graph.nodes()
-
-    # Resolve all named objects in the referenced namespaces.  Ensure
-    # each SCC in the reference graph can be resolved independently of
-    # its successors in the SCC ordering.  Where an SCC has multiple
-    # namespaces, iterate.
-    for ns_set in ns_graph.sccOrder():
-        print "Resolving self-dependent set of %d namespaces:\n  %s" % (len(ns_set), "\n  ".join([ str(_ns) for _ns in ns_set ]))
-        need_resolved = set(ns_set)
-        while need_resolved:
-            new_nr = set()
-            for ns in need_resolved:
-                if not ns.needsResolution():
-                    continue
-                print 'Attempting resolution %s' % (ns.uri(),)
-                if not ns.resolveDefinitions(allow_unresolved=True):
-                    print 'Holding incomplete resolution %s' % (ns.uri(),)
-                    new_nr.add(ns)
-            if need_resolved == new_nr:
-                raise pyxb.LogicError('Unexpected external dependency in sibling namespaces')
-            need_resolved = new_nr
-
-    schema_ii_graph = utility.Graph()
-    schemas = set()
-    for sch in namespace.schemas():
-        if sch.schemaLocation() is not None:
-            schemas.add(sch)
-    while schemas:
-        schema = schemas.pop()
-        assert schema is not None
-        assert schema.schemaLocation() is not None
-        for sch in schema.includedSchema().union(schema.importedSchema()):
-            assert sch is not None, '%s imports none?' % (schema.schemaLocation(),)
-            if not ((sch.schemaLocation() is None) or (sch in schema_ii_graph.nodes())):
-                schemas.add(sch)
-                schema_ii_graph.addNode(sch)
-            if sch in schema.includedSchema():
-                schema_ii_graph.addEdge(schema, sch)
-
-    schema = iter(namespace.schemas()).next()
-    schema_ii_graph.setRoot(schema)
-    scc_order = schema_ii_graph.sccOrder()
-    namespace.__schemaOrder = scc_order
-    namespace.__schemaSet = schema_ii_graph.nodes()
-
-    return ns_graph.sccMap().get(namespace)
-
-
 def _PrepareNamespaceForGeneration (sns, module_path_prefix, all_std, all_ctd, all_ed):
     std = set()
     ctd = set()
@@ -1421,6 +1352,15 @@ class SchemaGroupModule (_ModuleNaming_mixin):
     def __str__ (self):
         return 'SGM:%s' % (self.modulePath(),)
 
+def SchemaLocations (sc_set):
+    rvs = []
+    for sc in sc_set:
+        if sc.schemaLocation() is not None:
+            rvs.append(sc.schemaLocation())
+        else:
+            rvs.append("no location for %s" % (sc.targetNamespace(),))
+    return "\n  ".join(rvs)
+
 def GeneratePython(schema_location=None,
                    namespace=None,
                    module_path_prefix=[]):
@@ -1438,15 +1378,19 @@ def GeneratePython(schema_location=None,
         schema = xs.schema.CreateFromLocation(schema_location)
         namespace = schema.targetNamespace()
 
-    sibling_namespaces = _ComputeDependencies(namespace)
-    if sibling_namespaces is None:
-        sibling_namespaces = set([namespace])
+    nsdep = pyxb.namespace.NamespaceDependencies(namespace)
+    for ns_set in nsdep.namespaceOrder():
+        pyxb.namespace.ResolveSiblingNamespaces(ns_set)
+
+    siblings = nsdep.siblingNamespaces()
+    if siblings is None:
+        siblings = set([namespace])
 
     used_modules = {}
     all_std = set()
     all_ctd = set()
     all_ed = set()
-    for sns in sibling_namespaces:
+    for sns in siblings:
         _PrepareNamespaceForGeneration(sns, module_path_prefix, all_std, all_ctd, all_ed)
     all_components = all_std.union(all_ctd).union(all_ed)
 
@@ -1463,7 +1407,7 @@ def GeneratePython(schema_location=None,
 
     namespace_module_map = {}
     unique_in_bindings = set([NamespaceGroupModule._GroupPrefix])
-    for ns_scc in namespace.__namespaceOrder:
+    for ns_scc in nsdep.namespaceOrder():
         namespace_modules = []
         for ns in ns_scc:
             nsm = NamespaceModule(ns, binding_module_prefix, ns_scc)
@@ -1487,7 +1431,9 @@ def GeneratePython(schema_location=None,
             [ _nsm.setNamespaceGroupModule(ngm) for _nsm in namespace_modules ]
             assert namespace_module_map[nsg_head.namespace()].namespaceGroupModule() == ngm
             print 'Group headed by %s stores in %s' % (nsg_head, ngm.modulePath())
-    for sc_scc in namespace.__schemaOrder:
+
+    for sc_scc in nsdep.schemaOrder():
+        print 'Schema set: %s' % (SchemaLocations(sc_scc),)
         scg_head = sc_scc[0]
         nsm = NamespaceModule.ForNamespace(scg_head.targetNamespace())
         sgm = None

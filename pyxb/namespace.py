@@ -27,6 +27,7 @@ components.
 import pyxb
 import os
 import fnmatch
+import pyxb.utils.utility
 
 PathEnvironmentVariable = 'PYXB_NAMESPACE_PATH'
 """Environment variable from which default path to pre-loaded namespaces is
@@ -582,6 +583,24 @@ class _NamespaceResolution_mixin (pyxb.cscRoot):
     def _unresolvedComponents (self):
         """Returns a reference to the list of unresolved components."""
         return self.__unresolvedComponents
+
+def ResolveSiblingNamespaces (sibling_namespaces):
+    for ns in sibling_namespaces:
+        ns.validateComponentModel()
+
+    need_resolved = set(sibling_namespaces)
+    while need_resolved:
+        new_nr = set()
+        for ns in need_resolved:
+            if not ns.needsResolution():
+                continue
+            print 'Attempting resolution %s' % (ns.uri(),)
+            if not ns.resolveDefinitions(allow_unresolved=True):
+                print 'Holding incomplete resolution %s' % (ns.uri(),)
+                new_nr.add(ns)
+        if need_resolved == new_nr:
+            raise pyxb.LogicError('Unexpected external dependency in sibling namespaces')
+        need_resolved = new_nr
 
 class _ComponentDependency_mixin (pyxb.cscRoot):
     """Mix-in for components that can depend on other components."""
@@ -1684,6 +1703,93 @@ class NamespaceContext (object):
         """Forwards to L{queueForResolution()<Namespace.queueForResolution>} in L{targetNamespace()}."""
         assert isinstance(component, _Resolvable_mixin)
         return self.targetNamespace().queueForResolution(component)
+
+class NamespaceDependencies (object):
+
+    def rootNamespace (self):
+        return self.__rootNamespace
+    __rootNamespace = None
+
+    def namespaceGraph (self, reset=False):
+        if reset or (self.__namespaceGraph is None):
+            self.__namespaceGraph = pyxb.utils.utility.Graph(root=self.rootNamespace())
+
+            # Make sure all referenced namespaces have valid components
+            need_check = set([self.__rootNamespace])
+            done_check = set()
+            while 0 < len(need_check):
+                ns = need_check.pop()
+                self.__namespaceGraph.addNode(ns)
+                for rns in ns.referencedNamespaces():
+                    self.__namespaceGraph.addEdge(ns, rns)
+                    if not rns in done_check:
+                        need_check.add(rns)
+                if not ns.hasSchemaComponents():
+                    print 'WARNING: Referenced %s has no schema components' % (ns.uri(),)
+                done_check.add(ns)
+            assert done_check == self.__namespaceGraph.nodes()
+
+        return self.__namespaceGraph
+    __namespaceGraph = None
+
+    def namespaceOrder (self, reset=False):
+        return self.namespaceGraph(reset).sccOrder()
+
+    def siblingNamespaces (self, reset=False, namespace=None):
+        if namespace is None:
+            namespace = self.__rootNamespace
+        rv = self.namespaceGraph(reset).sccMap().get(namespace)
+        if rv is None:
+            if not (namespace in self.dependentNamespaces()):
+                raise pyxb.LogicError('Attempt to identify siblings for unrelated namespace %s among %s' % (namespace, " ".join([ str(_ns) for _ns in self.dependentNamespaces() ])))
+            rv = set([namespace])
+        return rv
+
+    def dependentNamespaces (self, reset=False):
+        return self.namespaceGraph(reset).nodes()
+
+    def schemaGraph (self, reset=False, namespace=None):
+        if reset or (self.__schemaGraph is None):
+            siblings = self.siblingNamespaces(namespace)
+            self.__schemaGraph = pyxb.utils.utility.Graph()
+            schemas = set()
+            for sch in self.rootNamespace().schemas():
+                schemas.add(sch)
+            while schemas:
+                schema = schemas.pop()
+                assert schema is not None
+                assert schema.schemaLocation() is not None
+                self.__schemaGraph.addNode(schema)
+                for sch in schema.includedSchema().union(schema.importedSchema()):
+
+                    # Any schema (recursively) referenced by the root
+                    # namespace must be for a namespace on which this
+                    # namespace is dependent, or we screwed up the dependency
+                    # calculation.
+                    assert sch in self.dependentNamespaces()
+
+                    if sch in self.__schemaGraph.nodes():
+                        continue
+
+                    if not (sch.targetNamespace() in siblings):
+                        continue
+
+                    schemas.add(sch)
+                    self.__schemaGraph.addEdge(schema, sch)
+            
+        return self.__schemaGraph
+    __schemaGraph = None
+
+    def schemaOrder (self, reset=False):
+        return self.schemaGraph(reset).sccOrder()
+
+    def dependentSchemas (self, reset=False):
+        return self.schemaGraph(reset).nodes()
+
+    def __init__ (self, namespace):
+        if not isinstance(namespace, Namespace):
+            raise pyxb.LogicError('NamespaceDependencies requires a root namespace')
+        self.__rootNamespace = namespace
 
 ## Local Variables:
 ## fill-column:78
