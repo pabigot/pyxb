@@ -587,8 +587,8 @@ class %{ctd} (%{superclass}):
         outf.postscript().append("\n\n")
         for (expanded_name, (is_plural, ed)) in plurality_data.items():
             # @todo Detect and account for plurality change between this and base
+            ef_map = ed._templateMap()
             if ed.scope() == ctd:
-                ef_map = ed.__useMap
                 ef_map.update(elementDeclarationMap(ed, binding_module, **kw))
                 aux_init = []
                 ef_map['is_plural'] = repr(is_plural)
@@ -597,9 +597,7 @@ class %{ctd} (%{superclass}):
                     ef_map['aux_init'] = ''
                 else:
                     ef_map['aux_init'] = ', ' + ', '.join(aux_init)
-                ed.__elementFields = ef_map
                 ef_map['element_binding'] = utility.PrepareIdentifier('%s_elt' % (ef_map['id'],), class_unique, class_keywords, private=True)
-            ef_map = ed.__elementFields
             if ed.scope() != ctd:
                 definitions.append(templates.replaceInText('''
     # Element %{id} inherited from %{decl_type_en}''', decl_type_en=str(ed.scope().expandedName()), **ef_map))
@@ -651,8 +649,8 @@ class %{ctd} (%{superclass}):
     for au in ctd.attributeUses():
         ad = au.attributeDeclaration()
         assert isinstance(ad.scope(), xs.structures.ComplexTypeDefinition)
+        au_map = ad._templateMap()
         if ad.scope() == ctd:
-            au_map = ad.__useMap
             assert isinstance(au_map, dict)
 
             assert ad.typeDefinition() is not None
@@ -676,8 +674,6 @@ class %{ctd} (%{superclass}):
             else:
                 aux_init.insert(0, '')
                 au_map['aux_init'] = ', '.join(aux_init)
-            ad.__attributeFields = au_map
-        au_map = ad.__attributeFields
         if au.prohibited():
             attribute_uses.append(templates.replaceInText('%{name_expr} : None', **au_map))
             definitions.append(templates.replaceInText('''
@@ -806,13 +802,12 @@ def _PrepareComplexTypeDefinition (ctd, nsm, module_context):
     else:
         plurality_map = {}
     for cd in ctd.localScopedDeclarations():
-        use_map = _SetNameWithAccessors(cd, ctd, plurality_map.get(cd.expandedName(), (False, None))[0], module_context, nsm, kw)
-        cd.__useMap = use_map
+        _SetNameWithAccessors(cd, ctd, plurality_map.get(cd.expandedName(), (False, None))[0], module_context, nsm, kw)
         #print '  %s %s uses %s stored in %s' % (cd.__class__.__name__, cd.expandedName(), use_map['id'], use_map['key'])
 
 
 def _SetNameWithAccessors (component, container, is_plural, binding_module, nsm, kw):
-    use_map = { }
+    use_map = component._templateMap()
     class_unique = nsm.uniqueInClass(container)
     assert isinstance(component, xs.structures._ScopedDeclaration_mixin)
     unique_name = utility.PrepareIdentifier(component.expandedName().localName(), class_unique)

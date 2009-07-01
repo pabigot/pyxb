@@ -363,6 +363,15 @@ class _NamedComponent_mixin (pyxb.cscRoot):
         return self.__targetNamespace
     __targetNamespace = None
     
+    def _templateMap (self):
+        """A map from template keys to component-specific values.
+
+        This is used in code generation to maintain unique names for accessor
+        methods, identifiers, keys, and other characteristics associated with
+        the code generated in support of the binding for this component."""
+        return self.__templateMap
+    __templateMap = None
+
     def _picklesInNamespace (self, ns):
         """Return C{True} if this component should be pickled by value in the
         given namespace.
@@ -477,6 +486,8 @@ class _NamedComponent_mixin (pyxb.cscRoot):
         # overrides it (as is done for local declarations if the form is
         # unqualified).
         self.__targetNamespace = kw.get('target_namespace', self._namespaceContext().targetNamespace())
+
+        self.__templateMap = {}
 
         # Do parent invocations after we've set the name: they might need it.
         super(_NamedComponent_mixin, self).__init__(*args, **kw)
@@ -1069,8 +1080,15 @@ class AttributeUse (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin, _V
     def prohibited (self): return self.USE_prohibited == self.__use
 
     # A reference to an AttributeDeclaration
+    def attributeDeclaration (self):
+        """The attribute declaration for this use.
+
+        When the use scope is assigned, the declaration is cloned (if
+        necessary) so that each declaration corresponds to only one use.  We
+        rely on this in code generation, because the template map for the use
+        is stored in its declaration."""
+        return self.__attributeDeclaration
     __attributeDeclaration = None
-    def attributeDeclaration (self): return self.__attributeDeclaration
 
     # Define so superclasses can take keywords
     def __init__ (self, **kw):
