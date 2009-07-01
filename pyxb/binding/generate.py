@@ -943,10 +943,9 @@ class _ModuleNaming_mixin (object):
             if not isinstance(ns, NamespaceModule):
                 ns = self.ForNamespace(ns)
             assert ns is not None
-            if ns.modulePath() is not None:
-                aux_imports.append('import %s' % (ns.modulePath(),))
-            else:
-                print 'ERROR: Imported %s has no module path' % (ns.namespace(),)
+            if ns.modulePath() is None:
+                raise pyxb.LogicError('Imported %s has no module path' % (ns.namespace(),))
+            aux_imports.append('import %s' % (ns.modulePath(),))
         schema_set = set()
         for sc in self.__importedSchema:
             print 'IMPORTED SCHEMA %s' % (sc,)
@@ -993,7 +992,6 @@ def CreateFromDOM (node):
         if module_path is not None:
             self.__modulePath = module_path
         kw = self._initialBindingTemplateMap()
-        print kw
         self.__bindingIO = BindingIO(self, **kw)
     __modulePath = None
 
@@ -1101,7 +1099,7 @@ class NamespaceModule (_ModuleNaming_mixin):
     def __init__ (self, namespace, module_prefix, ns_scc, components):
         super(NamespaceModule, self).__init__(self)
         self.__namespace = namespace
-        print 'NSM Namespace %s' % (namespace,)
+        print 'NSM Namespace %s module path %s' % (namespace, namespace.modulePath())
         mp = self.__namespace.modulePath()
         if mp is not None:
             print 'Setting namespace module path to %s' % (mp,)
@@ -1354,12 +1352,13 @@ def GenerateAllPython (schema_location=None,
         pyxb.namespace.ResolveSiblingNamespaces(ns_set)
 
     siblings = nsdep.siblingNamespaces()
+    print 'Sibling namesspaces: %s' % (siblings,)
 
     used_modules = {}
     component_namespace_map = {}
     namespace_component_map = {}
     for sns in siblings:
-        if sns.isBuiltinNamespace() and (not _process_builtins):
+        if (pyxb.namespace.XMLSchema == sns) and (not _process_builtins):
             continue
         for c in sns.components():
             if (isinstance(c, xs.structures.ElementDeclaration) and c._scopeIsGlobal()) or c.isTypeDefinition():
@@ -1376,7 +1375,7 @@ def GenerateAllPython (schema_location=None,
         namespace_modules = []
         nsg_head = None
         for ns in ns_scc:
-            if ns.isBuiltinNamespace() and (not _process_builtins):
+            if not (ns in namespace_component_map):
                 continue
             nsm = NamespaceModule(ns, binding_module_prefix, ns_scc, namespace_component_map.get(ns, ns.components()))
             modules.add(nsm)
@@ -1408,7 +1407,7 @@ def GenerateAllPython (schema_location=None,
         scg_head = sc_scc[0]
         nsm = NamespaceModule.ForNamespace(scg_head.targetNamespace())
         sgm = None
-        if nsm.namespaceGroupModule() is not None:
+        if (nsm is not None) and (nsm.namespaceGroupModule() is not None):
             sgm = SchemaGroupModule(nsm, sc_scc)
             modules.add(sgm)
             print 'Schema group stores in %s: %s' % (sgm.modulePath(), ' '.join([ _s.schemaLocationTag() for _s in sc_scc]))

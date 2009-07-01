@@ -3,7 +3,7 @@
 import getopt
 import sys
 import pyxb.xmlschema
-from pyxb.binding.generate import GeneratePython
+from pyxb.binding.generate import GenerateAllPython
 import os.path
 
 # module path prefix
@@ -149,32 +149,17 @@ tns = wxs.targetNamespace()
 # parsed schema file
 try:
     tns.setModulePath(module_path)
-    GeneratePython(namespace=tns, module_path_prefix=module_path_prefix)
-    for sns in tns.siblingNamespaces():
-        binding_source = sns.__bindingSource
-        if binding_source is not None:
-            print 'Binding source is %d long to %s' % (len(binding_source), binding_file)
-            if sns != tns:
-                use_binding_file = os.path.join(binding_path, '%s.py' % (sns.prefix(),))
-            else:
-                use_binding_file = binding_file
-            if sns.__schemaHaveModules:
-                try:
-                    os.unlink(use_binding_file)
-                except Exception, e:
-                    print e
-                    pass
-                (binding_dir, base_name) = os.path.split(use_binding_file)
-                binding_dir = os.path.join(binding_dir, '_%s' % base_name.split('.')[0])
-                try:
-                    os.mkdir(binding_dir)
-                except Exception, e:
-                    print e
-                    pass
-                for schema in sns.__schemaOrder:
-                    file('%s/%s.py' % (binding_dir, schema.__moduleLeaf), 'w').write(schema.__outputFile.getvalue())
-            file(use_binding_file, "w").write(binding_source)
-            print 'Saved binding source to %s' % (use_binding_file,)
+    modules = GenerateAllPython(namespace=tns, module_path_prefix=module_path_prefix)
+    print 'Python for %s requires %d modules' % (tns, len(modules))
+
+    for m in modules:
+        sns = m.namespace()
+        if sns != tns:
+            continue
+        print 'Module path %s' % (tns.modulePath(),)
+        use_binding_file = os.path.join(*tns.modulePath().split('.')) + '.py'
+        file(use_binding_file, 'w').write(m.moduleContents())
+        print 'Saved binding source to %s' % (use_binding_file,)
 except Exception, e:
     print 'Exception generating bindings to %s: %s' % (binding_file, e)
     traceback.print_exception(*sys.exc_info())
@@ -183,7 +168,7 @@ except Exception, e:
 if save_component_model:
     assert 'typeDefinition' in tns.categories()
     try:
-        tns.saveToFile(component_model_file)
+        pyxb.namespace.Namespace.SaveToFile([tns], component_model_file)
         print 'Saved parsed schema to %s URI %s' % (component_model_file, tns.uri())
     except Exception, e:
         print 'Exception saving preprocessed schema to %s: %s' % (component_model_file, e)

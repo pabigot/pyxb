@@ -372,7 +372,7 @@ class _NamedComponent_mixin (pyxb.cscRoot):
         return self.__templateMap
     __templateMap = None
 
-    def _picklesInNamespace (self, ns):
+    def _picklesInNamespaces (self, namespaces):
         """Return C{True} if this component should be pickled by value in the
         given namespace.
 
@@ -386,8 +386,8 @@ class _NamedComponent_mixin (pyxb.cscRoot):
         @return: C{False} if the component should be pickled by reference.
         """
         if isinstance(self._scope(), ComplexTypeDefinition):
-            return self._scope()._picklesInNamespace(ns)
-        return self.targetNamespace() in (ns, None)
+            return self._scope()._picklesInNamespaces(namespaces)
+        return (self.targetNamespace() is None) or (self.targetNamespace() in namespaces)
 
     def _bindsInNamespace (self, ns):
         """Return C{True} if the binding for this component should be
@@ -514,13 +514,13 @@ class _NamedComponent_mixin (pyxb.cscRoot):
         # Get the namespace we're pickling.  If the namespace is None,
         # we're not pickling; we're probably cloning, and in that case
         # we don't want to use the reference state encoding.
-        pickling_namespace = pyxb.namespace.Namespace.PicklingNamespace()
-        if pickling_namespace is None:
+        pickling_namespaces = pyxb.namespace.Namespace.PicklingNamespaces()
+        if pickling_namespaces is None:
             return False
         # If this thing is scoped in a complex type that belongs to the
         # namespace being pickled, then it gets pickled as an object even if
         # its target namespace isn't this one.
-        if self._picklesInNamespace(pickling_namespace):
+        if self._picklesInNamespaces(pickling_namespaces):
             return False
         if self.isAnonymous():
             raise pyxb.LogicError('Unable to pickle reference to unnamed object %s in %s: %s' % (self.name(), self.targetNamespace().uri(), object.__str__(self)))
@@ -573,7 +573,7 @@ class _NamedComponent_mixin (pyxb.cscRoot):
                 elif isinstance(self.scope(), ComplexTypeDefinition):
                     scope = self.scope().expandedName().uriTuple()
                 elif self._scopeIsIndeterminate():
-                    raise pyxb.LogicError('Attempt to pickle reference to %s tns %s in indeterminate scope in %s' % (self, self.targetNamespace(), pyxb.namespace.Namespace.PicklingNamespace()))
+                    raise pyxb.LogicError('Attempt to pickle reference to %s tns %s in indeterminate scope in %s' % (self, self.targetNamespace(), pyxb.namespace.Namespace.PicklingNamespaces()))
                     assert False
             else:
                 assert isinstance(self, _NamedComponent_mixin), 'Pickling unnamed component %s in indeterminate scope by reference' % (self,)
@@ -948,8 +948,8 @@ class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
 
     def __str__ (self):
         if self.typeDefinition():
-            return 'AD[%s:%s]' % (self.name(), self.typeDefinition().name())
-        return 'AD[%s:?]' % (self.name(),)
+            return 'AD[%s:%s]' % (self.name(), self.typeDefinition().expandedName())
+        return 'AD[%s:?]' % (self.expandedName(),)
 
     @classmethod
     def CreateBaseInstance (cls, name, target_namespace, std=None):
@@ -2144,6 +2144,10 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
 
         return self.__completeProcessing(self.__pendingDerivationMethod, self.__contentStyle)
 
+    def pythonSupport (self):
+        """Complex type definitions have no built-in type support."""
+        return None
+
     def __str__ (self):
         return 'CTD[%s]' % (self.name(),)
 
@@ -2155,6 +2159,7 @@ class _UrTypeDefinition (ComplexTypeDefinition, _Singleton_mixin):
         return frozenset()
 
     def pythonSupport (self):
+        """The ur-type does have a Python class backing it up."""
         return datatypes.anyType
 
     def _resolve (self):

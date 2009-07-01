@@ -1046,19 +1046,19 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
     # pickled.  Used to prevent storing components that belong to
     # other namespaces.  Should be None unless within an invocation of
     # SaveToFile.
-    __PicklingNamespace = None
+    __PicklingNamespaces = None
     @classmethod
-    def _PicklingNamespace (cls, value):
+    def _PicklingNamespaces (cls, value):
         # NB: Use Namespace explicitly so do not set the variable in a
         # subclass.
-        Namespace.__PicklingNamespace = value
+        Namespace.__PicklingNamespaces = value
 
     @classmethod
-    def PicklingNamespace (cls):
-        return Namespace.__PicklingNamespace
+    def PicklingNamespaces (cls):
+        return Namespace.__PicklingNamespaces
 
     @classmethod
-    def SaveToFile (self, namespace_set, file_path):
+    def SaveToFile (cls, namespace_set, file_path):
         """Save the set of namespaces to an archive file so they can be loaded
         later.
 
@@ -1083,12 +1083,10 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
         ISO 19139).
         """
         
-        if self.uri() is None:
-            raise pyxb.LogicError('Illegal to serialize absent namespaces')
         output = open(file_path, 'wb')
         pickler = pickle.Pickler(output, -1)
-        self._PicklingNamespace(self)
-        assert Namespace.PicklingNamespace() is not None
+        cls._PicklingNamespaces(namespace_set)
+        assert Namespace.PicklingNamespaces() is not None
 
         pickler.dump(namespace_set)
         object_map = { }
@@ -1097,7 +1095,7 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
             ns.__hasBeenArchived = True
         pickler.dump(object_map)
 
-        self._PicklingNamespace(None)
+        cls._PicklingNamespaces(None)
 
     @classmethod
     def LoadFromFile (cls, file_path):
@@ -1330,11 +1328,14 @@ class _XML (Namespace):
         
         if not self.__doneThis:
             assert structures_module is not None
+            import pyxb.binding.datatypes as xsd
+            import pyxb.binding.facets as xsdf
             schema = structures_module.Schema(namespace_context=self.initialNamespaceContext(), schema_location="URN:noLocation:XML")
-            schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('base', self))
-            schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('id', self))
+            schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('base', self, std=xsd.anyURI.SimpleTypeDefinition()))
+            schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('id', self, std=xsd.ID.SimpleTypeDefinition()))
+            #  std=xsdf._WhiteSpace_enum.SimpleTypeDefinition()))
             schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('space', self))
-            schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('lang', self))
+            schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('lang', self, std=xsd.anySimpleType.SimpleTypeDefinition()))
             self.__doneThis = True
         return self
 
@@ -1383,8 +1384,8 @@ class _XMLSchema (Namespace):
 
         self.configureCategories(['typeBinding'])
         for ( en, td ) in self.typeDefinitions().items():
-            assert td.pythonSupport() is not None
-            self.addCategoryObject('typeBinding', en, td.pythonSupport())
+            if (td.pythonSupport() is not None):
+                self.addCategoryObject('typeBinding', en, td.pythonSupport())
 
     def _defineSchema_overload (self, structures_module):
         """Ensure this namespace is ready for use.
