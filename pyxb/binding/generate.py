@@ -784,56 +784,7 @@ GeneratorMap = {
   , xs.structures.ComplexTypeDefinition : GenerateCTD
 }
 
-# Tuple of component classes in order in which they must be generated in
-# order to satisfy the Python references between bindings.
-# 
-__ComponentOrder = (
-    xs.structures.Annotation                   # no dependencies
-  , xs.structures.IdentityConstraintDefinition # no dependencies
-  , xs.structures.NotationDeclaration          # no dependencies
-  , xs.structures.Wildcard                     # no dependencies
-  , xs.structures.SimpleTypeDefinition         # no dependencies
-  , xs.structures.AttributeDeclaration         # SimpleTypeDefinition
-  , xs.structures.AttributeUse                 # AttributeDeclaration
-  , xs.structures.AttributeGroupDefinition     # AttributeUse
-  , xs.structures.ComplexTypeDefinition        # SimpleTypeDefinition, AttributeUse
-  , xs.structures.ElementDeclaration           # *TypeDefinition
-  , xs.structures.ModelGroup                   # ComplexTypeDefinition, ElementDeclaration, Wildcard
-  , xs.structures.ModelGroupDefinition         # ModelGroup
-  , xs.structures.Particle                     # ModelGroup, WildCard, ElementDeclaration
-    )
-
-
-def _PrepareNamespaceForGeneration (sns, module_path_prefix, all_std, all_ctd, all_ed):
-    std = set()
-    ctd = set()
-    ed = set()
-    for c in sns.components():
-        if isinstance(c, xs.structures.SimpleTypeDefinition):
-            std.add(c)
-        elif isinstance(c, xs.structures.ComplexTypeDefinition):
-            ctd.add(c)
-        elif isinstance(c, xs.structures.ElementDeclaration) and c._scopeIsGlobal():
-            ed.add(c)
-        else:
-            continue
-        # Cache the namespace into which the component will be bound.
-        # It certainly might not be reached by c.targetNamespace()
-        # when c is an anonymous declaration.
-        c.__bindingNamespace = sns
-        assert c._schema().targetNamespace() == c.__bindingNamespace
-    all_std.update(std)
-    all_ctd.update(ctd)
-    all_ed.update(ed)
-
-    sns.__simpleTypeDefinitions = []
-    sns.__complexTypeDefinitions = []
-    sns.__elementDeclarations = []
-    sns.__anonSTDIndex = 1
-    sns.__anonCTDIndex = 1
-
-def _PrepareSimpleTypeDefinition (std, module_context):
-    std.__bindingNamespace.__simpleTypeDefinitions.append(std)
+def _PrepareSimpleTypeDefinition (std, nsm, module_context):
     std.__uniqueInBindingClass = basis.simpleTypeDefinition._ReservedSymbols.copy()
     ptd = std.primitiveTypeDefinition(throw_if_absent=False)
     if (ptd is not None) and ptd.hasPythonSupport():
@@ -849,9 +800,8 @@ def _PrepareSimpleTypeDefinition (std, module_context):
                     #print ' Enum %s represents %s' % (ei.tag(), ei.unicodeValue())
             #print '%s unique: %s' % (std.expandedName(), std.__uniqueInBindingClass)
 
-def _PrepareComplexTypeDefinition (ctd, module_context):
-    ctd.__bindingNamespace.__complexTypeDefinitions.append(ctd)
-    #print '%s represents %s in %s' % (ctd.nameInBinding(), ctd.expandedName(), ctd.__bindingNamespace)
+def _PrepareComplexTypeDefinition (ctd, nsm, module_context):
+    #print '%s represents %s in %s' % (ctd.nameInBinding(), ctd.expandedName(), nsm.namespace())
     if ctd._isHierarchyRoot():
         ctd.__uniqueInBindingClass = basis.complexTypeDefinition._ReservedSymbols.copy()
     else:
@@ -872,12 +822,12 @@ def _PrepareComplexTypeDefinition (ctd, module_context):
     else:
         plurality_map = {}
     for cd in ctd.localScopedDeclarations():
-        use_map = _SetNameWithAccessors(cd, ctd, plurality_map.get(cd.expandedName(), (False, None))[0], module_context, kw)
+        use_map = _SetNameWithAccessors(cd, ctd, plurality_map.get(cd.expandedName(), (False, None))[0], module_context, nsm, kw)
         cd.__useMap = use_map
         #print '  %s %s uses %s stored in %s' % (cd.__class__.__name__, cd.expandedName(), use_map['id'], use_map['key'])
 
 
-def _SetNameWithAccessors (component, container, is_plural, binding_module, kw):
+def _SetNameWithAccessors (component, container, is_plural, binding_module, nsm, kw):
     use_map = { }
     class_unique = container.__uniqueInBindingClass
     assert isinstance(component, xs.structures._ScopedDeclaration_mixin)
@@ -889,7 +839,7 @@ def _SetNameWithAccessors (component, container, is_plural, binding_module, kw):
     assert component._scope() == container
     assert component.nameInBinding() is None, 'Use %s but binding name %s for %s' % (use_map['use'], component.nameInBinding(), component.expandedName())
     component.setNameInBinding(use_map['use'])
-    key_name = '%s_%s_%s' % (str(container.__bindingNamespace), container.nameInBinding(), component.expandedName())
+    key_name = '%s_%s_%s' % (str(nsm.namespace()), container.nameInBinding(), component.expandedName())
     use_map['key'] = utility.PrepareIdentifier(key_name, class_unique, private=True)
     use_map['name'] = str(component.expandedName())
     use_map['name_expr'] = binding_module.literal(component.expandedName(), **kw)
@@ -1383,16 +1333,15 @@ def GeneratePython(schema_location=None,
         pyxb.namespace.ResolveSiblingNamespaces(ns_set)
 
     siblings = nsdep.siblingNamespaces()
-    if siblings is None:
-        siblings = set([namespace])
 
     used_modules = {}
-    all_std = set()
-    all_ctd = set()
-    all_ed = set()
+    component_namespace_map = { }
     for sns in siblings:
-        _PrepareNamespaceForGeneration(sns, module_path_prefix, all_std, all_ctd, all_ed)
-    all_components = all_std.union(all_ctd).union(all_ed)
+        for c in sns.components():
+            if (isinstance(c, xs.structures.ElementDeclaration) and c._scopeIsGlobal()) or c.isTypeDefinition():
+                assert c._schema().targetNamespace() == sns
+                component_namespace_map[c] = sns
+    all_components = component_namespace_map.keys()
 
     component_graph = utility.Graph()
     for c in all_components:
@@ -1402,8 +1351,9 @@ def GeneratePython(schema_location=None,
             if target in all_components:
                 component_graph.addEdge(c, target)
 
+    if len(component_graph.sccOrder()) != len(component_graph.nodes()):
+        raise pyxb.SchemaValidationError('Dependency loop in component graph.')
     component_order = [ _scc[0] for _scc in component_graph.sccOrder() ]
-    assert len(component_order) == len(component_graph.nodes())
 
     namespace_module_map = {}
     unique_in_bindings = set([NamespaceGroupModule._GroupPrefix])
@@ -1447,7 +1397,7 @@ def GeneratePython(schema_location=None,
     type_definitions = []
     for c in component_order:
         if isinstance(c, xs.structures.ElementDeclaration) and c._scopeIsGlobal():
-            nsm = namespace_module_map[c.__bindingNamespace]
+            nsm = namespace_module_map[component_namespace_map.get(c)]
             print 'binding %s' % (c.expandedName(),)
             nsm.bindComponent(c, SchemaGroupModule.ForSchema(c._schema()))
             element_declarations.append(c)
@@ -1457,14 +1407,14 @@ def GeneratePython(schema_location=None,
     simple_type_definitions = []
     complex_type_definitions = []
     for td in type_definitions:
-        nsm = namespace_module_map.get(td.__bindingNamespace, None)
-        assert nsm is not None, 'No namespace module for %s type %s scope %s namespace %s' % (td.expandedName(), type(td), td._scope(), td.__bindingNamespace)
+        nsm = namespace_module_map.get(component_namespace_map[td])
+        assert nsm is not None, 'No namespace module for %s type %s scope %s namespace %s' % (td.expandedName(), type(td), td._scope(), component_namespace_map[td])
         module_context = nsm.bindComponent(td, td._schema().__schemaGroupModule)
         if isinstance(td, xs.structures.SimpleTypeDefinition):
-            _PrepareSimpleTypeDefinition(td, module_context)
+            _PrepareSimpleTypeDefinition(td, nsm, module_context)
             simple_type_definitions.append(td)
         elif isinstance(td, xs.structures.ComplexTypeDefinition):
-            _PrepareComplexTypeDefinition(td, module_context)
+            _PrepareComplexTypeDefinition(td, nsm, module_context)
             complex_type_definitions.append(td)
         else:
             assert False, 'Unexpected component type %s' % (type(td),)
