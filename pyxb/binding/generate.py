@@ -804,7 +804,7 @@ __ComponentOrder = (
     )
 
 
-def _ResolveReferencedNamespaces (namespace):
+def _ComputeDependencies (namespace):
     ns_graph = utility.Graph(root=namespace)
 
     # Make sure all referenced namespaces have valid components
@@ -827,8 +827,10 @@ def _ResolveReferencedNamespaces (namespace):
     namespace.__namespaceOrder = ns_graph.sccOrder()
     namespace.__namespaceSet = ns_graph.nodes()
 
-    # Resolve all named objects in the referenced namespaces.  Iterate
-    # where there are dependencies.
+    # Resolve all named objects in the referenced namespaces.  Ensure
+    # each SCC in the reference graph can be resolved independently of
+    # its successors in the SCC ordering.  Where an SCC has multiple
+    # namespaces, iterate.
     for ns_set in ns_graph.sccOrder():
         print "Resolving self-dependent set of %d namespaces:\n  %s" % (len(ns_set), "\n  ".join([ str(_ns) for _ns in ns_set ]))
         need_resolved = set(ns_set)
@@ -842,10 +844,34 @@ def _ResolveReferencedNamespaces (namespace):
                     print 'Holding incomplete resolution %s' % (ns.uri(),)
                     new_nr.add(ns)
             if need_resolved == new_nr:
-                raise pyxb.SchemaValidationError('Loop in namespace resolution')
+                raise pyxb.LogicError('Unexpected external dependency in sibling namespaces')
             need_resolved = new_nr
 
+    schema_ii_graph = utility.Graph()
+    schemas = set()
+    for sch in namespace.schemas():
+        if sch.schemaLocation() is not None:
+            schemas.add(sch)
+    while schemas:
+        schema = schemas.pop()
+        assert schema is not None
+        assert schema.schemaLocation() is not None
+        for sch in schema.includedSchema().union(schema.importedSchema()):
+            assert sch is not None, '%s imports none?' % (schema.schemaLocation(),)
+            if not ((sch.schemaLocation() is None) or (sch in schema_ii_graph.nodes())):
+                schemas.add(sch)
+                schema_ii_graph.addNode(sch)
+            if sch in schema.includedSchema():
+                schema_ii_graph.addEdge(schema, sch)
+
+    schema = iter(namespace.schemas()).next()
+    schema_ii_graph.setRoot(schema)
+    scc_order = schema_ii_graph.sccOrder()
+    namespace.__schemaOrder = scc_order
+    namespace.__schemaSet = schema_ii_graph.nodes()
+
     return ns_graph.sccMap().get(namespace)
+
 
 def _PrepareNamespaceForGeneration (sns, module_path_prefix, all_std, all_ctd, all_ed):
     std = set()
@@ -939,40 +965,6 @@ def _SetNameWithAccessors (component, container, is_plural, binding_module, kw):
     if isinstance(component, xs.structures.ElementDeclaration) and is_plural:
         use_map['appender'] = utility.PrepareIdentifier('add' + unique_name[0].upper() + unique_name[1:], class_unique)
     return use_map
-
-def CheckDependencies (namespace):
-
-    schema_ii_graph = utility.Graph()
-    schemas = set()
-    for sch in namespace.schemas():
-        if sch.schemaLocation() is not None:
-            schemas.add(sch)
-    while schemas:
-        schema = schemas.pop()
-        assert schema is not None
-        assert schema.schemaLocation() is not None
-        for sch in schema.includedSchema().union(schema.importedSchema()):
-            assert sch is not None, '%s imports none?' % (schema.schemaLocation(),)
-            if not ((sch.schemaLocation() is None) or (sch in schema_ii_graph.nodes())):
-                schemas.add(sch)
-                schema_ii_graph.addNode(sch)
-            if sch in schema.includedSchema():
-                schema_ii_graph.addEdge(schema, sch)
-
-    schema = iter(namespace.schemas()).next()
-    schema_ii_graph.setRoot(schema)
-    scc_order = schema_ii_graph.sccOrder()
-    namespace.__schemaOrder = scc_order
-    namespace.__schemaSet = schema_ii_graph.nodes()
-    print "Schema ordering:"
-    for scc in scc_order:
-        elts = []
-        for s in scc:
-            if s.schemaLocation() is None:
-                print 'No schema location in %s' % (s.targetNamespace(),)
-            elts.append(str(s.schemaLocation()))
-        print 'SCC: %s' % ("\n  ".join(elts))
-
 
 class BindingIO (object):
     __prolog = None
@@ -1446,11 +1438,9 @@ def GeneratePython(schema_location=None,
         schema = xs.schema.CreateFromLocation(schema_location)
         namespace = schema.targetNamespace()
 
-    sibling_namespaces = _ResolveReferencedNamespaces(namespace)
+    sibling_namespaces = _ComputeDependencies(namespace)
     if sibling_namespaces is None:
         sibling_namespaces = set([namespace])
-
-    CheckDependencies(namespace)
 
     used_modules = {}
     all_std = set()
