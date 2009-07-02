@@ -93,9 +93,9 @@ print 'Input MPP %s' % (module_prefix,)
 module_prefix_elts = []
 if module_prefix:
     module_prefix_elts.extend(module_prefix.split('.'))
-if generate_raw_binding:
-    module_prefix_elts.append('raw')
 binding_path_elts = module_prefix_elts[:]
+if generate_raw_binding:
+    binding_path_elts.append('raw')
 if not binding_path_elts:
     binding_path_elts.append('.')
 binding_path = os.path.join(*binding_path_elts)
@@ -164,12 +164,11 @@ try:
         print 'Module path %s' % (tns.modulePath(),)
         mod_elts = tns.modulePath().split('.')
         leaf = mod_elts.pop()
-        mod_path = os.path.join(*mod_elts)
         try:
-            os.makedirs(os.path.join(mod_path))
+            os.makedirs(os.path.join(binding_path))
         except Exception, e:
-            print 'Exception creating directory %s: %s' % (mod_path, e)
-        use_binding_file = os.path.join(mod_path, '%s.py' % (leaf,))
+            print 'Exception creating directory %s: %s' % (binding_path, e)
+        use_binding_file = os.path.join(binding_path, '%s.py' % (leaf,))
         file(use_binding_file, 'w').write(m.moduleContents())
         print 'Saved binding source to %s' % (use_binding_file,)
 except Exception, e:
