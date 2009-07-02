@@ -115,9 +115,17 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin):
 
         Needed so we can distinguish components that came from different
         locations, since that imposes an external order dependency on them and
-        on cross-namespace inclusions."""
+        on cross-namespace inclusions.
+
+        @note: This characteristic is removed when the component is stored in
+        a namespace archive."""
         return self.__schema
     __schema = None
+
+    def _prepareForPickling (self):
+        # References to schemas in components loaded from an archive confuse
+        # the code generator.  We don't need them anymore, anyway.
+        self.__schema = None
 
     def __init__ (self, *args, **kw):
         self.__ownedComponents = set()
@@ -4095,6 +4103,7 @@ class _ImportElementInformationItem (_Annotated_mixin):
             except Exception, e:
                 print 'ERROR validating imported namespace %s: %s' % (uri, e)
                 traceback.print_exception(*sys.exc_info())
+                raise
 
             # @todo: validate that something got loaded
         elif self.schemaLocation() is not None:
@@ -4427,7 +4436,7 @@ class Schema (_SchemaComponent_mixin):
         abs_uri = urlparse.urljoin(self.__schemaLocation, rel_uri)
         if 0 > abs_uri.find(':'):
             abs_uri = os.path.realpath(abs_uri)
-        print 'include %s + %s = %s' % (self.__schemaLocation, rel_uri, abs_uri)
+        #print 'include %s + %s = %s' % (self.__schemaLocation, rel_uri, abs_uri)
         included_schema = _ImportElementInformationItem._SchemaForLocation(abs_uri)
         if included_schema is None:
             try:

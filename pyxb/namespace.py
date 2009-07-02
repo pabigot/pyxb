@@ -1093,6 +1093,7 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
         for ns in namespace_set:
             object_map[ns] = ns._categoryMap()
             ns.__hasBeenArchived = True
+            [ _sc._prepareForPickling() for _sc in ns.components() ]
         pickler.dump(object_map)
 
         cls._PicklingNamespaces(None)
