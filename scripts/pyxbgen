@@ -93,19 +93,6 @@ print 'Input MPP %s' % (module_prefix,)
 module_prefix_elts = []
 if module_prefix:
     module_prefix_elts.extend(module_prefix.split('.'))
-binding_path_elts = module_prefix_elts[:]
-if generate_raw_binding:
-    binding_path_elts.append('raw')
-if not binding_path_elts:
-    binding_path_elts.append('.')
-binding_path = os.path.join(*binding_path_elts)
-if save_component_model:
-    component_model_file = os.path.join(binding_path, '%s.wxs' % (schema_prefix,))
-binding_file = os.path.join(binding_path,'%s.py' % (schema_prefix,))
-
-module_path = '.'.join(module_prefix_elts + [schema_prefix])
-
-print 'Output BP %s, MPP %s, MP %s, SP %s' % (binding_path, module_prefix, module_path, schema_prefix)
 
 import sys
 import traceback
@@ -158,21 +145,30 @@ try:
     print 'Python for %s requires %d modules' % (tns, len(modules))
 
     for m in modules:
-        sns = m.namespace()
-        if sns != tns:
-            continue
-        print 'Module path %s' % (tns.modulePath(),)
-        mod_elts = tns.modulePath().split('.')
+        sns = None
+        try:
+            sns = m.namespace()
+            if sns != tns:
+                continue
+        except AttributeError, e:
+            print e
+        print 'Module path %s' % (m.modulePath(),)
+        mod_elts = m.modulePath().split('.')
+        if generate_raw_binding:
+            assert len(mod_elts) > len(module_prefix_elts)
+            mod_elts.insert(len(module_prefix_elts), 'raw')
         leaf = mod_elts.pop()
+        binding_path = os.path.join(*mod_elts)
         try:
             os.makedirs(os.path.join(binding_path))
         except Exception, e:
             print 'Exception creating directory %s: %s' % (binding_path, e)
         use_binding_file = os.path.join(binding_path, '%s.py' % (leaf,))
+        component_model_file = os.path.join(binding_path, '%s.wxs' % (leaf,))
         file(use_binding_file, 'w').write(m.moduleContents())
         print 'Saved binding source to %s' % (use_binding_file,)
 except Exception, e:
-    print 'Exception generating bindings to %s: %s' % (binding_file, e)
+    print 'Exception generating bindings: %s' % (e,)
     traceback.print_exception(*sys.exc_info())
     sys.exit(3)
 
