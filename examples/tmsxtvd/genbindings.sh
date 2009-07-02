@@ -3,6 +3,7 @@ export PYTHONPATH
 URI='http://docs.tms.tribune.com/tech/xml/schemas/tmsxtvd.xsd'
 PREFIX='tmstvd'
 
+rm -rf raw
 mkdir -p raw
 touch raw/__init__.py
 ../../scripts/pyxbgen \

@@ -3,6 +3,7 @@ export PYTHONPATH
 URI='http://www.weather.gov/forecasts/xml/DWMLgen/schema/DWML.xsd'
 PREFIX='DWML'
 
+rm -rf raw
 mkdir -p raw
 touch raw/__init__.py
 ../../scripts/pyxbgen \

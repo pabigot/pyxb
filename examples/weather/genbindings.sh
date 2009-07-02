@@ -7,6 +7,7 @@ if [ ! -f ${WSDL} ] ; then
   wget -O ${WSDL} "${URI}"
 fi
 
+rm -rf raw
 mkdir -p raw
 touch raw/__init__.py
 ../../scripts/pyxbgen \

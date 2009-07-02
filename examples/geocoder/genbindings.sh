@@ -10,6 +10,7 @@ if [ ! -f ${GEO_WSDL} ] ; then
   patch -p0 < ${GEO_WSDL}-patch
 fi
 
+rm -rf raw
 mkdir -p raw
 touch raw/__init__.py
 
