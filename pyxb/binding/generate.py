@@ -1021,8 +1021,7 @@ def CreateFromDOM (node):
     __SchemaModuleMap = { }
     @classmethod
     def _RecordSchemaGroup (cls, module):
-        for sch in module.schemaGroup():
-            cls.__SchemaModuleMap[sch] = module
+        cls.__SchemaModuleMap.update(dict.fromkeys(module.schemaGroup(), module))
         return module
     @classmethod
     def ForSchema (cls, schema, fallback_to_namespace=False):
@@ -1183,6 +1182,7 @@ class NamespaceModule (_ModuleNaming_mixin):
         namespace_module = self.ForNamespace(namespace)
         if namespace_module is None:
             return 'pyxb.namespace.NamespaceForURI(%s)' % (repr(namespace.uri()),)
+        self._import(namespace_module)
         assert not namespace_module.namespaceGroupModule()
         return '%s.Namespace' % (namespace_module.modulePath(),)
 
@@ -1207,7 +1207,6 @@ class NamespaceGroupModule (_ModuleNaming_mixin):
     _GroupPrefix = '_group'
 
     def __init__ (self, namespace_modules, module_prefix_elts):
-        assert False
         super(NamespaceGroupModule, self).__init__(self)
         assert 1 < len(namespace_modules)
         self.__namespaceModules = namespace_modules
@@ -1262,7 +1261,6 @@ class SchemaGroupModule (_ModuleNaming_mixin):
     _UniqueInModule = set([ 'pyxb', 'sys', 'Namespace' ])
     
     def __init__ (self, namespace_module, schema_group):
-        assert False
         super(SchemaGroupModule, self).__init__(self)
         self.__namespaceModule = namespace_module
         self.__schemaGroup = schema_group
@@ -1288,7 +1286,7 @@ class SchemaGroupModule (_ModuleNaming_mixin):
         schema = component._schema()
         if schema is not None:
             component_module = _ModuleNaming_mixin.ForSchema(component._schema())
-            assert component_module is not None
+            assert component_module is not None, 'No module for %s in schema %s from %s' % (component, component._schema().schemaLocation(), self.__schemaGroupHead.schemaLocation())
             return component_module.nameInModule(component, self == component_module)
         # If it doesn't have a schema, it can't be in this namespace
         namespace = component.targetNamespace()
@@ -1298,12 +1296,13 @@ class SchemaGroupModule (_ModuleNaming_mixin):
     def referenceNamespace (self, namespace):
         if pyxb.namespace.XMLSchema == namespace:
             return 'pyxb.namespace.XMLSchema'
-        if self.__namespace == namespace:
-            return 'Namespace'
         namespace_module = self.ForNamespace(namespace)
         if namespace_module is None:
+            assert False
             return 'pyxb.namespace.NamespaceForURI(%s)' % (repr(namespace.uri()),)
-        assert not namespace_module.namespaceGroupModule()
+        nsg = namespace_module.namespaceGroupModule()
+        if nsg:
+            return '_Namespace_%s' % (namespace.prefix(),)
         return '%s.Namespace' % (namespace_module.modulePath(),)
 
     def __str__ (self):
@@ -1406,6 +1405,9 @@ def GenerateAllPython (schema_location=None,
         scg_head = sc_scc[0]
         nsm = NamespaceModule.ForNamespace(scg_head.targetNamespace())
         sgm = None
+        if 1 < len(sc_scc):
+            print 'MULTI_ELT SCHEMA GROUP'
+
         if (nsm is not None) and (nsm.namespaceGroupModule() is not None):
             sgm = SchemaGroupModule(nsm, sc_scc)
             modules.add(sgm)
