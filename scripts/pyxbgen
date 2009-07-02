@@ -80,27 +80,32 @@ if module_path is None:
     sys.exit(1)
 
 if 0 <= module_path.find('.'):
-    (module_path_prefix, schema_prefix) = module_path.rsplit('.', 1)
+    (module_prefix, schema_prefix) = module_path.rsplit('.', 1)
 else:
-    module_path_prefix = ''
+    module_prefix = ''
     schema_prefix = module_path
 
 if not schema_prefix:
     print 'Require --schema-prefix'
     sys.exit(1)
 
-module_path_elts = module_path_prefix.split('.')
-if not module_path_elts:
-    module_path_elts.append('.')
+print 'Input MPP %s' % (module_prefix,)
+module_prefix_elts = []
+if module_prefix:
+    module_prefix_elts.extend(module_prefix.split('.'))
 if generate_raw_binding:
-    module_path_elts.append('raw')
-binding_path = os.path.join(*module_path_elts)
+    module_prefix_elts.append('raw')
+binding_path_elts = module_prefix_elts[:]
+if not binding_path_elts:
+    binding_path_elts.append('.')
+binding_path = os.path.join(*binding_path_elts)
 if save_component_model:
     component_model_file = os.path.join(binding_path, '%s.wxs' % (schema_prefix,))
 binding_file = os.path.join(binding_path,'%s.py' % (schema_prefix,))
 
-if module_path_prefix:
-    module_path_prefix += '.'
+module_path = '.'.join(module_prefix_elts + [schema_prefix])
+
+print 'Output BP %s, MPP %s, MP %s, SP %s' % (binding_path, module_prefix, module_path, schema_prefix)
 
 import sys
 import traceback
@@ -149,7 +154,7 @@ tns = wxs.targetNamespace()
 # parsed schema file
 try:
     tns.setModulePath(module_path)
-    modules = GenerateAllPython(namespace=tns, module_path_prefix=module_path_prefix)
+    modules = GenerateAllPython(namespace=tns, module_prefix_elts=module_prefix_elts)
     print 'Python for %s requires %d modules' % (tns, len(modules))
 
     for m in modules:
@@ -157,7 +162,14 @@ try:
         if sns != tns:
             continue
         print 'Module path %s' % (tns.modulePath(),)
-        use_binding_file = os.path.join(*tns.modulePath().split('.')) + '.py'
+        mod_elts = tns.modulePath().split('.')
+        leaf = mod_elts.pop()
+        mod_path = os.path.join(*mod_elts)
+        try:
+            os.makedirs(os.path.join(mod_path))
+        except Exception, e:
+            print 'Exception creating directory %s: %s' % (mod_path, e)
+        use_binding_file = os.path.join(mod_path, '%s.py' % (leaf,))
         file(use_binding_file, 'w').write(m.moduleContents())
         print 'Saved binding source to %s' % (use_binding_file,)
 except Exception, e:

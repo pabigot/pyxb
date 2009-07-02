@@ -771,6 +771,7 @@ GeneratorMap = {
 
 def _PrepareSimpleTypeDefinition (std, nsm, module_context):
     ptd = std.primitiveTypeDefinition(throw_if_absent=False)
+    std._templateMap()['_unique'] = nsm.uniqueInClass(std)
     if (ptd is not None) and ptd.hasPythonSupport():
         # Only generate enumeration constants for named simple
         # type definitions that are fundamentally xsd:string
@@ -801,6 +802,7 @@ def _PrepareComplexTypeDefinition (ctd, nsm, module_context):
         plurality_map = content_basis.pluralityData().nameBasedPlurality()
     else:
         plurality_map = {}
+    ctd._templateMap()['_unique'] = nsm.uniqueInClass(ctd)
     for cd in ctd.localScopedDeclarations():
         _SetNameWithAccessors(cd, ctd, plurality_map.get(cd.expandedName(), (False, None))[0], module_context, nsm, kw)
         #print '  %s %s uses %s stored in %s' % (cd.__class__.__name__, cd.expandedName(), use_map['id'], use_map['key'])
@@ -916,10 +918,7 @@ class _ModuleNaming_mixin (object):
                 if component._isHierarchyRoot():
                     rv.update(basis.complexTypeDefinition._ReservedSymbols)
                 else:
-                    base_td = component.baseTypeDefinition()
-                    base_nsm = NamespaceModule.ForComponent(base_td)
-                    assert base_nsm is not None, 'No module for base type %s for component %s' % (base_td, component)
-                    rv.update(base_nsm.uniqueInClass(base_td))
+                    rv.update(component.baseTypeDefinition()._templateMap()['_unique'])
             self.__uniqueInClass[component] = rv
         return rv
 
@@ -1069,7 +1068,7 @@ class NamespaceModule (_ModuleNaming_mixin):
         return self.__namespace
     __namespace = None
 
-    __modulePrefix = None
+    __modulePrefixElts = None
 
     def namespaceGroupModule (self):
         return self.__namespaceGroupModule
@@ -1096,7 +1095,7 @@ class NamespaceModule (_ModuleNaming_mixin):
     def namespaceGroupMulti (self):
         return 1 < len(self.__namespaceGroup)
 
-    def __init__ (self, namespace, module_prefix, ns_scc, components):
+    def __init__ (self, namespace, ns_scc, module_prefix_elts=[], components=None):
         super(NamespaceModule, self).__init__(self)
         self.__namespace = namespace
         print 'NSM Namespace %s module path %s' % (namespace, namespace.modulePath())
@@ -1107,10 +1106,11 @@ class NamespaceModule (_ModuleNaming_mixin):
         self.__namespaceGroup = ns_scc
         self._RecordNamespace(self)
         self.__namespaceGroupHead = self.ForNamespace(ns_scc[0])
-        self.__modulePrefix = module_prefix[:]
+        self.__modulePrefixElts = module_prefix_elts[:]
         self.__components = components
         # wow! fromkeys actually IS useful!
-        self.__ComponentModuleMap.update(dict.fromkeys(self.__components, self))
+        if self.__components is not None:
+            self.__ComponentModuleMap.update(dict.fromkeys(self.__components, self))
         self.__namespaceBindingNames = {}
         self.__componentBindingName = {}
         self._initializeUniqueInModule(self._UniqueInModule)
@@ -1127,19 +1127,19 @@ class NamespaceModule (_ModuleNaming_mixin):
 
     def setBaseModule (self, base_module):
         if base_module is not None:
-            base_module = '.'.join(self.__modulePrefix + [ base_module ])
+            base_module = '.'.join(self.__modulePrefixElts + [ base_module ])
         self._setModulePath(base_module)
         self.__namespace.setModulePath(self.modulePath())
 
-    def setSchemaGroupPrefix (self, schema_group_prefix):
-        self.__schemaGroupPrefix = schema_group_prefix[:]
+    def setSchemaGroupPrefixElts (self, schema_group_prefix_elts):
+        self.__schemaGroupPrefixElts = schema_group_prefix_elts[:]
         self.__uniqueInSchemaGroup = set()
-    __schemaGroupPrefix = None
+    __schemaGroupPrefixElts = None
     __uniqueInSchemaGroup = None
     
     def schemaGroupModulePath (self, schema_group_module):
         module_base = utility.MakeUnique('_'.join([ _s.schemaLocationTag() for _s in schema_group_module.schemaGroup() ]), self.__uniqueInSchemaGroup)
-        return '.'.join(self.__schemaGroupPrefix + [ module_base ])
+        return '.'.join(self.__schemaGroupPrefixElts + [ module_base ])
 
     __components = None
     __componentBindingName = None
@@ -1206,7 +1206,7 @@ class NamespaceGroupModule (_ModuleNaming_mixin):
     __UniqueInGroups = set()
     _GroupPrefix = '_group'
 
-    def __init__ (self, namespace_modules, module_prefix):
+    def __init__ (self, namespace_modules, module_prefix_elts):
         assert False
         super(NamespaceGroupModule, self).__init__(self)
         assert 1 < len(namespace_modules)
@@ -1215,11 +1215,11 @@ class NamespaceGroupModule (_ModuleNaming_mixin):
         print namespace_modules[0].namespace()
         self.__namespaceGroupHead = namespace_modules[0].namespaceGroupHead()
 
-        module_prefix = module_prefix[:]
-        module_prefix.append(self._GroupPrefix)
-        self._setModulePath('.'.join(module_prefix + [ utility.MakeUnique('_'.join([ _nsm.namespace().prefix() for _nsm in namespace_modules]), self.__UniqueInGroups) ]))
+        module_prefix_elts = module_prefix_elts[:]
+        module_prefix_elts.append(self._GroupPrefix)
+        self._setModulePath('.'.join(module_prefix_elts + [ utility.MakeUnique('_'.join([ _nsm.namespace().prefix() for _nsm in namespace_modules]), self.__UniqueInGroups) ]))
         for nsm in namespace_modules:
-            nsm.setSchemaGroupPrefix(module_prefix + [ utility.MakeUnique('_%s' % (nsm.namespace().prefix(),), self.__UniqueInGroups) ])
+            nsm.setSchemaGroupPrefixElts(module_prefix_elts + [ utility.MakeUnique('_%s' % (nsm.namespace().prefix(),), self.__UniqueInGroups) ])
         self._initializeUniqueInModule(self._UniqueInModule)
 
     def _initialBindingTemplateMap (self):
@@ -1320,9 +1320,9 @@ def SchemaLocations (sc_set):
 
 def GeneratePython (schema_location=None,
                     namespace=None,
-                    module_path_prefix=[]):
+                    module_prefix_elts=[]):
 
-    modules = GenerateAllPython(schema_location, namespace, module_path_prefix)
+    modules = GenerateAllPython(schema_location, namespace, module_prefix_elts)
 
 
     assert 1 == len(modules), '%s produced %d modules: %s' % (namespace, len(modules), " ".join([ str(_m) for _m in modules]))
@@ -1330,14 +1330,11 @@ def GeneratePython (schema_location=None,
 
 def GenerateAllPython (schema_location=None,
                        namespace=None,
-                       module_path_prefix=[],
+                       module_prefix_elts=[],
                        _process_builtins=False):
     modules = set()
     
-    if module_path_prefix:
-        binding_module_prefix = module_path_prefix.split('.')
-    else:
-        binding_module_prefix = []
+    binding_module_prefix_elts = module_prefix_elts[:]
 
     pyxb.namespace.XMLSchema.setModulePath('pyxb.binding.datatypes')
 
@@ -1354,7 +1351,6 @@ def GenerateAllPython (schema_location=None,
     siblings = nsdep.siblingNamespaces()
     print 'Sibling namesspaces: %s' % (siblings,)
 
-    used_modules = {}
     component_namespace_map = {}
     namespace_component_map = {}
     for sns in siblings:
@@ -1368,6 +1364,8 @@ def GenerateAllPython (schema_location=None,
                 namespace_component_map.setdefault(sns, set()).add(c)
     
     all_components = component_namespace_map.keys()
+    usable_namespaces = set(namespace_component_map.keys())
+    usable_namespaces.update([ _ns for _ns in nsdep.dependentNamespaces() if _ns.isLoadable])
 
     namespace_module_map = {}
     unique_in_bindings = set([NamespaceGroupModule._GroupPrefix])
@@ -1375,10 +1373,11 @@ def GenerateAllPython (schema_location=None,
         namespace_modules = []
         nsg_head = None
         for ns in ns_scc:
-            if not (ns in namespace_component_map):
-                continue
-            nsm = NamespaceModule(ns, binding_module_prefix, ns_scc, namespace_component_map.get(ns, ns.components()))
-            modules.add(nsm)
+            if ns in siblings:
+                nsm = NamespaceModule(ns, ns_scc, binding_module_prefix_elts, namespace_component_map.get(ns, ns.components()))
+                modules.add(nsm)
+            else:
+                nsm = NamespaceModule(ns, ns_scc)
             namespace_module_map[ns] = nsm
             assert ns == nsm.namespace()
 
@@ -1396,7 +1395,7 @@ def GenerateAllPython (schema_location=None,
             namespace_modules.append(nsm)
 
         if (nsg_head is not None) and nsg_head.namespaceGroupMulti():
-            ngm = NamespaceGroupModule(namespace_modules, binding_module_prefix)
+            ngm = NamespaceGroupModule(namespace_modules, binding_module_prefix_elts)
             modules.add(ngm)
             [ _nsm.setNamespaceGroupModule(ngm) for _nsm in namespace_modules ]
             assert namespace_module_map[nsg_head.namespace()].namespaceGroupModule() == ngm
@@ -1431,7 +1430,6 @@ def GenerateAllPython (schema_location=None,
     for c in component_order:
         if isinstance(c, xs.structures.ElementDeclaration) and c._scopeIsGlobal():
             nsm = namespace_module_map[component_namespace_map.get(c)]
-            print 'binding %s' % (c.expandedName(),)
             nsm.bindComponent(c, SchemaGroupModule.ForSchema(c._schema()))
             element_declarations.append(c)
         else:
