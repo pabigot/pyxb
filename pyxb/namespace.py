@@ -1777,7 +1777,7 @@ class NamespaceDependencies (object):
                     # namespace must be for a namespace on which this
                     # namespace is dependent, or we screwed up the dependency
                     # calculation.
-                    assert sch in self.dependentNamespaces()
+                    assert sch.targetNamespace() in self.dependentNamespaces()
 
                     if sch in self.__schemaGraph.nodes():
                         continue
