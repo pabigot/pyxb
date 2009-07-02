@@ -4038,7 +4038,6 @@ class _ImportElementInformationItem (_Annotated_mixin):
     def _RecordSchemaLocation (cls, schema):
         schema_location = schema.schemaLocation()
         if schema_location is None:
-            assert schema.targetNamespace().isBuiltinNamespace()
             return None
         assert not (schema_location in cls.__LocationSchemaMap)
         cls.__LocationSchemaMap[schema_location] = schema
