@@ -78,6 +78,9 @@ for (o, a) in opts:
 if module_path is None:
     print 'Require --module-path'
     sys.exit(1)
+if 0 <= module_path.find(os.sep):
+    print 'ERROR: Module path uses dot separators, not %s' % (os.sep,)
+    sys.exit(1)
 
 if 0 <= module_path.find('.'):
     (module_prefix, schema_prefix) = module_path.rsplit('.', 1)
@@ -153,18 +156,20 @@ try:
         except AttributeError, e:
             print e
         print 'Module path %s' % (m.modulePath(),)
-        mod_elts = m.modulePath().split('.')
+        binding_path_elts = m.modulePath().split('.')
         if generate_raw_binding:
-            assert len(mod_elts) > len(module_prefix_elts)
-            mod_elts.insert(len(module_prefix_elts), 'raw')
-        leaf = mod_elts.pop()
-        binding_path = os.path.join(*mod_elts)
+            assert len(binding_path_elts) > len(module_prefix_elts)
+            binding_path_elts.insert(len(module_prefix_elts), 'raw')
+        binding_file = binding_path_elts.pop()
+        if 0 == len(binding_path_elts):
+            binding_path_elts.append('.')
+        binding_path = os.path.join(*binding_path_elts)
         try:
             os.makedirs(os.path.join(binding_path))
         except Exception, e:
             print 'Exception creating directory %s: %s' % (binding_path, e)
-        use_binding_file = os.path.join(binding_path, '%s.py' % (leaf,))
-        component_model_file = os.path.join(binding_path, '%s.wxs' % (leaf,))
+        use_binding_file = os.path.join(binding_path, '%s.py' % (binding_file,))
+        component_model_file = os.path.join(binding_path, '%s.wxs' % (binding_file,))
         file(use_binding_file, 'w').write(m.moduleContents())
         print 'Saved binding source to %s' % (use_binding_file,)
 except Exception, e:
