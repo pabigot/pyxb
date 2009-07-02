@@ -1280,7 +1280,12 @@ def _LoadableNamespaceMap ():
         for bp in bindings_path.split(':'):
             if '+' == bp:
                 bp = DefaultBindingPath
-            for fn in os.listdir(bp):
+            files = []
+            try:
+                files = os.listdir(bp)
+            except OSError, e:
+                files = []
+            for fn in files:
                 if fnmatch.fnmatch(fn, '*.wxs'):
                     afn = os.path.join(bp, fn)
                     infile = open(afn, 'rb')
