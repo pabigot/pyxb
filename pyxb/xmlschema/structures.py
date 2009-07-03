@@ -4132,6 +4132,11 @@ class _ImportElementInformationItem (_Annotated_mixin):
         self.__schemaLocation = NodeAttribute(node, 'schemaLocation')
         ns = self.__namespace = pyxb.namespace.NamespaceForURI(uri, create_if_missing=True)
         self.__redundant = False
+        if ns.isLoadable():
+            if self.__schemaLocation is not None:
+                print 'WARNING: %s is loadable, ignoring schema location %s' % (ns, self.__schemaLocation)
+                self.__schemaLocation = None
+
         if ns.isActive():
             # Already using this.  If we read it from an archive, there can't
             # be a schema location.  Otherwise, there must be a schema
