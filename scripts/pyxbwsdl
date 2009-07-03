@@ -24,7 +24,7 @@ for uri in sys.argv[1:]:
         for p in s.port():
             b = p.bindingReference()
             prot = b.protocolBinding()
-            assert p.addressReference()  # Usually fails when generated bindings import raw module
+            assert p.addressReference(), 'No reference for %s wildcards: %s' % (p.name(), p.wildcardElements())  # Usually fails when generated bindings import raw module
             print '  Port %s at %s' % (p.name(), p.addressReference().location())
             ptr = b.portTypeReference()
             for op in b.operation():
