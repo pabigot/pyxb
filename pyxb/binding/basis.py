@@ -109,7 +109,7 @@ class _TypeBinding_mixin (pyxb.cscRoot):
             # facet and attribute values) are legitimately unassociated with
             # elements.
             if issubclass(cls, complexTypeDefinition):
-                print '**WARNING: Creating new %s instance without associated element' % (cls._ExpandedName,)
+                #print '**WARNING: Creating new %s instance without associated element' % (cls._ExpandedName,)
                 #raise pyxb.LogicError('Creating new _TypeBinding_mixin without associated element')
                 cls.__WarnedUnassociatedElement = True
         return rv

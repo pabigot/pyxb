@@ -937,7 +937,8 @@ class _ModuleNaming_mixin (object):
 
     def moduleContents (self):
         aux_imports = []
-        print 'imported namespaces: %s' % (self.__importedNamespaces,)
+        if self.__importedNamespaces:
+            print 'imported namespaces: %s' % (self.__importedNamespaces,)
         for ns in self.__importedNamespaces:
             if not isinstance(ns, NamespaceModule):
                 ns = self.ForNamespace(ns)
@@ -1351,7 +1352,6 @@ def GenerateAllPython (schema_location=None,
     file('schema.dot', 'w').write(nsdep.schemaGraph()._generateDOT('Schema', labeller=lambda _s:_s.schemaLocation()))
 
     siblings = nsdep.siblingNamespaces()
-    print 'Sibling namesspaces: %s' % (siblings,)
 
     component_namespace_map = {}
     namespace_component_map = {}
@@ -1388,12 +1388,9 @@ def GenerateAllPython (schema_location=None,
 
             if nsm.namespace().prefix() is not None:
                 assert nsm.namespace().prefix() is not None, 'No prefix for %s' % (ns,)
-                print 'Prefix store namespace %s' % (nsm.namespace().prefix(),)
                 nsm.setBaseModule(utility.MakeUnique(nsm.namespace().prefix(), unique_in_bindings))
             else:
-                print 'None store no prefix'
                 nsm.setBaseModule(None)
-            print '%s stores in %s' % (ns, nsm.modulePath())
             namespace_modules.append(nsm)
 
         if (nsg_head is not None) and nsg_head.namespaceGroupMulti():
@@ -1401,15 +1398,6 @@ def GenerateAllPython (schema_location=None,
             modules.add(ngm)
             [ _nsm.setNamespaceGroupModule(ngm) for _nsm in namespace_modules ]
             assert namespace_module_map[nsg_head.namespace()].namespaceGroupModule() == ngm
-            print 'Group headed by %s stores in %s' % (nsg_head, ngm.modulePath())
-
-            '''
-    nsid = 0
-    for ns in nsdep.dependentNamespaces():
-        if ns.prefix() is None:
-            ns.setPrefix('ns%d' % (nsid,))
-            nsid += 1
-            '''
 
     schema_module_map = {}
     for sc_scc in nsdep.schemaOrder():
@@ -1422,7 +1410,6 @@ def GenerateAllPython (schema_location=None,
         if (nsm is not None) and (nsm.namespaceGroupModule() is not None):
             sgm = SchemaGroupModule(nsm, sc_scc)
             modules.add(sgm)
-            print 'Schema group stores in %s: %s' % (sgm.modulePath(), ' '.join([ _s.schemaLocationTag() for _s in sc_scc]))
         for sc in sc_scc:
             schema_module_map[sc] = sgm
 

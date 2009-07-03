@@ -820,7 +820,7 @@ def ResolveSiblingNamespaces (sibling_namespaces):
         for ns in need_resolved:
             if not ns.needsResolution():
                 continue
-            print 'Attempting resolution %s' % (ns.uri(),)
+            #print 'Attempting resolution %s' % (ns.uri(),)
             if not ns.resolveDefinitions(allow_unresolved=True):
                 print 'Holding incomplete resolution %s' % (ns.uri(),)
                 new_nr.add(ns)
@@ -1205,7 +1205,6 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
 
     def addSchema (self, schema):
         sl = schema.schemaLocation()
-        print '%s adding schema at %s' % (self, sl)
         if sl is not None:
             assert not (sl in self.__schemaMap)
             self.__schemaMap[sl] = schema
@@ -1678,9 +1677,6 @@ class NamespaceContext (object):
         try:
             return node.__namespaceContext
         except AttributeError:
-            # Left this in since sometimes it's right and sometimes it's wrong.
-            # See invocation in basis.element.createFromDOM.
-            print 'CREATING NODE CONTEXT FROM %s' % (kw,)
             return NamespaceContext(node, **kw)
 
     def processXMLNS (self, prefix, uri):
@@ -1916,7 +1912,6 @@ class NamespaceDependencies (object):
                 did_schema.add(schema)
                 self.__schemaGraph.addNode(schema)
                 for sch in schema.includedSchema().union(schema.importedSchema()):
-
                     # Any schema (recursively) referenced by the root
                     # namespace must be for a namespace on which this
                     # namespace is dependent, or we screwed up the dependency
@@ -1927,6 +1922,7 @@ class NamespaceDependencies (object):
                         continue
 
                     if not (sch.targetNamespace() in siblings):
+                        print '%s excluding referenced %s' % (schema.schemaLocation(), sch.schemaLocation())
                         continue
 
                     schemas.add(sch)

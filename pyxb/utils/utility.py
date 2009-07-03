@@ -307,7 +307,6 @@ class Graph:
         self.__dfsOrder.append(source)
 
     def _generateDOT (self, title='UNKNOWN', labeller=None):
-        print 'GENERATING DOT'
         node_map = { }
         idx = 1
         for n in self.__nodes:

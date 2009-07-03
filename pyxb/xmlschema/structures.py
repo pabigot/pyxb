@@ -492,7 +492,6 @@ class _NamedComponent_mixin (pyxb.cscRoot):
             # named value can be located.
             scope_ref = _PickledAnonymousReference.FromPickled(scope)
             if object_reference.namespace() != scope_ref.namespace():
-                print 'Attempting to look up %s in %s' % (object_reference, scope_ref)
                 scope_ref.validateComponentModel()
                 assert 'typeDefinition' in scope_ref.namespace().categories()
             scope_ctd = scope_ref.typeDefinition()
@@ -4508,9 +4507,9 @@ class Schema (_SchemaComponent_mixin):
                 #traceback.print_exception(*sys.exc_info())
                 raise
             print '%s completed including %s from %s' % (self.__schemaLocation, included_schema.targetNamespace(), abs_uri)
+        print 'Included %s, back to %s' % (included_schema.schemaLocation(), self.schemaLocation())
         assert self.targetNamespace() == included_schema.targetNamespace()
         self.__includedSchema.add(included_schema)
-        #print xml
         return node
 
     def __processImport (self, node):
