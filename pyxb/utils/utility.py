@@ -306,21 +306,27 @@ class Graph:
                 self.__dfsWalk(target)
         self.__dfsOrder.append(source)
 
-    def _generateDOT (self):
+    def _generateDOT (self, title='UNKNOWN', labeller=None):
         print 'GENERATING DOT'
         node_map = { }
         idx = 1
         for n in self.__nodes:
             node_map[n] = idx
             idx += 1
-        text = "digraph %s {\n" % ('UNKNOWN',)
-        text += "\n".join( [ '%s [shape=box,label="%s"];' % (node_map[_n], str(_n)) for _n in self.__nodes ])
+        text = []
+        text.append('digraph "%s" {' % (title,))
+        for n in self.__nodes:
+            if labeller is not None:
+                nn = labeller(n)
+            else:
+                nn = str(n)
+            text.append('%s [shape=box,label="%s"];' % (node_map[n], nn))
         for s in self.__nodes:
             for d in self.__edgeMap.get(s, []):
                 if s != d:
-                    text += "%s -> %s;\n" % (node_map[s], node_map[d])
-        text += "};\n"
-        return text
+                    text.append('%s -> %s;' % (node_map[s], node_map[d]))
+        text.append("};")
+        return "\n".join(text)
 
     def dfsOrder (self, reset=False):
         if reset or (self.__dfsOrder is None):
