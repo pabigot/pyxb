@@ -454,6 +454,9 @@ class _ComponentArchivable_mixin (pyxb.cscRoot):
 
 class _NamespaceArchivable_mixin (pyxb.cscRoot):
 
+    def definedBySchema (self):
+        return self.isActive() and not (self._loadedFromArchive() or self.isBuiltinNamespace())
+
     def _loadedFromArchive (self):
         return self.__loadedFromArchive
     
@@ -1891,6 +1894,9 @@ class NamespaceDependencies (object):
                 raise pyxb.LogicError('Attempt to identify siblings for unrelated namespace %s among %s' % (namespace, " ".join([ str(_ns) for _ns in self.dependentNamespaces() ])))
             rv = set([namespace])
         return rv
+
+    def schemaDefinedNamespaces (self, reset=False):
+        return set([ _ns for _ns in self.dependentNamespaces(reset) if _ns.definedBySchema() ])
 
     def dependentNamespaces (self, reset=False):
         return self.namespaceGraph(reset).nodes()
