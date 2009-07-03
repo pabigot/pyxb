@@ -141,12 +141,17 @@ else:
 
 tns = wxs.targetNamespace()
 
+# If we're supposed to save the component model, create a
+# NamespaceArchive instance to hold the namespaces.  (Adding absent
+# namespaces to archives is a violation of the rules, so don't create
+# the archive unless we expect to need it.)
+ns_archive = None
+if save_component_model:
+    ns_archive = pyxb.namespace.NamespaceArchive()
+
 # Save binding source first, so name-in-binding is stored in the
 # parsed schema file
-ns_archive = None
 try:
-    ns_archive = pyxb.namespace.NamespaceArchive()
-    
     if tns.prefix() is None:
         tns.setPrefix(schema_prefix)
     tns.setModulePath(module_path)
@@ -159,7 +164,8 @@ try:
             sns = m.namespace()
             if sns == tns:
                 top_module = m
-            ns_archive.add(sns)
+            if ns_archive is not None:
+                ns_archive.add(sns)
         print 'Module path %s' % (m.modulePath(),)
         binding_path_elts = m.modulePath().split('.')
         if generate_raw_binding:
@@ -183,8 +189,7 @@ except Exception, e:
     traceback.print_exception(*sys.exc_info())
     sys.exit(3)
 
-if save_component_model:
-    assert 'typeDefinition' in tns.categories()
+if ns_archive is not None:
     try:
         ns_archive.writeNamespaces(component_model_file)
         print 'Saved parsed schema to %s URI %s' % (component_model_file, tns.uri())
