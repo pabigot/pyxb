@@ -847,13 +847,16 @@ class _ComponentDependency_mixin (pyxb.cscRoot):
         plus those that are sub-component (e.g., the particles in a model
         group).
 
+        Be aware that the returned set may include this node, if there is a
+        loop in the component graph.  For a legal document to exist in such a
+        case, there must be an emptiable transition in each loop, but we don't
+        check that.
+
         @rtype: C{set(L{pyxb.xmlschema.structures._SchemaComponent_mixin})}"""
         if self.__dependentComponents is None:
             if isinstance(self, _Resolvable_mixin) and not (self.isResolved()):
                 raise pyxb.LogicError('Unresolved %s in %s: %s' % (self.__class__.__name__, self._namespaceContext().targetNamespace(), self.name()))
             self.__dependentComponents = self._dependentComponents_vx()
-            if self in self.__dependentComponents:
-                raise pyxb.LogicError('Self-dependency with %s %s' % (self.__class__.__name__, self))
         return self.__dependentComponents
 
     def _dependentComponents_vx (self):
@@ -1948,6 +1951,7 @@ class NamespaceDependencies (object):
                     if cd in all_components:
                         self.__componentGraph.addEdge(c, cd)
         return self.__componentGraph
+    __componentGraph = None
 
     def componentOrder (self, reset=False):
         return self.componentGraph(reset).sccOrder()
