@@ -39,6 +39,7 @@ from pyxb.binding import basis
 from pyxb.binding import datatypes
 from pyxb.binding import facets
 from pyxb.utils.domutils import *
+import pyxb.utils.utility
 import copy
 import urllib2
 import urlparse
@@ -122,10 +123,21 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin):
         return self.__schema
     __schema = None
 
-    def _prepareForPickling (self):
+    def _prepareForPickling_csc (self, namespace):
+        self.__schema = None
+        return getattr(super(_SchemaComponent_mixin, self), '_prepareForPickling_csc', lambda *_args,**_kw: self)(namespace)
+
+    def _prepareForPickling (self, namespace):
         # References to schemas in components loaded from an archive confuse
         # the code generator.  We don't need them anymore, anyway.
-        self.__schema = None
+        self._prepareForPickling_csc(namespace)
+        nm = '<unnamed>'
+        if isinstance(self, _NamedComponent_mixin):
+            if self.isAnonymous():
+                nm = 'ANON:%s' % (self._anonymousName(),)
+            else:
+                nm = self.expandedName()
+        print 'Pickling %s %s, value %s, depends on %s' % (object.__str__(self), nm, self, self.dependentComponents())
 
     def __init__ (self, *args, **kw):
         self.__ownedComponents = set()
@@ -332,6 +344,35 @@ class _Annotated_mixin (pyxb.cscRoot):
     def annotation (self):
         return self.__annotation
 
+class _PickledAnonymousReference (pyxb.cscRoot):
+    __namespace = None
+    __anonymousName = None
+    def __init__ (self, namespace, anonymous_name):
+        self.__namespace = namespace
+        self.__anonymousName = anonymous_name
+
+    @classmethod
+    def FromPickled (cls, object_reference):
+        if not isinstance(object_reference, _PickledAnonymousReference):
+            assert isinstance(object_reference, tuple)
+            object_reference = pyxb.namespace.ExpandedName(object_reference)
+        return object_reference
+
+    def namespace (self):
+        return self.__namespace
+
+    def anonymousName (self):
+        return self.__anonymousName
+
+    def validateComponentModel (self):
+        return self.__namespace.validateComponentModel()
+
+    def typeDefinition (self):
+        return self.__namespace.categoryMap(pyxb.namespace.Namespace._AnonymousCategory).get(self.__anonymousName)
+
+    def __str__ (self):
+        return 'ANONYMOUS:%s' % (pyxb.namespace.ExpandedName(self.__namespace, self.__anonymousName),)
+    
 class _NamedComponent_mixin (pyxb.cscRoot):
     """Mix-in to hold the name and targetNamespace of a component.
 
@@ -360,6 +401,10 @@ class _NamedComponent_mixin (pyxb.cscRoot):
         """Return true iff this instance is locally scoped (has no name)."""
         return self.__name is None
 
+    def _anonymousName (self):
+        return self.__anonymousName
+    __anonymousName = None
+
     def targetNamespace (self):
         """The targetNamespace of a componen.
 
@@ -379,6 +424,16 @@ class _NamedComponent_mixin (pyxb.cscRoot):
         the code generated in support of the binding for this component."""
         return self.__templateMap
     __templateMap = None
+
+    __AnonymousCategory = pyxb.namespace.Namespace._AnonymousCategory
+
+    def _prepareForPickling_csc (self, namespace):
+        if self.isAnonymous():
+            anon_name = pyxb.utils.utility.MakeUnique(self.nameInBinding(), set(namespace.categoryMap(self.__AnonymousCategory).keys()))
+            self.__anonymousName = anon_name
+            namespace.addCategoryObject(self.__AnonymousCategory, anon_name, self)
+            print '*** Created anonymous tag %s for %s' % (self.__anonymousName, self)
+        return getattr(super(_NamedComponent_mixin, self), '_prepareForPickling_csc', lambda *_args,**_kw: self)(namespace)
 
     def _picklesInNamespaces (self, namespaces):
         """Return C{True} if this component should be pickled by value in the
@@ -437,50 +492,51 @@ class _NamedComponent_mixin (pyxb.cscRoot):
         if 0 == len(args):
             rv = super(_NamedComponent_mixin, cls).__new__(cls)
             return rv
-        ( expanded_name_tuple, scope, icls ) = args
-        expanded_name = pyxb.namespace.ExpandedName(expanded_name_tuple)
+        ( object_reference, scope, icls ) = args
+        
+        object_reference = _PickledAnonymousReference.FromPickled(object_reference)
 
         # Explicitly validate here: the lookup operations won't do so,
         # but will abort if the namespace hasn't been validated yet.
-        expanded_name.validateComponentModel()
-        if isinstance(scope, tuple):
+        object_reference.validateComponentModel()
+        if isinstance(scope, (tuple, _PickledAnonymousReference)):
             # Scope is the expanded name of the complex type in which the
             # named value can be located.
-            scope_en = pyxb.namespace.ExpandedName(scope)
-            if expanded_name.namespace() != scope_en.namespace():
-                print 'Attempting to look up %s in %s' % (expanded_name, scope_en)
-                scope_en.validateComponentModel()
-                assert 'typeDefinition' in scope_en.namespace().categories()
-            scope_ctd = scope_en.typeDefinition()
+            scope_ref = _PickledAnonymousReference.FromPickled(scope)
+            if object_reference.namespace() != scope_ref.namespace():
+                print 'Attempting to look up %s in %s' % (object_reference, scope_ref)
+                scope_ref.validateComponentModel()
+                assert 'typeDefinition' in scope_ref.namespace().categories()
+            scope_ctd = scope_ref.typeDefinition()
             if scope_ctd is None:
-                raise pyxb.SchemaValidationError('Unable to resolve local scope %s' % (scope_en,))
+                raise pyxb.SchemaValidationError('Unable to resolve local scope %s' % (scope_ref,))
             if issubclass(icls, AttributeDeclaration):
-                rv = scope_ctd.lookupScopedAttributeDeclaration(expanded_name)
+                rv = scope_ctd.lookupScopedAttributeDeclaration(object_reference)
             elif issubclass(icls, ElementDeclaration):
-                rv = scope_ctd.lookupScopedElementDeclaration(expanded_name)
+                rv = scope_ctd.lookupScopedElementDeclaration(object_reference)
             else:
-                raise pyxb.IncompleteImplementationError('Scope %s reference lookup of %s not implemented for type %s' % (scope_en, expanded_name, icls))
+                raise pyxb.IncompleteImplementationError('Scope %s reference lookup of %s not implemented for type %s' % (scope_ref, object_reference, icls))
             if rv is None:
-                raise pyxb.SchemaValidationError('Unable to resolve %s as %s in scope %s' % (expanded_name, icls, scope_en))
+                raise pyxb.SchemaValidationError('Unable to resolve %s as %s in scope %s' % (object_reference, icls, scope_ref))
         elif _ScopedDeclaration_mixin.ScopeIsGlobal(scope) or _ScopedDeclaration_mixin.ScopeIsIndeterminate(scope):
             if (issubclass(icls, SimpleTypeDefinition) or issubclass(icls, ComplexTypeDefinition)):
-                rv = expanded_name.typeDefinition()
+                rv = object_reference.typeDefinition()
             elif issubclass(icls, AttributeGroupDefinition):
-                rv = expanded_name.attributeGroupDefinition()
+                rv = object_reference.attributeGroupDefinition()
             elif issubclass(icls, ModelGroupDefinition):
-                rv = expanded_name.modelGroupDefinition()
+                rv = object_reference.modelGroupDefinition()
             elif issubclass(icls, AttributeDeclaration):
-                rv = expanded_name.attributeDeclaration()
+                rv = object_reference.attributeDeclaration()
             elif issubclass(icls, ElementDeclaration):
-                rv = expanded_name.elementDeclaration()
+                rv = object_reference.elementDeclaration()
             elif issubclass(icls, IdentityConstraintDefinition):
-                rv = expanded_name.identityConstraintDefinition()
+                rv = object_reference.identityConstraintDefinition()
             else:
-                raise pyxb.IncompleteImplementationError('Reference lookup of %s not implemented for type %s' % (expanded_name, icls))
+                raise pyxb.IncompleteImplementationError('Reference lookup of %s not implemented for type %s' % (object_reference, icls))
             if rv is None:
-                raise pyxb.SchemaValidationError('Unable to resolve %s as %s' % (expanded_name, icls))
+                raise pyxb.SchemaValidationError('Unable to resolve %s as %s' % (object_reference, icls))
         else:
-            raise pyxb.IncompleteImplementationError('Unable to resolve reference %s' % (expanded_name,))
+            raise pyxb.IncompleteImplementationError('Unable to resolve reference %s' % (object_reference,))
         return rv
 
     def __init__ (self, *args, **kw):
@@ -516,6 +572,12 @@ class _NamedComponent_mixin (pyxb.cscRoot):
         """
         return (type(self) == type(other)) and self.isNameEquivalent(other)
 
+    def _picklingReference (self):
+        if self.isAnonymous():
+            print 'Wrapping %s as anonymous %s in %s' % (self, self._anonymousName(), self.targetNamespace())
+            return _PickledAnonymousReference(self.targetNamespace(), self._anonymousName())
+        return self.expandedName().uriTuple()
+
     def __pickleAsReference (self):
         if self.targetNamespace() is None:
             return False
@@ -530,8 +592,7 @@ class _NamedComponent_mixin (pyxb.cscRoot):
         # its target namespace isn't this one.
         if self._picklesInNamespaces(pickling_namespaces):
             return False
-        if self.isAnonymous():
-            raise pyxb.LogicError('Unable to pickle reference to unnamed object %s in %s: %s' % (self.name(), self.targetNamespace().uri(), object.__str__(self)))
+        # Note that anonymous objects must use their fallback
         return True
 
     def __getstate__ (self):
@@ -540,7 +601,7 @@ class _NamedComponent_mixin (pyxb.cscRoot):
             # this case (unlike getnewargs) we don't care about trying
             # to look up a previous instance, so we don't need to
             # encode the scope in the reference tuple.
-            return self.expandedName().uriTuple()
+            return self._picklingReference()
         if self.targetNamespace() is None:
             # The only internal named objects that should exist are
             # ones that have a non-global scope (including those with
@@ -579,14 +640,14 @@ class _NamedComponent_mixin (pyxb.cscRoot):
                 if self.SCOPE_global == self.scope():
                     pass
                 elif isinstance(self.scope(), ComplexTypeDefinition):
-                    scope = self.scope().expandedName().uriTuple()
+                    scope = self.scope()._picklingReference()
                 elif self._scopeIsIndeterminate():
                     raise pyxb.LogicError('Attempt to pickle reference to %s tns %s in indeterminate scope in %s' % (self, self.targetNamespace(), pyxb.namespace.Namespace.PicklingNamespaces()))
                     assert False
             else:
                 assert isinstance(self, _NamedComponent_mixin), 'Pickling unnamed component %s in indeterminate scope by reference' % (self,)
 
-            rv = ( self.expandedName().uriTuple(), scope, self.__class__ )
+            rv = ( self._picklingReference(), scope, self.__class__ )
             return rv
         return ()
 

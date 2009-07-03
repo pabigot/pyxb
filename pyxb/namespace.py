@@ -1068,6 +1068,8 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
     def PicklingNamespaces (cls):
         return Namespace.__PicklingNamespaces
 
+    _AnonymousCategory = '_anonymousTypeDefinition'
+
     @classmethod
     def SaveToFile (cls, namespace_set, file_path):
         """Save the set of namespaces to an archive file so they can be loaded
@@ -1102,9 +1104,10 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
         pickler.dump(namespace_set)
         object_map = { }
         for ns in namespace_set:
+            ns.configureCategories([cls._AnonymousCategory])
             object_map[ns] = ns._categoryMap()
             ns.__hasBeenArchived = True
-            [ _sc._prepareForPickling() for _sc in ns.components() ]
+            [ _sc._prepareForPickling(ns) for _sc in ns.components() ]
         pickler.dump(object_map)
 
         cls._PicklingNamespaces(None)
