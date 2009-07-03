@@ -1104,7 +1104,11 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
         # context assuming we're within the element's namespace.  @todo:
         # Figure out what circumstance required that we support a default
         # context.
-        ns_ctx = pyxb.namespace.NamespaceContext.GetNodeContext(node, target_namespace=elt_ns, default_namespace=elt_ns)
+        #
+        # weather: Assigning target namespace improperly adds references from
+        # wsdl to other
+        #ns_ctx = pyxb.namespace.NamespaceContext.GetNodeContext(node, target_namespace=elt_ns, default_namespace=elt_ns)
+        ns_ctx = pyxb.namespace.NamespaceContext.GetNodeContext(node)
         if type_name is not None:
             # xsi:type should only be provided when using an abstract class,
             # or a concrete class that happens to be the same, but in practice
