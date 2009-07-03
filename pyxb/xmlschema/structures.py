@@ -51,7 +51,7 @@ _PastAddBuiltInTypes = False
 # Make it easier to check node names in the XMLSchema namespace
 from pyxb.namespace import XMLSchema as xsd
 
-class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin):
+class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin, pyxb.namespace._ComponentArchivable_mixin):
     """A mix-in that marks the class as representing a schema component.
 
     This exists so that we can determine the owning schema for any
@@ -123,14 +123,9 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin):
         return self.__schema
     __schema = None
 
-    def _prepareForPickling_csc (self, namespace):
+    def _prepareForArchive_csc (self, namespace):
         self.__schema = None
-        return getattr(super(_SchemaComponent_mixin, self), '_prepareForPickling_csc', lambda *_args,**_kw: self)(namespace)
-
-    def _prepareForPickling (self, namespace):
-        # References to schemas in components loaded from an archive confuse
-        # the code generator.  We don't need them anymore, anyway.
-        self._prepareForPickling_csc(namespace)
+        return getattr(super(_SchemaComponent_mixin, self), '_prepareForArchive_csc', lambda *_args,**_kw: self)(namespace)
 
     def __init__ (self, *args, **kw):
         self.__ownedComponents = set()
@@ -418,15 +413,15 @@ class _NamedComponent_mixin (pyxb.cscRoot):
         return self.__templateMap
     __templateMap = None
 
-    __AnonymousCategory = pyxb.namespace.Namespace._AnonymousCategory
+    __AnonymousCategory = pyxb.namespace.NamespaceArchive._AnonymousCategory()
 
-    def _prepareForPickling_csc (self, namespace):
+    def _prepareForArchive_csc (self, namespace):
         if self.isAnonymous():
             anon_name = pyxb.utils.utility.MakeUnique(self.nameInBinding(), set(namespace.categoryMap(self.__AnonymousCategory).keys()))
             self.__anonymousName = anon_name
             namespace.addCategoryObject(self.__AnonymousCategory, anon_name, self)
             print '*** Created anonymous tag %s for %s' % (self.__anonymousName, self)
-        return getattr(super(_NamedComponent_mixin, self), '_prepareForPickling_csc', lambda *_args,**_kw: self)(namespace)
+        return getattr(super(_NamedComponent_mixin, self), '_prepareForArchive_csc', lambda *_args,**_kw: self)(namespace)
 
     def _picklesInNamespaces (self, namespaces):
         """Return C{True} if this component should be pickled by value in the
@@ -577,7 +572,7 @@ class _NamedComponent_mixin (pyxb.cscRoot):
         # Get the namespace we're pickling.  If the namespace is None,
         # we're not pickling; we're probably cloning, and in that case
         # we don't want to use the reference state encoding.
-        pickling_namespaces = pyxb.namespace.Namespace.PicklingNamespaces()
+        pickling_namespaces = pyxb.namespace.NamespaceArchive.PicklingNamespaces()
         if pickling_namespaces is None:
             return False
         # If this thing is scoped in a complex type that belongs to the
@@ -635,7 +630,7 @@ class _NamedComponent_mixin (pyxb.cscRoot):
                 elif isinstance(self.scope(), ComplexTypeDefinition):
                     scope = self.scope()._picklingReference()
                 elif self._scopeIsIndeterminate():
-                    raise pyxb.LogicError('Attempt to pickle reference to %s tns %s in indeterminate scope in %s' % (self, self.targetNamespace(), pyxb.namespace.Namespace.PicklingNamespaces()))
+                    raise pyxb.LogicError('Attempt to pickle reference to %s tns %s in indeterminate scope in %s' % (self, self.targetNamespace(), pyxb.namespace.NamespaceArchive.PicklingNamespaces()))
                     assert False
             else:
                 assert isinstance(self, _NamedComponent_mixin), 'Pickling unnamed component %s in indeterminate scope by reference' % (self,)
@@ -4135,24 +4130,45 @@ class _ImportElementInformationItem (_Annotated_mixin):
         if uri is None:
             raise pyxb.IncompleteImplementationError('import statements without namespace not supported')
         self.__schemaLocation = NodeAttribute(node, 'schemaLocation')
-        self.__namespace = pyxb.namespace.NamespaceForURI(uri, create_if_missing=True)
+        ns = self.__namespace = pyxb.namespace.NamespaceForURI(uri, create_if_missing=True)
         self.__redundant = False
-        if uri in pyxb.namespace.AvailableForLoad():
-            try:
-                self.__namespace.validateComponentModel()
-            except Exception, e:
-                print 'ERROR validating imported namespace %s: %s' % (uri, e)
-                traceback.print_exception(*sys.exc_info())
-                raise
+        if ns.isActive():
+            # Already using this.  If we read it from an archive, there can't
+            # be a schema location.  Otherwise, there must be a schema
+            # location.
+            if ns._loadedFromArchive():
+                if self.__schemaLocation is not None:
+                    # @todo: warning
+                    raise pyxb.NamespaceArchiveError('import %s cannot use schemaLocation (was loaded from archive)' % (ns,))
+                else:
+                    # presume the load covers everything
+                    pass
+            else:
+                if self.__schemaLocation is not None:
+                    # will load below
+                    pass
+                else:
+                    # assume can load from archive later
+                    pass
+        else:
+            # Not active.  Must have a schema location, or be able to read it
+            # from an archive.
+            if self.__schemaLocation is not None:
+                # will load below
+                pass
+            else:
+                # assume can load from archive later
+                pass
 
-            # @todo: validate that something got loaded
-        elif self.schemaLocation() is not None:
+        if self.schemaLocation() is not None:
             schema_uri = urlparse.urljoin(schema.schemaLocation(), self.__schemaLocation)
             print 'import %s + %s = %s' % (schema.schemaLocation(), self.__schemaLocation, schema_uri)
             schema = self.__namespace.lookupSchemaByLocation(schema_uri)
             if schema is None:
-                schema = Schema.CreateFromLocation(schema_location=schema_uri, namespace_context=pyxb.namespace.NamespaceContext.GetNodeContext(node))
-            #raise pyxb.NamespaceError('Please generate bindings for namespace %s available at %s, prefix %s' % (uri, schema_uri, '??'))
+                try:
+                    schema = Schema.CreateFromLocation(schema_location=schema_uri, namespace_context=pyxb.namespace.NamespaceContext.GetNodeContext(node))
+                except Exception, e:
+                    print 'WARNING: Import %s cannot read schema location %s (%s)' % (ns, self.__schemaLocation, schema_uri)
             self.__schema = schema
         else:
             print 'WARNING: No information available on imported namespace %s' % (uri,)
@@ -4260,6 +4276,8 @@ class Schema (_SchemaComponent_mixin):
                            'identityConstraintDefinition' )
 
     def __init__ (self, *args, **kw):
+        pyxb.namespace.PreLoadNamespaces()
+
         assert 'schema' not in kw
         self.__schemaLocation = kw.get('schema_location', None)
         if self.__schemaLocation is not None:

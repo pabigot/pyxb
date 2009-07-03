@@ -287,6 +287,216 @@ class _Resolvable_mixin (pyxb.cscRoot):
             print 'Resolution delayed for %s: %s' % (self, why)
         self._namespaceContext().queueForResolution(self)
 
+class NamespaceArchive (object):
+    """Represent a file from which one or more namespaces can be read."""
+
+    __PickleFormat = '200907030557'
+
+    __AnonymousCategory = '_anonymousTypeDefinition'
+    @classmethod
+    def _AnonymousCategory (cls):
+        return cls.__AnonymousCategory
+
+    # Class variable recording the namespace that is currently being
+    # pickled.  Used to prevent storing components that belong to
+    # other namespaces.  Should be None unless within an invocation of
+    # SaveToFile.
+    __PicklingNamespaces = None
+
+    @classmethod
+    def PicklingNamespaces (cls):
+        # NB: Use root class explicitly.  If we use cls, when this is invoked
+        # by subclasses it gets mangled using the subclass name so the one
+        # defined in this class is not found
+        return NamespaceArchive.__PicklingNamespaces
+
+    def archivePath (self):
+        return self.__archivePath
+    __archivePath = None
+
+    def __init__ (self, namespaces=None, archive_path=None):
+        self.__namespaces = set()
+        if namespaces is not None:
+            if archive_path:
+                raise pyxb.LogicError('NamespaceArchive: cannot define both namespaces and archive_path')
+            self.update(namespaces)
+        elif archive_path is not None:
+            self.__archivePath = archive_path
+            self.__readNamespaceSet(self.__createUnpickler(), define_namespaces=True)
+        else:
+            pass
+
+    def add (self, namespace):
+        if namespace.isAbsentNamespace():
+            raise pyxb.NamespaceArchiveError('Cannot archive absent namespace')
+        self.__namespaces.add(namespace)
+
+    def update (self, namespace_set):
+        [ self.add(_ns) for _ns in namespace_set ]
+
+    def namespaces (self):
+        """Set of namespaces that can be read from this archive."""
+        return self.__namespaces
+    __namespaces = None
+
+    def dissociateNamespaces (self):
+        for ns in self.__namespaces:
+            ns._setArchive(None)
+        self.__namespaces.clear()
+
+    def __createUnpickler (self):
+        unpickler = pickle.Unpickler(open(self.__archivePath, 'rb'))
+
+        format = unpickler.load()
+        if self.__PickleFormat != format:
+            raise pyxb.NamespaceArchiveError('Archive format is %s, require %s' % (format, self.__PickleFormat))
+
+        return unpickler
+
+    __readNamespaces = False
+    def readNamespaces (self):
+        if self.__readNamespaces:
+            raise pyxb.NamespaceArchiveError('Multiple reads of archive')
+        self.__readNamespaces = True
+
+        unpickler = self.__createUnpickler()
+        self.__readNamespaceSet(unpickler)
+
+        for ns in self.namespaces():
+            if ns.isActive():
+                raise pyxb.NamespaceArchiveError('Namespace %s already activated when reading from archive %s' % (ns, self.__archivePath))
+
+        print 'LOADING NAMESPACE FROM %s' % (self.__archivePath,)
+        ns_set = unpickler.load()
+        assert ns_set == self.namespaces()
+
+        # For every namespace this one depends on that isn't saved in this
+        # archive, make sure its component model is valid so we can resolve to
+        # its members when loading this one.
+        for ns in ns_set:
+            if ns.isActive():
+                raise pyxb.NamespaceArchiveError('Attempt to load namespace %s after activation' % (ns,))
+            for rns in ns.referencedNamespaces():
+                if rns in ns_set:
+                    continue
+                print 'Need to validate %s before continuing with %s' % (rns.uri(), ns.uri())
+                rns.validateComponentModel()
+                print 'Completed validation of %s, continuing with %s' % (rns.uri(), ns.uri())
+
+        # Now unarchive everything and associate it with its relevant
+        # namespace.
+        object_maps = unpickler.load()
+        for ns in ns_set:
+            ns._loadNamedObjects(object_maps[ns])
+            ns._setLoadedFromArchive()
+        
+    def writeNamespaces (self, archive_path):
+
+        output = open(archive_path, 'wb')
+        pickler = pickle.Pickler(output, -1)
+        NamespaceArchive.__PicklingNamespaces = self.namespaces()
+        assert self.PicklingNamespaces() == self.namespaces(), 'Set %s, read %s' % (self.namespaces(), self.PicklingNamespaces())
+
+        # The format of the archive
+        pickler.dump(NamespaceArchive.__PickleFormat)
+
+        # The set of URIs defining the namespaces in the archive
+        uri_set = set()
+        [ uri_set.add(_ns.uri()) for _ns in self.namespaces() ]
+        pickler.dump(uri_set)
+
+        # The pickled namespaces.  Note that namespaces have a custom pickling
+        # representation which does not include any of the objects they hold.
+        pickler.dump(self.namespaces())
+
+        # A map from namespace to the category maps of the namespace.
+        object_map = { }
+        for ns in self.namespaces():
+            ns.configureCategories([self._AnonymousCategory()])
+            object_map[ns] = ns._categoryMap()
+            ns._setWroteToArchive()
+            for obj in ns._namedObjects().union(ns.components()):
+                obj._prepareForArchive(ns)
+        pickler.dump(object_map)
+
+        NamespaceArchive.__PicklingNamespaces = None
+
+    def __readNamespaceSet (self, unpickler, define_namespaces=False):
+        uri_set = unpickler.load()
+        if not define_namespaces:
+            return
+        
+        for uri in uri_set:
+            ns = NamespaceForURI(uri)
+            if ns is not None:
+                # Verify namespace is not active
+                if ns.isActive():
+                    raise pyxb.NamespaceArchiveError('Namespace %s already active' % (uri,))
+                # Verify namespace is not available from a different archive
+                if (ns._archive() is not None) and (ns._archive() != self):
+                    raise pyxb.NamespaceArchiveError('Namespace %s already available from %s' % (uri, ns._archive()))
+                pass
+        for uri in uri_set:
+            ns = NamespaceForURI(uri, create_if_missing=True)
+            ns._setArchive(self)
+            self.__namespaces.add(ns)
+
+    @classmethod
+    def DefineFromFile (self, archive_path):
+        pass
+
+    def __str__ (self):
+        archive_path = self.__archivePath
+        if archive_path is None:
+            archive_path = '??'
+        return 'NSArchive@%s' % (archive_path,)
+
+class _ComponentArchivable_mixin (object):
+    def _prepareForArchive_csc (self, namespace):
+        return getattr(super(_ComponentArchivable_mixin, self), '_prepareForArchive_csc', lambda *_args,**_kw: self)(namespace)
+
+    def _prepareForArchive (self, namespace):
+        return self._prepareForArchive_csc(namespace)
+
+class _NamespaceArchivable_mixin (object):
+
+    def _loadedFromArchive (self):
+        return self.__loadedFromArchive
+    
+    __wroteToArchive = None
+    __loadedFromArchive = None
+
+    def isActive (self):
+        return self.__isActive
+    def _activate (self):
+        self.__isActive = True
+        if self._archive() is not None:
+            self._archive().dissociateNamespaces()
+    __isActive = None
+
+    def __init__ (self, *args, **kw):
+        self.__archive = None
+        self.__loadedFromArchive = False
+        self.__wroteToArchive = False
+        self.__active = False
+        super(_NamespaceArchivable_mixin, self).__init__(*args, **kw)
+        
+    def _setLoadedFromArchive (self):
+        self.__loadedFromArchive = True
+        self._activate()
+    def _setWroteToArchive (self):
+        self.__wroteToArchive = True
+
+    def _setArchive (self, archive):
+        self.__archive = archive
+    def _archive (self):
+        return self.__archive
+    __archive = None
+    
+    def _setState_csc (self, kw):
+        assert not self.__isActive, 'ERROR: State set for active namespace %s' % (self,)
+        return getattr(super(_NamespaceResolution_mixin, self), '_getState_csc', lambda _kw: _kw)(kw)
+    
 class NamedObjectMap (dict):
     """An extended dictionary intended to assist with QName resolution.
 
@@ -361,7 +571,12 @@ class _NamespaceCategory_mixin (pyxb.cscRoot):
     def configureCategories (self, categories):
         """Ensure there is a map for each of the given categories.
 
+        Category configuration
+        L{activates<_NamespaceArchivable_mixin.isActive>} a namespace.
+
         Existing maps are not affected."""
+                                                     
+        self._activate()
         if self.__categoryMap is None:
             self.__categoryMap = { }
         for category in categories:
@@ -408,6 +623,12 @@ class _NamespaceCategory_mixin (pyxb.cscRoot):
             if 0 < len(self.categoryMap(k)):
                 return False
         return True
+
+    def _namedObjects (self):
+        objects = set()
+        for category_map in self.__categoryMap.values():
+            objects.update(category_map.values())
+        return objects
 
     def _loadNamedObjects (self, category_map):
         """Add the named objects from the given map into the set held by this namespace.
@@ -475,6 +696,7 @@ class _NamespaceResolution_mixin (pyxb.cscRoot):
         return self
 
     def _referenceNamespace (self, namespace):
+        self._activate()
         self.__referencedNamespaces.add(namespace)
         return self
 
@@ -665,6 +887,7 @@ class _NamespaceComponentAssociation_mixin (pyxb.cscRoot):
 
     def _associateComponent (self, component):
         """Record that the responsibility for the component belongs to this namespace."""
+        self._activate()
         assert self.__components is not None
         assert isinstance(component, _ComponentDependency_mixin)
         assert component not in self.__components
@@ -697,7 +920,7 @@ class _NamespaceComponentAssociation_mixin (pyxb.cscRoot):
         for c in self.__components:
             c._clearNamespaceContext()
 
-class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _NamespaceComponentAssociation_mixin):
+class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _NamespaceComponentAssociation_mixin, _NamespaceArchivable_mixin):
     """Represents an XML namespace (a URI).
 
     There is at most one L{Namespace} class instance per namespace (URI).  The
@@ -753,6 +976,10 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
 
     # Indicates whether this namespace was loaded from an archive
     __isLoadedNamespace = False
+
+    # Archive from which the namespace can be read, or None if no archive
+    # defines this namespace.
+    __namespaceArchive = None
 
     # Indicates whether this namespace has been written to an archive
     __hasBeenArchived = False
@@ -871,6 +1098,7 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
         assert (self.__uri is None) or (self.__Registry[self.__uri] == self)
 
     def _reset (self):
+        assert not self.isActive()
         getattr(super(Namespace, self), '_reset', lambda *args, **kw: None)()
         self.__initialNamespaceContext = None
         self.__schemas = set()
@@ -1004,8 +1232,6 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
     def createExpandedName (self, local_name):
         return ExpandedName(self, local_name)
 
-    __PICKLE_FORMAT = '200906270803'
-
     def _getState_csc (self, kw):
         kw.update({
             'schemaLocation': self.__schemaLocation,
@@ -1037,117 +1263,23 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
             raise pyxb.LogicError('Illegal to serialize absent namespaces')
         kw = self._getState_csc({ })
         args = ( self.__uri, )
-        return ( self.__PICKLE_FORMAT, pyxb.__version__, args, kw )
+        return ( args, kw )
 
     def __setstate__ (self, state):
-        """Support pickling.
-
-        This will throw an exception if the state is not in a format
-        recognized by this method."""
-        format = state[0]
-        if self.__PICKLE_FORMAT != format:
-            raise pickle.UnpicklingError('Got Namespace pickle format %s, require %s' % (format, self.__PICKLE_FORMAT))
-        ( format, version, args, kw ) = state
+        """Support pickling."""
+        ( args, kw ) = state
         ( uri, ) = args
         assert self.__uri == uri
-        # Convert private keys into proper form
-        return self._setState_csc(kw)
-
-    # Class variable recording the namespace that is currently being
-    # pickled.  Used to prevent storing components that belong to
-    # other namespaces.  Should be None unless within an invocation of
-    # SaveToFile.
-    __PicklingNamespaces = None
-    @classmethod
-    def _PicklingNamespaces (cls, value):
-        # NB: Use Namespace explicitly so do not set the variable in a
-        # subclass.
-        Namespace.__PicklingNamespaces = value
-
-    @classmethod
-    def PicklingNamespaces (cls):
-        return Namespace.__PicklingNamespaces
-
-    _AnonymousCategory = '_anonymousTypeDefinition'
-
-    @classmethod
-    def SaveToFile (cls, namespace_set, file_path):
-        """Save the set of namespaces to an archive file so they can be loaded
-        later.
-
-        The archive file contains the information for each namespace in the
-        set, including all named objects that are stored in its categories.
-
-        Recall that these objects tend to have references to other objects
-        (e.g., baseTypeDefinition or memberType).  A reference that is to an
-        object in a namespace that is not in the set is saved by name,
-        requiring that it be resolvable upon load of the archive.  For this to
-        occur, it must be possible to resolve that namespace without reference
-        to objects in any namespace in this set.
-
-        This imposes the requirement that the set be closed under reference
-        cycles: i.e., if a member A in this set has a reference path back to
-        itself, all namespaces on that reference path must also be in the set.
-        That is, the set must form a strongly-connected component in the graph
-        of namespaces where edges are references.
-
-        In the vast majority of cases, an archive contains only a single
-        namespace, but dependency loops do exist in complicated systems (like
-        ISO 19139).
-        """
-        
-        output = open(file_path, 'wb')
-        pickler = pickle.Pickler(output, -1)
-        cls._PicklingNamespaces(namespace_set)
-        assert Namespace.PicklingNamespaces() is not None
-
-        pickler.dump(namespace_set)
-        object_map = { }
-        for ns in namespace_set:
-            ns.configureCategories([cls._AnonymousCategory])
-            object_map[ns] = ns._categoryMap()
-            ns.__hasBeenArchived = True
-            [ _sc._prepareForPickling(ns) for _sc in ns.components() ]
-        pickler.dump(object_map)
-
-        cls._PicklingNamespaces(None)
-
-    @classmethod
-    def LoadFromFile (cls, file_path):
-        """Create a Namespace instance with named objects loaded from the
-        given file.
-
-        Mix-ins should define a CSC function that performs any state loading
-        required and returns the instance.
-        """
-        print 'Attempting to load a namespace from %s' % (file_path,)
-        unpickler = pickle.Unpickler(open(file_path, 'rb'))
-
-        archived_namespaces = unpickler.load()
-
-        # For every namespace this one depends on that isn't saved in this
-        # archive, make sure its component model is valid so we can resolve to
-        # its members when loading this one.
-        for ns in archived_namespaces:
-            for rns in ns.referencedNamespaces():
-                if rns in archived_namespaces:
-                    continue
-                print 'Need to validate %s before continuing with %s' % (rns.uri(), ns.uri())
-                rns.validateComponentModel()
-                print 'Completed validation of %s, continuing with %s' % (rns.uri(), ns.uri())
-
-        object_maps = unpickler.load()
-        for instance in archived_namespaces:
-            instance._loadNamedObjects(object_maps[instance])
-            # @todo: clean up the validation flag/defineoverload garbage
-            instance.__didValidation = True
+        # If this namespace hasn't been activated, do so now, using the
+        # archived information which includes referenced namespaces.
+        if not self.isActive():
+            self._setState_csc(kw)
 
     def isLoadable (self):
         """Return C{True} iff the component model for this namespace can be
         loaded from a namespace archive."""
         return _LoadableNamespaceMap().get(self.uri(), None) is not None
 
-    __inSchemaLoad = False
     def _defineSchema_overload (self, structures_module):
         """Attempts to load the named objects held in this namespace.
 
@@ -1161,20 +1293,9 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
         There is no guarantee that any particular category of named object has
         been located when this returns.  Caller must check.
         """
-        assert not self.__inSchemaLoad
-
-        # Absent namespaces cannot load objects (because they can't be
-        # archived).
-        if self.isAbsentNamespace():
-            return None
-        afn = _LoadableNamespaceMap().get(self.uri(), None)
-        if afn is not None:
-            #print 'Loading %s from %s' % (self.uri(), afn)
-            try:
-                self.__inSchemaLoad = True
-                self.LoadFromFile(afn)
-            finally:
-                self.__inSchemaLoad = False
+        if (not self.isActive()) and (self._archive() is not None):
+            self._archive().readNamespaces()
+        self._activate()
 
     __didValidation = False
     __inValidation = False
@@ -1194,8 +1315,6 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
                 self.__didValidation = True
             finally:
                 self.__inValidation = False
-        #if not self.hasSchemaComponents():
-        #   raise pyxb.NamespaceError('%s has no components' % (self.uri(),))
 
     def initialNamespaceContext (self):
         """Obtain the namespace context to be used when creating components in this namespace.
@@ -1277,19 +1396,21 @@ def CreateAbsentNamespace ():
     because you won't be able to look it up."""
     return Namespace.CreateAbsentNamespace()
 
-__LoadableNamespaces = None
+__NamespaceArchives = None
 """A mapping from namespace URIs to names of files which appear to
 provide a serialized version of the namespace with schema."""
 
-def _LoadableNamespaceMap ():
-    """Get the map from URIs to files from which the namespace data
-    can be loaded.  This looks for files with the extension C{.wxs} in any
-    directory in the default binding path, which is read from the environment
-    variable L{PathEnvironmentVariable}, or C{pyxb/standard/bindings/raw}."""
-    global __LoadableNamespaces
-    if __LoadableNamespaces is None:
+def LoadableNamespaces ():
+    available = set()
+    for ns_archive in PreLoadNamespaces():
+        available.update(ns_archive.namespaces())
+    return available
+
+def PreLoadNamespaces ():
+    global __NamespaceArchives
+    if __NamespaceArchives is None:
         # Look for pre-existing pickled schema
-        __LoadableNamespaces = { }
+        __NamespaceArchives = set()
         bindings_path = os.environ.get(PathEnvironmentVariable, DefaultBindingPath)
         for bp in bindings_path.split(':'):
             if '+' == bp:
@@ -1302,15 +1423,14 @@ def _LoadableNamespaceMap ():
             for fn in files:
                 if fnmatch.fnmatch(fn, '*.wxs'):
                     afn = os.path.join(bp, fn)
-                    infile = open(afn, 'rb')
                     try:
-                        unpickler = pickle.Unpickler(infile)
-                        archived_namespaces = unpickler.load()
-                        for ns in archived_namespaces:
-                            __LoadableNamespaces[ns.uri()] = afn
+                        archive = NamespaceArchive(archive_path=afn)
+                        __NamespaceArchives.add(archive)
                     except pickle.UnpicklingError, e:
-                        print 'ERROR reading from archive %s: %s' % (afn, e)
-    return __LoadableNamespaces
+                        print 'Cannot use archive %s: %s' % (afn, e)
+                    except pyxb.NamespaceArchiveError, e:
+                        print 'Cannot use archive %s: %s' % (afn, e)
+    return __NamespaceArchives
 
 class _XMLSchema_instance (Namespace):
     """Extension of L{Namespace} that pre-defines components available in the
@@ -1415,7 +1535,6 @@ class _XMLSchema (Namespace):
         
         self._loadBuiltins(structures_module)
         return self
-
 
 def AvailableForLoad ():
     """Return a list of namespace URIs for which we may be able to load the

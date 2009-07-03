@@ -33,6 +33,10 @@ class NamespaceError (PyXBException):
     """Violation of some rule relevant to XML Namespaces"""
     pass
 
+class NamespaceArchiveError (PyXBException):
+    """Problem related to namespace archives"""
+    pass
+
 class BindingGenerationError (PyXBException):
     """Raised when something goes wrong generating the binding classes"""
     pass
