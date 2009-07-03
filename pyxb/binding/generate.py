@@ -1170,7 +1170,7 @@ class NamespaceModule (_ModuleNaming_mixin):
         if pyxb.namespace.XMLSchema == namespace:
             return '%s.%s' % (namespace.modulePath(), component.name())
         component_module = _ModuleNaming_mixin.ForNamespace(namespace)
-        assert component_module is not None
+        assert component_module is not None, 'No module for namespace %s' % (namespace,)
         self._import(component_module)
         return component_module.nameInModule(component, self != component_module)
 
@@ -1216,7 +1216,7 @@ class NamespaceGroupModule (_ModuleNaming_mixin):
 
         module_prefix_elts = module_prefix_elts[:]
         module_prefix_elts.append(self._GroupPrefix)
-        self._setModulePath('.'.join(module_prefix_elts + [ utility.MakeUnique('_'.join([ _nsm.namespace().prefix() for _nsm in namespace_modules]), self.__UniqueInGroups) ]))
+        self._setModulePath('.'.join(module_prefix_elts + [ utility.MakeUnique('_'.join([ _nsm.namespace().prefix() for _nsm in namespace_modules if _nsm.namespace().prefix()]), self.__UniqueInGroups) ]))
         for nsm in namespace_modules:
             nsm.setSchemaGroupPrefixElts(module_prefix_elts + [ utility.MakeUnique('_%s' % (nsm.namespace().prefix(),), self.__UniqueInGroups) ])
         self._initializeUniqueInModule(self._UniqueInModule)
@@ -1347,6 +1347,9 @@ def GenerateAllPython (schema_location=None,
     for ns_set in nsdep.namespaceOrder():
         pyxb.namespace.ResolveSiblingNamespaces(ns_set)
 
+    file('namespace.dot', 'w').write(nsdep.namespaceGraph()._generateDOT('Namespace'))
+    file('schema.dot', 'w').write(nsdep.schemaGraph()._generateDOT('Schema', labeller=lambda _s:_s.schemaLocation()))
+
     siblings = nsdep.siblingNamespaces()
     print 'Sibling namesspaces: %s' % (siblings,)
 
@@ -1400,6 +1403,14 @@ def GenerateAllPython (schema_location=None,
             assert namespace_module_map[nsg_head.namespace()].namespaceGroupModule() == ngm
             print 'Group headed by %s stores in %s' % (nsg_head, ngm.modulePath())
 
+            '''
+    nsid = 0
+    for ns in nsdep.dependentNamespaces():
+        if ns.prefix() is None:
+            ns.setPrefix('ns%d' % (nsid,))
+            nsid += 1
+            '''
+
     schema_module_map = {}
     for sc_scc in nsdep.schemaOrder():
         scg_head = sc_scc[0]
@@ -1422,6 +1433,7 @@ def GenerateAllPython (schema_location=None,
         for target in deps:
             if target in all_components:
                 component_graph.addEdge(c, target)
+    file('component.dot', 'w').write(component_graph._generateDOT('Component', lambda _c: _c.bestNCName()))
 
     if len(component_graph.sccOrder()) != len(component_graph.nodes()):
         raise pyxb.SchemaValidationError('Dependency loop in component graph.')
