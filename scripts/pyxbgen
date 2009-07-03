@@ -3,7 +3,7 @@
 import getopt
 import sys
 import pyxb.xmlschema
-from pyxb.binding.generate import GenerateAllPython
+import pyxb.binding.generate
 import os.path
 
 # module path prefix
@@ -129,6 +129,7 @@ if write_schema_path is not None:
 
 #print schema
 
+
 if uri_is_wsdl:
     import pyxb.standard.bindings.wsdl as wsdl
     doc = minidom.parseString(schema)
@@ -142,19 +143,23 @@ tns = wxs.targetNamespace()
 
 # Save binding source first, so name-in-binding is stored in the
 # parsed schema file
+ns_archive = None
 try:
+    ns_archive = pyxb.namespace.NamespaceArchive()
+    
+    if tns.prefix() is None:
+        tns.setPrefix(schema_prefix)
     tns.setModulePath(module_path)
-    modules = GenerateAllPython(namespace=tns, module_prefix_elts=module_prefix_elts)
+    modules = pyxb.binding.generate.GenerateAllPython(namespace=tns, module_prefix_elts=module_prefix_elts)
     print 'Python for %s requires %d modules' % (tns, len(modules))
 
+    top_module = None
     for m in modules:
-        sns = None
-        try:
+        if isinstance(m, pyxb.binding.generate.NamespaceModule):
             sns = m.namespace()
-            if sns != tns:
-                continue
-        except AttributeError, e:
-            print e
+            if sns == tns:
+                top_module = m
+            ns_archive.add(sns)
         print 'Module path %s' % (m.modulePath(),)
         binding_path_elts = m.modulePath().split('.')
         if generate_raw_binding:
@@ -169,7 +174,8 @@ try:
         except Exception, e:
             print 'Exception creating directory %s: %s' % (binding_path, e)
         use_binding_file = os.path.join(binding_path, '%s.py' % (binding_file,))
-        component_model_file = os.path.join(binding_path, '%s.wxs' % (binding_file,))
+        if top_module == m:
+            component_model_file = os.path.join(binding_path, '%s.wxs' % (binding_file,))
         file(use_binding_file, 'w').write(m.moduleContents())
         print 'Saved binding source to %s' % (use_binding_file,)
 except Exception, e:
@@ -180,7 +186,7 @@ except Exception, e:
 if save_component_model:
     assert 'typeDefinition' in tns.categories()
     try:
-        pyxb.namespace.Namespace.SaveToFile([tns], component_model_file)
+        ns_archive.writeNamespaces(component_model_file)
         print 'Saved parsed schema to %s URI %s' % (component_model_file, tns.uri())
     except Exception, e:
         print 'Exception saving preprocessed schema to %s: %s' % (component_model_file, e)
