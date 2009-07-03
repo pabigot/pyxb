@@ -780,7 +780,7 @@ def _PrepareSimpleTypeDefinition (std, nsm, module_context):
             enum_facet = std.facets().get(pyxb.binding.facets.CF_enumeration, None)
             if (enum_facet is not None) and (std.expandedName() is not None):
                 for ei in enum_facet.items():
-                    assert ei.tag() is None
+                    assert ei.tag() is None, '%s already has a tag' % (ei,)
                     ei._setTag(utility.PrepareIdentifier(ei.unicodeValue(), nsm.uniqueInClass(std)))
                     #print ' Enum %s represents %s' % (ei.tag(), ei.unicodeValue())
             #print '%s unique: %s' % (std.expandedName(), nsm.uniqueInClass(std))
@@ -1355,7 +1355,12 @@ def GenerateAllPython (schema_location=None,
     file('schema.dot', 'w').write(nsdep.schemaGraph()._generateDOT('Schema', labeller=lambda _s: "/".join(_s.schemaLocation().split('/')[-2:])))
     file('component.dot', 'w').write(nsdep.componentGraph()._generateDOT('Component', lambda _c: _c.bestNCName()))
 
+    missing = nsdep.schemaDefinedNamespaces().difference(nsdep.siblingNamespaces())
+    if 0 < len(missing):
+        raise pyxb.BindingGenerationError('Generation root %s depends on schema-defined %s' % (namespace, " ".join([ str(_ns) for _ns in missing ])))
+
     siblings = nsdep.siblingNamespaces()
+    #siblings = nsdep.schemaDefinedNamespaces()
 
     all_components = set()
     namespace_component_map = {}
@@ -1422,7 +1427,7 @@ def GenerateAllPython (schema_location=None,
     component_order = []
     for cset in component_csets:
         if 1 < len(cset):
-            print "COMPONENT DEPENDENCY LOOP"
+            print "COMPONENT DEPENDENCY LOOP of %d components" % (len(cset),)
             cg = pyxb.utils.utility.Graph(cset[0])
             for c in cset:
                 print '  %s' % (c.expandedName(),)
@@ -1444,7 +1449,7 @@ def GenerateAllPython (schema_location=None,
     type_definitions = []
     for c in component_order:
         #if c.isAnonymous():
-        #    print c._picklingReference()
+        #    print c
         #else:
         #    print c.expandedName()
         if isinstance(c, xs.structures.ElementDeclaration) and c._scopeIsGlobal():
@@ -1458,7 +1463,7 @@ def GenerateAllPython (schema_location=None,
     complex_type_definitions = []
     for td in type_definitions:
         nsm = namespace_module_map.get(td.bindingNamespace())
-        assert nsm is not None, 'No namespace module for %s type %s scope %s namespace %s' % (td.expandedName(), type(td), td._scope(), component_namespace_map[td])
+        assert nsm is not None, 'No namespace module for %s type %s scope %s namespace %s' % (td.expandedName(), type(td), td._scope(), td.bindingNamespace)
         module_context = nsm.bindComponent(td, schema_module_map.get(td._schema(), None))
         if isinstance(td, xs.structures.SimpleTypeDefinition):
             _PrepareSimpleTypeDefinition(td, nsm, module_context)
