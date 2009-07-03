@@ -1141,7 +1141,10 @@ class NamespaceModule (_ModuleNaming_mixin):
     __uniqueInSchemaGroup = None
     
     def schemaGroupModulePath (self, schema_group_module):
-        module_base = utility.MakeUnique('_'.join([ _s.schemaLocationTag() for _s in schema_group_module.schemaGroup() ]), self.__uniqueInSchemaGroup)
+        if schema_group_module.schemaGroupMulti():
+            module_base = utility.MakeUnique('multischema', self.__uniqueInSchemaGroup)
+        else:
+            module_base = utility.MakeUnique(schema_group_module.schemaGroupHead().schemaLocationTag(), self.__uniqueInSchemaGroup)
         return '.'.join(self.__schemaGroupPrefixElts + [ module_base ])
 
     __components = None
@@ -1378,6 +1381,9 @@ def GenerateAllPython (schema_location=None,
     usable_namespaces = set(namespace_component_map.keys())
     usable_namespaces.update([ _ns for _ns in nsdep.dependentNamespaces() if _ns.isLoadable])
 
+
+    module_graph = pyxb.utils.utility.Graph()
+
     namespace_module_map = {}
     unique_in_bindings = set([NamespaceGroupModule._GroupPrefix])
     for ns_scc in nsdep.namespaceOrder():
@@ -1389,6 +1395,7 @@ def GenerateAllPython (schema_location=None,
                 modules.add(nsm)
             else:
                 nsm = NamespaceModule(ns, ns_scc)
+            module_graph.addNode(nsm)
             namespace_module_map[ns] = nsm
             assert ns == nsm.namespace()
 
@@ -1405,7 +1412,10 @@ def GenerateAllPython (schema_location=None,
         if (nsg_head is not None) and nsg_head.namespaceGroupMulti():
             ngm = NamespaceGroupModule(namespace_modules, binding_module_prefix_elts)
             modules.add(ngm)
-            [ _nsm.setNamespaceGroupModule(ngm) for _nsm in namespace_modules ]
+            module_graph.addNode(ngm)
+            for nsm in namespace_modules:
+                module_graph.addEdge(ngm, nsm)
+                nsm.setNamespaceGroupModule(ngm)
             assert namespace_module_map[nsg_head.namespace()].namespaceGroupModule() == ngm
 
     schema_module_map = {}
@@ -1419,8 +1429,11 @@ def GenerateAllPython (schema_location=None,
         if (nsm is not None) and (nsm.namespaceGroupModule() is not None):
             sgm = SchemaGroupModule(nsm, sc_scc)
             modules.add(sgm)
+            #module_graph.addEdge(sgm, nsm)
         for sc in sc_scc:
             schema_module_map[sc] = sgm
+
+    file('modules.dot', 'w').write(module_graph._generateDOT('Modules'))
 
     component_csets = nsdep.componentOrder()
     bad_order = False
