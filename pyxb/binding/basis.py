@@ -971,13 +971,26 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
         # All string-based PyXB binding types use unicode, not str
         if str == value_type:
             value_type = unicode
+
+        # See if we got passed a Python value which needs to be "downcasted"
+        # to the _TypeBinding_mixin version.
         if issubclass(self.typeDefinition(), value_type):
             return self(value)
-        # See if we got passed a Python value which needs to be "downcasted"
-        # to the _TypeBinding_mixin version.  We can't actually test this
-        # any other way than trying it; even if the type definition isn't a
-        # subclass of the value type, its constructor may accept the value
-        # type.
+
+        # See if we have a numeric type that needs to be cast across the
+        # numeric hierarchy
+        if isinstance(value, (int, long)) and issubclass(self.typeDefinition(), (int, long, float)):
+            return self(value)
+
+        # See if we have a string type that somebody understands
+        if isinstance(value, (str, unicode)):
+            return self(value)
+
+        # There may be other things that can be converted to the desired type,
+        # but we can't tell that from the type hierarchy.  Too many of those
+        # things result in an undesirable loss of information: for example,
+        # when an all model supports both numeric and string transitions, the
+        # candidate is a number, and the string transition is tested first.
         raise pyxb.BadTypeValueError('No conversion from %s to %s' % (value_type, self.typeDefinition()))
 
     # element

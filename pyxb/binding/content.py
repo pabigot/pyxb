@@ -659,7 +659,7 @@ class ContentModelTransition (pyxb.cscRoot):
         rv = cmp(self.__termType, other.__termType)
         if 0 == rv:
             # In a vain attempt at determinism, sort the element transitions
-            # by name.
+            # by name
             if (self.TT_element == self.__termType):
                 rv = cmp(self.__elementUse.name(), other.__elementUse.name())
             else:
