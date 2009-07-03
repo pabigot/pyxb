@@ -874,6 +874,7 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
         getattr(super(Namespace, self), '_reset', lambda *args, **kw: None)()
         self.__initialNamespaceContext = None
         self.__schemas = set()
+        self.__schemaMap = { }
 
     def uri (self):
         """Return the URI for the namespace represented by this instance.
@@ -970,7 +971,17 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
     __module = None
 
     def addSchema (self, schema):
+        sl = schema.schemaLocation()
+        print '%s adding schema at %s' % (self, sl)
+        if sl is not None:
+            assert not (sl in self.__schemaMap)
+            self.__schemaMap[sl] = schema
         self.__schemas.add(schema)
+    __schemaMap = None
+
+    def lookupSchemaByLocation (self, schema_location):
+        return self.__schemaMap.get(schema_location)
+
     def schemas (self):
         return self.__schemas
     __schemas = None

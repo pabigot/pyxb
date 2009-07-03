@@ -4037,20 +4037,6 @@ class _ImportElementInformationItem (_Annotated_mixin):
         return self.__id
     __id = None
 
-    __LocationSchemaMap = { }
-    @classmethod
-    def _SchemaForLocation (cls, schema_location):
-        return cls.__LocationSchemaMap.get(schema_location, None)
-
-    @classmethod
-    def _RecordSchemaLocation (cls, schema):
-        schema_location = schema.schemaLocation()
-        if schema_location is None:
-            return None
-        assert not (schema_location in cls.__LocationSchemaMap)
-        cls.__LocationSchemaMap[schema_location] = schema
-        return schema
-
     def namespace (self):
         """The Namespace instance corresponding to the value of the
         namespace attribute from the import statement."""
@@ -4109,7 +4095,7 @@ class _ImportElementInformationItem (_Annotated_mixin):
         elif self.schemaLocation() is not None:
             schema_uri = urlparse.urljoin(schema.schemaLocation(), self.__schemaLocation)
             print 'import %s + %s = %s' % (schema.schemaLocation(), self.__schemaLocation, schema_uri)
-            schema = self._SchemaForLocation(schema_uri)
+            schema = self.__namespace.lookupSchemaByLocation(schema_uri)
             if schema is None:
                 schema = Schema.CreateFromLocation(schema_location=schema_uri, namespace_context=pyxb.namespace.NamespaceContext.GetNodeContext(node))
             #raise pyxb.NamespaceError('Please generate bindings for namespace %s available at %s, prefix %s' % (uri, schema_uri, '??'))
@@ -4235,7 +4221,6 @@ class Schema (_SchemaComponent_mixin):
         if not isinstance(self.__targetNamespace, pyxb.namespace.Namespace):
             raise pyxb.LogicError('Schema constructor requires valid Namespace instance as target_namespace')
         self.__targetNamespace.addSchema(self)
-        _ImportElementInformationItem._RecordSchemaLocation(self)        
         self.__defaultNamespace = kw.get('default_namespace', self._namespaceContext().defaultNamespace())
         if not ((self.__defaultNamespace is None) or isinstance(self.__defaultNamespace, pyxb.namespace.Namespace)):
             raise pyxb.LogicError('Schema default namespace must be None or a valid Namespace instance')
@@ -4437,7 +4422,7 @@ class Schema (_SchemaComponent_mixin):
         if 0 > abs_uri.find(':'):
             abs_uri = os.path.realpath(abs_uri)
         #print 'include %s + %s = %s' % (self.__schemaLocation, rel_uri, abs_uri)
-        included_schema = _ImportElementInformationItem._SchemaForLocation(abs_uri)
+        included_schema = self.targetNamespace().lookupSchemaByLocation(abs_uri)
         if included_schema is None:
             try:
                 included_schema = self.CreateFromLocation(abs_uri, namespace_context=self.__namespaceData, inherit_default_namespace=True)
