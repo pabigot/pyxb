@@ -290,7 +290,7 @@ class _Resolvable_mixin (pyxb.cscRoot):
 class NamespaceArchive (object):
     """Represent a file from which one or more namespaces can be read."""
 
-    __PickleFormat = '200907030557'
+    __PickleFormat = '200907030951'
 
     __AnonymousCategory = '_anonymousTypeDefinition'
     @classmethod
@@ -356,32 +356,18 @@ class NamespaceArchive (object):
     __readNamespaces = False
     def readNamespaces (self):
         if self.__readNamespaces:
-            raise pyxb.NamespaceArchiveError('Multiple reads of archive')
+            raise pyxb.NamespaceArchiveError('Multiple reads of archive %s' % (self.__archivePath,))
         self.__readNamespaces = True
 
         unpickler = self.__createUnpickler()
-        self.__readNamespaceSet(unpickler)
 
-        for ns in self.namespaces():
-            if ns.isActive():
-                raise pyxb.NamespaceArchiveError('Namespace %s already activated when reading from archive %s' % (ns, self.__archivePath))
+        # Read the namespaces and their categories.  This makes sure we won't
+        # overwrite something by loading from the archive.
+        uri_map = self.__readNamespaceSet(unpickler)
 
-        print 'LOADING NAMESPACE FROM %s' % (self.__archivePath,)
+        # Load up the metadata like the module path
         ns_set = unpickler.load()
         assert ns_set == self.namespaces()
-
-        # For every namespace this one depends on that isn't saved in this
-        # archive, make sure its component model is valid so we can resolve to
-        # its members when loading this one.
-        for ns in ns_set:
-            if ns.isActive():
-                raise pyxb.NamespaceArchiveError('Attempt to load namespace %s after activation' % (ns,))
-            for rns in ns.referencedNamespaces():
-                if rns in ns_set:
-                    continue
-                print 'Need to validate %s before continuing with %s' % (rns.uri(), ns.uri())
-                rns.validateComponentModel()
-                print 'Completed validation of %s, continuing with %s' % (rns.uri(), ns.uri())
 
         # Now unarchive everything and associate it with its relevant
         # namespace.
@@ -390,6 +376,8 @@ class NamespaceArchive (object):
             ns._loadNamedObjects(object_maps[ns])
             ns._setLoadedFromArchive()
         
+        self.dissociateNamespaces()
+
     def writeNamespaces (self, archive_path):
 
         output = open(archive_path, 'wb')
@@ -400,10 +388,12 @@ class NamespaceArchive (object):
         # The format of the archive
         pickler.dump(NamespaceArchive.__PickleFormat)
 
-        # The set of URIs defining the namespaces in the archive
-        uri_set = set()
-        [ uri_set.add(_ns.uri()) for _ns in self.namespaces() ]
-        pickler.dump(uri_set)
+        # The set of URIs defining the namespaces in the archive, along with
+        # the categories defined by each one.
+        uri_map = {}
+        for ns in self.namespaces():
+            uri_map[ns.uri()] = set(ns.categories())
+        pickler.dump(uri_map)
 
         # The pickled namespaces.  Note that namespaces have a custom pickling
         # representation which does not include any of the objects they hold.
@@ -422,24 +412,28 @@ class NamespaceArchive (object):
         NamespaceArchive.__PicklingNamespaces = None
 
     def __readNamespaceSet (self, unpickler, define_namespaces=False):
-        uri_set = unpickler.load()
-        if not define_namespaces:
-            return
+        uri_map = unpickler.load()
         
-        for uri in uri_set:
+        for (uri, categories) in uri_map.items():
             ns = NamespaceForURI(uri)
             if ns is not None:
-                # Verify namespace is not active
-                if ns.isActive():
-                    raise pyxb.NamespaceArchiveError('Namespace %s already active' % (uri,))
+                # Verify namespace does not already have the given category
+                cross_categories = categories.intersection(ns.categories())
+                if 0 < len(cross_categories):
+                    raise pyxb.NamespaceArchiveError('Namespace %s archive/active conflict on categories: %s' % (ns, " ".join(cross_categories)))
                 # Verify namespace is not available from a different archive
                 if (ns._archive() is not None) and (ns._archive() != self):
                     raise pyxb.NamespaceArchiveError('Namespace %s already available from %s' % (uri, ns._archive()))
-                pass
-        for uri in uri_set:
+
+        if not define_namespaces:
+            return
+
+        for uri in uri_map.keys():
             ns = NamespaceForURI(uri, create_if_missing=True)
             ns._setArchive(self)
             self.__namespaces.add(ns)
+
+        return uri_map
 
     @classmethod
     def DefineFromFile (self, archive_path):
@@ -451,14 +445,14 @@ class NamespaceArchive (object):
             archive_path = '??'
         return 'NSArchive@%s' % (archive_path,)
 
-class _ComponentArchivable_mixin (object):
+class _ComponentArchivable_mixin (pyxb.cscRoot):
     def _prepareForArchive_csc (self, namespace):
         return getattr(super(_ComponentArchivable_mixin, self), '_prepareForArchive_csc', lambda *_args,**_kw: self)(namespace)
 
     def _prepareForArchive (self, namespace):
         return self._prepareForArchive_csc(namespace)
 
-class _NamespaceArchivable_mixin (object):
+class _NamespaceArchivable_mixin (pyxb.cscRoot):
 
     def _loadedFromArchive (self):
         return self.__loadedFromArchive
@@ -470,8 +464,6 @@ class _NamespaceArchivable_mixin (object):
         return self.__isActive
     def _activate (self):
         self.__isActive = True
-        if self._archive() is not None:
-            self._archive().dissociateNamespaces()
     __isActive = None
 
     def __init__ (self, *args, **kw):
@@ -493,6 +485,11 @@ class _NamespaceArchivable_mixin (object):
         return self.__archive
     __archive = None
     
+    def isLoadable (self):
+        """Return C{True} iff the component model for this namespace can be
+        loaded from a namespace archive."""
+        return self._archive() is not None
+
     def _setState_csc (self, kw):
         assert not self.__isActive, 'ERROR: State set for active namespace %s' % (self,)
         return getattr(super(_NamespaceResolution_mixin, self), '_getState_csc', lambda _kw: _kw)(kw)
@@ -515,9 +512,16 @@ class NamedObjectMap (dict):
         return self.__category
     __category = None
 
+    def loadedFromArchive (self):
+        return self.__loadedFromArchive
+    __loadedFromArchive = None
+    def _setLoadedFromArchive (self):
+        self.__loadedFromArchive = True
+
     def __init__ (self, category, namespace, *args, **kw):
         self.__category = category
         self.__namespace = namespace
+        self.__loadedFromArchive = False
         super(NamedObjectMap, self).__init__(self, *args, **kw)
 
 class _NamespaceCategory_mixin (pyxb.cscRoot):
@@ -1071,6 +1075,7 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
 
         Users should never provide a is_builtin_namespace parameter.
         """
+
         # New-style superclass invocation
         super(Namespace, self).__init__()
 
@@ -1275,11 +1280,6 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
         if not self.isActive():
             self._setState_csc(kw)
 
-    def isLoadable (self):
-        """Return C{True} iff the component model for this namespace can be
-        loaded from a namespace archive."""
-        return _LoadableNamespaceMap().get(self.uri(), None) is not None
-
     def _defineSchema_overload (self, structures_module):
         """Attempts to load the named objects held in this namespace.
 
@@ -1293,7 +1293,7 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
         There is no guarantee that any particular category of named object has
         been located when this returns.  Caller must check.
         """
-        if (not self.isActive()) and (self._archive() is not None):
+        if self._archive() is not None:
             self._archive().readNamespaces()
         self._activate()
 
@@ -1311,6 +1311,7 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
                 import pyxb.xmlschema.structures as structures_module
             try:
                 self.__inValidation = True
+                #print 'VALIDATING %s: isActive %s archive %s' % (self, self.isActive(), self._archive())
                 self._defineSchema_overload(structures_module)
                 self.__didValidation = True
             finally:
@@ -1426,6 +1427,7 @@ def PreLoadNamespaces ():
                     try:
                         archive = NamespaceArchive(archive_path=afn)
                         __NamespaceArchives.add(archive)
+                        #print 'Archive %s has: %s' % (archive, "\n   ".join([ '%s @ %s' % (_ns, _ns._archive()) for _ns in archive.namespaces()]))
                     except pickle.UnpicklingError, e:
                         print 'Cannot use archive %s: %s' % (afn, e)
                     except pyxb.NamespaceArchiveError, e:
@@ -1676,6 +1678,9 @@ class NamespaceContext (object):
         try:
             return node.__namespaceContext
         except AttributeError:
+            # Left this in since sometimes it's right and sometimes it's wrong.
+            # See invocation in basis.element.createFromDOM.
+            print 'CREATING NODE CONTEXT FROM %s' % (kw,)
             return NamespaceContext(node, **kw)
 
     def processXMLNS (self, prefix, uri):
