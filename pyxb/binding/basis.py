@@ -971,12 +971,14 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
         # All string-based PyXB binding types use unicode, not str
         if str == value_type:
             value_type = unicode
+        if issubclass(self.typeDefinition(), value_type):
+            return self(value)
         # See if we got passed a Python value which needs to be "downcasted"
         # to the _TypeBinding_mixin version.  We can't actually test this
         # any other way than trying it; even if the type definition isn't a
         # subclass of the value type, its constructor may accept the value
         # type.
-        return self(value)
+        raise pyxb.BadTypeValueError('No conversion from %s to %s' % (value_type, self.typeDefinition()))
 
     # element
     @classmethod
