@@ -455,7 +455,7 @@ class _ComponentArchivable_mixin (pyxb.cscRoot):
 class _NamespaceArchivable_mixin (pyxb.cscRoot):
 
     def definedBySchema (self):
-        return self.isActive() and not (self._loadedFromArchive() or self.isBuiltinNamespace())
+        return self.isActive() and not (self._loadedFromArchive() or self.isBuiltinNamespace()) and (self.modulePath() is None)
 
     def _loadedFromArchive (self):
         return self.__loadedFromArchive
