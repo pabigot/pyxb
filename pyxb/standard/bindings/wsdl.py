@@ -19,13 +19,6 @@ import pyxb.namespace
 import pyxb.utils.domutils as domutils
 import xml.dom
 
-# Scan for available pre-built namespaces.  The effect of this is to
-# register a bunch of namespaces including the path to the module that
-# implements them.  This allows the wildcard handler in the content
-# model to create proper instances rather than leave them as DOM
-# nodes.
-pyxb.namespace.AvailableForLoad()
-
 class _WSDL_binding_mixin (object):
     """Mix-in class to mark element Python bindings that are expected
     to be wildcard matches in WSDL binding elements."""
@@ -152,6 +145,19 @@ class tDefinitions (raw_wsdl.tDefinitions):
 
     @classmethod
     def _PreFactory_vx (self, args, kw):
+        # Import standard bindings.  If we do this, then wildcard
+        # binding, port, and operation elements will be recognized and
+        # converted into bindings.
+        import pyxb.standard.bindings.soap
+        import pyxb.standard.bindings.soap12
+        import pyxb.standard.bindings.http
+
+        # Ensure we have definitions for any externally-referenced
+        # things we might need.  @todo: This might have to
+        # chronologically precede the import above.
+        pyxb.namespace.PreLoadNamespaces()
+
+        raw_wsdl.Namespace.validateComponentModel()
         state = ( kw.pop('process_schema', False),
                   kw.get('_dom_node', None) )
         return state
