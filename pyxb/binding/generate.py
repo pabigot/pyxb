@@ -1353,6 +1353,7 @@ def GenerateAllPython (schema_location=None,
 
     file('namespace.dot', 'w').write(nsdep.namespaceGraph()._generateDOT('Namespace'))
     file('schema.dot', 'w').write(nsdep.schemaGraph()._generateDOT('Schema', labeller=lambda _s: "/".join(_s.schemaLocation().split('/')[-2:])))
+    file('component.dot', 'w').write(nsdep.componentGraph()._generateDOT('Component', lambda _c: _c.bestNCName()))
 
     siblings = nsdep.siblingNamespaces()
 
@@ -1416,22 +1417,36 @@ def GenerateAllPython (schema_location=None,
         for sc in sc_scc:
             schema_module_map[sc] = sgm
 
-    component_graph = utility.Graph()
-    for c in all_components:
-        component_graph.addNode(c)
-        deps = c.dependentComponents()
-        for target in deps:
-            if target in all_components:
-                component_graph.addEdge(c, target)
-    file('component.dot', 'w').write(component_graph._generateDOT('Component', lambda _c: _c.bestNCName()))
-
-    if len(component_graph.sccOrder()) != len(component_graph.nodes()):
-        raise pyxb.SchemaValidationError('Dependency loop in component graph.')
-    component_order = [ _scc[0] for _scc in component_graph.sccOrder() ]
+    component_csets = nsdep.componentOrder()
+    bad_order = False
+    component_order = []
+    for cset in component_csets:
+        if 1 < len(cset):
+            print "COMPONENT DEPENDENCY LOOP"
+            cg = pyxb.utils.utility.Graph(cset[0])
+            for c in cset:
+                print '  %s' % (c.expandedName(),)
+                cg.addNode(c)
+                for cd in c.bindingRequires(reset=True, include_lax=False):
+                    print '%s depends on %s' % (c, cd)
+                    cg.addEdge(c, cd)
+            file('deploop.dot', 'w').write(cg._generateDOT('CompDep', lambda _c: _c.bestNCName()))
+            relaxed_order = cg.sccOrder()
+            for rcs in relaxed_order:
+                assert 1 == len(rcs)
+                rcs = rcs[0]
+                if rcs in cset:
+                    component_order.append(rcs)
+        else:
+            component_order.append(cset[0])
 
     element_declarations = []
     type_definitions = []
     for c in component_order:
+        #if c.isAnonymous():
+        #    print c._picklingReference()
+        #else:
+        #    print c.expandedName()
         if isinstance(c, xs.structures.ElementDeclaration) and c._scopeIsGlobal():
             nsm = namespace_module_map[c.bindingNamespace()]
             nsm.bindComponent(c, SchemaGroupModule.ForSchema(c._schema()))

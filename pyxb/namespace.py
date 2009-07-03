@@ -831,7 +831,7 @@ def ResolveSiblingNamespaces (sibling_namespaces):
 class _ComponentDependency_mixin (pyxb.cscRoot):
     """Mix-in for components that can depend on other components."""
     # Cached frozenset of components on which this component depends.
-    __dependentComponents = None
+    __bindingRequires = None
 
     def _resetClone_csc (self, **kw):
         """CSC extension to reset fields of a component.  This one clears
@@ -839,27 +839,30 @@ class _ComponentDependency_mixin (pyxb.cscRoot):
         dependencies.
         @rtype: C{None}"""
         getattr(super(_ComponentDependency_mixin, self), '_resetClone_csc', lambda *_args, **_kw: None)(**kw)
-        self.__dependentComponents = None
+        self.__bindingRequires = None
 
-    def dependentComponents (self):
-        """Return a set of components upon which this component depends.  This
-        is essentially those components to which a reference was resolved,
-        plus those that are sub-component (e.g., the particles in a model
-        group).
+    def bindingRequires (self, reset=False, include_lax=False):
+        """Return a set of components upon whose bindings this component's
+        bindings depend.
 
-        Be aware that the returned set may include this node, if there is a
-        loop in the component graph.  For a legal document to exist in such a
-        case, there must be an emptiable transition in each loop, but we don't
-        check that.
+        For example, bindings that are extensions or restrictions depend on
+        their base types.  Complex type definition bindings require that the
+        types of their attribute declarations be available at the class
+        definition, and the types of their element declarations in the
+        postscript.
 
-        @rtype: C{set(L{pyxb.xmlschema.structures._SchemaComponent_mixin})}"""
-        if self.__dependentComponents is None:
+        @keyword include_lax: if C{False} (default), only the requirements of
+        the class itself are returned.  If C{True}, all requirements are
+        returned.
+        @rtype: C{set(L{pyxb.xmlschema.structures._SchemaComponent_mixin})}
+        """
+        if reset or (self.__bindingRequires is None):
             if isinstance(self, _Resolvable_mixin) and not (self.isResolved()):
                 raise pyxb.LogicError('Unresolved %s in %s: %s' % (self.__class__.__name__, self._namespaceContext().targetNamespace(), self.name()))
-            self.__dependentComponents = self._dependentComponents_vx()
-        return self.__dependentComponents
+            self.__bindingRequires = self._bindingRequires_vx(include_lax)
+        return self.__bindingRequires
 
-    def _dependentComponents_vx (self):
+    def _bindingRequires_vx (self, include_lax):
         """Placeholder for subclass method that identifies the necessary components.
 
         @note: Override in subclasses.
@@ -868,7 +871,7 @@ class _ComponentDependency_mixin (pyxb.cscRoot):
         @rtype: C{frozenset}
         @raise LogicError: A subclass failed to implement this method
         """
-        raise LogicError('%s does not implement _dependentComponents_vx' % (self.__class__,))
+        raise LogicError('%s does not implement _bindingRequires_vx' % (self.__class__,))
 
 class _NamespaceComponentAssociation_mixin (pyxb.cscRoot):
     """Mix-in for managing components defined within this namespace.
@@ -1947,7 +1950,7 @@ class NamespaceDependencies (object):
             while 0 < len(need_visit):
                 c = need_visit.pop()
                 self.__componentGraph.addNode(c)
-                for cd in c.dependentComponents():
+                for cd in c.bindingRequires(include_lax=True):
                     if cd in all_components:
                         self.__componentGraph.addEdge(c, cd)
         return self.__componentGraph

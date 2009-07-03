@@ -571,7 +571,7 @@ class _NamedComponent_mixin (pyxb.cscRoot):
 
     def _picklingReference (self):
         if self.isAnonymous():
-            print 'Wrapping %s as anonymous %s in %s' % (self, self._anonymousName(), self.targetNamespace())
+            #print 'Wrapping %s as anonymous %s in %s' % (self, self._anonymousName(), self.targetNamespace())
             return _PickledAnonymousReference(self.targetNamespace(), self._anonymousName())
         return self.expandedName().uriTuple()
 
@@ -1122,13 +1122,6 @@ class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
             self.__typeDefinition = None
         return self
 
-    def _dependentComponents_vx (self):
-        """Implement base class method.
-
-        AttributeDeclarations depend only on the type definition for their value.
-        """
-        return frozenset([self.__typeDefinition])
-
 class AttributeUse (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin, _ValueConstraint_mixin):
     """An XMLSchema Attribute Use component.
 
@@ -1159,14 +1152,6 @@ class AttributeUse (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin, _V
     # Define so superclasses can take keywords
     def __init__ (self, **kw):
         super(AttributeUse, self).__init__(**kw)
-
-    # dC:AU
-    def _dependentComponents_vx (self):
-        """Implement base class method.
-
-        Attribute uses depend only on their attribute declarations.
-        """
-        return frozenset() # [self.__attributeDeclaration])
 
     def matchingQNameMembers (self, au_set):
         """Return the subset of au_set for which the use names match this use."""
@@ -1330,14 +1315,10 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.na
         """Return False, since element declarations are not wildcards."""
         return False
 
-    # dC:ED
-    def _dependentComponents_vx (self):
-        """Implement base class method.
-
-        Element declarations depend on the type definition of their
-        content.  Note: The ancestor component depends on this
-        component, not the other way 'round.
-        """
+    # bR:ED
+    def _bindingRequires_vx (self, include_lax):
+        """Element declarations depend on the type definition of their
+        content."""
         return frozenset([self.__typeDefinition])
 
     def __init__ (self, *args, **kw):
@@ -1720,19 +1701,17 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         """Indicate whether this simple type is a built-in type."""
         return (self.UrTypeDefinition() == self)
 
-    # dC:CTD
-    def _dependentComponents_vx (self):
-        """Implement base class method.
-
-        Complex type definitions depend on their base type definition
-        and their attribute uses, any associated wildcard, and any
-        particle that appears in the content.
-        """
+    # bR:CTD
+    def _bindingRequires_vx (self, include_lax):
+        """Complex type definitions depend on their base type definition, the
+        type definitions of any local attribute declarations, and if strict
+        the type definitions of any local element declarations."""
         rv = set()
         assert self.__baseTypeDefinition is not None
         rv.add(self.__baseTypeDefinition)
         for decl in self.localScopedDeclarations():
-            rv.add(decl.typeDefinition())
+            if include_lax or isinstance(decl, AttributeDeclaration):
+                rv.add(decl.typeDefinition())
         return frozenset(rv)
 
     # CFD:CTD CFD:ComplexTypeDefinition
@@ -2219,10 +2198,6 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
 
 class _UrTypeDefinition (ComplexTypeDefinition, _Singleton_mixin):
     """Subclass ensures there is only one ur-type."""
-    def _dependentComponents_vx (self):
-        """The UrTypeDefinition is not dependent on anything."""
-        return frozenset()
-
     def pythonSupport (self):
         """The ur-type does have a Python class backing it up."""
         return datatypes.anyType
@@ -2236,15 +2211,6 @@ class _UrTypeDefinition (ComplexTypeDefinition, _Singleton_mixin):
 class AttributeGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.namespace._Resolvable_mixin, _Annotated_mixin, _AttributeWildcard_mixin):
     # A frozenset of AttributeUse instances
     __attributeUses = None
-
-    # dC:AGD
-    def _dependentComponents_vx (self):
-        """Implement base class method.
-
-        Attribute group definitions depend on their attribute uses and
-        any associated wildcard.
-        """
-        return frozenset()
 
     def __init__ (self, *args, **kw):
         super(AttributeGroupDefinition, self).__init__(*args, **kw)
@@ -2331,14 +2297,6 @@ class ModelGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Anno
     def modelGroup (self):
         """The model group for which this definition provides a name."""
         return self.__modelGroup
-
-    # dC:MGD
-    def _dependentComponents_vx (self):
-        """Implement base class method.
-
-        Model group definitions depend only on their model group.
-        """
-        return frozenset() #[self.__modelGroup])
 
     # CFD:MGD CFD:ModelGroupDefinition
     @classmethod
@@ -2469,14 +2427,6 @@ class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
     def modelGroupDefinition (self):
         """The ModelGroupDefinition that names this group, or None if it is unnamed."""
         return self.__modelGroupDefinition
-
-    # dC:MG
-    def _dependentComponents_vx (self):
-        """Implement base class method.
-
-        Model groups depend on their particles.
-        """
-        return frozenset() # self.__particles)
 
     def __init__ (self, compositor, particles, *args, **kw):
         """Create a new model group.
@@ -2687,14 +2637,6 @@ class Particle (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin):
 
         Note that the wildcard may be in a nested model group."""
         return self.term().hasWildcardElement()
-
-    # dC:PRT
-    def _dependentComponents_vx (self):
-        """Implement base class method.
-
-        Particles depend on their term.
-        """
-        return frozenset() # [self.__term])
 
     def __init__ (self, term, *args, **kw):
         """Create a particle from the given DOM node.
@@ -3060,14 +3002,6 @@ class Wildcard (_SchemaComponent_mixin, _Annotated_mixin):
         self.__namespaceConstraint = kw['namespace_constraint']
         self.__processContents = kw['process_contents']
 
-    # dC:WC
-    def _dependentComponents_vx (self):
-        """Implement base class method.
-
-        Wildcards depend on nothing.
-        """
-        return frozenset()
-
     def isDeepResolved (self):
         return True
 
@@ -3132,14 +3066,6 @@ class IdentityConstraintDefinition (_SchemaComponent_mixin, _NamedComponent_mixi
     
     __annotations = None
     def annotations (self): return self.__annotations
-
-    # dC:ICD
-    def _dependentComponents_vx (self):
-        """Implement base class method.
-
-        Identity constraint definitions depend on nothing.
-        """
-        return frozenset()
 
     # CFD:ICD CFD:IdentityConstraintDefinition
     @classmethod
@@ -3233,14 +3159,6 @@ class NotationDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Annot
     __publicIdentifier = None
     def publicIdentifier (self): return self.__publicIdentifier
 
-    # dC:ND
-    def _dependentComponents_vx (self):
-        """Implement base class method.
-
-        Notation declarations depend on nothing.
-        """
-        return frozenset()
-
     # CFD:ND CFD:NotationDeclaration
     @classmethod
     def CreateFromDOM (cls, node, **kw):
@@ -3266,14 +3184,6 @@ class Annotation (_SchemaComponent_mixin):
     # Define so superclasses can take keywords
     def __init__ (self, **kw):
         super(Annotation, self).__init__(**kw)
-
-    # dC:Annotation
-    def _dependentComponents_vx (self):
-        """Implement base class method.
-
-        Annotations depend on nothing.
-        """
-        return frozenset()
 
     # @todo: what the hell is this?  From 3.13.2, I think it's a place
     # to stuff attributes from the annotation element, which makes
@@ -3431,8 +3341,8 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
             raise pyxb.LogicError('Expected member types')
         return self.__memberTypeDefinitions
 
-    # dC:STD
-    def _dependentComponents_vx (self):
+    # bR:STD
+    def _bindingRequires_vx (self, include_lax):
         """Implement base class method.
 
         This STD depends on its baseTypeDefinition, unless its variety
@@ -4080,9 +3990,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
 
 class _SimpleUrTypeDefinition (SimpleTypeDefinition, _Singleton_mixin):
     """Subclass ensures there is only one simple ur-type."""
-    def _dependentComponents_vx (self):
-        """The SimpleUrTypeDefinition is not dependent on anything."""
-        return frozenset()
+    pass
 
 class _ImportElementInformationItem (_Annotated_mixin):
     """A class representing an import statement within a schema.
@@ -4243,14 +4151,6 @@ class Schema (_SchemaComponent_mixin):
     def includedSchema (self):
         return self.__includedSchema
     __includedSchema = None
-
-    def _dependentComponents_vx (self):
-        """Implement base class method.
-
-        The schema as a whole depends on nothing (that we have any
-        control over, at least).
-        """
-        return frozenset()
 
     _QUALIFIED = "qualified"
     _UNQUALIFIED = "unqualified"
