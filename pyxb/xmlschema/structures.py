@@ -266,6 +266,9 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin, pyxb.na
         fine."""
         return self.__nameInBinding
 
+    def hasBinding (self):
+        return self.isTypeDefinition() or (isinstance(self, ElementDeclaration) and self._scopeIsGlobal())
+
     def setNameInBinding (self, name_in_binding):
         """Set the name by which this component shall be known in the XSD binding."""
         self.__nameInBinding = name_in_binding
@@ -394,7 +397,7 @@ class _NamedComponent_mixin (pyxb.cscRoot):
     __anonymousName = None
 
     def targetNamespace (self):
-        """The targetNamespace of a componen.
+        """The targetNamespace of a component.
 
         This is None, or a reference to a Namespace in which the
         component is declared (either as a global or local to one of
@@ -404,6 +407,13 @@ class _NamedComponent_mixin (pyxb.cscRoot):
         return self.__targetNamespace
     __targetNamespace = None
     
+    def bindingNamespace (self):
+        """The namespace in which this component's binding is placed."""
+        return self.__bindingNamespace
+    def _setBindingNamespace (self, namespace):
+        self.__bindingNamespace = namespace
+    __bindingNamespace = None
+
     def _templateMap (self):
         """A map from template keys to component-specific values.
 
@@ -1722,8 +1732,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         assert self.__baseTypeDefinition is not None
         rv.add(self.__baseTypeDefinition)
         for decl in self.localScopedDeclarations():
-            if isinstance(decl, AttributeDeclaration):
-                rv.add(decl.typeDefinition())
+            rv.add(decl.typeDefinition())
         return frozenset(rv)
 
     # CFD:CTD CFD:ComplexTypeDefinition

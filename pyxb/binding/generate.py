@@ -918,7 +918,10 @@ class _ModuleNaming_mixin (object):
                 if component._isHierarchyRoot():
                     rv.update(basis.complexTypeDefinition._ReservedSymbols)
                 else:
-                    rv.update(component.baseTypeDefinition()._templateMap()['_unique'])
+                    base_td = component.baseTypeDefinition()
+                    base_unique = base_td._templateMap().get('_unique')
+                    assert base_unique is not None, 'Base %s of %s has no unique' % (base_td.expandedName(), component.expandedName())
+                    rv.update(base_unique)
             self.__uniqueInClass[component] = rv
         return rv
 
@@ -1349,11 +1352,11 @@ def GenerateAllPython (schema_location=None,
         pyxb.namespace.ResolveSiblingNamespaces(ns_set)
 
     file('namespace.dot', 'w').write(nsdep.namespaceGraph()._generateDOT('Namespace'))
-    file('schema.dot', 'w').write(nsdep.schemaGraph()._generateDOT('Schema', labeller=lambda _s:_s.schemaLocation()))
+    file('schema.dot', 'w').write(nsdep.schemaGraph()._generateDOT('Schema', labeller=lambda _s: "/".join(_s.schemaLocation().split('/')[-2:])))
 
     siblings = nsdep.siblingNamespaces()
 
-    component_namespace_map = {}
+    all_components = set()
     namespace_component_map = {}
     for sns in siblings:
         if (pyxb.namespace.XMLSchema == sns) and (not _process_builtins):
@@ -1362,10 +1365,10 @@ def GenerateAllPython (schema_location=None,
             if (isinstance(c, xs.structures.ElementDeclaration) and c._scopeIsGlobal()) or c.isTypeDefinition():
                 assert c._schema() is not None, '%s has no schema' % (c._schema(),)
                 assert c._schema().targetNamespace() == sns
-                component_namespace_map[c] = sns
+                c._setBindingNamespace(sns)
+                all_components.add(c)
                 namespace_component_map.setdefault(sns, set()).add(c)
     
-    all_components = component_namespace_map.keys()
     usable_namespaces = set(namespace_component_map.keys())
     usable_namespaces.update([ _ns for _ns in nsdep.dependentNamespaces() if _ns.isLoadable])
 
@@ -1405,7 +1408,7 @@ def GenerateAllPython (schema_location=None,
         nsm = NamespaceModule.ForNamespace(scg_head.targetNamespace())
         sgm = None
         if 1 < len(sc_scc):
-            print 'MULTI_ELT SCHEMA GROUP'
+            print 'MULTI_ELT SCHEMA GROUP: %s' % ("\n  ".join([_sc.schemaLocation() for _sc in sc_scc]),)
 
         if (nsm is not None) and (nsm.namespaceGroupModule() is not None):
             sgm = SchemaGroupModule(nsm, sc_scc)
@@ -1430,7 +1433,7 @@ def GenerateAllPython (schema_location=None,
     type_definitions = []
     for c in component_order:
         if isinstance(c, xs.structures.ElementDeclaration) and c._scopeIsGlobal():
-            nsm = namespace_module_map[component_namespace_map.get(c)]
+            nsm = namespace_module_map[c.bindingNamespace()]
             nsm.bindComponent(c, SchemaGroupModule.ForSchema(c._schema()))
             element_declarations.append(c)
         else:
@@ -1439,7 +1442,7 @@ def GenerateAllPython (schema_location=None,
     simple_type_definitions = []
     complex_type_definitions = []
     for td in type_definitions:
-        nsm = namespace_module_map.get(component_namespace_map[td])
+        nsm = namespace_module_map.get(td.bindingNamespace())
         assert nsm is not None, 'No namespace module for %s type %s scope %s namespace %s' % (td.expandedName(), type(td), td._scope(), component_namespace_map[td])
         module_context = nsm.bindComponent(td, schema_module_map.get(td._schema(), None))
         if isinstance(td, xs.structures.SimpleTypeDefinition):

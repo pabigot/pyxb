@@ -825,7 +825,7 @@ def ResolveSiblingNamespaces (sibling_namespaces):
                 print 'Holding incomplete resolution %s' % (ns.uri(),)
                 new_nr.add(ns)
         if need_resolved == new_nr:
-            raise pyxb.LogicError('Unexpected external dependency in sibling namespaces')
+            raise pyxb.LogicError('Unexpected external dependency in sibling namespaces: %s' % ("\n  ".join( [str(_ns) for _ns in need_resolved ]),))
         need_resolved = new_nr
 
 class _ComponentDependency_mixin (pyxb.cscRoot):
@@ -1861,7 +1861,7 @@ class NamespaceDependencies (object):
             while 0 < len(need_check):
                 ns = need_check.pop()
                 self.__namespaceGraph.addNode(ns)
-                for rns in ns.referencedNamespaces():
+                for rns in ns.referencedNamespaces().union(ns.importedNamespaces()):
                     self.__namespaceGraph.addEdge(ns, rns)
                     if not rns in done_check:
                         need_check.add(rns)
@@ -1900,6 +1900,7 @@ class NamespaceDependencies (object):
             for sns in siblings:
                 for sch in sns.schemas():
                     schemas.add(sch)
+            self.__schemaGraph.roots().update(schemas)
             did_schema = set()
             while schemas:
                 schema = schemas.pop()
@@ -1917,15 +1918,10 @@ class NamespaceDependencies (object):
                     # namespace is dependent, or we screwed up the dependency
                     # calculation.
                     assert sch.targetNamespace() in self.dependentNamespaces()
-
-                    if sch in self.__schemaGraph.nodes():
-                        continue
-
                     if not (sch.targetNamespace() in siblings):
-                        print '%s excluding referenced %s' % (schema.schemaLocation(), sch.schemaLocation())
                         continue
-
-                    schemas.add(sch)
+                    if not (sch in self.__schemaGraph.nodes()):
+                        schemas.add(sch)
                     self.__schemaGraph.addEdge(schema, sch)
             
         return self.__schemaGraph
@@ -1936,6 +1932,26 @@ class NamespaceDependencies (object):
 
     def dependentSchemas (self, reset=False):
         return self.schemaGraph(reset).nodes()
+
+    def componentGraph (self, reset=False):
+        if reset or (self.__componentGraph is None):
+            self.__componentGraph = pyxb.utils.utility.Graph()
+            all_components = set()
+            for ns in self.siblingNamespaces(reset):
+                [ all_components.add(_c) for _c in ns.components() if _c.hasBinding() ]
+                
+            need_visit = all_components.copy()
+            while 0 < len(need_visit):
+                c = need_visit.pop()
+                self.__componentGraph.addNode(c)
+                for cd in c.dependentComponents():
+                    if cd in all_components:
+                        self.__componentGraph.addEdge(c, cd)
+        return self.__componentGraph
+
+    def componentOrder (self, reset=False):
+        return self.componentGraph(reset).sccOrder()
+
 
     def __init__ (self, namespace):
         if not isinstance(namespace, Namespace):
