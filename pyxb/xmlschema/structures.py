@@ -131,13 +131,6 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin):
         # References to schemas in components loaded from an archive confuse
         # the code generator.  We don't need them anymore, anyway.
         self._prepareForPickling_csc(namespace)
-        nm = '<unnamed>'
-        if isinstance(self, _NamedComponent_mixin):
-            if self.isAnonymous():
-                nm = 'ANON:%s' % (self._anonymousName(),)
-            else:
-                nm = self.expandedName()
-        print 'Pickling %s %s, value %s, depends on %s' % (object.__str__(self), nm, self, self.dependentComponents())
 
     def __init__ (self, *args, **kw):
         self.__ownedComponents = set()
