@@ -373,7 +373,7 @@ class NamespaceArchive (object):
         # namespace.
         object_maps = unpickler.load()
         for ns in ns_set:
-            #print 'Read %s from %s' % (ns, self.__archivePath)
+            print 'Read %s from %s' % (ns, self.__archivePath)
             ns._loadNamedObjects(object_maps[ns])
             ns._setLoadedFromArchive()
         
@@ -409,6 +409,7 @@ class NamespaceArchive (object):
         # A map from namespace to the category maps of the namespace.
         object_map = { }
         for ns in self.namespaces():
+            assert not ns.isAbsentNamespace()
             ns.configureCategories([self._AnonymousCategory()])
             object_map[ns] = ns._categoryMap()
             ns._setWroteToArchive()
@@ -428,7 +429,9 @@ class NamespaceArchive (object):
                 # Verify namespace does not already have the given category
                 cross_categories = categories.intersection(ns.categories())
                 if 0 < len(cross_categories):
-                    raise pyxb.NamespaceArchiveError('Namespace %s archive/active conflict on categories: %s' % (ns, " ".join(cross_categories)))
+                    for cc in cross_categories:
+                        if 0 < len(ns.categoryMap(cc)):
+                            raise pyxb.NamespaceArchiveError('Namespace %s archive/active conflict on categories: %s' % (ns, " ".join(cross_categories)))
                 # Verify namespace is not available from a different archive
                 if (ns._archive() is not None) and (ns._archive() != self):
                     raise pyxb.NamespaceArchiveError('Namespace %s already available from %s' % (uri, ns._archive()))
@@ -823,6 +826,7 @@ class _NamespaceResolution_mixin (pyxb.cscRoot):
 
 def ResolveSiblingNamespaces (sibling_namespaces):
     for ns in sibling_namespaces:
+        ns.configureCategories([NamespaceArchive._AnonymousCategory()])
         ns.validateComponentModel()
 
     need_resolved = set(sibling_namespaces)
@@ -1489,11 +1493,17 @@ class _XML (Namespace):
             import pyxb.binding.datatypes as xsd
             import pyxb.binding.facets as xsdf
             schema = structures_module.Schema(namespace_context=self.initialNamespaceContext(), schema_location="URN:noLocation:XML")
-            schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('base', self, std=xsd.anyURI.SimpleTypeDefinition()))
-            schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('id', self, std=xsd.ID.SimpleTypeDefinition()))
+            base = schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('base', self, std=xsd.anyURI.SimpleTypeDefinition()))
+            id = schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('id', self, std=xsd.ID.SimpleTypeDefinition()))
             #  std=xsdf._WhiteSpace_enum.SimpleTypeDefinition()))
-            schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('space', self))
-            schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('lang', self, std=xsd.anySimpleType.SimpleTypeDefinition()))
+            space = schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('space', self))
+            lang = schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('lang', self, std=xsd.anySimpleType.SimpleTypeDefinition()))
+
+            specialAttrs = schema._addNamedComponent(structures_module.AttributeGroupDefinition.CreateBaseInstance('specialAttrs', self, [
+                        structures_module.AttributeUse.CreateBaseInstance(self, space),
+                        structures_module.AttributeUse.CreateBaseInstance(self, base),
+                        structures_module.AttributeUse.CreateBaseInstance(self, lang)
+                        ]))
             self.__doneThis = True
         return self
 
