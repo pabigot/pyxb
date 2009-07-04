@@ -1885,15 +1885,25 @@ class NamespaceDependencies (object):
     def namespaceOrder (self, reset=False):
         return self.namespaceGraph(reset).sccOrder()
 
-    def siblingNamespaces (self, reset=False, namespace=None):
+    def siblings (self, reset=False, namespace=None):
         if namespace is None:
             namespace = self.__rootNamespace
         rv = self.namespaceGraph(reset).sccMap().get(namespace)
         if rv is None:
             if not (namespace in self.dependentNamespaces()):
                 raise pyxb.LogicError('Attempt to identify siblings for unrelated namespace %s among %s' % (namespace, " ".join([ str(_ns) for _ns in self.dependentNamespaces() ])))
-            rv = set([namespace])
-        return rv
+            rv = [namespace]
+        return set(rv)
+
+    def siblingNamespaces (self):
+        if self.__siblingNamespaces is None:
+            self.__siblingNamespaces = self.siblings()
+        return self.__siblingNamespaces
+
+    def setSiblingNamespaces (self, sibling_namespaces):
+        self.__siblingNamespaces = sibling_namespaces
+
+    __siblingNamespaces = None
 
     def schemaDefinedNamespaces (self, reset=False):
         return set([ _ns for _ns in self.dependentNamespaces(reset) if _ns.definedBySchema() ])
@@ -1901,12 +1911,10 @@ class NamespaceDependencies (object):
     def dependentNamespaces (self, reset=False):
         return self.namespaceGraph(reset).nodes()
 
-    def schemaGraph (self, reset=False, namespace=None):
+    def schemaGraph (self, reset=False):
         if reset or (self.__schemaGraph is None):
-            if namespace is None:
-                namespace = self.rootNamespace()
             nsg = self.namespaceGraph(reset)
-            siblings = self.siblingNamespaces(namespace)
+            siblings = self.siblingNamespaces()
             self.__schemaGraph = pyxb.utils.utility.Graph()
             schemas = set()
             for sns in siblings:
@@ -1949,7 +1957,7 @@ class NamespaceDependencies (object):
         if reset or (self.__componentGraph is None):
             self.__componentGraph = pyxb.utils.utility.Graph()
             all_components = set()
-            for ns in self.siblingNamespaces(reset):
+            for ns in self.siblingNamespaces():
                 [ all_components.add(_c) for _c in ns.components() if _c.hasBinding() ]
                 
             need_visit = all_components.copy()
@@ -1964,7 +1972,6 @@ class NamespaceDependencies (object):
 
     def componentOrder (self, reset=False):
         return self.componentGraph(reset).sccOrder()
-
 
     def __init__ (self, namespace):
         if not isinstance(namespace, Namespace):
