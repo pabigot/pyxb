@@ -427,7 +427,7 @@ class _NamedComponent_mixin (pyxb.cscRoot):
             anon_name = pyxb.utils.utility.MakeUnique(anon_name, set(namespace.categoryMap(self.__AnonymousCategory).keys()))
             self.__anonymousName = anon_name
             namespace.addCategoryObject(self.__AnonymousCategory, anon_name, self)
-            print '*** Created anonymous tag %s for %s' % (self.__anonymousName, self)
+            #print '*** Created anonymous tag %s for %s' % (self.__anonymousName, self)
         return self.__anonymousName
     __anonymousName = None
 
@@ -1501,7 +1501,6 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.na
         if self.__typeDefinition is None:
             assert self.__typeAttribute is not None
             type_en = self._namespaceContext().interpretQName(self.__typeAttribute)
-            print ' -- Type definition %s' % (type_en,)
             self.__typeDefinition = type_en.typeDefinition()
             if self.__typeDefinition is None:
                 raise pyxb.SchemaValidationError('Type declaration %s cannot be found' % (type_en,))
