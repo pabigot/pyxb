@@ -897,6 +897,7 @@ class _ModuleNaming_mixin (object):
         self.__bindingIO = None
         self.__importedSchema = set()
         self.__importedNamespaces = set()
+        self.__referencedNamespaces = set()
         self.__uniqueInClass = {}
 
     def _import (self, module):
@@ -934,6 +935,10 @@ class _ModuleNaming_mixin (object):
         assert isinstance(namespace_module, _ModuleNaming_mixin)
         if not (isinstance(self, NamespaceModule) and (self == namespace_module)):
             self.__importedNamespaces.add(namespace_module)
+
+    def _referenceNamespace (self, namespace):
+        self.__referencedNamespaces.add(namespace)
+    __referencedNamespaces = None
 
     def bindingIO (self):
         return self.__bindingIO
@@ -1194,7 +1199,7 @@ def CreateFromDOM (node):
         if namespace_module is None:
             return 'pyxb.namespace.NamespaceForURI(%s)' % (repr(namespace.uri()),)
         self._import(namespace_module)
-        assert not namespace_module.namespaceGroupModule()
+        assert not namespace_module.namespaceGroupModule(), 'Error referencing %s from %s' % (namespace, self)
         return '%s.Namespace' % (namespace_module.modulePath(),)
 
     def __str__ (self):
@@ -1379,6 +1384,14 @@ def GenerateAllPython (schema_location=None,
         namespace = schema.targetNamespace()
 
     nsdep = pyxb.namespace.NamespaceDependencies(namespace)
+    siblings = nsdep.siblingNamespaces()
+    print 'Configuring siblings'
+    missing = nsdep.schemaDefinedNamespaces().difference(siblings)
+    if 0 < len(missing):
+        #raise pyxb.BindingGenerationError('Generation root %s depends on schema-defined %s' % (namespace, " ".join([ str(_ns) for _ns in missing ])))
+        siblings.update(missing)
+        nsdep.setSiblingNamespaces(siblings)
+
     for ns_set in nsdep.namespaceOrder():
         pyxb.namespace.ResolveSiblingNamespaces(ns_set)
 
@@ -1386,11 +1399,8 @@ def GenerateAllPython (schema_location=None,
     file('schema.dot', 'w').write(nsdep.schemaGraph()._generateDOT('Schema', labeller=lambda _s: "/".join(_s.schemaLocation().split('/')[-2:])))
     file('component.dot', 'w').write(nsdep.componentGraph()._generateDOT('Component', lambda _c: _c.bestNCName()))
 
-    missing = nsdep.schemaDefinedNamespaces().difference(nsdep.siblingNamespaces())
-    if 0 < len(missing):
-        raise pyxb.BindingGenerationError('Generation root %s depends on schema-defined %s' % (namespace, " ".join([ str(_ns) for _ns in missing ])))
+    assert nsdep.siblingNamespaces() == siblings
 
-    siblings = nsdep.siblingNamespaces()
     #siblings = nsdep.schemaDefinedNamespaces()
 
     all_components = set()
@@ -1457,7 +1467,7 @@ def GenerateAllPython (schema_location=None,
         if (nsm is not None) and (nsm.namespaceGroupModule() is not None):
             sgm = SchemaGroupModule(nsm, sc_scc)
             modules.add(sgm)
-            #module_graph.addEdge(sgm, nsm)
+            module_graph.addEdge(sgm, nsm)
         for sc in sc_scc:
             schema_module_map[sc] = sgm
 
