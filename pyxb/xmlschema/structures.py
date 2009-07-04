@@ -547,6 +547,7 @@ class _NamedComponent_mixin (pyxb.cscRoot):
         # overrides it (as is done for local declarations if the form is
         # unqualified).
         self.__targetNamespace = kw.get('target_namespace', self._namespaceContext().targetNamespace())
+        self.__bindingNamespace = kw.get('binding_namespace')
 
         self.__templateMap = {}
 
@@ -1659,7 +1660,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         if cls.__UrTypeDefinition is None:
             # NOTE: We use a singleton subclass of this class
             ns_ctx = pyxb.namespace.XMLSchema.initialNamespaceContext()
-            bi = _UrTypeDefinition(name='anyType', namespace_context=ns_ctx, derivation_method=cls.DM_restriction, scope=_ScopedDeclaration_mixin.SCOPE_global)
+            bi = _UrTypeDefinition(name='anyType', namespace_context=ns_ctx, binding_namespace=ns_ctx.targetNamespace(), derivation_method=cls.DM_restriction, scope=_ScopedDeclaration_mixin.SCOPE_global)
 
             # The ur-type is its own baseTypeDefinition
             bi.__baseTypeDefinition = bi
@@ -3472,7 +3473,8 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
         #    raise pyxb.LogicError('Multiple definitions of SimpleUrType')
         if cls.__SimpleUrTypeDefinition is None:
             # Note: We use a singleton subclass
-            bi = _SimpleUrTypeDefinition(name='anySimpleType', namespace_context=pyxb.namespace.XMLSchema.initialNamespaceContext(), variety=cls.VARIETY_absent, scope=_ScopedDeclaration_mixin.SCOPE_global)
+            ns_ctx = pyxb.namespace.XMLSchema.initialNamespaceContext()
+            bi = _SimpleUrTypeDefinition(name='anySimpleType', namespace_context=ns_ctx, binding_namespace=ns_ctx.targetNamespace(), variety=cls.VARIETY_absent, scope=_ScopedDeclaration_mixin.SCOPE_global)
             bi._setPythonSupport(datatypes.anySimpleType)
 
             # The baseTypeDefinition is the ur-type.
@@ -3501,7 +3503,8 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
         All parameters are required and must be non-None.
         """
         
-        bi = cls(name=name, namespace_context=schema.targetNamespace().initialNamespaceContext(), variety=cls.VARIETY_atomic, scope=_ScopedDeclaration_mixin.SCOPE_global)
+        ns_ctx = schema.targetNamespace().initialNamespaceContext()
+        bi = cls(name=name, namespace_context=ns_ctx, binding_namespace=ns_ctx.targetNamespace(), variety=cls.VARIETY_atomic, scope=_ScopedDeclaration_mixin.SCOPE_global)
         bi._setPythonSupport(python_support)
 
         # Primitive types are based on the ur-type, and have
@@ -3525,7 +3528,8 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
         """
         assert parent_std
         assert parent_std.__variety in (cls.VARIETY_absent, cls.VARIETY_atomic)
-        bi = cls(name=name, namespace_context=schema.targetNamespace().initialNamespaceContext(), variety=parent_std.__variety, scope=_ScopedDeclaration_mixin.SCOPE_global)
+        ns_ctx = schema.targetNamespace().initialNamespaceContext()
+        bi = cls(name=name, namespace_context=ns_ctx, binding_namespace=ns_ctx.targetNamespace(), variety=parent_std.__variety, scope=_ScopedDeclaration_mixin.SCOPE_global)
         bi._setPythonSupport(python_support)
 
         # We were told the base type.  If this is atomic, we re-use
@@ -3548,7 +3552,8 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
         that require explicit support to for Pythonic conversion; but
         note that such support is identified by the item_std.
         """
-        bi = cls(name=name, namespace_context=schema.targetNamespace().initialNamespaceContext(), variety=cls.VARIETY_list, scope=_ScopedDeclaration_mixin.SCOPE_global)
+        ns_ctx = schema.targetNamespace().initialNamespaceContext()
+        bi = cls(name=name, namespace_context=ns_ctx, binding_namespace=ns_ctx.targetNamespace(), variety=cls.VARIETY_list, scope=_ScopedDeclaration_mixin.SCOPE_global)
         bi._setPythonSupport(python_support)
 
         # The base type is the ur-type.  We were given the item type.
