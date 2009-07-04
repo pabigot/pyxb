@@ -484,11 +484,11 @@ def expandedNameToUseMap (expanded_name, container_name, class_unique, class_key
 
 def elementDeclarationMap (ed, binding_module, **kw):
     template_map = { }
-    template_map['class'] = binding_module.literal(ed, **kw)
-    template_map['localName'] = binding_module.literal(ed.name(), **kw)
     template_map['name'] = str(ed.expandedName())
     template_map['name_expr'] = binding_module.literal(ed.expandedName(), **kw)
     if (ed.SCOPE_global == ed.scope()):
+        template_map['class'] = binding_module.literal(ed, **kw)
+        template_map['localName'] = binding_module.literal(ed.name(), **kw)
         template_map['map_update'] = templates.replaceInText("Namespace.addCategoryObject('elementBinding', %{localName}, %{class})", **template_map)
     else:
         template_map['scope'] = binding_module.literal(ed.scope(), **kw)
@@ -895,18 +895,14 @@ class _ModuleNaming_mixin (object):
         self.__componentNameMap = {}
         self.__uniqueInModule = set()
         self.__bindingIO = None
-        self.__importedSchema = set()
-        self.__importedNamespaces = set()
+        self.__importedModules = []
         self.__referencedNamespaces = set()
         self.__uniqueInClass = {}
 
-    def _import (self, module):
-        if isinstance(module, (SchemaGroupModule, xs.structures.Schema)):
-            self._importSchema(module)
-        elif isinstance(module, (NamespaceModule, pyxb.namespace.Namespace)):
-            self._importNamespace(module)
-        else:
-            raise pyxb.LogicError('Import of unrecognized object type s' % (type(module),))
+    def _importModule (self, module):
+        assert isinstance(module, _ModuleNaming_mixin)
+        if not (module in self.__importedModules):
+            self.__importedModules.append(module)
 
     def uniqueInClass (self, component):
         rv = self.__uniqueInClass.get(component)
@@ -926,16 +922,6 @@ class _ModuleNaming_mixin (object):
             self.__uniqueInClass[component] = rv
         return rv
 
-    def _importSchema (self, schema_group_module):
-        assert isinstance(schema_group_module, _ModuleNaming_mixin)
-        if not (isinstance(self, SchemaGroupModule) and (self == schema_group_module)):
-            self.__importedSchema.add(schema)
-
-    def _importNamespace (self, namespace_module):
-        assert isinstance(namespace_module, _ModuleNaming_mixin)
-        if not (isinstance(self, NamespaceModule) and (self == namespace_module)):
-            self.__importedNamespaces.add(namespace_module)
-
     def _referenceNamespace (self, namespace):
         self.__referencedNamespaces.add(namespace)
     __referencedNamespaces = None
@@ -945,25 +931,8 @@ class _ModuleNaming_mixin (object):
 
     def moduleContents (self):
         aux_imports = []
-        if self.__importedNamespaces:
-            print 'imported namespaces: %s' % (self.__importedNamespaces,)
-        for ns in self.__importedNamespaces:
-            if not isinstance(ns, NamespaceModule):
-                ns = self.ForNamespace(ns)
-            assert ns is not None
-            if ns.modulePath() is None:
-                raise pyxb.LogicError('Imported %s has no module path' % (ns.namespace(),))
+        for ns in self.__importedModules:
             aux_imports.append('import %s' % (ns.modulePath(),))
-        schema_set = set()
-        for sc in self.__importedSchema:
-            print 'IMPORTED SCHEMA %s' % (sc,)
-            if not isinstance(sc, (SchemaGroupModule, NamespaceModule)):
-                sc = self.ForSchema(sc)
-            assert sc is not None
-            schema_set.add(sc)
-        for sgm in schema_set:
-            assert sgm.modulePath() is not None
-            aux_imports.append('import %s' % (sgm.modulePath(),))
         self._finalizeModuleContents_vx(aux_imports)
         return self.__bindingIO.contents()
 
@@ -989,6 +958,7 @@ class _ModuleNaming_mixin (object):
 
     @classmethod
     def ComponentBindingModule (cls, component):
+        rv = cls.__ComponentBindingModuleMap.get(component)
         return cls.__ComponentBindingModuleMap.get(component)
 
     @classmethod
@@ -1030,13 +1000,47 @@ class _ModuleNaming_mixin (object):
         self.__componentNameMap[component] = rv
         return rv
 
-    def nameInModule (self, component, qualified=False):
-        rv = self.__componentNameMap.get(component)
-        if rv is None:
-            rv = component.nameInBinding()
-        if qualified:
-            rv = '%s.%s' % (self.modulePath(), rv)
-        return rv
+    def __componentModule (self, component, module_type):
+        assert module_type is None
+        if NamespaceGroupModule == module_type:
+            pass
+        elif NamespaceModule == module_type:
+            pass
+        else:
+            assert module_type is None
+            component_module = _ModuleNaming_mixin.ComponentBindingModule(component)
+        return component_module
+
+    def referenceSchemaComponent (self, component, module_type=None):
+        component_module = self.__componentModule(component, module_type)
+        if component_module is None:
+            namespace = component.bindingNamespace()
+            if namespace is None:
+                name = self.__componentNameMap.get(component)
+                assert name is not None, 'Completely at a loss to identify %s in %s' % (component.expandedName(), self)
+            assert not namespace.definedBySchema()
+            return '%s.%s' % (namespace.modulePath(), component.nameInBinding())
+        name = component_module.__componentNameMap.get(component)
+        if name is None:
+            assert isinstance(self, NamespaceModule) and (self.namespace() == component.bindingNamespace())
+            name = component.nameInBinding()
+        if self != component_module:
+            self._importModule(component_module)
+            name = '%s.%s' % (component_module.modulePath(), name)
+        return name
+
+    def referenceNamespace (self, namespace, module_type=None):
+        assert module_type is None
+        if pyxb.namespace.XMLSchema == namespace:
+            return 'pyxb.namespace.XMLSchema'
+        if isinstance(self, NamespaceModule) and (self.namespace() == namespace):
+            return 'Namespace'
+        namespace_module = self.ForNamespace(namespace)
+        if namespace_module is None:
+            return 'pyxb.namespace.NamespaceForURI(%s)' % (repr(namespace.uri()),)
+        self._importModule(namespace_module)
+        assert not namespace_module.namespaceGroupModule(), 'Error referencing %s from %s' % (namespace, self)
+        return '%s.Namespace' % (namespace_module.modulePath(),)
 
     def literal (self, *args, **kw):
         return self.__bindingIO.literal(*args, **kw)
@@ -1134,9 +1138,6 @@ import pyxb.exceptions_
 import pyxb.utils.domutils
 import sys
 
-# Import bindings for namespaces imported into schema
-%{aux_imports}
-
 # Make sure there's a registered Namespace instance, and that it knows
 # about this module.
 Namespace = %{NamespaceDefinition}
@@ -1152,6 +1153,10 @@ def CreateFromDOM (node):
     """Create a Python instance from the given DOM node.
     The node tag must correspond to an element declaration in this module."""
     return pyxb.binding.basis.element.AnyCreateFromDOM(node, Namespace)
+
+# Import bindings for namespaces imported into schema
+%{aux_imports}
+
 ''', aux_imports="\n".join(aux_imports)))
 
     __components = None
@@ -1167,38 +1172,8 @@ def CreateFromDOM (node):
             self.__namespaceGroupModule._bindComponent(component)
         return _ModuleNaming_mixin.BindComponentInModule(component, binding_module)
 
-    def referenceSchemaComponent (self, component):
-        namespace = component.targetNamespace()
-        if component._schema() is not None:
-            component_module = _ModuleNaming_mixin.ForSchema(component._schema())
-            if component_module is not None:
-                self._import(component_module)
-                return component_module.nameInModule(component, qualified=True)
-            namespace = component._schema().targetNamespace()
-        if namespace is None:
-            # Must be local
-            return self.nameInModule(component)
-        if pyxb.namespace.XMLSchema == namespace:
-            return '%s.%s' % (namespace.modulePath(), component.name())
-        component_module = _ModuleNaming_mixin.ForNamespace(namespace)
-        assert component_module is not None, 'No module for namespace %s' % (namespace,)
-        self._import(component_module)
-        return component_module.nameInModule(component, self != component_module)
-
-    def referenceNamespace (self, namespace):
-        if pyxb.namespace.XMLSchema == namespace:
-            return 'pyxb.namespace.XMLSchema'
-        if self.__namespace == namespace:
-            return 'Namespace'
-        namespace_module = self.ForNamespace(namespace)
-        if namespace_module is None:
-            return 'pyxb.namespace.NamespaceForURI(%s)' % (repr(namespace.uri()),)
-        self._import(namespace_module)
-        assert not namespace_module.namespaceGroupModule(), 'Error referencing %s from %s' % (namespace, self)
-        return '%s.Namespace' % (namespace_module.modulePath(),)
-
     def __str__ (self):
-        return 'NM:%s' % (self.modulePath(),)
+        return 'NM:%s@%s' % (self.namespace(), self.modulePath())
 
 class NamespaceGroupModule (_ModuleNaming_mixin):
     """This class represents a Python module that holds all the
@@ -1278,7 +1253,7 @@ class SchemaGroupModule (_ModuleNaming_mixin):
 
     _UniqueInModule = set([ 'pyxb', 'sys', 'Namespace' ])
     
-    def __init__ (self, schema_graph, namespace_module, schema_group):
+    def __init__ (self, namespace_module, schema_group):
         super(SchemaGroupModule, self).__init__(self)
         self.__namespaceModule = namespace_module
         self.__schemaGroup = schema_group
@@ -1287,6 +1262,11 @@ class SchemaGroupModule (_ModuleNaming_mixin):
         assert isinstance(self.__schemaGroup, list)
         self._setModulePath(self.__namespaceModule.schemaGroupModulePath(self))
         self._initializeUniqueInModule(self._UniqueInModule)
+
+    def setImports (self, schema_graph):
+        for sc in self.__schemaGroup:
+            for isc in schema_graph.edgeMap().get(sc, set()):
+                self._importModule(_ModuleNaming_mixin.ForSchema(isc, True))
 
     def _initialBindingTemplateMap (self):
         kw = { 'moduleType' : 'namespaceGroup'
@@ -1306,29 +1286,6 @@ class SchemaGroupModule (_ModuleNaming_mixin):
 %{schema_locs}
 
 ''', **tmap))
-
-    def referenceSchemaComponent (self, component):
-        schema = component._schema()
-        if schema is not None:
-            component_module = _ModuleNaming_mixin.ForSchema(component._schema())
-            assert component_module is not None, 'No module for %s in schema %s from %s' % (component, component._schema().schemaLocation(), self.__schemaGroupHead.schemaLocation())
-            return component_module.nameInModule(component, self == component_module)
-        # If it doesn't have a schema, it can't be in this namespace
-        namespace = component.targetNamespace()
-        assert namespace is not None
-        return '%s.%s' % (namespace.modulePath(), component.nameInBinding())
-
-    def referenceNamespace (self, namespace):
-        if pyxb.namespace.XMLSchema == namespace:
-            return 'pyxb.namespace.XMLSchema'
-        namespace_module = self.ForNamespace(namespace)
-        if namespace_module is None:
-            assert False
-            return 'pyxb.namespace.NamespaceForURI(%s)' % (repr(namespace.uri()),)
-        nsg = namespace_module.namespaceGroupModule()
-        if nsg:
-            return '_Namespace_%s' % (namespace.prefix(),)
-        return '%s.Namespace' % (namespace_module.modulePath(),)
 
     def __str__ (self):
         return 'SGM:%s' % (self.modulePath(),)
@@ -1450,11 +1407,18 @@ def GenerateAllPython (schema_location=None,
             print 'MULTI_ELT SCHEMA GROUP: %s' % ("\n  ".join([_sc.schemaLocation() for _sc in sc_scc]),)
 
         if (nsm is not None) and (nsm.namespaceGroupModule() is not None):
-            sgm = SchemaGroupModule(nsm, nsdep.schemaGraph(), sc_scc)
+            sgm = SchemaGroupModule(nsm, sc_scc)
             modules.add(sgm)
             module_graph.addEdge(sgm, nsm)
         for sc in sc_scc:
             schema_module_map[sc] = sgm
+
+    for m in modules:
+        if isinstance(m, SchemaGroupModule):
+            m.setImports(nsdep.schemaGraph())
+        elif isinstance(m, NamespaceModule):
+            #m.setImports(nsdep)
+            pass
 
     file('modules.dot', 'w').write(module_graph._generateDOT('Modules'))
 
