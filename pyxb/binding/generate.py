@@ -959,34 +959,7 @@ class _ModuleNaming_mixin (object):
         for sgm in schema_set:
             assert sgm.modulePath() is not None
             aux_imports.append('import %s' % (sgm.modulePath(),))
-        self.__bindingIO.prolog().append(self.__bindingIO.expand('''# %{filePath}
-# PyXB bindings for %{input}
-# Generated %{date} by PyXB version %{pyxbVersion}
-import pyxb.binding
-import pyxb.exceptions_
-import pyxb.utils.domutils
-import sys
-
-# Import bindings for namespaces imported into schema
-%{aux_imports}
-
-# Make sure there's a registered Namespace instance, and that it knows
-# about this module.
-Namespace = %{NamespaceDefinition}
-Namespace._setModule(sys.modules[__name__])
-Namespace.configureCategories(['typeBinding', 'elementBinding'])
-
-def CreateFromDocument (xml_text):
-    """Parse the given XML and use the document element to create a Python instance."""
-    dom = pyxb.utils.domutils.StringToDOM(xml_text)
-    return CreateFromDOM(dom.documentElement)
-
-def CreateFromDOM (node):
-    """Create a Python instance from the given DOM node.
-    The node tag must correspond to an element declaration in this module."""
-    return pyxb.binding.basis.element.AnyCreateFromDOM(node, Namespace)
-''', aux_imports="\n".join(aux_imports)))
-
+        self._finalizeModuleContents_vx(aux_imports)
         return self.__bindingIO.contents()
 
     def modulePath (self):
@@ -1147,6 +1120,37 @@ class NamespaceModule (_ModuleNaming_mixin):
             module_base = utility.MakeUnique(schema_group_module.schemaGroupHead().schemaLocationTag(), self.__uniqueInSchemaGroup)
         return '.'.join(self.__schemaGroupPrefixElts + [ module_base ])
 
+    def _finalizeModuleContents_vx (self, aux_imports):
+        self.bindingIO().prolog().append(self.bindingIO().expand('''# %{filePath}
+# PyXB bindings for NamespaceModule
+# Generated %{date} by PyXB version %{pyxbVersion}
+import pyxb.binding
+import pyxb.exceptions_
+import pyxb.utils.domutils
+import sys
+
+# Import bindings for namespaces imported into schema
+%{aux_imports}
+
+# Make sure there's a registered Namespace instance, and that it knows
+# about this module.
+Namespace = %{NamespaceDefinition}
+Namespace._setModule(sys.modules[__name__])
+Namespace.configureCategories(['typeBinding', 'elementBinding'])
+
+def CreateFromDocument (xml_text):
+    """Parse the given XML and use the document element to create a Python instance."""
+    dom = pyxb.utils.domutils.StringToDOM(xml_text)
+    return CreateFromDOM(dom.documentElement)
+
+def CreateFromDOM (node):
+    """Create a Python instance from the given DOM node.
+    The node tag must correspond to an element declaration in this module."""
+    return pyxb.binding.basis.element.AnyCreateFromDOM(node, Namespace)
+''', aux_imports="\n".join(aux_imports)))
+
+
+
     __components = None
     __componentBindingName = None
 
@@ -1223,7 +1227,7 @@ class NamespaceGroupModule (_ModuleNaming_mixin):
 
         module_prefix_elts = module_prefix_elts[:]
         module_prefix_elts.append(self._GroupPrefix)
-        self._setModulePath('.'.join(module_prefix_elts + [ utility.MakeUnique('_'.join([ _nsm.namespace().prefix() for _nsm in namespace_modules if _nsm.namespace().prefix()]), self.__UniqueInGroups) ]))
+        self._setModulePath('.'.join(module_prefix_elts + [ utility.MakeUnique('nsgroup', self.__UniqueInGroups) ]))
         for nsm in namespace_modules:
             nsm.setSchemaGroupPrefixElts(module_prefix_elts + [ utility.MakeUnique('_%s' % (nsm.namespace().prefix(),), self.__UniqueInGroups) ])
         self._initializeUniqueInModule(self._UniqueInModule)
@@ -1232,6 +1236,18 @@ class NamespaceGroupModule (_ModuleNaming_mixin):
         kw = { 'moduleType' : 'namespaceGroup'
              , 'namespaceHeadURI' : self.__namespaceGroupHead.namespace().uri() }
         return kw
+
+    def _finalizeModuleContents_vx (self, aux_imports):
+        tmap = { 'aux_imports' : "\n".join(aux_imports) }
+        text = []
+        for nsm in self.namespaceModules():
+            text.append('#  %s %s' % (nsm.namespace(), nsm.namespace().prefix()))
+        tmap['namespace_comment'] = "\n".join(text)
+        self.bindingIO().prolog().append(self.bindingIO().expand('''# %{filePath}
+# PyXB bindings for NamespaceGroupModule
+%{namespace_comment}
+
+''', **tmap))
 
     def bindComponent (self, component):
         ngm_name = self._bindComponent(component)
@@ -1283,6 +1299,18 @@ class SchemaGroupModule (_ModuleNaming_mixin):
              , 'schemaGroupMulti' : repr(self.schemaGroupMulti())
              }
         return kw
+
+    def _finalizeModuleContents_vx (self, aux_imports):
+        tmap = { 'aux_imports' : "\n".join(aux_imports) }
+        slocs = []
+        for sc in self.schemaGroup():
+            slocs.append('#  %s' % (sc.schemaLocation(),))
+        tmap['schema_locs'] = "\n".join(slocs)
+        self.bindingIO().prolog().append(self.bindingIO().expand('''# %{filePath}
+# PyXB bindings for SchemaGroupModule
+%{schema_locs}
+
+''', **tmap))
 
     def bindComponent (self, component):
         sgm_name = self._bindComponent(component)
@@ -1446,7 +1474,7 @@ def GenerateAllPython (schema_location=None,
                 print '  %s' % (c.expandedName(),)
                 cg.addNode(c)
                 for cd in c.bindingRequires(reset=True, include_lax=False):
-                    print '%s depends on %s' % (c, cd)
+                    #print '%s depends on %s' % (c, cd)
                     cg.addEdge(c, cd)
             file('deploop.dot', 'w').write(cg._generateDOT('CompDep', lambda _c: _c.bestNCName()))
             relaxed_order = cg.sccOrder()
