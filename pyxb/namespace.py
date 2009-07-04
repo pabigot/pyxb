@@ -373,17 +373,24 @@ class NamespaceArchive (object):
         # namespace.
         object_maps = unpickler.load()
         for ns in ns_set:
+            #print 'Read %s from %s' % (ns, self.__archivePath)
             ns._loadNamedObjects(object_maps[ns])
             ns._setLoadedFromArchive()
         
         self.dissociateNamespaces()
 
     def writeNamespaces (self, archive_path):
+        import sys
+        
+        NamespaceArchive.__PicklingNamespaces = self.namespaces()
+        assert self.PicklingNamespaces() == self.namespaces(), 'Set %s, read %s' % (self.namespaces(), self.PicklingNamespaces())
+
+        # See http://bugs.python.org/issue3338
+        recursion_limit = sys.getrecursionlimit()
+        sys.setrecursionlimit(10 * recursion_limit)
 
         output = open(archive_path, 'wb')
         pickler = pickle.Pickler(output, -1)
-        NamespaceArchive.__PicklingNamespaces = self.namespaces()
-        assert self.PicklingNamespaces() == self.namespaces(), 'Set %s, read %s' % (self.namespaces(), self.PicklingNamespaces())
 
         # The format of the archive
         pickler.dump(NamespaceArchive.__PickleFormat)
@@ -409,6 +416,7 @@ class NamespaceArchive (object):
                 obj._prepareForArchive(ns)
         pickler.dump(object_map)
 
+        sys.setrecursionlimit(recursion_limit)
         NamespaceArchive.__PicklingNamespaces = None
 
     def __readNamespaceSet (self, unpickler, define_namespaces=False):
