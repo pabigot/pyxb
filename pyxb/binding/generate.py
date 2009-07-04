@@ -415,6 +415,7 @@ def GenerateSTD (std):
     if 0 < len(parent_classes):
         template_map['superclasses'] = ', '.join(parent_classes)
     template_map['expanded_name'] = binding_module.literal(std.expandedName(), **kw)
+    template_map['namespaceReference'] = binding_module.literal(std.bindingNamespace(), **kw)
 
     # @todo: Extensions of LIST will be wrong in below
 
@@ -468,7 +469,7 @@ class %{std} (pyxb.binding.basis.STD_union):
         GenerateFacets(std, **kw)
 
     if std.name() is not None:
-        outf.write(templates.replaceInText("Namespace.addCategoryObject('typeBinding', %{localName}, %{std})\n",
+        outf.write(templates.replaceInText("%{namespaceReference}.addCategoryObject('typeBinding', %{localName}, %{std})\n",
                                            localName=binding_module.literal(std.name(), **kw), **template_map))
 def expandedNameToUseMap (expanded_name, container_name, class_unique, class_keywords, kw):
     use_map = { }
@@ -486,10 +487,11 @@ def elementDeclarationMap (ed, binding_module, **kw):
     template_map = { }
     template_map['name'] = str(ed.expandedName())
     template_map['name_expr'] = binding_module.literal(ed.expandedName(), **kw)
+    template_map['namespaceReference'] = binding_module.literal(ed.bindingNamespace(), **kw)
     if (ed.SCOPE_global == ed.scope()):
         template_map['class'] = binding_module.literal(ed, **kw)
         template_map['localName'] = binding_module.literal(ed.name(), **kw)
-        template_map['map_update'] = templates.replaceInText("Namespace.addCategoryObject('elementBinding', %{localName}, %{class})", **template_map)
+        template_map['map_update'] = templates.replaceInText("%{namespaceReference}.addCategoryObject('elementBinding', %{localName}, %{class})", **template_map)
     else:
         template_map['scope'] = binding_module.literal(ed.scope(), **kw)
     if ed.abstract():
@@ -523,6 +525,7 @@ def GenerateCTD (ctd, **kw):
     content_type_tag = ctd._contentTypeTag()
 
     template_map['base_type'] = binding_module.literal(base_type, **kw)
+    template_map['namespaceReference'] = binding_module.literal(ctd.bindingNamespace(), **kw)
     template_map['expanded_name'] = binding_module.literal(ctd.expandedName(), **kw)
     template_map['simple_base_type'] = binding_module.literal(None, **kw)
     template_map['contentTypeTag'] = content_type_tag
@@ -730,7 +733,7 @@ class %{ctd} (%{superclass}):
 
     template_map['registration'] = ''
     if ctd.name() is not None:
-        template_map['registration'] = templates.replaceInText("Namespace.addCategoryObject('typeBinding', %{localName}, %{ctd})",
+        template_map['registration'] = templates.replaceInText("%{namespaceReference}.addCategoryObject('typeBinding', %{localName}, %{ctd})",
                                                                localName=binding_module.literal(ctd.name(), **kw), **template_map)
     
     template = ''.join([prolog_template,
@@ -755,7 +758,7 @@ def GenerateED (ed, **kw):
 
     outf.write(templates.replaceInText('''
 %{class} = pyxb.binding.basis.element(%{name_expr}, %{typeDefinition}%{element_aux_init})
-Namespace.addCategoryObject('elementBinding', %{class}.name().localName(), %{class})
+%{namespaceReference}.addCategoryObject('elementBinding', %{class}.name().localName(), %{class})
 ''', **template_map))
 
     if ed.substitutionGroupAffiliation() is not None:
@@ -896,11 +899,14 @@ class _ModuleNaming_mixin (object):
         self.__uniqueInModule = set()
         self.__bindingIO = None
         self.__importedModules = []
-        self.__referencedNamespaces = set()
+        self.__namespaceDeclarations = []
+        self.__referencedNamespaces = {}
         self.__uniqueInClass = {}
 
     def _importModule (self, module):
         assert isinstance(module, _ModuleNaming_mixin)
+        if isinstance(module, NamespaceModule) and (pyxb.namespace.XMLSchema == module.namespace()):
+            return
         if not (module in self.__importedModules):
             self.__importedModules.append(module)
 
@@ -922,18 +928,19 @@ class _ModuleNaming_mixin (object):
             self.__uniqueInClass[component] = rv
         return rv
 
-    def _referenceNamespace (self, namespace):
-        self.__referencedNamespaces.add(namespace)
     __referencedNamespaces = None
 
     def bindingIO (self):
         return self.__bindingIO
 
     def moduleContents (self):
+        template_map = {}
         aux_imports = []
         for ns in self.__importedModules:
             aux_imports.append('import %s' % (ns.modulePath(),))
-        self._finalizeModuleContents_vx(aux_imports)
+        template_map['aux_imports'] = "\n".join(aux_imports)
+        template_map['namespace_decls'] = "\n".join(self.__namespaceDeclarations)
+        self._finalizeModuleContents_vx(template_map)
         return self.__bindingIO.contents()
 
     def modulePath (self):
@@ -1019,6 +1026,9 @@ class _ModuleNaming_mixin (object):
                 name = self.__componentNameMap.get(component)
                 assert name is not None, 'Completely at a loss to identify %s in %s' % (component.expandedName(), self)
             assert not namespace.definedBySchema()
+            namespace_module = self.ForNamespace(namespace)
+            assert namespace_module is not None
+            self._importModule(namespace_module)
             return '%s.%s' % (namespace.modulePath(), component.nameInBinding())
         name = component_module.__componentNameMap.get(component)
         if name is None:
@@ -1029,18 +1039,57 @@ class _ModuleNaming_mixin (object):
             name = '%s.%s' % (component_module.modulePath(), name)
         return name
 
+    def _referencedNamespaces (self): return self.__referencedNamespaces
+
+    def defineNamespace (self, namespace, name, require_unique=True, **kw):
+        rv = self.__referencedNamespaces.get(namespace)
+        print '%s define %s current %s has %s' % (self, namespace, self.__referencedNamespaces, rv)
+        if rv is not None:
+            print 'WARNING: Module already have reference to %s' % (namespace,)
+            return rv
+        if require_unique:
+            name = utility.PrepareIdentifier(name, self.__uniqueInModule, **kw)
+        if namespace.isAbsentNamespace():
+            defn = 'pyxb.namespace.CreateAbsentNamespace()'
+        else:
+            defn = 'pyxb.namespace.NamespaceForURI(%s, create_if_missing=True)' % (repr(namespace.uri()),)
+        self.__namespaceDeclarations.append('%s = %s' % (name, defn))
+        self.__namespaceDeclarations.append("%s.configureCategories(['typeBinding', 'elementBinding'])" % (name,))
+        self.__referencedNamespaces[namespace] = name
+        return name
+
     def referenceNamespace (self, namespace, module_type=None):
         assert module_type is None
-        if pyxb.namespace.XMLSchema == namespace:
-            return 'pyxb.namespace.XMLSchema'
-        if isinstance(self, NamespaceModule) and (self.namespace() == namespace):
-            return 'Namespace'
-        namespace_module = self.ForNamespace(namespace)
-        if namespace_module is None:
-            return 'pyxb.namespace.NamespaceForURI(%s)' % (repr(namespace.uri()),)
-        self._importModule(namespace_module)
-        #assert not namespace_module.namespaceGroupModule(), 'Error referencing %s from %s' % (namespace, self)
-        return '%s.Namespace' % (namespace_module.modulePath(),)
+        rv = self.__referencedNamespaces.get(namespace)
+        if rv is None:
+            namespace_module = self.ForNamespace(namespace)
+            if pyxb.namespace.XMLSchema == namespace:
+                rv = 'pyxb.namespace.XMLSchema'
+            elif isinstance(self, NamespaceModule):
+                if (self.namespace() == namespace):
+                    rv = 'Namespace'
+                elif namespace_module is not None:
+                    self._importModule(namespace_module)
+                    rv = '%s.Namespace' % (namespace_module.modulePath(),)
+                else:
+                    assert False
+            else:
+                for im in self.__importedModules:
+                    if isinstance(im, NamespaceModule) and (im.namespace() == namespace):
+                        rv = '%s.Namespace' % (im.modulePath(),)
+                        break
+                    if isinstance(im, SchemaGroupModule):
+                        rv = im.__referencedNamespaces.get(namespace)
+                        if rv is not None:
+                            break
+                if rv is None:
+                    if namespace.prefix():
+                        nsn = 'Namespace_%s' % (namespace.prefix(),)
+                    else:
+                        nsn = 'Namespace'
+                    rv =  self.defineNamespace(namespace, nsn, protected=True)
+            self.__referencedNamespaces[namespace] = rv
+        return rv
 
     def literal (self, *args, **kw):
         return self.__bindingIO.literal(*args, **kw)
@@ -1082,7 +1131,9 @@ class NamespaceModule (_ModuleNaming_mixin):
 
     def __init__ (self, namespace, ns_scc, module_prefix_elts=[], components=None):
         super(NamespaceModule, self).__init__(self)
+        self._initializeUniqueInModule(self._UniqueInModule)
         self.__namespace = namespace
+        self.defineNamespace(namespace, 'Namespace', require_unique=False)
         print 'NSM Namespace %s module path %s' % (namespace, namespace.modulePath())
         mp = self.__namespace.modulePath()
         if mp is not None:
@@ -1098,16 +1149,13 @@ class NamespaceModule (_ModuleNaming_mixin):
             self.__ComponentModuleMap.update(dict.fromkeys(self.__components, self))
         self.__namespaceBindingNames = {}
         self.__componentBindingName = {}
-        self._initializeUniqueInModule(self._UniqueInModule)
 
     def _initialBindingTemplateMap (self):
         kw = { 'moduleType' : 'namespace'
              , 'targetNamespace' : repr(self.__namespace.uri())
-             , 'namespaceURI' : self.__namespace.uri() }
-        if self.__namespace.isAbsentNamespace():
-            kw['NamespaceDefinition'] = 'pyxb.namespace.CreateAbsentNamespace()'
-        else:
-            kw['NamespaceDefinition'] = templates.replaceInText('pyxb.namespace.NamespaceForURI(%{targetNamespace}, create_if_missing=True)', **kw)
+             , 'namespaceURI' : self.__namespace.uri()
+             , 'namespaceReference' : self.referenceNamespace(self.__namespace)
+             }
         return kw
 
     def setBaseModule (self, base_module):
@@ -1129,7 +1177,7 @@ class NamespaceModule (_ModuleNaming_mixin):
             module_base = utility.MakeUnique(schema_group_module.schemaGroupHead().schemaLocationTag(), self.__uniqueInSchemaGroup)
         return '.'.join(self.__schemaGroupPrefixElts + [ module_base ])
 
-    def _finalizeModuleContents_vx (self, aux_imports):
+    def _finalizeModuleContents_vx (self, template_map):
         self.bindingIO().prolog().append(self.bindingIO().expand('''# %{filePath}
 # PyXB bindings for NamespaceModule
 # Generated %{date} by PyXB version %{pyxbVersion}
@@ -1138,11 +1186,8 @@ import pyxb.exceptions_
 import pyxb.utils.domutils
 import sys
 
-# Make sure there's a registered Namespace instance, and that it knows
-# about this module.
-Namespace = %{NamespaceDefinition}
+%{namespace_decls}
 Namespace._setModule(sys.modules[__name__])
-Namespace.configureCategories(['typeBinding', 'elementBinding'])
 
 def CreateFromDocument (xml_text):
     """Parse the given XML and use the document element to create a Python instance."""
@@ -1157,7 +1202,7 @@ def CreateFromDOM (node):
 # Import bindings for namespaces imported into schema
 %{aux_imports}
 
-''', aux_imports="\n".join(aux_imports)))
+''', **template_map))
 
     __components = None
     __componentBindingName = None
@@ -1213,19 +1258,21 @@ class NamespaceGroupModule (_ModuleNaming_mixin):
              , 'namespaceHeadURI' : self.__namespaceGroupHead.namespace().uri() }
         return kw
 
-    def _finalizeModuleContents_vx (self, aux_imports):
-        tmap = { 'aux_imports' : "\n".join(aux_imports) }
+    def _finalizeModuleContents_vx (self, template_map):
         text = []
         for nsm in self.namespaceModules():
             text.append('#  %s %s' % (nsm.namespace(), nsm.namespace().prefix()))
-        tmap['namespace_comment'] = "\n".join(text)
+        template_map['namespace_comment'] = "\n".join(text)
         self.bindingIO().prolog().append(self.bindingIO().expand('''# %{filePath}
 # PyXB bindings for NamespaceGroupModule
+# Incorporated namespaces:
 %{namespace_comment}
+
+%{namespace_decls}
 
 # Import bindings for schemas in group
 %{aux_imports}
-''', **tmap))
+''', **template_map))
 
     def __str__ (self):
         return 'NGM:%s' % (self.modulePath(),)
@@ -1278,19 +1325,21 @@ class SchemaGroupModule (_ModuleNaming_mixin):
              }
         return kw
 
-    def _finalizeModuleContents_vx (self, aux_imports):
-        tmap = { 'aux_imports' : "\n".join(aux_imports) }
+    def _finalizeModuleContents_vx (self, template_map):
         slocs = []
         for sc in self.schemaGroup():
             slocs.append('#  %s' % (sc.schemaLocation(),))
-        tmap['schema_locs'] = "\n".join(slocs)
+        template_map['schema_locs'] = "\n".join(slocs)
         self.bindingIO().prolog().append(self.bindingIO().expand('''# %{filePath}
 # PyXB bindings for SchemaGroupModule
+# Incorporated schemas:
 %{schema_locs}
+
+%{namespace_decls}
 
 # Import bindings from schema
 %{aux_imports}
-''', **tmap))
+''', **template_map))
 
     def __str__ (self):
         return 'SGM:%s' % (self.modulePath(),)
@@ -1365,7 +1414,6 @@ def GenerateAllPython (schema_location=None,
     
     usable_namespaces = set(namespace_component_map.keys())
     usable_namespaces.update([ _ns for _ns in nsdep.dependentNamespaces() if _ns.isLoadable])
-
 
     module_graph = pyxb.utils.utility.Graph()
 
