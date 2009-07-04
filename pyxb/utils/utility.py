@@ -244,8 +244,10 @@ class Graph:
         self.__didTarjan = True
 
     def _tarjan (self, v):
+        if not (self.__tarjanIndex[v] is None):
+            # "Root" was already reached.
+            return
         self.__tarjanIndex[v] = self.__tarjanLowLink[v] = self.__index
-        #print "Adding %s" % v
         self.__index += 1
         self.__stack.append(v)
         source = v
