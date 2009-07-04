@@ -125,6 +125,13 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin, pyxb.na
 
     def _prepareForArchive_csc (self, namespace):
         self.__schema = None
+        self.__clones = None
+        self.__cloneSource = None
+        self.__ownedComponents.clear()
+        #if isinstance(self, ElementDeclaration):
+        #    for (k, v) in self.__dict__.items():
+        #        print '%s : %s' % (k, object.__str__(v))
+        #    assert False
         return getattr(super(_SchemaComponent_mixin, self), '_prepareForArchive_csc', lambda *_args,**_kw: self)(namespace)
 
     def __init__ (self, *args, **kw):
@@ -336,6 +343,8 @@ class _Annotated_mixin (pyxb.cscRoot):
         return self.__annotation
 
 class _PickledAnonymousReference (pyxb.cscRoot):
+    __AnonymousCategory = pyxb.namespace.NamespaceArchive._AnonymousCategory()
+
     __namespace = None
     __anonymousName = None
     def __init__ (self, namespace, anonymous_name):
@@ -358,8 +367,15 @@ class _PickledAnonymousReference (pyxb.cscRoot):
     def validateComponentModel (self):
         return self.__namespace.validateComponentModel()
 
-    def typeDefinition (self):
-        return self.__namespace.categoryMap(pyxb.namespace.Namespace._AnonymousCategory).get(self.__anonymousName)
+    def __lookupObject (self):
+        return self.__namespace.categoryMap(self.__AnonymousCategory).get(self.__anonymousName)
+    typeDefinition = __lookupObject
+    attributeGroupDefinition = __lookupObject
+    modelGroupDefinition = __lookupObject
+    attributeDeclaration = __lookupObject
+    elementDeclaration = __lookupObject
+    identityConstraintDefinition = __lookupObject
+    notationDeclaration = __lookupObject
 
     def __str__ (self):
         return 'ANONYMOUS:%s' % (pyxb.namespace.ExpandedName(self.__namespace, self.__anonymousName),)
@@ -425,9 +441,17 @@ class _NamedComponent_mixin (pyxb.cscRoot):
 
     __AnonymousCategory = pyxb.namespace.NamespaceArchive._AnonymousCategory()
 
+    def __needAnonymousSupport (self):
+        return self.isAnonymous() or self._scopeIsIndeterminate()
+
     def _prepareForArchive_csc (self, namespace):
-        if self.isAnonymous():
-            anon_name = pyxb.utils.utility.MakeUnique(self.nameInBinding(), set(namespace.categoryMap(self.__AnonymousCategory).keys()))
+        if self.__needAnonymousSupport():
+            anon_name = self.nameInBinding()
+            if anon_name is None:
+                anon_name = self.name()
+            if anon_name is None:
+                anon_name = 'ANON_IN_GROUP'
+            anon_name = pyxb.utils.utility.MakeUnique(anon_name, set(namespace.categoryMap(self.__AnonymousCategory).keys()))
             self.__anonymousName = anon_name
             namespace.addCategoryObject(self.__AnonymousCategory, anon_name, self)
             print '*** Created anonymous tag %s for %s' % (self.__anonymousName, self)
@@ -571,7 +595,7 @@ class _NamedComponent_mixin (pyxb.cscRoot):
         return (type(self) == type(other)) and self.isNameEquivalent(other)
 
     def _picklingReference (self):
-        if self.isAnonymous():
+        if self.__needAnonymousSupport():
             #print 'Wrapping %s as anonymous %s in %s' % (self, self._anonymousName(), self.targetNamespace())
             return _PickledAnonymousReference(self.targetNamespace(), self._anonymousName())
         return self.expandedName().uriTuple()
@@ -640,8 +664,14 @@ class _NamedComponent_mixin (pyxb.cscRoot):
                 elif isinstance(self.scope(), ComplexTypeDefinition):
                     scope = self.scope()._picklingReference()
                 elif self._scopeIsIndeterminate():
-                    raise pyxb.LogicError('Attempt to pickle reference to %s tns %s in indeterminate scope in %s' % (self, self.targetNamespace(), pyxb.namespace.NamespaceArchive.PicklingNamespaces()))
-                    assert False
+                    print '************* Attempt to pickle reference to %s tns %s in indeterminate scope in %s' % (self, self.targetNamespace(), pyxb.namespace.NamespaceArchive.PicklingNamespaces())
+                    owner_chain = []
+                    owner = self
+                    while owner:
+                        owner_chain.append(str(owner))
+                        owner = owner.owner()
+                    print "\n".join(owner_chain)
+                    #raise pyxb.LogicError('Attempt to pickle reference to %s tns %s in indeterminate scope in %s' % (self, self.targetNamespace(), pyxb.namespace.NamespaceArchive.PicklingNamespaces()))
             else:
                 assert isinstance(self, _NamedComponent_mixin), 'Pickling unnamed component %s in indeterminate scope by reference' % (self,)
 
@@ -657,6 +687,12 @@ class _NamedComponent_mixin (pyxb.cscRoot):
             assert self.targetNamespace() is not None
             assert self.targetNamespace().uri() == state[0]
             assert self.name() == state[1]
+            return
+        if isinstance(state, _PickledAnonymousReference):
+            assert self.targetNamespace() is not None
+            assert self.targetNamespace() == state.namespace()
+            assert self.__needAnonymousSupport()
+            assert self._anonymousName() == state.anonymousName()
             return
         self.__dict__.update(state)
             
@@ -1853,10 +1889,13 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
 
         # @todo: Make sure we didn't miss any child nodes
 
+        # Remove local attributes we will never use again
         self.__usesC1 = None
+        self.__ckw = None
 
         # Only now that we've succeeded do we store the method, which
         # marks this component resolved.
+
         self.__derivationMethod = method
         return self
 
@@ -2199,7 +2238,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         return None
 
     def __str__ (self):
-        return 'CTD[%s]' % (self.name(),)
+        return 'CTD[%s]' % (self.expandedName(),)
 
 
 class _UrTypeDefinition (ComplexTypeDefinition, _Singleton_mixin):
@@ -2222,6 +2261,9 @@ class AttributeGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, p
         super(AttributeGroupDefinition, self).__init__(*args, **kw)
         assert 'scope' in kw
         assert self._scopeIsIndeterminate()
+
+    def __str__ (self):
+        return 'AGD[%s]' % (self.expandedName(),)
 
     # CFD:AGD CFD:AttributeGroupDefinition
     @classmethod
@@ -4559,6 +4601,10 @@ class Schema (_SchemaComponent_mixin):
             tns.addCategoryObject('attributeDeclaration', ad.name(), ad)
         assert ad is not None
         return ad
+
+    def __str__ (self):
+        return 'SCH[%s]' % (self.schemaLocation(),)
+
 
 def _AddSimpleTypes (namespace):
     """Add to the schema the definitions of the built-in types of XMLSchema.
