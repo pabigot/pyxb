@@ -440,7 +440,7 @@ class NamespaceArchive (object):
             return
 
         for uri in uri_map.keys():
-            ns = NamespaceForURI(uri)
+            ns = NamespaceForURI(uri, create_if_missing=True)
             ns._setArchive(self)
             self.__namespaces.add(ns)
 
