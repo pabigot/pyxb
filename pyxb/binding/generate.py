@@ -471,18 +471,6 @@ class %{std} (pyxb.binding.basis.STD_union):
     if std.name() is not None:
         outf.write(templates.replaceInText("%{namespaceReference}.addCategoryObject('typeBinding', %{localName}, %{std})\n",
                                            localName=binding_module.literal(std.name(), **kw), **template_map))
-def expandedNameToUseMap (expanded_name, container_name, class_unique, class_keywords, kw):
-    use_map = { }
-    unique_name = utility.PrepareIdentifier(expanded_name.localName(), class_unique, class_keywords)
-    use_map['id'] = unique_name
-    use_map['inspector'] = unique_name
-    use_map['mutator'] = utility.PrepareIdentifier('set' + unique_name[0].upper() + unique_name[1:], class_unique, class_keywords)
-    use_map['use'] = utility.MakeUnique('__' + unique_name.strip('_'), class_unique)
-    use_map['key'] = utility.PrepareIdentifier('%s_%s' % (container_name, expanded_name), class_unique, class_keywords, private=True)
-    use_map['name'] = str(expanded_name)
-    use_map['name_expr'] = binding_module.literal(expanded_name, **kw)
-    return use_map
-
 def elementDeclarationMap (ed, binding_module, **kw):
     template_map = { }
     template_map['name'] = str(ed.expandedName())
@@ -806,8 +794,10 @@ def _PrepareComplexTypeDefinition (ctd, nsm, module_context):
     else:
         plurality_map = {}
     ctd._templateMap()['_unique'] = nsm.uniqueInClass(ctd)
+    #print 'Generating locals for %s' % (ctd.expandedName(),)
     for cd in ctd.localScopedDeclarations():
         _SetNameWithAccessors(cd, ctd, plurality_map.get(cd.expandedName(), (False, None))[0], module_context, nsm, kw)
+        #use_map = cd._templateMap()
         #print '  %s %s uses %s stored in %s' % (cd.__class__.__name__, cd.expandedName(), use_map['id'], use_map['key'])
 
 
@@ -1525,10 +1515,6 @@ def GenerateAllPython (schema_location=None,
     element_declarations = []
     type_definitions = []
     for c in component_order:
-        #if c.isAnonymous():
-        #    print c
-        #else:
-        #    print c.expandedName()
         if isinstance(c, xs.structures.ElementDeclaration) and c._scopeIsGlobal():
             nsm = namespace_module_map[c.bindingNamespace()]
             nsm.bindComponent(c, SchemaGroupModule.ForSchema(c._schema()))
