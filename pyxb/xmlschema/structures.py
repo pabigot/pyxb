@@ -1516,16 +1516,21 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
 
         @note: This specifically returns a list, with element declarations
         first, because name binding should privilege the elements over the
-        attributes.
+        attributes.  Within elements and attributes, the components are sorted
+        by expanded name, to ensure consistency across a series of binding
+        generations.
 
         @keyword reset: If C{False} (default), a cached previous value (if it
         exists) will be returned.
         """
         if reset or (self.__localScopedDeclarations is None):
-            rv = []
-            [ rv.append(_ed) for _ed in self.__scopedElementDeclarations.values() if (self == _ed.scope()) ]
-            [ rv.append(_ad) for _ad in self.__scopedAttributeDeclarations.values() if (self == _ad.scope()) ]
-            self.__localScopedDeclarations = rv
+
+            rve = [ _ed for _ed in self.__scopedElementDeclarations.values() if (self == _ed.scope()) ]
+            rve.sort(lambda _a, _b: cmp(_a.expandedName(), _b.expandedName()))
+            rva = [ _ad for _ad in self.__scopedAttributeDeclarations.values() if (self == _ad.scope()) ]
+            rva.sort(lambda _a, _b: cmp(_a.expandedName(), _b.expandedName()))
+            self.__localScopedDeclarations = rve
+            self.__localScopedDeclarations.extend(rva)
         return self.__localScopedDeclarations
 
     def _recordLocalDeclaration (self, decl):
