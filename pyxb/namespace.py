@@ -373,7 +373,7 @@ class NamespaceArchive (object):
         # namespace.
         object_maps = unpickler.load()
         for ns in ns_set:
-            print 'Read %s from %s' % (ns, self.__archivePath)
+            #print 'Read %s from %s - active %s' % (ns, self.__archivePath, ns.isActive())
             ns._loadNamedObjects(object_maps[ns])
             ns._setLoadedFromArchive()
         
@@ -440,7 +440,7 @@ class NamespaceArchive (object):
             return
 
         for uri in uri_map.keys():
-            ns = NamespaceForURI(uri, create_if_missing=True)
+            ns = NamespaceForURI(uri)
             ns._setArchive(self)
             self.__namespaces.add(ns)
 
@@ -474,9 +474,18 @@ class _NamespaceArchivable_mixin (pyxb.cscRoot):
     __wroteToArchive = None
     __loadedFromArchive = None
 
-    def isActive (self):
+    def isActive (self, empty_inactive=False):
+        if self.__isActive and empty_inactive:
+            for (ct, cm) in self._categoryMap().items():
+                if 0 < len(cm):
+                    print '%s: %d %s -- activated' % (self, len(cm), ct)
+                    return True
+            return False
         return self.__isActive
+
     def _activate (self):
+        if not self.__isActive:
+            print 'Activating %s' % (self,)
         self.__isActive = True
     __isActive = None
 
@@ -505,7 +514,7 @@ class _NamespaceArchivable_mixin (pyxb.cscRoot):
         return self._archive() is not None
 
     def _setState_csc (self, kw):
-        assert not self.__isActive, 'ERROR: State set for active namespace %s' % (self,)
+        #assert not self.__isActive, 'ERROR: State set for active namespace %s' % (self,)
         return getattr(super(_NamespaceResolution_mixin, self), '_getState_csc', lambda _kw: _kw)(kw)
     
 class NamedObjectMap (dict):
@@ -1297,7 +1306,7 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
         assert self.__uri == uri
         # If this namespace hasn't been activated, do so now, using the
         # archived information which includes referenced namespaces.
-        if not self.isActive():
+        if not self.isActive(True):
             self._setState_csc(kw)
 
     def _defineSchema_overload (self, structures_module):
@@ -1887,6 +1896,7 @@ class NamespaceDependencies (object):
             done_check = set()
             while 0 < len(need_check):
                 ns = need_check.pop()
+                ns.validateComponentModel()
                 self.__namespaceGraph.addNode(ns)
                 for rns in ns.referencedNamespaces().union(ns.importedNamespaces()):
                     self.__namespaceGraph.addEdge(ns, rns)
