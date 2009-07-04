@@ -1154,22 +1154,17 @@ def CreateFromDOM (node):
     return pyxb.binding.basis.element.AnyCreateFromDOM(node, Namespace)
 ''', aux_imports="\n".join(aux_imports)))
 
-
-
     __components = None
     __componentBindingName = None
 
     def bindComponent (self, component, schema_group_module):
         ns_name = self._bindComponent(component)
-        #print '%s NS %s' % (component.expandedName(), ns_name)
-
+        component.setNameInBinding(ns_name)
         binding_module = self
         if schema_group_module is not None:
-            binding_module = schema_group_module.bindComponent(component)
+            binding_module = schema_group_module._bindComponent(component)
         if self.__namespaceGroupModule:
-            self.__namespaceGroupModule.bindComponent(component)
-
-        component.setNameInBinding(binding_module.nameInModule(component))
+            self.__namespaceGroupModule._bindComponent(component)
         return _ModuleNaming_mixin.BindComponentInModule(component, binding_module)
 
     def referenceSchemaComponent (self, component):
@@ -1254,11 +1249,6 @@ class NamespaceGroupModule (_ModuleNaming_mixin):
 
 ''', **tmap))
 
-    def bindComponent (self, component):
-        ngm_name = self._bindComponent(component)
-        #print '%s NGM %s' % (component.expandedName(), ngm_name)
-        return self
-            
     def __str__ (self):
         return 'NGM:%s' % (self.modulePath(),)
 
@@ -1288,7 +1278,7 @@ class SchemaGroupModule (_ModuleNaming_mixin):
 
     _UniqueInModule = set([ 'pyxb', 'sys', 'Namespace' ])
     
-    def __init__ (self, namespace_module, schema_group):
+    def __init__ (self, schema_graph, namespace_module, schema_group):
         super(SchemaGroupModule, self).__init__(self)
         self.__namespaceModule = namespace_module
         self.__schemaGroup = schema_group
@@ -1316,11 +1306,6 @@ class SchemaGroupModule (_ModuleNaming_mixin):
 %{schema_locs}
 
 ''', **tmap))
-
-    def bindComponent (self, component):
-        sgm_name = self._bindComponent(component)
-        #print '%s SGM %s' % (component.expandedName(), sgm_name)
-        return self
 
     def referenceSchemaComponent (self, component):
         schema = component._schema()
@@ -1465,7 +1450,7 @@ def GenerateAllPython (schema_location=None,
             print 'MULTI_ELT SCHEMA GROUP: %s' % ("\n  ".join([_sc.schemaLocation() for _sc in sc_scc]),)
 
         if (nsm is not None) and (nsm.namespaceGroupModule() is not None):
-            sgm = SchemaGroupModule(nsm, sc_scc)
+            sgm = SchemaGroupModule(nsm, nsdep.schemaGraph(), sc_scc)
             modules.add(sgm)
             module_graph.addEdge(sgm, nsm)
         for sc in sc_scc:
@@ -1515,7 +1500,7 @@ def GenerateAllPython (schema_location=None,
     for td in type_definitions:
         nsm = namespace_module_map.get(td.bindingNamespace())
         assert nsm is not None, 'No namespace module for %s type %s scope %s namespace %s' % (td.expandedName(), type(td), td._scope(), td.bindingNamespace)
-        module_context = nsm.bindComponent(td, schema_module_map.get(td._schema(), None))
+        module_context = nsm.bindComponent(td, _ModuleNaming_mixin.ForSchema(td._schema()))
         if isinstance(td, xs.structures.SimpleTypeDefinition):
             _PrepareSimpleTypeDefinition(td, nsm, module_context)
             simple_type_definitions.append(td)
