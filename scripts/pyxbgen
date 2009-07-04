@@ -178,7 +178,8 @@ try:
         try:
             os.makedirs(os.path.join(binding_path))
         except Exception, e:
-            print 'Exception creating directory %s: %s' % (binding_path, e)
+            #print 'Exception creating directory %s: %s' % (binding_path, e)
+            pass
         use_binding_file = os.path.join(binding_path, '%s.py' % (binding_file,))
         if top_module == m:
             component_model_file = os.path.join(binding_path, '%s.wxs' % (binding_file,))
