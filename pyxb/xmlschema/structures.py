@@ -350,6 +350,7 @@ class _PickledAnonymousReference (pyxb.cscRoot):
     def __init__ (self, namespace, anonymous_name):
         self.__namespace = namespace
         self.__anonymousName = anonymous_name
+        assert self.__anonymousName is not None
 
     @classmethod
     def FromPickled (cls, object_reference):
@@ -368,7 +369,9 @@ class _PickledAnonymousReference (pyxb.cscRoot):
         return self.__namespace.validateComponentModel()
 
     def __lookupObject (self):
+        print 'Lookup %s' % (self,)
         return self.__namespace.categoryMap(self.__AnonymousCategory).get(self.__anonymousName)
+
     typeDefinition = __lookupObject
     attributeGroupDefinition = __lookupObject
     modelGroupDefinition = __lookupObject
@@ -408,7 +411,23 @@ class _NamedComponent_mixin (pyxb.cscRoot):
         """Return true iff this instance is locally scoped (has no name)."""
         return self.__name is None
 
-    def _anonymousName (self):
+    def _anonymousName (self, namespace=None):
+        if self.__anonymousName is None:
+            assert self.__needAnonymousSupport()
+            anon_name = self.nameInBinding()
+            if anon_name is None:
+                anon_name = self.name()
+            if anon_name is None:
+                anon_name = 'ANON_IN_GROUP'
+            if namespace is None:
+                namespace = self.bindingNamespace()
+            if namespace is None:
+                namespace = self.targetNamespace()
+            assert namespace is not None
+            anon_name = pyxb.utils.utility.MakeUnique(anon_name, set(namespace.categoryMap(self.__AnonymousCategory).keys()))
+            self.__anonymousName = anon_name
+            namespace.addCategoryObject(self.__AnonymousCategory, anon_name, self)
+            print '*** Created anonymous tag %s for %s' % (self.__anonymousName, self)
         return self.__anonymousName
     __anonymousName = None
 
@@ -446,15 +465,7 @@ class _NamedComponent_mixin (pyxb.cscRoot):
 
     def _prepareForArchive_csc (self, namespace):
         if self.__needAnonymousSupport():
-            anon_name = self.nameInBinding()
-            if anon_name is None:
-                anon_name = self.name()
-            if anon_name is None:
-                anon_name = 'ANON_IN_GROUP'
-            anon_name = pyxb.utils.utility.MakeUnique(anon_name, set(namespace.categoryMap(self.__AnonymousCategory).keys()))
-            self.__anonymousName = anon_name
-            namespace.addCategoryObject(self.__AnonymousCategory, anon_name, self)
-            print '*** Created anonymous tag %s for %s' % (self.__anonymousName, self)
+            self._anonymousName(namespace)
         return getattr(super(_NamedComponent_mixin, self), '_prepareForArchive_csc', lambda *_args,**_kw: self)(namespace)
 
     def _picklesInNamespaces (self, namespaces):
@@ -597,6 +608,7 @@ class _NamedComponent_mixin (pyxb.cscRoot):
     def _picklingReference (self):
         if self.__needAnonymousSupport():
             #print 'Wrapping %s as anonymous %s in %s' % (self, self._anonymousName(), self.targetNamespace())
+            assert self._anonymousName() is not None
             return _PickledAnonymousReference(self.targetNamespace(), self._anonymousName())
         return self.expandedName().uriTuple()
 
@@ -1060,6 +1072,7 @@ class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
         bi = cls(name=name, namespace_context=target_namespace.initialNamespaceContext(), scope=_ScopedDeclaration_mixin.SCOPE_global)
         if std is not None:
             bi.__typeDefinition = std
+        bi.__typeAttribute = None
         return bi
 
     # CFD:AD CFD:AttributeDeclaration
@@ -1127,6 +1140,7 @@ class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
 
         # Although the type definition may not be resolved, *this* component
         # is resolved, since we don't look into the type definition for anything.
+        assert self.__typeAttribute is not None, 'AD %s is unresolved but has no typeAttribute field' % (self.expandedName(),)
         type_en = self._namespaceContext().interpretQName(self.__typeAttribute)
         self.__typeDefinition = type_en.typeDefinition()
         if self.__typeDefinition is None:
@@ -1156,7 +1170,10 @@ class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
         # The other STD should be an unresolved schema-defined type.
         # Mark this instance as unresolved so it is re-examined
         if not other.isResolved():
-            self.__typeDefinition = None
+            if self.targetNamespace().isBuiltinNamespace():
+                print '**!!**!! Not destroying builtin %s' % (self.expandedName(),)
+            else:
+                self.__typeDefinition = None
         return self
 
 class AttributeUse (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin, _ValueConstraint_mixin):
@@ -1167,7 +1184,7 @@ class AttributeUse (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin, _V
 
     # How this attribute can be used.  The component property
     # "required" is true iff the value is USE_required.
-    __use = False
+    __use = None
 
     USE_required = 0x01         #<<< The attribute is required
     USE_optional = 0x02         #<<< The attribute may or may not appear
@@ -1204,6 +1221,14 @@ class AttributeUse (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin, _V
             if this_ad.isNameEquivalent(that_ad):
                 rv.add(au)
         return rv
+
+    @classmethod
+    def CreateBaseInstance (cls, target_namespace, attribute_declaration, use=USE_optional):
+        bi = cls(namespace_context=target_namespace.initialNamespaceContext())
+        assert isinstance(attribute_declaration, AttributeDeclaration)
+        bi.__use = cls.USE_optional
+        bi.__attributeDeclaration = attribute_declaration
+        return bi
 
     # CFD:AU CFD:AttributeUse
     @classmethod
@@ -1476,6 +1501,7 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.na
         if self.__typeDefinition is None:
             assert self.__typeAttribute is not None
             type_en = self._namespaceContext().interpretQName(self.__typeAttribute)
+            print ' -- Type definition %s' % (type_en,)
             self.__typeDefinition = type_en.typeDefinition()
             if self.__typeDefinition is None:
                 raise pyxb.SchemaValidationError('Type declaration %s cannot be found' % (type_en,))
@@ -2259,11 +2285,18 @@ class AttributeGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, p
 
     def __init__ (self, *args, **kw):
         super(AttributeGroupDefinition, self).__init__(*args, **kw)
-        assert 'scope' in kw
-        assert self._scopeIsIndeterminate()
+        #assert 'scope' in kw
+        #assert self._scopeIsIndeterminate()
 
     def __str__ (self):
         return 'AGD[%s]' % (self.expandedName(),)
+
+    @classmethod
+    def CreateBaseInstance (cls, name, target_namespace, attribute_uses):
+        """Create an attribute declaration component for a specified namespace."""
+        bi = cls(name=name, namespace_context=target_namespace.initialNamespaceContext(), scope=_ScopedDeclaration_mixin.SCOPE_global)
+        bi.__attributeUses = frozenset(attribute_uses)
+        return bi
 
     # CFD:AGD CFD:AttributeGroupDefinition
     @classmethod
