@@ -1003,9 +1003,12 @@ class _ModuleNaming_mixin (object):
                 assert False
             kw['protected'] = True
         rv = utility.PrepareIdentifier(rv, self.__uniqueInModule, kw)
+        assert not component in self.__componentNameMap
         self.__components.append(component)
         self.__componentNameMap[component] = rv
         return rv
+    def nameInModule (self, component):
+        return self.__componentNameMap.get(component)
 
     def __componentModule (self, component, module_type):
         assert module_type is None
@@ -1093,6 +1096,20 @@ class _ModuleNaming_mixin (object):
 
     def literal (self, *args, **kw):
         return self.__bindingIO.literal(*args, **kw)
+
+    def addImportsFrom (self, module):
+        print 'Importing to %s from %s' % (self, module)
+        self._importModule(module)
+        for c in self.__components:
+            local_name = self.nameInModule(c)
+            assert local_name is not None
+            rem_name = module.nameInModule(c)
+            if rem_name is None:
+                continue
+            aux = ''
+            if local_name != rem_name:
+                aux = ' as %s' % (local_name,)
+            self.__bindingIO.write("from %s import %s%s\n" % (module.modulePath(), rem_name, aux))
 
 class NamespaceModule (_ModuleNaming_mixin):
     """This class represents a Python module that holds all the
@@ -1268,6 +1285,9 @@ class NamespaceGroupModule (_ModuleNaming_mixin):
 # Incorporated namespaces:
 %{namespace_comment}
 
+import pyxb
+import pyxb.binding
+
 %{namespace_decls}
 
 # Import bindings for schemas in group
@@ -1306,6 +1326,7 @@ class SchemaGroupModule (_ModuleNaming_mixin):
     def __init__ (self, namespace_module, schema_group):
         super(SchemaGroupModule, self).__init__(self)
         self.__namespaceModule = namespace_module
+        self.defineNamespace(namespace_module.namespace(), 'Namespace', require_unique=False)
         self.__schemaGroup = schema_group
         self.__schemaGroupHead = schema_group[0]
         self._RecordSchemaGroup(self)
@@ -1334,6 +1355,9 @@ class SchemaGroupModule (_ModuleNaming_mixin):
 # PyXB bindings for SchemaGroupModule
 # Incorporated schemas:
 %{schema_locs}
+
+import pyxb
+import pyxb.binding
 
 %{namespace_decls}
 
@@ -1527,6 +1551,15 @@ def GenerateAllPython (schema_location=None,
             complex_type_definitions.append(td)
         else:
             assert False, 'Unexpected component type %s' % (type(td),)
+
+
+    for m in modules:
+        if isinstance(m, NamespaceModule):
+            ngm = m.namespaceGroupModule()
+            if ngm is not None:
+                m.addImportsFrom(ngm)
+        elif isinstance(m, SchemaGroupModule):
+            m.namespaceModule().namespaceGroupModule().addImportsFrom(m)
 
     for std in simple_type_definitions:
         GenerateSTD(std)
