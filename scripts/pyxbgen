@@ -159,6 +159,7 @@ try:
     print 'Python for %s requires %d modules' % (tns, len(modules))
 
     top_module = None
+    path_dirs = set()
     for m in modules:
         if isinstance(m, pyxb.binding.generate.NamespaceModule):
             sns = m.namespace()
@@ -175,8 +176,11 @@ try:
         if 0 == len(binding_path_elts):
             binding_path_elts.append('.')
         binding_path = os.path.join(*binding_path_elts)
+        
         try:
-            os.makedirs(os.path.join(binding_path))
+            print binding_path
+            path_dirs.add(binding_path)
+            os.makedirs(binding_path)
         except Exception, e:
             #print 'Exception creating directory %s: %s' % (binding_path, e)
             pass
@@ -185,6 +189,17 @@ try:
             component_model_file = os.path.join(binding_path, '%s.wxs' % (binding_file,))
         file(use_binding_file, 'w').write(m.moduleContents())
         print 'Saved binding source to %s' % (use_binding_file,)
+
+    done_path = set()
+    for path in path_dirs:
+        path_elts = path.split(os.sep)
+        for n in range(len(path_elts)):
+            sub_path = os.path.join(*path_elts[:1+n])
+            if not (sub_path in done_path):
+                init_path = os.path.join(sub_path, '__init__.py')
+                if not os.path.exists(init_path):
+                    file(init_path, 'w')
+
 except Exception, e:
     print 'Exception generating bindings: %s' % (e,)
     traceback.print_exception(*sys.exc_info())
