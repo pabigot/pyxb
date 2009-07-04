@@ -244,7 +244,7 @@ class Graph:
         self.__didTarjan = True
 
     def _tarjan (self, v):
-        if not (self.__tarjanIndex[v] is None):
+        if self.__tarjanIndex.get(v) is not None:
             # "Root" was already reached.
             return
         self.__tarjanIndex[v] = self.__tarjanLowLink[v] = self.__index
