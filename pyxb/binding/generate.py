@@ -1020,7 +1020,7 @@ class _ModuleNaming_mixin (object):
                 assert name is not None, 'Completely at a loss to identify %s in %s' % (component.expandedName(), self)
             assert not namespace.definedBySchema()
             namespace_module = self.ForNamespace(namespace)
-            assert namespace_module is not None
+            assert namespace_module is not None, 'No namespace module for %s' % (namespace,)
             self._importModule(namespace_module)
             return '%s.%s' % (namespace.modulePath(), component.nameInBinding())
         name = component_module.__componentNameMap.get(component)
@@ -1066,6 +1066,7 @@ class _ModuleNaming_mixin (object):
                     rv = '%s.Namespace' % (namespace_module.modulePath(),)
                 else:
                     assert False
+                    #rv = 'pyxb.namespace.NamespaceForURI(%s)' % (repr(namespace.uri()),)
             else:
                 for im in self.__importedModules:
                     if isinstance(im, NamespaceModule) and (im.namespace() == namespace):
