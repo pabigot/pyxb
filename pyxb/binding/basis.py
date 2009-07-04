@@ -1032,7 +1032,9 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
         # named_elt == top_elt, then the adoptName call below improperly
         # associated the global namespace with a local element of the same
         # name; cf. test-namespace-uu:testBad.
-        named_elt = top_elt.name().adoptName(name).elementBinding()
+        elt_en = top_elt.name().adoptName(name)
+        assert 'elementBinding' in elt_en.namespace()._categoryMap(), 'No element bindings in %s' % (elt_en.namespace(),)
+        named_elt = elt_en.elementBinding()
         if (named_elt is None) or (named_elt == top_elt):
             return None
         if named_elt.substitutesFor(top_elt):
