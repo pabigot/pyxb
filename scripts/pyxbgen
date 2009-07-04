@@ -167,7 +167,7 @@ try:
                 top_module = m
             if ns_archive is not None:
                 ns_archive.add(sns)
-        print 'Module path %s' % (m.modulePath(),)
+        assert m.modulePath() is not None, 'Module %s has no module path' % (m,)
         binding_path_elts = m.modulePath().split('.')
         if generate_raw_binding:
             assert len(binding_path_elts) > len(module_prefix_elts)
