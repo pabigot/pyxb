@@ -591,7 +591,7 @@ class %{ctd} (%{superclass}):
                 ef_map['element_binding'] = utility.PrepareIdentifier('%s_elt' % (ef_map['id'],), class_unique, class_keywords, private=True)
             if ed.scope() != ctd:
                 definitions.append(templates.replaceInText('''
-    # Element %{id} inherited from %{decl_type_en}''', decl_type_en=str(ed.scope().expandedName()), **ef_map))
+    # Element %{id} (%{name}) inherited from %{decl_type_en}''', decl_type_en=str(ed.scope().expandedName()), **ef_map))
                 continue
 
             definitions.append(templates.replaceInText('''
@@ -1034,19 +1034,17 @@ class _ModuleNaming_mixin (object):
 
     def _referencedNamespaces (self): return self.__referencedNamespaces
 
-    def defineNamespace (self, namespace, name, require_unique=True, **kw):
+    def defineNamespace (self, namespace, name, require_unique=True, definition=None, **kw):
         rv = self.__referencedNamespaces.get(namespace)
-        print '%s define %s current %s has %s' % (self, namespace, self.__referencedNamespaces, rv)
-        if rv is not None:
-            print 'WARNING: Module already have reference to %s' % (namespace,)
-            return rv
+        assert rv is None, 'Module %s already has reference to %s' % (self, namespace)
         if require_unique:
             name = utility.PrepareIdentifier(name, self.__uniqueInModule, **kw)
-        if namespace.isAbsentNamespace():
-            defn = 'pyxb.namespace.CreateAbsentNamespace()'
-        else:
-            defn = 'pyxb.namespace.NamespaceForURI(%s, create_if_missing=True)' % (repr(namespace.uri()),)
-        self.__namespaceDeclarations.append('%s = %s' % (name, defn))
+        if definition is None:
+            if namespace.isAbsentNamespace():
+                definition = 'pyxb.namespace.CreateAbsentNamespace()'
+            else:
+                definition = 'pyxb.namespace.NamespaceForURI(%s, create_if_missing=True)' % (repr(namespace.uri()),)
+        self.__namespaceDeclarations.append('%s = %s' % (name, definition))
         self.__namespaceDeclarations.append("%s.configureCategories(['typeBinding', 'elementBinding'])" % (name,))
         self.__referencedNamespaces[namespace] = name
         return name
@@ -1068,20 +1066,22 @@ class _ModuleNaming_mixin (object):
                     assert False
                     #rv = 'pyxb.namespace.NamespaceForURI(%s)' % (repr(namespace.uri()),)
             else:
+                if namespace.prefix():
+                    nsn = 'Namespace_%s' % (namespace.prefix(),)
+                else:
+                    nsn = 'Namespace'
                 for im in self.__importedModules:
                     if isinstance(im, NamespaceModule) and (im.namespace() == namespace):
                         rv = '%s.Namespace' % (im.modulePath(),)
                         break
                     if isinstance(im, SchemaGroupModule):
-                        rv = im.__referencedNamespaces.get(namespace)
-                        if rv is not None:
+                        irv = im.__referencedNamespaces.get(namespace)
+                        if irv is not None:
+                            rv = self.defineNamespace(namespace, nsn, '%s.%s' % (im.modulePath(), irv), protected=True)
                             break
                 if rv is None:
-                    if namespace.prefix():
-                        nsn = 'Namespace_%s' % (namespace.prefix(),)
-                    else:
-                        nsn = 'Namespace'
                     rv =  self.defineNamespace(namespace, nsn, protected=True)
+                    assert 0 < len(self.__namespaceDeclarations)
             self.__referencedNamespaces[namespace] = rv
         return rv
 
@@ -1194,6 +1194,9 @@ import pyxb.exceptions_
 import pyxb.utils.domutils
 import sys
 
+# Import bindings for namespaces imported into schema
+%{aux_imports}
+
 %{namespace_decls}
 Namespace._setModule(sys.modules[__name__])
 
@@ -1206,9 +1209,6 @@ def CreateFromDOM (node):
     """Create a Python instance from the given DOM node.
     The node tag must correspond to an element declaration in this module."""
     return pyxb.binding.basis.element.AnyCreateFromDOM(node, Namespace)
-
-# Import bindings for namespaces imported into schema
-%{aux_imports}
 
 ''', **template_map))
 
@@ -1279,10 +1279,10 @@ class NamespaceGroupModule (_ModuleNaming_mixin):
 import pyxb
 import pyxb.binding
 
-%{namespace_decls}
-
 # Import bindings for schemas in group
 %{aux_imports}
+
+%{namespace_decls}
 ''', **template_map))
 
     def __str__ (self):
@@ -1312,12 +1312,12 @@ class SchemaGroupModule (_ModuleNaming_mixin):
     def schemaGroupMulti (self):
         return (1 < len(self.__schemaGroup))
 
-    _UniqueInModule = set([ 'pyxb', 'sys', 'Namespace' ])
+    _UniqueInModule = set([ 'pyxb', 'sys' ])
     
     def __init__ (self, namespace_module, schema_group):
         super(SchemaGroupModule, self).__init__(self)
         self.__namespaceModule = namespace_module
-        self.defineNamespace(namespace_module.namespace(), 'Namespace', require_unique=False)
+        #self.defineNamespace(namespace_module.namespace(), 'Namespace', require_unique=False)
         self.__schemaGroup = schema_group
         self.__schemaGroupHead = schema_group[0]
         self._RecordSchemaGroup(self)
@@ -1350,10 +1350,10 @@ class SchemaGroupModule (_ModuleNaming_mixin):
 import pyxb
 import pyxb.binding
 
-%{namespace_decls}
-
 # Import bindings from schema
 %{aux_imports}
+
+%{namespace_decls}
 ''', **template_map))
 
     def __str__ (self):
