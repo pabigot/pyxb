@@ -1039,7 +1039,7 @@ class _ModuleNaming_mixin (object):
         if namespace_module is None:
             return 'pyxb.namespace.NamespaceForURI(%s)' % (repr(namespace.uri()),)
         self._importModule(namespace_module)
-        assert not namespace_module.namespaceGroupModule(), 'Error referencing %s from %s' % (namespace, self)
+        #assert not namespace_module.namespaceGroupModule(), 'Error referencing %s from %s' % (namespace, self)
         return '%s.Namespace' % (namespace_module.modulePath(),)
 
     def literal (self, *args, **kw):
@@ -1167,7 +1167,8 @@ def CreateFromDOM (node):
         component.setNameInBinding(ns_name)
         binding_module = self
         if schema_group_module is not None:
-            binding_module = schema_group_module._bindComponent(component)
+            schema_group_module._bindComponent(component)
+            binding_module = schema_group_module
         if self.__namespaceGroupModule:
             self.__namespaceGroupModule._bindComponent(component)
         return _ModuleNaming_mixin.BindComponentInModule(component, binding_module)
@@ -1222,6 +1223,8 @@ class NamespaceGroupModule (_ModuleNaming_mixin):
 # PyXB bindings for NamespaceGroupModule
 %{namespace_comment}
 
+# Import bindings for schemas in group
+%{aux_imports}
 ''', **tmap))
 
     def __str__ (self):
@@ -1285,6 +1288,8 @@ class SchemaGroupModule (_ModuleNaming_mixin):
 # PyXB bindings for SchemaGroupModule
 %{schema_locs}
 
+# Import bindings from schema
+%{aux_imports}
 ''', **tmap))
 
     def __str__ (self):
@@ -1465,6 +1470,7 @@ def GenerateAllPython (schema_location=None,
         nsm = namespace_module_map.get(td.bindingNamespace())
         assert nsm is not None, 'No namespace module for %s type %s scope %s namespace %s' % (td.expandedName(), type(td), td._scope(), td.bindingNamespace)
         module_context = nsm.bindComponent(td, _ModuleNaming_mixin.ForSchema(td._schema()))
+        assert isinstance(module_context, _ModuleNaming_mixin), 'Unexpected type %s' % (type(module_context),)
         if isinstance(td, xs.structures.SimpleTypeDefinition):
             _PrepareSimpleTypeDefinition(td, nsm, module_context)
             simple_type_definitions.append(td)
