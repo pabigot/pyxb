@@ -1363,8 +1363,9 @@ def GeneratePython (schema_location=None,
                     namespace=None,
                     module_prefix_elts=[]):
 
-    modules = GenerateAllPython(schema_location, namespace, module_prefix_elts)
-
+    generator = Generator()
+    generator.addSchemaLocation(schema_location)
+    modules = generator.bindingModules()
 
     assert 1 == len(modules), '%s produced %d modules: %s' % (namespace, len(modules), " ".join([ str(_m) for _m in modules]))
     return modules.pop().moduleContents()
@@ -1583,7 +1584,8 @@ class Generator (object):
 
     _DEFAULT_bindingRoot = '.'
     def bindingRoot (self):
-        """The directory path into which generated bindings will be written."""
+        """The directory path into which generated bindings will be written.
+        @rtype: C{str}"""
         return self.__bindingRoot
     def setBindingRoot (self, binding_root):
         self.__bindingRoot = binding_root
@@ -1591,15 +1593,16 @@ class Generator (object):
     __bindingRoot = None
     
     def schemaRoot (self):
-        """The directory from which entrypoint schemas specified as relative file URLs will be read."""
+        """The directory from which entrypoint schemas specified as
+        relative file paths will be read."""
         return self.__schemaRoot
     def setSchemaRoot (self, schema_root):
         self.__schemaRoot = schema_root
         return self
     __schemaRoot = None
 
-    def schemaStripPrefix (self):
-        """Optional string that is stripped from the beginning of
+    def schemaStrippedPrefix (self):
+        """Optional string that is strippedped from the beginning of
         schemaLocation values before loading from them.
 
         This applies only to the values of schemaLocation attributes
@@ -1608,11 +1611,11 @@ class Generator (object):
         offline processing when all schema are available in a local
         directory.  See C{schemaRoot}.
         """
-        return self.__schemaStripPrefix
-    def setSchemaStripPrefix (self, schema_strip_prefix):
-        self.__schemaStripPrefix = schema_strip_prefix
+        return self.__schemaStrippedPrefix
+    def setSchemaStrippedPrefix (self, schema_stripped_prefix):
+        self.__schemaStrippedPrefix = schema_stripped_prefix
         return self
-    __schemaStripPrefix = None
+    __schemaStrippedPrefix = None
 
     def schemaLocationList (self):
         """A list of locations from which entrypoint schemas are to be
@@ -1655,9 +1658,28 @@ class Generator (object):
         return self
     __schemas = None
 
+    def namespaces (self):
+        """The set of L{namespaces<pyxb.namespace.Namespace>} for
+        which bindings will be generated.
+
+        This is the set of namespaces read from entrypoint schema,
+        closed under reference to namespaces defined by schema import.
+
+        @rtype: C{set}
+        """
+        return self.__namespaces.copy()
+    def setNamespaces (self, namespace_set):
+        self.__namespaces.clear()
+        self.__namespaces.update(namespace_set)
+        return self
+    def addNamespace (self, namespace):
+        self.__namespaces.add(namespace)
+        return self
+    __namespaces = None
+
     def _moduleList (self):
         """A list of module names to be applied in order to the namespaces of entrypoint schemas"""
-        return self.__moduleList
+        return self.__moduleList[:]
     def _setModuleList (self, module_list):
         self.__moduleList[:] = []
         self.__moduleList.extend(module_list)
@@ -1695,7 +1717,10 @@ class Generator (object):
 
         An entry in this map for a namespace supersedes the module
         specified in moduleList if the namespace is defined by an
-        entrypoint schema."""
+        entrypoint schema.
+
+        @return: A reference to the namespace module map.
+        """
         return self.__namespaceModuleMap
     __namespaceModuleMap = None
 
@@ -1762,6 +1787,19 @@ class Generator (object):
         return self
     __bindingStyle = None
 
+
+    def writeForCustomization (self):
+        """Indicates whether the binding Python code should be written into a sub-module for customization.
+
+        If present, a module C{path.to.namespace} will be written to
+        the file C{path/to/raw/namespace.py}, so that the file
+        C{path/to/namespace.py} can import it and override behavior."""
+        return self.__writeForCustomization
+    def setWriteForCustomization (self, write_for_customization):
+        self.__writeForCustomization = write_for_customization
+        return self
+    __writeForCustomization = None
+
     def __init__ (self, *args, **kw):
         """Create a configuration to be used for generating bindings.
 
@@ -1770,7 +1808,7 @@ class Generator (object):
 
         @keyword binding_root: Invokes L{setBindingRoot}
         @keyword schema_root: Invokes L{setSchemaRoot}
-        @keyword schema_strip_prefix: Invokes L{setSchemaStripPrefix}
+        @keyword schema_stripped_prefix: Invokes L{setSchemaStrippedPrefix}
         @keyword schema_location_list: Invokes L{setSchemaLocationList
         @keyword module_list: Invokes L{setModuleList}
         @keyword module_prefix: Invokes L{setModulePrefix}
@@ -1779,13 +1817,16 @@ class Generator (object):
         @keyword validate_changes: Invokes L{setValidateChanges}
         @keyword binding_style: Invokes L{setBindingStyle}
         @keyword namespace_module_map: Initializes L{namespaceModuleMap}
+        @keywords schemas: Invokes L{setSchemas}
+        @keyword namespaces: Invokes L{setNamespaces}
+        @keyword write_for_customization: Invokes L{setWriteForCustomization}
         """
         argv = kw.get('argv', None)
         if argv is not None:
             kw = {}
         self.__bindingRoot = kw.get('binding_root', self._DEFAULT_bindingRoot)
         self.__schemaRoot = kw.get('schema_root', '.')
-        self.__schemaStripPrefix = kw.get('schema_strip_prefix')
+        self.__schemaStrippedPrefix = kw.get('schema_stripped_prefix')
         self.__schemas = []
         self.__schemaLocationList = kw.get('schema_location_list', [])[:]
         self.__moduleList = kw.get('module_list', [])[:]
@@ -1795,6 +1836,10 @@ class Generator (object):
         self.__validateChanges = kw.get('validate_changes', True)
         self.__bindingStyle = kw.get('binding_style', self._DEFAULT_bindingStyle)
         self.__namespaceModuleMap = kw.get('namespace_module_map', {}).copy()
+        self.__schemas = kw.get('schemas', [])[:]
+        self.__namespaces = set(kw.get('namespaces', []))
+        self.__writeForCustomization = kw.get('write_for_customization', False)
+        
         if argv is not None:
             self.applyOptionValues(*self.optionParser().parse_args(argv))
         [ self.addSchemaLocation(_a) for _a in args ]
@@ -1806,7 +1851,7 @@ class Generator (object):
     __OptionSetters = (
         ('binding_root', setBindingRoot),
         ('schema_root', setSchemaRoot),
-        ('schema_strip_prefix', setSchemaStripPrefix),
+        ('schema_stripped_prefix', setSchemaStrippedPrefix),
         ('schema_location', setSchemaLocationList),
         ('module', _setModuleList),
         ('module_prefix', setModulePrefix),
@@ -1839,15 +1884,9 @@ class Generator (object):
         @type reset: C{bool}
         """
         if reset or (self.__optionParser is None):
-            parser = optparse.OptionParser(usage="%prog [options] [schemas...]",
+            parser = optparse.OptionParser(usage="%prog [options] [more schema locations...]",
                                            version='%%prog from PyXB %s' % (pyxb.__version__,),
                                            description='Generate bindings from a set of XML schemas')
-            parser.add_option('--binding-root', metavar="DIRECTORY",
-                              help=self.__stripSpaces(self.bindingRoot.__doc__))
-            parser.add_option('--schema-root', metavar="DIRECTORY",
-                              help=self.__stripSpaces(self.schemaRoot.__doc__))
-            parser.add_option('--schema-strip-prefix', metavar="TEXT", type='string',
-                              help=self.__stripSpaces(self.schemaStripPrefix.__doc__))
             parser.add_option('--schema-location', metavar="FILE",
                               action='append',
                               help=self.__stripSpaces(self.addSchemaLocation.__doc__))
@@ -1856,10 +1895,16 @@ class Generator (object):
                               help=self.__stripSpaces(self.addModuleName.__doc__))
             parser.add_option('--module-prefix', metavar="MODULE",
                               help=self.__stripSpaces(self.modulePrefix.__doc__))
-            parser.add_option('--archive-file', metavar="FILE",
-                              help=self.__stripSpaces(self.archiveFile.__doc__))
+            parser.add_option('--binding-root', metavar="DIRECTORY",
+                              help=self.__stripSpaces(self.bindingRoot.__doc__))
             parser.add_option('--archive-path', metavar="PATH",
                               help=self.__stripSpaces(self.archivePath.__doc__))
+            parser.add_option('--archive-file', metavar="FILE",
+                              help=self.__stripSpaces(self.archiveFile.__doc__))
+            parser.add_option('--schema-root', metavar="DIRECTORY",
+                              help=self.__stripSpaces(self.schemaRoot.__doc__))
+            parser.add_option('--schema-stripped-prefix', metavar="TEXT", type='string',
+                              help=self.__stripSpaces(self.schemaStrippedPrefix.__doc__))
             parser.add_option('--validate-changes',
                               action='store_true', dest='validate_changes',
                               help=self.__stripSpaces(self.validateChanges.__doc__ + ' This option turns on validation (default).'))
@@ -1869,6 +1914,12 @@ class Generator (object):
             parser.add_option('--binding-style',
                               type='choice', choices=(self.STYLE_ACCESSOR, self.STYLE_PROPERTY),
                               help=self.__stripSpaces(self.bindingStyle.__doc__))
+            parser.add_option('--write-for-customization',
+                              action='store_true', dest='write_for_customization',
+                              help=self.__stripSpaces(self.writeForCustomization.__doc__ + ' This option turns on the feature.'))
+            parser.add_option('--no-write-for-customization',
+                              action='store_false', dest='write_for_customization',
+                              help=self.__stripSpaces(self.writeForCustomization.__doc__ + ' This option turns off the feature (default).'))
             self.__optionParser = parser
         return self.__optionParser
     __optionParser = None
@@ -1883,7 +1934,7 @@ class Generator (object):
         opts = []
         module_list = self._moduleList()[:]
         schema_list = self.schemaLocationList()[:]
-        while module_list:
+        while module_list and schema_list:
             ml = module_list.pop(0)
             sl = schema_list.pop(0)
             opts.extend(['--schema-location=' + sl, '--module=' + ml])
@@ -1892,8 +1943,8 @@ class Generator (object):
         opts.append('--binding-root=' + self.bindingRoot())
         if self.schemaRoot() is not None:
             opts.append('--schema-root=' + self.schemaRoot())
-        if self.schemaStripPrefix() is not None:
-            opts.append('--schema-strip-prefix=%s' + self.schemaStripPrefix())
+        if self.schemaStrippedPrefix() is not None:
+            opts.append('--schema-stripped-prefix=%s' + self.schemaStrippedPrefix())
         if self.modulePrefix() is not None:
             opts.append('--module-prefix=' + self.modulePrefix())
         if self.archiveFile() is not None:
@@ -1906,3 +1957,38 @@ class Generator (object):
             opts.append('--no-validate-changes')
         opts.append('--binding-style=' + self.bindingStyle())
         return opts
+
+    def normalizeSchemaLocation (self, sl):
+        ssp = self.schemaStrippedPrefix()
+        if ssp and sl.startswith(ssp):
+            sl = sl[len(ssp):]
+        print 'sl %s against schema root %s' % (sl, self.schemaRoot())
+        return pyxb.utils.utility.NormalizeLocation(sl, self.schemaRoot())
+
+    __didResolveExternalSchema = False
+    def resolveExternalSchema (self, reset=False):
+        if self.__didResolveExternalSchema and (not reset):
+            raise pyxb.PyXBException('Cannot resolve external schema multiple times')
+        while self.__schemaLocationList:
+            sl = self.__schemaLocationList.pop(0)
+            schema = xs.schema.CreateFromLocation(absolute_schema_location=self.normalizeSchemaLocation(sl))
+            self.addSchema(schema)
+        for schema in self.__schemas:
+            ns = schema.targetNamespace()
+            if ns.prefix() is None:
+                prefix = self.namespaceModuleMap().get(ns.uri())
+                if (prefix is None) and self.__moduleList:
+                    prefix = self.__moduleList.pop(0)
+                if prefix is not None:
+                    ns.setPrefix(prefix)
+            self.addNamespace(ns)
+        self.__resolveExternalSchema = True
+        self.__bindingModules = None
+
+    __bindingModules = None
+    def bindingModules (self, reset=False):
+        if reset or (not self.__didResolveExternalSchema):
+            self.resolveExternalSchema(reset)
+        if reset or (self.__bindingModules is None):
+            self.__bindingModules = GenerateAllPython(namespace=self.namespaces().pop())
+        return self.__bindingModules
