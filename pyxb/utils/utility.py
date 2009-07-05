@@ -344,11 +344,15 @@ def NormalizeLocation (uri, parent_uri=None):
     """Normalize a URI against an optional parent_uri in the way that is
     done for C{schemaLocation} attribute values."""
     import urlparse
+    import os
+    
     if uri is None:
         return uri
     if parent_uri is None:
         abs_uri = uri
     else:
+        if (0 > parent_uri.find(':')) and (not parent_uri.endswith(os.sep)):
+            parent_uri = parent_uri + os.sep
         abs_uri = urlparse.urljoin(parent_uri, uri)
     if 0 > abs_uri.find(':'):
         abs_uri = os.path.realpath(abs_uri)
