@@ -1,182 +1,58 @@
 #!/usr/bin/env python
 
-import getopt
-import sys
 import pyxb.xmlschema
 import pyxb.binding.generate
+import pyxb.utils.utility
+import pyxb.utils.domutils
 import os.path
 
-# module path prefix
-# schema uri
-# prefix to use for schema
-# whether generated bindings should be marked as raw
-# whether component model should be saved
-# map for imported namespaces
+generator = pyxb.binding.generate.Generator()
+parser = generator.optionParser()
+parser.add_option('--wsdl-location', metavar='URI',
+                  action='append',
+                  help=\
+'''Generate bindings for the C{types} stanza of the WSDL at this
+location.  This option is equivalent to retrieving the WSDL,
+extracting the schema part of its C{types} block to a file, and using
+that file as a --schema-location.''')
 
-module_path = None              # -m
-schema_uri = None               # -u
-generate_raw_binding = False    # -r
-save_component_model = False    # -C
-uri_is_wsdl = False             # -W
-write_schema_path = None        # -s
+(options, args) = parser.parse_args()
 
-options = [
-    ('m', 'module-path', True, 'The Python module path for the generated bindings', 'pyxb.standard.bindings.wsdl'),
-    ('u', 'schema-uri', True, 'The URI for the schema from which bindings are to be generated', 'http://schemas.xmlsoap.org/wsdl/'),
-    ('r', 'generate-raw-binding', False, 'Generate the bindings in a subdirectory "raw" so that customized wrappers can be written', None),
-    ('s', 'write-schema-path', True, 'Write the retrieved schema to the path/uri.xsd', 'pyxb/standard/schemas'),
-    ('C', 'save-component-model', False, 'Save the XMLSchema component model in a serialized format', None),
-    ('W', 'uri-is-wsdl', False, 'The schema-uri refers to a WSDL definition', None)
-]
-    
-short_opt = ''
-long_opt = []
-for (flag, long_flag, has_arg, description, example) in options:
-    if has_arg:
-        short_opt += flag + ':'
-        long_opt.append('%s=' % (long_flag,))
-    else:
-        short_opt += flag
-        long_opt.append(long_flag)
+if options.wsdl_location is not None:
+    import pyxb.standard.bindings.wsdl as wsdl
+    for wsdl_uri in options.wsdl_location:
+        wsdl_uri = pyxb.utils.utility.NormalizeLocation(wsdl_uri)
+        print 'Retrieving WSDL from %s' % (wsdl_uri,)
+        xmlns = pyxb.utils.utility.TextFromURI(wsdl_uri)
+        spec = wsdl.definitions.createFromDOM(pyxb.utils.domutils.StringToDOM(xmlns), process_schema=True, wsdl_location=wsdl_uri)
+        generator.addSchema(spec.schema())
+generator.applyOptionValues(options, args)
+print generator.getCommandLineArgs()
 
-def usage ():
-    global options
-    print 'Usage: %s options' % (sys.argv[0],)
-    for (flag, long_flag, has_arg, description, example) in options:
-        arg = ""
-        if has_arg:
-            arg = " arg"
-        print "  --%s%s\n      %s" % (long_flag, arg, description)
-        if example is not None:
-            print "      Example: --%s %s" % (long_flag, example)
-        if flag is not None:
-            print "      Alternative: -%s%s" % (flag, arg)
-
-try:
-    (opts, args) = getopt.getopt(sys.argv[1:], short_opt, long_opt)
-except getopt.GetoptError:
-    usage()
-    sys.exit(1)
-for (o, a) in opts:
-    if o in ('-m', '--module-path'):
-        module_path = a
-    elif o in ('-u', '--schema-uri'):
-        schema_uri = a
-    elif o in ('-s', '--write-schema-path'):
-        write_schema_path = a
-    elif o in ('-r', '--generate-raw-binding'):
-        generate_raw_binding = True
-    elif o in ('-C', '--save-component-model'):
-        save_component_model = True
-    elif o in ('-W', '--uri-is-wsdl'):
-        uri_is_wsdl = True
-    else:
-        print 'Unrecognized option %s' % (o,)
-        usage()
-        sys.exit(1)
-
-if module_path is None:
-    print 'Require --module-path'
-    sys.exit(1)
-if 0 <= module_path.find(os.sep):
-    print 'ERROR: Module path uses dot separators, not %s' % (os.sep,)
-    sys.exit(1)
-
-if 0 <= module_path.find('.'):
-    (module_prefix, schema_prefix) = module_path.rsplit('.', 1)
-else:
-    module_prefix = ''
-    schema_prefix = module_path
-
-if not schema_prefix:
-    print 'Require --schema-prefix'
-    sys.exit(1)
-
-print 'Input MPP %s' % (module_prefix,)
-module_prefix_elts = []
-if module_prefix:
-    module_prefix_elts.extend(module_prefix.split('.'))
+generator.resolveExternalSchema()
 
 import sys
 import traceback
-from xml.dom import minidom
-from xml.dom import Node
-import urllib2
-     
-if schema_uri is None:
-    print 'Require --schema-uri'
-    sys.exit(1)
-
-schema_reader = None
-try:
-    schema_reader = open(schema_uri, 'r')
-except IOError, e:
-    pass
-if schema_reader is None:
-    try:
-        schema_reader = urllib2.urlopen(schema_uri)
-    except Exception, e:
-        print 'Unable to read schema URI: %s' % (e,)
-        sys.exit(1)
-
-schema = schema_reader.read()
-
-if write_schema_path is not None:
-    ext = 'xsd'
-    if uri_is_wsdl:
-        ext = 'wsdl'
-    file('%s/%s.%s' % (write_schema_path, schema_prefix, ext), 'w').write(schema)
-
-#print schema
-
-
-if uri_is_wsdl:
-    import pyxb.standard.bindings.wsdl as wsdl
-    doc = minidom.parseString(schema)
-    dom = doc.documentElement
-    spec = wsdl.definitions.createFromDOM(dom, process_schema=True, wsdl_location=schema_uri)
-    wxs = spec.schema()
-else:
-    wxs = pyxb.xmlschema.schema.CreateFromLocation(schema_uri)
-
-tns = wxs.targetNamespace()
-
-# If we're supposed to save the component model, create a
-# NamespaceArchive instance to hold the namespaces.  (Adding absent
-# namespaces to archives is a violation of the rules, so don't create
-# the archive unless we expect to need it.)
-ns_archive = None
-if save_component_model:
-    ns_archive = pyxb.namespace.NamespaceArchive()
 
 # Save binding source first, so name-in-binding is stored in the
 # parsed schema file
 try:
-    if tns.prefix() is None:
-        tns.setPrefix(schema_prefix)
-    tns.setModulePath(module_path)
-    modules = pyxb.binding.generate.GenerateAllPython(namespace=tns, module_prefix_elts=module_prefix_elts)
+    tns = generator.namespaces().pop()
+    modules = generator.bindingModules()
     print 'Python for %s requires %d modules' % (tns, len(modules))
 
     top_module = None
     path_dirs = set()
     for m in modules:
+        print 'Save %s in %s' % (m, m.modulePath())
+        '''
         if isinstance(m, pyxb.binding.generate.NamespaceModule):
             sns = m.namespace()
             if sns == tns:
                 top_module = m
-            if ns_archive is not None:
-                ns_archive.add(sns)
         assert m.modulePath() is not None, 'Module %s has no module path' % (m,)
         binding_path_elts = m.modulePath().split('.')
-        if generate_raw_binding:
-            assert len(binding_path_elts) > len(module_prefix_elts)
-            binding_path_elts.insert(len(module_prefix_elts), 'raw')
-        binding_file = binding_path_elts.pop()
-        if 0 == len(binding_path_elts):
-            binding_path_elts.append('.')
-        binding_path = os.path.join(*binding_path_elts)
-        
+
         try:
             print binding_path
             path_dirs.add(binding_path)
@@ -199,12 +75,14 @@ try:
                 init_path = os.path.join(sub_path, '__init__.py')
                 if not os.path.exists(init_path):
                     file(init_path, 'w')
+                    '''
 
 except Exception, e:
     print 'Exception generating bindings: %s' % (e,)
     traceback.print_exception(*sys.exc_info())
     sys.exit(3)
 
+'''
 if ns_archive is not None:
     try:
         ns_archive.writeNamespaces(component_model_file)
@@ -217,7 +95,7 @@ if ns_archive is not None:
         except:
             pass
         sys.exit(2)
-
+'''
 # LocalVariables:
 # mode:python
 # End:
