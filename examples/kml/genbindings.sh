@@ -18,8 +18,8 @@ touch raw/__init__.py
    -m xAL \
    -r -C
 
-PYXB_NAMESPACE_PATH='raw:+'
-export PYXB_NAMESPACE_PATH
+PYXB_ARCHIVE_PATH='raw:+'
+export PYXB_ARCHIVE_PATH
 
 # NB: If you add -C to this, Python will blow up from the bug about
 # pickling heavily recursive structures.  Fortunately, we don't need

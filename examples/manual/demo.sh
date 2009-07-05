@@ -1,7 +1,7 @@
 PYTHONPATH=../..:.
 export PYTHONPATH
-PYXB_NAMESPACE_PATH=.:+
-export PYXB_NAMESPACE_PATH
+PYXB_ARCHIVE_PATH=.:+
+export PYXB_ARCHIVE_PATH
 rm -f po1.py
 ../../scripts/pyxbgen -u po1.xsd  -m po1
 python demo1.py

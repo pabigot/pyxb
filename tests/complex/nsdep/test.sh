@@ -1,4 +1,4 @@
-PYXB_NAMESPACE_PATH=bindings:+
+PYXB_ARCHIVE_PATH=bindings:+
 PYTHONPATH=../../..
 rm -rf bindings
 mkdir -p bindings

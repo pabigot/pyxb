@@ -29,15 +29,22 @@ import os
 import fnmatch
 import pyxb.utils.utility
 
-PathEnvironmentVariable = 'PYXB_NAMESPACE_PATH'
+PathEnvironmentVariable = 'PYXB_ARCHIVE_PATH'
 """Environment variable from which default path to pre-loaded namespaces is
 read.  The value should be a colon-separated list of absolute paths.  A path
 of C{+} will be replaced by the system default path (normally
 C{pyxb/standard/bindings/raw})."""
 
 import os.path
-DefaultBindingPath = "%s/standard/bindings/raw" % (os.path.dirname(__file__),)
+DefaultArchivePath = "%s/standard/bindings/raw" % (os.path.dirname(__file__),)
 """Default location for reading C{.wxs} files"""
+
+def GetArchivePath ():
+    import os
+    rv = os.environ.get(PathEnvironmentVariable)
+    if rv is None:
+        rv = '+'
+    return rv
 
 # Stuff required for pickling
 import cPickle as pickle
@@ -1441,10 +1448,10 @@ def PreLoadNamespaces ():
     if __NamespaceArchives is None:
         # Look for pre-existing pickled schema
         __NamespaceArchives = set()
-        bindings_path = os.environ.get(PathEnvironmentVariable, DefaultBindingPath)
+        bindings_path = GetArchivePath()
         for bp in bindings_path.split(':'):
             if '+' == bp:
-                bp = DefaultBindingPath
+                bp = DefaultArchivePath
             files = []
             try:
                 files = os.listdir(bp)
