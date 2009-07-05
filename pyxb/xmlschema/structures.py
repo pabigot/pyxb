@@ -4328,9 +4328,10 @@ class Schema (_SchemaComponent_mixin):
         @keyword absolute_schema_location: A file path or URI.  This value is
         not normalized, and supersedes C{schema_location}.
         """
-        schema_location = kw.get('absolute_schema_location', pyxb.utils.utility.NormalizeLocation(kw.get('schema_location'), kw.get('parent_uri')))
+        schema_location = kw.pop('absolute_schema_location', pyxb.utils.utility.NormalizeLocation(kw.get('schema_location'), kw.get('parent_uri')))
+        kw['schema_location'] = schema_location
         assert isinstance(schema_location, (str, unicode))
-        dom = StringToDOM(pyxb.utils.utility.TextFromURI(schema_location, kw.get('parent_uri')))
+        dom = StringToDOM(pyxb.utils.utility.TextFromURI(schema_location))
         return cls.CreateFromDOM(dom, **kw)
 
     @classmethod
