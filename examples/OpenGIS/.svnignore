@@ -1,0 +1,7 @@
+*.pyc
+*.pyo
+.nfs*
+Schemas
+SCHEMAS_OPENGIS_NET.tgz
+build
+dist
