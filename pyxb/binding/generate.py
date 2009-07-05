@@ -1359,15 +1359,6 @@ import pyxb.binding
     def __str__ (self):
         return 'SGM:%s' % (self.modulePath(),)
 
-def SchemaLocations (sc_set):
-    rvs = []
-    for sc in sc_set:
-        if sc.schemaLocation() is not None:
-            rvs.append(sc.schemaLocation())
-        else:
-            rvs.append("no location for %s" % (sc.targetNamespace(),))
-    return "\n  ".join(rvs)
-
 def GeneratePython (schema_location=None,
                     namespace=None,
                     module_prefix_elts=[]):
@@ -1627,7 +1618,8 @@ class Configuration (object):
         """The list of entrypoint schemas."""
         return self.__schemaLocationList
     def setSchemaLocationList (self, schema_location_list):
-        self.__schemaLocationList = schema_location_list
+        self.__schemaLocationList[:] = []
+        self.__schemaLocationList.extend(schema_location_list)
         return self
     def addSchemaLocation (self, schema_location):
         """Add a new entrypoint schema for processing.
@@ -1643,6 +1635,11 @@ class Configuration (object):
     def _moduleList (self):
         """A list of module names to be applied in order to the namespaces of entrypoint schemas"""
         return self.__moduleList
+    def _setModuleList (self, module_list):
+        self.__moduleList[:] = []
+        self.__moduleList.extend(module_list)
+        return self
+    
     def addModuleName (self, module_name):
         """Add a module name corresponding to an entrypoint schema.
 
@@ -1742,25 +1739,6 @@ class Configuration (object):
         return self
     __bindingStyle = None
 
-    def __optionCallback (self, option, opt_str, value, parser, *args, **kw):
-        print 'Option: %s' % (option,)
-        print 'OptStr: %s' % (opt_str,)
-        print 'Value: %s' % (value,)
-        print 'Args: %s' % (args,)
-        
-        callable = args[0]
-        arg_list = []
-        if 1 == option.nargs:
-            if value is None:
-                parser.error('Missing value for %s' % (opt_str,))
-            arg_list.append(value)
-        elif 1 < option.nargs:
-            arg_list.extend(value)
-        arg_list.extend(args[1:])
-        print 'Invoking %s with %s' % (callable, arg_list)
-        callable(*arg_list)
-
-
     def __init__ (self, *args, **kw):
         """Create a configuration to be used for generating bindings.
 
@@ -1794,16 +1772,39 @@ class Configuration (object):
         self.__bindingStyle = kw.get('binding_style', self._DEFAULT_bindingStyle)
         self.__namespaceModuleMap = kw.get('namespace_module_map', {}).copy()
         if argv is not None:
-            self.__configureFromCommandLine(argv)
+            self.applyOptionValues(*self.optionParser().parse_args(argv))
         [ self.addSchemaLocation(_a) for _a in args ]
         
     __stripSpaces_re = re.compile('\s\s\s+')
     def __stripSpaces (self, string):
         return self.__stripSpaces_re.sub(' ', string)
     
-    def __configureFromCommandLine (self, argv):
+    __OptionSetters = (
+        ('binding_root', setBindingRoot),
+        ('schema_root', setSchemaRoot),
+        ('schema_strip_prefix', setSchemaStripPrefix),
+        ('schema_location', setSchemaLocationList),
+        ('module', _setModuleList),
+        ('module_prefix', setModulePrefix),
+        ('archive_file', setArchiveFile),
+        ('archive_path', setArchivePath),
+        ('binding_style', setBindingStyle),
+        ('validate_changes', setValidateChanges)
+        )
+    def applyOptionValues (self, options, args=None):
+        for (tag, method) in self.__OptionSetters:
+            v = getattr(options, tag)
+            if v is not None:
+                method(self, v)
+        if args is not None:
+            self.__schemaLocationList.extend(args)
+
+    def setFromCommandLine (self, argv=None):
+        if argv is None:
+            argv = sys.argv[1:]
         (options, args) = self.optionParser().parse_args(argv)
-        self.__schemaLocationList.extend(args)
+        self.applyOptionValues(options, args)
+        return self
 
     def optionParser (self, reset=False):
         """Return an C{optparse.OptionParser} instance tied to this configuration.
@@ -1817,39 +1818,32 @@ class Configuration (object):
             parser = optparse.OptionParser(usage="%prog [options] [schemas...]",
                                            version='%%prog from PyXB %s' % (pyxb.__version__,),
                                            description='Generate bindings from a set of XML schemas')
-            parser.add_option('--binding-root', metavar="DIRECTORY", type='string',
-                              action='callback', callback=self.__optionCallback, callback_args=(self.setBindingRoot,),
+            parser.add_option('--binding-root', metavar="DIRECTORY",
                               help=self.__stripSpaces(self.bindingRoot.__doc__))
-            parser.add_option('--schema-root', metavar="DIRECTORY", type='string',
-                              action='callback', callback=self.__optionCallback, callback_args=(self.setSchemaRoot,),
+            parser.add_option('--schema-root', metavar="DIRECTORY",
                               help=self.__stripSpaces(self.schemaRoot.__doc__))
             parser.add_option('--schema-strip-prefix', metavar="TEXT", type='string',
-                              action='callback', callback=self.__optionCallback, callback_args=(self.setSchemaStripPrefix,),
                               help=self.__stripSpaces(self.schemaStripPrefix.__doc__))
-            parser.add_option('--schema-location', metavar="FILE", type='string',
-                              action='callback', callback=self.__optionCallback, callback_args=(self.addSchemaLocation,),
+            parser.add_option('--schema-location', metavar="FILE",
+                              action='append',
                               help=self.__stripSpaces(self.addSchemaLocation.__doc__))
-            parser.add_option('--module', metavar="MODULE", type='string',
-                              action='callback', callback=self.__optionCallback, callback_args=(self.addModuleName,),
+            parser.add_option('--module', metavar="MODULE",
+                              action='append',
                               help=self.__stripSpaces(self.addModuleName.__doc__))
-            parser.add_option('--module-prefix', metavar="MODULE", type='string',
-                              action='callback', callback=self.__optionCallback, callback_args=(self.setModulePrefix,),
+            parser.add_option('--module-prefix', metavar="MODULE",
                               help=self.__stripSpaces(self.modulePrefix.__doc__))
-            parser.add_option('--archive-file', metavar="FILE", type='string',
-                              action='callback', callback=self.__optionCallback, callback_args=(self.setArchiveFile,),
+            parser.add_option('--archive-file', metavar="FILE",
                               help=self.__stripSpaces(self.archiveFile.__doc__))
-            parser.add_option('--archive-path', metavar="PATH", type='string',
-                              action='callback', callback=self.__optionCallback, callback_args=(self.setArchivePath,),
+            parser.add_option('--archive-path', metavar="PATH",
                               help=self.__stripSpaces(self.archivePath.__doc__))
-            parser.add_option('--validate-changes', nargs=0,
-                              action='callback', callback=self.__optionCallback, callback_args=(self.setValidateChanges, True),
+            parser.add_option('--validate-changes',
+                              action='store_true', dest='validate_changes',
                               help=self.__stripSpaces(self.validateChanges.__doc__ + ' This option turns on validation (default).'))
-            parser.add_option('--no-validate-changes', nargs=0,
-                              action='callback', callback=self.__optionCallback, callback_args=(self.setValidateChanges, False),
+            parser.add_option('--no-validate-changes',
+                              action='store_false', dest='validate_changes',
                               help=self.__stripSpaces(self.validateChanges.__doc__ + ' This option turns off validation.'))
             parser.add_option('--binding-style',
                               type='choice', choices=(self.STYLE_ACCESSOR, self.STYLE_PROPERTY),
-                              action='callback', callback=self.__optionCallback, callback_args=(self.setBindingStyle,),
                               help=self.__stripSpaces(self.bindingStyle.__doc__))
             self.__optionParser = parser
         return self.__optionParser
@@ -1864,23 +1858,23 @@ class Configuration (object):
         while module_list:
             ml = module_list.pop(0)
             sl = schema_list.pop(0)
-            opts.extend(['--schema-location', sl, '--module', ml])
+            opts.extend(['--schema-location=' + sl, '--module=' + ml])
         for sl in schema_list:
-            opts.extend(['--schema-location', sl])
-        opts.extend([ '--binding-root', self.bindingRoot() ])
+            opts.append('--schema-location=' + sl)
+        opts.append('--binding-root=' + self.bindingRoot())
         if self.schemaRoot() is not None:
-            opts.extend([ '--schema-root', self.schemaRoot() ])
+            opts.append('--schema-root=' + self.schemaRoot())
         if self.schemaStripPrefix() is not None:
-            opts.extend([ '--schema-strip-prefix', self.schemaStripPrefix() ])
+            opts.append('--schema-strip-prefix=%s' + self.schemaStripPrefix())
         if self.modulePrefix() is not None:
-            opts.extend(['--module-prefix', self.modulePrefix() ])
+            opts.append('--module-prefix=' + self.modulePrefix())
         if self.archiveFile() is not None:
-            opts.extend(['--archive-file', self.archiveFile() ])
+            opts.append('--archive-file=' + self.archiveFile())
         if self.archivePath() is not None:
-            opts.extend(['--archive-path', self.archivePath() ])
+            opts.append('--archive-path=' + self.archivePath())
         if self.validateChanges():
             opts.append('--validate-changes')
         else:
             opts.append('--no-validate-changes')
-        opts.extend(['--binding-style', self.bindingStyle() ])
+        opts.append('--binding-style=' + self.bindingStyle())
         return opts
