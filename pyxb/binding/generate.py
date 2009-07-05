@@ -1578,8 +1578,8 @@ def _GenerateFacets ():
 import optparse
 import re
 
-class Configuration (object):
-    """Represents the configuration for a single binding-generation action."""
+class Generator (object):
+    """Configuration and data for a single binding-generation action."""
 
     _DEFAULT_bindingRoot = '.'
     def bindingRoot (self):
@@ -1615,14 +1615,18 @@ class Configuration (object):
     __schemaStripPrefix = None
 
     def schemaLocationList (self):
-        """The list of entrypoint schemas."""
+        """A list of locations from which entrypoint schemas are to be
+        read.
+
+        See also L{addSchemaLocation} and L{schemas}.
+        """
         return self.__schemaLocationList
     def setSchemaLocationList (self, schema_location_list):
         self.__schemaLocationList[:] = []
         self.__schemaLocationList.extend(schema_location_list)
         return self
     def addSchemaLocation (self, schema_location):
-        """Add a new entrypoint schema for processing.
+        """Add the location of an entrypoint schema.
 
         The specified location should be a URL.  If the schema
         location does not have a URL scheme (e.g., C{http:}), it is
@@ -1631,6 +1635,25 @@ class Configuration (object):
         self.__schemaLocationList.append(schema_location)
         return self
     __schemaLocationList = None
+
+    def schemas (self):
+        """L{Schema<pyxb.xmlschema.structures.schema>} for which
+        bindings should be generated.
+
+        This is the list of entrypoint schemas for binding generation.
+        Values in L{schemaLocationList} are read and converted into
+        schema, then appended to this list.  Values from L{moduleList}
+        are applied starting with the first schema in this list.
+        """
+        return self.__schemas[:]
+    def setSchemas (self, schemas):
+        self.__schemas[:] = []
+        self.__schemas.extend(schemas)
+        return self
+    def addSchema (self, schema):
+        self.__schemas.append(schema)
+        return self
+    __schemas = None
 
     def _moduleList (self):
         """A list of module names to be applied in order to the namespaces of entrypoint schemas"""
@@ -1763,6 +1786,7 @@ class Configuration (object):
         self.__bindingRoot = kw.get('binding_root', self._DEFAULT_bindingRoot)
         self.__schemaRoot = kw.get('schema_root', '.')
         self.__schemaStripPrefix = kw.get('schema_strip_prefix')
+        self.__schemas = []
         self.__schemaLocationList = kw.get('schema_location_list', [])[:]
         self.__moduleList = kw.get('module_list', [])[:]
         self.__modulePrefix = kw.get('module_prefix')
@@ -1851,7 +1875,11 @@ class Configuration (object):
 
     def getCommandLineArgs (self):
         """Return a command line option sequence that could be used to
-        construct an equivalent configuration."""
+        construct an equivalent configuration.
+
+        @note: If you extend the option parser, as is done by
+        C{pyxbgen}, this may not be able to reconstruct the correct
+        command line."""
         opts = []
         module_list = self._moduleList()[:]
         schema_list = self.schemaLocationList()[:]

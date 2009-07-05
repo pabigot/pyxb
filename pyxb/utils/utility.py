@@ -340,3 +340,34 @@ class Graph:
                 raise Exception('DFS walk did not cover all nodes (walk %d versus nodes %d)' % (len(self.__dfsOrder), len(self.__nodes)))
         return self.__dfsOrder
         
+def NormalizeLocation (uri, parent_uri=None):
+    """Normalize a URI against an optional parent_uri in the way that is
+    done for C{schemaLocation} attribute values."""
+    import urlparse
+    if uri is None:
+        return uri
+    if parent_uri is None:
+        abs_uri = uri
+    else:
+        abs_uri = urlparse.urljoin(parent_uri, uri)
+    if 0 > abs_uri.find(':'):
+        abs_uri = os.path.realpath(abs_uri)
+    return abs_uri
+
+def TextFromURI (uri):
+    """Retrieve the contents of the uri as a text string.
+
+    If the uri does not include a scheme (e.g., C{http:}), it is
+    assumed to be a file path on the local system."""
+    import urllib2
+    xmls = None
+    try:
+        if 0 <= uri.find(':'):
+            xmls = urllib2.urlopen(uri).read()
+        else:
+            xmls = file(uri).read()
+    except Exception, e:
+        print 'TextFromURI: open %s caught: %s' % (uri, e)
+        raise
+    return xmls
+

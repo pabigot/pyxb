@@ -4129,7 +4129,8 @@ class _ImportElementInformationItem (_Annotated_mixin):
         uri = NodeAttribute(node, 'namespace')
         if uri is None:
             raise pyxb.IncompleteImplementationError('import statements without namespace not supported')
-        self.__schemaLocation = NodeAttribute(node, 'schemaLocation')
+        schema_location = pyxb.utils.utility.NormalizeLocation(NodeAttribute(node, 'schemaLocation'), schema.schemaLocation())
+        self.__schemaLocation = schema_location
         ns = self.__namespace = pyxb.namespace.NamespaceForURI(uri, create_if_missing=True)
         self.__redundant = False
         if ns.isLoadable():
@@ -4166,12 +4167,11 @@ class _ImportElementInformationItem (_Annotated_mixin):
                 pass
 
         if self.schemaLocation() is not None:
-            schema_uri = urlparse.urljoin(schema.schemaLocation(), self.__schemaLocation)
-            print 'import %s + %s = %s' % (schema.schemaLocation(), self.__schemaLocation, schema_uri)
-            schema = self.__namespace.lookupSchemaByLocation(schema_uri)
+            print 'import %s + %s = %s' % (schema.schemaLocation(), self.__schemaLocation, schema_location)
+            schema = self.__namespace.lookupSchemaByLocation(schema_location)
             if schema is None:
                 try:
-                    schema = Schema.CreateFromLocation(schema_location=schema_uri, namespace_context=pyxb.namespace.NamespaceContext.GetNodeContext(node))
+                    schema = Schema.CreateFromLocation(absolute_schema_location=schema_location, namespace_context=pyxb.namespace.NamespaceContext.GetNodeContext(node))
                 except Exception, e:
                     print 'WARNING: Import %s cannot read schema location %s (%s)' % (ns, self.__schemaLocation, schema_uri)
             self.__schema = schema
@@ -4314,27 +4314,23 @@ class Schema (_SchemaComponent_mixin):
         }
 
     @classmethod
-    def CreateFromLocation (cls, schema_location, **kw):
+    def CreateFromLocation (cls, **kw):
         """Create a schema from a schema location.
 
         Reads an XML document from the schema location and creates a schema
         using it.  All keyword parameters are passed to L{CreateFromDOM}.
 
-        @param schema_location: A file path or a URI
+        @keyword schema_location: A file path or a URI.  If this is a relative
+        URI and C{parent_uri} is present, the actual location will be
+        L{normallzed<pyxb.utils.utility.NormalizeLocation>}.
+        @keyword parent_uri: The context within which schema_location will be
+        normalized, if necessary.
+        @keyword absolute_schema_location: A file path or URI.  This value is
+        not normalized, and supersedes C{schema_location}.
         """
-        if 0 > schema_location.find(':'):
-            schema_location = os.path.realpath(schema_location)
-        kw['schema_location'] = schema_location
-        xmls = None
-        try:
-            if 0 <= schema_location.find(':'):
-                xmls = urllib2.urlopen(schema_location).read()
-            else:
-                xmls = file(schema_location).read()
-        except Exception, e:
-            print 'CreateFromLocation: open %s caught: %s' % (schema_location, e)
-            raise
-        dom = StringToDOM(xmls)
+        schema_location = kw.get('absolute_schema_location', pyxb.utils.utility.NormalizeLocation(kw.get('schema_location'), kw.get('parent_uri')))
+        assert isinstance(schema_location, (str, unicode))
+        dom = StringToDOM(pyxb.utils.utility.TextFromURI(schema_location, kw.get('parent_uri')))
         return cls.CreateFromDOM(dom, **kw)
 
     @classmethod
@@ -4486,15 +4482,12 @@ class Schema (_SchemaComponent_mixin):
     def __processInclude (self, node):
         self.__requireInProlog(node.nodeName)
         # See section 4.2.1 of Structures.
-        rel_uri = NodeAttribute(node, 'schemaLocation')
-        abs_uri = urlparse.urljoin(self.__schemaLocation, rel_uri)
-        if 0 > abs_uri.find(':'):
-            abs_uri = os.path.realpath(abs_uri)
+        abs_uri = pyxb.utils.utility.NormalizeLocation(NodeAttribute(node, 'schemaLocation'), self.__schemaLocation)
         #print 'include %s + %s = %s' % (self.__schemaLocation, rel_uri, abs_uri)
         included_schema = self.targetNamespace().lookupSchemaByLocation(abs_uri)
         if included_schema is None:
             try:
-                included_schema = self.CreateFromLocation(abs_uri, namespace_context=self.__namespaceData, inherit_default_namespace=True)
+                included_schema = self.CreateFromLocation(absolute_schema_location=abs_uri, namespace_context=self.__namespaceData, inherit_default_namespace=True)
             except Exception, e:
                 print 'INCLUDE %s caught: %s' % (abs_uri, e)
                 #traceback.print_exception(*sys.exc_info())
