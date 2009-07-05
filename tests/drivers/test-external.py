@@ -6,7 +6,10 @@ import sys
 import imp
 
 import os.path
-schema_path = '%s/../schemas' % (os.path.dirname(__file__),)
+
+generator = pyxb.binding.generate.Generator()
+generator.setSchemaRoot(os.path.realpath('%s/../schemas' % (os.path.dirname(__file__),)))
+generator.addSchemaLocation('test-external.xsd')
 
 # Create a module into which we'll stick the shared types bindings.
 # Put it into the sys modules so the import directive in subsequent
@@ -20,12 +23,14 @@ stns.setModulePath('st')
 
 # Now get the code for the shared types bindings, and evaluate it
 # within the new module.
-code = pyxb.binding.generate.GeneratePython(schema_location=schema_path + '/shared-types.xsd')
+
+code = pyxb.binding.generate.GeneratePython(schema_location=generator.schemaRoot() + '/shared-types.xsd')
 rv = compile(code, 'shared-types', 'exec')
 exec code in st.__dict__
 
 # Now get and build a module that refers to that module.
-modules = pyxb.binding.generate.GenerateAllPython(schema_location=schema_path + '/test-external.xsd')
+
+modules = generator.bindingModules()
 for m in modules:
     if m.namespace() != stns:
         code = m.moduleContents()
