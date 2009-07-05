@@ -178,7 +178,9 @@ class Graph:
     namespaces."""
     
     def __init__ (self, root=None):
-        self.__root = root
+        self.__roots = None
+        if root is not None:
+            self.__roots = set([root])
         self.__edges = set()
         self.__edgeMap = { }
         self.__reverseMap = { }
@@ -199,11 +201,6 @@ class Graph:
     def addNode (self, node):
         self.__nodes.add(node)
 
-    def root (self):
-        return self.__root
-    def setRoot (self, root):
-        self.__root = root
-
     __roots = None
     def roots (self, reset=False):
         if reset or (self.__roots is None):
@@ -212,6 +209,11 @@ class Graph:
                 if not (n in self.__reverseMap):
                     self.__roots.add(n)
         return self.__roots
+    def addRoot (self, root):
+        if self.__roots is None:
+            self.__roots = set()
+        self.__roots.add(root)
+        return self
 
     def edgeMap (self):
         return self.__edgeMap
@@ -235,8 +237,6 @@ class Graph:
         for v in self.__nodes:
             self.__tarjanIndex[v] = None
         roots = self.roots()
-        if (0 == len(roots)) and (self.root() is not None):
-            roots = set([self.root()])
         if (0 == len(roots)) and (0 < len(self.__nodes)):
             raise Exception('TARJAN: No roots found in graph with %d nodes' % (len(self.__nodes),))
         for r in roots:
@@ -351,8 +351,8 @@ def NormalizeLocation (uri, parent_uri=None):
     if parent_uri is None:
         abs_uri = uri
     else:
-        if (0 > parent_uri.find(':')) and (not parent_uri.endswith(os.sep)):
-            parent_uri = parent_uri + os.sep
+        #if (0 > parent_uri.find(':')) and (not parent_uri.endswith(os.sep)):
+        #    parent_uri = parent_uri + os.sep
         abs_uri = urlparse.urljoin(parent_uri, uri)
     if 0 > abs_uri.find(':'):
         abs_uri = os.path.realpath(abs_uri)
