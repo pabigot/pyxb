@@ -1583,3 +1583,304 @@ def _GenerateFacets ():
             GenerateFacets(outf, td, **generator_kw)
     return outf.getvalue()
 '''
+
+import optparse
+import re
+
+class Configuration (object):
+    """Represents the configuration for a single binding-generation action."""
+
+    _DEFAULT_bindingRoot = '.'
+    def bindingRoot (self):
+        """The directory path into which generated bindings will be written."""
+        return self.__bindingRoot
+    def setBindingRoot (self, binding_root):
+        self.__bindingRoot = binding_root
+        return self
+    __bindingRoot = None
+    
+    def schemaRoot (self):
+        """The directory from which entrypoint schemas specified as relative file URLs will be read."""
+        return self.__schemaRoot
+    def setSchemaRoot (self, schema_root):
+        self.__schemaRoot = schema_root
+        return self
+    __schemaRoot = None
+
+    def schemaStripPrefix (self):
+        """Optional string that is stripped from the beginning of
+        schemaLocation values before loading from them.
+
+        This applies only to the values of schemaLocation attributes
+        in C{import} and C{include} elements.  Its purpose is to
+        convert absolute schema locations into relative ones to allow
+        offline processing when all schema are available in a local
+        directory.  See C{schemaRoot}.
+        """
+        return self.__schemaStripPrefix
+    def setSchemaStripPrefix (self, schema_strip_prefix):
+        self.__schemaStripPrefix = schema_strip_prefix
+        return self
+    __schemaStripPrefix = None
+
+    def schemaLocationList (self):
+        """The list of entrypoint schemas."""
+        return self.__schemaLocationList
+    def setSchemaLocationList (self, schema_location_list):
+        self.__schemaLocationList = schema_location_list
+        return self
+    def addSchemaLocation (self, schema_location):
+        """Add a new entrypoint schema for processing.
+
+        The specified location should be a URL.  If the schema
+        location does not have a URL scheme (e.g., C{http:}), it is
+        assumed to be a file, and if it is not an absolute path is
+        located relative to the C{schemaRoot}."""
+        self.__schemaLocationList.append(schema_location)
+        return self
+    __schemaLocationList = None
+
+    def _moduleList (self):
+        """A list of module names to be applied in order to the namespaces of entrypoint schemas"""
+        return self.__moduleList
+    def addModuleName (self, module_name):
+        """Add a module name corresponding to an entrypoint schema.
+
+        The namespace defined by the corresponding schema will be
+        written to a binding using the given module name, adjusted by
+        L{modulePrefix}."""
+        self.__moduleList.append(module_name)
+        return self
+    __moduleList = None
+
+    def modulePrefix (self):
+        """The prefix for binding modules.
+
+        The base name for the module holding a binding is taken from
+        the moduleList, moduleMap, or an XMLNS prefix associated with
+        the namespace in a containing schema.  This value, if present,
+        is used as a prefix to allow a deeper module hierarchy."""
+        return self.__modulePrefix
+    def setModulePrefix (self, module_prefix):
+        self.__modulePrefix = module_prefix
+        return self
+    __modulePrefix = None
+
+    def namespaceModuleMap (self):
+        """A map from namespace URIs to the module to be used for the
+        corresponding generated binding.
+
+        Module values are adjusted by L{modulePrefix} if that has been
+        specified.
+
+        An entry in this map for a namespace supersedes the module
+        specified in moduleList if the namespace is defined by an
+        entrypoint schema."""
+        return self.__namespaceModuleMap
+    __namespaceModuleMap = None
+
+    def getCompleteModulePath (self, module):
+        if self.modulePrefix():
+            # Not None, not empty
+            return '.'.join(self.modulePrefix(), module)
+        return module
+
+    def archiveFile (self):
+        """Optional file into which the archive of namespaces will be written.
+
+        Subsequent generation actions can read pre-parsed namespaces
+        from this file, and therefore reference the bindings that were
+        built earlier rather than re-generating them.
+
+        The file name should normally end with C{.wxs}."""
+        return self.__archiveFile
+    def setArchiveFile (self, archive_file):
+        self.__archiveFile = archive_file
+        return self
+    __archiveFile = None
+
+    def archivePath (self):
+        """A colon-separated list of paths from which namespace
+        archives can be read.
+
+        The default path is the contents of the C{PYXB_ARCHIVE_PATH}
+        environment variable, or the standard path configured at
+        installation time.
+        """
+        return self.__archivePath
+    def setArchivePath (self, archive_path):
+        self.__archivePath = archive_path
+        return self
+    __archivePath = None
+        
+    def validateChanges (self):
+        """Indicates whether the bindings should validate mutations
+        against the content model."""
+        return self.__validateChanges
+    def setValidateChanges (self, validate_changes):
+        #raise pyxb.IncompleteImplementationError('No support for disabling validation')
+        self.__validateChanges = validate_changes
+        return self
+    __validateChanges = None
+
+    STYLE_ACCESSOR = 'accessor'
+    STYLE_PROPERTY = 'property'
+    _DEFAULT_bindingStyle = STYLE_ACCESSOR
+    def bindingStyle (self):
+        """The style of Python used in generated bindings.
+
+        C{accessor} means values are private variables accessed
+        through inspector and mutator methods.
+
+        C{property} means values are private variables accessed
+        through a Python property.
+        """
+        return self.__bindingStyle
+    def setBindingStyle (self, binding_style):
+        raise pyxb.IncompleteImplementationError('No support for binding style configuration')
+        self.__bindingStyle = binding_style
+        return self
+    __bindingStyle = None
+
+    def __optionCallback (self, option, opt_str, value, parser, *args, **kw):
+        print 'Option: %s' % (option,)
+        print 'OptStr: %s' % (opt_str,)
+        print 'Value: %s' % (value,)
+        print 'Args: %s' % (args,)
+        
+        callable = args[0]
+        arg_list = []
+        if 1 == option.nargs:
+            if value is None:
+                parser.error('Missing value for %s' % (opt_str,))
+            arg_list.append(value)
+        elif 1 < option.nargs:
+            arg_list.extend(value)
+        arg_list.extend(args[1:])
+        print 'Invoking %s with %s' % (callable, arg_list)
+        callable(*arg_list)
+
+
+    def __init__ (self, *args, **kw):
+        """Create a configuration to be used for generating bindings.
+
+        Arguments are treated as additions to the schema location list
+        after all keywords have been processed.
+
+        @keyword binding_root: Invokes L{setBindingRoot}
+        @keyword schema_root: Invokes L{setSchemaRoot}
+        @keyword schema_strip_prefix: Invokes L{setSchemaStripPrefix}
+        @keyword schema_location_list: Invokes L{setSchemaLocationList
+        @keyword module_list: Invokes L{setModuleList}
+        @keyword module_prefix: Invokes L{setModulePrefix}
+        @keyword archive_file: Invokes L{setArchiveFile}
+        @keyword archive_path: Invokes L{setArchivePath}
+        @keyword validate_changes: Invokes L{setValidateChanges}
+        @keyword binding_style: Invokes L{setBindingStyle}
+        @keyword namespace_module_map: Initializes L{namespaceModuleMap}
+        """
+        argv = kw.get('argv', None)
+        if argv is not None:
+            kw = {}
+        self.__bindingRoot = kw.get('binding_root', self._DEFAULT_bindingRoot)
+        self.__schemaRoot = kw.get('schema_root', '.')
+        self.__schemaStripPrefix = kw.get('schema_strip_prefix')
+        self.__schemaLocationList = kw.get('schema_location_list', [])[:]
+        self.__moduleList = kw.get('module_list', [])[:]
+        self.__modulePrefix = kw.get('module_prefix')
+        self.__archiveFile = kw.get('archive_file')
+        self.__archivePath = kw.get('archive_path', pyxb.namespace.GetArchivePath())
+        self.__validateChanges = kw.get('validate_changes', True)
+        self.__bindingStyle = kw.get('binding_style', self._DEFAULT_bindingStyle)
+        self.__namespaceModuleMap = kw.get('namespace_module_map', {}).copy()
+        if argv is not None:
+            self.__configureFromCommandLine(argv)
+        [ self.addSchemaLocation(_a) for _a in args ]
+        
+    __stripSpaces_re = re.compile('\s\s\s+')
+    def __stripSpaces (self, string):
+        return self.__stripSpaces_re.sub(' ', string)
+    
+    def __configureFromCommandLine (self, argv):
+        (options, args) = self.optionParser().parse_args(argv)
+        self.__schemaLocationList.extend(args)
+
+    def optionParser (self, reset=False):
+        """Return an C{optparse.OptionParser} instance tied to this configuration.
+
+        @param reset: If C{False} (default), a parser created in a
+        previous invocation will be returned.  If C{True}, any
+        previous option parser is discarded and a new one created.
+        @type reset: C{bool}
+        """
+        if reset or (self.__optionParser is None):
+            parser = optparse.OptionParser(usage="%prog [options] [schemas...]",
+                                           version='%%prog from PyXB %s' % (pyxb.__version__,),
+                                           description='Generate bindings from a set of XML schemas')
+            parser.add_option('--binding-root', metavar="DIRECTORY", type='string',
+                              action='callback', callback=self.__optionCallback, callback_args=(self.setBindingRoot,),
+                              help=self.__stripSpaces(self.bindingRoot.__doc__))
+            parser.add_option('--schema-root', metavar="DIRECTORY", type='string',
+                              action='callback', callback=self.__optionCallback, callback_args=(self.setSchemaRoot,),
+                              help=self.__stripSpaces(self.schemaRoot.__doc__))
+            parser.add_option('--schema-strip-prefix', metavar="TEXT", type='string',
+                              action='callback', callback=self.__optionCallback, callback_args=(self.setSchemaStripPrefix,),
+                              help=self.__stripSpaces(self.schemaStripPrefix.__doc__))
+            parser.add_option('--schema-location', metavar="FILE", type='string',
+                              action='callback', callback=self.__optionCallback, callback_args=(self.addSchemaLocation,),
+                              help=self.__stripSpaces(self.addSchemaLocation.__doc__))
+            parser.add_option('--module', metavar="MODULE", type='string',
+                              action='callback', callback=self.__optionCallback, callback_args=(self.addModuleName,),
+                              help=self.__stripSpaces(self.addModuleName.__doc__))
+            parser.add_option('--module-prefix', metavar="MODULE", type='string',
+                              action='callback', callback=self.__optionCallback, callback_args=(self.setModulePrefix,),
+                              help=self.__stripSpaces(self.modulePrefix.__doc__))
+            parser.add_option('--archive-file', metavar="FILE", type='string',
+                              action='callback', callback=self.__optionCallback, callback_args=(self.setArchiveFile,),
+                              help=self.__stripSpaces(self.archiveFile.__doc__))
+            parser.add_option('--archive-path', metavar="PATH", type='string',
+                              action='callback', callback=self.__optionCallback, callback_args=(self.setArchivePath,),
+                              help=self.__stripSpaces(self.archivePath.__doc__))
+            parser.add_option('--validate-changes', nargs=0,
+                              action='callback', callback=self.__optionCallback, callback_args=(self.setValidateChanges, True),
+                              help=self.__stripSpaces(self.validateChanges.__doc__ + ' This option turns on validation (default).'))
+            parser.add_option('--no-validate-changes', nargs=0,
+                              action='callback', callback=self.__optionCallback, callback_args=(self.setValidateChanges, False),
+                              help=self.__stripSpaces(self.validateChanges.__doc__ + ' This option turns off validation.'))
+            parser.add_option('--binding-style',
+                              type='choice', choices=(self.STYLE_ACCESSOR, self.STYLE_PROPERTY),
+                              action='callback', callback=self.__optionCallback, callback_args=(self.setBindingStyle,),
+                              help=self.__stripSpaces(self.bindingStyle.__doc__))
+            self.__optionParser = parser
+        return self.__optionParser
+    __optionParser = None
+
+    def getCommandLineArgs (self):
+        """Return a command line option sequence that could be used to
+        construct an equivalent configuration."""
+        opts = []
+        module_list = self._moduleList()[:]
+        schema_list = self.schemaLocationList()[:]
+        while module_list:
+            ml = module_list.pop(0)
+            sl = schema_list.pop(0)
+            opts.extend(['--schema-location', sl, '--module', ml])
+        for sl in schema_list:
+            opts.extend(['--schema-location', sl])
+        opts.extend([ '--binding-root', self.bindingRoot() ])
+        if self.schemaRoot() is not None:
+            opts.extend([ '--schema-root', self.schemaRoot() ])
+        if self.schemaStripPrefix() is not None:
+            opts.extend([ '--schema-strip-prefix', self.schemaStripPrefix() ])
+        if self.modulePrefix() is not None:
+            opts.extend(['--module-prefix', self.modulePrefix() ])
+        if self.archiveFile() is not None:
+            opts.extend(['--archive-file', self.archiveFile() ])
+        if self.archivePath() is not None:
+            opts.extend(['--archive-path', self.archivePath() ])
+        if self.validateChanges():
+            opts.append('--validate-changes')
+        else:
+            opts.append('--no-validate-changes')
+        opts.extend(['--binding-style', self.bindingStyle() ])
+        return opts
