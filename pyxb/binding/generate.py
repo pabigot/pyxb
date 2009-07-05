@@ -1145,7 +1145,6 @@ class NamespaceModule (_ModuleNaming_mixin):
         print 'NSM Namespace %s module path %s' % (namespace, namespace.modulePath())
         mp = self.__namespace.modulePath()
         if mp is not None:
-            print 'Setting namespace module path to %s' % (mp,)
             self._setModulePath(mp)
         self.__namespaceGroup = ns_scc
         self._RecordNamespace(self)
@@ -1363,13 +1362,14 @@ def GeneratePython (schema_location=None,
                     namespace=None,
                     module_prefix_elts=[]):
 
-    generator = Generator()
+    generator = Generator(allow_absent_module=True)
     generator.addSchemaLocation(schema_location)
     modules = generator.bindingModules()
 
     assert 1 == len(modules), '%s produced %d modules: %s' % (namespace, len(modules), " ".join([ str(_m) for _m in modules]))
     return modules.pop().moduleContents()
 
+'''
 def GenerateAllPython (schema_location=None,
                        namespace=None,
                        module_prefix_elts=[],
@@ -1550,7 +1550,6 @@ def GenerateAllPython (schema_location=None,
     return modules
 
 def _GenerateFacets ():
-    return '''
     generator_kw['class_unique'] = set()
     generator_kw['class_keywords'] = set()
     stds = [ ]
@@ -1594,9 +1593,13 @@ class Generator (object):
     
     def schemaRoot (self):
         """The directory from which entrypoint schemas specified as
-        relative file paths will be read."""
+        relative file paths will be read.
+
+        The value includes the final path separator character."""
         return self.__schemaRoot
     def setSchemaRoot (self, schema_root):
+        if not schema_root.endswith(os.sep):
+            schema_root = schema_root + os.sep
         self.__schemaRoot = schema_root
         return self
     __schemaRoot = None
@@ -1791,7 +1794,7 @@ class Generator (object):
     def writeForCustomization (self):
         """Indicates whether the binding Python code should be written into a sub-module for customization.
 
-        If present, a module C{path.to.namespace} will be written to
+        If enabled, a module C{path.to.namespace} will be written to
         the file C{path/to/raw/namespace.py}, so that the file
         C{path/to/namespace.py} can import it and override behavior."""
         return self.__writeForCustomization
@@ -1799,6 +1802,18 @@ class Generator (object):
         self.__writeForCustomization = write_for_customization
         return self
     __writeForCustomization = None
+
+    def allowAbsentModule (self):
+        """Indicates whether the code generator is permitted to
+        process namespace for which no module path can be determined.
+
+        Use this only when generating bindings that will not be
+        referenced by other bindings."""
+        return self.__allowAbsentModule
+    def setAllowAbsentModule (self, allow_absent_module):
+        self.__allowAbsentModule = allow_absent_module
+        return self
+    __allowAbsentModule = None
 
     def __init__ (self, *args, **kw):
         """Create a configuration to be used for generating bindings.
@@ -1820,6 +1835,7 @@ class Generator (object):
         @keywords schemas: Invokes L{setSchemas}
         @keyword namespaces: Invokes L{setNamespaces}
         @keyword write_for_customization: Invokes L{setWriteForCustomization}
+        @keyword allow_absent_module: Invokes L{setAllowAbsentModule}
         """
         argv = kw.get('argv', None)
         if argv is not None:
@@ -1839,6 +1855,7 @@ class Generator (object):
         self.__schemas = kw.get('schemas', [])[:]
         self.__namespaces = set(kw.get('namespaces', []))
         self.__writeForCustomization = kw.get('write_for_customization', False)
+        self.__allowAbsentModule = kw.get('allow_absent_module', False)
         
         if argv is not None:
             self.applyOptionValues(*self.optionParser().parse_args(argv))
@@ -1858,7 +1875,9 @@ class Generator (object):
         ('archive_file', setArchiveFile),
         ('archive_path', setArchivePath),
         ('binding_style', setBindingStyle),
-        ('validate_changes', setValidateChanges)
+        ('validate_changes', setValidateChanges),
+        ('write_for_customization', setWriteForCustomization),
+        ('allow_absent_module', setAllowAbsentModule)
         )
     def applyOptionValues (self, options, args=None):
         for (tag, method) in self.__OptionSetters:
@@ -1887,7 +1906,7 @@ class Generator (object):
             parser = optparse.OptionParser(usage="%prog [options] [more schema locations...]",
                                            version='%%prog from PyXB %s' % (pyxb.__version__,),
                                            description='Generate bindings from a set of XML schemas')
-            parser.add_option('--schema-location', metavar="FILE",
+            parser.add_option('--schema-location', metavar="FILE_or_URL",
                               action='append',
                               help=self.__stripSpaces(self.addSchemaLocation.__doc__))
             parser.add_option('--module', metavar="MODULE",
@@ -1920,6 +1939,12 @@ class Generator (object):
             parser.add_option('--no-write-for-customization',
                               action='store_false', dest='write_for_customization',
                               help=self.__stripSpaces(self.writeForCustomization.__doc__ + ' This option turns off the feature (default).'))
+            parser.add_option('--allow-absent-module',
+                              action='store_true', dest='allow_absent_module',
+                              help=self.__stripSpaces(self.allowAbsentModule.__doc__ + ' This option turns on the feature.'))
+            parser.add_option('--no-allow-absent-module',
+                              action='store_false', dest='allow_absent_module',
+                              help=self.__stripSpaces(self.allowAbsentModule.__doc__ + ' This option turns off the feature (default).'))
             self.__optionParser = parser
         return self.__optionParser
     __optionParser = None
@@ -1965,6 +1990,22 @@ class Generator (object):
         print 'sl %s against schema root %s' % (sl, self.schemaRoot())
         return pyxb.utils.utility.NormalizeLocation(sl, self.schemaRoot())
 
+    def __assignNamespaceModulePath (self, namespace, module_path=None):
+        assert isinstance(namespace, pyxb.namespace.Namespace)
+        if namespace.isAbsentNamespace() or (namespace.modulePath() is not None):
+            return
+        if (module_path is None) and not (namespace.prefix() is None):
+            module_path = namespace.prefix()
+        module_path = self.namespaceModuleMap().get(namespace.uri(), module_path)
+        if module_path is None:
+            if self.allowAbsentModule():
+                return namespace
+            raise pyxb.BindingGenerationError('No prefix or module name available for %s' % (namespace,))
+        if self.modulePrefix(): # non-empty value
+            module_path = '.'.join([self.modulePrefix(), module_path])
+        namespace.setModulePath(module_path)
+        return namespace
+
     __didResolveExternalSchema = False
     def resolveExternalSchema (self, reset=False):
         if self.__didResolveExternalSchema and (not reset):
@@ -1975,20 +2016,202 @@ class Generator (object):
             self.addSchema(schema)
         for schema in self.__schemas:
             ns = schema.targetNamespace()
-            if ns.prefix() is None:
-                prefix = self.namespaceModuleMap().get(ns.uri())
-                if (prefix is None) and self.__moduleList:
-                    prefix = self.__moduleList.pop(0)
-                if prefix is not None:
-                    ns.setPrefix(prefix)
+            print 'namespace %s' % (ns,)
+            module_path = None
+            if self.__moduleList:
+                module_path = self.__moduleList.pop(0)
+            self.__assignNamespaceModulePath(ns, module_path)
             self.addNamespace(ns)
         self.__resolveExternalSchema = True
         self.__bindingModules = None
 
+    def __buildBindingModules (self):
+        modules = set()
+        pyxb.namespace.XMLSchema.setModulePath('pyxb.binding.datatypes')
+    
+        entry_namespaces = self.namespaces()
+        nsdep = pyxb.namespace.NamespaceDependencies(namespace_set=self.namespaces())
+        siblings = nsdep.siblingNamespaces()
+        missing = nsdep.schemaDefinedNamespaces().difference(siblings)
+        siblings.update(missing)
+        nsdep.setSiblingNamespaces(siblings)
+        self.__namespaces.update(siblings)
+        for ns in self.namespaces():
+            self.__assignNamespaceModulePath(ns)
+            if (ns.modulePath() is None) and not (ns.isAbsentNamespace() or self.allowAbsentModule()):
+                raise pyxb.BindingGenerationError('No module path available for %s' % (ns,))
+        if 0 < len(missing):
+            text = []
+            text.append('WARNING: Adding the following namespaces due to dependencies:')
+            for ns in missing:
+                self.__assignNamespaceModulePath(ns)
+                text.append('  %s, prefix %s, module path %s' % (ns, ns.prefix(), ns.modulePath()))
+                for sch in ns.schemas():
+                    text.append('    schemaLocation=%s' % (sch.schemaLocation(),))
+            print "\n".join(text)
+
+        for ns_set in nsdep.namespaceOrder():
+            pyxb.namespace.ResolveSiblingNamespaces(ns_set)
+    
+        '''
+        file('namespace.dot', 'w').write(nsdep.namespaceGraph()._generateDOT('Namespace'))
+        file('schema.dot', 'w').write(nsdep.schemaGraph()._generateDOT('Schema', labeller=lambda _s: "/".join(_s.schemaLocation().split('/')[-2:])))
+        file('component.dot', 'w').write(nsdep.componentGraph()._generateDOT('Component', lambda _c: _c.bestNCName()))
+        '''
+    
+    
+        all_components = set()
+        namespace_component_map = {}
+        for sns in siblings:
+            if (pyxb.namespace.XMLSchema == sns) and (not _process_builtins):
+                continue
+            for c in sns.components():
+                if (isinstance(c, xs.structures.ElementDeclaration) and c._scopeIsGlobal()) or c.isTypeDefinition():
+                    assert c._schema() is not None, '%s has no schema' % (c._schema(),)
+                    assert c._schema().targetNamespace() == sns
+                    c._setBindingNamespace(sns)
+                    all_components.add(c)
+                    namespace_component_map.setdefault(sns, set()).add(c)
+        
+        usable_namespaces = set(namespace_component_map.keys())
+        usable_namespaces.update([ _ns for _ns in nsdep.dependentNamespaces() if _ns.isLoadable])
+    
+        module_graph = pyxb.utils.utility.Graph()
+    
+        binding_module_prefix_elts = []
+        if self.modulePrefix():
+            binding_module_prefix_elts.extend('.'.split(self.modulePrefix()))
+
+        namespace_module_map = {}
+        unique_in_bindings = set([NamespaceGroupModule._GroupPrefix])
+        for ns_scc in nsdep.namespaceOrder():
+            namespace_modules = []
+            nsg_head = None
+            for ns in ns_scc:
+                if ns in siblings:
+                    nsm = NamespaceModule(ns, ns_scc, binding_module_prefix_elts, namespace_component_map.get(ns, ns.components()))
+                    modules.add(nsm)
+                else:
+                    nsm = NamespaceModule(ns, ns_scc)
+                module_graph.addNode(nsm)
+                namespace_module_map[ns] = nsm
+                assert ns == nsm.namespace()
+    
+                if nsg_head is None:
+                    nsg_head = nsm.namespaceGroupHead()
+    
+                if nsm.namespace().prefix() is not None:
+                    assert nsm.namespace().prefix() is not None, 'No prefix for %s' % (ns,)
+                    nsm.setBaseModule(utility.MakeUnique(nsm.namespace().prefix(), unique_in_bindings))
+                else:
+                    nsm.setBaseModule(None)
+                namespace_modules.append(nsm)
+    
+            if (nsg_head is not None) and nsg_head.namespaceGroupMulti():
+                ngm = NamespaceGroupModule(namespace_modules, binding_module_prefix_elts)
+                modules.add(ngm)
+                module_graph.addNode(ngm)
+                for nsm in namespace_modules:
+                    module_graph.addEdge(ngm, nsm)
+                    nsm.setNamespaceGroupModule(ngm)
+                assert namespace_module_map[nsg_head.namespace()].namespaceGroupModule() == ngm
+    
+        schema_module_map = {}
+        for sc_scc in nsdep.schemaOrder():
+            scg_head = sc_scc[0]
+            nsm = NamespaceModule.ForNamespace(scg_head.targetNamespace())
+            sgm = None
+            if 1 < len(sc_scc):
+                print 'MULTI_ELT SCHEMA GROUP: %s' % ("\n  ".join([_sc.schemaLocation() for _sc in sc_scc]),)
+    
+            if (nsm is not None) and (nsm.namespaceGroupModule() is not None):
+                sgm = SchemaGroupModule(nsm, sc_scc)
+                modules.add(sgm)
+                module_graph.addEdge(sgm, nsm)
+            for sc in sc_scc:
+                schema_module_map[sc] = sgm
+    
+        for m in modules:
+            if isinstance(m, SchemaGroupModule):
+                m.setImports(nsdep.schemaGraph())
+            elif isinstance(m, NamespaceModule):
+                #m.setImports(nsdep)
+                pass
+    
+        file('modules.dot', 'w').write(module_graph._generateDOT('Modules'))
+    
+        component_csets = nsdep.componentOrder()
+        bad_order = False
+        component_order = []
+        for cset in component_csets:
+            if 1 < len(cset):
+                print "COMPONENT DEPENDENCY LOOP of %d components" % (len(cset),)
+                cg = pyxb.utils.utility.Graph(cset[0])
+                for c in cset:
+                    print '  %s' % (c.expandedName(),)
+                    cg.addNode(c)
+                    for cd in c.bindingRequires(reset=True, include_lax=False):
+                        #print '%s depends on %s' % (c, cd)
+                        cg.addEdge(c, cd)
+                file('deploop.dot', 'w').write(cg._generateDOT('CompDep', lambda _c: _c.bestNCName()))
+                relaxed_order = cg.sccOrder()
+                for rcs in relaxed_order:
+                    assert 1 == len(rcs)
+                    rcs = rcs[0]
+                    if rcs in cset:
+                        component_order.append(rcs)
+            else:
+                component_order.append(cset[0])
+    
+        element_declarations = []
+        type_definitions = []
+        for c in component_order:
+            if isinstance(c, xs.structures.ElementDeclaration) and c._scopeIsGlobal():
+                nsm = namespace_module_map[c.bindingNamespace()]
+                nsm.bindComponent(c, SchemaGroupModule.ForSchema(c._schema()))
+                element_declarations.append(c)
+            else:
+                type_definitions.append(c)
+    
+        simple_type_definitions = []
+        complex_type_definitions = []
+        for td in type_definitions:
+            nsm = namespace_module_map.get(td.bindingNamespace())
+            assert nsm is not None, 'No namespace module for %s type %s scope %s namespace %s' % (td.expandedName(), type(td), td._scope(), td.bindingNamespace)
+            module_context = nsm.bindComponent(td, _ModuleNaming_mixin.ForSchema(td._schema()))
+            assert isinstance(module_context, _ModuleNaming_mixin), 'Unexpected type %s' % (type(module_context),)
+            if isinstance(td, xs.structures.SimpleTypeDefinition):
+                _PrepareSimpleTypeDefinition(td, nsm, module_context)
+                simple_type_definitions.append(td)
+            elif isinstance(td, xs.structures.ComplexTypeDefinition):
+                _PrepareComplexTypeDefinition(td, nsm, module_context)
+                complex_type_definitions.append(td)
+            else:
+                assert False, 'Unexpected component type %s' % (type(td),)
+    
+    
+        for m in modules:
+            if isinstance(m, NamespaceModule):
+                ngm = m.namespaceGroupModule()
+                if ngm is not None:
+                    m.addImportsFrom(ngm)
+            elif isinstance(m, SchemaGroupModule):
+                m.namespaceModule().namespaceGroupModule().addImportsFrom(m)
+    
+        for std in simple_type_definitions:
+            GenerateSTD(std)
+        for ctd in complex_type_definitions:
+            GenerateCTD(ctd)
+        for ed in element_declarations:
+            GenerateED(ed)
+    
+        return modules
+    
     __bindingModules = None
     def bindingModules (self, reset=False):
         if reset or (not self.__didResolveExternalSchema):
             self.resolveExternalSchema(reset)
         if reset or (self.__bindingModules is None):
-            self.__bindingModules = GenerateAllPython(namespace=self.namespaces().pop())
+            self.__bindingModules = self.__buildBindingModules()
         return self.__bindingModules
+    

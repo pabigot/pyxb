@@ -1701,6 +1701,15 @@ class NamespaceContext (object):
         return self.__inScopeNamespaces
     __inScopeNamespaces = None
 
+    def prefixForNamespace (self, namespace):
+        """Return a prefix associated with the given namespace in this
+        context, or None if the namespace is the default or is not in
+        scope."""
+        for (pfx, ns) in self.__inScopeNamespaces.items():
+            if namespace == ns:
+                return pfx
+        return None
+
     def attributeMap (self):
         """Map from L{ExpandedName} instances (for non-absent namespace) or
         C{str} or C{unicode} values (for absent namespace) to the value of the
@@ -1890,16 +1899,17 @@ class NamespaceContext (object):
 
 class NamespaceDependencies (object):
 
-    def rootNamespace (self):
-        return self.__rootNamespace
-    __rootNamespace = None
+    def rootNamespaces (self):
+        return self.__rootNamespaces
+    __rootNamespaces = None
 
     def namespaceGraph (self, reset=False):
         if reset or (self.__namespaceGraph is None):
-            self.__namespaceGraph = pyxb.utils.utility.Graph(root=self.rootNamespace())
+            self.__namespaceGraph = pyxb.utils.utility.Graph()
+            map(self.__namespaceGraph.addRoot, self.rootNamespaces())
 
             # Make sure all referenced namespaces have valid components
-            need_check = set([self.__rootNamespace])
+            need_check = self.__rootNamespaces.copy()
             done_check = set()
             while 0 < len(need_check):
                 ns = need_check.pop()
@@ -1920,19 +1930,20 @@ class NamespaceDependencies (object):
     def namespaceOrder (self, reset=False):
         return self.namespaceGraph(reset).sccOrder()
 
-    def siblings (self, reset=False, namespace=None):
-        if namespace is None:
-            namespace = self.__rootNamespace
-        rv = self.namespaceGraph(reset).sccMap().get(namespace)
-        if rv is None:
-            if not (namespace in self.dependentNamespaces()):
-                raise pyxb.LogicError('Attempt to identify siblings for unrelated namespace %s among %s' % (namespace, " ".join([ str(_ns) for _ns in self.dependentNamespaces() ])))
-            rv = [namespace]
-        return set(rv)
+    def siblingsFromGraph (self, reset=False):
+        siblings = set()
+        ns_graph = self.namespaceGraph(reset)
+        for ns in self.__rootNamespaces:
+            ns_siblings = ns_graph.sccMap().get(ns)
+            if ns_siblings is not None:
+                siblings.update(ns_siblings)
+            else:
+                siblings.add(ns)
+        return siblings
 
     def siblingNamespaces (self):
         if self.__siblingNamespaces is None:
-            self.__siblingNamespaces = self.siblings()
+            self.__siblingNamespaces = self.siblingsFromGraph()
         return self.__siblingNamespaces
 
     def setSiblingNamespaces (self, sibling_namespaces):
@@ -1999,6 +2010,7 @@ class NamespaceDependencies (object):
             while 0 < len(need_visit):
                 c = need_visit.pop()
                 self.__componentGraph.addNode(c)
+                self.__componentGraph.addRoot(c)
                 for cd in c.bindingRequires(include_lax=True):
                     if cd in all_components:
                         self.__componentGraph.addEdge(c, cd)
@@ -2008,10 +2020,14 @@ class NamespaceDependencies (object):
     def componentOrder (self, reset=False):
         return self.componentGraph(reset).sccOrder()
 
-    def __init__ (self, namespace):
-        if not isinstance(namespace, Namespace):
-            raise pyxb.LogicError('NamespaceDependencies requires a root namespace')
-        self.__rootNamespace = namespace
+    def __init__ (self, **kw):
+        namespace_set = set(kw.get('namespace_set', []))
+        namespace = kw.get('namespace')
+        if namespace is not None:
+            namespace_set.add(namespace)
+        if 0 == len(namespace_set):
+            raise pyxb.LogicError('NamespaceDependencies requires at least one root namespace')
+        self.__rootNamespaces = namespace_set
 
 ## Local Variables:
 ## fill-column:78

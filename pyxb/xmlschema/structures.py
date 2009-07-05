@@ -4110,10 +4110,8 @@ class _ImportElementInformationItem (_Annotated_mixin):
         """
         return self.__prefix
     def setPrefix (self, prefix):
-        """Allow override of the import prefix."""
+        """Record the prefix associated with the imported namespace at the point of import."""
         self.__prefix = prefix
-        if self.namespace().prefix() is None:
-            self.namespace().setPrefix(prefix)
     __prefix = None
     
     def schema (self):
@@ -4166,17 +4164,20 @@ class _ImportElementInformationItem (_Annotated_mixin):
                 # assume can load from archive later
                 pass
 
+        ns_ctx = pyxb.namespace.NamespaceContext.GetNodeContext(node)
         if self.schemaLocation() is not None:
             print 'import %s + %s = %s' % (schema.schemaLocation(), self.__schemaLocation, schema_location)
             schema = self.__namespace.lookupSchemaByLocation(schema_location)
             if schema is None:
                 try:
-                    schema = Schema.CreateFromLocation(absolute_schema_location=schema_location, namespace_context=pyxb.namespace.NamespaceContext.GetNodeContext(node))
+                    schema = Schema.CreateFromLocation(absolute_schema_location=schema_location, namespace_context=ns_ctx)
                 except Exception, e:
-                    print 'WARNING: Import %s cannot read schema location %s (%s)' % (ns, self.__schemaLocation, schema_uri)
+                    print 'WARNING: Import %s cannot read schema location %s (%s)' % (ns, self.__schemaLocation, schema_location)
             self.__schema = schema
         else:
             print 'WARNING: No information available on imported namespace %s' % (uri,)
+
+        self.setPrefix(ns_ctx.prefixForNamespace(self.namespace()))
 
         self._annotationFromDOM(node)
 
@@ -4228,6 +4229,10 @@ class Schema (_SchemaComponent_mixin):
     def referencedNamespaces (self):
         return self.__referencedNamespaces
     __referencedNamespaces = None
+
+    def importEIIs (self):
+        return self.__importEIIs
+    __importEIIs = None
 
     def importedSchema (self):
         return self.__importedSchema
@@ -4284,6 +4289,7 @@ class Schema (_SchemaComponent_mixin):
             self.__schemaLocationTag = os.path.split(schema_path)[1].split('.')[0]
 
         super(Schema, self).__init__(*args, **kw)
+        self.__importEIIs = set()
         self.__includedSchema = set()
         self.__importedSchema = set()
         self.__targetNamespace = kw.get('target_namespace', self._namespaceContext().targetNamespace())
@@ -4508,16 +4514,14 @@ class Schema (_SchemaComponent_mixin):
 
         self.__requireInProlog(node.nodeName)
         import_eii = _ImportElementInformationItem(self, node)
-        if import_eii.namespace().prefix() is None:
-            ns_map = pyxb.namespace.NamespaceContext.GetNodeContext(node).inScopeNamespaces()
-            for (pfx, ns) in ns_map.items():
-                if import_eii.namespace() == ns:
-                    import_eii.namespace().setPrefix(pfx)
-                    break
         print 'Imported %s, prefix %s, back to %s' % (import_eii.namespace().uri(), import_eii.prefix(), self.__schemaLocation)
         if import_eii.schema() is not None:
             self.__importedSchema.add(import_eii.schema())
         self.targetNamespace().importNamespace(import_eii.namespace())
+        ins = import_eii.namespace()
+        if ins.prefix() is None:
+            ins.setPrefix(import_eii.prefix())
+        self.__importEIIs.add(import_eii)
         return node
 
     def __processRedefine (self, node):

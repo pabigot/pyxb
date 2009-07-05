@@ -7,7 +7,7 @@ import imp
 
 import os.path
 
-generator = pyxb.binding.generate.Generator()
+generator = pyxb.binding.generate.Generator(allow_absent_module=True)
 generator.setSchemaRoot(os.path.realpath('%s/../schemas' % (os.path.dirname(__file__),)))
 generator.addSchemaLocation('test-external.xsd')
 
