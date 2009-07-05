@@ -2010,7 +2010,6 @@ class NamespaceDependencies (object):
             while 0 < len(need_visit):
                 c = need_visit.pop()
                 self.__componentGraph.addNode(c)
-                self.__componentGraph.addRoot(c)
                 for cd in c.bindingRequires(include_lax=True):
                     if cd in all_components:
                         self.__componentGraph.addEdge(c, cd)

@@ -2053,12 +2053,9 @@ class Generator (object):
         for ns_set in nsdep.namespaceOrder():
             pyxb.namespace.ResolveSiblingNamespaces(ns_set)
     
-        '''
         file('namespace.dot', 'w').write(nsdep.namespaceGraph()._generateDOT('Namespace'))
         file('schema.dot', 'w').write(nsdep.schemaGraph()._generateDOT('Schema', labeller=lambda _s: "/".join(_s.schemaLocation().split('/')[-2:])))
         file('component.dot', 'w').write(nsdep.componentGraph()._generateDOT('Component', lambda _c: _c.bestNCName()))
-        '''
-    
     
         all_components = set()
         namespace_component_map = {}
@@ -2146,7 +2143,7 @@ class Generator (object):
         for cset in component_csets:
             if 1 < len(cset):
                 print "COMPONENT DEPENDENCY LOOP of %d components" % (len(cset),)
-                cg = pyxb.utils.utility.Graph(cset[0])
+                cg = pyxb.utils.utility.Graph()
                 for c in cset:
                     print '  %s' % (c.expandedName(),)
                     cg.addNode(c)
