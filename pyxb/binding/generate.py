@@ -1107,7 +1107,7 @@ class _ModuleNaming_mixin (object):
             aux = ''
             if local_name != rem_name:
                 aux = ' as %s' % (local_name,)
-            self.__bindingIO.write("from %s import %s%s\n" % (module.modulePath(), rem_name, aux))
+            self.__bindingIO.write("from %s import %s%s # %s\n" % (module.modulePath(), rem_name, aux, c.expandedName()))
 
     def writeToModuleFile (self):
         binding_file = self.generator().directoryForModulePath(self.modulePath())
@@ -2015,3 +2015,17 @@ class Generator (object):
             self.__bindingModules = self.__buildBindingModules()
         return self.__bindingModules
     
+    def writeNamespaceArchive (self):
+        archive_file = self.archiveFile()
+        if archive_file is not None:
+            ns_archive = pyxb.namespace.NamespaceArchive(namespaces=self.namespaces())
+            try:
+                ns_archive.writeNamespaces(archive_file)
+                print 'Saved parsed schema to %s URI' % (archive_file,)
+            except Exception, e:
+                print 'Exception saving preprocessed schema to %s: %s' % (component_model_file, e)
+                traceback.print_exception(*sys.exc_info())
+                try:
+                    os.unlink(component_model_file)
+                except:
+                    pass
