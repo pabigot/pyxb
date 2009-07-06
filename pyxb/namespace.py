@@ -224,6 +224,8 @@ class ExpandedName (pyxb.cscRoot):
         return tuple.__hash__(self.__expandedName)
 
     def __cmp__ (self, other):
+        if other is None: # None is below everything else
+            return cmp(1, -1)
         if isinstance(other, (str, unicode)):
             other = ( None, other )
         if not isinstance(other, tuple):
