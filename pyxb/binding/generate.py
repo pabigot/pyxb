@@ -1747,7 +1747,7 @@ class Generator (object):
             parser.add_option('--binding-style',
                               type='choice', choices=(self.STYLE_ACCESSOR, self.STYLE_PROPERTY),
                               help=self.__stripSpaces(self.bindingStyle.__doc__))
-            parser.add_option('--write-for-customization',
+            parser.add_option('-r', '--write-for-customization',
                               action='store_true', dest='write_for_customization',
                               help=self.__stripSpaces(self.writeForCustomization.__doc__ + ' This option turns on the feature.'))
             parser.add_option('--no-write-for-customization',

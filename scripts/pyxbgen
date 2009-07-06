@@ -8,7 +8,7 @@ import os.path
 
 generator = pyxb.binding.generate.Generator()
 parser = generator.optionParser()
-parser.add_option('--wsdl-location', metavar='FILE_or_URL',
+parser.add_option('-W', '--wsdl-location', metavar='FILE_or_URL',
                   action='append',
                   help=\
 '''Generate bindings for the C{types} stanza of the WSDL at this
