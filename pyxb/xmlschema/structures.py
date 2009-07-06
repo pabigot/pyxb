@@ -676,14 +676,9 @@ class _NamedComponent_mixin (pyxb.cscRoot):
                 elif isinstance(self.scope(), ComplexTypeDefinition):
                     scope = self.scope()._picklingReference()
                 elif self._scopeIsIndeterminate():
-                    print '************* Attempt to pickle reference to %s tns %s in indeterminate scope in %s' % (self, self.targetNamespace(), pyxb.namespace.NamespaceArchive.PicklingNamespaces())
-                    owner_chain = []
-                    owner = self
-                    while owner:
-                        owner_chain.append(str(owner))
-                        owner = owner.owner()
-                    print "\n".join(owner_chain)
-                    #raise pyxb.LogicError('Attempt to pickle reference to %s tns %s in indeterminate scope in %s' % (self, self.targetNamespace(), pyxb.namespace.NamespaceArchive.PicklingNamespaces()))
+                    # This is actually OK: we made sure both the scope and
+                    # this instance can be looked up by a unique identifier.
+                    pass
             else:
                 assert isinstance(self, _NamedComponent_mixin), 'Pickling unnamed component %s in indeterminate scope by reference' % (self,)
 
