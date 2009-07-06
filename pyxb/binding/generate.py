@@ -21,6 +21,7 @@ import pyxb.xmlschema as xs
 import StringIO
 import datetime
 import urlparse
+import errno
 
 from pyxb.utils import utility
 from pyxb.utils import templates
@@ -880,8 +881,14 @@ class _ModuleNaming_mixin (object):
 
     __ComponentBindingModuleMap = {}
 
-    def __init__ (self, *args, **kw):
+    def generator (self):
+        return self.__generator
+    __generator = None
+
+    def __init__ (self, generator, *args, **kw):
         super(_ModuleNaming_mixin, self).__init__(*args, **kw)
+        self.__generator = generator
+        assert isinstance(self.__generator, Generator)
         self.__anonSTDIndex = 1
         self.__anonCTDIndex = 1
         self.__components = []
@@ -1102,6 +1109,25 @@ class _ModuleNaming_mixin (object):
                 aux = ' as %s' % (local_name,)
             self.__bindingIO.write("from %s import %s%s\n" % (module.modulePath(), rem_name, aux))
 
+    def writeToModuleFile (self):
+        binding_file = self.generator().directoryForModulePath(self.modulePath())
+        (binding_path, leaf) = os.path.split(binding_file)
+        try:
+            os.makedirs(binding_path)
+        except Exception, e:
+            if errno.EEXIST != e.errno:
+                raise
+        path_elts = binding_path.split(os.sep)
+        for n in range(len(path_elts)):
+            sub_path = os.path.join(*path_elts[:1+n])
+            init_path = os.path.join(sub_path, '__init__.py')
+            if not os.path.exists(init_path):
+                file(init_path, 'w')
+        use_binding_file = os.path.join(binding_path, '%s.py' % (leaf,))
+        file(use_binding_file, 'w').write(self.moduleContents())
+        print 'Saved binding source to %s' % (use_binding_file,)
+
+
 class NamespaceModule (_ModuleNaming_mixin):
     """This class represents a Python module that holds all the
     declarations belonging to a specific namespace."""
@@ -1135,8 +1161,8 @@ class NamespaceModule (_ModuleNaming_mixin):
     def namespaceGroupMulti (self):
         return 1 < len(self.__namespaceGroup)
 
-    def __init__ (self, namespace, ns_scc, components=None):
-        super(NamespaceModule, self).__init__(self)
+    def __init__ (self, generator, namespace, ns_scc, components=None, **kw):
+        super(NamespaceModule, self).__init__(generator, **kw)
         self._initializeUniqueInModule(self._UniqueInModule)
         self.__namespace = namespace
         self.defineNamespace(namespace, 'Namespace', require_unique=False)
@@ -1236,8 +1262,8 @@ class NamespaceGroupModule (_ModuleNaming_mixin):
     __UniqueInGroups = set()
     _GroupPrefix = '_group'
 
-    def __init__ (self, namespace_modules):
-        super(NamespaceGroupModule, self).__init__(self)
+    def __init__ (self, generator, namespace_modules, **kw):
+        super(NamespaceGroupModule, self).__init__(generator, **kw)
         assert 1 < len(namespace_modules)
         self.__namespaceModules = namespace_modules
 
@@ -1304,8 +1330,8 @@ class SchemaGroupModule (_ModuleNaming_mixin):
 
     _UniqueInModule = set([ 'pyxb', 'sys' ])
     
-    def __init__ (self, namespace_module, schema_group):
-        super(SchemaGroupModule, self).__init__(self)
+    def __init__ (self, generator, namespace_module, schema_group, **kw):
+        super(SchemaGroupModule, self).__init__(generator, **kw)
         self.__namespaceModule = namespace_module
         #self.defineNamespace(namespace_module.namespace(), 'Namespace', require_unique=False)
         self.__schemaGroup = schema_group
@@ -1376,6 +1402,9 @@ class Generator (object):
         return self
     __bindingRoot = None
     
+    def directoryForModulePath (self, module_path):
+        return os.path.join(self.bindingRoot(), *module_path.split('.'))
+
     def schemaRoot (self):
         """The directory from which entrypoint schemas specified as
         relative file paths will be read.
@@ -1866,10 +1895,10 @@ class Generator (object):
             nsg_head = None
             for ns in ns_scc:
                 if ns in siblings:
-                    nsm = NamespaceModule(ns, ns_scc, namespace_component_map.get(ns, ns.components()))
+                    nsm = NamespaceModule(self, ns, ns_scc, namespace_component_map.get(ns, ns.components()))
                     modules.add(nsm)
                 else:
-                    nsm = NamespaceModule(ns, ns_scc)
+                    nsm = NamespaceModule(self, ns, ns_scc)
                 module_graph.addNode(nsm)
                 namespace_module_map[ns] = nsm
                 assert ns == nsm.namespace()
@@ -1879,7 +1908,7 @@ class Generator (object):
                 namespace_modules.append(nsm)
     
             if (nsg_head is not None) and nsg_head.namespaceGroupMulti():
-                ngm = NamespaceGroupModule(namespace_modules)
+                ngm = NamespaceGroupModule(self, namespace_modules)
                 modules.add(ngm)
                 module_graph.addNode(ngm)
                 for nsm in namespace_modules:
@@ -1896,7 +1925,7 @@ class Generator (object):
                 print 'MULTI_ELT SCHEMA GROUP: %s' % ("\n  ".join([_sc.schemaLocation() for _sc in sc_scc]),)
     
             if (nsm is not None) and (nsm.namespaceGroupModule() is not None):
-                sgm = SchemaGroupModule(nsm, sc_scc)
+                sgm = SchemaGroupModule(self, nsm, sc_scc)
                 modules.add(sgm)
                 module_graph.addEdge(sgm, nsm)
             for sc in sc_scc:

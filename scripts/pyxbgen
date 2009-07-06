@@ -44,7 +44,7 @@ try:
     top_module = None
     path_dirs = set()
     for m in modules:
-        print 'Save %s in %s' % (m, m.modulePath())
+        m.writeToModuleFile()
         '''
         if isinstance(m, pyxb.binding.generate.NamespaceModule):
             sns = m.namespace()
