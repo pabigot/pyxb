@@ -29,6 +29,8 @@ class _TypeBinding_mixin (pyxb.cscRoot):
 
     _ReservedSymbols = set([ 'validateBinding', 'toDOM', 'toxml', 'Factory' ])
 
+    _PyXBFactoryKeywords = ( '_dom_node', '_apply_whitespace_facet', '_validate_constraints' )
+
     # While simple type definitions cannot be abstract, they can appear in
     # many places where complex types can, so we want it to be legal to test
     # for abstractness without checking whether the object is a complex type.
@@ -1249,7 +1251,13 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         super(complexTypeDefinition, self).__init__(**kw)
         self.reset()
         if self._CT_SIMPLE == self._ContentTypeTag:
-            self.__setContent(self._TypeDefinition.Factory(_dom_node=dom_node, *args, **kw))
+            # Pass only PyXB-relevant keywords: no Python base simple types
+            # take keywords, and they get pissy if you given them any.  Which
+            # happens if we're trying to initialize some attributes in the
+            # constructor.
+            rkw = dict(zip(self._PyXBFactoryKeywords, map(kw.get, self._PyXBFactoryKeywords)))
+            rkw['_dom_node'] = dom_node
+            self.__setContent(self._TypeDefinition.Factory(*args, **rkw))
         # Extract keywords that match field names
         attribute_settings = { }
         if dom_node is not None:
