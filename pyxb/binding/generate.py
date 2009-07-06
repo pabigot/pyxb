@@ -1720,10 +1720,10 @@ class Generator (object):
             parser = optparse.OptionParser(usage="%prog [options] [more schema locations...]",
                                            version='%%prog from PyXB %s' % (pyxb.__version__,),
                                            description='Generate bindings from a set of XML schemas')
-            parser.add_option('--schema-location', metavar="FILE_or_URL",
+            parser.add_option('-u', '--schema-location', metavar="FILE_or_URL",
                               action='append',
                               help=self.__stripSpaces(self.addSchemaLocation.__doc__))
-            parser.add_option('--module', metavar="MODULE",
+            parser.add_option('-m', '--module', metavar="MODULE",
                               action='append',
                               help=self.__stripSpaces(self.addModuleName.__doc__))
             parser.add_option('--module-prefix', metavar="MODULE",
