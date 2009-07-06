@@ -1825,8 +1825,11 @@ class Generator (object):
             raise pyxb.PyXBException('Cannot resolve external schema multiple times')
         while self.__schemaLocationList:
             sl = self.__schemaLocationList.pop(0)
-            schema = xs.schema.CreateFromLocation(absolute_schema_location=self.normalizeSchemaLocation(sl))
-            self.addSchema(schema)
+            try:
+                schema = xs.schema.CreateFromLocation(absolute_schema_location=self.normalizeSchemaLocation(sl))
+                self.addSchema(schema)
+            except pyxb.SchemaUniquenessError, e:
+                print 'WARNING: Skipped redundant translation of %s defining %s' % (e.schemaLocation, e.namespace)
         for schema in self.__schemas:
             ns = schema.targetNamespace()
             print 'namespace %s' % (ns,)
@@ -1909,7 +1912,7 @@ class Generator (object):
     
             if (nsg_head is not None) and nsg_head.namespaceGroupMulti():
                 ngm = NamespaceGroupModule(self, namespace_modules)
-                modules.add(ngm)
+                #modules.add(ngm)
                 module_graph.addNode(ngm)
                 for nsm in namespace_modules:
                     module_graph.addEdge(ngm, nsm)
@@ -1991,12 +1994,10 @@ class Generator (object):
     
     
         for m in modules:
-            if isinstance(m, NamespaceModule):
-                ngm = m.namespaceGroupModule()
-                if ngm is not None:
-                    m.addImportsFrom(ngm)
-            elif isinstance(m, SchemaGroupModule):
-                m.namespaceModule().namespaceGroupModule().addImportsFrom(m)
+            if isinstance(m, SchemaGroupModule):
+                ngm = m.namespaceModule().namespaceGroupModule()
+                for nsm in ngm.namespaceModules():
+                    nsm.addImportsFrom(m)
     
         for std in simple_type_definitions:
             GenerateSTD(std)

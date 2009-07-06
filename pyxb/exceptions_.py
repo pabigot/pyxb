@@ -37,6 +37,16 @@ class NamespaceArchiveError (PyXBException):
     """Problem related to namespace archives"""
     pass
 
+class SchemaUniquenessError (PyXBException):
+    """Raised when somebody tries to create a schema component using a
+    schema that has already been used in that namespace.  Import and
+    include processing would have avoided this, so somebody asked for
+    it specifically."""
+    def __init__ (self, namespace, schema_location, *args, **kw):
+        super(SchemaUniquenessError, self).__init__(*args, **kw)
+        self.namespace = namespace
+        self.schemaLocation = schema_location
+
 class BindingGenerationError (PyXBException):
     """Raised when something goes wrong generating the binding classes"""
     pass
