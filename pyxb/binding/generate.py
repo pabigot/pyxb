@@ -2024,7 +2024,7 @@ class Generator (object):
                 ns_archive.writeNamespaces(archive_file)
                 print 'Saved parsed schema to %s URI' % (archive_file,)
             except Exception, e:
-                print 'Exception saving preprocessed schema to %s: %s' % (component_model_file, e)
+                print 'Exception saving preprocessed schema to %s: %s' % (archive_file, e)
                 traceback.print_exception(*sys.exc_info())
                 try:
                     os.unlink(component_model_file)
