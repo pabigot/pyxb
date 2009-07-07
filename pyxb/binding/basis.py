@@ -174,6 +174,66 @@ class _TypeBinding_mixin (pyxb.cscRoot):
         return self._element().substitutesFor(element)
 
     @classmethod
+    def _CompatibleValue (cls, value):
+        """Return a variant of the value that is compatible with this type.
+
+        Compatibility is defined relative to the type definition associated
+        with the element.  The value C{None} is always compatible.  If
+        C{value} has a Python type (e.g., C{int}) that is a superclass of the
+        required L{_TypeBinding_mixin} class (e.g., C{xs:byte}), C{value} is
+        used as a constructor parameter to return a new instance of the
+        required type.  Note that constraining facets are applied here if
+        necessary (e.g., although a Python C{int} with value C{500} is
+        type-compatible with C{xs:byte}, it is outside the value space, and
+        compatibility will fail.
+
+        @raise pyxb.BadTypeValueError: if the value is not both
+        type-consistent and value-consistent with the element's type.
+        """
+        # None is always None
+        if value is None:
+            return None
+        # Already an instance?
+        if isinstance(value, cls):
+            # @todo: Consider whether we should change the associated _element
+            # of this value.  (**Consider** it, don't just do it.)
+            return value
+        value_type = type(value)
+        # All string-based PyXB binding types use unicode, not str
+        if str == value_type:
+            value_type = unicode
+
+        # See if we got passed a Python value which needs to be "downcasted"
+        # to the _TypeBinding_mixin version.
+        if issubclass(cls, value_type):
+            return cls(value)
+
+        # See if we have a numeric type that needs to be cast across the
+        # numeric hierarchy
+        if isinstance(value, (int, long)) and issubclass(cls, (int, long, float)):
+            return cls(value)
+
+        # See if we have a string type that somebody understands
+        if isinstance(value, (str, unicode)):
+            return cls(value)
+
+        # Maybe this is a union?
+        if issubclass(cls, STD_union):
+            for mt in cls._MemberTypes:
+                try:
+                    return mt._CompatibleValue(value)
+                except:
+                    pass
+
+        # There may be other things that can be converted to the desired type,
+        # but we can't tell that from the type hierarchy.  Too many of those
+        # things result in an undesirable loss of information: for example,
+        # when an all model supports both numeric and string transitions, the
+        # candidate is a number, and the string transition is tested first.
+        raise pyxb.BadTypeValueError('No conversion from %s to %s' % (value_type, cls))
+
+
+    @classmethod
     def _IsSimpleTypeContent (cls):
         """Return True iff the content of this binding object is a simple type.
 
@@ -960,15 +1020,7 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
     def compatibleValue (self, value):
         """Return a variant of the value that is compatible with this element.
 
-        Compatibility is defined relative to the type definition associated
-        with the element.  The value C{None} is always compatible.  If
-        C{value} has a Python type (e.g., C{int}) that is a superclass of the
-        required L{_TypeBinding_mixin} class (e.g., C{xs:byte}), C{value} is
-        used as a constructor parameter to return a new instance of the
-        required type.  Note that constraining facets are applied here if
-        necessary (e.g., although a Python C{int} with value C{500} is
-        type-compatible with C{xs:byte}, it is outside the value space, and
-        compatibility will fail.
+        This mostly defers to L{_TypeBinding_mixing._compatibleValue}.
 
         @raise pyxb.BadTypeValueError: if the value is not both
         type-consistent and value-consistent with the element's type.
@@ -976,38 +1028,9 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
         # None is always None
         if value is None:
             return None
-        # Already an instance?
-        if isinstance(value, self.typeDefinition()):
-            # @todo: Consider whether we should change the associated _element
-            # of this value.  (**Consider** it, don't just do it.)
-            return value
         if isinstance(value, _TypeBinding_mixin) and (value._element() is not None) and value._element().substitutesFor(self):
             return value
-        value_type = type(value)
-        # All string-based PyXB binding types use unicode, not str
-        if str == value_type:
-            value_type = unicode
-
-        # See if we got passed a Python value which needs to be "downcasted"
-        # to the _TypeBinding_mixin version.
-        if issubclass(self.typeDefinition(), value_type):
-            return self(value)
-
-        # See if we have a numeric type that needs to be cast across the
-        # numeric hierarchy
-        if isinstance(value, (int, long)) and issubclass(self.typeDefinition(), (int, long, float)):
-            return self(value)
-
-        # See if we have a string type that somebody understands
-        if isinstance(value, (str, unicode)):
-            return self(value)
-
-        # There may be other things that can be converted to the desired type,
-        # but we can't tell that from the type hierarchy.  Too many of those
-        # things result in an undesirable loss of information: for example,
-        # when an all model supports both numeric and string transitions, the
-        # candidate is a number, and the string transition is tested first.
-        raise pyxb.BadTypeValueError('No conversion from %s to %s' % (value_type, self.typeDefinition()))
+        return self.typeDefinition()._CompatibleValue(value)
 
     # element
     @classmethod
