@@ -1401,7 +1401,10 @@ class Generator (object):
     __bindingRoot = None
     
     def directoryForModulePath (self, module_path):
-        return os.path.join(self.bindingRoot(), *module_path.split('.'))
+        module_path_elts = module_path.split('.')
+        if self.writeForCustomization():
+            module_path_elts.insert(-1, 'raw')
+        return os.path.join(self.bindingRoot(), *module_path_elts)
 
     def schemaRoot (self):
         """The directory from which entrypoint schemas specified as
@@ -1718,10 +1721,10 @@ class Generator (object):
             parser = optparse.OptionParser(usage="%prog [options] [more schema locations...]",
                                            version='%%prog from PyXB %s' % (pyxb.__version__,),
                                            description='Generate bindings from a set of XML schemas')
-            parser.add_option('-u', '--schema-location', metavar="FILE_or_URL",
+            parser.add_option('--schema-location', '-u', metavar="FILE_or_URL",
                               action='append',
                               help=self.__stripSpaces(self.addSchemaLocation.__doc__))
-            parser.add_option('-m', '--module', metavar="MODULE",
+            parser.add_option('--module', '-m', metavar="MODULE",
                               action='append',
                               help=self.__stripSpaces(self.addModuleName.__doc__))
             parser.add_option('--module-prefix', metavar="MODULE",
