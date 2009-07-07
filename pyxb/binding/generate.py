@@ -1167,9 +1167,7 @@ class NamespaceModule (_ModuleNaming_mixin):
         self.__namespace = namespace
         self.defineNamespace(namespace, 'Namespace', require_unique=False)
         print 'NSM Namespace %s module path %s' % (namespace, namespace.modulePath())
-        mp = self.__namespace.modulePath()
-        if mp is not None:
-            self._setModulePath(mp)
+        self._setModulePath(self.__namespace.modulePath())
         self.__namespaceGroup = ns_scc
         self._RecordNamespace(self)
         self.__namespaceGroupHead = self.ForNamespace(ns_scc[0])
