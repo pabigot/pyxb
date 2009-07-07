@@ -795,7 +795,10 @@ class ContentModelTransition (pyxb.cscRoot):
             try:
                 element = self.__processElementTransition(value)
             except Exception, e:
-                print 'Warning: Element transition failed: %s' % (e,)
+                import sys
+                import traceback
+                print 'Warning: Element transition failed on %s with %s: %s %s' % (ctd_instance, value, type(e), e)
+                #traceback.print_exception(*sys.exc_info())
                 raise
             if element is None:
                 return False
@@ -829,6 +832,8 @@ class ContentModelTransition (pyxb.cscRoot):
                         print 'WARNING: Unable to convert wildcard %s to Python instance: %s' % (node, e)
             if not self.__term.matches(ctd_instance, value):
                 raise pyxb.UnexpectedContentError(value)
+            print 'NOTE: Created unbound (DOM) wildcard element from %s' % (pyxb.namespace.ExpandedName(node),)
+            assert isinstance(ctd_instance.wildcardElements(), list), 'Uninitialized wildcard list in %s' % (ctd_instance._ExpandedName,)
             ctd_instance.wildcardElements().append(value)
         else:
             raise pyxb.LogicError('Unexpected transition term %s' % (self.__term,))

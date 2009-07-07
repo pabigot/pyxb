@@ -1605,7 +1605,10 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             for (eu, v) in order:
                 assert v != self
                 if eu is None:
-                    v.toDOM(dom_support, parent)
+                    if isinstance(v, xml.dom.Node):
+                        element.appendChild(v)
+                    else:
+                        v.toDOM(dom_support, parent)
                 else:
                     eu.toDOM(dom_support, parent, v)
             mixed_content = self.content()

@@ -1107,6 +1107,7 @@ class anyType (basis.complexTypeDefinition):
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('anyType')
     _ContentTypeTag = basis.complexTypeDefinition._CT_MIXED
     _Abstract = False
+    _HasWildcardElement = True
     
     # Generate from tests/schemas/anyType.xsd
     _ContentModel = content.ContentModel(state_map = {
