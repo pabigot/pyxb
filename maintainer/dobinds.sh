@@ -11,7 +11,7 @@ test -f ${SCHEMA_DIR}/XMLSchema.xsd || wget -O ${SCHEMA_DIR}/XMLSchema.xsd http:
 ( cat <<EOList
 # NOTE: Use prefix xml_ instead of xml because xml conflicts with standard package
 # This isn't really necessary, and currently fails resolution, so drop it
-#http://www.w3.org/2001/xml.xsd xml_
+http://www.w3.org/2001/xml.xsd xml_
 # NOTE: The non-normative XMLSchema namespace defines far more than
 # the public components for which we have built-in values.  The
 # incompleteness of the built-ins confuses PyXB.  There's no need to
@@ -42,10 +42,11 @@ EOList
   echo
   echo "Translating to ${prefix} from ${cached_schema}"
   scripts/pyxbgen \
-    --module-path pyxb.standard.bindings.${prefix} \
-    --schema-uri file:${cached_schema} \
-    --generate-raw-binding \
-    --save-component-model
+    --schema-location file:${cached_schema} \
+    --module=${prefix} \
+    --module-prefix=pyxb.standard.bindings \
+    --write-for-customization \
+    --archive-file=pyxb/standard/bindings/raw/${prefix}.wxs
   if [ 0 != $? ] ; then
     break
   fi

@@ -1194,10 +1194,9 @@ class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
         Returns self.
         """
         assert self != other
+        assert self.name() is not None
         assert self.isNameEquivalent(other)
         super(AttributeDeclaration, self)._setBuiltinFromInstance(other)
-        assert self.name() is not None
-        assert other.name() is not None
 
         # The other STD should be an unresolved schema-defined type.
         # Mark this instance as unresolved so it is re-examined
@@ -2392,6 +2391,7 @@ class AttributeGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, p
         """Create an attribute declaration component for a specified namespace."""
         bi = cls(name=name, namespace_context=target_namespace.initialNamespaceContext(), scope=_ScopedDeclaration_mixin.SCOPE_global)
         bi.__attributeUses = frozenset(attribute_uses)
+        bi.__isResolved = True
         return bi
 
     # CFD:AGD CFD:AttributeGroupDefinition
@@ -4693,7 +4693,7 @@ class Schema (_SchemaComponent_mixin):
         if isinstance(nc, AttributeDeclaration):
             return self.__addAttributeDeclaration(nc)
         if isinstance(nc, AttributeGroupDefinition):
-            return tns.addCategoryObject('attributeGroupDefinition', nc.name(), nc)
+            return self.__addAttributeGroupDefinition(nc)
         if isinstance(nc, ModelGroupDefinition):
             return tns.addCategoryObject('modelGroupDefinition', nc.name(), nc)
         if isinstance(nc, ElementDeclaration):
@@ -4728,8 +4728,6 @@ class Schema (_SchemaComponent_mixin):
         old_ad = tns.attributeDeclarations().get(local_name)
         if (old_ad is not None) and (old_ad != ad):
             # @todo: validation error if old_ad is not a built-in
-            if isinstance(ad, AttributeDeclaration) != isinstance(old_ad, AttributeDeclaration):
-                raise pyxb.SchemaValidationError('Name %s used for both simple and complex types' % (ad.name(),))
             # Copy schema-related information from the new definition
             # into the old one, and continue to use the old one.
             ad = self.__replaceUnresolvedDefinition(ad, old_ad._setBuiltinFromInstance(ad))
@@ -4737,6 +4735,21 @@ class Schema (_SchemaComponent_mixin):
             tns.addCategoryObject('attributeDeclaration', ad.name(), ad)
         assert ad is not None
         return ad
+
+    def __addAttributeGroupDefinition (self, agd):
+        local_name = agd.name()
+        assert self.__targetNamespace
+        tns = self.targetNamespace()
+        old_agd = tns.attributeGroupDefinitions().get(local_name)
+        if (old_agd is not None) and (old_agd != agd):
+            # @todo: validation error if old_ad is not a built-in
+            # Copy schema-related information from the new definition
+            # into the old one, and continue to use the old one.
+            ad = self.__replaceUnresolvedDefinition(agd, old_agd._setBuiltinFromInstance(agd))
+        else:
+            tns.addCategoryObject('attributeGroupDefinition', agd.name(), agd)
+        assert agd is not None
+        return agd
 
     def __str__ (self):
         return 'SCH[%s]' % (self.schemaLocation(),)
