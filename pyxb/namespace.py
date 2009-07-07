@@ -1605,7 +1605,6 @@ XMLNamespaces = Namespace('http://www.w3.org/2000/xmlns/',
                           bound_prefix='xmlns')
 """Namespaces in XML.  Not really a namespace, but is always available as C{xmlns}."""
 
-'''
 XML = _XML('http://www.w3.org/XML/1998/namespace',
            description='XML namespace',
            schema_location='http://www.w3.org/2001/xml.xsd',
@@ -1616,7 +1615,6 @@ XML = _XML('http://www.w3.org/XML/1998/namespace',
            in_scope_namespaces = { 'xs' : 'XMLSchema' })
 """Namespace and URI for XML itself (always available as C{xml})"""
 XML.setModulePath('pyxb.standard.bindings.xml_')
-'''
 
 XMLSchema = _XMLSchema('http://www.w3.org/2001/XMLSchema',
                        schema_location='http://www.w3.org/2001/XMLSchema.xsd',
