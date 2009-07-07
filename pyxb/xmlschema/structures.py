@@ -605,6 +605,25 @@ class _NamedComponent_mixin (pyxb.cscRoot):
         """
         return (type(self) == type(other)) and self.isNameEquivalent(other)
 
+    def isDerivationConsistent (self, other):
+        """Return True iff this type can serve as a restriction of the other
+        type for the purposes of element consistency.
+        
+        It appears that name equivalence is used; two complex type definitions
+        with identical structures are not considered equivalent (at least, per
+        XMLSpy).  However, some OpenGIS standards imply that derivation by
+        restriction from the other type is also acceptable.
+        """
+        this = self
+        while (this is not None) and not this.isUrTypeDefinition():
+            print 'Checking %s against %s' % (self, other)
+            if this.isTypeEquivalent(other):
+                return True
+            if self.DM_restriction != this.derivationMethod():
+                return False
+            this = this.baseTypeDefinition()
+        return False
+
     def _picklingReference (self):
         if self.__needAnonymousSupport():
             #print 'Wrapping %s as anonymous %s in %s' % (self, self._anonymousName(), self.targetNamespace())
@@ -1606,8 +1625,8 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
                 # Test cos-element-consistent
                 existing_type = existing_decl.typeDefinition()
                 pending_type = decl.typeDefinition()
-                if not existing_type.isTypeEquivalent(pending_type):
-                    raise pyxb.SchemaValidationError('Conflicting element declarations for %s: %s versus %s' % (decl.expandedName(), existing_type, pending_type))
+                if not pending_type.isDerivationConsistent(existing_type):
+                    raise pyxb.SchemaValidationError('Conflicting element declarations for %s: existing %s versus new %s' % (decl.expandedName(), existing_type, pending_type))
             elif isinstance(decl, AttributeDeclaration):
                 raise pyxb.SchemaValidationError('Multiple attribute declarations for %s' % (decl.expandedName(),))
             else:
