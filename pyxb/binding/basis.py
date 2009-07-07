@@ -732,16 +732,30 @@ class STD_union (simpleTypeDefinition):
         rv = None
         # NB: get, not pop: preserve it for the member type invocations
         validate_constraints = kw.get('_validate_constraints', True)
-        for mt in cls._MemberTypes:
-            try:
-                rv = mt.Factory(*args, **kw)
-                break
-            except pyxb.BadTypeValueError:
-                pass
-            except ValueError:
-                pass
-            except:
-                pass
+        if 0 < len(args):
+            arg = args[0]
+            for mt in cls._MemberTypes:
+                if isinstance(arg, mt):
+                    try:
+                        rv = mt.Factory(*args, **kw)
+                        break
+                    except pyxb.BadTypeValueError:
+                        pass
+                    except ValueError:
+                        pass
+                    except:
+                        pass
+        if rv is None:
+            for mt in cls._MemberTypes:
+                try:
+                    rv = mt.Factory(*args, **kw)
+                    break
+                except pyxb.BadTypeValueError:
+                    pass
+                except ValueError:
+                    pass
+                except:
+                    pass
         if rv is not None:
             if validate_constraints:
                 cls.XsdConstraintsOK(rv)
