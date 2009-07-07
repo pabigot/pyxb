@@ -10,4 +10,26 @@
 		</xs:sequence>
 	</xs:complexType>
 	<xs:element name="node" type="node"/>
+	<xs:complexType name="selfReference">
+		<xs:sequence>
+			<xs:element ref="selfReferential" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:element name="selfReferential" type="selfReference"/>
+	<xs:element name="srBaseElt" type="srBase"/>
+	<xs:element name="srSubElt" type="srSub"/>
+	<xs:complexType name="srBase">
+		<xs:sequence>
+			<xs:element ref="srBaseElt" minOccurs="0" maxOccurs="5"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="srSub">
+		<xs:complexContent>
+			<xs:restriction base="srBase">
+				<xs:sequence>
+					<xs:element ref="srSubElt" minOccurs="0" maxOccurs="3"/>
+				</xs:sequence>
+			</xs:restriction>
+		</xs:complexContent>
+	</xs:complexType>
 </xs:schema>

@@ -592,7 +592,10 @@ class _NamedComponent_mixin (pyxb.cscRoot):
     def isNameEquivalent (self, other):
         """Return true iff this and the other component share the same name and target namespace.
         
-        Anonymous components are inherently name inequivalent, except to themselves."""
+        Anonymous components are inherently name inequivalent, except to
+        themselves.  This relies on equivalence as defined for
+        pyxb.namespace.ExpandedName, for which None is not equivalent to any
+        non-anonymous name."""
         # Note that unpickled objects 
         return (self == other) or ((not self.isAnonymous()) and (self.expandedName() == other.expandedName()))
 
@@ -607,30 +610,37 @@ class _NamedComponent_mixin (pyxb.cscRoot):
 
     def isDerivationConsistent (self, other):
         """Return True iff this type can serve as a restriction of the other
-        type for the purposes of element consistency.
+        type for the purposes of U{element consistency<http://www.w3.org/TR/xmlschema-1/#cos-element-consistent>}.
         
-        It appears that name equivalence is used; two complex type definitions
-        with identical structures are not considered equivalent (at least, per
-        XMLSpy).  However, some OpenGIS standards imply that derivation by
-        restriction from the other type is also acceptable.
+        It appears that name equivalence is normally used; two complex type
+        definitions with identical structures are not considered equivalent
+        (at least, per XMLSpy).  However, some OpenGIS standards demonstrate
+        that derivation by restriction from the other type is also acceptable.
+        That opens a whole can of worms; see
+        L{ElementDeclaration.isAdaptable}.
         """
         this = self
         # can this succeed if component types are not equivalent?
-        while (this is not None) and not this.isUrTypeDefinition():
-            print 'Checking %s against %s' % (this, other)
+        while this is not None:
             assert this.isResolved()
             if this.isTypeEquivalent(other):
                 return True
+            print 'Checking %s against %s' % (this, other)
+            if not (this.isResolved() and other.isResolved()):
+                raise pyxb.IncompleteImplementationError('Oh fudge.  Somebody violated the assumptions in ElementDeclaration.isAdaptable.')
             if isinstance(self, ComplexTypeDefinition):
                 if self.DM_restriction != this.derivationMethod():
                     return False
             elif isinstance(self, SimpleTypeDefinition):
                 if self._DA_restriction != this._derivationAlternative():
-                    print 'Simple type derived by %s: not restriction' % (this._derivationAlternative(),)
                     return False
             else:
                 raise pyxb.IncompleteImplementationError('Need derivation consistency check for type %s' % (type(this),))
             this = this.baseTypeDefinition()
+            if this.isUrTypeDefinition():
+                # Well, this certainly can't be a valid restriction of
+                # anything else.
+                break
         return False
 
     def _picklingReference (self):
@@ -1488,8 +1498,44 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.na
 
         return rv
 
-    def isDeepResolved (self):
-        return self.isResolved() and self.typeDefinition().isResolved()
+    def isAdaptable (self, ctd):
+        """Determine whether this element declaration is adaptable.
+
+        OK, this gets ugly.  First, if this declaration isn't resolved, it's
+        clearly not adaptable.
+
+        Now: For it to be adaptable, we must know enough about its type to
+        verify that it is derivation-consistent with any other uses of the
+        same name in the same complex type.  If the element's type is
+        resolved, that's good enough.
+
+        If the element's type isn't resolved, we're golden as long as
+        type-equivalent types were used.  But it's also allowed for the
+        derived ctd to use the element name constraining it to a derivation of
+        the element base type.  (Go see namespace
+        http://www.opengis.net/ows/1.1 types PositionType, PositionType2D,
+        BoundingBox, and WGS84BoundingBox for an example).  So, we really do
+        have to have the element's type resolved.
+
+        Except that if a CTD's content incorporates an element with the same
+        type as the CTD (i.e., nested), this will never happen, because the
+        CTD can't get resolved until after it has been resolved.
+        (Go see {http://www.opengis.net/ows/1.1}ContentsBaseType and
+        {http://www.opengis.net/ows/1.1}DatasetDescriptionSummaryBaseType for
+        an example).
+
+        So, we give the world a break and assume that if the type we're trying
+        to resolve is the same as the type of an element in that type, then
+        the element type will be resolved by the point it's needed.  In point
+        of fact, it won't, but we'll only notice that if a CTD contains an
+        element whose type is a restriction of the CTD.  In that case,
+        isDerivationConsistent will blow chunks and somebody'll have to come
+        back and finish up this mess.
+        """
+
+        if not self.isResolved():
+            return False
+        return self.typeDefinition().isResolved() or (self.typeDefinition() == ctd)
 
     # aFS:ED
     def _adaptForScope (self, owner, ctd):
@@ -2273,7 +2319,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         # context.
         if isinstance(self.__contentType, tuple) and isinstance(self.__contentType[1], Particle):
             prt = self.__contentType[1]
-            if not prt.isDeepResolved():
+            if not prt.isAdaptable(self):
                 self._queueForResolution('content particle %s is not deep-resolved' % (prt,))
                 return self
             self.__contentType = (self.__contentType[0], prt._adaptForScope(self, self))
@@ -2472,11 +2518,11 @@ class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
     __particles = None
     def particles (self): return self.__particles
 
-    def isDeepResolved (self):
+    def isAdaptable (self, ctd):
         """A model group has an unresolvable particle if any of its
         particles is unresolvable.  Duh."""
         for p in self.particles():
-            if not p.isDeepResolved():
+            if not p.isAdaptable(ctd):
                 return False
         return True
 
@@ -2919,14 +2965,14 @@ class Particle (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin):
             rv.__term = term
         return rv
 
-    def isDeepResolved (self):
+    def isAdaptable (self, ctd):
         """A particle has an unresolvable particle if it cannot be
         resolved, or if it has resolved to a term which is a model
         group that has an unresolvable particle.
         """
         if not self.isResolved():
             return False
-        return self.term().isDeepResolved()
+        return self.term().isAdaptable(ctd)
         
     @classmethod
     def IsTypedefNode (cls, node):
@@ -3100,7 +3146,7 @@ class Wildcard (_SchemaComponent_mixin, _Annotated_mixin):
         self.__namespaceConstraint = kw['namespace_constraint']
         self.__processContents = kw['process_contents']
 
-    def isDeepResolved (self):
+    def isAdaptable (self, ctd):
         return True
 
     # aFS:WC
