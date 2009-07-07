@@ -27,7 +27,6 @@ if options.wsdl_location is not None:
         spec = wsdl.definitions.createFromDOM(pyxb.utils.domutils.StringToDOM(xmlns), process_schema=True, wsdl_location=wsdl_uri)
         generator.addSchema(spec.schema())
 generator.applyOptionValues(options, args)
-print generator.getCommandLineArgs()
 
 generator.resolveExternalSchema()
 
