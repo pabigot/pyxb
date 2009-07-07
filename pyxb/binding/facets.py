@@ -522,6 +522,8 @@ class CF_enumeration (ConstrainingFacet, _CollectionFacet_mixin, _LateDatatype_m
         self.__tagToElement[ee.tag()] = ee
         self.__unicodeToElement[ee.unicodeValue()] = ee
         value = ee.value()
+        if issubclass(self.valueDatatype(), basis.STD_list):
+            value = ' '.join(value)
         self.__valueToElement[value] = ee
         self.__elements.append(ee)
         return value
