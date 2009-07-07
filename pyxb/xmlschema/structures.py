@@ -615,12 +615,21 @@ class _NamedComponent_mixin (pyxb.cscRoot):
         restriction from the other type is also acceptable.
         """
         this = self
+        # can this succeed if component types are not equivalent?
         while (this is not None) and not this.isUrTypeDefinition():
-            print 'Checking %s against %s' % (self, other)
+            print 'Checking %s against %s' % (this, other)
+            assert this.isResolved()
             if this.isTypeEquivalent(other):
                 return True
-            if self.DM_restriction != this.derivationMethod():
-                return False
+            if isinstance(self, ComplexTypeDefinition):
+                if self.DM_restriction != this.derivationMethod():
+                    return False
+            elif isinstance(self, SimpleTypeDefinition):
+                if self._DA_restriction != this._derivationAlternative():
+                    print 'Simple type derived by %s: not restriction' % (this._derivationAlternative(),)
+                    return False
+            else:
+                raise pyxb.IncompleteImplementationError('Need derivation consistency check for type %s' % (type(this),))
             this = this.baseTypeDefinition()
         return False
 
@@ -1480,7 +1489,7 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.na
         return rv
 
     def isDeepResolved (self):
-        return self.isResolved()
+        return self.isResolved() and self.typeDefinition().isResolved()
 
     # aFS:ED
     def _adaptForScope (self, owner, ctd):
@@ -2914,11 +2923,6 @@ class Particle (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin):
         """A particle has an unresolvable particle if it cannot be
         resolved, or if it has resolved to a term which is a model
         group that has an unresolvable particle.
-
-        wxs is a schema within which resolution proceeds, or None to
-        indicate that this should simply test for lack of
-        resolvability, not do any resolution.
-
         """
         if not self.isResolved():
             return False
@@ -3389,6 +3393,16 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
     VARIETY_list = 0x03         #<<< Use for lists of atomic-variety types
     VARIETY_union = 0x04        #<<< Use for types that aggregate other types
 
+    # Derivation alternative
+    _DA_empty = 'none specified'
+    _DA_restriction = 'restriction'
+    _DA_list = 'list'
+    _DA_union = 'union'
+
+    def _derivationAlternative (self):
+        return self.__derivationAlternative
+    __derivationAlternative = None
+
     # Identify the sort of value collection this holds.  This field is
     # used to identify unresolved definitions.
     __variety = None
@@ -3509,6 +3523,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
         elif self.VARIETY_union == self.variety():
             elts.append('union of %s' % (" ".join([str(_mtd.name()) for _mtd in self.memberTypeDefinitions()],)))
         else:
+            # Gets here if the type has not been resolved.
             elts.append('???')
             #raise pyxb.LogicError('Unexpected variety %s' % (self.variety(),))
         if self.__facets:
@@ -3690,14 +3705,14 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
             # not be resolved; the caller needs to handle
             # that.
             self.__itemTypeDefinition = self.CreateFromDOM(self.__singleSimpleTypeChild(body), **kw)
-        return self.__completeResolution(body, self.VARIETY_list, 'list')
+        return self.__completeResolution(body, self.VARIETY_list, self._DA_list)
 
     def __initializeFromRestriction (self, body, **kw):
         self.__baseTypeDefinition = None
         self.__baseAttribute = NodeAttribute(body, 'base')
         if self.__baseAttribute is None:
             self.__baseTypeDefinition = self.SimpleUrTypeDefinition()
-        return self.__completeResolution(body, None, 'restriction')
+        return self.__completeResolution(body, None, self._DA_restriction)
 
     def __initializeFromUnion (self, body, **kw):
         self.__baseTypeDefinition = self.SimpleUrTypeDefinition()
@@ -3706,7 +3721,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
         for cn in body.childNodes:
             if (Node.ELEMENT_NODE == cn.nodeType) and xsd.nodeIsNamed(cn, 'simpleType'):
                 self.__localMemberTypes.append(self.CreateFromDOM(cn, **kw))
-        return self.__completeResolution(body, self.VARIETY_union, 'union')
+        return self.__completeResolution(body, self.VARIETY_union, self._DA_union)
 
     def __resolveBuiltin (self):
         if self.hasPythonSupport():
@@ -3843,7 +3858,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
         std = SimpleTypeDefinition(owner=owner, namespace_context=owner._namespaceContext(), variety=None, scope=self._scope(), schema=owner._schema())
         print '%s tns %s' % (self.expandedName(), std.targetNamespace())
         std.__baseTypeDefinition = self
-        return std.__completeResolution(body, None, 'restriction')
+        return std.__completeResolution(body, None, self._DA_restriction)
 
     # Complete the resolution of some variety of STD.  Note that the
     # variety is compounded by an alternative, since there is no
@@ -3887,18 +3902,18 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
                 
             self.__primitiveTypeDefinition = ptd
         elif self.VARIETY_list == variety:
-            if 'list' == alternative:
+            if self._DA_list == alternative:
                 if self.__itemTypeAttribute is not None:
                     it_en = self._namespaceContext().interpretQName(self.__itemTypeAttribute)
                     self.__itemTypeDefinition = it_en.typeDefinition()
                     if not isinstance(self.__itemTypeDefinition, SimpleTypeDefinition):
                         raise pyxb.InvalidSchemaError('Unable to locate STD %s for items' % (it_en,))
-            elif 'restriction' == alternative:
+            elif self._DA_restriction == alternative:
                 self.__itemTypeDefinition = self.__baseTypeDefinition.__itemTypeDefinition
             else:
                 raise pyxb.LogicError('completeResolution list variety with alternative %s' % (alternative,))
         elif self.VARIETY_union == variety:
-            if 'union' == alternative:
+            if self._DA_union == alternative:
                 # First time we try to resolve, create the member type
                 # definitions.  If something later prevents us from resolving
                 # this type, we don't want to create them again, because we
@@ -3937,7 +3952,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
                         mtd.extend(mt.memberTypeDefinitions())
                     else:
                         mtd.append(mt)
-            elif 'restriction' == alternative:
+            elif self._DA_restriction == alternative:
                 assert self.__baseTypeDefinition
                 # Base type should have been resolved before we got here
                 assert self.__baseTypeDefinition.isResolved()
@@ -3948,7 +3963,6 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
             # Save a unique copy
             self.__memberTypeDefinitions = mtd[:]
         else:
-            print 'VARIETY "%s"' % (variety,)
             raise pyxb.LogicError('completeResolution with variety 0x%02x' % (variety,))
 
         # Determine what facets, if any, apply to this type.  This
@@ -3956,6 +3970,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
         self.__processHasFacetAndProperty(variety)
         self.__updateFacets(body)
 
+        self.__derivationAlternative = alternative
         self.__variety = variety
         self.__domNode = None
         #print 'Completed STD %s' % (self,)
