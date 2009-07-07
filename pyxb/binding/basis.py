@@ -1476,7 +1476,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             raise pyxb.NotSimpleContentError(self)
         if self._isNil():
             return True
-        if not self.content():
+        if self.content() is None:
             raise pyxb.MissingContentError(self)
         return self.content().xsdConstraintsOK()
 
