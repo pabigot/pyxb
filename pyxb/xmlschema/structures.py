@@ -622,7 +622,6 @@ class _NamedComponent_mixin (pyxb.cscRoot):
         this = self
         # can this succeed if component types are not equivalent?
         while this is not None:
-            assert this.isResolved()
             if this.isTypeEquivalent(other):
                 return True
             print 'Checking %s against %s' % (this, other)
@@ -1535,7 +1534,23 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.na
 
         if not self.isResolved():
             return False
-        return self.typeDefinition().isResolved() or (self.typeDefinition() == ctd)
+        if self.typeDefinition().isResolved():
+            return True
+        # Aw, dammit.  See if we're gonna need the type resolved before we can
+        # adapt this thing.
+        existing_decl = ctd.lookupScopedElementDeclaration(self.expandedName())
+        if existing_decl is None:
+            # Nobody else has this name, so we don't have to check for
+            # consistency.
+            return True
+        # OK, we've got a name clash.  Are the two types trivially equivalent?
+        if self.typeDefinition().isTypeEquivalent(existing_decl.typeDefinition()):
+            # Yes! Go for it.
+            return True
+        # No.  Can't proceed until the type definition is resolved.  Hope it
+        # can be....
+        print 'WARNING: Require %s type to be resolved; might be a loop.'
+        return False
 
     # aFS:ED
     def _adaptForScope (self, owner, ctd):
@@ -1584,6 +1599,17 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.na
 
 
 class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.namespace._Resolvable_mixin, _Annotated_mixin, _AttributeWildcard_mixin):
+    __SequenceNumber = 0
+    @classmethod
+    def __NextSequenceNumber (cls):
+        rv = cls.__SequenceNumber
+        cls.__SequenceNumber += 1
+        return rv
+    __sequenceNumber = None
+    def _resetClone_csc (self, **kw):
+        self.__sequenceNumber = self.__NextSequenceNumber()
+        return getattr(super(Particle, self), '_resetClone_csc', lambda *_args,**_kw: self)(**kw)
+
     # The type resolved from the base attribute.
     __baseTypeDefinition = None
     def baseTypeDefinition (self):
@@ -1741,6 +1767,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
     
     def __init__ (self, *args, **kw):
         super(ComplexTypeDefinition, self).__init__(*args, **kw)
+        self.__sequenceNumber = self.__NextSequenceNumber()
         self.__derivationMethod = kw.get('derivation_method')
         self.__scopedElementDeclarations = { }
         self.__scopedAttributeDeclarations = { }
@@ -2332,8 +2359,9 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         return None
 
     def __str__ (self):
+        if self.isAnonymous:
+            return 'CTD{Anonymous}[%d]' % (self.__sequenceNumber,)
         return 'CTD[%s]' % (self.expandedName(),)
-
 
 class _UrTypeDefinition (ComplexTypeDefinition, _Singleton_mixin):
     """Subclass ensures there is only one ur-type."""
