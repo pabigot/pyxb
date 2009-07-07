@@ -1488,12 +1488,8 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.na
 
         return rv
 
-    def isDeepResolved (self, ctd):
-        if not self.isResolved():
-            return False
-        if self.typeDefinition() == ctd:
-            print '**** %s contains a reference to itself via %s' % (ctd, self)
-        return self.typeDefinition().isResolved()
+    def isDeepResolved (self):
+        return self.isResolved() and self.typeDefinition().isResolved()
 
     # aFS:ED
     def _adaptForScope (self, owner, ctd):
@@ -2277,7 +2273,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         # context.
         if isinstance(self.__contentType, tuple) and isinstance(self.__contentType[1], Particle):
             prt = self.__contentType[1]
-            if not prt.isDeepResolved(self):
+            if not prt.isDeepResolved():
                 self._queueForResolution('content particle %s is not deep-resolved' % (prt,))
                 return self
             self.__contentType = (self.__contentType[0], prt._adaptForScope(self, self))
@@ -2476,11 +2472,11 @@ class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
     __particles = None
     def particles (self): return self.__particles
 
-    def isDeepResolved (self, ctd):
+    def isDeepResolved (self):
         """A model group has an unresolvable particle if any of its
         particles is unresolvable.  Duh."""
         for p in self.particles():
-            if not p.isDeepResolved(ctd):
+            if not p.isDeepResolved():
                 return False
         return True
 
@@ -2923,14 +2919,14 @@ class Particle (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin):
             rv.__term = term
         return rv
 
-    def isDeepResolved (self, ctd):
+    def isDeepResolved (self):
         """A particle has an unresolvable particle if it cannot be
         resolved, or if it has resolved to a term which is a model
         group that has an unresolvable particle.
         """
         if not self.isResolved():
             return False
-        return self.term().isDeepResolved(ctd)
+        return self.term().isDeepResolved()
         
     @classmethod
     def IsTypedefNode (cls, node):
@@ -3104,7 +3100,7 @@ class Wildcard (_SchemaComponent_mixin, _Annotated_mixin):
         self.__namespaceConstraint = kw['namespace_constraint']
         self.__processContents = kw['process_contents']
 
-    def isDeepResolved (self, ctd):
+    def isDeepResolved (self):
         return True
 
     # aFS:WC
