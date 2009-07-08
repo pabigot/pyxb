@@ -4392,7 +4392,7 @@ class Schema (_SchemaComponent_mixin):
         if self.__schemaLocation is not None:
             schema_path = self.__schemaLocation
             if 0 <= schema_path.find(':'):
-                schema_path = urlparse.urlparse(schema_path).path
+                schema_path = urlparse.urlparse(schema_path)[2] # .path
             self.__schemaLocationTag = os.path.split(schema_path)[1].split('.')[0]
 
         super(Schema, self).__init__(*args, **kw)
