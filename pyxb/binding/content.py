@@ -824,7 +824,7 @@ class ContentModelTransition (pyxb.cscRoot):
                             mod = getattr(mod, c)
                         value = mod.CreateFromDOM(node)
                     elif pyxb.namespace.XMLSchema == ns:
-                        print 'Need to dynamically create schema'
+                        print 'Need to dynamically create schema for %s' % (ns,)
                 except Exception, e:
                     if isinstance(node, xml.dom.Node):
                         print 'WARNING: Unable to convert wildcard %s to Python instance: %s' % (pyxb.namespace.ExpandedName(node), e)
@@ -832,7 +832,8 @@ class ContentModelTransition (pyxb.cscRoot):
                         print 'WARNING: Unable to convert wildcard %s to Python instance: %s' % (node, e)
             if not self.__term.matches(ctd_instance, value):
                 raise pyxb.UnexpectedContentError(value)
-            print 'NOTE: Created unbound (DOM) wildcard element from %s' % (pyxb.namespace.ExpandedName(node),)
+            if isinstance(value, xml.dom.Node):
+                print 'NOTE: Created unbound (DOM) wildcard element from %s' % (pyxb.namespace.ExpandedName(node),)
             assert isinstance(ctd_instance.wildcardElements(), list), 'Uninitialized wildcard list in %s' % (ctd_instance._ExpandedName,)
             ctd_instance.wildcardElements().append(value)
         else:
