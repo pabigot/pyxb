@@ -18,12 +18,12 @@ class Test_gMonth (unittest.TestCase):
 
     def testAccessor (self):
         v = xsd.gMonth(10)
-        self.assertRaises(AttributeError, getattr, v, 'year')
-        #self.assertRaises(AttributeError, getattr, v, 'month')
-        self.assertRaises(AttributeError, getattr, v, 'day')
-        self.assertRaises(AttributeError, setattr, v, 'year', 5)
-        self.assertRaises(AttributeError, setattr, v, 'month', 5)
-        self.assertRaises(AttributeError, setattr, v, 'day', 5)
+        self.assertRaises((AttributeError, TypeError), getattr, v, 'year')
+        #self.assertRaises((AttributeError, TypeError), getattr, v, 'month')
+        self.assertRaises((AttributeError, TypeError), getattr, v, 'day')
+        self.assertRaises((AttributeError, TypeError), setattr, v, 'year', 5)
+        self.assertRaises((AttributeError, TypeError), setattr, v, 'month', 5)
+        self.assertRaises((AttributeError, TypeError), setattr, v, 'day', 5)
 
 
 if __name__ == '__main__':
