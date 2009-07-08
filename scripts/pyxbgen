@@ -5,6 +5,7 @@ import pyxb.binding.generate
 import pyxb.utils.utility
 import pyxb.utils.domutils
 import os.path
+import sys
 
 generator = pyxb.binding.generate.Generator()
 parser = generator.optionParser()
@@ -29,6 +30,10 @@ if options.wsdl_location is not None:
 generator.applyOptionValues(options, args)
 
 generator.resolveExternalSchema()
+
+if 0 == len(generator.namespaces()):
+    parser.print_help()
+    sys.exit(1)
 
 import sys
 import traceback
