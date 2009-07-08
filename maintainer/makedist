@@ -1,0 +1,10 @@
+#!/bin/sh
+
+DISTDIR=pyxbdist
+cd /tmp
+rm -rf ${DISTDIR}
+svn checkout svn://scmhome/pyxb/trunk ${DISTDIR}
+cd ${DISTDIR}
+maintainer/dobinds.sh
+./setup.py sdist
+./setup.py test
