@@ -8,8 +8,11 @@ cd ${DISTDIR}
 maintainer/dobinds.sh
 cd doc
 rm -rf html
-PYTHONPATH=..:${PYTHONPATH} make apihtml
+rm -f pyxb
+ln -s ../pyxb .
+make apihtml
 make  html
+rm -f pyxb
 cd ..
 ./setup.py sdist
 ./setup.py test
