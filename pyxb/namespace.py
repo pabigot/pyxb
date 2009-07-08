@@ -493,8 +493,8 @@ class _NamespaceArchivable_mixin (pyxb.cscRoot):
         return self.__isActive
 
     def _activate (self):
-        if not self.__isActive:
-            print 'Activating %s' % (self,)
+        #if not self.__isActive:
+        #    print 'Activating %s' % (self,)
         self.__isActive = True
     __isActive = None
 

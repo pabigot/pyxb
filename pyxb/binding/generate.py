@@ -1166,7 +1166,7 @@ class NamespaceModule (_ModuleNaming_mixin):
         self._initializeUniqueInModule(self._UniqueInModule)
         self.__namespace = namespace
         self.defineNamespace(namespace, 'Namespace', require_unique=False)
-        print 'NSM Namespace %s module path %s' % (namespace, namespace.modulePath())
+        #print 'NSM Namespace %s module path %s' % (namespace, namespace.modulePath())
         self._setModulePath(self.__namespace.modulePath())
         self.__namespaceGroup = ns_scc
         self._RecordNamespace(self)
@@ -1833,7 +1833,7 @@ class Generator (object):
                 print 'WARNING: Skipped redundant translation of %s defining %s' % (e.schemaLocation, e.namespace)
         for schema in self.__schemas:
             ns = schema.targetNamespace()
-            print 'namespace %s' % (ns,)
+            #print 'namespace %s' % (ns,)
             module_path = None
             if self.__moduleList:
                 module_path = self.__moduleList.pop(0)
