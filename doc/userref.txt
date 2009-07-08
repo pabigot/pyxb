@@ -4,8 +4,12 @@ User Reference
 
 .. _pyxbgen:
 
-Creating bindings with ``pyxbgen``
-==================================
+(NOT CURRENT) Creating bindings with ``pyxbgen``
+================================================
+
+** THIS SECTION HAS NOT BEEN UPDATED FOR 0.5.0.  RUN ``pyxbgen`` WITH NO
+ARGUMENTS TO SEE NEW INTERFACE.  ALSO SEE `examples/ndfd/genbindings.sh`
+and `examples/openGIS/makebind.sh` **
 
 .. table:: Command line parameters to ``pyxbgen``
 
@@ -146,6 +150,11 @@ XMLSchema `import directive
 <http://www.w3.org/TR/xmlschema-1/#composition-schemaImport>`_.  A fourth
 example showing this is also available in the ``examples/manual``
 subdirectory.
+
+** THIS SECTION HAS NOT BEEN UPDATED FOR 0.5.0.  RUN ``pyxbgen`` WITH NO
+ARGUMENTS TO SEE NEW INTERFACE.  ALSO SEE `examples/ndfd/genbindings.sh`
+and `examples/openGIS/makebind.sh` **
+
 
 Customized bindings
 ===================
