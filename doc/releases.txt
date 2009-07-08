@@ -39,7 +39,7 @@ Linux several years ago:
 0.5.x (Beta)
 ============
 
-0.5.0 (07 Jul 2009, rev 1440)
+0.5.0 (07 Jul 2009, rev 1446)
 -----------------------------
 
 Ability to parse many of the OpenGIS schemas (gml, iso19139, citygml, ogc,
