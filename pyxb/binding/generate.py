@@ -1112,11 +1112,12 @@ class _ModuleNaming_mixin (object):
     def writeToModuleFile (self):
         binding_file = self.generator().directoryForModulePath(self.modulePath())
         (binding_path, leaf) = os.path.split(binding_file)
-        try:
-            os.makedirs(binding_path)
-        except Exception, e:
-            if errno.EEXIST != e.errno:
-                raise
+        if binding_path: # non-empty
+            try:
+                os.makedirs(binding_path)
+            except Exception, e:
+                if errno.EEXIST != e.errno:
+                    raise
         path_elts = binding_path.split(os.sep)
         for n in range(len(path_elts)):
             sub_path = os.path.join(*path_elts[:1+n])
@@ -1401,7 +1402,9 @@ class Generator (object):
     __bindingRoot = None
     
     def directoryForModulePath (self, module_path):
-        module_path_elts = module_path.split('.')
+        module_path_elts = []
+        if module_path: # non-empty
+            module_path_elts = module_path.split('.')
         if self.writeForCustomization():
             module_path_elts.insert(-1, 'raw')
         return os.path.join(self.bindingRoot(), *module_path_elts)
@@ -1806,8 +1809,11 @@ class Generator (object):
 
     def __assignNamespaceModulePath (self, namespace, module_path=None):
         assert isinstance(namespace, pyxb.namespace.Namespace)
-        if namespace.isAbsentNamespace() or (namespace.modulePath() is not None):
-            return
+        if namespace.modulePath() is not None:
+            return namespace
+        if namespace.isAbsentNamespace():
+            namespace.setModulePath(module_path)
+            return namespace
         if (module_path is None) and not (namespace.prefix() is None):
             module_path = namespace.prefix()
         module_path = self.namespaceModuleMap().get(namespace.uri(), module_path)
