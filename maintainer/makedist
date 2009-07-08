@@ -8,7 +8,7 @@ cd ${DISTDIR}
 maintainer/dobinds.sh
 cd doc
 rm -rf html
-make apihtml html
+PYTHONPATH=.. make apihtml html
 cd ..
 ./setup.py sdist
 ./setup.py test
