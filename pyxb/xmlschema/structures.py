@@ -740,6 +740,10 @@ class _NamedComponent_mixin (pyxb.cscRoot):
             return
         self.__dict__.update(state)
             
+    def _resetClone_csc (self, **kw):
+        self.__templateMap = { }
+        return getattr(super(_NamedComponent_mixin, self), '_resetClone_csc', lambda *_args,**_kw: self)(**kw)
+
 class _ValueConstraint_mixin (pyxb.cscRoot):
     """Mix-in indicating that the component contains a simple-type
     value that may be constrained."""
