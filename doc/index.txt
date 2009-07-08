@@ -18,6 +18,11 @@ documents and Python instances.  In concept it is similar to `JAXB
 For downloads, support, etc. please see the `PyXB project page
 <http://sourceforge.net/projects/pyxb>`_ on SourceForge.
 
+** WARNING ** 0.5.0 is a :ref:`BETA RELEASE<releases>`.  Documentation is not up
+to date.
+
+** NEW ** Supports :ref:`ex_opengis`.
+
 ********
 Contents
 ********
@@ -42,27 +47,42 @@ An example of a program using PyXB to interact with a `web service
 automatically-generated module.  First, retrieve the WSDL and generate the
 bindings::
 
- vmfed9[23]$ pyxbgen -m weather -u 'http://ws.cdyne.com/WeatherWS/Weather.asmx?wsdl' -m weather -W
- Need to dynamically create schema
- Importing pyxb.standard.bindings.soap
- Importing pyxb.standard.bindings.soap12
- Importing pyxb.standard.bindings.http
- Importing pyxb.standard.bindings.mime
- Attempting to load a namespace from /home/pab/pyxb/dev/pyxb/standard/bindings/raw/http.wxs
- Attempting to load a namespace from /home/pab/pyxb/dev/pyxb/standard/bindings/raw/wsdl.wxs
- Attempting to load a namespace from /home/pab/pyxb/dev/pyxb/standard/bindings/raw/soapenc.wxs
- Attempting to load a namespace from /home/pab/pyxb/dev/pyxb/standard/bindings/raw/mime.wxs
- Attempting to load a namespace from /home/pab/pyxb/dev/pyxb/standard/bindings/raw/soap12.wxs
- Attempting to load a namespace from /home/pab/pyxb/dev/pyxb/standard/bindings/raw/soap.wxs
- Adding due to dependency http://schemas.xmlsoap.org/wsdl/http/
- Adding due to dependency http://schemas.xmlsoap.org/soap/encoding/
- WARNING: Dependency on http://microsoft.com/wsdl/mime/textMatching/ with no module path
- Adding due to dependency http://schemas.xmlsoap.org/wsdl/mime/
- Adding due to dependency http://schemas.xmlsoap.org/wsdl/soap12/
- Adding due to dependency http://schemas.xmlsoap.org/wsdl/soap/
- Adding due to dependency http://schemas.xmlsoap.org/wsdl/
- Binding source is 67639 long to weather.py
- Saved binding source to weather.py
+ vmfed9[23]$ pyxbgen -W 'http://ws.cdyne.com/WeatherWS/Weather.asmx?wsdl' -m weather
+Retrieving WSDL from http://ws.cdyne.com/WeatherWS/Weather.asmx?wsdl
+http://www.w3.org/2001/XMLSchema: 46 typeDefinition -- activated
+http://schemas.xmlsoap.org/wsdl/: 20 typeBinding -- activated
+xml=http://www.w3.org/XML/1998/namespace: 4 attributeDeclaration -- activated
+Need to dynamically create schema for http://www.w3.org/2001/XMLSchema
+NOTE: Created unbound (DOM) wildcard element from {http://www.w3.org/2001/XMLSchema}schema
+NOTE: Created unbound (DOM) wildcard element from {http://schemas.xmlsoap.org/wsdl/mime/}mimeXml
+NOTE: Created unbound (DOM) wildcard element from {http://schemas.xmlsoap.org/wsdl/mime/}mimeXml
+NOTE: Created unbound (DOM) wildcard element from {http://schemas.xmlsoap.org/wsdl/mime/}mimeXml
+NOTE: Created unbound (DOM) wildcard element from {http://schemas.xmlsoap.org/wsdl/mime/}content
+NOTE: Created unbound (DOM) wildcard element from {http://schemas.xmlsoap.org/wsdl/mime/}mimeXml
+NOTE: Created unbound (DOM) wildcard element from {http://schemas.xmlsoap.org/wsdl/mime/}content
+NOTE: Created unbound (DOM) wildcard element from {http://schemas.xmlsoap.org/wsdl/mime/}mimeXml
+NOTE: Created unbound (DOM) wildcard element from {http://schemas.xmlsoap.org/wsdl/mime/}content
+NOTE: Created unbound (DOM) wildcard element from {http://schemas.xmlsoap.org/wsdl/mime/}mimeXml
+http://www.w3.org/2001/XMLSchema: 46 typeDefinition -- activated
+http://schemas.xmlsoap.org/wsdl/: 20 typeDefinition -- activated
+http://schemas.xmlsoap.org/wsdl/http/: 3 typeBinding -- activated
+xml=http://www.w3.org/XML/1998/namespace: 4 attributeDeclaration -- activated
+http://www.w3.org/2001/XMLSchema: 46 typeDefinition -- activated
+xml=http://www.w3.org/XML/1998/namespace: 4 attributeDeclaration -- activated
+http://www.w3.org/2001/XMLSchema: 46 typeDefinition -- activated
+http://schemas.xmlsoap.org/wsdl/: 20 typeDefinition -- activated
+xml=http://www.w3.org/XML/1998/namespace: 4 attributeDeclaration -- activated
+http://www.w3.org/2001/XMLSchema: 46 typeDefinition -- activated
+http://schemas.xmlsoap.org/wsdl/: 20 typeDefinition -- activated
+http://schemas.xmlsoap.org/wsdl/soap12/: 12 typeBinding -- activated
+xml=http://www.w3.org/XML/1998/namespace: 4 attributeDeclaration -- activated
+http://www.w3.org/2001/XMLSchema: 46 typeDefinition -- activated
+http://schemas.xmlsoap.org/wsdl/: 20 typeDefinition -- activated
+http://schemas.xmlsoap.org/wsdl/soap/: 11 typeBinding -- activated
+xml=http://www.w3.org/XML/1998/namespace: 4 attributeDeclaration -- activated
+WARNING: Referenced http://microsoft.com/wsdl/mime/textMatching/ has no schema components
+Python for http://ws.cdyne.com/WeatherWS/ requires 1 modules
+Saved binding source to ./weather.py
 
 Then write a program that uses them:
 

@@ -126,3 +126,11 @@ PyXB requires that you also work around it manually, although a
 customization of the relevant SOAP encoding class could make it unnecessary.
 
 .. literalinclude:: ../examples/geocoder/client.py
+
+.. _ex_opengis:
+
+OpenGIS (http://www.opengeospatial.org)
+=======================================
+
+See the directory ``examples/OpenGIS`` in the distribution.
+
