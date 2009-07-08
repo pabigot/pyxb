@@ -88,6 +88,16 @@ pyxbgen \
   --module-prefix=opengis \
   --archive-file=opengis/sos_1_0.wxs
 
+pyxbgen \
+  --schema-location=Schemas/sampling/1.0.0/sampling.xsd --module=sampling_1_0 \
+  --module-prefix=opengis \
+  --archive-file=opengis/sampling_1_0.wxs
+
+pyxbgen \
+  --schema-location=Schemas/tml/1.0.0/tml.xsd --module=tml \
+  --module-prefix=opengis \
+  --archive-file=opengis/tml.wxs
+
 # Can't do context: depends on gml 2.x, and we don't support version
 # identification in namespace archives yet.
 #pyxbgen \
