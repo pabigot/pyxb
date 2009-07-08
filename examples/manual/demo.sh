@@ -9,7 +9,7 @@ rm -f po2.py
 ../../scripts/pyxbgen -u po2.xsd  -m po2
 python demo2.py
 rm -f address.py address.wxs
-../../scripts/pyxbgen -u nsaddress.xsd -m address -C
+../../scripts/pyxbgen -u nsaddress.xsd -m address --archive-file=address.wxs
 if [ ! -f address.wxs ] ; then
   echo 1>&2 "Address namespace archive not found"
   exit 1

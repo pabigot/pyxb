@@ -9,7 +9,7 @@ touch raw/__init__.py
 ../../scripts/pyxbgen \
    -u "${URI}" \
    -m "${PREFIX}" \
-   -r --write-schema-path . || exit
+   -r || exit
 if [ ! -f ${PREFIX}.py ] ; then
   echo "from raw.${PREFIX} import *" > ${PREFIX}.py
 fi
@@ -20,9 +20,9 @@ if [ ! -f ndfdXML.wsdl ] ; then
   wget ${WSDL_URI}
 fi
 ../../scripts/pyxbgen \
-   -u "${WSDL_URI}" \
+   -W "${WSDL_URI}" \
    -m ndfd \
-   -r -W || exit
+   -r || exit
 
 ../../scripts/pyxbwsdl file:ndfdXML.wsdl
 
