@@ -554,7 +554,7 @@ class NamedObjectMap (dict):
         self.__category = category
         self.__namespace = namespace
         self.__loadedFromArchive = False
-        super(NamedObjectMap, self).__init__(self, *args, **kw)
+        super(NamedObjectMap, self).__init__(*args, **kw)
 
 class _NamespaceCategory_mixin (pyxb.cscRoot):
     """Mix-in that aggregates those aspects of XMLNamespaces that hold

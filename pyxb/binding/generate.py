@@ -830,7 +830,7 @@ class BindingIO (object):
     __filePath = None
 
     def __init__ (self, binding_module, **kw):
-        super(BindingIO, self).__init__(self)
+        super(BindingIO, self).__init__()
         self.__bindingModule = binding_module
         if binding_module.modulePath():
             self.__filePath = os.path.join(*binding_module.modulePath().split('.'))
