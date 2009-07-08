@@ -43,7 +43,10 @@ class SchemaUniquenessError (PyXBException):
     include processing would have avoided this, so somebody asked for
     it specifically."""
     def __init__ (self, namespace, schema_location, *args, **kw):
-        super(SchemaUniquenessError, self).__init__(*args, **kw)
+        # Prior to 2.5, exceptions did not inherit from object, and
+        # super could not be used.
+        #super(SchemaUniquenessError, self).__init__(*args, **kw)
+        PyXBException.__init__(self, *args, **kw)
         self.namespace = namespace
         self.schemaLocation = schema_location
 
