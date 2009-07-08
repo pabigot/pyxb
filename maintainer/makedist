@@ -6,5 +6,9 @@ rm -rf ${DISTDIR}
 svn checkout svn://scmhome/pyxb/trunk ${DISTDIR}
 cd ${DISTDIR}
 maintainer/dobinds.sh
+cd doc
+rm -rf html
+make apihtml html
+cd ..
 ./setup.py sdist
 ./setup.py test
