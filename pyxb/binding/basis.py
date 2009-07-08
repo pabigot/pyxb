@@ -1020,7 +1020,7 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
     def compatibleValue (self, value):
         """Return a variant of the value that is compatible with this element.
 
-        This mostly defers to L{_TypeBinding_mixing._compatibleValue}.
+        This mostly defers to L{_TypeBinding_mixin._CompatibleValue}.
 
         @raise pyxb.BadTypeValueError: if the value is not both
         type-consistent and value-consistent with the element's type.

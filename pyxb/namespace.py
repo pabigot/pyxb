@@ -272,7 +272,7 @@ class _Resolvable_mixin (pyxb.cscRoot):
         component belongs.  Invoking this method may fail to complete the
         resolution process if the component itself depends on unresolved
         components.  The sole caller of this should be
-        L{Namespace.resolveDefinitions}.
+        L{_NamespaceResolution_mixin.resolveDefinitions}.
         
         This method is permitted (nay, encouraged) to raise an exception if
         resolution requires interpreting a QName and the named component
@@ -975,7 +975,7 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
     WSDL definitions adds categories for the service bindings, messages, etc.
 
     Namespaces can be written to and loaded from pickled files.  See
-    L{LoadFromFile} for information.
+    L{NamespaceArchive} for information.
     """
 
     # The URI for the namespace.  If the URI is None, this is an absent

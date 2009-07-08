@@ -1458,12 +1458,12 @@ class Generator (object):
     __schemaLocationList = None
 
     def schemas (self):
-        """L{Schema<pyxb.xmlschema.structures.schema>} for which
+        """L{Schema<pyxb.xmlschema.structures.Schema>} for which
         bindings should be generated.
 
         This is the list of entrypoint schemas for binding generation.
         Values in L{schemaLocationList} are read and converted into
-        schema, then appended to this list.  Values from L{moduleList}
+        schema, then appended to this list.  Values from L{_moduleList}
         are applied starting with the first schema in this list.
         """
         return self.__schemas[:]
@@ -1639,15 +1639,15 @@ class Generator (object):
         @keyword binding_root: Invokes L{setBindingRoot}
         @keyword schema_root: Invokes L{setSchemaRoot}
         @keyword schema_stripped_prefix: Invokes L{setSchemaStrippedPrefix}
-        @keyword schema_location_list: Invokes L{setSchemaLocationList
-        @keyword module_list: Invokes L{setModuleList}
+        @keyword schema_location_list: Invokes L{setSchemaLocationList}
+        @keyword module_list: Invokes L{_setModuleList}
         @keyword module_prefix: Invokes L{setModulePrefix}
         @keyword archive_file: Invokes L{setArchiveFile}
         @keyword archive_path: Invokes L{setArchivePath}
         @keyword validate_changes: Invokes L{setValidateChanges}
         @keyword binding_style: Invokes L{setBindingStyle}
         @keyword namespace_module_map: Initializes L{namespaceModuleMap}
-        @keywords schemas: Invokes L{setSchemas}
+        @keyword schemas: Invokes L{setSchemas}
         @keyword namespaces: Invokes L{setNamespaces}
         @keyword write_for_customization: Invokes L{setWriteForCustomization}
         @keyword allow_absent_module: Invokes L{setAllowAbsentModule}
