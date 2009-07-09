@@ -38,6 +38,7 @@ import sys
 import traceback
 import xml.dom
 import os.path
+import StringIO
 
 # Initialize UniqueInBinding with the public identifiers we generate,
 # import, or otherwise can't have mucked about with.
@@ -1375,11 +1376,14 @@ import pyxb.binding
         return 'SGM:%s' % (self.modulePath(),)
 
 def GeneratePython (schema_location=None,
+                    schema_text=None,
                     namespace=None,
                     module_prefix_elts=[]):
 
     generator = Generator(allow_absent_module=True)
-    generator.addSchemaLocation(schema_location)
+    if schema_location is not None:
+        schema_text = pyxb.utils.TextFromURI(schema_location)
+    generator.addSchema(pyxb.xmlschema.schema.CreateFromStream(StringIO.StringIO(schema_text)))
     modules = generator.bindingModules()
 
     assert 1 == len(modules), '%s produced %d modules: %s' % (namespace, len(modules), " ".join([ str(_m) for _m in modules]))

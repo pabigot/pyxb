@@ -4451,6 +4451,12 @@ class Schema (_SchemaComponent_mixin):
         return cls.CreateFromDOM(dom, **kw)
 
     @classmethod
+    def CreateFromStream (cls, stream, **kw):
+        xmls = stream.read()
+        dom = pyxb.utils.domutils.StringToDOM(xmls)
+        return cls.CreateFromDOM(dom.documentElement, **kw)
+
+    @classmethod
     def CreateFromDOM (cls, node, namespace_context=None, inherit_default_namespace=False, schema_location=None):
         """Take the root element of the document, and scan its attributes under
         the assumption it is an XMLSchema schema element.  That means
