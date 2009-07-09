@@ -35,7 +35,7 @@ clean:
 
 apihtml:
 	mkdir -p html/api
-	$(EPYDOC) $(EPYDOCOPTS)
+	PYTHONPATH=.. $(EPYDOC) $(EPYDOCOPTS)
 
 html:
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) html
