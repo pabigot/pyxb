@@ -1,0 +1,19 @@
+#!/usr/bin/env python
+
+import pyxb.namespace
+import sys
+import traceback
+
+for fn in sys.argv[1:]:
+    nsa = pyxb.namespace.NamespaceArchive(archive_path=fn)
+    print 'File %s archives %d namespaces:' % (fn, len(nsa.namespaces()))
+    for ns in nsa.namespaces().copy():
+        print " %s" % (ns,)
+        ns.validateComponentModel()
+        for td in ns.typeDefinitions().values():
+            print '  td %s' % (td.expandedName(),)
+
+# LocalVariables:
+# mode:python
+# End:
+
