@@ -27,7 +27,7 @@ class TestCTD (unittest.TestCase):
         self.assert_(pyxb.binding.basis.complexTypeDefinition._CT_ELEMENT_ONLY == structure_._ContentTypeTag)
 
     def testSimple (self):
-        self.assertEqual('test', simple_('test').content())
+        self.assertEqual('test', simple_('test').value())
 
         # Note that when the element is a complex type with simple
         # content, we remove the extra level of indirection so the
@@ -35,10 +35,10 @@ class TestCTD (unittest.TestCase):
         # you'd have to do foo.content().content() to get to the
         # interesting stuff.  I suppose that ought to be a
         # configuration option.
-        self.assertEqual('test', simple('test').content())
+        self.assertEqual('test', simple('test').value())
         xml = '<ns1:simple xmlns:ns1="URN:testCTD">test</ns1:simple>'
         instance = CreateFromDocument(xml)
-        self.assertEqual('test', instance.content())
+        self.assertEqual('test', instance.value())
         self.assertEqual(xml, ToDOM(instance).toxml())
 
     def testString (self):

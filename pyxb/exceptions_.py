@@ -124,30 +124,23 @@ class BindingValidationError (PyXBException):
     """Raised when the content of a binding object is not consistent with its content model"""
     pass
 
-class NotSimpleContentError (BindingValidationError):
-    """Raised when an operation that requires simple content is
-    invoked on a complex type that does not have simple content."""
-    pass
-
 class NoContentModel (BindingValidationError):
-    """Raised when an operation is attempted that requires a content
-    model, but the complex type has empty or simple content."""
-    pass
+     """Raised when an operation is attempted that requires a content
+     model, but the complex type has empty or simple content."""
+     pass
 
 class BindingError (PyXBException):
     """Raised when the bindings are mis-used."""
     pass
 
-class NoSuchElementError (BindingError):
-    """Raised when code attempts to access an element that does not exist in the binding."""
+class NotSimpleContentError (BindingError):
+    """Raised when an operation that requires simple content is
+    invoked on a complex type that does not have simple content."""
     pass
 
-class NoContentError (BindingError):
-    """Raised when content() method invoked on a type that does not support complex content."""
-    pass
-
-class NoValueError (BindingError):
-    """Raised when value() method invoked on a type that does not support simple content."""
+class NotComplexContentError (BindingError):
+    """Raised when an operation is attempted that requires a content
+    model, but the complex type has empty or simple content."""
     pass
 
 class PyXBError (exceptions.Exception):

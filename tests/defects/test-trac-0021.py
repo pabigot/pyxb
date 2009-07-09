@@ -29,22 +29,22 @@ from pyxb.exceptions_ import *
 
 import unittest
 
-class TestTrac0029 (unittest.TestCase):
+class TestTrac0021 (unittest.TestCase):
     """Presence of a wildcard in a sequence model group causes other
     elements in that group to not be generated."""
     def testEmpty (self):
         instance = empty()
-        self.assertRaises(pyxb.NoValueError, instance.value)
-        self.assertRaises(pyxb.NoContentError, instance.content)
+        self.assertRaises(pyxb.NotSimpleContentError, instance.value)
+        self.assertRaises(pyxb.NotComplexContentError, instance.content)
 
     def testSimple (self):
         instance = simple("hi")
         self.assertEqual("hi", instance.value())
-        self.assertRaises(pyxb.NoContentError, instance.content)
+        self.assertRaises(pyxb.NotComplexContentError, instance.content)
 
     def testComplex (self):
         instance = complex("hi")
-        self.assertRaises(pyxb.NoValueError, instance.value)
+        self.assertRaises(pyxb.NotSimpleContentError, instance.value)
         elt = instance.content()[0]
         self.assertTrue(isinstance(elt, basestring))
         self.assertEqual("hi", elt)

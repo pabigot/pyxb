@@ -1499,9 +1499,9 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             raise pyxb.NotSimpleContentError(self)
         if self._isNil():
             return True
-        if self.content() is None:
+        if self.value() is None:
             raise pyxb.MissingContentError(self)
-        return self.content().xsdConstraintsOK()
+        return self.value().xsdConstraintsOK()
 
     __content = None
     def content (self):
@@ -1510,10 +1510,10 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         This must be a complex type with complex content.  The return value is
         a list of the element and non-element content in the order in which it
         was added.
-        @raise pyxb.NoContentError: this is not a complex type with mixed or element-only content
+        @raise pyxb.NotComplexContentError: this is not a complex type with mixed or element-only content
         """
         if self._ContentTypeTag in (self._CT_EMPTY, self._CT_SIMPLE):
-            raise pyxb.NoContentError(str(self._ExpandedName))
+            raise pyxb.NotComplexContentError(str(self._ExpandedName))
         return self.__content
 
     def value (self):
@@ -1522,10 +1522,10 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         This must be a complex type with simple content.  The returned value
         is expected to be an instance of some L{simpleTypeDefinition} class.
 
-        @raise pyxb.NoValueError: this is not a complex type with simple content
+        @raise pyxb.NotSimpleContentError: this is not a complex type with simple content
         """
         if self._CT_SIMPLE != self._ContentTypeTag:
-            raise pyxb.NoValueError(str(self._ExpandedName))
+            raise pyxb.NotSimpleContentError(str(self._ExpandedName))
         return self.__content
 
     __dfaStack = None
@@ -1629,7 +1629,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         elif self._CT_EMPTY == self._ContentTypeTag:
             pass
         elif self._CT_SIMPLE == self._ContentTypeTag:
-            element.appendChild(dom_support.document().createTextNode(self.content().xsdLiteral()))
+            element.appendChild(dom_support.document().createTextNode(self.value().xsdLiteral()))
         else:
             order = self._validatedChildren()
             if order is None:

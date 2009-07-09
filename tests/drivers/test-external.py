@@ -83,7 +83,7 @@ class TestExternal (unittest.TestCase):
         dom = pyxb.utils.domutils.StringToDOM(xml)
         instance = lwords.createFromDOM(dom.documentElement)
         self.assertEquals(instance._element(), lwords)
-        self.assertTrue(isinstance(instance.content(), st.welsh))
+        self.assertTrue(isinstance(instance.value(), st.welsh))
         self.assertEquals('english', instance.language())
         self.assertEquals('welsh', instance.newlanguage())
 
