@@ -142,6 +142,14 @@ class NoSuchElementError (BindingError):
     """Raised when code attempts to access an element that does not exist in the binding."""
     pass
 
+class NoContentError (BindingError):
+    """Raised when content() method invoked on a type that does not support complex content."""
+    pass
+
+class NoValueError (BindingError):
+    """Raised when value() method invoked on a type that does not support simple content."""
+    pass
+
 class PyXBError (exceptions.Exception):
     """Base class for exceptions that indicate a problem that the user probably can't fix."""
     pass

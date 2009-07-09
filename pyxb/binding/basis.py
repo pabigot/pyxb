@@ -1507,16 +1507,25 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
     def content (self):
         """Return the content of the element.
 
-        If this is a complex type with simple content, the content is expected
-        to be an instance of some L{simpleTypeDefinition} class.
-
-        If this type has mixed or element-only content, the return value is a
-        list of the element and non-element content in the order in which it
+        This must be a complex type with complex content.  The return value is
+        a list of the element and non-element content in the order in which it
         was added.
+        @raise pyxb.NoContentError: this is not a complex type with mixed or element-only content
         """
-        if self._CT_EMPTY == self._ContentTypeTag:
-            # @todo: raise exception
-            pass
+        if self._ContentTypeTag in (self._CT_EMPTY, self._CT_SIMPLE):
+            raise pyxb.NoContentError(str(self._ExpandedName))
+        return self.__content
+
+    def value (self):
+        """Return the value of the element.
+
+        This must be a complex type with simple content.  The returned value
+        is expected to be an instance of some L{simpleTypeDefinition} class.
+
+        @raise pyxb.NoValueError: this is not a complex type with simple content
+        """
+        if self._CT_SIMPLE != self._ContentTypeTag:
+            raise pyxb.NoValueError(str(self._ExpandedName))
         return self.__content
 
     __dfaStack = None
