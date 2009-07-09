@@ -943,6 +943,8 @@ class _PluralityData (types.ListType):
             if 0 < len(pdll):
                 new_pd = pdll.pop()
                 for pd in pdll:
+                    assert 0 < len(pd)
+                    assert 0 < len(new_pd)
                     stage_pd = [ ]
                     for pdm1 in new_pd:
                         for pdm2 in pd:
