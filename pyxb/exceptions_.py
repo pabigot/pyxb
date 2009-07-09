@@ -147,6 +147,10 @@ class PyXBError (exceptions.Exception):
     """Base class for exceptions that indicate a problem that the user probably can't fix."""
     pass
     
+class UsageError (PyXBError):
+    """Raised when the code detects arguments to a public
+    operation."""
+
 class LogicError (PyXBError):
     """Raised when the code detects an implementation problem."""
 
