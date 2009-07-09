@@ -988,9 +988,13 @@ class _PluralityData (types.ListType):
         elif isinstance(component, Particle):
             self.__fromParticle(component)
         elif isinstance(component, Wildcard):
-            self.append({})
+            pass
         elif component is not None:
             raise pyxb.NotImplementedError("No support for plurality of component type %s" % (type(component),))
+        # Elements get lost if there's a result set that doesn't have any
+        # documents in it.
+        if 0 == len(self):
+            self.append({})
 
     def __init__ (self, component=None):
         super(_PluralityData, self).__init__()

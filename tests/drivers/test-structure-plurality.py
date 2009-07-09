@@ -212,7 +212,8 @@ class TestParticle (_TestBase):
         ed = self.selt
         prt = xs.structures.Particle(ed, min_occurs=0, max_occurs=0, **self._prtKW())
         pd = prt.pluralityData()
-        self.assertEqual(0, len(pd))
+        self.assertEqual(1, len(pd))
+        self.assertEqual({}, pd[0])
 
     def testSingleElement (self):
         ed = self.selt
@@ -253,7 +254,8 @@ class TestParticle (_TestBase):
     def testZeroMGSeq (self):
         prt = xs.structures.Particle(self._getMGMulti(ModelGroup.C_SEQUENCE), min_occurs=0, max_occurs=0, **self._prtKW())
         pd = prt.pluralityData()
-        self.assertEqual(0, len(pd))
+        self.assertEqual(1, len(pd))
+        self.assertEqual({}, pd[0])
         
     def testOptionalMGSeq (self):
         prt = xs.structures.Particle(self._getMGMulti(ModelGroup.C_SEQUENCE), min_occurs=0, max_occurs=1, **self._prtKW())
