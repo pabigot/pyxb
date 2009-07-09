@@ -132,6 +132,15 @@ class NotSimpleContentError (BindingValidationError):
 class NoContentModel (BindingValidationError):
     """Raised when an operation is attempted that requires a content
     model, but the complex type has empty or simple content."""
+    pass
+
+class BindingError (PyXBException):
+    """Raised when the bindings are mis-used."""
+    pass
+
+class NoSuchElementError (BindingError):
+    """Raised when code attempts to access an element that does not exist in the binding."""
+    pass
 
 class PyXBError (exceptions.Exception):
     """Base class for exceptions that indicate a problem that the user probably can't fix."""

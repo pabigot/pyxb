@@ -1342,7 +1342,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         @param tag: The L{ExpandedName} of an element in the class."""
         rv = cls._ElementMap.get(tag)
         if (rv is None) and raise_if_fail:
-            raise pyxb.LogicError('Unable to locate element %s in type %s' % (tag, cls._ExpandedName))
+            raise pyxb.NoSuchElementError('Unable to locate element %s in type %s' % (tag, cls._ExpandedName))
         return rv
 
     def __childrenForDOM (self):

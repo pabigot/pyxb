@@ -1382,7 +1382,7 @@ def GeneratePython (schema_location=None,
 
     generator = Generator(allow_absent_module=True)
     if schema_location is not None:
-        schema_text = pyxb.utils.TextFromURI(schema_location)
+        schema_text = pyxb.utils.utility.TextFromURI(schema_location)
     generator.addSchema(pyxb.xmlschema.schema.CreateFromStream(StringIO.StringIO(schema_text)))
     modules = generator.bindingModules()
 
