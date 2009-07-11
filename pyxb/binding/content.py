@@ -808,10 +808,7 @@ class ContentModelTransition (pyxb.cscRoot):
                 raise
             if element is None:
                 return False
-            if self.__elementUse.isPlural():
-                self.__elementUse.append(ctd_instance, element)
-            else:
-                self.__elementUse.set(ctd_instance, element)
+            self.__elementUse.setOrAppend(ctd_instance, element)
         elif self.TT_modelGroupAll == self.__termType:
             return dfa_stack.pushModelState(_MGAllState(self.__term, ctd_instance)).step(ctd_instance, value)
         elif self.TT_wildcard == self.__termType:
@@ -841,7 +838,7 @@ class ContentModelTransition (pyxb.cscRoot):
             if isinstance(value, xml.dom.Node):
                 print 'NOTE: Created unbound (DOM) wildcard element from %s' % (pyxb.namespace.ExpandedName(node),)
             assert isinstance(ctd_instance.wildcardElements(), list), 'Uninitialized wildcard list in %s' % (ctd_instance._ExpandedName,)
-            ctd_instance.wildcardElements().append(value)
+            ctd_instance._appendWildcardElement(value)
         else:
             raise pyxb.LogicError('Unexpected transition term %s' % (self.__term,))
         return True
