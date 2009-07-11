@@ -47,15 +47,15 @@ for i in range(len(data.location())):
                     maxt = t
                 elif 'minimum' == t.type():
                     mint = t
-                print '%s (%s): %s' % (t.name()[0], t.units(), " ".join([ str(_v.content()) for _v in t.value() ]))
+                print '%s (%s): %s' % (t.name()[0], t.units(), " ".join([ str(_v.value()) for _v in t.value() ]))
             time_layout = None
             for tl in data.time_layout():
                 if tl.layout_key() == mint.time_layout():
                     time_layout = tl
                     break
             for ti in range(len(time_layout.start_valid_time())):
-                start = time_layout.start_valid_time()[ti].content()
+                start = time_layout.start_valid_time()[ti].value()
                 end = time_layout.end_valid_time()[ti]
                 print '%s: min %s, max %s' % (time.strftime('%A, %B %d %Y', start.timetuple()),
-                                              mint.value()[ti].content(), maxt.value()[ti].content())
+                                              mint.value()[ti].value(), maxt.value()[ti].value())
                 
