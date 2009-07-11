@@ -1487,6 +1487,10 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.na
             rv.__typeDefinition = ComplexTypeDefinition.CreateFromDOM(complexType_node, **kw)
         if rv.__typeDefinition is None:
             if rv.__typeAttribute is None:
+                # Scan for particle types which were supposed to be enclosed in a complexType
+                for cn in node.childNodes:
+                    if Particle.IsParticleNode(cn):
+                        raise pyxb.SchemaValidationError('Node %s in element must be wrapped by complexType.' % (cn.localName,))
                 rv.__typeDefinition = ComplexTypeDefinition.UrTypeDefinition()
         rv.__isResolved = (rv.__typeDefinition is not None) and (rv.__substitutionGroupAttribute is None)
         if not rv.__isResolved:
