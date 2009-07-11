@@ -974,6 +974,14 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
         return self
     __substitutionGroup = None
 
+    def findSubstituendUse (self, ctd):
+        eu = ctd._ElementMap.get(self.name())
+        if eu is not None:
+            return eu
+        if self.substitutionGroup() is None:
+            return None
+        return self.substitutionGroup().findSubstituend(ctd)
+
     def substitutesFor (self, other):
         """Determine whether an instance of this element can substitute for the other element.
         
@@ -1567,7 +1575,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             au.reset(self)
         for eu in self._ElementMap.values():
             eu.reset(self)
-        if (self._ContentModel is not None) and self._PerformValidation:
+        if self._ContentModel is not None:
             self.__dfaStack = self._ContentModel.initialDFAStack(self)
         return self
 
@@ -1582,6 +1590,8 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         current state of the content model.
         """
         
+        element_binding = None
+        element_use = None
         if isinstance(value, xml.dom.Node):
             if xml.dom.Node.COMMENT_NODE == value.nodeType:
                 return self
@@ -1595,13 +1605,36 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             # Do type conversion here
             assert xml.dom.Node.ELEMENT_NODE == value.nodeType
             expanded_name = pyxb.namespace.ExpandedName(value)
-            
-            value = value
+            element_use = self._ElementMap.get(expanded_name)
+            if element_use is None:
+                element_binding = expanded_name.elementBinding()
+                if element_binding is not None:
+                    element_use = element_binding.findSubstituend(self)
+            else:
+                element_binding = element_use.elementBinding()
+            if element_use is not None:
+                print 'Assign to %s' % (element_use.name(),)
+            #if element_binding is not None:
+            #    value = element_binding.createFromDOM(value)
+        if not self._PerformValidation:
+            if element_use is not None:
+                print 'Storing %s in %s' % (value, element_use.name(),)
+                element_use.setOrAppend(self, value)
+                return self
+            if self.wildcardElements() is not None:
+                self._appendWildcardElement(value)
+                return self
         if self.__dfaStack is not None:
             if not self.__dfaStack.step(self, value):
                 raise pyxb.ExtraContentError('Extra content starting with %s' % (value,))
         return self
 
+    def _appendWildcardElement (self, value):
+        wcl = self.wildcardElements()
+        if wcl is None:
+            raise pyxb.UnrecognizedContentError(value)
+        wcl.append(value)
+        
     def extend (self, value_list):
         """Invoke L{append} for each value in the list, in turn."""
         [ self.append(_v) for _v in value_list ]
@@ -1637,7 +1670,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             return self
         self.__isMixed = (self._CT_MIXED == self._ContentTypeTag)
         self.extend(node.childNodes[:])
-        if (self.__dfaStack is not None) and not self.__dfaStack.isTerminal():
+        if self._PerformValidation and (self.__dfaStack is not None) and (not self.__dfaStack.isTerminal()):
             raise pyxb.MissingContentError()
         return self
 
