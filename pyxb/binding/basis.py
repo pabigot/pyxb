@@ -174,7 +174,11 @@ class _TypeBinding_mixin (pyxb.cscRoot):
         return self._element().substitutesFor(element)
 
     @classmethod
-    def _CompatibleValue (cls, value):
+    def _RequireXSIType (cls, value_type):
+        return cls._Abstract and value_type != cls._SupersedingClass()
+
+    @classmethod
+    def _CompatibleValue (cls, value, **kw):
         """Return a variant of the value that is compatible with this type.
 
         Compatibility is defined relative to the type definition associated
@@ -187,9 +191,15 @@ class _TypeBinding_mixin (pyxb.cscRoot):
         type-compatible with C{xs:byte}, it is outside the value space, and
         compatibility will fail.
 
+        @keyword convert_string_values: If C{True} (default) and the incoming value is
+        a string, an attempt will be made to form a compatible value by using
+        the string as a constructor argument to the this class.  This flag is
+        set to C{False} when testing automaton transitions.
+
         @raise pyxb.BadTypeValueError: if the value is not both
         type-consistent and value-consistent with the element's type.
         """
+        convert_string_values = kw.get('convert_string_values', True)
         # None is always None
         if value is None:
             return None
@@ -209,19 +219,20 @@ class _TypeBinding_mixin (pyxb.cscRoot):
             return cls(value)
 
         # See if we have a numeric type that needs to be cast across the
-        # numeric hierarchy
-        if isinstance(value, (int, long)) and issubclass(cls, (int, long, float)):
+        # numeric hierarchy.  int to long is the *only* conversion we accept.
+        if isinstance(value, int) and issubclass(cls, long):
             return cls(value)
 
-        # See if we have a string type that somebody understands
-        if isinstance(value, (str, unicode)):
+        # See if we have convert_string_values on, and have a string type that
+        # somebody understands.
+        if convert_string_values and (unicode == value_type):
             return cls(value)
 
         # Maybe this is a union?
         if issubclass(cls, STD_union):
             for mt in cls._MemberTypes:
                 try:
-                    return mt._CompatibleValue(value)
+                    return mt._CompatibleValue(value, **kw)
                 except:
                     pass
 
@@ -258,14 +269,17 @@ class _TypeBinding_mixin (pyxb.cscRoot):
 
         if bds is None:
             bds = domutils.BindingDOMSupport()
+        need_xsi_type = bds.requireXSIType()
         if isinstance(element_name, (str, unicode)):
             element_name = pyxb.namespace.ExpandedName(bds.defaultNamespace(), element_name)
         if (element_name is None) and (self._element() is not None):
-            element_name = self._element().name()
+            element_binding = self._element()
+            element_name = element_binding.name()
+            need_xsi_type = need_xsi_type or element_binding.typeDefinition()._RequireXSIType(type(self))
         if element_name is None:
             element_name = self._ExpandedName
         element = bds.createChildElement(element_name, parent)
-        if bds.requireXSIType():
+        if need_xsi_type:
             val_type_qname = self._ExpandedName.localName()
             tns_prefix = bds.namespacePrefix(self._ExpandedName.namespace())
             if tns_prefix is not None:
@@ -1017,7 +1031,7 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
             raise pyxb.AbstractElementError(self)
         return self.typeDefinition().Factory(*args,**kw)
 
-    def compatibleValue (self, value):
+    def compatibleValue (self, value, **kw):
         """Return a variant of the value that is compatible with this element.
 
         This mostly defers to L{_TypeBinding_mixin._CompatibleValue}.
@@ -1030,7 +1044,7 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
             return None
         if isinstance(value, _TypeBinding_mixin) and (value._element() is not None) and value._element().substitutesFor(self):
             return value
-        return self.typeDefinition()._CompatibleValue(value)
+        return self.typeDefinition()._CompatibleValue(value, **kw)
 
     # element
     @classmethod
@@ -1140,7 +1154,7 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
         xsi_type = pyxb.namespace.ExpandedName(pyxb.namespace.XMLSchema_instance, 'type')
         type_name = xsi_type.getAttribute(node)
         elt_ns = element_binding.name().namespace()
-
+ 
         # Get the namespace context for the value being created.  If none is
         # associated, one will be created.  Do not make assumptions about the
         # namespace context; if the user cared, she should have assigned a

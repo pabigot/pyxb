@@ -72,7 +72,7 @@ class TestXSIType (unittest.TestCase):
 
     def testGenAbstract (self):
         xml = '<when><pairTime><seconds>34.0</seconds><fractionalSeconds>0.21</fractionalSeconds></pairTime></when>'
-        instance = when(pairTime(34, 0.21))
+        instance = when(pairTime(34.0, 0.21))
         self.assertEqual(instance.sgTime()._element(), pairTime)
         self.assertEqual(instance.sgTime().seconds(), 34)
         self.assertEqual(instance.toDOM().documentElement.toxml(), xml)

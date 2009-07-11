@@ -412,7 +412,7 @@ class ElementUse (pyxb.cscRoot):
             else:
                 if isinstance(value, basis.STD_union) and isinstance(value, elt_type._MemberTypes):
                     val_type = elt_type
-            if dom_support.requireXSIType() or ((val_type != elt_type._SupersedingClass()) and elt_type._Abstract):
+            if dom_support.requireXSIType() or elt_type._RequireXSIType(val_type):
                 val_type_qname = value._ExpandedName.localName()
                 tns_prefix = dom_support.namespacePrefix(value._ExpandedName.namespace())
                 if tns_prefix is not None:
@@ -674,7 +674,7 @@ class ContentModelTransition (pyxb.cscRoot):
                 return None
             return element_binding.createFromDOM(value)
         try:
-            return self.term().compatibleValue(value)
+            return self.term().compatibleValue(value, convert_string_values=False)
         except pyxb.BadTypeValueError, e:
             pass
         return None

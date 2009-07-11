@@ -14,7 +14,6 @@ eval(rv)
 from pyxb.exceptions_ import *
 
 def make_tTime (*args, **kw):
-    print 'Attempting creation'
     for cls in [ tXMTime, tISO8601 ]:
         try:
             v = cls(*args, **kw)
@@ -37,10 +36,19 @@ class TestTime (unittest.TestCase):
         t = tXMTime(**self.KW_tXMTime)
         self.assertEqual(2, t.seconds())
         self.assertEqual(0.3, t.fractionalSeconds())
+        t._setElement(time)
+        xmls = t.toxml()
+        instance = CreateFromDocument(xmls)
+        self.assertEqual(instance.seconds(), t.seconds())
+        self.assertEqual(instance.fractionalSeconds(), t.fractionalSeconds())
 
     def testISO8601 (self):
         t = tISO8601(**self.KW_tISO8601)
         self.assertEqual((2009, 6, 3, 13, 43, 0, 2, 154, -1), t.time().timetuple())
+        t._setElement(time)
+        xmls = t.toxml()
+        instance = CreateFromDocument(xmls)
+        self.assertEqual(instance.time().timetuple(), t.time().timetuple())
 
     def testAbstract (self):
         self.assertRaises(pyxb.AbstractInstantiationError, tTime, **self.KW_tXMTime)

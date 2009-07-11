@@ -15,19 +15,18 @@ import unittest
 
 class TestTypeInference (unittest.TestCase):
     def testBasic (self):
-        e = holder(4) # should be int
-        print e.toxml()
-        #self.assertEqual(e.int(), 4)
-        #self.assertTrue(e.float() is None)
-        #self.assertTrue(e.str() is None)
-        e = holder(4.4)
-        print e.toxml()
-        #self.assertTrue(e.int() is None)
-        #self.assertEqual(e.float(), 4.4)
-        #self.assertTrue(e.str() is None)
-        e = holder("3")
-        print e.toxml()
-        self.assertRaises(pyxb.UnrecognizedContentError, holder, {})
+        e = anyType(4) # should be int
+        self.assertEqual(e.int(), 4)
+        self.assertTrue(e.float() is None)
+        self.assertTrue(e.str() is None)
+        e = anyType(4.4)
+        self.assertTrue(e.int() is None)
+        self.assertEqual(e.float(), 4.4)
+        self.assertTrue(e.str() is None)
+        e = anyType("3")
+        self.assertTrue(e.int() is None)
+        self.assertTrue(e.float() is None)
+        self.assertEqual(e.str(), "3")
 
 if __name__ == '__main__':
     unittest.main()
