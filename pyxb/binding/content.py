@@ -677,7 +677,9 @@ class ContentModelTransition (pyxb.cscRoot):
             # The convert_string_value=False setting prevents string arguments
             # to element/type constructors from being automatically converted
             # to another type (like int) if they just happen to be
-            # convertible.
+            # convertible.  Without this, it's too easy to accept a
+            # sub-optimal transition (e.g., match a float when an alternative
+            # string is available).
             return self.term().compatibleValue(value, convert_string_values=False)
         except pyxb.BadTypeValueError, e:
             pass
