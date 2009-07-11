@@ -24,6 +24,9 @@ import pyxb.namespace
 
 class _TypeBinding_mixin (pyxb.cscRoot):
 
+    _PerformValidation = True
+    #_PerformValidation = False
+    
     _ExpandedName = None
     """The expanded name of the component."""
 
@@ -319,6 +322,8 @@ class _TypeBinding_mixin (pyxb.cscRoot):
         Returns C{None} if successful
         @raise pyxb.BindingValidationError: if content does not match model.
         """
+        if not self._PerformValidation:
+            return True
         return self._validateBinding_vx()
 
 
@@ -688,6 +693,9 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
         Throws pyxb.BadTypeValueError if any constraint is violated.
         """
 
+        if not cls._PerformValidation:
+            return None
+        
         value = cls._XsdConstraintsPreCheck_vb(value)
 
         facet_values = None
@@ -1509,6 +1517,8 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         @raise pyxb.MissingContentError: the content of this type has not been set
         """
         # @todo: type check
+        if not self._PerformValidation:
+            return True
         if self._CT_SIMPLE != self._ContentTypeTag:
             raise pyxb.NotSimpleContentError(self)
         if self._isNil():
@@ -1557,7 +1567,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             au.reset(self)
         for eu in self._ElementMap.values():
             eu.reset(self)
-        if self._ContentModel is not None:
+        if (self._ContentModel is not None) and self._PerformValidation:
             self.__dfaStack = self._ContentModel.initialDFAStack(self)
         return self
 
@@ -1583,6 +1593,9 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
                     pass
                 return self
             # Do type conversion here
+            assert xml.dom.Node.ELEMENT_NODE == value.nodeType
+            expanded_name = pyxb.namespace.ExpandedName(value)
+            
             value = value
         if self.__dfaStack is not None:
             if not self.__dfaStack.step(self, value):
