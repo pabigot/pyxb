@@ -974,13 +974,13 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
         return self
     __substitutionGroup = None
 
-    def findSubstituendUse (self, ctd):
-        eu = ctd._ElementMap.get(self.name())
+    def findSubstituendUse (self, ctd_class):
+        eu = ctd_class._ElementMap.get(self.name())
         if eu is not None:
             return eu
         if self.substitutionGroup() is None:
             return None
-        return self.substitutionGroup().findSubstituendUse(ctd)
+        return self.substitutionGroup().findSubstituendUse(ctd_class)
 
     def substitutesFor (self, other):
         """Determine whether an instance of this element can substitute for the other element.
@@ -1578,6 +1578,17 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             self.__dfaStack = self._ContentModel.initialDFAStack(self)
         return self
 
+    @classmethod
+    def _ElementBindingUseForName (cls, element_name):
+        element_use = cls._ElementMap.get(element_name)
+        if element_use is None:
+            element_binding = element_name.elementBinding()
+            if element_binding is not None:
+                element_use = element_binding.findSubstituendUse(cls)
+        else:
+            element_binding = element_use.elementBinding()
+        return (element_binding, element_use)
+        
     def append (self, value):
         """Add the value to the instance.
 
@@ -1605,13 +1616,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             assert xml.dom.Node.ELEMENT_NODE == value.nodeType
             ns_ctx = pyxb.namespace.NamespaceContext.GetNodeContext(value)
             expanded_name = pyxb.namespace.ExpandedName(value, fallback_namespace=ns_ctx.defaultNamespace())
-            element_use = self._ElementMap.get(expanded_name)
-            if element_use is None:
-                element_binding = expanded_name.elementBinding()
-                if element_binding is not None:
-                    element_use = element_binding.findSubstituendUse(self)
-            else:
-                element_binding = element_use.elementBinding()
+            (element_binding, element_use) = self._ElementBindingUseForName(expanded_name)
             if element_binding is not None:
                 value = element_binding.createFromDOM(value)
             if not self._PerformValidation:

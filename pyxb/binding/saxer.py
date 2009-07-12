@@ -292,12 +292,8 @@ class PyXBSAXHandler (xml.sax.handler.ContentHandler):
         ns_ctx = self.__updateNamespaceContext()
         self.__nextNamespaceContext = pyxb.namespace.NamespaceContext(parent_context=ns_ctx)
 
-        # Get the element name including namespace information.  Note that we
-        # might have a default (absent) namespace even though SAX doesn't know
-        # about it.
-        if name[0] is None:
-            name = ( self.__fallbackNamespace, name[1] )
-        name_en = pyxb.namespace.ExpandedName(name)
+        # Get the element name including namespace information.
+        name_en = pyxb.namespace.ExpandedName(name, fallback_namespace=self.__fallbackNamespace)
 
         # Save the state of the enclosing element, and create a new
         # state for this element.
@@ -306,30 +302,19 @@ class PyXBSAXHandler (xml.sax.handler.ContentHandler):
         self.__elementState = this_state = _SAXElementState(ns_ctx, parent_state)
 
         # Start knowing nothing
-        type_class = element_use = element_binding = None
+        type_class = None
 
         # Process an xsi:type attribute, if present
         if attrs.has_key(self.__XSITypeTuple):
             xsi_type = attrs.getValue(self.__XSITypeTuple)
             type_class = ns_ctx.interpretQName(xsi_type).typeBinding()
 
-        # @todo: handle substitution groups
-
         # Resolve the element within the appropriate context.  Note
         # that global elements have no use, only the binding.
         if parent_state.enclosingCTD() is not None:
-            element_use = parent_state.enclosingCTD()._UseForTag(name_en, raise_if_fail=False)
-            # Use will be None if this element is in a substitution group.  If
-            # so, identify the element binding, then search for a use that has
-            # a substitution group it belongs to.
-            if element_use is None:
-                element_binding = name_en.elementBinding()
-                if element_binding is not None:
-                    eb = element_binding
-                    while (element_use is None) and (eb is not None):
-                        element_use = parent_state.enclosingCTD()._UseForTag(eb.name(), raise_if_fail=False)
-                        eb = eb.substitutionGroup()
+            (element_binding, element_use) = parent_state.enclosingCTD()._ElementBindingUseForName(name_en)
         else:
+            element_use = None
             element_binding = name_en.elementBinding()
 
         # Non-root elements should have an element use, from which we can
