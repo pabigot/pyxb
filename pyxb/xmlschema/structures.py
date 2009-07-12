@@ -3944,7 +3944,6 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
         @rtype: L{SimpleTypeDefinition}
         """
         std = SimpleTypeDefinition(owner=owner, namespace_context=owner._namespaceContext(), variety=None, scope=self._scope(), schema=owner._schema())
-        print '%s tns %s' % (self.expandedName(), std.targetNamespace())
         std.__baseTypeDefinition = self
         return std.__completeResolution(body, None, self._DA_restriction)
 
