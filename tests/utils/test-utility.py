@@ -369,6 +369,33 @@ class TestConstrainedSequence (unittest.TestCase):
         x = ConstrainedSequence((1, '2', 3L), member_type=int, sequence_type=tuple)
         self.assertEqual(3, len(x))
         self.assert_(reduce(lambda _l,_r: _l and isinstance(_r, x.memberType()), x, True))
+        self.assertEqual(hash(x), hash((1,2,3)))
+
+    def testCount (self):
+        x = ConstrainedSequence([0.3, '1', 2L, 1.1, 1L], member_type=int)
+        self.assertEqual(5, len(x))
+        self.assertEqual(3, x.count(1))
+        self.assertEqual(3, x.count("1"))
+
+    def testIndex (self):
+        x = ConstrainedSequence([0.3, '1', 2L, 1.1, 1L], member_type=int)
+        self.assertEqual(1, x.index('1'))
+
+    def testMembership (self):
+        x = ConstrainedSequence([0.3, '1', 2L, 1.1, 1L], member_type=int)
+        self.assert_("2" in x)
+
+    def testExtrema (self):
+        x = ConstrainedSequence([0.3, '1', 2L, 1.1, 1L], member_type=int)
+        self.assertEqual(0, min(x))
+        self.assertEqual(2, max(x))
+
+    def testSort (self):
+        x = ConstrainedSequence([0.3, '-10', 2L, 1.1, 1L], member_type=int)
+        x.sort()
+        self.assertEqual([-10, 0, 1, 1, 2], x)
+        y = ConstrainedSequence([-10L, "0", 1.1, 1, "2"], member_type=int)
+        self.assertEqual(y, x)
 
 if '__main__' == __name__:
     unittest.main()

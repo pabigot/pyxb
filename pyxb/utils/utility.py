@@ -416,6 +416,10 @@ class ConstrainedSequence (object):
         if 0 < len(args):
             args = (tuple(self.__convertMany(args[0])),) + args[1:]
         self.__sequence = kw.pop('sequence_type', list)(*args)
+        # If I could do things like any of these:
+        #    self.__str__ = self.__sequence.__str__
+        #    setattr(self, '__str__', self.__sequence.__str__)
+        # I'd add all the relevant methods.  But I can't.
 
     # Standard underlying container methods, per Python Reference Manual "Emulating Container Types"
     def __len__ (self):
@@ -436,7 +440,10 @@ class ConstrainedSequence (object):
     def __iter__ (self):
         return iter(self.__sequence)
 
-    # Standard sequence methods, per Python Library Reference "Mutable Sequence Types"
+    def __contains__ (self, item):
+        return self.__sequence.__contains__(self.__convertOne(item))
+
+    # Standard mutable sequence methods, per Python Library Reference "Mutable Sequence Types"
 
     def append (self, x):
         ls = len(self.__sequence)
@@ -446,11 +453,11 @@ class ConstrainedSequence (object):
         ls = len(self.__sequence)
         self.__sequence[ls:ls] = self.__convertMany(x)
 
-    def count (self):
-        return self.__sequence.count()
+    def count (self, x):
+        return self.__sequence.count(self.__convertOne(x))
 
-    def index (self, *args):
-        return self.__sequence.index(*args)
+    def index (self, x, *args):
+        return self.__sequence.index(self.__convertOne(x), *args)
 
     def insert (self, i, x):
         self.__sequence[i:i] = self.__convertOne(x)
@@ -466,4 +473,25 @@ class ConstrainedSequence (object):
 
     def sort (self, *args):
         self.__sequence.sort(*args)
+
+    # Miscellaneous support methods
+
+    def __str__ (self):
+        return self.__sequence.__str__()
+    
+    def __eq__ (self, other):
+        if isinstance(other, type(self)):
+            other = other.__sequence
+        return self.__sequence.__eq__(other)
+
+    def __ne__ (self, other):
+        if isinstance(other, type(self)):
+            other = other.__sequence
+        return self.__sequence.__ne__(other)
+
+    def __hash__ (self):
+        return self.__sequence.__hash__()
+
+    def __nonzero__ (self):
+        return self.__sequence.__nonzero__()
 
