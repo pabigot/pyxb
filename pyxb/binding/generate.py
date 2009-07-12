@@ -348,7 +348,7 @@ def GenerateContentModel (ctd, automaton, binding_module, **kw):
     lines.append("})")
     return (cmi, lines)
 
-def GenerateFacets (td, **kw):
+def GenerateFacets (td, generator, **kw):
     binding_module = kw['binding_module']
     outf = binding_module.bindingIO()
     facet_instances = []
@@ -393,7 +393,7 @@ def GenerateFacets (td, **kw):
         map_args = ','.join(facet_instances)
     outf.write("%s._InitializeFacetMap(%s)\n" % (binding_module.literal(td, **kw), map_args))
 
-def GenerateSTD (std):
+def GenerateSTD (std, generator):
 
     binding_module = _ModuleNaming_mixin.ComponentBindingModule(std)
     outf = binding_module.bindingIO()
@@ -466,13 +466,14 @@ class %{std} (pyxb.binding.basis.STD_union):
         # If generating datatype_facets, throw away the class garbage
         outf = StringIO.StringIO()
         if std.isBuiltin():
-            GenerateFacets(std, **kw)
+            GenerateFacets(std, generator, **kw)
     else:
-        GenerateFacets(std, **kw)
+        GenerateFacets(std, generator, **kw)
 
     if std.name() is not None:
         outf.write(templates.replaceInText("%{namespaceReference}.addCategoryObject('typeBinding', %{localName}, %{std})\n",
                                            localName=binding_module.literal(std.name(), **kw), **template_map))
+
 def elementDeclarationMap (ed, binding_module, **kw):
     template_map = { }
     template_map['name'] = str(ed.expandedName())
@@ -503,7 +504,7 @@ def elementDeclarationMap (ed, binding_module, **kw):
         
     return template_map
 
-def GenerateCTD (ctd, **kw):
+def GenerateCTD (ctd, generator, **kw):
     binding_module = _ModuleNaming_mixin.ComponentBindingModule(ctd)
     outf = binding_module.bindingIO()
 
@@ -735,7 +736,7 @@ class %{ctd} (%{superclass}):
 
     outf.write(template, **template_map)
 
-def GenerateED (ed, **kw):
+def GenerateED (ed, generator, **kw):
     # Unscoped declarations should never be referenced in the binding.
     assert ed._scopeIsGlobal()
 
@@ -756,13 +757,7 @@ def GenerateED (ed, **kw):
 %{class}._setSubstitutionGroup(%{substitution_group})
 ''', **template_map))
 
-GeneratorMap = {
-    xs.structures.SimpleTypeDefinition : GenerateSTD
-  , xs.structures.ElementDeclaration : GenerateED
-  , xs.structures.ComplexTypeDefinition : GenerateCTD
-}
-
-def _PrepareSimpleTypeDefinition (std, nsm, module_context):
+def _PrepareSimpleTypeDefinition (std, generator, nsm, module_context):
     ptd = std.primitiveTypeDefinition(throw_if_absent=False)
     std._templateMap()['_unique'] = nsm.uniqueInClass(std)
     if (ptd is not None) and ptd.hasPythonSupport():
@@ -778,7 +773,7 @@ def _PrepareSimpleTypeDefinition (std, nsm, module_context):
                     #print ' Enum %s represents %s' % (ei.tag(), ei.unicodeValue())
             #print '%s unique: %s' % (std.expandedName(), nsm.uniqueInClass(std))
 
-def _PrepareComplexTypeDefinition (ctd, nsm, module_context):
+def _PrepareComplexTypeDefinition (ctd, generator, nsm, module_context):
     #print '%s represents %s in %s' % (ctd.nameInBinding(), ctd.expandedName(), nsm.namespace())
     content_basis = None
     content_type_tag = ctd._contentTypeTag()
@@ -1995,10 +1990,10 @@ class Generator (object):
             module_context = nsm.bindComponent(td, _ModuleNaming_mixin.ForSchema(td._schema()))
             assert isinstance(module_context, _ModuleNaming_mixin), 'Unexpected type %s' % (type(module_context),)
             if isinstance(td, xs.structures.SimpleTypeDefinition):
-                _PrepareSimpleTypeDefinition(td, nsm, module_context)
+                _PrepareSimpleTypeDefinition(td, self, nsm, module_context)
                 simple_type_definitions.append(td)
             elif isinstance(td, xs.structures.ComplexTypeDefinition):
-                _PrepareComplexTypeDefinition(td, nsm, module_context)
+                _PrepareComplexTypeDefinition(td, self, nsm, module_context)
                 complex_type_definitions.append(td)
             else:
                 assert False, 'Unexpected component type %s' % (type(td),)
@@ -2011,11 +2006,11 @@ class Generator (object):
                     nsm.addImportsFrom(m)
     
         for std in simple_type_definitions:
-            GenerateSTD(std)
+            GenerateSTD(std, self)
         for ctd in complex_type_definitions:
-            GenerateCTD(ctd)
+            GenerateCTD(ctd, self)
         for ed in element_declarations:
-            GenerateED(ed)
+            GenerateED(ed, self)
     
         return modules
     
