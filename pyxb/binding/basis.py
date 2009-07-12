@@ -980,7 +980,7 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
             return eu
         if self.substitutionGroup() is None:
             return None
-        return self.substitutionGroup().findSubstituend(ctd)
+        return self.substitutionGroup().findSubstituendUse(ctd)
 
     def substitutesFor (self, other):
         """Determine whether an instance of this element can substitute for the other element.
@@ -1603,7 +1603,8 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
                 return self
             # Do type conversion here
             assert xml.dom.Node.ELEMENT_NODE == value.nodeType
-            expanded_name = pyxb.namespace.ExpandedName(value)
+            ns_ctx = pyxb.namespace.NamespaceContext.GetNodeContext(value)
+            expanded_name = pyxb.namespace.ExpandedName(value, fallback_namespace=ns_ctx.defaultNamespace())
             element_use = self._ElementMap.get(expanded_name)
             if element_use is None:
                 element_binding = expanded_name.elementBinding()
@@ -1611,15 +1612,17 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
                     element_use = element_binding.findSubstituendUse(self)
             else:
                 element_binding = element_use.elementBinding()
-        if not self._PerformValidation:
-            if element_binding is not None:
-                value = element_binding.createFromDOM(value)
-            if element_use is not None:
-                element_use.setOrAppend(self, value)
-                return self
-            if self.wildcardElements() is not None:
-                self._appendWildcardElement(value)
-                return self
+            if not self._PerformValidation:
+                if element_binding is not None:
+                    value = element_binding.createFromDOM(value)
+                if element_use is not None:
+                    element_use.setOrAppend(self, value)
+                    return self
+                if self.wildcardElements() is not None:
+                    self._appendWildcardElement(value)
+                    return self
+                print 'Failed to process value without validation, element %s binding %s use %s' % (expanded_name, element_binding, element_use)
+                raise pyxb.UnrecognizedContentError(value)
         if self.__dfaStack is not None:
             if not self.__dfaStack.step(self, value, element_use):
                 raise pyxb.ExtraContentError('Extra content starting with %s' % (value,))
@@ -1640,7 +1643,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         self.__content = value
 
     def _addContent (self, child):
-        assert isinstance(child, _TypeBinding_mixin) or isinstance(child, types.StringTypes), 'Unrecognized child %s type %s' % (child, type(child))
+        assert (not self._PerformValidation) or isinstance(child, _TypeBinding_mixin) or isinstance(child, types.StringTypes), 'Unrecognized child %s type %s' % (child, type(child))
         self.__content.append(child)
 
     __isMixed = False

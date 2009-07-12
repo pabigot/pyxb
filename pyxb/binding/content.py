@@ -357,7 +357,8 @@ class ElementUse (pyxb.cscRoot):
         if value is None:
             return self.reset(ctd_instance)
         assert self.__elementBinding is not None
-        value = self.__elementBinding.compatibleValue(value)
+        if basis._TypeBinding_mixin._PerformValidation:
+            value = self.__elementBinding.compatibleValue(value)
         setattr(ctd_instance, self.__key, value)
         if isinstance(value, list):
             # @todo: This is almost certainly wrong for simple types that
@@ -381,7 +382,8 @@ class ElementUse (pyxb.cscRoot):
         if not self.isPlural():
             raise pyxb.StructuralBadDocumentError('Cannot append to element with non-plural multiplicity')
         values = self.value(ctd_instance)
-        value = self.__elementBinding.compatibleValue(value)
+        if basis._TypeBinding_mixin._PerformValidation:
+            value = self.__elementBinding.compatibleValue(value)
         values.append(value)
         ctd_instance._addContent(value)
         return values
@@ -675,8 +677,8 @@ class ContentModelTransition (pyxb.cscRoot):
         if isinstance(value, xml.dom.Node):
             if element_use is not None:
                 element_binding = element_use.elementBinding()
-                eb2 = self.term().elementForName(pyxb.namespace.ExpandedName(value))
-                assert element_binding == eb2, 'Passed %s calculated %s from %s' % (element_binding, eb2, value)
+                #eb2 = self.term().elementForName(pyxb.namespace.ExpandedName(value))
+                #assert element_binding == eb2, 'Passed %s calculated %s from %s' % (element_binding, eb2, value)
             else:
                 element_binding = self.term().elementForName(pyxb.namespace.ExpandedName(value))
             if element_binding is None:

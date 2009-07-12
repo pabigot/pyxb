@@ -593,7 +593,7 @@ class _NamespaceCategory_mixin (pyxb.cscRoot):
 
     def categoryMap (self, category):
         """Map from local names to NamedObjectMap instances for the given category."""
-        return self.__categoryMap[category]
+        return self.__categoryMap.get(category, {})
 
     def __defineCategoryAccessors (self):
         """Define public methods on the Namespace which provide access to
