@@ -395,7 +395,7 @@ def GenerateFacets (td, generator, **kw):
 
 def GenerateSTD (std, generator):
 
-    binding_module = _ModuleNaming_mixin.ComponentBindingModule(std)
+    binding_module = generator.moduleForComponent(std)
     outf = binding_module.bindingIO()
     
     class_keywords = frozenset(basis.simpleTypeDefinition._ReservedSymbols)
@@ -505,7 +505,7 @@ def elementDeclarationMap (ed, binding_module, **kw):
     return template_map
 
 def GenerateCTD (ctd, generator, **kw):
-    binding_module = _ModuleNaming_mixin.ComponentBindingModule(ctd)
+    binding_module = generator.moduleForComponent(ctd)
     outf = binding_module.bindingIO()
 
     content_type = None
@@ -740,7 +740,7 @@ def GenerateED (ed, generator, **kw):
     # Unscoped declarations should never be referenced in the binding.
     assert ed._scopeIsGlobal()
 
-    binding_module = _ModuleNaming_mixin.ComponentBindingModule(ed)
+    binding_module = generator.moduleForComponent(ed)
     outf = binding_module.bindingIO()
 
     template_map = elementDeclarationMap(ed, binding_module, **kw)
@@ -2036,3 +2036,6 @@ class Generator (object):
                     os.unlink(component_model_file)
                 except:
                     pass
+
+    def moduleForComponent (self, component):
+        return _ModuleNaming_mixin.ComponentBindingModule(component)
