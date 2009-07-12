@@ -375,3 +375,95 @@ def TextFromURI (uri):
         raise
     return xmls
 
+class ConstrainedSequence (object):
+    """A (mutable) sequence type constrained so its values are instances of a given type.
+
+    After converting any user input, operations are delegated to an
+    underlying sequence instance."""
+
+    # Type of sequence members
+    __memberType = None
+    def memberType (self):
+        """The type of which sequence members must be an instance."""
+        return self.__memberType
+
+    # Underlying sequence storage
+    __sequence = None
+
+    # Convert a single value to the required type, if not already an instance
+    def __convertOne (self, v):
+        if not isinstance(v, self.__memberType):
+            v = self.__memberType(v)
+        return v
+
+    # Convert a sequence of values to the required type, if not already instances
+    def __convertMany (self, values):
+        nv = []
+        for v in values:
+            nv.append(self.__convertOne(v))
+        return nv
+
+    def __init__ (self, *args, **kw):
+        """Create a constrained sequence.
+
+        @keyword member_type: Required type for members
+        @type member_type: C{type}
+
+        @keyword sequence_type: Optional type of sequence.  Default is C{list}
+        @type sequence_type: C{type}
+        """
+        self.__memberType = kw.pop('member_type')
+        if 0 < len(args):
+            args = (tuple(self.__convertMany(args[0])),) + args[1:]
+        self.__sequence = kw.pop('sequence_type', list)(*args)
+
+    # Standard underlying container methods, per Python Reference Manual "Emulating Container Types"
+    def __len__ (self):
+        return len(self.__sequence)
+    
+    def __getitem__ (self, key):
+        return self.__sequence[key]
+
+    def __setitem__ (self, key, value):
+        if isinstance(key, slice):
+            self.__sequence[key] = self.__convertMany(value)
+        else:
+            self.__sequence[key] = self.__convertOne(value)
+
+    def __delitem__ (self, key):
+        del self.__sequence[key]
+
+    def __iter__ (self):
+        return iter(self.__sequence)
+
+    # Standard sequence methods, per Python Library Reference "Mutable Sequence Types"
+
+    def append (self, x):
+        ls = len(self.__sequence)
+        self.__sequence[ls:ls] = [ self.__convertOne(x) ]
+
+    def extend (self, x):
+        ls = len(self.__sequence)
+        self.__sequence[ls:ls] = self.__convertMany(x)
+
+    def count (self):
+        return self.__sequence.count()
+
+    def index (self, *args):
+        return self.__sequence.index(*args)
+
+    def insert (self, i, x):
+        self.__sequence[i:i] = self.__convertOne(x)
+
+    def pop (self, *args):
+        return self.__sequence.pop(*args)
+
+    def remove (self, x):
+        self.__sequence.remove(self.__convertOne(x))
+
+    def reverse (self):
+        self.__sequence.reverse()
+
+    def sort (self, *args):
+        self.__sequence.sort(*args)
+

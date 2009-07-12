@@ -325,6 +325,51 @@ class TestGraph (unittest.TestCase):
         self.assertEqual(1, len(graph.scc()))
         self.assertEqual(set([1, 3, 5]), set(graph.scc()[0]))
 
+class TestConstrainedSequence (unittest.TestCase):
+
+    def testCTOR (self):
+        x = ConstrainedSequence(member_type=int)
+        self.assertEquals(0, len(x))
+        x = ConstrainedSequence([0,1,2], member_type=int)
+        self.assertEquals(3, len(x))
+        self.assertEquals(1, x[1])
+        x = ConstrainedSequence([0.3,"1",long(2)], member_type=int)
+        self.assertEquals(3, len(x))
+        self.assertEquals(0, x[0])
+        self.assertEquals(1, x[1])
+        self.assertEquals(2, x[2])
+        self.assert_(reduce(lambda _l,_r: _l and isinstance(_r, x.memberType()), x, True))
+        
+    def testAppend (self):
+        x = ConstrainedSequence(member_type=int)
+        x.append(2)
+        self.assertEqual(2, x[-1])
+        x.append("4")
+        self.assertEqual(4, x[-1])
+        x.append(5L)
+        self.assertEqual(5, x[-1])
+        self.assert_(reduce(lambda _l,_r: _l and isinstance(_r, x.memberType()), x, True))
+
+    def testSet (self):
+        x = ConstrainedSequence([0.3, "1", 2L], member_type=int)
+        self.assertEquals(3, len(x))
+        self.assertEquals(0, x[0])
+        self.assertEquals(1, x[1])
+        self.assertEquals(2, x[2])
+        self.assert_(reduce(lambda _l,_r: _l and isinstance(_r, x.memberType()), x, True))
+        x[1] = '432'
+        self.assertEquals(432, x[1])
+        x[0:2] = [ '67' ]
+        self.assertEquals(2, len(x))
+        self.assertEquals(67, x[0])
+        self.assertEquals(2, x[1])
+        self.assert_(reduce(lambda _l,_r: _l and isinstance(_r, x.memberType()), x, True))
+
+    def testTuple (self):
+        x = ConstrainedSequence((1, '2', 3L), member_type=int, sequence_type=tuple)
+        self.assertEqual(3, len(x))
+        self.assert_(reduce(lambda _l,_r: _l and isinstance(_r, x.memberType()), x, True))
+
 if '__main__' == __name__:
     unittest.main()
             
