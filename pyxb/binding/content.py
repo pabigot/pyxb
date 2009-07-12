@@ -451,7 +451,7 @@ class _DFAState (object):
         self.__state = state
         return self
 
-    def step (self, dfa_stack, value):
+    def step (self, dfa_stack, value, element_use):
         """Execute a step within the content model.
 
         This determines whether the current state in the content model allows
@@ -470,7 +470,7 @@ class _DFAState (object):
         @return: C{True} iff a transition successfully consumed the value
         """
 
-        self.__state = self.contentModel().step(self.ctdInstance(), self.state(), value, dfa_stack)
+        self.__state = self.contentModel().step(self.ctdInstance(), self.state(), value, element_use, dfa_stack)
         return self.__state is not None
 
     def isFinal (self):
@@ -495,7 +495,7 @@ class _MGAllState (object):
         self.__ctdInstance = ctd_instance
         self.__alternatives = self.__modelGroup.alternatives()
 
-    def step (self, dfa_stack, value):
+    def step (self, dfa_stack, value, element_use):
         """Execute a step within the model group.
 
         If an automaton stack is currently being executed, the step defers to
@@ -519,7 +519,7 @@ class _MGAllState (object):
         """
 
         if self.__currentStack is not None:
-            if self.__currentStack.step(self.__ctdInstance, value):
+            if self.__currentStack.step(self.__ctdInstance, value, element_use):
                 return True
             if not self.__currentStack.isTerminal():
                 # I think this is probably a problem, but don't have an
@@ -533,7 +533,7 @@ class _MGAllState (object):
         for alt in self.__alternatives:
             try:
                 new_stack = alt.contentModel().initialDFAStack(self.__ctdInstance)
-                if new_stack.step(self.__ctdInstance, value):
+                if new_stack.step(self.__ctdInstance, value, element_use):
                     self.__currentStack = new_stack
                     self.__alternatives.remove(alt)
                     return True
@@ -586,13 +586,13 @@ class DFAStack (object):
             raise pyxb.LogicError('Attempt to underflow content model stack')
         return self.__stack[-1]
 
-    def step (self, ctd_instance, value):
+    def step (self, ctd_instance, value, element_use):
         """Take a step using the value and the current model state.
 
         Execution of the step may add a new model state to the stack.
 
         @return: C{True} iff the value was consumed by a transition."""
-        ok = self.topModelState().step(self, value)
+        ok = self.topModelState().step(self, value, element_use)
         if not ok:
             self.popModelState()
         return ok
@@ -624,6 +624,8 @@ class ContentModelTransition (pyxb.cscRoot):
 
     # The ElementUse instance used to store a successful match in the
     # complex type definition instance.
+    def elementUse (self):
+        return self.__elementUse
     __elementUse = None
 
     # Types of transition that can be taken, in order of preferred match
@@ -633,6 +635,8 @@ class ContentModelTransition (pyxb.cscRoot):
 
     # What type of term this transition covers
     __termType = None
+    def termType (self):
+        return self.__termType
 
     def __init__ (self, next_state, element_use=None, term=None):
         """Create a transition to a new state upon receipt of a term,
@@ -666,10 +670,15 @@ class ContentModelTransition (pyxb.cscRoot):
                 rv = cmp(self.__term, other.__term)
         return rv
 
-    def __processElementTransition (self, value):
+    def __processElementTransition (self, value, element_use):
         # First, identify the element
         if isinstance(value, xml.dom.Node):
-            element_binding = self.term().elementForName(pyxb.namespace.ExpandedName(value))
+            if element_use is not None:
+                element_binding = element_use.elementBinding()
+                eb2 = self.term().elementForName(pyxb.namespace.ExpandedName(value))
+                assert element_binding == eb2, 'Passed %s calculated %s from %s' % (element_binding, eb2, value)
+            else:
+                element_binding = self.term().elementForName(pyxb.namespace.ExpandedName(value))
             if element_binding is None:
                 return None
             return element_binding.createFromDOM(value)
@@ -682,6 +691,7 @@ class ContentModelTransition (pyxb.cscRoot):
             # string is available).
             return self.term().compatibleValue(value, convert_string_values=False)
         except pyxb.BadTypeValueError, e:
+            print e
             pass
         return None
 
@@ -777,7 +787,7 @@ class ContentModelTransition (pyxb.cscRoot):
         dfa_state = _MGAllState(self.__term, None)
         return dfa_state.isFinal()
 
-    def attemptTransition (self, ctd_instance, value, dfa_stack):
+    def attemptTransition (self, ctd_instance, value, element_use, dfa_stack):
         """Attempt to make the appropriate transition.
 
         @param ctd_instance: The binding instance for which we are attempting
@@ -799,7 +809,7 @@ class ContentModelTransition (pyxb.cscRoot):
         if self.TT_element == self.__termType:
             element = None
             try:
-                element = self.__processElementTransition(value)
+                element = self.__processElementTransition(value, element_use)
             except Exception, e:
                 import sys
                 import traceback
@@ -810,7 +820,7 @@ class ContentModelTransition (pyxb.cscRoot):
                 return False
             self.__elementUse.setOrAppend(ctd_instance, element)
         elif self.TT_modelGroupAll == self.__termType:
-            return dfa_stack.pushModelState(_MGAllState(self.__term, ctd_instance)).step(ctd_instance, value)
+            return dfa_stack.pushModelState(_MGAllState(self.__term, ctd_instance)).step(ctd_instance, value, element_use)
         elif self.TT_wildcard == self.__termType:
             if isinstance(value, xml.dom.Node):
                 # See if we can convert from DOM into a Python instance.
@@ -855,6 +865,8 @@ class ContentModelState (pyxb.cscRoot):
     __state = None
     # Sequence of ContentModelTransition instances
     __transitions = None
+    
+    __elementTermMap = None
 
     def isFinal (self):
         """If True, this state can successfully complete the element
@@ -871,6 +883,10 @@ class ContentModelState (pyxb.cscRoot):
         self.__transitions = transitions
         [ _t._currentStateRef(self) for _t in self.__transitions ]
         self.__transitions.sort()
+        self.__elementTermMap = { }
+        for t in self.__transitions:
+            self.__elementTermMap[t.elementUse()] = t
+        self.__elementTermMap.pop(None, None)
 
     def transitions (self):
         return self.__transitions
@@ -885,7 +901,7 @@ class ContentModelState (pyxb.cscRoot):
                 return True
         return False
 
-    def evaluateContent (self, ctd_instance, value, dfa_stack):
+    def evaluateContent (self, ctd_instance, value, element_use, dfa_stack):
         """Try to make a single transition with the given value.
 
         @param ctd_instance: The binding instance for which we are attempting
@@ -908,8 +924,14 @@ class ContentModelState (pyxb.cscRoot):
         possible, and this is not a final state.
         """
 
+        if element_use is not None:
+            transition = self.__elementTermMap.get(element_use)
+            if transition is not None:
+                rv = transition.attemptTransition(ctd_instance, value, element_use, dfa_stack)
+                assert rv, 'Pre-calculated transition failed for %s with %s' % (element_use, value)
+                return transition.nextState()
         for transition in self.__transitions:
-            if transition.attemptTransition(ctd_instance, value, dfa_stack):
+            if transition.attemptTransition(ctd_instance, value, None, dfa_stack):
                 return transition.nextState()
         if self.isFinal():
             return None
@@ -931,7 +953,7 @@ class ContentModel (pyxb.cscRoot):
     def initialDFAStack (self, ctd_instance):
         return DFAStack(self, ctd_instance)
 
-    def step (self, ctd_instance, state, value, dfa_stack):
+    def step (self, ctd_instance, state, value, element_use, dfa_stack):
         """Perform a single step in the content model.  This is a pass-through
         to L{ContentModelState.evaluateContent} for the appropriate state.
 
@@ -939,7 +961,7 @@ class ContentModel (pyxb.cscRoot):
         @type state: C{int}
         """
 
-        return self.__stateMap[state].evaluateContent(ctd_instance, value, dfa_stack)
+        return self.__stateMap[state].evaluateContent(ctd_instance, value, element_use, dfa_stack)
 
     def isFinal (self, state):
         return self.__stateMap[state].allowsEpsilonTransitionToFinal(self)

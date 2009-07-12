@@ -536,6 +536,10 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
         return args
 
     @classmethod
+    def _ConvertArguments_vx (cls, args, kw):
+        return args
+
+    @classmethod
     def _ConvertArguments (cls, args, kw):
         """Pre-process the arguments.
 
@@ -553,13 +557,7 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
         apply_whitespace_facet = kw.pop('_apply_whitespace_facet', False)
         if apply_whitespace_facet:
             args = cls.__ApplyWhitespaceToFirstArgument(args)
-        if issubclass(cls, STD_list):
-            # If the first argument is a string, split it on spaces
-            # and use the resulting list of tokens.
-            if 0 < len(args):
-                arg1 = args[0]
-                if isinstance(arg1, types.StringTypes):
-                    args = (arg1.split(),) + args[1:]
+        return cls._ConvertArguments_vx(args, kw)
         return args
 
     # Must override new, because new gets invoked before init, and
@@ -595,7 +593,7 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
         constructed value is checked against its constraining facets.
         @type _validate_constraints: C{bool}
         """
-        validate_constraints = kw.pop('_validate_constraints', True)
+        validate_constraints = kw.pop('_validate_constraints', self._PerformValidation)
         args = self._ConvertArguments(args, kw)
         try:
             super(simpleTypeDefinition, self).__init__(*args, **kw)
@@ -693,9 +691,6 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
         Throws pyxb.BadTypeValueError if any constraint is violated.
         """
 
-        if not cls._PerformValidation:
-            return None
-        
         value = cls._XsdConstraintsPreCheck_vb(value)
 
         facet_values = None
@@ -813,21 +808,16 @@ class STD_union (simpleTypeDefinition):
 
         rv = None
         # NB: get, not pop: preserve it for the member type invocations
-        validate_constraints = kw.get('_validate_constraints', True)
+        validate_constraints = kw.get('_validate_constraints', cls._PerformValidation)
+        assert isinstance(validate_constraints, bool)
         if 0 < len(args):
             arg = args[0]
-            for mt in cls._MemberTypes:
-                if isinstance(arg, mt):
-                    try:
-                        rv = mt.Factory(*args, **kw)
-                        break
-                    except pyxb.BadTypeValueError:
-                        pass
-                    except ValueError:
-                        pass
-                    except:
-                        pass
+            try:
+                rv = cls._ValidateMember(arg)
+            except pyxb.BadTypeValueError, e:
+                pass
         if rv is None:
+            kw['_validate_constraints'] = True
             for mt in cls._MemberTypes:
                 try:
                     rv = mt.Factory(*args, **kw)
@@ -854,7 +844,9 @@ class STD_union (simpleTypeDefinition):
         if not isinstance(value, cls._MemberTypes):
             for mt in cls._MemberTypes:
                 try:
-                    value = mt(value)
+                    # Force validation so we get the correct type, otherwise
+                    # first member will be accepted.
+                    value = mt.Factory(value, _validate_constraints=True)
                     return value
                 except pyxb.BadTypeValueError:
                     pass
@@ -899,13 +891,21 @@ class STD_list (simpleTypeDefinition, types.ListType):
         return value
 
     @classmethod
-    def _XsdConstraintsPreCheck_vb (cls, value):
-        """Verify that the items in the list are acceptable members."""
-        assert isinstance(value, cls)
-        for i in range(len(value)):
-            value[i] = cls._ValidateItem(value[i])
-        super_fn = getattr(super(STD_list, cls), '_XsdConstraintsPreCheck_vb', lambda *a,**kw: value)
-        return super_fn(value)
+    def _ConvertArguments_vx (cls, args, kw):
+        # If the first argument is a string, split it on spaces and use the
+        # resulting list of tokens.
+        if 0 < len(args):
+            arg1 = args[0]
+            if isinstance(arg1, types.StringTypes):
+                args = (arg1.split(),) + args[1:]
+                arg1 = args[0]
+            if isinstance(arg1, list):
+                new_arg1 = []
+                for i in range(len(arg1)):
+                    new_arg1.append(cls._ValidateItem(arg1[i]))
+                args = (new_arg1,) + args[1:]
+        super_fn = getattr(super(STD_list, cls), '_ConvertArguments_vx', lambda *a,**kw: args)
+        return super_fn(args, kw)
 
     @classmethod
     def _XsdValueLength_vx (cls, value):
@@ -1322,7 +1322,8 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             # take keywords, and they get pissy if you given them any.  Which
             # happens if we're trying to initialize some attributes in the
             # constructor.
-            rkw = dict(zip(self._PyXBFactoryKeywords, map(kw.get, self._PyXBFactoryKeywords)))
+            fkw = [ _k for _k in self._PyXBFactoryKeywords if (_k in kw) ]
+            rkw = dict(zip(fkw, map(kw.get, fkw)))
             rkw['_dom_node'] = dom_node
             self.__setContent(self._TypeDefinition.Factory(*args, **rkw))
         # Extract keywords that match field names
@@ -1525,8 +1526,6 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         @raise pyxb.MissingContentError: the content of this type has not been set
         """
         # @todo: type check
-        if not self._PerformValidation:
-            return True
         if self._CT_SIMPLE != self._ContentTypeTag:
             raise pyxb.NotSimpleContentError(self)
         if self._isNil():
@@ -1609,23 +1608,20 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             if element_use is None:
                 element_binding = expanded_name.elementBinding()
                 if element_binding is not None:
-                    element_use = element_binding.findSubstituend(self)
+                    element_use = element_binding.findSubstituendUse(self)
             else:
                 element_binding = element_use.elementBinding()
-            if element_use is not None:
-                print 'Assign to %s' % (element_use.name(),)
-            #if element_binding is not None:
-            #    value = element_binding.createFromDOM(value)
         if not self._PerformValidation:
+            if element_binding is not None:
+                value = element_binding.createFromDOM(value)
             if element_use is not None:
-                print 'Storing %s in %s' % (value, element_use.name(),)
                 element_use.setOrAppend(self, value)
                 return self
             if self.wildcardElements() is not None:
                 self._appendWildcardElement(value)
                 return self
         if self.__dfaStack is not None:
-            if not self.__dfaStack.step(self, value):
+            if not self.__dfaStack.step(self, value, element_use):
                 raise pyxb.ExtraContentError('Extra content starting with %s' % (value,))
         return self
 
@@ -1666,7 +1662,8 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             return self
         if self._CT_SIMPLE == self._ContentTypeTag:
             self.__setContent(self._TypeDefinition.Factory(_dom_node=node))
-            self.xsdConstraintsOK()
+            if self._PerformValidation:
+                self.xsdConstraintsOK()
             return self
         self.__isMixed = (self._CT_MIXED == self._ContentTypeTag)
         self.extend(node.childNodes[:])
