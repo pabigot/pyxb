@@ -675,15 +675,10 @@ class ContentModelTransition (pyxb.cscRoot):
     def __processElementTransition (self, value, element_use):
         # First, identify the element
         if isinstance(value, xml.dom.Node):
-            if element_use is not None:
-                element_binding = element_use.elementBinding()
-                #eb2 = self.term().elementForName(pyxb.namespace.ExpandedName(value))
-                #assert element_binding == eb2, 'Passed %s calculated %s from %s' % (element_binding, eb2, value)
-            else:
-                element_binding = self.term().elementForName(pyxb.namespace.ExpandedName(value))
-            if element_binding is None:
-                return None
-            return element_binding.createFromDOM(value)
+            # If we got here, it's because we couldn't figure out what element
+            # the node conformed to and had to try the element transitions.
+            # If we couldn't do it before, we can't do it now, so just fail.
+            return None
         try:
             # The convert_string_value=False setting prevents string arguments
             # to element/type constructors from being automatically converted
@@ -810,6 +805,11 @@ class ContentModelTransition (pyxb.cscRoot):
 
         if self.TT_element == self.__termType:
             element = None
+            # If the element use matched one of the terms in its state, we
+            # would never have gotten here, so don't even try.  We're only
+            # walking the terms to see if an ALL or Wildcard is allowed.
+            if (element_use is not None):
+                return None
             try:
                 element = self.__processElementTransition(value, element_use)
             except Exception, e:
@@ -887,8 +887,9 @@ class ContentModelState (pyxb.cscRoot):
         self.__transitions.sort()
         self.__elementTermMap = { }
         for t in self.__transitions:
-            self.__elementTermMap[t.elementUse()] = t
-        self.__elementTermMap.pop(None, None)
+            if t.TT_element == t.termType():
+                assert t.elementUse() is not None
+                self.__elementTermMap[t.elementUse()] = t
 
     def transitions (self):
         return self.__transitions
@@ -929,11 +930,13 @@ class ContentModelState (pyxb.cscRoot):
         if element_use is not None:
             transition = self.__elementTermMap.get(element_use)
             if transition is not None:
-                rv = transition.attemptTransition(ctd_instance, value, element_use, dfa_stack)
-                assert rv, 'Pre-calculated transition failed for %s with %s' % (element_use, value)
+                element_use.setOrAppend(ctd_instance, value)
                 return transition.nextState()
+            # Might get here legitimately if we need to descend into ALL, or
+            # if this value is a wildcard for which we happen to have a
+            # binding class available.
         for transition in self.__transitions:
-            if transition.attemptTransition(ctd_instance, value, None, dfa_stack):
+            if transition.attemptTransition(ctd_instance, value, element_use, dfa_stack):
                 return transition.nextState()
         if self.isFinal():
             return None

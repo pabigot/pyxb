@@ -1612,9 +1612,9 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
                     element_use = element_binding.findSubstituendUse(self)
             else:
                 element_binding = element_use.elementBinding()
+            if element_binding is not None:
+                value = element_binding.createFromDOM(value)
             if not self._PerformValidation:
-                if element_binding is not None:
-                    value = element_binding.createFromDOM(value)
                 if element_use is not None:
                     element_use.setOrAppend(self, value)
                     return self
