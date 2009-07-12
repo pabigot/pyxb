@@ -28,6 +28,7 @@ import pyxb
 import os
 import fnmatch
 import pyxb.utils.utility
+import xml.dom
 
 PathEnvironmentVariable = 'PYXB_ARCHIVE_PATH'
 """Environment variable from which default path to pre-loaded namespaces is
@@ -180,19 +181,18 @@ class ExpandedName (pyxb.cscRoot):
             assert 1 == len(args)
             ln = args[0]
             ns = None
-            if isinstance(ln, (str, unicode)):
+            if isinstance(ln, basestring):
                 pass
             elif isinstance(ln, tuple) and (2 == len(ln)):
                 (ns, ln) = ln
             elif isinstance(ln, ExpandedName):
                 ns = ln.namespace()
                 ln = ln.localName()
+            elif isinstance(ln, xml.dom.Node):
+                ns = ln.namespaceURI
+                ln = ln.localName
             else:
-                try:
-                    ns = ln.namespaceURI
-                    ln = ln.localName
-                except AttributeError:
-                    pass
+                raise pyxb.LogicError('Unrecognized argument type %s' % (type(ln),))
         if (ns is None) and (fallback_namespace is not None):
             if fallback_namespace.isAbsentNamespace():
                 ns = fallback_namespace
@@ -1725,9 +1725,13 @@ class NamespaceContext (object):
     def GetNodeContext (cls, node, **kw):
         """Get the L{NamespaceContext} instance that was assigned to the node.
 
-        If none has been assigned, create one treating this as the root node,
-        and the keyword parameters as configuration information (e.g.,
-        default_namespace)."""
+        If none has been assigned and keyword parameters are present, create
+        one treating this as the root node and the keyword parameters as
+        configuration information (e.g., default_namespace).
+
+        @raise pyxb.LogicError: no context is available and the keywords
+        required to create one were not provided
+        """
         try:
             return node.__namespaceContext
         except AttributeError:

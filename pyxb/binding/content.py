@@ -688,7 +688,7 @@ class ContentModelTransition (pyxb.cscRoot):
             # string is available).
             return self.term().compatibleValue(value, convert_string_values=False)
         except pyxb.BadTypeValueError, e:
-            print e
+            # Silently fail the transition
             pass
         return None
 
@@ -810,30 +810,29 @@ class ContentModelTransition (pyxb.cscRoot):
             # walking the terms to see if an ALL or Wildcard is allowed.
             if (element_use is not None):
                 return None
-            try:
-                element = self.__processElementTransition(value, element_use)
-            except Exception, e:
-                import sys
-                import traceback
-                print 'Warning: Element transition failed on %s with %s: %s %s' % (ctd_instance, value, type(e), e)
-                #traceback.print_exception(*sys.exc_info())
-                raise
+            element = self.__processElementTransition(value, element_use)
             if element is None:
                 return False
             self.__elementUse.setOrAppend(ctd_instance, element)
-        elif self.TT_modelGroupAll == self.__termType:
+            return True
+        if self.TT_modelGroupAll == self.__termType:
             return dfa_stack.pushModelState(_MGAllState(self.__term, ctd_instance)).step(ctd_instance, value, element_use)
-        elif self.TT_wildcard == self.__termType:
+        if self.TT_wildcard == self.__termType:
+            value_desc = 'value of type %s' % (type(value),)
             if isinstance(value, xml.dom.Node):
                 # See if we can convert from DOM into a Python instance.
                 # If not, we'll go ahead and store the DOM node.
                 node = value
+                expanded_name = pyxb.utils.domutils.NameFromNode(node)
+                value_desc = 'DOM node %s' % (expanded_name,)
                 try:
-                    ns = pyxb.namespace.NamespaceForURI(node.namespaceURI, create_if_missing=True)
-                    if ns.module() is not None:
+                    ns = expanded_name.namespace()
+                    if ns is None:
+                        raise pyxb.LogicError('Absent namespace for wildcard')
+                    elif ns.module() is not None:
                         value = ns.module().CreateFromDOM(node)
                     elif ns.modulePath() is not None:
-                        print 'Importing %s' % (ns.modulePath(),)
+                        print 'Importing %s to get binding for wildcard %s' % (ns.modulePath(), expanded_name)
                         mod = __import__(ns.modulePath())
                         for c in ns.modulePath().split('.')[1:]:
                             mod = getattr(mod, c)
@@ -841,19 +840,15 @@ class ContentModelTransition (pyxb.cscRoot):
                     elif pyxb.namespace.XMLSchema == ns:
                         print 'Need to dynamically create schema for %s' % (ns,)
                 except Exception, e:
-                    if isinstance(node, xml.dom.Node):
-                        print 'WARNING: Unable to convert wildcard %s to Python instance: %s' % (pyxb.namespace.ExpandedName(node), e)
-                    else:
-                        print 'WARNING: Unable to convert wildcard %s to Python instance: %s' % (node, e)
+                    print 'WARNING: Unable to convert wildcard node %s to Python instance: %s' % (expanded_name, e)
             if not self.__term.matches(ctd_instance, value):
                 raise pyxb.UnexpectedContentError(value)
-            if isinstance(value, xml.dom.Node):
-                print 'NOTE: Created unbound (DOM) wildcard element from %s' % (pyxb.namespace.ExpandedName(node),)
+            if not isinstance(value, basis._TypeBinding_mixin):
+                print 'NOTE: Created unbound wildcard element from %s' % (value_desc,)
             assert isinstance(ctd_instance.wildcardElements(), list), 'Uninitialized wildcard list in %s' % (ctd_instance._ExpandedName,)
             ctd_instance._appendWildcardElement(value)
-        else:
-            raise pyxb.LogicError('Unexpected transition term %s' % (self.__term,))
-        return True
+            return True
+        raise pyxb.LogicError('Unexpected transition term %s' % (self.__term,))
 
 class ContentModelState (pyxb.cscRoot):
     """Represents a state in a ContentModel DFA.

@@ -51,6 +51,14 @@ def StringToDOM (text):
     xml.dom.minidom."""
     return xml.dom.minidom.parseString(text)
 
+def NameFromNode (node, ns_ctx=None):
+    if ns_ctx is None:
+        ns_ctx = pyxb.namespace.NamespaceContext.GetNodeContext(node)
+    fallback_namespace = None
+    if ns_ctx is not None:
+        fallback_namespace = ns_ctx.defaultNamespace()
+    return pyxb.namespace.ExpandedName(node, fallback_namespace=fallback_namespace)
+
 def NodeAttribute (node, attribute_ncname, attribute_ns=None):
     """Namespace-aware search for an optional attribute in a node.
 

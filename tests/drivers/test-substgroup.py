@@ -60,11 +60,11 @@ class TestXSIType (unittest.TestCase):
 
         xml = '<sgTime>2009-06-15T17:50:00Z</sgTime>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
-        self.assertRaises(pyxb.AbstractElementError, sgTime.createFromDOM, dom.documentElement)
+        self.assertRaises(pyxb.AbstractElementError, CreateFromDOM, dom.documentElement)
 
         xml = '<ISO8601>2009-06-15T17:50:00Z</ISO8601>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
-        instance = sgTime.createFromDOM(dom.documentElement)
+        instance = CreateFromDOM(dom.documentElement)
         self.assertEqual(instance._element(), ISO8601)
         saxer.parse(StringIO.StringIO(xml))
         instance = handler.rootObject()

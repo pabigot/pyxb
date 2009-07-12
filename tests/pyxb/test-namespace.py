@@ -1,6 +1,7 @@
 import unittest
 import pyxb
 from pyxb.namespace import ExpandedName
+import xml.dom
 
 class TestExpandedName (unittest.TestCase):
     def testEquivalence (self):
@@ -31,7 +32,7 @@ class TestExpandedName (unittest.TestCase):
         self.assertEqual(en.localName(), ln)
         en2 = ExpandedName(en)
         self.assertEqual(en2, en)
-        dom = self.FakeDOM()
+        dom = xml.dom.Node()
         dom.namespaceURI = ns_uri
         dom.localName = ln
         en = ExpandedName(dom)

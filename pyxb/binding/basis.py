@@ -246,7 +246,6 @@ class _TypeBinding_mixin (pyxb.cscRoot):
         # candidate is a number, and the string transition is tested first.
         raise pyxb.BadTypeValueError('No conversion from %s to %s' % (value_type, cls))
 
-
     @classmethod
     def _IsSimpleTypeContent (cls):
         """Return True iff the content of this binding object is a simple type.
@@ -1148,9 +1147,10 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
         # Even if found, this may not be equal to self, since we allow you to
         # use an abstract substitution group head to create instances from DOM
         # nodes that are in that group.
-        element_binding = self.elementForName(pyxb.namespace.ExpandedName(node))
+        expanded_name = pyxb.utils.domutils.NameFromNode(node)
+        element_binding = self.elementForName(expanded_name)
         if element_binding is None:
-            raise pyxb.StructuralBadDocumentError('Element %s cannot create from node %s' % (self.name(), pyxb.namespace.ExpandedName(node)))
+            raise pyxb.StructuralBadDocumentError('Element %s cannot create from node %s' % (self.name(), expanded_name))
 
         # Can't create instances of abstract elements.  @todo: Is there any
         # way this could be legal given an xsi:type attribute?  I'm pretty
@@ -1475,6 +1475,8 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         attribute_settings = { }
         for ai in range(0, node.attributes.length):
             attr = node.attributes.item(ai)
+            # NB: Specifically do not consider attr's NamespaceContext, since
+            # attributes do not accept a default namespace.
             attr_en = pyxb.namespace.ExpandedName(attr)
 
             # Ignore xmlns and xsi attributes; we've already handled those
@@ -1614,8 +1616,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
                 return self
             # Do type conversion here
             assert xml.dom.Node.ELEMENT_NODE == value.nodeType
-            ns_ctx = pyxb.namespace.NamespaceContext.GetNodeContext(value)
-            expanded_name = pyxb.namespace.ExpandedName(value, fallback_namespace=ns_ctx.defaultNamespace())
+            expanded_name = pyxb.utils.domutils.NameFromNode(value)
             (element_binding, element_use) = self._ElementBindingUseForName(expanded_name)
             if element_binding is not None:
                 value = element_binding.createFromDOM(value)
