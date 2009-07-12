@@ -419,7 +419,8 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
     _ReservedSymbols = _TypeBinding_mixin._ReservedSymbols.union(set([ 'XsdLiteral', 'xsdLiteral',
                             'XsdSuperType', 'XsdPythonType', 'XsdConstraintsOK',
                             'xsdConstraintsOK', 'XsdValueLength', 'xsdValueLength',
-                            'PythonLiteral', 'pythonLiteral' ]))
+                            'PythonLiteral', 'pythonLiteral',
+                            'SimpleTypeDefinition' ]))
     """Symbols that remain the responsibility of this class.  Any
     public symbols in generated binding subclasses are deconflicted
     by providing an alternative name in the subclass.  (There
@@ -600,6 +601,7 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
             raise pyxb.BadTypeValueError(e)
         if validate_constraints:
             self.xsdConstraintsOK()
+
 
     # The class attribute name used to store the reference to the STD
     # component instance must be unique to the class, not to this base class.
@@ -1350,7 +1352,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
 
     # Specify the symbols to be reserved for all CTDs.
     _ReservedSymbols = _TypeBinding_mixin._ReservedSymbols.union(set([ 'wildcardElements', 'wildcardAttributeMap',
-                             'xsdConstraintsOK', 'content' ]))
+                             'xsdConstraintsOK', 'content', 'append', 'extend', 'value', 'reset' ]))
 
     # None, or a reference to a ContentModel instance that defines how to
     # reduce a DOM node list to the body of this element.
@@ -1650,6 +1652,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
 
     def _addContent (self, child):
         assert (not self._PerformValidation) or isinstance(child, _TypeBinding_mixin) or isinstance(child, types.StringTypes), 'Unrecognized child %s type %s' % (child, type(child))
+        assert not (self._ContentTypeTag in (self._CT_EMPTY, self._CT_SIMPLE))
         self.__content.append(child)
 
     __isMixed = False
