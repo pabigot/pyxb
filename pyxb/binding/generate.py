@@ -1588,9 +1588,7 @@ class Generator (object):
         return self
     __validateChanges = None
 
-    STYLE_ACCESSOR = 'accessor'
-    STYLE_PROPERTY = 'property'
-    _DEFAULT_bindingStyle = STYLE_ACCESSOR
+    _DEFAULT_bindingStyle = basis.DEFAULT_BINDING_STYLE
     def bindingStyle (self):
         """The style of Python used in generated bindings.
 
@@ -1748,7 +1746,7 @@ class Generator (object):
                               action='store_false', dest='validate_changes',
                               help=self.__stripSpaces(self.validateChanges.__doc__ + ' This option turns off validation.'))
             parser.add_option('--binding-style',
-                              type='choice', choices=(self.STYLE_ACCESSOR, self.STYLE_PROPERTY),
+                              type='choice', choices=basis.BINDING_STYLES,
                               help=self.__stripSpaces(self.bindingStyle.__doc__))
             parser.add_option('-r', '--write-for-customization',
                               action='store_true', dest='write_for_customization',

@@ -22,6 +22,19 @@ import pyxb.utils.utility as utility
 import types
 import pyxb.namespace
 
+BINDING_STYLE_ACCESSOR = 'accessor'
+BINDING_STYLE_PROPERTY = 'property'
+
+BINDING_STYLES = (BINDING_STYLE_ACCESSOR, BINDING_STYLE_PROPERTY)
+DEFAULT_BINDING_STYLE = BINDING_STYLE_ACCESSOR
+CURRENT_BINDING_STYLE = None
+
+def ConfigureBindingStyle (style):
+    global CURRENT_BINDING_STYLE
+    simpleTypeDefinition._ConfigureBindingStyle(style)
+    complexTypeDefinition._ConfigureBindingStyle(style)
+    CURRENT_BINDING_STYLE = style
+
 class _TypeBinding_mixin (pyxb.cscRoot):
 
     _PerformValidation = True
@@ -427,6 +440,15 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
     currently are no public symbols in generated SimpleTypeDefinion
     bindings."""
 
+
+    @classmethod
+    def _ConfigureBindingStyle (cls, style):
+        if BINDING_STYLE_PROPERTY == style:
+            pass
+        elif BINDING_STYLE_ACCESSOR == style:
+            pass
+        else:
+            raise pyxb.LogicError('Unrecognized binding style %s' % (style,))
 
     # Determine the name of the class-private facet map.  For the base class
     # this should produce the same attribute name as Python's privatization
@@ -1285,6 +1307,17 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         """
         return self.__wildcardElements
 
+    @classmethod
+    def _ConfigureBindingStyle (cls, style):
+        if BINDING_STYLE_PROPERTY == style:
+            cls.content = cls.__contentProperty
+            cls.value = cls.__valueProperty
+        elif BINDING_STYLE_ACCESSOR == style:
+            cls.content = cls.__contentAccessor
+            cls.value = cls.__valueAccessor
+        else:
+            raise pyxb.LogicError('Unrecognized binding style %s' % (style,))
+
     __XSINil = pyxb.namespace.XMLSchema_instance.createExpandedName('nil')
     def __init__ (self, *args, **kw):
         """Create a new instance of this binding.
@@ -1539,7 +1572,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         return self.value().xsdConstraintsOK()
 
     __content = None
-    def content (self):
+    def __contentAccessor (self):
         """Return the content of the element.
 
         This must be a complex type with complex content.  The return value is
@@ -1550,8 +1583,9 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         if self._ContentTypeTag in (self._CT_EMPTY, self._CT_SIMPLE):
             raise pyxb.NotComplexContentError(str(self._ExpandedName))
         return self.__content
+    __contentProperty = property(__contentAccessor)
 
-    def value (self):
+    def __valueAccessor (self):
         """Return the value of the element.
 
         This must be a complex type with simple content.  The returned value
@@ -1562,6 +1596,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         if self._CT_SIMPLE != self._ContentTypeTag:
             raise pyxb.NotSimpleContentError(str(self._ExpandedName))
         return self.__content
+    __valueProperty = property(__valueAccessor)
 
     __dfaStack = None
     def reset (self):
@@ -1721,6 +1756,8 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
     def _IsSimpleTypeContent (cls):
         """CTDs with simple content are simple; other CTDs are not."""
         return cls._CT_SIMPLE == cls._ContentTypeTag
+
+ConfigureBindingStyle(DEFAULT_BINDING_STYLE)
 
 ## Local Variables:
 ## fill-column:78
