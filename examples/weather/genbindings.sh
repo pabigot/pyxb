@@ -14,6 +14,6 @@ touch raw/__init__.py
    -m "${PREFIX}" \
    -W "${WSDL}" \
    -r
-if [ ! -f ${PREFIX}.py ] ; then
-  echo "from raw.${PREFIX} import *" > ${PREFIX}.py
-fi
+#if [ ! -f ${PREFIX}.py ] ; then
+#  echo "from raw.${PREFIX} import *" > ${PREFIX}.py
+#fi

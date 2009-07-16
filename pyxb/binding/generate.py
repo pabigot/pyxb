@@ -1373,7 +1373,8 @@ class Generator (object):
             binding_file_path = self.__directoryForModulePath(module_elts)
             binding_file = pyxb.utils.utility.OpenOrCreate(binding_file_path, tag=module.moduleUID())
             if self.writeForCustomization() and (not os.path.exists(import_file_path)):
-                file(import_file_path, 'w').write('from %s import *' % (module_path,))
+                raw_module_path = '.'.join(module_elts)
+                file(import_file_path, 'w').write("from %s import *\n" % (raw_module_path,))
         else:
             module_path
         path_elts = binding_file_path.split(os.sep)
