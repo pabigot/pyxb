@@ -1833,7 +1833,7 @@ class Generator (object):
                     nsg_head = nsm.namespaceGroupHead()
                 namespace_modules.append(nsm)
     
-            if (nsg_head is not None) and nsg_head.namespaceGroupMulti():
+            if (nsg_head is not None) and (not nsg_head.namespace().isLoadedNamespace()) and nsg_head.namespaceGroupMulti():
                 ngm = NamespaceGroupModule(self, namespace_modules)
                 modules.add(ngm)
                 module_graph.addNode(ngm)
