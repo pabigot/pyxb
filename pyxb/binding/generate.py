@@ -784,19 +784,14 @@ def _PrepareComplexTypeDefinition (ctd, generator, nsm, module_context):
         content_basis = ctd.contentType()[1]
     elif (ctd.CT_ELEMENT_ONLY == content_type_tag):
         content_basis = ctd.contentType()[1]
-    kw = { 'binding_module' : module_context
-         , 'binding_schema' : ctd._schema() }
+    kw = { 'binding_module' : module_context }
     if isinstance(content_basis, xs.structures.Particle):
         plurality_map = content_basis.pluralityData().nameBasedPlurality()
     else:
         plurality_map = {}
     ctd._templateMap()['_unique'] = nsm.uniqueInClass(ctd)
-    #print 'Generating locals for %s' % (ctd.expandedName(),)
     for cd in ctd.localScopedDeclarations():
         _SetNameWithAccessors(cd, ctd, plurality_map.get(cd.expandedName(), (False, None))[0], module_context, nsm, kw)
-        #use_map = cd._templateMap()
-        #print '  %s %s uses %s stored in %s' % (cd.__class__.__name__, cd.expandedName(), use_map['id'], use_map['key'])
-
 
 def _SetNameWithAccessors (component, container, is_plural, binding_module, nsm, kw):
     use_map = component._templateMap()
