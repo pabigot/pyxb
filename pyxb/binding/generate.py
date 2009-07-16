@@ -22,6 +22,7 @@ import StringIO
 import datetime
 import urlparse
 import errno
+import uuid
 
 from pyxb.utils import utility
 from pyxb.utils import templates
@@ -871,6 +872,7 @@ class _ModuleNaming_mixin (object):
     __uniqueInClass = None
 
     _UniqueInModule = set([ 'pyxb', 'sys' ])
+    _GenerationUID = uuid.uuid1().urn
     
     __ComponentBindingModuleMap = {}
 
@@ -923,6 +925,15 @@ class _ModuleNaming_mixin (object):
     def bindingIO (self):
         return self.__bindingIO
 
+    __moduleUID = None
+    def moduleUID (self):
+        if self.__moduleUID is None:
+            self.__moduleUID = pyxb.utils.utility.HashForText(self._moduleUID_vx())
+        return self.__moduleUID
+
+    def _moduleUID_vx (self):
+        return str(id(self))
+
     def moduleContents (self):
         template_map = {}
         aux_imports = []
@@ -930,6 +941,8 @@ class _ModuleNaming_mixin (object):
             aux_imports.append('import %s' % (ns.modulePath(),))
         template_map['aux_imports'] = "\n".join(aux_imports)
         template_map['namespace_decls'] = "\n".join(self.__namespaceDeclarations)
+        template_map['module_uid'] = self.moduleUID()
+        template_map['generation_uid_expr'] = repr(self._GenerationUID)
         self._finalizeModuleContents_vx(template_map)
         return self.__bindingIO.contents()
 
@@ -1103,23 +1116,23 @@ class _ModuleNaming_mixin (object):
             self.__bindingIO.write("from %s import %s%s # %s\n" % (module.modulePath(), rem_name, aux, c.expandedName()))
 
     def writeToModuleFile (self):
-        binding_file = self.generator().directoryForModulePath(self.modulePath())
-        (binding_path, leaf) = os.path.split(binding_file)
-        if binding_path: # non-empty
-            try:
-                os.makedirs(binding_path)
-            except Exception, e:
-                if errno.EEXIST != e.errno:
-                    raise
-        path_elts = binding_path.split(os.sep)
-        for n in range(len(path_elts)):
+        (read_path, write_path, raw_module) = self.generator().moduleFilePaths(self.modulePath())
+        try:
+            wfp = pyxb.utils.utility.OpenOrCreate(write_path, tag=self.moduleUID())
+        except OSError, e:
+            raise pyxb.BindingGenerationError('Module file %s exists without tag %s' % (write_path, self.moduleUID()))
+        wfp.write(self.moduleContents())
+        print 'Saved binding source to %s, will read from %s' % (write_path, read_path)
+        if raw_module is not None:
+            assert read_path != write_path
+            if not os.path.exists(read_path):
+                file(read_path, 'w').write('from %s import *' % (raw_module,))
+        path_elts = write_path.split(os.sep)
+        for n in range(len(path_elts)-1):
             sub_path = os.path.join(*path_elts[:1+n])
             init_path = os.path.join(sub_path, '__init__.py')
             if not os.path.exists(init_path):
                 file(init_path, 'w')
-        use_binding_file = os.path.join(binding_path, '%s.py' % (leaf,))
-        file(use_binding_file, 'w').write(self.moduleContents())
-        print 'Saved binding source to %s' % (use_binding_file,)
 
 
 class NamespaceModule (_ModuleNaming_mixin):
@@ -1152,6 +1165,11 @@ class NamespaceModule (_ModuleNaming_mixin):
     def ForComponent (cls, component):
         return cls.__ComponentModuleMap.get(component)
     __ComponentModuleMap = { }
+
+    def _moduleUID_vx (self):
+        if self.namespace().isAbsentNamespace():
+            return 'Absent'
+        return str(self.namespace())
 
     def namespaceGroupMulti (self):
         return 1 < len(self.__namespaceGroup)
@@ -1190,11 +1208,14 @@ class NamespaceModule (_ModuleNaming_mixin):
     def _finalizeModuleContents_vx (self, template_map):
         self.bindingIO().prolog().append(self.bindingIO().expand('''# %{filePath}
 # PyXB bindings for NamespaceModule
+# NSM:%{module_uid}
 # Generated %{date} by PyXB version %{pyxbVersion}
 import pyxb.binding
 import pyxb.exceptions_
 import pyxb.utils.domutils
 import sys
+
+_GenerationUID = %{generation_uid_expr}
 
 # Import bindings for namespaces imported into schema
 %{aux_imports}
@@ -1274,8 +1295,11 @@ class NamespaceGroupModule (_ModuleNaming_mixin):
         template_map['namespace_comment'] = "\n".join(text)
         self.bindingIO().prolog().append(self.bindingIO().expand('''# %{filePath}
 # PyXB bindings for NamespaceGroupModule
+# NGM:%{module_uid}
 # Incorporated namespaces:
 %{namespace_comment}
+
+_GenerationUID = %{generation_uid_expr}
 
 import pyxb
 import pyxb.binding
@@ -1286,8 +1310,20 @@ import pyxb.binding
 %{namespace_decls}
 ''', **template_map))
 
+    def _moduleUID_vx (self):
+        nss = []
+        for nsm in self.namespaceModules():
+            ns = nsm.namespace()
+            if ns.isAbsentNamespace():
+                nss.append('Absent')
+            else:
+                nss.append(str(ns))
+        nss.sort()
+        return ';'.join(nss)
+
     def __str__ (self):
         return 'NGM:%s' % (self.modulePath(),)
+
 
 def GeneratePython (schema_location=None,
                     schema_text=None,
@@ -1319,13 +1355,19 @@ class Generator (object):
         return self
     __bindingRoot = None
     
-    def directoryForModulePath (self, module_path):
-        module_path_elts = []
-        if module_path: # non-empty
-            module_path_elts = module_path.split('.')
+    def moduleFilePaths (self, module_path):
+        assert module_path
+        read_path_elts = module_path.split('.')
+        leaf = read_path_elts.pop()
+        read_path = os.path.join(self.bindingRoot(), *read_path_elts)
+        write_path = read_path
+        write_module = None
         if self.writeForCustomization():
-            module_path_elts.insert(-1, 'raw')
-        return os.path.join(self.bindingRoot(), *module_path_elts)
+            write_path_elts = read_path_elts + ['raw']
+            write_module = '.'.join(write_path_elts + [leaf])
+            write_path = os.path.join(self.bindingRoot(), *write_path_elts)
+        leaf_name = '%s.py' % (leaf,)
+        return (os.path.join(read_path, leaf_name), os.path.join(write_path, leaf_name), write_module)
 
     def schemaRoot (self):
         """The directory from which entrypoint schemas specified as
@@ -1921,14 +1963,7 @@ class Generator (object):
         if archive_file is not None:
             ns_archive = pyxb.namespace.NamespaceArchive(namespaces=self.namespaces())
             try:
-                (archive_path, leaf) = os.path.split(archive_file)
-                if archive_path: # non-empty
-                    try:
-                        os.makedirs(archive_path)
-                    except Exception, e:
-                        if errno.EEXIST != e.errno:
-                            raise
-                ns_archive.writeNamespaces(archive_file)
+                ns_archive.writeNamespaces(pyxb.utils.utility.OpenOrCreate(archive_file))
                 print 'Saved parsed schema to %s URI' % (archive_file,)
             except Exception, e:
                 print 'Exception saving preprocessed schema to %s: %s' % (archive_file, e)

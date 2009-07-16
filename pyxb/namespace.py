@@ -388,7 +388,7 @@ class NamespaceArchive (object):
         
         self.dissociateNamespaces()
 
-    def writeNamespaces (self, archive_path):
+    def writeNamespaces (self, output):
         import sys
         
         NamespaceArchive.__PicklingNamespaces = self.namespaces()
@@ -398,7 +398,8 @@ class NamespaceArchive (object):
         recursion_limit = sys.getrecursionlimit()
         sys.setrecursionlimit(10 * recursion_limit)
 
-        output = open(archive_path, 'wb')
+        if not isinstance(output, file):
+            output = open(output, 'wb')
         pickler = pickle.Pickler(output, -1)
 
         # The format of the archive
