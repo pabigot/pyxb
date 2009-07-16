@@ -351,7 +351,6 @@ class ElementUse (pyxb.cscRoot):
         setattr(ctd_instance, self.__key, self.defaultValue())
         return self
 
-    # @todo Distinguish based on plurality
     def set (self, ctd_instance, value):
         """Set the value of this element in the given instance."""
         if value is None:
@@ -360,12 +359,7 @@ class ElementUse (pyxb.cscRoot):
         if basis._TypeBinding_mixin._PerformValidation:
             value = self.__elementBinding.compatibleValue(value)
         setattr(ctd_instance, self.__key, value)
-        if isinstance(value, list):
-            # @todo: This is almost certainly wrong for simple types that
-            # derive by list.  Consider using _IsSimpleTypeContent.
-            [ ctd_instance._addContent(_elt) for _elt in value ]
-        else:
-            ctd_instance._addContent(value)
+        ctd_instance._addContent(value)
         return self
 
     def setOrAppend (self, ctd_instance, value):
