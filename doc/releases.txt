@@ -39,6 +39,42 @@ Linux several years ago:
 0.5.x (Beta)
 ============
 
+0.5.1 (16 Jul 2009, rev 1502)
+-----------------------------
+
+Fixed various problems with OpenGIS schemas, specifically dependency loops
+induced by attempting to keep binding components within modules identified by
+the schema they came from, and loss of bindings for one namespace due to its
+being overwritten by those for another.
+
+- The presence of a wildcard in a sequence or choice model group caused other
+  elements to be lost in the binding.  :ticket:`29`
+
+- Rework content verification to operate on binding instances rather than DOM
+  nodes.  :ticket:`24`
+
+- Use `value()` to extract the value of a complex type with simple content;
+  the `content()` method works only with element and mixed content.
+  :ticket:`21`
+
+- Add support to specify prefix to be used in QNames when generating DOM
+  documents from binding instances.  Provide facility to re-use the
+  BindingDOMSupport instance for multiple conversions.  :ticket:`15`
+
+- Tightened requirements on content type matching: no more will strings and
+  numbers automatically be converted to match the content model (probably for
+  a branch you didn't intend).  :ticket:`14`
+
+- Fix problems overwriting binding modules with data from a different set of
+  namespaces.  :ticket:`31`.
+
+- Eliminated the schema group modules: too hard to avoid dependency loops.
+  Now all components are written into a single module, which is a namespace
+  group module if the components cross namespaces.  A namespace-specific
+  module still exists, and imports only the relevant components from the group
+  module.
+
+
 0.5.0 (07 Jul 2009, rev 1446)
 -----------------------------
 
