@@ -12,10 +12,10 @@ grid.setId('_%x' % id(grid))
 domain = gml.domainSet(grid)
 
 val_template = gmlapp.Temperature(nilReason='template', _nil=True, uom='urn:x-si:v1999:uom:degreesC')
-vc = gml.valueComponents(AbstractValue=val_template)
-rp = gml.rangeParameters(gml.CompositeValue(vc, id='_vc'))
+cv = gml.CompositeValue(gml.valueComponents(AbstractValue=val_template))
+cv.setId('_%s' % (id(cv),))
 data = gml.tupleList('34.2 35.4')
-range = gml.rangeSet(DataBlock=gml.DataBlockType(rp, data))
+range = gml.rangeSet(DataBlock=gml.DataBlockType(gml.rangeParameters(cv), data))
 
 rgc = gml.RectifiedGridCoverage(domain, range)
 rgc.setId('_%x' % (id(rgc),))
