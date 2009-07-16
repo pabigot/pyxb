@@ -1718,16 +1718,16 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             raise pyxb.MissingContentError()
         return self
 
-    def _setDOMFromAttributes (self, element):
+    def _setDOMFromAttributes (self, dom_support, element):
         """Add any appropriate attributes from this instance into the DOM element."""
         for au in self._AttributeMap.values():
-            au.addDOMAttribute(self, element)
+            au.addDOMAttribute(dom_support, self, element)
         return element
 
     def _toDOM_csc (self, dom_support, parent):
         """Create a DOM element with the given tag holding the content of this instance."""
         element = parent
-        self._setDOMFromAttributes(element)
+        self._setDOMFromAttributes(dom_support, element)
         if self._isNil():
             pass
         elif self._CT_EMPTY == self._ContentTypeTag:

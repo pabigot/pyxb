@@ -195,12 +195,12 @@ class AttributeUse (pyxb.cscRoot):
         default value, and mark that it has not been provided."""
         self.__setValue(ctd_instance, self.__defaultValue, False)
 
-    def addDOMAttribute (self, ctd_instance, element):
+    def addDOMAttribute (self, dom_support, ctd_instance, element):
         """If this attribute as been set, add the corresponding attribute to the DOM element."""
         ( provided, value ) = self.__getValue(ctd_instance)
         if provided:
             assert value is not None
-            element.setAttributeNS(self.__name.namespaceURI(), self.__name.localName(), value.xsdLiteral())
+            dom_support.addAttribute(element, self.__name, value.xsdLiteral())
         return self
 
     def set (self, ctd_instance, new_value):
@@ -224,7 +224,7 @@ class AttributeUse (pyxb.cscRoot):
                     raise pyxb.ProhibitedAttributeError('Prohibited attribute %s found' % (self.__name,))
             else:
                 if self.__required:
-                    raise pyxb.MissingAttributeError('Required attribute %s not found' % (self.__name,))
+                    raise pyxb.MissingAttributeError('Required attribute %s from %s not found' % (self.__name, ctd_instance._ExpandedName or type(ctd_instance)))
                 provided = False
                 unicode_value = self.__unicodeDefault
             if unicode_value is None:
