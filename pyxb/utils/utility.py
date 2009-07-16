@@ -530,13 +530,29 @@ def OpenOrCreate (file_name, tag=None, preserve_contents=False):
         if 0 > text.find(tag):
             raise OSError(errno.EEXIST, os.strerror(errno.EEXIST))
     if not preserve_contents:
-        fp.seek(os.SEEK_SET)
+        fp.seek(0) # os.SEEK_SET
         fp.truncate()
     else:
-        fp.seek(os.SEEK_END)
+        fp.seek(2) # os.SEEK_END
     return fp
             
 import sha
 # @todo: support hashlib
 def HashForText (text):
     return sha.new(text).hexdigest()
+
+_have_uuid = False
+try:
+    import uuid
+    _have_uuid = True
+except ImportError:
+    import time
+    import random
+    random.seed()
+
+def GetUUIDString ():
+    if _have_uuid:
+        return uuid.uuid1().urn
+    return '%s:%08.8x' % (time.strftime('%Y%m%d%H%M%S'), random.randint(0, 0xFFFFFFFFL))
+
+

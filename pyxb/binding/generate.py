@@ -22,7 +22,6 @@ import StringIO
 import datetime
 import urlparse
 import errno
-import uuid
 
 from pyxb.utils import utility
 from pyxb.utils import templates
@@ -874,7 +873,7 @@ class _ModuleNaming_mixin (object):
     __uniqueInClass = None
 
     _UniqueInModule = set([ 'pyxb', 'sys' ])
-    _GenerationUID = uuid.uuid1().urn
+    _GenerationUID = pyxb.utils.utility.GetUUIDString()
     
     __ComponentBindingModuleMap = {}
 
