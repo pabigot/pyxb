@@ -18,6 +18,11 @@ pyxbgen \
   --archive-file=opengis/misc/xAL.wxs
 
 pyxbgen \
+  --schema-location=Schemas/xlink/1.0.0/xlinks.xsd --module=xlinks \
+  --module-prefix=opengis.misc \
+  --archive-file=opengis/misc/xlinks.wxs
+
+pyxbgen \
   --schema-location=Schemas/gml/3.2.1/gml.xsd --module=gml_3_2 \
   --schema-location=Schemas/iso/19139/20070417/gmd/gmd.xsd --module=iso19139.gmd \
   --schema-location=Schemas/iso/19139/20070417/gts/gts.xsd --module=iso19139.gts \
