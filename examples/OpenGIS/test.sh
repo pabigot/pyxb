@@ -8,7 +8,7 @@ if [ ! -d opengis ] ; then
 fi
 
 python demo.py || exit 1
-#python check_sos.py Schemas/sos/1.0.0/examples/*.xml
+python check_sos.py Schemas/sos/1.0.0/examples/*.xml
 
 rm gmlapp.py raw/gmlapp.py
 pyxbgen \
