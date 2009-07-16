@@ -8,8 +8,9 @@ for fn in sys.argv[1:]:
     nsa = pyxb.namespace.NamespaceArchive(archive_path=fn)
     print 'File %s archives %d namespaces:' % (fn, len(nsa.namespaces()))
     for ns in nsa.namespaces().copy():
-        print " %s" % (ns,)
+        print ' namespace=%s' % (ns,)
         ns.validateComponentModel()
+        print ' module-path=%s' % (ns.modulePath(),)
         for td in ns.typeDefinitions().values():
             print '  td %s' % (td.expandedName(),)
 
