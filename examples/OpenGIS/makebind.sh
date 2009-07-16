@@ -19,12 +19,12 @@ pyxbgen \
 
 pyxbgen \
   --schema-location=Schemas/gml/3.2.1/gml.xsd --module=gml_3_2 \
-  --schema-location=Schemas/iso/19139/20070417/gmd/gmd.xsd --module=gmd \
-  --schema-location=Schemas/iso/19139/20070417/gts/gts.xsd --module=gts \
-  --schema-location=Schemas/iso/19139/20070417/gsr/gsr.xsd --module=gsr \
-  --schema-location=Schemas/iso/19139/20070417/gss/gss.xsd --module=gss \
-  --schema-location=Schemas/iso/19139/20070417/gco/gco.xsd --module=gco \
-  --module-prefix=opengis.iso19139 \
+  --schema-location=Schemas/iso/19139/20070417/gmd/gmd.xsd --module=iso19139.gmd \
+  --schema-location=Schemas/iso/19139/20070417/gts/gts.xsd --module=iso19139.gts \
+  --schema-location=Schemas/iso/19139/20070417/gsr/gsr.xsd --module=iso19139.gsr \
+  --schema-location=Schemas/iso/19139/20070417/gss/gss.xsd --module=iso19139.gss \
+  --schema-location=Schemas/iso/19139/20070417/gco/gco.xsd --module=iso19139.gco \
+  --module-prefix=opengis \
   --archive-file=opengis/iso19139/core.wxs
   
 pyxbgen \
