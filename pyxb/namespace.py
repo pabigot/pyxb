@@ -1963,48 +1963,6 @@ class NamespaceDependencies (object):
     def dependentNamespaces (self, reset=False):
         return self.namespaceGraph(reset).nodes()
 
-    def schemaGraph (self, reset=False):
-        if reset or (self.__schemaGraph is None):
-            nsg = self.namespaceGraph(reset)
-            siblings = self.siblingNamespaces()
-            self.__schemaGraph = pyxb.utils.utility.Graph()
-            schemas = set()
-            for sns in siblings:
-                for sch in sns.schemas():
-                    schemas.add(sch)
-            self.__schemaGraph.roots().update(schemas)
-            did_schema = set()
-            while schemas:
-                schema = schemas.pop()
-                assert schema is not None
-                if schema.schemaLocation() is None:
-                    continue
-                assert schema.schemaLocation() is not None, 'No location for schema for %s' % (schema.targetNamespace(),)
-                if schema in did_schema:
-                    continue
-                did_schema.add(schema)
-                self.__schemaGraph.addNode(schema)
-                for sch in schema.includedSchema().union(schema.importedSchema()):
-                    # Any schema (recursively) referenced by the root
-                    # namespace must be for a namespace on which this
-                    # namespace is dependent, or we screwed up the dependency
-                    # calculation.
-                    assert sch.targetNamespace() in self.dependentNamespaces()
-                    if not (sch.targetNamespace() in siblings):
-                        continue
-                    if not (sch in self.__schemaGraph.nodes()):
-                        schemas.add(sch)
-                    self.__schemaGraph.addEdge(schema, sch)
-            
-        return self.__schemaGraph
-    __schemaGraph = None
-
-    def schemaOrder (self, reset=False):
-        return self.schemaGraph(reset).sccOrder()
-
-    def dependentSchemas (self, reset=False):
-        return self.schemaGraph(reset).nodes()
-
     def componentGraph (self, reset=False):
         if reset or (self.__componentGraph is None):
             self.__componentGraph = pyxb.utils.utility.Graph()

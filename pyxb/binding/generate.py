@@ -870,6 +870,8 @@ class _ModuleNaming_mixin (object):
     __uniqueInModule = None
     __uniqueInClass = None
 
+    _UniqueInModule = set([ 'pyxb', 'sys' ])
+    
     __ComponentBindingModuleMap = {}
 
     def generator (self):
@@ -1072,7 +1074,7 @@ class _ModuleNaming_mixin (object):
                     if isinstance(im, NamespaceModule) and (im.namespace() == namespace):
                         rv = '%s.Namespace' % (im.modulePath(),)
                         break
-                    if isinstance(im, SchemaGroupModule):
+                    if isinstance(im, NamespaceGroupModule):
                         irv = im.__referencedNamespaces.get(namespace)
                         if irv is not None:
                             rv = self.defineNamespace(namespace, nsn, '%s.%s' % (im.modulePath(), irv), protected=True)
@@ -1134,7 +1136,8 @@ class NamespaceModule (_ModuleNaming_mixin):
         self.__namespaceGroupModule = namespace_group_module
     __namespaceGroupModule = None
 
-    _UniqueInModule = set([ 'pyxb', 'sys', 'Namespace', 'CreateFromDOM' ])
+    _UniqueInModule = _ModuleNaming_mixin._UniqueInModule.copy()
+    _UniqueInModule.update([ 'Namespace', 'CreateFromDOM', 'CreateFromDocument' ])
 
     def namespaceGroupHead (self):
         return self.__namespaceGroupHead
@@ -1184,13 +1187,6 @@ class NamespaceModule (_ModuleNaming_mixin):
     __schemaGroupPrefix = None
     __uniqueInSchemaGroup = None
     
-    def schemaGroupModulePath (self, schema_group_module):
-        if schema_group_module.schemaGroupMulti():
-            module_base = utility.MakeUnique('multischema', self.__uniqueInSchemaGroup)
-        else:
-            module_base = utility.MakeUnique(schema_group_module.schemaGroupHead().schemaLocationTag(), self.__uniqueInSchemaGroup)
-        return '.'.join([self.__schemaGroupPrefix, module_base ])
-
     def _finalizeModuleContents_vx (self, template_map):
         self.bindingIO().prolog().append(self.bindingIO().expand('''# %{filePath}
 # PyXB bindings for NamespaceModule
@@ -1221,15 +1217,13 @@ def CreateFromDOM (node):
     __components = None
     __componentBindingName = None
 
-    def bindComponent (self, component, schema_group_module):
+    def bindComponent (self, component):
         ns_name = self._bindComponent(component)
         component.setNameInBinding(ns_name)
         binding_module = self
-        if schema_group_module is not None:
-            schema_group_module._bindComponent(component)
-            binding_module = schema_group_module
         if self.__namespaceGroupModule:
             self.__namespaceGroupModule._bindComponent(component)
+            binding_module = self.__namespaceGroupModule
         return _ModuleNaming_mixin.BindComponentInModule(component, binding_module)
 
     def __str__ (self):
@@ -1248,8 +1242,10 @@ class NamespaceGroupModule (_ModuleNaming_mixin):
     __componentBindingName = None
     __uniqueInModule = None
 
-    _UniqueInModule = set()
+    _UniqueInModule = _ModuleNaming_mixin._UniqueInModule.copy()
+    
     __UniqueInGroups = set()
+    
     _GroupPrefix = '_group'
 
     def __init__ (self, generator, namespace_modules, **kw):
@@ -1257,7 +1253,6 @@ class NamespaceGroupModule (_ModuleNaming_mixin):
         assert 1 < len(namespace_modules)
         self.__namespaceModules = namespace_modules
 
-        print namespace_modules[0].namespace()
         self.__namespaceGroupHead = namespace_modules[0].namespaceGroupHead()
 
         mp = self.__namespaceGroupHead.modulePath()
@@ -1293,77 +1288,6 @@ import pyxb.binding
 
     def __str__ (self):
         return 'NGM:%s' % (self.modulePath(),)
-
-class SchemaGroupModule (_ModuleNaming_mixin):
-    """This class represents a Python module that holds all bindings
-    associated with components defined in a set of schema.
-
-    Normally an instance represents a single schema, but when there is
-    a cycle in the schema dependency graph all components in the cycle
-    are aggregated into a single module."""
-
-    __bindingOutput = None
-
-    def namespaceModule (self):
-        return self.__namespaceModule
-    __namespaceModule = None
-
-    def schemaGroup (self):
-        return self.__schemaGroup
-    __schemaGroup = None
-
-    def schemaGroupHead (self):
-        return self.__schemaGroupHead
-    __schemaGroupHead = None
-    def schemaGroupMulti (self):
-        return (1 < len(self.__schemaGroup))
-
-    _UniqueInModule = set([ 'pyxb', 'sys' ])
-    
-    def __init__ (self, generator, namespace_module, schema_group, **kw):
-        super(SchemaGroupModule, self).__init__(generator, **kw)
-        self.__namespaceModule = namespace_module
-        #self.defineNamespace(namespace_module.namespace(), 'Namespace', require_unique=False)
-        self.__schemaGroup = schema_group
-        self.__schemaGroupHead = schema_group[0]
-        self._RecordSchemaGroup(self)
-        assert isinstance(self.__schemaGroup, list)
-        self._setModulePath(self.__namespaceModule.schemaGroupModulePath(self))
-        self._initializeUniqueInModule(self._UniqueInModule)
-
-    def setImports (self, schema_graph):
-        for sc in self.__schemaGroup:
-            for isc in schema_graph.edgeMap().get(sc, set()):
-                self._importModule(_ModuleNaming_mixin.ForSchema(isc, True))
-
-    def _initialBindingTemplateMap (self):
-        kw = { 'moduleType' : 'namespaceGroup'
-             , 'schemaLocation' : self.__schemaGroupHead.schemaLocation()
-             , 'schemaGroupMulti' : repr(self.schemaGroupMulti())
-             }
-        return kw
-
-    def _finalizeModuleContents_vx (self, template_map):
-        slocs = []
-        for sc in self.schemaGroup():
-            slocs.append('#  %s' % (sc.schemaLocation(),))
-        template_map['schema_locs'] = "\n".join(slocs)
-        self.bindingIO().prolog().append(self.bindingIO().expand('''# %{filePath}
-# PyXB bindings for SchemaGroupModule
-# Incorporated schemas:
-%{schema_locs}
-
-import pyxb
-import pyxb.binding
-
-# Import bindings from schema
-%{aux_imports}
-
-%{namespace_decls}
-''', **template_map))
-
-    def __str__ (self):
-        return 'SGM:%s' % (self.modulePath(),)
 
 def GeneratePython (schema_location=None,
                     schema_text=None,
@@ -1828,7 +1752,8 @@ class Generator (object):
                 schema = xs.schema.CreateFromLocation(absolute_schema_location=self.normalizeSchemaLocation(sl))
                 self.addSchema(schema)
             except pyxb.SchemaUniquenessError, e:
-                print 'WARNING: Skipped redundant translation of %s defining %s' % (e.schemaLocation, e.namespace)
+                print 'WARNING: Skipped redundant translation of %s defining %s' % (e.schemaLocation(), e.namespace())
+                self.addSchema(e.existingSchema())
         for schema in self.__schemas:
             ns = schema.targetNamespace()
             #print 'namespace %s' % (ns,)
@@ -1869,7 +1794,6 @@ class Generator (object):
             pyxb.namespace.ResolveSiblingNamespaces(ns_set)
     
         file('namespace.dot', 'w').write(nsdep.namespaceGraph()._generateDOT('Namespace'))
-        file('schema.dot', 'w').write(nsdep.schemaGraph()._generateDOT('Schema', labeller=lambda _s: "/".join(_s.schemaLocation().split('/')[-2:])))
         file('component.dot', 'w').write(nsdep.componentGraph()._generateDOT('Component', lambda _c: _c.bestNCName()))
     
         all_components = set()
@@ -1911,34 +1835,12 @@ class Generator (object):
     
             if (nsg_head is not None) and nsg_head.namespaceGroupMulti():
                 ngm = NamespaceGroupModule(self, namespace_modules)
-                #modules.add(ngm)
+                modules.add(ngm)
                 module_graph.addNode(ngm)
                 for nsm in namespace_modules:
                     module_graph.addEdge(ngm, nsm)
                     nsm.setNamespaceGroupModule(ngm)
                 assert namespace_module_map[nsg_head.namespace()].namespaceGroupModule() == ngm
-    
-        schema_module_map = {}
-        for sc_scc in nsdep.schemaOrder():
-            scg_head = sc_scc[0]
-            nsm = NamespaceModule.ForNamespace(scg_head.targetNamespace())
-            sgm = None
-            if 1 < len(sc_scc):
-                print 'MULTI_ELT SCHEMA GROUP: %s' % ("\n  ".join([_sc.schemaLocation() for _sc in sc_scc]),)
-    
-            if (nsm is not None) and (nsm.namespaceGroupModule() is not None):
-                sgm = SchemaGroupModule(self, nsm, sc_scc)
-                modules.add(sgm)
-                module_graph.addEdge(sgm, nsm)
-            for sc in sc_scc:
-                schema_module_map[sc] = sgm
-    
-        for m in modules:
-            if isinstance(m, SchemaGroupModule):
-                m.setImports(nsdep.schemaGraph())
-            elif isinstance(m, NamespaceModule):
-                #m.setImports(nsdep)
-                pass
     
         file('modules.dot', 'w').write(module_graph._generateDOT('Modules'))
     
@@ -1970,7 +1872,7 @@ class Generator (object):
         for c in component_order:
             if isinstance(c, xs.structures.ElementDeclaration) and c._scopeIsGlobal():
                 nsm = namespace_module_map[c.bindingNamespace()]
-                nsm.bindComponent(c, SchemaGroupModule.ForSchema(c._schema()))
+                nsm.bindComponent(c)
                 element_declarations.append(c)
             else:
                 type_definitions.append(c)
@@ -1980,7 +1882,7 @@ class Generator (object):
         for td in type_definitions:
             nsm = namespace_module_map.get(td.bindingNamespace())
             assert nsm is not None, 'No namespace module for %s type %s scope %s namespace %s' % (td.expandedName(), type(td), td._scope(), td.bindingNamespace)
-            module_context = nsm.bindComponent(td, _ModuleNaming_mixin.ForSchema(td._schema()))
+            module_context = nsm.bindComponent(td)
             assert isinstance(module_context, _ModuleNaming_mixin), 'Unexpected type %s' % (type(module_context),)
             if isinstance(td, xs.structures.SimpleTypeDefinition):
                 _PrepareSimpleTypeDefinition(td, self, nsm, module_context)
@@ -1992,11 +1894,10 @@ class Generator (object):
                 assert False, 'Unexpected component type %s' % (type(td),)
     
     
-        for m in modules:
-            if isinstance(m, SchemaGroupModule):
-                ngm = m.namespaceModule().namespaceGroupModule()
-                for nsm in ngm.namespaceModules():
-                    nsm.addImportsFrom(m)
+        for ngm in modules:
+            if isinstance(ngm, NamespaceGroupModule):
+                for m in ngm.namespaceModules():
+                    m.addImportsFrom(ngm)
     
         for std in simple_type_definitions:
             GenerateSTD(std, self)
@@ -2020,6 +1921,13 @@ class Generator (object):
         if archive_file is not None:
             ns_archive = pyxb.namespace.NamespaceArchive(namespaces=self.namespaces())
             try:
+                (archive_path, leaf) = os.path.split(archive_file)
+                if archive_path: # non-empty
+                    try:
+                        os.makedirs(archive_path)
+                    except Exception, e:
+                        if errno.EEXIST != e.errno:
+                            raise
                 ns_archive.writeNamespaces(archive_file)
                 print 'Saved parsed schema to %s URI' % (archive_file,)
             except Exception, e:
