@@ -819,23 +819,25 @@ class BindingIO (object):
     __postscript = None
     __templateMap = None
     __stringIO = None
-    __filePath = None
+    __bindingFilePath = None
+    __bindingFile = None
 
     def __init__ (self, binding_module, **kw):
         super(BindingIO, self).__init__()
         self.__bindingModule = binding_module
-        if binding_module.modulePath():
-            self.__filePath = os.path.join(*binding_module.modulePath().split('.'))
-        if self.__filePath:
-            self.__filePath += '.py'
+        self.__bindingFilePath = kw['binding_file_path']
+        self.__bindingFile = kw['binding_file']
         self.__prolog = []
         self.__postscript = []
         self.__templateMap = kw.copy()
         self.__templateMap.update({ 'date' : str(datetime.datetime.now()),
-                                    'filePath' : self.__filePath,
+                                    'filePath' : self.__bindingFilePath,
                                     'binding_module' : binding_module,
                                     'pyxbVersion' : pyxb.__version__ })
         self.__stringIO = StringIO.StringIO()
+
+    def bindingFile (self):
+        return self.__bindingFile
 
     def expand (self, template, **kw):
         tm = self.__templateMap.copy()
@@ -948,12 +950,20 @@ class _ModuleNaming_mixin (object):
 
     def modulePath (self):
         return self.__modulePath
-    def _setModulePath (self, module_path):
+    def _setModulePath (self, path_data):
+        (binding_file_path, binding_file, module_path) = path_data
+        self.__bindingFilePath = binding_file_path
+        self.__bindingFile = binding_file
         if module_path is not None:
             self.__modulePath = module_path
         kw = self._initialBindingTemplateMap()
-        self.__bindingIO = BindingIO(self, **kw)
+        self.__bindingIO = BindingIO(self, binding_file=binding_file, binding_file_path=binding_file_path, **kw)
     __modulePath = None
+
+    def bindingFile (self):
+        return self.__bindingFile
+    __bindingFile = None
+    __bindingFilePath = None
 
     def _initializeUniqueInModule (self, unique_in_module):
         self.__uniqueInModule = set(unique_in_module)
@@ -979,18 +989,6 @@ class _ModuleNaming_mixin (object):
     def ForNamespace (cls, namespace):
         return cls.__NamespaceModuleMap.get(namespace)
     __NamespaceModuleMap = { }
-
-    __SchemaModuleMap = { }
-    @classmethod
-    def _RecordSchemaGroup (cls, module):
-        cls.__SchemaModuleMap.update(dict.fromkeys(module.schemaGroup(), module))
-        return module
-    @classmethod
-    def ForSchema (cls, schema, fallback_to_namespace=False):
-        rv = cls.__SchemaModuleMap.get(schema, None)
-        if (rv is None) and fallback_to_namespace:
-            rv = cls.ForNamespace(schema.targetNamespace())
-        return rv
 
     def _bindComponent (self, component):
         kw = {}
@@ -1116,23 +1114,8 @@ class _ModuleNaming_mixin (object):
             self.__bindingIO.write("from %s import %s%s # %s\n" % (module.modulePath(), rem_name, aux, c.expandedName()))
 
     def writeToModuleFile (self):
-        (read_path, write_path, raw_module) = self.generator().moduleFilePaths(self.modulePath())
-        try:
-            wfp = pyxb.utils.utility.OpenOrCreate(write_path, tag=self.moduleUID())
-        except OSError, e:
-            raise pyxb.BindingGenerationError('Module file %s exists without tag %s' % (write_path, self.moduleUID()))
-        wfp.write(self.moduleContents())
-        print 'Saved binding source to %s, will read from %s' % (write_path, read_path)
-        if raw_module is not None:
-            assert read_path != write_path
-            if not os.path.exists(read_path):
-                file(read_path, 'w').write('from %s import *' % (raw_module,))
-        path_elts = write_path.split(os.sep)
-        for n in range(len(path_elts)-1):
-            sub_path = os.path.join(*path_elts[:1+n])
-            init_path = os.path.join(sub_path, '__init__.py')
-            if not os.path.exists(init_path):
-                file(init_path, 'w')
+        self.bindingFile().write(self.moduleContents())
+        print 'Saved binding source to %s' % (self.__bindingFilePath,)
 
 
 class NamespaceModule (_ModuleNaming_mixin):
@@ -1180,7 +1163,7 @@ class NamespaceModule (_ModuleNaming_mixin):
         self.__namespace = namespace
         self.defineNamespace(namespace, 'Namespace', require_unique=False)
         #print 'NSM Namespace %s module path %s' % (namespace, namespace.modulePath())
-        self._setModulePath(self.__namespace.modulePath())
+        self._setModulePath(generator.modulePathData(self))
         self.__namespaceGroup = ns_scc
         self._RecordNamespace(self)
         self.__namespaceGroupHead = self.ForNamespace(ns_scc[0])
@@ -1199,12 +1182,6 @@ class NamespaceModule (_ModuleNaming_mixin):
              }
         return kw
 
-    def setSchemaGroupPrefix (self, schema_group_prefix):
-        self.__schemaGroupPrefix = schema_group_prefix
-        self.__uniqueInSchemaGroup = set()
-    __schemaGroupPrefix = None
-    __uniqueInSchemaGroup = None
-    
     def _finalizeModuleContents_vx (self, template_map):
         self.bindingIO().prolog().append(self.bindingIO().expand('''# %{filePath}
 # PyXB bindings for NamespaceModule
@@ -1278,9 +1255,7 @@ class NamespaceGroupModule (_ModuleNaming_mixin):
 
         mp = self.__namespaceGroupHead.modulePath()
         mph = mp.rsplit('.')[0]
-        self._setModulePath('.'.join([ mph, utility.MakeUnique('nsgroup', self.__UniqueInGroups) ]))
-        for nsm in namespace_modules:
-            nsm.setSchemaGroupPrefix('.'.join([mph, utility.MakeUnique('_%s' % (nsm.namespace().prefix(),), self.__UniqueInGroups) ]))
+        self._setModulePath(generator.modulePathData(self))
         self._initializeUniqueInModule(self._UniqueInModule)
 
     def _initialBindingTemplateMap (self):
@@ -1356,6 +1331,7 @@ class Generator (object):
     __bindingRoot = None
     
     def moduleFilePaths (self, module_path):
+        assert False
         assert module_path
         read_path_elts = module_path.split('.')
         leaf = read_path_elts.pop()
@@ -1368,6 +1344,46 @@ class Generator (object):
             write_path = os.path.join(self.bindingRoot(), *write_path_elts)
         leaf_name = '%s.py' % (leaf,)
         return (os.path.join(read_path, leaf_name), os.path.join(write_path, leaf_name), write_module)
+
+    def __directoryForModulePath (self, module_elts):
+        if isinstance(module_elts, basestring):
+            module_elts = module_elts.split('.')
+        else:
+            module_elts = module_elts[:]
+        assert 0 < len(module_elts)
+        assert not module_elts[-1].endswith('.py')
+        module_elts[-1] = '%s.py' % (module_elts[-1],)
+        return os.path.join(self.bindingRoot(), *module_elts)
+
+    def modulePathData (self, module):
+        # file system path to where the bindings are written
+        # module path from which the bindings are normally imported
+        # file object into which bindings are written
+        
+        module_path = None
+        if isinstance(module, NamespaceModule):
+            ns = module.namespace()
+            module_path = ns.modulePath()
+            if (module_path is None) or ns.isLoadedNamespace() or ns.isBuiltinNamespace():
+                return ('/dev/null', None, None)
+            module_elts = module_path.split('.')
+            import_file_path = self.__directoryForModulePath(module_elts)
+            if self.writeForCustomization():
+                module_elts.insert(-2, 'raw')
+            binding_file_path = self.__directoryForModulePath(module_elts)
+            binding_file = pyxb.utils.utility.OpenOrCreate(binding_file_path, tag=module.moduleUID())
+            if self.writeForCustomization() and (not os.path.exists(import_file_path)):
+                file(import_file_path, 'w').write('from %s import *' % (module_path,))
+        else:
+            module_path
+        path_elts = binding_file_path.split(os.sep)
+        path_elts.pop()
+        for n in range(len(path_elts)):
+            sub_path = os.path.join(*path_elts[:1+n])
+            init_path = os.path.join(sub_path, '__init__.py')
+            if not os.path.exists(init_path):
+                file(init_path, 'w')
+        return (binding_file_path, binding_file, module_path)
 
     def schemaRoot (self):
         """The directory from which entrypoint schemas specified as
@@ -1504,12 +1520,6 @@ class Generator (object):
         """
         return self.__namespaceModuleMap
     __namespaceModuleMap = None
-
-    def getCompleteModulePath (self, module):
-        if self.modulePrefix():
-            # Not None, not empty
-            return '.'.join(self.modulePrefix(), module)
-        return module
 
     def archiveFile (self):
         """Optional file into which the archive of namespaces will be written.
