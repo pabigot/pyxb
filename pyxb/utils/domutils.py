@@ -267,11 +267,10 @@ class BindingDOMSupport (object):
         self.__implementation = implementation
         self.__requireXSIType = require_xsi_type
         self.setDefaultNamespace(default_namespace)
-        if namespace_prefix_map is None:
-            self.__namespacePrefixMap = { pyxb.namespace.XMLSchema_instance : 'xsi' }
-        else:
+        self.__namespacePrefixMap = { pyxb.namespace.XMLSchema_instance : 'xsi' }
+        prefixes = set(self.__namespacePrefixMap.values())
+        if namespace_prefix_map is not None:
             prefixes = set()
-            self.__namespacePrefixMap = { }
             for (ns, pfx) in namespace_prefix_map.items():
                 if isinstance(ns, basestring):
                     ns = pyxb.namespace.NamespaceForURI(ns, create_if_missing=True)

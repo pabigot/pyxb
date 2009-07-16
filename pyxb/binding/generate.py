@@ -940,6 +940,9 @@ class _ModuleNaming_mixin (object):
         template_map = {}
         aux_imports = []
         for ns in self.__importedModules:
+            if ns.modulePath() is None:
+                ns.validateComponentModel()
+            assert ns.modulePath() is not None, ns
             aux_imports.append('import %s' % (ns.modulePath(),))
         template_map['aux_imports'] = "\n".join(aux_imports)
         template_map['namespace_decls'] = "\n".join(self.__namespaceDeclarations)
@@ -954,6 +957,8 @@ class _ModuleNaming_mixin (object):
         (binding_file_path, binding_file, module_path) = path_data
         self.__bindingFilePath = binding_file_path
         self.__bindingFile = binding_file
+        if module_path is None:
+            module_path = self.namespace().modulePath()
         if module_path is not None:
             self.__modulePath = module_path
         kw = self._initialBindingTemplateMap()
@@ -1363,6 +1368,7 @@ class Generator (object):
         module_path = None
         if isinstance(module, NamespaceModule):
             ns = module.namespace()
+            ns.validateComponentModel()
             module_path = ns.modulePath()
             if (module_path is None) or ns.isLoadedNamespace() or ns.isBuiltinNamespace():
                 return ('/dev/null', None, None)
@@ -1370,17 +1376,32 @@ class Generator (object):
             import_file_path = self.__directoryForModulePath(module_elts)
             if self.writeForCustomization():
                 module_elts.insert(-2, 'raw')
-            binding_file_path = self.__directoryForModulePath(module_elts)
-            binding_file = pyxb.utils.utility.OpenOrCreate(binding_file_path, tag=module.moduleUID())
             if self.writeForCustomization() and (not os.path.exists(import_file_path)):
                 raw_module_path = '.'.join(module_elts)
                 file(import_file_path, 'w').write("from %s import *\n" % (raw_module_path,))
+            binding_file_path = self.__directoryForModulePath(module_elts)
+            binding_file = pyxb.utils.utility.OpenOrCreate(binding_file_path, tag=module.moduleUID())
+        elif isinstance(module, NamespaceGroupModule):
+            module_elts = []
+            if self.modulePrefix():
+                module_elts.extend(self.modulePrefix().split('.'))
+            in_use = set()
+            while True:
+                module_elts.append(pyxb.utils.utility.PrepareIdentifier('nsgroup', in_use, protected=True))
+                try:
+                    binding_file_path = self.__directoryForModulePath(module_elts)
+                    print 'Attempting group at %s' % (binding_file_path,)
+                    binding_file = pyxb.utils.utility.OpenOrCreate(binding_file_path, tag=module.moduleUID())
+                    break
+                except OSError, e:
+                    if errno.EEXIST != e.errno:
+                        raise
+                module_elts.pop()
+            module_path = '.'.join(module_elts)
         else:
-            module_path
-        path_elts = binding_file_path.split(os.sep)
-        path_elts.pop()
-        for n in range(len(path_elts)):
-            sub_path = os.path.join(*path_elts[:1+n])
+            assert False
+        for n in range(len(module_elts)-1):
+            sub_path = os.path.join(*module_elts[:1+n])
             init_path = os.path.join(sub_path, '__init__.py')
             if not os.path.exists(init_path):
                 file(init_path, 'w')
@@ -1778,6 +1799,8 @@ class Generator (object):
 
     def __assignNamespaceModulePath (self, namespace, module_path=None):
         assert isinstance(namespace, pyxb.namespace.Namespace)
+        # Validate so we can pull any existing module path from the archive
+        namespace.validateComponentModel()
         if namespace.modulePath() is not None:
             return namespace
         if namespace.isAbsentNamespace():

@@ -4249,7 +4249,7 @@ class _ImportElementInformationItem (_Annotated_mixin):
         self.__redundant = False
         if ns.isLoadable():
             if self.__schemaLocation is not None:
-                print 'WARNING: %s is loadable, ignoring schema location %s' % (ns, self.__schemaLocation)
+                print 'WARNING: %s is loadable from %s, ignoring schema location %s' % (ns, ns.archive(), self.__schemaLocation)
                 self.__schemaLocation = None
 
         if ns.isActive():
@@ -4290,7 +4290,7 @@ class _ImportElementInformationItem (_Annotated_mixin):
                 except Exception, e:
                     print 'WARNING: Import %s cannot read schema location %s (%s)' % (ns, self.__schemaLocation, schema_location)
             self.__schema = schema
-        else:
+        elif not ns.isLoadable():
             print 'WARNING: No information available on imported namespace %s' % (uri,)
 
         self.setPrefix(ns_ctx.prefixForNamespace(self.namespace()))

@@ -443,8 +443,8 @@ class NamespaceArchive (object):
                         if 0 < len(ns.categoryMap(cc)):
                             raise pyxb.NamespaceArchiveError('Namespace %s archive/active conflict on categories: %s' % (ns, " ".join(cross_categories)))
                 # Verify namespace is not available from a different archive
-                if (ns._archive() is not None) and (ns._archive() != self):
-                    raise pyxb.NamespaceArchiveError('Namespace %s already available from %s' % (uri, ns._archive()))
+                if (ns.archive() is not None) and (ns.archive() != self):
+                    raise pyxb.NamespaceArchiveError('Namespace %s already available from %s' % (uri, ns.archive()))
 
         if not define_namespaces:
             return
@@ -514,14 +514,14 @@ class _NamespaceArchivable_mixin (pyxb.cscRoot):
 
     def _setArchive (self, archive):
         self.__archive = archive
-    def _archive (self):
+    def archive (self):
         return self.__archive
     __archive = None
     
     def isLoadable (self):
         """Return C{True} iff the component model for this namespace can be
         loaded from a namespace archive."""
-        return self._archive() is not None
+        return self.archive() is not None
 
     def _setState_csc (self, kw):
         #assert not self.__isActive, 'ERROR: State set for active namespace %s' % (self,)
@@ -1332,8 +1332,8 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
         There is no guarantee that any particular category of named object has
         been located when this returns.  Caller must check.
         """
-        if self._archive() is not None:
-            self._archive().readNamespaces()
+        if self.archive() is not None:
+            self.archive().readNamespaces()
         self._activate()
 
     __didValidation = False
@@ -1350,7 +1350,7 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
                 import pyxb.xmlschema.structures as structures_module
             try:
                 self.__inValidation = True
-                #print 'VALIDATING %s: isActive %s archive %s' % (self, self.isActive(), self._archive())
+                #print 'VALIDATING %s: isActive %s archive %s' % (self, self.isActive(), self.archive())
                 self._defineSchema_overload(structures_module)
                 self.__didValidation = True
             finally:
@@ -1466,7 +1466,7 @@ def PreLoadNamespaces ():
                     try:
                         archive = NamespaceArchive(archive_path=afn)
                         __NamespaceArchives.add(archive)
-                        #print 'Archive %s has: %s' % (archive, "\n   ".join([ '%s @ %s' % (_ns, _ns._archive()) for _ns in archive.namespaces()]))
+                        #print 'Archive %s has: %s' % (archive, "\n   ".join([ '%s @ %s' % (_ns, _ns.archive()) for _ns in archive.namespaces()]))
                     except pickle.UnpicklingError, e:
                         print 'Cannot use archive %s: %s' % (afn, e)
                     except pyxb.NamespaceArchiveError, e:
