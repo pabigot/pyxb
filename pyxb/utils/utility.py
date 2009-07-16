@@ -15,6 +15,8 @@
 """Utility functions and classes."""
 
 import re
+import os
+import errno
 
 def QuotedEscaped (s):
     """Convert a string into a literal value that can be used in Python source.
@@ -495,3 +497,46 @@ class ConstrainedSequence (object):
     def __nonzero__ (self):
         return self.__sequence.__nonzero__()
 
+def OpenOrCreate (file_name, tag=None, preserve_contents=False):
+    """Return a file object used to write the given file.
+
+    Use the C{tag} keyword to preserve the contents of existing files
+    that are not supposed to be overwritten.
+
+    To get a writable file but leaving any existing contents in place,
+    set the C{preserve_contents} keyword to C{True}.  Normally, existing file
+    contents are erased.
+
+    The returned file pointer is positioned at the end of the file.
+
+    @keyword tag: If not C{None} and the file already exists, absence
+    of the given value in the first 4096 bytes of the file causes an
+    IOError to be raised with errno EEXIST.  I.e., only files with
+    this value in the first 4KB will be returned for writing.
+
+    @keyword preserve_contents: This value controls whether existing
+    contents of the file will be erased (C{False}, default) or left in
+    place (C{True}).
+    """
+    (path, leaf) = os.path.split(file_name)
+    try:
+        os.makedirs(path)
+    except Exception, e:
+        if not (isinstance(e, (OSError, IOError)) and (errno.EEXIST == e.errno)):
+            raise
+    fp = file(file_name, 'a+')
+    if (tag is not None) and (0 < os.fstat(fp.fileno()).st_size):
+        text = fp.read(4096)
+        if 0 > text.find(tag):
+            raise OSError(errno.EEXIST, os.strerror(errno.EEXIST))
+    if not preserve_contents:
+        fp.seek(os.SEEK_SET)
+        fp.truncate()
+    else:
+        fp.seek(os.SEEK_END)
+    return fp
+            
+import sha
+# @todo: support hashlib
+def HashForText (text):
+    return sha.new(text).hexdigest()

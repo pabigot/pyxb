@@ -397,6 +397,71 @@ class TestConstrainedSequence (unittest.TestCase):
         y = ConstrainedSequence([-10L, "0", 1.1, 1, "2"], member_type=int)
         self.assertEqual(y, x)
 
+import tempfile
+
+class _TestOpenOrCreate_mixin (object):
+    def setUp (self):
+        tf = tempfile.NamedTemporaryFile()
+        self.__fileName = tf.name
+        tf.close()
+
+    def fileName (self):
+        return self.__fileName
+
+    def unlinkFile (self):
+        try:
+            os.unlink(self.__fileName)
+        except OSError, e:
+            if errno.EEXIST != e:
+                raise
+
+    def tearDown (self):
+        self.unlinkFile()
+
+class TestOpenOrCreate_New (unittest.TestCase, _TestOpenOrCreate_mixin):
+    setUp = _TestOpenOrCreate_mixin.setUp
+    tearDown = _TestOpenOrCreate_mixin.tearDown
+
+    def testNew (self):
+        filename = self.fileName()
+        of = OpenOrCreate(filename)
+        of.write('hello')
+
+class TestOpenOrCreate_ExistingTagMatch (unittest.TestCase, _TestOpenOrCreate_mixin):
+    setUp = _TestOpenOrCreate_mixin.setUp
+    tearDown = _TestOpenOrCreate_mixin.tearDown
+
+    def testExistingTagMatch (self):
+        filename = self.fileName()
+        tag = 'MyTagXX'
+        text = 'This file has the tag %s in it' % (tag,)
+        file(filename, 'w').write(text)
+        self.assertEqual(text, file(filename).read())
+        of = OpenOrCreate(filename, tag=tag)
+        text = 'New version with tag %s' % (tag,)
+        of.write(text)
+        of.close()
+        self.assertEqual(text, file(filename).read())
+
+class TestOpenOrCreate_ExistingTagMismatch (unittest.TestCase, _TestOpenOrCreate_mixin):
+    setUp = _TestOpenOrCreate_mixin.setUp
+    tearDown = _TestOpenOrCreate_mixin.tearDown
+
+    def testExistingTagMismatch (self):
+        filename = self.fileName()
+        tag = 'MyTagXX'
+        text = 'This file has the tag NotMyTag in it'
+        file(filename, 'w').write(text)
+        self.assertTrue(0 < file(filename, 'a').tell())
+        self.assertEqual(text, file(filename).read())
+        self.assertRaises(OSError, OpenOrCreate, filename, tag=tag)
+
+class TestHashForText (unittest.TestCase):
+
+    def testBasic (self):
+        text = 'This is some text'
+        self.assertEqual('482cb0cfcbed6740a2bcb659c9ccc22a4d27b369', HashForText(text))
+
 if '__main__' == __name__:
     unittest.main()
             
