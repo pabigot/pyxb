@@ -1,5 +1,5 @@
 export PYXB_ARCHIVE_PATH=opengis:opengis/misc:opengis/citygml:opengis/iso19139:+
-PYXB_ROOT=/home/pab/pyxb/dev
+PYXB_ROOT=${PYXB_ROOT:-../..}
 export PYTHONPATH=${PYXB_ROOT}
 export PATH=${PYXB_ROOT}/scripts:${PATH}
 if [ ! -f SCHEMAS_OPENGIS_NET.tgz ] ; then
@@ -18,7 +18,7 @@ pyxbgen \
   --archive-file=opengis/misc/xAL.wxs
 
 pyxbgen \
-  --schema-location=Schemas/gml/3.2.1/gml.xsd --module=gml \
+  --schema-location=Schemas/gml/3.2.1/gml.xsd --module=gml_3_2 \
   --schema-location=Schemas/iso/19139/20070417/gmd/gmd.xsd --module=gmd \
   --schema-location=Schemas/iso/19139/20070417/gts/gts.xsd --module=gts \
   --schema-location=Schemas/iso/19139/20070417/gsr/gsr.xsd --module=gsr \

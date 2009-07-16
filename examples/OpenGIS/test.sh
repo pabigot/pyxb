@@ -1,6 +1,6 @@
 export PYXB_ARCHIVE_PATH=opengis:opengis/misc:opengis/citygml:opengis/iso19139:+
-PYXB_ROOT=/home/pab/pyxb/dev
-export PYTHONPATH=../..
+PYXB_ROOT=../..
+export PYTHONPATH=${PYXB_ROOT}:.
 
 if [ ! -d opengis ] ; then
   sh makebind.sh
