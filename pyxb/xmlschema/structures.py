@@ -4411,8 +4411,9 @@ class Schema (_SchemaComponent_mixin):
         self.__targetNamespace = kw.get('target_namespace', self._namespaceContext().targetNamespace())
         if not isinstance(self.__targetNamespace, pyxb.namespace.Namespace):
             raise pyxb.LogicError('Schema constructor requires valid Namespace instance as target_namespace')
-        if self.__targetNamespace.lookupSchemaByLocation(self.__schemaLocation) is not None:
-            raise pyxb.SchemaUniquenessError(self.__targetNamespace, self.__schemaLocation)
+        existing_schema = self.__targetNamespace.lookupSchemaByLocation(self.__schemaLocation)
+        if existing_schema is not None:
+            raise pyxb.SchemaUniquenessError(self.__targetNamespace, self.__schemaLocation, existing_schema)
 
         self.__targetNamespace.addSchema(self)
         self.__defaultNamespace = kw.get('default_namespace', self._namespaceContext().defaultNamespace())

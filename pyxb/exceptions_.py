@@ -42,13 +42,18 @@ class SchemaUniquenessError (PyXBException):
     schema that has already been used in that namespace.  Import and
     include processing would have avoided this, so somebody asked for
     it specifically."""
-    def __init__ (self, namespace, schema_location, *args, **kw):
+    def __init__ (self, namespace, schema_location, existing_schema, *args, **kw):
         # Prior to 2.5, exceptions did not inherit from object, and
         # super could not be used.
         #super(SchemaUniquenessError, self).__init__(*args, **kw)
         PyXBException.__init__(self, *args, **kw)
-        self.namespace = namespace
-        self.schemaLocation = schema_location
+        self.__namespace = namespace
+        self.__schemaLocation = schema_location
+        self.__existingSchema = existing_schema
+
+    def namespace (self): return self.__namespace
+    def schemaLocation (self): return self.__schemaLocation
+    def existingSchema (self): return self.__existingSchema
 
 class BindingGenerationError (PyXBException):
     """Raised when something goes wrong generating the binding classes"""
