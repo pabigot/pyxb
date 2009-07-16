@@ -3994,7 +3994,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
                     it_en = self._namespaceContext().interpretQName(self.__itemTypeAttribute)
                     self.__itemTypeDefinition = it_en.typeDefinition()
                     if not isinstance(self.__itemTypeDefinition, SimpleTypeDefinition):
-                        raise pyxb.InvalidSchemaError('Unable to locate STD %s for items' % (it_en,))
+                        raise pyxb.SchemaValidationError('Unable to locate STD %s for items' % (it_en,))
             elif self._DA_restriction == alternative:
                 self.__itemTypeDefinition = self.__baseTypeDefinition.__itemTypeDefinition
             else:
