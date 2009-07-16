@@ -1374,7 +1374,7 @@ class Generator (object):
             module_elts = module_path.split('.')
             import_file_path = self.__directoryForModulePath(module_elts)
             if self.writeForCustomization():
-                module_elts.insert(-2, 'raw')
+                module_elts.insert(-1, 'raw')
             if self.writeForCustomization() and (not os.path.exists(import_file_path)):
                 raw_module_path = '.'.join(module_elts)
                 file(import_file_path, 'w').write("from %s import *\n" % (raw_module_path,))
