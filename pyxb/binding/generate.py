@@ -1380,7 +1380,11 @@ class Generator (object):
                 raw_module_path = '.'.join(module_elts)
                 file(import_file_path, 'w').write("from %s import *\n" % (raw_module_path,))
             binding_file_path = self.__directoryForModulePath(module_elts)
-            binding_file = pyxb.utils.utility.OpenOrCreate(binding_file_path, tag=module.moduleUID())
+            try:
+                binding_file = pyxb.utils.utility.OpenOrCreate(binding_file_path, tag=module.moduleUID())
+            except OSError, e:
+                if errno.EEXIST == e.errno:
+                    raise pyxb.BindingGenerationError('Target file %s for namespace %s bindings exists with other content' % (binding_file_path, ns))
         elif isinstance(module, NamespaceGroupModule):
             module_elts = []
             if self.modulePrefix():
