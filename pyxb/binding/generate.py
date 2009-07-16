@@ -1369,7 +1369,7 @@ class Generator (object):
             ns = module.namespace()
             ns.validateComponentModel()
             module_path = ns.modulePath()
-            if (module_path is None) or ns.isLoadedNamespace() or ns.isBuiltinNamespace():
+            if (module_path is None) or ns.isLoadedNamespace() or (ns.isBuiltinNamespace() and not self.allowBuiltinGeneration()):
                 return ('/dev/null', None, None)
             module_elts = module_path.split('.')
             import_file_path = self.__directoryForModulePath(module_elts)
@@ -1626,6 +1626,20 @@ class Generator (object):
         return self
     __allowAbsentModule = None
 
+    def allowBuiltinGeneration (self):
+        """Indicates whether bindings will be written for namespaces that are built-in to PyXB.
+
+        This must be enabled when building bindings for the XML,
+        XMLSchema instance, and other built-in namespaces.  Normally
+        generation of these namespaces is inhibited lest it produce
+        inconsistencies."""
+        return self.__allowBuiltinGeneration
+    def setAllowBuiltinGeneration (self, allow_builtin_generation):
+        self.__allowBuiltinGeneration = allow_builtin_generation
+        return self
+    __allowBuiltinGeneration = None
+
+
     def __init__ (self, *args, **kw):
         """Create a configuration to be used for generating bindings.
 
@@ -1646,6 +1660,7 @@ class Generator (object):
         @keyword schemas: Invokes L{setSchemas}
         @keyword namespaces: Invokes L{setNamespaces}
         @keyword write_for_customization: Invokes L{setWriteForCustomization}
+        @keyword allow_builtin_generation: Invokes L{setAllowBuiltinGeneration}
         @keyword allow_absent_module: Invokes L{setAllowAbsentModule}
         """
         argv = kw.get('argv', None)
@@ -1666,6 +1681,7 @@ class Generator (object):
         self.__schemas = kw.get('schemas', [])[:]
         self.__namespaces = set(kw.get('namespaces', []))
         self.__writeForCustomization = kw.get('write_for_customization', False)
+        self.__writeForCustomization = kw.get('allow_builtin_generation', False)
         self.__allowAbsentModule = kw.get('allow_absent_module', False)
         
         if argv is not None:
@@ -1688,6 +1704,7 @@ class Generator (object):
         ('binding_style', setBindingStyle),
         ('validate_changes', setValidateChanges),
         ('write_for_customization', setWriteForCustomization),
+        ('allow_builtin_generation', setAllowBuiltinGeneration),
         ('allow_absent_module', setAllowAbsentModule)
         )
     def applyOptionValues (self, options, args=None):
@@ -1756,6 +1773,12 @@ class Generator (object):
             parser.add_option('--no-allow-absent-module',
                               action='store_false', dest='allow_absent_module',
                               help=self.__stripSpaces(self.allowAbsentModule.__doc__ + ' This option turns off the feature (default).'))
+            parser.add_option('--allow-builtin-generation',
+                              action='store_true', dest='allow_builtin_generation',
+                              help=self.__stripSpaces(self.allowBuiltinGeneration.__doc__ + ' This option turns on the feature.'))
+            parser.add_option('--no-allow-builtin-generation',
+                              action='store_false', dest='allow_builtin_generation',
+                              help=self.__stripSpaces(self.allowBuiltinGeneration.__doc__ + ' This option turns off the feature (default).'))
             self.__optionParser = parser
         return self.__optionParser
     __optionParser = None

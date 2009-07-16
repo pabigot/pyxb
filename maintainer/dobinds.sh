@@ -11,15 +11,15 @@ test -f ${SCHEMA_DIR}/XMLSchema.xsd || wget -O ${SCHEMA_DIR}/XMLSchema.xsd http:
 ( cat <<EOList
 # NOTE: Use prefix xml_ instead of xml because xml conflicts with standard package
 # This isn't really necessary, and currently fails resolution, so drop it
-http://www.w3.org/2001/xml.xsd xml_
+http://www.w3.org/2001/xml.xsd xml_ --allow-builtin-generation
 # NOTE: The non-normative XMLSchema namespace defines far more than
 # the public components for which we have built-in values.  The
 # incompleteness of the built-ins confuses PyXB.  There's no need to
 # fix this since we have a workable XSD schema built-in.
 #http://www.w3.org/2001/XMLSchema.xsd xsd
-http://www.w3.org/2001/XMLSchema-hasFacetAndProperty xsd_hfp
+http://www.w3.org/2001/XMLSchema-hasFacetAndProperty xsd_hfp --allow-builtin-generation
 http://schemas.xmlsoap.org/wsdl/ wsdl
-http://www.w3.org/1999/xhtml.xsd xhtml
+http://www.w3.org/1999/xhtml.xsd xhtml --allow-builtin-generation
 http://schemas.xmlsoap.org/soap/envelope/ soapenv
 http://schemas.xmlsoap.org/soap/encoding/ soapenc
 http://schemas.xmlsoap.org/wsdl/mime/ mime
@@ -33,7 +33,7 @@ http://docs.oasis-open.org/security/saml/v2.0/saml-schema-assertion-2.0.xsd saml
 http://docs.oasis-open.org/security/saml/v2.0/saml-schema-protocol-2.0.xsd saml_protocol
 EOList
 ) | sed -e '/^#/d' \
-  | while read uri prefix ; do
+  | while read uri prefix auxflags ; do
   cached_schema=${SCHEMA_DIR}/${prefix}.xsd
   if [ ! -f ${cached_schema} ] ; then
      echo "Retrieving ${prefix} from ${uri}"
@@ -42,6 +42,7 @@ EOList
   echo
   echo "Translating to ${prefix} from ${cached_schema}"
   scripts/pyxbgen \
+    ${auxflags} \
     --schema-location file:${cached_schema} \
     --module=${prefix} \
     --module-prefix=pyxb.standard.bindings \
