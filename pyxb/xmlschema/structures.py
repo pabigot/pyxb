@@ -1562,7 +1562,7 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.na
             return True
         # No.  Can't proceed until the type definition is resolved.  Hope it
         # can be....
-        print 'WARNING: Require %s type to be resolved; might be a loop.'
+        print 'WARNING: Require %s to be resolved; might be a loop.' % (self.typeDefinition(),)
         return False
 
     # aFS:ED
