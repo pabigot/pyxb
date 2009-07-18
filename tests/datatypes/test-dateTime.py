@@ -49,6 +49,20 @@ class Test_dateTime (unittest.TestCase):
         self.assertEqual('2002-10-27T12:14:32', dt.xsdLiteral())
         self.assertFalse(dt.hasTimeZone())
 
+    # Manual test to see whether LocalTime works; run this on a
+    # machine that uses DST.
+    def XtestBogus (self):
+        dt = xsd.dateTime.today()
+        print dt.xsdLiteral()
+        print str(dt)
+        print dt.aslocal()
+        # NB: duration does not support months in Python version
+        delta = xsd.duration('P%dD' % (365 / 2))
+        dt = xsd.dateTime(dt + delta)
+        print dt.xsdLiteral()
+        print str(dt)
+        print dt.aslocal()
+        
 
 if __name__ == '__main__':
     unittest.main()

@@ -555,4 +555,109 @@ def GetUUIDString ():
         return uuid.uuid1().urn
     return '%s:%08.8x' % (time.strftime('%Y%m%d%H%M%S'), random.randint(0, 0xFFFFFFFFL))
 
+import datetime
+import calendar
+import time
+class UTCOffsetTimeZone (datetime.tzinfo):
+    """A tzinfo subclass that helps deal with UTC conversions in an ISO8601 world.
 
+    This class only supports fixed offsets from UTC.
+    """
+
+    # Regular expression that matches valid ISO8601 time zone suffixes
+    __Lexical_re = re.compile('^([-+])(\d\d):(\d\d)$')
+
+    # The offset in minutes east of UTC.
+    __utcOffset_min = 0
+
+    # Same as __utcOffset_min, but as a datetime.timedelta
+    __utcOffset_td = None
+
+    # A zero-length duration
+    __ZeroDuration = datetime.timedelta(0)
+
+    def __init__ (self, spec=None, flip=False):
+        """Create a time zone instance with a fixed offset from UTC.
+
+        @param spec: Specifies the offset.  Can be an integer counting
+        minutes east of UTC, the value C{None} (equal to 0 minutes
+        east), or a string that conform to the ISO8601 time zone
+        sequence (B{Z}, or B{[+-]HH:MM}).
+
+        @param flip: If C{False} (default), no adaptation is done.  If
+        C{True}, the time zone offset is negated, resulting in the
+        conversion from localtime to UTC rather than the default of
+        UTC to localtime.
+        """
+
+        if spec is not None:
+            if isinstance(spec, basestring):
+                if 'Z' == spec:
+                    self.__utcOffset_min = 0
+                else:
+                    match = self.__Lexical_re.match(spec)
+                    if match is None:
+                        raise ValueError('Bad time zone: %s' % (spec,))
+                    self.__utcOffset_min = int(match.group(2)) * 60 + int(match.group(3))
+                    if '-' == match.group(1):
+                        self.__utcOffset_min = - self.__utcOffset_min
+            elif isinstance(spec, int):
+                self.__utcOffset_min = spec
+            elif isinstance(spec, datetime.timedelta):
+                self.__utcOffset_min = spec.seconds / 60
+            else:
+                raise TypeError('%s: unexpected type %s' % (type(self), type(spec)))
+            if flip:
+                self.__utcOffset_min = - self.__utcOffset_min
+        self.__utcOffset_td = datetime.timedelta(minutes=self.__utcOffset_min)
+        if 0 == self.__utcOffset_min:
+            self.__tzName = 'Z'
+        elif 0 > self.__utcOffset_min:
+            self.__tzName = '-%02d%02d' % divmod(-self.__utcOffset_min, 60)
+        else:
+            self.__tzName = '+%02d%02d' % divmod(self.__utcOffset_min, 60)
+
+    def utcoffset (self, dt):
+        """Returns the constant offset for this zone."""
+        return self.__utcOffset_td
+
+    def tzname (self, dt):
+        """Return the name of the timezone in ISO8601 format."""
+        return self.__tzName
+    
+    def dst (self, dt):
+        """Returns a constant zero duration."""
+        return self.__ZeroDuration
+
+class LocalTimeZone (datetime.tzinfo):
+    """A C{datetime.tzinfo} for the local time zone.
+
+    Mostly pinched from the C{datetime.tzinfo} documentation in Python 2.5.1.
+    """
+
+    __STDOffset = datetime.timedelta(seconds=-time.timezone)
+    __DSTOffset = __STDOffset
+    if time.daylight:
+        __DSTOffset = datetime.timedelta(seconds=-time.altzone)
+    __ZeroDelta = datetime.timedelta(0)
+    __DSTDelta = __DSTOffset - __STDOffset
+
+    def utcoffset (self, dt):
+        if self.__isDST(dt):
+            return self.__DSTOffset
+        return self.__STDOffset
+
+    def dst (self, dt):
+        if self.__isDST(dt):
+            return self.__DSTDelta
+        return self.__ZeroDelta
+
+    def tzname (self, dt):
+        return time.tzname[self.__isDST(dt)]
+
+    def __isDST (self, dt):
+        tt = (dt.year, dt.month, dt.day,
+              dt.hour, dt.minute, dt.second,
+              0, 0, -1)
+        tt = time.localtime(time.mktime(tt))
+        return tt.tm_isdst > 0

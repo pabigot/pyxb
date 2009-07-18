@@ -462,6 +462,12 @@ class TestHashForText (unittest.TestCase):
         text = 'This is some text'
         self.assertEqual('482cb0cfcbed6740a2bcb659c9ccc22a4d27b369', HashForText(text))
 
+class TestUTCTimeZone (unittest.TestCase):
+    pass
+
+class TestLocalTimeZone (unittest.TestCase):
+    pass
+
 if '__main__' == __name__:
     unittest.main()
             
