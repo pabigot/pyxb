@@ -84,10 +84,16 @@ pyxbgen \
   --archive-file=opengis/sensorML_1_0_1.wxs
 
 pyxbgen \
+  --schema-location=Schemas/ows/1.0.0/owsAll.xsd --module=ows \
+  --module-prefix=opengis \
+  --archive-file=opengis/ows.wxs
+
+pyxbgen \
   --schema-location=Schemas/ows/1.1.0/owsAll.xsd --module=ows_1_1 \
   --module-prefix=opengis \
   --archive-file=opengis/ows_1_1.wxs
 
+# Creates ogc, om
 pyxbgen \
   --schema-location=Schemas/sos/1.0.0/sosAll.xsd --module=sos_1_0 \
   --module-prefix=opengis \
@@ -102,6 +108,30 @@ pyxbgen \
   --schema-location=Schemas/tml/1.0.0/tml.xsd --module=tml \
   --module-prefix=opengis \
   --archive-file=opengis/tml.wxs
+
+pyxbgen \
+  --schema-location=Schemas/wfs/1.1.0/wfs.xsd --module=wfs \
+  --module-prefix=opengis \
+  --archive-file=opengis/wfs.wxs
+
+pyxbgen \
+  --schema-location=Schemas/wcs/1.1/wcsAll.xsd --module=wcs_1_1 \
+  --module-prefix=opengis \
+  --archive-file=opengis/wcs_1_1.wxs
+
+# NB: Requires a special (private) version of Dublin Core
+pyxbgen \
+  --schema-location=Schemas/csw/2.0.2/record.xsd --module=csw_2_0_2 \
+  --module-prefix=opengis \
+  --archive-file=opengis/csw_2_0_2.wxs
+
+# This supports the simplified features variants of GML, which have
+# three levels (0, 1, and 2).  Need ability to prefer a specific
+# namespace archive to make use of this.
+pyxbgen \
+  --schema-location=Schemas/gml/3.1.1/profiles/gmlsfProfile/1.0.0/gmlsfLevels.xsd --module=gmlsf \
+  --module-prefix=opengis \
+  --archive-file=opengis/gmlsf.wxs
 
 # Can't do context: depends on gml 2.x, and we don't support version
 # identification in namespace archives yet.
