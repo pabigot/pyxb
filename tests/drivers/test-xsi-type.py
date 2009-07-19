@@ -14,7 +14,6 @@ eval(rv)
 originalOneFloor = oneFloor
 def oneFloorCtor (*args, **kw):
     return restaurant(*args, **kw)
-print oneFloorCtor
 originalOneFloor._SetAlternativeConstructor(oneFloorCtor)
 
 from pyxb.exceptions_ import *
