@@ -1518,11 +1518,11 @@ def NamespaceArchives (archive_path=None, reset=False):
 
     @keyword archive_path: A colon-separated list of paths in which namespace
     archives can be found; see L{PathEnvironmentVariable}.  Defaults to
-    L{GetArchivePath()}.  If not defaulted, %C{reset} will be forced to
-    %C{True}.
+    L{GetArchivePath()}.  If not defaulted, C{reset} will be forced to
+    C{True}.
 
-    @keyword reset: If %C{False} (default), the most recently read set of
-    archives is returned; if %C{True}, the archive path is re-scanned and the
+    @keyword reset: If C{False} (default), the most recently read set of
+    archives is returned; if C{True}, the archive path is re-scanned and the
     namespace associations validated."""
     
     global __NamespaceArchives
