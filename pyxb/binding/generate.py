@@ -872,8 +872,8 @@ class _ModuleNaming_mixin (object):
     __uniqueInModule = None
     __uniqueInClass = None
 
+    # @todo: provide a way to reset this, for multiple generations in a single run
     _UniqueInModule = set([ 'pyxb', 'sys' ])
-    _GenerationUID = pyxb.utils.utility.GetUUIDString()
     
     __ComponentBindingModuleMap = {}
 
@@ -946,7 +946,7 @@ class _ModuleNaming_mixin (object):
         template_map['aux_imports'] = "\n".join(aux_imports)
         template_map['namespace_decls'] = "\n".join(self.__namespaceDeclarations)
         template_map['module_uid'] = self.moduleUID()
-        template_map['generation_uid_expr'] = repr(self._GenerationUID)
+        template_map['generation_uid_expr'] = repr(self.generator().generationUID())
         self._finalizeModuleContents_vx(template_map)
         return self.__bindingIO.contents()
 
@@ -1546,6 +1546,24 @@ class Generator (object):
         return self.__namespaceModuleMap
     __namespaceModuleMap = None
 
+    def _noLoadNamespaces (self):
+        """A frozenset of namespaces that many not be loaded from an archive."""
+        return frozenset(self.__noLoadNamespaces)
+    def _setNoLoadNamespaces (self, namespace_set):
+        """Record the set of namespaces that should not be loaded from an archive.
+
+        The expectation is that any required entities in the namespace
+        will be defined by loading schema."""
+        self.__noLoadNamespaces.clear()
+        self.__noLoadNamespaces.update(namespace_set)
+    def addNoLoadNamespace (self, namespace):
+        """Mark that the specififed namespace should not be loaded from an archive.
+
+        Be aware that this removes any knowledge of any archive in
+        which this namespace is present as a non-private member."""
+        self.__noLoadNamespaces.add(pyxb.namespace.NamespaceInstance(namespace))
+    __noloadNamespaces = None
+
     def archiveFile (self):
         """Optional file into which the archive of namespaces will be written.
 
@@ -1652,6 +1670,7 @@ class Generator (object):
         @keyword schema_location_list: Invokes L{setSchemaLocationList}
         @keyword module_list: Invokes L{_setModuleList}
         @keyword module_prefix: Invokes L{setModulePrefix}
+        @keyword noload_namespaces: Invokes L{_setNoLoadNamespaces}
         @keyword archive_file: Invokes L{setArchiveFile}
         @keyword archive_path: Invokes L{setArchivePath}
         @keyword validate_changes: Invokes L{setValidateChanges}
@@ -1673,6 +1692,7 @@ class Generator (object):
         self.__schemaLocationList = kw.get('schema_location_list', [])[:]
         self.__moduleList = kw.get('module_list', [])[:]
         self.__modulePrefix = kw.get('module_prefix')
+        self.__noLoadNamespaces = kw.get('noload_namespaces', set()).copy()
         self.__archiveFile = kw.get('archive_file')
         self.__archivePath = kw.get('archive_path', pyxb.namespace.GetArchivePath())
         self.__validateChanges = kw.get('validate_changes', True)
@@ -1699,6 +1719,7 @@ class Generator (object):
         ('schema_location', setSchemaLocationList),
         ('module', _setModuleList),
         ('module_prefix', setModulePrefix),
+        ('noload_namespace', _setNoLoadNamespaces),
         ('archive_file', setArchiveFile),
         ('archive_path', setArchivePath),
         ('binding_style', setBindingStyle),
@@ -1722,6 +1743,10 @@ class Generator (object):
         self.applyOptionValues(options, args)
         return self
 
+    def generationUID (self):
+        return self.__generationUID
+    __generationUID = None
+
     def optionParser (self, reset=False):
         """Return an C{optparse.OptionParser} instance tied to this configuration.
 
@@ -1740,27 +1765,30 @@ class Generator (object):
             parser.add_option('--module', '-m', metavar="MODULE",
                               action='append',
                               help=self.__stripSpaces(self.addModuleName.__doc__))
+            parser.add_option('--schema-root', metavar="DIRECTORY",
+                              help=self.__stripSpaces(self.schemaRoot.__doc__))
+            parser.add_option('--schema-stripped-prefix', metavar="TEXT", type='string',
+                              help=self.__stripSpaces(self.schemaStrippedPrefix.__doc__))
             parser.add_option('--module-prefix', metavar="MODULE",
                               help=self.__stripSpaces(self.modulePrefix.__doc__))
             parser.add_option('--binding-root', metavar="DIRECTORY",
                               help=self.__stripSpaces(self.bindingRoot.__doc__))
             parser.add_option('--archive-path', metavar="PATH",
                               help=self.__stripSpaces(self.archivePath.__doc__))
+            parser.add_option('--noload_namespace', metavar="URI",
+                              action='append',
+                              help=self.__stripSpaces(self.addNoLoadNamespace.__doc__))
             parser.add_option('--archive-file', metavar="FILE",
                               help=self.__stripSpaces(self.archiveFile.__doc__))
-            parser.add_option('--schema-root', metavar="DIRECTORY",
-                              help=self.__stripSpaces(self.schemaRoot.__doc__))
-            parser.add_option('--schema-stripped-prefix', metavar="TEXT", type='string',
-                              help=self.__stripSpaces(self.schemaStrippedPrefix.__doc__))
+            parser.add_option('--binding-style',
+                              type='choice', choices=basis.BINDING_STYLES,
+                              help=self.__stripSpaces(self.bindingStyle.__doc__))
             parser.add_option('--validate-changes',
                               action='store_true', dest='validate_changes',
                               help=self.__stripSpaces(self.validateChanges.__doc__ + ' This option turns on validation (default).'))
             parser.add_option('--no-validate-changes',
                               action='store_false', dest='validate_changes',
                               help=self.__stripSpaces(self.validateChanges.__doc__ + ' This option turns off validation.'))
-            parser.add_option('--binding-style',
-                              type='choice', choices=basis.BINDING_STYLES,
-                              help=self.__stripSpaces(self.bindingStyle.__doc__))
             parser.add_option('-r', '--write-for-customization',
                               action='store_true', dest='write_for_customization',
                               help=self.__stripSpaces(self.writeForCustomization.__doc__ + ' This option turns on the feature.'))
@@ -1799,22 +1827,27 @@ class Generator (object):
             opts.extend(['--schema-location=' + sl, '--module=' + ml])
         for sl in schema_list:
             opts.append('--schema-location=' + sl)
-        opts.append('--binding-root=' + self.bindingRoot())
         if self.schemaRoot() is not None:
             opts.append('--schema-root=' + self.schemaRoot())
         if self.schemaStrippedPrefix() is not None:
             opts.append('--schema-stripped-prefix=%s' + self.schemaStrippedPrefix())
         if self.modulePrefix() is not None:
             opts.append('--module-prefix=' + self.modulePrefix())
-        if self.archiveFile() is not None:
-            opts.append('--archive-file=' + self.archiveFile())
+        opts.append('--binding-root=' + self.bindingRoot())
         if self.archivePath() is not None:
             opts.append('--archive-path=' + self.archivePath())
-        if self.validateChanges():
-            opts.append('--validate-changes')
-        else:
-            opts.append('--no-validate-changes')
-        opts.append('--binding-style=' + self.bindingStyle())
+        for ns in self._noLoadNamespaces():
+            opts.append('--noload-namespace=' + ns.uri())
+        if self.archiveFile() is not None:
+            opts.append('--archive-file=' + self.archiveFile())
+        for (val, opt) in ( (self.validateChanges(), 'validate-changes'),
+                            (self.writeForCustomization(), 'write-for-customization'),
+                            (self.allowAbsentModule(), 'allow-absent-module'),
+                            (self.allowBuiltinGeneration(), 'allow-builtin-generation') ):
+            if val:
+                opts.append('--' + opt)
+            else:
+                opts.append('--no-' + opt)
         return opts
 
     def normalizeSchemaLocation (self, sl):
@@ -1868,6 +1901,11 @@ class Generator (object):
         self.__bindingModules = None
 
     def __buildBindingModules (self):
+        if self.__generationUID is not None:
+            # This isn't safe until we have a way to reset everything.
+            print 'WARNING: Unsafe to perform multiple generations in one run'
+        self.__generationUID = pyxb.utils.utility.GetUUIDString()
+
         modules = set()
         pyxb.namespace.XMLSchema.setModulePath('pyxb.binding.datatypes')
     
@@ -2021,7 +2059,7 @@ class Generator (object):
     def writeNamespaceArchive (self):
         archive_file = self.archiveFile()
         if archive_file is not None:
-            ns_archive = pyxb.namespace.NamespaceArchive(namespaces=self.namespaces())
+            ns_archive = pyxb.namespace.NamespaceArchive(namespaces=self.namespaces(), generation_uid=self.generationUID())
             try:
                 ns_archive.writeNamespaces(pyxb.utils.utility.OpenOrCreate(archive_file))
                 print 'Saved parsed schema to %s URI' % (archive_file,)

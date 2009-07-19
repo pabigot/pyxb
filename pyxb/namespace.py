@@ -299,7 +299,8 @@ class _Resolvable_mixin (pyxb.cscRoot):
 class NamespaceArchive (object):
     """Represent a file from which one or more namespaces can be read."""
 
-    __PickleFormat = '200907030951'
+    # YYYYMMDDHHMM
+    __PickleFormat = '200907190858'
 
     __AnonymousCategory = '_anonymousTypeDefinition'
     @classmethod
@@ -333,13 +334,22 @@ class NamespaceArchive (object):
         return self.__archivePath
     __archivePath = None
 
-    def __init__ (self, namespaces=None, archive_path=None):
+    def generationUID (self):
+        return self.__generationUID
+    __generationUID = None
+
+    def __init__ (self, namespaces=None, archive_path=None, generation_uid=None):
         self.__namespaces = set()
         if namespaces is not None:
             if archive_path:
                 raise pyxb.LogicError('NamespaceArchive: cannot define both namespaces and archive_path')
+            if generation_uid is None:
+                raise pyxb.LogicError('NamespaceArchive: must provide generation_uid with namespaces')
+            self.__generationUID = generation_uid
             self.update(namespaces)
         elif archive_path is not None:
+            if generation_uid is not None:
+                raise pyxb.LogicError('NamespaceArchive: cannot provide generation_uid with archive_path')
             self.__archivePath = archive_path
             self.__readNamespaceSet(self.__createUnpickler(), define_namespaces=True)
         else:
@@ -374,7 +384,23 @@ class NamespaceArchive (object):
         if self.__PickleFormat != format:
             raise pyxb.NamespaceArchiveError('Archive format is %s, require %s' % (format, self.__PickleFormat))
 
+        self.__generationUID = unpickler.load()
+
         return unpickler
+
+    def __createPickler (self, output):
+        # @todo: support StringIO instances?
+        if not isinstance(output, file):
+            output = open(output, 'wb')
+        pickler = pickle.Pickler(output, -1)
+    
+        # The format of the archive
+        pickler.dump(NamespaceArchive.__PickleFormat)
+    
+        # The UID for the set
+        pickler.dump(self.generationUID())
+
+        return pickler
 
     __readNamespaces = False
     def readNamespaces (self):
@@ -418,13 +444,8 @@ class NamespaceArchive (object):
             recursion_limit = sys.getrecursionlimit()
             sys.setrecursionlimit(10 * recursion_limit)
     
-            if not isinstance(output, file):
-                output = open(output, 'wb')
-            pickler = pickle.Pickler(output, -1)
-    
-            # The format of the archive
-            pickler.dump(NamespaceArchive.__PickleFormat)
-    
+            pickler = self.__createPickler(output)
+
             # The set of URIs defining the namespaces in the archive, along with
             # the categories defined by each one.
             uri_map = {}
@@ -442,7 +463,7 @@ class NamespaceArchive (object):
                 assert not ns.isAbsentNamespace()
                 ns.configureCategories([self._AnonymousCategory()])
                 object_map[ns] = ns._categoryMap()
-                ns._setWroteToArchive()
+                ns._setWroteToArchive(self)
                 for obj in ns._namedObjects().union(ns.components()):
                     obj._prepareForArchive(ns)
             pickler.dump(object_map)
@@ -552,6 +573,15 @@ class _NamespaceArchivable_mixin (pyxb.cscRoot):
         #assert not self.__isActive, 'ERROR: State set for active namespace %s' % (self,)
         return getattr(super(_NamespaceResolution_mixin, self), '_getState_csc', lambda _kw: _kw)(kw)
     
+    def markNotLoadable (self):
+        """Prevent loading this namespace from an archive.
+
+        This dissociates not just the namespace, but all of its archives,
+        which will no longer be available for use in loading other namespaces,
+        since they are likely to depend on this one."""
+        for archive in self.__sourceArchives:
+            aarchive.dissociateNamespaces()
+
 class NamedObjectMap (dict):
     """An extended dictionary intended to assist with QName resolution.
 
@@ -1428,6 +1458,18 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
             rv = self.__uri
         return rv
 
+def NamespaceInstance (self, namespace):
+    """Get a namespace instance for the given namespace.
+
+    This is used when it is unclear whether the namespace is specified by URI
+    or by instance or by any other mechanism we might dream up in the
+    future."""
+    if isinstance(namespace, Namespace):
+        return namespace
+    if isinstance(namespace, basestring):
+        return self.NamespaceForURI(namespace, True)
+    raise pyxb.LogicError('Cannot identify namespace from value of type %s' % (type(namespace),))
+
 def NamespaceForURI (uri, create_if_missing=False):
     """Given a URI, provide the L{Namespace} instance corresponding to it.
 
@@ -1467,17 +1509,31 @@ provide a serialized version of the namespace with schema."""
 
 def LoadableNamespaces ():
     available = set()
-    for ns_archive in PreLoadNamespaces():
+    for ns_archive in NamespaceArchives():
         available.update(ns_archive.namespaces())
     return available
 
-def PreLoadNamespaces ():
+def NamespaceArchives (archive_path=None, reset=False):
+    """Scan for available archves, and associate them with any namespace that has not already been loaded.
+
+    @keyword archive_path: A colon-separated list of paths in which namespace
+    archives can be found; see L{PathEnvironmentVariable}.  Defaults to
+    L{GetArchivePath()}.  If not defaulted, %C{reset} will be forced to
+    %C{True}.
+
+    @keyword reset: If %C{False} (default), the most recently read set of
+    archives is returned; if %C{True}, the archive path is re-scanned and the
+    namespace associations validated."""
+    
     global __NamespaceArchives
-    if __NamespaceArchives is None:
+    if archive_path is None:
+        archive_path = GetArchivePath()
+    else:
+        reset = True
+    if (__NamespaceArchives is None) or reset:
         # Look for pre-existing pickled schema
         __NamespaceArchives = set()
-        bindings_path = GetArchivePath()
-        for bp in bindings_path.split(':'):
+        for bp in archive_path.split(':'):
             if '+' == bp:
                 bp = DefaultArchivePath
             files = []

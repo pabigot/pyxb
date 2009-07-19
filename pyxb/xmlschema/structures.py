@@ -4394,7 +4394,8 @@ class Schema (_SchemaComponent_mixin):
                            'identityConstraintDefinition' )
 
     def __init__ (self, *args, **kw):
-        pyxb.namespace.PreLoadNamespaces()
+        # Force resolution of available namespaces if not already done
+        pyxb.namespace.NamespaceArchives()
 
         assert 'schema' not in kw
         self.__schemaLocation = kw.get('schema_location', None)
