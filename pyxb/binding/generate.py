@@ -464,7 +464,6 @@ class %{std} (pyxb.binding.basis.STD_union):
     generate_facets = False
     if generate_facets:
         # If generating datatype_facets, throw away the class garbage
-        outf = StringIO.StringIO()
         if std.isBuiltin():
             GenerateFacets(std, generator, **kw)
     else:
@@ -1167,7 +1166,6 @@ class NamespaceModule (_ModuleNaming_mixin):
         self.__namespace = namespace
         self.defineNamespace(namespace, 'Namespace', require_unique=False)
         #print 'NSM Namespace %s module path %s' % (namespace, namespace.modulePath())
-        self._setModulePath(generator.modulePathData(self))
         self.__namespaceGroup = ns_scc
         self._RecordNamespace(self)
         self.__namespaceGroupHead = self.ForNamespace(ns_scc[0])
@@ -1177,6 +1175,7 @@ class NamespaceModule (_ModuleNaming_mixin):
             self.__ComponentModuleMap.update(dict.fromkeys(self.__components, self))
         self.__namespaceBindingNames = {}
         self.__componentBindingName = {}
+        self._setModulePath(generator.modulePathData(self))
 
     def _initialBindingTemplateMap (self):
         kw = { 'moduleType' : 'namespace'
@@ -1254,13 +1253,9 @@ class NamespaceGroupModule (_ModuleNaming_mixin):
         super(NamespaceGroupModule, self).__init__(generator, **kw)
         assert 1 < len(namespace_modules)
         self.__namespaceModules = namespace_modules
-
         self.__namespaceGroupHead = namespace_modules[0].namespaceGroupHead()
-
-        mp = self.__namespaceGroupHead.modulePath()
-        mph = mp.rsplit('.')[0]
-        self._setModulePath(generator.modulePathData(self))
         self._initializeUniqueInModule(self._UniqueInModule)
+        self._setModulePath(generator.modulePathData(self))
 
     def _initialBindingTemplateMap (self):
         kw = { 'moduleType' : 'namespaceGroup'
@@ -1309,7 +1304,7 @@ def GeneratePython (schema_location=None,
                     namespace=None,
                     module_prefix_elts=[]):
 
-    generator = Generator(allow_absent_module=True)
+    generator = Generator(allow_absent_module=True, generate_to_files=False)
     if schema_location is not None:
         schema_text = pyxb.utils.utility.TextFromURI(schema_location)
     generator.addSchema(pyxb.xmlschema.schema.CreateFromStream(StringIO.StringIO(schema_text)))
@@ -1359,6 +1354,10 @@ class Generator (object):
         module_elts[-1] = '%s.py' % (module_elts[-1],)
         return os.path.join(self.bindingRoot(), *module_elts)
 
+    def generateToFiles (self):
+        return self.__generateToFiles
+    __generateToFiles = None
+
     def modulePathData (self, module):
         # file system path to where the bindings are written
         # module path from which the bindings are normally imported
@@ -1369,7 +1368,7 @@ class Generator (object):
             ns = module.namespace()
             ns.validateComponentModel()
             module_path = ns.modulePath()
-            if (module_path is None) or ns.isLoadedNamespace() or (ns.isBuiltinNamespace() and not self.allowBuiltinGeneration()):
+            if (module_path is None) or ns.isLoadedNamespace() or (ns.isBuiltinNamespace() and not self.allowBuiltinGeneration()) or (not self.generateToFiles()):
                 return ('/dev/null', None, None)
             module_elts = module_path.split('.')
             import_file_path = self.__directoryForModulePath(module_elts)
@@ -1385,6 +1384,8 @@ class Generator (object):
                 if errno.EEXIST == e.errno:
                     raise pyxb.BindingGenerationError('Target file %s for namespace %s bindings exists with other content' % (binding_file_path, ns))
         elif isinstance(module, NamespaceGroupModule):
+            if not self.generateToFiles():
+                raise pyxb.BindingGenerationError('Generation of namespace groups requires generate-to-files')
             module_elts = []
             if self.modulePrefix():
                 module_elts.extend(self.modulePrefix().split('.'))
@@ -1403,11 +1404,12 @@ class Generator (object):
             module_path = '.'.join(module_elts)
         else:
             assert False
-        for n in range(len(module_elts)-1):
-            sub_path = os.path.join(*module_elts[:1+n])
-            init_path = os.path.join(sub_path, '__init__.py')
-            if not os.path.exists(init_path):
-                file(init_path, 'w')
+        if self.generateToFiles():
+            for n in range(len(module_elts)-1):
+                sub_path = os.path.join(*module_elts[:1+n])
+                init_path = os.path.join(sub_path, '__init__.py')
+                if not os.path.exists(init_path):
+                    file(init_path, 'w')
         return (binding_file_path, binding_file, module_path)
 
     def schemaRoot (self):
@@ -1681,6 +1683,7 @@ class Generator (object):
         @keyword write_for_customization: Invokes L{setWriteForCustomization}
         @keyword allow_builtin_generation: Invokes L{setAllowBuiltinGeneration}
         @keyword allow_absent_module: Invokes L{setAllowAbsentModule}
+        @keyword generate_to_files: Sets L{generateToFiles}
         """
         argv = kw.get('argv', None)
         if argv is not None:
@@ -1703,6 +1706,7 @@ class Generator (object):
         self.__writeForCustomization = kw.get('write_for_customization', False)
         self.__writeForCustomization = kw.get('allow_builtin_generation', False)
         self.__allowAbsentModule = kw.get('allow_absent_module', False)
+        self.__generateToFiles = kw.get('generate_to_files', True)
         
         if argv is not None:
             self.applyOptionValues(*self.optionParser().parse_args(argv))
