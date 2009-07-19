@@ -302,7 +302,7 @@ class _Singleton_mixin (pyxb.cscRoot):
     def __new__ (cls, *args, **kw):
         singleton_property = '_%s__singleton' % (cls.__name__,)
         if not (singleton_property in cls.__dict__):
-            setattr(cls, singleton_property, object.__new__(cls, *args, **kw))
+            setattr(cls, singleton_property, super(_Singleton_mixin, cls).__new__(cls, *args, **kw))
         return cls.__dict__[singleton_property]
 
 class _Annotated_mixin (pyxb.cscRoot):
