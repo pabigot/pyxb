@@ -468,6 +468,47 @@ class TestUTCTimeZone (unittest.TestCase):
 class TestLocalTimeZone (unittest.TestCase):
     pass
 
+class TestGenerationUID (unittest.TestCase):
+
+    def testBasic (self):
+        u1 = GenerationUID('one')
+        self.assertEqual('one', u1.uid())
+        u1b = GenerationUID('one')
+        self.assertEqual(u1, u1b)
+        self.assertEqual(id(u1), id(u1b))
+        
+    def testNoUID (self):
+        u1 = GenerationUID()
+        self.assertTrue(u1.uid() is not None)
+        u2 = GenerationUID(u1)
+        self.assertEqual(id(u1), id(u2))
+
+    def testPickling (self):
+        import pickle
+        import StringIO
+        
+        u1 = GenerationUID()
+        outstr = StringIO.StringIO()
+        pickler = pickle.Pickler(outstr, -1)
+        pickler.dump(u1)
+        instr = StringIO.StringIO(outstr.getvalue())
+        unpickler = pickle.Unpickler(instr)
+        u2 = unpickler.load()
+        self.assertEqual(u1.uid(), u2.uid())
+        self.assertEqual(u1, u2)
+        self.assertEqual(id(u1), id(u2))
+
+    def testStringEquivalence (self):
+        u1 = GenerationUID()
+        self.assertEqual(u1, u1.uid())
+
+    def testHash (self):
+        u1 = GenerationUID()
+        mymap = { u1 : 'here' }
+        self.assertTrue(u1 in mymap)
+        self.assertTrue(u1.uid() in mymap)
+        self.assertEqual('here', mymap[u1.uid()])
+
 if '__main__' == __name__:
     unittest.main()
             

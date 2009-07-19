@@ -541,19 +541,85 @@ import sha
 def HashForText (text):
     return sha.new(text).hexdigest()
 
-_have_uuid = False
+__HaveUUID = False
 try:
     import uuid
-    _have_uuid = True
+    __HaveUUID = True
 except ImportError:
     import time
     import random
     random.seed()
-
-def GetUUIDString ():
-    if _have_uuid:
+def _NewUUIDString ():
+    if __HaveUUID:
         return uuid.uuid1().urn
     return '%s:%08.8x' % (time.strftime('%Y%m%d%H%M%S'), random.randint(0, 0xFFFFFFFFL))
+
+class GenerationUID (object):
+    """Records a unique identifier associated with a binding
+    generation action.
+
+    The identifier is a string, but gets wrapped in an instance of
+    this class to optimize comparisons and reduce memory footprint.
+
+    An instance of this class compares equal to, and hashes equivalent
+    to, the uid string.
+    """
+
+    __ExistingUIDs = {}
+
+    __uid = None
+    def uid (self):
+        """The string unique identifier"""
+        return self.__uid
+    
+    # Support pickling
+    def __getnewargs__ (self):
+        return (self.__uid,)
+
+    def __getstate__ (self):
+        return self.__uid
+
+    def __setstate__ (self, state):
+        assert self.__uid == state
+
+    # Singleton-like
+    def __new__ (cls, *args):
+        if 0 == len(args):
+            uid = _NewUUIDString()
+        else:
+            uid = args[0]
+        if isinstance(uid, GenerationUID):
+            uid = uid.uid()
+        if not isinstance(uid, basestring):
+            raise pyxb.LogicError('GenerationUID uid must be a string')
+        rv = cls.__ExistingUIDs.get(uid)
+        if rv is None:
+            rv = super(GenerationUID, cls).__new__(cls)
+            rv.__uid = uid
+            cls.__ExistingUIDs[uid] = rv
+        return rv
+
+    def __init__ (self, uid=None):
+        """Create a new GenerationUID instance.
+
+        @param uid: The unique identifier string.  If present, it is
+        the callers responsibility to ensure the value is universally
+        unique.  If C{None}, one will be provided.
+        @type uid: C{str} or C{unicode}
+        """
+        assert (uid is None) or (self.uid() == uid), 'GenerationUID: ctor %s, actual %s' % (uid, self.uid())
+
+    def __eq__ (self, other):
+        if isinstance(other, GenerationUID):
+            other_uid = other.uid()
+        elif isinstance(other, basestring):
+            other_uid = other
+        else:
+            raise pyxb.LogicError('GenerationUID: Cannot compare with type %s' % (type(other),))
+        return self.uid() == other_uid
+
+    def __hash__ (self):
+        return hash(self.uid())
 
 import datetime
 import calendar
