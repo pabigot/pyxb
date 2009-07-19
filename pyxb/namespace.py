@@ -304,6 +304,10 @@ class NamespaceArchive (object):
     __AnonymousCategory = '_anonymousTypeDefinition'
     @classmethod
     def _AnonymousCategory (cls):
+        """The category name to use when storing references to anonymous type
+        definitions.  For example, attribute definitions defined within an
+        attribute use in a model group definition.that can be referenced frojm
+        ax different namespace."""
         return cls.__AnonymousCategory
 
     # Class variable recording the namespace that is currently being
@@ -314,12 +318,18 @@ class NamespaceArchive (object):
 
     @classmethod
     def PicklingNamespaces (cls):
+        """Return a reference to a set specifying the namespace instances that
+        are being archived.
+
+        This is needed to determine whether a component must be serialized as
+        aa reference."""
         # NB: Use root class explicitly.  If we use cls, when this is invoked
         # by subclasses it gets mangled using the subclass name so the one
         # defined in this class is not found
         return NamespaceArchive.__PicklingNamespaces
 
     def archivePath (self):
+        """Path to the file in which this namespace archive is stored."""
         return self.__archivePath
     __archivePath = None
 
@@ -336,11 +346,13 @@ class NamespaceArchive (object):
             pass
 
     def add (self, namespace):
+        """Add the given namespace to the set that is to be stored in this archive."""
         if namespace.isAbsentNamespace():
             raise pyxb.NamespaceArchiveError('Cannot archive absent namespace')
         self.__namespaces.add(namespace)
 
     def update (self, namespace_set):
+        """Add the given namespaces to the set that is to be stored in this archive."""
         [ self.add(_ns) for _ns in namespace_set ]
 
     def namespaces (self):
@@ -349,8 +361,10 @@ class NamespaceArchive (object):
     __namespaces = None
 
     def dissociateNamespaces (self):
+        """Prevent this archive from being consulted when any of its
+        namespaces must be loaded."""
         for ns in self.__namespaces:
-            ns._setArchive(None)
+            ns._removeArchive(self)
         self.__namespaces.clear()
 
     def __createUnpickler (self):
@@ -384,50 +398,56 @@ class NamespaceArchive (object):
         for ns in ns_set:
             #print 'Read %s from %s - active %s' % (ns, self.__archivePath, ns.isActive())
             ns._loadNamedObjects(object_maps[ns])
-            ns._setLoadedFromArchive()
+            ns._setLoadedFromArchive(self)
         
         self.dissociateNamespaces()
 
     def writeNamespaces (self, output):
+        """Store the namespaces into the archive.
+
+        @param output: An instance substitutable for a writable file, or the
+        name of a file to write to.
+        """
         import sys
         
         NamespaceArchive.__PicklingNamespaces = self.namespaces()
         assert self.PicklingNamespaces() == self.namespaces(), 'Set %s, read %s' % (self.namespaces(), self.PicklingNamespaces())
 
-        # See http://bugs.python.org/issue3338
-        recursion_limit = sys.getrecursionlimit()
-        sys.setrecursionlimit(10 * recursion_limit)
-
-        if not isinstance(output, file):
-            output = open(output, 'wb')
-        pickler = pickle.Pickler(output, -1)
-
-        # The format of the archive
-        pickler.dump(NamespaceArchive.__PickleFormat)
-
-        # The set of URIs defining the namespaces in the archive, along with
-        # the categories defined by each one.
-        uri_map = {}
-        for ns in self.namespaces():
-            uri_map[ns.uri()] = set(ns.categories())
-        pickler.dump(uri_map)
-
-        # The pickled namespaces.  Note that namespaces have a custom pickling
-        # representation which does not include any of the objects they hold.
-        pickler.dump(self.namespaces())
-
-        # A map from namespace to the category maps of the namespace.
-        object_map = { }
-        for ns in self.namespaces():
-            assert not ns.isAbsentNamespace()
-            ns.configureCategories([self._AnonymousCategory()])
-            object_map[ns] = ns._categoryMap()
-            ns._setWroteToArchive()
-            for obj in ns._namedObjects().union(ns.components()):
-                obj._prepareForArchive(ns)
-        pickler.dump(object_map)
-
-        sys.setrecursionlimit(recursion_limit)
+        try:
+            # See http://bugs.python.org/issue3338
+            recursion_limit = sys.getrecursionlimit()
+            sys.setrecursionlimit(10 * recursion_limit)
+    
+            if not isinstance(output, file):
+                output = open(output, 'wb')
+            pickler = pickle.Pickler(output, -1)
+    
+            # The format of the archive
+            pickler.dump(NamespaceArchive.__PickleFormat)
+    
+            # The set of URIs defining the namespaces in the archive, along with
+            # the categories defined by each one.
+            uri_map = {}
+            for ns in self.namespaces():
+                uri_map[ns.uri()] = set(ns.categories())
+            pickler.dump(uri_map)
+    
+            # The pickled namespaces.  Note that namespaces have a custom pickling
+            # representation which does not include any of the objects they hold.
+            pickler.dump(self.namespaces())
+    
+            # A map from namespace to the category maps of the namespace.
+            object_map = { }
+            for ns in self.namespaces():
+                assert not ns.isAbsentNamespace()
+                ns.configureCategories([self._AnonymousCategory()])
+                object_map[ns] = ns._categoryMap()
+                ns._setWroteToArchive()
+                for obj in ns._namedObjects().union(ns.components()):
+                    obj._prepareForArchive(ns)
+            pickler.dump(object_map)
+        finally:
+            sys.setrecursionlimit(recursion_limit)
         NamespaceArchive.__PicklingNamespaces = None
 
     def __readNamespaceSet (self, unpickler, define_namespaces=False):
@@ -451,14 +471,10 @@ class NamespaceArchive (object):
 
         for uri in uri_map.keys():
             ns = NamespaceForURI(uri, create_if_missing=True)
-            ns._setArchive(self)
+            ns._addArchive(self)
             self.__namespaces.add(ns)
 
         return uri_map
-
-    @classmethod
-    def DefineFromFile (self, archive_path):
-        pass
 
     def __str__ (self):
         archive_path = self.__archivePath
@@ -500,28 +516,37 @@ class _NamespaceArchivable_mixin (pyxb.cscRoot):
     __isActive = None
 
     def __init__ (self, *args, **kw):
-        self.__archive = None
-        self.__loadedFromArchive = False
-        self.__wroteToArchive = False
+        self.__sourceArchives = set()
+        self.__loadedFromArchive = None
+        self.__wroteToArchive = None
         self.__active = False
         super(_NamespaceArchivable_mixin, self).__init__(*args, **kw)
         
-    def _setLoadedFromArchive (self):
-        self.__loadedFromArchive = True
+    def _setLoadedFromArchive (self, archive):
+        self.__loadedFromArchive = archive
         self._activate()
-    def _setWroteToArchive (self):
-        self.__wroteToArchive = True
+    def _setWroteToArchive (self, archive):
+        self.__wroteToArchive = archive
 
-    def _setArchive (self, archive):
-        self.__archive = archive
+    def _addArchive (self, archive):
+        self.__sourceArchives.add(archive)
+
+    def _removeArchive (self, archive):
+        # Yes, I do want this to raise KeyError if the archive is not present
+        self.__sourceArchives.remove(archive)
+        
     def archive (self):
-        return self.__archive
-    __archive = None
+        if 0 == len(self.__sourceArchives):
+            return None
+        if 1 < len(self.__sourceArchives):
+            raise pyxb.NamespaceArchiveError('%s available from multiple archives: %s' % (self.uri(), ' '.join([str(_ns) for _ns in self.__sourceArchives])))
+        return iter(self.__sourceArchives).next()
+    __sourceArchives = None
     
     def isLoadable (self):
         """Return C{True} iff the component model for this namespace can be
         loaded from a namespace archive."""
-        return self.archive() is not None
+        return 0 < len(self.__sourceArchives)
 
     def _setState_csc (self, kw):
         #assert not self.__isActive, 'ERROR: State set for active namespace %s' % (self,)
@@ -545,11 +570,11 @@ class NamedObjectMap (dict):
         return self.__category
     __category = None
 
-    def loadedFromArchive (self):
-        return self.__loadedFromArchive
+    #def loadedFromArchive (self):
+    #    return self.__loadedFromArchive
     __loadedFromArchive = None
-    def _setLoadedFromArchive (self):
-        self.__loadedFromArchive = True
+    #def _setLoadedFromArchive (self):
+    #    self.__loadedFromArchive = True
 
     def __init__ (self, category, namespace, *args, **kw):
         self.__category = category
