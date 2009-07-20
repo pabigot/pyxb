@@ -123,7 +123,7 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin, pyxb.na
         return self.__schema
     __schema = None
 
-    def _prepareForArchive_csc (self, namespace):
+    def _prepareForArchive_csc (self, archive, namespace):
         self.__schema = None
         self.__clones = None
         self.__cloneSource = None
@@ -132,7 +132,7 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin, pyxb.na
         #    for (k, v) in self.__dict__.items():
         #        print '%s : %s' % (k, object.__str__(v))
         #    assert False
-        return getattr(super(_SchemaComponent_mixin, self), '_prepareForArchive_csc', lambda *_args,**_kw: self)(namespace)
+        return getattr(super(_SchemaComponent_mixin, self), '_prepareForArchive_csc', lambda *_args,**_kw: self)(archive, namespace)
 
     def __init__ (self, *args, **kw):
         self.__ownedComponents = set()
@@ -411,23 +411,29 @@ class _NamedComponent_mixin (pyxb.cscRoot):
         """Return true iff this instance is locally scoped (has no name)."""
         return self.__name is None
 
+    def _setAnonymousName (self, archive, namespace):
+        assert self.__anonymousName is None
+        assert self.__needAnonymousSupport()
+        pickling_archive = pyxb.namespace.NamespaceArchive.PicklingArchive()
+        assert pickling_archive is not None
+        anon_name = self.nameInBinding()
+        if anon_name is None:
+            anon_name = self.name()
+        if anon_name is None:
+            anon_name = 'ANON_IN_GROUP'
+        assert namespace is not None
+        if self.bindingNamespace() is not None:
+            assert self.bindingNamespace() == namespace
+        if self.targetNamespace() is not None:
+            assert self.targetNamespace() == namespace
+        anon_name = '%s_%s' % (anon_name, archive.generationUID())
+        anon_name = pyxb.utils.utility.MakeUnique(anon_name, set(namespace.categoryMap(self.__AnonymousCategory).keys()))
+        print '**** Anonymous %s' % (anon_name,)
+        self.__anonymousName = anon_name
+        namespace.addCategoryObject(self.__AnonymousCategory, anon_name, self)
+        #print '*** Created anonymous tag %s for %s' % (self.__anonymousName, self)
     def _anonymousName (self, namespace=None):
-        if self.__anonymousName is None:
-            assert self.__needAnonymousSupport()
-            anon_name = self.nameInBinding()
-            if anon_name is None:
-                anon_name = self.name()
-            if anon_name is None:
-                anon_name = 'ANON_IN_GROUP'
-            if namespace is None:
-                namespace = self.bindingNamespace()
-            if namespace is None:
-                namespace = self.targetNamespace()
-            assert namespace is not None
-            anon_name = pyxb.utils.utility.MakeUnique(anon_name, set(namespace.categoryMap(self.__AnonymousCategory).keys()))
-            self.__anonymousName = anon_name
-            namespace.addCategoryObject(self.__AnonymousCategory, anon_name, self)
-            #print '*** Created anonymous tag %s for %s' % (self.__anonymousName, self)
+        assert self.__anonymousName is not None
         return self.__anonymousName
     __anonymousName = None
 
@@ -463,10 +469,10 @@ class _NamedComponent_mixin (pyxb.cscRoot):
     def __needAnonymousSupport (self):
         return self.isAnonymous() or self._scopeIsIndeterminate()
 
-    def _prepareForArchive_csc (self, namespace):
+    def _prepareForArchive_csc (self, archive, namespace):
         if self.__needAnonymousSupport():
-            self._anonymousName(namespace)
-        return getattr(super(_NamedComponent_mixin, self), '_prepareForArchive_csc', lambda *_args,**_kw: self)(namespace)
+            self._setAnonymousName(archive, namespace)
+        return getattr(super(_NamedComponent_mixin, self), '_prepareForArchive_csc', lambda *_args,**_kw: self)(archive, namespace)
 
     def _picklesInNamespaces (self, namespaces):
         """Return C{True} if this component should be pickled by value in the
@@ -655,13 +661,13 @@ class _NamedComponent_mixin (pyxb.cscRoot):
         # Get the namespace we're pickling.  If the namespace is None,
         # we're not pickling; we're probably cloning, and in that case
         # we don't want to use the reference state encoding.
-        pickling_namespaces = pyxb.namespace.NamespaceArchive.PicklingNamespaces()
-        if pickling_namespaces is None:
+        pickling_archive = pyxb.namespace.NamespaceArchive.PicklingArchive()
+        if pickling_archive is None:
             return False
         # If this thing is scoped in a complex type that belongs to the
         # namespace being pickled, then it gets pickled as an object even if
         # its target namespace isn't this one.
-        if self._picklesInNamespaces(pickling_namespaces):
+        if self._picklesInNamespaces(pickling_archive.namespaces()):
             return False
         # Note that anonymous objects must use their fallback
         return True

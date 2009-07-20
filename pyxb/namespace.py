@@ -315,10 +315,10 @@ class NamespaceArchive (object):
     # pickled.  Used to prevent storing components that belong to
     # other namespaces.  Should be None unless within an invocation of
     # SaveToFile.
-    __PicklingNamespaces = None
+    __PicklingArchive = None
 
     @classmethod
-    def PicklingNamespaces (cls):
+    def PicklingArchive (cls):
         """Return a reference to a set specifying the namespace instances that
         are being archived.
 
@@ -327,7 +327,7 @@ class NamespaceArchive (object):
         # NB: Use root class explicitly.  If we use cls, when this is invoked
         # by subclasses it gets mangled using the subclass name so the one
         # defined in this class is not found
-        return NamespaceArchive.__PicklingNamespaces
+        return NamespaceArchive.__PicklingArchive
 
     def archivePath (self):
         """Path to the file in which this namespace archive is stored."""
@@ -398,6 +398,7 @@ class NamespaceArchive (object):
         pickler.dump(NamespaceArchive.__PickleFormat)
     
         # The UID for the set
+        assert self.generationUID() is not None
         pickler.dump(self.generationUID())
 
         return pickler
@@ -436,8 +437,7 @@ class NamespaceArchive (object):
         """
         import sys
         
-        NamespaceArchive.__PicklingNamespaces = self.namespaces()
-        assert self.PicklingNamespaces() == self.namespaces(), 'Set %s, read %s' % (self.namespaces(), self.PicklingNamespaces())
+        NamespaceArchive.__PicklingArchive = self
 
         try:
             # See http://bugs.python.org/issue3338
@@ -446,11 +446,14 @@ class NamespaceArchive (object):
     
             pickler = self.__createPickler(output)
 
-            # The set of URIs defining the namespaces in the archive, along with
-            # the categories defined by each one.
+            # The set of URIs defining the namespaces in the archive, along
+            # with the categories defined by each one, and the names defined
+            # in each category.
             uri_map = {}
             for ns in self.namespaces():
-                uri_map[ns.uri()] = set(ns.categories())
+                uri_map[ns.uri()] = cat_map = {}
+                for cat in ns.categories():
+                    cat_map[cat] = frozenset(ns.categoryMap(cat).keys())
             pickler.dump(uri_map)
     
             # The pickled namespaces.  Note that namespaces have a custom pickling
@@ -465,24 +468,22 @@ class NamespaceArchive (object):
                 object_map[ns] = ns._categoryMap()
                 ns._setWroteToArchive(self)
                 for obj in ns._namedObjects().union(ns.components()):
-                    obj._prepareForArchive(ns)
+                    obj._prepareForArchive(self, ns)
             pickler.dump(object_map)
         finally:
             sys.setrecursionlimit(recursion_limit)
-        NamespaceArchive.__PicklingNamespaces = None
+        NamespaceArchive.__PicklingArchive = None
 
     def __readNamespaceSet (self, unpickler, define_namespaces=False):
         uri_map = unpickler.load()
         
         for (uri, categories) in uri_map.items():
-            ns = NamespaceForURI(uri)
-            if ns is not None:
-                # Verify namespace does not already have the given category
-                cross_categories = categories.intersection(ns.categories())
-                if 0 < len(cross_categories):
-                    for cc in cross_categories:
-                        if 0 < len(ns.categoryMap(cc)):
-                            raise pyxb.NamespaceArchiveError('Namespace %s archive/active conflict on categories: %s' % (ns, " ".join(cross_categories)))
+            cat_map = uri_map[uri]
+            ns = NamespaceInstance(uri)
+            for cat in cat_map.keys():
+                cross_objects = cat_map[cat].intersection(ns.categoryMap(cat).keys())
+                if 0 < len(cross_objects):
+                    raise pyxb.NamespaceArchiveError('Namespace %s archive/active conflict on category %s: %s' % (ns, cat, " ".join(cross_objects)))
                 # Verify namespace is not available from a different archive
                 if (ns.archive() is not None) and (ns.archive() != self):
                     raise pyxb.NamespaceArchiveError('Namespace %s already available from %s' % (uri, ns.archive()))
@@ -504,11 +505,11 @@ class NamespaceArchive (object):
         return 'NSArchive@%s' % (archive_path,)
 
 class _ComponentArchivable_mixin (pyxb.cscRoot):
-    def _prepareForArchive_csc (self, namespace):
-        return getattr(super(_ComponentArchivable_mixin, self), '_prepareForArchive_csc', lambda *_args,**_kw: self)(namespace)
+    def _prepareForArchive_csc (self, archive, namespace):
+        return getattr(super(_ComponentArchivable_mixin, self), '_prepareForArchive_csc', lambda *_args,**_kw: self)(archive, namespace)
 
-    def _prepareForArchive (self, namespace):
-        return self._prepareForArchive_csc(namespace)
+    def _prepareForArchive (self, archive, namespace):
+        return self._prepareForArchive_csc(archive, namespace)
 
 class _NamespaceArchivable_mixin (pyxb.cscRoot):
 
@@ -1458,7 +1459,7 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
             rv = self.__uri
         return rv
 
-def NamespaceInstance (self, namespace):
+def NamespaceInstance (namespace):
     """Get a namespace instance for the given namespace.
 
     This is used when it is unclear whether the namespace is specified by URI
@@ -1467,7 +1468,7 @@ def NamespaceInstance (self, namespace):
     if isinstance(namespace, Namespace):
         return namespace
     if isinstance(namespace, basestring):
-        return self.NamespaceForURI(namespace, True)
+        return NamespaceForURI(namespace, True)
     raise pyxb.LogicError('Cannot identify namespace from value of type %s' % (type(namespace),))
 
 def NamespaceForURI (uri, create_if_missing=False):
