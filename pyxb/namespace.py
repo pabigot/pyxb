@@ -505,7 +505,7 @@ class NamespaceArchive (object):
         return 'NSArchive@%s' % (archive_path,)
 
 class _ObjectArchivable_mixin (pyxb.cscRoot):
-    """Mix-in to any object that can be stored in a namespace archive."""
+    """Mix-in to any object that can be stored in a namespace within an archive."""
     
     def _prepareForArchive_csc (self, archive, namespace):
         return getattr(super(_ObjectArchivable_mixin, self), '_prepareForArchive_csc', lambda *_args,**_kw: self)(archive, namespace)
@@ -689,7 +689,7 @@ class _NamespaceCategory_mixin (pyxb.cscRoot):
         name_map = self.categoryMap(category)
         old_object = name_map.get(local_name)
         if (old_object is not None) and (old_object != named_object):
-            raise pyxb.NamespaceUniquenessError('Name %s used for multiple values in %s' % (local_name, category))
+            raise pyxb.NamespaceUniquenessError('%s: name %s used for multiple values in %s' % (self, local_name, category))
         name_map[local_name] = named_object
         return named_object
 
@@ -1631,6 +1631,7 @@ class _XMLSchema (Namespace):
         assert structures_module.ComplexTypeDefinition.UrTypeDefinition() == self.typeDefinitions()['anyType']
         assert structures_module.SimpleTypeDefinition.SimpleUrTypeDefinition() == self.typeDefinitions()['anySimpleType']
 
+        # Provide access to the binding classes
         self.configureCategories(['typeBinding'])
         for ( en, td ) in self.typeDefinitions().items():
             if td.pythonSupport() is not None:
