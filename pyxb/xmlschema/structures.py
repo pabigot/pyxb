@@ -428,10 +428,8 @@ class _NamedComponent_mixin (pyxb.cscRoot):
             assert self.targetNamespace() == namespace
         anon_name = '%s_%s' % (anon_name, archive.generationUID())
         anon_name = pyxb.utils.utility.MakeUnique(anon_name, set(namespace.categoryMap(self.__AnonymousCategory).keys()))
-        print '**** Anonymous %s' % (anon_name,)
         self.__anonymousName = anon_name
         namespace.addCategoryObject(self.__AnonymousCategory, anon_name, self)
-        #print '*** Created anonymous tag %s for %s' % (self.__anonymousName, self)
     def _anonymousName (self, namespace=None):
         assert self.__anonymousName is not None
         return self.__anonymousName
