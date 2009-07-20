@@ -7,7 +7,7 @@ if [ ! -f ${WSDL} ] ; then
   wget -O ${WSDL} "${URI}"
 fi
 
-rm -rf raw
+rm -rf raw weather.pyc weather.py
 mkdir -p raw
 touch raw/__init__.py
 ../../scripts/pyxbgen \
