@@ -117,7 +117,11 @@ class ExpandedName (pyxb.cscRoot):
             return super(ExpandedName, self).__getattr__(name)
         if self.namespace() is None:
             return lambda: None
-        return lambda _value=self.namespace().categoryMap(name).get(self.localName()): _value
+        try:
+            category_value = self.namespace().categoryMap(name).get(self.localName())
+            return lambda : category_value
+        except KeyError:
+            raise AttributeError(name)
 
     def createName (self, local_name):
         """Return a new expanded name in the namespace of this name.
@@ -481,6 +485,8 @@ class NamespaceArchive (object):
             cat_map = uri_map[uri]
             ns = NamespaceInstance(uri)
             for cat in cat_map.keys():
+                if not (cat in ns.categories()):
+                    continue
                 cross_objects = cat_map[cat].intersection(ns.categoryMap(cat).keys())
                 if 0 < len(cross_objects):
                     raise pyxb.NamespaceArchiveError('Namespace %s archive/active conflict on category %s: %s' % (ns, cat, " ".join(cross_objects)))
@@ -507,6 +513,16 @@ class NamespaceArchive (object):
 class _ObjectArchivable_mixin (pyxb.cscRoot):
     """Mix-in to any object that can be stored in a namespace within an archive."""
     
+    __objectOriginUID = None
+    def _objectOriginUID (self):
+        return self.__objectOriginUID
+    def _setObjectOriginUID (self, object_origin_uid):
+        if self.__objectOriginUID is not None:
+            if  self.__objectOriginUID != object_origin_uid:
+                raise pyxb.LogicError('Inconsistent origins for object %s' % (self,))
+        else:
+            self.__objectOriginUID = object_origin_uid
+
     def _prepareForArchive_csc (self, archive, namespace):
         return getattr(super(_ObjectArchivable_mixin, self), '_prepareForArchive_csc', lambda *_args,**_kw: self)(archive, namespace)
 
@@ -603,16 +619,9 @@ class NamedObjectMap (dict):
         return self.__category
     __category = None
 
-    #def loadedFromArchive (self):
-    #    return self.__loadedFromArchive
-    __loadedFromArchive = None
-    #def _setLoadedFromArchive (self):
-    #    self.__loadedFromArchive = True
-
     def __init__ (self, category, namespace, *args, **kw):
         self.__category = category
         self.__namespace = namespace
-        self.__loadedFromArchive = False
         super(NamedObjectMap, self).__init__(*args, **kw)
 
 class _NamespaceCategory_mixin (pyxb.cscRoot):
@@ -652,7 +661,10 @@ class _NamespaceCategory_mixin (pyxb.cscRoot):
 
     def categoryMap (self, category):
         """Map from local names to NamedObjectMap instances for the given category."""
-        return self.__categoryMap.get(category, {})
+        try:
+            return self.__categoryMap[category]
+        except KeyError:
+            raise pyxb.NamespaceError('%s has no category %s' % (self, category))
 
     def __defineCategoryAccessors (self):
         """Define public methods on the Namespace which provide access to
