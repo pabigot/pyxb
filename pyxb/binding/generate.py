@@ -1192,9 +1192,11 @@ class NamespaceModule (_ModuleNaming_mixin):
 # Generated %{date} by PyXB version %{pyxbVersion}
 import pyxb.binding
 import pyxb.exceptions_
+import pyxb.utils.utility
 import pyxb.utils.domutils
 import sys
 
+# Unique identifier for bindings created at the same time
 _GenerationUID = %{generation_uid_expr}
 
 # Import bindings for namespaces imported into schema
@@ -1273,10 +1275,12 @@ class NamespaceGroupModule (_ModuleNaming_mixin):
 # Incorporated namespaces:
 %{namespace_comment}
 
-_GenerationUID = %{generation_uid_expr}
-
 import pyxb
 import pyxb.binding
+import pyxb.utils.utility
+
+# Unique identifier for bindings created at the same time
+_GenerationUID = %{generation_uid_expr}
 
 # Import bindings for schemas in group
 %{aux_imports}
@@ -1908,7 +1912,7 @@ class Generator (object):
         if self.__generationUID is not None:
             # This isn't safe until we have a way to reset everything.
             print 'WARNING: Unsafe to perform multiple generations in one run'
-        self.__generationUID = pyxb.utils.utility.GetUUIDString()
+        self.__generationUID = pyxb.utils.utility.GenerationUID()
 
         modules = set()
         pyxb.namespace.XMLSchema.setModulePath('pyxb.binding.datatypes')
