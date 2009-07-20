@@ -19,6 +19,35 @@ import pyxb.namespace
 import pyxb.utils.domutils as domutils
 import xml.dom
 
+def ImportRelatedNamespaces ():
+    """Import modules for related namespaces so they are available to
+    create binding instances from the WSDL sources."""
+    try:
+        import pyxb.standard.bindings.soap
+    except ImportError:
+        pass
+    try:
+        import pyxb.standard.bindings.soap12
+    except ImportError:
+        pass
+    try:
+        import pyxb.standard.bindings.soapenc
+    except ImportError:
+        pass
+    try:
+        import pyxb.standard.bindings.soapenv
+    except ImportError:
+        pass
+    try:
+        import pyxb.standard.bindings.http
+    except ImportError:
+        pass
+    try:
+        import pyxb.standard.bindings.mime
+    except ImportError:
+        pass
+
+
 class _WSDL_binding_mixin (object):
     """Mix-in class to mark element Python bindings that are expected
     to be wildcard matches in WSDL binding elements."""

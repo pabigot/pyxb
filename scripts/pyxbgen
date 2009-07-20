@@ -21,6 +21,7 @@ that file as a --schema-location.''')
 
 if options.wsdl_location is not None:
     import pyxb.standard.bindings.wsdl as wsdl
+    wsdl.ImportRelatedNamespaces()
     for wsdl_uri in options.wsdl_location:
         wsdl_uri = pyxb.utils.utility.NormalizeLocation(wsdl_uri)
         print 'Retrieving WSDL from %s' % (wsdl_uri,)
