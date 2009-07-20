@@ -504,9 +504,11 @@ class NamespaceArchive (object):
             archive_path = '??'
         return 'NSArchive@%s' % (archive_path,)
 
-class _ComponentArchivable_mixin (pyxb.cscRoot):
+class _ObjectArchivable_mixin (pyxb.cscRoot):
+    """Mix-in to any object that can be stored in a namespace archive."""
+    
     def _prepareForArchive_csc (self, archive, namespace):
-        return getattr(super(_ComponentArchivable_mixin, self), '_prepareForArchive_csc', lambda *_args,**_kw: self)(archive, namespace)
+        return getattr(super(_ObjectArchivable_mixin, self), '_prepareForArchive_csc', lambda *_args,**_kw: self)(archive, namespace)
 
     def _prepareForArchive (self, archive, namespace):
         return self._prepareForArchive_csc(archive, namespace)
