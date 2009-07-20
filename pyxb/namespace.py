@@ -20,7 +20,7 @@ components.
 
 @group Resolution: _Resolvable_mixin, _NamespaceResolution_mixin
 @group Component Management: _ComponentDependency_mixin, _NamespaceComponentAssociation_mixin
-@group Schema Specializations: _XML, _XHTML, _XMLSchema, _XMLSchema_instance
+@group Schema Specializations: _XML, _XMLSchema, _XMLSchema_instance
 @group Named Object Management: _NamespaceCategory_mixin, NamedObjectMap
 """
 
@@ -1671,17 +1671,6 @@ XMLNamespaces = Namespace('http://www.w3.org/2000/xmlns/',
                           bound_prefix='xmlns')
 """Namespaces in XML.  Not really a namespace, but is always available as C{xmlns}."""
 
-XML = _XML('http://www.w3.org/XML/1998/namespace',
-           description='XML namespace',
-           schema_location='http://www.w3.org/2001/xml.xsd',
-           is_builtin_namespace=True,
-           is_undeclared_namespace=True,
-           bound_prefix='xml',
-           default_namespace='XHTML',
-           in_scope_namespaces = { 'xs' : 'XMLSchema' })
-"""Namespace and URI for XML itself (always available as C{xml})"""
-XML.setModulePath('pyxb.standard.bindings.xml_')
-
 XMLSchema = _XMLSchema('http://www.w3.org/2001/XMLSchema',
                        schema_location='http://www.w3.org/2001/XMLSchema.xsd',
                        description='XML Schema',
@@ -1697,11 +1686,22 @@ XHTML = Namespace('http://www.w3.org/1999/xhtml',
 """There really isn't a schema for this, but it's used as the default
 namespace in the XML schema, so define it."""
 
+XML = _XML('http://www.w3.org/XML/1998/namespace',
+           description='XML namespace',
+           schema_location='http://www.w3.org/2001/xml.xsd',
+           is_builtin_namespace=True,
+           is_undeclared_namespace=True,
+           bound_prefix='xml',
+           default_namespace=XHTML,
+           in_scope_namespaces = { 'xs' : XMLSchema })
+"""Namespace and URI for XML itself (always available as C{xml})"""
+XML.setModulePath('pyxb.standard.bindings.xml_')
+
 XMLSchema_hfp = Namespace('http://www.w3.org/2001/XMLSchema-hasFacetAndProperty',
                           description='Facets appearing in appinfo section',
                           schema_location='http://www.w3.org/2001/XMLSchema-hasFacetAndProperty',
                           is_builtin_namespace=True,
-                          default_namespace='XMLSchema',
+                          default_namespace=XMLSchema,
                           in_scope_namespaces = { 'hfp' : None
                                                 , 'xhtml' : XHTML })
 """Elements appearing in appinfo elements to support data types."""
