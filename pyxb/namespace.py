@@ -1377,6 +1377,16 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
         if not self.isActive(True):
             self._setState_csc(kw)
 
+    def _defineBuiltins_ox (self, structures_module):
+        pass
+
+    __definedBuiltins = False
+    def _defineBuiltins (self, structures_module):
+        if not self.__definedBuiltins:
+            self._defineBuiltins_ox(structures_module)
+            self.__definedBuiltins = True
+        return self
+
     def _defineSchema_overload (self, structures_module):
         """Attempts to load the named objects held in this namespace.
 
@@ -1406,6 +1416,7 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
             assert not self.__inValidation, 'Nested validation of %s' % (self.uri(),)
             if structures_module is None:
                 import pyxb.xmlschema.structures as structures_module
+            self._defineBuiltins(structures_module)
             try:
                 self.__inValidation = True
                 #print 'VALIDATING %s: isActive %s archive %s' % (self, self.isActive(), self.archive())
@@ -1561,53 +1572,45 @@ class _XMLSchema_instance (Namespace):
     """Extension of L{Namespace} that pre-defines components available in the
     XMLSchema Instance namespace."""
 
-    __doneThis = False
-    
-    def _defineSchema_overload (self, structures_module):
+    def _defineBuiltins_ox (self, structures_module):
         """Ensure this namespace is ready for use.
 
         Overrides base class implementation, since there is no schema
         for this namespace. """
         
-        if not self.__doneThis:
-            assert structures_module is not None
-            schema = structures_module.Schema(namespace_context=self.initialNamespaceContext(), schema_location="URN:noLocation:xsi")
-            type = schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('type', self))
-            nil = schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('nil', self))
-            schema_location = schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('schemaLocation', self))
-            no_namespace_schema_location = schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('noNamespaceSchemaLocation', self))
-            self.__doneThis = True
+        assert structures_module is not None
+        schema = structures_module.Schema(namespace_context=self.initialNamespaceContext(), schema_location="URN:noLocation:xsi")
+        type = schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('type', self))
+        nil = schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('nil', self))
+        schema_location = schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('schemaLocation', self))
+        no_namespace_schema_location = schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('noNamespaceSchemaLocation', self))
         return self
 
 class _XML (Namespace):
     """Extension of L{Namespace} that pre-defines components available in the
     XML (xml) namespace."""
 
-    __doneThis = False
-
-    def _defineSchema_overload (self, structures_module):
+    def _defineBuiltins_ox (self, structures_module):
         """Ensure this namespace is ready for use.
 
         Overrides base class implementation, since there is no schema
         for this namespace. """
         
-        if not self.__doneThis:
-            assert structures_module is not None
-            import pyxb.binding.datatypes as xsd
-            import pyxb.binding.facets as xsdf
-            schema = structures_module.Schema(namespace_context=self.initialNamespaceContext(), schema_location="URN:noLocation:XML")
-            base = schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('base', self, std=xsd.anyURI.SimpleTypeDefinition()))
-            id = schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('id', self, std=xsd.ID.SimpleTypeDefinition()))
-            #  std=xsdf._WhiteSpace_enum.SimpleTypeDefinition()))
-            space = schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('space', self))
-            lang = schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('lang', self, std=xsd.anySimpleType.SimpleTypeDefinition()))
+        assert structures_module is not None
+        import pyxb.binding.datatypes as xsd
+        import pyxb.binding.facets as xsdf
+        schema = structures_module.Schema(namespace_context=self.initialNamespaceContext(), schema_location="URN:noLocation:XML")
+        base = schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('base', self, std=xsd.anyURI.SimpleTypeDefinition()))
+        id = schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('id', self, std=xsd.ID.SimpleTypeDefinition()))
+        #  std=xsdf._WhiteSpace_enum.SimpleTypeDefinition()))
+        space = schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('space', self))
+        lang = schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('lang', self, std=xsd.anySimpleType.SimpleTypeDefinition()))
 
-            specialAttrs = schema._addNamedComponent(structures_module.AttributeGroupDefinition.CreateBaseInstance('specialAttrs', self, [
-                        structures_module.AttributeUse.CreateBaseInstance(self, space),
-                        structures_module.AttributeUse.CreateBaseInstance(self, base),
-                        structures_module.AttributeUse.CreateBaseInstance(self, lang)
-                        ]))
-            self.__doneThis = True
+        specialAttrs = schema._addNamedComponent(structures_module.AttributeGroupDefinition.CreateBaseInstance('specialAttrs', self, [
+                    structures_module.AttributeUse.CreateBaseInstance(self, space),
+                    structures_module.AttributeUse.CreateBaseInstance(self, base),
+                    structures_module.AttributeUse.CreateBaseInstance(self, lang)
+                    ]))
         return self
 
 class _XMLSchema (Namespace):
@@ -1617,36 +1620,21 @@ class _XMLSchema (Namespace):
     The types are defined when L{pyxb.xmlschema.structures} is imported.
     """
 
-    __doneThis = False
-    def _loadBuiltins (self, structures_module):
+    def _defineBuiltins_ox (self, structures_module):
         """Register the built-in types into the XMLSchema namespace."""
 
-        if structures_module is None:
-            import pyxb.xmlschema.structures as structures_module
-        if not self.__doneThis:
-            # Defer the definitions to the structures module
-            assert structures_module is not None
-            structures_module._AddSimpleTypes(self)
-            self.__doneThis = True
+        # Defer the definitions to the structures module
+        assert structures_module is not None
+        structures_module._AddSimpleTypes(self)
 
         # A little validation here
-        if structures_module is not None:
-            assert structures_module.ComplexTypeDefinition.UrTypeDefinition() == self.typeDefinitions()['anyType']
-            assert structures_module.SimpleTypeDefinition.SimpleUrTypeDefinition() == self.typeDefinitions()['anySimpleType']
+        assert structures_module.ComplexTypeDefinition.UrTypeDefinition() == self.typeDefinitions()['anyType']
+        assert structures_module.SimpleTypeDefinition.SimpleUrTypeDefinition() == self.typeDefinitions()['anySimpleType']
 
         self.configureCategories(['typeBinding'])
         for ( en, td ) in self.typeDefinitions().items():
-            if (td.pythonSupport() is not None):
+            if td.pythonSupport() is not None:
                 self.addCategoryObject('typeBinding', en, td.pythonSupport())
-
-    def _defineSchema_overload (self, structures_module):
-        """Ensure this namespace is ready for use.
-
-        Overrides base class implementation, since there is no
-        serialized schema for this namespace."""
-        
-        self._loadBuiltins(structures_module)
-        return self
 
 def AvailableForLoad ():
     """Return a list of namespace URIs for which we may be able to load the
@@ -1728,14 +1716,7 @@ def _InitializeBuiltinNamespaces (structures_module):
     global __InitializedBuiltinNamespaces
     if not __InitializedBuiltinNamespaces:
         __InitializedBuiltinNamespaces = True
-        # Only certain namespaces must be initialized explicitly: the
-        # XMLSchema one (which defines the datatypes that the code
-        # references), and the undeclared ones (which have no schema but are
-        # always present).
-        XMLSchema._loadBuiltins(structures_module)
-        for ns in BuiltInNamespaces:
-            if ns.isUndeclaredNamespace():
-                ns.validateComponentModel(structures_module)
+        [ _ns._defineBuiltins(structures_module) for _ns in BuiltInNamespaces ]
 
 # Set up the prefixes for xml, xmlns, etc.
 _UndeclaredNamespaceMap = { }
