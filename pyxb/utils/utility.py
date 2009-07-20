@@ -562,7 +562,9 @@ class GenerationUID (object):
     this class to optimize comparisons and reduce memory footprint.
 
     An instance of this class compares equal to, and hashes equivalent
-    to, the uid string.
+    to, the uid string.  When C{str}'d, the result is the uid; when
+    C{repr}'d, the result is a constructor call to
+    C{pyxb.utils.utility.GenerationUID}.
     """
 
     __ExistingUIDs = {}
@@ -620,6 +622,12 @@ class GenerationUID (object):
 
     def __hash__ (self):
         return hash(self.uid())
+
+    def __str__ (self):
+        return self.uid()
+
+    def __repr__ (self):
+        return 'pyxb.utils.utility.GenerationUID(%s)' % (repr(self.uid()),)
 
 import datetime
 import calendar

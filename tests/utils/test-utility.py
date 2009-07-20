@@ -509,6 +509,18 @@ class TestGenerationUID (unittest.TestCase):
         self.assertTrue(u1.uid() in mymap)
         self.assertEqual('here', mymap[u1.uid()])
 
+    def testStringize (self):
+        u1 = GenerationUID('one')
+        self.assertEqual('one', str(u1))
+
+    def testRepr (self):
+        u1 = GenerationUID()
+        rep = repr(u1)
+        self.assertEqual('pyxb.utils.utility.GenerationUID(%s)' % (repr(u1.uid()),), repr(u1))
+        import pyxb.utils.utility
+        u1b = eval(repr(u1))
+        self.assertEqual(id(u1), id(u1b))
+
 if '__main__' == __name__:
     unittest.main()
             
