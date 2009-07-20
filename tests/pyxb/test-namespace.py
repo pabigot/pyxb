@@ -98,6 +98,11 @@ class TestExpandedName (unittest.TestCase):
         self.assertRaises(pyxb.NamespaceError, getattr, int_en, 'notACategory')
         
 class TestCategories (unittest.TestCase):
+    def testXSDCategories (self):
+        # Need type and element bindings, along with all the component ones
+        self.assertTrue('elementBinding' in xsd.categories())
+        self.assertTrue('typeBinding' in xsd.categories())
+
     def testStandard (self):
         def_map = xsd.categoryMap('typeDefinition')
         binding_map = xsd.categoryMap('typeBinding')

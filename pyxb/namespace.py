@@ -1644,7 +1644,7 @@ class _XMLSchema (Namespace):
         assert structures_module.SimpleTypeDefinition.SimpleUrTypeDefinition() == self.typeDefinitions()['anySimpleType']
 
         # Provide access to the binding classes
-        self.configureCategories(['typeBinding'])
+        self.configureCategories(['typeBinding', 'elementBinding'])
         for ( en, td ) in self.typeDefinitions().items():
             if td.pythonSupport() is not None:
                 self.addCategoryObject('typeBinding', en, td.pythonSupport())
