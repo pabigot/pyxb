@@ -1572,10 +1572,10 @@ class _XMLSchema_instance (Namespace):
         if not self.__doneThis:
             assert structures_module is not None
             schema = structures_module.Schema(namespace_context=self.initialNamespaceContext(), schema_location="URN:noLocation:xsi")
-            schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('type', self))
-            schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('nil', self))
-            schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('schemaLocation', self))
-            schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('noNamespaceSchemaLocation', self))
+            type = schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('type', self))
+            nil = schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('nil', self))
+            schema_location = schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('schemaLocation', self))
+            no_namespace_schema_location = schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('noNamespaceSchemaLocation', self))
             self.__doneThis = True
         return self
 
@@ -1608,25 +1608,6 @@ class _XML (Namespace):
                         structures_module.AttributeUse.CreateBaseInstance(self, lang)
                         ]))
             self.__doneThis = True
-        return self
-
-class _XHTML (Namespace):
-    """Extension of L{Namespace} that pre-defines comonents available in the
-    XHTML namespace."""
-
-    __doneThis = False
-
-    def _defineSchema_overload (self, structures_module):
-        """Ensure this namespace is ready for use.
-
-        Overrides base class implementation, since there is no schema
-        for this namespace.  In fact, there's nothing at all in it
-        that we plan to use, so this doesn't do anything."""
-        
-        if not self.__doneThis:
-            schema = structures_module.Schema(namespace_context=self.initialNamespaceContext(), schema_location='URN:noLocation:XHTML')
-            self.__doneThis = True
-            # @todo Define a wildcard element declaration 'p' that takes anything.
         return self
 
 class _XMLSchema (Namespace):
@@ -1708,14 +1689,13 @@ XMLSchema = _XMLSchema('http://www.w3.org/2001/XMLSchema',
                        in_scope_namespaces = { 'xs' : None })
 """Namespace and URI for the XMLSchema namespace (often C{xs}, or C{xsd})"""
 
-XHTML = _XHTML('http://www.w3.org/1999/xhtml',
-               description='Family of document types that extend HTML',
-               schema_location='http://www.w3.org/1999/xhtml.xsd',
-               is_builtin_namespace=True,
-               default_namespace=XMLSchema)
+XHTML = Namespace('http://www.w3.org/1999/xhtml',
+                  description='Family of document types that extend HTML',
+                  schema_location='http://www.w3.org/1999/xhtml.xsd',
+                  is_builtin_namespace=True,
+                  default_namespace=XMLSchema)
 """There really isn't a schema for this, but it's used as the default
 namespace in the XML schema, so define it."""
-
 
 XMLSchema_hfp = Namespace('http://www.w3.org/2001/XMLSchema-hasFacetAndProperty',
                           description='Facets appearing in appinfo section',
