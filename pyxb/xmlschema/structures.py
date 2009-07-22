@@ -899,21 +899,6 @@ class _PluralityData (types.ListType):
                 umap[k] = map2[k]
         return umap
 
-    @classmethod
-    def _MapDisjunction (self, map1, map2):
-        """Given two maps, return an updated map indicating the overall
-        plurality assumping maps are disjoint."""
-        umap = { }
-        for k in set(map1.keys()).union(map2.keys()):
-            if k in map1:
-                if k in map2:
-                    umap[k] = map2[k] or map1[k]
-                else:
-                    umap[k] = map1[k]
-            else:
-                umap[k] = map2[k]
-        return umap
-
     def nameBasedPlurality (self):
         """Return a map from expanded names to pairs consisting of a boolean
         representing the plurality of the aggregated name, and the element
@@ -924,27 +909,20 @@ class _PluralityData (types.ListType):
         replaced with a single element declaration."""
 
         name_plurality = { }
-        name_types = { }
         #dumpmap = lambda _pdm: ', '.join( [ '%s: %s' % (_ed.expandedName(), _pl) for (_ed, _pl) in _pdm.items() ])
         #dumpenmap = lambda _pdm: ', '.join( [ '%s: %s' % (_ed, _pl) for (_ed, _pl) in _pdm.items() ])
         for pdm in self:
-            npdm = { }
             for (ed, v) in pdm.items():
                 if isinstance(ed, ElementDeclaration):
-                    tag = ed.expandedName()
-                    name_types.setdefault(tag, ed.baseDeclaration())
-                    # All declarations with the same name should have the same
-                    # base declaration.
-                    assert name_types[tag] == ed.baseDeclaration()
-                    npdm[tag] = (tag in npdm) or v
+                    assert ed.baseDeclaration() == ed
+                    name_plurality[ed] = name_plurality.get(ed, False) or v
                 elif isinstance(ed, Wildcard):
                     pass
                 else:
                     raise pyxb.LogicError('Unexpected plurality index %s' % (ed,))
-            name_plurality = self._MapDisjunction(name_plurality, npdm)
         rv = { }
-        for (name, ed) in name_types.items():
-            rv[name] = ( name_plurality[name], ed )
+        for (ed, is_plural) in name_plurality.items():
+            rv[ed.expandedName()] = ( is_plural, ed)
         return rv
 
     def __fromModelGroup (self, model_group):
@@ -1001,7 +979,9 @@ class _PluralityData (types.ListType):
         del self[:]
         if isinstance(component, ElementDeclaration):
             assert component.isResolved()
-            self.append( { component: False } )
+            assert isinstance(component.baseDeclaration(), ElementDeclaration)
+            self.append( { component.baseDeclaration(): False } )
+            #self.append( { component: False } )
         elif isinstance(component, ModelGroup):
             self.__fromModelGroup(component)
         elif isinstance(component, Particle):
