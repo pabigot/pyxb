@@ -117,11 +117,9 @@ class ExpandedName (pyxb.cscRoot):
             return super(ExpandedName, self).__getattr__(name)
         if self.namespace() is None:
             return lambda: None
-        try:
-            category_value = self.namespace().categoryMap(name).get(self.localName())
-            return lambda : category_value
-        except KeyError:
-            raise AttributeError(name)
+        # NOTE: This will raise pyxb.NamespaceError if the category does not exist.
+        category_value = self.namespace().categoryMap(name).get(self.localName())
+        return lambda : category_value
 
     def createName (self, local_name):
         """Return a new expanded name in the namespace of this name.
@@ -531,6 +529,16 @@ class _ObjectArchivable_mixin (pyxb.cscRoot):
 
 class _NamespaceArchivable_mixin (pyxb.cscRoot):
 
+    def _reset (self):
+        """CSC extension to reset fields of a Namespace.
+
+        This one handles category-related data."""
+        getattr(super(_NamespaceArchivable_mixin, self), '_reset', lambda *args, **kw: None)()
+        self.__sourceArchives = set()
+        self.__loadedFromArchive = None
+        self.__wroteToArchive = None
+        self.__active = False
+
     def definedBySchema (self):
         return self.isActive() and not (self._loadedFromArchive() or self.isBuiltinNamespace()) and (self.modulePath() is None) and (0 < len(self.components()))
 
@@ -556,10 +564,6 @@ class _NamespaceArchivable_mixin (pyxb.cscRoot):
     __isActive = None
 
     def __init__ (self, *args, **kw):
-        self.__sourceArchives = set()
-        self.__loadedFromArchive = None
-        self.__wroteToArchive = None
-        self.__active = False
         super(_NamespaceArchivable_mixin, self).__init__(*args, **kw)
         
     def _setLoadedFromArchive (self, archive):
