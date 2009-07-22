@@ -575,10 +575,10 @@ class %{ctd} (%{superclass}):
     # subclasses.
 
     if isinstance(content_basis, xs.structures.Particle):
-        plurality_data = content_basis.pluralityData().nameBasedPlurality()
+        plurality_data = content_basis.pluralityData().combinedPlurality()
 
         outf.postscript().append("\n\n")
-        for (expanded_name, (is_plural, ed)) in plurality_data.items():
+        for (ed, is_plural) in plurality_data.items():
             # @todo Detect and account for plurality change between this and base
             ef_map = ed._templateMap()
             if ed.scope() == ctd:
@@ -785,12 +785,12 @@ def _PrepareComplexTypeDefinition (ctd, generator, nsm, module_context):
         content_basis = ctd.contentType()[1]
     kw = { 'binding_module' : module_context }
     if isinstance(content_basis, xs.structures.Particle):
-        plurality_map = content_basis.pluralityData().nameBasedPlurality()
+        plurality_map = content_basis.pluralityData().combinedPlurality()
     else:
         plurality_map = {}
     ctd._templateMap()['_unique'] = nsm.uniqueInClass(ctd)
     for cd in ctd.localScopedDeclarations():
-        _SetNameWithAccessors(cd, ctd, plurality_map.get(cd.expandedName(), (False, None))[0], module_context, nsm, kw)
+        _SetNameWithAccessors(cd, ctd, plurality_map.get(cd, False), module_context, nsm, kw)
 
 def _SetNameWithAccessors (component, container, is_plural, binding_module, nsm, kw):
     use_map = component._templateMap()
