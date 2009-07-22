@@ -899,31 +899,25 @@ class _PluralityData (types.ListType):
                 umap[k] = map2[k]
         return umap
 
-    def nameBasedPlurality (self):
-        """Return a map from expanded names to pairs consisting of a boolean
-        representing the plurality of the aggregated name, and the element
-        base declaration with that name.
+    def combinedPlurality (self):
+        """Combine all the document abstractions into a single one that covers
+        all possible documents.
 
-        Note that this requires cos-element-consistent to have been validated,
-        and element declarations with the same expanded name to have been
-        replaced with a single element declaration."""
+        The combined plurality is simply the elemental maximum over all
+        document abstractions.
+        """
 
-        name_plurality = { }
-        #dumpmap = lambda _pdm: ', '.join( [ '%s: %s' % (_ed.expandedName(), _pl) for (_ed, _pl) in _pdm.items() ])
-        #dumpenmap = lambda _pdm: ', '.join( [ '%s: %s' % (_ed, _pl) for (_ed, _pl) in _pdm.items() ])
+        combined_plurality = { }
         for pdm in self:
             for (ed, v) in pdm.items():
                 if isinstance(ed, ElementDeclaration):
                     assert ed.baseDeclaration() == ed
-                    name_plurality[ed] = name_plurality.get(ed, False) or v
+                    combined_plurality[ed] = combined_plurality.get(ed, False) or v
                 elif isinstance(ed, Wildcard):
                     pass
                 else:
                     raise pyxb.LogicError('Unexpected plurality index %s' % (ed,))
-        rv = { }
-        for (ed, is_plural) in name_plurality.items():
-            rv[ed.expandedName()] = ( is_plural, ed)
-        return rv
+        return combined_plurality
 
     def __fromModelGroup (self, model_group):
         # Start by collecting the data for each of the particles.
