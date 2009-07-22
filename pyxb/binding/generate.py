@@ -1912,7 +1912,7 @@ class Generator (object):
         if self.__generationUID is not None:
             # This isn't safe until we have a way to reset everything.
             print 'WARNING: Unsafe to perform multiple generations in one run'
-        self.__generationUID = pyxb.utils.utility.GenerationUID()
+        self.__generationUID = pyxb.utils.utility.UniqueIdentifier()
 
         modules = set()
         pyxb.namespace.XMLSchema.setModulePath('pyxb.binding.datatypes')

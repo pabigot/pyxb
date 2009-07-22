@@ -511,6 +511,7 @@ class NamespaceArchive (object):
 class _ObjectArchivable_mixin (pyxb.cscRoot):
     """Mix-in to any object that can be stored in a namespace within an archive."""
     
+    # Need to set this per category item
     __objectOriginUID = None
     def _objectOriginUID (self):
         return self.__objectOriginUID

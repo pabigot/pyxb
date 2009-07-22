@@ -468,26 +468,26 @@ class TestUTCTimeZone (unittest.TestCase):
 class TestLocalTimeZone (unittest.TestCase):
     pass
 
-class TestGenerationUID (unittest.TestCase):
+class TestUniqueIdentifier (unittest.TestCase):
 
     def testBasic (self):
-        u1 = GenerationUID('one')
+        u1 = UniqueIdentifier('one')
         self.assertEqual('one', u1.uid())
-        u1b = GenerationUID('one')
+        u1b = UniqueIdentifier('one')
         self.assertEqual(u1, u1b)
         self.assertEqual(id(u1), id(u1b))
         
     def testNoUID (self):
-        u1 = GenerationUID()
+        u1 = UniqueIdentifier()
         self.assertTrue(u1.uid() is not None)
-        u2 = GenerationUID(u1)
+        u2 = UniqueIdentifier(u1)
         self.assertEqual(id(u1), id(u2))
 
     def testPickling (self):
         import pickle
         import StringIO
         
-        u1 = GenerationUID()
+        u1 = UniqueIdentifier()
         outstr = StringIO.StringIO()
         pickler = pickle.Pickler(outstr, -1)
         pickler.dump(u1)
@@ -499,24 +499,24 @@ class TestGenerationUID (unittest.TestCase):
         self.assertEqual(id(u1), id(u2))
 
     def testStringEquivalence (self):
-        u1 = GenerationUID()
+        u1 = UniqueIdentifier()
         self.assertEqual(u1, u1.uid())
 
     def testHash (self):
-        u1 = GenerationUID()
+        u1 = UniqueIdentifier()
         mymap = { u1 : 'here' }
         self.assertTrue(u1 in mymap)
         self.assertTrue(u1.uid() in mymap)
         self.assertEqual('here', mymap[u1.uid()])
 
     def testStringize (self):
-        u1 = GenerationUID('one')
+        u1 = UniqueIdentifier('one')
         self.assertEqual('one', str(u1))
 
     def testRepr (self):
-        u1 = GenerationUID()
+        u1 = UniqueIdentifier()
         rep = repr(u1)
-        self.assertEqual('pyxb.utils.utility.GenerationUID(%s)' % (repr(u1.uid()),), repr(u1))
+        self.assertEqual('pyxb.utils.utility.UniqueIdentifier(%s)' % (repr(u1.uid()),), repr(u1))
         import pyxb.utils.utility
         u1b = eval(repr(u1))
         self.assertEqual(id(u1), id(u1b))

@@ -554,7 +554,7 @@ def _NewUUIDString ():
         return uuid.uuid1().urn
     return '%s:%08.8x' % (time.strftime('%Y%m%d%H%M%S'), random.randint(0, 0xFFFFFFFFL))
 
-class GenerationUID (object):
+class UniqueIdentifier (object):
     """Records a unique identifier associated with a binding
     generation action.
 
@@ -564,7 +564,7 @@ class GenerationUID (object):
     An instance of this class compares equal to, and hashes equivalent
     to, the uid string.  When C{str}'d, the result is the uid; when
     C{repr}'d, the result is a constructor call to
-    C{pyxb.utils.utility.GenerationUID}.
+    C{pyxb.utils.utility.UniqueIdentifier}.
     """
 
     __ExistingUIDs = {}
@@ -590,34 +590,34 @@ class GenerationUID (object):
             uid = _NewUUIDString()
         else:
             uid = args[0]
-        if isinstance(uid, GenerationUID):
+        if isinstance(uid, UniqueIdentifier):
             uid = uid.uid()
         if not isinstance(uid, basestring):
-            raise pyxb.LogicError('GenerationUID uid must be a string')
+            raise pyxb.LogicError('UniqueIdentifier uid must be a string')
         rv = cls.__ExistingUIDs.get(uid)
         if rv is None:
-            rv = super(GenerationUID, cls).__new__(cls)
+            rv = super(UniqueIdentifier, cls).__new__(cls)
             rv.__uid = uid
             cls.__ExistingUIDs[uid] = rv
         return rv
 
     def __init__ (self, uid=None):
-        """Create a new GenerationUID instance.
+        """Create a new UniqueIdentifier instance.
 
         @param uid: The unique identifier string.  If present, it is
         the callers responsibility to ensure the value is universally
         unique.  If C{None}, one will be provided.
         @type uid: C{str} or C{unicode}
         """
-        assert (uid is None) or (self.uid() == uid), 'GenerationUID: ctor %s, actual %s' % (uid, self.uid())
+        assert (uid is None) or (self.uid() == uid), 'UniqueIdentifier: ctor %s, actual %s' % (uid, self.uid())
 
     def __eq__ (self, other):
-        if isinstance(other, GenerationUID):
+        if isinstance(other, UniqueIdentifier):
             other_uid = other.uid()
         elif isinstance(other, basestring):
             other_uid = other
         else:
-            raise pyxb.LogicError('GenerationUID: Cannot compare with type %s' % (type(other),))
+            raise pyxb.LogicError('UniqueIdentifier: Cannot compare with type %s' % (type(other),))
         return self.uid() == other_uid
 
     def __hash__ (self):
@@ -627,7 +627,7 @@ class GenerationUID (object):
         return self.uid()
 
     def __repr__ (self):
-        return 'pyxb.utils.utility.GenerationUID(%s)' % (repr(self.uid()),)
+        return 'pyxb.utils.utility.UniqueIdentifier(%s)' % (repr(self.uid()),)
 
 import datetime
 import calendar
