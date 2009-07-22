@@ -899,6 +899,21 @@ class _PluralityData (types.ListType):
                 umap[k] = map2[k]
         return umap
 
+    @classmethod
+    def _MapDisjunction (self, map1, map2):
+        """Given two maps, return an updated map indicating the overall
+        plurality assumping maps are disjoint."""
+        umap = { }
+        for k in set(map1.keys()).union(map2.keys()):
+            if k in map1:
+                if k in map2:
+                    umap[k] = map2[k] or map1[k]
+                else:
+                    umap[k] = map1[k]
+            else:
+                umap[k] = map2[k]
+        return umap
+
     def nameBasedPlurality (self):
         """Return a map from expanded names to pairs consisting of a boolean
         representing the plurality of the aggregated name, and the element
@@ -910,6 +925,8 @@ class _PluralityData (types.ListType):
 
         name_plurality = { }
         name_types = { }
+        #dumpmap = lambda _pdm: ', '.join( [ '%s: %s' % (_ed.expandedName(), _pl) for (_ed, _pl) in _pdm.items() ])
+        #dumpenmap = lambda _pdm: ', '.join( [ '%s: %s' % (_ed, _pl) for (_ed, _pl) in _pdm.items() ])
         for pdm in self:
             npdm = { }
             for (ed, v) in pdm.items():
@@ -919,12 +936,12 @@ class _PluralityData (types.ListType):
                     # All declarations with the same name should have the same
                     # base declaration.
                     assert name_types[tag] == ed.baseDeclaration()
-                    npdm[tag] = npdm.get(tag, False) or v
+                    npdm[tag] = (tag in npdm) or v
                 elif isinstance(ed, Wildcard):
                     pass
                 else:
                     raise pyxb.LogicError('Unexpected plurality index %s' % (ed,))
-            name_plurality = self._MapUnion(name_plurality, npdm)
+            name_plurality = self._MapDisjunction(name_plurality, npdm)
         rv = { }
         for (name, ed) in name_types.items():
             rv[name] = ( name_plurality[name], ed )
@@ -933,13 +950,11 @@ class _PluralityData (types.ListType):
     def __fromModelGroup (self, model_group):
         # Start by collecting the data for each of the particles.
         pdll = [ _PluralityData(_p) for _p in model_group.particles() ]
+        #dumpmap = lambda _pdm: ', '.join( [ '%s: %s' % (_ed.expandedName(), _pl) for (_ed, _pl) in _pdm.items() ])
+        #dumpmapset = lambda _pd: '(' + ') | ('.join([ dumpmap(_pdm) for _pdm in _pd ]) + ')'
         if (ModelGroup.C_CHOICE == model_group.compositor()):
-            # Plurality for choice is simply any of the pluralities of the particles.
-            for pd in pdll:
-                union_map = { }
-                for pdm in pd:
-                    union_map = self._MapUnion(union_map, pdm)
-                self.append(union_map)
+            # Plurality for choice is simply any of the pluralities of the particles
+            [ self.extend(_pd) for _pd in pdll ]
         elif ((ModelGroup.C_SEQUENCE == model_group.compositor()) or (ModelGroup.C_ALL == model_group.compositor())):
             # Sequence means all of them, in all their glory.  All is treated
             # the same way.  Essentially this is a pointwise OR of the
