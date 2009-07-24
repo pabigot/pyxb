@@ -96,6 +96,10 @@ class UnrecognizedElementError (UnrecognizedContentError):
 class ExtraContentError (StructuralBadDocumentError):
     """Raised when processing document and there is more material in an element content than expected."""
 
+class ContentInNilElementError (ExtraContentError):
+    """Raised when an element that is marked to be nil has content."""
+    pass
+
 class MissingContentError (StructuralBadDocumentError):
     """Raised when processing document and expected content is not present.  See also UnrecognizedContentError."""
 
@@ -105,10 +109,18 @@ class NotAnElementError (UnrecognizedContentError):
 class UnrecognizedAttributeError (BadDocumentError):
     """Raised when an attribute is found that is not sanctioned by the content model."""
 
-class ProhibitedAttributeError (BadDocumentError):
+class ValidationError (PyXBException):
+    """Raised when something in the infoset fails to satisfy a content model or attribute requirement."""
+    pass
+
+class AttributeValidationError (ValidationError):
+    """Raised when an attribute requirement is not satisfied."""
+    pass
+
+class ProhibitedAttributeError (AttributeValidationError):
     """Raised when an attribute that is prohibited is provided in an element."""
 
-class MissingAttributeError (BadDocumentError):
+class MissingAttributeError (AttributeValidationError):
     """Raised when an attribute that is required is missing in an element."""
 
 class AttributeChangeError (BadDocumentError):
@@ -125,8 +137,12 @@ class NoNillableSupportError (PyXBException):
     """Raised when checking _isNil on a type that does not support nillable."""
     pass
 
-class BindingValidationError (PyXBException):
+class BindingValidationError (ValidationError):
     """Raised when the content of a binding object is not consistent with its content model"""
+    pass
+
+class UnexpectedNonElementContentError (ValidationError):
+    """Raised when an element is given non-element content but may not contain such."""
     pass
 
 class NoContentModel (BindingValidationError):
