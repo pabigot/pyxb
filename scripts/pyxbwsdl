@@ -35,5 +35,7 @@ for uri in sys.argv[1:]:
                     print '    %s' % (op.name(),)
 		if pt_op.documentation() is not None:
                     print '      %s' % (pt_op.documentation(),)
-                print '      Input: %s' % (pt_op.input()[0].message(),)
-                print '      Output: %s' % (pt_op.output()[0].message(),)
+                if pt_op.input() is not None:
+                    print '      Input: %s' % (pt_op.input().message(),)
+                if pt_op.output() is not None:
+                    print '      Output: %s' % (pt_op.output().message(),)
