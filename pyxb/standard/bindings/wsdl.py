@@ -212,7 +212,12 @@ class tDefinitions (raw_wsdl.tDefinitions):
             tns.portTypes()[pt.name()] = pt
             for op in pt.operation():
                 pt.operationMap()[op.name()] = op
-                for p in (op.input() + op.output() + op.fault()):
+                params = op.fault()[:]
+                if op.input() is not None:
+                    params.append(op.input())
+                if op.output() is not None:
+                    params.append(op.output())
+                for p in params:
                     msg_en = m._namespaceContext().interpretQName(p.message())
                     p._setMessageReference(msg_en.message())
         for b in self.binding():

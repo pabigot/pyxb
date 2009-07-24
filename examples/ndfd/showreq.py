@@ -32,7 +32,7 @@ bop = binding.operationMap()[body_dom.localName]
 print bop.toxml()
 pop = port_type.operationMap()[body_dom.localName]
 print pop.toxml()
-input = pop.input()[0]
+input = pop.input()
 print input.toxml()
 print type(input)
 print input.message()
