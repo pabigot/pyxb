@@ -105,6 +105,25 @@ class _TypeBinding_mixin (pyxb.cscRoot):
         if self.__xsiNil is None:
             raise pyxb.NoNillableSupportError(type(self))
         self.__xsiNil = True
+        self._resetContent()
+
+    def _resetContent (self):
+        pass
+
+    __constructedWithValue = False
+    def __checkNilCtor (self, args):
+        self.__constructedWithValue = (0 < len(args))
+        if self.__xsiNil:
+            if self.__constructedWithValue:
+                raise pyxb.ContentInNilElementError(args[0])
+        else:
+            # Types that descend from string will, when constructed from an
+            # element with empty content, appear to have no constructor value,
+            # while in fact an empty string should have been passed.
+            if issubclass(type(self), basestring):
+                self.__constructedWithValue = True
+    def _constructedWithValue (self):
+        return self.__constructedWithValue
 
     # Flag used to control whether we print a warning when creating a complex
     # type instance that does not have an associated element.  Not sure yet
@@ -120,8 +139,7 @@ class _TypeBinding_mixin (pyxb.cscRoot):
         # In the absence of an element, assume the value is nillable.
         if (element is None) or element.nillable():
             rv.__xsiNil = is_nil
-        if rv.__xsiNil and (0 < len(args)):
-            raise pyxb.ContentInNilElementError(args[0])
+        rv.__checkNilCtor(args)
         if element is not None:
             rv._setElement(element)
         elif not cls.__WarnedUnassociatedElement:
@@ -138,9 +156,8 @@ class _TypeBinding_mixin (pyxb.cscRoot):
         # Strip keyword not used above this level.
         element = kw.pop('_element', None)
         is_nil = kw.pop('_nil', None)
-        if is_nil and (0 < len(args)):
-            raise pyxb.ContentInNilElementError(args[0])
         super(_TypeBinding_mixin, self).__init__(*args, **kw)
+        self.__checkNilCtor(args)
 
     @classmethod
     def _PreFactory_vx (cls, args, kw):
@@ -749,9 +766,8 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
         return self.XsdConstraintsOK(self)
 
     def _validateBinding_vx (self):
-        if self._isNil():
-            pass
-        self.xsdConstraintsOK()
+        if not self._isNil():
+            self.xsdConstraintsOK()
         return True
 
     @classmethod
@@ -1393,7 +1409,17 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
                 fkw = [ _k for _k in self._PyXBFactoryKeywords if (_k in kw) ]
                 rkw = dict(zip(fkw, map(kw.get, fkw)))
                 rkw['_dom_node'] = dom_node
-                self.append(self._TypeDefinition.Factory(*args, **rkw))
+                value = self._TypeDefinition.Factory(*args, **rkw)
+                if self._isNil():
+                    if value._constructedWithValue():
+                        raise pyxb.ContentInNilElementError(value)
+                    else:
+                        pass
+                else:
+                    if value._constructedWithValue():
+                        self.append(value)
+                    else:
+                        pass
             else:
                 self._setContentFromDOM(dom_node)
         elif 0 < len(args):
@@ -1514,7 +1540,11 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
     def _validateBinding_vx (self):
         # @todo: validate attributes
         if self._isNil():
+            if (self._IsSimpleTypeContent() and (self.__content is not None)) or self.__content:
+                raise pyxb.ContentInNilElementError(self._ExpandedName)
             return True
+        if self._IsSimpleTypeContent() and (self.__content is None):
+            raise pyxb.MissingContentError(self._TypeDefinition)
         order = self._validatedChildren()
         if order is None:
             raise pyxb.BindingValidationError('Unable to match content to binding model')
@@ -1620,6 +1650,12 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         return self.__content
     __valueProperty = property(__valueAccessor)
 
+    def _resetContent (self):
+        if self._ContentTypeTag in (self._CT_MIXED, self._CT_ELEMENT_ONLY):
+            self.__setContent([])
+        else:
+            self.__setContent(None)
+
     __dfaStack = None
     def reset (self):
         """Reset the instance.
@@ -1629,8 +1665,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         content model.
         """
         
-        if self._ContentTypeTag in (self._CT_MIXED, self._CT_ELEMENT_ONLY):
-            self.__setContent([])
+        self._resetContent()
         for au in self._AttributeMap.values():
             au.reset(self)
         for eu in self._ElementMap.values():
@@ -1691,8 +1726,8 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             element_binding = value._element()
         else:
             pass
-        if self._isNil():
-            raise pyxb.ExtraContentError('Content present in element with xsi:nil')
+        if self._isNil() and not self._IsSimpleTypeContent():
+            raise pyxb.ExtraContentError('%s: Content %s present in element with xsi:nil' % (type(self), value))
         if (self.__dfaStack is not None) and maybe_element:
             # Allows element content.
             if not self._PerformValidation:
@@ -1716,14 +1751,15 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         if self._IsSimpleTypeContent():
             if self.__content is not None:
                 raise pyxb.ExtraContentError('Extra content starting with %s (already have %s)' % (value, self.__content))
-            if not isinstance(value, self._TypeDefinition):
-                value = self._TypeDefinition.Factory(value)
-            self.__setContent(value)
-            if self._PerformValidation:
-                # NB: This only validates the value, not any associated
-                # attributes, which is correct to be parallel to complex
-                # content validation.
-                self.xsdConstraintsOK()
+            if not self._isNil():
+                if not isinstance(value, self._TypeDefinition):
+                    value = self._TypeDefinition.Factory(value)
+                self.__setContent(value)
+                if self._PerformValidation:
+                    # NB: This only validates the value, not any associated
+                    # attributes, which is correct to be parallel to complex
+                    # content validation.
+                    self.xsdConstraintsOK()
             return self
 
         # Do we allow non-element content?
