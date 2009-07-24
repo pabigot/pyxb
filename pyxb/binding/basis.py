@@ -1667,6 +1667,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         
         element_binding = None
         element_use = None
+        maybe_element = True
         # Convert the value if it's XML and we recognize it.
         if isinstance(value, xml.dom.Node):
             if xml.dom.Node.COMMENT_NODE == value.nodeType:
@@ -1675,6 +1676,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
                 return self
             if value.nodeType in (xml.dom.Node.TEXT_NODE, xml.dom.Node.CDATA_SECTION_NODE):
                 value = value.data
+                maybe_element = False
                 if self._ContentTypeTag in (self._CT_EMPTY, self._CT_ELEMENT_ONLY):
                     if (0 == len(value.strip())) and not self._isNil():
                         return self
@@ -1691,7 +1693,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             pass
         if self._isNil():
             raise pyxb.ExtraContentError('Content present in element with xsi:nil')
-        if self.__dfaStack is not None:
+        if (self.__dfaStack is not None) and maybe_element:
             # Allows element content.
             if not self._PerformValidation:
                 if element_use is not None:
@@ -1707,7 +1709,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         # because the type doesn't accept element content or because it does
         # and what we got didn't match the content model.
         if (element_binding is not None) or isinstance(value, xml.dom.Node):
-            raise pyxb.ExtraContentError('Extra content starting with %s' % (value,))
+            raise pyxb.ExtraContentError('%s: Extra content starting with %s' % (self._ExpandedName, value,))
 
         # We have something that doesn't seem to be an element.  Are we
         # expecting simple content?
