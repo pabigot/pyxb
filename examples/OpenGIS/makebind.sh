@@ -37,11 +37,16 @@ pyxbgen \
   --module-prefix=opengis.iso19139 \
   --archive-file=opengis/iso19139/gmx.wxs
 
-# Includes smil20, smil20lang, xlink
+# Includes smil20, smil20lang
 pyxbgen \
   --schema-location=Schemas/gml/3.1.1/base/gml.xsd --module=gml \
   --module-prefix=opengis \
   --archive-file=opengis/gml.wxs
+
+pyxbgen \
+  --schema-location=Schemas/filter/1.1.0/filter.xsd --module=filter \
+  --module-prefix=opengis \
+  --archive-file=opengis/filter.wxs
 
 pyxbgen \
   --schema-location=Schemas/sweCommon/1.0.0/swe.xsd --module=swe_1_0_0 \
@@ -139,4 +144,17 @@ pyxbgen \
 #  --schema-location=Schemas/context/1.1.0/context.xsd --module=context \
 #  --module-prefix=opengis \
 #  --archive-file=opengis/context.wxs
+
+# Get the gazetteer application profile package here:
+#   http://portal.opengeospatial.org/files/index.php?artifact_id=15529
+# This presents a license agreement you need to click OK on, so you'll
+# have to retrieve it by browser, then unpack it into a Gazetteer
+# directory here.
+
+if [ -f Gazetteer/iso19112.xsd ] ; then
+  pyxbgen \
+    --schema-location=Gazetteer/iso19112.xsd --module=gazetteer \
+    --module-prefix=opengis
+fi
+    
 
