@@ -191,6 +191,8 @@ class ExpandedName (pyxb.cscRoot):
                 ns = ln.namespace()
                 ln = ln.localName()
             elif isinstance(ln, xml.dom.Node):
+                if not(ln.nodeType in (xml.dom.Node.ELEMENT_NODE, xml.dom.Node.ATTRIBUTE_NODE)):
+                    raise pyxb.LogicError('Cannot create expanded name from non-element DOM node %s' % (ln.nodeType,))
                 ns = ln.namespaceURI
                 ln = ln.localName
             else:

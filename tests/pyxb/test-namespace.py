@@ -35,16 +35,23 @@ class TestExpandedName (unittest.TestCase):
         self.assertEqual(en.localName(), ln)
         en2 = ExpandedName(en)
         self.assertEqual(en2, en)
-        dom = xml.dom.Node()
-        dom.namespaceURI = ns_uri
-        dom.localName = ln
-        en = ExpandedName(dom)
+        dom = pyxb.utils.domutils.StringToDOM('<ns1:%s xmlns:ns1="%s" attr="52">content</ns1:%s>' % (ln, ns_uri, ln))
+        en = ExpandedName(dom.documentElement)
         ns = pyxb.namespace.NamespaceForURI(ns_uri)
         self.assertTrue(ns is not None)
         self.assertEqual(ns, en.namespace())
         self.assertEqual(ln, en.localName())
         en2 = ExpandedName(ns, ln)
         self.assertEqual(en, en2)
+        attr = dom.documentElement.getAttributeNode('attr')
+        self.assertTrue(attr is not None)
+        en = ExpandedName(attr)
+        self.assertEqual(xml.dom.EMPTY_NAMESPACE, en.namespaceURI())
+        self.assertEqual('attr', en.localName())
+        child = dom.documentElement.firstChild
+        self.assertTrue(child is not None)
+        self.assertEqual(xml.dom.Node.TEXT_NODE, child.nodeType)
+        self.assertRaises(pyxb.LogicError, ExpandedName, child)
 
     def testMapping (self):
         an1 = ExpandedName(None, 'string')
