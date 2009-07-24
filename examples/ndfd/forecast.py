@@ -23,9 +23,7 @@ file('forecast.xml', 'w').write(xmls)
 #print xmls
 
 # Convert it to  DWML object
-doc = xml.dom.minidom.parseString(xmls)
-dom = doc.documentElement
-r = DWML.CreateFromDOM(dom)
+r = DWML.CreateFromDocument(xmls)
 
 product = r.head().product()
 print '%s %s' % (product.title(), product.category())
@@ -57,4 +55,4 @@ for i in range(len(data.location())):
                 start = time_layout.start_valid_time()[ti].value()
                 end = time_layout.end_valid_time()[ti]
                 print '%s: min %s, max %s' % (time.strftime('%A, %B %d %Y', start.timetuple()),
-                                              mint.value_()[ti].value(), maxt.value_()[ti].value())
+                                              mint.value()[ti].value(), maxt.value()[ti].value())
