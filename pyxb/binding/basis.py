@@ -1670,6 +1670,8 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         # Convert the value if it's XML and we recognize it.
         if isinstance(value, xml.dom.Node):
             if xml.dom.Node.COMMENT_NODE == value.nodeType:
+                # @todo: Note that we're allowing comments inside the bodies
+                # of simple content elements, which isn't really Hoyle.
                 return self
             if value.nodeType in (xml.dom.Node.TEXT_NODE, xml.dom.Node.CDATA_SECTION_NODE):
                 value = value.data
@@ -1716,6 +1718,9 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
                 value = self._TypeDefinition.Factory(value)
             self.__setContent(value)
             if self._PerformValidation:
+                # NB: This only validates the value, not any associated
+                # attributes, which is correct to be parallel to complex
+                # content validation.
                 self.xsdConstraintsOK()
             return self
 
@@ -1751,22 +1756,6 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
     def _setContentFromDOM (self, node):
         """Initialize the content of this element from the content of the DOM node."""
 
-        '''
-        has_content = False
-        for cn in node.childNodes:
-            if cn.nodeType in (xml.dom.Node.TEXT_NODE, xml.dom.Node.CDATA_SECTION_NODE, xml.dom.Node.ELEMENT_NODE):
-                has_content = True
-                break
-        if self._isNil():
-            if has_content:
-                raise pyxb.ExtraContentError('Content present in element with xsi:nil')
-            return self
-        if self._CT_EMPTY == self._ContentTypeTag:
-            if has_content:
-                raise pyxb.ExtraContentError('Content present in complex type with empty content')
-            return self
-        assert self._CT_SIMPLE != self._ContentTypeTag
-        '''
         self.extend(node.childNodes[:])
         if self._PerformValidation and (not self._isNil()) and (self.__dfaStack is not None) and (not self.__dfaStack.isTerminal()):
             raise pyxb.MissingContentError()
