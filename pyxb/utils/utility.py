@@ -519,11 +519,12 @@ def OpenOrCreate (file_name, tag=None, preserve_contents=False):
     place (C{True}).
     """
     (path, leaf) = os.path.split(file_name)
-    try:
-        os.makedirs(path)
-    except Exception, e:
-        if not (isinstance(e, (OSError, IOError)) and (errno.EEXIST == e.errno)):
-            raise
+    if path:
+        try:
+            os.makedirs(path)
+        except Exception, e:
+            if not (isinstance(e, (OSError, IOError)) and (errno.EEXIST == e.errno)):
+                raise
     fp = file(file_name, 'a+')
     if (tag is not None) and (0 < os.fstat(fp.fileno()).st_size):
         text = fp.read(4096)

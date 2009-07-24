@@ -427,6 +427,21 @@ class TestOpenOrCreate_New (unittest.TestCase, _TestOpenOrCreate_mixin):
         of = OpenOrCreate(filename)
         of.write('hello')
 
+class TestOpenOrCreate_Local (unittest.TestCase, _TestOpenOrCreate_mixin):
+    setUp = _TestOpenOrCreate_mixin.setUp
+    tearDown = _TestOpenOrCreate_mixin.tearDown
+
+    def testNew (self):
+        filename = self.fileName()
+        (path, localname) = os.path.split(filename)
+        cwd = os.getcwd()
+        try:
+            os.chdir(path)
+            of = OpenOrCreate(localname)
+        finally:
+            os.chdir(cwd)
+        of.write('hello')
+
 class TestOpenOrCreate_ExistingTagMatch (unittest.TestCase, _TestOpenOrCreate_mixin):
     setUp = _TestOpenOrCreate_mixin.setUp
     tearDown = _TestOpenOrCreate_mixin.tearDown
