@@ -708,7 +708,7 @@ class _NamespaceCategory_mixin (pyxb.cscRoot):
         name_map = self.categoryMap(category)
         old_object = name_map.get(local_name)
         if (old_object is not None) and (old_object != named_object):
-            raise pyxb.NamespaceUniquenessError('%s: name %s used for multiple values in %s' % (self, local_name, category))
+            raise pyxb.NamespaceUniquenessError(self, '%s: name %s used for multiple values in %s' % (self, local_name, category))
         name_map[local_name] = named_object
         return named_object
 

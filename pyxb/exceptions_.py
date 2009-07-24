@@ -31,7 +31,11 @@ class SchemaValidationError (PyXBException):
 
 class NamespaceError (PyXBException):
     """Violation of some rule relevant to XML Namespaces"""
-    pass
+    def __init__ (self, namespace, *args, **kw):
+        PyXBException.__init__(self, *args, **kw)
+        self.__namespace = namespace
+
+    def namespace (self): return self.__namespace
 
 class NamespaceArchiveError (PyXBException):
     """Problem related to namespace archives"""
@@ -59,7 +63,7 @@ class BindingGenerationError (PyXBException):
     """Raised when something goes wrong generating the binding classes"""
     pass
 
-class NamespaceUniquenessError (PyXBException):
+class NamespaceUniquenessError (NamespaceError):
     """Raised when an attempt is made to record multiple objects of the same name in the same namespace category."""
     pass
 
