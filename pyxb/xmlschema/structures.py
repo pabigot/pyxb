@@ -4008,7 +4008,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
                             mn_en = self._namespaceContext().interpretQName(mn)
                             std = mn_en.typeDefinition()
                             if std is None:
-                                raise pyxb.InvalidSchemaError('Unable to locate member type %s' % (mn_en,))
+                                raise pyxb.SchemaValidationError('Unable to locate member type %s' % (mn_en,))
                             # Note: We do not need these to be resolved (here)
                             assert isinstance(std, SimpleTypeDefinition)
                             mtd.append(std)
