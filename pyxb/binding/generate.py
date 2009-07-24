@@ -1034,9 +1034,14 @@ class _ModuleNaming_mixin (object):
                 assert name is not None, 'Completely at a loss to identify %s in %s' % (component.expandedName(), self)
             assert not namespace.definedBySchema()
             namespace_module = self.ForNamespace(namespace)
-            assert namespace_module is not None, 'No namespace module for %s' % (namespace,)
-            self._importModule(namespace_module)
-            return '%s.%s' % (namespace.modulePath(), component.nameInBinding())
+            if namespace_module is not None:
+                self._importModule(namespace_module)
+                module_path = namespace.modulePath()
+            else:
+                assert namespace.isBuiltinNamespace(), 'No module for non-builtin %s' % (namespace,)
+                assert pyxb.namespace.XMLSchema == namespace, 'Unexpected namespace %s' % (namespace,)
+                module_path = 'pyxb.binding.datatypes'
+            return '%s.%s' % (module_path, component.nameInBinding())
         name = component_module.__componentNameMap.get(component)
         if name is None:
             assert isinstance(self, NamespaceModule) and (self.namespace() == component.bindingNamespace())
