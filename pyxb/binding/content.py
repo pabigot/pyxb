@@ -203,6 +203,19 @@ class AttributeUse (pyxb.cscRoot):
             dom_support.addAttribute(element, self.__name, value.xsdLiteral())
         return self
 
+    def validate (self, ctd_instance):
+        value = self.value(ctd_instance)
+        if value is not None:
+            if self.__prohibited:
+                raise pyxb.ProhibitedAttributeError('Value given for prohibited attribute %s' % (self.__name,))
+            if not isinstance(value, self.__dataType):
+                raise pyxb.BindingValidationError('Attribute %s value type %s not %s' % (self.__name, type(value), self.__dataType))
+            self.__dataType.XsdConstraintsOK(value)
+        else:
+            if self.__required:
+                raise pyxb.MissingAttributeError('Required attribute %s does not have value' % (self.__name,))
+        return True
+
     def set (self, ctd_instance, new_value):
         """Set the value of the attribute.
 
@@ -588,6 +601,8 @@ class DFAStack (object):
         Execution of the step may add a new model state to the stack.
 
         @return: C{True} iff the value was consumed by a transition."""
+        if 0 == len(self.__stack):
+            return False
         ok = self.topModelState().step(self, value, element_use)
         if not ok:
             self.popModelState()
@@ -835,6 +850,8 @@ class ContentModelTransition (pyxb.cscRoot):
                         print 'Need to dynamically create schema for %s' % (ns,)
                 except Exception, e:
                     print 'WARNING: Unable to convert wildcard node %s to Python instance: %s' % (expanded_name, e)
+            elif not isinstance(value, basis._TypeBinding_mixin):
+                return False
             if not self.__term.matches(ctd_instance, value):
                 raise pyxb.UnexpectedContentError(value)
             if not isinstance(value, basis._TypeBinding_mixin):

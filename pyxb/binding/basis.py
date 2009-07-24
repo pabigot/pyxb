@@ -120,6 +120,8 @@ class _TypeBinding_mixin (pyxb.cscRoot):
         # In the absence of an element, assume the value is nillable.
         if (element is None) or element.nillable():
             rv.__xsiNil = is_nil
+        if rv.__xsiNil and (0 < len(args)):
+            raise pyxb.ContentInNilElementError(args[0])
         if element is not None:
             rv._setElement(element)
         elif not cls.__WarnedUnassociatedElement:
@@ -136,6 +138,8 @@ class _TypeBinding_mixin (pyxb.cscRoot):
         # Strip keyword not used above this level.
         element = kw.pop('_element', None)
         is_nil = kw.pop('_nil', None)
+        if is_nil and (0 < len(args)):
+            raise pyxb.ContentInNilElementError(args[0])
         super(_TypeBinding_mixin, self).__init__(*args, **kw)
 
     @classmethod
@@ -325,14 +329,19 @@ class _TypeBinding_mixin (pyxb.cscRoot):
     def _validateBinding_vx (self):
         """Override in subclasses for type-specific validation of instance
         content.
+
+        @return: C{True} if validation succeeds.
+        @raise pyxb.BindingValidationError: complex content does not match model
+        @raise pyxb.BadTypeValueError: simple content fails to satisfy constraints
         """
         raise pyxb.IncompleteImplementationError('%s did not override _validateBinding_vx' % (type(self),))
 
     def validateBinding (self):
         """Check whether the binding content matches its content model.
 
-        Returns C{None} if successful
-        @raise pyxb.BindingValidationError: if content does not match model.
+        @return: C{True} if validation succeeds.
+        @raise pyxb.BindingValidationError: complex content does not match model
+        @raise pyxb.BadTypeValueError: simple content fails to satisfy constraints
         """
         if not self._PerformValidation:
             return True
@@ -597,7 +606,9 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
         args = cls._ConvertArguments(args, kw)
         assert issubclass(cls, _TypeBinding_mixin)
         try:
-            return super(simpleTypeDefinition, cls).__new__(cls, *args, **kw)
+            rv = super(simpleTypeDefinition, cls).__new__(cls, *args, **kw)
+            rv.__hadInitializer = (0 < len(args))
+            return rv
         except ValueError, e:
             raise pyxb.BadTypeValueError(e)
         except OverflowError, e:
@@ -621,6 +632,7 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
             super(simpleTypeDefinition, self).__init__(*args, **kw)
         except OverflowError, e:
             raise pyxb.BadTypeValueError(e)
+        self.__hadInitializer = (0 < len(args))
         if validate_constraints:
             self.xsdConstraintsOK()
 
@@ -710,8 +722,8 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
     @classmethod
     def XsdConstraintsOK (cls, value):
         """Validate the given value against the constraints on this class.
-
-        Throws pyxb.BadTypeValueError if any constraint is violated.
+        
+        @raise pyxb.BadTypeValueError: if any constraint is violated.
         """
 
         value = cls._XsdConstraintsPreCheck_vb(value)
@@ -737,7 +749,10 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
         return self.XsdConstraintsOK(self)
 
     def _validateBinding_vx (self):
+        if self._isNil():
+            pass
         self.xsdConstraintsOK()
+        return True
 
     @classmethod
     def XsdValueLength (cls, value):
@@ -1352,15 +1367,6 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             raise pyxb.AbstractInstantiationError(type(self))
         super(complexTypeDefinition, self).__init__(**kw)
         self.reset()
-        if self._CT_SIMPLE == self._ContentTypeTag:
-            # Pass only PyXB-relevant keywords: no Python base simple types
-            # take keywords, and they get pissy if you given them any.  Which
-            # happens if we're trying to initialize some attributes in the
-            # constructor.
-            fkw = [ _k for _k in self._PyXBFactoryKeywords if (_k in kw) ]
-            rkw = dict(zip(fkw, map(kw.get, fkw)))
-            rkw['_dom_node'] = dom_node
-            self.__setContent(self._TypeDefinition.Factory(*args, **rkw))
         # Extract keywords that match field names
         attribute_settings = { }
         if dom_node is not None:
@@ -1379,7 +1385,17 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
                 else:
                     fu.set(self, iv)
         if dom_node is not None:
-            self._setContentFromDOM(dom_node)
+            if self._CT_SIMPLE == self._ContentTypeTag:
+                # Pass only PyXB-relevant keywords: no Python base simple types
+                # take keywords, and they get pissy if you given them any.  Which
+                # happens if we're trying to initialize some attributes in the
+                # constructor.
+                fkw = [ _k for _k in self._PyXBFactoryKeywords if (_k in kw) ]
+                rkw = dict(zip(fkw, map(kw.get, fkw)))
+                rkw['_dom_node'] = dom_node
+                self.append(self._TypeDefinition.Factory(*args, **rkw))
+            else:
+                self._setContentFromDOM(dom_node)
         elif 0 < len(args):
             self.extend(args)
 
@@ -1453,6 +1469,9 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
 
         @return: C{None} or a list as described above.
         """
+        if self._ContentTypeTag in (self._CT_EMPTY, self._CT_SIMPLE):
+            return []
+        
         if  self._ContentModel is None:
             raise pyxb.NoContentModel(self)
         path = self._ContentModel.validate(self._symbolSet())
@@ -1495,15 +1514,18 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
     def _validateBinding_vx (self):
         # @todo: validate attributes
         if self._isNil():
-            return None
+            return True
         order = self._validatedChildren()
         if order is None:
-            raise pyxb.BindingValidationError('No match from content to binding model')
+            raise pyxb.BindingValidationError('Unable to match content to binding model')
         for (eu, value) in order:
             if isinstance(value, _TypeBinding_mixin):
                 value.validateBinding()
             else:
                 print 'WARNING: Cannot validate value %s in field %s' % (value, eu.id())
+        for au in self._AttributeMap.values():
+            au.validate(self)
+        return True
 
     @classmethod
     def __AttributesFromDOM (cls, node):
@@ -1645,22 +1667,30 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         
         element_binding = None
         element_use = None
+        # Convert the value if it's XML and we recognize it.
         if isinstance(value, xml.dom.Node):
             if xml.dom.Node.COMMENT_NODE == value.nodeType:
                 return self
             if value.nodeType in (xml.dom.Node.TEXT_NODE, xml.dom.Node.CDATA_SECTION_NODE):
-                if self.__isMixed:
-                    self._addContent(value.data)
-                else:
-                    #print 'Ignoring mixed content'
-                    pass
-                return self
-            # Do type conversion here
-            assert xml.dom.Node.ELEMENT_NODE == value.nodeType
-            expanded_name = pyxb.utils.domutils.NameFromNode(value)
-            (element_binding, element_use) = self._ElementBindingUseForName(expanded_name)
-            if element_binding is not None:
-                value = element_binding.createFromDOM(value)
+                value = value.data
+                if self._ContentTypeTag in (self._CT_EMPTY, self._CT_ELEMENT_ONLY):
+                    if (0 == len(value.strip())) and not self._isNil():
+                        return self
+            else:
+                # Do type conversion here
+                assert xml.dom.Node.ELEMENT_NODE == value.nodeType
+                expanded_name = pyxb.utils.domutils.NameFromNode(value)
+                (element_binding, element_use) = self._ElementBindingUseForName(expanded_name)
+                if element_binding is not None:
+                    value = element_binding.createFromDOM(value)
+        elif isinstance(value, _TypeBinding_mixin):
+            element_binding = value._element()
+        else:
+            pass
+        if self._isNil():
+            raise pyxb.ExtraContentError('Content present in element with xsi:nil')
+        if self.__dfaStack is not None:
+            # Allows element content.
             if not self._PerformValidation:
                 if element_use is not None:
                     element_use.setOrAppend(self, value)
@@ -1668,11 +1698,31 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
                 if self.wildcardElements() is not None:
                     self._appendWildcardElement(value)
                     return self
-                print 'Failed to process value without validation, element %s binding %s use %s' % (expanded_name, element_binding, element_use)
-                raise pyxb.UnrecognizedContentError(value)
-        if self.__dfaStack is not None:
-            if not self.__dfaStack.step(self, value, element_use):
-                raise pyxb.ExtraContentError('Extra content starting with %s' % (value,))
+            else:
+                if self.__dfaStack.step(self, value, element_use):
+                    return self
+        # If what we have is element content, we can't accept it, either
+        # because the type doesn't accept element content or because it does
+        # and what we got didn't match the content model.
+        if (element_binding is not None) or isinstance(value, xml.dom.Node):
+            raise pyxb.ExtraContentError('Extra content starting with %s' % (value,))
+
+        # We have something that doesn't seem to be an element.  Are we
+        # expecting simple content?
+        if self._IsSimpleTypeContent():
+            if self.__content is not None:
+                raise pyxb.ExtraContentError('Extra content starting with %s (already have %s)' % (value, self.__content))
+            if not isinstance(value, self._TypeDefinition):
+                value = self._TypeDefinition.Factory(value)
+            self.__setContent(value)
+            if self._PerformValidation:
+                self.xsdConstraintsOK()
+            return self
+
+        # Do we allow non-element content?
+        if not self._IsMixed():
+            raise pyxb.UnexpectedNonElementContentError(value)
+        self._addContent(value)
         return self
 
     def _appendWildcardElement (self, value):
@@ -1690,14 +1740,18 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         self.__content = value
 
     def _addContent (self, child):
-        assert (not self._PerformValidation) or isinstance(child, _TypeBinding_mixin) or isinstance(child, types.StringTypes), 'Unrecognized child %s type %s' % (child, type(child))
+        assert self._IsMixed() or (not self._PerformValidation) or isinstance(child, _TypeBinding_mixin) or isinstance(child, types.StringTypes), 'Unrecognized child %s type %s' % (child, type(child))
         assert not (self._ContentTypeTag in (self._CT_EMPTY, self._CT_SIMPLE))
         self.__content.append(child)
 
-    __isMixed = False
+    @classmethod
+    def _IsMixed (cls):
+        return (cls._CT_MIXED == cls._ContentTypeTag)
+    
     def _setContentFromDOM (self, node):
         """Initialize the content of this element from the content of the DOM node."""
 
+        '''
         has_content = False
         for cn in node.childNodes:
             if cn.nodeType in (xml.dom.Node.TEXT_NODE, xml.dom.Node.CDATA_SECTION_NODE, xml.dom.Node.ELEMENT_NODE):
@@ -1711,14 +1765,10 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             if has_content:
                 raise pyxb.ExtraContentError('Content present in complex type with empty content')
             return self
-        if self._CT_SIMPLE == self._ContentTypeTag:
-            self.__setContent(self._TypeDefinition.Factory(_dom_node=node))
-            if self._PerformValidation:
-                self.xsdConstraintsOK()
-            return self
-        self.__isMixed = (self._CT_MIXED == self._ContentTypeTag)
+        assert self._CT_SIMPLE != self._ContentTypeTag
+        '''
         self.extend(node.childNodes[:])
-        if self._PerformValidation and (self.__dfaStack is not None) and (not self.__dfaStack.isTerminal()):
+        if self._PerformValidation and (not self._isNil()) and (self.__dfaStack is not None) and (not self.__dfaStack.isTerminal()):
             raise pyxb.MissingContentError()
         return self
 
