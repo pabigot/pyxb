@@ -1202,8 +1202,9 @@ class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
         # The other STD should be an unresolved schema-defined type.
         # Mark this instance as unresolved so it is re-examined
         if not other.isResolved():
-            if self.targetNamespace().isBuiltinNamespace():
-                print '**!!**!! Not destroying builtin %s' % (self.expandedName(),)
+            if pyxb.namespace.BuiltInObjectUID == self._objectOriginUID():
+                assert self.isResolved(), 'Built-in %s is not resolved' % (self.expandedName(),)
+                print '**!!**!! Not destroying builtin %s: %s' % (self.expandedName(), self.__typeDefinition)
             else:
                 self.__typeDefinition = None
         return self
@@ -1962,10 +1963,10 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         use_map = { }
         for au in uses_c12.union(uses_c3):
             assert au.isResolved()
-            if not au.attributeDeclaration().isResolved():
-                self._queueForResolution('unresolved attribute declaration from base type')
-                return self
             ad_en = au.attributeDeclaration().expandedName()
+            if not au.attributeDeclaration().isResolved():
+                self._queueForResolution('unresolved attribute declaration %s from base type' % (ad_en,))
+                return self
             if ad_en in use_map:
                 raise pyxb.SchemaValidationError('Multiple definitions for %s in CTD %s' % (ad_en, self.expandedName()))
             use_map[ad_en] = au
@@ -2684,6 +2685,8 @@ class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
             if Particle.IsParticleNode(cn):
                 # NB: Ancestor of particle is set in the ModelGroup constructor
                 particles.append(Particle.CreateFromDOM(node=cn, **kw))
+            else:
+                raise pyxb.SchemaValidationError('Unexpected element %s in model group' % (cn.nodeName,))
         rv = cls(compositor, particles, node=node, **kw)
         for p in particles:
             p._setOwner(rv)
@@ -4713,7 +4716,7 @@ class Schema (_SchemaComponent_mixin):
             if isinstance(td, ComplexTypeDefinition) != isinstance(old_td, ComplexTypeDefinition):
                 raise pyxb.SchemaValidationError('Name %s used for both simple and complex types' % (td.name(),))
 
-            if old_td._objectOriginUID() != pyxb.namespace.BuiltInObjectUID:
+            if not old_td._allowUpdateFromOther(td):
                 raise pyxb.SchemaValidationError('Attempt to re-define non-builtin type definition %s' % (tns.createExpandedName(local_name),))
 
             # Copy schema-related information from the new definition
@@ -4730,7 +4733,7 @@ class Schema (_SchemaComponent_mixin):
         tns = self.targetNamespace()
         old_ad = tns.attributeDeclarations().get(local_name)
         if (old_ad is not None) and (old_ad != ad):
-            if old_ad._objectOriginUID() != pyxb.namespace.BuiltInObjectUID:
+            if not old_ad._allowUpdateFromOther(ad):
                 raise pyxb.SchemaValidationError('Attempt to re-define non-builtin attribute declaration %s' % (tns.createExpandedName(local_name),))
 
             # Copy schema-related information from the new definition
@@ -4747,8 +4750,7 @@ class Schema (_SchemaComponent_mixin):
         tns = self.targetNamespace()
         old_agd = tns.attributeGroupDefinitions().get(local_name)
         if (old_agd is not None) and (old_agd != agd):
-            # @todo: validation error if old_ad is not a built-in
-            if old_agd._objectOriginUID() != pyxb.namespace.BuiltInObjectUID:
+            if not old_agd._allowUpdateFromOther(agd):
                 raise pyxb.SchemaValidationError('Attempt to re-define non-builtin attribute group definition %s' % (tns.createExpandedName(local_name),))
                 
             # Copy schema-related information from the new definition
