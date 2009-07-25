@@ -422,7 +422,14 @@ def GenerateSTD (std, generator):
     # @todo: Extensions of LIST will be wrong in below
 
     if xs.structures.SimpleTypeDefinition.VARIETY_absent == std.variety():
-        assert False
+        template = '''
+# The ur SimpleTypeDefinition
+class %{std} (%{superclasses}):
+    """%{description}"""
+
+    _ExpandedName = %{expanded_name}
+'''
+        template_map['description'] = ''
     elif xs.structures.SimpleTypeDefinition.VARIETY_atomic == std.variety():
         template = '''
 # Atomic SimpleTypeDefinition
@@ -896,7 +903,7 @@ class _ModuleNaming_mixin (object):
         self.__uniqueInClass = {}
 
     def _importModule (self, module):
-        assert isinstance(module, _ModuleNaming_mixin)
+        assert isinstance(module, (_ModuleNaming_mixin, pyxb.namespace.Namespace))
         if isinstance(module, NamespaceModule) and (pyxb.namespace.XMLSchema == module.namespace()):
             return
         if not (module in self.__importedModules):
@@ -938,10 +945,15 @@ class _ModuleNaming_mixin (object):
         template_map = {}
         aux_imports = []
         for ns in self.__importedModules:
-            if ns.modulePath() is None:
-                ns.validateComponentModel()
-            assert ns.modulePath() is not None, ns
-            aux_imports.append('import %s' % (ns.modulePath(),))
+            module_path = ns.modulePath()
+            if module_path is None:
+                if isinstance(ns, NamespaceModule):
+                    ns = ns.namespace()
+                if isinstance(ns, pyxb.namespace.Namespace):
+                    ns.validateComponentModel()
+                    module_path = ns.modulePath()
+            assert module_path is not None, ns
+            aux_imports.append('import %s' % (module_path,))
         template_map['aux_imports'] = "\n".join(aux_imports)
         template_map['namespace_decls'] = "\n".join(self.__namespaceDeclarations)
         template_map['module_uid'] = self.moduleUID()
@@ -1073,8 +1085,10 @@ class _ModuleNaming_mixin (object):
         rv = self.__referencedNamespaces.get(namespace)
         if rv is None:
             namespace_module = self.ForNamespace(namespace)
-            if pyxb.namespace.XMLSchema == namespace:
-                rv = 'pyxb.namespace.XMLSchema'
+            if namespace.isBuiltinNamespace():
+                rv = namespace.builtinNamespaceRepresentation()
+            elif namespace.isUndeclaredNamespace():
+                rv = namespace.modulePath()
             elif isinstance(self, NamespaceModule):
                 if (self.namespace() == namespace):
                     rv = 'Namespace'
@@ -1082,7 +1096,7 @@ class _ModuleNaming_mixin (object):
                     self._importModule(namespace_module)
                     rv = '%s.Namespace' % (namespace_module.modulePath(),)
                 else:
-                    assert False
+                    assert False, 'Unexpected reference to %s' % (namespace,)
                     #rv = 'pyxb.namespace.NamespaceForURI(%s)' % (repr(namespace.uri()),)
             else:
                 if namespace.prefix():
@@ -1122,8 +1136,11 @@ class _ModuleNaming_mixin (object):
             self.__bindingIO.write("from %s import %s%s # %s\n" % (module.modulePath(), rem_name, aux, c.expandedName()))
 
     def writeToModuleFile (self):
-        self.bindingFile().write(self.moduleContents())
-        print 'Saved binding source to %s' % (self.__bindingFilePath,)
+        if self.bindingFile():
+            self.bindingFile().write(self.moduleContents())
+            print 'Saved binding source to %s' % (self.__bindingFilePath,)
+        else:
+            print 'ERROR: No binding file for %s' % (self,)
 
 
 class NamespaceModule (_ModuleNaming_mixin):
@@ -1195,8 +1212,8 @@ class NamespaceModule (_ModuleNaming_mixin):
 # PyXB bindings for NamespaceModule
 # NSM:%{module_uid}
 # Generated %{date} by PyXB version %{pyxbVersion}
+import pyxb
 import pyxb.binding
-import pyxb.exceptions_
 import pyxb.utils.utility
 import pyxb.utils.domutils
 import sys
@@ -1379,6 +1396,9 @@ class Generator (object):
             module_path = ns.modulePath()
             if (module_path is None) or ns.isLoadedNamespace() or (ns.isBuiltinNamespace() and not self.allowBuiltinGeneration()) or (not self.generateToFiles()):
                 return ('/dev/null', None, None)
+            #if pyxb.namespace.XMLSchema != ns:
+            #    return ('/dev/null', None, None)
+            #module_path="bogus.xsd"
             module_elts = module_path.split('.')
             import_file_path = self.__directoryForModulePath(module_elts)
             if self.writeForCustomization():
@@ -1392,6 +1412,7 @@ class Generator (object):
             except OSError, e:
                 if errno.EEXIST == e.errno:
                     raise pyxb.BindingGenerationError('Target file %s for namespace %s bindings exists with other content' % (binding_file_path, ns))
+                raise
         elif isinstance(module, NamespaceGroupModule):
             if not self.generateToFiles():
                 raise pyxb.BindingGenerationError('Generation of namespace groups requires generate-to-files')
@@ -1721,6 +1742,9 @@ class Generator (object):
             self.applyOptionValues(*self.optionParser().parse_args(argv))
         [ self.addSchemaLocation(_a) for _a in args ]
         
+        pyxb.namespace.XML.validateComponentModel()
+
+
     __stripSpaces_re = re.compile('\s\s\s+')
     def __stripSpaces (self, string):
         return self.__stripSpaces_re.sub(' ', string)
@@ -1870,7 +1894,7 @@ class Generator (object):
         return pyxb.utils.utility.NormalizeLocation(sl, self.schemaRoot())
 
     def __assignNamespaceModulePath (self, namespace, module_path=None):
-        assert isinstance(namespace, pyxb.namespace.Namespace)
+        assert isinstance(namespace, pyxb.namespace.Namespace), 'unexpected type %s' % (type(namespace),)
         # Validate so we can pull any existing module path from the archive
         namespace.validateComponentModel()
         if namespace.modulePath() is not None:
@@ -1882,7 +1906,7 @@ class Generator (object):
             module_path = namespace.prefix()
         module_path = self.namespaceModuleMap().get(namespace.uri(), module_path)
         if module_path is None:
-            if self.allowAbsentModule():
+            if self.allowAbsentModule() or (pyxb.namespace.XMLSchema_instance == namespace):
                 return namespace
             raise pyxb.BindingGenerationError('No prefix or module name available for %s' % (namespace,))
         if self.modulePrefix(): # non-empty value
@@ -1920,7 +1944,6 @@ class Generator (object):
         self.__generationUID = pyxb.utils.utility.UniqueIdentifier()
 
         modules = set()
-        pyxb.namespace.XMLSchema.setModulePath('pyxb.binding.datatypes')
     
         entry_namespaces = self.namespaces()
         nsdep = pyxb.namespace.NamespaceDependencies(namespace_set=self.namespaces())
@@ -1929,9 +1952,14 @@ class Generator (object):
         siblings.update(missing)
         nsdep.setSiblingNamespaces(siblings)
         self.__namespaces.update(siblings)
-        for ns in self.namespaces():
+        #namespace_order = []
+        #[ namespace_order.extend(_scc) for _scc in nsdep.namespaceOrder() ]
+        #print "\n".join([ str(_ns) for _ns in namespace_order ])
+        #print '%d one, %d dep, %d sib' % (len(self.namespaces()), len(namespace_order), len(siblings))
+        for ns in self.namespaces(): # namespace_order:
+            ns.validateComponentModel()
             self.__assignNamespaceModulePath(ns)
-            if (ns.modulePath() is None) and not (ns.isAbsentNamespace() or self.allowAbsentModule()):
+            if (ns.modulePath() is None) and not (ns.isAbsentNamespace() or self.allowAbsentModule() or (pyxb.namespace.XMLSchema_instance == ns)):
                 raise pyxb.BindingGenerationError('No module path available for %s' % (ns,))
         if 0 < len(missing):
             text = []
@@ -1951,13 +1979,13 @@ class Generator (object):
     
         all_components = set()
         namespace_component_map = {}
+        _process_builtins = False # Set to True for XMLSchema
         for sns in siblings:
             if (pyxb.namespace.XMLSchema == sns) and (not _process_builtins):
                 continue
             for c in sns.components():
                 if (isinstance(c, xs.structures.ElementDeclaration) and c._scopeIsGlobal()) or c.isTypeDefinition():
-                    assert c._schema() is not None, '%s has no schema' % (c._schema(),)
-                    assert c._schema().targetNamespace() == sns
+                    assert (c._schema() is None) or (c._schema().targetNamespace() == sns)
                     c._setBindingNamespace(sns)
                     all_components.add(c)
                     namespace_component_map.setdefault(sns, set()).add(c)
