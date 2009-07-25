@@ -1203,7 +1203,7 @@ class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
         # Mark this instance as unresolved so it is re-examined
         if not other.isResolved():
             if pyxb.namespace.BuiltInObjectUID == self._objectOriginUID():
-                assert self.isResolved(), 'Built-in %s is not resolved' % (self.expandedName(),)
+                #assert self.isResolved(), 'Built-in %s is not resolved' % (self.expandedName(),)
                 print '**!!**!! Not destroying builtin %s: %s' % (self.expandedName(), self.__typeDefinition)
             else:
                 self.__typeDefinition = None
@@ -2685,7 +2685,7 @@ class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
             if Particle.IsParticleNode(cn):
                 # NB: Ancestor of particle is set in the ModelGroup constructor
                 particles.append(Particle.CreateFromDOM(node=cn, **kw))
-            else:
+            elif not xsd.nodeIsNamed(cn, 'annotation'):
                 raise pyxb.SchemaValidationError('Unexpected element %s in model group' % (cn.nodeName,))
         rv = cls(compositor, particles, node=node, **kw)
         for p in particles:
