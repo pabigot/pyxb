@@ -1518,11 +1518,12 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
 
         @note: Invoking this requires scans of every item in every category
         map in the namespace.
+
+        @return: C{replacement_def}
         """
-        print 'Replacing %s with %s' % (existing_def, replacement_def)
-        rv = self._replaceComponent_csc(existing_def, replacement_def)
-        assert replacement_def == rv
-        return rv # self._replaceComponent_csc(existing_def, replacement_def)
+        # We need to do replacements in the category map handler, the
+        # resolver, and the component associator.
+        return self._replaceComponent_csc(existing_def, replacement_def)
 
     def initialNamespaceContext (self):
         """Obtain the namespace context to be used when creating components in this namespace.

@@ -4710,9 +4710,12 @@ class Schema (_SchemaComponent_mixin):
         tns = self.targetNamespace()
         old_td = tns.typeDefinitions().get(local_name)
         if (old_td is not None) and (old_td != td):
-            # @todo: validation error if old_td is not a built-in
             if isinstance(td, ComplexTypeDefinition) != isinstance(old_td, ComplexTypeDefinition):
                 raise pyxb.SchemaValidationError('Name %s used for both simple and complex types' % (td.name(),))
+
+            if old_td._objectOriginUID() != pyxb.namespace.BuiltInObjectUID:
+                raise pyxb.SchemaValidationError('Attempt to re-define non-builtin type definition %s' % (tns.createExpandedName(local_name),))
+
             # Copy schema-related information from the new definition
             # into the old one, and continue to use the old one.
             td = tns._replaceComponent(td, old_td._updateFromOther(td))
@@ -4727,7 +4730,9 @@ class Schema (_SchemaComponent_mixin):
         tns = self.targetNamespace()
         old_ad = tns.attributeDeclarations().get(local_name)
         if (old_ad is not None) and (old_ad != ad):
-            # @todo: validation error if old_ad is not a built-in
+            if old_ad._objectOriginUID() != pyxb.namespace.BuiltInObjectUID:
+                raise pyxb.SchemaValidationError('Attempt to re-define non-builtin attribute declaration %s' % (tns.createExpandedName(local_name),))
+
             # Copy schema-related information from the new definition
             # into the old one, and continue to use the old one.
             ad = tns._replaceComponent(ad, old_ad._updateFromOther(ad))
@@ -4743,6 +4748,9 @@ class Schema (_SchemaComponent_mixin):
         old_agd = tns.attributeGroupDefinitions().get(local_name)
         if (old_agd is not None) and (old_agd != agd):
             # @todo: validation error if old_ad is not a built-in
+            if old_agd._objectOriginUID() != pyxb.namespace.BuiltInObjectUID:
+                raise pyxb.SchemaValidationError('Attempt to re-define non-builtin attribute group definition %s' % (tns.createExpandedName(local_name),))
+                
             # Copy schema-related information from the new definition
             # into the old one, and continue to use the old one.
             ad = tns._replaceComponent(agd, old_agd._updateFromOther(agd))
