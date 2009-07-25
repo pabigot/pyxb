@@ -264,6 +264,7 @@ class _Resolvable_mixin (pyxb.cscRoot):
     not yet been read.
     """
 
+    #_TraceResolution = True
     _TraceResolution = False
 
     def isResolved (self):
@@ -430,9 +431,7 @@ class NamespaceArchive (object):
         # namespace.
         object_maps = unpickler.load()
         for ns in ns_set:
-            #print 'Read %s from %s - active %s' % (ns, self.__archivePath, ns.isActive())
-            if ns.isBuiltinNamespace():
-                continue
+            print 'Read %s from %s - active %s' % (ns, self.__archivePath, ns.isActive())
             ns._loadNamedObjects(object_maps[ns])
             ns._setLoadedFromArchive(self)
         
@@ -489,12 +488,10 @@ class NamespaceArchive (object):
         for (uri, categories) in uri_map.items():
             cat_map = uri_map[uri]
             ns = NamespaceInstance(uri)
-            if ns.isBuiltinNamespace():
-                continue
             for cat in cat_map.keys():
                 if not (cat in ns.categories()):
                     continue
-                cross_objects = cat_map[cat].intersection(ns.categoryMap(cat).keys())
+                cross_objects = frozenset([ _ln for _ln in cat_map[cat].intersection(ns.categoryMap(cat).keys()) if not ns.categoryMap(cat)[_ln]._allowUpdateFromOther(None) ])
                 if 0 < len(cross_objects):
                     raise pyxb.NamespaceArchiveError('Namespace %s archive/active conflict on category %s: %s' % (ns, cat, " ".join(cross_objects)))
                 # Verify namespace is not available from a different archive
@@ -555,7 +552,8 @@ class _ObjectArchivable_mixin (pyxb.cscRoot):
         return self._updateFromOther_csc(other)
 
     def _allowUpdateFromOther (self, other):
-        return False
+        global BuiltInObjectUID
+        return BuiltInObjectUID == self._objectOriginUID()
 
 class _NamespaceArchivable_mixin (pyxb.cscRoot):
 
@@ -698,7 +696,7 @@ class _NamespaceCategory_mixin (pyxb.cscRoot):
         try:
             return self.__categoryMap[category]
         except KeyError:
-            raise pyxb.NamespaceError('%s has no category %s' % (self, category))
+            raise pyxb.NamespaceError(self, '%s has no category %s' % (self, category))
 
     def __defineCategoryAccessors (self):
         """Define public methods on the Namespace which provide access to
@@ -793,10 +791,14 @@ class _NamespaceCategory_mixin (pyxb.cscRoot):
         for category in category_map.keys():
             current_map = self.categoryMap(category)
             new_map = category_map[category]
-            for ln in new_map.keys():
-                if ln in current_map:
-                    raise pyxb.NamespaceError('Load attempted to override %s %s in %s' % (category, ln, self.uri()))
-            self.categoryMap(category).update(category_map[category])
+            for (local_name, component) in new_map.iteritems():
+                existing_component = current_map.get(local_name)
+                if existing_component is None:
+                    current_map[local_name] = component
+                elif existing_component._allowUpdateFromOther(component):
+                    existing_component._updateFromOther(component)
+                else:
+                    raise pyxb.NamespaceError(self, 'Load attempted to override %s %s in %s' % (category, ln, self.uri()))
         self.__defineCategoryAccessors()
 
     def hasSchemaComponents (self):
@@ -1292,7 +1294,7 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
 
     def setPrefix (self, prefix):
         if self.__boundPrefix is not None:
-            raise pyxb.NamespaceError('Cannot change the prefix of a bound namespace')
+            raise pyxb.NamespaceError(self, 'Cannot change the prefix of a bound namespace')
         self.__prefix = prefix
         return self
 
@@ -1424,6 +1426,7 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
         self.__schemaLocation = kw['schemaLocation']
         self.__description = kw['description']
         self.__prefix = kw['prefix']
+        assert (self.__modulePath is None) or (self.__modulePath == kw.get('modulePath'))
         self.__modulePath = kw['modulePath']
         self.__bindingConfiguration = kw['bindingConfiguration']
         return getattr(super(Namespace, self), '_setState_csc', lambda _kw: self)(kw)
@@ -1497,7 +1500,6 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
             self._defineBuiltins(structures_module)
             try:
                 self.__inValidation = True
-                #print 'VALIDATING %s: isActive %s archive %s' % (self, self.isActive(), self.archive())
                 self._defineSchema_overload(structures_module)
                 self.__didValidation = True
             finally:
@@ -1911,7 +1913,7 @@ class NamespaceContext (object):
             # paragraph 6 implies you can do this, but expat blows up
             # if you try it.  I don't think it's legal.
             if prefix is not None:
-                raise pyxb.NamespaceError('Attempt to undefine non-default namespace %s' % (attr.localName,))
+                raise pyxb.NamespaceError(self, 'Attempt to undefine non-default namespace %s' % (attr.localName,))
             self.__defaultNamespace = None
             self.__inScopeNamespaces.pop(None, None)
 
