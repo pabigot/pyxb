@@ -3411,7 +3411,6 @@ class Annotation (_SchemaComponent_mixin):
                     text.append(cn.data)
         return ''.join(text)
 
-
 # Section 3.14.
 class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.namespace._Resolvable_mixin, _Annotated_mixin):
     """The schema component for simple type definitions.
@@ -3574,6 +3573,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
 
     # Allocate one of these.  Users should use one of the Create*
     # factory methods instead.
+    
     def __init__ (self, *args, **kw):
         super(SimpleTypeDefinition, self).__init__(*args, **kw)
         self.__variety = kw['variety']
@@ -3793,13 +3793,15 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
             self.__baseTypeDefinition = self.SimpleUrTypeDefinition()
         return self.__completeResolution(body, None, self._DA_restriction)
 
+    __localMemberTypes = None
     def __initializeFromUnion (self, body, **kw):
         self.__baseTypeDefinition = self.SimpleUrTypeDefinition()
         self.__memberTypesAttribute = NodeAttribute(body, 'memberTypes')
-        self.__localMemberTypes = []
-        for cn in body.childNodes:
-            if (Node.ELEMENT_NODE == cn.nodeType) and xsd.nodeIsNamed(cn, 'simpleType'):
-                self.__localMemberTypes.append(self.CreateFromDOM(cn, **kw))
+        if self.__localMemberTypes is None:
+            self.__localMemberTypes = []
+            for cn in body.childNodes:
+                if (Node.ELEMENT_NODE == cn.nodeType) and xsd.nodeIsNamed(cn, 'simpleType'):
+                    self.__localMemberTypes.append(self.CreateFromDOM(cn, **kw))
         return self.__completeResolution(body, self.VARIETY_union, self._DA_union)
 
     def __resolveBuiltin (self):
