@@ -3682,7 +3682,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
         return cls.__SimpleUrTypeDefinition
 
     @classmethod
-    def CreatePrimitiveInstance (cls, name, schema, python_support):
+    def CreatePrimitiveInstance (cls, name, ns_ctx, python_support):
         """Create a primitive simple type in the target namespace.
 
         This is mainly used to pre-load standard built-in primitive
@@ -3693,7 +3693,6 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
         All parameters are required and must be non-None.
         """
         
-        ns_ctx = schema.targetNamespace().initialNamespaceContext()
         bi = cls(name=name, namespace_context=ns_ctx, binding_namespace=ns_ctx.targetNamespace(), variety=cls.VARIETY_atomic, scope=_ScopedDeclaration_mixin.SCOPE_global)
         bi._setPythonSupport(python_support)
 
@@ -3708,7 +3707,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
         return bi
 
     @classmethod
-    def CreateDerivedInstance (cls, name, schema, parent_std, python_support):
+    def CreateDerivedInstance (cls, name, ns_ctx, parent_std, python_support):
         """Create a derived simple type in the target namespace.
 
         This is used to pre-load standard built-in derived types.  You
@@ -3718,7 +3717,6 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
         """
         assert parent_std
         assert parent_std.__variety in (cls.VARIETY_absent, cls.VARIETY_atomic)
-        ns_ctx = schema.targetNamespace().initialNamespaceContext()
         bi = cls(name=name, namespace_context=ns_ctx, binding_namespace=ns_ctx.targetNamespace(), variety=parent_std.__variety, scope=_ScopedDeclaration_mixin.SCOPE_global)
         bi._setPythonSupport(python_support)
 
@@ -3734,7 +3732,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
         return bi
 
     @classmethod
-    def CreateListInstance (cls, name, schema, item_std, python_support):
+    def CreateListInstance (cls, name, ns_ctx, item_std, python_support):
         """Create a list simple type in the target namespace.
 
         This is used to preload standard built-in list types.  You can
@@ -3742,7 +3740,6 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
         that require explicit support to for Pythonic conversion; but
         note that such support is identified by the item_std.
         """
-        ns_ctx = schema.targetNamespace().initialNamespaceContext()
         bi = cls(name=name, namespace_context=ns_ctx, binding_namespace=ns_ctx.targetNamespace(), variety=cls.VARIETY_list, scope=_ScopedDeclaration_mixin.SCOPE_global)
         bi._setPythonSupport(python_support)
 
@@ -3756,7 +3753,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
         return bi
 
     @classmethod
-    def CreateUnionInstance (cls, name, schema, member_stds):
+    def CreateUnionInstance (cls, name, ns_ctx, member_stds):
         """(Placeholder) Create a union simple type in the target namespace.
 
         This function has not been implemented."""
@@ -4779,16 +4776,17 @@ def _AddSimpleTypes (namespace):
     assert td.isResolved()
     # Add definitions for all primitive and derived simple types
     pts_std_map = {}
+    ns_ctx = namespace.initialNamespaceContext()
     for dtc in datatypes._PrimitiveDatatypes:
         name = dtc.__name__.rstrip('_')
-        td = schema._addNamedComponent(SimpleTypeDefinition.CreatePrimitiveInstance(name, schema, dtc))
+        td = schema._addNamedComponent(SimpleTypeDefinition.CreatePrimitiveInstance(name, ns_ctx, dtc))
         assert td.isResolved()
         assert dtc.SimpleTypeDefinition() == td
         pts_std_map.setdefault(dtc, td)
     for dtc in datatypes._DerivedDatatypes:
         name = dtc.__name__.rstrip('_')
         parent_std = pts_std_map[dtc.XsdSuperType()]
-        td = schema._addNamedComponent(SimpleTypeDefinition.CreateDerivedInstance(name, schema, parent_std, dtc))
+        td = schema._addNamedComponent(SimpleTypeDefinition.CreateDerivedInstance(name, ns_ctx, parent_std, dtc))
         assert td.isResolved()
         assert dtc.SimpleTypeDefinition() == td
         pts_std_map.setdefault(dtc, td)
@@ -4797,7 +4795,7 @@ def _AddSimpleTypes (namespace):
         element_name = dtc._ItemType.__name__.rstrip('_')
         element_std = schema.targetNamespace().typeDefinitions().get(element_name)
         assert element_std is not None
-        td = schema._addNamedComponent(SimpleTypeDefinition.CreateListInstance(list_name, schema, element_std, dtc))
+        td = schema._addNamedComponent(SimpleTypeDefinition.CreateListInstance(list_name, ns_ctx, element_std, dtc))
         assert td.isResolved()
     global _PastAddBuiltInTypes
     _PastAddBuiltInTypes = True
