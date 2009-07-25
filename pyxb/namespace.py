@@ -551,6 +551,7 @@ class _ObjectArchivable_mixin (pyxb.cscRoot):
         This is used, for example, when a built-in type is already registered
         in the namespace, but we've processed the corresponding schema and
         have obtained more details."""
+        assert self != other
         return self._updateFromOther_csc(other)
 
     def _allowUpdateFromOther (self, other):
@@ -748,6 +749,21 @@ class _NamespaceCategory_mixin (pyxb.cscRoot):
             name_map[local_name] = new_object
         return name_map[local_name]
 
+    def _replaceComponent_csc (self, existing_def, replacement_def):
+        """Replace a component definition where present in the category maps.
+
+        @note: This is a high-cost operation, as every item in every category
+        map must be examined to see whether its value field matches
+        C{existing_def}."""
+        for (cat, registry) in self.__categoryMap.items():
+            for (k, v) in registry.items():
+                if v == existing_def:
+                    print 'Replacing value for %s in %s' % (k, cat)
+                    del registry[k]
+                    if replacement_def is not None:
+                        registry[k] = replacement_def
+        return getattr(super(_NamespaceCategory_mixin, self), '_replaceComponent_csc', lambda *args, **kw: replacement_def)(existing_def, replacement_def)
+
     # Verify that the namespace category map has no components recorded.  This
     # is the state that should hold prior to loading a saved namespace; at
     # tthe moment, we do not support aggregating components defined separately
@@ -806,7 +822,7 @@ class _NamespaceResolution_mixin (pyxb.cscRoot):
     # with this namespace as target.
     __referencedNamespaces = None
 
-    # A set of Namespace._Resolvable_mixin instances that have yet to be
+    # A list of Namespace._Resolvable_mixin instances that have yet to be
     # resolved.
     __unresolvedComponents = None
 
@@ -869,6 +885,21 @@ class _NamespaceResolution_mixin (pyxb.cscRoot):
     def needsResolution (self):
         """Return C{True} iff this namespace has not been resolved."""
         return self.__unresolvedComponents is not None
+
+    def _replaceComponent_csc (self, existing_def, replacement_def):
+        """Replace a component definition if present in the list of unresolved components.
+        """
+        try:
+            index = self.__unresolvedComponents.index(existing_def)
+            print 'Replacing unresolved %s' % (existing_def,)
+            if (replacement_def is None) or (replacement_def in self.__unresolvedComponents):
+                del self.__unresolvedComponents[index]
+            else:
+                assert isinstance(replacement_def, _Resolvable_mixin)
+                self.__unresolvedComponents[index] = replacement_def
+        except ValueError:
+            pass
+        return getattr(super(_NamespaceResolution_mixin, self), '_replaceComponent_csc', lambda *args, **kw: replacement_def)(existing_def, replacement_def)
 
     def resolveDefinitions (self, allow_unresolved=False):
         """Loop until all references within the associated resolvable objects
@@ -1043,23 +1074,15 @@ class _NamespaceComponentAssociation_mixin (pyxb.cscRoot):
         assert component not in self.__components
         self.__components.add(component)
 
-    def _replaceComponent (self, existing_def, replacement_def):
-        """Replace the existing definition with another.
+    def _replaceComponent_csc (self, existing_def, replacement_def):
+        """Replace a component definition in the set of associated components.
 
-        This is used in a situation where building the component model
-        resulted in a new component instance being created and registered, but
-        for which an existing component is to be preferred.  An example is
-        when parsing the schema for XMLSchema itself: the built-in datatype
-        components should be retained instead of the simple type definition
-        components dynamically created from the schema.
-
-        By providing the value C{None} as the replacement definition, this can
-        also be used to remove components.
-        """
+        @raise KeyError: C{existing_def} is not in the set of components."""
+        
         self.__components.remove(existing_def)
         if replacement_def is not None:
             self.__components.add(replacement_def)
-        return replacement_def
+        return getattr(super(_NamespaceComponentAssociation_mixin, self), '_replaceComponent_csc', lambda *args, **kw: replacement_def)(existing_def, replacement_def)
 
     def components (self):
         """Return a frozenset of all components, named or unnamed, belonging
@@ -1479,6 +1502,27 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
                 self.__didValidation = True
             finally:
                 self.__inValidation = False
+
+    def _replaceComponent (self, existing_def, replacement_def):
+        """Replace the existing definition with another.
+
+        This is used in a situation where building the component model
+        resulted in a new component instance being created and registered, but
+        for which an existing component is to be preferred.  An example is
+        when parsing the schema for XMLSchema itself: the built-in datatype
+        components should be retained instead of the simple type definition
+        components dynamically created from the schema.
+
+        By providing the value C{None} as the replacement definition, this can
+        also be used to remove components.
+
+        @note: Invoking this requires scans of every item in every category
+        map in the namespace.
+        """
+        print 'Replacing %s with %s' % (existing_def, replacement_def)
+        rv = self._replaceComponent_csc(existing_def, replacement_def)
+        assert replacement_def == rv
+        return rv # self._replaceComponent_csc(existing_def, replacement_def)
 
     def initialNamespaceContext (self):
         """Obtain the namespace context to be used when creating components in this namespace.

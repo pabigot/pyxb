@@ -134,10 +134,6 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin, pyxb.na
         #    assert False
         return getattr(super(_SchemaComponent_mixin, self), '_prepareForArchive_csc', lambda *_args,**_kw: self)(archive, namespace)
 
-    def _updateFromOther_csc (self, other):
-        self._updateFromOther_csc(other)
-        return getattr(super(_ObjectArchivable_mixin, self), '_updateFromOther_csc', lambda *_args,**_kw: self)(other)
-
     def __init__ (self, *args, **kw):
         self.__ownedComponents = set()
         self.__scope = kw.get('scope')
@@ -4678,18 +4674,6 @@ class Schema (_SchemaComponent_mixin):
 
         raise pyxb.SchemaValidationError('Unexpected top-level element %s' % (node.nodeName,))
 
-    def __replaceUnresolvedDefinition (self, existing_def, replacement_def):
-        unresolved_components = self.targetNamespace()._unresolvedComponents()
-        assert existing_def != replacement_def
-        if existing_def in unresolved_components:
-            unresolved_components.remove(existing_def)
-            if replacement_def not in unresolved_components:
-                assert isinstance(replacement_def, pyxb.namespace._Resolvable_mixin)
-                unresolved_components.append(replacement_def)
-        # Throw away the reference to the previous component and use
-        # the replacement one
-        return self.targetNamespace()._replaceComponent(existing_def, replacement_def)
-
     def _addAnnotation (self, annotation):
         self.__annotations.append(annotation)
         return annotation
@@ -4731,7 +4715,7 @@ class Schema (_SchemaComponent_mixin):
                 raise pyxb.SchemaValidationError('Name %s used for both simple and complex types' % (td.name(),))
             # Copy schema-related information from the new definition
             # into the old one, and continue to use the old one.
-            td = self.__replaceUnresolvedDefinition(td, old_td._updateFromOther(td))
+            td = tns._replaceComponent(td, old_td._updateFromOther(td))
         else:
             tns.addCategoryObject('typeDefinition', td.name(), td)
         assert td is not None
@@ -4746,7 +4730,7 @@ class Schema (_SchemaComponent_mixin):
             # @todo: validation error if old_ad is not a built-in
             # Copy schema-related information from the new definition
             # into the old one, and continue to use the old one.
-            ad = self.__replaceUnresolvedDefinition(ad, old_ad._updateFromOther(ad))
+            ad = tns._replaceComponent(ad, old_ad._updateFromOther(ad))
         else:
             tns.addCategoryObject('attributeDeclaration', ad.name(), ad)
         assert ad is not None
@@ -4761,8 +4745,7 @@ class Schema (_SchemaComponent_mixin):
             # @todo: validation error if old_ad is not a built-in
             # Copy schema-related information from the new definition
             # into the old one, and continue to use the old one.
-
-            ad = self.__replaceUnresolvedDefinition(agd, old_agd._updateFromOther(agd))
+            ad = tns._replaceComponent(agd, old_agd._updateFromOther(agd))
         else:
             tns.addCategoryObject('attributeGroupDefinition', agd.name(), agd)
         assert agd is not None
