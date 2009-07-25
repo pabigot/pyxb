@@ -1,14 +1,12 @@
-# Undeclared XML namespace
-
+# Declare xml namespace
 import pyxb.binding.generate
 import pyxb.utils.domutils
 from xml.dom import Node
 
 import os.path
-# <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xml="http://www.w3.org/XML/1998/namespace">
 
 xsd='''<?xml version="1.0" encoding="UTF-8"?>
-<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xml="http://www.w3.org/XML/1998/namespace">
   <xs:complexType name="structure">
     <xs:attributeGroup ref="xml:specialAttrs"/>
   </xs:complexType>

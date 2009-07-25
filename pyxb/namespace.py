@@ -1720,8 +1720,9 @@ class _XML (Namespace):
         base = schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('base', self, std=xsd.anyURI.SimpleTypeDefinition()))
         id = schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('id', self, std=xsd.ID.SimpleTypeDefinition()))
         std_space = structures_module.SimpleTypeDefinition._CreateXMLInstance('space')
+        std_lang = structures_module.SimpleTypeDefinition._CreateXMLInstance('lang')
         space = schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('space', self, std=std_space))
-        lang = schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('lang', self, std=xsd.anySimpleType.SimpleTypeDefinition()))
+        lang = schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('lang', self, std=std_lang))
 
         specialAttrs = schema._addNamedComponent(structures_module.AttributeGroupDefinition.CreateBaseInstance('specialAttrs', self, [
                     structures_module.AttributeUse.CreateBaseInstance(self, space),

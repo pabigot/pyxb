@@ -3697,6 +3697,13 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
             bi.__primitiveTypeDefinition = bi.__baseTypeDefinition.__primitiveTypeDefinition
             bi._setPythonSupport(pyxb.binding.xml_.STD_ANON_space)
             return bi
+        if 'lang' == name:
+            bi = cls(namespace_context=ns_ctx, binding_namespace=ns_ctx.targetNamespace(), variety=cls.VARIETY_atomic, scope=_ScopedDeclaration_mixin.SCOPE_global)
+            bi.__baseTypeDefinition = cls.SimpleUrTypeDefinition()
+            bi.__memberTypes = [ datatypes.language.SimpleTypeDefinition() ]
+            bi.__derivationAlternative = cls._DA_union
+            bi._setPythonSupport(pyxb.binding.xml_.STD_ANON_lang)
+            return bi
         raise pyxb.IncompleteImplementationError('No implementation for %s' % (name,))
 
     @classmethod
