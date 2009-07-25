@@ -1051,8 +1051,8 @@ class _ModuleNaming_mixin (object):
                 module_path = namespace.modulePath()
             else:
                 assert namespace.isBuiltinNamespace(), 'No module for non-builtin %s' % (namespace,)
-                assert pyxb.namespace.XMLSchema == namespace, 'Unexpected namespace %s' % (namespace,)
-                module_path = 'pyxb.binding.datatypes'
+                self._importModule(namespace)
+                module_path = namespace.builtinModulePath()
             return '%s.%s' % (module_path, component.nameInBinding())
         name = component_module.__componentNameMap.get(component)
         if name is None:

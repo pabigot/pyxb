@@ -9,9 +9,10 @@ xsd='''<?xml version="1.0" encoding="UTF-8"?>
 <!-- <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xml="http://www.w3.org/XML/1998/namespace"> -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
   <xs:complexType name="structure">
-<!--    <xs:attributeGroup ref="xml:specialAttrs"/> -->
-    <xs:attribute ref="xml:lang"/>
+    <xs:attributeGroup ref="xml:specialAttrs"/>
+<!--    <xs:attribute ref="xml:lang"/>
     <xs:attribute ref="xml:base"/>
+-->
   </xs:complexType>
   <xs:element name="instance" type="structure"/>
 </xs:schema>'''

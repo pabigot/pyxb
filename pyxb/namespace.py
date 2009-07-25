@@ -1235,6 +1235,7 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
                   schema_location=None,
                   description=None,
                   builtin_namespace=None,
+                  builtin_module_path=None,
                   is_undeclared_namespace=False,
                   is_loaded_namespace=False,
                   bound_prefix=None,
@@ -1272,6 +1273,8 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
         self.__description = description
         self.__isBuiltinNamespace = is_builtin_namespace
         self.__builtinNamespaceVariable = builtin_namespace
+        self.__builtinModulePath = builtin_module_path
+        self.__modulePath = self.__builtinModulePath
         self.__isUndeclaredNamespace = is_undeclared_namespace
         self.__isLoadedNamespace = is_loaded_namespace
 
@@ -1347,6 +1350,11 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
         assert self.__builtinNamespaceVariable is not None
         return 'pyxb.namespace.%s' % (self.__builtinNamespaceVariable,)
 
+    def builtinModulePath (self):
+        if not self.__builtinModulePath:
+            raise pyxb.LogicError('Namespace has no built-in module: %s' % (self,))
+        return self.__builtinModulePath
+
     def isUndeclaredNamespace (self):
         """Return True iff this namespace is always available
         regardless of whether there is a declaration for it.
@@ -1369,6 +1377,7 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
         return self.__modulePath
 
     def setModulePath (self, module_path):
+        assert self.__builtinModulePath is None, '%s has builtin path' % (self,)
         self.__modulePath = module_path
         return self.modulePath()
 
@@ -1710,14 +1719,15 @@ class _XML (Namespace):
         schema = structures_module.Schema(namespace_context=self.initialNamespaceContext(), schema_location="URN:noLocation:XML")
         base = schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('base', self, std=xsd.anyURI.SimpleTypeDefinition()))
         id = schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('id', self, std=xsd.ID.SimpleTypeDefinition()))
-        #  std=xsdf._WhiteSpace_enum.SimpleTypeDefinition()))
-        space = schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('space', self))
+        std_space = structures_module.SimpleTypeDefinition._CreateXMLInstance('space')
+        space = schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('space', self, std=std_space))
         lang = schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('lang', self, std=xsd.anySimpleType.SimpleTypeDefinition()))
 
         specialAttrs = schema._addNamedComponent(structures_module.AttributeGroupDefinition.CreateBaseInstance('specialAttrs', self, [
                     structures_module.AttributeUse.CreateBaseInstance(self, space),
                     structures_module.AttributeUse.CreateBaseInstance(self, base),
-                    structures_module.AttributeUse.CreateBaseInstance(self, lang)
+                    structures_module.AttributeUse.CreateBaseInstance(self, lang),
+                    structures_module.AttributeUse.CreateBaseInstance(self, id),
                     ]))
         return self
 
@@ -1772,9 +1782,9 @@ XMLSchema = _XMLSchema('http://www.w3.org/2001/XMLSchema',
                        schema_location='http://www.w3.org/2001/XMLSchema.xsd',
                        description='XML Schema',
                        builtin_namespace='XMLSchema',
+                       builtin_module_path='pyxb.binding.datatypes',
                        in_scope_namespaces = { 'xs' : None })
 """Namespace and URI for the XMLSchema namespace (often C{xs}, or C{xsd})"""
-XMLSchema.setModulePath('pyxb.binding.datatypes')
 
 XHTML = Namespace('http://www.w3.org/1999/xhtml',
                   description='Family of document types that extend HTML',
@@ -1788,12 +1798,12 @@ XML = _XML('http://www.w3.org/XML/1998/namespace',
            description='XML namespace',
            schema_location='http://www.w3.org/2001/xml.xsd',
            builtin_namespace='XML',
+           builtin_module_path='pyxb.binding.xml_',
            is_undeclared_namespace=True,
            bound_prefix='xml',
            default_namespace=XHTML,
            in_scope_namespaces = { 'xs' : XMLSchema })
 """Namespace and URI for XML itself (always available as C{xml})"""
-XML.setModulePath('pyxb.standard.bindings.xml_')
 
 XMLSchema_hfp = Namespace('http://www.w3.org/2001/XMLSchema-hasFacetAndProperty',
                           description='Facets appearing in appinfo section',

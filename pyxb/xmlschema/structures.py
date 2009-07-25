@@ -3682,6 +3682,24 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
         return cls.__SimpleUrTypeDefinition
 
     @classmethod
+    def _CreateXMLInstance (cls, name):
+        """Create STD instances for built-in types.
+
+        For example, xml:space is a restriction of NCName; xml:lang is a union.
+
+        """
+        import pyxb.binding.xml_
+        ns_ctx = pyxb.namespace.XML.initialNamespaceContext()
+        if 'space' == name:
+            bi = cls(namespace_context=ns_ctx, binding_namespace=ns_ctx.targetNamespace(), variety=cls.VARIETY_atomic, scope=_ScopedDeclaration_mixin.SCOPE_global)
+            bi.__derivationAlternative = cls._DA_restriction
+            bi.__baseTypeDefinition = datatypes.NCName.SimpleTypeDefinition()
+            bi.__primitiveTypeDefinition = bi.__baseTypeDefinition.__primitiveTypeDefinition
+            bi._setPythonSupport(pyxb.binding.xml_.STD_ANON_space)
+            return bi
+        raise pyxb.IncompleteImplementationError('No implementation for %s' % (name,))
+
+    @classmethod
     def CreatePrimitiveInstance (cls, name, ns_ctx, python_support):
         """Create a primitive simple type in the target namespace.
 

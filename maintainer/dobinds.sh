@@ -10,8 +10,8 @@ test -f ${SCHEMA_DIR}/XMLSchema.xsd || wget -O ${SCHEMA_DIR}/XMLSchema.xsd http:
 
 ( cat <<EOList
 # NOTE: Use prefix xml_ instead of xml because xml conflicts with standard package
-# This isn't really necessary, and currently fails resolution, so drop it
-http://www.w3.org/2001/xml.xsd xml_ --allow-builtin-generation
+# This is now a builtin module, so don't generate a different one
+# http://www.w3.org/2001/xml.xsd xml_ --allow-builtin-generation
 # NOTE: The non-normative XMLSchema namespace defines far more than
 # the public components for which we have built-in values.  The
 # incompleteness of the built-ins confuses PyXB.  There's no need to
