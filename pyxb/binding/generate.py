@@ -1944,7 +1944,7 @@ class Generator (object):
             print "\n".join(text)
 
         for ns_set in nsdep.namespaceOrder():
-            pyxb.namespace.ResolveSiblingNamespaces(ns_set)
+            pyxb.namespace.ResolveSiblingNamespaces(ns_set, self.__generationUID)
     
         file('namespace.dot', 'w').write(nsdep.namespaceGraph()._generateDOT('Namespace'))
         file('component.dot', 'w').write(nsdep.componentGraph()._generateDOT('Component', lambda _c: _c.bestNCName()))

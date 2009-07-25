@@ -134,6 +134,10 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin, pyxb.na
         #    assert False
         return getattr(super(_SchemaComponent_mixin, self), '_prepareForArchive_csc', lambda *_args,**_kw: self)(archive, namespace)
 
+    def _updateFromOther_csc (self, other):
+        self._updateFromOther_csc(other)
+        return getattr(super(_ObjectArchivable_mixin, self), '_updateFromOther_csc', lambda *_args,**_kw: self)(other)
+
     def __init__ (self, *args, **kw):
         self.__ownedComponents = set()
         self.__scope = kw.get('scope')
@@ -281,14 +285,13 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin, pyxb.na
         self.__nameInBinding = name_in_binding
         return self
 
-    def _setBuiltinFromInstance (self, other):
+    def _updateFromOther_csc (self, other):
         """Override fields in this instance with those from the other.
 
         Post-extended; description in leaf implementation in
         ComplexTypeDefinition and SimpleTypeDefinition."""
         assert self != other
-        super_fn = getattr(super(_SchemaComponent_mixin, self), '_setBuiltinFromInstance', lambda *args, **kw: None)
-        super_fn(other)
+        getattr(super(_SchemaComponent_mixin, self), '_updateFromOther_csc', lambda *args, **kw: self)(other)
         # The only thing we update is the binding name, and that only if it's new.
         if self.__nameInBinding is None:
             self.__nameInBinding = other.__nameInBinding
@@ -327,14 +330,13 @@ class _Annotated_mixin (pyxb.cscRoot):
                 kw['owner'] = self
             self.__annotation = Annotation.CreateFromDOM(cn, **kw)
 
-    def _setBuiltinFromInstance (self, other):
+    def _updateFromOther_csc (self, other):
         """Override fields in this instance with those from the other.
 
         Post-extended; description in leaf implementation in
         ComplexTypeDefinition and SimpleTypeDefinition."""
         assert self != other
-        super_fn = getattr(super(_Annotated_mixin, self), '_setBuiltinFromInstance', lambda *args, **kw: None)
-        super_fn(other)
+        getattr(super(_Annotated_mixin, self), '_updateFromOther_csc', lambda *args, **kw: self)(other)
         # @todo: make this a copy?
         self.__annotation = other.__annotation
         return self
@@ -1185,7 +1187,7 @@ class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
 
         return self
 
-    def _setBuiltinFromInstance (self, other):
+    def _updateFromOther_csc (self, other):
         """Override fields in this instance with those from the other.
 
         This method is invoked only by Schema._addNamedComponent, and
@@ -1199,7 +1201,7 @@ class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
         assert self != other
         assert self.name() is not None
         assert self.isNameEquivalent(other)
-        super(AttributeDeclaration, self)._setBuiltinFromInstance(other)
+        super(AttributeDeclaration, self)._updateFromOther_csc(other)
 
         # The other STD should be an unresolved schema-defined type.
         # Mark this instance as unresolved so it is re-examined
@@ -1788,7 +1790,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
             return False
         return particle.hasWildcardElement()
 
-    def _setBuiltinFromInstance (self, other):
+    def _updateFromOther_csc (self, other):
         """Override fields in this instance with those from the other.
 
         This method is invoked only by Schema._addNamedComponent, and
@@ -1801,7 +1803,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         """
         assert self != other
         assert self.isNameEquivalent(other)
-        super(ComplexTypeDefinition, self)._setBuiltinFromInstance(other)
+        super(ComplexTypeDefinition, self)._updateFromOther_csc(other)
 
         # The other CTD should be an unresolved schema-defined type.
         assert other.__derivationMethod is None
@@ -3618,7 +3620,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
             elts.append(','.join( [str(_f) for _f in self.__fundamentalFacets ]))
         return ''.join(elts)
 
-    def _setBuiltinFromInstance (self, other):
+    def _updateFromOther_csc (self, other):
         """Override fields in this instance with those from the other.
 
         This method is invoked only by Schema._addNamedComponent, and
@@ -3631,7 +3633,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
         """
         assert self != other
         assert self.isNameEquivalent(other)
-        super(SimpleTypeDefinition, self)._setBuiltinFromInstance(other)
+        super(SimpleTypeDefinition, self)._updateFromOther_csc(other)
 
         # The other STD should be an unresolved schema-defined type.
         assert other.__baseTypeDefinition is None
@@ -4729,7 +4731,7 @@ class Schema (_SchemaComponent_mixin):
                 raise pyxb.SchemaValidationError('Name %s used for both simple and complex types' % (td.name(),))
             # Copy schema-related information from the new definition
             # into the old one, and continue to use the old one.
-            td = self.__replaceUnresolvedDefinition(td, old_td._setBuiltinFromInstance(td))
+            td = self.__replaceUnresolvedDefinition(td, old_td._updateFromOther(td))
         else:
             tns.addCategoryObject('typeDefinition', td.name(), td)
         assert td is not None
@@ -4744,7 +4746,7 @@ class Schema (_SchemaComponent_mixin):
             # @todo: validation error if old_ad is not a built-in
             # Copy schema-related information from the new definition
             # into the old one, and continue to use the old one.
-            ad = self.__replaceUnresolvedDefinition(ad, old_ad._setBuiltinFromInstance(ad))
+            ad = self.__replaceUnresolvedDefinition(ad, old_ad._updateFromOther(ad))
         else:
             tns.addCategoryObject('attributeDeclaration', ad.name(), ad)
         assert ad is not None
@@ -4759,7 +4761,8 @@ class Schema (_SchemaComponent_mixin):
             # @todo: validation error if old_ad is not a built-in
             # Copy schema-related information from the new definition
             # into the old one, and continue to use the old one.
-            ad = self.__replaceUnresolvedDefinition(agd, old_agd._setBuiltinFromInstance(agd))
+
+            ad = self.__replaceUnresolvedDefinition(agd, old_agd._updateFromOther(agd))
         else:
             tns.addCategoryObject('attributeGroupDefinition', agd.name(), agd)
         assert agd is not None

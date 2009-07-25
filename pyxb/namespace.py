@@ -50,6 +50,9 @@ def GetArchivePath ():
 # Stuff required for pickling
 import cPickle as pickle
 
+# A unique identifier for components that are built-in to the PyXB system
+BuiltInObjectUID = pyxb.utils.utility.UniqueIdentifier('PyXB-' + pyxb.__version__ + '-Builtin')
+
 class ExpandedName (pyxb.cscRoot):
 
     """Represent an U{expanded name
@@ -428,6 +431,8 @@ class NamespaceArchive (object):
         object_maps = unpickler.load()
         for ns in ns_set:
             #print 'Read %s from %s - active %s' % (ns, self.__archivePath, ns.isActive())
+            if ns.isBuiltinNamespace():
+                continue
             ns._loadNamedObjects(object_maps[ns])
             ns._setLoadedFromArchive(self)
         
@@ -484,6 +489,8 @@ class NamespaceArchive (object):
         for (uri, categories) in uri_map.items():
             cat_map = uri_map[uri]
             ns = NamespaceInstance(uri)
+            if ns.isBuiltinNamespace():
+                continue
             for cat in cat_map.keys():
                 if not (cat in ns.categories()):
                     continue
@@ -523,12 +530,31 @@ class _ObjectArchivable_mixin (pyxb.cscRoot):
                 raise pyxb.LogicError('Inconsistent origins for object %s' % (self,))
         else:
             self.__objectOriginUID = object_origin_uid
+    def _setObjectOriginUIDIfUndefined (self, object_origin_uid):
+        if self.__objectOriginUID is None:
+            self.__objectOriginUID = object_origin_uid
+        return self.__objectOriginUID
 
     def _prepareForArchive_csc (self, archive, namespace):
         return getattr(super(_ObjectArchivable_mixin, self), '_prepareForArchive_csc', lambda *_args,**_kw: self)(archive, namespace)
 
     def _prepareForArchive (self, archive, namespace):
+        assert self.__objectOriginUID is not None
         return self._prepareForArchive_csc(archive, namespace)
+
+    def _updateFromOther_csc (self, other):
+        return getattr(super(_ObjectArchivable_mixin, self), '_updateFromOther_csc', lambda *_args,**_kw: self)(other)
+
+    def _updateFromOther (self, other):
+        """Update this instance with additional information provided by the other instance.
+
+        This is used, for example, when a built-in type is already registered
+        in the namespace, but we've processed the corresponding schema and
+        have obtained more details."""
+        return self._updateFromOther_csc(other)
+
+    def _allowUpdateFromOther (self, other):
+        return False
 
 class _NamespaceArchivable_mixin (pyxb.cscRoot):
 
@@ -920,7 +946,7 @@ class _NamespaceResolution_mixin (pyxb.cscRoot):
         """Returns a reference to the list of unresolved components."""
         return self.__unresolvedComponents
 
-def ResolveSiblingNamespaces (sibling_namespaces):
+def ResolveSiblingNamespaces (sibling_namespaces, origin_uid):
     for ns in sibling_namespaces:
         ns.configureCategories([NamespaceArchive._AnonymousCategory()])
         ns.validateComponentModel()
@@ -938,6 +964,9 @@ def ResolveSiblingNamespaces (sibling_namespaces):
         if need_resolved == new_nr:
             raise pyxb.LogicError('Unexpected external dependency in sibling namespaces: %s' % ("\n  ".join( [str(_ns) for _ns in need_resolved ]),))
         need_resolved = new_nr
+
+    for ns in sibling_namespaces:
+        ns.updateOriginUID(origin_uid)
 
 class _ComponentDependency_mixin (pyxb.cscRoot):
     """Mix-in for components that can depend on other components."""
@@ -1040,6 +1069,10 @@ class _NamespaceComponentAssociation_mixin (pyxb.cscRoot):
     def _releaseNamespaceContexts (self):
         for c in self.__components:
             c._clearNamespaceContext()
+
+    def updateOriginUID (self, origin_uid):
+        for c in self.__components:
+            c._setObjectOriginUIDIfUndefined(origin_uid)
 
 class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _NamespaceComponentAssociation_mixin, _NamespaceArchivable_mixin):
     """Represents an XML namespace (a URI).
@@ -1402,7 +1435,10 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
     __definedBuiltins = False
     def _defineBuiltins (self, structures_module):
         if not self.__definedBuiltins:
+            global BuiltInObjectUID
+            
             self._defineBuiltins_ox(structures_module)
+            self.updateOriginUID(BuiltInObjectUID)
             self.__definedBuiltins = True
         return self
 
