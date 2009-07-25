@@ -1234,7 +1234,7 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
     def __init__ (self, uri,
                   schema_location=None,
                   description=None,
-                  is_builtin_namespace=False,
+                  builtin_namespace=None,
                   is_undeclared_namespace=False,
                   is_loaded_namespace=False,
                   bound_prefix=None,
@@ -1248,7 +1248,7 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
         User-created Namespace instances may also provide a
         schemaLocation and a description.
 
-        Users should never provide a is_builtin_namespace parameter.
+        Users should never provide a builtin_namespace parameter.
         """
 
         # New-style superclass invocation
@@ -1259,6 +1259,7 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
 
         # Make sure that we're not trying to do something restricted to
         # built-in namespaces
+        is_builtin_namespace = not (builtin_namespace is None)
         if not is_builtin_namespace:
             if bound_prefix is not None:
                 raise pyxb.LogicError('Only permanent Namespaces may have bound prefixes')
@@ -1270,6 +1271,7 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
         self.__schemaLocation = schema_location
         self.__description = description
         self.__isBuiltinNamespace = is_builtin_namespace
+        self.__builtinNamespaceVariable = builtin_namespace
         self.__isUndeclaredNamespace = is_undeclared_namespace
         self.__isLoadedNamespace = is_loaded_namespace
 
@@ -1340,6 +1342,10 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
 
         That is the case for all namespaces in the Namespace module."""
         return self.__isBuiltinNamespace
+
+    def builtinNamespaceRepresentation (self):
+        assert self.__builtinNamespaceVariable is not None
+        return 'pyxb.namespace.%s' % (self.__builtinNamespaceVariable,)
 
     def isUndeclaredNamespace (self):
         """Return True iff this namespace is always available
@@ -1752,27 +1758,28 @@ def AvailableForLoad ():
 
 XMLSchema_instance = _XMLSchema_instance('http://www.w3.org/2001/XMLSchema-instance',
                                          description='XML Schema Instance',
-                                         is_builtin_namespace=True)
+                                         builtin_namespace='XMLSchema_instance')
 """Namespace and URI for the XMLSchema Instance namespace.  This is always
 built-in, and does not (cannot) have an associated schema."""
 
 XMLNamespaces = Namespace('http://www.w3.org/2000/xmlns/',
                           description='Namespaces in XML',
-                          is_builtin_namespace=True,
+                          builtin_namespace='XMLNamespaces',
                           bound_prefix='xmlns')
 """Namespaces in XML.  Not really a namespace, but is always available as C{xmlns}."""
 
 XMLSchema = _XMLSchema('http://www.w3.org/2001/XMLSchema',
                        schema_location='http://www.w3.org/2001/XMLSchema.xsd',
                        description='XML Schema',
-                       is_builtin_namespace=True,
+                       builtin_namespace='XMLSchema',
                        in_scope_namespaces = { 'xs' : None })
 """Namespace and URI for the XMLSchema namespace (often C{xs}, or C{xsd})"""
+XMLSchema.setModulePath('pyxb.binding.datatypes')
 
 XHTML = Namespace('http://www.w3.org/1999/xhtml',
                   description='Family of document types that extend HTML',
                   schema_location='http://www.w3.org/1999/xhtml.xsd',
-                  is_builtin_namespace=True,
+                  builtin_namespace='XHTML',
                   default_namespace=XMLSchema)
 """There really isn't a schema for this, but it's used as the default
 namespace in the XML schema, so define it."""
@@ -1780,7 +1787,7 @@ namespace in the XML schema, so define it."""
 XML = _XML('http://www.w3.org/XML/1998/namespace',
            description='XML namespace',
            schema_location='http://www.w3.org/2001/xml.xsd',
-           is_builtin_namespace=True,
+           builtin_namespace='XML',
            is_undeclared_namespace=True,
            bound_prefix='xml',
            default_namespace=XHTML,
@@ -1791,7 +1798,7 @@ XML.setModulePath('pyxb.standard.bindings.xml_')
 XMLSchema_hfp = Namespace('http://www.w3.org/2001/XMLSchema-hasFacetAndProperty',
                           description='Facets appearing in appinfo section',
                           schema_location='http://www.w3.org/2001/XMLSchema-hasFacetAndProperty',
-                          is_builtin_namespace=True,
+                          builtin_namespace='XMLSchema_hfp',
                           default_namespace=XMLSchema,
                           in_scope_namespaces = { 'hfp' : None
                                                 , 'xhtml' : XHTML })
