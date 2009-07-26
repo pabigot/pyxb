@@ -1644,13 +1644,16 @@ def LoadableNamespaces ():
         available.update(ns_archive.namespaces())
     return available
 
-def NamespaceArchives (archive_path=None, reset=False):
+import stat
+
+def NamespaceArchives (archive_files=None, archive_path=None, reset=False):
     """Scan for available archves, and associate them with any namespace that has not already been loaded.
 
-    @keyword archive_path: A colon-separated list of paths in which namespace
-    archives can be found; see L{PathEnvironmentVariable}.  Defaults to
-    L{GetArchivePath()}.  If not defaulted, C{reset} will be forced to
-    C{True}.
+    @keyword archive_path: A colon-separated list of files or directories in
+    which namespace archives can be found; see L{PathEnvironmentVariable}.
+    Defaults to L{GetArchivePath()}.  If not defaulted, C{reset} will be
+    forced to C{True}.  For any directory in the path, all files ending with
+    C{.wxs} are examined.
 
     @keyword reset: If C{False} (default), the most recently read set of
     archives is returned; if C{True}, the archive path is re-scanned and the
@@ -1669,20 +1672,22 @@ def NamespaceArchives (archive_path=None, reset=False):
                 bp = DefaultArchivePath
             files = []
             try:
-                files = os.listdir(bp)
+                stbuf = os.stat(bp)
+                if stat.S_ISDIR(stbuf.st_mode):
+                    files = [ os.path.join(bp, _fn) for _fn in os.listdir(bp) if _fn.endswith('.wxs') ]
+                else:
+                    files = [ bp ]
             except OSError, e:
                 files = []
-            for fn in files:
-                if fnmatch.fnmatch(fn, '*.wxs'):
-                    afn = os.path.join(bp, fn)
-                    try:
-                        archive = NamespaceArchive(archive_path=afn)
-                        __NamespaceArchives.add(archive)
-                        #print 'Archive %s has: %s' % (archive, "\n   ".join([ '%s @ %s' % (_ns, _ns.archive()) for _ns in archive.namespaces()]))
-                    except pickle.UnpicklingError, e:
-                        print 'Cannot use archive %s: %s' % (afn, e)
-                    except pyxb.NamespaceArchiveError, e:
-                        print 'Cannot use archive %s: %s' % (afn, e)
+            for afn in files:
+                try:
+                    archive = NamespaceArchive(archive_path=afn)
+                    __NamespaceArchives.add(archive)
+                    #print 'Archive %s has: %s' % (archive, "\n   ".join([ '%s @ %s' % (_ns, _ns.archive()) for _ns in archive.namespaces()]))
+                except pickle.UnpicklingError, e:
+                    print 'Cannot use archive %s: %s' % (afn, e)
+                except pyxb.NamespaceArchiveError, e:
+                    print 'Cannot use archive %s: %s' % (afn, e)
     return __NamespaceArchives
 
 class _XMLSchema_instance (Namespace):
