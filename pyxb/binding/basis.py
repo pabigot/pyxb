@@ -325,7 +325,7 @@ class _TypeBinding_mixin (pyxb.cscRoot):
         bds.finalize()
         return bds.document()
 
-    def toxml (self, bds=None):
+    def toxml (self, bds=None, root_only=False):
         """Shorthand to get the object as an XML document.
 
         If you want to set the default namespace, pass in a pre-configured
@@ -335,7 +335,10 @@ class _TypeBinding_mixin (pyxb.cscRoot):
         to use for creation. If not provided (default), a new generic one is
         created.
         """
-        return self.toDOM(bds).toxml()
+        dom = self.toDOM(bds)
+        if root_only:
+            dom = dom.documentElement
+        return dom.toxml()
 
     def _toDOM_csc (self, dom_support, parent):
         assert parent is not None
@@ -1864,7 +1867,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
                         v.toDOM(dom_support, parent)
                 else:
                     eu.toDOM(dom_support, parent, v)
-            mixed_content = self.content()
+            mixed_content = self.__contentProperty
             for mc in mixed_content:
                 pass
         return getattr(super(complexTypeDefinition, self), '_toDOM_csc', lambda *_args,**_kw: dom_support)(dom_support, parent)

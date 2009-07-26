@@ -606,6 +606,10 @@ class %{ctd} (%{superclass}):
             definitions.append(templates.replaceInText('''
     # Element %{name} uses Python identifier %{id}
     %{use} = pyxb.binding.content.ElementUse(%{name_expr}, '%{id}', '%{key}', %{is_plural}%{aux_init})
+''', **ef_map))
+
+            if basis.BINDING_STYLE_ACCESSOR == generator.bindingStyle():
+                definitions.append(templates.replaceInText('''
     def %{inspector} (self):
         """Get the value of the %{name} element."""
         return self.%{use}.value(self)
@@ -613,14 +617,19 @@ class %{ctd} (%{superclass}):
         """Set the value of the %{name} element.  Raises BadValueTypeException
         if the new value is not consistent with the element's type."""
         return self.%{use}.set(self, new_value)''', **ef_map))
-            if is_plural:
-                definitions.append(templates.replaceInText('''
+                if is_plural:
+                    definitions.append(templates.replaceInText('''
     def %{appender} (self, new_value):
         """Add the value as another occurrence of the %{name} element.  Raises
         BadValueTypeException if the new value is not consistent with the
         element's type."""
         return self.%{use}.append(self, new_value)''', **ef_map))
-
+            elif basis.BINDING_STYLE_PROPERTY == generator.bindingStyle():
+                definitions.append(templates.replaceInText('''
+    %{inspector} = property(%{use}.value, %{use}.set)
+''', **ef_map))
+            else:
+                raise pyxb.LogicError('Unexpected binding style %s' % (generator.bindingStyle(),))
             outf.postscript().append(templates.replaceInText('''
 %{ctd}._AddElement(pyxb.binding.basis.element(%{name_expr}, %{typeDefinition}%{element_aux_init}))
 ''', ctd=template_map['ctd'], **ef_map))
@@ -689,15 +698,24 @@ class %{ctd} (%{superclass}):
     # Attribute %{name} uses Python identifier %{id}
     %{use} = pyxb.binding.content.AttributeUse(%{name_expr}, '%{id}', '%{key}', %{attr_type}%{aux_init})''', **au_map))
         if au.prohibited():
-            definitions.append(templates.replaceInText('''
+            if basis.BINDING_STYLE_ACCESSOR == generator.bindingStyle():
+                definitions.append(templates.replaceInText('''
     # Attribute %{id} marked prohibited in this type
     def %{inspector} (self):
         raise pyxb.ProhibitedAttributeError("Attribute %{name} is prohibited in %{ctd}")
     def %{mutator} (self, new_value):
         raise pyxb.ProhibitedAttributeError("Attribute %{name} is prohibited in %{ctd}")
 ''', ctd=template_map['ctd'], **au_map))
+            elif basis.BINDING_STYLE_PROPERTY == generator.bindingStyle():
+                definitions.append(templates.replaceInText('''
+    %{inspector} = property()
+''', ctd=template_map['ctd'], **au_map))
+
+            else:
+                raise pyxb.LogicError('Unexpected binding style %s' % (generator.bindingStyle(),))
         else:
-            definitions.append(templates.replaceInText('''
+            if basis.BINDING_STYLE_ACCESSOR == generator.bindingStyle():
+                definitions.append(templates.replaceInText('''
     def %{inspector} (self):
         """Get the attribute value for %{name}."""
         return self.%{use}.value(self)
@@ -705,8 +723,12 @@ class %{ctd} (%{superclass}):
         """Set the attribute value for %{name}.  Raises BadValueTypeException
         if the new value is not consistent with the attribute's type."""
         return self.%{use}.set(self, new_value)''', **au_map))
-        
-
+            elif basis.BINDING_STYLE_PROPERTY == generator.bindingStyle():
+                definitions.append(templates.replaceInText('''
+    %{inspector} = property(%{use}.value, %{use}.set)
+''', ctd=template_map['ctd'], **au_map))
+            else:
+                raise pyxb.LogicError('Unexpected binding style %s' % (generator.bindingStyle(),))
 
     if ctd.attributeWildcard() is not None:
         definitions.append('_AttributeWildcard = %s' % (binding_module.literal(ctd.attributeWildcard(), **kw),))
@@ -1333,9 +1355,10 @@ _GenerationUID = %{generation_uid_expr}
 def GeneratePython (schema_location=None,
                     schema_text=None,
                     namespace=None,
-                    module_prefix_elts=[]):
+                    module_prefix_elts=[],
+                    **kw):
 
-    generator = Generator(allow_absent_module=True, generate_to_files=False)
+    generator = Generator(allow_absent_module=True, generate_to_files=False, **kw)
     if schema_location is not None:
         schema_text = pyxb.utils.utility.TextFromURI(schema_location)
     generator.addSchema(pyxb.xmlschema.schema.CreateFromStream(StringIO.StringIO(schema_text)))
@@ -1639,7 +1662,7 @@ class Generator (object):
         return self
     __validateChanges = None
 
-    _DEFAULT_bindingStyle = basis.DEFAULT_BINDING_STYLE
+    _DEFAULT_bindingStyle = basis.CURRENT_BINDING_STYLE
     def bindingStyle (self):
         """The style of Python used in generated bindings.
 
