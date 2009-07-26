@@ -2238,13 +2238,13 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
             else:
                 # Not one of the wrappers; use implicit wrapper around
                 # the children
-                pass
+                if not Particle.IsParticleNode(first_elt, 'attributeGroup', 'attribute'):
+                    raise pyxb.SchemaValidationError('Unexpected element %s at root of complexType' % (first_elt.nodeName,))
             if have_content:
                 # Repeat the search to verify that only the one child is present.
                 content_node = LocateFirstChildElement(node, require_unique=True)
                 assert content_node == first_elt
                 
-
                 # Identify the contained restriction or extension
                 # element, and extract the base type.
                 ions = LocateFirstChildElement(content_node, absent_ok=False)
@@ -3014,8 +3014,8 @@ class Particle (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin):
         return xsd.nodeIsNamed(node, 'group', 'all', 'choice', 'sequence')
 
     @classmethod
-    def IsParticleNode (cls, node):
-        return xsd.nodeIsNamed(node, 'group', 'all', 'choice', 'sequence', 'element', 'any')
+    def IsParticleNode (cls, node, *others):
+        return xsd.nodeIsNamed(node, 'group', 'all', 'choice', 'sequence', 'element', 'any', *others)
 
     def __str__ (self):
         #return 'PART{%s:%d,%s}' % (self.term(), self.minOccurs(), self.maxOccurs())
