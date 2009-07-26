@@ -33,26 +33,28 @@ data = r.data()
 
 for i in range(len(data.location())):
     loc = data.location()[i]
-    for j in range(len(loc.location_key())):
-        key = loc.location_key()[j]
-        print '%s [%s %s]' % (key, loc.point()[j].latitude(), loc.point()[j].longitude())
-        for p in data.parameters():
-            if p.applicable_location() != key:
-                continue
-            mint = maxt = None
-            for t in p.temperature():
-                if 'maximum' == t.type():
-                    maxt = t
-                elif 'minimum' == t.type():
-                    mint = t
-                print '%s (%s): %s' % (t.name()[0], t.units(), " ".join([ str(_v) for _v in t.content() ]))
-            time_layout = None
-            for tl in data.time_layout():
-                if tl.layout_key() == mint.time_layout():
-                    time_layout = tl
-                    break
-            for ti in range(len(time_layout.start_valid_time())):
-                start = time_layout.start_valid_time()[ti].value()
-                end = time_layout.end_valid_time()[ti]
-                print '%s: min %s, max %s' % (time.strftime('%A, %B %d %Y', start.timetuple()),
-                                              mint.value()[ti].value(), maxt.value()[ti].value())
+    print type(loc)
+    print type(loc.location_key())
+    print loc._ElementMap['location-key']._description()
+    key = loc.location_key()
+    print '%s [%s %s]' % (loc.location_key(), loc.point().latitude(), loc.point().longitude())
+    for p in data.parameters():
+        if p.applicable_location() != loc.location_key():
+            continue
+        mint = maxt = None
+        for t in p.temperature():
+            if 'maximum' == t.type():
+                maxt = t
+            elif 'minimum' == t.type():
+                mint = t
+            print '%s (%s): %s' % (t.name()[0], t.units(), " ".join([ str(_v) for _v in t.content() ]))
+        time_layout = None
+        for tl in data.time_layout():
+            if tl.layout_key() == mint.time_layout():
+                time_layout = tl
+                break
+        for ti in range(len(time_layout.start_valid_time())):
+            start = time_layout.start_valid_time()[ti].value()
+            end = time_layout.end_valid_time()[ti]
+            print '%s: min %s, max %s' % (time.strftime('%A, %B %d %Y', start.timetuple()),
+                                          mint.value_()[ti].value(), maxt.value_()[ti].value())
