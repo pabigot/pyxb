@@ -50,12 +50,12 @@ class TestTrac_200907231705 (unittest.TestCase):
         xml = '<Mixed units="m">5</Mixed>'
         instance = CreateFromDocument(xml)
         self.assertEqual(pyxb.binding.basis.complexTypeDefinition._CT_MIXED, instance._ContentTypeTag)
-        self.assertEqual(u'5', instance.content()[0])
+        self.assertEqual(u'5', instance.content[0])
         xml = '<Mixed units="m">5<Something/>4</Mixed>'
         self.assertRaises(pyxb.ExtraContentError, CreateFromDocument, xml)
         xml = '<Simple units="m"/>'
         instance = CreateFromDocument(xml)
-        self.assertTrue(instance.value() is None)
+        self.assertTrue(instance.value is None)
         self.assertRaises(pyxb.MissingContentError, instance.validateBinding)
 
     def testCtorEmpty (self):
@@ -72,7 +72,7 @@ class TestTrac_200907231705 (unittest.TestCase):
         self.assertTrue(instance.validateBinding())
         instance = Mixed(4, units='m')
         self.assertTrue(instance.validateBinding())
-        self.assertEqual(4, instance.content()[0])
+        self.assertEqual(4, instance.content[0])
 
     def testCtorSimple (self):
         instance = Simple()
@@ -82,14 +82,14 @@ class TestTrac_200907231705 (unittest.TestCase):
         instance = Simple(units='m')
         self.assertRaises(pyxb.MissingContentError, instance.validateBinding)
         instance = Simple(4.5, units='m')
-        self.assertEqual(4.5, instance.value())
+        self.assertEqual(4.5, instance.value)
 
     def testParsingNil (self):
         xml = '<Simple xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true" units="m"/>'
         instance = CreateFromDocument(xml)
         self.assertEqual(pyxb.binding.basis.complexTypeDefinition._CT_SIMPLE, instance._ContentTypeTag)
         self.assertTrue(instance.validateBinding())
-        self.assertTrue(instance.value() is None)
+        self.assertTrue(instance.value is None)
         
 
 if __name__ == '__main__':

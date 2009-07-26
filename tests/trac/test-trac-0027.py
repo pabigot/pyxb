@@ -74,29 +74,38 @@ from pyxb.exceptions_ import *
 import unittest
 
 class TestTrac0027 (unittest.TestCase):
+    def setRattr_fixed (self, instance, value):
+        instance.rattr_fixed = value
+
+    def setAttr_fixed (self, instance, value):
+        instance.attr_fixed = value
+
+    def setAttr (self, instance, value):
+        instance.attr = value
+
     def testRequired (self):
         self.assertEqual(2, len(req_struct._AttributeMap))
         i = ireq_struct()
         self.assertRaises(pyxb.MissingAttributeError, i.validateBinding)
-        self.assertTrue(i.rattr() is None)
-        i.setRattr(-4)
-        self.assertEqual(-4, i.rattr())
+        self.assertTrue(i.rattr is None)
+        i.rattr = -4
+        self.assertEqual(-4, i.rattr)
         self.assertTrue(i._AttributeMap['rattr'].provided(i))
 
         self.assertRaises(pyxb.MissingAttributeError, i.validateBinding) # Should fail because rattr_fixed was not explicitly set
 
         self.assertFalse(i._AttributeMap['rattr_fixed'].provided(i))
-        self.assertEqual(30, i.rattr_fixed())
+        self.assertEqual(30, i.rattr_fixed)
 
-        self.assertRaises(pyxb.AttributeChangeError, i.setRattr_fixed, 41)
+        self.assertRaises(pyxb.AttributeChangeError, self.setRattr_fixed, i, 41)
         self.assertFalse(i._AttributeMap['rattr_fixed'].provided(i))
 
-        i.setRattr_fixed(30)
+        i.rattr_fixed = 30
         self.assertTrue(i._AttributeMap['rattr_fixed'].provided(i))
-        self.assertEqual(30, i.rattr_fixed())
+        self.assertEqual(30, i.rattr_fixed)
         self.assertTrue(i.validateBinding())
 
-        self.assertRaises(pyxb.AttributeChangeError, i.setRattr_fixed, 41)
+        self.assertRaises(pyxb.AttributeChangeError, self.setRattr_fixed, i, 41)
 
     def testRequiredCTor (self):
         i = ireq_struct(rattr=11, rattr_fixed=30)
@@ -108,29 +117,29 @@ class TestTrac0027 (unittest.TestCase):
         self.assertEqual(3, len(opt_struct._AttributeMap))
         i = iopt_struct()
 
-        self.assertTrue(i.attr() is None)
+        self.assertTrue(i.attr is None)
 
         self.assertEqual(i._AttributeMap['attr'].dataType(), xs.int)
 
         self.assertFalse(i._AttributeMap['attr_def'].provided(i))
-        self.assertEqual(10, i.attr_def())
-        i.setAttr_def(11)
-        self.assertEqual(11, i.attr_def())
+        self.assertEqual(10, i.attr_def)
+        i.attr_def = 11
+        self.assertEqual(11, i.attr_def)
         self.assertTrue(i._AttributeMap['attr_def'].provided(i))
 
         self.assertFalse(i._AttributeMap['attr_fixed'].provided(i))
-        self.assertEqual(20, i.attr_fixed())
+        self.assertEqual(20, i.attr_fixed)
 
-        self.assertRaises(pyxb.AttributeChangeError, i.setAttr_fixed, 21)
+        self.assertRaises(pyxb.AttributeChangeError, self.setAttr_fixed, i, 21)
         self.assertFalse(i._AttributeMap['attr_fixed'].provided(i))
-        self.assertEqual(20, i.attr_fixed())
+        self.assertEqual(20, i.attr_fixed)
 
-        i.setAttr_fixed(20)
+        i.attr_fixed = 20
         self.assertTrue(i._AttributeMap['attr_fixed'].provided(i))
-        self.assertEqual(20, i.attr_fixed())
+        self.assertEqual(20, i.attr_fixed)
 
-        i.setAttr(1000)
-        self.assertEqual(1000, i.attr())
+        i.attr = 1000
+        self.assertEqual(1000, i.attr)
 
     def testOptionalCtor (self):
         self.assertEqual(3, len(opt_struct._AttributeMap))
@@ -139,8 +148,8 @@ class TestTrac0027 (unittest.TestCase):
         i = iopt_struct(attr=1, attr_def=2, attr_fixed=20)
         self.assertTrue(i.validateBinding())
 
-        self.assertEqual(1, i.attr())
-        self.assertEqual(2, i.attr_def())
+        self.assertEqual(1, i.attr)
+        self.assertEqual(2, i.attr_def)
 
     def testOptDef (self):
         self.assertEqual(3, len(opt_def._AttributeMap))
@@ -149,7 +158,7 @@ class TestTrac0027 (unittest.TestCase):
         self.assertEqual(opt_struct._AttributeMap['attr_def'], opt_def._AttributeMap['attr_def'])
         self.assertEqual(opt_struct._AttributeMap['attr_fixed'], opt_def._AttributeMap['attr_fixed'])
         i = opt_def()
-        self.assertEqual(5, i.attr())
+        self.assertEqual(5, i.attr)
 
     def testOptPro (self):
         self.assertEqual(3, len(opt_pro._AttributeMap))
@@ -159,7 +168,7 @@ class TestTrac0027 (unittest.TestCase):
         self.assertTrue(opt_pro._AttributeMap['attr_def'].prohibited())
         self.assertEqual(opt_struct._AttributeMap['attr_fixed'], opt_pro._AttributeMap['attr_fixed'])
         i = opt_pro()
-        self.assertRaises(pyxb.ProhibitedAttributeError, i.attr)
+        self.assertRaises(AttributeError, lambda: i.attr)
 
     def testOptProCtor (self):
         self.assertRaises(pyxb.ProhibitedAttributeError, opt_pro, attr=1)
@@ -173,7 +182,7 @@ class TestTrac0027 (unittest.TestCase):
         self.assertEqual(opt_struct._AttributeMap['attr_def'], opt_rest._AttributeMap['attr_def'])
         self.assertEqual(opt_struct._AttributeMap['attr_fixed'], opt_rest._AttributeMap['attr_fixed'])
 
-        self.assertRaises(pyxb.BadTypeValueError, i.setAttr, 1000)
+        self.assertRaises(pyxb.BadTypeValueError, self.setAttr, i, 1000)
 
 if __name__ == '__main__':
     unittest.main()

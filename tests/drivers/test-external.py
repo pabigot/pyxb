@@ -69,8 +69,8 @@ class TestExternal (unittest.TestCase):
         xml = '<ns1:word xmlns:ns1="URN:test-external"><from>one</from><to>un</to></ns1:word>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
         instance = word.createFromDOM(dom.documentElement)
-        self.assertEquals('one', instance.from_())
-        self.assertEquals('un', instance.to())
+        self.assertEquals('one', instance.from_)
+        self.assertEquals('un', instance.to)
         self.assertEqual(xml, ToDOM(instance).toxml())
         
     def testBadWords (self):
@@ -83,9 +83,9 @@ class TestExternal (unittest.TestCase):
         dom = pyxb.utils.domutils.StringToDOM(xml)
         instance = lwords.createFromDOM(dom.documentElement)
         self.assertEquals(instance._element(), lwords)
-        self.assertTrue(isinstance(instance.value(), st.welsh))
-        self.assertEquals('english', instance.language())
-        self.assertEquals('welsh', instance.newlanguage())
+        self.assertTrue(isinstance(instance.value, st.welsh))
+        self.assertEquals('english', instance.language)
+        self.assertEquals('welsh', instance.newlanguage)
 
     def testCrossedRestriction (self):
         # Content model elements that are consistent with parent

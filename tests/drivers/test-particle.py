@@ -27,14 +27,14 @@ class TestParticle (unittest.TestCase):
         xml = '<ns1:h01 xmlns:ns1="URN:test"/>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
         instance = h01.createFromDOM(dom.documentElement)
-        self.assert_(instance.elt() is None)
+        self.assert_(instance.elt is None)
         self.assertEqual(ToDOM(instance).toxml(), xml)
 
     def test_h01_elt (self):
         xml = '<ns1:h01 xmlns:ns1="URN:test"><elt/></ns1:h01>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
         instance = h01.createFromDOM(dom.documentElement)
-        self.assert_(instance.elt() is not None)
+        self.assert_(instance.elt is not None)
         self.assertEqual(ToDOM(instance).toxml(), xml)
 
     def test_h01_elt2 (self):
@@ -46,14 +46,14 @@ class TestParticle (unittest.TestCase):
         xml = '<ns1:h01b xmlns:ns1="URN:test"/>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
         instance = h01b.createFromDOM(dom.documentElement)
-        self.assert_(instance.elt() is None)
+        self.assert_(instance.elt is None)
         self.assertEqual(ToDOM(instance).toxml(), xml)
 
     def test_h01b_elt (self):
         xml = '<ns1:h01b xmlns:ns1="URN:test"><elt/></ns1:h01b>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
         instance = h01b.createFromDOM(dom.documentElement)
-        self.assert_(instance.elt() is not None)
+        self.assert_(instance.elt is not None)
         self.assertEqual(ToDOM(instance).toxml(), xml)
 
     def test_h01b_elt2 (self):
@@ -70,7 +70,7 @@ class TestParticle (unittest.TestCase):
         xml = '<ns1:h11 xmlns:ns1="URN:test"><elt/></ns1:h11>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
         instance = h11.createFromDOM(dom.documentElement)
-        self.assert_(instance.elt() is not None)
+        self.assert_(instance.elt is not None)
         self.assertEqual(ToDOM(instance).toxml(), xml)
 
 
@@ -86,7 +86,7 @@ class TestParticle (unittest.TestCase):
                 self.assertRaises(MissingContentError, h24.createFromDOM, dom.documentElement)
             elif 4 >= num_elt:
                 instance = h24.createFromDOM(dom.documentElement)
-                self.assertEqual(num_elt, len(instance.elt()))
+                self.assertEqual(num_elt, len(instance.elt))
                 self.assertEqual(ToDOM(instance).toxml(), xml)
             else:
                 self.assertRaises(ExtraContentError, h24.createFromDOM, dom.documentElement)
@@ -103,7 +103,7 @@ class TestParticle (unittest.TestCase):
                 self.assertRaises(MissingContentError, h24b.createFromDOM, dom.documentElement)
             elif 4 >= num_elt:
                 instance = h24b.createFromDOM(dom.documentElement)
-                self.assertEqual(num_elt, len(instance.elt()))
+                self.assertEqual(num_elt, len(instance.elt))
                 self.assertEqual(ToDOM(instance).toxml(), xml)
             else:
                 self.assertRaises(ExtraContentError, h24b.createFromDOM, dom.documentElement)

@@ -37,18 +37,18 @@ class TestTrac_200907231924 (unittest.TestCase):
     def testMain (self):
         xml = '<description>Main Office</description>'
         instance = CreateFromDocument(xml)
-        self.assertEqual(1, len(instance.content()))
-        self.assertTrue(instance.sub_description() is None)
-        self.assertEqual(instance.content()[0], 'Main Office')
+        self.assertEqual(1, len(instance.content))
+        self.assertTrue(instance.sub_description is None)
+        self.assertEqual(instance.content[0], 'Main Office')
 
     def testMainSub (self):
         xml = '<description>Main Office<sub-description>Floor</sub-description>State</description>'
         instance = CreateFromDocument(xml)
-        self.assertTrue(instance.sub_description() is not None)
-        self.assertEqual(instance.sub_description(), 'Floor')
-        self.assertEqual(3, len(instance.content()))
-        self.assertEqual(instance.content()[0], 'Main Office')
-        self.assertEqual(instance.content()[2], 'State')
+        self.assertTrue(instance.sub_description is not None)
+        self.assertEqual(instance.sub_description, 'Floor')
+        self.assertEqual(3, len(instance.content))
+        self.assertEqual(instance.content[0], 'Main Office')
+        self.assertEqual(instance.content[2], 'State')
 
 if __name__ == '__main__':
     unittest.main()
