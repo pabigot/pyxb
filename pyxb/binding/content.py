@@ -165,6 +165,10 @@ class AttributeUse (pyxb.cscRoot):
         This is not used directly in the default code generation template."""
         return self.__id
 
+    def key (self):
+        """String used as key within object dictionary when storing attribute value."""
+        return self.__key
+
     def dataType (self):
         """The subclass of L{pyxb.binding.basis.simpleTypeDefinition} of which any attribute value must be an instance."""
         return self.__dataType
