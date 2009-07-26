@@ -204,10 +204,13 @@ class AttributeUse (pyxb.cscRoot):
         return self
 
     def validate (self, ctd_instance):
-        value = self.value(ctd_instance)
+        (provided, value) = self.__getValue(ctd_instance)
         if value is not None:
             if self.__prohibited:
                 raise pyxb.ProhibitedAttributeError('Value given for prohibited attribute %s' % (self.__name,))
+            if self.__required and not provided:
+                assert self.__fixed
+                raise pyxb.MissingAttributeError('Fixed required attribute %s was never set' % (self.__name,))
             if not isinstance(value, self.__dataType):
                 raise pyxb.BindingValidationError('Attribute %s value type %s not %s' % (self.__name, type(value), self.__dataType))
             self.__dataType.XsdConstraintsOK(value)
