@@ -129,6 +129,8 @@ class TestTrac0027 (unittest.TestCase):
         self.assertTrue(i._AttributeMap['attr_fixed'].provided(i))
         self.assertEqual(20, i.attr_fixed())
 
+        i.setAttr(1000)
+        self.assertEqual(1000, i.attr())
 
     def testOptionalCtor (self):
         self.assertEqual(3, len(opt_struct._AttributeMap))
@@ -170,6 +172,8 @@ class TestTrac0027 (unittest.TestCase):
         self.assertNotEqual(opt_struct._AttributeMap['attr'], opt_rest._AttributeMap['attr'])
         self.assertEqual(opt_struct._AttributeMap['attr_def'], opt_rest._AttributeMap['attr_def'])
         self.assertEqual(opt_struct._AttributeMap['attr_fixed'], opt_rest._AttributeMap['attr_fixed'])
+
+        self.assertRaises(pyxb.BadTypeValueError, i.setAttr, 1000)
 
 if __name__ == '__main__':
     unittest.main()
