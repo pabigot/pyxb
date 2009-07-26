@@ -104,7 +104,7 @@ class TestCTD (unittest.TestCase):
         # language is marked prohibited in the restriction
         self.assertNotEqual(restrictedEWA_._AttributeMap['language'], emptyWithAttr_._AttributeMap['language'])
         au = restrictedEWA_._AttributeMap['language']
-        self.assertTrue(au is None)
+        self.assertTrue(au.prohibited())
         # capitalized passes through the restriction untouched
         self.assertEqual(restrictedEWA_._AttributeMap['capitalized'], emptyWithAttr_._AttributeMap['capitalized'])
 

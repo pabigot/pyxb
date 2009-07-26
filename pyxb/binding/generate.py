@@ -679,16 +679,6 @@ class %{ctd} (%{superclass}):
             else:
                 aux_init.insert(0, '')
                 au_map['aux_init'] = ', '.join(aux_init)
-        if au.prohibited():
-            attribute_uses.append(templates.replaceInText('%{name_expr} : None', **au_map))
-            definitions.append(templates.replaceInText('''
-    # Attribute %{id} marked prohibited in this type
-    def %{inspector} (self):
-        raise pyxb.ProhibitedAttributeError("Attribute %{name} is prohibited in %{ctd}")
-    def %{mutator} (self, new_value):
-        raise pyxb.ProhibitedAttributeError("Attribute %{name} is prohibited in %{ctd}")
-''', ctd=template_map['ctd'], **au_map))
-            continue
         if ad.scope() != ctd:
             definitions.append(templates.replaceInText('''
     # Attribute %{id} inherited from %{decl_type_en}''', decl_type_en=str(ad.scope().expandedName()), **au_map))
@@ -697,7 +687,17 @@ class %{ctd} (%{superclass}):
         attribute_uses.append(templates.replaceInText('%{use}.name() : %{use}', **au_map))
         definitions.append(templates.replaceInText('''
     # Attribute %{name} uses Python identifier %{id}
-    %{use} = pyxb.binding.content.AttributeUse(%{name_expr}, '%{id}', '%{key}', %{attr_type}%{aux_init})
+    %{use} = pyxb.binding.content.AttributeUse(%{name_expr}, '%{id}', '%{key}', %{attr_type}%{aux_init})''', **au_map))
+        if au.prohibited():
+            definitions.append(templates.replaceInText('''
+    # Attribute %{id} marked prohibited in this type
+    def %{inspector} (self):
+        raise pyxb.ProhibitedAttributeError("Attribute %{name} is prohibited in %{ctd}")
+    def %{mutator} (self, new_value):
+        raise pyxb.ProhibitedAttributeError("Attribute %{name} is prohibited in %{ctd}")
+''', ctd=template_map['ctd'], **au_map))
+        else:
+            definitions.append(templates.replaceInText('''
     def %{inspector} (self):
         """Get the attribute value for %{name}."""
         return self.%{use}.value(self)

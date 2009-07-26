@@ -239,10 +239,7 @@ class AttributeUse (pyxb.cscRoot):
         provided = True
         if isinstance(new_value, xml.dom.Node):
             unicode_value = self.__name.getAttribute(new_value)
-            if unicode_value is not None:
-                if self.__prohibited:
-                    raise pyxb.ProhibitedAttributeError('Prohibited attribute %s found' % (self.__name,))
-            else:
+            if unicode_value is None:
                 if self.__required:
                     raise pyxb.MissingAttributeError('Required attribute %s from %s not found' % (self.__name, ctd_instance._ExpandedName or type(ctd_instance)))
                 provided = False
@@ -255,6 +252,8 @@ class AttributeUse (pyxb.cscRoot):
                 new_value = unicode_value
         else:
             assert new_value is not None
+        if self.__prohibited:
+            raise pyxb.ProhibitedAttributeError('Value given for prohibited attribute %s' % (self.__name,))
         if (new_value is not None) and (not isinstance(new_value, self.__dataType)):
             new_value = self.__dataType.Factory(new_value)
         if self.__fixed and (new_value != self.__defaultValue):

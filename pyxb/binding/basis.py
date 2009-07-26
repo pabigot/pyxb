@@ -1388,10 +1388,6 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         if dom_node is not None:
             attribute_settings.update(self.__AttributesFromDOM(dom_node))
         for fu in self._AttributeMap.values():
-            if fu is None:
-                # @todo: raise exception if somebody tried to set this one
-                # requires an AttributeUse structure to get the various names
-                continue
             iv = kw.get(fu.id())
             if iv is not None:
                 attribute_settings[fu.name()] = iv
@@ -1558,8 +1554,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             else:
                 print 'WARNING: Cannot validate value %s in field %s' % (value, eu.id())
         for au in self._AttributeMap.values():
-            if au is not None:
-                au.validate(self)
+            au.validate(self)
         return True
 
     @classmethod
@@ -1594,7 +1589,6 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         
         # Handle all the attributes that are present in the node
         attrs_available = set(self._AttributeMap.values())
-        attrs_available.discard(None)
         for (attr_en, value) in attribute_settings.items():
             au = self._AttributeMap.get(attr_en, None)
             if au is None:
@@ -1673,8 +1667,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         
         self._resetContent()
         for au in self._AttributeMap.values():
-            if au is not None:
-                au.reset(self)
+            au.reset(self)
         for eu in self._ElementMap.values():
             eu.reset(self)
         if self._ContentModel is not None:
@@ -1809,8 +1802,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
     def _setDOMFromAttributes (self, dom_support, element):
         """Add any appropriate attributes from this instance into the DOM element."""
         for au in self._AttributeMap.values():
-            if au is not None:
-                au.addDOMAttribute(dom_support, self, element)
+            au.addDOMAttribute(dom_support, self, element)
         return element
 
     def _toDOM_csc (self, dom_support, parent):
