@@ -9,14 +9,14 @@ import time
 # what PyXB named it.
 class my_xtvd (tmstvd.xtvd.typeDefinition()):
     def equal (self, other):
-        if len(self.stations().station()) != len(other.stations().station()):
+        if len(self.stations.station) != len(other.stations.station):
             return False
-        for i in range(len(self.stations().station())):
-            s = self.stations().station()[i]
-            o = other.stations().station()[i]
-            if (s.callSign() != o.callSign()) or (s.name() != o.name()) or (s.id() != o.id()):
+        for i in range(len(self.stations.station)):
+            s = self.stations.station[i]
+            o = other.stations.station[i]
+            if (s.callSign != o.callSign) or (s.name != o.name) or (s.id != o.id):
                 return False
-            print 'Match station %s is %s, id %d' % (s.callSign(), s.name(), s.id())
+            print 'Match station %s is %s, id %d' % (s.callSign, s.name, s.id)
         return True
 tmstvd.xtvd.typeDefinition()._SetSupersedingClass(my_xtvd)
 

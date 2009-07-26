@@ -7,11 +7,11 @@ uri = 'http://ws.cdyne.com/WeatherWS/Weather.asmx/GetCityForecastByZIP?ZIP=85711
 xml = urllib2.urlopen(uri).read()
 doc = domutils.StringToDOM(xml)
 fc_return = weather.CreateFromDOM(doc.documentElement)
-if fc_return.Success():
-    print 'Weather forecast for %s, %s:' % (fc_return.City(), fc_return.State())
-    for fc in fc_return.ForecastResult().Forecast():
-        when = time.strftime('%A, %B %d %Y', fc.Date().timetuple())
-        outlook = fc.Desciption() # typos in WSDL left unchanged
-        low = fc.Temperatures().MorningLow()
-        high = fc.Temperatures().DaytimeHigh()
+if fc_return.Success:
+    print 'Weather forecast for %s, %s:' % (fc_return.City, fc_return.State)
+    for fc in fc_return.ForecastResult.Forecast:
+        when = time.strftime('%A, %B %d %Y', fc.Date.timetuple())
+        outlook = fc.Desciption # typos in WSDL left unchanged
+        low = fc.Temperatures.MorningLow
+        high = fc.Temperatures.DaytimeHigh
         print '  %s: %s, from %s to %s' % (when, outlook, low, high)

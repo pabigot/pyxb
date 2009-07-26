@@ -24,28 +24,28 @@ uri_src = open('ndfdXML.wsdl')
 doc = xml.dom.minidom.parseString(uri_src.read())
 spec = wsdl.definitions.createFromDOM(doc.documentElement, process_schema=True)
 
-binding = spec.binding()[0]
-print binding.name()
-port_type = spec.portType()[0]
-print port_type.name()
+binding = spec.binding[0]
+print binding.name
+port_type = spec.portType[0]
+print port_type.name
 bop = binding.operationMap()[body_dom.localName]
 print bop.toxml()
 pop = port_type.operationMap()[body_dom.localName]
 print pop.toxml()
-input = pop.input()
+input = pop.input
 print input.toxml()
 print type(input)
-print input.message()
-im_en = input._namespaceContext().interpretQName(input.message())
+print input.message
+im_en = input._namespaceContext().interpretQName(input.message)
 print im_en
 msg = im_en.message()
 print msg
-for p in msg.part():
+for p in msg.part:
     print p.toxml()
 msg_ns = pyxb.namespace.NamespaceForURI(body_dom.namespaceURI)
 print '%s %s' % (body_dom.namespaceURI, msg_ns)
 
-parts = msg.part()
+parts = msg.part
 nodes = body_dom.childNodes
 
 while parts and nodes:
@@ -54,7 +54,7 @@ while parts and nodes:
         nodes.pop(0)
     assert nodes
     n = nodes.pop(0)
-    print '%s %s' % (p.name(), n.localName)
+    print '%s %s' % (p.name, n.localName)
 
 #print '%s yielded %s' msg_ns
 
