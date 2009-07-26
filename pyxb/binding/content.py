@@ -261,6 +261,26 @@ class AttributeUse (pyxb.cscRoot):
         self.__setValue(ctd_instance, new_value, provided)
         return new_value
 
+    def _description (self, name_only=False):
+        if name_only:
+            return str(self.__name)
+        assert issubclass(self.__dataType, basis._TypeBinding_mixin)
+        desc = [ str(self.__id), ': ', str(self.__name), ' (', self.__dataType._description(name_only=True), '), ' ]
+        if self.__required:
+            desc.append('required')
+        elif self.__prohibited:
+            desc.append('prohibited')
+        else:
+            desc.append('optional')
+        if self.__defaultValue is not None:
+            desc.append(', ')
+            if self.__fixed:
+                desc.append('fixed')
+            else:
+                desc.append('default')
+            desc.extend(['=', self.__unicodeDefault ])
+        return ''.join(desc)
+
 class ElementUse (pyxb.cscRoot):
     """Aggregate the information relevant to an element of a complex type.
 
@@ -439,6 +459,15 @@ class ElementUse (pyxb.cscRoot):
             element.appendChild(dom_support.document().createTextNode(value))
         else:
             raise pyxb.LogicError('toDOM with unrecognized value type %s: %s' % (type(value), value))
+
+    def _description (self, name_only=False):
+        if name_only:
+            return str(self.__name)
+        desc = [ str(self.__id), ': ']
+        if self.isPlural():
+            desc.append('MULTIPLE ')
+        desc.append(self.elementBinding()._description())
+        return ''.join(desc)
 
 class _DFAState (object):
     """Base class for a suspended DFA interpretation."""

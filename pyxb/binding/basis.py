@@ -364,6 +364,13 @@ class _TypeBinding_mixin (pyxb.cscRoot):
             return True
         return self._validateBinding_vx()
 
+    @classmethod
+    def _Name (cls):
+        if cls._ExpandedName is not None:
+            name = str(cls._ExpandedName)
+        else:
+            name = str(type(cls))
+        return name
 
 class _DynamicCreate_mixin (pyxb.cscRoot):
     """Helper to allow overriding the implementation class.
@@ -819,6 +826,14 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
         """STDs have simple type content."""
         return True
 
+    @classmethod
+    def _description (cls, name_only=False):
+        name = cls._Name()
+        if name_only:
+            return name
+        desc = [ name, ' restriction of ', cls.XsdSuperType()._description(name_only=True) ]
+        return ''.join(desc)
+
 class STD_union (simpleTypeDefinition):
     """Base class for union datatypes.
 
@@ -910,6 +925,15 @@ class STD_union (simpleTypeDefinition):
     def __init__ (self, *args, **kw):
         raise pyxb.LogicError('%s: cannot construct instances of union' % (self.__class__.__name__,))
 
+    @classmethod
+    def _description (cls, name_only=False):
+        name = cls._Name()
+        if name_only:
+            return name
+        desc = [ name, ', union of ']
+        desc.append(', '.join([ _td._description(name_only=True) for _td in cls._MemberTypes ]))
+        return ''.join(desc)
+
 class STD_list (simpleTypeDefinition, types.ListType):
     """Base class for collection datatypes.
 
@@ -970,20 +994,19 @@ class STD_list (simpleTypeDefinition, types.ListType):
         """Convert from a binding value to a string usable in an XML document."""
         return ' '.join([ _v.xsdLiteral() for _v in value ])
 
+    @classmethod
+    def _description (cls, name_only=False):
+        name = cls._Name()
+        if name_only:
+            return name
+        desc = [ name, ', list of ', cls._ItemType._description(name_only=True) ]
+        return ''.join(desc)
+
 class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
     """Class that represents a schema element.
 
     Global and local elements are represented by instances of this class.
     """
-
-    _ExpandedName = None
-    """The expanded name of the component."""
-
-    # Reference to the simple or complex type binding that serves as
-    # the content of this element.
-    # MUST BE SET IN SUBCLASS
-    _typeDefinition = None
-    """The subclass of complexTypeDefinition that is used to represent content in this element."""
 
     def name (self):
         """The expanded name of the element within its scope."""
@@ -1262,6 +1285,19 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
     def __str__ (self):
         return 'Element %s' % (self.name(),)
 
+    def _description (self, name_only=False):
+        name = str(self.name())
+        if name_only:
+            return name
+        desc = [ name, ' (', self.typeDefinition()._description(name_only=True), ')' ]
+        if self.scope() is not None:
+            desc.extend([', local to ', self.scope()._description(name_only=True) ])
+        if self.nillable():
+            desc.append(', nillable')
+        if self.substitutionGroup() is not None:
+            desc.extend([', substitutes for ', self.substitutionGroup()._description(name_only=True) ])
+        return ''.join(desc)
+
 class enumeration_mixin (pyxb.cscRoot):
     """Marker in case we need to know that a PST has an enumeration constraint facet."""
     pass
@@ -1280,11 +1316,11 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
     _CT_MIXED = 'MIXED'                 #<<< Children may be elements or other (e.g., character) content
     _CT_ELEMENT_ONLY = 'ELEMENT_ONLY'   #<<< Expect only element content.
 
-    _ContentType = None
+    _ContentTypeTag = None
 
     _TypeDefinition = None
     """Subclass of simpleTypeDefinition that corresponds to the type content.
-    Only valid if _ContentType is _CT_SIMPLE"""
+    Only valid if _ContentTypeTag is _CT_SIMPLE"""
 
     # If the type supports wildcard attributes, this describes their
     # constraints.  (If it doesn't, this should remain None.)  Supporting
@@ -1837,6 +1873,34 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
     def _IsSimpleTypeContent (cls):
         """CTDs with simple content are simple; other CTDs are not."""
         return cls._CT_SIMPLE == cls._ContentTypeTag
+
+    @classmethod
+    def _description (cls, name_only=False):
+        name = cls._Name()
+        if name_only:
+            return name
+        desc = [ name ]
+        if cls._CT_EMPTY == cls._ContentTypeTag:
+            desc.append(', empty content')
+        elif cls._CT_SIMPLE == cls._ContentTypeTag:
+            desc.extend([', simple content type ', cls._TypeDefinition._description(name_only=True)])
+        else:
+            if cls._CT_MIXED == cls._ContentTypeTag:
+                desc.append(', mixed content')
+            else:
+                assert cls._CT_ELEMENT_ONLY == cls._ContentTypeTag
+                desc.append(', element-only content')
+        if (0 < len(cls._AttributeMap)) or (cls._AttributeWildcard is not None):
+            desc.append("\nAttributes:\n  ")
+            desc.append("\n  ".join([ _au._description() for _au in cls._AttributeMap.values() ]))
+            if cls._AttributeWildcard is not None:
+                desc.append("  Wildcard attribute(s)\n")
+        if (0 < len(cls._ElementMap)) or cls._HasWildcardElement:
+            desc.append("\nElements:\n  ")
+            desc.append("\n  ".join([ _eu._description() for _eu in cls._ElementMap.values() ]))
+            if cls._HasWildcardElement:
+                desc.append("  Wildcard element(s)\n")
+        return ''.join(desc)
 
 ConfigureBindingStyle(DEFAULT_BINDING_STYLE)
 
