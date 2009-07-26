@@ -1225,6 +1225,14 @@ class AttributeUse (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin, _V
     def required (self): return self.USE_required == self.__use
     def prohibited (self): return self.USE_prohibited == self.__use
 
+    __restrictionOf = None
+    def restrictionOf (self):
+        return self.__restrictionOf
+    def _setRestrictionOf (self, au):
+        assert isinstance(au, AttributeUse)
+        assert self.__restrictionOf is None
+        self.__restrictionOf = au
+
     # A reference to an AttributeDeclaration
     def attributeDeclaration (self):
         """The attribute declaration for this use.
@@ -1685,7 +1693,6 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         exists) will be returned.
         """
         if reset or (self.__localScopedDeclarations is None):
-
             rve = [ _ed for _ed in self.__scopedElementDeclarations.values() if (self == _ed.scope()) ]
             rve.sort(lambda _a, _b: cmp(_a.expandedName(), _b.expandedName()))
             rva = [ _ad for _ad in self.__scopedAttributeDeclarations.values() if (self == _ad.scope()) ]
@@ -1909,9 +1916,9 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
     # Handle attributeUses, attributeWildcard, contentType
     def __completeProcessing (self, method, content_style):
         # Handle clauses 1 and 2 (common between simple and complex types)
-        uses_c1 = self.__usesC1
-        uses_c2 = set()
-        uses_c3 = set()
+        uses_c1 = self.__usesC1 # attribute children
+        uses_c2 = set()  # attribute group children
+        uses_c3 = set()  # base attributes
         attribute_groups = []
         for ag_attr in self.__attributeGroupAttributes:
             ag_en = self._namespaceContext().interpretQName(ag_attr)
@@ -1925,12 +1932,10 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
             uses_c2.update(agd.attributeUses())
 
         uses_c12 = uses_c1.union(uses_c2)
-        uses_c12_map = { }
         for au in uses_c12:
             if not au.isResolved():
                 self._queueForResolution('attribute use not resolved')
                 return self
-            uses_c12_map[au.attributeDeclaration().expandedName()] = au
 
         # Handle clause 3.  Note the slight difference in description between
         # simple and complex content is just that the complex content doesn't
@@ -1938,26 +1943,37 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         # definition.  So the same code should work for both, and we don't
         # bother to check content_style.
         if isinstance(self.__baseTypeDefinition, ComplexTypeDefinition):
-            uses_c3_map = { }
-            for au in self.__baseTypeDefinition.__attributeUses:
+            uses_c3 = set(self.__baseTypeDefinition.__attributeUses)
+            for au in uses_c3:
                 if not au.isResolved():
                     self._queueForResolution('unresolved attribute use from base type')
                     return self
-                if not au.prohibited():
-                    uses_c3_map[au.attributeDeclaration().expandedName()] = au
             if self.DM_restriction == method:
                 # Exclude attributes per clause 3.  Note that this process
                 # handles both 3.1 and 3.2, since we have not yet filtered
                 # uses_c1 for prohibited attributes.
                 for au in uses_c12:
-                    matching_uses = au.matchingQNameMembers(uses_c3_map.values())
+                    matching_uses = au.matchingQNameMembers(uses_c3)
+                    #print 'Matching %s is %s' % (au, matching_uses)
                     if matching_uses is None:
                         self._queueForResolution('missing au qname member match')
                         return self
+                    assert 1 >= len(matching_uses), 'Multiple inherited attribute uses with name %s'
                     for au2 in matching_uses:
                         assert au2.isResolved()
-                        uses_c3_map.pop(au2.attributeDeclaration().expandedName(), None)
-            uses_c3 = uses_c3_map.values()
+                        uses_c3.remove(au2)
+                        au._setRestrictionOf(au2)
+            else:
+                # In theory, the same attribute name can't appear in the base
+                # and sub types because that would violate the local
+                # declaration constraint.
+                assert self.DM_extension == method
+
+        #print "CTD %s:\n%s\n%s\n%s\n" % (self.expandedName(),
+        #                                 "\n".join([ 'u1: %s' % (str(_au),) for _au in uses_c1 ]),
+        #                                 "\n".join([ 'u2: %s' % (str(_au),) for _au in uses_c2 ]),
+        #                                 "\n".join([ 'u3: %s' % (str(_au),) for _au in uses_c3 ]))
+
 
         use_map = { }
         for au in uses_c12.union(uses_c3):

@@ -652,6 +652,11 @@ class %{ctd} (%{superclass}):
         au_map = ad._templateMap()
         if ad.scope() == ctd:
             assert isinstance(au_map, dict)
+            if au.restrictionOf() is not None:
+                #print 'Local %s restriction of %s' % (au_map, au.restrictionOf().attributeDeclaration()._templateMap())
+                au_map = au.restrictionOf().attributeDeclaration()._templateMap().copy()
+                definitions.append(templates.replaceInText('''
+    # Attribute %{id} is restricted from parent''', **au_map))
 
             assert ad.typeDefinition() is not None
             au_map['attr_type'] = binding_module.literal(ad.typeDefinition(), **kw)

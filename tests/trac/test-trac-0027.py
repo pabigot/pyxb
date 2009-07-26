@@ -25,6 +25,7 @@ xsd='''<?xml version="1.0" encoding="UTF-8"?>
   <xs:element name="ireq_struct" type="req_struct"/>
   <xs:element name="iopt_struct" type="opt_struct"/>
   <xs:complexType name="opt_def">
+    <!-- This does have three attributes; it just changes one of the ones it inherits -->
     <xs:complexContent>
       <xs:restriction base="opt_struct">
         <xs:attribute name="attr" type="xs:int" default="5"/>
@@ -32,6 +33,24 @@ xsd='''<?xml version="1.0" encoding="UTF-8"?>
     </xs:complexContent>
   </xs:complexType>
   <xs:element name="iopt_def" type="opt_def"/>
+  <xs:complexType name="opt_pro">
+    <xs:complexContent>
+      <xs:restriction base="opt_struct">
+        <xs:attribute name="attr" use="prohibited"/>
+        <xs:attribute name="attr_def" use="prohibited"/>
+      </xs:restriction>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="iopt_pro" type="opt_pro"/>
+<!-- TEST: Cannot put back an attribute that was removed.
+  <xs:complexType name="opt_pro_ext">
+    <xs:complexContent>
+      <xs:extension base="opt_pro">
+        <xs:attribute name="attr" type="xs:float"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+-->
 </xs:schema>'''
 
 code = pyxb.binding.generate.GeneratePython(schema_text=xsd)
@@ -79,6 +98,8 @@ class TestTrac0027 (unittest.TestCase):
         self.assertEqual(3, len(opt_struct._AttributeMap))
         i = iopt_struct()
 
+        self.assertTrue(i.attr() is None)
+
         self.assertFalse(i._AttributeMap['attr_def'].provided(i))
         self.assertEqual(10, i.attr_def())
         i.setAttr_def(11)
@@ -96,9 +117,36 @@ class TestTrac0027 (unittest.TestCase):
         self.assertTrue(i._AttributeMap['attr_fixed'].provided(i))
         self.assertEqual(20, i.attr_fixed())
 
+
+    def testOptionalCtor (self):
+        self.assertEqual(3, len(opt_struct._AttributeMap))
+        self.assertRaises(pyxb.AttributeChangeError, opt_struct, attr_fixed=21)
+
+        i = iopt_struct(attr=1, attr_def=2, attr_fixed=20)
+        self.assertTrue(i.validateBinding())
+
+        self.assertEqual(1, i.attr())
+        self.assertEqual(2, i.attr_def())
+
     def testOptDef (self):
-        self.assertEqual(1, len(opt_def._AttributeMap))
+        self.assertEqual(3, len(opt_def._AttributeMap))
+        self.assertNotEqual(opt_struct._AttributeMap['attr'], opt_def._AttributeMap['attr'])
+        self.assertEqual(opt_struct._AttributeMap['attr'].key(), opt_def._AttributeMap['attr'].key())
+        self.assertEqual(opt_struct._AttributeMap['attr_def'], opt_def._AttributeMap['attr_def'])
+        self.assertEqual(opt_struct._AttributeMap['attr_fixed'], opt_def._AttributeMap['attr_fixed'])
         i = opt_def()
+        self.assertEqual(5, i.attr())
+
+    def testOptPro (self):
+        self.assertEqual(3, len(opt_pro._AttributeMap))
+        self.assertTrue(opt_pro._AttributeMap['attr'] is None)
+        self.assertTrue(opt_pro._AttributeMap['attr_def'] is None)
+        self.assertEqual(opt_struct._AttributeMap['attr_fixed'], opt_pro._AttributeMap['attr_fixed'])
+        i = opt_pro()
+        self.assertRaises(pyxb.ProhibitedAttributeError, i.attr)
+
+    def testOptProCtor (self):
+        self.assertRaises(pyxb.ProhibitedAttributeError, opt_pro, attr=1)
         
 
 if __name__ == '__main__':
