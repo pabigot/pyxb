@@ -24,6 +24,14 @@ xsd='''<?xml version="1.0" encoding="UTF-8"?>
   </xs:complexType>
   <xs:element name="ireq_struct" type="req_struct"/>
   <xs:element name="iopt_struct" type="opt_struct"/>
+  <xs:complexType name="opt_def">
+    <xs:complexContent>
+      <xs:restriction base="opt_struct">
+        <xs:attribute name="attr" type="xs:int" default="5"/>
+      </xs:restriction>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="iopt_def" type="opt_def"/>
 </xs:schema>'''
 
 code = pyxb.binding.generate.GeneratePython(schema_text=xsd)
@@ -61,6 +69,11 @@ class TestTrac0027 (unittest.TestCase):
 
         self.assertRaises(pyxb.AttributeChangeError, i.setRattr_fixed, 41)
 
+    def testRequiredCTor (self):
+        i = ireq_struct(rattr=11, rattr_fixed=30)
+        self.assertTrue(i.validateBinding())
+
+        self.assertRaises(pyxb.AttributeChangeError, ireq_struct, rattr=11, rattr_fixed=31)
 
     def testOptional (self):
         self.assertEqual(3, len(opt_struct._AttributeMap))
@@ -68,10 +81,25 @@ class TestTrac0027 (unittest.TestCase):
 
         self.assertFalse(i._AttributeMap['attr_def'].provided(i))
         self.assertEqual(10, i.attr_def())
+        i.setAttr_def(11)
+        self.assertEqual(11, i.attr_def())
+        self.assertTrue(i._AttributeMap['attr_def'].provided(i))
 
         self.assertFalse(i._AttributeMap['attr_fixed'].provided(i))
         self.assertEqual(20, i.attr_fixed())
 
+        self.assertRaises(pyxb.AttributeChangeError, i.setAttr_fixed, 21)
+        self.assertFalse(i._AttributeMap['attr_fixed'].provided(i))
+        self.assertEqual(20, i.attr_fixed())
+
+        i.setAttr_fixed(20)
+        self.assertTrue(i._AttributeMap['attr_fixed'].provided(i))
+        self.assertEqual(20, i.attr_fixed())
+
+    def testOptDef (self):
+        self.assertEqual(1, len(opt_def._AttributeMap))
+        i = opt_def()
+        
 
 if __name__ == '__main__':
     unittest.main()
