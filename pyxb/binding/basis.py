@@ -1658,9 +1658,9 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             raise pyxb.NotSimpleContentError(self)
         if self._isNil():
             return True
-        if self.value() is None:
+        if self.__valueProperty is None:
             raise pyxb.MissingContentError(self)
-        return self.value().xsdConstraintsOK()
+        return self.__valueProperty.xsdConstraintsOK()
 
     __content = None
     def __contentAccessor (self):
@@ -1853,7 +1853,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         elif self._CT_EMPTY == self._ContentTypeTag:
             pass
         elif self._CT_SIMPLE == self._ContentTypeTag:
-            element.appendChild(dom_support.document().createTextNode(self.value().xsdLiteral()))
+            element.appendChild(dom_support.document().createTextNode(self.__valueProperty.xsdLiteral()))
         else:
             order = self._validatedChildren()
             if order is None:
