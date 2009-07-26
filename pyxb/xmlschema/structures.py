@@ -409,27 +409,27 @@ class _NamedComponent_mixin (pyxb.cscRoot):
         """Return true iff this instance is locally scoped (has no name)."""
         return self.__name is None
 
-    def _setAnonymousName (self, archive, namespace):
+    def _setAnonymousName (self, namespace, unique_id=None, anon_name=None):
         assert self.__anonymousName is None
         assert self.__needAnonymousSupport()
-        pickling_archive = pyxb.namespace.NamespaceArchive.PicklingArchive()
-        assert pickling_archive is not None
-        anon_name = self.nameInBinding()
-        if anon_name is None:
-            anon_name = self.name()
-        if anon_name is None:
-            anon_name = 'ANON_IN_GROUP'
         assert namespace is not None
         if self.bindingNamespace() is not None:
             assert self.bindingNamespace() == namespace
         if self.targetNamespace() is not None:
             assert self.targetNamespace() == namespace
-        anon_name = '%s_%s' % (anon_name, archive.generationUID())
-        anon_name = pyxb.utils.utility.MakeUnique(anon_name, set(namespace.categoryMap(self.__AnonymousCategory).keys()))
+        if anon_name is None:
+            anon_name = self.nameInBinding()
+            if anon_name is None:
+                anon_name = self.name()
+            if anon_name is None:
+                anon_name = 'ANON_IN_GROUP'
+            if unique_id is not None:
+                anon_name = '%s_%s' % (anon_name, unique_id)
+            anon_name = pyxb.utils.utility.MakeUnique(anon_name, set(namespace.categoryMap(self.__AnonymousCategory).keys()))
         self.__anonymousName = anon_name
         namespace.addCategoryObject(self.__AnonymousCategory, anon_name, self)
     def _anonymousName (self, namespace=None):
-        assert self.__anonymousName is not None
+        assert self.__anonymousName is not None, '%s in %s missing anonymous name' % (self, self.targetNamespace(), self.__anonymousName)
         return self.__anonymousName
     __anonymousName = None
 
@@ -463,11 +463,11 @@ class _NamedComponent_mixin (pyxb.cscRoot):
     __AnonymousCategory = pyxb.namespace.NamespaceArchive._AnonymousCategory()
 
     def __needAnonymousSupport (self):
-        return self.isAnonymous() or self._scopeIsIndeterminate()
+        return self.isAnonymous() or (self._scopeIsIndeterminate() and not isinstance(self, AttributeGroupDefinition))
 
     def _prepareForArchive_csc (self, archive, namespace):
         if self.__needAnonymousSupport():
-            self._setAnonymousName(archive, namespace)
+            self._setAnonymousName(namespace, unique_id=archive.generationUID())
         return getattr(super(_NamedComponent_mixin, self), '_prepareForArchive_csc', lambda *_args,**_kw: self)(archive, namespace)
 
     def _picklesInNamespaces (self, namespaces):
@@ -1802,11 +1802,10 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         assert self.isNameEquivalent(other)
         super(ComplexTypeDefinition, self)._updateFromOther_csc(other)
 
-        # The other CTD should be an unresolved schema-defined type.
-        assert other.__derivationMethod is None
-
-        # Mark this instance as unresolved so it is re-examined
-        self.__derivationMethod = None
+        if not other.isResolved():
+            if pyxb.namespace.BuiltInObjectUID != self._objectOriginUID():
+                self.__derivationMethod = None
+                
         return self
 
     __UrTypeDefinition = None
@@ -3696,6 +3695,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
             bi.__baseTypeDefinition = datatypes.NCName.SimpleTypeDefinition()
             bi.__primitiveTypeDefinition = bi.__baseTypeDefinition.__primitiveTypeDefinition
             bi._setPythonSupport(pyxb.binding.xml_.STD_ANON_space)
+            bi.setNameInBinding('STD_ANON_space')
             return bi
         if 'lang' == name:
             bi = cls(namespace_context=ns_ctx, binding_namespace=ns_ctx.targetNamespace(), variety=cls.VARIETY_atomic, scope=_ScopedDeclaration_mixin.SCOPE_global)
@@ -3703,6 +3703,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
             bi.__memberTypes = [ datatypes.language.SimpleTypeDefinition() ]
             bi.__derivationAlternative = cls._DA_union
             bi._setPythonSupport(pyxb.binding.xml_.STD_ANON_lang)
+            bi.setNameInBinding('STD_ANON_lang')
             return bi
         raise pyxb.IncompleteImplementationError('No implementation for %s' % (name,))
 

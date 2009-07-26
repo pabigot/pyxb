@@ -1716,11 +1716,20 @@ class _XML (Namespace):
         assert structures_module is not None
         import pyxb.binding.datatypes as xsd
         import pyxb.binding.facets as xsdf
+
+        self.configureCategories([NamespaceArchive._AnonymousCategory()])
+
+        std_space = structures_module.SimpleTypeDefinition._CreateXMLInstance('space')
+        std_space._setAnonymousName(self, anon_name='STD_ANON_space')
+        std_space._setBindingNamespace(self)
+        std_lang = structures_module.SimpleTypeDefinition._CreateXMLInstance('lang')
+        std_lang._setAnonymousName(self, anon_name='STD_ANON_lang')
+        std_lang._setBindingNamespace(self)
+
         schema = structures_module.Schema(namespace_context=self.initialNamespaceContext(), schema_location="URN:noLocation:XML")
+
         base = schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('base', self, std=xsd.anyURI.SimpleTypeDefinition()))
         id = schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('id', self, std=xsd.ID.SimpleTypeDefinition()))
-        std_space = structures_module.SimpleTypeDefinition._CreateXMLInstance('space')
-        std_lang = structures_module.SimpleTypeDefinition._CreateXMLInstance('lang')
         space = schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('space', self, std=std_space))
         lang = schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('lang', self, std=std_lang))
 
@@ -1730,6 +1739,7 @@ class _XML (Namespace):
                     structures_module.AttributeUse.CreateBaseInstance(self, lang),
                     structures_module.AttributeUse.CreateBaseInstance(self, id),
                     ]))
+        
         return self
 
 class _XMLSchema (Namespace):
