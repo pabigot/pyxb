@@ -1685,7 +1685,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         @raise pyxb.NotSimpleContentError: this is not a complex type with simple content
         """
         if self._CT_SIMPLE != self._ContentTypeTag:
-            raise pyxb.NotSimpleContentError(str(self._ExpandedName))
+            raise pyxb.NotSimpleContentError('%s (%s)' % (str(self._ExpandedName), type(self)))
         return self.__content
     __valueProperty = property(__valueAccessor)
 
