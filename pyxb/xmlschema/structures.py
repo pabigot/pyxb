@@ -1230,7 +1230,8 @@ class AttributeUse (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin, _V
         return self.__restrictionOf
     def _setRestrictionOf (self, au):
         assert isinstance(au, AttributeUse)
-        assert self.__restrictionOf is None
+        # Might re-assign if had to suspend resolution
+        assert (self.__restrictionOf is None) or (self.__restrictionOf == au)
         self.__restrictionOf = au
 
     # A reference to an AttributeDeclaration
@@ -1911,53 +1912,70 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         
         return rv.__setContentFromDOM(node, **kw)
 
+    __ckw = None
     __usesC1 = None
+    __usesC1C2 = None
+    __attributeGroups = None
 
     # Handle attributeUses, attributeWildcard, contentType
     def __completeProcessing (self, method, content_style):
-        # Handle clauses 1 and 2 (common between simple and complex types)
-        uses_c1 = self.__usesC1 # attribute children
-        uses_c2 = set()  # attribute group children
-        uses_c3 = set()  # base attributes
-        attribute_groups = []
-        for ag_attr in self.__attributeGroupAttributes:
-            ag_en = self._namespaceContext().interpretQName(ag_attr)
-            agd = ag_en.attributeGroupDefinition()
-            if agd is None:
-                raise pyxb.SchemaValidationError('Attribute group %s cannot be found' % (ag_en,))
-            if not agd.isResolved():
-                self._queueForResolution('unresolved attribute group')
-                return self
-            attribute_groups.append(agd)
-            uses_c2.update(agd.attributeUses())
 
-        uses_c12 = uses_c1.union(uses_c2)
-        for au in uses_c12:
-            if not au.isResolved():
-                self._queueForResolution('attribute use not resolved')
-                return self
+        if self.__usesC1C2 is None:
+            # Handle clauses 1 and 2 (common between simple and complex types)
+            uses_c1 = self.__usesC1 # attribute children
+            uses_c2 = set()  # attribute group children
+            self.__attributeGroups = []
+            for ag_attr in self.__attributeGroupAttributes:
+                ag_en = self._namespaceContext().interpretQName(ag_attr)
+                agd = ag_en.attributeGroupDefinition()
+                if agd is None:
+                    raise pyxb.SchemaValidationError('Attribute group %s cannot be found' % (ag_en,))
+                if not agd.isResolved():
+                    self._queueForResolution('unresolved attribute group')
+                    return self
+                self.__attributeGroups.append(agd)
+                uses_c2.update(agd.attributeUses())
+    
+            uses_c1c2 = uses_c1.union(uses_c2)
+            for au in uses_c1c2:
+                if not au.isResolved():
+                    self._queueForResolution('attribute use not resolved')
+                    return self
+                ad_en = au.attributeDeclaration().expandedName()
+                if not au.attributeDeclaration().isResolved():
+                    self._queueForResolution('unresolved attribute declaration %s from base type' % (ad_en,))
+                    return self
+    
+            self.__usesC1C2 = frozenset([ _u._adaptForScope(self) for _u in uses_c1c2 ])
 
         # Handle clause 3.  Note the slight difference in description between
         # simple and complex content is just that the complex content doesn't
         # bother to check that the base type definition is a complex type
         # definition.  So the same code should work for both, and we don't
         # bother to check content_style.
+        uses_c3 = set()  # base attributes
         if isinstance(self.__baseTypeDefinition, ComplexTypeDefinition):
+            # NB: The base type definition should be resolved, which means
+            # that all its attribute uses have been adapted for scope already
             uses_c3 = set(self.__baseTypeDefinition.__attributeUses)
+            assert self.__baseTypeDefinition.isResolved()
             for au in uses_c3:
                 if not au.isResolved():
                     self._queueForResolution('unresolved attribute use from base type')
                     return self
+                ad_en = au.attributeDeclaration().expandedName()
+                if not au.attributeDeclaration().isResolved():
+                    self._queueForResolution('unresolved attribute declaration %s from base type' % (ad_en,))
+                    return self
+                assert not au.attributeDeclaration()._scopeIsIndeterminate()
+            
             if self.DM_restriction == method:
                 # Exclude attributes per clause 3.  Note that this process
                 # handles both 3.1 and 3.2, since we have not yet filtered
                 # uses_c1 for prohibited attributes.
-                for au in uses_c12:
+                for au in self.__usesC1C2:
                     matching_uses = au.matchingQNameMembers(uses_c3)
-                    #print 'Matching %s is %s' % (au, matching_uses)
-                    if matching_uses is None:
-                        self._queueForResolution('missing au qname member match')
-                        return self
+                    assert matching_uses is not None
                     assert 1 >= len(matching_uses), 'Multiple inherited attribute uses with name %s'
                     for au2 in matching_uses:
                         assert au2.isResolved()
@@ -1969,26 +1987,17 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
                 # declaration constraint.
                 assert self.DM_extension == method
 
-        #print "CTD %s:\n%s\n%s\n%s\n" % (self.expandedName(),
-        #                                 "\n".join([ 'u1: %s' % (str(_au),) for _au in uses_c1 ]),
-        #                                 "\n".join([ 'u2: %s' % (str(_au),) for _au in uses_c2 ]),
-        #                                 "\n".join([ 'u3: %s' % (str(_au),) for _au in uses_c3 ]))
-
-
         use_map = { }
-        for au in uses_c12.union(uses_c3):
+        for au in self.__usesC1C2.union(uses_c3):
             assert au.isResolved()
             ad_en = au.attributeDeclaration().expandedName()
-            if not au.attributeDeclaration().isResolved():
-                self._queueForResolution('unresolved attribute declaration %s from base type' % (ad_en,))
-                return self
             if ad_en in use_map:
                 raise pyxb.SchemaValidationError('Multiple definitions for %s in CTD %s' % (ad_en, self.expandedName()))
             use_map[ad_en] = au
         
         # Past the last point where we might not resolve this instance.  Store
         # the attribute uses, also recording local attribute declarations.
-        self.__attributeUses = frozenset([ _u._adaptForScope(self) for _u in use_map.values() ])
+        self.__attributeUses = frozenset(use_map.values())
         if not self._scopeIsIndeterminate():
             for au in self.__attributeUses:
                 assert not au.attributeDeclaration()._scopeIsIndeterminate(), 'indeterminate scope for %s' % (au,)
@@ -2000,7 +2009,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
             local_wildcard = Wildcard.CreateFromDOM(self.__anyAttribute)
 
         # Clause 2
-        complete_wildcard = _AttributeWildcard_mixin.CompleteWildcard(self._namespaceContext(), attribute_groups, self.__anyAttribute, local_wildcard)
+        complete_wildcard = _AttributeWildcard_mixin.CompleteWildcard(self._namespaceContext(), self.__attributeGroups, self.__anyAttribute, local_wildcard)
 
         # Clause 3
         if self.DM_restriction == method:
@@ -2031,7 +2040,9 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         # @todo: Make sure we didn't miss any child nodes
 
         # Remove local attributes we will never use again
-        self.__usesC1 = None
+        del self.__usesC1
+        del self.__usesC1C2
+        del self.__attributeGroups
         self.__ckw = None
 
         # Only now that we've succeeded do we store the method, which
