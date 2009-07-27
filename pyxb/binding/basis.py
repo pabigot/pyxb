@@ -1381,10 +1381,8 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
     def _ConfigureBindingStyle (cls, style):
         if BINDING_STYLE_PROPERTY == style:
             cls.content = cls.__contentProperty
-            cls.value = cls.__valueProperty
         elif BINDING_STYLE_ACCESSOR == style:
             cls.content = cls.__contentAccessor
-            cls.value = cls.__valueAccessor
         else:
             raise pyxb.LogicError('Unrecognized binding style %s' % (style,))
 
@@ -1658,9 +1656,9 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             raise pyxb.NotSimpleContentError(self)
         if self._isNil():
             return True
-        if self.__valueProperty is None:
+        if self.value() is None:
             raise pyxb.MissingContentError(self)
-        return self.__valueProperty.xsdConstraintsOK()
+        return self.value().xsdConstraintsOK()
 
     __content = None
     def __contentAccessor (self):
@@ -1676,7 +1674,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         return self.__content
     __contentProperty = property(__contentAccessor)
 
-    def __valueAccessor (self):
+    def value (self):
         """Return the value of the element.
 
         This must be a complex type with simple content.  The returned value
@@ -1687,7 +1685,6 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         if self._CT_SIMPLE != self._ContentTypeTag:
             raise pyxb.NotSimpleContentError(str(self._ExpandedName))
         return self.__content
-    __valueProperty = property(__valueAccessor)
 
     def _resetContent (self):
         if self._ContentTypeTag in (self._CT_MIXED, self._CT_ELEMENT_ONLY):
@@ -1853,7 +1850,8 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         elif self._CT_EMPTY == self._ContentTypeTag:
             pass
         elif self._CT_SIMPLE == self._ContentTypeTag:
-            element.appendChild(dom_support.document().createTextNode(self.__valueProperty.xsdLiteral()))
+            assert self.value() is not None, '%s has no value' % (self,)
+            element.appendChild(dom_support.document().createTextNode(self.value().xsdLiteral()))
         else:
             order = self._validatedChildren()
             if order is None:
