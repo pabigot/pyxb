@@ -54,9 +54,7 @@ class TestTrac_200907231705 (unittest.TestCase):
         xml = '<Mixed units="m">5<Something/>4</Mixed>'
         self.assertRaises(pyxb.ExtraContentError, CreateFromDocument, xml)
         xml = '<Simple units="m"/>'
-        instance = CreateFromDocument(xml)
-        self.assertTrue(instance.value() is None)
-        self.assertRaises(pyxb.MissingContentError, instance.validateBinding)
+        self.assertRaises(pyxb.MissingContentError, CreateFromDocument, xml)
 
     def testCtorEmpty (self):
         instance = Empty()

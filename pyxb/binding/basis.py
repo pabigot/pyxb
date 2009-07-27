@@ -45,7 +45,7 @@ class _TypeBinding_mixin (pyxb.cscRoot):
 
     _ReservedSymbols = set([ 'validateBinding', 'toDOM', 'toxml', 'Factory' ])
 
-    _PyXBFactoryKeywords = ( '_dom_node', '_apply_whitespace_facet', '_validate_constraints' )
+    _PyXBFactoryKeywords = ( '_dom_node', '_apply_whitespace_facet', '_validate_constraints', '_require_value' )
 
     # While simple type definitions cannot be abstract, they can appear in
     # many places where complex types can, so we want it to be legal to test
@@ -196,6 +196,12 @@ class _TypeBinding_mixin (pyxb.cscRoot):
         @keyword _validate_constraints: If C{True}, any constructed value is
         checked against constraints applied to the union as well as the member
         type.
+
+        @keyword _require_value: If C{False} (default), it is permitted to
+        create a value without an initial value.  If C{True} and no initial
+        value was provided, causes L{pyxb.MissingContentError} to be raised.
+        Only applies to simpleTypeDefinition instances; this is used when
+        creating values from DOM nodes.
         """
         # Invoke _PreFactory_vx for the superseding class, which is where
         # customizations will be found.
@@ -630,11 +636,11 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
     # yet.
     def __new__ (cls, *args, **kw):
         kw.pop('_validate_constraints', None)
+        kw.pop('_require_value', None)
         args = cls._ConvertArguments(args, kw)
         assert issubclass(cls, _TypeBinding_mixin)
         try:
             rv = super(simpleTypeDefinition, cls).__new__(cls, *args, **kw)
-            rv.__hadInitializer = (0 < len(args))
             return rv
         except ValueError, e:
             raise pyxb.BadTypeValueError(e)
@@ -654,12 +660,15 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
         @type _validate_constraints: C{bool}
         """
         validate_constraints = kw.pop('_validate_constraints', self._PerformValidation)
+        require_value = kw.pop('_require_value', False)
         args = self._ConvertArguments(args, kw)
         try:
             super(simpleTypeDefinition, self).__init__(*args, **kw)
         except OverflowError, e:
             raise pyxb.BadTypeValueError(e)
-        self.__hadInitializer = (0 < len(args))
+        if require_value and (not self._constructedWithValue()):
+            raise pyxb.MissingContentError('missing value')
+            
         if validate_constraints:
             self.xsdConstraintsOK()
 
@@ -1446,17 +1455,12 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
                 fkw = [ _k for _k in self._PyXBFactoryKeywords if (_k in kw) ]
                 rkw = dict(zip(fkw, map(kw.get, fkw)))
                 rkw['_dom_node'] = dom_node
-                value = self._TypeDefinition.Factory(*args, **rkw)
-                if self._isNil():
-                    if value._constructedWithValue():
+                value = self._TypeDefinition.Factory(_require_value=not self._isNil(), *args, **rkw)
+                if value._constructedWithValue():
+                    if self._isNil():
                         raise pyxb.ContentInNilElementError(value)
                     else:
-                        pass
-                else:
-                    if value._constructedWithValue():
                         self.append(value)
-                    else:
-                        pass
             else:
                 self._setContentFromDOM(dom_node)
         elif 0 < len(args):
