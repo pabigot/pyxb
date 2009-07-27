@@ -1615,7 +1615,7 @@ class Generator (object):
         The expectation is that any required entities in the namespace
         will be defined by loading schema."""
         self.__noLoadNamespaces.clear()
-        self.__noLoadNamespaces.update(namespace_set)
+        self.__noLoadNamespaces.update([ pyxb.namespace.NamespaceInstance(_ns) for _ns in namespace_set ])
     def addNoLoadNamespace (self, namespace):
         """Mark that the specififed namespace should not be loaded from an archive.
 
@@ -1772,7 +1772,6 @@ class Generator (object):
         
         pyxb.namespace.XML.validateComponentModel()
 
-
     __stripSpaces_re = re.compile('\s\s\s+')
     def __stripSpaces (self, string):
         return self.__stripSpaces_re.sub(' ', string)
@@ -1840,7 +1839,7 @@ class Generator (object):
                               help=self.__stripSpaces(self.bindingRoot.__doc__))
             parser.add_option('--archive-path', metavar="PATH",
                               help=self.__stripSpaces(self.archivePath.__doc__))
-            parser.add_option('--noload_namespace', metavar="URI",
+            parser.add_option('--noload-namespace', metavar="URI",
                               action='append',
                               help=self.__stripSpaces(self.addNoLoadNamespace.__doc__))
             parser.add_option('--archive-file', metavar="FILE",
@@ -1944,6 +1943,9 @@ class Generator (object):
 
     __didResolveExternalSchema = False
     def resolveExternalSchema (self, reset=False):
+        for ns in self._noLoadNamespaces():
+            assert isinstance(ns, pyxb.namespace.Namespace)
+            ns.markNotLoadable()
         if self.__didResolveExternalSchema and (not reset):
             raise pyxb.PyXBException('Cannot resolve external schema multiple times')
         while self.__schemaLocationList:

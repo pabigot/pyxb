@@ -118,10 +118,17 @@ pyxbgen \
   --archive-file=opengis/ows_1_1.wxs \
  || failure ows_1_1
 
-# Creates ogc, om
+pyxbgen \
+  --schema-location=Schemas/om/1.0.0/om.xsd --module=om_1_0 \
+  --module-prefix=opengis \
+  --archive-file=opengis/om_1_0.wxs \
+ || failure om_1_0
+
+# Conflicts with filter's definition of ogc
 pyxbgen \
   --schema-location=Schemas/sos/1.0.0/sosAll.xsd --module=sos_1_0 \
   --module-prefix=opengis \
+  --noload-namespace=http://www.opengis.net/ogc \
   --archive-file=opengis/sos_1_0.wxs \
  || failure sos_1_0
 
@@ -149,7 +156,7 @@ pyxbgen \
   --archive-file=opengis/wcs_1_1.wxs \
  || failure wcs_1_1
 
-# NB: Requires a special (private) version of Dublin Core
+# NB: Uses a special (private) version of Dublin Core
 pyxbgen \
   --schema-location=Schemas/csw/2.0.2/record.xsd --module=csw_2_0_2 \
   --module-prefix=opengis \

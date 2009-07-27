@@ -630,8 +630,10 @@ class _NamespaceArchivable_mixin (pyxb.cscRoot):
         This dissociates not just the namespace, but all of its archives,
         which will no longer be available for use in loading other namespaces,
         since they are likely to depend on this one."""
-        for archive in self.__sourceArchives:
-            aarchive.dissociateNamespaces()
+        if self._loadedFromArchive():
+            raise pyxb.NamespaceError(self, 'cannot mark not loadable when already loaded')
+        for archive in self.__sourceArchives.copy():
+            archive.dissociateNamespaces()
 
 class NamedObjectMap (dict):
     """An extended dictionary intended to assist with QName resolution.
