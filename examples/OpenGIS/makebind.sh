@@ -20,13 +20,13 @@ failure () {
 pyxbgen \
   --schema-location=Schemas/citygml/xAL/xAL.xsd --module=xAL \
   --module-prefix=opengis.misc \
-  --archive-file=opengis/misc/xAL.wxs \
+  --archive-to-file=opengis/misc/xAL.wxs \
  || failure xAL
 
 pyxbgen \
   --schema-location=Schemas/xlink/1.0.0/xlinks.xsd --module=xlinks \
   --module-prefix=opengis.misc \
-  --archive-file=opengis/misc/xlinks.wxs \
+  --archive-to-file=opengis/misc/xlinks.wxs \
  || failure xlinks
 
 pyxbgen \
@@ -37,44 +37,44 @@ pyxbgen \
   --schema-location=Schemas/iso/19139/20070417/gss/gss.xsd --module=iso19139.gss \
   --schema-location=Schemas/iso/19139/20070417/gco/gco.xsd --module=iso19139.gco \
   --module-prefix=opengis \
-  --archive-file=opengis/iso19139/core.wxs \
+  --archive-to-file=opengis/iso19139/core.wxs \
  || failure gml_3_2
   
 pyxbgen \
   --schema-location=Schemas/iso/19139/20070417/gmx/gmx.xsd --module=gmx \
   --module-prefix=opengis.iso19139 \
-  --archive-file=opengis/iso19139/gmx.wxs \
+  --archive-to-file=opengis/iso19139/gmx.wxs \
  || failure gmx
 
 # Includes smil20, smil20lang
 pyxbgen \
   --schema-location=Schemas/gml/3.1.1/base/gml.xsd --module=gml \
   --module-prefix=opengis \
-  --archive-file=opengis/gml.wxs \
+  --archive-to-file=opengis/gml.wxs \
  || failure gml
 
 pyxbgen \
   --schema-location=Schemas/filter/1.1.0/filter.xsd --module=filter \
   --module-prefix=opengis \
-  --archive-file=opengis/filter.wxs \
+  --archive-to-file=opengis/filter.wxs \
  || failure filter
 
 pyxbgen \
   --schema-location=Schemas/sweCommon/1.0.0/swe.xsd --module=swe_1_0_0 \
   --module-prefix=opengis \
-  --archive-file=opengis/swe_1_0_0.wxs \
+  --archive-to-file=opengis/swe_1_0_0.wxs \
  || failure swe_1_0_0
   
 pyxbgen \
   --schema-location=Schemas/sweCommon/1.0.1/swe.xsd --module=swe_1_0_1 \
   --module-prefix=opengis \
-  --archive-file=opengis/swe_1_0_1.wxs \
+  --archive-to-file=opengis/swe_1_0_1.wxs \
  || failure swe_1_0_1
   
 pyxbgen \
   --schema-location=Schemas/citygml/1.0/cityGMLBase.xsd --module=base \
   --module-prefix=opengis.citygml \
-  --archive-file=opengis/citygml/base.wxs \
+  --archive-to-file=opengis/citygml/base.wxs \
  || failure citygml
   
 (cd Schemas/citygml ; ls */1.0/*.xsd ) \
@@ -84,83 +84,84 @@ pyxbgen \
     pyxbgen \
      --schema-location=Schemas/citygml/${module}/1.0/${xsd} --module=${module} \
      --module-prefix=opengis.citygml \
-     --archive-file=opengis/citygml/${module}.wxs \
+     --archive-to-file=opengis/citygml/${module}.wxs \
     || failure citygml ${module}
  done
 
 pyxbgen \
   --schema-location=Schemas/kml/2.2.0/ogckml22.xsd --module=ogckml22 \
   --module-prefix=opengis \
-  --archive-file=opengis/ogckml22.wxs \
+  --archive-to-file=opengis/ogckml22.wxs \
  || failure ogckml22
 
 pyxbgen \
   --schema-location=Schemas/ic/2.1/IC-ISM-v2.1.xsd --module=ic_ism_2_1 \
   --module-prefix=opengis \
-  --archive-file=opengis/ic_ism_2_1.wxs \
+  --archive-to-file=opengis/ic_ism_2_1.wxs \
  || failure ic_ism_2_1
 
 pyxbgen \
   --schema-location=Schemas/sensorML/1.0.1/sensorML.xsd --module=sensorML_1_0_1 \
   --module-prefix=opengis \
-  --archive-file=opengis/sensorML_1_0_1.wxs \
+  --archive-to-file=opengis/sensorML_1_0_1.wxs \
  || failure sensorML_1_0_1
 
 pyxbgen \
   --schema-location=Schemas/ows/1.0.0/owsAll.xsd --module=ows \
   --module-prefix=opengis \
-  --archive-file=opengis/ows.wxs \
+  --archive-to-file=opengis/ows.wxs \
  || failure ows
 
 pyxbgen \
   --schema-location=Schemas/ows/1.1.0/owsAll.xsd --module=ows_1_1 \
   --module-prefix=opengis \
-  --archive-file=opengis/ows_1_1.wxs \
+  --archive-to-file=opengis/ows_1_1.wxs \
  || failure ows_1_1
 
 pyxbgen \
   --schema-location=Schemas/om/1.0.0/om.xsd --module=om_1_0 \
   --module-prefix=opengis \
-  --archive-file=opengis/om_1_0.wxs \
+  --archive-to-file=opengis/om_1_0.wxs \
  || failure om_1_0
 
 # Conflicts with filter's definition of ogc
 pyxbgen \
   --schema-location=Schemas/sos/1.0.0/sosAll.xsd --module=sos_1_0 \
   --module-prefix=opengis \
-  --noload-namespace=http://www.opengis.net/ogc \
-  --archive-file=opengis/sos_1_0.wxs \
+  --no-load-namespace=http://www.opengis.net/ogc \
+  --archive-to-file=opengis/sos_1_0.wxs \
  || failure sos_1_0
 
 pyxbgen \
   --schema-location=Schemas/sampling/1.0.0/sampling.xsd --module=sampling_1_0 \
   --module-prefix=opengis \
-  --archive-file=opengis/sampling_1_0.wxs \
+  --archive-to-file=opengis/sampling_1_0.wxs \
  || failure sampling_1_0
 
-pyxbgen \
-  --schema-location=Schemas/tml/1.0.0/tml.xsd --module=tml \
-  --module-prefix=opengis \
-  --archive-file=opengis/tml.wxs \
- || failure tml
+# Conflicts with sos + filter
+#pyxbgen \
+#  --schema-location=Schemas/tml/1.0.0/tml.xsd --module=tml \
+#  --module-prefix=opengis \
+#  --archive-to-file=opengis/tml.wxs \
+# || failure tml
 
 pyxbgen \
   --schema-location=Schemas/wfs/1.1.0/wfs.xsd --module=wfs \
   --module-prefix=opengis \
-  --archive-file=opengis/wfs.wxs \
+  --archive-to-file=opengis/wfs.wxs \
  || failure wfs
 
 pyxbgen \
   --schema-location=Schemas/wcs/1.1/wcsAll.xsd --module=wcs_1_1 \
   --module-prefix=opengis \
-  --archive-file=opengis/wcs_1_1.wxs \
+  --archive-to-file=opengis/wcs_1_1.wxs \
  || failure wcs_1_1
 
 # NB: Uses a special (private) version of Dublin Core
 pyxbgen \
   --schema-location=Schemas/csw/2.0.2/record.xsd --module=csw_2_0_2 \
   --module-prefix=opengis \
-  --archive-file=opengis/csw_2_0_2.wxs \
+  --archive-to-file=opengis/csw_2_0_2.wxs \
  || failure csw_2_0_2
 
 # This supports the simplified features variants of GML, which have
@@ -169,7 +170,7 @@ pyxbgen \
 pyxbgen \
   --schema-location=Schemas/gml/3.1.1/profiles/gmlsfProfile/1.0.0/gmlsfLevels.xsd --module=gmlsf \
   --module-prefix=opengis \
-  --archive-file=opengis/gmlsf.wxs \
+  --archive-to-file=opengis/gmlsf.wxs \
  || failure gmlsf
 
 # Can't do context: depends on gml 2.x, and we don't support version
@@ -177,7 +178,7 @@ pyxbgen \
 #pyxbgen \
 #  --schema-location=Schemas/context/1.1.0/context.xsd --module=context \
 #  --module-prefix=opengis \
-#  --archive-file=opengis/context.wxs
+#  --archive-to-file=opengis/context.wxs
 
 # Get the gazetteer application profile package here:
 #   http://portal.opengeospatial.org/files/index.php?artifact_id=15529

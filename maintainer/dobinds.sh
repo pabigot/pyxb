@@ -47,7 +47,7 @@ EOList
     --module=${prefix} \
     --module-prefix=pyxb.standard.bindings \
     --write-for-customization \
-    --archive-file=pyxb/standard/bindings/raw/${prefix}.wxs
+    --archive-to-file=pyxb/standard/bindings/raw/${prefix}.wxs
   if [ 0 != $? ] ; then
     break
   fi

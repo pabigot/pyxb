@@ -1484,7 +1484,7 @@ class Generator (object):
     __schemaRoot = None
 
     def schemaStrippedPrefix (self):
-        """Optional string that is strippedped from the beginning of
+        """Optional string that is stripped from the beginning of
         schemaLocation values before loading from them.
 
         This applies only to the values of schemaLocation attributes
@@ -1559,7 +1559,7 @@ class Generator (object):
         return self
     __namespaces = None
 
-    def _moduleList (self):
+    def moduleList (self):
         """A list of module names to be applied in order to the namespaces of entrypoint schemas"""
         return self.__moduleList[:]
     def _setModuleList (self, module_list):
@@ -1606,7 +1606,21 @@ class Generator (object):
         return self.__namespaceModuleMap
     __namespaceModuleMap = None
 
-    def _noLoadNamespaces (self):
+    def archivePath (self):
+        """A colon-separated list of paths from which namespace
+        archives can be read.
+
+        The default path is the contents of the C{PYXB_ARCHIVE_PATH}
+        environment variable, or the standard path configured at
+        installation time.
+        """
+        return self.__archivePath
+    def setArchivePath (self, archive_path):
+        self.__archivePath = archive_path
+        return self
+    __archivePath = None
+        
+    def noLoadNamespaces (self):
         """A frozenset of namespaces that many not be loaded from an archive."""
         return frozenset(self.__noLoadNamespaces)
     def _setNoLoadNamespaces (self, namespace_set):
@@ -1624,7 +1638,22 @@ class Generator (object):
         self.__noLoadNamespaces.add(pyxb.namespace.NamespaceInstance(namespace))
     __noloadNamespaces = None
 
-    def archiveFile (self):
+    def preLoadArchives (self):
+        """A list of paths to archives that should be loaded, in order, prior to parsing schema."""
+        return frozenset(self.__preLoadArchives)
+    def addPreLoadArchive (self, archive_file):
+        """Name of a file containing a stored archive from which
+        namespaces should be read prior to processing schema.
+
+        Files to be pre-loaded are not affected by
+        C{noLoadNamespace}."""
+        self.__preLoadArchives.append(archive_file)
+    def _setPreLoadArchives (self, pre_load_archives):
+        self.__preLoadArchives[:] = pre_load_archives
+        return self
+    __preLoadArchives = None
+
+    def archiveToFile (self):
         """Optional file into which the archive of namespaces will be written.
 
         Subsequent generation actions can read pre-parsed namespaces
@@ -1632,26 +1661,37 @@ class Generator (object):
         built earlier rather than re-generating them.
 
         The file name should normally end with C{.wxs}."""
-        return self.__archiveFile
-    def setArchiveFile (self, archive_file):
-        self.__archiveFile = archive_file
+        return self.__archiveToFile
+    def setArchiveToFile (self, archive_to_file):
+        self.__archiveToFile = archive_to_file
         return self
-    __archiveFile = None
+    __archiveToFile = None
 
-    def archivePath (self):
-        """A colon-separated list of paths from which namespace
-        archives can be read.
+    def setNamespaceVisibility (self, namespace, visibility):
+        namespace = pyxb.namespace.NamespaceInstance(namespace)
+        self.__namespaceVisibilityMap[namespace] = visibility
+        pass
+    def _setNamespaceVisibilities (self, public, private):
+        if public is None:
+            public = set()
+        if private is None:
+            private = set()
+        self.__namespaceVisibilityMap.clear()
+        self.__namespaceVisibilityMap.update(dict.fromkeys(public, True))
+        self.__namespaceVisibilityMap.update(dict.fromkeys(private, False))
+    def namespaceVisibilityMap (self):
+        """Indicates, for specific namespaces, whether their
+        visibility in the archive should be public or private."""
+        return self.__namespaceVisibilityMap.copy()
+    __namespaceVisibilityMap = None
 
-        The default path is the contents of the C{PYXB_ARCHIVE_PATH}
-        environment variable, or the standard path configured at
-        installation time.
-        """
-        return self.__archivePath
-    def setArchivePath (self, archive_path):
-        self.__archivePath = archive_path
-        return self
-    __archivePath = None
-        
+    def defaultNamespacePublic (self):
+        """Indicates whether namespaces that do not have visibilities set will be public (default) or private."""
+        return self.__defaultNamespacePublic
+    def setDefaultNamespacePublic (self, default_namespace_public):
+        self.__defaultNamespacePublic = default_namespace_public
+    __defaultNamespacePublic = None
+
     def validateChanges (self):
         """Indicates whether the bindings should validate mutations
         against the content model."""
@@ -1678,7 +1718,6 @@ class Generator (object):
         self.__bindingStyle = binding_style
         return self
     __bindingStyle = None
-
 
     def writeForCustomization (self):
         """Indicates whether the binding Python code should be written into a sub-module for customization.
@@ -1717,7 +1756,6 @@ class Generator (object):
         return self
     __allowBuiltinGeneration = None
 
-
     def __init__ (self, *args, **kw):
         """Create a configuration to be used for generating bindings.
 
@@ -1730,9 +1768,13 @@ class Generator (object):
         @keyword schema_location_list: Invokes L{setSchemaLocationList}
         @keyword module_list: Invokes L{_setModuleList}
         @keyword module_prefix: Invokes L{setModulePrefix}
-        @keyword noload_namespaces: Invokes L{_setNoLoadNamespaces}
-        @keyword archive_file: Invokes L{setArchiveFile}
         @keyword archive_path: Invokes L{setArchivePath}
+        @keyword no_load_namespaces: Invokes L{_setNoLoadNamespaces}
+        @keyword pre_load_archives: Invokes L{_setPreLoadArchives}
+        @keyword archive_to_file: Invokes L{setArchiveToFile}
+        @keyword public_namespace: Invokes L{_setNamespaceVisibility}
+        @keyword private_namespace: Invokes L{_setNamespaceVisibility}
+        @keyword default_namespace_public: Invokes L{setDefaultNamespacePublic}
         @keyword validate_changes: Invokes L{setValidateChanges}
         @keyword binding_style: Invokes L{setBindingStyle}
         @keyword namespace_module_map: Initializes L{namespaceModuleMap}
@@ -1753,9 +1795,13 @@ class Generator (object):
         self.__schemaLocationList = kw.get('schema_location_list', [])[:]
         self.__moduleList = kw.get('module_list', [])[:]
         self.__modulePrefix = kw.get('module_prefix')
-        self.__noLoadNamespaces = kw.get('noload_namespaces', set()).copy()
-        self.__archiveFile = kw.get('archive_file')
         self.__archivePath = kw.get('archive_path', pyxb.namespace.GetArchivePath())
+        self.__noLoadNamespaces = kw.get('no_load_namespaces', set()).copy()
+        self.__preLoadArchives = kw.get('pre_load_archives', [])[:]
+        self.__archiveToFile = kw.get('archive_to_file')
+        self.__namespaceVisibilityMap = {}
+        self._setNamespaceVisibilities(kw.get('public_namespaces', set()), kw.get('private_namespaces', set()))
+        self.__defaultNamespacePublic = kw.get('default_namespace_public', True)
         self.__validateChanges = kw.get('validate_changes', True)
         self.__bindingStyle = kw.get('binding_style', self._DEFAULT_bindingStyle)
         self.__namespaceModuleMap = kw.get('namespace_module_map', {}).copy()
@@ -1783,9 +1829,11 @@ class Generator (object):
         ('schema_location', setSchemaLocationList),
         ('module', _setModuleList),
         ('module_prefix', setModulePrefix),
-        ('noload_namespace', _setNoLoadNamespaces),
-        ('archive_file', setArchiveFile),
         ('archive_path', setArchivePath),
+        ('no_load_namespace', _setNoLoadNamespaces),
+        ('pre_load_archive', _setPreLoadArchives),
+        ('archive_to_file', setArchiveToFile),
+        ('default_namespace_public', setDefaultNamespacePublic),
         ('binding_style', setBindingStyle),
         ('validate_changes', setValidateChanges),
         ('write_for_customization', setWriteForCustomization),
@@ -1797,6 +1845,9 @@ class Generator (object):
             v = getattr(options, tag)
             if v is not None:
                 method(self, v)
+        public_namespaces = getattr(options, 'public_namespace')
+        private_namespaces = getattr(options, 'private_namespace')
+        self._setNamespaceVisibilities(public_namespaces, private_namespaces)
         if args is not None:
             self.__schemaLocationList.extend(args)
 
@@ -1839,11 +1890,26 @@ class Generator (object):
                               help=self.__stripSpaces(self.bindingRoot.__doc__))
             parser.add_option('--archive-path', metavar="PATH",
                               help=self.__stripSpaces(self.archivePath.__doc__))
-            parser.add_option('--noload-namespace', metavar="URI",
+            parser.add_option('--no-load-namespace', metavar="URI",
                               action='append',
                               help=self.__stripSpaces(self.addNoLoadNamespace.__doc__))
-            parser.add_option('--archive-file', metavar="FILE",
-                              help=self.__stripSpaces(self.archiveFile.__doc__))
+            parser.add_option('--pre-load-archive', metavar="FILE",
+                              action='append',
+                              help=self.__stripSpaces(self.addPreLoadArchive.__doc__))
+            parser.add_option('--archive-to-file', metavar="FILE",
+                              help=self.__stripSpaces(self.archiveToFile.__doc__))
+            parser.add_option('--public-namespace', metavar="URI",
+                              action='append',
+                              help=self.__stripSpaces(self.namespaceVisibilityMap.__doc__ + ' This option adds the namespace as a public archive member.'))
+            parser.add_option('--private-namespace', metavar="URI",
+                              action='append',
+                              help=self.__stripSpaces(self.namespaceVisibilityMap.__doc__ + ' This option adds the namespace as a private archive member.'))
+            parser.add_option('--default-namespace-public',
+                              action="store_true", dest='default_namespace_public',
+                              help=self.__stripSpaces(self.defaultNamespacePublic.__doc__ + ' This option makes the default "public" (default).'))
+            parser.add_option('--default-namespace-private',
+                              action="store_false", dest='default_namespace_public',
+                              help=self.__stripSpaces(self.defaultNamespacePublic.__doc__ + ' This option makes the default "private".'))
             parser.add_option('--binding-style',
                               type='choice', choices=basis.BINDING_STYLES,
                               help=self.__stripSpaces(self.bindingStyle.__doc__))
@@ -1883,8 +1949,8 @@ class Generator (object):
         C{pyxbgen}, this may not be able to reconstruct the correct
         command line."""
         opts = []
-        module_list = self._moduleList()[:]
-        schema_list = self.schemaLocationList()[:]
+        module_list = self.moduleList()
+        schema_list = self.schemaLocationList()
         while module_list and schema_list:
             ml = module_list.pop(0)
             sl = schema_list.pop(0)
@@ -1900,10 +1966,21 @@ class Generator (object):
         opts.append('--binding-root=' + self.bindingRoot())
         if self.archivePath() is not None:
             opts.append('--archive-path=' + self.archivePath())
-        for ns in self._noLoadNamespaces():
-            opts.append('--noload-namespace=' + ns.uri())
-        if self.archiveFile() is not None:
-            opts.append('--archive-file=' + self.archiveFile())
+        for ns in self.noLoadNamespaces():
+            opts.append('--no-load-namespace=' + ns.uri())
+        for fps in self.preLoadArchives():
+            opts.append('--pre-load-archive=' + fp)
+        if self.archiveToFile() is not None:
+            opts.append('--archive-to-file=' + self.archiveToFile())
+        for (ns, visibility) in self._namespaceVisibilityMap():
+            if visibility:
+                opts.append('--public-namespace=' + ns.uri())
+            else:
+                opts.append('--private-namespace=' + ns.uri())
+        if self.defaultNamespacePublic():
+            opts.append('--default-namespace-public')
+        else:
+            opts.append('--default-namespace-private')
         for (val, opt) in ( (self.validateChanges(), 'validate-changes'),
                             (self.writeForCustomization(), 'write-for-customization'),
                             (self.allowAbsentModule(), 'allow-absent-module'),
@@ -1943,7 +2020,7 @@ class Generator (object):
 
     __didResolveExternalSchema = False
     def resolveExternalSchema (self, reset=False):
-        for ns in self._noLoadNamespaces():
+        for ns in self.noLoadNamespaces():
             assert isinstance(ns, pyxb.namespace.Namespace)
             ns.markNotLoadable()
         if self.__didResolveExternalSchema and (not reset):
@@ -2128,7 +2205,7 @@ class Generator (object):
         return self.__bindingModules
     
     def writeNamespaceArchive (self):
-        archive_file = self.archiveFile()
+        archive_file = self.archiveToFile()
         if archive_file is not None:
             ns_archive = pyxb.namespace.NamespaceArchive(namespaces=self.namespaces(), generation_uid=self.generationUID())
             try:
