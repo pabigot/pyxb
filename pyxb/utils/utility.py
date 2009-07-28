@@ -17,6 +17,7 @@
 import re
 import os
 import errno
+import pyxb
 
 def QuotedEscaped (s):
     """Convert a string into a literal value that can be used in Python source.
@@ -344,7 +345,10 @@ class Graph:
         
 def NormalizeLocation (uri, parent_uri=None):
     """Normalize a URI against an optional parent_uri in the way that is
-    done for C{schemaLocation} attribute values."""
+    done for C{schemaLocation} attribute values.
+
+    Note that, if no URI scheme is present, this will normalize a file
+    system path."""
     import urlparse
     import os
     
@@ -594,7 +598,7 @@ class UniqueIdentifier (object):
         if isinstance(uid, UniqueIdentifier):
             uid = uid.uid()
         if not isinstance(uid, basestring):
-            raise pyxb.LogicError('UniqueIdentifier uid must be a string')
+            raise TypeError('UniqueIdentifier uid must be a string')
         rv = cls.__ExistingUIDs.get(uid)
         if rv is None:
             rv = super(UniqueIdentifier, cls).__new__(cls)
@@ -613,12 +617,14 @@ class UniqueIdentifier (object):
         assert (uid is None) or (self.uid() == uid), 'UniqueIdentifier: ctor %s, actual %s' % (uid, self.uid())
 
     def __eq__ (self, other):
-        if isinstance(other, UniqueIdentifier):
+        if other is None:
+            return False
+        elif isinstance(other, UniqueIdentifier):
             other_uid = other.uid()
         elif isinstance(other, basestring):
             other_uid = other
         else:
-            raise pyxb.LogicError('UniqueIdentifier: Cannot compare with type %s' % (type(other),))
+            raise TypeError('UniqueIdentifier: Cannot compare with type %s' % (type(other),))
         return self.uid() == other_uid
 
     def __hash__ (self):

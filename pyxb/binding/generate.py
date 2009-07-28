@@ -2020,6 +2020,14 @@ class Generator (object):
 
     __didResolveExternalSchema = False
     def resolveExternalSchema (self, reset=False):
+        if self.__generationUID is not None:
+            # This isn't safe until we have a way to reset everything.
+            print 'WARNING: Unsafe to perform multiple generations in one run'
+        self.__generationUID = pyxb.utils.utility.UniqueIdentifier()
+
+        required_archives = pyxb.namespace.NamespaceArchive.PreLoadArchives(self.archivePath(), self.preLoadArchives())
+        for nsa in required_archives:
+            nsa.readNamespaces()
         for ns in self.noLoadNamespaces():
             assert isinstance(ns, pyxb.namespace.Namespace)
             ns.markNotLoadable()
@@ -2045,11 +2053,6 @@ class Generator (object):
         self.__bindingModules = None
 
     def __buildBindingModules (self):
-        if self.__generationUID is not None:
-            # This isn't safe until we have a way to reset everything.
-            print 'WARNING: Unsafe to perform multiple generations in one run'
-        self.__generationUID = pyxb.utils.utility.UniqueIdentifier()
-
         modules = set()
     
         entry_namespaces = self.namespaces()

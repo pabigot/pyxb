@@ -184,7 +184,7 @@ class tDefinitions (raw_wsdl.tDefinitions):
         # Ensure we have definitions for any externally-referenced
         # things we might need.  @todo: This might have to
         # chronologically precede the import above.
-        pyxb.namespace.NamespaceArchives()
+        pyxb.namespace.NamespaceArchive.PreLoadArchives()
 
         raw_wsdl.Namespace.validateComponentModel()
         state = ( kw.pop('process_schema', False),

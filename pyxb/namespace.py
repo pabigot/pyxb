@@ -37,6 +37,8 @@ of C{+} will be replaced by the system default path (normally
 C{pyxb/standard/bindings/raw})."""
 
 import os.path
+import stat
+
 DefaultArchivePath = "%s/standard/bindings/raw" % (os.path.dirname(__file__),)
 """Default location for reading C{.wxs} files"""
 
@@ -305,12 +307,12 @@ class _Resolvable_mixin (pyxb.cscRoot):
         self._namespaceContext().queueForResolution(self)
 
 class NamespaceArchive (object):
-    """Represent a file from which one or more namespaces can be read."""
+    """Represent a file from which one or more namespaces can be read, or to
+    which they will be written."""
 
     # YYYYMMDDHHMM
     __PickleFormat = '200907190858'
 
-    __AnonymousCategory = '_anonymousTypeDefinition'
     @classmethod
     def _AnonymousCategory (cls):
         """The category name to use when storing references to anonymous type
@@ -318,12 +320,8 @@ class NamespaceArchive (object):
         attribute use in a model group definition.that can be referenced frojm
         ax different namespace."""
         return cls.__AnonymousCategory
+    __AnonymousCategory = '_anonymousTypeDefinition'
 
-    # Class variable recording the namespace that is currently being
-    # pickled.  Used to prevent storing components that belong to
-    # other namespaces.  Should be None unless within an invocation of
-    # SaveToFile.
-    __PicklingArchive = None
 
     @classmethod
     def PicklingArchive (cls):
@@ -336,6 +334,102 @@ class NamespaceArchive (object):
         # by subclasses it gets mangled using the subclass name so the one
         # defined in this class is not found
         return NamespaceArchive.__PicklingArchive
+    # Class variable recording the namespace that is currently being
+    # pickled.  Used to prevent storing components that belong to
+    # other namespaces.  Should be None unless within an invocation of
+    # SaveToFile.
+    __PicklingArchive = None
+
+    @classmethod
+    def __ResetNamespaceArchives (cls):
+        if cls.__NamespaceArchives is not None:
+            for nsa in cls.__NamespaceArchives.values():
+                for ns in nsa.__namespaces:
+                    ns._removeArchive(nsa)
+        cls.__NamespaceArchives = {}
+
+    __NamespaceArchives = None
+    """A mapping from namespace URIs to names of files which appear to
+    provide a serialized version of the namespace with schema."""
+
+    @classmethod
+    def __GetArchiveInstance (cls, archive_file):
+        """Return a L{NamespaceArchive} instance associated with the given file.
+
+        To the extent possible, the same file accessed through different paths
+        returns the same L{NamespaceArchive} instance.
+        """
+        
+        normalized_path = os.path.realpath(archive_file)
+        nsa = cls.__NamespaceArchives.get(normalized_path)
+        if nsa is None:
+            nsa = cls.__NamespaceArchives[normalized_path] = NamespaceArchive(archive_path=archive_file)
+        return nsa
+
+    @classmethod
+    def PreLoadArchives (cls, archive_path=None, required_archive_files=None, reset=False):
+        """Scan for available archives, associating them with namespaces.
+
+        This only validates potential archive contents; it does not load
+        namespace data from the archives.  If invoked with no arguments, 
+
+        @keyword archive_path: A colon-separated list of files or directories in
+        which namespace archives can be found; see L{PathEnvironmentVariable}.
+        Defaults to L{GetArchivePath()}.  If not defaulted, C{reset} will be
+        forced to C{True}.  For any directory in the path, all files ending with
+        C{.wxs} are examined.
+
+        @keyword required_archive_files: A list of paths to files that must
+        resolve to valid namespace archives.
+
+        @keyword reset: If C{False} (default), the most recently read set of
+        archives is returned; if C{True}, the archive path is re-scanned and the
+        namespace associations validated.
+
+        @return: A list of L{NamespaceArchive} instances corresponding to the
+        members of C{required_archive_files}, in order.  If
+        C{required_archive_files} was not provided, returns an empty list.
+
+        @raise pickle.UnpicklingError: a C{required_archive_files} member does not
+        contain a valid namespace archive.
+        """
+        
+        reset = reset or (archive_path is not None) or (required_archive_files is not None) or (cls.__NamespaceArchives is None)
+        required_archives = []
+        if reset:
+            # Erase any previous archive associations
+            cls.__ResetNamespaceArchives()
+
+            # Get archives for all required files
+            if required_archive_files is not None:
+                for afn in required_archive_files:
+                    required_archives.append(cls.__GetArchiveInstance(afn))
+    
+            # Ensure we have an archive path
+            if archive_path is None:
+                archive_path = GetArchivePath()
+    
+            # Get archive instances for everything in the archive path
+            for bp in archive_path.split(':'):
+                if '+' == bp:
+                    bp = DefaultArchivePath
+                files = []
+                try:
+                    stbuf = os.stat(bp)
+                    if stat.S_ISDIR(stbuf.st_mode):
+                        files = [ os.path.join(bp, _fn) for _fn in os.listdir(bp) if _fn.endswith('.wxs') ]
+                    else:
+                        files = [ bp ]
+                except OSError, e:
+                    files = []
+                for afn in files:
+                    try:
+                        nsa = cls.__GetArchiveInstance(afn)
+                    except pickle.UnpicklingError, e:
+                        print 'Cannot use archive %s: %s' % (afn, e)
+                    except pyxb.NamespaceArchiveError, e:
+                        print 'Cannot use archive %s: %s' % (afn, e)
+        return required_archives
 
     def archivePath (self):
         """Path to the file in which this namespace archive is stored."""
@@ -355,6 +449,15 @@ class NamespaceArchive (object):
     __isLoadable = None
 
     def __init__ (self, namespaces=None, archive_path=None, generation_uid=None, loadable=True):
+        """Create a new namespace archive.
+
+        If C{namespaces} is given, this is an output archive.
+
+        If C{namespaces} is absent, this is an input archive.
+
+        @raise IOError: error attempting to read the archive file
+        @raise pickle.UnpicklingError: something is wrong with the format of the library
+        """
         self.__namespaces = set()
         if namespaces is not None:
             if archive_path:
@@ -387,13 +490,6 @@ class NamespaceArchive (object):
         return self.__namespaces
     __namespaces = None
 
-    def dissociateNamespaces (self):
-        """Prevent this archive from being consulted when any of its
-        namespaces must be loaded."""
-        for ns in self.__namespaces:
-            ns._removeArchive(self)
-        self.__namespaces.clear()
-
     def __createUnpickler (self):
         unpickler = pickle.Unpickler(open(self.__archivePath, 'rb'))
 
@@ -423,7 +519,7 @@ class NamespaceArchive (object):
     __readNamespaces = False
     def readNamespaces (self):
         if self.__readNamespaces:
-            raise pyxb.NamespaceArchiveError('Multiple reads of archive %s' % (self.__archivePath,))
+            return
         self.__readNamespaces = True
 
         unpickler = self.__createUnpickler()
@@ -443,8 +539,6 @@ class NamespaceArchive (object):
             print 'Read %s from %s - active %s' % (ns, self.__archivePath, ns.isActive())
             ns._loadNamedObjects(object_maps[ns])
             ns._setLoadedFromArchive(self)
-        
-        self.dissociateNamespaces()
 
     def writeNamespaces (self, output):
         """Store the namespaces into the archive.
@@ -468,6 +562,8 @@ class NamespaceArchive (object):
             # in each category.
             uri_map = {}
             for ns in self.namespaces():
+                assert not ns.isAbsentNamespace()
+                ns.updateOriginUID(self.generationUID())
                 uri_map[ns.uri()] = cat_map = {}
                 for cat in ns.categories():
                     cat_map[cat] = frozenset(ns.categoryMap(cat).keys())
@@ -480,7 +576,7 @@ class NamespaceArchive (object):
             # A map from namespace to the category maps of the namespace.
             object_map = { }
             for ns in self.namespaces():
-                assert not ns.isAbsentNamespace()
+                print "Archiving namespace %s in archive %s" % (ns, self.archivePath())
                 ns.configureCategories([self._AnonymousCategory()])
                 object_map[ns] = ns._categoryMap()
                 ns._setWroteToArchive(self)
@@ -1641,61 +1737,6 @@ def CreateAbsentNamespace ():
     it is your responsibility to hold on to the reference you get from this,
     because you won't be able to look it up."""
     return Namespace.CreateAbsentNamespace()
-
-__NamespaceArchives = None
-"""A mapping from namespace URIs to names of files which appear to
-provide a serialized version of the namespace with schema."""
-
-def LoadableNamespaces ():
-    available = set()
-    for ns_archive in NamespaceArchives():
-        available.update(ns_archive.namespaces())
-    return available
-
-import stat
-
-def NamespaceArchives (archive_files=None, archive_path=None, reset=False):
-    """Scan for available archves, and associate them with any namespace that has not already been loaded.
-
-    @keyword archive_path: A colon-separated list of files or directories in
-    which namespace archives can be found; see L{PathEnvironmentVariable}.
-    Defaults to L{GetArchivePath()}.  If not defaulted, C{reset} will be
-    forced to C{True}.  For any directory in the path, all files ending with
-    C{.wxs} are examined.
-
-    @keyword reset: If C{False} (default), the most recently read set of
-    archives is returned; if C{True}, the archive path is re-scanned and the
-    namespace associations validated."""
-    
-    global __NamespaceArchives
-    if archive_path is None:
-        archive_path = GetArchivePath()
-    else:
-        reset = True
-    if (__NamespaceArchives is None) or reset:
-        # Look for pre-existing pickled schema
-        __NamespaceArchives = set()
-        for bp in archive_path.split(':'):
-            if '+' == bp:
-                bp = DefaultArchivePath
-            files = []
-            try:
-                stbuf = os.stat(bp)
-                if stat.S_ISDIR(stbuf.st_mode):
-                    files = [ os.path.join(bp, _fn) for _fn in os.listdir(bp) if _fn.endswith('.wxs') ]
-                else:
-                    files = [ bp ]
-            except OSError, e:
-                files = []
-            for afn in files:
-                try:
-                    archive = NamespaceArchive(archive_path=afn)
-                    __NamespaceArchives.add(archive)
-                except pickle.UnpicklingError, e:
-                    print 'Cannot use archive %s: %s' % (afn, e)
-                except pyxb.NamespaceArchiveError, e:
-                    print 'Cannot use archive %s: %s' % (afn, e)
-    return __NamespaceArchives
 
 class _XMLSchema_instance (Namespace):
     """Extension of L{Namespace} that pre-defines components available in the

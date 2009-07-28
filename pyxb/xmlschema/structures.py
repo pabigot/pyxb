@@ -3661,7 +3661,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
         super(SimpleTypeDefinition, self)._updateFromOther_csc(other)
 
         # The other STD should be an unresolved schema-defined type.
-        assert other.__baseTypeDefinition is None
+        assert other.__baseTypeDefinition is None, 'Update from resolved STD %s' % (other,)
         assert other.__domNode is not None
         self.__domNode = other.__domNode
 
@@ -4441,7 +4441,7 @@ class Schema (_SchemaComponent_mixin):
 
     def __init__ (self, *args, **kw):
         # Force resolution of available namespaces if not already done
-        pyxb.namespace.NamespaceArchives()
+        pyxb.namespace.NamespaceArchive.PreLoadArchives()
 
         assert 'schema' not in kw
         self.__schemaLocation = kw.get('schema_location', None)
