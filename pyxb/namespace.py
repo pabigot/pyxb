@@ -346,7 +346,15 @@ class NamespaceArchive (object):
         return self.__generationUID
     __generationUID = None
 
-    def __init__ (self, namespaces=None, archive_path=None, generation_uid=None):
+    def isLoadable (self):
+        return self.__isLoadable
+    def setLoadable (self, loadable):
+        if self.__isLoadable is None:
+            raise pyxb.LogicError('Cannot set loadability on output namespace archive')
+        self.__isLoadable = loadable
+    __isLoadable = None
+
+    def __init__ (self, namespaces=None, archive_path=None, generation_uid=None, loadable=True):
         self.__namespaces = set()
         if namespaces is not None:
             if archive_path:
@@ -360,6 +368,7 @@ class NamespaceArchive (object):
                 raise pyxb.LogicError('NamespaceArchive: cannot provide generation_uid with archive_path')
             self.__archivePath = archive_path
             self.__readNamespaceSet(self.__createUnpickler(), define_namespaces=True)
+            self.__isLoadable = loadable
         else:
             pass
 
@@ -494,9 +503,6 @@ class NamespaceArchive (object):
                 cross_objects = frozenset([ _ln for _ln in cat_map[cat].intersection(ns.categoryMap(cat).keys()) if not ns.categoryMap(cat)[_ln]._allowUpdateFromOther(None) ])
                 if 0 < len(cross_objects):
                     raise pyxb.NamespaceArchiveError('Namespace %s archive/active conflict on category %s: %s' % (ns, cat, " ".join(cross_objects)))
-                # Verify namespace is not available from a different archive
-                if (ns.archive() is not None) and (ns.archive() != self):
-                    raise pyxb.NamespaceArchiveError('Namespace %s already available from %s' % (uri, ns.archive()))
 
         if not define_namespaces:
             return
@@ -607,18 +613,18 @@ class _NamespaceArchivable_mixin (pyxb.cscRoot):
         # Yes, I do want this to raise KeyError if the archive is not present
         self.__sourceArchives.remove(archive)
         
-    def archive (self):
-        if 0 == len(self.__sourceArchives):
-            return None
-        if 1 < len(self.__sourceArchives):
-            raise pyxb.NamespaceArchiveError('%s available from multiple archives: %s' % (self.uri(), ' '.join([str(_ns) for _ns in self.__sourceArchives])))
-        return iter(self.__sourceArchives).next()
+    def archives (self):
+        return self.__sourceArchives.copy()
     __sourceArchives = None
     
     def isLoadable (self):
         """Return C{True} iff the component model for this namespace can be
         loaded from a namespace archive."""
-        return 0 < len(self.__sourceArchives)
+        return 0 < len(self.loadableFrom())
+
+    def loadableFrom (self):
+        """Return a list of namespace archives from which this namespace can be read."""
+        return [ _archive for _archive in self.__sourceArchives if _archive.isLoadable() ]
 
     def _setState_csc (self, kw):
         #assert not self.__isActive, 'ERROR: State set for active namespace %s' % (self,)
@@ -627,13 +633,12 @@ class _NamespaceArchivable_mixin (pyxb.cscRoot):
     def markNotLoadable (self):
         """Prevent loading this namespace from an archive.
 
-        This dissociates not just the namespace, but all of its archives,
-        which will no longer be available for use in loading other namespaces,
-        since they are likely to depend on this one."""
+        This marks all archives in which the namespace appears, whether
+        publically or privately, as not loadable."""
         if self._loadedFromArchive():
             raise pyxb.NamespaceError(self, 'cannot mark not loadable when already loaded')
         for archive in self.__sourceArchives.copy():
-            archive.dissociateNamespaces()
+            archive.setLoadable(False)
 
 class NamedObjectMap (dict):
     """An extended dictionary intended to assist with QName resolution.
@@ -1498,8 +1503,9 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
         There is no guarantee that any particular category of named object has
         been located when this returns.  Caller must check.
         """
-        if self.archive() is not None:
-            self.archive().readNamespaces()
+        for archive in self.archives():
+            if archive.isLoadable():
+                archive.readNamespaces()
         self._activate()
 
     __didValidation = False
@@ -1685,7 +1691,6 @@ def NamespaceArchives (archive_files=None, archive_path=None, reset=False):
                 try:
                     archive = NamespaceArchive(archive_path=afn)
                     __NamespaceArchives.add(archive)
-                    #print 'Archive %s has: %s' % (archive, "\n   ".join([ '%s @ %s' % (_ns, _ns.archive()) for _ns in archive.namespaces()]))
                 except pickle.UnpicklingError, e:
                     print 'Cannot use archive %s: %s' % (afn, e)
                 except pyxb.NamespaceArchiveError, e:

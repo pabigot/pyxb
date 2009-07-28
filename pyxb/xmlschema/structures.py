@@ -4295,7 +4295,7 @@ class _ImportElementInformationItem (_Annotated_mixin):
         self.__redundant = False
         if ns.isLoadable():
             if self.__schemaLocation is not None:
-                print 'WARNING: %s is loadable from %s, ignoring schema location %s' % (ns, ns.archive(), self.__schemaLocation)
+                print 'WARNING: %s is loadable from %s, ignoring schema location %s' % (ns, ' and '.join([ _af.archivePath() for _af in ns.loadableFrom()]), self.__schemaLocation)
                 self.__schemaLocation = None
 
         if ns.isActive():
