@@ -553,7 +553,6 @@ try:
 except ImportError:
     import time
     import random
-    random.seed()
 def _NewUUIDString ():
     if __HaveUUID:
         return uuid.uuid1().urn
