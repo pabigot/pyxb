@@ -1245,7 +1245,8 @@ class _NamespaceComponentAssociation_mixin (pyxb.cscRoot):
     def addSchema (self, schema):
         for sr in self.__schemaRecords:
             if sr.match(schema=schema):
-                raise pyxb.SchemaUniquenessError(sr, schema)
+                print 'Schema at %s already registered in %s' % (schema.location(), self)
+                raise pyxb.SchemaUniquenessError(self, schema.location(), sr.schema())
         sr = _SchemaRecord(schema=schema)
         self.__schemaRecords.add(sr)
         return sr

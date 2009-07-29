@@ -2081,7 +2081,7 @@ class Generator (object):
                 self.__assignNamespaceModulePath(ns)
                 text.append('  %s, prefix %s, module path %s' % (ns, ns.prefix(), ns.modulePath()))
                 for sch in ns.schemas():
-                    text.append('    schemaLocation=%s' % (sch.schemaLocation(),))
+                    text.append('    schemaLocation=%s' % (sch.location(),))
             print "\n".join(text)
 
         for ns_set in nsdep.namespaceOrder():
