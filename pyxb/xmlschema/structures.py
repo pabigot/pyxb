@@ -4461,6 +4461,7 @@ class Schema (_SchemaComponent_mixin):
 
         self.__generationUID = kw.get('generation_uid')
         if self.__generationUID is None:
+            print 'WARNING: No generationUID provided'
             self.__generationUID = pyxb.utils.utility.UniqueIdentifier()
 
         self.__signature = kw.get('schema_signature')
@@ -4473,10 +4474,9 @@ class Schema (_SchemaComponent_mixin):
         self.__targetNamespace = kw.get('target_namespace', self._namespaceContext().targetNamespace())
         if not isinstance(self.__targetNamespace, pyxb.namespace.Namespace):
             raise pyxb.LogicError('Schema constructor requires valid Namespace instance as target_namespace')
-        existing_schema = self.__targetNamespace.lookupSchemaByLocation(self.__location)
-        if existing_schema is not None:
-            raise pyxb.SchemaUniquenessError(self.__targetNamespace, self.__location, existing_schema)
 
+        # NB: This will raise pyxb.SchemaUniquenessError if it appears this
+        # schema has already been incorporated into the target namespace.
         self.__targetNamespace.addSchema(self)
         self.__defaultNamespace = kw.get('default_namespace', self._namespaceContext().defaultNamespace())
         if not ((self.__defaultNamespace is None) or isinstance(self.__defaultNamespace, pyxb.namespace.Namespace)):
@@ -4841,7 +4841,7 @@ def _AddSimpleTypes (namespace):
     namespaces are initialized. """
     # Add the ur type
     #schema = namespace.schema()
-    schema = Schema(namespace_context=pyxb.namespace.XMLSchema.initialNamespaceContext(), schema_location='URN:noLocation:PyXB:XMLSchema')
+    schema = Schema(namespace_context=pyxb.namespace.XMLSchema.initialNamespaceContext(), schema_location='URN:noLocation:PyXB:XMLSchema', generation_uid=pyxb.namespace.BuiltInObjectUID)
     td = schema._addNamedComponent(ComplexTypeDefinition.UrTypeDefinition(in_builtin_definition=True))
     assert td.isResolved()
     # Add the simple ur type

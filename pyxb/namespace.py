@@ -1149,6 +1149,57 @@ class _ComponentDependency_mixin (pyxb.cscRoot):
         """
         raise LogicError('%s does not implement _bindingRequires_vx' % (self.__class__,))
 
+class _SchemaRecord (object):
+    """Holds the data regarding components derived from a single schema.
+
+    Coupled to a particular namespace through the
+    L{_NamespaceComponentAssociation_mixin}.
+    """
+
+    def __setDefaultKW (self, kw):
+        schema = kw.get('schema')
+        if schema is not None:
+            assert not ('location' in kw)
+            kw['location'] = schema.location()
+            assert not ('signature' in kw)
+            kw['signature'] = schema.signature()
+            assert not ('generation_uid' in kw)
+            kw['generation_uid'] = schema.generationUID()
+
+    def match (self, **kw):
+        self.__setDefaultKW(kw)
+        location = kw.get('location')
+        if (location is not None) and (self.location() == location):
+            return True
+        signature = kw.get('signature')
+        if (signature is not None) and (self.signature() == signature):
+            return True
+        return False
+
+    def location (self):
+        return self.__location
+    __location = None
+
+    def signature (self):
+        return self.__signature
+    __signature = None
+    
+    def generationUID (self):
+        return self.__generationUID
+    __generationUID = None
+
+    def schema (self):
+        return self.__schema
+    __schema = None # TRANSIENT
+
+    def __init__ (self, **kw):
+        super(_SchemaRecord, self).__init__()
+        self.__setDefaultKW(kw)
+        self.__schema = kw.get('schema')
+        self.__signature = kw.get('signature')
+        self.__location = kw.get('location')
+        self.__generationUID = kw.get('generation_uid')
+        
 class _NamespaceComponentAssociation_mixin (pyxb.cscRoot):
     """Mix-in for managing components defined within this namespace.
 
@@ -1170,7 +1221,7 @@ class _NamespaceComponentAssociation_mixin (pyxb.cscRoot):
         namespace."""
         getattr(super(_NamespaceComponentAssociation_mixin, self), '_reset', lambda *args, **kw: None)()
         self.__components = set()
-        self.__schemas = set()
+        self.__schemaRecords = set()
         self.__schemaMap = { }
 
     def _associateComponent (self, component):
@@ -1192,19 +1243,26 @@ class _NamespaceComponentAssociation_mixin (pyxb.cscRoot):
         return getattr(super(_NamespaceComponentAssociation_mixin, self), '_replaceComponent_csc', lambda *args, **kw: replacement_def)(existing_def, replacement_def)
 
     def addSchema (self, schema):
-        sl = schema.location()
-        if sl is not None:
-            assert not (sl in self.__schemaMap), '%s already in schema list for %s' % (sl, self)
-            self.__schemaMap[sl] = schema
-        self.__schemas.add(schema)
-    __schemaMap = None
+        for sr in self.__schemaRecords:
+            if sr.match(schema=schema):
+                raise pyxb.SchemaUniquenessError(sr, schema)
+        sr = _SchemaRecord(schema=schema)
+        self.__schemaRecords.add(sr)
 
     def lookupSchemaByLocation (self, schema_location):
-        return self.__schemaMap.get(schema_location)
+        for sr in self.__schemaRecords:
+            if sr.match(location=schema_location):
+                return sr.schema()
+        return None
 
     def schemas (self):
-        return self.__schemas
-    __schemas = None
+        s = set()
+        for sr in self.__schemaRecords:
+            if sr.schema() is not None:
+                s.add(sr.schema())
+        return s
+
+    __schemaRecords = None
 
     def components (self):
         """Return a frozenset of all components, named or unnamed, belonging
@@ -1735,7 +1793,7 @@ class _XMLSchema_instance (Namespace):
         for this namespace. """
         
         assert structures_module is not None
-        schema = structures_module.Schema(namespace_context=self.initialNamespaceContext(), schema_location="URN:noLocation:PyXB:xsi")
+        schema = structures_module.Schema(namespace_context=self.initialNamespaceContext(), schema_location="URN:noLocation:PyXB:xsi", generation_uid=BuiltInObjectUID)
         type = schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('type', self))
         nil = schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('nil', self))
         schema_location = schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('schemaLocation', self))
@@ -1765,7 +1823,7 @@ class _XML (Namespace):
         std_lang._setAnonymousName(self, anon_name='STD_ANON_lang')
         std_lang._setBindingNamespace(self)
 
-        schema = structures_module.Schema(namespace_context=self.initialNamespaceContext(), schema_location="URN:noLocation:PyXB:XML")
+        schema = structures_module.Schema(namespace_context=self.initialNamespaceContext(), schema_location="URN:noLocation:PyXB:XML", generation_uid=BuiltInObjectUID)
 
         base = schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('base', self, std=xsd.anyURI.SimpleTypeDefinition()))
         id = schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('id', self, std=xsd.ID.SimpleTypeDefinition()))
