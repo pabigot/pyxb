@@ -148,6 +148,8 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin, pyxb.na
 
         self.__schema = kw.get('schema')
         assert (self.__schema is None) or isinstance(self.__schema, Schema)
+        if self.__schema is not None:
+            self._setObjectOrigin(self.__schema.originRecord())
 
         super(_SchemaComponent_mixin, self).__init__(*args, **kw)
         self._namespaceContext().targetNamespace()._associateComponent(self)
@@ -207,6 +209,7 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin, pyxb.na
         self.__clones = None
         assert owner.__schema is not None
         self.__schema = owner.__schema
+        self._setObjectOrigin(self.__schema.originRecord(), override=True)
         owner._namespaceContext().targetNamespace()._associateComponent(self)
         if self.__namespaceContext is None:
             # When cloning imported components, loan them the owner's
@@ -4412,9 +4415,9 @@ class Schema (_SchemaComponent_mixin):
         return self.__generationUID
     __generationUID = None
 
-    def schemaRecord (self):
-        return self.__schemaRecord
-    __schemaRecord = None
+    def originRecord (self):
+        return self.__originRecord
+    __originRecord = None
 
     def targetNamespace (self):
         """The targetNamespace of a componen.
@@ -4517,7 +4520,7 @@ class Schema (_SchemaComponent_mixin):
 
         # NB: This will raise pyxb.SchemaUniquenessError if it appears this
         # schema has already been incorporated into the target namespace.
-        self.__schemaRecord = self.__targetNamespace.addSchema(self)
+        self.__originRecord = self.__targetNamespace.addSchema(self)
         self.__defaultNamespace = kw.get('default_namespace', self._namespaceContext().defaultNamespace())
         if not ((self.__defaultNamespace is None) or isinstance(self.__defaultNamespace, pyxb.namespace.Namespace)):
             raise pyxb.LogicError('Schema default namespace must be None or a valid Namespace instance')

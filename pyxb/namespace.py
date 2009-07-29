@@ -563,7 +563,6 @@ class NamespaceArchive (object):
             uri_map = {}
             for ns in self.namespaces():
                 assert not ns.isAbsentNamespace()
-                ns.updateOriginUID(self.generationUID())
                 uri_map[ns.uri()] = cat_map = {}
                 for cat in ns.categories():
                     cat_map[cat] = frozenset(ns.categoryMap(cat).keys())
@@ -620,25 +619,25 @@ class _ObjectArchivable_mixin (pyxb.cscRoot):
     """Mix-in to any object that can be stored in a namespace within an archive."""
     
     # Need to set this per category item
-    __objectOriginUID = None
-    def _objectOriginUID (self):
-        return self.__objectOriginUID
-    def _setObjectOriginUID (self, object_origin_uid):
-        if self.__objectOriginUID is not None:
-            if  self.__objectOriginUID != object_origin_uid:
-                raise pyxb.LogicError('Inconsistent origins for object %s' % (self,))
+    __objectOrigin = None
+    def _objectOrigin (self):
+        return self.__objectOrigin
+    def _setObjectOrigin (self, object_origin, override=False):
+        if (self.__objectOrigin is not None) and (not override):
+            if  self.__objectOrigin != object_origin:
+                raise pyxb.LogicError('Inconsistent origins for object %s: %s %s' % (self, self.__objectOrigin, object_origin))
         else:
-            self.__objectOriginUID = object_origin_uid
-    def _setObjectOriginUIDIfUndefined (self, object_origin_uid):
-        if self.__objectOriginUID is None:
-            self.__objectOriginUID = object_origin_uid
-        return self.__objectOriginUID
+            self.__objectOrigin = object_origin
+    def _setObjectOriginIfUndefined (self, object_origin):
+        if self.__objectOrigin is None:
+            self.__objectOrigin = object_origin
+        return self.__objectOrigin
 
     def _prepareForArchive_csc (self, archive, namespace):
         return getattr(super(_ObjectArchivable_mixin, self), '_prepareForArchive_csc', lambda *_args,**_kw: self)(archive, namespace)
 
     def _prepareForArchive (self, archive, namespace):
-        assert self.__objectOriginUID is not None
+        #assert self.__objectOrigin is not None
         return self._prepareForArchive_csc(archive, namespace)
 
     def _updateFromOther_csc (self, other):
@@ -655,7 +654,8 @@ class _ObjectArchivable_mixin (pyxb.cscRoot):
 
     def _allowUpdateFromOther (self, other):
         global BuiltInObjectUID
-        return BuiltInObjectUID == self._objectOriginUID()
+        assert self._objectOrigin()
+        return BuiltInObjectUID == self._objectOrigin().generationUID()
 
 class _NamespaceArchivable_mixin (pyxb.cscRoot):
 
@@ -1101,9 +1101,6 @@ def ResolveSiblingNamespaces (sibling_namespaces, origin_uid):
             raise pyxb.LogicError('Unexpected external dependency in sibling namespaces: %s' % ("\n  ".join( [str(_ns) for _ns in need_resolved ]),))
         need_resolved = new_nr
 
-    for ns in sibling_namespaces:
-        ns.updateOriginUID(origin_uid)
-
 class _ComponentDependency_mixin (pyxb.cscRoot):
     """Mix-in for components that can depend on other components."""
     # Cached frozenset of components on which this component depends.
@@ -1200,6 +1197,10 @@ class _SchemaRecord (object):
         self.__location = kw.get('location')
         self.__generationUID = kw.get('generation_uid')
         
+    def __str__ (self):
+        return '_SchemaRecord(%s)' % (self.location(),)
+
+
 class _NamespaceComponentAssociation_mixin (pyxb.cscRoot):
     """Mix-in for managing components defined within this namespace.
 
@@ -1275,9 +1276,9 @@ class _NamespaceComponentAssociation_mixin (pyxb.cscRoot):
         for c in self.__components:
             c._clearNamespaceContext()
 
-    def updateOriginUID (self, origin_uid):
+    def updateOrigin (self, origin):
         for c in self.__components:
-            c._setObjectOriginUIDIfUndefined(origin_uid)
+            c._setObjectOriginIfUndefined(origin)
 
 class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _NamespaceComponentAssociation_mixin, _NamespaceArchivable_mixin):
     """Represents an XML namespace (a URI).
@@ -1628,7 +1629,6 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
             global BuiltInObjectUID
             
             self._defineBuiltins_ox(structures_module)
-            self.updateOriginUID(BuiltInObjectUID)
             self.__definedBuiltins = True
         return self
 
