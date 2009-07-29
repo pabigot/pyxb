@@ -580,7 +580,8 @@ class NamespaceArchive (object):
                 object_map[ns] = ns._categoryMap()
                 ns._setWroteToArchive(self)
                 for obj in ns._namedObjects().union(ns.components()):
-                    obj._prepareForArchive(self, ns)
+                    if isinstance(obj, _ObjectArchivable_mixin):
+                        obj._prepareForArchive(self, ns)
             pickler.dump(object_map)
         finally:
             sys.setrecursionlimit(recursion_limit)
