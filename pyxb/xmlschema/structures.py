@@ -2232,7 +2232,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         return self
 
     def __setContentFromDOM (self, node, **kw):
-        schema = kw.get('schema', None)
+        schema = kw.get('schema')
         assert schema is not None
         self.__prohibitedSubstitutions = schema.blockForNode(node, self._DM_Map)
         self.__final = schema.finalForNode(node, self._DM_Map)
@@ -4368,6 +4368,11 @@ class Schema (_SchemaComponent_mixin):
         return self.__schemaLocationTag
     __schemaLocationTag = None
 
+
+    def signature (self):
+        return self.__signature
+    __signature = None
+
     def targetNamespace (self):
         """The targetNamespace of a componen.
 
@@ -4444,12 +4449,15 @@ class Schema (_SchemaComponent_mixin):
         pyxb.namespace.NamespaceArchive.PreLoadArchives()
 
         assert 'schema' not in kw
-        self.__schemaLocation = kw.get('schema_location', None)
+        self.__schemaLocation = kw.get('schema_location')
         if self.__schemaLocation is not None:
             schema_path = self.__schemaLocation
             if 0 <= schema_path.find(':'):
                 schema_path = urlparse.urlparse(schema_path)[2] # .path
             self.__schemaLocationTag = os.path.split(schema_path)[1].split('.')[0]
+
+        self.__signature = kw.get('schema_signature')
+        print 'Schema at %s signature %s' % (self.schemaLocation(), self.signature())
 
         super(Schema, self).__init__(*args, **kw)
         self.__importEIIs = set()
@@ -4487,6 +4495,12 @@ class Schema (_SchemaComponent_mixin):
         }
 
     @classmethod
+    def CreateFromDocument (cls, xmls, **kw):
+        if not ('schema_signature' in kw):
+            kw['schema_signature'] = pyxb.utils.utility.HashForText(xmls)
+        return cls.CreateFromDOM(StringToDOM(xmls), **kw)
+
+    @classmethod
     def CreateFromLocation (cls, **kw):
         """Create a schema from a schema location.
 
@@ -4504,17 +4518,14 @@ class Schema (_SchemaComponent_mixin):
         schema_location = kw.pop('absolute_schema_location', pyxb.utils.utility.NormalizeLocation(kw.get('schema_location'), kw.get('parent_uri')))
         kw['schema_location'] = schema_location
         assert isinstance(schema_location, (str, unicode))
-        dom = StringToDOM(pyxb.utils.utility.TextFromURI(schema_location))
-        return cls.CreateFromDOM(dom, **kw)
+        return cls.CreateFromDocument(pyxb.utils.utility.TextFromURI(schema_location), **kw)
 
     @classmethod
     def CreateFromStream (cls, stream, **kw):
-        xmls = stream.read()
-        dom = pyxb.utils.domutils.StringToDOM(xmls)
-        return cls.CreateFromDOM(dom.documentElement, **kw)
+        return cls.CreateFromDocument(stream.read(), **kw)
 
     @classmethod
-    def CreateFromDOM (cls, node, namespace_context=None, inherit_default_namespace=False, schema_location=None):
+    def CreateFromDOM (cls, node, namespace_context=None, inherit_default_namespace=False, schema_location=None, schema_signature=None):
         """Take the root element of the document, and scan its attributes under
         the assumption it is an XMLSchema schema element.  That means
         recognize namespace declarations and process them.  Also look for
@@ -4533,7 +4544,7 @@ class Schema (_SchemaComponent_mixin):
 
         tns = ns_ctx.targetNamespace()
         assert tns is not None
-        schema = cls(namespace_context=ns_ctx, schema_location=schema_location)
+        schema = cls(namespace_context=ns_ctx, schema_location=schema_location, schema_signature=schema_signature)
         schema.__namespaceData = ns_ctx
             
         assert schema.targetNamespace() == ns_ctx.targetNamespace()
@@ -4823,7 +4834,7 @@ def _AddSimpleTypes (namespace):
     namespaces are initialized. """
     # Add the ur type
     #schema = namespace.schema()
-    schema = Schema(namespace_context=pyxb.namespace.XMLSchema.initialNamespaceContext())
+    schema = Schema(namespace_context=pyxb.namespace.XMLSchema.initialNamespaceContext(), schema_location='URN:noLocation:PyXB:XMLSchema')
     td = schema._addNamedComponent(ComplexTypeDefinition.UrTypeDefinition(in_builtin_definition=True))
     assert td.isResolved()
     # Add the simple ur type

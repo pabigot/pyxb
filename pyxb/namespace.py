@@ -1735,7 +1735,7 @@ class _XMLSchema_instance (Namespace):
         for this namespace. """
         
         assert structures_module is not None
-        schema = structures_module.Schema(namespace_context=self.initialNamespaceContext(), schema_location="URN:noLocation:xsi")
+        schema = structures_module.Schema(namespace_context=self.initialNamespaceContext(), schema_location="URN:noLocation:PyXB:xsi")
         type = schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('type', self))
         nil = schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('nil', self))
         schema_location = schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('schemaLocation', self))
@@ -1765,7 +1765,7 @@ class _XML (Namespace):
         std_lang._setAnonymousName(self, anon_name='STD_ANON_lang')
         std_lang._setBindingNamespace(self)
 
-        schema = structures_module.Schema(namespace_context=self.initialNamespaceContext(), schema_location="URN:noLocation:XML")
+        schema = structures_module.Schema(namespace_context=self.initialNamespaceContext(), schema_location="URN:noLocation:PyXB:XML")
 
         base = schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('base', self, std=xsd.anyURI.SimpleTypeDefinition()))
         id = schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('id', self, std=xsd.ID.SimpleTypeDefinition()))
