@@ -1244,9 +1244,6 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
     # A set of all absent namespaces created.
     __AbsentNamespaces = set()
 
-    # Optional URI specifying the source for a (primary) schema for this namespace
-    __schemaLocation = None
-
     # Optional description of the namespace
     __description = None
 
@@ -1335,7 +1332,6 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
         return cls.__AbsentNamespaces.union(cls.__Registry.values())
 
     def __init__ (self, uri,
-                  schema_location=None,
                   description=None,
                   builtin_namespace=None,
                   builtin_module_path=None,
@@ -1349,8 +1345,7 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
         The URI must be non-None, and must not already be assigned to
         a Namespace instance.  See NamespaceForURI().
         
-        User-created Namespace instances may also provide a
-        schemaLocation and a description.
+        User-created Namespace instances may also provide a description.
 
         Users should never provide a builtin_namespace parameter.
         """
@@ -1372,7 +1367,6 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
         # see __new__().
         assert self.__uri == uri
         self.__boundPrefix = bound_prefix
-        self.__schemaLocation = schema_location
         self.__description = description
         self.__isBuiltinNamespace = is_builtin_namespace
         self.__builtinNamespaceVariable = builtin_namespace
@@ -1511,12 +1505,6 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
         return self.__schemas
     __schemas = None
 
-    def schemaLocation (self, schema_location=None):
-        """Get, or set, a URI that says where the XML document defining the namespace can be found."""
-        if schema_location is not None:
-            self.__schemaLocation = schema_location
-        return self.__schemaLocation
-
     def description (self, description=None):
         """Get, or set, a textual description of the namespace."""
         if description is not None:
@@ -1531,7 +1519,6 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
 
     def _getState_csc (self, kw):
         kw.update({
-            'schemaLocation': self.__schemaLocation,
             'description': self.__description,
             'prefix': self.__prefix,
             'modulePath' : self.__modulePath,
@@ -1541,7 +1528,6 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
 
     def _setState_csc (self, kw):
         self.__isLoadedNamespace = True
-        self.__schemaLocation = kw['schemaLocation']
         self.__description = kw['description']
         self.__prefix = kw['prefix']
         assert (self.__modulePath is None) or (self.__modulePath == kw.get('modulePath'))
@@ -1842,25 +1828,25 @@ XMLNamespaces = Namespace('http://www.w3.org/2000/xmlns/',
                           bound_prefix='xmlns')
 """Namespaces in XML.  Not really a namespace, but is always available as C{xmlns}."""
 
+# http://www.w3.org/2001/XMLSchema.xsd
 XMLSchema = _XMLSchema('http://www.w3.org/2001/XMLSchema',
-                       schema_location='http://www.w3.org/2001/XMLSchema.xsd',
                        description='XML Schema',
                        builtin_namespace='XMLSchema',
                        builtin_module_path='pyxb.binding.datatypes',
                        in_scope_namespaces = { 'xs' : None })
 """Namespace and URI for the XMLSchema namespace (often C{xs}, or C{xsd})"""
 
+# http://www.w3.org/1999/xhtml.xsd
 XHTML = Namespace('http://www.w3.org/1999/xhtml',
                   description='Family of document types that extend HTML',
-                  schema_location='http://www.w3.org/1999/xhtml.xsd',
                   builtin_namespace='XHTML',
                   default_namespace=XMLSchema)
 """There really isn't a schema for this, but it's used as the default
 namespace in the XML schema, so define it."""
 
+# http://www.w3.org/2001/xml.xsd
 XML = _XML('http://www.w3.org/XML/1998/namespace',
            description='XML namespace',
-           schema_location='http://www.w3.org/2001/xml.xsd',
            builtin_namespace='XML',
            builtin_module_path='pyxb.binding.xml_',
            is_undeclared_namespace=True,
@@ -1869,9 +1855,9 @@ XML = _XML('http://www.w3.org/XML/1998/namespace',
            in_scope_namespaces = { 'xs' : XMLSchema })
 """Namespace and URI for XML itself (always available as C{xml})"""
 
+# http://www.w3.org/2001/XMLSchema-hasFacetAndProperty
 XMLSchema_hfp = Namespace('http://www.w3.org/2001/XMLSchema-hasFacetAndProperty',
                           description='Facets appearing in appinfo section',
-                          schema_location='http://www.w3.org/2001/XMLSchema-hasFacetAndProperty',
                           builtin_namespace='XMLSchema_hfp',
                           default_namespace=XMLSchema,
                           in_scope_namespaces = { 'hfp' : None
