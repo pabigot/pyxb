@@ -4376,6 +4376,10 @@ class Schema (_SchemaComponent_mixin):
         return self.__generationUID
     __generationUID = None
 
+    def schemaRecord (self):
+        return self.__schemaRecord
+    __schemaRecord = None
+
     def targetNamespace (self):
         """The targetNamespace of a componen.
 
@@ -4477,7 +4481,7 @@ class Schema (_SchemaComponent_mixin):
 
         # NB: This will raise pyxb.SchemaUniquenessError if it appears this
         # schema has already been incorporated into the target namespace.
-        self.__targetNamespace.addSchema(self)
+        self.__schemaRecord = self.__targetNamespace.addSchema(self)
         self.__defaultNamespace = kw.get('default_namespace', self._namespaceContext().defaultNamespace())
         if not ((self.__defaultNamespace is None) or isinstance(self.__defaultNamespace, pyxb.namespace.Namespace)):
             raise pyxb.LogicError('Schema default namespace must be None or a valid Namespace instance')

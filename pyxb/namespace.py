@@ -1248,6 +1248,7 @@ class _NamespaceComponentAssociation_mixin (pyxb.cscRoot):
                 raise pyxb.SchemaUniquenessError(sr, schema)
         sr = _SchemaRecord(schema=schema)
         self.__schemaRecords.add(sr)
+        return sr
 
     def lookupSchemaByLocation (self, schema_location):
         for sr in self.__schemaRecords:
