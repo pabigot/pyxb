@@ -473,7 +473,7 @@ class _NamedComponent_mixin (pyxb.namespace._ObjectArchivable_mixin):
             self._setAnonymousName(namespace, unique_id=archive.generationUID())
         return getattr(super(_NamedComponent_mixin, self), '_prepareForArchive_csc', lambda *_args,**_kw: self)(archive, namespace)
 
-    def _picklesInNamespaces (self, namespaces):
+    def _picklesInArchive (self, archive):
         """Return C{True} if this component should be pickled by value in the
         given namespace.
 
@@ -487,8 +487,8 @@ class _NamedComponent_mixin (pyxb.namespace._ObjectArchivable_mixin):
         @return: C{False} if the component should be pickled by reference.
         """
         if isinstance(self._scope(), ComplexTypeDefinition):
-            return self._scope()._picklesInNamespaces(namespaces)
-        return (self.targetNamespace() is None) or (self.targetNamespace() in namespaces)
+            return self._scope()._picklesInArchive(archive)
+        return (self.targetNamespace() is None) or (self.targetNamespace() in archive.namespaces())
 
     def _bindsInNamespace (self, ns):
         """Return C{True} if the binding for this component should be
@@ -669,7 +669,8 @@ class _NamedComponent_mixin (pyxb.namespace._ObjectArchivable_mixin):
         # If this thing is scoped in a complex type that belongs to the
         # namespace being pickled, then it gets pickled as an object even if
         # its target namespace isn't this one.
-        if self._picklesInNamespaces(pickling_archive.namespaces()):
+        assert self._objectOrigin() is not None
+        if self._picklesInArchive(pickling_archive):
             return False
         # Note that anonymous objects must use their fallback
         return True
