@@ -1623,17 +1623,6 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.na
 
 
 class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.namespace._Resolvable_mixin, _Annotated_mixin, _AttributeWildcard_mixin):
-    __SequenceNumber = 0
-    @classmethod
-    def __NextSequenceNumber (cls):
-        rv = cls.__SequenceNumber
-        cls.__SequenceNumber += 1
-        return rv
-    __sequenceNumber = None
-    def _resetClone_csc (self, **kw):
-        self.__sequenceNumber = self.__NextSequenceNumber()
-        return getattr(super(Particle, self), '_resetClone_csc', lambda *_args,**_kw: self)(**kw)
-
     # The type resolved from the base attribute.
     __baseTypeDefinition = None
     def baseTypeDefinition (self):
@@ -1790,7 +1779,6 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
     
     def __init__ (self, *args, **kw):
         super(ComplexTypeDefinition, self).__init__(*args, **kw)
-        self.__sequenceNumber = self.__NextSequenceNumber()
         self.__derivationMethod = kw.get('derivation_method')
         self.__scopedElementDeclarations = { }
         self.__scopedAttributeDeclarations = { }
@@ -2410,7 +2398,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
 
     def __str__ (self):
         if self.isAnonymous:
-            return 'CTD{Anonymous}[%d]' % (self.__sequenceNumber,)
+            return 'CTD{Anonymous}[%x]' % (id(self),)
         return 'CTD[%s]' % (self.expandedName(),)
 
 class _UrTypeDefinition (ComplexTypeDefinition, _Singleton_mixin):
@@ -2793,17 +2781,6 @@ class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
 class Particle (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin):
     """Some entity along with occurrence information."""
 
-    __SequenceNumber = 0
-    @classmethod
-    def __NextSequenceNumber (cls):
-        rv = cls.__SequenceNumber
-        cls.__SequenceNumber += 1
-        return rv
-    __sequenceNumber = None
-    def _resetClone_csc (self, **kw):
-        self.__sequenceNumber = self.__NextSequenceNumber()
-        return getattr(super(Particle, self), '_resetClone_csc', lambda *_args,**_kw: self)(**kw)
-
     # The minimum number of times the term may appear.
     __minOccurs = 1
     def minOccurs (self):
@@ -2894,7 +2871,6 @@ class Particle (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin):
         definition.
         """
 
-        self.__sequenceNumber = self.__NextSequenceNumber()
         super(Particle, self).__init__(*args, **kw)
 
         min_occurs = kw.get('min_occurs', 1)
@@ -3069,7 +3045,7 @@ class Particle (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin):
 
     def __str__ (self):
         #return 'PART{%s:%d,%s}' % (self.term(), self.minOccurs(), self.maxOccurs())
-        return 'PART{%s:%d,%s}[%d]' % ('TERM', self.minOccurs(), self.maxOccurs(), self.__sequenceNumber)
+        return 'PART{%s:%d,%s}[%x]' % ('TERM', self.minOccurs(), self.maxOccurs(), id(self))
  
 
 # 3.10.1
