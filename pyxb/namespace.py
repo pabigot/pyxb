@@ -1491,7 +1491,7 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
     __module = None
 
     def addSchema (self, schema):
-        sl = schema.schemaLocation()
+        sl = schema.location()
         if sl is not None:
             assert not (sl in self.__schemaMap), '%s already in schema list for %s' % (sl, self)
             self.__schemaMap[sl] = schema

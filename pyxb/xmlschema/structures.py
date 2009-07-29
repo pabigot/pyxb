@@ -4289,7 +4289,7 @@ class _ImportElementInformationItem (_Annotated_mixin):
         uri = NodeAttribute(node, 'namespace')
         if uri is None:
             raise pyxb.IncompleteImplementationError('import statements without namespace not supported')
-        schema_location = pyxb.utils.utility.NormalizeLocation(NodeAttribute(node, 'schemaLocation'), schema.schemaLocation())
+        schema_location = pyxb.utils.utility.NormalizeLocation(NodeAttribute(node, 'schemaLocation'), schema.location())
         self.__schemaLocation = schema_location
         ns = self.__namespace = pyxb.namespace.NamespaceForURI(uri, create_if_missing=True)
         self.__redundant = False
@@ -4328,7 +4328,7 @@ class _ImportElementInformationItem (_Annotated_mixin):
 
         ns_ctx = pyxb.namespace.NamespaceContext.GetNodeContext(node)
         if self.schemaLocation() is not None:
-            print 'import %s + %s = %s' % (schema.schemaLocation(), self.__schemaLocation, schema_location)
+            print 'import %s + %s = %s' % (schema.location(), self.__schemaLocation, schema_location)
             schema = self.__namespace.lookupSchemaByLocation(schema_location)
             if schema is None:
                 try:
@@ -4351,22 +4351,22 @@ class Schema (_SchemaComponent_mixin):
     # notations.
     __pastProlog = False
 
-    def schemaLocation (self):
+    def location (self):
         """URI or path to where the schema can be found.
 
         For schema created by a user, the location should be provided to the
         constructor using the C{schema_location} keyword.  In the case of
         imported or included schema, the including schema's location is used
         as the base URI for determining the absolute URI of the included
-        schema from its (possibly relative) schemaLocation value.  For files,
+        schema from its (possibly relative) location value.  For files,
         the scheme and authority portions are generally absent, as is often
         the abs_path part."""
-        return self.__schemaLocation
-    __schemaLocation = None
+        return self.__location
+    __location = None
 
-    def schemaLocationTag (self):
-        return self.__schemaLocationTag
-    __schemaLocationTag = None
+    def locationTag (self):
+        return self.__locationTag
+    __locationTag = None
 
 
     def signature (self):
@@ -4449,15 +4449,15 @@ class Schema (_SchemaComponent_mixin):
         pyxb.namespace.NamespaceArchive.PreLoadArchives()
 
         assert 'schema' not in kw
-        self.__schemaLocation = kw.get('schema_location')
-        if self.__schemaLocation is not None:
-            schema_path = self.__schemaLocation
+        self.__location = kw.get('schema_location')
+        if self.__location is not None:
+            schema_path = self.__location
             if 0 <= schema_path.find(':'):
                 schema_path = urlparse.urlparse(schema_path)[2] # .path
-            self.__schemaLocationTag = os.path.split(schema_path)[1].split('.')[0]
+            self.__locationTag = os.path.split(schema_path)[1].split('.')[0]
 
         self.__signature = kw.get('schema_signature')
-        print 'Schema at %s signature %s' % (self.schemaLocation(), self.signature())
+        print 'Schema at %s signature %s' % (self.location(), self.signature())
 
         super(Schema, self).__init__(*args, **kw)
         self.__importEIIs = set()
@@ -4466,9 +4466,9 @@ class Schema (_SchemaComponent_mixin):
         self.__targetNamespace = kw.get('target_namespace', self._namespaceContext().targetNamespace())
         if not isinstance(self.__targetNamespace, pyxb.namespace.Namespace):
             raise pyxb.LogicError('Schema constructor requires valid Namespace instance as target_namespace')
-        existing_schema = self.__targetNamespace.lookupSchemaByLocation(self.__schemaLocation)
+        existing_schema = self.__targetNamespace.lookupSchemaByLocation(self.__location)
         if existing_schema is not None:
-            raise pyxb.SchemaUniquenessError(self.__targetNamespace, self.__schemaLocation, existing_schema)
+            raise pyxb.SchemaUniquenessError(self.__targetNamespace, self.__location, existing_schema)
 
         self.__targetNamespace.addSchema(self)
         self.__defaultNamespace = kw.get('default_namespace', self._namespaceContext().defaultNamespace())
@@ -4673,8 +4673,8 @@ class Schema (_SchemaComponent_mixin):
     def __processInclude (self, node):
         self.__requireInProlog(node.nodeName)
         # See section 4.2.1 of Structures.
-        abs_uri = pyxb.utils.utility.NormalizeLocation(NodeAttribute(node, 'schemaLocation'), self.__schemaLocation)
-        #print 'include %s + %s = %s' % (self.__schemaLocation, rel_uri, abs_uri)
+        abs_uri = pyxb.utils.utility.NormalizeLocation(NodeAttribute(node, 'schemaLocation'), self.__location)
+        #print 'include %s + %s = %s' % (self.__location, rel_uri, abs_uri)
         included_schema = self.targetNamespace().lookupSchemaByLocation(abs_uri)
         if included_schema is None:
             try:
@@ -4683,8 +4683,8 @@ class Schema (_SchemaComponent_mixin):
                 print 'INCLUDE %s caught: %s' % (abs_uri, e)
                 #traceback.print_exception(*sys.exc_info())
                 raise
-            print '%s completed including %s from %s' % (self.__schemaLocation, included_schema.targetNamespace(), abs_uri)
-        print 'Included %s, back to %s' % (included_schema.schemaLocation(), self.schemaLocation())
+            print '%s completed including %s from %s' % (self.__location, included_schema.targetNamespace(), abs_uri)
+        print 'Included %s, back to %s' % (included_schema.location(), self.location())
         assert self.targetNamespace() == included_schema.targetNamespace()
         self.__includedSchema.add(included_schema)
         return node
@@ -4698,7 +4698,7 @@ class Schema (_SchemaComponent_mixin):
 
         self.__requireInProlog(node.nodeName)
         import_eii = _ImportElementInformationItem(self, node)
-        print 'Imported %s, prefix %s, back to %s' % (import_eii.namespace().uri(), import_eii.prefix(), self.__schemaLocation)
+        print 'Imported %s, prefix %s, back to %s' % (import_eii.namespace().uri(), import_eii.prefix(), self.__location)
         if import_eii.schema() is not None:
             self.__importedSchema.add(import_eii.schema())
         self.targetNamespace().importNamespace(import_eii.namespace())
@@ -4825,7 +4825,7 @@ class Schema (_SchemaComponent_mixin):
         return agd
 
     def __str__ (self):
-        return 'SCH[%s]' % (self.schemaLocation(),)
+        return 'SCH[%s]' % (self.location(),)
 
 
 def _AddSimpleTypes (namespace):
