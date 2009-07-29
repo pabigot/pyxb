@@ -628,10 +628,6 @@ class _ObjectArchivable_mixin (pyxb.cscRoot):
                 raise pyxb.LogicError('Inconsistent origins for object %s: %s %s' % (self, self.__objectOrigin, object_origin))
         else:
             self.__objectOrigin = object_origin
-    def _setObjectOriginIfUndefined (self, object_origin):
-        if self.__objectOrigin is None:
-            self.__objectOrigin = object_origin
-        return self.__objectOrigin
 
     def _prepareForArchive_csc (self, archive, namespace):
         return getattr(super(_ObjectArchivable_mixin, self), '_prepareForArchive_csc', lambda *_args,**_kw: self)(archive, namespace)
@@ -1275,10 +1271,6 @@ class _NamespaceComponentAssociation_mixin (pyxb.cscRoot):
     def _releaseNamespaceContexts (self):
         for c in self.__components:
             c._clearNamespaceContext()
-
-    def updateOrigin (self, origin):
-        for c in self.__components:
-            c._setObjectOriginIfUndefined(origin)
 
 class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _NamespaceComponentAssociation_mixin, _NamespaceArchivable_mixin):
     """Represents an XML namespace (a URI).
