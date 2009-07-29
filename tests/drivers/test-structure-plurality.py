@@ -1,8 +1,8 @@
 # Test the infrastructure that determines whether specific element
 # names should be treated as single values or collections.
 
+import pyxb
 import pyxb.xmlschema as xs
-from pyxb.exceptions_ import *
 import pyxb.namespace as Namespace
 from pyxb.xmlschema.structures import _PluralityData
 from pyxb.xmlschema.structures import ModelGroup
@@ -29,15 +29,19 @@ class _TestBase (unittest.TestCase):
 
     def setUp (self):
         target_namespace=Namespace.CreateAbsentNamespace()
-        self.__schema = xs.schema(namespace_context=target_namespace.initialNamespaceContext(), schema_location=str(target_namespace))
+        self.__generationUID = pyxb.utils.utility.UniqueIdentifier()
+        self.__schema = xs.schema(namespace_context=target_namespace.initialNamespaceContext(), schema_location=str(target_namespace), generation_uid=self.__generationUID)
         self.__edKW = { 'namespace_context' : self.__schema.targetNamespace().initialNamespaceContext()
                       , 'scope' : xs.structures._ScopedDeclaration_mixin.SCOPE_global
+                      , 'schema' : self.__schema
                       , 'context' : xs.structures._ScopedDeclaration_mixin.SCOPE_global }
         self.__prtKW = { 'namespace_context' : self.__schema.targetNamespace().initialNamespaceContext()
                        , 'scope' : xs.structures._ScopedDeclaration_mixin.XSCOPE_indeterminate
+                       , 'schema' : self.__schema
                        , 'context' : xs.structures._ScopedDeclaration_mixin.SCOPE_global }
         self.__mgKW = { 'namespace_context' : self.__schema.targetNamespace().initialNamespaceContext()
                       , 'scope' : xs.structures._ScopedDeclaration_mixin.XSCOPE_indeterminate
+                      , 'schema' : self.__schema
                       , 'context' : xs.structures._ScopedDeclaration_mixin.SCOPE_global }
 
         for ( name, type ) in [ ( 'selt', 'string' ), ( 'ielt', 'int' ), ( 'belt', 'boolean' ) ]:

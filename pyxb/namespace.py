@@ -1795,10 +1795,10 @@ class _XMLSchema_instance (Namespace):
         
         assert structures_module is not None
         schema = structures_module.Schema(namespace_context=self.initialNamespaceContext(), schema_location="URN:noLocation:PyXB:xsi", generation_uid=BuiltInObjectUID)
-        type = schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('type', self))
-        nil = schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('nil', self))
-        schema_location = schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('schemaLocation', self))
-        no_namespace_schema_location = schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('noNamespaceSchemaLocation', self))
+        type = schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('type', schema))
+        nil = schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('nil', schema))
+        schema_location = schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('schemaLocation', schema))
+        no_namespace_schema_location = schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('noNamespaceSchemaLocation', schema))
         return self
 
 class _XML (Namespace):
@@ -1817,25 +1817,25 @@ class _XML (Namespace):
 
         self.configureCategories([NamespaceArchive._AnonymousCategory()])
 
-        std_space = structures_module.SimpleTypeDefinition._CreateXMLInstance('space')
+        schema = structures_module.Schema(namespace_context=self.initialNamespaceContext(), schema_location="URN:noLocation:PyXB:XML", generation_uid=BuiltInObjectUID)
+
+        std_space = structures_module.SimpleTypeDefinition._CreateXMLInstance('space', schema)
         std_space._setAnonymousName(self, anon_name='STD_ANON_space')
         std_space._setBindingNamespace(self)
-        std_lang = structures_module.SimpleTypeDefinition._CreateXMLInstance('lang')
+        std_lang = structures_module.SimpleTypeDefinition._CreateXMLInstance('lang', schema)
         std_lang._setAnonymousName(self, anon_name='STD_ANON_lang')
         std_lang._setBindingNamespace(self)
 
-        schema = structures_module.Schema(namespace_context=self.initialNamespaceContext(), schema_location="URN:noLocation:PyXB:XML", generation_uid=BuiltInObjectUID)
+        base = schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('base', schema, std=xsd.anyURI.SimpleTypeDefinition()))
+        id = schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('id', schema, std=xsd.ID.SimpleTypeDefinition()))
+        space = schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('space', schema, std=std_space))
+        lang = schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('lang', schema, std=std_lang))
 
-        base = schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('base', self, std=xsd.anyURI.SimpleTypeDefinition()))
-        id = schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('id', self, std=xsd.ID.SimpleTypeDefinition()))
-        space = schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('space', self, std=std_space))
-        lang = schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('lang', self, std=std_lang))
-
-        specialAttrs = schema._addNamedComponent(structures_module.AttributeGroupDefinition.CreateBaseInstance('specialAttrs', self, [
-                    structures_module.AttributeUse.CreateBaseInstance(self, space),
-                    structures_module.AttributeUse.CreateBaseInstance(self, base),
-                    structures_module.AttributeUse.CreateBaseInstance(self, lang),
-                    structures_module.AttributeUse.CreateBaseInstance(self, id),
+        specialAttrs = schema._addNamedComponent(structures_module.AttributeGroupDefinition.CreateBaseInstance('specialAttrs', schema, [
+                    structures_module.AttributeUse.CreateBaseInstance(schema, space),
+                    structures_module.AttributeUse.CreateBaseInstance(schema, base),
+                    structures_module.AttributeUse.CreateBaseInstance(schema, lang),
+                    structures_module.AttributeUse.CreateBaseInstance(schema, id),
                     ]))
         
         return self

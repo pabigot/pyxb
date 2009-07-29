@@ -146,10 +146,11 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin, pyxb.na
         if self.__namespaceContext is None:
             raise pyxb.LogicError('No namespace_context for schema component')
 
+        self.__schema = kw.get('schema')
+        assert (self.__schema is None) or isinstance(self.__schema, Schema)
+
         super(_SchemaComponent_mixin, self).__init__(*args, **kw)
         self._namespaceContext().targetNamespace()._associateComponent(self)
-
-        self.__schema = kw.get('schema')
 
         self._setOwner(kw.get('owner'))
 
@@ -587,6 +588,8 @@ class _NamedComponent_mixin (pyxb.cscRoot):
         self.__bindingNamespace = kw.get('binding_namespace')
 
         self.__templateMap = {}
+
+        assert self._schema() is not None
 
         # Do parent invocations after we've set the name: they might need it.
         super(_NamedComponent_mixin, self).__init__(*args, **kw)
@@ -1100,9 +1103,14 @@ class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
         return 'AD[%s:?]' % (self.expandedName(),)
 
     @classmethod
-    def CreateBaseInstance (cls, name, target_namespace, std=None):
+    def CreateBaseInstance (cls, name, schema, std=None):
         """Create an attribute declaration component for a specified namespace."""
-        bi = cls(name=name, namespace_context=target_namespace.initialNamespaceContext(), scope=_ScopedDeclaration_mixin.SCOPE_global)
+        kw = { 'name' : name,
+               'schema' : schema,
+               'namespace_context' : schema.targetNamespace().initialNamespaceContext(),
+               'scope' : _ScopedDeclaration_mixin.SCOPE_global }
+        assert schema is not None
+        bi = cls(**kw)
         if std is not None:
             bi.__typeDefinition = std
         bi.__typeAttribute = None
@@ -1265,11 +1273,13 @@ class AttributeUse (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin, _V
         return rv
 
     @classmethod
-    def CreateBaseInstance (cls, target_namespace, attribute_declaration, use=USE_optional):
-        bi = cls(namespace_context=target_namespace.initialNamespaceContext())
+    def CreateBaseInstance (cls, schema, attribute_declaration, use=USE_optional):
+        kw = { 'schema' : schema,
+               'namespace_context' : schema.targetNamespace().initialNamespaceContext() }
+        bi = cls(**kw)
         assert isinstance(attribute_declaration, AttributeDeclaration)
-        bi.__use = cls.USE_optional
         bi.__attributeDeclaration = attribute_declaration
+        bi.__use = use
         return bi
 
     # CFD:AU CFD:AttributeUse
@@ -1818,7 +1828,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
 
     __UrTypeDefinition = None
     @classmethod
-    def UrTypeDefinition (cls, in_builtin_definition=False):
+    def UrTypeDefinition (cls, schema=None, in_builtin_definition=False):
         """Create the ComplexTypeDefinition instance that approximates
         the ur-type.
 
@@ -1833,8 +1843,17 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         #    raise pyxb.LogicError('Multiple definitions of UrType')
         if cls.__UrTypeDefinition is None:
             # NOTE: We use a singleton subclass of this class
-            ns_ctx = pyxb.namespace.XMLSchema.initialNamespaceContext()
-            bi = _UrTypeDefinition(name='anyType', namespace_context=ns_ctx, binding_namespace=ns_ctx.targetNamespace(), derivation_method=cls.DM_restriction, scope=_ScopedDeclaration_mixin.SCOPE_global)
+            assert schema is not None
+
+            ns_ctx = schema.targetNamespace().initialNamespaceContext()
+
+            kw = { 'name' : 'anyType',
+                   'schema' : schema,
+                   'namespace_context' : ns_ctx,
+                   'binding_namespace' : schema.targetNamespace(),
+                   'derivation_method' : cls.DM_restriction,
+                   'scope' : _ScopedDeclaration_mixin.SCOPE_global }
+            bi = _UrTypeDefinition(**kw)
 
             # The ur-type is its own baseTypeDefinition
             bi.__baseTypeDefinition = bi
@@ -2419,9 +2438,13 @@ class AttributeGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, p
         return 'AGD[%s]' % (self.expandedName(),)
 
     @classmethod
-    def CreateBaseInstance (cls, name, target_namespace, attribute_uses):
+    def CreateBaseInstance (cls, name, schema, attribute_uses):
         """Create an attribute declaration component for a specified namespace."""
-        bi = cls(name=name, namespace_context=target_namespace.initialNamespaceContext(), scope=_ScopedDeclaration_mixin.SCOPE_global)
+        kw = { 'name' : name,
+               'schema' : schema,
+               'namespace_context' : schema.targetNamespace().initialNamespaceContext(),
+               'scope' : _ScopedDeclaration_mixin.SCOPE_global }
+        bi = cls(**kw)
         bi.__attributeUses = frozenset(attribute_uses)
         bi.__isResolved = True
         return bi
@@ -3680,7 +3703,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
 
     __SimpleUrTypeDefinition = None
     @classmethod
-    def SimpleUrTypeDefinition (cls, in_builtin_definition=False):
+    def SimpleUrTypeDefinition (cls, schema=None, in_builtin_definition=False):
         """Create the SimpleTypeDefinition instance that approximates the simple ur-type.
 
         See section 3.14.7."""
@@ -3689,8 +3712,17 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
         #    raise pyxb.LogicError('Multiple definitions of SimpleUrType')
         if cls.__SimpleUrTypeDefinition is None:
             # Note: We use a singleton subclass
-            ns_ctx = pyxb.namespace.XMLSchema.initialNamespaceContext()
-            bi = _SimpleUrTypeDefinition(name='anySimpleType', namespace_context=ns_ctx, binding_namespace=ns_ctx.targetNamespace(), variety=cls.VARIETY_absent, scope=_ScopedDeclaration_mixin.SCOPE_global)
+            assert schema is not None
+
+            ns_ctx = schema.targetNamespace().initialNamespaceContext()
+
+            kw = { 'name' : 'anySimpleType',
+                   'schema' : schema,
+                   'namespace_context' : ns_ctx,
+                   'binding_namespace' : schema.targetNamespace(),
+                   'variety' : cls.VARIETY_absent,
+                   'scope' : _ScopedDeclaration_mixin.SCOPE_global }
+            bi = _SimpleUrTypeDefinition(**kw)
             bi._setPythonSupport(datatypes.anySimpleType)
 
             # The baseTypeDefinition is the ur-type.
@@ -3708,16 +3740,21 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
         return cls.__SimpleUrTypeDefinition
 
     @classmethod
-    def _CreateXMLInstance (cls, name):
+    def _CreateXMLInstance (cls, name, schema):
         """Create STD instances for built-in types.
 
         For example, xml:space is a restriction of NCName; xml:lang is a union.
 
         """
         import pyxb.binding.xml_
+        kw = { 'schema' : schema,
+               'binding_namespace' : schema.targetNamespace(),
+               'namespace_context' : schema.targetNamespace().initialNamespaceContext(),
+               'scope' : _ScopedDeclaration_mixin.SCOPE_global,
+               'variety' : cls.VARIETY_atomic }
         ns_ctx = pyxb.namespace.XML.initialNamespaceContext()
         if 'space' == name:
-            bi = cls(namespace_context=ns_ctx, binding_namespace=ns_ctx.targetNamespace(), variety=cls.VARIETY_atomic, scope=_ScopedDeclaration_mixin.SCOPE_global)
+            bi = cls(**kw)
             bi.__derivationAlternative = cls._DA_restriction
             bi.__baseTypeDefinition = datatypes.NCName.SimpleTypeDefinition()
             bi.__primitiveTypeDefinition = bi.__baseTypeDefinition.__primitiveTypeDefinition
@@ -3725,7 +3762,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
             bi.setNameInBinding('STD_ANON_space')
             return bi
         if 'lang' == name:
-            bi = cls(namespace_context=ns_ctx, binding_namespace=ns_ctx.targetNamespace(), variety=cls.VARIETY_atomic, scope=_ScopedDeclaration_mixin.SCOPE_global)
+            bi = cls(**kw)
             bi.__baseTypeDefinition = cls.SimpleUrTypeDefinition()
             bi.__memberTypes = [ datatypes.language.SimpleTypeDefinition() ]
             bi.__derivationAlternative = cls._DA_union
@@ -3735,7 +3772,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
         raise pyxb.IncompleteImplementationError('No implementation for %s' % (name,))
 
     @classmethod
-    def CreatePrimitiveInstance (cls, name, ns_ctx, python_support):
+    def CreatePrimitiveInstance (cls, name, schema, python_support):
         """Create a primitive simple type in the target namespace.
 
         This is mainly used to pre-load standard built-in primitive
@@ -3746,7 +3783,14 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
         All parameters are required and must be non-None.
         """
         
-        bi = cls(name=name, namespace_context=ns_ctx, binding_namespace=ns_ctx.targetNamespace(), variety=cls.VARIETY_atomic, scope=_ScopedDeclaration_mixin.SCOPE_global)
+        kw = { 'name' : name,
+               'schema' : schema,
+               'binding_namespace' : schema.targetNamespace(),
+               'namespace_context' : schema.targetNamespace().initialNamespaceContext(),
+               'scope' : _ScopedDeclaration_mixin.SCOPE_global,
+               'variety' : cls.VARIETY_atomic }
+
+        bi = cls(**kw)
         bi._setPythonSupport(python_support)
 
         # Primitive types are based on the ur-type, and have
@@ -3760,7 +3804,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
         return bi
 
     @classmethod
-    def CreateDerivedInstance (cls, name, ns_ctx, parent_std, python_support):
+    def CreateDerivedInstance (cls, name, schema, parent_std, python_support):
         """Create a derived simple type in the target namespace.
 
         This is used to pre-load standard built-in derived types.  You
@@ -3770,7 +3814,14 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
         """
         assert parent_std
         assert parent_std.__variety in (cls.VARIETY_absent, cls.VARIETY_atomic)
-        bi = cls(name=name, namespace_context=ns_ctx, binding_namespace=ns_ctx.targetNamespace(), variety=parent_std.__variety, scope=_ScopedDeclaration_mixin.SCOPE_global)
+        kw = { 'name' : name,
+               'schema' : schema,
+               'binding_namespace' : schema.targetNamespace(),
+               'namespace_context' : schema.targetNamespace().initialNamespaceContext(),
+               'scope' : _ScopedDeclaration_mixin.SCOPE_global,
+               'variety' : parent_std.__variety }
+
+        bi = cls(**kw)
         bi._setPythonSupport(python_support)
 
         # We were told the base type.  If this is atomic, we re-use
@@ -3785,7 +3836,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
         return bi
 
     @classmethod
-    def CreateListInstance (cls, name, ns_ctx, item_std, python_support):
+    def CreateListInstance (cls, name, schema, item_std, python_support):
         """Create a list simple type in the target namespace.
 
         This is used to preload standard built-in list types.  You can
@@ -3793,7 +3844,14 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
         that require explicit support to for Pythonic conversion; but
         note that such support is identified by the item_std.
         """
-        bi = cls(name=name, namespace_context=ns_ctx, binding_namespace=ns_ctx.targetNamespace(), variety=cls.VARIETY_list, scope=_ScopedDeclaration_mixin.SCOPE_global)
+
+        kw = { 'name' : name,
+               'schema' : schema,
+               'binding_namespace' : schema.targetNamespace(),
+               'namespace_context' : schema.targetNamespace().initialNamespaceContext(),
+               'scope' : _ScopedDeclaration_mixin.SCOPE_global,
+               'variety' : cls.VARIETY_list }
+        bi = cls(**kw)
         bi._setPythonSupport(python_support)
 
         # The base type is the ur-type.  We were given the item type.
@@ -3806,7 +3864,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
         return bi
 
     @classmethod
-    def CreateUnionInstance (cls, name, ns_ctx, member_stds):
+    def CreateUnionInstance (cls, name, schema, member_stds):
         """(Placeholder) Create a union simple type in the target namespace.
 
         This function has not been implemented."""
@@ -4846,24 +4904,24 @@ def _AddSimpleTypes (namespace):
     # Add the ur type
     #schema = namespace.schema()
     schema = Schema(namespace_context=pyxb.namespace.XMLSchema.initialNamespaceContext(), schema_location='URN:noLocation:PyXB:XMLSchema', generation_uid=pyxb.namespace.BuiltInObjectUID)
-    td = schema._addNamedComponent(ComplexTypeDefinition.UrTypeDefinition(in_builtin_definition=True))
+    td = schema._addNamedComponent(ComplexTypeDefinition.UrTypeDefinition(schema, in_builtin_definition=True))
     assert td.isResolved()
     # Add the simple ur type
-    td = schema._addNamedComponent(SimpleTypeDefinition.SimpleUrTypeDefinition(in_builtin_definition=True))
+    td = schema._addNamedComponent(SimpleTypeDefinition.SimpleUrTypeDefinition(schema, in_builtin_definition=True))
     assert td.isResolved()
     # Add definitions for all primitive and derived simple types
     pts_std_map = {}
     ns_ctx = namespace.initialNamespaceContext()
     for dtc in datatypes._PrimitiveDatatypes:
         name = dtc.__name__.rstrip('_')
-        td = schema._addNamedComponent(SimpleTypeDefinition.CreatePrimitiveInstance(name, ns_ctx, dtc))
+        td = schema._addNamedComponent(SimpleTypeDefinition.CreatePrimitiveInstance(name, schema, dtc))
         assert td.isResolved()
         assert dtc.SimpleTypeDefinition() == td
         pts_std_map.setdefault(dtc, td)
     for dtc in datatypes._DerivedDatatypes:
         name = dtc.__name__.rstrip('_')
         parent_std = pts_std_map[dtc.XsdSuperType()]
-        td = schema._addNamedComponent(SimpleTypeDefinition.CreateDerivedInstance(name, ns_ctx, parent_std, dtc))
+        td = schema._addNamedComponent(SimpleTypeDefinition.CreateDerivedInstance(name, schema, parent_std, dtc))
         assert td.isResolved()
         assert dtc.SimpleTypeDefinition() == td
         pts_std_map.setdefault(dtc, td)
@@ -4872,7 +4930,7 @@ def _AddSimpleTypes (namespace):
         element_name = dtc._ItemType.__name__.rstrip('_')
         element_std = schema.targetNamespace().typeDefinitions().get(element_name)
         assert element_std is not None
-        td = schema._addNamedComponent(SimpleTypeDefinition.CreateListInstance(list_name, ns_ctx, element_std, dtc))
+        td = schema._addNamedComponent(SimpleTypeDefinition.CreateListInstance(list_name, schema, element_std, dtc))
         assert td.isResolved()
     global _PastAddBuiltInTypes
     _PastAddBuiltInTypes = True
