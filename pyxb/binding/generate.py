@@ -2020,9 +2020,14 @@ class Generator (object):
 
     __didResolveExternalSchema = False
     def resolveExternalSchema (self, reset=False):
+        if self.__didResolveExternalSchema and (not reset):
+            raise pyxb.PyXBException('Cannot resolve external schema multiple times')
+
         if self.__generationUID is not None:
             # This isn't safe until we have a way to reset everything.
             print 'WARNING: Unsafe to perform multiple generations in one run'
+            assert False
+
         self.__generationUID = pyxb.utils.utility.UniqueIdentifier()
 
         required_archives = pyxb.namespace.NamespaceArchive.PreLoadArchives(self.archivePath(), self.preLoadArchives())
@@ -2031,8 +2036,6 @@ class Generator (object):
         for ns in self.noLoadNamespaces():
             assert isinstance(ns, pyxb.namespace.Namespace)
             ns.markNotLoadable()
-        if self.__didResolveExternalSchema and (not reset):
-            raise pyxb.PyXBException('Cannot resolve external schema multiple times')
         while self.__schemaLocationList:
             sl = self.__schemaLocationList.pop(0)
             try:
@@ -2049,7 +2052,7 @@ class Generator (object):
                 module_path = self.__moduleList.pop(0)
             self.__assignNamespaceModulePath(ns, module_path)
             self.addNamespace(ns)
-        self.__resolveExternalSchema = True
+        self.__didResolveExternalSchema = True
         self.__bindingModules = None
 
     def __buildBindingModules (self):
