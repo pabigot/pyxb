@@ -205,6 +205,8 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin, pyxb.na
         self.__owner = owner
         self.__ownedComponents = set()
         self.__clones = None
+        assert owner.__schema is not None
+        self.__schema = owner.__schema
         owner._namespaceContext().targetNamespace()._associateComponent(self)
         if self.__namespaceContext is None:
             # When cloning imported components, loan them the owner's
