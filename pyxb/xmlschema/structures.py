@@ -51,7 +51,7 @@ _PastAddBuiltInTypes = False
 # Make it easier to check node names in the XMLSchema namespace
 from pyxb.namespace import XMLSchema as xsd
 
-class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin, pyxb.namespace._ObjectArchivable_mixin):
+class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin):
     """A mix-in that marks the class as representing a schema component.
 
     This exists so that we can determine the owning schema for any
@@ -148,8 +148,6 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin, pyxb.na
 
         self.__schema = kw.get('schema')
         assert (self.__schema is None) or isinstance(self.__schema, Schema)
-        if self.__schema is not None:
-            self._setObjectOrigin(self.__schema.originRecord())
 
         super(_SchemaComponent_mixin, self).__init__(*args, **kw)
         self._namespaceContext().targetNamespace()._associateComponent(self)
@@ -209,7 +207,6 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin, pyxb.na
         self.__clones = None
         assert owner.__schema is not None
         self.__schema = owner.__schema
-        self._setObjectOrigin(self.__schema.originRecord(), override=True)
         owner._namespaceContext().targetNamespace()._associateComponent(self)
         if self.__namespaceContext is None:
             # When cloning imported components, loan them the owner's
@@ -387,7 +384,7 @@ class _PickledAnonymousReference (pyxb.cscRoot):
     def __str__ (self):
         return 'ANONYMOUS:%s' % (pyxb.namespace.ExpandedName(self.__namespace, self.__anonymousName),)
     
-class _NamedComponent_mixin (pyxb.cscRoot):
+class _NamedComponent_mixin (pyxb.namespace._ObjectArchivable_mixin):
     """Mix-in to hold the name and targetNamespace of a component.
 
     The name may be None, indicating an anonymous component.  The
@@ -595,6 +592,7 @@ class _NamedComponent_mixin (pyxb.cscRoot):
         self.__templateMap = {}
 
         assert self._schema() is not None
+        self._setObjectOrigin(self._schema().originRecord())
 
         # Do parent invocations after we've set the name: they might need it.
         super(_NamedComponent_mixin, self).__init__(*args, **kw)
@@ -751,8 +749,10 @@ class _NamedComponent_mixin (pyxb.cscRoot):
         self.__dict__.update(state)
             
     def _resetClone_csc (self, **kw):
+        rv = getattr(super(_NamedComponent_mixin, self), '_resetClone_csc', lambda *_args,**_kw: self)(**kw)
         self.__templateMap = { }
-        return getattr(super(_NamedComponent_mixin, self), '_resetClone_csc', lambda *_args,**_kw: self)(**kw)
+        self._setObjectOrigin(self._schema().originRecord(), override=True)
+        return rv
 
 class _ValueConstraint_mixin (pyxb.cscRoot):
     """Mix-in indicating that the component contains a simple-type
