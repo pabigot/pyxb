@@ -605,6 +605,12 @@ class UniqueIdentifier (object):
             cls.__ExistingUIDs[uid] = rv
         return rv
 
+    def associateObject (self, obj):
+        self.__associatedObjects.add(obj)
+    def associatedObjects (self):
+        return self.__associatedObjects
+    __associatedObjects = None
+
     def __init__ (self, uid=None):
         """Create a new UniqueIdentifier instance.
 
@@ -614,6 +620,7 @@ class UniqueIdentifier (object):
         @type uid: C{str} or C{unicode}
         """
         assert (uid is None) or (self.uid() == uid), 'UniqueIdentifier: ctor %s, actual %s' % (uid, self.uid())
+        self.__associatedObjects = set()
 
     def __eq__ (self, other):
         if other is None:

@@ -534,11 +534,13 @@ class NamespaceArchive (object):
 
         # Now unarchive everything and associate it with its relevant
         # namespace.
+        print 'Unpickling from %s' % (self.__archivePath,)
         object_maps = unpickler.load()
         for ns in ns_set:
             print 'Read %s from %s - active %s' % (ns, self.__archivePath, ns.isActive())
             ns._loadNamedObjects(object_maps[ns])
             ns._setLoadedFromArchive(self)
+        print 'completed Unpickling from %s' % (self.__archivePath,)
 
     def writeNamespaces (self, output):
         """Store the namespaces into the archive.
@@ -1159,6 +1161,8 @@ class _SchemaRecord (object):
             kw['signature'] = schema.signature()
             assert not ('generation_uid' in kw)
             kw['generation_uid'] = schema.generationUID()
+            assert not ('namespace' in kw)
+            kw['namespace'] = schema.targetNamespace()
 
     def match (self, **kw):
         self.__setDefaultKW(kw)
@@ -1186,6 +1190,10 @@ class _SchemaRecord (object):
         return self.__schema
     __schema = None # TRANSIENT
 
+    def namespace (self):
+        return self.__namespace
+    __namespace = None
+
     def __init__ (self, **kw):
         super(_SchemaRecord, self).__init__()
         self.__setDefaultKW(kw)
@@ -1193,9 +1201,10 @@ class _SchemaRecord (object):
         self.__signature = kw.get('signature')
         self.__location = kw.get('location')
         self.__generationUID = kw.get('generation_uid')
+        self.__namespace = kw.get('namespace')
         
     def __str__ (self):
-        return '_SchemaRecord(%s)' % (self.location(),)
+        return '_SchemaRecord(%s@%s)' % (self.namespace(), self.location())
 
 
 class _NamespaceComponentAssociation_mixin (pyxb.cscRoot):
@@ -1246,6 +1255,7 @@ class _NamespaceComponentAssociation_mixin (pyxb.cscRoot):
                 print 'Schema at %s already registered in %s' % (schema.location(), self)
                 raise pyxb.SchemaUniquenessError(self, schema.location(), sr.schema())
         sr = _SchemaRecord(schema=schema)
+        schema.generationUID().associateObject(sr)
         self.__schemaRecords.add(sr)
         return sr
 

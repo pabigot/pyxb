@@ -111,20 +111,7 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin):
         self.__scope = ctd
         return self
 
-    def _schema (self):
-        """Return the schema component from which this component was defined.
-
-        Needed so we can distinguish components that came from different
-        locations, since that imposes an external order dependency on them and
-        on cross-namespace inclusions.
-
-        @note: This characteristic is removed when the component is stored in
-        a namespace archive."""
-        return self.__schema
-    __schema = None
-
     def _prepareForArchive_csc (self, archive, namespace):
-        self.__schema = None
         self.__clones = None
         self.__cloneSource = None
         self.__ownedComponents.clear()
@@ -145,9 +132,6 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin):
             self.__namespaceContext = pyxb.namespace.NamespaceContext.GetNodeContext(node)
         if self.__namespaceContext is None:
             raise pyxb.LogicError('No namespace_context for schema component')
-
-        self.__schema = kw.get('schema')
-        assert (self.__schema is None) or isinstance(self.__schema, Schema)
 
         super(_SchemaComponent_mixin, self).__init__(*args, **kw)
         self._namespaceContext().targetNamespace()._associateComponent(self)
@@ -203,10 +187,9 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin):
         owner = kw['owner']
         self.__nameInBinding = None
         self.__owner = owner
+        assert not (isinstance(self, ComplexTypeDefinition) and isinstance(owner, Schema))
         self.__ownedComponents = set()
         self.__clones = None
-        assert owner.__schema is not None
-        self.__schema = owner.__schema
         owner._namespaceContext().targetNamespace()._associateComponent(self)
         if self.__namespaceContext is None:
             # When cloning imported components, loan them the owner's
@@ -215,7 +198,7 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin):
             self.__namespaceContext = owner._namespaceContext()
         return getattr(super(_SchemaComponent_mixin, self), '_resetClone_csc', lambda *_args,**_kw: self)(**kw)
 
-    def _clone (self, owner):
+    def _clone (self, owner, origin):
         """Create a copy of this instance suitable for adoption by
         some other component.
         
@@ -235,7 +218,7 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin):
         if self.__clones is None:
             self.__clones = set()
         self.__clones.add(that)
-        that._resetClone_csc(owner=owner)
+        that._resetClone_csc(owner=owner, origin=origin)
         if isinstance(that, pyxb.namespace._Resolvable_mixin):
             assert that.isResolved()
         return that
@@ -468,7 +451,20 @@ class _NamedComponent_mixin (pyxb.namespace._ObjectArchivable_mixin):
     def __needAnonymousSupport (self):
         return self.isAnonymous() or (self._scopeIsIndeterminate() and not isinstance(self, AttributeGroupDefinition))
 
+    def _schema (self):
+        """Return the schema component from which this component was defined.
+
+        Needed so we can distinguish components that came from different
+        locations, since that imposes an external order dependency on them and
+        on cross-namespace inclusions.
+
+        @note: This characteristic is removed when the component is stored in
+        a namespace archive."""
+        return self.__schema
+    __schema = None
+
     def _prepareForArchive_csc (self, archive, namespace):
+        self.__schema = None
         if self.__needAnonymousSupport():
             self._setAnonymousName(namespace, unique_id=archive.generationUID())
         return getattr(super(_NamedComponent_mixin, self), '_prepareForArchive_csc', lambda *_args,**_kw: self)(archive, namespace)
@@ -490,8 +486,10 @@ class _NamedComponent_mixin (pyxb.namespace._ObjectArchivable_mixin):
             return self._scope()._picklesInArchive(archive)
         assert not (self.targetNamespace() is None)
         assert not (self._objectOrigin() is None)
-        return self.targetNamespace() in archive.namespaces()
-        #return self._objectOrigin().generationUID() == archive.generationUID()
+        old_flag = (self.targetNamespace() in archive.namespaces())
+        new_flag = (self._objectOrigin().generationUID() == archive.generationUID())
+        #assert old_flag == new_flag, '%s %s %s %s' % (old_flag, new_flag, self, self._picklingReference())
+        return new_flag # old_flag # and new_flag
 
     def _bindsInNamespace (self, ns):
         """Return C{True} if the binding for this component should be
@@ -576,7 +574,8 @@ class _NamedComponent_mixin (pyxb.namespace._ObjectArchivable_mixin):
             if rv is None:
                 raise pyxb.SchemaValidationError('Unable to resolve %s as %s' % (object_reference, icls))
         else:
-            raise pyxb.IncompleteImplementationError('Unable to resolve reference %s, scope %s ns %s, class %s' % (object_reference, scope, scope.targetNamespace(), icls))
+            raise pyxb.IncompleteImplementationError('Unable to resolve reference %s, scope %s ns %s type %s, class %s' % (object_reference, scope, scope.targetNamespace(), type(scope), icls))
+        assert not (isinstance(rv, ComplexTypeDefinition) and rv.isAnonymous() and isinstance(rv.owner(), Schema))
         return rv
 
     def __init__ (self, *args, **kw):
@@ -594,6 +593,7 @@ class _NamedComponent_mixin (pyxb.namespace._ObjectArchivable_mixin):
 
         self.__templateMap = {}
 
+        self.__schema = kw.get('schema')
         assert self._schema() is not None
         self._setObjectOrigin(self._schema().originRecord())
 
@@ -679,11 +679,13 @@ class _NamedComponent_mixin (pyxb.namespace._ObjectArchivable_mixin):
         return True
 
     def __getstate__ (self):
+        assert not (isinstance(self, ComplexTypeDefinition) and self.isAnonymous() and isinstance(self.owner(), Schema))
         if self.__pickleAsReference():
             # NB: This instance may be a scoped declaration, but in
             # this case (unlike getnewargs) we don't care about trying
             # to look up a previous instance, so we don't need to
             # encode the scope in the reference tuple.
+            print 'pickle %s as reference' % (self.name(),)
             return self._picklingReference()
         if self.targetNamespace() is None:
             # The only internal named objects that should exist are
@@ -724,13 +726,26 @@ class _NamedComponent_mixin (pyxb.namespace._ObjectArchivable_mixin):
                     pass
                 elif isinstance(self.scope(), ComplexTypeDefinition):
                     scope = self.scope()._picklingReference()
+                    assert isinstance(scope, (tuple, _PickledAnonymousReference)), self
                 elif self._scopeIsIndeterminate():
                     # This is actually OK: we made sure both the scope and
                     # this instance can be looked up by a unique identifier.
                     pass
+                else:
+                    raise pyxb.IncompleteImplementationError('pickling unrecognized scope %s type %s' % (self.scope(), type(self.scope())))
             else:
                 assert isinstance(self, _NamedComponent_mixin), 'Pickling unnamed component %s in indeterminate scope by reference' % (self,)
+                if isinstance(scope, ComplexTypeDefinition):
+                    print 'CTD in CTD: %s' % (scope,)
+                    x = self
+                    while isinstance(x, _SchemaComponent_mixin):
+                        print 'node %s name %s owner %s scope %s' % (x, x.name(), x.owner(), x._scope())
+                        assert not (isinstance(x, ComplexTypeDefinition) and x.isAnonymous() and isinstance(x.owner(), Schema))
+                        print '%s %s %s' % (isinstance(x, ComplexTypeDefinition), x.isAnonymous(), isinstance(x.owner(), Schema))
+                        x = x._scope()
+                    assert False, '%s %s %s scope %s %s %s' % (self, type(self), self.targetNamespace(), scope, type(scope), scope.targetNamespace())
 
+            assert not isinstance(scope, ComplexTypeDefinition), '%s %s %s scope %s %s %s' % (self, type(self), self.targetNamespace(), scope, type(scope), scope.targetNamespace())
             rv = ( self._picklingReference(), scope, self.__class__ )
             return rv
         return ()
@@ -753,9 +768,11 @@ class _NamedComponent_mixin (pyxb.namespace._ObjectArchivable_mixin):
         self.__dict__.update(state)
             
     def _resetClone_csc (self, **kw):
+        self.__schema = None
         rv = getattr(super(_NamedComponent_mixin, self), '_resetClone_csc', lambda *_args,**_kw: self)(**kw)
         self.__templateMap = { }
-        self._setObjectOrigin(self._schema().originRecord(), override=True)
+        origin = kw.get('origin')
+        self._setObjectOrigin(origin, override=True)
         return rv
 
 class _ValueConstraint_mixin (pyxb.cscRoot):
@@ -1371,8 +1388,8 @@ class AttributeUse (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin, _V
         assert ad.scope() is not None
         assert isinstance(ctd, ComplexTypeDefinition)
         if not isinstance(ad.scope(), ComplexTypeDefinition):
-            rv = self._clone(ctd)
-            rv.__attributeDeclaration = ad._clone(rv)
+            rv = self._clone(ctd, ctd._objectOrigin())
+            rv.__attributeDeclaration = ad._clone(rv, ctd._objectOrigin())
             rv.__attributeDeclaration._setScope(ctd)
         ctd._recordLocalDeclaration(rv.__attributeDeclaration)
         return rv
@@ -1592,7 +1609,7 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.na
         assert isinstance(ctd, ComplexTypeDefinition), '%s is not a CTD' % (ctd,)
         if not isinstance(self.scope(), ComplexTypeDefinition):
             assert owner is not None
-            rv = self._clone(owner)
+            rv = self._clone(owner, ctd._objectOrigin())
             rv._setScope(ctd)
         ctd._recordLocalDeclaration(rv)
         return rv
@@ -1914,6 +1931,9 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         name = NodeAttribute(node, 'name')
 
         rv = cls(name=name, node=node, derivation_method=None, **kw)
+
+        if name is None:
+            assert not isinstance(rv.owner(), Schema)
 
         # Most of the time, the scope will be global.  It can be something
         # else only if this is an anonymous CTD (created within an element
@@ -2406,7 +2426,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         return None
 
     def __str__ (self):
-        if self.isAnonymous:
+        if self.isAnonymous():
             return 'CTD{Anonymous}[%x]' % (id(self),)
         return 'CTD[%s]' % (self.expandedName(),)
 
@@ -2769,7 +2789,7 @@ class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
         #print 'aFS:MG - %s' % (ctd.expandedName(),)
         rv = self
         assert isinstance(ctd, ComplexTypeDefinition)
-        maybe_rv = self._clone(owner)
+        maybe_rv = self._clone(owner, ctd._objectOrigin())
         scoped_particles = [ _p._adaptForScope(maybe_rv, ctd) for _p in self.particles() ]
         do_clone = (self._scope() != ctd) or (self.particles() != scoped_particles)
         if do_clone:
@@ -3028,7 +3048,7 @@ class Particle (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin):
         #print 'aFS:PRT - %s' % (ctd.expandedName(),)
         rv = self
         assert isinstance(ctd, ComplexTypeDefinition)
-        maybe_rv = self._clone(owner)
+        maybe_rv = self._clone(owner, ctd._objectOrigin())
         term = rv.__term._adaptForScope(maybe_rv, ctd)
         do_clone = (self._scope() != ctd) or (rv.__term != term)
         if  do_clone:
@@ -4510,7 +4530,7 @@ class Schema (_SchemaComponent_mixin):
         self.__generationUID = kw.get('generation_uid')
         if self.__generationUID is None:
             print 'WARNING: No generationUID provided'
-            assert False
+            #assert False
             self.__generationUID = pyxb.utils.utility.UniqueIdentifier()
 
         self.__signature = kw.get('schema_signature')
