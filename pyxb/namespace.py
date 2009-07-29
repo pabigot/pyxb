@@ -1170,6 +1170,8 @@ class _NamespaceComponentAssociation_mixin (pyxb.cscRoot):
         namespace."""
         getattr(super(_NamespaceComponentAssociation_mixin, self), '_reset', lambda *args, **kw: None)()
         self.__components = set()
+        self.__schemas = set()
+        self.__schemaMap = { }
 
     def _associateComponent (self, component):
         """Record that the responsibility for the component belongs to this namespace."""
@@ -1188,6 +1190,21 @@ class _NamespaceComponentAssociation_mixin (pyxb.cscRoot):
         if replacement_def is not None:
             self.__components.add(replacement_def)
         return getattr(super(_NamespaceComponentAssociation_mixin, self), '_replaceComponent_csc', lambda *args, **kw: replacement_def)(existing_def, replacement_def)
+
+    def addSchema (self, schema):
+        sl = schema.location()
+        if sl is not None:
+            assert not (sl in self.__schemaMap), '%s already in schema list for %s' % (sl, self)
+            self.__schemaMap[sl] = schema
+        self.__schemas.add(schema)
+    __schemaMap = None
+
+    def lookupSchemaByLocation (self, schema_location):
+        return self.__schemaMap.get(schema_location)
+
+    def schemas (self):
+        return self.__schemas
+    __schemas = None
 
     def components (self):
         """Return a frozenset of all components, named or unnamed, belonging
@@ -1383,8 +1400,6 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
         assert not self.isActive()
         getattr(super(Namespace, self), '_reset', lambda *args, **kw: None)()
         self.__initialNamespaceContext = None
-        self.__schemas = set()
-        self.__schemaMap = { }
 
     def uri (self):
         """Return the URI for the namespace represented by this instance.
@@ -1489,21 +1504,6 @@ class Namespace (_NamespaceCategory_mixin, _NamespaceResolution_mixin, _Namespac
         self.__module = module
         return self
     __module = None
-
-    def addSchema (self, schema):
-        sl = schema.location()
-        if sl is not None:
-            assert not (sl in self.__schemaMap), '%s already in schema list for %s' % (sl, self)
-            self.__schemaMap[sl] = schema
-        self.__schemas.add(schema)
-    __schemaMap = None
-
-    def lookupSchemaByLocation (self, schema_location):
-        return self.__schemaMap.get(schema_location)
-
-    def schemas (self):
-        return self.__schemas
-    __schemas = None
 
     def description (self, description=None):
         """Get, or set, a textual description of the namespace."""
