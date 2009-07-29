@@ -2989,8 +2989,9 @@ class Particle (_SchemaComponent_mixin, pyxb.namespace._Resolvable_mixin):
             rv.__resolvableType = ModelGroup
         elif xsd.nodeIsNamed(node, 'element'):
             if rv.__refAttribute is None:
-                assert rv._schema() is not None
-                target_namespace = rv._schema().targetNamespaceForNode(node, ElementDeclaration)
+                schema = kw.get('schema')
+                assert schema is not None
+                target_namespace = schema.targetNamespaceForNode(node, ElementDeclaration)
                 incoming_tns = kw.get('target_namespace')
                 if incoming_tns is not None:
                     assert incoming_tns == target_namespace
