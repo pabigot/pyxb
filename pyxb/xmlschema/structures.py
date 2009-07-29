@@ -488,7 +488,10 @@ class _NamedComponent_mixin (pyxb.namespace._ObjectArchivable_mixin):
         """
         if isinstance(self._scope(), ComplexTypeDefinition):
             return self._scope()._picklesInArchive(archive)
-        return (self.targetNamespace() is None) or (self.targetNamespace() in archive.namespaces())
+        assert not (self.targetNamespace() is None)
+        assert not (self._objectOrigin() is None)
+        return self.targetNamespace() in archive.namespaces()
+        #return self._objectOrigin().generationUID() == archive.generationUID()
 
     def _bindsInNamespace (self, ns):
         """Return C{True} if the binding for this component should be
@@ -573,7 +576,7 @@ class _NamedComponent_mixin (pyxb.namespace._ObjectArchivable_mixin):
             if rv is None:
                 raise pyxb.SchemaValidationError('Unable to resolve %s as %s' % (object_reference, icls))
         else:
-            raise pyxb.IncompleteImplementationError('Unable to resolve reference %s' % (object_reference,))
+            raise pyxb.IncompleteImplementationError('Unable to resolve reference %s, scope %s ns %s, class %s' % (object_reference, scope, scope.targetNamespace(), icls))
         return rv
 
     def __init__ (self, *args, **kw):
@@ -4370,13 +4373,13 @@ class _ImportElementInformationItem (_Annotated_mixin):
         ns_ctx = pyxb.namespace.NamespaceContext.GetNodeContext(node)
         if self.schemaLocation() is not None:
             print 'import %s + %s = %s' % (schema.location(), self.__schemaLocation, schema_location)
-            schema = self.__namespace.lookupSchemaByLocation(schema_location)
-            if schema is None:
+            imported_schema = self.__namespace.lookupSchemaByLocation(schema_location)
+            if imported_schema is None:
                 try:
-                    schema = Schema.CreateFromLocation(absolute_schema_location=schema_location, namespace_context=ns_ctx)
+                    imported_schema = Schema.CreateFromLocation(absolute_schema_location=schema_location, namespace_context=ns_ctx, generation_uid=schema.generationUID())
                 except Exception, e:
                     print 'WARNING: Import %s cannot read schema location %s (%s)' % (ns, self.__schemaLocation, schema_location)
-            self.__schema = schema
+            self.__schema = imported_schema
         elif not ns.isLoadable():
             print 'WARNING: No information available on imported namespace %s' % (uri,)
 
@@ -4507,6 +4510,7 @@ class Schema (_SchemaComponent_mixin):
         self.__generationUID = kw.get('generation_uid')
         if self.__generationUID is None:
             print 'WARNING: No generationUID provided'
+            assert False
             self.__generationUID = pyxb.utils.utility.UniqueIdentifier()
 
         self.__signature = kw.get('schema_signature')
@@ -4730,7 +4734,7 @@ class Schema (_SchemaComponent_mixin):
         included_schema = self.targetNamespace().lookupSchemaByLocation(abs_uri)
         if included_schema is None:
             try:
-                included_schema = self.CreateFromLocation(absolute_schema_location=abs_uri, namespace_context=self.__namespaceData, inherit_default_namespace=True)
+                included_schema = self.CreateFromLocation(absolute_schema_location=abs_uri, namespace_context=self.__namespaceData, inherit_default_namespace=True, generation_uid=self.generationUID())
             except Exception, e:
                 print 'INCLUDE %s caught: %s' % (abs_uri, e)
                 #traceback.print_exception(*sys.exc_info())
