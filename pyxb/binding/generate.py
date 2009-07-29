@@ -2222,8 +2222,10 @@ class Generator (object):
                 traceback.print_exception(*sys.exc_info())
                 try:
                     os.unlink(component_model_file)
-                except:
+                except (OSError, IOError), e:
                     pass
+                if isinstance(e, (AssertionError, AttributeError, TypeError)):
+                    raise
 
     def moduleForComponent (self, component):
         return _ModuleNaming_mixin.ComponentBindingModule(component)
