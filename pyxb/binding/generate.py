@@ -2039,7 +2039,7 @@ class Generator (object):
         while self.__schemaLocationList:
             sl = self.__schemaLocationList.pop(0)
             try:
-                schema = xs.schema.CreateFromLocation(absolute_schema_location=self.normalizeSchemaLocation(sl))
+                schema = xs.schema.CreateFromLocation(absolute_schema_location=self.normalizeSchemaLocation(sl), generation_uid=self.generationUID())
                 self.addSchema(schema)
             except pyxb.SchemaUniquenessError, e:
                 print 'WARNING: Skipped redundant translation of %s defining %s' % (e.schemaLocation(), e.namespace())

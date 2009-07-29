@@ -4368,10 +4368,13 @@ class Schema (_SchemaComponent_mixin):
         return self.__locationTag
     __locationTag = None
 
-
     def signature (self):
         return self.__signature
     __signature = None
+
+    def generationUID (self):
+        return self.__generationUID
+    __generationUID = None
 
     def targetNamespace (self):
         """The targetNamespace of a componen.
@@ -4456,8 +4459,12 @@ class Schema (_SchemaComponent_mixin):
                 schema_path = urlparse.urlparse(schema_path)[2] # .path
             self.__locationTag = os.path.split(schema_path)[1].split('.')[0]
 
+        self.__generationUID = kw.get('generation_uid')
+        if self.__generationUID is None:
+            self.__generationUID = pyxb.utils.utility.UniqueIdentifier()
+
         self.__signature = kw.get('schema_signature')
-        print 'Schema at %s signature %s' % (self.location(), self.signature())
+        print 'Schema at %s signature %s uid %s' % (self.location(), self.signature(), self.generationUID())
 
         super(Schema, self).__init__(*args, **kw)
         self.__importEIIs = set()
@@ -4525,7 +4532,7 @@ class Schema (_SchemaComponent_mixin):
         return cls.CreateFromDocument(stream.read(), **kw)
 
     @classmethod
-    def CreateFromDOM (cls, node, namespace_context=None, inherit_default_namespace=False, schema_location=None, schema_signature=None):
+    def CreateFromDOM (cls, node, namespace_context=None, inherit_default_namespace=False, schema_location=None, schema_signature=None, generation_uid=None):
         """Take the root element of the document, and scan its attributes under
         the assumption it is an XMLSchema schema element.  That means
         recognize namespace declarations and process them.  Also look for
@@ -4544,7 +4551,7 @@ class Schema (_SchemaComponent_mixin):
 
         tns = ns_ctx.targetNamespace()
         assert tns is not None
-        schema = cls(namespace_context=ns_ctx, schema_location=schema_location, schema_signature=schema_signature)
+        schema = cls(namespace_context=ns_ctx, schema_location=schema_location, schema_signature=schema_signature, generation_uid=generation_uid)
         schema.__namespaceData = ns_ctx
             
         assert schema.targetNamespace() == ns_ctx.targetNamespace()
