@@ -77,17 +77,6 @@ pyxbgen \
   --archive-to-file=opengis/citygml/base.wxs \
  || failure citygml
   
-(cd Schemas/citygml ; ls */1.0/*.xsd ) \
- | cut -d/ -f1,3 \
- | tr '/' ' ' \
- | while read module xsd ; do
-    pyxbgen \
-     --schema-location=Schemas/citygml/${module}/1.0/${xsd} --module=${module} \
-     --module-prefix=opengis.citygml \
-     --archive-to-file=opengis/citygml/${module}.wxs \
-    || failure citygml ${module}
- done
-
 pyxbgen \
   --schema-location=Schemas/kml/2.2.0/ogckml22.xsd --module=ogckml22 \
   --module-prefix=opengis \
@@ -185,6 +174,17 @@ pyxbgen \
 # This presents a license agreement you need to click OK on, so you'll
 # have to retrieve it by browser, then unpack it into a Gazetteer
 # directory here.
+
+(cd Schemas/citygml ; ls */1.0/*.xsd ) \
+ | cut -d/ -f1,3 \
+ | tr '/' ' ' \
+ | while read module xsd ; do
+    pyxbgen \
+     --schema-location=Schemas/citygml/${module}/1.0/${xsd} --module=${module} \
+     --module-prefix=opengis.citygml \
+     --archive-to-file=opengis/citygml/${module}.wxs \
+    || failure citygml ${module}
+ done
 
 if [ -f Gazetteer/iso19112.xsd ] ; then
   pyxbgen \
