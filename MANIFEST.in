@@ -9,5 +9,7 @@ recursive-include maintainer *.sh
 # Documentation, not including cached W3C material
 recursive-include doc * *.*
 prune doc/_build
+prune doc *.eap
+prune doc/W3C
 # Examples
 recursive-include examples *.txt *.py *.sh *.xsd *.xml *-patch
