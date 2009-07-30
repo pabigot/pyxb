@@ -657,7 +657,7 @@ class %{ctd} (%{superclass}):
     # mutator - Name of the method use for mutation (attr_mutator)
     for au in ctd.attributeUses():
         ad = au.attributeDeclaration()
-        assert isinstance(ad.scope(), xs.structures.ComplexTypeDefinition)
+        assert isinstance(ad.scope(), xs.structures.ComplexTypeDefinition), 'unexpected scope %s' % (ad.scope(),)
         au_map = ad._templateMap()
         if ad.scope() == ctd:
             assert isinstance(au_map, dict)
@@ -2058,6 +2058,10 @@ class Generator (object):
     def __buildBindingModules (self):
         modules = set()
     
+        print '%d associated objects from generation:' % (len(self.generationUID().associatedObjects()),)
+        for ao in self.generationUID().associatedObjects():
+            print ao
+            ao._prepareForArchive()
         entry_namespaces = self.namespaces()
         nsdep = pyxb.namespace.NamespaceDependencies(namespace_set=self.namespaces())
         siblings = nsdep.siblingNamespaces()
@@ -2186,8 +2190,7 @@ class Generator (object):
                 complex_type_definitions.append(td)
             else:
                 assert False, 'Unexpected component type %s' % (type(td),)
-    
-    
+
         for ngm in modules:
             if isinstance(ngm, NamespaceGroupModule):
                 for m in ngm.namespaceModules():

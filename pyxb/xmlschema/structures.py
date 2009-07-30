@@ -51,7 +51,7 @@ _PastAddBuiltInTypes = False
 # Make it easier to check node names in the XMLSchema namespace
 from pyxb.namespace import XMLSchema as xsd
 
-class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin):
+class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin, pyxb.namespace._ObjectArchivable_mixin):
     """A mix-in that marks the class as representing a schema component.
 
     This exists so that we can determine the owning schema for any
@@ -115,6 +115,7 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin):
         self.__clones = None
         self.__cloneSource = None
         self.__ownedComponents.clear()
+        self.__namespaceContext = None
         #if isinstance(self, ElementDeclaration):
         #    for (k, v) in self.__dict__.items():
         #        print '%s : %s' % (k, object.__str__(v))
@@ -367,7 +368,7 @@ class _PickledAnonymousReference (pyxb.cscRoot):
     def __str__ (self):
         return 'ANONYMOUS:%s' % (pyxb.namespace.ExpandedName(self.__namespace, self.__anonymousName),)
     
-class _NamedComponent_mixin (pyxb.namespace._ObjectArchivable_mixin):
+class _NamedComponent_mixin (pyxb.cscRoot):
     """Mix-in to hold the name and targetNamespace of a component.
 
     The name may be None, indicating an anonymous component.  The
@@ -575,7 +576,6 @@ class _NamedComponent_mixin (pyxb.namespace._ObjectArchivable_mixin):
                 raise pyxb.SchemaValidationError('Unable to resolve %s as %s' % (object_reference, icls))
         else:
             raise pyxb.IncompleteImplementationError('Unable to resolve reference %s, scope %s ns %s type %s, class %s' % (object_reference, scope, scope.targetNamespace(), type(scope), icls))
-        assert not (isinstance(rv, ComplexTypeDefinition) and rv.isAnonymous() and isinstance(rv.owner(), Schema))
         return rv
 
     def __init__ (self, *args, **kw):
@@ -679,13 +679,11 @@ class _NamedComponent_mixin (pyxb.namespace._ObjectArchivable_mixin):
         return True
 
     def __getstate__ (self):
-        assert not (isinstance(self, ComplexTypeDefinition) and self.isAnonymous() and isinstance(self.owner(), Schema))
         if self.__pickleAsReference():
             # NB: This instance may be a scoped declaration, but in
             # this case (unlike getnewargs) we don't care about trying
             # to look up a previous instance, so we don't need to
             # encode the scope in the reference tuple.
-            print 'pickle %s as reference' % (self.name(),)
             return self._picklingReference()
         if self.targetNamespace() is None:
             # The only internal named objects that should exist are
@@ -735,17 +733,8 @@ class _NamedComponent_mixin (pyxb.namespace._ObjectArchivable_mixin):
                     raise pyxb.IncompleteImplementationError('pickling unrecognized scope %s type %s' % (self.scope(), type(self.scope())))
             else:
                 assert isinstance(self, _NamedComponent_mixin), 'Pickling unnamed component %s in indeterminate scope by reference' % (self,)
-                if isinstance(scope, ComplexTypeDefinition):
-                    print 'CTD in CTD: %s' % (scope,)
-                    x = self
-                    while isinstance(x, _SchemaComponent_mixin):
-                        print 'node %s name %s owner %s scope %s' % (x, x.name(), x.owner(), x._scope())
-                        assert not (isinstance(x, ComplexTypeDefinition) and x.isAnonymous() and isinstance(x.owner(), Schema))
-                        print '%s %s %s' % (isinstance(x, ComplexTypeDefinition), x.isAnonymous(), isinstance(x.owner(), Schema))
-                        x = x._scope()
-                    assert False, '%s %s %s scope %s %s %s' % (self, type(self), self.targetNamespace(), scope, type(scope), scope.targetNamespace())
+                assert not isinstance(scope, ComplexTypeDefinition), '%s %s %s %s' % (self, self.name(), scope, self._objectOrigin())
 
-            assert not isinstance(scope, ComplexTypeDefinition), '%s %s %s scope %s %s %s' % (self, type(self), self.targetNamespace(), scope, type(scope), scope.targetNamespace())
             rv = ( self._picklingReference(), scope, self.__class__ )
             return rv
         return ()

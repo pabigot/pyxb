@@ -1152,6 +1152,9 @@ class _SchemaRecord (object):
     L{_NamespaceComponentAssociation_mixin}.
     """
 
+    def _prepareForArchive (self):
+        self.__schema = None
+
     def __setDefaultKW (self, kw):
         schema = kw.get('schema')
         if schema is not None:
