@@ -3553,7 +3553,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
             if self.variety() != self.VARIETY_atomic:
                 raise pyxb.BadPropertyError('[%s] primitiveTypeDefinition only defined for atomic types' % (self.name(), self.variety()))
             if self.__primitiveTypeDefinition is None:
-                raise pyxb.LogicError('Expected primitive type')
+                raise pyxb.LogicError('Expected primitive type for %s in %s', self, self.targetNamespace())
         return self.__primitiveTypeDefinition
 
     # For list variety only, the type of items in the list
@@ -3755,16 +3755,21 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
             bi.__primitiveTypeDefinition = bi.__baseTypeDefinition.__primitiveTypeDefinition
             bi._setPythonSupport(pyxb.binding.xml_.STD_ANON_space)
             bi.setNameInBinding('STD_ANON_space')
-            return bi
-        if 'lang' == name:
+        elif 'lang' == name:
             bi = cls(**kw)
             bi.__baseTypeDefinition = cls.SimpleUrTypeDefinition()
             bi.__memberTypes = [ datatypes.language.SimpleTypeDefinition() ]
             bi.__derivationAlternative = cls._DA_union
+            bi.__primitiveTypeDefinition = bi
             bi._setPythonSupport(pyxb.binding.xml_.STD_ANON_lang)
             bi.setNameInBinding('STD_ANON_lang')
-            return bi
-        raise pyxb.IncompleteImplementationError('No implementation for %s' % (name,))
+        else:
+            raise pyxb.IncompleteImplementationError('No implementation for %s' % (name,))
+        bi.__facets = { }
+        for v in bi.pythonSupport().__dict__.values():
+            if isinstance(v, facets.ConstrainingFacet):
+                bi.__facets[v.__class__] = v
+        return bi
 
     @classmethod
     def CreatePrimitiveInstance (cls, name, schema, python_support):
