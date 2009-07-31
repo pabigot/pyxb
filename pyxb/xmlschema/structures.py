@@ -4530,7 +4530,7 @@ class Schema (_SchemaComponent_mixin):
             self.__generationUID = pyxb.utils.utility.UniqueIdentifier()
 
         self.__signature = kw.get('schema_signature')
-        print 'Schema at %s signature %s uid %s' % (self.location(), self.signature(), self.generationUID())
+        #print 'Schema at %s signature %s uid %s' % (self.location(), self.signature(), self.generationUID())
 
         super(Schema, self).__init__(*args, **kw)
         self.__importEIIs = set()
