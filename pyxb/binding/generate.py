@@ -2059,38 +2059,50 @@ class Generator (object):
         modules = set()
     
         print '%d associated objects from generation:' % (len(self.generationUID().associatedObjects()),)
-        assoc_ns = set()
+
+        # Dissociate the schema records from the schema (which does
+        # not belong in the archive), and determine the set of
+        # namespaces affected as a result of reading in user-specified
+        # schema and their inclusions/imports.
+        affected_ns = set()
         for ao in self.generationUID().associatedObjects():
-            print ao
             ao._prepareForArchive()
-            if not ao.namespace().isBuiltinNamespace():
-                assoc_ns.add(ao.namespace())
+            # @todo: This kicks out declarations for the XML
+            # namespace, which happen to appear in the bindings for
+            # gml 3.1.1.  Remove this elision when we can mark those
+            # as private.
+            if not ao.namespace().isUndeclaredNamespace():
+                affected_ns.add(ao.namespace())
+
+        # Entry namespaces are those that were specifically identified
+        # by the user
         entry_namespaces = self.namespaces()
-        nsdep = pyxb.namespace.NamespaceDependencies(namespace_set=self.namespaces())
+
+        # The namespace dependency graph includes an edge from A to B
+        # if (1) B appears in a namespace declaration in a schema used
+        # to construct A, or (2) B appears in an import directive in a
+        # schema used to construct A.  The siblings are simply all
+        # namespaces in the dependency graph.
+        nsdep = pyxb.namespace.NamespaceDependencies(namespace_set=affected_ns)
         siblings = nsdep.siblingNamespaces()
-        both = assoc_ns.intersection(siblings)
-        missing = assoc_ns.difference(siblings)
-        siblings.update(missing)
-        nsdep.setSiblingNamespaces(siblings)
+
+        missing = affected_ns.difference(self.namespaces())
+        #siblings.update(missing)
+        #nsdep.setSiblingNamespaces(siblings)
         self.__namespaces.update(siblings)
 
-        #namespace_order = []
-        #[ namespace_order.extend(_scc) for _scc in nsdep.namespaceOrder() ]
-        #print "\n".join([ str(_ns) for _ns in namespace_order ])
-        #print '%d one, %d dep, %d sib' % (len(self.namespaces()), len(namespace_order), len(siblings))
+        text = []
+        text.append('WARNING: Adding the following namespaces due to dependencies:')
         for ns in self.namespaces(): # namespace_order:
             ns.validateComponentModel()
             self.__assignNamespaceModulePath(ns)
-            if (ns.modulePath() is None) and not (ns.isAbsentNamespace() or self.allowAbsentModule() or (pyxb.namespace.XMLSchema_instance == ns)):
-                raise pyxb.BindingGenerationError('No module path available for %s' % (ns,))
-        if 0 < len(missing):
-            text = []
-            text.append('WARNING: Adding the following namespaces due to dependencies:')
-            for ns in missing:
-                self.__assignNamespaceModulePath(ns)
+            if ns in missing:
                 text.append('  %s, prefix %s, module path %s' % (ns, ns.prefix(), ns.modulePath()))
                 for sch in ns.schemas():
                     text.append('    schemaLocation=%s' % (sch.location(),))
+            if (ns.modulePath() is None) and not (ns.isAbsentNamespace() or self.allowAbsentModule() or (pyxb.namespace.XMLSchema_instance == ns)):
+                raise pyxb.BindingGenerationError('No module path available for %s' % (ns,))
+        if 0 < len(missing):
             print "\n".join(text)
 
         for ns_set in nsdep.namespaceOrder():
