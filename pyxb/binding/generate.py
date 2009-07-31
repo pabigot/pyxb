@@ -1360,8 +1360,9 @@ def GeneratePython (schema_location=None,
 
     generator = Generator(allow_absent_module=True, generate_to_files=False, **kw)
     if schema_location is not None:
-        schema_text = pyxb.utils.utility.TextFromURI(schema_location)
-    generator.addSchema(pyxb.xmlschema.schema.CreateFromStream(StringIO.StringIO(schema_text)))
+        generator.addSchemaLocation(schema_location)
+    elif schema_text is not None:
+        generator.addSchema(schema_text)
     modules = generator.bindingModules()
 
     assert 1 == len(modules), '%s produced %d modules: %s' % (namespace, len(modules), " ".join([ str(_m) for _m in modules]))
@@ -1522,8 +1523,11 @@ class Generator (object):
     __schemaLocationList = None
 
     def schemas (self):
-        """L{Schema<pyxb.xmlschema.structures.Schema>} for which
-        bindings should be generated.
+        """Schema for which bindings should be generated.
+
+        These may be L{Schema<pyxb.xmlschema.structures.Schema>}
+        instances, or strings; the latter is preferred, and is parsed
+        into a Schema instance when required.
 
         This is the list of entrypoint schemas for binding generation.
         Values in L{schemaLocationList} are read and converted into
@@ -2045,6 +2049,8 @@ class Generator (object):
                 print 'WARNING: Skipped redundant translation of %s defining %s' % (e.schemaLocation(), e.namespace())
                 self.addSchema(e.existingSchema())
         for schema in self.__schemas:
+            if isinstance(schema, basestring):
+                schema = xs.schema.CreateFromDocument(schema, generation_uid=self.generationUID())
             ns = schema.targetNamespace()
             #print 'namespace %s' % (ns,)
             module_path = None
@@ -2058,8 +2064,6 @@ class Generator (object):
     def __buildBindingModules (self):
         modules = set()
     
-        print '%d associated objects from generation:' % (len(self.generationUID().associatedObjects()),)
-
         # Dissociate the schema records from the schema (which does
         # not belong in the archive), and determine the set of
         # namespaces affected as a result of reading in user-specified
