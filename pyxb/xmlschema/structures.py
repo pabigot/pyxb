@@ -51,7 +51,7 @@ _PastAddBuiltInTypes = False
 # Make it easier to check node names in the XMLSchema namespace
 from pyxb.namespace import XMLSchema as xsd
 
-class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin, pyxb.namespace._ObjectArchivable_mixin):
+class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin, pyxb.namespace._ArchivableObject_mixin):
     """A mix-in that marks the class as representing a schema component.
 
     This exists so that we can determine the owning schema for any

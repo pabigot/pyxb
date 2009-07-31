@@ -582,7 +582,7 @@ class NamespaceArchive (object):
                 object_map[ns] = ns._categoryMap()
                 ns._setWroteToArchive(self)
                 for obj in ns._namedObjects().union(ns.components()):
-                    if isinstance(obj, _ObjectArchivable_mixin):
+                    if isinstance(obj, _ArchivableObject_mixin):
                         obj._prepareForArchive(self, ns)
             pickler.dump(object_map)
         finally:
@@ -618,7 +618,7 @@ class NamespaceArchive (object):
             archive_path = '??'
         return 'NSArchive@%s' % (archive_path,)
 
-class _ObjectArchivable_mixin (pyxb.cscRoot):
+class _ArchivableObject_mixin (pyxb.cscRoot):
     """Mix-in to any object that can be stored in a namespace within an archive."""
     
     # Need to set this per category item
@@ -633,14 +633,14 @@ class _ObjectArchivable_mixin (pyxb.cscRoot):
             self.__objectOrigin = object_origin
 
     def _prepareForArchive_csc (self, archive, namespace):
-        return getattr(super(_ObjectArchivable_mixin, self), '_prepareForArchive_csc', lambda *_args,**_kw: self)(archive, namespace)
+        return getattr(super(_ArchivableObject_mixin, self), '_prepareForArchive_csc', lambda *_args,**_kw: self)(archive, namespace)
 
     def _prepareForArchive (self, archive, namespace):
         #assert self.__objectOrigin is not None
         return self._prepareForArchive_csc(archive, namespace)
 
     def _updateFromOther_csc (self, other):
-        return getattr(super(_ObjectArchivable_mixin, self), '_updateFromOther_csc', lambda *_args,**_kw: self)(other)
+        return getattr(super(_ArchivableObject_mixin, self), '_updateFromOther_csc', lambda *_args,**_kw: self)(other)
 
     def _updateFromOther (self, other):
         """Update this instance with additional information provided by the other instance.
@@ -904,12 +904,24 @@ class _NamespaceCategory_mixin (pyxb.cscRoot):
     def hasSchemaComponents (self):
         """Return C{True} iff schema components have been associated with this namespace.
 
-        Note that this only checks whether the corresponding categories have
-        been added, not whether there are any entries in those categories.  It
-        is useful for identifying namespaces that were incorporated through a
+        This only checks whether the corresponding categories have been added,
+        not whether there are any entries in those categories.  It is useful
+        for identifying namespaces that were incorporated through a
         declaration but never actually referenced."""
         return 'typeDefinition' in self.__categoryMap
 
+    def categorySliceByOrigin (self, origin):
+        """Return a sub-map corresponding to those named components which came
+        from the given origin."""
+        category_map = { }
+        for (cat, cat_map) in self.__categoryMap:
+            sub_map = { }
+            for (n, v) in cat_map:
+                if isinstance(v, _ArchivableObject_mixin) and (v._objectOrigin() == origin):
+                    sub_map[n] = v
+            if 0 < len(sub_map):
+                category_map[cat] = sub_map
+        return category_map
 
 class _NamespaceResolution_mixin (pyxb.cscRoot):
     """Mix-in that aggregates those aspects of XMLNamespaces relevant to
@@ -1143,7 +1155,21 @@ class _ComponentDependency_mixin (pyxb.cscRoot):
         """
         raise LogicError('%s does not implement _bindingRequires_vx' % (self.__class__,))
 
-class _SchemaRecord (object):
+class _ArchiveNamespaceRecord (object):
+    def namespace (self):
+        return self.__namespace
+    __namespace = None
+
+    def isPublic (self):
+        return self.__isPublic
+    __isPublic = None
+
+class _ObjectOrigin (pyxb.cscRoot):
+    """Marker class for objects that can serve as an origin for an object in a
+    namespace."""
+    pass
+
+class _SchemaOrigin (_ObjectOrigin):
     """Holds the data regarding components derived from a single schema.
 
     Coupled to a particular namespace through the
@@ -1184,6 +1210,18 @@ class _SchemaRecord (object):
             return True
         return False
 
+    def importedNamespaces (self):
+        """Return the set of namespaces which some schema imported while
+        processing with this namespace as target."""
+        return self.__importedNamespaces
+    __importedNamespaces = None
+
+    def referencedNamespaces (self):
+        """Return the set of namespaces which appear in namespace declarations
+        of schema with this namespace as target."""
+        return self.__referencedNamespaces
+    __referencedNamespaces = None
+
     def location (self):
         return self.__location
     __location = None
@@ -1208,8 +1246,11 @@ class _SchemaRecord (object):
         return self.__version
     __version = None
 
+    def componentMapSlice (self):
+        pass
+
     def __init__ (self, **kw):
-        super(_SchemaRecord, self).__init__()
+        super(_SchemaOrigin, self).__init__()
         self.__setDefaultKW(kw)
         self.__schema = kw.get('schema')
         self.__signature = kw.get('signature')
@@ -1219,7 +1260,7 @@ class _SchemaRecord (object):
         self.__version = kw.get('version')
         
     def __str__ (self):
-        rv = [ '_SchemaRecord(%s@%s' % (self.namespace(), self.location()) ]
+        rv = [ '_SchemaOrigin(%s@%s' % (self.namespace(), self.location()) ]
         if self.version() is not None:
             rv.append(',version=%s' % (self.version(),))
         rv.append(')')
@@ -1246,7 +1287,7 @@ class _NamespaceComponentAssociation_mixin (pyxb.cscRoot):
         namespace."""
         getattr(super(_NamespaceComponentAssociation_mixin, self), '_reset', lambda *args, **kw: None)()
         self.__components = set()
-        self.__schemaRecords = set()
+        self.__origins = set()
         self.__schemaMap = { }
 
     def _associateComponent (self, component):
@@ -1268,29 +1309,29 @@ class _NamespaceComponentAssociation_mixin (pyxb.cscRoot):
         return getattr(super(_NamespaceComponentAssociation_mixin, self), '_replaceComponent_csc', lambda *args, **kw: replacement_def)(existing_def, replacement_def)
 
     def addSchema (self, schema):
-        for sr in self.__schemaRecords:
-            if sr.match(schema=schema):
+        for sr in self.__origins:
+            if isinstance(sr, _SchemaOrigin) and sr.match(schema=schema):
                 print 'Schema at %s already registered in %s' % (schema.location(), self)
                 raise pyxb.SchemaUniquenessError(self, schema.location(), sr.schema())
-        sr = _SchemaRecord(schema=schema)
+        sr = _SchemaOrigin(schema=schema)
         schema.generationUID().associateObject(sr)
-        self.__schemaRecords.add(sr)
+        self.__origins.add(sr)
         return sr
 
     def lookupSchemaByLocation (self, schema_location):
-        for sr in self.__schemaRecords:
-            if sr.match(location=schema_location):
+        for sr in self.__origins:
+            if isinstance(sr, _SchemaOrigin) and sr.match(location=schema_location):
                 return sr.schema()
         return None
 
     def schemas (self):
         s = set()
-        for sr in self.__schemaRecords:
-            if sr.schema() is not None:
+        for sr in self.__origins:
+            if isinstance(sr, _SchemaOrigin) and (sr.schema() is not None):
                 s.add(sr.schema())
         return s
 
-    __schemaRecords = None
+    __origins = None
 
     def components (self):
         """Return a frozenset of all components, named or unnamed, belonging
