@@ -1071,7 +1071,7 @@ class _ModuleNaming_mixin (object):
             if namespace is None:
                 name = self.__componentNameMap.get(component)
                 assert name is not None, 'Completely at a loss to identify %s in %s' % (component.expandedName(), self)
-            assert not namespace.definedBySchema()
+            #assert not namespace.definedBySchema()
             namespace_module = self.ForNamespace(namespace)
             if namespace_module is not None:
                 self._importModule(namespace_module)
@@ -2059,16 +2059,21 @@ class Generator (object):
         modules = set()
     
         print '%d associated objects from generation:' % (len(self.generationUID().associatedObjects()),)
+        assoc_ns = set()
         for ao in self.generationUID().associatedObjects():
             print ao
             ao._prepareForArchive()
+            if not ao.namespace().isBuiltinNamespace():
+                assoc_ns.add(ao.namespace())
         entry_namespaces = self.namespaces()
         nsdep = pyxb.namespace.NamespaceDependencies(namespace_set=self.namespaces())
         siblings = nsdep.siblingNamespaces()
-        missing = nsdep.schemaDefinedNamespaces().difference(siblings)
+        both = assoc_ns.intersection(siblings)
+        missing = assoc_ns.difference(siblings)
         siblings.update(missing)
         nsdep.setSiblingNamespaces(siblings)
         self.__namespaces.update(siblings)
+
         #namespace_order = []
         #[ namespace_order.extend(_scc) for _scc in nsdep.namespaceOrder() ]
         #print "\n".join([ str(_ns) for _ns in namespace_order ])

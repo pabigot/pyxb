@@ -668,9 +668,6 @@ class _NamespaceArchivable_mixin (pyxb.cscRoot):
         self.__wroteToArchive = None
         self.__active = False
 
-    def definedBySchema (self):
-        return self.isActive() and not (self._loadedFromArchive() or self.isBuiltinNamespace()) and (self.modulePath() is None) and (0 < len(self.components()))
-
     def _loadedFromArchive (self):
         return self.__loadedFromArchive
     
@@ -2238,9 +2235,6 @@ class NamespaceDependencies (object):
         self.__siblingNamespaces = sibling_namespaces
 
     __siblingNamespaces = None
-
-    def schemaDefinedNamespaces (self, reset=False):
-        return set([ _ns for _ns in self.dependentNamespaces(reset) if _ns.definedBySchema() ])
 
     def dependentNamespaces (self, reset=False):
         return self.namespaceGraph(reset).nodes()
