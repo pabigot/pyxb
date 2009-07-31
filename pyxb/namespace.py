@@ -657,6 +657,7 @@ class _ObjectArchivable_mixin (pyxb.cscRoot):
         return BuiltInObjectUID == self._objectOrigin().generationUID()
 
 class _NamespaceArchivable_mixin (pyxb.cscRoot):
+    """Encapsulate the operations and data relevant to archiving namespaces."""
 
     def _reset (self):
         """CSC extension to reset fields of a Namespace.
@@ -1163,8 +1164,17 @@ class _SchemaRecord (object):
             kw['generation_uid'] = schema.generationUID()
             assert not ('namespace' in kw)
             kw['namespace'] = schema.targetNamespace()
+            assert not ('version' in kw)
+            kw['version'] = schema.schemaAttribute('version')
 
     def match (self, **kw):
+        """Determine whether this record matches the parameters.
+
+        @keyword schema: a L{pyxb.xmlschema.structures.Schema} instance from
+        which the other parameters are obtained.
+        @keyword location: a schema location (URI)
+        @keyword signature: a schema signature
+        @return: C{True} iff I{either} C{location} or C{signature} matches."""
         self.__setDefaultKW(kw)
         location = kw.get('location')
         if (location is not None) and (self.location() == location):
@@ -1194,6 +1204,10 @@ class _SchemaRecord (object):
         return self.__namespace
     __namespace = None
 
+    def version (self):
+        return self.__version
+    __version = None
+
     def __init__ (self, **kw):
         super(_SchemaRecord, self).__init__()
         self.__setDefaultKW(kw)
@@ -1202,10 +1216,14 @@ class _SchemaRecord (object):
         self.__location = kw.get('location')
         self.__generationUID = kw.get('generation_uid')
         self.__namespace = kw.get('namespace')
+        self.__version = kw.get('version')
         
     def __str__ (self):
-        return '_SchemaRecord(%s@%s)' % (self.namespace(), self.location())
-
+        rv = [ '_SchemaRecord(%s@%s' % (self.namespace(), self.location()) ]
+        if self.version() is not None:
+            rv.append(',version=%s' % (self.version(),))
+        rv.append(')')
+        return ''.join(rv)
 
 class _NamespaceComponentAssociation_mixin (pyxb.cscRoot):
     """Mix-in for managing components defined within this namespace.

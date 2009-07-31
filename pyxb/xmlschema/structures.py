@@ -4504,7 +4504,13 @@ class Schema (_SchemaComponent_mixin):
         return self.__attributeMap.has_key(attr_name)
 
     def schemaAttribute (self, attr_name):
-        """Return the schema attribute value associated with the given (nc)name."""
+        """Return the schema attribute value associated with the given (nc)name.
+
+        @param attr_name: local name for the attribute in the schema element.
+        @return: the value of the corresponding attribute, or C{None} if it
+        has not been defined and has no default.
+        @raise KeyError: C{attr_name} is not a valid attribute for a C{schema} element.
+        """
         return self.__attributeMap[attr_name]
 
     __SchemaCategories = ( 'typeDefinition', 'attributeGroupDefinition', 'modelGroupDefinition',

@@ -4,7 +4,7 @@ import pyxb.namespace
 import sys
 import traceback
 
-pyxb.namespace.NamespaceArchives('/dev/null', reset=True)
+#pyxb.namespace.NamespaceArchives('/dev/null', reset=True)
 for fn in sys.argv[1:]:
     nsa = pyxb.namespace.NamespaceArchive(archive_path=fn)
     print 'File %s archives %d namespaces:' % (fn, len(nsa.namespaces()))
