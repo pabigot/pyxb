@@ -397,7 +397,9 @@ class _NamedComponent_mixin (pyxb.cscRoot):
         return self.__name is None
 
     def _setAnonymousName (self, namespace, unique_id=None, anon_name=None):
-        assert self.__anonymousName is None
+        if (self.__anonymousName is not None):
+            assert namespace.isUndeclaredNamespace(), '%s in %s has %s would be %s' % (self, namespace, self.__anonymousName, anon_name)
+            return
         assert self.__needAnonymousSupport()
         assert namespace is not None
         if self.bindingNamespace() is not None:
