@@ -799,7 +799,7 @@ class PrivateTransient_mixin (pyxb.cscRoot):
         #    import pyxb.namespace
         #    import xml.dom
         #    import pyxb.xmlschema.structures
-        #    if isinstance(v, (pyxb.namespace.NamespaceContext, xml.dom.Node, pyxb.xmlschema.structures.Schema)):
+        #    if isinstance(v, (pyxb.namespace.resolution.NamespaceContext, xml.dom.Node, pyxb.xmlschema.structures.Schema)):
         #        raise pyxb.LogicError('Unexpected instance of %s key %s in %s' % (type(v), k, self))
 
         return state

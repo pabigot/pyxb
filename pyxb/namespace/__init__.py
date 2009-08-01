@@ -515,7 +515,7 @@ class _NamespaceComponentAssociation_mixin (pyxb.cscRoot):
 
     def addSchema (self, schema):
         for sr in self.__origins:
-            if isinstance(sr, _SchemaOrigin) and sr.match(schema=schema):
+            if isinstance(sr, archive._SchemaOrigin) and sr.match(schema=schema):
                 print 'Schema at %s already registered in %s' % (schema.location(), self)
                 raise pyxb.SchemaUniquenessError(self, schema.location(), sr.schema())
         sr = archive._SchemaOrigin(schema=schema)
@@ -525,14 +525,14 @@ class _NamespaceComponentAssociation_mixin (pyxb.cscRoot):
 
     def lookupSchemaByLocation (self, schema_location):
         for sr in self.__origins:
-            if isinstance(sr, _SchemaOrigin) and sr.match(location=schema_location):
+            if isinstance(sr, archive._SchemaOrigin) and sr.match(location=schema_location):
                 return sr.schema()
         return None
 
     def schemas (self):
         s = set()
         for sr in self.__origins:
-            if isinstance(sr, _SchemaOrigin) and (sr.schema() is not None):
+            if isinstance(sr, archive._SchemaOrigin) and (sr.schema() is not None):
                 s.add(sr.schema())
         return s
 

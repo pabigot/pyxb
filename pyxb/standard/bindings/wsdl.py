@@ -184,7 +184,7 @@ class tDefinitions (raw_wsdl.tDefinitions):
         # Ensure we have definitions for any externally-referenced
         # things we might need.  @todo: This might have to
         # chronologically precede the import above.
-        pyxb.namespace.NamespaceArchive.PreLoadArchives()
+        pyxb.namespace.archive.NamespaceArchive.PreLoadArchives()
 
         raw_wsdl.Namespace.validateComponentModel()
         state = ( kw.pop('process_schema', False),
@@ -195,7 +195,7 @@ class tDefinitions (raw_wsdl.tDefinitions):
         (process_schema, dom_node) = state
         assert isinstance(dom_node, xml.dom.Node)
         node_en = pyxb.namespace.ExpandedName(dom_node)
-        self.__namespaceContext = pyxb.namespace.NamespaceContext.GetNodeContext(dom_node)
+        self.__namespaceContext = pyxb.namespace.resolution.NamespaceContext.GetNodeContext(dom_node)
         self.__buildMaps()
         if process_schema:
             self.__processSchema()

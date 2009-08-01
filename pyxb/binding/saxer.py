@@ -28,7 +28,7 @@ class _SAXElementState (object):
     # Reference to the _SAXElementState of the element enclosing this one
     __parentState = None
 
-    # The pyxb.namespace.NamespaceContext used for this binding
+    # The pyxb.namespace.resolution.NamespaceContext used for this binding
     __namespaceContext = None
 
     # The binding object being created for this element.  When the
@@ -250,7 +250,7 @@ class PyXBSAXHandler (xml.sax.handler.ContentHandler):
         """Return the namespace context used for QName resolution within the
         current element.
 
-        @return: An instance of L{pyxb.namespace.NamespaceContext}"""
+        @return: An instance of L{pyxb.namespace.resolution.NamespaceContext}"""
         return self.__namespaceContext
     
     # If there's a new namespace waiting to be used, make it the

@@ -391,9 +391,9 @@ class _ArchivableObject_mixin (pyxb.cscRoot):
         return self._updateFromOther_csc(other)
 
     def _allowUpdateFromOther (self, other):
-        global BuiltInObjectUID
+        import builtin
         assert self._objectOrigin()
-        return BuiltInObjectUID == self._objectOrigin().generationUID()
+        return builtin.BuiltInObjectUID == self._objectOrigin().generationUID()
 
 class _NamespaceArchivable_mixin (pyxb.cscRoot):
     """Encapsulate the operations and data relevant to archiving namespaces."""

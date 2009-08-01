@@ -4632,7 +4632,7 @@ class Schema (_SchemaComponent_mixin):
         if Node.ELEMENT_NODE != root_node.nodeType:
             raise pyxb.LogicError('Must be given a DOM node of type ELEMENT')
 
-        assert (namespace_context is None) or isinstance(namespace_context, pyxb.namespace.NamespaceContext)
+        assert (namespace_context is None) or isinstance(namespace_context, pyxb.namespace.resolution.NamespaceContext)
         ns_ctx = pyxb.namespace.resolution.NamespaceContext(root_node, parent_context=namespace_context)
 
         tns = ns_ctx.targetNamespace()
