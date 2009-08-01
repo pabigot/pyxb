@@ -1111,10 +1111,14 @@ def ResolveSiblingNamespaces (sibling_namespaces, origin_uid):
             raise pyxb.LogicError('Unexpected external dependency in sibling namespaces: %s' % ("\n  ".join( [str(_ns) for _ns in need_resolved ]),))
         need_resolved = new_nr
 
-class _ComponentDependency_mixin (pyxb.cscRoot):
+class _ComponentDependency_mixin (pyxb.utils.utility.PrivateTransient_mixin, pyxb.cscRoot):
     """Mix-in for components that can depend on other components."""
+
+    __PrivateTransient = set()
+
     # Cached frozenset of components on which this component depends.
     __bindingRequires = None
+    __PrivateTransient.add('bindingRequires')
 
     def _resetClone_csc (self, **kw):
         """CSC extension to reset fields of a component.  This one clears
@@ -1165,7 +1169,7 @@ class _ArchiveNamespaceRecord (object):
         return self.__isPublic
     __isPublic = None
 
-class _ObjectOrigin (pyxb.cscRoot):
+class _ObjectOrigin (pyxb.utils.utility.PrivateTransient_mixin, pyxb.cscRoot):
     """Marker class for objects that can serve as an origin for an object in a
     namespace."""
     pass
@@ -1177,8 +1181,7 @@ class _SchemaOrigin (_ObjectOrigin):
     L{_NamespaceComponentAssociation_mixin}.
     """
 
-    def _prepareForArchive (self):
-        self.__schema = None
+    __PrivateTransient = set()
 
     def __setDefaultKW (self, kw):
         schema = kw.get('schema')
@@ -1237,7 +1240,8 @@ class _SchemaOrigin (_ObjectOrigin):
 
     def schema (self):
         return self.__schema
-    __schema = None # TRANSIENT
+    __schema = None
+    __PrivateTransient.add('schema')
 
     def namespace (self):
         return self.__namespace

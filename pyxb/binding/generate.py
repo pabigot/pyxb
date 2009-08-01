@@ -2070,7 +2070,6 @@ class Generator (object):
         # schema and their inclusions/imports.
         affected_ns = set()
         for ao in self.generationUID().associatedObjects():
-            ao._prepareForArchive()
             # @todo: This kicks out declarations for the XML
             # namespace, which happen to appear in the bindings for
             # gml 3.1.1.  Remove this elision when we can mark those

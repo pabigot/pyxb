@@ -51,7 +51,7 @@ _PastAddBuiltInTypes = False
 # Make it easier to check node names in the XMLSchema namespace
 from pyxb.namespace import XMLSchema as xsd
 
-class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin, pyxb.namespace._ArchivableObject_mixin):
+class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin, pyxb.namespace._ArchivableObject_mixin, pyxb.utils.utility.PrivateTransient_mixin):
     """A mix-in that marks the class as representing a schema component.
 
     This exists so that we can determine the owning schema for any
@@ -59,10 +59,11 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin, pyxb.na
     time by passing a schema=val parameter to the constructor.  
     """
 
+    __PrivateTransient = set()
+
     # The namespace context for this schema: where it looks things up, where
     # it puts things it createas, the in-scope namespace declarations, etc.
     # Must be defined for anything that does any sort of QName interpretation.
-    __namespaceContext = None
     def _namespaceContext (self):
         if self.__namespaceContext is None:
             raise pyxb.LogicError('Attempt to access missing namespace context for %s' % (self,))
@@ -70,6 +71,8 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin, pyxb.na
     def _clearNamespaceContext (self):
         self.__namespaceContext = None
         return self
+    __namespaceContext = None
+    __PrivateTransient.add('namespaceContext')
 
     # The name by which this component is known within the binding
     # module.  This is in component rather than _NamedComponent_mixin
@@ -80,9 +83,11 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin, pyxb.na
     # The schema component that owns this.  If None, the component is
     # owned directly by the schema.
     __owner = None
+    __PrivateTransient.add('owner')
 
     # The schema components owned by this component.
     __ownedComponents = None
+    __PrivateTransient.add('ownedComponent')
 
     def _scope (self):
         """The context into which declarations in or subordinate to this nodeare placed."""
@@ -110,17 +115,6 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin, pyxb.na
         assert isinstance(ctd, ComplexTypeDefinition)
         self.__scope = ctd
         return self
-
-    def _prepareForArchive_csc (self, archive, namespace):
-        self.__clones = None
-        self.__cloneSource = None
-        self.__ownedComponents.clear()
-        self.__namespaceContext = None
-        #if isinstance(self, ElementDeclaration):
-        #    for (k, v) in self.__dict__.items():
-        #        print '%s : %s' % (k, object.__str__(v))
-        #    assert False
-        return getattr(super(_SchemaComponent_mixin, self), '_prepareForArchive_csc', lambda *_args,**_kw: self)(archive, namespace)
 
     def __init__ (self, *args, **kw):
         self.__ownedComponents = set()
@@ -157,6 +151,7 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin, pyxb.na
 
     # A reference to the instance from which this instance was cloned.
     __cloneSource = None
+    __PrivateTransient.add('cloneSource')
 
     def _cloneSource (self):
         """The source component from which this is a clone.
@@ -166,6 +161,7 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin, pyxb.na
 
     # A set of references to all instances that are clones of this one.
     __clones = None
+    __PrivateTransient.add('clones')
 
     def _clones (self):
         """The set of instances cloned from this component.
@@ -368,7 +364,7 @@ class _PickledAnonymousReference (pyxb.cscRoot):
     def __str__ (self):
         return 'ANONYMOUS:%s' % (pyxb.namespace.ExpandedName(self.__namespace, self.__anonymousName),)
     
-class _NamedComponent_mixin (pyxb.cscRoot):
+class _NamedComponent_mixin (pyxb.utils.utility.PrivateTransient_mixin, pyxb.cscRoot):
     """Mix-in to hold the name and targetNamespace of a component.
 
     The name may be None, indicating an anonymous component.  The
@@ -382,6 +378,8 @@ class _NamedComponent_mixin (pyxb.cscRoot):
 
     This class must follow L{_SchemaComponent_mixin} in the MRO.
     """
+
+    __PrivateTransient = set()
 
     def name (self):
         """Name of the component within its scope or namespace.
@@ -465,9 +463,9 @@ class _NamedComponent_mixin (pyxb.cscRoot):
         a namespace archive."""
         return self.__schema
     __schema = None
+    __PrivateTransient.add('schema')
 
     def _prepareForArchive_csc (self, archive, namespace):
-        self.__schema = None
         if self.__needAnonymousSupport():
             self._setAnonymousName(namespace, unique_id=archive.generationUID())
         return getattr(super(_NamedComponent_mixin, self), '_prepareForArchive_csc', lambda *_args,**_kw: self)(archive, namespace)
@@ -704,7 +702,7 @@ class _NamedComponent_mixin (pyxb.cscRoot):
             # with the anonymous class at the time it's written to the
             # preprocessed schema file.
             pass
-        return self.__dict__
+        return super(_NamedComponent_mixin, self).__getstate__()
 
     def __getnewargs__ (self):
         """Pickling support.
@@ -1640,6 +1638,8 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.na
 
 
 class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.namespace._Resolvable_mixin, _Annotated_mixin, _AttributeWildcard_mixin):
+    __PrivateTransient = set()
+
     # The type resolved from the base attribute.
     __baseTypeDefinition = None
     def baseTypeDefinition (self):
@@ -1940,9 +1940,12 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         return rv.__setContentFromDOM(node, **kw)
 
     __ckw = None
+    __anyAttribute = None
+    __attributeGroupAttributes = None
     __usesC1 = None
     __usesC1C2 = None
     __attributeGroups = None
+    __PrivateTransient.update(['ckw', 'anyAttribute', 'attributeGroupAttributes', 'usesC1', 'usesC1C2', 'attributeGroups' ])
 
     # Handle attributeUses, attributeWildcard, contentType
     def __completeProcessing (self, method, content_style):
@@ -2434,6 +2437,8 @@ class _UrTypeDefinition (ComplexTypeDefinition, _Singleton_mixin):
  
 
 class AttributeGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.namespace._Resolvable_mixin, _Annotated_mixin, _AttributeWildcard_mixin):
+    __PrivateTransient = set()
+    
     # A frozenset of AttributeUse instances
     __attributeUses = None
 
@@ -2456,6 +2461,10 @@ class AttributeGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, p
         bi.__attributeUses = frozenset(attribute_uses)
         bi.__isResolved = True
         return bi
+
+    __anyAttribute = None
+    __attributeGroupAttributes = None
+    __PrivateTransient.update(['anyAttribute', 'attributeGroupAttributes'])
 
     # CFD:AGD CFD:AttributeGroupDefinition
     @classmethod
@@ -4404,6 +4413,9 @@ class _ImportElementInformationItem (_Annotated_mixin):
         self._annotationFromDOM(node)
 
 class Schema (_SchemaComponent_mixin):
+    def __getstate__ (self):
+        raise pyxb.LogicError('Attempt to serialize Schema instance')
+
     # List of annotations
     __annotations = None
 

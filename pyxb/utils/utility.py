@@ -748,3 +748,59 @@ class LocalTimeZone (datetime.tzinfo):
               0, 0, -1)
         tt = time.localtime(time.mktime(tt))
         return tt.tm_isdst > 0
+
+class PrivateTransient_mixin (pyxb.cscRoot):
+    """Emulate the B{transient} keyword from Java for private member
+    variables.
+
+    This class defines a C{__getstate__} method which returns a copy
+    of C{self.__dict__} with certain members removed.  Specifically,
+    if a string "s" appears in a class member variable named
+    C{__PrivateTransient}, then the corresponding private variable
+    "_Class__s" will be removed from the state dictionary.
+
+    If you use this, it is your responsibility to define the
+    C{__PrivateTransient} class variable and add to it the required
+    variable names.
+
+    Classes that inherit from this are free to define their own
+    C{__getstate__} method, which may or may not invoke the superclass
+    one.  If you do this, be sure that the class defining
+    C{__getstate__} lists L{PrivateTransient_mixin} as one of its
+    direct superclasses, lest the latter end up earlier in the mro and
+    consequently bypass the local override.
+    """
+
+    __Attribute = '__PrivateTransient'
+    
+    def __getstate__ (self):
+        #print '%s %x state' % (type(self), id(self))
+        state = self.__dict__.copy()
+        # Note that the aggregate set is stored in a class variable
+        # with a slightly different name than the class-level set.
+        attr = '_%s%s_' % (self.__class__.__name__, self.__Attribute)
+        skipped = getattr(self.__class__, attr, None)
+        if skipped is None:
+            skipped = set()
+            for cl in self.__class__.mro():
+                for (k, v) in cl.__dict__.items():
+                    if k.endswith(self.__Attribute):
+                        cl2 = k[:-len(self.__Attribute)]
+                        skipped.update([ '%s__%s' % (cl2, _n) for _n in v ])
+            setattr(self.__class__, attr, skipped)
+            #print 'Defined skipped for %s: %s' % (self.__class__, skipped)
+        for k in skipped:
+            if state.get(k) is not None:
+                #print 'Stripping %s from instance %x of %s' % (k, id(self), type(self))
+                del state[k]
+        # Uncomment the following to test whether undesirable types are being
+        # pickled.
+        #for (k, v) in state.items():
+        #    import pyxb.namespace
+        #    import xml.dom
+        #    import pyxb.xmlschema.structures
+        #    if isinstance(v, (pyxb.namespace.NamespaceContext, xml.dom.Node, pyxb.xmlschema.structures.Schema)):
+        #        raise pyxb.LogicError('Unexpected instance of %s key %s in %s' % (type(v), k, self))
+
+        return state
+
