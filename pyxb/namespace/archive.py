@@ -652,18 +652,6 @@ class _SchemaOrigin (_ObjectOrigin):
             return True
         return False
 
-    def importedNamespaces (self):
-        """Return the set of namespaces which some schema imported while
-        processing with this namespace as target."""
-        return self.__importedNamespaces
-    __importedNamespaces = None
-
-    def referencedNamespaces (self):
-        """Return the set of namespaces which appear in namespace declarations
-        of schema with this namespace as target."""
-        return self.__referencedNamespaces
-    __referencedNamespaces = None
-
     def location (self):
         return self.__location
     __location = None
