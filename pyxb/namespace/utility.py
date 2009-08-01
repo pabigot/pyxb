@@ -62,3 +62,6 @@ def CreateAbsentNamespace ():
     because you won't be able to look it up."""
     return pyxb.namespace.Namespace.CreateAbsentNamespace()
 
+def AvailableNamespaces ():
+    """Return the complete set of Namespace instances known to the system."""
+    return pyxb.namespace.Namespace.AvailableNamespaces()

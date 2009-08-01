@@ -89,8 +89,7 @@ class NamespaceArchive (object):
         cls.__NamespaceArchives = {}
 
     __NamespaceArchives = None
-    """A mapping from namespace URIs to names of files which appear to
-    provide a serialized version of the namespace with schema."""
+    """A mapping from file system paths to NamespaceArchive instances."""
 
     @classmethod
     def __GetArchiveInstance (cls, archive_file):
@@ -188,6 +187,19 @@ class NamespaceArchive (object):
         self.__isLoadable = loadable
     __isLoadable = None
 
+    def __locateModuleRecords (self):
+        self.__moduleRecords = set()
+        namespaces = set()
+        for ns in pyxb.namespace.utility.AvailableNamespaces():
+            mr = ns.lookupModuleRecordByUID(self.generationUID())
+            if mr is not None:
+                namespaces.add(ns)
+                self.__moduleRecords.add(mr)
+        self.__namespaces.update(namespaces)
+    def moduleRecords (self):
+        return self.__moduleRecords
+    __moduleRecords = None
+                
     def __init__ (self, namespaces=None, archive_path=None, generation_uid=None, loadable=True):
         """Create a new namespace archive.
 
@@ -199,13 +211,11 @@ class NamespaceArchive (object):
         @raise pickle.UnpicklingError: something is wrong with the format of the library
         """
         self.__namespaces = set()
-        if namespaces is not None:
+        if generation_uid is not None:
             if archive_path:
                 raise pyxb.LogicError('NamespaceArchive: cannot define both namespaces and archive_path')
-            if generation_uid is None:
-                raise pyxb.LogicError('NamespaceArchive: must provide generation_uid with namespaces')
             self.__generationUID = generation_uid
-            self.update(namespaces)
+            self.__locateModuleRecords()
         elif archive_path is not None:
             if generation_uid is not None:
                 raise pyxb.LogicError('NamespaceArchive: cannot provide generation_uid with archive_path')
@@ -290,7 +300,9 @@ class NamespaceArchive (object):
         """
         import sys
         
+        assert NamespaceArchive.__PicklingArchive is None
         NamespaceArchive.__PicklingArchive = self
+        assert self.__moduleRecords is not None
 
         try:
             # See http://bugs.python.org/issue3338
@@ -298,6 +310,8 @@ class NamespaceArchive (object):
             sys.setrecursionlimit(10 * recursion_limit)
     
             pickler = self.__createPickler(output)
+
+            #*#pickler.dump(self.__moduleRecords)
 
             # The set of URIs defining the namespaces in the archive, along
             # with the categories defined by each one, and the names defined
@@ -330,6 +344,11 @@ class NamespaceArchive (object):
         NamespaceArchive.__PicklingArchive = None
 
     def __readNamespaceSet (self, unpickler, define_namespaces=False):
+        #*#mr = unpickler.load()
+        #*#assert isinstance(mr, set)
+        #*#f self.__moduleRecords is None:
+        #*#    self.__moduleRecords = mr
+
         uri_map = unpickler.load()
         
         for (uri, categories) in uri_map.items():
