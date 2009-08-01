@@ -191,6 +191,11 @@ class NamespaceArchive (object):
         self.__moduleRecords = set()
         namespaces = set()
         for ns in pyxb.namespace.utility.AvailableNamespaces():
+            # @todo allow these; right now it's usually the XML
+            # namespace and we're not prepared to reconcile
+            # redefinitions of those components.
+            if ns.isUndeclaredNamespace():
+                continue
             mr = ns.lookupModuleRecordByUID(self.generationUID())
             if mr is not None:
                 namespaces.add(ns)
