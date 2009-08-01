@@ -81,6 +81,7 @@ class NamespaceArchive (object):
 
     @classmethod
     def __ResetNamespaceArchives (cls):
+        print 'RESETTING NAMESPACE ARCHIVES'
         if cls.__NamespaceArchives is not None:
             for nsa in cls.__NamespaceArchives.values():
                 for ns in nsa.__namespaces:
@@ -339,7 +340,7 @@ class NamespaceArchive (object):
                     continue
                 cross_objects = frozenset([ _ln for _ln in cat_map[cat].intersection(ns.categoryMap(cat).keys()) if not ns.categoryMap(cat)[_ln]._allowUpdateFromOther(None) ])
                 if 0 < len(cross_objects):
-                    raise pyxb.NamespaceArchiveError('Namespace %s archive/active conflict on category %s: %s' % (ns, cat, " ".join(cross_objects)))
+                    raise pyxb.NamespaceArchiveError('Archive %s namespace %s archive/active conflict on category %s: %s' % (self.__archivePath, ns, cat, " ".join(cross_objects)))
 
         if not define_namespaces:
             return
@@ -407,6 +408,7 @@ class _NamespaceArchivable_mixin (pyxb.cscRoot):
         self.__loadedFromArchive = None
         self.__wroteToArchive = None
         self.__active = False
+        self.__moduleRecordMap = {}
 
     def _loadedFromArchive (self):
         return self.__loadedFromArchive
@@ -449,6 +451,21 @@ class _NamespaceArchivable_mixin (pyxb.cscRoot):
         return self.__sourceArchives.copy()
     __sourceArchives = None
     
+    def moduleRecords (self):
+        return self.__moduleRecordMap.values()
+    __moduleRecordMap = None
+
+    def addModuleRecord (self, module_record):
+        assert isinstance(module_record, ModuleRecord)
+        assert not (module_record.generationUID() in self.__moduleRecordMap)
+        self.__moduleRecordMap[module_record.generationUID()] = module_record
+        return module_record
+    def lookupModuleRecordByUID (self, generation_uid, create_if_missing=False, *args, **kw):
+        rv = self.__moduleRecordMap.get(generation_uid)
+        if (rv is None) and create_if_missing:
+            rv = self.addModuleRecord(ModuleRecord(self, generation_uid, *args, **kw))
+        return rv
+
     def isLoadable (self):
         """Return C{True} iff the component model for this namespace can be
         loaded from a namespace archive."""
@@ -472,19 +489,109 @@ class _NamespaceArchivable_mixin (pyxb.cscRoot):
         for archive in self.__sourceArchives.copy():
             archive.setLoadable(False)
 
-class _NamespaceModuleRecord (object):
+class ModuleRecord (pyxb.utils.utility.PrivateTransient_mixin):
+    __PrivateTransient = set()
+    
     def namespace (self):
         return self.__namespace
     __namespace = None
 
+    def archive (self):
+        return self.__archive
+    def _setArchive (self, archive):
+        self.__archive = archive
+        return self
+    __archive = None
+    __PrivateTransient.add('archive')
+
     def isPublic (self):
         return self.__isPublic
+    def _setIsPublic (self, is_public):
+        self.__isPublic = is_public
+        return self
     __isPublic = None
+
+    def isIncorporated (self):
+        return self.__isIncorporated
+    def markIncorporated (self):
+        assert self.__isLoadable
+        self.__isIncorporated = True
+        self.__isLoadable = False
+        return self
+    __isIncorporated = None
+    __PrivateTransient.add('archive')
+
+    def isLoadable (self):
+        return self.__isLoadable
+    def _setIsLoadable (self, is_loadable):
+        self.__isLoadable = is_loadable
+        return self
+    __isLoadable = None
+
+    def generationUID (self):
+        return self.__generationUID
+    __generationUID = None
+
+    def origins (self):
+        return self.__originMap.values()
+    def addOrigin (self, origin):
+        assert isinstance(origin, _ObjectOrigin)
+        assert not (origin.signature() in self.__originMap)
+        self.__originMap[origin.signature()] = origin
+        return origin
+    def lookupOriginBySignature (self, signature):
+        return self.__originMap.get(signature)
+    def _setOrigins (self, origins):
+        if self.__originMap is None:
+            self.__originMap = {}
+        else:
+            self.__originMap.clear()
+        [ self.addOrigin(_o) for _o in origins ]
+        return self
+    __originMap = None
+    __PrivateTransient.add('originMap')
+
+    def modulePath (self):
+        return self.__modulePath
+    def _setModulePath (self, module_path):
+        self.__modulePath = module_path
+        return self
+    __modulePath = None
+
+    def __init__ (self, namespace, generation_uid, **kw):
+        super(ModuleRecord, self).__init__()
+        self.__namespace = namespace
+        self.__isPublic = kw.get('is_public', False)
+        self.__isIncoporated = kw.get('is_incorporated', False)
+        self.__isLoadable = kw.get('is_loadable', True)
+        self.__modulePath = kw.get('module_path')
+        assert isinstance(generation_uid, pyxb.utils.utility.UniqueIdentifier)
+        self.__generationUID = generation_uid
+        self.__originMap = {}
 
 class _ObjectOrigin (pyxb.utils.utility.PrivateTransient_mixin, pyxb.cscRoot):
     """Marker class for objects that can serve as an origin for an object in a
     namespace."""
-    pass
+
+    def signature (self):
+        return self.__signature
+    __signature = None
+
+    def moduleRecord (self):
+        return self.__moduleRecord
+    __moduleRecord = None
+
+    def namespace (self):
+        return self.moduleRecord().namespace()
+
+    def generationUID (self):
+        return self.moduleRecord().generationUID()
+
+    def __init__ (self, namespace, generation_uid, **kw):
+        self.__signature = kw.pop('signature', None)
+        super(_ObjectOrigin, self).__init__(**kw)
+        self.__moduleRecord = namespace.lookupModuleRecordByUID(generation_uid, create_if_missing=True, **kw)
+        self.__moduleRecord.addOrigin(self)
 
 class _SchemaOrigin (_ObjectOrigin):
     """Holds the data regarding components derived from a single schema.
@@ -542,22 +649,10 @@ class _SchemaOrigin (_ObjectOrigin):
         return self.__location
     __location = None
 
-    def signature (self):
-        return self.__signature
-    __signature = None
-    
-    def generationUID (self):
-        return self.__generationUID
-    __generationUID = None
-
     def schema (self):
         return self.__schema
     __schema = None
     __PrivateTransient.add('schema')
-
-    def namespace (self):
-        return self.__namespace
-    __namespace = None
 
     def version (self):
         return self.__version
@@ -567,15 +662,12 @@ class _SchemaOrigin (_ObjectOrigin):
         pass
 
     def __init__ (self, **kw):
-        super(_SchemaOrigin, self).__init__()
         self.__setDefaultKW(kw)
-        self.__schema = kw.get('schema')
-        self.__signature = kw.get('signature')
-        self.__location = kw.get('location')
-        self.__generationUID = kw.get('generation_uid')
-        self.__namespace = kw.get('namespace')
-        self.__version = kw.get('version')
-        
+        self.__schema = kw.pop('schema', None)
+        self.__location = kw.pop('location', None)
+        self.__version = kw.pop('version', None)
+        super(_SchemaOrigin, self).__init__(kw.pop('namespace'), kw.pop('generation_uid'), **kw)
+
     def __str__ (self):
         rv = [ '_SchemaOrigin(%s@%s' % (self.namespace(), self.location()) ]
         if self.version() is not None:
