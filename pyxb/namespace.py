@@ -51,6 +51,7 @@ def GetArchivePath ():
 
 # Stuff required for pickling
 import cPickle as pickle
+#import pyxb.utils.pickle_trace as pickle
 
 # A unique identifier for components that are built-in to the PyXB system
 BuiltInObjectUID = pyxb.utils.utility.UniqueIdentifier('PyXB-' + pyxb.__version__ + '-Builtin')
