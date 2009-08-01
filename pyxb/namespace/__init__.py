@@ -409,18 +409,15 @@ class _NamespaceCategory_mixin (pyxb.cscRoot):
         declaration but never actually referenced."""
         return 'typeDefinition' in self.__categoryMap
 
-    def categorySliceByOrigin (self, origin):
-        """Return a sub-map corresponding to those named components which came
-        from the given origin."""
-        category_map = { }
-        for (cat, cat_map) in self.__categoryMap:
-            sub_map = { }
-            for (n, v) in cat_map:
-                if isinstance(v, _ArchivableObject_mixin) and (v._objectOrigin() == origin):
-                    sub_map[n] = v
-            if 0 < len(sub_map):
-                category_map[cat] = sub_map
-        return category_map
+    def _associateOrigins (self, module_record):
+        assert module_record.namespace() == self
+        module_record.resetCategoryObjects()
+        self.configureCategories([archive.NamespaceArchive._AnonymousCategory()])
+        origin_set = module_record.origins()
+        for (cat, cat_map) in self.__categoryMap.iteritems():
+            for (n, v) in cat_map.iteritems():
+                if isinstance(v, archive._ArchivableObject_mixin) and (v._objectOrigin() in origin_set):
+                    v._objectOrigin().addCategoryMember(cat, n, v)
 
 class _ComponentDependency_mixin (pyxb.utils.utility.PrivateTransient_mixin, pyxb.cscRoot):
     """Mix-in for components that can depend on other components."""
@@ -647,6 +644,8 @@ class Namespace (_NamespaceCategory_mixin, resolution._NamespaceResolution_mixin
         assert uri is not None
         return cls.__Registry.get(uri, None)
 
+    def __getstate__ (self):
+        return False
 
     def __getnewargs__ (self):
         """Pickling support.
@@ -654,6 +653,8 @@ class Namespace (_NamespaceCategory_mixin, resolution._NamespaceResolution_mixin
         To ensure that unpickled Namespace instances are unique per
         URI, we ensure that the routine that creates unpickled
         instances knows what it's supposed to return."""
+        if self.uri() is None:
+            raise pyxb.LogicError('Attempt to serialize absent namespace')
         return (self.uri(),)
 
     def __new__ (cls, *args, **kw):
@@ -850,48 +851,6 @@ class Namespace (_NamespaceCategory_mixin, resolution._NamespaceResolution_mixin
     def createExpandedName (self, local_name):
         return ExpandedName(self, local_name)
 
-    def _getState_csc (self, kw):
-        kw.update({
-            'description': self.__description,
-            'prefix': self.__prefix,
-            'modulePath' : self.__modulePath,
-            'bindingConfiguration': self.__bindingConfiguration,
-            })
-        return getattr(super(Namespace, self), '_getState_csc', lambda _kw: _kw)(kw)
-
-    def _setState_csc (self, kw):
-        self.__isLoadedNamespace = True
-        self.__description = kw['description']
-        self.__prefix = kw['prefix']
-        assert (self.__modulePath is None) or (self.__modulePath == kw.get('modulePath'))
-        self.__modulePath = kw['modulePath']
-        self.__bindingConfiguration = kw['bindingConfiguration']
-        return getattr(super(Namespace, self), '_setState_csc', lambda _kw: self)(kw)
-
-    def __getstate__ (self):
-        """Support pickling.
-
-        Because namespace instances must be unique, we represent them
-        as their URI and any associated (non-bound) information.  This
-        way allows the unpickler to either identify an existing
-        Namespace instance for the URI, or create a new one, depending
-        on whether the namespace has already been encountered."""
-        if self.uri() is None:
-            raise pyxb.LogicError('Illegal to serialize absent namespaces')
-        kw = self._getState_csc({ })
-        args = ( self.__uri, )
-        return ( args, kw )
-
-    def __setstate__ (self, state):
-        """Support pickling."""
-        ( args, kw ) = state
-        ( uri, ) = args
-        assert self.__uri == uri
-        # If this namespace hasn't been activated, do so now, using the
-        # archived information which includes referenced namespaces.
-        if not self.isActive(True):
-            self._setState_csc(kw)
-
     def _defineBuiltins_ox (self, structures_module):
         pass
 
@@ -902,7 +861,7 @@ class Namespace (_NamespaceCategory_mixin, resolution._NamespaceResolution_mixin
             self.__definedBuiltins = True
         return self
 
-    def _defineSchema_overload (self, structures_module):
+    def _loadComponentsFromArchives (self, structures_module):
         """Attempts to load the named objects held in this namespace.
 
         The base class implementation looks at the set of available archived
@@ -915,9 +874,12 @@ class Namespace (_NamespaceCategory_mixin, resolution._NamespaceResolution_mixin
         There is no guarantee that any particular category of named object has
         been located when this returns.  Caller must check.
         """
-        for archive in self.archives():
-            if archive.isLoadable():
-                archive.readNamespaces()
+        for mr in self.moduleRecords():
+            if mr.isLoadable():
+                try:
+                    mr.archive().readNamespaces()
+                except pyxb.NamespaceArchiveError, e:
+                    print e
         self._activate()
 
     __didValidation = False
@@ -935,7 +897,7 @@ class Namespace (_NamespaceCategory_mixin, resolution._NamespaceResolution_mixin
             self._defineBuiltins(structures_module)
             try:
                 self.__inValidation = True
-                self._defineSchema_overload(structures_module)
+                self._loadComponentsFromArchives(structures_module)
                 self.__didValidation = True
             finally:
                 self.__inValidation = False

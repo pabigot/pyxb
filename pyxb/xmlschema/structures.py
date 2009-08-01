@@ -453,7 +453,7 @@ class _NamedComponent_mixin (pyxb.utils.utility.PrivateTransient_mixin, pyxb.csc
     __AnonymousCategory = pyxb.namespace.archive.NamespaceArchive._AnonymousCategory()
 
     def __needAnonymousSupport (self):
-        return self.isAnonymous() or (self._scopeIsIndeterminate() and not isinstance(self, AttributeGroupDefinition))
+        return self.isAnonymous() # or (self._scopeIsIndeterminate() and not isinstance(self, AttributeGroupDefinition))
 
     def _schema (self):
         """Return the schema component from which this component was defined.
@@ -4365,10 +4365,10 @@ class _ImportElementInformationItem (_Annotated_mixin):
         self.__schemaLocation = schema_location
         ns = self.__namespace = pyxb.namespace.NamespaceForURI(uri, create_if_missing=True)
         self.__redundant = False
-        if ns.isLoadable():
-            if self.__schemaLocation is not None:
-                print 'WARNING: %s is loadable from %s, ignoring schema location %s' % (ns, ' and '.join([ _af.archivePath() for _af in ns.loadableFrom()]), self.__schemaLocation)
-                self.__schemaLocation = None
+        #if ns.isLoadable():
+        #    if self.__schemaLocation is not None:
+        #        print 'WARNING: %s is loadable from %s, ignoring schema location %s' % (ns, ' and '.join([ _af.archivePath() for _af in ns.loadableFrom()]), self.__schemaLocation)
+        #        self.__schemaLocation = None
 
         if ns.isActive():
             # Already using this.  If we read it from an archive, there can't
@@ -4532,7 +4532,7 @@ class Schema (_SchemaComponent_mixin):
         self.__generationUID = kw.get('generation_uid')
         if self.__generationUID is None:
             print 'WARNING: No generationUID provided'
-            #assert False
+            assert False
             self.__generationUID = pyxb.utils.utility.UniqueIdentifier()
 
         self.__signature = kw.get('schema_signature')

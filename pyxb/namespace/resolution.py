@@ -97,36 +97,35 @@ class _NamespaceResolution_mixin (pyxb.cscRoot):
         self.__importedNamespaces = set()
         self.__referencedNamespaces = set()
 
-    def _getState_csc (self, kw):
-        kw.update({
-                'importedNamespaces': self.__importedNamespaces,
-                'referencedNamespaces': self.__referencedNamespaces,
-                })
-        return getattr(super(_NamespaceResolution_mixin, self), '_getState_csc', lambda _kw: _kw)(kw)
-
-    def _setState_csc (self, kw):
-        self.__importedNamespaces = kw['importedNamespaces']
-        self.__referencedNamespaces = kw['referencedNamespaces']
-        return getattr(super(_NamespaceResolution_mixin, self), '_setState_csc', lambda _kw: self)(kw)
-
     def importNamespace (self, namespace):
         self.__importedNamespaces.add(namespace)
         return self
 
     def _referenceNamespace (self, namespace):
-        self._activate()
+        #self._activate()
         self.__referencedNamespaces.add(namespace)
+        #self.activeModuleRecord().referenceNamespace(namespace)
         return self
+    __referencedNamespaces = None
 
     def importedNamespaces (self):
         """Return the set of namespaces which some schema imported while
         processing with this namespace as target."""
         return frozenset(self.__importedNamespaces)
 
+    def _transferReferencedNamespaces (self, module_record):
+        assert isinstance(module_record, archive.ModuleRecord)
+        module_record._setReferencedNamespaces(self.__referencedNamespaces)
+        self.__referencedNamespaces.clear()
+        
     def referencedNamespaces (self):
         """Return the set of namespaces which appear in namespace declarations
         of schema with this namespace as target."""
-        return frozenset(self.__referencedNamespaces)
+        rn = self.__referencedNamespaces.copy()
+        for mr in self.moduleRecords():
+            if mr.isIncorporated():
+                rn.update(mr.referencedNamespaces())
+        return rn
 
     def queueForResolution (self, resolvable):
         """Invoked to note that a component may have references that will need
