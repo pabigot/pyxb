@@ -2127,9 +2127,6 @@ class Generator (object):
                     all_components.add(c)
                     namespace_component_map.setdefault(sns, set()).add(c)
         
-        usable_namespaces = set(namespace_component_map.keys())
-        usable_namespaces.update([ _ns for _ns in nsdep.dependentNamespaces() if _ns.isLoadable])
-    
         module_graph = pyxb.utils.utility.Graph()
     
         namespace_module_map = {}
