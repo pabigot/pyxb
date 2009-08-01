@@ -1161,7 +1161,7 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
         if elt is None:
             raise pyxb.UnrecognizedElementError('No element binding available for %s' % (expanded_name,))
         assert isinstance(elt, pyxb.binding.basis.element)
-        ns_ctx = pyxb.namespace.NamespaceContext.GetNodeContext(node, target_namespace=fallback_namespace, default_namespace=fallback_namespace)
+        ns_ctx = pyxb.namespace.resolution.NamespaceContext.GetNodeContext(node, target_namespace=fallback_namespace, default_namespace=fallback_namespace)
         return elt.createFromDOM(node)
         
     def elementForName (self, name):
@@ -1265,7 +1265,7 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
         # associated, one will be created.  Do not make assumptions about the
         # namespace context; if the user cared, she should have assigned a
         # context before calling this.
-        ns_ctx = pyxb.namespace.NamespaceContext.GetNodeContext(node)
+        ns_ctx = pyxb.namespace.resolution.NamespaceContext.GetNodeContext(node)
         if type_name is not None:
             # xsi:type should only be provided when using an abstract class,
             # or a concrete class that happens to be the same, but in practice

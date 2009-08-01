@@ -1799,7 +1799,7 @@ class Generator (object):
         self.__schemaLocationList = kw.get('schema_location_list', [])[:]
         self.__moduleList = kw.get('module_list', [])[:]
         self.__modulePrefix = kw.get('module_prefix')
-        self.__archivePath = kw.get('archive_path', pyxb.namespace.GetArchivePath())
+        self.__archivePath = kw.get('archive_path', pyxb.namespace.archive.GetArchivePath())
         self.__noLoadNamespaces = kw.get('no_load_namespaces', set()).copy()
         self.__preLoadArchives = kw.get('pre_load_archives', [])[:]
         self.__archiveToFile = kw.get('archive_to_file')
@@ -2034,7 +2034,7 @@ class Generator (object):
 
         self.__generationUID = pyxb.utils.utility.UniqueIdentifier()
 
-        required_archives = pyxb.namespace.NamespaceArchive.PreLoadArchives(self.archivePath(), self.preLoadArchives())
+        required_archives = pyxb.namespace.archive.NamespaceArchive.PreLoadArchives(self.archivePath(), self.preLoadArchives())
         for nsa in required_archives:
             nsa.readNamespaces()
         for ns in self.noLoadNamespaces():
@@ -2086,7 +2086,7 @@ class Generator (object):
         # to construct A, or (2) B appears in an import directive in a
         # schema used to construct A.  The siblings are simply all
         # namespaces in the dependency graph.
-        nsdep = pyxb.namespace.NamespaceDependencies(namespace_set=affected_ns)
+        nsdep = pyxb.namespace.archive.NamespaceDependencies(namespace_set=affected_ns)
         siblings = nsdep.siblingNamespaces()
 
         missing = affected_ns.difference(self.namespaces())
@@ -2109,7 +2109,7 @@ class Generator (object):
             print "\n".join(text)
 
         for ns_set in nsdep.namespaceOrder():
-            pyxb.namespace.ResolveSiblingNamespaces(ns_set, self.__generationUID)
+            pyxb.namespace.resolution.ResolveSiblingNamespaces(ns_set, self.__generationUID)
     
         file('namespace.dot', 'w').write(nsdep.namespaceGraph()._generateDOT('Namespace'))
         file('component.dot', 'w').write(nsdep.componentGraph()._generateDOT('Component', lambda _c: _c.bestNCName()))
@@ -2236,7 +2236,7 @@ class Generator (object):
     def writeNamespaceArchive (self):
         archive_file = self.archiveToFile()
         if archive_file is not None:
-            ns_archive = pyxb.namespace.NamespaceArchive(namespaces=self.namespaces(), generation_uid=self.generationUID())
+            ns_archive = pyxb.namespace.archive.NamespaceArchive(namespaces=self.namespaces(), generation_uid=self.generationUID())
             try:
                 ns_archive.writeNamespaces(pyxb.utils.utility.OpenOrCreate(archive_file))
                 print 'Saved parsed schema to %s URI' % (archive_file,)

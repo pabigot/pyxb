@@ -53,7 +53,7 @@ def StringToDOM (text):
 
 def NameFromNode (node, ns_ctx=None):
     if ns_ctx is None:
-        ns_ctx = pyxb.namespace.NamespaceContext.GetNodeContext(node)
+        ns_ctx = pyxb.namespace.resolution.NamespaceContext.GetNodeContext(node)
     fallback_namespace = None
     if ns_ctx is not None:
         fallback_namespace = ns_ctx.defaultNamespace()

@@ -6,7 +6,7 @@ import pyxb.namespace
 
 class TestInScopeNames (unittest.TestCase):
     def show (self, node):
-        xmlns_map = pyxb.namespace.NamespaceContext.GetNodeContext(node).inScopeNamespaces()
+        xmlns_map = pyxb.namespace.resolution.NamespaceContext.GetNodeContext(node).inScopeNamespaces()
         #print '%s xmlns map %s' % (node.nodeName, GetInScopeNamespaces(node))
         return xmlns_map
 
@@ -27,7 +27,7 @@ class TestInScopeNames (unittest.TestCase):
 </book>'''
         book = StringToDOM(xml).documentElement
         self.assertEqual('book', book.localName)
-        ns_ctx = pyxb.namespace.NamespaceContext(book)
+        ns_ctx = pyxb.namespace.resolution.NamespaceContext(book)
         xmlns_map = self.show(book)
         self.assertEqual(3, len(xmlns_map))
         self.assertEqual('http://www.w3.org/XML/1998/namespace', xmlns_map['xml'].uri())
@@ -77,7 +77,7 @@ class TestInScopeNames (unittest.TestCase):
     </table>
   </Beers>'''
         Beers = StringToDOM(xml).documentElement
-        ns_ctx = pyxb.namespace.NamespaceContext(Beers)
+        ns_ctx = pyxb.namespace.resolution.NamespaceContext(Beers)
         xmlns_map = self.show(Beers)
         self.assertEqual(1, len(xmlns_map))
         self.assertEqual('http://www.w3.org/XML/1998/namespace', xmlns_map['xml'].uri())

@@ -234,7 +234,7 @@ class PyXBSAXHandler (xml.sax.handler.ContentHandler):
 
         @return: C{self}
         """
-        self.__namespaceContext = pyxb.namespace.NamespaceContext(default_namespace=self.__fallbackNamespace)
+        self.__namespaceContext = pyxb.namespace.resolution.NamespaceContext(default_namespace=self.__fallbackNamespace)
         self.__nextNamespaceContext = None
         self.__locator = None
         self.__elementState = _SAXElementState(self.__namespaceContext, None)
@@ -290,7 +290,7 @@ class PyXBSAXHandler (xml.sax.handler.ContentHandler):
         # Get the context to be used for this element, and create a
         # new context for the next contained element to be found.
         ns_ctx = self.__updateNamespaceContext()
-        self.__nextNamespaceContext = pyxb.namespace.NamespaceContext(parent_context=ns_ctx)
+        self.__nextNamespaceContext = pyxb.namespace.resolution.NamespaceContext(parent_context=ns_ctx)
 
         # Get the element name including namespace information.
         name_en = pyxb.namespace.ExpandedName(name, fallback_namespace=self.__fallbackNamespace)
