@@ -1160,7 +1160,7 @@ class _ComponentDependency_mixin (pyxb.utils.utility.PrivateTransient_mixin, pyx
         """
         raise LogicError('%s does not implement _bindingRequires_vx' % (self.__class__,))
 
-class _ArchiveNamespaceRecord (object):
+class _NamespaceModuleRecord (object):
     def namespace (self):
         return self.__namespace
     __namespace = None
