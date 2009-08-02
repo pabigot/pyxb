@@ -82,7 +82,8 @@ class NamespaceArchive (object):
     @classmethod
     def __ResetNamespaceArchives (cls):
         if cls.__NamespaceArchives is not None:
-            print 'RESETTING NAMESPACE ARCHIVE %d archives' % (len(cls.__NamespaceArchives,))
+            # @todo NOTICE
+            #print 'RESETTING NAMESPACE ARCHIVE %d archives' % (len(cls.__NamespaceArchives,))
             for nsa in cls.__NamespaceArchives.values():
                 for ns in nsa.__namespaces:
                     ns._removeArchive(nsa)

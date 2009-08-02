@@ -991,7 +991,7 @@ class _ModuleNaming_mixin (object):
         (binding_file_path, binding_file, module_path) = path_data
         self.__bindingFilePath = binding_file_path
         self.__bindingFile = binding_file
-        print 'Set %s binding file %s path %s' % (self, binding_file, binding_file_path)
+        #print 'Set %s binding file %s path %s' % (self, binding_file, binding_file_path)
         if module_path is None:
             module_path = self.moduleRecord().modulePath()
         if module_path is not None:
@@ -2090,7 +2090,8 @@ class Generator (object):
         for origin in self.generationUID().associatedObjects():
             mr = origin.moduleRecord()
             if not (mr in self.__moduleRecords):
-                print 'Entry %s' % (mr,)
+                # @todo NOTICE
+                # print 'Entry %s' % (mr,)
                 self.__moduleRecords.add(mr)
                 mr.completeGenerationAssociations()
             all_components.update(origin.originatedObjects())
@@ -2105,7 +2106,8 @@ class Generator (object):
         component_graph = self.__graphFromComponents(all_components, True)
 
         binding_components = set(filter(bindable_fn, component_graph.nodes()))
-        print '%d of %d components need bindings' % (len(binding_components), len(component_graph.nodes()))
+        # @todo NOTICE
+        #print '%d of %d components need bindings' % (len(binding_components), len(component_graph.nodes()))
 
         module_graph = pyxb.utils.utility.Graph()
         [ module_graph.addRoot(_mr) for _mr in self.__moduleRecords ]
@@ -2117,7 +2119,8 @@ class Generator (object):
         # self.__moduleRecords, if a module has no components that require
         # binding generation.
 
-        print '%d entry, %d in graph' % (len(self.__moduleRecords), len(module_graph.nodes()))
+        # @todo NOTICE
+        #print '%d entry, %d in graph' % (len(self.__moduleRecords), len(module_graph.nodes()))
         for mr in module_graph.nodes():
             self.__assignModulePath(mr)
             assert not ((mr.modulePath() is None) and self.generateToFiles()), 'No module path defined for %s' % (mr,)
@@ -2132,7 +2135,8 @@ class Generator (object):
         for mr_scc in module_scc_order:
             scc_modules = [ ]
             for mr in mr_scc:
-                print 'Generating %s of %d' % (mr, len(mr_scc))
+                # @todo INFO
+                #print 'Generating %s of %d' % (mr, len(mr_scc))
                 nsm = NamespaceModule(self, mr, mr_scc)
                 record_binding_map[mr] = nsm
                 scc_modules.append(nsm)
@@ -2158,7 +2162,7 @@ class Generator (object):
                     for cd in c.bindingRequires(reset=True, include_lax=False):
                         #print '%s depends on %s' % (c, cd)
                         cg.addEdge(c, cd)
-                file('deploop.dot', 'w').write(cg._generateDOT('CompDep', lambda _c: _c.bestNCName()))
+                #file('deploop.dot', 'w').write(cg._generateDOT('CompDep', lambda _c: _c.bestNCName()))
                 relaxed_order = cg.sccOrder()
                 for rcs in relaxed_order:
                     assert 1 == len(rcs)
@@ -2168,7 +2172,7 @@ class Generator (object):
             else:
                 component_order.extend(cset)
     
-        print '%d components in order' % (len(component_order),)
+        #print '%d components in order' % (len(component_order),)
 
         element_declarations = []
         type_definitions = []
