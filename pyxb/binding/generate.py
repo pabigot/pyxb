@@ -2236,7 +2236,7 @@ class Generator (object):
     def writeNamespaceArchive (self):
         archive_file = self.archiveToFile()
         if archive_file is not None:
-            ns_archive = pyxb.namespace.archive.NamespaceArchive(namespaces=self.namespaces(), generation_uid=self.generationUID())
+            ns_archive = pyxb.namespace.archive.NamespaceArchive(generation_uid=self.generationUID())
             try:
                 ns_archive.writeNamespaces(pyxb.utils.utility.OpenOrCreate(archive_file))
                 print 'Saved parsed schema to %s URI' % (archive_file,)
