@@ -453,6 +453,9 @@ class _NamedComponent_mixin (pyxb.utils.utility.PrivateTransient_mixin, pyxb.csc
     __AnonymousCategory = pyxb.namespace.archive.NamespaceArchive._AnonymousCategory()
 
     def __needAnonymousSupport (self):
+        # If this component doesn't have a name, or if it's in a top-level
+        # model group (whose contents are not in global scope), we'll need a
+        # unique name for it.
         return self.isAnonymous() or (self._scopeIsIndeterminate() and not isinstance(self, AttributeGroupDefinition))
 
     def _schema (self):
