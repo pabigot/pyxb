@@ -7,9 +7,9 @@ import imp
 
 import os.path
 
-generator = pyxb.binding.generate.Generator(allow_absent_module=True, generate_to_files=False)
-generator.setSchemaRoot(os.path.realpath('%s/../schemas' % (os.path.dirname(__file__),)))
-generator.addSchemaLocation('test-external.xsd')
+te_generator = pyxb.binding.generate.Generator(allow_absent_module=True, generate_to_files=False)
+te_generator.setSchemaRoot(os.path.realpath('%s/../schemas' % (os.path.dirname(__file__),)))
+te_generator.addSchemaLocation('test-external.xsd')
 
 # Create a module into which we'll stick the shared types bindings.
 # Put it into the sys modules so the import directive in subsequent
@@ -17,26 +17,36 @@ generator.addSchemaLocation('test-external.xsd')
 st = imp.new_module('st')
 sys.modules['st'] = st
 
-# Set the path by which we expect to reference the module
-stns = pyxb.namespace.NamespaceForURI('URN:shared-types', create_if_missing=True)
-stns.setModulePath('st')
-
 # Now get the code for the shared types bindings, and evaluate it
 # within the new module.
 
-code = pyxb.binding.generate.GeneratePython(schema_location=generator.schemaRoot() + '/shared-types.xsd')
+st_generator = pyxb.binding.generate.Generator(allow_absent_module=True, generate_to_files=False)
+st_generator.setSchemaRoot(os.path.realpath('%s/../schemas' % (os.path.dirname(__file__),)))
+st_generator.addSchemaLocation('shared-types.xsd')
+
+st_modules = st_generator.bindingModules()
+assert 1 == len(st_modules)
+code = st_modules.pop().moduleContents()
+file('st.py', 'w').write(code)
 rv = compile(code, 'shared-types', 'exec')
 exec code in st.__dict__
 
+# Set the path by which we expect to reference the module
+stns = pyxb.namespace.NamespaceForURI('URN:shared-types', create_if_missing=True)
+module_record = stns.lookupModuleRecordByUID(st_generator.generationUID())
+assert module_record is not None, 'Unable to find %s in ns %s' % (st_generator.generationUID(), stns)
+module_record.setModulePath('st')
+
 # Now get and build a module that refers to that module.
 
-modules = generator.bindingModules()
-for m in modules:
-    if m.namespace() != stns:
-        code = m.moduleContents()
-        rv = compile(code, 'test-external', 'exec')
-        eval(rv)
-        break
+modules = te_generator.bindingModules()
+assert 1 == len(modules)
+m = modules.pop()
+assert m.namespace() != stns
+code = m.moduleContents()
+file('te.py', 'w').write(code)
+rv = compile(code, 'test-external', 'exec')
+eval(rv)
 
 from pyxb.exceptions_ import *
 
