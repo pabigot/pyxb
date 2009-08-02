@@ -215,6 +215,7 @@ class Graph:
     def addRoot (self, root):
         if self.__roots is None:
             self.__roots = set()
+        self.__nodes.add(root)
         self.__roots.add(root)
         return self
 

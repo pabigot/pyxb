@@ -129,6 +129,12 @@ class TestGraph (unittest.TestCase):
         self.assertEquals(1, len(scc))
         self.assertEquals(set([5, 7, 8]), set(scc[0]))
 
+    def testRootIsNode (self):
+        graph = Graph()
+        graph.addRoot(4)
+        self.assertEquals(1, len(graph.nodes()))
+        self.assertEquals(graph.roots(), graph.nodes())
+
     def testDFSOrder1 (self):
         graph = Graph()
         [ graph.addEdge(*_e) for _e in self._Edges ]
