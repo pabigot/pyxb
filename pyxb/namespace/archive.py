@@ -339,9 +339,7 @@ class NamespaceArchive (object):
                 for obj in ns._namedObjects().union(ns.components()):
                     if isinstance(obj, _ArchivableObject_mixin):
                         if obj._objectOrigin():
-                            obj._prepareForArchive(obj._objectOrigin().moduleRecord())
-                        else:
-                            assert not isinstance(obj, pyxb.xmlschema.structures._NamedComponent_mixin), 'object type %s has no origin' % (type(obj),)
+                            obj._prepareForArchive(self)
 
             pickler.dump(object_map)
         finally:
@@ -391,9 +389,11 @@ class _ArchivableObject_mixin (pyxb.cscRoot):
         else:
             self.__objectOrigin = object_origin
 
-    def _prepareForArchive (self, module_record):
+    def _prepareForArchive (self, archive):
         #assert self.__objectOrigin is not None
-        return getattr(super(_ArchivableObject_mixin, self), '_prepareForArchive_csc', lambda *_args,**_kw: self)(module_record)
+        if self._objectOrigin() is not None:
+            return getattr(super(_ArchivableObject_mixin, self), '_prepareForArchive_csc', lambda *_args,**_kw: self)(self._objectOrigin().moduleRecord())
+        assert not isinstance(self, pyxb.xmlschema.structures._NamedComponent_mixin)
 
     def _updateFromOther_csc (self, other):
         return getattr(super(_ArchivableObject_mixin, self), '_updateFromOther_csc', lambda *_args,**_kw: self)(other)
