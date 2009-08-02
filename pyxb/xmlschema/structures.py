@@ -359,7 +359,7 @@ class _PickledAnonymousReference (pyxb.cscRoot):
         return self.__namespace.validateComponentModel()
 
     def __lookupObject (self):
-        print 'Lookup %s' % (self,)
+        #print 'Lookup %s' % (self,)
         return self.__namespace.categoryMap(self.__AnonymousCategory).get(self.__anonymousName)
 
     typeDefinition = __lookupObject
@@ -4434,7 +4434,8 @@ class _ImportElementInformationItem (_Annotated_mixin):
         self.__redundant = False
         if ns.isLoadable():
             if self.__schemaLocation is not None:
-                print 'WARNING: %s is loadable from %s, ignoring schema location %s' % (ns, ' and '.join([ _af.archivePath() for _af in ns.loadableFrom()]), self.__schemaLocation)
+                # @todo: INFO
+                #print 'WARNING: %s is loadable from %s, ignoring schema location %s' % (ns, ' and '.join([ _af.archivePath() for _af in ns.loadableFrom()]), self.__schemaLocation)
                 self.__schemaLocation = None
 
         if ns.isActive():
@@ -4467,7 +4468,8 @@ class _ImportElementInformationItem (_Annotated_mixin):
 
         ns_ctx = pyxb.namespace.resolution.NamespaceContext.GetNodeContext(node)
         if self.schemaLocation() is not None:
-            print 'import %s + %s = %s' % (schema.location(), self.__schemaLocation, schema_location)
+            # @todo: NOTICE
+            # print 'import %s + %s = %s' % (schema.location(), self.__schemaLocation, schema_location)
             imported_schema = self.__namespace.lookupSchemaByLocation(schema_location)
             if imported_schema is None:
                 try:
@@ -4844,8 +4846,10 @@ class Schema (_SchemaComponent_mixin):
                 print 'INCLUDE %s caught: %s' % (abs_uri, e)
                 #traceback.print_exception(*sys.exc_info())
                 raise
-            print '%s completed including %s from %s' % (self.__location, included_schema.targetNamespace(), abs_uri)
-        print 'Included %s, back to %s' % (included_schema.location(), self.location())
+            # @todo: NOTICE
+            #print '%s completed including %s from %s' % (self.__location, included_schema.targetNamespace(), abs_uri)
+        # @todo: NOTICE
+        #print 'Included %s, back to %s' % (included_schema.location(), self.location())
         assert self.targetNamespace() == included_schema.targetNamespace()
         self.__includedSchema.add(included_schema)
         return node
@@ -4859,7 +4863,8 @@ class Schema (_SchemaComponent_mixin):
 
         self.__requireInProlog(node.nodeName)
         import_eii = _ImportElementInformationItem(self, node)
-        print 'Imported %s, prefix %s, back to %s' % (import_eii.namespace().uri(), import_eii.prefix(), self.__location)
+        # @todo: NOTICE
+        #print 'Imported %s, prefix %s, back to %s' % (import_eii.namespace().uri(), import_eii.prefix(), self.__location)
         if import_eii.schema() is not None:
             self.__importedSchema.add(import_eii.schema())
         self.targetNamespace().importNamespace(import_eii.namespace())
