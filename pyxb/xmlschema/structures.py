@@ -1379,6 +1379,13 @@ class AttributeUse (_SchemaComponent_mixin, pyxb.namespace.resolution._Resolvabl
 
         return self
 
+    # bR:AU
+    def _bindingRequires_vx (self, include_lax):
+        """Attribute uses require their declarations, but only if lax."""
+        if not include_lax:
+            return frozenset()
+        return frozenset([ self.attributeDeclaration() ])
+
     # aFS:AU
     def _adaptForScope (self, ctd):
         """Adapt this instance for the given complex type.
@@ -2563,6 +2570,13 @@ class AttributeGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, p
         self.__isResolved = True
         return self
         
+    # bR:AGD
+    def _bindingRequires_vx (self, include_lax):
+        """Attribute group declarations require their uses, but only if lax."""
+        if not include_lax:
+            return frozenset()
+        return frozenset(self.attributeUses())
+
     def attributeUses (self):
         return self.__attributeUses
 

@@ -2108,28 +2108,26 @@ class Generator (object):
         return component_graph
 
     def __buildBindingModules (self):
+        named_bindable_fn = lambda _c: (isinstance(_c, xs.structures.ElementDeclaration) and _c._scopeIsGlobal()) or _c.isTypeDefinition()
+        bindable_fn = lambda _c: isinstance(_c, xs.structures.ElementDeclaration) or _c.isTypeDefinition()
+
         self.__moduleRecords = set()
+        all_components = set()
         for origin in self.generationUID().associatedObjects():
             mr = origin.moduleRecord()
             if not (mr in self.__moduleRecords):
                 self.__moduleRecords.add(mr)
                 mr.completeGenerationAssociations()
-            print '%s produced %d components' % (origin, len(origin.originatedObjects()))
-
-        all_components = set()
-        for mr in self.__moduleRecords:
-            all_components.update(mr.categoryObjects().get('typeDefinition', {}).itervalues())
-            all_components.update(mr.categoryObjects().get('elementDeclaration', {}).itervalues())
-        print '%d bindable components' % (len(all_components),)
+            all_components.update(origin.originatedObjects())
 
         namespaces = set()
         [ namespaces.add(_mr.namespace()) for _mr in self.__moduleRecords ]
         pyxb.namespace.resolution.ResolveSiblingNamespaces(namespaces, self.generationUID())
 
+        # Generate the graph from all components and descend into lax
+        # requirements; otherwise we might miss anonymous types hidden
+        # inside attribute declarations and the like.
         component_graph = self.__graphFromComponents(all_components, True)
-
-        named_bindable_fn = lambda _c: (isinstance(_c, xs.structures.ElementDeclaration) and _c._scopeIsGlobal()) or _c.isTypeDefinition()
-        bindable_fn = lambda _c: isinstance(_c, xs.structures.ElementDeclaration) or _c.isTypeDefinition()
 
         binding_components = set(filter(bindable_fn, component_graph.nodes()))
         print '%d of %d components need bindings' % (len(binding_components), len(component_graph.nodes()))
@@ -2152,8 +2150,6 @@ class Generator (object):
         for c in binding_components:
             assert bindable_fn(c), 'Unexpected %s in binding components' % (type(s),)
             c._setBindingNamespace(c._objectOrigin().moduleRecord().namespace())
-
-        #sys.exit(0)
 
         record_binding_map = {}
         unique_in_bindings = set([NamespaceGroupModule._GroupPrefix])
