@@ -559,6 +559,7 @@ class ModuleRecord (pyxb.utils.utility.PrivateTransient_mixin):
     def modulePath (self):
         return self.__modulePath
     def setModulePath (self, module_path):
+        assert (module_path is None) or isinstance(module_path, basestring)
         self.__modulePath = module_path
         return self
     __modulePath = None
@@ -566,7 +567,7 @@ class ModuleRecord (pyxb.utils.utility.PrivateTransient_mixin):
     def module (self):
         return self.__module
     def _setModule (self, module):
-        self.__modulePath = module
+        self.__module = module
         return self
     __module = None
     __PrivateTransient.add('module')

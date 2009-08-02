@@ -610,10 +610,6 @@ class Namespace (_NamespaceCategory_mixin, resolution._NamespaceResolution_mixin
     # Indicates whether this namespace has been written to an archive
     __hasBeenArchived = False
 
-    # A string denoting the path by which this namespace is imported into
-    # generated Python modules
-    __modulePath = None
-
     # Holds the module path for builtin modules until we get a ModuleRecord to
     # store that in.
     __builtinModulePath = None
@@ -724,7 +720,6 @@ class Namespace (_NamespaceCategory_mixin, resolution._NamespaceResolution_mixin
         self.__isBuiltinNamespace = is_builtin_namespace
         self.__builtinNamespaceVariable = builtin_namespace
         self.__builtinModulePath = builtin_module_path
-        self.__modulePath = self.__builtinModulePath
         self.__isUndeclaredNamespace = is_undeclared_namespace
         self.__isLoadedNamespace = is_loaded_namespace
 
@@ -823,14 +818,6 @@ class Namespace (_NamespaceCategory_mixin, resolution._NamespaceResolution_mixin
         """Return C{True} iff this namespace has been saved to a namespace archive.
         See also L{isLoadedNamespace}."""
         return self.__hasBeenArchived
-
-    def modulePath (self):
-        return self.__modulePath
-
-    def setModulePath (self, module_path):
-        assert self.__builtinModulePath is None, '%s has builtin path' % (self,)
-        self.__modulePath = module_path
-        return self.modulePath()
 
     def description (self, description=None):
         """Get, or set, a textual description of the namespace."""
