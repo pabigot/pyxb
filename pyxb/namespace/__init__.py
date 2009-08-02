@@ -419,6 +419,13 @@ class _NamespaceCategory_mixin (pyxb.cscRoot):
                 if isinstance(v, archive._ArchivableObject_mixin) and (v._objectOrigin() in origin_set):
                     v._objectOrigin().addCategoryMember(cat, n, v)
 
+    def completeGenerationAssociations (self, generation_uid):
+        mr = self.lookupModuleRecordByUID(generation_uid)
+        if mr is not None:
+            self._transferReferencedNamespaces(mr)
+            self._associateOrigins(mr)
+        return mr
+
 class _ComponentDependency_mixin (pyxb.utils.utility.PrivateTransient_mixin, pyxb.cscRoot):
     """Mix-in for components that can depend on other components."""
 
@@ -600,25 +607,6 @@ class Namespace (_NamespaceCategory_mixin, resolution._NamespaceResolution_mixin
     # Indicates whether this namespace is undeclared (available always)
     __isUndeclaredNamespace = False
 
-    # Indicates whether this namespace was loaded from an archive
-    __isLoadedNamespace = False
-
-    # Archive from which the namespace can be read, or None if no archive
-    # defines this namespace.
-    __namespaceArchive = None
-
-    # Indicates whether this namespace has been written to an archive
-    __hasBeenArchived = False
-
-    # A string denoting the path by which this namespace is imported into
-    # generated Python modules
-    __modulePath = None
-
-    # A set of options defining how the Python bindings for this namespace
-    # were generated.  Not currently used, since we don't have different
-    # binding configurations yet.
-    __bindingConfiguration = None
- 
     # The namespace to use as the default namespace when constructing the
     # The namespace context used when creating built-in components that belong
     # to this namespace.  This is used to satisfy the low-level requirement
@@ -810,23 +798,13 @@ class Namespace (_NamespaceCategory_mixin, resolution._NamespaceResolution_mixin
         xmlns(http://www.w3.org/2000/xmlns/) namespaces."""
         return self.__isUndeclaredNamespace
 
-    def isLoadedNamespace (self):
-        """Return C{True} iff this namespace was loaded from a namespace archive."""
-        return self.__isLoadedNamespace
-
-    def hasBeenArchived (self):
-        """Return C{True} iff this namespace has been saved to a namespace archive.
-        See also L{isLoadedNamespace}."""
-        return self.__hasBeenArchived
-
     def modulePath (self):
-        return self.__modulePath
-
-    def setModulePath (self, module_path):
-        assert self.__builtinModulePath is None, '%s has builtin path' % (self,)
-        self.__modulePath = module_path
-        return self.modulePath()
-
+        assert 1 >= len(self.moduleRecords()), '%d module records for %s' % (len(self.moduleRecords()), self)
+        for mr in self.moduleRecords():
+            if mr.modulePath() is not None:
+                return mr.modulePath()
+        return None
+            
     def module (self):
         """Return a reference to the Python module that implements
         bindings for this namespace."""

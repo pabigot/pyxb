@@ -379,7 +379,7 @@ class _ArchivableObject_mixin (pyxb.cscRoot):
         return getattr(super(_ArchivableObject_mixin, self), '_prepareForArchive_csc', lambda *_args,**_kw: self)(archive, namespace)
 
     def _prepareForArchive (self, archive, namespace):
-        #assert self.__objectOrigin is not None
+        assert self.__objectOrigin is not None
         return self._prepareForArchive_csc(archive, namespace)
 
     def _updateFromOther_csc (self, other):
@@ -469,7 +469,6 @@ class _NamespaceArchivable_mixin (pyxb.cscRoot):
     __activeModuleRecord = None
 
     def addModuleRecord (self, module_record):
-        print "DEFINING MODULE RECORD FOR %s" % (self,)
         assert isinstance(module_record, ModuleRecord)
         assert not (module_record.generationUID() in self.__moduleRecordMap)
         self.__moduleRecordMap[module_record.generationUID()] = module_record
@@ -560,7 +559,7 @@ class ModuleRecord (pyxb.utils.utility.PrivateTransient_mixin):
 
     def modulePath (self):
         return self.__modulePath
-    def _setModulePath (self, module_path):
+    def setModulePath (self, module_path):
         self.__modulePath = module_path
         return self
     __modulePath = None
@@ -581,12 +580,15 @@ class ModuleRecord (pyxb.utils.utility.PrivateTransient_mixin):
     def __init__ (self, namespace, generation_uid, **kw):
         super(ModuleRecord, self).__init__()
         self.__namespace = namespace
+        print 'Created MR for %s gen %s' % (namespace, generation_uid)
         self.__isPublic = kw.get('is_public', False)
         self.__isIncoporated = kw.get('is_incorporated', False)
         self.__isLoadable = kw.get('is_loadable', True)
-        self.__modulePath = kw.get('module_path')
         assert isinstance(generation_uid, pyxb.utils.utility.UniqueIdentifier)
         self.__generationUID = generation_uid
+        self.__modulePath = kw.get('module_path')
+        if (self.__modulePath is None) and (builtin.BuiltInObjectUID == generation_uid):
+            self.__modulePath = self.__namespace.builtinModulePath()
         self.__originMap = {}
         self.__referencedNamespaces = set()
         self.__categoryObjects = { }
@@ -624,8 +626,6 @@ class ModuleRecord (pyxb.utils.utility.PrivateTransient_mixin):
     def prepareForArchive (self, archive):
         assert self.archive() is None
         self._setArchive(archive)
-        self.namespace()._transferReferencedNamespaces(self)
-        self.namespace()._associateOrigins(self)
         print 'Archive %s ns %s module %s has %d origins' % (self.archive(), self.namespace(), self, len(self.origins()))
 
 class _ObjectOrigin (pyxb.utils.utility.PrivateTransient_mixin, pyxb.cscRoot):
