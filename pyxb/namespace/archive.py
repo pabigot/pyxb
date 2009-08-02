@@ -323,7 +323,7 @@ class NamespaceArchive (object):
 
     def __readNamespaceSet (self, unpickler, define_namespaces=False):
         mrs = unpickler.load()
-        assert isinstance(mrs, set)
+        assert isinstance(mrs, set), 'Expected set got %s from %s' % (type(mrs), self.archivePath())
         if self.__moduleRecords is None:
             for mr in mrs:
                 mr2 = mr.namespace().lookupModuleRecordByUID(mr.generationUID())
@@ -347,7 +347,7 @@ class NamespaceArchive (object):
         for mr in self.__moduleRecords:
             ns = mr.namespace()
             for origin in mr.origins():
-                print 'mr %s origin %s' % (mr, origin)
+                #print 'mr %s origin %s' % (mr, origin)
                 for (cat, names) in origin.categoryMembers().iteritems():
                     if not (cat in ns.categories()):
                         continue
@@ -446,7 +446,7 @@ class _NamespaceArchivable_mixin (pyxb.cscRoot):
         # Yes, I do want this to raise KeyError if the archive is not present
         mr = self.__moduleRecordMap[archive.generationUID()]
         assert not mr.isIncorporated(), 'Removing archive %s after incorporation' % (archive.archivePath(),)
-        print 'removing %s' % (mr,)
+        # print 'removing %s' % (mr,)
         del self.__moduleRecordMap[archive.generationUID()]
         
     def isLoadable (self):
@@ -456,6 +456,13 @@ class _NamespaceArchivable_mixin (pyxb.cscRoot):
             if mr.isLoadable():
                 return True
         return False
+
+    def loadableFrom (self):
+        rv = []
+        for mr in self.moduleRecords():
+            if mr.isLoadable():
+                rv.append(mr.archive())
+        return rv
 
     def moduleRecords (self):
         return self.__moduleRecordMap.values()
@@ -582,7 +589,7 @@ class ModuleRecord (pyxb.utils.utility.PrivateTransient_mixin):
 
         super(ModuleRecord, self).__init__()
         self.__namespace = namespace
-        print 'Created MR for %s gen %s' % (namespace, generation_uid)
+        #print 'Created MR for %s gen %s' % (namespace, generation_uid)
         assert (generation_uid != builtin.BuiltInObjectUID) or namespace.isBuiltinNamespace()
         self.__isPublic = kw.get('is_public', False)
         self.__isIncoporated = kw.get('is_incorporated', False)

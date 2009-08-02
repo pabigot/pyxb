@@ -1104,7 +1104,6 @@ class _ModuleNaming_mixin (object):
     def referenceNamespace (self, namespace):
         rv = self.__referencedNamespaces.get(namespace)
         if rv is None:
-            namespace_module = self.ForNamespace(namespace)
             if namespace.isBuiltinNamespace():
                 rv = namespace.builtinNamespaceRepresentation()
             elif namespace.isUndeclaredNamespace():
@@ -1112,12 +1111,17 @@ class _ModuleNaming_mixin (object):
             elif isinstance(self, NamespaceModule):
                 if (self.namespace() == namespace):
                     rv = 'Namespace'
-                elif namespace_module is not None:
-                    self._importModule(namespace_module)
-                    rv = '%s.Namespace' % (namespace_module.modulePath(),)
                 else:
-                    assert False, 'Unexpected reference to %s' % (namespace,)
-                    #rv = 'pyxb.namespace.NamespaceForURI(%s)' % (repr(namespace.uri()),)
+                    rv = 'pyxb.namespace.NamespaceForURI(%s)' % (repr(namespace.uri()),)
+                    '''
+                    namespace_module = self.ForNamespace(namespace)
+                    if namespace_module is not None:
+                        self._importModule(namespace_module)
+                        rv = '%s.Namespace' % (namespace_module.modulePath(),)
+                    else:
+                        assert False, 'Unexpected reference to %s' % (namespace,)
+                        #rv = 'pyxb.namespace.NamespaceForURI(%s)' % (repr(namespace.uri()),)
+                    '''
             else:
                 if namespace.prefix():
                     nsn = 'Namespace_%s' % (namespace.prefix(),)
@@ -1271,7 +1275,7 @@ def CreateFromDOM (node):
     def bindComponent (self, component):
         ns_name = self._bindComponent(component)
         component.setNameInBinding(ns_name)
-        print 'set name %s in %s' % (ns_name, component)
+        #print 'set name %s in %s' % (ns_name, component)
         binding_module = self
         if self.__namespaceGroupModule:
             self.__namespaceGroupModule._bindComponent(component)
@@ -2077,46 +2081,58 @@ class Generator (object):
         self.__didResolveExternalSchema = True
         self.__bindingModules = None
 
+    def __graphFromComponents (self, components, include_lax):
+        components = components.copy()
+        component_graph = pyxb.utils.utility.Graph()
+        need_visit = components.copy()
+        bindable_fn = lambda _c: isinstance(_c, xs.structures.ElementDeclaration) or _c.isTypeDefinition()
+        while 0 < len(need_visit):
+            c = need_visit.pop()
+            assert c is not None
+            assert bindable_fn(c) or include_lax
+            assert c._objectOrigin() is not None, '%s %s has no origin' % (type(c), c)
+            component_graph.addNode(c)
+            br = c.bindingRequires(reset=True, include_lax=include_lax)
+            #print 'Component %s requires %d bindings' % (c, len(br))
+            for cd in br:
+                assert bindable_fn(cd) or include_lax, '%s produced %s in requires' % (type(c), type(cd))
+                #print '  %s in %s' % (cd, cd._objectOrigin())
+                if cd._objectOrigin() is None:
+                    assert isinstance(cd, (pyxb.xmlschema.structures.Annotation, pyxb.xmlschema.structures.Wildcard))
+                    continue
+                if (cd._objectOrigin().moduleRecord() in self.__moduleRecords) and not (cd in components):
+                    components.add(cd)
+                    need_visit.add(cd)
+                if cd in components:
+                    component_graph.addEdge(c, cd)
+        return component_graph
+
     def __buildBindingModules (self):
-        module_records = set()
+        self.__moduleRecords = set()
         for origin in self.generationUID().associatedObjects():
             mr = origin.moduleRecord()
-            if not (mr in module_records):
-                module_records.add(mr)
+            if not (mr in self.__moduleRecords):
+                self.__moduleRecords.add(mr)
                 mr.completeGenerationAssociations()
             print '%s produced %d components' % (origin, len(origin.originatedObjects()))
 
         all_components = set()
-        for mr in module_records:
+        for mr in self.__moduleRecords:
             all_components.update(mr.categoryObjects().get('typeDefinition', {}).itervalues())
             all_components.update(mr.categoryObjects().get('elementDeclaration', {}).itervalues())
         print '%d bindable components' % (len(all_components),)
 
         namespaces = set()
-        [ namespaces.add(_mr.namespace()) for _mr in module_records ]
+        [ namespaces.add(_mr.namespace()) for _mr in self.__moduleRecords ]
         pyxb.namespace.resolution.ResolveSiblingNamespaces(namespaces, self.generationUID())
 
-        component_graph = pyxb.utils.utility.Graph()
-        need_visit = all_components.copy()
-        while 0 < len(need_visit):
-            c = need_visit.pop()
-            assert c is not None
-            assert c._objectOrigin() is not None, '%s %s has no origin' % (type(c), c)
-            component_graph.addNode(c)
-            br = c.bindingRequires(include_lax=True)
-            print 'Component %s requires %d bindings' % (c, len(br))
-            for cd in br:
-                #print '  %s in %s' % (cd, cd._objectOrigin())
-                if cd._objectOrigin() is None:
-                    assert isinstance(cd, (pyxb.xmlschema.structures.Annotation, pyxb.xmlschema.structures.Wildcard))
-                    continue
-                if (cd._objectOrigin().moduleRecord() in module_records) and not (cd in all_components):
-                    all_components.add(cd)
-                    need_visit.add(cd)
-                if cd in all_components:
-                    component_graph.addEdge(c, cd)
+        component_graph = self.__graphFromComponents(all_components, True)
 
-        print '%d components in all' % (len(component_graph.nodes()),)
+        named_bindable_fn = lambda _c: (isinstance(_c, xs.structures.ElementDeclaration) and _c._scopeIsGlobal()) or _c.isTypeDefinition()
+        bindable_fn = lambda _c: isinstance(_c, xs.structures.ElementDeclaration) or _c.isTypeDefinition()
+
+        binding_components = set(filter(bindable_fn, component_graph.nodes()))
+        print '%d of %d components need bindings' % (len(binding_components), len(component_graph.nodes()))
 
         module_graph = pyxb.utils.utility.Graph()
         for c in all_components:
@@ -2126,16 +2142,16 @@ class Generator (object):
         module_scc_order = module_graph.sccOrder()
 
         # Note that module graph may have fewer nodes than
-        # module_records, if a module has no components that require
+        # self.__moduleRecords, if a module has no components that require
         # binding generation.
 
         for mr in module_graph.nodes():
             self.__assignModulePath(mr)
             assert not ((mr.modulePath() is None) and self.generateToFiles()), 'No module path defined for %s' % (mr,)
 
-        for c in all_components:
-            if (isinstance(c, xs.structures.ElementDeclaration) and c._scopeIsGlobal()) or c.isTypeDefinition():
-                c._setBindingNamespace(c._objectOrigin().moduleRecord().namespace())
+        for c in binding_components:
+            assert bindable_fn(c), 'Unexpected %s in binding components' % (type(s),)
+            c._setBindingNamespace(c._objectOrigin().moduleRecord().namespace())
 
         #sys.exit(0)
 
@@ -2162,7 +2178,7 @@ class Generator (object):
                 assert namespace_module_map[nsg_head.namespace()].namespaceGroupModule() == ngm
             '''
     
-        component_csets = component_graph.sccOrder()
+        component_csets = self.__graphFromComponents(binding_components, False).sccOrder()
         bad_order = False
         component_order = []
         for cset in component_csets:
@@ -2170,6 +2186,7 @@ class Generator (object):
                 print "COMPONENT DEPENDENCY LOOP of %d components" % (len(cset),)
                 cg = pyxb.utils.utility.Graph()
                 for c in cset:
+                    assert bindable_fn(c), 'Unexpected %s in list' % (type(c),)
                     print '  %s' % (c.expandedName(),)
                     cg.addNode(c)
                     for cd in c.bindingRequires(reset=True, include_lax=False):
