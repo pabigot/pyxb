@@ -995,7 +995,7 @@ class _ModuleNaming_mixin (object):
         self.__bindingFilePath = binding_file_path
         self.__bindingFile = binding_file
         if module_path is None:
-            module_path = self.namespace().modulePath()
+            module_path = self.moduleRecord().modulePath()
         if module_path is not None:
             self.__modulePath = module_path
         kw = self._initialBindingTemplateMap()
@@ -1178,6 +1178,10 @@ class NamespaceModule (_ModuleNaming_mixin):
         return self.__namespace
     __namespace = None
 
+    def moduleRecord (self):
+        return self.__moduleRecord
+    __moduleRecord = None
+
     def namespaceGroupModule (self):
         return self.__namespaceGroupModule
     def setNamespaceGroupModule (self, namespace_group_module):
@@ -1213,6 +1217,11 @@ class NamespaceModule (_ModuleNaming_mixin):
         super(NamespaceModule, self).__init__(generator, **kw)
         self._initializeUniqueInModule(self._UniqueInModule)
         self.__namespace = namespace
+        self.__moduleRecord = namespace.lookupModuleRecordByUID(generator.generationUID())
+        if self.__moduleRecord is None:
+            print 'WARNING: Creating namespace module for ungenerated namespace %s' % (namespace,)
+            self.__moduleRecord = namespace.lookupModuleRecordByUID(pyxb.namespace.builtin.BuiltInObjectUID)
+        assert self.__moduleRecord is not None, 'No module record for %s' % (namespace,)
         self.defineNamespace(namespace, 'Namespace', require_unique=False)
         #print 'NSM Namespace %s module path %s' % (namespace, namespace.modulePath())
         self.__namespaceGroup = ns_scc
