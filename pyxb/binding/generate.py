@@ -1423,6 +1423,7 @@ class Generator (object):
             if (mr is None) or (self.generationUID() != mr.generationUID()) or (not self.generateToFiles()):
                 return ('/dev/null', None, None)
             module_path = mr.modulePath()
+            assert module_path is not None, 'No path specified for module %s' % (mr,)
             #if pyxb.namespace.XMLSchema != ns:
             #    return ('/dev/null', None, None)
             #module_path="bogus.xsd"
@@ -1999,28 +2000,6 @@ class Generator (object):
             sl = sl[len(ssp):]
         return pyxb.utils.utility.NormalizeLocation(sl, self.schemaRoot())
 
-    def __assignNamespaceModulePath (self, namespace, module_path=None):
-        assert isinstance(namespace, pyxb.namespace.Namespace), 'unexpected type %s' % (type(namespace),)
-        # Validate so we can pull any existing module path from the archive
-        namespace.validateComponentModel()
-        if namespace.modulePath() is not None:
-            return namespace
-        if not namespace.isAbsentNamespace():
-            if (module_path is None) and not (namespace.prefix() is None):
-                module_path = namespace.prefix()
-            module_path = self.namespaceModuleMap().get(namespace.uri(), module_path)
-            if module_path is None:
-                if self.allowAbsentModule() or (pyxb.namespace.XMLSchema_instance == namespace):
-                    return namespace
-                raise pyxb.BindingGenerationError('No prefix or module name available for %s' % (namespace,))
-            if self.modulePrefix(): # non-empty value
-                module_path = '.'.join([self.modulePrefix(), module_path])
-        mr = namespace.lookupModuleRecordByUID(self.generationUID())
-        assert mr is not None, 'No module record for %s' % (namespace,)
-        mr.setModulePath(module_path)
-        namespace.setModulePath(module_path)
-        return namespace
-
     def __assignModulePath (self, module_record, module_path=None):
         if module_record.modulePath() is not None:
             return module_record
@@ -2111,6 +2090,7 @@ class Generator (object):
         for origin in self.generationUID().associatedObjects():
             mr = origin.moduleRecord()
             if not (mr in self.__moduleRecords):
+                print 'Entry %s' % (mr,)
                 self.__moduleRecords.add(mr)
                 mr.completeGenerationAssociations()
             all_components.update(origin.originatedObjects())
@@ -2128,18 +2108,16 @@ class Generator (object):
         print '%d of %d components need bindings' % (len(binding_components), len(component_graph.nodes()))
 
         module_graph = pyxb.utils.utility.Graph()
-        for c in all_components:
-            module_graph.addNode(c._objectOrigin().moduleRecord())
+        [ module_graph.addRoot(_mr) for _mr in self.__moduleRecords ]
         for (s, t) in component_graph.edges():
             module_graph.addEdge(s._objectOrigin().moduleRecord(), t._objectOrigin().moduleRecord())
-        for mr in self.__moduleRecords:
-            module_graph.addRoot(mr)
         module_scc_order = module_graph.sccOrder()
 
         # Note that module graph may have fewer nodes than
         # self.__moduleRecords, if a module has no components that require
         # binding generation.
 
+        print '%d entry, %d in graph' % (len(self.__moduleRecords), len(module_graph.nodes()))
         for mr in module_graph.nodes():
             self.__assignModulePath(mr)
             assert not ((mr.modulePath() is None) and self.generateToFiles()), 'No module path defined for %s' % (mr,)
