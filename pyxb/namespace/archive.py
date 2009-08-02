@@ -289,8 +289,6 @@ class NamespaceArchive (object):
             assert not mr.isIncorporated()
             mr._loadCategoryObjects(unpickler.load())
 
-        print 'completed Unpickling from %s' % (self.__archivePath,)
-
     def writeNamespaces (self, output):
         """Store the namespaces into the archive.
 
@@ -302,6 +300,12 @@ class NamespaceArchive (object):
         assert NamespaceArchive.__PicklingArchive is None
         NamespaceArchive.__PicklingArchive = self
         assert self.__moduleRecords is not None
+
+        # Recalculate the record/object associations: we didn't assign
+        # anonymous names to the indeterminate scope objects because they
+        # weren't needed for bindings, but they are needed in the archive.
+        for mr in self.__moduleRecords:
+            mr.namespace()._associateOrigins(mr)
 
         try:
             # See http://bugs.python.org/issue3338
@@ -628,7 +632,6 @@ class ModuleRecord (pyxb.utils.utility.PrivateTransient_mixin):
                     existing_component._updateFromOther(component)
                 else:
                     raise pyxb.NamespaceError(self, 'Load attempted to override %s %s in %s' % (category, ln, self.uri()))
-            print '%s added %d to %s' % (ns, len(obj_map), cat)
         self.markIncorporated()
     __categoryObjects = None
     __PrivateTransient.add('categoryObjects')
