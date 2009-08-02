@@ -4601,7 +4601,8 @@ class Schema (_SchemaComponent_mixin):
 
     def __init__ (self, *args, **kw):
         # Force resolution of available namespaces if not already done
-        pyxb.namespace.archive.NamespaceArchive.PreLoadArchives()
+        if not kw.get('_bypass_preload', False):
+            pyxb.namespace.archive.NamespaceArchive.PreLoadArchives()
 
         assert 'schema' not in kw
         self.__location = kw.get('schema_location')
@@ -4994,7 +4995,7 @@ def _AddSimpleTypes (namespace):
     namespaces are initialized. """
     # Add the ur type
     #schema = namespace.schema()
-    schema = Schema(namespace_context=pyxb.namespace.XMLSchema.initialNamespaceContext(), schema_location='URN:noLocation:PyXB:XMLSchema', generation_uid=pyxb.namespace.BuiltInObjectUID)
+    schema = Schema(namespace_context=pyxb.namespace.XMLSchema.initialNamespaceContext(), schema_location='URN:noLocation:PyXB:XMLSchema', generation_uid=pyxb.namespace.BuiltInObjectUID, _bypass_preload=True)
     td = schema._addNamedComponent(ComplexTypeDefinition.UrTypeDefinition(schema, in_builtin_definition=True))
     assert td.isResolved()
     # Add the simple ur type

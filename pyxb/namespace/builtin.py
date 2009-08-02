@@ -32,7 +32,7 @@ class _XMLSchema_instance (Namespace):
         for this namespace. """
         
         assert structures_module is not None
-        schema = structures_module.Schema(namespace_context=self.initialNamespaceContext(), schema_location="URN:noLocation:PyXB:xsi", generation_uid=BuiltInObjectUID)
+        schema = structures_module.Schema(namespace_context=self.initialNamespaceContext(), schema_location="URN:noLocation:PyXB:xsi", generation_uid=BuiltInObjectUID, _bypass_preload=True)
         type = schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('type', schema))
         nil = schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('nil', schema))
         schema_location = schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('schemaLocation', schema))
@@ -56,7 +56,7 @@ class _XML (Namespace):
 
         self.configureCategories([archive.NamespaceArchive._AnonymousCategory()])
 
-        schema = structures_module.Schema(namespace_context=self.initialNamespaceContext(), schema_location="URN:noLocation:PyXB:XML", generation_uid=BuiltInObjectUID)
+        schema = structures_module.Schema(namespace_context=self.initialNamespaceContext(), schema_location="URN:noLocation:PyXB:XML", generation_uid=BuiltInObjectUID, _bypass_preload=True)
 
         std_space = structures_module.SimpleTypeDefinition._CreateXMLInstance('space', schema)
         std_space._setAnonymousName(self, anon_name='STD_ANON_space')
