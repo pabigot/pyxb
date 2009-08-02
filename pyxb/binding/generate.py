@@ -2007,18 +2007,16 @@ class Generator (object):
         namespace.validateComponentModel()
         if namespace.modulePath() is not None:
             return namespace
-        if namespace.isAbsentNamespace():
-            namespace.setModulePath(module_path)
-            return namespace
-        if (module_path is None) and not (namespace.prefix() is None):
-            module_path = namespace.prefix()
-        module_path = self.namespaceModuleMap().get(namespace.uri(), module_path)
-        if module_path is None:
-            if self.allowAbsentModule() or (pyxb.namespace.XMLSchema_instance == namespace):
-                return namespace
-            raise pyxb.BindingGenerationError('No prefix or module name available for %s' % (namespace,))
-        if self.modulePrefix(): # non-empty value
-            module_path = '.'.join([self.modulePrefix(), module_path])
+        if not namespace.isAbsentNamespace():
+            if (module_path is None) and not (namespace.prefix() is None):
+                module_path = namespace.prefix()
+            module_path = self.namespaceModuleMap().get(namespace.uri(), module_path)
+            if module_path is None:
+                if self.allowAbsentModule() or (pyxb.namespace.XMLSchema_instance == namespace):
+                    return namespace
+                raise pyxb.BindingGenerationError('No prefix or module name available for %s' % (namespace,))
+            if self.modulePrefix(): # non-empty value
+                module_path = '.'.join([self.modulePrefix(), module_path])
         namespace.setModulePath(module_path)
         return namespace
 
