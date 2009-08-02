@@ -1439,7 +1439,7 @@ class Generator (object):
                 binding_file = pyxb.utils.utility.OpenOrCreate(binding_file_path, tag=module.moduleUID())
             except OSError, e:
                 if errno.EEXIST == e.errno:
-                    raise pyxb.BindingGenerationError('Target file %s for namespace %s bindings exists with other content' % (binding_file_path, ns))
+                    raise pyxb.BindingGenerationError('Target file %s for module %s bindings exists with other content' % (binding_file_path, mr))
                 raise
         elif isinstance(module, NamespaceGroupModule):
             if not self.generateToFiles():
