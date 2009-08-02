@@ -4550,7 +4550,7 @@ class Schema (_SchemaComponent_mixin):
         self.__generationUID = kw.get('generation_uid')
         if self.__generationUID is None:
             print 'WARNING: No generationUID provided'
-            #assert False
+            assert False
             self.__generationUID = pyxb.utils.utility.UniqueIdentifier()
 
         self.__signature = kw.get('schema_signature')
