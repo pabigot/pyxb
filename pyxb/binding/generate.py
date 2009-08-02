@@ -2132,6 +2132,8 @@ class Generator (object):
             module_graph.addNode(c._objectOrigin().moduleRecord())
         for (s, t) in component_graph.edges():
             module_graph.addEdge(s._objectOrigin().moduleRecord(), t._objectOrigin().moduleRecord())
+        for mr in self.__moduleRecords:
+            module_graph.addRoot(mr)
         module_scc_order = module_graph.sccOrder()
 
         # Note that module graph may have fewer nodes than
