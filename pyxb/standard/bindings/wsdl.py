@@ -188,17 +188,18 @@ class tDefinitions (raw_wsdl.tDefinitions):
 
         raw_wsdl.Namespace.validateComponentModel()
         state = ( kw.pop('process_schema', False),
+                  kw.pop('generation_uid', None),
                   kw.get('_dom_node', None) )
         return state
 
     def _postFactory_vx (self, state):
-        (process_schema, dom_node) = state
+        (process_schema, generation_uid, dom_node) = state
         assert isinstance(dom_node, xml.dom.Node)
         node_en = pyxb.namespace.ExpandedName(dom_node)
         self.__namespaceContext = pyxb.namespace.resolution.NamespaceContext.GetNodeContext(dom_node)
         self.__buildMaps()
         if process_schema:
-            self.__processSchema()
+            self.__processSchema(generation_uid)
         self.__finalizeReferences()
         return self
 
@@ -244,10 +245,11 @@ class tDefinitions (raw_wsdl.tDefinitions):
                         p._setAddressReference(wc)
                         break
 
-    def __processSchema (self):
+    def __processSchema (self, generation_uid):
         global pyxb
         import pyxb.xmlschema
 
+        print 'PS %s' % (generation_uid,)
         if self.__schema is not None:
             print 'Already have schema'
             return self.__schema
@@ -261,7 +263,7 @@ class tDefinitions (raw_wsdl.tDefinitions):
                             ns.validateComponentModel()
                         except Exception, e:
                             print 'Error validating component model for %s: %s' % (ns.uri(), e)
-                    self.__schema = pyxb.xmlschema.schema.CreateFromDOM(wc, namespace_context=self.namespaceContext())
+                    self.__schema = pyxb.xmlschema.schema.CreateFromDOM(wc, namespace_context=self.namespaceContext(), generation_uid=generation_uid)
                 elif isinstance(wc, pyxb.xmlschema.schema):
                     self.__schema = wc
                 else:

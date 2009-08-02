@@ -19,6 +19,7 @@ that file as a --schema-location.''')
 
 (options, args) = parser.parse_args()
 
+print generator.generationUID()
 if options.wsdl_location is not None:
     import pyxb.standard.bindings.wsdl as wsdl
     wsdl.ImportRelatedNamespaces()
@@ -26,7 +27,7 @@ if options.wsdl_location is not None:
         wsdl_uri = pyxb.utils.utility.NormalizeLocation(wsdl_uri)
         print 'Retrieving WSDL from %s' % (wsdl_uri,)
         xmlns = pyxb.utils.utility.TextFromURI(wsdl_uri)
-        spec = wsdl.definitions.createFromDOM(pyxb.utils.domutils.StringToDOM(xmlns), process_schema=True, wsdl_location=wsdl_uri)
+        spec = wsdl.definitions.createFromDOM(pyxb.utils.domutils.StringToDOM(xmlns), process_schema=True, wsdl_location=wsdl_uri, generation_uid=generator.generationUID())
         generator.addSchema(spec.schema())
 generator.applyOptionValues(options, args)
 
