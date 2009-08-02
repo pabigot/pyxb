@@ -1819,6 +1819,8 @@ class Generator (object):
             self.applyOptionValues(*self.optionParser().parse_args(argv))
         [ self.addSchemaLocation(_a) for _a in args ]
         
+        self.__generationUID = pyxb.utils.utility.UniqueIdentifier()
+
         pyxb.namespace.XML.validateComponentModel()
 
     __stripSpaces_re = re.compile('\s\s\s+')
@@ -2019,13 +2021,6 @@ class Generator (object):
     def resolveExternalSchema (self, reset=False):
         if self.__didResolveExternalSchema and (not reset):
             raise pyxb.PyXBException('Cannot resolve external schema multiple times')
-
-        if self.__generationUID is not None:
-            # This isn't safe until we have a way to reset everything.
-            print 'WARNING: Unsafe to perform multiple generations in one run'
-            assert False
-
-        self.__generationUID = pyxb.utils.utility.UniqueIdentifier()
 
         required_archives = pyxb.namespace.archive.NamespaceArchive.PreLoadArchives(self.archivePath(), self.preLoadArchives())
         for nsa in required_archives:
