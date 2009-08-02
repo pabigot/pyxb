@@ -873,16 +873,18 @@ class ContentModelTransition (pyxb.cscRoot):
                     ns = expanded_name.namespace()
                     if ns is None:
                         raise pyxb.LogicError('Absent namespace for wildcard')
-                    elif ns.module() is not None:
-                        value = ns.module().CreateFromDOM(node)
-                    elif ns.modulePath() is not None:
-                        print 'Importing %s to get binding for wildcard %s' % (ns.modulePath(), expanded_name)
-                        mod = __import__(ns.modulePath())
-                        for c in ns.modulePath().split('.')[1:]:
-                            mod = getattr(mod, c)
-                        value = mod.CreateFromDOM(node)
-                    elif pyxb.namespace.XMLSchema == ns:
-                        print 'Need to dynamically create schema for %s' % (ns,)
+                    for mr in ns.moduleRecords():
+                        try:
+                            if (mr.module() is None) and (mr.modulePath() is not None):
+                                print 'Importing %s to get binding for wildcard %s' % (mr.modulePath(), expanded_name)
+                                mod = __import__(mr.modulePath())
+                                for c in mr.modulePath().split('.')[1:]:
+                                    mod = getattr(mod, c)
+                                mr._setModule(mod)
+                            value = mr.module().CreateFromDOM(node)
+                            break
+                        except pyxb.PyXBException, e:
+                            print 'Ignoring creating binding for wildcard %s: %s' % (expanded_name, e)
                 except Exception, e:
                     print 'WARNING: Unable to convert wildcard node %s to Python instance: %s' % (expanded_name, e)
             elif not isinstance(value, basis._TypeBinding_mixin):
