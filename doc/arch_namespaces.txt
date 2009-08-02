@@ -215,6 +215,87 @@ There are a variety of intricacies involved in this serialization; see the
 source code starting at :api:`pyxb.namespace.Namespace.saveToFile` for
 details.
 
+The Namespace Archive Model
+---------------------------
+
+Recall that the contents of a namespace can be defined from multiple sources.
+While in the simplest cases the namespace is defined by combining components
+from one or more schemas, the set of schemas that define a namespace may be
+different for different documents; see
+http://www.xfront.com/VariableContentContainers.html.
+
+Another not uncommon situation is to use a namespace `profile`, which is a
+subset of the full namespace intended for use in a particular application.
+For example, the Geography Markup Language defines three profiles denoted
+"GML-SF" for "simple features"; these profiles do not include more complex
+structures that are needed for unusual situations.
+
+To support namespace profiles, PyXB must do two things:
+
+- Use a different Python binding module for the profile as opposed to the
+  full namespace definition
+
+- Use a different archive for the profile
+
+Naive management of these multiple information sources will cause havoc, since
+namespaces do not allow multiple objects to share the same name.
+
+The namespace archive facility must support the following situations:
+
+- The archive stores the complete set of components for a single namespace
+  (most common)
+
+- The archive stores components from multiple namespaces which are
+  interdependent, but together completely define the expected contents of the
+  namespaces
+
+- The archive stores a complete subset of the standard components of a
+  namespace (the `profile` situation)
+
+- The archive extends a namespace with additional components, often required
+  for a particular application.  It is usually necessary to read another
+  archive to determine the full namespace content.
+
+Because of interdependencies between namespaces stored in a single archive,
+archives are read as complete entities: i.e., from a single archive you cannot
+read the components corresponding to one namespace while ignoring those from
+another.
+
+The component model for a namespace is read from a namespace archive only when
+it is necessary to generate new bindings for a namespace that refers to it,
+through import or namespace declarations.  The component model is defined by
+invoking the :api:`pyxb.namespace.Namespace.validateComponentModel` method.
+
+Within an archive, each namespace can be marked as `private` or `public`.
+When the component model for a namespace is validated, all archives in which
+that namespace is present and marked `public` are read and integrated into the
+available component models.
+
+When an archive is read, namespaces in it that are marked `private` are also
+integrated into the component model.  Prior to this integration, the namespace
+component model is validated, potentially requiring the load of other archives
+in which the namespace is marked `public`.
+
+The contents of the namespace archive are:
+
+- A set of _NamespaceRecord instances which identify namespaces and mark
+  whether they are public or private in the archive.  Each instance in turn
+  contains (for namespace A):
+
+  - the set of Namespaces that were imported by A
+
+  - the set of Namespaces that were referenced by A
+
+  - the set of _SchemaRecord instances which identify the origins for components
+  that are defined in the archive
+
+_ The _SchemaRecord instances identify, for each category of the namespace,
+  the names of objects that are defined by the archive
+
+- The objects for each namespace
+
+
+
 
 .. ignored
    ## Local Variables:

@@ -201,5 +201,3 @@ name, but in different modules, while also inheriting (in exactly the
 situation where we want different values).  For this reason, the constructed
 attribute name should also incorporate the module or namespace, something
 normally not done with the double-underscore feature of Python.
-
-

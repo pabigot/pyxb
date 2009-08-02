@@ -6,8 +6,11 @@ import traceback
 
 #pyxb.namespace.NamespaceArchives('/dev/null', reset=True)
 for fn in sys.argv[1:]:
-    nsa = pyxb.namespace.NamespaceArchive(archive_path=fn)
+    nsa = pyxb.namespace.archive.NamespaceArchive(archive_path=fn)
     print 'File %s archives %d namespaces:' % (fn, len(nsa.namespaces()))
+    #for mr in nsa.moduleRecords():
+    #    print mr
+
     for ns in nsa.namespaces().copy():
         print ' namespace=%s' % (ns,)
         ns.validateComponentModel()

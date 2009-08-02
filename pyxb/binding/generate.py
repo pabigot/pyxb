@@ -2017,6 +2017,9 @@ class Generator (object):
                 raise pyxb.BindingGenerationError('No prefix or module name available for %s' % (namespace,))
             if self.modulePrefix(): # non-empty value
                 module_path = '.'.join([self.modulePrefix(), module_path])
+        mr = namespace.lookupModuleRecordByUID(self.generationUID())
+        assert mr is not None, 'No module record for %s' % (namespace,)
+        mr.setModulePath(module_path)
         namespace.setModulePath(module_path)
         return namespace
 
