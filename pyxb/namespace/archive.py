@@ -336,10 +336,6 @@ class NamespaceArchive (object):
                 ns.configureCategories([self._AnonymousCategory()])
                 object_map[ns] = ns._categoryMap()
                 ns._setWroteToArchive(self)
-                for obj in ns._namedObjects().union(ns.components()):
-                    if isinstance(obj, _ArchivableObject_mixin):
-                        if obj._objectOrigin():
-                            obj._prepareForArchive(self)
 
             pickler.dump(object_map)
         finally:
@@ -646,6 +642,11 @@ class ModuleRecord (pyxb.utils.utility.PrivateTransient_mixin):
     def prepareForArchive (self, archive):
         assert self.archive() is None
         self._setArchive(archive)
+        ns = self.namespace()
+        for obj in ns._namedObjects().union(ns.components()):
+            if isinstance(obj, _ArchivableObject_mixin):
+                if obj._objectOrigin():
+                    obj._prepareForArchive(self)
         print 'Archive %s ns %s module %s has %d origins' % (self.archive(), self.namespace(), self, len(self.origins()))
 
 class _ObjectOrigin (pyxb.utils.utility.PrivateTransient_mixin, pyxb.cscRoot):
