@@ -123,10 +123,20 @@ class _NamespaceResolution_mixin (pyxb.cscRoot):
         processing with this namespace as target."""
         return frozenset(self.__importedNamespaces)
 
+    def _transferReferencedNamespaces (self, module_record):
+        assert isinstance(module_record, archive.ModuleRecord)
+        module_record._setReferencedNamespaces(self.__referencedNamespaces)
+        self.__referencedNamespaces.clear()
+        
     def referencedNamespaces (self):
         """Return the set of namespaces which appear in namespace declarations
         of schema with this namespace as target."""
         return frozenset(self.__referencedNamespaces)
+        rn = self.__referencedNamespaces.copy()
+        for mr in self.moduleRecords():
+            if mr.isIncorporated():
+                rn.update(mr.referencedNamespaces())
+        return rn
 
     def queueForResolution (self, resolvable):
         """Invoked to note that a component may have references that will need

@@ -422,7 +422,7 @@ class _NamespaceCategory_mixin (pyxb.cscRoot):
     def completeGenerationAssociations (self, generation_uid):
         mr = self.lookupModuleRecordByUID(generation_uid)
         if mr is not None:
-            #self._transferReferencedNamespaces(mr)
+            self._transferReferencedNamespaces(mr)
             self._associateOrigins(mr)
         return mr
 
@@ -809,7 +809,6 @@ class Namespace (_NamespaceCategory_mixin, resolution._NamespaceResolution_mixin
             raise pyxb.LogicError('Namespace has no built-in module: %s' % (self,))
         mr = self.lookupModuleRecordByUID(BuiltInObjectUID)
         assert mr is not None
-        print 'RETURNING BUILTIN'
         assert mr.modulePath() == self.__builtinModulePath
         return self.__builtinModulePath
 
