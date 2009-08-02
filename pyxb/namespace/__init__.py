@@ -409,18 +409,23 @@ class _NamespaceCategory_mixin (pyxb.cscRoot):
         declaration but never actually referenced."""
         return 'typeDefinition' in self.__categoryMap
 
-    def categorySliceByOrigin (self, origin):
-        """Return a sub-map corresponding to those named components which came
-        from the given origin."""
-        category_map = { }
-        for (cat, cat_map) in self.__categoryMap:
-            sub_map = { }
-            for (n, v) in cat_map:
-                if isinstance(v, _ArchivableObject_mixin) and (v._objectOrigin() == origin):
-                    sub_map[n] = v
-            if 0 < len(sub_map):
-                category_map[cat] = sub_map
-        return category_map
+    def _associateOrigins (self, module_record):
+        assert module_record.namespace() == self
+        module_record.resetCategoryObjects()
+        self.configureCategories([archive.NamespaceArchive._AnonymousCategory()])
+        origin_set = module_record.origins()
+        for (cat, cat_map) in self.__categoryMap.iteritems():
+            for (n, v) in cat_map.iteritems():
+                if isinstance(v, archive._ArchivableObject_mixin) and (v._objectOrigin() in origin_set):
+                    v._objectOrigin().addCategoryMember(cat, n, v)
+
+    def completeGenerationAssociations (self, generation_uid):
+        mr = self.lookupModuleRecordByUID(generation_uid)
+        if mr is not None:
+            #self._transferReferencedNamespaces(mr)
+            self._associateOrigins(mr)
+        return mr
+
 
 class _ComponentDependency_mixin (pyxb.utils.utility.PrivateTransient_mixin, pyxb.cscRoot):
     """Mix-in for components that can depend on other components."""
@@ -902,7 +907,7 @@ class Namespace (_NamespaceCategory_mixin, resolution._NamespaceResolution_mixin
             self.__definedBuiltins = True
         return self
 
-    def _defineSchema_overload (self, structures_module):
+    def _loadComponentsFromArchives (self, structures_module):
         """Attempts to load the named objects held in this namespace.
 
         The base class implementation looks at the set of available archived
@@ -935,7 +940,7 @@ class Namespace (_NamespaceCategory_mixin, resolution._NamespaceResolution_mixin
             self._defineBuiltins(structures_module)
             try:
                 self.__inValidation = True
-                self._defineSchema_overload(structures_module)
+                self._loadComponentsFromArchives(structures_module)
                 self.__didValidation = True
             finally:
                 self.__inValidation = False

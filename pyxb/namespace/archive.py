@@ -338,7 +338,11 @@ class NamespaceArchive (object):
                 ns._setWroteToArchive(self)
                 for obj in ns._namedObjects().union(ns.components()):
                     if isinstance(obj, _ArchivableObject_mixin):
-                        obj._prepareForArchive(self, ns)
+                        if obj._objectOrigin():
+                            obj._prepareForArchive(obj._objectOrigin().moduleRecord())
+                        else:
+                            assert not isinstance(obj, pyxb.xmlschema.structures._NamedComponent_mixin), 'object type %s has no origin' % (type(obj),)
+
             pickler.dump(object_map)
         finally:
             sys.setrecursionlimit(recursion_limit)
@@ -387,12 +391,9 @@ class _ArchivableObject_mixin (pyxb.cscRoot):
         else:
             self.__objectOrigin = object_origin
 
-    def _prepareForArchive_csc (self, archive, namespace):
-        return getattr(super(_ArchivableObject_mixin, self), '_prepareForArchive_csc', lambda *_args,**_kw: self)(archive, namespace)
-
-    def _prepareForArchive (self, archive, namespace):
+    def _prepareForArchive (self, module_record):
         #assert self.__objectOrigin is not None
-        return self._prepareForArchive_csc(archive, namespace)
+        return getattr(super(_ArchivableObject_mixin, self), '_prepareForArchive_csc', lambda *_args,**_kw: self)(module_record)
 
     def _updateFromOther_csc (self, other):
         return getattr(super(_ArchivableObject_mixin, self), '_updateFromOther_csc', lambda *_args,**_kw: self)(other)
@@ -618,7 +619,7 @@ class ModuleRecord (pyxb.utils.utility.PrivateTransient_mixin):
         for origin in self.origins():
             origin.resetCategoryMembers()
     def _addCategoryObject (self, category, name, obj):
-        obj._prepareForArchive(self.archive(), self.namespace())
+        obj._prepareForArchive(self)
         self.__categoryObjects.setdefault(category, {})[name] = obj
     def _loadCategoryObjects (self, category_objects):
         assert self.__categoryObjects is None

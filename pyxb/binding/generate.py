@@ -2077,6 +2077,13 @@ class Generator (object):
             if not ao.namespace().isUndeclaredNamespace():
                 affected_ns.add(ao.namespace())
 
+        module_records = set()
+        for ns in affected_ns:
+            mr = ns.completeGenerationAssociations(self.generationUID())
+            if mr is not None:
+                module_records.add(mr)
+                print 'Generation will include %s' % (ns,)
+
         # Entry namespaces are those that were specifically identified
         # by the user
         entry_namespaces = self.namespaces()

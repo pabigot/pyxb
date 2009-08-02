@@ -398,8 +398,8 @@ class _NamedComponent_mixin (pyxb.utils.utility.PrivateTransient_mixin, pyxb.csc
         return self.__name is None
 
     def _setAnonymousName (self, namespace, unique_id=None, anon_name=None):
-        if (self.__anonymousName is not None):
-            assert namespace.isUndeclaredNamespace(), '%s in %s has %s would be %s' % (self, namespace, self.__anonymousName, anon_name)
+        # If this already has a name, keep using it.
+        if self.__anonymousName is not None:
             return
         assert self.__needAnonymousSupport()
         assert namespace is not None
@@ -419,7 +419,7 @@ class _NamedComponent_mixin (pyxb.utils.utility.PrivateTransient_mixin, pyxb.csc
         self.__anonymousName = anon_name
         namespace.addCategoryObject(self.__AnonymousCategory, anon_name, self)
     def _anonymousName (self, namespace=None):
-        assert self.__anonymousName is not None, '%s in %s missing anonymous name' % (self, self.targetNamespace(), self.__anonymousName)
+        assert self.__anonymousName is not None, '%x %s %s in %s missing anonymous name' % (id(self), type(self), self.name(), self.targetNamespace())
         return self.__anonymousName
     __anonymousName = None
 
@@ -453,10 +453,10 @@ class _NamedComponent_mixin (pyxb.utils.utility.PrivateTransient_mixin, pyxb.csc
     __AnonymousCategory = pyxb.namespace.archive.NamespaceArchive._AnonymousCategory()
 
     def __needAnonymousSupport (self):
-        # If this component doesn't have a name, or if it's in a top-level
-        # model group (whose contents are not in global scope), we'll need a
-        # unique name for it.
-        return self.isAnonymous() or (self._scopeIsIndeterminate() and not isinstance(self, AttributeGroupDefinition))
+        # If this component doesn't have a name, or if it's in some scope in
+        # which it cannot be located in a category map, we'll need a unique
+        # name for it.
+        return self.isAnonymous() or (self._scopeIsIndeterminate() and not isinstance(self, (AttributeGroupDefinition, ModelGroupDefinition)))
 
     def _schema (self):
         """Return the schema component from which this component was defined.
@@ -471,10 +471,10 @@ class _NamedComponent_mixin (pyxb.utils.utility.PrivateTransient_mixin, pyxb.csc
     __schema = None
     __PrivateTransient.add('schema')
 
-    def _prepareForArchive_csc (self, archive, namespace):
+    def _prepareForArchive_csc (self, module_record):
         if self.__needAnonymousSupport():
-            self._setAnonymousName(namespace, unique_id=archive.generationUID())
-        return getattr(super(_NamedComponent_mixin, self), '_prepareForArchive_csc', lambda *_args,**_kw: self)(archive, namespace)
+            self._setAnonymousName(module_record.namespace(), unique_id=module_record.generationUID())
+        return getattr(super(_NamedComponent_mixin, self), '_prepareForArchive_csc', lambda *_args,**_kw: self)(module_record)
 
     def _picklesInArchive (self, archive):
         """Return C{True} if this component should be pickled by value in the
@@ -767,6 +767,7 @@ class _NamedComponent_mixin (pyxb.utils.utility.PrivateTransient_mixin, pyxb.csc
         rv = getattr(super(_NamedComponent_mixin, self), '_resetClone_csc', lambda *_args,**_kw: self)(**kw)
         self.__templateMap = { }
         origin = kw.get('origin')
+        self.__anonymousName = None
         self._setObjectOrigin(origin, override=True)
         return rv
 
