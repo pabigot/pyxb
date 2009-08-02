@@ -8,13 +8,11 @@ import traceback
 for fn in sys.argv[1:]:
     nsa = pyxb.namespace.archive.NamespaceArchive(archive_path=fn)
     print 'File %s archives %d namespaces:' % (fn, len(nsa.namespaces()))
-    #for mr in nsa.moduleRecords():
-    #    print mr
-
-    for ns in nsa.namespaces().copy():
-        print ' namespace=%s' % (ns,)
-        ns.validateComponentModel()
-        print ' module-path=%s' % (ns.modulePath(),)
+    nsa.readNamespaces()
+    for mr in nsa.moduleRecords():
+        print mr
+        ns = mr.namespace()
+        print ' module-path=%s' % (mr.modulePath(),)
         for cat in ns.categories():
             cat_map = ns.categoryMap(cat)
             for (k, v) in cat_map.items():
