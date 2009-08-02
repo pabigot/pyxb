@@ -14,7 +14,8 @@ _GenerationUID = pyxb.utils.utility.UniqueIdentifier('urn:uuid:06e3bdbc-795b-11d
 # Import bindings for namespaces imported into schema
 
 Namespace = pyxb.namespace.NamespaceForURI('http://www.w3.org/XML/1998/namespace', create_if_missing=True)
-Namespace._setModule(sys.modules[__name__])
+ModuleRecord = Namespace.lookupModuleRecordByUID(_GenerationUID, create_if_missing=True)
+ModuleRecord._setModule(sys.modules[__name__])
 
 # Atomic SimpleTypeDefinition
 class STD_ANON_space (pyxb.binding.datatypes.NCName, pyxb.binding.basis.enumeration_mixin):

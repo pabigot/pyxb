@@ -839,18 +839,6 @@ class Namespace (_NamespaceCategory_mixin, resolution._NamespaceResolution_mixin
         self.__modulePath = module_path
         return self.modulePath()
 
-    def module (self):
-        """Return a reference to the Python module that implements
-        bindings for this namespace."""
-        return self.__module
-    def _setModule (self, module):
-        """Set the module to use for Python bindings for this namespace.
-
-        Should only be called by generated code."""
-        self.__module = module
-        return self
-    __module = None
-
     def description (self, description=None):
         """Get, or set, a textual description of the namespace."""
         if description is not None:

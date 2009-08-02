@@ -1254,7 +1254,6 @@ _GenerationUID = %{generation_uid_expr}
 %{namespace_decls}
 ModuleRecord = Namespace.lookupModuleRecordByUID(_GenerationUID, create_if_missing=True)
 ModuleRecord._setModule(sys.modules[__name__])
-Namespace._setModule(sys.modules[__name__])
 
 def CreateFromDocument (xml_text):
     """Parse the given XML and use the document element to create a Python instance."""
