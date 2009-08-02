@@ -1026,7 +1026,7 @@ class _ModuleNaming_mixin (object):
         cls.__RecordModuleMap[module.moduleRecord()] = module
         return module
     @classmethod
-    def ForRecord (cls, module_record):
+    def _ForRecord (cls, module_record):
         return cls.__RecordModuleMap.get(module_record)
     __RecordModuleMap = { }
 
