@@ -409,22 +409,18 @@ class _NamespaceCategory_mixin (pyxb.cscRoot):
         declaration but never actually referenced."""
         return 'typeDefinition' in self.__categoryMap
 
-    def _associateOrigins (self, module_record):
-        assert module_record.namespace() == self
-        module_record.resetCategoryObjects()
-        self.configureCategories([archive.NamespaceArchive._AnonymousCategory()])
-        origin_set = module_record.origins()
-        for (cat, cat_map) in self.__categoryMap.iteritems():
-            for (n, v) in cat_map.iteritems():
-                if isinstance(v, archive._ArchivableObject_mixin) and (v._objectOrigin() in origin_set):
-                    v._objectOrigin().addCategoryMember(cat, n, v)
-
-    def completeGenerationAssociations (self, generation_uid):
-        mr = self.lookupModuleRecordByUID(generation_uid)
-        if mr is not None:
-            self._transferReferencedNamespaces(mr)
-            self._associateOrigins(mr)
-        return mr
+    def categorySliceByOrigin (self, origin):
+        """Return a sub-map corresponding to those named components which came
+        from the given origin."""
+        category_map = { }
+        for (cat, cat_map) in self.__categoryMap:
+            sub_map = { }
+            for (n, v) in cat_map:
+                if isinstance(v, _ArchivableObject_mixin) and (v._objectOrigin() == origin):
+                    sub_map[n] = v
+            if 0 < len(sub_map):
+                category_map[cat] = sub_map
+        return category_map
 
 class _ComponentDependency_mixin (pyxb.utils.utility.PrivateTransient_mixin, pyxb.cscRoot):
     """Mix-in for components that can depend on other components."""
@@ -607,6 +603,25 @@ class Namespace (_NamespaceCategory_mixin, resolution._NamespaceResolution_mixin
     # Indicates whether this namespace is undeclared (available always)
     __isUndeclaredNamespace = False
 
+    # Indicates whether this namespace was loaded from an archive
+    __isLoadedNamespace = False
+
+    # Archive from which the namespace can be read, or None if no archive
+    # defines this namespace.
+    __namespaceArchive = None
+
+    # Indicates whether this namespace has been written to an archive
+    __hasBeenArchived = False
+
+    # A string denoting the path by which this namespace is imported into
+    # generated Python modules
+    __modulePath = None
+
+    # A set of options defining how the Python bindings for this namespace
+    # were generated.  Not currently used, since we don't have different
+    # binding configurations yet.
+    __bindingConfiguration = None
+ 
     # The namespace to use as the default namespace when constructing the
     # The namespace context used when creating built-in components that belong
     # to this namespace.  This is used to satisfy the low-level requirement
@@ -632,8 +647,6 @@ class Namespace (_NamespaceCategory_mixin, resolution._NamespaceResolution_mixin
         assert uri is not None
         return cls.__Registry.get(uri, None)
 
-    def __getstate__ (self):
-        return False
 
     def __getnewargs__ (self):
         """Pickling support.
@@ -641,8 +654,6 @@ class Namespace (_NamespaceCategory_mixin, resolution._NamespaceResolution_mixin
         To ensure that unpickled Namespace instances are unique per
         URI, we ensure that the routine that creates unpickled
         instances knows what it's supposed to return."""
-        if self.uri() is None:
-            raise pyxb.LogicError('Attempt to serialize absent namespace')
         return (self.uri(),)
 
     def __new__ (cls, *args, **kw):
@@ -798,13 +809,23 @@ class Namespace (_NamespaceCategory_mixin, resolution._NamespaceResolution_mixin
         xmlns(http://www.w3.org/2000/xmlns/) namespaces."""
         return self.__isUndeclaredNamespace
 
+    def isLoadedNamespace (self):
+        """Return C{True} iff this namespace was loaded from a namespace archive."""
+        return self.__isLoadedNamespace
+
+    def hasBeenArchived (self):
+        """Return C{True} iff this namespace has been saved to a namespace archive.
+        See also L{isLoadedNamespace}."""
+        return self.__hasBeenArchived
+
     def modulePath (self):
-        assert 1 >= len(self.moduleRecords()), '%d module records for %s' % (len(self.moduleRecords()), self)
-        for mr in self.moduleRecords():
-            if mr.modulePath() is not None:
-                return mr.modulePath()
-        return None
-            
+        return self.__modulePath
+
+    def setModulePath (self, module_path):
+        assert self.__builtinModulePath is None, '%s has builtin path' % (self,)
+        self.__modulePath = module_path
+        return self.modulePath()
+
     def module (self):
         """Return a reference to the Python module that implements
         bindings for this namespace."""
@@ -829,6 +850,48 @@ class Namespace (_NamespaceCategory_mixin, resolution._NamespaceResolution_mixin
     def createExpandedName (self, local_name):
         return ExpandedName(self, local_name)
 
+    def _getState_csc (self, kw):
+        kw.update({
+            'description': self.__description,
+            'prefix': self.__prefix,
+            'modulePath' : self.__modulePath,
+            'bindingConfiguration': self.__bindingConfiguration,
+            })
+        return getattr(super(Namespace, self), '_getState_csc', lambda _kw: _kw)(kw)
+
+    def _setState_csc (self, kw):
+        self.__isLoadedNamespace = True
+        self.__description = kw['description']
+        self.__prefix = kw['prefix']
+        assert (self.__modulePath is None) or (self.__modulePath == kw.get('modulePath'))
+        self.__modulePath = kw['modulePath']
+        self.__bindingConfiguration = kw['bindingConfiguration']
+        return getattr(super(Namespace, self), '_setState_csc', lambda _kw: self)(kw)
+
+    def __getstate__ (self):
+        """Support pickling.
+
+        Because namespace instances must be unique, we represent them
+        as their URI and any associated (non-bound) information.  This
+        way allows the unpickler to either identify an existing
+        Namespace instance for the URI, or create a new one, depending
+        on whether the namespace has already been encountered."""
+        if self.uri() is None:
+            raise pyxb.LogicError('Illegal to serialize absent namespaces')
+        kw = self._getState_csc({ })
+        args = ( self.__uri, )
+        return ( args, kw )
+
+    def __setstate__ (self, state):
+        """Support pickling."""
+        ( args, kw ) = state
+        ( uri, ) = args
+        assert self.__uri == uri
+        # If this namespace hasn't been activated, do so now, using the
+        # archived information which includes referenced namespaces.
+        if not self.isActive(True):
+            self._setState_csc(kw)
+
     def _defineBuiltins_ox (self, structures_module):
         pass
 
@@ -839,7 +902,7 @@ class Namespace (_NamespaceCategory_mixin, resolution._NamespaceResolution_mixin
             self.__definedBuiltins = True
         return self
 
-    def _loadComponentsFromArchives (self, structures_module):
+    def _defineSchema_overload (self, structures_module):
         """Attempts to load the named objects held in this namespace.
 
         The base class implementation looks at the set of available archived
@@ -852,12 +915,9 @@ class Namespace (_NamespaceCategory_mixin, resolution._NamespaceResolution_mixin
         There is no guarantee that any particular category of named object has
         been located when this returns.  Caller must check.
         """
-        for mr in self.moduleRecords():
-            if mr.isLoadable():
-                try:
-                    mr.archive().readNamespaces()
-                except pyxb.NamespaceArchiveError, e:
-                    print e
+        for archive in self.archives():
+            if archive.isLoadable():
+                archive.readNamespaces()
         self._activate()
 
     __didValidation = False
@@ -875,7 +935,7 @@ class Namespace (_NamespaceCategory_mixin, resolution._NamespaceResolution_mixin
             self._defineBuiltins(structures_module)
             try:
                 self.__inValidation = True
-                self._loadComponentsFromArchives(structures_module)
+                self._defineSchema_overload(structures_module)
                 self.__didValidation = True
             finally:
                 self.__inValidation = False

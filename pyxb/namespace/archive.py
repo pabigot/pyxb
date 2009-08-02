@@ -42,8 +42,8 @@ def GetArchivePath ():
     return rv
 
 # Stuff required for pickling
-#import cPickle as pickle
-import pyxb.utils.pickle_trace as pickle
+import cPickle as pickle
+#import pyxb.utils.pickle_trace as pickle
 
 class NamespaceArchive (object):
     """Represent a file from which one or more namespaces can be read, or to
@@ -81,7 +81,6 @@ class NamespaceArchive (object):
 
     @classmethod
     def __ResetNamespaceArchives (cls):
-        print 'RESETTING NAMESPACE ARCHIVES'
         if cls.__NamespaceArchives is not None:
             for nsa in cls.__NamespaceArchives.values():
                 for ns in nsa.__namespaces:
@@ -89,7 +88,8 @@ class NamespaceArchive (object):
         cls.__NamespaceArchives = {}
 
     __NamespaceArchives = None
-    """A mapping from file system paths to NamespaceArchive instances."""
+    """A mapping from namespace URIs to names of files which appear to
+    provide a serialized version of the namespace with schema."""
 
     @classmethod
     def __GetArchiveInstance (cls, archive_file):
@@ -187,25 +187,6 @@ class NamespaceArchive (object):
         self.__isLoadable = loadable
     __isLoadable = None
 
-    def __locateModuleRecords (self):
-        self.__moduleRecords = set()
-        namespaces = set()
-        for ns in pyxb.namespace.utility.AvailableNamespaces():
-            # @todo allow these; right now it's usually the XML
-            # namespace and we're not prepared to reconcile
-            # redefinitions of those components.
-            if ns.isUndeclaredNamespace():
-                continue
-            mr = ns.lookupModuleRecordByUID(self.generationUID())
-            if mr is not None:
-                namespaces.add(ns)
-                mr.prepareForArchive(self)
-                self.__moduleRecords.add(mr)
-        self.__namespaces.update(namespaces)
-    def moduleRecords (self):
-        return self.__moduleRecords
-    __moduleRecords = None
-                
     def __init__ (self, namespaces=None, archive_path=None, generation_uid=None, loadable=True):
         """Create a new namespace archive.
 
@@ -217,11 +198,13 @@ class NamespaceArchive (object):
         @raise pickle.UnpicklingError: something is wrong with the format of the library
         """
         self.__namespaces = set()
-        if generation_uid is not None:
+        if namespaces is not None:
             if archive_path:
                 raise pyxb.LogicError('NamespaceArchive: cannot define both namespaces and archive_path')
+            if generation_uid is None:
+                raise pyxb.LogicError('NamespaceArchive: must provide generation_uid with namespaces')
             self.__generationUID = generation_uid
-            self.__locateModuleRecords()
+            self.update(namespaces)
         elif archive_path is not None:
             if generation_uid is not None:
                 raise pyxb.LogicError('NamespaceArchive: cannot provide generation_uid with archive_path')
@@ -278,20 +261,24 @@ class NamespaceArchive (object):
             return
         self.__readNamespaces = True
 
-        print 'READING ARCHIVE %s' % (self,)
         unpickler = self.__createUnpickler()
 
         # Read the namespaces and their categories.  This makes sure we won't
         # overwrite something by loading from the archive.
-        self.__readNamespaceSet(unpickler)
+        uri_map = self.__readNamespaceSet(unpickler)
 
-        for n in range(len(self.__moduleRecords)):
-            ns = unpickler.load()
-            mr = ns.lookupModuleRecordByUID(self.generationUID())
-            assert mr in self.__moduleRecords
-            assert not mr.isIncorporated()
-            mr._loadCategoryObjects(unpickler.load())
+        # Load up the metadata like the module path
+        ns_set = unpickler.load()
+        assert ns_set == self.namespaces()
 
+        # Now unarchive everything and associate it with its relevant
+        # namespace.
+        print 'Unpickling from %s' % (self.__archivePath,)
+        object_maps = unpickler.load()
+        for ns in ns_set:
+            print 'Read %s from %s - active %s' % (ns, self.__archivePath, ns.isActive())
+            ns._loadNamedObjects(object_maps[ns])
+            ns._setLoadedFromArchive(self)
         print 'completed Unpickling from %s' % (self.__archivePath,)
 
     def writeNamespaces (self, output):
@@ -302,9 +289,7 @@ class NamespaceArchive (object):
         """
         import sys
         
-        assert NamespaceArchive.__PicklingArchive is None
         NamespaceArchive.__PicklingArchive = self
-        assert self.__moduleRecords is not None
 
         try:
             # See http://bugs.python.org/issue3338
@@ -313,47 +298,58 @@ class NamespaceArchive (object):
     
             pickler = self.__createPickler(output)
 
-            assert isinstance(self.__moduleRecords, set)
-            pickler.dump(self.__moduleRecords)
-
-            for mr in self.__moduleRecords:
-                pickler.dump(mr.namespace())
-                pickler.dump(mr.categoryObjects())
-
+            # The set of URIs defining the namespaces in the archive, along
+            # with the categories defined by each one, and the names defined
+            # in each category.
+            uri_map = {}
+            for ns in self.namespaces():
+                assert not ns.isAbsentNamespace()
+                uri_map[ns.uri()] = cat_map = {}
+                for cat in ns.categories():
+                    cat_map[cat] = frozenset(ns.categoryMap(cat).keys())
+            pickler.dump(uri_map)
+    
+            # The pickled namespaces.  Note that namespaces have a custom pickling
+            # representation which does not include any of the objects they hold.
+            pickler.dump(self.namespaces())
+    
+            # A map from namespace to the category maps of the namespace.
+            object_map = { }
+            for ns in self.namespaces():
+                print "Archiving namespace %s in archive %s" % (ns, self.archivePath())
+                ns.configureCategories([self._AnonymousCategory()])
+                object_map[ns] = ns._categoryMap()
+                ns._setWroteToArchive(self)
+                for obj in ns._namedObjects().union(ns.components()):
+                    if isinstance(obj, _ArchivableObject_mixin):
+                        obj._prepareForArchive(self, ns)
+            pickler.dump(object_map)
         finally:
             sys.setrecursionlimit(recursion_limit)
         NamespaceArchive.__PicklingArchive = None
 
     def __readNamespaceSet (self, unpickler, define_namespaces=False):
-        mrs = unpickler.load()
-        assert isinstance(mrs, set)
-        if self.__moduleRecords is None:
-            for mr in mrs:
-                mr2 = mr.namespace().lookupModuleRecordByUID(mr.generationUID())
-                if mr2 is not None:
-                    raise pyxb.NamespaceArchiveError('Already have module record %s %s' % (mr.namespace(), mr.generationUID()))
-            self.__moduleRecords = set()
-            for mr in mrs:
-                mr._setArchive(self)
-                mr.namespace().addModuleRecord(mr)
-                self.__moduleRecords.add(mr)
-        else:
-            for mr in mrs:
-                mr2 = mr.namespace().lookupModuleRecordByUID(mr.generationUID())
-                if not (mr2 in self.__moduleRecords):
-                    raise pyxb.NamespaceArchiveError('Lost module record %s %s from %s' % (mr.namespace(), mr.generationUID(), self.archivePath()))
+        uri_map = unpickler.load()
+        
+        for (uri, categories) in uri_map.items():
+            cat_map = uri_map[uri]
+            ns = utility.NamespaceInstance(uri)
+            for cat in cat_map.keys():
+                if not (cat in ns.categories()):
+                    continue
+                cross_objects = frozenset([ _ln for _ln in cat_map[cat].intersection(ns.categoryMap(cat).keys()) if not ns.categoryMap(cat)[_ln]._allowUpdateFromOther(None) ])
+                if 0 < len(cross_objects):
+                    raise pyxb.NamespaceArchiveError('Namespace %s archive/active conflict on category %s: %s' % (ns, cat, " ".join(cross_objects)))
 
-        for mr in self.__moduleRecords:
-            ns = mr.namespace()
-            for origin in mr.origins():
-                print 'mr %s origin %s' % (mr, origin)
-                for (cat, names) in origin.categoryMembers().iteritems():
-                    if not (cat in ns.categories()):
-                        continue
-                    cross_objects = names.intersection(ns.categoryMap(cat).keys())
-                    if 0 < len(cross_objects):
-                        raise pyxb.NamespaceArchiveError('Archive %s namespace %s module %s origin %s archive/active conflict on category %s: %s' % (self.__archivePath, ns, mr, origin, cat, " ".join(cross_objects)))
-                    print '%s no conflicts on %d names' % (cat, len(names))
+        if not define_namespaces:
+            return
+
+        for uri in uri_map.keys():
+            ns = utility.NamespaceForURI(uri, create_if_missing=True)
+            ns._addArchive(self)
+            self.__namespaces.add(ns)
+
+        return uri_map
 
     def __str__ (self):
         archive_path = self.__archivePath
@@ -379,7 +375,7 @@ class _ArchivableObject_mixin (pyxb.cscRoot):
         return getattr(super(_ArchivableObject_mixin, self), '_prepareForArchive_csc', lambda *_args,**_kw: self)(archive, namespace)
 
     def _prepareForArchive (self, archive, namespace):
-        assert self.__objectOrigin is not None
+        #assert self.__objectOrigin is not None
         return self._prepareForArchive_csc(archive, namespace)
 
     def _updateFromOther_csc (self, other):
@@ -411,13 +407,6 @@ class _NamespaceArchivable_mixin (pyxb.cscRoot):
         self.__loadedFromArchive = None
         self.__wroteToArchive = None
         self.__active = False
-        self.__moduleRecordMap = {}
-
-    def isLoadable (self):
-        for mr in self.__moduleRecordMap.itervalues():
-            if mr.isLoadable():
-                return True
-        return False
 
     def _loadedFromArchive (self):
         return self.__loadedFromArchive
@@ -460,32 +449,19 @@ class _NamespaceArchivable_mixin (pyxb.cscRoot):
         return self.__sourceArchives.copy()
     __sourceArchives = None
     
-    def moduleRecords (self):
-        return self.__moduleRecordMap.values()
-    __moduleRecordMap = None
-
-    def activeModuleRecord (self):
-        assert self.__activeModuleRecord is not None
-    __activeModuleRecord = None
-
-    def addModuleRecord (self, module_record):
-        assert isinstance(module_record, ModuleRecord)
-        assert not (module_record.generationUID() in self.__moduleRecordMap)
-        self.__moduleRecordMap[module_record.generationUID()] = module_record
-        if module_record.archive() is None:
-            assert self.__activeModuleRecord is None
-            self.__activeModuleRecord = module_record
-        return module_record
-    def lookupModuleRecordByUID (self, generation_uid, create_if_missing=False, *args, **kw):
-        rv = self.__moduleRecordMap.get(generation_uid)
-        if (rv is None) and create_if_missing:
-            rv = self.addModuleRecord(ModuleRecord(self, generation_uid, *args, **kw))
-        return rv
+    def isLoadable (self):
+        """Return C{True} iff the component model for this namespace can be
+        loaded from a namespace archive."""
+        return 0 < len(self.loadableFrom())
 
     def loadableFrom (self):
         """Return a list of namespace archives from which this namespace can be read."""
         return [ _archive for _archive in self.__sourceArchives if _archive.isLoadable() ]
 
+    def _setState_csc (self, kw):
+        #assert not self.__isActive, 'ERROR: State set for active namespace %s' % (self,)
+        return getattr(super(_NamespaceArchivable_mixin, self), '_getState_csc', lambda _kw: _kw)(kw)
+    
     def markNotLoadable (self):
         """Prevent loading this namespace from an archive.
 
@@ -496,171 +472,19 @@ class _NamespaceArchivable_mixin (pyxb.cscRoot):
         for archive in self.__sourceArchives.copy():
             archive.setLoadable(False)
 
-class ModuleRecord (pyxb.utils.utility.PrivateTransient_mixin):
-    __PrivateTransient = set()
-    
+class _NamespaceModuleRecord (object):
     def namespace (self):
         return self.__namespace
     __namespace = None
 
-    def archive (self):
-        return self.__archive
-    def _setArchive (self, archive):
-        self.__archive = archive
-        return self
-    __archive = None
-    __PrivateTransient.add('archive')
-
     def isPublic (self):
         return self.__isPublic
-    def _setIsPublic (self, is_public):
-        self.__isPublic = is_public
-        return self
     __isPublic = None
-
-    def isIncorporated (self):
-        return self.__isIncorporated or (self.archive() is None)
-    def markIncorporated (self):
-        assert self.__isLoadable
-        self.__isIncorporated = True
-        self.__isLoadable = False
-        return self
-    __isIncorporated = None
-    __PrivateTransient.add('isIncorporated')
-
-    def isLoadable (self):
-        return self.__isLoadable and (self.archive() is not None)
-    def _setIsLoadable (self, is_loadable):
-        self.__isLoadable = is_loadable
-        return self
-    __isLoadable = None
-
-    def generationUID (self):
-        return self.__generationUID
-    __generationUID = None
-
-    def origins (self):
-        return self.__originMap.values()
-    def addOrigin (self, origin):
-        assert isinstance(origin, _ObjectOrigin)
-        assert not (origin.signature() in self.__originMap)
-        self.__originMap[origin.signature()] = origin
-        return origin
-    def lookupOriginBySignature (self, signature):
-        return self.__originMap.get(signature)
-    def _setOrigins (self, origins):
-        if self.__originMap is None:
-            self.__originMap = {}
-        else:
-            self.__originMap.clear()
-        [ self.addOrigin(_o) for _o in origins ]
-        return self
-    __originMap = None
-
-    def modulePath (self):
-        return self.__modulePath
-    def setModulePath (self, module_path):
-        self.__modulePath = module_path
-        return self
-    __modulePath = None
-
-    def referencedNamespaces (self):
-        return self.__referencedNamespaces
-    def _setReferencedNamespaces (self, referenced_namespaces):
-        self.__referencedNamespaces.update(referenced_namespaces)
-        return self
-    def referenceNamespace (self, namespace):
-        self.__referencedNamespaces.add(namespace)
-        return namespace
-    __referencedNamespaces = None
-
-    __constructedLocally = False
-    __PrivateTransient.add('constructedLocally')
-
-    def __init__ (self, namespace, generation_uid, **kw):
-        super(ModuleRecord, self).__init__()
-        self.__namespace = namespace
-        print 'Created MR for %s gen %s' % (namespace, generation_uid)
-        self.__isPublic = kw.get('is_public', False)
-        self.__isIncoporated = kw.get('is_incorporated', False)
-        self.__isLoadable = kw.get('is_loadable', True)
-        assert isinstance(generation_uid, pyxb.utils.utility.UniqueIdentifier)
-        self.__generationUID = generation_uid
-        self.__modulePath = kw.get('module_path')
-        if (self.__modulePath is None) and (builtin.BuiltInObjectUID == generation_uid):
-            self.__modulePath = self.__namespace.builtinModulePath()
-        self.__originMap = {}
-        self.__referencedNamespaces = set()
-        self.__categoryObjects = { }
-        self.__constructedLocally = True
-
-    def categoryObjects (self):
-        return self.__categoryObjects
-    def resetCategoryObjects (self):
-        self.__categoryObjects.clear()
-        for origin in self.origins():
-            origin.resetCategoryMembers()
-    def _addCategoryObject (self, category, name, obj):
-        obj._prepareForArchive(self.archive(), self.namespace())
-        self.__categoryObjects.setdefault(category, {})[name] = obj
-    def _loadCategoryObjects (self, category_objects):
-        assert self.__categoryObjects is None
-        assert not self.__constructedLocally
-        ns = self.namespace()
-        ns.configureCategories(category_objects.keys())
-        for (cat, obj_map) in category_objects.iteritems():
-            current_map = ns.categoryMap(cat)
-            for (local_name, component) in obj_map.iteritems():
-                existing_component = current_map.get(local_name)
-                if existing_component is None:
-                    current_map[local_name] = component
-                elif existing_component._allowUpdateFromOther(component):
-                    existing_component._updateFromOther(component)
-                else:
-                    raise pyxb.NamespaceError(self, 'Load attempted to override %s %s in %s' % (category, ln, self.uri()))
-            print '%s added %d to %s' % (ns, len(obj_map), cat)
-        self.markIncorporated()
-    __categoryObjects = None
-    __PrivateTransient.add('categoryObjects')
-
-    def prepareForArchive (self, archive):
-        assert self.archive() is None
-        self._setArchive(archive)
-        print 'Archive %s ns %s module %s has %d origins' % (self.archive(), self.namespace(), self, len(self.origins()))
 
 class _ObjectOrigin (pyxb.utils.utility.PrivateTransient_mixin, pyxb.cscRoot):
     """Marker class for objects that can serve as an origin for an object in a
     namespace."""
-
-    def signature (self):
-        return self.__signature
-    __signature = None
-
-    def moduleRecord (self):
-        return self.__moduleRecord
-    __moduleRecord = None
-
-    def namespace (self):
-        return self.moduleRecord().namespace()
-
-    def generationUID (self):
-        return self.moduleRecord().generationUID()
-
-    def __init__ (self, namespace, generation_uid, **kw):
-        self.__signature = kw.pop('signature', None)
-        super(_ObjectOrigin, self).__init__(**kw)
-        self.__moduleRecord = namespace.lookupModuleRecordByUID(generation_uid, create_if_missing=True, **kw)
-        self.__moduleRecord.addOrigin(self)
-        self.__categoryMembers = { }
-
-    def resetCategoryMembers (self):
-        self.__categoryMembers.clear()
-    def addCategoryMember (self, category, name, obj):
-        self.__categoryMembers.setdefault(category, set()).add(name)
-        self.__moduleRecord._addCategoryObject(category, name, obj)
-    def categoryMembers (self):
-        return self.__categoryMembers
-    __categoryMembers = None
+    pass
 
 class _SchemaOrigin (_ObjectOrigin):
     """Holds the data regarding components derived from a single schema.
@@ -702,26 +526,56 @@ class _SchemaOrigin (_ObjectOrigin):
             return True
         return False
 
+    def importedNamespaces (self):
+        """Return the set of namespaces which some schema imported while
+        processing with this namespace as target."""
+        return self.__importedNamespaces
+    __importedNamespaces = None
+
+    def referencedNamespaces (self):
+        """Return the set of namespaces which appear in namespace declarations
+        of schema with this namespace as target."""
+        return self.__referencedNamespaces
+    __referencedNamespaces = None
+
     def location (self):
         return self.__location
     __location = None
+
+    def signature (self):
+        return self.__signature
+    __signature = None
+    
+    def generationUID (self):
+        return self.__generationUID
+    __generationUID = None
 
     def schema (self):
         return self.__schema
     __schema = None
     __PrivateTransient.add('schema')
 
+    def namespace (self):
+        return self.__namespace
+    __namespace = None
+
     def version (self):
         return self.__version
     __version = None
 
-    def __init__ (self, **kw):
-        self.__setDefaultKW(kw)
-        self.__schema = kw.pop('schema', None)
-        self.__location = kw.pop('location', None)
-        self.__version = kw.pop('version', None)
-        super(_SchemaOrigin, self).__init__(kw.pop('namespace'), kw.pop('generation_uid'), **kw)
+    def componentMapSlice (self):
+        pass
 
+    def __init__ (self, **kw):
+        super(_SchemaOrigin, self).__init__()
+        self.__setDefaultKW(kw)
+        self.__schema = kw.get('schema')
+        self.__signature = kw.get('signature')
+        self.__location = kw.get('location')
+        self.__generationUID = kw.get('generation_uid')
+        self.__namespace = kw.get('namespace')
+        self.__version = kw.get('version')
+        
     def __str__ (self):
         rv = [ '_SchemaOrigin(%s@%s' % (self.namespace(), self.location()) ]
         if self.version() is not None:

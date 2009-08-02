@@ -453,7 +453,7 @@ class _NamedComponent_mixin (pyxb.utils.utility.PrivateTransient_mixin, pyxb.csc
     __AnonymousCategory = pyxb.namespace.archive.NamespaceArchive._AnonymousCategory()
 
     def __needAnonymousSupport (self):
-        return self.isAnonymous() # or (self._scopeIsIndeterminate() and not isinstance(self, AttributeGroupDefinition))
+        return self.isAnonymous() or (self._scopeIsIndeterminate() and not isinstance(self, AttributeGroupDefinition))
 
     def _schema (self):
         """Return the schema component from which this component was defined.
@@ -4365,10 +4365,10 @@ class _ImportElementInformationItem (_Annotated_mixin):
         self.__schemaLocation = schema_location
         ns = self.__namespace = pyxb.namespace.NamespaceForURI(uri, create_if_missing=True)
         self.__redundant = False
-        #if ns.isLoadable():
-        #    if self.__schemaLocation is not None:
-        #        print 'WARNING: %s is loadable from %s, ignoring schema location %s' % (ns, ' and '.join([ _af.archivePath() for _af in ns.loadableFrom()]), self.__schemaLocation)
-        #        self.__schemaLocation = None
+        if ns.isLoadable():
+            if self.__schemaLocation is not None:
+                print 'WARNING: %s is loadable from %s, ignoring schema location %s' % (ns, ' and '.join([ _af.archivePath() for _af in ns.loadableFrom()]), self.__schemaLocation)
+                self.__schemaLocation = None
 
         if ns.isActive():
             # Already using this.  If we read it from an archive, there can't
@@ -4475,6 +4475,21 @@ class Schema (_SchemaComponent_mixin):
         return self.__defaultNamespace
     __defaultNamespace = None
 
+    def referencedNamespaces (self):
+        return self.__referencedNamespaces
+    __referencedNamespaces = None
+
+    def importEIIs (self):
+        return self.__importEIIs
+    __importEIIs = None
+
+    def importedSchema (self):
+        return self.__importedSchema
+    __importedSchema = None
+    def includedSchema (self):
+        return self.__includedSchema
+    __includedSchema = None
+
     _QUALIFIED = "qualified"
     _UNQUALIFIED = "unqualified"
     
@@ -4532,13 +4547,16 @@ class Schema (_SchemaComponent_mixin):
         self.__generationUID = kw.get('generation_uid')
         if self.__generationUID is None:
             print 'WARNING: No generationUID provided'
-            assert False
+            #assert False
             self.__generationUID = pyxb.utils.utility.UniqueIdentifier()
 
         self.__signature = kw.get('schema_signature')
         #print 'Schema at %s signature %s uid %s' % (self.location(), self.signature(), self.generationUID())
 
         super(Schema, self).__init__(*args, **kw)
+        self.__importEIIs = set()
+        self.__includedSchema = set()
+        self.__importedSchema = set()
         self.__targetNamespace = kw.get('target_namespace', self._namespaceContext().targetNamespace())
         if not isinstance(self.__targetNamespace, pyxb.namespace.Namespace):
             raise pyxb.LogicError('Schema constructor requires valid Namespace instance as target_namespace')
@@ -4556,6 +4574,8 @@ class Schema (_SchemaComponent_mixin):
 
         self.__attributeMap = self.__attributeMap.copy()
         self.__annotations = []
+        # @todo: This isn't right if namespaces are introduced deeper in the document
+        self.__referencedNamespaces = self._namespaceContext().inScopeNamespaces().values()
 
     __TopLevelComponentMap = {
         'element' : ElementDeclaration,
@@ -4759,6 +4779,7 @@ class Schema (_SchemaComponent_mixin):
             print '%s completed including %s from %s' % (self.__location, included_schema.targetNamespace(), abs_uri)
         print 'Included %s, back to %s' % (included_schema.location(), self.location())
         assert self.targetNamespace() == included_schema.targetNamespace()
+        self.__includedSchema.add(included_schema)
         return node
 
     def __processImport (self, node):
@@ -4771,10 +4792,13 @@ class Schema (_SchemaComponent_mixin):
         self.__requireInProlog(node.nodeName)
         import_eii = _ImportElementInformationItem(self, node)
         print 'Imported %s, prefix %s, back to %s' % (import_eii.namespace().uri(), import_eii.prefix(), self.__location)
+        if import_eii.schema() is not None:
+            self.__importedSchema.add(import_eii.schema())
         self.targetNamespace().importNamespace(import_eii.namespace())
         ins = import_eii.namespace()
         if ins.prefix() is None:
             ins.setPrefix(import_eii.prefix())
+        self.__importEIIs.add(import_eii)
         return node
 
     def __processRedefine (self, node):

@@ -1178,10 +1178,6 @@ class NamespaceModule (_ModuleNaming_mixin):
         return self.__namespace
     __namespace = None
 
-    def moduleRecord (self):
-        return self.__moduleRecord
-    __moduleRecord = None
-
     def namespaceGroupModule (self):
         return self.__namespaceGroupModule
     def setNamespaceGroupModule (self, namespace_group_module):
@@ -1217,8 +1213,8 @@ class NamespaceModule (_ModuleNaming_mixin):
         super(NamespaceModule, self).__init__(generator, **kw)
         self._initializeUniqueInModule(self._UniqueInModule)
         self.__namespace = namespace
-        self.__moduleRecord = namespace.lookupModuleRecordByUID(generator.generationUID())
         self.defineNamespace(namespace, 'Namespace', require_unique=False)
+        #print 'NSM Namespace %s module path %s' % (namespace, namespace.modulePath())
         self.__namespaceGroup = ns_scc
         self._RecordNamespace(self)
         self.__namespaceGroupHead = self.ForNamespace(ns_scc[0])
@@ -1231,11 +1227,10 @@ class NamespaceModule (_ModuleNaming_mixin):
         self._setModulePath(generator.modulePathData(self))
 
     def _initialBindingTemplateMap (self):
-        ns = self.namespace()
         kw = { 'moduleType' : 'namespace'
-             , 'targetNamespace' : repr(ns.uri())
-             , 'namespaceURI' : ns.uri()
-             , 'namespaceReference' : self.referenceNamespace(ns)
+             , 'targetNamespace' : repr(self.__namespace.uri())
+             , 'namespaceURI' : self.__namespace.uri()
+             , 'namespaceReference' : self.referenceNamespace(self.__namespace)
              }
         return kw
 
@@ -1428,7 +1423,7 @@ class Generator (object):
             ns = module.namespace()
             ns.validateComponentModel()
             module_path = ns.modulePath()
-            if (module.moduleRecord() is None) or (not self.generateToFiles()):
+            if (module_path is None) or ns.isLoadedNamespace() or (ns.isBuiltinNamespace() and not self.allowBuiltinGeneration()) or (not self.generateToFiles()):
                 return ('/dev/null', None, None)
             #if pyxb.namespace.XMLSchema != ns:
             #    return ('/dev/null', None, None)
@@ -2008,23 +2003,23 @@ class Generator (object):
 
     def __assignNamespaceModulePath (self, namespace, module_path=None):
         assert isinstance(namespace, pyxb.namespace.Namespace), 'unexpected type %s' % (type(namespace),)
-        mr = namespace.lookupModuleRecordByUID(self.generationUID())
-        if mr is None:
-            assert module_path is None
-            return None
-        if mr.modulePath() is not None:
+        # Validate so we can pull any existing module path from the archive
+        namespace.validateComponentModel()
+        if namespace.modulePath() is not None:
             return namespace
-        if not namespace.isAbsentNamespace():
-            if (module_path is None) and not (namespace.prefix() is None):
-                module_path = namespace.prefix()
-            module_path = self.namespaceModuleMap().get(namespace.uri(), module_path)
-            if module_path is None:
-                if self.allowAbsentModule() or (pyxb.namespace.XMLSchema_instance == namespace):
-                    return namespace
-                raise pyxb.BindingGenerationError('No prefix or module name available for %s' % (namespace,))
-            if self.modulePrefix(): # non-empty value
-                module_path = '.'.join([self.modulePrefix(), module_path])
-        mr.setModulePath(module_path)
+        if namespace.isAbsentNamespace():
+            namespace.setModulePath(module_path)
+            return namespace
+        if (module_path is None) and not (namespace.prefix() is None):
+            module_path = namespace.prefix()
+        module_path = self.namespaceModuleMap().get(namespace.uri(), module_path)
+        if module_path is None:
+            if self.allowAbsentModule() or (pyxb.namespace.XMLSchema_instance == namespace):
+                return namespace
+            raise pyxb.BindingGenerationError('No prefix or module name available for %s' % (namespace,))
+        if self.modulePrefix(): # non-empty value
+            module_path = '.'.join([self.modulePrefix(), module_path])
+        namespace.setModulePath(module_path)
         return namespace
 
     __didResolveExternalSchema = False
@@ -2082,13 +2077,6 @@ class Generator (object):
             if not ao.namespace().isUndeclaredNamespace():
                 affected_ns.add(ao.namespace())
 
-        module_records = set()
-        for ns in affected_ns:
-            mr = ns.completeGenerationAssociations(self.generationUID())
-            if mr is not None:
-                module_records.add(mr)
-                print 'Generation will include %s' % (ns,)
-
         # Entry namespaces are those that were specifically identified
         # by the user
         entry_namespaces = self.namespaces()
@@ -2108,7 +2096,7 @@ class Generator (object):
 
         text = []
         text.append('WARNING: Adding the following namespaces due to dependencies:')
-        for ns in self.namespaces():
+        for ns in self.namespaces(): # namespace_order:
             ns.validateComponentModel()
             self.__assignNamespaceModulePath(ns)
             if ns in missing:
@@ -2130,17 +2118,18 @@ class Generator (object):
         namespace_component_map = {}
         _process_builtins = False # Set to True for XMLSchema
         for sns in siblings:
-            mr = sns.lookupModuleRecordByUID(self.generationUID())
-            if mr is None:
+            if (pyxb.namespace.XMLSchema == sns) and (not _process_builtins):
                 continue
-            origins = mr.origins()
             for c in sns.components():
-                if (c._objectOrigin() in origins) and (isinstance(c, xs.structures.ElementDeclaration) and c._scopeIsGlobal()) or c.isTypeDefinition():
+                if (isinstance(c, xs.structures.ElementDeclaration) and c._scopeIsGlobal()) or c.isTypeDefinition():
                     assert (c._schema() is None) or (c._schema().targetNamespace() == sns)
                     c._setBindingNamespace(sns)
                     all_components.add(c)
                     namespace_component_map.setdefault(sns, set()).add(c)
         
+        usable_namespaces = set(namespace_component_map.keys())
+        usable_namespaces.update([ _ns for _ns in nsdep.dependentNamespaces() if _ns.isLoadable])
+    
         module_graph = pyxb.utils.utility.Graph()
     
         namespace_module_map = {}
@@ -2149,7 +2138,6 @@ class Generator (object):
             namespace_modules = []
             nsg_head = None
             for ns in ns_scc:
-                mr = ns.lookupModuleRecordByUID(self.generationUID())
                 if ns in siblings:
                     nsm = NamespaceModule(self, ns, ns_scc, namespace_component_map.get(ns, ns.components()))
                     modules.add(nsm)
@@ -2159,11 +2147,11 @@ class Generator (object):
                 namespace_module_map[ns] = nsm
                 assert ns == nsm.namespace()
     
-                if (nsg_head is None) and (nsm.moduleRecord() is not None):
+                if nsg_head is None:
                     nsg_head = nsm.namespaceGroupHead()
                 namespace_modules.append(nsm)
     
-            if (nsg_head is not None) and nsg_head.namespaceGroupMulti():
+            if (nsg_head is not None) and (not nsg_head.namespace().isLoadedNamespace()) and nsg_head.namespaceGroupMulti():
                 ngm = NamespaceGroupModule(self, namespace_modules)
                 modules.add(ngm)
                 module_graph.addNode(ngm)
@@ -2248,8 +2236,7 @@ class Generator (object):
     def writeNamespaceArchive (self):
         archive_file = self.archiveToFile()
         if archive_file is not None:
-            ns_archive = pyxb.namespace.archive.NamespaceArchive(generation_uid=self.generationUID())
-            assert ns_archive.namespaces() == self.namespaces()
+            ns_archive = pyxb.namespace.archive.NamespaceArchive(namespaces=self.namespaces(), generation_uid=self.generationUID())
             try:
                 ns_archive.writeNamespaces(pyxb.utils.utility.OpenOrCreate(archive_file))
                 print 'Saved parsed schema to %s URI' % (archive_file,)
