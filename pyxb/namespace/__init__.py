@@ -622,6 +622,10 @@ class Namespace (_NamespaceCategory_mixin, resolution._NamespaceResolution_mixin
     # generated Python modules
     __modulePath = None
 
+    # Holds the module path for builtin modules until we get a ModuleRecord to
+    # store that in.
+    __builtinModulePath = None
+
     # A set of options defining how the Python bindings for this namespace
     # were generated.  Not currently used, since we don't have different
     # binding configurations yet.
@@ -803,6 +807,10 @@ class Namespace (_NamespaceCategory_mixin, resolution._NamespaceResolution_mixin
     def builtinModulePath (self):
         if not self.__builtinModulePath:
             raise pyxb.LogicError('Namespace has no built-in module: %s' % (self,))
+        mr = self.lookupModuleRecordByUID(BuiltInObjectUID)
+        assert mr is not None
+        print 'RETURNING BUILTIN'
+        assert mr.modulePath() == self.__builtinModulePath
         return self.__builtinModulePath
 
     def isUndeclaredNamespace (self):
@@ -903,8 +911,10 @@ class Namespace (_NamespaceCategory_mixin, resolution._NamespaceResolution_mixin
     __definedBuiltins = False
     def _defineBuiltins (self, structures_module):
         if not self.__definedBuiltins:
+            mr = self.lookupModuleRecordByUID(BuiltInObjectUID, create_if_missing=True, module_path=self.__builtinModulePath)
             self._defineBuiltins_ox(structures_module)
             self.__definedBuiltins = True
+            mr.markIncorporated()
         return self
 
     def _loadComponentsFromArchives (self, structures_module):

@@ -476,17 +476,10 @@ class _NamespaceArchivable_mixin (pyxb.cscRoot):
         return self.__moduleRecordMap.values()
     __moduleRecordMap = None
 
-    def activeModuleRecord (self):
-        assert self.__activeModuleRecord is not None
-    __activeModuleRecord = None
-
     def addModuleRecord (self, module_record):
         assert isinstance(module_record, ModuleRecord)
         assert not (module_record.generationUID() in self.__moduleRecordMap)
         self.__moduleRecordMap[module_record.generationUID()] = module_record
-        if module_record.archive() is None:
-            assert self.__activeModuleRecord is None
-            self.__activeModuleRecord = module_record
         return module_record
     def lookupModuleRecordByUID (self, generation_uid, create_if_missing=False, *args, **kw):
         rv = self.__moduleRecordMap.get(generation_uid)
