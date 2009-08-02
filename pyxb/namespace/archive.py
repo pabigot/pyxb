@@ -478,6 +478,8 @@ class _NamespaceArchivable_mixin (pyxb.cscRoot):
 
     def addModuleRecord (self, module_record):
         assert isinstance(module_record, ModuleRecord)
+        # This assertion will fail if the binding is loaded before its archive
+        # is scanned.
         assert not (module_record.generationUID() in self.__moduleRecordMap)
         self.__moduleRecordMap[module_record.generationUID()] = module_record
         return module_record
@@ -573,6 +575,14 @@ class ModuleRecord (pyxb.utils.utility.PrivateTransient_mixin):
         return self
     __modulePath = None
 
+    def module (self):
+        return self.__module
+    def _setModule (self, module):
+        self.__modulePath = module
+        return self
+    __module = None
+    __PrivateTransient.add('module')
+
     def referencedNamespaces (self):
         return self.__referencedNamespaces
     def _setReferencedNamespaces (self, referenced_namespaces):
@@ -598,8 +608,7 @@ class ModuleRecord (pyxb.utils.utility.PrivateTransient_mixin):
         assert isinstance(generation_uid, pyxb.utils.utility.UniqueIdentifier)
         self.__generationUID = generation_uid
         self.__modulePath = kw.get('module_path')
-        #if (self.__modulePath is None) and (builtin.BuiltInObjectUID == generation_uid):
-        #    self.__modulePath = self.__namespace.builtinModulePath()
+        self.__module = kw.get('module')
         self.__originMap = {}
         self.__referencedNamespaces = set()
         self.__categoryObjects = { }

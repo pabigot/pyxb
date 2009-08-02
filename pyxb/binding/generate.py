@@ -42,7 +42,7 @@ import StringIO
 
 # Initialize UniqueInBinding with the public identifiers we generate,
 # import, or otherwise can't have mucked about with.
-UniqueInBinding = set([ 'pyxb', 'sys', 'Namespace', 'CreateFromDocument', 'CreateFromDOM' ])
+UniqueInBinding = set([ 'pyxb', 'sys', 'Namespace', 'ModuleRecord', 'CreateFromDocument', 'CreateFromDOM' ])
 
 def PrefixModule (value, text=None):
     if text is None:
@@ -1252,6 +1252,8 @@ _GenerationUID = %{generation_uid_expr}
 %{aux_imports}
 
 %{namespace_decls}
+ModuleRecord = Namespace.lookupModuleRecordByUID(_GenerationUID, create_if_missing=True)
+ModuleRecord._setModule(sys.modules[__name__])
 Namespace._setModule(sys.modules[__name__])
 
 def CreateFromDocument (xml_text):
