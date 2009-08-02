@@ -9,7 +9,7 @@ import pyxb.utils.domutils
 import sys
 
 # Unique identifier for bindings created at the same time
-_GenerationUID = pyxb.utils.utility.UniqueIdentifier('urn:uuid:06e3bdbc-795b-11de-ba4a-000c292f797c')
+_GenerationUID = pyxb.namespace.builtin.BuiltInObjectUID
 
 # Import bindings for namespaces imported into schema
 

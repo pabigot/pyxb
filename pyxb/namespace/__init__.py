@@ -663,6 +663,8 @@ class Namespace (_NamespaceCategory_mixin, resolution._NamespaceResolution_mixin
         To ensure that unpickled Namespace instances are unique per
         URI, we ensure that the routine that creates unpickled
         instances knows what it's supposed to return."""
+        if self.uri() is None:
+            raise pyxb.LogicError('Illegal to serialize absent namespaces')
         return (self.uri(),)
 
     def __new__ (cls, *args, **kw):
@@ -850,53 +852,20 @@ class Namespace (_NamespaceCategory_mixin, resolution._NamespaceResolution_mixin
     def createExpandedName (self, local_name):
         return ExpandedName(self, local_name)
 
-    def _getState_csc (self, kw):
-        kw.update({
-            'description': self.__description,
-            'prefix': self.__prefix,
-            'modulePath' : self.__modulePath,
-            'bindingConfiguration': self.__bindingConfiguration,
-            })
-        return getattr(super(Namespace, self), '_getState_csc', lambda _kw: _kw)(kw)
-
-    def _setState_csc (self, kw):
-        self.__isLoadedNamespace = True
-        self.__description = kw['description']
-        self.__prefix = kw['prefix']
-        assert (self.__modulePath is None) or (self.__modulePath == kw.get('modulePath'))
-        self.__modulePath = kw['modulePath']
-        self.__bindingConfiguration = kw['bindingConfiguration']
-        return getattr(super(Namespace, self), '_setState_csc', lambda _kw: self)(kw)
-
     def __getstate__ (self):
         """Support pickling.
 
-        Because namespace instances must be unique, we represent them
-        as their URI and any associated (non-bound) information.  This
-        way allows the unpickler to either identify an existing
-        Namespace instance for the URI, or create a new one, depending
-        on whether the namespace has already been encountered."""
-        if self.uri() is None:
-            raise pyxb.LogicError('Illegal to serialize absent namespaces')
-        kw = self._getState_csc({ })
-        args = ( self.__uri, )
-        return ( args, kw )
-
-    def __setstate__ (self, state):
-        """Support pickling."""
-        ( args, kw ) = state
-        ( uri, ) = args
-        assert self.__uri == uri
-        # If this namespace hasn't been activated, do so now, using the
-        # archived information which includes referenced namespaces.
-        if not self.isActive(True):
-            self._setState_csc(kw)
+        Well, no, not really.  Because namespace instances must be unique, we
+        represent them as their URI, and that's done by __getnewargs__
+        above.  All the interesting information is in the ModuleRecords."""
+        return {}
 
     def _defineBuiltins_ox (self, structures_module):
         pass
 
     __definedBuiltins = False
     def _defineBuiltins (self, structures_module):
+        assert self.isBuiltinNamespace()
         if not self.__definedBuiltins:
             mr = self.lookupModuleRecordByUID(BuiltInObjectUID, create_if_missing=True, module_path=self.__builtinModulePath)
             self._defineBuiltins_ox(structures_module)
@@ -917,9 +886,12 @@ class Namespace (_NamespaceCategory_mixin, resolution._NamespaceResolution_mixin
         There is no guarantee that any particular category of named object has
         been located when this returns.  Caller must check.
         """
-        for archive in self.archives():
-            if archive.isLoadable():
-                archive.readNamespaces()
+        for mr in self.moduleRecords():
+            if mr.isLoadable():
+                try:
+                    mr.archive().readNamespaces()
+                except pyxb.NamespaceArchiveError, e:
+                    print e
         self._activate()
 
     __didValidation = False
@@ -934,7 +906,8 @@ class Namespace (_NamespaceCategory_mixin, resolution._NamespaceResolution_mixin
             assert not self.__inValidation, 'Nested validation of %s' % (self.uri(),)
             if structures_module is None:
                 import pyxb.xmlschema.structures as structures_module
-            self._defineBuiltins(structures_module)
+            if self.isBuiltinNamespace():
+                self._defineBuiltins(structures_module)
             try:
                 self.__inValidation = True
                 self._loadComponentsFromArchives(structures_module)

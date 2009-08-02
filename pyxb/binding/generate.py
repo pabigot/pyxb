@@ -930,7 +930,8 @@ class _ModuleNaming_mixin (object):
         self.__uniqueInClass = {}
 
     def _importModule (self, module):
-        assert isinstance(module, (_ModuleNaming_mixin, pyxb.namespace.Namespace))
+        assert not isinstance(module, pyxb.namespace.Namespace)
+        assert isinstance(module, (_ModuleNaming_mixin, pyxb.namespace.Namespace, pyxb.namespace.archive.ModuleRecord)), 'Unexpected type %s' % (type(module),)
         if isinstance(module, NamespaceModule) and (pyxb.namespace.XMLSchema == module.namespace()):
             return
         if not (module in self.__importedModules):
@@ -972,14 +973,10 @@ class _ModuleNaming_mixin (object):
         template_map = {}
         aux_imports = []
         for ns in self.__importedModules:
+            if isinstance(ns, NamespaceModule):
+                ns = ns.moduleRecord()
             module_path = ns.modulePath()
-            if module_path is None:
-                if isinstance(ns, NamespaceModule):
-                    ns = ns.namespace()
-                if isinstance(ns, pyxb.namespace.Namespace):
-                    ns.validateComponentModel()
-                    module_path = ns.modulePath()
-            assert module_path is not None, ns
+            assert module_path is not None, 'No module path for %s type %s' % (ns, type(ns))
             aux_imports.append('import %s' % (module_path,))
         template_map['aux_imports'] = "\n".join(aux_imports)
         template_map['namespace_decls'] = "\n".join(self.__namespaceDeclarations)
@@ -994,6 +991,7 @@ class _ModuleNaming_mixin (object):
         (binding_file_path, binding_file, module_path) = path_data
         self.__bindingFilePath = binding_file_path
         self.__bindingFile = binding_file
+        print 'Set %s binding file %s path %s' % (self, binding_file, binding_file_path)
         if module_path is None:
             module_path = self.moduleRecord().modulePath()
         if module_path is not None:
@@ -1065,22 +1063,16 @@ class _ModuleNaming_mixin (object):
         return component_module
 
     def referenceSchemaComponent (self, component, module_type=None):
+        origin = component._objectOrigin()
+        assert origin is not None
+        if self.generator().generationUID() != origin.moduleRecord().generationUID():
+            mr = origin.moduleRecord()
+            assert mr is not None
+            self._importModule(mr)
+            #print 'Cross-module reference to %s in %s' % (component.nameInBinding(), mr)
+            return '%s.%s' % (mr.modulePath(), component.nameInBinding())
         component_module = self.__componentModule(component, module_type)
-        if component_module is None:
-            namespace = component.bindingNamespace()
-            if namespace is None:
-                name = self.__componentNameMap.get(component)
-                assert name is not None, 'Completely at a loss to identify %s in %s' % (component.expandedName(), self)
-            #assert not namespace.definedBySchema()
-            namespace_module = self.ForNamespace(namespace)
-            if namespace_module is not None:
-                self._importModule(namespace_module)
-                module_path = namespace.modulePath()
-            else:
-                assert namespace.isBuiltinNamespace(), 'No module for non-builtin %s' % (namespace,)
-                self._importModule(namespace)
-                module_path = namespace.builtinModulePath()
-            return '%s.%s' % (module_path, component.nameInBinding())
+        assert component_module is not None
         name = component_module.__componentNameMap.get(component)
         if name is None:
             assert isinstance(self, NamespaceModule) and (self.namespace() == component.bindingNamespace())
@@ -1167,7 +1159,7 @@ class _ModuleNaming_mixin (object):
             self.bindingFile().write(self.moduleContents())
             print 'Saved binding source to %s' % (self.__bindingFilePath,)
         else:
-            print 'ERROR: No binding file for %s' % (self,)
+            raise pyxb.LogicError('ERROR: No binding file for %s' % (self,))
 
 
 class NamespaceModule (_ModuleNaming_mixin):
@@ -1430,11 +1422,10 @@ class Generator (object):
         
         module_path = None
         if isinstance(module, NamespaceModule):
-            ns = module.namespace()
-            ns.validateComponentModel()
-            module_path = ns.modulePath()
-            if (module_path is None) or ns.isLoadedNamespace() or (ns.isBuiltinNamespace() and not self.allowBuiltinGeneration()) or (not self.generateToFiles()):
+            mr = module.moduleRecord()
+            if (mr is None) or (self.generationUID() != mr.generationUID()) or (not self.generateToFiles()):
                 return ('/dev/null', None, None)
+            module_path = mr.modulePath()
             #if pyxb.namespace.XMLSchema != ns:
             #    return ('/dev/null', None, None)
             #module_path="bogus.xsd"
