@@ -136,6 +136,12 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin, pyxb.na
 
         self._setOwner(kw.get('owner'))
 
+        schema = kw.get('schema')
+        if schema is not None:
+            self._setObjectOrigin(schema.originRecord())
+        else:
+            assert isinstance(self, (Schema, Annotation, Wildcard)), 'No origin available for type %s' % (type(self),)
+
     def _dissociateFromNamespace (self):
         """Dissociate this component from its owning namespace.  This should
         only be done whwen there are no other references to the component, and
@@ -601,7 +607,6 @@ class _NamedComponent_mixin (pyxb.utils.utility.PrivateTransient_mixin, pyxb.csc
 
         self.__schema = kw.get('schema')
         assert self._schema() is not None
-        self._setObjectOrigin(self._schema().originRecord())
 
         # Do parent invocations after we've set the name: they might need it.
         super(_NamedComponent_mixin, self).__init__(*args, **kw)
@@ -1239,6 +1244,11 @@ class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
                 self.__typeDefinition = None
         return self
 
+    # bR:AD
+    def _bindingRequires_vx (self, include_lax):
+        """Attribute declarations require their type."""
+        return frozenset([ self.__typeDefinition ])
+
 class AttributeUse (_SchemaComponent_mixin, pyxb.namespace.resolution._Resolvable_mixin, _ValueConstraint_mixin):
     """An XMLSchema Attribute Use component.
 
@@ -1770,6 +1780,11 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
             return self.__contentType[0]
         return self.__contentType
 
+    def _contentTypeComponent (self):
+        if isinstance(self.__contentType, tuple):
+            return self.__contentType[1]
+        return None
+
     # Identify the sort of content in this type.
     __contentType = None
     def contentType (self):
@@ -1871,7 +1886,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
             bi.__baseTypeDefinition = bi
 
             # No constraints on attributes
-            bi._setAttributeWildcard(Wildcard(namespace_context=ns_ctx, namespace_constraint=Wildcard.NC_any, process_contents=Wildcard.PC_lax))
+            bi._setAttributeWildcard(Wildcard(namespace_constraint=Wildcard.NC_any, process_contents=Wildcard.PC_lax, **kw))
 
             # There isn't anything to look up, but context is still global.
             # No declarations will be created, so use indeterminate scope to
@@ -1879,6 +1894,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
             # Content is mixed, with elements completely unconstrained. @todo:
             # not associated with a schema (it should be)
             kw = { 'namespace_context' : ns_ctx
+                 , 'schema' : schema
                  , 'scope': _ScopedDeclaration_mixin.XSCOPE_indeterminate }
             w = Wildcard(namespace_constraint=Wildcard.NC_any, process_contents=Wildcard.PC_lax, **kw)
             p = Particle(w, min_occurs=0, max_occurs=None, **kw)
@@ -1918,6 +1934,10 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         for decl in self.localScopedDeclarations():
             if include_lax or isinstance(decl, AttributeDeclaration):
                 rv.add(decl.typeDefinition())
+        if include_lax:
+            ct = self._contentTypeComponent()
+            if ct is not None:
+                rv.add(ct)
         return frozenset(rv)
 
     # CFD:CTD CFD:ComplexTypeDefinition
@@ -2590,6 +2610,13 @@ class ModelGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Anno
         assert rv.__modelGroup is not None
         return rv
 
+    # bR:MGD
+    def _bindingRequires_vx (self, include_lax):
+        """Model group definitions depend on the contained model group."""
+        if not include_lax:
+            return frozenset()
+        return frozenset([self.__modelGroup])
+
     def __str__ (self):
         return 'MGD[%s: %s]' % (self.name(), self.modelGroup())
 
@@ -2719,6 +2746,12 @@ class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
             if p.hasWildcardElement():
                 return True
         return False
+
+    # bR:MG
+    def _bindingRequires_vx (self, include_lax):
+        if not include_lax:
+            return frozenset()
+        return frozenset(self.__particles)
 
     # CFD:MG CFD:ModelGroup
     @classmethod
@@ -3049,6 +3082,12 @@ class Particle (_SchemaComponent_mixin, pyxb.namespace.resolution._Resolvable_mi
         if not rv.isResolved():
             rv._queueForResolution('creation')
         return rv
+
+    # bR:PRT
+    def _bindingRequires_vx (self, include_lax):
+        if not include_lax:
+            return frozenset()
+        return frozenset([ self.__term ])
 
     # aFS:PRT
     def _adaptForScope (self, owner, ctd):
@@ -3393,6 +3432,16 @@ class IdentityConstraintDefinition (_SchemaComponent_mixin, _NamedComponent_mixi
         self.__isResolved = True
         return self
     
+    # bR:ICD
+    def _bindingRequires_vx (self, include_lax):
+        """Constraint definitions that are by reference require the referenced constraint."""
+        rv = set()
+        if include_lax and (self.__referencedKey is not None):
+            rv.add(self.__referencedKey)
+        return frozenset(rv)
+
+
+
 # 3.12.1
 class NotationDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Annotated_mixin):
     __systemIdentifier = None

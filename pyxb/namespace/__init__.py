@@ -419,14 +419,6 @@ class _NamespaceCategory_mixin (pyxb.cscRoot):
                 if isinstance(v, archive._ArchivableObject_mixin) and (v._objectOrigin() in origin_set):
                     v._objectOrigin().addCategoryMember(cat, n, v)
 
-    def completeGenerationAssociations (self, generation_uid):
-        mr = self.lookupModuleRecordByUID(generation_uid)
-        if mr is not None:
-            self._transferReferencedNamespaces(mr)
-            self._associateOrigins(mr)
-        return mr
-
-
 class _ComponentDependency_mixin (pyxb.utils.utility.PrivateTransient_mixin, pyxb.cscRoot):
     """Mix-in for components that can depend on other components."""
 
@@ -474,7 +466,7 @@ class _ComponentDependency_mixin (pyxb.utils.utility.PrivateTransient_mixin, pyx
         @rtype: C{frozenset}
         @raise LogicError: A subclass failed to implement this method
         """
-        raise LogicError('%s does not implement _bindingRequires_vx' % (self.__class__,))
+        raise pyxb.LogicError('%s does not implement _bindingRequires_vx' % (type(self),))
 
 class _NamespaceComponentAssociation_mixin (pyxb.cscRoot):
     """Mix-in for managing components defined within this namespace.

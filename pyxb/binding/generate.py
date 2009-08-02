@@ -1022,13 +1022,13 @@ class _ModuleNaming_mixin (object):
         return cls.__ComponentBindingModuleMap.get(component)
 
     @classmethod
-    def _RecordNamespace (cls, module):
-        cls.__NamespaceModuleMap[module.namespace()] = module
+    def _RecordModule (cls, module):
+        cls.__RecordModuleMap[module.moduleRecord()] = module
         return module
     @classmethod
-    def ForNamespace (cls, namespace):
-        return cls.__NamespaceModuleMap.get(namespace)
-    __NamespaceModuleMap = { }
+    def ForRecord (cls, module_record):
+        return cls.__RecordModuleMap.get(module_record)
+    __RecordModuleMap = { }
 
     def _bindComponent (self, component):
         kw = {}
@@ -1059,20 +1059,22 @@ class _ModuleNaming_mixin (object):
             pass
         else:
             assert module_type is None
-            component_module = _ModuleNaming_mixin.ComponentBindingModule(component)
         return component_module
 
-    def referenceSchemaComponent (self, component, module_type=None):
+    def referenceSchemaComponent (self, component):
         origin = component._objectOrigin()
         assert origin is not None
-        if self.generator().generationUID() != origin.moduleRecord().generationUID():
-            mr = origin.moduleRecord()
-            assert mr is not None
-            self._importModule(mr)
-            #print 'Cross-module reference to %s in %s' % (component.nameInBinding(), mr)
-            return '%s.%s' % (mr.modulePath(), component.nameInBinding())
-        component_module = self.__componentModule(component, module_type)
-        assert component_module is not None
+        module_record = origin.moduleRecord()
+        assert module_record is not None
+        if self.generator().generationUID() != module_record.generationUID():
+            self._importModule(module_record)
+            return '%s.%s' % (module_record.modulePath(), component.nameInBinding())
+        nsm = self
+        if self.moduleRecord() != module_record:
+            nsm = self._ForRecord(module_record)
+            assert nsm is not None
+        component_module = _ModuleNaming_mixin.ComponentBindingModule(component)
+        assert component_module is not None, 'No binding module for %s from %s in %s as %s' % (component, module_record, self.moduleRecord(), component.nameInBinding())
         name = component_module.__componentNameMap.get(component)
         if name is None:
             assert isinstance(self, NamespaceModule) and (self.namespace() == component.bindingNamespace())
@@ -1099,8 +1101,7 @@ class _ModuleNaming_mixin (object):
         self.__referencedNamespaces[namespace] = name
         return name
 
-    def referenceNamespace (self, namespace, module_type=None):
-        assert module_type is None
+    def referenceNamespace (self, namespace):
         rv = self.__referencedNamespaces.get(namespace)
         if rv is None:
             namespace_module = self.ForNamespace(namespace)
@@ -1205,20 +1206,16 @@ class NamespaceModule (_ModuleNaming_mixin):
     def namespaceGroupMulti (self):
         return 1 < len(self.__namespaceGroup)
 
-    def __init__ (self, generator, namespace, ns_scc, components=None, **kw):
+    def __init__ (self, generator, module_record, mr_scc, components=None, **kw):
         super(NamespaceModule, self).__init__(generator, **kw)
         self._initializeUniqueInModule(self._UniqueInModule)
-        self.__namespace = namespace
-        self.__moduleRecord = namespace.lookupModuleRecordByUID(generator.generationUID())
-        if self.__moduleRecord is None:
-            print 'WARNING: Creating namespace module for ungenerated namespace %s' % (namespace,)
-            self.__moduleRecord = namespace.lookupModuleRecordByUID(pyxb.namespace.builtin.BuiltInObjectUID)
-        assert self.__moduleRecord is not None, 'No module record for %s' % (namespace,)
-        self.defineNamespace(namespace, 'Namespace', require_unique=False)
+        self.__moduleRecord = module_record
+        self.__namespace = self.__moduleRecord.namespace()
+        self.defineNamespace(self.__namespace, 'Namespace', require_unique=False)
         #print 'NSM Namespace %s module path %s' % (namespace, namespace.modulePath())
-        self.__namespaceGroup = ns_scc
-        self._RecordNamespace(self)
-        self.__namespaceGroupHead = self.ForNamespace(ns_scc[0])
+        #self.__namespaceGroup = mr_scc
+        self._RecordModule(self)
+        #self.__namespaceGroupHead = self.ForNamespace(ns_scc[0])
         self.__components = components
         # wow! fromkeys actually IS useful!
         if self.__components is not None:
@@ -1274,6 +1271,7 @@ def CreateFromDOM (node):
     def bindComponent (self, component):
         ns_name = self._bindComponent(component)
         component.setNameInBinding(ns_name)
+        print 'set name %s in %s' % (ns_name, component)
         binding_module = self
         if self.__namespaceGroupModule:
             self.__namespaceGroupModule._bindComponent(component)
@@ -2024,6 +2022,21 @@ class Generator (object):
         namespace.setModulePath(module_path)
         return namespace
 
+    def __assignModulePath (self, module_record, module_path=None):
+        if module_record.modulePath() is not None:
+            return module_record
+        namespace = module_record.namespace()
+        if not namespace.isAbsentNamespace():
+            if (module_path is None) and not (namespace.prefix() is None):
+                module_path = namespace.prefix()
+            module_path = self.namespaceModuleMap().get(namespace.uri(), module_path)
+            if (module_path is not None) and self.modulePrefix(): # non-empty value
+                module_path = '.'.join([self.modulePrefix(), module_path])
+            if (module_path is None) and self.generateToFiles():
+                raise pyxb.BindingGenerationError('No prefix or module name available for %s' % (module_record,))
+        module_record.setModulePath(module_path)
+        return module_record
+
     __didResolveExternalSchema = False
     def resolveExternalSchema (self, reset=False):
         if self.__didResolveExternalSchema and (not reset):
@@ -2053,113 +2066,92 @@ class Generator (object):
         for schema in self.__schemas:
             if isinstance(schema, basestring):
                 schema = xs.schema.CreateFromDocument(schema, generation_uid=self.generationUID())
-            ns = schema.targetNamespace()
-            #print 'namespace %s' % (ns,)
+            origin = schema.originRecord()
+            assert origin is not None
             module_path = None
             if self.__moduleList:
                 module_path = self.__moduleList.pop(0)
-            self.__assignNamespaceModulePath(ns, module_path)
-            self.addNamespace(ns)
+            self.__assignModulePath(origin.moduleRecord(), module_path)
+            assert schema.targetNamespace() == origin.moduleRecord().namespace()
+            self.addNamespace(schema.targetNamespace())
         self.__didResolveExternalSchema = True
         self.__bindingModules = None
 
     def __buildBindingModules (self):
-        modules = set()
-    
-        # Dissociate the schema records from the schema (which does
-        # not belong in the archive), and determine the set of
-        # namespaces affected as a result of reading in user-specified
-        # schema and their inclusions/imports.
-        affected_ns = set()
-        for ao in self.generationUID().associatedObjects():
-            # @todo: This kicks out declarations for the XML
-            # namespace, which happen to appear in the bindings for
-            # gml 3.1.1.  Remove this elision when we can mark those
-            # as private.
-            if not ao.namespace().isUndeclaredNamespace():
-                affected_ns.add(ao.namespace())
-
         module_records = set()
-        for ns in affected_ns:
-            mr = ns.completeGenerationAssociations(self.generationUID())
-            if mr is not None:
+        for origin in self.generationUID().associatedObjects():
+            mr = origin.moduleRecord()
+            if not (mr in module_records):
                 module_records.add(mr)
-                print 'Generation will include %s' % (ns,)
+                mr.completeGenerationAssociations()
+            print '%s produced %d components' % (origin, len(origin.originatedObjects()))
 
-        # Entry namespaces are those that were specifically identified
-        # by the user
-        entry_namespaces = self.namespaces()
-
-        # The namespace dependency graph includes an edge from A to B
-        # if (1) B appears in a namespace declaration in a schema used
-        # to construct A, or (2) B appears in an import directive in a
-        # schema used to construct A.  The siblings are simply all
-        # namespaces in the dependency graph.
-        nsdep = pyxb.namespace.archive.NamespaceDependencies(namespace_set=affected_ns)
-        siblings = nsdep.siblingNamespaces()
-
-        missing = affected_ns.difference(self.namespaces())
-        #siblings.update(missing)
-        #nsdep.setSiblingNamespaces(siblings)
-        self.__namespaces.update(siblings)
-
-        text = []
-        text.append('WARNING: Adding the following namespaces due to dependencies:')
-        for ns in self.namespaces(): # namespace_order:
-            ns.validateComponentModel()
-            self.__assignNamespaceModulePath(ns)
-            if ns in missing:
-                text.append('  %s, prefix %s, module path %s' % (ns, ns.prefix(), ns.modulePath()))
-                for sch in ns.schemas():
-                    text.append('    schemaLocation=%s' % (sch.location(),))
-            if (ns.modulePath() is None) and not (ns.isAbsentNamespace() or self.allowAbsentModule() or (pyxb.namespace.XMLSchema_instance == ns)):
-                raise pyxb.BindingGenerationError('No module path available for %s' % (ns,))
-        if 0 < len(missing):
-            print "\n".join(text)
-
-        for ns_set in nsdep.namespaceOrder():
-            pyxb.namespace.resolution.ResolveSiblingNamespaces(ns_set, self.__generationUID)
-    
-        file('namespace.dot', 'w').write(nsdep.namespaceGraph()._generateDOT('Namespace'))
-        file('component.dot', 'w').write(nsdep.componentGraph()._generateDOT('Component', lambda _c: _c.bestNCName()))
-    
         all_components = set()
-        namespace_component_map = {}
-        _process_builtins = False # Set to True for XMLSchema
-        for sns in siblings:
-            if (pyxb.namespace.XMLSchema == sns) and (not _process_builtins):
-                continue
-            for c in sns.components():
-                if (isinstance(c, xs.structures.ElementDeclaration) and c._scopeIsGlobal()) or c.isTypeDefinition():
-                    assert (c._schema() is None) or (c._schema().targetNamespace() == sns)
-                    c._setBindingNamespace(sns)
-                    all_components.add(c)
-                    namespace_component_map.setdefault(sns, set()).add(c)
-        
-        usable_namespaces = set(namespace_component_map.keys())
-        usable_namespaces.update([ _ns for _ns in nsdep.dependentNamespaces() if _ns.isLoadable])
-    
+        for mr in module_records:
+            all_components.update(mr.categoryObjects().get('typeDefinition', {}).itervalues())
+            all_components.update(mr.categoryObjects().get('elementDeclaration', {}).itervalues())
+        print '%d bindable components' % (len(all_components),)
+
+        namespaces = set()
+        [ namespaces.add(_mr.namespace()) for _mr in module_records ]
+        pyxb.namespace.resolution.ResolveSiblingNamespaces(namespaces, self.generationUID())
+
+        component_graph = pyxb.utils.utility.Graph()
+        need_visit = all_components.copy()
+        while 0 < len(need_visit):
+            c = need_visit.pop()
+            assert c is not None
+            assert c._objectOrigin() is not None, '%s %s has no origin' % (type(c), c)
+            component_graph.addNode(c)
+            br = c.bindingRequires(include_lax=True)
+            print 'Component %s requires %d bindings' % (c, len(br))
+            for cd in br:
+                #print '  %s in %s' % (cd, cd._objectOrigin())
+                if cd._objectOrigin() is None:
+                    assert isinstance(cd, (pyxb.xmlschema.structures.Annotation, pyxb.xmlschema.structures.Wildcard))
+                    continue
+                if (cd._objectOrigin().moduleRecord() in module_records) and not (cd in all_components):
+                    all_components.add(cd)
+                    need_visit.add(cd)
+                if cd in all_components:
+                    component_graph.addEdge(c, cd)
+
+        print '%d components in all' % (len(component_graph.nodes()),)
+
         module_graph = pyxb.utils.utility.Graph()
-    
-        namespace_module_map = {}
+        for c in all_components:
+            module_graph.addNode(c._objectOrigin().moduleRecord())
+        for (s, t) in component_graph.edges():
+            module_graph.addEdge(s._objectOrigin().moduleRecord(), t._objectOrigin().moduleRecord())
+        module_scc_order = module_graph.sccOrder()
+
+        # Note that module graph may have fewer nodes than
+        # module_records, if a module has no components that require
+        # binding generation.
+
+        for mr in module_graph.nodes():
+            self.__assignModulePath(mr)
+            assert not ((mr.modulePath() is None) and self.generateToFiles()), 'No module path defined for %s' % (mr,)
+
+        for c in all_components:
+            if (isinstance(c, xs.structures.ElementDeclaration) and c._scopeIsGlobal()) or c.isTypeDefinition():
+                c._setBindingNamespace(c._objectOrigin().moduleRecord().namespace())
+
+        #sys.exit(0)
+
+        record_binding_map = {}
         unique_in_bindings = set([NamespaceGroupModule._GroupPrefix])
-        for ns_scc in nsdep.namespaceOrder():
-            namespace_modules = []
-            nsg_head = None
-            for ns in ns_scc:
-                if ns in siblings:
-                    nsm = NamespaceModule(self, ns, ns_scc, namespace_component_map.get(ns, ns.components()))
-                    modules.add(nsm)
-                else:
-                    nsm = NamespaceModule(self, ns, ns_scc)
-                module_graph.addNode(nsm)
-                namespace_module_map[ns] = nsm
-                assert ns == nsm.namespace()
-    
-                if nsg_head is None:
-                    nsg_head = nsm.namespaceGroupHead()
-                namespace_modules.append(nsm)
-    
+        modules = []
+        for mr_scc in module_scc_order:
+            scc_modules = [ ]
+            for mr in mr_scc:
+                print 'Generating %s of %d' % (mr, len(mr_scc))
+                nsm = NamespaceModule(self, mr, mr_scc)
+                record_binding_map[mr] = nsm
+                scc_modules.append(nsm)
+            modules.extend(scc_modules)
+
+            '''
             if (nsg_head is not None) and (not nsg_head.namespace().isLoadedNamespace()) and nsg_head.namespaceGroupMulti():
                 ngm = NamespaceGroupModule(self, namespace_modules)
                 modules.add(ngm)
@@ -2168,10 +2160,9 @@ class Generator (object):
                     module_graph.addEdge(ngm, nsm)
                     nsm.setNamespaceGroupModule(ngm)
                 assert namespace_module_map[nsg_head.namespace()].namespaceGroupModule() == ngm
+            '''
     
-        file('modules.dot', 'w').write(module_graph._generateDOT('Modules'))
-    
-        component_csets = nsdep.componentOrder()
+        component_csets = component_graph.sccOrder()
         bad_order = False
         component_order = []
         for cset in component_csets:
@@ -2192,22 +2183,28 @@ class Generator (object):
                     if rcs in cset:
                         component_order.append(rcs)
             else:
-                component_order.append(cset[0])
+                component_order.extend(cset)
     
+        print '%d components in order' % (len(component_order),)
+
         element_declarations = []
         type_definitions = []
         for c in component_order:
             if isinstance(c, xs.structures.ElementDeclaration) and c._scopeIsGlobal():
-                nsm = namespace_module_map[c.bindingNamespace()]
+                # Only bind elements this pass, so their names get priority in deconfliction
+                nsm = record_binding_map[c._objectOrigin().moduleRecord()]
                 nsm.bindComponent(c)
                 element_declarations.append(c)
-            else:
+            elif c.isTypeDefinition():
                 type_definitions.append(c)
+            else:
+                # No binding generation required
+                pass
     
         simple_type_definitions = []
         complex_type_definitions = []
         for td in type_definitions:
-            nsm = namespace_module_map.get(td.bindingNamespace())
+            nsm = record_binding_map[td._objectOrigin().moduleRecord()]
             assert nsm is not None, 'No namespace module for %s type %s scope %s namespace %s' % (td.expandedName(), type(td), td._scope(), td.bindingNamespace)
             module_context = nsm.bindComponent(td)
             assert isinstance(module_context, _ModuleNaming_mixin), 'Unexpected type %s' % (type(module_context),)

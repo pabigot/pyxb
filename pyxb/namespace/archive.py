@@ -635,12 +635,17 @@ class ModuleRecord (pyxb.utils.utility.PrivateTransient_mixin):
                     obj._prepareForArchive(self)
         print 'Archive %s ns %s module %s has %d origins' % (self.archive(), self.namespace(), self, len(self.origins()))
 
+    def completeGenerationAssociations (self):
+        self.namespace()._transferReferencedNamespaces(self)
+        self.namespace()._associateOrigins(self)
+
     def __str__ (self):
         return 'MR[%s]@%s' % (self.generationUID(), self.namespace())
 
 class _ObjectOrigin (pyxb.utils.utility.PrivateTransient_mixin, pyxb.cscRoot):
     """Marker class for objects that can serve as an origin for an object in a
     namespace."""
+    __PrivateTransient = set()
 
     def signature (self):
         return self.__signature
@@ -662,15 +667,29 @@ class _ObjectOrigin (pyxb.utils.utility.PrivateTransient_mixin, pyxb.cscRoot):
         self.__moduleRecord = namespace.lookupModuleRecordByUID(generation_uid, create_if_missing=True, **kw)
         self.__moduleRecord.addOrigin(self)
         self.__categoryMembers = { }
+        self.__categoryObjectMap = { }
 
     def resetCategoryMembers (self):
         self.__categoryMembers.clear()
+        self.__categoryObjectMap.clear()
+        self.__originatedComponents = None
     def addCategoryMember (self, category, name, obj):
         self.__categoryMembers.setdefault(category, set()).add(name)
+        self.__categoryObjectMap.setdefault(category, {})[name] = obj
         self.__moduleRecord._addCategoryObject(category, name, obj)
     def categoryMembers (self):
         return self.__categoryMembers
+    def originatedObjects (self):
+        if self.__originatedObjects is None:
+            components = set()
+            [ components.update(_v.values()) for _v in self.__categoryObjectMap.itervalues() ]
+            self.__originatedObjects = frozenset(components)
+        return self.__originatedObjects
     __categoryMembers = None
+    __categoryObjectMap = None
+    __PrivateTransient.add('categoryObjectMap')
+    __originatedObjects = None
+    __PrivateTransient.add('originatedObjects')
 
 class _SchemaOrigin (_ObjectOrigin):
     """Holds the data regarding components derived from a single schema.
@@ -724,9 +743,6 @@ class _SchemaOrigin (_ObjectOrigin):
     def version (self):
         return self.__version
     __version = None
-
-    def componentMapSlice (self):
-        pass
 
     def __init__ (self, **kw):
         self.__setDefaultKW(kw)
