@@ -9,5 +9,7 @@ touch bindings/__init__.py
 ../../../scripts/pyxbgen \
   --module-prefix=bindings \
   --schema-location=d_c.xsd --module=D \
-  --archive-file=bindings/D.wxs
-
+  --archive-to-file=bindings/D.wxs \
+ && python tst-a.py \
+ && python tst-b.py \
+ && echo "Passed"

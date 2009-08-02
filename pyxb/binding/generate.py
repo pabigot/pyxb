@@ -1069,10 +1069,6 @@ class _ModuleNaming_mixin (object):
         if self.generator().generationUID() != module_record.generationUID():
             self._importModule(module_record)
             return '%s.%s' % (module_record.modulePath(), component.nameInBinding())
-        nsm = self
-        if self.moduleRecord() != module_record:
-            nsm = self._ForRecord(module_record)
-            assert nsm is not None
         component_module = _ModuleNaming_mixin.ComponentBindingModule(component)
         assert component_module is not None, 'No binding module for %s from %s in %s as %s' % (component, module_record, self.moduleRecord(), component.nameInBinding())
         name = component_module.__componentNameMap.get(component)
@@ -1313,8 +1309,7 @@ class NamespaceGroupModule (_ModuleNaming_mixin):
         self._setModulePath(generator.modulePathData(self))
 
     def _initialBindingTemplateMap (self):
-        kw = { 'moduleType' : 'namespaceGroup'
-             , 'namespaceHeadURI' : self.__namespaceGroupHead.namespace().uri() }
+        kw = { 'moduleType' : 'namespaceGroup' }
         return kw
 
     def _finalizeModuleContents_vx (self, template_map):
@@ -2163,17 +2158,12 @@ class Generator (object):
                 scc_modules.append(nsm)
             modules.extend(scc_modules)
 
-            '''
-            if (nsg_head is not None) and (not nsg_head.namespace().isLoadedNamespace()) and nsg_head.namespaceGroupMulti():
-                ngm = NamespaceGroupModule(self, namespace_modules)
-                modules.add(ngm)
-                module_graph.addNode(ngm)
-                for nsm in namespace_modules:
-                    module_graph.addEdge(ngm, nsm)
+            if 1 < len(mr_scc):
+                ngm = NamespaceGroupModule(self, scc_modules)
+                modules.append(ngm)
+                for nsm in scc_modules:
                     nsm.setNamespaceGroupModule(ngm)
-                assert namespace_module_map[nsg_head.namespace()].namespaceGroupModule() == ngm
-            '''
-    
+
         component_csets = self.__graphFromComponents(binding_components, False).sccOrder()
         bad_order = False
         component_order = []
