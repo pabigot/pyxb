@@ -1,6 +1,6 @@
 import unittest
 from pyxb.utils.utility import *
-from pyxb.utils.utility import _DeconflictSymbols_mixin
+from pyxb.utils.utility import _DeconflictSymbols_mixin, _DefaultPathWildcard
 
 class DST_base (_DeconflictSymbols_mixin):
     _ReservedSymbols = set([ 'one', 'two' ])
@@ -541,6 +541,101 @@ class TestUniqueIdentifier (unittest.TestCase):
         import pyxb.utils.utility
         u1b = eval(repr(u1))
         self.assertEqual(id(u1), id(u1b))
+
+import os
+import re
+class TestGetMatchingFiles (unittest.TestCase):
+    __WXS_re = re.compile('\.wxs$')
+    __NoExt_re = re.compile('^[^\.]*$')
+    __directory = None
+    def setUp (self):
+        self.__directory = tempfile.mkdtemp()
+        #print 'setup %s' % (self.__directory,)
+        
+        dir_hierarchy = [ 'd1', 'd2', 'd3', 'd1/d11', 'd1/d12', 'd1/d12/d121' ]
+        [ os.mkdir(os.path.join(self.__directory, _d)) for _d in dir_hierarchy ]
+        files = [ 'd1/f1a.wxs', 'd1/f1b.wxs', 'd1/f1c',
+                  'd2/f2a.wxs', 'd2/f2b',
+                  'd3/f3a.wxs',
+                  'd1/d11/f11a.wxs', 'd1/d11/f11b.wxs',
+                  'd1/d12/f12a.wxs', 'd1/d12/f12b',
+                  'd1/d12/d121/f121a.wxs' ]
+        [ file(os.path.join(self.__directory, _f), 'w') for _f in files ]
+
+        os.symlink(os.path.join(self.__directory, 'd2'), os.path.join(self.__directory, 'd1', 'd11', 'l2'))
+
+    def tearDown (self):
+        #print 'teardown %s' % (self.__directory,)
+        for (root, dirs, files) in os.walk(self.__directory, False):
+            [ os.unlink(os.path.join(root, _f)) for _f in files ]
+            for d in dirs:
+                dp = os.path.join(root, d)
+                try:
+                    os.rmdir(dp)
+                except OSError:
+                    os.unlink(dp)
+        os.rmdir(self.__directory)
+
+    def _formPath (self, *args):
+        global _DefaultPathWildcard
+        out_args = []
+        for a in args:
+            if _DefaultPathWildcard == a:
+                out_args.append(a)
+            else:
+                out_args.append(os.path.join(self.__directory, a))
+        return ':'.join(out_args)
+
+    def _stripPath (self, files):
+        return [ _f[len(self.__directory)+1:] for _f in files ]
+
+    def testFormPath (self):
+        # Make sure _formPath preserves trailing slashes
+        saved_dir = self.__directory
+        candidates = [ 'a', 'a/', 'a//', '+' ]
+        try:
+            self.__directory = '/test'
+            expanded = self._formPath(*candidates)
+            self.assertEqual('/test/a:/test/a/:/test/a//:+', expanded)
+            candidates.pop()
+            expanded = self._formPath(*candidates)
+            condensed = self._stripPath(expanded.split(':'))
+            self.assertEqual(candidates, condensed)
+        finally:
+            self.__directory = saved_dir
+
+    def testD1 (self):
+        files = set(self._stripPath(GetMatchingFiles(self._formPath('d1'))))
+        self.assertEqual(files, set(['d1/f1c', 'd1/f1b.wxs', 'd1/f1a.wxs']))
+
+    def testPattern (self):
+        files = set(self._stripPath(GetMatchingFiles(self._formPath('d1'), self.__WXS_re)))
+        self.assertEqual(files, set(['d1/f1b.wxs', 'd1/f1a.wxs']))
+        files = set(self._stripPath(GetMatchingFiles(self._formPath('d1'), self.__NoExt_re)))
+        self.assertEqual(files, set(['d1/f1c']))
+        files = set(self._stripPath(GetMatchingFiles(self._formPath('d1', 'd2'), self.__WXS_re)))
+        self.assertEqual(files, set(['d1/f1a.wxs', 'd1/f1b.wxs', 'd2/f2a.wxs']))
+
+    def testD1D2 (self):
+        files = set(self._stripPath(GetMatchingFiles(self._formPath('d1', 'd2'))))
+        self.assertEqual(files, set(['d1/f1a.wxs', 'd1/f1b.wxs', 'd1/f1c', 'd2/f2a.wxs', 'd2/f2b']))
+
+    def testLink (self):
+        files = set(self._stripPath(GetMatchingFiles(self._formPath(os.path.join('d1', 'd11', 'l2')))))
+        self.assertEqual(files, set(['d1/d11/l2/f2a.wxs', 'd1/d11/l2/f2b']))
+
+    def testDefault (self):
+        default_path = self._formPath('d1')
+        files = set(self._stripPath(GetMatchingFiles(self._formPath('+'), self.__WXS_re, default_path)))
+        self.assertEqual(files, set(['d1/f1b.wxs', 'd1/f1a.wxs']))
+        files = set(self._stripPath(GetMatchingFiles(self._formPath('d2', '+'), self.__WXS_re, default_path)))
+        self.assertEqual(files, set(['d1/f1a.wxs', 'd1/f1b.wxs', 'd2/f2a.wxs']))
+        files = set(self._stripPath(GetMatchingFiles(self._formPath('+', 'd2'), self.__WXS_re, default_path)))
+        self.assertEqual(files, set(['d1/f1a.wxs', 'd1/f1b.wxs', 'd2/f2a.wxs']))
+
+    def testRecursive (self):
+        files = set(self._stripPath(GetMatchingFiles(self._formPath('d1//'), self.__WXS_re)))
+        self.assertEqual(files, set(['d1/f1a.wxs', 'd1/f1b.wxs', 'd1/d11/f11a.wxs', 'd1/d12/f12a.wxs', 'd1/d11/f11b.wxs', 'd1/d12/d121/f121a.wxs']))
 
 if '__main__' == __name__:
     unittest.main()

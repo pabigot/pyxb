@@ -805,3 +805,31 @@ class PrivateTransient_mixin (pyxb.cscRoot):
 
         return state
 
+_DefaultPathWildcard = '+'
+def GetMatchingFiles (path='.', pattern=None, default_path=None):
+    matching_files = []
+    path_set = path.split(':')
+    while 0 < len(path_set):
+        path = path_set.pop(0)
+        if _DefaultPathWildcard == path:
+            if default_path is not None:
+                path_set[0:0] = default_path.split(':')
+            continue
+        recursive = False
+        if path.endswith('//'):
+            recursive = True
+            path = path[:-2]
+        #print 'walking %s %s' % (path, recursive)
+        for (root, dirs, files) in os.walk(path):
+            #print '%s has %d dirs %d files' % (root, len(dirs), len(files))
+            for f in files:
+                if (pattern is None) or (pattern.search(f) is not None):
+                    matching_files.append(os.path.join(root, f))
+            if not recursive:
+                break
+    return matching_files
+    
+if '__main__' == __name__:
+    unittest.main()
+            
+        
