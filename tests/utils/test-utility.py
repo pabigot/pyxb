@@ -637,6 +637,11 @@ class TestGetMatchingFiles (unittest.TestCase):
         files = set(self._stripPath(GetMatchingFiles(self._formPath('d1//'), self.__WXS_re)))
         self.assertEqual(files, set(['d1/f1a.wxs', 'd1/f1b.wxs', 'd1/d11/f11a.wxs', 'd1/d12/f12a.wxs', 'd1/d11/f11b.wxs', 'd1/d12/d121/f121a.wxs']))
 
+    def testFiles (self):
+        files = set(self._stripPath(GetMatchingFiles(self._formPath('d1', os.path.join('d2', 'f2b')), self.__NoExt_re)))
+        self.assertEqual(files, set(['d1/f1c', 'd2/f2b']))
+
+
 if '__main__' == __name__:
     unittest.main()
             

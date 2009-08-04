@@ -819,14 +819,16 @@ def GetMatchingFiles (path='.', pattern=None, default_path=None):
         if path.endswith('//'):
             recursive = True
             path = path[:-2]
-        #print 'walking %s %s' % (path, recursive)
-        for (root, dirs, files) in os.walk(path):
-            #print '%s has %d dirs %d files' % (root, len(dirs), len(files))
-            for f in files:
-                if (pattern is None) or (pattern.search(f) is not None):
-                    matching_files.append(os.path.join(root, f))
-            if not recursive:
-                break
+        if os.path.isfile(path):
+            if (pattern is None) or (pattern.search(path) is not None):
+                matching_files.append(path)
+        else:
+            for (root, dirs, files) in os.walk(path):
+                for f in files:
+                    if (pattern is None) or (pattern.search(f) is not None):
+                        matching_files.append(os.path.join(root, f))
+                if not recursive:
+                    break
     return matching_files
     
 if '__main__' == __name__:
