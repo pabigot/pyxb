@@ -4470,13 +4470,13 @@ class _ImportElementInformationItem (_Annotated_mixin):
         if self.schemaLocation() is not None:
             # @todo: NOTICE
             # print 'import %s + %s = %s' % (schema.location(), self.__schemaLocation, schema_location)
-            imported_schema = self.__namespace.lookupSchemaByLocation(schema_location)
-            if imported_schema is None:
+            (has_schema, schema_instance) = self.__namespace.lookupSchemaByLocation(schema_location)
+            if not has_schema:
                 try:
-                    imported_schema = Schema.CreateFromLocation(absolute_schema_location=schema_location, namespace_context=ns_ctx, generation_uid=schema.generationUID())
+                    schema_instance = Schema.CreateFromLocation(absolute_schema_location=schema_location, namespace_context=ns_ctx, generation_uid=schema.generationUID())
                 except Exception, e:
                     print 'WARNING: Import %s cannot read schema location %s (%s)' % (ns, self.__schemaLocation, schema_location)
-            self.__schema = imported_schema
+            self.__schema = schema_instance
         elif not ns.isLoadable():
             print 'WARNING: No information available on imported namespace %s' % (uri,)
 
@@ -4837,10 +4837,10 @@ class Schema (_SchemaComponent_mixin):
         # See section 4.2.1 of Structures.
         abs_uri = pyxb.utils.utility.NormalizeLocation(NodeAttribute(node, 'schemaLocation'), self.__location)
         #print 'include %s + %s = %s' % (self.__location, rel_uri, abs_uri)
-        included_schema = self.targetNamespace().lookupSchemaByLocation(abs_uri)
-        if included_schema is None:
+        (has_schema, schema_instance) = self.targetNamespace().lookupSchemaByLocation(abs_uri)
+        if not has_schema:
             try:
-                included_schema = self.CreateFromLocation(absolute_schema_location=abs_uri, namespace_context=self.__namespaceData, inherit_default_namespace=True, generation_uid=self.generationUID())
+                schema_instance = self.CreateFromLocation(absolute_schema_location=abs_uri, namespace_context=self.__namespaceData, inherit_default_namespace=True, generation_uid=self.generationUID())
             except Exception, e:
                 print 'INCLUDE %s caught: %s' % (abs_uri, e)
                 #traceback.print_exception(*sys.exc_info())
@@ -4849,8 +4849,9 @@ class Schema (_SchemaComponent_mixin):
             #print '%s completed including %s from %s' % (self.__location, included_schema.targetNamespace(), abs_uri)
         # @todo: NOTICE
         #print 'Included %s, back to %s' % (included_schema.location(), self.location())
-        assert self.targetNamespace() == included_schema.targetNamespace()
-        self.__includedSchema.add(included_schema)
+        if schema_instance:
+            assert self.targetNamespace() == schema_instance.targetNamespace()
+            self.__includedSchema.add(schema_instance)
         return node
 
     def __processImport (self, node):

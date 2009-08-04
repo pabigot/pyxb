@@ -557,6 +557,12 @@ class ModuleRecord (pyxb.utils.utility.PrivateTransient_mixin):
         return self
     __originMap = None
 
+    def hasMatchingOrigin (self, **kw):
+        for origin in self.origins():
+            if origin.match(**kw):
+                return True
+        return False
+
     def modulePath (self):
         return self.__modulePath
     def setModulePath (self, module_path):

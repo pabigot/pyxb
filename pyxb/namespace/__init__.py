@@ -523,8 +523,11 @@ class _NamespaceComponentAssociation_mixin (pyxb.cscRoot):
     def lookupSchemaByLocation (self, schema_location):
         for sr in self.__origins:
             if isinstance(sr, archive._SchemaOrigin) and sr.match(location=schema_location):
-                return sr.schema()
-        return None
+                return (True, sr.schema())
+        for mr in self.moduleRecords():
+            if mr.hasMatchingOrigin(location=schema_location):
+                return (True, None)
+        return (False, None)
 
     def schemas (self):
         s = set()
