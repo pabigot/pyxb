@@ -131,7 +131,7 @@ setup(name='PyXB',
       # Also change in README.TXT, pyxb.__init__.py, and doc/conf.py
       version='0.5.2',
       provides='pyxb',
-      packages=[ 'pyxb', 'pyxb.binding', 'pyxb.utils', 'pyxb.xmlschema',
+      packages=[ 'pyxb', 'pyxb.namespace', 'pyxb.binding', 'pyxb.utils', 'pyxb.xmlschema',
                  'pyxb.standard', 'pyxb.standard.bindings', 'pyxb.standard.bindings.raw' ],
 
       package_data={ 'pyxb.standard.bindings.raw' :  [ 'xsd_hfp.wxs', 'wsdl.wxs', 'xhtml.wxs', 'soapenv.wxs',
