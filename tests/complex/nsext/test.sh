@@ -8,8 +8,6 @@ export PYTHONPATH PATH PYXB_ARCHIVE_PATH
 
 rm -f *.wxs *.pyc common.py common4app.py app.py
 
-exit 0
-
 pyxbgen \
   --schema-location=base.xsd --module=common \
   --archive-to-file=common.wxs
