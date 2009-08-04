@@ -3,6 +3,7 @@
 import pyxb.namespace
 import sys
 import traceback
+import pyxb.xmlschema.structures
 
 pyxb.namespace.archive.NamespaceArchive.PreLoadArchives()
 for fn in sys.argv[1:]:
@@ -11,7 +12,7 @@ for fn in sys.argv[1:]:
         nsa = pyxb.namespace.archive.NamespaceArchive.ForPath(fn)
     except pyxb.NamespaceArchiveError, e:
         print '%s: %s' % (fn, e)
-        next
+        continue
     print '%s : %d namespaces:' % (fn, len(nsa.namespaces()))
     nsa.readNamespaces()
     for mr in nsa.moduleRecords():

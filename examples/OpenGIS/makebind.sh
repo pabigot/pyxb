@@ -117,7 +117,7 @@ pyxbgen \
 pyxbgen \
   --schema-location=Schemas/sos/1.0.0/sosAll.xsd --module=sos_1_0 \
   --module-prefix=opengis \
-  --no-load-namespace=http://www.opengis.net/ogc \
+  --pre-load-archive=opengis/filter.wxs \
   --archive-to-file=opengis/sos_1_0.wxs \
  || failure sos_1_0
 

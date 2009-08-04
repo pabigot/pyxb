@@ -86,12 +86,15 @@ class NamespaceArchive (object):
             # @todo NOTICE
             #print 'RESETTING NAMESPACE ARCHIVE %d archives' % (len(cls.__NamespaceArchives,))
             for nsa in cls.__NamespaceArchives.values():
-                for ns in nsa.__namespaces:
-                    ns._removeArchive(nsa)
+                nsa.dissociateFromNamespaces()
         cls.__NamespaceArchives = {}
 
     __NamespaceArchives = None
     """A mapping from file system paths to NamespaceArchive instances."""
+
+    def dissociateFromNamespaces (self):
+        for ns in self.__namespaces:
+            ns._removeArchive(self)
 
     @classmethod
     def __GetArchiveInstance (cls, archive_file, stage=None):
@@ -147,7 +150,7 @@ class NamespaceArchive (object):
             # Get archives for all required files
             if required_archive_files is not None:
                 for afn in required_archive_files:
-                    required_archives.append(cls.__GetArchiveInstance(afn, stage=cls._STAGE_uid))
+                    required_archives.append(cls.__GetArchiveInstance(afn, stage=cls._STAGE_readModules))
 
             # Ensure we have an archive path
             if archive_path is None:
@@ -159,44 +162,50 @@ class NamespaceArchive (object):
             for afn in candidate_files:
                 print 'Considering %s' % (afn,)
                 try:
-                    nsa = cls.__GetArchiveInstance(afn, stage=cls._STAGE_uid)
+                    nsa = cls.__GetArchiveInstance(afn, stage=cls._STAGE_readModules)
                     archive_set.add(nsa)
                 except pickle.UnpicklingError, e:
                     print 'Cannot use archive %s: %s' % (afn, e)
                 except pyxb.NamespaceArchiveError, e:
                     print 'Cannot use archive %s: %s' % (afn, e)
             
-            need_validation = archive_set.copy()
-            last_prereq = set()
-            while (0 < len(need_validation)) or (0 < len(last_prereq)):
-                while last_prereq:
-                    archive = last_prereq.pop()
-                    prereqs = archive._unsatisfiedModulePrerequisites()
-                    if 0 < len(prereqs):
-                        #print 'Holding read of required %s on %s' % (archive, prereqs)
-                        need_validation.add(archive)
-                        continue
-                    #print 'Completing read of required %s' % (archive,)
-                    archive._readToStage(cls._STAGE_COMPLETE)
-                last_validation = need_validation.copy()
-                next_validation = set()
-                last_prereq = set()
-                while 0 < len(need_validation):
-                    archive = need_validation.pop()
-                    archive._readToStage(cls._STAGE_readModules)
-                    prereqs = archive._unsatisfiedModulePrerequisites()
-                    if 0 < len(prereqs):
-                        #print 'Holding %s based on required %s' % (archive, prereqs)
-                        next_validation.add(archive)
-                        continue
-                    #print 'Validating %s' % (archive,)
-                    archive._readToStage(cls._STAGE_validateModules)
-                    last_prereq.add(archive)
-                if (0 < len(last_validation)) and (last_validation == next_validation):
-                    print 'Discarding unsatisfiable archives'
-                need_validation = next_validation
+            # Do this for two reasons: first, to get an iterable that won't
+            # cause problems when we remove unresolvable archives from
+            # archive_set; and second to aid with forced dependency inversion
+            # testing
+            ordered_archives = sorted(list(archive_set), lambda _a,_b: cmp(_a.archivePath(), _b.archivePath()))
+            ordered_archives.reverse()
+
+            archive_map = { }
             for a in archive_set:
-                print '%s stage %s' % (a.archivePath(), a._stage())
+                archive_map[a.generationUID()] = a
+            archive_graph = pyxb.utils.utility.Graph()
+            for a in ordered_archives:
+                prereqs = a._unsatisfiedModulePrerequisites()
+                if 0 < len(prereqs):
+                    for p in prereqs:
+                        da = archive_map.get(p)
+                        if da is None:
+                            print 'WARNING: %s depends on unavailable archive %s' % (a, p)
+                            archive_set.remove(a)
+                        else:
+                            print '%s depends on %s' % (a, da)
+                            archive_graph.addEdge(a, da)
+                else:
+                    print '%s has no dependencies' % (a,)
+                    archive_graph.addRoot(a)
+
+            archive_scc = archive_graph.sccOrder()
+            for scc in archive_scc:
+                if 1 < len(scc):
+                    raise pyxb.LogicError("Cycle in archive dependencies.  How'd you do that?\n  " + "\n  ".join([ _a.archivePath() for _a in scc ]))
+                archive = scc[0]
+                if not (archive in archive_set):
+                    print 'Discarding unresolvable %s' % (archive,)
+                    archive.dissociateFromNamespaces()
+                    continue
+                print 'Completing load of %s' % (archive,)
+                archive._readToStage(cls._STAGE_COMPLETE)
 
         return required_archives
 

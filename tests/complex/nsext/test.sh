@@ -28,6 +28,9 @@ python tst-base.py \
 && python tst-extend.py \
 && echo 'Passed common tests'
 
+# Use this to verify dependency checking
+# rm -f common.wxs
+
 pyxbgen \
   --schema-location=app.xsd --module=app
   
