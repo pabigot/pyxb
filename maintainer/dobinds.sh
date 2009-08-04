@@ -51,4 +51,5 @@ EOList
   if [ 0 != $? ] ; then
     break
   fi
+  #scripts/pyxbdump pyxb/standard/bindings/raw/${prefix}.wxs
 done
