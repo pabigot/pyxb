@@ -2,6 +2,7 @@ PYTHONPATH=../..:.
 export PYTHONPATH
 PYXB_ARCHIVE_PATH=.:+
 export PYXB_ARCHIVE_PATH
+rm -f *.wxs
 rm -f po1.py
 ../../scripts/pyxbgen -u po1.xsd  -m po1
 python demo1.py
