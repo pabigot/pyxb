@@ -886,7 +886,7 @@ class Namespace (_NamespaceCategory_mixin, resolution._NamespaceResolution_mixin
         attempt to load one.
         """
         if not self.__didValidation:
-            assert not self.__inValidation, 'Nested validation of %s' % (self.uri(),)
+            # assert not self.__inValidation, 'Nested validation of %s' % (self.uri(),)
             if structures_module is None:
                 import pyxb.xmlschema.structures as structures_module
             if self.isBuiltinNamespace():

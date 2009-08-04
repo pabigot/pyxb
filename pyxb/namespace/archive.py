@@ -80,19 +80,11 @@ class NamespaceArchive (object):
     # SaveToFile.
     __PicklingArchive = None
 
-    @classmethod
-    def __ResetNamespaceArchives (cls):
-        if cls.__NamespaceArchives is not None:
-            # @todo NOTICE
-            #print 'RESETTING NAMESPACE ARCHIVE %d archives' % (len(cls.__NamespaceArchives,))
-            for nsa in cls.__NamespaceArchives.values():
-                nsa.dissociateFromNamespaces()
-        cls.__NamespaceArchives = {}
-
     __NamespaceArchives = None
-    """A mapping from file system paths to NamespaceArchive instances."""
+    """A mapping from generation UID to NamespaceArchive instances."""
 
-    def dissociateFromNamespaces (self):
+    def discard (self):
+        del self.__NamespaceArchives[self.generationUID()]
         for ns in self.__namespaces:
             ns._removeArchive(self)
 
@@ -104,12 +96,12 @@ class NamespaceArchive (object):
         returns the same L{NamespaceArchive} instance.
         """
         
-        normalized_path = os.path.realpath(archive_file)
-        nsa = cls.__NamespaceArchives.get(normalized_path)
-        if nsa is None:
-            nsa = cls.__NamespaceArchives[normalized_path] = NamespaceArchive(archive_path=archive_file, stage=cls._STAGE_UNOPENED)
-        nsa._readToStage(stage)
-        return nsa
+        nsa = NamespaceArchive(archive_path=archive_file, stage=cls._STAGE_uid)
+        rv = cls.__NamespaceArchives.get(nsa.generationUID(), nsa)
+        if rv == nsa:
+            cls.__NamespaceArchives[rv.generationUID()] = rv
+        rv._readToStage(stage)
+        return rv
 
     __ArchivePattern_re = re.compile('\.wxs$')
 
@@ -141,11 +133,16 @@ class NamespaceArchive (object):
         contain a valid namespace archive.
         """
         
+        import builtin
+        
         reset = reset or (archive_path is not None) or (required_archive_files is not None) or (cls.__NamespaceArchives is None)
         required_archives = []
         if reset:
-            # Erase any previous archive associations
-            cls.__ResetNamespaceArchives()
+            # Get a list of pre-existing archives, initializing the map if
+            # this is the first time through.
+            if cls.__NamespaceArchives is None:
+                cls.__NamespaceArchives = { }
+            existing_archives = set(cls.__NamespaceArchives.values())
 
             # Get archives for all required files
             if required_archive_files is not None:
@@ -160,7 +157,7 @@ class NamespaceArchive (object):
             candidate_files = pyxb.utils.utility.GetMatchingFiles(archive_path, cls.__ArchivePattern_re, DefaultArchivePath)
             archive_set = set(required_archives)
             for afn in candidate_files:
-                print 'Considering %s' % (afn,)
+                #print 'Considering %s' % (afn,)
                 try:
                     nsa = cls.__GetArchiveInstance(afn, stage=cls._STAGE_readModules)
                     archive_set.add(nsa)
@@ -176,6 +173,7 @@ class NamespaceArchive (object):
             ordered_archives = sorted(list(archive_set), lambda _a,_b: cmp(_a.archivePath(), _b.archivePath()))
             ordered_archives.reverse()
 
+            # Create a graph that identifies dependencies between the archives
             archive_map = { }
             for a in archive_set:
                 archive_map[a.generationUID()] = a
@@ -184,28 +182,39 @@ class NamespaceArchive (object):
                 prereqs = a._unsatisfiedModulePrerequisites()
                 if 0 < len(prereqs):
                     for p in prereqs:
+                        if builtin.BuiltInObjectUID == p:
+                            continue
                         da = archive_map.get(p)
                         if da is None:
                             print 'WARNING: %s depends on unavailable archive %s' % (a, p)
                             archive_set.remove(a)
                         else:
-                            print '%s depends on %s' % (a, da)
+                            #print '%s depends on %s' % (a, da)
                             archive_graph.addEdge(a, da)
                 else:
-                    print '%s has no dependencies' % (a,)
+                    #print '%s has no dependencies' % (a,)
                     archive_graph.addRoot(a)
 
+            # Verify that there are no dependency loops.
             archive_scc = archive_graph.sccOrder()
             for scc in archive_scc:
                 if 1 < len(scc):
                     raise pyxb.LogicError("Cycle in archive dependencies.  How'd you do that?\n  " + "\n  ".join([ _a.archivePath() for _a in scc ]))
                 archive = scc[0]
                 if not (archive in archive_set):
-                    print 'Discarding unresolvable %s' % (archive,)
-                    archive.dissociateFromNamespaces()
+                    #print 'Discarding unresolvable %s' % (archive,)
+                    archive.discard()
+                    existing_archives.remove(archive)
                     continue
-                print 'Completing load of %s' % (archive,)
-                archive._readToStage(cls._STAGE_COMPLETE)
+                #print 'Completing load of %s' % (archive,)
+                #archive._readToStage(cls._STAGE_COMPLETE)
+
+            # Discard any archives that we used to know about but now aren't
+            # supposed to.  @todo make this friendlier in the case of archives
+            # we've already incorporated.
+            for archive in existing_archives.difference(archive_set):
+                #print 'Discarding excluded archive %s' % (archive,)
+                archive.discard()
 
         return required_archives
 
@@ -362,17 +371,23 @@ class NamespaceArchive (object):
             #print 'Namespace %s records:' % (ns,)
             #for xmr in ns.moduleRecords():
             #    print ' %s' % (xmr,)
-            for base_uid in mr.dependsOnExternal():
-                xmr = ns.lookupModuleRecordByUID(base_uid)
-                if xmr is None:
-                    prereq_uids.add(base_uid)
+            prereq_uids.update(mr.dependsOnExternal())
         return prereq_uids
 
-    def __validateModules (self):
+    def __validatePrerequisites (self, stage):
         prereq_uids = self._unsatisfiedModulePrerequisites()
-        if 0 < len(prereq_uids):
-            raise pyxb.NamespaceArchiveError('%s: archive depends on unresolved externals: %s' % (self.archivePath(), ' '.join([ str(_u) for _u in prereq_uids ])))
-        #print 'VAL %s' % (self,)
+        print '%s depends on %d prerequisites' % (self, len(prereq_uids))
+        for uid in prereq_uids:
+            if builtin.BuiltInObjectUID == uid:
+                continue
+            depends_on = self.__NamespaceArchives.get(uid)
+            if depends_on is None:
+                raise pyxb.NamespaceArchiveError('%s: archive depends on unavailable archive %s' % (self.archivePath(), uid))
+            print '%s stage %s depends on %s at %s going to %s' % (self, self._stage(), depends_on, depends_on._stage(), stage)
+            depends_on._readToStage(stage)
+
+    def __validateModules (self):
+        self.__validatePrerequisites(self._STAGE_validateModules)
         for mr in self.__moduleRecords:
             ns = mr.namespace()
             #print 'Namespace %s records:' % (ns,)
@@ -398,6 +413,7 @@ class NamespaceArchive (object):
                     print '%s no conflicts on %d names' % (cat, len(names))
 
     def __readComponentSet (self, unpickler):
+        self.__validatePrerequisites(self._STAGE_readComponents)
         #print 'RCS %s' % (self,)
         for n in range(len(self.__moduleRecords)):
             ns = unpickler.load()
