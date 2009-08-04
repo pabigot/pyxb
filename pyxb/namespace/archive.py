@@ -155,6 +155,7 @@ class NamespaceArchive (object):
             # Get archive instances for everything in the archive path
             candidate_files = pyxb.utils.utility.GetMatchingFiles(archive_path, cls.__ArchivePattern_re, DefaultArchivePath)
             for afn in candidate_files:
+                print 'Considering %s' % (afn,)
                 try:
                     nsa = cls.__GetArchiveInstance(afn)
                 except pickle.UnpicklingError, e:
@@ -347,6 +348,18 @@ class NamespaceArchive (object):
 
         for mr in self.__moduleRecords:
             ns = mr.namespace()
+            #print 'Namespace %s records:' % (ns,)
+            #for xmr in ns.moduleRecords():
+            #    print ' %s' % (xmr,)
+            for base_uid in mr.dependsOnExternal():
+                xmr = ns.lookupModuleRecordByUID(base_uid)
+                if xmr is None:
+                    raise pyxb.NamespaceArchiveError('Module %s depends on external module %s, not available in archive path' % (mr.generationUID(), base_uid))
+                if not xmr.isIncorporated():
+                    print 'Need to incorporate data from %s' % (xmr,)
+                else:
+                    print 'Have required base data %s' % (xmr,)
+
             for origin in mr.origins():
                 #print 'mr %s origin %s' % (mr, origin)
                 for (cat, names) in origin.categoryMembers().iteritems():
@@ -610,6 +623,7 @@ class ModuleRecord (pyxb.utils.utility.PrivateTransient_mixin):
         self.__referencedNamespaces = set()
         self.__categoryObjects = { }
         self.__constructedLocally = True
+        self.__dependsOnExternal = set()
 
     def categoryObjects (self):
         return self.__categoryObjects
@@ -639,10 +653,19 @@ class ModuleRecord (pyxb.utils.utility.PrivateTransient_mixin):
     __categoryObjects = None
     __PrivateTransient.add('categoryObjects')
 
+    def dependsOnExternal (self):
+        return self.__dependsOnExternal
+    __dependsOnExternal = None
+
     def prepareForArchive (self, archive):
         assert self.archive() is None
         self._setArchive(archive)
         ns = self.namespace()
+        self.__dependsOnExternal.clear()
+        for mr in ns.moduleRecords():
+            if mr != self:
+                print 'This gen depends on %s' % (mr,)
+                self.__dependsOnExternal.add(mr.generationUID())
         for obj in ns._namedObjects().union(ns.components()):
             if isinstance(obj, _ArchivableObject_mixin):
                 if obj._objectOrigin():

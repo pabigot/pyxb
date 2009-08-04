@@ -870,6 +870,7 @@ class Namespace (_NamespaceCategory_mixin, resolution._NamespaceResolution_mixin
         """
         for mr in self.moduleRecords():
             if mr.isLoadable():
+                print 'Load %s from %s' % (mr, mr.archive())
                 try:
                     mr.archive().readNamespaces()
                 except pyxb.NamespaceArchiveError, e:
