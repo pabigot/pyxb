@@ -8,7 +8,13 @@ if [ ! -d opengis ] ; then
 fi
 
 python demo.py || exit 1
-python check_sos.py Schemas/sos/1.0.0/examples/*.xml
+
+# sosRegisterSensor.xml uses tml:tcfTrigger, but the element is really named tml:cfTrigger
+# Skip testing it since it will fail to validate thereby confusing the viewer.
+ls Schemas/sos/1.0.0/examples/*.xml \
+ | grep -v sosRegisterSensor \
+ | xargs python check_sos.py \
+|| exit 1
 
 rm gmlapp.py raw/gmlapp.py
 pyxbgen \

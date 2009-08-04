@@ -128,11 +128,11 @@ pyxbgen \
  || failure sampling_1_0
 
 # Conflicts with sos + filter
-#pyxbgen \
-#  --schema-location=Schemas/tml/1.0.0/tml.xsd --module=tml \
-#  --module-prefix=opengis \
-#  --archive-to-file=opengis/tml.wxs \
-# || failure tml
+pyxbgen \
+  --schema-location=Schemas/tml/1.0.0/tml.xsd --module=tml \
+  --module-prefix=opengis \
+  --archive-to-file=opengis/tml.wxs \
+ || failure tml
 
 pyxbgen \
   --schema-location=Schemas/wfs/1.1.0/wfs.xsd --module=wfs \
