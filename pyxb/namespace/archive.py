@@ -213,7 +213,7 @@ class NamespaceArchive (object):
             # supposed to.  @todo make this friendlier in the case of archives
             # we've already incorporated.
             for archive in existing_archives.difference(archive_set):
-                #print 'Discarding excluded archive %s' % (archive,)
+                print 'Discarding excluded archive %s' % (archive,)
                 archive.discard()
 
         return required_archives
@@ -340,15 +340,16 @@ class NamespaceArchive (object):
         return unpickler
 
     def __readModules (self, unpickler):
-        #print 'RM %s' % (self,)
+        #print 'RM %x %s' % (id(self), self)
         mrs = unpickler.load()
         assert isinstance(mrs, set), 'Expected set got %s from %s' % (type(mrs), self.archivePath())
         if self.__moduleRecords is None:
-            for mr in mrs:
+            for mr in mrs.copy():
                 mr2 = mr.namespace().lookupModuleRecordByUID(mr.generationUID())
                 if mr2 is not None:
-                    # Multiple reads of same archive?
-                    raise pyxb.NamespaceArchiveError('Already have module record %s %s' % (mr.namespace(), mr.generationUID()))
+                    mr2._setFromOther(mr, self)
+                    #print 'Replaced locally defined %s with archive data' % (mr2,)
+                    mrs.remove(mr)
             self.__moduleRecords = set()
             assert 0 == len(self.__namespaces)
             for mr in mrs:
@@ -375,15 +376,16 @@ class NamespaceArchive (object):
         return prereq_uids
 
     def __validatePrerequisites (self, stage):
+        import builtin
         prereq_uids = self._unsatisfiedModulePrerequisites()
-        print '%s depends on %d prerequisites' % (self, len(prereq_uids))
+        #print '%s depends on %d prerequisites' % (self, len(prereq_uids))
         for uid in prereq_uids:
             if builtin.BuiltInObjectUID == uid:
                 continue
             depends_on = self.__NamespaceArchives.get(uid)
             if depends_on is None:
                 raise pyxb.NamespaceArchiveError('%s: archive depends on unavailable archive %s' % (self.archivePath(), uid))
-            print '%s stage %s depends on %s at %s going to %s' % (self, self._stage(), depends_on, depends_on._stage(), stage)
+            #print '%s stage %s depends on %s at %s going to %s' % (self, self._stage(), depends_on, depends_on._stage(), stage)
             depends_on._readToStage(stage)
 
     def __validateModules (self):
@@ -749,6 +751,23 @@ class ModuleRecord (pyxb.utils.utility.PrivateTransient_mixin):
         self.__constructedLocally = True
         self.__dependsOnExternal = set()
 
+    def _setFromOther (self, other, archive):
+        if (not self.__constructedLocally) or other.__constructedLocally:
+            raise pyxb.ImplementationError('Module record update requires local to be updated from archive')
+        assert self.__generationUID == other.__generationUID
+        assert self.__archive is None
+        self.__isPublic = other.__isPublic
+        assert not self.__isIncorporated
+        self.__isLoadable = other.__isLoadable
+        self.__modulePath = other.__modulePath
+        # self.__module already set correctly
+        self.__originMap.update(other.__originMap)
+        self.__referencedNamespaces.update(other.__referencedNamespaces)
+        if not (other.__categoryObjects is None):
+            self.__categoryObjects.update(other.__categoryObjects)
+        self.__dependsOnExternal.update(other.__dependsOnExternal)
+        self._setArchive(archive)
+
     def categoryObjects (self):
         return self.__categoryObjects
     def resetCategoryObjects (self):
@@ -794,7 +813,7 @@ class ModuleRecord (pyxb.utils.utility.PrivateTransient_mixin):
             if isinstance(obj, _ArchivableObject_mixin):
                 if obj._objectOrigin():
                     obj._prepareForArchive(self)
-        print 'Archive %s ns %s module %s has %d origins' % (self.archive(), self.namespace(), self, len(self.origins()))
+        #print 'Archive %s ns %s module %s has %d origins' % (self.archive(), self.namespace(), self, len(self.origins()))
 
     def completeGenerationAssociations (self):
         self.namespace()._transferReferencedNamespaces(self)
