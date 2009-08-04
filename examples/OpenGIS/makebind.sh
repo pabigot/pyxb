@@ -1,4 +1,4 @@
-export PYXB_ARCHIVE_PATH=opengis:opengis/misc:opengis/citygml:opengis/iso19139:+
+export PYXB_ARCHIVE_PATH=opengis//:+
 PYXB_ROOT=${PYXB_ROOT:-../..}
 export PYTHONPATH=${PYXB_ROOT}
 export PATH=${PYXB_ROOT}/scripts:${PATH}

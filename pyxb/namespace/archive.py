@@ -32,7 +32,6 @@ import stat
 
 DefaultArchivePath = os.path.realpath("%s/standard/bindings/raw" % (os.path.join(os.path.dirname( __file__), '..'),))
 """Default location for reading C{.wxs} files"""
-print DefaultArchivePath
 
 def GetArchivePath ():
     import os
@@ -44,6 +43,8 @@ def GetArchivePath ():
 # Stuff required for pickling
 import cPickle as pickle
 #import pyxb.utils.pickle_trace as pickle
+
+import re
 
 class NamespaceArchive (object):
     """Represent a file from which one or more namespaces can be read, or to
@@ -106,6 +107,8 @@ class NamespaceArchive (object):
             nsa = cls.__NamespaceArchives[normalized_path] = NamespaceArchive(archive_path=archive_file)
         return nsa
 
+    __ArchivePattern_re = re.compile('\.wxs$')
+
     @classmethod
     def PreLoadArchives (cls, archive_path=None, required_archive_files=None, reset=False):
         """Scan for available archives, associating them with namespaces.
@@ -150,25 +153,14 @@ class NamespaceArchive (object):
                 archive_path = GetArchivePath()
     
             # Get archive instances for everything in the archive path
-            for bp in archive_path.split(':'):
-                if '+' == bp:
-                    bp = DefaultArchivePath
-                files = []
+            candidate_files = pyxb.utils.utility.GetMatchingFiles(archive_path, cls.__ArchivePattern_re, DefaultArchivePath)
+            for afn in candidate_files:
                 try:
-                    stbuf = os.stat(bp)
-                    if stat.S_ISDIR(stbuf.st_mode):
-                        files = [ os.path.join(bp, _fn) for _fn in os.listdir(bp) if _fn.endswith('.wxs') ]
-                    else:
-                        files = [ bp ]
-                except OSError, e:
-                    files = []
-                for afn in files:
-                    try:
-                        nsa = cls.__GetArchiveInstance(afn)
-                    except pickle.UnpicklingError, e:
-                        print 'Cannot use archive %s: %s' % (afn, e)
-                    except pyxb.NamespaceArchiveError, e:
-                        print 'Cannot use archive %s: %s' % (afn, e)
+                    nsa = cls.__GetArchiveInstance(afn)
+                except pickle.UnpicklingError, e:
+                    print 'Cannot use archive %s: %s' % (afn, e)
+                except pyxb.NamespaceArchiveError, e:
+                    print 'Cannot use archive %s: %s' % (afn, e)
         return required_archives
 
     def archivePath (self):
@@ -207,6 +199,10 @@ class NamespaceArchive (object):
         return self.__moduleRecords
     __moduleRecords = None
                 
+    @classmethod
+    def ForPath (cls, archive_file):
+        return cls.__GetArchiveInstance(archive_file)
+
     def __init__ (self, archive_path=None, generation_uid=None, loadable=True):
         """Create a new namespace archive.
 
