@@ -16,7 +16,8 @@ documents and Python instances.  In concept it is similar to `JAXB
 :ref:`thirty_sec_example` is at the bottom of this page.
 
 For downloads, support, etc. please see the `PyXB project page
-<http://sourceforge.net/projects/pyxb>`_ on SourceForge.
+<http://sourceforge.net/projects/pyxb>`_ on SourceForge.  For a history of
+releases, see :ref:`releases`.
 
 ** WARNING ** 0.7.x is a :ref:`BETA RELEASE<releases>`.  Documentation is not up
 to date.
