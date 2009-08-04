@@ -46,6 +46,11 @@ This release is identical to 0.5.2 except that the binding interface has
 completely changed.  All examples have been updated; the documentation will be
 updated later.
 
+Note that the code in PyXB itself has not changed, and is not going to
+change.  However, properties produce an interface more natural to most Python
+programs, so that has become the default style.  See the --binding-style
+parameter to pyxbgen if you want to change this.
+
 - Change the method of accessing elements and attributes in bindings from
   accessor methods (e.g., elt.attr(), elt.setAttr()) to properties (e.g.,
   elt.attr).  :ticket:`18`
