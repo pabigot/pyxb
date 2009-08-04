@@ -4,19 +4,22 @@ import pyxb.namespace
 import sys
 import traceback
 
-#pyxb.namespace.NamespaceArchives('/dev/null', reset=True)
+pyxb.namespace.archive.NamespaceArchive.PreLoadArchives()
 for fn in sys.argv[1:]:
-    nsa = pyxb.namespace.archive.NamespaceArchive(archive_path=fn)
-    print 'File %s archives %d namespaces:' % (fn, len(nsa.namespaces()))
+    nsa = None
+    try:
+        nsa = pyxb.namespace.archive.NamespaceArchive.ForPath(fn)
+    except pyxb.NamespaceArchiveError, e:
+        print '%s: %s' % (fn, e)
+        next
+    print '%s : %d namespaces:' % (fn, len(nsa.namespaces()))
     nsa.readNamespaces()
     for mr in nsa.moduleRecords():
-        print mr
-        ns = mr.namespace()
-        print ' module-path=%s' % (mr.modulePath(),)
-        for cat in ns.categories():
-            cat_map = ns.categoryMap(cat)
-            for (k, v) in cat_map.items():
-                print '  %s %s: %s' % (cat, ns.createExpandedName(k), v)
+        print ' %s : %s, module-path=%s' % (mr.namespace(), mr.generationUID(), mr.modulePath())
+        for origin in mr.origins():
+            print '  + %s' % (origin,)
+            for (c, k) in origin.categoryMembers().iteritems():
+                print '   - %s %d items' % (c, len(k))
 
 # LocalVariables:
 # mode:python
