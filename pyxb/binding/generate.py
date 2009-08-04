@@ -2108,7 +2108,7 @@ class Generator (object):
             self.__namespaceVisibilityMap.setdefault(ns, True)
         for mr in self.__moduleRecords:
             mr._setIsPublic(self.__namespaceVisibilityMap.get(mr.namespace(), self.defaultNamespacePublic()))
-            print ' %s %s' % ((mr.isPublic() and 'public') or 'private', mr)
+            #print ' %s %s' % ((mr.isPublic() and 'public') or 'private', mr)
 
         # Generate the graph from all components and descend into lax
         # requirements; otherwise we might miss anonymous types hidden
