@@ -1689,7 +1689,14 @@ class Generator (object):
     __namespaceVisibilityMap = None
 
     def defaultNamespacePublic (self):
-        """Indicates whether namespaces that do not have visibilities set will be public (default) or private."""
+        """Indicates whether unmentioned namespaces will be public or private (default) in the archive.
+
+        A namespace is I{mentioned} if it is the target namespace of
+        an entrypoint schema, or appears in a namespace visibility
+        specification.  I.e., this default applies only to namespaces
+        that are modified as a result of including some schema, which
+        is generally a local customization of something.
+        """
         return self.__defaultNamespacePublic
     def setDefaultNamespacePublic (self, default_namespace_public):
         self.__defaultNamespacePublic = default_namespace_public
@@ -1804,7 +1811,7 @@ class Generator (object):
         self.__archiveToFile = kw.get('archive_to_file')
         self.__namespaceVisibilityMap = {}
         self._setNamespaceVisibilities(kw.get('public_namespaces', set()), kw.get('private_namespaces', set()))
-        self.__defaultNamespacePublic = kw.get('default_namespace_public', True)
+        self.__defaultNamespacePublic = kw.get('default_namespace_public', False)
         self.__validateChanges = kw.get('validate_changes', True)
         self.__bindingStyle = kw.get('binding_style', self._DEFAULT_bindingStyle)
         self.__namespaceModuleMap = kw.get('namespace_module_map', {}).copy()
@@ -2094,6 +2101,14 @@ class Generator (object):
         namespaces = set()
         [ namespaces.add(_mr.namespace()) for _mr in self.__moduleRecords ]
         pyxb.namespace.resolution.ResolveSiblingNamespaces(namespaces, self.generationUID())
+
+        # Mark module visibility.  Entry-point namespaces default to
+        # public.
+        for ns in self.namespaces():
+            self.__namespaceVisibilityMap.setdefault(ns, True)
+        for mr in self.__moduleRecords:
+            mr._setIsPublic(self.__namespaceVisibilityMap.get(mr.namespace(), self.defaultNamespacePublic()))
+            print ' %s %s' % ((mr.isPublic() and 'public') or 'private', mr)
 
         # Generate the graph from all components and descend into lax
         # requirements; otherwise we might miss anonymous types hidden

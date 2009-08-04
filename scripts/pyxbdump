@@ -16,7 +16,7 @@ for fn in sys.argv[1:]:
     print '%s : %d namespaces:' % (fn, len(nsa.namespaces()))
     nsa.readNamespaces()
     for mr in nsa.moduleRecords():
-        print ' %s : %s, module-path=%s' % (mr.namespace(), mr.generationUID(), mr.modulePath())
+        print ' %s : %s, module-path=%s, %s' % (mr.namespace(), mr.generationUID(), mr.modulePath(), (mr.isPublic() and 'public') or 'private')
         for origin in mr.origins():
             print '  + %s' % (origin,)
             for (c, k) in origin.categoryMembers().iteritems():
