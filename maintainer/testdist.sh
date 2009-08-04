@@ -24,7 +24,7 @@ for pv in 2.4.6 2.5.4 2.6.2 ; do
   export PYTHONPATH=.:${idir}/lib/python${pvs}/site-packages
   python setup.py test
   cd examples;
-  for d in [a-z]* ; do
+  for d in * ; do
     if [ -f ${d}/test.sh ] ; then
       ( cd ${d} ; sh test.sh )
     fi
