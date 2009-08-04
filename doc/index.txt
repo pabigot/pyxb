@@ -18,7 +18,7 @@ documents and Python instances.  In concept it is similar to `JAXB
 For downloads, support, etc. please see the `PyXB project page
 <http://sourceforge.net/projects/pyxb>`_ on SourceForge.
 
-** WARNING ** 0.5.0 is a :ref:`BETA RELEASE<releases>`.  Documentation is not up
+** WARNING ** 0.5.x is a :ref:`BETA RELEASE<releases>`.  Documentation is not up
 to date.
 
 ** NEW ** Supports :ref:`ex_opengis`.
@@ -48,41 +48,20 @@ automatically-generated module.  First, retrieve the WSDL and generate the
 bindings::
 
  vmfed9[23]$ pyxbgen -W 'http://ws.cdyne.com/WeatherWS/Weather.asmx?wsdl' -m weather
-Retrieving WSDL from http://ws.cdyne.com/WeatherWS/Weather.asmx?wsdl
-http://www.w3.org/2001/XMLSchema: 46 typeDefinition -- activated
-http://schemas.xmlsoap.org/wsdl/: 20 typeBinding -- activated
-xml=http://www.w3.org/XML/1998/namespace: 4 attributeDeclaration -- activated
-Need to dynamically create schema for http://www.w3.org/2001/XMLSchema
-NOTE: Created unbound (DOM) wildcard element from {http://www.w3.org/2001/XMLSchema}schema
-NOTE: Created unbound (DOM) wildcard element from {http://schemas.xmlsoap.org/wsdl/mime/}mimeXml
-NOTE: Created unbound (DOM) wildcard element from {http://schemas.xmlsoap.org/wsdl/mime/}mimeXml
-NOTE: Created unbound (DOM) wildcard element from {http://schemas.xmlsoap.org/wsdl/mime/}mimeXml
-NOTE: Created unbound (DOM) wildcard element from {http://schemas.xmlsoap.org/wsdl/mime/}content
-NOTE: Created unbound (DOM) wildcard element from {http://schemas.xmlsoap.org/wsdl/mime/}mimeXml
-NOTE: Created unbound (DOM) wildcard element from {http://schemas.xmlsoap.org/wsdl/mime/}content
-NOTE: Created unbound (DOM) wildcard element from {http://schemas.xmlsoap.org/wsdl/mime/}mimeXml
-NOTE: Created unbound (DOM) wildcard element from {http://schemas.xmlsoap.org/wsdl/mime/}content
-NOTE: Created unbound (DOM) wildcard element from {http://schemas.xmlsoap.org/wsdl/mime/}mimeXml
-http://www.w3.org/2001/XMLSchema: 46 typeDefinition -- activated
-http://schemas.xmlsoap.org/wsdl/: 20 typeDefinition -- activated
-http://schemas.xmlsoap.org/wsdl/http/: 3 typeBinding -- activated
-xml=http://www.w3.org/XML/1998/namespace: 4 attributeDeclaration -- activated
-http://www.w3.org/2001/XMLSchema: 46 typeDefinition -- activated
-xml=http://www.w3.org/XML/1998/namespace: 4 attributeDeclaration -- activated
-http://www.w3.org/2001/XMLSchema: 46 typeDefinition -- activated
-http://schemas.xmlsoap.org/wsdl/: 20 typeDefinition -- activated
-xml=http://www.w3.org/XML/1998/namespace: 4 attributeDeclaration -- activated
-http://www.w3.org/2001/XMLSchema: 46 typeDefinition -- activated
-http://schemas.xmlsoap.org/wsdl/: 20 typeDefinition -- activated
-http://schemas.xmlsoap.org/wsdl/soap12/: 12 typeBinding -- activated
-xml=http://www.w3.org/XML/1998/namespace: 4 attributeDeclaration -- activated
-http://www.w3.org/2001/XMLSchema: 46 typeDefinition -- activated
-http://schemas.xmlsoap.org/wsdl/: 20 typeDefinition -- activated
-http://schemas.xmlsoap.org/wsdl/soap/: 11 typeBinding -- activated
-xml=http://www.w3.org/XML/1998/namespace: 4 attributeDeclaration -- activated
-WARNING: Referenced http://microsoft.com/wsdl/mime/textMatching/ has no schema components
-Python for http://ws.cdyne.com/WeatherWS/ requires 1 modules
-Saved binding source to ./weather.py
+ urn:uuid:1f774546-80b9-11de-afc9-000c292f797c
+ Retrieving WSDL from http://ws.cdyne.com/WeatherWS/Weather.asmx?wsdl
+ Load MR[urn:uuid:bcbebe4e-80b2-11de-8f26-000c292f797c]@http://schemas.xmlsoap.org/wsdl/ from NSArchive@/home/pab/pyxb/dev/pyxb/standard/bindings/raw/wsdl.wxs
+ Importing pyxb.binding.datatypes to get binding for wildcard {http://www.w3.org/2001/XMLSchema}schema
+ WARNING: Unable to convert wildcard node {http://www.w3.org/2001/XMLSchema}schema to Python instance: 'module' object has no attribute 'CreateFromDOM'
+ NOTE: Created unbound wildcard element from DOM node {http://www.w3.org/2001/XMLSchema}schema
+ PS urn:uuid:1f774546-80b9-11de-afc9-000c292f797c
+ Load MR[urn:uuid:bea57d24-80b2-11de-bd6b-000c292f797c]@http://schemas.xmlsoap.org/wsdl/http/ from NSArchive@/home/pab/pyxb/dev/pyxb/standard/bindings/raw/http.wxs
+ Load MR[urn:uuid:bd932116-80b2-11de-97bf-000c292f797c]@http://schemas.xmlsoap.org/soap/encoding/ from NSArchive@/home/pab/pyxb/dev/pyxb/standard/bindings/raw/soapenc.wxs
+ Load MR[urn:uuid:be060b2c-80b2-11de-b19d-000c292f797c]@http://schemas.xmlsoap.org/wsdl/mime/ from NSArchive@/home/pab/pyxb/dev/pyxb/standard/bindings/raw/mime.wxs
+ Load MR[urn:uuid:beff4fe8-80b2-11de-ae43-000c292f797c]@http://schemas.xmlsoap.org/wsdl/soap12/ from NSArchive@/home/pab/pyxb/dev/pyxb/standard/bindings/raw/soap12.wxs
+ Load MR[urn:uuid:be5fc0a4-80b2-11de-803a-000c292f797c]@http://schemas.xmlsoap.org/wsdl/soap/ from NSArchive@/home/pab/pyxb/dev/pyxb/standard/bindings/raw/soap.wxs
+ Python for http://ws.cdyne.com/WeatherWS/ requires 1 modules
+ Saved binding source to ./weather.py
 
 Then write a program that uses them:
 
