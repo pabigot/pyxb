@@ -39,6 +39,35 @@ Linux several years ago:
 0.5.x (Beta)
 ============
 
+0.5.2 (03 Aug 2009, rev 1706)
+-----------------------------
+
+Mostly changes to namespaces in support of profiles and application schemas
+which extend other namespaces with special components, or have their own
+copies of somebody else's schemas, etc.  See the pyxbgen private/public
+namespace switches.
+
+- Presence of nested choice model groups caused the plurality calculations to
+  be wrong: some elements were dropped from the model, others were treated as
+  lists when only one instance would be permitted.  :ticket:`34`
+
+- Content accessor would return wrong value for elements with simple type of
+  list variety.  :ticket:`32`
+
+- Corrected handling of attributes when deriving complex types by
+  restriction.  :ticket:`27`
+
+- Added a source module for XML namespace
+  (http://www.w3.org/XML/1998/namespace) with bindings linked to the built-in
+  component model.  :ticket:`23`
+
+- Fix inadequacies in namespace archive management.  :ticket:`22`
+
+This is expected to be the last release in 0.5.x.  0.7.0 should follow soon
+thereafter, and only contain the change of default binding style from accessor
+to property.  :ticket:`18`
+
+
 0.5.1 (16 Jul 2009, rev 1502)
 -----------------------------
 

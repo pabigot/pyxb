@@ -1,4 +1,6 @@
-RELEASE=0.5.1
+# Run this from within ~pab/pyxb/pre-release
+
+RELEASE=${1:-0.5.2}
 PYXBREL=PyXB-${RELEASE}
 TARFILE=${PYXBREL}.tar.gz
 

@@ -16,4 +16,4 @@ cd ..
 maintainer/dobinds.sh
 ./setup.py sdist
 ./setup.py test
-cp -p dist/PyXB-*.tar.gz ~/pyxb/RELEASES
+cp -p dist/PyXB-*.tar.gz ~/pyxb/pre-release
