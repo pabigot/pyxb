@@ -94,7 +94,7 @@ class NamespaceArchive (object):
     """A mapping from file system paths to NamespaceArchive instances."""
 
     @classmethod
-    def __GetArchiveInstance (cls, archive_file):
+    def __GetArchiveInstance (cls, archive_file, stage=None):
         """Return a L{NamespaceArchive} instance associated with the given file.
 
         To the extent possible, the same file accessed through different paths
@@ -104,7 +104,8 @@ class NamespaceArchive (object):
         normalized_path = os.path.realpath(archive_file)
         nsa = cls.__NamespaceArchives.get(normalized_path)
         if nsa is None:
-            nsa = cls.__NamespaceArchives[normalized_path] = NamespaceArchive(archive_path=archive_file)
+            nsa = cls.__NamespaceArchives[normalized_path] = NamespaceArchive(archive_path=archive_file, stage=cls._STAGE_UNOPENED)
+        nsa._readToStage(stage)
         return nsa
 
     __ArchivePattern_re = re.compile('\.wxs$')
@@ -146,22 +147,57 @@ class NamespaceArchive (object):
             # Get archives for all required files
             if required_archive_files is not None:
                 for afn in required_archive_files:
-                    required_archives.append(cls.__GetArchiveInstance(afn))
-    
+                    required_archives.append(cls.__GetArchiveInstance(afn, stage=cls._STAGE_uid))
+
             # Ensure we have an archive path
             if archive_path is None:
                 archive_path = GetArchivePath()
     
             # Get archive instances for everything in the archive path
             candidate_files = pyxb.utils.utility.GetMatchingFiles(archive_path, cls.__ArchivePattern_re, DefaultArchivePath)
+            archive_set = set(required_archives)
             for afn in candidate_files:
                 print 'Considering %s' % (afn,)
                 try:
-                    nsa = cls.__GetArchiveInstance(afn)
+                    nsa = cls.__GetArchiveInstance(afn, stage=cls._STAGE_uid)
+                    archive_set.add(nsa)
                 except pickle.UnpicklingError, e:
                     print 'Cannot use archive %s: %s' % (afn, e)
                 except pyxb.NamespaceArchiveError, e:
                     print 'Cannot use archive %s: %s' % (afn, e)
+            
+            need_validation = archive_set.copy()
+            last_prereq = set()
+            while (0 < len(need_validation)) or (0 < len(last_prereq)):
+                while last_prereq:
+                    archive = last_prereq.pop()
+                    prereqs = archive._unsatisfiedModulePrerequisites()
+                    if 0 < len(prereqs):
+                        #print 'Holding read of required %s on %s' % (archive, prereqs)
+                        need_validation.add(archive)
+                        continue
+                    #print 'Completing read of required %s' % (archive,)
+                    archive._readToStage(cls._STAGE_COMPLETE)
+                last_validation = need_validation.copy()
+                next_validation = set()
+                last_prereq = set()
+                while 0 < len(need_validation):
+                    archive = need_validation.pop()
+                    archive._readToStage(cls._STAGE_readModules)
+                    prereqs = archive._unsatisfiedModulePrerequisites()
+                    if 0 < len(prereqs):
+                        #print 'Holding %s based on required %s' % (archive, prereqs)
+                        next_validation.add(archive)
+                        continue
+                    #print 'Validating %s' % (archive,)
+                    archive._readToStage(cls._STAGE_validateModules)
+                    last_prereq.add(archive)
+                if (0 < len(last_validation)) and (last_validation == next_validation):
+                    print 'Discarding unsatisfiable archives'
+                need_validation = next_validation
+            for a in archive_set:
+                print '%s stage %s' % (a.archivePath(), a._stage())
+
         return required_archives
 
     def archivePath (self):
@@ -204,7 +240,18 @@ class NamespaceArchive (object):
     def ForPath (cls, archive_file):
         return cls.__GetArchiveInstance(archive_file)
 
-    def __init__ (self, archive_path=None, generation_uid=None, loadable=True):
+    _STAGE_UNOPENED = 0         # Haven't even checked for existence
+    _STAGE_uid = 1              # Verified archive exists, obtained generation UID from it
+    _STAGE_readModules = 2      # Read module records from archive, which includes UID dependences
+    _STAGE_validateModules = 3  # Verified pre-requisites for module loading
+    _STAGE_readComponents = 4   # Extracted components from archive and integrated into namespaces
+    _STAGE_COMPLETE = _STAGE_readComponents
+
+    def _stage (self):
+        return self.__stage
+    __stage = None
+
+    def __init__ (self, archive_path=None, generation_uid=None, loadable=True, stage=None):
         """Create a new namespace archive.
 
         If C{namespaces} is given, this is an output archive.
@@ -224,8 +271,12 @@ class NamespaceArchive (object):
             if generation_uid is not None:
                 raise pyxb.LogicError('NamespaceArchive: cannot provide generation_uid with archive_path')
             self.__archivePath = archive_path
-            self.__readNamespaceSet(self.__createUnpickler(), define_namespaces=True)
+            self.__stage = self._STAGE_UNOPENED
             self.__isLoadable = loadable
+            if self.__isLoadable:
+                if stage is None:
+                    stage = self._STAGE_moduleRecords
+                self._readToStage(stage)
         else:
             pass
 
@@ -244,17 +295,6 @@ class NamespaceArchive (object):
         return self.__namespaces
     __namespaces = None
 
-    def __createUnpickler (self):
-        unpickler = pickle.Unpickler(open(self.__archivePath, 'rb'))
-
-        format = unpickler.load()
-        if self.__PickleFormat != format:
-            raise pyxb.NamespaceArchiveError('Archive format is %s, require %s' % (format, self.__PickleFormat))
-
-        self.__generationUID = unpickler.load()
-
-        return unpickler
-
     def __createPickler (self, output):
         # @todo: support StringIO instances?
         if not isinstance(output, file):
@@ -270,22 +310,128 @@ class NamespaceArchive (object):
 
         return pickler
 
-    __readNamespaces = False
-    def readNamespaces (self):
-        if self.__readNamespaces:
-            return
-        self.__readNamespaces = True
+    def __createUnpickler (self):
+        unpickler = pickle.Unpickler(open(self.__archivePath, 'rb'))
 
-        unpickler = self.__createUnpickler()
+        format = unpickler.load()
+        if self.__PickleFormat != format:
+            raise pyxb.NamespaceArchiveError('Archive format is %s, require %s' % (format, self.__PickleFormat))
 
-        self.__readNamespaceSet(unpickler)
+        self.__generationUID = unpickler.load()
 
+        return unpickler
+
+    def __readModules (self, unpickler):
+        #print 'RM %s' % (self,)
+        mrs = unpickler.load()
+        assert isinstance(mrs, set), 'Expected set got %s from %s' % (type(mrs), self.archivePath())
+        if self.__moduleRecords is None:
+            for mr in mrs:
+                mr2 = mr.namespace().lookupModuleRecordByUID(mr.generationUID())
+                if mr2 is not None:
+                    # Multiple reads of same archive?
+                    raise pyxb.NamespaceArchiveError('Already have module record %s %s' % (mr.namespace(), mr.generationUID()))
+            self.__moduleRecords = set()
+            assert 0 == len(self.__namespaces)
+            for mr in mrs:
+                mr._setArchive(self)
+                ns = mr.namespace()
+                ns.addModuleRecord(mr)
+                self.__namespaces.add(ns)
+                self.__moduleRecords.add(mr)
+        else:
+            # Verify the archive still has what was in it when we created this.
+            for mr in mrs:
+                mr2 = mr.namespace().lookupModuleRecordByUID(mr.generationUID())
+                if not (mr2 in self.__moduleRecords):
+                    raise pyxb.NamespaceArchiveError('Lost module record %s %s from %s' % (mr.namespace(), mr.generationUID(), self.archivePath()))
+
+    def _unsatisfiedModulePrerequisites (self):
+        prereq_uids = set()
+        for mr in self.__moduleRecords:
+            ns = mr.namespace()
+            #print 'Namespace %s records:' % (ns,)
+            #for xmr in ns.moduleRecords():
+            #    print ' %s' % (xmr,)
+            for base_uid in mr.dependsOnExternal():
+                xmr = ns.lookupModuleRecordByUID(base_uid)
+                if xmr is None:
+                    prereq_uids.add(base_uid)
+        return prereq_uids
+
+    def __validateModules (self):
+        prereq_uids = self._unsatisfiedModulePrerequisites()
+        if 0 < len(prereq_uids):
+            raise pyxb.NamespaceArchiveError('%s: archive depends on unresolved externals: %s' % (self.archivePath(), ' '.join([ str(_u) for _u in prereq_uids ])))
+        #print 'VAL %s' % (self,)
+        for mr in self.__moduleRecords:
+            ns = mr.namespace()
+            #print 'Namespace %s records:' % (ns,)
+            #for xmr in ns.moduleRecords():
+            #    print ' %s' % (xmr,)
+            for base_uid in mr.dependsOnExternal():
+                xmr = ns.lookupModuleRecordByUID(base_uid)
+                if xmr is None:
+                    raise pyxb.NamespaceArchiveError('Module %s depends on external module %s, not available in archive path' % (mr.generationUID(), base_uid))
+                if not xmr.isIncorporated():
+                    print 'Need to incorporate data from %s' % (xmr,)
+                else:
+                    print 'Have required base data %s' % (xmr,)
+
+            for origin in mr.origins():
+                #print 'mr %s origin %s' % (mr, origin)
+                for (cat, names) in origin.categoryMembers().iteritems():
+                    if not (cat in ns.categories()):
+                        continue
+                    cross_objects = names.intersection(ns.categoryMap(cat).keys())
+                    if 0 < len(cross_objects):
+                        raise pyxb.NamespaceArchiveError('Archive %s namespace %s module %s origin %s archive/active conflict on category %s: %s' % (self.__archivePath, ns, mr, origin, cat, " ".join(cross_objects)))
+                    print '%s no conflicts on %d names' % (cat, len(names))
+
+    def __readComponentSet (self, unpickler):
+        #print 'RCS %s' % (self,)
         for n in range(len(self.__moduleRecords)):
             ns = unpickler.load()
             mr = ns.lookupModuleRecordByUID(self.generationUID())
             assert mr in self.__moduleRecords
             assert not mr.isIncorporated()
-            mr._loadCategoryObjects(unpickler.load())
+            objects = unpickler.load()
+            mr._loadCategoryObjects(objects)
+
+    __unpickler = None
+    def _readToStage (self, stage):
+        if self.__stage is None:
+            raise pyxb.NamespaceArchiveError('Attempt to read from invalid archive %s' % (self,))
+        try:
+            while self.__stage < stage:
+                #print 'RTS %s want %s' % (self.__stage, stage)
+                if self.__stage < self._STAGE_uid:
+                    self.__unpickler = self.__createUnpickler()
+                    self.__stage = self._STAGE_uid
+                    continue
+                if self.__stage < self._STAGE_readModules:
+                    assert self.__unpickler is not None
+                    self.__readModules(self.__unpickler)
+                    self.__stage = self._STAGE_readModules
+                    continue
+                if self.__stage < self._STAGE_validateModules:
+                    self.__validateModules()
+                    self.__stage = self._STAGE_validateModules
+                    continue
+                if self.__stage < self._STAGE_readComponents:
+                    assert self.__unpickler is not None
+                    self.__stage = self._STAGE_readComponents
+                    self.__readComponentSet(self.__unpickler)
+                    self.__unpickler = None
+                    continue
+                raise pyxb.LogicError('Too many stages (at %s, want %s)' % (self.__stage, stage))
+        except:
+            self.__stage = None
+            self.__unpickler = None
+            raise
+
+    def readNamespaces (self):
+        self._readToStage(self._STAGE_COMPLETE)
 
     def writeNamespaces (self, output):
         """Store the namespaces into the archive.
@@ -322,53 +468,6 @@ class NamespaceArchive (object):
         finally:
             sys.setrecursionlimit(recursion_limit)
         NamespaceArchive.__PicklingArchive = None
-
-    def __readNamespaceSet (self, unpickler, define_namespaces=False):
-        mrs = unpickler.load()
-        assert isinstance(mrs, set), 'Expected set got %s from %s' % (type(mrs), self.archivePath())
-        if self.__moduleRecords is None:
-            for mr in mrs:
-                mr2 = mr.namespace().lookupModuleRecordByUID(mr.generationUID())
-                if mr2 is not None:
-                    raise pyxb.NamespaceArchiveError('Already have module record %s %s' % (mr.namespace(), mr.generationUID()))
-            self.__moduleRecords = set()
-            assert 0 == len(self.__namespaces)
-            for mr in mrs:
-                mr._setArchive(self)
-                ns = mr.namespace()
-                ns.addModuleRecord(mr)
-                self.__namespaces.add(ns)
-                self.__moduleRecords.add(mr)
-                
-        else:
-            for mr in mrs:
-                mr2 = mr.namespace().lookupModuleRecordByUID(mr.generationUID())
-                if not (mr2 in self.__moduleRecords):
-                    raise pyxb.NamespaceArchiveError('Lost module record %s %s from %s' % (mr.namespace(), mr.generationUID(), self.archivePath()))
-
-        for mr in self.__moduleRecords:
-            ns = mr.namespace()
-            #print 'Namespace %s records:' % (ns,)
-            #for xmr in ns.moduleRecords():
-            #    print ' %s' % (xmr,)
-            for base_uid in mr.dependsOnExternal():
-                xmr = ns.lookupModuleRecordByUID(base_uid)
-                if xmr is None:
-                    raise pyxb.NamespaceArchiveError('Module %s depends on external module %s, not available in archive path' % (mr.generationUID(), base_uid))
-                if not xmr.isIncorporated():
-                    print 'Need to incorporate data from %s' % (xmr,)
-                else:
-                    print 'Have required base data %s' % (xmr,)
-
-            for origin in mr.origins():
-                #print 'mr %s origin %s' % (mr, origin)
-                for (cat, names) in origin.categoryMembers().iteritems():
-                    if not (cat in ns.categories()):
-                        continue
-                    cross_objects = names.intersection(ns.categoryMap(cat).keys())
-                    if 0 < len(cross_objects):
-                        raise pyxb.NamespaceArchiveError('Archive %s namespace %s module %s origin %s archive/active conflict on category %s: %s' % (self.__archivePath, ns, mr, origin, cat, " ".join(cross_objects)))
-                    print '%s no conflicts on %d names' % (cat, len(names))
 
     def __str__ (self):
         archive_path = self.__archivePath
