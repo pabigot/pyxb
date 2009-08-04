@@ -26,7 +26,7 @@ BINDING_STYLE_ACCESSOR = 'accessor'
 BINDING_STYLE_PROPERTY = 'property'
 
 BINDING_STYLES = (BINDING_STYLE_ACCESSOR, BINDING_STYLE_PROPERTY)
-DEFAULT_BINDING_STYLE = BINDING_STYLE_ACCESSOR
+DEFAULT_BINDING_STYLE = BINDING_STYLE_PROPERTY
 CURRENT_BINDING_STYLE = None
 
 def ConfigureBindingStyle (style):
@@ -43,7 +43,7 @@ class _TypeBinding_mixin (pyxb.cscRoot):
     _ExpandedName = None
     """The expanded name of the component."""
 
-    _ReservedSymbols = set([ 'validateBinding', 'toDOM', 'toxml', 'Factory' ])
+    _ReservedSymbols = set([ 'validateBinding', 'toDOM', 'toxml', 'Factory', 'property' ])
 
     _PyXBFactoryKeywords = ( '_dom_node', '_apply_whitespace_facet', '_validate_constraints', '_require_value' )
 
@@ -1389,9 +1389,9 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
     @classmethod
     def _ConfigureBindingStyle (cls, style):
         if BINDING_STYLE_PROPERTY == style:
-            cls.content = cls.__contentProperty
+            pass
         elif BINDING_STYLE_ACCESSOR == style:
-            cls.content = cls.__contentAccessor
+            pass
         else:
             raise pyxb.LogicError('Unrecognized binding style %s' % (style,))
 
@@ -1665,7 +1665,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         return self.value().xsdConstraintsOK()
 
     __content = None
-    def __contentAccessor (self):
+    def content (self):
         """Return the content of the element.
 
         This must be a complex type with complex content.  The return value is
@@ -1676,7 +1676,6 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         if self._ContentTypeTag in (self._CT_EMPTY, self._CT_SIMPLE):
             raise pyxb.NotComplexContentError(str(self._ExpandedName))
         return self.__content
-    __contentProperty = property(__contentAccessor)
 
     def value (self):
         """Return the value of the element.
@@ -1687,7 +1686,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         @raise pyxb.NotSimpleContentError: this is not a complex type with simple content
         """
         if self._CT_SIMPLE != self._ContentTypeTag:
-            raise pyxb.NotSimpleContentError(str(self._ExpandedName))
+            raise pyxb.NotSimpleContentError('%s (%s)' % (str(self._ExpandedName), type(self)))
         return self.__content
 
     def _resetContent (self):
@@ -1869,7 +1868,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
                         v.toDOM(dom_support, parent)
                 else:
                     eu.toDOM(dom_support, parent, v)
-            mixed_content = self.__contentProperty
+            mixed_content = self.content()
             for mc in mixed_content:
                 pass
         return getattr(super(complexTypeDefinition, self), '_toDOM_csc', lambda *_args,**_kw: dom_support)(dom_support, parent)

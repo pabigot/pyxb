@@ -64,32 +64,37 @@ class _WSDL_operation_mixin (object):
     pass
 
 class tPort (raw_wsdl.tPort):
-    def bindingReference (self):
+    def __getBindingReference (self):
         return self.__bindingReference
     def _setBindingReference (self, binding_reference):
         self.__bindingReference = binding_reference
     __bindingReference = None
+    bindingReference = property(__getBindingReference)
 
-    def addressReference (self):
+    def __getAddressReference (self):
         return self.__addressReference
     def _setAddressReference (self, address_reference):
         self.__addressReference = address_reference
     __addressReference = None
+    addressReference = property(__getAddressReference)
+
 raw_wsdl.tPort._SetSupersedingClass(tPort)
 
 class tBinding (raw_wsdl.tBinding):
-    def portTypeReference (self):
+    def __getPortTypeReference (self):
         return self.__portTypeReference
     def setPortTypeReference (self, port_type_reference):
         self.__portTypeReference = port_type_reference
     __portTypeReference = None
+    portTypeReference = property(__getPortTypeReference)
 
-    def protocolBinding (self):
+    def __getProtocolBinding (self):
         """Return the protocol-specific binding information."""
         return self.__protocolBinding
     def _setProtocolBinding (self, protocol_binding):
         self.__protocolBinding = protocol_binding
     __protocolBinding = None
+    protocolBinding = property(__getProtocolBinding)
 
     def operationMap (self):
         return self.__operationMap
@@ -111,33 +116,37 @@ class tPortType (raw_wsdl.tPortType):
 raw_wsdl.tPortType._SetSupersedingClass(tPortType)
 
 class tParam (raw_wsdl.tParam):
-    def messageReference (self):
+    def __getMessageReference (self):
         return self.__messageReference
     def _setMessageReference (self, message_reference):
         self.__messageReference = message_reference
     __messageReference = None
+    messageReference = property(__getMessageReference)
 raw_wsdl.tParam._SetSupersedingClass(tParam)
 
 class tPart (raw_wsdl.tPart):
-    def elementReference (self):
+    def __getElementReference (self):
         return self.__elementReference
     def _setElementReference (self, element_reference):
         self.__elementReference = element_reference
     __elementReference = None
+    elementReference = property(__getElementReference)
 
-    def typeReference (self):
+    def __getTypeReference (self):
         return self.__typeReference
     def _setTypeReference (self, type_reference):
         self.__typeReference = type_reference
     __typeReference = None
+    typeReference = property(__getTypeReference)
 raw_wsdl.tPart._SetSupersedingClass(tPart)
 
 class tBindingOperation (raw_wsdl.tBindingOperation):
-    def operationReference (self):
+    def __getOperationReference (self):
         return self.__operationReference
     def _setOperationReference (self, operation_reference):
         self.__operationReference = operation_reference
     __operationReference = None
+    operationReference = property(__getOperationReference)
 raw_wsdl.tBindingOperation._SetSupersedingClass(tBindingOperation)
 
 class tDefinitions (raw_wsdl.tDefinitions):
@@ -207,38 +216,38 @@ class tDefinitions (raw_wsdl.tDefinitions):
     def __buildMaps (self):
         tns = self.namespaceContext().targetNamespace()
         tns.configureCategories(self.__WSDLCategories)
-        for m in self.message():
-            tns.messages()[m.name()] = m
-        for pt in self.portType():
-            tns.portTypes()[pt.name()] = pt
-            for op in pt.operation():
-                pt.operationMap()[op.name()] = op
-                params = op.fault()[:]
-                if op.input() is not None:
-                    params.append(op.input())
-                if op.output() is not None:
-                    params.append(op.output())
+        for m in self.message:
+            tns.messages()[m.name] = m
+        for pt in self.portType:
+            tns.portTypes()[pt.name] = pt
+            for op in pt.operation:
+                pt.operationMap()[op.name] = op
+                params = op.fault[:]
+                if op.input is not None:
+                    params.append(op.input)
+                if op.output is not None:
+                    params.append(op.output)
                 for p in params:
-                    msg_en = m._namespaceContext().interpretQName(p.message())
+                    msg_en = m._namespaceContext().interpretQName(p.message)
                     p._setMessageReference(msg_en.message())
-        for b in self.binding():
-            tns.bindings()[b.name()] = b
-            port_type_en = b._namespaceContext().interpretQName(b.type())
+        for b in self.binding:
+            tns.bindings()[b.name] = b
+            port_type_en = b._namespaceContext().interpretQName(b.type)
             b.setPortTypeReference(port_type_en.portType())
             for wc in b.wildcardElements():
                 if isinstance(wc, _WSDL_binding_mixin):
                     b._setProtocolBinding(wc)
                     break
-            for op in b.operation():
-                b.operationMap()[op.name()] = op
+            for op in b.operation:
+                b.operationMap()[op.name] = op
                 for wc in op.wildcardElements():
                     if isinstance(wc, _WSDL_operation_mixin):
                         op._setOperationReference(wc)
                         break
-        for s in self.service():
-            tns.services()[s.name()] = s
-            for p in s.port():
-                binding_en = p._namespaceContext().interpretQName(p.binding())
+        for s in self.service:
+            tns.services()[s.name] = s
+            for p in s.port:
+                binding_en = p._namespaceContext().interpretQName(p.binding)
                 p._setBindingReference(binding_en.binding())
                 for wc in p.wildcardElements():
                     if isinstance(wc, _WSDL_port_mixin):
@@ -253,7 +262,7 @@ class tDefinitions (raw_wsdl.tDefinitions):
         if self.__schema is not None:
             print 'Already have schema'
             return self.__schema
-        for t in self.types():
+        for t in self.types:
             for wc in t.wildcardElements():
                 if isinstance(wc, xml.dom.Node) and pyxb.namespace.XMLSchema.nodeIsNamed(wc, 'schema'):
                     # Try to load component models for any namespace referenced by this.
@@ -275,12 +284,12 @@ class tDefinitions (raw_wsdl.tDefinitions):
     def __finalizeReferences (self):
         tns = self.namespaceContext().targetNamespace()
         for m in tns.messages().values():
-            for p in m.part():
-                if (p.element() is not None) and (p.elementReference() is None):
-                    elt_en = p._namespaceContext().interpretQName(p.element())
+            for p in m.part:
+                if (p.element is not None) and (p.elementReference is None):
+                    elt_en = p._namespaceContext().interpretQName(p.element)
                     p._setElementReference(elt_en.elementDeclaration())
-                if (p.type() is not None) and (p.typeReference() is None):
-                    type_en = p._namespaceContext().interpretQName(p.type())
+                if (p.type is not None) and (p.typeReference is None):
+                    type_en = p._namespaceContext().interpretQName(p.type)
                     p._setTypeReference(type_en.typeDefinition())
 
 raw_wsdl.tDefinitions._SetSupersedingClass(tDefinitions)

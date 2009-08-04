@@ -67,21 +67,21 @@ import unittest
 class TestTrac0027b (unittest.TestCase):
     def testBasic (self):
         instance = baseElt("test")
-        self.assertEqual(instance.attr_def(), 10)
-        self.assertEqual(instance.attr_fixed(), 20)
-        self.assertTrue(instance.attr() is None)
+        self.assertEqual(instance.attr_def, 10)
+        self.assertEqual(instance.attr_fixed, 20)
+        self.assertTrue(instance.attr is None)
 
     def testSub1 (self):
         instance = subElt1("test")
-        self.assertEqual(instance.attr_def(), 10)
-        self.assertEqual(instance.attr_fixed(), 20)
-        self.assertRaises(pyxb.ProhibitedAttributeError, instance.attr)
+        self.assertEqual(instance.attr_def, 10)
+        self.assertEqual(instance.attr_fixed, 20)
+        self.assertRaises(AttributeError, lambda _i: _i.attr, instance)
 
     def testSub2 (self):
         instance = subElt2("test")
-        self.assertEqual(instance.attr_def(), 10)
-        self.assertEqual(instance.attr_fixed(), 20)
-        self.assertEqual(instance.attr(), 7)
+        self.assertEqual(instance.attr_def, 10)
+        self.assertEqual(instance.attr_fixed, 20)
+        self.assertEqual(instance.attr, 7)
 
 if __name__ == '__main__':
     unittest.main()

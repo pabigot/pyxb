@@ -67,19 +67,19 @@ import unittest
 class TestTrac0027b (unittest.TestCase):
     def testBasic (self):
         instance = baseElt("test")
-        self.assertTrue(instance.attr() is None)
+        self.assertTrue(instance.attr is None)
 
     def testSub1 (self):
         instance = subElt1("test")
-        self.assertEqual(instance.attr_def(), 10)
-        self.assertEqual(instance.attr_fixed(), 20)
-        self.assertTrue(instance.attr() is None)
+        self.assertEqual(instance.attr_def, 10)
+        self.assertEqual(instance.attr_fixed, 20)
+        self.assertTrue(instance.attr is None)
 
     def testSub2 (self):
         instance = subElt2("test")
-        self.assertEqual(instance.attr_def(), 10)
-        self.assertEqual(instance.attr_fixed(), 20)
-        self.assertTrue(instance.attr() is None)
+        self.assertEqual(instance.attr_def, 10)
+        self.assertEqual(instance.attr_fixed, 20)
+        self.assertTrue(instance.attr is None)
 
 if __name__ == '__main__':
     unittest.main()

@@ -11,11 +11,11 @@ dle_dom = domutils.StringToDOM(dle_xml)
 dle = dict.ArrayOfDictionary.createFromDOM(dle_dom)
 
 op_path = '/DictionaryInfo'
-for d in dle.Dictionary():
+for d in dle.Dictionary:
     # Create a REST-style query to retrieve the information about this dictionary.
-    uri = '%s%s?dictId=%s' % (port_uri, op_path, d.Id())
+    uri = '%s%s?dictId=%s' % (port_uri, op_path, d.Id)
     resp = urllib2.urlopen(uri).read()
     # The response is a simple type derived from string, so we can
     # just extract and print it.
     di_resp = dict.CreateFromDOM(domutils.StringToDOM(resp))
-    print "%s (%s)\n%s\n" % (d.Name(), d.Id(), di_resp)
+    print "%s (%s)\n%s\n" % (d.Name, d.Id, di_resp)

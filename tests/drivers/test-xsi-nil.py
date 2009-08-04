@@ -126,9 +126,9 @@ class TestXSIType (unittest.TestCase):
         xml = '<complex><full>full content</full><optional>optional content</optional></complex>'
         doc = pyxb.utils.domutils.StringToDOM(xml)
         instance = CreateFromDOM(doc.documentElement)
-        self.assertEqual(instance.full(), 'full content')
-        self.assertEqual(instance.optional(), 'optional content')
-        self.assertFalse(instance.optional()._isNil())
+        self.assertEqual(instance.full, 'full content')
+        self.assertEqual(instance.optional, 'optional content')
+        self.assertFalse(instance.optional._isNil())
         self.assertEqual(instance.toDOM().documentElement.toxml(), xml)
         instance.validateBinding()
 
@@ -136,16 +136,16 @@ class TestXSIType (unittest.TestCase):
         handler = saxer.getContentHandler()
         saxer.parse(StringIO.StringIO(xml))
         instance = handler.rootObject()
-        self.assertEqual(instance.full(), 'full content')
-        self.assertEqual(instance.optional(), 'optional content')
-        self.assertFalse(instance.optional()._isNil())
+        self.assertEqual(instance.full, 'full content')
+        self.assertEqual(instance.optional, 'optional content')
+        self.assertFalse(instance.optional._isNil())
 
         xml = '<complex xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><full>full content</full><optional xsi:nil="true"></optional></complex>'
         doc = pyxb.utils.domutils.StringToDOM(xml)
         instance = CreateFromDOM(doc.documentElement)
-        self.assertEqual(instance.full(), 'full content')
-        self.assertEqual(instance.optional(), '')
-        self.assertTrue(instance.optional()._isNil())
+        self.assertEqual(instance.full, 'full content')
+        self.assertEqual(instance.optional, '')
+        self.assertTrue(instance.optional._isNil())
         self.assertEqual(instance.toDOM().documentElement.toxml(), xml)
         instance.validateBinding()
 
@@ -153,9 +153,9 @@ class TestXSIType (unittest.TestCase):
         handler = saxer.getContentHandler()
         saxer.parse(StringIO.StringIO(xml))
         instance = handler.rootObject()
-        self.assertEqual(instance.full(), 'full content')
-        self.assertEqual(instance.optional(), '')
-        self.assertTrue(instance.optional()._isNil())
+        self.assertEqual(instance.full, 'full content')
+        self.assertEqual(instance.optional, '')
+        self.assertTrue(instance.optional._isNil())
 
         xml = '<complex xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true"/>'
         instance._setIsNil()

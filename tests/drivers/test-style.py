@@ -38,8 +38,8 @@ class TestStyle (unittest.TestCase):
         pyxb.binding.basis.ConfigureBindingStyle(pyxb.binding.basis.BINDING_STYLE_PROPERTY)
         self.assertTrue(isinstance(pyxb.binding.basis.complexTypeDefinition.value, new.instancemethod))
         self.assertEqual('simple content', self.__complexSimpleInstance.value())
-        self.assertTrue(isinstance(pyxb.binding.basis.complexTypeDefinition.content, property))
-        cv = self.__complexInstance.content
+        self.assertTrue(isinstance(pyxb.binding.basis.complexTypeDefinition.content, new.instancemethod))
+        cv = self.__complexInstance.content()
         self.assertTrue(isinstance(cv, list))
 
 if __name__ == '__main__':

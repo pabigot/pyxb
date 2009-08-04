@@ -69,26 +69,26 @@ import unittest
 class TestTrac0034 (unittest.TestCase):
     def test_aBCde (self):
         instance = aBCde()
-        self.assertEqual(None, instance.a())
-        self.assertEqual([], instance.b())
-        self.assertEqual([], instance.c())
-        self.assertEqual(None, instance.d())
-        self.assertEqual(None, instance.e())
+        self.assertEqual(None, instance.a)
+        self.assertEqual([], instance.b)
+        self.assertEqual([], instance.c)
+        self.assertEqual(None, instance.d)
+        self.assertEqual(None, instance.e)
 
     def test_Bcde (self):
         instance = Bcde()
-        self.assertEqual([], instance.b())
-        self.assertEqual(None, instance.c())
-        self.assertEqual(None, instance.d())
-        self.assertEqual(None, instance.e())
+        self.assertEqual([], instance.b)
+        self.assertEqual(None, instance.c)
+        self.assertEqual(None, instance.d)
+        self.assertEqual(None, instance.e)
 
     def test_aBCDE (self):
         instance = aBCDE()
-        self.assertEqual(None, instance.a())
-        self.assertEqual([], instance.b())
-        self.assertEqual([], instance.c())
-        self.assertEqual([], instance.d())
-        self.assertEqual([], instance.e())
+        self.assertEqual(None, instance.a)
+        self.assertEqual([], instance.b)
+        self.assertEqual([], instance.c)
+        self.assertEqual([], instance.d)
+        self.assertEqual([], instance.e)
 
 if __name__ == '__main__':
     unittest.main()

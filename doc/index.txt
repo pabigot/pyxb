@@ -18,10 +18,11 @@ documents and Python instances.  In concept it is similar to `JAXB
 For downloads, support, etc. please see the `PyXB project page
 <http://sourceforge.net/projects/pyxb>`_ on SourceForge.
 
-** WARNING ** 0.5.x is a :ref:`BETA RELEASE<releases>`.  Documentation is not up
+** WARNING ** 0.7.x is a :ref:`BETA RELEASE<releases>`.  Documentation is not up
 to date.
 
-** NEW ** Supports :ref:`ex_opengis`.
+** NEW ** Uses properties instead of accessor methods for binding element and
+   attribute fields.
 
 ********
 Contents

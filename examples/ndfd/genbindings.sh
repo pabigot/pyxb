@@ -3,6 +3,10 @@ export PYTHONPATH
 URI='http://www.weather.gov/forecasts/xml/DWMLgen/schema/DWML.xsd'
 PREFIX='DWML'
 
+if [ ! -f DWML.xsd ] ; then
+  wget ${URI}
+fi
+
 rm -rf raw ${PREFIX}.py
 mkdir -p raw
 touch raw/__init__.py

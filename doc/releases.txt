@@ -36,6 +36,21 @@ Linux several years ago:
   stable series.  Users of beta series get increased functionality, but more
   pain.
 
+0.7.x (Beta)
+============
+
+0.7.0 (03 Aug 2009, rev 1715)
+-----------------------------
+
+This release is identical to 0.5.2 except that the binding interface has
+completely changed.  All examples have been updated; the documentation will be
+updated later.
+
+- Change the method of accessing elements and attributes in bindings from
+  accessor methods (e.g., elt.attr(), elt.setAttr()) to properties (e.g.,
+  elt.attr).  :ticket:`18`
+
+
 0.5.x (Beta)
 ============
 

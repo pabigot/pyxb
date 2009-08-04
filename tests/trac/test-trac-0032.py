@@ -31,7 +31,7 @@ class TestTrac0032 (unittest.TestCase):
     """Storage of non-plural simple lists broken"""
     def testBasic (self):
         instance = aggregate()
-        instance.setLi([1,2,3])
+        instance.li = [1,2,3]
         self.assertEqual(1, len(instance.content()))
         instance = aggregate([1,2,3])
         self.assertEqual(1, len(instance.content()))

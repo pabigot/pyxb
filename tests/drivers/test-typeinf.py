@@ -16,17 +16,17 @@ import unittest
 class TestTypeInference (unittest.TestCase):
     def testBasic (self):
         e = anyType(4) # should be int
-        self.assertEqual(e.int(), 4)
-        self.assertTrue(e.float() is None)
-        self.assertTrue(e.str() is None)
+        self.assertEqual(e.int, 4)
+        self.assertTrue(e.float is None)
+        self.assertTrue(e.str is None)
         e = anyType(4.4)
-        self.assertTrue(e.int() is None)
-        self.assertEqual(e.float(), 4.4)
-        self.assertTrue(e.str() is None)
+        self.assertTrue(e.int is None)
+        self.assertEqual(e.float, 4.4)
+        self.assertTrue(e.str is None)
         e = anyType("3")
-        self.assertTrue(e.int() is None)
-        self.assertTrue(e.float() is None)
-        self.assertEqual(e.str(), "3")
+        self.assertTrue(e.int is None)
+        self.assertTrue(e.float is None)
+        self.assertEqual(e.str, "3")
 
 if __name__ == '__main__':
     unittest.main()
