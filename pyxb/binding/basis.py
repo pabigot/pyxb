@@ -1010,7 +1010,7 @@ class STD_list (simpleTypeDefinition, types.ListType):
     @classmethod
     def XsdLiteral (cls, value):
         """Convert from a binding value to a string usable in an XML document."""
-        return ' '.join([ _v.xsdLiteral() for _v in value ])
+        return ' '.join([ cls._ItemType.XsdLiteral(_v) for _v in value ])
 
     @classmethod
     def _description (cls, name_only=False):
