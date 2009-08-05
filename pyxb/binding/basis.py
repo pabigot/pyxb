@@ -1820,7 +1820,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         # Do we allow non-element content?
         if not self._IsMixed():
             raise pyxb.UnexpectedNonElementContentError(value)
-        self._addContent(value)
+        self._addContent(value, element_binding)
         return self
 
     def _appendWildcardElement (self, value):
@@ -1837,11 +1837,13 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
     def __setContent (self, value):
         self.__content = value
 
-    def _addContent (self, child):
+    def _addContent (self, child, element_binding):
         # This assert is inadequate in the case of plural/non-plural elements with an STD_list base type.
         # Trust that validation elsewhere was done correctly.
         #assert self._IsMixed() or (not self._PerformValidation) or isinstance(child, _TypeBinding_mixin) or isinstance(child, types.StringTypes), 'Unrecognized child %s type %s' % (child, type(child))
         assert not (self._ContentTypeTag in (self._CT_EMPTY, self._CT_SIMPLE))
+        if isinstance(child, _TypeBinding_mixin) and (child._element() is None):
+            child._setElement(element_binding)
         self.__content.append(child)
 
     @classmethod

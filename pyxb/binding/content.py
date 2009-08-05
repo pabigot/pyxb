@@ -398,7 +398,7 @@ class ElementUse (pyxb.cscRoot):
         if basis._TypeBinding_mixin._PerformValidation:
             value = self.__elementBinding.compatibleValue(value, is_plural=self.isPlural())
         setattr(ctd_instance, self.__key, value)
-        ctd_instance._addContent(value)
+        ctd_instance._addContent(value, self.__elementBinding)
         return self
 
     def setOrAppend (self, ctd_instance, value):
@@ -418,7 +418,7 @@ class ElementUse (pyxb.cscRoot):
         if basis._TypeBinding_mixin._PerformValidation:
             value = self.__elementBinding.compatibleValue(value)
         values.append(value)
-        ctd_instance._addContent(value)
+        ctd_instance._addContent(value, self.__elementBinding)
         return values
 
     def toDOM (self, dom_support, parent, value):
