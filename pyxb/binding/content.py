@@ -396,7 +396,7 @@ class ElementUse (pyxb.cscRoot):
             return self.reset(ctd_instance)
         assert self.__elementBinding is not None
         if basis._TypeBinding_mixin._PerformValidation:
-            value = self.__elementBinding.compatibleValue(value)
+            value = self.__elementBinding.compatibleValue(value, is_plural=self.isPlural())
         setattr(ctd_instance, self.__key, value)
         ctd_instance._addContent(value)
         return self
@@ -749,18 +749,18 @@ class ContentModelTransition (pyxb.cscRoot):
         # When we do consume, we can do either one transition, or one
         # transition for each element in a list/vector.
         key_type = type(None)
+        elt_plural = False
         if key is not None:
             key_type = key.elementBinding().typeDefinition()
-        if issubclass(key_type, basis.STD_list):
-            # @todo: This is too greedy if there are length limitations on the
-            # list.
-            consume_all = True
-            # If the individual values are also lists, then this represents a
-            # plural element, and we take a transition for each value.
-            # Otherwise, we assume this is a non-plural element, and the
-            # values comprise a single symbol.
-            consume_singles = isinstance(next_symbols[key][0], (list, tuple))
-        elif (self.__nextState == self.__currentStateRef.state()):
+            elt_plural = key.isPlural()
+        multiple_values = False
+        try:
+            iter(next_symbols[key][0])
+            multiple_values = True
+        except TypeError:
+            pass
+
+        if (self.__nextState == self.__currentStateRef.state()):
             consume_all = True
             consume_singles = True
         else:

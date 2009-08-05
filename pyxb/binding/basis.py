@@ -279,6 +279,12 @@ class _TypeBinding_mixin (pyxb.cscRoot):
                 except:
                     pass
 
+        # Any type is compatible with the corresponding ur-type
+        if (pyxb.binding.datatypes.anySimpleType == cls) and issubclass(value_type, simpleTypeDefinition):
+            return value
+        if (pyxb.binding.datatypes.anyType == cls) and issubclass(value_type, complexTypeDefinition):
+            return value
+
         # There may be other things that can be converted to the desired type,
         # but we can't tell that from the type hierarchy.  Too many of those
         # things result in an undesirable loss of information: for example,
@@ -976,7 +982,7 @@ class STD_list (simpleTypeDefinition, types.ListType):
             if not isinstance(value, cls._ItemType):
                 try:
                     value = cls._ItemType(value)
-                except pyxb.BadTypeValueError:
+                except (pyxb.BadTypeValueError, TypeError):
                     raise pyxb.BadTypeValueError('Type %s has member of type %s, must be %s' % (cls.__name__, type(value).__name__, cls._ItemType.__name__))
         return value
 
@@ -1147,6 +1153,14 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
         # None is always None
         if value is None:
             return None
+        is_plural = kw.get('is_plural', False)
+        #print 'validating %s against %s, isPlural %s' % (type(value), self.typeDefinition(), is_plural)
+        if is_plural:
+            try:
+                iter(value)
+            except TypeError:
+                raise pyxb.BadTypeValueError('Expected plural value, got %s' % (type(value),))
+            return [ self.compatibleValue(_v) for _v in value ]
         if isinstance(value, _TypeBinding_mixin) and (value._element() is not None) and value._element().substitutesFor(self):
             return value
         return self.typeDefinition()._CompatibleValue(value, **kw)
@@ -1441,11 +1455,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         for fu in self._ElementMap.values():
             iv = kw.get(fu.id())
             if iv is not None:
-                if isinstance(iv, list):
-                    assert fu.isPlural()
-                    [ fu.append(self, _elt) for _elt in iv ]
-                else:
-                    fu.set(self, iv)
+                fu.set(self, iv)
         if dom_node is not None:
             if self._CT_SIMPLE == self._ContentTypeTag:
                 # Pass only PyXB-relevant keywords: no Python base simple types
@@ -1569,10 +1579,13 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             value = eu.value(self)
             if value is None:
                 continue
-            if not isinstance(value, list):
-                rv[eu] = [ value ]
-            elif 0 < len(value):
-                rv[eu] = value[:]
+            res = None
+            converter = eu.elementBinding().compatibleValue
+            if eu.isPlural():
+                if 0 < len(value):
+                    rv[eu] = [ converter(_v) for _v in value ]
+            else:
+                rv[eu] = [ converter(value)]
         wce = self.wildcardElements()
         if (wce is not None) and (0 < len(wce)):
             rv[None] = wce
@@ -1586,7 +1599,10 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             return True
         if self._IsSimpleTypeContent() and (self.__content is None):
             raise pyxb.MissingContentError(self._TypeDefinition)
-        order = self._validatedChildren()
+        try:
+            order = self._validatedChildren()
+        except Exception, e:
+            raise pyxb.BindingValidationError('Error matching content to binding model: %s' % (e,))
         if order is None:
             raise pyxb.BindingValidationError('Unable to match content to binding model')
         for (eu, value) in order:
@@ -1822,7 +1838,9 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         self.__content = value
 
     def _addContent (self, child):
-        assert self._IsMixed() or (not self._PerformValidation) or isinstance(child, _TypeBinding_mixin) or isinstance(child, types.StringTypes), 'Unrecognized child %s type %s' % (child, type(child))
+        # This assert is inadequate in the case of plural/non-plural elements with an STD_list base type.
+        # Trust that validation elsewhere was done correctly.
+        #assert self._IsMixed() or (not self._PerformValidation) or isinstance(child, _TypeBinding_mixin) or isinstance(child, types.StringTypes), 'Unrecognized child %s type %s' % (child, type(child))
         assert not (self._ContentTypeTag in (self._CT_EMPTY, self._CT_SIMPLE))
         self.__content.append(child)
 
