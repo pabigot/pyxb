@@ -1,3 +1,5 @@
+# See http://www.weather.gov/forecasts/xml/OGC_services/
+
 import time
 import urllib2
 import ndfd.dwGML
@@ -32,17 +34,17 @@ if res._element() == opengis.ows.ExceptionReport:
         print '%s (%s): %s' % (ex.exceptionCode(), ex.locator(), ''.join([_txt for _txt in ex.ExceptionText()]))
     sys.exit(1)
 
-for fm in res.featureMember():
-    obs = fm.Feature()
-    when = obs.validTime().TimePrimitive().timePosition().value()
-    tgt = obs.target()
+for fm in res.featureMember:
+    obs = fm.Feature
+    when = obs.validTime.TimePrimitive.timePosition.value()
+    tgt = obs.target
     # Customize gml:TargetPropertyType for this
-    where = tgt.Feature() or tgt.Geometry()
+    where = tgt.Feature or tgt.Geometry
     # Customize gml:PointType: convert coordinates and coord into pos
-    print 'For %s at %s:' % ('%f %f' % tuple(where.pos().value()), when)
-    fc = obs.resultOf().Object()
+    print 'For %s at %s:' % ('%f %f' % tuple(where.pos.value()), when)
+    fc = obs.resultOf.Object
     for fcv in fc.content():
         if isinstance(fcv, opengis.gml.MeasureType):
-            print ' %s: %s %s' % (fcv._element().name().localName(), fcv.value(), fcv.uom())
+            print ' %s: %s %s' % (fcv._element().name().localName(), fcv.value(), fcv.uom)
         else:
             print fcv._element().name()
