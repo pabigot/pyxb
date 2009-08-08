@@ -355,13 +355,7 @@ def GenerateFacets (td, generator, **kw):
     for (fc, fi) in td.facets().items():
         #if (fi is None) or (fi.ownerTypeDefinition() != td):
         #    continue
-        if (fi is None) and (fc in td.baseTypeDefinition().facets()):
-            # Nothing new here
-            #print 'Skipping %s in %s: already registered' % (fc, td)
-            continue
-        if (fi is not None) and (fi.ownerTypeDefinition() != td):
-            # Did this one in an ancestor
-            #print 'Skipping %s in %s: found in ancestor' % (fc, td)
+        if not fc.NeedInSTD(fi, td):
             continue
         argset = { }
         is_collection = issubclass(fc, facets._CollectionFacet_mixin)
@@ -387,6 +381,10 @@ def GenerateFacets (td, generator, **kw):
                         outf.write("%s_%s = %s\n" % (fi.enumPrefix(), i.tag(), binding_module.literal(enum_member, **kw)))
                 if isinstance(i, facets._PatternElement):
                     outf.write("%s.addPattern(pattern=%s)\n" % binding_module.literal( (facet_var, i.pattern ), **kw))
+    if xs.structures.SimpleTypeDefinition.VARIETY_union == td.variety():
+        for mtd in td.memberTypeDefinitions():
+            for (fc, fi) in mtd.facets().items():
+                pass
     if 2 <= len(facet_instances):
         map_args = ",\n   ".join(facet_instances)
     else:
