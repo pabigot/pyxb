@@ -2329,7 +2329,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
             else:
                 # Not one of the wrappers; use implicit wrapper around
                 # the children
-                if not Particle.IsParticleNode(first_elt, 'attributeGroup', 'attribute'):
+                if not Particle.IsParticleNode(first_elt, 'attributeGroup', 'attribute', 'anyAttribute'):
                     raise pyxb.SchemaValidationError('Unexpected element %s at root of complexType' % (first_elt.nodeName,))
             if have_content:
                 # Repeat the search to verify that only the one child is present.
@@ -4475,7 +4475,7 @@ class _ImportElementInformationItem (_Annotated_mixin):
                 ckw = { 'absolute_schema_location' : schema_location,
                         'namespace_context' : ns_ctx,
                         'generation_uid' : importing_schema.generationUID(),
-                        'uri_content_archive_directory' : importing_schema.uriContentArchiveDirectory(),
+                        'uri_content_archive_directory' : importing_schema._uriContentArchiveDirectory(),
                         }
                 try:
                     schema_instance = Schema.CreateFromLocation(**kw)
