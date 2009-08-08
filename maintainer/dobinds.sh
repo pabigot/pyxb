@@ -18,19 +18,7 @@ test -f ${SCHEMA_DIR}/XMLSchema.xsd || wget -O ${SCHEMA_DIR}/XMLSchema.xsd http:
 # fix this since we have a workable XSD schema built-in.
 #http://www.w3.org/2001/XMLSchema.xsd xsd
 http://www.w3.org/2001/XMLSchema-hasFacetAndProperty xsd_hfp --allow-builtin-generation
-http://schemas.xmlsoap.org/wsdl/ wsdl
 http://www.w3.org/1999/xhtml.xsd xhtml --allow-builtin-generation
-http://schemas.xmlsoap.org/soap/envelope/ soapenv
-http://schemas.xmlsoap.org/soap/encoding/ soapenc
-http://schemas.xmlsoap.org/wsdl/mime/ mime
-http://schemas.xmlsoap.org/wsdl/soap/ soap
-http://schemas.xmlsoap.org/wsdl/http/ http
-http://schemas.xmlsoap.org/wsdl/soap12/wsdl11soap12.xsd soap12
-#http://code.google.com/apis/kml/schema/kml21.xsd kml
-http://www.w3.org/TR/2002/REC-xmldsig-core-20020212/xmldsig-core-schema.xsd xmldsig
-http://www.w3.org/TR/2002/REC-xmlenc-core-20021210/xenc-schema.xsd xenc
-http://docs.oasis-open.org/security/saml/v2.0/saml-schema-assertion-2.0.xsd saml_assert
-http://docs.oasis-open.org/security/saml/v2.0/saml-schema-protocol-2.0.xsd saml_protocol
 EOList
 ) | sed -e '/^#/d' \
   | while read uri prefix auxflags ; do
