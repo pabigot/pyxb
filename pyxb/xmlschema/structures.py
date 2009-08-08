@@ -1237,7 +1237,7 @@ class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
         # The other STD should be an unresolved schema-defined type.
         # Mark this instance as unresolved so it is re-examined
         if not other.isResolved():
-            if pyxb.namespace.BuiltInObjectUID == self._objectOriginUID():
+            if pyxb.namespace.BuiltInObjectUID == self._objectOrigin().generationUID():
                 #assert self.isResolved(), 'Built-in %s is not resolved' % (self.expandedName(),)
                 print '**!!**!! Not destroying builtin %s: %s' % (self.expandedName(), self.__typeDefinition)
             else:
@@ -4478,9 +4478,10 @@ class _ImportElementInformationItem (_Annotated_mixin):
                         'uri_content_archive_directory' : importing_schema._uriContentArchiveDirectory(),
                         }
                 try:
-                    schema_instance = Schema.CreateFromLocation(**kw)
+                    schema_instance = Schema.CreateFromLocation(**ckw)
                 except Exception, e:
-                    print 'WARNING: Import %s cannot read schema location %s (%s)' % (ns, self.__schemaLocation, schema_location)
+                    print 'WARNING: Import %s cannot read schema location %s (%s): %s' % (ns, self.__schemaLocation, schema_location, e)
+                    raise
             self.__schema = schema_instance
         elif not ns.isLoadable():
             print 'WARNING: No information available on imported namespace %s' % (uri,)
@@ -4689,7 +4690,7 @@ class Schema (_SchemaComponent_mixin):
         """
         schema_location = kw.pop('absolute_schema_location', pyxb.utils.utility.NormalizeLocation(kw.get('schema_location'), kw.get('parent_uri')))
         kw['schema_location'] = schema_location
-        assert isinstance(schema_location, (str, unicode))
+        assert isinstance(schema_location, basestring), 'Unexpected value %s type %s for schema_location' % (schema_location, type(schema_location))
         uri_content_archive_directory = kw.get('uri_content_archive_directory')
         return cls.CreateFromDocument(pyxb.utils.utility.TextFromURI(schema_location, archive_directory=uri_content_archive_directory), **kw)
 
