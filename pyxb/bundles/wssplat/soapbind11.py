@@ -1,21 +1,21 @@
-from raw.soap import *
-import pyxb.standard.bindings.raw.soap as raw_soap
-from pyxb.standard.bindings.wsdl import _WSDL_binding_mixin, _WSDL_port_mixin, _WSDL_operation_mixin
+from raw.soapbind11 import *
+import pyxb.bundles.wssplat.raw.soapbind11 as raw_soapbind11
+from pyxb.bundles.wssplat.wsdl11 import _WSDL_binding_mixin, _WSDL_port_mixin, _WSDL_operation_mixin
 
-class tBinding (raw_soap.tBinding, _WSDL_binding_mixin):
+class tBinding (raw_soapbind11.tBinding, _WSDL_binding_mixin):
     pass
-raw_soap.tBinding._SetSupersedingClass(tBinding)
+raw_soapbind11.tBinding._SetSupersedingClass(tBinding)
 
-class tAddress (raw_soap.tAddress, _WSDL_port_mixin):
+class tAddress (raw_soapbind11.tAddress, _WSDL_port_mixin):
     pass
-raw_soap.tAddress._SetSupersedingClass(tAddress)
+raw_soapbind11.tAddress._SetSupersedingClass(tAddress)
 
-class tOperation (raw_soap.tOperation, _WSDL_operation_mixin):
+class tOperation (raw_soapbind11.tOperation, _WSDL_operation_mixin):
     def locationInformation (self):
         rvl = []
-        if self.soapAction() is not None:
-            rvl.append('action=%s' % (self.soapAction(),))
+        if self.soapbind11Action() is not None:
+            rvl.append('action=%s' % (self.soapbind11Action(),))
         if self.style() is not None:
             rvl.append('style=%s' % (self.style(),))
         return ','.join(rvl)
-raw_soap.tOperation._SetSupersedingClass(tOperation)
+raw_soapbind11.tOperation._SetSupersedingClass(tOperation)

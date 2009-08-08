@@ -15,6 +15,7 @@ http://schemas.xmlsoap.org/wsdl/http/ httpbind
 http://schemas.xmlsoap.org/wsdl/mime/ mimebind
 http://schemas.xmlsoap.org/soap/envelope/ soap11
 http://www.w3.org/2003/05/soap-envelope/ soap12
+http://schemas.xmlsoap.org/soap/encoding/ soapenc
 http://schemas.xmlsoap.org/wsdl/soap/ soapbind11
 http://schemas.xmlsoap.org/wsdl/soap12/wsdl11soap12.xsd soapbind12
 http://www.w3.org/2002/ws/desc/ns/http.xsd whttp

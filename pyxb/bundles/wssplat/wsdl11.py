@@ -12,8 +12,8 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from pyxb.standard.bindings.raw.wsdl import *
-import pyxb.standard.bindings.raw.wsdl as raw_wsdl
+from pyxb.bundles.wssplat.raw.wsdl11 import *
+import pyxb.bundles.wssplat.raw.wsdl11 as raw_wsdl11
 
 import pyxb.namespace
 import pyxb.utils.domutils as domutils
@@ -23,27 +23,31 @@ def ImportRelatedNamespaces ():
     """Import modules for related namespaces so they are available to
     create binding instances from the WSDL sources."""
     try:
-        import pyxb.standard.bindings.soap
+        import pyxb.bundles.wssplat.soapbind11
     except ImportError:
         pass
     try:
-        import pyxb.standard.bindings.soap12
+        import pyxb.bundles.wssplat.soapbind12
     except ImportError:
         pass
     try:
-        import pyxb.standard.bindings.soapenc
+        import pyxb.bundles.wssplat.soap11
     except ImportError:
         pass
     try:
-        import pyxb.standard.bindings.soapenv
+        import pyxb.bundles.wssplat.soap12
     except ImportError:
         pass
     try:
-        import pyxb.standard.bindings.http
+        import pyxb.bundles.wssplat.soapenv
     except ImportError:
         pass
     try:
-        import pyxb.standard.bindings.mime
+        import pyxb.bundles.wssplat.httpbind
+    except ImportError:
+        pass
+    try:
+        import pyxb.bundles.wssplat.mimebind
     except ImportError:
         pass
 
@@ -63,7 +67,7 @@ class _WSDL_operation_mixin (object):
     to be wildcard matches in WSDL (binding) operation elements."""
     pass
 
-class tPort (raw_wsdl.tPort):
+class tPort (raw_wsdl11.tPort):
     def __getBindingReference (self):
         return self.__bindingReference
     def _setBindingReference (self, binding_reference):
@@ -78,9 +82,9 @@ class tPort (raw_wsdl.tPort):
     __addressReference = None
     addressReference = property(__getAddressReference)
 
-raw_wsdl.tPort._SetSupersedingClass(tPort)
+raw_wsdl11.tPort._SetSupersedingClass(tPort)
 
-class tBinding (raw_wsdl.tBinding):
+class tBinding (raw_wsdl11.tBinding):
     def __getPortTypeReference (self):
         return self.__portTypeReference
     def setPortTypeReference (self, port_type_reference):
@@ -103,9 +107,9 @@ class tBinding (raw_wsdl.tBinding):
     def __init__ (self, *args, **kw):
         super(tBinding, self).__init__(*args, **kw)
         self.__operationMap = { }
-raw_wsdl.tBinding._SetSupersedingClass(tBinding)
+raw_wsdl11.tBinding._SetSupersedingClass(tBinding)
 
-class tPortType (raw_wsdl.tPortType):
+class tPortType (raw_wsdl11.tPortType):
     def operationMap (self):
         return self.__operationMap
     __operationMap = None
@@ -113,18 +117,18 @@ class tPortType (raw_wsdl.tPortType):
     def __init__ (self, *args, **kw):
         super(tPortType, self).__init__(*args, **kw)
         self.__operationMap = { }
-raw_wsdl.tPortType._SetSupersedingClass(tPortType)
+raw_wsdl11.tPortType._SetSupersedingClass(tPortType)
 
-class tParam (raw_wsdl.tParam):
+class tParam (raw_wsdl11.tParam):
     def __getMessageReference (self):
         return self.__messageReference
     def _setMessageReference (self, message_reference):
         self.__messageReference = message_reference
     __messageReference = None
     messageReference = property(__getMessageReference)
-raw_wsdl.tParam._SetSupersedingClass(tParam)
+raw_wsdl11.tParam._SetSupersedingClass(tParam)
 
-class tPart (raw_wsdl.tPart):
+class tPart (raw_wsdl11.tPart):
     def __getElementReference (self):
         return self.__elementReference
     def _setElementReference (self, element_reference):
@@ -138,18 +142,18 @@ class tPart (raw_wsdl.tPart):
         self.__typeReference = type_reference
     __typeReference = None
     typeReference = property(__getTypeReference)
-raw_wsdl.tPart._SetSupersedingClass(tPart)
+raw_wsdl11.tPart._SetSupersedingClass(tPart)
 
-class tBindingOperation (raw_wsdl.tBindingOperation):
+class tBindingOperation (raw_wsdl11.tBindingOperation):
     def __getOperationReference (self):
         return self.__operationReference
     def _setOperationReference (self, operation_reference):
         self.__operationReference = operation_reference
     __operationReference = None
     operationReference = property(__getOperationReference)
-raw_wsdl.tBindingOperation._SetSupersedingClass(tBindingOperation)
+raw_wsdl11.tBindingOperation._SetSupersedingClass(tBindingOperation)
 
-class tDefinitions (raw_wsdl.tDefinitions):
+class tDefinitions (raw_wsdl11.tDefinitions):
     def messageMap (self):
         return self.targetNamespace().messages()
 
@@ -186,16 +190,16 @@ class tDefinitions (raw_wsdl.tDefinitions):
         # Import standard bindings.  If we do this, then wildcard
         # binding, port, and operation elements will be recognized and
         # converted into bindings.
-        import pyxb.standard.bindings.soap
-        import pyxb.standard.bindings.soap12
-        import pyxb.standard.bindings.http
+        import pyxb.bundles.wssplat.soapbind11
+        import pyxb.bundles.wssplat.soapbind12
+        import pyxb.bundles.wssplat.httpbind
 
         # Ensure we have definitions for any externally-referenced
         # things we might need.  @todo: This might have to
         # chronologically precede the import above.
         pyxb.namespace.archive.NamespaceArchive.PreLoadArchives()
 
-        raw_wsdl.Namespace.validateComponentModel()
+        raw_wsdl11.Namespace.validateComponentModel()
         state = ( kw.pop('process_schema', False),
                   kw.pop('generation_uid', None),
                   kw.get('_dom_node', None) )
@@ -292,4 +296,4 @@ class tDefinitions (raw_wsdl.tDefinitions):
                     type_en = p._namespaceContext().interpretQName(p.type)
                     p._setTypeReference(type_en.typeDefinition())
 
-raw_wsdl.tDefinitions._SetSupersedingClass(tDefinitions)
+raw_wsdl11.tDefinitions._SetSupersedingClass(tDefinitions)

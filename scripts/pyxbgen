@@ -24,7 +24,7 @@ parser.add_option_group(group)
 
 print generator.generationUID()
 if options.wsdl_location is not None:
-    import pyxb.standard.bindings.wsdl as wsdl
+    import pyxb.bundles.wssplat.wsdl11 as wsdl
     wsdl.ImportRelatedNamespaces()
     for wsdl_uri in options.wsdl_location:
         wsdl_uri = pyxb.utils.utility.NormalizeLocation(wsdl_uri)
