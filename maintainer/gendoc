@@ -20,69 +20,99 @@ col_arg = ( 'Argument', 15 )
 col_alt = ( 'Alt', 6 )
 col_description = ( 'Description', 50)
 
-predent = '   '
-indent = '  '
-
 long_opts = []
 short_opts = []
 metavars = []
 descriptions = []
 
-parser.print_help()
+class OptionGroupDocumentation:
 
-print parser.option_list
-print parser.option_groups
-#sys.exit(0)
+    __optionList = None
+    __longOptions = None
+    __shortOptions = None
+    __metavars = None
+    __descriptions = None
 
-def AddOptionDescriptions (option_list):
-    for opt in option_list:
-        long_opts.append(' '.join('``%s``' % (_o,) for _o in opt._long_opts) )
-        short_opts.append(' '.join('``%s``' % (_o,) for _o in opt._short_opts) )
-        if opt.metavar is None:
-            metavars.append('')
-        else:
-            metavars.append('*%s*' % opt.metavar)
-            descriptions.append(opt.help)
+    __predent = '   '
+    __indent = '  '
 
-AddOptionDescriptions(parser.option_list)
+    def __init__ (self, option_list=None, group=None, title=None, description=None, underscore=None):
+        if group is not None:
+            option_list = group.option_list
+            title = group.title
+            description = group.description
+        self.__title = title
+        self.__description = description
+        self.__underscore = underscore
+        self.__optionList = option_list
+        self.__longOptions = []
+        self.__shortOptions = []
+        self.__metavars = []
+        self.__descriptions = []
+        self._extractColumnData()
+        
+    def _extractColumnData (self):
+        for opt in self.__optionList:
+            self.__longOptions.append(' '.join('``%s``' % (_o,) for _o in opt._long_opts) )
+            self.__shortOptions.append(' '.join('``%s``' % (_o,) for _o in opt._short_opts) )
+            if opt.metavar is None:
+                self.__metavars.append('')
+            else:
+                self.__metavars.append('*%s*' % opt.metavar)
+            self.__descriptions.append(opt.help)
 
-long_header = 'Long Option'
-metavar_header = 'Argument'
-short_header = 'Alt'
-description_header = 'Description'
-long_width = max([len(_s) for _s in long_opts + [long_header]])
-metavar_width = max([len(_s) for _s in metavars + [metavar_header]])
-short_width = max([len(_s) for _s in short_opts + [short_header]])
-description_width = 50
+        self.__longHeader = 'Long Option'
+        self.__metavarHeader = 'Argument'
+        self.__shortHeader = 'Alt'
+        self.__descriptionHeader = 'Description'
+        self.__longWidth = max([len(_s) for _s in self.__longOptions + [self.__longHeader]])
+        self.__metavarWidth = max([len(_s) for _s in self.__metavars + [self.__metavarHeader]])
+        self.__shortWidth = max([len(_s) for _s in self.__shortOptions + [self.__shortHeader]])
+        self.__descriptionWidth = 50
 
-fields = ( ( long_header, long_width ),
-           ( metavar_header, metavar_width ),
-           ( short_header, short_width ),
-           ( description_header, description_width ) )
 
-separator = predent
-header = predent
-for (name, width) in fields:
-    separator += ('=' * width) + indent
-    header += name.ljust(width) + indent
-print separator
-print header
-print separator
+        self.__fields = ( ( self.__longHeader, self.__longWidth ),
+                          ( self.__metavarHeader, self.__metavarWidth ),
+                          ( self.__shortHeader, self.__shortWidth ),
+                          ( self.__descriptionHeader, self.__descriptionWidth ) )
 
-for i in range(len(long_header)):
-    wrapped_help = textwrap.wrap(descriptions[i], description_width)
-    long_val = long_opts[i]
-    metavar_val = metavars[i]
-    short_val = short_opts[i]
-    for h in wrapped_help:
-        print ''.join([ predent, long_val.ljust(long_width),
-                        indent, metavar_val.ljust(metavar_width),
-                        indent, short_val.ljust(short_width),
-                        indent, h ])
-        long_val = metavar_val = short_val = ''
+        self.__separator = self.__predent
+        self.__header = self.__predent
+        for (name, width) in self.__fields:
+            self.__separator += ('=' * width) + self.__indent
+            self.__header += name.ljust(width) + self.__indent
 
-print separator
+    def __str__ (self):
+        rv = []
+        rv.append(self.__title)
+        rv.append(self.__underscore * len(self.__title))
+        rv.append('')
+        rv.append(self.__description)
+        rv.append('')
+        rv.append('.. table:: %s' % (self.__title,))
+        rv.append('')
+        rv.append(self.__separator)
+        rv.append(self.__header)
+        rv.append(self.__separator)
+        for i in range(len(self.__longOptions)):
+            wrapped_help = textwrap.wrap(self.__descriptions[i], self.__descriptionWidth)
+            long_val = self.__longOptions[i]
+            metavar_val = self.__metavars[i]
+            short_val = self.__shortOptions[i]
+            for h in wrapped_help:
+                rv.append( ''.join([ self.__predent, long_val.ljust(self.__longWidth),
+                                     self.__indent, metavar_val.ljust(self.__metavarWidth),
+                                     self.__indent, short_val.ljust(self.__shortWidth),
+                                     self.__indent, h ]))
+                long_val = metavar_val = short_val = ''
+        rv.append(self.__separator)
+        rv.append('')
+        return "\n".join(rv)
 
+print OptionGroupDocumentation(option_list=parser.option_list, title='``pyxbgen`` Command Line Options', underscore='*', description='')
+for g in parser.option_groups:
+    print OptionGroupDocumentation(group=g, underscore='-')
+    
 # LocalVariables:
 # mode:python
 # End:
