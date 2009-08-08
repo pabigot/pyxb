@@ -357,8 +357,7 @@ class BindingDOMSupport (object):
         of namespaces for the document.  The defaultNamespace and
         requireXSIType are not modified."""
         self.__document = self.implementation().createDocument(None, None, None)
-        if kw.pop('document_only', False):
-            self.__namespaceSupport.reset(**kw)
+        self.__namespaceSupport.reset(**kw)
 
     @classmethod
     def Reset (self, **kw):
@@ -394,7 +393,7 @@ class BindingDOMSupport (object):
         self.__implementation = implementation
         self.__requireXSIType = require_xsi_type
         self.__namespaceSupport = _BDSNamespaceSupport(default_namespace, namespace_prefix_map, inherit_from=self.__NamespaceSupport)
-        self.reset(document_only=True)
+        self.reset()
         
     __namespaceSupport = None
     __NamespaceSupport = _BDSNamespaceSupport()
