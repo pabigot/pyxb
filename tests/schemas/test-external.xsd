@@ -30,4 +30,16 @@
 			</xs:restriction>
 		</xs:complexContent>
 	</xs:complexType>
+  <xs:simpleType name="uMorewords">
+    <xs:union memberTypes="st:words">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="ichi"/>
+          <xs:enumeration value="ni"/>
+          <xs:enumeration value="san"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:union>
+  </xs:simpleType>
+  <xs:element name="morewords" type="tns:uMorewords"/>
 </xs:schema>

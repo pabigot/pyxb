@@ -70,28 +70,24 @@ class TestExternal (unittest.TestCase):
         self.assertRaises(BadTypeValueError, english, 'five')
 
         xml = '<ns1:english xmlns:ns1="URN:test-external">one</ns1:english>'
-        dom = pyxb.utils.domutils.StringToDOM(xml)
-        instance = english.createFromDOM(dom.documentElement)
+        instance = st.CreateFromDocument(xml)
         self.assertEqual('one', instance)
         self.assertEqual(xml, ToDOM(instance).toxml())
 
     def testWords (self):
         xml = '<ns1:word xmlns:ns1="URN:test-external"><from>one</from><to>un</to></ns1:word>'
-        dom = pyxb.utils.domutils.StringToDOM(xml)
-        instance = word.createFromDOM(dom.documentElement)
+        instance = CreateFromDocument(xml)
         self.assertEquals('one', instance.from_)
         self.assertEquals('un', instance.to)
         self.assertEqual(xml, ToDOM(instance).toxml())
         
     def testBadWords (self):
         xml = '<ns1:word xmlns:ns1="URN:test-external"><from>five</from><to>pump</to></ns1:word>'
-        dom = pyxb.utils.domutils.StringToDOM(xml)
-        self.assertRaises(BadTypeValueError, word.createFromDOM, dom.documentElement)
+        self.assertRaises(BadTypeValueError, CreateFromDocument, xml)
 
     def testComplexShared (self):
         xml = '<ns1:lwords language="english" newlanguage="welsh" xmlns:ns1="URN:test-external">un</ns1:lwords>'
-        dom = pyxb.utils.domutils.StringToDOM(xml)
-        instance = lwords.createFromDOM(dom.documentElement)
+        instance = CreateFromDocument(xml)
         self.assertEquals(instance._element(), lwords)
         self.assertTrue(isinstance(instance.value(), st.welsh))
         self.assertEquals('english', instance.language)
@@ -118,6 +114,14 @@ class TestExternal (unittest.TestCase):
         xml = xml.replace('extendedName', 'restExtName')
         dom = pyxb.utils.domutils.StringToDOM(xml)
         instance = restExtName.Factory(_dom_node=dom.documentElement)
+
+    def testUnionExtension (self):
+        e = morewords('one')
+        self.assertTrue(isinstance(e, st.english))
+        w = morewords('un')
+        self.assertTrue(isinstance(w, st.welsh))
+        n = morewords('ichi')
+        self.assertTrue(uMorewords._IsValidValue(n))
 
 if __name__ == '__main__':
     unittest.main()
