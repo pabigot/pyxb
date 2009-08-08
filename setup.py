@@ -135,21 +135,39 @@ setup(name='PyXB',
                  'pyxb.standard', 'pyxb.standard.bindings', 'pyxb.standard.bindings.raw',
                  'pyxb.bundles',
                  'pyxb.bundles.wssplat', 'pyxb.bundles.wssplat.raw',
+                 'pyxb.bundles.opengis', 'pyxb.bundles.opengis.raw',
                  ],
 
       package_data={
-        # (cd pyxb/standard/bindings/raw/; ls *.wxs | sed -e 's@^@"@' -e 's@$@",@') | fmt
-        'pyxb.standard.bindings.raw' : [
-"xhtml.wxs", "xsd_hfp.wxs",
-],
-        # (cd pyxb/bundles/wssplat/raw/; ls *.wxs | sed -e 's@^@"@' -e 's@$@",@') | fmt
-        'pyxb.bundles.wssplat.raw' :  [
-"bpws.wxs", "ds.wxs", "httpbind.wxs", "mimebind.wxs", "soap11.wxs",
-"soap12.wxs", "soapbind11.wxs", "soapbind12.wxs", "soapenc.wxs",
-"whttp.wxs", "wsa.wxs", "wsam.wxs", "wscoor.wxs", "wsdl11.wxs",
-"wsdl20.wxs", "wsdli.wxs", "wsdlx.wxs", "wsoap.wxs", "wsp.wxs",
-"wsp200607.wxs", "wsrm.wxs", "wsse.wxs", "wsu.wxs",
-],
+        'pyxb.bundles/opengis' : [
+            "sampling_1_0.wxs", "ows_1_1.wxs", "filter.wxs", "wcs_1_1.wxs", "tml.wxs",
+            "sos_1_0.wxs", "xAL.wxs", "xlinks.wxs", "swe_1_0_1.wxs", "ic_ism_2_1.wxs",
+            "gmlsf.wxs", "ows.wxs", "sensorML_1_0_1.wxs", "wfs.wxs", "core.wxs",
+            "gmx.wxs", "gml.wxs", "landuse.wxs", "base.wxs", "waterbody.wxs",
+            "appearance.wxs", "cityfurniture.wxs", "building.wxs", "vegetation.wxs",
+            "relief.wxs", "transportation.wxs", "cityobjectgroup.wxs", "generics.wxs",
+            "texturedsurface.wxs", "ogckml22.wxs", "om_1_0.wxs", "swe_1_0_0.wxs",
+            "csw_2_0_2.wxs",
+            ],
+        'pyxb.bundles/opengis/citygml' : [
+            "landuse.wxs", "base.wxs", "waterbody.wxs", "appearance.wxs",
+            "cityfurniture.wxs", "building.wxs", "vegetation.wxs", "relief.wxs",
+            "transportation.wxs", "cityobjectgroup.wxs", "generics.wxs",
+            "texturedsurface.wxs",
+            ],
+        'pyxb.bundles/opengis/iso19139' : [
+            "core.wxs", "gmx.wxs",
+            ],
+        'pyxb.bundles/opengis/misc' : [
+            "xAL.wxs", "xlinks.wxs",
+            ],
+        'pyxb.bundles/wssplat/raw' : [
+            "wsp.wxs", "whttp.wxs", "wsa.wxs", "bpws.wxs", "ds.wxs", "httpbind.wxs",
+            "wsdlx.wxs", "wsdli.wxs", "wsse.wxs", "soapbind12.wxs", "soapbind11.wxs",
+            "mimebind.wxs", "soap11.wxs", "soap12.wxs", "wsoap.wxs", "wsp200607.wxs",
+            "wsam.wxs", "wscoor.wxs", "wsu.wxs", "wsdl11.wxs", "soapenc.wxs",
+            "wsrm.wxs", "wsdl20.wxs",
+            ],
         },
       # I normally keep these in $purelib, but distutils won't tell me where that is.
       # We don't need them in the installation anyway.
