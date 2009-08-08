@@ -285,6 +285,11 @@ class _TypeBinding_mixin (pyxb.cscRoot):
         if (pyxb.binding.datatypes.anyType == cls) and issubclass(value_type, complexTypeDefinition):
             return value
 
+        # Is this the wrapper class that indicates we should create a binding
+        # from arguments?
+        if isinstance(value, BIND):
+            return value.createInstance(cls.Factory, **kw)
+
         # There may be other things that can be converted to the desired type,
         # but we can't tell that from the type hierarchy.  Too many of those
         # things result in an undesirable loss of information: for example,
@@ -2021,6 +2026,18 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             if cls._HasWildcardElement:
                 desc.append("  Wildcard element(s)\n")
         return ''.join(desc)
+
+class BIND (object):
+    __args = None
+    __kw = None
+
+    def __init__ (self, *args, **kw):
+        self.__args = args
+        self.__kw = kw
+
+    def createInstance (self, factory, **kw):
+        kw.update(self.__kw)
+        return factory(*self.__args, **kw)
 
 ConfigureBindingStyle(DEFAULT_BINDING_STYLE)
 
