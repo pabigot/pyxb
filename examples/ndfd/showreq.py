@@ -18,7 +18,7 @@ print body_dom
 import ndfd
 
 # WSDL
-import pyxb.standard.bindings.wsdl as wsdl
+import pyxb.bundles.wssplat.wsdl11 as wsdl
 
 uri_src = open('ndfdXML.wsdl')
 doc = xml.dom.minidom.parseString(uri_src.read())

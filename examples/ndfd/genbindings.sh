@@ -21,7 +21,7 @@ WSDL_URI='http://www.weather.gov/forecasts/xml/DWMLgen/wsdl/ndfdXML.wsdl'
 if [ ! -f ndfdXML.wsdl ] ; then
   wget ${WSDL_URI}
 fi
-rm raw/ndfd.py
+rm -f raw/ndfd.py
 ../../scripts/pyxbgen \
    -W "${WSDL_URI}" \
    -m ndfd \
