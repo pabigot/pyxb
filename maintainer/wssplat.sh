@@ -30,6 +30,7 @@ http://www.w3.org/2002/ws/desc/ns/soap.xsd wsoap
 http://docs.oasis-open.org/ws-tx/wscoor/2006/06/wstx-wscoor-1.1-schema-200701.xsd wscoor
 http://www.w3.org/2002/ws/desc/ns/wsdl-instance.xsd wsdli
 http://www.w3.org/2002/ws/desc/ns/wsdl-extensions.xsd wsdlx
+http://docs.oasis-open.org/ws-rx/wsrm/200702/wsrm-1.1-schema-200702.xsd wsrm
 EOList
 ) | sed -e '/^#/d' \
   | while read uri prefix auxflags ; do

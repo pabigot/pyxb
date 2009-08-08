@@ -148,7 +148,7 @@ setup(name='PyXB',
 "soap12.wxs", "soapbind11.wxs", "soapbind12.wxs", "soapenc.wxs",
 "whttp.wxs", "wsa.wxs", "wsam.wxs", "wscoor.wxs", "wsdl11.wxs",
 "wsdl20.wxs", "wsdli.wxs", "wsdlx.wxs", "wsoap.wxs", "wsp.wxs",
-"wsp200607.wxs", "wsse.wxs", "wsu.wxs",
+"wsp200607.wxs", "wsrm.wxs", "wsse.wxs", "wsu.wxs",
 ],
         },
       # I normally keep these in $purelib, but distutils won't tell me where that is.
