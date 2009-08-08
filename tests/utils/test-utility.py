@@ -331,76 +331,82 @@ class TestGraph (unittest.TestCase):
         self.assertEqual(1, len(graph.scc()))
         self.assertEqual(set([1, 3, 5]), set(graph.scc()[0]))
 
-class TestConstrainedSequence (unittest.TestCase):
+class TestConstrainedMutableSequence (unittest.TestCase):
+
+    def __convertIntFloat (self, v):
+        if 0 <= v:
+            return int(v)
+        return float(v)
 
     def testCTOR (self):
-        x = ConstrainedSequence(member_type=int)
+        x = ConstrainedMutableSequence([], member_type=int)
         self.assertEquals(0, len(x))
-        x = ConstrainedSequence([0,1,2], member_type=int)
+        x = ConstrainedMutableSequence([0,1,2], member_type=int)
         self.assertEquals(3, len(x))
         self.assertEquals(1, x[1])
-        x = ConstrainedSequence([0.3,"1",long(2)], member_type=int)
+        x = ConstrainedMutableSequence([0.3,"1",long(2)], member_type=int)
         self.assertEquals(3, len(x))
         self.assertEquals(0, x[0])
         self.assertEquals(1, x[1])
         self.assertEquals(2, x[2])
-        self.assert_(reduce(lambda _l,_r: _l and isinstance(_r, x.memberType()), x, True))
+        self.assert_(reduce(lambda _l,_r: _l and isinstance(_r, x._memberType()), x, True))
+        x = ConstrainedMutableSequence([], member_type=(int, float), member_converter=self.__convertIntFloat)
+        x.extend([-1, 1, -3, 3])
+        self.assert_(reduce(lambda _l,_r: _l and isinstance(_r, x._memberType()), x, True))
+        self.assertTrue(isinstance(x[0], float))
+        self.assertTrue(isinstance(x[1], int))
+        self.assertTrue(isinstance(x[2], float))
+        self.assertTrue(isinstance(x[3], int))
         
     def testAppend (self):
-        x = ConstrainedSequence(member_type=int)
+        x = ConstrainedMutableSequence([], member_type=int)
         x.append(2)
         self.assertEqual(2, x[-1])
         x.append("4")
         self.assertEqual(4, x[-1])
         x.append(5L)
         self.assertEqual(5, x[-1])
-        self.assert_(reduce(lambda _l,_r: _l and isinstance(_r, x.memberType()), x, True))
+        self.assert_(reduce(lambda _l,_r: _l and isinstance(_r, x._memberType()), x, True))
 
     def testSet (self):
-        x = ConstrainedSequence([0.3, "1", 2L], member_type=int)
+        x = ConstrainedMutableSequence([0.3, "1", 2L], member_type=int)
         self.assertEquals(3, len(x))
         self.assertEquals(0, x[0])
         self.assertEquals(1, x[1])
         self.assertEquals(2, x[2])
-        self.assert_(reduce(lambda _l,_r: _l and isinstance(_r, x.memberType()), x, True))
+        self.assert_(reduce(lambda _l,_r: _l and isinstance(_r, x._memberType()), x, True))
         x[1] = '432'
         self.assertEquals(432, x[1])
         x[0:2] = [ '67' ]
         self.assertEquals(2, len(x))
         self.assertEquals(67, x[0])
         self.assertEquals(2, x[1])
-        self.assert_(reduce(lambda _l,_r: _l and isinstance(_r, x.memberType()), x, True))
-
-    def testTuple (self):
-        x = ConstrainedSequence((1, '2', 3L), member_type=int, sequence_type=tuple)
-        self.assertEqual(3, len(x))
-        self.assert_(reduce(lambda _l,_r: _l and isinstance(_r, x.memberType()), x, True))
-        self.assertEqual(hash(x), hash((1,2,3)))
+        self.assert_(reduce(lambda _l,_r: _l and isinstance(_r, x._memberType()), x, True))
 
     def testCount (self):
-        x = ConstrainedSequence([0.3, '1', 2L, 1.1, 1L], member_type=int)
+        x = ConstrainedMutableSequence([0.3, '1', 2L, 1.1, 1L], member_type=int)
         self.assertEqual(5, len(x))
         self.assertEqual(3, x.count(1))
         self.assertEqual(3, x.count("1"))
 
     def testIndex (self):
-        x = ConstrainedSequence([0.3, '1', 2L, 1.1, 1L], member_type=int)
+        x = ConstrainedMutableSequence([0.3, '1', 2L, 1.1, 1L], member_type=int)
         self.assertEqual(1, x.index('1'))
 
     def testMembership (self):
-        x = ConstrainedSequence([0.3, '1', 2L, 1.1, 1L], member_type=int)
+        x = ConstrainedMutableSequence([0.3, '1', 2L, 1.1, 1L], member_type=int)
         self.assert_("2" in x)
 
     def testExtrema (self):
-        x = ConstrainedSequence([0.3, '1', 2L, 1.1, 1L], member_type=int)
+        x = ConstrainedMutableSequence([0.3, '1', 2L, 1.1, 1L], member_type=int)
         self.assertEqual(0, min(x))
         self.assertEqual(2, max(x))
 
     def testSort (self):
-        x = ConstrainedSequence([0.3, '-10', 2L, 1.1, 1L], member_type=int)
+        x = ConstrainedMutableSequence([0.3, '-10', 2L, 1.1, 1L], member_type=int)
         x.sort()
         self.assertEqual([-10, 0, 1, 1, 2], x)
-        y = ConstrainedSequence([-10L, "0", 1.1, 1, "2"], member_type=int)
+        y = ConstrainedMutableSequence([-10L, "0", 1.1, 1, "2"], member_type=int)
         self.assertEqual(y, x)
 
 import tempfile

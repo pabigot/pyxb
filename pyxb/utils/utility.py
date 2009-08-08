@@ -382,47 +382,61 @@ def TextFromURI (uri):
         raise
     return xmls
 
-class ConstrainedSequence (object):
-    """A (mutable) sequence type constrained so its values are instances of a given type.
+class ConstrainedMutableSequence (object):
+    """A mutable sequence type constrained so its values are instances
+    of a given type.
 
     After converting any user input, operations are delegated to an
     underlying sequence instance."""
 
     # Type of sequence members
     __memberType = None
-    def memberType (self):
-        """The type of which sequence members must be an instance."""
+    def _memberType (self):
+        """The type of which sequence members must be an instance.
+
+        This value is never used in maintaining the sequence, since in
+        many cases there is no single type object that is correct for
+        all members.  Cf. pyxb.binding.basis.STD_union."""
         return self.__memberType
+
+    __memberConverter = None
+    def _memberConverter (self):
+        """The function object that can convert something to be of member type."""
+        return self.__memberConverter
 
     # Underlying sequence storage
     __sequence = None
 
     # Convert a single value to the required type, if not already an instance
     def __convertOne (self, v):
-        if not isinstance(v, self.__memberType):
-            v = self.__memberType(v)
-        return v
+        return self.__memberConverter(v)
 
     # Convert a sequence of values to the required type, if not already instances
     def __convertMany (self, values):
         nv = []
         for v in values:
-            nv.append(self.__convertOne(v))
+            nv.append(self.__memberConverter(v))
         return nv
 
-    def __init__ (self, *args, **kw):
+    def __init__ (self, mutable_sequence, member_type, member_converter=None):
         """Create a constrained sequence.
 
-        @keyword member_type: Required type for members
+        @param mutable_sequence: A by-value reference to a sequence
+        instance that will be managed by this instance.
+
+        @keyword member_type: An object that represents the type of members of the sequence
         @type member_type: C{type}
 
-        @keyword sequence_type: Optional type of sequence.  Default is C{list}
-        @type sequence_type: C{type}
+        @keyword member_converter: An invocable that converts values
+        to be valid members of the sequence.
         """
-        self.__memberType = kw.pop('member_type')
-        if 0 < len(args):
-            args = (tuple(self.__convertMany(args[0])),) + args[1:]
-        self.__sequence = kw.pop('sequence_type', list)(*args)
+        self.__memberType = member_type
+        if member_converter is None:
+            member_converter = self.__memberType
+        self.__memberConverter = member_converter
+        self.__sequence = mutable_sequence
+        if 0 < len(self.__sequence):
+            self.__sequence[:] = self.__convertMany(self.__sequence)
         # If I could do things like any of these:
         #    self.__str__ = self.__sequence.__str__
         #    setattr(self, '__str__', self.__sequence.__str__)
