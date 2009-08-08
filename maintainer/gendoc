@@ -1,0 +1,89 @@
+#!/usr/bin/env python
+
+import pyxb.binding.generate
+import os.path
+import sys
+import textwrap
+
+generator = pyxb.binding.generate.Generator()
+parser = generator.optionParser()
+parser.add_option('-W', '--wsdl-location', metavar='FILE_or_URL',
+                  action='append',
+                  help=\
+'''Generate bindings for the C{types} stanza of the WSDL at this
+location.  This option is equivalent to retrieving the WSDL,
+extracting the schema part of its C{types} block to a file, and using
+that file as a --schema-location.''')
+
+col_long_opt = ( 'Long Option', 28 )
+col_arg = ( 'Argument', 15 )
+col_alt = ( 'Alt', 6 )
+col_description = ( 'Description', 50)
+
+predent = '   '
+indent = '  '
+
+long_opts = []
+short_opts = []
+metavars = []
+descriptions = []
+
+parser.print_help()
+
+print parser.option_list
+print parser.option_groups
+#sys.exit(0)
+
+def AddOptionDescriptions (option_list):
+    for opt in option_list:
+        long_opts.append(' '.join('``%s``' % (_o,) for _o in opt._long_opts) )
+        short_opts.append(' '.join('``%s``' % (_o,) for _o in opt._short_opts) )
+        if opt.metavar is None:
+            metavars.append('')
+        else:
+            metavars.append('*%s*' % opt.metavar)
+            descriptions.append(opt.help)
+
+AddOptionDescriptions(parser.option_list)
+
+long_header = 'Long Option'
+metavar_header = 'Argument'
+short_header = 'Alt'
+description_header = 'Description'
+long_width = max([len(_s) for _s in long_opts + [long_header]])
+metavar_width = max([len(_s) for _s in metavars + [metavar_header]])
+short_width = max([len(_s) for _s in short_opts + [short_header]])
+description_width = 50
+
+fields = ( ( long_header, long_width ),
+           ( metavar_header, metavar_width ),
+           ( short_header, short_width ),
+           ( description_header, description_width ) )
+
+separator = predent
+header = predent
+for (name, width) in fields:
+    separator += ('=' * width) + indent
+    header += name.ljust(width) + indent
+print separator
+print header
+print separator
+
+for i in range(len(long_header)):
+    wrapped_help = textwrap.wrap(descriptions[i], description_width)
+    long_val = long_opts[i]
+    metavar_val = metavars[i]
+    short_val = short_opts[i]
+    for h in wrapped_help:
+        print ''.join([ predent, long_val.ljust(long_width),
+                        indent, metavar_val.ljust(metavar_width),
+                        indent, short_val.ljust(short_width),
+                        indent, h ])
+        long_val = metavar_val = short_val = ''
+
+print separator
+
+# LocalVariables:
+# mode:python
+# End:
+
