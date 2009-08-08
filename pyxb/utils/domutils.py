@@ -221,7 +221,7 @@ class _BDSNamespaceSupport (object):
         return self.__namespacePrefixMap.copy()
     __namespacePrefixMap = None
 
-    def declareNamespace (self, namespace, prefix=None):
+    def declareNamespace (self, namespace, prefix=None, add_to_map=False):
         """Add the given namespace as one to be used in this document.
 
         @param namespace: The namespace to be associated with the document.
@@ -253,7 +253,9 @@ class _BDSNamespaceSupport (object):
             raise pyxb.LogicError('Prefix %s is already in use' % (prefix,))
         self.__namespaces[namespace] = prefix
         self.__prefixes.add(prefix)
-        #print 'declared namespace %s as %s' % (namespace, prefix)
+        #print '%x declared namespace %s as %s' % (id(self), namespace, prefix)
+        if add_to_map:
+            self.__namespacePrefixMap[namespace] = prefix
         return prefix
 
     def namespacePrefix (self, namespace):
@@ -278,7 +280,10 @@ class _BDSNamespaceSupport (object):
     def namespaces (self):
         return self.__namespaces
 
-    def reset (self):
+    def __resetNamespacePrefixMap (self):
+        self.__namespacePrefixMap = { pyxb.namespace.XMLSchema_instance : 'xsi' }
+        
+    def reset (self, prefix_map=False):
         """Reset this instance to the state it was when created.
 
         This flushes the list of namespaces for the document.  The
@@ -288,16 +293,26 @@ class _BDSNamespaceSupport (object):
             self.__namespaces[self.__defaultNamespace] = None
         self.__prefixes = set()
         self.__namespacePrefixCounter = 0
+        if prefix_map:
+            self.__resetNamespacePrefixMap()
     
     def __init__ (self, default_namespace=None, namespace_prefix_map=None, inherit_from=None):
+        self.__prefixes = set()
+        self.__namespacePrefixCounter = 0
+        self.__namespaces = { }
+        self.__defaultNamespace = None
+        self.__resetNamespacePrefixMap()
         if inherit_from is not None:
-            self.__defaultNamespace = inherit_from.defaultNamespace()
-            self.__namespacePrefixMap = inherit_from.namespacePrefixMap().copy()
-        else:
-            self.__namespacePrefixMap = { pyxb.namespace.XMLSchema_instance : 'xsi' }
+            if default_namespace is None:
+                default_namespace = inherit_from.defaultNamespace()
+            self.__namespacePrefixMap.update(inherit_from.__namespacePrefixMap)
+            self.__namespacePrefixCount = inherit_from.__namespacePrefixCounter
+            self.__namespaces.update(inherit_from.__namespaces)
+            self.__prefixes.update(inherit_from.__prefixes)
         if default_namespace is not None:
             self.setDefaultNamespace(default_namespace)
         prefixes = set(self.__namespacePrefixMap.values())
+        prefixes.update(self.__prefixes)
         if namespace_prefix_map is not None:
             prefixes = set()
             for (ns, pfx) in namespace_prefix_map.items():
@@ -335,14 +350,19 @@ class BindingDOMSupport (object):
         return self.__requireXSIType
     __requireXSIType = None
 
-    def reset (self):
+    def reset (self, **kw):
         """Reset this instance to the state it was when created.
 
         This creates a new root document with no content, and flushes the list
         of namespaces for the document.  The defaultNamespace and
         requireXSIType are not modified."""
         self.__document = self.implementation().createDocument(None, None, None)
-        self.__namespaceSupport.reset()
+        if kw.pop('document_only', False):
+            self.__namespaceSupport.reset(**kw)
+
+    @classmethod
+    def Reset (self, **kw):
+        self.__NamespaceSupport.reset(**kw)
 
     def __init__ (self, implementation=None, default_namespace=None, require_xsi_type=False, namespace_prefix_map=None):
         """Create a new instance used for building a single document.
@@ -374,7 +394,7 @@ class BindingDOMSupport (object):
         self.__implementation = implementation
         self.__requireXSIType = require_xsi_type
         self.__namespaceSupport = _BDSNamespaceSupport(default_namespace, namespace_prefix_map, inherit_from=self.__NamespaceSupport)
-        self.reset()
+        self.reset(document_only=True)
         
     __namespaceSupport = None
     __NamespaceSupport = _BDSNamespaceSupport()
@@ -396,7 +416,7 @@ class BindingDOMSupport (object):
         return self.__namespaceSupport.declareNamespace(namespace, prefix)
     @classmethod
     def DeclareNamespace (cls, namespace, prefix=None):
-        return cls.__NamespaceSupport.declareNamespace(namespace, prefix)
+        return cls.__NamespaceSupport.declareNamespace(namespace, prefix, add_to_map=True)
 
     def namespacePrefix (self, namespace):
         return self.__namespaceSupport.namespacePrefix(namespace)
