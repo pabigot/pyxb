@@ -4423,12 +4423,12 @@ class _ImportElementInformationItem (_Annotated_mixin):
         return self.__redundant
     __redundant = None
 
-    def __init__ (self, schema, node, **kw):
+    def __init__ (self, importing_schema, node, **kw):
         super(_ImportElementInformationItem, self).__init__(**kw)
         uri = NodeAttribute(node, 'namespace')
         if uri is None:
             raise pyxb.IncompleteImplementationError('import statements without namespace not supported')
-        schema_location = pyxb.utils.utility.NormalizeLocation(NodeAttribute(node, 'schemaLocation'), schema.location())
+        schema_location = pyxb.utils.utility.NormalizeLocation(NodeAttribute(node, 'schemaLocation'), importing_schema.location())
         self.__schemaLocation = schema_location
         ns = self.__namespace = pyxb.namespace.NamespaceForURI(uri, create_if_missing=True)
         self.__redundant = False
@@ -4469,11 +4469,16 @@ class _ImportElementInformationItem (_Annotated_mixin):
         ns_ctx = pyxb.namespace.resolution.NamespaceContext.GetNodeContext(node)
         if self.schemaLocation() is not None:
             # @todo: NOTICE
-            # print 'import %s + %s = %s' % (schema.location(), self.__schemaLocation, schema_location)
+            # print 'import %s + %s = %s' % (importing_schema.location(), self.__schemaLocation, schema_location)
             (has_schema, schema_instance) = self.__namespace.lookupSchemaByLocation(schema_location)
             if not has_schema:
+                ckw = { 'absolute_schema_location' : schema_location,
+                        'namespace_context' : ns_ctx,
+                        'generation_uid' : importing_schema.generationUID(),
+                        'uri_content_archive_directory' : importing_schema.uriContentArchiveDirectory(),
+                        }
                 try:
-                    schema_instance = Schema.CreateFromLocation(absolute_schema_location=schema_location, namespace_context=ns_ctx, generation_uid=schema.generationUID())
+                    schema_instance = Schema.CreateFromLocation(**kw)
                 except Exception, e:
                     print 'WARNING: Import %s cannot read schema location %s (%s)' % (ns, self.__schemaLocation, schema_location)
             self.__schema = schema_instance
@@ -4601,12 +4606,17 @@ class Schema (_SchemaComponent_mixin):
                            'attributeDeclaration', 'elementDeclaration', 'notationDeclaration',
                            'identityConstraintDefinition' )
 
+    def _uriContentArchiveDirectory (self):
+        return self.__uriContentArchiveDirectory
+    __uriContentArchiveDirectory = None
+
     def __init__ (self, *args, **kw):
         # Force resolution of available namespaces if not already done
         if not kw.get('_bypass_preload', False):
             pyxb.namespace.archive.NamespaceArchive.PreLoadArchives()
 
         assert 'schema' not in kw
+        self.__uriContentArchiveDirectory = kw.get('uri_content_archive_directory')
         self.__location = kw.get('schema_location')
         if self.__location is not None:
             schema_path = self.__location
@@ -4680,14 +4690,15 @@ class Schema (_SchemaComponent_mixin):
         schema_location = kw.pop('absolute_schema_location', pyxb.utils.utility.NormalizeLocation(kw.get('schema_location'), kw.get('parent_uri')))
         kw['schema_location'] = schema_location
         assert isinstance(schema_location, (str, unicode))
-        return cls.CreateFromDocument(pyxb.utils.utility.TextFromURI(schema_location), **kw)
+        uri_content_archive_directory = kw.get('uri_content_archive_directory')
+        return cls.CreateFromDocument(pyxb.utils.utility.TextFromURI(schema_location, archive_directory=uri_content_archive_directory), **kw)
 
     @classmethod
     def CreateFromStream (cls, stream, **kw):
         return cls.CreateFromDocument(stream.read(), **kw)
 
     @classmethod
-    def CreateFromDOM (cls, node, namespace_context=None, inherit_default_namespace=False, schema_location=None, schema_signature=None, generation_uid=None):
+    def CreateFromDOM (cls, node, namespace_context=None, inherit_default_namespace=False, schema_location=None, schema_signature=None, generation_uid=None, **kw):
         """Take the root element of the document, and scan its attributes under
         the assumption it is an XMLSchema schema element.  That means
         recognize namespace declarations and process them.  Also look for
@@ -4706,7 +4717,7 @@ class Schema (_SchemaComponent_mixin):
 
         tns = ns_ctx.targetNamespace()
         assert tns is not None
-        schema = cls(namespace_context=ns_ctx, schema_location=schema_location, schema_signature=schema_signature, generation_uid=generation_uid)
+        schema = cls(namespace_context=ns_ctx, schema_location=schema_location, schema_signature=schema_signature, generation_uid=generation_uid, **kw)
         schema.__namespaceData = ns_ctx
             
         assert schema.targetNamespace() == ns_ctx.targetNamespace()
@@ -4839,8 +4850,14 @@ class Schema (_SchemaComponent_mixin):
         #print 'include %s + %s = %s' % (self.__location, rel_uri, abs_uri)
         (has_schema, schema_instance) = self.targetNamespace().lookupSchemaByLocation(abs_uri)
         if not has_schema:
+            kw = { 'absolute_schema_location': abs_uri,
+                   'namespace_context': self.__namespaceData,
+                   'inherit_default_namespace': True,
+                   'generation_uid': self.generationUID(),
+                   'uri_content_archive_directory': self._uriContentArchiveDirectory(),
+                 }
             try:
-                schema_instance = self.CreateFromLocation(absolute_schema_location=abs_uri, namespace_context=self.__namespaceData, inherit_default_namespace=True, generation_uid=self.generationUID())
+                schema_instance = self.CreateFromLocation(**kw)
             except Exception, e:
                 print 'INCLUDE %s caught: %s' % (abs_uri, e)
                 #traceback.print_exception(*sys.exc_info())

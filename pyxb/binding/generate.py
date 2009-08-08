@@ -1787,6 +1787,17 @@ class Generator (object):
         return self
     __allowBuiltinGeneration = None
 
+    def uriContentArchiveDirectory (self):
+        """The directory path into which any content retrieved by URI will be written.
+
+        This serves as a local cache, and to give you an opportunity
+        to inspect material retrieved from some other system.
+        @rtype: C{str}"""
+        return self.__uriContentArchiveDirectory
+    def setUriContentArchiveDirectory (self, ucad):
+        self.__uriContentArchiveDirectory = ucad
+    __uriContentArchiveDirectory = None
+
     def __init__ (self, *args, **kw):
         """Create a configuration to be used for generating bindings.
 
@@ -1815,6 +1826,7 @@ class Generator (object):
         @keyword allow_builtin_generation: Invokes L{setAllowBuiltinGeneration}
         @keyword allow_absent_module: Invokes L{setAllowAbsentModule}
         @keyword generate_to_files: Sets L{generateToFiles}
+        @keyword uri_content_archive_directory: Invokes L{setUriContentArchiveDirectory}
         """
         argv = kw.get('argv', None)
         if argv is not None:
@@ -1842,6 +1854,7 @@ class Generator (object):
         self.__writeForCustomization = kw.get('allow_builtin_generation', False)
         self.__allowAbsentModule = kw.get('allow_absent_module', False)
         self.__generateToFiles = kw.get('generate_to_files', True)
+        self.__uriContentArchiveDirectory = kw.get('uri_content_archive_directory')
         
         if argv is not None:
             self.applyOptionValues(*self.optionParser().parse_args(argv))
@@ -1871,7 +1884,8 @@ class Generator (object):
         ('validate_changes', setValidateChanges),
         ('write_for_customization', setWriteForCustomization),
         ('allow_builtin_generation', setAllowBuiltinGeneration),
-        ('allow_absent_module', setAllowAbsentModule)
+        ('allow_absent_module', setAllowAbsentModule),
+        ('uri_content_archive_directory', setUriContentArchiveDirectory)
         )
     def applyOptionValues (self, options, args=None):
         for (tag, method) in self.__OptionSetters:
@@ -1970,6 +1984,8 @@ class Generator (object):
             parser.add_option('--no-allow-builtin-generation',
                               action='store_false', dest='allow_builtin_generation',
                               help=self.__stripSpaces(self.allowBuiltinGeneration.__doc__ + ' This option turns off the feature (default).'))
+            parser.add_option('--uri-content-archive-directory', metavar="DIRECTORY",
+                              help=self.__stripSpaces(self.uriContentArchiveDirectory.__doc__))
             self.__optionParser = parser
         return self.__optionParser
     __optionParser = None
@@ -2022,6 +2038,8 @@ class Generator (object):
                 opts.append('--' + opt)
             else:
                 opts.append('--no-' + opt)
+        if self.uriContentArchiveDirectory() is not None:
+            opts.append('--uri-content-archive-directory=%s' + self.uriContentArchiveDirectory())
         return opts
 
     def normalizeSchemaLocation (self, sl):
@@ -2059,7 +2077,7 @@ class Generator (object):
         while self.__schemaLocationList:
             sl = self.__schemaLocationList.pop(0)
             try:
-                schema = xs.schema.CreateFromLocation(absolute_schema_location=self.normalizeSchemaLocation(sl), generation_uid=self.generationUID())
+                schema = xs.schema.CreateFromLocation(absolute_schema_location=self.normalizeSchemaLocation(sl), generation_uid=self.generationUID(), uri_content_archive_directory=self.uriContentArchiveDirectory())
                 self.addSchema(schema)
             except pyxb.SchemaUniquenessError, e:
                 print 'WARNING: Skipped redundant translation of %s defining %s' % (e.schemaLocation(), e.namespace())

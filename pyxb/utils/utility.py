@@ -365,7 +365,9 @@ def NormalizeLocation (uri, parent_uri=None):
         abs_uri = os.path.realpath(abs_uri)
     return abs_uri
 
-def TextFromURI (uri):
+import urlparse
+
+def TextFromURI (uri, archive_directory=None):
     """Retrieve the contents of the uri as a text string.
 
     If the uri does not include a scheme (e.g., C{http:}), it is
@@ -377,9 +379,21 @@ def TextFromURI (uri):
             xmls = urllib2.urlopen(uri).read()
         else:
             xmls = file(uri).read()
+            archive_directory = None
     except Exception, e:
         print 'TextFromURI: open %s caught: %s' % (uri, e)
         raise
+    if archive_directory:
+        base_name = os.path.basename(os.path.normpath(urlparse.urlparse(uri)[2]))
+        counter = 1
+        dest_file = os.path.join(archive_directory, base_name)
+        while os.path.isfile(dest_file):
+            dest_file = os.path.join(archive_directory, '%s.%d' % (base_name, counter))
+            counter += 1
+        try:
+            OpenOrCreate(dest_file).write(xmls)
+        except OSError, e:
+            print 'WARNING: Unable to save %s in %s: %s' % (uri, dest_file, e)
     return xmls
 
 class ConstrainedMutableSequence (object):
