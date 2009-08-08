@@ -175,9 +175,7 @@ def ExtractTextContent (node):
         return None
     return ''.join(text)
 
-class BindingDOMSupport (object):
-    """This holds DOM-related information used when generating a DOM tree from
-    a binding instance."""
+class _BDSNamespaceSupport (object):
     # Namespace declarations required on the top element
     __namespaces = None
 
@@ -194,92 +192,6 @@ class BindingDOMSupport (object):
         return self.__defaultNamespace
     __defaultNamespace = None
 
-    def implementation (self):
-        """The DOMImplementation object to be used.
-
-        Defaults to L{pyxb.utils.domutils.GetDOMImplementation()}, but can be
-        overridden in the constructor call using the C{implementation}
-        keyword."""
-        return self.__implementation
-    __implementation = None
-
-    def document (self):
-        """Return the document generated using this instance."""
-        return self.__document
-    __document = None
-
-    def requireXSIType (self):
-        """Indicates whether xsi:type should be added to all elements.
-
-        Certain WSDL styles and encodings seem to require explicit notation of
-        the type of each element, even if it was specified in the schema.
-
-        This value can only be set in the constructor."""
-        return self.__requireXSIType
-    __requireXSIType = None
-
-    def namespacePrefixMap (self):
-        return self.__namespacePrefixMap.copy()
-    __namespacePrefixMap = None
-
-    def reset (self):
-        """Reset this instance to the state it was when created.
-
-        This creates a new root document with no content, and flushes the list
-        of namespaces for the document.  The defaultNamespace and
-        requireXSIType are not modified."""
-        self.__document = self.implementation().createDocument(None, None, None)
-        self.__namespaces = { }
-        if self.__defaultNamespace is not None:
-            self.__namespaces[self.__defaultNamespace] = None
-        self.__prefixes = set()
-        self.__namespacePrefixCounter = 0
-        #print 'NSP: %s' % (self.__namespacePrefixMap,)
-        #print 'NSM: %s' % (self.__namespaces,)
-
-    def __init__ (self, implementation=None, default_namespace=None, require_xsi_type=False, namespace_prefix_map=None):
-        """Create a new instance used for building a single document.
-
-        @keyword implementation: The C{xml.dom} implementation to use.
-        Defaults to the one selected by L{GetDOMImplementation}.
-
-        @keyword default_namespace: The namespace to configure as the default
-        for the document.  If not provided, there is no default namespace.
-        @type default_namespace: L{pyxb.namespace.Namespace}
-
-        @keyword require_xsi_type: If C{True}, an U{xsi:type
-        <http://www.w3.org/TR/xmlschema-1/#xsi_type>} attribute should be
-        placed in every element.
-        @type require_xsi_type: C{bool}
-
-        @keyword namespace_prefix_map: A map from pyxb.namespace.Namespace
-        instances to the preferred prefix to use for the namespace in xmlns
-        declarations.  The default one assigns 'xsi' for the XMLSchema
-        instance namespace.
-        @type namespace_prefix_map: C{map} from L{pyxb.namespace.Namespace} to C{str}
-
-        @raise pyxb.LogicError: the same prefix is associated with multiple
-        namespaces in the C{namespace_prefix_map}.
-
-        """
-        if implementation is None:
-            implementation = GetDOMImplementation()
-        self.__implementation = implementation
-        self.__requireXSIType = require_xsi_type
-        self.setDefaultNamespace(default_namespace)
-        self.__namespacePrefixMap = { pyxb.namespace.XMLSchema_instance : 'xsi' }
-        prefixes = set(self.__namespacePrefixMap.values())
-        if namespace_prefix_map is not None:
-            prefixes = set()
-            for (ns, pfx) in namespace_prefix_map.items():
-                if isinstance(ns, basestring):
-                    ns = pyxb.namespace.NamespaceForURI(ns, create_if_missing=True)
-                if pfx in prefixes:
-                    raise pyxb.LogicError('Cannot assign same prefix to multiple namespacess: %s' % (pfx,))
-                prefixes.add(pfx)
-                self.__namespacePrefixMap[ns] = pfx
-        self.reset()
-        
     def setDefaultNamespace (self, default_namespace):
         """Set the default namespace for the generated document.
 
@@ -304,6 +216,10 @@ class BindingDOMSupport (object):
         self.__defaultNamespace = default_namespace
         if self.__defaultNamespace is not None:
             self.__namespaces[self.__defaultNamespace] = None
+
+    def namespacePrefixMap (self):
+        return self.__namespacePrefixMap.copy()
+    __namespacePrefixMap = None
 
     def declareNamespace (self, namespace, prefix=None):
         """Add the given namespace as one to be used in this document.
@@ -359,6 +275,141 @@ class BindingDOMSupport (object):
             return self.declareNamespace(namespace)
         return self.__namespaces[namespace]
 
+    def namespaces (self):
+        return self.__namespaces
+
+    def reset (self):
+        """Reset this instance to the state it was when created.
+
+        This flushes the list of namespaces for the document.  The
+        defaultNamespace is not modified."""
+        self.__namespaces = { }
+        if self.__defaultNamespace is not None:
+            self.__namespaces[self.__defaultNamespace] = None
+        self.__prefixes = set()
+        self.__namespacePrefixCounter = 0
+    
+    def __init__ (self, default_namespace=None, namespace_prefix_map=None, inherit_from=None):
+        if inherit_from is not None:
+            self.__defaultNamespace = inherit_from.defaultNamespace()
+            self.__namespacePrefixMap = inherit_from.namespacePrefixMap().copy()
+        else:
+            self.__namespacePrefixMap = { pyxb.namespace.XMLSchema_instance : 'xsi' }
+        if default_namespace is not None:
+            self.setDefaultNamespace(default_namespace)
+        prefixes = set(self.__namespacePrefixMap.values())
+        if namespace_prefix_map is not None:
+            prefixes = set()
+            for (ns, pfx) in namespace_prefix_map.items():
+                ns = pyxb.namespace.NamespaceInstance(ns)
+                if pfx in prefixes:
+                    raise pyxb.LogicError('Cannot assign same prefix to multiple namespacess: %s' % (pfx,))
+                prefixes.add(pfx)
+                self.__namespacePrefixMap[ns] = pfx
+
+class BindingDOMSupport (object):
+    """This holds DOM-related information used when generating a DOM tree from
+    a binding instance."""
+
+    def implementation (self):
+        """The DOMImplementation object to be used.
+
+        Defaults to L{pyxb.utils.domutils.GetDOMImplementation()}, but can be
+        overridden in the constructor call using the C{implementation}
+        keyword."""
+        return self.__implementation
+    __implementation = None
+
+    def document (self):
+        """Return the document generated using this instance."""
+        return self.__document
+    __document = None
+
+    def requireXSIType (self):
+        """Indicates whether xsi:type should be added to all elements.
+
+        Certain WSDL styles and encodings seem to require explicit notation of
+        the type of each element, even if it was specified in the schema.
+
+        This value can only be set in the constructor."""
+        return self.__requireXSIType
+    __requireXSIType = None
+
+    def reset (self):
+        """Reset this instance to the state it was when created.
+
+        This creates a new root document with no content, and flushes the list
+        of namespaces for the document.  The defaultNamespace and
+        requireXSIType are not modified."""
+        self.__document = self.implementation().createDocument(None, None, None)
+        self.__namespaceSupport.reset()
+
+    def __init__ (self, implementation=None, default_namespace=None, require_xsi_type=False, namespace_prefix_map=None):
+        """Create a new instance used for building a single document.
+
+        @keyword implementation: The C{xml.dom} implementation to use.
+        Defaults to the one selected by L{GetDOMImplementation}.
+
+        @keyword default_namespace: The namespace to configure as the default
+        for the document.  If not provided, there is no default namespace.
+        @type default_namespace: L{pyxb.namespace.Namespace}
+
+        @keyword require_xsi_type: If C{True}, an U{xsi:type
+        <http://www.w3.org/TR/xmlschema-1/#xsi_type>} attribute should be
+        placed in every element.
+        @type require_xsi_type: C{bool}
+
+        @keyword namespace_prefix_map: A map from pyxb.namespace.Namespace
+        instances to the preferred prefix to use for the namespace in xmlns
+        declarations.  The default one assigns 'xsi' for the XMLSchema
+        instance namespace.
+        @type namespace_prefix_map: C{map} from L{pyxb.namespace.Namespace} to C{str}
+
+        @raise pyxb.LogicError: the same prefix is associated with multiple
+        namespaces in the C{namespace_prefix_map}.
+
+        """
+        if implementation is None:
+            implementation = GetDOMImplementation()
+        self.__implementation = implementation
+        self.__requireXSIType = require_xsi_type
+        self.__namespaceSupport = _BDSNamespaceSupport(default_namespace, namespace_prefix_map, inherit_from=self.__NamespaceSupport)
+        self.reset()
+        
+    __namespaceSupport = None
+    __NamespaceSupport = _BDSNamespaceSupport()
+
+    # Namespace declarations required on the top element
+    def defaultNamespace (self):
+        return self.__namespaceSupport.defaultNamespace()
+    @classmethod
+    def DefaultNamespace (cls):
+        return cls.__NamespaceSupport.defaultNamespace()
+
+    def setDefaultNamespace (self, default_namespace):
+        return self.__namespaceSupport.setDefaultNamespace(default_namespace)
+    @classmethod
+    def SetDefaultNamespace (cls, default_namespace):
+        return cls.__NamespaceSupport.setDefaultNamespace(default_namespace)
+
+    def declareNamespace (self, namespace, prefix=None):
+        return self.__namespaceSupport.declareNamespace(namespace, prefix)
+    @classmethod
+    def DeclareNamespace (cls, namespace, prefix=None):
+        return cls.__NamespaceSupport.declareNamespace(namespace, prefix)
+
+    def namespacePrefix (self, namespace):
+        return self.__namespaceSupport.namespacePrefix(namespace)
+    @classmethod
+    def NamespacePrefix (cls, namespace):
+        return cls.__NamespaceSupport.namespacePrefix(namespace)
+
+    def namespacePrefixMap (self):
+        return self.__namespaceSupport.namespacePrefixMap.copy()
+    @classmethod
+    def NamespacePrefixMap (cls):
+        return cls.__NamespaceSupport.namespacePrefixMap.copy()
+
     def addAttribute (self, element, expanded_name, value):
         """Add an attribute to the given element.
 
@@ -387,7 +438,7 @@ class BindingDOMSupport (object):
 
         @return: The document that has been created.
         @rtype: xml.dom.Document"""
-        for ( ns, pfx ) in self.__namespaces.items():
+        for ( ns, pfx ) in self.__namespaceSupport.namespaces().items():
             if pfx is None:
                 self.document().documentElement.setAttributeNS(pyxb.namespace.XMLNamespaces.uri(), 'xmlns', ns.uri())
             else:
