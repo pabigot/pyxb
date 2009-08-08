@@ -1493,9 +1493,7 @@ class Generator (object):
 
     def schemaRoot (self):
         """The directory from which entrypoint schemas specified as
-        relative file paths will be read.
-
-        The value includes the final path separator character."""
+        relative file paths will be read."""
         return self.__schemaRoot
     def setSchemaRoot (self, schema_root):
         if not schema_root.endswith(os.sep):
@@ -1921,71 +1919,90 @@ class Generator (object):
             parser = optparse.OptionParser(usage="%prog [options] [more schema locations...]",
                                            version='%%prog from PyXB %s' % (pyxb.__version__,),
                                            description='Generate bindings from a set of XML schemas')
-            parser.add_option('--schema-location', '-u', metavar="FILE_or_URL",
-                              action='append',
-                              help=self.__stripSpaces(self.addSchemaLocation.__doc__))
-            parser.add_option('--module', '-m', metavar="MODULE",
-                              action='append',
-                              help=self.__stripSpaces(self.addModuleName.__doc__))
-            parser.add_option('--schema-root', metavar="DIRECTORY",
-                              help=self.__stripSpaces(self.schemaRoot.__doc__))
-            parser.add_option('--schema-stripped-prefix', metavar="TEXT", type='string',
-                              help=self.__stripSpaces(self.schemaStrippedPrefix.__doc__))
-            parser.add_option('--module-prefix', metavar="MODULE",
-                              help=self.__stripSpaces(self.modulePrefix.__doc__))
-            parser.add_option('--binding-root', metavar="DIRECTORY",
-                              help=self.__stripSpaces(self.bindingRoot.__doc__))
-            parser.add_option('--archive-path', metavar="PATH",
-                              help=self.__stripSpaces(self.archivePath.__doc__))
-            parser.add_option('--no-load-namespace', metavar="URI",
-                              action='append',
-                              help=self.__stripSpaces(self.addNoLoadNamespace.__doc__))
-            parser.add_option('--pre-load-archive', metavar="FILE",
-                              action='append',
-                              help=self.__stripSpaces(self.addPreLoadArchive.__doc__))
-            parser.add_option('--archive-to-file', metavar="FILE",
-                              help=self.__stripSpaces(self.archiveToFile.__doc__))
-            parser.add_option('--public-namespace', metavar="URI",
-                              action='append',
-                              help=self.__stripSpaces(self.namespaceVisibilityMap.__doc__ + ' This option adds the namespace as a public archive member.'))
-            parser.add_option('--private-namespace', metavar="URI",
-                              action='append',
-                              help=self.__stripSpaces(self.namespaceVisibilityMap.__doc__ + ' This option adds the namespace as a private archive member.'))
-            parser.add_option('--default-namespace-public',
-                              action="store_true", dest='default_namespace_public',
-                              help=self.__stripSpaces(self.defaultNamespacePublic.__doc__ + ' This option makes the default "public" (default).'))
-            parser.add_option('--default-namespace-private',
-                              action="store_false", dest='default_namespace_public',
-                              help=self.__stripSpaces(self.defaultNamespacePublic.__doc__ + ' This option makes the default "private".'))
-            parser.add_option('--binding-style',
+
+            group = optparse.OptionGroup(parser, 'Identifying Schema', 'Specify and locate schema for which bindings should be generated.')
+            group.add_option('--schema-location', '-u', metavar="FILE_or_URL",
+                             action='append',
+                             help=self.__stripSpaces(self.addSchemaLocation.__doc__))
+            group.add_option('--schema-root', metavar="DIRECTORY",
+                             help=self.__stripSpaces(self.schemaRoot.__doc__))
+            group.add_option('--schema-stripped-prefix', metavar="TEXT", type='string',
+                             help=self.__stripSpaces(self.schemaStrippedPrefix.__doc__))
+            group.add_option('--uri-content-archive-directory', metavar="DIRECTORY",
+                             help=self.__stripSpaces(self.uriContentArchiveDirectory.__doc__))
+            parser.add_option_group(group)
+
+            group = optparse.OptionGroup(parser, 'Configuring Bindings', 'Specify where generated bindings should be written, and how they will be accessed from Python.')
+            group.add_option('--module', '-m', metavar="MODULE",
+                             action='append',
+                             help=self.__stripSpaces(self.addModuleName.__doc__))
+            group.add_option('--module-prefix', metavar="MODULE",
+                             help=self.__stripSpaces(self.modulePrefix.__doc__))
+            group.add_option('--binding-root', metavar="DIRECTORY",
+                             help=self.__stripSpaces(self.bindingRoot.__doc__))
+            group.add_option('-r', '--write-for-customization',
+                             action='store_true', dest='write_for_customization',
+                             help=self.__stripSpaces(self.writeForCustomization.__doc__ + ' This option turns on the feature.'))
+            group.add_option('--no-write-for-customization',
+                             action='store_false', dest='write_for_customization',
+                             help=self.__stripSpaces(self.writeForCustomization.__doc__ + ' This option turns off the feature (default).'))
+            parser.add_option_group(group)
+
+            group = optparse.OptionGroup(parser, 'Reading Namespace Archives', 'Locating and loading (or inhibiting load of) namespace archives.')
+            group.add_option('--archive-path', metavar="PATH",
+                             help=self.__stripSpaces(self.archivePath.__doc__))
+            group.add_option('--pre-load-archive', metavar="FILE",
+                             action='append',
+                             help=self.__stripSpaces(self.addPreLoadArchive.__doc__))
+            group.add_option('--no-load-namespace', metavar="URI",
+                             action='append',
+                             help=self.__stripSpaces(self.addNoLoadNamespace.__doc__))
+            parser.add_option_group(group)
+
+            group = optparse.OptionGroup(parser, 'Writing Namespace Archives', 'Control the location and content of a namespace archive corresponding to a binding generation.')
+            group.add_option('--archive-to-file', metavar="FILE",
+                             help=self.__stripSpaces(self.archiveToFile.__doc__))
+            group.add_option('--public-namespace', metavar="URI",
+                             action='append',
+                             help=self.__stripSpaces(self.namespaceVisibilityMap.__doc__ + ' This option adds the namespace as a public archive member.'))
+            group.add_option('--private-namespace', metavar="URI",
+                             action='append',
+                             help=self.__stripSpaces(self.namespaceVisibilityMap.__doc__ + ' This option adds the namespace as a private archive member.'))
+            group.add_option('--default-namespace-public',
+                             action="store_true", dest='default_namespace_public',
+                             help=self.__stripSpaces(self.defaultNamespacePublic.__doc__ + ' This option makes the default "public" (default).'))
+            group.add_option('--default-namespace-private',
+                             action="store_false", dest='default_namespace_public',
+                             help=self.__stripSpaces(self.defaultNamespacePublic.__doc__ + ' This option makes the default "private".'))
+            parser.add_option_group(group)
+
+            group = optparse.OptionGroup(parser, 'Configuring Binding Code Generation', "Control the style and content of the generated bindings.  This is not well-supported, and you are advised to pretend these options don't exist.")
+            group.add_option('--binding-style',
                               type='choice', choices=basis.BINDING_STYLES,
                               help=self.__stripSpaces(self.bindingStyle.__doc__))
-            parser.add_option('--validate-changes',
+            group.add_option('--validate-changes',
                               action='store_true', dest='validate_changes',
                               help=self.__stripSpaces(self.validateChanges.__doc__ + ' This option turns on validation (default).'))
-            parser.add_option('--no-validate-changes',
+            group.add_option('--no-validate-changes',
                               action='store_false', dest='validate_changes',
                               help=self.__stripSpaces(self.validateChanges.__doc__ + ' This option turns off validation.'))
-            parser.add_option('-r', '--write-for-customization',
-                              action='store_true', dest='write_for_customization',
-                              help=self.__stripSpaces(self.writeForCustomization.__doc__ + ' This option turns on the feature.'))
-            parser.add_option('--no-write-for-customization',
-                              action='store_false', dest='write_for_customization',
-                              help=self.__stripSpaces(self.writeForCustomization.__doc__ + ' This option turns off the feature (default).'))
-            parser.add_option('--allow-absent-module',
+            parser.add_option_group(group)
+
+            group = optparse.OptionGroup(parser, 'Maintainer Options', "Don't use these.  They don't exist.  If they did, they'd do different things at different times, and if you used them you'd probably be sorry.")
+            group.add_option('--allow-absent-module',
                               action='store_true', dest='allow_absent_module',
                               help=self.__stripSpaces(self.allowAbsentModule.__doc__ + ' This option turns on the feature.'))
-            parser.add_option('--no-allow-absent-module',
-                              action='store_false', dest='allow_absent_module',
-                              help=self.__stripSpaces(self.allowAbsentModule.__doc__ + ' This option turns off the feature (default).'))
-            parser.add_option('--allow-builtin-generation',
-                              action='store_true', dest='allow_builtin_generation',
-                              help=self.__stripSpaces(self.allowBuiltinGeneration.__doc__ + ' This option turns on the feature.'))
-            parser.add_option('--no-allow-builtin-generation',
-                              action='store_false', dest='allow_builtin_generation',
-                              help=self.__stripSpaces(self.allowBuiltinGeneration.__doc__ + ' This option turns off the feature (default).'))
-            parser.add_option('--uri-content-archive-directory', metavar="DIRECTORY",
-                              help=self.__stripSpaces(self.uriContentArchiveDirectory.__doc__))
+            group.add_option('--no-allow-absent-module',
+                             action='store_false', dest='allow_absent_module',
+                             help=self.__stripSpaces(self.allowAbsentModule.__doc__ + ' This option turns off the feature (default).'))
+            group.add_option('--allow-builtin-generation',
+                             action='store_true', dest='allow_builtin_generation',
+                             help=self.__stripSpaces(self.allowBuiltinGeneration.__doc__ + ' This option turns on the feature.'))
+            group.add_option('--no-allow-builtin-generation',
+                             action='store_false', dest='allow_builtin_generation',
+                             help=self.__stripSpaces(self.allowBuiltinGeneration.__doc__ + ' This option turns off the feature (default).'))
+            parser.add_option_group(group)
+
             self.__optionParser = parser
         return self.__optionParser
     __optionParser = None
