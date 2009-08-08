@@ -985,7 +985,7 @@ class STD_union (simpleTypeDefinition):
                     # first member will be accepted.
                     value = mt.Factory(value, _validate_constraints=True)
                     return value
-                except pyxb.BadTypeValueError:
+                except (TypeError, pyxb.BadTypeValueError):
                     pass
             raise pyxb.BadTypeValueError('%s cannot hold a member of type %s' % (cls.__name__, value.__class__.__name__))
         return value
@@ -1001,6 +1001,12 @@ class STD_union (simpleTypeDefinition):
         desc = [ name, ', union of ']
         desc.append(', '.join([ _td._description(name_only=True) for _td in cls._MemberTypes ]))
         return ''.join(desc)
+
+    @classmethod
+    def XsdLiteral (cls, value):
+        """Convert from a binding value to a string usable in an XML document."""
+        return cls._ValidatedMember(value).xsdLiteral()
+
 
 class STD_list (simpleTypeDefinition, types.ListType):
     """Base class for collection datatypes.

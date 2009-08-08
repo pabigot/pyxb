@@ -53,6 +53,10 @@ class TestUnion (unittest.TestCase):
         uv = myUnion._ValidatedMember('tri')
         self.assertTrue(isinstance(uv, welsh))
 
+    def testXsdLiteral (self):
+        ul = unionList([0, 'un', 'one'])
+        self.assertEqual('0 un one', ul.xsdLiteral())
+
     def testXMLErrors (self):
         self.assertEqual(welsh.un, CreateFromDocument('<myElement xmlns="URN:unionTest">un</myElement>'))
         self.assertRaises(UnrecognizedElementError, CreateFromDocument, '<welsh>un</welsh>')
