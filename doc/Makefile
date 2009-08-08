@@ -37,8 +37,8 @@ apihtml:
 	mkdir -p html/api
 	PYTHONPATH=.. $(EPYDOC) $(EPYDOCOPTS)
 
-pyxbgen_cli.txt: ../pyxb/binding/generator.py ../maintainer/gendoc
-	../maintainer/gendoc > pyxbgen_cli.txt
+pyxbgen_cli.txt: ../pyxb/binding/generate.py ../maintainer/gendoc
+	PYTHONPATH=.. ../maintainer/gendoc > pyxbgen_cli.txt
 
 GENERATED_TXT += pyxbgen_cli.txt
 
