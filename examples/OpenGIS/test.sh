@@ -26,7 +26,7 @@ ls Schemas/sos/1.0.0/examples/*.xml \
  | xargs python check_sos.py \
 || exit 1
 
-rm gmlapp.py raw/gmlapp.py
+rm -f gmlapp.py raw/gmlapp.py
 pyxbgen \
   --schema-location=gmlapp.xsd --module=gmlapp \
   --write-for-customization
