@@ -14,6 +14,7 @@ make  html
 rm -f pyxb
 cd ..
 maintainer/dobinds.sh
+maintainer/wssplat.sh
 ./setup.py sdist
 ./setup.py test
 cp -p dist/PyXB-*.tar.gz ~/pyxb/pre-release

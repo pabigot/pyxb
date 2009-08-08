@@ -132,12 +132,25 @@ setup(name='PyXB',
       version='0.7.0',
       provides='pyxb',
       packages=[ 'pyxb', 'pyxb.namespace', 'pyxb.binding', 'pyxb.utils', 'pyxb.xmlschema',
-                 'pyxb.standard', 'pyxb.standard.bindings', 'pyxb.standard.bindings.raw' ],
+                 'pyxb.standard', 'pyxb.standard.bindings', 'pyxb.standard.bindings.raw',
+                 'pyxb.bundles',
+                 'pyxb.bundles.wssplat', 'pyxb.bundles.wssplat.raw',
+                 ],
 
-      package_data={ 'pyxb.standard.bindings.raw' :  [ 'xsd_hfp.wxs', 'wsdl.wxs', 'xhtml.wxs', 'soapenv.wxs',
-                                                       'soapenc.wxs', 'mime.wxs', 'soap.wxs', 'http.wxs',
-                                                       'soap12.wxs', 'xmldsig.wxs', 'xenc.wxs', 'saml_assert.wxs',
-                                                       'saml_protocol.wxs' ] },
+      package_data={
+        # (cd pyxb/standard/bindings/raw/; ls *.wxs | sed -e 's@^@"@' -e 's@$@",@') | fmt
+        'pyxb.standard.bindings.raw' : [
+"xhtml.wxs", "xsd_hfp.wxs",
+],
+        # (cd pyxb/bundles/wssplat/raw/; ls *.wxs | sed -e 's@^@"@' -e 's@$@",@') | fmt
+        'pyxb.bundles.wssplat.raw' :  [
+"bpws.wxs", "ds.wxs", "httpbind.wxs", "mimebind.wxs", "soap11.wxs",
+"soap12.wxs", "soapbind11.wxs", "soapbind12.wxs", "soapenc.wxs",
+"whttp.wxs", "wsa.wxs", "wsam.wxs", "wscoor.wxs", "wsdl11.wxs",
+"wsdl20.wxs", "wsdli.wxs", "wsdlx.wxs", "wsoap.wxs", "wsp.wxs",
+"wsp200607.wxs", "wsse.wxs", "wsu.wxs",
+],
+        }
       # I normally keep these in $purelib, but distutils won't tell me where that is.
       # We don't need them in the installation anyway.
       #data_files= [ ('pyxb/standard/schemas', glob.glob(os.path.join(*'pyxb/standard/schemas/*.xsd'.split('/'))) ) ],
