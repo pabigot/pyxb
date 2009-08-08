@@ -142,18 +142,6 @@ class Facet (pyxb.cscRoot):
         return self._setFromKeywords_vb(**kw)
 
     @classmethod
-    def NeedInSTD (cls, fi, td):
-        if (fi is None) and (cls in td.baseTypeDefinition().facets()):
-            # Nothing new here
-            #print 'Skipping %s in %s: already registered' % (cls, td)
-            return False
-        if (fi is not None) and (fi.ownerTypeDefinition() != td):
-            # Did this one in an ancestor
-            #print 'Skipping %s in %s: found in ancestor' % (cls, td)
-            return False
-        return True
-
-    @classmethod
     def ClassForFacet (cls, name):
         """Given the name of a facet, return the Facet subclass that represents it."""
         assert cls != Facet
