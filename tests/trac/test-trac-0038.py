@@ -67,7 +67,7 @@ import unittest
 def SET_lu (instance, v):
     instance.lu = v
 
-class TestTrac0041 (unittest.TestCase):
+class TestTrac0038 (unittest.TestCase):
     """Visibility of enumerations within unions"""
     def testBasic (self):
         d = union('1')
