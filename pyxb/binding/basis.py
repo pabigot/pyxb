@@ -871,9 +871,9 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
                 iter(value)
             except TypeError, e:
                 raise pyxb.BadTypeValueError('%s cannot have non-iterable value type %s' % (cls, type(value)))
-            for i in range(len(value)):
-                if not cls._ItemType._IsValidValue(value[i]):
-                    value[i] = cls._ItemType.Factory(value[i])
+            for v in value:
+                if not cls._ItemType._IsValidValue(v):
+                    raise pyxb.BadTypeValueError('%s cannot have member of type %s' % (cls, type(v)))
         else:
             if issubclass(cls, STD_union):
                 #print ' -- checking union with %d types' % (len(cls._MemberTypes),)
@@ -1068,6 +1068,47 @@ class STD_list (simpleTypeDefinition, types.ListType):
             return name
         desc = [ name, ', list of ', cls._ItemType._description(name_only=True) ]
         return ''.join(desc)
+
+    # Convert a single value to the required type, if not already an instance
+    @classmethod
+    def __ConvertOne (cls, v):
+        return cls._ValidatedItem(v)
+
+    # Convert a sequence of values to the required type, if not already instances
+    def __convertMany (self, values):
+        return [ self._ValidatedItem(_v) for _v in values ]
+
+    def __setitem__ (self, key, value):
+        if isinstance(key, slice):
+            super(STD_list, self).__setitem__(key, self.__convertMany(values))
+        else:
+            super(STD_list, self).__setitem__(key, self._ValidatedItem(value))
+
+    def __setslice__ (self, start, end, values):
+        super(STD_list, self).__setslice__(start, end, self.__convertMany(values))
+
+    def __contains__ (self, item):
+        return super(STD_list, self).__contains__(self._ValidatedItem(item))
+
+    # Standard mutable sequence methods, per Python Library Reference "Mutable Sequence Types"
+
+    def append (self, x):
+        super(STD_list, self).append(self._ValidatedItem(x))
+
+    def extend (self, x):
+        super(STD_list, self).extend(self.__convertMany(x))
+
+    def count (self, x):
+        return super(STD_list, self).count(self._ValidatedItem(x))
+
+    def index (self, x, *args):
+        return super(STD_list, self).index(self._ValidatedItem(x), *args)
+
+    def insert (self, i, x):
+        super(STD_list, self).insert(i, self._ValidatedItem(x))
+
+    def remove (self, x):
+        super(STD_list, self).remove(self._ValidatedItem(x))
 
 class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
     """Class that represents a schema element.

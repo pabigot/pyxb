@@ -57,11 +57,27 @@ class TestTrac0037 (unittest.TestCase):
         self.assertTrue(isinstance(i, list))
         self.assertEqual(0, len(i))
         i.extend([1, 3, 'one', 'two', 2])
-        self.assertFalse(isinstance(i[0], xs.int))
-        self.assertFalse(isinstance(i[2], tEnum))
-        self.assertTrue(i.validateBinding())
         self.assertTrue(isinstance(i[0], xs.int))
         self.assertTrue(isinstance(i[2], tEnum))
+        self.assertTrue(i.validateBinding())
+        # setitem
+        i[0] = 23
+        self.assertTrue(isinstance(i[0], xs.int))
+        self.assertEqual(23, i[0])
+        self.assertTrue('one' in i)
+        self.assertEqual(2, i.index('one'))
+        self.assertEqual(5, len(i))
+        i[2:2] = [ 37 ]
+        self.assertEqual(6, len(i))
+        self.assertEqual(37, i[2])
+        self.assertTrue(isinstance(i[2], xs.int))
+        self.assertEqual(3, i.index('one'))
+        i[:2] = []
+        self.assertEqual(4, len(i))
+        self.assertEqual(37, i[0])
+        i[1:] = [ 'two' ]
+        self.assertEqual(2, len(i))
+        self.assertEqual(1, i.index('two'))
         
     def testAttribute (self):
         #i = structure(attr='three')

@@ -455,6 +455,9 @@ class ConstrainedMutableSequence (object):
         else:
             self.__sequence[key] = self.__convertOne(value)
 
+    def __setslice__ (self, start, stop, value):
+        self.__sequence.__setslice__(start, stop, self.__convertMany(value))
+
     def __delitem__ (self, key):
         del self.__sequence[key]
 

@@ -382,6 +382,17 @@ class TestConstrainedMutableSequence (unittest.TestCase):
         self.assertEquals(67, x[0])
         self.assertEquals(2, x[1])
         self.assert_(reduce(lambda _l,_r: _l and isinstance(_r, x._memberType()), x, True))
+        x[0:] = [ '32' ]
+        self.assertEqual(1, len(x))
+        self.assertEquals(32, x[0])
+        x[:] = [ ]
+        self.assertEqual(0, len(x))
+        x.extend([0, 1, 2, 3, 4, 5])
+        self.assertEqual(6, len(x))
+        x[:3] = [ -2 ]
+        self.assertEqual(4, len(x))
+        self.assertEqual(x, [-2, 3, 4, 5])
+        
 
     def testCount (self):
         x = ConstrainedMutableSequence([0.3, '1', 2L, 1.1, 1L], member_type=int)
