@@ -1,5 +1,13 @@
 .. PyXB documentation master file
 
+.. Sphinx standard indentations
+   # with overline, for parts
+   * with overline, for chapters
+   =, for sections
+   -, for subsections
+   ^, for subsubsections
+   ", for paragraphs
+
 .. role:: namespace(literal)
 
 ################################

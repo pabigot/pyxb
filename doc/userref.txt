@@ -4,30 +4,18 @@ User Reference
 
 .. _pyxbgen:
 
-(NOT CURRENT) Creating bindings with ``pyxbgen``
-================================================
+Creating bindings with ``pyxbgen``
+==================================
 
-** THIS SECTION HAS NOT BEEN UPDATED FOR 0.5.0.  RUN ``pyxbgen`` WITH NO
-ARGUMENTS TO SEE NEW INTERFACE.  ALSO SEE `examples/ndfd/genbindings.sh`
+.. toctree::
+   :hidden:
+
+   pyxbgen_cli
+
+.. include:: pyxbgen_cli.txt
+
+** THESE EXAMPLES ARE NOT UP TO DATE.  SEE `examples/ndfd/genbindings.sh`
 and `examples/openGIS/makebind.sh` **
-
-.. table:: Command line parameters to ``pyxbgen``
-
-   ==========================  ===============  ======  =============================================
-   Long Option                 Argument         Alt     Description
-   ==========================  ===============  ======  =============================================
-   ``--module-path``           *module-path*    ``-m``  The python module path for the generated
-                                                        bindings, excluding the binding module itself
-   ``--schema-uri``            *uri*            ``-u``  The URI for the schema from which bindings 
-                                                        are to be generated.
-   ``--generate-raw-binding``                           Generate the bindings in a subdirectory ``raw``
-                                                        so that customized wrappers can be written
-   ``--write-schema-path``     *xsd-file*       ``-s``  Write the schema text to the specified file
-   ``--uri-is-wsdl``                            ``-W``  Indicate that the URI is a WSDL definition
-                                                        (schema is extracted from ``types`` element)
-   ``--save-component-model``                   ``-C``  Save a pickled copy of the namespace component
-                                                        model in the same directory as the binding
-   ==========================  ===============  ======  =============================================
 
 The module path and schema URI are required.  Raw bindings allow the user to
 import the module and obtain :ref:`customized classes

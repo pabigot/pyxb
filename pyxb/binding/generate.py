@@ -1945,7 +1945,7 @@ class Generator (object):
                              help=self.__stripSpaces(self.writeForCustomization.__doc__ + ' This option turns on the feature.'))
             group.add_option('--no-write-for-customization',
                              action='store_false', dest='write_for_customization',
-                             help=self.__stripSpaces(self.writeForCustomization.__doc__ + ' This option turns off the feature (default).'))
+                             help=self.__stripSpaces(self.writeForCustomization.__doc__ + ' This option turns off the feature (I{default}).'))
             parser.add_option_group(group)
 
             group = optparse.OptionGroup(parser, 'Reading Namespace Archives', 'Locating and loading (or inhibiting load of) namespace archives.')
@@ -1970,10 +1970,10 @@ class Generator (object):
                              help=self.__stripSpaces(self.namespaceVisibilityMap.__doc__ + ' This option adds the namespace as a private archive member.'))
             group.add_option('--default-namespace-public',
                              action="store_true", dest='default_namespace_public',
-                             help=self.__stripSpaces(self.defaultNamespacePublic.__doc__ + ' This option makes the default "public" (default).'))
+                             help=self.__stripSpaces(self.defaultNamespacePublic.__doc__ + ' This option makes the default C{public} (I{default}).'))
             group.add_option('--default-namespace-private',
                              action="store_false", dest='default_namespace_public',
-                             help=self.__stripSpaces(self.defaultNamespacePublic.__doc__ + ' This option makes the default "private".'))
+                             help=self.__stripSpaces(self.defaultNamespacePublic.__doc__ + ' This option makes the default C{private}.'))
             parser.add_option_group(group)
 
             group = optparse.OptionGroup(parser, 'Configuring Binding Code Generation', "Control the style and content of the generated bindings.  This is not well-supported, and you are advised to pretend these options don't exist.")
