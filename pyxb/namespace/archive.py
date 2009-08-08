@@ -797,7 +797,7 @@ class ModuleRecord (pyxb.utils.utility.PrivateTransient_mixin):
                 elif existing_component._allowUpdateFromOther(component):
                     existing_component._updateFromOther(component)
                 else:
-                    raise pyxb.NamespaceError(self, 'Load attempted to override %s %s in %s' % (category, ln, self.uri()))
+                    raise pyxb.NamespaceError(self, 'Load attempted to override %s %s in %s' % (cat, local_name, self.namespace()))
         self.markIncorporated()
     __categoryObjects = None
     __PrivateTransient.add('categoryObjects')
