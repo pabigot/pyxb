@@ -10,7 +10,7 @@ import sys
 import xml.dom.minidom
 import urllib2
 
-import pyxb.standard.bindings.wsdl as wsdl
+import pyxb.bundles.wssplat.wsdl11 as wsdl
 
 for uri in sys.argv[1:]:
     uri_src = urllib2.urlopen(uri)
