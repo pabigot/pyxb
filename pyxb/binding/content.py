@@ -215,7 +215,7 @@ class AttributeUse (pyxb.cscRoot):
             if self.__required and not provided:
                 assert self.__fixed
                 raise pyxb.MissingAttributeError('Fixed required attribute %s was never set' % (self.__name,))
-            if not isinstance(value, self.__dataType):
+            if not self.__dataType._IsValidValue(value):
                 raise pyxb.BindingValidationError('Attribute %s value type %s not %s' % (self.__name, type(value), self.__dataType))
             self.__dataType.XsdConstraintsOK(value)
         else:

@@ -48,9 +48,9 @@ class TestUnion (unittest.TestCase):
 
     def testValidation (self):
         # Test automated conversion
-        uv = myUnion._ValidateMember('one')
+        uv = myUnion._ValidatedMember('one')
         self.assertTrue(isinstance(uv, english))
-        uv = myUnion._ValidateMember('tri')
+        uv = myUnion._ValidatedMember('tri')
         self.assertTrue(isinstance(uv, welsh))
 
     def testXMLErrors (self):

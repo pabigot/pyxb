@@ -362,7 +362,7 @@ class _TypeBinding_mixin (pyxb.cscRoot):
         """Override in subclasses for type-specific validation of instance
         content.
 
-        @return: C{True} if validation succeeds.
+        @return: C{True} if the instance validates
         @raise pyxb.BindingValidationError: complex content does not match model
         @raise pyxb.BadTypeValueError: simple content fails to satisfy constraints
         """
@@ -375,9 +375,9 @@ class _TypeBinding_mixin (pyxb.cscRoot):
         @raise pyxb.BindingValidationError: complex content does not match model
         @raise pyxb.BadTypeValueError: simple content fails to satisfy constraints
         """
-        if not self._PerformValidation:
-            return True
-        return self._validateBinding_vx()
+        if self._PerformValidation:
+            self._validateBinding_vx()
+        return True
 
     @classmethod
     def _Name (cls):
@@ -792,7 +792,7 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
 
     def _validateBinding_vx (self):
         if not self._isNil():
-            self.xsdConstraintsOK()
+            self._checkValidValue()
         return True
 
     @classmethod
@@ -845,6 +845,56 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
         return True
 
     @classmethod
+    def _IsValidValue (self, value):
+        try:
+            self._CheckValidValue(value)
+            return True
+        except pyxb.PyXBException, e:
+            pass
+        return False
+
+    @classmethod
+    def _CheckValidValue (cls, value):
+
+        """NB: Invoking this on a value that is a list will, if necessary,
+        replace the members of the list with new values that are of the
+        correct item type.  This is permitted because only with lists is it
+        possible to bypass the normal content validation (by invoking
+        append/extend on the list instance)."""
+        if value is None:
+            raise pyxb.BadTypeValueError('None is not a valid instance of %s' % (cls,))
+        #print 'testing value %s type %s against %s' % (value, type(value), cls)
+        value_class = cls
+        if issubclass(cls, STD_list):
+            #print ' -- checking list of %s' % (cls._ItemType,)
+            try:
+                iter(value)
+            except TypeError, e:
+                raise pyxb.BadTypeValueError('%s cannot have non-iterable value type %s' % (cls, type(value)))
+            for i in range(len(value)):
+                if not cls._ItemType._IsValidValue(value[i]):
+                    value[i] = cls._ItemType.Factory(value[i])
+        else:
+            if issubclass(cls, STD_union):
+                #print ' -- checking union with %d types' % (len(cls._MemberTypes),)
+                value_class = None
+                for mt in cls._MemberTypes:
+                    if mt._IsValidValue(value):
+                        value_class = mt
+                        break
+                if value_class is None:
+                    raise pyxb.BadTypeValueError('%s cannot have value type %s' % (cls, type(value)))
+            if not isinstance(value, value_class): # issubclass(value_class, type(value))
+                raise pyxb.BadTypeValueError('Value type %s is not valid for %s' % (type(value), cls))
+        value_class.XsdConstraintsOK(value)
+
+    def _checkValidValue (self):
+        self._CheckValidValue(self)
+
+    def _isValidValue (self):
+        self._IsValidValue(self)
+
+    @classmethod
     def _description (cls, name_only=False):
         name = cls._Name()
         if name_only:
@@ -858,7 +908,7 @@ class STD_union (simpleTypeDefinition):
     This class descends only from simpleTypeDefinition.  A pyxb.LogicError is
     raised if an attempt is made to construct an instance of a subclass of
     STD_union.  Values consistent with the member types are constructed using
-    the Factory class method.  Values are validated using the _ValidateMember
+    the Factory class method.  Values are validated using the _ValidatedMember
     class method.
 
     Subclasses must provide a class variable _MemberTypes which is a
@@ -900,7 +950,7 @@ class STD_union (simpleTypeDefinition):
         if 0 < len(args):
             arg = args[0]
             try:
-                rv = cls._ValidateMember(arg)
+                rv = cls._ValidatedMember(arg)
             except pyxb.BadTypeValueError, e:
                 pass
         if rv is None:
@@ -923,7 +973,7 @@ class STD_union (simpleTypeDefinition):
         raise pyxb.BadTypeValueError('%s cannot construct union member from args %s' % (cls.__name__, args))
 
     @classmethod
-    def _ValidateMember (cls, value):
+    def _ValidatedMember (cls, value):
         """Validate the given value as a potential union member.
 
         @raise pyxb.BadTypeValueError: the value is not an instance of a
@@ -967,23 +1017,22 @@ class STD_list (simpleTypeDefinition, types.ListType):
     __FacetMap = {}
 
     @classmethod
-    def _ValidateItem (cls, value):
+    def _ValidatedItem (cls, value):
         """Verify that the given value is permitted as an item of this list.
 
         This may convert the value to the proper type, if it is
         compatible but not an instance of the item type.  Returns the
         value that should be used as the item, or raises an exception
         if the value cannot be converted."""
-        if isinstance(value, cls):
+        if isinstance(value, cls._ItemType):
             pass
         elif issubclass(cls._ItemType, STD_union):
-            value = cls._ItemType._ValidateMember(value)
+            value = cls._ItemType._ValidatedMember(value)
         else:
-            if not isinstance(value, cls._ItemType):
-                try:
-                    value = cls._ItemType(value)
-                except (pyxb.BadTypeValueError, TypeError):
-                    raise pyxb.BadTypeValueError('Type %s has member of type %s, must be %s' % (cls.__name__, type(value).__name__, cls._ItemType.__name__))
+            try:
+                value = cls._ItemType(value)
+            except (pyxb.BadTypeValueError, TypeError):
+                raise pyxb.BadTypeValueError('Type %s has member of type %s, must be %s' % (cls.__name__, type(value).__name__, cls._ItemType.__name__))
         return value
 
     @classmethod
@@ -998,7 +1047,7 @@ class STD_list (simpleTypeDefinition, types.ListType):
             if isinstance(arg1, list):
                 new_arg1 = []
                 for i in range(len(arg1)):
-                    new_arg1.append(cls._ValidateItem(arg1[i]))
+                    new_arg1.append(cls._ValidatedItem(arg1[i]))
                 args = (new_arg1,) + args[1:]
         super_fn = getattr(super(STD_list, cls), '_ConvertArguments_vx', lambda *a,**kw: args)
         return super_fn(args, kw)
