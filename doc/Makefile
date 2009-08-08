@@ -37,7 +37,12 @@ apihtml:
 	mkdir -p html/api
 	PYTHONPATH=.. $(EPYDOC) $(EPYDOCOPTS)
 
-html:
+pyxbgen_cli.txt: ../pyxb/binding/generator.py ../maintainer/gendoc
+	../maintainer/gendoc > pyxbgen_cli.txt
+
+GENERATED_TXT += pyxbgen_cli.txt
+
+html: $(GENERATED_TXT)
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) html
 	@echo
 	@echo "Build finished. The HTML pages are in _build/html."

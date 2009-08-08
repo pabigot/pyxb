@@ -150,7 +150,7 @@ setup(name='PyXB',
 "wsdl20.wxs", "wsdli.wxs", "wsdlx.wxs", "wsoap.wxs", "wsp.wxs",
 "wsp200607.wxs", "wsse.wxs", "wsu.wxs",
 ],
-        }
+        },
       # I normally keep these in $purelib, but distutils won't tell me where that is.
       # We don't need them in the installation anyway.
       #data_files= [ ('pyxb/standard/schemas', glob.glob(os.path.join(*'pyxb/standard/schemas/*.xsd'.split('/'))) ) ],
