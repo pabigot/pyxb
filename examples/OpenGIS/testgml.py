@@ -1,6 +1,6 @@
 #  PYTHONPATH=../..:. PYXB_ARCHIVE_PATH=opengis/iso19139:+ ../../scripts/pyxbgen -u gmlapp.xsd -m gmlapp
 
-import opengis.gml_3_2 as gml
+import pyxb.bundles.opengis.gml_3_2 as gml
 import gmlapp
 import pyxb.utils.domutils
 

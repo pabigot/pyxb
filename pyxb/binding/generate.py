@@ -1460,7 +1460,7 @@ class Generator (object):
                 module_elts.insert(-1, 'raw')
             if self.writeForCustomization() and (not os.path.exists(import_file_path)):
                 raw_module_path = '.'.join(module_elts)
-                file(import_file_path, 'w').write("from %s import *\n" % (raw_module_path,))
+                pyxb.utils.utility.OpenOrCreate(import_file_path).write("from %s import *\n" % (raw_module_path,))
             binding_file_path = self.__directoryForModulePath(module_elts)
             try:
                 binding_file = pyxb.utils.utility.OpenOrCreate(binding_file_path, tag=module.moduleUID())

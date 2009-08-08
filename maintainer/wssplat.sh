@@ -1,8 +1,8 @@
 DEST=pyxb/bundles/wssplat
 SCHEMA_DIR=${DEST}/schemas
-rm -rf ${DEST}/raw
 MODULE_PREFIX=`echo ${DEST} | sed -e s@/@.@g`
 
+rm -rf ${DEST}/raw
 mkdir -p ${DEST}/raw
 touch ${DEST}/raw/__init__.py
 mkdir -p ${SCHEMA_DIR}
