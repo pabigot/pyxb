@@ -1181,7 +1181,7 @@ class _ModuleNaming_mixin (object):
             self.bindingFile().write(self.moduleContents())
             print 'Saved binding source to %s' % (self.__bindingFilePath,)
         else:
-            raise pyxb.LogicError('ERROR: No binding file for %s' % (self,))
+            print 'WARNING: No binding file for %s' % (self,)
 
 
 class NamespaceModule (_ModuleNaming_mixin):
@@ -1441,7 +1441,13 @@ class Generator (object):
         module_path = None
         if isinstance(module, NamespaceModule):
             mr = module.moduleRecord()
-            if (mr is None) or (self.generationUID() != mr.generationUID()) or (not self.generateToFiles()):
+            if mr is None:
+                return ('/dev/null', None, None)
+            if self.generationUID() != mr.generationUID():
+                return ('/dev/null', None, None)
+            if not self.generateToFiles():
+                return ('/dev/null', None, None)
+            if mr.namespace().isBuiltinNamespace() and (not self.allowBuiltinGeneration()):
                 return ('/dev/null', None, None)
             module_path = mr.modulePath()
             assert module_path is not None, 'No path specified for module %s' % (mr,)
@@ -2155,7 +2161,10 @@ class Generator (object):
             all_components.update(origin.originatedObjects())
 
         namespaces = set()
-        [ namespaces.add(_mr.namespace()) for _mr in self.__moduleRecords ]
+        for mr in self.__moduleRecords:
+            if mr.namespace().isBuiltinNamespace() and not self.allowBuiltinGeneration():
+                continue
+            namespaces.add(mr.namespace())
         pyxb.namespace.resolution.ResolveSiblingNamespaces(namespaces, self.generationUID())
 
         # Mark module visibility.  Entry-point namespaces default to
