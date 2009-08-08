@@ -40,6 +40,12 @@ class TestUnion (unittest.TestCase):
         self.assertEqual('pump', words2.Factory('pump'))
         self.assertRaises(BadTypeValueError,  words2.Factory, 'one')
 
+    def testFiveWords (self):
+        self.assertEqual('one', fiveWords.Factory('one'))
+        self.assertEqual('dau', fiveWords.Factory('dau'))
+        self.assertEqual('four', fiveWords.Factory('four'))
+        self.assertEqual('pump', fiveWords.Factory('pump'))
+
     def testMyElement (self):
         self.assertEqual(0, myElement('0'))
         self.assertEqual(english.two, myElement('two'))
