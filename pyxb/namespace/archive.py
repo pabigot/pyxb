@@ -714,6 +714,9 @@ class ModuleRecord (pyxb.utils.utility.PrivateTransient_mixin):
         return self.__module
     def _setModule (self, module):
         self.__module = module
+        ns = self.namespace()
+        if (ns.prefix() is None) and (module is not None):
+            ns.setPrefix(os.path.basename(os.path.normpath(module.__file__)).split('.')[0])
         return self
     __module = None
     __PrivateTransient.add('module')

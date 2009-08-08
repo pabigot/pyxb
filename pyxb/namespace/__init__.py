@@ -745,6 +745,8 @@ class Namespace (_NamespaceCategory_mixin, resolution._NamespaceResolution_mixin
 
     def setPrefix (self, prefix):
         if self.__boundPrefix is not None:
+            if self.__boundPrefix == prefix:
+                return self
             raise pyxb.NamespaceError(self, 'Cannot change the prefix of a bound namespace')
         self.__prefix = prefix
         return self
