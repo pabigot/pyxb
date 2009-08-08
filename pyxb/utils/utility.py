@@ -55,7 +55,8 @@ _Keywords = frozenset( ( "and", "del", "from", "not", "while", "as", "elif", "gl
               "or", "with", "assert", "else", "if", "pass", "yield",
               "break", "except", "import", "print", "class", "exec",
               "in", "raise", "continue", "finally", "is", "return",
-              "def", "for", "lambda", "try" ) )
+              "def", "for", "lambda", "try",
+              "None" ) )
 """The keywords reserved for Python."""
 
 def DeconflictKeyword (s, aux_keywords=frozenset()):
