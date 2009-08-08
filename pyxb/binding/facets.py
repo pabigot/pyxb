@@ -430,6 +430,11 @@ class _EnumerationElement:
         """Set the tag to be used for this enumeration."""
         self.__tag = tag
 
+    __bindingTag = None
+    def bindingTag (self):
+        return self.__bindingTag
+    def _setBindingTag (self, binding_tag):
+        self.__bindingTag = binding_tag
 
     __enumeration = None
     def enumeration (self):

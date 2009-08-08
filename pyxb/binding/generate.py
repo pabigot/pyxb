@@ -191,6 +191,11 @@ class ReferenceEnumerationMember (ReferenceLiteral):
         assert isinstance(self.enumerationElement, facets._EnumerationElement)
         if self.enumerationElement.tag() is None:
             self.enumerationElement._setTag(utility.MakeIdentifier(self.enumerationElement.unicodeValue()))
+        binding_tag = utility.PrepareIdentifier(self.enumerationElement.tag(), kw['class_unique'], kw['class_keywords'])
+        if self.enumerationElement.bindingTag() is None:
+            # Boy I hope this is the first time generating one of
+            # thes, so this is in the owner class
+            self.enumerationElement._setBindingTag(binding_tag)
 
         # If no type definition was provided, use the value datatype
         # for the facet.
@@ -198,7 +203,7 @@ class ReferenceEnumerationMember (ReferenceLiteral):
 
         super(ReferenceEnumerationMember, self).__init__(**kw)
 
-        self.setLiteral(self._addTypePrefix(utility.PrepareIdentifier(self.enumerationElement.tag(), kw['class_unique'], kw['class_keywords']), **kw))
+        self.setLiteral(self._addTypePrefix(binding_tag, **kw))
 
 def pythonLiteral (value, **kw):
     # For dictionaries, apply translation to all values (not keys)
@@ -387,6 +392,22 @@ def GenerateFacets (td, generator, **kw):
                         outf.write("%s_%s = %s\n" % (fi.enumPrefix(), i.tag(), binding_module.literal(enum_member, **kw)))
                 if isinstance(i, facets._PatternElement):
                     outf.write("%s.addPattern(pattern=%s)\n" % binding_module.literal( (facet_var, i.pattern ), **kw))
+    if xs.structures.SimpleTypeDefinition.VARIETY_union == td.variety():
+        # If the union has enumerations of its own, there's no need to
+        # inherit anything.
+        fi = td.facets().get(facets.CF_enumeration)
+        if fi is None:
+            # Need to expose any enumerations in members up in this class
+            for mtd in td.memberTypeDefinitions():
+                fi = mtd.facets().get(facets.CF_enumeration)
+                if fi is None:
+                    continue
+                for i in fi.items():
+                    assert isinstance(i, facets._EnumerationElement)
+                    etd = i.enumeration().ownerTypeDefinition()
+                    enum_member = ReferenceEnumerationMember(type_definition=td, facet_instance=fi, enumeration_element=i, **kw)
+                    outf.write("%-50s%s\n" % ('%s = %s' % binding_module.literal( (enum_member, i.unicodeValue()) ),
+                                              '# originally %s.%s' % (binding_module.literal(etd), i.bindingTag())))
     if 2 <= len(facet_instances):
         map_args = ",\n   ".join(facet_instances)
     else:

@@ -7,7 +7,7 @@ import pyxb.binding.basis
 import os.path
 schema_path = '%s/../schemas/test-collision.xsd' % (os.path.dirname(__file__),)
 code = pyxb.binding.generate.GeneratePython(schema_location=schema_path, binding_style=pyxb.binding.basis.BINDING_STYLE_PROPERTY)
-file('code.py', 'w').write(code)
+#file('code.py', 'w').write(code)
 
 rv = compile(code, 'test', 'exec')
 eval(rv)

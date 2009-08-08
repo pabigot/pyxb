@@ -24,10 +24,18 @@ class ExternalTest (unittest.TestCase):
     def testUnionExtension (self):
         e = te.morewords('one')
         self.assertTrue(isinstance(e, st.english))
+        self.assertTrue(te.uMorewords._IsValidValue(e))
+        self.assertEqual(e, st.english.one)
+        self.assertEqual(e, te.uMorewords.one)
         w = te.morewords('un')
         self.assertTrue(isinstance(w, st.welsh))
+        self.assertTrue(te.uMorewords._IsValidValue(w))
+        self.assertEqual(w, st.welsh.un)
+        self.assertEqual(w, te.uMorewords.un)
         n = te.morewords('ichi')
         self.assertTrue(te.uMorewords._IsValidValue(n))
+        self.assertEqual(n, te.uMorewords.ichi)
+
 
 unittest.main()
 

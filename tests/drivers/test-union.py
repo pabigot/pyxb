@@ -5,7 +5,7 @@ from xml.dom import Node
 import os.path
 schema_path = '%s/../schemas/test-union.xsd' % (os.path.dirname(__file__),)
 code = pyxb.binding.generate.GeneratePython(schema_location=schema_path)
-
+#file('code.py', 'w').write(code)
 rv = compile(code, 'test', 'exec')
 eval(rv)
 

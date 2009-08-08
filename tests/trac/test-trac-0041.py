@@ -48,10 +48,14 @@ xsd='''<?xml version="1.0" encoding="UTF-8"?>
       <xs:enumeration value="b?d"/>
     </xs:restriction>
   </xs:simpleType>
+  <xs:simpleType name="moreBad">
+    <xs:union memberTypes="bad tUnion"/>
+  </xs:simpleType>
+
 </xs:schema>'''
 
 code = pyxb.binding.generate.GeneratePython(schema_text=xsd)
-file('code.py', 'w').write(code)
+#file('code.py', 'w').write(code)
 
 rv = compile(code, 'test', 'exec')
 eval(rv)
@@ -71,14 +75,14 @@ class TestTrac0041 (unittest.TestCase):
         e = union('one')
         self.assertTrue(isinstance(e, english))
         self.assertEqual(e, english.one)
-        self.assertEqual(e, union.one)
+        self.assertEqual(e, tUnion.one)
         w = union('dau')
         self.assertTrue(isinstance(w, welsh))
         self.assertEqual(w, welsh.dau)
-        self.assertEqual(w, union.dau)
+        self.assertEqual(w, tUnion.dau)
         self.assertRaises(pyxb.BadTypeValueError, union, 'deux')
         n = union('ni')
-        self.assertEqual(e, union.ni)
+        self.assertEqual(n, tUnion.ni)
 
 if __name__ == '__main__':
     unittest.main()
