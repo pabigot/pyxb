@@ -57,16 +57,16 @@ xsd='''<?xml version="1.0" encoding="UTF-8"?>
 </xs:schema>
 '''
 
-file('schema.xsd', 'w').write(xsd)
+#file('schema.xsd', 'w').write(xsd)
 code = pyxb.binding.generate.GeneratePython(schema_text=xsd)
-#file('code.py', 'w').write(code)
+file('code.py', 'w').write(code)
 
 rv = compile(code, 'test', 'exec')
 eval(rv)
 
 from pyxb.exceptions_ import *
 
-from pyxb.binding.basis import bind as BIND
+from pyxb.binding.basis import BIND
 
 import unittest
 
@@ -79,14 +79,24 @@ class TestTrac0039 (unittest.TestCase):
         w = shallow()
         self.assertRaises(pyxb.BadTypeValueError, SET_optional, w, 5)
         w.optional = BIND(5)
+        self.assertTrue(w.optional.deep is None)
         self.assertTrue(isinstance(w.optional.value(), xs.int))
         self.assertRaises(pyxb.BadTypeValueError, SET_optional, w, BIND('string'))
+        w.optional = BIND(6, deep=1)
+        self.assertEqual(w.optional.value(), 6)
+        self.assertEqual(w.optional.deep, 1)
 
     def testShallowCTOR (self):
         w = shallow(BIND(5))
         self.assertTrue(isinstance(w.optional.value(), xs.int))
         self.assertRaises(pyxb.UnexpectedNonElementContentError, shallow, 5)
         self.assertRaises(pyxb.UnexpectedNonElementContentError, shallow, BIND('string'))
+
+    def testDeep (self):
+        w = wrapper(BIND(BIND(4, deep=4), BIND('hi')))
+        self.assertEqual('<wrapper><holding><optional deep="4">4</optional><required>hi</required></holding></wrapper>', w.toxml(root_only=True))
+        w = wrapper(BIND(BIND('hi', deep=2)))
+        self.assertEqual('<wrapper><holding><required deep="2">hi</required></holding></wrapper>', w.toxml(root_only=True))
 
 if __name__ == '__main__':
     unittest.main()
