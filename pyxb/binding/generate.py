@@ -1429,7 +1429,7 @@ class Generator (object):
         return self
     __bindingRoot = None
     
-    def __directoryForModulePath (self, module_elts, inhibit_customization=False):
+    def __directoryForModulePath (self, module_elts, inhibit_customization=False, protected=False):
         if isinstance(module_elts, basestring):
             module_elts = module_elts.split('.')
         else:
@@ -1438,7 +1438,10 @@ class Generator (object):
         assert not module_elts[-1].endswith('.py')
         if self.writeForCustomization() and (not inhibit_customization):
             module_elts.insert(-1, 'raw')
-        module_elts[-1] = '%s.py' % (module_elts[-1],)
+        prefix = ''
+        if protected:
+            prefix = '_'
+        module_elts[-1] = '%s%s.py' % (prefix, module_elts[-1],)
         return os.path.join(self.bindingRoot(), *module_elts)
 
     def generateToFiles (self):
@@ -2181,9 +2184,6 @@ class Generator (object):
         # public.
         for ns in self.namespaces():
             self.__namespaceVisibilityMap.setdefault(ns, True)
-        for mr in self.__moduleRecords:
-            mr._setIsPublic(self.__namespaceVisibilityMap.get(mr.namespace(), self.defaultNamespacePublic()))
-            #print ' %s %s' % ((mr.isPublic() and 'public') or 'private', mr)
 
         # Generate the graph from all components and descend into lax
         # requirements; otherwise we might miss anonymous types hidden
@@ -2201,14 +2201,11 @@ class Generator (object):
         module_scc_order = module_graph.sccOrder()
 
         # Note that module graph may have fewer nodes than
-        # self.__moduleRecords, if a module has no components that require
-        # binding generation.
+        # self.__moduleRecords, if a module has no components that
+        # require binding generation.
 
         # @todo NOTICE
         #print '%d entry, %d in graph' % (len(self.__moduleRecords), len(module_graph.nodes()))
-        for mr in module_graph.nodes():
-            self.__assignModulePath(mr)
-            assert not ((mr.modulePath() is None) and self.generateToFiles()), 'No module path defined for %s' % (mr,)
 
         for c in binding_components:
             assert bindable_fn(c), 'Unexpected %s in binding components' % (type(s),)
@@ -2222,11 +2219,19 @@ class Generator (object):
             for mr in mr_scc:
                 # @todo INFO
                 #print 'Generating %s of %d' % (mr, len(mr_scc))
+                mr._setIsPublic(self.__namespaceVisibilityMap.get(mr.namespace(), self.defaultNamespacePublic()))
+                self.__assignModulePath(mr)
+                assert not ((mr.modulePath() is None) and self.generateToFiles()), 'No module path defined for %s' % (mr,)
+                if (not mr.isPublic()) and (mr.modulePath() is not None):
+                    elts = mr.modulePath().split('.')
+                    elts[-1] = '_%s' % (elts[-1],)
+                    mr.setModulePath('.'.join(elts))
+                print 'NS %s %s at %s' % (mr.namespace(), mr.isPublic(), mr.modulePath())
                 nsm = NamespaceModule(self, mr, mr_scc)
                 record_binding_map[mr] = nsm
                 scc_modules.append(nsm)
-            modules.extend(scc_modules)
 
+            modules.extend(scc_modules)
             if 1 < len(mr_scc):
                 ngm = NamespaceGroupModule(self, scc_modules)
                 modules.append(ngm)
