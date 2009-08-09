@@ -2225,7 +2225,6 @@ class Generator (object):
                     elts = mr.modulePath().split('.')
                     elts[-1] = '_%s' % (elts[-1],)
                     mr.setModulePath('.'.join(elts))
-                print 'NS %s %s at %s' % (mr.namespace(), mr.isPublic(), mr.modulePath())
                 nsm = NamespaceModule(self, mr, mr_scc)
                 record_binding_map[mr] = nsm
                 scc_modules.append(nsm)
