@@ -3,6 +3,11 @@ if [ ! "${BUNDLE_TAG}" ] ; then
   exit 1
 fi
 
+failure () {
+  echo "Failed: ${@}"
+  exit 1
+}
+
 BUNDLE_TAG=${BUNDLE_TAG:-core}
 
 PYXB_ROOT=${PYXB_ROOT:-/home/pab/pyxb/dev}
@@ -10,6 +15,8 @@ MODULE_PREFIX=pyxb.bundles.${BUNDLE_TAG}
 BUNDLE_ROOT=${PYXB_ROOT}/pyxb/bundles/${BUNDLE_TAG}
 SCHEMA_DIR=${BUNDLE_ROOT}/schemas
 RAW_DIR=${BUNDLE_ROOT}/raw
+ARCHIVE_DIR=${RAW_DIR}
+
 rm -rf ${RAW_DIR}
 mkdir -p ${RAW_DIR}
 touch ${RAW_DIR}/__init__.py
@@ -20,26 +27,32 @@ PATH=${PYXB_ROOT}/scripts:/usr/bin:/bin
 export PATH PYTHONPATH
 
 generateBindings () {
+  AUX_PYXBGEN_FLAGS="${@}"
   sed -e '/^#/d' \
     | while read uri prefix auxflags ; do
-    cached_schema=${SCHEMA_DIR}/${prefix}.xsd
-    if [ ! -f ${cached_schema} ] ; then
-       echo "Retrieving ${prefix} from ${uri}"
-       wget -O ${cached_schema} ${uri}
-    fi
     echo
-    echo "Translating to ${prefix} from ${cached_schema}"
+    original_uri="${uri}"
+    if ( echo ${uri} | grep -q ':/' ) ; then
+       original_uri=${uri}
+       cached_schema=${SCHEMA_DIR}/${prefix}.xsd
+       if [ ! -f ${cached_schema} ] ; then
+          echo "Retrieving ${prefix} from ${uri}"
+          wget -O ${cached_schema} ${uri}
+       fi
+       echo "Using local cache ${cached_schema} for ${uri}"
+       uri=${cached_schema}
+    fi
+    echo "Generating bindings ${prefix} from ${uri}"
     pyxbgen \
       ${auxflags} \
-      --schema-location file:${cached_schema} \
+      --schema-location ${uri} \
       --module=${prefix} \
       --module-prefix=${MODULE_PREFIX} \
       --write-for-customization \
       --archive-path=${RAW_DIR}:+ \
-      --archive-to-file=${RAW_DIR}/${prefix}.wxs
-    if [ 0 != $? ] ; then
-      break
-    fi
+      --archive-to-file=${ARCHIVE_DIR}/${prefix}.wxs \
+      ${AUX_PYXBGEN_FLAGS} \
+    || failure ${prefix} ${original_uri}
   done
 }
 
