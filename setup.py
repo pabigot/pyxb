@@ -132,34 +132,27 @@ setup(name='PyXB',
       version='0.7.1',
       provides='pyxb',
       packages=[ 'pyxb', 'pyxb.namespace', 'pyxb.binding', 'pyxb.utils', 'pyxb.xmlschema',
-                 'pyxb.standard', 'pyxb.standard.bindings', 'pyxb.standard.bindings.raw',
                  'pyxb.bundles',
+                 'pyxb.bundles.core', 'pyxb.bundles.core.raw',
                  'pyxb.bundles.wssplat', 'pyxb.bundles.wssplat.raw',
                  'pyxb.bundles.opengis', 'pyxb.bundles.opengis.raw',
                  ],
 
-      package_data={
-        'pyxb.bundles/opengis' : [
-            "sampling_1_0.wxs", "ows_1_1.wxs", "filter.wxs", "wcs_1_1.wxs", "tml.wxs",
-            "sos_1_0.wxs", "xAL.wxs", "xlinks.wxs", "swe_1_0_1.wxs", "ic_ism_2_1.wxs",
-            "gmlsf.wxs", "ows.wxs", "sensorML_1_0_1.wxs", "wfs.wxs", "core.wxs",
-            "gmx.wxs", "gml.wxs", "landuse.wxs", "base.wxs", "waterbody.wxs",
-            "appearance.wxs", "cityfurniture.wxs", "building.wxs", "vegetation.wxs",
-            "relief.wxs", "transportation.wxs", "cityobjectgroup.wxs", "generics.wxs",
-            "texturedsurface.wxs", "ogckml22.wxs", "om_1_0.wxs", "swe_1_0_0.wxs",
-            "csw_2_0_2.wxs",
+      package_data={ # Generate these with maintainer/genpd.sh
+        'pyxb.bundles/core/raw' : [
+            "xsd_hfp.wxs", "xhtml.wxs",
             ],
-        'pyxb.bundles/opengis/citygml' : [
-            "landuse.wxs", "base.wxs", "waterbody.wxs", "appearance.wxs",
-            "cityfurniture.wxs", "building.wxs", "vegetation.wxs", "relief.wxs",
-            "transportation.wxs", "cityobjectgroup.wxs", "generics.wxs",
-            "texturedsurface.wxs",
-            ],
-        'pyxb.bundles/opengis/iso19139' : [
-            "core.wxs", "gmx.wxs",
-            ],
-        'pyxb.bundles/opengis/misc' : [
-            "xAL.wxs", "xlinks.wxs",
+        'pyxb.bundles/opengis/raw' : [
+            "sampling_1_0.wxs", "ows_1_1.wxs", "citygml.waterBody.wxs",
+            "filter.wxs", "iso19139.core.wxs", "citygml.transportation.wxs",
+            "citygml.relief.wxs", "citygml.vegetation.wxs", "wcs_1_1.wxs",
+            "citygml.cityFurniture.wxs", "tml.wxs", "sos_1_0.wxs", "misc.xlinks.wxs",
+            "swe_1_0_1.wxs", "gmx.wxs", "ic_ism_2_1.wxs", "gmlsf.wxs",
+            "citygml.cityObjectGroup.wxs", "citygml.appearance.wxs", "ows.wxs",
+            "sensorML_1_0_1.wxs", "citygml.landUse.wxs", "citygml.base.wxs",
+            "wfs.wxs", "citygml.generics.wxs", "gml.wxs", "citygml.building.wxs",
+            "citygml.texturedSurface.wxs", "ogckml22.wxs", "om_1_0.wxs",
+            "misc.xAL.wxs", "swe_1_0_0.wxs", "csw_2_0_2.wxs",
             ],
         'pyxb.bundles/wssplat/raw' : [
             "wsp.wxs", "whttp.wxs", "wsa.wxs", "bpws.wxs", "ds.wxs", "httpbind.wxs",
