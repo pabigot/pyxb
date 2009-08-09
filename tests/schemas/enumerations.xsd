@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+	<xs:element name="eString">
+		<xs:simpleType>
+			<xs:restriction base="xs:string">
+				<xs:enumeration value="one"/>
+				<xs:enumeration value="two"/>
+				<xs:enumeration value="three"/>
+			</xs:restriction>
+		</xs:simpleType>
+	</xs:element>
+	<xs:element name="eInteger">
+		<xs:simpleType>
+			<xs:restriction base="xs:int">
+				<xs:enumeration value="1"/>
+				<xs:enumeration value="2"/>
+				<xs:enumeration value="3"/>
+				<xs:enumeration value="5"/>
+				<xs:enumeration value="8"/>
+				<xs:enumeration value="13"/>
+				<xs:enumeration value="21"/>
+			</xs:restriction>
+		</xs:simpleType>
+	</xs:element>
+	<xs:element name="eDouble">
+		<xs:simpleType>
+			<xs:restriction base="xs:double">
+				<xs:enumeration value="1.0"/>
+				<xs:enumeration value="1.5"/>
+				<xs:enumeration value="1.7"/>
+			</xs:restriction>
+		</xs:simpleType>
+	</xs:element>
+</xs:schema>

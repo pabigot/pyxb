@@ -357,6 +357,7 @@ def GenerateFacets (td, generator, **kw):
     binding_module = kw['binding_module']
     outf = binding_module.bindingIO()
     facet_instances = []
+    gen_enum_tag = issubclass(td.primitiveTypeDefinition().pythonSupport(), basestring)
     for (fc, fi) in td.facets().items():
         #if (fi is None) or (fi.ownerTypeDefinition() != td):
         #    continue
@@ -386,13 +387,17 @@ def GenerateFacets (td, generator, **kw):
         if (fi is not None) and is_collection:
             for i in fi.items():
                 if isinstance(i, facets._EnumerationElement):
-                    enum_member = ReferenceEnumerationMember(type_definition=td, facet_instance=fi, enumeration_element=i, **kw)
-                    outf.write("%s = %s.addEnumeration(unicode_value=%s)\n" % binding_module.literal( (enum_member, facet_var, i.unicodeValue() ), **kw))
-                    if fi.enumPrefix() is not None:
-                        outf.write("%s_%s = %s\n" % (fi.enumPrefix(), i.tag(), binding_module.literal(enum_member, **kw)))
+                    enum_config = '%s.addEnumeration(unicode_value=%s)' % binding_module.literal( ( facet_var, i.unicodeValue() ), **kw)
+                    if gen_enum_tag:
+                        enum_member = ReferenceEnumerationMember(type_definition=td, facet_instance=fi, enumeration_element=i, **kw)
+                        outf.write("%s = %s\n" % (binding_module.literal(enum_member, **kw), enum_config))
+                        if fi.enumPrefix() is not None:
+                            outf.write("%s_%s = %s\n" % (fi.enumPrefix(), i.tag(), binding_module.literal(enum_member, **kw)))
+                    else:
+                        outf.write("%s\n" % (enum_config,))
                 if isinstance(i, facets._PatternElement):
                     outf.write("%s.addPattern(pattern=%s)\n" % binding_module.literal( (facet_var, i.pattern ), **kw))
-    if xs.structures.SimpleTypeDefinition.VARIETY_union == td.variety():
+    if gen_enum_tag and (xs.structures.SimpleTypeDefinition.VARIETY_union == td.variety()):
         # If the union has enumerations of its own, there's no need to
         # inherit anything.
         fi = td.facets().get(facets.CF_enumeration)
