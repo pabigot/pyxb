@@ -353,11 +353,28 @@ def GenerateContentModel (ctd, automaton, binding_module, **kw):
     lines.append("})")
     return (cmi, lines)
 
+def _useEnumerationTags (td):
+    assert isinstance(td, xs.structures.SimpleTypeDefinition)
+    ptd = td.baseTypeDefinition()
+    python_support = None
+    # Atomic types that use strings as their representation
+    if (ptd.VARIETY_atomic == ptd.variety()):
+        python_support = ptd.primitiveTypeDefinition().pythonSupport()
+        return issubclass(python_support, basestring)
+    # Derivations from anySimpleType use strings too
+    if (ptd.VARIETY_absent == ptd.variety()):
+        return True
+    # Union types?  Yeah, I suppose so.
+    if (ptd.VARIETY_union == ptd.variety()):
+        return True
+    # List types have spaces so no tags.
+    return False
+
 def GenerateFacets (td, generator, **kw):
     binding_module = kw['binding_module']
     outf = binding_module.bindingIO()
     facet_instances = []
-    gen_enum_tag = issubclass(td.primitiveTypeDefinition().pythonSupport(), basestring)
+    gen_enum_tag = _useEnumerationTags(td)
     for (fc, fi) in td.facets().items():
         #if (fi is None) or (fi.ownerTypeDefinition() != td):
         #    continue

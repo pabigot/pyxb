@@ -32,4 +32,13 @@
 			</xs:restriction>
 		</xs:simpleType>
 	</xs:element>
+	<xs:element name="eAny">
+		<xs:simpleType>
+			<xs:restriction>
+				<xs:enumeration value="one"/>
+				<xs:enumeration value="1"/>
+				<xs:enumeration value="1.0"/>
+			</xs:restriction>
+		</xs:simpleType>
+	</xs:element>
 </xs:schema>

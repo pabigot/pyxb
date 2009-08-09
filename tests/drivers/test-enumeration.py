@@ -49,6 +49,18 @@ class TestEnumerations (unittest.TestCase):
         self.assertEqual(1.7, eDouble(1.7))
         self.assertEqual(1.7, CreateFromDocument('<eDouble>1.7</eDouble>'))
 
+    def testAny (self):
+        self.assertRaises(pyxb.BadTypeValueError, eAny, 2)
+        self.assertRaises(pyxb.BadTypeValueError, eAny, '2')
+        self.assertRaises(pyxb.BadTypeValueError, CreateFromDocument, '<eAny>2</eAny>')
+        self.assertEqual('one', eAny('one'))
+        self.assertEqual('one', CreateFromDocument('<eAny>one</eAny>'))
+        self.assertEqual(eAny.typeDefinition().one, eAny('one'))
+        self.assertEqual('1', eAny('1'))
+        self.assertEqual(eAny.typeDefinition().n1, eAny('1'))
+        self.assertEqual('1.0', eAny('1.0'))
+        self.assertEqual(eAny.typeDefinition().n1_0, eAny('1.0'))
+
 if __name__ == '__main__':
     unittest.main()
     
