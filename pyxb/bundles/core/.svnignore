@@ -1,1 +1,5 @@
 schemas
+raw
+*.pyc
+*.pyo
+*~
