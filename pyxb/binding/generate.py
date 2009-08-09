@@ -364,7 +364,8 @@ def _useEnumerationTags (td):
     # Derivations from anySimpleType use strings too
     if (ptd.VARIETY_absent == ptd.variety()):
         return True
-    # Union types?  Yeah, I suppose so.
+    # Union types?  Yeah, I suppose so.  Though this only applies to
+    # members lifted up into the union.
     if (ptd.VARIETY_union == ptd.variety()):
         return True
     # List types have spaces so no tags.
@@ -421,6 +422,8 @@ def GenerateFacets (td, generator, **kw):
         if fi is None:
             # Need to expose any enumerations in members up in this class
             for mtd in td.memberTypeDefinitions():
+                if not _useEnumerationTags(mtd):
+                    continue
                 fi = mtd.facets().get(facets.CF_enumeration)
                 if fi is None:
                     continue

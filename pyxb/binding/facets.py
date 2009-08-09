@@ -527,7 +527,9 @@ class CF_enumeration (ConstrainingFacet, _CollectionFacet_mixin, _LateDatatype_m
         self.__tagToElement[ee.tag()] = ee
         self.__unicodeToElement[ee.unicodeValue()] = ee
         value = ee.value()
-        if issubclass(self.valueDatatype(), basis.STD_list):
+        # Not just issubclass(self.valueDatatype(), basis.STD_list);
+        # this may be a union with one of those as a member type.
+        if isinstance(value, list):
             value = ' '.join([ _v.xsdLiteral() for _v in value ])
         self.__valueToElement[value] = ee
         self.__elements.append(ee)

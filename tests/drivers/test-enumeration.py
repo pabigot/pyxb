@@ -72,6 +72,33 @@ class TestEnumerations (unittest.TestCase):
         self.assertRaises(pyxb.BadTypeValueError, eListInt, '1 2 3')
         self.assertRaises(pyxb.BadTypeValueError, eListInt, (1,2,3))
 
+    def testJustUnion (self):
+        self.assertEqual(uVarious.one, eJustVarious('one'))
+        self.assertEqual(uVarious.two, eJustVarious('two'))
+        v = eJustVarious(1.0)
+        self.assertTrue(isinstance(v, float)) # make sure no implicit cast
+        self.assertEqual(1.0, v)
+        self.assertEqual([1,1,2,3,5,8], eJustVarious((1,1,2,3,5,8)))
+        self.assertEqual([1,1,2,3,5,8], CreateFromDocument('<eJustVarious>1 1 2 3 5 8</eJustVarious>'))
+        self.assertRaises(pyxb.BadTypeValueError, eJustVarious, (1,2,3,5,8))
+
+    def testUnion (self):
+        self.assertEqual(tVarious.one, eVarious('one'))
+        self.assertRaises(pyxb.BadTypeValueError, eVarious, 'two')
+        self.assertEqual(1.0, eVarious(1.0))
+        self.assertEqual(1.0, eVarious('1.0'))
+        v = eVarious('1')
+        self.assertTrue(isinstance(v, float))
+        v = eVarious(1.0)
+        self.assertTrue(isinstance(v, float))
+        v = eVarious(1)
+        self.assertTrue(isinstance(v, float))
+        self.assertEqual(1.0, eVarious('1')) # this is a valid float as well as int
+        self.assertRaises(pyxb.BadTypeValueError, eVarious, '1.6')
+        self.assertEqual([1,1,2,3], eVarious((1,1,2,3)))
+        self.assertRaises(pyxb.BadTypeValueError, eVarious, (1,1,2,3,5,8))
+
+
 if __name__ == '__main__':
     unittest.main()
     
