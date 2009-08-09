@@ -362,7 +362,7 @@ class CF_maxLength (ConstrainingFacet, _Fixed_mixin):
         value_length = value.xsdValueLength()
         return (value_length is None) or (self.value() is None) or (value_length <= self.value())
 
-class _PatternElement:
+class _PatternElement (object):
     """This class represents individual patterns that appear within a CF_pattern collection."""
 
     pattern = None
@@ -404,7 +404,7 @@ class CF_pattern (ConstrainingFacet, _CollectionFacet_mixin):
         # @todo implement this
         return True
 
-class _EnumerationElement:
+class _EnumerationElement (object):
     """This class represents individual values that appear within a
     L{CF_enumeration} collection."""
     
