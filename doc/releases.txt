@@ -39,6 +39,44 @@ Linux several years ago:
 0.7.x (Beta)
 ============
 
+0.7.1 (?? Aug 2009, rev )
+-----------------------------
+
+None of the enhancements really got in, but lots of minor bug fixes.
+
+- Restored the ability to dump copies of all schemas retrieved from a remote
+  location, so you can review them.  :ticket:`28`
+
+- Fixed assorted problems with simple types constructed by list and union.
+  :ticket:`35`, :ticket:`40`
+
+- Provide link from content values to the element binding that was used to
+  store them.  Useful for quickly identifying the owner element when
+  generating a valid child sequence for conversion to DOM.  :ticket:`36`
+
+- Fix validation of attributes with union types.  :ticket:`37`
+
+- Enumeration fixes: Only generate class-level constants for enumerations that
+  restrict a string representation (not double, float, etc).  Verify
+  enumerations work correctly on list and union constructions.  Duplicate the
+  class-level constants for enumerations that are defined in union member
+  types.  :ticket:`38`
+
+- Provide a facility to simplify the automatic creation of an instance of the
+  appropriate type when storing values into an element.  Makes life with
+  anonymous local elements a lot easier.  :ticket:`39`
+
+- Enhance management of namespace prefixes by allowing a system-wide default
+  in BindingDOMSupport and by inferring the base name of the module as the
+  default prefix for namespaces defined in imported bindings.  ticket:`41`
+
+- Re-arrange the help for pyxbgen's arguments, and add a script to
+  automatically generate the Sphinx tables for it.
+
+- Support bundles of related schemas/namespaces, currently wssplat (for WS-*)
+  and opengis (Geographic Information Systems).
+
+
 0.7.0 (03 Aug 2009, rev 1715)
 -----------------------------
 
