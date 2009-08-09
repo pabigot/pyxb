@@ -1429,28 +1429,15 @@ class Generator (object):
         return self
     __bindingRoot = None
     
-    def moduleFilePaths (self, module_path):
-        assert False
-        assert module_path
-        read_path_elts = module_path.split('.')
-        leaf = read_path_elts.pop()
-        read_path = os.path.join(self.bindingRoot(), *read_path_elts)
-        write_path = read_path
-        write_module = None
-        if self.writeForCustomization():
-            write_path_elts = read_path_elts + ['raw']
-            write_module = '.'.join(write_path_elts + [leaf])
-            write_path = os.path.join(self.bindingRoot(), *write_path_elts)
-        leaf_name = '%s.py' % (leaf,)
-        return (os.path.join(read_path, leaf_name), os.path.join(write_path, leaf_name), write_module)
-
-    def __directoryForModulePath (self, module_elts):
+    def __directoryForModulePath (self, module_elts, inhibit_customization=False):
         if isinstance(module_elts, basestring):
             module_elts = module_elts.split('.')
         else:
             module_elts = module_elts[:]
         assert 0 < len(module_elts)
         assert not module_elts[-1].endswith('.py')
+        if self.writeForCustomization() and (not inhibit_customization):
+            module_elts.insert(-1, 'raw')
         module_elts[-1] = '%s.py' % (module_elts[-1],)
         return os.path.join(self.bindingRoot(), *module_elts)
 
@@ -1480,9 +1467,7 @@ class Generator (object):
             #    return ('/dev/null', None, None)
             #module_path="bogus.xsd"
             module_elts = module_path.split('.')
-            import_file_path = self.__directoryForModulePath(module_elts)
-            if self.writeForCustomization():
-                module_elts.insert(-1, 'raw')
+            import_file_path = self.__directoryForModulePath(module_elts, inhibit_customization=True)
             if self.writeForCustomization() and (not os.path.exists(import_file_path)):
                 raw_module_path = '.'.join(module_elts)
                 pyxb.utils.utility.OpenOrCreate(import_file_path).write("from %s import *\n" % (raw_module_path,))
