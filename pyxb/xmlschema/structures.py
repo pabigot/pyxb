@@ -4087,8 +4087,10 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
                         attr = cn.attributes.item(ai)
                         # Convert name from unicode to string
                         kw[str(attr.name)] = attr.value
-                    #print 'set %s from %s' % (fi.Name(), kw)
-                    fi.setFromKeywords(**kw)
+                    try:
+                        fi.setFromKeywords(**kw)
+                    except pyxb.PyXBException, e:
+                        raise pyxb.SchemaValidationError('Error assigning facet %s in %s: %s' % (fc.Name(), self.expandedName(), e))
                 local_facets[fc] = fi
         self.__localFacets = local_facets
 
