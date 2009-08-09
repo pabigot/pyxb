@@ -1,6 +1,7 @@
 import pyxb
 import pyxb.binding.generate
 import pyxb.utils.domutils
+import pyxb.binding.datatypes as xs
 
 from xml.dom import Node
 
@@ -24,6 +25,7 @@ class TestEnumerations (unittest.TestCase):
         self.assertEqual(eString.typeDefinition().one, 'one')
 
     def testInteger (self):
+        self.assertTrue(issubclass(tInteger, xs.int))
         self.assertRaises(pyxb.BadTypeValueError, eInteger, 4)
         self.assertRaises(pyxb.BadTypeValueError, eInteger, '4')
         self.assertRaises(pyxb.BadTypeValueError, CreateFromDocument, '<eInteger>4</eInteger>')
@@ -34,6 +36,7 @@ class TestEnumerations (unittest.TestCase):
         self.assertEqual(21, CreateFromDocument('<eInteger>21</eInteger>'))
 
     def testDouble (self):
+        self.assertTrue(issubclass(tDouble, xs.double))
         self.assertRaises(pyxb.BadTypeValueError, eDouble, 2)
         self.assertRaises(pyxb.BadTypeValueError, eDouble, 2.0)
         self.assertRaises(pyxb.BadTypeValueError, eDouble, '2')
@@ -50,6 +53,7 @@ class TestEnumerations (unittest.TestCase):
         self.assertEqual(1.7, CreateFromDocument('<eDouble>1.7</eDouble>'))
 
     def testAny (self):
+        self.assertTrue(issubclass(tAny, xs.string))
         self.assertRaises(pyxb.BadTypeValueError, eAny, 2)
         self.assertRaises(pyxb.BadTypeValueError, eAny, '2')
         self.assertRaises(pyxb.BadTypeValueError, CreateFromDocument, '<eAny>2</eAny>')

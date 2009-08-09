@@ -3951,14 +3951,18 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
         This function has not been implemented."""
         raise pyxb.IncompleteImplementationError('No support for built-in union types')
 
-    def __singleSimpleTypeChild (self, body):
+    def __singleSimpleTypeChild (self, body, other_elts_ok=False):
         simple_type_child = None
         for cn in body.childNodes:
             if (Node.ELEMENT_NODE == cn.nodeType):
-                assert xsd.nodeIsNamed(cn, 'simpleType')
+                if not xsd.nodeIsNamed(cn, 'simpleType'):
+                    if other_elts_ok:
+                        continue
+                    raise pyxb.SchemaValidationError('Context requires element to be xs:simpleType')
                 assert not simple_type_child
                 simple_type_child = cn
-        assert simple_type_child
+        if simple_type_child is None:
+            raise pyxb.SchemaValidationError('Content requires an xs:simpleType member (or a base attribute)')
         return simple_type_child
 
     # The __initializeFrom* methods are responsible for identifying
@@ -3979,10 +3983,10 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
         return self.__completeResolution(body, self.VARIETY_list, self._DA_list)
 
     def __initializeFromRestriction (self, body, **kw):
-        self.__baseTypeDefinition = None
-        self.__baseAttribute = NodeAttribute(body, 'base')
-        if self.__baseAttribute is None:
-            self.__baseTypeDefinition = self.SimpleUrTypeDefinition()
+        if self.__baseTypeDefinition is None:
+            self.__baseAttribute = NodeAttribute(body, 'base')
+            if self.__baseAttribute is None:
+                self.__baseTypeDefinition = self.CreateFromDOM(self.__singleSimpleTypeChild(body, other_elts_ok=True), **kw)
         return self.__completeResolution(body, None, self._DA_restriction)
 
     __localMemberTypes = None
@@ -4145,21 +4149,18 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
             base_type = base_en.typeDefinition()
             if not isinstance(base_type, SimpleTypeDefinition):
                 raise pyxb.SchemaValidationError('Unable to locate base type %s' % (base_en,))
-            # If the base type exists but has not yet been resolve,
-            # delay processing this type until the one it depends on
-            # has been completed.
-            if not base_type.isResolved():
-                self._queueForResolution('base type %s is not resolved' % (base_en,))
-                return self
             self.__baseTypeDefinition = base_type
+        # If the base type exists but has not yet been resolve,
+        # delay processing this type until the one it depends on
+        # has been completed.
+        assert self.__baseTypeDefinition != self
+        if not self.__baseTypeDefinition.isResolved():
+            self._queueForResolution('base type %s is not resolved' % (self.__baseTypeDefinition,))
+            return self
         if variety is None:
+            # 3.14.1 specifies that the variety is the variety of the base
+            # type definition which, by the way, can't be the ur type.
             variety = self.__baseTypeDefinition.__variety
-            # NOTE: 3.14.1 specifies that the variety is the variety of the
-            # base type definition; but if that is an ur type, whose variety
-            # is absent per 3.14.5, I'm really certain that they mean it to be
-            # atomic instead.
-            if self.__baseTypeDefinition == self.SimpleUrTypeDefinition():
-                variety = self.VARIETY_atomic
         assert variety is not None
 
         if self.VARIETY_absent == variety:

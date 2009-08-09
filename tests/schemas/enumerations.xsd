@@ -30,7 +30,13 @@
 	</xs:simpleType>
 	<xs:element name="eDouble" type="tDouble"/>
 	<xs:simpleType name="tAny">
+		<xs:annotation>
+			<xs:documentation>This was originally testing derivation from anySimpleType, but it turns out you can't do that.  What you can do is put the base type as an anonymous definition inside the restriction, which didn't used to work..</xs:documentation>
+		</xs:annotation>
 		<xs:restriction>
+			<xs:simpleType>
+				<xs:restriction base="xs:string"/>
+			</xs:simpleType>
 			<xs:enumeration value="one"/>
 			<xs:enumeration value="1"/>
 			<xs:enumeration value="1.0"/>
@@ -45,7 +51,7 @@
 		<xs:restriction base="lInteger">
 			<xs:enumeration value="1"/>
 			<xs:enumeration value="1 1"/>
-			<xs:enumeration value="1    1     2"/> <!-- Value space restriction, whitespace will  be ignored when value calculated -->
+			<xs:enumeration value="1    1     2"/><!-- Value space restriction, whitespace will  be ignored when value calculated -->
 			<xs:enumeration value="1 1 2 3"/>
 			<xs:enumeration value="1 1 2 3 5"/>
 			<xs:enumeration value="1 1 2 3 5 8"/>
@@ -67,4 +73,3 @@
 	</xs:simpleType>
 	<xs:element name="eVarious" type="tVarious"/>
 </xs:schema>
-
