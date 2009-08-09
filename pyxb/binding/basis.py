@@ -45,7 +45,12 @@ class _TypeBinding_mixin (pyxb.cscRoot):
 
     _ReservedSymbols = set([ 'validateBinding', 'toDOM', 'toxml', 'Factory', 'property' ])
 
-    _PyXBFactoryKeywords = ( '_dom_node', '_apply_whitespace_facet', '_validate_constraints', '_require_value' )
+    # @todo: We don't actually use this anymore; get rid of it, just leaving a
+    # comment describing each keyword.
+    _PyXBFactoryKeywords = ( '_dom_node', '_apply_whitespace_facet', '_validate_constraints', '_require_value', '_nil', '_element' )
+    """Keywords that are interpreted by __new__ or __init__ in one or more
+    classes in the PyXB type hierarchy.  All these keywords must be removed
+    before invoking base Python __init__ or __new__."""
 
     # While simple type definitions cannot be abstract, they can appear in
     # many places where complex types can, so we want it to be legal to test
@@ -130,34 +135,16 @@ class _TypeBinding_mixin (pyxb.cscRoot):
     # whether that'll be common practice or common error.
     __WarnedUnassociatedElement = False
 
-    # Strip _element away before invoking parent new, which may not accept it.
-    # After creating the object, set its associated element (if provided).
-    def __new__ (cls, *args, **kw):
-        element = kw.pop('_element', None)
-        is_nil = kw.pop('_nil', False)
-        rv = super(_TypeBinding_mixin, cls).__new__(cls, *args, **kw)
-        # In the absence of an element, assume the value is nillable.
-        if (element is None) or element.nillable():
-            rv.__xsiNil = is_nil
-        rv.__checkNilCtor(args)
-        if element is not None:
-            rv._setElement(element)
-        elif not cls.__WarnedUnassociatedElement:
-            # Don't warn for simpleTypeDefinition values: too many (e.g.,
-            # facet and attribute values) are legitimately unassociated with
-            # elements.
-            if issubclass(cls, complexTypeDefinition):
-                #print '**WARNING: Creating new %s instance without associated element' % (cls._ExpandedName,)
-                #raise pyxb.LogicError('Creating new _TypeBinding_mixin without associated element')
-                cls.__WarnedUnassociatedElement = True
-        return rv
-
     def __init__ (self, *args, **kw):
         # Strip keyword not used above this level.
         element = kw.pop('_element', None)
-        is_nil = kw.pop('_nil', None)
+        is_nil = kw.pop('_nil', False)
         super(_TypeBinding_mixin, self).__init__(*args, **kw)
+        if (element is None) or element.nillable():
+            self.__xsiNil = is_nil
         self.__checkNilCtor(args)
+        if element is not None:
+            self._setElement(element)
 
     @classmethod
     def _PreFactory_vx (cls, args, kw):
@@ -635,19 +622,23 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
         return cls._ConvertArguments_vx(args, kw)
         return args
 
-    # Must override new, because new gets invoked before init, and
-    # usually doesn't accept keywords.  In case it does, only remove
-    # the ones that are interpreted by this class.  Do the same
-    # argument conversion as is done in init.  Trap errors and convert
-    # them to BadTypeValue errors.
+    # Must override new, because new gets invoked before init, and usually
+    # doesn't accept keywords.  In case it does (e.g., datetime.datetime),
+    # only remove the ones that would normally be interpreted by this class.
+    # Do the same argument conversion as is done in init.  Trap errors and
+    # convert them to BadTypeValue errors.
     #
     # Note: We explicitly do not validate constraints here.  That's
     # done in the normal constructor; here, we might be in the process
     # of building a value that eventually will be legal, but isn't
     # yet.
     def __new__ (cls, *args, **kw):
+        # PyXBFactoryKeywords
         kw.pop('_validate_constraints', None)
         kw.pop('_require_value', None)
+        kw.pop('_element', None)
+        kw.pop('_nil', None)
+        # ConvertArguments will remove _element and _apply_whitespace_facet
         args = cls._ConvertArguments(args, kw)
         assert issubclass(cls, _TypeBinding_mixin)
         try:
@@ -670,8 +661,11 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
         constructed value is checked against its constraining facets.
         @type _validate_constraints: C{bool}
         """
+        # PyXBFactoryKeywords
         validate_constraints = kw.pop('_validate_constraints', self._PerformValidation)
         require_value = kw.pop('_require_value', False)
+        # _ConvertArguments handles _dom_node and _apply_whitespace_facet
+        # TypeBinding_mixin handles _nil and _element
         args = self._ConvertArguments(args, kw)
         try:
             super(simpleTypeDefinition, self).__init__(*args, **kw)
@@ -1533,9 +1527,6 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             is_nil = self.__XSINil.getAttribute(dom_node)
             if is_nil is not None:
                 is_nil = kw['_nil'] = pyxb.binding.datatypes.boolean(is_nil)
-                # Verify that the _nil keyword was set at the time this
-                # instance was allocated.
-                assert is_nil == self._isNil()
         if self._AttributeWildcard is not None:
             self.__wildcardAttributeMap = { }
         if self._HasWildcardElement:
@@ -1559,14 +1550,10 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
                 fu.set(self, iv)
         if dom_node is not None:
             if self._CT_SIMPLE == self._ContentTypeTag:
-                # Pass only PyXB-relevant keywords: no Python base simple types
-                # take keywords, and they get pissy if you given them any.  Which
-                # happens if we're trying to initialize some attributes in the
-                # constructor.
-                fkw = [ _k for _k in self._PyXBFactoryKeywords if (_k in kw) ]
-                rkw = dict(zip(fkw, map(kw.get, fkw)))
-                rkw['_dom_node'] = dom_node
-                value = self._TypeDefinition.Factory(_require_value=not self._isNil(), *args, **rkw)
+                # Don't propagate the keywords.  Python base simple types
+                # usually don't like them, and even if they do we're not using
+                # them here.
+                value = self._TypeDefinition.Factory(_require_value=not self._isNil(), _dom_node=dom_node, *args)
                 if value._constructedWithValue():
                     if self._isNil():
                         raise pyxb.ContentInNilElementError(value)
