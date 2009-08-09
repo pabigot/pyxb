@@ -1,11 +1,7 @@
-DEST=pyxb/bundles/wssplat
-SCHEMA_DIR=${DEST}/schemas
-MODULE_PREFIX=`echo ${DEST} | sed -e s@/@.@g`
+PYXB_ROOT=${PYXB_ROOT:-/home/pab/pyxb/dev}
+BUNDLE_TAG=wssplat
 
-rm -rf ${DEST}/raw
-mkdir -p ${DEST}/raw
-touch ${DEST}/raw/__init__.py
-mkdir -p ${SCHEMA_DIR}
+. ${PYXB_ROOT}/maintainer/bundlesupport.sh
 
 ( cat <<EOList
 http://schemas.xmlsoap.org/wsdl/ wsdl11
@@ -32,25 +28,4 @@ http://www.w3.org/2002/ws/desc/ns/wsdl-instance.xsd wsdli
 http://www.w3.org/2002/ws/desc/ns/wsdl-extensions.xsd wsdlx
 http://docs.oasis-open.org/ws-rx/wsrm/200702/wsrm-1.1-schema-200702.xsd wsrm
 EOList
-) | sed -e '/^#/d' \
-  | while read uri prefix auxflags ; do
-  cached_schema=${SCHEMA_DIR}/${prefix}.xsd
-  if [ ! -f ${cached_schema} ] ; then
-     echo "Retrieving ${prefix} from ${uri}"
-     wget -O ${cached_schema} ${uri}
-  fi
-  echo
-  echo "Translating to ${prefix} from ${cached_schema}"
-  scripts/pyxbgen \
-    ${auxflags} \
-    --archive-path=${DEST}/raw:+ \
-    --schema-location file:${cached_schema} \
-    --module=${prefix} \
-    --module-prefix=${MODULE_PREFIX} \
-    --write-for-customization \
-    --archive-to-file=${DEST}/raw/${prefix}.wxs
-  if [ 0 != $? ] ; then
-    break
-  fi
-  #scripts/pyxbdump ${DEST}/raw/${prefix}.wxs
-done
+) | generateBindings

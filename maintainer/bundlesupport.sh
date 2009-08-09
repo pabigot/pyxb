@@ -1,3 +1,8 @@
+if [ ! "${BUNDLE_TAG}" ] ; then
+  echo 1>&2 "ERROR: Must set BUNDLE_TAG environment variable (should set PYXB_ROOT as well)"
+  exit 1
+fi
+
 BUNDLE_TAG=${BUNDLE_TAG:-core}
 
 PYXB_ROOT=${PYXB_ROOT:-/home/pab/pyxb/dev}
@@ -31,6 +36,7 @@ generateBindings () {
       --module=${prefix} \
       --module-prefix=${MODULE_PREFIX} \
       --write-for-customization \
+      --archive-path=${RAW_DIR}:+ \
       --archive-to-file=${RAW_DIR}/${prefix}.wxs
     if [ 0 != $? ] ; then
       break
