@@ -1,1 +1,1 @@
-from pyxb.bundles.opengis.csw_2_0_2 import *
+from pyxb.bundles.opengis.raw.csw_2_0_2 import *

@@ -1,1 +1,1 @@
-from pyxb.bundles.opengis.citygml.texturedSurface import *
+from pyxb.bundles.opengis.citygml.raw.texturedSurface import *

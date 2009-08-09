@@ -1,1 +1,1 @@
-from pyxb.bundles.opengis.om_1_0 import *
+from pyxb.bundles.opengis.raw.om_1_0 import *

@@ -1,1 +1,1 @@
-from pyxb.bundles.opengis.gml_3_2 import *
+from pyxb.bundles.opengis.raw.gml_3_2 import *

@@ -1,1 +1,1 @@
-from pyxb.bundles.opengis.citygml.transportation import *
+from pyxb.bundles.opengis.citygml.raw.transportation import *

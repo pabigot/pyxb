@@ -1,1 +1,1 @@
-from pyxb.bundles.opengis.misc.xlinks import *
+from pyxb.bundles.opengis.misc.raw.xlinks import *

@@ -1429,19 +1429,14 @@ class Generator (object):
         return self
     __bindingRoot = None
     
-    def __directoryForModulePath (self, module_elts, inhibit_customization=False, protected=False):
+    def __directoryForModulePath (self, module_elts):
         if isinstance(module_elts, basestring):
             module_elts = module_elts.split('.')
         else:
             module_elts = module_elts[:]
         assert 0 < len(module_elts)
         assert not module_elts[-1].endswith('.py')
-        if self.writeForCustomization() and (not inhibit_customization):
-            module_elts.insert(-1, 'raw')
-        prefix = ''
-        if protected:
-            prefix = '_'
-        module_elts[-1] = '%s%s.py' % (prefix, module_elts[-1],)
+        module_elts[-1] = '%s.py' % (module_elts[-1],)
         return os.path.join(self.bindingRoot(), *module_elts)
 
     def generateToFiles (self):
@@ -1470,7 +1465,9 @@ class Generator (object):
             #    return ('/dev/null', None, None)
             #module_path="bogus.xsd"
             module_elts = module_path.split('.')
-            import_file_path = self.__directoryForModulePath(module_elts, inhibit_customization=True)
+            import_file_path = self.__directoryForModulePath(module_elts)
+            if self.writeForCustomization():
+                module_elts.insert(-1, 'raw')
             if self.writeForCustomization() and (not os.path.exists(import_file_path)):
                 raw_module_path = '.'.join(module_elts)
                 pyxb.utils.utility.OpenOrCreate(import_file_path).write("from %s import *\n" % (raw_module_path,))
@@ -1487,6 +1484,8 @@ class Generator (object):
             module_elts = []
             if self.modulePrefix():
                 module_elts.extend(self.modulePrefix().split('.'))
+            if self.writeForCustomization():
+                module_elts.append('raw')
             in_use = set()
             while True:
                 module_elts.append(pyxb.utils.utility.PrepareIdentifier('nsgroup', in_use, protected=True))

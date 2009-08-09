@@ -1,1 +1,1 @@
-from pyxb.bundles.opengis.citygml.cityObjectGroup import *
+from pyxb.bundles.opengis.citygml.raw.cityObjectGroup import *

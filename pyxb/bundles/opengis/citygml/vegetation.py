@@ -1,1 +1,1 @@
-from pyxb.bundles.opengis.citygml.vegetation import *
+from pyxb.bundles.opengis.citygml.raw.vegetation import *

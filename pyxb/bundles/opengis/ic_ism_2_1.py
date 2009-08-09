@@ -1,1 +1,1 @@
-from pyxb.bundles.opengis.ic_ism_2_1 import *
+from pyxb.bundles.opengis.raw.ic_ism_2_1 import *

@@ -1,1 +1,1 @@
-from pyxb.bundles.opengis.citygml.landUse import *
+from pyxb.bundles.opengis.citygml.raw.landUse import *

@@ -1,1 +1,1 @@
-from pyxb.bundles.opengis.sensorML_1_0_1 import *
+from pyxb.bundles.opengis.raw.sensorML_1_0_1 import *

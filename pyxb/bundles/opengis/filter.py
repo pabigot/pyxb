@@ -1,1 +1,1 @@
-from pyxb.bundles.opengis.filter import *
+from pyxb.bundles.opengis.raw.filter import *

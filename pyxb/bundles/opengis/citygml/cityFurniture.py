@@ -1,1 +1,1 @@
-from pyxb.bundles.opengis.citygml.cityFurniture import *
+from pyxb.bundles.opengis.citygml.raw.cityFurniture import *

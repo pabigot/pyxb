@@ -13,9 +13,9 @@ make apihtml
 make  html
 rm -f pyxb
 cd ..
-maintainer/dobinds.sh
-maintainer/wssplat.sh
-maintainer/opengis.sh
+for bundle in core wssplat opengis ; do
+  pyxb/bundles/${bundle}/scripts/genbind || exit 1
+done
 ./setup.py sdist
 ./setup.py test
 cp -p dist/PyXB-*.tar.gz ~/pyxb/pre-release

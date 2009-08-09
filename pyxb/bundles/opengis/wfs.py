@@ -1,1 +1,1 @@
-from pyxb.bundles.opengis.wfs import *
+from pyxb.bundles.opengis.raw.wfs import *

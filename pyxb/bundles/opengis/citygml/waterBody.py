@@ -1,1 +1,1 @@
-from pyxb.bundles.opengis.citygml.waterBody import *
+from pyxb.bundles.opengis.citygml.raw.waterBody import *

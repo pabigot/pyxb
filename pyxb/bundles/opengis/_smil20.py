@@ -1,1 +1,1 @@
-from pyxb.bundles.opengis._smil20 import *
+from pyxb.bundles.opengis.raw._smil20 import *
