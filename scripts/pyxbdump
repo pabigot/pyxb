@@ -6,6 +6,21 @@ import traceback
 import pyxb.xmlschema.structures
 
 pyxb.namespace.archive.NamespaceArchive.PreLoadArchives()
+ans = pyxb.namespace.AvailableNamespaces()
+print '%d available namespaces' % (len(ans),)
+for ns in ans:
+    for mr in ns.moduleRecords():
+        mp = mr.modulePath()
+        if mp is None:
+            mp = '<builtin>'
+        fp = '<builtin>'
+        uid = 'N/A'
+        if mr.archive() is not None:
+            fp = mr.archive().archivePath()
+            uid = mr.archive().generationUID()
+        print "%s\t%s\t%s\t%s %s" % (ns, mp, fp, (mr.isPublic() and 'Public') or 'private', uid)
+
+sys.exit(0)
 for fn in sys.argv[1:]:
     nsa = None
     try:
