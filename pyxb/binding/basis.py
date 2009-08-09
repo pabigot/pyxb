@@ -872,7 +872,7 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
                 raise pyxb.BadTypeValueError('%s cannot have non-iterable value type %s' % (cls, type(value)))
             for v in value:
                 if not cls._ItemType._IsValidValue(v):
-                    raise pyxb.BadTypeValueError('%s cannot have member of type %s' % (cls, type(v)))
+                    raise pyxb.BadTypeValueError('%s cannot have member of type %s (want %s)' % (cls, type(v), cls._ItemType))
         else:
             if issubclass(cls, STD_union):
                 #print ' -- checking union with %d types' % (len(cls._MemberTypes),)
@@ -883,7 +883,8 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
                         break
                 if value_class is None:
                     raise pyxb.BadTypeValueError('%s cannot have value type %s' % (cls, type(value)))
-            if not isinstance(value, value_class): # issubclass(value_class, type(value))
+            #if not (isinstance(value, value_class) or issubclass(value_class, type(value))):
+            if not isinstance(value, value_class):
                 raise pyxb.BadTypeValueError('Value type %s is not valid for %s' % (type(value), cls))
         value_class.XsdConstraintsOK(value)
 
@@ -920,11 +921,6 @@ class STD_union (simpleTypeDefinition):
     # initialized.  Alternative is to not descend from simpleTypeDefinition.
     # @todo Ensure that pattern and enumeration are valid constraints
     __FacetMap = {}
-
-    # Filter arguments out from call to new to avoid deprecation
-    # warning in Python 2.6.
-    def __new__ (cls, *args, **kw):
-        return super(STD_union, cls).__new__(cls)
 
     @classmethod
     def Factory (cls, *args, **kw):
@@ -1049,7 +1045,13 @@ class STD_list (simpleTypeDefinition, types.ListType):
             if isinstance(arg1, types.StringTypes):
                 args = (arg1.split(),) + args[1:]
                 arg1 = args[0]
-            if isinstance(arg1, list):
+            is_iterable = False
+            try:
+                iter(arg1)
+                is_iterable = True
+            except TypeError:
+                pass
+            if is_iterable:
                 new_arg1 = []
                 for i in range(len(arg1)):
                     new_arg1.append(cls._ValidatedItem(arg1[i]))
