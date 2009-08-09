@@ -41,4 +41,22 @@
 			</xs:restriction>
 		</xs:simpleType>
 	</xs:element>
+	<xs:simpleType name="lInteger">
+		<xs:list itemType="xs:int"/>
+	</xs:simpleType>
+	<xs:element name="justList" type="lInteger"/>
+	<xs:element name="eListInt">
+		<xs:simpleType>
+			<xs:restriction base="lInteger">
+				<xs:enumeration value="1"/>
+				<xs:enumeration value="1 1"/>
+				<xs:enumeration value="1 1 2"/>
+				<xs:enumeration value="1 1 2 3"/>
+				<xs:enumeration value="1 1 2 3 5"/>
+				<xs:enumeration value="1 1 2 3 5 8"/>
+				<xs:enumeration value="1 1 2 3 5 8 13"/>
+				<xs:enumeration value="1 1 2 3 5 8 13 21"/>
+			</xs:restriction>
+		</xs:simpleType>
+	</xs:element>
 </xs:schema>

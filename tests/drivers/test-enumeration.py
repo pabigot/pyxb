@@ -61,6 +61,17 @@ class TestEnumerations (unittest.TestCase):
         self.assertEqual('1.0', eAny('1.0'))
         self.assertEqual(eAny.typeDefinition().n1_0, eAny('1.0'))
 
+    def testList (self):
+        self.assertEqual([1, 1, 2, 3], justList('1 1 2 3'))
+        self.assertEqual([1, 1, 2, 3], eListInt('1 1 2 3'))
+        self.assertEqual([1, 1, 2, 3], eListInt((1,1,2,3)))
+        self.assertEqual([1, 1, 2, 3], CreateFromDocument('<eListInt>1 1 2 3</eListInt>'))
+        # NB Constraining value space, not lexical space, so whiteSpace facets apply
+        self.assertEqual([1, 1, 2, 3], eListInt('1   1      2 3'))
+        self.assertEqual([1, 1, 2, 3], CreateFromDocument('<eListInt>1    1       2 3</eListInt>'))
+        self.assertRaises(pyxb.BadTypeValueError, eListInt, '1 2 3')
+        self.assertRaises(pyxb.BadTypeValueError, eListInt, (1,2,3))
+
 if __name__ == '__main__':
     unittest.main()
     
