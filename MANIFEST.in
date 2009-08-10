@@ -1,7 +1,8 @@
 # Legal stuff
 include LICENSE NOTICE
+# Miscellaneous other
+MANIFEST.in MANIFEST
 # Include the pre-built bindings for standard schema
-recursive-include pyxb/standard *.py *.wxs
 recursive-include pyxb/bundles *.py *.wxs
 # Include all the unit tests
 recursive-include tests *.py *.xsd *.xml

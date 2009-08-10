@@ -1,3 +1,8 @@
+find pyxb/bundles -name __init__.py \
+ | sed -e 's@^@"@' -e 's@/[^/]*$@",@' -e 's@/@.@g' \
+ | fmt
+
+
 find pyxb/bundles -name '*.wxs' \
  > /tmp/x$$
 cat /tmp/x$$ \
@@ -7,7 +12,7 @@ cat /tmp/x$$ \
  > /tmp/y$$
 
 for f in `cat /tmp/y$$` ; do
-  echo -n `echo "'${f}'" | sed -e 's@/@.@'`
+  echo -n `echo "'${f}'" | sed -e 's@/@.@g'`
   echo ' : ['
   grep "^${f}" /tmp/x$$ \
     | sed -e 's@^.*/\([^/]*\)$@\1@' \

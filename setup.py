@@ -129,20 +129,24 @@ setup(name='PyXB',
       author_email='pyxb@comcast.net',
       url='http://pyxb.sourceforge.net',
       # Also change in README.TXT, pyxb/__init__.py, and doc/conf.py
-      version='0.7.1',
+      version='0.7.1-TEST',
       provides='pyxb',
-      packages=[ 'pyxb', 'pyxb.namespace', 'pyxb.binding', 'pyxb.utils', 'pyxb.xmlschema',
-                 'pyxb.bundles',
-                 'pyxb.bundles.core', 'pyxb.bundles.core.raw',
-                 'pyxb.bundles.wssplat', 'pyxb.bundles.wssplat.raw',
-                 'pyxb.bundles.opengis', 'pyxb.bundles.opengis.raw',
-                 ],
+      packages=[
+        'pyxb', 'pyxb.namespace', 'pyxb.binding', 'pyxb.utils', 'pyxb.xmlschema',
+        "pyxb.bundles",
+        "pyxb.bundles.core", "pyxb.bundles.core.raw", 
+        "pyxb.bundles.wssplat", "pyxb.bundles.wssplat.raw",
+        "pyxb.bundles.opengis", "pyxb.bundles.opengis.raw",
+        "pyxb.bundles.opengis.misc", "pyxb.bundles.opengis.misc.raw",
+        "pyxb.bundles.opengis.iso19139", "pyxb.bundles.opengis.iso19139.raw",
+        "pyxb.bundles.opengis.citygml", "pyxb.bundles.opengis.citygml.raw",
+        ],
 
       package_data={ # Generate these with maintainer/genpd.sh
         'pyxb.bundles/core/raw' : [
             "xsd_hfp.wxs", "xhtml.wxs",
             ],
-        'pyxb.bundles/opengis/raw' : [
+        'pyxb.bundles.opengis.raw' : [
             "sampling_1_0.wxs", "ows_1_1.wxs", "citygml.waterBody.wxs",
             "filter.wxs", "iso19139.core.wxs", "citygml.transportation.wxs",
             "citygml.relief.wxs", "citygml.vegetation.wxs", "wcs_1_1.wxs",
@@ -154,7 +158,7 @@ setup(name='PyXB',
             "citygml.texturedSurface.wxs", "ogckml22.wxs", "om_1_0.wxs",
             "misc.xAL.wxs", "swe_1_0_0.wxs", "csw_2_0_2.wxs",
             ],
-        'pyxb.bundles/wssplat/raw' : [
+        'pyxb.bundles.wssplat.raw' : [
             "wsp.wxs", "whttp.wxs", "wsa.wxs", "bpws.wxs", "ds.wxs", "httpbind.wxs",
             "wsdlx.wxs", "wsdli.wxs", "wsse.wxs", "soapbind12.wxs", "soapbind11.wxs",
             "mimebind.wxs", "soap11.wxs", "soap12.wxs", "wsoap.wxs", "wsp200607.wxs",
@@ -165,6 +169,6 @@ setup(name='PyXB',
       # I normally keep these in $purelib, but distutils won't tell me where that is.
       # We don't need them in the installation anyway.
       #data_files= [ ('pyxb/standard/schemas', glob.glob(os.path.join(*'pyxb/standard/schemas/*.xsd'.split('/'))) ) ],
-      scripts=[ 'scripts/pyxbgen', 'scripts/pyxbwsdl' ],
+      scripts=[ 'scripts/pyxbgen', 'scripts/pyxbwsdl', 'scripts/pyxbdump' ],
       cmdclass = { 'test' : test } )
       
