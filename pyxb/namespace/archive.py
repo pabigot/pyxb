@@ -30,7 +30,7 @@ C{pyxb/standard/bindings/raw})."""
 import os.path
 import stat
 
-DefaultArchivePath = os.path.realpath("%s/bundles/core/raw" % (os.path.join(os.path.dirname( __file__), '..'),))
+DefaultArchivePath = '%s//' % (os.path.realpath('%s/bundles' % (os.path.join(os.path.dirname( __file__), '..'),)),)
 """Default location for reading C{.wxs} files"""
 
 def GetArchivePath ():
