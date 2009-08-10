@@ -450,7 +450,10 @@ class _DynamicCreate_mixin (pyxb.cscRoot):
         ctor = cls._AlternativeConstructor()
         if ctor is None:
             ctor = cls._SupersedingClass()
-        return ctor(*args, **kw)
+        try:
+            return ctor(*args, **kw)
+        except TypeError, e:
+            raise pyxb.BadTypeValueError(e)
 
 class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
     """L{simpleTypeDefinition} is a base class that is part of the
@@ -1867,8 +1870,8 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
                 (element_binding, element_use) = self._ElementBindingUseForName(expanded_name)
                 if element_binding is not None:
                     value = element_binding.createFromDOM(value)
-        elif isinstance(value, _TypeBinding_mixin):
-            element_binding = value._element()
+        #elif isinstance(value, _TypeBinding_mixin):
+        #    element_binding = value._element()
         else:
             pass
         if self._isNil() and not self._IsSimpleTypeContent():
