@@ -1,5 +1,4 @@
-PYXB_ARCHIVE_PATH=${PYXB_ARCHIVE_PATH:+${PYXB_ARCHIVE_PATH}:}bindings
-# PYTHONPATH=${PYTHONPATH:+${PYTHONPATH}:}bindings:.
+PYXB_ARCHIVE_PATH=bindings
 rm -rf bindings
 mkdir -p bindings
 touch bindings/__init__.py
@@ -10,4 +9,4 @@ pyxbgen \
   --archive-to-file=bindings/D.wxs \
  && python tst-a.py \
  && python tst-b.py \
- && echo "Passed"
+ && echo "nsdep TESTS PASSED"
