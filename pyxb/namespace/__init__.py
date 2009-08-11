@@ -902,6 +902,7 @@ class Namespace (_NamespaceCategory_mixin, resolution._NamespaceResolution_mixin
                 self.__didValidation = True
             finally:
                 self.__inValidation = False
+        return True
 
     def _replaceComponent (self, existing_def, replacement_def):
         """Replace the existing definition with another.
