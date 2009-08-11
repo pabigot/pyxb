@@ -1,6 +1,6 @@
 # Run this from within ~pab/pyxb/pre-release
 
-RELEASE=${1:-0.5.2}
+RELEASE=${1:-0.7.1-TEST}
 PYXBREL=PyXB-${RELEASE}
 TARFILE=${PYXBREL}.tar.gz
 
@@ -21,16 +21,22 @@ for pv in 2.4.6 2.5.4 2.6.2 ; do
   rm -rf ${idir}
   python setup.py install --prefix=${idir}
 
+  # Rename directory to be sure we're using the installed location
+  mv pyxb Xpyxb
+
+  export SCHEMAS_OPENGIS_NET=${SCHEMAS_OPENGIS_NET:-${HOME}/SCHEMAS_OPENGIS_NET}
   export PYTHONPATH=.:${idir}/lib/python${pvs}/site-packages
+  export PATH=${PATH}:${idir}/bin
   python setup.py test
-  cd examples;
-  for d in * ; do
-    if [ -f ${d}/test.sh ] ; then
-      ( cd ${d} ; sh test.sh )
-    fi
-  done
-  cd ..  # examples
-  cd ../..
+  find . -name test.sh \
+    | while read TEST_PATH ; do
+      dir=`dirname ${TEST_PATH}`
+      (cd ${dir} && ./test.sh ) || (echo "FAILED: ${TEST_PATH}" ;  exit 1 )
+    done
+
+  # Put directory back
+  mv Xpyxb pyxb
+
   ) 2>&1 | tee log.${pv}
 done
   
