@@ -7,8 +7,12 @@ include MANIFEST.in MANIFEST
 # Include the pre-built bindings for standard schema, excepting schema we
 # downloaded.
 graft pyxb/bundles
-recursive-exclude pyxb/bundles */schemas/*
-recursive-exclude pyxb/bundles */remote/*
+prune pyxb/bundles/core/schemas
+prune pyxb/bundles/core/remote
+prune pyxb/bundles/wssplat/schemas
+prune pyxb/bundles/wssplat/remote
+prune pyxb/bundles/opengis/schemas
+prune pyxb/bundles/opengis/remote
 
 # Include all the unit tests
 recursive-include tests *.py *.xsd *.xml *.sh
