@@ -22,6 +22,12 @@ mkdir -p ${RAW_DIR}
 touch ${RAW_DIR}/__init__.py
 mkdir -p ${SCHEMA_DIR}
 
+# We use this keep local comes of schema we had to retrieve from a
+# remote system.  Normally, any such means a namespace dependency; the
+# retrieved schema should have been translated first, and read from an
+# archive.
+CONTENT_COPY_DIR=${BUNDLE_ROOT}/remote
+
 PYTHONPATH=${PYXB_ROOT}
 PATH=${PYXB_ROOT}/scripts:/usr/bin:/bin
 export PATH PYTHONPATH
@@ -51,6 +57,7 @@ generateBindings () {
       --write-for-customization \
       --archive-path=${RAW_DIR}:+ \
       --archive-to-file=${ARCHIVE_DIR}/${prefix}.wxs \
+      --uri-content-archive-directory=${CONTENT_COPY_DIR} \
       ${AUX_PYXBGEN_FLAGS} \
     || failure ${prefix} ${original_uri}
   done
