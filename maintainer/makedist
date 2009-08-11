@@ -9,11 +9,11 @@ cd doc
 rm -rf html
 rm -f pyxb
 ln -s ../pyxb .
-make apihtml
-make  html
+#make apihtml
+#make  html
 rm -f pyxb
 cd ..
-for bundle in core wssplat opengis ; do
+for bundle in core wssplat ; do
   pyxb/bundles/${bundle}/scripts/genbind || exit 1
 done
 ./setup.py sdist
