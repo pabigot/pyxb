@@ -2,7 +2,7 @@
 include LICENSE NOTICE README*
 
 # Miscellaneous other
-MANIFEST.in MANIFEST
+include MANIFEST.in MANIFEST
 
 # Include the pre-built bindings for standard schema, excepting schema we
 # downloaded.
@@ -26,4 +26,5 @@ prune doc/W3C
 recursive-include examples *.txt *.py *.sh *.xsd *.xml *-patch
 
 # Detritus
-exclude *~
+exclude *~ #*#
+
