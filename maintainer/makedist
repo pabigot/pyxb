@@ -3,7 +3,7 @@
 DISTDIR=pyxbdist
 cd /tmp
 rm -rf ${DISTDIR}
-svn checkout svn://scmhome/pyxb/trunk ${DISTDIR}
+svn export svn://scmhome/pyxb/trunk ${DISTDIR}
 cd ${DISTDIR}
 cd doc
 rm -rf html
