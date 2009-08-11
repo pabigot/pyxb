@@ -1,17 +1,29 @@
 # Legal stuff
-include LICENSE NOTICE
+include LICENSE NOTICE README*
+
 # Miscellaneous other
 MANIFEST.in MANIFEST
-# Include the pre-built bindings for standard schema
-recursive-include pyxb/bundles *.py *.wxs
+
+# Include the pre-built bindings for standard schema, excepting schema we
+# downloaded.
+graft pyxb/bundles
+recursive-exclude pyxb/bundles */schemas/*
+recursive-exclude pyxb/bundles */remote/*
+
 # Include all the unit tests
-recursive-include tests *.py *.xsd *.xml
+recursive-include tests *.py *.xsd *.xml *.sh
+
 # Include the scripts and any other garbage helpful to the maintainer
-recursive-include maintainer *.sh
+recursive-include maintainer * *.sh *.py
+
 # Documentation, not including cached W3C material
 recursive-include doc * *.*
 prune doc/_build
 prune doc *.eap
 prune doc/W3C
-# Examples
+
+# Examples that didn't go into bundles
 recursive-include examples *.txt *.py *.sh *.xsd *.xml *-patch
+
+# Detritus
+exclude *~
