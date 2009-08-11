@@ -1,5 +1,5 @@
 # Legal stuff
-include LICENSE NOTICE README*
+include LICENSE NOTICE
 
 # Miscellaneous other
 include MANIFEST.in MANIFEST
@@ -21,14 +21,15 @@ recursive-include tests *.py *.xsd *.xml *.sh
 recursive-include maintainer * *.sh *.py
 
 # Documentation, not including cached W3C material
-recursive-include doc * *.*
+global-include README*
+graft doc
 prune doc/_build
-prune doc *.eap
+exclude doc/*.eap
 prune doc/W3C
 
 # Examples that didn't go into bundles
 recursive-include examples *.txt *.py *.sh *.xsd *.xml *-patch
 
 # Detritus
-exclude *~ #*#
+global-exclude *~ #*#
 
