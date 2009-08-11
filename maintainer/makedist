@@ -1,22 +1,21 @@
 #!/bin/sh
 
-export PYXB_ROOT=/home/pab/pyxb/dev2
-#DISTDIR=pyxbdist
-#cd /tmp
-#rm -rf ${DISTDIR}
-#svn export svn://scmhome/pyxb/trunk ${DISTDIR}
-#cd ${DISTDIR}
-#cd doc
-#rm -rf html
-#rm -f pyxb
-#ln -s ../pyxb .
-#make apihtml
-#make  html
-#rm -f pyxb
-#cd ..
+DISTDIR=pyxbdist
+cd /tmp
+rm -rf ${DISTDIR}
+svn export svn://scmhome/pyxb/trunk ${DISTDIR}
+cd ${DISTDIR}
+export PYXB_ROOT=`pwd`
+cd doc
+rm -rf html
+rm -f pyxb
+ln -s ../pyxb .
+make apihtml html
+rm -f pyxb
+cd ..
 for bundle in core wssplat opengis ; do
   pyxb/bundles/${bundle}/scripts/genbind || exit 1
 done
 ./setup.py sdist
-#./setup.py test
-#cp -p dist/PyXB-*.tar.gz ~/pyxb/pre-release
+./setup.py test
+cp -p dist/PyXB-*.tar.gz ~/pyxb/pre-release
