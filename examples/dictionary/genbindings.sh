@@ -1,5 +1,3 @@
-PYTHONPATH=../..
-export PYTHONPATH
 URI='http://services.aonaware.com/DictService/DictService.asmx?WSDL'
 PREFIX='dict'
 WSDL="${PREFIX}.wsdl"
@@ -10,7 +8,7 @@ fi
 rm -rf raw
 mkdir -p raw
 touch raw/__init__.py
-../../scripts/pyxbgen \
+pyxbgen \
    --wsdl-location="${WSDL}" \
    --module="${PREFIX}" \
    --write-for-customization

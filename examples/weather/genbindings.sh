@@ -1,5 +1,3 @@
-PYTHONPATH=../..
-export PYTHONPATH
 URI='http://ws.cdyne.com/WeatherWS/Weather.asmx?wsdl'
 PREFIX='weather'
 WSDL="${PREFIX}.wsdl"
@@ -10,7 +8,7 @@ fi
 rm -rf raw weather.pyc weather.py
 mkdir -p raw
 touch raw/__init__.py
-../../scripts/pyxbgen \
+pyxbgen \
    -m "${PREFIX}" \
    -W "${WSDL}" \
    -r
