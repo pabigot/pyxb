@@ -274,7 +274,7 @@ class _TypeBinding_mixin (pyxb.cscRoot):
 
         # Is this the wrapper class that indicates we should create a binding
         # from arguments?
-        if isinstance(value, BIND):
+        if isinstance(value, pyxb.BIND):
             return value.createInstance(cls.Factory, **kw)
 
         # There may be other things that can be converted to the desired type,
@@ -2018,18 +2018,6 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             if cls._HasWildcardElement:
                 desc.append("  Wildcard element(s)\n")
         return ''.join(desc)
-
-class BIND (object):
-    __args = None
-    __kw = None
-
-    def __init__ (self, *args, **kw):
-        self.__args = args
-        self.__kw = kw
-
-    def createInstance (self, factory, **kw):
-        kw.update(self.__kw)
-        return factory(*self.__args, **kw)
 
 ConfigureBindingStyle(DEFAULT_BINDING_STYLE)
 

@@ -65,8 +65,7 @@ rv = compile(code, 'test', 'exec')
 eval(rv)
 
 from pyxb.exceptions_ import *
-
-from pyxb.binding.basis import BIND
+from pyxb import BIND
 
 import unittest
 

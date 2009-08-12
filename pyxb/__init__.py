@@ -67,6 +67,37 @@ from exceptions_ import *
 # Bring in namespace stuff
 import namespace
 
+class BIND (object):
+    """Bundle data for automated binding generation.
+
+    Instances of this class capture positional and keyword arguments that are
+    used to create binding instances based on context.  For example, if C{w}
+    is an instance of a complex type whose C{option} element is declared to be
+    an anonymous class with simple content of type integer and an attribute of
+    C{units}, a correct assignment to that element could be achieved with::
+
+      w.option = BIND(54, units="m")
+
+    """
+    __args = None
+    __kw = None
+
+    def __init__ (self, *args, **kw):
+        """Cache parameters for subsequent binding creation.
+        Invoke just as you would the factory for a binding class."""
+        self.__args = args
+        self.__kw = kw
+
+    def createInstance (self, factory, **kw):
+        """Invoke the given factory method.
+
+        Position arguments to the factory are those cached in this instance.
+        Keyword arguments are the ones on the command line, updated from the
+        ones in this instance."""
+        kw.update(self.__kw)
+        return factory(*self.__args, **kw)
+
+
 ## Local Variables:
 ## fill-column:78
 ## End:
