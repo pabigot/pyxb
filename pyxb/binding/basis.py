@@ -1155,6 +1155,11 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
         return self.__abstract
     __abstract = False
 
+    def documentation (self):
+        """Contents of any documentation annotation in the definition."""
+        return self.__documentation
+    __documentation = None
+
     def defaultValue (self):
         return self.__defaultValue
     __defaultValue = None
@@ -1209,7 +1214,7 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
         The type for this element must be a complex type definition."""
         return self.typeDefinition()._UseForTag(name).elementBinding()
 
-    def __init__ (self, name, type_definition, scope=None, nillable=False, abstract=False, default_value=None, substitution_group=None):
+    def __init__ (self, name, type_definition, scope=None, nillable=False, abstract=False, default_value=None, substitution_group=None, documentation=None):
         """Create a new element binding.
         """
         assert isinstance(name, pyxb.namespace.ExpandedName)
@@ -1220,6 +1225,7 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
         self.__abstract = abstract
         self.__defaultValue = default_value
         self.__substitutionGroup = substitution_group
+        self.__documentation = documentation
         
     def __call__ (self, *args, **kw):
         """Invoke the Factory method on the type associated with this element.
@@ -1422,6 +1428,8 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
             desc.append(', nillable')
         if self.substitutionGroup() is not None:
             desc.extend([', substitutes for ', self.substitutionGroup()._description(name_only=True) ])
+        if self.documentation() is not None:
+            desc.extend(["\n", self.documentation() ])
         return ''.join(desc)
 
 class enumeration_mixin (pyxb.cscRoot):

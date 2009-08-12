@@ -537,6 +537,8 @@ def elementDeclarationMap (ed, binding_module, **kw):
         template_map['map_update'] = templates.replaceInText("%{namespaceReference}.addCategoryObject('elementBinding', %{localName}, %{class})", **template_map)
     else:
         template_map['scope'] = binding_module.literal(ed.scope(), **kw)
+    if ed.annotation() is not None:
+        template_map['documentation'] = binding_module.literal(str(ed.annotation()))
     if ed.abstract():
         template_map['abstract'] = binding_module.literal(ed.abstract(), **kw)
     if ed.nillable():
@@ -547,7 +549,7 @@ def elementDeclarationMap (ed, binding_module, **kw):
     if ed.substitutionGroupAffiliation():
         template_map['substitution_group'] = binding_module.literal(ed.substitutionGroupAffiliation(), **kw)
     aux_init = []
-    for k in ( 'nillable', 'abstract', 'scope' ):
+    for k in ( 'nillable', 'abstract', 'scope', 'documentation' ):
         if k in template_map:
             aux_init.append('%s=%s' % (k, template_map[k]))
     template_map['element_aux_init'] = ''
