@@ -261,11 +261,11 @@ class AttributeUse (pyxb.cscRoot):
         self.__setValue(ctd_instance, new_value, provided)
         return new_value
 
-    def _description (self, name_only=False):
+    def _description (self, name_only=False, user_documentation=True):
         if name_only:
             return str(self.__name)
         assert issubclass(self.__dataType, basis._TypeBinding_mixin)
-        desc = [ str(self.__id), ': ', str(self.__name), ' (', self.__dataType._description(name_only=True), '), ' ]
+        desc = [ str(self.__id), ': ', str(self.__name), ' (', self.__dataType._description(name_only=True, user_documentation=False), '), ' ]
         if self.__required:
             desc.append('required')
         elif self.__prohibited:
@@ -460,13 +460,13 @@ class ElementUse (pyxb.cscRoot):
         else:
             raise pyxb.LogicError('toDOM with unrecognized value type %s: %s' % (type(value), value))
 
-    def _description (self, name_only=False):
+    def _description (self, name_only=False, user_documentation=True):
         if name_only:
             return str(self.__name)
         desc = [ str(self.__id), ': ']
         if self.isPlural():
             desc.append('MULTIPLE ')
-        desc.append(self.elementBinding()._description())
+        desc.append(self.elementBinding()._description(user_documentation=user_documentation))
         return ''.join(desc)
 
 class _DFAState (object):

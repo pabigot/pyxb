@@ -464,35 +464,40 @@ def GenerateSTD (std, generator):
         template_map['superclasses'] = ', '.join(parent_classes)
     template_map['expanded_name'] = binding_module.literal(std.expandedName(), **kw)
     template_map['namespaceReference'] = binding_module.literal(std.bindingNamespace(), **kw)
+    if std.annotation() is not None:
+        template_map['documentation'] = str(std.annotation())
+        template_map['documentation_expr'] = binding_module.literal(template_map['documentation'])
+    else:
+        template_map['documentation'] = ''
+        template_map['documentation_expr'] = binding_module.literal(None)
 
     # @todo: Extensions of LIST will be wrong in below
 
+    common_template = '''
+    """%{description}
+%{documentation}"""
+
+    _ExpandedName = %{expanded_name}
+    _Documentation = %{documentation_expr}
+'''
     if xs.structures.SimpleTypeDefinition.VARIETY_absent == std.variety():
         template = '''
 # The ur SimpleTypeDefinition
 class %{std} (%{superclasses}):
-    """%{description}"""
-
-    _ExpandedName = %{expanded_name}
-'''
+''' + common_template
         template_map['description'] = ''
     elif xs.structures.SimpleTypeDefinition.VARIETY_atomic == std.variety():
         template = '''
 # Atomic SimpleTypeDefinition
 class %{std} (%{superclasses}):
-    """%{description}"""
-
-    _ExpandedName = %{expanded_name}
-'''
+''' + common_template
         template_map['description'] = ''
     elif xs.structures.SimpleTypeDefinition.VARIETY_list == std.variety():
         template = '''
 # List SimpleTypeDefinition
 # superclasses %{superclasses}
 class %{std} (pyxb.binding.basis.STD_list):
-    """%{description}"""
-
-    _ExpandedName = %{expanded_name}
+''' + common_template + '''
     _ItemType = %{itemtype}
 '''
         template_map['itemtype'] = binding_module.literal(std.itemTypeDefinition(), **kw)
@@ -502,9 +507,7 @@ class %{std} (pyxb.binding.basis.STD_list):
 # Union SimpleTypeDefinition
 # superclasses %{superclasses}
 class %{std} (pyxb.binding.basis.STD_union):
-    """%{description}"""
-
-    _ExpandedName = %{expanded_name}
+''' + common_template + '''
     _MemberTypes = ( %{membertypes}, )
 '''
         template_map['membertypes'] = ", ".join( [ binding_module.literal(_mt, **kw) for _mt in std.memberTypeDefinitions() ])
@@ -646,6 +649,10 @@ class %{ctd} (%{superclass}):
                 else:
                     ef_map['aux_init'] = ', ' + ', '.join(aux_init)
                 ef_map['element_binding'] = utility.PrepareIdentifier('%s_elt' % (ef_map['id'],), class_unique, class_keywords, private=True)
+                if ed.annotation() is not None:
+                    ef_map['documentation'] = binding_module.literal(str(ed.annotation()))
+                else:
+                    ef_map['documentation'] = binding_module.literal(None)
             if ed.scope() != ctd:
                 definitions.append(templates.replaceInText('''
     # Element %{id} (%{name}) inherited from %{decl_type_en}''', decl_type_en=str(ed.scope().expandedName()), **ef_map))
@@ -674,7 +681,7 @@ class %{ctd} (%{superclass}):
         return self.%{use}.append(self, new_value)''', **ef_map))
             elif basis.BINDING_STYLE_PROPERTY == generator.bindingStyle():
                 definitions.append(templates.replaceInText('''
-    %{inspector} = property(%{use}.value, %{use}.set)
+    %{inspector} = property(%{use}.value, %{use}.set, None, %{documentation})
 ''', **ef_map))
             else:
                 raise pyxb.LogicError('Unexpected binding style %s' % (generator.bindingStyle(),))
@@ -736,6 +743,10 @@ class %{ctd} (%{superclass}):
             else:
                 aux_init.insert(0, '')
                 au_map['aux_init'] = ', '.join(aux_init)
+            if ad.annotation() is not None:
+                au_map['documentation'] = binding_module.literal(str(ad.annotation()))
+            else:
+                au_map['documentation'] = binding_module.literal(None)
         if ad.scope() != ctd:
             definitions.append(templates.replaceInText('''
     # Attribute %{id} inherited from %{decl_type_en}''', decl_type_en=str(ad.scope().expandedName()), **au_map))
@@ -773,7 +784,7 @@ class %{ctd} (%{superclass}):
         return self.%{use}.set(self, new_value)''', **au_map))
             elif basis.BINDING_STYLE_PROPERTY == generator.bindingStyle():
                 definitions.append(templates.replaceInText('''
-    %{inspector} = property(%{use}.value, %{use}.set)
+    %{inspector} = property(%{use}.value, %{use}.set, None, %{documentation})
 ''', ctd=template_map['ctd'], **au_map))
             else:
                 raise pyxb.LogicError('Unexpected binding style %s' % (generator.bindingStyle(),))

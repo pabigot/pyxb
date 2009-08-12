@@ -898,11 +898,13 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
         self._IsValidValue(self)
 
     @classmethod
-    def _description (cls, name_only=False):
+    def _description (cls, name_only=False, user_documentation=True):
         name = cls._Name()
         if name_only:
             return name
         desc = [ name, ' restriction of ', cls.XsdSuperType()._description(name_only=True) ]
+        if user_documentation and (cls._Documentation is not None):
+            desc.extend(["\n", cls._Documentation])
         return ''.join(desc)
 
 class STD_union (simpleTypeDefinition):
@@ -992,7 +994,7 @@ class STD_union (simpleTypeDefinition):
         raise pyxb.LogicError('%s: cannot construct instances of union' % (self.__class__.__name__,))
 
     @classmethod
-    def _description (cls, name_only=False):
+    def _description (cls, name_only=False, user_documentation=True):
         name = cls._Name()
         if name_only:
             return name
@@ -1072,7 +1074,7 @@ class STD_list (simpleTypeDefinition, types.ListType):
         return ' '.join([ cls._ItemType.XsdLiteral(_v) for _v in value ])
 
     @classmethod
-    def _description (cls, name_only=False):
+    def _description (cls, name_only=False, user_documentation=True):
         name = cls._Name()
         if name_only:
             return name
@@ -1417,7 +1419,7 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
     def __str__ (self):
         return 'Element %s' % (self.name(),)
 
-    def _description (self, name_only=False):
+    def _description (self, name_only=False, user_documentation=True):
         name = str(self.name())
         if name_only:
             return name
@@ -1428,7 +1430,7 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
             desc.append(', nillable')
         if self.substitutionGroup() is not None:
             desc.extend([', substitutes for ', self.substitutionGroup()._description(name_only=True) ])
-        if self.documentation() is not None:
+        if user_documentation and (self.documentation() is not None):
             desc.extend(["\n", self.documentation() ])
         return ''.join(desc)
 
@@ -2000,7 +2002,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         return cls._CT_SIMPLE == cls._ContentTypeTag
 
     @classmethod
-    def _description (cls, name_only=False):
+    def _description (cls, name_only=False, user_documentation=True):
         name = cls._Name()
         if name_only:
             return name
@@ -2017,14 +2019,14 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
                 desc.append(', element-only content')
         if (0 < len(cls._AttributeMap)) or (cls._AttributeWildcard is not None):
             desc.append("\nAttributes:\n  ")
-            desc.append("\n  ".join([ _au._description() for _au in cls._AttributeMap.values() ]))
+            desc.append("\n  ".join([ _au._description(user_documentation=False) for _au in cls._AttributeMap.values() ]))
             if cls._AttributeWildcard is not None:
-                desc.append("  Wildcard attribute(s)\n")
+                desc.append("\n  Wildcard attribute(s)")
         if (0 < len(cls._ElementMap)) or cls._HasWildcardElement:
             desc.append("\nElements:\n  ")
-            desc.append("\n  ".join([ _eu._description() for _eu in cls._ElementMap.values() ]))
+            desc.append("\n  ".join([ _eu._description(user_documentation=False) for _eu in cls._ElementMap.values() ]))
             if cls._HasWildcardElement:
-                desc.append("  Wildcard element(s)\n")
+                desc.append("\n  Wildcard element(s)")
         return ''.join(desc)
 
 ConfigureBindingStyle(DEFAULT_BINDING_STYLE)
