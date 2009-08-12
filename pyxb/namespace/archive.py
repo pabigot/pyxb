@@ -158,7 +158,7 @@ class NamespaceArchive (object):
             if archive_path is not None:
     
                 # Get archive instances for everything in the archive path
-                candidate_files = pyxb.utils.utility.GetMatchingFiles(archive_path, cls.__ArchivePattern_re)
+                candidate_files = pyxb.utils.utility.GetMatchingFiles(archive_path, cls.__ArchivePattern_re, prefix_pattern='&', prefix_substituend=DefaultArchivePrefix)
                 for afn in candidate_files:
                     #print 'Considering %s' % (afn,)
                     try:
