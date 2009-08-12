@@ -76,6 +76,11 @@ class TestEnumerations (unittest.TestCase):
         self.assertRaises(pyxb.BadTypeValueError, eListInt, '1 2 3')
         self.assertRaises(pyxb.BadTypeValueError, eListInt, (1,2,3))
 
+    def testListRestriction (self):
+        self.assertTrue(9, len(justList([2] * 9)))
+        self.assertTrue(10, len(justList([2] * 10)))
+        self.assertRaises(pyxb.BadTypeValueError, justList, [2] * 11)
+
     def testJustUnion (self):
         self.assertEqual(uVarious.one, eJustVarious('one'))
         self.assertEqual(uVarious.two, eJustVarious('two'))
