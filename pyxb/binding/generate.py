@@ -465,7 +465,7 @@ def GenerateSTD (std, generator):
     template_map['expanded_name'] = binding_module.literal(std.expandedName(), **kw)
     template_map['namespaceReference'] = binding_module.literal(std.bindingNamespace(), **kw)
     if std.annotation() is not None:
-        template_map['documentation'] = str(std.annotation())
+        template_map['documentation'] = unicode(std.annotation())
         template_map['documentation_expr'] = binding_module.literal(template_map['documentation'])
     else:
         template_map['documentation'] = ''
@@ -531,7 +531,7 @@ class %{std} (pyxb.binding.basis.STD_union):
 
 def elementDeclarationMap (ed, binding_module, **kw):
     template_map = { }
-    template_map['name'] = str(ed.expandedName())
+    template_map['name'] = unicode(ed.expandedName())
     template_map['name_expr'] = binding_module.literal(ed.expandedName(), **kw)
     template_map['namespaceReference'] = binding_module.literal(ed.bindingNamespace(), **kw)
     if (ed.SCOPE_global == ed.scope()):
@@ -541,7 +541,7 @@ def elementDeclarationMap (ed, binding_module, **kw):
     else:
         template_map['scope'] = binding_module.literal(ed.scope(), **kw)
     if ed.annotation() is not None:
-        template_map['documentation'] = binding_module.literal(str(ed.annotation()))
+        template_map['documentation'] = binding_module.literal(unicode(ed.annotation()))
     if ed.abstract():
         template_map['abstract'] = binding_module.literal(ed.abstract(), **kw)
     if ed.nillable():
@@ -650,12 +650,12 @@ class %{ctd} (%{superclass}):
                     ef_map['aux_init'] = ', ' + ', '.join(aux_init)
                 ef_map['element_binding'] = utility.PrepareIdentifier('%s_elt' % (ef_map['id'],), class_unique, class_keywords, private=True)
                 if ed.annotation() is not None:
-                    ef_map['documentation'] = binding_module.literal(str(ed.annotation()))
+                    ef_map['documentation'] = binding_module.literal(unicode(ed.annotation()))
                 else:
                     ef_map['documentation'] = binding_module.literal(None)
             if ed.scope() != ctd:
                 definitions.append(templates.replaceInText('''
-    # Element %{id} (%{name}) inherited from %{decl_type_en}''', decl_type_en=str(ed.scope().expandedName()), **ef_map))
+    # Element %{id} (%{name}) inherited from %{decl_type_en}''', decl_type_en=unicode(ed.scope().expandedName()), **ef_map))
                 continue
 
             definitions.append(templates.replaceInText('''
@@ -744,12 +744,12 @@ class %{ctd} (%{superclass}):
                 aux_init.insert(0, '')
                 au_map['aux_init'] = ', '.join(aux_init)
             if ad.annotation() is not None:
-                au_map['documentation'] = binding_module.literal(str(ad.annotation()))
+                au_map['documentation'] = binding_module.literal(unicode(ad.annotation()))
             else:
                 au_map['documentation'] = binding_module.literal(None)
         if ad.scope() != ctd:
             definitions.append(templates.replaceInText('''
-    # Attribute %{id} inherited from %{decl_type_en}''', decl_type_en=str(ad.scope().expandedName()), **au_map))
+    # Attribute %{id} inherited from %{decl_type_en}''', decl_type_en=unicode(ad.scope().expandedName()), **au_map))
             continue
 
         attribute_uses.append(templates.replaceInText('%{use}.name() : %{use}', **au_map))
@@ -899,7 +899,7 @@ def _SetNameWithAccessors (component, container, is_plural, binding_module, nsm,
     component.setNameInBinding(use_map['use'])
     key_name = '%s_%s_%s' % (str(nsm.namespace()), container.nameInBinding(), component.expandedName())
     use_map['key'] = utility.PrepareIdentifier(key_name, class_unique, private=True)
-    use_map['name'] = str(component.expandedName())
+    use_map['name'] = unicode(component.expandedName())
     use_map['name_expr'] = binding_module.literal(component.expandedName(), **kw)
     if isinstance(component, xs.structures.ElementDeclaration) and is_plural:
         use_map['appender'] = utility.PrepareIdentifier('add' + unique_name[0].upper() + unique_name[1:], class_unique)
