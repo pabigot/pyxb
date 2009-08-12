@@ -1,6 +1,6 @@
 import unittest
 from pyxb.utils.utility import *
-from pyxb.utils.utility import _DeconflictSymbols_mixin, _DefaultPathWildcard
+from pyxb.utils.utility import _DeconflictSymbols_mixin
 
 class DST_base (_DeconflictSymbols_mixin):
     _ReservedSymbols = set([ 'one', 'two' ])
@@ -594,10 +594,9 @@ class TestGetMatchingFiles (unittest.TestCase):
         os.rmdir(self.__directory)
 
     def _formPath (self, *args):
-        global _DefaultPathWildcard
         out_args = []
         for a in args:
-            if _DefaultPathWildcard == a:
+            if '+' == a:
                 out_args.append(a)
             else:
                 out_args.append(os.path.join(self.__directory, a))
@@ -642,13 +641,21 @@ class TestGetMatchingFiles (unittest.TestCase):
         self.assertEqual(files, set(['d1/d11/l2/f2a.wxs', 'd1/d11/l2/f2b']))
 
     def testDefault (self):
-        default_path = self._formPath('d1')
-        files = set(self._stripPath(GetMatchingFiles(self._formPath('+'), self.__WXS_re, default_path)))
+        kw = { 'default_path' : self._formPath('d1'),
+               'default_path_wildcard' : '+' }
+        files = set(self._stripPath(GetMatchingFiles(self._formPath('+'), self.__WXS_re, **kw)))
         self.assertEqual(files, set(['d1/f1b.wxs', 'd1/f1a.wxs']))
-        files = set(self._stripPath(GetMatchingFiles(self._formPath('d2', '+'), self.__WXS_re, default_path)))
+        files = set(self._stripPath(GetMatchingFiles(self._formPath('d2', '+'), self.__WXS_re, **kw)))
         self.assertEqual(files, set(['d1/f1a.wxs', 'd1/f1b.wxs', 'd2/f2a.wxs']))
-        files = set(self._stripPath(GetMatchingFiles(self._formPath('+', 'd2'), self.__WXS_re, default_path)))
+        files = set(self._stripPath(GetMatchingFiles(self._formPath('+', 'd2'), self.__WXS_re, **kw)))
         self.assertEqual(files, set(['d1/f1a.wxs', 'd1/f1b.wxs', 'd2/f2a.wxs']))
+
+    def testPrefixPattern (self):
+        kw = { 'prefix_pattern' : '&',
+               'prefix_substituend' : self.__directory }
+        # Note: &/d1 => /d1 so it does not count
+        files = set(self._stripPath(GetMatchingFiles('&/d1:&d2', self.__NoExt_re, **kw)))
+        self.assertEqual(files, set(['d2/f2b']))
 
     def testRecursive (self):
         files = set(self._stripPath(GetMatchingFiles(self._formPath('d1//'), self.__WXS_re)))

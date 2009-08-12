@@ -23,22 +23,24 @@ import utility
 
 PathEnvironmentVariable = 'PYXB_ARCHIVE_PATH'
 """Environment variable from which default path to pre-loaded namespaces is
-read.  The value should be a colon-separated list of absolute paths.  A path
-of C{+} will be replaced by the system default path (normally
-C{pyxb/standard/bindings/raw})."""
+read.  The value should be a colon-separated list of absolute paths.  The
+character C{&} at the start of a member of the list is replaced by the path to
+the directory where the %{pyxb} modules are found, including a trailing C{/}.
+For example, use C{&pyxb/bundles//} to enable search of any archive bundled
+with PyXB.
+
+@note: If you put a path separater between C{&} and the following path, this
+will cause the substitution to be ignored."""
 
 import os.path
 import stat
 
-DefaultArchivePath = '%s//' % (os.path.realpath('%s/bundles' % (os.path.join(os.path.dirname( __file__), '..'),)),)
-"""Default location for reading C{.wxs} files"""
+DefaultArchivePrefix = os.path.realpath(os.path.join(os.path.dirname( __file__), '../..'))
+"""The default archive prefix, substituted for C{&} in C{PYXB_ARCHIVE_PATH}."""
 
 def GetArchivePath ():
     import os
-    rv = os.environ.get(PathEnvironmentVariable)
-    if rv is None:
-        rv = '+'
-    return rv
+    return os.environ.get(PathEnvironmentVariable)
 
 # Stuff required for pickling
 import cPickle as pickle
@@ -143,71 +145,72 @@ class NamespaceArchive (object):
             if cls.__NamespaceArchives is None:
                 cls.__NamespaceArchives = { }
             existing_archives = set(cls.__NamespaceArchives.values())
+            archive_set = set(required_archives)
 
             # Get archives for all required files
             if required_archive_files is not None:
                 for afn in required_archive_files:
                     required_archives.append(cls.__GetArchiveInstance(afn, stage=cls._STAGE_readModules))
 
-            # Ensure we have an archive path
+            # Ensure we have an archive path.  If not, don't do anything.
             if archive_path is None:
                 archive_path = GetArchivePath()
+            if archive_path is not None:
     
-            # Get archive instances for everything in the archive path
-            candidate_files = pyxb.utils.utility.GetMatchingFiles(archive_path, cls.__ArchivePattern_re, DefaultArchivePath)
-            archive_set = set(required_archives)
-            for afn in candidate_files:
-                #print 'Considering %s' % (afn,)
-                try:
-                    nsa = cls.__GetArchiveInstance(afn, stage=cls._STAGE_readModules)
-                    archive_set.add(nsa)
-                except pickle.UnpicklingError, e:
-                    print 'Cannot use archive %s: %s' % (afn, e)
-                except pyxb.NamespaceArchiveError, e:
-                    print 'Cannot use archive %s: %s' % (afn, e)
-            
-            # Do this for two reasons: first, to get an iterable that won't
-            # cause problems when we remove unresolvable archives from
-            # archive_set; and second to aid with forced dependency inversion
-            # testing
-            ordered_archives = sorted(list(archive_set), lambda _a,_b: cmp(_a.archivePath(), _b.archivePath()))
-            ordered_archives.reverse()
-
-            # Create a graph that identifies dependencies between the archives
-            archive_map = { }
-            for a in archive_set:
-                archive_map[a.generationUID()] = a
-            archive_graph = pyxb.utils.utility.Graph()
-            for a in ordered_archives:
-                prereqs = a._unsatisfiedModulePrerequisites()
-                if 0 < len(prereqs):
-                    for p in prereqs:
-                        if builtin.BuiltInObjectUID == p:
-                            continue
-                        da = archive_map.get(p)
-                        if da is None:
-                            print 'WARNING: %s depends on unavailable archive %s' % (a, p)
-                            archive_set.remove(a)
-                        else:
-                            #print '%s depends on %s' % (a, da)
-                            archive_graph.addEdge(a, da)
-                else:
-                    #print '%s has no dependencies' % (a,)
-                    archive_graph.addRoot(a)
-
-            # Verify that there are no dependency loops.
-            archive_scc = archive_graph.sccOrder()
-            for scc in archive_scc:
-                if 1 < len(scc):
-                    raise pyxb.LogicError("Cycle in archive dependencies.  How'd you do that?\n  " + "\n  ".join([ _a.archivePath() for _a in scc ]))
-                archive = scc[0]
-                if not (archive in archive_set):
-                    #print 'Discarding unresolvable %s' % (archive,)
-                    archive.discard()
-                    existing_archives.remove(archive)
-                    continue
-                #print 'Completing load of %s' % (archive,)
-                #archive._readToStage(cls._STAGE_COMPLETE)
+                # Get archive instances for everything in the archive path
+                candidate_files = pyxb.utils.utility.GetMatchingFiles(archive_path, cls.__ArchivePattern_re)
+                for afn in candidate_files:
+                    #print 'Considering %s' % (afn,)
+                    try:
+                        nsa = cls.__GetArchiveInstance(afn, stage=cls._STAGE_readModules)
+                        archive_set.add(nsa)
+                    except pickle.UnpicklingError, e:
+                        print 'Cannot use archive %s: %s' % (afn, e)
+                    except pyxb.NamespaceArchiveError, e:
+                        print 'Cannot use archive %s: %s' % (afn, e)
+                
+                # Do this for two reasons: first, to get an iterable that won't
+                # cause problems when we remove unresolvable archives from
+                # archive_set; and second to aid with forced dependency inversion
+                # testing
+                ordered_archives = sorted(list(archive_set), lambda _a,_b: cmp(_a.archivePath(), _b.archivePath()))
+                ordered_archives.reverse()
+    
+                # Create a graph that identifies dependencies between the archives
+                archive_map = { }
+                for a in archive_set:
+                    archive_map[a.generationUID()] = a
+                archive_graph = pyxb.utils.utility.Graph()
+                for a in ordered_archives:
+                    prereqs = a._unsatisfiedModulePrerequisites()
+                    if 0 < len(prereqs):
+                        for p in prereqs:
+                            if builtin.BuiltInObjectUID == p:
+                                continue
+                            da = archive_map.get(p)
+                            if da is None:
+                                print 'WARNING: %s depends on unavailable archive %s' % (a, p)
+                                archive_set.remove(a)
+                            else:
+                                #print '%s depends on %s' % (a, da)
+                                archive_graph.addEdge(a, da)
+                    else:
+                        #print '%s has no dependencies' % (a,)
+                        archive_graph.addRoot(a)
+    
+                # Verify that there are no dependency loops.
+                archive_scc = archive_graph.sccOrder()
+                for scc in archive_scc:
+                    if 1 < len(scc):
+                        raise pyxb.LogicError("Cycle in archive dependencies.  How'd you do that?\n  " + "\n  ".join([ _a.archivePath() for _a in scc ]))
+                    archive = scc[0]
+                    if not (archive in archive_set):
+                        #print 'Discarding unresolvable %s' % (archive,)
+                        archive.discard()
+                        existing_archives.remove(archive)
+                        continue
+                    #print 'Completing load of %s' % (archive,)
+                    #archive._readToStage(cls._STAGE_COMPLETE)
 
             # Discard any archives that we used to know about but now aren't
             # supposed to.  @todo make this friendlier in the case of archives
