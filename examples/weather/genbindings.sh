@@ -11,7 +11,5 @@ touch raw/__init__.py
 pyxbgen \
    -m "${PREFIX}" \
    -W "${WSDL}" \
-   -r
-#if [ ! -f ${PREFIX}.py ] ; then
-#  echo "from raw.${PREFIX} import *" > ${PREFIX}.py
-#fi
+   -r \
+ || ( echo "Failed to generate bindings" ; exit 1 )

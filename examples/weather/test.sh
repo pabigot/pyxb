@@ -1,2 +1,2 @@
-sh genbindings.sh
-python client_get.py
+sh genbindings.sh \
+  && python client_get.py
