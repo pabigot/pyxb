@@ -1841,7 +1841,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             element_binding = element_use.elementBinding()
         return (element_binding, element_use)
         
-    def append (self, value):
+    def append (self, value, element_use=None, maybe_element=True):
         """Add the value to the instance.
 
         The value should be a DOM node or other value that is or can be
@@ -1854,9 +1854,10 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         
         # @todo: Allow caller to provide default element use; it's available
         # in saxer.
+        if element_use is not None:
+            import content
+            assert isinstance(element_use, content.ElementUse)
         element_binding = None
-        element_use = None
-        maybe_element = True
         # Convert the value if it's XML and we recognize it.
         if isinstance(value, xml.dom.Node):
             if xml.dom.Node.COMMENT_NODE == value.nodeType:
