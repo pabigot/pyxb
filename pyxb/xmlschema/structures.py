@@ -4076,7 +4076,12 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
             self.__fundamentalFacets = frozenset(fundamental_facets)
         return self
 
+    # NB: Must be done after resolution of the base type
     def __updateFacets (self, body):
+
+        # Create local list consisting of facet classes matched in children
+        # and the map of keywords used to initialize the local instance.
+        
         local_facets = {}
         for fc in facets.Facet.Facets:
             children = LocateMatchingChildren(body, fc.Name())
