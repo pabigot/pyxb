@@ -73,12 +73,10 @@ class TestTrac_200907231705 (unittest.TestCase):
         self.assertEqual(4, instance.content()[0])
 
     def testCtorSimple (self):
-        instance = Simple()
-        self.assertRaises(pyxb.MissingContentError, instance.validateBinding)
+        self.assertRaises(pyxb.MissingContentError, Simple)
         instance = Simple(4)
         self.assertRaises(pyxb.AttributeValidationError, instance.validateBinding)
-        instance = Simple(units='m')
-        self.assertRaises(pyxb.MissingContentError, instance.validateBinding)
+        self.assertRaises(pyxb.MissingContentError, Simple, units='m')
         instance = Simple(4.5, units='m')
         self.assertEqual(4.5, instance.value())
 
@@ -88,7 +86,6 @@ class TestTrac_200907231705 (unittest.TestCase):
         self.assertEqual(pyxb.binding.basis.complexTypeDefinition._CT_SIMPLE, instance._ContentTypeTag)
         self.assertTrue(instance.validateBinding())
         self.assertTrue(instance.value() is None)
-        
 
 if __name__ == '__main__':
     unittest.main()
