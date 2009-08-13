@@ -1852,6 +1852,8 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         current state of the content model.
         """
         
+        # @todo: Allow caller to provide default element use; it's available
+        # in saxer.
         element_binding = None
         element_use = None
         maybe_element = True
@@ -1917,6 +1919,9 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         # Do we allow non-element content?
         if not self._IsMixed():
             raise pyxb.UnexpectedNonElementContentError(value)
+        if isinstance(value, _TypeBinding_mixin):
+            raise pyxb.ExtraContentError('Extra content starting with %s' % (value,))
+
         self._addContent(value, element_binding)
         return self
 
