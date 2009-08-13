@@ -3530,6 +3530,8 @@ class Annotation (_SchemaComponent_mixin):
         text = []
         # Values in userInformation are DOM "documentation" elements.
         # We want their combined content.
+        if not self.__userInformation:
+            return ''
         for dn in self.__userInformation:
             for cn in dn.childNodes:
                 if Node.TEXT_NODE == cn.nodeType:
