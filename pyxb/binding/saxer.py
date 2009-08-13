@@ -340,6 +340,8 @@ class PyXBSAXHandler (xml.sax.handler.ContentHandler):
         if type_class is not None:
             # @todo: validate xsi:type against abstract
             new_object_factory = type_class.Factory
+        elif element_binding is None:
+            raise pyxb.UnrecognizedElementError('Unable to locate element %s' % (name_en,))
         else:
             # Invoke binding __call__ method not Factory, so can check for
             # abstract elements.
