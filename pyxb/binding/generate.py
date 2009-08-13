@@ -1216,7 +1216,7 @@ class _ModuleNaming_mixin (object):
 
     def writeToModuleFile (self):
         if self.bindingFile():
-            self.bindingFile().write(self.moduleContents())
+            self.bindingFile().write(self.moduleContents().encode('utf8'))
             print 'Saved binding source to %s' % (self.__bindingFilePath,)
         else:
             print 'WARNING: No binding file for %s' % (self,)
