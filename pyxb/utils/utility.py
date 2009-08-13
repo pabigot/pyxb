@@ -60,19 +60,32 @@ _Keywords = frozenset( ( "and", "del", "from", "not", "while", "as", "elif", "gl
 """The keywords reserved for Python."""
 
 def DeconflictKeyword (s, aux_keywords=frozenset()):
-    """If the provide string matches a keyword, append an underscore to distinguish them."""
+    """If the provide string matches a keyword, append an underscore
+    to distinguish them.
+
+    See also L{MakeUnique}.
+
+    @param s: string to be deconflicted
+    
+    @keyword aux_keywords: optional iterable of additional strings
+    that should be treated as keywords.
+
+    """
     if (s in _Keywords) or (s in aux_keywords):
         return '%s_' % (s,)
     return s
 
 def MakeUnique (s, in_use):
-    """Return an identifier based on s that is not in the given set.
+    """Return an identifier based on C{s} that is not in the given set.
 
-    in_use must be an instance of set().  in_use is updated to contain
-    the returned identifier.  The returned identifier is made unique
-    by appending an underscore and, if necessary, a serial number.
+    The returned identifier is made unique by appending an underscore
+    and, if necessary, a serial number.
 
     The order is : x, x_, x_2, x_3, ...
+
+    @param in_use: The set of identifiers already in use in the
+    relevant scopee.  C{in_use} is updated to contain the returned
+    identifier.
     """
     if s in in_use:
         ctr = 2
@@ -91,22 +104,27 @@ def PrepareIdentifier (s, in_use, aux_keywords=frozenset(), private=False, prote
     Leading and trailing underscores are stripped from all
     identifiers.
 
-    in_use is the set of already used identifiers.  Upon return from
-    this function, it is updated to include the returned identifier.
+    @param in_use: the set of already used identifiers.  Upon return
+    from this function, it is updated to include the returned
+    identifier.
 
-    aux_keywords is an optional set of additional symbols that are
-    illegal in the given context; use this to prevent conflicts with
-    known method names.
+    @keyword aux_keywords: an optional set of additional symbols that
+    are illegal in the given context; use this to prevent conflicts
+    with known method names.
 
-    If private is True, the returned identifier has two leading
-    underscores, making it a private variable within a Python class.
-    If private is False, all leading underscores are stripped,
-    guaranteeing the identifier will not be private.
+    @keyword private: if C{False} (default), all leading underscores
+    are stripped, guaranteeing the identifier will not be private.  If
+    C{True}, the returned identifier has two leading underscores,
+    making it a private variable within a Python class.
+
+    @keyword protected: as for C{private}, but uses only one
+    underscore.
 
     @note: Only module-level identifiers should be treated as
-    protected.  The class-level _ReservedSymbol infrastructure does
-    not include protected symbols.  All class members beginning with a
-    single underscore are reserved for the PyXB infrastructure."""
+    protected.  The class-level L{_DeconflictSymbols_mixin}
+    infrastructure does not include protected symbols.  All class and
+    instance members beginning with a single underscore are reserved
+    for the PyXB infrastructure."""
     s = DeconflictKeyword(MakeIdentifier(s).strip('_'), aux_keywords)
     if private:
         s = '__' + s
@@ -127,10 +145,11 @@ class _DeconflictSymbols_mixin (object):
     avoid conflict, the reserved symbols marked in this class are
     added to the pre-defined identifier set.
 
-    Subclasses should create a class-level variable that contains a
-    set of strings denoting the symbols reserved in this class,
-    combined with those from any superclasses that also have reserved
-    symbols.  Code like the following is suggested::
+    Subclasses should create a class-level variable
+    C{_ReservedSymboles} that contains a set of strings denoting the
+    symbols reserved in this class, combined with those from any
+    superclasses that also have reserved symbols.  Code like the
+    following is suggested::
 
        # For base classes (direct mix-in):
        _ReservedSymbols = set([ 'one', 'two' ])
@@ -146,7 +165,9 @@ class _DeconflictSymbols_mixin (object):
     _ReservedSymbols = set()
     """There are no reserved symbols in the base class."""
 
+# Regular expression detecting tabs, carriage returns, and line feeds
 __TabCRLF_re = re.compile("[\t\n\r]")
+# Regular expressoin detecting sequences of two or more spaces
 __MultiSpace_re = re.compile(" +")
     
 def NormalizeWhitespace (text, preserve=False, replace=False, collapse=False):
@@ -163,6 +184,8 @@ def NormalizeWhitespace (text, preserve=False, replace=False, collapse=False):
     In the case of C{collapse}, the C{replace} normalization is done,
     then sequences of two or more spaces are replaced by a single
     space.
+
+    See U{http://www.w3.org/TR/xmlschema-2/#rf-whiteSpace}
     """
     if preserve:
         return text
@@ -175,11 +198,14 @@ def NormalizeWhitespace (text, preserve=False, replace=False, collapse=False):
     raise Exception('NormalizeWhitespace: No normalization specified')
 
 class Graph:
-    """Represent some sort of graph.
+    """Represent a directed graph with arbitrary objects as nodes.
 
     This is used to determine order dependencies among components
-    within a namespace, and schema that comprise various
-    namespaces."""
+    within a namespace, and schema that comprise various namespaces.
+    An edge from C{source} to C{target} indicates that some aspect of
+    C{source} requires that some aspect of C{target} already be
+    available.
+    """
     
     def __init__ (self, root=None):
         self.__roots = None
@@ -195,6 +221,10 @@ class Graph:
     __dfsOrder = None
 
     def addEdge (self, source, target):
+        """Add a directed edge from the C{source} to the C{target}.
+
+        If either node is not present, it is added.
+        """
         self.__edges.add( (source, target) )
         self.__edgeMap.setdefault(source, set()).add(target)
         if source != target:
@@ -203,10 +233,21 @@ class Graph:
         self.__nodes.add(target)
 
     def addNode (self, node):
+        """Add  the given node to the graph."""
         self.__nodes.add(node)
 
     __roots = None
     def roots (self, reset=False):
+        """Return the set of nodes calculated to be roots (i.e., those that have no incoming edges).
+
+        This caches the roots calculated in a previous invocation
+        unless the C{reset} keyword is given the value C{True}.  Note
+        that, up reset, any notes that had been manually added using
+        L{addNode} will no longer be in the set.
+
+        @keyword reset: If C{True}, any cached value is discarded and
+        recomputed.  No effect if C{False} (defalut).
+        """
         if reset or (self.__roots is None):
             self.__roots = set()
             for n in self.__nodes:
@@ -214,6 +255,13 @@ class Graph:
                     self.__roots.add(n)
         return self.__roots
     def addRoot (self, root):
+        """Add the provided node as a root node, even if it has incoming edges.
+
+        The node need not be present in the graph (if necessary, it is added).
+
+        Note that roots added in this way do not survive a reset using
+        L{roots}.
+        """
         if self.__roots is None:
             self.__roots = set()
         self.__nodes.add(root)
@@ -221,15 +269,42 @@ class Graph:
         return self
 
     def edgeMap (self):
+        """Return the edges in the graph.
+
+        The edge data structure is a map from the source node to the
+        set of nodes that can be reached in a single step from the
+        source.
+        """
         return self.__edgeMap
+    __edgeMap = None
 
     def edges (self):
+        """Return the edges in the graph.
+
+        The edge data structure is a set of node pairs represented as C{( source, target )}.
+        """
         return self.__edges
 
     def nodes (self):
+        """Return the set of nodes in the graph.
+
+        The node collection data structure is a set containing node
+        objects, whatever they may be."""
         return self.__nodes
 
     def tarjan (self, reset=False):
+        """Execute Tarjan's algorithm on the graph.
+
+        Tarjan's algorithm computes the strongly-connected components
+        of the graph: i.e., the sets of nodes that form a minimal
+        closed set under edge transition.  In essence, the loops.  We
+        use this to detect groups of components that have a dependency
+        cycle.
+
+        @keyword reset: If C{True}, any cached component set is erased
+        and recomputed.  If C{True}, an existing previous result is
+        left unchanged."""
+
         if (self.__scc is not None) and (not reset):
             return
         self.__sccMap = { }
@@ -249,6 +324,7 @@ class Graph:
         self.__didTarjan = True
 
     def _tarjan (self, v):
+        """Do the work of Tarjan's algorithm for a given root node."""
         if self.__tarjanIndex.get(v) is not None:
             # "Root" was already reached.
             return
@@ -281,27 +357,54 @@ class Graph:
                 #print 'SCC at %s' % (' '.join( [str(_s) for _s in scc ]),)
 
     def scc (self, reset=False):
+        """Return the strongly-connected components of the graph.
+
+        The data structure is a set, each element of which is itself a
+        set containing one or more nodes from the graph."""
         if reset or (self.__scc is None):
             self.tarjan(reset)
         return self.__scc
     __scc = None
 
     def sccMap (self, reset=False):
+        """Return a map from nodes to the strongly-connected component
+        to which the node belongs.
+
+        @keyword reset: If C{True}, the L{tarjan} method will be
+        re-invoked, propagating the C{reset} value.  If C{False}
+        (default), a cached value will be returned if available."""
         if reset or (self.__sccMap is None):
             self.tarjan(reset)
         return self.__sccMap
     __sccMap = None
 
     def sccOrder (self, reset=False):
+        """Return the strongly-connected components in order.
+
+        The data structure is a list, in dependency order, of strongly
+        connected cmoponents (which can be single nodes).  Appearance
+        of a node in a set earlier in the list indicates that itt has
+        no dependencies on any node that appears in a subsequent
+        set."""
         if reset or (self.__sccOrder is None):
             self.tarjan(reset)
         return self.__sccOrder
     __sccOrder = None
 
     def sccForNode (self, node, **kw):
+        """Return the strongly-connected component to which the given
+        node belongs.
+
+        aReturns C{None} if the node is not present in the results of
+        Tarjan's algorithm.
+
+        Any keywords suppliend when invoking this method are passed to
+        the L{sccMap} method."""
+        
         return self.sccMap(**kw).get(node, None)
 
     def cyclomaticComplexity (self):
+        """Return the cyclomatic complexity of the graph."""
         self.tarjan()
         return len(self.__edges) - len(self.__nodes) + 2 * len(self.__scc)
 
@@ -335,6 +438,13 @@ class Graph:
         return "\n".join(text)
 
     def dfsOrder (self, reset=False):
+        """Return the nodes of the graph in depth-first-search order.
+
+        The dat structure is a list.  Calculated lists are retained
+        and returned on future invocations, subject to the C{reset}
+        keyword.
+
+        @keyword reset: If C{True}, discard cached results and recompute the order."""
         if reset or (self.__dfsOrder is None):
             self.__dfsWalked = set()
             self.__dfsOrder = []
@@ -349,8 +459,8 @@ def NormalizeLocation (uri, parent_uri=None):
     """Normalize a URI against an optional parent_uri in the way that is
     done for C{schemaLocation} attribute values.
 
-    Note that, if no URI scheme is present, this will normalize a file
-    system path."""
+    If no URI schema is present, this will normalize a file system
+    path."""
     import urlparse
     import os
     
@@ -402,7 +512,11 @@ class ConstrainedMutableSequence (object):
     of a given type.
 
     After converting any user input, operations are delegated to an
-    underlying sequence instance."""
+    underlying sequence instance.
+
+    @note This class is no longer used in PyXB; the techniques
+    demonstrated in it have been integrated into L{STD_list}.
+    """
 
     # Type of sequence members
     __memberType = None
@@ -587,6 +701,13 @@ except ImportError:
     import time
     import random
 def _NewUUIDString ():
+    """Obtain a UUID using the best available method.  On a version of
+    python that does not incorporate the C{uuid} class, this creates a
+    string combining the current date and time (to the second) with a
+    random number.
+
+    @rtype: C{str}
+    """
     if __HaveUUID:
         return uuid.uuid1().urn
     return '%s:%08.8x' % (time.strftime('%Y%m%d%H%M%S'), random.randint(0, 0xFFFFFFFFL))
@@ -598,20 +719,24 @@ class UniqueIdentifier (object):
     The identifier is a string, but gets wrapped in an instance of
     this class to optimize comparisons and reduce memory footprint.
 
+    Invoking the constructor for this class on the same string
+    multiple times will return the same Python object.
+
     An instance of this class compares equal to, and hashes equivalent
     to, the uid string.  When C{str}'d, the result is the uid; when
     C{repr}'d, the result is a constructor call to
     C{pyxb.utils.utility.UniqueIdentifier}.
     """
 
+    # A map from UID string to the instance that represents it
     __ExistingUIDs = {}
 
-    __uid = None
     def uid (self):
         """The string unique identifier"""
         return self.__uid
+    __uid = None
     
-    # Support pickling
+    # Support pickling, which is done using only the UID.
     def __getnewargs__ (self):
         return (self.__uid,)
 
@@ -639,8 +764,14 @@ class UniqueIdentifier (object):
         return rv
 
     def associateObject (self, obj):
+        """Associate the given object witth this identifier.
+
+        This is a one-way associatoin: the object is not provided with
+        a return path to this identifier instance."""
         self.__associatedObjects.add(obj)
     def associatedObjects (self):
+        """The set of objects that have been associated with this
+        identifier instance."""
         return self.__associatedObjects
     __associatedObjects = None
 
@@ -804,10 +935,11 @@ class PrivateTransient_mixin (pyxb.cscRoot):
     consequently bypass the local override.
     """
 
+    # Suffix used when creating the class member variable in which the
+    # transient members are cached.
     __Attribute = '__PrivateTransient'
     
     def __getstate__ (self):
-        #print '%s %x state' % (type(self), id(self))
         state = self.__dict__.copy()
         # Note that the aggregate set is stored in a class variable
         # with a slightly different name than the class-level set.
@@ -826,8 +958,9 @@ class PrivateTransient_mixin (pyxb.cscRoot):
             if state.get(k) is not None:
                 #print 'Stripping %s from instance %x of %s' % (k, id(self), type(self))
                 del state[k]
-        # Uncomment the following to test whether undesirable types are being
-        # pickled.
+        # Uncomment the following to test whether undesirable types
+        # are being pickled, generally by accidently leaving a
+        # reference to one in an instance private member.
         #for (k, v) in state.items():
         #    import pyxb.namespace
         #    import xml.dom
@@ -837,7 +970,37 @@ class PrivateTransient_mixin (pyxb.cscRoot):
 
         return state
 
-def GetMatchingFiles (path='.', pattern=None, default_path=None, default_path_wildcard=None, prefix_pattern=None, prefix_substituend=None):
+def GetMatchingFiles (path, pattern=None, default_path_wildcard=None, default_path=None, prefix_pattern=None, prefix_substituend=None):
+    """Provide a list of absolute paths to files present in any of a
+    set of directories and meeting certain criteria.
+
+    This is used, for example, to locate namespace archive files
+    within the archive path specified by the user.
+
+    @param path: A colon separated list of directories in which the
+    search should be performed.
+
+    @keyword pattern: Optional regular expression object used to
+    determine whether a given directory entry should be returned.  If
+    left as C{None}, all directory entries will be returned.
+
+    @keyword default_path_wildcard: An optional string which, if
+    present as a single directory in the path, is replaced by the
+    value of C{default-path}.
+
+    @keyword default_path: A system-defined directory which can be
+    restored to the path by placing the C{default_path_wildcard} in
+    the C{path}.
+
+    @keyword prefix_pattern: An optional string which, if present at
+    the start of a path element, is replaced by the value of
+    C{prefix_substituend}.
+
+    @keyword prefix_substituend: A system-defined string (path prefix)
+    which can be combined with the user-provided path information to
+    identify a file or subdirectory within an installation-specific
+    area.
+    """
     matching_files = []
     path_set = path.split(':')
     while 0 < len(path_set):
