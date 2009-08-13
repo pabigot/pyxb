@@ -52,6 +52,11 @@ def StringToDOM (text):
     return xml.dom.minidom.parseString(text)
 
 def NameFromNode (node, ns_ctx=None):
+    """Return the expanded name corresponding to the given DOM node.
+
+    @keyword ns_ctx: The NamespaceContext to use for resolving prefixes.  If not
+    provided, one is retrieved from (or created from) the node.
+    """
     if ns_ctx is None:
         ns_ctx = pyxb.namespace.resolution.NamespaceContext.GetNodeContext(node)
     fallback_namespace = None
@@ -65,7 +70,7 @@ def NodeAttribute (node, attribute_ncname, attribute_ns=None):
     @param attribute_ncname: The local name of the attribute.
     @type attribute_ncname: C{str} or C{unicode}
 
-    @param attribute_ns: The namespace of the attribute.  Defaults to None
+    @keyword attribute_ns: The namespace of the attribute.  Defaults to None
     since most attributes are not in a namespace.  Can be provided as either a
     L{pyxb.namespace.Namespace} instance, or a string URI.
     @type attribute_ns: C{None} or C{str} or C{unicode} or L{pyxb.namespace.Namespace}
@@ -85,13 +90,19 @@ def NodeAttribute (node, attribute_ncname, attribute_ns=None):
 def LocateUniqueChild (node, tag, absent_ok=True, namespace=pyxb.namespace.XMLSchema):
     """Locate a unique child of the DOM node.
 
-    The node should be a xml.dom.Node ELEMENT_NODE instance.  tag is
-    the NCName of an element in the namespace, which defaults to the
-    XMLSchema namespace.  This function returns the sole child of node
-    which is an ELEMENT_NODE instance and has a tag consistent with
-    the given tag.  If multiple nodes with a matching tag are found,
-    or abesnt_ok is False and no matching tag is found, an exception
-    is raised.
+    This function returns the sole child of node which is an ELEMENT_NODE
+    instance and has a tag consistent with the given tag.  If multiple nodes
+    with a matching C{tag} are found, or C{absent_ok} is C{False} and no
+    matching tag is found, an exception is raised.
+
+    @param node: An a xml.dom.Node ELEMENT_NODE instance.
+    @param tag: the NCName of an element in the namespace, which defaults to the
+    XMLSchema namespace.
+    @keyword absent_ok: If C{True} (default), C{None} is returned if no match
+    can be found.  If C{False}, an exception is raised if no match can be
+    found.
+    @keyword namespace: The namespace to which the child element belongs.
+    Default is the XMLSchema namespace.
 
     @raise pyxb.SchemaValidationError: multiple elements are identified
     @raise pyxb.SchemaValidationError: C{absent_ok} is C{False} and no element is identified.
@@ -109,11 +120,14 @@ def LocateUniqueChild (node, tag, absent_ok=True, namespace=pyxb.namespace.XMLSc
 def LocateMatchingChildren (node, tag, namespace=pyxb.namespace.XMLSchema):
     """Locate all children of the DOM node that have a particular tag.
 
-    The node should be a xml.dom.Node ELEMENT_NODE instance.  tag is
-    the NCName of an element in the namespace, which defaults to the
-    XMLSchema namespace.  This function returns a list of children of
-    node which are an ELEMENT_NODE instances and have a tag consistent
-    with the given tag.
+    This function returns a list of children of node which are ELEMENT_NODE
+    instances and have a tag consistent with the given tag.
+
+    @param node: An a xml.dom.Node ELEMENT_NODE instance.
+    @param tag: the NCName of an element in the namespace, which defaults to the
+    XMLSchema namespace.
+    @keyword namespace: The namespace to which the child element belongs.
+    Default is the XMLSchema namespace.
     """
     matches = []
     for cn in node.childNodes:
@@ -124,10 +138,24 @@ def LocateMatchingChildren (node, tag, namespace=pyxb.namespace.XMLSchema):
 def LocateFirstChildElement (node, absent_ok=True, require_unique=False, ignore_annotations=True):
     """Locate the first element child of the node.
 
-    If absent_ok is True, and there are no ELEMENT_NODE children, None
-    is returned.  If require_unique is True and there is more than one
-    ELEMENT_NODE child, an exception is rasied.  Unless
-    ignore_annotations is False, annotation nodes are ignored.
+
+    @param node: An a xml.dom.Node ELEMENT_NODE instance.
+    @param tag: the NCName of an element in the namespace, which defaults to the
+    XMLSchema namespace.
+    @keyword absent_ok: If C{True} (default), C{None} is returned if no match
+    can be found.  If C{False}, an exception is raised if no match can be
+    found.
+    @keyword require_unique: If C{False} (default), it is acceptable for there
+    to be multiple child elements.  If C{True}, presence of multiple child
+    elements raises an exception.
+    @keyword ignore_annotations: If C{True} (default), annotations are skipped
+    wheen looking for the first child element.  If C{False}, an annotation
+    counts as an element.
+
+    @raise SchemaValidationError: C{absent_ok} is C{False} and no child
+    element was identified.
+    @raise SchemaValidationError: C{require_unique} is C{True} and multiple
+    child elements were identified
     """
     
     candidate = None
@@ -146,7 +174,7 @@ def LocateFirstChildElement (node, absent_ok=True, require_unique=False, ignore_
     return candidate
 
 def HasNonAnnotationChild (node):
-    """Return True iff node has an ELEMENT_NODE child that is not an
+    """Return True iff C{node} has an ELEMENT_NODE child that is not an
     XMLSchema annotation node."""
     for cn in node.childNodes:
         if (xml.dom.Node.ELEMENT_NODE == cn.nodeType) and (not pyxb.namespace.XMLSchema.nodeIsNamed(cn, 'annotation')):
@@ -155,7 +183,7 @@ def HasNonAnnotationChild (node):
 
 def ExtractTextContent (node):
     """Walk all the children, extracting all text content and
-    catenating it.
+    catenating it into the return value.
 
     Returns None if no text content (including whitespace) is found.
     
@@ -176,16 +204,16 @@ def ExtractTextContent (node):
     return ''.join(text)
 
 class _BDSNamespaceSupport (object):
+    """Class holding information relevant to generating a the namespace
+    portions of a DOM instance."""
     # Namespace declarations required on the top element
     __namespaces = None
 
+    # Integer counter to help generate unique namespace prefixes
     __namespacePrefixCounter = None
 
     def defaultNamespace (self):
         """The registered default namespace.
-
-        The default namespace can be set in the constructor, or using the
-        L{setDefaultNamespace} method.
 
         @rtype: L{pyxb.namespace.Namespace}
         """
@@ -202,7 +230,6 @@ class _BDSNamespaceSupport (object):
         @param default_namespace: The namespace to be defined as the default
         namespace in the top-level element of the document.  May be provided
         as a real namespace, or just its URI.
-
         @type default_namespace: L{pyxb.namespace.Namespace} or C{str} or
         C{unicode}.
         """
@@ -218,6 +245,8 @@ class _BDSNamespaceSupport (object):
             self.__namespaces[self.__defaultNamespace] = None
 
     def namespacePrefixMap (self):
+        """Return a map from Namespace instances to the prefix by which they
+        are represented in the DOM document."""
         return self.__namespacePrefixMap.copy()
     __namespacePrefixMap = None
 
@@ -228,9 +257,14 @@ class _BDSNamespaceSupport (object):
         If provided as a URI, the namespace is created.
         @type namespace: L{pyxb.namespace.Namespace}
 
-        @param prefix: Optional prefix to be used with this namespace.  If not
-        provided, a unique prefix is generated or a standard prefix is used,
-        depending on the namespace.
+        @keyword prefix: Optional prefix to be used with this namespace.  If
+        not provided, a unique prefix is generated or a standard prefix is
+        used, depending on the namespace.
+
+        @keyword add_to_map: If C{False} (default), the prefix is not added to
+        the namespace prefix map.  If C{True} it is added.  (Often, things
+        added to the prefix map are preserved across resets, which is often
+        not desired for specific prefix/namespace pairs).
 
         @todo: ensure multiple namespaces do not share the same prefix
         @todo: provide default prefix in L{pyxb.namespace.Namespace}
@@ -278,8 +312,11 @@ class _BDSNamespaceSupport (object):
         return self.__namespaces[namespace]
 
     def namespaces (self):
+        """Return the set of Namespace instances known to this instance."""
         return self.__namespaces
 
+    # Restore the namespace map to its default, which is the undeclared
+    # namespace for XML schema instances (C{xsi}
     def __resetNamespacePrefixMap (self):
         self.__namespacePrefixMap = { pyxb.namespace.XMLSchema_instance : 'xsi' }
         
@@ -361,6 +398,7 @@ class BindingDOMSupport (object):
 
     @classmethod
     def Reset (self, **kw):
+        """Reset the global defaults for default/prefix/namespace informmation."""
         self.__NamespaceSupport.reset(**kw)
 
     def __init__ (self, implementation=None, default_namespace=None, require_xsi_type=False, namespace_prefix_map=None):
@@ -400,9 +438,11 @@ class BindingDOMSupport (object):
 
     # Namespace declarations required on the top element
     def defaultNamespace (self):
+        """The default nnamespace for this instance"""
         return self.__namespaceSupport.defaultNamespace()
     @classmethod
     def DefaultNamespace (cls):
+        """The global default namespace (used on instance creation if not overridden)"""
         return cls.__NamespaceSupport.defaultNamespace()
 
     def setDefaultNamespace (self, default_namespace):
@@ -412,21 +452,23 @@ class BindingDOMSupport (object):
         return cls.__NamespaceSupport.setDefaultNamespace(default_namespace)
 
     def declareNamespace (self, namespace, prefix=None):
+        """Declare a namespace within this instance only."""
         return self.__namespaceSupport.declareNamespace(namespace, prefix)
     @classmethod
     def DeclareNamespace (cls, namespace, prefix=None):
+        """Declare a namespace that will be added to each created instance."""
         return cls.__NamespaceSupport.declareNamespace(namespace, prefix, add_to_map=True)
 
     def namespacePrefix (self, namespace):
+        """Obtain the prefix for the given namespace using this instance's configuration."""
         return self.__namespaceSupport.namespacePrefix(namespace)
-    @classmethod
-    def NamespacePrefix (cls, namespace):
-        return cls.__NamespaceSupport.namespacePrefix(namespace)
 
     def namespacePrefixMap (self):
+        """Get the map from namespaces to prefixes for this instance"""
         return self.__namespaceSupport.namespacePrefixMap.copy()
     @classmethod
     def NamespacePrefixMap (cls):
+        """Get the map of default namespace-to-prefix mappings"""
         return cls.__NamespaceSupport.namespacePrefixMap.copy()
 
     def addAttribute (self, element, expanded_name, value):
