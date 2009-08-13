@@ -20,7 +20,9 @@ documentation of this module generally refers to that document.
 
 Each class has a CreateFromDOM class method that creates an instance and
 initializes it from a DOM node.  Only the Wildcard, Particle, and ModelGroup
-components are created from non-DOM sources.
+components are created from non-DOM sources.  However, the requirements on DOM
+interface are restricted to attributes, child nodes, and basic fields, though
+all these must support namespaces.
 
 @group Mixins: *_mixin
 @group Ur Type Specializations: *UrType*
@@ -54,37 +56,45 @@ _PastAddBuiltInTypes = False
 # Make it easier to check node names in the XMLSchema namespace
 from pyxb.namespace import XMLSchema as xsd
 
-class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin, pyxb.namespace.archive._ArchivableObject_mixin, pyxb.utils.utility.PrivateTransient_mixin):
+class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin,
+                              pyxb.namespace.archive._ArchivableObject_mixin,
+                              pyxb.utils.utility.PrivateTransient_mixin):
     """A mix-in that marks the class as representing a schema component.
 
     This exists so that we can determine the owning schema for any
     component we encounter.  This is normally done at construction
-    time by passing a schema=val parameter to the constructor.  
+    time by passing a C{schema=val} parameter to the constructor.  
     """
 
+    # This class suppports transient instance variables.  These variables are
+    # added to the set of transients at the point of declaration in the class.
     __PrivateTransient = set()
 
-    # The namespace context for this schema: where it looks things up, where
-    # it puts things it createas, the in-scope namespace declarations, etc.
-    # Must be defined for anything that does any sort of QName interpretation.
     def _namespaceContext (self):
+        """The namespace context for this schema.
+
+        This defines where it looks things up, where it puts things it
+        createas, the in-scope namespace declarations, etc.  Must be defined
+        for anything that does any sort of QName interpretation.  The value is
+        generally a reference to a namespace context associated with the DOM
+        element node corresponding to this component."""
         if self.__namespaceContext is None:
             raise pyxb.LogicError('Attempt to access missing namespace context for %s' % (self,))
-        return self.__namespaceContext
+        return self.__namespaceContextp
     def _clearNamespaceContext (self):
         self.__namespaceContext = None
         return self
     __namespaceContext = None
     __PrivateTransient.add('namespaceContext')
 
-    # The name by which this component is known within the binding
-    # module.  This is in component rather than _NamedComponent_mixin
-    # because some unnamed components (like ModelGroup and Wildcard)
-    # have Python objects to represent them.
+    # The name by which this component is known within the binding module.
+    # This is in component rather than _NamedComponent_mixin because some
+    # unnamed components (like ModelGroup and Wildcard) have Python objects to
+    # represent them, so need a binding-level name.
     __nameInBinding = None
 
-    # The schema component that owns this.  If None, the component is
-    # owned directly by the schema.
+    # The schema component that owns this.  If C{None}, the component is owned
+    # directly by the schema.
     __owner = None
     __PrivateTransient.add('owner')
 
@@ -120,6 +130,19 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin, pyxb.na
         return self
 
     def __init__ (self, *args, **kw):
+        """Initialize portions of a component.
+
+        @keyword scope: The scope in which the component is defined
+
+        @keyword namespace_context: The NamespaceContext to use within this component
+
+        @keyword node: If no ${namespace_context} is provided, a DOM node must
+        be provided from which a namespace context can be identified.
+
+        @keyword owner:
+        @keyword schema:
+        """
+        
         self.__ownedComponents = set()
         self.__scope = kw.get('scope')
         self.__namespaceContext = kw.get('namespace_context')
