@@ -1855,7 +1855,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         super(ComplexTypeDefinition, self)._updateFromOther_csc(other)
 
         if not other.isResolved():
-            if pyxb.namespace.BuiltInObjectUID != self._objectOriginUID():
+            if pyxb.namespace.BuiltInObjectUID != self._objectOrigin().generationUID():
                 self.__derivationMethod = None
                 
         return self
