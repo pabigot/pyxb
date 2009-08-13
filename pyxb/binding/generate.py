@@ -1298,6 +1298,8 @@ class NamespaceModule (_ModuleNaming_mixin):
 # Generated %{date} by PyXB version %{pyxbVersion}
 import pyxb
 import pyxb.binding
+import pyxb.binding.saxer
+import StringIO
 import pyxb.utils.utility
 import pyxb.utils.domutils
 import sys
@@ -1314,8 +1316,14 @@ ModuleRecord._setModule(sys.modules[__name__])
 
 def CreateFromDocument (xml_text):
     """Parse the given XML and use the document element to create a Python instance."""
-    dom = pyxb.utils.domutils.StringToDOM(xml_text)
-    return CreateFromDOM(dom.documentElement)
+    if True:
+        dom = pyxb.utils.domutils.StringToDOM(xml_text)
+        return CreateFromDOM(dom.documentElement)
+    saxer = pyxb.binding.saxer.make_parser(fallback_namespace=Namespace)
+    handler = saxer.getContentHandler()
+    saxer.parse(StringIO.StringIO(xml_text))
+    instance = handler.rootObject()
+    return instance
 
 def CreateFromDOM (node):
     """Create a Python instance from the given DOM node.
