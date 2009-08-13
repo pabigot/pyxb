@@ -190,22 +190,16 @@ class testWhitespace (unittest.TestCase):
         self.assertEqual(" test  too ", self.__Replace.normalizeString(u"\ttest\n\rtoo\n"))
 
     def testReplaceString (self):
-        self.assertEqual("test", ReplaceString("test", _apply_whitespace_facet=True))
-        self.assertEqual("  test", ReplaceString("  test", _apply_whitespace_facet=True))
-        self.assertEqual(" test", ReplaceString("\ttest", _apply_whitespace_facet=True))
-        self.assertEqual(" test  ", ReplaceString("\ttest\n\r", _apply_whitespace_facet=True))
-        self.assertEqual(" test  too ", ReplaceString("\ttest\n\rtoo\n", _apply_whitespace_facet=True))
-        self.assertEqual("test", ReplaceString(u"test", _apply_whitespace_facet=True))
-        self.assertEqual("  test", ReplaceString(u"  test", _apply_whitespace_facet=True))
-        self.assertEqual(" test", ReplaceString(u"\ttest", _apply_whitespace_facet=True))
-        self.assertEqual(" test  ", ReplaceString(u"\ttest\n\r", _apply_whitespace_facet=True))
-        self.assertEqual(" test  too ", ReplaceString(u"\ttest\n\rtoo\n", _apply_whitespace_facet=True))
-
         self.assertEqual("test", ReplaceString("test"))
         self.assertEqual("  test", ReplaceString("  test"))
-        self.assertEqual("\ttest", ReplaceString("\ttest"))
-        self.assertEqual("\ttest\n\r", ReplaceString("\ttest\n\r"))
-        self.assertEqual("\ttest\n\rtoo\n", ReplaceString("\ttest\n\rtoo\n"))
+        self.assertEqual(" test", ReplaceString("\ttest"))
+        self.assertEqual(" test  ", ReplaceString("\ttest\n\r"))
+        self.assertEqual(" test  too ", ReplaceString("\ttest\n\rtoo\n"))
+        self.assertEqual("test", ReplaceString(u"test"))
+        self.assertEqual("  test", ReplaceString(u"  test"))
+        self.assertEqual(" test", ReplaceString(u"\ttest"))
+        self.assertEqual(" test  ", ReplaceString(u"\ttest\n\r"))
+        self.assertEqual(" test  too ", ReplaceString(u"\ttest\n\rtoo\n"))
 
     __Collapse = facets.CF_whiteSpace(value=facets._WhiteSpace_enum.collapse)
     def testCollapse (self):
@@ -222,21 +216,16 @@ class testWhitespace (unittest.TestCase):
 
     def testCollapseString (self):
         # The way it will work if from DOM content:
-        self.assertEqual("test", CollapseString("test", _apply_whitespace_facet=True))
-        self.assertEqual("test", CollapseString("  test", _apply_whitespace_facet=True))
-        self.assertEqual("test", CollapseString("\ttest", _apply_whitespace_facet=True))
-        self.assertEqual("test", CollapseString("\ttest\n\r", _apply_whitespace_facet=True))
-        self.assertEqual("test too", CollapseString("\ttest\n\rtoo\n", _apply_whitespace_facet=True))
-        self.assertEqual("test", CollapseString(u"test", _apply_whitespace_facet=True))
-        self.assertEqual("test", CollapseString(u"  test", _apply_whitespace_facet=True))
-        self.assertEqual("test", CollapseString(u"\ttest", _apply_whitespace_facet=True))
-        self.assertEqual("test", CollapseString(u"\ttest\n\r", _apply_whitespace_facet=True))
-        self.assertEqual("test too", CollapseString(u"\ttest\n\rtoo\n", _apply_whitespace_facet=True))
-
         self.assertEqual("test", CollapseString("test"))
-        self.assertEqual("  test", CollapseString("  test"))
-        self.assertEqual("\ttest", CollapseString("\ttest"))
-        self.assertEqual("\ttest\n\r", CollapseString("\ttest\n\r"))
+        self.assertEqual("test", CollapseString("  test"))
+        self.assertEqual("test", CollapseString("\ttest"))
+        self.assertEqual("test", CollapseString("\ttest\n\r"))
+        self.assertEqual("test too", CollapseString("\ttest\n\rtoo\n"))
+        self.assertEqual("test", CollapseString(u"test"))
+        self.assertEqual("test", CollapseString(u"  test"))
+        self.assertEqual("test", CollapseString(u"\ttest"))
+        self.assertEqual("test", CollapseString(u"\ttest\n\r"))
+        self.assertEqual("test too", CollapseString(u"\ttest\n\rtoo\n"))
 
 if __name__ == '__main__':
     unittest.main()

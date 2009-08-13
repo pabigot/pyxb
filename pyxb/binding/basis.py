@@ -585,22 +585,6 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
         return fm
 
     @classmethod
-    def __ApplyWhitespaceToFirstArgument (cls, args):
-        """If the first argument is a string, and this class has a whitespace
-        facet, replace the first argument with the results of applying
-        whitespace normalization.
-
-        We need to do this for both __new__ and __init__, because in some
-        cases (e.g., str/unicode) the value is assigned during __new__ not
-        __init__."""
-        if (0 < len(args)) and isinstance(args[0], types.StringTypes):
-            cf_whitespace = getattr(cls, '_CF_whiteSpace', None)
-            if cf_whitespace is not None:
-                norm_str = unicode(cf_whitespace.normalizeString(args[0]))
-                args = (norm_str,) + args[1:]
-        return args
-
-    @classmethod
     def _ConvertArguments_vx (cls, args, kw):
         return args
 
@@ -620,9 +604,13 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
             if text_content is not None:
                 args = (domutils.ExtractTextContent(dom_node),) + args
                 kw['_apply_whitespace_facet'] = True
-        apply_whitespace_facet = kw.pop('_apply_whitespace_facet', False)
-        if apply_whitespace_facet:
-            args = cls.__ApplyWhitespaceToFirstArgument(args)
+        apply_whitespace_facet = kw.pop('_apply_whitespace_facet', True)
+        if (0 < len(args)) and isinstance(args[0], types.StringTypes):
+            cf_whitespace = getattr(cls, '_CF_whiteSpace', None)
+            if cf_whitespace is not None:
+                #print 'Apply whitespace %s to "%s"' % (cf_whitespace, args[0])
+                norm_str = unicode(cf_whitespace.normalizeString(args[0]))
+                args = (norm_str,) + args[1:]
         return cls._ConvertArguments_vx(args, kw)
 
     # Must override new, because new gets invoked before init, and usually

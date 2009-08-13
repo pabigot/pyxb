@@ -18,14 +18,14 @@ class Test_dateTime (unittest.TestCase):
         self.assertEqual(with_tzinfo, dt.hasTimeZone())
 
     def testBad (self):
-        self.assertRaises(pyxb.BadTypeValueError, xsd.dateTime, '  2002-10-27T12:14:32')
-        self.assertRaises(pyxb.BadTypeValueError, xsd.dateTime, '2002-10-27T12:14:32  ')
         self.assertRaises(pyxb.BadTypeValueError, xsd.dateTime, '2002-10-27 12:14:32  ')
         self.assertRaises(pyxb.BadTypeValueError, xsd.dateTime, '2002-10-27 12:14:32.Z')
         self.assertRaises(pyxb.BadTypeValueError, xsd.dateTime, '2002-10-27 12:14:32.123405:00')
         self.assertRaises(pyxb.BadTypeValueError, xsd.dateTime, '2002-10-27 12:14:32.1234+05')
         
     def testFromText (self):
+        self.verifyTime(xsd.dateTime('  2002-10-27T12:14:32'), with_usec=False, with_tzinfo=False)
+        self.verifyTime(xsd.dateTime('2002-10-27T12:14:32  '), with_usec=False, with_tzinfo=False)
         self.verifyTime(xsd.dateTime('2002-10-27T12:14:32'), with_usec=False, with_tzinfo=False)
         self.verifyTime(xsd.dateTime('2002-10-27T12:14:32.1234'), with_tzinfo=False)
         self.verifyTime(xsd.dateTime('2002-10-27T12:14:32Z'), with_usec=False)

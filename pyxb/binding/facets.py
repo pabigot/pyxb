@@ -591,11 +591,13 @@ class CF_whiteSpace (ConstrainingFacet, _Fixed_mixin):
     __MultiSpace_re = re.compile(" +")
     def normalizeString (self, value):
         """Normalize the given string in accordance with the configured whitespace interpretation."""
+        if self.value() is None:
+            return value
         if self.value() == _WhiteSpace_enum.preserve:
             return utility.NormalizeWhitespace(value, preserve=True)
         if self.value() == _WhiteSpace_enum.replace:
             return utility.NormalizeWhitespace(value, replace=True)
-        assert self.value() == _WhiteSpace_enum.collapse
+        assert self.value() == _WhiteSpace_enum.collapse, 'Unexpected value "%s" for whiteSpace facet' % (self.value(),)
         return utility.NormalizeWhitespace(value, collapse=True)
     
     def _validateConstraint_vx (self, value):
