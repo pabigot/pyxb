@@ -170,6 +170,10 @@ class _SAXElementState (object):
             [ self.__bindingObject.append(*_c) for _c in self.__content ]
         if self.__parentState is not None:
             self.__parentState.__content.append( (self.__bindingObject, self.__elementUse) )
+        # Do validation, specifically to check for missing required attributes.
+        # @todo: does this bypass content model validation given that DFA
+        # state is correct?
+        self.__bindingObject.validateBinding()
         return self.__bindingObject
 
 class PyXBSAXHandler (xml.sax.handler.ContentHandler):
