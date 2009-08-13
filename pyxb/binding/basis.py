@@ -1559,7 +1559,8 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         elif 0 < len(args):
             self.extend(args)
         else:
-            print 'At end with no args'
+            if self._CT_SIMPLE == self._ContentTypeTag:
+                self.__initializeSimpleContent(args, dom_node)
 
     def __initializeSimpleContent (self, args, dom_node=None):
         # Don't propagate the keywords.  Python base simple types
