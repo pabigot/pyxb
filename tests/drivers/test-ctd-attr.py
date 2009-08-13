@@ -7,6 +7,7 @@ schema_path = '%s/../schemas/test-ctd-attr.xsd' % (os.path.dirname(__file__),)
 code = pyxb.binding.generate.GeneratePython(schema_location=schema_path)
 rv = compile(code, 'test', 'exec')
 eval(rv)
+Namespace.setPrefix('tca')
 
 from pyxb.exceptions_ import *
 
@@ -39,7 +40,7 @@ class TestCTD (unittest.TestCase):
         # interesting stuff.  I suppose that ought to be a
         # configuration option.
         self.assertEqual('test', simple('test').value())
-        xml = '<ns1:simple xmlns:ns1="URN:testCTD">test</ns1:simple>'
+        xml = '<tca:simple xmlns:tca="URN:testCTD">test</tca:simple>'
         instance = CreateFromDocument(xml)
         self.assertEqual('test', instance.value())
         self.assertEqual(xml, ToDOM(instance).toxml())
@@ -85,7 +86,7 @@ class TestCTD (unittest.TestCase):
         self.assertEqual('irish', instance.language)
         self.assert_(instance.capitalized is None)
         self.assertEqual(5432, instance.port)
-        self.assertEqual('<ns1:emptyWithAttr xmlns:ns1="URN:testCTD"/>', ToDOM(instance).toxml())
+        self.assertEqual('<tca:emptyWithAttr xmlns:tca="URN:testCTD"/>', ToDOM(instance).toxml())
 
         # Test reference attribute
         self.assertEqual('top default', instance.tlAttr)
@@ -94,7 +95,7 @@ class TestCTD (unittest.TestCase):
         instance2 = emptyWithAttr()
         self.assertEqual('irish', instance2.language)
         instance2.language = 'french'
-        self.assertEqual('<ns1:emptyWithAttr language="french" xmlns:ns1="URN:testCTD"/>', ToDOM(instance2).toxml())
+        self.assertEqual('<tca:emptyWithAttr language="french" xmlns:tca="URN:testCTD"/>', ToDOM(instance2).toxml())
         self.assertNotEqual(instance.language, instance2.language)
 
         # Verify the use.  Note reference through CTD not element.
@@ -115,7 +116,7 @@ class TestCTD (unittest.TestCase):
         self.assertEqual(restrictedEWA_._AttributeMap['capitalized'], emptyWithAttr_._AttributeMap['capitalized'])
 
     def testEmptyWithAttrGroups (self):
-        xml = '<ns1:emptyWithAttrGroups bMember1="xxx" xmlns:ns1="URN:testCTD"/>'
+        xml = '<tca:emptyWithAttrGroups bMember1="xxx" xmlns:tca="URN:testCTD"/>'
         instance = CreateFromDocument(xml)
         self.assertEqual('gM1', instance.groupMember1)
         self.assertEqual('gM2', instance.groupMember2)
