@@ -612,7 +612,8 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
         is to apply the whitespace facet processing; if such a request is in
         the keywords, it is removed so it does not propagate to the
         superclass.  Another application is to convert the arguments from a
-        string to a list."""
+        string to a list.  Binding-specific applications are performed in the
+        overloaded L{_ConvertArguments_vx} method."""
         dom_node = kw.pop('_dom_node', None)
         if dom_node is not None:
             text_content = domutils.ExtractTextContent(dom_node)
@@ -623,7 +624,6 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
         if apply_whitespace_facet:
             args = cls.__ApplyWhitespaceToFirstArgument(args)
         return cls._ConvertArguments_vx(args, kw)
-        return args
 
     # Must override new, because new gets invoked before init, and usually
     # doesn't accept keywords.  In case it does (e.g., datetime.datetime),
@@ -1565,19 +1565,24 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
                 fu.set(self, iv)
         if dom_node is not None:
             if self._CT_SIMPLE == self._ContentTypeTag:
-                # Don't propagate the keywords.  Python base simple types
-                # usually don't like them, and even if they do we're not using
-                # them here.
-                value = self._TypeDefinition.Factory(_require_value=not self._isNil(), _dom_node=dom_node, *args)
-                if value._constructedWithValue():
-                    if self._isNil():
-                        raise pyxb.ContentInNilElementError(value)
-                    else:
-                        self.append(value)
+                self.__initializeSimpleContent(args, dom_node)
             else:
                 self._setContentFromDOM(dom_node)
         elif 0 < len(args):
             self.extend(args)
+        else:
+            print 'At end with no args'
+
+    def __initializeSimpleContent (self, args, dom_node=None):
+        # Don't propagate the keywords.  Python base simple types
+        # usually don't like them, and even if they do we're not using
+        # them here.
+        value = self._TypeDefinition.Factory(_require_value=not self._isNil(), _dom_node=dom_node, *args)
+        if value._constructedWithValue():
+            if self._isNil():
+                raise pyxb.ContentInNilElementError(value)
+            else:
+                self.append(value)
 
     # Specify the symbols to be reserved for all CTDs.
     _ReservedSymbols = _TypeBinding_mixin._ReservedSymbols.union(set([ 'wildcardElements', 'wildcardAttributeMap',
