@@ -12,7 +12,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-"""This module contains for generating bindings from an XML stream
+"""This module contains support for generating bindings from an XML stream
 using a SAX parser."""
 
 import xml.sax

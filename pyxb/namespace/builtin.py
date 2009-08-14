@@ -41,7 +41,18 @@ class _XMLSchema_instance (Namespace):
 
 class _XML (Namespace):
     """Extension of L{Namespace} that pre-defines components available in the
-    XML (xml) namespace."""
+    XML (xml) namespace.  Specifically those are the attribute declarations:
+
+      - C{xml:space}
+      - C{xml:lang}
+      - C{xml:base}
+      - C{xml:id}
+
+    the encompassing attribute group declaration:
+
+      - C{xml:specialAttrs}
+
+    and the anonymous types that support these."""
 
     def _defineBuiltins_ox (self, structures_module):
         """Ensure this namespace is ready for use.

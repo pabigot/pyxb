@@ -15,14 +15,15 @@
 """Classes corresponding to W3C XML Schema components.
 
 Class names and behavior should conform to the schema components described in
-http://www.w3.org/TR/xmlschema-1/.  References to sections in the
-documentation of this module generally refers to that document.
+U{XML Schema Part 1: Structures<http://www.w3.org/TR/xmlschema-1/>}.
+References to sections in the documentation of this module generally refers to
+that document.
 
-Each class has a CreateFromDOM class method that creates an instance and
-initializes it from a DOM node.  Only the Wildcard, Particle, and ModelGroup
-components are created from non-DOM sources.  However, the requirements on DOM
-interface are restricted to attributes, child nodes, and basic fields, though
-all these must support namespaces.
+Each class has a C{CreateFromDOM} class method that creates an instance and
+initializes it from a DOM node.  Only the L{Wildcard}, L{Particle}, and
+L{ModelGroup} components are created from non-DOM sources.  However, the
+requirements on DOM interface are restricted to attributes, child nodes, and
+basic fields, though all these must support namespaces.
 
 @group Mixins: *_mixin
 @group Ur Type Specializations: *UrType*
@@ -341,8 +342,9 @@ class _Annotated_mixin (pyxb.cscRoot):
     """Mix-in that supports an optional single annotation that describes the component.
 
     Most schema components have annotations.  The ones that don't are
-    AttributeUse, Particle, and Annotation.  ComplexTypeDefinition and
-    Schema support multiple annotations, so do not mix-in this class."""
+    L{AttributeUse}, L{Particle}, and L{Annotation}.  L{ComplexTypeDefinition}
+    and L{Schema} support multiple annotations, so do not mix-in this
+    class."""
 
     # Optional Annotation instance
     __annotation = None
@@ -374,17 +376,38 @@ class _Annotated_mixin (pyxb.cscRoot):
         return self.__annotation
 
 class _PickledAnonymousReference (pyxb.cscRoot):
+    """A helper that encapsulates a reference to an anonymous type in a different namespace.
+
+    Normally references to components in other namespaces can be made using
+    the component's name.  This is not the case when a namespace derives from
+    a base type in another namespace and needs to reference the attribute or
+    element declarations held in that type.  If these declarations are local
+    to the base complex type, they cannot be identified by name.  This class
+    provides a pickleable representation for them that behaves rather like an
+    L{pyxb.namespace.ExpandedName} instance in that it can be used to
+    dereference various component types."""
+
     __AnonymousCategory = pyxb.namespace.archive.NamespaceArchive._AnonymousCategory()
 
     __namespace = None
     __anonymousName = None
     def __init__ (self, namespace, anonymous_name):
+        """Create a new anonymous reference.
+        
+        @param namespace: The namespace in which the component is declared.
+        @type namespace: L{pyxb.namespace.Namespace}
+        @param anonymous_name: A generated name guaranteed to be unique within
+        the namespace.  See L{_NamedComponent_mixin._anonymousName}.
+        @type anonymous_name: C{basestring}.
+        """
         self.__namespace = namespace
         self.__anonymousName = anonymous_name
         assert self.__anonymousName is not None
 
     @classmethod
     def FromPickled (cls, object_reference):
+        """Return the component referred to by the provided reference,
+        regardless of whether it is a normal or anonymous reference."""
         if not isinstance(object_reference, _PickledAnonymousReference):
             assert isinstance(object_reference, tuple)
             object_reference = pyxb.namespace.ExpandedName(object_reference)
@@ -397,6 +420,7 @@ class _PickledAnonymousReference (pyxb.cscRoot):
         return self.__anonymousName
 
     def validateComponentModel (self):
+        """Forward to the associated namespace."""
         return self.__namespace.validateComponentModel()
 
     def __lookupObject (self):
@@ -404,6 +428,9 @@ class _PickledAnonymousReference (pyxb.cscRoot):
         return self.__namespace.categoryMap(self.__AnonymousCategory).get(self.__anonymousName)
 
     typeDefinition = __lookupObject
+    """Return the attribute group definition referenced by this instance, or
+    C{None} if the reference is not to an attribute group definition."""
+
     attributeGroupDefinition = __lookupObject
     modelGroupDefinition = __lookupObject
     attributeDeclaration = __lookupObject
@@ -412,6 +439,7 @@ class _PickledAnonymousReference (pyxb.cscRoot):
     notationDeclaration = __lookupObject
 
     def __str__ (self):
+        """Represent the anonymous reference in a form recognizable by a developer."""
         return 'ANONYMOUS:%s' % (pyxb.namespace.ExpandedName(self.__namespace, self.__anonymousName),)
     
 class _NamedComponent_mixin (pyxb.utils.utility.PrivateTransient_mixin, pyxb.cscRoot):
@@ -1065,17 +1093,17 @@ class _PluralityData (types.ListType):
 class _AttributeWildcard_mixin (pyxb.cscRoot):
     """Support for components that accept attribute wildcards.
 
-    That is AttributeGroupDefinition and ComplexType.  The
-    calculations of the appropriate wildcard are sufficiently complex
-    that they need to be abstracted out to a mix-in class."""
+    That is L{AttributeGroupDefinition} and L{ComplexTypeDefinition}.  The
+    calculations of the appropriate wildcard are sufficiently complex that
+    they need to be abstracted out to a mix-in class."""
 
     # Optional wildcard that constrains attributes
     __attributeWildcard = None
 
     def attributeWildcard (self):
-        """Return the Wildcard component associated with attributes of
-        this instance, or None if attribute wildcards are not present
-        in the instance."""
+        """Return the L{Wildcard} component associated with attributes of this
+        instance, or C{None} if attribute wildcards are not present in the
+        instance."""
         return self.__attributeWildcard
 
     def _setAttributeWildcard (self, attribute_wildcard):
@@ -1087,18 +1115,20 @@ class _AttributeWildcard_mixin (pyxb.cscRoot):
     def _attributeRelevantChildren (self, node_list):
         """Return the nodes that are relevant for attribute processing.
 
-        The input is a schema, and a sequence of nodes found in the
-        document that defines the schema.
+        @param node_list: A sequence of nodes found in a definition content
+        information item.
 
-        A successful return value is a 3-element tuple.  The first
-        element is a list of DOM Nodes with nodeName attribute, the
-        second a list of AttributeGroupDefinition instances, and the
-        third a single DOM Node with nodeName anyAttribute.  The third
-        element will be None if there is no anyAttribute child of the
-        given node.
+        @return: A tuple C{( attributes, attributeGroups, attributeWildcard)}
+        where C{attributes} is the subsequence of C{node_list} that are
+        XMLSchema C{attribute} nodes; C{attributeGroups} is analogous; and
+        C{attributeWildcard} is a single DOM node with XMLSchema name
+        C{anyAttribute} (or C{None}, if no such node is present in the list).
 
-        The return value will be None if any of the children involve a
-        reference to an unresolved component."""
+        @raise pyxb.SchemaValidationError: An C{attributeGroup} node is
+        present but does not have the required C{ref} attribute.
+        @raise pyxb.SchemaValidationError: Multiple C{anyAttribute} nodes are
+        identified.
+        """
         
         attributes = []
         attribute_groups = []
@@ -1124,7 +1154,18 @@ class _AttributeWildcard_mixin (pyxb.cscRoot):
         return (attributes, attribute_groups, any_attribute)
 
     @classmethod
-    def CompleteWildcard (cls, namespace_context, attribute_groups, any_attribute, local_wildcard):
+    def CompleteWildcard (cls, namespace_context, attribute_groups, local_wildcard):
+        """Implement the algorithm as described the
+        U{specification<http://www.w3.org/TR/xmlschema-1/#declare-type>}.
+
+        @param namespace_context: The L{pyxb.namespace.NamespaceContext} to be
+        associated with any created L{Wildcard} instance
+        @param attribute_groups: A list of L{AttributeGroupDefinition} instances
+        @param local_wildcard: A L{Wildcard} instance computed from a relevant
+        XMLSchema C{anyAttribute} element, or C{None} if no attribute wildcard
+        is relevant
+        """
+
         # Non-absent wildcard properties of attribute groups
         agd_wildcards = []
         for agd in attribute_groups:
@@ -1137,7 +1178,7 @@ class _AttributeWildcard_mixin (pyxb.cscRoot):
         if 0 == len(agd_wildcards):
             return local_wildcard
 
-        if any_attribute is not None:
+        if local_wildcard is not None:
             # Clause 2.2.1
             return Wildcard(process_contents=local_wildcard.processContents(),
                             namespace_constraint=Wildcard.IntensionalIntersection(agd_constraints + [local_wildcard.namespaecConstraint()]),
@@ -1149,9 +1190,7 @@ class _AttributeWildcard_mixin (pyxb.cscRoot):
                         namespace_context=namespace_context)
 
 class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.namespace.resolution._Resolvable_mixin, _Annotated_mixin, _ValueConstraint_mixin, _ScopedDeclaration_mixin):
-    """An XMLSchema Attribute Declaration component.
-
-    See http://www.w3.org/TR/xmlschema-1/index.html#cAttribute_Declarations
+    """An XMLSchema U{Attribute Declaration<http://www.w3.org/TR/xmlschema-1/#cAttribute_Declarations>} component.
     """
 
     # The STD to which attribute values must conform
@@ -1291,10 +1330,7 @@ class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
         return frozenset([ self.__typeDefinition ])
 
 class AttributeUse (_SchemaComponent_mixin, pyxb.namespace.resolution._Resolvable_mixin, _ValueConstraint_mixin):
-    """An XMLSchema Attribute Use component.
-
-    See http://www.w3.org/TR/xmlschema-1/index.html#cAttribute_Use
-    """
+    """An XMLSchema U{Attribute Use<http://www.w3.org/TR/xmlschema-1/#cAttribute_Use>} component."""
 
     # How this attribute can be used.  The component property
     # "required" is true iff the value is USE_required.
@@ -1453,10 +1489,7 @@ class AttributeUse (_SchemaComponent_mixin, pyxb.namespace.resolution._Resolvabl
 
 
 class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.namespace.resolution._Resolvable_mixin, _Annotated_mixin, _ValueConstraint_mixin, _ScopedDeclaration_mixin):
-    """An XMLSchema Element Declaration component.
-
-    See http://www.w3.org/TR/xmlschema-1/index.html#cElement_Declarations
-    """
+    """An XMLSchema U{Element Declaration<http://www.w3.org/TR/xmlschema-1/#cElement_Declarations>} component."""
 
     # Simple or complex type definition
     __typeDefinition = None
@@ -2114,7 +2147,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
             local_wildcard = Wildcard.CreateFromDOM(self.__anyAttribute)
 
         # Clause 2
-        complete_wildcard = _AttributeWildcard_mixin.CompleteWildcard(self._namespaceContext(), self.__attributeGroups, self.__anyAttribute, local_wildcard)
+        complete_wildcard = _AttributeWildcard_mixin.CompleteWildcard(self._namespaceContext(), self.__attributeGroups, local_wildcard)
 
         # Clause 3
         if self.DM_restriction == method:
@@ -2512,6 +2545,7 @@ class _UrTypeDefinition (ComplexTypeDefinition, _Singleton_mixin):
  
 
 class AttributeGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.namespace.resolution._Resolvable_mixin, _Annotated_mixin, _AttributeWildcard_mixin):
+    """An XMLSchema U{Attribute Group Definition<http://www.w3.org/TR/xmlschema-1/#cAttribute_Group_Definitions>} component."""
     __PrivateTransient = set()
     
     # A frozenset of AttributeUse instances
@@ -2606,7 +2640,7 @@ class AttributeGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, p
         local_wildcard = None
         if self.__anyAttribute is not None:
             local_wildcard = Wildcard.CreateFromDOM(self.__anyAttribute)
-        self._setAttributeWildcard(_AttributeWildcard_mixin.CompleteWildcard(self._namespaceContext(), attribute_groups, self.__anyAttribute, local_wildcard))
+        self._setAttributeWildcard(_AttributeWildcard_mixin.CompleteWildcard(self._namespaceContext(), attribute_groups, local_wildcard))
 
         self.__isResolved = True
         return self
@@ -2622,6 +2656,7 @@ class AttributeGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, p
         return self.__attributeUses
 
 class ModelGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Annotated_mixin):
+    """An XMLSchema U{Model Group Definition<http://www.w3.org/TR/xmlschema-1/#cModel_Group_Definitions>} component."""
     # Reference to a _ModelGroup
     __modelGroup = None
 
@@ -2677,6 +2712,7 @@ class ModelGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Anno
 
 
 class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
+    """An XMLSchema U{Model Group<http://www.w3.org/TR/xmlschema-1/#cModel_Group>} component."""
     C_INVALID = 0
     C_ALL = 0x01
     C_CHOICE = 0x02
@@ -2903,7 +2939,7 @@ class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
         return '%s:(%s)' % (comp, ",".join( [ str(_p) for _p in self.particles() ] ) )
 
 class Particle (_SchemaComponent_mixin, pyxb.namespace.resolution._Resolvable_mixin):
-    """Some entity along with occurrence information."""
+    """An XMLSchema U{Particle<http://www.w3.org/TR/xmlschema-1/#cParticle>} component."""
 
     # The minimum number of times the term may appear.
     __minOccurs = 1
@@ -3181,6 +3217,8 @@ class Particle (_SchemaComponent_mixin, pyxb.namespace.resolution._Resolvable_mi
 
 # 3.10.1
 class Wildcard (_SchemaComponent_mixin, _Annotated_mixin):
+    """An XMLSchema U{Wildcard<http://www.w3.org/TR/xmlschema-1/#cParticle>} component."""
+
     NC_any = '##any'            #<<< The namespace constraint "##any"
     NC_not = '##other'          #<<< A flag indicating constraint "##other"
     NC_targetNamespace = '##targetNamespace'
@@ -3385,6 +3423,8 @@ class Wildcard (_SchemaComponent_mixin, _Annotated_mixin):
 
 # 3.11.1
 class IdentityConstraintDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Annotated_mixin, pyxb.namespace.resolution._Resolvable_mixin):
+    """An XMLSchema U{Identity Constraint Definition<http://www.w3.org/TR/xmlschema-1/#cIdentity-constraint_Definitions>} component."""
+
     ICC_KEY = 0x01
     ICC_KEYREF = 0x02
     ICC_UNIQUE = 0x04
@@ -3499,6 +3539,7 @@ class IdentityConstraintDefinition (_SchemaComponent_mixin, _NamedComponent_mixi
 
 # 3.12.1
 class NotationDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Annotated_mixin):
+    """An XMLSchema U{Notation Declaration<http://www.w3.org/TR/xmlschema-1/#cNotation_Declarations>} component."""
     __systemIdentifier = None
     def systemIdentifier (self): return self.__systemIdentifier
     
@@ -3519,6 +3560,8 @@ class NotationDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Annot
 
 # 3.13.1
 class Annotation (_SchemaComponent_mixin):
+    """An XMLSchema U{Annotation<http://www.w3.org/TR/xmlschema-1/#cAnnotation>} component."""
+
     __applicationInformation = None
     def applicationInformation (self):
         return self.__applicationInformation
@@ -3567,7 +3610,9 @@ class Annotation (_SchemaComponent_mixin):
         return rv
 
     def __str__ (self):
-        """Return the catenation of all user information elements in the annotation."""
+        """Return the catenation of all user information elements in the
+        annotation as a single unicode string.  Returns the empty string if
+        there are no user information elements."""
         text = []
         # Values in userInformation are DOM "documentation" elements.
         # We want their combined content.
@@ -3581,11 +3626,7 @@ class Annotation (_SchemaComponent_mixin):
 
 # Section 3.14.
 class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.namespace.resolution._Resolvable_mixin, _Annotated_mixin):
-    """The schema component for simple type definitions.
-
-    This component supports the basic datatypes of XML schema, and
-    those that define the values for attributes.
-    """
+    """An XMLSchema U{Simple Type Definition<http://www.w3.org/TR/xmlschema-1/#Simple_Type_Definitions>} component."""
 
     # Reference to the SimpleTypeDefinition on which this is based.
     # The value must be non-None except for the simple ur-type
@@ -4429,52 +4470,71 @@ class _SimpleUrTypeDefinition (SimpleTypeDefinition, _Singleton_mixin):
     pass
 
 class _ImportElementInformationItem (_Annotated_mixin):
-    """A class representing an import statement within a schema.
-
-    See section 4.2.3."""
+    """Data associated with an
+    U{import<http://www.w3.org/TR/xmlschema-1/#composition-schemaImport>}
+    statement within a schema."""
 
     def id (self):
-        """The value of the id attribute from the import statement."""
+        """The value of the C{id} attribute from the import statement."""
         return self.__id
     __id = None
 
     def namespace (self):
-        """The Namespace instance corresponding to the value of the
-        namespace attribute from the import statement."""
+        """The L{pyxb.namespace.Namespace} instance corresponding to the value
+        of the C{namespace} attribute from the import statement."""
         return self.__namespace
     __namespace = None
 
     def schemaLocation (self):
-        """The value of the schemaLocation attribute from the import statement."""
+        """The value of the C{schemaLocation} attribute from the import
+        statement, normalized relative to the location of the importing
+        schema."""
         return self.__schemaLocation
     __schemaLocation = None
 
     def prefix (self):
-        """A prefix to be used for this namespace.
+        """The prefix from a namespace declaration for L{namespace} that was
+        active in the context of the import element, or C{None} if there was
+        no relevant namespace declaration in scope at that point.
 
-        The value is inferred from an XML Namespace declaration in the
-        enclosing schema.  If no such declaration can be found, a
-        prefix is assigned using the form "imported_#" where "#" makes
-        the prefix unique within the enclosing schema.
-
-        The prefix is used in generated bindings as the module
-        reference for the imported namespace.
+        This is propagated to be used as the default prefix for the
+        corresponding namespace if no prefix had been assigned.
         """
         return self.__prefix
-    def setPrefix (self, prefix):
-        """Record the prefix associated with the imported namespace at the point of import."""
-        self.__prefix = prefix
     __prefix = None
     
     def schema (self):
+        """The L{Schema} instance corresponding to the imported schema, if
+        available.
+
+        Normally C{import} statements will be fulfilled by loading components
+        from a L{namespace archive<pyxb.namespace.NamespaceArchive>} in which
+        the corresponding namespace is marked as public.  Where there are
+        cycles in the namespace dependency graph, or the schema for a
+        namespace are associated with a restricted profile of another
+        namespace, there may be no such archive and instead the components are
+        obtained using this schema."""
         return self.__schema
     __schema = None
 
-    def redundant (self):
-        return self.__redundant
-    __redundant = None
-
     def __init__ (self, importing_schema, node, **kw):
+        """Gather the information relative to an C{import} statement.
+
+        This examines the L{available
+        namespaces<pyxb.namespace.archive.AvailableForLoad>} to see whether
+        the imported namespace can be loaded.  If so, the C{schemaLocation}
+        attribute is ignored.  Otherwise, it attempts to retrieve and parse
+        the corresponding schema (if this has not already been done).
+
+        @param importing_schema: The L{Schema} instance in which the import
+        was found.
+        @param node: The C{xml.dom.DOM} node incorporating the schema
+        information.
+
+        @raise Exception: Any exception raised when attempting to retrieve and
+        parse data from the schema location.
+        """
+
         super(_ImportElementInformationItem, self).__init__(**kw)
         uri = NodeAttribute(node, 'namespace')
         if uri is None:
@@ -4482,40 +4542,10 @@ class _ImportElementInformationItem (_Annotated_mixin):
         schema_location = pyxb.utils.utility.NormalizeLocation(NodeAttribute(node, 'schemaLocation'), importing_schema.location())
         self.__schemaLocation = schema_location
         ns = self.__namespace = pyxb.namespace.NamespaceForURI(uri, create_if_missing=True)
-        self.__redundant = False
         if ns.isLoadable():
-            if self.__schemaLocation is not None:
-                # @todo: INFO
-                #print 'WARNING: %s is loadable from %s, ignoring schema location %s' % (ns, ' and '.join([ _af.archivePath() for _af in ns.loadableFrom()]), self.__schemaLocation)
-                self.__schemaLocation = None
-
-        if ns.isActive():
-            # Already using this.  If we read it from an archive, there can't
-            # be a schema location.  Otherwise, there must be a schema
-            # location.
-            if ns._loadedFromArchive():
-                if self.__schemaLocation is not None:
-                    # @todo: warning
-                    raise pyxb.NamespaceArchiveError('import %s cannot use schemaLocation (was loaded from archive)' % (ns,))
-                else:
-                    # presume the load covers everything
-                    pass
-            else:
-                if self.__schemaLocation is not None:
-                    # will load below
-                    pass
-                else:
-                    # assume can load from archive later
-                    pass
-        else:
-            # Not active.  Must have a schema location, or be able to read it
-            # from an archive.
-            if self.__schemaLocation is not None:
-                # will load below
-                pass
-            else:
-                # assume can load from archive later
-                pass
+            # Discard location if we expect to be able to learn about this
+            # namespace from an archive.
+            self.__schemaLocation = None
 
         ns_ctx = pyxb.namespace.resolution.NamespaceContext.GetNodeContext(node)
         if self.schemaLocation() is not None:
@@ -4537,11 +4567,13 @@ class _ImportElementInformationItem (_Annotated_mixin):
         elif not ns.isLoadable():
             print 'WARNING: No information available on imported namespace %s' % (uri,)
 
-        self.setPrefix(ns_ctx.prefixForNamespace(self.namespace()))
+        self.__prefix = ns_ctx.prefixForNamespace(self.namespace())
 
         self._annotationFromDOM(node)
 
 class Schema (_SchemaComponent_mixin):
+    """An XMLSchema U{Schema<http://www.w3.org/TR/xmlschema-1/#Schemas>}."""
+
     def __getstate__ (self):
         raise pyxb.LogicError('Attempt to serialize Schema instance')
 

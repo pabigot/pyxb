@@ -17,11 +17,6 @@
 Since namespaces hold all referenceable objects, this module also defines the
 infrastructure for resolving named object references, such as schema
 components.
-
-@group Resolution: _Resolvable_mixin, _NamespaceResolution_mixin
-@group Component Management: _ComponentDependency_mixin, _NamespaceComponentAssociation_mixin
-@group Schema Specializations: _XML, _XMLSchema, _XMLSchema_instance
-@group Named Object Management: _NamespaceCategory_mixin, NamedObjectMap
 """
 
 import pyxb
