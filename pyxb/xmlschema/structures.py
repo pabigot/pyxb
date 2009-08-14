@@ -3609,20 +3609,29 @@ class Annotation (_SchemaComponent_mixin):
 
         return rv
 
-    def __str__ (self):
-        """Return the catenation of all user information elements in the
-        annotation as a single unicode string.  Returns the empty string if
-        there are no user information elements."""
+    def asDocString (self, encoding='ascii', error='xmlcharrefreplace'):
+        return self.text().encode(encoding, error)
+
+    def text (self):
+        if self.__userInformation is None:
+            return ''
         text = []
         # Values in userInformation are DOM "documentation" elements.
         # We want their combined content.
-        if not self.__userInformation:
-            return ''
         for dn in self.__userInformation:
             for cn in dn.childNodes:
                 if Node.TEXT_NODE == cn.nodeType:
                     text.append(cn.data)
         return ''.join(text)
+
+    def __str__ (self):
+        """Return the catenation of all user information elements in the
+        annotation as a single unicode string.  Returns the empty string if
+        there are no user information elements."""
+        return self.text()
+        text = []
+        if not self.__userInformation:
+            return ''
 
 # Section 3.14.
 class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.namespace.resolution._Resolvable_mixin, _Annotated_mixin):

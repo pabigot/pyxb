@@ -465,8 +465,8 @@ def GenerateSTD (std, generator):
     template_map['expanded_name'] = binding_module.literal(std.expandedName(), **kw)
     template_map['namespaceReference'] = binding_module.literal(std.bindingNamespace(), **kw)
     if std.annotation() is not None:
-        template_map['documentation'] = unicode(std.annotation())
-        template_map['documentation_expr'] = binding_module.literal(template_map['documentation'])
+        template_map['documentation'] = std.annotation().asDocString()
+        template_map['documentation_expr'] = binding_module.literal(std.annotation().text())
     else:
         template_map['documentation'] = ''
         template_map['documentation_expr'] = binding_module.literal(None)
