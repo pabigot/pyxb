@@ -310,7 +310,7 @@ class _NamespaceCategory_mixin (pyxb.cscRoot):
         """Ensure there is a map for each of the given categories.
 
         Category configuration
-        L{activates<_NamespaceArchivable_mixin.isActive>} a namespace.
+        L{activates<archive._NamespaceArchivable_mixin.isActive>} a namespace.
 
         Existing maps are not affected."""
                                                      
