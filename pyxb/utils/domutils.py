@@ -48,12 +48,14 @@ def StringToDOM (text):
     This is abstracted to allow future use of alternative parsers.
     Unfortunately, the interface for parsing a string does not appear to be
     consistent across implementations, so for now this always uses
-    xml.dom.minidom."""
+    C{xml.dom.minidom}, regardless of L{GetDOMImplementation}."""
     return xml.dom.minidom.parseString(text)
 
 def NameFromNode (node, ns_ctx=None):
     """Return the expanded name corresponding to the given DOM node.
 
+    @param node: The node for which namespace context is required.
+    @type node: C{xml.dom.Node}
     @keyword ns_ctx: The NamespaceContext to use for resolving prefixes.  If not
     provided, one is retrieved from (or created from) the node.
     """
@@ -95,14 +97,14 @@ def LocateUniqueChild (node, tag, absent_ok=True, namespace=pyxb.namespace.XMLSc
     with a matching C{tag} are found, or C{absent_ok} is C{False} and no
     matching tag is found, an exception is raised.
 
-    @param node: An a xml.dom.Node ELEMENT_NODE instance.
-    @param tag: the NCName of an element in the namespace, which defaults to the
-    XMLSchema namespace.
+    @param node: An a xml.dom.Node ELEMENT_NODE instance
+    @param tag: the NCName of an element in the namespace
     @keyword absent_ok: If C{True} (default), C{None} is returned if no match
     can be found.  If C{False}, an exception is raised if no match can be
     found.
     @keyword namespace: The namespace to which the child element belongs.
     Default is the XMLSchema namespace.
+    @rtype: C{xml.dom.Node}
 
     @raise pyxb.SchemaValidationError: multiple elements are identified
     @raise pyxb.SchemaValidationError: C{absent_ok} is C{False} and no element is identified.
@@ -128,6 +130,8 @@ def LocateMatchingChildren (node, tag, namespace=pyxb.namespace.XMLSchema):
     XMLSchema namespace.
     @keyword namespace: The namespace to which the child element belongs.
     Default is the XMLSchema namespace.
+
+    @rtype: C{list(xml.dom.Node)}
     """
     matches = []
     for cn in node.childNodes:
@@ -140,8 +144,6 @@ def LocateFirstChildElement (node, absent_ok=True, require_unique=False, ignore_
 
 
     @param node: An a xml.dom.Node ELEMENT_NODE instance.
-    @param tag: the NCName of an element in the namespace, which defaults to the
-    XMLSchema namespace.
     @keyword absent_ok: If C{True} (default), C{None} is returned if no match
     can be found.  If C{False}, an exception is raised if no match can be
     found.
@@ -151,6 +153,7 @@ def LocateFirstChildElement (node, absent_ok=True, require_unique=False, ignore_
     @keyword ignore_annotations: If C{True} (default), annotations are skipped
     wheen looking for the first child element.  If C{False}, an annotation
     counts as an element.
+    @rtype: C{xml.dom.Node}
 
     @raise SchemaValidationError: C{absent_ok} is C{False} and no child
     element was identified.
@@ -175,7 +178,10 @@ def LocateFirstChildElement (node, absent_ok=True, require_unique=False, ignore_
 
 def HasNonAnnotationChild (node):
     """Return True iff C{node} has an ELEMENT_NODE child that is not an
-    XMLSchema annotation node."""
+    XMLSchema annotation node.
+
+    @rtype: C{bool}
+    """
     for cn in node.childNodes:
         if (xml.dom.Node.ELEMENT_NODE == cn.nodeType) and (not pyxb.namespace.XMLSchema.nodeIsNamed(cn, 'annotation')):
             return True
@@ -188,7 +194,10 @@ def ExtractTextContent (node):
     Returns None if no text content (including whitespace) is found.
     
     This is mainly used to strip comments out of the content of complex
-    elements with simple types."""
+    elements with simple types.
+
+    @rtype: C{unicode} or C{str}
+    """
     text = []
     for cn in node.childNodes:
         if xml.dom.Node.TEXT_NODE == cn.nodeType:
@@ -334,6 +343,21 @@ class _BDSNamespaceSupport (object):
             self.__resetNamespacePrefixMap()
     
     def __init__ (self, default_namespace=None, namespace_prefix_map=None, inherit_from=None):
+        """Create a new namespace declaration configuration.
+
+        @keyword default_namespace: Optional L{pyxb.namespace.Namespace}
+        instance that serves as the default namespace (applies to unqualified
+        names).
+
+        @keyword namespace_prefix_map: Optional map from
+        L{pyxb.namespace.Namespace} instances to C{str} values that are to be
+        used as the corresponding namespace prefix when constructing
+        U{qualified names<http://www.w3.org/TR/1999/REC-xml-names-19990114/#dt-qname>}.
+
+        @keyword inherit_from: Optional instance of this class from which
+        defaults are inherited.  Inheritance is overridden by values of other
+        keywords in the initializer.
+        """
         self.__prefixes = set()
         self.__namespacePrefixCounter = 0
         self.__namespaces = { }
@@ -378,7 +402,7 @@ class BindingDOMSupport (object):
     __document = None
 
     def requireXSIType (self):
-        """Indicates whether xsi:type should be added to all elements.
+        """Indicates whether {xsi:type<http://www.w3.org/TR/xmlschema-1/#xsi_type>} should be added to all elements.
 
         Certain WSDL styles and encodings seem to require explicit notation of
         the type of each element, even if it was specified in the schema.
@@ -438,7 +462,7 @@ class BindingDOMSupport (object):
 
     # Namespace declarations required on the top element
     def defaultNamespace (self):
-        """The default nnamespace for this instance"""
+        """The default namespace for this instance"""
         return self.__namespaceSupport.defaultNamespace()
     @classmethod
     def DefaultNamespace (cls):
@@ -498,7 +522,7 @@ class BindingDOMSupport (object):
         namespaces referenced in the tree.
 
         @return: The document that has been created.
-        @rtype: xml.dom.Document"""
+        @rtype: C{xml.dom.Document}"""
         for ( ns, pfx ) in self.__namespaceSupport.namespaces().items():
             if pfx is None:
                 self.document().documentElement.setAttributeNS(pyxb.namespace.XMLNamespaces.uri(), 'xmlns', ns.uri())

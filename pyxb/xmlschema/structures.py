@@ -80,7 +80,7 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin,
         element node corresponding to this component."""
         if self.__namespaceContext is None:
             raise pyxb.LogicError('Attempt to access missing namespace context for %s' % (self,))
-        return self.__namespaceContextp
+        return self.__namespaceContext
     def _clearNamespaceContext (self):
         self.__namespaceContext = None
         return self
@@ -136,11 +136,16 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin,
 
         @keyword namespace_context: The NamespaceContext to use within this component
 
-        @keyword node: If no ${namespace_context} is provided, a DOM node must
+        @keyword node: If no C{namespace_context} is provided, a DOM node must
         be provided from which a namespace context can be identified.
 
-        @keyword owner:
-        @keyword schema:
+        @keyword owner: Reference to the component that owns this one (the
+        immediately enclosing component).  Is C{None} in the case of top-level
+        components.
+
+        @keyword schema: Reference to the L{Schema} component to which the
+        component belongs.  Required for every component except L{Schema},
+        L{Annotation}, and L{Wildcard}.
         """
         
         self.__ownedComponents = set()
@@ -166,20 +171,28 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin,
             assert isinstance(self, (Schema, Annotation, Wildcard)), 'No origin available for type %s' % (type(self),)
 
     def _dissociateFromNamespace (self):
-        """Dissociate this component from its owning namespace.  This should
-        only be done whwen there are no other references to the component, and
-        you want to ensure it does not appear in the model."""
+        """Dissociate this component from its owning namespace.
+
+        This should only be done whwen there are no other references to the
+        component, and you want to ensure it does not appear in the model."""
         self._namespaceContext().targetNamespace()._replaceComponent(self, None)
         return self
 
     def _setOwner (self, owner):
+        """Set the owner of this component.
+
+        If C{owner} is C{None}, this has no effect.  Otherwise, the
+        component's current owner must be either C{None} or the same as the
+        input C{owner}."""
+
         if owner is not None:
             assert (self.__owner is None) or (self.__owner == owner), 'Owner was %s set to %s' % (self.__owner, owner)
             self.__owner = owner
             owner.__ownedComponents.add(self)
         return self
 
-    def owner (self): return self.__owner
+    def owner (self):
+        return self.__owner
 
     # A reference to the instance from which this instance was cloned.
     __cloneSource = None
@@ -188,7 +201,7 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin,
     def _cloneSource (self):
         """The source component from which this is a clone.
 
-        Returns None if this is not a clone."""
+        Returns C{None} if this is not a clone."""
         return self.__cloneSource
 
     # A set of references to all instances that are clones of this one.
@@ -202,15 +215,15 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin,
         return self.__clones
 
     def _resetClone_csc (self, **kw):
-        """Virtual method to clear whatever attributes should be reset
-        in a cloned component.
+        """Virtual method to clear whatever attributes should be reset in a
+        cloned component.
 
         This instance should be an instance created by copy.copy().
 
-        The implementation in this class clears the owner and
-        dependency relations.
+        The implementation in this class clears the owner and dependency
+        relations.
 
-        Returns self.
+        Returns C{self}.
         """
         assert self.__cloneSource is not None
         owner = kw['owner']
@@ -228,11 +241,11 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin,
         return getattr(super(_SchemaComponent_mixin, self), '_resetClone_csc', lambda *_args,**_kw: self)(**kw)
 
     def _clone (self, owner, origin):
-        """Create a copy of this instance suitable for adoption by
-        some other component.
+        """Create a copy of this instance suitable for adoption by some other
+        component.
         
-        This is used for things like creating a locally-scoped declaration
-        from a declaration in a model or attribute group."""
+        This is used for creating a locally-scoped declaration from a
+        declaration in a named model or attribute group."""
 
         # We only care about cloning declarations, and they should
         # have an unassigned scope.  However, we do clone
@@ -263,12 +276,11 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin,
         return isinstance(self, (_SimpleUrTypeDefinition, _UrTypeDefinition))
 
     def bestNCName (self):
-        """Return the name of this component, as best it can be
-        determined.
+        """Return the name of this component, as best it can be determined.
 
         For example, ModelGroup instances will be named by their
-        ModelGroupDefinition, if available.  Returns None if no name
-        can be inferred."""
+        ModelGroupDefinition, if available.  Returns None if no name can be
+        inferred."""
         if isinstance(self, _NamedComponent_mixin):
             return self.name()
         if isinstance(self, ModelGroup):
@@ -278,17 +290,23 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin,
         return None
 
     def nameInBinding (self):
-        """Return the name by which this component is known in the XSD
+        """Return the name by which this component is known in the generated
         binding.
 
         @note: To support builtin datatypes, type definitions with an
-        associated pythonSupport class initialize their binding name from the
-        class name when the support association is created.  As long as no
-        built-in datatype conflicts with a language keyword, this should be
-        fine."""
+        associated L{pythonSupport<SimpleTypeDefinition.pythonSupport>} class
+        initialize their binding name from the class name when the support
+        association is created.  As long as no built-in datatype conflicts
+        with a language keyword, this should be fine."""
         return self.__nameInBinding
 
     def hasBinding (self):
+        """Return C{True} iff this is a component which has a user-visible
+        Python construct which serves as its binding.
+
+        Type definitions have classes as their bindings.  Global element
+        declarations have instances of L{pyxb.binding.basis.element} as their
+        bindings."""
         return self.isTypeDefinition() or (isinstance(self, ElementDeclaration) and self._scopeIsGlobal())
 
     def setNameInBinding (self, name_in_binding):

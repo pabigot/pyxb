@@ -1588,7 +1588,7 @@ class Generator (object):
 
         This is the list of entrypoint schemas for binding generation.
         Values in L{schemaLocationList} are read and converted into
-        schema, then appended to this list.  Values from L{_moduleList}
+        schema, then appended to this list.  Values from L{moduleList}
         are applied starting with the first schema in this list.
         """
         return self.__schemas[:]
@@ -1851,8 +1851,8 @@ class Generator (object):
         @keyword no_load_namespaces: Invokes L{_setNoLoadNamespaces}
         @keyword pre_load_archives: Invokes L{_setPreLoadArchives}
         @keyword archive_to_file: Invokes L{setArchiveToFile}
-        @keyword public_namespace: Invokes L{_setNamespaceVisibility}
-        @keyword private_namespace: Invokes L{_setNamespaceVisibility}
+        @keyword public_namespace: Invokes L{setNamespaceVisibility}
+        @keyword private_namespace: Invokes L{setNamespaceVisibility}
         @keyword default_namespace_public: Invokes L{setDefaultNamespacePublic}
         @keyword validate_changes: Invokes L{setValidateChanges}
         @keyword binding_style: Invokes L{setBindingStyle}

@@ -22,8 +22,10 @@ import pyxb
 def QuotedEscaped (s):
     """Convert a string into a literal value that can be used in Python source.
 
-    This just calls repr.  No point in getting all complex when the language
+    This just calls C{repr}.  No point in getting all complex when the language
     already gives us what we need.
+
+    @rtype: C{str}
     """
     return repr(s)
 
@@ -41,7 +43,9 @@ def MakeIdentifier (s):
     character 'n' is prepended.  If the result is the empty string,
     the string 'emptyString' is substituted.
 
-    No check is made for conflicts with keywords.
+    No check is made for L{conflicts with keywords <DeconflictKeyword>}.
+
+    @rtype: C{str}
     """
     s = _PrefixUnderscore_re.sub('', _NonIdentifier_re.sub('',_UnderscoreSubstitute_re.sub('_', str(s))))
     if _PrefixDigit_re.match(s):
@@ -60,8 +64,8 @@ _Keywords = frozenset( ( "and", "del", "from", "not", "while", "as", "elif", "gl
 """The keywords reserved for Python."""
 
 def DeconflictKeyword (s, aux_keywords=frozenset()):
-    """If the provide string matches a keyword, append an underscore
-    to distinguish them.
+    """If the provided string C{s} matches a Python language keyword,
+    append an underscore to distinguish them.
 
     See also L{MakeUnique}.
 
@@ -69,6 +73,8 @@ def DeconflictKeyword (s, aux_keywords=frozenset()):
     
     @keyword aux_keywords: optional iterable of additional strings
     that should be treated as keywords.
+
+    @rtype: C{str}
 
     """
     if (s in _Keywords) or (s in aux_keywords):
@@ -81,11 +87,13 @@ def MakeUnique (s, in_use):
     The returned identifier is made unique by appending an underscore
     and, if necessary, a serial number.
 
-    The order is : x, x_, x_2, x_3, ...
+    The order is : C{x}, C{x_}, C{x_2}, C{x_3}, ...
 
     @param in_use: The set of identifiers already in use in the
-    relevant scopee.  C{in_use} is updated to contain the returned
+    relevant scope.  C{in_use} is updated to contain the returned
     identifier.
+
+    @rtype: C{str}
     """
     if s in in_use:
         ctr = 2
@@ -120,6 +128,8 @@ def PrepareIdentifier (s, in_use, aux_keywords=frozenset(), private=False, prote
     @keyword protected: as for C{private}, but uses only one
     underscore.
 
+    @rtype: C{str}
+
     @note: Only module-level identifiers should be treated as
     protected.  The class-level L{_DeconflictSymbols_mixin}
     infrastructure does not include protected symbols.  All class and
@@ -146,7 +156,7 @@ class _DeconflictSymbols_mixin (object):
     added to the pre-defined identifier set.
 
     Subclasses should create a class-level variable
-    C{_ReservedSymboles} that contains a set of strings denoting the
+    C{_ReservedSymbols} that contains a set of strings denoting the
     symbols reserved in this class, combined with those from any
     superclasses that also have reserved symbols.  Code like the
     following is suggested::
@@ -156,7 +166,7 @@ class _DeconflictSymbols_mixin (object):
        # For subclasses:
        _ReservedSymbols = SuperClass._ReservedSymbols.union(set([ 'three' ]))
 
-    Only public symbols (those with no underscores) are current
+    Only public symbols (those with no underscores) are currently
     supported.  (Private symbols can't be deconflicted that easily,
     and no protected symbols that derive from the XML are created by
     the binding generator.)
@@ -176,16 +186,17 @@ def NormalizeWhitespace (text, preserve=False, replace=False, collapse=False):
     Exactly one of the C{preserve}, C{replace}, and C{collapse} keyword
     parameters must be assigned the value C{True} by the caller.
 
-    In the case of C{preserve}, the text is returned unchanged.
+     - C{preserve}: the text is returned unchanged.
 
-    In the case of C{replace}, all tabs, newlines, and carriage returns
-    are replaced with ASCII spaces.
+     - C{replace}: all tabs, newlines, and carriage returns are
+     replaced with ASCII spaces.
 
-    In the case of C{collapse}, the C{replace} normalization is done,
-    then sequences of two or more spaces are replaced by a single
-    space.
+     - C{collapse}: the C{replace} normalization is done, then
+     sequences of two or more spaces are replaced by a single space.
 
-    See U{http://www.w3.org/TR/xmlschema-2/#rf-whiteSpace}
+    See the U{whiteSpace facet<http://www.w3.org/TR/xmlschema-2/#rf-whiteSpace>}.
+
+    @rtype: C{str}
     """
     if preserve:
         return text
@@ -200,11 +211,12 @@ def NormalizeWhitespace (text, preserve=False, replace=False, collapse=False):
 class Graph:
     """Represent a directed graph with arbitrary objects as nodes.
 
-    This is used to determine order dependencies among components
-    within a namespace, and schema that comprise various namespaces.
-    An edge from C{source} to C{target} indicates that some aspect of
-    C{source} requires that some aspect of C{target} already be
-    available.
+    This is used in the L{code
+    generator<pyxb.binding.generate.Generator>} to determine order
+    dependencies among components within a namespace, and schema that
+    comprise various namespaces.  An edge from C{source} to C{target}
+    indicates that some aspect of C{source} requires that some aspect
+    of C{target} already be available.
     """
     
     def __init__ (self, root=None):
@@ -223,7 +235,7 @@ class Graph:
     def addEdge (self, source, target):
         """Add a directed edge from the C{source} to the C{target}.
 
-        If either node is not present, it is added.
+        The nodes are added to the graph if necessary.
         """
         self.__edges.add( (source, target) )
         self.__edgeMap.setdefault(source, set()).add(target)
@@ -241,12 +253,15 @@ class Graph:
         """Return the set of nodes calculated to be roots (i.e., those that have no incoming edges).
 
         This caches the roots calculated in a previous invocation
-        unless the C{reset} keyword is given the value C{True}.  Note
-        that, up reset, any notes that had been manually added using
-        L{addNode} will no longer be in the set.
+        unless the C{reset} keyword is given the value C{True}.
+
+        @note: Upon reset, any notes that had been manually added
+        using L{addNode} will no longer be in the set.
 
         @keyword reset: If C{True}, any cached value is discarded and
         recomputed.  No effect if C{False} (defalut).
+
+        @rtype: C{set}
         """
         if reset or (self.__roots is None):
             self.__roots = set()
@@ -261,6 +276,8 @@ class Graph:
 
         Note that roots added in this way do not survive a reset using
         L{roots}.
+
+        @return: C{self}
         """
         if self.__roots is None:
             self.__roots = set()
@@ -295,7 +312,10 @@ class Graph:
     def tarjan (self, reset=False):
         """Execute Tarjan's algorithm on the graph.
 
-        Tarjan's algorithm computes the strongly-connected components
+        U{Tarjan's
+        algorithm<http://en.wikipedia.org/wiki/Tarjan%27s_strongly_connected_components_algorithm>}
+        computes the U{strongly-connected
+        components<http://en.wikipedia.org/wiki/Strongly_connected_component>}
         of the graph: i.e., the sets of nodes that form a minimal
         closed set under edge transition.  In essence, the loops.  We
         use this to detect groups of components that have a dependency
@@ -360,7 +380,10 @@ class Graph:
         """Return the strongly-connected components of the graph.
 
         The data structure is a set, each element of which is itself a
-        set containing one or more nodes from the graph."""
+        set containing one or more nodes from the graph.
+
+        @see: L{tarjan}.
+        """
         if reset or (self.__scc is None):
             self.tarjan(reset)
         return self.__scc
@@ -372,7 +395,10 @@ class Graph:
 
         @keyword reset: If C{True}, the L{tarjan} method will be
         re-invoked, propagating the C{reset} value.  If C{False}
-        (default), a cached value will be returned if available."""
+        (default), a cached value will be returned if available.
+
+        @see: L{tarjan}.
+        """
         if reset or (self.__sccMap is None):
             self.tarjan(reset)
         return self.__sccMap
@@ -382,10 +408,14 @@ class Graph:
         """Return the strongly-connected components in order.
 
         The data structure is a list, in dependency order, of strongly
-        connected cmoponents (which can be single nodes).  Appearance
-        of a node in a set earlier in the list indicates that itt has
-        no dependencies on any node that appears in a subsequent
-        set."""
+        connected components (which can be single nodes).  Appearance
+        of a node in a set earlier in the list indicates that it has
+        no dependencies on any node that appears in a subsequent set.
+        This order is preferred over L{dfsOrder} for code generation,
+        since it detects loops.
+
+        @see: L{tarjan}.
+        """
         if reset or (self.__sccOrder is None):
             self.tarjan(reset)
         return self.__sccOrder
@@ -395,11 +425,11 @@ class Graph:
         """Return the strongly-connected component to which the given
         node belongs.
 
-        aReturns C{None} if the node is not present in the results of
-        Tarjan's algorithm.
-
         Any keywords suppliend when invoking this method are passed to
-        the L{sccMap} method."""
+        the L{sccMap} method.
+
+        @return: The SCC set, or C{None} if the node is not present in
+        the results of Tarjan's algorithm."""
         
         return self.sccMap(**kw).get(node, None)
 
@@ -438,9 +468,10 @@ class Graph:
         return "\n".join(text)
 
     def dfsOrder (self, reset=False):
-        """Return the nodes of the graph in depth-first-search order.
+        """Return the nodes of the graph in U{depth-first-search
+        order<http://en.wikipedia.org/wiki/Depth-first_search>}.
 
-        The dat structure is a list.  Calculated lists are retained
+        The data structure is a list.  Calculated lists are retained
         and returned on future invocations, subject to the C{reset}
         keyword.
 
@@ -507,147 +538,6 @@ def TextFromURI (uri, archive_directory=None):
             print 'WARNING: Unable to save %s in %s: %s' % (uri, dest_file, e)
     return xmls
 
-class ConstrainedMutableSequence (object):
-    """A mutable sequence type constrained so its values are instances
-    of a given type.
-
-    After converting any user input, operations are delegated to an
-    underlying sequence instance.
-
-    @note This class is no longer used in PyXB; the techniques
-    demonstrated in it have been integrated into L{STD_list}.
-    """
-
-    # Type of sequence members
-    __memberType = None
-    def _memberType (self):
-        """The type of which sequence members must be an instance.
-
-        This value is never used in maintaining the sequence, since in
-        many cases there is no single type object that is correct for
-        all members.  Cf. pyxb.binding.basis.STD_union."""
-        return self.__memberType
-
-    __memberConverter = None
-    def _memberConverter (self):
-        """The function object that can convert something to be of member type."""
-        return self.__memberConverter
-
-    # Underlying sequence storage
-    __sequence = None
-
-    # Convert a single value to the required type, if not already an instance
-    def __convertOne (self, v):
-        return self.__memberConverter(v)
-
-    # Convert a sequence of values to the required type, if not already instances
-    def __convertMany (self, values):
-        nv = []
-        for v in values:
-            nv.append(self.__memberConverter(v))
-        return nv
-
-    def __init__ (self, mutable_sequence, member_type, member_converter=None):
-        """Create a constrained sequence.
-
-        @param mutable_sequence: A by-value reference to a sequence
-        instance that will be managed by this instance.
-
-        @keyword member_type: An object that represents the type of members of the sequence
-        @type member_type: C{type}
-
-        @keyword member_converter: An invocable that converts values
-        to be valid members of the sequence.
-        """
-        self.__memberType = member_type
-        if member_converter is None:
-            member_converter = self.__memberType
-        self.__memberConverter = member_converter
-        self.__sequence = mutable_sequence
-        if 0 < len(self.__sequence):
-            self.__sequence[:] = self.__convertMany(self.__sequence)
-        # If I could do things like any of these:
-        #    self.__str__ = self.__sequence.__str__
-        #    setattr(self, '__str__', self.__sequence.__str__)
-        # I'd add all the relevant methods.  But I can't.
-
-    # Standard underlying container methods, per Python Reference Manual "Emulating Container Types"
-    def __len__ (self):
-        return len(self.__sequence)
-    
-    def __getitem__ (self, key):
-        return self.__sequence[key]
-
-    def __setitem__ (self, key, value):
-        if isinstance(key, slice):
-            self.__sequence[key] = self.__convertMany(value)
-        else:
-            self.__sequence[key] = self.__convertOne(value)
-
-    def __setslice__ (self, start, stop, value):
-        self.__sequence.__setslice__(start, stop, self.__convertMany(value))
-
-    def __delitem__ (self, key):
-        del self.__sequence[key]
-
-    def __iter__ (self):
-        return iter(self.__sequence)
-
-    def __contains__ (self, item):
-        return self.__sequence.__contains__(self.__convertOne(item))
-
-    # Standard mutable sequence methods, per Python Library Reference "Mutable Sequence Types"
-
-    def append (self, x):
-        ls = len(self.__sequence)
-        self.__sequence[ls:ls] = [ self.__convertOne(x) ]
-
-    def extend (self, x):
-        ls = len(self.__sequence)
-        self.__sequence[ls:ls] = self.__convertMany(x)
-
-    def count (self, x):
-        return self.__sequence.count(self.__convertOne(x))
-
-    def index (self, x, *args):
-        return self.__sequence.index(self.__convertOne(x), *args)
-
-    def insert (self, i, x):
-        self.__sequence[i:i] = self.__convertOne(x)
-
-    def pop (self, *args):
-        return self.__sequence.pop(*args)
-
-    def remove (self, x):
-        self.__sequence.remove(self.__convertOne(x))
-
-    def reverse (self):
-        self.__sequence.reverse()
-
-    def sort (self, *args):
-        self.__sequence.sort(*args)
-
-    # Miscellaneous support methods
-
-    def __str__ (self):
-        return self.__sequence.__str__()
-    
-    def __eq__ (self, other):
-        if isinstance(other, type(self)):
-            other = other.__sequence
-        return self.__sequence.__eq__(other)
-
-    def __ne__ (self, other):
-        if isinstance(other, type(self)):
-            other = other.__sequence
-        return self.__sequence.__ne__(other)
-
-    def __hash__ (self):
-        return self.__sequence.__hash__()
-
-    def __nonzero__ (self):
-        return self.__sequence.__nonzero__()
-
 def OpenOrCreate (file_name, tag=None, preserve_contents=False):
     """Return a file object used to write the given file.
 
@@ -662,8 +552,9 @@ def OpenOrCreate (file_name, tag=None, preserve_contents=False):
 
     @keyword tag: If not C{None} and the file already exists, absence
     of the given value in the first 4096 bytes of the file causes an
-    IOError to be raised with errno EEXIST.  I.e., only files with
-    this value in the first 4KB will be returned for writing.
+    C{IOError} to be raised with C{errno} set to C{EEXIST}.  I.e.,
+    only files with this value in the first 4KB will be returned for
+    writing.
 
     @keyword preserve_contents: This value controls whether existing
     contents of the file will be erased (C{False}, default) or left in
@@ -691,6 +582,14 @@ def OpenOrCreate (file_name, tag=None, preserve_contents=False):
 import sha
 # @todo: support hashlib
 def HashForText (text):
+    """Calculate a cryptographic hash of the given string.
+
+    For example, this is used to verify that a given module file
+    contains bindings from a previous generation run for the same
+    namespace.  See L{OpenOrCreate}.
+
+    @return: A C{str}, generally a sequence of hexadecimal "digit"s.
+    """
     return sha.new(text).hexdigest()
 
 __HaveUUID = False
@@ -713,8 +612,8 @@ def _NewUUIDString ():
     return '%s:%08.8x' % (time.strftime('%Y%m%d%H%M%S'), random.randint(0, 0xFFFFFFFFL))
 
 class UniqueIdentifier (object):
-    """Records a unique identifier associated with a binding
-    generation action.
+    """Records a unique identifier, generally associated with a
+    binding generation action.
 
     The identifier is a string, but gets wrapped in an instance of
     this class to optimize comparisons and reduce memory footprint.
@@ -810,7 +709,8 @@ import datetime
 import calendar
 import time
 class UTCOffsetTimeZone (datetime.tzinfo):
-    """A tzinfo subclass that helps deal with UTC conversions in an ISO8601 world.
+    """A C{datetime.tzinfo} subclass that helps deal with UTC
+    conversions in an ISO8601 world.
 
     This class only supports fixed offsets from UTC.
     """
@@ -881,7 +781,7 @@ class UTCOffsetTimeZone (datetime.tzinfo):
         return self.__ZeroDuration
 
 class LocalTimeZone (datetime.tzinfo):
-    """A C{datetime.tzinfo} for the local time zone.
+    """A C{datetime.tzinfo} subclass for the local time zone.
 
     Mostly pinched from the C{datetime.tzinfo} documentation in Python 2.5.1.
     """
@@ -920,8 +820,16 @@ class PrivateTransient_mixin (pyxb.cscRoot):
     This class defines a C{__getstate__} method which returns a copy
     of C{self.__dict__} with certain members removed.  Specifically,
     if a string "s" appears in a class member variable named
-    C{__PrivateTransient}, then the corresponding private variable
-    "_Class__s" will be removed from the state dictionary.
+    C{__PrivateTransient} defined in the "Class" class, then the
+    corresponding private variable "_Class__s" will be removed from
+    the state dictionary.  This is used to eliminate unnecessary
+    fields from instances placed in L{namespace
+    archives<pyxb.namespace.archive.NamespaceArchive>} without having
+    to implement a C{__getstate__} method in every class in the
+    instance hierarchy.
+
+    For an example, see
+    L{pyxb.xmlschema.structures._SchemaComponent_mixin}
 
     If you use this, it is your responsibility to define the
     C{__PrivateTransient} class variable and add to it the required
@@ -975,10 +883,22 @@ def GetMatchingFiles (path, pattern=None, default_path_wildcard=None, default_pa
     set of directories and meeting certain criteria.
 
     This is used, for example, to locate namespace archive files
-    within the archive path specified by the user.
+    within the archive path specified by the user.  One could use::
+
+      files = GetMatchingFiles('&bundles//:+',
+                               pattern=re.compile('.*\.wxs$'),
+                               default_path_wildcard='+',
+                               default_path='/usr/local/pyxb/nsarchives',
+                               prefix_pattern='&',
+                               prefix_substituend='/opt/pyxb')
+
+    to obtain all files that can be recursively found within
+    C{/opt/pyxb/bundles}, or non-recursively within
+    C{/usr/local/pyxb/nsarchives}.
 
     @param path: A colon separated list of directories in which the
-    search should be performed.
+    search should be performed.  If a path entry ends with C{//}, any
+    directory beneath it is scanned as well, recursively.
 
     @keyword pattern: Optional regular expression object used to
     determine whether a given directory entry should be returned.  If
