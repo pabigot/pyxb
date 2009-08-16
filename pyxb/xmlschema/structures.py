@@ -171,6 +171,10 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin,
         else:
             assert isinstance(self, (Schema, Annotation, Wildcard)), 'No origin available for type %s' % (type(self),)
 
+        if isinstance(self, ComplexTypeDefinition):
+            assert 1 < len(self.__namespaceContext.inScopeNamespaces())
+
+
     def _dissociateFromNamespace (self):
         """Dissociate this component from its owning namespace.
 
@@ -1289,6 +1293,7 @@ class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
         # Although the type definition may not be resolved, *this* component
         # is resolved, since we don't look into the type definition for anything.
         assert self.__typeAttribute is not None, 'AD %s is unresolved but has no typeAttribute field' % (self.expandedName(),)
+        print '%s %s' % (self.expandedName(), self._namespaceContext().inScopeNamespaces())
         type_en = self._namespaceContext().interpretQName(self.__typeAttribute)
         self.__typeDefinition = type_en.typeDefinition()
         if self.__typeDefinition is None:
@@ -4188,7 +4193,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
                     for ai in range(0, cn.attributes.length):
                         attr = cn.attributes.item(ai)
                         # Convert name from unicode to string
-                        kw[str(attr.name)] = attr.value
+                        kw[str(attr.localName)] = attr.value
                     try:
                         fi.setFromKeywords(**kw)
                     except pyxb.PyXBException, e:
@@ -4806,7 +4811,7 @@ class Schema (_SchemaComponent_mixin):
             raise pyxb.LogicError('Must be given a DOM node of type ELEMENT')
 
         assert (namespace_context is None) or isinstance(namespace_context, pyxb.namespace.resolution.NamespaceContext)
-        ns_ctx = pyxb.namespace.resolution.NamespaceContext(root_node, parent_context=namespace_context)
+        ns_ctx = pyxb.namespace.resolution.NamespaceContext.GetNodeContext(root_node, parent_context=namespace_context)
 
         tns = ns_ctx.targetNamespace()
         assert tns is not None

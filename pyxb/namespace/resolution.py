@@ -329,6 +329,9 @@ class NamespaceContext (object):
         except AttributeError:
             return NamespaceContext(node, **kw)
 
+    def setNodeContext (self, node):
+        node.__namespaceContext = self
+
     def processXMLNS (self, prefix, uri):
         if not self.__mutableInScopeNamespaces:
             self.__inScopeNamespaces = self.__inScopeNamespaces.copy()

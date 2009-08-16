@@ -86,6 +86,9 @@ class _SAXElementState (pyxb.utils.saxutils.SAXElementState):
 
         # Set the attributes.
         if isinstance(self.__bindingObject, pyxb.binding.basis.complexTypeDefinition):
+            # NB: attrs implements the SAX AttributesNS interface, meaning
+            # that names are pairs of (namespaceURI, localName), just like we
+            # want them to be.
             for attr_name in self.__attributes.getNames():
                 attr_en = pyxb.namespace.ExpandedName(attr_name)
                 au = self.__bindingObject._AttributeMap.get(attr_en)

@@ -143,6 +143,12 @@ class BaseSAXHandler (xml.sax.handler.ContentHandler, object):
     __nextNamespaceContext = None
 
     # The namespace context that is in effect for this element.
+    def namespaceContext (self):
+        """Return the namespace context used for QName resolution within the
+        current element.
+
+        @return: An instance of L{pyxb.namespace.resolution.NamespaceContext}"""
+        return self.__namespaceContext
     __namespaceContext = None
 
     # A SAX locator object.  @todo: Figure out how to associate the
@@ -150,6 +156,8 @@ class BaseSAXHandler (xml.sax.handler.ContentHandler, object):
     __locator = None
 
     # The state for the element currently being processed
+    def elementState (self):
+        return self.__elementState
     __elementState = None
 
     # The states for all enclosing elements
@@ -182,13 +190,6 @@ class BaseSAXHandler (xml.sax.handler.ContentHandler, object):
         self.__locationBase = kw.pop('location_base', None)
         self.reset()
 
-    def namespaceContext (self):
-        """Return the namespace context used for QName resolution within the
-        current element.
-
-        @return: An instance of L{pyxb.namespace.resolution.NamespaceContext}"""
-        return self.__namespaceContext
-    
     # If there's a new namespace waiting to be used, make it the
     # current namespace.  Return the current namespace.
     def __updateNamespaceContext (self):
