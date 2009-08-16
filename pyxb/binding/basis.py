@@ -1688,6 +1688,11 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             rv[None] = wce
         return rv
 
+    def _validateAttributes (self):
+        for au in self._AttributeMap.values():
+            au.validate(self)
+        
+
     def _validateBinding_vx (self):
         # @todo: validate attributes
         if self._isNil():
@@ -1707,8 +1712,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
                 value.validateBinding()
             else:
                 print 'WARNING: Cannot validate value %s in field %s' % (value, eu.id())
-        for au in self._AttributeMap.values():
-            au.validate(self)
+        self._validateAttributes()
         return True
 
     @classmethod

@@ -18,6 +18,7 @@ using a SAX parser."""
 import xml.sax
 import xml.sax.handler
 import pyxb.namespace
+import basis
 
 class _SAXElementState (object):
     """State corresponding to processing a given element."""
@@ -111,6 +112,7 @@ class _SAXElementState (object):
                 au = self.__bindingObject._AttributeMap.get(attr_en)
                 if au is not None:
                     au.set(self.__bindingObject, attrs.getValue(attr_name))
+            self.__bindingObject._validateAttributes()
         # If this element appears inside an enclosing object, store it
         # within that object.
         if self.__elementUse is not None:
@@ -183,7 +185,6 @@ class _SAXElementState (object):
         # Do validation, specifically to check for missing required attributes.
         # @todo: does this bypass content model validation given that DFA
         # state is correct?
-        self.__bindingObject.validateBinding()
         return self.__bindingObject
 
 class PyXBSAXHandler (xml.sax.handler.ContentHandler):
