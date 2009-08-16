@@ -18,19 +18,14 @@ using a SAX parser."""
 import xml.sax
 import xml.sax.handler
 import pyxb.namespace
+import pyxb.utils.saxutils
 import basis
 
-class _SAXElementState (object):
+class _SAXElementState (pyxb.utils.saxutils.SAXElementState):
     """State corresponding to processing a given element."""
 
     # An expanded name corresponding to xsi:nil
     __XSINilTuple = pyxb.namespace.XMLSchema_instance.createExpandedName('nil').uriTuple()
-
-    # Reference to the _SAXElementState of the element enclosing this one
-    __parentState = None
-
-    # The pyxb.namespace.resolution.NamespaceContext used for this binding
-    __namespaceContext = None
 
     # The binding object being created for this element.  When the
     # element type has simple content, the binding instance cannot be
@@ -42,39 +37,6 @@ class _SAXElementState (object):
     __bindingObject = None
 
     # The nearest enclosing complex type definition
-    __enclosingCTD = None
-
-    # An accumulation of content to be supplied to the content model when the
-    # element end is reached.  This is a list, with each member being
-    # (content, element_use, maybe_element): content is text or a binding
-    # instance; element_use is None or the ElementUse instance used to create
-    # the content; and maybe_element is True iff the content is non-content
-    # text.
-    __content = None
-
-    # The factory that is called to create a binding instance for this
-    # element; None if the binding instance was created at the start
-    # of the element.
-    __delayedConstructor = None
-
-    # The pyxb.binding.content.ElementUse instance for this element
-    # within its parent object.
-    __elementUse = None
-
-    # An xml.sax.xmlreader.Attributes instance providing the
-    # attributes for the element.
-    __attributes = None
-    
-    def __init__ (self, namespace_context, parent_state):
-        self.__namespaceContext = namespace_context
-        self.__parentState = parent_state
-        self.__bindingObject = None
-        if isinstance(self.__parentState, _SAXElementState):
-            self.__enclosingCTD = self.__parentState.enclosingCTD()
-        else:
-            self.__enclosingCTD = None
-        self.__content = []
-
     def enclosingCTD (self):
         """The nearest enclosing complex type definition, as used for
         resolving local element/attribute names.
@@ -83,6 +45,24 @@ class _SAXElementState (object):
         the element is top-level
         """
         return self.__enclosingCTD
+    __enclosingCTD = None
+
+    # The factory that is called to create a binding instance for this
+    # element; None if the binding instance was created at the start
+    # of the element.
+    __delayedConstructor = None
+
+    # An xml.sax.xmlreader.Attributes instance providing the
+    # attributes for the element.
+    __attributes = None
+    
+    def __init__ (self, **kw):
+        super(_SAXElementState, self).__init__(**kw)
+        self.__bindingObject = None
+        parent_state = self.parentState()
+        if isinstance(parent_state, _SAXElementState):
+            self.__enclosingCTD = parent_state.enclosingCTD()
+
     def setEnclosingCTD (self, enclosing_ctd):
         """Set the enclosing complex type definition for this element.
 
@@ -91,7 +71,6 @@ class _SAXElementState (object):
         @return: C{self}
         """
         self.__enclosingCTD = enclosing_ctd
-        return self
 
     # Create the binding instance for this element.
     def __constructElement (self, new_object_factory, attrs, content=None):
@@ -153,14 +132,6 @@ class _SAXElementState (object):
             self.__constructElement(new_object_factory, attrs)
         return self.__bindingObject
 
-    def addTextContent (self, content):
-        """Add the given text as non-element content of the current element.
-        @type content: C{unicode} or C{str}
-        @return: C{self}
-        """
-        self.__content.append( (content, None, False) )
-        return self
-
     def endElement (self):
         """Perform any end-of-element processing.
 
@@ -180,14 +151,12 @@ class _SAXElementState (object):
             #print 'Extending %s by content %s' % (self.__bindingObject, self.__content,)
             for (content, element_use, maybe_element) in self.__content:
                 self.__bindingObject.append(content, element_use, maybe_element)
-        if self.__parentState is not None:
-            self.__parentState.__content.append( (self.__bindingObject, self.__elementUse, True) )
-        # Do validation, specifically to check for missing required attributes.
-        # @todo: does this bypass content model validation given that DFA
-        # state is correct?
+        parent_state = self.parentState()
+        if parent_state is not None:
+            parent_state.addElementContent(self.__bindingObject, self.__elementUse)
         return self.__bindingObject
 
-class PyXBSAXHandler (xml.sax.handler.ContentHandler):
+class PyXBSAXHandler (pyxb.utils.saxutils.BaseSAXHandler):
     """A SAX handler class which generates a binding instance for a document
     through a streaming parser.
 
@@ -206,32 +175,8 @@ class PyXBSAXHandler (xml.sax.handler.ContentHandler):
     # Whether invocation of handler methods should be traced
     __trace = False
 
-    # The namespace to use when processing a document with an absent default
-    # namespace.
-    __fallbackNamespace = None
-
     # An expanded name corresponding to xsi:type
     __XSITypeTuple = pyxb.namespace.XMLSchema_instance.createExpandedName('type').uriTuple()
-
-    # The namespace context that will be in effect at the start of the
-    # next element.  One of these is allocated at the start of each
-    # element; it moves to become the current namespace upon receipt
-    # of either the next element start or a namespace directive that
-    # will apply at that element start.
-    __nextNamespaceContext = None
-
-    # The namespace context that is in effect for this element.
-    __namespaceContext = None
-
-    # A SAX locator object.  @todo: Figure out how to associate the
-    # location information with the binding objects.
-    __locator = None
-
-    # The state for the element currently being processed
-    __elementState = None
-
-    # The states for all enclosing elements
-    __elementStateStack = []
 
     def rootObject (self):
         """Return the binding object corresponding to the top-most
@@ -248,82 +193,17 @@ class PyXBSAXHandler (xml.sax.handler.ContentHandler):
 
         @return: C{self}
         """
-        self.__namespaceContext = pyxb.namespace.resolution.NamespaceContext(default_namespace=self.__fallbackNamespace)
-        self.__nextNamespaceContext = None
-        self.__locator = None
-        self.__elementState = _SAXElementState(self.__namespaceContext, None)
-        self.__elementStateStack = []
+        super(PyXBSAXHandler, self).reset()
         self.__rootObject = None
         return self
 
-    def __init__ (self, fallback_namespace=None):
-        self.__fallbackNamespace = fallback_namespace
+    def __init__ (self, **kw):
+        kw.setdefault('element_state_constructor', _SAXElementState)
+        super(PyXBSAXHandler, self).__init__(**kw)
         self.reset()
-
-    def namespaceContext (self):
-        """Return the namespace context used for QName resolution within the
-        current element.
-
-        @return: An instance of L{pyxb.namespace.resolution.NamespaceContext}"""
-        return self.__namespaceContext
-    
-    # If there's a new namespace waiting to be used, make it the
-    # current namespace.  Return the current namespace.
-    def __updateNamespaceContext (self):
-        if self.__nextNamespaceContext is not None:
-            self.__namespaceContext = self.__nextNamespaceContext
-            self.__nextNamespaceContext = None
-        return self.__namespaceContext
-
-    def startDocument (self):
-        """Process the start of a document.
-
-        This resets this handler for a new document.
-        """
-        if self.__trace:
-            print 'startDocument'
-        self.reset()
-
-    def setDocumentLocator (self, locator):
-        """Save the locator object."""
-        self.__locator = locator
-        if self.__trace:
-            print 'setDocumentlocator'
-        return self
-
-    def startPrefixMapping (self, prefix, uri):
-        """Implement base class method.
-
-        @note: For this to be invoked, the C{feature_namespaces} feature must
-        be enabled in the SAX parser."""
-        self.__updateNamespaceContext().processXMLNS(prefix, uri)
-        if self.__trace:
-            print 'startPrefixMapping %s %s' % (prefix, uri)
-        return self
-
-    # The NamespaceContext management does not require any action upon
-    # leaving the scope of a namespace directive.
-    #def endPrefixMapping (self, prefix):
-    #    pass
 
     def startElementNS (self, name, qname, attrs):
-        self.__flushPendingText()
-        if self.__trace:
-            print 'startElementNS %s %s %s' % (name, qname, attrs)
-
-        # Get the context to be used for this element, and create a
-        # new context for the next contained element to be found.
-        ns_ctx = self.__updateNamespaceContext()
-        self.__nextNamespaceContext = pyxb.namespace.resolution.NamespaceContext(parent_context=ns_ctx)
-
-        # Get the element name including namespace information.
-        name_en = pyxb.namespace.ExpandedName(name, fallback_namespace=self.__fallbackNamespace)
-
-        # Save the state of the enclosing element, and create a new
-        # state for this element.
-        parent_state = self.__elementState
-        self.__elementStateStack.append(self.__elementState)
-        self.__elementState = this_state = _SAXElementState(ns_ctx, parent_state)
+        (this_state, parent_state, ns_ctx, name_en) = super(PyXBSAXHandler, self).startElementNS(name, qname, attrs)
 
         # Start knowing nothing
         type_class = None
@@ -381,14 +261,7 @@ class PyXBSAXHandler (xml.sax.handler.ContentHandler):
             self.__rootObject = binding_object
 
     def endElementNS (self, name, qname):
-        self.__flushPendingText()
-        if self.__trace:
-            print 'endElementNS %s %s' % (name, qname)
-
-        # Save the state of this element, and restore the state for
-        # the parent to which we are returning.
-        this_state = self.__elementState
-        parent_state = self.__elementState = self.__elementStateStack.pop()
+        this_state = super(PyXBSAXHandler, self).endElementNS(name, qname)
 
         # Process the element end.  This will return a binding object,
         # either the one created at the start or the one created at
@@ -404,29 +277,6 @@ class PyXBSAXHandler (xml.sax.handler.ContentHandler):
         # that could slip in and set this before we get to it here.
         if self.__rootObject is None:
             self.__rootObject = binding_object
-
-    __pendingText = None
-    def __flushPendingText (self):
-        if self.__pendingText:
-            self.__elementState.addTextContent(''.join(self.__pendingText))
-        self.__pendingText = []
-
-    def characters (self, content):
-        """Save the text as content"""
-        if self.__trace:
-            print 'characters "%s"' % (content,)
-        self.__pendingText.append(content)
-
-    def ignorableWhitespace (self, whitespace):
-        """Save whitespace as content too."""
-        if self.__trace:
-            print 'ignorableWhitespace length %d' % (len(whitespace),)
-        self.__pendingText.append(content)
-
-    def processingInstruction (self, data):
-        self.__flushPendingText()
-        if self.__trace:
-            print 'processingInstruction %s' % (data,)
 
 def make_parser (*args, **kw):
     """Extend C{xml.sax.make_parser} to configure the parser the way we
@@ -444,13 +294,12 @@ def make_parser (*args, **kw):
     @keyword fallback_namespace: The namespace to use for lookups of
     unqualified names in absent namespaces.
     @type fallback_namespace: L{pyxb.namespace.Namespace}
+
+    @keyword location_base: An object to be recorded as the location from
+    which XML was consumed.
     """
-    fallback_namespace = kw.pop('fallback_namespace', None)
-    parser = xml.sax.make_parser(*args, **kw)
-    parser.setFeature(xml.sax.handler.feature_namespaces, True)
-    parser.setFeature(xml.sax.handler.feature_namespace_prefixes, False)
-    parser.setContentHandler(PyXBSAXHandler(fallback_namespace=fallback_namespace))
-    return parser
+    kw.setdefault('content_handler_constructor', PyXBSAXHandler)
+    return pyxb.utils.saxutils.make_parser(*args, **kw)
 
 ## Local Variables:
 ## fill-column:78
