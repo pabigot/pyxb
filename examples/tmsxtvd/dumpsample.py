@@ -2,6 +2,7 @@ import tmstvd
 import pyxb.utils.domutils as domutils
 import pyxb.binding.saxer
 import time
+import cProfile
 
 # Extend the anonymous class used by the xtvd element to add a method
 # we can use to test equality of two instances.  Normally, you'd just
@@ -29,6 +30,7 @@ xmls = open(xml_file).read()
 dt2 = time.time()
 dom = domutils.StringToDOM(xmls)
 dt3 = time.time()
+#cProfile.run('tmstvd.CreateFromDOM(dom.documentElement)', 'dom.prf')
 dom_instance = tmstvd.CreateFromDOM(dom.documentElement)
 dt4 = time.time()
 
@@ -38,6 +40,7 @@ saxer = pyxb.binding.saxer.make_parser()
 handler = saxer.getContentHandler()
 st2 = time.time()
 saxer.parse(open(xml_file))
+#cProfile.run('saxer.parse(open(xml_file))', 'sax.prf')
 st3 = time.time()
 sax_instance = handler.rootObject()
 
