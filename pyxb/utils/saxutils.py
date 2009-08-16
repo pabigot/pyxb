@@ -12,8 +12,14 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-"""This module contains support for generating bindings from an XML stream
-using a SAX parser."""
+"""This module contains support for processing XML using a SAX parser.
+
+In particular, it provides a base content handler class that maintains
+namespace context and element state in a stack; and a base element
+state class which records the location of the element in the stream.
+These classes are extended for specific parsing needs (e.g.,
+L{pyxb.binding.saxer}).
+"""
 
 import xml.sax
 import xml.sax.handler
@@ -103,7 +109,7 @@ class SAXElementState (object):
     def addElementContent (self, element, element_use):
         self.__content.append( (element, element_use, True) )
 
-class BaseSAXHandler (xml.sax.handler.ContentHandler):
+class BaseSAXHandler (xml.sax.handler.ContentHandler, object):
     """A SAX handler class which generates a binding instance for a document
     through a streaming parser.
 
@@ -281,12 +287,17 @@ def make_parser (*args, **kw):
     @keyword fallback_namespace: The namespace to use for lookups of
     unqualified names in absent namespaces.
     @type fallback_namespace: L{pyxb.namespace.Namespace}
+
+    @keyword content_handler: The content handler instance for the
+    parser to use.  If not provided, an instance of L{BaseSAXHandler}
+    is created and used.
+    @type content_handler: C{xml.sax.handler.ContentHandler}
     """
+    content_handler_constructor = kw.pop('content_handler_constructor', BaseSAXHandler)
     content_handler = kw.pop('content_handler', None)
-    fallback_namespace = kw.pop('fallback_namespace', None)
     if content_handler is None:
-        content_handler = BaseSAXHandler(fallback_namespace=fallback_namespace)
-    parser = xml.sax.make_parser(*args, **kw)
+        content_handler = content_handler_constructor(**kw)
+    parser = xml.sax.make_parser(*args)
     parser.setFeature(xml.sax.handler.feature_namespaces, True)
     parser.setFeature(xml.sax.handler.feature_namespace_prefixes, False)
     parser.setContentHandler(content_handler)
