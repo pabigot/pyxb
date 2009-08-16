@@ -43,7 +43,12 @@ class _SAXElementState (object):
     # The nearest enclosing complex type definition
     __enclosingCTD = None
 
-    # An accumulation of non-element content
+    # An accumulation of content to be supplied to the content model when the
+    # element end is reached.  This is a list, with each member being
+    # (content, element_use, maybe_element): content is text or a binding
+    # instance; element_use is None or the ElementUse instance used to create
+    # the content; and maybe_element is True iff the content is non-content
+    # text.
     __content = None
 
     # The factory that is called to create a binding instance for this
@@ -146,10 +151,7 @@ class _SAXElementState (object):
             self.__constructElement(new_object_factory, attrs)
         return self.__bindingObject
 
-    __NonElementContent = 1
-    __ElementContent = 2
-
-    def addTextContent (self, content, is_ignorable):
+    def addTextContent (self, content):
         """Add the given text as non-element content of the current element.
         @type content: C{unicode} or C{str}
         @return: C{self}
@@ -164,12 +166,20 @@ class _SAXElementState (object):
         @return: The generated binding instance
         """
         if self.__delayedConstructor is not None:
-            self.__constructElement(self.__delayedConstructor, self.__attributes, [ _c[0] for _c in self.__content ])
+            args = []
+            for (content, element_use, maybe_element) in self.__content:
+                assert not maybe_element
+                assert element_use is None
+                assert isinstance(content, basestring)
+                args.append(content)
+            assert 1 >= len(args), 'Unexpected STD content %s' % (args,)
+            self.__constructElement(self.__delayedConstructor, self.__attributes, args)
         else:
             #print 'Extending %s by content %s' % (self.__bindingObject, self.__content,)
-            [ self.__bindingObject.append(*_c) for _c in self.__content ]
+            for (content, element_use, maybe_element) in self.__content:
+                self.__bindingObject.append(content, element_use, maybe_element)
         if self.__parentState is not None:
-            self.__parentState.__content.append( (self.__bindingObject, self.__elementUse) )
+            self.__parentState.__content.append( (self.__bindingObject, self.__elementUse, True) )
         # Do validation, specifically to check for missing required attributes.
         # @todo: does this bypass content model validation given that DFA
         # state is correct?
@@ -331,7 +341,8 @@ class PyXBSAXHandler (xml.sax.handler.ContentHandler):
             element_binding = name_en.elementBinding()
 
         # Non-root elements should have an element use, from which we can
-        # extract the binding.  Don't throw away substitution group bindings.
+        # extract the binding.  (Keep any current binding, since it may be a
+        # member of a substitution group.)
         if (element_use is not None) and (element_binding is None):
             assert self.__rootObject is not None
             element_binding = element_use.elementBinding()
@@ -396,7 +407,7 @@ class PyXBSAXHandler (xml.sax.handler.ContentHandler):
     __pendingText = None
     def __flushPendingText (self):
         if self.__pendingText:
-            self.__elementState.addTextContent(''.join(self.__pendingText), False)
+            self.__elementState.addTextContent(''.join(self.__pendingText))
         self.__pendingText = []
 
     def characters (self, content):

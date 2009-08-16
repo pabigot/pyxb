@@ -1878,12 +1878,16 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         
         # @todo: Allow caller to provide default element use; it's available
         # in saxer.
+        element_binding = None
         if element_use is not None:
             import content
             assert isinstance(element_use, content.ElementUse)
-        element_binding = None
+            element_binding = element_use.elementBinding()
+            assert element_binding is not None
         # Convert the value if it's XML and we recognize it.
         if isinstance(value, xml.dom.Node):
+            assert maybe_element
+            assert element_binding is None
             if xml.dom.Node.COMMENT_NODE == value.nodeType:
                 # @todo: Note that we're allowing comments inside the bodies
                 # of simple content elements, which isn't really Hoyle.
@@ -1898,16 +1902,12 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
                 (element_binding, element_use) = self._ElementBindingUseForName(expanded_name)
                 if element_binding is not None:
                     value = element_binding.createFromDOM(value)
-        if isinstance(value, basestring) and (not maybe_element) and (self._ContentTypeTag in (self._CT_EMPTY, self._CT_ELEMENT_ONLY)):
+        if (not maybe_element) and isinstance(value, basestring) and (self._ContentTypeTag in (self._CT_EMPTY, self._CT_ELEMENT_ONLY)):
             if (0 == len(value.strip())) and not self._isNil():
                 return self
-        #elif isinstance(value, _TypeBinding_mixin):
-        #    element_binding = value._element()
-        else:
-            pass
         if self._isNil() and not self._IsSimpleTypeContent():
             raise pyxb.ExtraContentError('%s: Content %s present in element with xsi:nil' % (type(self), value))
-        if (self.__dfaStack is not None) and maybe_element:
+        if maybe_element and (self.__dfaStack is not None):
             # Allows element content.
             if not self._PerformValidation:
                 if element_use is not None:
