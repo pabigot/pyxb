@@ -149,7 +149,7 @@ class _SAXElementState (object):
     __NonElementContent = 1
     __ElementContent = 2
 
-    def addContent (self, content):
+    def addTextContent (self, content, is_ignorable):
         """Add the given text as non-element content of the current element.
         @type content: C{unicode} or C{str}
         @return: C{self}
@@ -296,6 +296,7 @@ class PyXBSAXHandler (xml.sax.handler.ContentHandler):
     #    pass
 
     def startElementNS (self, name, qname, attrs):
+        self.__flushPendingText()
         if self.__trace:
             print 'startElementNS %s %s %s' % (name, qname, attrs)
 
@@ -368,6 +369,7 @@ class PyXBSAXHandler (xml.sax.handler.ContentHandler):
             self.__rootObject = binding_object
 
     def endElementNS (self, name, qname):
+        self.__flushPendingText()
         if self.__trace:
             print 'endElementNS %s %s' % (name, qname)
 
@@ -391,17 +393,28 @@ class PyXBSAXHandler (xml.sax.handler.ContentHandler):
         if self.__rootObject is None:
             self.__rootObject = binding_object
 
+    __pendingText = None
+    def __flushPendingText (self):
+        if self.__pendingText:
+            self.__elementState.addTextContent(''.join(self.__pendingText), False)
+        self.__pendingText = []
+
     def characters (self, content):
         """Save the text as content"""
         if self.__trace:
             print 'characters "%s"' % (content,)
-        self.__elementState.addContent(content)
+        self.__pendingText.append(content)
 
     def ignorableWhitespace (self, whitespace):
         """Save whitespace as content too."""
         if self.__trace:
             print 'ignorableWhitespace length %d' % (len(whitespace),)
-        self.__elementState.addContent(whitespace)
+        self.__pendingText.append(content)
+
+    def processingInstruction (self, data):
+        self.__flushPendingText()
+        if self.__trace:
+            print 'processingInstruction %s' % (data,)
 
 def make_parser (*args, **kw):
     """Extend C{xml.sax.make_parser} to configure the parser the way we
