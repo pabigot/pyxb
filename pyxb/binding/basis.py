@@ -1828,6 +1828,30 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
 
     @classmethod
     def _ElementBindingUseForName (cls, element_name):
+        """Determine what the given name means as an element in this type.
+
+        Normally, C{element_name} identifies an element definition within this
+        type.  If so, the returned C{element_use} identifies that definition,
+        and the C{element_binding} is extracted from that use.
+
+        It may also be that the C{element_name} does not appear as an element
+        definition, but that it identifies a global element.  In that case,
+        the returned C{element_binding} identifies the global element.  If,
+        further, that element is a member of a substitution group which does
+        have an element definition in this class, then the returned
+        C{element_use} identifies that definition.
+
+        If a non-C{None} C{element_use} is returned, there will be an
+        associated C{element_binding}.  However, it is possible to return a
+        non-C{None} C{element_binding}, but C{None} as the C{element_use}.  In
+        that case, the C{element_binding} can be used to create a binding
+        instance, but the content model will have to treat it as a wildcard.
+
+        @param element_name: The name of the element in this type, either an
+        expanded name or a local name if the element has an absent namespace.
+
+        @return: C{( element_binding, element_use )}
+        """
         element_use = cls._ElementMap.get(element_name)
         element_binding = None
         if element_use is None:
@@ -1867,9 +1891,6 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             if value.nodeType in (xml.dom.Node.TEXT_NODE, xml.dom.Node.CDATA_SECTION_NODE):
                 value = value.data
                 maybe_element = False
-                if self._ContentTypeTag in (self._CT_EMPTY, self._CT_ELEMENT_ONLY):
-                    if (0 == len(value.strip())) and not self._isNil():
-                        return self
             else:
                 # Do type conversion here
                 assert xml.dom.Node.ELEMENT_NODE == value.nodeType
@@ -1877,6 +1898,9 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
                 (element_binding, element_use) = self._ElementBindingUseForName(expanded_name)
                 if element_binding is not None:
                     value = element_binding.createFromDOM(value)
+        if isinstance(value, basestring) and (not maybe_element) and (self._ContentTypeTag in (self._CT_EMPTY, self._CT_ELEMENT_ONLY)):
+            if (0 == len(value.strip())) and not self._isNil():
+                return self
         #elif isinstance(value, _TypeBinding_mixin):
         #    element_binding = value._element()
         else:
