@@ -215,6 +215,7 @@ class BaseSAXHandler (xml.sax.handler.ContentHandler, object):
         @note: For this to be invoked, the C{feature_namespaces} feature must
         be enabled in the SAX parser."""
         self.__updateNamespaceContext().processXMLNS(prefix, uri)
+        #print '%s PM %s %s' % (self.__namespaceContext, prefix, uri)
 
     # The NamespaceContext management does not require any action upon
     # leaving the scope of a namespace directive.
@@ -222,6 +223,7 @@ class BaseSAXHandler (xml.sax.handler.ContentHandler, object):
     #    pass
 
     def startElementNS (self, name, qname, attrs):
+        #print 'start %s' % (name,)
         self.__flushPendingText()
 
         # Get the element name including namespace information.
@@ -249,12 +251,15 @@ class BaseSAXHandler (xml.sax.handler.ContentHandler, object):
         return (this_state, parent_state, ns_ctx, expanded_name)
 
     def endElementNS (self, name, qname):
+        #print 'end %s' % (name,)
         self.__flushPendingText()
 
         # Save the state of this element, and restore the state for
         # the parent to which we are returning.
         this_state = self.__elementState
         parent_state = self.__elementState = self.__elementStateStack.pop()
+        self.__nextNamespaceContext = None
+        self.__namespaceContext = parent_state.namespaceContext()
 
         return this_state
 

@@ -341,7 +341,7 @@ class NamespaceContext (object):
     def setNodeContext (self, node):
         node.__namespaceContext = self
 
-    def processXMLNS (self, prefix, uri):
+    def processXMLNS (self, prefix, uri, undefine=False):
         if not self.__mutableInScopeNamespaces:
             self.__inScopeNamespaces = self.__inScopeNamespaces.copy()
             self.__mutableInScopeNamespaces = True
@@ -367,10 +367,12 @@ class NamespaceContext (object):
             # undefining a prefixed namespace.  XML-Infoset 2.2
             # paragraph 6 implies you can do this, but expat blows up
             # if you try it.  I don't think it's legal.
-            if prefix is not None:
-                raise pyxb.NamespaceError(self, 'Attempt to undefine non-default namespace %s' % (attr.localName,))
-            self.__defaultNamespace = None
-            self.__inScopeNamespaces.pop(None, None)
+            if prefix is None:
+                self.__defaultNamespace = None
+            else:
+                if not undefine:
+                    raise pyxb.NamespaceError(self, 'Attempt to undefine non-default namespace %s' % (attr.localName,))
+            self.__inScopeNamespaces.pop(prefix, None)
 
     def finalizeTargetNamespace (self, tns_uri=None):
         if tns_uri is not None:
@@ -419,6 +421,10 @@ class NamespaceContext (object):
         import builtin
 
         if dom_node is not None:
+            try:
+                assert dom_node.__namespaceContext is None
+            except AttributeError:
+                pass
             dom_node.__namespaceContext = self
 
         self.__defaultNamespace = default_namespace

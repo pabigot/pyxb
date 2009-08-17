@@ -23,7 +23,9 @@ import pyxb.namespace
 def _DumpDOM (n, depth=0):
     pfx = ' ' * depth
     if (xml.dom.Node.ELEMENT_NODE == n.nodeType):
-        print '%sElement %s %s with %d children INS %s' % (pfx, n, pyxb.namespace.ExpandedName(n.name), len(n.childNodes), pyxb.namespace.resolution.NamespaceContext.GetNodeContext(n).inScopeNamespaces())
+        print '%sElement[%d] %s %s with %d children' % (pfx, n._indexInParent(), n, pyxb.namespace.ExpandedName(n.name), len(n.childNodes))
+        ins = pyxb.namespace.resolution.NamespaceContext.GetNodeContext(n).inScopeNamespaces()
+        print '%s%s' % (pfx, ' ; '.join([ '%s=%s' % (_k, _v.uri()) for (_k, _v) in ins.items()]))
         for (k, v) in n.attributes.items():
             print '%s %s=%s' % (pfx, pyxb.namespace.ExpandedName(k), v)
         for cn in n.childNodes:
@@ -105,8 +107,10 @@ class Node (xml.dom.Node, object):
     __value = None
     value = property(lambda _s: _s.__value)
 
+    def _indexInParent (self): return self.__indexInParent
+
     def __childIfPresent (self, index):
-        if 0 < len(self.__childNodes):
+        if index < len(self.__childNodes):
             return self.__childNodes[index]
         return None
 
@@ -128,6 +132,8 @@ class Node (xml.dom.Node, object):
     firstChild = property(lambda _s: _s.__childIfPresent(0))
     childNodes = property(lambda _s: _s.__childNodes)
     attributes = property(lambda _s: _s.__attributes)
+
+    nextSibling = property(lambda _s: _s.parentNode.__childIfPresent(_s.__indexInParent+1))
 
     def hasAttributeNS (self, ns_uri, local_name):
         return self.getAttributeNodeNS(ns_uri, local_name) is not None
@@ -180,7 +186,11 @@ class CharacterData (Node):
 class Text (CharacterData):
     def __init__ (self, text, **kw):
         super(Text, self).__init__(value=text, node_type=xml.dom.Node.TEXT_NODE, **kw)
+    data = Node.value
 
+class Comment (CharacterData):
+    def __init__ (self, text, **kw):
+        super(Text, self).__init__(value=text, node_type=xml.dom.Node.COMMENT_NODE, **kw)
     data = Node.value
 
 if '__main__' == __name__:
