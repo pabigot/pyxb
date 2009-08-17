@@ -98,7 +98,6 @@ class Node (xml.dom.Node, object):
     __name = None
     name = property(lambda _s: _s.__name)
     def _name (self): return self.__name
-    nodeName = name
     __namespaceURI = None
     namespaceURI = property(lambda _s: _s.__namespaceURI)
     __localName = None
@@ -145,6 +144,7 @@ class Document (Node):
 class Attr (Node):
     def __init__ (self, **kw):
         super(Attr, self).__init__(node_type=xml.dom.Node.ATTRIBUTE_NODE, **kw)
+    nodeName = Node.name
 
 class NamedNodeMap (dict):
     __members = None
@@ -172,6 +172,7 @@ class Element (Node):
     def __init__ (self, **kw):
         super(Element, self).__init__(node_type=xml.dom.Node.ELEMENT_NODE, **kw)
         assert self.attributes is not None
+    nodeName = Node.localName
 
 class CharacterData (Node):
     pass
