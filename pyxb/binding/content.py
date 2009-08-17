@@ -871,27 +871,26 @@ class ContentModelTransition (pyxb.cscRoot):
                 value_desc = 'DOM node %s' % (expanded_name,)
                 try:
                     ns = expanded_name.namespace()
-                    if ns is None:
-                        raise pyxb.LogicError('Absent namespace for wildcard')
-                    for mr in ns.moduleRecords():
-                        try:
-                            if (mr.module() is None) and (mr.modulePath() is not None):
-                                print 'Importing %s to get binding for wildcard %s' % (mr.modulePath(), expanded_name)
-                                mod = __import__(mr.modulePath())
-                                for c in mr.modulePath().split('.')[1:]:
-                                    mod = getattr(mod, c)
-                                mr._setModule(mod)
-                            value = mr.module().CreateFromDOM(node)
-                            break
-                        except pyxb.PyXBException, e:
-                            print 'Ignoring creating binding for wildcard %s: %s' % (expanded_name, e)
-                        except AttributeError, e:
-                            # The module holding XMLSchema bindnigs does not
-                            # have a CreateFromDOM method, and shouldn't since
-                            # we need to convert schema instances to DOM more
-                            # carefully.
-                            if mr.namespace() != pyxb.namespace.XMLSchema:
-                                raise
+                    if ns is not None:
+                        for mr in ns.moduleRecords():
+                            try:
+                                if (mr.module() is None) and (mr.modulePath() is not None):
+                                    print 'Importing %s to get binding for wildcard %s' % (mr.modulePath(), expanded_name)
+                                    mod = __import__(mr.modulePath())
+                                    for c in mr.modulePath().split('.')[1:]:
+                                        mod = getattr(mod, c)
+                                    mr._setModule(mod)
+                                value = mr.module().CreateFromDOM(node)
+                                break
+                            except pyxb.PyXBException, e:
+                                print 'Ignoring creating binding for wildcard %s: %s' % (expanded_name, e)
+                            except AttributeError, e:
+                                # The module holding XMLSchema bindnigs does not
+                                # have a CreateFromDOM method, and shouldn't since
+                                # we need to convert schema instances to DOM more
+                                # carefully.
+                                if mr.namespace() != pyxb.namespace.XMLSchema:
+                                    raise
                 except Exception, e:
                     print 'WARNING: Unable to convert wildcard node %s to Python instance: %s' % (expanded_name, e)
                     raise
