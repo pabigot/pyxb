@@ -72,7 +72,8 @@ def NameFromNode (node, ns_ctx=None):
 def UpdateDefaultNamespace (node, default_namespace, recurse=True, **kw):
     kw['default_namespace'] = default_namespace
     ns_ctx = pyxb.namespace.resolution.NamespaceContext.GetNodeContext(node, **kw)
-    if ns_ctx.defaultNamespace() is None:
+    dns = ns_ctx.defaultNamespace()
+    if (dns is None) or dns.isAbsentNamespace():
         ns_ctx.setDefaultNamespace(default_namespace)
     if recurse:
         for cn in node.childNodes:
