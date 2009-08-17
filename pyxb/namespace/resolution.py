@@ -272,6 +272,15 @@ class NamespaceContext (object):
     """Records information associated with namespaces at a DOM node.
     """
 
+    __TargetNamespaceElements = set()
+    @classmethod
+    def _AddTargetNamespaceElement (cls, expanded_name):
+        assert expanded_name is not None
+        cls.__TargetNamespaceElements.add(expanded_name)
+    @classmethod
+    def _IsTargetNamespaceElement (cls, expanded_name):
+        return expanded_name in cls.__TargetNamespaceElements
+
     # Support for holding onto referenced namespaces until we have a target
     # namespace to give them to.
     __pendingReferencedNamespaces = None
@@ -380,7 +389,7 @@ class NamespaceContext (object):
             self.__pendingReferencedNamespace = None
         assert self.__targetNamespace is not None
 
-    def __init__ (self, dom_node=None, parent_context=None, recurse=True, default_namespace=None, target_namespace=None, in_scope_namespaces=None):
+    def __init__ (self, dom_node=None, parent_context=None, recurse=True, default_namespace=None, target_namespace=None, in_scope_namespaces=None, expanded_name=None):
         """Determine the namespace context that should be associated with the
         given node and, optionally, its element children.
 
@@ -433,6 +442,8 @@ class NamespaceContext (object):
         if self.__targetNamespace is None:
             self.__pendingReferencedNamespaces = set()
         if dom_node is not None:
+            if expanded_name is None:
+                expanded_name = pyxb.namespace.ExpandedName(dom_node)
             for ai in range(dom_node.attributes.length):
                 attr = dom_node.attributes.item(ai)
                 if builtin.XMLNamespaces.uri() == attr.namespaceURI:
@@ -448,7 +459,10 @@ class NamespaceContext (object):
                         key = attr.localName
                     self.__attributeMap[key] = attr.value
         
-        self.finalizeTargetNamespace(self.attributeMap().get('targetNamespace'))
+        tns_uri = None
+        if self._IsTargetNamespaceElement(expanded_name) and (target_namespace is None):
+            tns_uri = self.attributeMap().get('targetNamespace')
+        self.finalizeTargetNamespace(tns_uri)
 
         # Store in each node the in-scope namespaces at that node;
         # we'll need them for QName interpretation of attribute
