@@ -163,6 +163,7 @@ class Attr (Node):
     def __init__ (self, **kw):
         super(Attr, self).__init__(node_type=xml.dom.Node.ATTRIBUTE_NODE, **kw)
     nodeName = Node.name
+    nodeValue = Node.value
 
 class NamedNodeMap (dict):
     __members = None

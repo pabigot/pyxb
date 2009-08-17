@@ -4673,19 +4673,19 @@ class Schema (_SchemaComponent_mixin):
     _UNQUALIFIED = "unqualified"
     
     # Default values for standard recognized schema attributes
-    __attributeMap = { 'attributeFormDefault' : _UNQUALIFIED
-                     , 'elementFormDefault' : _UNQUALIFIED
-                     , 'blockDefault' : ''
-                     , 'finalDefault' : ''
-                     , 'id' : None
-                     , 'targetNamespace' : None
-                     , 'version' : None
-                     , 'xml:lang' : None
+    __attributeMap = { pyxb.namespace.ExpandedName(None, 'attributeFormDefault') : _UNQUALIFIED
+                     , pyxb.namespace.ExpandedName(None, 'elementFormDefault') : _UNQUALIFIED
+                     , pyxb.namespace.ExpandedName(None, 'blockDefault') : ''
+                     , pyxb.namespace.ExpandedName(None, 'finalDefault') : ''
+                     , pyxb.namespace.ExpandedName(None, 'id') : None
+                     , pyxb.namespace.ExpandedName(None, 'targetNamespace') : None
+                     , pyxb.namespace.ExpandedName(None, 'version') : None
+                     , pyxb.namespace.XML.createExpandedName('lang') : None
                      } 
 
     def _setAttributeFromDOM (self, attr):
         """Override the schema attribute with the given DOM value."""
-        self.__attributeMap[attr.name] = attr.nodeValue
+        self.__attributeMap[pyxb.namespace.ExpandedName(attr.name)] = attr.nodeValue
         return self
 
     def _setAttributesFromMap (self, attr_map):
@@ -4695,6 +4695,8 @@ class Schema (_SchemaComponent_mixin):
 
     def schemaHasAttribute (self, attr_name):
         """Return True iff the schema has an attribute with the given (nc)name."""
+        if isinstance(attr_name, basestring):
+            attr_name = pyxb.namespace.ExpandedName(None, attr_name)
         return self.__attributeMap.has_key(attr_name)
 
     def schemaAttribute (self, attr_name):
@@ -4705,6 +4707,8 @@ class Schema (_SchemaComponent_mixin):
         has not been defined and has no default.
         @raise KeyError: C{attr_name} is not a valid attribute for a C{schema} element.
         """
+        if isinstance(attr_name, basestring):
+            attr_name = pyxb.namespace.ExpandedName(None, attr_name)
         return self.__attributeMap[attr_name]
 
     __SchemaCategories = ( 'typeDefinition', 'attributeGroupDefinition', 'modelGroupDefinition',
@@ -4829,7 +4833,8 @@ class Schema (_SchemaComponent_mixin):
         assert schema.defaultNamespace() == ns_ctx.defaultNamespace()
 
         # Update the attribute map
-        schema._setAttributesFromMap(ns_ctx.attributeMap())
+        for ai in range(root_node.attributes.length):
+            schema._setAttributeFromDOM(root_node.attributes.item(ai))
 
         # Verify that the root node is an XML schema element
         if not xsd.nodeIsNamed(root_node, 'schema'):

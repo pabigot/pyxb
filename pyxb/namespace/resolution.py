@@ -313,15 +313,6 @@ class NamespaceContext (object):
                 return pfx
         return None
 
-    def attributeMap (self):
-        """Map from L{ExpandedName} instances (for non-absent namespace) or
-        C{str} or C{unicode} values (for absent namespace) to the value of the
-        named attribute.
-
-        Only defined if the context was built from a DOM node."""
-        return self.__attributeMap
-    __attributeMap = None
-
     @classmethod
     def GetNodeContext (cls, node, **kw):
         """Get the L{NamespaceContext} instance that was assigned to the node.
@@ -437,7 +428,6 @@ class NamespaceContext (object):
 
         self.__defaultNamespace = default_namespace
         self.__targetNamespace = target_namespace
-        self.__attributeMap = { }
         self.__inScopeNamespaces = builtin._UndeclaredNamespaceMap
         self.__mutableInScopeNamespaces = False
 
@@ -456,6 +446,7 @@ class NamespaceContext (object):
             
         if self.__targetNamespace is None:
             self.__pendingReferencedNamespaces = set()
+        attribute_map = {}
         if dom_node is not None:
             if expanded_name is None:
                 expanded_name = pyxb.namespace.ExpandedName(dom_node)
@@ -472,12 +463,12 @@ class NamespaceContext (object):
                         key = pyxb.namespace.ExpandedName(uri, attr.localName)
                     else:
                         key = attr.localName
-                    self.__attributeMap[key] = attr.value
+                    attribute_map[key] = attr.value
         
         if finalize_target_namespace:
             tns_uri = None
             if self._IsTargetNamespaceElement(expanded_name) and (target_namespace is None):
-                tns_uri = self.attributeMap().get('targetNamespace')
+                tns_uri = attribute_map.get('targetNamespace')
             self.finalizeTargetNamespace(tns_uri)
 
         # Store in each node the in-scope namespaces at that node;
