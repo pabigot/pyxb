@@ -49,6 +49,7 @@ generateBindings () {
        uri=${cached_schema}
     fi
     echo "Generating bindings ${prefix} from ${uri}"
+    set -x
     pyxbgen \
       ${auxflags} \
       --schema-location ${uri} \
@@ -60,6 +61,7 @@ generateBindings () {
       --uri-content-archive-directory=${CONTENT_COPY_DIR} \
       ${AUX_PYXBGEN_FLAGS} \
     || failure ${prefix} ${original_uri}
+    set +x
   done
 }
 

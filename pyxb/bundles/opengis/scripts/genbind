@@ -40,6 +40,8 @@ pyxbgen \
   --archive-to-file=${ARCHIVE_DIR}/iso19139.core.wxs \
  || failure gml_3_2
   
+printenv | sort
+
 ( cat <<EOText
 ${SCHEMA_DIR}/iso/19139/20070417/gmx/gmx.xsd gmx
 ${SCHEMA_DIR}/gml/3.1.1/base/gml.xsd gml

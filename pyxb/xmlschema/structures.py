@@ -570,7 +570,7 @@ class _NamedComponent_mixin (pyxb.utils.utility.PrivateTransient_mixin, pyxb.csc
         """
         if isinstance(self._scope(), ComplexTypeDefinition):
             return self._scope()._picklesInArchive(archive)
-        assert not (self.targetNamespace() is None)
+        assert not (self.targetNamespace() is None), '%s has no tns' % (self,)
         assert not (self._objectOrigin() is None)
         old_flag = (self.targetNamespace() in archive.namespaces())
         new_flag = (self._objectOrigin().generationUID() == archive.generationUID())

@@ -49,7 +49,7 @@ def StringToDOM (text, **kw):
     Unfortunately, the interface for parsing a string does not appear to be
     consistent across implementations, so for now this always uses
     C{xml.dom.minidom}, regardless of L{GetDOMImplementation}."""
-    if True:
+    if False:
         return xml.dom.minidom.parseString(text)
     import saxdom
     return saxdom.parseString(text)
@@ -71,10 +71,11 @@ def NameFromNode (node, ns_ctx=None):
 
 def UpdateDefaultNamespace (node, default_namespace, recurse=True, **kw):
     kw['default_namespace'] = default_namespace
-    ns_ctx = pyxb.namespace.resolution.NamespaceContext.GetNodeContext(node, **kw)
-    dns = ns_ctx.defaultNamespace()
-    if (dns is None) or dns.isAbsentNamespace():
-        ns_ctx.setDefaultNamespace(default_namespace)
+    if xml.dom.Node.ELEMENT_NODE == node.nodeType:
+        ns_ctx = pyxb.namespace.resolution.NamespaceContext.GetNodeContext(node, **kw)
+        dns = ns_ctx.defaultNamespace()
+        if (dns is None) or (dns.isAbsentNamespace() and default_namespace.isAbsentNamespace()):
+            ns_ctx.setDefaultNamespace(default_namespace)
     if recurse:
         for cn in node.childNodes:
             UpdateDefaultNamespace(cn, default_namespace)
