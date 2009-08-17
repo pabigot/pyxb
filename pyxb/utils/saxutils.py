@@ -277,8 +277,13 @@ class BaseSAXHandler (xml.sax.handler.ContentHandler, object):
         """Save whitespace as content too."""
         self.__pendingText.append(content)
 
-    def processingInstruction (self, data):
+    def processingInstruction (self, target, data):
         self.__flushPendingText()
+
+import StringIO
+class _EntityResolver (object):
+    def resolveEntity (self, public_id, system_id):
+        return StringIO.StringIO('')
 
 def make_parser (*args, **kw):
     """Extend C{xml.sax.make_parser} to configure the parser the way we
@@ -310,6 +315,7 @@ def make_parser (*args, **kw):
     parser.setFeature(xml.sax.handler.feature_namespaces, True)
     parser.setFeature(xml.sax.handler.feature_namespace_prefixes, False)
     parser.setContentHandler(content_handler)
+    parser.setEntityResolver(_EntityResolver())
     return parser
 
 if '__main__' == __name__:
