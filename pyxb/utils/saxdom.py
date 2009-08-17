@@ -33,6 +33,9 @@ def _DumpDOM (n, depth=0):
     elif (xml.dom.Node.TEXT_NODE == n.nodeType):
         #print '%sText "%s"' % (pfx, n.value)
         pass
+    elif (xml.dom.Node.DOCUMENT_NODE == n.nodeType):
+        print 'Document node'
+        _DumpDOM(n.firstChild, depth)
     else:
         print 'UNRECOGNIZED %s' % (n.nodeType,)
 
@@ -54,9 +57,9 @@ class _DOMSAXHandler (saxutils.BaseSAXHandler):
     def startElementNS (self, name, qname, attrs):
         (this_state, parent_state, ns_ctx, name_en) = super(_DOMSAXHandler, self).startElementNS(name, qname, attrs)
         this_state.__attributes = NamedNodeMap()
-        for name in attrs.getQNames():
+        for name in attrs.getNames():
             attr_en = pyxb.namespace.ExpandedName(name)
-            value = attrs.getValueByQName(name)
+            value = attrs.getValue(name)
             this_state.__attributes._addItem(Attr(expanded_name=attr_en, namespace_context=ns_ctx, value=value))
 
     def endElementNS (self, name, qname):
@@ -140,6 +143,12 @@ class Node (xml.dom.Node, object):
 
     def getAttributeNodeNS (self, ns_uri, local_name):
         return self.__attributes._getAttr( (ns_uri, local_name) )
+
+    def getAttributeNS (self, ns_uri, local_name):
+        rv = self.getAttributeNodeNS(ns_uri, local_name)
+        if rv is None:
+            return ''
+        return rv.value
 
 class Document (Node):
     def __init__ (self, **kw):
