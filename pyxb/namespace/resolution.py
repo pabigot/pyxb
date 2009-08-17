@@ -375,9 +375,9 @@ class NamespaceContext (object):
             self.__inScopeNamespaces.pop(prefix, None)
 
     def setDefaultNamespace (self, default_namespace):
-        if self.__defaultNamespace is None:
+        """@note: this only sets the default namespace if it is undefined or absent"""
+        if ((self.__defaultNamespace is None) or (self.__defaultNamespace.isAbsentNamespace() and default_namespace.isAbsentNamespace())):
             self.__defaultNamespace = default_namespace
-        assert self.__defaultNamespace == default_namespace
 
     def finalizeTargetNamespace (self, tns_uri=None):
         if tns_uri is not None:
