@@ -43,7 +43,7 @@ class TestExpandedName (unittest.TestCase):
         self.assertEqual(ln, en.localName())
         en2 = ExpandedName(ns, ln)
         self.assertEqual(en, en2)
-        attr = dom.documentElement.getAttributeNode('attr')
+        attr = dom.documentElement.getAttributeNodeNS(None, 'attr')
         self.assertTrue(attr is not None)
         en = ExpandedName(attr)
         self.assertEqual(xml.dom.EMPTY_NAMESPACE, en.namespaceURI())
