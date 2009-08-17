@@ -1272,6 +1272,8 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
             raise pyxb.UnrecognizedElementError('No element binding available for %s' % (expanded_name,))
         assert isinstance(elt, pyxb.binding.basis.element)
         ns_ctx = pyxb.namespace.resolution.NamespaceContext.GetNodeContext(node, target_namespace=fallback_namespace, default_namespace=fallback_namespace)
+        if ns_ctx.defaultNamespace() is None:
+            domutils.UpdateDefaultNamespace(node, fallback_namespace)
         return elt.createFromDOM(node)
         
     def elementForName (self, name):

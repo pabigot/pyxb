@@ -42,14 +42,14 @@ def SetDOMImplementation (dom_implementation):
 # Unfortunately, the DOMImplementation interface doesn't provide a parser.  So
 # abstract this in case somebody wants to substitute a different one.  Haven't
 # decided how to express that yet.
-def StringToDOM (text):
+def StringToDOM (text, **kw):
     """Convert string to a DOM instance.
 
     This is abstracted to allow future use of alternative parsers.
     Unfortunately, the interface for parsing a string does not appear to be
     consistent across implementations, so for now this always uses
     C{xml.dom.minidom}, regardless of L{GetDOMImplementation}."""
-    if True:
+    if False:
         return xml.dom.minidom.parseString(text)
     import saxdom
     return saxdom.parseString(text)
@@ -68,6 +68,15 @@ def NameFromNode (node, ns_ctx=None):
     if ns_ctx is not None:
         fallback_namespace = ns_ctx.defaultNamespace()
     return pyxb.namespace.ExpandedName(node, fallback_namespace=fallback_namespace)
+
+def UpdateDefaultNamespace (node, default_namespace, recurse=True, **kw):
+    kw['default_namespace'] = default_namespace
+    ns_ctx = pyxb.namespace.resolution.NamespaceContext.GetNodeContext(node, **kw)
+    if ns_ctx.defaultNamespace() is None:
+        ns_ctx.setDefaultNamespace(default_namespace)
+    if recurse:
+        for cn in node.childNodes:
+            UpdateDefaultNamespace(cn, default_namespace)
 
 def NodeAttribute (node, attribute_ncname, attribute_ns=None):
     """Namespace-aware search for an optional attribute in a node.

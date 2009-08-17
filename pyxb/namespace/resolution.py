@@ -374,6 +374,11 @@ class NamespaceContext (object):
                     raise pyxb.NamespaceError(self, 'Attempt to undefine non-default namespace %s' % (attr.localName,))
             self.__inScopeNamespaces.pop(prefix, None)
 
+    def setDefaultNamespace (self, default_namespace):
+        if self.__defaultNamespace is None:
+            self.__defaultNamespace = default_namespace
+        assert self.__defaultNamespace == default_namespace
+
     def finalizeTargetNamespace (self, tns_uri=None):
         if tns_uri is not None:
             assert 0 < len(tns_uri)
