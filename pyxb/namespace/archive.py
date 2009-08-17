@@ -717,12 +717,15 @@ class ModuleRecord (pyxb.utils.utility.PrivateTransient_mixin):
         return self.__module
     def _setModule (self, module):
         self.__module = module
-        ns = self.namespace()
-        if (ns.prefix() is None) and (module is not None):
-            try:
-                ns.setPrefix(os.path.basename(os.path.normpath(module.__file__)).split('.')[0])
-            except AttributeError:
-                pass
+        # This is a nice idea, but screws up the unit tests that already have
+        # ns1 and the like logged as expected prefixes.  Only causes a problem
+        # when the tests are run individually; dunno why.
+        #ns = self.namespace()
+        #if (ns.prefix() is None) and (module is not None):
+        #    try:
+        #        ns.setPrefix(os.path.basename(os.path.normpath(module.__file__)).split('.')[0])
+        #    except AttributeError:
+        #        pass
         return self
     __module = None
     __PrivateTransient.add('module')
