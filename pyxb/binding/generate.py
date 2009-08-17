@@ -2345,10 +2345,10 @@ class Generator (object):
             except Exception, e:
                 print 'Exception saving preprocessed schema to %s: %s' % (archive_file, e)
                 traceback.print_exception(*sys.exc_info())
-                try:
-                    os.unlink(component_model_file)
-                except (OSError, IOError), e:
-                    pass
+                #try:
+                #    os.unlink(component_model_file)
+                #except (OSError, IOError), e:
+                #    pass
                 if isinstance(e, (AssertionError, AttributeError, TypeError)):
                     raise
 
