@@ -130,6 +130,9 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin,
         self.__scope = ctd
         return self
 
+    def _location (self):
+        return self.__location
+
     def __init__ (self, *args, **kw):
         """Initialize portions of a component.
 
@@ -152,13 +155,19 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin,
         self.__ownedComponents = set()
         self.__scope = kw.get('scope')
         self.__namespaceContext = kw.get('namespace_context')
+        node = kw.get('node')
         if self.__namespaceContext is None:
-            node = kw.get('node')
             if node is None:
                 raise pyxb.LogicError('Schema component constructor must be given namespace_context or node')
             self.__namespaceContext = pyxb.namespace.resolution.NamespaceContext.GetNodeContext(node)
         if self.__namespaceContext is None:
             raise pyxb.LogicError('No namespace_context for schema component')
+        self.__location = None
+        if node is not None:
+            try:
+                self.__location = node.location
+            except:
+                pass
 
         super(_SchemaComponent_mixin, self).__init__(*args, **kw)
         self._namespaceContext().targetNamespace()._associateComponent(self)
@@ -570,7 +579,7 @@ class _NamedComponent_mixin (pyxb.utils.utility.PrivateTransient_mixin, pyxb.csc
         """
         if isinstance(self._scope(), ComplexTypeDefinition):
             return self._scope()._picklesInArchive(archive)
-        assert not (self.targetNamespace() is None), '%s has no tns' % (self,)
+        assert not (self.targetNamespace() is None), '%s has no tns, scope %s, location %s, schema %s' % (self, self._scope(), self._location(), self._schema().targetNamespace())
         assert not (self._objectOrigin() is None)
         old_flag = (self.targetNamespace() in archive.namespaces())
         new_flag = (self._objectOrigin().generationUID() == archive.generationUID())
@@ -4766,7 +4775,7 @@ class Schema (_SchemaComponent_mixin):
     def CreateFromDocument (cls, xmls, **kw):
         if not ('schema_signature' in kw):
             kw['schema_signature'] = pyxb.utils.utility.HashForText(xmls)
-        return cls.CreateFromDOM(StringToDOM(xmls), **kw)
+        return cls.CreateFromDOM(StringToDOM(xmls, **kw), **kw)
 
     @classmethod
     def CreateFromLocation (cls, **kw):
@@ -4784,7 +4793,7 @@ class Schema (_SchemaComponent_mixin):
         not normalized, and supersedes C{schema_location}.
         """
         schema_location = kw.pop('absolute_schema_location', pyxb.utils.utility.NormalizeLocation(kw.get('schema_location'), kw.get('parent_uri')))
-        kw['schema_location'] = schema_location
+        kw['location_base'] = kw['schema_location'] = schema_location
         assert isinstance(schema_location, basestring), 'Unexpected value %s type %s for schema_location' % (schema_location, type(schema_location))
         uri_content_archive_directory = kw.get('uri_content_archive_directory')
         return cls.CreateFromDocument(pyxb.utils.utility.TextFromURI(schema_location, archive_directory=uri_content_archive_directory), **kw)

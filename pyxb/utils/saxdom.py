@@ -60,12 +60,12 @@ class _DOMSAXHandler (saxutils.BaseSAXHandler):
         for name in attrs.getNames():
             attr_en = pyxb.namespace.ExpandedName(name)
             value = attrs.getValue(name)
-            this_state.__attributes._addItem(Attr(expanded_name=attr_en, namespace_context=ns_ctx, value=value))
+            this_state.__attributes._addItem(Attr(expanded_name=attr_en, namespace_context=ns_ctx, value=value, location=this_state.location()))
 
     def endElementNS (self, name, qname):
         this_state = super(_DOMSAXHandler, self).endElementNS(name, qname)
         ns_ctx = this_state.namespaceContext()
-        element = Element(namespace_context=ns_ctx, expanded_name=this_state.expandedName(), attributes=this_state.__attributes)
+        element = Element(namespace_context=ns_ctx, expanded_name=this_state.expandedName(), attributes=this_state.__attributes, location=this_state.location())
         for ( content, element_use, maybe_element ) in this_state.content():
             if isinstance(content, Node):
                 element.appendChild(content)
@@ -93,12 +93,15 @@ class Node (xml.dom.Node, object):
         self.__namespaceContext = kw['namespace_context']
         self.__value = kw.get('value')
         self.__attributes = kw.get('attributes')
+        self.__location = kw.get('location', None)
         expanded_name = kw.get('expanded_name')
         if expanded_name is not None:
             self.__name = expanded_name.uriTuple()
             self.__namespaceURI = expanded_name.namespaceURI()
             self.__localName = expanded_name.localName()
         self.__namespaceContext.setNodeContext(self)
+
+    location = property(lambda _s: _s.__location)
 
     __name = None
     name = property(lambda _s: _s.__name)

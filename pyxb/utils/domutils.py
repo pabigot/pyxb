@@ -52,7 +52,7 @@ def StringToDOM (text, **kw):
     if False:
         return xml.dom.minidom.parseString(text)
     import saxdom
-    return saxdom.parseString(text)
+    return saxdom.parseString(text, **kw)
 
 def NameFromNode (node, ns_ctx=None):
     """Return the expanded name corresponding to the given DOM node.
