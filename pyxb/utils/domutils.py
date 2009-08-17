@@ -49,7 +49,7 @@ def StringToDOM (text, **kw):
     Unfortunately, the interface for parsing a string does not appear to be
     consistent across implementations, so for now this always uses
     C{xml.dom.minidom}, regardless of L{GetDOMImplementation}."""
-    if False:
+    if True:
         return xml.dom.minidom.parseString(text)
     import saxdom
     return saxdom.parseString(text)
