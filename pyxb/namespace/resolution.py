@@ -382,7 +382,7 @@ class NamespaceContext (object):
     def finalizeTargetNamespace (self, tns_uri=None):
         if tns_uri is not None:
             assert 0 < len(tns_uri)
-            assert (self.__targetNamespace is None) or (self.__targetNamespace.uri() == tns_uri)
+            assert (self.__targetNamespace is None) or (self.__targetNamespace.uri() == tns_uri), '%s != %s' % (self.__targetNamespace, tns_uri)
             self.__targetNamespace = utility.NamespaceForURI(tns_uri, create_if_missing=True)
             #assert self.__defaultNamespace is not None
         elif self.__targetNamespace is None:
