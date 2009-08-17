@@ -315,6 +315,7 @@ def make_parser (*args, **kw):
 if '__main__' == __name__:
     import xml.dom.pulldom
     import pyxb.utils.domutils as domutils
+    import pyxb.utils.saxdom as saxdom
     import time
     import lxml.sax
     import lxml.etree
@@ -346,6 +347,13 @@ if '__main__' == __name__:
     saxer.parse(StringIO.StringIO(xmls))
     pt3 = time.time()
 
+    pdt1 = time.time()
+    sdomer = make_parser(content_handler_constructor=saxdom._DOMSAXHandler)
+    h = sdomer.getContentHandler()
+    pdt2 = time.time()
+    sdomer.parse(StringIO.StringIO(xmls))
+    pdt3 = time.time()
+
     lst1 = time.time()
     tree = lxml.etree.fromstring(xmls)
     lst2 = time.time()
@@ -363,6 +371,7 @@ if '__main__' == __name__:
     print 'PyXB DOM-based read %f, parse %f, total %f' % (dt2-dt1, dt3-dt2, dt3-dt1)
     print 'SAX-based create %f, parse %f, total %f' % (st2-st1, st3-st2, st3-st1)
     print 'PyXB SAX-based create %f, parse %f, total %f' % (pt2-pt1, pt3-pt2, pt3-pt1)
+    print 'PyXB SAXDOM-based create %f, parse %f, total %f' % (pdt2-pdt1, pdt3-pdt2, pdt3-pdt1)
     print 'LXML-based SAX tree %f, parse %f, total %f' % (lst2-lst1, lst3-lst2, lst3-lst1)
     print 'LXML-based DOM tree %f, parse %f, total %f' % (ldt2-ldt1, ldt3-ldt2, ldt3-ldt1)
 
