@@ -4567,7 +4567,6 @@ class _ImportElementInformationItem (_Annotated_mixin):
             (has_schema, schema_instance) = self.__namespace.lookupSchemaByLocation(schema_location)
             if not has_schema:
                 ckw = { 'absolute_schema_location' : schema_location,
-                        'namespace_context' : ns_ctx,
                         'generation_uid' : importing_schema.generationUID(),
                         'uri_content_archive_directory' : importing_schema._uriContentArchiveDirectory(),
                         }
@@ -4964,7 +4963,7 @@ class Schema (_SchemaComponent_mixin):
         # @todo: NOTICE
         #print 'Included %s, back to %s' % (included_schema.location(), self.location())
         if schema_instance:
-            assert self.targetNamespace() == schema_instance.targetNamespace()
+            assert self.targetNamespace() == schema_instance.targetNamespace(), '%s != %s' % (self.targetNamespace(), schema_instance.targetNamespace())
             self.__includedSchema.add(schema_instance)
         return node
 
