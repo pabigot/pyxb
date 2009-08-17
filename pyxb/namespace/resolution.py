@@ -375,6 +375,7 @@ class NamespaceContext (object):
     def finalizeTargetNamespace (self, tns_uri=None):
         if tns_uri is not None:
             assert 0 < len(tns_uri)
+            assert (self.__targetNamespace is None) or (self.__targetNamespace.uri() == tns_uri)
             self.__targetNamespace = utility.NamespaceForURI(tns_uri, create_if_missing=True)
             #assert self.__defaultNamespace is not None
         elif self.__targetNamespace is None:
@@ -389,7 +390,7 @@ class NamespaceContext (object):
             self.__pendingReferencedNamespace = None
         assert self.__targetNamespace is not None
 
-    def __init__ (self, dom_node=None, parent_context=None, recurse=True, default_namespace=None, target_namespace=None, in_scope_namespaces=None, expanded_name=None):
+    def __init__ (self, dom_node=None, parent_context=None, recurse=True, default_namespace=None, target_namespace=None, in_scope_namespaces=None, expanded_name=None, finalize_target_namespace=False):
         """Determine the namespace context that should be associated with the
         given node and, optionally, its element children.
 
@@ -459,16 +460,17 @@ class NamespaceContext (object):
                         key = attr.localName
                     self.__attributeMap[key] = attr.value
         
-        tns_uri = None
-        if self._IsTargetNamespaceElement(expanded_name) and (target_namespace is None):
-            tns_uri = self.attributeMap().get('targetNamespace')
-        self.finalizeTargetNamespace(tns_uri)
+        if finalize_target_namespace:
+            tns_uri = None
+            if self._IsTargetNamespaceElement(expanded_name) and (target_namespace is None):
+                tns_uri = self.attributeMap().get('targetNamespace')
+            self.finalizeTargetNamespace(tns_uri)
 
         # Store in each node the in-scope namespaces at that node;
         # we'll need them for QName interpretation of attribute
         # values.
-        from xml.dom import Node
-        if recurse and (dom_node is not None):
+        if (dom_node is not None) and recurse:
+            from xml.dom import Node
             assert Node.ELEMENT_NODE == dom_node.nodeType
             for cn in dom_node.childNodes:
                 if Node.ELEMENT_NODE == cn.nodeType:

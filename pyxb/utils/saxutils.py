@@ -178,7 +178,7 @@ class BaseSAXHandler (xml.sax.handler.ContentHandler, object):
 
         @return: C{self}
         """
-        self.__namespaceContext = pyxb.namespace.resolution.NamespaceContext(default_namespace=self.__fallbackNamespace)
+        self.__namespaceContext = pyxb.namespace.resolution.NamespaceContext(default_namespace=self.__fallbackNamespace, finalize_target_namespace=False)
         self.__nextNamespaceContext = None
         self.__elementState = self.__elementStateConstructor(namespace_context=self.__namespaceContext)
         self.__elementStateStack = []
@@ -224,13 +224,16 @@ class BaseSAXHandler (xml.sax.handler.ContentHandler, object):
     def startElementNS (self, name, qname, attrs):
         self.__flushPendingText()
 
+        # Get the element name including namespace information.
+        expanded_name = pyxb.namespace.ExpandedName(name, fallback_namespace=self.__fallbackNamespace)
+
         # Get the context to be used for this element, and create a
         # new context for the next contained element to be found.
         ns_ctx = self.__updateNamespaceContext()
+        if pyxb.namespace.resolution.NamespaceContext._IsTargetNamespaceElement(expanded_name):
+            assert ns_ctx.targetNamespace() is None
+            ns_ctx.finalizeTargetNamespace(attrs.get((None, 'targetNamespace')))
         self.__nextNamespaceContext = pyxb.namespace.resolution.NamespaceContext(parent_context=ns_ctx)
-
-        # Get the element name including namespace information.
-        expanded_name = pyxb.namespace.ExpandedName(name, fallback_namespace=self.__fallbackNamespace)
 
         # Save the state of the enclosing element, and create a new
         # state for this element.

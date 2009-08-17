@@ -4810,7 +4810,7 @@ class Schema (_SchemaComponent_mixin):
             raise pyxb.LogicError('Must be given a DOM node of type ELEMENT')
 
         assert (namespace_context is None) or isinstance(namespace_context, pyxb.namespace.resolution.NamespaceContext)
-        ns_ctx = pyxb.namespace.resolution.NamespaceContext.GetNodeContext(root_node, parent_context=namespace_context)
+        ns_ctx = pyxb.namespace.resolution.NamespaceContext.GetNodeContext(root_node, parent_context=namespace_context, finalize_target_namespace=True)
 
         tns = ns_ctx.targetNamespace()
         assert tns is not None

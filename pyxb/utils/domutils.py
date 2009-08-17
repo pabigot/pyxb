@@ -49,9 +49,10 @@ def StringToDOM (text):
     Unfortunately, the interface for parsing a string does not appear to be
     consistent across implementations, so for now this always uses
     C{xml.dom.minidom}, regardless of L{GetDOMImplementation}."""
-    return xml.dom.minidom.parseString(text)
-    #import saxdom
-    #return saxdom.parseString(text)
+    if True:
+        return xml.dom.minidom.parseString(text)
+    import saxdom
+    return saxdom.parseString(text)
 
 def NameFromNode (node, ns_ctx=None):
     """Return the expanded name corresponding to the given DOM node.
