@@ -382,7 +382,10 @@ class NamespaceContext (object):
     def finalizeTargetNamespace (self, tns_uri=None):
         if tns_uri is not None:
             assert 0 < len(tns_uri)
-            assert (self.__targetNamespace is None) or (self.__targetNamespace.uri() == tns_uri), '%s != %s' % (self.__targetNamespace, tns_uri)
+            # Do not prevent overwriting target namespace; need this for WSDL
+            # files where an embeded schema improperly inherited a target
+            # namespace from its enclosing definitions element.
+            #assert (self.__targetNamespace is None) or (self.__targetNamespace.uri() == tns_uri), '%s != %s' % (self.__targetNamespace, tns_uri)
             self.__targetNamespace = utility.NamespaceForURI(tns_uri, create_if_missing=True)
             #assert self.__defaultNamespace is not None
         elif self.__targetNamespace is None:
@@ -397,7 +400,7 @@ class NamespaceContext (object):
             self.__pendingReferencedNamespace = None
         assert self.__targetNamespace is not None
 
-    def __init__ (self, dom_node=None, parent_context=None, recurse=True, default_namespace=None, target_namespace=None, in_scope_namespaces=None, expanded_name=None, finalize_target_namespace=False):
+    def __init__ (self, dom_node=None, parent_context=None, recurse=True, default_namespace=None, target_namespace=None, in_scope_namespaces=None, expanded_name=None, finalize_target_namespace=True):
         """Determine the namespace context that should be associated with the
         given node and, optionally, its element children.
 
