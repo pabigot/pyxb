@@ -1293,7 +1293,6 @@ class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
         # Although the type definition may not be resolved, *this* component
         # is resolved, since we don't look into the type definition for anything.
         assert self.__typeAttribute is not None, 'AD %s is unresolved but has no typeAttribute field' % (self.expandedName(),)
-        print '%s %s' % (self.expandedName(), self._namespaceContext().inScopeNamespaces())
         type_en = self._namespaceContext().interpretQName(self.__typeAttribute)
         self.__typeDefinition = type_en.typeDefinition()
         if self.__typeDefinition is None:
