@@ -178,7 +178,7 @@ class BaseSAXHandler (xml.sax.handler.ContentHandler, object):
 
         @return: C{self}
         """
-        self.__namespaceContext = pyxb.namespace.resolution.NamespaceContext(default_namespace=self.__fallbackNamespace, finalize_target_namespace=False)
+        self.__namespaceContext = pyxb.namespace.resolution.NamespaceContext(default_namespace=self.__fallbackNamespace, target_namespace=self.__targetNamespace, finalize_target_namespace=False)
         self.__nextNamespaceContext = None
         self.__elementState = self.__elementStateConstructor(namespace_context=self.__namespaceContext)
         self.__elementStateStack = []
@@ -187,6 +187,7 @@ class BaseSAXHandler (xml.sax.handler.ContentHandler, object):
     def __init__ (self, **kw):
         self.__fallbackNamespace = kw.pop('fallback_namespace', None)
         self.__elementStateConstructor = kw.pop('element_state_constructor', SAXElementState)
+        self.__targetNamespace = kw.pop('target_namespace', None)
         self.__locationBase = kw.pop('location_base', None)
         self.reset()
 

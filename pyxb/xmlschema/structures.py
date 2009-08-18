@@ -4807,7 +4807,7 @@ class Schema (_SchemaComponent_mixin):
         return cls.CreateFromDocument(stream.read(), **kw)
 
     @classmethod
-    def CreateFromDOM (cls, node, namespace_context=None, inherit_default_namespace=False, schema_location=None, schema_signature=None, generation_uid=None, **kw):
+    def CreateFromDOM (cls, node, namespace_context=None, schema_location=None, schema_signature=None, generation_uid=None, **kw):
         """Take the root element of the document, and scan its attributes under
         the assumption it is an XMLSchema schema element.  That means
         recognize namespace declarations and process them.  Also look for
@@ -4822,7 +4822,7 @@ class Schema (_SchemaComponent_mixin):
             raise pyxb.LogicError('Must be given a DOM node of type ELEMENT')
 
         assert (namespace_context is None) or isinstance(namespace_context, pyxb.namespace.resolution.NamespaceContext)
-        ns_ctx = pyxb.namespace.resolution.NamespaceContext.GetNodeContext(root_node, parent_context=namespace_context, finalize_target_namespace=True)
+        ns_ctx = pyxb.namespace.resolution.NamespaceContext.GetNodeContext(root_node, parent_context=namespace_context)
 
         tns = ns_ctx.targetNamespace()
         assert tns is not None
@@ -4962,7 +4962,7 @@ class Schema (_SchemaComponent_mixin):
         if not has_schema:
             kw = { 'absolute_schema_location': abs_uri,
                    'namespace_context': self.__namespaceData,
-                   'inherit_default_namespace': True,
+                   'target_namespace': self.targetNamespace(),
                    'generation_uid': self.generationUID(),
                    'uri_content_archive_directory': self._uriContentArchiveDirectory(),
                  }

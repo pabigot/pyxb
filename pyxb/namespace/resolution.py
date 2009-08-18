@@ -368,7 +368,9 @@ class NamespaceContext (object):
             assert 0 < len(tns_uri)
             # Do not prevent overwriting target namespace; need this for WSDL
             # files where an embedded schema inadvertently inherits a target
-            # namespace from its enclosing definitions element.
+            # namespace from its enclosing definitions element.  Note that if
+            # we don't check this here, we do have to check it when schema
+            # documents are included into parent schema documents.
             self.__targetNamespace = utility.NamespaceForURI(tns_uri, create_if_missing=True)
         elif self.__targetNamespace is None:
             if tns_uri is None:
@@ -467,7 +469,6 @@ class NamespaceContext (object):
             tns_attr = self._TargetNamespaceAttribute(expanded_name)
             if tns_attr is not None:
                 tns_uri = attribute_map.get(tns_attr)
-                assert (target_namespace is None) or (target_namespace.uri() == tns_uri)
             self.finalizeTargetNamespace(tns_uri)
 
         # Store in each node the in-scope namespaces at that node;
