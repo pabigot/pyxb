@@ -19,6 +19,7 @@ import xml.sax
 import xml.sax.handler
 import pyxb.namespace
 import pyxb.utils.saxutils
+import pyxb.utils.saxdom
 import basis
 
 class _SAXElementState (pyxb.utils.saxutils.SAXElementState):
@@ -56,12 +57,20 @@ class _SAXElementState (pyxb.utils.saxutils.SAXElementState):
     # attributes for the element.
     __attributes = None
     
+    # An xml.dom.Node corresponding to the (sub-)document
+    __domDocument = None
+
+    __domDepth = None
+
     def __init__ (self, **kw):
         super(_SAXElementState, self).__init__(**kw)
         self.__bindingObject = None
         parent_state = self.parentState()
         if isinstance(parent_state, _SAXElementState):
             self.__enclosingCTD = parent_state.enclosingCTD()
+            self.__domDocument = parent_state.__domDocument
+            if self.__domDocument is not None:
+                self.__domDepth = parent_state.__domDepth + 1
 
     def setEnclosingCTD (self, enclosing_ctd):
         """Set the enclosing complex type definition for this element.
@@ -106,7 +115,45 @@ class _SAXElementState (pyxb.utils.saxutils.SAXElementState):
         self.__bindingObject._setNamespaceContext(self.__namespaceContext)
         return self.__bindingObject
 
-    def startElement (self, type_class, new_object_factory, element_use, attrs):
+    def inDOMMode (self):
+        return self.__domDocument is not None
+
+    def enterDOMMode (self, attrs):
+        assert not self.__domDocument
+        #print 'Beginning creation of DOM subtree'
+        self.__domDocument = pyxb.utils.saxdom.Document(namespace_context=self.namespaceContext())
+        self.__domDepth = 0
+        return self.startDOMElement(attrs)
+
+    def startDOMElement (self, attrs):
+        self.__domDepth += 1
+        #print 'Enter level %d with %s' % (self.__domDepth, self.expandedName())
+        self.__attributes = pyxb.utils.saxdom.NamedNodeMap()
+        ns_ctx = self.namespaceContext()
+        for name in attrs.getNames():
+            attr_en = pyxb.namespace.ExpandedName(name)
+            self.__attributes._addItem(pyxb.utils.saxdom.Attr(expanded_name=attr_en, namespace_context=ns_ctx, value=attrs.getValue(name), location=this_state.location()))
+
+    def endDOMElement (self):
+        ns_ctx = self.namespaceContext()
+        element = pyxb.utils.saxdom.Element(namespace_context=ns_ctx, expanded_name=self.expandedName(), attributes=self.__attributes, location=self.location())
+        for ( content, element_use, maybe_element ) in self.content():
+            if isinstance(content, xml.dom.Node):
+                element.appendChild(content)
+            else:
+                element.appendChild(pyxb.utils.saxdom.Text(content, namespace_context=ns_ctx))
+        #print 'Leaving level %d with %s' % (self.__domDepth, self.expandedName())
+        self.__domDepth -= 1
+        if 0 == self.__domDepth:
+            self.__domDocument.appendChild(element)
+            #pyxb.utils.saxdom._DumpDOM(self.__domDocument)
+            self.__domDepth = None
+            self.__domDocument = None
+        parent_state = self.parentState()
+        parent_state.addElementContent(element, None)
+        return element
+
+    def startBindingElement (self, type_class, new_object_factory, element_use, attrs):
         """Actions upon entering an element.
 
         Th element use is recorded.  If the type is a subclass of
@@ -135,7 +182,7 @@ class _SAXElementState (pyxb.utils.saxutils.SAXElementState):
             self.__constructElement(new_object_factory, attrs)
         return self.__bindingObject
 
-    def endElement (self):
+    def endBindingElement (self):
         """Perform any end-of-element processing.
 
         For simple type instances, this creates the binding instance.
@@ -181,6 +228,9 @@ class PyXBSAXHandler (pyxb.utils.saxutils.BaseSAXHandler):
     # An expanded name corresponding to xsi:type
     __XSITypeTuple = pyxb.namespace.XMLSchema_instance.createExpandedName('type').uriTuple()
 
+    __domHandler = None
+    __domDepth = None
+
     def rootObject (self):
         """Return the binding object corresponding to the top-most
         element in the document
@@ -207,6 +257,8 @@ class PyXBSAXHandler (pyxb.utils.saxutils.BaseSAXHandler):
 
     def startElementNS (self, name, qname, attrs):
         (this_state, parent_state, ns_ctx, name_en) = super(PyXBSAXHandler, self).startElementNS(name, qname, attrs)
+        if this_state.inDOMMode():
+            return this_state.startDOMElement(attrs)
 
         # Start knowing nothing
         type_class = None
@@ -237,7 +289,10 @@ class PyXBSAXHandler (pyxb.utils.saxutils.BaseSAXHandler):
             # @todo: validate xsi:type against abstract
             new_object_factory = type_class.Factory
         elif element_binding is None:
-            raise pyxb.UnrecognizedElementError('Unable to locate element %s' % (name_en,))
+            # Bother.  We don't know what this thing is.  But that's not an
+            # error, if the schema accepts wildcards.  For consistency with
+            # the DOM-based interface, we need to build a DOM node.
+            return this_state.enterDOMMode(attrs)
         else:
             # Invoke binding __call__ method not Factory, so can check for
             # abstract elements.
@@ -256,7 +311,7 @@ class PyXBSAXHandler (pyxb.utils.saxutils.BaseSAXHandler):
 
         # Process the element start.  This may or may not return a
         # binding object.
-        binding_object = this_state.startElement(type_class, new_object_factory, element_use, attrs)
+        binding_object = this_state.startBindingElement(type_class, new_object_factory, element_use, attrs)
 
         # If the top-level element has complex content, this sets the
         # root object.  If it has simple content, see endElementNS.
@@ -265,11 +320,13 @@ class PyXBSAXHandler (pyxb.utils.saxutils.BaseSAXHandler):
 
     def endElementNS (self, name, qname):
         this_state = super(PyXBSAXHandler, self).endElementNS(name, qname)
-
-        # Process the element end.  This will return a binding object,
-        # either the one created at the start or the one created at
-        # the end.
-        binding_object = this_state.endElement()
+        if this_state.inDOMMode():
+            binding_object = this_state.endDOMElement()
+        else:
+            # Process the element end.  This will return a binding object,
+            # either the one created at the start or the one created at
+            # the end.
+            binding_object = this_state.endBindingElement()
         assert binding_object is not None
 
         # If we don't have a root object, save it.  No, there is not a
