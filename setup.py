@@ -97,8 +97,9 @@ class test (Command):
                 g['__name__'] = test_name
                 sys.modules[test_name] = module
 
-                # Import the test into the module
+                # Import the test into the module, making sure the created globals look like they're in the module.
                 eval(rv, g)
+                module.__dict__.update(g)
 
                 # Find all subclasses of unittest.TestCase that were
                 # in the test source and add them to the suite.
