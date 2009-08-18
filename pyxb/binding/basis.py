@@ -1323,6 +1323,8 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
         @keyword fallback_namespace: Optional namespace to use when resolving
         unqualified names.
         """
+        if xml.dom.Node.DOCUMENT_NODE == node.nodeType:
+            node = node.documentElement
         if expanded_name is None:
             expanded_name = pyxb.namespace.ExpandedName(node, fallback_namespace=fallback_namespace)
         return self._createFromDOM(node, expanded_name, **kw)
