@@ -4745,16 +4745,13 @@ class Schema (_SchemaComponent_mixin):
         self.__importEIIs = set()
         self.__includedSchema = set()
         self.__importedSchema = set()
-        self.__targetNamespace = kw.get('target_namespace', self._namespaceContext().targetNamespace())
+        self.__targetNamespace = self._namespaceContext().targetNamespace()
         if not isinstance(self.__targetNamespace, pyxb.namespace.Namespace):
             raise pyxb.LogicError('Schema constructor requires valid Namespace instance as target_namespace')
 
         # NB: This will raise pyxb.SchemaUniquenessError if it appears this
         # schema has already been incorporated into the target namespace.
         self.__originRecord = self.__targetNamespace.addSchema(self)
-        self.__defaultNamespace = kw.get('default_namespace', self._namespaceContext().defaultNamespace())
-        if not ((self.__defaultNamespace is None) or isinstance(self.__defaultNamespace, pyxb.namespace.Namespace)):
-            raise pyxb.LogicError('Schema default namespace must be None or a valid Namespace instance')
 
         self.__targetNamespace.configureCategories(self.__SchemaCategories)
         if self.__defaultNamespace is not None:
@@ -4814,7 +4811,6 @@ class Schema (_SchemaComponent_mixin):
         and set the default namespace.  All other attributes are passed up
         to the parent class for storage."""
 
-        default_namespace = None
         root_node = node
         if Node.DOCUMENT_NODE == node.nodeType:
             root_node = root_node.documentElement
@@ -4829,8 +4825,8 @@ class Schema (_SchemaComponent_mixin):
         schema = cls(namespace_context=ns_ctx, schema_location=schema_location, schema_signature=schema_signature, generation_uid=generation_uid, **kw)
         schema.__namespaceData = ns_ctx
             
-        assert schema.targetNamespace() == ns_ctx.targetNamespace()
-        assert schema.defaultNamespace() == ns_ctx.defaultNamespace()
+        if schema.targetNamespace() != ns_ctx.targetNamespace():
+            raise pyxb.SchemaValidationError('targetNamespace %s conflicts with %s' % (schema.targetNamespace(), ns_ctx.targetNamespace()))
 
         # Update the attribute map
         for ai in range(root_node.attributes.length):
@@ -4977,7 +4973,8 @@ class Schema (_SchemaComponent_mixin):
         # @todo: NOTICE
         #print 'Included %s, back to %s' % (included_schema.location(), self.location())
         if schema_instance:
-            assert self.targetNamespace() == schema_instance.targetNamespace(), '%s != %s' % (self.targetNamespace(), schema_instance.targetNamespace())
+            if self.targetNamespace() != schema_instance.targetNamespace():
+                raise pyxb.SchemaValidationError('Included namespace %s not consistent with including namespace %s' % (schema_instance.targetNamespace(), self.targetNamespace()))
             self.__includedSchema.add(schema_instance)
         return node
 
