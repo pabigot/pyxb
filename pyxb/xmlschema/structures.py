@@ -3824,7 +3824,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
 
     def __str__ (self):
         if self.name() is not None:
-            elts = [ self.name(), ': ' ]
+            elts = [ self.name(), ':' ]
         else:
             elts = [ '<anonymous>:' ]
         if self.VARIETY_absent == self.variety():
@@ -3837,7 +3837,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
             elts.append('union of %s' % (" ".join([str(_mtd.name()) for _mtd in self.memberTypeDefinitions()],)))
         else:
             # Gets here if the type has not been resolved.
-            elts.append('???')
+            elts.append('?')
             #raise pyxb.LogicError('Unexpected variety %s' % (self.variety(),))
         if self.__facets:
             felts = []
@@ -3848,7 +3848,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
         if self.__fundamentalFacets:
             elts.append("\n  ")
             elts.append(','.join( [str(_f) for _f in self.__fundamentalFacets ]))
-        return ''.join(elts)
+        return 'STD[%s]' % (''.join(elts),)
 
     def _updateFromOther_csc (self, other):
         """Override fields in this instance with those from the other.
