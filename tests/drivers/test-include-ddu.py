@@ -14,12 +14,12 @@ import unittest
 
 class TestIncludeDD (unittest.TestCase):
     def testDefault (self):
-        xmls = '<entry xmlns="URN:declared"><from>one</from><to>single</to></entry>'
+        xmls = '<entry xmlns="%s"><from>one</from><to>single</to></entry>' % (Namespace.uri(),)
         # Default namespace applies to from which should be in no namespace
         self.assertRaises(pyxb.UnrecognizedElementError, CreateFromDocument, xmls)
 
     def testExplicit (self):
-        xmls = '<ns:entry xmlns:ns="URN:declared"><from>one</from><ns:to>single</ns:to></ns:entry>'
+        xmls = '<ns:entry xmlns:ns="%s"><from>one</from><ns:to>single</ns:to></ns:entry>' % (Namespace.uri(),)
         instance = CreateFromDocument(xmls)
         self.assertEqual(english.one, instance.from_)
 

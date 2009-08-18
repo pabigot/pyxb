@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<xs:schema targetNamespace="URN:declared" xmlns:xs="http://www.w3.org/2001/XMLSchema"  xmlns:tns="URN:declared" elementFormDefault="unqualified">
-  <xs:include schemaLocation="incl-declared2.xsd"/>
+<xs:schema targetNamespace="URN:declared-dcu" xmlns:xs="http://www.w3.org/2001/XMLSchema"  xmlns:tns="URN:declared-dcu" elementFormDefault="unqualified">
+  <xs:include schemaLocation="incl-dcu.xsd"/><!-- NB: Included schema is not correct namespace -->
 	<xs:complexType name="entry">
 		<xs:sequence>
 			<xs:element name="from" type="tns:english"/>

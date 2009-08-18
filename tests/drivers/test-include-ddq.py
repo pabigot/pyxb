@@ -14,12 +14,12 @@ import unittest
 
 class TestIncludeDD (unittest.TestCase):
     def testDefault (self):
-        xmls = '<entry xmlns="URN:declared"><from>one</from><to>single</to></entry>'
+        xmls = '<entry xmlns="%s"><from>one</from><to>single</to></entry>' % (Namespace.uri(),)
         instance = CreateFromDocument(xmls)
         self.assertEqual(english.one, instance.from_)
 
     def testExplicit (self):
-        xmls = '<ns:entry xmlns:ns="URN:declared"><ns:from>one</ns:from><ns:to>single</ns:to></ns:entry>'
+        xmls = '<ns:entry xmlns:ns="%s"><ns:from>one</ns:from><ns:to>single</ns:to></ns:entry>' % (Namespace.uri(),)
         instance = CreateFromDocument(xmls)
         self.assertEqual(english.one, instance.from_)
 
