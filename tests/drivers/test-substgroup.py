@@ -17,7 +17,7 @@ from pyxb.exceptions_ import *
 
 import unittest
 
-class TestXSIType (unittest.TestCase):
+class TestSubstGroup (unittest.TestCase):
     def testISO8601 (self):
         xml = '<when><ISO8601>2009-06-15T17:50:00Z</ISO8601></when>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
