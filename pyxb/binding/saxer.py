@@ -20,6 +20,7 @@ import xml.sax.handler
 import pyxb.namespace
 import pyxb.utils.saxutils
 import pyxb.utils.saxdom
+import pyxb.utils.utility
 import basis
 
 class _SAXElementState (pyxb.utils.saxutils.SAXElementState):
@@ -92,6 +93,8 @@ class _SAXElementState (pyxb.utils.saxutils.SAXElementState):
         if content is None:
             content = []
         self.__bindingObject = new_object_factory(*content, **kw)
+        if isinstance(self.__bindingObject, pyxb.utils.utility.Locatable_mixin):
+            self.__bindingObject._setLocation(self.location())
 
         # Set the attributes.
         if isinstance(self.__bindingObject, pyxb.binding.basis.complexTypeDefinition):

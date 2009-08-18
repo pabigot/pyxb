@@ -110,6 +110,7 @@ class SAXElementState (object):
         return self.__expandedName
     __expandedName = None
 
+    # The location corresponding to the element event
     def location (self):
         return self.__location
     __location = None
@@ -157,9 +158,7 @@ class BaseSAXHandler (xml.sax.handler.ContentHandler, object):
 
     """
 
-    def locationBase (self):
-        return self.__locationBase
-    __locationBase = None
+    __locationTemplate = None
 
     __elementStateConstructor = None
 
@@ -220,7 +219,7 @@ class BaseSAXHandler (xml.sax.handler.ContentHandler, object):
         self.__fallbackNamespace = kw.pop('fallback_namespace', None)
         self.__elementStateConstructor = kw.pop('element_state_constructor', SAXElementState)
         self.__targetNamespace = kw.pop('target_namespace', None)
-        self.__locationBase = kw.pop('location_base', None)
+        self.__locationTemplate = pyxb.utils.utility.Location(kw.pop('location_base', None))
         self.reset()
 
     # If there's a new namespace waiting to be used, make it the
@@ -275,14 +274,11 @@ class BaseSAXHandler (xml.sax.handler.ContentHandler, object):
         # Save the state of the enclosing element, and create a new
         # state for this element.
         parent_state = self.__elementState
-        location = None
-        if self.__locator is not None:
-            location = (self.__locationBase, self.__locator.getLineNumber(), self.__locator.getColumnNumber())
         self.__elementStateStack.append(self.__elementState)
         self.__elementState = this_state = self.__elementStateConstructor(expanded_name=expanded_name,
                                                                           namespace_context=ns_ctx,
                                                                           parent_state=parent_state,
-                                                                          location=location)
+                                                                          location=self.__locationTemplate.newLocation(self.__locator))
         return (this_state, parent_state, ns_ctx, expanded_name)
 
     def endElementNS (self, name, qname):

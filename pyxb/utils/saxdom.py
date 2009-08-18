@@ -85,15 +85,17 @@ def parse (stream, **kw):
 def parseString (text, **kw):
     return parse(StringIO.StringIO(text), **kw)
 
-class Node (xml.dom.Node, object):
+class Node (xml.dom.Node, pyxb.utils.utility.Locatable_mixin):
     def __init__ (self, node_type, **kw):
+        location = kw.pop('location', None)
+        if location is not None:
+            pyxb.utils.utility.Locatable_mixin.__init__(self, location=location)
         self.__nodeType = node_type
         self.__parentNode = None
         self.__childNodes = []
         self.__namespaceContext = kw['namespace_context']
         self.__value = kw.get('value')
         self.__attributes = kw.get('attributes')
-        self.__location = kw.get('location', None)
         expanded_name = kw.get('expanded_name')
         if expanded_name is not None:
             self.__name = expanded_name.uriTuple()
@@ -101,7 +103,7 @@ class Node (xml.dom.Node, object):
             self.__localName = expanded_name.localName()
         self.__namespaceContext.setNodeContext(self)
 
-    location = property(lambda _s: _s.__location)
+    location = property(lambda _s: _s._location())
 
     __name = None
     name = property(lambda _s: _s.__name)

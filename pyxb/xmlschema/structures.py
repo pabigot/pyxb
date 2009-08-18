@@ -59,7 +59,8 @@ from pyxb.namespace import XMLSchema as xsd
 
 class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin,
                               pyxb.namespace.archive._ArchivableObject_mixin,
-                              pyxb.utils.utility.PrivateTransient_mixin):
+                              pyxb.utils.utility.PrivateTransient_mixin,
+                              pyxb.utils.utility.Locatable_mixin):
     """A mix-in that marks the class as representing a schema component.
 
     This exists so that we can determine the owning schema for any
@@ -130,9 +131,6 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin,
         self.__scope = ctd
         return self
 
-    def _location (self):
-        return self.__location
-
     def __init__ (self, *args, **kw):
         """Initialize portions of a component.
 
@@ -162,12 +160,8 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin,
             self.__namespaceContext = pyxb.namespace.resolution.NamespaceContext.GetNodeContext(node)
         if self.__namespaceContext is None:
             raise pyxb.LogicError('No namespace_context for schema component')
-        self.__location = None
-        if node is not None:
-            try:
-                self.__location = node.location
-            except:
-                pass
+        if isinstance(node, pyxb.utils.utility.Locatable_mixin):
+            self._setLocation(node.location)
 
         super(_SchemaComponent_mixin, self).__init__(*args, **kw)
         self._namespaceContext().targetNamespace()._associateComponent(self)

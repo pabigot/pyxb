@@ -35,7 +35,7 @@ def ConfigureBindingStyle (style):
     complexTypeDefinition._ConfigureBindingStyle(style)
     CURRENT_BINDING_STYLE = style
 
-class _TypeBinding_mixin (pyxb.cscRoot):
+class _TypeBinding_mixin (utility.Locatable_mixin):
 
     _PerformValidation = True
     #_PerformValidation = False
@@ -192,10 +192,13 @@ class _TypeBinding_mixin (pyxb.cscRoot):
         """
         # Invoke _PreFactory_vx for the superseding class, which is where
         # customizations will be found.
+        dom_node = kw.get('_dom_node')
         used_cls = cls._SupersedingClass()
         state = used_cls._PreFactory_vx(args, kw)
         rv = cls._DynamicCreate(*args, **kw)
         rv._postFactory_vx(state)
+        if isinstance(dom_node, utility.Locatable_mixin):
+            rv._setLocation(dom_node.location)
         return rv
 
     def _substitutesFor (self, element):
@@ -1229,18 +1232,14 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
         node was provided.
         """
         dom_node = kw.pop('_dom_node', None)
+        assert dom_node is None, 'Cannot pass DOM node directly to element constructor; use createFromDOM'
         if '_element' in kw:
             raise pyxb.LogicError('Cannot set _element in element-based instance creation')
         kw['_element'] = self
-        if dom_node is not None:
-            # If this fires, figure out how to get a valid expanded name into
-            # createFromDOM
-            assert False
-            #return self._createFromDOM(dom_node, **kw)
         # Can't create instances of abstract elements.
         if self.abstract():
             raise pyxb.AbstractElementError(self)
-        return self.typeDefinition().Factory(*args,**kw)
+        return self.typeDefinition().Factory(*args, **kw)
 
     def compatibleValue (self, value, **kw):
         """Return a variant of the value that is compatible with this element.
@@ -1551,10 +1550,12 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
 
         """
 
-        dom_node = kw.pop('_dom_node', None)
         fallback_namespace = kw.pop('_fallback_namespace', None)
         is_nil = False
+        dom_node = kw.pop('_dom_node', None)
         if dom_node is not None:
+            if isinstance(dom_node, pyxb.utils.utility.Locatable_mixin):
+                self._setLocation(dom_node.location)
             if xml.dom.Node.DOCUMENT_NODE == dom_node.nodeType:
                 dom_node = dom_node.documentElement
             #kw['_validate_constraints'] = False
@@ -1941,7 +1942,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
                 else:
                     # Might be a resolvable wildcard.  See if we can convert it to an
                     # element.
-                    print 'Attempting to create element from node %s' % (expanded_name,)
+                    #print 'Attempting to create element from node %s' % (expanded_name,)
                     try:
                         ns = expanded_name.namespace()
                         if ns is not None:

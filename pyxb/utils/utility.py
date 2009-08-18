@@ -947,7 +947,64 @@ def GetMatchingFiles (path, pattern=None, default_path_wildcard=None, default_pa
                     break
     return matching_files
     
-if '__main__' == __name__:
-    unittest.main()
-            
-        
+class _LocationBase (object):
+    """Wrap a location.
+
+    This is probably a string, but might be a uri object or the like.
+    Really we only have this as a separate object so as to avoid
+    creating hundreds of copies of the same string."""
+
+    __locationBase = None
+    def locationBase (self):
+        return self.__locationBase
+
+    def __init__ (self, location_base):
+        if isinstance(location_base, _LocationBase):
+            location_base = location_base.locationBase()
+        self.__locationBase = location_base
+
+    def __str__ (self):
+        return str(self.__locationBase)
+
+class Location (object):
+    __locationBase = None
+    __lineNumber = None
+    __columnNumber = None
+
+    def __init__ (self, location_base=None, line_number=None, column_number=None):
+        if not isinstance(location_base, _LocationBase):
+            location_base = _LocationBase(location_base)
+        self.__locationBase = location_base
+        self.__lineNumber = line_number
+        self.__columnNumber = column_number
+
+    def newLocation (self, locator=None, line_number=None, column_number=None):
+        if locator is not None:
+            try:
+                line_number = locator.getLineNumber()
+                column_number = locator.getColumnNumber()
+            except:
+                pass
+        return Location(self.__locationBase, line_number, column_number)
+
+    locationBase = property(lambda _s: _s.__locationBase)
+    lineNumber = property(lambda _s: _s.__lineNumber)
+    columnNumber = property(lambda _s: _s.__columnNumber)
+
+    def __str__ (self):
+        if self.locationBase is None:
+            return '<unknownLocation>'
+        return '%s[%s:%s]' % (self.locationBase, self.lineNumber, self.columnNumber)
+
+class Locatable_mixin (pyxb.cscRoot):
+    __location = None
+
+    def __init__ (self, *args, **kw):
+        self.__location = kw.pop('location', None)
+        super(Locatable_mixin, self).__init__(*args, **kw)
+
+    def _setLocation (self, location):
+        self.__location = location
+
+    def _location (self):
+        return self.__location
