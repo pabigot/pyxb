@@ -4261,7 +4261,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
             if not isinstance(base_type, SimpleTypeDefinition):
                 raise pyxb.SchemaValidationError('Unable to locate base type %s' % (base_en,))
             self.__baseTypeDefinition = base_type
-        # If the base type exists but has not yet been resolve,
+        # If the base type exists but has not yet been resolved,
         # delay processing this type until the one it depends on
         # has been completed.
         assert self.__baseTypeDefinition != self
@@ -4430,6 +4430,9 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
                 self.__initializeFromUnion(candidate, **kw)
             else:
                 bad_instance = True
+
+        if self.__baseTypeDefinition is None:
+            raise pyxb.SchemaValidationError('xs:simpleType must have list, union, or restriction as child')
 
         if self._schema() is not None:
             self.__final = self._schema().finalForNode(node, self._STD_Map)
