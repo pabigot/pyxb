@@ -1233,7 +1233,10 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
             raise pyxb.LogicError('Cannot set _element in element-based instance creation')
         kw['_element'] = self
         if dom_node is not None:
-            return self.createFromDOM(dom_node, **kw)
+            # If this fires, figure out how to get a valid expanded name into
+            # createFromDOM
+            assert False
+            #return self._createFromDOM(dom_node, **kw)
         # Can't create instances of abstract elements.
         if self.abstract():
             raise pyxb.AbstractElementError(self)
@@ -1274,7 +1277,7 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
         assert isinstance(elt, pyxb.binding.basis.element)
         # Pass on the namespace to use when resolving unqualified qnames as in
         # xsi:type
-        return elt.createFromDOM(node, _expanded_name=expanded_name, _fallback_namespace=_fallback_namespace)
+        return elt._createFromDOM(node, expanded_name, _fallback_namespace=_fallback_namespace)
         
     def elementForName (self, name):
         """Return the element that should be used if this element binding is
@@ -1311,8 +1314,22 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
             return named_elt
         return None
 
-    def createFromDOM (self, node, **kw):
+    def createFromDOM (self, node, expanded_name=None, fallback_namespace=None, **kw):
         """Create a binding instance from the given DOM node.
+
+        @keyword expanded_name: Optional name for the DOM node.  If not
+        present, is inferred from C{node}.
+
+        @keyword fallback_namespace: Optional namespace to use when resolving
+        unqualified names.
+        """
+        if expanded_name is None:
+            expanded_name = pyxb.namespace.ExpandedName(node, fallback_namespace=fallback_namespace)
+        return self._createFromDOM(node, expanded_name, **kw)
+
+    def _createFromDOM (self, node, expanded_name, **kw):
+        """Create a binding instance from the given DOM node, using the
+        provided name to identify the correct binding.
 
         The context and information associated with this element is used to
         identify the actual element binding to use.  By default, C{self} is
@@ -1330,7 +1347,7 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
         associated with the selected element binding.  See
         L{_TypeBinding_mixin} and any specializations of it.
 
-        @keyword _expanded_name: The expanded name of the node.  If not
+        @param _expanded_name: The expanded name of the node.  If not
         provided, defaults to the name of this element.  (Must be provided
         because its namespace depends on context not available here; it may be
         different from this element's name in the case of substitution
@@ -1358,7 +1375,6 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
         # Even if found, this may not be equal to self, since we allow you to
         # use an abstract substitution group head to create instances from DOM
         # nodes that are in that group.
-        expanded_name = kw.pop('_expanded_name', self.name())
         fallback_namespace = kw.pop('_fallback_namespace', None)
         element_binding = self.elementForName(expanded_name)
         if element_binding is None:
@@ -1918,7 +1934,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
                 expanded_name = pyxb.namespace.ExpandedName(value, fallback_namespace=_fallback_namespace)
                 (element_binding, element_use) = self._ElementBindingUseForName(expanded_name)
                 if element_binding is not None:
-                    value = element_binding.createFromDOM(value, _expanded_name=expanded_name, _fallback_namespace=_fallback_namespace)
+                    value = element_binding._createFromDOM(value, expanded_name, _fallback_namespace=_fallback_namespace)
         if (not maybe_element) and isinstance(value, basestring) and (self._ContentTypeTag in (self._CT_EMPTY, self._CT_ELEMENT_ONLY)):
             if (0 == len(value.strip())) and not self._isNil():
                 return self
