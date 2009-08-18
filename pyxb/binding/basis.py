@@ -1923,20 +1923,49 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         if isinstance(value, xml.dom.Node):
             assert maybe_element
             assert element_binding is None
-            if xml.dom.Node.COMMENT_NODE == value.nodeType:
+            node = value
+            if xml.dom.Node.COMMENT_NODE == node.nodeType:
                 # @todo: Note that we're allowing comments inside the bodies
                 # of simple content elements, which isn't really Hoyle.
                 return self
-            if value.nodeType in (xml.dom.Node.TEXT_NODE, xml.dom.Node.CDATA_SECTION_NODE):
-                value = value.data
+            if node.nodeType in (xml.dom.Node.TEXT_NODE, xml.dom.Node.CDATA_SECTION_NODE):
+                value = node.data
                 maybe_element = False
             else:
                 # Do type conversion here
-                assert xml.dom.Node.ELEMENT_NODE == value.nodeType
-                expanded_name = pyxb.namespace.ExpandedName(value, fallback_namespace=_fallback_namespace)
+                assert xml.dom.Node.ELEMENT_NODE == node.nodeType
+                expanded_name = pyxb.namespace.ExpandedName(node, fallback_namespace=_fallback_namespace)
                 (element_binding, element_use) = self._ElementBindingUseForName(expanded_name)
                 if element_binding is not None:
-                    value = element_binding._createFromDOM(value, expanded_name, _fallback_namespace=_fallback_namespace)
+                    value = element_binding._createFromDOM(node, expanded_name, _fallback_namespace=_fallback_namespace)
+                else:
+                    # Might be a resolvable wildcard.  See if we can convert it to an
+                    # element.
+                    print 'Attempting to create element from node %s' % (expanded_name,)
+                    try:
+                        ns = expanded_name.namespace()
+                        if ns is not None:
+                            for mr in ns.moduleRecords():
+                                try:
+                                    if (mr.module() is None) and (mr.modulePath() is not None):
+                                        print 'Importing %s to get binding for wildcard %s' % (mr.modulePath(), expanded_name)
+                                        mod = __import__(mr.modulePath())
+                                        for c in mr.modulePath().split('.')[1:]:
+                                            mod = getattr(mod, c)
+                                        mr._setModule(mod)
+                                    value = mr.module().CreateFromDOM(node)
+                                    break
+                                except pyxb.PyXBException, e:
+                                    print 'Ignoring creating binding for wildcard %s: %s' % (expanded_name, e)
+                                except AttributeError, e:
+                                    # The module holding XMLSchema bindnigs does not
+                                    # have a CreateFromDOM method, and shouldn't since
+                                    # we need to convert schema instances to DOM more
+                                    # carefully.
+                                    if mr.namespace() != pyxb.namespace.XMLSchema:
+                                        raise
+                    except Exception, e:
+                        print 'WARNING: Unable to convert DOM node %s to Python instance: %s' % (expanded_name, e)
         if (not maybe_element) and isinstance(value, basestring) and (self._ContentTypeTag in (self._CT_EMPTY, self._CT_ELEMENT_ONLY)):
             if (0 == len(value.strip())) and not self._isNil():
                 return self
