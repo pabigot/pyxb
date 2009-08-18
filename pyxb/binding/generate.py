@@ -1316,7 +1316,7 @@ ModuleRecord._setModule(sys.modules[__name__])
 
 def CreateFromDocument (xml_text, default_namespace=None):
     """Parse the given XML and use the document element to create a Python instance."""
-    if True:
+    if False:
         dom = pyxb.utils.domutils.StringToDOM(xml_text)
         return CreateFromDOM(dom.documentElement)
     saxer = pyxb.binding.saxer.make_parser(fallback_namespace=Namespace.fallbackNamespace())
