@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:simpleType name="stype">
+     <xs:restriction base="xs:string"/>
+  </xs:simpleType>
+  <xs:element name="selt" type="stype"/>
 	<xs:complexType name="wrapper">
 		<xs:sequence>
 			<xs:element name="first" minOccurs="0"/>
