@@ -419,7 +419,7 @@ class NamespaceArchive (object):
 
     def __readComponentSet (self, unpickler):
         self.__validatePrerequisites(self._STAGE_readComponents)
-        #print 'RCS %s' % (self,)
+        print 'RCS %s' % (self,)
         for n in range(len(self.__moduleRecords)):
             ns = unpickler.load()
             mr = ns.lookupModuleRecordByUID(self.generationUID())

@@ -1217,6 +1217,7 @@ class _ModuleNaming_mixin (object):
     def writeToModuleFile (self):
         if self.bindingFile():
             self.bindingFile().write(self.moduleContents().encode('utf8'))
+            self.bindingFile().close()
             print 'Saved binding source to %s' % (self.__bindingFilePath,)
         else:
             print 'WARNING: No binding file for %s' % (self,)
@@ -2240,7 +2241,7 @@ class Generator (object):
             scc_modules = [ ]
             for mr in mr_scc:
                 # @todo INFO
-                #print 'Generating %s of %d' % (mr, len(mr_scc))
+                print 'Generating %s of %d' % (mr, len(mr_scc))
                 mr._setIsPublic(self.__namespaceVisibilityMap.get(mr.namespace(), self.defaultNamespacePublic()))
                 self.__assignModulePath(mr)
                 assert not ((mr.modulePath() is None) and self.generateToFiles()), 'No module path defined for %s' % (mr,)
