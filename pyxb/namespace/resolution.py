@@ -380,7 +380,15 @@ class NamespaceContext (object):
             self.__pendingReferencedNamespace = None
         assert self.__targetNamespace is not None
 
-    def __init__ (self, dom_node=None, parent_context=None, recurse=True, default_namespace=None, target_namespace=None, in_scope_namespaces=None, expanded_name=None, finalize_target_namespace=False):
+    def __init__ (self,
+                  dom_node=None,
+                  parent_context=None,
+                  recurse=True,
+                  default_namespace=None,
+                  target_namespace=None,
+                  in_scope_namespaces=None,
+                  expanded_name=None,
+                  finalize_target_namespace=True):  # MUST BE True for WSDL to work with minidom
         """Determine the namespace context that should be associated with the
         given node and, optionally, its element children.
 
