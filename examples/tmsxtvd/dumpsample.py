@@ -1,5 +1,7 @@
 import tmstvd
 import pyxb.utils.domutils as domutils
+import xml.dom.minidom
+import pyxb.utils.saxdom
 import pyxb.binding.saxer
 import time
 import cProfile
@@ -24,15 +26,23 @@ tmstvd.xtvd.typeDefinition()._SetSupersedingClass(my_xtvd)
 # The sample document.
 xml_file = 'tmsdatadirect_sample.xml'
 
-print 'Generating binding from %s with DOM' % (xml_file,)
-dt1 = time.time()
+print 'Generating binding from %s with minidom' % (xml_file,)
+mt1 = time.time()
 xmls = open(xml_file).read()
-dt2 = time.time()
-dom = domutils.StringToDOM(xmls)
-dt3 = time.time()
+mt2 = time.time()
+dom = xml.dom.minidom.parseString(xmls)
+mt3 = time.time()
 #cProfile.run('tmstvd.CreateFromDOM(dom.documentElement)', 'dom.prf')
 dom_instance = tmstvd.CreateFromDOM(dom.documentElement)
-dt4 = time.time()
+mt4 = time.time()
+
+print 'Generating binding from %s with SAXDOM' % (xml_file,)
+dt1 = time.time()
+dom = pyxb.utils.saxdom.parseString(xmls)
+dt2 = time.time()
+#cProfile.run('tmstvd.CreateFromDOM(dom.documentElement)', 'saxdom.prf')
+saxdom_instance = tmstvd.CreateFromDOM(dom.documentElement)
+dt3 = time.time()
 
 print 'Generating binding from %s with SAX' % (xml_file,)
 st1 = time.time()
@@ -44,7 +54,9 @@ saxer.parse(open(xml_file))
 st3 = time.time()
 sax_instance = handler.rootObject()
 
-print 'DOM-based read %f, parse %f, bind %f' % (dt2-dt1, dt3-dt2, dt4-dt3)
-print 'SAX-based read %f, parse and bind %f' % (st2-st1, st3-st2)
+print 'DOM-based read %f, parse %f, bind %f, total %f' % (mt2-mt1, mt3-mt2, mt4-mt3, mt4-mt2)
+print 'SAXDOM-based parse %f, bind %f, total %f' % (dt2-dt1, dt3-dt2, dt3-dt1)
+print 'SAX-based read %f, parse and bind %f, total %f' % (st2-st1, st3-st2, st3-st1)
 print "Equality test on DOM vs SAX: %s" % (dom_instance.equal(sax_instance),)
+print "Equality test on SAXDOM vs SAX: %s" % (saxdom_instance.equal(sax_instance),)
 
