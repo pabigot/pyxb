@@ -49,36 +49,10 @@ def StringToDOM (text, **kw):
     Unfortunately, the interface for parsing a string does not appear to be
     consistent across implementations, so for now this always uses
     C{xml.dom.minidom}, regardless of L{GetDOMImplementation}."""
-    if False:
+    if True:
         return xml.dom.minidom.parseString(text)
     import saxdom
     return saxdom.parseString(text, **kw)
-
-def NameFromNode (node, ns_ctx=None):
-    """Return the expanded name corresponding to the given DOM node.
-
-    @param node: The node for which namespace context is required.
-    @type node: C{xml.dom.Node}
-    @keyword ns_ctx: The NamespaceContext to use for resolving prefixes.  If not
-    provided, one is retrieved from (or created from) the node.
-    """
-    if ns_ctx is None:
-        ns_ctx = pyxb.namespace.resolution.NamespaceContext.GetNodeContext(node)
-    fallback_namespace = None
-    if ns_ctx is not None:
-        fallback_namespace = ns_ctx.defaultNamespace()
-    return pyxb.namespace.ExpandedName(node, fallback_namespace=fallback_namespace)
-
-def UpdateDefaultNamespace (node, default_namespace, recurse=True, **kw):
-    kw['default_namespace'] = default_namespace
-    if xml.dom.Node.ELEMENT_NODE == node.nodeType:
-        ns_ctx = pyxb.namespace.resolution.NamespaceContext.GetNodeContext(node, **kw)
-        dns = ns_ctx.defaultNamespace()
-        if (dns is None) or (dns.isAbsentNamespace() and default_namespace.isAbsentNamespace()):
-            ns_ctx.setDefaultNamespace(default_namespace)
-    if recurse:
-        for cn in node.childNodes:
-            UpdateDefaultNamespace(cn, default_namespace)
 
 def NodeAttribute (node, attribute_ncname, attribute_ns=None):
     """Namespace-aware search for an optional attribute in a node.

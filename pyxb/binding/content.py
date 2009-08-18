@@ -864,6 +864,8 @@ class ContentModelTransition (pyxb.cscRoot):
         if self.TT_wildcard == self.__termType:
             value_desc = 'value of type %s' % (type(value),)
             if isinstance(value, xml.dom.Node):
+                print 'NOTE: NOT ATTEMPTING WILDCARD CONVERSION'
+                '''
                 # See if we can convert from DOM into a Python instance.
                 # If not, we'll go ahead and store the DOM node.
                 node = value
@@ -894,6 +896,7 @@ class ContentModelTransition (pyxb.cscRoot):
                 except Exception, e:
                     print 'WARNING: Unable to convert wildcard node %s to Python instance: %s' % (expanded_name, e)
                     raise
+                '''
             elif not isinstance(value, basis._TypeBinding_mixin):
                 return False
             if not self.__term.matches(ctd_instance, value):

@@ -759,6 +759,13 @@ class Namespace (_NamespaceCategory_mixin, resolution._NamespaceResolution_mixin
         namespace."""
         return self.__uri is None
 
+    def fallbackNamespace (self):
+        """When known to be operating in this namespace, provide the Namespace
+        instance to be used when names are associated with no namespace."""
+        if self.isAbsentNamespace():
+            return self
+        return None
+
     @classmethod
     def CreateAbsentNamespace (cls):
         """Create an absent namespace.
@@ -768,6 +775,7 @@ class Namespace (_NamespaceCategory_mixin, resolution._NamespaceResolution_mixin
         rv = Namespace(None)
         rv.__absentNamespaceID = cls.__absentNamespaceID
         cls.__absentNamespaceID += 1
+
         return rv
 
     def _overrideAbsentNamespace (self, uri):

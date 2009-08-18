@@ -233,11 +233,11 @@ class BaseSAXHandler (xml.sax.handler.ContentHandler, object):
         # new context for the next contained element to be found.
         ns_ctx = self.__updateNamespaceContext()
         if pyxb.namespace.resolution.NamespaceContext._IsTargetNamespaceElement(expanded_name):
-            assert ns_ctx.targetNamespace() is None
+            # Not true for wsdl
+            #assert ns_ctx.targetNamespace() is None
             ns_ctx.finalizeTargetNamespace(attrs.get((None, 'targetNamespace')))
             assert ns_ctx.targetNamespace() is not None
         self.__nextNamespaceContext = pyxb.namespace.resolution.NamespaceContext(parent_context=ns_ctx)
-        assert self.__nextNamespaceContext.targetNamespace() is not None
 
         # Save the state of the enclosing element, and create a new
         # state for this element.

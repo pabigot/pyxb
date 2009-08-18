@@ -1314,21 +1314,23 @@ _GenerationUID = %{generation_uid_expr}
 ModuleRecord = Namespace.lookupModuleRecordByUID(_GenerationUID, create_if_missing=True)
 ModuleRecord._setModule(sys.modules[__name__])
 
-def CreateFromDocument (xml_text):
+def CreateFromDocument (xml_text, default_namespace=None):
     """Parse the given XML and use the document element to create a Python instance."""
     if True:
         dom = pyxb.utils.domutils.StringToDOM(xml_text)
         return CreateFromDOM(dom.documentElement)
-    saxer = pyxb.binding.saxer.make_parser(fallback_namespace=Namespace)
+    saxer = pyxb.binding.saxer.make_parser(fallback_namespace=Namespace.fallbackNamespace())
     handler = saxer.getContentHandler()
     saxer.parse(StringIO.StringIO(xml_text))
     instance = handler.rootObject()
     return instance
 
-def CreateFromDOM (node):
+def CreateFromDOM (node, default_namespace=None):
     """Create a Python instance from the given DOM node.
     The node tag must correspond to an element declaration in this module."""
-    return pyxb.binding.basis.element.AnyCreateFromDOM(node, Namespace)
+    if default_namespace is None:
+        default_namespace = Namespace.fallbackNamespace()
+    return pyxb.binding.basis.element.AnyCreateFromDOM(node, _fallback_namespace=default_namespace)
 
 ''', **template_map))
 

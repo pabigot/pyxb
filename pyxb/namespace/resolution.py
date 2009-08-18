@@ -332,7 +332,7 @@ class NamespaceContext (object):
     def setNodeContext (self, node):
         node.__namespaceContext = self
 
-    def processXMLNS (self, prefix, uri, undefine=False):
+    def processXMLNS (self, prefix, uri):
         if not self.__mutableInScopeNamespaces:
             self.__inScopeNamespaces = self.__inScopeNamespaces.copy()
             self.__mutableInScopeNamespaces = True
@@ -358,40 +358,29 @@ class NamespaceContext (object):
             # undefining a prefixed namespace.  XML-Infoset 2.2
             # paragraph 6 implies you can do this, but expat blows up
             # if you try it.  I don't think it's legal.
-            if prefix is None:
-                self.__defaultNamespace = None
-            else:
-                if not undefine:
-                    raise pyxb.NamespaceError(self, 'Attempt to undefine non-default namespace %s' % (attr.localName,))
+            if prefix is not None:
+                raise pyxb.NamespaceError(self, 'Attempt to undefine non-default namespace %s' % (attr.localName,))
             self.__inScopeNamespaces.pop(prefix, None)
-
-    def setDefaultNamespace (self, default_namespace):
-        """@note: this only sets the default namespace if it is undefined or absent"""
-        if ((self.__defaultNamespace is None) or (self.__defaultNamespace.isAbsentNamespace() and default_namespace.isAbsentNamespace())):
-            self.__defaultNamespace = default_namespace
+            self.__defaultNamespace = None
 
     def finalizeTargetNamespace (self, tns_uri=None):
         if tns_uri is not None:
             assert 0 < len(tns_uri)
             # Do not prevent overwriting target namespace; need this for WSDL
-            # files where an embeded schema improperly inherited a target
+            # files where an embedded schema inadvertently inherits a target
             # namespace from its enclosing definitions element.
-            #assert (self.__targetNamespace is None) or (self.__targetNamespace.uri() == tns_uri), '%s != %s' % (self.__targetNamespace, tns_uri)
             self.__targetNamespace = utility.NamespaceForURI(tns_uri, create_if_missing=True)
-            #assert self.__defaultNamespace is not None
         elif self.__targetNamespace is None:
             if tns_uri is None:
                 self.__targetNamespace = utility.CreateAbsentNamespace()
             else:
                 self.__targetNamespace = utility.NamespaceForURI(tns_uri, create_if_missing=True)
-            if self.__defaultNamespace is None:
-                self.__defaultNamespace = self.__targetNamespace
         if self.__pendingReferencedNamespaces is not None:
             [ self.__targetNamespace._referenceNamespace(_ns) for _ns in self.__pendingReferencedNamespaces ]
             self.__pendingReferencedNamespace = None
         assert self.__targetNamespace is not None
 
-    def __init__ (self, dom_node=None, parent_context=None, recurse=True, default_namespace=None, target_namespace=None, in_scope_namespaces=None, expanded_name=None, finalize_target_namespace=True):
+    def __init__ (self, dom_node=None, parent_context=None, recurse=True, default_namespace=None, target_namespace=None, in_scope_namespaces=None, expanded_name=None, finalize_target_namespace=False):
         """Determine the namespace context that should be associated with the
         given node and, optionally, its element children.
 
@@ -481,7 +470,7 @@ class NamespaceContext (object):
                 if Node.ELEMENT_NODE == cn.nodeType:
                     NamespaceContext(cn, self, True)
 
-    def interpretQName (self, name):
+    def interpretQName (self, name, namespace=None):
         """Convert the provided name into an L{ExpandedName}, i.e. a tuple of
         L{Namespace} and local name.
 
@@ -492,6 +481,9 @@ class NamespaceContext (object):
         
         @param name: A QName.
         @type name: C{str} or C{unicode}
+        @param name: Optional namespace to use for unqualified names when
+        there is no default namespace.  Note that a defined default namespace,
+        even if absent, supersedes this value.
         @return: An L{ExpandedName} tuple: ( L{Namespace}, C{str} )
         @raise pyxb.SchemaValidationError: The prefix is not in scope
         @raise pyxb.SchemaValidationError: No prefix is given and the default namespace is absent
@@ -505,9 +497,15 @@ class NamespaceContext (object):
                 raise pyxb.SchemaValidationError('No namespace declared for QName %s prefix' % (name,))
         else:
             local_name = name
-            namespace = self.defaultNamespace()
+            # Context default supersedes caller-provided namespace
+            if self.defaultNamespace() is not None:
+                namespace = self.defaultNamespace()
+            # If there's no default namespace, but there is an absent target
+            # namespace, use that instead.
+            if (namespace is None) and (self.targetNamespace() is not None) and self.targetNamespace().isAbsentNamespace():
+                namespace = self.targetNamespace()
             if namespace is None:
-                raise pyxb.SchemaValidationError('QName %s with absent default namespace' % (local_name,))
+                raise pyxb.SchemaValidationError('QName %s with absent default namespace cannot be resolved' % (local_name,))
         # Anything we're going to look stuff up in requires a component model.
         # Make sure we can load one, unless we're looking up in the thing
         # we're constructing (in which case it's being built right now).

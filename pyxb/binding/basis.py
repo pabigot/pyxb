@@ -47,7 +47,7 @@ class _TypeBinding_mixin (pyxb.cscRoot):
 
     # @todo: We don't actually use this anymore; get rid of it, just leaving a
     # comment describing each keyword.
-    _PyXBFactoryKeywords = ( '_dom_node', '_apply_whitespace_facet', '_validate_constraints', '_require_value', '_nil', '_element' )
+    _PyXBFactoryKeywords = ( '_dom_node', '_fallback_namespace', '_apply_whitespace_facet', '_validate_constraints', '_require_value', '_nil', '_element' )
     """Keywords that are interpreted by __new__ or __init__ in one or more
     classes in the PyXB type hierarchy.  All these keywords must be removed
     before invoking base Python __init__ or __new__."""
@@ -628,6 +628,7 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
         kw.pop('_validate_constraints', None)
         kw.pop('_require_value', None)
         kw.pop('_element', None)
+        kw.pop('_fallback_namespace', None)
         kw.pop('_nil', None)
         # ConvertArguments will remove _element and _apply_whitespace_facet
         args = cls._ConvertArguments(args, kw)
@@ -1263,19 +1264,17 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
 
     # element
     @classmethod
-    def AnyCreateFromDOM (cls, node, fallback_namespace):
+    def AnyCreateFromDOM (cls, node, _fallback_namespace):
         if xml.dom.Node.DOCUMENT_NODE == node.nodeType:
             node = node.documentElement
-        expanded_name = pyxb.namespace.ExpandedName(node, fallback_namespace=fallback_namespace)
+        expanded_name = pyxb.namespace.ExpandedName(node, fallback_namespace=_fallback_namespace)
         elt = expanded_name.elementBinding()
         if elt is None:
             raise pyxb.UnrecognizedElementError('No element binding available for %s' % (expanded_name,))
         assert isinstance(elt, pyxb.binding.basis.element)
-        ns_ctx = pyxb.namespace.resolution.NamespaceContext.GetNodeContext(node, target_namespace=fallback_namespace, default_namespace=fallback_namespace)
-        dns = ns_ctx.defaultNamespace()
-        if (dns is None) or dns.isAbsentNamespace():
-            domutils.UpdateDefaultNamespace(node, fallback_namespace)
-        return elt.createFromDOM(node)
+        # Pass on the namespace to use when resolving unqualified qnames as in
+        # xsi:type
+        return elt.createFromDOM(node, _expanded_name=expanded_name, _fallback_namespace=_fallback_namespace)
         
     def elementForName (self, name):
         """Return the element that should be used if this element binding is
@@ -1331,6 +1330,15 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
         associated with the selected element binding.  See
         L{_TypeBinding_mixin} and any specializations of it.
 
+        @keyword _expanded_name: The expanded name of the node.  If not
+        provided, defaults to the name of this element.  (Must be provided
+        because its namespace depends on context not available here; it may be
+        different from this element's name in the case of substitution
+        groups.)
+
+        @keyword _fallback_namespace: Optional namespace to use when resolving
+        unqualified type names.
+
         @param node: The DOM node specifying the element content.  If this is
         a (top-level) Document node, its element node is used.
         @type node: C{xml.dom.Node}
@@ -1350,7 +1358,8 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
         # Even if found, this may not be equal to self, since we allow you to
         # use an abstract substitution group head to create instances from DOM
         # nodes that are in that group.
-        expanded_name = pyxb.utils.domutils.NameFromNode(node)
+        expanded_name = kw.pop('_expanded_name', self.name())
+        fallback_namespace = kw.pop('_fallback_namespace', None)
         element_binding = self.elementForName(expanded_name)
         if element_binding is None:
             raise pyxb.StructuralBadDocumentError('Element %s cannot create from node %s' % (self.name(), expanded_name))
@@ -1385,13 +1394,13 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
             # web services tend to set it on nodes just to inform their
             # lax-processing clients how to interpret the value.
 
-            type_name = ns_ctx.interpretQName(type_name)
+            type_en = ns_ctx.interpretQName(type_name, namespace=fallback_namespace)
             try:
-                alternative_type_class = type_name.typeBinding()
+                alternative_type_class = type_en.typeBinding()
             except KeyError, e:
                 raise pyxb.BadDocumentError('No type binding for %s' % (type_name,))
             if not issubclass(alternative_type_class, type_class):
-                raise pyxb.BadDocumentError('%s value %s is not subclass of element type %s' % (xsi_type, type_name, type_class._ExpandedName))
+                raise pyxb.BadDocumentError('%s value %s is not subclass of element type %s' % (xsi_type, type_en, type_class._ExpandedName))
             type_class = alternative_type_class
             
         # Pass xsi:nil on to the constructor regardless of whether the element
@@ -1402,7 +1411,7 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
         if is_nil is not None:
             kw['_nil'] = pyxb.binding.datatypes.boolean(is_nil)
 
-        rv = type_class.Factory(_dom_node=node, **kw)
+        rv = type_class.Factory(_dom_node=node, _fallback_namespace=fallback_namespace, **kw)
         assert rv._element() == element_binding
         rv._setNamespaceContext(ns_ctx)
         return rv
@@ -1525,6 +1534,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         """
 
         dom_node = kw.pop('_dom_node', None)
+        fallback_namespace = kw.pop('_fallback_namespace', None)
         is_nil = False
         if dom_node is not None:
             if xml.dom.Node.DOCUMENT_NODE == dom_node.nodeType:
@@ -1558,7 +1568,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             if self._CT_SIMPLE == self._ContentTypeTag:
                 self.__initializeSimpleContent(args, dom_node)
             else:
-                self._setContentFromDOM(dom_node)
+                self._setContentFromDOM(dom_node, fallback_namespace)
         elif 0 < len(args):
             self.extend(args)
         else:
@@ -1872,7 +1882,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             element_binding = element_use.elementBinding()
         return (element_binding, element_use)
         
-    def append (self, value, element_use=None, maybe_element=True):
+    def append (self, value, element_use=None, maybe_element=True, _fallback_namespace=None):
         """Add the value to the instance.
 
         The value should be a DOM node or other value that is or can be
@@ -1905,10 +1915,10 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             else:
                 # Do type conversion here
                 assert xml.dom.Node.ELEMENT_NODE == value.nodeType
-                expanded_name = pyxb.utils.domutils.NameFromNode(value)
+                expanded_name = pyxb.namespace.ExpandedName(value, fallback_namespace=_fallback_namespace)
                 (element_binding, element_use) = self._ElementBindingUseForName(expanded_name)
                 if element_binding is not None:
-                    value = element_binding.createFromDOM(value)
+                    value = element_binding.createFromDOM(value, _expanded_name=expanded_name, _fallback_namespace=_fallback_namespace)
         if (not maybe_element) and isinstance(value, basestring) and (self._ContentTypeTag in (self._CT_EMPTY, self._CT_ELEMENT_ONLY)):
             if (0 == len(value.strip())) and not self._isNil():
                 return self
@@ -1963,9 +1973,9 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             raise pyxb.UnrecognizedContentError(value)
         wcl.append(value)
         
-    def extend (self, value_list):
+    def extend (self, value_list, _fallback_namespace=None):
         """Invoke L{append} for each value in the list, in turn."""
-        [ self.append(_v) for _v in value_list ]
+        [ self.append(_v, _fallback_namespace=_fallback_namespace) for _v in value_list ]
         return self
 
     def __setContent (self, value):
@@ -1984,10 +1994,10 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
     def _IsMixed (cls):
         return (cls._CT_MIXED == cls._ContentTypeTag)
     
-    def _setContentFromDOM (self, node):
+    def _setContentFromDOM (self, node, _fallback_namespace):
         """Initialize the content of this element from the content of the DOM node."""
 
-        self.extend(node.childNodes[:])
+        self.extend(node.childNodes[:], _fallback_namespace)
         if self._PerformValidation and (not self._isNil()) and (self.__dfaStack is not None) and (not self.__dfaStack.isTerminal()):
             raise pyxb.MissingContentError()
         return self
