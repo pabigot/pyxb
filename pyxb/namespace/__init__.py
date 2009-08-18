@@ -978,7 +978,7 @@ class Namespace (_NamespaceCategory_mixin, resolution._NamespaceResolution_mixin
 
 from builtin import *
 
-resolution.NamespaceContext._AddTargetNamespaceElement(XMLSchema.createExpandedName('schema'))
+resolution.NamespaceContext._AddTargetNamespaceAttribute(XMLSchema.createExpandedName('schema'), ExpandedName('targetNamespace'))
 
 ## Local Variables:
 ## fill-column:78

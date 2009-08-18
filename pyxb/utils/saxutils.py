@@ -223,7 +223,6 @@ class BaseSAXHandler (xml.sax.handler.ContentHandler, object):
     #    pass
 
     def startElementNS (self, name, qname, attrs):
-        #print 'start %s' % (name,)
         self.__flushPendingText()
 
         # Get the element name including namespace information.
@@ -232,10 +231,11 @@ class BaseSAXHandler (xml.sax.handler.ContentHandler, object):
         # Get the context to be used for this element, and create a
         # new context for the next contained element to be found.
         ns_ctx = self.__updateNamespaceContext()
-        if pyxb.namespace.resolution.NamespaceContext._IsTargetNamespaceElement(expanded_name):
+        tns_attr = pyxb.namespace.resolution.NamespaceContext._TargetNamespaceAttribute(expanded_name)
+        if tns_attr is not None:
             # Not true for wsdl
             #assert ns_ctx.targetNamespace() is None
-            ns_ctx.finalizeTargetNamespace(attrs.get((None, 'targetNamespace')))
+            ns_ctx.finalizeTargetNamespace(attrs.get(tns_attr.uriTuple()))
             assert ns_ctx.targetNamespace() is not None
         self.__nextNamespaceContext = pyxb.namespace.resolution.NamespaceContext(parent_context=ns_ctx)
 

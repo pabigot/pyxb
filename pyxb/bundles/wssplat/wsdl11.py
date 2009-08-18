@@ -298,4 +298,4 @@ class tDefinitions (raw_wsdl11.tDefinitions):
 
 raw_wsdl11.tDefinitions._SetSupersedingClass(tDefinitions)
 
-pyxb.namespace.resolution.NamespaceContext._AddTargetNamespaceElement(raw_wsdl11.Namespace.createExpandedName('definitions'))
+pyxb.namespace.resolution.NamespaceContext._AddTargetNamespaceAttribute(raw_wsdl11.Namespace.createExpandedName('definitions'), pyxb.namespace.ExpandedName('targetNamespace'))

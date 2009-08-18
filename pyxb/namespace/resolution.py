@@ -272,14 +272,14 @@ class NamespaceContext (object):
     """Records information associated with namespaces at a DOM node.
     """
 
-    __TargetNamespaceElements = set()
+    __TargetNamespaceAttributes = { }
     @classmethod
-    def _AddTargetNamespaceElement (cls, expanded_name):
+    def _AddTargetNamespaceAttribute (cls, expanded_name, attribute_name):
         assert expanded_name is not None
-        cls.__TargetNamespaceElements.add(expanded_name)
+        cls.__TargetNamespaceAttributes[expanded_name] = attribute_name
     @classmethod
-    def _IsTargetNamespaceElement (cls, expanded_name):
-        return expanded_name in cls.__TargetNamespaceElements
+    def _TargetNamespaceAttribute (cls, expanded_name):
+        return cls.__TargetNamespaceAttributes.get(expanded_name, None)
 
     # Support for holding onto referenced namespaces until we have a target
     # namespace to give them to.
@@ -459,13 +459,15 @@ class NamespaceContext (object):
                         uri = utility.NamespaceForURI(attr.namespaceURI, create_if_missing=True)
                         key = pyxb.namespace.ExpandedName(uri, attr.localName)
                     else:
-                        key = attr.localName
+                        key = pyxb.namespace.ExpandedName(None, attr.localName)
                     attribute_map[key] = attr.value
         
         if finalize_target_namespace:
             tns_uri = None
-            if self._IsTargetNamespaceElement(expanded_name) and (target_namespace is None):
-                tns_uri = attribute_map.get('targetNamespace')
+            tns_attr = self._TargetNamespaceAttribute(expanded_name)
+            if tns_attr is not None:
+                tns_uri = attribute_map.get(tns_attr)
+                assert (target_namespace is None) or (target_namespace.uri() == tns_uri)
             self.finalizeTargetNamespace(tns_uri)
 
         # Store in each node the in-scope namespaces at that node;
