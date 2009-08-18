@@ -162,7 +162,7 @@ class TestWildcard (unittest.TestCase):
         ccdom = cdom.firstChild
         self.assertTrue(isinstance(ccdom, Node))
         self.assertEquals(Node.TEXT_NODE, ccdom.nodeType)
-        self.assertEquals('text', ccdom.value)
+        self.assertEquals('text', ccdom.data)
 
     def testWildcardWrappingRecognized (self):
         # NB: Test on CTD, not element
