@@ -16,7 +16,7 @@ class TestIncludeDD (unittest.TestCase):
     def testDefault (self):
         xmls = '<entry xmlns="%s"><from>one</from><to>single</to></entry>' % (Namespace.uri(),)
         # Default namespace applies to from which should be in no namespace
-        self.assertRaises(pyxb.UnrecognizedElementError, CreateFromDocument, xmls)
+        self.assertRaises(pyxb.UnrecognizedContentError, CreateFromDocument, xmls)
 
     def testExplicit (self):
         xmls = '<ns:entry xmlns:ns="%s"><from>one</from><ns:to>single</ns:to></ns:entry>' % (Namespace.uri(),)
