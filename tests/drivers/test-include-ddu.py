@@ -4,7 +4,7 @@ import pyxb.utils.domutils
 import os.path
 schema_path = '%s/../schemas/test-include-ddu.xsd' % (os.path.dirname(__file__),)
 code = pyxb.binding.generate.GeneratePython(schema_location=schema_path)
-file('code.py', 'w').write(code)
+#file('code.py', 'w').write(code)
 rv = compile(code, 'test', 'exec')
 eval(rv)
 
