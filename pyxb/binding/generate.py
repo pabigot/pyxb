@@ -2241,7 +2241,7 @@ class Generator (object):
             scc_modules = [ ]
             for mr in mr_scc:
                 # @todo INFO
-                print 'Generating %s of %d' % (mr, len(mr_scc))
+                #print 'Generating %s of %d' % (mr, len(mr_scc))
                 mr._setIsPublic(self.__namespaceVisibilityMap.get(mr.namespace(), self.defaultNamespacePublic()))
                 self.__assignModulePath(mr)
                 assert not ((mr.modulePath() is None) and self.generateToFiles()), 'No module path defined for %s' % (mr,)
