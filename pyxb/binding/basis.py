@@ -1348,11 +1348,10 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
         associated with the selected element binding.  See
         L{_TypeBinding_mixin} and any specializations of it.
 
-        @param _expanded_name: The expanded name of the node.  If not
-        provided, defaults to the name of this element.  (Must be provided
-        because its namespace depends on context not available here; it may be
-        different from this element's name in the case of substitution
-        groups.)
+        @param expanded_name: The expanded name of the node.  If the value is
+        C{None}, defaults to the name of this element.  (In the case of
+        substitution groups, the default is wrong, but correct inference
+        depends on context not available here.)
 
         @keyword _fallback_namespace: Optional namespace to use when resolving
         unqualified type names.
