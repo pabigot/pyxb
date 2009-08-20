@@ -98,6 +98,59 @@ class BIND (object):
         return factory(*self.__args, **kw)
 
 
+XMLStyle_minidom = 0
+"""Use xml.dom.minidom for XML processing.  This is the fastest, but does not
+provide location information.  It produces DOM instances."""
+
+XMLStyle_saxdom = 1
+"""Use pyxb.utils.saxdom for XML processing.  This is the slowest, but both
+provides location information and generates a DOM instance."""
+
+XMLStyle_saxer = 2
+"""Use pyxb.binding.saxer when converting documents to binding instances.
+This style supports location information in the bindings.  It produces binding
+instances directly, without going through a DOM stage, so is faster than
+XMLStyle_saxdom.  However, since the pyxb.xmlschema.structures classes require
+a DOM model, XMLStyle_saxdom will be used for pyxb.utils.domutils.StringToDOM
+if this style is selected."""
+
+_XMLStyle = XMLStyle_saxer
+"""The current XML processing style."""
+
+_XMLStyleMap = { 'minidom' : XMLStyle_minidom,
+                 'saxdom' : XMLStyle_saxdom,
+                 'saxer' : XMLStyle_saxer }
+_XMLStyleMapReverse = dict([ (_v, _k) for (_k, _v) in _XMLStyleMap.items() ])
+
+_XMLStyle_envvar = 'PYXB_XML_STYLE'
+
+def _SetXMLStyle (style=None):
+    """Set the interface used to parse XML content.
+
+    This can be invoked within code.  The system default of L{XMLStyle_saxer}
+    can also be overridden at runtime by setting the environment variable
+    C{PYXB_XML_STYLE} to one of C{minidom}, C{saxdom}, or C{saxer}.
+
+    @param style: One of L{XMLStyle_minidom}, L{XMLStyle_saxdom},
+    L{XMLStyle_saxer}.  If not provided, the system default is used.
+    """
+    global _XMLStyle
+    if style is None:
+        import os
+        style_name = os.environ.get(_XMLStyle_envvar)
+        if style_name is None:
+            style_name = 'saxer'
+        style = _XMLStyleMap.get(style_name)
+        if style is None:
+            raise PyXBException('Bad value "%s" for %s' % (style_name, _XMLStyle_envvar))
+    if _XMLStyleMapReverse.get(style) is None:
+        raise PyXBException('Bad value %s for _SetXMLStyle' % (style,))
+    _XMLStyle = style
+    #print "XML style %s" % (_XMLStyleMapReverse.get(_XMLStyle),)
+
+_SetXMLStyle()
+
+
 ## Local Variables:
 ## fill-column:78
 ## End:
