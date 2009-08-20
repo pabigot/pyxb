@@ -251,7 +251,6 @@ class _BDSNamespaceSupport (object):
         """Add the given namespace as one to be used in this document.
 
         @param namespace: The namespace to be associated with the document.
-        If provided as a URI, the namespace is created.
         @type namespace: L{pyxb.namespace.Namespace}
 
         @keyword prefix: Optional prefix to be used with this namespace.  If
@@ -267,8 +266,6 @@ class _BDSNamespaceSupport (object):
         @todo: provide default prefix in L{pyxb.namespace.Namespace}
         @todo: support multiple prefixes for each namespace
         """
-        if isinstance(namespace, basestring):
-            namespace = pyxb.namespace.NamespaceForURI(namespace, create_if_missing=True)
         if not isinstance(namespace, pyxb.namespace.Namespace):
             raise pyxb.UsageError('declareNamespace: must be given a namespace instance')
         if namespace.isAbsentNamespace():
@@ -477,11 +474,11 @@ class BindingDOMSupport (object):
 
     def namespacePrefixMap (self):
         """Get the map from namespaces to prefixes for this instance"""
-        return self.__namespaceSupport.namespacePrefixMap.copy()
+        return self.__namespaceSupport.namespacePrefixMap().copy()
     @classmethod
     def NamespacePrefixMap (cls):
         """Get the map of default namespace-to-prefix mappings"""
-        return cls.__NamespaceSupport.namespacePrefixMap.copy()
+        return cls.__NamespaceSupport.namespacePrefixMap().copy()
 
     def addAttribute (self, element, expanded_name, value):
         """Add an attribute to the given element.
