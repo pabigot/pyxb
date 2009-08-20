@@ -7,9 +7,10 @@ pyxbgen \
   --module-prefix=bindings \
   --schema-location=d_c.xsd --module=D \
   --archive-to-file=bindings/D.wxs \
- && python tst-a.py \
- && python tst-b.py \
- && ( echo "nsdep TESTS PASSED"; exit 0 )
+ || exit 1
 
-exit 1
+python tst-a.py || exit 1
 
+python tst-b.py || exit 1
+
+echo nsdep tests passed

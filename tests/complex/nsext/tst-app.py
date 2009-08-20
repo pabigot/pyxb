@@ -2,6 +2,11 @@ import unittest
 import app
 import common4app
 
+import pyxb.utils.domutils
+
+pyxb.utils.domutils.BindingDOMSupport.DeclareNamespace(app.Namespace, 'app')
+pyxb.utils.domutils.BindingDOMSupport.DeclareNamespace(common4app.Namespace, 'common')
+
 class Test (unittest.TestCase):
     def testApp (self):
         x = common4app.extended('hi', 'there')
