@@ -9,4 +9,7 @@ pyxbgen \
   --archive-to-file=bindings/D.wxs \
  && python tst-a.py \
  && python tst-b.py \
- && echo "nsdep TESTS PASSED"
+ && ( echo "nsdep TESTS PASSED"; exit 0 )
+
+exit 1
+
