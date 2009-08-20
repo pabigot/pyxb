@@ -65,16 +65,16 @@ Anytown, AS  12345-6789'''
         po2 = purchaseOrder.createFromDOM(dom.documentElement)
         self.assertEqual(xml1, ToDOM(po2).toxml())
         loc = po2.shipTo._location()
-        self.assertTrue(58 == loc.columnNumber)
+        self.assertTrue((not isinstance(loc, pyxb.utils.utility.Locatable_mixin)) or (58 == loc.columnNumber))
         loc = po2.billTo.name._location()
-        self.assertTrue(131 == loc.columnNumber)
+        self.assertTrue((not isinstance(loc, pyxb.utils.utility.Locatable_mixin)) or (131 == loc.columnNumber))
 
         po2 = CreateFromDocument(xml)
         self.assertEqual(xml1, ToDOM(po2).toxml())
         loc = po2.shipTo._location()
-        self.assertTrue(58 == loc.columnNumber)
+        self.assertTrue((not isinstance(loc, pyxb.utils.utility.Locatable_mixin)) or (58 == loc.columnNumber))
         loc = po2.billTo.name._location()
-        self.assertTrue(131 == loc.columnNumber)
+        self.assertTrue((not isinstance(loc, pyxb.utils.utility.Locatable_mixin)) or (131 == loc.columnNumber))
 
 
         xml2 = '<purchaseOrder xmlns="http://www.example.com/PO1"><shipTo><name>Customer</name><street>95 Main St</street></shipTo><billTo><name>Sugar Mama</name><street>24 E. Dearling Ave</street></billTo><comment>Thanks!</comment></purchaseOrder>'
