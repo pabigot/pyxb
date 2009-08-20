@@ -9,4 +9,6 @@ print myobj.a2elt.a2b
 print myobj.ba
 print myobj.toxml()
 
-
+x2 = A.a2('anotherValue', 'legal')
+myobj.a2elt = x2
+print myobj.toxml()
