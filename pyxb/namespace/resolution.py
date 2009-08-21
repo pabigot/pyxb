@@ -272,6 +272,18 @@ class NamespaceContext (object):
     """Records information associated with namespaces at a DOM node.
     """
 
+    def __str__ (self):
+        rv = [ 'NamespaceContext ' ]
+        if self.defaultNamespace() is not None:
+            rv.extend([ '(defaultNamespace=', str(self.defaultNamespace()), ') '])
+        if self.targetNamespace() is not None:
+            rv.extend([ '(targetNamespace=', str(self.targetNamespace()), ') '])
+        rv.append("\n")
+        for (pfx, ns) in self.inScopeNamespaces().items():
+            if pfx is not None:
+                rv.append('  xmlns:%s=%s' % (pfx, str(ns)))
+        return ''.join(rv)
+
     __TargetNamespaceAttributes = { }
     @classmethod
     def _AddTargetNamespaceAttribute (cls, expanded_name, attribute_name):
