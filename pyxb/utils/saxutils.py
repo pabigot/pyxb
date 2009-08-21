@@ -60,7 +60,8 @@ class TracingSAXHandler (xml.sax.handler.ContentHandler):
         print 'processingInstruction %s' % (data,)
 
 class _NoopSAXHandler (xml.sax.handler.ContentHandler):
-    """A SAX handler class which prints each method invocation.
+    """A SAX handler class which doesn't do anything.  Used to get baseline
+    performance parsing a particular document.
     """
 
     def setDocumentLocator (self, locator):
@@ -143,23 +144,20 @@ class SAXElementState (object):
         self.__content.append( (element, element_use, True) )
 
 class BaseSAXHandler (xml.sax.handler.ContentHandler, object):
-    """A SAX handler class which generates a binding instance for a document
-    through a streaming parser.
+    """A SAX handler class that maintains a stack of enclosing elements and
+    manages namespace declarations.
 
-    An example of using this to parse the document held in the string C{xmls} is::
-
-      import pyxb.binding.saxer
-      import StringIO
-
-      saxer = pyxb.binding.saxer.make_parser()
-      handler = saxer.getContentHandler()
-      saxer.parse(StringIO.StringIO(xml))
-      instance = handler.rootObject()
-
+    This is the base for L{pyxb.utils.saxdom._DOMSAXHandler} and
+    L{pyxb.binding.saxer.PyXBSAXHandler}.
     """
 
+    # An instance of L{pyxb.utils.utility.Location} that will be used to
+    # construct the locations of events as they are received.
     __locationTemplate = None
 
+    # The callable that creates an instance of (a subclass of)
+    # L{SAXElementState} as required to hold element-specific information as
+    # parsing proceeds.
     __elementStateConstructor = None
 
     # The namespace to use when processing a document with an absent default
@@ -216,11 +214,29 @@ class BaseSAXHandler (xml.sax.handler.ContentHandler, object):
         return self
 
     def __init__ (self, **kw):
+        """Create a new C{xml.sax.handler.ContentHandler} instance to maintain state relevant to elements.
+
+        @keyword fallback_namespace: Optional namespace to use for unqualified
+        names with no default namespace in scope.  Has no effect unless it is
+        an absent namespace.
+
+        @keyword element_state_constructor: Optional callable object that
+        creates instances of L{SAXElementState} that hold element-specific
+        information.  Defaults to L{SAXElementState}.
+
+        @keyword target_namespace: Optional namespace to set as the target
+        namespace.  If not provided, there is no target namespace (not even an
+        absent one).  This is the appropriate situation when processing plain
+        XML documents.
+
+        @keyword location_base: An object to be recorded as the base of all
+        L{pyxb.utils.utility.Location} instances associated with events and
+        objects handled by the parser.
+        """
         self.__fallbackNamespace = kw.pop('fallback_namespace', None)
         self.__elementStateConstructor = kw.pop('element_state_constructor', SAXElementState)
         self.__targetNamespace = kw.pop('target_namespace', None)
         self.__locationTemplate = pyxb.utils.utility.Location(kw.pop('location_base', None))
-        self.reset()
 
     # If there's a new namespace waiting to be used, make it the
     # current namespace.  Return the current namespace.
@@ -257,12 +273,13 @@ class BaseSAXHandler (xml.sax.handler.ContentHandler, object):
     def startElementNS (self, name, qname, attrs):
         self.__flushPendingText()
 
-        # Get the element name including namespace information.
-        expanded_name = pyxb.namespace.ExpandedName(name, fallback_namespace=self.__fallbackNamespace)
-
         # Get the context to be used for this element, and create a
         # new context for the next contained element to be found.
         ns_ctx = self.__updateNamespaceContext()
+
+        # Get the element name, which is already a tuple with the namespace assigned.
+        expanded_name = pyxb.namespace.ExpandedName(name, fallback_namespace=self.__fallbackNamespace)
+
         tns_attr = pyxb.namespace.resolution.NamespaceContext._TargetNamespaceAttribute(expanded_name)
         if tns_attr is not None:
             # Not true for wsdl
@@ -325,18 +342,26 @@ def make_parser (*args, **kw):
       - C{feature_namespace_prefixes} is set to C{False} so we don't get
         prefixes encoded into our names (probably redundant with the above but
         still...)
-      - The content handler is set to a fresh instance of L{PyXBSAXHandler}.
 
-    All arguments and keywords not documented here are passed to C{xml.sax.make_parser}.
+    All arguments not documented here are passed to C{xml.sax.make_parser}.
 
-    @keyword fallback_namespace: The namespace to use for lookups of
-    unqualified names in absent namespaces.
-    @type fallback_namespace: L{pyxb.namespace.Namespace}
+    All keywords not documented here (and C{fallback_namespace}, which is) are
+    passed to the C{content_handler_constructor} if that must be invoked.
 
     @keyword content_handler: The content handler instance for the
-    parser to use.  If not provided, an instance of L{BaseSAXHandler}
+    parser to use.  If not provided, an instance of C{content_handler_constructor}
     is created and used.
     @type content_handler: C{xml.sax.handler.ContentHandler}
+
+    @keyword content_handler_constructor: A callable which produces an
+    appropriate instance of (a subclass of) L{BaseSAXHandler}.  The default is
+    L{BaseSAXHandler}.
+
+    @keyword fallback_namespace: The namespace to use for lookups of
+    unqualified names in absent namespaces; see
+    L{pyxb.namespace.ExpandedName}.  This keyword is not used by this
+    function, but is passed to the C{content_handler_constructor}.
+    @type fallback_namespace: L{pyxb.namespace.Namespace}
     """
     content_handler_constructor = kw.pop('content_handler_constructor', BaseSAXHandler)
     content_handler = kw.pop('content_handler', None)

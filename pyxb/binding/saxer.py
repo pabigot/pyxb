@@ -24,7 +24,12 @@ import pyxb.utils.utility
 import basis
 
 class _SAXElementState (pyxb.utils.saxutils.SAXElementState):
-    """State corresponding to processing a given element."""
+    """State required to generate bindings for a specific element.
+
+    If the document being parsed includes references to unrecognized elements,
+    a DOM instance of the element and its content is created and treated as a
+    wildcard element.
+    """
 
     # An expanded name corresponding to xsi:nil
     __XSINilTuple = pyxb.namespace.XMLSchema_instance.createExpandedName('nil').uriTuple()
@@ -122,13 +127,17 @@ class _SAXElementState (pyxb.utils.saxutils.SAXElementState):
         return self.__domDocument is not None
 
     def enterDOMMode (self, attrs):
+        """Actions upon first encountering an element for which we cannot create a binding.
+
+        Invoking this transitions the parser into DOM mode, creating a new DOM
+        document that will represent this element including its content."""
         assert not self.__domDocument
-        #print 'Beginning creation of DOM subtree'
         self.__domDocument = pyxb.utils.saxdom.Document(namespace_context=self.namespaceContext())
         self.__domDepth = 0
         return self.startDOMElement(attrs)
 
     def startDOMElement (self, attrs):
+        """Actions upon entering an element that is part of a DOM subtree."""
         self.__domDepth += 1
         #print 'Enter level %d with %s' % (self.__domDepth, self.expandedName())
         self.__attributes = pyxb.utils.saxdom.NamedNodeMap()
@@ -138,6 +147,7 @@ class _SAXElementState (pyxb.utils.saxutils.SAXElementState):
             self.__attributes._addItem(pyxb.utils.saxdom.Attr(expanded_name=attr_en, namespace_context=ns_ctx, value=attrs.getValue(name), location=this_state.location()))
 
     def endDOMElement (self):
+        """Actions upon leaving an element that is part of a DOM subtree."""
         ns_ctx = self.namespaceContext()
         element = pyxb.utils.saxdom.Element(namespace_context=ns_ctx, expanded_name=self.expandedName(), attributes=self.__attributes, location=self.location())
         for ( content, element_use, maybe_element ) in self.content():
@@ -157,9 +167,9 @@ class _SAXElementState (pyxb.utils.saxutils.SAXElementState):
         return element
 
     def startBindingElement (self, type_class, new_object_factory, element_use, attrs):
-        """Actions upon entering an element.
+        """Actions upon entering an element that will produce a binding instance.
 
-        Th element use is recorded.  If the type is a subclass of
+        The element use is recorded.  If the type is a subclass of
         L{basis.simpleTypeDefinition}, a delayed constructor is recorded so
         the binding instance can be created upon completion of the element;
         otherwise, a binding instance is created and stored.  The attributes
@@ -260,12 +270,21 @@ class PyXBSAXHandler (pyxb.utils.saxutils.BaseSAXHandler):
         return self
 
     def __init__ (self, **kw):
+        """Create a parser instance for converting XML to bindings.
+
+        @keyword element_state_constructor: Overridden with the value
+        L{_SAXElementState} before invoking the L{superclass
+        constructor<pyxb.utils.saxutils.BaseSAXHandler.__init__>}.
+        """
+
         kw.setdefault('element_state_constructor', _SAXElementState)
         super(PyXBSAXHandler, self).__init__(**kw)
         self.reset()
 
     def startElementNS (self, name, qname, attrs):
         (this_state, parent_state, ns_ctx, name_en) = super(PyXBSAXHandler, self).startElementNS(name, qname, attrs)
+
+        # Delegate processing if in DOM mode
         if this_state.inDOMMode():
             return this_state.startDOMElement(attrs)
 
@@ -330,6 +349,9 @@ class PyXBSAXHandler (pyxb.utils.saxutils.BaseSAXHandler):
     def endElementNS (self, name, qname):
         this_state = super(PyXBSAXHandler, self).endElementNS(name, qname)
         if this_state.inDOMMode():
+            # Delegate processing if in DOM mode.  Note that completing this
+            # element may take us out of DOM mode.  In any case, the returned
+            # binding object is a DOM element instance.
             binding_object = this_state.endDOMElement()
         else:
             # Process the element end.  This will return a binding object,
@@ -348,24 +370,8 @@ class PyXBSAXHandler (pyxb.utils.saxutils.BaseSAXHandler):
             self.__rootObject = binding_object
 
 def make_parser (*args, **kw):
-    """Extend C{xml.sax.make_parser} to configure the parser the way we
-    need it:
-
-      - C{feature_namespaces} is set to C{True} so we process xmlns
-        directives properly
-      - C{feature_namespace_prefixes} is set to C{False} so we don't get
-        prefixes encoded into our names (probably redundant with the above but
-        still...)
-      - The content handler is set to a fresh instance of L{PyXBSAXHandler}.
-
-    All arguments and keywords not documented here are passed to C{xml.sax.make_parser}.
-
-    @keyword fallback_namespace: The namespace to use for lookups of
-    unqualified names in absent namespaces.
-    @type fallback_namespace: L{pyxb.namespace.Namespace}
-
-    @keyword location_base: An object to be recorded as the location from
-    which XML was consumed.
+    """Extend L{pyxb.utils.saxutils.make_parser} to change the default
+    C{content_handler_constructor} to be L{PyXBSAXHandler}.
     """
     kw.setdefault('content_handler_constructor', PyXBSAXHandler)
     return pyxb.utils.saxutils.make_parser(*args, **kw)

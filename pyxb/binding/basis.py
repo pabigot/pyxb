@@ -96,8 +96,10 @@ class _TypeBinding_mixin (utility.Locatable_mixin):
         from a DOM element with U{xsi:nil
         <http://www.w3.org/TR/xmlschema-1/#xsi_nil>} set to C{true}.
 
-        @return: C{None} if the creating element is not nillable.  C{True} or
-        C{False} depending on whether the instance itself is nil.
+        @return: C{None} if the element used to create the instance is not
+        U{nillable<http://www.w3.org/TR/xmlschema-1/#nillable>}. 
+        If it is nillable, returns C{True} or C{False} depending on
+        whether the instance itself is U{nil<http://www.w3.org/TR/xmlschema-1/#xsi_nil>}.
         """
         return self.__xsiNil
     def _setIsNil (self):
