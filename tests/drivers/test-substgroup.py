@@ -61,6 +61,7 @@ class TestSubstGroup (unittest.TestCase):
         xml = '<sgTime>2009-06-15T17:50:00Z</sgTime>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
         self.assertRaises(pyxb.AbstractElementError, CreateFromDOM, dom.documentElement)
+        self.assertRaises(pyxb.AbstractElementError, saxer.parse, StringIO.StringIO(xml))
 
         xml = '<ISO8601>2009-06-15T17:50:00Z</ISO8601>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
