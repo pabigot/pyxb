@@ -211,6 +211,7 @@ class BaseSAXHandler (xml.sax.handler.ContentHandler, object):
         self.__nextNamespaceContext = None
         self.__elementState = self.__elementStateConstructor(namespace_context=self.__namespaceContext)
         self.__elementStateStack = []
+        self.__rootObject = None
         return self
 
     def __init__ (self, **kw):
@@ -254,6 +255,7 @@ class BaseSAXHandler (xml.sax.handler.ContentHandler, object):
         """Process the start of a document.
 
         This resets this handler for a new document.
+        @note: setDocumentLocator is invoked before startDocument
         """
         self.reset()
 

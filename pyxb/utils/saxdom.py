@@ -45,6 +45,7 @@ class _DOMSAXHandler (saxutils.BaseSAXHandler):
     __document = None
     
     def startDocument (self):
+        super(_DOMSAXHandler, self).startDocument()
         self.__document = Document(namespace_context=self.namespaceContext())
 
     def endDocument (self):
