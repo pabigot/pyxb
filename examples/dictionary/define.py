@@ -3,7 +3,7 @@ import urllib2
 import pyxb.utils.domutils as domutils
 import sys
 
-word = 'python'
+word = 'xml'
 if 1 < len(sys.argv):
     word = sys.argv[1]
 
@@ -12,8 +12,8 @@ uri = 'http://services.aonaware.com/DictService/DictService.asmx/Define?word=%s'
 rxml = urllib2.urlopen(uri).read()
 resp = dict.CreateFromDOM(domutils.StringToDOM(rxml))
 
-print 'Definitions of %s:' % (resp.Word(),)
-for definition in resp.Definitions().Definition():
-    print 'From %s (%s):' % (definition.Dictionary().Name(), definition.Dictionary().Id())
-    print definition.WordDefinition()
+print 'Definitions of %s:' % (resp.Word,)
+for definition in resp.Definitions.Definition:
+    print 'From %s (%s):' % (definition.Dictionary.Name, definition.Dictionary.Id)
+    print definition.WordDefinition
     print
