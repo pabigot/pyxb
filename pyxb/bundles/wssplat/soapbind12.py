@@ -11,13 +11,15 @@ class tAddress (raw_soapbind12.tAddress, _WSDL_port_mixin):
 raw_soapbind12.tAddress._SetSupersedingClass(tAddress)
 
 class tOperation (raw_soapbind12.tOperation, _WSDL_operation_mixin):
-    def locationInformation (self):
+    def __getLocationInformation (self):
         rvl = []
-        if self.soapAction() is not None:
-            rvl.append('action=%s' % (self.soapAction(),))
-        if self.style() is not None:
-            rvl.append('style=%s' % (self.style(),))
-        if self.soapActionRequired():
+        if self.soapAction is not None:
+            rvl.append('action=%s' % (self.soapAction,))
+        if self.style is not None:
+            rvl.append('style=%s' % (self.style,))
+        if self.soapActionRequired:
             rvl.append('REQUIRED')
         return ','.join(rvl)
+    locationInformation = property(__getLocationInformation)
+
 raw_soapbind12.tOperation._SetSupersedingClass(tOperation)
