@@ -215,6 +215,8 @@ There are a variety of intricacies involved in this serialization; see the
 source code starting at :api:`pyxb.namespace.Namespace.saveToFile` for
 details.
 
+.. _namespace-archive:
+
 The Namespace Archive Model
 ---------------------------
 

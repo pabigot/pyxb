@@ -4,28 +4,8 @@ User Reference
 
 .. _pyxbgen:
 
-Creating bindings with ``pyxbgen``
-==================================
-
-.. toctree::
-   :hidden:
-
-   pyxbgen_cli
-
-.. include:: pyxbgen_cli.txt
-
-** THESE EXAMPLES ARE NOT UP TO DATE.  SEE `examples/ndfd/genbindings.sh`
-and `examples/openGIS/makebind.sh` **
-
-The module path and schema URI are required.  Raw bindings allow the user to
-import the module and obtain :ref:`customized classes
-<binding_customization>` that augment the pure data with functionality or
-additional data.  Optionally, the XML document retrieved from the URI can be
-stored into a local file for review (usually important when working with
-WSDL definitions).  If the XML document is a WSDL definition, only the
-``types`` portion is extracted.  Last, the component model must be saved if
-the subsequent bindings are to be generated for namespaces that refer to
-defined objects in this namespace.
+Generating Binding Classes
+==========================
 
 The following sections reference example schema and programs that are
 available in the ``examples/manual`` subdirectory of the PyXB distribution.
@@ -39,11 +19,20 @@ Primer:
 
 .. literalinclude:: ../examples/manual/po1.xsd
 
-Translate this into Python with the following command::
+Translate this into Python with the following command:
 
-  pyxbgen -u po1.xsd  -m po1
+.. literalinclude:: ../examples/manual/demo1.sh
 
-Then this program (``demo1.py``):
+The :ref:`-u<pyxbgen--schema-location>` parameter identifies a schema
+document describing contents of a namespace.  The parameter may be a path to
+a file on the local system, or a URL to a network-accessible location like
+http://www.weather.gov/forecasts/xml/DWMLgen/schema/DWML.xsd.  The
+:ref:`-m<pyxbgen--module>` parameter specifies the name to be used by the
+Python module holding the bindings generated for the namespace in the
+preceding schema.  After running this, the Pythong bindings will be in a
+file named ``po1.py``.
+
+With the bindings available, this program (``demo1.py``):
 
 .. literalinclude:: ../examples/manual/demo1.py
 
@@ -51,19 +40,17 @@ processing this document:
 
 .. literalinclude:: ../examples/manual/po1.xml
 
-produces the following output::
+produces the following output:
 
- Robert Smith is sending Alice Smith 2 thing(s):
-   Quantity 1 of Lapis necklace at $99.95
-   Quantity 4 of Plastic necklace at $3.95
+.. literalinclude:: ../examples/manual/demo1.out
 
 Multi-document schema
 ---------------------
 
 Complex schema are more easy to manage when they are separated into multiple
 documents, each of which contains a cohesive set of types.  In the example
-above, the USAddress can be abstracted to handle a variety of addresses, and
-maintained as its own document ``address.xsd``:
+above, the ``USAddress`` type can be abstracted to handle a variety of
+addresses, and maintained as its own document ``address.xsd``:
 
 .. literalinclude:: ../examples/manual/address.xsd
 
@@ -74,82 +61,228 @@ incorporate this document into ``po2.xsd``:
 .. literalinclude:: ../examples/manual/po2.xsd
 
 Translation of this document and execution of the test program is just as it
-was in the previous section.
+was in the previous section:
 
-Multi-namespace documents
--------------------------
+.. literalinclude:: ../examples/manual/demo2.sh
+
+Note that you do not need to explicitly list the ``address.xsd`` file.  PyXB
+detects the ``include`` directive and reads the second schema by resolving
+its ``schemaLocation`` relative to the base URI of the containing document.
+Because the contents of the two schema files belong to the same namespace,
+their combined bindings are placed into the ``po2.py`` module.
+
+Working with Namespaces
+-----------------------
 
 Documents of significant complexity are likely to require references to
-multiple namespaces.  You may have noticed that the schemas we've looked at
-so far have :ref:`no namespace <absentNamespaces>` for both their target and
-default namespaces.  The following schema ``nsaddress.xsd`` places the types
-that are in ``address.xsd`` into the namespace ``URN:address``:
+multiple namespaces.  Notice that the schemas we've looked at so far have
+:ref:`no namespace <absentNamespaces>` for both their target and default
+namespaces.  The following schema ``nsaddress.xsd`` places the types that
+are in ``address.xsd`` into the namespace ``URN:address`` by defining a
+`target namespace
+<http://www/Documentation/W3C/www.w3.org/TR/xmlschema-0/index.html#QualLocals>`_
+along with a namespace declaration that associates it with the QName
+references to types defined in that namespace:
 
 .. literalinclude:: ../examples/manual/nsaddress.xsd
 
-This schema can be translated into its own Python binding module with the
-following command::
+There are several ways you can prepare to process documents with multiple
+namespaces.  If you have no expectation of using the imported namespace
+directly, you can process the importing schema just as before:
 
-  pyxbgen -u nsaddress.xsd -m address -C
+.. literalinclude:: ../examples/manual/demo3a.sh
 
-Note that the ``-C`` or ``--save-component-model`` option was given this
-time.  This causes a file ``address.wxs`` to be written which contains a
-:ref:`stored namespace <namespaceStorage>` with all the types and elements
-defined in ``address.xsd`` available for lookup when :ref:`resolving
-<resolution>` names in the ``URN:address`` namespace.
+PyXB will detect the ``import`` statement, read the corresponding schema,
+and create bindings for its types.  However, since the ``pyxbgen``
+invocation did not mention the ``URN:address`` namespace, the bindings are
+written into a :ref:`private <pyxbgen--private-namespace>` binding file.
+The generated module file ``_address.py`` is created with a prefixed
+underscore indicating that it is not expected to be referenced directly.
+The public module ``po3.py`` will locally import module ``_address`` so that
+the required classes are available, but will not expose them to code that
+imports only module ``po3``.  The demonstration program ``demo3.py`` shows
+that things work as expected without the new namespace being made explicit.
 
-The following schema references the address information through a namespace
-declaration:
+.. literalinclude:: ../examples/manual/demo3.py
 
-.. literalinclude:: ../examples/manual/po3.xsd
+More often, you will want to be able to import the module defining bindings
+from the additional namespaces.  To do this, explicitly reference the
+additional schema and provide it with a module name:
 
-and can be translated with the standard command.  As with the previous
-purchase order schemas, we don't need to save the component model here since
-we won't be referencing it.  However, we do have to set an environment
-variable that tells ``pyxbgen`` where to find the stored ``URN:address``
-namespace::
+.. literalinclude:: ../examples/manual/demo3b.sh
 
-  export PYXB_NAMESPACE_PATH=+:.
-  pyxbgen -u po3.xsd -m po3
+Here each namespace is represented in its own module (``address`` for
+``URN:address`` and ``po3`` for module with an absent namespace).  In this
+case, the demonstration program is unchanged; see `Creating Instances in
+Python Code`_ for additional examples.
 
-The ``PYXB_NAMESPACE_PATH`` environment variable is a colon-separated set of
-directories.  Upon startup, the :api:`pyxb.namespace` module walks all the
-specified directories looking for files that end with ``.wxs``.  Any that it
-finds that it can correctly read are recorded, and namespaces created, so
-that if they are referenced in a schema the namespace contents can be
-retrieved.  The value ``+`` in the path refers to the default binding path,
-which is normally ``pyxb/standard/bindings/raw`` in your installation area.
+Sharing Namespace Bindings
+--------------------------
 
-If you examine the top of the generated ``po3.py`` file, you'll see that
-``pyxbgen`` inserted a Python ``import`` statement so that the
-``address:USAddress`` type can be referenced in the purchase order::
+Most often, if you have a common utility namespace like ``URN:address``, you
+will want to generate its bindings once, and reference them in other schema
+without regenerating them.  To do this, PyXB must be provided with an
+archive containing the schema components that were defined in that
+namespace, so they can be referenced in independent generation activities.
 
-  # Import bindings for namespaces imported into schema
-  import address
+To generate the archive, you add the :ref:`pyxbgen--archive-to-file`
+flag to the binding generation command:
 
-The name of the module to import was retrieved from the ``address.wxs``
-file.
+.. literalinclude:: ../examples/manual/demo3c.sh
 
-Note that if you wish only to refer to types in a different namespace, it is
-sufficient to provide the namespace declaration in the schema, and to have a
-stored namespace along with the generated binding accessible to ``pyxbgen``.
-If you wish to extend one of the types from the namespace, you must use the
-XMLSchema `import directive
-<http://www.w3.org/TR/xmlschema-1/#composition-schemaImport>`_.  A fourth
-example showing this is also available in the ``examples/manual``
-subdirectory.
+In addition to generating the ``addresss`` Python module, this causes a
+:ref:`archive <namespace-archive>` of the schema contents to be saved in the
+corresponding file, which by convention ends with the extension ``.wxs``.
+Any anonymous names that were generated with the bindings are also recorded
+in this archive, so that cross-namespace extension works correctly.
 
-** THIS SECTION HAS NOT BEEN UPDATED FOR 0.5.0.  RUN ``pyxbgen`` WITH NO
-ARGUMENTS TO SEE NEW INTERFACE.  ALSO SEE `examples/ndfd/genbindings.sh`
-and `examples/openGIS/makebind.sh` **
+You can then generate bindings for importing namespaces by providing PyXB
+with the information necessary to locate this archive:
 
+.. literalinclude:: ../examples/manual/demo3d.sh
 
-Customized bindings
-===================
+The :ref:`pyxbgen--archive-path` directive indicates that the current
+directory (``.``) should be searched for files that end in ``.wxs``, and any
+namespaces found in such files implicitly made available for reference when
+they are encountered in an ``import`` instruction.  (The second path
+component ``+`` causes the standard search path to be used after searching
+the current directory.)
 
-To customize bindings, you need to be familiar with the
-:api:`pyxb.binding.basis._DynamicCreate_mixin` class.  One readily-available
-example is :ref:`ex_tmsxtvd`.  A more complex example is the customized
-standard binding for WSDL, available in
-:file:`pyxb/standard/bindings/wsdl.py`.
+In this case, when the ``import`` instruction is encountered, PyXB detects
+that it has an archive ``address.wxs`` that defines the contents of the
+imported namespace.  Instead of reading and processing the schema, it
+generates references to the existing binding modules.  Again, the
+demonstration program is unchanged.
+
+Advanced Topics
+---------------
+
+Schemas Defined in WSDL Documents
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+It is a common, if regrettable, practice that web services define the
+structure of their documents using XML schema stanzas encoded directly into
+``types`` stanzas of WSDL specifications rather than having those stanzas
+import complete standalone schema.  To accommodate this, pyxbgen supports
+the :ref:`pyxbgen--wsdl-location` argument as an alternative to
+:ref:`pyxbgen--schema-location`.  For example, the following will generate a
+module ``ndfd`` containing bindings required to communicate with the
+`National Digital Forecast Database <http://www.nws.noaa.gov/xml>`_::
+
+  pyxbgen \
+   --wsdl-location=http://www.weather.gov/forecasts/xml/DWMLgen/wsdl/ndfdXML.wsdl --module=ndfd
+
+Customizing Binding Classes
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+PyXB permits you to customize the bindings that it generates by creating a
+module that imports the generated classes and instances, then extends them
+with subclasses with additional behavior.  As long as you do not make major
+changes to the structure and names used in your namespaces, you can
+fine-tune the schema without changing the custom code.
+
+The :ref:`pyxbgen--write-for-customization` option causes PyXB to generate
+all the Python modules in a subdirectory ``raw``.  Then you write a module
+that imports the generated bindings and extends them.
+
+Until this documentation is enhanced significantly, users interested in
+generating custom bindings are referred to the extensions for WSDL 1.1 that
+are provided in the WS-* support bundle as
+``pyxb.bundles.wssplat.wsdl11.py``.  An excerpt of the sort of thing done
+there is::
+
+  from pyxb.bundles.wssplat.raw.wsdl11 import *
+  import pyxb.bundles.wssplat.raw.wsdl11 as raw_wsdl11
+
+  class tParam (raw_wsdl11.tParam):
+    def __getMessageReference (self):
+        return self.__messageReference
+    def _setMessageReference (self, message_reference):
+        self.__messageReference = message_reference
+    __messageReference = None
+    messageReference = property(__getMessageReference)
+  raw_wsdl11.tParam._SetSupersedingClass(tParam)
+
+The first line brings in all the public identifiers from the generated
+binding.  The second makes them available in a qualified form that ensures
+we use the generated value rather than the customized value.
+
+The class definition shows how to extend the generated bindings for the
+``tParam`` complex type so that it has a field that can hold the instance
+of ``tMessage`` that was identified by the ``message`` attribute in an
+``operation`` stanza.  Following the class is a directive that tells PyXB to
+create instances of the customized class when automatically generating
+``tParam`` instances from XML documents.
+
+To customize bindings, you will need to be familiar with the
+:api:`pyxb.binding.basis._DynamicCreate_mixin` class.
+
+Generating Related Namespaces
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The :ref:`pyxbgen--module-prefix` option permits you to add a fixed prefix
+to the generated modules.  For example, when generating bindings for the
+OpenGIS schemas it is desirable to aggregate them into a Python module
+hierarchy so the imported name incorporates the namespace collection::
+
+ pyxbgen \
+   --schema-location=${SCHEMA_DIR}/gml/3.2.1/gml.xsd --module=gml_3_2 \
+   --schema-location=${SCHEMA_DIR}/iso/19139/20070417/gmd/gmd.xsd --module=iso19139.gmd \
+   --schema-location=${SCHEMA_DIR}/iso/19139/20070417/gts/gts.xsd --module=iso19139.gts \
+   --schema-location=${SCHEMA_DIR}/iso/19139/20070417/gsr/gsr.xsd --module=iso19139.gsr \
+   --schema-location=${SCHEMA_DIR}/iso/19139/20070417/gss/gss.xsd --module=iso19139.gss \
+   --schema-location=${SCHEMA_DIR}/iso/19139/20070417/gco/gco.xsd --module=iso19139.gco \
+   --module-prefix=opengis \
+   --archive-to-file=opengis/iso19139.core.wxs
+
+When generated this way, your Python code imports these modules with
+directives like::
+
+  import opengis.gml_3_2 as gml
+  import opengis.iso19139.gmd
+
+PyXB comes with pre-defined bundles for related namespaces in the
+``pyxb.bundles`` module hierarchy.
+
+Fine-Grained Namespace Control
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+For example, when generating the bindings for the OpenGIS `Sensor
+Observation Service <http://www.opengeospatial.org/standards/sos>`_, you
+would find that this service extends the ``http://www.opengis.net/ogc``
+namespace, normally defined in the OpenGIS `Filter Encoding
+<http://www.opengeospatial.org/standards/filter>`_ with temporal operators
+that are defined in a local schema ``ogc4sos.xsd``.
+
+Because ``http://www.opengis.net/ogc`` is defined in a namespace archive,
+PyXB would normally assume that any ``import`` commands related to that
+namespace are redundant with the contents of that archive.  In this case,
+that is not the case, and the ``ogc4sos.xsd`` schema must be read to define
+the additional elements and types.  The required build command is::
+
+  pyxbgen \
+    --schema-location=${SCHEMA_DIR}/sos/1.0.0/sosAll.xsd --module sos_1_0 \
+    --archive-path=${ARCHIVE_DIR} \
+    --pre-load-archive=${ARCHIVE_DIR}/filter.wxs
+
+The :ref:`pyxbgen--pre-load-archive` directive causes PyXB to read the
+contents of that archive into its active database prior to processing any
+schema.  Consequently, when reference to the ``ogc4sos.xsd`` schema is
+encountered, PyXB detects that, although it already has definitions for
+components in that namespace, this particular schema has not yet been read.
+PyXB reads the additional components, and generates bindings for the
+additional material into a private module ``_ogc`` which is then imported
+into the ``sos_1_0`` module.
+
+Using Binding Classes
+=====================
+
+Creating Instances from XML Documents
+-------------------------------------
+
+Creating Instances in Python Code
+---------------------------------
+
+Creating XML Documents from Binding Instances
+---------------------------------------------
 

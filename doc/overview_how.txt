@@ -1,10 +1,6 @@
 How to use it
 =============
 
-The current release of PyXB is 0.2.0, the first public release.  Early
-adopters are asked to be patient as installation and operation problems are
-worked out.
-
 Installation
 ------------
 
@@ -40,11 +36,8 @@ Python data bindings.  There are two key components to generating bindings:
 - The module path into which the binding will be installed.  This is the
   path that users of the binding will import.
 
-There are additional parameters; for a full description of the utility see
-:ref:`pyxbgen`.  An example of translating the schema for WSDL documents is::
-
- pyxbgen --module-path pyxb.standard.bindings.wsdl \
-    --schema-uri http://schemas.xmlsoap.org/wsdl/
+There are many additional parameters; see :ref:`pyxbgen` and
+:ref:`pyxbgen-cli`.
 
 WSDL Functions
 --------------
@@ -72,9 +65,10 @@ operations and parameters.  For example::
         Input: typens:doGoogleSearch
         Output: typens:doGoogleSearchResponse
 
-In the future, this script is expected to provide more powerful display of
-available services, and perhaps to generate functions which interact with the
-service using the appropriate encoding.
+Currently, this is an unmaintained example.  In the future, this script may
+provide a more powerful display of available services, and perhaps support for
+generating functions which interact with the service using the appropriate
+encoding.
 
 .. ignored
    ## Local Variables:

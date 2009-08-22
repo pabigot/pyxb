@@ -23,15 +23,20 @@ documents and Python instances.  In concept it is similar to `JAXB
 <http://www.codesynthesis.com/products/xsd/>`_ for C++.  A
 :ref:`thirty_sec_example` is at the bottom of this page.
 
-For downloads, support, etc. please see the `PyXB project page
-<http://sourceforge.net/projects/pyxb>`_ on SourceForge.  For a history of
-releases, see :ref:`releases`.
+Getting Help
+============
 
-** WARNING ** 0.7.x is a :ref:`BETA RELEASE<releases>`.  Documentation is not up
-to date.
+PyXB is distributed on `SourceForge <http://sourceforge.net/projects/pyxb>`_.
 
-** NEW ** Uses properties instead of accessor methods for binding element and
-   attribute fields.
+For support, consult the `Help Forum
+<https://sourceforge.net/forum/forum.php?forum_id=956708>`_, or subscribe to
+and email the `mailing list
+<https://sourceforge.net/mailarchive/forum.php?forum_name=pyxb-users>`_.
+
+To file a bug report or see the status of defects reported against the current
+release, visit the `Trac database <http://sourceforge.net/apps/trac/pyxb/>`_.
+
+For a history of releases, see :ref:`releases`.
 
 ********
 Contents
@@ -45,6 +50,7 @@ Contents
    architecture
    userref
    maintref
+   pyxbgen_cli
 
 .. _thirty_sec_example:
 
@@ -57,21 +63,16 @@ An example of a program using PyXB to interact with a `web service
 automatically-generated module.  First, retrieve the WSDL and generate the
 bindings::
 
- vmfed9[23]$ pyxbgen -W 'http://ws.cdyne.com/WeatherWS/Weather.asmx?wsdl' -m weather
- urn:uuid:1f774546-80b9-11de-afc9-000c292f797c
+ vmfed9[23]$ pyxbgen \
+   --wsdl-location="http://ws.cdyne.com/WeatherWS/Weather.asmx?wsdl" --module=weather \
+   --write-for-customization
+ urn:uuid:769983dc-8ecb-11de-b7e5-000c292f797c
  Retrieving WSDL from http://ws.cdyne.com/WeatherWS/Weather.asmx?wsdl
- Load MR[urn:uuid:bcbebe4e-80b2-11de-8f26-000c292f797c]@http://schemas.xmlsoap.org/wsdl/ from NSArchive@/home/pab/pyxb/dev/pyxb/standard/bindings/raw/wsdl.wxs
  Importing pyxb.binding.datatypes to get binding for wildcard {http://www.w3.org/2001/XMLSchema}schema
- WARNING: Unable to convert wildcard node {http://www.w3.org/2001/XMLSchema}schema to Python instance: 'module' object has no attribute 'CreateFromDOM'
  NOTE: Created unbound wildcard element from DOM node {http://www.w3.org/2001/XMLSchema}schema
- PS urn:uuid:1f774546-80b9-11de-afc9-000c292f797c
- Load MR[urn:uuid:bea57d24-80b2-11de-bd6b-000c292f797c]@http://schemas.xmlsoap.org/wsdl/http/ from NSArchive@/home/pab/pyxb/dev/pyxb/standard/bindings/raw/http.wxs
- Load MR[urn:uuid:bd932116-80b2-11de-97bf-000c292f797c]@http://schemas.xmlsoap.org/soap/encoding/ from NSArchive@/home/pab/pyxb/dev/pyxb/standard/bindings/raw/soapenc.wxs
- Load MR[urn:uuid:be060b2c-80b2-11de-b19d-000c292f797c]@http://schemas.xmlsoap.org/wsdl/mime/ from NSArchive@/home/pab/pyxb/dev/pyxb/standard/bindings/raw/mime.wxs
- Load MR[urn:uuid:beff4fe8-80b2-11de-ae43-000c292f797c]@http://schemas.xmlsoap.org/wsdl/soap12/ from NSArchive@/home/pab/pyxb/dev/pyxb/standard/bindings/raw/soap12.wxs
- Load MR[urn:uuid:be5fc0a4-80b2-11de-803a-000c292f797c]@http://schemas.xmlsoap.org/wsdl/soap/ from NSArchive@/home/pab/pyxb/dev/pyxb/standard/bindings/raw/soap.wxs
+ PS urn:uuid:769983dc-8ecb-11de-b7e5-000c292f797c
  Python for http://ws.cdyne.com/WeatherWS/ requires 1 modules
- Saved binding source to ./weather.py
+ Saved binding source to ./raw/weather.py
 
 Then write a program that uses them:
 
@@ -79,16 +80,16 @@ Then write a program that uses them:
 
 And run it::
 
- vmfed9[24]$ python client_get.py
+ vmfed9[64]$ python client_get.py 
  Weather forecast for Tucson, AZ:
-   Saturday, May 02 2009: Partly Cloudy, from  to 64
-   Sunday, May 03 2009: Sunny, from 43 to 66
-   Monday, May 04 2009: Partly Cloudy, from 45 to 69
-   Tuesday, May 05 2009: Mostly Cloudy, from 54 to 69
-   Wednesday, May 06 2009: Partly Cloudy, from 47 to 69
-   Thursday, May 07 2009: Mostly Cloudy, from 49 to 66
-   Friday, May 08 2009: Partly Cloudy, from 48 to 67
- vmfed9[25]$ 
+  Saturday, August 22 2009: Thunder Storms, from 80 to 90
+  Sunday, August 23 2009: Partly Cloudy, from 78 to 92
+  Monday, August 24 2009: Partly Cloudy, from 75 to 95
+  Tuesday, August 25 2009: Partly Cloudy, from 75 to 96
+  Wednesday, August 26 2009: Partly Cloudy, from 76 to 99
+  Thursday, August 27 2009: Sunny, from 77 to 99
+  Friday, August 28 2009: Sunny, from 77 to 100
+ vmfed9[65]$ 
 
 That's it.
 

@@ -8,14 +8,14 @@ A detailed, albeit contrived, example of how to use PyXB is in
 :ref:`pyxbgen`.
 
 Multiple real-world XML and web service examples of varying complexity are
-provided in the examples subdirectory.  Some are WSDL services, and others
-are simply XMLSchema documents.  Generally, invoke :file:`genbindings.sh` to
-retrieve the source schema and perform the binding transformations.  Often
-there are a couple trivial programs that show how the bindings are used.  In
-that case, the script :file:`test.sh` can be used to generate the bindings
-and run the programs in a single step.
+provided in the examples subdirectories of the PyXB distribution and of the
+various bundles.  Some are WSDL services, and others are simply XMLSchema
+documents.  Often there are a couple trivial programs that show how the
+bindings are used.  The script :file:`test.sh` in each directory can be used
+to generate the bindings and run the programs in a single step.
 
-See the :file:`README.txt` file in each example subdirectory for more information.
+See the :file:`README.txt` file in each example subdirectory for more
+information.
 
 For ...
  - REST-style interactions, see :ref:`ex_dictionary`, :ref:`ex_ndfd`, and :ref:`thirty_sec_example`
@@ -50,13 +50,14 @@ Simple Weather (CDyne)
 
 A `free weather service <http://ws.cdyne.com/WeatherWS/Weather.asmx>`_.
 The REST interface was demonstrated as the :ref:`thirty_sec_example`.  A
-SOAP interface example is:
+SOAP interface example is in ``client.py``:
 
 .. literalinclude:: ../examples/weather/client.py
 
 Note the various misspellings in the schema (e.g., "Desciption").  Also, be
 aware that the weather information in this service does not get updated
-often, and sometimes fails to provide valid dates.
+often, and sometimes fails to provide valid dates.  Try various zip codes;
+usually you can find one that works.
 
 .. _ex_ndfd:
 
