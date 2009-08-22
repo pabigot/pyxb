@@ -258,6 +258,10 @@ class _TypeBinding_mixin (utility.Locatable_mixin):
         if isinstance(value, int) and issubclass(cls, long):
             return cls(value)
 
+        # Same, but for boolean, which Python won't let us subclass
+        if isinstance(value, bool) and issubclass(cls, pyxb.binding.datatypes.boolean):
+            return cls(value)
+
         # See if we have convert_string_values on, and have a string type that
         # somebody understands.
         if convert_string_values and (unicode == value_type):
