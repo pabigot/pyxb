@@ -1678,7 +1678,9 @@ class Generator (object):
 
         The default path is the contents of the C{PYXB_ARCHIVE_PATH}
         environment variable, or the standard path configured at
-        installation time.
+        installation time.  Any file with the extension C{.wxs} found
+        in one of these directories is exampled to see whether it is a
+        namespace archive.
         """
         return self.__archivePath
     def setArchivePath (self, archive_path):
@@ -1697,10 +1699,13 @@ class Generator (object):
         self.__noLoadNamespaces.clear()
         self.__noLoadNamespaces.update([ pyxb.namespace.NamespaceInstance(_ns) for _ns in namespace_set ])
     def addNoLoadNamespace (self, namespace):
-        """Mark that the specififed namespace should not be loaded from an archive.
+        """Mark that the specified namespace should not be loaded from an archive.
 
-        Be aware that this removes any knowledge of any archive in
-        which this namespace is present as a non-private member."""
+        Use this when you are generating bindings for an application
+        that has a restricted profile of a namespace that would
+        otherwise be read from an archive.  Be aware that this removes
+        any knowledge of any archive in which this namespace is
+        present as a non-private member."""
         self.__noLoadNamespaces.add(pyxb.namespace.NamespaceInstance(namespace))
     __noloadNamespaces = None
 
