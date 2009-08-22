@@ -12,8 +12,18 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-"""This module contains support for generating bindings from an XML stream
-using a SAX parser."""
+"""This module contains support for a DOM tree representation from an XML
+document using a SAX parser.
+
+This functionality exists because we need a DOM interface to generate the
+binding classses, but the Python C{xml.dom.minidom} package does not support
+location information.  The SAX interface does, so we have a SAX content
+handler which converts the SAX events into a DOM tree.
+
+This is not a general-purpose DOM capability; only a small subset of the DOM
+interface is supported, and only for storing the XML information, not for
+converting it back into document format.
+"""
 
 import xml.dom
 import saxutils
@@ -21,6 +31,8 @@ import StringIO
 import pyxb.namespace
 
 def _DumpDOM (n, depth=0):
+    """Utility function to print a DOM tree."""
+    
     pfx = ' ' * depth
     if (xml.dom.Node.ELEMENT_NODE == n.nodeType):
         print '%sElement[%d] %s %s with %d children' % (pfx, n._indexInParent(), n, pyxb.namespace.ExpandedName(n.name), len(n.childNodes))
@@ -40,7 +52,10 @@ def _DumpDOM (n, depth=0):
         print 'UNRECOGNIZED %s' % (n.nodeType,)
 
 class _DOMSAXHandler (saxutils.BaseSAXHandler):
+    """SAX handler class that transforms events into a DOM tree."""
+
     def document (self):
+        """The document that is the root of the generated tree."""
         return self.__document
     __document = None
     
@@ -77,6 +92,20 @@ class _DOMSAXHandler (saxutils.BaseSAXHandler):
         #print '%s %s has %d children' % (element.namespaceURI, element.localName, len(element.childNodes))
 
 def parse (stream, **kw):
+    """Parse a stream containing an XML document and return the DOM tree
+    representing its contents.
+
+    Keywords not described here are passed to L{saxutils.make_parser}.
+
+    @param stream: An object presenting the standard file C{read} interface
+    from which the document can be read.
+
+    @keyword content_handler_constructor: Input is overridden to assign this a
+    value of L{_DOMSAXHandler}.
+
+    @rtype: C{xml.dom.Document}
+    """
+
     kw['content_handler_constructor'] = _DOMSAXHandler
     saxer = saxutils.make_parser(**kw)
     handler = saxer.getContentHandler()
@@ -84,9 +113,13 @@ def parse (stream, **kw):
     return handler.document()
 
 def parseString (text, **kw):
+    """Parse a string holding an XML document and return the corresponding DOM
+    tree."""
+    
     return parse(StringIO.StringIO(text), **kw)
 
 class Node (xml.dom.Node, pyxb.utils.utility.Locatable_mixin):
+    """Base for the minimal DOM interface required by PyXB."""
     def __init__ (self, node_type, **kw):
         location = kw.pop('location', None)
         if location is not None:
@@ -157,18 +190,22 @@ class Node (xml.dom.Node, pyxb.utils.utility.Locatable_mixin):
         return rv.value
 
 class Document (Node):
+    """Add the documentElement interface."""
     def __init__ (self, **kw):
         super(Document, self).__init__(node_type=xml.dom.Node.DOCUMENT_NODE, **kw)
 
     documentElement = Node.firstChild
 
 class Attr (Node):
+    """Add the nodeName and nodeValue interface."""
     def __init__ (self, **kw):
         super(Attr, self).__init__(node_type=xml.dom.Node.ATTRIBUTE_NODE, **kw)
     nodeName = Node.name
     nodeValue = Node.value
 
 class NamedNodeMap (dict):
+    """Implement that portion of NamedNodeMap required to satisfy PyXB's
+    needs."""
     __members = None
 
     def __init__ (self):
@@ -196,18 +233,17 @@ class Element (Node):
         assert self.attributes is not None
     nodeName = Node.localName
 
-class CharacterData (Node):
-    pass
+class _CharacterData (Node):
+    """Abstract base for anything holding text data."""
+    data = Node.value
 
-class Text (CharacterData):
+class Text (_CharacterData):
     def __init__ (self, text, **kw):
         super(Text, self).__init__(value=text, node_type=xml.dom.Node.TEXT_NODE, **kw)
-    data = Node.value
 
-class Comment (CharacterData):
+class Comment (_CharacterData):
     def __init__ (self, text, **kw):
         super(Text, self).__init__(value=text, node_type=xml.dom.Node.COMMENT_NODE, **kw)
-    data = Node.value
 
 if '__main__' == __name__:
     import sys
@@ -216,7 +252,6 @@ if '__main__' == __name__:
         xml_file = sys.argv[1]
 
     doc = parse(file(xml_file))
-
 
 ## Local Variables:
 ## fill-column:78

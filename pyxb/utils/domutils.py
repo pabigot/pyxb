@@ -45,7 +45,7 @@ def SetDOMImplementation (dom_implementation):
 def StringToDOM (text, **kw):
     """Convert string to a DOM instance.
 
-    @see L{pyxb._SetXMLStyle}."""
+    @see: L{pyxb._SetXMLStyle}."""
     if pyxb.XMLStyle_minidom == pyxb._XMLStyle:
         return xml.dom.minidom.parseString(text)
     import saxdom
@@ -176,7 +176,7 @@ def ExtractTextContent (node):
     """Walk all the children, extracting all text content and
     catenating it into the return value.
 
-    Returns None if no text content (including whitespace) is found.
+    Returns C{None} if no text content (including whitespace) is found.
     
     This is mainly used to strip comments out of the content of complex
     elements with simple types.
@@ -198,8 +198,8 @@ def ExtractTextContent (node):
     return ''.join(text)
 
 class _BDSNamespaceSupport (object):
-    """Class holding information relevant to generating a the namespace
-    portions of a DOM instance."""
+    """Class holding information relevant to generating the namespace aspects
+    of a DOM instance."""
     # Namespace declarations required on the top element
     __namespaces = None
 

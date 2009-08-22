@@ -284,10 +284,10 @@ class AttributeUse (pyxb.cscRoot):
 class ElementUse (pyxb.cscRoot):
     """Aggregate the information relevant to an element of a complex type.
 
-    This includes the original tag name, the spelling of the corresponding
-    object in Python, an indicator of whether multiple instances might be
-    associated with the field, and a list of types for legal values of the
-    field.
+    This includes the L{original tag name<name>}, the spelling of L{the
+    corresponding object in Python <id>}, an L{indicator<isPlural>} of whether
+    multiple instances might be associated with the field, and other relevant
+    information..
     """
 
     def name (self):
@@ -345,7 +345,7 @@ class ElementUse (pyxb.cscRoot):
         @param id: The Python name for the element within the containing
         L{pyxb.basis.binding.complexTypeDefinition}.  This is a public
         identifier, albeit modified to be unique, and is usually used as the
-        name of the element's inspector method.
+        name of the element's inspector method or property.
         @type id: C{str}
 
         @param key: The string used to store the element
@@ -375,7 +375,7 @@ class ElementUse (pyxb.cscRoot):
 
         @todo: Right now, this returns C{None} for non-plural and an empty
         list for plural elements.  Need to support schema-specified default
-        values for non-element content.
+        values for simple-type content.
         """
         if self.isPlural():
             return []
@@ -720,13 +720,14 @@ class ContentModelTransition (pyxb.cscRoot):
         # First, identify the element
         if isinstance(value, xml.dom.Node):
             # If we got here, it's because we couldn't figure out what element
-            # the node conformed to and had to try the element transitions.
-            # If we couldn't do it before, we can't do it now, so just fail.
+            # the node conformed to and had to try the element transitions in
+            # hopes of matching a wildcard.  If we couldn't find an element
+            # before, we can't do it now, so just fail.
             return None
         try:
-            # The convert_string_value=False setting prevents string arguments
-            # to element/type constructors from being automatically converted
-            # to another type (like int) if they just happen to be
+            # The convert_string_values=False setting prevents string
+            # arguments to element/type constructors from being automatically
+            # converted to another type (like int) if they just happen to be
             # convertible.  Without this, it's too easy to accept a
             # sub-optimal transition (e.g., match a float when an alternative
             # string is available).
@@ -889,6 +890,7 @@ class ContentModelState (pyxb.cscRoot):
     # Sequence of ContentModelTransition instances
     __transitions = None
     
+    # Map from ElementUse instances to the term that transitions on that use.
     __elementTermMap = None
 
     def isFinal (self):
@@ -936,6 +938,10 @@ class ContentModelState (pyxb.cscRoot):
         made.
         @type value: C{xml.dom.Node} or L{basis._TypeBinding_mixin}
 
+        @param element_use: The L{ElementUse<pyxb.binding.content.ElementUse>}
+        corresponding to the provided value, if known (for example, because
+        the value was parsed from an XML document).
+
         @param dfa_stack: The current state of processing this and enclosing
         content models.
         @type dfa_stack: L{DFAStack}
@@ -971,6 +977,7 @@ class ContentModel (pyxb.cscRoot):
     # Map from integers to ContentModelState instances
     __stateMap = None
 
+    # All DFAs begin at this state
     __InitialState = 1
 
     def __init__ (self, state_map=None):
@@ -1011,16 +1018,16 @@ class ContentModel (pyxb.cscRoot):
         acceptable path.  If no valid path through the DFA can be taken,
         C{None} is returned.
         
-        @param available_symbols: A map from DFA terms to a sequence of values
-        associated with the term in a binding instance.  The key C{None} is
-        used to represent wildcard elements.  If a key appears in this map, it
-        must have at least one value in its sequence.
+        @param available_symbols: A map from leaf DFA terms to a sequence of
+        values associated with the term in a binding instance.  The key
+        C{None} is used to represent wildcard elements.  If a key appears in
+        this map, it must have at least one value in its sequence.
 
         @param succeed_at_dead_end: If C{True}, states from which no
         transition can be made are accepted as final states.  This is used
-        when processing "all" model groups, where the alternative content
-        model must succeed while retaining the symbols that are needed for
-        other alternatives.
+        when processing "all" model groups, where the content model for the
+        current alternative must succeed while retaining the symbols that are
+        needed for other alternatives.
         """
 
         candidates = []

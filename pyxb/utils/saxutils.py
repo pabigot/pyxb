@@ -14,11 +14,11 @@
 
 """This module contains support for processing XML using a SAX parser.
 
-In particular, it provides a base content handler class that maintains
-namespace context and element state in a stack; and a base element
-state class which records the location of the element in the stream.
-These classes are extended for specific parsing needs (e.g.,
-L{pyxb.binding.saxer}).
+In particular, it provides a L{base content handler class<BaseSAXHandler>}
+that maintains namespace context and element state in a stack; and a L{base
+element state class <SAXElementState>} which records the location of the
+element in the stream.  These classes are extended for specific parsing needs
+(e.g., L{pyxb.binding.saxer}).
 """
 
 import xml.sax
@@ -96,33 +96,40 @@ class SAXElementState (object):
     """State corresponding to processing a given element with the SAX
     model."""
 
-    # Reference to the SAXElementState of the element enclosing this one
     def parentState (self):
+        """Reference to the SAXElementState of the element enclosing this
+        one."""
         return self.__parentState
     __parentState = None
 
-    # The pyxb.namespace.resolution.NamespaceContext used for this binding
     def namespaceContext (self):
+        """The L{pyxb.namespace.resolution.NamespaceContext} used for this
+        binding."""
         return self.__namespaceContext
     __namespaceContext = None
 
-    # The expanded name of the element
     def expandedName (self):
+        """The L{expanded name<pyxb.namespace.ExpandedName>} of the
+        element."""
         return self.__expandedName
     __expandedName = None
 
-    # The location corresponding to the element event
     def location (self):
+        """The L{location<pyxb.utils.utility.Location>} corresponding to the
+        element event."""
         return self.__location
     __location = None
 
-    # An accumulation of content to be supplied to the content model when the
-    # element end is reached.  This is a list, with each member being
-    # (content, element_use, maybe_element): content is text or a binding
-    # instance; element_use is None or the ElementUse instance used to create
-    # the content; and maybe_element is True iff the content is non-content
-    # text.
     def content (self):
+        """An accumulation of content to be supplied to the content model when
+        the element end is reached.
+
+        This is a list, with each member being C{(content, element_use,
+        maybe_element)}.  C{content} is text or a binding instance;
+        C{element_use} is C{None} or the
+        L{ElementUse<pyxb.binding.content.ElementUse>} instance used to create
+        the content; and C{maybe_element} is C{True} iff the content is
+        non-content text."""
         return self.__content
     __content = None
 
@@ -141,6 +148,14 @@ class SAXElementState (object):
         self.__content.append( (content, None, False) )
 
     def addElementContent (self, element, element_use):
+        """Add the given binding instance as element content correspondidng to
+        the given use.
+
+        @param element: Any L{binding instance<pyxb.binding.basis._TypeBinding_mixin>}.
+
+        @param element_use: The L{element
+        use<pyxb.binding.content.ElementUse>} in the containing complex type.
+        """
         self.__content.append( (element, element_use, True) )
 
 class BaseSAXHandler (xml.sax.handler.ContentHandler, object):
@@ -212,6 +227,8 @@ class BaseSAXHandler (xml.sax.handler.ContentHandler, object):
         self.__elementState = self.__elementStateConstructor(namespace_context=self.__namespaceContext)
         self.__elementStateStack = []
         self.__rootObject = None
+        # Note: setDocumentLocator is invoked before startDocument (which
+        # calls this), so this method should not reset it.
         return self
 
     def __init__ (self, **kw):
@@ -273,6 +290,7 @@ class BaseSAXHandler (xml.sax.handler.ContentHandler, object):
     #    pass
 
     def startElementNS (self, name, qname, attrs):
+        """Process the start of an element."""
         self.__flushPendingText()
 
         # Get the context to be used for this element, and create a
@@ -301,7 +319,7 @@ class BaseSAXHandler (xml.sax.handler.ContentHandler, object):
         return (this_state, parent_state, ns_ctx, expanded_name)
 
     def endElementNS (self, name, qname):
-        #print 'end %s' % (name,)
+        """Process the completion of an element."""
         self.__flushPendingText()
 
         # Save the state of this element, and restore the state for
@@ -313,6 +331,11 @@ class BaseSAXHandler (xml.sax.handler.ContentHandler, object):
 
         return this_state
 
+    # We accumulate consecutive text events into a single event, primarily to
+    # avoid the confusion that results when the value of a simple type is
+    # represented by multiple events, as with "B &amp; W".  Also, it's faster
+    # to join them all at once, and to process one content value rather than a
+    # sequence of them.
     __pendingText = None
     def __flushPendingText (self):
         if self.__pendingText:
@@ -332,6 +355,8 @@ class BaseSAXHandler (xml.sax.handler.ContentHandler, object):
 
 import StringIO
 class _EntityResolver (object):
+    """Dummy used to prevent the SAX parser from crashing when it sees
+    processing instructions that we dont' care about."""
     def resolveEntity (self, public_id, system_id):
         return StringIO.StringIO('')
 
