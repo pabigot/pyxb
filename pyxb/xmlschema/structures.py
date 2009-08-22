@@ -4585,6 +4585,12 @@ class _ImportElementInformationItem (_Annotated_mixin):
         elif not ns.isLoadable():
             print 'WARNING: No information available on imported namespace %s' % (uri,)
 
+        # If we think we found a schema, make sure it's in the right
+        # namespace.
+        if self.__schema is not None:
+            if ns != self.__schema.targetNamespace():
+                raise pyxb.SchemaValidationError('Import expected namespace %s but got %s' % (ns, self.__schema.targetNamespace()))
+
         self.__prefix = ns_ctx.prefixForNamespace(self.namespace())
 
         self._annotationFromDOM(node)
