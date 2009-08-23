@@ -170,7 +170,12 @@ module ``ndfd`` containing bindings required to communicate with the
 `National Digital Forecast Database <http://www.nws.noaa.gov/xml>`_::
 
   pyxbgen \
-   --wsdl-location=http://www.weather.gov/forecasts/xml/DWMLgen/wsdl/ndfdXML.wsdl --module=ndfd
+   --wsdl-location=http://www.weather.gov/forecasts/xml/DWMLgen/wsdl/ndfdXML.wsdl --module=ndfd \
+   --archive-path=${PYXB_ROOT}/pyxb/bundles/wssplat//:+
+
+Note that it will often be necessary to have the WS-* bindings available, as
+the schema embedded in a WSDL document may make reference to SOAP and other
+structures.  See :ref:`bundle_generation`.
 
 Customizing Binding Classes
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^

@@ -118,9 +118,8 @@ work with:
    operation messages.
 
 These changes are applied to the WSDL by :file:`genbindings.sh` after
-retrieving it.  A second issue is observed by the warning, from PyXB, about
-content being present in a complex type with empty content.  This is the
-consequences of an `error in the WSDL specification
+retrieving it.  This is the consequences of an `error in the WSDL
+specification
 <http://tech.groups.yahoo.com/group/soapbuilders/message/5879>`_, which was
 discovered after too many tools had already worked around it.  Currently,
 PyXB requires that you also work around it manually, although a
