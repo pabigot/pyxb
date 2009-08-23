@@ -48,7 +48,7 @@ Contents
    examples
    releases
    architecture
-   userref/index
+   userref_index
    maintref
 
 .. _thirty_sec_example:
