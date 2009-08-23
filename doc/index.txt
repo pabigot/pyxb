@@ -48,9 +48,8 @@ Contents
    examples
    releases
    architecture
-   userref
+   userref/index
    maintref
-   pyxbgen_cli
 
 .. _thirty_sec_example:
 

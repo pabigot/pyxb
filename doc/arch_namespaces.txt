@@ -288,11 +288,11 @@ The contents of the namespace archive are:
 
   - the set of Namespaces that were referenced by A
 
-  - the set of _SchemaRecord instances which identify the origins for components
-  that are defined in the archive
+  - the set of _SchemaRecord instances which identify the origins for
+    components that are defined in the archive
 
-_ The _SchemaRecord instances identify, for each category of the namespace,
-  the names of objects that are defined by the archive
+    The _SchemaRecord instances identify, for each category of the namespace,
+    the names of objects that are defined by the archive
 
 - The objects for each namespace
 

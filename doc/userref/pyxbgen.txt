@@ -1,7 +1,3 @@
-**************
-User Reference
-**************
-
 .. _pyxbgen:
 
 Generating Binding Classes
@@ -17,11 +13,11 @@ The following schema ``po1.xsd`` is a condensed version of the `purchase
 order schema <http://www.w3.org/TR/xmlschema-0/#POSchema>`_ in the XMLSchema
 Primer:
 
-.. literalinclude:: ../examples/manual/po1.xsd
+.. literalinclude:: ../../examples/manual/po1.xsd
 
 Translate this into Python with the following command:
 
-.. literalinclude:: ../examples/manual/demo1.sh
+.. literalinclude:: ../../examples/manual/demo1.sh
 
 The :ref:`-u<pyxbgen--schema-location>` parameter identifies a schema
 document describing contents of a namespace.  The parameter may be a path to
@@ -34,15 +30,15 @@ file named ``po1.py``.
 
 With the bindings available, this program (``demo1.py``):
 
-.. literalinclude:: ../examples/manual/demo1.py
+.. literalinclude:: ../../examples/manual/demo1.py
 
 processing this document:
 
-.. literalinclude:: ../examples/manual/po1.xml
+.. literalinclude:: ../../examples/manual/po1.xml
 
 produces the following output:
 
-.. literalinclude:: ../examples/manual/demo1.out
+.. literalinclude:: ../../examples/manual/demo1.out
 
 Multi-document schema
 ---------------------
@@ -52,18 +48,18 @@ documents, each of which contains a cohesive set of types.  In the example
 above, the ``USAddress`` type can be abstracted to handle a variety of
 addresses, and maintained as its own document ``address.xsd``:
 
-.. literalinclude:: ../examples/manual/address.xsd
+.. literalinclude:: ../../examples/manual/address.xsd
 
 The XMLSchema `include directive
 <http://www.w3.org/TR/xmlschema-1/#compound-schema>`_ can be used to
 incorporate this document into ``po2.xsd``:
 
-.. literalinclude:: ../examples/manual/po2.xsd
+.. literalinclude:: ../../examples/manual/po2.xsd
 
 Translation of this document and execution of the test program is just as it
 was in the previous section:
 
-.. literalinclude:: ../examples/manual/demo2.sh
+.. literalinclude:: ../../examples/manual/demo2.sh
 
 Note that you do not need to explicitly list the ``address.xsd`` file.  PyXB
 detects the ``include`` directive and reads the second schema by resolving
@@ -84,13 +80,13 @@ are in ``address.xsd`` into the namespace ``URN:address`` by defining a
 along with a namespace declaration that associates it with the QName
 references to types defined in that namespace:
 
-.. literalinclude:: ../examples/manual/nsaddress.xsd
+.. literalinclude:: ../../examples/manual/nsaddress.xsd
 
 There are several ways you can prepare to process documents with multiple
 namespaces.  If you have no expectation of using the imported namespace
 directly, you can process the importing schema just as before:
 
-.. literalinclude:: ../examples/manual/demo3a.sh
+.. literalinclude:: ../../examples/manual/demo3a.sh
 
 PyXB will detect the ``import`` statement, read the corresponding schema,
 and create bindings for its types.  However, since the ``pyxbgen``
@@ -103,13 +99,13 @@ the required classes are available, but will not expose them to code that
 imports only module ``po3``.  The demonstration program ``demo3.py`` shows
 that things work as expected without the new namespace being made explicit.
 
-.. literalinclude:: ../examples/manual/demo3.py
+.. literalinclude:: ../../examples/manual/demo3.py
 
 More often, you will want to be able to import the module defining bindings
 from the additional namespaces.  To do this, explicitly reference the
 additional schema and provide it with a module name:
 
-.. literalinclude:: ../examples/manual/demo3b.sh
+.. literalinclude:: ../../examples/manual/demo3b.sh
 
 Here each namespace is represented in its own module (``address`` for
 ``URN:address`` and ``po3`` for module with an absent namespace).  In this
@@ -128,7 +124,7 @@ namespace, so they can be referenced in independent generation activities.
 To generate the archive, you add the :ref:`pyxbgen--archive-to-file`
 flag to the binding generation command:
 
-.. literalinclude:: ../examples/manual/demo3c.sh
+.. literalinclude:: ../../examples/manual/demo3c.sh
 
 In addition to generating the ``addresss`` Python module, this causes a
 :ref:`archive <namespace-archive>` of the schema contents to be saved in the
@@ -139,7 +135,7 @@ in this archive, so that cross-namespace extension works correctly.
 You can then generate bindings for importing namespaces by providing PyXB
 with the information necessary to locate this archive:
 
-.. literalinclude:: ../examples/manual/demo3d.sh
+.. literalinclude:: ../../examples/manual/demo3d.sh
 
 The :ref:`pyxbgen--archive-path` directive indicates that the current
 directory (``.``) should be searched for files that end in ``.wxs``, and any
@@ -278,16 +274,3 @@ components in that namespace, this particular schema has not yet been read.
 PyXB reads the additional components, and generates bindings for the
 additional material into a private module ``_ogc`` which is then imported
 into the ``sos_1_0`` module.
-
-Using Binding Classes
-=====================
-
-Creating Instances from XML Documents
--------------------------------------
-
-Creating Instances in Python Code
----------------------------------
-
-Creating XML Documents from Binding Instances
----------------------------------------------
-

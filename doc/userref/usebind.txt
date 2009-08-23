@@ -1,0 +1,14 @@
+.. _usebind:
+
+Using Binding Classes
+=====================
+
+Creating Instances from XML Documents
+-------------------------------------
+
+Creating Instances in Python Code
+---------------------------------
+
+Creating XML Documents from Binding Instances
+---------------------------------------------
+
