@@ -1566,6 +1566,12 @@ class Generator (object):
         """A list of locations from which entrypoint schemas are to be
         read.
 
+        The values in the list are either URIs, or tuples consisting
+        of a value and a callable which, when passed the generator
+        object and the value, will return a
+        L{pyxb.xmlschema.structures.Schema} instance.  See
+        L{addSchemaLocation}.
+        
         See also L{addSchemaLocation} and L{schemas}.
         """
         return self.__schemaLocationList
@@ -1573,15 +1579,36 @@ class Generator (object):
         self.__schemaLocationList[:] = []
         self.__schemaLocationList.extend(schema_location_list)
         return self
-    def addSchemaLocation (self, schema_location):
+    def addSchemaLocation (self, schema_location, converter=None):
         """Add the location of an entrypoint schema.
 
-        The specified location should be a URL.  If the schema
-        location does not have a URL scheme (e.g., C{http:}), it is
-        assumed to be a file, and if it is not an absolute path is
-        located relative to the C{schemaRoot}."""
-        self.__schemaLocationList.append(schema_location)
+        @param schema_location: The location of the schema.  This
+        should be a URL; if the schema location does not have a URL
+        scheme (e.g., C{http:}), it is assumed to be a file, and if it
+        is not an absolute path is located relative to the
+        C{schemaRoot}.
+
+        @keyword converter: Optional callable that will be invoked
+        with the generator instance and the schema location, and is
+        expected to return a L{pyxb.xmlschema.structures.Schema}
+        instance.  If absent, the contents of the location are
+        converted directly.
+
+        @note: The C{converter} argument derives from WSDL support: we
+        need to add to the sequence of schema locations a URI of
+        something that will not parse as a schema, but does have inner
+        material that can if treated properly.  "Treated properly" may
+        include having the archive path and other namespace
+        manipulations configured before anything is done to it.
+        """
+        self.__schemaLocationList.append( (schema_location, converter) )
         return self
+    def argAddSchemaLocation (self, schema_location):
+        """Add the location of an entrypoint schema.  The provided
+        value should be a URL; if it does not have a URL scheme (e.g.,
+        C{http:}), it is assumed to be a file, and if it is not an
+        absolute path is located relative to the C{schemaRoot}."""
+        self.addSchemaLocation(schema_location)
     __schemaLocationList = None
 
     def schemas (self):
@@ -1972,7 +1999,7 @@ class Generator (object):
             group = optparse.OptionGroup(parser, 'Identifying Schema', 'Specify and locate schema for which bindings should be generated.')
             group.add_option('--schema-location', '-u', metavar="FILE_or_URL",
                              action='append',
-                             help=self.__stripSpaces(self.addSchemaLocation.__doc__))
+                             help=self.__stripSpaces(self.argAddSchemaLocation.__doc__))
             group.add_option('--schema-root', metavar="DIRECTORY",
                              help=self.__stripSpaces(self.schemaRoot.__doc__))
             group.add_option('--schema-stripped-prefix', metavar="TEXT", type='string',
@@ -2069,6 +2096,8 @@ class Generator (object):
         while module_list and schema_list:
             ml = module_list.pop(0)
             sl = schema_list.pop(0)
+            if isinstance(sl, tuple):
+                sl = sl[0]
             opts.extend(['--schema-location=' + sl, '--module=' + ml])
         for sl in schema_list:
             opts.append('--schema-location=' + sl)
@@ -2142,8 +2171,15 @@ class Generator (object):
             ns.markNotLoadable()
         while self.__schemaLocationList:
             sl = self.__schemaLocationList.pop(0)
+            if isinstance(sl, tuple):
+                (sl, converter) = sl
+            else:
+                converter = None
             try:
-                schema = xs.schema.CreateFromLocation(absolute_schema_location=self.normalizeSchemaLocation(sl), generation_uid=self.generationUID(), uri_content_archive_directory=self.uriContentArchiveDirectory())
+                if converter is None:
+                    schema = xs.schema.CreateFromLocation(absolute_schema_location=self.normalizeSchemaLocation(sl), generation_uid=self.generationUID(), uri_content_archive_directory=self.uriContentArchiveDirectory())
+                else:
+                    schema = converter(self, sl)
                 self.addSchema(schema)
             except pyxb.SchemaUniquenessError, e:
                 print 'WARNING: Skipped redundant translation of %s defining %s' % (e.schemaLocation(), e.namespace())
