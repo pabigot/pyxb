@@ -1911,7 +1911,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             element_binding = element_use.elementBinding()
         return (element_binding, element_use)
         
-    def append (self, value, element_use=None, maybe_element=True, _fallback_namespace=None):
+    def append (self, value, element_use=None, maybe_element=True, _fallback_namespace=None, require_validation=True):
         """Add the value to the instance.
 
         The value should be a DOM node or other value that is or can be
@@ -1935,6 +1935,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             assert maybe_element
             assert element_binding is None
             node = value
+            require_validation = pyxb._ParsingRequiresValid
             if xml.dom.Node.COMMENT_NODE == node.nodeType:
                 # @todo: Note that we're allowing comments inside the bodies
                 # of simple content elements, which isn't really Hoyle.
@@ -1984,10 +1985,11 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             raise pyxb.ExtraContentError('%s: Content %s present in element with xsi:nil' % (type(self), value))
         if maybe_element and (self.__dfaStack is not None):
             # Allows element content.
-            if not self._PerformValidation:
+            if not require_validation:
                 if element_use is not None:
                     element_use.setOrAppend(self, value)
                     return self
+                raise pyxb.binding.StructuralBadDocumentError('Validation is required when no element_use can be found')
                 if self.wildcardElements() is not None:
                     self._appendWildcardElement(value)
                     return self
@@ -2009,7 +2011,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
                 if not isinstance(value, self._TypeDefinition):
                     value = self._TypeDefinition.Factory(value)
                 self.__setContent(value)
-                if self._PerformValidation:
+                if require_validation:
                     # NB: This only validates the value, not any associated
                     # attributes, which is correct to be parallel to complex
                     # content validation.

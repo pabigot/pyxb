@@ -967,6 +967,8 @@ class ContentModelState (pyxb.cscRoot):
                 return transition.nextState()
         if self.isFinal():
             return None
+        if element_use:
+            raise pyxb.UnrecognizedContentError('%s value %s' % (element_use.name(), value))
         raise pyxb.UnrecognizedContentError(value)
 
 class ContentModel (pyxb.cscRoot):

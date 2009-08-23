@@ -85,13 +85,28 @@ Anytown, AS  12345-6789'''
     def testGenerationValidation (self):
         ship_to = USAddress('Robert Smith', 'General Delivery')
         po = purchaseOrder(ship_to)
+        self.assertEqual('General Delivery', po.shipTo.street)
+        self.assertTrue(po.billTo is None)
+
         self.assertTrue(pyxb.RequireValidWhenGenerating())
         self.assertRaises(pyxb.DOMGenerationError, po.toxml)
         try:
             pyxb.RequireValidWhenGenerating(False)
-            self.assertEqual('<ns1:purchaseOrder xmlns:ns1="http://www.example.com/PO1"><shipTo><street>General Delivery</street><name>Robert Smith</name></shipTo></ns1:purchaseOrder>', po.toxml(root_only=True))
+            self.assertFalse(pyxb.RequireValidWhenGenerating())
+            xmls = po.toxml(root_only=True)
+            self.assertEqual('<ns1:purchaseOrder xmlns:ns1="http://www.example.com/PO1"><shipTo><street>General Delivery</street><name>Robert Smith</name></shipTo></ns1:purchaseOrder>', xmls)
         finally:
             pyxb.RequireValidWhenGenerating(True)
+        self.assertRaises(pyxb.UnrecognizedContentError, CreateFromDocument, xmls)
+        self.assertTrue(pyxb.RequireValidWhenParsing())
+        try:
+            pyxb.RequireValidWhenParsing(False)
+            self.assertFalse(pyxb.RequireValidWhenParsing())
+            po2 = CreateFromDocument(xmls)
+        finally:
+            pyxb.RequireValidWhenParsing(True)
+        self.assertEqual('General Delivery', po2.shipTo.street)
+        self.assertTrue(po2.billTo is None)
 
 if __name__ == '__main__':
     unittest.main()

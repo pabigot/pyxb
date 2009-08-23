@@ -178,6 +178,30 @@ def RequireValidWhenGenerating (value=None):
     return _GenerationRequiresValid
 
 _ParsingRequiresValid = True
+def RequireValidWhenParsing (value=None):
+    """Query or set a flag that controls validation checking in XML parsing.
+
+    Normally any attempts to convert XML to a binding instance to a binding
+    instance requires that the document validate against the content model.
+    In some cases it may be necessary or useful to process a document that is
+    incomplete.  If validation is not required, the generated documents may
+    not validate even if the content validates, because ordering constraints
+    will be ignored.
+
+    @keyword value: If absent or C{None}, no change is made; otherwise, this
+    enables (C{True}) or disables (C{False}) the requirement that documents
+    validate when being converted to bindings.
+    @type value: C{bool}
+
+    @return: C{True} iff attempts to generate bindings for a document that
+    does not validate should raise an exception."""
+    global _ParsingRequiresValid
+    if value is None:
+        return _ParsingRequiresValid
+    if not isinstance(value, bool):
+        raise TypeError(value)
+    _ParsingRequiresValid = value
+    return _ParsingRequiresValid
 
 ## Local Variables:
 ## fill-column:78

@@ -215,7 +215,7 @@ class _SAXElementState (pyxb.utils.saxutils.SAXElementState):
         else:
             #print 'Extending %s by content %s' % (self.__bindingObject, self.__content,)
             for (content, element_use, maybe_element) in self.__content:
-                self.__bindingObject.append(content, element_use, maybe_element)
+                self.__bindingObject.append(content, element_use, maybe_element, require_validation=pyxb._ParsingRequiresValid)
         parent_state = self.parentState()
         if parent_state is not None:
             parent_state.addElementContent(self.__bindingObject, self.__elementUse)
