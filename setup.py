@@ -130,7 +130,7 @@ setup(name='PyXB',
       author_email='pyxb@comcast.net',
       url='http://pyxb.sourceforge.net',
       # Also change in README.TXT, pyxb/__init__.py, and doc/conf.py
-      version='0.7.1',
+      version='0.7.2-DEV',
       provides='pyxb',
       packages=[
         'pyxb', 'pyxb.namespace', 'pyxb.binding', 'pyxb.utils', 'pyxb.xmlschema',
