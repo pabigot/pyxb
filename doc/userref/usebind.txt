@@ -137,7 +137,7 @@ The ``toxml`` method is short-hand for a sequence that converts the binding
 to a DOM instance using ``xml.dom.minidom``, then uses the DOM interface to
 generate the XML document.
 
-The :ref:`pyxb.utils.domutils.BindingDOMSupport` class provides ways to
+The :api:`pyxb.utils.domutils.BindingDOMSupport` class provides ways to
 control this generation.  In particular, you may want to use something more
 informative than ``ns#`` to denote namespaces in the generated documents.
 This can be done using the following code:
