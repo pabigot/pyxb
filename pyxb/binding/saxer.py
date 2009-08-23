@@ -108,9 +108,8 @@ class _SAXElementState (pyxb.utils.saxutils.SAXElementState):
             # want them to be.
             for attr_name in self.__attributes.getNames():
                 attr_en = pyxb.namespace.ExpandedName(attr_name)
-                au = self.__bindingObject._AttributeMap.get(attr_en)
-                if au is not None:
-                    au.set(self.__bindingObject, attrs.getValue(attr_name))
+                au = self.__bindingObject._setAttribute(attr_en, attrs.getValue(attr_name))
+                    
             self.__bindingObject._validateAttributes()
         # If this element appears inside an enclosing object, store it
         # within that object.

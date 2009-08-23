@@ -1773,6 +1773,16 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             attribute_settings[attr_en] = value
         return attribute_settings
 
+    def _setAttribute (self, attr_en, value):
+        au = self._AttributeMap.get(attr_en, None)
+        if au is None:
+            if self._AttributeWildcard is None:
+                raise pyxb.UnrecognizedAttributeError('Attribute %s is not permitted in type %s' % (attr_en, self._ExpandedName))
+            self.__wildcardAttributeMap[attr_en] = value
+        else:
+            au.set(self, value)
+        return au
+
     def __setAttributes (self, attribute_settings, dom_node):
         """Initialize the attributes of this element from those of the DOM node.
 
@@ -1785,14 +1795,9 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         # Handle all the attributes that are present in the node
         attrs_available = set(self._AttributeMap.values())
         for (attr_en, value) in attribute_settings.items():
-            au = self._AttributeMap.get(attr_en, None)
-            if au is None:
-                if self._AttributeWildcard is None:
-                    raise pyxb.UnrecognizedAttributeError('Attribute %s is not permitted in type %s' % (attr_en, self._ExpandedName))
-                self.__wildcardAttributeMap[attr_en] = value
-                continue
-            au.set(self, value)
-            attrs_available.remove(au)
+            au = self._setAttribute(attr_en, value)
+            if au is not None:
+                attrs_available.remove(au)
 
         # Handle all the ones that aren't present.  NB: Don't just reset the
         # attribute; we need to check for missing ones, which is done by
