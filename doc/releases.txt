@@ -39,7 +39,7 @@ Linux several years ago:
 0.7.x (Beta)
 ============
 
-0.7.1 (?? Aug 2009, rev )
+0.7.1 (23 Aug 2009, rev 1968)
 -----------------------------
 
 None of the enhancements really got in, but lots of minor bug fixes.
@@ -68,13 +68,19 @@ None of the enhancements really got in, but lots of minor bug fixes.
 
 - Enhance management of namespace prefixes by allowing a system-wide default
   in BindingDOMSupport and by inferring the base name of the module as the
-  default prefix for namespaces defined in imported bindings.  ticket:`41`
+  default prefix for namespaces defined in imported bindings.  :ticket:`41`
+
+- Provided crude facility to bypass validation when generating and parsing
+  documents.  :ticket:`44`
 
 - Re-arrange the help for pyxbgen's arguments, and add a script to
   automatically generate the Sphinx tables for it.
 
 - Support bundles of related schemas/namespaces, currently wssplat (for WS-*)
   and opengis (Geographic Information Systems).
+
+- Got the user-level documentation back up to where it might actually help
+  somebody.
 
 
 0.7.0 (03 Aug 2009, rev 1715)
