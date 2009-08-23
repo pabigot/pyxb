@@ -2078,7 +2078,10 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             assert self.value() is not None, '%s has no value' % (self,)
             element.appendChild(dom_support.document().createTextNode(self.value().xsdLiteral()))
         else:
-            order = self._validatedChildren()
+            if pyxb._GenerationRequiresValid:
+                order = self._validatedChildren()
+            else:
+                order = self.__childrenForDOM()
             if order is None:
                 raise pyxb.DOMGenerationError('Binding value inconsistent with content model')
             for (eu, v) in order:

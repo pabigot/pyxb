@@ -150,6 +150,34 @@ def _SetXMLStyle (style=None):
 
 _SetXMLStyle()
 
+_GenerationRequiresValid = True
+def RequireValidWhenGenerating (value=None):
+    """Query or set a flag that controls validation checking in XML generation.
+
+    Normally any attempts to convert a binding instance to a DOM or XML
+    representation requires that the binding validate against the content
+    model, since only in this way can the content be generated in the correct
+    order.  In some cases it may be necessary or useful to generate a document
+    from a binding that is incomplete.  If validation is not required, the
+    generated documents may not validate even if the content validates,
+    because ordering constraints will be ignored.
+
+    @keyword value: If absent or C{None}, no change is made; otherwise, this
+    enables (C{True}) or disables (C{False}) the requirement that instances
+    validate before being converted to XML.
+    @type value: C{bool}
+
+    @return: C{True} iff attempts to generate XML for a binding that does not
+    validate should raise an exception.  """
+    global _GenerationRequiresValid
+    if value is None:
+        return _GenerationRequiresValid
+    if not isinstance(value, bool):
+        raise TypeError(value)
+    _GenerationRequiresValid = value
+    return _GenerationRequiresValid
+
+_ParsingRequiresValid = True
 
 ## Local Variables:
 ## fill-column:78

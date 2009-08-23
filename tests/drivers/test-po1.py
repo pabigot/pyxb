@@ -82,6 +82,17 @@ Anytown, AS  12345-6789'''
         bds.setDefaultNamespace(Namespace)
         self.assertEqual(xml2, ToDOM(po2, dom_support=bds).toxml())
 
+    def testGenerationValidation (self):
+        ship_to = USAddress('Robert Smith', 'General Delivery')
+        po = purchaseOrder(ship_to)
+        self.assertTrue(pyxb.RequireValidWhenGenerating())
+        self.assertRaises(pyxb.DOMGenerationError, po.toxml)
+        try:
+            pyxb.RequireValidWhenGenerating(False)
+            self.assertEqual('<ns1:purchaseOrder xmlns:ns1="http://www.example.com/PO1"><shipTo><street>General Delivery</street><name>Robert Smith</name></shipTo></ns1:purchaseOrder>', po.toxml(root_only=True))
+        finally:
+            pyxb.RequireValidWhenGenerating(True)
+
 if __name__ == '__main__':
     unittest.main()
     
