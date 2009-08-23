@@ -305,7 +305,7 @@ the object.
 Users of bindings must be aware of whether a particular value is a true simple
 type, or a complex type with simple content.  In the former case, the value
 descends from the corresponding Python type and can be used directly in Python
-expressions.  In the latter, the value must be retrieved using the ``content``
+expressions.  In the latter, the value must be retrieved using the ``value``
 method before it can be used.
 
 As an example, consider this schema (available in :file:`examples/content`):
@@ -322,9 +322,11 @@ produces the following output:
 
 .. literalinclude:: ../examples/content/showcontent.out
 
-Note that it was necessary to add the call to ``content()`` on the value of
-``v.complex()``, but not on ``v.simple()`` or ``v.attribute()``, in order to
-get a valid Python numeric value.
+Note that it was necessary to indicate that the second member (``complex``) of
+the ``numbers`` element needs to be wrapped in an instance of the appropriate
+complex type.  Consequently, it was necessary to add the call to ``value()``
+on the value of ``v.complex`` in order to get a valid Python numeric value.
+This was not necessary for ``v.simple`` or ``v.attribute``.
 
 Mixed and Element-Only Content
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

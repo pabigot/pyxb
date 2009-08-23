@@ -80,6 +80,8 @@ are in ``address.xsd`` into the namespace ``URN:address`` by defining a
 along with a namespace declaration that associates it with the QName
 references to types defined in that namespace:
 
+.. _nsaddress_xsd:
+
 .. literalinclude:: ../../examples/manual/nsaddress.xsd
 
 There are several ways you can prepare to process documents with multiple

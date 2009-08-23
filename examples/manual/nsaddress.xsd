@@ -21,6 +21,7 @@
       </xsd:extension>
     </xsd:complexContent>
   </xsd:complexType>
+  <xsd:element name="USAddress" type="tns:USAddress"/>
 
   <xsd:complexType name="UKAddress">
     <xsd:complexContent>
@@ -44,6 +45,7 @@
       <!-- and so on ... -->
     </xsd:restriction>
   </xsd:simpleType>
+  <xsd:element name="USState" type="tns:USState"/>
 
   <!-- simple type definition for UKPostcode -->
   <!-- *** pyxb mod: provide missing STD *** -->

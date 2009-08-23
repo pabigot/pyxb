@@ -11,3 +11,11 @@ sh demo3b.sh \
 sh demo3c.sh \
  && sh demo3d.sh \
  && python demo3.py
+sh demo4.sh
+python demo4a.py > demo4a.out
+python demo4a1.py > demo4a1.out 2>&1
+python demo4a2.py > demo4a2.out
+python demo4c.py | xmllint --format - > demo4c.out
+python demo4c1.py | xmllint --format - > demo4c1.out
+python demo4c2.py | xmllint --format - > demo4c2.out
+python demo4c3.py | xmllint --format - > demo4c3.out

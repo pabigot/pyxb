@@ -163,7 +163,7 @@ A colon-separated list of paths from which namespace archives can be
 read. The default path is the contents of the ``PYXB_ARCHIVE_PATH``
 environment variable, or the standard path configured at installation
 time.  Any file with the extension ``.wxs`` found in one of these
-directories is exampled to see whether it is a namespace archive.
+directories is examined to see whether it is a namespace archive.
 
 .. _pyxbgen--pre-load-archive:
 

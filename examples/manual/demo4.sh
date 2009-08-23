@@ -1,3 +1,4 @@
 pyxbgen \
-  -u nsaddress.xsd -m address \
-  --archive-to-file address.wxs
+  -u po4.xsd -m po4 \
+  --archive-path=.:+
+  
