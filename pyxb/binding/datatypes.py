@@ -1069,7 +1069,8 @@ class anyType (basis.complexTypeDefinition):
     _ContentTypeTag = basis.complexTypeDefinition._CT_MIXED
     _Abstract = False
     _HasWildcardElement = True
-    
+    _AttributeWildcard = content.Wildcard(namespace_constraint=content.Wildcard.NC_any, process_contents=content.Wildcard.PC_lax)
+
     # Generate from tests/schemas/anyType.xsd
     _ContentModel = content.ContentModel(state_map = {
       1 : content.ContentModelState(state=1, is_final=True, transitions=[
