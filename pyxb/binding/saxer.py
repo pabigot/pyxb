@@ -108,6 +108,9 @@ class _SAXElementState (pyxb.utils.saxutils.SAXElementState):
             # want them to be.
             for attr_name in self.__attributes.getNames():
                 attr_en = pyxb.namespace.ExpandedName(attr_name)
+                # Ignore xmlns and xsi attributes; we've already handled those
+                if attr_en.namespace() in ( pyxb.namespace.XMLNamespaces, pyxb.namespace.XMLSchema_instance ):
+                    continue
                 au = self.__bindingObject._setAttribute(attr_en, attrs.getValue(attr_name))
                     
             self.__bindingObject._validateAttributes()
