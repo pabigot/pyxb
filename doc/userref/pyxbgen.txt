@@ -109,8 +109,8 @@ additional schema and provide it with a module name:
 
 Here each namespace is represented in its own module (``address`` for
 ``URN:address`` and ``po3`` for module with an absent namespace).  In this
-case, the demonstration program is unchanged; see `Creating Instances in
-Python Code`_ for additional examples.
+case, the demonstration program is unchanged; see :ref:`from-python` for
+additional examples.
 
 Sharing Namespace Bindings
 --------------------------

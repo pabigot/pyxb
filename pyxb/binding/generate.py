@@ -1706,7 +1706,7 @@ class Generator (object):
         The default path is the contents of the C{PYXB_ARCHIVE_PATH}
         environment variable, or the standard path configured at
         installation time.  Any file with the extension C{.wxs} found
-        in one of these directories is exampled to see whether it is a
+        in one of these directories is examined to see whether it is a
         namespace archive.
         """
         return self.__archivePath

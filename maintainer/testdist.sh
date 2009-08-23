@@ -25,7 +25,8 @@ for pv in 2.4.6 2.5.4 2.6.2 ; do
   mv pyxb Xpyxb
 
   export SCHEMAS_OPENGIS_NET=${SCHEMAS_OPENGIS_NET:-${HOME}/SCHEMAS_OPENGIS_NET}
-  export PYTHONPATH=.:${idir}/lib/python${pvs}/site-packages
+  export PYXB_ROOT=${idir}/lib/python${pvs}/site-packages
+  export PYTHONPATH=.:${PYXB_ROOT}
   export PATH=${PATH}:${idir}/bin
   python setup.py test
   find . -name test.sh \

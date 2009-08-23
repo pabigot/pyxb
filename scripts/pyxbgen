@@ -25,7 +25,6 @@ def WSDLToSchema (generator, wsdl_uri):
     return spec.schema()
 
 def _WSDLOptionCallback (option, opt_str, value, parser, *args, **kwargs):
-    print 'WSDL value %s parser values %s' % (value, parser.values)
     assert parser.has_option('--schema-location')
     if parser.values.schema_location is None:
         parser.values.schema_location = []

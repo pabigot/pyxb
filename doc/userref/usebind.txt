@@ -3,11 +3,17 @@
 Using Binding Classes
 =====================
 
+.. _from-xml:
+
 Creating Instances from XML Documents
 -------------------------------------
 
+.. _from-python:
+
 Creating Instances in Python Code
 ---------------------------------
+
+.. _to-xml:
 
 Creating XML Documents from Binding Instances
 ---------------------------------------------

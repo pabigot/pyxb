@@ -1,5 +1,7 @@
 #!/bin/sh
 
+exec 2>&1 | tee makedist.log
+
 DISTDIR=pyxbdist
 cd /tmp
 rm -rf ${DISTDIR}

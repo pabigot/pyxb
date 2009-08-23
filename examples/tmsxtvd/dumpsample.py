@@ -4,7 +4,7 @@ import xml.dom.minidom
 import pyxb.utils.saxdom
 import pyxb.binding.saxer
 import time
-import cProfile
+#import cProfile
 
 # Extend the anonymous class used by the xtvd element to add a method
 # we can use to test equality of two instances.  Normally, you'd just
