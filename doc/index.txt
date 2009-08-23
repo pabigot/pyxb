@@ -21,7 +21,8 @@ support bi-directional conversion between `XML <http://www.w3.org/XML/>`_
 documents and Python instances.  In concept it is similar to `JAXB
 <http://en.wikipedia.org/wiki/JAXB>`_ for Java and `CodeSynthesis XSD
 <http://www.codesynthesis.com/products/xsd/>`_ for C++.  A
-:ref:`thirty_sec_example` is at the bottom of this page.
+:ref:`thirty_sec_example` is at the bottom of this page.  Step-by-step
+examples are in :ref:`userReference`.
 
 Getting Help
 ============

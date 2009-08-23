@@ -37,10 +37,10 @@ apihtml:
 	mkdir -p html/api
 	PYTHONPATH=.. $(EPYDOC) $(EPYDOCOPTS)
 
-userref/pyxbgen_cli.txt: ../pyxb/binding/generate.py ../maintainer/gendoc
+pyxbgen_cli.txt: ../pyxb/binding/generate.py ../maintainer/gendoc
 	PYTHONPATH=.. ../maintainer/gendoc > $@
 
-GENERATED_TXT += userref/pyxbgen_cli.txt
+GENERATED_TXT += pyxbgen_cli.txt
 
 html: $(GENERATED_TXT)
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) html

@@ -99,7 +99,7 @@ Creating Instances of Anonymous Types
 The style of XML schema used for purchase orders uses anonymous types for
 the deeper elements of the purchase order:
 
-.. literalinclude:: ../examples/manual/po3.xsd
+.. literalinclude:: ../examples/manual/po4.xsd
 
 In particular, there is no global ``item`` element that can be used to
 create the individual items.  For situations like this, we use 
