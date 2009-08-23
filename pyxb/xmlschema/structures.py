@@ -670,7 +670,7 @@ class _NamedComponent_mixin (pyxb.utils.utility.PrivateTransient_mixin, pyxb.csc
         assert 0 == len(args)
         name = kw.get('name')
         # Must be None or a valid NCName
-        assert (name is None) or (0 > name.find(':'))
+        assert (name is None) or (0 > name.find(':')), 'name %s' % (name,)
         self.__name = name
         
         # Target namespace is taken from the context, unless somebody
