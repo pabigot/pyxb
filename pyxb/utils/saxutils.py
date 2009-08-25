@@ -195,6 +195,12 @@ class BaseSAXHandler (xml.sax.handler.ContentHandler, object):
         return self.__namespaceContext
     __namespaceContext = None
 
+    # The namespace context in a schema that is including the schema to be
+    # parsed by this handler.  This is necessary to handle section 4.2.1 when
+    # a schema with a non-absent target namespace includes a schema with no
+    # target namespace.
+    __includingContext = None
+
     # A SAX locator object.  @todo: Figure out how to associate the
     # location information with the binding objects.
     __locator = None
@@ -222,7 +228,10 @@ class BaseSAXHandler (xml.sax.handler.ContentHandler, object):
 
         @return: C{self}
         """
-        self.__namespaceContext = pyxb.namespace.resolution.NamespaceContext(default_namespace=self.__fallbackNamespace, target_namespace=self.__targetNamespace, finalize_target_namespace=False)
+        self.__namespaceContext = pyxb.namespace.resolution.NamespaceContext(default_namespace=self.__fallbackNamespace,
+                                                                             target_namespace=self.__targetNamespace,
+                                                                             including_context=self.__includingContext,
+                                                                             finalize_target_namespace=False)
         self.__nextNamespaceContext = None
         self.__elementState = self.__elementStateConstructor(namespace_context=self.__namespaceContext)
         self.__elementStateStack = []
@@ -251,6 +260,7 @@ class BaseSAXHandler (xml.sax.handler.ContentHandler, object):
         L{pyxb.utils.utility.Location} instances associated with events and
         objects handled by the parser.
         """
+        self.__includingContext = kw.pop('including_context', None)
         self.__fallbackNamespace = kw.pop('fallback_namespace', None)
         self.__elementStateConstructor = kw.pop('element_state_constructor', SAXElementState)
         self.__targetNamespace = kw.pop('target_namespace', None)
@@ -304,7 +314,7 @@ class BaseSAXHandler (xml.sax.handler.ContentHandler, object):
         if tns_attr is not None:
             # Not true for wsdl
             #assert ns_ctx.targetNamespace() is None
-            ns_ctx.finalizeTargetNamespace(attrs.get(tns_attr.uriTuple()))
+            ns_ctx.finalizeTargetNamespace(attrs.get(tns_attr.uriTuple()), including_context=self.__includingContext)
             assert ns_ctx.targetNamespace() is not None
         self.__nextNamespaceContext = pyxb.namespace.resolution.NamespaceContext(parent_context=ns_ctx)
 

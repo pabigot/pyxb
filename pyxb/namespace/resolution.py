@@ -302,6 +302,14 @@ class NamespaceContext (object):
         return self.__defaultNamespace
     __defaultNamespace = None
 
+    # If C{True}, this context is within a schema that has no target
+    # namespace, and we should use the target namespace as a fallback if no
+    # default namespace is available and no namespace prefix appears on a
+    # QName.  This situation arises when a top-level schema has an absent
+    # target namespace, or when a schema with an absent target namespace is
+    # being included into a schema with a non-absent target namespace.
+    __fallbackToTargetNamespace = False
+
     def targetNamespace (self):
         """The target namespace in effect at this node.  Usually from the
         C{targetNamespace} attribute.  If no namespace is specified for the
@@ -375,7 +383,7 @@ class NamespaceContext (object):
             self.__inScopeNamespaces.pop(prefix, None)
             self.__defaultNamespace = None
 
-    def finalizeTargetNamespace (self, tns_uri=None):
+    def finalizeTargetNamespace (self, tns_uri=None, including_context=None):
         if tns_uri is not None:
             assert 0 < len(tns_uri)
             # Do not prevent overwriting target namespace; need this for WSDL
@@ -385,7 +393,10 @@ class NamespaceContext (object):
             # documents are included into parent schema documents.
             self.__targetNamespace = utility.NamespaceForURI(tns_uri, create_if_missing=True)
         elif self.__targetNamespace is None:
-            if tns_uri is None:
+            if including_context is not None:
+                self.__targetNamespace = including_context.targetNamespace()
+                self.__fallbackToTargetNamespace = True
+            elif tns_uri is None:
                 self.__targetNamespace = utility.CreateAbsentNamespace()
             else:
                 self.__targetNamespace = utility.NamespaceForURI(tns_uri, create_if_missing=True)
@@ -393,10 +404,13 @@ class NamespaceContext (object):
             [ self.__targetNamespace._referenceNamespace(_ns) for _ns in self.__pendingReferencedNamespaces ]
             self.__pendingReferencedNamespace = None
         assert self.__targetNamespace is not None
+        if (not self.__fallbackToTargetNamespace) and self.__targetNamespace.isAbsentNamespace():
+            self.__fallbackToTargetNamespace = True
 
     def __init__ (self,
                   dom_node=None,
                   parent_context=None,
+                  including_context=None,
                   recurse=True,
                   default_namespace=None,
                   target_namespace=None,
@@ -454,6 +468,7 @@ class NamespaceContext (object):
             self.__mutableInScopeNamespaces = False
             self.__defaultNamespace = parent_context.defaultNamespace()
             self.__targetNamespace = parent_context.targetNamespace()
+            self.__fallbackToTargetNamespace = parent_context.__fallbackToTargetNamespace
             
         if self.__targetNamespace is None:
             self.__pendingReferencedNamespaces = set()
@@ -481,7 +496,7 @@ class NamespaceContext (object):
             tns_attr = self._TargetNamespaceAttribute(expanded_name)
             if tns_attr is not None:
                 tns_uri = attribute_map.get(tns_attr)
-            self.finalizeTargetNamespace(tns_uri)
+            self.finalizeTargetNamespace(tns_uri, including_context=including_context)
 
         # Store in each node the in-scope namespaces at that node;
         # we'll need them for QName interpretation of attribute
@@ -523,9 +538,9 @@ class NamespaceContext (object):
             # Context default supersedes caller-provided namespace
             if self.defaultNamespace() is not None:
                 namespace = self.defaultNamespace()
-            # If there's no default namespace, but there is an absent target
+            # If there's no default namespace, but there is a fallback
             # namespace, use that instead.
-            if (namespace is None) and (self.targetNamespace() is not None) and self.targetNamespace().isAbsentNamespace():
+            if (namespace is None) and self.__fallbackToTargetNamespace:
                 namespace = self.targetNamespace()
             if namespace is None:
                 raise pyxb.SchemaValidationError('QName %s with absent default namespace cannot be resolved' % (local_name,))

@@ -4837,6 +4837,10 @@ class Schema (_SchemaComponent_mixin):
         and set the default namespace.  All other attributes are passed up
         to the parent class for storage."""
 
+        # Get the context of any schema that is including (not importing) this
+        # one.
+        including_context = kw.get('including_context')
+
         root_node = node
         if Node.DOCUMENT_NODE == node.nodeType:
             root_node = root_node.documentElement
@@ -4844,7 +4848,9 @@ class Schema (_SchemaComponent_mixin):
             raise pyxb.LogicError('Must be given a DOM node of type ELEMENT')
 
         assert (namespace_context is None) or isinstance(namespace_context, pyxb.namespace.resolution.NamespaceContext)
-        ns_ctx = pyxb.namespace.resolution.NamespaceContext.GetNodeContext(root_node, parent_context=namespace_context)
+        ns_ctx = pyxb.namespace.resolution.NamespaceContext.GetNodeContext(root_node,
+                                                                           parent_context=namespace_context,
+                                                                           including_context=including_context)
 
         tns = ns_ctx.targetNamespace()
         assert tns is not None
@@ -4983,8 +4989,7 @@ class Schema (_SchemaComponent_mixin):
         (has_schema, schema_instance) = self.targetNamespace().lookupSchemaByLocation(abs_uri)
         if not has_schema:
             kw = { 'absolute_schema_location': abs_uri,
-                   'namespace_context': self.__namespaceData,
-                   'target_namespace': self.targetNamespace(),
+                   'including_context': self.__namespaceData,
                    'generation_uid': self.generationUID(),
                    'uri_content_archive_directory': self._uriContentArchiveDirectory(),
                  }
