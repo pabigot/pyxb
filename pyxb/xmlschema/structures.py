@@ -37,6 +37,7 @@ import pyxb.xmlschema
 from xml.dom import Node
 import xml.dom
 import types
+import re
 
 import pyxb.namespace.archive
 import pyxb.namespace.resolution
@@ -3579,7 +3580,15 @@ class Annotation (_SchemaComponent_mixin):
 
     # Define so superclasses can take keywords
     def __init__ (self, **kw):
+        application_information = kw.pop('application_information', None)
+        user_information = kw.pop('user_information', None)
         super(Annotation, self).__init__(**kw)
+        if (user_information is not None) and (not isinstance(user_information, list)):
+            user_information = [ unicode(user_information) ]
+        if (application_information is not None) and (not isinstance(application_information, list)):
+            application_information = [ unicode(application_information) ]
+        self.__userInformation = user_information
+        self.__applicationInformation = application_information
 
     # @todo: what the hell is this?  From 3.13.2, I think it's a place
     # to stuff attributes from the annotation element, which makes
@@ -3616,8 +3625,22 @@ class Annotation (_SchemaComponent_mixin):
 
         return rv
 
+    __RemoveMultiQuote_re = re.compile('""+')
     def asDocString (self, encoding='ascii', error='xmlcharrefreplace'):
-        return self.text().encode(encoding, error)
+        """Return the text in a form suitable for embedding in a
+        triple-double-quoted docstring.
+
+        Any sequence of two or more double quotes is replaced by a sequence of
+        single quotes that is the same length.  Following this, spaces are
+        added at the start and the end as necessary to ensure a double quote
+        does not appear in those positions."""
+        rv = self.text().encode(encoding, error)
+        rv = self.__RemoveMultiQuote_re.sub(lambda _mo: "'" * (_mo.end(0) - _mo.start(0)), rv)
+        if rv.startswith('"'):
+            rv = ' ' + rv
+        if rv.endswith('"'):
+            rv = rv + ' '
+        return rv
 
     def text (self):
         if self.__userInformation is None:
