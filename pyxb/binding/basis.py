@@ -1600,10 +1600,11 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
                 self.__initializeSimpleContent(args, dom_node)
 
     def __initializeSimpleContent (self, args, dom_node=None):
-        # Don't propagate the keywords.  Python base simple types
-        # usually don't like them, and even if they do we're not using
-        # them here.
-        value = self._TypeDefinition.Factory(_require_value=not self._isNil(), _dom_node=dom_node, *args)
+        # Don't propagate the keywords.  Python base simple types usually
+        # don't like them, and even if they do we're not using them here.  (Do
+        # need to propagate _nil, though, to correctly handle types derived
+        # from basestring.)
+        value = self._TypeDefinition.Factory(_require_value=not self._isNil(), _dom_node=dom_node, _nil=self._isNil(), *args)
         if value._constructedWithValue():
             if self._isNil():
                 raise pyxb.ContentInNilElementError(value)
