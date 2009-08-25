@@ -39,6 +39,21 @@ Linux several years ago:
 0.7.x (Beta)
 ============
 
+0.7.2 (25 Aug 2009, rev 1981)
+-----------------------------
+
+Primarily to fix a problem with chameleon schemas, but also a couple other
+minor issues.
+
+ - References to QNames with absent namespaces in chameleon schema included
+   into schema with a target namespace could not be resolved.  :ticket:`46`
+
+ - Documentation content was not correctly sanitized for use within a Python
+   docstring.  :ticket:`45`.
+
+ - Elements with complex types with simple content that derived from string
+   could not be marked as nil.  :ticket:`48`
+
 0.7.1 (23 Aug 2009, rev 1968)
 -----------------------------
 
