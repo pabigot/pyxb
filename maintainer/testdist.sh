@@ -38,6 +38,6 @@ for pv in 2.4.6 2.5.4 2.6.2 ; do
   # Put directory back
   mv Xpyxb pyxb
 
-  ) 2>&1 | tee log.${pv}
+  ) 2>&1 | tee log.${pv}-${RELEASE}
 done
   
