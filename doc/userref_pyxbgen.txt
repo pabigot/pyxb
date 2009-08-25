@@ -48,6 +48,8 @@ documents, each of which contains a cohesive set of types.  In the example
 above, the ``USAddress`` type can be abstracted to handle a variety of
 addresses, and maintained as its own document ``address.xsd``:
 
+.. _address_xsd:
+
 .. literalinclude:: ../examples/manual/address.xsd
 
 The XMLSchema `include directive
@@ -74,15 +76,17 @@ Documents of significant complexity are likely to require references to
 multiple namespaces.  Notice that the schemas we've looked at so far have
 :ref:`no namespace <absentNamespaces>` for both their target and default
 namespaces.  The following schema ``nsaddress.xsd`` places the types that
-are in ``address.xsd`` into the namespace ``URN:address`` by defining a
-`target namespace
+are in :ref:`address.xsd <address_xsd>` into the namespace ``URN:address``
+by defining a `target namespace
 <http://www/Documentation/W3C/www.w3.org/TR/xmlschema-0/index.html#QualLocals>`_
-along with a namespace declaration that associates it with the QName
-references to types defined in that namespace:
+then including the namespace-less schema:
 
 .. _nsaddress_xsd:
 
 .. literalinclude:: ../examples/manual/nsaddress.xsd
+
+Note that this technique takes advantage of the `chameleon schema
+<http://www.xfront.com/ZeroOneOrManyNamespaces.html#mixed>`_ pattern.
 
 There are several ways you can prepare to process documents with multiple
 namespaces.  If you have no expectation of using the imported namespace

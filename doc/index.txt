@@ -24,8 +24,9 @@ documents and Python instances.  In concept it is similar to `JAXB
 :ref:`thirty_sec_example` is at the bottom of this page.  Step-by-step
 examples are in :ref:`userReference`.
 
+************
 Getting Help
-============
+************
 
 PyXB is distributed on `SourceForge <http://sourceforge.net/projects/pyxb>`_.
 
