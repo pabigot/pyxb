@@ -125,13 +125,43 @@ class test (Command):
 import glob
 
 setup(name='PyXB',
-      description = 'Python W3C XML Schema Bindings',
+      description = 'PyXB ("pixbee") is a pure Python package that generates Python source code for classes that correspond to data structures defined by XMLSchema.',
       author='Peter A. Bigot',
       author_email='pyxb@comcast.net',
       url='http://pyxb.sourceforge.net',
       # Also change in README.TXT, pyxb/__init__.py, and doc/conf.py
       version='0.7.3-DEV',
-      provides='pyxb',
+      license='Apache License 2.0',
+      long_description='''PyXB is a pure `Python <http://www.python.org>`_ package that generates
+Python code for classes that correspond to data structures defined by
+`XMLSchema <http://www.w3.org/XML/Schema>`_.  In concept it is similar to
+`JAXB <http://en.wikipedia.org/wiki/JAXB>`_ for Java and `CodeSynthesis XSD
+<http://www.codesynthesis.com/products/xsd/>`_ for C++.
+
+The major goals of PyXB are:
+
+* Provide a generated Python interface that is "Pythonic", meaning similar
+  to one that would have been hand-written:
+
+  + Attributes and elements are Python properties, with name conflicts
+    resolved in favor of elements
+  + Elements with maxOccurs larger than 1 are stored as Python lists
+  + Bindings for type extensions inherit from the binding for the base type
+  + Enumeration constraints are exposed as class (constant) variables
+
+* Support bi-directional conversion (document to Python and back)
+
+* Allow easy customization of the generated bindings to provide
+  functionality along with content
+
+* Support all XMLSchema features that are in common use, including:
+
+  + complex content models (nested all/choice/sequence)
+  + cross-namespace dependencies
+  + include and import directives
+  + constraints on simple types
+''',
+      provides=[ 'PyXB' ],
       packages=[
         'pyxb', 'pyxb.namespace', 'pyxb.binding', 'pyxb.utils', 'pyxb.xmlschema',
         "pyxb.bundles",
