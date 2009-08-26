@@ -87,7 +87,7 @@ This example produces (after reformatting):
 .. literalinclude:: ../examples/manual/demo4c.out
 
 Note that, because we're in the middle of the example and have not provided
-the ``items`` stanza that the content model requires, the code explicitly
+the ``items`` element that the content model requires, the code explicitly
 disables the requirement for validation when generating XML from a binding
 instance.  A consequence of this is that the generated XML is not valid, and
 validation must be disabled for parsing as well if the resulting document is

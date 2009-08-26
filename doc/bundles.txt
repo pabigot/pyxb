@@ -7,6 +7,8 @@ generate and manage them yourself.  These bundles also demonstrate the
 complexity of schema that PyXB is prepared to handle.  Not all namespaces
 have been fully tested, but they are expected to function correctly.
 
+.. _bundle_wssplat:
+
 WS-*
 ----
 
@@ -49,6 +51,8 @@ Binding Module                          Namespace
 ``pyxb.bundles.wssplat.wsse``           ``http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd``
 ``pyxb.bundles.wssplat.wsu``            ``http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd``
 =====================================   ==========================================================
+
+.. _bundle_opengis:
 
 OpenGIS
 -------
@@ -120,13 +124,46 @@ Binding Module                                    Namespace
 
 .. _bundle_generation:
 
+Layout of a Bundle Directory
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The ``pyxb/bundles`` directory contains groups of bindings for related
+schema.  These groups are called "bundles", and each subdirectory represents
+a particular bundle.
+
+With a bundle directory, the following are expected:
+
+- A ``scripts`` directory, containing an executable ``genbind`` which
+  retrieves the schema and invokes ``pyxbgen`` to build the bindings
+
+- A ``schemas`` directory, into which the ``genbind`` script stores the
+  schemas that were used to build the bindings
+
+- The Python module files for namespace modules.  Normally these are
+  :ref:`customization wrappers <customized_bindings>`
+
+- A ``raw`` subdirectory, into which the generated bindings are placed.
+  Note that this directory is normally removed and recreated as a
+  consequence of running genbind; ddn't expect anything in it to be
+  persistent.
+
+- An ``examples`` directory, with programs that show how to use the
+  capabilities in the bundle
+
+- A ``tests`` directory which validates customizations
+
+Each directory also has a ``.svnignore`` file which is used to set the
+corresponding directory property in a development workspace.
+
+.. It is recommended that you NOT add to this -- what?  I didn't finish the
+   line when I first wrote this.
+
 Generating Bundled Bindings
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Due to the size of the generated code, bundles are not incorporated into the
-core distribution of PyXB.  To create the support infrastructure for a
-particular bundle, set the ``PYXB_ROOT`` environment variable and run the
-``scripts/genbind`` script in the bundle root.  For example::
+To create the support infrastructure for a particular bundle, set the
+``PYXB_ROOT`` environment variable and run the ``scripts/genbind`` script in
+the bundle root.  For example::
 
   cd ${PYXB_ROOT}
   pyxb/bundles/wssplat/scripts/genbind

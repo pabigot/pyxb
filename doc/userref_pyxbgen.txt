@@ -163,8 +163,8 @@ Schemas Defined in WSDL Documents
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 It is a common, if regrettable, practice that web services define the
-structure of their documents using XML schema stanzas encoded directly into
-``types`` stanzas of WSDL specifications rather than having those stanzas
+structure of their documents using XML schema elements encoded directly into
+``types`` element of WSDL specifications rather than having those elements
 import complete standalone schema.  To accommodate this, pyxbgen supports
 the :ref:`pyxbgen--wsdl-location` argument as an alternative to
 :ref:`pyxbgen--schema-location`.  For example, the following will generate a
@@ -175,9 +175,11 @@ module ``ndfd`` containing bindings required to communicate with the
    --wsdl-location=http://www.weather.gov/forecasts/xml/DWMLgen/wsdl/ndfdXML.wsdl --module=ndfd \
    --archive-path=${PYXB_ROOT}/pyxb/bundles/wssplat//:+
 
-Note that it will often be necessary to have the WS-* bindings available, as
-the schema embedded in a WSDL document may make reference to SOAP and other
-structures.  See :ref:`bundle_generation`.
+Note that it will be necessary to have the :ref:`WS-* <bundle_wssplat>`
+bindings available, as provided by the :ref:`pyxbgen--archive-path` option
+above.
+
+.. _customized_bindings:
 
 Customizing Binding Classes
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -217,7 +219,7 @@ we use the generated value rather than the customized value.
 The class definition shows how to extend the generated bindings for the
 ``tParam`` complex type so that it has a field that can hold the instance
 of ``tMessage`` that was identified by the ``message`` attribute in an
-``operation`` stanza.  Following the class is a directive that tells PyXB to
+``operation`` element.  Following the class is a directive that tells PyXB to
 create instances of the customized class when automatically generating
 ``tParam`` instances from XML documents.
 

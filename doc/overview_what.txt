@@ -12,14 +12,13 @@ The major goals of PyXB are:
 * Provide a generated Python interface that is "Pythonic", meaning similar
   to one that would have been hand-written:
 
-  + Attributes and elements are Python fields (currently accessed through
-    inspector/mutator methods), with name conflicts resolved in favor of
-    elements
+  + Attributes and elements are Python properties, with name conflicts
+    resolved in favor of elements
   + Elements with maxOccurs larger than 1 are stored as Python lists
   + Bindings for type extensions inherit from the binding for the base type
   + Enumeration constraints are exposed as class (constant) variables
 
-* Support bi-directional conversion (DOM to Python and back)
+* Support bi-directional conversion (document to Python and back)
 
 * Allow easy customization of the generated bindings to provide
   functionality along with content
