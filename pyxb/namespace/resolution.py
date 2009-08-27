@@ -496,7 +496,7 @@ class NamespaceContext (object):
             tns_attr = self._TargetNamespaceAttribute(expanded_name)
             if tns_attr is not None:
                 tns_uri = attribute_map.get(tns_attr)
-            self.finalizeTargetNamespace(tns_uri, including_context=including_context)
+                self.finalizeTargetNamespace(tns_uri, including_context=including_context)
 
         # Store in each node the in-scope namespaces at that node;
         # we'll need them for QName interpretation of attribute
