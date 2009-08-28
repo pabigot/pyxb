@@ -471,19 +471,13 @@ class ElementUse (pyxb.cscRoot):
 
 class _DFAState (object):
     """Base class for a suspended DFA interpretation."""
-    __ctdInstance = None
     __contentModel = None
     __state = None
 
-    def __init__ (self, content_model, ctd_instance, state=1):
-        self.__ctdInstance = ctd_instance
+    def __init__ (self, content_model, state=1):
         self.__contentModel = content_model
         self.__state = state
 
-    def ctdInstance (self):
-        """The L{basis.complexTypeDefinition} instance that is being
-        configured through execution of the automaton."""
-        return self.__ctdInstance
     def state (self):
         """The current state of the automaton, represented as an integer."""
         return self.__state
@@ -495,7 +489,7 @@ class _DFAState (object):
         self.__state = state
         return self
 
-    def step (self, dfa_stack, value, element_use):
+    def step (self, dfa_stack, ctd_instance, value, element_use):
         """Execute a step within the content model.
 
         This determines whether the current state in the content model allows
@@ -514,7 +508,8 @@ class _DFAState (object):
         @return: C{True} iff a transition successfully consumed the value
         """
 
-        self.__state = self.contentModel().step(self.ctdInstance(), self.state(), value, element_use, dfa_stack)
+        assert isinstance(ctd_instance, basis.complexTypeDefinition)
+        self.__state = self.contentModel().step(ctd_instance, self.state(), value, element_use, dfa_stack)
         return self.__state is not None
 
     def isFinal (self):
@@ -528,18 +523,16 @@ class _MGAllState (object):
     alternatives.
     """
 
-    __ctdInstance = None
     __modelGroup = None
     __alternatives = None
     __currentStack = None
     __isFinal = None
     
-    def __init__ (self, model_group, ctd_instance):
+    def __init__ (self, model_group):
         self.__modelGroup = model_group
-        self.__ctdInstance = ctd_instance
         self.__alternatives = self.__modelGroup.alternatives()
 
-    def step (self, dfa_stack, value, element_use):
+    def step (self, dfa_stack, ctd_instance, value, element_use):
         """Execute a step within the model group.
 
         If an automaton stack is currently being executed, the step defers to
@@ -562,8 +555,9 @@ class _MGAllState (object):
         @return: C{True} iff a transition was found that consumed the value.
         """
 
+        assert isinstance(ctd_instance, basis.complexTypeDefinition)
         if self.__currentStack is not None:
-            if self.__currentStack.step(self.__ctdInstance, value, element_use):
+            if self.__currentStack.step(ctd_instance, value, element_use):
                 return True
             if not self.__currentStack.isTerminal():
                 # I think this is probably a problem, but don't have an
@@ -576,8 +570,8 @@ class _MGAllState (object):
         found_match = True
         for alt in self.__alternatives:
             try:
-                new_stack = alt.contentModel().initialDFAStack(self.__ctdInstance)
-                if new_stack.step(self.__ctdInstance, value, element_use):
+                new_stack = alt.contentModel().initialDFAStack()
+                if new_stack.step(ctd_instance, value, element_use):
                     self.__currentStack = new_stack
                     self.__alternatives.remove(alt)
                     return True
@@ -602,9 +596,9 @@ class DFAStack (object):
     content models reached through L{ModelGroupAll} instances."""
 
     __stack = None
-    def __init__ (self, content_model, ctd_instance):
+    def __init__ (self, content_model):
         self.__stack = []
-        self.pushModelState(_DFAState(content_model, ctd_instance))
+        self.pushModelState(_DFAState(content_model))
 
     def pushModelState (self, model_state):
         """Add the given model state as the new top (actively executing) model ."""
@@ -636,9 +630,10 @@ class DFAStack (object):
         Execution of the step may add a new model state to the stack.
 
         @return: C{True} iff the value was consumed by a transition."""
+        assert isinstance(ctd_instance, basis.complexTypeDefinition)
         if 0 == len(self.__stack):
             return False
-        ok = self.topModelState().step(self, value, element_use)
+        ok = self.topModelState().step(self, ctd_instance, value, element_use)
         if not ok:
             self.popModelState()
         return ok
@@ -826,7 +821,7 @@ class ContentModelTransition (pyxb.cscRoot):
         """
         if self.TT_modelGroupAll != self.__termType:
             return False
-        dfa_state = _MGAllState(self.__term, None)
+        dfa_state = _MGAllState(self.__term)
         return dfa_state.isFinal()
 
     def attemptTransition (self, ctd_instance, value, element_use, dfa_stack):
@@ -861,7 +856,7 @@ class ContentModelTransition (pyxb.cscRoot):
             self.__elementUse.setOrAppend(ctd_instance, element)
             return True
         if self.TT_modelGroupAll == self.__termType:
-            return dfa_stack.pushModelState(_MGAllState(self.__term, ctd_instance)).step(ctd_instance, value, element_use)
+            return dfa_stack.pushModelState(_MGAllState(self.__term)).step(dfa_stack, ctd_instance, value, element_use)
         if self.TT_wildcard == self.__termType:
             value_desc = 'value of type %s' % (type(value),)
             if isinstance(value, xml.dom.Node):
@@ -985,8 +980,8 @@ class ContentModel (pyxb.cscRoot):
     def __init__ (self, state_map=None):
         self.__stateMap = state_map
 
-    def initialDFAStack (self, ctd_instance):
-        return DFAStack(self, ctd_instance)
+    def initialDFAStack (self):
+        return DFAStack(self)
 
     def step (self, ctd_instance, state, value, element_use, dfa_stack):
         """Perform a single step in the content model.  This is a pass-through

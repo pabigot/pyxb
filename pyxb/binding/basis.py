@@ -1870,7 +1870,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         for eu in self._ElementMap.values():
             eu.reset(self)
         if self._ContentModel is not None:
-            self.__dfaStack = self._ContentModel.initialDFAStack(self)
+            self.__dfaStack = self._ContentModel.initialDFAStack()
         return self
 
     @classmethod
