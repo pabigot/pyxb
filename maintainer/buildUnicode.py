@@ -24,6 +24,7 @@ def condenseCodepoints (codepoints):
 
 def rangesToPython (ranges, indent=11, width=67):
     text = ', '.join( [ '(0x%06x, 0x%06x)' % _r for _r in ranges ] )
+    text += ','
     wrapped = textwrap.wrap(text, 67)
     return ("\n%s" % (' ' * indent,)).join(wrapped)
 
