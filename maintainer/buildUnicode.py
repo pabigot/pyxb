@@ -9,44 +9,66 @@ def condenseCodepoints (codepoints):
     ranges = []
     codepoints = list(codepoints)
     codepoints.sort()
-    range_last = range_min = codepoints[0]
-    range_next = range_last + 1
-    for ri in xrange(1, len(codepoints)):
-        if codepoints[ri] == range_next:
-            range_last = range_next
-            range_next += 1
-            continue
+    range_min = None
+    for ri in xrange(len(codepoints)):
+        codepoint = codepoints[ri]
+        if not isinstance(codepoint, tuple):
+            if range_min is None:
+                range_last = range_min = codepoint
+                range_next = range_last + 1
+                continue
+            if codepoint == range_next:
+                range_last = codepoint
+                range_next += 1
+                continue
+        if range_min is not None:
+            ranges.append( (range_min, range_last) )
+        if isinstance(codepoint, tuple):
+            range_min = None
+            ranges.append(codepoint)
+        else:
+            range_last = range_min = codepoints[ri]
+            range_next = range_last + 1
+    if range_min is not None:
         ranges.append( (range_min, range_last) )
-        range_last = range_min = codepoints[ri]
-        range_next = range_last + 1
-    ranges.append( (range_min, range_last) )
     return ranges
 
 def rangesToPython (ranges, indent=11, width=67):
+    ranges.sort()
     text = ', '.join( [ '(0x%06x, 0x%06x)' % _r for _r in ranges ] )
     text += ','
     wrapped = textwrap.wrap(text, 67)
     return ("\n%s" % (' ' * indent,)).join(wrapped)
 
 def emitCategoryMap (data_file='UnicodeData-3.1.0.txt'):
-    category_map = { }
+    category_map = {}
     unicode_data = file(data_file)
+    range_first = None
     while True:
         line = unicode_data.readline()
         fields = line.split(';')
         if 1 >= len(fields):
             break
         codepoint = int(fields[0], 16)
+        char_name = fields[1]
         category = fields[2]
     
-        category_map.setdefault(category, set()).add(codepoint)
-        category_map.setdefault(category[0], set()).add(codepoint)
+        if char_name.endswith(', First>'):
+            assert range_first is None
+            range_first = codepoint
+            continue
+        if range_first is not None:
+            assert char_name.endswith(', Last>')
+            codepoint = ( range_first, codepoint )
+            range_first = None
+        category_map.setdefault(category, []).append(codepoint)
+        category_map.setdefault(category[0], []).append(codepoint)
     
     print '# Unicode general category properties: %d properties' % (len(category_map),)
     print 'PropertyMap = {'
     for k in sorted(category_map.keys()):
         v = category_map.get(k)
-        print '  # %s: %d codepoints' % (k, len(v))
+        print '  # %s: %d codepoint markers (*not* codepoints)' % (k, len(v))
         print "  %-4s : ( %s )," % ("'%s'" % k, rangesToPython(condenseCodepoints(v), indent=11, width=67))
     print '  }'
 
@@ -64,7 +86,7 @@ def emitBlockMap (data_file='Blocks-4.txt'):
         rmin = int(mo.group('min'), 16)
         rmax = int(mo.group('max'), 16)
         block = mo.group('block').replace(' ', '')
-        block_map.setdefault(block, set()).add( (rmin, rmax) )
+        block_map.setdefault(block, []).append( (rmin, rmax) )
 
     print '# Unicode code blocks: %d blocks' % (len(block_map),)
     print 'BlockMap = {'
