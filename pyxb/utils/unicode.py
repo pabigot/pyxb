@@ -78,7 +78,15 @@ class CodePointSet (object):
     class is used to represent a set of code points in a manner
     suitable for use as regular expression character sets."""
 
+    """The maximum value for a code point in the Unicode code point space."""
+    MaxCodePoint = 0x10FFFF
+
     __codepoints = None
+
+    def _codepoints (self):
+        """For testing purrposes only, access to the codepoints
+        internal representation."""
+        return self.__codepoints
 
     def __init__ (self, initial_codepoints=None):
         self.__codepoints = []
@@ -86,11 +94,33 @@ class CodePointSet (object):
             self.__codepoints.extend(initial_codepoints)
 
     def asTuples (self):
-        return []
+        """Return the codepoints as tuples denoting the ranges that
+        are in the set.
+
+        Each tuple C{(s, e)} indicates that the code points from C{s}
+        (inclusive) to C{e}) (inclusive) are in the set."""
+        
+        rv = []
+        start = None
+        for ri in xrange(len(self.__codepoints)):
+            if start is not None:
+                rv.append( (start, self.__codepoints[ri]) )
+                start = None
+            else:
+                start = self.__codepoints[ri]
+        if start is not None:
+            rv.append( (start, self.MaxCodePoint) )
+        return rv
 
     def negate (self):
-        return None
-
+        """Return an instance that represents the inverse of this
+        set."""
+        rv = type(self)()
+        if (0 == len(self.__codepoints)) or (0 != self.__codepoints[0]):
+            rv.__codepoints.append(0)
+        rv.__codepoints.extend(self.__codepoints)
+        return rv
+    
     def difference (self, other):
         pass
 
