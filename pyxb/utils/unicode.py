@@ -112,6 +112,8 @@ class CodePointSet (object):
         li = bisect.bisect_left(self.__codepoints, s)
         ri = bisect.bisect_right(self.__codepoints, e)
         case = ((li & 1) << 1) | (ri & 1)
+        if not do_add:
+            case = 3 - case
         #print 'add %d %d to %s at %d %d' % (s, e, self.__codepoints, li, ri)
         if 0x03 == case:
             del self.__codepoints[li:ri]
@@ -127,6 +129,9 @@ class CodePointSet (object):
 
     def add (self, value):
         return self.__mutate(value, True)
+
+    def subtract (self, value):
+        return self.__mutate(value, False)
 
     def asTuples (self):
         """Return the codepoints as tuples denoting the ranges that

@@ -43,6 +43,19 @@ class TestCodePointSet (unittest.TestCase):
         n.add(15)
         self.assertEqual(n.asTuples(), [ (0, 0x10FFFF) ])
 
+    def testRemoveRange (self):
+        base = CodePointSet(0, 15, (20, 30), (40, 60))
+        self.assertEqual(base.asTuples(), [ (0, 0), (15, 15), (20, 30), (40, 60) ])
+        # 0 1 15 16 20 31 40 61
+        c = CodePointSet(base).subtract( (22, 25) )
+        self.assertEqual(c.asTuples(), [ (0, 0), (15, 15), (20, 21), (26, 30), (40, 60) ])
+        c = CodePointSet(base).subtract( (22, 35) )
+        self.assertEqual(c.asTuples(), [ (0, 0), (15, 15), (20, 21), (40, 60) ])
+        c = CodePointSet(base).subtract( (35, 55) )
+        self.assertEqual(c.asTuples(), [ (0, 0), (15, 15), (20, 30), (56, 60) ])
+        c = CodePointSet(base).subtract( (35, 38) )
+        self.assertEqual(c.asTuples(), [ (0, 0), (15, 15), (20, 30), (40, 60) ])
+
     def testAddRange (self):
         base = CodePointSet(0, 15)
         self.assertEqual(base.asTuples(), [ (0, 0), (15, 15) ])
