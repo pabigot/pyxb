@@ -128,9 +128,11 @@ class CodePointSet (object):
         """Return an instance that represents the inverse of this
         set."""
         rv = type(self)()
-        if (0 == len(self.__codepoints)) or (0 != self.__codepoints[0]):
+        if (0 < len(self.__codepoints)) and (0 == self.__codepoints[0]):
+            rv.__codepoints.extend(self.__codepoints[1:])
+        else:
             rv.__codepoints.append(0)
-        rv.__codepoints.extend(self.__codepoints)
+            rv.__codepoints.extend(self.__codepoints)
         return rv
     
     def difference (self, other):
