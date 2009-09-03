@@ -43,6 +43,44 @@ class TestCodePointSet (unittest.TestCase):
         n.add(15)
         self.assertEqual(n.asTuples(), [ (0, 0x10FFFF) ])
 
+    def testAddRange (self):
+        base = CodePointSet(0, 15)
+        self.assertEqual(base.asTuples(), [ (0, 0), (15, 15) ])
+        base.add((20, 30))
+        self.assertEqual(base.asTuples(), [ (0, 0), (15, 15), (20, 30) ])
+        base.add((40, 60))
+        self.assertEqual(base.asTuples(), [ (0, 0), (15, 15), (20, 30), (40, 60) ])
+        # 0 1 15 16 20 31 40 61
+        # Bridge missing range
+        c = CodePointSet(base).add((1, 15))
+        self.assertEqual(c.asTuples(), [ (0, 15), (20, 30), (40, 60) ])
+
+        # Insert in middle of missing range
+        c = CodePointSet(base).add((35, 38))
+        self.assertEqual(c.asTuples(), [ (0, 0), (15, 15), (20, 30), (35, 38), (40, 60) ])
+        # Join following range
+        c = CodePointSet(base).add((35, 39))
+        self.assertEqual(c.asTuples(), [ (0, 0), (15, 15), (20, 30), (35, 60) ])
+        c = CodePointSet(base).add((35, 40))
+        self.assertEqual(c.asTuples(), [ (0, 0), (15, 15), (20, 30), (35, 60) ])
+
+        # Insert into middle of existing range
+        c = CodePointSet(base).add((22, 25))
+        self.assertEqual(c.asTuples(), [ (0, 0), (15, 15), (20, 30), (40, 60) ])
+        # Extend existing range
+        c = CodePointSet(base).add((22, 35))
+        self.assertEqual(c.asTuples(), [ (0, 0), (15, 15), (20, 35), (40, 60) ])
+        c = CodePointSet(base).add((22, 38))
+        self.assertEqual(c.asTuples(), [ (0, 0), (15, 15), (20, 38), (40, 60) ])
+        # Span missing range
+        c = CodePointSet(base).add((22, 39))
+        self.assertEqual(c.asTuples(), [ (0, 0), (15, 15), (20, 60) ])
+        c = CodePointSet(base).add((22, 40))
+        self.assertEqual(c.asTuples(), [ (0, 0), (15, 15), (20, 60) ])
+        c = CodePointSet(base).add((22, 41))
+        self.assertEqual(c.asTuples(), [ (0, 0), (15, 15), (20, 60) ])
+        
+
 if '__main__' == __name__:
     unittest.main()
             
