@@ -49,6 +49,7 @@ def RangeSetToRE (range_set):
         return None
     return '[' + ''.join(range_seqs) + ']'
 
+'''
 for k in unicode_data.BlockMap.keys():
     pattern = RangeSetToRE(unicode_data.BlockMap[k])
     if pattern is None:
@@ -68,3 +69,37 @@ for k in unicode_data.PropertyMap.keys():
     except Exception, e:
         print "%s: %s\n  %s" % (k, pattern, e)
         
+'''
+
+def RangeUnion (seq1, seq2):
+    seq = seq1[:]
+    seq.extend(seq2)
+    seq.sort()
+    rv = []
+    r = seq[0]
+    for ri in xrange(1, len(seq)):
+        nr = seq[ri]
+        if r[1] < nr[0]:
+            rv.append(r)
+            r = nr
+        else:
+            r = (r[0], max(r[1], nr[1]))
+    rv.append(r)
+    return rv
+
+def RangeDifference (seq1, seq2):
+    rv = []
+    i1 = i2 = 1
+    k = seq1[0]
+    d = seq2[0]
+    while True:
+        
+
+                
+            
+
+    
+
+print RangeUnion([ (0, 4) ], [ (3, 7) ])
+print RangeUnion([ (0, 4) ], [ (7, 9) ])
+print RangeUnion([ (0, 100) ], [ (7, 9), (21, 42), (84, 120) ])
