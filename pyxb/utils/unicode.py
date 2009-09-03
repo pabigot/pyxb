@@ -106,17 +106,21 @@ class CodePointSet (object):
         else:
             s = value
             e = s+1
-        i = bisect.bisect_left(self.__codepoints, s)
-        #print 'add %d %d to %s at %d' % (s, e, self.__codepoints, i)
-        if i < len(self.__codepoints):
-            if (i & 1) or (self.__codepoints[i] == s):
-                raise CodePointSetError("Value range overlaps set contents")
-            if e > self.__codepoints[i]:
-                raise CodePointSetError('Value range overlaps set contents')
-            if e == self.__codepoints[i]:
-                self.__codepoints[i] = s
-                return
-        self.__codepoints[i:i] = [s, e]
+        li = bisect.bisect_left(self.__codepoints, s)
+        ri = bisect.bisect_right(self.__codepoints, e)
+        print 'add %d %d to %s at %d %d' % (s, e, self.__codepoints, li, ri)
+        if (li & 1):
+            if (ri & 1):
+                del self.__codepoints[li:ri]
+            else:
+                del self.__codepoints[li+1:ri]
+                self.__codepoints[li] = e
+        else:
+            if (ri & 1):
+                del self.__codepoints[li+1:ri]
+                self.__codepoints[li] = s
+            else:
+                self.__codepoints[li:ri] = [s, e]
 
     def asTuples (self):
         """Return the codepoints as tuples denoting the ranges that

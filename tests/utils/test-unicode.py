@@ -16,8 +16,8 @@ class TestCodePointSet (unittest.TestCase):
         c = CodePointSet()
         c.add(15)
         self.assertEqual(c.asTuples(), [ (15, 15) ])
-        self.assertRaises(CodePointSetError, c.add, 15)
-        self.assertRaises(CodePointSetError, c.add, (10, 20))
+        c.add(15)
+        self.assertEqual(c.asTuples(), [ (15, 15) ])
 
         c.add(0)
         self.assertEqual(c.asTuples(), [ (0, 0), (15, 15) ])
@@ -26,6 +26,8 @@ class TestCodePointSet (unittest.TestCase):
 
         n.add(0)
         self.assertEqual(n.asTuples(), [ (0, 14), (16, 0x10FFFF) ])
+        n.add(15)
+        self.assertEqual(n.asTuples(), [ (0, 0x10FFFF) ])
 
 if '__main__' == __name__:
     unittest.main()
