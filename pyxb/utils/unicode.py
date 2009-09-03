@@ -70,36 +70,27 @@ for k in unicode_data.PropertyMap.keys():
         print "%s: %s\n  %s" % (k, pattern, e)
         
 '''
-
-def RangeUnion (seq1, seq2):
-    seq = seq1[:]
-    seq.extend(seq2)
-    seq.sort()
-    rv = []
-    r = seq[0]
-    for ri in xrange(1, len(seq)):
-        nr = seq[ri]
-        if r[1] < nr[0]:
-            rv.append(r)
-            r = nr
-        else:
-            r = (r[0], max(r[1], nr[1]))
-    rv.append(r)
-    return rv
-
-def RangeDifference (seq1, seq2):
-    rv = []
-    i1 = i2 = 1
-    k = seq1[0]
-    d = seq2[0]
-    while True:
         
+class CodePointSet (object):
+    """Represent a set of Unicode code points.
 
-                
-            
+    Each code point is an integral value between 0 and 0x10FFFF.  This
+    class is used to represent a set of code points in a manner
+    suitable for use as regular expression character sets."""
 
-    
+    __codepoints = None
 
-print RangeUnion([ (0, 4) ], [ (3, 7) ])
-print RangeUnion([ (0, 4) ], [ (7, 9) ])
-print RangeUnion([ (0, 100) ], [ (7, 9), (21, 42), (84, 120) ])
+    def __init__ (self, initial_codepoints=None):
+        self.__codepoints = []
+        if initial_codepoints is not None:
+            self.__codepoints.extend(initial_codepoints)
+
+    def asTuples (self):
+        return []
+
+    def negate (self):
+        return None
+
+    def difference (self, other):
+        pass
+
