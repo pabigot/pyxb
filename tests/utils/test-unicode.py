@@ -64,6 +64,7 @@ class TestCodePointSet (unittest.TestCase):
         c = CodePointSet(base).add((35, 40))
         self.assertEqual(c.asTuples(), [ (0, 0), (15, 15), (20, 30), (35, 60) ])
 
+        # 0 1 15 16 20 31 40 61
         # Insert into middle of existing range
         c = CodePointSet(base).add((22, 25))
         self.assertEqual(c.asTuples(), [ (0, 0), (15, 15), (20, 30), (40, 60) ])
@@ -79,6 +80,14 @@ class TestCodePointSet (unittest.TestCase):
         self.assertEqual(c.asTuples(), [ (0, 0), (15, 15), (20, 60) ])
         c = CodePointSet(base).add((22, 41))
         self.assertEqual(c.asTuples(), [ (0, 0), (15, 15), (20, 60) ])
+        
+        # 0 1 15 16 20 31 40 61
+        c = CodePointSet(base).add((15, 18))
+        self.assertEqual(c.asTuples(), [ (0, 0), (15, 18), (20, 30), (40, 60) ])
+        c = CodePointSet(base).add((35, 65))
+        self.assertEqual(c.asTuples(), [ (0, 0), (15, 15), (20, 30), (35, 65) ])
+        c = CodePointSet(base).add((12, 16))
+        self.assertEqual(c.asTuples(), [ (0, 0), (12, 16), (20, 30), (40, 60) ])
         
 
 if '__main__' == __name__:
