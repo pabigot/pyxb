@@ -5,6 +5,20 @@ class TestCodePointSet (unittest.TestCase):
     def testConstructor (self):
         c = CodePointSet()
         self.assertEqual(c.asTuples(), [])
+        c = CodePointSet(10, 15)
+        self.assertEqual(c.asTuples(), [ (10, 10), (15, 15) ])
+        self.assertRaises(TypeError, CodePointSet, [10, 15])
+
+    def testCopyConstructor (self):
+        c = CodePointSet()
+        c.add(10)
+        c.add(15)
+        self.assertEqual(c.asTuples(), [ (10, 10), (15, 15) ])
+        c2 = CodePointSet(c)
+        self.assertEqual(c2.asTuples(), [ (10, 10), (15, 15) ])
+        c.add(20)
+        self.assertEqual(c.asTuples(), [ (10, 10), (15, 15), (20, 20) ])
+        self.assertEqual(c2.asTuples(), [ (10, 10), (15, 15) ])
 
     def testNegate (self):
         c = CodePointSet().negate()

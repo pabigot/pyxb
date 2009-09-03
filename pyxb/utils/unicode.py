@@ -94,17 +94,19 @@ class CodePointSet (object):
         internal representation."""
         return self.__codepoints
 
-    def __init__ (self, initial_codepoints=None):
+    def __init__ (self, *args):
         self.__codepoints = []
-        if initial_codepoints is not None:
-            self.__codepoints.extend(initial_codepoints)
+        if (1 == len(args)) and isinstance(args[0], CodePointSet):
+            self.__codepoints.extend(args[0].__codepoints)
+            return
+        [ self.add(_a) for _a in args ]
 
     def add (self, value):
         if isinstance(value, tuple):
             (s, e) = value
             e += 1
         else:
-            s = value
+            s = int(value)
             e = s+1
         li = bisect.bisect_left(self.__codepoints, s)
         ri = bisect.bisect_right(self.__codepoints, e)
