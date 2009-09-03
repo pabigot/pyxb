@@ -7,7 +7,8 @@ class TestCodePointSet (unittest.TestCase):
         self.assertEqual(c.asTuples(), [])
         c = CodePointSet(10, 15)
         self.assertEqual(c.asTuples(), [ (10, 10), (15, 15) ])
-        self.assertRaises(TypeError, CodePointSet, [10, 15])
+        c = CodePointSet([10, 15])
+        self.assertEqual(c.asTuples(), [ (10, 10), (15, 15) ])
 
     def testCopyConstructor (self):
         c = CodePointSet()
@@ -22,7 +23,7 @@ class TestCodePointSet (unittest.TestCase):
 
     def testNegate (self):
         c = CodePointSet().negate()
-        self.assertEqual(c.asTuples(), [ (0, 0x10FFFF) ])
+        self.assertEqual(c.asTuples(), [ (0, CodePointSet.MaxCodePoint) ])
         c2 = c.negate()
         self.assertEqual(c2.asTuples(), [])
 
@@ -36,12 +37,12 @@ class TestCodePointSet (unittest.TestCase):
         c.add(0)
         self.assertEqual(c.asTuples(), [ (0, 0), (15, 15) ])
         n = c.negate()
-        self.assertEqual(n.asTuples(), [ (1, 14), (16, 0x10FFFF) ])
+        self.assertEqual(n.asTuples(), [ (1, 14), (16, CodePointSet.MaxCodePoint) ])
 
         n.add(0)
-        self.assertEqual(n.asTuples(), [ (0, 14), (16, 0x10FFFF) ])
+        self.assertEqual(n.asTuples(), [ (0, 14), (16, CodePointSet.MaxCodePoint) ])
         n.add(15)
-        self.assertEqual(n.asTuples(), [ (0, 0x10FFFF) ])
+        self.assertEqual(n.asTuples(), [ (0, CodePointSet.MaxCodePoint) ])
 
     def testRemoveRange (self):
         base = CodePointSet(0, 15, (20, 30), (40, 60))

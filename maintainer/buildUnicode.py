@@ -69,7 +69,9 @@ def emitCategoryMap (data_file='UnicodeData-3.1.0.txt'):
     for k in sorted(category_map.keys()):
         v = category_map.get(k)
         print '  # %s: %d codepoint markers (*not* codepoints)' % (k, len(v))
-        print "  %-4s : ( %s )," % ("'%s'" % k, rangesToPython(condenseCodepoints(v), indent=11, width=67))
+        print "  %-4s : CodePointSet([" % ("'%s'" % k,)
+        print "           %s" % (rangesToPython(condenseCodepoints(v), indent=11, width=67),)
+        print "         ]),"
     print '  }'
 
 def emitBlockMap (data_file='Blocks-4.txt'):
@@ -92,10 +94,15 @@ def emitBlockMap (data_file='Blocks-4.txt'):
     print 'BlockMap = {'
     for k in sorted(block_map.keys()):
         v = block_map.get(k)
-        print '  %s : (' % (repr(k),)
+        print '  %s : CodePointSet(' % (repr(k),)
         print '     %s' % (rangesToPython(v, indent=6, width=67),)
         print '  ),'
     print '  }'
+
+print '''# Unicode property and category maps.
+
+from unicode import CodePointSet
+'''
 
 emitBlockMap()
 emitCategoryMap()

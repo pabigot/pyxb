@@ -16,7 +16,6 @@ and refers to U{Unicode Standard Annex #27: Unicode 3.1
 <http://www.unicode.org/unicode/reports/tr27/>}.
 """
 
-import unicode_data
 import re
 
 SupportsWideUnicode = False
@@ -25,51 +24,6 @@ try:
     SupportsWideUnicode = True
 except:
     pass
-
-def RangeSetToRE (range_set):
-    range_seqs = []
-    for (rmin, rmax) in range_set:
-        if (0x10000 <= rmin):
-            if not SupportsWideUnicode:
-                continue
-            rmin_rep = '\U%04x' % (rmin,)
-        else:
-            rmin_rep = '\u%04x' % (rmin,)
-        if rmin == rmax:
-            range_seqs.append(rmin_rep)
-            continue
-        if (0x10000 <= rmax):
-            if not SupportsWideUnicode:
-                continue
-            rmax_rep = '\U%04x' % (rmax,)
-        else:
-            rmax_rep = '\u%04x' % (rmax,)
-        range_seqs.append('%s-%s' % (rmin_rep, rmax_rep))
-    if 0 == len(range_seqs):
-        return None
-    return '[' + ''.join(range_seqs) + ']'
-
-'''
-for k in unicode_data.BlockMap.keys():
-    pattern = RangeSetToRE(unicode_data.BlockMap[k])
-    if pattern is None:
-        print '%s is not representable' % (k,)
-        continue
-    print '%s = %s' % (k, pattern)
-    re.compile(pattern)
-
-for k in unicode_data.PropertyMap.keys():
-    pattern = RangeSetToRE(unicode_data.PropertyMap[k])
-    if pattern is None:
-        print '%s is not representable' % (k,)
-        continue
-    print '%s = %s' % (k, pattern)
-    try:
-        re.compile(pattern)
-    except Exception, e:
-        print "%s: %s\n  %s" % (k, pattern, e)
-        
-'''
 
 import bisect
         
@@ -84,8 +38,13 @@ class CodePointSet (object):
     class is used to represent a set of code points in a manner
     suitable for use as regular expression character sets."""
 
-    """The maximum value for a code point in the Unicode code point space."""
+    """The maximum value for a code point in the Unicode code point
+    space.  This is normally 0xFFFF, because wide unicode characters
+    are generally not enabled in Python builds.  If, however, they are
+    enabled, this will be the full value of 0x10FFFF."""
     MaxCodePoint = 0x10FFFF
+    if not SupportsWideUnicode:
+        MaxCodePoint = 0xFFFF
 
     __codepoints = None
 
@@ -96,9 +55,12 @@ class CodePointSet (object):
 
     def __init__ (self, *args):
         self.__codepoints = []
-        if (1 == len(args)) and isinstance(args[0], CodePointSet):
-            self.__codepoints.extend(args[0].__codepoints)
-            return
+        if 1 == len(args):
+            if isinstance(args[0], CodePointSet):
+                self.__codepoints.extend(args[0].__codepoints)
+                return
+            if isinstance(args[0], list):
+                args = args[0]
         [ self.add(_a) for _a in args ]
 
 
@@ -109,6 +71,10 @@ class CodePointSet (object):
         else:
             s = int(value)
             e = s+1
+        if s > e:
+            raise ValueError('codepoint range value order')
+        if s > self.MaxCodePoint:
+            return self
         li = bisect.bisect_left(self.__codepoints, s)
         ri = bisect.bisect_right(self.__codepoints, e)
         case = ((li & 1) << 1) | (ri & 1)
@@ -166,3 +132,4 @@ class CodePointSet (object):
     def difference (self, other):
         pass
 
+import unicode_data
