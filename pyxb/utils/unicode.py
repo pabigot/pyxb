@@ -70,7 +70,13 @@ for k in unicode_data.PropertyMap.keys():
         print "%s: %s\n  %s" % (k, pattern, e)
         
 '''
+
+import bisect
         
+class CodePointSetError (LookupError):
+    """Raised when some abuse of a L{CodePointSet} is detected."""
+    pass
+
 class CodePointSet (object):
     """Represent a set of Unicode code points.
 
@@ -93,6 +99,12 @@ class CodePointSet (object):
         if initial_codepoints is not None:
             self.__codepoints.extend(initial_codepoints)
 
+    def add (self, value):
+        i = bisect.bisect_left(self.__codepoints, value)
+        if (i < len(self.__codepoints)) and (self.__codepoints[i] == value):
+            raise CodePointSetError("Value already in set")
+        self.__codepoints[i:i] = [value, value + 1]
+
     def asTuples (self):
         """Return the codepoints as tuples denoting the ranges that
         are in the set.
@@ -104,7 +116,7 @@ class CodePointSet (object):
         start = None
         for ri in xrange(len(self.__codepoints)):
             if start is not None:
-                rv.append( (start, self.__codepoints[ri]) )
+                rv.append( (start, self.__codepoints[ri]-1) )
                 start = None
             else:
                 start = self.__codepoints[ri]
