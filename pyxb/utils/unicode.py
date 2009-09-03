@@ -101,7 +101,8 @@ class CodePointSet (object):
             return
         [ self.add(_a) for _a in args ]
 
-    def add (self, value):
+
+    def __mutate (self, value, do_add):
         if isinstance(value, tuple):
             (s, e) = value
             e += 1
@@ -110,20 +111,22 @@ class CodePointSet (object):
             e = s+1
         li = bisect.bisect_left(self.__codepoints, s)
         ri = bisect.bisect_right(self.__codepoints, e)
+        case = ((li & 1) << 1) | (ri & 1)
         #print 'add %d %d to %s at %d %d' % (s, e, self.__codepoints, li, ri)
-        if (li & 1):
-            if (ri & 1):
-                del self.__codepoints[li:ri]
-            else:
-                del self.__codepoints[li+1:ri]
-                self.__codepoints[li] = e
+        if 0x03 == case:
+            del self.__codepoints[li:ri]
+        elif 0x02 == case:
+            del self.__codepoints[li+1:ri]
+            self.__codepoints[li] = e
+        elif 0x01 == case:
+            del self.__codepoints[li+1:ri]
+            self.__codepoints[li] = s
         else:
-            if (ri & 1):
-                del self.__codepoints[li+1:ri]
-                self.__codepoints[li] = s
-            else:
-                self.__codepoints[li:ri] = [s, e]
+            self.__codepoints[li:ri] = [s, e]
         return self
+
+    def add (self, value):
+        return self.__mutate(value, True)
 
     def asTuples (self):
         """Return the codepoints as tuples denoting the ranges that
