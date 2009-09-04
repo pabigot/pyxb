@@ -1,6 +1,8 @@
 .*~
 .*\.pyc
 .*\.wxs
+doc/html
+doc/_build
 pyxb/bundles/[^/]*/schemas
 pyxb/bundles/[^/]*/remote
 .*/raw
