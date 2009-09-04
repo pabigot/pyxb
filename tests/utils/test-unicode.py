@@ -44,6 +44,10 @@ class TestCodePointSet (unittest.TestCase):
         n.add(15)
         self.assertEqual(n.asTuples(), [ (0, CodePointSet.MaxCodePoint) ])
 
+        c = CodePointSet()
+        c.add(':')
+        self.assertEqual(c.asTuples(), [ (58, 58) ])
+
     def testRemoveRange (self):
         base = CodePointSet(0, 15, (20, 30), (40, 60))
         self.assertEqual(base.asTuples(), [ (0, 0), (15, 15), (20, 30), (40, 60) ])
@@ -103,6 +107,16 @@ class TestCodePointSet (unittest.TestCase):
         c = CodePointSet(base).add((12, 16))
         self.assertEqual(c.asTuples(), [ (0, 0), (12, 16), (20, 30), (40, 60) ])
         
+    def testAsPattern (self):
+        c = CodePointSet()
+        self.assertEqual(u'[]', c.asPattern())
+        c.add(':')
+        self.assertEqual(r'[\u003A]', c.asPattern())
+
+        n = c.negate()
+        self.assertEqual(r'[\u0000-\u0039\u003B-\uFFFF]', n.asPattern())
+        
+
 
 if '__main__' == __name__:
     unittest.main()

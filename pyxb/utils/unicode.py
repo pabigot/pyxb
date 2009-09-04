@@ -38,13 +38,15 @@ class CodePointSet (object):
     class is used to represent a set of code points in a manner
     suitable for use as regular expression character sets."""
 
+    MaxShortCodePoint = 0xFFFF
+
     """The maximum value for a code point in the Unicode code point
     space.  This is normally 0xFFFF, because wide unicode characters
     are generally not enabled in Python builds.  If, however, they are
     enabled, this will be the full value of 0x10FFFF."""
     MaxCodePoint = 0x10FFFF
     if not SupportsWideUnicode:
-        MaxCodePoint = 0xFFFF
+        MaxCodePoint = MaxShortCodePoint
 
     __codepoints = None
 
@@ -68,6 +70,11 @@ class CodePointSet (object):
         if isinstance(value, tuple):
             (s, e) = value
             e += 1
+        elif isinstance(value, basestring):
+            if 1 < len(value):
+                raise TypeError()
+            s = ord(value)
+            e = s+1
         else:
             s = int(value)
             e = s+1
@@ -125,6 +132,25 @@ class CodePointSet (object):
 
         @return: C{self}"""
         return self.__mutate(value, False)
+
+    def asPattern (self, with_brackets=True):
+        rva = []
+        if with_brackets:
+            rva.append('[')
+        for (s, e) in self.asTuples():
+            if s == e:
+                if s <= self.MaxShortCodePoint:
+                    rva.append('\u%04X' % (s,))
+                else:
+                    rva.append('\U%06X' % (s,))
+            else:
+                if s <= self.MaxShortCodePoint:
+                    rva.append('\u%04X-\u%04X' % (s, e))
+                else:
+                    rva.append('\U%06X-\U%06X' % (s, e))
+        if with_brackets:
+            rva.append(']')
+        return ''.join(rva)
 
     def asTuples (self):
         """Return the codepoints as tuples denoting the ranges that are in
@@ -207,3 +233,26 @@ MultiCharEsc['d'] = PropertyMap['Nd']
 MultiCharEsc['D'] = MultiCharEsc['d'].negate()
 MultiCharEsc['W'] = CodePointSet(PropertyMap['P']).extend(PropertyMap['Z']).extend(PropertyMap['C'])
 MultiCharEsc['w'] = MultiCharEsc['W'].negate()
+
+'''
+def ExpandCharClasses (pattern):
+    rva = []
+    in_category_escape = False
+    char_group_stack = []
+    char_group = None
+    for i in xrange(len(pattern)):
+        if in_category_escape:
+            pass
+        elif '\\' == pattern[i]:
+            in_category_escape = True
+            esc_key = pattern[i+1]
+            if 'p' == esc_key.lower():
+                assert '{' == pattern[i+2]
+                char_prop = pattern[i+3:pattern.find('}', 
+        elif '[' == pattern[i]:
+            char_group_stack.append(char_group)
+            char_group = CodePointSet()
+        elif ']' == pattern[i]:
+            pass
+        
+'''
