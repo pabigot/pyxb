@@ -206,6 +206,12 @@ class CodePointSet (object):
             rv.__codepoints.extend(self.__codepoints)
         return rv
     
+    def asSingleCharacter (self):
+        """If this set represents a single character, return it as its
+        unicode string value."""
+        if (2 != len(self.__codepoints)) or (1 < (self.__codepoints[1] - self.__codepoints[0])):
+            raise CodePointSetError('CodePointSet does not represent single character')
+        return unichr(self.__codepoints[0])
 
 from unicode_data import *
 
