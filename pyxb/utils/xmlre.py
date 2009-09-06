@@ -109,7 +109,7 @@ class TestXMLRE (unittest.TestCase):
         self.assertEqual(charset.asTuples(), [ (9, 10), (13, 13), (32, 32) ])
         self.assertEqual(2, position)
 
-    def testCharProperty (self):
+    def testMatchCharProperty (self):
         self.assertRaises(RegularExpressionError, _MatchCharPropBraced, "L", 0)
         self.assertRaises(RegularExpressionError, _MatchCharPropBraced, "{L", 0)
         text = "{L}"
@@ -120,6 +120,33 @@ class TestXMLRE (unittest.TestCase):
         (charset, position) = _MatchCharPropBraced(text, 0)
         self.assertEqual(position, len(text))
         self.assertEqual(charset, unicode.BlockMap['Cyrillic'])
+
+    def testCharProperty (self):
+        text = r'\p{D}'
+        self.assertRaises(RegularExpressionError, MatchCharacterClass, text, 0)
+        text = r'\P{D}'
+        self.assertRaises(RegularExpressionError, MatchCharacterClass, text, 0)
+        text = r'\p{N}'
+        (charset, position) = MatchCharacterClass(text, 0)
+        self.assertEqual(position, len(text))
+        self.assertEqual(charset, unicode.PropertyMap['N'])
+        text = r'\P{N}'
+        (charset, position) = MatchCharacterClass(text, 0)
+        self.assertEqual(position, len(text))
+        self.assertEqual(charset.negate(), unicode.PropertyMap['N'])
+        text = r'\p{Sm}'
+        (charset, position) = MatchCharacterClass(text, 0)
+        self.assertEqual(position, len(text))
+        self.assertEqual(charset, unicode.PropertyMap['Sm'])
+
+        text = r'\p{IsArrows}'
+        (charset, position) = MatchCharacterClass(text, 0)
+        self.assertEqual(position, len(text))
+        self.assertEqual(charset, unicode.BlockMap['Arrows'])
+        text = r'\P{IsArrows}'
+        (charset, position) = MatchCharacterClass(text, 0)
+        self.assertEqual(position, len(text))
+        self.assertEqual(charset.negate(), unicode.BlockMap['Arrows'])
 
 
 if __name__ == '__main__':
