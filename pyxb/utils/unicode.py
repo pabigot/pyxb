@@ -161,15 +161,22 @@ class CodePointSet (object):
             return self
         return self.__mutate(value, False)
 
+    __NotXMLChar_set = frozenset([ '-', '[', ']' ])
+    def __unichr (self, v):
+        rv = unichr(v)
+        if rv in self.__NotXMLChar_set:
+            rv = u'\\' + rv
+        return rv
+
     def asPattern (self, with_brackets=True):
         rva = []
         if with_brackets:
             rva.append(u'[')
         for (s, e) in self.asTuples():
             if s == e:
-                rva.append(unichr(s))
+                rva.append(self.__unichr(s))
             else:
-                rva.extend([unichr(s), '-', unichr(e)])
+                rva.extend([self.__unichr(s), '-', self.__unichr(e)])
         if with_brackets:
             rva.append(u']')
         return u''.join(rva)

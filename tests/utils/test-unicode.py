@@ -115,6 +115,15 @@ class TestCodePointSet (unittest.TestCase):
 
         n = c.negate()
         self.assertEqual(u'[\u0000-\u0039\u003B-\uFFFF]', n.asPattern())
+
+        c = CodePointSet()
+        c.add(']')
+        self.assertEqual(u'[\]]', c.asPattern())
+        c = CodePointSet()
+        c.add('-')
+        c.add('+')
+        self.assertEqual(u'[+\-]', c.asPattern())
+
         
     def testAsSingleCharacter (self):
         c = CodePointSet()
