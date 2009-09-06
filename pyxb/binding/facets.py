@@ -362,9 +362,12 @@ class CF_maxLength (ConstrainingFacet, _Fixed_mixin):
         value_length = value.xsdValueLength()
         return (value_length is None) or (self.value() is None) or (value_length <= self.value())
 
+import pyxb.utils.xmlre
+
 class _PatternElement (object):
     """This class represents individual patterns that appear within a CF_pattern collection."""
 
+    __compiledExpression = None
     pattern = None
     annotation = None
     def __init__ (self, pattern=None, value=None, annotation=None, **kw):
@@ -374,8 +377,14 @@ class _PatternElement (object):
         assert isinstance(pattern, types.StringTypes)
         self.pattern = pattern
         self.annotation = annotation
+        python_expr = pyxb.utils.xmlre.XMLToPython(pattern)
+        self.__compiledExpression = re.compile(python_expr)
+        print 'Translated pattern %s to %s' % (pattern, python_expr)
 
     def __str__ (self): return self.pattern
+
+    def matches (self, text):
+        return self.__compiledExpression.match(text)
 
 class CF_pattern (ConstrainingFacet, _CollectionFacet_mixin):
     """A facet that constrains the lexical representation of a value to match one of a set of patterns.
@@ -401,8 +410,14 @@ class CF_pattern (ConstrainingFacet, _CollectionFacet_mixin):
         return pattern
 
     def _validateConstraint_vx (self, value):
-        # @todo implement this
-        return True
+        # If validation is inhibited, or if the facet hasn't had any
+        # restrictions applied yet, return True.
+        if 0 == len(self.__patternElements):
+            return True
+        for pe in self.__patternElements:
+            if pe.matches(value.xsdLiteral()):
+                return True
+        return False
 
 class _EnumerationElement (object):
     """This class represents individual values that appear within a
