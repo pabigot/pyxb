@@ -164,21 +164,15 @@ class CodePointSet (object):
     def asPattern (self, with_brackets=True):
         rva = []
         if with_brackets:
-            rva.append('[')
+            rva.append(u'[')
         for (s, e) in self.asTuples():
             if s == e:
-                if s <= self.MaxShortCodePoint:
-                    rva.append('\u%04X' % (s,))
-                else:
-                    rva.append('\U%06X' % (s,))
+                rva.append(unichr(s))
             else:
-                if s <= self.MaxShortCodePoint:
-                    rva.append('\u%04X-\u%04X' % (s, e))
-                else:
-                    rva.append('\U%06X-\U%06X' % (s, e))
+                rva.extend([unichr(s), '-', unichr(e)])
         if with_brackets:
-            rva.append(']')
-        return ''.join(rva)
+            rva.append(u']')
+        return u''.join(rva)
 
     def asTuples (self):
         """Return the codepoints as tuples denoting the ranges that are in
