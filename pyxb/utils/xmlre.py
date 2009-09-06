@@ -42,7 +42,10 @@ def _MatchCharPropBraced (text, position):
         raise RegularExpressionError(position, "Unrecognized character property '%s'" % (char_prop,))
     return (cs, ep+1)
 
-def _MatchCharClassEsc (text, position):
+def _MaybeMatchCharClassEsc (text, position):
+    if '\\' != text[position]:
+        return None
+    position += 1
     if position >= len(text):
         raise RegularExpressionError(position, "Incomplete character escape")
     nc = text[position]
@@ -58,6 +61,9 @@ def _MatchCharClassEsc (text, position):
         (cs, np) = _MatchCharPropBraced(text, np)
         return (cs.negate(), np)
     raise RegularExpressionError(np, "Unrecognized escape identifier '\\%s'" % (nc,))
+
+def _MatchPosCharGroup (text, position):
+    sequence = []
 
 def _MatchCharGroup (text, position):
     pass
@@ -77,12 +83,7 @@ def MatchCharacterClass (text, position):
                 return (result, np+1)
             raise RegularExpressionError(np, "Character group missing closing ']'")
         raise RegularExpressionError(position, "Unable to identify character group after '['")
-    if '\\' == c:
-        cg = _MatchCharClassEsc(text, np)
-        if np is None:
-            raise RegularExpressionError(np, "Unable to identify character escape")
-        return cg
-    return None
+    return _MaybeMatchCharClassEsc(text, position)
 
 import unittest
 
