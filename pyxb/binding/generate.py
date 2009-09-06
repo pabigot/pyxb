@@ -658,6 +658,8 @@ class %{ctd} (%{superclass}):
     # Element %{id} (%{name}) inherited from %{decl_type_en}''', decl_type_en=unicode(ed.scope().expandedName()), **ef_map))
                 continue
 
+            if ed.expandedName().localName() != ef_map['id']:
+                print 'Element %s.%s renamed to %s' % (ctd.expandedName(), ed.expandedName(), ef_map['id'])
             definitions.append(templates.replaceInText('''
     # Element %{name} uses Python identifier %{id}
     %{use} = pyxb.binding.content.ElementUse(%{name_expr}, '%{id}', '%{key}', %{is_plural}%{aux_init})
@@ -753,6 +755,8 @@ class %{ctd} (%{superclass}):
             continue
 
         attribute_uses.append(templates.replaceInText('%{use}.name() : %{use}', **au_map))
+        if ad.expandedName().localName() != au_map['id']:
+            print 'Attribute %s.%s renamed to %s' % (ctd.expandedName(), ad.expandedName(), au_map['id'])
         definitions.append(templates.replaceInText('''
     # Attribute %{name} uses Python identifier %{id}
     %{use} = pyxb.binding.content.AttributeUse(%{name_expr}, '%{id}', '%{key}', %{attr_type}%{aux_init})''', **au_map))
