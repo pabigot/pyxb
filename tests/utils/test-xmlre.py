@@ -170,6 +170,12 @@ class TestXMLRE (unittest.TestCase):
         self.assertFalse(compiled_re.match('0bad'))
         self.assertFalse(compiled_re.match(' spaceBad'))
         self.assertFalse(compiled_re.match('qname:bad'))
+        text = u'\\i\\c*'
+        text_py = xmlre.XMLToPython(text)
+        compiled_re = re.compile(text_py)
+        self.assertTrue(compiled_re.match('identifier'))
+        self.assertTrue(compiled_re.match('_underscore'))
+
 
 if __name__ == '__main__':
     unittest.main()
