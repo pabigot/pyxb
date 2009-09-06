@@ -18,24 +18,40 @@
 import unicode
 
 class RegularExpressionError (ValueError):
-    pass
+    def __init__ (self, position, description):
+        self.position = position
+        ValueError.__init__(description)
 
 def MatchCharacterClass (text, position):
     if position >= len(text):
         return None
     c = text[position]
+    np = position + 1
     if '.' == c:
-        return (unicode.WildcardEsc, position+1)
+        return (unicode.WildcardEsc, np)
     if '[' == c:
-        cg = _MatchCharGroup(text, position+1)
+        cg = _MatchCharGroup(text, np)
         if cg is not None:
-            (result, new_position) = cg
-            if (new_position < len(text)) and (']' == text[new_position]):
-                return (result, new_position+1)
-            raise RegularExpressionError(new_position, "Character group missing closing ']'")
+            (result, np) = cg
+            if (np < len(text)) and (']' == text[np]):
+                return (result, np+1)
+            raise RegularExpressionError(np, "Character group missing closing ']'")
         raise RegularExpressionError(position, "Unable to identify character group after '['")
     if '\\' == c:
-        pass
+        if np >= len(text):
+            raise RegularExpressionError(np, "Missing escape identifier after '\\'")
+        nc = text[np]
+        cs = unicode.SingleCharEsc.get(nc)
+        if cs is None:
+            cs = unicode.MultiCharEsc.get(nc)
+        if cs is not None:
+            return (cs, np+1)
+        if 'p' == nc:
+            pass
+        elif 'P' == nc:
+            pass
+        else:
+            raise RegularExpressionError(np, "Unrecognized escape identifier '\\%s'" % (cs,))
     return None
 
 import unittest
@@ -48,6 +64,22 @@ class TestXMLRE (unittest.TestCase):
         (charset, position) = MatchCharacterClass('.', 0)
         self.assertEqual(charset, unicode.WildcardEsc)
         self.assertEqual(position, 1)
+
+    def testSingleCharEscapes (self):
+        # 17 chars recognized as escapes
+        self.assertEqual(len(unicode.SingleCharEsc), 17)
+
+        (charset, position) = MatchCharacterClass(r'\t', 0)
+        self.assertEqual(charset.asTuples(), [ (9, 9) ])
+        self.assertEqual(2, position)
+
+        (charset, position) = MatchCharacterClass(r'\?', 0)
+        self.assertEqual(charset.asTuples(), [ (ord('?'), ord('?')) ])
+        self.assertEqual(2, position)
+
+        (charset, position) = MatchCharacterClass(r'\\', 0)
+        self.assertEqual(charset.asTuples(), [ (ord('\\'), ord('\\')) ])
+        self.assertEqual(2, position)
 
 if __name__ == '__main__':
     unittest.main()
