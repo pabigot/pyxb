@@ -73,20 +73,25 @@ def _CharOrSCE (text, position):
     if '\\' == rc:
         if position >= len(text):
             raise RegularExpressionError(position, "Incomplete escape sequence")
-        rc = unicode.SingleCharEsc.get(text[position])
-        if rc is None:
+        charset = unicode.SingleCharEsc.get(text[position])
+        if charset is None:
             raise RegularExpressionError(position-1, "Unrecognized single-character escape '\\%s'" % (text[position],))
+        rc = charset.asSingleCharacter()
         position += 1
     return (rc, position)
 
 def _MatchPosCharGroup (text, position):
     sequence = []
-    while True:
+    while position < len(text):
         cg = _MaybeMatchCharClassEsc(text, position)
         if cg is not None:
             (charset, position) = cg
             sequence.append(charset)
             continue
+        if '-' == text[position]:
+            sequence.append('-')
+            position += 1
+        
         
     return (sequence, position)
 
@@ -201,7 +206,10 @@ class TestXMLRE (unittest.TestCase):
         self.assertEqual(charset, 'A')
         (charset, position) = _CharOrSCE(r'\t', 0)
         self.assertEqual(2, position)
-        self.assertEqual(charset, unicode.CodePointSet(ord('\t')))
+        self.assertEqual("\t", charset)
+        (charset, position) = _CharOrSCE(u'\u0041', 0)
+        self.assertEqual(1, position)
+        self.assertEqual("A", charset)
 
 if __name__ == '__main__':
     unittest.main()
