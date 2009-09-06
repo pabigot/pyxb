@@ -20,7 +20,7 @@ import unicode
 class RegularExpressionError (ValueError):
     def __init__ (self, position, description):
         self.position = position
-        ValueError.__init__(self, description)
+        ValueError.__init__(self, 'At %d: %s' % (position, description))
 
 def _MatchCharPropBraced (text, position):
     if position >= len(text):
@@ -62,7 +62,7 @@ def _MaybeMatchCharClassEsc (text, position, include_sce=True):
     if 'P' == nc:
         (cs, np) = _MatchCharPropBraced(text, np)
         return (cs.negate(), np)
-    if not include_sce:
+    if (not include_sce) and (nc in unicode.SingleCharEsc):
         return None
     raise RegularExpressionError(np, "Unrecognized escape identifier '\\%s'" % (nc,))
 
@@ -86,6 +86,9 @@ def _CharOrSCE (text, position):
 
 def _MatchPosCharGroup (text, position):
     cps = unicode.CodePointSet()
+    if '-' == text[position]:
+        cps.add(ord('-'))
+        position += 1
     while position < len(text):
         # NB: This is not ideal, as we have to hack around matching SCEs
         if '\\' == text[position]:
@@ -94,10 +97,8 @@ def _MatchPosCharGroup (text, position):
                 (charset, position) = cg
                 cps.extend(charset)
                 continue
-        if '-' == text[position]:
-            cps.add(ord('-'))
-            position += 1
-            continue
+        if text[position] in _NotXMLChar_set:
+            break
         (sc0, np) = _CharOrSCE(text, position)
         osc0 = ord(sc0)
         if (np < len(text)) and ('-' == text[np]):
@@ -114,7 +115,33 @@ def _MatchPosCharGroup (text, position):
     return (cps, position)
 
 def _MatchCharGroup (text, position):
-    pass
+    if position >= len(text):
+        raise RegularExpressionError(position, 'Expected character group')
+    np = position
+    negative_group = ('^' == text[np])
+    if negative_group:
+        np += 1
+    (cps, np) = _MatchPosCharGroup(text, np)
+    if negative_group:
+        cps = cps.negate()
+    if (np < len(text)) and ('-' == text[np]):
+        (ncps, np) = _MatchCharClassExpr(text, np+1)
+        cps.subtract(ncps)
+    return (cps, np)
+
+def _MatchCharClassExpr (text, position):
+    if position >= len(text):
+        raise RegularExpressionError(position, 'Missing character class expression')
+    nc = text[position]
+    np = position + 1
+    if '[' != nc:
+        raise RegularExpressionError(position, "Expected start of character class expression, got '%s'" % (nc,))
+    (cps, np) = _MatchCharGroup(text, np)
+    if np >= len(text):
+        raise RegularExpressionError(position, "Incomplete character class expression, missing closing ']'")
+    if ']' != text[np]:
+        raise RegularExpressionError(position, "Bad character class expression, ends with '%s'" % (text[np],))
+    return (cps, np+1)
 
 def MatchCharacterClass (text, position):
     if position >= len(text):
@@ -124,13 +151,7 @@ def MatchCharacterClass (text, position):
     if '.' == c:
         return (unicode.WildcardEsc, np)
     if '[' == c:
-        cg = _MatchCharGroup(text, np)
-        if cg is not None:
-            (result, np) = cg
-            if (np < len(text)) and (']' == text[np]):
-                return (result, np+1)
-            raise RegularExpressionError(np, "Character group missing closing ']'")
-        raise RegularExpressionError(position, "Unable to identify character group after '['")
+        return _MatchCharClassExpr(text, np)
     return _MaybeMatchCharClassEsc(text, position)
 
 import unittest
@@ -261,6 +282,34 @@ class TestXMLRE (unittest.TestCase):
         text = 'Z-A'
         self.assertRaises(RegularExpressionError, _MatchPosCharGroup, text, 0)
         
+    def testMatchCharClassExpr (self):
+        self.assertRaises(RegularExpressionError, _MatchCharClassExpr, 'missing open', 0)
+        self.assertRaises(RegularExpressionError, _MatchCharClassExpr, '[missing close', 0)
+        first_five = unicode.CodePointSet( (ord('A'), ord('E')) )
+        text = r'[ABCDE]'
+        (charset, position) = _MatchCharClassExpr(text, 0)
+        self.assertEqual(position, len(text))
+        self.assertEqual(charset, first_five)
+        text = r'[^ABCDE]'
+        (charset, position) = _MatchCharClassExpr(text, 0)
+        self.assertEqual(position, len(text))
+        self.assertEqual(charset.negate(), first_five)
+        text = r'[A-Z-[GHI]]'
+        expected = unicode.CodePointSet( (ord('A'), ord('Z')) )
+        expected.subtract( (ord('G'), ord('I') ))
+        (charset, position) = _MatchCharClassExpr(text, 0)
+        self.assertEqual(position, len(text))
+        self.assertEqual(charset, expected)
+        text = r'[\p{L}-\p{Lo}]'
+        self.assertRaises(RegularExpressionError, _MatchCharClassExpr, text, 0)
+        text = r'[\p{L}-[\p{Lo}]]'
+        (charset, position) = _MatchCharClassExpr(text, 0)
+        expected = unicode.CodePointSet(unicode.PropertyMap['L'])
+        expected.subtract(unicode.PropertyMap['Lo'])
+        self.assertEqual(position, len(text))
+        self.assertEqual(charset, expected)
+        
+                           
 
 if __name__ == '__main__':
     unittest.main()
