@@ -81,5 +81,13 @@ class TestXMLRE (unittest.TestCase):
         self.assertEqual(charset.asTuples(), [ (ord('\\'), ord('\\')) ])
         self.assertEqual(2, position)
 
+    def testMultiCharEscapes (self):
+        # 5*2 chars recognized as escapes
+        self.assertEqual(len(unicode.MultiCharEsc), 10)
+        (charset, position) = MatchCharacterClass(r'\s', 0)
+        self.assertEqual(charset.asTuples(), [ (9, 10), (13, 13), (32, 32) ])
+        self.assertEqual(2, position)
+
+
 if __name__ == '__main__':
     unittest.main()
