@@ -62,8 +62,33 @@ def _MaybeMatchCharClassEsc (text, position):
         return (cs.negate(), np)
     raise RegularExpressionError(np, "Unrecognized escape identifier '\\%s'" % (nc,))
 
+_NotXMLChar_set = frozenset([ '-', '[', ']' ])
+def _CharOrSCE (text, position):
+    if position >= len(text):
+        raise RegularExpressionError(position, "Missing character")
+    rc = text[position]
+    position += 1
+    if rc in _NotXMLChar_set:
+        raise RegularExpressionError(position, "Unexpected character '%s'" % (rc,))
+    if '\\' == rc:
+        if position >= len(text):
+            raise RegularExpressionError(position, "Incomplete escape sequence")
+        rc = unicode.SingleCharEsc.get(text[position])
+        if rc is None:
+            raise RegularExpressionError(position-1, "Unrecognized single-character escape '\\%s'" % (text[position],))
+        position += 1
+    return (rc, position)
+
 def _MatchPosCharGroup (text, position):
     sequence = []
+    while True:
+        cg = _MaybeMatchCharClassEsc(text, position)
+        if cg is not None:
+            (charset, position) = cg
+            sequence.append(charset)
+            continue
+        
+    return (sequence, position)
 
 def _MatchCharGroup (text, position):
     pass
@@ -166,6 +191,17 @@ class TestXMLRE (unittest.TestCase):
         #(charset, position) = MatchCharacterClass(text, 0)
         #self.assertEqual(position, len(text))
         #self.assertEqual(charset, unicode.CodePointSet((ord('A'), ord('Z'))))
+
+    def testCharOrSCE (self):
+        self.assertRaises(RegularExpressionError, _CharOrSCE, '[', 0)
+        self.assertRaises(RegularExpressionError, _CharOrSCE, ']', 0)
+        self.assertRaises(RegularExpressionError, _CharOrSCE, '-', 0)
+        (charset, position) = _CharOrSCE('A', 0)
+        self.assertEqual(1, position)
+        self.assertEqual(charset, 'A')
+        (charset, position) = _CharOrSCE(r'\t', 0)
+        self.assertEqual(2, position)
+        self.assertEqual(charset, unicode.CodePointSet(ord('\t')))
 
 if __name__ == '__main__':
     unittest.main()
