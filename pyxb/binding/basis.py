@@ -45,6 +45,11 @@ class _TypeBinding_mixin (utility.Locatable_mixin):
 
     _ReservedSymbols = set([ 'validateBinding', 'toDOM', 'toxml', 'Factory', 'property' ])
 
+    def __setattr__ (self, name, value):
+        if name in self._ReservedSymbols:
+            raise pyxb.BindingError('Attempt to set reserved name %s in instance of %s' % (name, type(self)))
+        return super(_TypeBinding_mixin, self).__setattr__(name, value)
+
     # @todo: We don't actually use this anymore; get rid of it, just leaving a
     # comment describing each keyword.
     _PyXBFactoryKeywords = ( '_dom_node', '_fallback_namespace', '_apply_whitespace_facet', '_validate_constraints', '_require_value', '_nil', '_element' )
@@ -462,6 +467,7 @@ class _DynamicCreate_mixin (pyxb.cscRoot):
         try:
             return ctor(*args, **kw)
         except TypeError, e:
+            print e
             raise pyxb.BadTypeValueError(e)
 
 class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
