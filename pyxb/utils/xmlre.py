@@ -20,7 +20,27 @@ import unicode
 class RegularExpressionError (ValueError):
     def __init__ (self, position, description):
         self.position = position
-        ValueError.__init__(description)
+        ValueError.__init__(self, description)
+
+def _MatchCharPropBraced (text, position):
+    if position >= len(text):
+        raise RegularExpressionError(position, "Missing brace after category escape")
+    if '{' != text[position]:
+        raise RegularExpressionError(position, "Unexpected character '%s' after category escape" % (text[position],))
+    ep = text.find('}', position+1)
+    if 0 > ep:
+        raise RegularExpressionError(position, "Unterminated category")
+    char_prop = text[position+1:ep]
+    if char_prop.startswith('Is'):
+        char_prop = char_prop[2:]
+        cs = unicode.BlockMap.get(char_prop)
+        if cs is None:
+            raise RegularExpressionError(position, "Unrecognized block name '%s'" % (char_prop,))
+        return (cs, ep+1)
+    cs = unicode.PropertyMap.get(char_prop)
+    if cs is None:
+        raise RegularExpressionError(position, "Unrecognized character property '%s'" % (char_prop,))
+    return (cs, ep+1)
 
 def MatchCharacterClass (text, position):
     if position >= len(text):
@@ -41,17 +61,18 @@ def MatchCharacterClass (text, position):
         if np >= len(text):
             raise RegularExpressionError(np, "Missing escape identifier after '\\'")
         nc = text[np]
+        np += 1
         cs = unicode.SingleCharEsc.get(nc)
         if cs is None:
             cs = unicode.MultiCharEsc.get(nc)
         if cs is not None:
-            return (cs, np+1)
+            return (cs, np)
         if 'p' == nc:
-            pass
-        elif 'P' == nc:
-            pass
-        else:
-            raise RegularExpressionError(np, "Unrecognized escape identifier '\\%s'" % (cs,))
+            return _MatchCharPropBraced(text, np)
+        if 'P' == nc:
+            (cs, np) = _MatchCharPropBraced(text, np)
+            return (cs.negate(), np)
+        raise RegularExpressionError(np, "Unrecognized escape identifier '\\%s'" % (nc,))
     return None
 
 import unittest
@@ -87,6 +108,18 @@ class TestXMLRE (unittest.TestCase):
         (charset, position) = MatchCharacterClass(r'\s', 0)
         self.assertEqual(charset.asTuples(), [ (9, 10), (13, 13), (32, 32) ])
         self.assertEqual(2, position)
+
+    def testCharProperty (self):
+        self.assertRaises(RegularExpressionError, _MatchCharPropBraced, "L", 0)
+        self.assertRaises(RegularExpressionError, _MatchCharPropBraced, "{L", 0)
+        text = "{L}"
+        (charset, position) = _MatchCharPropBraced(text, 0)
+        self.assertEqual(position, len(text))
+        self.assertEqual(charset, unicode.PropertyMap['L'])
+        text = "{IsCyrillic}"
+        (charset, position) = _MatchCharPropBraced(text, 0)
+        self.assertEqual(position, len(text))
+        self.assertEqual(charset, unicode.BlockMap['Cyrillic'])
 
 
 if __name__ == '__main__':
