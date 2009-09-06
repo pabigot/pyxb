@@ -228,6 +228,7 @@ from unicode_data import *
 # that one.
 _NameStartChar = CodePointSet(ord(':'),
                               ( ord('A'), ord('Z') ),
+                              ord('_'),
                               ( ord('a'), ord('z') ),
                               (    0xC0,    0xD6 ),
                               (    0xD8,    0xF6 ),
