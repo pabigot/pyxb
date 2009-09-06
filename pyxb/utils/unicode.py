@@ -153,9 +153,12 @@ class CodePointSet (object):
 
         @param value: An integral value denoting a code point, or a tuple
         C{(s,e)} denoting the start and end (inclusive) code points in a
-        range.
+        range, or a L{CodePointSet}.
 
         @return: C{self}"""
+        if isinstance(value, CodePointSet):
+            [ self.subtract(_v) for _v in value.asTuples() ]
+            return self
         return self.__mutate(value, False)
 
     def asPattern (self, with_brackets=True):
