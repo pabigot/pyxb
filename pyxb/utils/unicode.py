@@ -62,12 +62,23 @@ class CodePointSet (object):
     if not SupportsWideUnicode:
         MaxCodePoint = MaxShortCodePoint
 
+    # The internal representation of the codepoints is as a sorted
+    # list where values at an even index denote the first codepoint in
+    # a range that is in the set, and the immediately following value
+    # indicates the next following codepoint that is not in the set.
+    # A missing value at the end is interpreted as MaxCodePoint.  For
+    # example, the sequence [ 12, 15, 200 ] denotes the set containing
+    # codepoints 12, 13, 14, and everything above 199.
     __codepoints = None
 
     def _codepoints (self):
         """For testing purrposes only, access to the codepoints
         internal representation."""
         return self.__codepoints
+
+    def __cmp__ (self, other):
+        """Equality is delegated to the codepoints list."""
+        return cmp(self.__codepoints, other.__codepoints)
 
     def __init__ (self, *args):
         self.__codepoints = []
