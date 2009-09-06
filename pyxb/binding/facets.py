@@ -379,7 +379,8 @@ class _PatternElement (object):
         self.annotation = annotation
         python_expr = pyxb.utils.xmlre.XMLToPython(pattern)
         self.__compiledExpression = re.compile(python_expr)
-        print 'Translated pattern %s to %s' % (pattern, python_expr)
+        #print 'Translated pattern %s to %s' % (pattern.encode('ascii', 'xmlcharrefreplace'),
+        #                                       python_expr.encode('ascii', 'xmlcharrefreplace'))
 
     def __str__ (self): return self.pattern
 
@@ -387,11 +388,20 @@ class _PatternElement (object):
         return self.__compiledExpression.match(text)
 
 class CF_pattern (ConstrainingFacet, _CollectionFacet_mixin):
-    """A facet that constrains the lexical representation of a value to match one of a set of patterns.
-    
+    """A facet that constrains the lexical representation of a value
+    to match one of a set of patterns.
+
     See U{http://www.w3.org/TR/xmlschema-2/#rf-pattern}
 
-    @todo: Make this do something
+    @note: In PyXB, pattern constraints are ignored for any type with
+    a Python representation that does not derive from C{basestring}.
+    This is due to the difficulty in reconstructing the lexical
+    representation of a non-string type after it has been converted to
+    its value space.
+
+    @todo: On creating new instances of non-string simple types from
+    string representations, we could apply pattern constraints.  That
+    would mean checking them prior to invoking the Factory method.
     """
     _Name = 'pattern'
     _CollectionFacet_itemType = _PatternElement
@@ -414,8 +424,10 @@ class CF_pattern (ConstrainingFacet, _CollectionFacet_mixin):
         # restrictions applied yet, return True.
         if 0 == len(self.__patternElements):
             return True
+        if not isinstance(value, basestring):
+            return True
         for pe in self.__patternElements:
-            if pe.matches(value.xsdLiteral()):
+            if pe.matches(value):
                 return True
         return False
 
