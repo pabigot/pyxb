@@ -1,3 +1,17 @@
+# Copyright 2009, Peter A. Bigot
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain a
+# copy of the License at:
+#
+#            http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+
 """Tnis module contains support for Unicode characters as required to
 support the regular expression syntax defined in U{annex F
 <http://www/Documentation/W3C/www.w3.org/TR/xmlschema-2/index.html#regexs>}
@@ -234,25 +248,3 @@ MultiCharEsc['D'] = MultiCharEsc['d'].negate()
 MultiCharEsc['W'] = CodePointSet(PropertyMap['P']).extend(PropertyMap['Z']).extend(PropertyMap['C'])
 MultiCharEsc['w'] = MultiCharEsc['W'].negate()
 
-'''
-def ExpandCharClasses (pattern):
-    rva = []
-    in_category_escape = False
-    char_group_stack = []
-    char_group = None
-    for i in xrange(len(pattern)):
-        if in_category_escape:
-            pass
-        elif '\\' == pattern[i]:
-            in_category_escape = True
-            esc_key = pattern[i+1]
-            if 'p' == esc_key.lower():
-                assert '{' == pattern[i+2]
-                char_prop = pattern[i+3:pattern.find('}', 
-        elif '[' == pattern[i]:
-            char_group_stack.append(char_group)
-            char_group = CodePointSet()
-        elif ']' == pattern[i]:
-            pass
-        
-'''
