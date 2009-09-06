@@ -16,6 +16,7 @@
 # http://www.xmlschemareference.com/examples/Ch14/regexpDemo.xml
 
 import unicode
+import re
 
 class RegularExpressionError (ValueError):
     def __init__ (self, position, description):
@@ -141,6 +142,8 @@ def _MatchCharClassExpr (text, position):
         raise RegularExpressionError(position, "Incomplete character class expression, missing closing ']'")
     if ']' != text[np]:
         raise RegularExpressionError(position, "Bad character class expression, ends with '%s'" % (text[np],))
+    if 1 == (np - position):
+        raise RegularExpressionError(position, "Empty character class not allowed")
     return (cps, np+1)
 
 def MatchCharacterClass (text, position):
@@ -151,8 +154,23 @@ def MatchCharacterClass (text, position):
     if '.' == c:
         return (unicode.WildcardEsc, np)
     if '[' == c:
-        return _MatchCharClassExpr(text, np)
+        return _MatchCharClassExpr(text, position)
     return _MaybeMatchCharClassEsc(text, position)
+
+def XMLToPython (pattern):
+    new_pattern_elts = []
+    new_pattern_elts.append('^')
+    position = 0
+    while position < len(pattern):
+        cg = MatchCharacterClass(pattern, position)
+        if cg is None:
+            new_pattern_elts.append(pattern[position])
+            position += 1
+        else:
+            (cps, position) = cg
+            new_pattern_elts.append(cps.asPattern())
+    new_pattern_elts.append('$')
+    return ''.join(new_pattern_elts)
 
 import unittest
 
@@ -309,7 +327,19 @@ class TestXMLRE (unittest.TestCase):
         self.assertEqual(position, len(text))
         self.assertEqual(charset, expected)
         
-                           
+    def testXMLToPython (self):
+        self.assertEqual(r'^123$', XMLToPython('123'))
+        # Note that single-char escapes in the expression are
+        # converted to character classes.
+        self.assertEqual(r'^Why[ ]not[?]$', XMLToPython(r'Why[ ]not\?'))
+
+    def testRegularExpressions (self):
+        text = u'[\i-[:]][\c-[:]]*'
+        compiled_re = re.compile(XMLToPython(text))
+        self.assertTrue(compiled_re.match('identifier'))
+        self.assertFalse(compiled_re.match('0bad'))
+        self.assertFalse(compiled_re.match(' spaceBad'))
+        self.assertFalse(compiled_re.match('qname:bad'))
 
 if __name__ == '__main__':
     unittest.main()
