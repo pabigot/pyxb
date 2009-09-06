@@ -42,6 +42,26 @@ def _MatchCharPropBraced (text, position):
         raise RegularExpressionError(position, "Unrecognized character property '%s'" % (char_prop,))
     return (cs, ep+1)
 
+def _MatchCharClassEsc (text, position):
+    if position >= len(text):
+        raise RegularExpressionError(position, "Incomplete character escape")
+    nc = text[position]
+    np = position + 1
+    cs = unicode.SingleCharEsc.get(nc)
+    if cs is None:
+        cs = unicode.MultiCharEsc.get(nc)
+    if cs is not None:
+        return (cs, np)
+    if 'p' == nc:
+        return _MatchCharPropBraced(text, np)
+    if 'P' == nc:
+        (cs, np) = _MatchCharPropBraced(text, np)
+        return (cs.negate(), np)
+    raise RegularExpressionError(np, "Unrecognized escape identifier '\\%s'" % (nc,))
+
+def _MatchCharGroup (text, position):
+    pass
+
 def MatchCharacterClass (text, position):
     if position >= len(text):
         return None
@@ -58,21 +78,10 @@ def MatchCharacterClass (text, position):
             raise RegularExpressionError(np, "Character group missing closing ']'")
         raise RegularExpressionError(position, "Unable to identify character group after '['")
     if '\\' == c:
-        if np >= len(text):
-            raise RegularExpressionError(np, "Missing escape identifier after '\\'")
-        nc = text[np]
-        np += 1
-        cs = unicode.SingleCharEsc.get(nc)
-        if cs is None:
-            cs = unicode.MultiCharEsc.get(nc)
-        if cs is not None:
-            return (cs, np)
-        if 'p' == nc:
-            return _MatchCharPropBraced(text, np)
-        if 'P' == nc:
-            (cs, np) = _MatchCharPropBraced(text, np)
-            return (cs.negate(), np)
-        raise RegularExpressionError(np, "Unrecognized escape identifier '\\%s'" % (nc,))
+        cg = _MatchCharClassEsc(text, np)
+        if np is None:
+            raise RegularExpressionError(np, "Unable to identify character escape")
+        return cg
     return None
 
 import unittest
@@ -148,6 +157,14 @@ class TestXMLRE (unittest.TestCase):
         self.assertEqual(position, len(text))
         self.assertEqual(charset.negate(), unicode.BlockMap['Arrows'])
 
+    def testCharGroup (self):
+        self.assertRaises(RegularExpressionError, MatchCharacterClass, '[]', 0)
+        self.assertRaises(RegularExpressionError, MatchCharacterClass, '[A-]', 0)
+        self.assertRaises(RegularExpressionError, MatchCharacterClass, '[A-]', 0)
+        text = r'[A-Z]'
+        #(charset, position) = MatchCharacterClass(text, 0)
+        #self.assertEqual(position, len(text))
+        #self.assertEqual(charset, unicode.CodePointSet((ord('A'), ord('Z'))))
 
 if __name__ == '__main__':
     unittest.main()
