@@ -42,7 +42,7 @@ def _MatchCharPropBraced (text, position):
         raise RegularExpressionError(position, "Unrecognized character property '%s'" % (char_prop,))
     return (cs, ep+1)
 
-def _MaybeMatchCharClassEsc (text, position):
+def _MaybeMatchCharClassEsc (text, position, include_sce=True):
     if '\\' != text[position]:
         return None
     position += 1
@@ -50,7 +50,9 @@ def _MaybeMatchCharClassEsc (text, position):
         raise RegularExpressionError(position, "Incomplete character escape")
     nc = text[position]
     np = position + 1
-    cs = unicode.SingleCharEsc.get(nc)
+    cs = None
+    if include_sce:
+        cs = unicode.SingleCharEsc.get(nc)
     if cs is None:
         cs = unicode.MultiCharEsc.get(nc)
     if cs is not None:
@@ -60,6 +62,8 @@ def _MaybeMatchCharClassEsc (text, position):
     if 'P' == nc:
         (cs, np) = _MatchCharPropBraced(text, np)
         return (cs.negate(), np)
+    if not include_sce:
+        return None
     raise RegularExpressionError(np, "Unrecognized escape identifier '\\%s'" % (nc,))
 
 _NotXMLChar_set = frozenset([ '-', '[', ']' ])
@@ -83,11 +87,13 @@ def _CharOrSCE (text, position):
 def _MatchPosCharGroup (text, position):
     cps = unicode.CodePointSet()
     while position < len(text):
-        cg = _MaybeMatchCharClassEsc(text, position)
-        if cg is not None:
-            (charset, position) = cg
-            cps.extend(charset)
-            continue
+        # NB: This is not ideal, as we have to hack around matching SCEs
+        if '\\' == text[position]:
+            cg = _MaybeMatchCharClassEsc(text, position, include_sce=False)
+            if cg is not None:
+                (charset, position) = cg
+                cps.extend(charset)
+                continue
         if '-' == text[position]:
             cps.add(ord('-'))
             position += 1
@@ -232,6 +238,10 @@ class TestXMLRE (unittest.TestCase):
         (charset, position) = _MatchPosCharGroup(text, 0)
         self.assertEqual(position, 2)
         self.assertEqual(charset, unicode.CodePointSet(10))
+        text = r'-'
+        (charset, position) = _MatchPosCharGroup(text, 0)
+        self.assertEqual(position, 1)
+        self.assertEqual(charset, unicode.CodePointSet(ord('-')))
         text = 'A-Z'
         (charset, position) = _MatchPosCharGroup(text, 0)
         self.assertEqual(position, 3)
@@ -239,8 +249,17 @@ class TestXMLRE (unittest.TestCase):
         text = r'\t-\r'
         (charset, position) = _MatchPosCharGroup(text, 0)
         self.assertEqual(position, 5)
-        print charset.asTuples()
         self.assertEqual(charset, unicode.CodePointSet((9, 13)))
+        text = r'\t-A'
+        (charset, position) = _MatchPosCharGroup(text, 0)
+        self.assertEqual(position, 4)
+        self.assertEqual(charset, unicode.CodePointSet((9, ord('A'))))
+        text = r'Z-\]'
+        (charset, position) = _MatchPosCharGroup(text, 0)
+        self.assertEqual(position, 4)
+        self.assertEqual(charset, unicode.CodePointSet((ord('Z'), ord(']'))))
+        text = 'Z-A'
+        self.assertRaises(RegularExpressionError, _MatchPosCharGroup, text, 0)
         
 
 if __name__ == '__main__':
