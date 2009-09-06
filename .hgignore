@@ -6,6 +6,7 @@ doc/_build
 pyxb/bundles/[^/]*/schemas
 pyxb/bundles/[^/]*/remote
 .*/raw
+W3C
 code.py
 examples/content/content.py
 examples/content/test.log
