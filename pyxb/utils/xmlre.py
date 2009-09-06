@@ -81,19 +81,31 @@ def _CharOrSCE (text, position):
     return (rc, position)
 
 def _MatchPosCharGroup (text, position):
-    sequence = []
+    cps = unicode.CodePointSet()
     while position < len(text):
         cg = _MaybeMatchCharClassEsc(text, position)
         if cg is not None:
             (charset, position) = cg
-            sequence.append(charset)
+            cps.extend(charset)
             continue
         if '-' == text[position]:
-            sequence.append('-')
+            cps.add(ord('-'))
             position += 1
-        
-        
-    return (sequence, position)
+            continue
+        (sc0, np) = _CharOrSCE(text, position)
+        osc0 = ord(sc0)
+        if (np < len(text)) and ('-' == text[np]):
+            np += 1
+            (sc1, np) = _CharOrSCE(text, np)
+            osc1 = ord(sc1)
+            if osc0 > osc1:
+                raise RegularExpressionError(position, 'Character range must be non-decreasing')
+            cps.add( (osc0, osc1) )
+        else:
+            cps.add(osc0)
+        position = np
+
+    return (cps, position)
 
 def _MatchCharGroup (text, position):
     pass
@@ -210,6 +222,26 @@ class TestXMLRE (unittest.TestCase):
         (charset, position) = _CharOrSCE(u'\u0041', 0)
         self.assertEqual(1, position)
         self.assertEqual("A", charset)
+
+    def testMatchPosCharGroup (self):
+        text = 'A'
+        (charset, position) = _MatchPosCharGroup(text, 0)
+        self.assertEqual(position, 1)
+        self.assertEqual(charset, unicode.CodePointSet(ord('A')))
+        text = r'\n'
+        (charset, position) = _MatchPosCharGroup(text, 0)
+        self.assertEqual(position, 2)
+        self.assertEqual(charset, unicode.CodePointSet(10))
+        text = 'A-Z'
+        (charset, position) = _MatchPosCharGroup(text, 0)
+        self.assertEqual(position, 3)
+        self.assertEqual(charset, unicode.CodePointSet((ord('A'), ord('Z'))))
+        text = r'\t-\r'
+        (charset, position) = _MatchPosCharGroup(text, 0)
+        self.assertEqual(position, 5)
+        print charset.asTuples()
+        self.assertEqual(charset, unicode.CodePointSet((9, 13)))
+        
 
 if __name__ == '__main__':
     unittest.main()
