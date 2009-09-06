@@ -467,7 +467,6 @@ class _DynamicCreate_mixin (pyxb.cscRoot):
         try:
             return ctor(*args, **kw)
         except TypeError, e:
-            print e
             raise pyxb.BadTypeValueError(e)
 
 class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
