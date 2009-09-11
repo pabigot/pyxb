@@ -6,10 +6,10 @@ import unittest
 
 class TestXMLRE (unittest.TestCase):
     def testRangeErrors (self):
-        self.assertTrue(xmlre.MatchCharacterClass('', 1) is None)
+        self.assertTrue(xmlre.MaybeMatchCharacterClass('', 1) is None)
 
     def testWildcardEscape (self):
-        (charset, position) = xmlre.MatchCharacterClass('.', 0)
+        (charset, position) = xmlre.MaybeMatchCharacterClass('.', 0)
         self.assertEqual(charset, unicode.WildcardEsc)
         self.assertEqual(position, 1)
 
@@ -17,22 +17,22 @@ class TestXMLRE (unittest.TestCase):
         # 17 chars recognized as escapes
         self.assertEqual(len(unicode.SingleCharEsc), 17)
 
-        (charset, position) = xmlre.MatchCharacterClass(r'\t', 0)
+        (charset, position) = xmlre.MaybeMatchCharacterClass(r'\t', 0)
         self.assertEqual(charset.asTuples(), [ (9, 9) ])
         self.assertEqual(2, position)
 
-        (charset, position) = xmlre.MatchCharacterClass(r'\?', 0)
+        (charset, position) = xmlre.MaybeMatchCharacterClass(r'\?', 0)
         self.assertEqual(charset.asTuples(), [ (ord('?'), ord('?')) ])
         self.assertEqual(2, position)
 
-        (charset, position) = xmlre.MatchCharacterClass(r'\\', 0)
+        (charset, position) = xmlre.MaybeMatchCharacterClass(r'\\', 0)
         self.assertEqual(charset.asTuples(), [ (ord('\\'), ord('\\')) ])
         self.assertEqual(2, position)
 
     def testMultiCharEscapes (self):
         # 5*2 chars recognized as escapes
         self.assertEqual(len(unicode.MultiCharEsc), 10)
-        (charset, position) = xmlre.MatchCharacterClass(r'\s', 0)
+        (charset, position) = xmlre.MaybeMatchCharacterClass(r'\s', 0)
         self.assertEqual(charset.asTuples(), [ (9, 10), (13, 13), (32, 32) ])
         self.assertEqual(2, position)
 
@@ -50,37 +50,37 @@ class TestXMLRE (unittest.TestCase):
 
     def testCharProperty (self):
         text = r'\p{D}'
-        self.assertRaises(xmlre.RegularExpressionError, xmlre.MatchCharacterClass, text, 0)
+        self.assertRaises(xmlre.RegularExpressionError, xmlre.MaybeMatchCharacterClass, text, 0)
         text = r'\P{D}'
-        self.assertRaises(xmlre.RegularExpressionError, xmlre.MatchCharacterClass, text, 0)
+        self.assertRaises(xmlre.RegularExpressionError, xmlre.MaybeMatchCharacterClass, text, 0)
         text = r'\p{N}'
-        (charset, position) = xmlre.MatchCharacterClass(text, 0)
+        (charset, position) = xmlre.MaybeMatchCharacterClass(text, 0)
         self.assertEqual(position, len(text))
         self.assertEqual(charset, unicode.PropertyMap['N'])
         text = r'\P{N}'
-        (charset, position) = xmlre.MatchCharacterClass(text, 0)
+        (charset, position) = xmlre.MaybeMatchCharacterClass(text, 0)
         self.assertEqual(position, len(text))
         self.assertEqual(charset.negate(), unicode.PropertyMap['N'])
         text = r'\p{Sm}'
-        (charset, position) = xmlre.MatchCharacterClass(text, 0)
+        (charset, position) = xmlre.MaybeMatchCharacterClass(text, 0)
         self.assertEqual(position, len(text))
         self.assertEqual(charset, unicode.PropertyMap['Sm'])
 
         text = r'\p{IsArrows}'
-        (charset, position) = xmlre.MatchCharacterClass(text, 0)
+        (charset, position) = xmlre.MaybeMatchCharacterClass(text, 0)
         self.assertEqual(position, len(text))
         self.assertEqual(charset, unicode.BlockMap['Arrows'])
         text = r'\P{IsArrows}'
-        (charset, position) = xmlre.MatchCharacterClass(text, 0)
+        (charset, position) = xmlre.MaybeMatchCharacterClass(text, 0)
         self.assertEqual(position, len(text))
         self.assertEqual(charset.negate(), unicode.BlockMap['Arrows'])
 
     def testCharGroup (self):
-        self.assertRaises(xmlre.RegularExpressionError, xmlre.MatchCharacterClass, '[]', 0)
-        self.assertRaises(xmlre.RegularExpressionError, xmlre.MatchCharacterClass, '[A-]', 0)
-        self.assertRaises(xmlre.RegularExpressionError, xmlre.MatchCharacterClass, '[A-]', 0)
+        self.assertRaises(xmlre.RegularExpressionError, xmlre.MaybeMatchCharacterClass, '[]', 0)
+        self.assertRaises(xmlre.RegularExpressionError, xmlre.MaybeMatchCharacterClass, '[A-]', 0)
+        self.assertRaises(xmlre.RegularExpressionError, xmlre.MaybeMatchCharacterClass, '[A-]', 0)
         text = r'[A-Z]'
-        #(charset, position) = xmlre.MatchCharacterClass(text, 0)
+        #(charset, position) = xmlre.MaybeMatchCharacterClass(text, 0)
         #self.assertEqual(position, len(text))
         #self.assertEqual(charset, unicode.CodePointSet((ord('A'), ord('Z'))))
 

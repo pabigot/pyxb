@@ -52,13 +52,13 @@ class CodePointSet (object):
     class is used to represent a set of code points in a manner
     suitable for use as regular expression character sets."""
 
-    MaxShortCodePoint = 0xFFFF
-
+    MaxCodePoint = 0x10FFFF
     """The maximum value for a code point in the Unicode code point
     space.  This is normally 0xFFFF, because wide unicode characters
     are generally not enabled in Python builds.  If, however, they are
     enabled, this will be the full value of 0x10FFFF."""
-    MaxCodePoint = 0x10FFFF
+
+    MaxShortCodePoint = 0xFFFF
     if not SupportsWideUnicode:
         MaxCodePoint = MaxShortCodePoint
 
@@ -92,6 +92,8 @@ class CodePointSet (object):
 
 
     def __mutate (self, value, do_add):
+        # Identify the start (inclusive) and end (exclusive) code
+        # points of the value's range.
         if isinstance(value, tuple):
             (s, e) = value
             e += 1
@@ -105,24 +107,37 @@ class CodePointSet (object):
             e = s+1
         if s > e:
             raise ValueError('codepoint range value order')
+
+        # Validate the range for the code points supported by this
+        # Python interpreter
         if s > self.MaxCodePoint:
             return self
+        if e > self.MaxCodePoint:
+            e = self.MaxCodePoint
         e = min(e, self.MaxCodePoint)
+
+        # Index of first code point equal to or greater than s
         li = bisect.bisect_left(self.__codepoints, s)
+        # Index of last code point less than or equal to e
         ri = bisect.bisect_right(self.__codepoints, e)
+        # There are four cases; if we're subtracting, they reflect.
         case = ((li & 1) << 1) | (ri & 1)
         if not do_add:
             case = 3 - case
         #print 'add %d %d to %s at %d %d' % (s, e, self.__codepoints, li, ri)
         if 0x03 == case:
+            # Add: Incoming value begins and ends within existing ranges
             del self.__codepoints[li:ri]
         elif 0x02 == case:
+            # Add: Incoming value extends into an excluded range
             del self.__codepoints[li+1:ri]
             self.__codepoints[li] = e
         elif 0x01 == case:
+            # Add: Incoming value begins in an excluded range
             del self.__codepoints[li+1:ri]
             self.__codepoints[li] = s
         else:
+            # Add: Incoming value begins and ends within excluded ranges
             self.__codepoints[li:ri] = [s, e]
         return self
 
@@ -161,14 +176,25 @@ class CodePointSet (object):
             return self
         return self.__mutate(value, False)
 
+    # Characters that must not appear unescaped in regular expression
+    # patterns
     __NotXMLChar_set = frozenset([ '-', '[', ']' ])
-    def __unichr (self, v):
-        rv = unichr(v)
+
+    # Return the given code point as a unicode character suitable for
+    # use in a regular expression
+    def __unichr (self, code_point):
+        rv = unichr(code_point)
         if rv in self.__NotXMLChar_set:
             rv = u'\\' + rv
         return rv
 
     def asPattern (self, with_brackets=True):
+        """Return the code point set as Unicode regular expression
+        character group consisting of a sequence of characters or
+        character ranges.
+
+        @param with_brackets: If C{True} (default), square brackets
+        are added to enclose the returned character group."""
         rva = []
         if with_brackets:
             rva.append(u'[')
@@ -242,6 +268,8 @@ _NameStartChar = CodePointSet(ord(':'),
                               (  0xF900,  0xFDCF ),
                               (  0xFDF0,  0xFFFD ),
                               ( 0x10000, 0xEFFFF ) )
+
+# Add in characters that can appear in names, just not at the start.
 _NameChar = CodePointSet(_NameStartChar).extend([ ord('-'),
                                                   ord('.'),
                                                   ( ord('0'), ord('9') ),
@@ -269,4 +297,3 @@ MultiCharEsc['d'] = PropertyMap['Nd']
 MultiCharEsc['D'] = MultiCharEsc['d'].negate()
 MultiCharEsc['W'] = CodePointSet(PropertyMap['P']).extend(PropertyMap['Z']).extend(PropertyMap['C'])
 MultiCharEsc['w'] = MultiCharEsc['W'].negate()
-
