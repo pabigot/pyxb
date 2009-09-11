@@ -39,6 +39,8 @@ DefaultArchivePrefix = os.path.realpath(os.path.join(os.path.dirname( __file__),
 """The default archive prefix, substituted for C{&} in C{PYXB_ARCHIVE_PATH}."""
 
 def GetArchivePath ():
+    """Return the archive path as defined by the L{PatnEnvironmentVariable},
+    or C{None} if that variable is not defined."""
     import os
     return os.environ.get(PathEnvironmentVariable)
 
@@ -52,6 +54,8 @@ class NamespaceArchive (object):
     """Represent a file from which one or more namespaces can be read, or to
     which they will be written."""
 
+    # A code used to identify the format of the archive, so we don't
+    # mis-interpret its contents.
     # YYYYMMDDHHMM
     __PickleFormat = '200907190858'
 
@@ -63,7 +67,6 @@ class NamespaceArchive (object):
         ax different namespace."""
         return cls.__AnonymousCategory
     __AnonymousCategory = '_anonymousTypeDefinition'
-
 
     @classmethod
     def PicklingArchive (cls):
@@ -86,6 +89,10 @@ class NamespaceArchive (object):
     """A mapping from generation UID to NamespaceArchive instances."""
 
     def discard (self):
+        """Remove this archive from the set of available archives.
+
+        This is invoked when an archive contains a namespace that the user has
+        specified should not be loaded."""
         del self.__NamespaceArchives[self.generationUID()]
         for ns in self.__namespaces:
             ns._removeArchive(self)
@@ -227,15 +234,14 @@ class NamespaceArchive (object):
     __archivePath = None
 
     def generationUID (self):
+        """The unique identifier for the generation that produced this archive."""
         return self.__generationUID
     __generationUID = None
 
     def isLoadable (self):
+        """Return C{True} iff it is permissible to load the archive.
+        Archives created for output cannot be loaded."""
         return self.__isLoadable
-    def setLoadable (self, loadable):
-        if self.__isLoadable is None:
-            raise pyxb.LogicError('Cannot set loadability on output namespace archive')
-        self.__isLoadable = loadable
     __isLoadable = None
 
     def __locateModuleRecords (self):
@@ -254,13 +260,20 @@ class NamespaceArchive (object):
                 self.__moduleRecords.add(mr)
         self.__namespaces.update(namespaces)
     def moduleRecords (self):
+        """Return the set of L{module records <ModuleRecord>} stored in this
+        archive.
+
+        Each module record represents"""
         return self.__moduleRecords
     __moduleRecords = None
                 
     @classmethod
     def ForPath (cls, archive_file):
+        """Return the L{NamespaceArchive} instance that can be found at the
+        given path."""
         return cls.__GetArchiveInstance(archive_file)
 
+    # States in the finite automaton that is used to read archive contents.
     _STAGE_UNOPENED = 0         # Haven't even checked for existence
     _STAGE_uid = 1              # Verified archive exists, obtained generation UID from it
     _STAGE_readModules = 2      # Read module records from archive, which includes UID dependences
@@ -461,6 +474,8 @@ class NamespaceArchive (object):
             raise
 
     def readNamespaces (self):
+        """Read all the components from this archive, integrating them into
+        their respective namespaces."""
         self._readToStage(self._STAGE_COMPLETE)
 
     def writeNamespaces (self, output):
@@ -543,7 +558,9 @@ class _ArchivableObject_mixin (pyxb.cscRoot):
         return builtin.BuiltInObjectUID == self._objectOrigin().generationUID()
 
 class _NamespaceArchivable_mixin (pyxb.cscRoot):
-    """Encapsulate the operations and data relevant to archiving namespaces."""
+    """Encapsulate the operations and data relevant to archiving namespaces.
+
+    This class mixes-in to L{pyxb.namespace.Namespace}"""
 
     def _reset (self):
         """CSC extension to reset fields of a Namespace.
@@ -601,6 +618,8 @@ class _NamespaceArchivable_mixin (pyxb.cscRoot):
         return False
 
     def loadableFrom (self):
+        """Return the list of archives from which components for this
+        namespace can be loaded."""
         rv = []
         for mr in self.moduleRecords():
             if mr.isLoadable():
