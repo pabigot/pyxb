@@ -4,6 +4,8 @@
 pyxb/bundles/[^/]*/schemas
 pyxb/bundles/[^/]*/remote
 .*/raw
+doc/html
+doc/_build
 code.py
 examples/content/content.py
 examples/content/test.log
