@@ -123,6 +123,36 @@ class test (Command):
         runner.run(suite)
 
 import glob
+import sys
+import pyxb.utils.utility
+
+packages = [
+        'pyxb', 'pyxb.namespace', 'pyxb.binding', 'pyxb.utils', 'pyxb.xmlschema',
+        "pyxb.bundles"
+        ]
+package_data = {}
+
+init_re = re.compile('^__init__\.py$')
+wxs_re = re.compile('^.*\.wxs$')
+
+bundle_base = os.path.join(os.path.dirname(__file__), 'pyxb', 'bundles')
+for possible_bundle in os.listdir(bundle_base):
+    bundle_root = os.path.join(bundle_base, possible_bundle)
+    if not os.path.isdir(bundle_root):
+        continue
+    b_packages = []
+    b_data = { }
+    for fp in pyxb.utils.utility.GetMatchingFiles('%s//' % (bundle_root,), init_re):
+        bundle_path = os.path.dirname(os.path.normpath(fp))
+        package = bundle_path.replace(os.path.sep, '.')
+        b_packages.append(package)
+        wxs_files = [os.path.basename(_f) for _f in pyxb.utils.utility.GetMatchingFiles(bundle_path, wxs_re) ]
+        if wxs_files:
+            b_data[package] = wxs_files
+    if 0 < len(b_data):
+        print 'Found bundle in %s' % (bundle_root,)
+        packages.extend(b_packages)
+        package_data.update(b_data)
 
 setup(name='PyXB',
       description = 'PyXB ("pixbee") is a pure Python package that generates Python source code for classes that correspond to data structures defined by XMLSchema.',
@@ -162,41 +192,8 @@ The major goals of PyXB are:
   + constraints on simple types
 ''',
       provides=[ 'PyXB' ],
-      packages=[
-        'pyxb', 'pyxb.namespace', 'pyxb.binding', 'pyxb.utils', 'pyxb.xmlschema',
-        "pyxb.bundles",
-        "pyxb.bundles.core", "pyxb.bundles.core.raw", 
-        "pyxb.bundles.wssplat", "pyxb.bundles.wssplat.raw",
-        "pyxb.bundles.opengis", "pyxb.bundles.opengis.raw",
-        "pyxb.bundles.opengis.misc", "pyxb.bundles.opengis.misc.raw",
-        "pyxb.bundles.opengis.iso19139", "pyxb.bundles.opengis.iso19139.raw",
-        "pyxb.bundles.opengis.citygml", "pyxb.bundles.opengis.citygml.raw",
-        ],
-
-      package_data={ # Generate these with maintainer/genpd.sh
-        'pyxb.bundles/core/raw' : [
-            "xsd_hfp.wxs", "xhtml.wxs",
-            ],
-        'pyxb.bundles.opengis.raw' : [
-            "sampling_1_0.wxs", "ows_1_1.wxs", "citygml.waterBody.wxs",
-            "filter.wxs", "iso19139.core.wxs", "citygml.transportation.wxs",
-            "citygml.relief.wxs", "citygml.vegetation.wxs", "wcs_1_1.wxs",
-            "citygml.cityFurniture.wxs", "tml.wxs", "sos_1_0.wxs", "misc.xlinks.wxs",
-            "swe_1_0_1.wxs", "gmx.wxs", "ic_ism_2_1.wxs", "gmlsf.wxs",
-            "citygml.cityObjectGroup.wxs", "citygml.appearance.wxs", "ows.wxs",
-            "sensorML_1_0_1.wxs", "citygml.landUse.wxs", "citygml.base.wxs",
-            "wfs.wxs", "citygml.generics.wxs", "gml.wxs", "citygml.building.wxs",
-            "citygml.texturedSurface.wxs", "ogckml22.wxs", "om_1_0.wxs",
-            "misc.xAL.wxs", "swe_1_0_0.wxs", "csw_2_0_2.wxs",
-            ],
-        'pyxb.bundles.wssplat.raw' : [
-            "wsp.wxs", "whttp.wxs", "wsa.wxs", "bpws.wxs", "ds.wxs", "httpbind.wxs",
-            "wsdlx.wxs", "wsdli.wxs", "wsse.wxs", "soapbind12.wxs", "soapbind11.wxs",
-            "mimebind.wxs", "soap11.wxs", "soap12.wxs", "wsoap.wxs", "wsp200607.wxs",
-            "wsam.wxs", "wscoor.wxs", "wsu.wxs", "wsdl11.wxs", "soapenc.wxs",
-            "wsrm.wxs", "wsdl20.wxs",
-            ],
-        },
+      packages=packages,
+      package_data=package_data,
       # I normally keep these in $purelib, but distutils won't tell me where that is.
       # We don't need them in the installation anyway.
       #data_files= [ ('pyxb/standard/schemas', glob.glob(os.path.join(*'pyxb/standard/schemas/*.xsd'.split('/'))) ) ],

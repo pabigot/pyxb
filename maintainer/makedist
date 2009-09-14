@@ -2,22 +2,43 @@
 
 exec 2>&1 | tee makedist.log
 
-DISTDIR=pyxbdist
-cd /tmp
+DISTDIR=/tmp/pyxbdist
 rm -rf ${DISTDIR}
-svn export svn://scmhome/pyxb/trunk ${DISTDIR}
+hg archive ${DISTDIR}
 cd ${DISTDIR}
 export PYXB_ROOT=`pwd`
-cd doc
+
+# First, the core:
+./setup.py sdist
+ver=`ls -rt dist | tail -1 | sed -e 's@^PyXB-\(.*\).tar.gz$@\1@'`
+mv dist/PyXB-${ver}.tar.gz ~/pyxb/pre-release/PyXB-core-${ver}.tar.gz
+
+# Do everything else based on the core
+cd /tmp
+tar xzf ~/pyxb/pre-release/PyXB-core-${ver}.tar.gz
+
+# Build the documentation
+cd PyXB-${ver}/doc
 rm -rf html
 rm -f pyxb
 ln -s ../pyxb .
 make apihtml html
 rm -f pyxb
-cd ..
+cd ../..
+tar czf ~/pyxb/pre-release/PyXB-doc-${ver}.tar.gz PyXB-${ver}/doc/html
+
+# Build each bundle
 for bundle in core wssplat opengis ; do
+  cd PyXB-${ver}
   pyxb/bundles/${bundle}/scripts/genbind || exit 1
+  cd ..
+  tar czf ~/pyxb/pre-release/PyXB-${bundle}-${ver}.tar.gz PyXB-${ver}/pyxb/bundles/${bundle}
 done
+
+# And build the full distribution
+cd PyXB-${ver}
 ./setup.py sdist
+mv dist/* ~pyxb/pre-release
+
+# Finally, test it
 ./setup.py test
-cp -p dist/PyXB-*.tar.gz ~/pyxb/pre-release
