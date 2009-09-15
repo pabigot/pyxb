@@ -11,21 +11,32 @@ export PYXB_ROOT=`pwd`
 # First, the core:
 ./setup.py sdist
 ver=`ls -rt dist | tail -1 | sed -e 's@^PyXB-\(.*\).tar.gz$@\1@'`
-mv dist/PyXB-${ver}.tar.gz ~/pyxb/pre-release/PyXB-core-${ver}.tar.gz
-
-# Do everything else based on the core
-cd /tmp
-tar xzf ~/pyxb/pre-release/PyXB-core-${ver}.tar.gz
+mv dist/PyXB-${ver}.tar.gz ~/pyxb/pre-release/PyXB-base-${ver}.tar.gz
 
 # Build the documentation
-cd PyXB-${ver}/doc
+cd doc
 rm -rf html
 rm -f pyxb
 ln -s ../pyxb .
 make apihtml html
 rm -f pyxb
 cd ../..
+
+# Get the proper prefix on the files.  All this because the stupid
+# setup program won't incorporate things into the distribution that it
+# doesn't think should be installed (like output files that are
+# incorporated into the documentation).
+rm -rf PyXB-${ver} || exit 1
+ln -s ${DISTDIR} PyXB-${ver}
 tar czf ~/pyxb/pre-release/PyXB-doc-${ver}.tar.gz PyXB-${ver}/doc/html
+rm -f PyXB-${ver}
+
+# Do everything else based on the core
+cd /tmp
+tar xzf ~/pyxb/pre-release/PyXB-base-${ver}.tar.gz
+
+PYXB_ROOT=/tmp/PyXB-${ver}
+export PYXB_ROOT
 
 # Build each bundle
 for bundle in core wssplat opengis ; do
@@ -38,7 +49,7 @@ done
 # And build the full distribution
 cd PyXB-${ver}
 ./setup.py sdist
-mv dist/* ~pyxb/pre-release
+mv dist/* ~/pyxb/pre-release
 
 # Finally, test it
 ./setup.py test
