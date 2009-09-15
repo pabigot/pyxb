@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 
+# The current version of the system.  Format is #.#.#[-DEV].
+version = '0.7.3-DEV'
+
 import distutils.sysconfig
 
 # Require Python 2.4 or higher, but not 3.x
@@ -12,6 +15,38 @@ import stat
 import re
 
 from distutils.core import setup, Command
+
+# Stupid little command to automatically update the version number
+# where it needs to be updated.
+class update_version (Command):
+    # Brief (40-50 characters) description of the command
+    description = "Substitute @VERSION@ in relevant files"
+
+    # List of option tuples: long name, short name (None if no short
+    # name), and help string.
+    user_options = [ ]
+    boolean_options = [ ]
+
+    # Files in the distribution that need to be rewritten when the
+    # version number changes
+    files = ( 'README.txt', 'pyxb/__init__.py', 'doc/conf.py' )
+
+    # The substitutions (key braced by @ signs)
+    substitutions = { 'VERSION' : version,
+                      'SHORTVERSION' : '.'.join(version.split('.')[:2]) }
+
+    def initialize_options (self):
+        pass
+
+    def finalize_options (self):
+        pass
+
+    def run (self):
+        for f in self.files:
+            text = file('%s.in' % (f,)).read()
+            for (k, v) in self.substitutions.items():
+                text = text.replace('@%s@' % (k,), v)
+            file(f,'w').write(text)
 
 class test (Command):
 
@@ -160,7 +195,7 @@ setup(name='PyXB',
       author_email='pyxb@comcast.net',
       url='http://pyxb.sourceforge.net',
       # Also change in README.TXT, pyxb/__init__.py, and doc/conf.py
-      version='0.7.3-DEV',
+      version=version,
       license='Apache License 2.0',
       long_description='''PyXB is a pure `Python <http://www.python.org>`_ package that generates
 Python code for classes that correspond to data structures defined by
@@ -198,5 +233,6 @@ The major goals of PyXB are:
       # We don't need them in the installation anyway.
       #data_files= [ ('pyxb/standard/schemas', glob.glob(os.path.join(*'pyxb/standard/schemas/*.xsd'.split('/'))) ) ],
       scripts=[ 'scripts/pyxbgen', 'scripts/pyxbwsdl', 'scripts/pyxbdump' ],
-      cmdclass = { 'test' : test } )
+      cmdclass = { 'test' : test,
+                   'update_version' : update_version } )
       

@@ -2,6 +2,8 @@
 
 exec 2>&1 | tee makedist.log
 
+./setup.py update_version
+
 DISTDIR=/tmp/pyxbdist
 rm -rf ${DISTDIR}
 hg archive ${DISTDIR}
@@ -39,7 +41,7 @@ PYXB_ROOT=/tmp/PyXB-${ver}
 export PYXB_ROOT
 
 # Build each bundle
-for bundle in core wssplat opengis ; do
+for bundle in common wssplat opengis ; do
   cd PyXB-${ver}
   pyxb/bundles/${bundle}/scripts/genbind || exit 1
   cd ..
