@@ -7,6 +7,7 @@ pyxb/bundles/[^/]*/remote
 doc/html
 doc/_build
 code.py
+build
 examples/content/content.py
 examples/content/test.log
 examples/dictionary/dict.py
