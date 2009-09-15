@@ -3,6 +3,7 @@ include LICENSE
 include NOTICE
 
 # Miscellaneous other
+include MANIFEST.in
 include MANIFEST
 
 # Exclude the abstract (version-independent) stuff
