@@ -36,5 +36,4 @@ prune doc/W3C
 recursive-include examples *.txt *.py *.sh *.xsd *.xml *-patch *.out
 
 # Detritus
-global-exclude *~ #*#
-
+global-exclude *~ #*# *.pyc *.pyo
