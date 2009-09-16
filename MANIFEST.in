@@ -1,8 +1,15 @@
 # Legal stuff
-include LICENSE NOTICE
+include LICENSE
+include NOTICE
 
 # Miscellaneous other
-include MANIFEST.in MANIFEST
+include MANIFEST.in
+include MANIFEST
+
+# Exclude the abstract (version-independent) stuff
+exclude README.txt.in
+exclude pyxb/__init__.py.in
+exclude doc/conf.py.in
 
 # Include the pre-built bindings for standard schema, excepting schema we
 # downloaded.
@@ -28,8 +35,7 @@ exclude doc/*.eap
 prune doc/W3C
 
 # Examples that didn't go into bundles
-recursive-include examples *.txt *.py *.sh *.xsd *.xml *-patch
+recursive-include examples *.txt *.py *.sh *.xsd *.xml *-patch *.out
 
 # Detritus
-global-exclude *~ #*#
-
+global-exclude *~ #*# *.pyc *.pyo

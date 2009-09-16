@@ -6,8 +6,11 @@ doc/_build
 pyxb/bundles/[^/]*/schemas
 pyxb/bundles/[^/]*/remote
 .*/raw
+doc/html
+doc/_build
 W3C
 code.py
+build
 examples/content/content.py
 examples/content/test.log
 examples/dictionary/dict.py

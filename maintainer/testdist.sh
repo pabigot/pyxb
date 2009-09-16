@@ -2,7 +2,7 @@
 
 RELEASE=${1:-0.7.1-TEST}
 PYXBREL=PyXB-${RELEASE}
-TARFILE=${PYXBREL}.tar.gz
+TARFILE=PyXB-full-${RELEASE}.tar.gz
 
 export LANG=en_US.UTF-8
 

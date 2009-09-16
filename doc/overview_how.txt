@@ -10,6 +10,23 @@ things the implementation relies on decorators (:PEP:`318`) like
 regularly tested with the latest release in each of the 2.4, 2.5, and 2.6
 series.
 
+If all you want is the ability to generate bindings for XML schemas, use the
+``PyXB-base`` release file.  If you also want pre-built documentation, unpack
+the ``PyXB-doc`` release as well.  For pre-built bundles, use the following:
+
+.. table:: Pre-built Bundle Distribution Files
+
+   =================  =======================================
+    File              Bundle Contents
+   =================  =======================================
+   ``PyXB-common``    XHTML, other miscellaneous namespaces
+   ``PyXB-opengis``   The complete suite of OpenGIS schemas
+   ``PyXB-wssplat``   A wide variety of WS-* schemas
+   =================  =======================================
+
+If you want everything in one download, just get the ``PyXB-full``
+distribution file.
+
 Install in the usual manner::
 
  python setup.py install

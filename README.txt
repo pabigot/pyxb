@@ -1,6 +1,14 @@
 PyXB -- Python W3C XML Schema Bindings
 Version 0.7.3
 
+Distribution components:
+  PyXB-base-0.7.3.tar.gz -- Complete release, nothing pre-built
+  PyXB-doc-0.7.3.tar.gz -- Overlay with pre-built documentation
+  PyXB-common-0.7.3.tar.gz -- Overlay with XHTML bindings
+  PyXB-opengis-0.7.3.tar.gz -- Overlay with OpenGIS bindings
+  PyXB-wsspat-0.7.3.tar.gz -- Overlay with WS-* bindings
+  PyXB-full-0.7.3.tar.gz -- Complete release with all overlays
+
 Installation:  python setup.py install
 
 Documentation: doc/html

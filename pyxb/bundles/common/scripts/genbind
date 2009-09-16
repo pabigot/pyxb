@@ -1,5 +1,5 @@
 PYXB_ROOT=${PYXB_ROOT:-/home/pab/pyxb/dev}
-BUNDLE_TAG=core
+BUNDLE_TAG=common
 
 . ${PYXB_ROOT}/maintainer/bundlesupport.sh
 
