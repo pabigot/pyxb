@@ -2,7 +2,15 @@
 
 exec 2>&1 | tee makedist.log
 
+# Update the version numbers in the source
 ./setup.py update_version
+
+hg_status=`hg status -q | grep -v makedist`
+if [ -n "${hg_status}" ] ; then
+  echo 1>&2 ERROR: Unsaved deltas
+  echo ${hg_status}
+  exit 1
+fi
 
 DISTDIR=/tmp/pyxbdist
 rm -rf ${DISTDIR}
@@ -13,7 +21,20 @@ export PYXB_ROOT=`pwd`
 # First, the core:
 ./setup.py sdist
 ver=`ls -rt dist | tail -1 | sed -e 's@^PyXB-\(.*\).tar.gz$@\1@'`
-mv dist/PyXB-${ver}.tar.gz ~/pyxb/pre-release/PyXB-base-${ver}.tar.gz
+DISTROOT=PyXB-${ver}
+BASE_TGZ=${HOME}/pyxb/pre-release/PyXB-base-${ver}.tar.gz
+mv dist/${DISTROOT}.tar.gz ${BASE_TGZ}
+cd ..
+
+rm -rf ${DISTDIR} ${DISTROOT} ${DISTROOT}-base ${DISTROOT}-build
+tar xzf ${BASE_TGZ}
+mv ${DISTROOT} ${DISTROOT}-base || ( echo 1>&2 Unable to unpack release ; exit 1 )
+tar xzf ${BASE_TGZ}
+cd ${DISTROOT}
+
+# Hang for a couple seconds, so when we do time-based comparisons we
+# correctly identify the new files
+sleep 2
 
 # Build the documentation
 cd doc
@@ -22,36 +43,53 @@ rm -f pyxb
 ln -s ../pyxb .
 make apihtml html
 rm -f pyxb
-cd ../..
+cd ..
 
-# Get the proper prefix on the files.  All this because the stupid
-# setup program won't incorporate things into the distribution that it
-# doesn't think should be installed (like output files that are
-# incorporated into the documentation).
-rm -rf PyXB-${ver} || exit 1
-ln -s ${DISTDIR} PyXB-${ver}
-tar czf ~/pyxb/pre-release/PyXB-doc-${ver}.tar.gz PyXB-${ver}/doc/html
-rm -f PyXB-${ver}
-
-# Do everything else based on the core
-cd /tmp
-tar xzf ~/pyxb/pre-release/PyXB-base-${ver}.tar.gz
-
-PYXB_ROOT=/tmp/PyXB-${ver}
+PYXB_ROOT=/tmp/${DISTROOT}
 export PYXB_ROOT
 
-# Build each bundle
+# Generate the bundles
 for bundle in common wssplat opengis ; do
-  cd PyXB-${ver}
-  pyxb/bundles/${bundle}/scripts/genbind || exit 1
-  cd ..
-  tar czf ~/pyxb/pre-release/PyXB-${bundle}-${ver}.tar.gz PyXB-${ver}/pyxb/bundles/${bundle}
+  pyxb/bundles/${bundle}/scripts/genbind || (echo 1>&2 Error building bundle ${bundle} ; exit 1 )
 done
 
-# And build the full distribution
-cd PyXB-${ver}
+# Build the full distribution
 ./setup.py sdist
-mv dist/* ~/pyxb/pre-release
+FULL_TGZ=${HOME}/pyxb/pre-release/PyXB-full-${ver}.tar.gz
+mv dist/* ${FULL_TGZ}
 
-# Finally, test it
+# Test it
 ./setup.py test
+
+# Now build the overlays
+cd ..
+mv ${DISTROOT} ${DISTROOT}-build
+tar xzf ${FULL_TGZ}
+
+build_overlay () {
+  tag=$1
+  shift
+  sdir=$1
+  shift
+  (
+    find ${DISTROOT}/${sdir} -type f -newer ${BASE_TGZ} ;
+    for f in "${@}" ; do
+      find ${DISTROOT}/${f} -type f
+    done
+  ) | sort | uniq > ${tag}.files
+  README=${DISTROOT}/README-${tag}.txt
+  ( cat <<EOText 
+This directory contains the following files added as part of the ${tag} overlay:
+
+EOText
+    cat ${tag}.files
+) >${README}
+  tar czf ${HOME}/pyxb/pre-release/PyXB-${tag}-${ver}.tar.gz --files-from ${tag}.files ${README}
+}
+
+# Build overlays
+build_overlay doc doc doc/html/_sources doc/html/_static doc/html/_images
+build_overlay common pyxb/bundles/common
+build_overlay opengis pyxb/bundles/opengis
+build_overlay wssplat pyxb/bundles/wssplat
+
