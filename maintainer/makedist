@@ -26,7 +26,7 @@ BASE_TGZ=${HOME}/pyxb/pre-release/PyXB-base-${ver}.tar.gz
 mv dist/${DISTROOT}.tar.gz ${BASE_TGZ}
 cd ..
 
-rm -rf ${DISTDIR} ${DISTROOT} ${DISTROOT}-base ${DISTROOT}-build
+rm -rf ${DISTDIR} ${DISTROOT} ${DISTROOT}-base ${DISTROOT}-build ${DISTROOT}-full ${DISTROOT}-overlays
 tar xzf ${BASE_TGZ}
 mv ${DISTROOT} ${DISTROOT}-base || ( echo 1>&2 Unable to unpack release ; exit 1 )
 tar xzf ${BASE_TGZ}
@@ -92,4 +92,12 @@ build_overlay doc doc doc/html/_sources doc/html/_static doc/html/_images
 build_overlay common pyxb/bundles/common
 build_overlay opengis pyxb/bundles/opengis
 build_overlay wssplat pyxb/bundles/wssplat
+
+mv ${DISTROOT} ${DISTROOT}-overlays
+tar xzf ${HOME}/pyxb/pre-release/PyXB-full-${ver}.tar.gz
+mv ${DISTROOT} ${DISTROOT}-full
+for f in base doc common opengis wssplat ; do
+  tar xzf ${HOME}/pyxb/pre-release/PyXB-${f}-${ver}.tar.gz
+done
+diff -r ${DISTROOT} ${DISTROOT}-full
 
