@@ -364,10 +364,23 @@ class CF_maxLength (ConstrainingFacet, _Fixed_mixin):
 
 import pyxb.utils.xmlre
 
-class _PatternElement (object):
+class _PatternElement (utility.PrivateTransient_mixin):
     """This class represents individual patterns that appear within a CF_pattern collection."""
 
+    # The compiled regular expression is marked transient because we
+    # normally do development with Python 2.5, and consequently save
+    # the pickled namespace archives that go into the distribution
+    # with that version.  Compiled regular expressions in Python 2.5
+    # include a reference to the re._compile method, which does not
+    # exist in Python 2.4.  As a result, attempts to load a namespace
+    # which includes types with pattern restrictions fail.
+    __PrivateTransient = set()
+
     __compiledExpression = None
+    __PrivateTransient.add('compiledExpression')
+
+    __pythonExpression = None
+
     pattern = None
     annotation = None
     def __init__ (self, pattern=None, value=None, annotation=None, **kw):
@@ -377,14 +390,15 @@ class _PatternElement (object):
         assert isinstance(pattern, types.StringTypes)
         self.pattern = pattern
         self.annotation = annotation
-        python_expr = pyxb.utils.xmlre.XMLToPython(pattern)
-        self.__compiledExpression = re.compile(python_expr)
+        self.__pythonExpression = pyxb.utils.xmlre.XMLToPython(pattern)
         #print 'Translated pattern %s to %s' % (pattern.encode('ascii', 'xmlcharrefreplace'),
-        #                                       python_expr.encode('ascii', 'xmlcharrefreplace'))
+        #                                       self.__pythonExpression.encode('ascii', 'xmlcharrefreplace'))
 
     def __str__ (self): return self.pattern
 
     def matches (self, text):
+        if self.__compiledExpression is None:
+            self.__compiledExpression = re.compile(self.__pythonExpression)
         return self.__compiledExpression.match(text)
 
 class CF_pattern (ConstrainingFacet, _CollectionFacet_mixin):
