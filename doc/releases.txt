@@ -39,6 +39,33 @@ Linux several years ago:
 0.7.x (Beta)
 ============
 
+0.7.3 (15 Sep 2009, rev 2008)
+-----------------------------
+
+A few bug fixes (one major), a couple new features, and separation of the
+various components to allow a smaller distribution.
+
+- Fixed a circular reference in the DFA state classes that caused memory bloat
+  in long-running processes.  :ticket:`49`
+
+- When PyXB renames an XML element or attribute due to a collision with a
+  reserved word, it will write a warning, and at runtime will raise an
+  exception if an attempt is made to assign to the original name.
+  :ticket:`50`, :ticket:`51`
+
+- Support for pattern restrictions for string-based simple types.
+  :ticket:`47`
+
+- Split distribution into multiple files to reduce download size:
+
+   - ``PyXB-base-@VERSION@.tar.gz`` -- Complete release, nothing pre-built
+   - ``PyXB-doc-@VERSION@.tar.gz`` -- Overlay with pre-built documentation
+   - ``PyXB-common-@VERSION@.tar.gz`` -- Overlay with XHTML bindings
+   - ``PyXB-opengis-@VERSION@.tar.gz`` -- Overlay with OpenGIS bindings
+   - ``PyXB-wsspat-@VERSION@.tar.gz`` -- Overlay with WS-* bindings
+   - ``PyXB-full-@VERSION@.tar.gz`` -- Complete release with all overlays
+
+
 0.7.2 (25 Aug 2009, rev 1981)
 -----------------------------
 
