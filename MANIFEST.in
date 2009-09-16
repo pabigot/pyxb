@@ -7,7 +7,9 @@ include MANIFEST.in
 include MANIFEST
 
 # Exclude the abstract (version-independent) stuff
-exclude README.txt.in pyxb/__init__.py.in doc/conf.py.in
+exclude README.txt.in
+exclude pyxb/__init__.py.in
+exclude doc/conf.py.in
 
 # Include the pre-built bindings for standard schema, excepting schema we
 # downloaded.
