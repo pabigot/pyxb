@@ -146,7 +146,7 @@ class _SAXElementState (pyxb.utils.saxutils.SAXElementState):
         ns_ctx = self.namespaceContext()
         for name in attrs.getNames():
             attr_en = pyxb.namespace.ExpandedName(name)
-            self.__attributes._addItem(pyxb.utils.saxdom.Attr(expanded_name=attr_en, namespace_context=ns_ctx, value=attrs.getValue(name), location=this_state.location()))
+            self.__attributes._addItem(pyxb.utils.saxdom.Attr(expanded_name=attr_en, namespace_context=ns_ctx, value=attrs.getValue(name), location=self.location()))
 
     def endDOMElement (self):
         """Actions upon leaving an element that is part of a DOM subtree."""
