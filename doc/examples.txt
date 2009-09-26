@@ -118,8 +118,11 @@ work with:
    operation messages.
 
 These changes are applied to the WSDL by :file:`genbindings.sh` after
-retrieving it.  This is the consequences of an `error in the WSDL
-specification
+retrieving it and prior to generating the bindings.
+
+A second complication is the need to burrow down through wildcard elements
+in the binding instance generated from the SOAP response.  This is the
+consequence of an `error in the WSDL specification
 <http://tech.groups.yahoo.com/group/soapbuilders/message/5879>`_, which was
 discovered after too many tools had already worked around it.  Currently,
 PyXB requires that you also work around it manually, although a

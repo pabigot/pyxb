@@ -152,12 +152,6 @@ With a bundle directory, the following are expected:
 
 - A ``tests`` directory which validates customizations
 
-Each directory also has a ``.svnignore`` file which is used to set the
-corresponding directory property in a development workspace.
-
-.. It is recommended that you NOT add to this -- what?  I didn't finish the
-   line when I first wrote this.
-
 Generating Bundled Bindings
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

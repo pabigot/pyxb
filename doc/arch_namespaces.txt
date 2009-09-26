@@ -25,7 +25,7 @@ the same namespace in different instance documents, as in the `dangling type
 
 This diagram shows the class structure of the PyXB namespace infrastructure.
 The central object is the :api:`pyxb.namespace.Namespace`.  Three mix-in
-classes provide implementations of separate namespace functions.  The
+classes provide implementations of separate namespace functions.
 :api:`pyxb.namespace.ExpandedName` is used ubiquitously to pair local names
 with their namespaces.  The :api:`pyxb.namespace.NamespaceContext` class
 provides information related to the use of namespaces in XML documents,
@@ -124,7 +124,7 @@ category by using  the category name as a method.  For example::
   en.typeDefinition()
   en.namespace().categoryMap('typeDefinition').get(en.localName())
 
-produce the type definition with the given namme, or ``None`` if there is no
+produce the type definition with the given name, or ``None`` if there is no
 such definition.  Methods are also present to test whether the name matches a
 DOM node, and to retrieve the named attribute (if present) from a DOM node.
 

@@ -9,7 +9,7 @@ types defined in the `XML schema specification
 <http://www.w3.org/TR/xmlschema-1/>`_.  The :ref:`bindingModel` describes
 how Python classes provide a Pythonic representation of the information
 within specific components.  Finally, the :ref:`contentModel` describes how
-the component model of a specific schema supports transition between XML
+the component model of a specific schema supports translation between XML
 documents and Python bindings.
 
 .. toctree::
