@@ -118,7 +118,7 @@ None of the enhancements really got in, but lots of minor bug fixes.
 - Re-arrange the help for pyxbgen's arguments, and add a script to
   automatically generate the Sphinx tables for it.
 
-- Support bundles of related schemas/namespaces, currently wssplat (for WS-*)
+- Support bundles of related schemas/namespaces, currently wssplat (for WS-\*)
   and opengis (Geographic Information Systems).
 
 - Got the user-level documentation back up to where it might actually help
