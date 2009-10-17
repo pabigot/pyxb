@@ -128,6 +128,15 @@ class tParam (raw_wsdl11.tParam):
     messageReference = property(__getMessageReference)
 raw_wsdl11.tParam._SetSupersedingClass(tParam)
 
+class tFault (raw_wsdl11.tFault):
+    def __getMessageReference (self):
+        return self.__messageReference
+    def _setMessageReference (self, message_reference):
+        self.__messageReference = message_reference
+    __messageReference = None
+    messageReference = property(__getMessageReference)
+raw_wsdl11.tFault._SetSupersedingClass(tFault)
+
 class tPart (raw_wsdl11.tPart):
     def __getElementReference (self):
         return self.__elementReference
