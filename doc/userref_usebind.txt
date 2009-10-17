@@ -101,6 +101,9 @@ the deeper elements of the purchase order:
 
 .. literalinclude:: ../examples/manual/po4.xsd
 
+.. index::
+   single: BIND
+
 In particular, there is no global ``item`` element that can be used to
 create the individual items.  For situations like this, we use 
 :api:`pyxb.BIND`:

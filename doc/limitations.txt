@@ -69,7 +69,8 @@ Things That Don't Work
   :api:`pyxb.binding.basis.complexTypeDefinition._validatedChildren` for a
   work-around.
 
-* The redefine directive is not supported.
+* The `redefine directive <http://www.w3.org/TR/xmlschema-1/#modify-schema>`_
+  is not supported.
 
 Things That Mostly Work, But They're Ugly
 -----------------------------------------

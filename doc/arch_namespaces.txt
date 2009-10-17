@@ -100,7 +100,7 @@ categories supported by a namespace and to add named objects to those
 categories.  A name is **resolved** when the object with which it is
 associated has been identified.  Objects are **resolved** when any names on
 which they depend have been resolved.
-:api:`pyxb.namespace._NamespaceResolution_mixin` provides a mechanism to
+:api:`pyxb.namespace.resolution._NamespaceResolution_mixin` provides a mechanism to
 hold on to names that have been encountered but whose associated objects
 have not yet been resolved (perhaps because the named object on which they
 depend has not been defined).
@@ -108,10 +108,10 @@ depend has not been defined).
 Because one named object (e.g., a model group definition) might require
 resolution of another (e.g., an element reference), resolution is an
 iterative process, implemented by
-:api:`pyxb.namespace._NamespaceResolution_mixin.resolveDefinitions`, and
+:api:`pyxb.namespace.resolution._NamespaceResolution_mixin.resolveDefinitions`, and
 executed when all named objects have been added to the namespace.  It
-depends on :api:`pyxb.namespace.NamespaceContext` to identify named objects
-using the :api:`pyxb.namespace.NamespaceContext.interpretQName` method.
+depends on :api:`pyxb.namespace.resolution.NamespaceContext` to identify named objects
+using the :api:`pyxb.namespace.resolution.NamespaceContext.interpretQName` method.
 
 Expanded Names
 --------------

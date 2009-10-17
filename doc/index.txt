@@ -31,7 +31,7 @@ Getting Help
 PyXB is distributed on `SourceForge <http://sourceforge.net/projects/pyxb>`_.
 
 For support, consult the `Help Forum
-<https://sourceforge.net/forum/forum.php?forum_id=956708>`_, or subscribe to
+<https://sourceforge.net/projects/pyxb/forums/forum/956708>`_, or subscribe to
 and email the `mailing list
 <https://sourceforge.net/mailarchive/forum.php?forum_name=pyxb-users>`_.
 
@@ -64,16 +64,17 @@ An example of a program using PyXB to interact with a `web service
 automatically-generated module.  First, retrieve the WSDL and generate the
 bindings::
 
- vmfed9[23]$ pyxbgen \
+ mnservices[4]$ pyxbgen \
    --wsdl-location="http://ws.cdyne.com/WeatherWS/Weather.asmx?wsdl" --module=weather \
    --write-for-customization
- urn:uuid:769983dc-8ecb-11de-b7e5-000c292f797c
+ urn:uuid:57d386ce-bb48-11de-a28f-001cc05930fc
  Retrieving WSDL from http://ws.cdyne.com/WeatherWS/Weather.asmx?wsdl
  Importing pyxb.binding.datatypes to get binding for wildcard {http://www.w3.org/2001/XMLSchema}schema
  NOTE: Created unbound wildcard element from DOM node {http://www.w3.org/2001/XMLSchema}schema
- PS urn:uuid:769983dc-8ecb-11de-b7e5-000c292f797c
+ PS urn:uuid:57d386ce-bb48-11de-a28f-001cc05930fc
  Python for http://ws.cdyne.com/WeatherWS/ requires 1 modules
  Saved binding source to ./raw/weather.py
+ mnservices[5]$ 
 
 Then write a program that uses them:
 
@@ -81,16 +82,16 @@ Then write a program that uses them:
 
 And run it::
 
- vmfed9[64]$ python client_get.py 
+ mnservices[5]$ python client_get.py 
  Weather forecast for Tucson, AZ:
-  Saturday, August 22 2009: Thunder Storms, from 80 to 90
-  Sunday, August 23 2009: Partly Cloudy, from 78 to 92
-  Monday, August 24 2009: Partly Cloudy, from 75 to 95
-  Tuesday, August 25 2009: Partly Cloudy, from 75 to 96
-  Wednesday, August 26 2009: Partly Cloudy, from 76 to 99
-  Thursday, August 27 2009: Sunny, from 77 to 99
-  Friday, August 28 2009: Sunny, from 77 to 100
- vmfed9[65]$ 
+   Saturday, October 17 2009: Sunny, from  to 98
+   Sunday, October 18 2009: Partly Cloudy, from 68 to 96
+   Monday, October 19 2009: Partly Cloudy, from 67 to 91
+   Tuesday, October 20 2009: Sunny, from 65 to 88
+   Wednesday, October 21 2009: Sunny, from 59 to 86
+   Thursday, October 22 2009: Sunny, from 58 to 87
+   Friday, October 23 2009: Sunny, from 60 to 8
+ mnservices[6]$ 
 
 That's it.
 

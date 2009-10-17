@@ -114,18 +114,18 @@ work with:
  - Set ``nillable`` on all elements that are observed to use ``xsi:nil="true"`` in
    response documents
  - Provide types and elements corresponding to the request and response
-   messages, since PyXB's WSDL support does not generate them from the
-   operation messages.
+   messages, since PyXB's WSDL support does not currently generate them from
+   the operation messages.
 
-These changes are applied to the WSDL by :file:`genbindings.sh` after
-retrieving it and prior to generating the bindings.
+ :file:`genbindings.sh` applies changes to the WSDL after retrieving it and
+prior to generating the bindings.
 
 A second complication is the need to burrow down through wildcard elements
 in the binding instance generated from the SOAP response.  This is the
 consequence of an `error in the WSDL specification
 <http://tech.groups.yahoo.com/group/soapbuilders/message/5879>`_, which was
 discovered after too many tools had already worked around it.  Currently,
-PyXB requires that you also work around it manually, although a
+PyXB also requires that you work around it manually, although a
 customization of the relevant SOAP encoding class could make it unnecessary.
 
 .. literalinclude:: ../examples/geocoder/client.py

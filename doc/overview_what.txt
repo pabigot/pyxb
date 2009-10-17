@@ -30,5 +30,7 @@ The major goals of PyXB are:
   + include and import directives
   + constraints on simple types
 
+* Validate the documents against their schema
+
 Secondary goals, some of which have been achieved in the current release, are
 listed in :ref:`pyxb_vision`.
