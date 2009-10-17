@@ -39,7 +39,7 @@ DefaultArchivePrefix = os.path.realpath(os.path.join(os.path.dirname( __file__),
 """The default archive prefix, substituted for C{&} in C{PYXB_ARCHIVE_PATH}."""
 
 def GetArchivePath ():
-    """Return the archive path as defined by the L{PatnEnvironmentVariable},
+    """Return the archive path as defined by the L{PathEnvironmentVariable},
     or C{None} if that variable is not defined."""
     import os
     return os.environ.get(PathEnvironmentVariable)
@@ -422,9 +422,10 @@ class NamespaceArchive (object):
 
             for origin in mr.origins():
                 #print 'mr %s origin %s' % (mr, origin)
-                for (cat, names) in origin.categoryMembers().iteritems():
+                for (cat, omap) in origin.categoryObjectMap().iteritems():
                     if not (cat in ns.categories()):
                         continue
+                    names = omap.keys()
                     cross_objects = names.intersection(ns.categoryMap(cat).keys())
                     if 0 < len(cross_objects):
                         raise pyxb.NamespaceArchiveError('Archive %s namespace %s module %s origin %s archive/active conflict on category %s: %s' % (self.__archivePath, ns, mr, origin, cat, " ".join(cross_objects)))
@@ -877,28 +878,28 @@ class _ObjectOrigin (pyxb.utils.utility.PrivateTransient_mixin, pyxb.cscRoot):
         super(_ObjectOrigin, self).__init__(**kw)
         self.__moduleRecord = namespace.lookupModuleRecordByUID(generation_uid, create_if_missing=True, **kw)
         self.__moduleRecord.addOrigin(self)
-        self.__categoryMembers = { }
         self.__categoryObjectMap = { }
 
     def resetCategoryMembers (self):
-        self.__categoryMembers.clear()
         self.__categoryObjectMap.clear()
         self.__originatedComponents = None
     def addCategoryMember (self, category, name, obj):
-        self.__categoryMembers.setdefault(category, set()).add(name)
         self.__categoryObjectMap.setdefault(category, {})[name] = obj
         self.__moduleRecord._addCategoryObject(category, name, obj)
-    def categoryMembers (self):
-        return self.__categoryMembers
+    def categoryObjectMap (self):
+        return self.__categoryObjectMap
     def originatedObjects (self):
         if self.__originatedObjects is None:
             components = set()
             [ components.update(_v.values()) for _v in self.__categoryObjectMap.itervalues() ]
             self.__originatedObjects = frozenset(components)
         return self.__originatedObjects
-    __categoryMembers = None
+
+    # Map from category name to a map from an object name to the object
     __categoryObjectMap = None
     __PrivateTransient.add('categoryObjectMap')
+
+    # The set of objects that originated at this origin
     __originatedObjects = None
     __PrivateTransient.add('originatedObjects')
 
