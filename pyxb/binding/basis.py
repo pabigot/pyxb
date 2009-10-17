@@ -1441,6 +1441,8 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
         rv = type_class.Factory(_dom_node=node, _fallback_namespace=fallback_namespace, **kw)
         assert rv._element() == element_binding
         rv._setNamespaceContext(ns_ctx)
+        if pyxb._ParsingRequiresValid:
+            rv.validateBinding()
         return rv
 
     def __str__ (self):
@@ -1588,7 +1590,8 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             iv = kw.get(fu.id())
             if iv is not None:
                 attribute_settings[fu.name()] = iv
-        self.__setAttributes(attribute_settings, dom_node)
+        for (attr_en, value) in attribute_settings.items():
+            au = self._setAttribute(attr_en, value)
         for fu in self._ElementMap.values():
             iv = kw.get(fu.id())
             if iv is not None:
@@ -1737,7 +1740,6 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         
 
     def _validateBinding_vx (self):
-        # @todo: validate attributes
         if self._isNil():
             if (self._IsSimpleTypeContent() and (self.__content is not None)) or self.__content:
                 raise pyxb.ContentInNilElementError(self._ExpandedName)
@@ -1753,7 +1755,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         for (eu, value) in order:
             if isinstance(value, _TypeBinding_mixin):
                 value.validateBinding()
-            else:
+            elif eu is not None:
                 print 'WARNING: Cannot validate value %s in field %s' % (value, eu.id())
         self._validateAttributes()
         return True
@@ -1805,12 +1807,6 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             if au is not None:
                 attrs_available.remove(au)
 
-        # Handle all the ones that aren't present.  NB: Don't just reset the
-        # attribute; we need to check for missing ones, which is done by
-        # au.set.
-        if dom_node is not None:
-            for au in attrs_available:
-                au.set(self, dom_node)
         return self
 
     def xsdConstraintsOK (self):

@@ -220,7 +220,7 @@ class AttributeUse (pyxb.cscRoot):
             self.__dataType.XsdConstraintsOK(value)
         else:
             if self.__required:
-                raise pyxb.MissingAttributeError('Required attribute %s does not have value' % (self.__name,))
+                raise pyxb.MissingAttributeError('Required attribute %s does not have a value' % (self.__name,))
         return True
 
     def set (self, ctd_instance, new_value):

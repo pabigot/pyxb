@@ -101,6 +101,10 @@ class _SAXElementState (pyxb.utils.saxutils.SAXElementState):
         if isinstance(self.__bindingObject, pyxb.utils.utility.Locatable_mixin):
             self.__bindingObject._setLocation(self.location())
 
+        # Record the namespace context so users of the binding can
+        # interpret QNames within the attributes and content.
+        self.__bindingObject._setNamespaceContext(self.__namespaceContext)
+
         # Set the attributes.
         if isinstance(self.__bindingObject, pyxb.binding.basis.complexTypeDefinition):
             # NB: attrs implements the SAX AttributesNS interface, meaning
@@ -112,17 +116,7 @@ class _SAXElementState (pyxb.utils.saxutils.SAXElementState):
                 if attr_en.namespace() in ( pyxb.namespace.XMLNamespaces, pyxb.namespace.XMLSchema_instance ):
                     continue
                 au = self.__bindingObject._setAttribute(attr_en, attrs.getValue(attr_name))
-                    
-            self.__bindingObject._validateAttributes()
-        # If this element appears inside an enclosing object, store it
-        # within that object.
-        if self.__elementUse is not None:
-            assert self.__parentState is not None
-            assert self.__parentState.__bindingObject is not None
-            #self.__elementUse.setOrAppend(self.__parentState.__bindingObject, self.__bindingObject)
-        # Record the namespace context so users of the binding can
-        # interprete QNames within the attributes and content.
-        self.__bindingObject._setNamespaceContext(self.__namespaceContext)
+
         return self.__bindingObject
 
     def inDOMMode (self):
@@ -219,6 +213,9 @@ class _SAXElementState (pyxb.utils.saxutils.SAXElementState):
         parent_state = self.parentState()
         if parent_state is not None:
             parent_state.addElementContent(self.__bindingObject, self.__elementUse)
+        # As CreateFromDOM does, validate the resulting element
+        if pyxb._ParsingRequiresValid:
+            self.__bindingObject.validateBinding()
         return self.__bindingObject
 
 class PyXBSAXHandler (pyxb.utils.saxutils.BaseSAXHandler):
