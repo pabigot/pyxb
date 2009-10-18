@@ -40,7 +40,7 @@ Linux several years ago:
 1.0.x (Stable)
 ==============
 
-1.0.0 (18 Oct 2009, rev 2060)
+1.0.0 (18 Oct 2009, rev 2068)
 -----------------------------
 
 Nobody seems to have found anything critical for a while, and it does what I

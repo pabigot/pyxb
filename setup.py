@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 # The current version of the system.  Format is #.#.#[-DEV].
-version = '0.7.4-DEV'
+version = '1.0.0-PRE'
 
 import distutils.sysconfig
 
