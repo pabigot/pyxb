@@ -34,12 +34,30 @@ Linux several years ago:
   Releases in a beta series are intended for development of new applications
   with functionality requirements that cannot be satisfied by the current
   stable series.  Users of beta series get increased functionality, but more
-  pain.
+  pain.  Evolution of a beta series stops upon release of the subsequent
+  stable series.
+
+1.0.x (Stable)
+==============
+
+1.0.0 (18 Oct 2009, rev 2060)
+-----------------------------
+
+Nobody seems to have found anything critical for a while, and it does what I
+want it to, so we'll let this thing run free.
+
+- Replace a reference to a non-existent variable with something that works.
+  :ticket:`52`
+
+- Consistently validate instances created from documents no matter which
+  parser is used.  :ticket:`53`
+
+- Support caching message references in WSDL SOAP faults.  :ticket:`54`
 
 0.7.x (Beta)
 ============
 
-0.7.3 (15 Sep 2009, rev 2008)
+0.7.3 (15 Sep 2009, rev 2050)
 -----------------------------
 
 A few bug fixes (one major), a couple new features, and separation of the
@@ -72,14 +90,14 @@ various components to allow a smaller distribution.
 Primarily to fix a problem with chameleon schemas, but also a couple other
 minor issues.
 
- - References to QNames with absent namespaces in chameleon schema included
-   into schema with a target namespace could not be resolved.  :ticket:`46`
+- References to QNames with absent namespaces in chameleon schema included
+  into schema with a target namespace could not be resolved.  :ticket:`46`
 
- - Documentation content was not correctly sanitized for use within a Python
-   docstring.  :ticket:`45`.
+- Documentation content was not correctly sanitized for use within a Python
+  docstring.  :ticket:`45`.
 
- - Elements with complex types with simple content that derived from string
-   could not be marked as nil.  :ticket:`48`
+- Elements with complex types with simple content that derived from string
+  could not be marked as nil.  :ticket:`48`
 
 0.7.1 (23 Aug 2009, rev 1968)
 -----------------------------
