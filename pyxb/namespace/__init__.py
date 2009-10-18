@@ -469,7 +469,7 @@ class _NamespaceComponentAssociation_mixin (pyxb.cscRoot):
     The component set includes not only top-level named components (such as
     those accessible through category maps), but internal anonymous
     components, such as those involved in representing the content model of a
-    complex type definition..  We need to be able to get a list of these
+    complex type definition.  We need to be able to get a list of these
     components, sorted in dependency order, so that generated bindings do not
     attempt to refer to a binding that has not yet been generated."""
 

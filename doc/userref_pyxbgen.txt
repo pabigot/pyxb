@@ -25,7 +25,7 @@ a file on the local system, or a URL to a network-accessible location like
 http://www.weather.gov/forecasts/xml/DWMLgen/schema/DWML.xsd.  The
 :ref:`-m<pyxbgen--module>` parameter specifies the name to be used by the
 Python module holding the bindings generated for the namespace in the
-preceding schema.  After running this, the Pythong bindings will be in a
+preceding schema.  After running this, the Python bindings will be in a
 file named ``po1.py``.
 
 With the bindings available, this program (``demo1.py``):
@@ -132,7 +132,7 @@ flag to the binding generation command:
 
 .. literalinclude:: ../examples/manual/demo3c.sh
 
-In addition to generating the ``addresss`` Python module, this causes a
+In addition to generating the ``address`` Python module, this causes a
 :ref:`archive <namespace-archive>` of the schema contents to be saved in the
 corresponding file, which by convention ends with the extension ``.wxs``.
 Any anonymous names that were generated with the bindings are also recorded
@@ -164,7 +164,7 @@ Schemas Defined in WSDL Documents
 
 It is a common, if regrettable, practice that web services define the
 structure of their documents using XML schema elements encoded directly into
-``types`` element of WSDL specifications rather than having those elements
+a ``types`` element of a WSDL specification rather than having that elements
 import complete standalone schema.  To accommodate this, pyxbgen supports
 the :ref:`pyxbgen--wsdl-location` argument as an alternative to
 :ref:`pyxbgen--schema-location`.  For example, the following will generate a
@@ -256,18 +256,24 @@ PyXB comes with pre-defined bundles for related namespaces in the
 Fine-Grained Namespace Control
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+In certain cases, schema developers will presume that it is within their
+purview to re-declare or extend the contents of namespaces that belong to
+others.  Supporting this while preserving or re-using the original namespace
+contents requires finesse.
+
 For example, when generating the bindings for the OpenGIS `Sensor
 Observation Service <http://www.opengeospatial.org/standards/sos>`_, you
 would find that this service extends the ``http://www.opengis.net/ogc``
 namespace, normally defined in the OpenGIS `Filter Encoding
-<http://www.opengeospatial.org/standards/filter>`_ with temporal operators
+<http://www.opengeospatial.org/standards/filter>`_, with temporal operators
 that are defined in a local schema ``ogc4sos.xsd``.
 
 Because ``http://www.opengis.net/ogc`` is defined in a namespace archive,
 PyXB would normally assume that any ``import`` commands related to that
-namespace are redundant with the contents of that archive.  In this case,
-that is not the case, and the ``ogc4sos.xsd`` schema must be read to define
-the additional elements and types.  The required build command is::
+namespace are redundant with the contents of that archive, and would ignore
+the import directive.  In this case, that assumption is mistaken, and the
+``ogc4sos.xsd`` schema must be read to define the additional elements and
+types.  The required build command is::
 
   pyxbgen \
     --schema-location=${SCHEMA_DIR}/sos/1.0.0/sosAll.xsd --module sos_1_0 \

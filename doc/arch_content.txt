@@ -47,7 +47,7 @@ Attribute Uses
 ^^^^^^^^^^^^^^
 
 The information associated with an `attribute use
-<http://www.w3.org/TR/xmlschema-1/#cAttributeUse>`_ is recorded in a
+<http://www.w3.org/TR/xmlschema-1/#cAttributeUse>`_ is recorded in an
 :api:`pyxb.binding.content.AttributeUse` instance.  This class provides:
 
 - The :api:`type <pyxb.binding.content.AttributeUse.dataType>` of the
@@ -62,7 +62,8 @@ The information associated with an `attribute use
   or :api:`prohibited <pyxb.binding.content.AttributeUse.prohibited>`
 
 - Whether the value of the attribute in a binding instance was :api:`provided
-  <pyxb.binding.content.AttributeUse.provided>` or determined from the default
+  <pyxb.binding.content.AttributeUse.provided>` by an external source or set
+  to the default value
 
 - Whether the attribute value is :api:`fixed <pyxb.binding.content.AttributeUse.fixed>`
 
@@ -126,10 +127,10 @@ the automaton deterministic, and the resulting automaton is stored as a
 <pyxb.binding.content.ContentModelTransition>` on elements, wildcards, and
 model groups with an ``all`` compositor.
 
-The sole complication in the automaton construction is dealing with with
-``all`` model groups, which accept subsets of a set of nodes in any order.
-This construct produces an exponential increase in the size of the
-deterministic finite automaton, so is left as a single :api:`transition
+The sole complication in the automaton construction is dealing with ``all``
+model groups, which accept subsets of a set of nodes in any order.  This
+construct produces an exponential increase in the size of the deterministic
+finite automaton, so is left as a single :api:`transition
 <pyxb.binding.content.ModelGroupAll>` which iteratively matches against the
 candidate value until an alternative is found.
 
