@@ -126,10 +126,10 @@ Python class.
 class : [as an adjective] Refers to a characteristic of a Python class
 itself, shared among all instances.
 
-field : Refers to a named attribute of a Python class.  When the attribute
-holds a value, it is an "instance (class) variable" or "instance field".
-When it holds a reference to an invokable object, it is an "instance (class)
-method".
+field : Refers to a named attribute of a Python object (class).  When the
+attribute holds a value, it is an "instance (class) variable" or "instance
+(class) field".  When it holds a reference to an invokable object, it is an
+"instance (class) method".
 
 Use of new-style classes
 ========================

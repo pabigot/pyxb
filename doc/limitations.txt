@@ -48,14 +48,16 @@ Things That Don't Work
   provide access to unrecognized values through the
   :api:`pyxb.binding.basis.complexTypeDefinition.wildcardElements` method.
   Where the type of the node is recognized, it is converted to a Python
-  binding instance.  However, neither the namespace constraint nor process
-  contents attributes are applied.
+  binding instance; otherwise, the xml DOM instance is stored.  Neither the
+  namespace constraint nor process contents attributes of the wildcard are
+  applied.
 
 * `Wildcard attributes
   <http://www.w3.org/TR/xmlschema-1/#ag-attribute_wildcard>`_ are supported
   in the same sense as wildcard elements: no constraints are checked, and
   all are aggregated into the
   :api:`pyxb.binding.basis.complexTypeDefinition.wildcardAttributeMap`.
+  Values are uninterpreted Unicode strings.
 
 ...and probably never will
 ^^^^^^^^^^^^^^^^^^^^^^^^^^

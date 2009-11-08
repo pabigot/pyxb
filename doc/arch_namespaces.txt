@@ -135,13 +135,16 @@ Expanded Names
 An :api:`pyxb.namespace.ExpandedName` instance couples a local name with
 (optionally) a namespace, resulting in a QName.  This class also integrates
 with namespace categories, permitting lookup of the object with its name in a
-specific category by using the category name as a method.  For example::
+specific category by using the category name as a method.  For example, the
+following two expressions are equivalent::
 
+  # Short-hand method
   en.typeDefinition()
+  # Detailed equivalent
   en.namespace().categoryMap('typeDefinition').get(en.localName())
 
-produces the type definition with the given name, or ``None`` if there is no
-such definition.  The short-hand method interface works for any category
+Both produce the type definition with the given name, or ``None`` if there is
+no such definition.  The short-hand method interface works for any category
 defined within the expanded name's namespace; it is not limited to the
 standard set of component categories.
 
@@ -152,8 +155,8 @@ In this version of PyXB, the hash codes and comparison methods for
 :api:`ExpandedName <pyxb.namespace.ExpandedName>` have been overridden so that
 an expanded name with no namespace is treated equivalently to the string value
 of the local name.  This simplified management of default namespace lookups in
-earlier versions of PyXB, but may no longer be necessary; use of this feature
-is discouraged.
+earlier versions of PyXB, but may no longer be necessary; reliance on this
+feature is discouraged.
 
 Namespace Context
 -----------------
@@ -313,9 +316,9 @@ The contents of the namespace archive are:
     origins may be associated with a single module record
 
   - the set of :api:`pyxb.namespace.Namespace` instances that were referenced
-    by A.  This includes namespaces that were imported into one of the origin
-    objects, as well as those that were incorporated simply through reference
-    to an object in a declared namespace
+    by ``A``.  This includes namespaces that were imported into one of the
+    origin objects, as well as those that were incorporated simply through
+    reference to an object in a declared namespace
 
 - The objects within the namespace that were defined by the various origins
 
