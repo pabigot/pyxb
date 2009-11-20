@@ -37,8 +37,17 @@ def ConfigureBindingStyle (style):
 
 class _TypeBinding_mixin (utility.Locatable_mixin):
 
-    _PerformValidation = True
-    #_PerformValidation = False
+    @classmethod
+    def _PerformValidation (cls):
+        """Determine whether the content model should be validated.
+
+        Proper validation is not yet supported in PyXB.  The low level binding
+        material consults this function, but not always in a context where the
+        direction of translation is clear.  Conseequently, this method
+        indicates that validation should be performed only when both
+        generation and parsing validation are enabled."""
+        #    return True
+        return pyxb._GenerationRequiresValid and pyxb._ParsingRequiresValid
     
     _ExpandedName = None
     """The expanded name of the component."""
@@ -381,7 +390,7 @@ class _TypeBinding_mixin (utility.Locatable_mixin):
         @raise pyxb.BindingValidationError: complex content does not match model
         @raise pyxb.BadTypeValueError: simple content fails to satisfy constraints
         """
-        if self._PerformValidation:
+        if self._PerformValidation():
             self._validateBinding_vx()
         return True
 
@@ -668,7 +677,7 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
         @type _validate_constraints: C{bool}
         """
         # PyXBFactoryKeywords
-        validate_constraints = kw.pop('_validate_constraints', self._PerformValidation)
+        validate_constraints = kw.pop('_validate_constraints', self._PerformValidation())
         require_value = kw.pop('_require_value', False)
         # _ConvertArguments handles _dom_node and _apply_whitespace_facet
         # TypeBinding_mixin handles _nil and _element
@@ -948,7 +957,7 @@ class STD_union (simpleTypeDefinition):
 
         rv = None
         # NB: get, not pop: preserve it for the member type invocations
-        validate_constraints = kw.get('_validate_constraints', cls._PerformValidation)
+        validate_constraints = kw.get('_validate_constraints', cls._PerformValidation())
         assert isinstance(validate_constraints, bool)
         if 0 < len(args):
             arg = args[0]
@@ -2048,7 +2057,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
     def _addContent (self, child, element_binding):
         # This assert is inadequate in the case of plural/non-plural elements with an STD_list base type.
         # Trust that validation elsewhere was done correctly.
-        #assert self._IsMixed() or (not self._PerformValidation) or isinstance(child, _TypeBinding_mixin) or isinstance(child, types.StringTypes), 'Unrecognized child %s type %s' % (child, type(child))
+        #assert self._IsMixed() or (not self._PerformValidation()) or isinstance(child, _TypeBinding_mixin) or isinstance(child, types.StringTypes), 'Unrecognized child %s type %s' % (child, type(child))
         assert not (self._ContentTypeTag in (self._CT_EMPTY, self._CT_SIMPLE))
         if isinstance(child, _TypeBinding_mixin) and (child._element() is None):
             child._setElement(element_binding)
@@ -2062,7 +2071,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         """Initialize the content of this element from the content of the DOM node."""
 
         self.extend(node.childNodes[:], _fallback_namespace)
-        if self._PerformValidation and (not self._isNil()) and (self.__dfaStack is not None) and (not self.__dfaStack.isTerminal()):
+        if self._PerformValidation() and (not self._isNil()) and (self.__dfaStack is not None) and (not self.__dfaStack.isTerminal()):
             raise pyxb.MissingContentError()
         return self
 
