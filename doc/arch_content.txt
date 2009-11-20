@@ -154,13 +154,13 @@ path so far comprises the member elements added to the instance.
 The need for a stack of states comes when automaton execution reaches a
 transition that involves an :api:`"all" model group
 <pyxb.binding.content.ModelGroupAll>`.  Evaluation of such a transition
-requires suspending the parent execution and continuing with the evaluation of
-the automata that represent alternatives in the model group.
+requires suspending the parent automaton execution and continuing with the
+evaluation of the automata that represent alternatives in the model group.
 
 Generation With Automata
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-Automata-based parsing is also used to validate that the content of a binding
+Automaton evaluation is also used to validate that the content of a binding
 instance is consistent with type's content model, and to determine a sequence
 of contained elements that define a valid path through the automaton.  This
 technique is used to create a valid DOM document from a binding instance.

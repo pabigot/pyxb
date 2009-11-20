@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 # The current version of the system.  Format is #.#.#[-DEV].
-version = '1.0.0-PRE'
+version = '1.1.0-DEV'
 
 import distutils.sysconfig
 
@@ -234,5 +234,11 @@ The major goals of PyXB are:
       #data_files= [ ('pyxb/standard/schemas', glob.glob(os.path.join(*'pyxb/standard/schemas/*.xsd'.split('/'))) ) ],
       scripts=[ 'scripts/pyxbgen', 'scripts/pyxbwsdl', 'scripts/pyxbdump' ],
       cmdclass = { 'test' : test,
-                   'update_version' : update_version } )
-      
+                   'update_version' : update_version },
+      classifiers = [ 'Development Status :: 5 - Production/Stable'
+                      , 'Intended Audience :: Developers'
+                      , 'License :: OSI Approved :: Apache Software License'
+                      , 'Topic :: Software Development :: Code Generators'
+                      , 'Topic :: Text Processing :: Markup :: XML'
+                      ] )
+

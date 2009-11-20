@@ -117,7 +117,7 @@ work with:
    messages, since PyXB's WSDL support does not currently generate them from
    the operation messages.
 
- :file:`genbindings.sh` applies changes to the WSDL after retrieving it and
+:file:`genbindings.sh` applies changes to the WSDL after retrieving it and
 prior to generating the bindings.
 
 A second complication is the need to burrow down through wildcard elements

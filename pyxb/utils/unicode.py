@@ -12,7 +12,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-"""Tnis module contains support for Unicode characters as required to
+"""This module contains support for Unicode characters as required to
 support the regular expression syntax defined in U{annex F
 <http://www/Documentation/W3C/www.w3.org/TR/xmlschema-2/index.html#regexs>}
 of the XML Schema definition.
@@ -20,9 +20,10 @@ of the XML Schema definition.
 In particular, we need to be able to identify character properties and
 block escapes, as defined in F.1.1, by name.
 
-Block data: http://www.unicode.org/Public/3.1-Update/Blocks-4.txt
-Property list data: http://www.unicode.org/Public/3.1-Update/PropList-3.1.0.txt
-Full dataset: http://www.unicode.org/Public/3.1-Update/UnicodeData-3.1.0.txt
+ - Block data: U{http://www.unicode.org/Public/3.1-Update/Blocks-4.txt}
+ - Property list data: U{http://www.unicode.org/Public/3.1-Update/PropList-3.1.0.txt}
+ - Full dataset: U{http://www.unicode.org/Public/3.1-Update/UnicodeData-3.1.0.txt}
+
 The Unicode database active at the time XML Schema 1.0 was defined is
 archived at
 U{http://www.unicode.org/Public/3.1-Update/UnicodeCharacterDatabase-3.1.0.html},

@@ -1,0 +1,25 @@
+= Welcome to PyXB =
+
+PyXB (“pixbee”) is a pure Python package that generates Python source code for classes that correspond to data structures defined by XMLSchema. In concept it is similar to JAXB for Java and !CodeSynthesis XSD for C++.
+
+[query:status!=closed All Open Tickets]
+
+== Defects against current beta release (0.7.3) ==
+[[TicketQuery(order=resolution,desc=1,version=PyXB 0.7.3,format=table,col=ticket|summary|time|changetime|status|resolution|milestone|description)]]
+
+== Defects (to be) fixed in upcoming beta release (0.7.4) ==
+[[TicketQuery(order=resolution,desc=1,milestone=PyXB 0.7.4,format=table,col=ticket|summary|time|changetime|status|resolution|version|milestone)]]
+
+== Defects fixed in current beta release (0.7.3) ==
+[[TicketQuery(order=resolution,desc=1,milestone=PyXB 0.7.3,format=table,col=ticket|summary|time|changetime|status|resolution|version|milestone)]]
+
+== Defects fixed in previous beta release (0.7.2) ==
+[[TicketQuery(order=resolution,desc=1,milestone=PyXB 0.7.2,format=table,col=ticket|summary|time|changetime|status|resolution|version|milestone)]]
+
+== Defects fixed in previous beta release (0.7.1) ==
+[[TicketQuery(order=resolution,desc=1,milestone=PyXB 0.7.1,format=table,col=ticket|summary|time|changetime|status|resolution|version|milestone)]]
+
+== Defects against current stable release (0.4.0) ==
+[[TicketQuery(order=resolution,desc=1,version=PyXB 0.4.0,format=table,col=ticket|summary|time|changetime|status|resolution|milestone|description)]]
+
+For a complete list of local wiki pages, see TitleIndex.

@@ -91,7 +91,7 @@ result of collision with names from Python keywords, public class names, and
 public field or method names in the class.  The
 :api:`pyxb.utils.utility._DeconflictSymbols_mixin` is used to refine the set
 of type-specific public names.  If you customize a generated binding class by
-extending from it, you must specific your own class variable
+extending from it, you must specify your own class variable
 ``_ReservedSymbols`` with a value that is the union of your symbols and those
 of the superclass(es) (see :api:`pyxb.utils.utility._DeconflictSymbols_mixin`
 for details).
@@ -245,9 +245,9 @@ Complex Type Definitions
 type definitions record maps that specify :api:`attribute
 <pyxb.binding.content.AttributeUse>` and :api:`element
 <pyxb.binding.content.ElementUse>` use structures to record the attributes and
-elements that comprise the type.  The values are stored in class members, and
-when using the default code generation template are managed through accessor
-methods.
+elements that comprise the type.  Each such structure is stored as a private
+class field and is used by Python properties to provide access to element and
+attribute values in a binding instance.
 
 The base :api:`pyxb.binding.basis.complexTypeDefinition` class provides the
 infrastructure to identify the appropriate attribute or element given an XML
@@ -280,8 +280,7 @@ are disambiguated, and a Python property is defined to retrieve and set the
 element value.
 
 When the content model permits multiple occurrences of the element, its value
-is a Python list.  In that case, a third accessor function ``appendBar`` will
-add a new instance to that list.
+is a Python list.
 
 Attributes
 ^^^^^^^^^^
@@ -327,9 +326,9 @@ produces the following output:
 
 Note that it was necessary to indicate that the second member (``complex``) of
 the ``numbers`` element needs to be wrapped in an instance of the appropriate
-complex type.  Consequently, it was necessary to add the call to ``value()``
-on the value of ``v.complex`` in order to get a valid Python numeric value.
-This was not necessary for ``v.simple`` or ``v.attribute``.
+complex type.  Similarly, it was necessary to add the call to ``value()`` on
+the value of ``v.complex`` in order to get a valid Python numeric value.  This
+was not necessary for ``v.simple`` or ``v.attribute``.
 
 Mixed and Element-Only Content
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -351,11 +350,12 @@ non-element content that belong to the instance.
 Elements
 --------
 
-Unlike the bindings for schema type definitions, bindings corresponding to XML
-Schema element declarations are represented as instances of the
-:api:`pyxb.binding.basis.element` class.  The instances can be used to create
-new binding instances that are associated with the element.  Elements are used
-in the content model to identify transitions through a finite automaton.
+Unlike the bindings for schema type definitions, which are represented as
+Python classes, bindings corresponding to XML Schema element declarations are
+represented as instances of the :api:`pyxb.binding.basis.element` class.  The
+instances can be used to create new binding instances that are associated with
+the element.  Elements are used in the content model to identify transitions
+through a finite automaton.
 
 You can use elements just like types in that they are invokable, with
 arguments corresponding to the arguments of the constructor of the

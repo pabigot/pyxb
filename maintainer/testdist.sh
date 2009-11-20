@@ -6,7 +6,7 @@ TARFILE=PyXB-full-${RELEASE}.tar.gz
 
 export LANG=en_US.UTF-8
 
-for pv in 2.4.6 2.5.4 2.6.2 ; do
+for pv in 2.4.6 2.5.4 2.6.4 ; do
   (
   pt=python-${pv}
   pvs=`echo ${pv} | sed -e 's@..$@@'`
