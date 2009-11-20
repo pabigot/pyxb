@@ -294,6 +294,8 @@ class PyXBSAXHandler (pyxb.utils.saxutils.BaseSAXHandler):
         if attrs.has_key(self.__XSITypeTuple):
             xsi_type = attrs.getValue(self.__XSITypeTuple)
             type_class = ns_ctx.interpretQName(xsi_type).typeBinding()
+            if type_class is None:
+                raise pyxb.BadDocumentError("No type binding for %s" % (xsi_type,))
 
         # Resolve the element within the appropriate context.  Note
         # that global elements have no use, only the binding.

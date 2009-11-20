@@ -1425,6 +1425,8 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
             try:
                 alternative_type_class = type_en.typeBinding()
             except KeyError, e:
+                alternative_type_class = None
+            if alternative_type_class is None:
                 raise pyxb.BadDocumentError('No type binding for %s' % (type_name,))
             if not issubclass(alternative_type_class, type_class):
                 raise pyxb.BadDocumentError('%s value %s is not subclass of element type %s' % (xsi_type, type_en, type_class._ExpandedName))
