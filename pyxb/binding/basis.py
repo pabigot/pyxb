@@ -743,6 +743,8 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
 
         The base class implementation delegates to the object class's
         XsdLiteral method."""
+        if self._isNil():
+            return ''
         return self.XsdLiteral(self)
 
     @classmethod
