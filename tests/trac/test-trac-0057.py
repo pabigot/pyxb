@@ -3,7 +3,7 @@ import pyxb.binding.datatypes as xs
 import pyxb.binding.basis
 import pyxb.utils.domutils
 
-# Thanks to agrimstrud for this example
+# Thanks to agrimstrup for this example
 
 import os.path
 xsd='''
