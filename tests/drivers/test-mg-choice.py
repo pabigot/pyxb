@@ -4,7 +4,7 @@ from xml.dom import Node
 
 import os.path
 schema_path = '%s/../schemas/test-mg-choice.xsd' % (os.path.dirname(__file__),)
-code = pyxb.binding.generate.GeneratePython(schema_file=schema_path)
+code = pyxb.binding.generate.GeneratePython(schema_location=schema_path)
 rv = compile(code, 'test', 'exec')
 eval(rv)
 
@@ -18,19 +18,19 @@ import unittest
 
 class TestMGChoice (unittest.TestCase):
     def onlyFirst (self, instance):
-        self.assert_(isinstance(instance.first(), choice.typeDefinition()._ElementMap['first'].elementBinding().typeDefinition()))
-        self.assert_(instance.second() is None)
-        self.assert_(instance.third() is None)
+        self.assert_(isinstance(instance.first, choice.typeDefinition()._ElementMap['first'].elementBinding().typeDefinition()))
+        self.assert_(instance.second is None)
+        self.assert_(instance.third is None)
 
     def onlySecond (self, instance):
-        self.assert_(instance.first() is None)
-        self.assert_(isinstance(instance.second(), choice.typeDefinition()._ElementMap['second'].elementBinding().typeDefinition()))
-        self.assert_(instance.third() is None)
+        self.assert_(instance.first is None)
+        self.assert_(isinstance(instance.second, choice.typeDefinition()._ElementMap['second'].elementBinding().typeDefinition()))
+        self.assert_(instance.third is None)
 
     def onlyThird (self, instance):
-        self.assert_(instance.first() is None)
-        self.assert_(instance.second() is None)
-        self.assert_(isinstance(instance.third(), choice.typeDefinition()._ElementMap['third'].elementBinding().typeDefinition()))
+        self.assert_(instance.first is None)
+        self.assert_(instance.second is None)
+        self.assert_(isinstance(instance.third, choice.typeDefinition()._ElementMap['third'].elementBinding().typeDefinition()))
 
     def testSingleChoice (self):
         xml = '<ns1:choice xmlns:ns1="URN:test-mg-choice"><first/></ns1:choice>'
@@ -69,34 +69,34 @@ class TestMGChoice (unittest.TestCase):
         xml = '<ns1:multiplechoice xmlns:ns1="URN:test-mg-choice"/>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
         instance = multiplechoice.createFromDOM(dom.documentElement)
-        self.assertEqual(0, len(instance.first()))
-        self.assertEqual(0, len(instance.second()))
-        self.assertEqual(0, len(instance.third()))
+        self.assertEqual(0, len(instance.first))
+        self.assertEqual(0, len(instance.second))
+        self.assertEqual(0, len(instance.third))
         self.assertEqual(ToDOM(instance).toxml(), xml)
 
         xml = '<ns1:multiplechoice xmlns:ns1="URN:test-mg-choice"><first/></ns1:multiplechoice>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
         instance = multiplechoice.createFromDOM(dom.documentElement)
-        self.assertEqual(1, len(instance.first()))
-        self.assertEqual(0, len(instance.second()))
-        self.assertEqual(0, len(instance.third()))
+        self.assertEqual(1, len(instance.first))
+        self.assertEqual(0, len(instance.second))
+        self.assertEqual(0, len(instance.third))
         self.assertEqual(ToDOM(instance).toxml(), xml)
 
         xml = '<ns1:multiplechoice xmlns:ns1="URN:test-mg-choice"><first/><first/><first/><third/></ns1:multiplechoice>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
         instance = multiplechoice.createFromDOM(dom.documentElement)
-        self.assertEqual(3, len(instance.first()))
-        self.assertEqual(0, len(instance.second()))
-        self.assertEqual(1, len(instance.third()))
+        self.assertEqual(3, len(instance.first))
+        self.assertEqual(0, len(instance.second))
+        self.assertEqual(1, len(instance.third))
         self.assertEqual(ToDOM(instance).toxml(), xml)
 
     def testMultichoiceOrderImportant (self):
         xml = '<ns1:multiplechoice xmlns:ns1="URN:test-mg-choice"><first/><third/><first/></ns1:multiplechoice>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
         instance = multiplechoice.createFromDOM(dom.documentElement)
-        self.assertEqual(2, len(instance.first()))
-        self.assertEqual(0, len(instance.second()))
-        self.assertEqual(1, len(instance.third()))
+        self.assertEqual(2, len(instance.first))
+        self.assertEqual(0, len(instance.second))
+        self.assertEqual(1, len(instance.third))
         # @todo This test will fail because both firsts will precede the second.
         #self.assertEqual(ToDOM(instance).toxml(), xml)
 
@@ -105,25 +105,25 @@ class TestMGChoice (unittest.TestCase):
         xml = '<ns1:altmultiplechoice xmlns:ns1="URN:test-mg-choice"/>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
         instance = altmultiplechoice.createFromDOM(dom.documentElement)
-        self.assertEqual(0, len(instance.first()))
-        self.assertEqual(0, len(instance.second()))
-        self.assertEqual(0, len(instance.third()))
+        self.assertEqual(0, len(instance.first))
+        self.assertEqual(0, len(instance.second))
+        self.assertEqual(0, len(instance.third))
         self.assertEqual(ToDOM(instance).toxml(), xml)
 
         xml = '<ns1:altmultiplechoice xmlns:ns1="URN:test-mg-choice"><first/></ns1:altmultiplechoice>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
         instance = altmultiplechoice.createFromDOM(dom.documentElement)
-        self.assertEqual(1, len(instance.first()))
-        self.assertEqual(0, len(instance.second()))
-        self.assertEqual(0, len(instance.third()))
+        self.assertEqual(1, len(instance.first))
+        self.assertEqual(0, len(instance.second))
+        self.assertEqual(0, len(instance.third))
         self.assertEqual(ToDOM(instance).toxml(), xml)
 
         xml = '<ns1:altmultiplechoice xmlns:ns1="URN:test-mg-choice"><first/><first/><third/></ns1:altmultiplechoice>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
         instance = altmultiplechoice.createFromDOM(dom.documentElement)
-        self.assertEqual(2, len(instance.first()))
-        self.assertEqual(0, len(instance.second()))
-        self.assertEqual(1, len(instance.third()))
+        self.assertEqual(2, len(instance.first))
+        self.assertEqual(0, len(instance.second))
+        self.assertEqual(1, len(instance.third))
         self.assertEqual(ToDOM(instance).toxml(), xml)
 
     def testTooManyChoices (self):

@@ -1,14 +1,13 @@
-PYTHONPATH=../..
-export PYTHONPATH
 URI='http://docs.tms.tribune.com/tech/xml/schemas/tmsxtvd.xsd'
 PREFIX='tmstvd'
 
+rm -rf raw
 mkdir -p raw
 touch raw/__init__.py
-../../scripts/pyxbgen \
+pyxbgen \
    -m "${PREFIX}" \
    -u "${URI}" \
-   -r --write-schema-path .
+   -r 
 if [ ! -f ${PREFIX}.py ] ; then
   echo "from raw.${PREFIX} import *" > ${PREFIX}.py
 fi

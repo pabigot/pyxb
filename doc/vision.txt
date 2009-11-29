@@ -3,6 +3,12 @@
 PyXB Vision
 ===========
 
+.. note::
+   This historical document was written prior to PyXB development in order
+   to bound the scope of the project and record the critical use cases.
+   It has not been updated in response to lessons learned during development.
+   
+
 PyXB is intended to support automated generation of Python language classes
 that conform in structure to data types defined with the W3C XML Schema.
 

@@ -2,7 +2,7 @@ import pyxb.binding.generate
 
 import os.path
 schema_path = '%s/../schemas/test-simplerange.xsd' % (os.path.dirname(__file__),)
-code = pyxb.binding.generate.GeneratePython(schema_file=schema_path)
+code = pyxb.binding.generate.GeneratePython(schema_location=schema_path)
 rv = compile(code, 'test', 'exec')
 eval(rv)
 

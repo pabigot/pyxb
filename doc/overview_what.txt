@@ -12,14 +12,13 @@ The major goals of PyXB are:
 * Provide a generated Python interface that is "Pythonic", meaning similar
   to one that would have been hand-written:
 
-  + Attributes and elements are Python fields (currently accessed through
-    inspector/mutator methods), with name conflicts resolved in favor of
-    elements
+  + Attributes and elements are Python properties, with name conflicts
+    resolved in favor of elements
   + Elements with maxOccurs larger than 1 are stored as Python lists
   + Bindings for type extensions inherit from the binding for the base type
   + Enumeration constraints are exposed as class (constant) variables
 
-* Support bi-directional conversion (DOM to Python and back)
+* Support bi-directional conversion (document to Python and back)
 
 * Allow easy customization of the generated bindings to provide
   functionality along with content
@@ -31,51 +30,7 @@ The major goals of PyXB are:
   + include and import directives
   + constraints on simple types
 
+* Validate the documents against their schema
+
 Secondary goals, some of which have been achieved in the current release, are
 listed in :ref:`pyxb_vision`.
-
-Examples of Processable Schema
-------------------------------
-
-PyXB can parse the following namespaces and create bindings for them (though
-not all have been rigorously tested).  For examples of how to use PyXB with
-schemas like these, see :ref:`examples`.
-
-* The `National Digital Forecast Database <http://www.nws.noaa.gov/ndfd/>`_
-
-::
-
-  http://www.weather.gov/forecasts/xml/DWMLgen/schema/DWML.xsd
-
-* `SOAP infrastructure <http://www.w3.org/TR/soap/>`_
-
-::
-
-  http://schemas.xmlsoap.org/soap/envelope/
-  http://schemas.xmlsoap.org/soap/encoding/
-  http://schemas.xmlsoap.org/wsdl/soap12/
-
-* `Web Services Description Language <http://www.w3.org/TR/wsdl>`_
-
-::
-
-  http://schemas.xmlsoap.org/wsdl/
-  http://schemas.xmlsoap.org/wsdl/mime/
-  http://schemas.xmlsoap.org/wsdl/soap/
-  http://schemas.xmlsoap.org/wsdl/http/
-
-* `Keyhole Markup Language <http://code.google.com/apis/kml/>`_ (v 2.1)
-
-::
-
-  http://code.google.com/apis/kml/schema/kml21.xsd
-
-* Others (parsed only, no testing)
-
-::
-
-  http://www.w3.org/TR/2002/REC-xmldsig-core-20020212/xmldsig-core-schema.xsd
-  http://www.w3.org/TR/2002/REC-xmlenc-core-20021210/xenc-schema.xsd
-  http://docs.oasis-open.org/security/saml/v2.0/saml-schema-assertion-2.0.xsd
-  http://docs.oasis-open.org/security/saml/v2.0/saml-schema-protocol-2.0.xsd
-

@@ -1,0 +1,103 @@
+#!/bin/sh
+
+exec 2>&1 | tee makedist.log
+
+# Update the version numbers in the source
+./setup.py update_version
+
+hg_status=`hg status -q | grep -v makedist`
+if [ -n "${hg_status}" ] ; then
+  echo 1>&2 ERROR: Unsaved deltas
+  echo ${hg_status}
+  exit 1
+fi
+
+DISTDIR=/tmp/pyxbdist
+rm -rf ${DISTDIR}
+hg archive ${DISTDIR}
+cd ${DISTDIR}
+export PYXB_ROOT=`pwd`
+
+# First, the core:
+./setup.py sdist
+ver=`ls -rt dist | tail -1 | sed -e 's@^PyXB-\(.*\).tar.gz$@\1@'`
+DISTROOT=PyXB-${ver}
+BASE_TGZ=${HOME}/pyxb/pre-release/PyXB-base-${ver}.tar.gz
+mv dist/${DISTROOT}.tar.gz ${BASE_TGZ}
+cd ..
+
+rm -rf ${DISTDIR} ${DISTROOT} ${DISTROOT}-base ${DISTROOT}-build ${DISTROOT}-full ${DISTROOT}-overlays
+tar xzf ${BASE_TGZ}
+mv ${DISTROOT} ${DISTROOT}-base || ( echo 1>&2 Unable to unpack release ; exit 1 )
+tar xzf ${BASE_TGZ}
+cd ${DISTROOT}
+
+# Hang for a couple seconds, so when we do time-based comparisons we
+# correctly identify the new files
+sleep 2
+
+# Build the documentation
+cd doc
+rm -rf html
+rm -f pyxb
+ln -s ../pyxb .
+make apihtml html
+rm -f pyxb
+cd ..
+
+PYXB_ROOT=/tmp/${DISTROOT}
+export PYXB_ROOT
+
+# Generate the bundles
+for bundle in common wssplat opengis ; do
+  pyxb/bundles/${bundle}/scripts/genbind || (echo 1>&2 Error building bundle ${bundle} ; exit 1 )
+done
+
+# Build the full distribution
+./setup.py sdist
+FULL_TGZ=${HOME}/pyxb/pre-release/PyXB-full-${ver}.tar.gz
+mv dist/* ${FULL_TGZ}
+
+# Test it
+./setup.py test
+
+# Now build the overlays
+cd ..
+mv ${DISTROOT} ${DISTROOT}-build
+tar xzf ${FULL_TGZ}
+
+build_overlay () {
+  tag=$1
+  shift
+  sdir=$1
+  shift
+  (
+    find ${DISTROOT}/${sdir} -type f -newer ${BASE_TGZ} ;
+    for f in "${@}" ; do
+      find ${DISTROOT}/${f} -type f
+    done
+  ) | sort | uniq > ${tag}.files
+  README=${DISTROOT}/README-${tag}.txt
+  ( cat <<EOText 
+This directory contains the following files added as part of the ${tag} overlay:
+
+EOText
+    cat ${tag}.files
+) >${README}
+  tar czf ${HOME}/pyxb/pre-release/PyXB-${tag}-${ver}.tar.gz --files-from ${tag}.files ${README}
+}
+
+# Build overlays
+build_overlay doc doc doc/html/_sources doc/html/_static doc/html/_images
+build_overlay common pyxb/bundles/common
+build_overlay opengis pyxb/bundles/opengis
+build_overlay wssplat pyxb/bundles/wssplat
+
+mv ${DISTROOT} ${DISTROOT}-overlays
+tar xzf ${HOME}/pyxb/pre-release/PyXB-full-${ver}.tar.gz
+mv ${DISTROOT} ${DISTROOT}-full
+for f in base doc common opengis wssplat ; do
+  tar xzf ${HOME}/pyxb/pre-release/PyXB-${f}-${ver}.tar.gz
+done
+diff -r ${DISTROOT} ${DISTROOT}-full
+

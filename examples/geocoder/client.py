@@ -1,25 +1,25 @@
 import GeoCoder
+from pyxb import BIND
 import sys
 import pyxb.utils.domutils as domutils
-import pyxb.standard.bindings.soapenv as soapenv
-import pyxb.standard.bindings.soapenc as soapenc
+import pyxb.bundles.wssplat.soap11 as soapenv
+import pyxb.bundles.wssplat.soapenc as soapenc
 import urllib2
 
 address = '1600 Pennsylvania Ave., Washington, DC'
 if 1 < len(sys.argv):
     address = sys.argv[1]
 
-env = soapenv.Envelope()
-env.setBody(GeoCoder.geocode(address))
+env = soapenv.Envelope(BIND(GeoCoder.geocode(address)))
 
 uri = urllib2.Request('http://rpc.geocoder.us/service/soap/',
                       env.toxml(),
                       { 'SOAPAction' : "http://rpc.geocoder.us/Geo/Coder/US#geocode", 'Content-Type': 'text/xml' } )
 
 rxml = urllib2.urlopen(uri).read()
-file('response.xml', 'w').write(rxml)
-doc_root = domutils.StringToDOM(rxml).documentElement
-response = soapenv.CreateFromDOM(doc_root)
+#file('response.xml', 'w').write(rxml)
+#rxml = file('response.xml').read()
+response = soapenv.CreateFromDocument(rxml)
 
 # OK, here we get into ugliness due to WSDL's concept of schema in the
 # SOAP encoding not being consistent with XML Schema, even though it
@@ -33,20 +33,28 @@ response = soapenv.CreateFromDOM(doc_root)
 # of the DOM node, and we have to skip over the wildcard items to find
 # something we can deal with.
 
-encoding_style = soapenv.Namespace.createExpandedName('encodingStyle').getAttribute(doc_root)
+# As further evidence the folks who designed SOAP 1.1 didn't know what
+# they were doing, the encodingStyle attribute that's supposed to go
+# in the Envelope can't validly be present there, since it's not
+# listed and it's not in the namespace admitted by the attribute
+# wildcard.  Fortunately, PyXB doesn't currently validate wildcards.
+
+encoding_style = response.wildcardAttributeMap().get(soapenv.Namespace.createExpandedName('encodingStyle'))
+items = []
 if encoding_style == soapenc.Namespace.uri():
-    gcr = response.Body().wildcardElements()[0]
-    items = [ GeoCoder.GeocoderAddressResult(_dom_node=_i) for _i in gcr.childNodes[0].childNodes ]
+    gcr = response.Body.wildcardElements()[0]
+    soap_array = gcr.wildcardElements()[0]
+    items = soap_array.wildcardElements()
 else:
     pass
 
 for item in items:
-    if (item.lat() is None) or item.lat()._isNil():
+    if (item.lat is None) or item.lat._isNil():
         print 'Warning: Address did not resolve'
     print '''
 %s %s %s %s %s
 %s, %s  %s
-%s %s''' % (item.number(), item.prefix(), item.street(), item.type(), item.suffix(),
-            item.city(), item.state(), item.zip(),
-            item.lat(), item.long())
+%s %s''' % (item.number, item.prefix, item.street, item.type, item.suffix,
+            item.city, item.state, item.zip,
+            item.lat, item.long)
     

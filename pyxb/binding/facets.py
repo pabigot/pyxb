@@ -147,9 +147,9 @@ class Facet (pyxb.cscRoot):
         assert cls != Facet
         if 0 <= name.find(':'):
             name = name.split(':', 1)[1]
-        if not name in cls._Facets:
-            raise pyxb.LogicError('Unrecognized facet name %s: expect %s' % (name, ','.join(cls._Facets)))
         facet_class = globals().get('%s_%s' % (cls._FacetPrefix, name), None)
+        if facet_class is None:
+            raise pyxb.LogicError('Unrecognized facet name %s: expect %s' % (name, ','.join([_f._Name for _f in cls.Facets])))
         assert facet_class is not None
         return facet_class
 
@@ -362,8 +362,24 @@ class CF_maxLength (ConstrainingFacet, _Fixed_mixin):
         value_length = value.xsdValueLength()
         return (value_length is None) or (self.value() is None) or (value_length <= self.value())
 
-class _PatternElement:
+import pyxb.utils.xmlre
+
+class _PatternElement (utility.PrivateTransient_mixin):
     """This class represents individual patterns that appear within a CF_pattern collection."""
+
+    # The compiled regular expression is marked transient because we
+    # normally do development with Python 2.5, and consequently save
+    # the pickled namespace archives that go into the distribution
+    # with that version.  Compiled regular expressions in Python 2.5
+    # include a reference to the re._compile method, which does not
+    # exist in Python 2.4.  As a result, attempts to load a namespace
+    # which includes types with pattern restrictions fail.
+    __PrivateTransient = set()
+
+    __compiledExpression = None
+    __PrivateTransient.add('compiledExpression')
+
+    __pythonExpression = None
 
     pattern = None
     annotation = None
@@ -374,15 +390,32 @@ class _PatternElement:
         assert isinstance(pattern, types.StringTypes)
         self.pattern = pattern
         self.annotation = annotation
+        self.__pythonExpression = pyxb.utils.xmlre.XMLToPython(pattern)
+        #print 'Translated pattern %s to %s' % (pattern.encode('ascii', 'xmlcharrefreplace'),
+        #                                       self.__pythonExpression.encode('ascii', 'xmlcharrefreplace'))
 
     def __str__ (self): return self.pattern
 
+    def matches (self, text):
+        if self.__compiledExpression is None:
+            self.__compiledExpression = re.compile(self.__pythonExpression)
+        return self.__compiledExpression.match(text)
+
 class CF_pattern (ConstrainingFacet, _CollectionFacet_mixin):
-    """A facet that constrains the lexical representation of a value to match one of a set of patterns.
-    
+    """A facet that constrains the lexical representation of a value
+    to match one of a set of patterns.
+
     See U{http://www.w3.org/TR/xmlschema-2/#rf-pattern}
 
-    @todo: Make this do something
+    @note: In PyXB, pattern constraints are ignored for any type with
+    a Python representation that does not derive from C{basestring}.
+    This is due to the difficulty in reconstructing the lexical
+    representation of a non-string type after it has been converted to
+    its value space.
+
+    @todo: On creating new instances of non-string simple types from
+    string representations, we could apply pattern constraints.  That
+    would mean checking them prior to invoking the Factory method.
     """
     _Name = 'pattern'
     _CollectionFacet_itemType = _PatternElement
@@ -401,10 +434,18 @@ class CF_pattern (ConstrainingFacet, _CollectionFacet_mixin):
         return pattern
 
     def _validateConstraint_vx (self, value):
-        # @todo implement this
-        return True
+        # If validation is inhibited, or if the facet hasn't had any
+        # restrictions applied yet, return True.
+        if 0 == len(self.__patternElements):
+            return True
+        if not isinstance(value, basestring):
+            return True
+        for pe in self.__patternElements:
+            if pe.matches(value):
+                return True
+        return False
 
-class _EnumerationElement:
+class _EnumerationElement (object):
     """This class represents individual values that appear within a
     L{CF_enumeration} collection."""
     
@@ -422,8 +463,19 @@ class _EnumerationElement:
         """The Python identifier used for the named constant representing
         the enumeration value.
 
-        This does not include any prefix."""
+        This should include any desired prefix, since it must be
+        unique within its binding class.  If C{None}, no enumeration
+        constant will be generated."""
         return self.__tag
+    def _setTag (self, tag):
+        """Set the tag to be used for this enumeration."""
+        self.__tag = tag
+
+    __bindingTag = None
+    def bindingTag (self):
+        return self.__bindingTag
+    def _setBindingTag (self, binding_tag):
+        self.__bindingTag = binding_tag
 
     __enumeration = None
     def enumeration (self):
@@ -438,8 +490,6 @@ class _EnumerationElement:
     def __init__ (self, enumeration=None, unicode_value=None,
                   description=None, annotation=None,
                   **kw):
-        #if 0 < len(kw):
-        #    print 'EnumerationElement kw: %s' % (kw,)
         # The preferred keyword is "unicode_value", but when being
         # generically applied by
         # structures.SimpleTypeDefinition.__updateFacets, the unicode
@@ -455,8 +505,6 @@ class _EnumerationElement:
         self.__annotation = annotation
 
         assert self.__enumeration is not None
-
-        self.__tag = utility.MakeIdentifier(self.unicodeValue())
 
         value_datatype = self.enumeration().valueDatatype()
         self.__value = value_datatype.Factory(self.unicodeValue(), _validate_constraints=False)
@@ -520,6 +568,10 @@ class CF_enumeration (ConstrainingFacet, _CollectionFacet_mixin, _LateDatatype_m
         self.__tagToElement[ee.tag()] = ee
         self.__unicodeToElement[ee.unicodeValue()] = ee
         value = ee.value()
+        # Not just issubclass(self.valueDatatype(), basis.STD_list);
+        # this may be a union with one of those as a member type.
+        if isinstance(value, list):
+            value = ' '.join([ _v.xsdLiteral() for _v in value ])
         self.__valueToElement[value] = ee
         self.__elements.append(ee)
         return value
@@ -555,7 +607,7 @@ class _Enumeration_mixin (pyxb.cscRoot):
     def valueForUnicode (cls, ustr):
         return cls._CF_enumeration.valueForUnicode(ustr)
 
-class _WhiteSpace_enum (datatypes.string, _Enumeration_mixin):
+class _WhiteSpace_enum (datatypes.NMTOKEN, _Enumeration_mixin):
     """The enumeration used to constrain the whiteSpace facet"""
     pass
 _WhiteSpace_enum._CF_enumeration = CF_enumeration(value_datatype=_WhiteSpace_enum)
@@ -564,9 +616,9 @@ _WhiteSpace_enum.replace = _WhiteSpace_enum._CF_enumeration.addEnumeration(unico
 _WhiteSpace_enum.collapse = _WhiteSpace_enum._CF_enumeration.addEnumeration(unicode_value=u'collapse')
 # NOTE: For correctness we really need to initialize the facet map for
 # WhiteSpace_enum, even though at the moment it isn't necessary.  We
-# can't right now, because its parent datatypes.string hasn't been
-# initialized.
-#_WhiteSpace_enum._InitializeFacetMap(_WhiteSpace_enum._CF_enumeration)
+# can't right now, because its parent datatypes.NMTOKEN hasn't been
+# initialized yet
+_WhiteSpace_enum._InitializeFacetMap(_WhiteSpace_enum._CF_enumeration)
 
 class CF_whiteSpace (ConstrainingFacet, _Fixed_mixin):
     """Specify the value-space interpretation of whitespace.
@@ -580,11 +632,13 @@ class CF_whiteSpace (ConstrainingFacet, _Fixed_mixin):
     __MultiSpace_re = re.compile(" +")
     def normalizeString (self, value):
         """Normalize the given string in accordance with the configured whitespace interpretation."""
+        if self.value() is None:
+            return value
         if self.value() == _WhiteSpace_enum.preserve:
             return utility.NormalizeWhitespace(value, preserve=True)
         if self.value() == _WhiteSpace_enum.replace:
             return utility.NormalizeWhitespace(value, replace=True)
-        assert self.value() == _WhiteSpace_enum.collapse
+        assert self.value() == _WhiteSpace_enum.collapse, 'Unexpected value "%s" for whiteSpace facet' % (self.value(),)
         return utility.NormalizeWhitespace(value, collapse=True)
     
     def _validateConstraint_vx (self, value):

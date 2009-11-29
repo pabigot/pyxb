@@ -4,7 +4,7 @@ from xml.dom import Node
 
 import os.path
 schema_path = '%s/../schemas/test-facets.xsd' % (os.path.dirname(__file__),)
-code = pyxb.binding.generate.GeneratePython(schema_file=schema_path)
+code = pyxb.binding.generate.GeneratePython(schema_location=schema_path)
 
 rv = compile(code, 'test', 'exec')
 eval(rv)
@@ -21,7 +21,7 @@ class TestFacets (unittest.TestCase):
         for (k,v) in globals().items():
             if k.startswith('_STD_ANON'):
                 break
-        self.assertEqual(v, type(instance))
+        self.assertEqual(v.typeDefinition(), type(instance))
         self.assertRaises(Exception, v, -52)
         self.assertRaises(Exception, v, 100)
 

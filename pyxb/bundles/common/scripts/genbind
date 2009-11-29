@@ -1,0 +1,16 @@
+PYXB_ROOT=${PYXB_ROOT:-/home/pab/pyxb/dev}
+BUNDLE_TAG=common
+
+. ${PYXB_ROOT}/maintainer/bundlesupport.sh
+
+# Get a couple that we don't actually generate bindings for, but are nice to
+# have around for reference.
+test -f ${SCHEMA_DIR}/xml.xsd || wget -O ${SCHEMA_DIR}/xml.xsd http://www.w3.org/2001/xml.xsd
+test -f ${SCHEMA_DIR}/XMLSchema.xsd || wget -O ${SCHEMA_DIR}/XMLSchema.xsd http://www.w3.org/2001/XMLSchema.xsd
+
+( cat <<EOList
+http://www.w3.org/2001/XMLSchema-hasFacetAndProperty xsd_hfp --allow-builtin-generation
+http://www.w3.org/1999/xhtml.xsd xhtml --allow-builtin-generation
+EOList
+) | generateBindings
+

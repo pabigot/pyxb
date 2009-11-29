@@ -7,8 +7,7 @@ import urllib2
 import time
 import sys
 
-import pyxb.standard.bindings.soapenv as soapenv
-import pyxb.standard.bindings.soapenc as soapenc
+import pyxb.bundles.wssplat.soap11 as soapenv
 
 today = xsd.dateTime.today()
 later = today + datetime.timedelta(days=7)
@@ -30,7 +29,7 @@ import ndfd
 # the schema again here, because we were unable to save the component
 # model for it before, and we need the definition maps in order to
 # resolve part type references in the WSDL messages.
-import pyxb.standard.bindings.wsdl as wsdl
+import pyxb.bundles.wssplat.wsdl11 as wsdl
 uri_src = open('ndfdXML.wsdl')
 doc = domutils.StringToDOM(uri_src.read())
 spec = wsdl.definitions.createFromDOM(doc.documentElement, process_schema=True)
@@ -69,17 +68,17 @@ request_values = { 'latitude' : lat
 # Get the WSDL message description, and for each part for which we
 # have a value, add an element to the message document.
 req_msg = spec.messageMap()['NDFDgenRequest']
-for p in req_msg.part():
-    fv = request_values.get(p.name(), None)
+for p in req_msg.part:
+    fv = request_values.get(p.name, None)
     if fv is None:
-        print '%s: %s has no value' % (p.name(), p.typeReference().expandedName())
+        print '%s: %s has no value' % (p.name, p.typeReference.expandedName())
     else:
-        print '%s: %s' % (p.name(), p.typeReference().expandedName())
+        print '%s: %s' % (p.name, p.typeReference.expandedName())
         # Make sure the value is of the expected type
-        type_binding = p.typeReference().expandedName().typeBinding()
+        type_binding = p.typeReference.expandedName().typeBinding()
         if not isinstance(fv, type_binding):
             fv = type_binding.Factory(fv)
-        fv.toDOM(bds, root, element_name=p.name())
+        fv.toDOM(bds, root, element_name=p.name)
 
 # Finish the request message and get it as a DOM document.
 dom = bds.finalize()
@@ -114,8 +113,8 @@ file('rawresp.xml', 'w').write(rxml)
 # provided as XML directly.  The noise below extracts it.
 rdom = domutils.StringToDOM(rxml)
 resp = soapenv.CreateFromDOM(rdom)
-v = resp.Body().wildcardElements()[0]
-rxml = v.childNodes[0].childNodes[0].nodeValue
+v = resp.Body.wildcardElements()[0]
+rxml = v.childNodes[0].childNodes[0].value
 # Save the extracted response
 file('resp.xml', 'w').write(rxml)
 #rxml = file('resp.xml').read()
@@ -123,37 +122,32 @@ file('resp.xml', 'w').write(rxml)
 # Create the binding instance from the response, and start spitting
 # out its data.
 r = DWML.CreateFromDOM(domutils.StringToDOM(rxml))
-product = r.head().product()
-print '%s %s' % (product.title(), product.category())
-source = r.head().source()
-print ", ".join(source.production_center().content())
-data = r.data()
+product = r.head.product
+print '%s %s' % (product.title, product.category)
+source = r.head.source
+print ", ".join(source.production_center.content())
+data = r.data
 
-for i in range(len(data.location())):
-    loc = data.location()[i]
-    for j in range(len(loc.location_key())):
-        key = loc.location_key()[j]
-        print '%s [%s %s]' % (key, loc.point()[j].latitude(), loc.point()[j].longitude())
-        for p in data.parameters():
-            if p.applicable_location() != key:
-                continue
-            mint = maxt = None
-            for t in p.temperature():
-                if 'maximum' == t.type():
-                    maxt = t.value()
-                elif 'minimum' == t.type():
-                    mint = t.value()
-                print '%d values for %s (%s): %s' % (len(t.value()), t.name()[0], t.units(), " ".join([ str(_v.content()) for _v in t.value() ]))
-            # Printing the other properties is left as an exercise.
-            time_layout = None
-            for tl in data.time_layout():
-                if tl.layout_key() == maxt.time_layout():
-                    time_layout = tl
-                    break
-            for ti in range(min(len(mint), len(maxt), len(time_layout.start_valid_time()))):
-                # NB: start-valid-time is a complex type with simple
-                # content; end-valid-time is a simple type.
-                start = time_layout.start_valid_time()[ti].content()
-                end = time_layout.end_valid_time()[ti]
-                print '%s: min %s, max %s' % (time.strftime('%A, %B %d %Y', start.timetuple()),
-                                              mint[ti].content(), maxt[ti].content())
+for i in range(len(data.location)):
+    loc = data.location[i]
+    print '%s [%s %s]' % (loc.location_key, loc.point.latitude, loc.point.longitude)
+    for p in data.parameters:
+        if p.applicable_location != loc.location_key:
+            continue
+        mint = maxt = None
+        for t in p.temperature:
+            if 'maximum' == t.type:
+                maxt = t
+            elif 'minimum' == t.type:
+                mint = t
+            print '%s (%s): %s' % (t.name, t.units, " ".join([ str(_v.value()) for _v in t.value_ ]))
+        time_layout = None
+        for tl in data.time_layout:
+            if tl.layout_key == mint.time_layout:
+                time_layout = tl
+                break
+        for ti in range(len(time_layout.start_valid_time)):
+            start = time_layout.start_valid_time[ti].value()
+            end = time_layout.end_valid_time[ti]
+            print '%s: min %s, max %s' % (time.strftime('%A, %B %d %Y', start.timetuple()),
+                                          mint.value_[ti].value(), maxt.value_[ti].value())

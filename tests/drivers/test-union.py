@@ -4,8 +4,8 @@ from xml.dom import Node
 
 import os.path
 schema_path = '%s/../schemas/test-union.xsd' % (os.path.dirname(__file__),)
-code = pyxb.binding.generate.GeneratePython(schema_file=schema_path)
-
+code = pyxb.binding.generate.GeneratePython(schema_location=schema_path)
+#file('code.py', 'w').write(code)
 rv = compile(code, 'test', 'exec')
 eval(rv)
 
@@ -40,6 +40,12 @@ class TestUnion (unittest.TestCase):
         self.assertEqual('pump', words2.Factory('pump'))
         self.assertRaises(BadTypeValueError,  words2.Factory, 'one')
 
+    def testFiveWords (self):
+        self.assertEqual('one', fiveWords.Factory('one'))
+        self.assertEqual('dau', fiveWords.Factory('dau'))
+        self.assertEqual('four', fiveWords.Factory('four'))
+        self.assertEqual('pump', fiveWords.Factory('pump'))
+
     def testMyElement (self):
         self.assertEqual(0, myElement('0'))
         self.assertEqual(english.two, myElement('two'))
@@ -48,10 +54,14 @@ class TestUnion (unittest.TestCase):
 
     def testValidation (self):
         # Test automated conversion
-        uv = myUnion._ValidateMember('one')
+        uv = myUnion._ValidatedMember('one')
         self.assertTrue(isinstance(uv, english))
-        uv = myUnion._ValidateMember('tri')
+        uv = myUnion._ValidatedMember('tri')
         self.assertTrue(isinstance(uv, welsh))
+
+    def testXsdLiteral (self):
+        ul = unionList([0, 'un', 'one'])
+        self.assertEqual('0 un one', ul.xsdLiteral())
 
     def testXMLErrors (self):
         self.assertEqual(welsh.un, CreateFromDocument('<myElement xmlns="URN:unionTest">un</myElement>'))

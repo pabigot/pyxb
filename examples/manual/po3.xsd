@@ -1,5 +1,6 @@
 <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
    xmlns:address="URN:address">
+  <xsd:import namespace="URN:address" schemaLocation="nsaddress.xsd"/>
   <xsd:element name="purchaseOrder" type="PurchaseOrderType"/>
   <xsd:element name="comment" type="xsd:string"/>
   <xsd:complexType name="PurchaseOrderType">

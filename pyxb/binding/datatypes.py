@@ -233,7 +233,7 @@ class duration (basis.simpleTypeDefinition, datetime.timedelta):
                 v = match_map.get(fn, 0)
                 if v is None:
                     v = 0
-                data[fn] = int(v)
+                data[fn] = types.IntType(v)
                 if fn in cls.__PythonFields:
                     if negative_duration:
                         kw[fn] = - data[fn]
@@ -308,56 +308,6 @@ class duration (basis.simpleTypeDefinition, datetime.timedelta):
         
 _PrimitiveDatatypes.append(duration)
 
-class _TimeZone (datetime.tzinfo):
-    """A tzinfo subclass that helps deal with UTC conversions"""
-
-    # Regular expression that matches valid ISO8601 time zone suffixes
-    __Lexical_re = re.compile('^([-+])(\d\d):(\d\d)$')
-
-    # The offset in minutes east of UTC.
-    __utcOffset = 0
-
-    def __init__ (self, spec=None, flip=False):
-        """Create a time zone instance.
-
-        If spec is not None, it must conform to the ISO8601 time zone
-        sequence (Z, or [+-]HH:MM).
-
-        If flip is True, the time zone offset is flipped, resulting in
-        the conversion from localtime to UTC rather than the default
-        of UTC to localtime.
-        """
-
-        if spec is None:
-            return
-        if isinstance(spec, (str, unicode)):
-            if 'Z' == spec:
-                return
-            match = self.__Lexical_re.match(spec)
-            if match is None:
-                raise ValueError('Bad time zone: %s' % (spec,))
-            self.__utcOffset = int(match.group(2)) * 60 + int(match.group(3))
-            if '-' == match.group(1):
-                self.__utcOffset = - self.__utcOffset
-        elif isinstance(spec, int):
-            self.__utcOffset = spec
-        if flip:
-            self.__utcOffset = - self.__utcOffset
-
-    def utcoffset (self, dt):
-        return datetime.timedelta(minutes=self.__utcOffset)
-
-    def tzname (self, dt):
-        if 0 == self.__utcOffset:
-            return 'UTC'
-        if 0 > self.__utcOffset:
-            return 'UTC-%02d%02d' % divmod(-self.__utcOffset, 60)
-            return 'UTC+%02d%02d' % divmod(self.__utcOffset, 60)
-    
-    def dst (self, dt):
-        return datetime.timedelta()
-
-
 class _PyXBDateTime_base (basis.simpleTypeDefinition):
 
     __PatternMap = { '%Y' : '(?P<negYear>-?)(?P<year>\d{4,})'
@@ -388,7 +338,7 @@ class _PyXBDateTime_base (basis.simpleTypeDefinition):
         kw = { }
         for (k, v) in match_map.iteritems():
             if (k in cls.__Fields) and (v is not None):
-                kw[k] = int(v)
+                kw[k] = types.IntType(v)
         if '-' == match_map.get('negYear', None):
             kw['year'] = - kw['year']
         if match_map.get('fracsec', None) is not None:
@@ -397,7 +347,7 @@ class _PyXBDateTime_base (basis.simpleTypeDefinition):
             # Discard any bogosity passed in by the caller
             kw.pop('microsecond', None)
         if match_map.get('tzinfo', None) is not None:
-            kw['tzinfo'] = _TimeZone(match_map['tzinfo'], flip=True)
+            kw['tzinfo'] = pyxb.utils.utility.UTCOffsetTimeZone(match_map['tzinfo'], flip=True)
         else:
             kw.pop('tzinfo', None)
         return kw
@@ -444,7 +394,7 @@ class _PyXBDateTimeZone_base (_PyXBDateTime_base):
     @classmethod
     def _SetKeysFromPython_csc (cls, python_value, kw, fields):
         if python_value.tzinfo is not None:
-            kw['tzinfo'] = _TimeZone(python_value.tzinfo.utcoffset(), flip=True)
+            kw['tzinfo'] = pyxb.utils.utility.UTCOffsetTimeZone(python_value.tzinfo.utcoffset(python_value), flip=True)
         else:
             kw.pop('tzinfo', None)
         return getattr(super(_PyXBDateTimeZone_base, cls), '_SetKeysFromPython_csc', lambda *a,**kw: None)(python_value, kw, fields)
@@ -520,14 +470,25 @@ class dateTime (_PyXBDateTimeZone_base, datetime.datetime):
             iso += 'Z'
         return iso
 
-    __LocalZone = _TimeZone(-python_time.timezone/60)
+    __UTCZone = pyxb.utils.utility.UTCOffsetTimeZone(0)
+    __LocalZone = pyxb.utils.utility.LocalTimeZone()
+
     @classmethod
     def today (cls):
         """Return today.
 
-        Just like datetime.datetime.today(), except this one incorporates the time zone."""
-        now = python_time.gmtime()
-        return cls(tzinfo=cls.__LocalZone, *(now[:7]))
+        Just like datetime.datetime.today(), except this one sets a
+        tzinfo field so it's clear the value is UTC."""
+        return cls(datetime.datetime.now(cls.__UTCZone))
+
+    def aslocal (self):
+        """Returns a C{datetime.datetime} instance denoting the same
+        time as this instance but adjusted to be in the local time
+        zone.
+
+        @rtype: C{datetime.datetime} (B{NOT} C{xsd.dateTime})
+        """
+        return self.replace(tzinfo=self.__UTCZone).astimezone(self.__LocalZone)
 
 _PrimitiveDatatypes.append(dateTime)
 
@@ -1107,7 +1068,9 @@ class anyType (basis.complexTypeDefinition):
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('anyType')
     _ContentTypeTag = basis.complexTypeDefinition._CT_MIXED
     _Abstract = False
-    
+    _HasWildcardElement = True
+    _AttributeWildcard = content.Wildcard(namespace_constraint=content.Wildcard.NC_any, process_contents=content.Wildcard.PC_lax)
+
     # Generate from tests/schemas/anyType.xsd
     _ContentModel = content.ContentModel(state_map = {
       1 : content.ContentModelState(state=1, is_final=True, transitions=[

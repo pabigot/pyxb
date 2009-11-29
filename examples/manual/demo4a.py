@@ -1,0 +1,10 @@
+import address
+
+addr = address.USAddress()
+addr.name = 'Robert Smith'
+addr.street = '8 Oak Avenue'
+addr.city = 'Anytown'
+addr.state = 'AK'
+addr.zip = 12341
+
+print addr.toxml()

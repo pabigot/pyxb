@@ -4,8 +4,9 @@ from xml.dom import Node
 
 import os.path
 schema_path = '%s/../schemas/po1.xsd' % (os.path.dirname(__file__),)
-code = pyxb.binding.generate.GeneratePython(schema_file=schema_path)
+code = pyxb.binding.generate.GeneratePython(schema_location=schema_path)
 
+#file('code.py', 'w').write(code)
 rv = compile(code, 'test', 'exec')
 eval(rv)
 
@@ -38,9 +39,11 @@ Anytown, AS  12345-6789'''
 
     def testPythonElementComplexContent_Element (self):
         addr = USAddress(name='Customer', street='95 Main St')
-        self.assertEqual('95 Main St', addr.street())
+        self.assertEqual('95 Main St', addr.street)
         addr = USAddress('Customer', '95 Main St')
-        self.assertEqual('95 Main St', addr.street())
+        self.assertEqual('95 Main St', addr.street)
+        addr.street = '43 West Oak'
+        self.assertEqual('43 West Oak', addr.street)
         #self.assertEqual('<s>%s</s>' % (self.address1_xml,), ToDOM(addr, tag='s').toxml())
 
     def testDOM_CTD_element (self):
@@ -61,11 +64,49 @@ Anytown, AS  12345-6789'''
         dom = pyxb.utils.domutils.StringToDOM(xml)
         po2 = purchaseOrder.createFromDOM(dom.documentElement)
         self.assertEqual(xml1, ToDOM(po2).toxml())
+        loc = po2.shipTo._location()
+        self.assertTrue((not isinstance(loc, pyxb.utils.utility.Locatable_mixin)) or (58 == loc.columnNumber))
+        loc = po2.billTo.name._location()
+        self.assertTrue((not isinstance(loc, pyxb.utils.utility.Locatable_mixin)) or (131 == loc.columnNumber))
+
+        po2 = CreateFromDocument(xml)
+        self.assertEqual(xml1, ToDOM(po2).toxml())
+        loc = po2.shipTo._location()
+        self.assertTrue((not isinstance(loc, pyxb.utils.utility.Locatable_mixin)) or (58 == loc.columnNumber))
+        loc = po2.billTo.name._location()
+        self.assertTrue((not isinstance(loc, pyxb.utils.utility.Locatable_mixin)) or (131 == loc.columnNumber))
+
 
         xml2 = '<purchaseOrder xmlns="http://www.example.com/PO1"><shipTo><name>Customer</name><street>95 Main St</street></shipTo><billTo><name>Sugar Mama</name><street>24 E. Dearling Ave</street></billTo><comment>Thanks!</comment></purchaseOrder>'
         bds = pyxb.utils.domutils.BindingDOMSupport()
         bds.setDefaultNamespace(Namespace)
         self.assertEqual(xml2, ToDOM(po2, dom_support=bds).toxml())
+
+    def testGenerationValidation (self):
+        ship_to = USAddress('Robert Smith', 'General Delivery')
+        po = purchaseOrder(ship_to)
+        self.assertEqual('General Delivery', po.shipTo.street)
+        self.assertTrue(po.billTo is None)
+
+        self.assertTrue(pyxb.RequireValidWhenGenerating())
+        self.assertRaises(pyxb.DOMGenerationError, po.toxml)
+        try:
+            pyxb.RequireValidWhenGenerating(False)
+            self.assertFalse(pyxb.RequireValidWhenGenerating())
+            xmls = po.toxml(root_only=True)
+            self.assertEqual('<ns1:purchaseOrder xmlns:ns1="http://www.example.com/PO1"><shipTo><street>General Delivery</street><name>Robert Smith</name></shipTo></ns1:purchaseOrder>', xmls)
+        finally:
+            pyxb.RequireValidWhenGenerating(True)
+        self.assertRaises(pyxb.UnrecognizedContentError, CreateFromDocument, xmls)
+        self.assertTrue(pyxb.RequireValidWhenParsing())
+        try:
+            pyxb.RequireValidWhenParsing(False)
+            self.assertFalse(pyxb.RequireValidWhenParsing())
+            po2 = CreateFromDocument(xmls)
+        finally:
+            pyxb.RequireValidWhenParsing(True)
+        self.assertEqual('General Delivery', po2.shipTo.street)
+        self.assertTrue(po2.billTo is None)
 
 if __name__ == '__main__':
     unittest.main()

@@ -93,8 +93,54 @@ def api_role(role, rawtext, text, lineno, inliner, options={}, content=[]):
 
     return [node], []
 
+def ticket_role(role, rawtext, text, lineno, inliner, options={}, content=[]):
+    """
+    Role `:ticket:` generates references to Trac tickets.
+    """
+    trac_root = 'https://sourceforge.net/apps/trac/pyxb'
+
+    # assume module is references
+    
+    #print 'Text "%s"' % (text,)
+    mo = __Reference_re.match(text)
+    label = None
+    if mo is not None:
+        ( label, text ) = mo.group(1, 2)
+    ticket = text.strip()
+
+    uri = '%s/ticket/%s' % (trac_root, ticket)
+    if label is None:
+        label = '#%s' % (ticket,)
+    node = nodes.reference(rawtext, label, refuri=uri, **options)
+
+    return [node], []
+
+
+def pyex_role(role, rawtext, text, lineno, inliner, options={}, content=[]):
+    """
+    Role `:pyex:` generates reference to Python exception classes.
+    """
+
+    pyex_fmt = 'http://docs.python.org/library/exceptions.html#exceptions.%s'
+    mo = __Reference_re.match(text)
+    label = None
+    if mo is not None:
+        ( label, text ) = mo.group(1, 2)
+    exc = text.strip()
+    print 'Python exception %s as %s' % (text, label)
+
+    uri = pyex_fmt % (exc,)
+    if label is None:
+        label = '%s' % (exc,)
+    node = nodes.reference(rawtext, label, refuri=uri, **options)
+
+    return [node], []
+
 def setup(app):
     app.add_role('api', api_role)
     app.add_config_value('epydoc_basedir', 'api', False)
-    app.add_config_value('epydic_prefix', 'doc/html/', False)
+    app.add_config_value('epydoc_prefix', 'doc/html/', False)
+    app.add_role('ticket', ticket_role)
+    app.add_config_value('epydoc_track_root', 'http://sourceforge.net/apps/track/project', False)
+    app.add_role('pyex', pyex_role)
     

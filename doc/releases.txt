@@ -1,0 +1,304 @@
+.. _releases:
+
+***************
+Release History
+***************
+
+The release number of PyXB indicates stability in a way similar to that of
+Linux several years ago:
+
+- All releases consist of three non-negative integers
+
+- If the second integer is even, the release is considered *stable*:
+
+  - All documentation will be current, all supported platforms tested, all
+    tests pass, all examples verified
+
+  - Bugs will be fixed if this can be done without changing behavior that
+    somebody may depend on
+
+  - No new interface capabilities will be added
+
+  Releases in a stable series are intended for production applications where
+  stability is the highest consideration.
+
+- If the second integer is odd, the release is considered *beta*:
+
+  - Interfaces will change between releases, sometimes significantly
+
+  - Any given release may fail to pass certain tests or not work on certain
+    platforms
+
+  - User and API documentation may be incomplete or incorrect
+
+  Releases in a beta series are intended for development of new applications
+  with functionality requirements that cannot be satisfied by the current
+  stable series.  Users of beta series get increased functionality, but more
+  pain.  Evolution of a beta series stops upon release of the subsequent
+  stable series.
+
+1.0.x (Stable)
+==============
+
+1.0.0 (18 Oct 2009, rev 2068)
+-----------------------------
+
+Nobody seems to have found anything critical for a while, and it does what I
+want it to, so we'll let this thing run free.
+
+- Replace a reference to a non-existent variable with something that works.
+  :ticket:`52`
+
+- Consistently validate instances created from documents no matter which
+  parser is used.  :ticket:`53`
+
+- Support caching message references in WSDL SOAP faults.  :ticket:`54`
+
+0.7.x (Beta)
+============
+
+0.7.3 (15 Sep 2009, rev 2050)
+-----------------------------
+
+A few bug fixes (one major), a couple new features, and separation of the
+various components to allow a smaller distribution.
+
+- Fixed a circular reference in the DFA state classes that caused memory bloat
+  in long-running processes.  :ticket:`49`
+
+- When PyXB renames an XML element or attribute due to a collision with a
+  reserved word, it will write a warning, and at runtime will raise an
+  exception if an attempt is made to assign to the original name.
+  :ticket:`50`, :ticket:`51`
+
+- Support for pattern restrictions for string-based simple types.
+  :ticket:`47`
+
+- Split distribution into multiple files to reduce download size:
+
+   - ``PyXB-base-@VERSION@.tar.gz`` -- Complete release, nothing pre-built
+   - ``PyXB-doc-@VERSION@.tar.gz`` -- Overlay with pre-built documentation
+   - ``PyXB-common-@VERSION@.tar.gz`` -- Overlay with XHTML bindings
+   - ``PyXB-opengis-@VERSION@.tar.gz`` -- Overlay with OpenGIS bindings
+   - ``PyXB-wsspat-@VERSION@.tar.gz`` -- Overlay with WS-* bindings
+   - ``PyXB-full-@VERSION@.tar.gz`` -- Complete release with all overlays
+
+
+0.7.2 (25 Aug 2009, rev 1981)
+-----------------------------
+
+Primarily to fix a problem with chameleon schemas, but also a couple other
+minor issues.
+
+- References to QNames with absent namespaces in chameleon schema included
+  into schema with a target namespace could not be resolved.  :ticket:`46`
+
+- Documentation content was not correctly sanitized for use within a Python
+  docstring.  :ticket:`45`.
+
+- Elements with complex types with simple content that derived from string
+  could not be marked as nil.  :ticket:`48`
+
+0.7.1 (23 Aug 2009, rev 1968)
+-----------------------------
+
+None of the enhancements really got in, but lots of minor bug fixes.
+
+- Restored the ability to dump copies of all schemas retrieved from a remote
+  location, so you can review them.  :ticket:`28`
+
+- Fixed assorted problems with simple types constructed by list and union.
+  :ticket:`35`, :ticket:`40`
+
+- Provide link from content values to the element binding that was used to
+  store them.  Useful for quickly identifying the owner element when
+  generating a valid child sequence for conversion to DOM.  :ticket:`36`
+
+- Fix validation of attributes with union types.  :ticket:`37`
+
+- Enumeration fixes: Only generate class-level constants for enumerations that
+  restrict a string representation (not double, float, etc).  Verify
+  enumerations work correctly on list and union constructions.  Duplicate the
+  class-level constants for enumerations that are defined in union member
+  types.  :ticket:`38`
+
+- Provide a facility to simplify the automatic creation of an instance of the
+  appropriate type when storing values into an element.  Makes life with
+  anonymous local elements a lot easier.  :ticket:`39`
+
+- Enhance management of namespace prefixes by allowing a system-wide default
+  in BindingDOMSupport and by inferring the base name of the module as the
+  default prefix for namespaces defined in imported bindings.  :ticket:`41`
+
+- Provided crude facility to bypass validation when generating and parsing
+  documents.  :ticket:`44`
+
+- Re-arrange the help for pyxbgen's arguments, and add a script to
+  automatically generate the Sphinx tables for it.
+
+- Support bundles of related schemas/namespaces, currently wssplat (for WS-\*)
+  and opengis (Geographic Information Systems).
+
+- Got the user-level documentation back up to where it might actually help
+  somebody.
+
+
+0.7.0 (03 Aug 2009, rev 1715)
+-----------------------------
+
+This release is identical to 0.5.2 except that the binding interface has
+completely changed.  All examples have been updated; the documentation will be
+updated later.
+
+Note that the code in PyXB itself has not changed, and is not going to
+change.  However, properties produce an interface more natural to most Python
+programs, so that has become the default style.  See the --binding-style
+parameter to pyxbgen if you want to change this.
+
+- Change the method of accessing elements and attributes in bindings from
+  accessor methods (e.g., elt.attr(), elt.setAttr()) to properties (e.g.,
+  elt.attr).  :ticket:`18`
+
+
+0.5.x (Beta)
+============
+
+0.5.2 (03 Aug 2009, rev 1706)
+-----------------------------
+
+Mostly changes to namespaces in support of profiles and application schemas
+which extend other namespaces with special components, or have their own
+copies of somebody else's schemas, etc.  See the pyxbgen private/public
+namespace switches.
+
+- Presence of nested choice model groups caused the plurality calculations to
+  be wrong: some elements were dropped from the model, others were treated as
+  lists when only one instance would be permitted.  :ticket:`34`
+
+- Content accessor would return wrong value for elements with simple type of
+  list variety.  :ticket:`32`
+
+- Corrected handling of attributes when deriving complex types by
+  restriction.  :ticket:`27`
+
+- Added a source module for XML namespace
+  (http://www.w3.org/XML/1998/namespace) with bindings linked to the built-in
+  component model.  :ticket:`23`
+
+- Fix inadequacies in namespace archive management.  :ticket:`22`
+
+This is expected to be the last release in 0.5.x.  0.7.0 should follow soon
+thereafter, and only contain the change of default binding style from accessor
+to property.  :ticket:`18`
+
+
+0.5.1 (16 Jul 2009, rev 1502)
+-----------------------------
+
+Fixed various problems with OpenGIS schemas, specifically dependency loops
+induced by attempting to keep binding components within modules identified by
+the schema they came from, and loss of bindings for one namespace due to its
+being overwritten by those for another.
+
+- The presence of a wildcard in a sequence or choice model group caused other
+  elements to be lost in the binding.  :ticket:`29`
+
+- Rework content verification to operate on binding instances rather than DOM
+  nodes.  :ticket:`24`
+
+- Use `value()` to extract the value of a complex type with simple content;
+  the `content()` method works only with element and mixed content.
+  :ticket:`21`
+
+- Add support to specify prefix to be used in QNames when generating DOM
+  documents from binding instances.  Provide facility to re-use the
+  BindingDOMSupport instance for multiple conversions.  :ticket:`15`
+
+- Tightened requirements on content type matching: no more will strings and
+  numbers automatically be converted to match the content model (probably for
+  a branch you didn't intend).  :ticket:`14`
+
+- Fix problems overwriting binding modules with data from a different set of
+  namespaces.  :ticket:`31`.
+
+- Eliminated the schema group modules: too hard to avoid dependency loops.
+  Now all components are written into a single module, which is a namespace
+  group module if the components cross namespaces.  A namespace-specific
+  module still exists, and imports only the relevant components from the group
+  module.
+
+
+0.5.0 (07 Jul 2009, rev 1446)
+-----------------------------
+
+Ability to parse many of the OpenGIS schemas (gml, iso19139, citygml, ogc,
+ogckml22, om, ows, sensorML, sos, swe, tml, ...).
+
+- Completely rework include and import directives to correctly handle relative
+  paths in ``schemaLocation`` attributes and to only import from a given
+  location once per namespace. :ticket:`9`, :ticket:`8`, :ticket:`5`
+
+- Parse ``final`` attribute on type definitions (though this has no effect on
+  the bindings).  :ticket:`10`
+
+- Complete missing implementations in complex types with simple content.
+  :ticket:`6`
+
+- Create new code generation model which supports inter-namespace and
+  inter-schema dependency cycles.  Namespace archives can now holds all
+  namespaces that depend on each other.
+
+- Other miscellaneous. :ticket:`11`
+
+- Did I mention the ability to handle OpenGIS?  :ticket:`16`
+
+Beware:
+
+- Most of the classes in the new code generation model are undocumented.
+
+- The interface to `pyxbgen` has changed completely.  Look at
+  ``examples/OpenGIS/makebind.sh`` or other scripts in the ``examples``
+  directory.
+
+
+0.4.x (Stable)
+==============
+
+0.4.0 (20 Jun 2009, rev 1204)
+-----------------------------
+
+First usable public release.
+
+- Use expanded names for all declarations and definitions. :ticket:`1`
+
+- Use the finite automaton content model for generation as well as
+  parsing. :ticket:`2`
+
+- Support xsi:type and xsi:nil. :ticket:`3` 
+
+- Support substitution groups. :ticket:`4` 
+
+- Fix many problems in QName resolution
+
+- Implement the remaining date/time types
+
+- Rework content model so binding instances are always instances of the
+  binding for the corresponding XML type, with no intervening element
+  instance
+
+- Add support for SAX parser
+
+0.2.x (Stable)
+==============
+
+0.2.0 (30 May 2009, rev 818)
+----------------------------
+
+- Initial public release
+
+
+.. ignored
+   ## Local Variables:
+   ## fill-column:78
+   ## indent-tabs-mode:nil
+   ## End:

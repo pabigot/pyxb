@@ -165,6 +165,10 @@ class AttributeUse (pyxb.cscRoot):
         This is not used directly in the default code generation template."""
         return self.__id
 
+    def key (self):
+        """String used as key within object dictionary when storing attribute value."""
+        return self.__key
+
     def dataType (self):
         """The subclass of L{pyxb.binding.basis.simpleTypeDefinition} of which any attribute value must be an instance."""
         return self.__dataType
@@ -195,13 +199,29 @@ class AttributeUse (pyxb.cscRoot):
         default value, and mark that it has not been provided."""
         self.__setValue(ctd_instance, self.__defaultValue, False)
 
-    def addDOMAttribute (self, ctd_instance, element):
+    def addDOMAttribute (self, dom_support, ctd_instance, element):
         """If this attribute as been set, add the corresponding attribute to the DOM element."""
         ( provided, value ) = self.__getValue(ctd_instance)
         if provided:
             assert value is not None
-            element.setAttributeNS(self.__name.namespaceURI(), self.__name.localName(), value.xsdLiteral())
+            dom_support.addAttribute(element, self.__name, value.xsdLiteral())
         return self
+
+    def validate (self, ctd_instance):
+        (provided, value) = self.__getValue(ctd_instance)
+        if value is not None:
+            if self.__prohibited:
+                raise pyxb.ProhibitedAttributeError('Value given for prohibited attribute %s' % (self.__name,))
+            if self.__required and not provided:
+                assert self.__fixed
+                raise pyxb.MissingAttributeError('Fixed required attribute %s was never set' % (self.__name,))
+            if not self.__dataType._IsValidValue(value):
+                raise pyxb.BindingValidationError('Attribute %s value type %s not %s' % (self.__name, type(value), self.__dataType))
+            self.__dataType.XsdConstraintsOK(value)
+        else:
+            if self.__required:
+                raise pyxb.MissingAttributeError('Required attribute %s does not have a value' % (self.__name,))
+        return True
 
     def set (self, ctd_instance, new_value):
         """Set the value of the attribute.
@@ -219,12 +239,9 @@ class AttributeUse (pyxb.cscRoot):
         provided = True
         if isinstance(new_value, xml.dom.Node):
             unicode_value = self.__name.getAttribute(new_value)
-            if unicode_value is not None:
-                if self.__prohibited:
-                    raise pyxb.ProhibitedAttributeError('Prohibited attribute %s found' % (self.__name,))
-            else:
+            if unicode_value is None:
                 if self.__required:
-                    raise pyxb.MissingAttributeError('Required attribute %s not found' % (self.__name,))
+                    raise pyxb.MissingAttributeError('Required attribute %s from %s not found' % (self.__name, ctd_instance._ExpandedName or type(ctd_instance)))
                 provided = False
                 unicode_value = self.__unicodeDefault
             if unicode_value is None:
@@ -235,6 +252,8 @@ class AttributeUse (pyxb.cscRoot):
                 new_value = unicode_value
         else:
             assert new_value is not None
+        if self.__prohibited:
+            raise pyxb.ProhibitedAttributeError('Value given for prohibited attribute %s' % (self.__name,))
         if (new_value is not None) and (not isinstance(new_value, self.__dataType)):
             new_value = self.__dataType.Factory(new_value)
         if self.__fixed and (new_value != self.__defaultValue):
@@ -242,13 +261,33 @@ class AttributeUse (pyxb.cscRoot):
         self.__setValue(ctd_instance, new_value, provided)
         return new_value
 
+    def _description (self, name_only=False, user_documentation=True):
+        if name_only:
+            return str(self.__name)
+        assert issubclass(self.__dataType, basis._TypeBinding_mixin)
+        desc = [ str(self.__id), ': ', str(self.__name), ' (', self.__dataType._description(name_only=True, user_documentation=False), '), ' ]
+        if self.__required:
+            desc.append('required')
+        elif self.__prohibited:
+            desc.append('prohibited')
+        else:
+            desc.append('optional')
+        if self.__defaultValue is not None:
+            desc.append(', ')
+            if self.__fixed:
+                desc.append('fixed')
+            else:
+                desc.append('default')
+            desc.extend(['=', self.__unicodeDefault ])
+        return ''.join(desc)
+
 class ElementUse (pyxb.cscRoot):
     """Aggregate the information relevant to an element of a complex type.
 
-    This includes the original tag name, the spelling of the corresponding
-    object in Python, an indicator of whether multiple instances might be
-    associated with the field, and a list of types for legal values of the
-    field.
+    This includes the L{original tag name<name>}, the spelling of L{the
+    corresponding object in Python <id>}, an L{indicator<isPlural>} of whether
+    multiple instances might be associated with the field, and other relevant
+    information..
     """
 
     def name (self):
@@ -306,7 +345,7 @@ class ElementUse (pyxb.cscRoot):
         @param id: The Python name for the element within the containing
         L{pyxb.basis.binding.complexTypeDefinition}.  This is a public
         identifier, albeit modified to be unique, and is usually used as the
-        name of the element's inspector method.
+        name of the element's inspector method or property.
         @type id: C{str}
 
         @param key: The string used to store the element
@@ -336,7 +375,7 @@ class ElementUse (pyxb.cscRoot):
 
         @todo: Right now, this returns C{None} for non-plural and an empty
         list for plural elements.  Need to support schema-specified default
-        values for non-element content.
+        values for simple-type content.
         """
         if self.isPlural():
             return []
@@ -351,20 +390,15 @@ class ElementUse (pyxb.cscRoot):
         setattr(ctd_instance, self.__key, self.defaultValue())
         return self
 
-    # @todo Distinguish based on plurality
     def set (self, ctd_instance, value):
         """Set the value of this element in the given instance."""
         if value is None:
             return self.reset(ctd_instance)
         assert self.__elementBinding is not None
-        value = self.__elementBinding.compatibleValue(value)
+        if basis._TypeBinding_mixin._PerformValidation:
+            value = self.__elementBinding.compatibleValue(value, is_plural=self.isPlural())
         setattr(ctd_instance, self.__key, value)
-        if isinstance(value, list):
-            # @todo: This is almost certainly wrong for simple types that
-            # derive by list.  Consider using _IsSimpleTypeContent.
-            [ ctd_instance._addContent(_elt) for _elt in value ]
-        else:
-            ctd_instance._addContent(value)
+        ctd_instance._addContent(value, self.__elementBinding)
         return self
 
     def setOrAppend (self, ctd_instance, value):
@@ -381,9 +415,10 @@ class ElementUse (pyxb.cscRoot):
         if not self.isPlural():
             raise pyxb.StructuralBadDocumentError('Cannot append to element with non-plural multiplicity')
         values = self.value(ctd_instance)
-        value = self.__elementBinding.compatibleValue(value)
+        if basis._TypeBinding_mixin._PerformValidation:
+            value = self.__elementBinding.compatibleValue(value)
         values.append(value)
-        ctd_instance._addContent(value)
+        ctd_instance._addContent(value, self.__elementBinding)
         return values
 
     def toDOM (self, dom_support, parent, value):
@@ -412,7 +447,7 @@ class ElementUse (pyxb.cscRoot):
             else:
                 if isinstance(value, basis.STD_union) and isinstance(value, elt_type._MemberTypes):
                     val_type = elt_type
-            if dom_support.requireXSIType() or ((val_type != elt_type._SupersedingClass()) and elt_type._Abstract):
+            if dom_support.requireXSIType() or elt_type._RequireXSIType(val_type):
                 val_type_qname = value._ExpandedName.localName()
                 tns_prefix = dom_support.namespacePrefix(value._ExpandedName.namespace())
                 if tns_prefix is not None:
@@ -425,21 +460,24 @@ class ElementUse (pyxb.cscRoot):
         else:
             raise pyxb.LogicError('toDOM with unrecognized value type %s: %s' % (type(value), value))
 
+    def _description (self, name_only=False, user_documentation=True):
+        if name_only:
+            return str(self.__name)
+        desc = [ str(self.__id), ': ']
+        if self.isPlural():
+            desc.append('MULTIPLE ')
+        desc.append(self.elementBinding()._description(user_documentation=user_documentation))
+        return ''.join(desc)
+
 class _DFAState (object):
     """Base class for a suspended DFA interpretation."""
-    __ctdInstance = None
     __contentModel = None
     __state = None
 
-    def __init__ (self, content_model, ctd_instance, state=1):
-        self.__ctdInstance = ctd_instance
+    def __init__ (self, content_model, state=1):
         self.__contentModel = content_model
         self.__state = state
 
-    def ctdInstance (self):
-        """The L{basis.complexTypeDefinition} instance that is being
-        configured through execution of the automaton."""
-        return self.__ctdInstance
     def state (self):
         """The current state of the automaton, represented as an integer."""
         return self.__state
@@ -451,7 +489,7 @@ class _DFAState (object):
         self.__state = state
         return self
 
-    def step (self, dfa_stack, value):
+    def step (self, dfa_stack, ctd_instance, value, element_use):
         """Execute a step within the content model.
 
         This determines whether the current state in the content model allows
@@ -470,7 +508,8 @@ class _DFAState (object):
         @return: C{True} iff a transition successfully consumed the value
         """
 
-        self.__state = self.contentModel().step(self.ctdInstance(), self.state(), value, dfa_stack)
+        assert isinstance(ctd_instance, basis.complexTypeDefinition)
+        self.__state = self.contentModel().step(ctd_instance, self.state(), value, element_use, dfa_stack)
         return self.__state is not None
 
     def isFinal (self):
@@ -484,18 +523,16 @@ class _MGAllState (object):
     alternatives.
     """
 
-    __ctdInstance = None
     __modelGroup = None
     __alternatives = None
     __currentStack = None
     __isFinal = None
     
-    def __init__ (self, model_group, ctd_instance):
+    def __init__ (self, model_group):
         self.__modelGroup = model_group
-        self.__ctdInstance = ctd_instance
         self.__alternatives = self.__modelGroup.alternatives()
 
-    def step (self, dfa_stack, value):
+    def step (self, dfa_stack, ctd_instance, value, element_use):
         """Execute a step within the model group.
 
         If an automaton stack is currently being executed, the step defers to
@@ -518,8 +555,9 @@ class _MGAllState (object):
         @return: C{True} iff a transition was found that consumed the value.
         """
 
+        assert isinstance(ctd_instance, basis.complexTypeDefinition)
         if self.__currentStack is not None:
-            if self.__currentStack.step(self.__ctdInstance, value):
+            if self.__currentStack.step(ctd_instance, value, element_use):
                 return True
             if not self.__currentStack.isTerminal():
                 # I think this is probably a problem, but don't have an
@@ -532,8 +570,8 @@ class _MGAllState (object):
         found_match = True
         for alt in self.__alternatives:
             try:
-                new_stack = alt.contentModel().initialDFAStack(self.__ctdInstance)
-                if new_stack.step(self.__ctdInstance, value):
+                new_stack = alt.contentModel().initialDFAStack()
+                if new_stack.step(ctd_instance, value, element_use):
                     self.__currentStack = new_stack
                     self.__alternatives.remove(alt)
                     return True
@@ -558,9 +596,9 @@ class DFAStack (object):
     content models reached through L{ModelGroupAll} instances."""
 
     __stack = None
-    def __init__ (self, content_model, ctd_instance):
+    def __init__ (self, content_model):
         self.__stack = []
-        self.pushModelState(_DFAState(content_model, ctd_instance))
+        self.pushModelState(_DFAState(content_model))
 
     def pushModelState (self, model_state):
         """Add the given model state as the new top (actively executing) model ."""
@@ -586,13 +624,16 @@ class DFAStack (object):
             raise pyxb.LogicError('Attempt to underflow content model stack')
         return self.__stack[-1]
 
-    def step (self, ctd_instance, value):
+    def step (self, ctd_instance, value, element_use):
         """Take a step using the value and the current model state.
 
         Execution of the step may add a new model state to the stack.
 
         @return: C{True} iff the value was consumed by a transition."""
-        ok = self.topModelState().step(self, value)
+        assert isinstance(ctd_instance, basis.complexTypeDefinition)
+        if 0 == len(self.__stack):
+            return False
+        ok = self.topModelState().step(self, ctd_instance, value, element_use)
         if not ok:
             self.popModelState()
         return ok
@@ -624,6 +665,8 @@ class ContentModelTransition (pyxb.cscRoot):
 
     # The ElementUse instance used to store a successful match in the
     # complex type definition instance.
+    def elementUse (self):
+        return self.__elementUse
     __elementUse = None
 
     # Types of transition that can be taken, in order of preferred match
@@ -633,6 +676,8 @@ class ContentModelTransition (pyxb.cscRoot):
 
     # What type of term this transition covers
     __termType = None
+    def termType (self):
+        return self.__termType
 
     def __init__ (self, next_state, element_use=None, term=None):
         """Create a transition to a new state upon receipt of a term,
@@ -659,23 +704,31 @@ class ContentModelTransition (pyxb.cscRoot):
         rv = cmp(self.__termType, other.__termType)
         if 0 == rv:
             # In a vain attempt at determinism, sort the element transitions
-            # by name.
+            # by name
             if (self.TT_element == self.__termType):
                 rv = cmp(self.__elementUse.name(), other.__elementUse.name())
             else:
                 rv = cmp(self.__term, other.__term)
         return rv
 
-    def __processElementTransition (self, value):
+    def __processElementTransition (self, value, element_use):
         # First, identify the element
         if isinstance(value, xml.dom.Node):
-            element_binding = self.term().elementForName(pyxb.namespace.ExpandedName(value))
-            if element_binding is None:
-                return None
-            return element_binding.createFromDOM(value)
+            # If we got here, it's because we couldn't figure out what element
+            # the node conformed to and had to try the element transitions in
+            # hopes of matching a wildcard.  If we couldn't find an element
+            # before, we can't do it now, so just fail.
+            return None
         try:
-            return self.term().compatibleValue(value)
+            # The convert_string_values=False setting prevents string
+            # arguments to element/type constructors from being automatically
+            # converted to another type (like int) if they just happen to be
+            # convertible.  Without this, it's too easy to accept a
+            # sub-optimal transition (e.g., match a float when an alternative
+            # string is available).
+            return self.term().compatibleValue(value, convert_string_values=False)
         except pyxb.BadTypeValueError, e:
+            # Silently fail the transition
             pass
         return None
 
@@ -692,18 +745,18 @@ class ContentModelTransition (pyxb.cscRoot):
         # When we do consume, we can do either one transition, or one
         # transition for each element in a list/vector.
         key_type = type(None)
+        elt_plural = False
         if key is not None:
             key_type = key.elementBinding().typeDefinition()
-        if issubclass(key_type, basis.STD_list):
-            # @todo: This is too greedy if there are length limitations on the
-            # list.
-            consume_all = True
-            # If the individual values are also lists, then this represents a
-            # plural element, and we take a transition for each value.
-            # Otherwise, we assume this is a non-plural element, and the
-            # values comprise a single symbol.
-            consume_singles = isinstance(next_symbols[key][0], (list, tuple))
-        elif (self.__nextState == self.__currentStateRef.state()):
+            elt_plural = key.isPlural()
+        multiple_values = False
+        try:
+            iter(next_symbols[key][0])
+            multiple_values = True
+        except TypeError:
+            pass
+
+        if (self.__nextState == self.__currentStateRef.state()):
             consume_all = True
             consume_singles = True
         else:
@@ -768,10 +821,10 @@ class ContentModelTransition (pyxb.cscRoot):
         """
         if self.TT_modelGroupAll != self.__termType:
             return False
-        dfa_state = _MGAllState(self.__term, None)
+        dfa_state = _MGAllState(self.__term)
         return dfa_state.isFinal()
 
-    def attemptTransition (self, ctd_instance, value, dfa_stack):
+    def attemptTransition (self, ctd_instance, value, element_use, dfa_stack):
         """Attempt to make the appropriate transition.
 
         @param ctd_instance: The binding instance for which we are attempting
@@ -792,47 +845,32 @@ class ContentModelTransition (pyxb.cscRoot):
 
         if self.TT_element == self.__termType:
             element = None
-            try:
-                element = self.__processElementTransition(value)
-            except Exception, e:
-                print 'Warning: Element transition failed: %s' % (e,)
-                raise
+            # If the element use matched one of the terms in its state, we
+            # would never have gotten here, so don't even try.  We're only
+            # walking the terms to see if an ALL or Wildcard is allowed.
+            if (element_use is not None):
+                return None
+            element = self.__processElementTransition(value, element_use)
             if element is None:
                 return False
-            if self.__elementUse.isPlural():
-                self.__elementUse.append(ctd_instance, element)
-            else:
-                self.__elementUse.set(ctd_instance, element)
-        elif self.TT_modelGroupAll == self.__termType:
-            return dfa_stack.pushModelState(_MGAllState(self.__term, ctd_instance)).step(ctd_instance, value)
-        elif self.TT_wildcard == self.__termType:
+            self.__elementUse.setOrAppend(ctd_instance, element)
+            return True
+        if self.TT_modelGroupAll == self.__termType:
+            return dfa_stack.pushModelState(_MGAllState(self.__term)).step(dfa_stack, ctd_instance, value, element_use)
+        if self.TT_wildcard == self.__termType:
+            value_desc = 'value of type %s' % (type(value),)
             if isinstance(value, xml.dom.Node):
-                # See if we can convert from DOM into a Python instance.
-                # If not, we'll go ahead and store the DOM node.
-                node = value
-                try:
-                    ns = pyxb.namespace.NamespaceForURI(node.namespaceURI, create_if_missing=True)
-                    if ns.module() is not None:
-                        value = ns.module().CreateFromDOM(node)
-                    elif ns.modulePath() is not None:
-                        print 'Importing %s' % (ns.modulePath(),)
-                        mod = __import__(ns.modulePath())
-                        for c in ns.modulePath().split('.')[1:]:
-                            mod = getattr(mod, c)
-                        value = mod.CreateFromDOM(node)
-                    elif pyxb.namespace.XMLSchema == ns:
-                        print 'Need to dynamically create schema'
-                except Exception, e:
-                    if isinstance(node, xml.dom.Node):
-                        print 'WARNING: Unable to convert wildcard %s to Python instance: %s' % (pyxb.namespace.ExpandedName(node), e)
-                    else:
-                        print 'WARNING: Unable to convert wildcard %s to Python instance: %s' % (node, e)
+                value_desc = 'DOM node %s' % (pyxb.namespace.ExpandedName(value),)
+            elif not isinstance(value, basis._TypeBinding_mixin):
+                return False
             if not self.__term.matches(ctd_instance, value):
                 raise pyxb.UnexpectedContentError(value)
-            ctd_instance.wildcardElements().append(value)
-        else:
-            raise pyxb.LogicError('Unexpected transition term %s' % (self.__term,))
-        return True
+            if not isinstance(value, basis._TypeBinding_mixin):
+                print 'NOTE: Created unbound wildcard element from %s' % (value_desc,)
+            assert isinstance(ctd_instance.wildcardElements(), list), 'Uninitialized wildcard list in %s' % (ctd_instance._ExpandedName,)
+            ctd_instance._appendWildcardElement(value)
+            return True
+        raise pyxb.LogicError('Unexpected transition term %s' % (self.__term,))
 
 class ContentModelState (pyxb.cscRoot):
     """Represents a state in a ContentModel DFA.
@@ -846,6 +884,9 @@ class ContentModelState (pyxb.cscRoot):
     __state = None
     # Sequence of ContentModelTransition instances
     __transitions = None
+    
+    # Map from ElementUse instances to the term that transitions on that use.
+    __elementTermMap = None
 
     def isFinal (self):
         """If True, this state can successfully complete the element
@@ -862,6 +903,11 @@ class ContentModelState (pyxb.cscRoot):
         self.__transitions = transitions
         [ _t._currentStateRef(self) for _t in self.__transitions ]
         self.__transitions.sort()
+        self.__elementTermMap = { }
+        for t in self.__transitions:
+            if t.TT_element == t.termType():
+                assert t.elementUse() is not None
+                self.__elementTermMap[t.elementUse()] = t
 
     def transitions (self):
         return self.__transitions
@@ -876,7 +922,7 @@ class ContentModelState (pyxb.cscRoot):
                 return True
         return False
 
-    def evaluateContent (self, ctd_instance, value, dfa_stack):
+    def evaluateContent (self, ctd_instance, value, element_use, dfa_stack):
         """Try to make a single transition with the given value.
 
         @param ctd_instance: The binding instance for which we are attempting
@@ -886,6 +932,10 @@ class ContentModelState (pyxb.cscRoot):
         @param value: The value that would be consumed if a transition can be
         made.
         @type value: C{xml.dom.Node} or L{basis._TypeBinding_mixin}
+
+        @param element_use: The L{ElementUse<pyxb.binding.content.ElementUse>}
+        corresponding to the provided value, if known (for example, because
+        the value was parsed from an XML document).
 
         @param dfa_stack: The current state of processing this and enclosing
         content models.
@@ -899,11 +949,21 @@ class ContentModelState (pyxb.cscRoot):
         possible, and this is not a final state.
         """
 
+        if element_use is not None:
+            transition = self.__elementTermMap.get(element_use)
+            if transition is not None:
+                element_use.setOrAppend(ctd_instance, value)
+                return transition.nextState()
+            # Might get here legitimately if we need to descend into ALL, or
+            # if this value is a wildcard for which we happen to have a
+            # binding class available.
         for transition in self.__transitions:
-            if transition.attemptTransition(ctd_instance, value, dfa_stack):
+            if transition.attemptTransition(ctd_instance, value, element_use, dfa_stack):
                 return transition.nextState()
         if self.isFinal():
             return None
+        if element_use:
+            raise pyxb.UnrecognizedContentError('%s value %s' % (element_use.name(), value))
         raise pyxb.UnrecognizedContentError(value)
 
 class ContentModel (pyxb.cscRoot):
@@ -914,15 +974,16 @@ class ContentModel (pyxb.cscRoot):
     # Map from integers to ContentModelState instances
     __stateMap = None
 
+    # All DFAs begin at this state
     __InitialState = 1
 
     def __init__ (self, state_map=None):
         self.__stateMap = state_map
 
-    def initialDFAStack (self, ctd_instance):
-        return DFAStack(self, ctd_instance)
+    def initialDFAStack (self):
+        return DFAStack(self)
 
-    def step (self, ctd_instance, state, value, dfa_stack):
+    def step (self, ctd_instance, state, value, element_use, dfa_stack):
         """Perform a single step in the content model.  This is a pass-through
         to L{ContentModelState.evaluateContent} for the appropriate state.
 
@@ -930,7 +991,7 @@ class ContentModel (pyxb.cscRoot):
         @type state: C{int}
         """
 
-        return self.__stateMap[state].evaluateContent(ctd_instance, value, dfa_stack)
+        return self.__stateMap[state].evaluateContent(ctd_instance, value, element_use, dfa_stack)
 
     def isFinal (self, state):
         return self.__stateMap[state].allowsEpsilonTransitionToFinal(self)
@@ -954,16 +1015,16 @@ class ContentModel (pyxb.cscRoot):
         acceptable path.  If no valid path through the DFA can be taken,
         C{None} is returned.
         
-        @param available_symbols: A map from DFA terms to a sequence of values
-        associated with the term in a binding instance.  The key C{None} is
-        used to represent wildcard elements.  If a key appears in this map, it
-        must have at least one value in its sequence.
+        @param available_symbols: A map from leaf DFA terms to a sequence of
+        values associated with the term in a binding instance.  The key
+        C{None} is used to represent wildcard elements.  If a key appears in
+        this map, it must have at least one value in its sequence.
 
         @param succeed_at_dead_end: If C{True}, states from which no
         transition can be made are accepted as final states.  This is used
-        when processing "all" model groups, where the alternative content
-        model must succeed while retaining the symbols that are needed for
-        other alternatives.
+        when processing "all" model groups, where the content model for the
+        current alternative must succeed while retaining the symbols that are
+        needed for other alternatives.
         """
 
         candidates = []
