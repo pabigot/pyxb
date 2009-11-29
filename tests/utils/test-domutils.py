@@ -6,8 +6,8 @@ import pyxb.namespace
 
 class TestInScopeNames (unittest.TestCase):
     def show (self, node):
-        xmlns_map = pyxb.namespace.NamespaceContext.GetNodeContext(node).inScopeNamespaces()
-        #print '%s xmlns map %s' % (node.nodeName, GetInScopeNamespaces(node))
+        xmlns_map = pyxb.namespace.resolution.NamespaceContext.GetNodeContext(node).inScopeNamespaces()
+        #print '%s: %s' % (node.nodeName, ' ; '.join([ '%s=%s' % (_k, _v.uri()) for (_k, _v) in xmlns_map.items()]))
         return xmlns_map
 
     def test_6_2_2 (self):
@@ -18,7 +18,6 @@ class TestInScopeNames (unittest.TestCase):
     <title>Cheaper by the Dozen</title>
     <isbn:number>1568491379</isbn:number>
     <notes>
-      <!-- make HTML the default namespace for some commentary -->
       <p xmlns='http://www.w3.org/1999/xhtml'>
           This is a <i>funny</i> book!
       </p>
@@ -27,12 +26,13 @@ class TestInScopeNames (unittest.TestCase):
 </book>'''
         book = StringToDOM(xml).documentElement
         self.assertEqual('book', book.localName)
-        ns_ctx = pyxb.namespace.NamespaceContext(book)
+        ns_ctx = pyxb.namespace.resolution.NamespaceContext.GetNodeContext(book)
         xmlns_map = self.show(book)
         self.assertEqual(3, len(xmlns_map))
         self.assertEqual('http://www.w3.org/XML/1998/namespace', xmlns_map['xml'].uri())
         self.assertEqual('urn:loc.gov:books', xmlns_map[None].uri())
         self.assertEqual('urn:ISBN:0-395-36341-6', xmlns_map['isbn'].uri())
+
         title = book.firstChild.nextSibling
         self.assertEqual('title', title.localName)
         xmlns_map =self.show(title)
@@ -40,7 +40,9 @@ class TestInScopeNames (unittest.TestCase):
         self.assertEqual('http://www.w3.org/XML/1998/namespace', xmlns_map['xml'].uri())
         self.assertEqual('urn:loc.gov:books', xmlns_map[None].uri())
         self.assertEqual('urn:ISBN:0-395-36341-6', xmlns_map['isbn'].uri())
-        p = title.nextSibling.nextSibling.nextSibling.nextSibling.firstChild.nextSibling.nextSibling.nextSibling
+        notes = title.nextSibling.nextSibling.nextSibling.nextSibling
+        self.assertEqual('notes', notes.localName)
+        p = notes.firstChild.nextSibling
         xmlns_map = self.show(p)
         self.assertEqual('p', p.localName)
         self.assertEqual(3, len(xmlns_map))
@@ -56,15 +58,12 @@ class TestInScopeNames (unittest.TestCase):
         self.assertEqual('urn:loc.gov:books', xmlns_map[None].uri())
         self.assertEqual('urn:ISBN:0-395-36341-6', xmlns_map['isbn'].uri())
 
-
     def test_6_2_3 (self):
         xml = '''<?xml version='1.0'?>
 <Beers>
-  <!-- the default namespace inside tables is that of HTML -->
   <table xmlns='http://www.w3.org/1999/xhtml'>
    <th><td>Name</td><td>Origin</td><td>Description</td></th>
    <tr> 
-     <!-- no default namespace inside table cells -->
      <td><brandName xmlns="">Huntsman</brandName></td>
      <td><origin xmlns="">Bath, UK</origin></td>
      <td>
@@ -77,17 +76,24 @@ class TestInScopeNames (unittest.TestCase):
     </table>
   </Beers>'''
         Beers = StringToDOM(xml).documentElement
-        ns_ctx = pyxb.namespace.NamespaceContext(Beers)
+        ns_ctx = pyxb.namespace.resolution.NamespaceContext.GetNodeContext(Beers)
         xmlns_map = self.show(Beers)
         self.assertEqual(1, len(xmlns_map))
         self.assertEqual('http://www.w3.org/XML/1998/namespace', xmlns_map['xml'].uri())
-        table = Beers.firstChild.nextSibling.nextSibling.nextSibling
+        table = Beers.firstChild.nextSibling
         self.assertEqual('table', table.localName)
         xmlns_map = self.show(table)
         self.assertEqual(2, len(xmlns_map))
         self.assertEqual('http://www.w3.org/XML/1998/namespace', xmlns_map['xml'].uri())
         self.assertEqual('http://www.w3.org/1999/xhtml', xmlns_map[None].uri())
-        brandName = table.firstChild.nextSibling.nextSibling.nextSibling.firstChild.nextSibling.nextSibling.nextSibling.firstChild
+        th = table.firstChild.nextSibling
+        self.assertEqual('th', th.localName)
+        tr = th.nextSibling.nextSibling
+        self.assertEqual('tr', tr.localName)
+        #brandName = table.firstChild.nextSibling.nextSibling.nextSibling.firstChild.nextSibling.nextSibling.nextSibling.firstChild
+        td = tr.firstChild.nextSibling
+        self.assertEqual('td', td.localName)
+        brandName = td.firstChild
         self.assertEqual('brandName', brandName.localName)
         xmlns_map = self.show(brandName)
         self.assertEqual(1, len(xmlns_map))

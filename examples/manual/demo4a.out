@@ -1,0 +1,2 @@
+<?xml version="1.0" ?>
+<ns1:USAddress xmlns:ns1="URN:address"><name>Robert Smith</name><street>8 Oak Avenue</street><city>Anytown</city><state>AK</state><zip>12341</zip></ns1:USAddress>

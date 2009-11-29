@@ -13,7 +13,7 @@ ones that:
   require an aggregation; and
 - ensure that the ordering and occurrence constraints imposed by the XML
   `model group <http://www.w3.org/TR/xmlschema-1/#Model_Groups>`_ are
-  satisfied, both when XML is converted to Python instances and vice-versa.
+  satisfied, when XML is converted to Python instances and vice-versa.
 
 The classes involved in the content model are in the
 :api:`pyxb.binding.content` module, and their relationships are displayed in
@@ -32,14 +32,9 @@ distinct names in the Python class corresponding to that type.  Use
 information for each of these is maintained in the type class.  This use
 information comprises:
 
-- the original name of the element/attribute in the XML
-- its deconflicted name in Python
+- the original :api:`name <pyxb.binding.content.AttributeUse.name>` of the element/attribute in the XML
+- its :api:`deconflicted name <pyxb.binding.content.AttributeUse.id>` in Python
 - the private name by which the value is stored in the Python instance dictionary
-
-.. todo:: Note that the deconflicted name may be the same as a name in a
-          superclass if the superclass attribute was prohibited and its tag
-          subsequently used for a new attribute.  Assuming the UPA permits
-          this.
 
 Other information is specific to the type of use.  The
 :api:`pyxb.binding.basis.complexTypeDefinition` retains maps from the
@@ -52,20 +47,36 @@ Attribute Uses
 ^^^^^^^^^^^^^^
 
 The information associated with an `attribute use
-<http://www.w3.org/TR/xmlschema-1/#cAttributeUse>`_ is recorded in a
+<http://www.w3.org/TR/xmlschema-1/#cAttributeUse>`_ is recorded in an
 :api:`pyxb.binding.content.AttributeUse` instance.  This class provides:
 
-- The type of the attribute, as a subclass of
-  :api:`pyxb.binding.basis.simpleTypeDefinition`
-- The default value of the attribute
+- The :api:`type <pyxb.binding.content.AttributeUse.dataType>` of the
+  attribute, as a subclass of :api:`pyxb.binding.basis.simpleTypeDefinition`
+
+- The :api:`default value <pyxb.binding.content.AttributeUse.defaultValue>` of
+  the attribute
+
 - Whether the `attribute use
   <http://www.w3.org/TR/xmlschema-1/#cAttributeUse>`_ is 
-  ``required`` or ``prohibited``
-- Whether the attribute value is ``fixed``
+  :api:`required <pyxb.binding.content.AttributeUse.required>`
+  or :api:`prohibited <pyxb.binding.content.AttributeUse.prohibited>`
+
+- Whether the value of the attribute in a binding instance was :api:`provided
+  <pyxb.binding.content.AttributeUse.provided>` by an external source or set
+  to the default value
+
+- Whether the attribute value is :api:`fixed <pyxb.binding.content.AttributeUse.fixed>`
+
+- Methods to :api:`read <pyxb.binding.content.AttributeUse.value>`, :api:`set
+  <pyxb.binding.content.AttributeUse.set>`, and :api:`reset
+  <pyxb.binding.content.AttributeUse.reset>` the value of the attribute in a
+  given binding instance.
 
 A :api:`map <pyxb.binding.basis.complexTypeDefinition._AttributeMap>` is used
-to map from (future namespace extended) names to AttributeUse instances.  This
-map is defined within the class definition itself.
+to map from expanded names to AttributeUse instances.  This map is defined
+within the class definition itself.
+
+.. _elementUse:
 
 Element Uses
 ^^^^^^^^^^^^
@@ -73,12 +84,30 @@ Element Uses
 The element analog to an attribute use is an `element declaration
 <http://www.w3.org/TR/xmlschema-1/#cElement_Declarations>`_, and the
 corresponding information is stored in a
-:api:`pyxb.binding.content.ElementUse` instance.  This class contains an
-indication of whether multiple element instances can be associated with the
-use; this drives whether the default value is ``None`` or an empty list.
+:api:`pyxb.binding.content.ElementUse` instance.  This class provides:
 
-(future) There is no map from names to ElementUse instances; this association
-is managed via transitions in the content model automaton.
+- The :api:`element binding <pyxb.binding.content.ElementUse.elementBinding>`
+  that defines the properties of the referenced element, including its type
+
+- Whether the use allows :api:`multiple occurrences
+  <pyxb.binding.content.ElementUse.isPlural>`
+
+- The :api:`default value <pyxb.binding.content.ElementUse.defaultValue>` of
+  the element.  Currently this is either C{None} or an empty list, depending
+  on :api:`pyxb.binding.content.ElementUse.isPlural`
+
+- Methods to :api:`read <pyxb.binding.content.ElementUse.value>`, :api:`set
+  <pyxb.binding.content.ElementUse.set>`, :api:`append to
+  <pyxb.binding.content.ElementUse.append>` (only for plural elements), and
+  :api:`reset <pyxb.binding.content.ElementUse.reset>` the value of the
+  element in a given binding instance
+
+- The :api:`setOrAppend <pyxb.binding.content.ElementUse.setOrAppend>` method,
+  which is most commonly used to provide new content to a value
+
+A :api:`map <pyxb.binding.basis.complexTypeDefinition._ElementMap>` is used to
+map from expanded names to ElementUse instances.  This map is defined within
+the class definition itself.
 
 Content Model Automata
 ----------------------
@@ -95,20 +124,66 @@ documents.  A `powerset construction
 the automaton deterministic, and the resulting automaton is stored as a
 :api:`pyxb.binding.content.ContentModel` instance, with a set of :api:`states
 <pyxb.binding.content.ContentModelState>` each of which has :api:`transitions
-<pyxb.binding.content.ContentModelTransition>` on elements and wildcards.
+<pyxb.binding.content.ContentModelTransition>` on elements, wildcards, and
+model groups with an ``all`` compositor.
 
-The sole complication in the automaton construction is dealing with with
-``all`` model groups, which accept subsets of a set of nodes in any order.
-This construct produces an exponential increase in the size of the
-deterministic finite automaton, so is left as a single :api:`transition
+The sole complication in the automaton construction is dealing with ``all``
+model groups, which accept subsets of a set of nodes in any order.  This
+construct produces an exponential increase in the size of the deterministic
+finite automaton, so is left as a single :api:`transition
 <pyxb.binding.content.ModelGroupAll>` which iteratively matches against the
-head of the node list until all alternatives have been matched or the head
-fails to match an alternative.
+candidate value until an alternative is found.
 
-The binding instance is then constructed by identifying the content model for
-the corresponding complex type, then walking the model using a sequence of DOM
-nodes to select the appropriate transition.  Element matches are prefered over
-``all`` matches, which in turn are preferred over wildcard matches.
+.. _arch_content_automata_parsing:
+
+Parsing With Automata
+^^^^^^^^^^^^^^^^^^^^^
+
+Automata-based parsing is used for building up a binding instance from a
+series of values.
+
+To allow incremental construction of instances, as required by the :api:`SAX
+interface <pyxb.binding.saxer.PyXBSAXHandler>` or initialization by constructor
+arguments, each complex type with a content model contains a :api:`DFA stack
+<pyxb.binding.content.DFAStack>`.  Each level of the stack contains an instance
+of :api:`DFA state <pyxb.binding.content._DFAState>`.  Normally the state
+specifies the content model and automaton state within that model that
+represents the instance's position in a path through the automata, where the
+path so far comprises the member elements added to the instance.
+
+The need for a stack of states comes when automaton execution reaches a
+transition that involves an :api:`"all" model group
+<pyxb.binding.content.ModelGroupAll>`.  Evaluation of such a transition
+requires suspending the parent automaton execution and continuing with the
+evaluation of the automata that represent alternatives in the model group.
+
+Generation With Automata
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+Automaton evaluation is also used to validate that the content of a binding
+instance is consistent with type's content model, and to determine a sequence
+of contained elements that define a valid path through the automaton.  This
+technique is used to create a valid DOM document from a binding instance.
+
+A memoization technique is used, where the state of the system is represented
+by a set of element uses (which identify valid consuming transitions), with a
+sequence of values for each such use.  The element uses are symbols in the
+alphabet of the automaton; the values are a token that permits a transition on
+that symbol.  The state of the system also incorporates a sequence of
+symbol-value pairs that record the path up to the current position.
+
+The automaton starts in the initial state, then each transition is examined
+until one is found for which there is a value available.  The state resulting
+from executing that transition is pushed onto a stack, and the remaining
+transitions are examined as well.  If no transition can proceed, the state is
+discarded and the top state from the stack is evaluated.
+
+When no more symbols remain, if the current state is a final state, the
+validation succeeds, and the corresponding sequence is returned as a valid
+path.  If a final state cannot be reached, the validation fails.
+
+See the :api:`validation method <pyxb.binding.content.ContentModel.validate>`
+for details on how all this really works.
 
 .. ignored
    ## Local Variables:

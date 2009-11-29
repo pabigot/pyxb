@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<xs:element name="full" type="xs:string"/>
+	<xs:element name="xfull" nillable="false" type="xs:string"/>
+	<xs:element name="optional" nillable="true" type="xs:string"/>
+	<xs:element name="complex" nillable="true">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="full"/>
+				<xs:element ref="optional"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>

@@ -16,18 +16,37 @@ sections.
 Supporting Capabilities
 -----------------------
 
-:api:`pyxb.binding.basis._Binding_mixin` is a marker class which also holds
-the :api:`pyxb.namespace.NamespaceContext` information about the binding.
-The context is used both for translating XML documents into instances of the
-binding class, and for generating multi-namespace XML documents from
-instances.
+Common Binding Instance Features
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Every class that is bound to a nameable schema component overrides its
-:api:`pyxb.binding.basis._Binding_mixin._Namespace` to be a reference to the
-:api:`pyxb.namespace.Namespace` instance for the module to which it belongs,
-and its :api:`pyxb.binding.basis._Binding_mixin._XsdName` to be the unicode
-name of the component within its namespace category.  This allows
-introspection and eventually support for ``xsi:type`` resolution.
+:api:`pyxb.binding.basis._TypeBinding_mixin` is a marker class to indicate
+that the incorporating class represents a binding associated with a type
+definition (whether simple or complex).  The key features of this mixin are:
+
+ - The :api:`_ExpandedName
+   <pyxb.binding.basis._TypeBinding_mixin._ExpandedName>` class variable is
+   overridden in each class to identify the type definition corresponding to
+   the class.
+
+ - The :api:`namespace context
+   <pyxb.binding.basis._TypeBinding_mixin._namespaceContext>` of the type
+   definition is recorded to allow users to perform QName resolution of values
+   within instance documents (see, for example, the customized bindings in
+   ``pyxb.bundles.wssplat.wsdl11``).
+
+ - Each instance records the :api:`pyxb.binding.basis.element` instance that
+   determines where the type came from.  The element is required in order to
+   provide the correct name when converting the binding instance to a DOM
+   instance on its way to expression as a text XML document.
+
+ - The mixin is also where `xsi:nil
+   <http://www.w3.org/TR/xmlschema-1/#xsi_nil>`_ information for the instance
+   is stored.
+
+ - A :api:`Factory <pyxb.binding.basis._TypeBinding_mixin>` infrastructure is
+   provided to allow creation of new instances of the binding while permitting
+   developers to customize the generated binding classes; see
+   :ref:`binding_customization`.
 
 .. _binding_deconflictingNames:
 
@@ -50,7 +69,7 @@ identifier within its context.  The steps involved are:
    <pyxb.utils.utility.MakeIdentifier>` by stripping out non-printable
    characters, replacing characters that cannot appear in identifiers with
    underscores, stripping leading underscores, and prefixing an initial
-   digit with the character 'n'.
+   digit with the character ``n``.
 
 #. :api:`Deconflict <pyxb.utils.utility.DeconflictKeyword>` the resulting
    identifier from Python :api:`reserved identifiers
@@ -72,7 +91,7 @@ result of collision with names from Python keywords, public class names, and
 public field or method names in the class.  The
 :api:`pyxb.utils.utility._DeconflictSymbols_mixin` is used to refine the set
 of type-specific public names.  If you customize a generated binding class by
-extending from it, you must specific your own class variable
+extending from it, you must specify your own class variable
 ``_ReservedSymbols`` with a value that is the union of your symbols and those
 of the superclass(es) (see :api:`pyxb.utils.utility._DeconflictSymbols_mixin`
 for details).
@@ -116,14 +135,14 @@ generate the binding in a file named ``raw/dinner.py``.  The wrapper module
 
   # Bring all public symbols up from the generated one
   from raw.dinner import *
-  # Rename the generated parsnip so we can reference it
-  import raw.dinner.parsnip as raw_parsnip
+  # Bring them in again, but left with their original module path
+  import raw.dinner
   # Replace the generated parsnip with a customizing extension
-  class parsnip (raw_parsnip):
+  class parsnip (raw.dinner.parsnip):
     # Customization here
     pass
   # Register the customization for use by the binding infrastructure
-  raw_parsnip._SetSupersedingClass(parsnip)
+  raw.dinner.parsnip._SetSupersedingClass(parsnip)
 
 With this pattern, objects created by the user through ``dinner.parsnip()``
 and from XML documents by the ``CreateFromDOM`` infrastructure will both be
@@ -136,12 +155,13 @@ Simple Type Definitions
 `Simple type definitions
 <http://www.w3.org/TR/xmlschema-1/#Simple_Type_Definitions>`_ derive from
 :api:`pyxb.binding.basis.simpleTypeDefinition` and a standard Python type.
-These classes support a
-:api:`pyxb.binding.basis.simpleTypeDefinition.Factory` method which is used
-as a generic mechanism to create new instances of the class.  New instance
-creation is validated against the `facets
-<http://www.w3.org/TR/xmlschema-2/#rf-facets>`_ recorded in the binding
-class.
+
+For simple types that are not derived by list or union, you can construct
+instances using the :api:`Factory <pyxb.binding.basis._TypeBinding_mixin>`
+method or directly, providing the value as an argument.  New instance creation
+is validated against the `facets
+<http://www.w3.org/TR/xmlschema-2/#rf-facets>`_ recorded in the binding class.
+
 
 Constraining Facets
 ^^^^^^^^^^^^^^^^^^^
@@ -171,15 +191,14 @@ Constraining values may:
   <http://www.w3.org/TR/xmlschema-2/#rf-minExclusive>`_;
 
 Enumeration and pattern constraints maintain a list of the respective
-acceptable enumeration and pattern values.  Currently, enumeration
-constraints are checked, while patterns are ignored.
+acceptable enumeration and pattern values.
 
 Facets implement the
-:api:`pyxb.binding.facets.ConstrainingFacet.validateConstraint` method,
-which in turn is invoked by the
-:api:`pyxb.binding.basis.simpleTypeDefinition.XsdConstraintsOK` clas method
-when given a value that may or may not satisfy the constraints.
-The :api:`pyxb.binding.basis.simpleTypeDefinition.Factory` will normally
+:api:`pyxb.binding.facets.ConstrainingFacet.validateConstraint` method, which
+in turn is invoked by the
+:api:`pyxb.binding.basis.simpleTypeDefinition.XsdConstraintsOK` class method
+when given a value that may or may not satisfy the constraints.  The
+:api:`Factory <pyxb.binding.basis._TypeBinding_mixin.Factory>` will normally
 validate the constraints before allowing a new instance to be returned.
 
 List Types
@@ -192,69 +211,124 @@ Simple types that derive by `list
 :api:`pyxb.binding.basis.STD_list._ItemType` value with the appropriate
 class to use when creating or validating list members.
 
+When constructing an instance of a simple list type, you can provide a list as
+the initializer.  The members of the list must be valid initializers to the
+underlying item type.
+
 Union Types
 ^^^^^^^^^^^
 
 Union types are classes that are never instantiated.  Instead, the binding
-classes must define a :api:`pyxb.binding.basis.STD_union._MemberTypes`
-variable which contains a list of binding classes that are permitted as
-members of the union.  The :api:`pyxb.binding.basis.STD_union.Factory`
-method attempts, in turn, to create an instance of each potential member
-type using the arguments passed into it.  The returned value is the first
-instance that was successfully created.
+classes define a :api:`pyxb.binding.basis.STD_union._MemberTypes` variable
+which contains a list of binding classes that are permitted as members of the
+union.  The :api:`pyxb.binding.basis.STD_union.Factory` method attempts, in
+turn, to create an instance of each potential member type using the arguments
+passed into it.  The returned value is the first instance that was
+successfully created.
 
 Note that this means the fact that a particular attribute in an element is a
 member of a union is not recorded in the attribute value.  See
 :ref:`attributeUse`.
+
+It is not possible to construct an instance of a union type directly.  You
+must use the :api:`Factory <pyxb.binding.basis.STD_union.Factory>` method,
+with an argument that is acceptable as an initializer for one of the member
+types.
+
 
 Complex Type Definitions
 ------------------------
 
 `Complex type definitions
 <http://www.w3.org/TR/xmlschema-1/#Complex_Type_Definitions>`_ derive from
-:api:`pyxb.binding.basis.complexTypeDefinition`.  Classes representing
-complex type definitions record maps that specify :api:`attribute
-<pyxb.binding.content.AttributeUse>` use structures to record attributes of
-the value.  The attribute values are stored in class members, and when using
-the default code generation template are managed through accessor functions.
+:api:`pyxb.binding.basis.complexTypeDefinition`.  Classes representing complex
+type definitions record maps that specify :api:`attribute
+<pyxb.binding.content.AttributeUse>` and :api:`element
+<pyxb.binding.content.ElementUse>` use structures to record the attributes and
+elements that comprise the type.  Each such structure is stored as a private
+class field and is used by Python properties to provide access to element and
+attribute values in a binding instance.
 
 The base :api:`pyxb.binding.basis.complexTypeDefinition` class provides the
 infrastructure to identify the appropriate attribute or element given an XML
 tag name.  For classes corresponding to types that enable `wildcards
-<http://www.w3.org/TR/xmlschema-1/#Wildcards>`_, it also provides a
-mechanism to access unrecognized elements and attributes.  Wildcard elements
-are converted to binding instances if their namespace and name are
-recognized, and otherwise are left as DOM nodes.  Wildcard attributes are
-stored in a map from their extended namespace name to the unicode value of
-the attribute.
+<http://www.w3.org/TR/xmlschema-1/#Wildcards>`_, it also provides a mechanism
+to access unrecognized elements and attributes.  :api:`Wildcard elements
+<pyxb.binding.basis.complexTypeDefinition.wildcardElements>` are converted to
+binding instances if their namespace and name are recognized, and otherwise
+are left as DOM nodes.  :api:`Wildcard attributes
+<pyxb.binding.basis.complexTypeDefinition.wildcardAttributeMap>` are stored in
+a map from their :api:`expanded name <pyxb.namespace.ExpandedName>` to the
+unicode value of the attribute.
 
-Empty Content
-^^^^^^^^^^^^^
+For information on validating the content of a complex type, see
+:ref:`arch_content_automata_parsing`.
 
-There is no content in these classes.
+When creating a complex type definition, you can provide the values for its
+attributes and fields through arguments and keywords.  Keywords whose name
+matches an attribute or element identifier are used to set that element,
+bypassing the content model.  Arguments are processed in order using the
+content model for identification and validation.  See the :ref:`example below
+<ex_showcontent>`.
 
+Elements
+^^^^^^^^
+
+Each element corresponds to a field in the binding instance; the field is
+managed through a :ref:`element use <elementUse>` structure.  Element names
+are disambiguated, and a Python property is defined to retrieve and set the
+element value.
+
+When the content model permits multiple occurrences of the element, its value
+is a Python list.
+
+Attributes
+^^^^^^^^^^
+
+Each attribute corresponds to a field in the binding instance; the field is
+managed through a :ref:`attribute use <attributeUse>` structure.  Attribute
+names are disambiguated, and a Python property is defined to retrieve and set
+each attribute value.
+
+Note that if the same name is used for both an attribute and an element, the
+element use takes priority.  See :ref:`binding_deconflictingNames`.
 
 Simple Content
 ^^^^^^^^^^^^^^
 
-The :api:`pyxb.binding.basis.CTD_simple` class supports complex types with
-simple content (i.e., those in which the body of the element is an octet
-sequence in the lexical space of a specified simple type).  The type of data
-that serves as content is specified in
-:api:`pyxb.binding.basis.CTD_simple._TypeDefinition`.  The
-:api:`pyxb.binding.basis.CTD_simple.content` method returns the instance of
-that type that corresponds to the content of the object.
+Complex types with simple content (i.e., those in which the body of the
+element is an octet sequence in the lexical space of a specified simple type)
+are distinguished by providing a value for the class-level
+:api:`pyxb.binding.basis.complexTypeDefinition._TypeDefinition` variable.
+For these types, the :api:`pyxb.binding.basis.complexTypeDefinition.content`
+method returns the instance of that type that corresponds to the content of
+the object.
 
-Be aware that the need to invoke can be a little confusing: if you have an
-object that is a subclass of :api:`pyxb.binding.basis.CTD_simple`, it is
-natural to treat it the way you would treat a
-:api:`pyxb.binding.basis.simpleTypeDefinition` instance.  This won't work: the
-simple type instance is substitutable for its Python base type, where the
-complex type instance is not.
+Users of bindings must be aware of whether a particular value is a true simple
+type, or a complex type with simple content.  In the former case, the value
+descends from the corresponding Python type and can be used directly in Python
+expressions.  In the latter, the value must be retrieved using the ``value``
+method before it can be used.
 
-As a convenience, the ``__str__`` method of
-:api:``pyxb.binding.basis.CTD_simple`` has been overridden to be equivalent to
-``str(self.content())``.
+As an example, consider this schema (available in :file:`examples/content`):
+
+.. literalinclude:: ../examples/content/content.xsd
+
+With the generated bindings, the following program:
+
+.. _ex_showcontent:
+
+.. literalinclude:: ../examples/content/showcontent.py
+
+produces the following output:
+
+.. literalinclude:: ../examples/content/showcontent.out
+
+Note that it was necessary to indicate that the second member (``complex``) of
+the ``numbers`` element needs to be wrapped in an instance of the appropriate
+complex type.  Similarly, it was necessary to add the call to ``value()`` on
+the value of ``v.complex`` in order to get a valid Python numeric value.  This
+was not necessary for ``v.simple`` or ``v.attribute``.
 
 Mixed and Element-Only Content
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -269,33 +343,23 @@ model <pyxb.binding.content.ContentModel>` to ensure the constraints of the
 schema are satisfied.  These structures are described in
 :ref:`contentModel`.
 
-The :api:`pyxb.binding.basis._CTD_content_mixin.content` method returns a
-list, in parsed order, of the Python objects and (if mixed) non-element
-content that belongs to the instance.
+For these types, the :api:`pyxb.binding.basis.complexTypeDefinition.content`
+method returns a list, in parsed order, of the Python objects and (if mixed)
+non-element content that belong to the instance.
 
 Elements
 --------
 
-A binding class representing an `element declaration
-<http://www.w3.org/TR/xmlschema-1/#cElement_Declarations>`_ assigns to its
-:api:`pyxb.binding.basis.element._TypeDefinition` value the Python subclass
-of :api:`pyxb.binding.basis.complexTypeDefinition` of which values of the
-element must be an instance.
+Unlike the bindings for schema type definitions, which are represented as
+Python classes, bindings corresponding to XML Schema element declarations are
+represented as instances of the :api:`pyxb.binding.basis.element` class.  The
+instances can be used to create new binding instances that are associated with
+the element.  Elements are used in the content model to identify transitions
+through a finite automaton.
 
-An element instance maintains a reference to the instance of its type as a
-private variable ``__realContent``.  It also maintains a reference
-``__content`` which is equivalent to either ``__realContent`` or
-``__realContent.content()``.  The latter case holds when ``__realContent`` is
-an instance of :api:`pyxb.binding.basis.CTD_simple`.  This means that if the
-element type is a complex type with simple content, invoking
-``element.content()`` will automatically dereference to get the underlying
-simple type object that is held by the complex type object.
-
-:api:`pyxb.binding.basis.element` overrides its ``__getattr__`` method so that
-references to (Python) attributes that are not defined in the class are
-delegated to the underlying content value (``__realContent`` preferred over
-``__content``).  This allows user code to reference complex type definition
-elements and attributes more conveniently.
+You can use elements just like types in that they are invokable, with
+arguments corresponding to the arguments of the constructor of the
+corresponding type.  See :ref:`the example above <ex_showcontent>`.
 
 .. ignored
    ## Local Variables:

@@ -9,7 +9,7 @@
     </documentation>
   </annotation>
 
-  <complexType name="Address">
+  <complexType name="Address" abstract="true">
     <sequence>
       <element name="name"   type="string"/>
       <element name="street" type="string"/>
@@ -50,10 +50,12 @@
     </restriction>
   </simpleType>
 
+  
+
   <!-- simple type definition for UKPostcode -->
   <!-- *** pyxb mod: provide missing STD *** -->
   <simpleType name="UKPostcode">
-    <restriction base="ipo:Postcode">
+    <restriction base="string">
       <pattern value="[A-Z]{2}\d\s\d[A-Z]{2}"/>
     </restriction>
   </simpleType>

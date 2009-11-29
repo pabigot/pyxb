@@ -1,8 +1,8 @@
 # Test the infrastructure that determines whether specific element
 # names should be treated as single values or collections.
 
+import pyxb
 import pyxb.xmlschema as xs
-from pyxb.exceptions_ import *
 import pyxb.namespace as Namespace
 from pyxb.xmlschema.structures import _PluralityData
 from pyxb.xmlschema.structures import ModelGroup
@@ -29,20 +29,26 @@ class _TestBase (unittest.TestCase):
 
     def setUp (self):
         target_namespace=Namespace.CreateAbsentNamespace()
-        self.__schema = xs.schema(namespace_context = target_namespace.initialNamespaceContext())
+        self.__generationUID = pyxb.utils.utility.UniqueIdentifier()
+        self.__schema = xs.schema(namespace_context=target_namespace.initialNamespaceContext(), schema_location=str(target_namespace), generation_uid=self.__generationUID)
         self.__edKW = { 'namespace_context' : self.__schema.targetNamespace().initialNamespaceContext()
                       , 'scope' : xs.structures._ScopedDeclaration_mixin.SCOPE_global
+                      , 'schema' : self.__schema
                       , 'context' : xs.structures._ScopedDeclaration_mixin.SCOPE_global }
         self.__prtKW = { 'namespace_context' : self.__schema.targetNamespace().initialNamespaceContext()
                        , 'scope' : xs.structures._ScopedDeclaration_mixin.XSCOPE_indeterminate
+                       , 'schema' : self.__schema
                        , 'context' : xs.structures._ScopedDeclaration_mixin.SCOPE_global }
         self.__mgKW = { 'namespace_context' : self.__schema.targetNamespace().initialNamespaceContext()
                       , 'scope' : xs.structures._ScopedDeclaration_mixin.XSCOPE_indeterminate
+                      , 'schema' : self.__schema
                       , 'context' : xs.structures._ScopedDeclaration_mixin.SCOPE_global }
 
         for ( name, type ) in [ ( 'selt', 'string' ), ( 'ielt', 'int' ), ( 'belt', 'boolean' ) ]:
             ed = xs.structures.ElementDeclaration(name=name, **self._edKW())
             ed._typeDefinition(Namespace.XMLSchema.typeDefinitions().get(type, None))
+            # Fake out resolution, which we don't care about for this test
+            ed._ElementDeclaration__isResolved = True
             self.__schema._addNamedComponent(ed)
             setattr(self, name, ed)
 
@@ -210,7 +216,8 @@ class TestParticle (_TestBase):
         ed = self.selt
         prt = xs.structures.Particle(ed, min_occurs=0, max_occurs=0, **self._prtKW())
         pd = prt.pluralityData()
-        self.assertEqual(0, len(pd))
+        self.assertEqual(1, len(pd))
+        self.assertEqual({}, pd[0])
 
     def testSingleElement (self):
         ed = self.selt
@@ -251,7 +258,8 @@ class TestParticle (_TestBase):
     def testZeroMGSeq (self):
         prt = xs.structures.Particle(self._getMGMulti(ModelGroup.C_SEQUENCE), min_occurs=0, max_occurs=0, **self._prtKW())
         pd = prt.pluralityData()
-        self.assertEqual(0, len(pd))
+        self.assertEqual(1, len(pd))
+        self.assertEqual({}, pd[0])
         
     def testOptionalMGSeq (self):
         prt = xs.structures.Particle(self._getMGMulti(ModelGroup.C_SEQUENCE), min_occurs=0, max_occurs=1, **self._prtKW())

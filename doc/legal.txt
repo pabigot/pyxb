@@ -21,8 +21,7 @@ anonymous download but use of the service would require a paid subscription.
 
 These web services are used for demonstration purposes only.  If you
 represent a company providing one of these services and object to its use in
-this way, email the developer to have the service references removed.
-
-If you provide web services and would like to contribute to open source
-development and the promotion of web services by explicitly permitting this
-use, email the developer.
+this way, email the developer to have the service references removed.  If
+you provide interesting web services and would like to contribute to open
+source development and the promotion of web services by explicitly
+permitting this use, email the developer.

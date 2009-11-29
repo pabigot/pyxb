@@ -1,5 +1,13 @@
 .. PyXB documentation master file
 
+.. Sphinx standard indentations
+   # with overline, for parts
+   * with overline, for chapters
+   =, for sections
+   -, for subsections
+   ^, for subsubsections
+   ", for paragraphs
+
 .. role:: namespace(literal)
 
 ################################
@@ -9,15 +17,28 @@ PyXB: Python XML Schema Bindings
 PyXB ("pixbee") is a pure `Python <http://www.python.org>`_ package that
 generates Python source code for classes that correspond to data structures
 defined by `XMLSchema <http://www.w3.org/XML/Schema>`_.  The generated classes
-support bi-directional conversion between `DOM <http://www.w3.org/DOM/>`_
-representations of `XML <http://www.w3.org/XML/>`_ documents and Python
-instances.  In concept it is similar to `JAXB
+support bi-directional conversion between `XML <http://www.w3.org/XML/>`_
+documents and Python objects.  In concept it is similar to `JAXB
 <http://en.wikipedia.org/wiki/JAXB>`_ for Java and `CodeSynthesis XSD
 <http://www.codesynthesis.com/products/xsd/>`_ for C++.  A
-:ref:`thirty_sec_example` is at the bottom of this page.
+:ref:`thirty_sec_example` is at the bottom of this page.  Step-by-step
+examples are in :ref:`userReference`.
 
-For downloads, support, etc. please see the `PyXB project page
-<http://sourceforge.net/projects/pyxb>`_ on SourceForge.
+************
+Getting Help
+************
+
+PyXB is distributed on `SourceForge <http://sourceforge.net/projects/pyxb>`_.
+
+For support, consult the `Help Forum
+<https://sourceforge.net/projects/pyxb/forums/forum/956708>`_, or subscribe to
+and email the `mailing list
+<https://sourceforge.net/mailarchive/forum.php?forum_name=pyxb-users>`_.
+
+To file a bug report or see the status of defects reported against the current
+release, visit the `Trac database <http://sourceforge.net/apps/trac/pyxb/>`_.
+
+For a history of releases, see :ref:`releases`.
 
 ********
 Contents
@@ -27,8 +48,9 @@ Contents
 
    overview
    examples
+   releases
    architecture
-   userref
+   userref_index
    maintref
 
 .. _thirty_sec_example:
@@ -42,20 +64,17 @@ An example of a program using PyXB to interact with a `web service
 automatically-generated module.  First, retrieve the WSDL and generate the
 bindings::
 
- $ pyxbgen -m weather -u 'http://ws.cdyne.com/WeatherWS/Weather.asmx?wsdl' -W
- Need to dynamically create schema
- Importing pyxb.standard.bindings.soap
- Importing pyxb.standard.bindings.soap12
- Importing pyxb.standard.bindings.http
- Importing pyxb.standard.bindings.mime
- Attempting to load a namespace from /home/pab/pyxb/dev/pyxb/standard/bindings/raw/http.wxs
- Attempting to load a namespace from /home/pab/pyxb/dev/pyxb/standard/bindings/raw/wsdl.wxs
- Attempting to load a namespace from /home/pab/pyxb/dev/pyxb/standard/bindings/raw/soapenc.wxs
- Attempting to load a namespace from /home/pab/pyxb/dev/pyxb/standard/bindings/raw/mime.wxs
- Attempting to load a namespace from /home/pab/pyxb/dev/pyxb/standard/bindings/raw/soap12.wxs
- Attempting to load a namespace from /home/pab/pyxb/dev/pyxb/standard/bindings/raw/soap.wxs
- Binding source is 83253 long to ./weather.py
- Saved binding source to ./weather.py
+ mnservices[4]$ pyxbgen \
+   --wsdl-location="http://ws.cdyne.com/WeatherWS/Weather.asmx?wsdl" --module=weather \
+   --write-for-customization
+ urn:uuid:57d386ce-bb48-11de-a28f-001cc05930fc
+ Retrieving WSDL from http://ws.cdyne.com/WeatherWS/Weather.asmx?wsdl
+ Importing pyxb.binding.datatypes to get binding for wildcard {http://www.w3.org/2001/XMLSchema}schema
+ NOTE: Created unbound wildcard element from DOM node {http://www.w3.org/2001/XMLSchema}schema
+ PS urn:uuid:57d386ce-bb48-11de-a28f-001cc05930fc
+ Python for http://ws.cdyne.com/WeatherWS/ requires 1 modules
+ Saved binding source to ./raw/weather.py
+ mnservices[5]$ 
 
 Then write a program that uses them:
 
@@ -63,16 +82,16 @@ Then write a program that uses them:
 
 And run it::
 
- vmfed9[24]$ python client_get.py
- Weather forecast for Saint Paul, MN:
-   Saturday, May 02 2009: Partly Cloudy, from  to 64
-   Sunday, May 03 2009: Sunny, from 43 to 66
-   Monday, May 04 2009: Partly Cloudy, from 45 to 69
-   Tuesday, May 05 2009: Mostly Cloudy, from 54 to 69
-   Wednesday, May 06 2009: Partly Cloudy, from 47 to 69
-   Thursday, May 07 2009: Mostly Cloudy, from 49 to 66
-   Friday, May 08 2009: Partly Cloudy, from 48 to 67
- vmfed9[25]$ 
+ mnservices[5]$ python client_get.py 
+ Weather forecast for Tucson, AZ:
+   Saturday, October 17 2009: Sunny, from  to 98
+   Sunday, October 18 2009: Partly Cloudy, from 68 to 96
+   Monday, October 19 2009: Partly Cloudy, from 67 to 91
+   Tuesday, October 20 2009: Sunny, from 65 to 88
+   Wednesday, October 21 2009: Sunny, from 59 to 86
+   Thursday, October 22 2009: Sunny, from 58 to 87
+   Friday, October 23 2009: Sunny, from 60 to 8
+ mnservices[6]$ 
 
 That's it.
 

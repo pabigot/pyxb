@@ -1,14 +1,15 @@
-PYTHONPATH=../..
-export PYTHONPATH
 URI='http://www.weather.gov/forecasts/xml/DWMLgen/schema/DWML.xsd'
 PREFIX='DWML'
 
+rm -rf uriArchive
+rm -rf raw ${PREFIX}.py
 mkdir -p raw
 touch raw/__init__.py
-../../scripts/pyxbgen \
+pyxbgen \
    -u "${URI}" \
-   -p "${PREFIX}" \
-   -r 
+   -m "${PREFIX}" \
+   --uri-content-archive-directory=uriArchive \
+   -r || exit
 if [ ! -f ${PREFIX}.py ] ; then
   echo "from raw.${PREFIX} import *" > ${PREFIX}.py
 fi
@@ -18,12 +19,14 @@ WSDL_URI='http://www.weather.gov/forecasts/xml/DWMLgen/wsdl/ndfdXML.wsdl'
 if [ ! -f ndfdXML.wsdl ] ; then
   wget ${WSDL_URI}
 fi
-../../scripts/pyxbgen \
-   -u "${WSDL_URI}" \
-   -p ndfd \
-   -r -W
+rm -f raw/ndfd.py
+pyxbgen \
+   -W "${WSDL_URI}" \
+   -m ndfd \
+   --uri-content-archive-directory=uriArchive \
+   -r || exit
 
-../../scripts/showwsdl file:ndfdXML.wsdl
+pyxbwsdl file:ndfdXML.wsdl
 
 # Get an example query
 if [ ! -f NDFDgen.xml ] ; then

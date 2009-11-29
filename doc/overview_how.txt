@@ -1,10 +1,6 @@
 How to use it
 =============
 
-The current release of PyXB is 0.2.0, the first public release.  Early
-adopters are asked to be patient as installation and operation problems are
-worked out.
-
 Installation
 ------------
 
@@ -13,6 +9,25 @@ things the implementation relies on decorators (:PEP:`318`) like
 ``@classref`` that are not present in earlier versions.  The distribution is
 regularly tested with the latest release in each of the 2.4, 2.5, and 2.6
 series.
+
+PyXB is distributed in several forms through `SourceForge
+<https://sourceforge.net/projects/pyxb/files/>`_.  If all you want is the
+ability to generate bindings for XML schemas, use the ``PyXB-base`` release
+file.  If you also want pre-built documentation, unpack the ``PyXB-doc``
+release as well.  For pre-built bundles, use the following:
+
+.. table:: Pre-built Bundle Distribution Files
+
+   =================  =======================================
+    File              Bundle Contents
+   =================  =======================================
+   ``PyXB-common``    XHTML, other miscellaneous namespaces
+   ``PyXB-opengis``   The complete suite of OpenGIS schemas
+   ``PyXB-wssplat``   A wide variety of WS-* schemas
+   =================  =======================================
+
+If you want everything in one download, just get the ``PyXB-full``
+distribution file.
 
 Install in the usual manner::
 
@@ -40,11 +55,8 @@ Python data bindings.  There are two key components to generating bindings:
 - The module path into which the binding will be installed.  This is the
   path that users of the binding will import.
 
-There are additional parameters; for a full description of the utility see
-:ref:`pyxbgen`.  An example of translating the schema for WSDL documents is::
-
- pyxbgen --module-path pyxb.standard.bindings.wsdl \
-    --schema-uri http://schemas.xmlsoap.org/wsdl/
+There are many additional parameters; see :ref:`pyxbgen` and
+:ref:`pyxbgen-cli`.
 
 WSDL Functions
 --------------
@@ -72,9 +84,10 @@ operations and parameters.  For example::
         Input: typens:doGoogleSearch
         Output: typens:doGoogleSearchResponse
 
-In the future, this script is expected to provide more powerful display of
-available services, and perhaps to generate functions which interact with the
-service using the appropriate encoding.
+Currently, this is an unmaintained example.  In the future, this script may
+provide a more powerful display of available services, and perhaps support for
+generating functions which interact with the service using the appropriate
+encoding.
 
 .. ignored
    ## Local Variables:

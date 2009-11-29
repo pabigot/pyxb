@@ -44,7 +44,7 @@ instance of either SimpleTypeDefinition or ComplexTypeDefinition.
 
 from pyxb.exceptions_ import *
 import types
-import pyxb.namespace as Namespace
+import pyxb.namespace
 import pyxb.utils.domutils as domutils
 import pyxb.utils.utility as utility
 import basis
@@ -60,7 +60,7 @@ _ListDatatypes = []
 class anySimpleType (basis.simpleTypeDefinition, unicode):
     """See U{http://www.w3.org/TR/xmlschema-2/#dt-anySimpleType}"""
     _XsdBaseType = None
-    _Namespace = Namespace.XMLSchema
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('anySimpleType')
 
     @classmethod
     def XsdLiteral (cls, value):
@@ -73,7 +73,7 @@ class string (basis.simpleTypeDefinition, unicode):
     
     U{http://www.w3.org/TR/xmlschema-2/#string}"""
     _XsdBaseType = anySimpleType
-    _Namespace = Namespace.XMLSchema
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('string')
 
     @classmethod
     def XsdLiteral (cls, value):
@@ -93,7 +93,7 @@ class boolean (basis.simpleTypeDefinition, types.IntType):
 
     U{http://www.w3.org/TR/xmlschema-2/#boolean}"""
     _XsdBaseType = anySimpleType
-    _Namespace = Namespace.XMLSchema
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('boolean')
     
     @classmethod
     def XsdLiteral (cls, value):
@@ -106,18 +106,19 @@ class boolean (basis.simpleTypeDefinition, types.IntType):
             return 'true'
         return 'false'
 
-    def __new__ (cls, value, *args, **kw):
-        # Strictly speaking, only 'true' and 'false' should be
-        # recognized; however, since the base type is a built-in,
-        # @todo ensure pickle value is str(self)
-        if value in (1, 0, '1', '0', 'true', 'false'):
-            if value in (1, '1', 'true'):
-                iv = True
-            else:
-                iv = False
-            return super(boolean, cls).__new__(cls, iv, *args, **kw)
-        raise BadTypeValueError('[xsd:boolean] Initializer "%s" not valid for type' % (value,))
-
+    def __new__ (cls, *args, **kw):
+        args = cls._ConvertArguments(args, kw)
+        if 0 < len(args):
+            value = args[0]
+            args = args[1:]
+            if value in (1, 0, '1', '0', 'true', 'false'):
+                if value in (1, '1', 'true'):
+                    iv = True
+                else:
+                    iv = False
+                return super(boolean, cls).__new__(cls, iv, *args, **kw)
+            raise BadTypeValueError('[xsd:boolean] Initializer "%s" not valid for type' % (value,))
+        return super(boolean, cls).__new__(cls, *args, **kw)
 
 _PrimitiveDatatypes.append(boolean)
 
@@ -131,7 +132,7 @@ class decimal (basis.simpleTypeDefinition, types.FloatType):
 
     """
     _XsdBaseType = anySimpleType
-    _Namespace = Namespace.XMLSchema
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('decimal')
 
     @classmethod
     def XsdLiteral (cls, value):
@@ -144,7 +145,7 @@ class float (basis.simpleTypeDefinition, types.FloatType):
 
     U{http://www.w3.org/TR/xmlschema-2/#float}"""
     _XsdBaseType = anySimpleType
-    _Namespace = Namespace.XMLSchema
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('float')
 
     @classmethod
     def XsdLiteral (cls, value):
@@ -157,7 +158,7 @@ class double (basis.simpleTypeDefinition, types.FloatType):
 
     U{http://www.w3.org/TR/xmlschema-2/#double}"""
     _XsdBaseType = anySimpleType
-    _Namespace = Namespace.XMLSchema
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('double')
 
     @classmethod
     def XsdLiteral (cls, value):
@@ -168,60 +169,237 @@ _PrimitiveDatatypes.append(double)
 import time as python_time
 import datetime
 
-class duration (basis.simpleTypeDefinition):
-    """@attention: Not implemented"""
+class duration (basis.simpleTypeDefinition, datetime.timedelta):
+    """U{http://www.w3.org/TR/xmlschema-2/#duration}
+
+    This class uses the Python C{datetime.timedelta} class as its
+    underlying representation.  This works fine as long as no months
+    or years are involved, and no negative durations are involved.
+    Because the XML Schema value space is so much larger, it is kept
+    distinct from the Python value space, which reduces to integral
+    days, seconds, and microseconds.
+
+    In other words, the implementation of this type is a little
+    shakey.
+
+    """
+
     _XsdBaseType = anySimpleType
-    _Namespace = Namespace.XMLSchema
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('duration')
+
+    __Lexical_re = re.compile('^(?P<neg>-?)P((?P<years>\d+)Y)?((?P<months>\d+)M)?((?P<days>\d+)D)?(?P<Time>T((?P<hours>\d+)H)?((?P<minutes>\d+)M)?(((?P<seconds>\d+)(?P<fracsec>\.\d+)?)S)?)?$')
+
+    # We do not use weeks
+    __XSDFields = ( 'years', 'months', 'days', 'hours', 'minutes', 'seconds' )
+    __PythonFields = ( 'days', 'seconds', 'microseconds', 'minutes', 'hours' )
+
+    def negativeDuration (self):
+        return self.__negativeDuration
+    __negativeDuration = None
+
+    def durationData (self):
+        return self.__durationData
+    __durationData = None
+
+    def __new__ (cls, *args, **kw):
+        args = cls._ConvertArguments(args, kw)
+        text = args[0]
+        have_kw_update = False
+        if isinstance(text, (str, unicode)):
+            match = cls.__Lexical_re.match(text)
+            if match is None:
+                raise BadTypeValueError('Value "%s" not in %s lexical space' % (text, cls._ExpandedName)) 
+            match_map = match.groupdict()
+            if 'T' == match_map.get('Time', None):
+                # Can't have T without additional time information
+                raise BadTypeValueError('Value "%s" not in %s lexical space' % (text, cls._ExpandedName)) 
+
+            negative_duration = ('-' == match_map.get('neg', None))
+
+            fractional_seconds = 0.0
+            if match_map.get('fracsec', None) is not None:
+                fractional_seconds = types.FloatType('0%s' % (match_map['fracsec'],))
+                usec = types.IntType(1000000 * fractional_seconds)
+                if negative_duration:
+                    kw['microseconds'] = - usec
+                else:
+                    kw['microseconds'] = usec
+            else:
+                # Discard any bogosity passed in by the caller
+                kw.pop('microsecond', None)
+
+            data = { }
+            for fn in cls.__XSDFields:
+                v = match_map.get(fn, 0)
+                if v is None:
+                    v = 0
+                data[fn] = types.IntType(v)
+                if fn in cls.__PythonFields:
+                    if negative_duration:
+                        kw[fn] = - data[fn]
+                    else:
+                        kw[fn] = data[fn]
+            data['seconds'] += fractional_seconds
+            have_kw_update = True
+        elif isinstance(text, cls):
+            data = text.durationData()
+            negative_duration = text.negativeDuration()
+        elif isinstance(text, datetime.timedelta):
+            data = { 'days' : text.days,
+                     'seconds' : text.seconds + (text.microseconds / 1000000.0) }
+            negative_duration = (0 > data['days'])
+            if negative_duration:
+                data['days'] = 1 - data['days']
+                data['seconds'] = 24 * 60 * 60.0 - data['seconds']
+            data['minutes'] = 0
+            data['hours'] = 0
+        if not have_kw_update:
+            rem_time = data['seconds']
+            use_seconds = rem_time
+            if (0 != (rem_time % 1)):
+                data['microseconds'] = types.IntType(1000000 * (rem_time % 1))
+                rem_time = rem_time // 1
+            if 60 <= rem_time:
+                data['seconds'] = rem_time % 60
+                rem_time = data['minutes'] + (rem_time // 60)
+            if 60 <= rem_time:
+                data['minutes'] = rem_time % 60
+                rem_time = data['hours'] + (rem_time // 60)
+            data['hours'] = rem_time % 24
+            data['days'] += (rem_time // 24)
+            for fn in cls.__PythonFields:
+                if fn in data:
+                    if negative_duration:
+                        kw[fn] = - data[fn]
+                    else:
+                        kw[fn] = data[fn]
+                else:
+                    kw.pop(fn, None)
+            kw['microseconds'] = data.pop('microseconds', 0)
+            data['seconds'] += kw['microseconds'] / 1000000.0
+            
+        rv = super(duration, cls).__new__(cls, **kw)
+        rv.__durationData = data
+        rv.__negativeDuration = negative_duration
+        return rv
+
+    @classmethod
+    def XsdLiteral (cls, value):
+        elts = []
+        if value.negativeDuration():
+            elts.append('-')
+        elts.append('P')
+        for k in ( 'years', 'months', 'days' ):
+            v = value.__durationData.get(k, 0)
+            if 0 != v:
+                elts.append('%d%s' % (v, k[0].upper()))
+        time_elts = []
+        for k in ( 'hours', 'minutes' ):
+            v = value.__durationData.get(k, 0)
+            if 0 != v:
+                time_elts.append('%d%s' % (v, k[0].upper()))
+        v = value.__durationData.get('seconds', 0)
+        if 0 != v:
+            time_elts.append('%gS' % (v,))
+        if 0 < len(time_elts):
+            elts.append('T')
+            elts.extend(time_elts)
+        return ''.join(elts)
+        
 _PrimitiveDatatypes.append(duration)
 
-class _TimeZone (datetime.tzinfo):
-    """A tzinfo subclass that helps deal with UTC conversions"""
+class _PyXBDateTime_base (basis.simpleTypeDefinition):
 
-    # Regular expression that matches valid ISO8601 time zone suffixes
-    __Lexical_re = re.compile('^([-+])(\d\d):(\d\d)$')
+    __PatternMap = { '%Y' : '(?P<negYear>-?)(?P<year>\d{4,})'
+                   , '%m' : '(?P<month>\d{2})'
+                   , '%d' : '(?P<day>\d{2})'
+                   , '%H' : '(?P<hour>\d{2})'
+                   , '%M' : '(?P<minute>\d{2})'
+                   , '%S' : '(?P<second>\d{2})(?P<fracsec>\.\d+)?'
+                   , '%Z' : '(?P<tzinfo>Z|[-+]\d\d:\d\d)' }
+    @classmethod
+    def _DateTimePattern (cls, pattern):
+        for (k, v) in cls.__PatternMap.items():
+            pattern = pattern.replace(k, v)
+        return pattern
 
-    # The offset in minutes east of UTC.
-    __utcOffset = 0
+    __Fields = ( 'year', 'month', 'day', 'hour', 'minute', 'second' )
 
-    def __init__ (self, spec=None, flip=False):
-        """Create a time zone instance.
+    _DefaultYear = 1983
+    _DefaultMonth = 6
+    _DefaultDay = 18
 
-        If spec is not None, it must conform to the ISO8601 time zone
-        sequence (Z, or [+-]HH:MM).
-
-        If flip is True, the time zone offset is flipped, resulting in
-        the conversion from localtime to UTC rather than the default
-        of UTC to localtime.
-        """
-
-        if spec is None:
-            return
-        if 'Z' == spec:
-            return
-        match = self.__Lexical_re.match(spec)
+    @classmethod
+    def _LexicalToKeywords (cls, text, lexical_re):
+        match = lexical_re.match(text)
         if match is None:
-            raise ValueError('Bad time zone: %s' % (spec,))
-        self.__utcOffset = int(match.group(2)) * 60 + int(match.group(3))
-        if '-' == match.group(1):
-            self.__utcOffset = - self.__utcOffset
-        if flip:
-            self.__utcOffset = - self.__utcOffset
+            raise BadTypeValueError('Value "%s" not in %s lexical space' % (text, cls._ExpandedName)) 
+        match_map = match.groupdict()
+        kw = { }
+        for (k, v) in match_map.iteritems():
+            if (k in cls.__Fields) and (v is not None):
+                kw[k] = types.IntType(v)
+        if '-' == match_map.get('negYear', None):
+            kw['year'] = - kw['year']
+        if match_map.get('fracsec', None) is not None:
+            kw['microsecond'] = types.IntType(1000000 * types.FloatType('0%s' % (match_map['fracsec'],)))
+        else:
+            # Discard any bogosity passed in by the caller
+            kw.pop('microsecond', None)
+        if match_map.get('tzinfo', None) is not None:
+            kw['tzinfo'] = pyxb.utils.utility.UTCOffsetTimeZone(match_map['tzinfo'], flip=True)
+        else:
+            kw.pop('tzinfo', None)
+        return kw
 
-    def utcoffset (self, dt):
-        return datetime.timedelta(minutes=self.__utcOffset)
+    @classmethod
+    def _SetKeysFromPython_csc (cls, python_value, kw, fields):
+        for f in fields:
+            kw[f] = getattr(python_value, f)
+        return getattr(super(_PyXBDateTime_base, cls), '_SetKeysFromPython_csc', lambda *a,**kw: None)(python_value, kw, fields)
 
-    def tzname (self, dt):
-        if 0 == self.__utcOffset:
-            return 'UTC'
-        if 0 > self.__utcOffset:
-            return 'UTC-%02d%02d' % divmod(-self.__utcOffset, 60)
-            return 'UTC+%02d%02d' % divmod(self.__utcOffset, 60)
-    
-    def dst (self, dt):
-        return datetime.timedelta()
+    @classmethod
+    def _SetKeysFromPython (cls, python_value, kw, fields):
+        return cls._SetKeysFromPython_csc(python_value, kw, fields)
 
+class _PyXBDateTimeZone_base (_PyXBDateTime_base):
+    def hasTimeZone (self):
+        """True iff the time represented included time zone information.
 
-class dateTime (basis.simpleTypeDefinition, datetime.datetime):
+        Whether True or not, the moment denoted by an instance is
+        assumed to be in UTC.  That state is expressed in the lexical
+        space iff hasTimeZone is True.
+        """
+        return self.__hasTimeZone
+    def _setHasTimeZone (self, has_time_zone):
+        self.__hasTimeZone = has_time_zone
+    __hasTimeZone = False
+
+    @classmethod
+    def _AdjustForTimezone (cls, kw):
+        tzoffs = kw.pop('tzinfo', None)
+        has_time_zone = kw.pop('_force_timezone', False)
+        if tzoffs is not None:
+            use_kw = kw.copy()
+            use_kw.setdefault('year', cls._DefaultYear)
+            use_kw.setdefault('month', cls._DefaultMonth)
+            use_kw.setdefault('day', cls._DefaultDay)
+            dt = datetime.datetime(tzinfo=tzoffs, **use_kw)
+            dt = tzoffs.fromutc(dt)
+            for k in kw.iterkeys():
+                kw[k] = getattr(dt, k)
+            has_time_zone = True
+        return has_time_zone
+        
+    @classmethod
+    def _SetKeysFromPython_csc (cls, python_value, kw, fields):
+        if python_value.tzinfo is not None:
+            kw['tzinfo'] = pyxb.utils.utility.UTCOffsetTimeZone(python_value.tzinfo.utcoffset(python_value), flip=True)
+        else:
+            kw.pop('tzinfo', None)
+        return getattr(super(_PyXBDateTimeZone_base, cls), '_SetKeysFromPython_csc', lambda *a,**kw: None)(python_value, kw, fields)
+
+class dateTime (_PyXBDateTimeZone_base, datetime.datetime):
     """U{http://www.w3.org/TR/xmlschema-2/index.html#dateTime}
 
     This class uses the Python C{datetime.datetime} class as its
@@ -231,67 +409,56 @@ class dateTime (basis.simpleTypeDefinition, datetime.datetime):
     zone's offset from UTC.  Presence of time zone information in the
     lexical space is preserved through the value of the L{hasTimeZone()}
     field.
+
+    @warning: The value space of Python's C{datetime.datetime} class
+    is more restricted than that of C{xs:datetime}.  As a specific
+    example, Python does not support negative years or years with more
+    than four digits.  For now, the convenience of having an object
+    that is compatible with Python is more important than supporting
+    the full value space.  In the future, the choice may be left up to
+    the developer.
     """
 
-    __Lexical_re = re.compile('^(?P<negYear>-?)(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})T(?P<hour>\d{2}):(?P<minute>\d{2}):(?P<second>\d{2})(?P<fracsec>\.\d*)?(?P<tzinfo>Z|[-+]\d\d:\d\d)?$')
+    _XsdBaseType = anySimpleType
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('dateTime')
 
-    # The fields in order of appearance in a time.struct_time instance
-    __Fields = ( 'year', 'month', 'day', 'hour', 'minute', 'second' )
-    # All non-tzinfo keywords for datetime constructor
-    __Fields_us = __Fields + ('microsecond',)
+    __Lexical_re = re.compile(_PyXBDateTime_base._DateTimePattern('^%Y-%m-%dT%H:%M:%S%Z?$'))
+    __Fields = ( 'year', 'month', 'day', 'hour', 'minute', 'second', 'microsecond', 'tzinfo' )
     
-    __hasTimeZone = False
-    def hasTimeZone (self):
-        """True iff the time represented included time zone information.
-
-        Whether True or not, the moment denoted by an instance is
-        assumed to be in UTC.  That state is expressed in the lexical
-        space iff hasTimeZone is True.
-        """
-        return self.__hasTimeZone
-
     def __new__ (cls, *args, **kw):
-        if 0 == len(args):
-            now = python_time.gmtime()
-            args = (datetime.datetime(*(now[:7])),)
-        value = args[0]
-        tzoffs = None
+        args = cls._ConvertArguments(args, kw)
         ctor_kw = { }
-        if isinstance(value, types.StringTypes):
-            match = cls.__Lexical_re.match(value)
-            if match is None:
-                raise BadTypeValueError('Value not in dateTime lexical space') 
-            match_map = match.groupdict()
-            for f in cls.__Fields:
-                ctor_kw[f] = int(match_map[f])
-            if match_map['negYear']:
-                ctor_kw['year'] = - year
-            if match_map['fracsec']:
-                ctor_kw['microsecond'] = int(1000000 * float('0%s' % (match_map['fracsec'],)))
-            if match_map['tzinfo']:
-                ctor_kw['tzinfo'] = _TimeZone(match_map['tzinfo'], flip=True)
-        elif isinstance(value, datetime.datetime):
-            for f in cls.__Fields_us:
-                ctor_kw[f] = getattr(value, f)
-            if value.tzinfo is not None:
-                ctor_kw['tzinfo'] = _TimeZone(value.tzinfo.utcoffset(), flip=True)
+        if 1 == len(args):
+            value = args[0]
+            if isinstance(value, types.StringTypes):
+                ctor_kw.update(cls._LexicalToKeywords(value, cls.__Lexical_re))
+            elif isinstance(value, (datetime.datetime, datetime.date, datetime.time)):
+                cls._SetKeysFromPython(value, ctor_kw, cls.__Fields)
+                if isinstance(value, _PyXBDateTimeZone_base):
+                    ctor_kw['_force_timezone'] = True
+            elif isinstance(value, (types.IntType, types.LongType)):
+                raise TypeError('function takes at least 3 arguments (%d given)' % (len(args),))
+            else:
+                raise BadTypeValueError('Unexpected type %s in %s' % (type(value), cls._ExpandedName))
+        elif 3 <= len(args):
+            for fi in range(len(cls.__Fields)):
+                fn = cls.__Fields[fi]
+                if fi < len(args):
+                    ctor_kw[fn] = args[fi]
+                elif fn in kw:
+                    ctor_kw[fn] = kw[fn]
+                kw.pop(fn, None)
+                fi += 1
         else:
-            raise BadTypeValueError('Unexpected type %s' % (type(value),))
-        tzoffs = ctor_kw.pop('tzinfo', None)
-        has_time_zone = False
-        if tzoffs is not None:
-            dt = datetime.datetime(tzinfo=tzoffs, **ctor_kw)
-            dt = tzoffs.fromutc(dt)
-            ctor_kw = { }
-            [ ctor_kw.setdefault(_field, getattr(dt, _field)) for _field in cls.__Fields_us ]
-            has_time_zone = True
-            
-        year = ctor_kw.pop('year')
-        month = ctor_kw.pop('month')
-        day = ctor_kw.pop('day')
+            raise TypeError('function takes at least 3 arguments (%d given)' % (len(args),))
+
+        has_time_zone = cls._AdjustForTimezone(ctor_kw)
         kw.update(ctor_kw)
+        year = kw.pop('year')
+        month = kw.pop('month')
+        day = kw.pop('day')
         rv = super(dateTime, cls).__new__(cls, year, month, day, **kw)
-        rv.__hasTimeZone = has_time_zone
+        rv._setHasTimeZone(has_time_zone)
         return rv
 
     @classmethod
@@ -303,55 +470,210 @@ class dateTime (basis.simpleTypeDefinition, datetime.datetime):
             iso += 'Z'
         return iso
 
-    _XsdBaseType = anySimpleType
-    _Namespace = Namespace.XMLSchema
+    __UTCZone = pyxb.utils.utility.UTCOffsetTimeZone(0)
+    __LocalZone = pyxb.utils.utility.LocalTimeZone()
+
+    @classmethod
+    def today (cls):
+        """Return today.
+
+        Just like datetime.datetime.today(), except this one sets a
+        tzinfo field so it's clear the value is UTC."""
+        return cls(datetime.datetime.now(cls.__UTCZone))
+
+    def aslocal (self):
+        """Returns a C{datetime.datetime} instance denoting the same
+        time as this instance but adjusted to be in the local time
+        zone.
+
+        @rtype: C{datetime.datetime} (B{NOT} C{xsd.dateTime})
+        """
+        return self.replace(tzinfo=self.__UTCZone).astimezone(self.__LocalZone)
+
 _PrimitiveDatatypes.append(dateTime)
 
-class time (basis.simpleTypeDefinition):
-    """@attention: Not implemented"""
+class time (_PyXBDateTimeZone_base, datetime.time):
+    """U{http://www.w3.org/TR/xmlschema-2/index.html#time}
+
+    This class uses the Python C{datetime.time} class as its
+    underlying representation.  Note that per the XMLSchema spec, all
+    dateTime objects are in UTC, and that timezone information in the
+    string representation in XML is an indication of the local time
+    zone's offset from UTC.  Presence of time zone information in the
+    lexical space is preserved through the value of the
+    L{hasTimeZone()} field.
+    """
+    
     _XsdBaseType = anySimpleType
-    _Namespace = Namespace.XMLSchema
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('time')
+
+    __Lexical_re = re.compile(_PyXBDateTime_base._DateTimePattern('^%H:%M:%S%Z?$'))
+    __Fields = ( 'hour', 'minute', 'second', 'microsecond' )
+    
+    def __new__ (cls, *args, **kw):
+        args = cls._ConvertArguments(args, kw)
+        ctor_kw = { }
+        if 1 <= len(args):
+            value = args[0]
+            if isinstance(value, types.StringTypes):
+                ctor_kw.update(cls._LexicalToKeywords(value, cls.__Lexical_re))
+            elif isinstance(value, datetime.time):
+                cls._SetKeysFromPython(value, ctor_kw, cls.__Fields)
+            elif isinstance(value, (types.IntType, types.LongType)):
+                for fn in range(min(len(args), len(cls.__Fields))):
+                    ctor_kw[cls.__Fields[fn]] = args[fn]
+            else:
+                raise BadTypeValueError('Unexpected type %s' % (type(value),))
+
+        has_time_zone = cls._AdjustForTimezone(ctor_kw)
+        kw.update(ctor_kw)
+        rv = super(time, cls).__new__(cls, **kw)
+        rv._setHasTimeZone(has_time_zone)
+        return rv
+
+    @classmethod
+    def XsdLiteral (cls, value):
+        iso = value.isoformat()
+        if 0 <= iso.find('.'):
+            iso = iso.rstrip('0')
+        if value.hasTimeZone():
+            iso += 'Z'
+        return iso
+
 _PrimitiveDatatypes.append(time)
 
-class date (basis.simpleTypeDefinition):
-    """@attention: Not implemented"""
+class _PyXBDateOnly_base (_PyXBDateTime_base, datetime.date):
     _XsdBaseType = anySimpleType
-    _Namespace = Namespace.XMLSchema
+
+    __DateFields = ( 'year', 'month', 'day' )
+    _ISO_beginYear = 0
+    _ISO_endYear = 4
+    _ISO_beginMonth = 5
+    _ISO_endMonth = 7
+    _ISO_beginDay = 8
+    _ISO_endDay = 10
+    _ISOBegin = _ISO_beginYear
+    _ISOEnd = _ISO_endDay
+
+    def __getattribute__ (self, attr):
+        ga = super(_PyXBDateOnly_base, self).__getattribute__
+        cls = ga('__class__')
+        if (attr in cls.__DateFields) and not (attr in cls._Fields):
+            raise AttributeError(self, attr)
+        return ga(attr)
+
+    def __new__ (cls, *args, **kw):
+        args = cls._ConvertArguments(args, kw)
+        ctor_kw = { }
+        ctor_kw['year'] = cls._DefaultYear
+        ctor_kw['month'] = cls._DefaultMonth
+        ctor_kw['day'] = cls._DefaultDay
+        if 1 == len(args):
+            value = args[0]
+            if isinstance(value, types.StringTypes):
+                ctor_kw.update(cls._LexicalToKeywords(value, cls._Lexical_re))
+            elif isinstance(value, datetime.date):
+                cls._SetKeysFromPython(value, ctor_kw, cls._Fields)
+            elif isinstance(value, (types.IntType, types.LongType)):
+                if (1 != len(cls._Fields)):                
+                    raise TypeError('function takes exactly %d arguments (%d given)' % (len(cls._Fields), len(args)))
+                ctor_kw[cls._Fields[0]] = value
+            else:
+                raise BadTypeValueError('Unexpected type %s' % (type(value),))
+        elif len(cls._Fields) == len(args):
+            for fi in range(len(cls._Fields)):
+                ctor_kw[cls._Fields[fi]] = args[fi]
+        else:
+            raise TypeError('function takes exactly %d arguments (%d given)' % (len(cls._Fields), len(args)))
+
+        kw.update(ctor_kw)
+        argv = []
+        for f in cls.__DateFields:
+            argv.append(kw.pop(f))
+        return super(_PyXBDateOnly_base, cls).__new__(cls, *argv, **kw)
+
+    @classmethod
+    def XsdLiteral (cls, value):
+        return value.isoformat()[cls._ISOBegin:cls._ISOEnd]
+
+class date (_PyXBDateOnly_base):
+    """U{http://www.w3.org/TR/xmlschema-2/index.html#date}
+
+    This class uses the Python C{datetime.date} class as its
+    underlying representation.
+    """
+    
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('date')
+    _Lexical_re = re.compile(_PyXBDateTime_base._DateTimePattern('^%Y-%m-%d$'))
+    _Fields = ( 'year', 'month', 'day' )
+
 _PrimitiveDatatypes.append(date)
 
-class gYearMonth (basis.simpleTypeDefinition):
-    """@attention: Not implemented"""
-    _XsdBaseType = anySimpleType
-    _Namespace = Namespace.XMLSchema
+class gYearMonth (_PyXBDateOnly_base):
+    """U{http://www.w3.org/TR/xmlschema-2/index.html#gYearMonth}
+
+    This class uses the Python C{datetime.date} class as its
+    underlying representation.
+    """
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('gYearMonth')
+    _Lexical_re = re.compile(_PyXBDateTime_base._DateTimePattern('^%Y-%m$'))
+    _Fields = ( 'year', 'month' )
+    _ISOEnd = _PyXBDateOnly_base._ISO_endMonth
+
 _PrimitiveDatatypes.append(gYearMonth)
 
-class gYear (basis.simpleTypeDefinition):
-    """@attention: Not implemented"""
-    _XsdBaseType = anySimpleType
-    _Namespace = Namespace.XMLSchema
+class gYear (_PyXBDateOnly_base):
+    """U{http://www.w3.org/TR/xmlschema-2/index.html#gYear}
+
+    This class uses the Python C{datetime.date} class as its
+    underlying representation.
+    """
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('gYear')
+    _Lexical_re = re.compile(_PyXBDateTime_base._DateTimePattern('^%Y$'))
+    _Fields = ( 'year', )
+    _ISOEnd = _PyXBDateOnly_base._ISO_endYear
 _PrimitiveDatatypes.append(gYear)
 
-class gMonthDay (basis.simpleTypeDefinition):
-    """@attention: Not implemented"""
-    _XsdBaseType = anySimpleType
-    _Namespace = Namespace.XMLSchema
+class gMonthDay (_PyXBDateOnly_base):
+    """U{http://www.w3.org/TR/xmlschema-2/index.html#gMonthDay}
+
+    This class uses the Python C{datetime.date} class as its
+    underlying representation.
+    """
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('gMonthDay')
+    _Lexical_re = re.compile(_PyXBDateTime_base._DateTimePattern('^%m-%d$'))
+    _Fields = ( 'month', 'day' )
+    _ISOBegin = _PyXBDateOnly_base._ISO_beginMonth
 _PrimitiveDatatypes.append(gMonthDay)
 
-class gDay (basis.simpleTypeDefinition):
-    """@attention: Not implemented"""
-    _XsdBaseType = anySimpleType
-    _Namespace = Namespace.XMLSchema
+class gDay (_PyXBDateOnly_base):
+    """U{http://www.w3.org/TR/xmlschema-2/index.html#gDay}
+
+    This class uses the Python C{datetime.date} class as its
+    underlying representation.
+    """
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('gDay')
+    _Lexical_re = re.compile(_PyXBDateTime_base._DateTimePattern('^%d$'))
+    _Fields = ( 'day', )
+    _ISOBegin = _PyXBDateOnly_base._ISO_beginDay
 _PrimitiveDatatypes.append(gDay)
 
-class gMonth (basis.simpleTypeDefinition):
-    """@attention: Not implemented"""
-    _XsdBaseType = anySimpleType
-    _Namespace = Namespace.XMLSchema
+class gMonth (_PyXBDateOnly_base):
+    """U{http://www.w3.org/TR/xmlschema-2/index.html#gMonth}
+
+    This class uses the Python C{datetime.date} class as its
+    underlying representation.
+    """
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('gMonth')
+    _Lexical_re = re.compile(_PyXBDateTime_base._DateTimePattern('^%m$'))
+    _Fields = ( 'month', )
+    _ISOBegin = _PyXBDateOnly_base._ISO_beginMonth
+    _ISOEnd = _PyXBDateOnly_base._ISO_endMonth
 _PrimitiveDatatypes.append(gMonth)
 
 class hexBinary (basis.simpleTypeDefinition, types.LongType):
     _XsdBaseType = anySimpleType
-    _Namespace = Namespace.XMLSchema
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('hexBinary')
 
     __length = None
     def length (self):
@@ -396,12 +718,15 @@ class hexBinary (basis.simpleTypeDefinition, types.LongType):
             length = (length+1) >> 1
         return (length, value)
 
-    def __new__ (cls, value, *args, **kw):
+    def __new__ (cls, *args, **kw):
+        args = cls._ConvertArguments(args, kw)
+        value = args[0]
+        rem_args = args[1:]
         if isinstance(value, types.StringTypes):
             (length, binary_value) = cls._ConvertString(value)
         else:
             (length, binary_value) = cls._ConvertValue(value)
-        rv = super(hexBinary, cls).__new__(cls, binary_value, *args, **kw)
+        rv = super(hexBinary, cls).__new__(cls, binary_value, *rem_args, **kw)
         rv.__length = length
         return rv
 
@@ -426,16 +751,17 @@ _PrimitiveDatatypes.append(hexBinary)
 class base64Binary (basis.simpleTypeDefinition):
     """@attention: Not implemented"""
     _XsdBaseType = anySimpleType
-    _Namespace = Namespace.XMLSchema
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('base64Binary')
+
     @classmethod
     def XsdValueLength (cls, value):
         raise NotImplementedError('No length calculation for base64Binary')
 
 _PrimitiveDatatypes.append(base64Binary)
 
-class anyURI (basis.simpleTypeDefinition, types.UnicodeType):
+class anyURI (basis.simpleTypeDefinition, unicode):
     _XsdBaseType = anySimpleType
-    _Namespace = Namespace.XMLSchema
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('anyURI')
 
     @classmethod
     def XsdValueLength (cls, value):
@@ -449,7 +775,8 @@ _PrimitiveDatatypes.append(anyURI)
 
 class QName (basis.simpleTypeDefinition, unicode):
     _XsdBaseType = anySimpleType
-    _Namespace = Namespace.XMLSchema
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('QName')
+
     @classmethod
     def XsdValueLength (cls, value):
         """Section 4.3.1.3: Legacy length return None to indicate no check"""
@@ -499,7 +826,8 @@ _PrimitiveDatatypes.append(QName)
 
 class NOTATION (basis.simpleTypeDefinition):
     _XsdBaseType = anySimpleType
-    _Namespace = Namespace.XMLSchema
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('NOTATION')
+
     @classmethod
     def XsdValueLength (cls, value):
         """Section 4.3.1.3: Legacy length return None to indicate no check"""
@@ -522,6 +850,8 @@ class normalizedString (string):
     # Alternatively, subclasses can override the _ValidateString
     # class.
     
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('normalizedString')
+
     # @todo Implement pattern constraints and just rely on them
 
     # No CR, LF, or TAB
@@ -582,6 +912,8 @@ class token (normalizedString):
     carriage return, line feed, or tab characters; nor any occurrence
     of two or more consecutive space characters."""
     
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('token')
+
     @classmethod
     def _ValidateString_va (cls, value):
         super_fn = getattr(super(token, cls), '_ValidateString_va', lambda *a,**kw: True)
@@ -598,6 +930,7 @@ _DerivedDatatypes.append(token)
 
 class language (token):
     """See http:///www.w3.org/TR/xmlschema-2/index.html#language"""
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('language')
     _ValidRE = re.compile('^[a-zA-Z]{1,8}(-[a-zA-Z0-9]{1,8})*$')
 _DerivedDatatypes.append(language)
 
@@ -606,6 +939,7 @@ class NMTOKEN (token):
 
     NMTOKEN is an identifier that can start with any character that is
     legal in it."""
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('NMTOKEN')
     _ValidRE = re.compile('^[-_.:A-Za-z0-9]*$')
 _DerivedDatatypes.append(NMTOKEN)
 
@@ -615,39 +949,46 @@ _ListDatatypes.append(NMTOKENS)
 
 class Name (token):
     """See http://www.w3.org/TR/2000/WD-xml-2e-20000814.html#NT-Name"""
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('Name')
     _ValidRE = re.compile('^[A-Za-z_:][-_.:A-Za-z0-9]*$')
 _DerivedDatatypes.append(Name)
 
 class NCName (Name):
     """See http://www.w3.org/TR/1999/REC-xml-names-19990114/index.html#NT-NCName"""
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('NCName')
     _ValidRE = re.compile('^[A-Za-z_][-_.A-Za-z0-9]*$')
 _DerivedDatatypes.append(NCName)
 
 class ID (NCName):
     # Lexical and value space match that of parent NCName
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('ID')
     pass
 _DerivedDatatypes.append(ID)
 
 class IDREF (NCName):
     # Lexical and value space match that of parent NCName
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('IDREF')
     pass
 _DerivedDatatypes.append(IDREF)
 
 class IDREFS (basis.STD_list):
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('IDREFS')
     _ItemType = IDREF
 _ListDatatypes.append(IDREFS)
 
 class ENTITY (NCName):
     # Lexical and value space match that of parent NCName; we're gonna
-    # ignore the additioanl requirement that it be declared as an
+    # ignore the additional requirement that it be declared as an
     # unparsed entity
     #
     # @todo Don't ignore the requirement that this be declared as an
     # unparsed entity.
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('ENTITY')
     pass
 _DerivedDatatypes.append(ENTITY)
 
 class ENTITIES (basis.STD_list):
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('ENTITIES')
     _ItemType = ENTITY
 _ListDatatypes.append(ENTITIES)
 
@@ -656,7 +997,8 @@ class integer (basis.simpleTypeDefinition, types.LongType):
 
     http://www.w3.org/TR/xmlschema-2/#integer"""
     _XsdBaseType = decimal
-    _Namespace = Namespace.XMLSchema
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('integer')
+
     @classmethod
     def XsdLiteral (cls, value):
         return '%d' % (value,)
@@ -664,20 +1006,20 @@ class integer (basis.simpleTypeDefinition, types.LongType):
 _DerivedDatatypes.append(integer)
 
 class nonPositiveInteger (integer):
-    pass
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('nonPositiveInteger')
 _DerivedDatatypes.append(nonPositiveInteger)
 
 class negativeInteger (nonPositiveInteger):
-    pass
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('negativeInteger')
 _DerivedDatatypes.append(negativeInteger)
 
 class long (integer):
-    pass
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('long')
 _DerivedDatatypes.append(long)
 
 class int (basis.simpleTypeDefinition, types.IntType):
     _XsdBaseType = long
-    _Namespace = Namespace.XMLSchema
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('int')
 
     @classmethod
     def XsdLiteral (cls, value):
@@ -687,51 +1029,52 @@ class int (basis.simpleTypeDefinition, types.IntType):
 _DerivedDatatypes.append(int)
 
 class short (int):
-    pass
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('short')
 _DerivedDatatypes.append(short)
 
 class byte (short):
-    pass
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('byte')
 _DerivedDatatypes.append(byte)
 
 class nonNegativeInteger (integer):
-    pass
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('nonNegativeInteger')
 _DerivedDatatypes.append(nonNegativeInteger)
 
 class unsignedLong (nonNegativeInteger):
-    pass
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('unsignedLong')
 _DerivedDatatypes.append(unsignedLong)
 
 class unsignedInt (unsignedLong):
-    pass
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('unsignedInt')
 _DerivedDatatypes.append(unsignedInt)
 
 class unsignedShort (unsignedInt):
-    pass
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('unsignedShort')
 _DerivedDatatypes.append(unsignedShort)
 
 class unsignedByte (unsignedShort):
-    pass
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('unsignedByte')
 _DerivedDatatypes.append(unsignedByte)
 
 class positiveInteger (nonNegativeInteger):
-    pass
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('positiveInteger')
 _DerivedDatatypes.append(positiveInteger)
 
 import datatypes_facets
 import content
 
-class anyType (basis.CTD_mixed):
+class anyType (basis.complexTypeDefinition):
     """http://www.w3.org/TR/2001/REC-xmlschema-1-20010502/#key-urType"""
-    @classmethod
-    def Factory (cls, *args, **kw):
-        return anyType()
+    _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('anyType')
+    _ContentTypeTag = basis.complexTypeDefinition._CT_MIXED
+    _Abstract = False
+    _HasWildcardElement = True
+    _AttributeWildcard = content.Wildcard(namespace_constraint=content.Wildcard.NC_any, process_contents=content.Wildcard.PC_lax)
 
-    _Content = content.Particle(1, 1,
-                                content.ModelGroup(content.ModelGroup.C_SEQUENCE,
-                                                   [ content.Particle(0, None,
-                                                                      content.Wildcard(namespace_constraint=content.Wildcard.NC_any,
-                                                                                       process_contents=content.Wildcard.PC_lax)
-                                                                      ) # end Particle
-                                                     ]) # end ModelGroup
-                                ) # end Particle
+    # Generate from tests/schemas/anyType.xsd
+    _ContentModel = content.ContentModel(state_map = {
+      1 : content.ContentModelState(state=1, is_final=True, transitions=[
+        content.ContentModelTransition(term=content.Wildcard(process_contents=content.Wildcard.PC_lax, namespace_constraint=content.Wildcard.NC_any), next_state=1, element_use=None),
+    ])
+})
+

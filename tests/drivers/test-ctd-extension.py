@@ -4,7 +4,7 @@ from xml.dom import Node
 
 import os.path
 schema_path = '%s/../schemas/test-ctd-extension.xsd' % (os.path.dirname(__file__),)
-code = pyxb.binding.generate.GeneratePython(schema_file=schema_path)
+code = pyxb.binding.generate.GeneratePython(schema_location=schema_path)
 rv = compile(code, 'test', 'exec')
 eval(rv)
 
@@ -21,7 +21,6 @@ class TestCTDExtension (unittest.TestCase):
         # should be the same, unless content model requires they be
         # different.
         self.assertEqual(extendedName.title, personName.title)
-        self.assertEqual(extendedName.pAttr, personName.pAttr)
 
     def testPersonName (self):
         xml = '''<oldAddressee pAttr="old">
@@ -30,14 +29,14 @@ class TestCTDExtension (unittest.TestCase):
    <surname>Gore</surname>
   </oldAddressee>'''
         doc = pyxb.utils.domutils.StringToDOM(xml)
-        instance = oldAddressee.CreateFromDOM(doc.documentElement)
-        self.assertEqual(2, len(instance.forename()))
+        instance = oldAddressee.createFromDOM(doc.documentElement)
+        self.assertEqual(2, len(instance.forename))
         # Note double dereference required because xs:anyType was used
         # as the element type
-        self.assertEqual('Albert', instance.forename()[0].content().content())
-        self.assertEqual('Arnold', instance.forename()[1].content().content())
-        self.assertEqual('Gore', instance.surname().content().content())
-        self.assertEqual('old', instance.pAttr())
+        self.assertEqual('Albert', instance.forename[0].content()[0])
+        self.assertEqual('Arnold', instance.forename[1].content()[0])
+        self.assertEqual('Gore', instance.surname.content()[0])
+        self.assertEqual('old', instance.pAttr)
 
     def testExtendedName (self):
         xml = '''<addressee pAttr="new" eAttr="add generation">
@@ -47,36 +46,36 @@ class TestCTDExtension (unittest.TestCase):
    <generation>Jr</generation>
   </addressee>'''
         doc = pyxb.utils.domutils.StringToDOM(xml)
-        instance = addressee.CreateFromDOM(doc.documentElement)
-        self.assertEqual(2, len(instance.forename()))
-        self.assertEqual('Albert', instance.forename()[0].content().content())
-        self.assertEqual('Arnold', instance.forename()[1].content().content())
-        self.assertEqual('Gore', instance.surname().content().content())
-        self.assertEqual('Jr', instance.generation().content().content())
-        self.assertEqual('new', instance.pAttr())
-        self.assertEqual('add generation', instance.eAttr())
+        instance = addressee.createFromDOM(doc.documentElement)
+        self.assertEqual(2, len(instance.forename))
+        self.assertEqual('Albert', instance.forename[0].content()[0])
+        self.assertEqual('Arnold', instance.forename[1].content()[0])
+        self.assertEqual('Gore', instance.surname.content()[0])
+        self.assertEqual('Jr', instance.generation.content()[0])
+        self.assertEqual('new', instance.pAttr)
+        self.assertEqual('add generation', instance.eAttr)
 
     def testMidWildcard (self):
         xml = '<defs><documentation/><something/><message/><message/><import/><message/></defs>'
         doc = pyxb.utils.domutils.StringToDOM(xml)
-        instance = defs.CreateFromDOM(doc.documentElement)
-        self.assertFalse(instance.documentation() is None)
-        self.assertEqual(3, len(instance.message()))
-        self.assertEqual(1, len(instance.import_()))
+        instance = defs.createFromDOM(doc.documentElement)
+        self.assertFalse(instance.documentation is None)
+        self.assertEqual(3, len(instance.message))
+        self.assertEqual(1, len(instance.import_))
         self.assertEqual(1, len(instance.wildcardElements()))
 
         xml = '<defs><something/><else/><message/><message/><import/><message/></defs>'
         doc = pyxb.utils.domutils.StringToDOM(xml)
-        instance = defs.CreateFromDOM(doc.documentElement)
-        self.assertTrue(instance.documentation() is None)
-        self.assertEqual(3, len(instance.message()))
-        self.assertEqual(1, len(instance.import_()))
+        instance = defs.createFromDOM(doc.documentElement)
+        self.assertTrue(instance.documentation is None)
+        self.assertEqual(3, len(instance.message))
+        self.assertEqual(1, len(instance.import_))
         self.assertEqual(2, len(instance.wildcardElements()))
 
     def testEndWildcard (self):
         xml = '<defs><message/><something/></defs>'
         doc = pyxb.utils.domutils.StringToDOM(xml)
-        self.assertRaises(ExtraContentError, defs.CreateFromDOM, doc.documentElement)
+        self.assertRaises(ExtraContentError, defs.createFromDOM, doc.documentElement)
 
 if __name__ == '__main__':
     unittest.main()

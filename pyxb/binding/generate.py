@@ -20,6 +20,8 @@ import pyxb
 import pyxb.xmlschema as xs
 import StringIO
 import datetime
+import urlparse
+import errno
 
 from pyxb.utils import utility
 from pyxb.utils import templates
@@ -35,11 +37,12 @@ import types
 import sys
 import traceback
 import xml.dom
+import os.path
+import StringIO
 
 # Initialize UniqueInBinding with the public identifiers we generate,
 # import, or otherwise can't have mucked about with.
-UniqueInBinding = set([ 'pyxb', 'xml', 'sys', 'Namespace', 'CreateFromDOM', 'ElementToBindingMap' ])
-PostscriptItems = []
+UniqueInBinding = set([ 'pyxb', 'sys', 'Namespace', 'ModuleRecord', 'CreateFromDocument', 'CreateFromDOM' ])
 
 def PrefixModule (value, text=None):
     if text is None:
@@ -93,23 +96,6 @@ class ReferenceFacetMember (ReferenceLiteral):
 
         self.setLiteral(self._addTypePrefix('_CF_%s' % (self.__facetClass.Name(),), **kw))
 
-class ReferenceParticle (ReferenceLiteral):
-    __particle = None
-
-    def __init__ (self, particle, **kw):
-        self.__particle = particle
-        super(ReferenceParticle, self).__init__(**kw)
-
-        template_map = { }
-        template_map['min_occurs'] = pythonLiteral(int(particle.minOccurs()), **kw)
-        if particle.maxOccurs() is None:
-            template_map['max_occurs'] = pythonLiteral(particle.maxOccurs(), **kw)
-        else:
-            template_map['max_occurs'] = pythonLiteral(int(particle.maxOccurs()), **kw)
-        assert particle.term() is not None
-        template_map['term'] = pythonLiteral(particle.term(), **kw)
-        self.setLiteral(templates.replaceInText('pyxb.binding.content.Particle(%{min_occurs}, %{max_occurs}, %{term})', **template_map))
-
 class ReferenceWildcard (ReferenceLiteral):
     __wildcard = None
 
@@ -141,83 +127,29 @@ class ReferenceWildcard (ReferenceLiteral):
 class ReferenceSchemaComponent (ReferenceLiteral):
     __component = None
 
-    __anonymousIndex = 0
-    @classmethod
-    def __NextAnonymousIndex (cls):
-        cls.__anonymousIndex += 1
-        return cls.__anonymousIndex
-
-    __ComponentTagMap = {
-        xs.structures.SimpleTypeDefinition: 'STD'
-        , xs.structures.ComplexTypeDefinition: 'CTD'
-        , xs.structures.ElementDeclaration: 'ED'
-        , xs.structures.ModelGroup: 'MG'
-        , xs.structures.Wildcard: 'WC'
-        }
-
     def __init__ (self, component, **kw):
         self.__component = component
-        btns = kw['binding_target_namespace']
-        tns = self.__component._namespaceContext().targetNamespace()
-        assert tns is not None
-        is_in_binding = (btns == tns)
-            
-        if not ((not isinstance(self.__component, pyxb.namespace._Resolvable_mixin)) or self.__component.isResolved()):
-            print '%s not resolved' % (self.__component,)
-        assert (not isinstance(self.__component, pyxb.namespace._Resolvable_mixin)) or self.__component.isResolved()
+        binding_module = kw['binding_module']
+        rv = binding_module.referenceSchemaComponent(component)
+        #print '%s in %s is %s' % (component.expandedName(), binding_module, rv)
+        self.setLiteral(rv)
 
-        name = self.__component.nameInBinding()
-        if is_in_binding and (name is None):
-            global UniqueInBinding
+class ReferenceNamespace (ReferenceLiteral):
+    __namespace = None
 
-            # The only components that are allowed to be nameless at
-            # this point are ones in the binding we're generating.
-            # @todo should not have to special case XMLSchema
-            if not (is_in_binding or (pyxb.namespace.XMLSchema == tns)):
-                raise pyxb.LogicError('Attempt to reference unnamed component not in binding: %s' % (component,))
+    def __init__ (self, **kw):
+        self.__namespace = kw['namespace']
+        binding_module = kw['binding_module']
+        rv = binding_module.referenceNamespace(self.__namespace)
+        #print '%s in %s is %s' % (self.__namespace, binding_module, rv)
+        self.setLiteral(rv)
 
-            # The initial name is the name of the component, or if the
-            # component can't be named the name of something else
-            # relevant.
-            name = self.__component.bestNCName()
-            protected = False
-            if name is None:
-                tag = self.__ComponentTagMap.get(type(self.__component), None)
-                if tag is None:
-                    raise pyxb.LogicError('Not prepared for reference to component type %s' % (self.__component.__class__.__name__,))
-                name = '_%s_ANON_%d' % (tag, self.__NextAnonymousIndex())
-                protected = True
+class ReferenceExpandedName (ReferenceLiteral):
+    __expandedName = None
 
-            # Element declarations may be local, in which case we want
-            # to incorporate the parentage in the name.
-            if isinstance(self.__component, xs.structures._ScopedDeclaration_mixin):
-                scope = self.__component.scope()
-                if scope is None:
-                    print 'NO SCOPE for %s' % (self.__component,)
-                assert scope is not None
-                if isinstance(scope, xs.structures.ComplexTypeDefinition):
-                    if scope.targetNamespace() != self.__component.targetNamespace():
-                        print 'WARNING: Inner decl %s tns %s scope %s' % (name, self.__component.targetNamespace(), scope.name())
-                    name_prefix = scope.name()
-                    if name_prefix is None:
-                        assert scope.owner() is not None
-                        name_prefix = scope.owner().name()
-                    assert name_prefix is not None
-                    name = '%s_%s' % (name_prefix, name)
-
-            name = utility.PrepareIdentifier(name, UniqueInBinding, protected=protected)
-            self.__component.setNameInBinding(name)
-        if not is_in_binding:
-            assert name is not None
-            mp = None
-            if pyxb.namespace.XMLSchema == tns:
-                mp = 'pyxb.binding.datatypes'
-            elif tns is not None:
-                mp = tns.modulePath()
-                assert mp is not None
-            if mp is not None:
-                name = '%s.%s' % (mp, name)
-        self.setLiteral(name)
+    def __init__ (self, **kw):
+        self.__expandedName = kw['expanded_name']
+        self.setLiteral('pyxb.namespace.ExpandedName(%s, %s)' % (pythonLiteral(self.__expandedName.namespace(), **kw), pythonLiteral(self.__expandedName.localName(), **kw)))
 
 class ReferenceFacet (ReferenceLiteral):
     __facet = None
@@ -257,6 +189,13 @@ class ReferenceEnumerationMember (ReferenceLiteral):
             assert value is not None
             self.enumerationElement = facet_instance.elementForValue(value)
         assert isinstance(self.enumerationElement, facets._EnumerationElement)
+        if self.enumerationElement.tag() is None:
+            self.enumerationElement._setTag(utility.MakeIdentifier(self.enumerationElement.unicodeValue()))
+        binding_tag = utility.PrepareIdentifier(self.enumerationElement.tag(), kw['class_unique'], kw['class_keywords'])
+        if self.enumerationElement.bindingTag() is None:
+            # Boy I hope this is the first time generating one of
+            # thes, so this is in the owner class
+            self.enumerationElement._setBindingTag(binding_tag)
 
         # If no type definition was provided, use the value datatype
         # for the facet.
@@ -264,7 +203,7 @@ class ReferenceEnumerationMember (ReferenceLiteral):
 
         super(ReferenceEnumerationMember, self).__init__(**kw)
 
-        self.setLiteral(self._addTypePrefix(utility.PrepareIdentifier(self.enumerationElement.tag(), kw['class_unique'], kw['class_keywords']), **kw))
+        self.setLiteral(self._addTypePrefix(binding_tag, **kw))
 
 def pythonLiteral (value, **kw):
     # For dictionaries, apply translation to all values (not keys)
@@ -274,6 +213,10 @@ def pythonLiteral (value, **kw):
     # For lists, apply translation to all members
     if isinstance(value, types.ListType):
         return [ pythonLiteral(_v, **kw) for _v in value ]
+
+    # ExpandedName is a tuple, but not here
+    if isinstance(value, pyxb.namespace.ExpandedName):
+        return pythonLiteral(ReferenceExpandedName(expanded_name=value, **kw))
 
     # For other collection types, do what you do for list
     if isinstance(value, (types.TupleType, set)):
@@ -289,6 +232,9 @@ def pythonLiteral (value, **kw):
     # for the module.
     if isinstance(value, basis.simpleTypeDefinition):
         return PrefixModule(value, value.pythonLiteral())
+
+    if isinstance(value, pyxb.namespace.Namespace):
+        return pythonLiteral(ReferenceNamespace(namespace=value, **kw))
 
     if isinstance(value, type):
         if issubclass(value, basis.simpleTypeDefinition):
@@ -340,26 +286,26 @@ def pythonLiteral (value, **kw):
     return str(value)
 
 
-def GenerateModelGroupAll (ctd, mga, template_map, **kw):
+def GenerateModelGroupAll (ctd, mga, binding_module, template_map, **kw):
     mga_tag = '__AModelGroup'
     template_map['mga_tag'] = mga_tag
     lines = []
     lines2 = []
     for ( dfa, is_required ) in mga.particles():
-        ( dfa_tag, dfa_lines ) = GenerateContentModel(ctd, dfa, **kw)
+        ( dfa_tag, dfa_lines ) = GenerateContentModel(ctd, dfa, binding_module, **kw)
         lines.extend(dfa_lines)
         template_map['dfa_tag'] = dfa_tag
-        template_map['is_required'] = pythonLiteral(is_required, **kw)
+        template_map['is_required'] = binding_module.literal(is_required, **kw)
         lines2.append(templates.replaceInText('    %{content}.ModelGroupAllAlternative(%{ctd}.%{dfa_tag}, %{is_required}),', **template_map))
     lines.append(templates.replaceInText('%{mga_tag} = %{content}.ModelGroupAll(alternatives=[', **template_map))
     lines.extend(lines2)
     lines.append('])')
     return (mga_tag, lines)
 
-def GenerateContentModel (ctd, automaton, **kw):
+def GenerateContentModel (ctd, automaton, binding_module, **kw):
     cmi = None
     template_map = { }
-    template_map['ctd'] = pythonLiteral(ctd, **kw)
+    template_map['ctd'] = binding_module.literal(ctd, **kw)
     try:
         cmi = '_ContentModel_%d' % (ctd.__contentModelIndex,)
         ctd.__contentModelIndex += 1
@@ -374,8 +320,8 @@ def GenerateContentModel (ctd, automaton, **kw):
     for (state, transitions) in automaton.items():
         if automaton.end() == state:
             continue
-        template_map['state'] = pythonLiteral(state)
-        template_map['is_final'] = pythonLiteral(None in transitions)
+        template_map['state'] = binding_module.literal(state)
+        template_map['is_final'] = binding_module.literal(None in transitions)
 
         lines2.append(templates.replaceInText('%{state_comma} %{state} : %{content}.ContentModelState(state=%{state}, is_final=%{is_final}, transitions=[', **template_map))
         template_map['state_comma'] = ','
@@ -384,25 +330,20 @@ def GenerateContentModel (ctd, automaton, **kw):
             if key is None:
                 continue
             assert 1 == len(destinations)
-            template_map['next_state'] = pythonLiteral(list(destinations)[0], **kw)
+            template_map['next_state'] = binding_module.literal(list(destinations)[0], **kw)
             if isinstance(key, xs.structures.Wildcard):
-                template_map['eu_field'] = pythonLiteral(None, **kw)
-                template_map['term'] = pythonLiteral(key, **kw)
+                template_map['kw_key'] = 'term'
+                template_map['kw_val'] = binding_module.literal(key, **kw)
             elif isinstance(key, nfa.AllWalker):
-                (mga_tag, mga_defns) = GenerateModelGroupAll(ctd, key, template_map.copy(), **kw)
-                template_map['term'] = mga_tag
+                (mga_tag, mga_defns) = GenerateModelGroupAll(ctd, key, binding_module, template_map.copy(), **kw)
+                template_map['kw_key'] = 'term'
+                template_map['kw_val'] = mga_tag
                 lines.extend(mga_defns)
-                template_map['eu_field'] = pythonLiteral(None, **kw)
             else:
-                template_map['term'] = pythonLiteral(key, **kw)
-                if 'eu_field' in template_map:
-                    del template_map['eu_field']
-                for (name, ( is_plural, types, ef_map) ) in ctd.__elementFields.items():
-                    type_names = [ _u.name() for _u in types ]
-                    if key.name() in type_names:
-                        template_map['eu_field'] = templates.replaceInText('%{ctd}._UseForTag(%{field_tag})', field_tag=ef_map['field_tag'], **template_map)
-                        break
-            lines3.append(templates.replaceInText('%{content}.ContentModelTransition(term=%{term}, next_state=%{next_state}, element_use=%{eu_field}),',
+                assert isinstance(key, xs.structures.ElementDeclaration)
+                template_map['kw_key'] = 'element_use'
+                template_map['kw_val'] = templates.replaceInText('%{ctd}._UseForTag(%{field_tag})', field_tag=binding_module.literal(key.expandedName(), **kw), **template_map)
+            lines3.append(templates.replaceInText('%{content}.ContentModelTransition(next_state=%{next_state}, %{kw_key}=%{kw_val}),',
                           **template_map))
         lines2.extend([ '    '+_l for _l in lines3 ])
         lines2.append("])")
@@ -412,8 +353,29 @@ def GenerateContentModel (ctd, automaton, **kw):
     lines.append("})")
     return (cmi, lines)
 
-def GenerateFacets (outf, td, **kw):
+def _useEnumerationTags (td):
+    assert isinstance(td, xs.structures.SimpleTypeDefinition)
+    ptd = td.baseTypeDefinition()
+    python_support = None
+    # Atomic types that use strings as their representation
+    if (ptd.VARIETY_atomic == ptd.variety()):
+        python_support = ptd.primitiveTypeDefinition().pythonSupport()
+        return issubclass(python_support, basestring)
+    # Derivations from anySimpleType use strings too
+    if (ptd.VARIETY_absent == ptd.variety()):
+        return True
+    # Union types?  Yeah, I suppose so.  Though this only applies to
+    # members lifted up into the union.
+    if (ptd.VARIETY_union == ptd.variety()):
+        return True
+    # List types have spaces so no tags.
+    return False
+
+def GenerateFacets (td, generator, **kw):
+    binding_module = kw['binding_module']
+    outf = binding_module.bindingIO()
     facet_instances = []
+    gen_enum_tag = _useEnumerationTags(td)
     for (fc, fi) in td.facets().items():
         #if (fi is None) or (fi.ownerTypeDefinition() != td):
         #    continue
@@ -435,192 +397,225 @@ def GenerateFacets (outf, td, **kw):
         if fi is not None:
             if not is_collection:
                 argset['value'] = fi.value()
-            if (fi.superFacet() is not None):
-                argset['super_facet'] = fi.superFacet()
             if isinstance(fi, facets.CF_enumeration):
                 argset['enum_prefix'] = fi.enumPrefix()
         facet_var = ReferenceFacetMember(type_definition=td, facet_class=fc, **kw)
-        outf.write("%s = %s(%s)\n" % pythonLiteral( (facet_var, fc, argset ), **kw))
-        facet_instances.append(pythonLiteral(facet_var, **kw))
+        outf.write("%s = %s(%s)\n" % binding_module.literal( (facet_var, fc, argset ), **kw))
+        facet_instances.append(binding_module.literal(facet_var, **kw))
         if (fi is not None) and is_collection:
             for i in fi.items():
                 if isinstance(i, facets._EnumerationElement):
-                    enum_member = ReferenceEnumerationMember(type_definition=td, facet_instance=fi, enumeration_element=i, **kw)
-                    outf.write("%s = %s.addEnumeration(unicode_value=%s)\n" % pythonLiteral( (enum_member, facet_var, i.unicodeValue() ), **kw))
-                    if fi.enumPrefix() is not None:
-                        outf.write("%s_%s = %s\n" % (fi.enumPrefix(), i.tag(), pythonLiteral(enum_member, **kw)))
+                    enum_config = '%s.addEnumeration(unicode_value=%s)' % binding_module.literal( ( facet_var, i.unicodeValue() ), **kw)
+                    if gen_enum_tag:
+                        enum_member = ReferenceEnumerationMember(type_definition=td, facet_instance=fi, enumeration_element=i, **kw)
+                        outf.write("%s = %s\n" % (binding_module.literal(enum_member, **kw), enum_config))
+                        if fi.enumPrefix() is not None:
+                            outf.write("%s_%s = %s\n" % (fi.enumPrefix(), i.tag(), binding_module.literal(enum_member, **kw)))
+                    else:
+                        outf.write("%s\n" % (enum_config,))
                 if isinstance(i, facets._PatternElement):
-                    outf.write("%s.addPattern(pattern=%s)\n" % pythonLiteral( (facet_var, i.pattern ), **kw))
+                    outf.write("%s.addPattern(pattern=%s)\n" % binding_module.literal( (facet_var, i.pattern ), **kw))
+    if gen_enum_tag and (xs.structures.SimpleTypeDefinition.VARIETY_union == td.variety()):
+        # If the union has enumerations of its own, there's no need to
+        # inherit anything.
+        fi = td.facets().get(facets.CF_enumeration)
+        if fi is None:
+            # Need to expose any enumerations in members up in this class
+            for mtd in td.memberTypeDefinitions():
+                if not _useEnumerationTags(mtd):
+                    continue
+                fi = mtd.facets().get(facets.CF_enumeration)
+                if fi is None:
+                    continue
+                for i in fi.items():
+                    assert isinstance(i, facets._EnumerationElement)
+                    etd = i.enumeration().ownerTypeDefinition()
+                    enum_member = ReferenceEnumerationMember(type_definition=td, facet_instance=fi, enumeration_element=i, **kw)
+                    outf.write("%-50s%s\n" % ('%s = %s' % binding_module.literal( (enum_member, i.unicodeValue()) ),
+                                              '# originally %s.%s' % (binding_module.literal(etd), i.bindingTag())))
     if 2 <= len(facet_instances):
         map_args = ",\n   ".join(facet_instances)
     else:
         map_args = ','.join(facet_instances)
-    outf.write("%s._InitializeFacetMap(%s)\n" % (pythonLiteral(td, **kw), map_args))
+    outf.write("%s._InitializeFacetMap(%s)\n" % (binding_module.literal(td, **kw), map_args))
 
-def GenerateSTD (std, **kw):
-    generate_facets = kw.get('generate_facets', False)
-    outf = StringIO.StringIO()
+def GenerateSTD (std, generator):
 
+    binding_module = generator.moduleForComponent(std)
+    outf = binding_module.bindingIO()
+    
     class_keywords = frozenset(basis.simpleTypeDefinition._ReservedSymbols)
     class_unique = set()
+
+    kw = { }
+    kw['binding_module'] = binding_module
     kw['class_keywords'] = class_keywords
     kw['class_unique'] = class_unique
 
-    parent_classes = [ pythonLiteral(std.baseTypeDefinition(), **kw) ]
+    parent_classes = [ binding_module.literal(std.baseTypeDefinition(), **kw) ]
     enum_facet = std.facets().get(facets.CF_enumeration, None)
     if (enum_facet is not None) and (enum_facet.ownerTypeDefinition() == std):
         parent_classes.append('pyxb.binding.basis.enumeration_mixin')
         
     template_map = { }
-    template_map['std'] = pythonLiteral(std, **kw)
+    template_map['std'] = binding_module.literal(std, **kw)
     template_map['superclasses'] = ''
     if 0 < len(parent_classes):
         template_map['superclasses'] = ', '.join(parent_classes)
-    template_map['name'] = pythonLiteral(std.name(), **kw)
+    template_map['expanded_name'] = binding_module.literal(std.expandedName(), **kw)
+    template_map['namespaceReference'] = binding_module.literal(std.bindingNamespace(), **kw)
+    if std.annotation() is not None:
+        template_map['documentation'] = std.annotation().asDocString()
+        template_map['documentation_expr'] = binding_module.literal(std.annotation().text())
+    else:
+        template_map['documentation'] = ''
+        template_map['documentation_expr'] = binding_module.literal(None)
 
+    # @todo: Extensions of LIST will be wrong in below
+
+    common_template = '''
+    """%{documentation}"""
+
+    _ExpandedName = %{expanded_name}
+    _Documentation = %{documentation_expr}
+'''
     if xs.structures.SimpleTypeDefinition.VARIETY_absent == std.variety():
-        assert False
-        return None
+        template = '''
+# The ur SimpleTypeDefinition
+class %{std} (%{superclasses}):
+''' + common_template
+        if not template_map['documentation']:
+            template_map['documentation'] = 'The ur simple type.'
     elif xs.structures.SimpleTypeDefinition.VARIETY_atomic == std.variety():
         template = '''
 # Atomic SimpleTypeDefinition
 class %{std} (%{superclasses}):
-    """%{description}"""
-
-    # The name of this type definition within the schema
-    _XsdName = %{name}
-    # Reference to the namespace to which the type belongs
-    _Namespace = Namespace
-'''
-        template_map['description'] = ''
+''' + common_template
+        if not template_map['documentation']:
+            template_map['documentation'] = 'An atomic simple type.'
     elif xs.structures.SimpleTypeDefinition.VARIETY_list == std.variety():
         template = '''
 # List SimpleTypeDefinition
 # superclasses %{superclasses}
 class %{std} (pyxb.binding.basis.STD_list):
-    """%{description}"""
-
-    # The name of this type definition within the schema
-    _XsdName = %{name}
-    # Reference to the namespace to which the type belongs
-    _Namespace = Namespace
-
-    # Type for items in the list
+''' + common_template + '''
     _ItemType = %{itemtype}
 '''
-        template_map['itemtype'] = pythonLiteral(std.itemTypeDefinition(), **kw)
-        template_map['description'] = templates.replaceInText('Simple type that is a list of %{itemtype}', **template_map)
+        template_map['itemtype'] = binding_module.literal(std.itemTypeDefinition(), **kw)
+        if not template_map['documentation']:
+            template_map['documentation'] = templates.replaceInText('Simple type that is a list of %{itemtype}.', **template_map)
     elif xs.structures.SimpleTypeDefinition.VARIETY_union == std.variety():
         template = '''
 # Union SimpleTypeDefinition
 # superclasses %{superclasses}
 class %{std} (pyxb.binding.basis.STD_union):
-    """%{description}"""
-
-    # The name of this type definition within the schema
-    _XsdName = %{name}
-    # Reference to the namespace to which the type belongs
-    _Namespace = Namespace
-
-    # Types of potential union members
+''' + common_template + '''
     _MemberTypes = ( %{membertypes}, )
 '''
-        template_map['membertypes'] = ", ".join( [ pythonLiteral(_mt, **kw) for _mt in std.memberTypeDefinitions() ])
-        template_map['description'] = templates.replaceInText('Simple type that is a union of %{membertypes}', **template_map)
+        template_map['membertypes'] = ", ".join( [ binding_module.literal(_mt, **kw) for _mt in std.memberTypeDefinitions() ])
+        if not template_map['documentation']:
+            template_map['documentation'] = templates.replaceInText('Simple type that is a union of %{membertypes}.', **template_map)
+    else:
+        raise pyxb.LogicError("Unhandled STD variety")
 
-    if 0 == len(template_map['description']):
-        template_map['description'] = 'No information'
     outf.write(templates.replaceInText(template, **template_map))
 
+    generate_facets = False
     if generate_facets:
         # If generating datatype_facets, throw away the class garbage
-        outf = StringIO.StringIO()
         if std.isBuiltin():
-            GenerateFacets(outf, std, **kw)
+            GenerateFacets(std, generator, **kw)
     else:
-        GenerateFacets(outf, std, **kw)
-    return outf.getvalue()
+        GenerateFacets(std, generator, **kw)
 
-def TypeSetCompatible (s1, s2):
-    for ctd1 in s1:
-        match = False
-        for ctd2 in s2:
-            if ctd1.name() == ctd2.name():
-                match = True
-                break
-        if not match:
-            return False
-    return True
+    if std.name() is not None:
+        outf.write(templates.replaceInText("%{namespaceReference}.addCategoryObject('typeBinding', %{localName}, %{std})\n",
+                                           localName=binding_module.literal(std.name(), **kw), **template_map))
 
-def GenerateCTD (ctd, **kw):
+def elementDeclarationMap (ed, binding_module, **kw):
+    template_map = { }
+    template_map['name'] = unicode(ed.expandedName())
+    template_map['name_expr'] = binding_module.literal(ed.expandedName(), **kw)
+    template_map['namespaceReference'] = binding_module.literal(ed.bindingNamespace(), **kw)
+    if (ed.SCOPE_global == ed.scope()):
+        template_map['class'] = binding_module.literal(ed, **kw)
+        template_map['localName'] = binding_module.literal(ed.name(), **kw)
+        template_map['map_update'] = templates.replaceInText("%{namespaceReference}.addCategoryObject('elementBinding', %{localName}, %{class})", **template_map)
+    else:
+        template_map['scope'] = binding_module.literal(ed.scope(), **kw)
+    if ed.annotation() is not None:
+        template_map['documentation'] = binding_module.literal(unicode(ed.annotation()))
+    if ed.abstract():
+        template_map['abstract'] = binding_module.literal(ed.abstract(), **kw)
+    if ed.nillable():
+        template_map['nillable'] = binding_module.literal(ed.nillable(), **kw)
+    if ed.default():
+        template_map['defaultValue'] = binding_module.literal(ed.default(), **kw)
+    template_map['typeDefinition'] = binding_module.literal(ed.typeDefinition(), **kw)
+    if ed.substitutionGroupAffiliation():
+        template_map['substitution_group'] = binding_module.literal(ed.substitutionGroupAffiliation(), **kw)
+    aux_init = []
+    for k in ( 'nillable', 'abstract', 'scope', 'documentation' ):
+        if k in template_map:
+            aux_init.append('%s=%s' % (k, template_map[k]))
+    template_map['element_aux_init'] = ''
+    if 0 < len(aux_init):
+        template_map['element_aux_init'] = ', ' + ', '.join(aux_init)
+        
+    return template_map
+
+def GenerateCTD (ctd, generator, **kw):
+    binding_module = generator.moduleForComponent(ctd)
+    outf = binding_module.bindingIO()
+
     content_type = None
     prolog_template = None
     template_map = { }
-    template_map['ctd'] = pythonLiteral(ctd, **kw)
+    template_map['ctd'] = binding_module.literal(ctd, **kw)
     base_type = ctd.baseTypeDefinition()
-    template_map['base_type'] = pythonLiteral(base_type, **kw)
-    template_map['name'] = pythonLiteral(ctd.name(), **kw)
+    content_type_tag = ctd._contentTypeTag()
+
+    template_map['base_type'] = binding_module.literal(base_type, **kw)
+    template_map['namespaceReference'] = binding_module.literal(ctd.bindingNamespace(), **kw)
+    template_map['expanded_name'] = binding_module.literal(ctd.expandedName(), **kw)
+    template_map['simple_base_type'] = binding_module.literal(None, **kw)
+    template_map['contentTypeTag'] = content_type_tag
+    template_map['is_abstract'] = repr(not not ctd.abstract())
 
     need_content = False
     content_basis = None
-    if (ctd.CT_EMPTY == ctd.contentType()):
-        content_type = 'empty'
-        ctd_parent_class = basis.CTD_empty
-        prolog_template = '''
-# Complex type %{ctd} with empty content
-class %{ctd} (%{superclasses}):
-'''
-        pass
-    elif (ctd.CT_SIMPLE == ctd.contentType()[0]):
-        content_type = 'simple'
-        ctd_parent_class = basis.CTD_simple
+    if (ctd.CT_SIMPLE == content_type_tag):
         content_basis = ctd.contentType()[1]
-        prolog_template = '''
-# Complex type %{ctd} with simple content type %{basetype}
-class %{ctd} (%{superclasses}):
-    _TypeDefinition = %{basetype}
-'''
-        template_map['basetype'] = pythonLiteral(content_basis, **kw)
-    elif (ctd.CT_MIXED == ctd.contentType()[0]):
-        content_type = 'mixed'
-        ctd_parent_class = basis.CTD_mixed
+        template_map['simple_base_type'] = binding_module.literal(content_basis, **kw)
+    elif (ctd.CT_MIXED == content_type_tag):
         content_basis = ctd.contentType()[1]
-        template_map['particle'] = pythonLiteral(content_basis, **kw)
         need_content = True
-        prolog_template = '''
-# Complex type %{ctd} with mixed content
-class %{ctd} (%{superclasses}):
-'''
-    elif (ctd.CT_ELEMENT_ONLY == ctd.contentType()[0]):
-        content_type = 'element'
-        ctd_parent_class = basis.CTD_element
+    elif (ctd.CT_ELEMENT_ONLY == content_type_tag):
         content_basis = ctd.contentType()[1]
-        template_map['particle'] = pythonLiteral(content_basis, **kw)
         need_content = True
-        prolog_template = '''
-# Complex type %{ctd} with element-only content
-class %{ctd} (%{superclasses}):
-'''
+    need_content = False
 
-    prolog_template += '''
-    # The name of this type definition within the schema
-    _XsdName = %{name}
-    # Reference to the namespace to which the type belongs
-    _Namespace = Namespace
+    prolog_template = '''
+# Complex type %{ctd} with content type %{contentTypeTag}
+class %{ctd} (%{superclass}):
+    _TypeDefinition = %{simple_base_type}
+    _ContentTypeTag = pyxb.binding.basis.complexTypeDefinition._CT_%{contentTypeTag}
+    _Abstract = %{is_abstract}
+    _ExpandedName = %{expanded_name}
 '''
 
     # Complex types that inherit from non-ur-type complex types should
     # have their base type as their Python superclass, so pre-existing
     # elements and attributes can be re-used.
     inherits_from_base = True
-    template_map['superclasses'] = pythonLiteral(base_type, **kw)
-    if isinstance(base_type, xs.structures.SimpleTypeDefinition) or base_type.isUrTypeDefinition():
+    template_map['superclass'] = binding_module.literal(base_type, **kw)
+    if ctd._isHierarchyRoot():
         inherits_from_base = False
-        template_map['superclasses'] = 'pyxb.binding.basis.CTD_%s' % (content_type,)
+        template_map['superclass'] = 'pyxb.binding.basis.complexTypeDefinition'
         assert base_type.nameInBinding() is not None
 
     # Support for deconflicting attributes, elements, and reserved symbols
-    class_keywords = frozenset(ctd_parent_class._ReservedSymbols)
+    class_keywords = frozenset(basis.complexTypeDefinition._ReservedSymbols)
     class_unique = set()
 
     # Deconflict elements first, attributes are lower priority.
@@ -631,7 +626,6 @@ class %{ctd} (%{superclasses}):
     # name.
     element_name_map = { }
     element_uses = []
-    datatype_items = []
 
     definitions = []
 
@@ -640,197 +634,181 @@ class %{ctd} (%{superclasses}):
     # Retain in the ctd the information about the element
     # infrastructure, so it can be inherited where appropriate in
     # subclasses.
-    ctd.__elementFields = { }
 
     if isinstance(content_basis, xs.structures.Particle):
-        plurality_data = content_basis.pluralityData().nameBasedPlurality()
+        plurality_data = content_basis.pluralityData().combinedPlurality()
 
-        # Throw out the plurality nodes for elements that should be
-        # inherited from a superclass, which are those for which the
-        # plurality data matches that of a parent class.  Ensure names
-        # associated with those superclass instances are marked as
-        # reserved.
-        if inherits_from_base:
-            for (name, (is_plural, types)) in plurality_data.items():
-                superclass_info = base_type.__elementFields.get(name, None)
-                if superclass_info is not None:
-                    ( superclass_is_plural, superclass_types, superclass_ef_map ) = superclass_info
-                    # Not checking plurality: should only matter with
-                    # restriction, and there it should be compatible
-                    # if the schema is valid.
-                    if TypeSetCompatible(types, superclass_types):
-                        definitions.append(templates.replaceInText('# Element %{field_tag} inherits from parent %{superclasses} as %{python_field_name}', superclasses=template_map['superclasses'], **superclass_ef_map))
-                        del plurality_data[name]
-                        class_unique.add(superclass_ef_map['python_field_name'])
-                        class_unique.add(superclass_ef_map['field_inspector'])
-                        class_unique.add(superclass_ef_map['field_mutator'])
-                        class_unique.add(superclass_ef_map['field_name'])
-                        class_unique.add(superclass_ef_map['value_field_name'])
-                        ctd.__elementFields[name] = superclass_info
-                    else:
-                        if (ctd.DM_restriction == ctd.derivationMethod()):
-                            raise pyxb.IncompleteImplementationError('Restriction invalid or re-use incomplete')
-                        definitions.append(templates.replaceInText('''
-# Element %{field_tag} will override parent %{superclasses} field %{python_field_name}
-# due to content model differences:
-# plural %{plural} vs %{sc_plural}
-# types %{types} vs %{sc_types}
-''', plural=str(is_plural), sc_plural=str(superclass_is_plural),
-   types=' '.join([ _t.name() for _t in types]),
-   sc_types=' '.join([ _t.name() for _t in superclass_types]),
-   superclasses=template_map['superclasses'], **superclass_ef_map))
+        outf.postscript().append("\n\n")
+        for (ed, is_plural) in plurality_data.items():
+            # @todo Detect and account for plurality change between this and base
+            ef_map = ed._templateMap()
+            if ed.scope() == ctd:
+                ef_map.update(elementDeclarationMap(ed, binding_module, **kw))
+                aux_init = []
+                ef_map['is_plural'] = repr(is_plural)
+                element_uses.append(templates.replaceInText('%{use}.name() : %{use}', **ef_map))
+                if 0 == len(aux_init):
+                    ef_map['aux_init'] = ''
+                else:
+                    ef_map['aux_init'] = ', ' + ', '.join(aux_init)
+                ef_map['element_binding'] = utility.PrepareIdentifier('%s_elt' % (ef_map['id'],), class_unique, class_keywords, private=True)
+                if ed.annotation() is not None:
+                    ef_map['documentation'] = binding_module.literal(unicode(ed.annotation()))
+                else:
+                    ef_map['documentation'] = binding_module.literal(None)
+            if ed.scope() != ctd:
+                definitions.append(templates.replaceInText('''
+    # Element %{id} (%{name}) inherited from %{decl_type_en}''', decl_type_en=unicode(ed.scope().expandedName()), **ef_map))
+                continue
 
-        PostscriptItems.append("\n\n")
-        for (name, (is_plural, types)) in plurality_data.items():
-            # If this name exists as an element in the parent class,
-            # and the plurality data is identical, then inherit the
-            # element infrastructure from the parent
-            
-            ef_map = { }
-            aux_init = []
-            used_field_name = utility.PrepareIdentifier(name, class_unique, class_keywords)
-            element_name_map[name] = used_field_name
-
-            ef_map['python_field_name'] = used_field_name
-            ef_map['field_inspector'] = used_field_name
-            ef_map['field_mutator'] = utility.PrepareIdentifier('set' + used_field_name[0].upper() + used_field_name[1:], class_unique, class_keywords)
-            ef_map['field_name'] = utility.PrepareIdentifier(name, class_unique, class_keywords, private=True)
-            ef_map['value_field_name'] = utility.PrepareIdentifier('%s_%s' % (template_map['ctd'], name), class_unique, class_keywords, private=True)
-            ef_map['is_plural'] = repr(is_plural)
-            ef_map['field_tag'] = pythonLiteral(name, **kw)
-            ef_map['element_ref'] = ' '.join([ object.__str__(_t) for _t in types ])
-            element_uses.append(templates.replaceInText('%{field_tag} : %{field_name}', **ef_map))
-            datatype_items.append("%s : [ %s ]" % (ef_map['field_tag'], ','.join(pythonLiteral(types, **kw))))
-            if 0 == len(aux_init):
-                ef_map['aux_init'] = ''
-            else:
-                ef_map['aux_init'] = ', ' + ', '.join(aux_init)
-
-            ctd.__elementFields[name] = ( is_plural, types, ef_map )
+            if ed.expandedName().localName() != ef_map['id']:
+                print 'Element %s.%s renamed to %s' % (ctd.expandedName(), ed.expandedName(), ef_map['id'])
             definitions.append(templates.replaceInText('''
-    # Element %{field_tag} uses Python identifier %{python_field_name}
-    %{field_name} = pyxb.binding.content.ElementUse(%{field_tag}, '%{python_field_name}', '%{value_field_name}', %{is_plural}%{aux_init})
-    def %{field_inspector} (self):
-        """Get the value of the %{field_tag} element."""
-        return self.%{field_name}.value(self)
-    def %{field_mutator} (self, new_value):
-        """Set the value of the %{field_tag} element.  Raises BadValueTypeException
-        if the new value is not consistent with the element's type."""
-        return self.%{field_name}.setValue(self, new_value)''', **ef_map))
+    # Element %{name} uses Python identifier %{id}
+    %{use} = pyxb.binding.content.ElementUse(%{name_expr}, '%{id}', '%{key}', %{is_plural}%{aux_init})
+''', **ef_map))
 
-        #print 'Building FA for %s' % (ctd.name(),)
+            if basis.BINDING_STYLE_ACCESSOR == generator.bindingStyle():
+                definitions.append(templates.replaceInText('''
+    def %{inspector} (self):
+        """Get the value of the %{name} element."""
+        return self.%{use}.value(self)
+    def %{mutator} (self, new_value):
+        """Set the value of the %{name} element.  Raises BadValueTypeException
+        if the new value is not consistent with the element's type."""
+        return self.%{use}.set(self, new_value)''', **ef_map))
+                if is_plural:
+                    definitions.append(templates.replaceInText('''
+    def %{appender} (self, new_value):
+        """Add the value as another occurrence of the %{name} element.  Raises
+        BadValueTypeException if the new value is not consistent with the
+        element's type."""
+        return self.%{use}.append(self, new_value)''', **ef_map))
+            elif basis.BINDING_STYLE_PROPERTY == generator.bindingStyle():
+                definitions.append(templates.replaceInText('''
+    %{inspector} = property(%{use}.value, %{use}.set, None, %{documentation})
+''', **ef_map))
+            else:
+                raise pyxb.LogicError('Unexpected binding style %s' % (generator.bindingStyle(),))
+            outf.postscript().append(templates.replaceInText('''
+%{ctd}._AddElement(pyxb.binding.basis.element(%{name_expr}, %{typeDefinition}%{element_aux_init}))
+''', ctd=template_map['ctd'], **ef_map))
+
         fa = nfa.Thompson(content_basis).nfa()
-        #print "Non-deterministic FA for %s:\n%s\n\n" % (ctd.name(), fa)
         fa = fa.buildDFA()
-        #print "Minimized deterministic FA for %s:\n%s\n\n" % (ctd.name(), fa)
-        (cmi, cmi_defn) = GenerateContentModel(ctd=ctd, automaton=fa, **kw)
-        PostscriptItems.append("\n".join(cmi_defn))
-        PostscriptItems.append("\n")
+        (cmi, cmi_defn) = GenerateContentModel(ctd=ctd, automaton=fa, binding_module=binding_module, **kw)
+        outf.postscript().append("\n".join(cmi_defn))
+        outf.postscript().append("\n")
 
     if need_content:
         PostscriptItems.append(templates.replaceInText('''
 %{ctd}._Content = %{particle}
 ''', **template_map))
         
-
-    PostscriptItems.append('''
-%s._UpdateElementDatatypes({
-    %s
-})
-''' % (template_map['ctd'], ",\n    ".join(datatype_items)))
-
-
     # Create definitions for all attributes.
-    attribute_name_map = { }
     attribute_uses = []
-    ctd.__attributeFields = { }
 
-    if inherits_from_base:
-        element_attribute_uses = set()
-        for au in ctd.attributeUses():
-            inherit_attribute = False
-            ad = au.attributeDeclaration()
-            name = ad.name()
-            superclass_info = base_type.__attributeFields.get(name, None)
-            if superclass_info is not None:
-                this_config = ( au.required(), au.prohibited(), au.attributeDeclaration() )
-                ( superclass_config, superclass_au_map ) = superclass_info
-                if this_config == superclass_config:
-                    definitions.append(templates.replaceInText('# Attribute %{attr_tag} inherits from parent %{superclasses} as %{python_attr_name}', superclasses=template_map['superclasses'], **superclass_au_map))
-                    class_unique.add(superclass_au_map['python_attr_name'])
-                    class_unique.add(superclass_au_map['attr_inspector'])
-                    class_unique.add(superclass_au_map['attr_mutator'])
-                    class_unique.add(superclass_au_map['attr_name'])
-                    class_unique.add(superclass_au_map['value_attr_name'])
-                    ctd.__attributeFields[name] = superclass_info
-                    inherit_attribute = True
-                else:
-                    definitions.append(templates.replaceInText('# Attribute %{attr_tag} will override parent %{superclasses} field %{python_attr_name} due to use or declaration differences', superclasses=template_map['superclasses'], **superclass_au_map))
-            if not inherit_attribute:
-                element_attribute_uses.add(au)
-    else:
-        element_attribute_uses = set(ctd.attributeUses())
-
-    for au in element_attribute_uses:
+    # name - String value of expanded name of the attribute (attr_tag, attr_ns)
+    # name_expr - Python expression for an expanded name identifying the attribute (attr_tag)
+    # use - Binding variable name holding AttributeUse instance (attr_name)
+    # id - Python identifier for attribute (python_attr_name)
+    # key - String used as dictionary key holding instance value of attribute (value_attr_name)
+    # inspector - Name of the method used for inspection (attr_inspector)
+    # mutator - Name of the method use for mutation (attr_mutator)
+    for au in ctd.attributeUses():
         ad = au.attributeDeclaration()
-        au_map = { }
-        attr_name = ad.name()
-        used_attr_name = utility.PrepareIdentifier(attr_name, class_unique, class_keywords)
-        attribute_name_map[attr_name] = used_attr_name
-        au_map['python_attr_name'] = used_attr_name
-        au_map['attr_inspector'] = used_attr_name
-        au_map['attr_mutator'] = utility.PrepareIdentifier('set' + used_attr_name[0].upper() + used_attr_name[1:], class_unique, class_keywords)
-        au_map['attr_name'] = utility.PrepareIdentifier(attr_name, class_unique, class_keywords, private=True)
-        au_map['value_attr_name'] = utility.PrepareIdentifier('%s_%s' % (template_map['ctd'], attr_name), class_unique, class_keywords, private=True)
-        au_map['attr_tag'] = pythonLiteral(attr_name, **kw)
-        assert ad.typeDefinition() is not None
-        au_map['attr_type'] = pythonLiteral(ad.typeDefinition(), **kw)
-        au_map['constraint_value'] = pythonLiteral(None, **kw)
-        au_map['attr_ns'] = pythonLiteral(ad.targetNamespace(), **kw)
-        vc_source = ad
-        if au.valueConstraint() is not None:
-            vc_source = au
-        aux_init = []
-        if vc_source.fixed() is not None:
-            aux_init.append('fixed=True')
-            aux_init.append('unicode_default=%s' % (pythonLiteral(vc_source.fixed(), **kw),))
-        elif vc_source.default() is not None:
-            aux_init.append('unicode_default=%s' % (pythonLiteral(vc_source.default(), **kw),))
-        if au.required():
-            aux_init.append('required=True')
-        if au.prohibited():
-            aux_init.append('prohibited=True')
-        if 0 == len(aux_init):
-            au_map['aux_init'] = ''
-        else:
-            aux_init.insert(0, '')
-            au_map['aux_init'] = ', '.join(aux_init)
-        ctd.__attributeFields[attr_name] = ( ( au.required(), au.prohibited(), au.attributeDeclaration() ), au_map )
-        attribute_uses.append(templates.replaceInText('%{attr_tag} : %{attr_name}', **au_map))
+        assert isinstance(ad.scope(), xs.structures.ComplexTypeDefinition), 'unexpected scope %s' % (ad.scope(),)
+        au_map = ad._templateMap()
+        if ad.scope() == ctd:
+            assert isinstance(au_map, dict)
+            if au.restrictionOf() is not None:
+                #print 'Local %s restriction of %s' % (au_map, au.restrictionOf().attributeDeclaration()._templateMap())
+                au_map = au.restrictionOf().attributeDeclaration()._templateMap().copy()
+                definitions.append(templates.replaceInText('''
+    # Attribute %{id} is restricted from parent''', **au_map))
+
+            assert ad.typeDefinition() is not None
+            au_map['attr_type'] = binding_module.literal(ad.typeDefinition(), **kw)
+                            
+            vc_source = ad
+            if au.valueConstraint() is not None:
+                vc_source = au
+            aux_init = []
+            if vc_source.fixed() is not None:
+                aux_init.append('fixed=True')
+                aux_init.append('unicode_default=%s' % (binding_module.literal(vc_source.fixed(), **kw),))
+            elif vc_source.default() is not None:
+                aux_init.append('unicode_default=%s' % (binding_module.literal(vc_source.default(), **kw),))
+            if au.required():
+                aux_init.append('required=True')
+            if au.prohibited():
+                aux_init.append('prohibited=True')
+            if 0 == len(aux_init):
+                au_map['aux_init'] = ''
+            else:
+                aux_init.insert(0, '')
+                au_map['aux_init'] = ', '.join(aux_init)
+            if ad.annotation() is not None:
+                au_map['documentation'] = binding_module.literal(unicode(ad.annotation()))
+            else:
+                au_map['documentation'] = binding_module.literal(None)
+        if ad.scope() != ctd:
+            definitions.append(templates.replaceInText('''
+    # Attribute %{id} inherited from %{decl_type_en}''', decl_type_en=unicode(ad.scope().expandedName()), **au_map))
+            continue
+
+        attribute_uses.append(templates.replaceInText('%{use}.name() : %{use}', **au_map))
+        if ad.expandedName().localName() != au_map['id']:
+            print 'Attribute %s.%s renamed to %s' % (ctd.expandedName(), ad.expandedName(), au_map['id'])
         definitions.append(templates.replaceInText('''
-    # Attribute %{attr_tag} from %{attr_ns} uses Python identifier %{python_attr_name}
-    %{attr_name} = pyxb.binding.content.AttributeUse(%{attr_tag}, '%{python_attr_name}', '%{value_attr_name}', %{attr_type}%{aux_init})
-    def %{attr_inspector} (self):
-        """Get the value of the %{attr_tag} attribute."""
-        return self.%{attr_name}.value(self)
-    def %{attr_mutator} (self, new_value):
-        """Set the value of the %{attr_tag} attribute.  Raises BadValueTypeException
+    # Attribute %{name} uses Python identifier %{id}
+    %{use} = pyxb.binding.content.AttributeUse(%{name_expr}, '%{id}', '%{key}', %{attr_type}%{aux_init})''', **au_map))
+        if au.prohibited():
+            if basis.BINDING_STYLE_ACCESSOR == generator.bindingStyle():
+                definitions.append(templates.replaceInText('''
+    # Attribute %{id} marked prohibited in this type
+    def %{inspector} (self):
+        raise pyxb.ProhibitedAttributeError("Attribute %{name} is prohibited in %{ctd}")
+    def %{mutator} (self, new_value):
+        raise pyxb.ProhibitedAttributeError("Attribute %{name} is prohibited in %{ctd}")
+''', ctd=template_map['ctd'], **au_map))
+            elif basis.BINDING_STYLE_PROPERTY == generator.bindingStyle():
+                definitions.append(templates.replaceInText('''
+    %{inspector} = property()
+''', ctd=template_map['ctd'], **au_map))
+
+            else:
+                raise pyxb.LogicError('Unexpected binding style %s' % (generator.bindingStyle(),))
+        else:
+            if basis.BINDING_STYLE_ACCESSOR == generator.bindingStyle():
+                definitions.append(templates.replaceInText('''
+    def %{inspector} (self):
+        """Get the attribute value for %{name}."""
+        return self.%{use}.value(self)
+    def %{mutator} (self, new_value):
+        """Set the attribute value for %{name}.  Raises BadValueTypeException
         if the new value is not consistent with the attribute's type."""
-        return self.%{attr_name}.setValue(self, new_value)''', **au_map))
+        return self.%{use}.set(self, new_value)''', **au_map))
+            elif basis.BINDING_STYLE_PROPERTY == generator.bindingStyle():
+                definitions.append(templates.replaceInText('''
+    %{inspector} = property(%{use}.value, %{use}.set, None, %{documentation})
+''', ctd=template_map['ctd'], **au_map))
+            else:
+                raise pyxb.LogicError('Unexpected binding style %s' % (generator.bindingStyle(),))
 
     if ctd.attributeWildcard() is not None:
-        definitions.append('_AttributeWildcard = %s' % (pythonLiteral(ctd.attributeWildcard(), **kw),))
+        definitions.append('_AttributeWildcard = %s' % (binding_module.literal(ctd.attributeWildcard(), **kw),))
     if ctd.hasWildcardElement():
         definitions.append('_HasWildcardElement = True')
     template_map['attribute_uses'] = ",\n        ".join(attribute_uses)
     template_map['element_uses'] = ",\n        ".join(element_uses)
     if inherits_from_base:
         map_decl = '''
-    _ElementMap = %{superclasses}._ElementMap.copy()
+    _ElementMap = %{superclass}._ElementMap.copy()
     _ElementMap.update({
         %{element_uses}
     })
-    _AttributeMap = %{superclasses}._AttributeMap.copy()
+    _AttributeMap = %{superclass}._AttributeMap.copy()
     _AttributeMap.update({
         %{attribute_uses}
     })'''
@@ -843,288 +821,1589 @@ class %{ctd} (%{superclasses}):
         %{attribute_uses}
     }'''
 
+    template_map['registration'] = ''
+    if ctd.name() is not None:
+        template_map['registration'] = templates.replaceInText("%{namespaceReference}.addCategoryObject('typeBinding', %{localName}, %{ctd})",
+                                                               localName=binding_module.literal(ctd.name(), **kw), **template_map)
+    
     template = ''.join([prolog_template,
                "    ", "\n    ".join(definitions), "\n",
-               map_decl, "\n\n" ])
+               map_decl, '''
+%{registration}
 
-    return templates.replaceInText(template, **template_map)
+'''])
 
-ElementClassMap = { }
+    outf.write(template, **template_map)
 
-def GenerateED (ed, **kw):
-    global ElementClassMap
+def GenerateED (ed, generator, **kw):
     # Unscoped declarations should never be referenced in the binding.
-    if ed.scope() is None:
-        return ''
-    outf = StringIO.StringIO()
-    template_map = { }
-    template_map['class'] = pythonLiteral(ed, **kw)
-    template_map['element_name'] = pythonLiteral(ed.name(), **kw)
-    if (ed.SCOPE_global == ed.scope()):
-        template_map['element_scope'] = pythonLiteral(None, **kw)
-        template_map['map_update'] = templates.replaceInText('ElementToBindingMap[%{element_name}] = %{class}', **template_map)
+    assert ed._scopeIsGlobal()
+
+    binding_module = generator.moduleForComponent(ed)
+    outf = binding_module.bindingIO()
+
+    template_map = elementDeclarationMap(ed, binding_module, **kw)
+    template_map.setdefault('scope', binding_module.literal(None, **kw))
+    template_map.setdefault('map_update', '')
+
+    outf.write(templates.replaceInText('''
+%{class} = pyxb.binding.basis.element(%{name_expr}, %{typeDefinition}%{element_aux_init})
+%{namespaceReference}.addCategoryObject('elementBinding', %{class}.name().localName(), %{class})
+''', **template_map))
+
+    if ed.substitutionGroupAffiliation() is not None:
+        outf.postscript().append(templates.replaceInText('''
+%{class}._setSubstitutionGroup(%{substitution_group})
+''', **template_map))
+
+def _PrepareSimpleTypeDefinition (std, generator, nsm, module_context):
+    ptd = std.primitiveTypeDefinition(throw_if_absent=False)
+    std._templateMap()['_unique'] = nsm.uniqueInClass(std)
+    if (ptd is not None) and ptd.hasPythonSupport():
+        # Only generate enumeration constants for named simple
+        # type definitions that are fundamentally xsd:string
+        # values.
+        if issubclass(ptd.pythonSupport(), pyxb.binding.datatypes.string):
+            enum_facet = std.facets().get(pyxb.binding.facets.CF_enumeration, None)
+            if (enum_facet is not None) and (std.expandedName() is not None):
+                for ei in enum_facet.items():
+                    assert ei.tag() is None, '%s already has a tag' % (ei,)
+                    ei._setTag(utility.PrepareIdentifier(ei.unicodeValue(), nsm.uniqueInClass(std)))
+                    #print ' Enum %s represents %s' % (ei.tag(), ei.unicodeValue())
+            #print '%s unique: %s' % (std.expandedName(), nsm.uniqueInClass(std))
+
+def _PrepareComplexTypeDefinition (ctd, generator, nsm, module_context):
+    #print '%s represents %s in %s' % (ctd.nameInBinding(), ctd.expandedName(), nsm.namespace())
+    content_basis = None
+    content_type_tag = ctd._contentTypeTag()
+    if (ctd.CT_SIMPLE == content_type_tag):
+        content_basis = ctd.contentType()[1]
+        #template_map['simple_base_type'] = binding_module.literal(content_basis, **kw)
+    elif (ctd.CT_MIXED == content_type_tag):
+        content_basis = ctd.contentType()[1]
+    elif (ctd.CT_ELEMENT_ONLY == content_type_tag):
+        content_basis = ctd.contentType()[1]
+    kw = { 'binding_module' : module_context }
+    if isinstance(content_basis, xs.structures.Particle):
+        plurality_map = content_basis.pluralityData().combinedPlurality()
     else:
-        template_map['element_scope'] = pythonLiteral(ed.scope(), **kw)
-        template_map['map_update'] = ''
-    template_map['base_datatype'] = pythonLiteral(ed.typeDefinition(), **kw)
-    outf.write(templates.replaceInText('''
-# ElementDeclaration
-class %{class} (pyxb.binding.basis.element):
-    # The name of this element within the schema
-    _XsdName = %{element_name}
-    # Reference to the namespace to which the type belongs
-    _Namespace = Namespace
-    _ElementScope = %{element_scope}
-    _TypeDefinition = %{base_datatype}
-%{map_update}
-''', **template_map))
-    ElementClassMap.setdefault(ed.name(), []).append(template_map['class'])
+        plurality_map = {}
+    ctd._templateMap()['_unique'] = nsm.uniqueInClass(ctd)
+    for cd in ctd.localScopedDeclarations():
+        _SetNameWithAccessors(cd, ctd, plurality_map.get(cd, False), module_context, nsm, kw)
 
-    return outf.getvalue()
+def _SetNameWithAccessors (component, container, is_plural, binding_module, nsm, kw):
+    use_map = component._templateMap()
+    class_unique = nsm.uniqueInClass(container)
+    assert isinstance(component, xs.structures._ScopedDeclaration_mixin)
+    unique_name = utility.PrepareIdentifier(component.expandedName().localName(), class_unique)
+    use_map['id'] = unique_name
+    use_map['inspector'] = unique_name
+    use_map['mutator'] = utility.PrepareIdentifier('set' + unique_name[0].upper() + unique_name[1:], class_unique)
+    use_map['use'] = utility.MakeUnique('__' + unique_name.strip('_'), class_unique)
+    assert component._scope() == container
+    assert component.nameInBinding() is None, 'Use %s but binding name %s for %s' % (use_map['use'], component.nameInBinding(), component.expandedName())
+    component.setNameInBinding(use_map['use'])
+    key_name = '%s_%s_%s' % (str(nsm.namespace()), container.nameInBinding(), component.expandedName())
+    use_map['key'] = utility.PrepareIdentifier(key_name, class_unique, private=True)
+    use_map['name'] = unicode(component.expandedName())
+    use_map['name_expr'] = binding_module.literal(component.expandedName(), **kw)
+    if isinstance(component, xs.structures.ElementDeclaration) and is_plural:
+        use_map['appender'] = utility.PrepareIdentifier('add' + unique_name[0].upper() + unique_name[1:], class_unique)
+    return use_map
 
-def GenerateMG (mg, **kw):
-    outf = StringIO.StringIO()
-    template_map = { }
-    template_map['model_group'] = pythonLiteral(mg, **kw)
+class BindingIO (object):
+    __prolog = None
+    __postscript = None
+    __templateMap = None
+    __stringIO = None
+    __bindingFilePath = None
+    __bindingFile = None
 
-    # My this gets ugly.  What we're doing here is looking at all
-    # elements that can appear immediately in the XML at this group;
-    # i.e., the top level elements in this model group and any
-    # contained model groups.  We're figuring out what unique element
-    # tags might appear.  For each tag, we're looking at the occurence
-    # ranges and types of the elements it might represent.  We're
-    # gonna spit all that out as a comment near the model group
-    # declaration.
-    #
-    # @todo Handle the obscure case where the same tag is used for two
-    # distinct elements both of which can appear.  This might happen
-    # with a sequence of sequences, for example, and results in the
-    # wrong occurence counts.  NB: This can't be handled at this
-    # level; needs to be done within the element.
-    #
-    # @todo Gotta handle wildcards in here too.
+    def __init__ (self, binding_module, **kw):
+        super(BindingIO, self).__init__()
+        self.__bindingModule = binding_module
+        self.__bindingFilePath = kw['binding_file_path']
+        self.__bindingFile = kw['binding_file']
+        self.__prolog = []
+        self.__postscript = []
+        self.__templateMap = kw.copy()
+        self.__templateMap.update({ 'date' : str(datetime.datetime.now()),
+                                    'filePath' : self.__bindingFilePath,
+                                    'binding_module' : binding_module,
+                                    'pyxbVersion' : pyxb.__version__ })
+        self.__stringIO = StringIO.StringIO()
 
-    field_names = { }
-    for e in mg.elementDeclarations():
-        if e.scope() is None:
-            return ''
-        assert e.isResolved()
-        field_names.setdefault(e.name(), []).append(e)
-    field_decls = []
-    for fn in field_names.keys():
-        decl = []
-        may_be_plural = False
-        field_type = None
-        min_occurs = None
-        max_occurs = -1
-        for f in field_names.get(fn):
-            if field_type is None:
-                field_type = f.typeDefinition()
-            if field_type == f.typeDefinition():
-                # Nothing technically wrong with this, though it might
-                # confuse the user.
-                pass
-            if isinstance(f.owner(), xs.structures.Particle):
-                p = f.owner()
-                may_be_plural = may_be_plural or p.isPlural()
-                if min_occurs is None:
-                    min_occurs = p.minOccurs()
-                elif p.minOccurs() < min_occurs:
-                    min_occurs = p.minOccurs()
-                if p.maxOccurs() is None:
-                    max_occurs = None
-                elif (max_occurs is not None) and (p.maxOccurs() > max_occurs):
-                    max_occurs = p.maxOccurs()
-            if f.ancestorComponent() is not None:
-                assert isinstance(f.ancestorComponent(), xs.structures.ModelGroup)
-                mgd = f.ancestorComponent().modelGroupDefinition()
-                if mgd is not None:
-                    decl.append("%s:%s from group %s" % (fn, pythonLiteral(f.typeDefinition(), **kw), mgd.name()))
-                else:
-                    decl.append("%s:%s from unnamed group" % (fn, pythonLiteral(f.typeDefinition(), **kw)))
-            else:
-                decl.append("%s:%s from orphan %s" % (fn, pythonLiteral(f.typeDefinition(), **kw), f))
-        if min_occurs is None:
-            min_occurs = 1
-        min_occurs = int(min_occurs)
-        if max_occurs is None:
-            max_occurs = '*'
-        elif -1 == max_occurs:
-            max_occurs = 1
-        else:
-            max_occurs = int(max_occurs)
-        field_decls.append("# + %s %s [%d..%s]" % (fn, pythonLiteral(f.typeDefinition(), **kw), min_occurs, max_occurs))
-        if decl:
-            field_decls.append("#  - " + "\n#  - ".join(decl))
-    template_map['field_descr'] = "\n".join(field_decls)
+    def bindingFile (self):
+        return self.__bindingFile
 
-    outf.write(templates.replaceInText('''
-# %{model_group} top level elements:
-%{field_descr}
-%{model_group} = pyxb.binding.content.ModelGroup()
-''', **template_map))
-    template_map['compositor'] = 'pyxb.binding.content.ModelGroup.C_%s' % (mg.compositorToString().upper(),)
-    template_map['particles'] = ','.join( [ pythonLiteral(_p, **kw) for _p in mg.particles() ])
-    PostscriptItems.append(templates.replaceInText('''
-%{model_group}._setContent(%{compositor}, [ %{particles} ])
-''', **template_map))
-    return outf.getvalue()
+    def expand (self, template, **kw):
+        tm = self.__templateMap.copy()
+        tm.update(kw)
+        return templates.replaceInText(template, **tm)
 
-GeneratorMap = {
-    xs.structures.SimpleTypeDefinition : GenerateSTD
-  , xs.structures.ElementDeclaration : GenerateED
-  , xs.structures.ComplexTypeDefinition : GenerateCTD
-  , xs.structures.ModelGroup : GenerateMG
-}
+    def write (self, template, **kw):
+        txt = self.expand(template, **kw)
+        self.__stringIO.write(txt)
 
-def GeneratePython (**kw):
-    global UniqueInBinding
-    global PostscriptItems
-    global ElementClassMap
-    UniqueInBinding.clear()
-    PostscriptItems = []
-    ElementClassMap.clear()
-    try:
-        schema = kw.get('schema', None)
-        schema_file = kw.get('schema_file', None)
-        if schema is None:
-            if schema_file is None:
-                raise Exception('No input provided')
-            schema = xs.schema.CreateFromDOM(domutils.StringToDOM(file(schema_file).read()))
-        if schema_file is None:
-            schema_file = '<not provided>'
+    def bindingModule (self):
+        return self.__bindingModule
+    __bindingModule = None
 
-        generator_kw = kw.copy()
-        generator_kw['binding_target_namespace'] = schema.targetNamespace()
-        outf = StringIO.StringIO()
+    def prolog (self):
+        return self.__prolog
+    def postscript (self):
+        return self.__postscript
 
-        generate_facets = kw.get('generate_facets', False)
-        if generate_facets:
-            ns = schema.targetNamespace()
-            generator_kw['class_unique'] = set()
-            generator_kw['class_keywords'] = set()
-            stds = [ ]
-            num_unresolved = 0
-            for td in ns.typeDefinitions().values():
-                if isinstance(td, xs.structures.SimpleTypeDefinition):
-                    td._resolve()
-                    stds.append(td)
-                    if not td.isResolved():
-                        num_unresolved += 1
-            while 0 < num_unresolved:
-                num_unresolved = 0
-                for td in stds:
-                    if not td.isResolved():
-                        td._resolve()
-                    if (not td.isResolved()) and td.isBuiltin():
-                        #print 'No resolution for %s' % (td,)
-                        num_unresolved += 1
-            for td in stds:
-                if td.isBuiltin():
-                    assert td.isResolved()
-                    GenerateFacets(outf, td, **generator_kw)
-            return outf.getvalue()
+    def literal (self, *args, **kw):
+        kw.update(self.__templateMap)
+        return pythonLiteral(*args, **kw)
 
-        emit_order = schema.orderedComponents()
+    def contents (self):
+        rv = self.__prolog
+        rv.append(self.__stringIO.getvalue())
+        rv.extend(self.__postscript)
+        return ''.join(rv)
+
+class _ModuleNaming_mixin (object):
+    __anonSTDIndex = None
+    __anonCTDIndex = None
+    __uniqueInModule = None
+    __uniqueInClass = None
+
+    # @todo: provide a way to reset this, for multiple generations in a single run
+    _UniqueInModule = set([ 'pyxb', 'sys' ])
     
-        import_prefix = 'pyxb.xmlschema.'
-        if schema.targetNamespace() == pyxb.namespace.XMLSchema:
-            import_prefix = ''
+    __ComponentBindingModuleMap = {}
 
-        template_map = { }
-        template_map['input'] = schema_file
-        template_map['date'] = str(datetime.datetime.now())
-        template_map['version'] = 'UNSPECIFIED'
-        tns = schema.targetNamespace()
-        if tns is not None:
-            tns = tns.uri()
-        template_map['targetNamespace'] = repr(tns)
-        template_map['import_prefix'] = import_prefix
+    def generator (self):
+        return self.__generator
+    __generator = None
 
-        import_namespaces = set()
-        for ins in schema.importedNamespaces():
-            ns = ins.namespace()
-            if ns == schema.targetNamespace():
-                continue
-            if ns.modulePath() is None:
-                if not ns.isBuiltinNamespace():
-                    print 'WARNING: Dependency on %s with no module path' % (ns.uri(),)
-                continue
-            import_namespaces.add(ns)
-        for ns in schema._namespaceContext().inScopeNamespaces().values():
-            if ns == schema.targetNamespace():
-                continue
-            if ns.modulePath() is None:
-                if not ns.isBuiltinNamespace():
-                    print 'WARNING: Dependency on %s with no module path' % (ns.uri(),)
-                continue
-            print 'Adding due to dependency %s' % (ns,)
-            import_namespaces.add(ns)
-            
-        template_map['aux_imports'] = "\n".join( [ 'import %s' % (_ns.modulePath(),) for _ns in import_namespaces ])
+    def __init__ (self, generator, *args, **kw):
+        super(_ModuleNaming_mixin, self).__init__(*args, **kw)
+        self.__generator = generator
+        assert isinstance(self.__generator, Generator)
+        self.__anonSTDIndex = 1
+        self.__anonCTDIndex = 1
+        self.__components = []
+        self.__componentNameMap = {}
+        self.__uniqueInModule = set()
+        self.__bindingIO = None
+        self.__importedModules = []
+        self.__namespaceDeclarations = []
+        self.__referencedNamespaces = {}
+        self.__uniqueInClass = {}
 
-        if schema.targetNamespace().isAbsentNamespace():
-            template_map['NamespaceDefinition'] = 'pyxb.namespace.CreateAbsentNamespace()'
+    def _importModule (self, module):
+        assert not isinstance(module, pyxb.namespace.Namespace)
+        assert isinstance(module, (_ModuleNaming_mixin, pyxb.namespace.Namespace, pyxb.namespace.archive.ModuleRecord)), 'Unexpected type %s' % (type(module),)
+        if isinstance(module, NamespaceModule) and (pyxb.namespace.XMLSchema == module.namespace()):
+            return
+        if not (module in self.__importedModules):
+            self.__importedModules.append(module)
+
+    def uniqueInClass (self, component):
+        rv = self.__uniqueInClass.get(component)
+        if rv is None:
+            rv = set()
+            if isinstance(component, xs.structures.SimpleTypeDefinition):
+                rv.update(basis.simpleTypeDefinition._ReservedSymbols)
+            else:
+                assert isinstance(component, xs.structures.ComplexTypeDefinition)
+                if component._isHierarchyRoot():
+                    rv.update(basis.complexTypeDefinition._ReservedSymbols)
+                else:
+                    base_td = component.baseTypeDefinition()
+                    base_unique = base_td._templateMap().get('_unique')
+                    assert base_unique is not None, 'Base %s of %s has no unique' % (base_td.expandedName(), component.expandedName())
+                    rv.update(base_unique)
+            self.__uniqueInClass[component] = rv
+        return rv
+
+    __referencedNamespaces = None
+
+    def bindingIO (self):
+        return self.__bindingIO
+
+    __moduleUID = None
+    def moduleUID (self):
+        if self.__moduleUID is None:
+            self.__moduleUID = pyxb.utils.utility.HashForText(self._moduleUID_vx())
+        return self.__moduleUID
+
+    def _moduleUID_vx (self):
+        return str(id(self))
+
+    def moduleContents (self):
+        template_map = {}
+        aux_imports = []
+        for ns in self.__importedModules:
+            if isinstance(ns, NamespaceModule):
+                ns = ns.moduleRecord()
+            module_path = ns.modulePath()
+            assert module_path is not None, 'No module path for %s type %s' % (ns, type(ns))
+            aux_imports.append('import %s' % (module_path,))
+        template_map['aux_imports'] = "\n".join(aux_imports)
+        template_map['namespace_decls'] = "\n".join(self.__namespaceDeclarations)
+        template_map['module_uid'] = self.moduleUID()
+        template_map['generation_uid_expr'] = repr(self.generator().generationUID())
+        self._finalizeModuleContents_vx(template_map)
+        return self.__bindingIO.contents()
+
+    def modulePath (self):
+        return self.__modulePath
+    def _setModulePath (self, path_data):
+        (binding_file_path, binding_file, module_path) = path_data
+        self.__bindingFilePath = binding_file_path
+        self.__bindingFile = binding_file
+        #print 'Set %s binding file %s path %s' % (self, binding_file, binding_file_path)
+        if module_path is None:
+            module_path = self.moduleRecord().modulePath()
+        if module_path is not None:
+            self.__modulePath = module_path
+        kw = self._initialBindingTemplateMap()
+        self.__bindingIO = BindingIO(self, binding_file=binding_file, binding_file_path=binding_file_path, **kw)
+    __modulePath = None
+
+    def bindingFile (self):
+        return self.__bindingFile
+    __bindingFile = None
+    __bindingFilePath = None
+
+    def _initializeUniqueInModule (self, unique_in_module):
+        self.__uniqueInModule = set(unique_in_module)
+
+    def uniqueInModule (self):
+        return self.__uniqueInModule
+
+    @classmethod
+    def BindComponentInModule (cls, component, module):
+        cls.__ComponentBindingModuleMap[component] = module
+        return module
+
+    @classmethod
+    def ComponentBindingModule (cls, component):
+        rv = cls.__ComponentBindingModuleMap.get(component)
+        return cls.__ComponentBindingModuleMap.get(component)
+
+    @classmethod
+    def _RecordModule (cls, module):
+        cls.__RecordModuleMap[module.moduleRecord()] = module
+        return module
+    @classmethod
+    def _ForRecord (cls, module_record):
+        return cls.__RecordModuleMap.get(module_record)
+    __RecordModuleMap = { }
+
+    def _bindComponent (self, component):
+        kw = {}
+        rv = component.bestNCName()
+        if rv is None:
+            if isinstance(component, xs.structures.ComplexTypeDefinition):
+                rv = '_CTD_ANON_%d' % (self.__anonCTDIndex,)
+                self.__anonCTDIndex += 1
+            elif isinstance(component, xs.structures.SimpleTypeDefinition):
+                rv = '_STD_ANON_%d' % (self.__anonSTDIndex,)
+                self.__anonSTDIndex += 1
+            else:
+                assert False
+            kw['protected'] = True
+        rv = utility.PrepareIdentifier(rv, self.__uniqueInModule, kw)
+        assert not component in self.__componentNameMap
+        self.__components.append(component)
+        self.__componentNameMap[component] = rv
+        return rv
+    def nameInModule (self, component):
+        return self.__componentNameMap.get(component)
+
+    def __componentModule (self, component, module_type):
+        assert module_type is None
+        if NamespaceGroupModule == module_type:
+            pass
+        elif NamespaceModule == module_type:
+            pass
         else:
-            template_map['NamespaceDefinition'] = templates.replaceInText('pyxb.namespace.NamespaceForURI(%{targetNamespace}, create_if_missing=True)', **template_map)
+            assert module_type is None
+        return component_module
 
-        outf.write(templates.replaceInText('''# PyWXSB bindings for %{input}
-# Generated %{date} by PyWXSB version %{version}
+    def referenceSchemaComponent (self, component):
+        origin = component._objectOrigin()
+        assert origin is not None
+        module_record = origin.moduleRecord()
+        assert module_record is not None
+        if self.generator().generationUID() != module_record.generationUID():
+            self._importModule(module_record)
+            return '%s.%s' % (module_record.modulePath(), component.nameInBinding())
+        component_module = _ModuleNaming_mixin.ComponentBindingModule(component)
+        assert component_module is not None, 'No binding module for %s from %s in %s as %s' % (component, module_record, self.moduleRecord(), component.nameInBinding())
+        name = component_module.__componentNameMap.get(component)
+        if name is None:
+            assert isinstance(self, NamespaceModule) and (self.namespace() == component.bindingNamespace())
+            name = component.nameInBinding()
+        if self != component_module:
+            self._importModule(component_module)
+            name = '%s.%s' % (component_module.modulePath(), name)
+        return name
+
+    def _referencedNamespaces (self): return self.__referencedNamespaces
+
+    def defineNamespace (self, namespace, name, require_unique=True, definition=None, **kw):
+        rv = self.__referencedNamespaces.get(namespace)
+        assert rv is None, 'Module %s already has reference to %s' % (self, namespace)
+        if require_unique:
+            name = utility.PrepareIdentifier(name, self.__uniqueInModule, **kw)
+        if definition is None:
+            if namespace.isAbsentNamespace():
+                definition = 'pyxb.namespace.CreateAbsentNamespace()'
+            else:
+                definition = 'pyxb.namespace.NamespaceForURI(%s, create_if_missing=True)' % (repr(namespace.uri()),)
+        self.__namespaceDeclarations.append('%s = %s' % (name, definition))
+        self.__namespaceDeclarations.append("%s.configureCategories(['typeBinding', 'elementBinding'])" % (name,))
+        self.__referencedNamespaces[namespace] = name
+        return name
+
+    def referenceNamespace (self, namespace):
+        rv = self.__referencedNamespaces.get(namespace)
+        if rv is None:
+            if namespace.isBuiltinNamespace():
+                rv = namespace.builtinNamespaceRepresentation()
+            elif namespace.isUndeclaredNamespace():
+                rv = namespace.modulePath()
+            elif isinstance(self, NamespaceModule):
+                if (self.namespace() == namespace):
+                    rv = 'Namespace'
+                else:
+                    rv = 'pyxb.namespace.NamespaceForURI(%s)' % (repr(namespace.uri()),)
+                    '''
+                    namespace_module = self.ForNamespace(namespace)
+                    if namespace_module is not None:
+                        self._importModule(namespace_module)
+                        rv = '%s.Namespace' % (namespace_module.modulePath(),)
+                    else:
+                        assert False, 'Unexpected reference to %s' % (namespace,)
+                        #rv = 'pyxb.namespace.NamespaceForURI(%s)' % (repr(namespace.uri()),)
+                    '''
+            else:
+                if namespace.prefix():
+                    nsn = 'Namespace_%s' % (namespace.prefix(),)
+                else:
+                    nsn = 'Namespace'
+                for im in self.__importedModules:
+                    if isinstance(im, NamespaceModule) and (im.namespace() == namespace):
+                        rv = '%s.Namespace' % (im.modulePath(),)
+                        break
+                    if isinstance(im, NamespaceGroupModule):
+                        irv = im.__referencedNamespaces.get(namespace)
+                        if irv is not None:
+                            rv = self.defineNamespace(namespace, nsn, '%s.%s' % (im.modulePath(), irv), protected=True)
+                            break
+                if rv is None:
+                    rv =  self.defineNamespace(namespace, nsn, protected=True)
+                    assert 0 < len(self.__namespaceDeclarations)
+            self.__referencedNamespaces[namespace] = rv
+        return rv
+
+    def literal (self, *args, **kw):
+        return self.__bindingIO.literal(*args, **kw)
+
+    def addImportsFrom (self, module):
+        print 'Importing to %s from %s' % (self, module)
+        self._importModule(module)
+        for c in self.__components:
+            local_name = self.nameInModule(c)
+            assert local_name is not None
+            rem_name = module.nameInModule(c)
+            if rem_name is None:
+                continue
+            aux = ''
+            if local_name != rem_name:
+                aux = ' as %s' % (local_name,)
+            self.__bindingIO.write("from %s import %s%s # %s\n" % (module.modulePath(), rem_name, aux, c.expandedName()))
+
+    def writeToModuleFile (self):
+        if self.bindingFile():
+            self.bindingFile().write(self.moduleContents().encode('utf8'))
+            self.bindingFile().close()
+            print 'Saved binding source to %s' % (self.__bindingFilePath,)
+        else:
+            print 'WARNING: No binding file for %s' % (self,)
+
+
+class NamespaceModule (_ModuleNaming_mixin):
+    """This class represents a Python module that holds all the
+    declarations belonging to a specific namespace."""
+
+    def namespace (self):
+        return self.__namespace
+    __namespace = None
+
+    def moduleRecord (self):
+        return self.__moduleRecord
+    __moduleRecord = None
+
+    def namespaceGroupModule (self):
+        return self.__namespaceGroupModule
+    def setNamespaceGroupModule (self, namespace_group_module):
+        self.__namespaceGroupModule = namespace_group_module
+    __namespaceGroupModule = None
+
+    _UniqueInModule = _ModuleNaming_mixin._UniqueInModule.copy()
+    _UniqueInModule.update([ 'Namespace', 'CreateFromDOM', 'CreateFromDocument' ])
+
+    def namespaceGroupHead (self):
+        return self.__namespaceGroupHead
+    __namespaceGroupHead = None
+    __namespaceGroup = None
+
+    def componentsInNamespace (self):
+        return self.__components
+    __components = None
+
+    @classmethod
+    def ForComponent (cls, component):
+        return cls.__ComponentModuleMap.get(component)
+    __ComponentModuleMap = { }
+
+    def _moduleUID_vx (self):
+        if self.namespace().isAbsentNamespace():
+            return 'Absent'
+        return str(self.namespace())
+
+    def namespaceGroupMulti (self):
+        return 1 < len(self.__namespaceGroup)
+
+    def __init__ (self, generator, module_record, mr_scc, components=None, **kw):
+        super(NamespaceModule, self).__init__(generator, **kw)
+        self._initializeUniqueInModule(self._UniqueInModule)
+        self.__moduleRecord = module_record
+        self.__namespace = self.__moduleRecord.namespace()
+        self.defineNamespace(self.__namespace, 'Namespace', require_unique=False)
+        #print 'NSM Namespace %s module path %s' % (namespace, namespace.modulePath())
+        #self.__namespaceGroup = mr_scc
+        self._RecordModule(self)
+        #self.__namespaceGroupHead = self.ForNamespace(ns_scc[0])
+        self.__components = components
+        # wow! fromkeys actually IS useful!
+        if self.__components is not None:
+            self.__ComponentModuleMap.update(dict.fromkeys(self.__components, self))
+        self.__namespaceBindingNames = {}
+        self.__componentBindingName = {}
+        self._setModulePath(generator.modulePathData(self))
+
+    def _initialBindingTemplateMap (self):
+        kw = { 'moduleType' : 'namespace'
+             , 'targetNamespace' : repr(self.__namespace.uri())
+             , 'namespaceURI' : self.__namespace.uri()
+             , 'namespaceReference' : self.referenceNamespace(self.__namespace)
+             }
+        return kw
+
+    def _finalizeModuleContents_vx (self, template_map):
+        self.bindingIO().prolog().append(self.bindingIO().expand('''# %{filePath}
+# PyXB bindings for NamespaceModule
+# NSM:%{module_uid}
+# Generated %{date} by PyXB version %{pyxbVersion}
+import pyxb
 import pyxb.binding
-import pyxb.exceptions_
+import pyxb.binding.saxer
+import StringIO
+import pyxb.utils.utility
 import pyxb.utils.domutils
 import sys
+
+# Unique identifier for bindings created at the same time
+_GenerationUID = %{generation_uid_expr}
 
 # Import bindings for namespaces imported into schema
 %{aux_imports}
 
-# Make sure there's a registered Namespace instance, and that it knows
-# about this module.
-Namespace = %{NamespaceDefinition}
-Namespace._setModule(sys.modules[__name__])
+%{namespace_decls}
+ModuleRecord = Namespace.lookupModuleRecordByUID(_GenerationUID, create_if_missing=True)
+ModuleRecord._setModule(sys.modules[__name__])
 
-def CreateFromDocument (xml_text):
+def CreateFromDocument (xml_text, default_namespace=None):
     """Parse the given XML and use the document element to create a Python instance."""
-    dom = pyxb.utils.domutils.StringToDOM(xml_text)
-    return CreateFromDOM(dom.documentElement)
+    if pyxb.XMLStyle_saxer != pyxb._XMLStyle:
+        dom = pyxb.utils.domutils.StringToDOM(xml_text)
+        return CreateFromDOM(dom.documentElement)
+    saxer = pyxb.binding.saxer.make_parser(fallback_namespace=Namespace.fallbackNamespace())
+    handler = saxer.getContentHandler()
+    saxer.parse(StringIO.StringIO(xml_text))
+    instance = handler.rootObject()
+    return instance
 
-def CreateFromDOM (node):
+def CreateFromDOM (node, default_namespace=None):
     """Create a Python instance from the given DOM node.
-    The node tag must correspond to an element declaration in this module."""
-    ncname = node.tagName
-    if 0 <= ncname.find(':'):
-        ncname = ncname.split(':', 1)[1]
-    cls = globals().get(ncname, None)
-    if cls is None:
-        raise pyxb.exceptions_.UnrecognizedElementError('No class available for %s' % (ncname,))
-    if not issubclass(cls, pyxb.binding.basis.element):
-        raise pyxb.exceptions_.NotAnElementError('Tag %s does not exist as element in module' % (ncname,))
-    return cls.CreateFromDOM(node)
+    The node tag must correspond to an element declaration in this module.
 
-ElementToBindingMap = { }
+    @deprecated: Forcing use of DOM interface is unnecessary; use L{CreateFromDocument}."""
+    if default_namespace is None:
+        default_namespace = Namespace.fallbackNamespace()
+    return pyxb.binding.basis.element.AnyCreateFromDOM(node, _fallback_namespace=default_namespace)
+
 ''', **template_map))
-    
-        # Give priority for identifiers to scoped element declarations
-        for td in emit_order:
-            if (isinstance(td, xs.structures.ElementDeclaration)) and (td.scope() is not None):
-                _ignored = ReferenceSchemaComponent(td, **generator_kw).asLiteral()
 
-        for td in emit_order:
-            generator = GeneratorMap.get(type(td), None)
-            if generator is None:
+    __components = None
+    __componentBindingName = None
+
+    def bindComponent (self, component):
+        ns_name = self._bindComponent(component)
+        component.setNameInBinding(ns_name)
+        #print 'set name %s in %s' % (ns_name, component)
+        binding_module = self
+        if self.__namespaceGroupModule:
+            self.__namespaceGroupModule._bindComponent(component)
+            binding_module = self.__namespaceGroupModule
+        return _ModuleNaming_mixin.BindComponentInModule(component, binding_module)
+
+    def __str__ (self):
+        return 'NM:%s@%s' % (self.namespace(), self.modulePath())
+
+class NamespaceGroupModule (_ModuleNaming_mixin):
+    """This class represents a Python module that holds all the
+    declarations belonging to a set of namespaces which have
+    interdependencies."""
+
+    def namespaceModules (self):
+        return self.__namespaceModules
+    __namespaceModules = None
+
+    __components = None
+    __componentBindingName = None
+    __uniqueInModule = None
+
+    _UniqueInModule = _ModuleNaming_mixin._UniqueInModule.copy()
+    
+    __UniqueInGroups = set()
+    
+    _GroupPrefix = '_group'
+
+    def __init__ (self, generator, namespace_modules, **kw):
+        super(NamespaceGroupModule, self).__init__(generator, **kw)
+        assert 1 < len(namespace_modules)
+        self.__namespaceModules = namespace_modules
+        self.__namespaceGroupHead = namespace_modules[0].namespaceGroupHead()
+        self._initializeUniqueInModule(self._UniqueInModule)
+        self._setModulePath(generator.modulePathData(self))
+
+    def _initialBindingTemplateMap (self):
+        kw = { 'moduleType' : 'namespaceGroup' }
+        return kw
+
+    def _finalizeModuleContents_vx (self, template_map):
+        text = []
+        for nsm in self.namespaceModules():
+            text.append('#  %s %s' % (nsm.namespace(), nsm.namespace().prefix()))
+        template_map['namespace_comment'] = "\n".join(text)
+        self.bindingIO().prolog().append(self.bindingIO().expand('''# %{filePath}
+# PyXB bindings for NamespaceGroupModule
+# NGM:%{module_uid}
+# Incorporated namespaces:
+%{namespace_comment}
+
+import pyxb
+import pyxb.binding
+import pyxb.utils.utility
+
+# Unique identifier for bindings created at the same time
+_GenerationUID = %{generation_uid_expr}
+
+# Import bindings for schemas in group
+%{aux_imports}
+
+%{namespace_decls}
+''', **template_map))
+
+    def _moduleUID_vx (self):
+        nss = []
+        for nsm in self.namespaceModules():
+            ns = nsm.namespace()
+            if ns.isAbsentNamespace():
+                nss.append('Absent')
+            else:
+                nss.append(str(ns))
+        nss.sort()
+        return ';'.join(nss)
+
+    def __str__ (self):
+        return 'NGM:%s' % (self.modulePath(),)
+
+
+def GeneratePython (schema_location=None,
+                    schema_text=None,
+                    namespace=None,
+                    module_prefix_elts=[],
+                    **kw):
+
+    generator = Generator(allow_absent_module=True, generate_to_files=False, **kw)
+    if schema_location is not None:
+        generator.addSchemaLocation(schema_location)
+    elif schema_text is not None:
+        generator.addSchema(schema_text)
+    modules = generator.bindingModules()
+
+    assert 1 == len(modules), '%s produced %d modules: %s' % (namespace, len(modules), " ".join([ str(_m) for _m in modules]))
+    return modules.pop().moduleContents()
+
+import optparse
+import re
+
+class Generator (object):
+    """Configuration and data for a single binding-generation action."""
+
+    _DEFAULT_bindingRoot = '.'
+    def bindingRoot (self):
+        """The directory path into which generated bindings will be written.
+        @rtype: C{str}"""
+        return self.__bindingRoot
+    def setBindingRoot (self, binding_root):
+        self.__bindingRoot = binding_root
+        return self
+    __bindingRoot = None
+    
+    def __directoryForModulePath (self, module_elts):
+        if isinstance(module_elts, basestring):
+            module_elts = module_elts.split('.')
+        else:
+            module_elts = module_elts[:]
+        assert 0 < len(module_elts)
+        assert not module_elts[-1].endswith('.py')
+        module_elts[-1] = '%s.py' % (module_elts[-1],)
+        return os.path.join(self.bindingRoot(), *module_elts)
+
+    def generateToFiles (self):
+        return self.__generateToFiles
+    __generateToFiles = None
+
+    def modulePathData (self, module):
+        # file system path to where the bindings are written
+        # module path from which the bindings are normally imported
+        # file object into which bindings are written
+        
+        module_path = None
+        if isinstance(module, NamespaceModule):
+            mr = module.moduleRecord()
+            if mr is None:
+                return ('/dev/null', None, None)
+            if self.generationUID() != mr.generationUID():
+                return ('/dev/null', None, None)
+            if not self.generateToFiles():
+                return ('/dev/null', None, None)
+            if mr.namespace().isBuiltinNamespace() and (not self.allowBuiltinGeneration()):
+                return ('/dev/null', None, None)
+            module_path = mr.modulePath()
+            assert module_path is not None, 'No path specified for module %s' % (mr,)
+            #if pyxb.namespace.XMLSchema != ns:
+            #    return ('/dev/null', None, None)
+            #module_path="bogus.xsd"
+            module_elts = module_path.split('.')
+            import_file_path = self.__directoryForModulePath(module_elts)
+            if self.writeForCustomization():
+                module_elts.insert(-1, 'raw')
+            if self.writeForCustomization() and (not os.path.exists(import_file_path)):
+                raw_module_path = '.'.join(module_elts)
+                pyxb.utils.utility.OpenOrCreate(import_file_path).write("from %s import *\n" % (raw_module_path,))
+            binding_file_path = self.__directoryForModulePath(module_elts)
+            try:
+                binding_file = pyxb.utils.utility.OpenOrCreate(binding_file_path, tag=module.moduleUID())
+            except OSError, e:
+                if errno.EEXIST == e.errno:
+                    raise pyxb.BindingGenerationError('Target file %s for module %s bindings exists with other content' % (binding_file_path, mr))
+                raise
+        elif isinstance(module, NamespaceGroupModule):
+            if not self.generateToFiles():
+                raise pyxb.BindingGenerationError('Generation of namespace groups requires generate-to-files')
+            module_elts = []
+            if self.modulePrefix():
+                module_elts.extend(self.modulePrefix().split('.'))
+            if self.writeForCustomization():
+                module_elts.append('raw')
+            in_use = set()
+            while True:
+                module_elts.append(pyxb.utils.utility.PrepareIdentifier('nsgroup', in_use, protected=True))
+                try:
+                    binding_file_path = self.__directoryForModulePath(module_elts)
+                    print 'Attempting group at %s' % (binding_file_path,)
+                    binding_file = pyxb.utils.utility.OpenOrCreate(binding_file_path, tag=module.moduleUID())
+                    break
+                except OSError, e:
+                    if errno.EEXIST != e.errno:
+                        raise
+                module_elts.pop()
+            module_path = '.'.join(module_elts)
+        else:
+            assert False
+        if self.generateToFiles():
+            for n in range(len(module_elts)-1):
+                sub_path = os.path.join(*module_elts[:1+n])
+                init_path = os.path.join(sub_path, '__init__.py')
+                if not os.path.exists(init_path):
+                    file(init_path, 'w')
+        return (binding_file_path, binding_file, module_path)
+
+    def schemaRoot (self):
+        """The directory from which entrypoint schemas specified as
+        relative file paths will be read."""
+        return self.__schemaRoot
+    def setSchemaRoot (self, schema_root):
+        if not schema_root.endswith(os.sep):
+            schema_root = schema_root + os.sep
+        self.__schemaRoot = schema_root
+        return self
+    __schemaRoot = None
+
+    def schemaStrippedPrefix (self):
+        """Optional string that is stripped from the beginning of
+        schemaLocation values before loading from them.
+
+        This applies only to the values of schemaLocation attributes
+        in C{import} and C{include} elements.  Its purpose is to
+        convert absolute schema locations into relative ones to allow
+        offline processing when all schema are available in a local
+        directory.  See C{schemaRoot}.
+        """
+        return self.__schemaStrippedPrefix
+    def setSchemaStrippedPrefix (self, schema_stripped_prefix):
+        self.__schemaStrippedPrefix = schema_stripped_prefix
+        return self
+    __schemaStrippedPrefix = None
+
+    def schemaLocationList (self):
+        """A list of locations from which entrypoint schemas are to be
+        read.
+
+        The values in the list are either URIs, or tuples consisting
+        of a value and a callable which, when passed the generator
+        object and the value, will return a
+        L{pyxb.xmlschema.structures.Schema} instance.  See
+        L{addSchemaLocation}.
+        
+        See also L{addSchemaLocation} and L{schemas}.
+        """
+        return self.__schemaLocationList
+    def setSchemaLocationList (self, schema_location_list):
+        self.__schemaLocationList[:] = []
+        self.__schemaLocationList.extend(schema_location_list)
+        return self
+    def addSchemaLocation (self, schema_location, converter=None):
+        """Add the location of an entrypoint schema.
+
+        @param schema_location: The location of the schema.  This
+        should be a URL; if the schema location does not have a URL
+        scheme (e.g., C{http:}), it is assumed to be a file, and if it
+        is not an absolute path is located relative to the
+        C{schemaRoot}.
+
+        @keyword converter: Optional callable that will be invoked
+        with the generator instance and the schema location, and is
+        expected to return a L{pyxb.xmlschema.structures.Schema}
+        instance.  If absent, the contents of the location are
+        converted directly.
+
+        @note: The C{converter} argument derives from WSDL support: we
+        need to add to the sequence of schema locations a URI of
+        something that will not parse as a schema, but does have inner
+        material that can if treated properly.  "Treated properly" may
+        include having the archive path and other namespace
+        manipulations configured before anything is done to it.
+        """
+        self.__schemaLocationList.append( (schema_location, converter) )
+        return self
+    def argAddSchemaLocation (self, schema_location):
+        """Add the location of an entrypoint schema.  The provided
+        value should be a URL; if it does not have a URL scheme (e.g.,
+        C{http:}), it is assumed to be a file, and if it is not an
+        absolute path is located relative to the C{schemaRoot}."""
+        self.addSchemaLocation(schema_location)
+    __schemaLocationList = None
+
+    def schemas (self):
+        """Schema for which bindings should be generated.
+
+        These may be L{Schema<pyxb.xmlschema.structures.Schema>}
+        instances, or strings; the latter is preferred, and is parsed
+        into a Schema instance when required.
+
+        This is the list of entrypoint schemas for binding generation.
+        Values in L{schemaLocationList} are read and converted into
+        schema, then appended to this list.  Values from L{moduleList}
+        are applied starting with the first schema in this list.
+        """
+        return self.__schemas[:]
+    def setSchemas (self, schemas):
+        self.__schemas[:] = []
+        self.__schemas.extend(schemas)
+        return self
+    def addSchema (self, schema):
+        self.__schemas.append(schema)
+        return self
+    __schemas = None
+
+    def namespaces (self):
+        """The set of L{namespaces<pyxb.namespace.Namespace>} for
+        which bindings will be generated.
+
+        This is the set of namespaces read from entrypoint schema,
+        closed under reference to namespaces defined by schema import.
+
+        @rtype: C{set}
+        """
+        return self.__namespaces.copy()
+    def setNamespaces (self, namespace_set):
+        self.__namespaces.clear()
+        self.__namespaces.update(namespace_set)
+        return self
+    def addNamespace (self, namespace):
+        self.__namespaces.add(namespace)
+        return self
+    __namespaces = None
+
+    def moduleList (self):
+        """A list of module names to be applied in order to the namespaces of entrypoint schemas"""
+        return self.__moduleList[:]
+    def _setModuleList (self, module_list):
+        self.__moduleList[:] = []
+        self.__moduleList.extend(module_list)
+        return self
+    
+    def addModuleName (self, module_name):
+        """Add a module name corresponding to an entrypoint schema.
+
+        The namespace defined by the corresponding schema will be
+        written to a binding using the given module name, adjusted by
+        L{modulePrefix}."""
+        self.__moduleList.append(module_name)
+        return self
+    __moduleList = None
+
+    def modulePrefix (self):
+        """The prefix for binding modules.
+
+        The base name for the module holding a binding is taken from
+        the moduleList, moduleMap, or an XMLNS prefix associated with
+        the namespace in a containing schema.  This value, if present,
+        is used as a prefix to allow a deeper module hierarchy."""
+        return self.__modulePrefix
+    def setModulePrefix (self, module_prefix):
+        self.__modulePrefix = module_prefix
+        return self
+    __modulePrefix = None
+
+    def namespaceModuleMap (self):
+        """A map from namespace URIs to the module to be used for the
+        corresponding generated binding.
+
+        Module values are adjusted by L{modulePrefix} if that has been
+        specified.
+
+        An entry in this map for a namespace supersedes the module
+        specified in moduleList if the namespace is defined by an
+        entrypoint schema.
+
+        @return: A reference to the namespace module map.
+        """
+        return self.__namespaceModuleMap
+    __namespaceModuleMap = None
+
+    def archivePath (self):
+        """A colon-separated list of paths from which namespace
+        archives can be read.
+
+        The default path is the contents of the C{PYXB_ARCHIVE_PATH}
+        environment variable, or the standard path configured at
+        installation time.  Any file with the extension C{.wxs} found
+        in one of these directories is examined to see whether it is a
+        namespace archive.
+        """
+        return self.__archivePath
+    def setArchivePath (self, archive_path):
+        self.__archivePath = archive_path
+        return self
+    __archivePath = None
+        
+    def noLoadNamespaces (self):
+        """A frozenset of namespaces that many not be loaded from an archive."""
+        return frozenset(self.__noLoadNamespaces)
+    def _setNoLoadNamespaces (self, namespace_set):
+        """Record the set of namespaces that should not be loaded from an archive.
+
+        The expectation is that any required entities in the namespace
+        will be defined by loading schema."""
+        self.__noLoadNamespaces.clear()
+        self.__noLoadNamespaces.update([ pyxb.namespace.NamespaceInstance(_ns) for _ns in namespace_set ])
+    def addNoLoadNamespace (self, namespace):
+        """Mark that the specified namespace should not be loaded from an archive.
+
+        Use this when you are generating bindings for an application
+        that has a restricted profile of a namespace that would
+        otherwise be read from an archive.  Be aware that this removes
+        any knowledge of any archive in which this namespace is
+        present as a non-private member."""
+        self.__noLoadNamespaces.add(pyxb.namespace.NamespaceInstance(namespace))
+    __noloadNamespaces = None
+
+    def preLoadArchives (self):
+        """A list of paths to archives that should be loaded, in order, prior to parsing schema."""
+        return frozenset(self.__preLoadArchives)
+    def addPreLoadArchive (self, archive_file):
+        """Name of a file containing a stored archive from which
+        namespaces should be read prior to processing schema.
+
+        Files to be pre-loaded are not affected by
+        C{noLoadNamespace}."""
+        self.__preLoadArchives.append(archive_file)
+    def _setPreLoadArchives (self, pre_load_archives):
+        self.__preLoadArchives[:] = pre_load_archives
+        return self
+    __preLoadArchives = None
+
+    def archiveToFile (self):
+        """Optional file into which the archive of namespaces will be written.
+
+        Subsequent generation actions can read pre-parsed namespaces
+        from this file, and therefore reference the bindings that were
+        built earlier rather than re-generating them.
+
+        The file name should normally end with C{.wxs}."""
+        return self.__archiveToFile
+    def setArchiveToFile (self, archive_to_file):
+        self.__archiveToFile = archive_to_file
+        return self
+    __archiveToFile = None
+
+    def setNamespaceVisibility (self, namespace, visibility):
+        namespace = pyxb.namespace.NamespaceInstance(namespace)
+        self.__namespaceVisibilityMap[namespace] = visibility
+        pass
+    def _setNamespaceVisibilities (self, public, private):
+        if public is None:
+            public = set()
+        if private is None:
+            private = set()
+        self.__namespaceVisibilityMap.clear()
+        self.__namespaceVisibilityMap.update(dict.fromkeys(public, True))
+        self.__namespaceVisibilityMap.update(dict.fromkeys(private, False))
+    def namespaceVisibilityMap (self):
+        """Indicates, for specific namespaces, whether their
+        visibility in the archive should be public or private."""
+        return self.__namespaceVisibilityMap.copy()
+    __namespaceVisibilityMap = None
+
+    def defaultNamespacePublic (self):
+        """Indicates whether unmentioned namespaces will be public or private (default) in the archive.
+
+        A namespace is I{mentioned} if it is the target namespace of
+        an entrypoint schema, or appears in a namespace visibility
+        specification.  I.e., this default applies only to namespaces
+        that are modified as a result of including some schema, which
+        is generally a local customization of something.
+        """
+        return self.__defaultNamespacePublic
+    def setDefaultNamespacePublic (self, default_namespace_public):
+        self.__defaultNamespacePublic = default_namespace_public
+    __defaultNamespacePublic = None
+
+    def validateChanges (self):
+        """Indicates whether the bindings should validate mutations
+        against the content model."""
+        return self.__validateChanges
+    def setValidateChanges (self, validate_changes):
+        #raise pyxb.IncompleteImplementationError('No support for disabling validation')
+        self.__validateChanges = validate_changes
+        return self
+    __validateChanges = None
+
+    _DEFAULT_bindingStyle = basis.CURRENT_BINDING_STYLE
+    def bindingStyle (self):
+        """The style of Python used in generated bindings.
+
+        C{accessor} means values are private variables accessed
+        through inspector and mutator methods.
+
+        C{property} means values are private variables accessed
+        through a Python property.
+        """
+        return self.__bindingStyle
+    def setBindingStyle (self, binding_style):
+        raise pyxb.IncompleteImplementationError('No support for binding style configuration')
+        self.__bindingStyle = binding_style
+        return self
+    __bindingStyle = None
+
+    def writeForCustomization (self):
+        """Indicates whether the binding Python code should be written into a sub-module for customization.
+
+        If enabled, a module C{path.to.namespace} will be written to
+        the file C{path/to/raw/namespace.py}, so that the file
+        C{path/to/namespace.py} can import it and override behavior."""
+        return self.__writeForCustomization
+    def setWriteForCustomization (self, write_for_customization):
+        self.__writeForCustomization = write_for_customization
+        return self
+    __writeForCustomization = None
+
+    def allowAbsentModule (self):
+        """Indicates whether the code generator is permitted to
+        process namespace for which no module path can be determined.
+
+        Use this only when generating bindings that will not be
+        referenced by other bindings."""
+        return self.__allowAbsentModule
+    def setAllowAbsentModule (self, allow_absent_module):
+        self.__allowAbsentModule = allow_absent_module
+        return self
+    __allowAbsentModule = None
+
+    def allowBuiltinGeneration (self):
+        """Indicates whether bindings will be written for namespaces that are built-in to PyXB.
+
+        This must be enabled when building bindings for the XML,
+        XMLSchema instance, and other built-in namespaces.  Normally
+        generation of these namespaces is inhibited lest it produce
+        inconsistencies."""
+        return self.__allowBuiltinGeneration
+    def setAllowBuiltinGeneration (self, allow_builtin_generation):
+        self.__allowBuiltinGeneration = allow_builtin_generation
+        return self
+    __allowBuiltinGeneration = None
+
+    def uriContentArchiveDirectory (self):
+        """The directory path into which any content retrieved by URI will be written.
+
+        This serves as a local cache, and to give you an opportunity
+        to inspect material retrieved from some other system.
+        @rtype: C{str}"""
+        return self.__uriContentArchiveDirectory
+    def setUriContentArchiveDirectory (self, ucad):
+        self.__uriContentArchiveDirectory = ucad
+    __uriContentArchiveDirectory = None
+
+    def __init__ (self, *args, **kw):
+        """Create a configuration to be used for generating bindings.
+
+        Arguments are treated as additions to the schema location list
+        after all keywords have been processed.
+
+        @keyword binding_root: Invokes L{setBindingRoot}
+        @keyword schema_root: Invokes L{setSchemaRoot}
+        @keyword schema_stripped_prefix: Invokes L{setSchemaStrippedPrefix}
+        @keyword schema_location_list: Invokes L{setSchemaLocationList}
+        @keyword module_list: Invokes L{_setModuleList}
+        @keyword module_prefix: Invokes L{setModulePrefix}
+        @keyword archive_path: Invokes L{setArchivePath}
+        @keyword no_load_namespaces: Invokes L{_setNoLoadNamespaces}
+        @keyword pre_load_archives: Invokes L{_setPreLoadArchives}
+        @keyword archive_to_file: Invokes L{setArchiveToFile}
+        @keyword public_namespace: Invokes L{setNamespaceVisibility}
+        @keyword private_namespace: Invokes L{setNamespaceVisibility}
+        @keyword default_namespace_public: Invokes L{setDefaultNamespacePublic}
+        @keyword validate_changes: Invokes L{setValidateChanges}
+        @keyword binding_style: Invokes L{setBindingStyle}
+        @keyword namespace_module_map: Initializes L{namespaceModuleMap}
+        @keyword schemas: Invokes L{setSchemas}
+        @keyword namespaces: Invokes L{setNamespaces}
+        @keyword write_for_customization: Invokes L{setWriteForCustomization}
+        @keyword allow_builtin_generation: Invokes L{setAllowBuiltinGeneration}
+        @keyword allow_absent_module: Invokes L{setAllowAbsentModule}
+        @keyword generate_to_files: Sets L{generateToFiles}
+        @keyword uri_content_archive_directory: Invokes L{setUriContentArchiveDirectory}
+        """
+        argv = kw.get('argv', None)
+        if argv is not None:
+            kw = {}
+        self.__bindingRoot = kw.get('binding_root', self._DEFAULT_bindingRoot)
+        self.__schemaRoot = kw.get('schema_root', '.')
+        self.__schemaStrippedPrefix = kw.get('schema_stripped_prefix')
+        self.__schemas = []
+        self.__schemaLocationList = kw.get('schema_location_list', [])[:]
+        self.__moduleList = kw.get('module_list', [])[:]
+        self.__modulePrefix = kw.get('module_prefix')
+        self.__archivePath = kw.get('archive_path', pyxb.namespace.archive.GetArchivePath())
+        self.__noLoadNamespaces = kw.get('no_load_namespaces', set()).copy()
+        self.__preLoadArchives = kw.get('pre_load_archives', [])[:]
+        self.__archiveToFile = kw.get('archive_to_file')
+        self.__namespaceVisibilityMap = {}
+        self._setNamespaceVisibilities(kw.get('public_namespaces', set()), kw.get('private_namespaces', set()))
+        self.__defaultNamespacePublic = kw.get('default_namespace_public', False)
+        self.__validateChanges = kw.get('validate_changes', True)
+        self.__bindingStyle = kw.get('binding_style', self._DEFAULT_bindingStyle)
+        self.__namespaceModuleMap = kw.get('namespace_module_map', {}).copy()
+        self.__schemas = kw.get('schemas', [])[:]
+        self.__namespaces = set(kw.get('namespaces', []))
+        self.__writeForCustomization = kw.get('write_for_customization', False)
+        self.__writeForCustomization = kw.get('allow_builtin_generation', False)
+        self.__allowAbsentModule = kw.get('allow_absent_module', False)
+        self.__generateToFiles = kw.get('generate_to_files', True)
+        self.__uriContentArchiveDirectory = kw.get('uri_content_archive_directory')
+        
+        if argv is not None:
+            self.applyOptionValues(*self.optionParser().parse_args(argv))
+        [ self.addSchemaLocation(_a) for _a in args ]
+        
+        self.__generationUID = pyxb.utils.utility.UniqueIdentifier()
+
+        pyxb.namespace.XML.validateComponentModel()
+
+    __stripSpaces_re = re.compile('\s\s\s+')
+    def __stripSpaces (self, string):
+        return self.__stripSpaces_re.sub(' ', string)
+    
+    __OptionSetters = (
+        ('binding_root', setBindingRoot),
+        ('schema_root', setSchemaRoot),
+        ('schema_stripped_prefix', setSchemaStrippedPrefix),
+        ('schema_location', setSchemaLocationList),
+        ('module', _setModuleList),
+        ('module_prefix', setModulePrefix),
+        ('archive_path', setArchivePath),
+        ('no_load_namespace', _setNoLoadNamespaces),
+        ('pre_load_archive', _setPreLoadArchives),
+        ('archive_to_file', setArchiveToFile),
+        ('default_namespace_public', setDefaultNamespacePublic),
+        ('binding_style', setBindingStyle),
+        ('validate_changes', setValidateChanges),
+        ('write_for_customization', setWriteForCustomization),
+        ('allow_builtin_generation', setAllowBuiltinGeneration),
+        ('allow_absent_module', setAllowAbsentModule),
+        ('uri_content_archive_directory', setUriContentArchiveDirectory)
+        )
+    def applyOptionValues (self, options, args=None):
+        for (tag, method) in self.__OptionSetters:
+            v = getattr(options, tag)
+            if v is not None:
+                method(self, v)
+        public_namespaces = getattr(options, 'public_namespace')
+        private_namespaces = getattr(options, 'private_namespace')
+        self._setNamespaceVisibilities(public_namespaces, private_namespaces)
+        if args is not None:
+            self.__schemaLocationList.extend(args)
+
+    def setFromCommandLine (self, argv=None):
+        if argv is None:
+            argv = sys.argv[1:]
+        (options, args) = self.optionParser().parse_args(argv)
+        self.applyOptionValues(options, args)
+        return self
+
+    def generationUID (self):
+        return self.__generationUID
+    __generationUID = None
+
+    def optionParser (self, reset=False):
+        """Return an C{optparse.OptionParser} instance tied to this configuration.
+
+        @param reset: If C{False} (default), a parser created in a
+        previous invocation will be returned.  If C{True}, any
+        previous option parser is discarded and a new one created.
+        @type reset: C{bool}
+        """
+        if reset or (self.__optionParser is None):
+            parser = optparse.OptionParser(usage="%prog [options] [more schema locations...]",
+                                           version='%%prog from PyXB %s' % (pyxb.__version__,),
+                                           description='Generate bindings from a set of XML schemas')
+
+            group = optparse.OptionGroup(parser, 'Identifying Schema', 'Specify and locate schema for which bindings should be generated.')
+            group.add_option('--schema-location', '-u', metavar="FILE_or_URL",
+                             action='append',
+                             help=self.__stripSpaces(self.argAddSchemaLocation.__doc__))
+            group.add_option('--schema-root', metavar="DIRECTORY",
+                             help=self.__stripSpaces(self.schemaRoot.__doc__))
+            group.add_option('--schema-stripped-prefix', metavar="TEXT", type='string',
+                             help=self.__stripSpaces(self.schemaStrippedPrefix.__doc__))
+            group.add_option('--uri-content-archive-directory', metavar="DIRECTORY",
+                             help=self.__stripSpaces(self.uriContentArchiveDirectory.__doc__))
+            parser.add_option_group(group)
+
+            group = optparse.OptionGroup(parser, 'Configuring Bindings', 'Specify where generated bindings should be written, and how they will be accessed from Python.')
+            group.add_option('--module', '-m', metavar="MODULE",
+                             action='append',
+                             help=self.__stripSpaces(self.addModuleName.__doc__))
+            group.add_option('--module-prefix', metavar="MODULE",
+                             help=self.__stripSpaces(self.modulePrefix.__doc__))
+            group.add_option('--binding-root', metavar="DIRECTORY",
+                             help=self.__stripSpaces(self.bindingRoot.__doc__))
+            group.add_option('-r', '--write-for-customization',
+                             action='store_true', dest='write_for_customization',
+                             help=self.__stripSpaces(self.writeForCustomization.__doc__ + ' This option turns on the feature.'))
+            group.add_option('--no-write-for-customization',
+                             action='store_false', dest='write_for_customization',
+                             help=self.__stripSpaces(self.writeForCustomization.__doc__ + ' This option turns off the feature (I{default}).'))
+            parser.add_option_group(group)
+
+            group = optparse.OptionGroup(parser, 'Reading Namespace Archives', 'Locating and loading (or inhibiting load of) namespace archives.')
+            group.add_option('--archive-path', metavar="PATH",
+                             help=self.__stripSpaces(self.archivePath.__doc__))
+            group.add_option('--pre-load-archive', metavar="FILE",
+                             action='append',
+                             help=self.__stripSpaces(self.addPreLoadArchive.__doc__))
+            group.add_option('--no-load-namespace', metavar="URI",
+                             action='append',
+                             help=self.__stripSpaces(self.addNoLoadNamespace.__doc__))
+            parser.add_option_group(group)
+
+            group = optparse.OptionGroup(parser, 'Writing Namespace Archives', 'Control the location and content of a namespace archive corresponding to a binding generation.')
+            group.add_option('--archive-to-file', metavar="FILE",
+                             help=self.__stripSpaces(self.archiveToFile.__doc__))
+            group.add_option('--public-namespace', metavar="URI",
+                             action='append',
+                             help=self.__stripSpaces(self.namespaceVisibilityMap.__doc__ + ' This option adds the namespace as a public archive member.'))
+            group.add_option('--private-namespace', metavar="URI",
+                             action='append',
+                             help=self.__stripSpaces(self.namespaceVisibilityMap.__doc__ + ' This option adds the namespace as a private archive member.'))
+            group.add_option('--default-namespace-public',
+                             action="store_true", dest='default_namespace_public',
+                             help=self.__stripSpaces(self.defaultNamespacePublic.__doc__ + ' This option makes the default C{public} (I{default}).'))
+            group.add_option('--default-namespace-private',
+                             action="store_false", dest='default_namespace_public',
+                             help=self.__stripSpaces(self.defaultNamespacePublic.__doc__ + ' This option makes the default C{private}.'))
+            parser.add_option_group(group)
+
+            group = optparse.OptionGroup(parser, 'Configuring Binding Code Generation', "Control the style and content of the generated bindings.  This is not well-supported, and you are advised to pretend these options don't exist.")
+            group.add_option('--binding-style',
+                              type='choice', choices=basis.BINDING_STYLES,
+                              help=self.__stripSpaces(self.bindingStyle.__doc__))
+            group.add_option('--validate-changes',
+                              action='store_true', dest='validate_changes',
+                              help=self.__stripSpaces(self.validateChanges.__doc__ + ' This option turns on validation (default).'))
+            group.add_option('--no-validate-changes',
+                              action='store_false', dest='validate_changes',
+                              help=self.__stripSpaces(self.validateChanges.__doc__ + ' This option turns off validation.'))
+            parser.add_option_group(group)
+
+            group = optparse.OptionGroup(parser, 'Maintainer Options', "Don't use these.  They don't exist.  If they did, they'd do different things at different times, and if you used them you'd probably be sorry.")
+            group.add_option('--allow-absent-module',
+                              action='store_true', dest='allow_absent_module',
+                              help=self.__stripSpaces(self.allowAbsentModule.__doc__ + ' This option turns on the feature.'))
+            group.add_option('--no-allow-absent-module',
+                             action='store_false', dest='allow_absent_module',
+                             help=self.__stripSpaces(self.allowAbsentModule.__doc__ + ' This option turns off the feature (default).'))
+            group.add_option('--allow-builtin-generation',
+                             action='store_true', dest='allow_builtin_generation',
+                             help=self.__stripSpaces(self.allowBuiltinGeneration.__doc__ + ' This option turns on the feature.'))
+            group.add_option('--no-allow-builtin-generation',
+                             action='store_false', dest='allow_builtin_generation',
+                             help=self.__stripSpaces(self.allowBuiltinGeneration.__doc__ + ' This option turns off the feature (default).'))
+            parser.add_option_group(group)
+
+            self.__optionParser = parser
+        return self.__optionParser
+    __optionParser = None
+
+    def getCommandLineArgs (self):
+        """Return a command line option sequence that could be used to
+        construct an equivalent configuration.
+
+        @note: If you extend the option parser, as is done by
+        C{pyxbgen}, this may not be able to reconstruct the correct
+        command line."""
+        opts = []
+        module_list = self.moduleList()
+        schema_list = self.schemaLocationList()
+        while module_list and schema_list:
+            ml = module_list.pop(0)
+            sl = schema_list.pop(0)
+            if isinstance(sl, tuple):
+                sl = sl[0]
+            opts.extend(['--schema-location=' + sl, '--module=' + ml])
+        for sl in schema_list:
+            opts.append('--schema-location=' + sl)
+        if self.schemaRoot() is not None:
+            opts.append('--schema-root=' + self.schemaRoot())
+        if self.schemaStrippedPrefix() is not None:
+            opts.append('--schema-stripped-prefix=%s' + self.schemaStrippedPrefix())
+        if self.modulePrefix() is not None:
+            opts.append('--module-prefix=' + self.modulePrefix())
+        opts.append('--binding-root=' + self.bindingRoot())
+        if self.archivePath() is not None:
+            opts.append('--archive-path=' + self.archivePath())
+        for ns in self.noLoadNamespaces():
+            opts.append('--no-load-namespace=' + ns.uri())
+        for fps in self.preLoadArchives():
+            opts.append('--pre-load-archive=' + fp)
+        if self.archiveToFile() is not None:
+            opts.append('--archive-to-file=' + self.archiveToFile())
+        for (ns, visibility) in self._namespaceVisibilityMap():
+            if visibility:
+                opts.append('--public-namespace=' + ns.uri())
+            else:
+                opts.append('--private-namespace=' + ns.uri())
+        if self.defaultNamespacePublic():
+            opts.append('--default-namespace-public')
+        else:
+            opts.append('--default-namespace-private')
+        for (val, opt) in ( (self.validateChanges(), 'validate-changes'),
+                            (self.writeForCustomization(), 'write-for-customization'),
+                            (self.allowAbsentModule(), 'allow-absent-module'),
+                            (self.allowBuiltinGeneration(), 'allow-builtin-generation') ):
+            if val:
+                opts.append('--' + opt)
+            else:
+                opts.append('--no-' + opt)
+        if self.uriContentArchiveDirectory() is not None:
+            opts.append('--uri-content-archive-directory=%s' + self.uriContentArchiveDirectory())
+        return opts
+
+    def normalizeSchemaLocation (self, sl):
+        ssp = self.schemaStrippedPrefix()
+        if ssp and sl.startswith(ssp):
+            sl = sl[len(ssp):]
+        return pyxb.utils.utility.NormalizeLocation(sl, self.schemaRoot())
+
+    def __assignModulePath (self, module_record, module_path=None):
+        if module_record.modulePath() is not None:
+            return module_record
+        namespace = module_record.namespace()
+        if not namespace.isAbsentNamespace():
+            if (module_path is None) and not (namespace.prefix() is None):
+                module_path = namespace.prefix()
+            module_path = self.namespaceModuleMap().get(namespace.uri(), module_path)
+            if (module_path is not None) and self.modulePrefix(): # non-empty value
+                module_path = '.'.join([self.modulePrefix(), module_path])
+            if (module_path is None) and self.generateToFiles():
+                raise pyxb.BindingGenerationError('No prefix or module name available for %s' % (module_record,))
+        module_record.setModulePath(module_path)
+        return module_record
+
+    __didResolveExternalSchema = False
+    def resolveExternalSchema (self, reset=False):
+        if self.__didResolveExternalSchema and (not reset):
+            raise pyxb.PyXBException('Cannot resolve external schema multiple times')
+
+        required_archives = pyxb.namespace.archive.NamespaceArchive.PreLoadArchives(self.archivePath(), self.preLoadArchives())
+        for nsa in required_archives:
+            nsa.readNamespaces()
+        for ns in self.noLoadNamespaces():
+            assert isinstance(ns, pyxb.namespace.Namespace)
+            ns.markNotLoadable()
+        while self.__schemaLocationList:
+            sl = self.__schemaLocationList.pop(0)
+            if isinstance(sl, tuple):
+                (sl, converter) = sl
+            else:
+                converter = None
+            try:
+                if converter is None:
+                    schema = xs.schema.CreateFromLocation(absolute_schema_location=self.normalizeSchemaLocation(sl), generation_uid=self.generationUID(), uri_content_archive_directory=self.uriContentArchiveDirectory())
+                else:
+                    schema = converter(self, sl)
+                self.addSchema(schema)
+            except pyxb.SchemaUniquenessError, e:
+                print 'WARNING: Skipped redundant translation of %s defining %s' % (e.schemaLocation(), e.namespace())
+                self.addSchema(e.existingSchema())
+        for schema in self.__schemas:
+            if isinstance(schema, basestring):
+                schema = xs.schema.CreateFromDocument(schema, generation_uid=self.generationUID())
+            origin = schema.originRecord()
+            assert origin is not None
+            module_path = None
+            if self.__moduleList:
+                module_path = self.__moduleList.pop(0)
+            self.__assignModulePath(origin.moduleRecord(), module_path)
+            assert schema.targetNamespace() == origin.moduleRecord().namespace()
+            self.addNamespace(schema.targetNamespace())
+        self.__didResolveExternalSchema = True
+        self.__bindingModules = None
+
+    def __graphFromComponents (self, components, include_lax):
+        components = components.copy()
+        component_graph = pyxb.utils.utility.Graph()
+        need_visit = components.copy()
+        bindable_fn = lambda _c: isinstance(_c, xs.structures.ElementDeclaration) or _c.isTypeDefinition()
+        while 0 < len(need_visit):
+            c = need_visit.pop()
+            assert c is not None
+            assert bindable_fn(c) or include_lax
+            assert c._objectOrigin() is not None, '%s %s has no origin' % (type(c), c)
+            component_graph.addNode(c)
+            br = c.bindingRequires(reset=True, include_lax=include_lax)
+            #print 'Component %s requires %d bindings' % (c, len(br))
+            for cd in br:
+                assert bindable_fn(cd) or include_lax, '%s produced %s in requires' % (type(c), type(cd))
+                #print '  %s in %s' % (cd, cd._objectOrigin())
+                if cd._objectOrigin() is None:
+                    assert isinstance(cd, (pyxb.xmlschema.structures.Annotation, pyxb.xmlschema.structures.Wildcard))
+                    continue
+                if (cd._objectOrigin().moduleRecord() in self.__moduleRecords) and not (cd in components):
+                    components.add(cd)
+                    need_visit.add(cd)
+                if cd in components:
+                    component_graph.addEdge(c, cd)
+        return component_graph
+
+    def __buildBindingModules (self):
+        named_bindable_fn = lambda _c: (isinstance(_c, xs.structures.ElementDeclaration) and _c._scopeIsGlobal()) or _c.isTypeDefinition()
+        bindable_fn = lambda _c: isinstance(_c, xs.structures.ElementDeclaration) or _c.isTypeDefinition()
+
+        self.__moduleRecords = set()
+        all_components = set()
+        for origin in self.generationUID().associatedObjects():
+            mr = origin.moduleRecord()
+            if not (mr in self.__moduleRecords):
+                # @todo NOTICE
+                # print 'Entry %s' % (mr,)
+                self.__moduleRecords.add(mr)
+                mr.completeGenerationAssociations()
+            all_components.update(origin.originatedObjects())
+
+        namespaces = set()
+        for mr in self.__moduleRecords:
+            if mr.namespace().isBuiltinNamespace() and not self.allowBuiltinGeneration():
                 continue
-            outf.write(generator(td, **generator_kw))
+            namespaces.add(mr.namespace())
+        pyxb.namespace.resolution.ResolveSiblingNamespaces(namespaces, self.generationUID())
 
-        outf.write(''.join(PostscriptItems))
+        # Mark module visibility.  Entry-point namespaces default to
+        # public.
+        for ns in self.namespaces():
+            self.__namespaceVisibilityMap.setdefault(ns, True)
 
-        outf.write("_ElementClassMap = {\n")
-        for (tag, class_names) in ElementClassMap.items():
-            outf.write("    %s: [ %s ],\n" % (repr(tag), ",".join(class_names)))
-        outf.write("    }")
-        return outf.getvalue()
+        # Generate the graph from all components and descend into lax
+        # requirements; otherwise we might miss anonymous types hidden
+        # inside attribute declarations and the like.
+        component_graph = self.__graphFromComponents(all_components, True)
+
+        binding_components = set(filter(bindable_fn, component_graph.nodes()))
+        # @todo NOTICE
+        #print '%d of %d components need bindings' % (len(binding_components), len(component_graph.nodes()))
+
+        module_graph = pyxb.utils.utility.Graph()
+        [ module_graph.addRoot(_mr) for _mr in self.__moduleRecords ]
+        for (s, t) in component_graph.edges():
+            module_graph.addEdge(s._objectOrigin().moduleRecord(), t._objectOrigin().moduleRecord())
+        module_scc_order = module_graph.sccOrder()
+
+        # Note that module graph may have fewer nodes than
+        # self.__moduleRecords, if a module has no components that
+        # require binding generation.
+
+        # @todo NOTICE
+        #print '%d entry, %d in graph' % (len(self.__moduleRecords), len(module_graph.nodes()))
+
+        for c in binding_components:
+            assert bindable_fn(c), 'Unexpected %s in binding components' % (type(s),)
+            c._setBindingNamespace(c._objectOrigin().moduleRecord().namespace())
+
+        record_binding_map = {}
+        unique_in_bindings = set([NamespaceGroupModule._GroupPrefix])
+        modules = []
+        for mr_scc in module_scc_order:
+            scc_modules = [ ]
+            for mr in mr_scc:
+                # @todo INFO
+                #print 'Generating %s of %d' % (mr, len(mr_scc))
+                mr._setIsPublic(self.__namespaceVisibilityMap.get(mr.namespace(), self.defaultNamespacePublic()))
+                self.__assignModulePath(mr)
+                assert not ((mr.modulePath() is None) and self.generateToFiles()), 'No module path defined for %s' % (mr,)
+                if (not mr.isPublic()) and (mr.modulePath() is not None):
+                    elts = mr.modulePath().split('.')
+                    elts[-1] = '_%s' % (elts[-1],)
+                    mr.setModulePath('.'.join(elts))
+                nsm = NamespaceModule(self, mr, mr_scc)
+                record_binding_map[mr] = nsm
+                scc_modules.append(nsm)
+
+            modules.extend(scc_modules)
+            if 1 < len(mr_scc):
+                ngm = NamespaceGroupModule(self, scc_modules)
+                modules.append(ngm)
+                for nsm in scc_modules:
+                    nsm.setNamespaceGroupModule(ngm)
+
+        component_csets = self.__graphFromComponents(binding_components, False).sccOrder()
+        bad_order = False
+        component_order = []
+        for cset in component_csets:
+            if 1 < len(cset):
+                print "COMPONENT DEPENDENCY LOOP of %d components" % (len(cset),)
+                cg = pyxb.utils.utility.Graph()
+                for c in cset:
+                    assert bindable_fn(c), 'Unexpected %s in list' % (type(c),)
+                    print '  %s' % (c.expandedName(),)
+                    cg.addNode(c)
+                    for cd in c.bindingRequires(reset=True, include_lax=False):
+                        #print '%s depends on %s' % (c, cd)
+                        cg.addEdge(c, cd)
+                #file('deploop.dot', 'w').write(cg._generateDOT('CompDep', lambda _c: _c.bestNCName()))
+                relaxed_order = cg.sccOrder()
+                for rcs in relaxed_order:
+                    assert 1 == len(rcs)
+                    rcs = rcs[0]
+                    if rcs in cset:
+                        component_order.append(rcs)
+            else:
+                component_order.extend(cset)
     
-    except Exception, e:
-        sys.stderr.write("%s processing %s:\n" % (e.__class__, file))
-        traceback.print_exception(*sys.exc_info())
-        return None
+        #print '%d components in order' % (len(component_order),)
+
+        element_declarations = []
+        type_definitions = []
+        for c in component_order:
+            if isinstance(c, xs.structures.ElementDeclaration) and c._scopeIsGlobal():
+                # Only bind elements this pass, so their names get priority in deconfliction
+                nsm = record_binding_map[c._objectOrigin().moduleRecord()]
+                nsm.bindComponent(c)
+                element_declarations.append(c)
+            elif c.isTypeDefinition():
+                type_definitions.append(c)
+            else:
+                # No binding generation required
+                pass
     
+        simple_type_definitions = []
+        complex_type_definitions = []
+        for td in type_definitions:
+            nsm = record_binding_map[td._objectOrigin().moduleRecord()]
+            assert nsm is not None, 'No namespace module for %s type %s scope %s namespace %s' % (td.expandedName(), type(td), td._scope(), td.bindingNamespace)
+            module_context = nsm.bindComponent(td)
+            assert isinstance(module_context, _ModuleNaming_mixin), 'Unexpected type %s' % (type(module_context),)
+            if isinstance(td, xs.structures.SimpleTypeDefinition):
+                _PrepareSimpleTypeDefinition(td, self, nsm, module_context)
+                simple_type_definitions.append(td)
+            elif isinstance(td, xs.structures.ComplexTypeDefinition):
+                _PrepareComplexTypeDefinition(td, self, nsm, module_context)
+                complex_type_definitions.append(td)
+            else:
+                assert False, 'Unexpected component type %s' % (type(td),)
+
+        for ngm in modules:
+            if isinstance(ngm, NamespaceGroupModule):
+                for m in ngm.namespaceModules():
+                    m.addImportsFrom(ngm)
+    
+        for std in simple_type_definitions:
+            GenerateSTD(std, self)
+        for ctd in complex_type_definitions:
+            GenerateCTD(ctd, self)
+        for ed in element_declarations:
+            GenerateED(ed, self)
+    
+        return modules
+    
+    __bindingModules = None
+    def bindingModules (self, reset=False):
+        if reset or (not self.__didResolveExternalSchema):
+            self.resolveExternalSchema(reset)
+        if reset or (self.__bindingModules is None):
+            self.__bindingModules = self.__buildBindingModules()
+        return self.__bindingModules
+    
+    def writeNamespaceArchive (self):
+        archive_file = self.archiveToFile()
+        if archive_file is not None:
+            ns_archive = pyxb.namespace.archive.NamespaceArchive(generation_uid=self.generationUID())
+            try:
+                ns_archive.writeNamespaces(pyxb.utils.utility.OpenOrCreate(archive_file))
+                print 'Saved parsed schema to %s URI' % (archive_file,)
+            except Exception, e:
+                print 'Exception saving preprocessed schema to %s: %s' % (archive_file, e)
+                traceback.print_exception(*sys.exc_info())
+                #try:
+                #    os.unlink(component_model_file)
+                #except (OSError, IOError), e:
+                #    pass
+                if isinstance(e, (AssertionError, AttributeError, TypeError)):
+                    raise
+
+    def moduleForComponent (self, component):
+        return _ModuleNaming_mixin.ComponentBindingModule(component)

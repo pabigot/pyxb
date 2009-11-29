@@ -1,0 +1,3 @@
+for bundle in common wssplat opengis ; do
+  pyxb/bundles/${bundle}/scripts/genbind || exit 1
+done

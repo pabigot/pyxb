@@ -1,40 +1,40 @@
 import weather
 import time
-import pyxb.utils.domutils as domutils
 import sys
-
-from xml.dom import minidom
-
+import pyxb.bundles.wssplat.soap11 as soapenv
 import urllib2
 
-#uri = 'http://ws.cdyne.com/WeatherWS/Weather.asmx/GetCityForecastByZIP?ZIP=85711'
+zip = 85711
+if 1 < len(sys.argv):
+    zip = int(sys.argv[1])
 
-query = weather.GetCityForecastByZIP(ZIP=85711)
+# Create an envelope, and give it a body that is the request for the
+# service we want.
+env = soapenv.Envelope(soapenv.Body(weather.GetCityForecastByZIP(ZIP=str(zip))))
+file('request.xml', 'w').write(env.toxml())
 
-bds = domutils.BindingDOMSupport()
-doc = query.toDOM(bds).finalize()
-query_xml = doc.documentElement.toxml()
+# Invoke the service
+uri = urllib2.Request('http://ws.cdyne.com/WeatherWS/Weather.asmx',
+                      env.toxml(),
+                      { 'SOAPAction' : "http://ws.cdyne.com/WeatherWS/GetCityForecastByZIP", 'Content-Type': 'text/xml' } )
+rxml = urllib2.urlopen(uri).read()
+file('response.xml', 'w').write(rxml)
 
-query_xml = '''<?xml version="1.0" encoding="utf-8"?>
-<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
-  <soap:Body>%s
-  </soap:Body>
-</soap:Envelope>
-''' % (query_xml,)
+# Convert the response to a SOAP envelope, then extract the actual
+# response from the wildcard elements of the body.  Note that because
+# the weather namespace was registered, PyXB already created the
+# binding for the response.
+soap_resp = soapenv.CreateFromDocument(rxml)
+resp = soap_resp.Body.wildcardElements()[0]
 
-host = 'http://ws.cdyne.com'
-uri = urllib2.Request(host + '/WeatherWS/Weather.asmx', query_xml, { 'SOAPAction' : "http://ws.cdyne.com/WeatherWS/GetCityForecastByZIP", 'Content-Type': 'text/xml' } )
-
-xml = urllib2.urlopen(uri).read()
-#print xml
-doc = minidom.parseString(xml)
-
-body = doc.documentElement.firstChild
-body = weather.CreateFromDOM(body.firstChild)
-fc_return = body.GetCityForecastByZIPResult()
-if fc_return.Success():
-    print 'Got response for %s, %s:' % (fc_return.City(), fc_return.State())
-    for fc in fc_return.ForecastResult().Forecast():
-        print '%s: %s, from %s to %s' % (time.strftime('%A, %B %d %Y', fc.Date().timetuple()), fc.Desciption(), fc.Temperatures().MorningLow(), fc.Temperatures().DaytimeHigh())
+fc_return = resp.GetCityForecastByZIPResult
+if fc_return.Success:
+    print 'Got response for %s, %s:' % (fc_return.City, fc_return.State)
+    for fc in fc_return.ForecastResult.Forecast:
+        when = time.strftime('%A, %B %d %Y', fc.Date.timetuple())
+        outlook = fc.Desciption # typos in WSDL left unchanged
+        low = fc.Temperatures.MorningLow
+        high = fc.Temperatures.DaytimeHigh
+        print '  %s: %s, from %s to %s' % (when, outlook, low, high)
         
     

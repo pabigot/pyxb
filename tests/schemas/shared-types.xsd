@@ -49,7 +49,6 @@
 					<xs:element name="generation" minOccurs="0"/>
 				</xs:sequence>
 				<xs:attribute name="eAttr" type="xs:string"/>
-				<xs:attribute name="pUse" use="prohibited"/>
 			</xs:extension>
 		</xs:complexContent>
 	</xs:complexType>

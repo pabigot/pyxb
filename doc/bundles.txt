@@ -1,0 +1,168 @@
+Examples of Supported Schema
+============================
+
+PyXB comes with pre-defined *bundles* which aggregate related namespaces
+into pre-generated bindings that allow you to use them without having to
+generate and manage them yourself.  These bundles also demonstrate the
+complexity of schema that PyXB is prepared to handle.  Not all namespaces
+have been fully tested, but they are expected to function correctly.
+
+.. _bundle_wssplat:
+
+WS-*
+----
+
+The following namespaces are available in support of web service
+development:
+
+.. PYXB_ARCHIVE_PATH=/home/pab/pyxb/dev/pyxb/bundles/wssplat// pyxbdump \
+   | grep wssplat \
+   | tr '\011' ' ' \
+   | sed -e 's@^\([^ ]*\) \([^ ]*\).*$@``\2`` ``\1``@g' \
+   | tr ' ' '\011' \
+   | expand -40 \
+   | sort \
+   > /tmp/x
+
+=====================================   ==========================================================
+Binding Module                          Namespace
+=====================================   ==========================================================
+``pyxb.bundles.wssplat.bpws``           ``http://schemas.xmlsoap.org/ws/2003/03/business-process/``
+``pyxb.bundles.wssplat.ds``             ``http://www.w3.org/2000/09/xmldsig#``
+``pyxb.bundles.wssplat.httpbind``       ``http://schemas.xmlsoap.org/wsdl/http/``
+``pyxb.bundles.wssplat.mimebind``       ``http://schemas.xmlsoap.org/wsdl/mime/``
+``pyxb.bundles.wssplat.soap11``         ``http://schemas.xmlsoap.org/soap/envelope/``
+``pyxb.bundles.wssplat.soap12``         ``http://www.w3.org/2003/05/soap-envelope``
+``pyxb.bundles.wssplat.soapbind11``     ``http://schemas.xmlsoap.org/wsdl/soap/``
+``pyxb.bundles.wssplat.soapbind12``     ``http://schemas.xmlsoap.org/wsdl/soap12/``
+``pyxb.bundles.wssplat.soapenc``        ``http://schemas.xmlsoap.org/soap/encoding/``
+``pyxb.bundles.wssplat.whttp``          ``http://www.w3.org/ns/wsdl/http``
+``pyxb.bundles.wssplat.wsa``            ``http://www.w3.org/2005/08/addressing``
+``pyxb.bundles.wssplat.wsam``           ``http://www.w3.org/2007/02/addressing/metadata``
+``pyxb.bundles.wssplat.wscoor``         ``http://docs.oasis-open.org/ws-tx/wscoor/2006/06``
+``pyxb.bundles.wssplat.wsdl11``         ``http://schemas.xmlsoap.org/wsdl/``
+``pyxb.bundles.wssplat.wsdl20``         ``http://www.w3.org/ns/wsdl``
+``pyxb.bundles.wssplat.wsdli``          ``http://www.w3.org/ns/wsdl-instance``
+``pyxb.bundles.wssplat.wsdlx``          ``http://www.w3.org/ns/wsdl-extensions``
+``pyxb.bundles.wssplat.wsoap``          ``http://www.w3.org/ns/wsdl/soap``
+``pyxb.bundles.wssplat.wsp200607``      ``http://www.w3.org/2006/07/ws-policy``
+``pyxb.bundles.wssplat.wsp``            ``http://www.w3.org/ns/ws-policy``
+``pyxb.bundles.wssplat.wsrm``           ``http://docs.oasis-open.org/ws-rx/wsrm/200702``
+``pyxb.bundles.wssplat.wsse``           ``http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd``
+``pyxb.bundles.wssplat.wsu``            ``http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd``
+=====================================   ==========================================================
+
+.. _bundle_opengis:
+
+OpenGIS
+-------
+
+The following namespaces are available in support of `Open Geospatial
+Consortium <http://www.opengeospatial.org/standards>`_ Geographic
+Information System processing.  Note that several of these namespaces are
+"private" bindings generated because the OGC definitions include their own
+schema.  The modules corresponding to these namespace uses begin with an
+underscore, and should generally not be used in other contexts.
+
+.. PYXB_ARCHIVE_PATH=/home/pab/pyxb/dev/pyxb/bundles/opengis// pyxbdump \
+   | grep opengis \
+   | tr '\011' ' ' \
+   | sed -e 's@^\([^ ]*\) \([^ ]*\).*$@``\2`` ``\1``@g' \
+   | tr ' ' '\011' \
+   | expand -50 \
+   | sort \
+   > /tmp/x
+
+================================================  ==========================================================
+Binding Module                                    Namespace
+================================================  ==========================================================
+``pyxb.bundles.opengis._atom``                    ``http://www.w3.org/2005/Atom``
+``pyxb.bundles.opengis._dc``                      ``http://purl.org/dc/elements/1.1/``
+``pyxb.bundles.opengis._dct``                     ``http://purl.org/dc/terms/``
+``pyxb.bundles.opengis._ogc``                     ``http://www.opengis.net/ogc``
+``pyxb.bundles.opengis._smil20``                  ``http://www.w3.org/2001/SMIL20/``
+``pyxb.bundles.opengis._smil20lang``              ``http://www.w3.org/2001/SMIL20/Language``
+``pyxb.bundles.opengis.citygml.appearance``       ``http://www.opengis.net/citygml/appearance/1.0``
+``pyxb.bundles.opengis.citygml.base``             ``http://www.opengis.net/citygml/1.0``
+``pyxb.bundles.opengis.citygml.building``         ``http://www.opengis.net/citygml/building/1.0``
+``pyxb.bundles.opengis.citygml.cityFurniture``    ``http://www.opengis.net/citygml/cityfurniture/1.0``
+``pyxb.bundles.opengis.citygml.cityObjectGroup``  ``http://www.opengis.net/citygml/cityobjectgroup/1.0``
+``pyxb.bundles.opengis.citygml.generics``         ``http://www.opengis.net/citygml/generics/1.0``
+``pyxb.bundles.opengis.citygml.landUse``          ``http://www.opengis.net/citygml/landuse/1.0``
+``pyxb.bundles.opengis.citygml.relief``           ``http://www.opengis.net/citygml/relief/1.0``
+``pyxb.bundles.opengis.citygml.texturedSurface``  ``http://www.opengis.net/citygml/texturedsurface/1.0``
+``pyxb.bundles.opengis.citygml.transportation``   ``http://www.opengis.net/citygml/transportation/1.0``
+``pyxb.bundles.opengis.citygml.vegetation``       ``http://www.opengis.net/citygml/vegetation/1.0``
+``pyxb.bundles.opengis.citygml.waterBody``        ``http://www.opengis.net/citygml/waterbody/1.0``
+``pyxb.bundles.opengis.csw_2_0_2``                ``http://www.opengis.net/cat/csw/2.0.2``
+``pyxb.bundles.opengis.filter``                   ``http://www.opengis.net/ogc``
+``pyxb.bundles.opengis.gml_3_2``                  ``http://www.opengis.net/gml/3.2``
+``pyxb.bundles.opengis.gml``                      ``http://www.opengis.net/gml``
+``pyxb.bundles.opengis.gmlsf``                    ``http://www.opengis.net/gmlsf``
+``pyxb.bundles.opengis.gmx``                      ``http://www.isotc211.org/2005/gmx``
+``pyxb.bundles.opengis.ic_ism_2_1``               ``urn:us:gov:ic:ism:v2``
+``pyxb.bundles.opengis.iso19139.gco``             ``http://www.isotc211.org/2005/gco``
+``pyxb.bundles.opengis.iso19139.gmd``             ``http://www.isotc211.org/2005/gmd``
+``pyxb.bundles.opengis.iso19139.gsr``             ``http://www.isotc211.org/2005/gsr``
+``pyxb.bundles.opengis.iso19139.gss``             ``http://www.isotc211.org/2005/gss``
+``pyxb.bundles.opengis.iso19139.gts``             ``http://www.isotc211.org/2005/gts``
+``pyxb.bundles.opengis.misc.xAL``                 ``urn:oasis:names:tc:ciq:xsdschema:xAL:2.0``
+``pyxb.bundles.opengis.misc.xlinks``              ``http://www.w3.org/1999/xlink``
+``pyxb.bundles.opengis.ogckml22``                 ``http://www.opengis.net/kml/2.2``
+``pyxb.bundles.opengis.om_1_0``                   ``http://www.opengis.net/om/1.0``
+``pyxb.bundles.opengis.ows_1_1``                  ``http://www.opengis.net/ows/1.1``
+``pyxb.bundles.opengis.ows``                      ``http://www.opengis.net/ows``
+``pyxb.bundles.opengis.sampling_1_0``             ``http://www.opengis.net/sampling/1.0``
+``pyxb.bundles.opengis.sensorML_1_0_1``           ``http://www.opengis.net/sensorML/1.0.1``
+``pyxb.bundles.opengis.sos_1_0``                  ``http://www.opengis.net/sos/1.0``
+``pyxb.bundles.opengis.swe_1_0_0``                ``http://www.opengis.net/swe/1.0``
+``pyxb.bundles.opengis.swe_1_0_1``                ``http://www.opengis.net/swe/1.0.1``
+``pyxb.bundles.opengis.tml``                      ``http://www.opengis.net/tml``
+``pyxb.bundles.opengis.wcs_1_1``                  ``http://www.opengis.net/wcs/1.1``
+``pyxb.bundles.opengis.wfs``                      ``http://www.opengis.net/wfs``
+================================================  ==========================================================
+
+.. _bundle_generation:
+
+Layout of a Bundle Directory
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The ``pyxb/bundles`` directory contains groups of bindings for related
+schema.  These groups are called "bundles", and each subdirectory represents
+a particular bundle.
+
+With a bundle directory, the following are expected:
+
+- A ``scripts`` directory, containing an executable ``genbind`` which
+  retrieves the schema and invokes ``pyxbgen`` to build the bindings
+
+- A ``schemas`` directory, into which the ``genbind`` script stores the
+  schemas that were used to build the bindings
+
+- The Python module files for namespace modules.  Normally these are
+  :ref:`customization wrappers <customized_bindings>`
+
+- A ``raw`` subdirectory, into which the generated bindings are placed.
+  Note that this directory is normally removed and recreated as a
+  consequence of running genbind; ddn't expect anything in it to be
+  persistent.
+
+- An ``examples`` directory, with programs that show how to use the
+  capabilities in the bundle
+
+- A ``tests`` directory which validates customizations
+
+Generating Bundled Bindings
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+To create the support infrastructure for a particular bundle, set the
+``PYXB_ROOT`` environment variable and run the ``scripts/genbind`` script in
+the bundle root.  For example::
+
+  cd ${PYXB_ROOT}
+  pyxb/bundles/wssplat/scripts/genbind
+
+will invoke the :manpage:`wget(1)` program to retrieve the XML schema for a
+variety of namespaces related to web services and then generate bindings and
+archive files for them.
+

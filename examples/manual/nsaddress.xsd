@@ -1,5 +1,5 @@
-<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-     targetNamespace="URN:address"
-     xmlns="URN:address">
-  <xsd:include schemaLocation="file:address.xsd"/>
+<xsd:schema
+   targetNamespace="URN:address"
+   xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <xsd:include schemaLocation="address.xsd"/>
 </xsd:schema>

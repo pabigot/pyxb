@@ -5,7 +5,7 @@ from xml.dom import Node
 
 import os.path
 schema_path = '%s/../schemas/test-wildcard.xsd' % (os.path.dirname(__file__),)
-code = pyxb.binding.generate.GeneratePython(schema_file=schema_path)
+code = pyxb.binding.generate.GeneratePython(schema_location=schema_path)
 
 rv = compile(code, 'test', 'exec')
 eval(rv)
@@ -133,40 +133,70 @@ class TestIntensionalSet (unittest.TestCase):
         ns2 = 'URN:second'
         self.assertEqual(nc_not(ns1), ISECT([nc_not(ns1), nc_not(None)]))
 
-
-
 class TestWildcard (unittest.TestCase):
     def testElement (self):
         # NB: Test on CTD, not element
         self.assert_(wrapper_._HasWildcardElement)
-        xml = '<wrapper><first/><second/><third/></wrapper>'
-        doc = pyxb.utils.domutils.StringToDOM(xml)
-        instance = wrapper.CreateFromDOM(doc.documentElement)
+        xmls = '<wrapper><first/><second/><third/></wrapper>'
+        doc = pyxb.utils.domutils.StringToDOM(xmls)
+        instance = wrapper.createFromDOM(doc.documentElement)
         self.assert_(isinstance(instance.wildcardElements(), list))
         self.assertEquals(1, len(instance.wildcardElements()))
+        # Alternative parser path
+        instance = CreateFromDocument(xmls)
+        self.assert_(isinstance(instance.wildcardElements(), list))
+        self.assertEquals(1, len(instance.wildcardElements()))
+
+    def _validateWildcardWrappingRecognized (self, instance):
+        self.assert_(isinstance(instance.wildcardElements(), list))
+        self.assertEquals(1, len(instance.wildcardElements()))
+        dom = instance.wildcardElements()[0]
+        self.assertTrue(isinstance(dom, Node))
+        self.assertEquals(Node.ELEMENT_NODE, dom.nodeType)
+        self.assertEquals('third', dom.nodeName)
+        self.assertEquals(1, len(dom.childNodes))
+        cdom = dom.firstChild
+        self.assertTrue(isinstance(cdom, Node))
+        self.assertEquals(Node.ELEMENT_NODE, cdom.nodeType)
+        self.assertEquals('selt', cdom.nodeName)
+        ccdom = cdom.firstChild
+        self.assertTrue(isinstance(ccdom, Node))
+        self.assertEquals(Node.TEXT_NODE, ccdom.nodeType)
+        self.assertEquals('text', ccdom.data)
+
+    def testWildcardWrappingRecognized (self):
+        # NB: Test on CTD, not element
+        self.assert_(wrapper_._HasWildcardElement)
+        xmls = '<wrapper><first/><second/><third><selt>text</selt></third></wrapper>'
+        doc = pyxb.utils.domutils.StringToDOM(xmls)
+        instance = wrapper.createFromDOM(doc.documentElement)
+        self._validateWildcardWrappingRecognized(instance)
+        # Alternative parser path
+        instance = CreateFromDocument(xmls)
+        self._validateWildcardWrappingRecognized(instance)
 
     def testMultiElement (self):
         tested_overmax = False
         for rep in range(0, 6):
-            xml = '<wrapper><first/><second/>%s</wrapper>' % (''.join(rep * ['<third/>']),)
-            doc = pyxb.utils.domutils.StringToDOM(xml)
+            xmls = '<wrapper><first/><second/>%s</wrapper>' % (''.join(rep * ['<third/>']),)
+            doc = pyxb.utils.domutils.StringToDOM(xmls)
             if 3 >= rep:
-                instance = wrapper.CreateFromDOM(doc.documentElement)
+                instance = wrapper.createFromDOM(doc.documentElement)
                 self.assert_(isinstance(instance.wildcardElements(), list))
                 self.assertEquals(rep, len(instance.wildcardElements()))
                 for i in range(0, rep):
                     self.assertEquals('third', instance.wildcardElements()[i].nodeName)
             else:
                 tested_overmax = True
-                self.assertRaises(ExtraContentError, wrapper.CreateFromDOM, doc.documentElement)
+                self.assertRaises(ExtraContentError, wrapper.createFromDOM, doc.documentElement)
         self.assert_(tested_overmax)
 
     def testAttribute (self):
         # NB: Test on CTD, not element
         self.assert_(isinstance(wrapper_._AttributeWildcard, pyxb.binding.content.Wildcard))
-        xml = '<wrapper myattr="true" auxattr="somevalue"/>'
-        doc = pyxb.utils.domutils.StringToDOM(xml)
-        instance = wrapper.CreateFromDOM(doc.documentElement)
+        xmls = '<wrapper myattr="true" auxattr="somevalue"/>'
+        doc = pyxb.utils.domutils.StringToDOM(xmls)
+        instance = wrapper.createFromDOM(doc.documentElement)
         self.assert_(isinstance(instance.wildcardAttributeMap(), dict))
         self.assertEquals(1, len(instance.wildcardAttributeMap()))
         self.assertEquals('somevalue', instance.wildcardAttributeMap()['auxattr'])

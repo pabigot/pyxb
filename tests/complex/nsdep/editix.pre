@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<MyProject path="nsdep.pre">
+ <item path="/home/pab/pyxb/dev/tests/complex/nsdep/a_b.xsd" type="XSD" encoding="AUTOMATIC" open="true" test="true">
+  <property name="encoding" value="AUTOMATIC"/>
+ </item>
+ <item path="/home/pab/pyxb/dev/tests/complex/nsdep/a_c.xsd" type="XSD" encoding="AUTOMATIC" open="true" test="true">
+  <property name="encoding" value="AUTOMATIC"/>
+ </item>
+ <item path="/home/pab/pyxb/dev/tests/complex/nsdep/b_c.xsd" type="XSD" encoding="AUTOMATIC" open="true" test="true">
+  <property name="encoding" value="AUTOMATIC"/>
+ </item>
+ <item path="/home/pab/pyxb/dev/tests/complex/nsdep/shared.xsd" type="XSD" encoding="AUTOMATIC" open="true" test="true">
+  <property name="encoding" value="AUTOMATIC"/>
+ </item>
+ <item path="/home/pab/pyxb/dev/tests/complex/nsdep/b_b.xsd" type="XSD" encoding="AUTOMATIC" open="true" test="true">
+  <property name="encoding" value="AUTOMATIC"/>
+ </item>
+
+</MyProject>

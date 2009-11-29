@@ -1,3 +1,4 @@
+
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
 	<xs:complexType name="personName">
 		<xs:sequence>
@@ -15,13 +16,11 @@
 					<xs:element name="generation" minOccurs="0"/>
 				</xs:sequence>
 				<xs:attribute name="eAttr" type="xs:string"/>
-				<xs:attribute name="pUse" use="prohibited"/>
 			</xs:extension>
 		</xs:complexContent>
 	</xs:complexType>
 	<xs:element name="oldAddressee" type="personName"/>
-	<xs:element name="addressee" type="extendedName"/>
-	<!-- Here's a little ugliness based on something in the wsdl spec. 
+	<xs:element name="addressee" type="extendedName"/><!-- Here's a little ugliness based on something in the wsdl spec. 
 	     It's used to verify that wildcards get recognized after
 	     extension elements. -->
 	<xs:complexType name="tDoc">
@@ -33,7 +32,7 @@
 		<xs:complexContent>
 			<xs:extension base="tDoc">
 				<xs:sequence>
-					<xs:any namespace="##any" minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+					<xs:any namespace="##other" minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
 				</xs:sequence>
 			</xs:extension>
 		</xs:complexContent>
