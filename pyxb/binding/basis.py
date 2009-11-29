@@ -21,6 +21,7 @@ import pyxb.utils.domutils as domutils
 import pyxb.utils.utility as utility
 import types
 import pyxb.namespace
+from pyxb.namespace.builtin import XMLSchema_instance as XSI
 
 BINDING_STYLE_ACCESSOR = 'accessor'
 BINDING_STYLE_PROPERTY = 'property'
@@ -347,7 +348,7 @@ class _TypeBinding_mixin (utility.Locatable_mixin):
             tns_prefix = bds.namespacePrefix(self._ExpandedName.namespace())
             if tns_prefix is not None:
                 val_type_qname = '%s:%s' % (tns_prefix, val_type_qname)
-            bds.addAttribute(element, pyxb.namespace.XMLSchema_instance.createExpandedName('type'), val_type_qname)
+            bds.addAttribute(element, XSI.type, val_type_qname)
         self._toDOM_csc(bds, element)
         bds.finalize()
         return bds.document()
@@ -370,7 +371,7 @@ class _TypeBinding_mixin (utility.Locatable_mixin):
     def _toDOM_csc (self, dom_support, parent):
         assert parent is not None
         if self.__xsiNil:
-            dom_support.addAttribute(parent, pyxb.namespace.XMLSchema_instance.createExpandedName('nil'), 'true')
+            dom_support.addAttribute(parent, XSI.nil, 'true')
         return getattr(super(_TypeBinding_mixin, self), '_toDOM_csc', lambda *_args,**_kw: dom_support)(dom_support, parent)
 
     def _validateBinding_vx (self):
@@ -1369,7 +1370,7 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
         The type of object returned is determined by the type definition
         associated with the element binding and the value of any U{xsi:type
         <http://www.w3.org/TR/xmlschema-1/#xsi_type>} attribute found in the
-        node.
+        node, modulated by the configuration of L{XSI.ProcessTypeAttribute<pyxb.namespace.builtin._XMLSchema_instance.ProcessTypeAttribute>}.
 
         Keyword parameters are passed to the factory method of the type
         associated with the selected element binding.  See
@@ -1422,8 +1423,6 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
         # Now determine the type binding for the content.  If xsi:type is
         # used, it won't be the one built into the element binding.
         type_class = element_binding.typeDefinition()
-        xsi_type = pyxb.namespace.ExpandedName(pyxb.namespace.XMLSchema_instance, 'type')
-        type_name = xsi_type.getAttribute(node)
         elt_ns = element_binding.name().namespace()
  
         # Get the namespace context for the value being created.  If none is
@@ -1431,28 +1430,12 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
         # namespace context; if the user cared, she should have assigned a
         # context before calling this.
         ns_ctx = pyxb.namespace.resolution.NamespaceContext.GetNodeContext(node)
-        if type_name is not None:
-            # xsi:type should only be provided when using an abstract class,
-            # or a concrete class that happens to be the same, but in practice
-            # web services tend to set it on nodes just to inform their
-            # lax-processing clients how to interpret the value.
-
-            type_en = ns_ctx.interpretQName(type_name, namespace=fallback_namespace)
-            try:
-                alternative_type_class = type_en.typeBinding()
-            except KeyError, e:
-                alternative_type_class = None
-            if alternative_type_class is None:
-                raise pyxb.BadDocumentError('No type binding for %s' % (type_name,))
-            if not issubclass(alternative_type_class, type_class):
-                raise pyxb.BadDocumentError('%s value %s is not subclass of element type %s' % (xsi_type, type_en, type_class._ExpandedName))
-            type_class = alternative_type_class
+        (did_replace, type_class) = XSI._InterpretTypeAttribute(XSI.type.getAttribute(node), ns_ctx, fallback_namespace, type_class)
             
         # Pass xsi:nil on to the constructor regardless of whether the element
         # is nillable.  Another sop to SOAP-encoding WSDL fans who don't
         # bother to provide valid schema for their message content.
-        xsi_nil = pyxb.namespace.ExpandedName(pyxb.namespace.XMLSchema_instance, 'nil')
-        is_nil = xsi_nil.getAttribute(node)
+        is_nil = XSI.nil.getAttribute(node)
         if is_nil is not None:
             kw['_nil'] = pyxb.binding.datatypes.boolean(is_nil)
 
@@ -1566,7 +1549,6 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         else:
             raise pyxb.LogicError('Unrecognized binding style %s' % (style,))
 
-    __XSINil = pyxb.namespace.XMLSchema_instance.createExpandedName('nil')
     def __init__ (self, *args, **kw):
         """Create a new instance of this binding.
 
@@ -1589,7 +1571,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             if xml.dom.Node.DOCUMENT_NODE == dom_node.nodeType:
                 dom_node = dom_node.documentElement
             #kw['_validate_constraints'] = False
-            is_nil = self.__XSINil.getAttribute(dom_node)
+            is_nil = XSI.nil.getAttribute(dom_node)
             if is_nil is not None:
                 is_nil = kw['_nil'] = pyxb.binding.datatypes.boolean(is_nil)
         if self._AttributeWildcard is not None:
@@ -1788,7 +1770,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             attr_en = pyxb.namespace.ExpandedName(attr)
 
             # Ignore xmlns and xsi attributes; we've already handled those
-            if attr_en.namespace() in ( pyxb.namespace.XMLNamespaces, pyxb.namespace.XMLSchema_instance ):
+            if attr_en.namespace() in ( pyxb.namespace.XMLNamespaces, XSI ):
                 continue
 
             value = attr.value

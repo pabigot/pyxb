@@ -25,6 +25,96 @@ class _XMLSchema_instance (Namespace):
     """Extension of L{Namespace} that pre-defines components available in the
     XMLSchema Instance namespace."""
 
+    PT_strict = 'strict'
+    """xsi:type is validated and supersedes the declared type.  If no xsi:type is
+    present, the declared element type will be used.  If xsi:type is
+    present, it must resolve to valid type.  The resolved type must be
+    a subclass of the declared type (if available), and will be used
+    for the binding."""
+
+    PT_lax = 'lax'
+    """xsi:type supersedes the declared type without validation.  If
+    no xsi:type is present, or it is present and fails to resolve to a
+    type, the declared element type will be used.  If xsi:type is
+    present and resolves to valid type, that type will be used for the
+    binding, even if it is not a subclass of the declared type."""
+
+    PT_skip = 'skip'
+    """xsi:type attributes are ignored.  The declared element type
+    will be used."""
+
+    __processType = PT_strict
+
+    type = None
+    """An expanded name for {http://www.w3.org/2001/XMLSchema-instance}type."""
+
+    nil = None
+    """An expanded name for {http://www.w3.org/2001/XMLSchema-instance}nil."""
+
+    def __init__ (self, *args, **kw):
+        super(_XMLSchema_instance, self).__init__(*args, **kw)
+        self.type = self.createExpandedName('type')
+        self.nil = self.createExpandedName('nil')
+
+    # NB: Because Namespace instances are singletons, I've made this
+    # is an instance method even though it looks and behaves like a
+    # class method.
+    def ProcessTypeAttribute (self, value=None):
+        """Specify how PyXB should interpret xsi:type attributes when
+        converting a document to a binding instance.
+
+        The default value is L{PT_strict}.
+
+        xsi:type should only be provided when using an abstract class,
+        or a concrete class that happens to be the same as the
+        xsi:type value, or when accepting a wildcard that has an
+        unrecognized element name.  In practice, web services tend to
+        set it on nodes just to inform their lax-processing clients
+        how to interpret the value.
+
+        @param value: One of L{PT_strict}, L{PT_lax}, L{PT_skip}, or C{None} (no change)
+        @return: The current configuration for processing xsi:type attributes
+        """
+        
+        if value in (self.PT_strict, self.PT_lax, self.PT_skip):
+            self.__processType = value
+        elif value is not None:
+            raise pyxb.ValueError(value)
+        return self.__processType
+    
+    def _InterpretTypeAttribute (self, type_name, ns_ctx, fallback_namespace, type_class):
+        """Interpret the value of an xsi:type attribute as configured.
+
+        @param type_name: The QName value from the attribute
+        @param ns_ctx: The NamespaceContext within which the type_name should be resolved
+        @param fallback_namespace: The namespace that should be used if the type name has no prefix
+        @param type_class: The value to return if the type name is missing or acceptably invalid
+        @raises L{pyxb.BadDocumentError}: if the processing type
+        configuration is L{PT_strict} and the type name fails to
+        resolve to a type definition that is consistent with any
+        provided type_class.
+        """
+        did_replace = False
+        if type_name is None:
+            return (did_replace, type_class)
+        pt = self.__processType
+        if self.PT_skip == pt:
+            return (did_replace, type_class)
+        type_en = ns_ctx.interpretQName(type_name, namespace=fallback_namespace)
+        try:
+            alternative_type_class = type_en.typeBinding()
+        except KeyError, e:
+            alternative_type_class = None
+        if self.PT_strict == pt:
+            if alternative_type_class is None:
+                raise pyxb.BadDocumentError('No type binding for %s' % (type_name,))
+            if (type_class is not None) and (not issubclass(alternative_type_class, type_class)):
+                raise pyxb.BadDocumentError('%s value %s is not subclass of element type %s' % (type_name, type_en, type_class._ExpandedName))
+        if (self.PT_strict == pt) or ((self.PT_lax == pt) and (alternative_type_class is not None)):
+            type_class = alternative_type_class
+            did_replace = True
+        return (did_replace, type_class)
+
     def _defineBuiltins_ox (self, structures_module):
         """Ensure this namespace is ready for use.
 

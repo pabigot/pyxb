@@ -21,6 +21,16 @@ The ``CreateFromDocument`` function in a given binding module is configured
 so that documents with no default namespace are assumed to be in the
 namespace from which the binding was generated.
 
+Coping With Wrong ``xsi:type`` Attributes
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Some web services and binding tools mis-use `xsi:type
+<http://www.w3.org/TR/xmlschema-1/#xsi_type>`_, providing attribute values
+that either are not types, or do not specify a type that is derived from an
+abstract type.  The
+:api:`pyxb.namespace.builtin.XMLSchema_instance.ProcessTypeAttribute
+<pyxb.namespace.builtin._XMLSchema_instance.ProcessTypeAttribute>` method
+can be used to relax how PyXB processes those attributes.
 
 .. _from-python:
 

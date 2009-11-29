@@ -22,6 +22,7 @@ import pyxb.utils.saxutils
 import pyxb.utils.saxdom
 import pyxb.utils.utility
 import basis
+from pyxb.namespace.builtin import XMLSchema_instance as XSI
 
 class _SAXElementState (pyxb.utils.saxutils.SAXElementState):
     """State required to generate bindings for a specific element.
@@ -32,7 +33,7 @@ class _SAXElementState (pyxb.utils.saxutils.SAXElementState):
     """
 
     # An expanded name corresponding to xsi:nil
-    __XSINilTuple = pyxb.namespace.XMLSchema_instance.createExpandedName('nil').uriTuple()
+    __XSINilTuple = XSI.nil.uriTuple()
 
     # The binding object being created for this element.  When the
     # element type has simple content, the binding instance cannot be
@@ -113,7 +114,7 @@ class _SAXElementState (pyxb.utils.saxutils.SAXElementState):
             for attr_name in self.__attributes.getNames():
                 attr_en = pyxb.namespace.ExpandedName(attr_name)
                 # Ignore xmlns and xsi attributes; we've already handled those
-                if attr_en.namespace() in ( pyxb.namespace.XMLNamespaces, pyxb.namespace.XMLSchema_instance ):
+                if attr_en.namespace() in ( pyxb.namespace.XMLNamespaces, XSI ):
                     continue
                 au = self.__bindingObject._setAttribute(attr_en, attrs.getValue(attr_name))
 
@@ -238,7 +239,7 @@ class PyXBSAXHandler (pyxb.utils.saxutils.BaseSAXHandler):
     __trace = False
 
     # An expanded name corresponding to xsi:type
-    __XSITypeTuple = pyxb.namespace.XMLSchema_instance.createExpandedName('type').uriTuple()
+    __XSITypeTuple = XSI.type.uriTuple()
 
     __domHandler = None
     __domDepth = None
@@ -287,16 +288,6 @@ class PyXBSAXHandler (pyxb.utils.saxutils.BaseSAXHandler):
         if this_state.inDOMMode():
             return this_state.startDOMElement(attrs)
 
-        # Start knowing nothing
-        type_class = None
-
-        # Process an xsi:type attribute, if present
-        if attrs.has_key(self.__XSITypeTuple):
-            xsi_type = attrs.getValue(self.__XSITypeTuple)
-            type_class = ns_ctx.interpretQName(xsi_type).typeBinding()
-            if type_class is None:
-                raise pyxb.BadDocumentError("No type binding for %s" % (xsi_type,))
-
         # Resolve the element within the appropriate context.  Note
         # that global elements have no use, only the binding.
         if parent_state.enclosingCTD() is not None:
@@ -306,29 +297,37 @@ class PyXBSAXHandler (pyxb.utils.saxutils.BaseSAXHandler):
             element_binding = name_en.elementBinding()
 
         # Non-root elements should have an element use, from which we can
-        # extract the binding.  (Keep any current binding, since it may be a
-        # member of a substitution group.)
+        # extract the binding if we couldn't find one elsewhere.  (Keep any
+        # current binding, since it may be a member of a substitution group.)
         if (element_use is not None) and (element_binding is None):
             assert self.__rootObject is not None
             element_binding = element_use.elementBinding()
             assert element_binding is not None
 
-        # Get the factory method for the binding type for the element instance
-        if type_class is not None:
-            # @todo: validate xsi:type against abstract
-            new_object_factory = type_class.Factory
-        elif element_binding is None:
+        # Start knowing nothing
+        type_class = None
+        if element_binding is not None:
+            element_binding = element_binding.elementForName(name)
+            type_class = element_binding.typeDefinition()
+
+        # Process an xsi:type attribute, if present
+        if attrs.has_key(self.__XSITypeTuple):
+            (did_replace, type_class) = XSI._InterpretTypeAttribute(attrs.getValue(self.__XSITypeTuple), ns_ctx, None, type_class)
+            if did_replace:
+                element_binding = None
+
+        if type_class is None:
             # Bother.  We don't know what this thing is.  But that's not an
             # error, if the schema accepts wildcards.  For consistency with
             # the DOM-based interface, we need to build a DOM node.
             return this_state.enterDOMMode(attrs)
-        else:
+
+        if element_binding is not None:
             # Invoke binding __call__ method not Factory, so can check for
             # abstract elements.
-            assert element_binding is not None
-            element_binding = element_binding.elementForName(name)
             new_object_factory = element_binding
-            type_class = element_binding.typeDefinition()
+        else:
+            new_object_factory = type_class.Factory
 
         # Update the enclosing complex type definition for this
         # element state.
