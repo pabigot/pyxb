@@ -788,19 +788,24 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
 
         facet_values = None
 
-        # When setting up the datatypes, if we attempt to validate
-        # something before the facets have been initialized (e.g., a
-        # nonNegativeInteger used as a length facet for the parent
-        # integer datatype), just ignore that.
-        try:
-            facet_values = cls._FacetMap().values()
-        except AttributeError:
-            return value
-        for f in facet_values:
-            if not f.validateConstraint(value):
-                raise pyxb.BadTypeValueError('%s violation for %s in %s' % (f.Name(), value, cls.__name__))
-            #print '%s ok for %s' % (f, value)
-        return None
+        # Constraints for simple type definitions are inherited.  Check them
+        # from least derived to most derived.
+        classes = [ _x for _x in cls.mro() if issubclass(_x, simpleTypeDefinition) ]
+        classes.reverse()
+        for clazz in classes:
+            # When setting up the datatypes, if we attempt to validate
+            # something before the facets have been initialized (e.g., a
+            # nonNegativeInteger used as a length facet for the parent
+            # integer datatype), just ignore that.
+            try:
+                facet_values = clazz._FacetMap().values()
+            except AttributeError, e:
+                facet_values = []
+            for f in facet_values:
+                if not f.validateConstraint(value):
+                    raise pyxb.BadTypeValueError('%s violation for %s in %s' % (f.Name(), value, cls.__name__))
+                #print '%s ok for %s' % (f, value)
+        return value
 
     def xsdConstraintsOK (self):
         """Validate the value of this instance against its constraints."""
