@@ -474,8 +474,7 @@ def GenerateSTD (std, generator):
     # @todo: Extensions of LIST will be wrong in below
 
     common_template = '''
-    """%{description}
-%{documentation}"""
+    """%{documentation}"""
 
     _ExpandedName = %{expanded_name}
     _Documentation = %{documentation_expr}
@@ -485,13 +484,15 @@ def GenerateSTD (std, generator):
 # The ur SimpleTypeDefinition
 class %{std} (%{superclasses}):
 ''' + common_template
-        template_map['description'] = ''
+        if not template_map['documentation']:
+            template_map['documentation'] = 'The ur simple type.'
     elif xs.structures.SimpleTypeDefinition.VARIETY_atomic == std.variety():
         template = '''
 # Atomic SimpleTypeDefinition
 class %{std} (%{superclasses}):
 ''' + common_template
-        template_map['description'] = ''
+        if not template_map['documentation']:
+            template_map['documentation'] = 'An atomic simple type.'
     elif xs.structures.SimpleTypeDefinition.VARIETY_list == std.variety():
         template = '''
 # List SimpleTypeDefinition
@@ -501,7 +502,8 @@ class %{std} (pyxb.binding.basis.STD_list):
     _ItemType = %{itemtype}
 '''
         template_map['itemtype'] = binding_module.literal(std.itemTypeDefinition(), **kw)
-        template_map['description'] = templates.replaceInText('Simple type that is a list of %{itemtype}', **template_map)
+        if not template_map['documentation']:
+            template_map['documentation'] = templates.replaceInText('Simple type that is a list of %{itemtype}.', **template_map)
     elif xs.structures.SimpleTypeDefinition.VARIETY_union == std.variety():
         template = '''
 # Union SimpleTypeDefinition
@@ -511,10 +513,11 @@ class %{std} (pyxb.binding.basis.STD_union):
     _MemberTypes = ( %{membertypes}, )
 '''
         template_map['membertypes'] = ", ".join( [ binding_module.literal(_mt, **kw) for _mt in std.memberTypeDefinitions() ])
-        template_map['description'] = templates.replaceInText('Simple type that is a union of %{membertypes}', **template_map)
+        if not template_map['documentation']:
+            template_map['documentation'] = templates.replaceInText('Simple type that is a union of %{membertypes}.', **template_map)
+    else:
+        raise pyxb.LogicError("Unhandled STD variety")
 
-    if 0 == len(template_map['description']):
-        template_map['description'] = 'No information'
     outf.write(templates.replaceInText(template, **template_map))
 
     generate_facets = False
