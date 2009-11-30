@@ -37,6 +37,30 @@ Linux several years ago:
   pain.  Evolution of a beta series stops upon release of the subsequent
   stable series.
 
+1.1.x (Beta)
+==============
+
+1.1.0 (30 Nov 2009, rev 2092)
+-----------------------------
+
+Mostly nit-picky things, but some changed interface, so we're starting a new
+beta series.
+
+- Make handling of invalid xsi:type attributes more robust.  :ticket:`56`
+
+- Use validation flags to control validation (what a novel concept).
+  :ticket:`57`
+
+- Fix improper generation of content within elements marked as xsi:nil.
+  :ticket:`58`
+
+- Provide mechanism to control default handling of xsi:type attributes in
+  instance documents.  :ticket:`60`
+
+- Fix bug where constraining facets were not inherited when deriving simple
+  types by restriction.  :ticket:`61`
+
+
 1.0.x (Stable)
 ==============
 
