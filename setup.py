@@ -171,7 +171,12 @@ init_re = re.compile('^__init__\.py$')
 wxs_re = re.compile('^.*\.wxs$')
 
 bundle_base = os.path.join(os.path.dirname(__file__), 'pyxb', 'bundles')
-for possible_bundle in os.listdir(bundle_base):
+possible_bundles = []
+try:
+    possible_bundles.extend(os.listdir(bundle_base))
+except IOError,e :
+    print "Directory %s bundle search failed: %s" % (bundle_base, e)
+for possible_bundle in possible_bundles:
     bundle_root = os.path.join(bundle_base, possible_bundle)
     if not os.path.isdir(bundle_root):
         continue
