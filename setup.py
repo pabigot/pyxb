@@ -174,7 +174,7 @@ bundle_base = os.path.join(os.path.dirname(__file__), 'pyxb', 'bundles')
 possible_bundles = []
 try:
     possible_bundles.extend(os.listdir(bundle_base))
-except IOError,e :
+except OSError,e :
     print "Directory %s bundle search failed: %s" % (bundle_base, e)
 for possible_bundle in possible_bundles:
     bundle_root = os.path.join(bundle_base, possible_bundle)
