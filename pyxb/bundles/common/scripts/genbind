@@ -4,7 +4,8 @@ BUNDLE_TAG=common
 . ${PYXB_ROOT}/maintainer/bundlesupport.sh
 
 # Get a couple that we don't actually generate bindings for, but are nice to
-# have around for reference.
+# have around for reference.  (These are all built-ins, so don't need
+# generation.)
 test -f ${SCHEMA_DIR}/xml.xsd || wget -O ${SCHEMA_DIR}/xml.xsd http://www.w3.org/2001/xml.xsd
 test -f ${SCHEMA_DIR}/XMLSchema.xsd || wget -O ${SCHEMA_DIR}/XMLSchema.xsd http://www.w3.org/2001/XMLSchema.xsd
 
