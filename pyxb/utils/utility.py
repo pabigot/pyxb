@@ -579,8 +579,15 @@ def OpenOrCreate (file_name, tag=None, preserve_contents=False):
         fp.seek(2) # os.SEEK_END
     return fp
             
-import sha
-# @todo: support hashlib
+# hashlib didn't show up until 2.5, and sha is deprecated in 2.6.
+__Hasher = None
+try:
+    import hashlib
+    __Hasher = hashlib.sha1
+except ImportError:
+    import sha
+    __Hasher = sha.new
+    
 def HashForText (text):
     """Calculate a cryptographic hash of the given string.
 
@@ -590,8 +597,9 @@ def HashForText (text):
 
     @return: A C{str}, generally a sequence of hexadecimal "digit"s.
     """
-    return sha.new(text).hexdigest()
+    return __Hasher(text).hexdigest()
 
+# uuid didn't show up until 2.5
 __HaveUUID = False
 try:
     import uuid
