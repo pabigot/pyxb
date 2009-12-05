@@ -4584,9 +4584,10 @@ class _ImportElementInformationItem (_Annotated_mixin):
         schema_location = pyxb.utils.utility.NormalizeLocation(NodeAttribute(node, 'schemaLocation'), importing_schema.location())
         self.__schemaLocation = schema_location
         ns = self.__namespace = pyxb.namespace.NamespaceForURI(uri, create_if_missing=True)
-        if ns.isLoadable():
+        need_schema = not (ns.isLoadable() or ns.isBuiltinNamespace())
+        if not need_schema:
             # Discard location if we expect to be able to learn about this
-            # namespace from an archive.
+            # namespace from an archive or a built-in description
             self.__schemaLocation = None
 
         ns_ctx = pyxb.namespace.resolution.NamespaceContext.GetNodeContext(node)
@@ -4605,7 +4606,7 @@ class _ImportElementInformationItem (_Annotated_mixin):
                     print 'WARNING: Import %s cannot read schema location %s (%s): %s' % (ns, self.__schemaLocation, schema_location, e)
                     raise
             self.__schema = schema_instance
-        elif not ns.isLoadable():
+        elif need_schema:
             print 'WARNING: No information available on imported namespace %s' % (uri,)
 
         # If we think we found a schema, make sure it's in the right
