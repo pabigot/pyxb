@@ -2158,10 +2158,10 @@ class Generator (object):
             if (module_path is None) and not (namespace.prefix() is None):
                 module_path = namespace.prefix()
             module_path = self.namespaceModuleMap().get(namespace.uri(), module_path)
-            if (module_path is not None) and self.modulePrefix(): # non-empty value
-                module_path = '.'.join([self.modulePrefix(), module_path])
-            if (module_path is None) and self.generateToFiles():
-                raise pyxb.BindingGenerationError('No prefix or module name available for %s' % (module_record,))
+        if (module_path is not None) and self.modulePrefix(): # non-empty value
+            module_path = '.'.join([self.modulePrefix(), module_path])
+        if (module_path is None) and self.generateToFiles():
+            raise pyxb.BindingGenerationError('No prefix or module name available for %s' % (module_record,))
         module_record.setModulePath(module_path)
         return module_record
 
