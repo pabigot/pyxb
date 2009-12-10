@@ -1462,14 +1462,15 @@ class Generator (object):
         return self
     __bindingRoot = None
     
-    def __directoryForModulePath (self, module_elts):
+    def __moduleFilePath (self, module_elts, inhibit_extension=False):
         if isinstance(module_elts, basestring):
             module_elts = module_elts.split('.')
         else:
             module_elts = module_elts[:]
         assert 0 < len(module_elts)
-        assert not module_elts[-1].endswith('.py')
-        module_elts[-1] = '%s.py' % (module_elts[-1],)
+        if not inhibit_extension:
+            assert not module_elts[-1].endswith('.py')
+            module_elts[-1] = '%s.py' % (module_elts[-1],)
         return os.path.join(self.bindingRoot(), *module_elts)
 
     def generateToFiles (self):
@@ -1498,13 +1499,13 @@ class Generator (object):
             #    return ('/dev/null', None, None)
             #module_path="bogus.xsd"
             module_elts = module_path.split('.')
-            import_file_path = self.__directoryForModulePath(module_elts)
             if self.writeForCustomization():
+                import_file_path = self.__moduleFilePath(module_elts)
                 module_elts.insert(-1, 'raw')
-            if self.writeForCustomization() and (not os.path.exists(import_file_path)):
-                raw_module_path = '.'.join(module_elts)
-                pyxb.utils.utility.OpenOrCreate(import_file_path).write("from %s import *\n" % (raw_module_path,))
-            binding_file_path = self.__directoryForModulePath(module_elts)
+                if not os.path.exists(import_file_path):
+                    raw_module_path = '.'.join(module_elts)
+                    pyxb.utils.utility.OpenOrCreate(import_file_path).write("from %s import *\n" % (raw_module_path,))
+            binding_file_path = self.__moduleFilePath(module_elts)
             try:
                 binding_file = pyxb.utils.utility.OpenOrCreate(binding_file_path, tag=module.moduleUID())
             except OSError, e:
@@ -1523,7 +1524,7 @@ class Generator (object):
             while True:
                 module_elts.append(pyxb.utils.utility.PrepareIdentifier('nsgroup', in_use, protected=True))
                 try:
-                    binding_file_path = self.__directoryForModulePath(module_elts)
+                    binding_file_path = self.__moduleFilePath(module_elts)
                     print 'Attempting group at %s' % (binding_file_path,)
                     binding_file = pyxb.utils.utility.OpenOrCreate(binding_file_path, tag=module.moduleUID())
                     break
@@ -1536,7 +1537,7 @@ class Generator (object):
             assert False
         if self.generateToFiles():
             for n in range(len(module_elts)-1):
-                sub_path = os.path.join(*module_elts[:1+n])
+                sub_path = self.__moduleFilePath(module_elts[:1+n], inhibit_extension=True)
                 init_path = os.path.join(sub_path, '__init__.py')
                 if not os.path.exists(init_path):
                     file(init_path, 'w')
