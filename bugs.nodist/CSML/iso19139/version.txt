@@ -1,2 +1,0 @@
-Preliminary ISO/TS 19139 schema documents - version date: 2005-09-07 (with adapted schemaLocation values)
-These files are preliminary versions. It is intended to eventually replace them with the published ISO/TS 19139 schema (or use a reference to a permanently available http-accessible version).
