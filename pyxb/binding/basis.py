@@ -520,8 +520,10 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
     # Determine the name of the class-private facet map.  For the base class
     # this should produce the same attribute name as Python's privatization
     # scheme.
+    __FacetMapAttributeNameMap = { }
     @classmethod
     def __FacetMapAttributeName (cls):
+        '''
         if cls == simpleTypeDefinition:
             return '_%s__FacetMap' % (cls.__name__.strip('_'),)
 
@@ -534,8 +536,23 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
         except Exception, e:
             pass
         nm = '_' + utility.MakeIdentifier('%s_%s_FacetMap' % (ns_uri, cls.__name__.strip('_')))
+        '''
+        nm = cls.__FacetMapAttributeNameMap.get(cls)
+        if nm is None:
+            if cls == simpleTypeDefinition:
+                nm = '_%s__FacetMap' % (cls.__name__.strip('_'),)
+            else:
+                # It is not uncommon for a class in one namespace to extend a class of
+                # the same name in a different namespace, so encode the namespace URI
+                # in the attribute name (if it is part of a namespace).
+                ns_uri = ''
+                try:
+                    ns_uri = cls._ExpandedName.namespaceURI()
+                except Exception, e:
+                    pass
+                nm = '_' + utility.MakeIdentifier('%s_%s_FacetMap' % (ns_uri, cls.__name__.strip('_')))
+            cls.__FacetMapAttributeNameMap[cls] = nm
         return nm
-        
 
     @classmethod
     def _FacetMap (cls):
