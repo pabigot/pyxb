@@ -1318,7 +1318,7 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
         # None is always None
         if value is None:
             return None
-        is_plural = kw.get('is_plural', False)
+        is_plural = kw.pop('is_plural', False)
         #print 'validating %s against %s, isPlural %s' % (type(value), self.typeDefinition(), is_plural)
         if is_plural:
             try:
