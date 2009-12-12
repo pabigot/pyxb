@@ -1244,6 +1244,8 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
         @todo: Do something about blocking constraints.  This ignores them, as
         does everything leading to this point.
         """
+        if self.substitutionGroup() is None:
+            return False
         if other is None:
             return False
         assert isinstance(other, element)
@@ -1257,8 +1259,6 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
         # Do both these refer to the same (top-level) element?
         if self.name().elementBinding() == other:
             return True
-        if self.substitutionGroup() is None:
-            return False
         return (self.substitutionGroup() == other) or self.substitutionGroup().substitutesFor(other)
 
     def memberElement (self, name):
