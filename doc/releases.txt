@@ -40,6 +40,20 @@ Linux several years ago:
 1.1.x (Beta)
 ==============
 
+1.1.1 (, rev )
+------------------
+
+- Fix assorted problems with mixtures of :ref:`pyxbgen--binding-root`,
+  :ref:`pyxbgen--module-prefix`, and :ref:`pyxbgen--write-for-customization`.
+  :ticket:`64`, :ticket:`65`
+
+- Eliminate unnecessary attempts to download schema for builtin namespaces.
+  :ticket:`63`
+
+- Eliminate complaints about reference to deprecated :mod:`sha` module in Python
+  2.6.
+
+
 1.1.0 (30 Nov 2009, rev 2092)
 -----------------------------
 
