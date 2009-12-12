@@ -1225,6 +1225,8 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
         return self.__substitutionGroup
     def _setSubstitutionGroup (self, substitution_group):
         self.__substitutionGroup = substitution_group
+        if substitution_group is not None:
+            self.substitutesFor = self._real_substitutesFor
         return self
     __substitutionGroup = None
 
@@ -1236,7 +1238,7 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
             return None
         return self.substitutionGroup().findSubstituendUse(ctd_class)
 
-    def substitutesFor (self, other):
+    def _real_substitutesFor (self, other):
         """Determine whether an instance of this element can substitute for the other element.
         
         See U{Substitution Group OK<http://www.w3.org/TR/xmlschema-1/#cos-equiv-derived-ok-rec>)}.
@@ -1260,6 +1262,10 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
         if self.name().elementBinding() == other:
             return True
         return (self.substitutionGroup() == other) or self.substitutionGroup().substitutesFor(other)
+
+    def substitutesFor (self, other):
+        """Stub replaced by _real_substitutesFor when element supports substitution groups."""
+        return False
 
     def memberElement (self, name):
         """Return a reference to the element instance used for the given name
