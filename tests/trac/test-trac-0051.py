@@ -39,8 +39,9 @@ class TestTrac_0051 (unittest.TestCase):
         self.assertEqual('hello', e.content_)
         e.content_ = 'goodbye'
         self.assertEqual('goodbye', e.content_)
-        self.assertRaises(pyxb.BindingError, self.__setContent, e, 'invalid')
-        self.assertRaises(pyxb.BindingError, self.__setToXML, e, 32)
+        if pyxb._CorruptionDetectionEnabled:
+            self.assertRaises(pyxb.BindingError, self.__setContent, e, 'invalid')
+            self.assertRaises(pyxb.BindingError, self.__setToXML, e, 32)
 
 if __name__ == '__main__':
     unittest.main()

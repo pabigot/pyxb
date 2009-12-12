@@ -150,6 +150,23 @@ def _SetXMLStyle (style=None):
 
 _SetXMLStyle()
 
+# Global flag that we can use to determine whether optimization is active in
+# this session.  There may be cases where we can bypass methods that just
+# check for things we don't care about in an optimized context
+_OptimizationActive = False
+try:
+    assert False
+    _OptimizationActive = True
+except:
+    pass
+
+_CorruptionDetectionEnabled = not _OptimizationActive
+"""If @c True, blocks attempts to assign to attributes that are reserved for
+PyXB methods.
+
+Applies only at compilation time; dynamic changes are ignored.
+"""
+
 _GenerationRequiresValid = True
 def RequireValidWhenGenerating (value=None):
     """Query or set a flag that controls validation checking in XML generation.

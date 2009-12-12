@@ -55,10 +55,11 @@ class _TypeBinding_mixin (utility.Locatable_mixin):
 
     _ReservedSymbols = set([ 'validateBinding', 'toDOM', 'toxml', 'Factory', 'property' ])
 
-    def __setattr__ (self, name, value):
-        if name in self._ReservedSymbols:
-            raise pyxb.BindingError('Attempt to set reserved name %s in instance of %s' % (name, type(self)))
-        return super(_TypeBinding_mixin, self).__setattr__(name, value)
+    if pyxb._CorruptionDetectionEnabled:
+        def __setattr__ (self, name, value):
+            if name in self._ReservedSymbols:
+                raise pyxb.BindingError('Attempt to set reserved name %s in instance of %s' % (name, type(self)))
+            return super(_TypeBinding_mixin, self).__setattr__(name, value)
 
     # @todo: We don't actually use this anymore; get rid of it, just leaving a
     # comment describing each keyword.
@@ -808,11 +809,10 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
 
         value = cls._XsdConstraintsPreCheck_vb(value)
 
-
-        # Constraints for simple type definitions are inherited.  Check them
-        # from least derived to most derived.
         facet_values = cls.__ClassFacetSequence.get(cls)
         if facet_values is None:
+            # Constraints for simple type definitions are inherited.  Check them
+            # from least derived to most derived.
             classes = [ _x for _x in cls.mro() if issubclass(_x, simpleTypeDefinition) ]
             classes.reverse()
             cache_result = True
