@@ -795,6 +795,10 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
         super_fn = getattr(super(simpleTypeDefinition, cls), '_XsdConstraintsPreCheck_vb', lambda *a,**kw: value)
         return super_fn(value)
 
+    # Cache of pre-computed class ancestors in the order required for
+    # constraint validation
+    __ClassAncestryMap = { }
+
     @classmethod
     def XsdConstraintsOK (cls, value):
         """Validate the given value against the constraints on this class.
@@ -808,8 +812,11 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
 
         # Constraints for simple type definitions are inherited.  Check them
         # from least derived to most derived.
-        classes = [ _x for _x in cls.mro() if issubclass(_x, simpleTypeDefinition) ]
-        classes.reverse()
+        classes = cls.__ClassAncestryMap.get(cls)
+        if classes is None:
+            classes = [ _x for _x in cls.mro() if issubclass(_x, simpleTypeDefinition) ]
+            classes.reverse()
+            cls.__ClassAncestryMap[cls] = classes
         for clazz in classes:
             # When setting up the datatypes, if we attempt to validate
             # something before the facets have been initialized (e.g., a
