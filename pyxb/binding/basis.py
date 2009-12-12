@@ -795,9 +795,9 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
         super_fn = getattr(super(simpleTypeDefinition, cls), '_XsdConstraintsPreCheck_vb', lambda *a,**kw: value)
         return super_fn(value)
 
-    # Cache of pre-computed class ancestors in the order required for
-    # constraint validation
-    __ClassAncestryMap = { }
+    # Cache of pre-computed sequences of class facets in the order required
+    # for constraint validation
+    __ClassFacetSequence = { }
 
     @classmethod
     def XsdConstraintsOK (cls, value):
@@ -808,28 +808,36 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
 
         value = cls._XsdConstraintsPreCheck_vb(value)
 
-        facet_values = None
 
         # Constraints for simple type definitions are inherited.  Check them
         # from least derived to most derived.
-        classes = cls.__ClassAncestryMap.get(cls)
-        if classes is None:
+        facet_values = cls.__ClassFacetSequence.get(cls)
+        if facet_values is None:
             classes = [ _x for _x in cls.mro() if issubclass(_x, simpleTypeDefinition) ]
             classes.reverse()
-            cls.__ClassAncestryMap[cls] = classes
-        for clazz in classes:
-            # When setting up the datatypes, if we attempt to validate
-            # something before the facets have been initialized (e.g., a
-            # nonNegativeInteger used as a length facet for the parent
-            # integer datatype), just ignore that.
-            try:
-                facet_values = clazz._FacetMap().values()
-            except AttributeError, e:
-                facet_values = []
-            for f in facet_values:
-                if not f.validateConstraint(value):
-                    raise pyxb.BadTypeValueError('%s violation for %s in %s' % (f.Name(), value, cls.__name__))
-                #print '%s ok for %s' % (f, value)
+            cache_result = True
+            facet_values = []
+            for clazz in classes:
+                # When setting up the datatypes, if we attempt to validate
+                # something before the facets have been initialized (e.g., a
+                # nonNegativeInteger used as a length facet for the parent
+                # integer datatype), just ignore that for now.  Don't cache
+                # the value, though, since a subsequent check after
+                # initialization should succceed.
+                try:
+                    clazz_facets = clazz._FacetMap().values()
+                except AttributeError, e:
+                    cache_result = False
+                    clazz_facets = []
+                for v in clazz_facets:
+                    if not (v in facet_values):
+                        facet_values.append(v)
+            if cache_result:
+                cls.__ClassFacetSequence[cls] = facet_values
+        for f in facet_values:
+            if not f.validateConstraint(value):
+                raise pyxb.BadTypeValueError('%s violation for %s in %s' % (f.Name(), value, cls.__name__))
+            #print '%s ok for %s' % (f, value)
         return value
 
     def xsdConstraintsOK (self):
