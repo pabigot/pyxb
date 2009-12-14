@@ -66,14 +66,14 @@ Several changes must be made to decrease memory use and time:
   module, with behavior configured at the time the module is loaded (not
   dynamically as the system is running).
 
-* Values that are fundamentally Python primitive types should be stored as
-  instances of those types: e.g., a Python int takes 4 bytes while an
-  xsd:int instance takes 362.  This should apply to any instance of a simple
-  type that derives from a Python primitive type, whether the instance is
-  content in an element or value for an attribute.  This will cut memory use
-  significantly; the optimal per-instance cost in the test system would
-  reduce to 2310 bytes plus data (at least 7 of the elements required are of
-  complex type), a memory footprint of 23MB.
+* A Python int takes 4 bytes while an xsd:int instance takes 362.  Values
+  that are fundamentally Python primitive types should be stored as
+  instances of those types whenever possible.  This should apply to any
+  instance of a simple type that derives from a Python primitive type,
+  whether the instance is content in an element or value for an attribute.
+  This will cut memory use significantly; the optimal per-instance cost in
+  the test system would reduce to 2310 bytes plus data (at least 7 of the
+  elements required are of complex type), a memory footprint of 23MB.
 
 * The runtime system will need to be updated to perform validation on the
   primitive types, which will not have the necessary mix-in classes.
