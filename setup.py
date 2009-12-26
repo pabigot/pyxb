@@ -144,7 +144,7 @@ class test (Command):
                 if self.trace_tests:
                     print '%s imported' % (fn,)
             except Exception, e:
-                print '%s failed in %s: %s' % (fn, state, e)
+                print '%s failed in %s: %s' % (fn, stage, e)
                 raise
 
         # Run everything
