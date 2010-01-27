@@ -1,0 +1,13 @@
+<xsd:schema targetNamespace="urn:trac-0073:test" 
+   xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+   xmlns:gml="http://www.opengis.net/gml/3.2" 
+   elementFormDefault="qualified" version="2.06"> 
+ <xsd:import namespace="http://www.opengis.net/gml/3.2"/>
+       <xsd:complexType name="AbstractAIXMFeatureBaseType" abstract="true">
+                <xsd:complexContent>
+                        <xsd:restriction base="gml:DynamicFeatureType">
+                                <xsd:attribute ref="gml:id" use="required"/>
+                        </xsd:restriction>
+                </xsd:complexContent>
+        </xsd:complexType>
+</xsd:schema>
