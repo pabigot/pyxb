@@ -50,7 +50,7 @@ Anytown, AS  12345-6789'''
         # NB: USAddress is a CTD, not an element.
         xml = '<shipTo>%s</shipTo>' % (self.address1_xml,)
         dom = pyxb.utils.domutils.StringToDOM(xml)
-        addr2 = USAddress.Factory(dom_node=dom.documentElement)
+        addr2 = USAddress.Factory(_dom_node=dom.documentElement)
         #self.assertEqual(xml, ToDOM(addr2, tag='shipTo').toxml())
 
     def testPurchaseOrder (self):

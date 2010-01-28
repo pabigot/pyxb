@@ -63,7 +63,7 @@ class _TypeBinding_mixin (utility.Locatable_mixin):
 
     # @todo: We don't actually use this anymore; get rid of it, just leaving a
     # comment describing each keyword.
-    _PyXBFactoryKeywords = ( '_dom_node', '_fallback_namespace', '_apply_whitespace_facet', '_validate_constraints', '_require_value', '_nil', '_element' )
+    _PyXBFactoryKeywords = ( '_dom_node', '_fallback_namespace', '_apply_whitespace_facet', '_validate_constraints', '_require_value', '_nil', '_element', '_convert_string_values' )
     """Keywords that are interpreted by __new__ or __init__ in one or more
     classes in the PyXB type hierarchy.  All these keywords must be removed
     before invoking base Python __init__ or __new__."""
@@ -242,7 +242,7 @@ class _TypeBinding_mixin (utility.Locatable_mixin):
         type-compatible with C{xs:byte}, it is outside the value space, and
         compatibility will fail.
 
-        @keyword convert_string_values: If C{True} (default) and the incoming value is
+        @keyword _convert_string_values: If C{True} (default) and the incoming value is
         a string, an attempt will be made to form a compatible value by using
         the string as a constructor argument to the this class.  This flag is
         set to C{False} when testing automaton transitions.
@@ -250,7 +250,7 @@ class _TypeBinding_mixin (utility.Locatable_mixin):
         @raise pyxb.BadTypeValueError: if the value is not both
         type-consistent and value-consistent with the element's type.
         """
-        convert_string_values = kw.get('convert_string_values', True)
+        convert_string_values = kw.get('_convert_string_values', True)
         # None is always None
         if value is None:
             return None
@@ -1593,7 +1593,8 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         Arguments are used as transition values along the content model.
         Keywords are passed to the constructor of any simple content, or used
         to initialize attribute and element values whose L{id
-        <content.ElementUse.id>} matches the keyword.
+        <content.ElementUse.id>} (not L{name <content.ElementUse.name>})
+        matches the keyword.
 
         @keyword _dom_node: The node to use as the source of binding content.
         @type _dom_node: C{xml.dom.Element}
@@ -1625,15 +1626,19 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         if dom_node is not None:
             attribute_settings.update(self.__AttributesFromDOM(dom_node))
         for fu in self._AttributeMap.values():
-            iv = kw.get(fu.id())
+            iv = kw.pop(fu.id(), None)
             if iv is not None:
                 attribute_settings[fu.name()] = iv
         for (attr_en, value) in attribute_settings.items():
             au = self._setAttribute(attr_en, value)
         for fu in self._ElementMap.values():
-            iv = kw.get(fu.id())
+            iv = kw.pop(fu.id(), None)
             if iv is not None:
                 fu.set(self, iv)
+        if kw and kw.pop('_strict_keywords', True):
+            [ kw.pop(_fkw, None) for _fkw in self._PyXBFactoryKeywords ]
+            if kw:
+                raise pyxb.ExtraContentError(kw)
         if dom_node is not None:
             if self._CT_SIMPLE == self._ContentTypeTag:
                 self.__initializeSimpleContent(args, dom_node)
