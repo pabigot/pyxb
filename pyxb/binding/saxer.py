@@ -255,7 +255,7 @@ class PyXBSAXHandler (pyxb.utils.saxutils.BaseSAXHandler):
         match the top-level element in the document."""
         if not isinstance(self.__rootObject, basis._TypeBinding_mixin):
             # Happens if the top-level element got processed as a DOM instance.
-            raise pyxb.UnrecognizedElementError(self.__rootObject)
+            raise pyxb.UnrecognizedElementError(dom_node=self.__rootObject)
         return self.__rootObject
     __rootObject = None
 

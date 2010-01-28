@@ -1338,7 +1338,7 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
         expanded_name = pyxb.namespace.ExpandedName(node, fallback_namespace=_fallback_namespace)
         elt = expanded_name.elementBinding()
         if elt is None:
-            raise pyxb.UnrecognizedElementError('No element binding available for %s' % (expanded_name,))
+            raise pyxb.UnrecognizedElementError(dom_node=node, element_name=expanded_name)
         assert isinstance(elt, pyxb.binding.basis.element)
         # Pass on the namespace to use when resolving unqualified qnames as in
         # xsi:type

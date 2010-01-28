@@ -27,7 +27,11 @@ class PyXBException (exceptions.Exception):
     """The arguments passed to the exception constructor."""
     _args = None
 
-    """The keywords passed to the exception constructor."""
+    """The keywords passed to the exception constructor.
+
+    @note: Do not pop values from the keywords array in subclass
+    constructors that recognize and extract values from them.  They
+    should be kept around so they're accessible generically."""
     _kw = None
 
     @property
@@ -48,7 +52,7 @@ class PyXBException (exceptions.Exception):
 
         @keyword message : Text to provide the user with information about the problem.
         """
-        self.__message = kw.pop('message', None)
+        self.__message = kw.get('message')
         self._args = args
         self._kw = kw
         exceptions.Exception.__init__(self, *args)
@@ -125,6 +129,33 @@ class UnrecognizedContentError (StructuralBadDocumentError):
 class UnrecognizedElementError (UnrecognizedContentError):
     """Raised when creating an instance from a document with an unrecognized root element."""
 
+    @property
+    def element_name (self):
+        """The L{pyxb.namespace.ExpandedName} of the element that was not recognized."""
+        return self.__elementName
+
+    @property
+    def dom_node (self):
+        """The L{pyxb.namespace.ExpandedName} of the element that was not recognized."""
+        return self.__domNode
+
+    def __init__ (self, **kw):
+        """Raised when creating an instance from a document with an unrecognized root element.
+
+        @keyword element_name : The expanded name of the outermost element
+        @keyword dom_node : The DOM node of the outermost element, if available
+        """
+        self.__domNode = kw.get('dom_node')
+        self.__elementName = kw.get('element_name')
+        if self.__elementName is None:
+            if self.__domNode is not None:
+                import pyxb.namespace
+                self.__elementName = pyxb.namespace.ExpandedName(self.__domNode.namespaceURI, self.__domNode.localName)
+            else:
+                raise LogicError('No source for elemjent_name  in UnrecognizedElementError')
+        kw.setdefault('message', 'No element binding available for %s' % (self.__elementName,))
+        UnrecognizedContentError.__init__(self, **kw)
+
 class ExtraContentError (StructuralBadDocumentError):
     """Raised when processing document and there is more material in an element content than expected."""
 
@@ -140,7 +171,7 @@ class NotAnElementError (UnrecognizedContentError):
 
     @property
     def element_name (self):
-        """The L{pyxb.namespace.ExpandedName} of the inner element that is not an element name."""
+        """The L{pyxb.namespace.ExpandedName} of the element that was not recognized."""
         return self.__elementName
 
     @property
@@ -156,7 +187,7 @@ class NotAnElementError (UnrecognizedContentError):
         """
         self.__elementName = element_name
         self.__containingType = containing_type
-        kw.setdefault('message', 'Unable to locate element %s in type %s' % (self.__elementName, self.__containingType._ExpandedName))
+        kw.setdefault('message', 'Unable to locate element %s in type %s' % (element_name, self.__containingType._ExpandedName))
         UnrecognizedContentError.__init__(self, **kw)
 
 class UnrecognizedAttributeError (BadDocumentError):
