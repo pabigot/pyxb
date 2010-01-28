@@ -51,7 +51,6 @@ class TestTrac_0074 (unittest.TestCase):
             self.fail('SAXER creation succeeded')
         except pyxb.UnrecognizedElementError, e:
             self.assertEqual(t0p, e.element_name)
-            self.assertTrue(e.dom_node is None)
 
 if __name__ == '__main__':
     unittest.main()
