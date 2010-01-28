@@ -5,7 +5,7 @@ import pyxb.utils.domutils
 
 import os.path
 xsd='''<?xml version="1.0" encoding="UTF-8"?>
-<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:tns="validnamespaceprovider" targetNamespace="validnamespaceprovider">
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:tns="urn:trac-0071" targetNamespace="urn:trac-0071">
   <xs:element name="MetadataDocument" type="tns:MetadataType"/>
   <xs:complexType name="MetadataType">
     <xs:sequence maxOccurs="1" minOccurs="1">
@@ -62,26 +62,62 @@ class TestTrac_0071 (unittest.TestCase):
         timespan_type = timespan_element.typeDefinition()
         field_element = timespan_type._ElementMap['field'].elementBinding()
         field_type = field_element.typeDefinition()
+        value_element = field_type._ElementMap['value'].elementBinding()
+        value_type = value_element.typeDefinition()
         newdoc.template = 'anewtemplate'
+
         field = field_type('title', pyxb.BIND('foo', lang='ENG'), _element=field_element)
+        self.assertTrue(isinstance(field.value_, list))
+        self.assertEqual(1, len(field.value_))
+        self.assertTrue(isinstance(field.value_[0], value_type))
         field.validateBinding()
-        print field.value_
-        print field.toxml()
-        field = field_type(title='title', _element=field_element)
-        print type(field.value_)
+        self.assertEqual('<field><name>title</name><value lang="ENG">foo</value></field>', field.toxml(root_only=True))
+
+        field = field_type(name='title', _element=field_element)
         field.value_.append(pyxb.BIND('foo', lang='ENG'))
+        self.assertTrue(isinstance(field.value_, list))
+        self.assertEqual(1, len(field.value_))
+        self.assertTrue(isinstance(field.value_[0], pyxb.BIND))
         field.validateBinding()
-        print field.toxml()
+        self.assertTrue(isinstance(field.value_[0], pyxb.BIND))
+        self.assertEqual('<field><name>title</name><value lang="ENG">foo</value></field>', field.toxml(root_only=True))
+
         newdoc.timespan.append(pyxb.BIND( # Single timespan
                 pyxb.BIND( # First field instance
                     'title',
                     pyxb.BIND('foo', lang='ENG')
                     ),
                 start='-INF', end='+INF'))
+        newdoc.validateBinding()
         timespan = newdoc.timespan[0]
-        self.assertTrue(isinstance(timespan, timespan_type))
-        print timespan.toxml()
+        #self.assertTrue(isinstance(timespan, timespan_type))
+        print newdoc.toxml()
+        newdoc.timespan[:] = []
         
+        newdoc.timespan.append(pyxb.BIND( # Single timespan
+                pyxb.BIND( # First field instance
+                    name='title',
+                    value=pyxb.BIND('foo', lang='ENG')
+                    ),
+                start='-INF', end='+INF'))
+        newdoc.validateBinding()
+        timespan = newdoc.timespan[0]
+        #self.assertTrue(isinstance(timespan, timespan_type))
+        print newdoc.toxml()
+        newdoc.timespan[:] = []
+
+        newdoc.timespan.append(pyxb.BIND( # Single timespan
+                pyxb.BIND( # First field instance
+                    name='title',
+                    value_=pyxb.BIND('foo', lang='ENG')
+                    ),
+                start='-INF', end='+INF'))
+        newdoc.validateBinding()
+        timespan = newdoc.timespan[0]
+        #self.assertTrue(isinstance(timespan, timespan_type))
+        print newdoc.toxml()
+        newdoc.timespan[:] = []
+
 
 if __name__ == '__main__':
     unittest.main()
