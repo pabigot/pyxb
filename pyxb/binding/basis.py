@@ -524,6 +524,7 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
     __FacetMapAttributeNameMap = { }
     @classmethod
     def __FacetMapAttributeName (cls):
+        """ """
         '''
         if cls == simpleTypeDefinition:
             return '_%s__FacetMap' % (cls.__name__.strip('_'),)
