@@ -4854,7 +4854,8 @@ class Schema (_SchemaComponent_mixin):
                                                                            including_context=including_context)
 
         tns = ns_ctx.targetNamespace()
-        assert tns is not None
+        if tns is None:
+            raise pyxb.SchemaValidationError('No targetNamespace associated with content (not a schema?)')
         schema = cls(namespace_context=ns_ctx, schema_location=schema_location, schema_signature=schema_signature, generation_uid=generation_uid, **kw)
         schema.__namespaceData = ns_ctx
             
