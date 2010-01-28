@@ -23,7 +23,35 @@ import exceptions
 
 class PyXBException (exceptions.Exception):
     """Base class for exceptions that indicate a problem that the user should fix."""
-    pass
+
+    """The arguments passed to the exception constructor."""
+    _args = None
+
+    """The keywords passed to the exception constructor."""
+    _kw = None
+
+    @property
+    def message (self):
+        '''A message to help a human understand the problem.'''
+        if self.__message is None:
+            return str(self)
+        return self.__message
+
+    def __str__ (self):
+        """Override to use the system-provided message, if available."""
+        if self.__message is not None:
+            return '%s: %s' % (type(self).__name__, self.__message)
+        return exceptions.Exception.__str__(self)
+
+    def __init__ (self, *args, **kw):
+        """Create an exception indicating a PyXB-related problem.
+
+        @keyword message : Text to provide the user with information about the problem.
+        """
+        self.__message = kw.pop('message', None)
+        self._args = args
+        self._kw = kw
+        exceptions.Exception.__init__(self, *args)
 
 class SchemaValidationError (PyXBException):
     """Raised when the XML hierarchy does not appear to be valid for an XML schema."""
@@ -109,6 +137,27 @@ class MissingContentError (StructuralBadDocumentError):
 
 class NotAnElementError (UnrecognizedContentError):
     """Raised when processing document and a tag that is a type but not an element is encountered."""
+
+    @property
+    def element_name (self):
+        """The L{pyxb.namespace.ExpandedName} of the inner element that is not an element name."""
+        return self.__elementName
+
+    @property
+    def containing_type (self):
+        """The L{pyxb.binding.content.complexTypeDefinition} in which the element was unrecognized."""
+        return self.__containingType
+
+    def __init__ (self, element_name, containing_type, **kw):
+        """Raised when a document inner element is recognized as a type rather than an element.
+
+        @param element_name : The name of the inner element from the document
+        @param containing_type : The L{pyxb.binding.content.complexTypeDefinition} class in which the lookup failed
+        """
+        self.__elementName = element_name
+        self.__containingType = containing_type
+        kw.setdefault('message', 'Unable to locate element %s in type %s' % (self.__elementName, self.__containingType._ExpandedName))
+        UnrecognizedContentError.__init__(self, **kw)
 
 class UnrecognizedAttributeError (BadDocumentError):
     """Raised when an attribute is found that is not sanctioned by the content model."""
