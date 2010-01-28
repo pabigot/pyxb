@@ -40,8 +40,20 @@ Linux several years ago:
 1.1.x (Beta)
 ==============
 
-1.1.1 (, rev )
+1.1.1 (28 Jan 2010, rev 2130)
 ------------------
+
+Major feature is significantly improved ability to determine what content is
+not acceptable to the validating parser, and where it can be found in the
+document.  See :ref:`invalid-content`.
+
+Also, using keyword parameters in binding instance constructors will now raise
+an :api:`pyxb.exceptions_.ExtraContentError` in the case where the keyword does not
+correspond to the PyXB-generated identifier associated with an attribute or
+element of the class being instantiated.
+
+- Eliminate complaints about reference to deprecated :mod:`sha` module in Python
+  2.6.
 
 - Fix assorted problems with mixtures of :ref:`pyxbgen--binding-root`,
   :ref:`pyxbgen--module-prefix`, and :ref:`pyxbgen--write-for-customization`.
@@ -50,8 +62,20 @@ Linux several years ago:
 - Eliminate unnecessary attempts to download schema for builtin namespaces.
   :ticket:`63`
 
-- Eliminate complaints about reference to deprecated :mod:`sha` module in Python
-  2.6.
+- Avoid assertion failure when provided schema location's content looks a
+  little, but not enough, like a schema document.  :ticket:`72`
+
+- References to declarations in other namespaces are now calculated locally to
+  the module, rather than cached under the expectation the name is valid
+  everywhere.  :ticket:`73`
+
+- Imposed consistency on behavior when document root element is not
+  recognized.  :ticket:`74`
+
+- Partial implementation of improved error data stored in exceptions.
+  :ticket:`75`
+
+- Detect invalid keywords in instance constructor calls.  :ticket:`76`
 
 
 1.1.0 (30 Nov 2009, rev 2092)

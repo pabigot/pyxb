@@ -21,6 +21,8 @@ The ``CreateFromDocument`` function in a given binding module is configured
 so that documents with no default namespace are assumed to be in the
 namespace from which the binding was generated.
 
+.. _invalid-content:
+
 Locating Invalid Content
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
