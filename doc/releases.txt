@@ -40,8 +40,8 @@ Linux several years ago:
 1.1.x (Beta)
 ==============
 
-1.1.1 (28 Jan 2010, rev 2130)
-------------------
+1.1.1 (28 Jan 2010, rev 2135)
+-----------------------------
 
 Major feature is significantly improved ability to determine what content is
 not acceptable to the validating parser, and where it can be found in the
