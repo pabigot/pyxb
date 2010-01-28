@@ -141,7 +141,6 @@ class ReferenceNamespace (ReferenceLiteral):
         self.__namespace = kw['namespace']
         binding_module = kw['binding_module']
         rv = binding_module.referenceNamespace(self.__namespace)
-        #print '%s in %s is %s' % (self.__namespace, binding_module, rv)
         self.setLiteral(rv)
 
 class ReferenceExpandedName (ReferenceLiteral):
@@ -535,7 +534,6 @@ class %{std} (pyxb.binding.basis.STD_union):
 def elementDeclarationMap (ed, binding_module, **kw):
     template_map = { }
     template_map['name'] = unicode(ed.expandedName())
-    template_map['name_expr'] = binding_module.literal(ed.expandedName(), **kw)
     template_map['namespaceReference'] = binding_module.literal(ed.bindingNamespace(), **kw)
     if (ed.SCOPE_global == ed.scope()):
         template_map['class'] = binding_module.literal(ed, **kw)
@@ -666,7 +664,7 @@ class %{ctd} (%{superclass}):
             definitions.append(templates.replaceInText('''
     # Element %{name} uses Python identifier %{id}
     %{use} = pyxb.binding.content.ElementUse(%{name_expr}, '%{id}', '%{key}', %{is_plural}%{aux_init})
-''', **ef_map))
+''', name_expr=binding_module.literal(ed.expandedName(), **kw), **ef_map))
 
             if basis.BINDING_STYLE_ACCESSOR == generator.bindingStyle():
                 definitions.append(templates.replaceInText('''
@@ -692,7 +690,7 @@ class %{ctd} (%{superclass}):
                 raise pyxb.LogicError('Unexpected binding style %s' % (generator.bindingStyle(),))
             outf.postscript().append(templates.replaceInText('''
 %{ctd}._AddElement(pyxb.binding.basis.element(%{name_expr}, %{typeDefinition}%{element_aux_init}))
-''', ctd=template_map['ctd'], **ef_map))
+''', name_expr=binding_module.literal(ed.expandedName(), **kw), ctd=template_map['ctd'], **ef_map))
 
         fa = nfa.Thompson(content_basis).nfa()
         fa = fa.buildDFA()
@@ -762,7 +760,7 @@ class %{ctd} (%{superclass}):
             print 'Attribute %s.%s renamed to %s' % (ctd.expandedName(), ad.expandedName(), au_map['id'])
         definitions.append(templates.replaceInText('''
     # Attribute %{name} uses Python identifier %{id}
-    %{use} = pyxb.binding.content.AttributeUse(%{name_expr}, '%{id}', '%{key}', %{attr_type}%{aux_init})''', **au_map))
+    %{use} = pyxb.binding.content.AttributeUse(%{name_expr}, '%{id}', '%{key}', %{attr_type}%{aux_init})''', name_expr=binding_module.literal(ad.expandedName(), **kw), **au_map))
         if au.prohibited():
             if basis.BINDING_STYLE_ACCESSOR == generator.bindingStyle():
                 definitions.append(templates.replaceInText('''
@@ -849,7 +847,7 @@ def GenerateED (ed, generator, **kw):
     outf.write(templates.replaceInText('''
 %{class} = pyxb.binding.basis.element(%{name_expr}, %{typeDefinition}%{element_aux_init})
 %{namespaceReference}.addCategoryObject('elementBinding', %{class}.name().localName(), %{class})
-''', **template_map))
+''', name_expr=binding_module.literal(ed.expandedName(), **kw), **template_map))
 
     if ed.substitutionGroupAffiliation() is not None:
         outf.postscript().append(templates.replaceInText('''
@@ -907,7 +905,6 @@ def _SetNameWithAccessors (component, container, is_plural, binding_module, nsm,
     key_name = '%s_%s_%s' % (str(nsm.namespace()), container.nameInBinding(), component.expandedName())
     use_map['key'] = utility.PrepareIdentifier(key_name, class_unique, private=True)
     use_map['name'] = unicode(component.expandedName())
-    use_map['name_expr'] = binding_module.literal(component.expandedName(), **kw)
     if isinstance(component, xs.structures.ElementDeclaration) and is_plural:
         use_map['appender'] = utility.PrepareIdentifier('add' + unique_name[0].upper() + unique_name[1:], class_unique)
     return use_map
