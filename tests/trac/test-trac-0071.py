@@ -82,6 +82,10 @@ class TestTrac_0071 (unittest.TestCase):
         self.assertTrue(isinstance(field.value_[0], pyxb.BIND))
         self.assertEqual('<field><name>title</name><value lang="ENG">foo</value></field>', field.toxml(root_only=True))
 
+        '''
+
+        NOT YET FINISHED
+
         newdoc.timespan.append(pyxb.BIND( # Single timespan
                 pyxb.BIND( # First field instance
                     'title',
@@ -118,6 +122,7 @@ class TestTrac_0071 (unittest.TestCase):
         print newdoc.toxml()
         newdoc.timespan[:] = []
 
+        '''
 
 if __name__ == '__main__':
     unittest.main()
