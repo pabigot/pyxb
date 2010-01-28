@@ -126,6 +126,39 @@ class AbstractElementError (StructuralBadDocumentError):
 class UnrecognizedContentError (StructuralBadDocumentError):
     """Raised when processing document and an element does not match the content model."""
 
+    @property
+    def element_use (self):
+        """The L{pyxb.binding.content.ElementUse} instance to which the content should conform, if available."""
+        return self.__elementUse
+
+    @property
+    def container (self):
+        """The L{pyxb.binding.basis.complexTypeDefinition} instance to which the content would belong, if available."""
+        return self.__container
+
+    @property
+    def content (self):
+        """The value which could not be reconciled with the content model."""
+        return self.__content
+    
+    def __init__ (self, content, **kw):
+        """Raised when processing document and an element does not match the content model.
+
+        @param content : The value that could not be reconciled with the content model
+        @keyword container : Optional binding instance into which the content was to be assigned
+        @keyword element_use : Optional reference to an element use identifying the element to which the value was to be reconciled
+        """
+        self.__content = content
+        self.__container = kw.get('container')
+        self.__elementUse = kw.get('element_use')
+        if self.__container is not None:
+            kw.setdefault('message', '%s cannot accept wildcard content %s' % (self.__container, self.__content))
+        elif self.__elementUse is not None:
+            kw.setdefault('message', '%s not consistent with content model for %s' % (self.__content, self.__elementUse))
+        else:
+            kw.setdefault('message', str(self.__content))
+        StructuralBadDocumentError.__init__(self, **kw)
+
 class UnrecognizedElementError (UnrecognizedContentError):
     """Raised when creating an instance from a document with an unrecognized root element."""
 
@@ -136,7 +169,7 @@ class UnrecognizedElementError (UnrecognizedContentError):
 
     @property
     def dom_node (self):
-        """The L{pyxb.namespace.ExpandedName} of the element that was not recognized."""
+        """The DOM node associated with the unrecognized element, if available."""
         return self.__domNode
 
     def __init__ (self, **kw):
@@ -152,9 +185,9 @@ class UnrecognizedElementError (UnrecognizedContentError):
                 import pyxb.namespace
                 self.__elementName = pyxb.namespace.ExpandedName(self.__domNode.namespaceURI, self.__domNode.localName)
             else:
-                raise LogicError('No source for elemjent_name  in UnrecognizedElementError')
+                raise LogicError('No source for element_name  in UnrecognizedElementError')
         kw.setdefault('message', 'No element binding available for %s' % (self.__elementName,))
-        UnrecognizedContentError.__init__(self, **kw)
+        UnrecognizedContentError.__init__(self, self.__domNode, **kw)
 
 class ExtraContentError (StructuralBadDocumentError):
     """Raised when processing document and there is more material in an element content than expected."""
@@ -188,7 +221,7 @@ class NotAnElementError (UnrecognizedContentError):
         self.__elementName = element_name
         self.__containingType = containing_type
         kw.setdefault('message', 'Unable to locate element %s in type %s' % (element_name, self.__containingType._ExpandedName))
-        UnrecognizedContentError.__init__(self, **kw)
+        UnrecognizedContentError.__init__(self, None, **kw)
 
 class UnrecognizedAttributeError (BadDocumentError):
     """Raised when an attribute is found that is not sanctioned by the content model."""

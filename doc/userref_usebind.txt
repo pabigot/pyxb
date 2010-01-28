@@ -21,6 +21,20 @@ The ``CreateFromDocument`` function in a given binding module is configured
 so that documents with no default namespace are assumed to be in the
 namespace from which the binding was generated.
 
+Locating Invalid Content
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+If a document does not validate, PyXB will generally through an
+:api:`pyxb.UnrecognizedContentError` exception.  You can determine where the
+problem lies, and what was not recognized, by examining attributes present
+on the exception as shown in this example:
+
+.. literalinclude:: ../examples/manual/badcontent.py
+
+which produces:
+
+.. literalinclude:: ../examples/manual/badcontent.out
+
 Coping With Wrong ``xsi:type`` Attributes
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

@@ -2008,7 +2008,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
                                     value = mr.module().CreateFromDOM(node)
                                     break
                                 except pyxb.PyXBException, e:
-                                    print 'Ignoring creating binding for wildcard %s: %s' % (expanded_name, e)
+                                    print 'Ignoring error when creating binding for wildcard %s: %s' % (expanded_name, e)
                                 except AttributeError, e:
                                     # The module holding XMLSchema bindnigs does not
                                     # have a CreateFromDOM method, and shouldn't since
@@ -2070,7 +2070,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
     def _appendWildcardElement (self, value):
         wcl = self.wildcardElements()
         if wcl is None:
-            raise pyxb.UnrecognizedContentError(value)
+            raise pyxb.UnrecognizedContentError(value, container=self)
         wcl.append(value)
         
     def extend (self, value_list, _fallback_namespace=None):

@@ -19,3 +19,4 @@ python demo4c.py | xmllint --format - > demo4c.out
 python demo4c1.py | xmllint --format - > demo4c1.out
 python demo4c2.py | xmllint --format - > demo4c2.out
 python demo4c3.py | xmllint --format - > demo4c3.out
+python badcontent.py > badcontent.out

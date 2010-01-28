@@ -140,8 +140,12 @@ class Node (xml.dom.Node, pyxb.utils.utility.Locatable_mixin):
     location = property(lambda _s: _s._location())
 
     __name = None
-    name = property(lambda _s: _s.__name)
-    def _name (self): return self.__name
+    @property
+    def name (self):
+        return self.__name
+    @property
+    def expanded_name (self):
+        return pyxb.namespace.ExpandedName(self.__namespaceURI, self.__localName)
     __namespaceURI = None
     namespaceURI = property(lambda _s: _s.__namespaceURI)
     __localName = None

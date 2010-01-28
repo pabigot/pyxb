@@ -56,21 +56,23 @@ class TestTrac_0075 (unittest.TestCase):
             self.assertEqual(tTop, e.containing_type)
 
     def testUnrecognizedContentError (self):
-
+        tag = Namespace.createExpandedName('tInner')
         xmls = '<top><tInner>content</tInner></top>'
         try:
             instance = CreateFromDocument(xmls)
-            self.fail("Succeeded in creating from document with bad top level element")
+            self.fail("Succeeded in creating from document with bad inner element")
         except UnrecognizedContentError, e:
-            self.fail()
+            loc = e.content.location
+            self.assertEqual(tag, e.content.name)
+            self.assertEqual(1, loc.lineNumber)
+            self.assertEqual(5, loc.columnNumber)
 
         dom = xml.dom.minidom.parseString(xmls)
         try:
             instance = CreateFromDOM(dom)
-            self.fail("Succeeded in creating from document with bad top level element")
+            self.fail("Succeeded in creating from document with bad inner element")
         except UnrecognizedContentError, e:
-            self.fail()
-
+            self.assertEqual(dom.documentElement.firstChild, e.content)
 
 if __name__ == '__main__':
     unittest.main()

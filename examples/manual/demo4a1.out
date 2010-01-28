@@ -1,16 +1,18 @@
 Traceback (most recent call last):
   File "demo4a1.py", line 7, in <module>
     addr.state = 'NY'
+  File "/home/pab/pyxb/dev/pyxb/binding/basis.py", line 62, in __setattr__
+    return super(_TypeBinding_mixin, self).__setattr__(name, value)
   File "/home/pab/pyxb/dev/pyxb/binding/content.py", line 399, in set
     value = self.__elementBinding.compatibleValue(value, is_plural=self.isPlural())
-  File "/home/pab/pyxb/dev/pyxb/binding/basis.py", line 1271, in compatibleValue
+  File "/home/pab/pyxb/dev/pyxb/binding/basis.py", line 1331, in compatibleValue
     return self.typeDefinition()._CompatibleValue(value, **kw)
-  File "/home/pab/pyxb/dev/pyxb/binding/basis.py", line 254, in _CompatibleValue
+  File "/home/pab/pyxb/dev/pyxb/binding/basis.py", line 270, in _CompatibleValue
     return cls(value)
-  File "/home/pab/pyxb/dev/pyxb/binding/basis.py", line 679, in __init__
+  File "/home/pab/pyxb/dev/pyxb/binding/basis.py", line 712, in __init__
     self.xsdConstraintsOK()
-  File "/home/pab/pyxb/dev/pyxb/binding/basis.py", line 791, in xsdConstraintsOK
+  File "/home/pab/pyxb/dev/pyxb/binding/basis.py", line 845, in xsdConstraintsOK
     return self.XsdConstraintsOK(self)
-  File "/home/pab/pyxb/dev/pyxb/binding/basis.py", line 785, in XsdConstraintsOK
+  File "/home/pab/pyxb/dev/pyxb/binding/basis.py", line 839, in XsdConstraintsOK
     raise pyxb.BadTypeValueError('%s violation for %s in %s' % (f.Name(), value, cls.__name__))
 pyxb.exceptions_.BadTypeValueError: enumeration violation for NY in USState
