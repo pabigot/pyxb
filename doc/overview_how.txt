@@ -26,8 +26,8 @@ release as well.  For pre-built bundles, use the following:
    ``PyXB-wssplat``   A wide variety of WS-* schemas
    =================  =======================================
 
-If you want everything in one download, just get the ``PyXB-full``
-distribution file.
+If you want everything in one download, just get the `PyXB-full
+<http://p.sf.net/pyxb/full>`_ distribution file.
 
 Install in the usual manner::
 
