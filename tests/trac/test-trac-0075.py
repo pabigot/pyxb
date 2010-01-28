@@ -74,5 +74,14 @@ class TestTrac_0075 (unittest.TestCase):
         except UnrecognizedContentError, e:
             self.assertEqual(dom.documentElement.firstChild, e.content)
 
+    def testExtraContentError (self):
+        self.fail("Unimplemented test")
+
+    def testMissingContentError (self):
+        self.fail("Unimplemented test")
+
+    def testUnrecognizedAttributeError (self):
+        self.fail("Unimplemented test")
+
 if __name__ == '__main__':
     unittest.main()
