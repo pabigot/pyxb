@@ -717,43 +717,45 @@ class %{ctd} (%{superclass}):
         ad = au.attributeDeclaration()
         assert isinstance(ad.scope(), xs.structures.ComplexTypeDefinition), 'unexpected scope %s' % (ad.scope(),)
         au_map = ad._templateMap()
-        if ad.scope() == ctd:
-            assert isinstance(au_map, dict)
-            if au.restrictionOf() is not None:
-                #print 'Local %s restriction of %s' % (au_map, au.restrictionOf().attributeDeclaration()._templateMap())
-                au_map = au.restrictionOf().attributeDeclaration()._templateMap().copy()
-                definitions.append(templates.replaceInText('''
-    # Attribute %{id} is restricted from parent''', **au_map))
-
-            assert ad.typeDefinition() is not None
-            au_map['attr_type'] = binding_module.literal(ad.typeDefinition(), **kw)
-                            
-            vc_source = ad
-            if au.valueConstraint() is not None:
-                vc_source = au
-            aux_init = []
-            if vc_source.fixed() is not None:
-                aux_init.append('fixed=True')
-                aux_init.append('unicode_default=%s' % (binding_module.literal(vc_source.fixed(), **kw),))
-            elif vc_source.default() is not None:
-                aux_init.append('unicode_default=%s' % (binding_module.literal(vc_source.default(), **kw),))
-            if au.required():
-                aux_init.append('required=True')
-            if au.prohibited():
-                aux_init.append('prohibited=True')
-            if 0 == len(aux_init):
-                au_map['aux_init'] = ''
-            else:
-                aux_init.insert(0, '')
-                au_map['aux_init'] = ', '.join(aux_init)
-            if ad.annotation() is not None:
-                au_map['documentation'] = binding_module.literal(unicode(ad.annotation()))
-            else:
-                au_map['documentation'] = binding_module.literal(None)
         if ad.scope() != ctd:
             definitions.append(templates.replaceInText('''
     # Attribute %{id} inherited from %{decl_type_en}''', decl_type_en=unicode(ad.scope().expandedName()), **au_map))
             continue
+        assert isinstance(au_map, dict)
+        aur = au;
+        while aur.restrictionOf() is not None:
+            aur = aur.restrictionOf()
+        if au != aur:
+            #print 'Local %s restriction of %s' % (au_map, aur.attributeDeclaration()._templateMap())
+            au_map = aur.attributeDeclaration()._templateMap().copy()
+            definitions.append(templates.replaceInText('''
+    # Attribute %{id} is restricted from parent''', **au_map))
+
+        assert ad.typeDefinition() is not None
+        au_map['attr_type'] = binding_module.literal(ad.typeDefinition(), **kw)
+                            
+        vc_source = ad
+        if au.valueConstraint() is not None:
+            vc_source = au
+        aux_init = []
+        if vc_source.fixed() is not None:
+            aux_init.append('fixed=True')
+            aux_init.append('unicode_default=%s' % (binding_module.literal(vc_source.fixed(), **kw),))
+        elif vc_source.default() is not None:
+            aux_init.append('unicode_default=%s' % (binding_module.literal(vc_source.default(), **kw),))
+        if au.required():
+            aux_init.append('required=True')
+        if au.prohibited():
+            aux_init.append('prohibited=True')
+        if 0 == len(aux_init):
+            au_map['aux_init'] = ''
+        else:
+            aux_init.insert(0, '')
+            au_map['aux_init'] = ', '.join(aux_init)
+        if ad.annotation() is not None:
+            au_map['documentation'] = binding_module.literal(unicode(ad.annotation()))
+        else:
+            au_map['documentation'] = binding_module.literal(None)
 
         attribute_uses.append(templates.replaceInText('%{use}.name() : %{use}', **au_map))
         if ad.expandedName().localName() != au_map['id']:
