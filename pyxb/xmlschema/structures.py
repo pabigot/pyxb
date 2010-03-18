@@ -161,10 +161,12 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin,
             self.__namespaceContext = pyxb.namespace.resolution.NamespaceContext.GetNodeContext(node)
         if self.__namespaceContext is None:
             raise pyxb.LogicError('No namespace_context for schema component')
-        if isinstance(node, pyxb.utils.utility.Locatable_mixin):
-            self._setLocation(node.location)
-
+           
         super(_SchemaComponent_mixin, self).__init__(*args, **kw)
+
+        if isinstance(node, pyxb.utils.utility.Locatable_mixin):
+            self._setLocation(node._location())
+
         self._namespaceContext().targetNamespace()._associateComponent(self)
 
         self._setOwner(kw.get('owner'))
