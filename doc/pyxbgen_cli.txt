@@ -41,6 +41,7 @@ Specify and locate schema for which bindings should be generated.
    ``--schema-location``                *FILE_or_URL*  ``-u``  :ref:`Add the location of an entrypoint schema.  The...<pyxbgen--schema-location>`
    ``--schema-root``                    *DIRECTORY*            :ref:`The directory from which entrypoint schemas...<pyxbgen--schema-root>`
    ``--schema-stripped-prefix``         *TEXT*                 :ref:`Optional string that is stripped from the...<pyxbgen--schema-stripped-prefix>`
+   ``--location-prefix-rewrite``        *TEXT*                 :ref:`Add a rewrite entry for schema locations....<pyxbgen--location-prefix-rewrite>`
    ``--uri-content-archive-directory``  *DIRECTORY*            :ref:`The directory path into which any content...<pyxbgen--uri-content-archive-directory>`
    ===================================  =============  ======  ==================================================  
 
@@ -70,6 +71,14 @@ schemaLocation attributes in ``import`` and ``include`` elements.  Its
 purpose is to convert absolute schema locations into relative ones to
 allow offline processing when all schema are available in a local
 directory.  See ``schemaRoot``.
+
+.. _pyxbgen--location-prefix-rewrite:
+
+``--location-prefix-rewrite``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Add a rewrite entry for schema locations. Parameter values are strings
+of the form ``pfx=sub``.  The effect is that a schema location that
+begins with ``pfx`` is rewritten so that it instead begins with ``sub``.
 
 .. _pyxbgen--uri-content-archive-directory:
 

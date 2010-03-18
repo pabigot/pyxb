@@ -1569,6 +1569,46 @@ class Generator (object):
         return self
     __schemaStrippedPrefix = None
 
+    def locationPrefixRewriteMap (self):
+        """Optional map to rewrite schema locations.
+
+        This applies only to the values of schemaLocation attributes
+        in C{import} and C{include} elements.  Its purpose is to
+        convert remote or absolute schema locations into local or
+        relative ones to allow offline processing when all schema are
+        available in a local directory.  See C{schemaRoot}.
+        """
+        return self.__locationPrefixRewriteMap
+    def setLocationPrefixRewriteMap (self, location_prefix_rewrite_map):
+        self.__locationPrefixMap.clear()
+        print 'GOT "%s"' % (location_prefix_rewrite_map,)
+        self.__locationPrefixMap.update(location_prefix_rewrite_map)
+        return self
+    def addLocationPrefixRewrite (self, prefix, substituent):
+        """Add a rewrite entry for schema locations.
+
+        @param prefix : A text prefix that should be removed from
+        schema location URIs.
+
+        @param substituent : The text prefix that should replace
+        C{prefix} as a prefix in a schema location URI.
+        """
+        
+        self.__locationPrefixRewriteMap[prefix] = substituent
+        return self
+    def argAddLocationPrefixRewrite (self, prefix_rewrite):
+        """Add a rewrite entry for schema locations.
+
+        Parameter values are strings of the form C{pfx=sub}.  The
+        effect is that a schema location that begins with C{pfx} is
+        rewritten so that it instead begins with C{sub}."""
+        try:
+            (prefix, substituent) = prefix_rewrite.split('=', 1)
+        except:
+            raise
+        self.addLocationPrefixRewrite(prefix, substituent)
+    __locationPrefixMap = {}
+
     def schemaLocationList (self):
         """A list of locations from which entrypoint schemas are to be
         read.
@@ -1888,6 +1928,7 @@ class Generator (object):
         @keyword binding_root: Invokes L{setBindingRoot}
         @keyword schema_root: Invokes L{setSchemaRoot}
         @keyword schema_stripped_prefix: Invokes L{setSchemaStrippedPrefix}
+        @keyword location_prefix_rewrite_map: Invokes L{setLocationPrefixRewriteMap}
         @keyword schema_location_list: Invokes L{setSchemaLocationList}
         @keyword module_list: Invokes L{_setModuleList}
         @keyword module_prefix: Invokes L{setModulePrefix}
@@ -1915,6 +1956,7 @@ class Generator (object):
         self.__bindingRoot = kw.get('binding_root', self._DEFAULT_bindingRoot)
         self.__schemaRoot = kw.get('schema_root', '.')
         self.__schemaStrippedPrefix = kw.get('schema_stripped_prefix')
+        self.__locationPrefixRewriteMap = kw.get('location_prefix_rewrite_map', {})
         self.__schemas = []
         self.__schemaLocationList = kw.get('schema_location_list', [])[:]
         self.__moduleList = kw.get('module_list', [])[:]
@@ -1953,6 +1995,7 @@ class Generator (object):
         ('binding_root', setBindingRoot),
         ('schema_root', setSchemaRoot),
         ('schema_stripped_prefix', setSchemaStrippedPrefix),
+        ('location_prefix_rewrite', argAddLocationPrefixRewrite),
         ('schema_location', setSchemaLocationList),
         ('module', _setModuleList),
         ('module_prefix', setModulePrefix),
@@ -1978,6 +2021,7 @@ class Generator (object):
         self._setNamespaceVisibilities(public_namespaces, private_namespaces)
         if args is not None:
             self.__schemaLocationList.extend(args)
+        pyxb.utils.utility.SetLocationPrefixRewriteMap(self.locationPrefixRewriteMap())
 
     def setFromCommandLine (self, argv=None):
         if argv is None:
@@ -2011,6 +2055,8 @@ class Generator (object):
                              help=self.__stripSpaces(self.schemaRoot.__doc__))
             group.add_option('--schema-stripped-prefix', metavar="TEXT", type='string',
                              help=self.__stripSpaces(self.schemaStrippedPrefix.__doc__))
+            group.add_option('--location-prefix-rewrite', metavar="TEXT", type='string',
+                             help=self.__stripSpaces(self.argAddLocationPrefixRewrite.__doc__))
             group.add_option('--uri-content-archive-directory', metavar="DIRECTORY",
                              help=self.__stripSpaces(self.uriContentArchiveDirectory.__doc__))
             parser.add_option_group(group)
@@ -2112,6 +2158,8 @@ class Generator (object):
             opts.append('--schema-root=' + self.schemaRoot())
         if self.schemaStrippedPrefix() is not None:
             opts.append('--schema-stripped-prefix=%s' + self.schemaStrippedPrefix())
+        for (pfx, sub) in self.locationPrefixRewriteMap():
+            opts.append('--location-prefix-rewrite=%s=%s' % (pfx, sub))
         if self.modulePrefix() is not None:
             opts.append('--module-prefix=' + self.modulePrefix())
         opts.append('--binding-root=' + self.bindingRoot())
@@ -2184,7 +2232,9 @@ class Generator (object):
                 converter = None
             try:
                 if converter is None:
-                    schema = xs.schema.CreateFromLocation(absolute_schema_location=self.normalizeSchemaLocation(sl), generation_uid=self.generationUID(), uri_content_archive_directory=self.uriContentArchiveDirectory())
+                    schema = xs.schema.CreateFromLocation(absolute_schema_location=self.normalizeSchemaLocation(sl),
+                                                          generation_uid=self.generationUID(),
+                                                          uri_content_archive_directory=self.uriContentArchiveDirectory())
                 else:
                     schema = converter(self, sl)
                 self.addSchema(schema)

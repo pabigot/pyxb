@@ -486,12 +486,38 @@ class Graph:
                 raise Exception('DFS walk did not cover all nodes (walk %d versus nodes %d)' % (len(self.__dfsOrder), len(self.__nodes)))
         return self.__dfsOrder
         
-def NormalizeLocation (uri, parent_uri=None):
+LocationPrefixRewriteMap_ = { }
+
+def SetLocationPrefixRewriteMap (prefix_map):
+    """Set the map that is used to by L{NormalizeLocation} to rewrite URI prefixes."""
+    
+    LocationPrefixRewriteMap_.clear()
+    LocationPrefixRewriteMap_.update(prefix_map)
+
+def NormalizeLocation (uri, parent_uri=None, prefix_map=None):
     """Normalize a URI against an optional parent_uri in the way that is
     done for C{schemaLocation} attribute values.
 
     If no URI schema is present, this will normalize a file system
-    path."""
+    path.
+
+    Optionally, the resulting absolute URI can subsequently be
+    rewritten to replace specified prefix strings with alternative
+    strings, e.g. to convert a remote URI to a local repository.  This
+    rewriting is done after the conversion to an absolute URI, but
+    before normalizing file system URIs.
+
+    @param uri : The URI to normalize.  If C{None}, function returns
+    C{None}
+
+    @param parent_uri : The base URI against which normalization is
+    done, if C{uri} is a relative URI.
+
+    @param prefix_map : A map used to rewrite URI prefixes.  If
+    C{None}, the value defaults to that stored by
+    L{SetLocationPrefixRewriteMap}.
+    
+    """
     import urlparse
     import os
     
@@ -503,6 +529,11 @@ def NormalizeLocation (uri, parent_uri=None):
         #if (0 > parent_uri.find(':')) and (not parent_uri.endswith(os.sep)):
         #    parent_uri = parent_uri + os.sep
         abs_uri = urlparse.urljoin(parent_uri, uri)
+    if prefix_map is None:
+        prefix_map = LocationPrefixRewriteMap_
+    for (pfx, sub) in prefix_map.items():
+        if abs_uri.startswith(pfx):
+            abs_uri = sub + abs_uri[len(pfx):]
     if 0 > abs_uri.find(':'):
         abs_uri = os.path.realpath(abs_uri)
     return abs_uri

@@ -29,6 +29,7 @@ EOText
 ) | generateBindings
 
 pyxbgen \
+  --location-prefix-rewrite=http://schemas.opengis.net/=${SCHEMA_DIR}/ \
   --schema-location=${SCHEMA_DIR}/gml/3.2.1/gml.xsd --module=gml_3_2 \
   --schema-location=${SCHEMA_DIR}/iso/19139/20070417/gmd/gmd.xsd --module=iso19139.gmd \
   --schema-location=${SCHEMA_DIR}/iso/19139/20070417/gts/gts.xsd --module=iso19139.gts \
@@ -40,8 +41,6 @@ pyxbgen \
   --archive-to-file=${ARCHIVE_DIR}/iso19139.core.wxs \
  || failure gml_3_2
   
-printenv | sort
-
 ( cat <<EOText
 ${SCHEMA_DIR}/iso/19139/20070417/gmx/gmx.xsd gmx
 ${SCHEMA_DIR}/gml/3.1.1/base/gml.xsd gml
@@ -74,5 +73,6 @@ ${SCHEMA_DIR}/citygml/transportation/1.0/transportation.xsd citygml.transportati
 ${SCHEMA_DIR}/citygml/vegetation/1.0/vegetation.xsd citygml.vegetation
 ${SCHEMA_DIR}/citygml/waterbody/1.0/waterBody.xsd citygml.waterBody
 EOText
-) | generateBindings
+) | generateBindings \
+      --location-prefix-rewrite=http://schemas.opengis.net/=${SCHEMA_DIR}/
 

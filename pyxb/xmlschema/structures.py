@@ -4820,7 +4820,7 @@ class Schema (_SchemaComponent_mixin):
         @keyword absolute_schema_location: A file path or URI.  This value is
         not normalized, and supersedes C{schema_location}.
         """
-        schema_location = kw.pop('absolute_schema_location', pyxb.utils.utility.NormalizeLocation(kw.get('schema_location'), kw.get('parent_uri')))
+        schema_location = kw.pop('absolute_schema_location', pyxb.utils.utility.NormalizeLocation(kw.get('schema_location'), kw.get('parent_uri'), kw.get('prefix_map')))
         kw['location_base'] = kw['schema_location'] = schema_location
         assert isinstance(schema_location, basestring), 'Unexpected value %s type %s for schema_location' % (schema_location, type(schema_location))
         uri_content_archive_directory = kw.get('uri_content_archive_directory')
