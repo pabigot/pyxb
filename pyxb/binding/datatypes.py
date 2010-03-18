@@ -847,8 +847,8 @@ class normalizedString (string):
     # input, or the _InvalidRE class variable to a compiled regular
     # expression that detects invalid inputs.
     #
-    # Alternatively, subclasses can override the _ValidateString
-    # class.
+    # Alternatively, subclasses can override the _ValidateString_va
+    # method.
     
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('normalizedString')
 
