@@ -54,7 +54,7 @@ PYXB_ROOT=/tmp/${DISTROOT}
 export PYXB_ROOT
 
 # Generate the bundles
-for bundle in common wssplat opengis ; do
+for bundle in common wssplat opengis saml20; do
   pyxb/bundles/${bundle}/scripts/genbind || (echo 1>&2 Error building bundle ${bundle} ; exit 1 )
 done
 
@@ -97,11 +97,12 @@ build_overlay doc doc doc/html/_sources doc/html/_static doc/html/_images
 build_overlay common pyxb/bundles/common
 build_overlay opengis pyxb/bundles/opengis
 build_overlay wssplat pyxb/bundles/wssplat
+build_overlay saml20 pyxb/bundles/saml20
 
 mv ${DISTROOT} ${DISTROOT}-overlays
 tar xzf ${HOME}/pyxb/pre-release/PyXB-full-${ver}.tar.gz
 mv ${DISTROOT} ${DISTROOT}-full
-for f in base doc common opengis wssplat ; do
+for f in base doc common opengis wssplat saml20 ; do
   tar xzf ${HOME}/pyxb/pre-release/PyXB-${f}-${ver}.tar.gz
 done
 diff -r ${DISTROOT} ${DISTROOT}-full

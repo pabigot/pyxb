@@ -1,0 +1,12 @@
+PYXB_ROOT=${PYXB_ROOT:-/home/pab/pyxb/dev}
+BUNDLE_TAG=saml20
+WSSPLAT_RAW=${PYXB_ROOT}/pyxb/bundles/wssplat/raw
+
+. ${PYXB_ROOT}/maintainer/bundlesupport.sh
+
+( cat <<EOList
+http://docs.oasis-open.org/security/saml/v2.0/saml-schema-assertion-2.0.xsd assertion
+http://docs.oasis-open.org/security/saml/v2.0/saml-schema-metadata-2.0.xsd metadata
+http://docs.oasis-open.org/security/saml/v2.0/saml-schema-protocol-2.0.xsd protocol
+EOList
+) | generateBindings --archive-path=${RAW_DIR}:${WSSPLAT_RAW}:+
