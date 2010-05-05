@@ -227,5 +227,12 @@ class testWhitespace (unittest.TestCase):
         self.assertEqual("test", CollapseString(u"\ttest\n\r"))
         self.assertEqual("test too", CollapseString(u"\ttest\n\rtoo\n"))
 
+    def testApplyWhitespace (self):
+        goal = 'one two'
+        source = '  one    two   '
+        self.assertEqual(goal, CollapseString(goal))
+        self.assertEqual(goal, CollapseString(source))
+        self.assertEqual(source, CollapseString(source, _apply_whitespace_facet=False))
+
 if __name__ == '__main__':
     unittest.main()
