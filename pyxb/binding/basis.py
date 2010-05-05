@@ -648,7 +648,7 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
                 args = (domutils.ExtractTextContent(dom_node),) + args
                 kw['_apply_whitespace_facet'] = True
         apply_whitespace_facet = kw.pop('_apply_whitespace_facet', True)
-        if (0 < len(args)) and isinstance(args[0], types.StringTypes):
+        if apply_whitespace_facet and (0 < len(args)) and isinstance(args[0], types.StringTypes):
             cf_whitespace = getattr(cls, '_CF_whiteSpace', None)
             if cf_whitespace is not None:
                 #print 'Apply whitespace %s to "%s"' % (cf_whitespace, args[0])
