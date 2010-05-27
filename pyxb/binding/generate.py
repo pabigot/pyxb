@@ -114,7 +114,7 @@ class ReferenceWildcard (ReferenceLiteral):
                     namespaces.append(None)
                 else:
                     namespaces.append(ns.uri())
-            template_map['nc'] = 'set(%s)' % (",".join( [ repr(_ns) for _ns in namespaces ]))
+            template_map['nc'] = 'set([%s])' % (",".join( [ repr(_ns) for _ns in namespaces ]))
         else:
             assert isinstance(wildcard.namespaceConstraint(), tuple)
             ns = wildcard.namespaceConstraint()[1]
