@@ -761,12 +761,27 @@ class Wildcard (ContentState_mixin):
         """
         return True
 
+    def accepts (self, state_stack, ctd, value, element_use):
+        value_desc = 'value of type %s' % (type(value),)
+        if not self.matches(ctd, value):
+            raise pyxb.UnexpectedContentError(value)
+        if not isinstance(value, basis._TypeBinding_mixin):
+            print 'NOTE: Created unbound wildcard element from %s' % (value_desc,)
+        assert isinstance(ctd.wildcardElements(), list), 'Uninitialized wildcard list in %s' % (ctd._ExpandedName,)
+        ctd._appendWildcardElement(value)
+        return True
+
     def _validate (self, symbol_set, output_sequence):
         # @todo check node against namespace constraint and process contents
         #print 'WARNING: Accepting node as wildcard match without validating.'
-        if 0 == len(symbol_set):
+        wc_values = symbol_set.get(None)
+        if wc_values is None:
             return False
-        raise pyxb.IncompleteImplementationError('Wildcard validation')
+        used = wc_values.pop(0)
+        output_sequence.append( (None, used) )
+        if 0 == len(wc_values):
+            del symbol_set[None]
+        return True
         
 ## Local Variables:
 ## fill-column:78
