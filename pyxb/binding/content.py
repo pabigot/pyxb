@@ -663,6 +663,8 @@ class GroupSequence (_Group):
         super(GroupSequence, self).__init__(*args, **kw)
 
     def accepts (self, state_stack, ctd, value, element_use):
+        if 0 == len(self.particles()):
+            return False
         state_stack.pushModelState(SequenceState(self))
         return state_stack.step(ctd, value, element_use)
 
