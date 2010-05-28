@@ -716,10 +716,15 @@ class Wildcard (ContentState_mixin):
         Not implemented yet: all wildcards are assumed to match all values.
 
         """
-        # @todo check node against namespace constraint and process contents
-        #print 'WARNING: Accepting node as wildcard match without validating.'
         return True
 
+    def _validate (self, symbol_set, output_sequence):
+        # @todo check node against namespace constraint and process contents
+        #print 'WARNING: Accepting node as wildcard match without validating.'
+        if 0 == len(symbol_set):
+            return False
+        raise pyxb.IncompleteImplementationError('Wildcard validation')
+        
 ## Local Variables:
 ## fill-column:78
 ## End:
