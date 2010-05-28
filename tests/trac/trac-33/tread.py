@@ -11,7 +11,7 @@ def buildTest (num_reps, constraint='minOccurs="0" maxOccurs="1"'):
     for r in xrange(num_reps):
         edefs.append('<xs:element name="rep%d" type="xs:string"/>' % (r,))
         cdefs.append('<xs:element ref="rep%d" %s/>' % (r, constraint))
-        duse.append('<rep%d>text</rep%d>' % (r, r))
+        duse.append('<rep%d>text_%d</rep%d>' % (r, r, r))
 
     schema = ''.join([ '''<?xml version="1.0" encoding="UTF-8"?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">''',
@@ -37,6 +37,8 @@ for size in xrange(1, max_reps):
     t2 = time.time()
     eval(rv)
     t3 = time.time()
+    #file('code.py', 'w').write(code)
+    #print xmls
     ct0 = time.time()
     doc = CreateFromDocument(xmls)
     ct1 = time.time()
