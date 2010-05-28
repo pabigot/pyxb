@@ -1775,7 +1775,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
                 rv[eu] = [ converter(value)]
         wce = self.wildcardElements()
         if (wce is not None) and (0 < len(wce)):
-            rv[None] = wce
+            rv[None] = wce[:]
         return rv
 
     def _validateAttributes (self):
