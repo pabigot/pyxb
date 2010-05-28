@@ -501,7 +501,7 @@ class ElementUse (ContentState_mixin):
         return True
 
     def __str__ (self):
-        return 'EU%s@%x' % (self.__name, id(self))
+        return 'EU.%s@%x' % (self.__name, id(self))
 
 class StateStack (object):
     """A stack of states and content models representing the current status of
@@ -547,11 +547,11 @@ class StateStack (object):
         assert isinstance(ctd_instance, basis.complexTypeDefinition)
         while 0 < len(self.__stack):
             top = self.topModelState()
-            #print 'SSTop %s on %s %s' % (top, value, element_use)
+            #print 'SSTop %s of %d on %s %s' % (top, len(self.__stack), value, element_use)
             ok = top.accepts(self, ctd_instance, value, element_use)
             if not ok:
                 state = self.popModelState()
-                #print 'SS Pop %s' % (state,)
+                #print 'SS Pop %s top %s' % (state, top)
             else:
                 #print 'SS CONT %s' % (top,)
                 return ok
@@ -569,7 +569,7 @@ class ParticleState (ContentState_mixin):
         if match:
             self.__count += 1
             if self.__particle.isOverLimit(self.__count):
-                raise pyxb.UnexpectedContentError(value)
+                raise pyxb.UnrecognizedContentError(value)
         return match
 
     def __str__ (self):
@@ -593,9 +593,13 @@ class SequenceState (_GroupState):
         if self.__particleIndex >= len(self.__particles):
             return False
         particle = self.__particles[self.__particleIndex]
+        #print '%s push for %s' % (self, particle)
         self.__particleIndex += 1
         state_stack.pushModelState(ParticleState(particle))
         return state_stack.step(ctd, value, element_use)
+
+    def __str__ (self):
+        return 'SequenceState(%d/%d)@%x' % (self.__particleIndex, len(self.__particles), id(self))
 
 class ParticleModel (pyxb.cscRoot):
     def minOccurs (self): return self.__minOccurs
