@@ -301,50 +301,37 @@ def GenerateModelGroupAll (ctd, mga, binding_module, template_map, **kw):
     lines.append('])')
     return (mga_tag, lines)
 
-def GenerateContentModel (ctd, automaton, binding_module, **kw):
-    cmi = utility.PrepareIdentifier('ContentModel', binding_module.uniqueInClass(ctd), protected=True)
+def GenerateContentTerm (ctd, term, binding_module, **kw):
+    lines = []
+    template_map = { 'ctd' : binding_module.literal(ctd, **kw) }
+    if isinstance(term, xs.structures.Wildcard):
+        term_val = binding_module.literal(term, **kw)
+    elif isinstance(term, xs.structures.ElementDeclaration):
+        term_val = templates.replaceInText('%{ctd}._UseForTag(%{field_tag})', field_tag=binding_module.literal(term.expandedName(), **kw), **template_map)
+    else:
+        gm_id = utility.PrepareIdentifier('GroupModel', binding_module.uniqueInClass(ctd), protected=True)
+        assert isinstance(term, xs.structures.ModelGroup)
+        if (term.C_ALL == term.compositor()):
+            group_val = 'all'
+        elif (term.C_CHOICE == term.compositor()):
+            group_val = 'choice'
+        else:
+            assert term.C_SEQUENCE == term.compositor()
+            group_val = 'seq'
+        template_map['gm_id'] = gm_id
+        lines.append(templates.replaceInText('%{ctd}.%{gm_id} = %{group_val}', group_val=group_val, **template_map))
+        term_val = templates.replaceInText('%{ctd}.%{gm_id}', **template_map)
+    return (term_val, lines)
+
+def GenerateContentParticle (ctd, particle, binding_module, **kw):
     template_map = { }
     template_map['ctd'] = binding_module.literal(ctd, **kw)
-    template_map['cm_tag'] = cmi
     template_map['content'] = 'pyxb.binding.content'
-    template_map['state_comma'] = ' '
-    lines = []
-    lines2 = []
-    for (state, transitions) in automaton.items():
-        if automaton.end() == state:
-            continue
-        template_map['state'] = binding_module.literal(state)
-        template_map['is_final'] = binding_module.literal(None in transitions)
-
-        lines2.append(templates.replaceInText('%{state_comma} %{state} : %{content}.ContentModelState(state=%{state}, is_final=%{is_final}, transitions=[', **template_map))
-        template_map['state_comma'] = ','
-        lines3 = []
-        for (key, destinations) in transitions.items():
-            if key is None:
-                continue
-            assert 1 == len(destinations)
-            template_map['next_state'] = binding_module.literal(list(destinations)[0], **kw)
-            if isinstance(key, xs.structures.Wildcard):
-                template_map['kw_key'] = 'term'
-                template_map['kw_val'] = binding_module.literal(key, **kw)
-            elif isinstance(key, nfa.AllWalker):
-                (mga_tag, mga_defns) = GenerateModelGroupAll(ctd, key, binding_module, template_map.copy(), **kw)
-                template_map['kw_key'] = 'term'
-                template_map['kw_val'] = mga_tag
-                lines.extend(mga_defns)
-            else:
-                assert isinstance(key, xs.structures.ElementDeclaration)
-                template_map['kw_key'] = 'element_use'
-                template_map['kw_val'] = templates.replaceInText('%{ctd}._UseForTag(%{field_tag})', field_tag=binding_module.literal(key.expandedName(), **kw), **template_map)
-            lines3.append(templates.replaceInText('%{content}.ContentModelTransition(next_state=%{next_state}, %{kw_key}=%{kw_val}),',
-                          **template_map))
-        lines2.extend([ '    '+_l for _l in lines3 ])
-        lines2.append("])")
-
-    lines.append(templates.replaceInText('%{ctd}.%{cm_tag} = %{content}.ContentModel(state_map = {', **template_map))
-    lines.extend(['    '+_l for _l in lines2 ])
-    lines.append("})")
-    return (cmi, lines)
+    template_map['min_occurs'] = repr(particle.minOccurs())
+    template_map['max_occurs'] = repr(particle.minOccurs())
+    (term_val, lines) = GenerateContentTerm(ctd, particle.term(), binding_module, **kw)
+    particle_val = templates.replaceInText('%{content}.ParticleModel(min_occurs=%{min_occurs}, max_occurs=%{max_occurs}, term=%{term_val})', term_val=term_val, **template_map)
+    return (particle_val, lines)
 
 def _useEnumerationTags (td):
     assert isinstance(td, xs.structures.SimpleTypeDefinition)
@@ -686,10 +673,12 @@ class %{ctd} (%{superclass}):
 %{ctd}._AddElement(pyxb.binding.basis.element(%{name_expr}, %{typeDefinition}%{element_aux_init}))
 ''', name_expr=binding_module.literal(ed.expandedName(), **kw), ctd=template_map['ctd'], **ef_map))
 
-        fa = nfa.Thompson(content_basis).nfa()
-        fa = fa.buildDFA()
-        (cmi, cmi_defn) = GenerateContentModel(ctd=ctd, automaton=fa, binding_module=binding_module, **kw)
-        outf.postscript().append("\n".join(cmi_defn))
+        cm_tag = utility.PrepareIdentifier('ContentModel', binding_module.uniqueInClass(ctd), protected=True)
+        (particle_val, lines) = GenerateContentParticle(ctd=ctd, particle=content_basis, binding_module=binding_module, **kw)
+        if lines:
+            outf.postscript().append("\n".join(lines))
+            outf.postscript().append("\n")
+        outf.postscript().append(templates.replaceInText('%{ctd}.%{cm_tag} = %{particle_val}', ctd=template_map['ctd'], cm_tag=cm_tag, particle_val=particle_val))
         outf.postscript().append("\n")
 
     if need_content:
