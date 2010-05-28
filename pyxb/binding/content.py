@@ -477,7 +477,16 @@ class ElementUse (ContentState_mixin):
         if element_use == self:
             self.setOrAppend(ctd, value)
             return True
-        #print '%s %s %s in %s' % (ctd, value, element_use, self)
+        if element_use is not None:
+            print 'WARNING: Non-null EU does not match'
+            return False
+        assert not isinstance(value, xml.dom.Node)
+        try:
+            self.setOrAppend(ctd, self.__elementBinding.compatibleValue(value, _convert_string_values=False))
+            return True
+        except pyxb.BadTypeValueError, e:
+            pass
+        print '%s %s %s in %s' % (ctd, value, element_use, self)
         return False
 
     def _validate (self, symbol_set, output_sequence):
@@ -561,9 +570,6 @@ class ParticleState (ContentState_mixin):
             self.__count += 1
             if self.__particle.isOverLimit(self.__count):
                 raise pyxb.UnexpectedContentError(value)
-        else:
-            if self.__count < self.__particle.minOccurs():
-                raise pyxb.MissingContentError(self.__particle)
         return match
 
     def __str__ (self):
@@ -584,7 +590,7 @@ class SequenceState (_GroupState):
         self.__particleIndex = 0
 
     def accepts (self, state_stack, ctd, value, element_use):
-        if self.__particleIndex > len(self.__particles):
+        if self.__particleIndex >= len(self.__particles):
             return False
         particle = self.__particles[self.__particleIndex]
         self.__particleIndex += 1
