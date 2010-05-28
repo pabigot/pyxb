@@ -1781,7 +1781,6 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
     def _validateAttributes (self):
         for au in self._AttributeMap.values():
             au.validate(self)
-        
 
     def _validateBinding_vx (self):
         if self._isNil():
@@ -2040,6 +2039,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
                     self._appendWildcardElement(value)
                     return self
             else:
+                #print 'SSStep %s %s' % (value, element_use)
                 if self.__stateStack.step(self, value, element_use):
                     return self
         # If what we have is element content, we can't accept it, either

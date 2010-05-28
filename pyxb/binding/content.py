@@ -477,9 +477,22 @@ class ElementUse (ContentState_mixin):
         if element_use == self:
             self.setOrAppend(ctd, value)
             return True
-        print '%s %s %s in %s' % (ctd, value, element_use, self)
+        #print '%s %s %s in %s' % (ctd, value, element_use, self)
         return False
 
+    def _validate (self, symbol_set, output_sequence):
+        values = symbol_set.get(self)
+        #print 'values %s' % (values,)
+        if values is None:
+            return False
+        used = values.pop(0)
+        output_sequence.append( (self, used) )
+        if 0 == len(values):
+            del symbol_set[self]
+        return True
+
+    def __str__ (self):
+        return 'EU%s@%x' % (self.__name, id(self))
 
 class StateStack (object):
     """A stack of states and content models representing the current status of
@@ -493,6 +506,7 @@ class StateStack (object):
 
     def pushModelState (self, model_state):
         """Add the given model state as the new top (actively executing) model ."""
+        #print 'SS Push %s' % (model_state,)
         self.__stack.append(model_state)
         return model_state
 
@@ -522,12 +536,17 @@ class StateStack (object):
 
         @return: C{True} iff the value was consumed by a transition."""
         assert isinstance(ctd_instance, basis.complexTypeDefinition)
-        if 0 == len(self.__stack):
-            return False
-        ok = self.topModelState().accepts(self, ctd_instance, value, element_use)
-        if not ok:
-            self.popModelState()
-        return ok
+        while 0 < len(self.__stack):
+            top = self.topModelState()
+            #print 'SSTop %s on %s %s' % (top, value, element_use)
+            ok = top.accepts(self, ctd_instance, value, element_use)
+            if not ok:
+                state = self.popModelState()
+                #print 'SS Pop %s' % (state,)
+            else:
+                #print 'SS CONT %s' % (top,)
+                return ok
+        return False
 
 class ParticleState (ContentState_mixin):
     def __init__ (self, particle, **kw):
@@ -537,6 +556,7 @@ class ParticleState (ContentState_mixin):
 
     def accepts (self, state_stack, ctd, value, element_use):
         match = self.__particle.term().accepts(state_stack, ctd, value, element_use)
+        #print 'CHECK %s %s on %s for %s' % (self, match, value, element_use)
         if match:
             self.__count += 1
             if self.__particle.isOverLimit(self.__count):
@@ -544,8 +564,11 @@ class ParticleState (ContentState_mixin):
         else:
             if self.__count < self.__particle.minOccurs():
                 raise pyxb.MissingContentError(self.__particle)
-        print 'PARTICLE %s' % (match,)
         return match
+
+    def __str__ (self):
+        particle = self.__particle
+        return 'ParticleState(%d:%d,%s:%s)@%x' % (self.__count, particle.minOccurs(), particle.maxOccurs(), particle.term(), id(self))
 
 class _GroupState (ContentState_mixin):
     def __init__ (self, group, **kw):
@@ -584,6 +607,33 @@ class ParticleModel (pyxb.cscRoot):
     def stateStack (self):
         return StateStack(self)
 
+    def validate (self, symbol_set):
+        output_sequence = []
+        #print 'Start: %d %s %s : %s' % (self.__minOccurs, self.__maxOccurs, self.__term, symbol_set)
+        result = self._validate(symbol_set, output_sequence)
+        #print 'End: %s %s %s' % (result, symbol_set, output_sequence)
+        if result:
+            return (symbol_set, output_sequence)
+        return None
+
+    def _validate (self, symbol_set, output_sequence):
+        count = 0
+        #print 'Validate %d %s PRT %s' % (self.__minOccurs, self.__maxOccurs, self.__term)
+        last_size = len(output_sequence)
+        while (not self.isOverLimit(count)) and self.__term._validate(symbol_set, output_sequence):
+            #print 'PRT validated, cnt %d, left %s' % (count, symbol_set)
+            this_size = len(output_sequence)
+            if this_size == last_size:
+                # Validated without consuming anithing
+                if count < self.__minOccurs:
+                    count = self.__minOccurs
+                break
+            count += 1
+            last_size = this_size
+        result = (count >= self.__minOccurs) and not self.isOverLimit(count)
+        #print 'END PRT %s validate %s: %s %s %s' % (self.__term, result, self.__minOccurs, count, self.__maxOccurs)
+        return result
+
 class _Group (ContentState_mixin):
     def particles (self): return self.__particles
 
@@ -605,6 +655,12 @@ class GroupSequence (_Group):
     def accepts (self, state_stack, ctd, value, element_use):
         state_stack.pushModelState(SequenceState(self))
         return state_stack.step(ctd, value, element_use)
+
+    def _validate (self, symbol_set, output_sequence):
+        for p in self.particles():
+            if not p._validate(symbol_set, output_sequence):
+                return False
+        return True
 
 class _DFAState (object):
     """Base class for a suspended DFA interpretation."""
