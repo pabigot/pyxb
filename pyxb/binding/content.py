@@ -473,6 +473,14 @@ class ElementUse (ContentState_mixin):
         desc.append(self.elementBinding()._description(user_documentation=user_documentation))
         return ''.join(desc)
 
+    def accepts (self, state_stack, ctd, value, element_use):
+        if element_use == self:
+            self.setOrAppend(ctd, value)
+            return True
+        print '%s %s %s in %s' % (ctd, value, element_use, self)
+        return False
+
+
 class StateStack (object):
     """A stack of states and content models representing the current status of
     an interpretation of a content model, including invocations of nested
@@ -522,24 +530,63 @@ class StateStack (object):
         return ok
 
 class ParticleState (ContentState_mixin):
-    def __init__ (self, model):
-        self.__model = model
+    def __init__ (self, particle, **kw):
+        super(ParticleState, self).__init__(**kw)
+        self.__particle = particle
         self.__count = 0
 
-class ParticleModel (pyxb.cscRoot):
+    def accepts (self, state_stack, ctd, value, element_use):
+        match = self.__particle.term().accepts(state_stack, ctd, value, element_use)
+        if match:
+            self.__count += 1
+            if self.__particle.isOverLimit(self.__count):
+                raise pyxb.UnexpectedContentError(value)
+        else:
+            if self.__count < self.__particle.minOccurs():
+                raise pyxb.MissingContentError(self.__particle)
+        print 'PARTICLE %s' % (match,)
+        return match
 
+class _GroupState (ContentState_mixin):
+    def __init__ (self, group, **kw):
+        self.__group = group
+        super(_GroupState, self).__init__(**kw)
+
+    def group (self): return self.__group
+
+class SequenceState (_GroupState):
+    def __init__ (self, *args, **kw):
+        super(SequenceState, self).__init__(*args, **kw)
+        self.__particles = self.group().particles()
+        self.__particleIndex = 0
+
+    def accepts (self, state_stack, ctd, value, element_use):
+        if self.__particleIndex > len(self.__particles):
+            return False
+        particle = self.__particles[self.__particleIndex]
+        self.__particleIndex += 1
+        state_stack.pushModelState(ParticleState(particle))
+        return state_stack.step(ctd, value, element_use)
+
+class ParticleModel (pyxb.cscRoot):
     def minOccurs (self): return self.__minOccurs
     def maxOccurs (self): return self.__maxOccurs
+    def term (self): return self.__term
+
+    def isOverLimit (self, count):
+        return (self.__maxOccurs is not None) and (count > self.__maxOccurs)
 
     def __init__ (self, term, min_occurs=1, max_occurs=1):
         self.__term = term
         self.__minOccurs = min_occurs
         self.__maxOccurs = max_occurs
 
-    def initialStateStack (self):
+    def stateStack (self):
         return StateStack(self)
 
-class _Group (pyxb.cscRoot):
+class _Group (ContentState_mixin):
+    def particles (self): return self.__particles
+
     def __init__ (self, *particles):
         self.__particles = particles
 
@@ -554,6 +601,10 @@ class GroupAll (_Group):
 class GroupSequence (_Group):
     def __init__ (self, *args, **kw):
         super(GroupSequence, self).__init__(*args, **kw)
+
+    def accepts (self, state_stack, ctd, value, element_use):
+        state_stack.pushModelState(SequenceState(self))
+        return state_stack.step(ctd, value, element_use)
 
 class _DFAState (object):
     """Base class for a suspended DFA interpretation."""
