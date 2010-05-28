@@ -41,6 +41,10 @@ import basis
 
 import xml.dom
 
+class ContentState_mixin (pyxb.cscRoot):
+    def accepts (self, state_stack, ctd, value, element_use):
+        raise Exception('ContentState_mixin.accepts not implemented in %s' % (type(self),))
+
 class AttributeUse (pyxb.cscRoot):
     """A helper class that encapsulates everything we need to know
     about the way an attribute is used within a binding class.
@@ -281,7 +285,7 @@ class AttributeUse (pyxb.cscRoot):
             desc.extend(['=', self.__unicodeDefault ])
         return ''.join(desc)
 
-class ElementUse (pyxb.cscRoot):
+class ElementUse (ContentState_mixin):
     """Aggregate the information relevant to an element of a complex type.
 
     This includes the L{original tag name<name>}, the spelling of L{the
@@ -469,13 +473,73 @@ class ElementUse (pyxb.cscRoot):
         desc.append(self.elementBinding()._description(user_documentation=user_documentation))
         return ''.join(desc)
 
-class ParticleModel (object):
+class StateStack (object):
+    """A stack of states and content models representing the current status of
+    an interpretation of a content model, including invocations of nested
+    content models reached through L{ModelGroupAll} instances."""
+
+    __stack = None
+    def __init__ (self, content_model):
+        self.__stack = []
+        self.pushModelState(ParticleState(content_model))
+
+    def pushModelState (self, model_state):
+        """Add the given model state as the new top (actively executing) model ."""
+        self.__stack.append(model_state)
+        return model_state
+
+    def isTerminal (self):
+        """Return C{True} iff the stack is in a state where the top-level
+        model execution has reached a final state."""
+        return (0 == len(self.__stack)) or self.topModelState().isFinal()
+
+    def popModelState (self):
+        """Remove and return the model state currently being executed."""
+        if 0 == len(self.__stack):
+            raise pyxb.LogicError('Attempt to underflow content model stack')
+        return self.__stack.pop()
+
+    def topModelState (self):
+        """Return a reference to the model state currently being executed.
+
+        The state is not removed from the stack."""
+        if 0 == len(self.__stack):
+            raise pyxb.LogicError('Attempt to underflow content model stack')
+        return self.__stack[-1]
+
+    def step (self, ctd_instance, value, element_use):
+        """Take a step using the value and the current model state.
+
+        Execution of the step may add a new model state to the stack.
+
+        @return: C{True} iff the value was consumed by a transition."""
+        assert isinstance(ctd_instance, basis.complexTypeDefinition)
+        if 0 == len(self.__stack):
+            return False
+        ok = self.topModelState().accepts(self, ctd_instance, value, element_use)
+        if not ok:
+            self.popModelState()
+        return ok
+
+class ParticleState (ContentState_mixin):
+    def __init__ (self, model):
+        self.__model = model
+        self.__count = 0
+
+class ParticleModel (pyxb.cscRoot):
+
+    def minOccurs (self): return self.__minOccurs
+    def maxOccurs (self): return self.__maxOccurs
+
     def __init__ (self, term, min_occurs=1, max_occurs=1):
         self.__term = term
         self.__minOccurs = min_occurs
         self.__maxOccurs = max_occurs
 
-class _Group (object):
+    def initialStateStack (self):
+        return StateStack(self)
+
+class _Group (pyxb.cscRoot):
     def __init__ (self, *particles):
         self.__particles = particles
 
@@ -611,54 +675,6 @@ class _MGAllState (object):
                 #print "\n\n***Required alternative %s still present\n\n" % (alt,)
                 return False
         return True
-
-class DFAStack (object):
-    """A stack of states and content models representing the current status of
-    an interpretation of a content model, including invocations of nested
-    content models reached through L{ModelGroupAll} instances."""
-
-    __stack = None
-    def __init__ (self, content_model):
-        self.__stack = []
-        self.pushModelState(_DFAState(content_model))
-
-    def pushModelState (self, model_state):
-        """Add the given model state as the new top (actively executing) model ."""
-        self.__stack.append(model_state)
-        return model_state
-
-    def isTerminal (self):
-        """Return C{True} iff the stack is in a state where the top-level
-        model execution has reached a final state."""
-        return (0 == len(self.__stack)) or self.topModelState().isFinal()
-
-    def popModelState (self):
-        """Remove and return the model state currently being executed."""
-        if 0 == len(self.__stack):
-            raise pyxb.LogicError('Attempt to underflow content model stack')
-        return self.__stack.pop()
-
-    def topModelState (self):
-        """Return a reference to the model state currently being executed.
-
-        The state is not removed from the stack."""
-        if 0 == len(self.__stack):
-            raise pyxb.LogicError('Attempt to underflow content model stack')
-        return self.__stack[-1]
-
-    def step (self, ctd_instance, value, element_use):
-        """Take a step using the value and the current model state.
-
-        Execution of the step may add a new model state to the stack.
-
-        @return: C{True} iff the value was consumed by a transition."""
-        assert isinstance(ctd_instance, basis.complexTypeDefinition)
-        if 0 == len(self.__stack):
-            return False
-        ok = self.topModelState().step(self, ctd_instance, value, element_use)
-        if not ok:
-            self.popModelState()
-        return ok
 
 class ContentModelTransition (pyxb.cscRoot):
     """Represents a transition in the content model DFA.
@@ -1125,7 +1141,7 @@ class ModelGroupAll (pyxb.cscRoot):
         candidates.append( (next_state, symbols, output_sequence) )
         return True
 
-class Wildcard (pyxb.cscRoot):
+class Wildcard (ContentState_mixin):
     """Placeholder for wildcard objects."""
 
     NC_any = '##any'            #<<< The namespace constraint "##any"

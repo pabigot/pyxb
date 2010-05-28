@@ -1900,7 +1900,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         else:
             self.__setContent(None)
 
-    __dfaStack = None
+    __stateStack = None
     def reset (self):
         """Reset the instance.
 
@@ -1915,7 +1915,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         for eu in self._ElementMap.values():
             eu.reset(self)
         if self._ContentModel is not None:
-            self.__dfaStack = self._ContentModel.initialDFAStack()
+            self.__stateStack = self._ContentModel.initialStateStack()
         return self
 
     @classmethod
@@ -2029,7 +2029,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
                 return self
         if self._isNil() and not self._IsSimpleTypeContent():
             raise pyxb.ExtraContentError('%s: Content %s present in element with xsi:nil' % (type(self), value))
-        if maybe_element and (self.__dfaStack is not None):
+        if maybe_element and (self.__stateStack is not None):
             # Allows element content.
             if not require_validation:
                 if element_use is not None:
@@ -2040,7 +2040,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
                     self._appendWildcardElement(value)
                     return self
             else:
-                if self.__dfaStack.step(self, value, element_use):
+                if self.__stateStack.step(self, value, element_use):
                     return self
         # If what we have is element content, we can't accept it, either
         # because the type doesn't accept element content or because it does
@@ -2104,7 +2104,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         """Initialize the content of this element from the content of the DOM node."""
 
         self.extend(node.childNodes[:], _fallback_namespace)
-        if self._PerformValidation() and (not self._isNil()) and (self.__dfaStack is not None) and (not self.__dfaStack.isTerminal()):
+        if self._PerformValidation() and (not self._isNil()) and (self.__stateStack is not None) and (not self.__stateStack.isTerminal()):
             raise pyxb.MissingContentError()
         return self
 
