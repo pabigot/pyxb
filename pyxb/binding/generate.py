@@ -286,7 +286,7 @@ def pythonLiteral (value, **kw):
 
 
 def GenerateModelGroupAll (ctd, mga, binding_module, template_map, **kw):
-    mga_tag = '__AModelGroup'
+    mga_tag = utility.PrepareIdentifier('AModelGroup', binding_module.uniqueInModule(), private=True)
     template_map['mga_tag'] = mga_tag
     lines = []
     lines2 = []
@@ -302,15 +302,9 @@ def GenerateModelGroupAll (ctd, mga, binding_module, template_map, **kw):
     return (mga_tag, lines)
 
 def GenerateContentModel (ctd, automaton, binding_module, **kw):
-    cmi = None
+    cmi = utility.PrepareIdentifier('ContentModel', binding_module.uniqueInClass(ctd), protected=True)
     template_map = { }
     template_map['ctd'] = binding_module.literal(ctd, **kw)
-    try:
-        cmi = '_ContentModel_%d' % (ctd.__contentModelIndex,)
-        ctd.__contentModelIndex += 1
-    except AttributeError:
-        cmi = '_ContentModel'
-        ctd.__contentModelIndex = 1
     template_map['cm_tag'] = cmi
     template_map['content'] = 'pyxb.binding.content'
     template_map['state_comma'] = ' '
@@ -1100,11 +1094,9 @@ class _ModuleNaming_mixin (object):
         rv = component.bestNCName()
         if rv is None:
             if isinstance(component, xs.structures.ComplexTypeDefinition):
-                rv = '_CTD_ANON_%d' % (self.__anonCTDIndex,)
-                self.__anonCTDIndex += 1
+                rv = utility.PrepareIdentifier('CTD_ANON', self.uniqueInClass(component), protected=True)
             elif isinstance(component, xs.structures.SimpleTypeDefinition):
-                rv = '_STD_ANON_%d' % (self.__anonSTDIndex,)
-                self.__anonSTDIndex += 1
+                rv = utility.PrepareIdentifier('STD_ANON', self.uniqueInClass(component), protected=True)
             else:
                 assert False
             kw['protected'] = True
