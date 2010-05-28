@@ -42,6 +42,12 @@ import basis
 import xml.dom
 
 class ContentState_mixin (pyxb.cscRoot):
+    def model (self): return self.__model
+    
+    def __init__ (self, model, **kw):
+        self.__model = model
+        super(ContentState_mixin, self).__init__(**kw)
+        
     def accepts (self, state_stack, ctd, value, element_use):
         raise Exception('ContentState_mixin.accepts not implemented in %s' % (type(self),))
 
@@ -503,6 +509,9 @@ class ElementUse (ContentState_mixin):
     def __str__ (self):
         return 'EU.%s@%x' % (self.__name, id(self))
 
+class StackPushed (Exception):
+    pass
+
 class StateStack (object):
     """A stack of states and content models representing the current status of
     an interpretation of a content model, including invocations of nested
@@ -515,7 +524,7 @@ class StateStack (object):
 
     def pushModelState (self, model_state):
         """Add the given model state as the new top (actively executing) model ."""
-        #print 'SS Push %s' % (model_state,)
+        print 'SS Push %s' % (model_state,)
         self.__stack.append(model_state)
         return model_state
 
@@ -541,31 +550,49 @@ class StateStack (object):
     def step (self, ctd_instance, value, element_use):
         """Take a step using the value and the current model state.
 
-        Execution of the step may add a new model state to the stack.
+        Execution of the step may add a new model state to the stack.  When
+        this happens, the state that caused a new state to be pushed raises
+        StackPushed to return control to this activation record, so we can
+        detect loops.
 
         @return: C{True} iff the value was consumed by a transition."""
         assert isinstance(ctd_instance, basis.complexTypeDefinition)
+        #print 'SS ENTRY'
+        failed_models = set()
         while 0 < len(self.__stack):
             top = self.topModelState()
-            #print 'SSTop %s of %d on %s %s' % (top, len(self.__stack), value, element_use)
-            ok = top.accepts(self, ctd_instance, value, element_use)
+            if top.model() in failed_models:
+                print 'SSTop HAS FAILED'
+            print 'SSTop %s of %d on %s %s' % (top, len(self.__stack), value, element_use)
+            try:
+                ok = top.accepts(self, ctd_instance, value, element_use)
+            except StackPushed:
+                print 'StackPushed'
+                continue
             if not ok:
                 state = self.popModelState()
-                #print 'SS Pop %s top %s' % (state, top)
+                if state.model() in failed_models:
+                    print 'FAILED MULTIPLE TIMES'
+                failed_models.add(state.model())
+                print 'SS Pop %s %s' % (state, state.model())
+                print '  Started %s %s' % (top, top.model())
+                top = self.topModelState();
+                print '  Now %s %s' % (top, top.model())
             else:
-                #print 'SS CONT %s' % (top,)
+                print 'SS CONT %s' % (top,)
                 return ok
+        print 'SS FALLOFF'
         return False
 
 class ParticleState (ContentState_mixin):
     def __init__ (self, particle, **kw):
-        super(ParticleState, self).__init__(**kw)
         self.__particle = particle
         self.__count = 0
+        super(ParticleState, self).__init__(particle, **kw)
 
     def accepts (self, state_stack, ctd, value, element_use):
         match = self.__particle.term().accepts(state_stack, ctd, value, element_use)
-        #print 'CHECK %s %s on %s for %s' % (self, match, value, element_use)
+        print 'CHECK %s %s on %s for %s' % (self, match, value, element_use)
         if match:
             self.__count += 1
             if self.__particle.isOverLimit(self.__count):
@@ -579,7 +606,7 @@ class ParticleState (ContentState_mixin):
 class _GroupState (ContentState_mixin):
     def __init__ (self, group, **kw):
         self.__group = group
-        super(_GroupState, self).__init__(**kw)
+        super(_GroupState, self).__init__(group, **kw)
 
     def group (self): return self.__group
 
@@ -596,7 +623,8 @@ class SequenceState (_GroupState):
         #print '%s push for %s' % (self, particle)
         self.__particleIndex += 1
         state_stack.pushModelState(ParticleState(particle))
-        return state_stack.step(ctd, value, element_use)
+        raise StackPushed()
+        #return state_stack.step(ctd, value, element_use)
 
     def __str__ (self):
         return 'SequenceState(%d/%d)@%x' % (self.__particleIndex, len(self.__particles), id(self))
@@ -666,7 +694,8 @@ class GroupSequence (_Group):
         if 0 == len(self.particles()):
             return False
         state_stack.pushModelState(SequenceState(self))
-        return state_stack.step(ctd, value, element_use)
+        raise StackPushed()
+        #return state_stack.step(ctd, value, element_use)
 
     def _validate (self, symbol_set, output_sequence):
         for p in self.particles():
