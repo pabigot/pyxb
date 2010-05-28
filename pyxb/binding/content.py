@@ -499,7 +499,7 @@ class ElementUse (ContentState_mixin):
             self.setOrAppend(ctd, value)
             return True
         if element_use is not None:
-            print 'WARNING: Non-null EU does not match'
+            print 'WARNING: %s val %s eu %s does not match %s' % (ctd, value, element_use, self)
             return False
         assert not isinstance(value, xml.dom.Node)
         try:
@@ -573,15 +573,13 @@ class StateStack (object):
         @return: C{True} iff the value was consumed by a transition."""
         assert isinstance(ctd_instance, basis.complexTypeDefinition)
         #print 'SS ENTRY'
-        entry_top = self.topModelState()
-        have_tried = False
+        attempted = set()
         while 0 < len(self.__stack):
             top = self.topModelState()
-
             # Stop with a failure if we're looping
-            if (top == entry_top) and have_tried:
+            if top in attempted:
                 return False
-            have_tried = True
+            attempted.add(top)
             #print 'SSTop %s of %d on %s %s' % (top, len(self.__stack), value, element_use)
             try:
                 ok = top.accepts(self, ctd_instance, value, element_use)
