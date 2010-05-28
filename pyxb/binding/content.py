@@ -469,6 +469,28 @@ class ElementUse (pyxb.cscRoot):
         desc.append(self.elementBinding()._description(user_documentation=user_documentation))
         return ''.join(desc)
 
+class ParticleModel (object):
+    def __init__ (self, term, min_occurs=1, max_occurs=1):
+        self.__term = term
+        self.__minOccurs = min_occurs
+        self.__maxOccurs = max_occurs
+
+class _Group (object):
+    def __init__ (self, *particles):
+        self.__particles = particles
+
+class GroupChoice (_Group):
+    def __init__ (self, *args, **kw):
+        super(GroupChoice, self).__init__(*args, **kw)
+
+class GroupAll (_Group):
+    def __init__ (self, *args, **kw):
+        super(GroupAll, self).__init__(*args, **kw)
+
+class GroupSequence (_Group):
+    def __init__ (self, *args, **kw):
+        super(GroupSequence, self).__init__(*args, **kw)
+
 class _DFAState (object):
     """Base class for a suspended DFA interpretation."""
     __contentModel = None

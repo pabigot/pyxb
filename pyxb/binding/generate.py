@@ -303,6 +303,8 @@ def GenerateModelGroupAll (ctd, mga, binding_module, template_map, **kw):
 
 def GenerateContentTerm (ctd, term, binding_module, **kw):
     lines = []
+    padding = '    '
+    separator = ",\n%s" % (padding,)
     template_map = { 'ctd' : binding_module.literal(ctd, **kw) }
     if isinstance(term, xs.structures.Wildcard):
         term_val = binding_module.literal(term, **kw)
@@ -312,12 +314,19 @@ def GenerateContentTerm (ctd, term, binding_module, **kw):
         gm_id = utility.PrepareIdentifier('GroupModel', binding_module.uniqueInClass(ctd), protected=True)
         assert isinstance(term, xs.structures.ModelGroup)
         if (term.C_ALL == term.compositor()):
-            group_val = 'all'
+            group_val = 'All'
         elif (term.C_CHOICE == term.compositor()):
-            group_val = 'choice'
+            group_val = 'Choice'
         else:
             assert term.C_SEQUENCE == term.compositor()
-            group_val = 'seq'
+            group_val = 'Sequence'
+        pvalues = []
+        for p in term.particles():
+            (value, plines) = GenerateContentParticle(ctd, p, binding_module, **kw)
+            if plines:
+                lines.extend(plines)
+            pvalues.append(value)
+        group_val = "pyxb.binding.content.Group%s(\n" % (group_val,) + padding + separator.join(pvalues) + "\n" + padding + ")"
         template_map['gm_id'] = gm_id
         lines.append(templates.replaceInText('%{ctd}.%{gm_id} = %{group_val}', group_val=group_val, **template_map))
         term_val = templates.replaceInText('%{ctd}.%{gm_id}', **template_map)
@@ -326,11 +335,10 @@ def GenerateContentTerm (ctd, term, binding_module, **kw):
 def GenerateContentParticle (ctd, particle, binding_module, **kw):
     template_map = { }
     template_map['ctd'] = binding_module.literal(ctd, **kw)
-    template_map['content'] = 'pyxb.binding.content'
     template_map['min_occurs'] = repr(particle.minOccurs())
-    template_map['max_occurs'] = repr(particle.minOccurs())
+    template_map['max_occurs'] = repr(particle.maxOccurs())
     (term_val, lines) = GenerateContentTerm(ctd, particle.term(), binding_module, **kw)
-    particle_val = templates.replaceInText('%{content}.ParticleModel(min_occurs=%{min_occurs}, max_occurs=%{max_occurs}, term=%{term_val})', term_val=term_val, **template_map)
+    particle_val = templates.replaceInText('pyxb.binding.content.ParticleModel(%{term_val}, min_occurs=%{min_occurs}, max_occurs=%{max_occurs})', term_val=term_val, **template_map)
     return (particle_val, lines)
 
 def _useEnumerationTags (td):
