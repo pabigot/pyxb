@@ -2109,6 +2109,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
     def _postDOMValidate (self):
         if self._PerformValidation() and (not self._isNil()) and (self.__stateStack is not None):
             self.__stateStack.verifyComplete()
+            self._validateAttributes()
         return self
 
     def _setContentFromDOM (self, node, _fallback_namespace):
