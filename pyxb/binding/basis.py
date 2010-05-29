@@ -541,8 +541,11 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
         '''
         nm = cls.__FacetMapAttributeNameMap.get(cls)
         if nm is None:
+            nm = cls.__name__
+            if nm.endswith('_'):
+                nm += '1'
             if cls == simpleTypeDefinition:
-                nm = '_%s__FacetMap' % (cls.__name__.strip('_'),)
+                nm = '_%s__FacetMap' % (nm,)
             else:
                 # It is not uncommon for a class in one namespace to extend a class of
                 # the same name in a different namespace, so encode the namespace URI
@@ -552,7 +555,7 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
                     ns_uri = cls._ExpandedName.namespaceURI()
                 except Exception, e:
                     pass
-                nm = '_' + utility.MakeIdentifier('%s_%s_FacetMap' % (ns_uri, cls.__name__.strip('_')))
+                nm = '_' + utility.MakeIdentifier('%s_%s_FacetMap' % (ns_uri, nm))
             cls.__FacetMapAttributeNameMap[cls] = nm
         return nm
 
@@ -585,7 +588,7 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
         except AttributeError:
             pass
         if fm is not None:
-            raise pyxb.LogicError('%s facet map initialized multiple times: %s' % (cls.__name__,cls.__FacetMapAttributeName()))
+            raise pyxb.LogicError('%s facet map initialized multiple times: %s' % (cls.__name__, cls.__FacetMapAttributeName()))
 
         # Search up the type hierarchy to find the nearest ancestor that has a
         # facet map.  This gets a bit tricky: if we hit the ceiling early
