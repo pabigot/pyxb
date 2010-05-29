@@ -926,9 +926,9 @@ class Wildcard (ContentState_mixin):
             if elt is not None:
                 ns = elt.name().namespace()
             else:
-                raise pyxb.LogicError('Need namespace')
+                ns = value._ExpandedName.namespace()
         else:
-            raise pyxb.LogicError('Need namespace')
+            raise pyxb.LogicError('Need namespace from value')
         if self.NC_any == self.__namespaceConstraint:
             return True
         if isinstance(self.__namespaceConstraint, tuple):
