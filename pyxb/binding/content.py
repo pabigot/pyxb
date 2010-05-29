@@ -539,7 +539,7 @@ class StateStack (object):
 
     def pushModelState (self, model_state):
         """Add the given model state as the new top (actively executing) model ."""
-        #print 'SS Push %s' % (model_state,)
+        print 'SS Push %s' % (model_state,)
         self.__stack.append(model_state)
         raise ContentStatePushed()
 
@@ -572,7 +572,7 @@ class StateStack (object):
 
         @return: C{True} iff the value was consumed by a transition."""
         assert isinstance(ctd_instance, basis.complexTypeDefinition)
-        #print 'SS ENTRY'
+        print 'SS ENTRY'
         attempted = set()
         while 0 < len(self.__stack):
             top = self.topModelState()
@@ -580,22 +580,21 @@ class StateStack (object):
             if top in attempted:
                 return False
             attempted.add(top)
-            #print 'SSTop %s of %d on %s %s' % (top, len(self.__stack), value, element_use)
+            print 'SSTop %s of %d on %s %s' % (top, len(self.__stack), value, element_use)
             try:
                 ok = top.accepts(self, ctd_instance, value, element_use)
             except ContentStatePushed:
-                #print 'ContentStatePushed'
                 continue
             have_looped = True
             if ok:
-                #print 'SS CONT %s' % (top,)
+                print 'SS CONT %s' % (top,)
                 return ok
             state = self.popModelState()
-            #print 'SS Pop %s %s' % (state, state.model())
+            print 'SS Pop %s %s' % (state, state.model())
             #print '  Started %s %s' % (top, top.model())
             #top = self.topModelState();
             #print '  Now %s %s' % (top, top.model())
-        #print 'SS FALLOFF'
+        print 'SS FALLOFF'
         return False
 
 class ParticleState (ContentState_mixin):
@@ -605,6 +604,8 @@ class ParticleState (ContentState_mixin):
         super(ParticleState, self).__init__(particle, **kw)
 
     def accepts (self, state_stack, ctd, value, element_use):
+        ### **** Problem here: need to create the term's state once
+        ### and re-use it on each accepts() call.
         match = self.__particle.term().accepts(state_stack, ctd, value, element_use)
         #print 'CHECK %s %s on %s for %s' % (self, match, value, element_use)
         if match:
@@ -632,12 +633,14 @@ class SequenceState (_GroupState):
         super(SequenceState, self).__init__(*args, **kw)
         self.__particles = self.group().particles()
         self.__particleIndex = 0
+        print "CREATE SS:\n  " +  "\n  ".join([ str(_p.term()) for _p in self.__particles ])
 
     def accepts (self, state_stack, ctd, value, element_use):
+        print 'SS check %d of %d on %s' % (self.__particleIndex, len(self.__particles), value)
         if self.__particleIndex >= len(self.__particles):
             return False
         particle = self.__particles[self.__particleIndex]
-        #print '%s push for %s' % (self, particle)
+        print '%s push for %s : %s' % (self, particle, particle.term())
         self.__particleIndex += 1
         state_stack.pushModelState(ParticleState(particle))
         #NOTREACHED
@@ -688,7 +691,7 @@ class ParticleModel (pyxb.cscRoot):
         #print 'END PRT %s validate %s: %s %s %s' % (self.__term, result, self.__minOccurs, count, self.__maxOccurs)
         return result
 
-class _Group (ContentState_mixin):
+class _Group (pyxb.cscRoot):
     def particles (self): return self.__particles
 
     def __init__ (self, *particles):
