@@ -653,6 +653,7 @@ class SequenceState (ContentState_mixin):
 
 class ChoiceState (ContentState_mixin):
     def __init__ (self, group, parent_particle_state):
+        self.__parentParticleState = parent_particle_state
         super(ChoiceState, self).__init__(group)
         self.__choices = set([ ParticleState(_p, self) for _p in group.particles() ])
         self.__activeChoice = None
@@ -663,11 +664,7 @@ class ChoiceState (ContentState_mixin):
         if self.__activeChoice is None:
             for choice in self.__choices:
                 #print 'CS.ACC %s candidate %s' % (self, choice)
-                try:
-                    (consume, underflow_exc) = choice.step(instance, value, element_use)
-                except Exception, e:
-                    #print 'CS.ACC %s:  EXCEPTION %s' % (self, type(e))
-                    raise
+                (consume, underflow_exc) = choice.step(instance, value, element_use)
                 #print 'CS.ACC %s: candidate %s : %s' % (self, choice, consume)
                 if consume:
                     self.__activeChoice = choice
@@ -696,7 +693,9 @@ class ChoiceState (ContentState_mixin):
         parent_particle_state.incrementCount()
 
     def notifyFailure (self, sub_state, particle_ok):
-        #print 'CS.NF %s' % (self,)
+        #print 'CS.NF %s %s' % (self, particle_ok)
+        if particle_ok:
+            self.__parentParticleState.incrementCount()
         pass
 
 class ParticleState (pyxb.cscRoot):
