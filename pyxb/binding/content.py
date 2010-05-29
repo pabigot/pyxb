@@ -765,10 +765,10 @@ class ParticleModel (pyxb.cscRoot):
 
     def _validate (self, symbol_set, output_sequence):
         count = 0
-        #print 'Validate %d %s PRT %s' % (self.__minOccurs, self.__maxOccurs, self.__term)
+        #print 'VAL start %s: %d %s' % (self.__term, self.__minOccurs, self.__maxOccurs)
         last_size = len(output_sequence)
-        while self.meetsMaximum(count) and self.__term._validate(symbol_set, output_sequence):
-            #print 'PRT validated, cnt %d, left %s' % (count, symbol_set)
+        while (count != self.__maxOccurs) and self.__term._validate(symbol_set, output_sequence):
+            #print 'VAL %s old cnt %d, left %s' % (self.__term, count, symbol_set)
             this_size = len(output_sequence)
             if this_size == last_size:
                 # Validated without consuming anything
@@ -777,8 +777,8 @@ class ParticleModel (pyxb.cscRoot):
                 break
             count += 1
             last_size = this_size
-        result = self.meetsMinimum(count) and self.meetsMaximum(count)
-        #print 'END PRT %s validate %s: %s %s %s' % (self.__term, result, self.__minOccurs, count, self.__maxOccurs)
+        result = self.satisfiesOccurrences(count)
+        #print 'VAL end PRT %s res %s: %s %s %s' % (self.__term, result, self.__minOccurs, count, self.__maxOccurs)
         return result
 
 class _Group (ContentModel_mixin):
