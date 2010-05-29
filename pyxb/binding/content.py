@@ -102,14 +102,6 @@ class ContentState_mixin (pyxb.cscRoot):
         raise Exception('ContentState_mixin.notifyFailure not implemented in %s' % (type(self),))
         
 
-    def isTerminalState (self):
-        """Indicate whether the content model is satisfied by the current state.
-
-        The base implementation always returns C{True}, as a convenience to
-        non-aggregate state models.  Aggregate state models need to override
-        this method."""
-        return True
-
     def _validate (self, symbol_set, output_sequence):
         raise Exception('ContentState_mixin._validate not implemented in %s' % (type(self),))
 
@@ -634,10 +626,6 @@ class SequenceState (ContentState_mixin):
                 self.__parentParticleState.incrementCount()
         #print 'SS.NF %s: %d %s %s' % (self, self.__index, particle_ok, self.__particleState)
 
-    def isTerminalState (self):
-        print '%s check ts %s %d %s' % (self, self.__satisfied, self.__index, self.__particleState)
-        return self.__satisfied or (((1 + self.__index) == len(self.__particles)) and self.__particleState.isFinal())
-
 class ParticleState (pyxb.cscRoot):
     def __init__ (self, particle, parent_state=None):
         self.__particle = particle
@@ -696,15 +684,6 @@ class ParticleState (pyxb.cscRoot):
             if not self.__particle.meetsMinimum(self.__count):
                 underflow_exc = pyxb.MissingElementError('too few')
         return (consumed, underflow_exc)
-
-    def isFinal (self):
-        print '%s isFinal %d %d %s' % (self, self.__particle.minOccurs(), self.__count, self.__particle.maxOccurs())
-        print '%s term %s' % (self, self.__termState)
-        raise Exception()
-        return self.__particle.meetsMinimum(self.__count) and self.__particle.meetsMaximum(self.__count)
-
-    def isTerminal (self):
-        return self.__termState.isTerminalState() and self.isFinal()
 
     def __str__ (self):
         particle = self.__particle
