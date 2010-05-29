@@ -681,6 +681,7 @@ class ChoiceState (ContentState_mixin):
 
     def _verifyComplete (self, parent_particle_state):
         rv = True
+        #print 'CS.VC %s: %s' % (self, self.__activeChoice)
         if self.__activeChoice is None:
             for choice in self.__choices:
                 try:
@@ -688,9 +689,8 @@ class ChoiceState (ContentState_mixin):
                     return
                 except Exception, e:
                     pass
-            raise MissingContentError('choice')
+            raise pyxb.MissingContentError('choice')
         self.__activeChoice.verifyComplete()
-        parent_particle_state.incrementCount()
 
     def notifyFailure (self, sub_state, particle_ok):
         #print 'CS.NF %s %s' % (self, particle_ok)
@@ -715,9 +715,13 @@ class ParticleState (pyxb.cscRoot):
         self.__tryAccept = True
 
     def verifyComplete (self):
+        # @TODO@ Set a flag so we can make verifyComplete safe to call
+        # multiple times?
+        #print 'PS.VC %s entry' % (self,)
         if not self.__particle.satisfiesOccurrences(self.__count):
             self.__termState._verifyComplete(self)
         if not self.__particle.satisfiesOccurrences(self.__count):
+            #print 'PS.VC %s incomplete' % (self,)
             raise pyxb.MissingContentError('incomplete')
         if self.__parentState is not None:
             self.__parentState.notifyFailure(self, True)
