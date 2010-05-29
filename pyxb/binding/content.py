@@ -655,7 +655,7 @@ class ChoiceState (ContentState_mixin):
     def __init__ (self, group, parent_particle_state):
         self.__parentParticleState = parent_particle_state
         super(ChoiceState, self).__init__(group)
-        self.__choices = set([ ParticleState(_p, self) for _p in group.particles() ])
+        self.__choices = [ ParticleState(_p, self) for _p in group.particles() ]
         self.__activeChoice = None
         #print 'CS.CTOR %s: %d choices' % (self, len(self.__choices))
 
