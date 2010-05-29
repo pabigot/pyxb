@@ -579,9 +579,15 @@ class ElementUse (ContentState_mixin, ContentModel_mixin):
             self.setOrAppend(instance, value)
             return True
         if element_use is not None:
-            #print 'WARNING: %s val %s eu %s does not match %s' % (instance, value, element_use, self)
+            # If there's a known element, and it's not this one, the content
+            # does not match.  This assumes we handled xsi:type and
+            # substitution groups earlier, which may be true.
             return False
-        assert not isinstance(value, xml.dom.Node)
+        if isinstance(value, xml.dom.Node):
+            # If we haven't been able to identify an element for this before,
+            # then we don't recognize it, and will have to treat it as a
+            # wildcard.
+            return False
         try:
             self.setOrAppend(instance, self.__elementBinding.compatibleValue(value, _convert_string_values=False))
             return True
