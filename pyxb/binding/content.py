@@ -660,7 +660,7 @@ class ChoiceState (ContentState_mixin):
         #print 'CS.CTOR %s: %d choices' % (self, len(self.__choices))
 
     def accepts (self, particle_state, instance, value, element_use):
-        #print 'CS.ACC %s: %s %s %s' % (self, instance, value, element_use)
+        #print 'CS.ACC %s %s: %s %s %s' % (self, self.__activeChoice, instance, value, element_use)
         if self.__activeChoice is None:
             for choice in self.__choices:
                 #print 'CS.ACC %s candidate %s' % (self, choice)
@@ -672,6 +672,7 @@ class ChoiceState (ContentState_mixin):
                     return True
             return False
         (consume, underflow_exc) = self.__activeChoice.step(instance, value, element_use)
+        #print 'CS.ACC %s : active choice %s %s %s' % (self, self.__activeChoice, consume, underflow_exc)
         if consume:
             return True
         if underflow_exc is not None:
@@ -683,9 +684,12 @@ class ChoiceState (ContentState_mixin):
         rv = True
         #print 'CS.VC %s: %s' % (self, self.__activeChoice)
         if self.__activeChoice is None:
-            for choice in self.__choices:
+            # Use self.__activeChoice as the iteration value so that it's
+            # non-None when notifyFailure is invoked.
+            for self.__activeChoice in self.__choices:
                 try:
-                    choice.verifyComplete()
+                    #print 'CS.VC: try %s' % (self.__activeChoice,)
+                    self.__activeChoice.verifyComplete()
                     return
                 except Exception, e:
                     pass
@@ -694,7 +698,7 @@ class ChoiceState (ContentState_mixin):
 
     def notifyFailure (self, sub_state, particle_ok):
         #print 'CS.NF %s %s' % (self, particle_ok)
-        if particle_ok:
+        if particle_ok and (self.__activeChoice is not None):
             self.__parentParticleState.incrementCount()
         pass
 
