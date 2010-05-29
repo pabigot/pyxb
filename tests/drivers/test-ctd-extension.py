@@ -56,7 +56,7 @@ class TestCTDExtension (unittest.TestCase):
         self.assertEqual('add generation', instance.eAttr)
 
     def testMidWildcard (self):
-        xml = '<defs><documentation/><something/><message/><message/><import/><message/></defs>'
+        xml = '<defs xmlns:other="other"><documentation/><other:something/><message/><message/><import/><message/></defs>'
         doc = pyxb.utils.domutils.StringToDOM(xml)
         instance = defs.createFromDOM(doc.documentElement)
         self.assertFalse(instance.documentation is None)
@@ -64,7 +64,7 @@ class TestCTDExtension (unittest.TestCase):
         self.assertEqual(1, len(instance.import_))
         self.assertEqual(1, len(instance.wildcardElements()))
 
-        xml = '<defs><something/><else/><message/><message/><import/><message/></defs>'
+        xml = '<defs xmlns:other="other"><other:something/><other:else/><message/><message/><import/><message/></defs>'
         doc = pyxb.utils.domutils.StringToDOM(xml)
         instance = defs.createFromDOM(doc.documentElement)
         self.assertTrue(instance.documentation is None)
@@ -73,7 +73,7 @@ class TestCTDExtension (unittest.TestCase):
         self.assertEqual(2, len(instance.wildcardElements()))
 
     def testEndWildcard (self):
-        xml = '<defs><message/><something/></defs>'
+        xml = '<defs xmlns:other="other"><message/><other:something/></defs>'
         doc = pyxb.utils.domutils.StringToDOM(xml)
         self.assertRaises(ExtraContentError, defs.createFromDOM, doc.documentElement)
 

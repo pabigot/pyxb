@@ -911,13 +911,35 @@ class Wildcard (ContentState_mixin):
         self.__namespaceConstraint = kw['namespace_constraint']
         self.__processContents = kw['process_contents']
 
-    def matches (self, instance_instance, value):
+    def matches (self, instance, value):
         """Return True iff the value is a valid match against this wildcard.
 
-        Not implemented yet: all wildcards are assumed to match all values.
-
+        Validation per U{Wildcard allows Namespace Name<http://www.w3.org/TR/xmlschema-1/#cvc-wildcard-namespace>}.
         """
-        return True
+
+        ns = None
+        if isinstance(value, xml.dom.Node):
+            if value.namespaceURI is not None:
+                ns = pyxb.namespace.NamespaceForURI(value.namespaceURI)
+        elif isinstance(value, basis._TypeBinding_mixin):
+            elt = value._element()
+            if elt is not None:
+                ns = elt.name().namespace()
+            else:
+                raise pyxb.LogicError('Need namespace')
+        else:
+            raise pyxb.LogicError('Need namespace')
+        if self.NC_any == self.__namespaceConstraint:
+            return True
+        if isinstance(self.__namespaceConstraint, tuple):
+            (_, constrained_ns) = self.__namespaceConstraint
+            assert self.NC_not == _
+            if constrained_ns == ns:
+                return False
+            if ns.isAbsentNamespace():
+                return False
+            return True
+        return ns in self.__namespaceConstraint
 
     def newState (self, parent_particle_state):
         return self
@@ -925,7 +947,7 @@ class Wildcard (ContentState_mixin):
     def accepts (self, particle_state, instance, value, element_use):
         value_desc = 'value of type %s' % (type(value),)
         if not self.matches(instance, value):
-            raise pyxb.UnexpectedContentError(value)
+            return False
         if not isinstance(value, basis._TypeBinding_mixin):
             print 'NOTE: Created unbound wildcard element from %s' % (value_desc,)
         assert isinstance(instance.wildcardElements(), list), 'Uninitialized wildcard list in %s' % (instance._ExpandedName,)
