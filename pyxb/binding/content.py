@@ -494,12 +494,21 @@ class ElementUse (ContentState_mixin):
         desc.append(self.elementBinding()._description(user_documentation=user_documentation))
         return ''.join(desc)
 
-    def accepts (self, state_stack, ctd, value, element_use):
+    def newState (self, particle_state):
+        return self
+
+    def accepts (self, particle_state, ctd, value, element_use):
+        rv = self._accepts(ctd, value, element_use)
+        if rv:
+            particle_state.incrementCount()
+        return rv
+
+    def _accepts (self, ctd, value, element_use):
         if element_use == self:
             self.setOrAppend(ctd, value)
             return True
         if element_use is not None:
-            print 'WARNING: %s val %s eu %s does not match %s' % (ctd, value, element_use, self)
+            #print 'WARNING: %s val %s eu %s does not match %s' % (ctd, value, element_use, self)
             return False
         assert not isinstance(value, xml.dom.Node)
         try:
@@ -597,64 +606,85 @@ class StateStack (object):
         print 'SS FALLOFF'
         return False
 
-class ParticleState (ContentState_mixin):
-    def __init__ (self, particle, **kw):
-        self.__particle = particle
-        self.__count = 0
-        super(ParticleState, self).__init__(particle, **kw)
+class SequenceState (object):
+    def __init__ (self, group, parent_particle_state):
+        self.__sequence = group
+        self.__parentParticleState = parent_particle_state
+        self.__particles = group.particles()
+        self.__index = -1
+        self.__satisfied = False
+        #print 'SS.CTOR %s: %d elts' % (self, len(self.__particles))
+        self.notifyFailure(None, False)
+    
+    def accepts (self, particle_state, ctd, value, element_use):
+        assert self.__parentParticleState == particle_state
+        #print 'SS.ACC %s: %s %s %s' % (self, ctd, value, element_use)
+        while self.__particleState is not None:
+            (consume, underflow_exc) = self.__particleState.step(ctd, value, element_use)
+            if consume:
+                return True
+            if underflow_exc is not None:
+                self.__failed = True
+                raise underflow_exc
+        return False
 
-    def accepts (self, state_stack, ctd, value, element_use):
-        ### **** Problem here: need to create the term's state once
-        ### and re-use it on each accepts() call.
-        match = self.__particle.term().accepts(state_stack, ctd, value, element_use)
-        #print 'CHECK %s %s on %s for %s' % (self, match, value, element_use)
-        if match:
-            self.__count += 1
-            if self.__particle.isOverLimit(self.__count):
-                raise pyxb.UnrecognizedContentError(value)
-        return match
+    def notifyFailure (self, sub_state, particle_ok):
+        self.__index += 1
+        self.__particleState = None
+        if self.__index < len(self.__particles):
+            self.__particleState = ParticleState(self.__particles[self.__index], self)
+        else:
+            if particle_ok:
+                self.__parentParticleState.incrementCount()
+        #print 'SS.NF %s: %d %s %s' % (self, self.__index, particle_ok, self.__particleState)
+
+class ParticleState (object):
+    def __init__ (self, particle, parent_state=None):
+        self.__particle = particle
+        self.__parentState = parent_state
+        self.__termState = particle.term().newState(self)
+        self.__count = 0
+        #print 'PS.CTOR %s: particle %s' % (self, particle)
+
+    def incrementCount (self):
+        #print 'PS.IC %s' % (self,)
+        self.__count += 1
+
+    def step (self, ctd, value, element_use):
+        #print 'PS.STEP %s: %s %s %s' % (self, ctd, value, element_use)
+        consumed = self.__termState.accepts(self, ctd, value, element_use)
+        #print 'PS.STEP %s: %s' % (self, consumed)
+        underflow_exc = None
+        if consumed:
+            if not self.__particle.meetsMaximum(self.__count):
+                raise Exception('too many')
+        else:
+            if self.__parentState is not None:
+                self.__parentState.notifyFailure(self, self.__particle.satisfiesOccurrences(self.__count))
+            if not self.__particle.meetsMinimum(self.__count):
+                underflow_exc = Exception('too few')
+        return (consumed, underflow_exc)
 
     def isFinal (self):
-        return (self.__count >= self.__particle.minOccurs()) and not self.__particle.isOverLimit(self.__count)
+        return self.__particle.meetsMinimum(self.__count) and self.__particle.meetsMaximum(self.__count)
 
     def __str__ (self):
         particle = self.__particle
         return 'ParticleState(%d:%d,%s:%s)@%x' % (self.__count, particle.minOccurs(), particle.maxOccurs(), particle.term(), id(self))
-
-class _GroupState (ContentState_mixin):
-    def __init__ (self, group, **kw):
-        self.__group = group
-        super(_GroupState, self).__init__(group, **kw)
-
-    def group (self): return self.__group
-
-class SequenceState (_GroupState):
-    def __init__ (self, *args, **kw):
-        super(SequenceState, self).__init__(*args, **kw)
-        self.__particles = self.group().particles()
-        self.__particleIndex = 0
-        print "CREATE SS:\n  " +  "\n  ".join([ str(_p.term()) for _p in self.__particles ])
-
-    def accepts (self, state_stack, ctd, value, element_use):
-        print 'SS check %d of %d on %s' % (self.__particleIndex, len(self.__particles), value)
-        if self.__particleIndex >= len(self.__particles):
-            return False
-        particle = self.__particles[self.__particleIndex]
-        print '%s push for %s : %s' % (self, particle, particle.term())
-        self.__particleIndex += 1
-        state_stack.pushModelState(ParticleState(particle))
-        #NOTREACHED
-
-    def __str__ (self):
-        return 'SequenceState(%d/%d)@%x' % (self.__particleIndex, len(self.__particles), id(self))
 
 class ParticleModel (pyxb.cscRoot):
     def minOccurs (self): return self.__minOccurs
     def maxOccurs (self): return self.__maxOccurs
     def term (self): return self.__term
 
-    def isOverLimit (self, count):
-        return (self.__maxOccurs is not None) and (count > self.__maxOccurs)
+    def meetsMaximum (self, count):
+        return (self.__maxOccurs is None) or (count <= self.__maxOccurs)
+
+    def meetsMinimum (self, count):
+        return count >= self.__minOccurs
+
+    def satisfiesOccurrences (self, count):
+        return self.meetsMinimum(count) and self.meetsMaximum(count)
 
     def __init__ (self, term, min_occurs=1, max_occurs=1):
         self.__term = term
@@ -662,7 +692,7 @@ class ParticleModel (pyxb.cscRoot):
         self.__maxOccurs = max_occurs
 
     def stateStack (self):
-        return StateStack(self)
+        return ParticleState(self)
 
     def validate (self, symbol_set):
         output_sequence = []
@@ -677,17 +707,17 @@ class ParticleModel (pyxb.cscRoot):
         count = 0
         #print 'Validate %d %s PRT %s' % (self.__minOccurs, self.__maxOccurs, self.__term)
         last_size = len(output_sequence)
-        while (not self.isOverLimit(count)) and self.__term._validate(symbol_set, output_sequence):
+        while self.meetsMaximum(count) and self.__term._validate(symbol_set, output_sequence):
             #print 'PRT validated, cnt %d, left %s' % (count, symbol_set)
             this_size = len(output_sequence)
             if this_size == last_size:
-                # Validated without consuming anithing
+                # Validated without consuming anything
                 if count < self.__minOccurs:
                     count = self.__minOccurs
                 break
             count += 1
             last_size = this_size
-        result = (count >= self.__minOccurs) and not self.isOverLimit(count)
+        result = self.meetsMinimum(count) and self.meetsMaximum(count)
         #print 'END PRT %s validate %s: %s %s %s' % (self.__term, result, self.__minOccurs, count, self.__maxOccurs)
         return result
 
@@ -708,6 +738,9 @@ class GroupAll (_Group):
 class GroupSequence (_Group):
     def __init__ (self, *args, **kw):
         super(GroupSequence, self).__init__(*args, **kw)
+
+    def newState (self, particle_state):
+        return SequenceState(self, particle_state)
 
     def accepts (self, state_stack, ctd, value, element_use):
         if 0 == len(self.particles()):
