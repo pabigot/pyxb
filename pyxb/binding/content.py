@@ -613,6 +613,9 @@ class ParticleState (ContentState_mixin):
                 raise pyxb.UnrecognizedContentError(value)
         return match
 
+    def isFinal (self):
+        return (self.__count >= self.__particle.minOccurs()) and not self.__particle.isOverLimit(self.__count)
+
     def __str__ (self):
         particle = self.__particle
         return 'ParticleState(%d:%d,%s:%s)@%x' % (self.__count, particle.minOccurs(), particle.maxOccurs(), particle.term(), id(self))
