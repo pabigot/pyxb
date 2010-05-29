@@ -2052,7 +2052,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         # because the type doesn't accept element content or because it does
         # and what we got didn't match the content model.
         if (element_binding is not None) or isinstance(value, xml.dom.Node):
-            raise pyxb.ExtraContentError('%s: Extra content starting with %s' % (self._ExpandedName, value,))
+            raise pyxb.ExtraContentError('%s: Extra content %s starting with %s' % (self._ExpandedName, element_binding, value,))
 
         # We have something that doesn't seem to be an element.  Are we
         # expecting simple content?

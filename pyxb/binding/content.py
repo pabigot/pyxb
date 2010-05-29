@@ -616,9 +616,9 @@ class SequenceState (ContentState_mixin):
         self.__index = -1
         self.__satisfied = False
         self.__failed = False
-        #print 'SS.CTOR %s: %d elts' % (self, len(self.__particles))
         self.notifyFailure(None, False)
-    
+        #print 'SS.CTOR %s: %d elts' % (self, len(self.__particles))
+
     def accepts (self, particle_state, instance, value, element_use):
         assert self.__parentParticleState == particle_state
         assert not self.__failed
@@ -635,7 +635,6 @@ class SequenceState (ContentState_mixin):
     def _verifyComplete (self, parent_particle_state):
         while self.__particleState is not None:
             self.__particleState.verifyComplete()
-        parent_particle_state.incrementToMinimum()
 
     def notifyFailure (self, sub_state, particle_ok):
         self.__index += 1
@@ -652,17 +651,15 @@ class ParticleState (pyxb.cscRoot):
     def __init__ (self, particle, parent_state=None):
         self.__particle = particle
         self.__parentState = parent_state
-        self.__termState = particle.term().newState(self)
-        self.__count = 0
+        self.__count = -1
         #print 'PS.CTOR %s: particle %s' % (self, particle)
+        self.incrementCount()
 
     def incrementCount (self):
         #print 'PS.IC %s' % (self,)
         self.__count += 1
-
-    def incrementToMinimum (self):
-        if self.__count < self.__particle.minOccurs():
-            self.__count = self.__particle.minOccurs()
+        self.__termState = self.__particle.term().newState(self)
+        self.__tryAccept = True
 
     def verifyComplete (self):
         if not self.__particle.satisfiesOccurrences(self.__count):
@@ -710,8 +707,16 @@ class ParticleState (pyxb.cscRoot):
         # Only try if we're not already at the upper limit on occurrences
         consumed = False
         underflow_exc = None
-        if self.__count != self.__particle.maxOccurs():
+
+        # We can try the value against the term if we aren't at the maximum
+        # count for the term.  Also, if we fail to consume, but as a side
+        # effect of the test the term may have reset itself, we can try again.
+        self.__tryAccept = True
+        while self.__tryAccept and (self.__count != self.__particle.maxOccurs()):
+            self.__tryAccept = False
             consumed = self.__termState.accepts(self, instance, value, element_use)
+            #print 'PS.STEP %s: ta %s %s' % (self, self.__tryAccept, consumed)
+            self.__tryAccept = self.__tryAccept and (not consumed)
         #print 'PS.STEP %s: %s' % (self, consumed)
         if consumed:
             if not self.__particle.meetsMaximum(self.__count):
