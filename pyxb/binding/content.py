@@ -41,30 +41,83 @@ import basis
 
 import xml.dom
 
-class ContentStatePushed (Exception):
-    """Raised to avoid loops in content steps."""
-    pass
-
 class ContentState_mixin (pyxb.cscRoot):
-    def model (self): return self.__model
-    
+    """Declares methods used by classes that hold state while validating a
+    content model component."""
+
+    __contentModel = None
+
     def __init__ (self, model, **kw):
-        self.__model = model
+        self.__contentModel = model
         super(ContentState_mixin, self).__init__(**kw)
         
-    def accepts (self, state_stack, ctd, value, element_use):
-        """Test whether the given value/element_use passes the state checks.
+    def contentModel (self):
+        """Get the model associated with the state.
+        
+        @return The L{ContentModel_mixin} instance for which this instance
+        monitors state.  The value is C{None} if this is a non-aggregate state
+        object like an L{ElementUse} or L{Wildcard}.
+        """
+        return self.__contentModel
 
-        Return C{True} if the value is valid within the state at the top of
-        the stack.  In this situation, the value is stored into its
-        appropriate element.
+    def accepts (self, particle_state, instance, value, element_use):
+        """Determine whether the provided value can be added to the instance
+        without violating state validation.
 
-        Return C{False} if the value does not satisfy the requirements of the
-        top of the state stack.
+        This method must not throw any non-catastrophic exceptions; general
+        failures should be transformed to a C{False} return value.
 
-        Raises L{ContentStatePushed} if the top of the stack is a group model
-        for which validation requires a new state be created."""
+        @param particle_state The L{ParticleState} instance serving as the
+        parent to this state.  The implementation must inform that state when
+        the proposed value completes the content model.
+
+        @param instance An instance of a subclass of
+        {basis.complexTypeDefinition}, into which the provided value will be
+        stored if it is consistent with the current model state.
+
+        @param value The value that is being validated against the state.
+
+        @param element_use An optional L{ElementUse} instance that specifies
+        the element to which the value corresponds.  This will be available
+        when the value is extracted by parsing a document, but will be absent
+        if the value was passed as a constructor positional parameter.
+
+        @return C{True} if the value was successfully matched against the
+        state.  C{False} if the value did not match against the state."""
         raise Exception('ContentState_mixin.accepts not implemented in %s' % (type(self),))
+
+    def notifyFailure (self, sub_state, particle_ok):
+        """Invoked by a sub-state to indicate that validation cannot proceed
+        in the current state.
+
+        Normally this is used when an intermediate content model must reset
+        itself to permit alternative models to be evaluated.
+
+        @param sub_state the state that was unable to accept a value
+
+        @param particle_ok C{True} if the particle that rejected the value is
+        in an accepting terminal state
+
+        """
+        raise Exception('ContentState_mixin.notifyFailure not implemented in %s' % (type(self),))
+        
+
+
+    def _validate (self, symbol_set, output_sequence):
+        raise Exception('ContentState_mixin._validate not implemented in %s' % (type(self),))
+
+class ContentModel_mixin (pyxb.cscRoot):
+    """Declares methods used by classes representing content model components."""
+
+    def newState (self, parent_particle_state):
+        """Return a L{ContentState_mixin} instance that will validate the
+        state of this model component.
+
+        @param parent_particle_state The L{ParticleState} instance for which
+        this instance is a term.  C{None} for the top content model of a
+        complex data type.
+        """
+        raise Exception('ContentModel_mixin.newState not implemented in %s' % (type(self),))
 
 class AttributeUse (pyxb.cscRoot):
     """A helper class that encapsulates everything we need to know
@@ -306,7 +359,7 @@ class AttributeUse (pyxb.cscRoot):
             desc.extend(['=', self.__unicodeDefault ])
         return ''.join(desc)
 
-class ElementUse (ContentState_mixin):
+class ElementUse (ContentState_mixin, ContentModel_mixin):
     """Aggregate the information relevant to an element of a complex type.
 
     This includes the L{original tag name<name>}, the spelling of L{the
@@ -394,6 +447,7 @@ class ElementUse (ContentState_mixin):
         self.__key = key
         self.__isPlural = is_plural
         self.__elementBinding = element_binding
+        super(ElementUse, self).__init__(None)
 
     def defaultValue (self):
         """Return the default value for this element.
@@ -494,29 +548,30 @@ class ElementUse (ContentState_mixin):
         desc.append(self.elementBinding()._description(user_documentation=user_documentation))
         return ''.join(desc)
 
-    def newState (self, particle_state):
+    def newState (self, parent_particle_state):
+        """Implement parent class method."""
         return self
 
-    def accepts (self, particle_state, ctd, value, element_use):
-        rv = self._accepts(ctd, value, element_use)
+    def accepts (self, particle_state, instance, value, element_use):
+        rv = self._accepts(instance, value, element_use)
         if rv:
             particle_state.incrementCount()
         return rv
 
-    def _accepts (self, ctd, value, element_use):
+    def _accepts (self, instance, value, element_use):
         if element_use == self:
-            self.setOrAppend(ctd, value)
+            self.setOrAppend(instance, value)
             return True
         if element_use is not None:
-            #print 'WARNING: %s val %s eu %s does not match %s' % (ctd, value, element_use, self)
+            #print 'WARNING: %s val %s eu %s does not match %s' % (instance, value, element_use, self)
             return False
         assert not isinstance(value, xml.dom.Node)
         try:
-            self.setOrAppend(ctd, self.__elementBinding.compatibleValue(value, _convert_string_values=False))
+            self.setOrAppend(instance, self.__elementBinding.compatibleValue(value, _convert_string_values=False))
             return True
         except pyxb.BadTypeValueError, e:
             pass
-        #print '%s %s %s in %s' % (ctd, value, element_use, self)
+        #print '%s %s %s in %s' % (instance, value, element_use, self)
         return False
 
     def _validate (self, symbol_set, output_sequence):
@@ -533,8 +588,9 @@ class ElementUse (ContentState_mixin):
     def __str__ (self):
         return 'EU.%s@%x' % (self.__name, id(self))
 
-class SequenceState (object):
+class SequenceState (ContentState_mixin):
     def __init__ (self, group, parent_particle_state):
+        super(SequenceState, self).__init__(group)
         self.__sequence = group
         self.__parentParticleState = parent_particle_state
         self.__particles = group.particles()
@@ -543,11 +599,11 @@ class SequenceState (object):
         #print 'SS.CTOR %s: %d elts' % (self, len(self.__particles))
         self.notifyFailure(None, False)
     
-    def accepts (self, particle_state, ctd, value, element_use):
+    def accepts (self, particle_state, instance, value, element_use):
         assert self.__parentParticleState == particle_state
-        #print 'SS.ACC %s: %s %s %s' % (self, ctd, value, element_use)
+        #print 'SS.ACC %s: %s %s %s' % (self, instance, value, element_use)
         while self.__particleState is not None:
-            (consume, underflow_exc) = self.__particleState.step(ctd, value, element_use)
+            (consume, underflow_exc) = self.__particleState.step(instance, value, element_use)
             if consume:
                 return True
             if underflow_exc is not None:
@@ -565,7 +621,7 @@ class SequenceState (object):
                 self.__parentParticleState.incrementCount()
         #print 'SS.NF %s: %d %s %s' % (self, self.__index, particle_ok, self.__particleState)
 
-class ParticleState (object):
+class ParticleState (pyxb.cscRoot):
     def __init__ (self, particle, parent_state=None):
         self.__particle = particle
         self.__parentState = parent_state
@@ -577,9 +633,9 @@ class ParticleState (object):
         #print 'PS.IC %s' % (self,)
         self.__count += 1
 
-    def step (self, ctd, value, element_use):
-        #print 'PS.STEP %s: %s %s %s' % (self, ctd, value, element_use)
-        consumed = self.__termState.accepts(self, ctd, value, element_use)
+    def step (self, instance, value, element_use):
+        #print 'PS.STEP %s: %s %s %s' % (self, instance, value, element_use)
+        consumed = self.__termState.accepts(self, instance, value, element_use)
         #print 'PS.STEP %s: %s' % (self, consumed)
         underflow_exc = None
         if consumed:
@@ -648,7 +704,7 @@ class ParticleModel (pyxb.cscRoot):
         #print 'END PRT %s validate %s: %s %s %s' % (self.__term, result, self.__minOccurs, count, self.__maxOccurs)
         return result
 
-class _Group (pyxb.cscRoot):
+class _Group (ContentModel_mixin):
     def particles (self): return self.__particles
 
     def __init__ (self, *particles):
@@ -666,14 +722,8 @@ class GroupSequence (_Group):
     def __init__ (self, *args, **kw):
         super(GroupSequence, self).__init__(*args, **kw)
 
-    def newState (self, particle_state):
-        return SequenceState(self, particle_state)
-
-    def accepts (self, state_stack, ctd, value, element_use):
-        if 0 == len(self.particles()):
-            return False
-        state_stack.pushModelState(SequenceState(self))
-        #NOTREACHED
+    def newState (self, parent_particle_state):
+        return SequenceState(self, parent_particle_state)
 
     def _validate (self, symbol_set, output_sequence):
         for p in self.particles():
@@ -717,7 +767,7 @@ class Wildcard (ContentState_mixin):
         self.__namespaceConstraint = kw['namespace_constraint']
         self.__processContents = kw['process_contents']
 
-    def matches (self, ctd_instance, value):
+    def matches (self, instance_instance, value):
         """Return True iff the value is a valid match against this wildcard.
 
         Not implemented yet: all wildcards are assumed to match all values.
@@ -725,17 +775,17 @@ class Wildcard (ContentState_mixin):
         """
         return True
 
-    def newState (self, particle_state):
+    def newState (self, parent_particle_state):
         return self
 
-    def accepts (self, particle_state, ctd, value, element_use):
+    def accepts (self, particle_state, instance, value, element_use):
         value_desc = 'value of type %s' % (type(value),)
-        if not self.matches(ctd, value):
+        if not self.matches(instance, value):
             raise pyxb.UnexpectedContentError(value)
         if not isinstance(value, basis._TypeBinding_mixin):
             print 'NOTE: Created unbound wildcard element from %s' % (value_desc,)
-        assert isinstance(ctd.wildcardElements(), list), 'Uninitialized wildcard list in %s' % (ctd._ExpandedName,)
-        ctd._appendWildcardElement(value)
+        assert isinstance(instance.wildcardElements(), list), 'Uninitialized wildcard list in %s' % (instance._ExpandedName,)
+        instance._appendWildcardElement(value)
         particle_state.incrementCount()
         return True
 
