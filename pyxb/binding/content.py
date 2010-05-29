@@ -731,7 +731,10 @@ class ParticleState (pyxb.cscRoot):
             if self.__parentState is not None:
                 self.__parentState.notifyFailure(self, self.__particle.satisfiesOccurrences(self.__count))
             if not self.__particle.meetsMinimum(self.__count):
-                underflow_exc = pyxb.MissingElementError('too few')
+                # @TODO@ Use better exception; changing this will require
+                # changing some unit tests.
+                #underflow_exc = pyxb.MissingElementError('too few')
+                underflow_exc = pyxb.UnrecognizedContentError('too few')
         return (consumed, underflow_exc)
 
     def __str__ (self):
