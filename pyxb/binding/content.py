@@ -102,6 +102,13 @@ class ContentState_mixin (pyxb.cscRoot):
         raise Exception('ContentState_mixin.notifyFailure not implemented in %s' % (type(self),))
         
 
+    def isTerminalState (self):
+        """Indicate whether the content model is satisfied by the current state.
+
+        The base implementation always returns C{True}, as a convenience to
+        non-aggregate state models.  Aggregate state models need to override
+        this method."""
+        return True
 
     def _validate (self, symbol_set, output_sequence):
         raise Exception('ContentState_mixin._validate not implemented in %s' % (type(self),))
@@ -589,6 +596,9 @@ class ElementUse (ContentState_mixin, ContentModel_mixin):
         return 'EU.%s@%x' % (self.__name, id(self))
 
 class SequenceState (ContentState_mixin):
+    __failed = False
+    __satisfied = False
+
     def __init__ (self, group, parent_particle_state):
         super(SequenceState, self).__init__(group)
         self.__sequence = group
@@ -596,11 +606,13 @@ class SequenceState (ContentState_mixin):
         self.__particles = group.particles()
         self.__index = -1
         self.__satisfied = False
+        self.__failed = False
         #print 'SS.CTOR %s: %d elts' % (self, len(self.__particles))
         self.notifyFailure(None, False)
     
     def accepts (self, particle_state, instance, value, element_use):
         assert self.__parentParticleState == particle_state
+        assert not self.__failed
         #print 'SS.ACC %s: %s %s %s' % (self, instance, value, element_use)
         while self.__particleState is not None:
             (consume, underflow_exc) = self.__particleState.step(instance, value, element_use)
@@ -617,9 +629,14 @@ class SequenceState (ContentState_mixin):
         if self.__index < len(self.__particles):
             self.__particleState = ParticleState(self.__particles[self.__index], self)
         else:
+            self.__satisfied = particle_ok
             if particle_ok:
                 self.__parentParticleState.incrementCount()
         #print 'SS.NF %s: %d %s %s' % (self, self.__index, particle_ok, self.__particleState)
+
+    def isTerminalState (self):
+        print '%s check ts %s %d %s' % (self, self.__satisfied, self.__index, self.__particleState)
+        return self.__satisfied or (((1 + self.__index) == len(self.__particles)) and self.__particleState.isFinal())
 
 class ParticleState (pyxb.cscRoot):
     def __init__ (self, particle, parent_state=None):
@@ -681,7 +698,13 @@ class ParticleState (pyxb.cscRoot):
         return (consumed, underflow_exc)
 
     def isFinal (self):
+        print '%s isFinal %d %d %s' % (self, self.__particle.minOccurs(), self.__count, self.__particle.maxOccurs())
+        print '%s term %s' % (self, self.__termState)
+        raise Exception()
         return self.__particle.meetsMinimum(self.__count) and self.__particle.meetsMaximum(self.__count)
+
+    def isTerminal (self):
+        return self.__termState.isTerminalState() and self.isFinal()
 
     def __str__ (self):
         particle = self.__particle
