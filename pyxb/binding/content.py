@@ -533,79 +533,6 @@ class ElementUse (ContentState_mixin):
     def __str__ (self):
         return 'EU.%s@%x' % (self.__name, id(self))
 
-class StateStack (object):
-    """A stack of states and content models representing the current status of
-    an interpretation of a content model, including invocations of nested
-    content models reached through L{ModelGroupAll} instances."""
-
-    __stack = None
-    def __init__ (self, content_model):
-        self.__stack = []
-        try:
-            self.pushModelState(ParticleState(content_model))
-        except ContentStatePushed:
-            pass
-
-    def pushModelState (self, model_state):
-        """Add the given model state as the new top (actively executing) model ."""
-        print 'SS Push %s' % (model_state,)
-        self.__stack.append(model_state)
-        raise ContentStatePushed()
-
-    def isTerminal (self):
-        """Return C{True} iff the stack is in a state where the top-level
-        model execution has reached a final state."""
-        return (0 == len(self.__stack)) or self.topModelState().isFinal()
-
-    def popModelState (self):
-        """Remove and return the model state currently being executed."""
-        if 0 == len(self.__stack):
-            raise pyxb.LogicError('Attempt to underflow content model stack')
-        return self.__stack.pop()
-
-    def topModelState (self):
-        """Return a reference to the model state currently being executed.
-
-        The state is not removed from the stack."""
-        if 0 == len(self.__stack):
-            raise pyxb.LogicError('Attempt to underflow content model stack')
-        return self.__stack[-1]
-
-    def step (self, ctd_instance, value, element_use):
-        """Take a step using the value and the current model state.
-
-        Execution of the step may add a new model state to the stack.  When
-        this happens, the state that caused a new state to be pushed raises
-        L{ContentStatePushed} to return control to this activation record, so we can
-        detect loops.
-
-        @return: C{True} iff the value was consumed by a transition."""
-        assert isinstance(ctd_instance, basis.complexTypeDefinition)
-        print 'SS ENTRY'
-        attempted = set()
-        while 0 < len(self.__stack):
-            top = self.topModelState()
-            # Stop with a failure if we're looping
-            if top in attempted:
-                return False
-            attempted.add(top)
-            print 'SSTop %s of %d on %s %s' % (top, len(self.__stack), value, element_use)
-            try:
-                ok = top.accepts(self, ctd_instance, value, element_use)
-            except ContentStatePushed:
-                continue
-            have_looped = True
-            if ok:
-                print 'SS CONT %s' % (top,)
-                return ok
-            state = self.popModelState()
-            print 'SS Pop %s %s' % (state, state.model())
-            #print '  Started %s %s' % (top, top.model())
-            #top = self.topModelState();
-            #print '  Now %s %s' % (top, top.model())
-        print 'SS FALLOFF'
-        return False
-
 class SequenceState (object):
     def __init__ (self, group, parent_particle_state):
         self.__sequence = group
@@ -798,7 +725,10 @@ class Wildcard (ContentState_mixin):
         """
         return True
 
-    def accepts (self, state_stack, ctd, value, element_use):
+    def newState (self, particle_state):
+        return self
+
+    def accepts (self, particle_state, ctd, value, element_use):
         value_desc = 'value of type %s' % (type(value),)
         if not self.matches(ctd, value):
             raise pyxb.UnexpectedContentError(value)
@@ -806,6 +736,7 @@ class Wildcard (ContentState_mixin):
             print 'NOTE: Created unbound wildcard element from %s' % (value_desc,)
         assert isinstance(ctd.wildcardElements(), list), 'Uninitialized wildcard list in %s' % (ctd._ExpandedName,)
         ctd._appendWildcardElement(value)
+        particle_state.incrementCount()
         return True
 
     def _validate (self, symbol_set, output_sequence):
