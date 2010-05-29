@@ -672,9 +672,13 @@ class ParticleState (pyxb.cscRoot):
         """
 
         #print 'PS.STEP %s: %s %s %s' % (self, instance, value, element_use)
-        consumed = self.__termState.accepts(self, instance, value, element_use)
-        #print 'PS.STEP %s: %s' % (self, consumed)
+
+        # Only try if we're not already at the upper limit on occurrences
+        consumed = False
         underflow_exc = None
+        if self.__count != self.__particle.maxOccurs():
+            consumed = self.__termState.accepts(self, instance, value, element_use)
+        #print 'PS.STEP %s: %s' % (self, consumed)
         if consumed:
             if not self.__particle.meetsMaximum(self.__count):
                 raise pyxb.UnexpectedElementError('too many')
