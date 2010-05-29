@@ -665,7 +665,8 @@ class ParticleState (pyxb.cscRoot):
             self.__count = self.__particle.minOccurs()
 
     def verifyComplete (self):
-        self.__termState._verifyComplete(self)
+        if not self.__particle.satisfiesOccurrences(self.__count):
+            self.__termState._verifyComplete(self)
         if not self.__particle.satisfiesOccurrences(self.__count):
             raise pyxb.MissingContentError('incomplete')
         if self.__parentState is not None:
