@@ -106,9 +106,7 @@ class ContentState_mixin (pyxb.cscRoot):
 
         No-op for non-aggregate state.  For aggregate state, all contained
         particles should be checked to see whether the overall model can be
-        satisfied if no additional elements are provided.  Where appropriate,
-        in this situation the count of the parent particle state should be
-        trivially adjusted to meet its minimum.
+        satisfied if no additional elements are provided.
 
         This method does not have a meaningful return value; violations of the
         content model should produce the corresponding exception (generally,
@@ -653,6 +651,54 @@ class SequenceState (ContentState_mixin):
                 self.__parentParticleState.incrementCount()
         #print 'SS.NF %s: %d %s %s' % (self, self.__index, particle_ok, self.__particleState)
 
+class ChoiceState (ContentState_mixin):
+    def __init__ (self, group, parent_particle_state):
+        super(ChoiceState, self).__init__(group)
+        self.__choices = set([ ParticleState(_p, self) for _p in group.particles() ])
+        self.__activeChoice = None
+        #print 'CS.CTOR %s: %d choices' % (self, len(self.__choices))
+
+    def accepts (self, particle_state, instance, value, element_use):
+        #print 'CS.ACC %s: %s %s %s' % (self, instance, value, element_use)
+        if self.__activeChoice is None:
+            for choice in self.__choices:
+                #print 'CS.ACC %s candidate %s' % (self, choice)
+                try:
+                    (consume, underflow_exc) = choice.step(instance, value, element_use)
+                except Exception, e:
+                    #print 'CS.ACC %s:  EXCEPTION %s' % (self, type(e))
+                    raise
+                #print 'CS.ACC %s: candidate %s : %s' % (self, choice, consume)
+                if consume:
+                    self.__activeChoice = choice
+                    self.__choices = None
+                    return True
+            return False
+        (consume, underflow_exc) = self.__activeChoice.step(instance, value, element_use)
+        if consume:
+            return True
+        if underflow_exc is not None:
+            self.__failed = True
+            raise underflow_exc
+        return False
+
+    def _verifyComplete (self, parent_particle_state):
+        rv = True
+        if self.__activeChoice is None:
+            for choice in self.__choices:
+                try:
+                    choice.verifyComplete()
+                    return
+                except Exception, e:
+                    pass
+            raise MissingContentError('choice')
+        self.__activeChoice.verifyComplete()
+        parent_particle_state.incrementCount()
+
+    def notifyFailure (self, sub_state, particle_ok):
+        #print 'CS.NF %s' % (self,)
+        pass
+
 class ParticleState (pyxb.cscRoot):
     def __init__ (self, particle, parent_state=None):
         self.__particle = particle
@@ -660,6 +706,8 @@ class ParticleState (pyxb.cscRoot):
         self.__count = -1
         #print 'PS.CTOR %s: particle %s' % (self, particle)
         self.incrementCount()
+
+    def particle (self): return self.__particle
 
     def incrementCount (self):
         #print 'PS.IC %s' % (self,)
@@ -797,17 +845,20 @@ class _Group (ContentModel_mixin):
         self.__particles = particles
 
 class GroupChoice (_Group):
-    def __init__ (self, *args, **kw):
-        super(GroupChoice, self).__init__(*args, **kw)
+    def newState (self, parent_particle_state):
+        return ChoiceState(self, parent_particle_state)
+
+    def _validate (self, symbol_set, output_sequence):
+        for p in self.particles():
+            if p._validate(symbol_set, output_sequence):
+                return True
+        return False
 
 class GroupAll (_Group):
     def __init__ (self, *args, **kw):
         super(GroupAll, self).__init__(*args, **kw)
 
 class GroupSequence (_Group):
-    def __init__ (self, *args, **kw):
-        super(GroupSequence, self).__init__(*args, **kw)
-
     def newState (self, parent_particle_state):
         return SequenceState(self, parent_particle_state)
 
