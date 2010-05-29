@@ -2043,7 +2043,8 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
                     return self
             else:
                 #print 'SSStep %s %s' % (value, element_use)
-                if self.__stateStack.step(self, value, element_use):
+                ( consumed, underflow_exc ) = self.__stateStack.step(self, value, element_use)
+                if consumed:
                     return self
         # If what we have is element content, we can't accept it, either
         # because the type doesn't accept element content or because it does
