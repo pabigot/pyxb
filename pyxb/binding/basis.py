@@ -2108,7 +2108,8 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         """Initialize the content of this element from the content of the DOM node."""
 
         self.extend(node.childNodes[:], _fallback_namespace)
-        self.validateBinding()
+        if self._PerformValidation() and (not self._isNil()) and (self.__stateStack is not None):
+            self.__stateStack.verifyComplete()
         return self
 
     def _setDOMFromAttributes (self, dom_support, element):

@@ -101,6 +101,23 @@ class ContentState_mixin (pyxb.cscRoot):
         """
         raise Exception('ContentState_mixin.notifyFailure not implemented in %s' % (type(self),))
         
+    def _verifyComplete (self, parent_particle_state):
+        """Determine whether the deep state is complete without further elements.
+
+        No-op for non-aggregate state.  For aggregate state, all contained
+        particles should be checked to see whether the overall model can be
+        satisfied if no additional elements are provided.  Where appropriate,
+        in this situation the count of the parent particle state should be
+        trivially adjusted to meet its minimum.
+
+        This method does not have a meaningful return value; violations of the
+        content model should produce the corresponding exception (generally,
+        L{MissingContentError}).
+
+        @param parent_particle_state the L{ParticleState} for which this state
+        is the term.
+        """
+        pass
 
     def _validate (self, symbol_set, output_sequence):
         raise Exception('ContentState_mixin._validate not implemented in %s' % (type(self),))
@@ -615,6 +632,11 @@ class SequenceState (ContentState_mixin):
                 raise underflow_exc
         return False
 
+    def _verifyComplete (self, parent_particle_state):
+        while self.__particleState is not None:
+            self.__particleState.verifyComplete()
+        parent_particle_state.incrementToMinimum()
+
     def notifyFailure (self, sub_state, particle_ok):
         self.__index += 1
         self.__particleState = None
@@ -637,6 +659,17 @@ class ParticleState (pyxb.cscRoot):
     def incrementCount (self):
         #print 'PS.IC %s' % (self,)
         self.__count += 1
+
+    def incrementToMinimum (self):
+        if self.__count < self.__particle.minOccurs():
+            self.__count = self.__particle.minOccurs()
+
+    def verifyComplete (self):
+        self.__termState._verifyComplete(self)
+        if not self.__particle.satisfiesOccurrences(self.__count):
+            raise pyxb.MissingContentError('incomplete')
+        if self.__parentState is not None:
+            self.__parentState.notifyFailure(self, True)
 
     def step (self, instance, value, element_use):
         """Attempt to apply the value as a new instance of the particle's term.
