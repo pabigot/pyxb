@@ -396,6 +396,10 @@ class _TypeBinding_mixin (utility.Locatable_mixin):
             self._validateBinding_vx()
         return True
 
+    def _postDOMValidate (self):
+        self.validateBinding()
+        return self
+
     @classmethod
     def _Name (cls):
         if cls._ExpandedName is not None:
@@ -1484,9 +1488,7 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
         rv = type_class.Factory(_dom_node=node, _fallback_namespace=fallback_namespace, **kw)
         assert rv._element() == element_binding
         rv._setNamespaceContext(ns_ctx)
-        if pyxb._ParsingRequiresValid:
-            rv.validateBinding()
-        return rv
+        return rv._postDOMValidate()
 
     def __str__ (self):
         return 'Element %s' % (self.name(),)
@@ -2104,13 +2106,16 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
     def _IsMixed (cls):
         return (cls._CT_MIXED == cls._ContentTypeTag)
     
+    def _postDOMValidate (self):
+        if self._PerformValidation() and (not self._isNil()) and (self.__stateStack is not None):
+            self.__stateStack.verifyComplete()
+        return self
+
     def _setContentFromDOM (self, node, _fallback_namespace):
         """Initialize the content of this element from the content of the DOM node."""
 
         self.extend(node.childNodes[:], _fallback_namespace)
-        if self._PerformValidation() and (not self._isNil()) and (self.__stateStack is not None):
-            self.__stateStack.verifyComplete()
-        return self
+        return self._postDOMValidate()
 
     def _setDOMFromAttributes (self, dom_support, element):
         """Add any appropriate attributes from this instance into the DOM element."""
