@@ -634,18 +634,50 @@ class ParticleState (pyxb.cscRoot):
         self.__count += 1
 
     def step (self, instance, value, element_use):
+        """Attempt to apply the value as a new instance of the particle's term.
+
+        The L{ContentState_mixin} created for the particle's term is consulted
+        to determine whether the instance can accept the given value.  If so,
+        the particle's maximum occurrence limit is checked; if not, and the
+        particle has a parent state, it is informed of the failure.
+
+        @param instance An instance of a subclass of
+        {basis.complexTypeDefinition}, into which the provided value will be
+        stored if it is consistent with the current model state.
+
+        @param value The value that is being validated against the state.
+
+        @param element_use An optional L{ElementUse} instance that specifies
+        the element to which the value corresponds.  This will be available
+        when the value is extracted by parsing a document, but will be absent
+        if the value was passed as a constructor positional parameter.
+
+        @return C{( consumed, underflow_exc )} A tuple where the first element
+        is C{True} iff the provided value was accepted in the current state.
+        When this first element is C{False}, the second element will be
+        C{None} if the particle's occurrence requirements have been met, and
+        is an instance of C{MissingElementError} if the observed number of
+        terms is less than the minimum occurrence count.  Depending on
+        context, the caller may raise this exception, or may try an
+        alternative content model.
+
+        @raise L{pyxb.UnexpectedElementError} if the value satisfies the particle,
+        but having done so exceeded the allowable number of instances of the
+        term.
+        """
+
         #print 'PS.STEP %s: %s %s %s' % (self, instance, value, element_use)
         consumed = self.__termState.accepts(self, instance, value, element_use)
         #print 'PS.STEP %s: %s' % (self, consumed)
         underflow_exc = None
         if consumed:
             if not self.__particle.meetsMaximum(self.__count):
-                raise Exception('too many')
+                raise pyxb.UnexpectedElementError('too many')
         else:
             if self.__parentState is not None:
                 self.__parentState.notifyFailure(self, self.__particle.satisfiesOccurrences(self.__count))
             if not self.__particle.meetsMinimum(self.__count):
-                underflow_exc = Exception('too few')
+                underflow_exc = pyxb.MissingElementError('too few')
         return (consumed, underflow_exc)
 
     def isFinal (self):

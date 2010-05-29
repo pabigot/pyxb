@@ -189,6 +189,14 @@ class UnrecognizedElementError (UnrecognizedContentError):
         kw.setdefault('message', 'No element binding available for %s' % (self.__elementName,))
         UnrecognizedContentError.__init__(self, self.__domNode, **kw)
 
+class MissingElementError (StructuralBadDocumentError):
+    """Content requires an element that is not present."""
+    pass
+
+class UnexpectedElementError (StructuralBadDocumentError):
+    """More instances of an element are present than permitted by the content model."""
+    pass
+
 class ExtraContentError (StructuralBadDocumentError):
     """Raised when processing document and there is more material in an element content than expected."""
 
