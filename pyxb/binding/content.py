@@ -664,7 +664,11 @@ class ChoiceState (ContentState_mixin):
         if self.__activeChoice is None:
             for choice in self.__choices:
                 #print 'CS.ACC %s candidate %s' % (self, choice)
-                (consume, underflow_exc) = choice.step(instance, value, element_use)
+                try:
+                    (consume, underflow_exc) = choice.step(instance, value, element_use)
+                except Exception, e:
+                    consume = False
+                    underflow_exc = e
                 #print 'CS.ACC %s: candidate %s : %s' % (self, choice, consume)
                 if consume:
                     self.__activeChoice = choice
