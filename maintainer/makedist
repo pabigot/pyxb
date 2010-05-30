@@ -1,22 +1,27 @@
 #!/bin/sh
 
-exec 2>&1 | tee makedist.log
+BRANCH=${1:-next}
+
+exec | tee makedist.log 2>&1
+
+DIST_SUBDIR=pyxbdist
+cd /tmp
+rm -rf ${DIST_SUBDIR}
+git clone -b ${BRANCH} ~/pyxb/dev ${DIST_SUBDIR}
+cd ${DIST_SUBDIR}
+export PYXB_ROOT=`pwd`
 
 # Update the version numbers in the source
-./setup.py update_version
+version=$(grep ^version setup.py | cut -d= -f2 | sed -e "s@'@@g")
 
-hg_status=`hg status -q | grep -v makedist`
-if [ -n "${hg_status}" ] ; then
+echo $version
+
+./setup.py update_version
+if ( git status >/dev/null ) ; then
   echo 1>&2 ERROR: Unsaved deltas
-  echo ${hg_status}
+  git status -uno
   exit 1
 fi
-
-DISTDIR=/tmp/pyxbdist
-rm -rf ${DISTDIR}
-hg archive ${DISTDIR}
-cd ${DISTDIR}
-export PYXB_ROOT=`pwd`
 
 # First, the core:
 ./setup.py sdist
@@ -72,7 +77,7 @@ build_overlay () {
   sdir=$1
   shift
   (
-    find ${DISTROOT}/${sdir} -type f -newer ${BASE_TGZ} ;
+    find ${DISTROOT}/${sdir} -type f -cnewer ${BASE_TGZ} ;
     for f in "${@}" ; do
       find ${DISTROOT}/${f} -type f
     done
