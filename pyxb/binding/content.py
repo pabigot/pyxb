@@ -697,6 +697,7 @@ class ChoiceState (ContentState_mixin):
                     return
                 except Exception, e:
                     pass
+            #print 'Missing components %s' % ("\n".join([ "\n  ".join([str(_p2.term()) for _p2 in _p.particle().term().particles()]) for _p in self.__choices ]),)
             raise pyxb.MissingContentError('choice')
         self.__activeChoice.verifyComplete()
 
@@ -969,9 +970,22 @@ class Wildcard (ContentState_mixin):
     __processContents = None
     def processContents (self): return self.__processContents
 
+    def __normalizeNamespace (self, nsv):
+        if nsv is None:
+            return None
+        if isinstance(nsv, basestring):
+            nsv = pyxb.namespace.NamespaceForURI(nsv)
+        assert isinstance(nsv, pyxb.namespace.Namespace)
+        return nsv
+
     def __init__ (self, *args, **kw):
         # Namespace constraint and process contents are required parameters.
-        self.__namespaceConstraint = kw['namespace_constraint']
+        nsc = kw['namespace_constraint']
+        if isinstance(nsc, tuple):
+            nsc = (nsc[0], self.__normalizeNamespace(nsc[1]))
+        elif isinstance(nsc, set):
+            nsc = set([ self.__normalizeNamespace(_uri) for _uri in nsc ])
+        self.__namespaceConstraint = nsc
         self.__processContents = kw['process_contents']
 
     def matches (self, instance, value):
@@ -992,14 +1006,16 @@ class Wildcard (ContentState_mixin):
                 ns = value._ExpandedName.namespace()
         else:
             raise pyxb.LogicError('Need namespace from value')
+        if isinstance(ns, pyxb.namespace.Namespace) and ns.isAbsentNamespace():
+            ns = None
         if self.NC_any == self.__namespaceConstraint:
             return True
         if isinstance(self.__namespaceConstraint, tuple):
             (_, constrained_ns) = self.__namespaceConstraint
             assert self.NC_not == _
-            if constrained_ns == ns:
+            if ns is None:
                 return False
-            if ns.isAbsentNamespace():
+            if constrained_ns == ns:
                 return False
             return True
         return ns in self.__namespaceConstraint
@@ -1008,7 +1024,10 @@ class Wildcard (ContentState_mixin):
         return self
 
     def accepts (self, particle_state, instance, value, element_use):
-        value_desc = 'value of type %s' % (type(value),)
+        if isinstance(value, xml.dom.Node):
+            value_desc = 'value in %s' % (value.nodeName,)
+        else:
+            value_desc = 'value of type %s' % (type(value),)
         if not self.matches(instance, value):
             return False
         if not isinstance(value, basis._TypeBinding_mixin):
