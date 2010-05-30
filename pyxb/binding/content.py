@@ -713,29 +713,29 @@ class AllState (ContentState_mixin):
         self.__parentParticleState = parent_particle_state
         super(AllState, self).__init__(group)
         self.__choices = set([ ParticleState(_p, self) for _p in group.particles() ])
-        print 'AS.CTOR %s: %d choices' % (self, len(self.__choices))
+        #print 'AS.CTOR %s: %d choices' % (self, len(self.__choices))
 
     def accepts (self, particle_state, instance, value, element_use):
-        print 'AS.ACC %s %s: %s %s %s' % (self, self.__activeChoice, instance, value, element_use)
+        #print 'AS.ACC %s %s: %s %s %s' % (self, self.__activeChoice, instance, value, element_use)
         self.__needRetry = True
         while self.__needRetry:
             self.__needRetry = False
             if self.__activeChoice is None:
                 for choice in self.__choices:
-                    print 'AS.ACC %s candidate %s' % (self, choice)
+                    #print 'AS.ACC %s candidate %s' % (self, choice)
                     try:
                         (consume, underflow_exc) = choice.step(instance, value, element_use)
                     except Exception, e:
                         consume = False
                         underflow_exc = e
-                    print 'AS.ACC %s: candidate %s : %s' % (self, choice, consume)
+                    #print 'AS.ACC %s: candidate %s : %s' % (self, choice, consume)
                     if consume:
                         self.__activeChoice = choice
                         self.__choices.discard(self.__activeChoice)
                         return True
                 return False
             (consume, underflow_exc) = self.__activeChoice.step(instance, value, element_use)
-            print 'AS.ACC %s : active choice %s %s %s' % (self, self.__activeChoice, consume, underflow_exc)
+            #print 'AS.ACC %s : active choice %s %s %s' % (self, self.__activeChoice, consume, underflow_exc)
             if consume:
                 return True
         if underflow_exc is not None:
@@ -744,14 +744,15 @@ class AllState (ContentState_mixin):
         return False
 
     def _verifyComplete (self, parent_particle_state):
-        print 'AS.VC %s: %s' % (self, self.__activeChoice)
+        #print 'AS.VC %s: %s, %d left' % (self, self.__activeChoice, len(self.__choices))
         if self.__activeChoice is not None:
             self.__activeChoice.verifyComplete()
-        for choice in self.__choices:
-            choice.verifyComplete()
+        while self.__choices:
+            self.__activeChoice = self.__choices.pop()
+            self.__activeChoice.verifyComplete()
 
     def notifyFailure (self, sub_state, particle_ok):
-        print 'AS.NF %s %s' % (self, particle_ok)
+        #print 'AS.NF %s %s' % (self, particle_ok)
         self.__needRetry = True
         self.__activeChoice = None
         if particle_ok and (0 == len(self.__choices)):
