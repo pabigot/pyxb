@@ -899,17 +899,25 @@ class ParticleState (pyxb.cscRoot):
         return 'ParticleState(%d:%d,%s:%s)@%x' % (self.__count, particle.minOccurs(), particle.maxOccurs(), particle.term(), id(self))
 
 class ParticleModel (ContentModel_mixin):
+    """Content model dealing with particles: terms with occurrence restrictions"""
+
     def minOccurs (self): return self.__minOccurs
     def maxOccurs (self): return self.__maxOccurs
     def term (self): return self.__term
 
     def meetsMaximum (self, count):
+        """@return: C{True} iff there is no maximum on term occurrence, or the
+        provided count does not exceed that maximum"""
         return (self.__maxOccurs is None) or (count <= self.__maxOccurs)
 
     def meetsMinimum (self, count):
+        """@return: C{True} iff the provided count meets the minimum number of
+        occurrences"""
         return count >= self.__minOccurs
 
     def satisfiesOccurrences (self, count):
+        """@return: C{True} iff the provided count satisfies the occurrence
+        requirements"""
         return self.meetsMinimum(count) and self.meetsMaximum(count)
 
     def __init__ (self, term, min_occurs=1, max_occurs=1):
@@ -921,6 +929,29 @@ class ParticleModel (ContentModel_mixin):
         return ParticleState(self)
 
     def validate (self, symbol_set):
+        """Determine whether the particle requirements are satisfiable by the
+        given symbol set.
+
+        The symbol set represents letters in an alphabet.  If those letters
+        can be combined in a way that satisfies the regular expression
+        expressed in the model, a satisfying sequence is returned and the
+        symbol set is reduced by the letters used to form the sequence.  If
+        the content model cannot be satisfied, C{None} is returned and the
+        symbol set remains unchanged.
+
+        @param symbol_set: A map from L{ElementUse} instances to a list of
+        values.  The order of the values corresponds to the order in which
+        they should appear.  A key of C{None} identifies values that are
+        stored as wildcard elements.  Values are removed from the lists as
+        they are used; when the last value of a list is removed, its key is
+        removed from the map.  Thus an empty dictionary is the indicator that
+        no more symbols are available.
+
+        @return: returns C{None}, or a list of tuples C{( eu, val )} where
+        C{eu} is an L{ElementUse} from the set of symbol keys, and C{val} is a
+        value from the corresponding list.
+        """
+        
         output_sequence = []
         #print 'Start: %d %s %s : %s' % (self.__minOccurs, self.__maxOccurs, self.__term, symbol_set)
         result = self._validate(symbol_set, output_sequence)
@@ -958,6 +989,7 @@ class _Group (ContentModel_mixin):
     def __init__ (self, *particles):
         self.__particles = particles
 
+    # All and Sequence share the same validation code, so it's up here.
     def _validate (self, symbol_set, output_sequence):
         symbol_set_mut = self._validateCloneSymbolSet(symbol_set)
         output_sequence_mut = self._validateCloneOutputSequence(output_sequence)
@@ -972,6 +1004,7 @@ class GroupChoice (_Group):
     def newState (self, parent_particle_state):
         return ChoiceState(self, parent_particle_state)
 
+    # Choice requires a different validation algorithm
     def _validate (self, symbol_set, output_sequence):
         reset_mutables = True
         for p in self.particles():
