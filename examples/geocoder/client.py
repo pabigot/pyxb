@@ -10,7 +10,7 @@ address = '1600 Pennsylvania Ave., Washington, DC'
 if 1 < len(sys.argv):
     address = sys.argv[1]
 
-env = soapenv.Envelope(BIND(GeoCoder.geocode(address)))
+env = soapenv.Envelope(Body=BIND(GeoCoder.geocode(address)))
 
 uri = urllib2.Request('http://rpc.geocoder.us/service/soap/',
                       env.toxml(),
