@@ -706,6 +706,57 @@ class ChoiceState (ContentState_mixin):
             self.__parentParticleState.incrementCount()
         pass
 
+class AllState (ContentState_mixin):
+    __activeChoice = None
+    __needRetry = False
+    def __init__ (self, group, parent_particle_state):
+        self.__parentParticleState = parent_particle_state
+        super(AllState, self).__init__(group)
+        self.__choices = set([ ParticleState(_p, self) for _p in group.particles() ])
+        print 'AS.CTOR %s: %d choices' % (self, len(self.__choices))
+
+    def accepts (self, particle_state, instance, value, element_use):
+        print 'AS.ACC %s %s: %s %s %s' % (self, self.__activeChoice, instance, value, element_use)
+        self.__needRetry = True
+        while self.__needRetry:
+            self.__needRetry = False
+            if self.__activeChoice is None:
+                for choice in self.__choices:
+                    print 'AS.ACC %s candidate %s' % (self, choice)
+                    try:
+                        (consume, underflow_exc) = choice.step(instance, value, element_use)
+                    except Exception, e:
+                        consume = False
+                        underflow_exc = e
+                    print 'AS.ACC %s: candidate %s : %s' % (self, choice, consume)
+                    if consume:
+                        self.__activeChoice = choice
+                        self.__choices.discard(self.__activeChoice)
+                        return True
+                return False
+            (consume, underflow_exc) = self.__activeChoice.step(instance, value, element_use)
+            print 'AS.ACC %s : active choice %s %s %s' % (self, self.__activeChoice, consume, underflow_exc)
+            if consume:
+                return True
+        if underflow_exc is not None:
+            self.__failed = True
+            raise underflow_exc
+        return False
+
+    def _verifyComplete (self, parent_particle_state):
+        print 'AS.VC %s: %s' % (self, self.__activeChoice)
+        if self.__activeChoice is not None:
+            self.__activeChoice.verifyComplete()
+        for choice in self.__choices:
+            choice.verifyComplete()
+
+    def notifyFailure (self, sub_state, particle_ok):
+        print 'AS.NF %s %s' % (self, particle_ok)
+        self.__needRetry = True
+        self.__activeChoice = None
+        if particle_ok and (0 == len(self.__choices)):
+            self.__parentParticleState.incrementCount()
+
 class ParticleState (pyxb.cscRoot):
     def __init__ (self, particle, parent_state=None):
         self.__particle = particle
@@ -729,7 +780,7 @@ class ParticleState (pyxb.cscRoot):
         if not self.__particle.satisfiesOccurrences(self.__count):
             self.__termState._verifyComplete(self)
         if not self.__particle.satisfiesOccurrences(self.__count):
-            #print 'PS.VC %s incomplete' % (self,)
+            print 'PS.VC %s incomplete' % (self,)
             raise pyxb.MissingContentError('incomplete')
         if self.__parentState is not None:
             self.__parentState.notifyFailure(self, True)
@@ -866,8 +917,15 @@ class GroupChoice (_Group):
         return False
 
 class GroupAll (_Group):
-    def __init__ (self, *args, **kw):
-        super(GroupAll, self).__init__(*args, **kw)
+    def newState (self, parent_particle_state):
+        return AllState(self, parent_particle_state)
+
+    def _validate (self, symbol_set, output_sequence):
+        for p in self.particles():
+            if not p._validate(symbol_set, output_sequence):
+                return False
+        return True
+
 
 class GroupSequence (_Group):
     def newState (self, parent_particle_state):
