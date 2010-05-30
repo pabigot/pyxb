@@ -36,21 +36,6 @@ class ContentState_mixin (pyxb.cscRoot):
     """Declares methods used by classes that hold state while validating a
     content model component."""
 
-    __contentModel = None
-
-    def __init__ (self, model, **kw):
-        self.__contentModel = model
-        super(ContentState_mixin, self).__init__(**kw)
-        
-    def contentModel (self):
-        """Get the model associated with the state.
-        
-        @return: The L{ContentModel_mixin} instance for which this instance
-        monitors state.  The value is C{None} if this is a non-aggregate state
-        object like an L{ElementUse} or L{Wildcard}.
-        """
-        return self.__contentModel
-
     def accepts (self, particle_state, instance, value, element_use):
         """Determine whether the provided value can be added to the instance
         without violating state validation.
@@ -506,7 +491,6 @@ class ElementUse (ContentState_mixin, ContentModel_mixin):
         self.__key = key
         self.__isPlural = is_plural
         self.__elementBinding = element_binding
-        super(ElementUse, self).__init__(None)
 
     def defaultValue (self):
         """Return the default value for this element.
@@ -652,6 +636,117 @@ class ElementUse (ContentState_mixin, ContentModel_mixin):
 
     def __str__ (self):
         return 'EU.%s@%x' % (self.__name, id(self))
+
+
+class Wildcard (ContentState_mixin, ContentModel_mixin):
+    """Placeholder for wildcard objects."""
+
+    NC_any = '##any'            #<<< The namespace constraint "##any"
+    NC_not = '##other'          #<<< A flag indicating constraint "##other"
+    NC_targetNamespace = '##targetNamespace'
+    NC_local = '##local'
+
+    __namespaceConstraint = None
+    def namespaceConstraint (self):
+        """A constraint on the namespace for the wildcard.
+
+        Valid values are:
+
+         - L{Wildcard.NC_any}
+         - A tuple ( L{Wildcard.NC_not}, a L{namespace<pyxb.namespace.Namespace>} instance )
+         - set(of L{namespace<pyxb.namespace.Namespace>} instances)
+
+        Namespaces are represented by their URIs.  Absence is
+        represented by None, both in the "not" pair and in the set.
+        """
+        return self.__namespaceConstraint
+
+    PC_skip = 'skip'            #<<< No constraint is applied
+    PC_lax = 'lax'              #<<< Validate against available uniquely determined declaration
+    PC_strict = 'strict'        #<<< Validate against declaration or xsi:type which must be available
+
+    # One of PC_*
+    __processContents = None
+    def processContents (self): return self.__processContents
+
+    def __normalizeNamespace (self, nsv):
+        if nsv is None:
+            return None
+        if isinstance(nsv, basestring):
+            nsv = pyxb.namespace.NamespaceForURI(nsv, create_if_missing=True)
+        assert isinstance(nsv, pyxb.namespace.Namespace), 'unexpected non-namespace %s' % (nsv,)
+        return nsv
+
+    def __init__ (self, *args, **kw):
+        # Namespace constraint and process contents are required parameters.
+        nsc = kw['namespace_constraint']
+        if isinstance(nsc, tuple):
+            nsc = (nsc[0], self.__normalizeNamespace(nsc[1]))
+        elif isinstance(nsc, set):
+            nsc = set([ self.__normalizeNamespace(_uri) for _uri in nsc ])
+        self.__namespaceConstraint = nsc
+        self.__processContents = kw['process_contents']
+
+    def matches (self, instance, value):
+        """Return True iff the value is a valid match against this wildcard.
+
+        Validation per U{Wildcard allows Namespace Name<http://www.w3.org/TR/xmlschema-1/#cvc-wildcard-namespace>}.
+        """
+
+        ns = None
+        if isinstance(value, xml.dom.Node):
+            if value.namespaceURI is not None:
+                ns = pyxb.namespace.NamespaceForURI(value.namespaceURI)
+        elif isinstance(value, basis._TypeBinding_mixin):
+            elt = value._element()
+            if elt is not None:
+                ns = elt.name().namespace()
+            else:
+                ns = value._ExpandedName.namespace()
+        else:
+            raise pyxb.LogicError('Need namespace from value')
+        if isinstance(ns, pyxb.namespace.Namespace) and ns.isAbsentNamespace():
+            ns = None
+        if self.NC_any == self.__namespaceConstraint:
+            return True
+        if isinstance(self.__namespaceConstraint, tuple):
+            (_, constrained_ns) = self.__namespaceConstraint
+            assert self.NC_not == _
+            if ns is None:
+                return False
+            if constrained_ns == ns:
+                return False
+            return True
+        return ns in self.__namespaceConstraint
+
+    def newState (self, parent_particle_state):
+        return self
+
+    def accepts (self, particle_state, instance, value, element_use):
+        if isinstance(value, xml.dom.Node):
+            value_desc = 'value in %s' % (value.nodeName,)
+        else:
+            value_desc = 'value of type %s' % (type(value),)
+        if not self.matches(instance, value):
+            return False
+        if not isinstance(value, basis._TypeBinding_mixin):
+            print 'NOTE: Created unbound wildcard element from %s' % (value_desc,)
+        assert isinstance(instance.wildcardElements(), list), 'Uninitialized wildcard list in %s' % (instance._ExpandedName,)
+        instance._appendWildcardElement(value)
+        particle_state.incrementCount()
+        return True
+
+    def _validate (self, symbol_set, output_sequence):
+        # @todo check node against namespace constraint and process contents
+        #print 'WARNING: Accepting node as wildcard match without validating.'
+        wc_values = symbol_set.get(None)
+        if wc_values is None:
+            return False
+        used = wc_values.pop(0)
+        output_sequence.append( (None, used) )
+        if 0 == len(wc_values):
+            del symbol_set[None]
+        return True
 
 class SequenceState (ContentState_mixin):
     __failed = False
@@ -984,10 +1079,23 @@ class ParticleModel (ContentModel_mixin):
         return result
 
 class _Group (ContentModel_mixin):
+    """Base class for content information pertaining to a U{model
+    group<http://www.w3.org/TR/xmlschema-1/#Model_Groups>}.
+
+    There is a specific subclass for each group compositor.
+    """
+
+    _StateClass = None
+    """A reference to a L{ContentState_mixin} class that maintains state when
+    validating an instance of this group."""
+
     def particles (self): return self.__particles
 
     def __init__ (self, *particles):
         self.__particles = particles
+
+    def newState (self, parent_particle_state):
+        return self._StateClass(self, parent_particle_state)
 
     # All and Sequence share the same validation code, so it's up here.
     def _validate (self, symbol_set, output_sequence):
@@ -1001,8 +1109,7 @@ class _Group (ContentModel_mixin):
 
 
 class GroupChoice (_Group):
-    def newState (self, parent_particle_state):
-        return ChoiceState(self, parent_particle_state)
+    _StateClass = ChoiceState
 
     # Choice requires a different validation algorithm
     def _validate (self, symbol_set, output_sequence):
@@ -1018,123 +1125,10 @@ class GroupChoice (_Group):
         return False
 
 class GroupAll (_Group):
-    def newState (self, parent_particle_state):
-        return AllState(self, parent_particle_state)
+    _StateClass = AllState
 
 class GroupSequence (_Group):
-    def newState (self, parent_particle_state):
-        return SequenceState(self, parent_particle_state)
-
-class Wildcard (ContentState_mixin, ContentModel_mixin):
-    """Placeholder for wildcard objects."""
-
-    NC_any = '##any'            #<<< The namespace constraint "##any"
-    NC_not = '##other'          #<<< A flag indicating constraint "##other"
-    NC_targetNamespace = '##targetNamespace'
-    NC_local = '##local'
-
-    __namespaceConstraint = None
-    def namespaceConstraint (self):
-        """A constraint on the namespace for the wildcard.
-
-        Valid values are:
-
-         - L{Wildcard.NC_any}
-         - A tuple ( L{Wildcard.NC_not}, a L{namespace<pyxb.namespace.Namespace>} instance )
-         - set(of L{namespace<pyxb.namespace.Namespace>} instances)
-
-        Namespaces are represented by their URIs.  Absence is
-        represented by None, both in the "not" pair and in the set.
-        """
-        return self.__namespaceConstraint
-
-    PC_skip = 'skip'            #<<< No constraint is applied
-    PC_lax = 'lax'              #<<< Validate against available uniquely determined declaration
-    PC_strict = 'strict'        #<<< Validate against declaration or xsi:type which must be available
-
-    # One of PC_*
-    __processContents = None
-    def processContents (self): return self.__processContents
-
-    def __normalizeNamespace (self, nsv):
-        if nsv is None:
-            return None
-        if isinstance(nsv, basestring):
-            nsv = pyxb.namespace.NamespaceForURI(nsv, create_if_missing=True)
-        assert isinstance(nsv, pyxb.namespace.Namespace), 'unexpected non-namespace %s' % (nsv,)
-        return nsv
-
-    def __init__ (self, *args, **kw):
-        # Namespace constraint and process contents are required parameters.
-        nsc = kw['namespace_constraint']
-        if isinstance(nsc, tuple):
-            nsc = (nsc[0], self.__normalizeNamespace(nsc[1]))
-        elif isinstance(nsc, set):
-            nsc = set([ self.__normalizeNamespace(_uri) for _uri in nsc ])
-        self.__namespaceConstraint = nsc
-        self.__processContents = kw['process_contents']
-        super(Wildcard, self).__init__(None)
-
-    def matches (self, instance, value):
-        """Return True iff the value is a valid match against this wildcard.
-
-        Validation per U{Wildcard allows Namespace Name<http://www.w3.org/TR/xmlschema-1/#cvc-wildcard-namespace>}.
-        """
-
-        ns = None
-        if isinstance(value, xml.dom.Node):
-            if value.namespaceURI is not None:
-                ns = pyxb.namespace.NamespaceForURI(value.namespaceURI)
-        elif isinstance(value, basis._TypeBinding_mixin):
-            elt = value._element()
-            if elt is not None:
-                ns = elt.name().namespace()
-            else:
-                ns = value._ExpandedName.namespace()
-        else:
-            raise pyxb.LogicError('Need namespace from value')
-        if isinstance(ns, pyxb.namespace.Namespace) and ns.isAbsentNamespace():
-            ns = None
-        if self.NC_any == self.__namespaceConstraint:
-            return True
-        if isinstance(self.__namespaceConstraint, tuple):
-            (_, constrained_ns) = self.__namespaceConstraint
-            assert self.NC_not == _
-            if ns is None:
-                return False
-            if constrained_ns == ns:
-                return False
-            return True
-        return ns in self.__namespaceConstraint
-
-    def newState (self, parent_particle_state):
-        return self
-
-    def accepts (self, particle_state, instance, value, element_use):
-        if isinstance(value, xml.dom.Node):
-            value_desc = 'value in %s' % (value.nodeName,)
-        else:
-            value_desc = 'value of type %s' % (type(value),)
-        if not self.matches(instance, value):
-            return False
-        if not isinstance(value, basis._TypeBinding_mixin):
-            print 'NOTE: Created unbound wildcard element from %s' % (value_desc,)
-        assert isinstance(instance.wildcardElements(), list), 'Uninitialized wildcard list in %s' % (instance._ExpandedName,)
-        instance._appendWildcardElement(value)
-        particle_state.incrementCount()
-        return True
-
-    def _validate (self, symbol_set, output_sequence):
-        # @todo check node against namespace constraint and process contents
-        #print 'WARNING: Accepting node as wildcard match without validating.'
-        wc_values = symbol_set.get(None)
-        if wc_values is None:
-            return False
-        used = wc_values.pop(0)
-        output_sequence.append( (None, used) )
-        if 0 == len(wc_values):
-            del symbol_set[None]
-        return True
+    _StateClass = SequenceState
         
 ## Local Variables:
 ## fill-column:78
