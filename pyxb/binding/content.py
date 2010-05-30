@@ -974,8 +974,8 @@ class Wildcard (ContentState_mixin):
         if nsv is None:
             return None
         if isinstance(nsv, basestring):
-            nsv = pyxb.namespace.NamespaceForURI(nsv)
-        assert isinstance(nsv, pyxb.namespace.Namespace)
+            nsv = pyxb.namespace.NamespaceForURI(nsv, create_if_missing=True)
+        assert isinstance(nsv, pyxb.namespace.Namespace), 'unexpected non-namespace %s' % (nsv,)
         return nsv
 
     def __init__ (self, *args, **kw):
