@@ -31,8 +31,6 @@ import content
 import datatypes
 import facets
 
-import nfa
-
 import types
 import sys
 import traceback
@@ -284,22 +282,6 @@ def pythonLiteral (value, **kw):
     print 'Unexpected literal type %s' % (type(value),)
     return str(value)
 
-
-def GenerateModelGroupAll (ctd, mga, binding_module, template_map, **kw):
-    mga_tag = utility.PrepareIdentifier('AModelGroup', binding_module.uniqueInModule(), private=True)
-    template_map['mga_tag'] = mga_tag
-    lines = []
-    lines2 = []
-    for ( dfa, is_required ) in mga.particles():
-        ( dfa_tag, dfa_lines ) = GenerateContentModel(ctd, dfa, binding_module, **kw)
-        lines.extend(dfa_lines)
-        template_map['dfa_tag'] = dfa_tag
-        template_map['is_required'] = binding_module.literal(is_required, **kw)
-        lines2.append(templates.replaceInText('    %{content}.ModelGroupAllAlternative(%{ctd}.%{dfa_tag}, %{is_required}),', **template_map))
-    lines.append(templates.replaceInText('%{mga_tag} = %{content}.ModelGroupAll(alternatives=[', **template_map))
-    lines.extend(lines2)
-    lines.append('])')
-    return (mga_tag, lines)
 
 def GenerateContentTerm (ctd, term, binding_module, **kw):
     lines = []
