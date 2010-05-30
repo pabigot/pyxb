@@ -21,16 +21,7 @@ the Python field in which the values are stored.  They also provide the
 low-level interface to set and get the corresponding values in a binding
 instance.
 
-L{ContentModelTransition}, L{ContentModelState}, and L{ContentModel} are used
-to store a deterministic finite automaton which is used to translate between
-binding instances and other representations (e.g., DOM nodes)
-
-L{ModelGroupAllAlternative} and L{ModelGroupAll} represent special nodes in
-the DFA that support a model group with compositor "all" in a way that does
-not result in an exponential state explosion in the DFA.
-
-L{DFAStack} and its related internal classes are used in stream-based
-processing of content.
+@todo: Document new content model
 
 L{Wildcard} holds content-related information used in the content model.
 """
@@ -54,7 +45,7 @@ class ContentState_mixin (pyxb.cscRoot):
     def contentModel (self):
         """Get the model associated with the state.
         
-        @return The L{ContentModel_mixin} instance for which this instance
+        @return: The L{ContentModel_mixin} instance for which this instance
         monitors state.  The value is C{None} if this is a non-aggregate state
         object like an L{ElementUse} or L{Wildcard}.
         """
@@ -67,22 +58,22 @@ class ContentState_mixin (pyxb.cscRoot):
         This method must not throw any non-catastrophic exceptions; general
         failures should be transformed to a C{False} return value.
 
-        @param particle_state The L{ParticleState} instance serving as the
+        @param particle_state: The L{ParticleState} instance serving as the
         parent to this state.  The implementation must inform that state when
         the proposed value completes the content model.
 
-        @param instance An instance of a subclass of
+        @param instance: An instance of a subclass of
         {basis.complexTypeDefinition}, into which the provided value will be
         stored if it is consistent with the current model state.
 
-        @param value The value that is being validated against the state.
+        @param value: The value that is being validated against the state.
 
-        @param element_use An optional L{ElementUse} instance that specifies
+        @param element_use: An optional L{ElementUse} instance that specifies
         the element to which the value corresponds.  This will be available
         when the value is extracted by parsing a document, but will be absent
         if the value was passed as a constructor positional parameter.
 
-        @return C{True} if the value was successfully matched against the
+        @return: C{True} if the value was successfully matched against the
         state.  C{False} if the value did not match against the state."""
         raise Exception('ContentState_mixin.accepts not implemented in %s' % (type(self),))
 
@@ -93,9 +84,9 @@ class ContentState_mixin (pyxb.cscRoot):
         Normally this is used when an intermediate content model must reset
         itself to permit alternative models to be evaluated.
 
-        @param sub_state the state that was unable to accept a value
+        @param sub_state: the state that was unable to accept a value
 
-        @param particle_ok C{True} if the particle that rejected the value is
+        @param particle_ok: C{True} if the particle that rejected the value is
         in an accepting terminal state
 
         """
@@ -112,7 +103,7 @@ class ContentState_mixin (pyxb.cscRoot):
         content model should produce the corresponding exception (generally,
         L{MissingContentError}).
 
-        @param parent_particle_state the L{ParticleState} for which this state
+        @param parent_particle_state: the L{ParticleState} for which this state
         is the term.
         """
         pass
@@ -124,7 +115,7 @@ class ContentModel_mixin (pyxb.cscRoot):
         """Return a L{ContentState_mixin} instance that will validate the
         state of this model component.
 
-        @param parent_particle_state The L{ParticleState} instance for which
+        @param parent_particle_state: The L{ParticleState} instance for which
         this instance is a term.  C{None} for the top content model of a
         complex data type.
         """
@@ -161,13 +152,13 @@ class ContentModel_mixin (pyxb.cscRoot):
         orders those letters in a way that satisfies the regular expression
         expressed in the model.  Both are changed as a result of a successful
         validation; both remain unchanged if the validation failed.  In
-        recursing, implementers may assume that C{output_sequence} is monotonic:
-        its length remains unchanged after an invocation iff the symbol set
-        also remains unchanged.  The L{_validateCloneSymbolSet},
-        L{_validateCloneOutputPath}, and L{_validateReplaceResults} methods
-        are available to help preserve this behavior.
+        recursing, implementers may assume that C{output_sequence} is
+        monotonic: its length remains unchanged after an invocation iff the
+        symbol set also remains unchanged.  The L{_validateCloneSymbolSet},
+        L{_validateCloneOutputSequence}, and L{_validateReplaceResults}
+        methods are available to help preserve this behavior.
 
-        @param symbol_set A map from L{ElementUse} instances to a list of
+        @param symbol_set: A map from L{ElementUse} instances to a list of
         values.  The order of the values corresponds to the order in which
         they should appear.  A key of C{None} identifies values that are
         stored as wildcard elements.  Values are removed from the lists as
@@ -175,16 +166,14 @@ class ContentModel_mixin (pyxb.cscRoot):
         removed from the map.  Thus an empty dictionary is the indicator that
         no more symbols are available.
 
-        @param output_sequence A mutable list to which should be appended
+        @param output_sequence: A mutable list to which should be appended
         tuples C{( eu, val )} where C{eu} is an L{ElementUse} from the set of
         symbol keys, and C{val} is a value from the corresponding list.  A
         document generated by producing the elements in the given order is
         expected to validate.
 
-        @return C{True} if the model validates: in this case the symbol set
-        and output sequence have been updated.  C{False} if the model
-        requirements cannot be met by the available symbols.  In this case
-        C{symbol_set} and C{output_sequence} must be unchanged.
+        @return: C{True} iff the model validates.  C{symbol_set} and
+        C{output_path} must be unmodified if returns C{False}.
         """
         raise Exception('ContentState_mixin._validate not implemented in %s' % (type(self),))
 
@@ -851,18 +840,18 @@ class ParticleState (pyxb.cscRoot):
         the particle's maximum occurrence limit is checked; if not, and the
         particle has a parent state, it is informed of the failure.
 
-        @param instance An instance of a subclass of
+        @param instance: An instance of a subclass of
         {basis.complexTypeDefinition}, into which the provided value will be
         stored if it is consistent with the current model state.
 
-        @param value The value that is being validated against the state.
+        @param value: The value that is being validated against the state.
 
-        @param element_use An optional L{ElementUse} instance that specifies
+        @param element_use: An optional L{ElementUse} instance that specifies
         the element to which the value corresponds.  This will be available
         when the value is extracted by parsing a document, but will be absent
         if the value was passed as a constructor positional parameter.
 
-        @return C{( consumed, underflow_exc )} A tuple where the first element
+        @return: C{( consumed, underflow_exc )} A tuple where the first element
         is C{True} iff the provided value was accepted in the current state.
         When this first element is C{False}, the second element will be
         C{None} if the particle's occurrence requirements have been met, and
@@ -871,7 +860,7 @@ class ParticleState (pyxb.cscRoot):
         context, the caller may raise this exception, or may try an
         alternative content model.
 
-        @raise L{pyxb.UnexpectedElementError} if the value satisfies the particle,
+        @raise pyxb.UnexpectedElementError: if the value satisfies the particle,
         but having done so exceeded the allowable number of instances of the
         term.
         """
@@ -928,7 +917,7 @@ class ParticleModel (ContentModel_mixin):
         self.__minOccurs = min_occurs
         self.__maxOccurs = max_occurs
 
-    def stateStack (self):
+    def newState (self):
         return ParticleState(self)
 
     def validate (self, symbol_set):

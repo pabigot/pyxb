@@ -1672,7 +1672,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
     _ReservedSymbols = _TypeBinding_mixin._ReservedSymbols.union(set([ 'wildcardElements', 'wildcardAttributeMap',
                              'xsdConstraintsOK', 'content', 'append', 'extend', 'value', 'reset' ]))
 
-    # None, or a reference to a ContentModel instance that defines how to
+    # None, or a reference to a ParticleModel instance that defines how to
     # reduce a DOM node list to the body of this element.
     _ContentModel = None
 
@@ -1730,7 +1730,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         model, C{None} is returned.
 
         The base class implementation uses the
-        L{content.ContentModel.validate} method.  Subclasses may desire to
+        L{content.ParticleModel.validate} method.  Subclasses may desire to
         override this in cases where the desired order is not maintained by
         model interpretation (for example, when an "all" model is used and the
         original element order is desired).  See L{__childrenForDOM} as an
@@ -1904,7 +1904,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         else:
             self.__setContent(None)
 
-    __stateStack = None
+    __modelState = None
     def reset (self):
         """Reset the instance.
 
@@ -1919,7 +1919,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         for eu in self._ElementMap.values():
             eu.reset(self)
         if self._ContentModel is not None:
-            self.__stateStack = self._ContentModel.stateStack()
+            self.__modelState = self._ContentModel.newState()
         return self
 
     @classmethod
@@ -2033,7 +2033,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
                 return self
         if self._isNil() and not self._IsSimpleTypeContent():
             raise pyxb.ExtraContentError('%s: Content %s present in element with xsi:nil' % (type(self), value))
-        if maybe_element and (self.__stateStack is not None):
+        if maybe_element and (self.__modelState is not None):
             # Allows element content.
             if not require_validation:
                 if element_use is not None:
@@ -2045,7 +2045,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
                     return self
             else:
                 #print 'SSStep %s %s' % (value, element_use)
-                ( consumed, underflow_exc ) = self.__stateStack.step(self, value, element_use)
+                ( consumed, underflow_exc ) = self.__modelState.step(self, value, element_use)
                 if consumed:
                     return self
         # If what we have is element content, we can't accept it, either
@@ -2107,8 +2107,8 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         return (cls._CT_MIXED == cls._ContentTypeTag)
     
     def _postDOMValidate (self):
-        if self._PerformValidation() and (not self._isNil()) and (self.__stateStack is not None):
-            self.__stateStack.verifyComplete()
+        if self._PerformValidation() and (not self._isNil()) and (self.__modelState is not None):
+            self.__modelState.verifyComplete()
             self._validateAttributes()
         return self
 
