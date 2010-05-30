@@ -40,6 +40,29 @@ Linux several years ago:
 1.1.x (Beta)
 ==============
 
+1.1.2 (30 May 2010)
+-------------------
+
+Complete replacement of the model group portion of the content model.  The
+NFA-to-DFA approach is gone.  The resulting system does a better job in less
+space and significantly faster: 30% on the standard tmsxtvd test, orders of
+magnitude on documents with large sequences of optional elements.
+
+Note: A couple unit tests fail due to incidental reasons that will be address
+when fixing :ticket:`75`.  Also, the architecture documentation for the
+validation portion of the content model is completely out of date.
+
+- Handle sequences of optional elements more effectively.  :ticket:`33`
+
+- Correct multi-step attribute restriction/extension.  :ticket:`80`
+
+- Support prefix rewrite for schema location URIs.  :ticket:`81`
+
+- Fix syntax error generating wildcard namespace constraints.  :ticket:`84`
+
+- Support whitespace validation bypass in simple type definitions.  :ticket:`85`
+
+
 1.1.1 (28 Jan 2010, rev 2135)
 -----------------------------
 
