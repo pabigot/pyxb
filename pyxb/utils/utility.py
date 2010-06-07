@@ -33,8 +33,9 @@ _UnderscoreSubstitute_re = re.compile(r'[- .]')
 _NonIdentifier_re = re.compile(r'[^a-zA-Z0-9_]')
 _PrefixUnderscore_re = re.compile(r'^_+')
 _PrefixDigit_re = re.compile(r'^\d+')
+_CamelCase_re = re.compile(r'_\w')
 
-def MakeIdentifier (s):
+def MakeIdentifier (s, camel_case=False):
     """Convert a string into something suitable to be a Python identifier.
 
     The string is converted to unicode; spaces and periods replaced by
@@ -45,9 +46,17 @@ def MakeIdentifier (s):
 
     No check is made for L{conflicts with keywords <DeconflictKeyword>}.
 
+    @keyword camel_case : If C{True}, any underscore in the result
+    string that is immediately followed by an alphanumeric is replaced
+    by the capitalized version of that alphanumeric.  Thus,
+    'one_or_two' becomes 'oneOrTwo'.  If C{False} (default), has no
+    effect.
+
     @rtype: C{str}
     """
     s = _PrefixUnderscore_re.sub('', _NonIdentifier_re.sub('',_UnderscoreSubstitute_re.sub('_', str(s))))
+    if camel_case:
+        s = _CamelCase_re.sub(lambda _m: _m.group(0)[1].upper(), s)
     if _PrefixDigit_re.match(s):
         s = 'n' + s
     if 0 == len(s):

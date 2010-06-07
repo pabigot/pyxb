@@ -84,6 +84,12 @@ class BasicTest (unittest.TestCase):
         self.assertEquals('emptyString', MakeIdentifier(''))
         self.assertEquals('emptyString', MakeIdentifier('_'))
 
+    def testCamelCase (self):
+        self.assertEquals('one_and_two', MakeIdentifier('one_and_two'))
+        self.assertEquals('one_and_two', MakeIdentifier('one-and-two'))
+        self.assertEquals('oneAndTwo', MakeIdentifier('one_and_two', camel_case=True))
+        self.assertEquals('oneAndTwo', MakeIdentifier('one-and-two', camel_case=True))
+
     def testDeconflictKeyword (self):
         self.assertEquals('id', DeconflictKeyword('id'))
         self.assertEquals('for_', DeconflictKeyword('for'))
