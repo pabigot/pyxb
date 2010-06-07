@@ -33,7 +33,7 @@
    full -- Full release with all overlays (mark as default download)
    doc -- Documentation overlay
    base -- Base release, no overlays
-   wssplt -- Web service bindings overlay
+   wssplat -- Web service bindings overlay
    common -- Common schema bindings overlay
    opengis -- OpenGIS bindings overlay
 
