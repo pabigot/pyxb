@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+        <xs:simpleType name="tAEnum">
+                <xs:restriction base="xs:normalizedString">
+                        <xs:enumeration value="A"/>
+                </xs:restriction>
+        </xs:simpleType>
+        <xs:simpleType name="tBEnum">
+                <xs:restriction base="tAEnum"/>
+        </xs:simpleType>
+</xs:schema>
