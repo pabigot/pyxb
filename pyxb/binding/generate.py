@@ -838,7 +838,7 @@ def _PrepareSimpleTypeDefinition (std, generator, nsm, module_context):
         # values.
         if issubclass(ptd.pythonSupport(), pyxb.binding.datatypes.string):
             enum_facet = std.facets().get(pyxb.binding.facets.CF_enumeration, None)
-            if (enum_facet is not None) and (std.expandedName() is not None):
+            if (enum_facet is not None) and (std == enum_facet.ownerDatatype()) and (std.expandedName() is not None):
                 for ei in enum_facet.items():
                     assert ei.tag() is None, '%s already has a tag' % (ei,)
                     ei._setTag(utility.PrepareIdentifier(ei.unicodeValue(), nsm.uniqueInClass(std)))
