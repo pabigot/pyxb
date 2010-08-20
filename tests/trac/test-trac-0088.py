@@ -32,8 +32,11 @@ class TestTrac_0088 (unittest.TestCase):
     def test (self):
         enums = tEnum._CF_enumeration.elements()
         self.assertEqual(3, len(enums))
+        self.assertEqual(enums[0].tag(), 'emptyString')
         self.assertEqual(enums[0].value(), u'\xb0')
+        self.assertEqual(enums[1].tag(), 'm')
         self.assertEqual(enums[1].value(), u'm\xb2')
+        self.assertEqual(enums[2].tag(), 'm_')
         self.assertEqual(enums[2].value(), u'm\xb3')
 
 if __name__ == '__main__':

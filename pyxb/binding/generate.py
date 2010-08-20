@@ -375,7 +375,7 @@ def GenerateFacets (td, generator, **kw):
         if (fi is not None) and is_collection:
             for i in fi.items():
                 if isinstance(i, facets._EnumerationElement):
-                    enum_config = '%s.addEnumeration(unicode_value=%s)' % binding_module.literal( ( facet_var, i.unicodeValue() ), **kw)
+                    enum_config = '%s.addEnumeration(unicode_value=%s, tag=%s)' % binding_module.literal( ( facet_var, i.unicodeValue(), i.tag() ), **kw)
                     if gen_enum_tag:
                         enum_member = ReferenceEnumerationMember(type_definition=td, facet_instance=fi, enumeration_element=i, **kw)
                         outf.write("%s = %s\n" % (binding_module.literal(enum_member, **kw), enum_config))

@@ -488,7 +488,7 @@ class _EnumerationElement (object):
         return self.__unicodeValue
 
     def __init__ (self, enumeration=None, unicode_value=None,
-                  description=None, annotation=None,
+                  description=None, annotation=None, tag=None,
                   **kw):
         # The preferred keyword is "unicode_value", but when being
         # generically applied by
@@ -503,6 +503,7 @@ class _EnumerationElement (object):
         self.__enumeration = enumeration
         self.__description = description
         self.__annotation = annotation
+        self.__tag = tag
 
         assert self.__enumeration is not None
 
