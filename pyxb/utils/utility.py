@@ -39,10 +39,10 @@ def MakeIdentifier (s, camel_case=False):
     """Convert a string into something suitable to be a Python identifier.
 
     The string is converted to unicode; spaces and periods replaced by
-    underscores; non-printables stripped.  Furthermore, any leading
-    underscores are removed.  If the result begins with a digit, the
-    character 'n' is prepended.  If the result is the empty string,
-    the string 'emptyString' is substituted.
+    underscores; non-printable/non-ASCII stripped.  Furthermore, any
+    leading underscores are removed.  If the result begins with a
+    digit, the character 'n' is prepended.  If the result is the empty
+    string, the string 'emptyString' is substituted.
 
     No check is made for L{conflicts with keywords <DeconflictKeyword>}.
 
@@ -54,7 +54,7 @@ def MakeIdentifier (s, camel_case=False):
 
     @rtype: C{str}
     """
-    s = _PrefixUnderscore_re.sub('', _NonIdentifier_re.sub('',_UnderscoreSubstitute_re.sub('_', str(s))))
+    s = _PrefixUnderscore_re.sub('', _NonIdentifier_re.sub('',_UnderscoreSubstitute_re.sub('_', unicode(s))))
     if camel_case:
         s = _CamelCase_re.sub(lambda _m: _m.group(0)[1].upper(), s)
     if _PrefixDigit_re.match(s):
@@ -637,6 +637,8 @@ def HashForText (text):
 
     @return: A C{str}, generally a sequence of hexadecimal "digit"s.
     """
+    if isinstance(text, unicode):
+        text = text.encode('utf-8')
     return __Hasher(text).hexdigest()
 
 # uuid didn't show up until 2.5
