@@ -659,7 +659,7 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
             cf_whitespace = getattr(cls, '_CF_whiteSpace', None)
             if cf_whitespace is not None:
                 #print 'Apply whitespace %s to "%s"' % (cf_whitespace, args[0])
-                norm_str = unicode(cf_whitespace.normalizeString(args[0]))
+                norm_str = cf_whitespace.normalizeString(args[0])
                 args = (norm_str,) + args[1:]
         return cls._ConvertArguments_vx(args, kw)
 

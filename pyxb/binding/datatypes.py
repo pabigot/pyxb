@@ -49,6 +49,7 @@ import pyxb.utils.domutils as domutils
 import pyxb.utils.utility as utility
 import basis
 import re
+import binascii
 
 _PrimitiveDatatypes = []
 _DerivedDatatypes = []
@@ -671,80 +672,31 @@ class gMonth (_PyXBDateOnly_base):
     _ISOEnd = _PyXBDateOnly_base._ISO_endMonth
 _PrimitiveDatatypes.append(gMonth)
 
-class hexBinary (basis.simpleTypeDefinition, types.LongType):
+class hexBinary (basis.simpleTypeDefinition, types.StringType):
     _XsdBaseType = anySimpleType
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('hexBinary')
 
-    __length = None
-    def length (self):
-        """Return the length of the value, in octets."""
-        return self.__length
-
     @classmethod
-    def _ConvertString (cls, text):
-        """Convert a sequence of pairs of hex digits into a length (in
-        octets) and a binary value."""
-        assert isinstance(text, types.StringTypes)
-        value = 0L
-        length = 0
-        while (length < len(text)):
-            v = ord(text[length].lower())
-            if (ord('0') <= v) and (v <= ord('9')):
-                value = (value << 4) + v - ord('0')
-            elif (ord('a') <= v) and (v <= ord('f')):
-                value = (value << 4) + v - ord('a') + 10
-            else:
-                raise BadTypeValueError('Non-hexadecimal values in %s' % (cls.__class__.__name__,))
-            length += 1
-        if 0 == length:
-            raise BadTypeValueError('%s must be non-empty string' % (cls.__class__.__name__,))
-        if (length & 0x01):
-            raise BadTypeValueError('%s value ends mid-octet' % (cls.__class__.__name__,))
-        return (length >> 1, value)
-
-    @classmethod
-    def _ConvertValue (cls, value):
-        """Given an integral value, return a pair consisting of the
-        number of octets required to represent the value, and the
-        value."""
-        length = 0
-        if 0 == value:
-            length = 1
-        else:
-            mv = value
-            while (0 != mv):
-                length += 1
-                mv = mv >> 4
-            length = (length+1) >> 1
-        return (length, value)
-
-    def __new__ (cls, *args, **kw):
-        args = cls._ConvertArguments(args, kw)
-        value = args[0]
-        rem_args = args[1:]
-        if isinstance(value, types.StringTypes):
-            (length, binary_value) = cls._ConvertString(value)
-        else:
-            (length, binary_value) = cls._ConvertValue(value)
-        rv = super(hexBinary, cls).__new__(cls, binary_value, *rem_args, **kw)
-        rv.__length = length
-        return rv
+    def Factory (cls, *args, **kw):
+        if 0 < len(args):
+            arg1 = args[0]
+            if isinstance(arg1, unicode):
+                try:
+                    arg1 = binascii.unhexlify(arg1)
+                except TypeError, e:
+                    raise BadTypeValueError('%s is not a valid hexBinary string' % (cls.__class__.__name__,))
+            elif not isinstance(value, string):
+                raise BadTypeValueError('%s is type %s, must be type str' % (cls.__class__.__name__, type(value)))
+            args = (arg1,) + args[1:]
+        return super(hexBinary, cls).Factory(*args, **kw)
 
     @classmethod
     def XsdLiteral (cls, value):
-        mv = value
-        length = value.length()
-        pieces = []
-        while (0 < length):
-            pieces.append('%2.2X' % (mv & 0xFF,))
-            mv = mv >> 8
-            length -= 1
-        pieces.reverse()
-        return ''.join(pieces)
+        return binascii.hexlify(value).upper()
 
     @classmethod
     def XsdValueLength (cls, value):
-        return value.length()
+        return len(value)
 
 _PrimitiveDatatypes.append(hexBinary)
 
