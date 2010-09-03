@@ -3,8 +3,7 @@ import unittest
 import pyxb.binding.datatypes as xsd
 
 class Test_token (unittest.TestCase):
-    def testValid (self):
-        valid = [ ('Internal spaces are ok', None),
+    Cases = [ ('Internal spaces are ok', None),
                   ("with\nnewline", 'with newline'),
                   ("with\rreturn", 'with return'),
                   ("with\ttab", 'with tab'),
@@ -14,23 +13,18 @@ class Test_token (unittest.TestCase):
                   ('TrailingSpace ', 'TrailingSpace'),
                   ('Internal  Multiple Spaces', 'Internal Multiple Spaces'),
                   ]
-        for (before, expected) in valid:
-            if expected is None:
-                expected = before
-            try:
-                self.assertEqual(expected, xsd.token(before))
-            except pyxb.PyXBException, e:
-                print 'Unexpected failure on "%s": %s' % (before, e)
+
+    def testValid (self):
+        for (lexical, value) in self.Cases:
+            if value is None:
+                value = lexical
+            self.assertEqual(value, xsd.token(value))
+            self.assertEqual(value, xsd.token(lexical, _from_xml=True))
 
     def testInvalid (self):
-        invalid = [  ]
-        for f in invalid:
-            try:
-                xsd.token(f)
-                print 'Unexpected success with "%s"' % (f,)
-            except Exception, e:
-                print 'Caught %s' % (type(e),)
-            self.assertRaises(pyxb.BadTypeValueError, xsd.token, f)
+        for (lexical, value) in self.Cases:
+            if value is not None:
+                self.assertRaises(pyxb.BadTypeValueError, xsd.token, lexical)
 
 if __name__ == '__main__':
     unittest.main()

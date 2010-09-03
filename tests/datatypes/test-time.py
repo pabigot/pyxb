@@ -27,8 +27,8 @@ class Test_time (unittest.TestCase):
         self.verifyTime(xsd.time('12:14:32.1234Z'))
         self.verifyTime(xsd.time('12:14:32.1234+05:00'), with_adj=(-5,0))
         self.verifyTime(xsd.time('12:14:32.1234Z'))
-        self.verifyTime(xsd.time('  12:14:32'), with_usec=False, with_tzinfo=False)
-        self.verifyTime(xsd.time('12:14:32  '), with_usec=False, with_tzinfo=False)
+        self.verifyTime(xsd.time('  12:14:32', _from_xml=True), with_usec=False, with_tzinfo=False)
+        self.verifyTime(xsd.time('12:14:32  ', _from_xml=True), with_usec=False, with_tzinfo=False)
 
     def testArguments (self):
         self.verifyTime(xsd.time(12, 14, 32), with_usec=False, with_tzinfo=False)

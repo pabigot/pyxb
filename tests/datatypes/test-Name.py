@@ -8,12 +8,11 @@ class Test_Name (unittest.TestCase):
                   'With:Colon' ]
         for f in valid:
             self.assertEqual(f, xsd.Name(f))
-        self.assertEqual('LeadingSpace', xsd.Name('  LeadingSpace'))
-        self.assertEqual('TrailingSpace', xsd.Name('TrailingSpace  '))
 
     def testInvalid (self):
         invalid = [ '.DotFirst', 'With Spaces', 
-                    'With?Illegal', '??LeadingIllegal', 'TrailingIllegal??']
+                    'With?Illegal', '??LeadingIllegal', 'TrailingIllegal??',
+                    '  LeadingSpace', 'TrailingSpace   ']
         for f in invalid:
             self.assertRaises(BadTypeValueError, xsd.Name, f)
 

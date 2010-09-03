@@ -63,7 +63,10 @@ class _TypeBinding_mixin (utility.Locatable_mixin):
 
     # @todo: We don't actually use this anymore; get rid of it, just leaving a
     # comment describing each keyword.
-    _PyXBFactoryKeywords = ( '_dom_node', '_fallback_namespace', '_apply_whitespace_facet', '_validate_constraints', '_require_value', '_nil', '_element', '_convert_string_values' )
+    _PyXBFactoryKeywords = ( '_dom_node', '_fallback_namespace', '_from_xml',
+                             '_apply_whitespace_facet', '_validate_constraints',
+                             '_require_value', '_nil', '_element',
+                             '_convert_string_values' )
     """Keywords that are interpreted by __new__ or __init__ in one or more
     classes in the PyXB type hierarchy.  All these keywords must be removed
     before invoking base Python __init__ or __new__."""
@@ -193,6 +196,13 @@ class _TypeBinding_mixin (utility.Locatable_mixin):
         @keyword _dom_node: If provided, the value must be a DOM node, the
         content of which will be used to set the value of the instance.
 
+        @keyword _from_xml: If C{True}, the input must be either a DOM node or
+        a unicode string comprising a lexical representation of a value.  This
+        is a further control on C{_apply_whitespace_facet} and arises from
+        cases where the lexical and value representations cannot be
+        distinguished by type.  The default value is C{True} iff C{_dom_node}
+        is not C{None}.
+
         @keyword _apply_whitespace_facet: If C{True} and this is a
         simpleTypeDefinition with a whiteSpace facet, the first argument will
         be normalized in accordance with that facet prior to invoking the
@@ -211,6 +221,7 @@ class _TypeBinding_mixin (utility.Locatable_mixin):
         # Invoke _PreFactory_vx for the superseding class, which is where
         # customizations will be found.
         dom_node = kw.get('_dom_node')
+        kw.setdefault('_from_xml', dom_node is not None)
         used_cls = cls._SupersedingClass()
         state = used_cls._PreFactory_vx(args, kw)
         rv = cls._DynamicCreate(*args, **kw)
@@ -649,17 +660,18 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
         string to a list.  Binding-specific applications are performed in the
         overloaded L{_ConvertArguments_vx} method."""
         dom_node = kw.pop('_dom_node', None)
+        from_xml = kw.pop('_from_xml', dom_node is not None)
         if dom_node is not None:
             text_content = domutils.ExtractTextContent(dom_node)
             if text_content is not None:
                 args = (domutils.ExtractTextContent(dom_node),) + args
                 kw['_apply_whitespace_facet'] = True
-        apply_whitespace_facet = kw.pop('_apply_whitespace_facet', True)
+        apply_whitespace_facet = kw.pop('_apply_whitespace_facet', from_xml)
         if (0 < len(args)) and isinstance(args[0], types.StringTypes) and apply_whitespace_facet:
             cf_whitespace = getattr(cls, '_CF_whiteSpace', None)
             if cf_whitespace is not None:
                 #print 'Apply whitespace %s to "%s"' % (cf_whitespace, args[0])
-                norm_str = cf_whitespace.normalizeString(args[0])
+                norm_str = unicode(cf_whitespace.normalizeString(args[0]))
                 args = (norm_str,) + args[1:]
         return cls._ConvertArguments_vx(args, kw)
 
@@ -1167,7 +1179,7 @@ class STD_list (simpleTypeDefinition, types.ListType):
     def append (self, x):
         super(STD_list, self).append(self._ValidatedItem(x))
 
-    def extend (self, x):
+    def extend (self, x, _from_xml=False):
         super(STD_list, self).extend(self.__convertMany(x))
 
     def count (self, x):
@@ -1301,6 +1313,8 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
         @keyword _dom_node: If set, specifies a DOM node that should be used
         for initialization.  In that case, the L{createFromDOM} method is
         invoked instead of the type definition Factory method.
+
+        @note Other keywords are passed to L{_TypeBinding_mixin.Factory}.
 
         @raise pyxb.AbstractElementError: This element is abstract and no DOM
         node was provided.
@@ -1605,11 +1619,14 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         @keyword _dom_node: The node to use as the source of binding content.
         @type _dom_node: C{xml.dom.Element}
 
+        @keyword _from_xml: See L{_TypeBinding_mixin.Factory}
+
         """
 
         fallback_namespace = kw.pop('_fallback_namespace', None)
         is_nil = False
         dom_node = kw.pop('_dom_node', None)
+        from_xml = kw.pop('_from_xml', dom_node is not None)
         if dom_node is not None:
             if isinstance(dom_node, pyxb.utils.utility.Locatable_mixin):
                 self._setLocation(dom_node.location)
@@ -1651,7 +1668,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             else:
                 self._setContentFromDOM(dom_node, fallback_namespace)
         elif 0 < len(args):
-            self.extend(args)
+            self.extend(args, _from_xml=from_xml)
         else:
             if self._CT_SIMPLE == self._ContentTypeTag:
                 self.__initializeSimpleContent(args, dom_node)
@@ -1961,7 +1978,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             element_binding = element_use.elementBinding()
         return (element_binding, element_use)
         
-    def append (self, value, element_use=None, maybe_element=True, _fallback_namespace=None, require_validation=True):
+    def append (self, value, element_use=None, maybe_element=True, _fallback_namespace=None, require_validation=True, _from_xml=False):
         """Add the value to the instance.
 
         The value should be a DOM node or other value that is or can be
@@ -1982,6 +1999,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             assert element_binding is not None
         # Convert the value if it's XML and we recognize it.
         if isinstance(value, xml.dom.Node):
+            _from_xml = True
             assert maybe_element
             assert element_binding is None
             node = value
@@ -2061,7 +2079,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
                 raise pyxb.ExtraContentError('Extra content starting with %s (already have %s)' % (value, self.__content))
             if not self._isNil():
                 if not isinstance(value, self._TypeDefinition):
-                    value = self._TypeDefinition.Factory(value)
+                    value = self._TypeDefinition.Factory(value, _from_xml=_from_xml)
                 self.__setContent(value)
                 if require_validation:
                     # NB: This only validates the value, not any associated
@@ -2085,9 +2103,9 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             raise pyxb.UnrecognizedContentError(value, container=self)
         wcl.append(value)
         
-    def extend (self, value_list, _fallback_namespace=None):
+    def extend (self, value_list, _fallback_namespace=None, _from_xml=False):
         """Invoke L{append} for each value in the list, in turn."""
-        [ self.append(_v, _fallback_namespace=_fallback_namespace) for _v in value_list ]
+        [ self.append(_v, _fallback_namespace=_fallback_namespace, _from_xml=_from_xml) for _v in value_list ]
         return self
 
     def __setContent (self, value):

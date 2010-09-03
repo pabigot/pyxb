@@ -7,10 +7,9 @@ class Test_QName (unittest.TestCase):
         valid = [ 'schema', 'xs:something', 'with.dots' ]
         for f in valid:
             self.assertEqual(f, xsd.QName(f))
-        self.assertEqual('whitespace', xsd.QName(' whitespace '))
 
     def testInvalid (self):
-        invalid = [ '-NonName', '-also:-not', 'and:-not', 'too:many:colons' ]
+        invalid = [ '-NonName', '-also:-not', 'and:-not', 'too:many:colons', ' whitespace ' ]
         for f in invalid:
             try:
                 xsd.QName(f)

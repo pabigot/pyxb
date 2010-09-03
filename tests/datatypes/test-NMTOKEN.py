@@ -8,12 +8,11 @@ class Test_NMTOKEN (unittest.TestCase):
                   'With:Colon', '.DotFirst' ]
         for f in valid:
             self.assertEqual(f, xsd.NMTOKEN(f))
-        self.assertEqual('LeadingSpace', xsd.NMTOKEN('  LeadingSpace'))
-        self.assertEqual('TrailingSpace', xsd.NMTOKEN('TrailingSpace  '))
 
     def testInvalid (self):
         invalid = [ 'With Spaces', 
-                    'With?Illegal', '??LeadingIllegal', 'TrailingIllegal??']
+                    'With?Illegal', '??LeadingIllegal', 'TrailingIllegal??',
+                    '  LeadingSpace', 'TrailingSpace   ']
         for f in invalid:
             try:
                 xsd.NMTOKEN(f)

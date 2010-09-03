@@ -90,7 +90,7 @@ class _SAXElementState (pyxb.utils.saxutils.SAXElementState):
 
     # Create the binding instance for this element.
     def __constructElement (self, new_object_factory, attrs, content=None):
-        kw = {}
+        kw = { '_from_xml' : True }
 
         # Note whether the node is marked nil
         if attrs.has_key(self.__XSINilTuple):

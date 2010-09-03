@@ -243,7 +243,7 @@ class AttributeUse (pyxb.cscRoot):
         self.__dataType = data_type
         self.__unicodeDefault = unicode_default
         if self.__unicodeDefault is not None:
-            self.__defaultValue = self.__dataType.Factory(self.__unicodeDefault)
+            self.__defaultValue = self.__dataType.Factory(self.__unicodeDefault, _from_xml=True)
         self.__fixed = fixed
         self.__required = required
         self.__prohibited = prohibited
@@ -359,7 +359,9 @@ class AttributeUse (pyxb.cscRoot):
         attribute's datatype.
         """
         provided = True
+        from_xml = False
         if isinstance(new_value, xml.dom.Node):
+            from_xml = True
             unicode_value = self.__name.getAttribute(new_value)
             if unicode_value is None:
                 if self.__required:
@@ -377,7 +379,7 @@ class AttributeUse (pyxb.cscRoot):
         if self.__prohibited:
             raise pyxb.ProhibitedAttributeError('Value given for prohibited attribute %s' % (self.__name,))
         if (new_value is not None) and (not isinstance(new_value, self.__dataType)):
-            new_value = self.__dataType.Factory(new_value)
+            new_value = self.__dataType.Factory(new_value, _from_xml=from_xml)
         if self.__fixed and (new_value != self.__defaultValue):
             raise pyxb.AttributeChangeError('Attempt to change value of fixed attribute %s' % (self.__name,))
         self.__setValue(ctd_instance, new_value, provided)

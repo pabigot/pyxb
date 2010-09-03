@@ -14,8 +14,8 @@ class Test_date (unittest.TestCase):
         self.assertRaises(pyxb.BadTypeValueError, xsd.date, '2002-10-27T')
         
     def testFromText (self):
-        self.verifyTime(xsd.date('  2002-10-27'), with_usec=False, with_tzinfo=False)
-        self.verifyTime(xsd.date('2002-10-27  '), with_usec=False, with_tzinfo=False)
+        self.verifyTime(xsd.date('  2002-10-27', _from_xml=True), with_usec=False, with_tzinfo=False)
+        self.verifyTime(xsd.date('2002-10-27  ', _from_xml=True), with_usec=False, with_tzinfo=False)
         self.verifyTime(xsd.date('2002-10-27'), with_usec=False, with_tzinfo=False)
 
     def testYear (self):

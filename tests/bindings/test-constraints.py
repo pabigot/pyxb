@@ -190,16 +190,16 @@ class testWhitespace (unittest.TestCase):
         self.assertEqual(" test  too ", self.__Replace.normalizeString(u"\ttest\n\rtoo\n"))
 
     def testReplaceString (self):
-        self.assertEqual("test", ReplaceString("test"))
-        self.assertEqual("  test", ReplaceString("  test"))
-        self.assertEqual(" test", ReplaceString("\ttest"))
-        self.assertEqual(" test  ", ReplaceString("\ttest\n\r"))
-        self.assertEqual(" test  too ", ReplaceString("\ttest\n\rtoo\n"))
-        self.assertEqual("test", ReplaceString(u"test"))
-        self.assertEqual("  test", ReplaceString(u"  test"))
-        self.assertEqual(" test", ReplaceString(u"\ttest"))
-        self.assertEqual(" test  ", ReplaceString(u"\ttest\n\r"))
-        self.assertEqual(" test  too ", ReplaceString(u"\ttest\n\rtoo\n"))
+        self.assertEqual("test", ReplaceString("test", _from_xml=True))
+        self.assertEqual("  test", ReplaceString("  test", _from_xml=True))
+        self.assertEqual(" test", ReplaceString("\ttest", _from_xml=True))
+        self.assertEqual(" test  ", ReplaceString("\ttest\n\r", _from_xml=True))
+        self.assertEqual(" test  too ", ReplaceString("\ttest\n\rtoo\n", _from_xml=True))
+        self.assertEqual("test", ReplaceString(u"test", _from_xml=True))
+        self.assertEqual("  test", ReplaceString(u"  test", _from_xml=True))
+        self.assertEqual(" test", ReplaceString(u"\ttest", _from_xml=True))
+        self.assertEqual(" test  ", ReplaceString(u"\ttest\n\r", _from_xml=True))
+        self.assertEqual(" test  too ", ReplaceString(u"\ttest\n\rtoo\n", _from_xml=True))
 
     __Collapse = facets.CF_whiteSpace(value=facets._WhiteSpace_enum.collapse)
     def testCollapse (self):
@@ -216,23 +216,23 @@ class testWhitespace (unittest.TestCase):
 
     def testCollapseString (self):
         # The way it will work if from DOM content:
-        self.assertEqual("test", CollapseString("test"))
-        self.assertEqual("test", CollapseString("  test"))
-        self.assertEqual("test", CollapseString("\ttest"))
-        self.assertEqual("test", CollapseString("\ttest\n\r"))
-        self.assertEqual("test too", CollapseString("\ttest\n\rtoo\n"))
-        self.assertEqual("test", CollapseString(u"test"))
-        self.assertEqual("test", CollapseString(u"  test"))
-        self.assertEqual("test", CollapseString(u"\ttest"))
-        self.assertEqual("test", CollapseString(u"\ttest\n\r"))
-        self.assertEqual("test too", CollapseString(u"\ttest\n\rtoo\n"))
+        self.assertEqual("test", CollapseString("test", _from_xml=True))
+        self.assertEqual("test", CollapseString("  test", _from_xml=True))
+        self.assertEqual("test", CollapseString("\ttest", _from_xml=True))
+        self.assertEqual("test", CollapseString("\ttest\n\r", _from_xml=True))
+        self.assertEqual("test too", CollapseString("\ttest\n\rtoo\n", _from_xml=True))
+        self.assertEqual("test", CollapseString(u"test", _from_xml=True))
+        self.assertEqual("test", CollapseString(u"  test", _from_xml=True))
+        self.assertEqual("test", CollapseString(u"\ttest", _from_xml=True))
+        self.assertEqual("test", CollapseString(u"\ttest\n\r", _from_xml=True))
+        self.assertEqual("test too", CollapseString(u"\ttest\n\rtoo\n", _from_xml=True))
 
     def testApplyWhitespace (self):
         goal = 'one two'
         source = '  one    two   '
-        self.assertEqual(goal, CollapseString(goal))
-        self.assertEqual(goal, CollapseString(source))
-        self.assertEqual(source, CollapseString(source, _apply_whitespace_facet=False))
+        self.assertEqual(goal, CollapseString(goal, _from_xml=True))
+        self.assertEqual(goal, CollapseString(source, _from_xml=True))
+        self.assertEqual(source, CollapseString(source, _apply_whitespace_facet=False, _from_xml=True))
 
 if __name__ == '__main__':
     unittest.main()

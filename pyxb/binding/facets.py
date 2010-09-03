@@ -508,7 +508,7 @@ class _EnumerationElement (object):
         assert self.__enumeration is not None
 
         value_datatype = self.enumeration().valueDatatype()
-        self.__value = value_datatype.Factory(self.unicodeValue(), _validate_constraints=False)
+        self.__value = value_datatype.Factory(self.unicodeValue(), _validate_constraints=False, _from_xml=True)
 
         if (self.__description is None) and (self.__annotation is not None):
             self.__description = str(self.__annotation)
