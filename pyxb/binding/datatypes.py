@@ -677,18 +677,13 @@ class hexBinary (basis.simpleTypeDefinition, types.StringType):
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('hexBinary')
 
     @classmethod
-    def Factory (cls, *args, **kw):
-        if 0 < len(args):
-            arg1 = args[0]
-            if isinstance(arg1, unicode):
-                try:
-                    arg1 = binascii.unhexlify(arg1)
-                except TypeError, e:
-                    raise BadTypeValueError('%s is not a valid hexBinary string' % (cls.__class__.__name__,))
-            elif not isinstance(value, string):
-                raise BadTypeValueError('%s is type %s, must be type str' % (cls.__class__.__name__, type(value)))
-            args = (arg1,) + args[1:]
-        return super(hexBinary, cls).Factory(*args, **kw)
+    def _ConvertArguments_vx (cls, args, kw):
+        if kw.get('_from_xml', False):
+            try:
+                args = (binascii.unhexlify(args[0]),) + args[1:]
+            except TypeError, e:
+                raise BadTypeValueError('%s is not a valid hexBinary string' % (cls.__class__.__name__,))
+        return args
 
     @classmethod
     def XsdLiteral (cls, value):

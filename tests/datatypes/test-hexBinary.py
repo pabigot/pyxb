@@ -14,14 +14,16 @@ class Test_hexBinary (unittest.TestCase):
         encoded_values = [ u'01', u'00', u'ab', u'Ab', u'AB12' ]
         for ev in encoded_values:
             v = xsd.hexBinary.Factory(ev)
+            self.assertEqual(v, ev)
+            v = xsd.hexBinary.Factory(ev, _from_xml=True)
             self.assertEqual(len(ev)/2, len(v))
             self.assertEqual(ev.upper(), v.xsdLiteral())
         
     def testBadStrings (self):
-        self.assertRaises(BadTypeValueError, xsd.hexBinary.Factory, u'0')
-        self.assertRaises(BadTypeValueError, xsd.hexBinary.Factory, u'012')
-        self.assertRaises(BadTypeValueError, xsd.hexBinary.Factory, u'01s')
-        self.assertRaises(BadTypeValueError, xsd.hexBinary.Factory, u'sb')
+        self.assertRaises(BadTypeValueError, xsd.hexBinary.Factory, u'0', _from_xml=True)
+        self.assertRaises(BadTypeValueError, xsd.hexBinary.Factory, u'012', _from_xml=True)
+        self.assertRaises(BadTypeValueError, xsd.hexBinary.Factory, u'01s', _from_xml=True)
+        self.assertRaises(BadTypeValueError, xsd.hexBinary.Factory, u'sb', _from_xml=True)
 
     def testLiteralization (self):
         self.assertEqual('', xsd.hexBinary('').xsdLiteral())

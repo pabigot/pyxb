@@ -493,6 +493,8 @@ class _DynamicCreate_mixin (pyxb.cscRoot):
         try:
             return ctor(*args, **kw)
         except TypeError, e:
+            #import traceback
+            #traceback.print_exc()
             raise pyxb.BadTypeValueError(e)
 
 class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
@@ -660,7 +662,7 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
         string to a list.  Binding-specific applications are performed in the
         overloaded L{_ConvertArguments_vx} method."""
         dom_node = kw.pop('_dom_node', None)
-        from_xml = kw.pop('_from_xml', dom_node is not None)
+        from_xml = kw.get('_from_xml', dom_node is not None)
         if dom_node is not None:
             text_content = domutils.ExtractTextContent(dom_node)
             if text_content is not None:
@@ -673,6 +675,7 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
                 #print 'Apply whitespace %s to "%s"' % (cf_whitespace, args[0])
                 norm_str = unicode(cf_whitespace.normalizeString(args[0]))
                 args = (norm_str,) + args[1:]
+        kw['_from_xml'] = from_xml
         return cls._ConvertArguments_vx(args, kw)
 
     # Must override new, because new gets invoked before init, and usually
@@ -694,6 +697,7 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
         kw.pop('_nil', None)
         # ConvertArguments will remove _element and _apply_whitespace_facet
         args = cls._ConvertArguments(args, kw)
+        kw.pop('_from_xml', None)
         assert issubclass(cls, _TypeBinding_mixin)
         try:
             rv = super(simpleTypeDefinition, cls).__new__(cls, *args, **kw)
