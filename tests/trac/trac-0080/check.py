@@ -14,15 +14,11 @@ class TestTrac0080 (unittest.TestCase):
         instance.anAttribute = value
 
     def testType4 (self): # base
-        v = xsd.normalizedString(self._NotANormalizedString)
         i4 = mr.Type4()
         au = i4._AttributeMap.get('anAttribute')
         self.assertEqual(au.dataType(), xsd.normalizedString)
         self.assertFalse(au.required())
-        # BTW: If you wonder why this works, it's because the
-        # whiteSpace facet on xsd:normalizedString is replace.
-        self.assignAttribute_(i4, self._NotANormalizedString)
-        self.assertEqual(i4.anAttribute, ' multi line tabbed ')
+        self.assertRaises(pyxb.BadTypeValueError, self.assignAttribute_, i4, self._NotANormalizedString)
 
     def testType3 (self): # restrict type
         i3 = mr.Type3()
