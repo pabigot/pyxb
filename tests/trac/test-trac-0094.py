@@ -22,11 +22,20 @@ from pyxb.exceptions_ import *
 
 import unittest
 
+import pyxb.utils.domutils
+import pyxb.namespace
+pyxb.utils.domutils.BindingDOMSupport.DeclareNamespace(pyxb.namespace.XMLSchema, 'xs')
+
 class TestTrac_0094 (unittest.TestCase):
-    def test (self):
-        xmls = '''<anything xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xs="http://www.w3.org/2001/XMLSchema" xsi:type="xs:string">something</anything>'''
-        instance = CreateFromDocument(xmls)
-        print instance
+    body = 'something'
+    xmls = '''<anything xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="xs:string">%s</anything>''' % (body,)
+
+    def testFromXML (self):
+        instance = CreateFromDocument(self.xmls)
+        self.assertTrue(isinstance(instance, xs.string))
+        self.assertEqual(instance, self.body)
+        #self.assertEqual(instance._element(), anything)
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -108,7 +108,7 @@ class _XMLSchema_instance (Namespace):
         if self.PT_strict == pt:
             if alternative_type_class is None:
                 raise pyxb.BadDocumentError('No type binding for %s' % (type_name,))
-            if (type_class is not None) and (not issubclass(alternative_type_class, type_class)):
+            if (type_class is not None) and (not (type_class._IsUrType() or issubclass(alternative_type_class, type_class))):
                 raise pyxb.BadDocumentError('%s value %s is not subclass of element type %s' % (type_name, type_en, type_class._ExpandedName))
         if (self.PT_strict == pt) or ((self.PT_lax == pt) and (alternative_type_class is not None)):
             type_class = alternative_type_class

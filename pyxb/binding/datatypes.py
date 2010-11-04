@@ -1023,3 +1023,6 @@ class anyType (basis.complexTypeDefinition):
     __Inner = content.GroupSequence(content.ParticleModel(__Wildcard, min_occurs=0, max_occurs=None))
     _ContentModel = content.ParticleModel(__Inner, min_occurs=1, max_occurs=1)
 
+# anyType._IsUrType() is True; foo._IsUrType() for descendents of it
+# should be false.
+anyType._IsUrType = classmethod(lambda _c: _c == anyType)

@@ -236,6 +236,15 @@ class _TypeBinding_mixin (utility.Locatable_mixin):
         return self._element().substitutesFor(element)
 
     @classmethod
+    def _IsUrType (cls):
+        """Return C{True} iff this is the ur-type.
+
+        The only ur-type is {http://www.w3.org/2001/XMLSchema}anyType.  The
+        implementation of this method is overridden for
+        L{pyxb.binding.datatypes.anyType}."""
+        return False
+
+    @classmethod
     def _RequireXSIType (cls, value_type):
         return cls._Abstract and value_type != cls._SupersedingClass()
 
