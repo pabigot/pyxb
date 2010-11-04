@@ -44,6 +44,17 @@ class _SAXElementState (pyxb.utils.saxutils.SAXElementState):
     # the element, so contained elements can be properly stored.
     __bindingInstance = None
 
+    # The schema binding for the element being constructed.
+    __elementBinding = None
+
+    def setElementBinding (self, element_binding):
+        """Record the binding to be used for this element.
+
+        Generally ignored, except at the top level this is the only way to
+        associate a binding instance created from an xsi:type description with
+        a specific element."""
+        self.__elementBinding = element_binding
+
     # The nearest enclosing complex type definition
     def enclosingCTD (self):
         """The nearest enclosing complex type definition, as used for
@@ -215,6 +226,8 @@ class _SAXElementState (pyxb.utils.saxutils.SAXElementState):
         if parent_state is not None:
             parent_state.addElementContent(self.__bindingInstance, self.__elementUse)
         # As CreateFromDOM does, validate the resulting element
+        if self.__bindingInstance._element() is None:
+            self.__bindingInstance._setElement(self.__elementBinding)
         if pyxb._ParsingRequiresValid:
             self.__bindingInstance.validateBinding()
         return self.__bindingInstance
@@ -295,6 +308,7 @@ class PyXBSAXHandler (pyxb.utils.saxutils.BaseSAXHandler):
         else:
             element_use = None
             element_binding = name_en.elementBinding()
+        this_state.setElementBinding(element_binding)
 
         # Non-root elements should have an element use, from which we can
         # extract the binding if we couldn't find one elsewhere.  (Keep any

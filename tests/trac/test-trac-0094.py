@@ -34,7 +34,7 @@ class TestTrac_0094 (unittest.TestCase):
         instance = CreateFromDocument(self.xmls)
         self.assertTrue(isinstance(instance, xs.string))
         self.assertEqual(instance, self.body)
-        #self.assertEqual(instance._element(), anything)
+        self.assertEqual(instance._element(), anything)
 
     def testToXML (self):
         instance = xs.string(self.body, _element=anything)
