@@ -7,6 +7,13 @@ import os.path
 xsd=u'''<?xml version="1.0" encoding="utf-8"?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
 	<xs:element name="anything" type="xs:anyType" nillable="true"/>
+        <xs:element name="container">
+                <xs:complexType>
+                        <xs:sequence>
+                                <xs:element ref="anything"/>
+                        </xs:sequence>
+                </xs:complexType>
+        </xs:element>
 </xs:schema>
 '''
 
@@ -40,6 +47,23 @@ class TestTrac_0094 (unittest.TestCase):
         instance = xs.string(self.body, _element=anything)
         self.assertEqual(instance.toxml(root_only=True), self.xmls)
         
+    def testContainerCtor (self):
+        i = xs.string(self.body, _element=anything)
+        instance = container(anything=i)
+        explicit_xml = instance.toxml()
+        instance = container(anything=xs.string(self.body))
+        implicit_xml = instance.toxml()
+        self.assertEqual(explicit_xml, implicit_xml)
+        
+    def testContainerAssignment (self):
+        i = xs.string(self.body, _element=anything)
+        instance = container()
+        instance.anything = i
+        explicit_xml = instance.toxml()
+        instance.anything = xs.string(self.body)
+        implicit_xml = instance.toxml()
+        self.assertEqual(explicit_xml, implicit_xml)
+
 
 if __name__ == '__main__':
     unittest.main()

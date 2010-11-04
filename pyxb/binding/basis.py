@@ -317,7 +317,7 @@ class _TypeBinding_mixin (utility.Locatable_mixin):
         # Any type is compatible with the corresponding ur-type
         if (pyxb.binding.datatypes.anySimpleType == cls) and issubclass(value_type, simpleTypeDefinition):
             return value
-        if (pyxb.binding.datatypes.anyType == cls) and issubclass(value_type, complexTypeDefinition):
+        if pyxb.binding.datatypes.anyType == cls:
             return value
 
         # Is this the wrapper class that indicates we should create a binding
