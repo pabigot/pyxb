@@ -36,6 +36,10 @@ class TestTrac_0094 (unittest.TestCase):
         self.assertEqual(instance, self.body)
         #self.assertEqual(instance._element(), anything)
 
+    def testToXML (self):
+        instance = xs.string(self.body, _element=anything)
+        self.assertEqual(instance.toxml(root_only=True), self.xmls)
+        
 
 if __name__ == '__main__':
     unittest.main()

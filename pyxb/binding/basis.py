@@ -246,7 +246,7 @@ class _TypeBinding_mixin (utility.Locatable_mixin):
 
     @classmethod
     def _RequireXSIType (cls, value_type):
-        return cls._Abstract and value_type != cls._SupersedingClass()
+        return cls._IsUrType() or (cls._Abstract and value_type != cls._SupersedingClass())
 
     @classmethod
     def _CompatibleValue (cls, value, **kw):
