@@ -35,14 +35,14 @@ class _SAXElementState (pyxb.utils.saxutils.SAXElementState):
     # An expanded name corresponding to xsi:nil
     __XSINilTuple = XSI.nil.uriTuple()
 
-    # The binding object being created for this element.  When the
+    # The binding instance being created for this element.  When the
     # element type has simple content, the binding instance cannot be
     # created until the end of the element has been reached and the
     # content of the element has been processed accumulated for use in
     # the instance constructor.  When the element type has complex
     # content, the binding instance must be created at the start of
     # the element, so contained elements can be properly stored.
-    __bindingObject = None
+    __bindingInstance = None
 
     # The nearest enclosing complex type definition
     def enclosingCTD (self):
@@ -71,7 +71,7 @@ class _SAXElementState (pyxb.utils.saxutils.SAXElementState):
 
     def __init__ (self, **kw):
         super(_SAXElementState, self).__init__(**kw)
-        self.__bindingObject = None
+        self.__bindingInstance = None
         parent_state = self.parentState()
         if isinstance(parent_state, _SAXElementState):
             self.__enclosingCTD = parent_state.enclosingCTD()
@@ -98,16 +98,16 @@ class _SAXElementState (pyxb.utils.saxutils.SAXElementState):
 
         if content is None:
             content = []
-        self.__bindingObject = new_object_factory(*content, **kw)
-        if isinstance(self.__bindingObject, pyxb.utils.utility.Locatable_mixin):
-            self.__bindingObject._setLocation(self.location())
+        self.__bindingInstance = new_object_factory(*content, **kw)
+        if isinstance(self.__bindingInstance, pyxb.utils.utility.Locatable_mixin):
+            self.__bindingInstance._setLocation(self.location())
 
         # Record the namespace context so users of the binding can
         # interpret QNames within the attributes and content.
-        self.__bindingObject._setNamespaceContext(self.__namespaceContext)
+        self.__bindingInstance._setNamespaceContext(self.__namespaceContext)
 
         # Set the attributes.
-        if isinstance(self.__bindingObject, pyxb.binding.basis.complexTypeDefinition):
+        if isinstance(self.__bindingInstance, pyxb.binding.basis.complexTypeDefinition):
             # NB: attrs implements the SAX AttributesNS interface, meaning
             # that names are pairs of (namespaceURI, localName), just like we
             # want them to be.
@@ -116,9 +116,9 @@ class _SAXElementState (pyxb.utils.saxutils.SAXElementState):
                 # Ignore xmlns and xsi attributes; we've already handled those
                 if attr_en.namespace() in ( pyxb.namespace.XMLNamespaces, XSI ):
                     continue
-                au = self.__bindingObject._setAttribute(attr_en, attrs.getValue(attr_name))
+                au = self.__bindingInstance._setAttribute(attr_en, attrs.getValue(attr_name))
 
-        return self.__bindingObject
+        return self.__bindingInstance
 
     def inDOMMode (self):
         return self.__domDocument is not None
@@ -190,7 +190,7 @@ class _SAXElementState (pyxb.utils.saxutils.SAXElementState):
             self.__attributes = attrs
         else:
             self.__constructElement(new_object_factory, attrs)
-        return self.__bindingObject
+        return self.__bindingInstance
 
     def endBindingElement (self):
         """Perform any end-of-element processing.
@@ -208,16 +208,16 @@ class _SAXElementState (pyxb.utils.saxutils.SAXElementState):
             assert 1 >= len(args), 'Unexpected STD content %s' % (args,)
             self.__constructElement(self.__delayedConstructor, self.__attributes, args)
         else:
-            #print 'Extending %s by content %s' % (self.__bindingObject, self.__content,)
+            #print 'Extending %s by content %s' % (self.__bindingInstance, self.__content,)
             for (content, element_use, maybe_element) in self.__content:
-                self.__bindingObject.append(content, element_use, maybe_element, require_validation=pyxb._ParsingRequiresValid)
+                self.__bindingInstance.append(content, element_use, maybe_element, require_validation=pyxb._ParsingRequiresValid)
         parent_state = self.parentState()
         if parent_state is not None:
-            parent_state.addElementContent(self.__bindingObject, self.__elementUse)
+            parent_state.addElementContent(self.__bindingInstance, self.__elementUse)
         # As CreateFromDOM does, validate the resulting element
         if pyxb._ParsingRequiresValid:
-            self.__bindingObject.validateBinding()
-        return self.__bindingObject
+            self.__bindingInstance.validateBinding()
+        return self.__bindingInstance
 
 class PyXBSAXHandler (pyxb.utils.saxutils.BaseSAXHandler):
     """A SAX handler class which generates a binding instance for a document
