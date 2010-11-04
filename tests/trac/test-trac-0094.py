@@ -63,7 +63,13 @@ class TestTrac_0094 (unittest.TestCase):
         instance.anything = xs.string(self.body)
         implicit_xml = instance.toxml()
         self.assertEqual(explicit_xml, implicit_xml)
-
+        instance.anything = xs.int(43)
+        int_xml = instance.toxml()
+        instance.anything = self.body
+        # You can do that, but you won't be able to convert it to xml
+        self.assertRaises(AttributeError, instance.toxml)
+        instance.anything = 43
+        self.assertRaises(AttributeError, instance.toxml)
 
 if __name__ == '__main__':
     unittest.main()

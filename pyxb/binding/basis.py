@@ -318,6 +318,9 @@ class _TypeBinding_mixin (utility.Locatable_mixin):
         if (pyxb.binding.datatypes.anySimpleType == cls) and issubclass(value_type, simpleTypeDefinition):
             return value
         if pyxb.binding.datatypes.anyType == cls:
+            if not isinstance(value, _TypeBinding_mixin):
+                print 'NOTE: Created %s instance from value of type %s' % (cls._ExpandedName, type(value))
+                value = cls(value)
             return value
 
         # Is this the wrapper class that indicates we should create a binding

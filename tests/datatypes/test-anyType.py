@@ -10,5 +10,11 @@ class Test_anyType (unittest.TestCase):
         self.assertTrue(xsd.anyType._IsUrType())
         self.assertFalse(subAny._IsUrType())
 
+    def testConstructor (self):
+        # Just verify you can construct them.  If you want to do
+        # anything with them, you should have picked a type.
+        s = xsd.anyType('string')
+        i = xsd.anyType(43)
+
 if __name__ == '__main__':
     unittest.main()

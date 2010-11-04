@@ -706,7 +706,8 @@ class Wildcard (ContentState_mixin, ContentModel_mixin):
             else:
                 ns = value._ExpandedName.namespace()
         else:
-            raise pyxb.LogicError('Need namespace from value')
+            # Assume that somebody will handle the conversion to xs:anyType
+            pass
         if isinstance(ns, pyxb.namespace.Namespace) and ns.isAbsentNamespace():
             ns = None
         if self.NC_any == self.__namespaceConstraint:
