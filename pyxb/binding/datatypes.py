@@ -12,7 +12,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-"""Classes supporting U{XMLSchema Part 2: Datatypes<http://www/Documentation/W3C/www.w3.org/TR/xmlschema-2/index.html>}.
+"""Classes supporting U{XMLSchema Part 2: Datatypes<http://www.w3.org/TR/xmlschema-2/>}.
 
 Each L{simple type definition<pyxb.xmlschema.structures.SimpleTypeDefinition>} component
 instance is paired with at most one L{basis.simpleTypeDefinition}
@@ -59,7 +59,7 @@ _ListDatatypes = []
 # primitive type.  Presumably, only enumeration and pattern facets
 # will be applied.
 class anySimpleType (basis.simpleTypeDefinition, unicode):
-    """See U{http://www.w3.org/TR/xmlschema-2/#dt-anySimpleType}"""
+    """XMLSchema datatype U{anySimpleType<http://www.w3.org/TR/xmlschema-2/#dt-anySimpleType>}."""
     _XsdBaseType = None
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('anySimpleType')
 
@@ -70,9 +70,7 @@ class anySimpleType (basis.simpleTypeDefinition, unicode):
 # must be absent (not atomic).
     
 class string (basis.simpleTypeDefinition, unicode):
-    """string.
-    
-    U{http://www.w3.org/TR/xmlschema-2/#string}"""
+    """XMLSchema datatype U{string<http://www.w3.org/TR/xmlschema-2/#string>}."""
     _XsdBaseType = anySimpleType
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('string')
 
@@ -90,9 +88,7 @@ _PrimitiveDatatypes.append(string)
 # It is illegal to subclass the bool type in Python, so we subclass
 # int instead.
 class boolean (basis.simpleTypeDefinition, types.IntType):
-    """boolean.
-
-    U{http://www.w3.org/TR/xmlschema-2/#boolean}"""
+    """XMLSchema datatype U{boolean<http://www.w3.org/TR/xmlschema-2/#boolean>}."""
     _XsdBaseType = anySimpleType
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('boolean')
     
@@ -124,9 +120,7 @@ class boolean (basis.simpleTypeDefinition, types.IntType):
 _PrimitiveDatatypes.append(boolean)
 
 class decimal (basis.simpleTypeDefinition, types.FloatType):
-    """decimal.
-    
-    U{http://www.w3.org/TR/xmlschema-2/#decimal}
+    """XMLSchema datatype U{decimal<http://www.w3.org/TR/xmlschema-2/#decimal>}.
 
     @todo: The Python base type for this is wrong. Consider
     U{http://code.google.com/p/mpmath/}.
@@ -142,9 +136,7 @@ class decimal (basis.simpleTypeDefinition, types.FloatType):
 _PrimitiveDatatypes.append(decimal)
 
 class float (basis.simpleTypeDefinition, types.FloatType):
-    """float.
-
-    U{http://www.w3.org/TR/xmlschema-2/#float}"""
+    """XMLSchema datatype U{float<http://www.w3.org/TR/xmlschema-2/#float>}."""
     _XsdBaseType = anySimpleType
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('float')
 
@@ -155,9 +147,7 @@ class float (basis.simpleTypeDefinition, types.FloatType):
 _PrimitiveDatatypes.append(float)
 
 class double (basis.simpleTypeDefinition, types.FloatType):
-    """double.
-
-    U{http://www.w3.org/TR/xmlschema-2/#double}"""
+    """XMLSchema datatype U{double<http://www.w3.org/TR/xmlschema-2/#double>}."""
     _XsdBaseType = anySimpleType
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('double')
 
@@ -171,7 +161,7 @@ import time as python_time
 import datetime
 
 class duration (basis.simpleTypeDefinition, datetime.timedelta):
-    """U{http://www.w3.org/TR/xmlschema-2/#duration}
+    """XMLSchema datatype U{duration<http://www.w3.org/TR/xmlschema-2/#duration>}.
 
     This class uses the Python C{datetime.timedelta} class as its
     underlying representation.  This works fine as long as no months
@@ -401,7 +391,7 @@ class _PyXBDateTimeZone_base (_PyXBDateTime_base):
         return getattr(super(_PyXBDateTimeZone_base, cls), '_SetKeysFromPython_csc', lambda *a,**kw: None)(python_value, kw, fields)
 
 class dateTime (_PyXBDateTimeZone_base, datetime.datetime):
-    """U{http://www.w3.org/TR/xmlschema-2/index.html#dateTime}
+    """XMLSchema datatype U{dateTime<http://www.w3.org/TR/xmlschema-2/#dateTime>}.
 
     This class uses the Python C{datetime.datetime} class as its
     underlying representation.  Note that per the XMLSchema spec, all
@@ -494,7 +484,7 @@ class dateTime (_PyXBDateTimeZone_base, datetime.datetime):
 _PrimitiveDatatypes.append(dateTime)
 
 class time (_PyXBDateTimeZone_base, datetime.time):
-    """U{http://www.w3.org/TR/xmlschema-2/index.html#time}
+    """XMLSchema datatype U{time<http://www.w3.org/TR/xmlschema-2/#time>}.
 
     This class uses the Python C{datetime.time} class as its
     underlying representation.  Note that per the XMLSchema spec, all
@@ -598,7 +588,7 @@ class _PyXBDateOnly_base (_PyXBDateTime_base, datetime.date):
         return value.isoformat()[cls._ISOBegin:cls._ISOEnd]
 
 class date (_PyXBDateOnly_base):
-    """U{http://www.w3.org/TR/xmlschema-2/index.html#date}
+    """XMLSchema datatype U{date<http://www.w3.org/TR/xmlschema-2/#date>}.
 
     This class uses the Python C{datetime.date} class as its
     underlying representation.
@@ -611,7 +601,7 @@ class date (_PyXBDateOnly_base):
 _PrimitiveDatatypes.append(date)
 
 class gYearMonth (_PyXBDateOnly_base):
-    """U{http://www.w3.org/TR/xmlschema-2/index.html#gYearMonth}
+    """XMLSchema datatype U{gYearMonth<http://www.w3.org/TR/xmlschema-2/#gYearMonth>}.
 
     This class uses the Python C{datetime.date} class as its
     underlying representation.
@@ -624,7 +614,7 @@ class gYearMonth (_PyXBDateOnly_base):
 _PrimitiveDatatypes.append(gYearMonth)
 
 class gYear (_PyXBDateOnly_base):
-    """U{http://www.w3.org/TR/xmlschema-2/index.html#gYear}
+    """XMLSchema datatype U{gYear<http://www.w3.org/TR/xmlschema-2/#gYear>}.
 
     This class uses the Python C{datetime.date} class as its
     underlying representation.
@@ -636,7 +626,7 @@ class gYear (_PyXBDateOnly_base):
 _PrimitiveDatatypes.append(gYear)
 
 class gMonthDay (_PyXBDateOnly_base):
-    """U{http://www.w3.org/TR/xmlschema-2/index.html#gMonthDay}
+    """XMLSchema datatype U{gMonthDay<http://www.w3.org/TR/xmlschema-2/#gMonthDay>}.
 
     This class uses the Python C{datetime.date} class as its
     underlying representation.
@@ -648,7 +638,7 @@ class gMonthDay (_PyXBDateOnly_base):
 _PrimitiveDatatypes.append(gMonthDay)
 
 class gDay (_PyXBDateOnly_base):
-    """U{http://www.w3.org/TR/xmlschema-2/index.html#gDay}
+    """XMLSchema datatype U{gDay<http://www.w3.org/TR/xmlschema-2/#gDay>}.
 
     This class uses the Python C{datetime.date} class as its
     underlying representation.
@@ -660,7 +650,7 @@ class gDay (_PyXBDateOnly_base):
 _PrimitiveDatatypes.append(gDay)
 
 class gMonth (_PyXBDateOnly_base):
-    """U{http://www.w3.org/TR/xmlschema-2/index.html#gMonth}
+    """XMLSchema datatype U{gMonth<http://www.w3.org/TR/xmlschema-2/#gMonth>}.
 
     This class uses the Python C{datetime.date} class as its
     underlying representation.
@@ -673,6 +663,7 @@ class gMonth (_PyXBDateOnly_base):
 _PrimitiveDatatypes.append(gMonth)
 
 class hexBinary (basis.simpleTypeDefinition, types.StringType):
+    """XMLSchema datatype U{hexBinary<http://www.w3.org/TR/xmlschema-2/#hexBinary>}."""
     _XsdBaseType = anySimpleType
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('hexBinary')
 
@@ -696,7 +687,9 @@ class hexBinary (basis.simpleTypeDefinition, types.StringType):
 _PrimitiveDatatypes.append(hexBinary)
 
 class base64Binary (basis.simpleTypeDefinition):
-    """@attention: Not implemented"""
+    """XMLSchema datatype U{base64Binary<http://www.w3.org/TR/xmlschema-2/#base64Binary>}.
+
+    @attention: Not implemented """
     _XsdBaseType = anySimpleType
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('base64Binary')
 
@@ -707,6 +700,7 @@ class base64Binary (basis.simpleTypeDefinition):
 _PrimitiveDatatypes.append(base64Binary)
 
 class anyURI (basis.simpleTypeDefinition, unicode):
+    """XMLSchema datatype U{anyURI<http://www.w3.org/TR/xmlschema-2/#anyURI>}."""
     _XsdBaseType = anySimpleType
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('anyURI')
 
@@ -721,6 +715,7 @@ class anyURI (basis.simpleTypeDefinition, unicode):
 _PrimitiveDatatypes.append(anyURI)
 
 class QName (basis.simpleTypeDefinition, unicode):
+    """XMLSchema datatype U{QName<http://www.w3.org/TR/xmlschema-2/#QName>}."""
     _XsdBaseType = anySimpleType
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('QName')
 
@@ -772,6 +767,7 @@ class QName (basis.simpleTypeDefinition, unicode):
 _PrimitiveDatatypes.append(QName)
 
 class NOTATION (basis.simpleTypeDefinition):
+    """XMLSchema datatype U{NOTATION<http://www.w3.org/TR/xmlschema-2/#NOTATION>}."""
     _XsdBaseType = anySimpleType
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('NOTATION')
 
@@ -783,7 +779,7 @@ class NOTATION (basis.simpleTypeDefinition):
 _PrimitiveDatatypes.append(NOTATION)
 
 class normalizedString (string):
-    """See http:///www.w3.org/TR/xmlschema-2/index.html#normalizedString
+    """XMLSchema datatype U{normalizedString<http:///www.w3.org/TR/xmlschema-2/#normalizedString>}.
 
     Normalized strings can't have carriage returns, linefeeds, or
     tabs in them."""
@@ -853,7 +849,7 @@ _DerivedDatatypes.append(normalizedString)
 assert normalizedString.XsdSuperType() == string
 
 class token (normalizedString):
-    """See http:///www.w3.org/TR/xmlschema-2/index.html#token
+    """XMLSchema datatype U{token<http:///www.w3.org/TR/xmlschema-2/#token>}.
 
     Tokens cannot leading or trailing space characters; any
     carriage return, line feed, or tab characters; nor any occurrence
@@ -876,13 +872,15 @@ class token (normalizedString):
 _DerivedDatatypes.append(token)
 
 class language (token):
-    """See http:///www.w3.org/TR/xmlschema-2/index.html#language"""
+    """XMLSchema datatype U{language<http:///www.w3.org/TR/xmlschema-2/#language>}"""
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('language')
     _ValidRE = re.compile('^[a-zA-Z]{1,8}(-[a-zA-Z0-9]{1,8})*$')
 _DerivedDatatypes.append(language)
 
 class NMTOKEN (token):
-    """See http://www.w3.org/TR/2000/WD-xml-2e-20000814.html#NT-Nmtoken
+    """XMLSchema datatype U{NMTOKEN<http:///www.w3.org/TR/xmlschema-2/#NMTOKEN>}.
+
+    See U{http://www.w3.org/TR/2000/WD-xml-2e-20000814.html#NT-Nmtoken}.
 
     NMTOKEN is an identifier that can start with any character that is
     legal in it."""
@@ -895,35 +893,43 @@ class NMTOKENS (basis.STD_list):
 _ListDatatypes.append(NMTOKENS)
 
 class Name (token):
-    """See http://www.w3.org/TR/2000/WD-xml-2e-20000814.html#NT-Name"""
+    """XMLSchema datatype U{Name<http:///www.w3.org/TR/xmlschema-2/#Name>}.
+
+    See U{http://www.w3.org/TR/2000/WD-xml-2e-20000814.html#NT-Name}."""
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('Name')
     _ValidRE = re.compile('^[A-Za-z_:][-_.:A-Za-z0-9]*$')
 _DerivedDatatypes.append(Name)
 
 class NCName (Name):
-    """See http://www.w3.org/TR/1999/REC-xml-names-19990114/index.html#NT-NCName"""
+    """XMLSchema datatype U{NCName<http:///www.w3.org/TR/xmlschema-2/#NCName>}.
+
+    See U{http://www.w3.org/TR/1999/REC-xml-names-19990114/#NT-NCName}."""
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('NCName')
     _ValidRE = re.compile('^[A-Za-z_][-_.A-Za-z0-9]*$')
 _DerivedDatatypes.append(NCName)
 
 class ID (NCName):
+    """XMLSchema datatype U{ID<http:///www.w3.org/TR/xmlschema-2/#ID>}."""
     # Lexical and value space match that of parent NCName
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('ID')
     pass
 _DerivedDatatypes.append(ID)
 
 class IDREF (NCName):
+    """XMLSchema datatype U{IDREF<http:///www.w3.org/TR/xmlschema-2/#IDREF>}."""
     # Lexical and value space match that of parent NCName
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('IDREF')
     pass
 _DerivedDatatypes.append(IDREF)
 
 class IDREFS (basis.STD_list):
+    """XMLSchema datatype U{IDREFS<http:///www.w3.org/TR/xmlschema-2/#IDREFS>}."""
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('IDREFS')
     _ItemType = IDREF
 _ListDatatypes.append(IDREFS)
 
 class ENTITY (NCName):
+    """XMLSchema datatype U{ENTITY<http:///www.w3.org/TR/xmlschema-2/#ENTITY>}."""
     # Lexical and value space match that of parent NCName; we're gonna
     # ignore the additional requirement that it be declared as an
     # unparsed entity
@@ -935,14 +941,13 @@ class ENTITY (NCName):
 _DerivedDatatypes.append(ENTITY)
 
 class ENTITIES (basis.STD_list):
+    """XMLSchema datatype U{ENTITIES<http:///www.w3.org/TR/xmlschema-2/#ENTITIES>}."""
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('ENTITIES')
     _ItemType = ENTITY
 _ListDatatypes.append(ENTITIES)
 
 class integer (basis.simpleTypeDefinition, types.LongType):
-    """integer.
-
-    http://www.w3.org/TR/xmlschema-2/#integer"""
+    """XMLSchema datatype U{integer<http://www.w3.org/TR/xmlschema-2/#integer>}."""
     _XsdBaseType = decimal
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('integer')
 
@@ -953,18 +958,22 @@ class integer (basis.simpleTypeDefinition, types.LongType):
 _DerivedDatatypes.append(integer)
 
 class nonPositiveInteger (integer):
+    """XMLSchema datatype U{nonPositiveInteger<http://www.w3.org/TR/xmlschema-2/#nonPositiveInteger>}."""
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('nonPositiveInteger')
 _DerivedDatatypes.append(nonPositiveInteger)
 
 class negativeInteger (nonPositiveInteger):
+    """XMLSchema datatype U{negativeInteger<http://www.w3.org/TR/xmlschema-2/#negativeInteger>}."""
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('negativeInteger')
 _DerivedDatatypes.append(negativeInteger)
 
 class long (integer):
+    """XMLSchema datatype U{long<http://www.w3.org/TR/xmlschema-2/#long>}."""
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('long')
 _DerivedDatatypes.append(long)
 
 class int (basis.simpleTypeDefinition, types.IntType):
+    """XMLSchema datatype U{int<http://www.w3.org/TR/xmlschema-2/#int>}."""
     _XsdBaseType = long
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('int')
 
@@ -976,34 +985,42 @@ class int (basis.simpleTypeDefinition, types.IntType):
 _DerivedDatatypes.append(int)
 
 class short (int):
+    """XMLSchema datatype U{short<http://www.w3.org/TR/xmlschema-2/#short>}."""
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('short')
 _DerivedDatatypes.append(short)
 
 class byte (short):
+    """XMLSchema datatype U{byte<http://www.w3.org/TR/xmlschema-2/#byte>}."""
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('byte')
 _DerivedDatatypes.append(byte)
 
 class nonNegativeInteger (integer):
+    """XMLSchema datatype U{nonNegativeInteger<http://www.w3.org/TR/xmlschema-2/#nonNegativeInteger>}."""
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('nonNegativeInteger')
 _DerivedDatatypes.append(nonNegativeInteger)
 
 class unsignedLong (nonNegativeInteger):
+    """XMLSchema datatype U{unsignedLong<http://www.w3.org/TR/xmlschema-2/#unsignedLong>}."""
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('unsignedLong')
 _DerivedDatatypes.append(unsignedLong)
 
 class unsignedInt (unsignedLong):
+    """XMLSchema datatype U{unsignedInt<http://www.w3.org/TR/xmlschema-2/#unsignedInt>}."""
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('unsignedInt')
 _DerivedDatatypes.append(unsignedInt)
 
 class unsignedShort (unsignedInt):
+    """XMLSchema datatype U{unsignedShort<http://www.w3.org/TR/xmlschema-2/#unsignedShort>}."""
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('unsignedShort')
 _DerivedDatatypes.append(unsignedShort)
 
 class unsignedByte (unsignedShort):
+    """XMLSchema datatype U{unsignedByte<http://www.w3.org/TR/xmlschema-2/#unsignedByte>}."""
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('unsignedByte')
 _DerivedDatatypes.append(unsignedByte)
 
 class positiveInteger (nonNegativeInteger):
+    """XMLSchema datatype U{positiveInteger<http://www.w3.org/TR/xmlschema-2/#positiveInteger>}."""
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('positiveInteger')
 _DerivedDatatypes.append(positiveInteger)
 
@@ -1011,7 +1028,7 @@ import datatypes_facets
 import content
 
 class anyType (basis.complexTypeDefinition):
-    """http://www.w3.org/TR/2001/REC-xmlschema-1-20010502/#key-urType"""
+    """XMLSchema datatype U{anyType<http://www.w3.org/TR/2001/REC-xmlschema-1-20010502/#key-urType>}."""
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('anyType')
     _ContentTypeTag = basis.complexTypeDefinition._CT_MIXED
     _Abstract = False
