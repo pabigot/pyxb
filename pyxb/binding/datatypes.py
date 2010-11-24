@@ -50,6 +50,7 @@ import pyxb.utils.utility as utility
 import basis
 import re
 import binascii
+import base64
 
 _PrimitiveDatatypes = []
 _DerivedDatatypes = []
@@ -686,16 +687,47 @@ class hexBinary (basis.simpleTypeDefinition, types.StringType):
 
 _PrimitiveDatatypes.append(hexBinary)
 
-class base64Binary (basis.simpleTypeDefinition):
+class base64Binary (basis.simpleTypeDefinition, types.StringType):
     """XMLSchema datatype U{base64Binary<http://www.w3.org/TR/xmlschema-2/#base64Binary>}.
 
-    @attention: Not implemented """
+    See also U{RFC2045<http://tools.ietf.org/html/rfc2045>} and U{RFC4648<http://tools.ietf.org/html/rfc4648>}.
+    """
     _XsdBaseType = anySimpleType
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('base64Binary')
 
+    # base64 is too lenient: it accepts 'ZZZ=' as an encoding of 'e', while
+    # the required XML Schema production requires 'ZQ=='.  Define a regular
+    # expression per section 3.2.16.
+    _B04 = '[AQgw]'
+    _B04S = '(%s ?)' % (_B04,)
+    _B16 = '[AEIMQUYcgkosw048]'
+    _B16S = '(%s ?)' % (_B16,)
+    _B64 = '[ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/]'
+    _B64S = '(%s ?)' % (_B64,)
+
+    __Pattern = '^((' + _B64S + '{4})*((' + _B64S + '{3}' + _B64 + ')|(' + _B64S + '{2}' + _B16S + '=)|(' + _B64S + _B04S + '= ?=)))?$'
+    __Lexical_re = re.compile(__Pattern)
+
+    @classmethod
+    def _ConvertArguments_vx (cls, args, kw):
+        if kw.get('_from_xml', False):
+            xmls = args[0]
+            try:
+                args = (base64.standard_b64decode(xmls),) + args[1:]
+            except TypeError, e:
+                raise BadTypeValueError('%s is not a valid base64Binary string: %s' % (cls.__class__.__name__, str(e)))
+            # This is what it costs to try to be a validating processor.
+            if cls.__Lexical_re.match(xmls) is None:
+                raise BadTypeValueError('%s is not a valid base64Binary string: XML strict failed' % (cls.__class__.__name__,))
+        return args
+
+    @classmethod
+    def XsdLiteral (cls, value):
+        return base64.standard_b64encode(value)
+
     @classmethod
     def XsdValueLength (cls, value):
-        raise NotImplementedError('No length calculation for base64Binary')
+        return len(value)
 
 _PrimitiveDatatypes.append(base64Binary)
 
