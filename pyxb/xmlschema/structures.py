@@ -2177,10 +2177,11 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
                     self._setAttributeWildcard(base_wildcard)
                 else:
                     # 3.2.2.1.2
-                    self._setAttributeWildcard(process_contents=complete_wildcard.processContents(),
-                                               namespace_constraint = Wildcard.IntensionalUnion([complete_wildcard.namespaceConstraint(),
+                    self._setAttributeWildcard(Wildcard (process_contents=complete_wildcard.processContents(),
+                                                         namespace_constraint = Wildcard.IntensionalUnion([complete_wildcard.namespaceConstraint(),
                                                                                                  base_wildcard.namespaceConstraint()]),
-                                               annotation=complete_wildcard.annotation())
+                                                         annotation=complete_wildcard.annotation(),
+                                                         namespace_context=self._namespaceContext()))
             else:
                 # 3.2.2.2
                 self._setAttributeWildcard(complete_wildcard)
