@@ -108,7 +108,7 @@ class TestMGSeq (unittest.TestCase):
         dom = pyxb.utils.domutils.StringToDOM(xml)
         self.assertRaises(UnrecognizedContentError, altwrapper.createFromDOM, dom.documentElement)
         instance = altwrapper(first=[ altsequence._ElementMap['first'].elementBinding()(), altsequence._ElementMap['first'].elementBinding()(), altsequence._ElementMap['first'].elementBinding()() ], third=altsequence._ElementMap['third'].elementBinding()())
-        self.assertRaises(pyxb.DOMGenerationError, ToDOM, instance)
+        self.assertRaises(pyxb.BindingValidationError, ToDOM, instance)
 
     def testTooManyInMiddle (self):
         xml = '<ns1:altwrapper xmlns:ns1="URN:test-mg-sequence"><second_multi/><second_multi/><second_multi/><third/></ns1:altwrapper>'
