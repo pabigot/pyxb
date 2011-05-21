@@ -925,7 +925,7 @@ class ParticleState (pyxb.cscRoot):
         if not self.__particle.satisfiesOccurrences(self.__count):
             self.__termState._verifyComplete(self)
         if not self.__particle.satisfiesOccurrences(self.__count):
-            print 'PS.VC %s incomplete' % (self,)
+            #print 'PS.VC %s incomplete' % (self,)
             raise pyxb.MissingContentError('incomplete')
         if self.__parentState is not None:
             self.__parentState.notifyFailure(self, True)
