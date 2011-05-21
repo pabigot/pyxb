@@ -186,13 +186,7 @@ class ReferenceEnumerationMember (ReferenceLiteral):
             assert value is not None
             self.enumerationElement = facet_instance.elementForValue(value)
         assert isinstance(self.enumerationElement, facets._EnumerationElement)
-        if self.enumerationElement.tag() is None:
-            self.enumerationElement._setTag(utility.MakeIdentifier(self.enumerationElement.unicodeValue()))
-        binding_tag = utility.PrepareIdentifier(self.enumerationElement.tag(), kw['class_unique'], kw['class_keywords'])
-        if self.enumerationElement.bindingTag() is None:
-            # Boy I hope this is the first time generating one of
-            # thes, so this is in the owner class
-            self.enumerationElement._setBindingTag(binding_tag)
+        assert self.enumerationElement.tag() is not None
 
         # If no type definition was provided, use the value datatype
         # for the facet.
@@ -200,7 +194,7 @@ class ReferenceEnumerationMember (ReferenceLiteral):
 
         super(ReferenceEnumerationMember, self).__init__(**kw)
 
-        self.setLiteral(self._addTypePrefix(binding_tag, **kw))
+        self.setLiteral(self._addTypePrefix(self.enumerationElement.tag(), **kw))
 
 def pythonLiteral (value, **kw):
     # For dictionaries, apply translation to all values (not keys)
@@ -324,6 +318,8 @@ def GenerateContentParticle (ctd, particle, binding_module, **kw):
     return (particle_val, lines)
 
 def _useEnumerationTags (td):
+    if td is None:
+        return False
     assert isinstance(td, xs.structures.SimpleTypeDefinition)
     ptd = td.baseTypeDefinition()
     python_support = None
@@ -376,7 +372,7 @@ def GenerateFacets (td, generator, **kw):
             for i in fi.items():
                 if isinstance(i, facets._EnumerationElement):
                     enum_config = '%s.addEnumeration(unicode_value=%s, tag=%s)' % binding_module.literal( ( facet_var, i.unicodeValue(), i.tag() ), **kw)
-                    if gen_enum_tag:
+                    if gen_enum_tag and (i.tag() is not None):
                         enum_member = ReferenceEnumerationMember(type_definition=td, facet_instance=fi, enumeration_element=i, **kw)
                         outf.write("%s = %s\n" % (binding_module.literal(enum_member, **kw), enum_config))
                         if fi.enumPrefix() is not None:
@@ -387,7 +383,8 @@ def GenerateFacets (td, generator, **kw):
                     outf.write("%s.addPattern(pattern=%s)\n" % binding_module.literal( (facet_var, i.pattern ), **kw))
     if gen_enum_tag and (xs.structures.SimpleTypeDefinition.VARIETY_union == td.variety()):
         # If the union has enumerations of its own, there's no need to
-        # inherit anything.
+        # inherit anything, because they supersede anything implicitly
+        # inherited.
         fi = td.facets().get(facets.CF_enumeration)
         if fi is None:
             # Need to expose any enumerations in members up in this class
@@ -402,7 +399,7 @@ def GenerateFacets (td, generator, **kw):
                     etd = i.enumeration().ownerTypeDefinition()
                     enum_member = ReferenceEnumerationMember(type_definition=td, facet_instance=fi, enumeration_element=i, **kw)
                     outf.write("%-50s%s\n" % ('%s = %s' % binding_module.literal( (enum_member, i.unicodeValue()) ),
-                                              '# originally %s.%s' % (binding_module.literal(etd), i.bindingTag())))
+                                              '# originally %s.%s' % (binding_module.literal(etd), i.tag())))
     if 2 <= len(facet_instances):
         map_args = ",\n   ".join(facet_instances)
     else:
@@ -838,20 +835,15 @@ def GenerateED (ed, generator, **kw):
 ''', **template_map))
 
 def _PrepareSimpleTypeDefinition (std, generator, nsm, module_context):
-    ptd = std.primitiveTypeDefinition(throw_if_absent=False)
     std._templateMap()['_unique'] = nsm.uniqueInClass(std)
-    if (ptd is not None) and ptd.hasPythonSupport():
-        # Only generate enumeration constants for named simple
-        # type definitions that are fundamentally xsd:string
-        # values.
-        if issubclass(ptd.pythonSupport(), pyxb.binding.datatypes.string):
-            enum_facet = std.facets().get(pyxb.binding.facets.CF_enumeration, None)
-            if (enum_facet is not None) and (std == enum_facet.ownerDatatype()) and (std.expandedName() is not None):
-                for ei in enum_facet.items():
-                    assert ei.tag() is None, '%s already has a tag' % (ei,)
-                    ei._setTag(utility.PrepareIdentifier(ei.unicodeValue(), nsm.uniqueInClass(std)))
-                    #print ' Enum %s represents %s' % (ei.tag(), ei.unicodeValue())
-            #print '%s unique: %s' % (std.expandedName(), nsm.uniqueInClass(std))
+    if _useEnumerationTags(std):
+        enum_facet = std.facets().get(pyxb.binding.facets.CF_enumeration, None)
+        if (enum_facet is not None) and (std == enum_facet.ownerTypeDefinition()):
+            for ei in enum_facet.items():
+                assert ei.tag() is None, '%s already has a tag' % (ei,)
+                ei._setTag(utility.PrepareIdentifier(ei.unicodeValue(), nsm.uniqueInClass(std)))
+                #print ' Enum %s.%s represents %s' % (std, ei.tag(), ei.unicodeValue())
+        #print '%s unique: %s' % (std.expandedName(), nsm.uniqueInClass(std))
 
 def _PrepareComplexTypeDefinition (ctd, generator, nsm, module_context):
     #print '%s represents %s in %s' % (ctd.nameInBinding(), ctd.expandedName(), nsm.namespace())

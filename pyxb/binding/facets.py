@@ -471,12 +471,6 @@ class _EnumerationElement (object):
         """Set the tag to be used for this enumeration."""
         self.__tag = tag
 
-    __bindingTag = None
-    def bindingTag (self):
-        return self.__bindingTag
-    def _setBindingTag (self, binding_tag):
-        self.__bindingTag = binding_tag
-
     __enumeration = None
     def enumeration (self):
         """A reference to the L{CF_enumeration} instance that owns this element."""
@@ -615,9 +609,9 @@ class _WhiteSpace_enum (datatypes.NMTOKEN, _Enumeration_mixin):
     """The enumeration used to constrain the whiteSpace facet"""
     pass
 _WhiteSpace_enum._CF_enumeration = CF_enumeration(value_datatype=_WhiteSpace_enum)
-_WhiteSpace_enum.preserve = _WhiteSpace_enum._CF_enumeration.addEnumeration(unicode_value=u'preserve')
-_WhiteSpace_enum.replace = _WhiteSpace_enum._CF_enumeration.addEnumeration(unicode_value=u'replace')
-_WhiteSpace_enum.collapse = _WhiteSpace_enum._CF_enumeration.addEnumeration(unicode_value=u'collapse')
+_WhiteSpace_enum.preserve = _WhiteSpace_enum._CF_enumeration.addEnumeration(unicode_value=u'preserve', tag='preserve')
+_WhiteSpace_enum.replace = _WhiteSpace_enum._CF_enumeration.addEnumeration(unicode_value=u'replace', tag='replace')
+_WhiteSpace_enum.collapse = _WhiteSpace_enum._CF_enumeration.addEnumeration(unicode_value=u'collapse', tag='collapse')
 # NOTE: For correctness we really need to initialize the facet map for
 # WhiteSpace_enum, even though at the moment it isn't necessary.  We
 # can't right now, because its parent datatypes.NMTOKEN hasn't been
