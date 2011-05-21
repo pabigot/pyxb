@@ -428,7 +428,10 @@ def GenerateSTD (std, generator):
         parent_classes.append('pyxb.binding.basis.enumeration_mixin')
         
     template_map = { }
-    template_map['std'] = binding_module.literal(std, **kw)
+    binding_name = template_map['std'] = binding_module.literal(std, **kw)
+    if (std.expandedName() is not None) and (std.expandedName().localName() != binding_name):
+        print 'Simple type %s renamed to %s' % (std.expandedName(), binding_name)
+
     template_map['superclasses'] = ''
     if 0 < len(parent_classes):
         template_map['superclasses'] = ', '.join(parent_classes)
@@ -507,7 +510,9 @@ def elementDeclarationMap (ed, binding_module, **kw):
     template_map['name'] = unicode(ed.expandedName())
     template_map['namespaceReference'] = binding_module.literal(ed.bindingNamespace(), **kw)
     if (ed.SCOPE_global == ed.scope()):
-        template_map['class'] = binding_module.literal(ed, **kw)
+        binding_name = template_map['class'] = binding_module.literal(ed, **kw)
+        if ed.expandedName().localName() != binding_name:
+            print 'Element %s renamed to %s' % (ed.expandedName(), binding_name)
         template_map['localName'] = binding_module.literal(ed.name(), **kw)
         template_map['map_update'] = templates.replaceInText("%{namespaceReference}.addCategoryObject('elementBinding', %{localName}, %{class})", **template_map)
     else:
@@ -540,7 +545,10 @@ def GenerateCTD (ctd, generator, **kw):
     content_type = None
     prolog_template = None
     template_map = { }
-    template_map['ctd'] = binding_module.literal(ctd, **kw)
+    binding_name = template_map['ctd'] = binding_module.literal(ctd, **kw)
+    if (ctd.expandedName() is not None) and (ctd.expandedName().localName() != binding_name):
+        print 'Complex type %s renamed to %s' % (ctd.expandedName(), binding_name)
+    
     base_type = ctd.baseTypeDefinition()
     content_type_tag = ctd._contentTypeTag()
 
@@ -631,7 +639,7 @@ class %{ctd} (%{superclass}):
                 continue
 
             if ed.expandedName().localName() != ef_map['id']:
-                print 'Element %s.%s renamed to %s' % (ctd.expandedName(), ed.expandedName(), ef_map['id'])
+                print 'Element use %s.%s renamed to %s' % (ctd.expandedName(), ed.expandedName(), ef_map['id'])
             definitions.append(templates.replaceInText('''
     # Element %{name} uses Python identifier %{id}
     %{use} = pyxb.binding.content.ElementUse(%{name_expr}, '%{id}', '%{key}', %{is_plural}%{aux_init})

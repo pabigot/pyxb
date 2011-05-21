@@ -64,12 +64,11 @@ def MakeIdentifier (s, camel_case=False):
     return s
 
 # Note that types like int and float are not keywords
-_Keywords = frozenset( ( "and", "del", "from", "not", "while", "as", "elif", "global",
-              "or", "with", "assert", "else", "if", "pass", "yield",
-              "break", "except", "import", "print", "class", "exec",
-              "in", "raise", "continue", "finally", "is", "return",
-              "def", "for", "lambda", "try",
-              "None" ) )
+_Keywords = frozenset( (
+        "and", "as", "assert", "break", "class", "continue", "def", "del",
+        "elif", "else", "except", "exec", "finally", "for", "from", "global",
+        "if", "import", "in", "is", "lambda", "not", "or", "pass", "print",
+        "raise", "return", "try", "while", "with", "yield" ) )
 """The keywords reserved for Python."""
 
 def DeconflictKeyword (s, aux_keywords=frozenset()):
