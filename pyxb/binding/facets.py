@@ -62,13 +62,6 @@ class Facet (pyxb.cscRoot):
         STD."""
         return self.__ownerTypeDefinition
 
-    __ownerDatatype = None
-    def ownerDatatype (self):
-        """The PyXB_simpleTypeDefinition subclass to which this facet belongs."""
-        return self.__ownerDatatype
-    def _ownerDatatype (self, owner_datatype):
-        self.__ownerDatatype = owner_datatype
-
     # The default valueDatatype to use for instances of this class.
     # This is overridden in subclasses that do not use late value
     # datatype bindings.
@@ -117,18 +110,15 @@ class Facet (pyxb.cscRoot):
                          the keywords are set to a default.
         @keyword base_type_definition:
         @keyword owner_type_definition:
-        @keyword owner_datatype:
         @keyword value_datatype:
         """
 
         if not kw.get('_reset', False):
             kw.setdefault('base_type_definition', self.__baseTypeDefinition)
             kw.setdefault('owner_type_definition', self.__ownerTypeDefinition)
-            kw.setdefault('owner_datatype', self.__ownerDatatype)
             kw.setdefault('value_datatype', self.__valueDatatype)
         self.__baseTypeDefinition = kw.get('base_type_definition', None)
         self.__ownerTypeDefinition = kw.get('owner_type_definition', None)
-        self.__ownerDatatype = kw.get('owner_datatype', None)
         self.__valueDatatype = kw.get('value_datatype', self._ValueDatatype)
         # Verify that there's enough information that we should be
         # able to identify a PST suitable for representing facet
