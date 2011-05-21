@@ -988,8 +988,7 @@ class ParticleState (pyxb.cscRoot):
             if not self.__particle.meetsMinimum(self.__count):
                 # @TODO@ Use better exception; changing this will require
                 # changing some unit tests.
-                #underflow_exc = pyxb.MissingElementError('too few')
-                underflow_exc = pyxb.UnrecognizedContentError('too few')
+                underflow_exc = pyxb.MissingElementError(content=value, container=instance)
         return (consumed, underflow_exc)
 
     def __str__ (self):

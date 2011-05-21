@@ -118,14 +118,6 @@ class BadDocumentError (PyXBException):
 
 class StructuralBadDocumentError (BadDocumentError):
     """Raised when processing document and the content model is not satisfied."""
-
-class AbstractElementError (StructuralBadDocumentError):
-    """Raised when attempting to construct an element that is abstract."""
-    pass
-
-class UnrecognizedContentError (StructuralBadDocumentError):
-    """Raised when processing document and an element does not match the content model."""
-
     @property
     def element_use (self):
         """The L{pyxb.binding.content.ElementUse} instance to which the content should conform, if available."""
@@ -141,23 +133,34 @@ class UnrecognizedContentError (StructuralBadDocumentError):
         """The value which could not be reconciled with the content model."""
         return self.__content
     
-    def __init__ (self, content, **kw):
-        """Raised when processing document and an element does not match the content model.
+    def __init__ (self, *args, **kw):
+        """Raised when processing document and the content model is not satisfied.
 
         @param content : The value that could not be reconciled with the content model
         @keyword container : Optional binding instance into which the content was to be assigned
         @keyword element_use : Optional reference to an element use identifying the element to which the value was to be reconciled
         """
-        self.__content = content
-        self.__container = kw.get('container')
-        self.__elementUse = kw.get('element_use')
-        if self.__container is not None:
-            kw.setdefault('message', '%s cannot accept wildcard content %s' % (self.__container, self.__content))
-        elif self.__elementUse is not None:
-            kw.setdefault('message', '%s not consistent with content model for %s' % (self.__content, self.__elementUse))
-        else:
-            kw.setdefault('message', str(self.__content))
-        StructuralBadDocumentError.__init__(self, **kw)
+        self.__content = kw.pop('content', None)
+        if args:
+            self.__content = args[0]
+        self.__container = kw.pop('container', None)
+        self.__elementUse = kw.pop('element_use', None)
+        if self.__content is not None:
+            if self.__container is not None:
+                kw.setdefault('message', '%s cannot accept wildcard content %s' % (self.__container, self.__content))
+            elif self.__elementUse is not None:
+                kw.setdefault('message', '%s not consistent with content model for %s' % (self.__content, self.__elementUse))
+            else:
+                kw.setdefault('message', str(self.__content))
+        BadDocumentError.__init__(self, **kw)
+
+class AbstractElementError (StructuralBadDocumentError):
+    """Raised when attempting to construct an element that is abstract."""
+    pass
+
+class UnrecognizedContentError (StructuralBadDocumentError):
+    """Raised when processing document and an element does not match the content model."""
+    pass
 
 class UnrecognizedElementError (UnrecognizedContentError):
     """Raised when creating an instance from a document with an unrecognized root element."""
@@ -186,10 +189,11 @@ class UnrecognizedElementError (UnrecognizedContentError):
                 self.__elementName = pyxb.namespace.ExpandedName(self.__domNode.namespaceURI, self.__domNode.localName)
             else:
                 raise LogicError('No source for element_name  in UnrecognizedElementError')
+        kw['content'] = self.__domNode
         kw.setdefault('message', 'No element binding available for %s' % (self.__elementName,))
-        UnrecognizedContentError.__init__(self, self.__domNode, **kw)
+        UnrecognizedContentError.__init__(self, **kw)
 
-class MissingElementError (StructuralBadDocumentError):
+class MissingElementError (UnrecognizedContentError):
     """Content requires an element that is not present."""
     pass
 
@@ -229,7 +233,7 @@ class NotAnElementError (UnrecognizedContentError):
         self.__elementName = element_name
         self.__containingType = containing_type
         kw.setdefault('message', 'Unable to locate element %s in type %s' % (element_name, self.__containingType._ExpandedName))
-        UnrecognizedContentError.__init__(self, None, **kw)
+        UnrecognizedContentError.__init__(self, **kw)
 
 class UnrecognizedAttributeError (BadDocumentError):
     """Raised when an attribute is found that is not sanctioned by the content model."""
