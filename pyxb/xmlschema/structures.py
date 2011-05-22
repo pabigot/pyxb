@@ -5036,7 +5036,7 @@ class Schema (_SchemaComponent_mixin):
 
     def __processRedefine (self, node):
         self.__requireInProlog(node.nodeName)
-        raise IncompleteImplementationException('redefine not implemented')
+        raise pyxb.IncompleteImplementationError('redefine not implemented')
 
     def __processAnnotation (self, node):
         an = self._addAnnotation(Annotation.CreateFromDOM(node))
