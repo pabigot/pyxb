@@ -14,7 +14,7 @@ env = soapenv.Envelope(soapenv.Body(weather.GetCityForecastByZIP(ZIP=str(zip))))
 file('request.xml', 'w').write(env.toxml())
 
 # Invoke the service
-uri = urllib2.Request('http://ws.cdyne.com/WeatherWS/Weather.asmx',
+uri = urllib2.Request('http://wsf.cdyne.com/WeatherWS/Weather.asmx',
                       env.toxml(),
                       { 'SOAPAction' : "http://ws.cdyne.com/WeatherWS/GetCityForecastByZIP", 'Content-Type': 'text/xml' } )
 rxml = urllib2.urlopen(uri).read()
