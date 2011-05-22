@@ -977,6 +977,7 @@ def GetMatchingFiles (path, pattern=None, default_path_wildcard=None, default_pa
         if default_path_wildcard == path:
             if default_path is not None:
                 path_set[0:0] = default_path.split(':')
+                default_path = None
             continue
         recursive = False
         if (prefix_pattern is not None) and path.startswith(prefix_pattern):
