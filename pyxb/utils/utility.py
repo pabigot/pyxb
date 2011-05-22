@@ -553,17 +553,44 @@ def TextFromURI (uri, archive_directory=None):
 
     If the uri does not include a scheme (e.g., C{http:}), it is
     assumed to be a file path on the local system."""
+    import urllib
     import urllib2
-    xmls = None
+    stream = None
+    exc = None
+    # Only something that has a colon is a non-file URI.  Some things
+    # that have a colon are a file URI (sans schema).  Prefer urllib2,
+    # but allow urllib (which apparently works better on Windows).
+    if 0 <= uri.find(':'):
+        try:
+            stream = urllib2.urlopen(uri)
+        except Exception, e:
+            exc = e
+        if stream is None:
+            try:
+                stream = urllib.urlopen(uri)
+                exc = None
+            except:
+                # Prefer urllib exception
+                pass
+    if stream is None:
+        # No go as URI; give file a chance
+        try:
+            stream = file(uri)
+            exc = None
+        except Exception, e:
+            if exc is None:
+                exc = e
+    if exc is not None:
+        print 'TextFromURI: open %s caught: %s' % (uri, exc)
+        raise exc
     try:
-        if 0 <= uri.find(':'):
-            xmls = urllib2.urlopen(uri).read()
-        else:
-            xmls = file(uri).read()
+        # Protect this in case whatever stream is doesn't have an fp
+        # attribute.
+        if isinstance(stream, file) or isinstance(stream.fp, file):
             archive_directory = None
-    except Exception, e:
-        print 'TextFromURI: open %s caught: %s' % (uri, e)
-        raise
+    except:
+        pass
+    xmls = stream.read()
     if archive_directory:
         base_name = os.path.basename(os.path.normpath(urlparse.urlparse(uri)[2]))
         counter = 1
