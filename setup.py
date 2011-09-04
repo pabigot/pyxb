@@ -170,7 +170,8 @@ package_data = {}
 init_re = re.compile('^__init__\.py$')
 wxs_re = re.compile('^.*\.wxs$')
 
-bundle_base = os.path.join(os.path.dirname(__file__), 'pyxb', 'bundles')
+setup_path = os.path.dirname(__file__)
+bundle_base = os.path.join(setup_path, 'pyxb', 'bundles')
 possible_bundles = []
 try:
     possible_bundles.extend(os.listdir(bundle_base))
@@ -184,7 +185,8 @@ for possible_bundle in possible_bundles:
     b_data = { }
     for fp in pyxb.utils.utility.GetMatchingFiles('%s//' % (bundle_root,), init_re):
         bundle_path = os.path.dirname(os.path.normpath(fp))
-        package = bundle_path.replace(os.path.sep, '.')
+        package_relpath = os.path.relpath(bundle_path, setup_path)
+        package = package_relpath.replace(os.path.sep, '.')
         b_packages.append(package)
         wxs_files = [os.path.basename(_f) for _f in pyxb.utils.utility.GetMatchingFiles(bundle_path, wxs_re) ]
         if wxs_files:
