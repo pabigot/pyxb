@@ -903,8 +903,15 @@ class BindingIO (object):
         self.__templateMap.update({ 'date' : str(datetime.datetime.now()),
                                     'filePath' : self.__bindingFilePath,
                                     'binding_module' : binding_module,
+                                    'binding_tag' : binding_module.bindingTag(),
                                     'pyxbVersion' : pyxb.__version__ })
         self.__stringIO = StringIO.StringIO()
+        if self.__bindingFile:
+            self.__bindingFile.write(self.expand('''# %{filePath}
+# PyXB bindings for %{binding_tag}
+# Generated %{date} by PyXB version %{pyxbVersion}
+'''))
+            self.__bindingFile.flush()
 
     def bindingFile (self):
         return self.__bindingFile
@@ -1006,6 +1013,19 @@ class _ModuleNaming_mixin (object):
 
     def _moduleUID_vx (self):
         return str(id(self))
+
+    def bindingTag (self):
+        """Return a distinct string recorded in the first 4096 bytes of the binding file.
+
+        This is used to ensure uniqueness and avoid overwriting data
+        belonging to a different binding.  The return value comprises
+        the class-specialized L{_bindingTagPrefix_vx} with the
+        L{moduleUID}.
+        """
+        return '%s:%s' % (self._bindingTagPrefix_vx(), self.moduleUID())
+
+    def _bindingTagPrefix_vx (self):
+        raise pyxb.LogicError('Subclass %s does not define _bindingTagPrefix_vx' % (type(self),))
 
     def moduleContents (self):
         template_map = {}
@@ -1235,6 +1255,9 @@ class NamespaceModule (_ModuleNaming_mixin):
         return cls.__ComponentModuleMap.get(component)
     __ComponentModuleMap = { }
 
+    def _bindingTagPrefix_vx (self):
+        return 'NM'
+
     def _moduleUID_vx (self):
         if self.namespace().isAbsentNamespace():
             return 'Absent'
@@ -1270,10 +1293,7 @@ class NamespaceModule (_ModuleNaming_mixin):
         return kw
 
     def _finalizeModuleContents_vx (self, template_map):
-        self.bindingIO().prolog().append(self.bindingIO().expand('''# %{filePath}
-# PyXB bindings for NamespaceModule
-# NSM:%{module_uid}
-# Generated %{date} by PyXB version %{pyxbVersion}
+        self.bindingIO().prolog().append(self.bindingIO().expand('''
 import pyxb
 import pyxb.binding
 import pyxb.binding.saxer
@@ -1361,14 +1381,15 @@ class NamespaceGroupModule (_ModuleNaming_mixin):
         kw = { 'moduleType' : 'namespaceGroup' }
         return kw
 
+    def _bindingTagPrefix_vx (self):
+        return 'NGM'
+
     def _finalizeModuleContents_vx (self, template_map):
         text = []
         for nsm in self.namespaceModules():
             text.append('#  %s %s' % (nsm.namespace(), nsm.namespace().prefix()))
         template_map['namespace_comment'] = "\n".join(text)
-        self.bindingIO().prolog().append(self.bindingIO().expand('''# %{filePath}
-# PyXB bindings for NamespaceGroupModule
-# NGM:%{module_uid}
+        self.bindingIO().prolog().append(self.bindingIO().expand('''
 # Incorporated namespaces:
 %{namespace_comment}
 
@@ -1495,7 +1516,7 @@ class Generator (object):
                 module_elts.append(pyxb.utils.utility.PrepareIdentifier('nsgroup', in_use, protected=True))
                 try:
                     binding_file_path = self.__moduleFilePath(module_elts)
-                    print 'Attempting group at %s' % (binding_file_path,)
+                    print 'Attempting group %s uid %s at %s' % (module, module.moduleUID(), binding_file_path)
                     binding_file = pyxb.utils.utility.OpenOrCreate(binding_file_path, tag=module.moduleUID())
                     break
                 except OSError, e:
