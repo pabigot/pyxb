@@ -910,7 +910,7 @@ class BindingIO (object):
             self.__bindingFile.write(self.expand('''# %{filePath}
 # PyXB bindings for %{binding_tag}
 # Generated %{date} by PyXB version %{pyxbVersion}
-'''))
+%{binding_preface}''', binding_preface=binding_module.bindingPreface()))
             self.__bindingFile.flush()
 
     def bindingFile (self):
@@ -1026,6 +1026,14 @@ class _ModuleNaming_mixin (object):
 
     def _bindingTagPrefix_vx (self):
         raise pyxb.LogicError('Subclass %s does not define _bindingTagPrefix_vx' % (type(self),))
+
+    def bindingPreface (self):
+        """Return a block of binding text (comment or code) serving as a preface.
+
+        Normally this should describe the module contents."""
+        return self._bindingPreface_vx()
+    def _bindingPreface_vx (self):
+        return ''
 
     def moduleContents (self):
         template_map = {}
@@ -1258,6 +1266,14 @@ class NamespaceModule (_ModuleNaming_mixin):
     def _bindingTagPrefix_vx (self):
         return 'NM'
 
+    def _bindingPreface_vx (self):
+        ns = self.namespace()
+        rvl = ['# Namespace %s' % (ns,)]
+        if ns.prefix() is not None:
+            rvl.append(' [xmlns:%s]' % (ns.prefix(),))
+        rvl.append('\n')
+        return ''.join(rvl)
+
     def _moduleUID_vx (self):
         if self.namespace().isAbsentNamespace():
             return 'Absent'
@@ -1384,15 +1400,15 @@ class NamespaceGroupModule (_ModuleNaming_mixin):
     def _bindingTagPrefix_vx (self):
         return 'NGM'
 
-    def _finalizeModuleContents_vx (self, template_map):
-        text = []
+    def _bindingPreface_vx (self):
+        rvl = ['# Group contents:\n' ]
         for nsm in self.namespaceModules():
-            text.append('#  %s %s' % (nsm.namespace(), nsm.namespace().prefix()))
-        template_map['namespace_comment'] = "\n".join(text)
-        self.bindingIO().prolog().append(self.bindingIO().expand('''
-# Incorporated namespaces:
-%{namespace_comment}
+            rvl.append(nsm.bindingPreface())
+        rvl.append('\n')
+        return ''.join(rvl)
 
+    def _finalizeModuleContents_vx (self, template_map):
+        self.bindingIO().prolog().append(self.bindingIO().expand('''
 import pyxb
 import pyxb.binding
 import pyxb.utils.utility
