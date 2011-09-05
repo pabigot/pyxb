@@ -2309,7 +2309,7 @@ class Generator (object):
             if mr.namespace().isBuiltinNamespace() and not self.allowBuiltinGeneration():
                 continue
             namespaces.add(mr.namespace())
-        pyxb.namespace.resolution.ResolveSiblingNamespaces(namespaces, self.generationUID())
+        pyxb.namespace.resolution.ResolveSiblingNamespaces(namespaces)
 
         # Mark module visibility.  Entry-point namespaces default to
         # public.

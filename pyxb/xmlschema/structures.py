@@ -2079,7 +2079,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
                 if agd is None:
                     raise pyxb.SchemaValidationError('Attribute group %s cannot be found' % (ag_en,))
                 if not agd.isResolved():
-                    self._queueForResolution('unresolved attribute group')
+                    self._queueForResolution('unresolved attribute group', depends_on=agd)
                     return self
                 self.__attributeGroups.append(agd)
                 uses_c2.update(agd.attributeUses())
@@ -2087,11 +2087,12 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
             uses_c1c2 = uses_c1.union(uses_c2)
             for au in uses_c1c2:
                 if not au.isResolved():
-                    self._queueForResolution('attribute use not resolved')
+                    self._queueForResolution('attribute use not resolved', depends_on=au)
                     return self
-                ad_en = au.attributeDeclaration().expandedName()
-                if not au.attributeDeclaration().isResolved():
-                    self._queueForResolution('unresolved attribute declaration %s from base type' % (ad_en,))
+                ad = au.attributeDeclaration()
+                if not ad.isResolved():
+                    ad_en = ad.expandedName()
+                    self._queueForResolution('unresolved attribute declaration %s from base type' % (ad_en,), depends_on=ad)
                     return self
     
             self.__usesC1C2 = frozenset([ _u._adaptForScope(self) for _u in uses_c1c2 ])
@@ -2109,11 +2110,12 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
             assert self.__baseTypeDefinition.isResolved()
             for au in uses_c3:
                 if not au.isResolved():
-                    self._queueForResolution('unresolved attribute use from base type')
+                    self._queueForResolution('unresolved attribute use from base type', depends_on=au)
                     return self
-                ad_en = au.attributeDeclaration().expandedName()
-                if not au.attributeDeclaration().isResolved():
-                    self._queueForResolution('unresolved attribute declaration %s from base type' % (ad_en,))
+                ad = au.attributeDeclaration()
+                if not ad.isResolved():
+                    ad_en = ad.expandedName()
+                    self._queueForResolution('unresolved attribute declaration %s from base type' % (ad_en,), depends_on=ad)
                     return self
                 assert not au.attributeDeclaration()._scopeIsIndeterminate()
             
@@ -2498,7 +2500,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
             if not base_type.isResolved():
                 # Have to delay resolution until the type this
                 # depends on is available.
-                self._queueForResolution('unresolved base type %s' % (base_en,))
+                self._queueForResolution('unresolved base type %s' % (base_en,), depends_on=base_type)
                 return self
             self.__baseTypeDefinition = base_type
 
@@ -3532,7 +3534,7 @@ class IdentityConstraintDefinition (_SchemaComponent_mixin, _NamedComponent_mixi
             refer_en = self._namespaceContext().interpretQName(self.__referAttribute)
             refer = refer_en.identityConstraintDefinition()
             if refer is None:
-                self._queueForResolution('Identity constraint definition %s cannot be found' % (refer_en,))
+                self._queueForResolution('Identity constraint definition %s cannot be found' % (refer_en,), depends_on=refer)
                 return self
             self.__referencedKey = refer
         self.__isResolved = True
@@ -4286,7 +4288,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
         # has been completed.
         assert self.__baseTypeDefinition != self
         if not self.__baseTypeDefinition.isResolved():
-            self._queueForResolution('base type %s is not resolved' % (self.__baseTypeDefinition,))
+            self._queueForResolution('base type %s is not resolved' % (self.__baseTypeDefinition,), depends_on=self.__baseTypeDefinition)
             return self
         if variety is None:
             # 3.14.1 specifies that the variety is the variety of the base
@@ -4352,7 +4354,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
                 for mt in self.__memberTypeDefinitions:
                     assert isinstance(mt, SimpleTypeDefinition)
                     if not mt.isResolved():
-                        self._queueForResolution('member type not resolved')
+                        self._queueForResolution('member type not resolved', depends_on=mt)
                         return self
                     if self.VARIETY_union == mt.variety():
                         mtd.extend(mt.memberTypeDefinitions())

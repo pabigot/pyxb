@@ -64,12 +64,12 @@ class _Resolvable_mixin (pyxb.cscRoot):
         """
         raise pyxb.LogicError('Resolution not implemented in %s' % (self.__class__,))
 
-    def _queueForResolution (self, why=None):
+    def _queueForResolution (self, why=None, depends_on=None):
         """Short-hand to requeue an object if the class implements _namespaceContext().
         """
         if (why is not None) and self._TraceResolution:
-            print 'Resolution delayed for %s: %s' % (self, why)
-        self._namespaceContext().queueForResolution(self)
+            print 'Resolution delayed for %s: %s\n\tDepends on: %s' % (self, why, depends_on)
+        self._namespaceContext().queueForResolution(self, depends_on)
 
 class _NamespaceResolution_mixin (pyxb.cscRoot):
     """Mix-in that aggregates those aspects of XMLNamespaces relevant to
@@ -88,12 +88,18 @@ class _NamespaceResolution_mixin (pyxb.cscRoot):
     # resolved.
     __unresolvedComponents = None
 
+    # A map from Namespace._Resolvable_mixin instances in
+    # __unresolvedComponents to sets of other unresolved objects on which they
+    # depend.
+    __unresolvedDependents = None
+
     def _reset (self):
         """CSC extension to reset fields of a Namespace.
 
         This one handles component-resolution--related data."""
         getattr(super(_NamespaceResolution_mixin, self), '_reset', lambda *args, **kw: None)()
         self.__unresolvedComponents = []
+        self.__unresolvedDependents = {}
         self.__importedNamespaces = set()
         self.__referencedNamespaces = set()
 
@@ -138,7 +144,7 @@ class _NamespaceResolution_mixin (pyxb.cscRoot):
                 rn.update(mr.referencedNamespaces())
         return rn
 
-    def queueForResolution (self, resolvable):
+    def queueForResolution (self, resolvable, depends_on=None):
         """Invoked to note that a component may have references that will need
         to be resolved.
 
@@ -146,12 +152,21 @@ class _NamespaceResolution_mixin (pyxb.cscRoot):
         which, in the course of resolution, are found to depend on another
         unresolved component.
 
-        The provided object must be an instance of _Resolvable_mixin.  This
-        method returns the resolvable object.
+        @param resolvable: An instance of L{_Resolvable_mixin} that is later to
+        be resolved.
+
+        @keyword depends_on: C{None}, or an instance of L{_Resolvable_mixin}
+        which C{resolvable} requires to be resolved in order to resolve
+        itself.
+        
+        @return C{resolvable}
         """
         assert isinstance(resolvable, _Resolvable_mixin)
         if not resolvable.isResolved():
+            assert depends_on is None or isinstance(depends_on, _Resolvable_mixin)
             self.__unresolvedComponents.append(resolvable)
+            if depends_on is not None and not depends_on.isResolved():
+                self.__unresolvedDependents.setdefault(resolvable, set()).add(depends_on)
         return resolvable
 
     def needsResolution (self):
@@ -169,6 +184,11 @@ class _NamespaceResolution_mixin (pyxb.cscRoot):
             else:
                 assert isinstance(replacement_def, _Resolvable_mixin)
                 self.__unresolvedComponents[index] = replacement_def
+            # Rather than assume the replacement depends on the same
+            # resolvables as the original, just wipe the dependency record:
+            # it'll get recomputed later if it's still important.
+            if existing_def in self.__unresolvedDependents:
+                del self.__unresolvedDependents[existing_def]
         except ValueError:
             pass
         return getattr(super(_NamespaceResolution_mixin, self), '_replaceComponent_csc', lambda *args, **kw: replacement_def)(existing_def, replacement_def)
@@ -202,6 +222,7 @@ class _NamespaceResolution_mixin (pyxb.cscRoot):
             #assert num_loops < 18
             
             self.__unresolvedComponents = []
+            self.__unresolvedDependents = {}
             for resolvable in unresolved:
                 # Attempt the resolution.
                 resolvable._resolve()
@@ -235,6 +256,7 @@ class _NamespaceResolution_mixin (pyxb.cscRoot):
         # Replace the list of unresolved components with None, so that
         # attempts to subsequently add another component fail.
         self.__unresolvedComponents = None
+        self.__unresolvedDependents = None
 
         # NOTE: Dependencies may require that we keep these around for a while
         # longer.
@@ -249,24 +271,64 @@ class _NamespaceResolution_mixin (pyxb.cscRoot):
         """Returns a reference to the list of unresolved components."""
         return self.__unresolvedComponents
 
-def ResolveSiblingNamespaces (sibling_namespaces, origin_uid):
+    def _unresolvedDependents (self):
+        """Returns a map from unresolved components to sets of components that
+        must be resolved first."""
+        return self.__unresolvedDependents
+
+def ResolveSiblingNamespaces (sibling_namespaces):
+    """Resolve all components in the sibling_namespaces.
+
+    @param sibling_namespaces : A set of namespaces expected to be closed
+    under dependency."""
+    
     for ns in sibling_namespaces:
         ns.configureCategories([archive.NamespaceArchive._AnonymousCategory()])
         ns.validateComponentModel()
 
-    need_resolved = set(sibling_namespaces)
-    while need_resolved:
-        new_nr = set()
-        for ns in need_resolved:
+    def cmp_for_deps (ns1, ns2):
+        """Sort namespaces so dependencies get resolved first"""
+        if ns2 not in dependency_map.get(ns1, set()):
+            return -1
+        if ns1 not in dependency_map.get(ns2, set()):
+            return 1
+        return 0
+
+    need_resolved_set = set(sibling_namespaces)
+    dependency_map = {}
+    last_state = None
+    while need_resolved_set:
+        need_resolved_list = list(need_resolved_set)
+        if dependency_map:
+            need_resolved_list.sort(cmp_for_deps)
+        need_resolved_set = set()
+        dependency_map = {}
+        for ns in need_resolved_list:
             if not ns.needsResolution():
                 continue
             #print 'Attempting resolution %s' % (ns.uri(),)
             if not ns.resolveDefinitions(allow_unresolved=True):
                 print 'Holding incomplete resolution %s' % (ns.uri(),)
-                new_nr.add(ns)
-        if need_resolved == new_nr:
-            raise pyxb.LogicError('Unexpected external dependency in sibling namespaces: %s' % ("\n  ".join( [str(_ns) for _ns in need_resolved ]),))
-        need_resolved = new_nr
+                deps = dependency_map.setdefault(ns, set())
+                for (c, dcs) in ns._unresolvedDependents().iteritems():
+                    for dc in dcs:
+                        dns = dc.expandedName().namespace()
+                        if dns != ns:
+                            deps.add(dns)
+                print '%s depends on %s' % (ns, ' ; '.join([ str(_dns) for _dns in deps ]))
+                need_resolved_set.add(ns)
+        # Exception termination check: if we have the same set of incompletely
+        # resolved namespaces, and each has the same number of unresolved
+        # components, assume there's an truly unresolvable dependency: either
+        # due to circularity, or because there was an external namespace that
+        # was missed from the sibling list.
+        state = []
+        for ns in need_resolved_set:
+            state.append( (ns, len(ns._unresolvedComponents())) )
+        state = tuple(state)
+        if last_state == state:
+            raise pyxb.LogicError('Unexpected external dependency in sibling namespaces: %s' % ("\n  ".join( [str(_ns) for _ns in need_resolved_set ]),))
+        last_state = state
 
 class NamespaceContext (object):
     """Records information associated with namespaces at a DOM node.
@@ -551,10 +613,10 @@ class NamespaceContext (object):
             namespace.validateComponentModel()
         return pyxb.namespace.ExpandedName(namespace, local_name)
 
-    def queueForResolution (self, component):
+    def queueForResolution (self, component, depends_on=None):
         """Forwards to L{queueForResolution()<Namespace.queueForResolution>} in L{targetNamespace()}."""
         assert isinstance(component, _Resolvable_mixin)
-        return self.targetNamespace().queueForResolution(component)
+        return self.targetNamespace().queueForResolution(component, depends_on)
 
 ## Local Variables:
 ## fill-column:78
