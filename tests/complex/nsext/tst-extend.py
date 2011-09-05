@@ -4,6 +4,7 @@ import common
 
 class Test (unittest.TestCase):
     def testExtended (self):
+        #x = common4app.extended('hi', extElt='there')
         x = common4app.extended('hi', 'there')
         self.assertEquals(x.elt, 'hi')
         self.assertEquals(x.extElt, 'there')
