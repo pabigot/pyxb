@@ -76,8 +76,12 @@ Markup Language <http://saml.xml.org/about-saml>`_:
 Binding Module                          Namespace
 =====================================   ==========================================================
 ``pyxb.bundles.saml20.assertion``       ``urn:oasis:names:tc:SAML:2.0:assertion``
+``pyxb.bundles.saml20.dce``             ``urn:oasis:names:tc:SAML:2.0:profiles:attribute:DCE``
+``pyxb.bundles.saml20.ecp``             ``urn:oasis:names:tc:SAML:2.0:profiles:SSO:ecp``
 ``pyxb.bundles.saml20.metadata``        ``urn:oasis:names:tc:SAML:2.0:metadata``
 ``pyxb.bundles.saml20.protocol``        ``urn:oasis:names:tc:SAML:2.0:protocol``
+``pyxb.bundles.saml20.x500``            ``urn:oasis:names:tc:SAML:2.0:profiles:attribute:X500``
+``pyxb.bundles.saml20.xacml``           ``urn:oasis:names:tc:SAML:2.0:profiles:attribute:XACML``
 =====================================   ==========================================================
 
 .. _bundle_opengis:
