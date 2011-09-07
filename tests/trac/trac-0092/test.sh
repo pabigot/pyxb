@@ -11,6 +11,7 @@ pyxbgen \
   --archive-to-file=bindings/st.wxs \
 && pyxbgen \
   --schema-location=${XSD_DIR}/test-external.xsd --module=te \
+  --module-prefix=bindings \
   --archive-path=.:+ \
 && python ../../drivers/tst-stored.py \
 && echo "trac92 passed" \
