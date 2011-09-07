@@ -15,11 +15,12 @@ WS-*
 The following namespaces are available in support of web service
 development:
 
-.. PYXB_ARCHIVE_PATH=/home/pab/pyxb/dev/pyxb/bundles/wssplat// pyxbdump \
-   | grep wssplat \
-   | tr '\011' ' ' \
-   | sed -e 's@^\([^ ]*\) \([^ ]*\).*$@``\2`` ``\1``@g' \
-   | tr ' ' '\011' \
+.. PYXB_ARCHIVE_PATH=${PYXB_ROOT}/pyxb/bundles/wssplat// ${PYXB_ROOT}/scripts/pyxbdump \
+   | awk '$2~/pyxb.bundles.wssplat/ { print $2, $1; }' \
+   | sed \
+      -e 's@^@``@' \
+      -e 's@ @``\t``@' \
+      -e 's@$@``@' \
    | expand -40 \
    | sort \
    > /tmp/x
@@ -50,6 +51,33 @@ Binding Module                          Namespace
 ``pyxb.bundles.wssplat.wsrm``           ``http://docs.oasis-open.org/ws-rx/wsrm/200702``
 ``pyxb.bundles.wssplat.wsse``           ``http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd``
 ``pyxb.bundles.wssplat.wsu``            ``http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd``
+``pyxb.bundles.wssplat.xenc``           ``http://www.w3.org/2001/04/xmlenc#``
+=====================================   ==========================================================
+
+.. _bundle_saml2:
+
+SAML
+----
+
+The following namespaces are available in support of the `Security Assertion
+Markup Language <http://saml.xml.org/about-saml>`_:
+
+.. PYXB_ARCHIVE_PATH=${PYXB_ROOT}/pyxb/bundles/saml20// ${PYXB_ROOT}/scripts/pyxbdump \
+   | awk '$2~/pyxb.bundles.saml20/ { print $2, $1; }' \
+   | sed \
+      -e 's@^@``@' \
+      -e 's@ @``\t``@' \
+      -e 's@$@``@' \
+   | expand -40 \
+   | sort \
+   > /tmp/x
+
+=====================================   ==========================================================
+Binding Module                          Namespace
+=====================================   ==========================================================
+``pyxb.bundles.saml20.assertion``       ``urn:oasis:names:tc:SAML:2.0:assertion``
+``pyxb.bundles.saml20.metadata``        ``urn:oasis:names:tc:SAML:2.0:metadata``
+``pyxb.bundles.saml20.protocol``        ``urn:oasis:names:tc:SAML:2.0:protocol``
 =====================================   ==========================================================
 
 .. _bundle_opengis:
@@ -64,11 +92,12 @@ Information System processing.  Note that several of these namespaces are
 schema.  The modules corresponding to these namespace uses begin with an
 underscore, and should generally not be used in other contexts.
 
-.. PYXB_ARCHIVE_PATH=/home/pab/pyxb/dev/pyxb/bundles/opengis// pyxbdump \
-   | grep opengis \
-   | tr '\011' ' ' \
-   | sed -e 's@^\([^ ]*\) \([^ ]*\).*$@``\2`` ``\1``@g' \
-   | tr ' ' '\011' \
+.. PYXB_ARCHIVE_PATH=${PYXB_ROOT}/pyxb/bundles/opengis// ${PYXB_ROOT}/scripts/pyxbdump \
+   | awk '$2~/pyxb.bundles.opengis/ { print $2, $1; }' \
+   | sed \
+      -e 's@^@``@' \
+      -e 's@ @``\t``@' \
+      -e 's@$@``@' \
    | expand -50 \
    | sort \
    > /tmp/x
