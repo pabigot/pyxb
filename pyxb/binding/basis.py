@@ -1333,7 +1333,7 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
         for initialization.  In that case, the L{createFromDOM} method is
         invoked instead of the type definition Factory method.
 
-        @note Other keywords are passed to L{_TypeBinding_mixin.Factory}.
+        @note: Other keywords are passed to L{_TypeBinding_mixin.Factory}.
 
         @raise pyxb.AbstractElementError: This element is abstract and no DOM
         node was provided.

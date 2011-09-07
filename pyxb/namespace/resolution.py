@@ -159,7 +159,7 @@ class _NamespaceResolution_mixin (pyxb.cscRoot):
         which C{resolvable} requires to be resolved in order to resolve
         itself.
         
-        @return C{resolvable}
+        @return: C{resolvable}
         """
         assert isinstance(resolvable, _Resolvable_mixin)
         if not resolvable.isResolved():

@@ -136,7 +136,7 @@ class StructuralBadDocumentError (BadDocumentError):
     def __init__ (self, *args, **kw):
         """Raised when processing document and the content model is not satisfied.
 
-        @param content : The value that could not be reconciled with the content model
+        @keyword content : The value that could not be reconciled with the content model
         @keyword container : Optional binding instance into which the content was to be assigned
         @keyword element_use : Optional reference to an element use identifying the element to which the value was to be reconciled
         """

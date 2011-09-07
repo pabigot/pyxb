@@ -161,7 +161,7 @@ except:
     pass
 
 _CorruptionDetectionEnabled = not _OptimizationActive
-"""If @c True, blocks attempts to assign to attributes that are reserved for
+"""If C{True}, blocks attempts to assign to attributes that are reserved for
 PyXB methods.
 
 Applies only at compilation time; dynamic changes are ignored.
