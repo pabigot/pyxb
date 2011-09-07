@@ -2087,7 +2087,7 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
             uses_c1c2 = uses_c1.union(uses_c2)
             for au in uses_c1c2:
                 if not au.isResolved():
-                    self._queueForResolution('attribute use not resolved', depends_on=au)
+                    self._queueForResolution('attribute use not resolved')
                     return self
                 ad = au.attributeDeclaration()
                 if not ad.isResolved():

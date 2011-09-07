@@ -166,6 +166,9 @@ class _NamespaceResolution_mixin (pyxb.cscRoot):
             assert depends_on is None or isinstance(depends_on, _Resolvable_mixin)
             self.__unresolvedComponents.append(resolvable)
             if depends_on is not None and not depends_on.isResolved():
+                import pyxb.xmlschema.structures
+                assert isinstance(depends_on, _Resolvable_mixin)
+                assert isinstance(depends_on, pyxb.xmlschema.structures._NamedComponent_mixin)
                 self.__unresolvedDependents.setdefault(resolvable, set()).add(depends_on)
         return resolvable
 
