@@ -1,5 +1,5 @@
-export PYXB_ARCHIVE_PATH=opengis:opengis/misc:opengis/citygml:opengis/iso19139:dc:+
 PYXB_ROOT=${PYXB_ROOT:-../..}
+export PYXB_ARCHIVE_PATH=${PYXB_ROOT}/pyxb/bundles/opengis/raw:+
 export PYTHONPATH=${PYXB_ROOT}
 export PATH=${PYXB_ROOT}/scripts:${PATH}
 
@@ -11,5 +11,4 @@ fi
 pyxbgen \
   --schema-location=dwGML.xsd --module=dwGML \
   --module-prefix=ndfd
-
 

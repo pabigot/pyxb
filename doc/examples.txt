@@ -8,7 +8,7 @@ A detailed, albeit contrived, example of how to use PyXB is in
 :ref:`pyxbgen`.
 
 Multiple real-world XML and web service examples of varying complexity are
-provided in the examples subdirectories of the PyXB distribution and of the
+provided in the :file:`examples` subdirectories of the PyXB distribution and of the
 various bundles.  Some are WSDL services, and others are simply XMLSchema
 documents.  Often there are a couple trivial programs that show how the
 bindings are used.  The script :file:`test.sh` in each directory can be used
