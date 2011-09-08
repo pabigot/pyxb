@@ -15,14 +15,14 @@ ones that:
   `model group <http://www.w3.org/TR/xmlschema-1/#Model_Groups>`_ are
   satisfied, when XML is converted to Python instances and vice-versa.
 
-The classes involved in the content model are in the
-:api:`pyxb.binding.content` module, and their relationships are displayed in
-the following diagram.
-
-.. image:: Images/ContentModel.jpg
-
 Associating XML and Python Objects
 ----------------------------------
+
+The classes involved in the content model are in the
+:api:`pyxb.binding.content` module.  Their relationships to binding classes
+are displayed in the following diagram.
+
+.. image:: Images/ContentBindingRelations.jpg
 
 In the standard code generation template, both element and attribute values
 are stored in Python class fields.  As noted in
@@ -109,80 +109,21 @@ A :api:`map <pyxb.binding.basis.complexTypeDefinition._ElementMap>` is used to
 map from expanded names to ElementUse instances.  This map is defined within
 the class definition itself.
 
-Content Model Automata
-----------------------
+Content Model Description
+-------------------------
 
-The XML `model group <http://www.w3.org/TR/xmlschema-1/#Model_Groups>`_
-construct permits a nested specification of legal type instances through
-ordered sequences (``sequence``), conjunctions or unordered sequences
-(``all``), choices (``choice``), and wildcards (``any``).  The model group can
-be considered a form of regular expression, and as such we use `Thompson's
-algorithm <http://portal.acm.org/citation.cfm?doid=363387>`_ to construct a
-non-deterministic finite automaton which recognizes the set of conforming
-documents.  A `powerset construction
-<http://en.wikipedia.org/wiki/Powerset_construction>`_ is then used to make
-the automaton deterministic, and the resulting automaton is stored as a
-:api:`pyxb.binding.content.ContentModel` instance, with a set of :api:`states
-<pyxb.binding.content.ContentModelState>` each of which has :api:`transitions
-<pyxb.binding.content.ContentModelTransition>` on elements, wildcards, and
-model groups with an ``all`` compositor.
+The relations among the classes defining the content model are displayed in
+the following diagram.
 
-The sole complication in the automaton construction is dealing with ``all``
-model groups, which accept subsets of a set of nodes in any order.  This
-construct produces an exponential increase in the size of the deterministic
-finite automaton, so is left as a single :api:`transition
-<pyxb.binding.content.ModelGroupAll>` which iteratively matches against the
-candidate value until an alternative is found.
+.. image:: Images/ContentModel.jpg
 
-.. _arch_content_automata_parsing:
+Each complex type binding class has a :api:`_ContentModel
+<pyxb.binding.content.ParticleModel>` which defines constraints on the content
+of an instance of the class.  The content model includes occurrence
+constraints and information on subterms, which either XML `model groups
+<http://www.w3.org/TR/xmlschema-1/#Model_Groups>`_  or element uses.
 
-Parsing With Automata
-^^^^^^^^^^^^^^^^^^^^^
-
-Automata-based parsing is used for building up a binding instance from a
-series of values.
-
-To allow incremental construction of instances, as required by the :api:`SAX
-interface <pyxb.binding.saxer.PyXBSAXHandler>` or initialization by constructor
-arguments, each complex type with a content model contains a :api:`DFA stack
-<pyxb.binding.content.DFAStack>`.  Each level of the stack contains an instance
-of :api:`DFA state <pyxb.binding.content._DFAState>`.  Normally the state
-specifies the content model and automaton state within that model that
-represents the instance's position in a path through the automata, where the
-path so far comprises the member elements added to the instance.
-
-The need for a stack of states comes when automaton execution reaches a
-transition that involves an :api:`"all" model group
-<pyxb.binding.content.ModelGroupAll>`.  Evaluation of such a transition
-requires suspending the parent automaton execution and continuing with the
-evaluation of the automata that represent alternatives in the model group.
-
-Generation With Automata
-^^^^^^^^^^^^^^^^^^^^^^^^
-
-Automaton evaluation is also used to validate that the content of a binding
-instance is consistent with type's content model, and to determine a sequence
-of contained elements that define a valid path through the automaton.  This
-technique is used to create a valid DOM document from a binding instance.
-
-A memoization technique is used, where the state of the system is represented
-by a set of element uses (which identify valid consuming transitions), with a
-sequence of values for each such use.  The element uses are symbols in the
-alphabet of the automaton; the values are a token that permits a transition on
-that symbol.  The state of the system also incorporates a sequence of
-symbol-value pairs that record the path up to the current position.
-
-The automaton starts in the initial state, then each transition is examined
-until one is found for which there is a value available.  The state resulting
-from executing that transition is pushed onto a stack, and the remaining
-transitions are examined as well.  If no transition can proceed, the state is
-discarded and the top state from the stack is evaluated.
-
-When no more symbols remain, if the current state is a final state, the
-validation succeeds, and the corresponding sequence is returned as a valid
-path.  If a final state cannot be reached, the validation fails.
-
-See the :api:`validation method <pyxb.binding.content.ContentModel.validate>`
+See the :api:`validation method <pyxb.binding.content.ParticleModel.validate>`
 for details on how all this really works.
 
 .. ignored
