@@ -1,4 +1,4 @@
-# Copyright 2009, Peter A. Bigot
+# Copyright 2009-2011, Peter A. Bigot
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain a
@@ -21,7 +21,7 @@ the Python field in which the values are stored.  They also provide the
 low-level interface to set and get the corresponding values in a binding
 instance.
 
-@todo: Document new content model
+
 
 L{Wildcard} holds content-related information used in the content model.
 """
@@ -109,14 +109,16 @@ class ContentModel_mixin (pyxb.cscRoot):
     def _validateCloneSymbolSet (self, symbol_set_im):
         """Create a mutable copy of the symbol set.
 
-        The top-level map is copied, as are the lists of values.  The values
-        within the lists are unchanged, as validation does not affect them."""
+        The top-level map is copied, as are the lists of values to which the
+        symbols map.  The values within the lists are unchanged, as validation
+        does not affect them."""
         rv = symbol_set_im.copy()
         for (k, v) in rv.items():
             rv[k] = v[:]
         return rv
 
     def _validateCloneOutputSequence (self, output_sequence_im):
+        """Create a mutable copy of the output sequence."""
         return output_sequence_im[:]
 
     def _validateReplaceResults (self, symbol_set_out, symbol_set_new, output_sequence_out, output_sequence_new):
@@ -158,7 +160,7 @@ class ContentModel_mixin (pyxb.cscRoot):
         expected to validate.
 
         @return: C{True} iff the model validates.  C{symbol_set} and
-        C{output_path} must be unmodified if returns C{False}.
+        C{output_path} will be unchanged if this returns C{False}.
         """
         raise Exception('ContentState_mixin._validate not implemented in %s' % (type(self),))
 
@@ -175,15 +177,32 @@ class AttributeUse (pyxb.cscRoot):
     corresponding to a binding instance.
     """
 
-    __name = None       # ExpandedName of the attribute
-    __id = None         # Identifier used for this attribute within the owning class
-    __key = None        # Private attribute used in instances to hold the attribute value
-    __dataType = None  # PST datatype
-    __unicodeDefault = None     # Default value as a unicode string, or None
-    __defaultValue = None       # Default value as an instance of datatype, or None
-    __fixed = False             # If True, value cannot be changed
-    __required = False          # If True, attribute must appear
-    __prohibited = False        # If True, attribute must not appear
+    __name = None
+    """ExpandedName of the attribute"""
+
+    __id = None
+    """Identifier used for this attribute within the owning class"""
+    
+    __key = None
+    """Private Python attribute used in instances to hold the attribute value"""
+
+    __dataType = None
+    """The L{pyxb.binding.basis.simpleTypeDefinition} for values of the attribute"""
+
+    __unicodeDefault = None
+    """The default attribute value as a unicode string, or C{None}"""
+     
+    __defaultValue = None
+    """The default value as an instance of L{__dataType}, or C{None}"""
+    
+    __fixed = False
+    """C{True} if the attribute value cannot be changed"""
+    
+    __required = False
+    """C{True} if the attribute must appear in every instance of the type"""
+    
+    __prohibited = False
+    """C{True} if the attribute must not appear in any instance of the type"""
 
     def __init__ (self, name, id, key, data_type, unicode_default=None, fixed=False, required=False, prohibited=False):
         """Create an AttributeUse instance.
@@ -264,16 +283,16 @@ class AttributeUse (pyxb.cscRoot):
         return self.__fixed
 
     def required (self):
-        """Return True iff the attribute must be assigned a value."""
+        """C{True} iff the attribute must be assigned a value."""
         return self.__required
 
     def prohibited (self):
-        """Return True iff the attribute must not be assigned a value."""
+        """C{True} iff the attribute must not be assigned a value."""
         return self.__prohibited
 
     def provided (self, ctd_instance):
-        """Return True iff the given instance has been explicitly given a
-        value for the attribute.
+        """C{True} iff the given instance has been explicitly given a value
+        for the attribute.
 
         This is used for things like only generating an XML attribute
         assignment when a value was originally given (even if that value
@@ -330,6 +349,20 @@ class AttributeUse (pyxb.cscRoot):
         return self
 
     def validate (self, ctd_instance):
+        """Validate the instance against the requirements imposed by this
+        attribute use.
+
+        There is no return value; calls raise an exception if the content does
+        not validate.
+
+        @param ctd_instance : An instance of a complex type definition.
+
+        @raise pyxb.ProhibitedAttributeError: when instance has attribute but must not
+        @raise pyxb.MissingAttributeError: when instance lacks attribute but
+        must have it (including when a required fixed-value attribute is
+        missing).
+        @raise pyxb.BindingValidationError: when instance has attribute but its value is not acceptable
+        """
         (provided, value) = self.__getValue(ctd_instance)
         if value is not None:
             if self.__prohibited:
@@ -343,7 +376,6 @@ class AttributeUse (pyxb.cscRoot):
         else:
             if self.__required:
                 raise pyxb.MissingAttributeError('Required attribute %s does not have a value' % (self.__name,))
-        return True
 
     def set (self, ctd_instance, new_value):
         """Set the value of the attribute.
@@ -411,7 +443,7 @@ class ElementUse (ContentState_mixin, ContentModel_mixin):
     This includes the L{original tag name<name>}, the spelling of L{the
     corresponding object in Python <id>}, an L{indicator<isPlural>} of whether
     multiple instances might be associated with the field, and other relevant
-    information..
+    information.
     """
 
     def name (self):
@@ -593,11 +625,14 @@ class ElementUse (ContentState_mixin, ContentModel_mixin):
         desc.append(self.elementBinding()._description(user_documentation=user_documentation))
         return ''.join(desc)
 
+    # CM.newState:ElementUse
     def newState (self, parent_particle_state):
         """Implement parent class method."""
         return self
 
+    # CS.accepts:ElementUse
     def accepts (self, particle_state, instance, value, element_use):
+        ## Implement ContentState_mixin.accepts
         rv = self._accepts(instance, value, element_use)
         if rv:
             particle_state.incrementCount()
@@ -617,6 +652,8 @@ class ElementUse (ContentState_mixin, ContentModel_mixin):
             # then we don't recognize it, and will have to treat it as a
             # wildcard.
             return False
+        # See if we can accept the value by converting it to something
+        # compatible.
         try:
             self.setOrAppend(instance, self.__elementBinding.compatibleValue(value, _convert_string_values=False))
             return True
@@ -625,6 +662,7 @@ class ElementUse (ContentState_mixin, ContentModel_mixin):
         #print '%s %s %s in %s' % (instance, value, element_use, self)
         return False
 
+    # CM._validate:ElementUse
     def _validate (self, symbol_set, output_sequence):
         values = symbol_set.get(self)
         #print 'values %s' % (values,)
@@ -645,8 +683,8 @@ class Wildcard (ContentState_mixin, ContentModel_mixin):
 
     NC_any = '##any'            #<<< The namespace constraint "##any"
     NC_not = '##other'          #<<< A flag indicating constraint "##other"
-    NC_targetNamespace = '##targetNamespace'
-    NC_local = '##local'
+    NC_targetNamespace = '##targetNamespace' #<<< A flag identifying the target namespace
+    NC_local = '##local'        #<<< A flag indicating the namespace must be absent
 
     __namespaceConstraint = None
     def namespaceConstraint (self):
@@ -659,17 +697,24 @@ class Wildcard (ContentState_mixin, ContentModel_mixin):
          - set(of L{namespace<pyxb.namespace.Namespace>} instances)
 
         Namespaces are represented by their URIs.  Absence is
-        represented by None, both in the "not" pair and in the set.
+        represented by C{None}, both in the "not" pair and in the set.
         """
         return self.__namespaceConstraint
 
-    PC_skip = 'skip'            #<<< No constraint is applied
-    PC_lax = 'lax'              #<<< Validate against available uniquely determined declaration
-    PC_strict = 'strict'        #<<< Validate against declaration or xsi:type which must be available
+    PC_skip = 'skip'
+    """No namespace constraint is applied to the wildcard."""
+    
+    PC_lax = 'lax'
+    """Validate against available uniquely determined declaration."""
 
-    # One of PC_*
+    PC_strict = 'strict'
+    """Validate against declaration or xsi:type, which must be available."""
+
     __processContents = None
-    def processContents (self): return self.__processContents
+    """One of L{PC_skip}, L{PC_lax}, L{PC_strict}."""
+    def processContents (self):
+        """Indicate how this wildcard's contents should be processed."""
+        return self.__processContents
 
     def __normalizeNamespace (self, nsv):
         if nsv is None:
@@ -680,6 +725,10 @@ class Wildcard (ContentState_mixin, ContentModel_mixin):
         return nsv
 
     def __init__ (self, *args, **kw):
+        """
+        @keyword namespace_constraint: Required namespace constraint(s)
+        @keyword process_contents: Required"""
+        
         # Namespace constraint and process contents are required parameters.
         nsc = kw['namespace_constraint']
         if isinstance(nsc, tuple):
@@ -722,10 +771,13 @@ class Wildcard (ContentState_mixin, ContentModel_mixin):
             return True
         return ns in self.__namespaceConstraint
 
+    # CM.newState:Wildcard
     def newState (self, parent_particle_state):
         return self
 
+    # CS.accepts:Wildcard
     def accepts (self, particle_state, instance, value, element_use):
+        ## Implement ContentState_mixin.accepts
         if isinstance(value, xml.dom.Node):
             value_desc = 'value in %s' % (value.nodeName,)
         else:
@@ -739,6 +791,7 @@ class Wildcard (ContentState_mixin, ContentModel_mixin):
         particle_state.incrementCount()
         return True
 
+    # CM._validate:Wildcard
     def _validate (self, symbol_set, output_sequence):
         # @todo check node against namespace constraint and process contents
         #print 'WARNING: Accepting node as wildcard match without validating.'
@@ -752,9 +805,28 @@ class Wildcard (ContentState_mixin, ContentModel_mixin):
         return True
 
 class SequenceState (ContentState_mixin):
-    __failed = False
-    __satisfied = False
+    """Represent the state of validation against a sequence of particles."""
+    
+    __sequence = None           #<<< A L{GroupSequence} instance
+    __particleState = None      #<<< The state corresponding to model within the sequence model
+    __parentParticleState = None #<<< The state corresponding to the model containing the sequence
 
+    __index = -1                #<<< Index in __sequence at which validation is proceeding
+
+    __failed = False
+    """C{True} iff the content provided is in conflict with the sequence
+    requirements.
+
+    Specifically, the model requires content that has not been provided.  Set
+    within L{accepts}.  This state is sticky."""
+
+    __satisfied = False
+    """C{True} iff the content provided is consistent with the sequence
+    requirements.
+
+    Specifically, nothing has been presented with conflicts with the model.
+    Set within L{notifyFailure}."""
+    
     def __init__ (self, group, parent_particle_state):
         super(SequenceState, self).__init__(group)
         self.__sequence = group
@@ -763,10 +835,13 @@ class SequenceState (ContentState_mixin):
         self.__index = -1
         self.__satisfied = False
         self.__failed = False
+        # Kick this into the first element of the sequence
         self.notifyFailure(None, False)
         #print 'SS.CTOR %s: %d elts' % (self, len(self.__particles))
 
+    # CS.accepts:SequenceState
     def accepts (self, particle_state, instance, value, element_use):
+        ## Implement ContentState_mixin.accepts
         assert self.__parentParticleState == particle_state
         assert not self.__failed
         #print 'SS.ACC %s: %s %s %s' % (self, instance, value, element_use)
@@ -779,10 +854,12 @@ class SequenceState (ContentState_mixin):
                 raise underflow_exc
         return False
 
+    # CS._verifyComplete:SequenceState
     def _verifyComplete (self, parent_particle_state):
         while self.__particleState is not None:
             self.__particleState.verifyComplete()
 
+    # CS.notifyFailure:SequenceState
     def notifyFailure (self, sub_state, particle_ok):
         self.__index += 1
         self.__particleState = None
@@ -802,7 +879,9 @@ class ChoiceState (ContentState_mixin):
         self.__activeChoice = None
         #print 'CS.CTOR %s: %d choices' % (self, len(self.__choices))
 
+    # CS.accepts:ChoiceState
     def accepts (self, particle_state, instance, value, element_use):
+        ## Implement ContentState_mixin.accepts
         #print 'CS.ACC %s %s: %s %s %s' % (self, self.__activeChoice, instance, value, element_use)
         if self.__activeChoice is None:
             for choice in self.__choices:
@@ -827,6 +906,7 @@ class ChoiceState (ContentState_mixin):
             raise underflow_exc
         return False
 
+    # CS._verifyComplete:ChoiceState
     def _verifyComplete (self, parent_particle_state):
         rv = True
         #print 'CS.VC %s: %s' % (self, self.__activeChoice)
@@ -844,6 +924,7 @@ class ChoiceState (ContentState_mixin):
             raise pyxb.MissingContentError('choice')
         self.__activeChoice.verifyComplete()
 
+    # CS.notifyFailure:ChoiceState
     def notifyFailure (self, sub_state, particle_ok):
         #print 'CS.NF %s %s' % (self, particle_ok)
         if particle_ok and (self.__activeChoice is not None):
@@ -859,6 +940,7 @@ class AllState (ContentState_mixin):
         self.__choices = set([ ParticleState(_p, self) for _p in group.particles() ])
         #print 'AS.CTOR %s: %d choices' % (self, len(self.__choices))
 
+    # CS.accepts:AllState
     def accepts (self, particle_state, instance, value, element_use):
         #print 'AS.ACC %s %s: %s %s %s' % (self, self.__activeChoice, instance, value, element_use)
         self.__needRetry = True
@@ -887,6 +969,7 @@ class AllState (ContentState_mixin):
             raise underflow_exc
         return False
 
+    # CS._verifyComplete:AllState
     def _verifyComplete (self, parent_particle_state):
         #print 'AS.VC %s: %s, %d left' % (self, self.__activeChoice, len(self.__choices))
         if self.__activeChoice is not None:
@@ -895,6 +978,7 @@ class AllState (ContentState_mixin):
             self.__activeChoice = self.__choices.pop()
             self.__activeChoice.verifyComplete()
 
+    # CS.notifyFailure:AllState
     def notifyFailure (self, sub_state, particle_ok):
         #print 'AS.NF %s %s' % (self, particle_ok)
         self.__needRetry = True
@@ -903,6 +987,17 @@ class AllState (ContentState_mixin):
             self.__parentParticleState.incrementCount()
 
 class ParticleState (pyxb.cscRoot):
+
+    __parentState = None
+    """The L{ContentState_mixin} which contains the mode for which this is state."""
+    
+    __termState = None
+    """A L{ContentState_mixin} instance for one occurrence of this particle's term."""
+    
+    __tryAccept = None
+    """A flag indicating whether a proposed value should be applied to the
+    state by L{step}."""
+
     def __init__ (self, particle, parent_state=None):
         self.__particle = particle
         self.__parentState = parent_state
@@ -910,23 +1005,42 @@ class ParticleState (pyxb.cscRoot):
         #print 'PS.CTOR %s: particle %s' % (self, particle)
         self.incrementCount()
 
-    def particle (self): return self.__particle
+    __particle = None
+    """The L{ParticleModel} for which this represents state."""
+
+    def particle (self):
+        """The L{ParticleModel} for which this represents state."""
+        return self.__particle
+
+    __count = None
+    """The number of times this particle's term has been matched."""
 
     def incrementCount (self):
+        """Reset for a new occurrence of the particle's term."""
         #print 'PS.IC %s' % (self,)
         self.__count += 1
         self.__termState = self.__particle.term().newState(self)
         self.__tryAccept = True
 
     def verifyComplete (self):
+        """Check whether the particle's occurrence constraints are satisfied.
+
+        @raise pyxb.MissingContentError: Particle requires additional content to be satisfied."""
+
         # @TODO@ Set a flag so we can make verifyComplete safe to call
         # multiple times?
         #print 'PS.VC %s entry' % (self,)
+
+        # If we're not satisfied, check the term: that might do it.
         if not self.__particle.satisfiesOccurrences(self.__count):
             self.__termState._verifyComplete(self)
+
+        # If we're still not satisfied, raise an error
         if not self.__particle.satisfiesOccurrences(self.__count):
             #print 'PS.VC %s incomplete' % (self,)
             raise pyxb.MissingContentError('incomplete')
+
+        # If we are satisfied, tell the parent
         if self.__parentState is not None:
             self.__parentState.notifyFailure(self, True)
 
@@ -998,9 +1112,26 @@ class ParticleState (pyxb.cscRoot):
 class ParticleModel (ContentModel_mixin):
     """Content model dealing with particles: terms with occurrence restrictions"""
 
-    def minOccurs (self): return self.__minOccurs
-    def maxOccurs (self): return self.__maxOccurs
-    def term (self): return self.__term
+    __minOccurs = None
+    def minOccurs (self):
+        """The minimum number of times the term must occur.
+
+        This will be a non-negative integer."""
+        return self.__minOccurs
+
+    __maxOccurs = None
+    def maxOccurs (self):
+        """The maximum number of times the term may occur.  
+
+        This will be a positive integer, or C{None} indicating an unbounded
+        number of occurrences."""
+        return self.__maxOccurs
+
+    __term = None
+    """The L{ContentModel_mixin} for a single occurrence."""
+    def term (self):
+        """The term for a single occurrence."""
+        return self.__term
 
     def meetsMaximum (self, count):
         """@return: C{True} iff there is no maximum on term occurrence, or the
@@ -1022,6 +1153,7 @@ class ParticleModel (ContentModel_mixin):
         self.__minOccurs = min_occurs
         self.__maxOccurs = max_occurs
 
+    # CM.newState:ParticleModel
     def newState (self):
         return ParticleState(self)
 
@@ -1057,6 +1189,7 @@ class ParticleModel (ContentModel_mixin):
             return (symbol_set, output_sequence)
         return None
 
+    # CM._validate:ParticleModel
     def _validate (self, symbol_set, output_sequence):
         symbol_set_mut = self._validateCloneSymbolSet(symbol_set)
         output_sequence_mut = self._validateCloneOutputSequence(output_sequence)
@@ -1091,15 +1224,23 @@ class _Group (ContentModel_mixin):
     """A reference to a L{ContentState_mixin} class that maintains state when
     validating an instance of this group."""
 
-    def particles (self): return self.__particles
+    __particles = None
+    """List of L{ParticleModel}s comprising the group."""
+
+    def particles (self):
+        """The sequence of particles comprising the group"""
+        return self.__particles
 
     def __init__ (self, *particles):
         self.__particles = particles
 
+    # CM.newState:_Group
+    # CM.newState:GroupAll CM.newState:GroupSequence CM.newState:GroupChoice
     def newState (self, parent_particle_state):
         return self._StateClass(self, parent_particle_state)
 
     # All and Sequence share the same validation code, so it's up here.
+    # CM._validate:GroupAll CM._validate:GroupSequence
     def _validate (self, symbol_set, output_sequence):
         symbol_set_mut = self._validateCloneSymbolSet(symbol_set)
         output_sequence_mut = self._validateCloneOutputSequence(output_sequence)
@@ -1113,8 +1254,10 @@ class _Group (ContentModel_mixin):
 class GroupChoice (_Group):
     _StateClass = ChoiceState
 
-    # Choice requires a different validation algorithm
+    # CM._validate:GroupChoice
     def _validate (self, symbol_set, output_sequence):
+        # Only reset the state variables on partial success (or on entry),
+        # when they've been "corrupted" from copies of the input.
         reset_mutables = True
         for p in self.particles():
             if reset_mutables:
@@ -1123,6 +1266,8 @@ class GroupChoice (_Group):
             if p._validate(symbol_set_mut, output_sequence_mut):
                 self._validateReplaceResults(symbol_set, symbol_set_mut, output_sequence, output_sequence_mut)
                 return True
+            # If we succeeded partially but not completely, reset the state
+            # variables
             reset_mutables = len(output_sequence) != len(output_sequence_mut)
         return False
 

@@ -84,12 +84,12 @@ General cleanup, finish up a few previously unsupported datatypes.
 
 Complete replacement of the model group portion of the content model.  The
 NFA-to-DFA approach is gone.  The resulting system does a better job in less
-space and significantly faster: 30% on the standard tmsxtvd test, orders of
-magnitude on documents with large sequences of optional elements.
+space and significantly faster: 30% faster on the standard tmsxtvd test,
+orders of magnitude on documents with large sequences of optional elements.
 
-Note: A couple unit tests fail due to incidental reasons that will be address
-when fixing :ticket:`75`.  Also, the architecture documentation for the
-validation portion of the content model is completely out of date.
+Note: A couple unit tests fail due to incidental reasons that will be
+addressed when fixing :ticket:`75`.  Also, the architecture documentation for
+the validation portion of the content model is completely out of date.
 
 - Handle sequences of optional elements more effectively.  :ticket:`33`
 
