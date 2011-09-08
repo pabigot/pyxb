@@ -65,7 +65,7 @@ General cleanup, finish up a few previously unsupported datatypes.
 
 - Implement `xs:base64binary
   <http://www.w3.org/TR/2004/REC-xmlschema-2-20041028/#base64Binary>`_.
-  :ticket:`96`
+  :ticket:`83`, :ticket:`96`
 
 - Fix pickling and URI path issues on Windows.  :ticket:`97`, :ticket:`98`
 
