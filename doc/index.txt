@@ -64,17 +64,21 @@ An example of a program using PyXB to interact with a `web service
 automatically-generated module.  First, retrieve the WSDL and generate the
 bindings::
 
- mnservices[4]$ pyxbgen \
-   --wsdl-location="http://ws.cdyne.com/WeatherWS/Weather.asmx?wsdl" --module=weather \
-   --write-for-customization
- urn:uuid:57d386ce-bb48-11de-a28f-001cc05930fc
- Retrieving WSDL from http://ws.cdyne.com/WeatherWS/Weather.asmx?wsdl
- Importing pyxb.binding.datatypes to get binding for wildcard {http://www.w3.org/2001/XMLSchema}schema
- NOTE: Created unbound wildcard element from DOM node {http://www.w3.org/2001/XMLSchema}schema
- PS urn:uuid:57d386ce-bb48-11de-a28f-001cc05930fc
- Python for http://ws.cdyne.com/WeatherWS/ requires 1 modules
- Saved binding source to ./raw/weather.py
- mnservices[5]$ 
+  vmserver[171]$ pyxbgen \
+    --wsdl-location="http://wsf.cdyne.com/WeatherWS/Weather.asmx?wsdl" \
+    --module=weather \
+    --write-for-customization
+  urn:uuid:3a6c7be2-d9b7-11e0-ae84-001fbc013adc
+  Retrieving WSDL from http://wsf.cdyne.com/WeatherWS/Weather.asmx?wsdl
+  Importing pyxb.binding.datatypes to get binding for wildcard {http://www.w3.org/2001/XMLSchema}schema
+  NOTE: Created unbound wildcard element from value in schema
+  PS urn:uuid:3a6c7be2-d9b7-11e0-ae84-001fbc013adc
+  Complex type {http://ws.cdyne.com/WeatherWS/}ArrayOfWeatherDescription renamed to ArrayOfWeatherDescription_
+  Complex type {http://ws.cdyne.com/WeatherWS/}ForecastReturn renamed to ForecastReturn_
+  Complex type {http://ws.cdyne.com/WeatherWS/}WeatherReturn renamed to WeatherReturn_
+  Python for http://ws.cdyne.com/WeatherWS/ requires 1 modules
+  Saved binding source to ./raw/weather.py
+  vmserver[171]$  
 
 Then write a program that uses them:
 
@@ -82,16 +86,16 @@ Then write a program that uses them:
 
 And run it::
 
- mnservices[5]$ python client_get.py 
- Weather forecast for Tucson, AZ:
-   Saturday, October 17 2009: Sunny, from  to 98
-   Sunday, October 18 2009: Partly Cloudy, from 68 to 96
-   Monday, October 19 2009: Partly Cloudy, from 67 to 91
-   Tuesday, October 20 2009: Sunny, from 65 to 88
-   Wednesday, October 21 2009: Sunny, from 59 to 86
-   Thursday, October 22 2009: Sunny, from 58 to 87
-   Friday, October 23 2009: Sunny, from 60 to 8
- mnservices[6]$ 
+ vmserver[171]$ python client.py
+ Got response for Saint Paul, MN:
+  Thursday, September 08 2011: Sunny, from 58 to 80
+  Friday, September 09 2011: Partly Cloudy, from 58 to 80
+  Saturday, September 10 2011: Sunny, from 58 to 80
+  Sunday, September 11 2011: Sunny, from 58 to 81
+  Monday, September 12 2011: Partly Cloudy, from 61 to 80
+  Tuesday, September 13 2011: Sunny, from 55 to 69
+  Wednesday, September 14 2011: Sunny, from 48 to 68
+ vmserver[172]$ 
 
 That's it.
 

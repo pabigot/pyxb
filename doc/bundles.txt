@@ -54,7 +54,7 @@ Binding Module                          Namespace
 ``pyxb.bundles.wssplat.xenc``           ``http://www.w3.org/2001/04/xmlenc#``
 =====================================   ==========================================================
 
-.. _bundle_saml2:
+.. _bundle_saml20:
 
 SAML
 ----
