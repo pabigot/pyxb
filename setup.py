@@ -13,6 +13,7 @@ if (py_ver < '2.4') or (py_ver >= '3.0'):
 import os
 import stat
 import re
+import datetime
 
 from distutils.core import setup, Command
 
@@ -33,6 +34,7 @@ class update_version (Command):
 
     # The substitutions (key braced by @ signs)
     substitutions = { 'VERSION' : version,
+                      'THIS_YEAR' : datetime.date.today().strftime('%Y'),
                       'SHORTVERSION' : '.'.join(version.split('.')[:2]) }
 
     def initialize_options (self):
