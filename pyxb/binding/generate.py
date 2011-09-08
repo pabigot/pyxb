@@ -668,12 +668,11 @@ class %{ctd} (%{superclass}):
 %{ctd}._AddElement(pyxb.binding.basis.element(%{name_expr}, %{typeDefinition}%{element_aux_init}))
 ''', name_expr=binding_module.literal(ed.expandedName(), **kw), ctd=template_map['ctd'], **ef_map))
 
-        cm_tag = utility.PrepareIdentifier('ContentModel', binding_module.uniqueInClass(ctd), protected=True)
         (particle_val, lines) = GenerateContentParticle(ctd=ctd, particle=content_basis, binding_module=binding_module, **kw)
         if lines:
             outf.postscript().append("\n".join(lines))
             outf.postscript().append("\n")
-        outf.postscript().append(templates.replaceInText('%{ctd}.%{cm_tag} = %{particle_val}', ctd=template_map['ctd'], cm_tag=cm_tag, particle_val=particle_val))
+        outf.postscript().append(templates.replaceInText('%{ctd}._ContentModel = %{particle_val}', ctd=template_map['ctd'], particle_val=particle_val))
         outf.postscript().append("\n")
 
     if need_content:
