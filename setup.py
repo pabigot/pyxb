@@ -187,7 +187,10 @@ for possible_bundle in possible_bundles:
     b_data = { }
     for fp in pyxb.utils.utility.GetMatchingFiles('%s//' % (bundle_root,), init_re):
         bundle_path = os.path.dirname(os.path.normpath(fp))
-        package_relpath = os.path.relpath(bundle_path, setup_path)
+        try:
+            package_relpath = os.path.relpath(bundle_path, setup_path)
+        except AttributeError, e:
+            package_relpath = bundle_path
         package = package_relpath.replace(os.path.sep, '.')
         b_packages.append(package)
         wxs_files = [os.path.basename(_f) for _f in pyxb.utils.utility.GetMatchingFiles(bundle_path, wxs_re) ]
