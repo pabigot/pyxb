@@ -78,6 +78,10 @@ General cleanup, finish up a few previously unsupported datatypes.
   Thanks to Michael van der Westhuizen for providing this (sixteen months
   ago).  :ticket:`106`
 
+- Avoid overwrite of Python `built-in constants
+  <http://docs.python.org/library/constants.html>`_, including ``None``,
+  ``True``, and ``False``.  :ticket:`107`
+
 
 1.1.2 (30 May 2010)
 -------------------
