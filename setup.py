@@ -201,7 +201,7 @@ for possible_bundle in possible_bundles:
 setup(name='PyXB',
       description = 'PyXB ("pixbee") is a pure Python package that generates Python source code for classes that correspond to data structures defined by XMLSchema.',
       author='Peter A. Bigot',
-      author_email='pyxb@comcast.net',
+      author_email='pabigot@users.sourceforge.net',
       url='http://pyxb.sourceforge.net',
       # Also change in README.TXT, pyxb/__init__.py, and doc/conf.py
       version=version,
