@@ -1,12 +1,13 @@
-# Run this from within ~pab/pyxb/pre-release
+# Run this from within ${PYXB_BASE}/pre-release
 
+PYXB_BASE=${PYXB_BASE:-/pyxb}
 RELEASE=${1:-0.7.1-TEST}
 PYXBREL=PyXB-${RELEASE}
 TARFILE=PyXB-full-${RELEASE}.tar.gz
 
 export LANG=en_US.UTF-8
 
-for pv in 2.4.6 2.5.5 2.6.5 ; do
+for pv in 2.4.6 2.5.6 2.6.7 2.7.2 ; do
   (
   pt=python-${pv}
   pvs=`echo ${pv} | sed -e 's@..$@@'`
@@ -17,8 +18,9 @@ for pv in 2.4.6 2.5.5 2.6.5 ; do
   tar xzf ../${TARFILE}
   cd ${PYXBREL}
   python -V
-  idir=/tmp/${pt}-${RELEASE}
+  idir=${PYXB_BASE}/pre-release/install/${pt}-${RELEASE}
   rm -rf ${idir}
+  mkdir -p ${idir}
   python setup.py install --prefix=${idir}
 
   # Rename directory to be sure we're using the installed location

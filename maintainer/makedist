@@ -1,13 +1,15 @@
 #!/bin/sh
 
+PYXB_BASE=${PYXB_BASE:-/pyxb}
+PYXB_ROOT=${PYXB_ROOT:-${PYXB_BASE}/dev}
 BRANCH=${1:-next}
 
 exec | tee makedist.log 2>&1
 
 DIST_SUBDIR=pyxbdist
-cd /tmp
+cd ${PYXB_BASE}
 rm -rf ${DIST_SUBDIR}
-git clone -b ${BRANCH} ~/pyxb/dev ${DIST_SUBDIR}
+git clone -b ${BRANCH} ${PYXB_ROOT} ${DIST_SUBDIR}
 cd ${DIST_SUBDIR}
 export PYXB_ROOT=`pwd`
 
@@ -17,7 +19,9 @@ version=$(grep ^version setup.py | cut -d= -f2 | sed -e "s@'@@g")
 echo $version
 
 ./setup.py update_version
-if ( git status >/dev/null ) ; then
+if git status ; then
+  :
+else
   echo 1>&2 ERROR: Unsaved deltas
   git status -uno
   exit 1
@@ -27,7 +31,7 @@ fi
 ./setup.py sdist
 ver=`ls -rt dist | tail -1 | sed -e 's@^PyXB-\(.*\).tar.gz$@\1@'`
 DISTROOT=PyXB-${ver}
-BASE_TGZ=${HOME}/pyxb/pre-release/PyXB-base-${ver}.tar.gz
+BASE_TGZ=${PYXB_BASE}/pre-release/PyXB-base-${ver}.tar.gz
 mv dist/${DISTROOT}.tar.gz ${BASE_TGZ}
 cd ..
 
@@ -50,7 +54,7 @@ make apihtml html
 rm -f pyxb
 cd ..
 
-PYXB_ROOT=/tmp/${DISTROOT}
+PYXB_ROOT=${PYXB_BASE}/${DISTROOT}
 export PYXB_ROOT
 
 # Generate the bundles
@@ -60,7 +64,7 @@ done
 
 # Build the full distribution
 ./setup.py sdist
-FULL_TGZ=${HOME}/pyxb/pre-release/PyXB-full-${ver}.tar.gz
+FULL_TGZ=${PYXB_BASE}/pre-release/PyXB-full-${ver}.tar.gz
 mv dist/* ${FULL_TGZ}
 
 # Test it
@@ -89,7 +93,7 @@ This directory contains the following files added as part of the ${tag} overlay:
 EOText
     cat ${tag}.files
 ) >${README}
-  tar czf ${HOME}/pyxb/pre-release/PyXB-${tag}-${ver}.tar.gz --files-from ${tag}.files ${README}
+  tar czf ${PYXB_BASE}/pre-release/PyXB-${tag}-${ver}.tar.gz --files-from ${tag}.files ${README}
 }
 
 # Build overlays
@@ -100,10 +104,10 @@ build_overlay wssplat pyxb/bundles/wssplat
 build_overlay saml20 pyxb/bundles/saml20
 
 mv ${DISTROOT} ${DISTROOT}-overlays
-tar xzf ${HOME}/pyxb/pre-release/PyXB-full-${ver}.tar.gz
+tar xzf ${PYXB_BASE}/pre-release/PyXB-full-${ver}.tar.gz
 mv ${DISTROOT} ${DISTROOT}-full
 for f in base doc common opengis wssplat saml20 ; do
-  tar xzf ${HOME}/pyxb/pre-release/PyXB-${f}-${ver}.tar.gz
+  tar xzf ${PYXB_BASE}/pre-release/PyXB-${f}-${ver}.tar.gz
 done
 diff -r ${DISTROOT} ${DISTROOT}-full
 
