@@ -63,13 +63,27 @@ def MakeIdentifier (s, camel_case=False):
         s = 'emptyString'
     return s
 
-# Note that types like int and float are not keywords
-_Keywords = frozenset( (
+_PythonKeywords = frozenset( (
         "and", "as", "assert", "break", "class", "continue", "def", "del",
         "elif", "else", "except", "exec", "finally", "for", "from", "global",
         "if", "import", "in", "is", "lambda", "not", "or", "pass", "print",
-        "raise", "return", "try", "while", "with", "yield" ) )
-"""The keywords reserved for Python."""
+        "raise", "return", "try", "while", "with", "yield"
+        ) )
+"""Python keywords.  Note that types like int and float are not
+keywords.
+
+@see: U{http://docs.python.org/reference/lexical_analysis.html#keywords}."""
+
+_PythonBuiltInConstants = frozenset( (
+        "False", "True", "None", "NotImplemented", "Ellipsis", "__debug__",
+        ) )
+"""Other symbols that aren't keywords but that can't be used.
+
+@see: U{http://docs.python.org/library/constants.html}."""
+
+_Keywords = frozenset(_PythonKeywords.union(_PythonBuiltInConstants))
+"""The keywords reserved for Python, derived from L{_PythonKeywords}
+and L{_PythonBuiltInConstants}."""
 
 def DeconflictKeyword (s, aux_keywords=frozenset()):
     """If the provided string C{s} matches a Python language keyword,
