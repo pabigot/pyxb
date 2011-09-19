@@ -35,7 +35,7 @@ import re
 
 SupportsWideUnicode = False
 try:
-    re.compile('[\U1d7ce-\U1d7ff]')
+    re.compile(u'[\U0001d7ce-\U0001d7ff]')
     SupportsWideUnicode = True
 except:
     pass
