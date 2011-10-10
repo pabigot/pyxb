@@ -38,7 +38,7 @@ res = ndfd.dwGML.CreateFromDocument(xmls)
 
 if res._element() == pyxb.bundles.opengis.ows.ExceptionReport:
     for ex in res.Exception:
-        print '%s (%s): %s' % (ex.exceptionCode(), ex.locator(), ''.join([_txt for _txt in ex.ExceptionText]))
+        print '%s (%s): %s' % (ex.exceptionCode, ex.locator, ''.join([_txt for _txt in ex.ExceptionText]))
     sys.exit(1)
 
 for fm in res.featureMember:
