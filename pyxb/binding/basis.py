@@ -1737,16 +1737,15 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         added to the parent when creating a DOM representation of this
         object.
 
-        @note: This is not currently used; it is retained as an example of one
-        way to override L{_validatedChildren} in cases where content model
-        validation is not required.
+        @note: This is only used when L{pyxb.RequireValidWhenGenerating} has
+        disabled validation.  Consequently, it may not generate valid XML.
         """
         order = []
         for eu in self._ElementMap.values():
             value = eu.value(self)
             if value is None:
                 continue
-            if isinstance(value, list):
+            if isinstance(value, list) and eu.isPlural():
                 order.extend([ (eu, _v) for _v in value ])
                 continue
             order.append( (eu, value) )
