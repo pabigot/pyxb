@@ -1,4 +1,4 @@
-# Copyright 2009, Peter A. Bigot
+# Copyright 2009-2012, Peter A. Bigot
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain a
@@ -16,6 +16,7 @@
 
 import pyxb
 import pyxb.namespace
+import pyxb.utils.saxdom
 import xml.dom
 
 # The DOM implementation to be used for all processing.  Default is whatever
@@ -545,6 +546,76 @@ class BindingDOMSupport (object):
         element = self.__document.createElementNS(ns_uri, name)
         return parent.appendChild(element)
 
+    def _makeURINodeNamePair (self, node):
+        """Convert namespace information from a DOM node to text for new DOM node.
+
+        The namespaceURI and nodeName are extracted and parsed.  The namespace
+        is registered within the document, along with any prefix from the node
+        name.  A pair is returned where the first element is the namespace
+        URI, and the second is a QName to be used for the expanded name within
+        this document.
+
+        @param node: An xml.dom.Node instance, presumably from a wildcard match.
+        @rtype: C{( str, str )}"""
+        ns = pyxb.namespace.NamespaceForURI(node.namespaceURI, create_if_missing=True)
+        local_name = node.nodeName
+        pfx = None
+        if 0 < local_name.find(':'):
+            (pfx, local_name) = local_name.split(':', 1)
+        self.declareNamespace(ns, pfx)
+        node_name = local_name
+        if pfx is None:
+            pfx = self.namespacePrefix(ns)
+        if pfx is not None:
+            node_name = '%s:%s' % (pfx, local_name)
+        return (ns.uri(), node_name)
+
+    def _deepClone (self, node, docnode):
+        if node.ELEMENT_NODE == node.nodeType:
+            (ns_uri, node_name) = self._makeURINodeNamePair(node)
+            clone_node = docnode.createElementNS(ns_uri, node_name)
+            for attr in node.attributes.values():
+                clone_node.setAttributeNodeNS(self._deepClone(attr, docnode))
+            for child in node.childNodes:
+                clone_node.appendChild(self._deepClone(child, docnode))
+            return clone_node
+        if node.TEXT_NODE == node.nodeType:
+            return docnode.createTextNode(node.data)
+        if node.ATTRIBUTE_NODE == node.nodeType:
+            (ns_uri, node_name) = self._makeURINodeNamePair(node)
+            clone_node = docnode.createAttributeNS(node.namespaceURI, node.nodeName)
+            clone_node.value = node.value
+            return clone_node
+        if node.COMMENT_NODE == node.nodeType:
+            return docnode.createComment(node.data)
+        raise pyxb.IncompleteImplementationError('Unable to clone type %s DOM node %s' % (node.nodeType, node))
+
+    def cloneIntoImplementation (self, node):
+        """Create a deep copy of the node in the target implementation.
+
+        Used when converting a DOM instance from one implementation (e.g.,
+        L{pyxb.utils.saxdom}) into another (e.g., L{xml.dom.minidom})."""
+        new_doc = self.implementation().createDocument(None, None, None)
+        return self._deepClone(node, new_doc)
+
+    def appendChild (self, child, parent):
+        """Add the child to the parent.
+
+        @note: If the child and the parent use different DOM implementations,
+        this operation will clone the child into a new instance, and give that
+        to the parent.
+
+        @param child: The value to be appended
+        @type child: C{xml.dom.Node}
+        @param parent: The new parent of the child
+        @type parent: C{xml.dom.Node}
+        @rtype: C{xml.dom.Node}"""
+
+        # @todo This check is incomplete; is there a standard way to find the
+        # implementation of an xml.dom.Node instance?
+        if isinstance(child, pyxb.utils.saxdom.Node):
+            child = self.cloneIntoImplementation(child)
+        return parent.appendChild(child)
 
 ## Local Variables:
 ## fill-column:78
