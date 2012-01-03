@@ -537,11 +537,11 @@ class BindingDOMSupport (object):
             raise pyxb.LogicError('Invalid type %s for expanded name' % (type(expanded_name),))
         ns = expanded_name.namespace()
         name = expanded_name.localName()
+        ns_uri = xml.dom.EMPTY_NAMESPACE
         pfx = self.namespacePrefix(ns)
         if pfx is not None:
             ns_uri = ns.uri()
             name = '%s:%s' % (pfx, name)
-        ns_uri = xml.dom.EMPTY_NAMESPACE
         element = self.__document.createElementNS(ns_uri, name)
         return parent.appendChild(element)
 
