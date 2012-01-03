@@ -1,4 +1,4 @@
-# Copyright 2009, Peter A. Bigot
+# Copyright 2009-2012, Peter A. Bigot
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain a
@@ -1090,7 +1090,7 @@ class _PluralityData (types.ListType):
         elif isinstance(component, Wildcard):
             pass
         elif component is not None:
-            raise pyxb.NotImplementedError("No support for plurality of component type %s" % (type(component),))
+            raise pyxb.IncompleteImplementationError("No support for plurality of component type %s" % (type(component),))
         # Elements get lost if there's a result set that doesn't have any
         # documents in it.
         if 0 == len(self):
