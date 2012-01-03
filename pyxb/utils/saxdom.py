@@ -1,4 +1,4 @@
-# Copyright 2009, Peter A. Bigot
+# Copyright 2009-2012, Peter A. Bigot
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain a
@@ -237,6 +237,7 @@ class Element (Node):
     def __init__ (self, **kw):
         super(Element, self).__init__(node_type=xml.dom.Node.ELEMENT_NODE, **kw)
         assert self.attributes is not None
+    tagName = Node.localName
     nodeName = Node.localName
 
 class _CharacterData (Node):
