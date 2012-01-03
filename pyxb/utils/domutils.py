@@ -558,14 +558,24 @@ class BindingDOMSupport (object):
         @param node: An xml.dom.Node instance, presumably from a wildcard match.
         @rtype: C{( str, str )}"""
         ns = pyxb.namespace.NamespaceForURI(node.namespaceURI, create_if_missing=True)
-        local_name = node.nodeName
+        if node.ELEMENT_NODE == node.nodeType:
+            name = node.tagName
+        elif node.ATTRIBUTE_NODE == node.nodeType:
+            name = node.name
+            # saxdom uses the uriTuple as the name field while minidom uses
+            # the QName.  @todo saxdom should be fixed.
+            if isinstance(name, tuple):
+                name = name[1]
+        else:
+            raise pyxb.UsageError('Unable to determine name from DOM node %s' % (node,))
         pfx = None
-        if 0 < local_name.find(':'):
-            (pfx, local_name) = local_name.split(':', 1)
+        local_name = name
+        if 0 < name.find(':'):
+            (pfx, local_name) = node_name.split(':', 1)
         self.declareNamespace(ns, pfx)
-        node_name = local_name
         if pfx is None:
             pfx = self.namespacePrefix(ns)
+        node_name = local_name
         if pfx is not None:
             node_name = '%s:%s' % (pfx, local_name)
         return (ns.uri(), node_name)
@@ -574,8 +584,9 @@ class BindingDOMSupport (object):
         if node.ELEMENT_NODE == node.nodeType:
             (ns_uri, node_name) = self._makeURINodeNamePair(node)
             clone_node = docnode.createElementNS(ns_uri, node_name)
-            for attr in node.attributes.values():
-                clone_node.setAttributeNodeNS(self._deepClone(attr, docnode))
+            attrs = node.attributes
+            for ai in xrange(attrs.length):
+                clone_node.setAttributeNodeNS(self._deepClone(attrs.item(ai), docnode))
             for child in node.childNodes:
                 clone_node.appendChild(self._deepClone(child, docnode))
             return clone_node
@@ -583,7 +594,7 @@ class BindingDOMSupport (object):
             return docnode.createTextNode(node.data)
         if node.ATTRIBUTE_NODE == node.nodeType:
             (ns_uri, node_name) = self._makeURINodeNamePair(node)
-            clone_node = docnode.createAttributeNS(node.namespaceURI, node.nodeName)
+            clone_node = docnode.createAttributeNS(ns_uri, node_name)
             clone_node.value = node.value
             return clone_node
         if node.COMMENT_NODE == node.nodeType:
