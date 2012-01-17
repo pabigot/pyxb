@@ -258,12 +258,10 @@ class duration (basis.simpleTypeDefinition, datetime.timedelta):
             if (0 != (rem_time % 1)):
                 data['microseconds'] = types.IntType(1000000 * (rem_time % 1))
                 rem_time = rem_time // 1
-            if 60 <= rem_time:
-                data['seconds'] = rem_time % 60
-                rem_time = data['minutes'] + (rem_time // 60)
-            if 60 <= rem_time:
-                data['minutes'] = rem_time % 60
-                rem_time = data['hours'] + (rem_time // 60)
+            data['seconds'] = rem_time % 60
+            rem_time = data['minutes'] + (rem_time // 60)
+            data['minutes'] = rem_time % 60
+            rem_time = data['hours'] + (rem_time // 60)
             data['hours'] = rem_time % 24
             data['days'] += (rem_time // 24)
             for fn in cls.__PythonFields:

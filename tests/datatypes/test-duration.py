@@ -55,6 +55,20 @@ class Test_duration (unittest.TestCase):
 
         v = xsd.duration('P3DT4H7M')
 
+    def testFromTimeDelta (self):
+        v = xsd.duration(datetime.timedelta(seconds=3))
+        self.assertEqual('PT3S', v.xsdLiteral())
+        v = xsd.duration(datetime.timedelta(minutes=3))
+        self.assertEqual('PT3M', v.xsdLiteral())
+        v = xsd.duration(datetime.timedelta(hours=3))
+        self.assertEqual('PT3H', v.xsdLiteral())
+        v = xsd.duration(datetime.timedelta(hours=3, seconds=61))
+        self.assertEqual('PT3H1M1S', v.xsdLiteral())
+        v = xsd.duration(datetime.timedelta(hours=27, seconds=61))
+        self.assertEqual('P1DT3H1M1S', v.xsdLiteral())
+        v = xsd.duration(datetime.timedelta(seconds=61+27*60*60))
+        self.assertEqual('P1DT3H1M1S', v.xsdLiteral())
+
     def testNegative (self):
         v = xsd.duration('-P3DT4H7M23.5S')
         # Time is 19H52M36.5S into day -4
