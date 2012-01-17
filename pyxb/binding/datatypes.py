@@ -236,7 +236,7 @@ class duration (basis.simpleTypeDefinition, datetime.timedelta):
             data['seconds'] += fractional_seconds
             have_kw_update = True
         elif isinstance(text, cls):
-            data = text.durationData()
+            data = text.durationData().copy()
             negative_duration = text.negativeDuration()
         elif isinstance(text, datetime.timedelta):
             data = { 'days' : text.days,
