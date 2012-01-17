@@ -1,5 +1,6 @@
 import pyxb
 import unittest
+import datetime
 import pyxb.binding.datatypes as xsd
 
 class Test_duration (unittest.TestCase):
@@ -63,6 +64,11 @@ class Test_duration (unittest.TestCase):
         self.assertEqual(36 + 60 * (52 + 60 * 19), v.seconds)
         self.assertEqual(500000, v.microseconds)
         self.assertEqual('2000-01-06T19:52:36.5', delta_date.xsdLiteral())
+        td = datetime.timedelta(days=-1)
+        v = xsd.duration(td)
+        self.assertEqual(v, td)
+        delta_date = xsd.dateTime(base_date + v)
+        self.assertEqual('2000-01-09T00:00:00', delta_date.xsdLiteral())
 
     def testAddition (self):
         date = xsd.dateTime(2002, 10, 27, 12, 14, 32)

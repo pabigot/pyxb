@@ -241,8 +241,11 @@ class duration (basis.simpleTypeDefinition, datetime.timedelta):
                      'seconds' : text.seconds + (text.microseconds / 1000000.0) }
             negative_duration = (0 > data['days'])
             if negative_duration:
-                data['days'] = 1 - data['days']
-                data['seconds'] = 24 * 60 * 60.0 - data['seconds']
+                if 0.0 == data['seconds']:
+                    data['days'] = - data['days']
+                else:
+                    data['days'] = 1 - data['days']
+                    data['seconds'] = 24 * 60 * 60.0 - data['seconds']
             data['minutes'] = 0
             data['hours'] = 0
         if not have_kw_update:
