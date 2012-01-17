@@ -195,6 +195,8 @@ class duration (basis.simpleTypeDefinition, datetime.timedelta):
 
     def __new__ (cls, *args, **kw):
         args = cls._ConvertArguments(args, kw)
+        if 0 == len(args):
+            raise BadTypeValueError('[xsd:duration] Type requires an initializer')
         text = args[0]
         have_kw_update = False
         if isinstance(text, (str, unicode)):
@@ -248,6 +250,8 @@ class duration (basis.simpleTypeDefinition, datetime.timedelta):
                     data['seconds'] = 24 * 60 * 60.0 - data['seconds']
             data['minutes'] = 0
             data['hours'] = 0
+        else:
+            raise BadTypeValueError('[xsd:duration] Initializer "%s" type %s not valid for type' % (text, type(text)))
         if not have_kw_update:
             rem_time = data['seconds']
             use_seconds = rem_time

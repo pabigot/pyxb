@@ -83,8 +83,8 @@ class Test_duration (unittest.TestCase):
         self.assertEqual(3, v.days)
         self.assertEqual(14842, v.seconds)
         self.assertEqual('P3DT4H7M22.5S', v.xsdLiteral())
-        
-
+        self.assertRaises(pyxb.BadTypeValueError, xsd.duration)
+        self.assertRaises(pyxb.BadTypeValueError, xsd.duration, 4)
 
 if __name__ == '__main__':
     unittest.main()
