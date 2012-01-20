@@ -1874,24 +1874,6 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             au.set(self, value)
         return au
 
-    def __setAttributes (self, attribute_settings, dom_node):
-        """Initialize the attributes of this element from those of the DOM node.
-
-        @raise pyxb.UnrecognizedAttributeError: if the DOM node has attributes
-        that are not allowed in this type
-        @raise pyxb.ProhibitedAttributeError: a prohibited attribute was encountered
-        @raise pyxb.MissingAttributeError: a required attribute could not be found
-        """
-        
-        # Handle all the attributes that are present in the node
-        attrs_available = set(self._AttributeMap.values())
-        for (attr_en, value) in attribute_settings.items():
-            au = self._setAttribute(attr_en, value)
-            if au is not None:
-                attrs_available.remove(au)
-
-        return self
-
     def xsdConstraintsOK (self):
         """Validate the content against the simple type.
 
