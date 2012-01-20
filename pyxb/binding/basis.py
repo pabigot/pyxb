@@ -343,6 +343,60 @@ class _TypeBinding_mixin (utility.Locatable_mixin):
         of complexTypeDefinition that have simple type content."""
         raise pyxb.LogicError('Failed to override _TypeBinding_mixin._IsSimpleTypeContent')
 
+    # If the type supports wildcard attributes, this describes their
+    # constraints.  (If it doesn't, this should remain None.)  Supporting
+    # classes should override this value.
+    _AttributeWildcard = None
+
+    _AttributeMap = { }
+    """Map from expanded names to AttributeUse instances.  Non-empty only in
+    L{complexTypeDefinition} subclasses."""
+
+    @classmethod
+    def __AttributesFromDOM (cls, node):
+        attribute_settings = { }
+        for ai in range(0, node.attributes.length):
+            attr = node.attributes.item(ai)
+            # NB: Specifically do not consider attr's NamespaceContext, since
+            # attributes do not accept a default namespace.
+            attr_en = pyxb.namespace.ExpandedName(attr)
+
+            # Ignore xmlns and xsi attributes; we've already handled those
+            if attr_en.namespace() in ( pyxb.namespace.XMLNamespaces, XSI ):
+                continue
+
+            value = attr.value
+            au = cls._AttributeMap.get(attr_en)
+            if au is None:
+                if cls._AttributeWildcard is None:
+                    raise pyxb.UnrecognizedAttributeError('Attribute %s is not permitted in type %s' % (attr_en, cls._ExpandedName))
+            attribute_settings[attr_en] = value
+        return attribute_settings
+
+    def _setAttributesFromKeywordsAndDOM (self, kw, dom_node):
+        """Invoke self._setAttribute based on node attributes and keywords.
+
+        Though attributes can only legally appear in complexTypeDefinition
+        instances, delayed conditional validation requires caching them in
+        simpleTypeDefinition.
+
+        @param kw keywords passed to the constructor.  This map is mutated by
+        the call: keywords corresponding to recognized attributes are removed.
+
+        @param dom_node an xml.dom Node instance, possibly C{None}
+        """
+        
+        # Extract keywords that match field names
+        attribute_settings = { }
+        if dom_node is not None:
+            attribute_settings.update(self.__AttributesFromDOM(dom_node))
+        for fu in self._AttributeMap.values():
+            iv = kw.pop(fu.id(), None)
+            if iv is not None:
+                attribute_settings[fu.name()] = iv
+        for (attr_en, value) in attribute_settings.items():
+            au = self._setAttribute(attr_en, value)
+
     def toDOM (self, bds=None, parent=None, element_name=None):
         """Convert this instance to a DOM node.
 
@@ -711,11 +765,13 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
         kw.pop('_fallback_namespace', None)
         kw.pop('_nil', None)
         # ConvertArguments will remove _element and _apply_whitespace_facet
+        dom_node = kw.get('_dom_node')
         args = cls._ConvertArguments(args, kw)
-        kw.pop('_from_xml', None)
+        kw.pop('_from_xml', dom_node is not None)
         assert issubclass(cls, _TypeBinding_mixin)
         try:
             rv = super(simpleTypeDefinition, cls).__new__(cls, *args, **kw)
+            rv._setAttributesFromKeywordsAndDOM(kw, dom_node)
             return rv
         except ValueError, e:
             raise pyxb.BadTypeValueError(e)
@@ -987,6 +1043,9 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
 
     def _isValidValue (self):
         self._IsValidValue(self)
+
+    def _setAttribute (self, attr_en, value):
+        raise pyxb.UnrecognizedAttributeError('Attribute %s is not permitted in simple type %s' % (attr_en, self._ExpandedName))
 
     @classmethod
     def _description (cls, name_only=False, user_documentation=True):
@@ -1565,14 +1624,6 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
     """Subclass of simpleTypeDefinition that corresponds to the type content.
     Only valid if _ContentTypeTag is _CT_SIMPLE"""
 
-    # If the type supports wildcard attributes, this describes their
-    # constraints.  (If it doesn't, this should remain None.)  Supporting
-    # classes should override this value.
-    _AttributeWildcard = None
-
-    _AttributeMap = { }
-    """Map from expanded names to AttributeUse instances."""
-
     # A value that indicates whether the content model for this type supports
     # wildcard elements.  Supporting classes should override this value.
     _HasWildcardElement = False
@@ -1663,16 +1714,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             raise pyxb.AbstractInstantiationError(type(self))
         super(complexTypeDefinition, self).__init__(**kw)
         self.reset()
-        # Extract keywords that match field names
-        attribute_settings = { }
-        if dom_node is not None:
-            attribute_settings.update(self.__AttributesFromDOM(dom_node))
-        for fu in self._AttributeMap.values():
-            iv = kw.pop(fu.id(), None)
-            if iv is not None:
-                attribute_settings[fu.name()] = iv
-        for (attr_en, value) in attribute_settings.items():
-            au = self._setAttribute(attr_en, value)
+        self._setAttributesFromKeywordsAndDOM(kw, dom_node)
         for fu in self._ElementMap.values():
             iv = kw.pop(fu.id(), None)
             if iv is not None:
@@ -1842,27 +1884,6 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
                 print 'WARNING: Cannot validate value %s in field %s' % (value, eu.id())
         self._validateAttributes()
         return True
-
-    @classmethod
-    def __AttributesFromDOM (cls, node):
-        attribute_settings = { }
-        for ai in range(0, node.attributes.length):
-            attr = node.attributes.item(ai)
-            # NB: Specifically do not consider attr's NamespaceContext, since
-            # attributes do not accept a default namespace.
-            attr_en = pyxb.namespace.ExpandedName(attr)
-
-            # Ignore xmlns and xsi attributes; we've already handled those
-            if attr_en.namespace() in ( pyxb.namespace.XMLNamespaces, XSI ):
-                continue
-
-            value = attr.value
-            au = cls._AttributeMap.get(attr_en)
-            if au is None:
-                if cls._AttributeWildcard is None:
-                    raise pyxb.UnrecognizedAttributeError('Attribute %s is not permitted in type %s' % (attr_en, cls._ExpandedName))
-            attribute_settings[attr_en] = value
-        return attribute_settings
 
     def _setAttribute (self, attr_en, value):
         au = self._AttributeMap.get(attr_en, None)

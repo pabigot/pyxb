@@ -117,17 +117,16 @@ class _SAXElementState (pyxb.utils.saxutils.SAXElementState):
         # interpret QNames within the attributes and content.
         self.__bindingInstance._setNamespaceContext(self.__namespaceContext)
 
-        # Set the attributes.
-        if isinstance(self.__bindingInstance, pyxb.binding.basis.complexTypeDefinition):
-            # NB: attrs implements the SAX AttributesNS interface, meaning
-            # that names are pairs of (namespaceURI, localName), just like we
-            # want them to be.
-            for attr_name in self.__attributes.getNames():
-                attr_en = pyxb.namespace.ExpandedName(attr_name)
-                # Ignore xmlns and xsi attributes; we've already handled those
-                if attr_en.namespace() in ( pyxb.namespace.XMLNamespaces, XSI ):
-                    continue
-                au = self.__bindingInstance._setAttribute(attr_en, attrs.getValue(attr_name))
+        # Set instance attributes
+        # NB: attrs implements the SAX AttributesNS interface, meaning
+        # that names are pairs of (namespaceURI, localName), just like we
+        # want them to be.
+        for attr_name in self.__attributes.getNames():
+            attr_en = pyxb.namespace.ExpandedName(attr_name)
+            # Ignore xmlns and xsi attributes; we've already handled those
+            if attr_en.namespace() in ( pyxb.namespace.XMLNamespaces, XSI ):
+                continue
+            self.__bindingInstance._setAttribute(attr_en, attrs.getValue(attr_name))
 
         return self.__bindingInstance
 
@@ -198,7 +197,6 @@ class _SAXElementState (pyxb.utils.saxutils.SAXElementState):
         self.__attributes = attrs
         if type_class._IsSimpleTypeContent():
             self.__delayedConstructor = new_object_factory
-            self.__attributes = attrs
         else:
             self.__constructElement(new_object_factory, attrs)
         return self.__bindingInstance
