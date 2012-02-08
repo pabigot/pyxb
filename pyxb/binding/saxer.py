@@ -324,7 +324,7 @@ class PyXBSAXHandler (pyxb.utils.saxutils.BaseSAXHandler):
 
         # Process an xsi:type attribute, if present
         if attrs.has_key(self.__XSITypeTuple):
-            (did_replace, type_class) = XSI._InterpretTypeAttribute(attrs.getValue(self.__XSITypeTuple), ns_ctx, None, type_class)
+            (did_replace, type_class) = XSI._InterpretTypeAttribute(attrs.getValue(self.__XSITypeTuple), ns_ctx, self.fallbackNamespace(), type_class)
             if did_replace:
                 element_binding = None
 

@@ -177,6 +177,9 @@ class BaseSAXHandler (xml.sax.handler.ContentHandler, object):
 
     # The namespace to use when processing a document with an absent default
     # namespace.
+    def fallbackNamespace (self):
+        """Return the namespace used to resolve unqualified names with no default namespace."""
+        return self.__fallbackNamespace
     __fallbackNamespace = None
 
     # The namespace context that will be in effect at the start of the
