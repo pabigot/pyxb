@@ -31,6 +31,9 @@ class TestTrac0119 (unittest.TestCase):
         # Can resolve it in absent module
         instance = absent.CreateFromDocument(xmls)
         self.assertEquals('hi', instance.command.payload)
+        # Can resolve in base module if fallback namespace overridden
+        instance = base.CreateFromDocument(xmls, default_namespace=absent.Namespace)
+        self.assertEquals('hi', instance.command.payload)
         
     def testDefault (self):
         xmls='''<?xml version="1.0"?>
@@ -44,6 +47,9 @@ class TestTrac0119 (unittest.TestCase):
         self.assertRaises(pyxb.SchemaValidationError, base.CreateFromDocument, xmls)
         # Can resolve it in absent module
         instance = absent.CreateFromDocument(xmls)
+        self.assertEquals('hi', instance.command.payload)
+        # Can resolve in base module if fallback namespace overridden
+        instance = base.CreateFromDocument(xmls, default_namespace=absent.Namespace)
         self.assertEquals('hi', instance.command.payload)
         
 if __name__ == '__main__':

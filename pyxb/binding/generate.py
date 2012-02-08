@@ -1328,11 +1328,26 @@ ModuleRecord = Namespace.lookupModuleRecordByUID(_GenerationUID, create_if_missi
 ModuleRecord._setModule(sys.modules[__name__])
 
 def CreateFromDocument (xml_text, default_namespace=None, location_base=None):
-    """Parse the given XML and use the document element to create a Python instance."""
+    """Parse the given XML and use the document element to create a
+    Python instance.
+    
+    @kw default_namespace The L{pyxb.Namespace} instance to use as the
+    default namespace where there is no default namespace in scope.
+    If unspecified or C{None}, the namespace of the module containing
+    this function will be used.
+
+    @keyword location_base: An object to be recorded as the base of all
+    L{pyxb.utils.utility.Location} instances associated with events and
+    objects handled by the parser.  You might pass the URI from which
+    the document was obtained.
+    """
+
     if pyxb.XMLStyle_saxer != pyxb._XMLStyle:
         dom = pyxb.utils.domutils.StringToDOM(xml_text)
         return CreateFromDOM(dom.documentElement)
-    saxer = pyxb.binding.saxer.make_parser(fallback_namespace=Namespace.fallbackNamespace(), location_base=location_base)
+    if default_namespace is None:
+        default_namespace = Namespace.fallbackNamespace()
+    saxer = pyxb.binding.saxer.make_parser(fallback_namespace=default_namespace, location_base=location_base)
     handler = saxer.getContentHandler()
     saxer.parse(StringIO.StringIO(xml_text))
     instance = handler.rootObject()
