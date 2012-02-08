@@ -30,6 +30,10 @@ print '%s %s' % (product.title, product.category)
 source = r.head.source
 print ", ".join(source.production_center.content())
 data = r.data
+if isinstance(data, list) and 1 == len(data):
+    data = data.pop(0)
+
+print data
 
 for i in range(len(data.location)):
     loc = data.location[i]

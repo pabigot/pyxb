@@ -54,6 +54,10 @@ while parts and nodes:
         nodes.pop(0)
     assert nodes
     n = nodes.pop(0)
+    if p.name != n.localName:
+        print 'Desynchronized: part %s expected node %s' % (p.name, n.localName)
+        nodes.insert(0, n)
+        continue
     print '%s %s' % (p.name, n.localName)
 
 #print '%s yielded %s' msg_ns
