@@ -1,4 +1,4 @@
-URI='http://www.weather.gov/forecasts/xml/DWMLgen/schema/DWML.xsd'
+URI='http://graphical.weather.gov/xml/DWMLgen/schema/DWML.xsd'
 PREFIX='DWML'
 
 rm -rf uriArchive
@@ -10,6 +10,20 @@ pyxbgen \
    -m "${PREFIX}" \
    --uri-content-archive-directory=uriArchive \
    -r || exit
+
+# TEMPORARY HACK: The parameters.xsd currently retrieved from NWA
+# includes an error that prevents the module from loading.  Patch the
+# downloaded copy with the fix that is pending deployment upstream,
+# and re-generate the bindings.
+rm -rf schema
+mv uriArchive schema
+( cd schema ; patch -p1 < ../DWML-parameters.patch )
+pyxbgen \
+  --schema-location schema/DWML.xsd \
+  --location-prefix-rewrite http://graphical.weather.gov/xml/DWMLgen/= \
+  --module "${PREFIX}" \
+  --write-for-customization || exit
+
 if [ ! -f ${PREFIX}.py ] ; then
   echo "from raw.${PREFIX} import *" > ${PREFIX}.py
 fi

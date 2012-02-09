@@ -1,0 +1,82 @@
+From 5c837592dbd93fb7fffa9291f7225dd326a85429 Mon Sep 17 00:00:00 2001
+From: "Peter A. Bigot" <bigotp@acm.org>
+Date: Thu, 9 Feb 2012 08:43:45 -0600
+Subject: [PATCH] pending upstream patch to fix validation issues
+
+---
+ parameters.xsd |   15 ++++++++-------
+ 1 files changed, 8 insertions(+), 7 deletions(-)
+
+diff --git a/parameters.xsd b/parameters.xsd
+index 7730ef8..f7eb417 100644
+--- a/parameters.xsd
++++ b/parameters.xsd
+@@ -71,7 +71,7 @@
+                             </xsd:restriction>
+                         </xsd:simpleType>
+                     </xsd:attribute>
+-                    <xsd:attribute name="units" use="required" default="Fahrenheit">
++                    <xsd:attribute name="units" default="Fahrenheit">
+                         <xsd:simpleType>
+                             <xsd:restriction base="xsd:string">
+                                 <xsd:enumeration value="Fahrenheit" />
+@@ -125,7 +125,7 @@
+                             </xsd:restriction>
+                         </xsd:simpleType>
+                     </xsd:attribute>
+-                    <xsd:attribute name="units" use="required" default="inches">
++                    <xsd:attribute name="units" default="inches">
+                         <xsd:simpleType>
+                             <xsd:restriction base="xsd:string">
+                                 <xsd:enumeration value="inches" />
+@@ -320,7 +320,7 @@
+                             </xsd:restriction>
+                         </xsd:simpleType>
+                     </xsd:attribute>
+-                    <xsd:attribute name="units" use="required" default="knots">
++                    <xsd:attribute name="units" default="knots">
+                        <xsd:simpleType>
+                           <xsd:restriction base="xsd:string">
+                              <xsd:enumeration value="knots" />
+@@ -727,9 +727,10 @@
+                             </xsd:restriction>
+                         </xsd:simpleType>
+                     </xsd:attribute>
+-                    <xsd:attribute name="units" use="required" default="millibars">
++                    <xsd:attribute name="units" default="millibars">
+                         <xsd:simpleType>
+                             <xsd:restriction base="xsd:string">
++                                <xsd:enumeration value="millibars" />
+                                 <xsd:enumeration value="pascals" />
+                                 <xsd:enumeration value="kilopascals" />
+                                 <xsd:enumeration value="hectopascals" />
+@@ -800,7 +801,7 @@
+                                                 </xsd:restriction>
+                                             </xsd:simpleType>
+                                         </xsd:attribute>
+-                                        <xsd:attribute name="units" use="required" default="feet">
++                                        <xsd:attribute name="units" default="feet">
+                                             <xsd:simpleType>
+                                                 <xsd:restriction base="xsd:string">
+                                                     <xsd:enumeration value="feet" />
+@@ -839,7 +840,7 @@
+                                                 </xsd:restriction>
+                                             </xsd:simpleType>
+                                         </xsd:attribute>
+-                                        <xsd:attribute name="units" use="required" default="feet">
++                                        <xsd:attribute name="units" default="feet">
+                                             <xsd:simpleType>
+                                                 <xsd:restriction base="xsd:string">
+                                                     <xsd:enumeration value="feet" />
+@@ -867,7 +868,7 @@
+                                             </xsd:restriction>
+                                         </xsd:simpleType>
+                                     </xsd:attribute>
+-                                    <xsd:attribute name="units" use="required" default="feet">
++                                    <xsd:attribute name="units" default="feet">
+                                         <xsd:simpleType>
+                                             <xsd:restriction base="xsd:string">
+                                                 <xsd:enumeration value="feet" />
+-- 
+1.7.6.2
+
