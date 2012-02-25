@@ -359,6 +359,12 @@ class _PyXBDateTime_base (basis.simpleTypeDefinition):
     def _SetKeysFromPython (cls, python_value, kw, fields):
         return cls._SetKeysFromPython_csc(python_value, kw, fields)
 
+    # Several datetime classes are extension classes, and the PyXB
+    # subclasses won't recognize the packed values.  Use the lexical
+    # representation instead.
+    def __reduce__ (self):
+        return (self.__class__, (self.xsdLiteral(),))
+
 class _PyXBDateTimeZone_base (_PyXBDateTime_base):
     def hasTimeZone (self):
         """True iff the time represented included time zone information.
