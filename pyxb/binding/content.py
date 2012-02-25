@@ -406,9 +406,11 @@ class AttributeUse (pyxb.cscRoot):
                 new_value = None
             else:
                 new_value = unicode_value
-        else:
-            assert new_value is not None
-        if self.__prohibited:
+        elif new_value is None:
+            if self.__required:
+                raise pyxb.MissingAttributeError('Required attribute %s in %s may not be set to None' % (self.__name, ctd_instance._ExpandedName or type(ctd_instance)))
+            provided = False
+        if provided and self.__prohibited:
             raise pyxb.ProhibitedAttributeError('Value given for prohibited attribute %s' % (self.__name,))
         if (new_value is not None) and (not isinstance(new_value, self.__dataType)):
             new_value = self.__dataType.Factory(new_value, _from_xml=from_xml)
