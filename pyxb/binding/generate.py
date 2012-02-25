@@ -1996,7 +1996,7 @@ class Generator (object):
         self.__schemas = kw.get('schemas', [])[:]
         self.__namespaces = set(kw.get('namespaces', []))
         self.__writeForCustomization = kw.get('write_for_customization', False)
-        self.__writeForCustomization = kw.get('allow_builtin_generation', False)
+        self.__allowBuiltinGeneration = kw.get('allow_builtin_generation', False)
         self.__allowAbsentModule = kw.get('allow_absent_module', False)
         self.__generateToFiles = kw.get('generate_to_files', True)
         self.__uriContentArchiveDirectory = kw.get('uri_content_archive_directory')
