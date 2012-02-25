@@ -86,7 +86,9 @@ class TestCTD (unittest.TestCase):
         self.assertEqual('irish', instance.language)
         self.assert_(instance.capitalized is None)
         self.assertEqual(5432, instance.port)
-        self.assertEqual('<tca:emptyWithAttr xmlns:tca="URN:testCTD"/>', ToDOM(instance).toxml())
+        self.assertRaises(pyxb.MissingAttributeError, ToDOM, instance)
+        instance.capitalized = False
+        self.assertEqual('<tca:emptyWithAttr capitalized="false" xmlns:tca="URN:testCTD"/>', ToDOM(instance).toxml())
 
         # Test reference attribute
         self.assertEqual('top default', instance.tlAttr)
@@ -95,7 +97,8 @@ class TestCTD (unittest.TestCase):
         instance2 = emptyWithAttr()
         self.assertEqual('irish', instance2.language)
         instance2.language = 'french'
-        self.assertEqual('<tca:emptyWithAttr language="french" xmlns:tca="URN:testCTD"/>', ToDOM(instance2).toxml())
+        instance2.capitalized = False
+        self.assertEqual('<tca:emptyWithAttr capitalized="false" language="french" xmlns:tca="URN:testCTD"/>', ToDOM(instance2).toxml())
         self.assertNotEqual(instance.language, instance2.language)
 
         # Verify the use.  Note reference through CTD not element.
