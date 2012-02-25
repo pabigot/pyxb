@@ -2160,6 +2160,8 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
     def _setDOMFromAttributes (self, dom_support, element):
         """Add any appropriate attributes from this instance into the DOM element."""
         for au in self._AttributeMap.values():
+            if pyxb._GenerationRequiresValid:
+                au.validate(self)
             au.addDOMAttribute(dom_support, self, element)
         return element
 
