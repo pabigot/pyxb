@@ -1602,7 +1602,26 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
 
 class enumeration_mixin (pyxb.cscRoot):
     """Marker in case we need to know that a PST has an enumeration constraint facet."""
-    pass
+
+    @classmethod
+    def values (cls):
+        """Return a list of values that the enumeration can take."""
+        return cls._CF_enumeration.values()
+
+    @classmethod
+    def itervalues (cls):
+        """Return a generator for the values that the enumeration can take."""
+        return cls._CF_enumeration.itervalues()
+
+    @classmethod
+    def items (cls):
+        """Return the associated L{pyxb.binding.facet._EnumerationElement} instances."""
+        return cls._CF_enumeration.items()
+
+    @classmethod
+    def iteritems (cls):
+        """Generate the associated L{pyxb.binding.facet._EnumerationElement} instances."""
+        return cls._CF_enumeration.iteritems()
 
 class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
     """Base for any Python class that serves as the binding for an

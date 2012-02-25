@@ -30,7 +30,7 @@ import unittest
 
 class TestTrac_0088 (unittest.TestCase):
     def test (self):
-        enums = tEnum._CF_enumeration.elements()
+        enums = tEnum._CF_enumeration.items()
         self.assertEqual(3, len(enums))
         self.assertEqual(enums[0].tag(), 'emptyString')
         self.assertEqual(enums[0].value(), u'\xb0')

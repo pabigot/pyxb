@@ -306,10 +306,12 @@ class _CollectionFacet_mixin (pyxb.cscRoot):
         super_fn = getattr(super(_CollectionFacet_mixin, self), '_setFromKeywords_vb', lambda *a,**kw: self)
         return super_fn(**kw)
 
+    def _items (self):
+        """The members of the collection, as a reference."""
+        return self.__items
+
     def items (self):
-        """The members of the collection.
-        
-        This returns a copy, not a reference."""
+        """The members of the collection, as a copy."""        
         return self.__items[:]
 
     def iteritems (self):
@@ -525,7 +527,6 @@ class CF_enumeration (ConstrainingFacet, _CollectionFacet_mixin, _LateDatatype_m
     _CollectionFacet_itemType = _EnumerationElement
     _LateDatatypeBindsSuperclass = False
 
-    __elements = None
     __tagToElement = None
     __valueToElement = None
     __unicodeToElement = None
@@ -537,7 +538,6 @@ class CF_enumeration (ConstrainingFacet, _CollectionFacet_mixin, _LateDatatype_m
     def __init__ (self, **kw):
         super(CF_enumeration, self).__init__(**kw)
         self.__enumPrefix = kw.get('enum_prefix', self.__enumPrefix)
-        self.__elements = []
         self.__tagToElement = { }
         self.__valueToElement = { }
         self.__unicodeToElement = { }
@@ -546,8 +546,18 @@ class CF_enumeration (ConstrainingFacet, _CollectionFacet_mixin, _LateDatatype_m
         return self.__enumPrefix
 
     def elements (self):
-        return self.__elements[:]
-    
+        """@deprecated: Use L{items} or L{iteritems} instead."""
+        return self.items()
+
+    def values (self):
+        """Return a list of enumeration values."""
+        return [ _ee.value() for _ee in self.iteritems() ]
+
+    def itervalues (self):
+        """Generate the enumeration values."""
+        for ee in self.iteritems():
+            yield ee.value()
+
     def addEnumeration (self, **kw):
         kw['enumeration'] = self
         ee = _EnumerationElement(**kw)
@@ -561,7 +571,7 @@ class CF_enumeration (ConstrainingFacet, _CollectionFacet_mixin, _LateDatatype_m
         if isinstance(value, list):
             value = ' '.join([ _v.xsdLiteral() for _v in value ])
         self.__valueToElement[value] = ee
-        self.__elements.append(ee)
+        self._items().append(ee)
         return value
 
     def elementForValue (self, value):
@@ -582,9 +592,9 @@ class CF_enumeration (ConstrainingFacet, _CollectionFacet_mixin, _LateDatatype_m
     def _validateConstraint_vx (self, value):
         # If validation is inhibited, or if the facet hasn't had any
         # restrictions applied yet, return True.
-        if 0 == len(self.__elements):
+        if 0 == len(self._items()):
             return True
-        for ee in self.__elements:
+        for ee in self.iteritems():
             if ee.value() == value:
                 return True
         return False
