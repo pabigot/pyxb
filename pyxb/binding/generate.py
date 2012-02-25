@@ -838,7 +838,7 @@ def _PrepareSimpleTypeDefinition (std, generator, nsm, module_context):
     if _useEnumerationTags(std):
         enum_facet = std.facets().get(pyxb.binding.facets.CF_enumeration, None)
         if (enum_facet is not None) and (std == enum_facet.ownerTypeDefinition()):
-            for ei in enum_facet.items():
+            for ei in enum_facet.iteritems():
                 assert ei.tag() is None, '%s already has a tag' % (ei,)
                 ei._setTag(utility.PrepareIdentifier(ei.unicodeValue(), nsm.uniqueInClass(std)))
                 #print ' Enum %s.%s represents %s' % (std, ei.tag(), ei.unicodeValue())

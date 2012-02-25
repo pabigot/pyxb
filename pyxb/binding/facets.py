@@ -307,15 +307,15 @@ class _CollectionFacet_mixin (pyxb.cscRoot):
         return super_fn(**kw)
 
     def items (self):
-        """The members of the collection."""
-        # @todo should this be by reference?
-        return self.__items
+        """The members of the collection.
+        
+        This returns a copy, not a reference."""
+        return self.__items[:]
 
-    def values (self):
-        """A generator for members of the collection."""
-        for item in self.items():
-            yield item.value
-            
+    def iteritems (self):
+        """The members of the collection as an iterator"""
+        return iter(self.__items)
+
 class CF_length (ConstrainingFacet, _Fixed_mixin):
     """A facet that specifies the length of the lexical representation of a value.
     
