@@ -550,14 +550,16 @@ class BindingDOMSupport (object):
         """Convert namespace information from a DOM node to text for new DOM node.
 
         The namespaceURI and nodeName are extracted and parsed.  The namespace
-        is registered within the document, along with any prefix from the node
-        name.  A pair is returned where the first element is the namespace
-        URI, and the second is a QName to be used for the expanded name within
-        this document.
+        (if any) is registered within the document, along with any prefix from
+        the node name.  A pair is returned where the first element is the
+        namespace URI or C{None}, and the second is a QName to be used for the
+        expanded name within this document.
 
         @param node: An xml.dom.Node instance, presumably from a wildcard match.
         @rtype: C{( str, str )}"""
-        ns = pyxb.namespace.NamespaceForURI(node.namespaceURI, create_if_missing=True)
+        ns = None
+        if node.namespaceURI is not None:
+            ns = pyxb.namespace.NamespaceForURI(node.namespaceURI, create_if_missing=True)
         if node.ELEMENT_NODE == node.nodeType:
             name = node.tagName
         elif node.ATTRIBUTE_NODE == node.nodeType:
@@ -572,13 +574,18 @@ class BindingDOMSupport (object):
         local_name = name
         if 0 < name.find(':'):
             (pfx, local_name) = node_name.split(':', 1)
-        self.declareNamespace(ns, pfx)
-        if pfx is None:
-            pfx = self.namespacePrefix(ns)
+            if ns is None:
+                raise pyxb.LogicError('QName with prefix but no available namespace')
+        ns_uri = None
         node_name = local_name
-        if pfx is not None:
-            node_name = '%s:%s' % (pfx, local_name)
-        return (ns.uri(), node_name)
+        if ns is not None:
+            ns_uri = ns.uri()
+            self.declareNamespace(ns, pfx)
+            if pfx is None:
+                pfx = self.namespacePrefix(ns)
+            if pfx is not None:
+                node_name = '%s:%s' % (pfx, local_name)
+        return (ns_uri, node_name)
 
     def _deepClone (self, node, docnode):
         if node.ELEMENT_NODE == node.nodeType:
