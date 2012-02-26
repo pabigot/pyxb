@@ -421,7 +421,7 @@ class dateTime (_PyXBDateTimeZone_base, datetime.datetime):
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('dateTime')
 
     __Lexical_re = re.compile(_PyXBDateTime_base._DateTimePattern('^%Y-%m-%dT%H:%M:%S%Z?$'))
-    __Fields = ( 'year', 'month', 'day', 'hour', 'minute', 'second', 'microsecond', 'tzinfo' )
+    __CtorFields = ( 'year', 'month', 'day', 'hour', 'minute', 'second', 'microsecond', 'tzinfo' )
     
     def __new__ (cls, *args, **kw):
         args = cls._ConvertArguments(args, kw)
@@ -431,20 +431,19 @@ class dateTime (_PyXBDateTimeZone_base, datetime.datetime):
             if isinstance(value, types.StringTypes):
                 ctor_kw.update(cls._LexicalToKeywords(value, cls.__Lexical_re))
             elif isinstance(value, (datetime.datetime, datetime.date, datetime.time)):
-                cls._SetKeysFromPython(value, ctor_kw, cls.__Fields)
+                cls._SetKeysFromPython(value, ctor_kw, cls.__CtorFields)
             elif isinstance(value, (types.IntType, types.LongType)):
                 raise TypeError('function takes at least 3 arguments (%d given)' % (len(args),))
             else:
                 raise BadTypeValueError('Unexpected type %s in %s' % (type(value), cls._ExpandedName))
         elif 3 <= len(args):
-            for fi in range(len(cls.__Fields)):
-                fn = cls.__Fields[fi]
+            for fi in range(len(cls.__CtorFields)):
+                fn = cls.__CtorFields[fi]
                 if fi < len(args):
                     ctor_kw[fn] = args[fi]
                 elif fn in kw:
                     ctor_kw[fn] = kw[fn]
                 kw.pop(fn, None)
-                fi += 1
         else:
             raise TypeError('function takes at least 3 arguments (%d given)' % (len(args),))
 
@@ -499,7 +498,7 @@ class time (_PyXBDateTimeZone_base, datetime.time):
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('time')
 
     __Lexical_re = re.compile(_PyXBDateTime_base._DateTimePattern('^%H:%M:%S%Z?$'))
-    __Fields = ( 'hour', 'minute', 'second', 'microsecond' )
+    __CtorFields = ( 'hour', 'minute', 'second', 'microsecond', 'tzinfo' )
     
     def __new__ (cls, *args, **kw):
         args = cls._ConvertArguments(args, kw)
@@ -509,10 +508,15 @@ class time (_PyXBDateTimeZone_base, datetime.time):
             if isinstance(value, types.StringTypes):
                 ctor_kw.update(cls._LexicalToKeywords(value, cls.__Lexical_re))
             elif isinstance(value, datetime.time):
-                cls._SetKeysFromPython(value, ctor_kw, cls.__Fields)
+                cls._SetKeysFromPython(value, ctor_kw, cls.__CtorFields)
             elif isinstance(value, (types.IntType, types.LongType)):
-                for fn in range(min(len(args), len(cls.__Fields))):
-                    ctor_kw[cls.__Fields[fn]] = args[fn]
+                for fi in range(len(cls.__CtorFields)):
+                    fn = cls.__CtorFields[fi]
+                    if fi < len(args):
+                        ctor_kw[fn] = args[fi]
+                    elif fn in kw:
+                        ctor_kw[fn] = kw[fn]
+                    kw.pop(fn, None)
             else:
                 raise BadTypeValueError('Unexpected type %s' % (type(value),))
 
