@@ -44,7 +44,7 @@ class TestTime (unittest.TestCase):
 
     def testISO8601 (self):
         t = tISO8601(**self.KW_tISO8601)
-        self.assertEqual((2009, 6, 3, 13, 43, 0, 2, 154, -1), t.time.timetuple())
+        self.assertEqual((2009, 6, 3, 13, 43, 0, 2, 154, 0), t.time.timetuple())
         t._setElement(time)
         xmls = t.toxml()
         instance = CreateFromDocument(xmls)
