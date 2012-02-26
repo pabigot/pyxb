@@ -429,7 +429,8 @@ class dateTime (_PyXBDateTime_base, datetime.datetime):
     dateTime objects are in UTC, and that timezone information in the
     string representation in XML is an indication of the local time
     zone's offset from UTC.  Presence of time zone information in the
-    lexical space is preserved by a non-empty tzinfo field.
+    lexical space is preserved by a non-empty tzinfo field, which
+    should always be zero minutes offset from UTC.
 
     @warning: The value space of Python's C{datetime.datetime} class
     is more restricted than that of C{xs:datetime}.  As a specific
@@ -613,8 +614,14 @@ class _PyXBDateOnly_base (_PyXBDateTime_base, datetime.datetime):
 class date (_PyXBDateOnly_base):
     """XMLSchema datatype U{date<http://www.w3.org/TR/xmlschema-2/#date>}.
 
-    This class uses the Python C{datetime.date} class as its
-    underlying representation.
+    This class uses the Python C{datetime.datetime} class as its
+    underlying representation; fields not relevant to this type are
+    derived from 1900-01-01T00:00:00.
+
+    @note: Unlike L{dateTime}, timezoned date values are not converted
+    to UTC.  The provided timezone information is retained along with
+    the instance; however, the lexical representation generated for
+    output is canonicalized (timezones no more than 12 hours off UTC).
     """
     
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('date')
@@ -631,7 +638,7 @@ class date (_PyXBDateOnly_base):
         reflecting the timezone associated with the date, or C{None}
         if the date is not timezoned.
 
-        @note This is not the recoverable timezone, because timezones are
+        @note: This is not the recoverable timezone, because timezones are
         represented as timedeltas which get normalized in ways that
         don't match what we expect for a tzinfo.
         """
@@ -668,8 +675,9 @@ _PrimitiveDatatypes.append(date)
 class gYearMonth (_PyXBDateOnly_base):
     """XMLSchema datatype U{gYearMonth<http://www.w3.org/TR/xmlschema-2/#gYearMonth>}.
 
-    This class uses the Python C{datetime.date} class as its
-    underlying representation.
+    This class uses the Python C{datetime.datetime} class as its
+    underlying representation; fields not relevant to this type are
+    derived from 1900-01-01T00:00:00.
     """
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('gYearMonth')
     _Lexical_fmt = '%Y-%m'
@@ -680,8 +688,9 @@ _PrimitiveDatatypes.append(gYearMonth)
 class gYear (_PyXBDateOnly_base):
     """XMLSchema datatype U{gYear<http://www.w3.org/TR/xmlschema-2/#gYear>}.
 
-    This class uses the Python C{datetime.date} class as its
-    underlying representation.
+    This class uses the Python C{datetime.datetime} class as its
+    underlying representation; fields not relevant to this type are
+    derived from 1900-01-01T00:00:00.
     """
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('gYear')
     _Lexical_fmt = '%Y'
@@ -691,8 +700,9 @@ _PrimitiveDatatypes.append(gYear)
 class gMonthDay (_PyXBDateOnly_base):
     """XMLSchema datatype U{gMonthDay<http://www.w3.org/TR/xmlschema-2/#gMonthDay>}.
 
-    This class uses the Python C{datetime.date} class as its
-    underlying representation.
+    This class uses the Python C{datetime.datetime} class as its
+    underlying representation; fields not relevant to this type are
+    derived from 1900-01-01T00:00:00.
     """
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('gMonthDay')
     _Lexical_fmt = '--%m-%d'
@@ -702,8 +712,9 @@ _PrimitiveDatatypes.append(gMonthDay)
 class gDay (_PyXBDateOnly_base):
     """XMLSchema datatype U{gDay<http://www.w3.org/TR/xmlschema-2/#gDay>}.
 
-    This class uses the Python C{datetime.date} class as its
-    underlying representation.
+    This class uses the Python C{datetime.datetime} class as its
+    underlying representation; fields not relevant to this type are
+    derived from 1900-01-01T00:00:00.
     """
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('gDay')
     _Lexical_fmt = '---%d'
@@ -713,8 +724,9 @@ _PrimitiveDatatypes.append(gDay)
 class gMonth (_PyXBDateOnly_base):
     """XMLSchema datatype U{gMonth<http://www.w3.org/TR/xmlschema-2/#gMonth>}.
 
-    This class uses the Python C{datetime.date} class as its
-    underlying representation.
+    This class uses the Python C{datetime.datetime} class as its
+    underlying representation; fields not relevant to this type are
+    derived from 1900-01-01T00:00:00.
     """
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('gMonth')
     _Lexical_fmt = '--%m'

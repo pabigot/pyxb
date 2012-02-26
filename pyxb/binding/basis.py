@@ -380,10 +380,10 @@ class _TypeBinding_mixin (utility.Locatable_mixin):
         instances, delayed conditional validation requires caching them in
         simpleTypeDefinition.
 
-        @param kw keywords passed to the constructor.  This map is mutated by
+        @param kw: keywords passed to the constructor.  This map is mutated by
         the call: keywords corresponding to recognized attributes are removed.
 
-        @param dom_node an xml.dom Node instance, possibly C{None}
+        @param dom_node: an xml.dom Node instance, possibly C{None}
         """
         
         # Extract keywords that match field names
