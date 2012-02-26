@@ -453,7 +453,7 @@ class dateTime (_PyXBDateTimeZone_base, datetime.datetime):
             value = args[0]
             if isinstance(value, types.StringTypes):
                 ctor_kw.update(cls._LexicalToKeywords(value))
-            elif isinstance(value, (datetime.datetime, datetime.date, datetime.time)):
+            elif isinstance(value, datetime.datetime):
                 cls._SetKeysFromPython(value, ctor_kw, cls.__CtorFields)
             elif isinstance(value, (types.IntType, types.LongType)):
                 raise TypeError('function takes at least 3 arguments (%d given)' % (len(args),))
