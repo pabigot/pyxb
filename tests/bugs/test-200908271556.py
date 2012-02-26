@@ -52,6 +52,7 @@ class TestBug_200908271556(unittest.TestCase):
         check_at = 20
         growth_limit = 1.10
         iter = 0
+        gc.collect()
         while True:
             iter += 1
             if base_at == iter:
