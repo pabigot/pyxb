@@ -398,6 +398,15 @@ class _PyXBDateTimeZone_base (_PyXBDateTime_base):
                 kw[k] = getattr(dt, k)
             kw['tzinfo'] = cls._UTCTimeZone
         
+    @classmethod
+    def XsdLiteral (cls, value):
+        iso = value.replace(tzinfo=None).isoformat()
+        if 0 <= iso.find('.'):
+            iso = iso.rstrip('0')
+        if value.tzinfo is not None:
+            iso += value.tzinfo.tzname(value)
+        return iso
+
 class dateTime (_PyXBDateTimeZone_base, datetime.datetime):
     """XMLSchema datatype U{dateTime<http://www.w3.org/TR/xmlschema-2/#dateTime>}.
 
@@ -454,15 +463,6 @@ class dateTime (_PyXBDateTimeZone_base, datetime.datetime):
         day = kw.pop('day')
         rv = super(dateTime, cls).__new__(cls, year, month, day, **kw)
         return rv
-
-    @classmethod
-    def XsdLiteral (cls, value):
-        iso = value.replace(tzinfo=None).isoformat()
-        if 0 <= iso.find('.'):
-            iso = iso.rstrip('0')
-        if value.tzinfo is not None:
-            iso += value.tzinfo.tzname(value)
-        return iso
 
     @classmethod
     def today (cls):
@@ -524,15 +524,6 @@ class time (_PyXBDateTimeZone_base, datetime.time):
         kw.update(ctor_kw)
         rv = super(time, cls).__new__(cls, **kw)
         return rv
-
-    @classmethod
-    def XsdLiteral (cls, value):
-        iso = value.replace(tzinfo=None).isoformat()
-        if 0 <= iso.find('.'):
-            iso = iso.rstrip('0')
-        if value.tzinfo is not None:
-            iso += value.tzinfo.tzname(value)
-        return iso
 
 _PrimitiveDatatypes.append(time)
 
