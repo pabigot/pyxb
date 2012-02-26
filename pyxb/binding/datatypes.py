@@ -540,21 +540,6 @@ class _PyXBDateOnly_base (_PyXBDateTime_base, datetime.date):
     _XsdBaseType = anySimpleType
 
     __DateFields = ( 'year', 'month', 'day' )
-    _ISO_beginYear = 0
-    _ISO_endYear = 4
-    _ISO_beginMonth = 5
-    _ISO_endMonth = 7
-    _ISO_beginDay = 8
-    _ISO_endDay = 10
-    _ISOBegin = _ISO_beginYear
-    _ISOEnd = _ISO_endDay
-
-    def __getattribute__ (self, attr):
-        ga = super(_PyXBDateOnly_base, self).__getattribute__
-        cls = ga('__class__')
-        if (attr in cls.__DateFields) and not (attr in cls._Fields):
-            raise AttributeError(self, attr)
-        return ga(attr)
 
     def __new__ (cls, *args, **kw):
         args = cls._ConvertArguments(args, kw)
@@ -588,7 +573,12 @@ class _PyXBDateOnly_base (_PyXBDateTime_base, datetime.date):
 
     @classmethod
     def XsdLiteral (cls, value):
-        return value.isoformat()[cls._ISOBegin:cls._ISOEnd]
+        # Work around strftime year restriction
+        fmt = cls._Lexical_fmt
+        if value.year < 1900:
+            fmt = fmt.replace('%Y', '%04d' % (value.year,))
+            value = value.replace(year=1900)
+        return value.strftime(fmt)
 
 class date (_PyXBDateOnly_base):
     """XMLSchema datatype U{date<http://www.w3.org/TR/xmlschema-2/#date>}.
@@ -598,7 +588,8 @@ class date (_PyXBDateOnly_base):
     """
     
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('date')
-    _Lexical_re = re.compile(_PyXBDateTime_base._DateTimePattern('^%Y-%m-%d$'))
+    _Lexical_fmt = '%Y-%m-%d'
+    _Lexical_re = re.compile(_PyXBDateTime_base._DateTimePattern('^' + _Lexical_fmt + '$'))
     _Fields = ( 'year', 'month', 'day' )
 
 _PrimitiveDatatypes.append(date)
@@ -610,9 +601,9 @@ class gYearMonth (_PyXBDateOnly_base):
     underlying representation.
     """
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('gYearMonth')
-    _Lexical_re = re.compile(_PyXBDateTime_base._DateTimePattern('^%Y-%m$'))
+    _Lexical_fmt = '%Y-%m'
+    _Lexical_re = re.compile(_PyXBDateTime_base._DateTimePattern('^' + _Lexical_fmt + '$'))
     _Fields = ( 'year', 'month' )
-    _ISOEnd = _PyXBDateOnly_base._ISO_endMonth
 
 _PrimitiveDatatypes.append(gYearMonth)
 
@@ -623,9 +614,9 @@ class gYear (_PyXBDateOnly_base):
     underlying representation.
     """
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('gYear')
-    _Lexical_re = re.compile(_PyXBDateTime_base._DateTimePattern('^%Y$'))
+    _Lexical_fmt = '%Y'
+    _Lexical_re = re.compile(_PyXBDateTime_base._DateTimePattern('^' + _Lexical_fmt + '$'))
     _Fields = ( 'year', )
-    _ISOEnd = _PyXBDateOnly_base._ISO_endYear
 _PrimitiveDatatypes.append(gYear)
 
 class gMonthDay (_PyXBDateOnly_base):
@@ -635,9 +626,9 @@ class gMonthDay (_PyXBDateOnly_base):
     underlying representation.
     """
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('gMonthDay')
-    _Lexical_re = re.compile(_PyXBDateTime_base._DateTimePattern('^%m-%d$'))
+    _Lexical_fmt = '--%m-%d'
+    _Lexical_re = re.compile(_PyXBDateTime_base._DateTimePattern('^' + _Lexical_fmt + '$'))
     _Fields = ( 'month', 'day' )
-    _ISOBegin = _PyXBDateOnly_base._ISO_beginMonth
 _PrimitiveDatatypes.append(gMonthDay)
 
 class gDay (_PyXBDateOnly_base):
@@ -647,9 +638,9 @@ class gDay (_PyXBDateOnly_base):
     underlying representation.
     """
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('gDay')
-    _Lexical_re = re.compile(_PyXBDateTime_base._DateTimePattern('^%d$'))
+    _Lexical_fmt = '---%d'
+    _Lexical_re = re.compile(_PyXBDateTime_base._DateTimePattern('^' + _Lexical_fmt + '$'))
     _Fields = ( 'day', )
-    _ISOBegin = _PyXBDateOnly_base._ISO_beginDay
 _PrimitiveDatatypes.append(gDay)
 
 class gMonth (_PyXBDateOnly_base):
@@ -659,10 +650,9 @@ class gMonth (_PyXBDateOnly_base):
     underlying representation.
     """
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('gMonth')
-    _Lexical_re = re.compile(_PyXBDateTime_base._DateTimePattern('^%m$'))
+    _Lexical_fmt = '--%m'
+    _Lexical_re = re.compile(_PyXBDateTime_base._DateTimePattern('^' + _Lexical_fmt + '$'))
     _Fields = ( 'month', )
-    _ISOBegin = _PyXBDateOnly_base._ISO_beginMonth
-    _ISOEnd = _PyXBDateOnly_base._ISO_endMonth
 _PrimitiveDatatypes.append(gMonth)
 
 class hexBinary (basis.simpleTypeDefinition, types.StringType):

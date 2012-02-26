@@ -15,7 +15,7 @@ class Test_gYearMonth (unittest.TestCase):
         v = xsd.gYearMonth(2002, 10)
         self.assertEqual('2002-10', v.xsdLiteral())
 
-    def testAccessor (self):
+    def XtestAccessor (self):
         v = xsd.gYearMonth(2002, 10)
         #self.assertRaises((AttributeError, TypeError), getattr, v, 'year')
         #self.assertRaises((AttributeError, TypeError), getattr, v, 'month')
