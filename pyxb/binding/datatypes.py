@@ -307,6 +307,14 @@ _PrimitiveDatatypes.append(duration)
 
 class _PyXBDateTime_base (basis.simpleTypeDefinition):
 
+    _Lexical_fmt = None
+    """Format for the lexical representation of a date-related instance, excluding timezone.
+
+    Subclasses must define this."""
+
+    # Map from strptime/strftime formats to the regular expressions we
+    # use to extract them.  We're more strict than strptime, so not
+    # trying to use that.
     __PatternMap = { '%Y' : '(?P<negYear>-?)(?P<year>\d{4,})'
                    , '%m' : '(?P<month>\d{2})'
                    , '%d' : '(?P<day>\d{2})'
@@ -314,11 +322,10 @@ class _PyXBDateTime_base (basis.simpleTypeDefinition):
                    , '%M' : '(?P<minute>\d{2})'
                    , '%S' : '(?P<second>\d{2})(?P<fracsec>\.\d+)?'
                    , '%Z' : '(?P<tzinfo>Z|[-+]\d\d:\d\d)' }
-    @classmethod
-    def _DateTimePattern (cls, pattern):
-        for (k, v) in cls.__PatternMap.items():
-            pattern = pattern.replace(k, v)
-        return pattern
+
+    # Cache of compiled regular expressions to parse lexical space of
+    # a subclass.
+    __LexicalREMap = { }
 
     __Fields = ( 'year', 'month', 'day', 'hour', 'minute', 'second' )
 
@@ -327,7 +334,14 @@ class _PyXBDateTime_base (basis.simpleTypeDefinition):
     _DefaultDay = 1
 
     @classmethod
-    def _LexicalToKeywords (cls, text, lexical_re):
+    def _LexicalToKeywords (cls, text):
+        lexical_re = cls.__LexicalREMap.get(cls)
+        if lexical_re is None:
+            pattern = '^' + cls._Lexical_fmt + '%Z?$'
+            for (k, v) in cls.__PatternMap.items():
+                pattern = pattern.replace(k, v)
+            lexical_re = re.compile(pattern)
+            cls.__LexicalREMap[cls] = lexical_re
         match = lexical_re.match(text)
         if match is None:
             raise BadTypeValueError('Value "%s" not in %s lexical space' % (text, cls._ExpandedName)) 
@@ -429,7 +443,7 @@ class dateTime (_PyXBDateTimeZone_base, datetime.datetime):
     _XsdBaseType = anySimpleType
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('dateTime')
 
-    __Lexical_re = re.compile(_PyXBDateTime_base._DateTimePattern('^%Y-%m-%dT%H:%M:%S%Z?$'))
+    _Lexical_fmt = '%Y-%m-%dT%H:%M:%S'
     __CtorFields = ( 'year', 'month', 'day', 'hour', 'minute', 'second', 'microsecond', 'tzinfo' )
     
     def __new__ (cls, *args, **kw):
@@ -438,7 +452,7 @@ class dateTime (_PyXBDateTimeZone_base, datetime.datetime):
         if 1 == len(args):
             value = args[0]
             if isinstance(value, types.StringTypes):
-                ctor_kw.update(cls._LexicalToKeywords(value, cls.__Lexical_re))
+                ctor_kw.update(cls._LexicalToKeywords(value))
             elif isinstance(value, (datetime.datetime, datetime.date, datetime.time)):
                 cls._SetKeysFromPython(value, ctor_kw, cls.__CtorFields)
             elif isinstance(value, (types.IntType, types.LongType)):
@@ -497,7 +511,7 @@ class time (_PyXBDateTimeZone_base, datetime.time):
     _XsdBaseType = anySimpleType
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('time')
 
-    __Lexical_re = re.compile(_PyXBDateTime_base._DateTimePattern('^%H:%M:%S%Z?$'))
+    _Lexical_fmt = '%H:%M:%S'
     __CtorFields = ( 'hour', 'minute', 'second', 'microsecond', 'tzinfo' )
     
     def __new__ (cls, *args, **kw):
@@ -506,7 +520,7 @@ class time (_PyXBDateTimeZone_base, datetime.time):
         if 1 <= len(args):
             value = args[0]
             if isinstance(value, types.StringTypes):
-                ctor_kw.update(cls._LexicalToKeywords(value, cls.__Lexical_re))
+                ctor_kw.update(cls._LexicalToKeywords(value))
             elif isinstance(value, datetime.time):
                 cls._SetKeysFromPython(value, ctor_kw, cls.__CtorFields)
             elif isinstance(value, (types.IntType, types.LongType)):
@@ -541,7 +555,7 @@ class _PyXBDateOnly_base (_PyXBDateTime_base, datetime.date):
         if 1 == len(args):
             value = args[0]
             if isinstance(value, types.StringTypes):
-                ctor_kw.update(cls._LexicalToKeywords(value, cls._Lexical_re))
+                ctor_kw.update(cls._LexicalToKeywords(value))
             elif isinstance(value, datetime.date):
                 cls._SetKeysFromPython(value, ctor_kw, cls._Fields)
             elif isinstance(value, (types.IntType, types.LongType)):
@@ -580,7 +594,6 @@ class date (_PyXBDateOnly_base):
     
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('date')
     _Lexical_fmt = '%Y-%m-%d'
-    _Lexical_re = re.compile(_PyXBDateTime_base._DateTimePattern('^' + _Lexical_fmt + '$'))
     _Fields = ( 'year', 'month', 'day' )
 
 _PrimitiveDatatypes.append(date)
@@ -593,7 +606,6 @@ class gYearMonth (_PyXBDateOnly_base):
     """
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('gYearMonth')
     _Lexical_fmt = '%Y-%m'
-    _Lexical_re = re.compile(_PyXBDateTime_base._DateTimePattern('^' + _Lexical_fmt + '$'))
     _Fields = ( 'year', 'month' )
 
 _PrimitiveDatatypes.append(gYearMonth)
@@ -606,7 +618,6 @@ class gYear (_PyXBDateOnly_base):
     """
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('gYear')
     _Lexical_fmt = '%Y'
-    _Lexical_re = re.compile(_PyXBDateTime_base._DateTimePattern('^' + _Lexical_fmt + '$'))
     _Fields = ( 'year', )
 _PrimitiveDatatypes.append(gYear)
 
@@ -618,7 +629,6 @@ class gMonthDay (_PyXBDateOnly_base):
     """
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('gMonthDay')
     _Lexical_fmt = '--%m-%d'
-    _Lexical_re = re.compile(_PyXBDateTime_base._DateTimePattern('^' + _Lexical_fmt + '$'))
     _Fields = ( 'month', 'day' )
 _PrimitiveDatatypes.append(gMonthDay)
 
@@ -630,7 +640,6 @@ class gDay (_PyXBDateOnly_base):
     """
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('gDay')
     _Lexical_fmt = '---%d'
-    _Lexical_re = re.compile(_PyXBDateTime_base._DateTimePattern('^' + _Lexical_fmt + '$'))
     _Fields = ( 'day', )
 _PrimitiveDatatypes.append(gDay)
 
@@ -642,7 +651,6 @@ class gMonth (_PyXBDateOnly_base):
     """
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('gMonth')
     _Lexical_fmt = '--%m'
-    _Lexical_re = re.compile(_PyXBDateTime_base._DateTimePattern('^' + _Lexical_fmt + '$'))
     _Fields = ( 'month', )
 _PrimitiveDatatypes.append(gMonth)
 
