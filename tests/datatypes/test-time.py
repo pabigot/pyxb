@@ -12,7 +12,7 @@ class Test_time (unittest.TestCase):
         self.assertEqual(32, tm.second)
         if with_usec:
             self.assertEqual(123400, tm.microsecond)
-        self.assertEqual(with_tzinfo, tm.hasTimeZone())
+        self.assertEqual(with_tzinfo, tm.tzinfo is not None)
 
     def testBad (self):
         self.assertRaises(pyxb.BadTypeValueError, xsd.time, '12: 14: 32')
@@ -37,14 +37,14 @@ class Test_time (unittest.TestCase):
     def testXsdLiteral (self):
         dt = xsd.time('12:14:32Z')
         self.assertEqual('12:14:32Z', dt.xsdLiteral())
-        self.assertTrue(dt.hasTimeZone())
+        self.assertTrue(dt.tzinfo is not None)
         self.assertEqual('07:14:32Z', xsd.time('12:14:32+05:00').xsdLiteral())
         self.assertEqual('17:14:32Z', xsd.time('12:14:32-05:00').xsdLiteral())
         self.assertEqual('17:14:32.1234Z', xsd.time('12:14:32.123400-05:00').xsdLiteral())
         # No zone info
         dt = xsd.time('12:14:32')
         self.assertEqual('12:14:32', dt.xsdLiteral())
-        self.assertFalse(dt.hasTimeZone())
+        self.assertFalse(dt.tzinfo is not None)
 
 if __name__ == '__main__':
     unittest.main()

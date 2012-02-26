@@ -366,24 +366,28 @@ class _PyXBDateTime_base (basis.simpleTypeDefinition):
         return (self.__class__, (self.xsdLiteral(),))
 
 class _PyXBDateTimeZone_base (_PyXBDateTime_base):
-    def hasTimeZone (self):
-        """True iff the time represented included time zone information.
+    _UTCTimeZone = pyxb.utils.utility.UTCOffsetTimeZone(0)
+    """A L{datetime.tzinfo} instance representing UTC."""
 
-        Whether True or not, the moment denoted by an instance is
-        assumed to be in UTC.  That state is expressed in the lexical
-        space iff hasTimeZone is True.
-        """
-        return self.__hasTimeZone
-    def _setHasTimeZone (self, has_time_zone):
-        self.__hasTimeZone = has_time_zone
-    __hasTimeZone = False
+    _LocalTimeZone = pyxb.utils.utility.LocalTimeZone()
+    """A L{datetime.tzinfo} instance representing the local time zone."""
 
     @classmethod
     def _AdjustForTimezone (cls, kw):
+        """Update datetime keywords to account for timezone effects.
+
+        All XML schema timezoned times are in UTC, with the time "in
+        its timezone".  If the keywords indicate a non-UTC timezone is
+        in force, adjust the values to account for the zone, and mark
+        explicitly that the time is in UTC.
+
+        @param kw: A dictionary of keywords relevant for a date or
+        time instance.  The dictionary is updated by this call.
+        """
         tzoffs = kw.pop('tzinfo', None)
-        has_time_zone = kw.pop('_force_timezone', False)
         if tzoffs is not None:
             use_kw = kw.copy()
+            # Ensure ctor requirements of datetime.datetime are met
             use_kw.setdefault('year', cls._DefaultYear)
             use_kw.setdefault('month', cls._DefaultMonth)
             use_kw.setdefault('day', cls._DefaultDay)
@@ -391,8 +395,7 @@ class _PyXBDateTimeZone_base (_PyXBDateTime_base):
             dt = tzoffs.fromutc(dt)
             for k in kw.iterkeys():
                 kw[k] = getattr(dt, k)
-            has_time_zone = True
-        return has_time_zone
+            kw['tzinfo'] = cls._UTCTimeZone
         
     @classmethod
     def _SetKeysFromPython_csc (cls, python_value, kw, fields):
@@ -410,8 +413,7 @@ class dateTime (_PyXBDateTimeZone_base, datetime.datetime):
     dateTime objects are in UTC, and that timezone information in the
     string representation in XML is an indication of the local time
     zone's offset from UTC.  Presence of time zone information in the
-    lexical space is preserved through the value of the L{hasTimeZone()}
-    field.
+    lexical space is preserved by a non-empty tzinfo field.
 
     @warning: The value space of Python's C{datetime.datetime} class
     is more restricted than that of C{xs:datetime}.  As a specific
@@ -437,8 +439,6 @@ class dateTime (_PyXBDateTimeZone_base, datetime.datetime):
                 ctor_kw.update(cls._LexicalToKeywords(value, cls.__Lexical_re))
             elif isinstance(value, (datetime.datetime, datetime.date, datetime.time)):
                 cls._SetKeysFromPython(value, ctor_kw, cls.__Fields)
-                if isinstance(value, _PyXBDateTimeZone_base):
-                    ctor_kw['_force_timezone'] = True
             elif isinstance(value, (types.IntType, types.LongType)):
                 raise TypeError('function takes at least 3 arguments (%d given)' % (len(args),))
             else:
@@ -455,26 +455,22 @@ class dateTime (_PyXBDateTimeZone_base, datetime.datetime):
         else:
             raise TypeError('function takes at least 3 arguments (%d given)' % (len(args),))
 
-        has_time_zone = cls._AdjustForTimezone(ctor_kw)
+        cls._AdjustForTimezone(ctor_kw)
         kw.update(ctor_kw)
         year = kw.pop('year')
         month = kw.pop('month')
         day = kw.pop('day')
         rv = super(dateTime, cls).__new__(cls, year, month, day, **kw)
-        rv._setHasTimeZone(has_time_zone)
         return rv
 
     @classmethod
     def XsdLiteral (cls, value):
-        iso = value.isoformat()
+        iso = value.replace(tzinfo=None).isoformat()
         if 0 <= iso.find('.'):
             iso = iso.rstrip('0')
-        if value.hasTimeZone():
-            iso += 'Z'
+        if value.tzinfo is not None:
+            iso += value.tzinfo.tzname(value)
         return iso
-
-    __UTCZone = pyxb.utils.utility.UTCOffsetTimeZone(0)
-    __LocalZone = pyxb.utils.utility.LocalTimeZone()
 
     @classmethod
     def today (cls):
@@ -482,7 +478,7 @@ class dateTime (_PyXBDateTimeZone_base, datetime.datetime):
 
         Just like datetime.datetime.today(), except this one sets a
         tzinfo field so it's clear the value is UTC."""
-        return cls(datetime.datetime.now(cls.__UTCZone))
+        return cls(datetime.datetime.now(cls._UTCTimeZone))
 
     def aslocal (self):
         """Returns a C{datetime.datetime} instance denoting the same
@@ -491,7 +487,7 @@ class dateTime (_PyXBDateTimeZone_base, datetime.datetime):
 
         @rtype: C{datetime.datetime} (B{NOT} C{xsd.dateTime})
         """
-        return self.replace(tzinfo=self.__UTCZone).astimezone(self.__LocalZone)
+        return self.replace(tzinfo=self._UTCTimeZone).astimezone(self._LocalTimeZone)
 
 _PrimitiveDatatypes.append(dateTime)
 
@@ -503,8 +499,7 @@ class time (_PyXBDateTimeZone_base, datetime.time):
     dateTime objects are in UTC, and that timezone information in the
     string representation in XML is an indication of the local time
     zone's offset from UTC.  Presence of time zone information in the
-    lexical space is preserved through the value of the
-    L{hasTimeZone()} field.
+    lexical space is indicated by the tzinfo field.
     """
     
     _XsdBaseType = anySimpleType
@@ -528,19 +523,18 @@ class time (_PyXBDateTimeZone_base, datetime.time):
             else:
                 raise BadTypeValueError('Unexpected type %s' % (type(value),))
 
-        has_time_zone = cls._AdjustForTimezone(ctor_kw)
+        cls._AdjustForTimezone(ctor_kw)
         kw.update(ctor_kw)
         rv = super(time, cls).__new__(cls, **kw)
-        rv._setHasTimeZone(has_time_zone)
         return rv
 
     @classmethod
     def XsdLiteral (cls, value):
-        iso = value.isoformat()
+        iso = value.replace(tzinfo=None).isoformat()
         if 0 <= iso.find('.'):
             iso = iso.rstrip('0')
-        if value.hasTimeZone():
-            iso += 'Z'
+        if value.tzinfo is not None:
+            iso += value.tzinfo.tzname(value)
         return iso
 
 _PrimitiveDatatypes.append(time)

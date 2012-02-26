@@ -17,7 +17,7 @@ class Test_dateTime (unittest.TestCase):
         self.assertEqual(self.Canonical.second, dt.second)
         if with_usec:
             self.assertEqual(self.Canonical.microsecond, dt.microsecond)
-        self.assertEqual(with_tzinfo, dt.hasTimeZone())
+        self.assertEqual(with_tzinfo, dt.tzinfo is not None)
 
     def testBad (self):
         self.assertRaises(pyxb.BadTypeValueError, xsd.dateTime, '2002-10-27 12:14:32  ')
@@ -42,14 +42,14 @@ class Test_dateTime (unittest.TestCase):
     def testXsdLiteral (self):
         dt = xsd.dateTime('2002-10-27T12:14:32Z')
         self.assertEqual('2002-10-27T12:14:32Z', dt.xsdLiteral())
-        self.assertTrue(dt.hasTimeZone())
+        self.assertTrue(dt.tzinfo is not None)
         self.assertEqual('2002-10-27T07:14:32Z', xsd.dateTime('2002-10-27T12:14:32+05:00').xsdLiteral())
         self.assertEqual('2002-10-27T17:14:32Z', xsd.dateTime('2002-10-27T12:14:32-05:00').xsdLiteral())
         self.assertEqual('2002-10-27T17:14:32.1234Z', xsd.dateTime('2002-10-27T12:14:32.123400-05:00').xsdLiteral())
         # No zone info
         dt = xsd.dateTime('2002-10-27T12:14:32')
         self.assertEqual('2002-10-27T12:14:32', dt.xsdLiteral())
-        self.assertFalse(dt.hasTimeZone())
+        self.assertFalse(dt.tzinfo is not None)
 
     # Manual test to see whether LocalTime works; run this on a
     # machine that uses DST.
