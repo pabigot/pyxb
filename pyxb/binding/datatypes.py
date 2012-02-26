@@ -536,8 +536,7 @@ class time (_PyXBDateTime_base, datetime.time):
 
         cls._AdjustForTimezone(ctor_kw)
         kw.update(ctor_kw)
-        rv = super(time, cls).__new__(cls, **kw)
-        return rv
+        return super(time, cls).__new__(cls, **kw)
 
 _PrimitiveDatatypes.append(time)
 
@@ -552,24 +551,47 @@ class _PyXBDateOnly_base (_PyXBDateTime_base, datetime.datetime):
         ctor_kw['year'] = cls._DefaultYear
         ctor_kw['month'] = cls._DefaultMonth
         ctor_kw['day'] = cls._DefaultDay
-        if 1 == len(args):
+        ctor_kw['hour'] = 0
+        ctor_kw['minute'] = 0
+        ctor_kw['second'] = 0
+        if 1 <= len(args):
             value = args[0]
             if isinstance(value, types.StringTypes):
+                if 1 != len(args):
+                    raise TypeError('construction from string requires exactly 1 argument')
                 ctor_kw.update(cls._LexicalToKeywords(value))
             elif isinstance(value, (datetime.date, datetime.datetime)):
+                if 1 != len(args):
+                    raise TypeError('construction from instance requires exactly 1 argument')
                 cls._SetKeysFromPython(value, ctor_kw, cls._ValidFields)
-            elif isinstance(value, (types.IntType, types.LongType)):
-                if (1 != len(cls._ValidFields)):                
-                    raise TypeError('function takes exactly %d arguments (%d given)' % (len(cls._ValidFields), len(args)))
-                ctor_kw[cls._ValidFields[0]] = value
+                try:
+                    tzinfo = value.tzinfo
+                    if tzinfo is not None:
+                        ctor_kw['tzinfo'] = tzinfo
+                except AttributeError:
+                    pass
             else:
-                raise BadTypeValueError('Unexpected type %s' % (type(value),))
-        elif len(cls._ValidFields) == len(args):
-            for fi in range(len(cls._ValidFields)):
-                ctor_kw[cls._ValidFields[fi]] = args[fi]
+                fi = 0
+                while fi < len(cls._ValidFields):
+                    fn = cls._ValidFields[fi]
+                    if fi < len(args):
+                        ctor_kw[fn] = args[fi]
+                    elif fn in kw:
+                        ctor_kw[fn] = kw[fn]
+                    kw.pop(fn, None)
+                    fi += 1
+                if fi < len(args):
+                    ctor_kw['tzinfo'] = args[fi]
+                    fi += 1
+                if fi != len(args):
+                    raise TypeError('function takes %d arguments plus optional tzinfo (%d given)' % (len(cls._ValidFields), len(args)))
         else:
-            raise TypeError('function takes exactly %d arguments (%d given)' % (len(cls._ValidFields), len(args)))
+            raise TypeError('function takes %d arguments plus optional tzinfo' % (len(cls._ValidFields),))
 
+        # Do not adjust for the timezone here.  Only xsd:date provides
+        # a recoverable timezone, so just preserve the as-supplied
+        # timezone, and we'll canonicalize the date one if/when it's
+        # converted back to lexical form.
         kw.update(ctor_kw)
         argv = []
         argv.append(kw.pop('year'))
@@ -584,6 +606,8 @@ class _PyXBDateOnly_base (_PyXBDateTime_base, datetime.datetime):
         if value.year < 1900:
             fmt = fmt.replace('%Y', '%04d' % (value.year,))
             value = value.replace(year=1900)
+        if value.tzinfo is not None:
+            fmt += value.tzinfo.tzname(value)
         return value.strftime(fmt)
 
 class date (_PyXBDateOnly_base):
@@ -596,6 +620,48 @@ class date (_PyXBDateOnly_base):
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('date')
     _Lexical_fmt = '%Y-%m-%d'
     _Fields = ( 'year', 'month', 'day' )
+
+    __SecondsPerMinute = 60
+    __MinutesPerHalfDay = 12 * 60
+    __MinutesPerDay = 24 * 60
+    def xsdRecoverableTzinfo (self):
+        """Return the recoverable tzinfo for the date.
+
+        Return a L{pyxb.utils.utility.UTCOffsetTimeZone} instance
+        reflecting the timezone associated with the date, or C{None}
+        if the date is not timezoned.
+
+        @note This is not the recoverable timezone, because timezones are
+        represented as timedeltas which get normalized in ways that
+        don't match what we expect for a tzinfo.
+        """
+        if self.tzinfo is None:
+            return None
+        sdt = self.replace(hour=0, minute=0, second=0, tzinfo=self._UTCTimeZone)
+        utc_offset = (sdt - self).seconds / self.__SecondsPerMinute
+        if utc_offset > self.__MinutesPerHalfDay:
+            utc_offset -= self.__MinutesPerDay
+        return pyxb.utils.utility.UTCOffsetTimeZone(utc_offset)
+
+    @classmethod
+    def XsdLiteral (cls, value):
+        # Work around strftime year restriction
+        fmt = cls._Lexical_fmt
+        rtz = value.xsdRecoverableTzinfo()
+        if rtz is not None:
+            # If the date is timezoned, convert it to UTC
+            value -= value.tzinfo.utcoffset(value)
+            value = value.replace(tzinfo=cls._UTCTimeZone)
+        # Use the midpoint of the one-day interval to get the correct
+        # month/day.
+        value += datetime.timedelta(minutes=cls.__MinutesPerHalfDay)
+        if value.year < 1900:
+            fmt = fmt.replace('%Y', '%04d' % (value.year,))
+            value = value.replace(year=1900)
+        if rtz is not None:
+            fmt += rtz.tzname(value)
+        return value.strftime(fmt)
+
 
 _PrimitiveDatatypes.append(date)
 

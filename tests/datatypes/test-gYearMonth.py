@@ -15,6 +15,32 @@ class Test_gYearMonth (unittest.TestCase):
         v = xsd.gYearMonth(2002, 10)
         self.assertEqual('2002-10', v.xsdLiteral())
 
+    def testTimezoned (self):
+        dt = xsd.gYearMonth('2002-10Z')
+        self.assertEqual('2002-10-01T00:00:00+00:00', dt.isoformat())
+        self.assertEqual('2002-10Z', dt.xsdLiteral())
+
+        dt = xsd.gYearMonth('2002-10+13:00')
+        self.assertEqual('2002-10-01T00:00:00+13:00', dt.isoformat())
+        self.assertEqual('2002-10+13:00', dt.xsdLiteral())
+        dt = xsd.gYearMonth('2002-10-11:00')
+        self.assertEqual('2002-10-01T00:00:00-11:00', dt.isoformat())
+        self.assertEqual('2002-10-11:00', dt.xsdLiteral())
+
+        dt = xsd.gYearMonth('2002-10+14:00')
+        self.assertEqual('2002-10-01T00:00:00+14:00', dt.isoformat())
+        self.assertEqual('2002-10+14:00', dt.xsdLiteral())
+        dt = xsd.gYearMonth('2002-10-10:00')
+        self.assertEqual('2002-10-01T00:00:00-10:00', dt.isoformat())
+        self.assertEqual('2002-10-10:00', dt.xsdLiteral())
+
+        dt = xsd.gYearMonth('2002-10-14:00')
+        self.assertEqual('2002-10-01T00:00:00-14:00', dt.isoformat())
+        self.assertEqual('2002-10-14:00', dt.xsdLiteral())
+        dt = xsd.gYearMonth('2002-10+10:00')
+        self.assertEqual('2002-10-01T00:00:00+10:00', dt.isoformat())
+        self.assertEqual('2002-10+10:00', dt.xsdLiteral())
+
     def XtestAccessor (self):
         v = xsd.gYearMonth(2002, 10)
         #self.assertRaises((AttributeError, TypeError), getattr, v, 'year')

@@ -17,6 +17,33 @@ class Test_gMonthDay (unittest.TestCase):
         v = xsd.gMonthDay(10, 27)
         self.assertEqual('--10-27', v.xsdLiteral())
 
+
+    def testTimezoned (self):
+        dt = xsd.gMonthDay('--10-10Z')
+        self.assertEqual('1900-10-10T00:00:00+00:00', dt.isoformat())
+        self.assertEqual('--10-10Z', dt.xsdLiteral())
+
+        dt = xsd.gMonthDay('--10-10+13:00')
+        self.assertEqual('1900-10-10T00:00:00+13:00', dt.isoformat())
+        self.assertEqual('--10-10+13:00', dt.xsdLiteral())
+        dt = xsd.gMonthDay('--10-09-11:00')
+        self.assertEqual('1900-10-09T00:00:00-11:00', dt.isoformat())
+        self.assertEqual('--10-09-11:00', dt.xsdLiteral())
+
+        dt = xsd.gMonthDay('--10-10+14:00')
+        self.assertEqual('1900-10-10T00:00:00+14:00', dt.isoformat())
+        self.assertEqual('--10-10+14:00', dt.xsdLiteral())
+        dt = xsd.gMonthDay('--10-09-10:00')
+        self.assertEqual('1900-10-09T00:00:00-10:00', dt.isoformat())
+        self.assertEqual('--10-09-10:00', dt.xsdLiteral())
+
+        dt = xsd.gMonthDay('--10-10-14:00')
+        self.assertEqual('1900-10-10T00:00:00-14:00', dt.isoformat())
+        self.assertEqual('--10-10-14:00', dt.xsdLiteral())
+        dt = xsd.gMonthDay('--10-11+10:00')
+        self.assertEqual('1900-10-11T00:00:00+10:00', dt.isoformat())
+        self.assertEqual('--10-11+10:00', dt.xsdLiteral())
+
     def XtestAccessor (self):
         v = xsd.gMonthDay(10, 27)
         self.assertRaises((AttributeError, TypeError), getattr, v, 'year')

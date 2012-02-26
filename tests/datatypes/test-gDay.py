@@ -15,6 +15,19 @@ class Test_gDay (unittest.TestCase):
         v = xsd.gDay(27)
         self.assertEqual('---27', v.xsdLiteral())
 
+    def testTimezoned (self):
+        dt = xsd.gDay('---31Z')
+        self.assertEqual('1900-01-31T00:00:00+00:00', dt.isoformat())
+        self.assertEqual('---31Z', dt.xsdLiteral())
+
+        dt = xsd.gDay('---31-14:00')
+        self.assertEqual('1900-01-31T00:00:00-14:00', dt.isoformat())
+        self.assertEqual('---31-14:00', dt.xsdLiteral())
+
+        dt = xsd.gDay('---31+14:00')
+        self.assertEqual('1900-01-31T00:00:00+14:00', dt.isoformat())
+        self.assertEqual('---31+14:00', dt.xsdLiteral())
+
     def XtestAccessor (self):
         v = xsd.gDay(27)
         self.assertRaises((AttributeError, TypeError), getattr, v, 'year')

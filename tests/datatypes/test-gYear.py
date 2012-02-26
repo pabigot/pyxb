@@ -13,6 +13,19 @@ class Test_gYear (unittest.TestCase):
         v = xsd.gYear(1234)
         self.assertEqual('1234', v.xsdLiteral())
 
+    def testTimezoned (self):
+        dt = xsd.gYear('2002Z')
+        self.assertEqual('2002-01-01T00:00:00+00:00', dt.isoformat())
+        self.assertEqual('2002Z', dt.xsdLiteral())
+
+        dt = xsd.gYear('2002-14:00')
+        self.assertEqual('2002-01-01T00:00:00-14:00', dt.isoformat())
+        self.assertEqual('2002-14:00', dt.xsdLiteral())
+
+        dt = xsd.gYear('2002+14:00')
+        self.assertEqual('2002-01-01T00:00:00+14:00', dt.isoformat())
+        self.assertEqual('2002+14:00', dt.xsdLiteral())
+
     def XtestAccessor (self):
         v = xsd.gYear(1234)
         #self.assertRaises((AttributeError, TypeError), getattr, v, 'year')

@@ -9,6 +9,7 @@ class Test_date (unittest.TestCase):
         self.assertEqual(2002, dt.year)
         self.assertEqual(10, dt.month)
         self.assertEqual(27, dt.day)
+        self.assertEqual(with_tzinfo, dt.tzinfo is not None)
 
     def testBad (self):
         self.assertRaises(pyxb.BadTypeValueError, xsd.date, '2002-10-27T')
@@ -26,12 +27,37 @@ class Test_date (unittest.TestCase):
         self.assertRaises(TypeError, xsd.date)
         self.assertRaises(TypeError, xsd.date, 2002)
         self.assertRaises(TypeError, xsd.date, 2002, 10)
-        self.verifyTime(xsd.date(2002, 10, 27))
+        self.verifyTime(xsd.date(2002, 10, 27), with_tzinfo=False)
 
     def testXsdLiteral (self):
         dt = xsd.date('2002-10-27')
         self.assertEqual('2002-10-27', dt.xsdLiteral())
 
+    def testTimezoned (self):
+        dt = xsd.date('2002-10-10Z')
+        self.assertEqual('2002-10-10T00:00:00+00:00', dt.isoformat())
+        self.assertEqual('2002-10-10Z', dt.xsdLiteral())
+
+        dt = xsd.date('2002-10-10+13:00')
+        self.assertEqual('2002-10-10T00:00:00+13:00', dt.isoformat())
+        self.assertEqual('2002-10-09-11:00', dt.xsdLiteral())
+        dt = xsd.date('2002-10-09-11:00')
+        self.assertEqual('2002-10-09T00:00:00-11:00', dt.isoformat())
+        self.assertEqual('2002-10-09-11:00', dt.xsdLiteral())
+
+        dt = xsd.date('2002-10-10+14:00')
+        self.assertEqual('2002-10-10T00:00:00+14:00', dt.isoformat())
+        self.assertEqual('2002-10-09-10:00', dt.xsdLiteral())
+        dt = xsd.date('2002-10-09-10:00')
+        self.assertEqual('2002-10-09T00:00:00-10:00', dt.isoformat())
+        self.assertEqual('2002-10-09-10:00', dt.xsdLiteral())
+
+        dt = xsd.date('2002-10-10-14:00')
+        self.assertEqual('2002-10-10T00:00:00-14:00', dt.isoformat())
+        self.assertEqual('2002-10-11+10:00', dt.xsdLiteral())
+        dt = xsd.date('2002-10-11+10:00')
+        self.assertEqual('2002-10-11T00:00:00+10:00', dt.isoformat())
+        self.assertEqual('2002-10-11+10:00', dt.xsdLiteral())
 
 if __name__ == '__main__':
     unittest.main()

@@ -16,6 +16,19 @@ class Test_gMonth (unittest.TestCase):
         v = xsd.gMonth(10)
         self.assertEqual('--10', v.xsdLiteral())
 
+    def testTimezoned (self):
+        dt = xsd.gMonth('--08Z')
+        self.assertEqual('1900-08-01T00:00:00+00:00', dt.isoformat())
+        self.assertEqual('--08Z', dt.xsdLiteral())
+
+        dt = xsd.gMonth('--08-14:00')
+        self.assertEqual('1900-08-01T00:00:00-14:00', dt.isoformat())
+        self.assertEqual('--08-14:00', dt.xsdLiteral())
+
+        dt = xsd.gMonth('--08+14:00')
+        self.assertEqual('1900-08-01T00:00:00+14:00', dt.isoformat())
+        self.assertEqual('--08+14:00', dt.xsdLiteral())
+
     def XtestAccessor (self):
         v = xsd.gMonth(10)
         self.assertRaises((AttributeError, TypeError), getattr, v, 'year')
