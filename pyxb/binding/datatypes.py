@@ -322,9 +322,9 @@ class _PyXBDateTime_base (basis.simpleTypeDefinition):
 
     __Fields = ( 'year', 'month', 'day', 'hour', 'minute', 'second' )
 
-    _DefaultYear = 1983
-    _DefaultMonth = 6
-    _DefaultDay = 18
+    _DefaultYear = 1900
+    _DefaultMonth = 1
+    _DefaultDay = 1
 
     @classmethod
     def _LexicalToKeywords (cls, text, lexical_re):
