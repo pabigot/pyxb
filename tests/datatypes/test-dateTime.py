@@ -1,6 +1,7 @@
 import pyxb
 import unittest
 import pyxb.binding.datatypes as xsd
+from pyxb.utils.utility import UTCOffsetTimeZone
 import datetime
 
 class Test_dateTime (unittest.TestCase):
@@ -50,6 +51,18 @@ class Test_dateTime (unittest.TestCase):
         dt = xsd.dateTime('2002-10-27T12:14:32')
         self.assertEqual('2002-10-27T12:14:32', dt.xsdLiteral())
         self.assertFalse(dt.tzinfo is not None)
+
+    def testNormalize (self):
+        dt = xsd.dateTime('2000-03-04T23:00:00+03:00')
+        self.assertEqual('2000-03-04T20:00:00Z', dt.xsdLiteral())
+
+        pdt = datetime.datetime(year=2000, month=3, day=4, hour=23, tzinfo=UTCOffsetTimeZone(180))
+        self.assertEqual('2000-03-04 23:00:00+03:00', str(pdt))
+        dt = xsd.dateTime(pdt)
+        self.assertEqual('2000-03-04T20:00:00Z', dt.xsdLiteral())
+
+        dt = xsd.dateTime(2000, 3, 4, 23, tzinfo=UTCOffsetTimeZone(180))
+        self.assertEqual('2000-03-04T20:00:00Z', dt.xsdLiteral())
 
     # Manual test to see whether LocalTime works; run this on a
     # machine that uses DST.

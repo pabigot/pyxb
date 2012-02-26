@@ -442,10 +442,6 @@ class TestUTCTimeZone (unittest.TestCase):
         self.assertEqual(datetime.timedelta(minutes=95), utc.utcoffset(dt))
         self.assertEqual('+01:35', utc.tzname(dt))
 
-        utc = UTCOffsetTimeZone(95, flip=True)
-        self.assertEqual(datetime.timedelta(minutes=-95), utc.utcoffset(dt))
-        self.assertEqual('-01:35', utc.tzname(dt))
-
         td = datetime.timedelta(hours=3, minutes=42)
         utc = UTCOffsetTimeZone(td)
         self.assertEqual(td, utc.utcoffset(dt))

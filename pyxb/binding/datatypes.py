@@ -344,7 +344,7 @@ class _PyXBDateTime_base (basis.simpleTypeDefinition):
             # Discard any bogosity passed in by the caller
             kw.pop('microsecond', None)
         if match_map.get('tzinfo', None) is not None:
-            kw['tzinfo'] = pyxb.utils.utility.UTCOffsetTimeZone(match_map['tzinfo'], flip=True)
+            kw['tzinfo'] = pyxb.utils.utility.UTCOffsetTimeZone(match_map['tzinfo'])
         else:
             kw.pop('tzinfo', None)
         return kw
@@ -378,8 +378,9 @@ class _PyXBDateTimeZone_base (_PyXBDateTime_base):
 
         All XML schema timezoned times are in UTC, with the time "in
         its timezone".  If the keywords indicate a non-UTC timezone is
-        in force, adjust the values to account for the zone, and mark
-        explicitly that the time is in UTC.
+        in force, adjust the values to account for the zone by
+        subtracting the corresponding UTC offset, and mark explicitly
+        that the time is in UTC.
 
         @param kw: A dictionary of keywords relevant for a date or
         time instance.  The dictionary is updated by this call.
@@ -392,19 +393,11 @@ class _PyXBDateTimeZone_base (_PyXBDateTime_base):
             use_kw.setdefault('month', cls._DefaultMonth)
             use_kw.setdefault('day', cls._DefaultDay)
             dt = datetime.datetime(tzinfo=tzoffs, **use_kw)
-            dt = tzoffs.fromutc(dt)
+            dt -= tzoffs.utcoffset(dt)
             for k in kw.iterkeys():
                 kw[k] = getattr(dt, k)
             kw['tzinfo'] = cls._UTCTimeZone
         
-    @classmethod
-    def _SetKeysFromPython_csc (cls, python_value, kw, fields):
-        if python_value.tzinfo is not None:
-            kw['tzinfo'] = pyxb.utils.utility.UTCOffsetTimeZone(python_value.tzinfo.utcoffset(python_value), flip=True)
-        else:
-            kw.pop('tzinfo', None)
-        return getattr(super(_PyXBDateTimeZone_base, cls), '_SetKeysFromPython_csc', lambda *a,**kw: None)(python_value, kw, fields)
-
 class dateTime (_PyXBDateTimeZone_base, datetime.datetime):
     """XMLSchema datatype U{dateTime<http://www.w3.org/TR/xmlschema-2/#dateTime>}.
 

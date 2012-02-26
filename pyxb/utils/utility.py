@@ -820,18 +820,13 @@ class UTCOffsetTimeZone (datetime.tzinfo):
     # Range limits
     __MaxOffset_td = datetime.timedelta(hours=14)
 
-    def __init__ (self, spec=None, flip=False):
+    def __init__ (self, spec=None):
         """Create a time zone instance with a fixed offset from UTC.
 
         @param spec: Specifies the offset.  Can be an integer counting
         minutes east of UTC, the value C{None} (equal to 0 minutes
         east), or a string that conform to the ISO8601 time zone
         sequence (B{Z}, or B{[+-]HH:MM}).
-
-        @param flip: If C{False} (default), no adaptation is done.  If
-        C{True}, the time zone offset is negated, resulting in the
-        conversion from localtime to UTC rather than the default of
-        UTC to localtime.
         """
 
         if spec is not None:
@@ -851,8 +846,6 @@ class UTCOffsetTimeZone (datetime.tzinfo):
                 self.__utcOffset_min = spec.seconds / 60
             else:
                 raise TypeError('%s: unexpected type %s' % (type(self), type(spec)))
-            if flip:
-                self.__utcOffset_min = - self.__utcOffset_min
         self.__utcOffset_td = datetime.timedelta(minutes=self.__utcOffset_min)
         if self.__utcOffset_td < -self.__MaxOffset_td or self.__utcOffset_td > self.__MaxOffset_td:
             raise ValueError('XSD timezone offset %s larger than %s' % (self.__utcOffset_td, self.__MaxOffset_td))
