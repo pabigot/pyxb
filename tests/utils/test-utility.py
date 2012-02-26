@@ -417,8 +417,73 @@ class TestHashForText (unittest.TestCase):
         text = 'This is some text'
         self.assertEqual('482cb0cfcbed6740a2bcb659c9ccc22a4d27b369', HashForText(text))
 
+import datetime
 class TestUTCTimeZone (unittest.TestCase):
-    pass
+
+    def testConstructors (self):
+        dt = datetime.datetime.now()
+        utc = UTCOffsetTimeZone()
+        self.assertEqual(datetime.timedelta(0), utc.utcoffset(dt))
+        self.assertEqual('Z', utc.tzname(dt))
+
+        utc = UTCOffsetTimeZone('Z')
+        self.assertEqual(datetime.timedelta(0), utc.utcoffset(dt))
+        self.assertEqual('Z', utc.tzname(dt))
+
+        utc = UTCOffsetTimeZone('+00:00')
+        self.assertEqual(datetime.timedelta(0), utc.utcoffset(dt))
+        self.assertEqual('Z', utc.tzname(dt))
+
+        utc = UTCOffsetTimeZone('-00:00')
+        self.assertEqual(datetime.timedelta(0), utc.utcoffset(dt))
+        self.assertEqual('Z', utc.tzname(dt))
+
+        utc = UTCOffsetTimeZone(95)
+        self.assertEqual(datetime.timedelta(minutes=95), utc.utcoffset(dt))
+        self.assertEqual('+01:35', utc.tzname(dt))
+
+        utc = UTCOffsetTimeZone(95, flip=True)
+        self.assertEqual(datetime.timedelta(minutes=-95), utc.utcoffset(dt))
+        self.assertEqual('-01:35', utc.tzname(dt))
+
+        td = datetime.timedelta(hours=3, minutes=42)
+        utc = UTCOffsetTimeZone(td)
+        self.assertEqual(td, utc.utcoffset(dt))
+        self.assertEqual('+03:42', utc.tzname(dt))
+
+    def testRangeValidation (self):
+        dt = datetime.datetime.now()
+        utc = UTCOffsetTimeZone('+13:59')
+        self.assertEqual(datetime.timedelta(hours=13, minutes=59), utc.utcoffset(dt))
+        self.assertEqual('+13:59', utc.tzname(dt))
+
+        utc = UTCOffsetTimeZone('+14:00')
+        self.assertEqual(datetime.timedelta(hours=14), utc.utcoffset(dt))
+        self.assertEqual('+14:00', utc.tzname(dt))
+
+        utc = UTCOffsetTimeZone('-13:59')
+        self.assertEqual(-datetime.timedelta(hours=13, minutes=59), utc.utcoffset(dt))
+        self.assertEqual('-13:59', utc.tzname(dt))
+
+        utc = UTCOffsetTimeZone(-14*60)
+        self.assertEqual(datetime.timedelta(hours=-14), utc.utcoffset(dt))
+        self.assertEqual('-14:00', utc.tzname(dt))
+
+        self.assertRaises(ValueError, UTCOffsetTimeZone, '14:01')
+        self.assertRaises(ValueError, UTCOffsetTimeZone, -14*60 - 1)
+
+    def testComparison (self):
+        utc_a = UTCOffsetTimeZone()
+        utc_b = UTCOffsetTimeZone('+00:00')
+        utc_c = UTCOffsetTimeZone('-00:00')
+        self.assertNotEqual(id(utc_a), id(utc_b))
+        self.assertEqual(utc_a, utc_b)
+        self.assertEqual(utc_a, utc_c)
+        self.assertEqual(utc_b, utc_c)
+        utc_p1 = UTCOffsetTimeZone(60)
+        utc_m1 = UTCOffsetTimeZone(-60)
+        self.assertTrue(utc_a < utc_p1)
+        self.assertTrue(utc_m1 < utc_a)
 
 class TestLocalTimeZone (unittest.TestCase):
     pass

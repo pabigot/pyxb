@@ -817,6 +817,9 @@ class UTCOffsetTimeZone (datetime.tzinfo):
     # A zero-length duration
     __ZeroDuration = datetime.timedelta(0)
 
+    # Range limits
+    __MaxOffset_td = datetime.timedelta(hours=14)
+
     def __init__ (self, spec=None, flip=False):
         """Create a time zone instance with a fixed offset from UTC.
 
@@ -851,24 +854,32 @@ class UTCOffsetTimeZone (datetime.tzinfo):
             if flip:
                 self.__utcOffset_min = - self.__utcOffset_min
         self.__utcOffset_td = datetime.timedelta(minutes=self.__utcOffset_min)
+        if self.__utcOffset_td < -self.__MaxOffset_td or self.__utcOffset_td > self.__MaxOffset_td:
+            raise ValueError('XSD timezone offset %s larger than %s' % (self.__utcOffset_td, self.__MaxOffset_td))
         if 0 == self.__utcOffset_min:
             self.__tzName = 'Z'
         elif 0 > self.__utcOffset_min:
-            self.__tzName = '-%02d%02d' % divmod(-self.__utcOffset_min, 60)
+            self.__tzName = '-%02d:%02d' % divmod(-self.__utcOffset_min, 60)
         else:
-            self.__tzName = '+%02d%02d' % divmod(self.__utcOffset_min, 60)
+            self.__tzName = '+%02d:%02d' % divmod(self.__utcOffset_min, 60)
 
     def utcoffset (self, dt):
         """Returns the constant offset for this zone."""
         return self.__utcOffset_td
 
     def tzname (self, dt):
-        """Return the name of the timezone in ISO8601 format."""
+        """Return the name of the timezone in the format expected by XML Schema."""
         return self.__tzName
     
     def dst (self, dt):
         """Returns a constant zero duration."""
         return self.__ZeroDuration
+
+    def __cmp__ (self, other):
+        if isinstance(other, UTCOffsetTimeZone):
+            return cmp(self.__utcOffset_min, other.__utcOffset_min)
+        return cmp(self.__utcOffset_min, other.utcoffset(datetime.datetime.now()))
+        
 
 class LocalTimeZone (datetime.tzinfo):
     """A C{datetime.tzinfo} subclass for the local time zone.
