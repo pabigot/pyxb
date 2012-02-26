@@ -5,16 +5,18 @@ import datetime
 
 class Test_dateTime (unittest.TestCase):
     
+    Canonical = datetime.datetime(2002, 10, 27, 12, 14, 32, 123400, None)
+
     def verifyTime (self, dt, with_usec=True, with_adj=(0,0), with_tzinfo=True):
-        self.assertEqual(2002, dt.year)
-        self.assertEqual(10, dt.month)
-        self.assertEqual(27, dt.day)
+        self.assertEqual(self.Canonical.year, dt.year)
+        self.assertEqual(self.Canonical.month, dt.month)
+        self.assertEqual(self.Canonical.day, dt.day)
         (hour_adj, minute_adj) = with_adj
-        self.assertEqual(12 + hour_adj, dt.hour)
-        self.assertEqual(14 + minute_adj, dt.minute)
-        self.assertEqual(32, dt.second)
+        self.assertEqual(self.Canonical.hour + hour_adj, dt.hour)
+        self.assertEqual(self.Canonical.minute + minute_adj, dt.minute)
+        self.assertEqual(self.Canonical.second, dt.second)
         if with_usec:
-            self.assertEqual(123400, dt.microsecond)
+            self.assertEqual(self.Canonical.microsecond, dt.microsecond)
         self.assertEqual(with_tzinfo, dt.hasTimeZone())
 
     def testBad (self):
