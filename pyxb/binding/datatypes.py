@@ -327,7 +327,14 @@ class _PyXBDateTime_base (basis.simpleTypeDefinition):
     # a subclass.
     __LexicalREMap = { }
 
-    __Fields = ( 'year', 'month', 'day', 'hour', 'minute', 'second' )
+    # Fields extracted by parsing that have an integer value
+    __LexicalIntegerFields = ( 'year', 'month', 'day', 'hour', 'minute', 'second' )
+
+    _UTCTimeZone = pyxb.utils.utility.UTCOffsetTimeZone(0)
+    """A L{datetime.tzinfo} instance representing UTC."""
+
+    _LocalTimeZone = pyxb.utils.utility.LocalTimeZone()
+    """A L{datetime.tzinfo} instance representing the local time zone."""
 
     _DefaultYear = 1900
     _DefaultMonth = 1
@@ -348,7 +355,7 @@ class _PyXBDateTime_base (basis.simpleTypeDefinition):
         match_map = match.groupdict()
         kw = { }
         for (k, v) in match_map.iteritems():
-            if (k in cls.__Fields) and (v is not None):
+            if (k in cls.__LexicalIntegerFields) and (v is not None):
                 kw[k] = types.IntType(v)
         if '-' == match_map.get('negYear', None):
             kw['year'] = - kw['year']
@@ -378,13 +385,6 @@ class _PyXBDateTime_base (basis.simpleTypeDefinition):
     # representation instead.
     def __reduce__ (self):
         return (self.__class__, (self.xsdLiteral(),))
-
-class _PyXBDateTimeZone_base (_PyXBDateTime_base):
-    _UTCTimeZone = pyxb.utils.utility.UTCOffsetTimeZone(0)
-    """A L{datetime.tzinfo} instance representing UTC."""
-
-    _LocalTimeZone = pyxb.utils.utility.LocalTimeZone()
-    """A L{datetime.tzinfo} instance representing the local time zone."""
 
     @classmethod
     def _AdjustForTimezone (cls, kw):
@@ -421,7 +421,7 @@ class _PyXBDateTimeZone_base (_PyXBDateTime_base):
             iso += value.tzinfo.tzname(value)
         return iso
 
-class dateTime (_PyXBDateTimeZone_base, datetime.datetime):
+class dateTime (_PyXBDateTime_base, datetime.datetime):
     """XMLSchema datatype U{dateTime<http://www.w3.org/TR/xmlschema-2/#dateTime>}.
 
     This class uses the Python C{datetime.datetime} class as its
@@ -497,7 +497,7 @@ class dateTime (_PyXBDateTimeZone_base, datetime.datetime):
 
 _PrimitiveDatatypes.append(dateTime)
 
-class time (_PyXBDateTimeZone_base, datetime.time):
+class time (_PyXBDateTime_base, datetime.time):
     """XMLSchema datatype U{time<http://www.w3.org/TR/xmlschema-2/#time>}.
 
     This class uses the Python C{datetime.time} class as its
@@ -521,7 +521,7 @@ class time (_PyXBDateTimeZone_base, datetime.time):
             value = args[0]
             if isinstance(value, types.StringTypes):
                 ctor_kw.update(cls._LexicalToKeywords(value))
-            elif isinstance(value, datetime.time):
+            elif isinstance(value, (datetime.time, datetime.datetime)):
                 cls._SetKeysFromPython(value, ctor_kw, cls.__CtorFields)
             elif isinstance(value, (types.IntType, types.LongType)):
                 for fi in range(len(cls.__CtorFields)):
@@ -541,10 +541,10 @@ class time (_PyXBDateTimeZone_base, datetime.time):
 
 _PrimitiveDatatypes.append(time)
 
-class _PyXBDateOnly_base (_PyXBDateTime_base, datetime.date):
+class _PyXBDateOnly_base (_PyXBDateTime_base, datetime.datetime):
     _XsdBaseType = anySimpleType
 
-    __DateFields = ( 'year', 'month', 'day' )
+    _ValidFields = ( 'year', 'month', 'day' )
 
     def __new__ (cls, *args, **kw):
         args = cls._ConvertArguments(args, kw)
@@ -556,24 +556,25 @@ class _PyXBDateOnly_base (_PyXBDateTime_base, datetime.date):
             value = args[0]
             if isinstance(value, types.StringTypes):
                 ctor_kw.update(cls._LexicalToKeywords(value))
-            elif isinstance(value, datetime.date):
-                cls._SetKeysFromPython(value, ctor_kw, cls._Fields)
+            elif isinstance(value, (datetime.date, datetime.datetime)):
+                cls._SetKeysFromPython(value, ctor_kw, cls._ValidFields)
             elif isinstance(value, (types.IntType, types.LongType)):
-                if (1 != len(cls._Fields)):                
-                    raise TypeError('function takes exactly %d arguments (%d given)' % (len(cls._Fields), len(args)))
-                ctor_kw[cls._Fields[0]] = value
+                if (1 != len(cls._ValidFields)):                
+                    raise TypeError('function takes exactly %d arguments (%d given)' % (len(cls._ValidFields), len(args)))
+                ctor_kw[cls._ValidFields[0]] = value
             else:
                 raise BadTypeValueError('Unexpected type %s' % (type(value),))
-        elif len(cls._Fields) == len(args):
-            for fi in range(len(cls._Fields)):
-                ctor_kw[cls._Fields[fi]] = args[fi]
+        elif len(cls._ValidFields) == len(args):
+            for fi in range(len(cls._ValidFields)):
+                ctor_kw[cls._ValidFields[fi]] = args[fi]
         else:
-            raise TypeError('function takes exactly %d arguments (%d given)' % (len(cls._Fields), len(args)))
+            raise TypeError('function takes exactly %d arguments (%d given)' % (len(cls._ValidFields), len(args)))
 
         kw.update(ctor_kw)
         argv = []
-        for f in cls.__DateFields:
-            argv.append(kw.pop(f))
+        argv.append(kw.pop('year'))
+        argv.append(kw.pop('month'))
+        argv.append(kw.pop('day'))
         return super(_PyXBDateOnly_base, cls).__new__(cls, *argv, **kw)
 
     @classmethod
@@ -606,7 +607,7 @@ class gYearMonth (_PyXBDateOnly_base):
     """
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('gYearMonth')
     _Lexical_fmt = '%Y-%m'
-    _Fields = ( 'year', 'month' )
+    _ValidFields = ( 'year', 'month' )
 
 _PrimitiveDatatypes.append(gYearMonth)
 
@@ -618,7 +619,7 @@ class gYear (_PyXBDateOnly_base):
     """
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('gYear')
     _Lexical_fmt = '%Y'
-    _Fields = ( 'year', )
+    _ValidFields = ( 'year', )
 _PrimitiveDatatypes.append(gYear)
 
 class gMonthDay (_PyXBDateOnly_base):
@@ -629,7 +630,7 @@ class gMonthDay (_PyXBDateOnly_base):
     """
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('gMonthDay')
     _Lexical_fmt = '--%m-%d'
-    _Fields = ( 'month', 'day' )
+    _ValidFields = ( 'month', 'day' )
 _PrimitiveDatatypes.append(gMonthDay)
 
 class gDay (_PyXBDateOnly_base):
@@ -640,7 +641,7 @@ class gDay (_PyXBDateOnly_base):
     """
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('gDay')
     _Lexical_fmt = '---%d'
-    _Fields = ( 'day', )
+    _ValidFields = ( 'day', )
 _PrimitiveDatatypes.append(gDay)
 
 class gMonth (_PyXBDateOnly_base):
@@ -651,7 +652,7 @@ class gMonth (_PyXBDateOnly_base):
     """
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('gMonth')
     _Lexical_fmt = '--%m'
-    _Fields = ( 'month', )
+    _ValidFields = ( 'month', )
 _PrimitiveDatatypes.append(gMonth)
 
 class hexBinary (basis.simpleTypeDefinition, types.StringType):
