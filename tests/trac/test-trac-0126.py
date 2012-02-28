@@ -24,6 +24,10 @@ from pyxb.exceptions_ import *
 import unittest
 
 class TestTrac0126 (unittest.TestCase):
+    def tearDown (self):
+        pyxb.RequireValidWhenGenerating(True)
+        pyxb.RequireValidWhenParsing(True)
+
     def testBasic (self):
         instance = Element()
         self.assertEqual(None, instance.Required)

@@ -28,6 +28,10 @@ Anytown, AS  12345-6789'''
     address1_xml = '<name>Customer</name><street>95 Main St</street>'
     address2_xml = '<name>Sugar Mama</name><street>24 E. Dearling Ave.</street>'
 
+    def tearDown (self):
+        pyxb.RequireValidWhenGenerating(True)
+        pyxb.RequireValidWhenParsing(True)
+
     def testPythonElementSimpleContent (self):
         elt = USAddress._ElementMap['street'].elementBinding()(self.street_content)
         self.assertEqual(self.street_content, elt)

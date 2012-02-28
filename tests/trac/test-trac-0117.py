@@ -32,6 +32,10 @@ from pyxb.exceptions_ import *
 import unittest
 
 class TestTrac0117 (unittest.TestCase):
+    def tearDown (self):
+        pyxb.RequireValidWhenGenerating(True)
+        pyxb.RequireValidWhenParsing(True)
+
     def testRequired (self):
         xmls = '<Element/>'
         pyxb.RequireValidWhenParsing(True)
