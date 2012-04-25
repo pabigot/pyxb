@@ -34,25 +34,11 @@ class PyXBException (exceptions.Exception):
     should be kept around so they're accessible generically."""
     _kw = None
 
-    @property
-    def message (self):
-        '''A message to help a human understand the problem.'''
-        if self.__message is None:
-            return str(self)
-        return self.__message
-
-    def __str__ (self):
-        """Override to use the system-provided message, if available."""
-        if self.__message is not None:
-            return '%s: %s' % (type(self).__name__, self.__message)
-        return exceptions.Exception.__str__(self)
-
     def __init__ (self, *args, **kw):
         """Create an exception indicating a PyXB-related problem.
 
         @keyword message : Text to provide the user with information about the problem.
         """
-        self.__message = kw.get('message')
         self._args = args
         self._kw = kw
         exceptions.Exception.__init__(self, *args)
