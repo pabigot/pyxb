@@ -1,4 +1,4 @@
-# Copyright 2009, Peter A. Bigot
+# Copyright 2009-2012, Peter A. Bigot
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain a
@@ -47,6 +47,7 @@ import types
 import pyxb.namespace
 import pyxb.utils.domutils as domutils
 import pyxb.utils.utility as utility
+import pyxb.utils.unicode
 import basis
 import re
 import binascii
@@ -987,7 +988,7 @@ class NMTOKEN (token):
     NMTOKEN is an identifier that can start with any character that is
     legal in it."""
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('NMTOKEN')
-    _ValidRE = re.compile('^[-_.:A-Za-z0-9]*$')
+    _ValidRE = pyxb.utils.unicode.XML1p0e2.NmToken_re
 _DerivedDatatypes.append(NMTOKEN)
 
 class NMTOKENS (basis.STD_list):
@@ -999,7 +1000,7 @@ class Name (token):
 
     See U{http://www.w3.org/TR/2000/WD-xml-2e-20000814.html#NT-Name}."""
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('Name')
-    _ValidRE = re.compile('^[A-Za-z_:][-_.:A-Za-z0-9]*$')
+    _ValidRE = pyxb.utils.unicode.XML1p0e2.Name_re
 _DerivedDatatypes.append(Name)
 
 class NCName (Name):
@@ -1007,7 +1008,7 @@ class NCName (Name):
 
     See U{http://www.w3.org/TR/1999/REC-xml-names-19990114/#NT-NCName}."""
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('NCName')
-    _ValidRE = re.compile('^[A-Za-z_][-_.A-Za-z0-9]*$')
+    _ValidRE = pyxb.utils.unicode.XML1p0e2.NCName_re
 _DerivedDatatypes.append(NCName)
 
 class ID (NCName):
