@@ -393,13 +393,17 @@ class _PyXBDateTime_base (basis.simpleTypeDefinition):
 
         All XML schema timezoned times are in UTC, with the time "in
         its timezone".  If the keywords indicate a non-UTC timezone is
-        in force, adjust the values to account for the zone by
-        subtracting the corresponding UTC offset, and mark explicitly
-        that the time is in UTC.
+        in force, and L{pyxb.PreserveInputTimeZone()} has not been
+        set, adjust the values to account for the zone by subtracting
+        the corresponding UTC offset and mark explicitly that the time
+        is in UTC by leaving a C{tzinfo} attribute identifying the UTC
+        time zone.
 
         @param kw: A dictionary of keywords relevant for a date or
         time instance.  The dictionary is updated by this call.
         """
+        if pyxb.PreserveInputTimeZone():
+            return
         tzoffs = kw.pop('tzinfo', None)
         if tzoffs is not None:
             use_kw = kw.copy()
@@ -426,12 +430,11 @@ class dateTime (_PyXBDateTime_base, datetime.datetime):
     """XMLSchema datatype U{dateTime<http://www.w3.org/TR/xmlschema-2/#dateTime>}.
 
     This class uses the Python C{datetime.datetime} class as its
-    underlying representation.  Note that per the XMLSchema spec, all
-    dateTime objects are in UTC, and that timezone information in the
-    string representation in XML is an indication of the local time
-    zone's offset from UTC.  Presence of time zone information in the
-    lexical space is preserved by a non-empty tzinfo field, which
-    should always be zero minutes offset from UTC.
+    underlying representation.  Unless L{pyxb.PreserveInputTimeZone()}
+    is used, all timezoned dateTime objects are in UTC.  Presence of
+    time zone information in the lexical space is preserved by a
+    non-empty tzinfo field, which should always be zero minutes offset
+    from UTC unless the input time zone was preserved.
 
     @warning: The value space of Python's C{datetime.datetime} class
     is more restricted than that of C{xs:datetime}.  As a specific
@@ -508,6 +511,9 @@ class time (_PyXBDateTime_base, datetime.time):
     string representation in XML is an indication of the local time
     zone's offset from UTC.  Presence of time zone information in the
     lexical space is indicated by the tzinfo field.
+
+    @note: C{pyxb.PreserveInputTimeZone()} can be used to bypass the
+    normalization to UTC.
     """
     
     _XsdBaseType = anySimpleType

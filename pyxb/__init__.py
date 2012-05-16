@@ -220,6 +220,25 @@ def RequireValidWhenParsing (value=None):
     _ParsingRequiresValid = value
     return _ParsingRequiresValid
 
+_PreserveInputTimeZone = False
+def PreserveInputTimeZone (value=None):
+    """Control whether time values are converted to UTC during input.
+
+    The U{specification <http://www.w3.org/TR/xmlschema-2/#dateTime>} makes
+    clear that timezoned times are in UTC and that times in other timezones
+    are to be translated to UTC when converted from literal to value form.
+    Provide an option to bypass this step, so the input timezone is preserved.
+
+    @note: Naive processing of unnormalized times--i.e., ignoring the
+    C{tzinfo} field--may result in errors."""
+    global _PreserveInputTimeZone
+    if value is None:
+        return _PreserveInputTimeZone
+    if not isinstance(value, bool):
+        raise TypeError(value)
+    _PreserveInputTimeZone = value
+    return _PreserveInputTimeZone
+
 ## Local Variables:
 ## fill-column:78
 ## End:
