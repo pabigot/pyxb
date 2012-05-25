@@ -131,11 +131,11 @@ class TestCodePointSet (unittest.TestCase):
         
     def testAsSingleCharacter (self):
         c = CodePointSet()
-        self.assertRaises(CodePointSetError, c.asSingleCharacter)
+        self.assertTrue(c.asSingleCharacter() is None)
         c.add('A')
         self.assertEqual('A', c.asSingleCharacter())
         c.add('B')
-        self.assertRaises(CodePointSetError, c.asSingleCharacter)
+        self.assertTrue(c.asSingleCharacter() is None)
         self.assertEqual('G', CodePointSet('G').asSingleCharacter())
         self.assertEqual(u"\u0041", CodePointSet(65).asSingleCharacter())
         self.assertEqual(u"\uFFFF", CodePointSet(0xFFFF).asSingleCharacter())

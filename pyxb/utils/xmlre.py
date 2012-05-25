@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # Copyright 2009, Peter A. Bigot
+# Copyright 2012, Jon Foster
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain a
@@ -34,6 +35,7 @@ with a sample document at U{
 http://www.xmlschemareference.com/examples/Ch14/regexpDemo.xml}"""
 
 import pyxb.utils.unicode
+import re
 
 class RegularExpressionError (ValueError):
     """Raised when a regular expression cannot be processed.."""
@@ -41,231 +43,171 @@ class RegularExpressionError (ValueError):
         self.position = position
         ValueError.__init__(self, 'At %d: %s' % (position, description))
 
-def _MatchCharPropBraced (text, position):
-    """Match a U{character property
-    <http://www.w3.org/TR/xmlschema-2/#nt-catEsc>}
-    or U{multi-character escape
-    <http://www.w3.org/TR/xmlschema-2/#nt-MultiCharEsc>} identifier,
-    which will be enclosed in braces.
+_character_group_re = re.compile(u'\\\\(?:(?:[pP]\\{[-A-Za-z0-9]+\\})|[^pP])')
+def _MatchCharClassEsc(text, position):
+    '''Parse a "charClassEsc" term.
+
+    This is either:
+     - "SingleCharEsc", an escaped single character, e.g. u"\\n" or u"\\\\"
+     - "MultiCharEsc", an escape code that can match a range of characters,
+       e.g. u"\\s" to match certain whitespace characters
+     - "catEsc", the \p{...} Unicode escapes
+     - "complEsc", the \P{...} inverted Unicode escapes
+
+    Preconditions: None
+    If the parsing fails, throws a RegularExpressionError.
+    Returns a tuple with the CodePointSet and the new position.
+    Postconditions: None
+    '''
+    mo = _character_group_re.match(text, position)
+    if mo:
+        escape_code = mo.group(0)
+        cps = pyxb.utils.unicode.AllEsc.get(escape_code)
+        if cps is not None:
+            return cps, mo.end()
+    raise RegularExpressionError(position, "Unrecognized escape identifier")
+
+def _MatchPosCharGroup(text, position):
+    '''Parse a "posCharGroup" term.
+
+    Preconditions: None.
+    If the parsing fails, throws a RegularExpressionError.
+    Returns a tuple with the character class, a bool indicating if there's a
+    following subtraction, and the new position.
+
+    Postconditions: If has_following_subtraction is True, then the next
+        characters are u"-[".  If has_following_subtraction is False, then
+        the next character will be u"]".  This function guarantees this,
+        so caller doesn't need to check.
+    '''
+
+    start_position = position
+
+    # DASH is just some unique object, used as a marker.
+    # It can't be unicode or a CodePointSet.
+    class DashClass:
+        pass
+    DASH = DashClass()
+
+    # We tokenize first, then go back and stick the ranges together.
+    tokens = []
+    has_following_subtraction = False
+    while True:
+        if position >= len(text):
+            raise RegularExpressionError(position, "Incomplete character class expression, missing closing ']'")
+        ch = text[position]
+        if ch == u'[':
+            # Only allowed if this is a subtraction
+            if not tokens or tokens[-1] is not DASH:
+                raise RegularExpressionError(position, "'[' character not allowed in character class")
+            has_following_subtraction = True
+            # For a character class subtraction, the "-[" are not part of the
+            # posCharGroup, so undo reading the dash
+            tokens.pop()
+            position = position - 1
+            break
+        elif ch == u']':
+            # End
+            break
+        elif ch == u'\\':
+            cps, position = _MatchCharClassEsc(text, position)
+            single_char = cps.asSingleCharacter()
+            if single_char is not None:
+                tokens.append(single_char)
+            else:
+                tokens.append(cps)
+        elif ch == u'-':
+            # We need to distinguish between "-" and "\-".  So we use
+            # DASH for a plain "-", and u"-" for a "\-".
+            tokens.append(DASH)
+            position = position + 1
+        else:
+            tokens.append(ch)
+            position = position + 1
+
+    if not tokens:
+        raise RegularExpressionError(position, "Empty character class not allowed")
+
+    # At the start or end of the character group, a dash has to be a literal
+    if tokens[0] is DASH:
+        tokens[0] = u'-'
+    if tokens[-1] is DASH:
+        tokens[-1] = u'-'
+    result_cps = pyxb.utils.unicode.CodePointSet()
+    cur_token = 0
+    while cur_token < len(tokens):
+        start = tokens[cur_token]
+        if cur_token + 2 < len(tokens) and tokens[cur_token + 1] is DASH:
+            end = tokens[cur_token + 2]
+            if not isinstance(start, unicode) or not isinstance(end, unicode):
+                if start is DASH or end is DASH:
+                    raise RegularExpressionError(start_position, 'Two dashes in a row is not allowed in the middle of a character class.')
+                raise RegularExpressionError(start_position, 'Dashes must be surrounded by characters, not character class escapes. %r %r' %(start, end))
+            if start > end:
+                raise RegularExpressionError(start_position, 'Character ranges must have the lowest character first')
+            result_cps.add((ord(start), ord(end)))
+            cur_token = cur_token + 3
+        else:
+            if start is DASH:
+                raise RegularExpressionError(start_position, 'Dash without an initial character')
+            elif isinstance(start, unicode):
+                result_cps.add(ord(start))
+            else:
+                result_cps.extend(start)
+            cur_token = cur_token + 1
+
+    return result_cps, has_following_subtraction, position
+
+def _MatchCharClassExpr(text, position):
+    '''Parse a U{character class expression<http://www.w3.org/TR/xmlschema-2/#nt-charClassExpr>}
+    ("charClassExpr"), like [abc] or [a-c] or [^abc] or [a-z-[q]].
+
+    Preconditions: None.
+    Preconditions for successful parse: Next character must be a u'[' that
+        starts a character class.
+    If the parsing fails, throws a RegularExpressionError.
+    Returns a tuple with the character class, and the new position.
+    Postconditions: None.
 
     @param text: The complete text of the regular expression being
     translated
 
-    @param position: The offset of the opening brace of the character
-    property
-
+    @param position: The offset of the start of the character group.
+    
     @return: A pair C{(cps, p)} where C{cps} is a
     L{pyxb.utils.unicode.CodePointSet} containing the code points associated with
     the property, and C{p} is the text offset immediately following
     the closing brace.
 
-    @raise RegularExpressionError: if opening or closing braces are
-    missing, or if the text between them cannot be recognized as a
-    property or block identifier.
-    """
-    if position >= len(text):
-        raise RegularExpressionError(position, "Missing brace after category escape")
-    if '{' != text[position]:
-        raise RegularExpressionError(position, "Unexpected character '%s' after category escape" % (text[position],))
-    ep = text.find('}', position+1)
-    if 0 > ep:
-        raise RegularExpressionError(position, "Unterminated category")
-    char_prop = text[position+1:ep]
-    if char_prop.startswith('Is'):
-        char_prop = char_prop[2:]
-        cs = pyxb.utils.unicode.BlockMap.get(char_prop)
-        if cs is None:
-            raise RegularExpressionError(position, "Unrecognized block name '%s'" % (char_prop,))
-        return (cs, ep+1)
-    cs = pyxb.utils.unicode.PropertyMap.get(char_prop)
-    if cs is None:
-        raise RegularExpressionError(position, "Unrecognized character property '%s'" % (char_prop,))
-    return (cs, ep+1)
-
-def _MaybeMatchCharClassEsc (text, position, include_sce=True):
-    """Attempt to match a U{character class escape
-    <http://www.w3.org/TR/xmlschema-2/#nt-charClassEsc>}
-    expression.
-
-    @param text: The complete text of the regular expression being
-    translated
-
-    @param position: The offset of the backslash that would begin the
-    potential character class escape
-
-    @param include_sce: Optional directive to include single-character
-    escapes in addition to character cllass escapes.  Default is
-    C{True}.
-
-    @return: C{None} if C{position} does not begin a character class
-    escape; otherwise a pair C{(cps, p)} as in
-    L{_MatchCharPropBraced}."""
-    if '\\' != text[position]:
-        return None
-    position += 1
-    if position >= len(text):
-        raise RegularExpressionError(position, "Incomplete character escape")
-    nc = text[position]
-    np = position + 1
-    cs = None
-    if include_sce:
-        cs = pyxb.utils.unicode.SingleCharEsc.get(nc)
-    if cs is None:
-        cs = pyxb.utils.unicode.MultiCharEsc.get(nc)
-    if cs is not None:
-        return (cs, np)
-    if 'p' == nc:
-        return _MatchCharPropBraced(text, np)
-    if 'P' == nc:
-        (cs, np) = _MatchCharPropBraced(text, np)
-        return (cs.negate(), np)
-    if (not include_sce) and (nc in pyxb.utils.unicode.SingleCharEsc):
-        return None
-    raise RegularExpressionError(np, "Unrecognized escape identifier '\\%s'" % (nc,))
-
-_NotXMLChar_set = frozenset([ '-', '[', ']' ])
-"""The set of characters that cannot appear within a character class
-expression unescaped."""
-
-def _CharOrSCE (text, position):
-    """Return the single character represented at the given position.
-
-    @param text: The complete text of the regular expression being
-    translated
-
-    @param position: The offset of the character to return.  If this
-    is a backslash, additional text is consumed in order to identify
-    the U{single-character escape <http://www.w3.org/TR/xmlschema-2/#nt-SingleCharEsc>}
-    that begins at the position.
-
-    @return: A pair C{(c, p)} where C{c} is the Unicode character
-    specified at the position, and C{p} is the text offset immediately
-    following the closing brace.
-
-    @raise RegularExpressionError: if the position has no character,
-    or has a character in L{_NotXMLChar_set} or the position begins an
-    escape sequence that is not resolvable as a single-character
-    escape.
-    """
-    
-    if position >= len(text):
-        raise RegularExpressionError(position, "Missing character")
-    rc = text[position]
-    position += 1
-    if rc in _NotXMLChar_set:
-        raise RegularExpressionError(position, "Unexpected character '%s'" % (rc,))
-    if '\\' == rc:
-        if position >= len(text):
-            raise RegularExpressionError(position, "Incomplete escape sequence")
-        charset = pyxb.utils.unicode.SingleCharEsc.get(text[position])
-        if charset is None:
-            raise RegularExpressionError(position-1, "Unrecognized single-character escape '\\%s'" % (text[position],))
-        rc = charset.asSingleCharacter()
-        position += 1
-    return (rc, position)
-
-def _MatchPosCharGroup (text, position):
-    """Match a U{positive character
-    group<http://www.w3.org/TR/xmlschema-2/#nt-posCharGroup>}
-    that begins at the given position.
-
-    @param text: The complete text of the regular expression being
-    translated
-
-    @param position: The offset of the start of the positive character
-    group.
-    
-    @return: a pair C{(cps, p)} as in L{_MatchCharPropBraced}.
-
     @raise RegularExpressionError: if the expression is syntactically
     invalid.
-    """
-    cps = pyxb.utils.unicode.CodePointSet()
-    if '-' == text[position]:
-        cps.add(ord('-'))
-        position += 1
-    while position < len(text):
-        # NB: This is not ideal, as we have to hack around matching SCEs
-        if '\\' == text[position]:
-            cg = _MaybeMatchCharClassEsc(text, position, include_sce=False)
-            if cg is not None:
-                (charset, position) = cg
-                cps.extend(charset)
-                continue
-        if text[position] in _NotXMLChar_set:
-            break
-        (sc0, np) = _CharOrSCE(text, position)
-        osc0 = ord(sc0)
-        if (np < len(text)) and ('-' == text[np]):
-            np += 1
-            (sc1, np) = _CharOrSCE(text, np)
-            osc1 = ord(sc1)
-            if osc0 > osc1:
-                raise RegularExpressionError(position, 'Character range must be non-decreasing')
-            cps.add( (osc0, osc1) )
-        else:
-            cps.add(osc0)
-        position = np
-
-    return (cps, position)
-
-def _MatchCharGroup (text, position):
-    """Match a U{character group<http://www.w3.org/TR/xmlschema-2/#nt-charGroup>}
-    at the given position.
-
-    @param text: The complete text of the regular expression being
-    translated
-
-    @param position: The offset of the start of the character group.
-    
-    @return: a pair C{(cps, p)} as in L{_MatchCharPropBraced}.
-
-    @raise RegularExpressionError: if the expression is syntactically
-    invalid.
-    """
-
-    if position >= len(text):
-        raise RegularExpressionError(position, 'Expected character group')
-    np = position
-    negative_group = ('^' == text[np])
-    if negative_group:
-        np += 1
-    (cps, np) = _MatchPosCharGroup(text, np)
-    if negative_group:
-        cps = cps.negate()
-    if (np < len(text)) and ('-' == text[np]):
-        (ncps, np) = _MatchCharClassExpr(text, np+1)
-        cps.subtract(ncps)
-    return (cps, np)
-
-def _MatchCharClassExpr (text, position):
-    """Match a U{character class expression<http://www.w3.org/TR/xmlschema-2/#nt-charClassExpr>}
-    at the given position.
-
-    @param text: The complete text of the regular expression being
-    translated
-
-    @param position: The offset of the start of the character group.
-    
-    @return: a pair C{(cps, p)} as in L{_MatchCharPropBraced}.
-
-    @raise RegularExpressionError: if the expression is syntactically
-    invalid.
-    """
+    '''
     if position >= len(text):
         raise RegularExpressionError(position, 'Missing character class expression')
-    nc = text[position]
-    np = position + 1
-    if '[' != nc:
-        raise RegularExpressionError(position, "Expected start of character class expression, got '%s'" % (nc,))
-    (cps, np) = _MatchCharGroup(text, np)
-    if np >= len(text):
-        raise RegularExpressionError(position, "Incomplete character class expression, missing closing ']'")
-    if ']' != text[np]:
-        raise RegularExpressionError(position, "Bad character class expression, ends with '%s'" % (text[np],))
-    if 1 == (np - position):
-        raise RegularExpressionError(position, "Empty character class not allowed")
-    return (cps, np+1)
+    if u'[' != text[position]:
+        raise RegularExpressionError(position, "Expected start of character class expression, got '%s'" % (text[position],))
+    position = position + 1
+    if position >= len(text):
+        raise RegularExpressionError(position, 'Missing character class expression')
+    negated = (text[position] == '^')
+    if negated:
+        position = position + 1
+
+    result_cps, has_following_subtraction, position = _MatchPosCharGroup(text, position)
+
+    if negated:
+        result_cps = result_cps.negate()
+
+    if has_following_subtraction:
+        assert text[position] == u'-'
+        assert text[position + 1] == u'['
+        position = position + 1
+        sub_cps, position = _MatchCharClassExpr(text, position)
+        result_cps.subtract(sub_cps)
+
+    if position >= len(text) or text[position] != u']':
+        raise RegularExpressionError(position, "Expected ']' to end character class")
+    return result_cps, position + 1
 
 def MaybeMatchCharacterClass (text, position):
     """Attempt to match a U{character class expression
@@ -278,8 +220,10 @@ def MaybeMatchCharacterClass (text, position):
     expression.
     
     @return: C{None} if C{position} does not begin a character class
-    expression; otherwise a pair C{(cps, p)} as in
-    L{_MatchCharPropBraced}."""
+    expression; otherwise a pair C{(cps, p)} where C{cps} is a
+    L{pyxb.utils.unicode.CodePointSet} containing the code points associated with
+    the property, and C{p} is the text offset immediately following
+    the closing brace."""
     if position >= len(text):
         return None
     c = text[position]
@@ -288,7 +232,9 @@ def MaybeMatchCharacterClass (text, position):
         return (pyxb.utils.unicode.WildcardEsc, np)
     if '[' == c:
         return _MatchCharClassExpr(text, position)
-    return _MaybeMatchCharClassEsc(text, position)
+    if '\\' == c:
+        return _MatchCharClassEsc(text, position)
+    return None
 
 def XMLToPython (pattern):
     """Convert the given pattern to the format required for Python
@@ -300,6 +246,7 @@ def XMLToPython (pattern):
 
     @return: A Unicode string specifying a Python regular expression
     that matches the same language as C{pattern}."""
+    assert isinstance(pattern, unicode)
     new_pattern_elts = []
     new_pattern_elts.append('^')
     position = 0

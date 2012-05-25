@@ -257,9 +257,9 @@ class CodePointSet (object):
     
     def asSingleCharacter (self):
         """If this set represents a single character, return it as its
-        unicode string value."""
+        unicode string value.  Otherwise return C{None}."""
         if (2 != len(self.__codepoints)) or (1 < (self.__codepoints[1] - self.__codepoints[0])):
-            raise CodePointSetError('CodePointSet does not represent single character')
+            return None
         return unichr(self.__codepoints[0])
 
 from pyxb.utils.unicode_data import PropertyMap
@@ -695,3 +695,17 @@ MultiCharEsc['d'] = PropertyMap['Nd']
 MultiCharEsc['D'] = MultiCharEsc['d'].negate()
 MultiCharEsc['W'] = CodePointSet(PropertyMap['P']).extend(PropertyMap['Z']).extend(PropertyMap['C'])
 MultiCharEsc['w'] = MultiCharEsc['W'].negate()
+
+# AllEsc maps all the possible escape codes and wildcards in an XML schema
+# regular expression into the corresponding CodePointSet.
+AllEsc = { u'.': WildcardEsc }
+for k, v in SingleCharEsc.iteritems():
+    AllEsc[u'\\' + unicode(k)] = v
+for k, v in MultiCharEsc.iteritems():
+    AllEsc[u'\\' + unicode(k)] = v
+for k, v in BlockMap.iteritems():
+    AllEsc[u'\\p{Is' + unicode(k) + u'}'] = v
+    AllEsc[u'\\P{Is' + unicode(k) + u'}'] = v.negate()
+for k, v in PropertyMap.iteritems():
+    AllEsc[u'\\p{' + unicode(k) + u'}'] = v
+    AllEsc[u'\\P{' + unicode(k) + u'}'] = v.negate()
