@@ -273,7 +273,14 @@ def XMLToPython (pattern):
     while position < len(pattern):
         cg = MaybeMatchCharacterClass(pattern, position)
         if cg is None:
-            new_pattern_elts.append(pattern[position])
+            ch = pattern[position]
+            if ch == u'^' or ch == u'$':
+                # These characters have no special meaning in XSD.  But they
+                # match start and end of string in Python, so they have to
+                # be escaped.
+                new_pattern_elts.append(u'\\' + ch)
+            else:
+                new_pattern_elts.append(ch)
             position += 1
         else:
             (cps, position) = cg

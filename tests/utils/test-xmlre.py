@@ -428,6 +428,24 @@ class TestXMLRE (unittest.TestCase):
         self.assertNoMatch(u"foo[abc--[b]]bar", u"foobbar")
         self.assertNoMatch(u"foo[abc--[b]]bar", u"fooWbar")
 
+    def testCaret(self):
+        self.assertMatches(u"foo^bar", u"foo^bar")
+        self.assertNoMatch(u"foo^bar", u"foobar")
+        self.assertNoMatch(u"foo^bar", u"barfoo")
+
+    def testCaretStart(self):
+        self.assertMatches(u"^foobar", u"^foobar")
+        self.assertNoMatch(u"^foobar", u"foobar")
+
+    def testDollar(self):
+        self.assertMatches(u"foo$bar", u"foo$bar")
+        self.assertNoMatch(u"foo$bar", u"foobar")
+        self.assertNoMatch(u"foo$bar", u"barfoo")
+
+    def testDollarEnd(self):
+        self.assertMatches(u"foobar$", u"foobar$")
+        self.assertNoMatch(u"foobar$", u"foobar")
+
     def testCaretInRangeSub(self):
         self.assertMatches(u"foo[a^-[a]]bar", u"foo^bar")
         self.assertNoMatch(u"foo[a^-[a]]bar", u"fooabar")
