@@ -296,7 +296,7 @@ BlockMap = {
   }
 # Unicode general category properties: 36 properties
 PropertyMap = {
-  # C: 200 codepoint markers (*not* codepoints)
+  # C: 18 codepoint groups (139710 codepoints)
   'C'  : CodePointSet([
            (0x000000, 0x00001f), (0x00007f, 0x00009f), (0x00070f, 0x00070f),
            (0x00180b, 0x00180e), (0x00200c, 0x00200f), (0x00202a, 0x00202e),
@@ -305,26 +305,26 @@ PropertyMap = {
            (0x00fff9, 0x00fffb), (0x01d173, 0x01d17a), (0x0e0001, 0x0e0001),
            (0x0e0020, 0x0e007f), (0x0f0000, 0x0ffffd), (0x100000, 0x10fffd),
          ]),
-  # Cc: 65 codepoint markers (*not* codepoints)
+  # Cc: 2 codepoint groups (65 codepoints)
   'Cc' : CodePointSet([
            (0x000000, 0x00001f), (0x00007f, 0x00009f),
          ]),
-  # Cf: 129 codepoint markers (*not* codepoints)
+  # Cf: 10 codepoint groups (129 codepoints)
   'Cf' : CodePointSet([
            (0x00070f, 0x00070f), (0x00180b, 0x00180e), (0x00200c, 0x00200f),
            (0x00202a, 0x00202e), (0x00206a, 0x00206f), (0x00feff, 0x00feff),
            (0x00fff9, 0x00fffb), (0x01d173, 0x01d17a), (0x0e0001, 0x0e0001),
            (0x0e0020, 0x0e007f),
          ]),
-  # Co: 3 codepoint markers (*not* codepoints)
+  # Co: 3 codepoint groups (137468 codepoints)
   'Co' : CodePointSet([
            (0x00e000, 0x00f8ff), (0x0f0000, 0x0ffffd), (0x100000, 0x10fffd),
          ]),
-  # Cs: 3 codepoint markers (*not* codepoints)
+  # Cs: 3 codepoint groups (2048 codepoints)
   'Cs' : CodePointSet([
            (0x00d800, 0x00db7f), (0x00db80, 0x00dbff), (0x00dc00, 0x00dfff),
          ]),
-  # L: 8399 codepoint markers (*not* codepoints)
+  # L: 292 codepoint groups (89762 codepoints)
   'L'  : CodePointSet([
            (0x000041, 0x00005a), (0x000061, 0x00007a), (0x0000aa, 0x0000aa),
            (0x0000b5, 0x0000b5), (0x0000ba, 0x0000ba), (0x0000c0, 0x0000d6),
@@ -425,7 +425,7 @@ PropertyMap = {
            (0x01d7aa, 0x01d7c2), (0x01d7c4, 0x01d7c9), (0x020000, 0x02a6d6),
            (0x02f800, 0x02fa1d),
          ]),
-  # Ll: 1331 codepoint markers (*not* codepoints)
+  # Ll: 404 codepoint groups (1331 codepoints)
   'Ll' : CodePointSet([
            (0x000061, 0x00007a), (0x0000aa, 0x0000aa), (0x0000b5, 0x0000b5),
            (0x0000ba, 0x0000ba), (0x0000df, 0x0000f6), (0x0000f8, 0x0000ff),
@@ -563,7 +563,7 @@ PropertyMap = {
            (0x01d750, 0x01d755), (0x01d770, 0x01d788), (0x01d78a, 0x01d78f),
            (0x01d7aa, 0x01d7c2), (0x01d7c4, 0x01d7c9),
          ]),
-  # Lm: 46 codepoint markers (*not* codepoints)
+  # Lm: 18 codepoint groups (46 codepoints)
   'Lm' : CodePointSet([
            (0x0002b0, 0x0002b8), (0x0002bb, 0x0002c1), (0x0002d0, 0x0002d1),
            (0x0002e0, 0x0002e4), (0x0002ee, 0x0002ee), (0x00037a, 0x00037a),
@@ -572,7 +572,7 @@ PropertyMap = {
            (0x003005, 0x003005), (0x003031, 0x003035), (0x00309d, 0x00309e),
            (0x0030fc, 0x0030fe), (0x00ff70, 0x00ff70), (0x00ff9e, 0x00ff9f),
          ]),
-  # Lo: 5823 codepoint markers (*not* codepoints)
+  # Lo: 190 codepoint groups (87186 codepoints)
   'Lo' : CodePointSet([
            (0x0001bb, 0x0001bb), (0x0001c0, 0x0001c3), (0x0005d0, 0x0005ea),
            (0x0005f0, 0x0005f2), (0x000621, 0x00063a), (0x000641, 0x00064a),
@@ -639,14 +639,14 @@ PropertyMap = {
            (0x010300, 0x01031e), (0x010330, 0x010349), (0x020000, 0x02a6d6),
            (0x02f800, 0x02fa1d),
          ]),
-  # Lt: 31 codepoint markers (*not* codepoints)
+  # Lt: 10 codepoint groups (31 codepoints)
   'Lt' : CodePointSet([
            (0x0001c5, 0x0001c5), (0x0001c8, 0x0001c8), (0x0001cb, 0x0001cb),
            (0x0001f2, 0x0001f2), (0x001f88, 0x001f8f), (0x001f98, 0x001f9f),
            (0x001fa8, 0x001faf), (0x001fbc, 0x001fbc), (0x001fcc, 0x001fcc),
            (0x001ffc, 0x001ffc),
          ]),
-  # Lu: 1168 codepoint markers (*not* codepoints)
+  # Lu: 403 codepoint groups (1168 codepoints)
   'Lu' : CodePointSet([
            (0x000041, 0x00005a), (0x0000c0, 0x0000d6), (0x0000d8, 0x0000de),
            (0x000100, 0x000100), (0x000102, 0x000102), (0x000104, 0x000104),
@@ -784,7 +784,7 @@ PropertyMap = {
            (0x01d6e2, 0x01d6fa), (0x01d71c, 0x01d734), (0x01d756, 0x01d76e),
            (0x01d790, 0x01d7a8),
          ]),
-  # M: 605 codepoint markers (*not* codepoints)
+  # M: 105 codepoint groups (605 codepoints)
   'M'  : CodePointSet([
            (0x000300, 0x00034e), (0x000360, 0x000362), (0x000483, 0x000486),
            (0x000488, 0x000489), (0x000591, 0x0005a1), (0x0005a3, 0x0005b9),
@@ -822,7 +822,7 @@ PropertyMap = {
            (0x00fe20, 0x00fe23), (0x01d165, 0x01d169), (0x01d16d, 0x01d172),
            (0x01d17b, 0x01d182), (0x01d185, 0x01d18b), (0x01d1aa, 0x01d1ad),
          ]),
-  # Mc: 126 codepoint markers (*not* codepoints)
+  # Mc: 53 codepoint groups (126 codepoints)
   'Mc' : CodePointSet([
            (0x000903, 0x000903), (0x00093e, 0x000940), (0x000949, 0x00094c),
            (0x000982, 0x000983), (0x0009be, 0x0009c0), (0x0009c7, 0x0009c8),
@@ -843,12 +843,12 @@ PropertyMap = {
            (0x0017b4, 0x0017b6), (0x0017be, 0x0017c5), (0x0017c7, 0x0017c8),
            (0x01d165, 0x01d166), (0x01d16d, 0x01d172),
          ]),
-  # Me: 10 codepoint markers (*not* codepoints)
+  # Me: 4 codepoint groups (10 codepoints)
   'Me' : CodePointSet([
            (0x000488, 0x000489), (0x0006dd, 0x0006de), (0x0020dd, 0x0020e0),
            (0x0020e2, 0x0020e3),
          ]),
-  # Mn: 469 codepoint markers (*not* codepoints)
+  # Mn: 97 codepoint groups (469 codepoints)
   'Mn' : CodePointSet([
            (0x000300, 0x00034e), (0x000360, 0x000362), (0x000483, 0x000486),
            (0x000591, 0x0005a1), (0x0005a3, 0x0005b9), (0x0005bb, 0x0005bd),
@@ -884,7 +884,7 @@ PropertyMap = {
            (0x01d167, 0x01d169), (0x01d17b, 0x01d182), (0x01d185, 0x01d18b),
            (0x01d1aa, 0x01d1ad),
          ]),
-  # N: 486 codepoint markers (*not* codepoints)
+  # N: 41 codepoint groups (486 codepoints)
   'N'  : CodePointSet([
            (0x000030, 0x000039), (0x0000b2, 0x0000b3), (0x0000b9, 0x0000b9),
            (0x0000bc, 0x0000be), (0x000660, 0x000669), (0x0006f0, 0x0006f9),
@@ -901,7 +901,7 @@ PropertyMap = {
            (0x003280, 0x003289), (0x00ff10, 0x00ff19), (0x010320, 0x010323),
            (0x01034a, 0x01034a), (0x01d7ce, 0x01d7ff),
          ]),
-  # Nd: 248 codepoint markers (*not* codepoints)
+  # Nd: 21 codepoint groups (248 codepoints)
   'Nd' : CodePointSet([
            (0x000030, 0x000039), (0x000660, 0x000669), (0x0006f0, 0x0006f9),
            (0x000966, 0x00096f), (0x0009e6, 0x0009ef), (0x000a66, 0x000a6f),
@@ -911,12 +911,12 @@ PropertyMap = {
            (0x001040, 0x001049), (0x001369, 0x001371), (0x0017e0, 0x0017e9),
            (0x001810, 0x001819), (0x00ff10, 0x00ff19), (0x01d7ce, 0x01d7ff),
          ]),
-  # Nl: 53 codepoint markers (*not* codepoints)
+  # Nl: 6 codepoint groups (53 codepoints)
   'Nl' : CodePointSet([
            (0x0016ee, 0x0016f0), (0x002160, 0x002183), (0x003007, 0x003007),
            (0x003021, 0x003029), (0x003038, 0x00303a), (0x01034a, 0x01034a),
          ]),
-  # No: 185 codepoint markers (*not* codepoints)
+  # No: 18 codepoint groups (185 codepoints)
   'No' : CodePointSet([
            (0x0000b2, 0x0000b3), (0x0000b9, 0x0000b9), (0x0000bc, 0x0000be),
            (0x0009f4, 0x0009f9), (0x000bf0, 0x000bf2), (0x000f2a, 0x000f33),
@@ -925,7 +925,7 @@ PropertyMap = {
            (0x0024ea, 0x0024ea), (0x002776, 0x002793), (0x003192, 0x003195),
            (0x003220, 0x003229), (0x003280, 0x003289), (0x010320, 0x010323),
          ]),
-  # P: 298 codepoint markers (*not* codepoints)
+  # P: 75 codepoint groups (298 codepoints)
   'P'  : CodePointSet([
            (0x000021, 0x000023), (0x000025, 0x00002a), (0x00002c, 0x00002f),
            (0x00003a, 0x00003b), (0x00003f, 0x000040), (0x00005b, 0x00005d),
@@ -953,20 +953,20 @@ PropertyMap = {
            (0x00ff1f, 0x00ff20), (0x00ff3b, 0x00ff3d), (0x00ff3f, 0x00ff3f),
            (0x00ff5b, 0x00ff5b), (0x00ff5d, 0x00ff5d), (0x00ff61, 0x00ff65),
          ]),
-  # Pc: 11 codepoint markers (*not* codepoints)
+  # Pc: 7 codepoint groups (11 codepoints)
   'Pc' : CodePointSet([
            (0x00005f, 0x00005f), (0x00203f, 0x002040), (0x0030fb, 0x0030fb),
            (0x00fe33, 0x00fe34), (0x00fe4d, 0x00fe4f), (0x00ff3f, 0x00ff3f),
            (0x00ff65, 0x00ff65),
          ]),
-  # Pd: 17 codepoint markers (*not* codepoints)
+  # Pd: 11 codepoint groups (17 codepoints)
   'Pd' : CodePointSet([
            (0x00002d, 0x00002d), (0x0000ad, 0x0000ad), (0x00058a, 0x00058a),
            (0x001806, 0x001806), (0x002010, 0x002015), (0x00301c, 0x00301c),
            (0x003030, 0x003030), (0x00fe31, 0x00fe32), (0x00fe58, 0x00fe58),
            (0x00fe63, 0x00fe63), (0x00ff0d, 0x00ff0d),
          ]),
-  # Pe: 37 codepoint markers (*not* codepoints)
+  # Pe: 36 codepoint groups (37 codepoints)
   'Pe' : CodePointSet([
            (0x000029, 0x000029), (0x00005d, 0x00005d), (0x00007d, 0x00007d),
            (0x000f3b, 0x000f3b), (0x000f3d, 0x000f3d), (0x00169c, 0x00169c),
@@ -981,17 +981,17 @@ PropertyMap = {
            (0x00fe5c, 0x00fe5c), (0x00fe5e, 0x00fe5e), (0x00ff09, 0x00ff09),
            (0x00ff3d, 0x00ff3d), (0x00ff5d, 0x00ff5d), (0x00ff63, 0x00ff63),
          ]),
-  # Pf: 4 codepoint markers (*not* codepoints)
+  # Pf: 4 codepoint groups (4 codepoints)
   'Pf' : CodePointSet([
            (0x0000bb, 0x0000bb), (0x002019, 0x002019), (0x00201d, 0x00201d),
            (0x00203a, 0x00203a),
          ]),
-  # Pi: 6 codepoint markers (*not* codepoints)
+  # Pi: 5 codepoint groups (6 codepoints)
   'Pi' : CodePointSet([
            (0x0000ab, 0x0000ab), (0x002018, 0x002018), (0x00201b, 0x00201c),
            (0x00201f, 0x00201f), (0x002039, 0x002039),
          ]),
-  # Po: 185 codepoint markers (*not* codepoints)
+  # Po: 65 codepoint groups (185 codepoints)
   'Po' : CodePointSet([
            (0x000021, 0x000023), (0x000025, 0x000027), (0x00002a, 0x00002a),
            (0x00002c, 0x00002c), (0x00002e, 0x00002f), (0x00003a, 0x00003b),
@@ -1016,7 +1016,7 @@ PropertyMap = {
            (0x00ff1a, 0x00ff1b), (0x00ff1f, 0x00ff20), (0x00ff3c, 0x00ff3c),
            (0x00ff61, 0x00ff61), (0x00ff64, 0x00ff64),
          ]),
-  # Ps: 38 codepoint markers (*not* codepoints)
+  # Ps: 38 codepoint groups (38 codepoints)
   'Ps' : CodePointSet([
            (0x000028, 0x000028), (0x00005b, 0x00005b), (0x00007b, 0x00007b),
            (0x000f3a, 0x000f3a), (0x000f3c, 0x000f3c), (0x00169b, 0x00169b),
@@ -1032,7 +1032,7 @@ PropertyMap = {
            (0x00fe5d, 0x00fe5d), (0x00ff08, 0x00ff08), (0x00ff3b, 0x00ff3b),
            (0x00ff5b, 0x00ff5b), (0x00ff62, 0x00ff62),
          ]),
-  # S: 2841 codepoint markers (*not* codepoints)
+  # S: 143 codepoint groups (2841 codepoints)
   'S'  : CodePointSet([
            (0x000024, 0x000024), (0x00002b, 0x00002b), (0x00003c, 0x00003e),
            (0x00005e, 0x00005e), (0x000060, 0x000060), (0x00007c, 0x00007c),
@@ -1083,14 +1083,14 @@ PropertyMap = {
            (0x01d74f, 0x01d74f), (0x01d76f, 0x01d76f), (0x01d789, 0x01d789),
            (0x01d7a9, 0x01d7a9), (0x01d7c3, 0x01d7c3),
          ]),
-  # Sc: 31 codepoint markers (*not* codepoints)
+  # Sc: 10 codepoint groups (31 codepoints)
   'Sc' : CodePointSet([
            (0x000024, 0x000024), (0x0000a2, 0x0000a5), (0x0009f2, 0x0009f3),
            (0x000e3f, 0x000e3f), (0x0017db, 0x0017db), (0x0020a0, 0x0020af),
            (0x00fe69, 0x00fe69), (0x00ff04, 0x00ff04), (0x00ffe0, 0x00ffe1),
            (0x00ffe5, 0x00ffe6),
          ]),
-  # Sk: 69 codepoint markers (*not* codepoints)
+  # Sk: 22 codepoint groups (69 codepoints)
   'Sk' : CodePointSet([
            (0x00005e, 0x00005e), (0x000060, 0x000060), (0x0000a8, 0x0000a8),
            (0x0000af, 0x0000af), (0x0000b4, 0x0000b4), (0x0000b8, 0x0000b8),
@@ -1101,7 +1101,7 @@ PropertyMap = {
            (0x00309b, 0x00309c), (0x00ff3e, 0x00ff3e), (0x00ff40, 0x00ff40),
            (0x00ffe3, 0x00ffe3),
          ]),
-  # Sm: 309 codepoint markers (*not* codepoints)
+  # Sm: 45 codepoint groups (309 codepoints)
   'Sm' : CodePointSet([
            (0x00002b, 0x00002b), (0x00003c, 0x00003e), (0x00007c, 0x00007c),
            (0x00007e, 0x00007e), (0x0000ac, 0x0000ac), (0x0000b1, 0x0000b1),
@@ -1119,7 +1119,7 @@ PropertyMap = {
            (0x01d735, 0x01d735), (0x01d74f, 0x01d74f), (0x01d76f, 0x01d76f),
            (0x01d789, 0x01d789), (0x01d7a9, 0x01d7a9), (0x01d7c3, 0x01d7c3),
          ]),
-  # So: 2432 codepoint markers (*not* codepoints)
+  # So: 105 codepoint groups (2432 codepoints)
   'So' : CodePointSet([
            (0x0000a6, 0x0000a7), (0x0000a9, 0x0000a9), (0x0000ae, 0x0000ae),
            (0x0000b0, 0x0000b0), (0x0000b6, 0x0000b6), (0x000482, 0x000482),
@@ -1157,21 +1157,21 @@ PropertyMap = {
            (0x01d100, 0x01d126), (0x01d12a, 0x01d164), (0x01d16a, 0x01d16c),
            (0x01d183, 0x01d184), (0x01d18c, 0x01d1a9), (0x01d1ae, 0x01d1dd),
          ]),
-  # Z: 19 codepoint markers (*not* codepoints)
+  # Z: 7 codepoint groups (19 codepoints)
   'Z'  : CodePointSet([
            (0x000020, 0x000020), (0x0000a0, 0x0000a0), (0x001680, 0x001680),
            (0x002000, 0x00200b), (0x002028, 0x002029), (0x00202f, 0x00202f),
            (0x003000, 0x003000),
          ]),
-  # Zl: 1 codepoint markers (*not* codepoints)
+  # Zl: 1 codepoint groups (1 codepoints)
   'Zl' : CodePointSet([
            (0x002028, 0x002028),
          ]),
-  # Zp: 1 codepoint markers (*not* codepoints)
+  # Zp: 1 codepoint groups (1 codepoints)
   'Zp' : CodePointSet([
            (0x002029, 0x002029),
          ]),
-  # Zs: 17 codepoint markers (*not* codepoints)
+  # Zs: 6 codepoint groups (17 codepoints)
   'Zs' : CodePointSet([
            (0x000020, 0x000020), (0x0000a0, 0x0000a0), (0x001680, 0x001680),
            (0x002000, 0x00200b), (0x00202f, 0x00202f), (0x003000, 0x003000),

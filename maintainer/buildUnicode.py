@@ -29,6 +29,15 @@ C{pyxb/utils/unicode_data.py}.
 import textwrap
 import re
 
+def countCodepoints (codepoints):
+    count = 0
+    for v in codepoints:
+        if isinstance(v, tuple):
+            count = count + v[1] - v[0] + 1
+        else:
+            count = count + 1
+    return count
+
 def condenseCodepoints (codepoints):
     ranges = []
     codepoints = list(codepoints)
@@ -87,14 +96,16 @@ def emitCategoryMap (data_file):
             range_first = None
         category_map.setdefault(category, []).append(codepoint)
         category_map.setdefault(category[0], []).append(codepoint)
-    
+
+    for k, v in list(category_map.iteritems()):
+        category_map[k] = condenseCodepoints(v)
+
     print '# Unicode general category properties: %d properties' % (len(category_map),)
     print 'PropertyMap = {'
-    for k in sorted(category_map.keys()):
-        v = category_map.get(k)
-        print '  # %s: %d codepoint markers (*not* codepoints)' % (k, len(v))
+    for (k, v) in sorted(category_map.iteritems()):
+        print '  # %s: %d codepoint groups (%d codepoints)' % (k, len(v), countCodepoints(v))
         print "  %-4s : CodePointSet([" % ("'%s'" % k,)
-        print "           %s" % (rangesToPython(condenseCodepoints(v), indent=11, width=67),)
+        print "           %s" % (rangesToPython(v, indent=11, width=67),)
         print "         ]),"
     print '  }'
 
