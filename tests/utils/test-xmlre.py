@@ -192,6 +192,13 @@ class TestXMLRE (unittest.TestCase):
         self.assertTrue(compiled_re.match(u'identifier'))
         self.assertTrue(compiled_re.match(u'_underscore'))
 
+    def testTrivialLiteral(self):
+        # Simplest sanity check for assertMatches / assertNoMatch
+        self.assertMatches(u"hello", u"hello")
+        self.assertNoMatch(u"hello", u"hhello")
+        self.assertNoMatch(u"hello", u"helloo")
+        self.assertNoMatch(u"hello", u"goodbye")
+
     def testConvertingRangesToPythonWithDash(self):
         # It's really easy to convert this RE into u"foo[&-X]bar", if
         # sorting characters in ASCII order without special-casing "-"
@@ -307,6 +314,10 @@ class TestXMLRE (unittest.TestCase):
         self.assertMatches(u"foo\\Wbar", u"foo bar")
         self.assertMatches(u"foo\\Wbar", u"foo&bar")
         self.assertNoMatch(u"foo\\Wbar", u"fooWbar")
+
+    def testUnicodeClass(self):
+        self.assertMatches(u"\\p{L}*", u"hello")
+        self.assertNoMatch(u"\\p{L}*", u"hell7")
 
     def testQuotedOpenBrace(self):
         self.assertMatches(u"foo\\[bar", u"foo[bar")
@@ -429,6 +440,9 @@ class TestXMLRE (unittest.TestCase):
 
     def testSingleCharRange(self):
         self.assertMatches(u"foo[b]ar", u"foobar")
+
+    def testQuotedSingleChar(self):
+        self.assertMatches(u"foo\\\\bar", u"foo\\bar")
 
 if __name__ == '__main__':
     unittest.main()
