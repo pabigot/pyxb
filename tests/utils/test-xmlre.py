@@ -6,6 +6,25 @@ import re
 import unittest
 
 class TestXMLRE (unittest.TestCase):
+    def assertMatches(self, xml_pattern, value):
+        '''Helper function to assert a value matches an XSD regexp pattern.'''
+        py_pattern = xmlre.XMLToPython(xml_pattern)
+        compiled = re.compile(py_pattern)
+        mo = compiled.match(value)
+        self.assertIsNotNone(mo, 'XML pattern %r compiles to Python pattern '
+                             '%r which doesn\'t match value %r but should'
+                             % (xml_pattern, py_pattern, value))
+
+    def assertNoMatch(self, xml_pattern, value):
+        '''Helper function to assert a value does not matche an XSD regexp
+        pattern.'''
+        py_pattern = xmlre.XMLToPython(xml_pattern)
+        compiled = re.compile(py_pattern)
+        mo = compiled.match(value)
+        self.assertIsNone(mo, 'XML pattern %r compiles to Python pattern '
+                          '%r which matches value %r but shouldn\'t'
+                          % (xml_pattern, py_pattern, value))
+
     def testRangeErrors (self):
         self.assertTrue(xmlre.MaybeMatchCharacterClass('', 1) is None)
 
@@ -177,6 +196,23 @@ class TestXMLRE (unittest.TestCase):
         self.assertTrue(compiled_re.match('identifier'))
         self.assertTrue(compiled_re.match('_underscore'))
 
+    def testCnUnicodeClass(self):
+        # The Cn class is basically "everything that is not included in the
+        # Unicode character database".  So it requires special handling when
+        # you parse the Unicode character database.  It is really easy to
+        # miss this and leave the Cn class empty.
+        self.assertNoMatch(u"foo\\p{Cn}bar", u"fooWbar")
+        self.assertMatches(u"foo\\p{Cn}bar", u"foo\ufffebar")
+        self.assertMatches(u"foo\\P{Cn}bar", u"fooWbar")
+        self.assertNoMatch(u"foo\\P{Cn}bar", u"foo\ufffebar")
+
+    def testCnUnicodeClassInC(self):
+        # If the Cn class is wrong (see above), then C will probably be wrong
+        # too.
+        self.assertNoMatch(u"foo\\p{C}bar", u"fooWbar")
+        self.assertMatches(u"foo\\p{C}bar", u"foo\ufffebar")
+        self.assertMatches(u"foo\\P{C}bar", u"fooWbar")
+        self.assertNoMatch(u"foo\\P{C}bar", u"foo\ufffebar")
 
 if __name__ == '__main__':
     unittest.main()

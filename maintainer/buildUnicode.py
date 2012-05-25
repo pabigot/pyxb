@@ -77,6 +77,7 @@ def emitCategoryMap (data_file):
     category_map = {}
     unicode_data = file(data_file)
     range_first = None
+    last_codepoint = -1
     while True:
         line = unicode_data.readline()
         fields = line.split(';')
@@ -85,7 +86,13 @@ def emitCategoryMap (data_file):
         codepoint = int(fields[0], 16)
         char_name = fields[1]
         category = fields[2]
-    
+
+        # If code points are are not listed in the file, they are in the Cn category.
+        if range_first is None and last_codepoint + 1 != codepoint:
+            category_map.setdefault('Cn', []).append((last_codepoint + 1, codepoint))
+            category_map.setdefault('C', []).append((last_codepoint + 1, codepoint))
+        last_codepoint = codepoint
+
         if char_name.endswith(', First>'):
             assert range_first is None
             range_first = codepoint
@@ -96,6 +103,11 @@ def emitCategoryMap (data_file):
             range_first = None
         category_map.setdefault(category, []).append(codepoint)
         category_map.setdefault(category[0], []).append(codepoint)
+
+    # Code points at the end of the Unicode range that are are not listed in
+    # the file are in the Cn category.
+    category_map.setdefault('Cn', []).append((last_codepoint + 1, 0x10FFFF))
+    category_map.setdefault('C', []).append((last_codepoint + 1, 0x10FFFF))
 
     for k, v in list(category_map.iteritems()):
         category_map[k] = condenseCodepoints(v)
