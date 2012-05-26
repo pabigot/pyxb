@@ -23,6 +23,9 @@ components.
 import pyxb
 import pyxb.utils.utility
 import xml.dom
+import logging
+
+_log = logging.getLogger(__name__)
 
 class ExpandedName (object):
 
@@ -349,7 +352,7 @@ class _NamespaceCategory_mixin (pyxb.cscRoot):
         for (cat, registry) in self.__categoryMap.items():
             for (k, v) in registry.items():
                 if v == existing_def:
-                    print 'Replacing value for %s in %s' % (k, cat)
+                    _log.info('Replacing value for %s in %s', k, cat)
                     del registry[k]
                     if replacement_def is not None:
                         registry[k] = replacement_def
@@ -507,7 +510,7 @@ class _NamespaceComponentAssociation_mixin (pyxb.cscRoot):
     def addSchema (self, schema):
         for sr in self.__origins:
             if isinstance(sr, archive._SchemaOrigin) and sr.match(schema=schema):
-                print 'Schema at %s already registered in %s' % (schema.location(), self)
+                _log.info('Schema at %s already registered in %s', schema.location(), self)
                 raise pyxb.SchemaUniquenessError(self, schema.location(), sr.schema())
         sr = archive._SchemaOrigin(schema=schema)
         schema.generationUID().associateObject(sr)
@@ -878,13 +881,13 @@ class Namespace (_NamespaceCategory_mixin, resolution._NamespaceResolution_mixin
         for mr in self.moduleRecords():
             if mr.isLoadable():
                 if mr.isPublic():
-                    print 'Load %s from %s' % (mr, mr.archive())
+                    _log.info('Load %s from %s', mr, mr.archive())
                     try:
                         mr.archive().readNamespaces()
                     except pyxb.NamespaceArchiveError, e:
-                        print e
+                        _log.exception("%s", str(e))
                 else:
-                    print 'Ignoring private module %s in validation' % (mr,)
+                    _log.info('Ignoring private module %s in validation', mr)
         self._activate()
 
     __didValidation = False

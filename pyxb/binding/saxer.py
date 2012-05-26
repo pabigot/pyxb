@@ -23,6 +23,9 @@ import pyxb.utils.saxdom
 import pyxb.utils.utility
 from pyxb.binding import basis
 from pyxb.namespace.builtin import XMLSchema_instance as XSI
+import logging
+
+_log = logging.getLogger(__name__)
 
 class _SAXElementState (pyxb.utils.saxutils.SAXElementState):
     """State required to generate bindings for a specific element.
@@ -146,7 +149,7 @@ class _SAXElementState (pyxb.utils.saxutils.SAXElementState):
     def startDOMElement (self, attrs):
         """Actions upon entering an element that is part of a DOM subtree."""
         self.__domDepth += 1
-        #print 'Enter level %d with %s' % (self.__domDepth, self.expandedName())
+        #_log.debug('Enter level %d with %s', self.__domDepth, self.expandedName())
         self.__attributes = pyxb.utils.saxdom.NamedNodeMap()
         ns_ctx = self.namespaceContext()
         for name in attrs.getNames():
@@ -162,7 +165,7 @@ class _SAXElementState (pyxb.utils.saxutils.SAXElementState):
                 element.appendChild(content)
             else:
                 element.appendChild(pyxb.utils.saxdom.Text(content, namespace_context=ns_ctx))
-        #print 'Leaving level %d with %s' % (self.__domDepth, self.expandedName())
+        #_log.debug('Leaving level %d with %s', self.__domDepth, self.expandedName())
         self.__domDepth -= 1
         if 0 == self.__domDepth:
             self.__domDocument.appendChild(element)
@@ -217,7 +220,7 @@ class _SAXElementState (pyxb.utils.saxutils.SAXElementState):
             assert 1 >= len(args), 'Unexpected STD content %s' % (args,)
             self.__constructElement(self.__delayedConstructor, self.__attributes, args)
         else:
-            #print 'Extending %s by content %s' % (self.__bindingInstance, self.__content,)
+            #_log.debug('Extending %s by content %s', self.__bindingInstance, self.__content)
             for (content, element_use, maybe_element) in self.__content:
                 self.__bindingInstance.append(content, element_use, maybe_element, require_validation=pyxb._ParsingRequiresValid)
         parent_state = self.parentState()

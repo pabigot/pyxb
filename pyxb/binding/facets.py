@@ -29,6 +29,9 @@ import datatypes
 import basis
 from pyxb.utils import utility
 import re
+import logging
+
+_log = logging.getLogger(__name__)
 
 class Facet (pyxb.cscRoot):
     """The base class for facets.
@@ -148,8 +151,8 @@ class Facet (pyxb.cscRoot):
         if (self.valueDatatype() is not None) and (self.value() is not None):
             try:
                 return self.valueDatatype().XsdLiteral(self.value())
-            except Exception, e:
-                print 'Stringize facet %s produced %s' % (self.Name(), e)
+            except Exception:
+                _log.exception('Stringize facet %s produced exception', self.Name())
                 raise
         return str(self.value())
     
@@ -300,7 +303,7 @@ class _CollectionFacet_mixin (pyxb.cscRoot):
         if kw.get('_reset', False):
             self.__items = []
         if not kw.get('_constructor', False):
-            #print self._CollectionFacet_itemType
+            #_log.debug("%s", str(self._CollectionFacet_itemType))
             self.__items.append(self._CollectionFacet_itemType(facet_instance=self, **kw))
         super_fn = getattr(super(_CollectionFacet_mixin, self), '_setFromKeywords_vb', lambda *a,**kw: self)
         return super_fn(**kw)
@@ -383,8 +386,9 @@ class _PatternElement (utility.PrivateTransient_mixin):
         self.annotation = annotation
         self.__pythonExpression = pyxb.utils.xmlre.XMLToPython(pattern)
         super(_PatternElement, self).__init__()
-        #print 'Translated pattern %s to %s' % (pattern.encode('ascii', 'xmlcharrefreplace'),
-        #                                       self.__pythonExpression.encode('ascii', 'xmlcharrefreplace'))
+        #_log.debug('Translated pattern %s to %s',
+        #            pattern.encode('ascii', 'xmlcharrefreplace'),
+        #            self.__pythonExpression.encode('ascii', 'xmlcharrefreplace'))
 
     def __str__ (self): return self.pattern
 

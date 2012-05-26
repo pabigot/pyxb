@@ -22,6 +22,9 @@ import pyxb
 import urlparse
 import time
 import datetime
+import logging
+
+_log = logging.getLogger(__name__)
 
 def QuotedEscaped (s):
     """Convert a string into a literal value that can be used in Python source.
@@ -430,14 +433,14 @@ class Graph:
         source = v
         for target in self.__edgeMap.get(source, []):
             if self.__tarjanIndex[target] is None:
-                #print "Target %s not found in processed" % (target,)
+                #_log.debug("Target %s not found in processed", target)
                 self._tarjan(target)
                 self.__tarjanLowLink[v] = min(self.__tarjanLowLink[v], self.__tarjanLowLink[target])
             elif target in self.__stack:
-                #print "Found %s in stack" % (target,)
+                #_log.debug("Found %s in stack", target)
                 self.__tarjanLowLink[v] = min(self.__tarjanLowLink[v], self.__tarjanLowLink[target])
             else:
-                #print "No %s in stack" % (target,)
+                #_log.debug("No %s in stack", target)
                 pass
 
         if self.__tarjanLowLink[v] == self.__tarjanIndex[v]:
@@ -450,7 +453,7 @@ class Graph:
             if 1 < len(scc):
                 self.__scc.append(scc)
                 [ self.__sccMap.setdefault(_v, scc) for _v in scc ]
-                #print 'SCC at %s' % (' '.join( [str(_s) for _s in scc ]),)
+                #_log.debug('SCC at %s', ' '.join([str(_s) for _s in scc]))
 
     def scc (self, reset=False):
         """Return the strongly-connected components of the graph.
@@ -645,7 +648,7 @@ def TextFromURI (uri, archive_directory=None):
             if exc is None:
                 exc = e
     if exc is not None:
-        print 'TextFromURI: open %s caught: %s' % (uri, exc)
+        _log.info('TextFromURI: open %s caught: %s', uri, exc)
         raise exc
     try:
         # Protect this in case whatever stream is doesn't have an fp
@@ -665,7 +668,7 @@ def TextFromURI (uri, archive_directory=None):
         try:
             OpenOrCreate(dest_file).write(xmls)
         except OSError, e:
-            print 'WARNING: Unable to save %s in %s: %s' % (uri, dest_file, e)
+            _log.warning('Unable to save %s in %s: %s', uri, dest_file, e)
     return xmls
 
 def OpenOrCreate (file_name, tag=None, preserve_contents=False):
@@ -1002,10 +1005,10 @@ class PrivateTransient_mixin (pyxb.cscRoot):
                         cl2 = k[:-len(self.__Attribute)]
                         skipped.update([ '%s__%s' % (cl2, _n) for _n in v ])
             setattr(self.__class__, attr, skipped)
-            #print 'Defined skipped for %s: %s' % (self.__class__, skipped)
+            #_log.debug('Defined skipped for %s: %s', self.__class__, skipped)
         for k in skipped:
             if state.get(k) is not None:
-                #print 'Stripping %s from instance %x of %s' % (k, id(self), type(self))
+                #_log.debug('Stripping %s from instance %x of %s', k, id(self), type(self))
                 del state[k]
         # Uncomment the following to test whether undesirable types
         # are being pickled, generally by accidently leaving a

@@ -16,6 +16,7 @@
 """This module contains support classes from which schema-specific bindings
 inherit, and that describe the content models of those schema."""
 
+import logging
 import pyxb
 import xml.dom
 import pyxb.utils.domutils as domutils
@@ -23,6 +24,8 @@ import pyxb.utils.utility as utility
 import types
 import pyxb.namespace
 from pyxb.namespace.builtin import XMLSchema_instance as XSI
+
+_log = logging.getLogger(__name__)
 
 class _TypeBinding_mixin (utility.Locatable_mixin):
 
@@ -307,7 +310,7 @@ class _TypeBinding_mixin (utility.Locatable_mixin):
             return value
         if pyxb.binding.datatypes.anyType == cls:
             if not isinstance(value, _TypeBinding_mixin):
-                print 'NOTE: Created %s instance from value of type %s' % (cls._ExpandedName, type(value))
+                _log.info('NOTE: Created %s instance from value of type %s', cls._ExpandedName, type(value))
                 value = cls(value)
             return value
 
@@ -556,8 +559,7 @@ class _DynamicCreate_mixin (pyxb.cscRoot):
         try:
             return ctor(*args, **kw)
         except TypeError, e:
-            #import traceback
-            #traceback.print_exc()
+            #_log.exception('Error in _DynamicCreate()')
             raise pyxb.BadTypeValueError(e)
 
 class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
@@ -670,14 +672,14 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
             # Assume we're staying in this hierarchy.  Include source_class in
             # the candidates, since we might have jumped to it.
             for super_class in source_class.mro():
-                #print 'Superclass for %s is %s' % (source_class, super_class)
+                #_log.debug('Superclass for %s is %s', source_class, super_class)
                 assert super_class is not None
                 if (super_class == simpleTypeDefinition): # and (source_class.XsdSuperType() is not None):
                     break
                 if issubclass(super_class, simpleTypeDefinition):
                     try:
                         fm = super_class._FacetMap()
-                        #print 'Selected facet map for %s from %s: %s' % (cls, super_class, fm)
+                        #_log.debug('Selected facet map for %s from %s: %s', cls, super_class, fm)
                         break
                     except AttributeError:
                         pass
@@ -686,18 +688,18 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
                     source_class = source_class.XsdSuperType()
                 except AttributeError:
                     source_class = None
-                #print 'Nothing acceptable found, jumped to %s' % (source_class,)
+                #_log.debug('Nothing acceptable found, jumped to %s', source_class)
                 if source_class is None:
                     fm = { }
-        #print 'Done with set'
+        #_log.debug('Done with set')
         if fm is None:
             raise pyxb.LogicError('%s is not a child of simpleTypeDefinition' % (cls.__name__,))
         fm = fm.copy()
-        #print 'Augmenting %s map had %d elts with %d from args' % (cls, len(fm), len(args))
+        #_log.debug('Augmenting %s map had %d elts with %d from args', cls, len(fm), len(args))
         for facet in args:
             fm[type(facet)] = facet
         #for (fc, fi) in fm.items():
-        #    print ' %s : %s' % (fc, fi)
+        #    _log.debug(' %s : %s', fc, fi)
         setattr(cls, cls.__FacetMapAttributeName(), fm)
         return fm
 
@@ -726,7 +728,7 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
         if (0 < len(args)) and isinstance(args[0], types.StringTypes) and apply_whitespace_facet:
             cf_whitespace = getattr(cls, '_CF_whiteSpace', None)
             if cf_whitespace is not None:
-                #print 'Apply whitespace %s to "%s"' % (cf_whitespace, args[0])
+                #_log.debug('Apply whitespace %s to "%s"', cf_whitespace, args[0])
                 norm_str = unicode(cf_whitespace.normalizeString(args[0]))
                 args = (norm_str,) + args[1:]
         kw['_from_xml'] = from_xml
@@ -917,7 +919,7 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
         for f in facet_values:
             if not f.validateConstraint(value):
                 raise pyxb.BadTypeValueError('%s violation for %s in %s' % (f.Name(), value, cls.__name__))
-            #print '%s ok for %s' % (f, value)
+            #_log.debug('%s ok for %s', f, value)
         return value
 
     def xsdConstraintsOK (self):
@@ -997,10 +999,10 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
         append/extend on the list instance)."""
         if value is None:
             raise pyxb.BadTypeValueError('None is not a valid instance of %s' % (cls,))
-        #print 'testing value %s type %s against %s' % (value, type(value), cls)
+        #_log.debug('testing value %s type %s against %s', value, type(value), cls)
         value_class = cls
         if issubclass(cls, STD_list):
-            #print ' -- checking list of %s' % (cls._ItemType,)
+            #_log.debug(' -- checking list of %s', cls._ItemType)
             try:
                 iter(value)
             except TypeError:
@@ -1010,7 +1012,7 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
                     raise pyxb.BadTypeValueError('%s cannot have member of type %s (want %s)' % (cls, type(v), cls._ItemType))
         else:
             if issubclass(cls, STD_union):
-                #print ' -- checking union with %d types' % (len(cls._MemberTypes),)
+                #_log.debug(' -- checking union with %d types', len(cls._MemberTypes))
                 value_class = None
                 for mt in cls._MemberTypes:
                     if mt._IsValidValue(value):
@@ -1405,7 +1407,7 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
         if value is None:
             return None
         is_plural = kw.pop('is_plural', False)
-        #print 'validating %s against %s, isPlural %s' % (type(value), self.typeDefinition(), is_plural)
+        #_log.debug('validating %s against %s, isPlural %s', type(value), self.typeDefinition(), is_plural)
         if is_plural:
             try:
                 iter(value)
@@ -1875,7 +1877,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             if isinstance(value, _TypeBinding_mixin):
                 value.validateBinding()
             elif eu is not None:
-                print 'WARNING: Cannot validate value %s in field %s' % (value, eu.id())
+                _log.warning('Cannot validate value %s in field %s', value, eu.id())
         self._validateAttributes()
         return True
 
@@ -2036,22 +2038,22 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
                 else:
                     # Might be a resolvable wildcard.  See if we can convert it to an
                     # element.
-                    #print 'Attempting to create element from node %s' % (expanded_name,)
+                    #_log.debug('Attempting to create element from node %s', expanded_name)
                     try:
                         ns = expanded_name.namespace()
                         if ns is not None:
                             for mr in ns.moduleRecords():
                                 try:
                                     if (mr.module() is None) and (mr.modulePath() is not None):
-                                        print 'Importing %s to get binding for wildcard %s' % (mr.modulePath(), expanded_name)
+                                        _log.info('Importing %s to get binding for wildcard %s', mr.modulePath(), expanded_name)
                                         mod = __import__(mr.modulePath())
                                         for c in mr.modulePath().split('.')[1:]:
                                             mod = getattr(mod, c)
                                         mr._setModule(mod)
                                     value = mr.module().CreateFromDOM(node)
                                     break
-                                except pyxb.PyXBException, e:
-                                    print 'Ignoring error when creating binding for wildcard %s: %s' % (expanded_name, e)
+                                except pyxb.PyXBException:
+                                    _log.exception('Ignoring error when creating binding for wildcard %s', expanded_name)
                                 except AttributeError, e:
                                     # The module holding XMLSchema bindnigs does not
                                     # have a CreateFromDOM method, and shouldn't since
@@ -2059,8 +2061,8 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
                                     # carefully.
                                     if mr.namespace() != pyxb.namespace.XMLSchema:
                                         raise
-                    except Exception, e:
-                        print 'WARNING: Unable to convert DOM node %s to Python instance: %s' % (expanded_name, e)
+                    except Exception:
+                        _log.exception('Unable to convert DOM node %s to Python instance', expanded_name)
         if (not maybe_element) and isinstance(value, basestring) and (self._ContentTypeTag in (self._CT_EMPTY, self._CT_ELEMENT_ONLY)):
             if (0 == len(value.strip())) and not self._isNil():
                 return self
@@ -2077,7 +2079,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
                     return self
                 raise pyxb.StructuralBadDocumentError('Validation is required when no element_use can be found')
             else:
-                #print 'SSStep %s %s' % (value, element_use)
+                #_log.debug('SSStep %s %s', value, element_use)
                 ( consumed, underflow_exc ) = self.__modelState.step(self, value, element_use)
                 if consumed:
                     return self

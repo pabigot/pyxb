@@ -25,6 +25,10 @@ submodules:
 
 """
 
+import logging
+
+_log = logging.getLogger(__name__)
+
 class cscRoot (object):
     """This little bundle of joy exists because in Python 2.6 it
     became an error to invoke C{object.__init__} with parameters (unless
@@ -148,7 +152,7 @@ def _SetXMLStyle (style=None):
     if _XMLStyleMapReverse.get(style) is None:
         raise PyXBException('Bad value %s for _SetXMLStyle' % (style,))
     _XMLStyle = style
-    #print "XML style %s" % (_XMLStyleMapReverse.get(_XMLStyle),)
+    #_log.debug("XML style %s", _XMLStyleMapReverse.get(_XMLStyle))
 
 _SetXMLStyle()
 

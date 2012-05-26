@@ -9,6 +9,9 @@
 import sys
 import xml.dom.minidom
 import urllib2
+import logging
+
+logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
 import pyxb.bundles.wssplat.wsdl11 as wsdl
 

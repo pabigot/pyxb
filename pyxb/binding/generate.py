@@ -33,6 +33,9 @@ import types
 import sys
 import traceback
 import os.path
+import logging
+
+_log = logging.getLogger(__name__)
 
 # Initialize UniqueInBinding with the public identifiers we generate,
 # import, or otherwise can't have mucked about with.
@@ -126,7 +129,7 @@ class ReferenceSchemaComponent (ReferenceLiteral):
         binding_module = kw['binding_module']
         super(ReferenceSchemaComponent, self).__init__(**kw)
         rv = binding_module.referenceSchemaComponent(component)
-        #print '%s in %s is %s' % (component.expandedName(), binding_module, rv)
+        #_log.debug('%s in %s is %s', component.expandedName(), binding_module, rv)
         self.setLiteral(rv)
 
 class ReferenceNamespace (ReferenceLiteral):
@@ -340,11 +343,11 @@ def GenerateFacets (td, generator, **kw):
         #    continue
         if (fi is None) and (fc in td.baseTypeDefinition().facets()):
             # Nothing new here
-            #print 'Skipping %s in %s: already registered' % (fc, td)
+            #_log.debug('Skipping %s in %s: already registered', fc, td)
             continue
         if (fi is not None) and (fi.ownerTypeDefinition() != td):
             # Did this one in an ancestor
-            #print 'Skipping %s in %s: found in ancestor' % (fc, td)
+            #_log.debug('Skipping %s in %s: found in ancestor', fc, td)
             continue
         argset = { }
         is_collection = issubclass(fc, facets._CollectionFacet_mixin)
@@ -420,7 +423,7 @@ def GenerateSTD (std, generator):
     template_map = { }
     binding_name = template_map['std'] = binding_module.literal(std, **kw)
     if (std.expandedName() is not None) and (std.expandedName().localName() != binding_name):
-        print 'Simple type %s renamed to %s' % (std.expandedName(), binding_name)
+        _log.info('Simple type %s renamed to %s', std.expandedName(), binding_name)
 
     template_map['superclasses'] = ''
     if 0 < len(parent_classes):
@@ -502,7 +505,7 @@ def elementDeclarationMap (ed, binding_module, **kw):
     if (ed.SCOPE_global == ed.scope()):
         binding_name = template_map['class'] = binding_module.literal(ed, **kw)
         if ed.expandedName().localName() != binding_name:
-            print 'Element %s renamed to %s' % (ed.expandedName(), binding_name)
+            _log.info('Element %s renamed to %s', ed.expandedName(), binding_name)
         template_map['localName'] = binding_module.literal(ed.name(), **kw)
         template_map['map_update'] = templates.replaceInText("%{namespaceReference}.addCategoryObject('elementBinding', %{localName}, %{class})", **template_map)
     else:
@@ -536,7 +539,7 @@ def GenerateCTD (ctd, generator, **kw):
     template_map = { }
     binding_name = template_map['ctd'] = binding_module.literal(ctd, **kw)
     if (ctd.expandedName() is not None) and (ctd.expandedName().localName() != binding_name):
-        print 'Complex type %s renamed to %s' % (ctd.expandedName(), binding_name)
+        _log.info('Complex type %s renamed to %s', ctd.expandedName(), binding_name)
     
     base_type = ctd.baseTypeDefinition()
     content_type_tag = ctd._contentTypeTag()
@@ -623,7 +626,7 @@ class %{ctd} (%{superclass}):
                 continue
 
             if ed.expandedName().localName() != ef_map['id']:
-                print 'Element use %s.%s renamed to %s' % (ctd.expandedName(), ed.expandedName(), ef_map['id'])
+                _log.info('Element use %s.%s renamed to %s', ctd.expandedName(), ed.expandedName(), ef_map['id'])
             definitions.append(templates.replaceInText('''
     # Element %{name} uses Python identifier %{id}
     %{use} = pyxb.binding.content.ElementUse(%{name_expr}, '%{id}', '%{key}', %{is_plural}%{aux_init})
@@ -666,7 +669,7 @@ class %{ctd} (%{superclass}):
         while aur.restrictionOf() is not None:
             aur = aur.restrictionOf()
         if au != aur:
-            #print 'Local %s restriction of %s' % (au_map, aur.attributeDeclaration()._templateMap())
+            #_log.debug('Local %s restriction of %s', au_map, aur.attributeDeclaration()._templateMap())
             au_map = aur.attributeDeclaration()._templateMap().copy()
             definitions.append(templates.replaceInText('''
     # Attribute %{id} is restricted from parent''', **au_map))
@@ -699,7 +702,7 @@ class %{ctd} (%{superclass}):
 
         attribute_uses.append(templates.replaceInText('%{use}.name() : %{use}', **au_map))
         if ad.expandedName().localName() != au_map['id']:
-            print 'Attribute %s.%s renamed to %s' % (ctd.expandedName(), ad.expandedName(), au_map['id'])
+            _log.info('Attribute %s.%s renamed to %s', ctd.expandedName(), ad.expandedName(), au_map['id'])
         definitions.append(templates.replaceInText('''
     # Attribute %{name} uses Python identifier %{id}
     %{use} = pyxb.binding.content.AttributeUse(%{name_expr}, '%{id}', '%{key}', %{attr_type}%{aux_init})''', name_expr=binding_module.literal(ad.expandedName(), **kw), **au_map))
@@ -780,11 +783,11 @@ def _PrepareSimpleTypeDefinition (std, generator, nsm, module_context):
             for ei in enum_facet.iteritems():
                 assert ei.tag() is None, '%s already has a tag' % (ei,)
                 ei._setTag(utility.PrepareIdentifier(ei.unicodeValue(), nsm.uniqueInClass(std)))
-                #print ' Enum %s.%s represents %s' % (std, ei.tag(), ei.unicodeValue())
-        #print '%s unique: %s' % (std.expandedName(), nsm.uniqueInClass(std))
+                #_log.debug('Enum %s.%s represents %s', std, ei.tag(), ei.unicodeValue())
+        #_log.debug('%s unique: %s', std.expandedName(), nsm.uniqueInClass(std))
 
 def _PrepareComplexTypeDefinition (ctd, generator, nsm, module_context):
-    #print '%s represents %s in %s' % (ctd.nameInBinding(), ctd.expandedName(), nsm.namespace())
+    #_log.debug('%s represents %s in %s', ctd.nameInBinding(), ctd.expandedName(), nsm.namespace())
     content_basis = None
     content_type_tag = ctd._contentTypeTag()
     if (ctd.CT_SIMPLE == content_type_tag):
@@ -997,7 +1000,7 @@ class _ModuleNaming_mixin (object):
         (binding_file_path, binding_file, module_path) = path_data
         self.__bindingFilePath = binding_file_path
         self.__bindingFile = binding_file
-        #print 'Set %s binding file %s path %s' % (self, binding_file, binding_file_path)
+        #_log.debug('Set %s binding file %s path %s', self, binding_file, binding_file_path)
         if module_path is None:
             module_path = self.moduleRecord().modulePath()
         if module_path is not None:
@@ -1135,7 +1138,7 @@ class _ModuleNaming_mixin (object):
         return self.__bindingIO.literal(*args, **kw)
 
     def addImportsFrom (self, module):
-        print 'Importing to %s from %s' % (self, module)
+        _log.info('Importing to %s from %s', self, module)
         self._importModule(module)
         for c in self.__components:
             local_name = self.nameInModule(c)
@@ -1152,9 +1155,9 @@ class _ModuleNaming_mixin (object):
         if self.bindingFile():
             self.bindingFile().write(self.moduleContents().encode(pyxb._OutputEncoding))
             self.bindingFile().close()
-            print 'Saved binding source to %s' % (self.__bindingFilePath,)
+            _log.info('Saved binding source to %s', self.__bindingFilePath)
         else:
-            print 'WARNING: No binding file for %s' % (self,)
+            _log.warning('No binding file for %s', self)
 
 
 class NamespaceModule (_ModuleNaming_mixin):
@@ -1217,7 +1220,7 @@ class NamespaceModule (_ModuleNaming_mixin):
         self.__moduleRecord = module_record
         self.__namespace = self.__moduleRecord.namespace()
         self.defineNamespace(self.__namespace, 'Namespace', require_unique=False)
-        #print 'NSM Namespace %s module path %s' % (namespace, namespace.modulePath())
+        #_log.debug('NSM Namespace %s module path %s', namespace, namespace.modulePath())
         #self.__namespaceGroup = mr_scc
         self._RecordModule(self)
         #self.__namespaceGroupHead = self.ForNamespace(ns_scc[0])
@@ -1300,7 +1303,7 @@ def CreateFromDOM (node, default_namespace=None):
     def bindComponent (self, component):
         ns_name = self._bindComponent(component)
         component.setNameInBinding(ns_name)
-        #print 'set name %s in %s' % (ns_name, component)
+        #_log.debug('set name %s in %s', ns_name, component)
         binding_module = self
         if self.__namespaceGroupModule:
             self.__namespaceGroupModule._bindComponent(component)
@@ -1476,7 +1479,7 @@ class Generator (object):
                 module_elts.append(pyxb.utils.utility.PrepareIdentifier('nsgroup', in_use, protected=True))
                 try:
                     binding_file_path = self.__moduleFilePath(module_elts)
-                    print 'Attempting group %s uid %s at %s' % (module, module.moduleUID(), binding_file_path)
+                    _log.info('Attempting group %s uid %s at %s', module, module.moduleUID(), binding_file_path)
                     binding_file = pyxb.utils.utility.OpenOrCreate(binding_file_path, tag=module.moduleUID())
                     break
                 except OSError, e:
@@ -1533,7 +1536,7 @@ class Generator (object):
         return self.__locationPrefixRewriteMap
     def setLocationPrefixRewriteMap (self, location_prefix_rewrite_map):
         self.__locationPrefixMap.clear()
-        print 'GOT "%s"' % (location_prefix_rewrite_map,)
+        _log.info('GOT "%s"', location_prefix_rewrite_map)
         self.__locationPrefixMap.update(location_prefix_rewrite_map)
         return self
     def addLocationPrefixRewrite (self, prefix, substituent):
@@ -2168,7 +2171,7 @@ class Generator (object):
                     schema = converter(self, sl)
                 self.addSchema(schema)
             except pyxb.SchemaUniquenessError, e:
-                print 'WARNING: Skipped redundant translation of %s defining %s' % (e.schemaLocation(), e.namespace())
+                _log.warning('Skipped redundant translation of %s defining %s', e.schemaLocation(), e.namespace())
                 self.addSchema(e.existingSchema())
         for schema in self.__schemas:
             if isinstance(schema, basestring):
@@ -2196,10 +2199,10 @@ class Generator (object):
             assert c._objectOrigin() is not None, '%s %s has no origin' % (type(c), c)
             component_graph.addNode(c)
             br = c.bindingRequires(reset=True, include_lax=include_lax)
-            #print 'Component %s requires %d bindings' % (c, len(br))
+            #_log.debug('Component %s requires %d bindings', c, len(br))
             for cd in br:
                 assert bindable_fn(cd) or include_lax, '%s produced %s in requires' % (type(c), type(cd))
-                #print '  %s in %s' % (cd, cd._objectOrigin())
+                #_log.debug('  %s in %s', cd, cd._objectOrigin())
                 if cd._objectOrigin() is None:
                     assert isinstance(cd, (pyxb.xmlschema.structures.Annotation, pyxb.xmlschema.structures.Wildcard))
                     continue
@@ -2219,7 +2222,7 @@ class Generator (object):
             mr = origin.moduleRecord()
             if not (mr in self.__moduleRecords):
                 # @todo NOTICE
-                # print 'Entry %s' % (mr,)
+                #_log.debug('Entry %s', mr)
                 self.__moduleRecords.add(mr)
                 mr.completeGenerationAssociations()
             all_components.update(origin.originatedObjects())
@@ -2243,7 +2246,7 @@ class Generator (object):
 
         binding_components = set(filter(bindable_fn, component_graph.nodes()))
         # @todo NOTICE
-        #print '%d of %d components need bindings' % (len(binding_components), len(component_graph.nodes()))
+        #_log.debug('%d of %d components need bindings', len(binding_components), len(component_graph.nodes()))
 
         module_graph = pyxb.utils.utility.Graph()
         [ module_graph.addRoot(_mr) for _mr in self.__moduleRecords ]
@@ -2256,7 +2259,7 @@ class Generator (object):
         # require binding generation.
 
         # @todo NOTICE
-        #print '%d entry, %d in graph' % (len(self.__moduleRecords), len(module_graph.nodes()))
+        #_log.debug('%d entry, %d in graph', len(self.__moduleRecords), len(module_graph.nodes()))
 
         for c in binding_components:
             assert bindable_fn(c), 'Unexpected %s in binding components' % (type(s),)
@@ -2268,7 +2271,7 @@ class Generator (object):
             scc_modules = [ ]
             for mr in mr_scc:
                 # @todo INFO
-                #print 'Generating %s of %d' % (mr, len(mr_scc))
+                #_log.debug('Generating %s of %d', mr, len(mr_scc))
                 mr._setIsPublic(self.__namespaceVisibilityMap.get(mr.namespace(), self.defaultNamespacePublic()))
                 self.__assignModulePath(mr)
                 assert not ((mr.modulePath() is None) and self.generateToFiles()), 'No module path defined for %s' % (mr,)
@@ -2291,14 +2294,14 @@ class Generator (object):
         component_order = []
         for cset in component_csets:
             if 1 < len(cset):
-                print "COMPONENT DEPENDENCY LOOP of %d components" % (len(cset),)
+                _log.error("COMPONENT DEPENDENCY LOOP of %d components", len(cset),)
                 cg = pyxb.utils.utility.Graph()
                 for c in cset:
                     assert bindable_fn(c), 'Unexpected %s in list' % (type(c),)
-                    print '  %s' % (c.expandedName(),)
+                    _log.error('  %s', c.expandedName())
                     cg.addNode(c)
                     for cd in c.bindingRequires(reset=True, include_lax=False):
-                        #print '%s depends on %s' % (c, cd)
+                        #_log.debug('%s depends on %s', c, cd)
                         cg.addEdge(c, cd)
                 #file('deploop.dot', 'w').write(cg._generateDOT('CompDep', lambda _c: _c.bestNCName()))
                 relaxed_order = cg.sccOrder()
@@ -2310,7 +2313,7 @@ class Generator (object):
             else:
                 component_order.extend(cset)
     
-        #print '%d components in order' % (len(component_order),)
+        #_log.debug('%d components in order', len(component_order),)
 
         element_declarations = []
         type_definitions = []
@@ -2370,10 +2373,9 @@ class Generator (object):
             ns_archive = pyxb.namespace.archive.NamespaceArchive(generation_uid=self.generationUID())
             try:
                 ns_archive.writeNamespaces(pyxb.utils.utility.OpenOrCreate(archive_file))
-                print 'Saved parsed schema to %s URI' % (archive_file,)
+                _log.info('Saved parsed schema to %s URI', archive_file)
             except Exception, e:
-                print 'Exception saving preprocessed schema to %s: %s' % (archive_file, e)
-                traceback.print_exception(*sys.exc_info())
+                _log.exception('Exception saving preprocessed schema to %s: %s', archive_file, e)
                 #try:
                 #    os.unlink(component_model_file)
                 #except (OSError, IOError), e:

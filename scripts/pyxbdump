@@ -4,6 +4,9 @@ import pyxb.namespace
 import sys
 import traceback
 import pyxb.xmlschema.structures
+import logging
+
+logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
 pyxb.namespace.archive.NamespaceArchive.PreLoadArchives()
 ans = pyxb.namespace.AvailableNamespaces()

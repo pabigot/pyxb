@@ -26,6 +26,9 @@ import xml.sax
 import xml.sax.handler
 import pyxb.namespace
 import StringIO
+import logging
+
+_log = logging.getLogger(__name__)
 
 class TracingSAXHandler (xml.sax.handler.ContentHandler):
     """A SAX handler class which prints each method invocation.
@@ -35,31 +38,31 @@ class TracingSAXHandler (xml.sax.handler.ContentHandler):
     __trace = False
 
     def setDocumentLocator (self, locator):
-        print 'setDocumentLocator %s' % (locator,)
+        _log.debug('setDocumentLocator %s', locator)
 
     def startDocument (self):
-        print 'startDocument'
+        _log.debug('startDocument')
 
     def startPrefixMapping (self, prefix, uri):
-        print 'startPrefixMapping %s %s' % (prefix, uri)
+        _log.debug('startPrefixMapping %s %s', prefix, uri)
 
     def endPrefixMapping (self, prefix):
-        print 'endPrefixMapping %s' % (prefix,)
+        _log.debug('endPrefixMapping %s', prefix)
 
     def startElementNS (self, name, qname, attrs):
-        print 'startElementNS %s %s' % (name, qname)
+        _log.debug('startElementNS %s %s', name, qname)
 
     def endElementNS (self, name, qname):
-        print 'endElementNS %s %s' % (name, qname)
+        _log.debug('endElementNS %s %s', name, qname)
 
     def characters (self, content):
-        print 'characters %s' % (content,)
+        _log.debug('characters %s', content)
 
     def ignorableWhitespace (self, whitespace):
-        print 'ignorableWhitespace len %d' % (len(whitespace),)
+        _log.debug('ignorableWhitespace len %d', len(whitespace))
 
     def processingInstruction (self, target, data):
-        print 'processingInstruction %s %s' % (target, data)
+        _log.debug('processingInstruction %s %s', target, data)
 
 class _NoopSAXHandler (xml.sax.handler.ContentHandler):
     """A SAX handler class which doesn't do anything.  Used to get baseline
@@ -297,7 +300,7 @@ class BaseSAXHandler (xml.sax.handler.ContentHandler, object):
         @note: For this to be invoked, the C{feature_namespaces} feature must
         be enabled in the SAX parser."""
         self.__updateNamespaceContext().processXMLNS(prefix, uri)
-        #print '%s PM %s %s' % (self.__namespaceContext, prefix, uri)
+        #_log.debug('%s PM %s %s', self.__namespaceContext, prefix, uri)
 
     # The NamespaceContext management does not require any action upon
     # leaving the scope of a namespace directive.

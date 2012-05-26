@@ -20,6 +20,9 @@ import pyxb.namespace
 import pyxb.utils.saxutils
 import pyxb.utils.saxdom
 import xml.dom
+import logging
+
+_log = logging.getLogger(__name__)
 
 # The DOM implementation to be used for all processing.  Default is whatever
 # your Python install uses.  If it's minidom, it should work.
@@ -285,7 +288,7 @@ class _BDSNamespaceSupport (object):
             raise pyxb.LogicError('Prefix %s is already in use' % (prefix,))
         self.__namespaces[namespace] = prefix
         self.__prefixes.add(prefix)
-        #print '%x declared namespace %s as %s' % (id(self), namespace, prefix)
+        #_log.debug('%x declared namespace %s as %s', id(self), namespace, prefix)
         if add_to_map:
             self.__namespacePrefixMap[namespace] = prefix
         return prefix

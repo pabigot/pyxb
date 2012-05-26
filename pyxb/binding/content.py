@@ -32,6 +32,9 @@ import pyxb.namespace
 from pyxb.binding import basis
 
 import xml.dom
+import logging
+
+_log = logging.getLogger(__name__)
 
 class ContentState_mixin (pyxb.cscRoot):
     """Declares methods used by classes that hold state while validating a
@@ -664,13 +667,13 @@ class ElementUse (ContentState_mixin, ContentModel_mixin):
             return True
         except pyxb.BadTypeValueError:
             pass
-        #print '%s %s %s in %s' % (instance, value, element_use, self)
+        #_log.debug('%s %s %s in %s', instance, value, element_use, self)
         return False
 
     # CM._validate:ElementUse
     def _validate (self, symbol_set, output_sequence):
         values = symbol_set.get(self)
-        #print 'values %s' % (values,)
+        #_log.debug('values %s', values)
         if values is None:
             return False
         used = values.pop(0)
@@ -791,7 +794,7 @@ class Wildcard (ContentState_mixin, ContentModel_mixin):
         if not self.matches(instance, value):
             return False
         if not isinstance(value, basis._TypeBinding_mixin):
-            print 'NOTE: Created unbound wildcard element from %s' % (value_desc,)
+            _log.info('Created unbound wildcard element from %s', value_desc,)
         assert isinstance(instance.wildcardElements(), list), 'Uninitialized wildcard list in %s' % (instance._ExpandedName,)
         instance._appendWildcardElement(value)
         particle_state.incrementCount()
@@ -800,7 +803,7 @@ class Wildcard (ContentState_mixin, ContentModel_mixin):
     # CM._validate:Wildcard
     def _validate (self, symbol_set, output_sequence):
         # @todo check node against namespace constraint and process contents
-        #print 'WARNING: Accepting node as wildcard match without validating.'
+        #_log.debug('WARNING: Accepting node as wildcard match without validating.')
         wc_values = symbol_set.get(None)
         if wc_values is None:
             return False
@@ -843,14 +846,14 @@ class SequenceState (ContentState_mixin):
         self.__failed = False
         # Kick this into the first element of the sequence
         self.notifyFailure(None, False)
-        #print 'SS.CTOR %s: %d elts' % (self, len(self.__particles))
+        #_log.debug('SS.CTOR %s: %d elts', self, len(self.__particles))
 
     # CS.accepts:SequenceState
     def accepts (self, particle_state, instance, value, element_use):
         ## Implement ContentState_mixin.accepts
         assert self.__parentParticleState == particle_state
         assert not self.__failed
-        #print 'SS.ACC %s: %s %s %s' % (self, instance, value, element_use)
+        #_log.debug('SS.ACC %s: %s %s %s', self, instance, value, element_use)
         while self.__particleState is not None:
             (consume, underflow_exc) = self.__particleState.step(instance, value, element_use)
             if consume:
@@ -875,7 +878,7 @@ class SequenceState (ContentState_mixin):
             self.__satisfied = particle_ok
             if particle_ok:
                 self.__parentParticleState.incrementCount()
-        #print 'SS.NF %s: %d %s %s' % (self, self.__index, particle_ok, self.__particleState)
+        #_log.debug('SS.NF %s: %d %s %s', self, self.__index, particle_ok, self.__particleState)
 
 class ChoiceState (ContentState_mixin):
     def __init__ (self, group, parent_particle_state):
@@ -883,28 +886,28 @@ class ChoiceState (ContentState_mixin):
         super(ChoiceState, self).__init__(group)
         self.__choices = [ ParticleState(_p, self) for _p in group.particles() ]
         self.__activeChoice = None
-        #print 'CS.CTOR %s: %d choices' % (self, len(self.__choices))
+        #_log.debug('CS.CTOR %s: %d choices', self, len(self.__choices))
 
     # CS.accepts:ChoiceState
     def accepts (self, particle_state, instance, value, element_use):
         ## Implement ContentState_mixin.accepts
-        #print 'CS.ACC %s %s: %s %s %s' % (self, self.__activeChoice, instance, value, element_use)
+        #_log.debug('CS.ACC %s %s: %s %s %s', self, self.__activeChoice, instance, value, element_use)
         if self.__activeChoice is None:
             for choice in self.__choices:
-                #print 'CS.ACC %s candidate %s' % (self, choice)
+                #_log.debug('CS.ACC %s candidate %s', self, choice)
                 try:
                     (consume, underflow_exc) = choice.step(instance, value, element_use)
                 except Exception, e:
                     consume = False
                     underflow_exc = e
-                #print 'CS.ACC %s: candidate %s : %s' % (self, choice, consume)
+                #_log.debug('CS.ACC %s: candidate %s : %s', self, choice, consume)
                 if consume:
                     self.__activeChoice = choice
                     self.__choices = None
                     return True
             return False
         (consume, underflow_exc) = self.__activeChoice.step(instance, value, element_use)
-        #print 'CS.ACC %s : active choice %s %s %s' % (self, self.__activeChoice, consume, underflow_exc)
+        #_log.debug('CS.ACC %s : active choice %s %s %s', self, self.__activeChoice, consume, underflow_exc)
         if consume:
             return True
         if underflow_exc is not None:
@@ -914,24 +917,24 @@ class ChoiceState (ContentState_mixin):
 
     # CS._verifyComplete:ChoiceState
     def _verifyComplete (self, parent_particle_state):
-        #print 'CS.VC %s: %s' % (self, self.__activeChoice)
+        #_log.debug('CS.VC %s: %s', self, self.__activeChoice)
         if self.__activeChoice is None:
             # Use self.__activeChoice as the iteration value so that it's
             # non-None when notifyFailure is invoked.
             for self.__activeChoice in self.__choices:
                 try:
-                    #print 'CS.VC: try %s' % (self.__activeChoice,)
+                    #_log.debug('CS.VC: try %s', self.__activeChoice)
                     self.__activeChoice.verifyComplete()
                     return
                 except Exception:
                     pass
-            #print 'Missing components %s' % ("\n".join([ "\n  ".join([str(_p2.term()) for _p2 in _p.particle().term().particles()]) for _p in self.__choices ]),)
+            #_log.debug('Missing components %s', "\n".join([ "\n  ".join([str(_p2.term()) for _p2 in _p.particle().term().particles()]) for _p in self.__choices ]),)
             raise pyxb.MissingContentError('choice')
         self.__activeChoice.verifyComplete()
 
     # CS.notifyFailure:ChoiceState
     def notifyFailure (self, sub_state, particle_ok):
-        #print 'CS.NF %s %s' % (self, particle_ok)
+        #_log.debug('CS.NF %s %s', self, particle_ok)
         if particle_ok and (self.__activeChoice is not None):
             self.__parentParticleState.incrementCount()
         pass
@@ -943,30 +946,30 @@ class AllState (ContentState_mixin):
         self.__parentParticleState = parent_particle_state
         super(AllState, self).__init__(group)
         self.__choices = set([ ParticleState(_p, self) for _p in group.particles() ])
-        #print 'AS.CTOR %s: %d choices' % (self, len(self.__choices))
+        #_log.debug('AS.CTOR %s: %d choices', self, len(self.__choices))
 
     # CS.accepts:AllState
     def accepts (self, particle_state, instance, value, element_use):
-        #print 'AS.ACC %s %s: %s %s %s' % (self, self.__activeChoice, instance, value, element_use)
+        #_log.debug('AS.ACC %s %s: %s %s %s', self, self.__activeChoice, instance, value, element_use)
         self.__needRetry = True
         while self.__needRetry:
             self.__needRetry = False
             if self.__activeChoice is None:
                 for choice in self.__choices:
-                    #print 'AS.ACC %s candidate %s' % (self, choice)
+                    #_log.debug('AS.ACC %s candidate %s', self, choice)
                     try:
                         (consume, underflow_exc) = choice.step(instance, value, element_use)
                     except Exception, e:
                         consume = False
                         underflow_exc = e
-                    #print 'AS.ACC %s: candidate %s : %s' % (self, choice, consume)
+                    #_log.debug('AS.ACC %s: candidate %s : %s', self, choice, consume)
                     if consume:
                         self.__activeChoice = choice
                         self.__choices.discard(self.__activeChoice)
                         return True
                 return False
             (consume, underflow_exc) = self.__activeChoice.step(instance, value, element_use)
-            #print 'AS.ACC %s : active choice %s %s %s' % (self, self.__activeChoice, consume, underflow_exc)
+            #_log.debug('AS.ACC %s : active choice %s %s %s', self, self.__activeChoice, consume, underflow_exc)
             if consume:
                 return True
         if underflow_exc is not None:
@@ -976,7 +979,7 @@ class AllState (ContentState_mixin):
 
     # CS._verifyComplete:AllState
     def _verifyComplete (self, parent_particle_state):
-        #print 'AS.VC %s: %s, %d left' % (self, self.__activeChoice, len(self.__choices))
+        #_log.debug('AS.VC %s: %s, %d left', self, self.__activeChoice, len(self.__choices))
         if self.__activeChoice is not None:
             self.__activeChoice.verifyComplete()
         while self.__choices:
@@ -985,7 +988,7 @@ class AllState (ContentState_mixin):
 
     # CS.notifyFailure:AllState
     def notifyFailure (self, sub_state, particle_ok):
-        #print 'AS.NF %s %s' % (self, particle_ok)
+        #_log.debug('AS.NF %s %s', self, particle_ok)
         self.__needRetry = True
         self.__activeChoice = None
         if particle_ok and (0 == len(self.__choices)):
@@ -1008,7 +1011,7 @@ class ParticleState (pyxb.cscRoot):
         self.__parentState = parent_state
         self.__count = -1
         super(ParticleState, self).__init__()
-        #print 'PS.CTOR %s: particle %s' % (self, particle)
+        #_log.debug('PS.CTOR %s: particle %s', self, particle)
         self.incrementCount()
 
     __particle = None
@@ -1023,7 +1026,7 @@ class ParticleState (pyxb.cscRoot):
 
     def incrementCount (self):
         """Reset for a new occurrence of the particle's term."""
-        #print 'PS.IC %s' % (self,)
+        #_log.debug('PS.IC %s', self)
         self.__count += 1
         self.__termState = self.__particle.term().newState(self)
         self.__tryAccept = True
@@ -1035,7 +1038,7 @@ class ParticleState (pyxb.cscRoot):
 
         # @TODO@ Set a flag so we can make verifyComplete safe to call
         # multiple times?
-        #print 'PS.VC %s entry' % (self,)
+        #_log.debug('PS.VC %s entry', self)
 
         # If we're not satisfied, check the term: that might do it.
         if not self.__particle.satisfiesOccurrences(self.__count):
@@ -1043,7 +1046,7 @@ class ParticleState (pyxb.cscRoot):
 
         # If we're still not satisfied, raise an error
         if not self.__particle.satisfiesOccurrences(self.__count):
-            #print 'PS.VC %s incomplete' % (self,)
+            #_log.debug('PS.VC %s incomplete', self)
             raise pyxb.MissingContentError('incomplete')
 
         # If we are satisfied, tell the parent
@@ -1083,7 +1086,7 @@ class ParticleState (pyxb.cscRoot):
         term.
         """
 
-        #print 'PS.STEP %s: %s %s %s' % (self, instance, value, element_use)
+        #_log.debug('PS.STEP %s: %s %s %s', self, instance, value, element_use)
 
         # Only try if we're not already at the upper limit on occurrences
         consumed = False
@@ -1096,9 +1099,9 @@ class ParticleState (pyxb.cscRoot):
         while self.__tryAccept and (self.__count != self.__particle.maxOccurs()):
             self.__tryAccept = False
             consumed = self.__termState.accepts(self, instance, value, element_use)
-            #print 'PS.STEP %s: ta %s %s' % (self, self.__tryAccept, consumed)
+            #_log.debug('PS.STEP %s: ta %s %s', self, self.__tryAccept, consumed)
             self.__tryAccept = self.__tryAccept and (not consumed)
-        #print 'PS.STEP %s: %s' % (self, consumed)
+        #_log.debug('PS.STEP %s: %s', self, consumed)
         if consumed:
             if not self.__particle.meetsMaximum(self.__count):
                 raise pyxb.UnexpectedElementError('too many')
@@ -1189,9 +1192,9 @@ class ParticleModel (ContentModel_mixin):
         """
         
         output_sequence = []
-        #print 'Start: %d %s %s : %s' % (self.__minOccurs, self.__maxOccurs, self.__term, symbol_set)
+        #_log.debug('Start: %d %s %s : %s', self.__minOccurs, self.__maxOccurs, self.__term, symbol_set)
         result = self._validate(symbol_set, output_sequence)
-        #print 'End: %s %s %s' % (result, symbol_set, output_sequence)
+        #_log.debug('End: %s %s %s', result, symbol_set, output_sequence)
         if result:
             return (symbol_set, output_sequence)
         return None
@@ -1201,10 +1204,10 @@ class ParticleModel (ContentModel_mixin):
         symbol_set_mut = self._validateCloneSymbolSet(symbol_set)
         output_sequence_mut = self._validateCloneOutputSequence(output_sequence)
         count = 0
-        #print 'VAL start %s: %d %s' % (self.__term, self.__minOccurs, self.__maxOccurs)
+        #_log.debug('VAL start %s: %d %s', self.__term, self.__minOccurs, self.__maxOccurs)
         last_size = len(output_sequence_mut)
         while (count != self.__maxOccurs) and self.__term._validate(symbol_set_mut, output_sequence_mut):
-            #print 'VAL %s old cnt %d, left %s' % (self.__term, count, symbol_set_mut)
+            #_log.debug('VAL %s old cnt %d, left %s', self.__term, count, symbol_set_mut)
             this_size = len(output_sequence_mut)
             if this_size == last_size:
                 # Validated without consuming anything.  Assume we can
@@ -1217,7 +1220,7 @@ class ParticleModel (ContentModel_mixin):
         result = self.satisfiesOccurrences(count)
         if (result):
             self._validateReplaceResults(symbol_set, symbol_set_mut, output_sequence, output_sequence_mut)
-        #print 'VAL end PRT %s res %s: %s %s %s' % (self.__term, result, self.__minOccurs, count, self.__maxOccurs)
+        #_log.debug('VAL end PRT %s res %s: %s %s %s', self.__term, result, self.__minOccurs, count, self.__maxOccurs)
         return result
 
 class _Group (ContentModel_mixin):
