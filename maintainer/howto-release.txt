@@ -60,4 +60,6 @@
   mv PyXB-1.1.1/doc/html/* .
   rm -rf PyXB-1.1.1/
 
+* Correct the short URL links through Project Admin / Features / URL Shortening.
+
 * Mail the release notes to pyxb-users@lists.sourceforge.net
