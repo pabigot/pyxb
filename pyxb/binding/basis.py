@@ -2097,10 +2097,10 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
                 if element_use is not None:
                     element_use.setOrAppend(self, value)
                     return self
-                raise pyxb.StructuralBadDocumentError('Validation is required when no element_use can be found')
                 if self.wildcardElements() is not None:
                     self._appendWildcardElement(value)
                     return self
+                raise pyxb.StructuralBadDocumentError('Validation is required when no element_use can be found')
             else:
                 #print 'SSStep %s %s' % (value, element_use)
                 ( consumed, underflow_exc ) = self.__modelState.step(self, value, element_use)
