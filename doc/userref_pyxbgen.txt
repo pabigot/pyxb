@@ -226,6 +226,26 @@ create instances of the customized class when automatically generating
 To customize bindings, you will need to be familiar with the
 :api:`pyxb.binding.basis._DynamicCreate_mixin` class.
 
+Be aware that :api:`_SetSupersedingClass
+<pyxb.binding.basis._DynamicCreate_mixin>` only affects the behavior of
+:api:`Factory <pyxb.binding.basis._TypeBinding_mixin>`, and does not change
+the Python inheritance tree.  This means that the superseding class is only
+invoked when the content model requires an instance of the original type.
+When an instance of a subclass of a superseded class (that is not itself
+superseded) is needed by the content model, this infrastructure is bypassed,
+the normal Python inheritance mechanism takes control, and the instance will
+not be an instance of the superseding class.  This will happen both when
+instances are created in Python directly and when they are created due to
+presence in the binding model.
+
+This is probably not what you will want, and to avoid it you must customize
+all subclasses of a customized class.  A detailed example customization is
+in the :file:`examples/customization` subdirectory of the distribution.  In
+particular, it shows how to introspect the binding model extracted from the
+generated Python module and programmatically create custom binding classes
+without manually reproducing the content hierarchy, making the customizing
+module more compact and stable.
+
 Generating Related Namespaces
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
