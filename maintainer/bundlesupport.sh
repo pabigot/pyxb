@@ -1,5 +1,18 @@
+set -e
+
+if [ ! "${PYXB_ROOT}" ] ; then
+  echo 1>&2 "ERROR: Must set PYXB_ROOT environment variable"
+  exit 1
+fi
+
+# Try to validate PYXB_ROOT as being the real thing
+if [ ! -x "${PYXB_ROOT}/scripts/pyxbgen" ] ; then
+  echo 1>&2 "ERROR: PYXB_ROOT (=${PYXB_ROOT}) does not appear to have pyxbgen"
+  exit 1
+fi
+
 if [ ! "${BUNDLE_TAG}" ] ; then
-  echo 1>&2 "ERROR: Must set BUNDLE_TAG environment variable (should set PYXB_ROOT as well)"
+  echo 1>&2 "ERROR: Must set BUNDLE_TAG environment variable"
   exit 1
 fi
 
@@ -8,9 +21,10 @@ failure () {
   exit 1
 }
 
+PYXB_ROOT=${PYXB_ROOT}
+
 BUNDLE_TAG=${BUNDLE_TAG:-core}
 
-PYXB_ROOT=${PYXB_ROOT:-/home/pab/pyxb/dev}
 MODULE_PREFIX=pyxb.bundles.${BUNDLE_TAG}
 BUNDLE_ROOT=${PYXB_ROOT}/pyxb/bundles/${BUNDLE_TAG}
 SCHEMA_DIR=${BUNDLE_ROOT}/schemas

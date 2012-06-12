@@ -1,4 +1,11 @@
-PYXB_ROOT=${PYXB_ROOT:-/home/pab/pyxb/dev}
+# Attempt to prevent catastrophe by validating required settings
+# and aborting on any subshell error
+set -e
+if [ -z "${PYXB_ROOT+notset}" ] ; then
+  echo 1>&2 ERROR: PYXB_ROOT not set
+  exit 1
+fi
+
 BUNDLE_TAG=wssplat
 
 . ${PYXB_ROOT}/maintainer/bundlesupport.sh

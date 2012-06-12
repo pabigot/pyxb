@@ -1,4 +1,11 @@
-PYXB_ROOT=${PYXB_ROOT:-/home/pab/pyxb/dev}
+# Attempt to prevent catastrophe by validating required settings
+# and aborting on any subshell error
+set -e
+if [ -z "${PYXB_ROOT+notset}" ] ; then
+  echo 1>&2 ERROR: PYXB_ROOT not set
+  exit 1
+fi
+
 BUNDLE_TAG=saml20
 WSSPLAT_RAW=${PYXB_ROOT}/pyxb/bundles/wssplat/raw
 SAML20_RAW=${PYXB_ROOT}/pyxb/bundles/saml2/raw
