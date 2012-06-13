@@ -34,11 +34,11 @@ class TestTrac0126 (unittest.TestCase):
         self.assertEqual(None, instance.Optional)
         
         pyxb.RequireValidWhenGenerating(False)
-        self.assertEqual('<Element/>', instance.toDOM().documentElement.toxml())
+        self.assertEqual('<Element/>', instance.toDOM().documentElement.toxml("utf-8"))
         pyxb.RequireValidWhenGenerating(True)
         self.assertRaises(pyxb.MissingAttributeError, instance.toDOM)
         instance.Required = 'value'
-        xmls = instance.toDOM().documentElement.toxml();
+        xmls = instance.toDOM().documentElement.toxml("utf-8");
         self.assertEqual('<Element Required="value"/>', xmls)
 
 

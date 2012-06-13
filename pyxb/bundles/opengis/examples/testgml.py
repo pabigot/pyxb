@@ -22,10 +22,10 @@ rgc.id = '_%x' % (id(rgc),)
 
 bds = pyxb.utils.domutils.BindingDOMSupport(namespace_prefix_map={ gml.Namespace : 'gml' , gmlapp.Namespace : 'app' })
 
-xml = rgc.toxml(bds)
+xml = rgc.toxml("utf-8", bds=bds)
 instance = gml.CreateFromDocument(xml)
 bds.reset()
-xml2 = instance.toxml(bds)
+xml2 = instance.toxml("utf-8", bds=bds)
 
 assert xml == xml2
 print xml2

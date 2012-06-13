@@ -41,7 +41,7 @@ class TestTrac_0057 (unittest.TestCase):
     XMLS = '<ns1:ObsProject almatype="APDM::ObsProject" revision="1.74" schemaVersion="8" xmlns:ns1="URN:test-trac-0057"><ns1:timeOfCreation>2009-05-08 21:23:45</ns1:timeOfCreation></ns1:ObsProject>'
 
     def exec_toxml (self, v):
-        return v.toxml()
+        return v.toxml("utf-8")
 
     def tearDown (self):
         pyxb.RequireValidWhenGenerating(True)
@@ -61,7 +61,7 @@ class TestTrac_0057 (unittest.TestCase):
         doc = pyxb.utils.domutils.StringToDOM(self.XMLS)
         instance = CreateFromDOM(doc)
         pyxb.RequireValidWhenGenerating(False) 
-        xml = instance.toxml(root_only=True)
+        xml = instance.toxml("utf-8", root_only=True)
         self.assertEquals(xml, self.XMLS)
 
 if __name__ == '__main__':

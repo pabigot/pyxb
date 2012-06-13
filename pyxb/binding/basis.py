@@ -434,12 +434,16 @@ class _TypeBinding_mixin (utility.Locatable_mixin):
         bds.finalize()
         return bds.document()
 
-    def toxml (self, bds=None, root_only=False):
+    def toxml (self, encoding=None, bds=None, root_only=False):
         """Shorthand to get the object as an XML document.
 
         If you want to set the default namespace, pass in a pre-configured
         C{bds}.
 
+        @param encoding: The encoding to be used.  See
+        @C{xml.dom.Node.toxml()} for a description of why you should always
+        pass @C{'utf-8'} here.
+        
         @param bds: Optional L{pyxb.utils.domutils.BindingDOMSupport} instance
         to use for creation. If not provided (default), a new generic one is
         created.
@@ -447,7 +451,7 @@ class _TypeBinding_mixin (utility.Locatable_mixin):
         dom = self.toDOM(bds)
         if root_only:
             dom = dom.documentElement
-        return dom.toxml()
+        return dom.toxml(encoding)
 
     def _toDOM_csc (self, dom_support, parent):
         assert parent is not None

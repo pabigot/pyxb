@@ -29,11 +29,11 @@ print binding.name
 port_type = spec.portType[0]
 print port_type.name
 bop = binding.operationMap()[body_dom.localName]
-print bop.toxml()
+print bop.toxml("utf-8")
 pop = port_type.operationMap()[body_dom.localName]
-print pop.toxml()
+print pop.toxml("utf-8")
 input = pop.input
-print input.toxml()
+print input.toxml("utf-8")
 print type(input)
 print input.message
 im_en = input._namespaceContext().interpretQName(input.message)
@@ -41,7 +41,7 @@ print im_en
 msg = im_en.message()
 print msg
 for p in msg.part:
-    print p.toxml()
+    print p.toxml("utf-8")
 msg_ns = pyxb.namespace.NamespaceForURI(body_dom.namespaceURI)
 print '%s %s' % (body_dom.namespaceURI, msg_ns)
 
@@ -68,5 +68,5 @@ while parts and nodes:
 #print req
 #dom_support =  req.toDOM(pyxb.utils.domutils.BindingDOMSupport())
 #dom_support.finalize()
-#print dom_support.document().toxml()
+#print dom_support.document().toxml("utf-8")
 

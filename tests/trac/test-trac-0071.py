@@ -71,7 +71,7 @@ class TestTrac_0071 (unittest.TestCase):
         self.assertEqual(1, len(field.value_))
         self.assertTrue(isinstance(field.value_[0], value_type))
         field.validateBinding()
-        self.assertEqual('<field><name>title</name><value lang="ENG">foo</value></field>', field.toxml(root_only=True))
+        self.assertEqual('<field><name>title</name><value lang="ENG">foo</value></field>', field.toxml("utf-8", root_only=True))
 
         field = field_type(name='title', _element=field_element)
         field.value_.append(pyxb.BIND('foo', lang='ENG'))
@@ -80,7 +80,7 @@ class TestTrac_0071 (unittest.TestCase):
         self.assertTrue(isinstance(field.value_[0], pyxb.BIND))
         field.validateBinding()
         self.assertTrue(isinstance(field.value_[0], pyxb.BIND))
-        self.assertEqual('<field><name>title</name><value lang="ENG">foo</value></field>', field.toxml(root_only=True))
+        self.assertEqual('<field><name>title</name><value lang="ENG">foo</value></field>', field.toxml("utf-8", root_only=True))
 
         '''
 
@@ -95,7 +95,7 @@ class TestTrac_0071 (unittest.TestCase):
         newdoc.validateBinding()
         timespan = newdoc.timespan[0]
         #self.assertTrue(isinstance(timespan, timespan_type))
-        print newdoc.toxml()
+        print newdoc.toxml("utf-8")
         newdoc.timespan[:] = []
         
         newdoc.timespan.append(pyxb.BIND( # Single timespan
@@ -107,7 +107,7 @@ class TestTrac_0071 (unittest.TestCase):
         newdoc.validateBinding()
         timespan = newdoc.timespan[0]
         #self.assertTrue(isinstance(timespan, timespan_type))
-        print newdoc.toxml()
+        print newdoc.toxml("utf-8")
         newdoc.timespan[:] = []
 
         newdoc.timespan.append(pyxb.BIND( # Single timespan
@@ -119,7 +119,7 @@ class TestTrac_0071 (unittest.TestCase):
         newdoc.validateBinding()
         timespan = newdoc.timespan[0]
         #self.assertTrue(isinstance(timespan, timespan_type))
-        print newdoc.toxml()
+        print newdoc.toxml("utf-8")
         newdoc.timespan[:] = []
 
         '''

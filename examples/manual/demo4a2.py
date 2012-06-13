@@ -7,4 +7,4 @@ addr.city = 'Anytown'
 addr.zip = 12341
 addr.name = 'Robert Smith'
 
-print addr.toxml()
+print addr.toxml("utf-8")

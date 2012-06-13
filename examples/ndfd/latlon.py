@@ -88,7 +88,7 @@ dom = bds.finalize()
 # message by wedging the request into a generic SOAP envelope body.
 soap_message = '''<?xml version="1.0" encoding="ISO-8859-1"?>
 <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/" SOAP-ENV:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
-  <SOAP-ENV:Body>''' + dom.documentElement.toxml() + '''</SOAP-ENV:Body>
+  <SOAP-ENV:Body>''' + dom.documentElement.toxml("utf-8") + '''</SOAP-ENV:Body>
 </SOAP-ENV:Envelope>'''
   
 #soap_message = file('NDFDgen.xml').read()

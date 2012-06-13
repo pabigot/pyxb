@@ -4,4 +4,4 @@ import address
 
 addr = address.USAddress('Robert Smith', '8 Oak Avenue', 'Anytown', 'AK', 12341)
 
-print addr.toxml()
+print addr.toxml("utf-8")

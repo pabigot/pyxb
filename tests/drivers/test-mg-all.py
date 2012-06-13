@@ -106,7 +106,7 @@ class TestMGAll (unittest.TestCase):
             dom = pyxb.utils.domutils.StringToDOM(xml)
             instance = many.createFromDOM(dom.documentElement)
             instance.validateBinding()
-            xml2 = ToDOM(instance).toxml()
+            xml2 = ToDOM(instance).toxml("utf-8")
             rev = self.stripMembers(xml2, body)
             self.assertEqual('<ns1:many xmlns:ns1="URN:test-mg-all">%s</ns1:many>' % (''.join(len(body)*['X']),), rev)
         many_a = many.memberElement('a')

@@ -14,7 +14,7 @@ for f in sys.argv[1:]:
     try:
         instance = sos.CreateFromDocument(xmls)
         #print xmls
-        print instance.toxml()
+        print instance.toxml("utf-8")
     except Exception, e:
         print '%s failed: %s' % (f, e)
         traceback.print_exception(*sys.exc_info())

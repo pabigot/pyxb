@@ -129,7 +129,7 @@ class TestXSIType (unittest.TestCase):
         self.assertEqual(instance.full, 'full content')
         self.assertEqual(instance.optional, 'optional content')
         self.assertFalse(instance.optional._isNil())
-        self.assertEqual(instance.toDOM().documentElement.toxml(), xml)
+        self.assertEqual(instance.toDOM().documentElement.toxml("utf-8"), xml)
         instance.validateBinding()
 
         saxer = pyxb.binding.saxer.make_parser(fallback_namespace=Namespace)
@@ -146,7 +146,7 @@ class TestXSIType (unittest.TestCase):
         self.assertEqual(instance.full, 'full content')
         self.assertEqual(instance.optional, '')
         self.assertTrue(instance.optional._isNil())
-        self.assertEqual(instance.toDOM().documentElement.toxml(), xml)
+        self.assertEqual(instance.toDOM().documentElement.toxml("utf-8"), xml)
         instance.validateBinding()
 
         saxer = pyxb.binding.saxer.make_parser(fallback_namespace=Namespace)
@@ -159,7 +159,7 @@ class TestXSIType (unittest.TestCase):
 
         xml = '<complex xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true"/>'
         instance._setIsNil()
-        self.assertEqual(instance.toDOM().documentElement.toxml(), xml)
+        self.assertEqual(instance.toDOM().documentElement.toxml("utf-8"), xml)
         instance.validateBinding()
 
     def testComplex (self):
@@ -170,7 +170,7 @@ class TestXSIType (unittest.TestCase):
             doc = pyxb.utils.domutils.StringToDOM(xml)
             instance = CreateFromDOM(doc.documentElement)
             self.assertTrue(instance._isNil())
-            self.assertEqual(instance.toDOM().documentElement.toxml(), canonical)
+            self.assertEqual(instance.toDOM().documentElement.toxml("utf-8"), canonical)
             instance.validateBinding()
 
 if __name__ == '__main__':

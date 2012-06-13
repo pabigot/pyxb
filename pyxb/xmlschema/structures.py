@@ -3181,7 +3181,7 @@ class Particle (_SchemaComponent_mixin, pyxb.namespace.resolution._Resolvable_mi
             # of all)
             rv.__term = ModelGroup.CreateFromDOM(node, **kw)
         else:
-            raise pyxb.LogicError('Unhandled node in Particle.CreateFromDOM: %s' % (node.toxml(),))
+            raise pyxb.LogicError('Unhandled node in Particle.CreateFromDOM: %s' % (node.toxml("utf-8"),))
         
         if not rv.isResolved():
             rv._queueForResolution('creation')
@@ -3481,7 +3481,7 @@ class IdentityConstraintDefinition (_SchemaComponent_mixin, _NamedComponent_mixi
         elif xsd.nodeIsNamed(node, 'unique'):
             icc = rv.ICC_UNIQUE
         else:
-            raise pyxb.LogicError('Unexpected identity constraint node %s' % (node.toxml(),))
+            raise pyxb.LogicError('Unexpected identity constraint node %s' % (node.toxml("utf-8"),))
         rv.__icc = icc
 
         cn = LocateUniqueChild(node, 'selector')
@@ -4879,7 +4879,7 @@ class Schema (_SchemaComponent_mixin):
             if Node.ELEMENT_NODE == cn.nodeType:
                 rv = schema.__processTopLevelNode(cn)
                 if rv is None:
-                    print 'Unrecognized: %s %s' % (cn.nodeName, cn.toxml())
+                    print 'Unrecognized: %s %s' % (cn.nodeName, cn.toxml("utf-8"))
             elif Node.TEXT_NODE == cn.nodeType:
                 # Non-element content really should just be whitespace.
                 # If something else is seen, print it for inspection.

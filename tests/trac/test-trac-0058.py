@@ -29,7 +29,7 @@ class TestTrac_0058 (unittest.TestCase):
         self.assertTrue(instance._isNil())
         self.assertEqual(0, instance)
         self.assertEqual('', instance.xsdLiteral())
-        self.assertEqual(xml, instance.toxml(root_only=True))
+        self.assertEqual(xml, instance.toxml("utf-8", root_only=True))
 
 if __name__ == '__main__':
     unittest.main()

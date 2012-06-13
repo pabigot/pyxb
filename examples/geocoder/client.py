@@ -13,7 +13,7 @@ if 1 < len(sys.argv):
 env = soapenv.Envelope(Body=BIND(GeoCoder.geocode(address)))
 
 uri = urllib2.Request('http://rpc.geocoder.us/service/soap/',
-                      env.toxml(),
+                      env.toxml("utf-8"),
                       { 'SOAPAction' : "http://rpc.geocoder.us/Geo/Coder/US#geocode", 'Content-Type': 'text/xml' } )
 
 rxml = urllib2.urlopen(uri).read()

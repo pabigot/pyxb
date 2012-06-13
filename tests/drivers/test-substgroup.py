@@ -23,14 +23,14 @@ class TestSubstGroup (unittest.TestCase):
         dom = pyxb.utils.domutils.StringToDOM(xml)
         instance = CreateFromDOM(dom.documentElement)
         self.assertEqual(instance.sgTime._element(), ISO8601)
-        self.assertEqual(instance.toDOM().documentElement.toxml(), xml)
+        self.assertEqual(instance.toDOM().documentElement.toxml("utf-8"), xml)
  
         saxer = pyxb.binding.saxer.make_parser(fallback_namespace=Namespace)
         handler = saxer.getContentHandler()
         saxer.parse(StringIO.StringIO(xml))
         instance = handler.rootObject()
         self.assertEqual(instance.sgTime._element(), ISO8601)
-        self.assertEqual(instance.toDOM().documentElement.toxml(), xml)
+        self.assertEqual(instance.toDOM().documentElement.toxml("utf-8"), xml)
 
     def testPairTime (self):
         xml = '<when><pairTime><seconds>34.0</seconds><fractionalSeconds>0.21</fractionalSeconds></pairTime></when>'
@@ -38,7 +38,7 @@ class TestSubstGroup (unittest.TestCase):
         instance = CreateFromDOM(dom.documentElement)
         self.assertEqual(instance.sgTime._element(), pairTime)
         self.assertEqual(instance.sgTime.seconds, 34)
-        self.assertEqual(instance.toDOM().documentElement.toxml(), xml)
+        self.assertEqual(instance.toDOM().documentElement.toxml("utf-8"), xml)
  
         saxer = pyxb.binding.saxer.make_parser(fallback_namespace=Namespace)
         handler = saxer.getContentHandler()
@@ -46,7 +46,7 @@ class TestSubstGroup (unittest.TestCase):
         instance = handler.rootObject()
         self.assertEqual(instance.sgTime._element(), pairTime)
         self.assertEqual(instance.sgTime.seconds, 34)
-        self.assertEqual(instance.toDOM().documentElement.toxml(), xml)
+        self.assertEqual(instance.toDOM().documentElement.toxml("utf-8"), xml)
 
 
     def testSGTime (self):
@@ -76,7 +76,7 @@ class TestSubstGroup (unittest.TestCase):
         instance = when(pairTime(34.0, 0.21))
         self.assertEqual(instance.sgTime._element(), pairTime)
         self.assertEqual(instance.sgTime.seconds, 34)
-        self.assertEqual(instance.toDOM().documentElement.toxml(), xml)
+        self.assertEqual(instance.toDOM().documentElement.toxml("utf-8"), xml)
         # Loss of element association kills DOM generation
         instance.sgTime._setElement(None)
         self.assertRaises(pyxb.DOMGenerationError, instance.toDOM)

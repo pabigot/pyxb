@@ -72,14 +72,14 @@ class TestExternal (unittest.TestCase):
         xml = '<ns1:english xmlns:ns1="URN:test-external">one</ns1:english>'
         instance = st.CreateFromDocument(xml)
         self.assertEqual('one', instance)
-        self.assertEqual(xml, ToDOM(instance).toxml())
+        self.assertEqual(xml, ToDOM(instance).toxml("utf-8"))
 
     def testWords (self):
         xml = '<ns1:word xmlns:ns1="URN:test-external"><from>one</from><to>un</to></ns1:word>'
         instance = CreateFromDocument(xml)
         self.assertEquals('one', instance.from_)
         self.assertEquals('un', instance.to)
-        self.assertEqual(xml, ToDOM(instance).toxml())
+        self.assertEqual(xml, ToDOM(instance).toxml("utf-8"))
         
     def testBadWords (self):
         xml = '<ns1:word xmlns:ns1="URN:test-external"><from>five</from><to>pump</to></ns1:word>'

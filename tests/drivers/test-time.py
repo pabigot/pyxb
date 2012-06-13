@@ -17,7 +17,7 @@ def make_tTime (*args, **kw):
     for cls in [ tXMTime, tISO8601 ]:
         try:
             v = cls(*args, **kw)
-            v.toxml()
+            v.toxml("utf-8")
             return v
         except Exception, e:
             pass
@@ -37,7 +37,7 @@ class TestTime (unittest.TestCase):
         self.assertEqual(2, t.seconds)
         self.assertEqual(0.3, t.fractionalSeconds)
         t._setElement(time)
-        xmls = t.toxml()
+        xmls = t.toxml("utf-8")
         instance = CreateFromDocument(xmls)
         self.assertEqual(instance.seconds, t.seconds)
         self.assertEqual(instance.fractionalSeconds, t.fractionalSeconds)
@@ -46,7 +46,7 @@ class TestTime (unittest.TestCase):
         t = tISO8601(**self.KW_tISO8601)
         self.assertEqual((2009, 6, 3, 13, 43, 0, 2, 154, 0), t.time.timetuple())
         t._setElement(time)
-        xmls = t.toxml()
+        xmls = t.toxml("utf-8")
         instance = CreateFromDocument(xmls)
         self.assertEqual(instance.time.timetuple(), t.time.timetuple())
 

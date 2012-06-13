@@ -43,7 +43,7 @@ class TestCTD (unittest.TestCase):
         xml = '<tca:simple xmlns:tca="URN:testCTD">test</tca:simple>'
         instance = CreateFromDocument(xml)
         self.assertEqual('test', instance.value())
-        self.assertEqual(xml, ToDOM(instance).toxml())
+        self.assertEqual(xml, ToDOM(instance).toxml("utf-8"))
 
     def testString (self):
         self.assertEqual('test', pyxb.binding.datatypes.string('test'))
@@ -88,7 +88,7 @@ class TestCTD (unittest.TestCase):
         self.assertEqual(5432, instance.port)
         self.assertRaises(pyxb.MissingAttributeError, ToDOM, instance)
         instance.capitalized = False
-        self.assertEqual('<tca:emptyWithAttr capitalized="false" xmlns:tca="URN:testCTD"/>', ToDOM(instance).toxml())
+        self.assertEqual('<tca:emptyWithAttr capitalized="false" xmlns:tca="URN:testCTD"/>', ToDOM(instance).toxml("utf-8"))
 
         # Test reference attribute
         self.assertEqual('top default', instance.tlAttr)
@@ -98,7 +98,7 @@ class TestCTD (unittest.TestCase):
         self.assertEqual('irish', instance2.language)
         instance2.language = 'french'
         instance2.capitalized = False
-        self.assertEqual('<tca:emptyWithAttr capitalized="false" language="french" xmlns:tca="URN:testCTD"/>', ToDOM(instance2).toxml())
+        self.assertEqual('<tca:emptyWithAttr capitalized="false" language="french" xmlns:tca="URN:testCTD"/>', ToDOM(instance2).toxml("utf-8"))
         self.assertNotEqual(instance.language, instance2.language)
 
         # Verify the use.  Note reference through CTD not element.
@@ -126,7 +126,7 @@ class TestCTD (unittest.TestCase):
         self.assertEqual('xxx', instance.bMember1)
         self.assertEqual('lA1', instance.localAttr1)
         # Note that defaulted attributes are not generated in the DOM.
-        self.assertEqual(xml, ToDOM(instance).toxml())
+        self.assertEqual(xml, ToDOM(instance).toxml("utf-8"))
 
         # Test reference attribute with changed default
         self.assertEqual('refDefault', instance.tlAttr)

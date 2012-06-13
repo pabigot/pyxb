@@ -28,14 +28,14 @@ class TestParticle (unittest.TestCase):
         dom = pyxb.utils.domutils.StringToDOM(xml)
         instance = h01.createFromDOM(dom.documentElement)
         self.assert_(instance.elt is None)
-        self.assertEqual(ToDOM(instance).toxml(), xml)
+        self.assertEqual(ToDOM(instance).toxml("utf-8"), xml)
 
     def test_h01_elt (self):
         xml = '<ns1:h01 xmlns:ns1="URN:test"><elt/></ns1:h01>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
         instance = h01.createFromDOM(dom.documentElement)
         self.assert_(instance.elt is not None)
-        self.assertEqual(ToDOM(instance).toxml(), xml)
+        self.assertEqual(ToDOM(instance).toxml("utf-8"), xml)
 
     def test_h01_elt2 (self):
         xml = '<h01 xmlns="URN:test"><elt/><elt/></h01>'
@@ -47,14 +47,14 @@ class TestParticle (unittest.TestCase):
         dom = pyxb.utils.domutils.StringToDOM(xml)
         instance = h01b.createFromDOM(dom.documentElement)
         self.assert_(instance.elt is None)
-        self.assertEqual(ToDOM(instance).toxml(), xml)
+        self.assertEqual(ToDOM(instance).toxml("utf-8"), xml)
 
     def test_h01b_elt (self):
         xml = '<ns1:h01b xmlns:ns1="URN:test"><elt/></ns1:h01b>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
         instance = h01b.createFromDOM(dom.documentElement)
         self.assert_(instance.elt is not None)
-        self.assertEqual(ToDOM(instance).toxml(), xml)
+        self.assertEqual(ToDOM(instance).toxml("utf-8"), xml)
 
     def test_h01b_elt2 (self):
         xml = '<ns1:h01b xmlns:ns1="URN:test"><elt/><elt/></ns1:h01b>'
@@ -71,7 +71,7 @@ class TestParticle (unittest.TestCase):
         dom = pyxb.utils.domutils.StringToDOM(xml)
         instance = h11.createFromDOM(dom.documentElement)
         self.assert_(instance.elt is not None)
-        self.assertEqual(ToDOM(instance).toxml(), xml)
+        self.assertEqual(ToDOM(instance).toxml("utf-8"), xml)
 
 
     def test_h24 (self):
@@ -87,7 +87,7 @@ class TestParticle (unittest.TestCase):
             elif 4 >= num_elt:
                 instance = h24.createFromDOM(dom.documentElement)
                 self.assertEqual(num_elt, len(instance.elt))
-                self.assertEqual(ToDOM(instance).toxml(), xml)
+                self.assertEqual(ToDOM(instance).toxml("utf-8"), xml)
             else:
                 self.assertRaises(ExtraContentError, h24.createFromDOM, dom.documentElement)
 
@@ -104,7 +104,7 @@ class TestParticle (unittest.TestCase):
             elif 4 >= num_elt:
                 instance = h24b.createFromDOM(dom.documentElement)
                 self.assertEqual(num_elt, len(instance.elt))
-                self.assertEqual(ToDOM(instance).toxml(), xml)
+                self.assertEqual(ToDOM(instance).toxml("utf-8"), xml)
             else:
                 self.assertRaises(ExtraContentError, h24b.createFromDOM, dom.documentElement)
 

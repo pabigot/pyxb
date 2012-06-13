@@ -17,4 +17,4 @@ lapis.shipDate = po.orderDate + datetime.timedelta(days=46)
 lapis.comment = 'Want this for the holidays!'
 po.items.item[1].shipDate = po.items.item[0].shipDate + datetime.timedelta(days=19)
 
-print po.toxml()
+print po.toxml("utf-8")

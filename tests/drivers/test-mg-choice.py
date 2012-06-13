@@ -37,19 +37,19 @@ class TestMGChoice (unittest.TestCase):
         dom = pyxb.utils.domutils.StringToDOM(xml)
         instance = choice.createFromDOM(dom.documentElement)
         self.onlyFirst(instance)
-        self.assertEqual(ToDOM(instance).toxml(), xml)
+        self.assertEqual(ToDOM(instance).toxml("utf-8"), xml)
 
         xml = '<ns1:choice xmlns:ns1="URN:test-mg-choice"><second/></ns1:choice>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
         instance = choice.createFromDOM(dom.documentElement)
         self.onlySecond(instance)
-        self.assertEqual(ToDOM(instance).toxml(), xml)
+        self.assertEqual(ToDOM(instance).toxml("utf-8"), xml)
 
         xml = '<ns1:choice xmlns:ns1="URN:test-mg-choice"><third/></ns1:choice>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
         instance = choice.createFromDOM(dom.documentElement)
         self.onlyThird(instance)
-        self.assertEqual(ToDOM(instance).toxml(), xml)
+        self.assertEqual(ToDOM(instance).toxml("utf-8"), xml)
 
     def testMissingSingle (self):
         xml = '<ns1:choice xmlns:ns1="URN:test-mg-choice"/>'
@@ -72,7 +72,7 @@ class TestMGChoice (unittest.TestCase):
         self.assertEqual(0, len(instance.first))
         self.assertEqual(0, len(instance.second))
         self.assertEqual(0, len(instance.third))
-        self.assertEqual(ToDOM(instance).toxml(), xml)
+        self.assertEqual(ToDOM(instance).toxml("utf-8"), xml)
 
         xml = '<ns1:multiplechoice xmlns:ns1="URN:test-mg-choice"><first/></ns1:multiplechoice>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
@@ -80,7 +80,7 @@ class TestMGChoice (unittest.TestCase):
         self.assertEqual(1, len(instance.first))
         self.assertEqual(0, len(instance.second))
         self.assertEqual(0, len(instance.third))
-        self.assertEqual(ToDOM(instance).toxml(), xml)
+        self.assertEqual(ToDOM(instance).toxml("utf-8"), xml)
 
         xml = '<ns1:multiplechoice xmlns:ns1="URN:test-mg-choice"><first/><first/><first/><third/></ns1:multiplechoice>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
@@ -88,7 +88,7 @@ class TestMGChoice (unittest.TestCase):
         self.assertEqual(3, len(instance.first))
         self.assertEqual(0, len(instance.second))
         self.assertEqual(1, len(instance.third))
-        self.assertEqual(ToDOM(instance).toxml(), xml)
+        self.assertEqual(ToDOM(instance).toxml("utf-8"), xml)
 
     def testMultichoiceOrderImportant (self):
         xml = '<ns1:multiplechoice xmlns:ns1="URN:test-mg-choice"><first/><third/><first/></ns1:multiplechoice>'
@@ -98,7 +98,7 @@ class TestMGChoice (unittest.TestCase):
         self.assertEqual(0, len(instance.second))
         self.assertEqual(1, len(instance.third))
         # @todo This test will fail because both firsts will precede the second.
-        #self.assertEqual(ToDOM(instance).toxml(), xml)
+        #self.assertEqual(ToDOM(instance).toxml("utf-8"), xml)
 
 
     def testAltMultichoice (self):
@@ -108,7 +108,7 @@ class TestMGChoice (unittest.TestCase):
         self.assertEqual(0, len(instance.first))
         self.assertEqual(0, len(instance.second))
         self.assertEqual(0, len(instance.third))
-        self.assertEqual(ToDOM(instance).toxml(), xml)
+        self.assertEqual(ToDOM(instance).toxml("utf-8"), xml)
 
         xml = '<ns1:altmultiplechoice xmlns:ns1="URN:test-mg-choice"><first/></ns1:altmultiplechoice>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
@@ -116,7 +116,7 @@ class TestMGChoice (unittest.TestCase):
         self.assertEqual(1, len(instance.first))
         self.assertEqual(0, len(instance.second))
         self.assertEqual(0, len(instance.third))
-        self.assertEqual(ToDOM(instance).toxml(), xml)
+        self.assertEqual(ToDOM(instance).toxml("utf-8"), xml)
 
         xml = '<ns1:altmultiplechoice xmlns:ns1="URN:test-mg-choice"><first/><first/><third/></ns1:altmultiplechoice>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
@@ -124,7 +124,7 @@ class TestMGChoice (unittest.TestCase):
         self.assertEqual(2, len(instance.first))
         self.assertEqual(0, len(instance.second))
         self.assertEqual(1, len(instance.third))
-        self.assertEqual(ToDOM(instance).toxml(), xml)
+        self.assertEqual(ToDOM(instance).toxml("utf-8"), xml)
 
     def testTooManyChoices (self):
         xml = '<ns1:altmultiplechoice xmlns:ns1="URN:test-mg-choice"><first/><first/><first/><third/></ns1:altmultiplechoice>'

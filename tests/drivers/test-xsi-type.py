@@ -66,11 +66,11 @@ class TestXSIType (unittest.TestCase):
         ctd = restaurant_(**kw)
         dom = ctd.toDOM().documentElement
         xml = '<restaurant><basement>concrete</basement><lobby>tiled</lobby><room>eats</room></restaurant>'
-        self.assertEqual(xml, dom.toxml())
+        self.assertEqual(xml, dom.toxml("utf-8"))
 
         rest = restaurant(**kw)
         dom = rest.toDOM().documentElement
-        self.assertEqual(xml, dom.toxml())
+        self.assertEqual(xml, dom.toxml("utf-8"))
 
         self.assertRaises(pyxb.AbstractInstantiationError, originalOneFloor, **kw)
 
@@ -81,11 +81,11 @@ class TestXSIType (unittest.TestCase):
         self.assertEqual('messy', instance.oneFloor[0].room)
         self.assertEqual('concrete', instance.oneFloor[1].basement)
         self.assertEqual('tidy', instance.oneFloor[1].room)
-        xml = instance.toxml()
+        xml = instance.toxml("utf-8")
         dom = pyxb.utils.domutils.StringToDOM(xml)
         instance2 = CreateFromDOM(dom.documentElement)
-        r2 = instance2.toxml()
-        r3 = instance2.toxml()
+        r2 = instance2.toxml("utf-8")
+        r3 = instance2.toxml("utf-8")
         self.assertEqual(r2, r3)
         self.assertEqual(xml, r2)
 

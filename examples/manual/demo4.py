@@ -10,7 +10,7 @@ addr.city = 'Anytown'
 addr.state = 'AK'
 addr.zip = 12341
 
-print addr.toxml()
+print addr.toxml("utf-8")
 
 try:
     ny = address.USState('NY')

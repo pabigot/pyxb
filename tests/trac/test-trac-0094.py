@@ -45,26 +45,26 @@ class TestTrac_0094 (unittest.TestCase):
 
     def testToXML (self):
         instance = xs.string(self.body, _element=anything)
-        self.assertEqual(instance.toxml(root_only=True), self.xmls)
+        self.assertEqual(instance.toxml("utf-8", root_only=True), self.xmls)
         
     def testContainerCtor (self):
         i = xs.string(self.body, _element=anything)
         instance = container(anything=i)
-        explicit_xml = instance.toxml()
+        explicit_xml = instance.toxml("utf-8")
         instance = container(anything=xs.string(self.body))
-        implicit_xml = instance.toxml()
+        implicit_xml = instance.toxml("utf-8")
         self.assertEqual(explicit_xml, implicit_xml)
         
     def testContainerAssignment (self):
         i = xs.string(self.body, _element=anything)
         instance = container()
         instance.anything = i
-        explicit_xml = instance.toxml()
+        explicit_xml = instance.toxml("utf-8")
         instance.anything = xs.string(self.body)
-        implicit_xml = instance.toxml()
+        implicit_xml = instance.toxml("utf-8")
         self.assertEqual(explicit_xml, implicit_xml)
         instance.anything = xs.int(43)
-        int_xml = instance.toxml()
+        int_xml = instance.toxml("utf-8")
         instance.anything = self.body
         # You can do that, but you won't be able to convert it to xml
         self.assertRaises(AttributeError, instance.toxml)

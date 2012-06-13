@@ -11,12 +11,12 @@ class TestTrac0119 (unittest.TestCase):
     def testRoundTrip (self):
         c = absent.doit('hi')
         m = base.Message(c)
-        xmls = m.toxml()
+        xmls = m.toxml("utf-8")
         # Cannot resolve absent namespace in base module
         self.assertRaises(pyxb.SchemaValidationError, base.CreateFromDocument, xmls)
         # Can resolve it in absent module
         instance = absent.CreateFromDocument(xmls)
-        self.assertEquals(xmls, instance.toxml())
+        self.assertEquals(xmls, instance.toxml("utf-8"))
 
     def testNoDefault (self):
         xmls='''<?xml version="1.0"?>

@@ -27,11 +27,11 @@ class TestCollision (unittest.TestCase):
     def testBasic (self):
         self.assertEqual(pyxb.binding.basis.CURRENT_BINDING_STYLE, pyxb.binding.basis.BINDING_STYLE_PROPERTY)
         instance = color(color_.red, color_=color_.green)
-        self.assertEqual('<color color="green"><color>red</color></color>', instance.toxml(root_only=True))
+        self.assertEqual('<color color="green"><color>red</color></color>', instance.toxml("utf-8", root_only=True))
         instance.color = color_.blue
-        self.assertEqual('<color color="green"><color>blue</color></color>', instance.toxml(root_only=True))
+        self.assertEqual('<color color="green"><color>blue</color></color>', instance.toxml("utf-8", root_only=True))
         instance.color_ = color_.red
-        self.assertEqual('<color color="red"><color>blue</color></color>', instance.toxml(root_only=True))
+        self.assertEqual('<color color="red"><color>blue</color></color>', instance.toxml("utf-8", root_only=True))
 
 if __name__ == '__main__':
     unittest.main()

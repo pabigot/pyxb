@@ -93,9 +93,9 @@ class TestTrac0039 (unittest.TestCase):
 
     def testDeep (self):
         w = wrapper(BIND(BIND(4, deep=4), BIND('hi')))
-        self.assertEqual('<wrapper><holding><optional deep="4">4</optional><required>hi</required></holding></wrapper>', w.toxml(root_only=True))
+        self.assertEqual('<wrapper><holding><optional deep="4">4</optional><required>hi</required></holding></wrapper>', w.toxml("utf-8", root_only=True))
         w = wrapper(BIND(BIND('hi', deep=2)))
-        self.assertEqual('<wrapper><holding><required deep="2">hi</required></holding></wrapper>', w.toxml(root_only=True))
+        self.assertEqual('<wrapper><holding><required deep="2">hi</required></holding></wrapper>', w.toxml("utf-8", root_only=True))
 
 if __name__ == '__main__':
     unittest.main()

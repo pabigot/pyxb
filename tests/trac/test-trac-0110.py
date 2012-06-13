@@ -39,10 +39,10 @@ class TestTrac0110 (unittest.TestCase):
         s = tSingle()
         pyxb.RequireValidWhenGenerating(True)
         s.li = intList([1,2,3])
-        self.assertEqual(s.toxml(root_only=True), expect)
+        self.assertEqual(s.toxml("utf-8", root_only=True), expect)
         pyxb.RequireValidWhenGenerating(False)
         s.li = intList([1,2,3])
-        self.assertEqual(s.toxml(root_only=True), expect)
+        self.assertEqual(s.toxml("utf-8", root_only=True), expect)
 
 if __name__ == '__main__':
     unittest.main()

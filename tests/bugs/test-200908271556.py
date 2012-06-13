@@ -65,7 +65,7 @@ class TestBug_200908271556(unittest.TestCase):
                 self.assertTrue(0 == growth, 'growth %s' % (growth,))
                 break
             instance = CreateFromDocument(xmls)
-            xmls = instance.toxml(root_only=True)
+            xmls = instance.toxml("utf-8", root_only=True)
 
 if __name__ == '__main__':
     unittest.main()
