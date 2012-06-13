@@ -29,7 +29,7 @@ the directory where the %{pyxb} modules are found, including a trailing C{/}.
 For example, use C{&pyxb/bundles//} to enable search of any archive bundled
 with PyXB.
 
-@note: If you put a path separater between C{&} and the following path, this
+@note: If you put a path separator between C{&} and the following path, this
 will cause the substitution to be ignored."""
 
 import os.path
