@@ -16,6 +16,7 @@
 
 import pyxb
 import pyxb.namespace
+import pyxb.utils.saxutils
 import pyxb.utils.saxdom
 import xml.dom
 
@@ -48,7 +49,8 @@ def StringToDOM (text, **kw):
 
     @see: L{pyxb._SetXMLStyle}."""
     if pyxb.XMLStyle_minidom == pyxb._XMLStyle:
-        return xml.dom.minidom.parseString(text)
+        parser = pyxb.utils.saxutils.make_parser()
+        return xml.dom.minidom.parseString(text, parser)
     import saxdom
     return saxdom.parseString(text, **kw)
 

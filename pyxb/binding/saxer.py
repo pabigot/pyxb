@@ -15,8 +15,7 @@
 """This module contains support for generating bindings from an XML stream
 using a SAX parser."""
 
-import xml.sax
-import xml.sax.handler
+import xml.dom
 import pyxb.namespace
 import pyxb.utils.saxutils
 import pyxb.utils.saxdom

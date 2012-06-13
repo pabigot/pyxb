@@ -373,7 +373,7 @@ class _EntityResolver (object):
     def resolveEntity (self, public_id, system_id):
         return StringIO.StringIO('')
 
-def make_parser (*args, **kw):
+def make_parser (**kw):
     """Extend C{xml.sax.make_parser} to configure the parser the way we
     need it:
 
@@ -382,8 +382,6 @@ def make_parser (*args, **kw):
       - C{feature_namespace_prefixes} is set to C{False} so we don't get
         prefixes encoded into our names (probably redundant with the above but
         still...)
-
-    All arguments not documented here are passed to C{xml.sax.make_parser}.
 
     All keywords not documented here (and C{fallback_namespace}, which is) are
     passed to the C{content_handler_constructor} if that must be invoked.
@@ -407,7 +405,7 @@ def make_parser (*args, **kw):
     content_handler = kw.pop('content_handler', None)
     if content_handler is None:
         content_handler = content_handler_constructor(**kw)
-    parser = xml.sax.make_parser(*args)
+    parser = xml.sax.make_parser()
     parser.setFeature(xml.sax.handler.feature_namespaces, True)
     parser.setFeature(xml.sax.handler.feature_namespace_prefixes, False)
     parser.setContentHandler(content_handler)
@@ -425,7 +423,7 @@ if '__main__' == __name__:
     import sys
 
     Handler = BaseSAXHandler
-    xml_file = '/home/pab/pyxb/dev/examples/tmsxtvd/tmsdatadirect_sample.xml'
+    xml_file = 'examples/tmsxtvd/tmsdatadirect_sample.xml'
     if 1 < len(sys.argv):
         xml_file = sys.argv[1]
     xmls = open(xml_file).read()

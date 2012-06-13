@@ -254,7 +254,7 @@ class Comment (_CharacterData):
 
 if '__main__' == __name__:
     import sys
-    xml_file = '/home/pab/pyxb/dev/examples/tmsxtvd/tmsdatadirect_sample.xml'
+    xml_file = 'examples/tmsxtvd/tmsdatadirect_sample.xml'
     if 1 < len(sys.argv):
         xml_file = sys.argv[1]
 
