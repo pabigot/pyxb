@@ -409,7 +409,11 @@ def make_parser (**kw):
     parser.setFeature(xml.sax.handler.feature_namespaces, True)
     parser.setFeature(xml.sax.handler.feature_namespace_prefixes, False)
     parser.setContentHandler(content_handler)
-    parser.setEntityResolver(_EntityResolver())
+    # libxml2 doesn't support this feature
+    try:
+        parser.setEntityResolver(_EntityResolver())
+    except xml.sax.SAXNotSupportedException:
+        pass
     return parser
 
 if '__main__' == __name__:

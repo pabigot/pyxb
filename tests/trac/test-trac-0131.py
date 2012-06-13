@@ -8,6 +8,7 @@ import pyxb.binding.generate
 import pyxb.binding.datatypes as xs
 import pyxb.binding.basis
 import pyxb.utils.domutils
+import xml.sax
 import StringIO
 
 import os.path
@@ -43,6 +44,8 @@ class TestTrac0131 (unittest.TestCase):
     base_xmlu = '<bar><e>' + textu + '</e></bar>'
     declared_xmlu = '<?xml version="1.0" encoding="UTF-8"?>' + base_xmlu
 
+    ExpectedUnicodeErrors = ( UnicodeEncodeError, xml.sax.SAXParseException )
+
     def setUp (self):
         self.__xmlStyle = pyxb._XMLStyle
 
@@ -58,11 +61,11 @@ class TestTrac0131 (unittest.TestCase):
         self.assertTrue(isinstance(xmlu, unicode))
         self.assertTrue(isinstance(xmls, str))
         pyxb._SetXMLStyle(pyxb.XMLStyle_saxer)
-        self.assertRaises(UnicodeEncodeError, CreateFromDocument, xmlu)
+        self.assertRaises(self.ExpectedUnicodeErrors, CreateFromDocument, xmlu)
         instance = CreateFromDocument(xmls)
         self.assertEqual(instance.e, self.textu)
         pyxb._SetXMLStyle(pyxb.XMLStyle_minidom)
-        self.assertRaises(UnicodeEncodeError, CreateFromDocument, xmlu)
+        self.assertRaises(self.ExpectedUnicodeErrors, CreateFromDocument, xmlu)
         instance = CreateFromDocument(xmls)
         self.assertEqual(instance.e, self.textu)
         # saxdom can handle Unicode representation
@@ -78,11 +81,11 @@ class TestTrac0131 (unittest.TestCase):
         self.assertTrue(isinstance(xmlu, unicode))
         self.assertTrue(isinstance(xmls, str))
         pyxb._SetXMLStyle(pyxb.XMLStyle_saxer)
-        self.assertRaises(UnicodeEncodeError, CreateFromDocument, xmlu)
+        self.assertRaises(self.ExpectedUnicodeErrors, CreateFromDocument, xmlu)
         instance = CreateFromDocument(xmls)
         self.assertEqual(instance.e, self.textu)
         pyxb._SetXMLStyle(pyxb.XMLStyle_minidom)
-        self.assertRaises(UnicodeEncodeError, CreateFromDocument, xmlu)
+        self.assertRaises(self.ExpectedUnicodeErrors, CreateFromDocument, xmlu)
         instance = CreateFromDocument(xmls)
         self.assertEqual(instance.e, self.textu)
         # saxdom can handle Unicode representation

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<xs:schema xmlns="http://www.example.com:ModelA/AA" xmlns:modela.au="http://www.example.com:ModelA/AUXAA" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" targetNamespace="http://www.example.com:ModelA/AA" xsi:schemaLocation="http://www.example.com:ModelA/AUXAA AUXAA.xsd">
-  <xs:import namespace="http://www.example.com:ModelA/AUXAA" schemaLocation="AUXAA.xsd"/>
+<xs:schema xmlns="http://www.example.com/ModelA/AA" xmlns:modela.au="http://www.example.com/ModelA/AUXAA" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" targetNamespace="http://www.example.com/ModelA/AA" xsi:schemaLocation="http://www.example.com/ModelA/AUXAA AUXAA.xsd">
+  <xs:import namespace="http://www.example.com/ModelA/AUXAA" schemaLocation="AUXAA.xsd"/>
   <xs:complexType abstract="true" id="ModelA.AA.__BASE_ClassAA" name="__BASE_ClassAA">
     <xs:sequence>
       <xs:element maxOccurs="1" minOccurs="1" name="classAB" type="REFClassAB"/>
