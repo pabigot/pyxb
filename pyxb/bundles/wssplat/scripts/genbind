@@ -35,5 +35,9 @@ http://docs.oasis-open.org/ws-tx/wscoor/2006/06/wstx-wscoor-1.1-schema-200701.xs
 http://www.w3.org/2002/ws/desc/ns/wsdl-instance.xsd wsdli
 http://www.w3.org/2002/ws/desc/ns/wsdl-extensions.xsd wsdlx
 http://docs.oasis-open.org/ws-rx/wsrm/200702/wsrm-1.1-schema-200702.xsd wsrm
+http://docs.oasis-open.org/wsn/t-1.xsd wstop
+http://docs.oasis-open.org/wsrf/bf-2.xsd wsrf_bf
+http://docs.oasis-open.org/wsn/b-2.xsd wsnt
+http://docs.oasis-open.org/wsn/br-2.xsd wsrf_br
 EOList
 ) | generateBindings

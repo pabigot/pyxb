@@ -70,11 +70,15 @@ Binding Module                          Namespace
 ``pyxb.bundles.wssplat.wsdl20``         ``http://www.w3.org/ns/wsdl``
 ``pyxb.bundles.wssplat.wsdli``          ``http://www.w3.org/ns/wsdl-instance``
 ``pyxb.bundles.wssplat.wsdlx``          ``http://www.w3.org/ns/wsdl-extensions``
+``pyxb.bundles.wssplat.wsnt``           ``http://docs.oasis-open.org/wsn/b-2``
 ``pyxb.bundles.wssplat.wsoap``          ``http://www.w3.org/ns/wsdl/soap``
 ``pyxb.bundles.wssplat.wsp200607``      ``http://www.w3.org/2006/07/ws-policy``
 ``pyxb.bundles.wssplat.wsp``            ``http://www.w3.org/ns/ws-policy``
+``pyxb.bundles.wssplat.wsrf_bf``        ``http://docs.oasis-open.org/wsrf/bf-2``
+``pyxb.bundles.wssplat.wsrf_br``        ``http://docs.oasis-open.org/wsn/br-2``
 ``pyxb.bundles.wssplat.wsrm``           ``http://docs.oasis-open.org/ws-rx/wsrm/200702``
 ``pyxb.bundles.wssplat.wsse``           ``http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd``
+``pyxb.bundles.wssplat.wstop``          ``http://docs.oasis-open.org/wsn/t-1``
 ``pyxb.bundles.wssplat.wsu``            ``http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd``
 ``pyxb.bundles.wssplat.xenc``           ``http://www.w3.org/2001/04/xmlenc#``
 =====================================   ==========================================================
