@@ -7,6 +7,31 @@ generate and manage them yourself.  These bundles also demonstrate the
 complexity of schema that PyXB is prepared to handle.  Not all namespaces
 have been fully tested, but they are expected to function correctly.
 
+.. _bundle_common:
+
+common
+------
+
+The following namespaces are available in support of general XML use:
+
+.. PYXB_ARCHIVE_PATH=${PYXB_ROOT}/pyxb/bundles/common// ${PYXB_ROOT}/scripts/pyxbdump \
+   | awk '$2~/pyxb.bundles.common/ { print $2, $1; }' \
+   | sed \
+      -e 's@^@``@' \
+      -e 's@ @``\t``@' \
+      -e 's@$@``@' \
+   | expand -40 \
+   | sort \
+   > /tmp/x
+
+=====================================   ==========================================================
+Binding Module                          Namespace
+=====================================   ==========================================================
+``pyxb.bundles.common.xhtml1``          ``http://www.w3.org/1999/xhtml``
+``pyxb.bundles.common.xlink``           ``http://www.w3.org/1999/xlink``
+``pyxb.bundles.common.xsd_hfp``         ``http://www.w3.org/2001/XMLSchema-hasFacetAndProperty``
+=====================================   ==========================================================
+
 .. _bundle_wssplat:
 
 WS-*

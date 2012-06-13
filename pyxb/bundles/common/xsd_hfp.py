@@ -1,1 +1,1 @@
-from pyxb.bundles.core.raw.xsd_hfp import *
+from pyxb.bundles.common.raw.xsd_hfp import *
