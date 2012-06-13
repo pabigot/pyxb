@@ -122,8 +122,9 @@ The following namespaces are available in support of `Open Geospatial
 Consortium <http://www.opengeospatial.org/standards>`_ Geographic
 Information System processing.  Note that several of these namespaces are
 "private" bindings generated because the OGC definitions include their own
-schema.  The modules corresponding to these namespace uses begin with an
-underscore, and should generally not be used in other contexts.
+schema for use local to another schema.  The modules corresponding to these
+namespace uses begin with an underscore, and should generally not be used in
+other contexts.
 
 .. PYXB_ARCHIVE_PATH=${PYXB_ROOT}/pyxb/bundles/opengis// ${PYXB_ROOT}/scripts/pyxbdump \
    | awk '$2~/pyxb.bundles.opengis/ { print $2, $1; }' \
@@ -138,12 +139,8 @@ underscore, and should generally not be used in other contexts.
 ================================================  ==========================================================
 Binding Module                                    Namespace
 ================================================  ==========================================================
-``pyxb.bundles.opengis._atom``                    ``http://www.w3.org/2005/Atom``
-``pyxb.bundles.opengis._dc``                      ``http://purl.org/dc/elements/1.1/``
-``pyxb.bundles.opengis._dct``                     ``http://purl.org/dc/terms/``
 ``pyxb.bundles.opengis._ogc``                     ``http://www.opengis.net/ogc``
-``pyxb.bundles.opengis._smil20``                  ``http://www.w3.org/2001/SMIL20/``
-``pyxb.bundles.opengis._smil20lang``              ``http://www.w3.org/2001/SMIL20/Language``
+``pyxb.bundles.opengis.atom``                     ``http://www.w3.org/2005/Atom``
 ``pyxb.bundles.opengis.citygml.appearance``       ``http://www.opengis.net/citygml/appearance/1.0``
 ``pyxb.bundles.opengis.citygml.base``             ``http://www.opengis.net/citygml/1.0``
 ``pyxb.bundles.opengis.citygml.building``         ``http://www.opengis.net/citygml/building/1.0``
@@ -157,28 +154,47 @@ Binding Module                                    Namespace
 ``pyxb.bundles.opengis.citygml.vegetation``       ``http://www.opengis.net/citygml/vegetation/1.0``
 ``pyxb.bundles.opengis.citygml.waterBody``        ``http://www.opengis.net/citygml/waterbody/1.0``
 ``pyxb.bundles.opengis.csw_2_0_2``                ``http://www.opengis.net/cat/csw/2.0.2``
+``pyxb.bundles.opengis.csw_dc``                   ``http://purl.org/dc/elements/1.1/``
+``pyxb.bundles.opengis.csw_dct``                  ``http://purl.org/dc/terms/``
+``pyxb.bundles.opengis.fes_2_0``                  ``http://www.opengis.net/fes/2.0``
 ``pyxb.bundles.opengis.filter``                   ``http://www.opengis.net/ogc``
 ``pyxb.bundles.opengis.gml_3_2``                  ``http://www.opengis.net/gml/3.2``
+``pyxb.bundles.opengis.gml_3_3.ce``               ``http://www.opengis.net/gml/3.3/ce``
+``pyxb.bundles.opengis.gml_3_3.exr``              ``http://www.opengis.net/gml/3.3/exr``
+``pyxb.bundles.opengis.gml_3_3.lr``               ``http://www.opengis.net/gml/3.3/lr``
+``pyxb.bundles.opengis.gml_3_3.lro``              ``http://www.opengis.net/gml/3.3/lro``
+``pyxb.bundles.opengis.gml_3_3.lrov``             ``http://www.opengis.net/gml/3.3/lrov``
+``pyxb.bundles.opengis.gml_3_3.lrtr``             ``http://www.opengis.net/gml/3.3/lrtr``
+``pyxb.bundles.opengis.gml_3_3.rgrid``            ``http://www.opengis.net/gml/3.3/rgrid``
+``pyxb.bundles.opengis.gml_3_3.tin``              ``http://www.opengis.net/gml/3.3/tin``
+``pyxb.bundles.opengis.gml_3_3.xbt``              ``http://www.opengis.net/gml/3.3/xbt``
 ``pyxb.bundles.opengis.gml``                      ``http://www.opengis.net/gml``
 ``pyxb.bundles.opengis.gmlsf``                    ``http://www.opengis.net/gmlsf``
-``pyxb.bundles.opengis.gmx``                      ``http://www.isotc211.org/2005/gmx``
 ``pyxb.bundles.opengis.ic_ism_2_1``               ``urn:us:gov:ic:ism:v2``
-``pyxb.bundles.opengis.iso19139.gco``             ``http://www.isotc211.org/2005/gco``
-``pyxb.bundles.opengis.iso19139.gmd``             ``http://www.isotc211.org/2005/gmd``
-``pyxb.bundles.opengis.iso19139.gsr``             ``http://www.isotc211.org/2005/gsr``
-``pyxb.bundles.opengis.iso19139.gss``             ``http://www.isotc211.org/2005/gss``
-``pyxb.bundles.opengis.iso19139.gts``             ``http://www.isotc211.org/2005/gts``
+``pyxb.bundles.opengis.iso19139.20070417.gco``    ``http://www.isotc211.org/2005/gco``
+``pyxb.bundles.opengis.iso19139.20070417.gmd``    ``http://www.isotc211.org/2005/gmd``
+``pyxb.bundles.opengis.iso19139.20070417.gmx``    ``http://www.isotc211.org/2005/gmx``
+``pyxb.bundles.opengis.iso19139.20070417.gsr``    ``http://www.isotc211.org/2005/gsr``
+``pyxb.bundles.opengis.iso19139.20070417.gss``    ``http://www.isotc211.org/2005/gss``
+``pyxb.bundles.opengis.iso19139.20070417.gts``    ``http://www.isotc211.org/2005/gts``
 ``pyxb.bundles.opengis.misc.xAL``                 ``urn:oasis:names:tc:ciq:xsdschema:xAL:2.0``
 ``pyxb.bundles.opengis.misc.xlinks``              ``http://www.w3.org/1999/xlink``
 ``pyxb.bundles.opengis.ogckml22``                 ``http://www.opengis.net/kml/2.2``
 ``pyxb.bundles.opengis.om_1_0``                   ``http://www.opengis.net/om/1.0``
+``pyxb.bundles.opengis.om_2_0``                   ``http://www.opengis.net/om/2.0``
 ``pyxb.bundles.opengis.ows_1_1``                  ``http://www.opengis.net/ows/1.1``
+``pyxb.bundles.opengis.ows_2_0``                  ``http://www.opengis.net/ows/2.0``
 ``pyxb.bundles.opengis.ows``                      ``http://www.opengis.net/ows``
 ``pyxb.bundles.opengis.sampling_1_0``             ``http://www.opengis.net/sampling/1.0``
 ``pyxb.bundles.opengis.sensorML_1_0_1``           ``http://www.opengis.net/sensorML/1.0.1``
+``pyxb.bundles.opengis.smil20``                   ``http://www.w3.org/2001/SMIL20/``
+``pyxb.bundles.opengis.smil20lang``               ``http://www.w3.org/2001/SMIL20/Language``
 ``pyxb.bundles.opengis.sos_1_0``                  ``http://www.opengis.net/sos/1.0``
+``pyxb.bundles.opengis.sos_2_0``                  ``http://www.opengis.net/sos/2.0``
 ``pyxb.bundles.opengis.swe_1_0_0``                ``http://www.opengis.net/swe/1.0``
 ``pyxb.bundles.opengis.swe_1_0_1``                ``http://www.opengis.net/swe/1.0.1``
+``pyxb.bundles.opengis.swe_2_0``                  ``http://www.opengis.net/swe/2.0``
+``pyxb.bundles.opengis.swes_2_0``                 ``http://www.opengis.net/swes/2.0``
 ``pyxb.bundles.opengis.tml``                      ``http://www.opengis.net/tml``
 ``pyxb.bundles.opengis.wcs_1_1``                  ``http://www.opengis.net/wcs/1.1``
 ``pyxb.bundles.opengis.wfs``                      ``http://www.opengis.net/wfs``
