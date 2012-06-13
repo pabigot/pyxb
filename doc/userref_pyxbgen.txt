@@ -270,8 +270,12 @@ directives like::
   import opengis.gml_3_2 as gml
   import opengis.iso19139.gmd
 
-PyXB comes with pre-defined bundles for related namespaces in the
-``pyxb.bundles`` module hierarchy.
+PyXB comes with :ref:`pre-defined bundles <bundles>` for related namespaces
+in the ``pyxb.bundles`` module hierarchy.  The command above is an excerpt
+from an early version of the script that generates the :ref:`OpenGIS
+<bundle_opengis>` bundles.  See :ref:`Layout of a Bundle Directory
+<bundle_layout>` for more information and the location of the current
+version of the script.
 
 Fine-Grained Namespace Control
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

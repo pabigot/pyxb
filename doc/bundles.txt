@@ -1,3 +1,5 @@
+.. _bundles:
+
 Examples of Supported Schema
 ============================
 
@@ -6,6 +8,10 @@ into pre-generated bindings that allow you to use them without having to
 generate and manage them yourself.  These bundles also demonstrate the
 complexity of schema that PyXB is prepared to handle.  Not all namespaces
 have been fully tested, but they are expected to function correctly.
+
+Although the generating scripts and infrastructure are part of PyXB proper,
+not all these bundles may have been pre-built in your PyXB distribution.
+See `Generating Bundled Bindings`_ for details on building these bundles.
 
 .. _bundle_common:
 
@@ -126,6 +132,10 @@ schema for use local to another schema.  The modules corresponding to these
 namespace uses begin with an underscore, and should generally not be used in
 other contexts.
 
+This bundle is not populated in the distributed versions of PyXB because it
+requires some 168MB of space to hold the schemas, generated bindings, and
+archive files.
+
 .. PYXB_ARCHIVE_PATH=${PYXB_ROOT}/pyxb/bundles/opengis// ${PYXB_ROOT}/scripts/pyxbdump \
    | awk '$2~/pyxb.bundles.opengis/ { print $2, $1; }' \
    | sed \
@@ -200,7 +210,7 @@ Binding Module                                    Namespace
 ``pyxb.bundles.opengis.wfs``                      ``http://www.opengis.net/wfs``
 ================================================  ==========================================================
 
-.. _bundle_generation:
+.. _bundle_layout:
 
 Layout of a Bundle Directory
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -221,9 +231,8 @@ With a bundle directory, the following are expected:
   :ref:`customization wrappers <customized_bindings>`
 
 - A ``raw`` subdirectory, into which the generated bindings are placed.
-  Note that this directory is normally removed and recreated as a
-  consequence of running genbind; ddn't expect anything in it to be
-  persistent.
+  This directory is normally removed and recreated as a consequence of
+  running genbind; don't expect anything in it to be persistent.
 
 - An ``examples`` directory, with programs that show how to use the
   capabilities in the bundle
@@ -234,8 +243,9 @@ Generating Bundled Bindings
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 To create the support infrastructure for a particular bundle, set the
-``PYXB_ROOT`` environment variable and run the ``scripts/genbind`` script in
-the bundle root.  For example::
+``PYXB_ROOT`` environment variable to the root of an unpacked PyXB
+distribution and run the ``scripts/genbind`` script in the bundle root.  For
+example::
 
   cd ${PYXB_ROOT}
   pyxb/bundles/wssplat/scripts/genbind
@@ -244,3 +254,13 @@ will invoke the :manpage:`wget(1)` program to retrieve the XML schema for a
 variety of namespaces related to web services and then generate bindings and
 archive files for them.
 
+Generating bundles should be a one-time action for each release of PyXB.
+
+.. note::
+
+   Some servers, including http://www.w3.org, enforce an artificial delay in
+   retrieving schema documents in order to encourage systems to use cached
+   local copies.  The :file:`genbind` infrastructure will cache the schemas
+   it downloads, but running the generation scripts for the `common`_
+   bundle, and possibly others, may result in errors if the caches are
+   removed and the scripts run too frequently.
