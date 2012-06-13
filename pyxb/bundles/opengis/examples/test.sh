@@ -7,7 +7,9 @@ failure () {
 
 python demo.py || exit 1
 
-if test -d ${SCHEMAS_OPENGIS_NET:-/dev/null} ; then
+SCHEMAS_OPENGIS_NET=${SCHEMAS_OPENGIS_NET:-${PYXB_ROOT}/pyxb/bundles/opengis/schemas}
+
+if test -d "${SCHEMAS_OPENGIS_NET}" ; then
   echo "testing nothingness"
   # sosRegisterSensor.xml uses tml:tcfTrigger, but the element is really named tml:cfTrigger
   # Skip testing it since it will fail to validate thereby confusing the viewer.
