@@ -1,0 +1,58 @@
+This directory contains an example of processing Unicode XML, where both the
+schemas and the documents are in various encodings.  It derives from the
+PyXB ticket: http://sourceforge.net/apps/trac/pyxb/ticket/139
+
+The files in the data subdirectory include a schema and a sample document,
+in each of the encodings shift_jis, euc-jp, iso-2022-jp, and utf-8.  The
+original format is shift_jis, and is available from
+http://www.gsi.go.jp/LAW/2930-index.html.  The other formats were converted
+from the shift_jis version by the reporter of ticket 139.
+
+The domain appears to be Japanese extensions to the OpenGIS GML
+infrastructure.  Two issues are addressed in the example:
+
+* The inability of expat-based parsers to properly process documents using
+  the iso-2022-jp encoding; and
+
+* The desire to not strip out all non-identifier characters in the schema,
+  which would result in every element/type/attribute being named
+  "emptyString_#" for different values of #.
+
+PyXB has features to work around both of these issues, but the pyxbgen
+wrapper script does not provide a way to enable the features.  This example
+shows a modified pyxbgen, with irrelevant WSDL code removed, which enables
+the use of LibXML2 as an XML reader and implements a solution to
+transliterate Kanji/Katakana/Hiragana Unicode characters into romaji.
+
+Note that this transliteration requires installation of:
+
+* the Python bindings for MeCab, which should be available for Linux systems
+  from your vendor: e.g., on Fedora 16, the packages are:
+
+  mecab-jumandic-5.1.20070304-5.fc15.x86_64
+  mecab-jumandic-EUCJP-5.1.20070304-5.fc15.x86_64
+  mecab-ipadic-2.7.0.20070801-4.fc15.1.x86_64
+  mecab-0.98-1.fc15.x86_64
+  python-mecab-0.98-2.fc15.x86_64
+  mecab-ipadic-EUCJP-2.7.0.20070801-4.fc15.1.x86_64
+
+* The Python port of the Ruby/RomKan utility, available through
+  http://lilyx.net/python-romkan/
+
+If these are missing, the generator will emit a warning and proceed without
+transliteration.
+
+The check.py program is a standard unit test which verifies that the
+generated bindings can process documents in all four encodings, and shows
+how Python code which itself uses the Shift_JIS encoding can interact with
+the bindings.
+
+Many thanks to "hhsprings" for providing the schemas, example document, and
+romanization code.
+
+Note: Because the package depends on OpenGIS, and OpenGIS bindings are no
+longer provided in the PyXB distribution, you will have to generate these
+bindings first.  If they are missing, PyXB might try to download them from
+the Internet and build them for you, but that is the wrong way to use this.
+See the README.txt in the pyxb/bundles/opengis directory.
+
