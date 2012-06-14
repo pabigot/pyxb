@@ -373,6 +373,30 @@ class _EntityResolver (object):
     def resolveEntity (self, public_id, system_id):
         return StringIO.StringIO('')
 
+_CreateParserModules = []
+def SetCreateParserModules (create_parser_modules):
+    """Provide list of modules to be used when creating parsers.
+
+    C{xml.sax.make_parser()} takes as a parameter an optional list of modules
+    which allow customization of the parser to be used.  Certain parsers have
+    better support for Unicode than others.
+
+    As an example, providing C{["drv_libxml2"]} causes the libxml2 parser to
+    be used.
+
+    The default behavior if this function is not called, or if it is called
+    with an empty list or C{None}, is to provide no specific modules, which
+    will result in the system default parser (probably expat).
+
+    @param create_parser_modules: an iterable list of names of modules that
+    provide a C{create_parser} function.  Pass C{None} to reset to the system
+    default.  """
+    global _CreateParserModules
+    if create_parser_modules is None:
+        _CreateParserModules = []
+    else:
+        _CreateParserModules = list(create_parser_modules)
+
 def make_parser (**kw):
     """Extend C{xml.sax.make_parser} to configure the parser the way we
     need it:
@@ -405,7 +429,7 @@ def make_parser (**kw):
     content_handler = kw.pop('content_handler', None)
     if content_handler is None:
         content_handler = content_handler_constructor(**kw)
-    parser = xml.sax.make_parser()
+    parser = xml.sax.make_parser(_CreateParserModules)
     parser.setFeature(xml.sax.handler.feature_namespaces, True)
     parser.setFeature(xml.sax.handler.feature_namespace_prefixes, False)
     parser.setContentHandler(content_handler)
