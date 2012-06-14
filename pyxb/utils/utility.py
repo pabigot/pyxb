@@ -33,6 +33,53 @@ def QuotedEscaped (s):
     """
     return repr(s)
 
+def _DefaultXMLIdentifierToPython (identifier):
+    """Default implementation for _XMLIdentifierToPython
+
+    For historical reasons, this converts the identifier from a str to
+    unicode in the system default encoding.  This should have no
+    practical effect.
+    
+    @param identifier : some XML identifier
+
+    @return: C{unicode(identifier)}
+    """
+
+    return unicode(identifier)
+
+def _SetXMLIdentifierToPython (xml_identifier_to_python):
+    """Configure a callable L{MakeIdentifier} uses to pre-process an XM Lidentifier.
+
+    In Python3, identifiers can be full Unicode tokens, but in Python2,
+    all identifiers must be ASCII characters.  L{MakeIdentifier} enforces
+    this by removing all characters that are not valid within an
+    identifier.
+
+    In some cases, an application generating bindings may be able to
+    transliterate Unicode code points that are not valid Python identifier
+    characters into something else.  This callable can be assigned to
+    perform that translation before the invalid characters are
+    stripped.
+
+    It is not the responsibility of this callable to do anything other
+    than replace whatever characters it wishes to.  All
+    transformations performed by L{MakeIdentifier} will still be
+    applied, to ensure the output is in fact a legal identifier.
+
+    @param xml_identifier_to_python : A callable that takes a string
+    and returns a Unicode, possibly with non-identifier characters
+    replaced by other characters.  Pass C{None} to reset to the
+    default implementation, which is L{_DefaultXMLIdentifierToPython}.
+
+    @rtype: C{unicode}
+    """
+    global _XMLIdentifierToPython
+    if xml_identifier_to_python is None:
+        xml_identifier_to_python = _DefaultXMLIdentifierToPython
+    _XMLIdentifierToPython = xml_identifier_to_python
+
+_XMLIdentifierToPython = _DefaultXMLIdentifierToPython
+
 _UnderscoreSubstitute_re = re.compile(r'[- .]')
 _NonIdentifier_re = re.compile(r'[^a-zA-Z0-9_]')
 _PrefixUnderscore_re = re.compile(r'^_+')
@@ -42,11 +89,13 @@ _CamelCase_re = re.compile(r'_\w')
 def MakeIdentifier (s, camel_case=False):
     """Convert a string into something suitable to be a Python identifier.
 
-    The string is converted to unicode; spaces and periods replaced by
-    underscores; non-printable/non-ASCII stripped.  Furthermore, any
-    leading underscores are removed.  If the result begins with a
-    digit, the character 'n' is prepended.  If the result is the empty
-    string, the string 'emptyString' is substituted.
+    The string is processed by L{_XMLIdentifierToPython}.  Following
+    this, dashes, spaces, and periods are replaced by underscores, and
+    characters not permitted in Python identifiers are stripped.
+    Furthermore, any leading underscores are removed.  If the result
+    begins with a digit, the character 'n' is prepended.  If the
+    result is the empty string, the string 'emptyString' is
+    substituted.
 
     No check is made for L{conflicts with keywords <DeconflictKeyword>}.
 
@@ -58,7 +107,8 @@ def MakeIdentifier (s, camel_case=False):
 
     @rtype: C{str}
     """
-    s = _PrefixUnderscore_re.sub('', _NonIdentifier_re.sub('',_UnderscoreSubstitute_re.sub('_', unicode(s))))
+    s = _XMLIdentifierToPython(s)
+    s = _PrefixUnderscore_re.sub('', _NonIdentifier_re.sub('',_UnderscoreSubstitute_re.sub('_', s)))
     if camel_case:
         s = _CamelCase_re.sub(lambda _m: _m.group(0)[1].upper(), s)
     if _PrefixDigit_re.match(s):
