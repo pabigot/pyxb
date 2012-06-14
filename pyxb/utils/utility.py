@@ -673,7 +673,8 @@ def HashForText (text):
 
     For example, this is used to verify that a given module file
     contains bindings from a previous generation run for the same
-    namespace.  See L{OpenOrCreate}.
+    namespace.  See L{OpenOrCreate}.  If the text is in Unicode, the
+    hash is calculated on the UTF-8 encoding of the text.
 
     @return: A C{str}, generally a sequence of hexadecimal "digit"s.
     """

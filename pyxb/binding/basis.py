@@ -442,7 +442,9 @@ class _TypeBinding_mixin (utility.Locatable_mixin):
 
         @param encoding: The encoding to be used.  See
         @C{xml.dom.Node.toxml()} for a description of why you should always
-        pass @C{'utf-8'} here.
+        pass @C{'utf-8'} here.  Because this method follows the contract of
+        the corresponding C{xml.dom.Node} method, it does not automatically
+        get the default PyXB output encoding.
         
         @param bds: Optional L{pyxb.utils.domutils.BindingDOMSupport} instance
         to use for creation. If not provided (default), a new generic one is

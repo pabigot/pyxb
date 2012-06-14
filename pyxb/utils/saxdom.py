@@ -117,7 +117,7 @@ def parseString (text, **kw):
     tree."""
     # XML parser doesn't really like unicode strings
     if isinstance(text, unicode):
-        text = text.encode('utf-8')
+        text = text.encode(pyxb._InputEncoding)
     return parse(StringIO.StringIO(text), **kw)
 
 class Node (xml.dom.Node, pyxb.utils.utility.Locatable_mixin):

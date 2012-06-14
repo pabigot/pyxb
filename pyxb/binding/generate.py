@@ -901,12 +901,14 @@ class BindingIO (object):
         self.__templateMap = kw.copy()
         self.__templateMap.update({ 'date' : str(datetime.datetime.now()),
                                     'filePath' : self.__bindingFilePath,
+                                    'coding' : pyxb._OutputEncoding,
                                     'binding_module' : binding_module,
                                     'binding_tag' : binding_module.bindingTag(),
                                     'pyxbVersion' : pyxb.__version__ })
         self.__stringIO = StringIO.StringIO()
         if self.__bindingFile:
             self.__bindingFile.write(self.expand('''# %{filePath}
+# -*- coding: %{coding} -*-
 # PyXB bindings for %{binding_tag}
 # Generated %{date} by PyXB version %{pyxbVersion}
 %{binding_preface}''', binding_preface=binding_module.bindingPreface()))
@@ -1220,7 +1222,7 @@ class _ModuleNaming_mixin (object):
 
     def writeToModuleFile (self):
         if self.bindingFile():
-            self.bindingFile().write(self.moduleContents().encode('utf8'))
+            self.bindingFile().write(self.moduleContents().encode(pyxb._OutputEncoding))
             self.bindingFile().close()
             print 'Saved binding source to %s' % (self.__bindingFilePath,)
         else:
