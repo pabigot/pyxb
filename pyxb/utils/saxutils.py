@@ -369,7 +369,7 @@ class BaseSAXHandler (xml.sax.handler.ContentHandler, object):
 import StringIO
 class _EntityResolver (object):
     """Dummy used to prevent the SAX parser from crashing when it sees
-    processing instructions that we dont' care about."""
+    processing instructions that we don't care about."""
     def resolveEntity (self, public_id, system_id):
         return StringIO.StringIO('')
 
