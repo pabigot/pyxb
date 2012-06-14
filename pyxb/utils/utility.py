@@ -19,6 +19,10 @@ import os
 import errno
 import pyxb
 
+# Import utility routines that are not from PyXB so have distinct
+# licensing.
+from pyxb.utils.activestate import *
+
 def QuotedEscaped (s):
     """Convert a string into a literal value that can be used in Python source.
 
