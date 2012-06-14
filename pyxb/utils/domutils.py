@@ -101,10 +101,10 @@ def LocateUniqueChild (node, tag, absent_ok=True, namespace=pyxb.namespace.XMLSc
     for cn in node.childNodes:
         if (xml.dom.Node.ELEMENT_NODE == cn.nodeType) and namespace.nodeIsNamed(cn, tag):
             if candidate:
-                raise SchemaValidationError('Multiple %s elements nested in %s' % (name, node.nodeName))
+                raise pyxb.SchemaValidationError('Multiple %s elements nested in %s' % (name, node.nodeName))
             candidate = cn
     if (candidate is None) and not absent_ok:
-        raise SchemaValidationError('Expected %s elements nested in %s' % (name, node.nodeName))
+        raise pyxb.SchemaValidationError('Expected %s elements nested in %s' % (name, node.nodeName))
     return candidate
 
 def LocateMatchingChildren (node, tag, namespace=pyxb.namespace.XMLSchema):
@@ -156,12 +156,12 @@ def LocateFirstChildElement (node, absent_ok=True, require_unique=False, ignore_
                 continue
             if require_unique:
                 if candidate:
-                    raise SchemaValidationError('Multiple elements nested in %s' % (node.nodeName,))
+                    raise pyxb.SchemaValidationError('Multiple elements nested in %s' % (node.nodeName,))
                 candidate = cn
             else:
                 return cn
     if (candidate is None) and not absent_ok:
-        raise SchemaValidationError('No elements nested in %s' % (node.nodeName,))
+        raise pyxb.SchemaValidationError('No elements nested in %s' % (node.nodeName,))
     return candidate
 
 def HasNonAnnotationChild (node):
@@ -195,7 +195,7 @@ def ExtractTextContent (node):
         elif xml.dom.Node.COMMENT_NODE == cn.nodeType:
             pass
         else:
-            raise BadDocumentError('Non-text node %s found in content' % (cn,))
+            raise pyxb.BadDocumentError('Non-text node %s found in content' % (cn,))
     if 0 == len(text):
         return None
     return ''.join(text)
