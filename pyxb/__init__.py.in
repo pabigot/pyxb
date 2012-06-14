@@ -239,6 +239,16 @@ def PreserveInputTimeZone (value=None):
     _PreserveInputTimeZone = value
     return _PreserveInputTimeZone
 
+_OutputEncoding = 'utf-8'
+"""Default unicode encoding to use when creating output.
+
+Material being written to an XML parser is not output."""
+
+_InputEncoding = 'utf-8'
+"""Default unicode encoding to assume when decoding input.
+
+Material being written to an XML parser is treated as input."""
+
 ## Local Variables:
 ## fill-column:78
 ## End:
