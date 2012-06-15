@@ -26,6 +26,12 @@ transliterate Kanji/Katakana/Hiragana Unicode characters into romaji.
 
 Note that this transliteration requires installation of:
 
+* the Python bindings for libxml2, which should be available for Linux systems
+  from your vendor: e.g., on Fedora 16, the packages are:
+
+  libxml2-2.7.8-6.fc16.x86_64
+  libxml2-python-2.7.8-6.fc16.x86_64
+
 * the Python bindings for MeCab, which should be available for Linux systems
   from your vendor: e.g., on Fedora 16, the packages are:
 
