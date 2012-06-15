@@ -1,8 +1,15 @@
 #!/bin/sh
 
+fail () {
+  echo 1>&2 "${test_name} FAILED: ${@}"
+  exit 1
+}
+
 # Because this is an OpenGIS application, the OpenGIS bundle must be
 # made available during binding generation.
 export PYXB_ARCHIVE_PATH='&pyxb/bundles/opengis//:+'
+
+python -c 'import drv_libxml2' || fail python-libxml2 not installed
 
 if python -c 'import pyxb.bundles.opengis.gml_3_2' ; then
   echo 1>&2 "OpenGIS bundle present and will be used"
@@ -16,18 +23,14 @@ opengis bundle directory.
 EOText
 fi
 
-exit 0
-
 # This allows this script to run under the autotest environment, where
 # output is sent to a file.
 export PYTHONIOENCODING='utf-8'
 
 rm fgd_gml.*
-
 # A customized pyxbgen is required to do the translation
 ./pyxbgen_jp \
    --schema-location=data/shift_jis/FGD_GMLSchema.xsd --module=fgd_gml
 
 # Make sure it worked
 python check.py
-

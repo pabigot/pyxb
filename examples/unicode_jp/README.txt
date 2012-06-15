@@ -45,8 +45,9 @@ Note that this transliteration requires installation of:
 * The Python port of the Ruby/RomKan utility, available through
   http://lilyx.net/python-romkan/
 
-If these are missing, the generator will emit a warning and proceed without
-transliteration.
+If the latter two of these are missing, the generator will emit a warning
+and proceed without transliteration.  If libxml2 is not available to python,
+the test will abort.
 
 The check.py program is a standard unit test which verifies that the
 generated bindings can process documents in all four encodings, and shows
