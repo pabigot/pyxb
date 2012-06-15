@@ -64,21 +64,20 @@ An example of a program using PyXB to interact with a `web service
 automatically-generated module.  First, retrieve the WSDL and generate the
 bindings::
 
-  vmserver[171]$ pyxbgen \
-    --wsdl-location="http://wsf.cdyne.com/WeatherWS/Weather.asmx?wsdl" \
-    --module=weather \
-    --write-for-customization
-  urn:uuid:3a6c7be2-d9b7-11e0-ae84-001fbc013adc
-  Retrieving WSDL from http://wsf.cdyne.com/WeatherWS/Weather.asmx?wsdl
+  llc[1394]$ pyxbgen \
+      --wsdl-location=http://wsf.cdyne.com/WeatherWS/Weather.asmx?WSDL \
+      --module=weather \
+      --write-for-customization
+  urn:uuid:c9f96a32-b700-11e1-b837-c8600024e903
+  Retrieving WSDL from http://wsf.cdyne.com/WeatherWS/Weather.asmx?WSDL
   Importing pyxb.binding.datatypes to get binding for wildcard {http://www.w3.org/2001/XMLSchema}schema
   NOTE: Created unbound wildcard element from value in schema
-  PS urn:uuid:3a6c7be2-d9b7-11e0-ae84-001fbc013adc
+  PS urn:uuid:c9f96a32-b700-11e1-b837-c8600024e903
+  Complex type {http://ws.cdyne.com/WeatherWS/}WeatherReturn renamed to WeatherReturn_
   Complex type {http://ws.cdyne.com/WeatherWS/}ArrayOfWeatherDescription renamed to ArrayOfWeatherDescription_
   Complex type {http://ws.cdyne.com/WeatherWS/}ForecastReturn renamed to ForecastReturn_
-  Complex type {http://ws.cdyne.com/WeatherWS/}WeatherReturn renamed to WeatherReturn_
   Python for http://ws.cdyne.com/WeatherWS/ requires 1 modules
   Saved binding source to ./raw/weather.py
-  vmserver[171]$  
 
 Then write a program that uses them:
 
@@ -86,16 +85,15 @@ Then write a program that uses them:
 
 And run it::
 
- vmserver[171]$ python client.py
- Got response for Saint Paul, MN:
-  Thursday, September 08 2011: Sunny, from 58 to 80
-  Friday, September 09 2011: Partly Cloudy, from 58 to 80
-  Saturday, September 10 2011: Sunny, from 58 to 80
-  Sunday, September 11 2011: Sunny, from 58 to 81
-  Monday, September 12 2011: Partly Cloudy, from 61 to 80
-  Tuesday, September 13 2011: Sunny, from 55 to 69
-  Wednesday, September 14 2011: Sunny, from 48 to 68
- vmserver[172]$ 
+ llc[1395]$ python client_get.py 
+ Weather forecast for Saint Paul, MN:
+  Friday, June 15 2012: Partly Cloudy, from  to 85
+  Saturday, June 16 2012: Thunder Storms, from 67 to 81
+  Sunday, June 17 2012: Sunny, from 62 to 84
+  Monday, June 18 2012: Partly Cloudy, from 69 to 86
+  Tuesday, June 19 2012: Thunder Storms, from 68 to 81
+  Wednesday, June 20 2012: Thunder Storms, from 68 to 83
+  Thursday, June 21 2012: Partly Cloudy, from 62 to 73
 
 That's it.
 
