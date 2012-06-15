@@ -30,9 +30,6 @@ help:
 	@echo "  linkcheck to check all external links for integrity"
 	@echo "  doctest   to run all doctests embedded in the documentation (if enabled)"
 
-clean:
-	-rm -rf html _build
-
 apihtml:
 	mkdir -p html/api
 	PYTHONPATH=.. $(EPYDOC) $(EPYDOCOPTS)
@@ -43,6 +40,10 @@ pyxbgen_cli.txt: ../pyxb/binding/generate.py ../maintainer/gendoc
 GENERATED_TXT += pyxbgen_cli.txt
 
 html: $(GENERATED_TXT)
-	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) html
+	PYTHONPATH=. $(SPHINXBUILD) -b html $(ALLSPHINXOPTS) html
 	@echo
 	@echo "Build finished. The HTML pages are in _build/html."
+
+clean:
+	-rm -rf html _build ${GENERATED_TXT}
+
