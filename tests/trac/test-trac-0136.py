@@ -40,7 +40,7 @@ class TestTrac_0136 (unittest.TestCase):
         self.assertEqual(i_p10.tzinfo, i_Z.tzinfo)
         self.assertEqual(i_p10.xsdLiteral(), self.TS_Z)
         i_naive = CreateFromDocument(self.genXML(self.TS_naive))
-        self.assertIsNone(i_naive.tzinfo)
+        self.assertTrue(i_naive.tzinfo is None)
 
     def testUnnormalized (self):
         pyxb.PreserveInputTimeZone(True);
@@ -50,7 +50,7 @@ class TestTrac_0136 (unittest.TestCase):
         self.assertNotEqual(i_p10.tzinfo, i_Z.tzinfo)
         self.assertEqual(i_p10.xsdLiteral(), self.TS_p10)
         i_naive = CreateFromDocument(self.genXML(self.TS_naive))
-        self.assertIsNone(i_naive.tzinfo)
+        self.assertTrue(i_naive.tzinfo is None)
 
 if __name__ == '__main__':
     unittest.main()

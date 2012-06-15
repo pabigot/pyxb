@@ -29,8 +29,7 @@ def MakeCamelCase (identifier):
     return _CamelCase_re.sub(lambda _m: _m.group(0)[1].upper(), unicode(identifier))
 
 class TestTrac0141 (unittest.TestCase):
-    @classmethod
-    def tearDownClass (cls):
+    def tearDown (cls):
         pyxb.utils.utility._SetXMLIdentifierToPython(None)
         
     def testDefaultMakeIdentifier (self):

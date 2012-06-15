@@ -65,7 +65,11 @@ class TestTrac0131 (unittest.TestCase):
         instance = CreateFromDocument(xmls)
         self.assertEqual(instance.e, self.textu)
         pyxb._SetXMLStyle(pyxb.XMLStyle_minidom)
-        self.assertRaises(self.ExpectedUnicodeErrors, CreateFromDocument, xmlu)
+        if sys.version[:2] == (2, 7):
+            self.assertRaises(self.ExpectedUnicodeErrors, CreateFromDocument, xmlu)
+        else:
+            instance = CreateFromDocument(xmlu)
+            self.assertEqual(instance.e, self.textu)
         instance = CreateFromDocument(xmls)
         self.assertEqual(instance.e, self.textu)
         # saxdom can handle Unicode representation

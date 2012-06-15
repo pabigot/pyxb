@@ -34,8 +34,7 @@ class TestTrac_0139 (unittest.TestCase):
     nihongo_enc = 'iso-2022-jp'
     nihongo = u'基盤地図情報ダウンロードデータ（GML版）'
     
-    @classmethod
-    def buildDocument (cls, text, encoding):
+    def buildDocument (self, text, encoding):
         map = { 'text' : text }
         if encoding is None:
             map['encoding'] = ''
@@ -43,38 +42,53 @@ class TestTrac_0139 (unittest.TestCase):
             map['encoding'] = ' encoding="%s"' % (encoding,)
         return u'<?xml version="1.0"%(encoding)s?><text>%(text)s</text>' % map
 
-    @classmethod
-    def setUpClass (cls):
-        cls.nihongo_xml = cls.buildDocument(cls.nihongo, cls.nihongo_enc)
-        (fd, cls.path_nihongo) = tempfile.mkstemp()
-        bytes = cls.nihongo_xml
-        if cls.nihongo_enc is not None:
-            bytes = bytes.encode(cls.nihongo_enc)
+    # NOTE: Init-lower version does not exist before Python 2.7, so
+    # make this non-standard and invoke it in init
+    def SetUpClass (self):
+        self.nihongo_xml = self.buildDocument(self.nihongo, self.nihongo_enc)
+        (fd, self.path_nihongo) = tempfile.mkstemp()
+        bytes = self.nihongo_xml
+        if self.nihongo_enc is not None:
+            bytes = bytes.encode(self.nihongo_enc)
         os.fdopen(fd, 'w').write(bytes)
-        cls.ascii_xml = cls.buildDocument(cls.ascii, cls.ascii_enc)
-        (fd, cls.path_ascii) = tempfile.mkstemp()
-        bytes = cls.ascii_xml
-        if cls.ascii_enc is not None:
-            bytes = bytes.encode(cls.ascii_enc)
+        self.ascii_xml = self.buildDocument(self.ascii, self.ascii_enc)
+        (fd, self.path_ascii) = tempfile.mkstemp()
+        bytes = self.ascii_xml
+        if self.ascii_enc is not None:
+            bytes = bytes.encode(self.ascii_enc)
         os.fdopen(fd, 'w').write(bytes)
 
         # Ensure test failures are not due to absence of libxml2,
         # which PyXB can't control.
-        cls.have_libxml2 = True
+        self.have_libxml2 = True
         try:
             import drv_libxml2
         except ImportError:
-            cls.have_libxml2 = False
+            self.have_libxml2 = False
             print 'WARNING: libxml2 not present, test is not valid'
 
-    @classmethod
-    def tearDownClass (cls):
-        pyxb.utils.saxutils.SetCreateParserModules(None)
-        os.remove(cls.path_ascii)
-        os.remove(cls.path_nihongo)
+    # NOTE: Init-lower version does not exist before Python 2.7, so
+    # make this non-standard and invoke it in del
+    def TearDownClass (self):
+        os.remove(self.path_ascii)
+        os.remove(self.path_nihongo)
 
     def useLibXML2Parser (self):
         pyxb.utils.saxutils.SetCreateParserModules(['drv_libxml2'])
+
+    def tearDownClass (self):
+        pyxb.utils.saxutils.SetCreateParserModules(None)
+
+    def __init__ (self, *args, **kw):
+        self.SetUpClass()
+        super(TestTrac_0139, self).__init__(*args, **kw)
+
+    def __del__ (self, *args, **kw):
+        self.TearDownClass()
+        try:
+            super(TestTrac_0139, self).__del__(*args, **kw)
+        except AttributeError:
+            pass
 
     # Make sure create parser modules is reset after each test
     def tearDown (self):
@@ -99,9 +113,11 @@ class TestTrac_0139 (unittest.TestCase):
         self.useLibXML2Parser();
         xmls = self.ascii_xml
         # ERROR: This should be fine, see trac/147
-        #instance = CreateFromDocument(xmls)
-        #self.assertEqual(self.ascii, instance)
-        self.assertRaises(xml.sax.SAXParseException, CreateFromDocument, xmls)
+        if sys.version[:2] == (2, 7):
+            self.assertRaises(xml.sax.SAXParseException, CreateFromDocument, xmls)
+        else:
+            instance = CreateFromDocument(xmls)
+            self.assertEqual(self.ascii, instance)
 
     def testASCII_expat_file (self):
         xmls = file(self.path_ascii).read()
@@ -124,16 +140,18 @@ class TestTrac_0139 (unittest.TestCase):
 
     def testNihongo_libxml2_str (self):
         xmls = self.nihongo_xml
-        # ERROR: This should be fine, see trac/147
-        #instance = CreateFromDocument(xmls)
-        #self.assertEqual(self.nihongo, instance)
-        self.assertRaises(UnicodeEncodeError, CreateFromDocument, xmls)
+        if self.have_libxml2:
+            # ERROR: This should be fine, see trac/147
+            #instance = CreateFromDocument(xmls)
+            #self.assertEqual(self.nihongo, instance)
+            self.assertRaises(UnicodeEncodeError, CreateFromDocument, xmls)
 
     def testNihongo_libxml2_file (self):
         self.useLibXML2Parser();
-        xmls = file(self.path_nihongo).read()
-        instance = CreateFromDocument(xmls)
-        self.assertEqual(self.nihongo, instance)
+        if self.have_libxml2:
+            xmls = file(self.path_nihongo).read()
+            instance = CreateFromDocument(xmls)
+            self.assertEqual(self.nihongo, instance)
 
     def testASCII_stringio (self):
         f = file(self.path_ascii).read();
