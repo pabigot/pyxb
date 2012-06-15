@@ -5,8 +5,8 @@ PyXB ticket: http://sourceforge.net/apps/trac/pyxb/ticket/139
 The files in the data subdirectory include a schema and a sample document,
 in each of the encodings shift_jis, euc-jp, iso-2022-jp, and utf-8.  The
 original format is shift_jis, and is available from
-http://www.gsi.go.jp/LAW/2930-index.html.  The other formats were converted
-from the shift_jis version by the reporter of ticket 139.
+http://fgd.gsi.go.jp/download/.  The other formats were converted from the
+shift_jis version by the reporter of ticket 139.
 
 The domain appears to be Japanese extensions to the OpenGIS GML
 infrastructure.  Two issues are addressed in the example:

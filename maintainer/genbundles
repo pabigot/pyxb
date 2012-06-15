@@ -1,3 +1,15 @@
-for bundle in common wssplat opengis saml20 ; do
-  pyxb/bundles/${bundle}/scripts/genbind || exit 1
+# Invoke with additional bundles as command line arguments.  An argument of
+# @ is replaced by the default set of bundles.  E.g.::
+#  ${PYXB_ROOT}/maintainer/genbundles @ opengis
+# will build the standard bundles as well as the OpenGIS bindings.  Bundles
+# may have dependencies, and are built in the specified order.  All previous
+# bundles are made available during the build.
+
+BUNDLES="common wssplat saml20"
+if [ 0 -lt $# ] ; then
+  BUNDLES=$(echo ${@} | sed -e "s/@/${BUNDLES}/")
+fi
+
+for bundle in ${BUNDLES} ; do
+  pyxb/bundles/${bundle}/scripts/genbind || (echo 1>&2 Error building bundle ${bundle} ; exit 1 )
 done

@@ -13,9 +13,10 @@ running::
 
   cd ${PYXB_ROOT}
   pyxb/bundles/opengis/scripts/genbind
+  python setup.py install
 
-This will download the latest set of schema from OpenGIS, and translate many
-of the standards.  The namespaces that are currently supported by PyXB are
-listed at http://pyxb.sourceforge.net/bundles.html#opengis.  Additional
-namespaces can be added by modifying genbind to include them, and re-running
-the script.
+This will download the latest set of schema from OpenGIS, translate many of
+the standards, and install the whole system including the new bindings.  The
+namespaces that are currently supported by PyXB are listed at
+http://pyxb.sourceforge.net/bundles.html#opengis.  Additional namespaces can
+be added by modifying genbind to include them, and re-running the script.

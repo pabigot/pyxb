@@ -25,9 +25,9 @@ relaxed policy is:
 - All packaged releases are intended to be of comparable stability, with bug
   fixes and most enhancements causing an increment in the third integer
 
-As an example, it is likely that resolution of :ticket:`112` which will
-replace the content model automata infrastructure will result in PyXB 1.2.0,
-and support of Python 3 in :ticket:`150` will result in PyXB 2.0.0.
+As an example, it is likely that :ticket:`correcting the content model for
+weak determinism <112>` will result in PyXB 1.2.0, and :ticket:`support of
+Python 3 <150>` will result in PyXB 2.0.0.
 
 
 1.1.x
@@ -36,10 +36,18 @@ and support of Python 3 in :ticket:`150` will result in PyXB 2.0.0.
 1.1.4 (14 Jun 2012)
 -------------------
 
-A large number of bug fixes, especially in the area of internationalization.
-Naive uses of unicode have mostly been eliminated.  There are also corrections
-and improvements to date and time-related types, especially with respect to
-timezones.
+Key features of the release:
+
+- A large number of bug fixes, especially in the area of internationalization.
+  Naive uses of unicode have mostly been eliminated.
+- Corrections and improvements to date and time-related types, especially with
+  respect to timezones.
+- More namespaces have been added in the :ref:`common <bundle_common>`,
+  :ref:`WS-* <bundle_wssplat>`, and :ref:`OpenGIS <bundle_opengis>` bundles.
+- This release eliminates the separate packages for different bundles; all
+  bundles and documentation except for OpenGIS are incorporated into the
+  release file.  OpenGIS is present but must be built manually; see
+  :ref:`OpenGIS <bundle_opengis>`
 
 Examples have been added:
 
@@ -52,11 +60,10 @@ Examples have been added:
 - ``examples/unicode_jp`` demonstrates internationalization features including
   the ability to intercept PyXB's construction of Python identifiers from XML
   identifiers to produce meaningful identifiers when the schema language is
-  not compatible with the Python 2 requirement that identifiers by ASCII.
+  not compatible with the Python 2 requirement that identifiers be ASCII.
 
-This release eliminates the separate packages for different bundles; all
-bundles and documentation except for OpenGIS are incorporated into the release
-file.
+The following reported `defects/enhancements
+<http://sourceforge.net/apps/trac/pyxb/>`_ have been addressed:
 
 - Timezone support for xsd:date types. :ticket:`102`
 - Pattern restriction does not work correctly with Unicode. :ticket:`108`
@@ -70,7 +77,7 @@ file.
 - module CreateFromDocument ignores default_namespace. :ticket:`120`
 - PyXB elementary data types do not play well with copy/pickling/.... :ticket:`121`
 - PxXB should allow to assign None to optional elements and attributes. :ticket:`122`
-- toxml() fails. :ticket:`123: unbound wildcard element`
+- unbound wildcard element toxml() fails. :ticket:`123`
 - misapplied allow_builtin_generation keyword in Generator. :ticket:`124`
 - attributes are not validated regardless of pyxb.RequireValidWhenGenerating. :ticket:`126`
 - dateTime objects must be timezone-aware. :ticket:`127`
@@ -78,7 +85,7 @@ file.
 - incorrect timezone adjustment from python values. :ticket:`129`
 - validate processing of unicode in assignments and documents. :ticket:`131`
 - Crash in PyXB when attempting to retrieve Unicode value from exception. :ticket:`132`
-- wrong validation regexes. :ticket:`134: Name, NMTOKEN, NCName`
+- Name, NMTOKEN, NCName wrong validation regexes. :ticket:`134`
 - opengis/scripts/genbind removes all user files. :ticket:`135`
 - preserve timezone in processing. :ticket:`136`
 - wildcards rejected when validation disabled during parsing. :ticket:`137`

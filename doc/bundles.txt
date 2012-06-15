@@ -140,10 +140,12 @@ absolute path of the unpacked PyXB distribution (the directory containing
 
   cd ${PYXB_ROOT}
   pyxb/bundles/opengis/scripts/genbind
+  python setup.py install
 
-This will download the schemas from OGC and generate bindings for the
-namespaces below.  Other namespaces are available and can be added by
-modifying the ``genbind`` script and re-running the commands above.
+This will download the schemas from OGC, generate bindings for the
+namespaces below, and (re-)install PyXB including the new bindings.  Other
+namespaces are available and can be added by modifying the ``genbind``
+script and re-running the commands above.
 
 .. PYXB_ARCHIVE_PATH=${PYXB_ROOT}/pyxb/bundles/opengis// ${PYXB_ROOT}/scripts/pyxbdump \
    | awk '$2~/pyxb.bundles.opengis/ { print $2, $1; }' \
