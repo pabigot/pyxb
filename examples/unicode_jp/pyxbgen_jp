@@ -1,4 +1,7 @@
 #!/usr/bin/env python
+#
+# Stripped down version of pyxbgen incorporating Japanese-to-Romaji
+# transliteration provided by Hiroaki Itoh.
 
 import pyxb.xmlschema
 import pyxb.binding.generate
