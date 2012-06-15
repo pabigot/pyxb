@@ -76,7 +76,7 @@ class TestTrac_0139 (unittest.TestCase):
     def useLibXML2Parser (self):
         pyxb.utils.saxutils.SetCreateParserModules(['drv_libxml2'])
 
-    def tearDownClass (self):
+    def tearDown (self):
         pyxb.utils.saxutils.SetCreateParserModules(None)
 
     def __init__ (self, *args, **kw):
