@@ -261,9 +261,6 @@ are left as DOM nodes.  :api:`Wildcard attributes
 a map from their :api:`expanded name <pyxb.namespace.ExpandedName>` to the
 unicode value of the attribute.
 
-For information on validating the content of a complex type, see
-:ref:`arch_content_automata_parsing`.
-
 When creating a complex type definition, you can provide the values for its
 attributes and fields through arguments and keywords.  Keywords whose name
 matches an attribute or element identifier are used to set that element,
