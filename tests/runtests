@@ -1,4 +1,0 @@
-PYTHONPATH=../src
-export PYTHONPATH
-cd tests
-nosetests drivers/
