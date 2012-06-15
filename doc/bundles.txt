@@ -134,7 +134,16 @@ other contexts.
 
 This bundle is not populated in the distributed versions of PyXB because it
 requires some 168MB of space to hold the schemas, generated bindings, and
-archive files.
+archive files.  To build it, set ``PYXB_ROOT`` environment variable to the
+absolute path of the unpacked PyXB distribution (the directory containing
+:file:`setup.py`) and run these commands::
+
+  cd ${PYXB_ROOT}
+  pyxb/bundles/opengis/scripts/genbind
+
+This will download the schemas from OGC and generate bindings for the
+namespaces below.  Other namespaces are available and can be added by
+modifying the ``genbind`` script and re-running the commands above.
 
 .. PYXB_ARCHIVE_PATH=${PYXB_ROOT}/pyxb/bundles/opengis// ${PYXB_ROOT}/scripts/pyxbdump \
    | awk '$2~/pyxb.bundles.opengis/ { print $2, $1; }' \

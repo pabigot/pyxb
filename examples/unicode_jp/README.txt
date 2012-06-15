@@ -51,8 +51,7 @@ Many thanks to "hhsprings" for providing the schemas, example document, and
 romanization code.
 
 Note: Because the package depends on OpenGIS, and OpenGIS bindings are no
-longer provided in the PyXB distribution, you will have to generate these
-bindings first.  If they are missing, PyXB might try to download them from
-the Internet and build them for you, but that is the wrong way to use this.
-See the README.txt in the pyxb/bundles/opengis directory.
-
+longer provided in the PyXB distribution, you should generate these bindings
+first.  If they are missing, the test script will emit a warning and PyXB
+will download and build them for you, but that is the wrong way to use
+OpenGIS.  See the README.txt in the pyxb/bundles/opengis directory.

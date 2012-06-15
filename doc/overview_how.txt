@@ -5,29 +5,19 @@ Installation
 ------------
 
 PyXB requires Python version 2.4 or higher (not including 3.x).  Among other
-things the implementation relies on decorators (:PEP:`318`) like
-``@classref`` that are not present in earlier versions.  The distribution is
-regularly tested with the latest release in each of the 2.4, 2.5, and 2.6
-series.
+things the implementation relies on decorators (:PEP:`318`) like ``@classref``
+that are not present in earlier versions.  The distribution is regularly
+tested with the latest release in each of the 2.4, 2.5, 2.6, and 2.7 series.
 
-PyXB is distributed in several forms through `SourceForge
-<https://sourceforge.net/projects/pyxb/files/>`_.  If all you want is the
-ability to generate bindings for XML schemas, use the ``PyXB-base`` release
-file.  If you also want pre-built documentation, unpack the ``PyXB-doc``
-release as well.  For pre-built bundles, use the following:
-
-.. table:: Pre-built Bundle Distribution Files
-
-   =================  =======================================
-    File              Bundle Contents
-   =================  =======================================
-   ``PyXB-common``    XHTML, other miscellaneous namespaces
-   ``PyXB-opengis``   The complete suite of OpenGIS schemas
-   ``PyXB-wssplat``   A wide variety of WS-* schemas
-   =================  =======================================
-
-If you want everything in one download, just get the `PyXB-full
-<http://p.sf.net/pyxb/full>`_ distribution file.
+PyXB is distributed through `SourceForge
+<https://sourceforge.net/projects/pyxb/files/>`_.  As of the 1.1.4 release,
+separated :ref:`bundles <bundles>` are no longer distributed.  The `source distribution
+<http://p.sf.net/pyxb/full>`_ includes pre-built bindings for the :ref:`common
+(core XML) <bundle_common>`, :ref:`WS-* (web services) <bundle_wssplat>`, and
+:ref:`SAML (Security Assertion Markup Languge) <bundle_saml20>` bundles, as
+well as the user and API documentation.  The :ref:`OpenGIS <bundle_opengis>`
+bundle infrastructure is present, but due to the size of the bindings and
+archives is not pre-built.
 
 Install in the usual manner::
 

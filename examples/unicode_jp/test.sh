@@ -4,6 +4,20 @@
 # made available during binding generation.
 export PYXB_ARCHIVE_PATH='&pyxb/bundles/opengis//:+'
 
+if python -c 'import pyxb.bundles.opengis.gml_3_2' ; then
+  echo 1>&2 "OpenGIS bundle present and will be used"
+else
+  cat 1>&2 <<EOText
+
+Warning: The PyXB OpenGIS bundle is not available.  PyXB will attempt to
+dynamically retrieve the referenced schemas and build them, but if you
+intend to work with this example, please follow the directions in the
+opengis bundle directory.
+EOText
+fi
+
+exit 0
+
 # This allows this script to run under the autotest environment, where
 # output is sent to a file.
 export PYTHONIOENCODING='utf-8'
