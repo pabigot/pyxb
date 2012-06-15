@@ -1,6 +1,7 @@
+import sys
 import pyxb.binding.generate
 import pyxb.utils.domutils
-import pyxb.bundles.wssplat.ds as dsig
+
 
 xmls = '''<?xml version="1.0"?>
 <Signature xmlns="http://www.w3.org/2000/09/xmldsig#">
@@ -25,6 +26,11 @@ import unittest
 
 class TestTrac0123 (unittest.TestCase):
     def testEmpty (self):
+        try:
+            import pyxb.bundles.wssplat.ds as dsig
+        except ImportError, e:
+            sys.stderr.write('%s: Skipping test, error importing dsig: %s\n' % (__file__, e))
+            return
         instance = dsig.CreateFromDocument(xmls)
         # Problem was the PrefixList attribute in InclusiveNamespaces,
         # which has no namespace; deepClone couldn't handle it.  Show
