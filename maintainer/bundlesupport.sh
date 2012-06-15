@@ -34,6 +34,14 @@ ARCHIVE_DIR=${RAW_DIR}
 rm -rf ${RAW_DIR}
 mkdir -p ${RAW_DIR}
 touch ${RAW_DIR}/__init__.py
+
+if ! test -d ${SCHEMA_DIR} && \
+   test -n ${PYXB_SCHEMA_REPO+available} && \
+    ( cd ${PYXB_SCHEMA_REPO} && git log -1 schemas/bundles/${BUNDLE_TAG} ) ; then
+  ( cd ${BUNDLE_ROOT} &&
+    git clone -b schemas/bundles/${BUNDLE_TAG} ${PYXB_SCHEMA_REPO} schemas )
+fi
+
 mkdir -p ${SCHEMA_DIR}
 
 # We use this keep local comes of schema we had to retrieve from a
