@@ -3631,7 +3631,7 @@ class Annotation (_SchemaComponent_mixin):
         return rv
 
     __RemoveMultiQuote_re = re.compile('""+')
-    def asDocString (self, encoding=None, error='xmlcharrefreplace'):
+    def asDocString (self):
         """Return the text in a form suitable for embedding in a
         triple-double-quoted docstring.
 
@@ -3639,9 +3639,7 @@ class Annotation (_SchemaComponent_mixin):
         single quotes that is the same length.  Following this, spaces are
         added at the start and the end as necessary to ensure a double quote
         does not appear in those positions."""
-        if encoding is None:
-            encoding = pyxb._OutputEncoding
-        rv = self.text().encode(encoding, error)
+        rv = self.text()
         rv = self.__RemoveMultiQuote_re.sub(lambda _mo: "'" * (_mo.end(0) - _mo.start(0)), rv)
         if rv.startswith('"'):
             rv = ' ' + rv
