@@ -49,6 +49,7 @@ class update_version (Command):
             for (k, v) in self.substitutions.items():
                 text = text.replace('@%s@' % (k,), v)
             file(f,'w').write(text)
+            os.chmod(f, os.stat(f)[stat.ST_MODE] & ~(stat.S_IWUSR | stat.S_IWGRP | stat.S_IWOTH))
 
 class test (Command):
 
