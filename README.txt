@@ -1,13 +1,10 @@
 PyXB -- Python W3C XML Schema Bindings
-Version 1.1.4-DEV
+Version 1.1.4
 
-Distribution components:
-  PyXB-base-1.1.4-DEV.tar.gz -- Complete release, nothing pre-built
-  PyXB-doc-1.1.4-DEV.tar.gz -- Overlay with pre-built documentation
-  PyXB-common-1.1.4-DEV.tar.gz -- Overlay with XHTML bindings
-  PyXB-opengis-1.1.4-DEV.tar.gz -- Overlay with OpenGIS bindings
-  PyXB-wsspat-1.1.4-DEV.tar.gz -- Overlay with WS-* bindings
-  PyXB-full-1.1.4-DEV.tar.gz -- Complete release with all overlays
+This source release includes pre-built bundles for common XML namespaces,
+assorted web service namespaces, and SAML.  A bundle for over 75 namespaces
+related to Geographic Information Systems is also available; if you want
+those, read pyxb/bundles/opengis/README.txt before installing PyXB.
 
 Installation:  python setup.py install
 

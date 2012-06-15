@@ -33,7 +33,7 @@ Python 3 <150>` will result in PyXB 2.0.0.
 1.1.x
 =====
 
-1.1.4 (14 Jun 2012)
+1.1.4 (15 Jun 2012)
 -------------------
 
 Key features of the release:
@@ -97,7 +97,6 @@ The following reported `defects/enhancements
 - toxml needs encoding support. :ticket:`144`
 - mark encoding in generated output. :ticket:`146`
 - domutils references unqualified PyXB exceptions. :ticket:`148`
-
 
 
 1.1.3 (09 Sep 2011)

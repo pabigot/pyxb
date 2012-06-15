@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 # The current version of the system.  Format is #.#.#[-DEV].
-version = '1.1.4-DEV'
+version = '1.1.4'
 
 import distutils.sysconfig
 
@@ -48,6 +48,7 @@ class update_version (Command):
             text = file('%s.in' % (f,)).read()
             for (k, v) in self.substitutions.items():
                 text = text.replace('@%s@' % (k,), v)
+            os.chmod(f, os.stat(f)[stat.ST_MODE] | stat.S_IWUSR | stat.S_IWGRP | stat.S_IWOTH)
             file(f,'w').write(text)
             os.chmod(f, os.stat(f)[stat.ST_MODE] & ~(stat.S_IWUSR | stat.S_IWGRP | stat.S_IWOTH))
 
