@@ -113,7 +113,7 @@ class TestTrac_0139 (unittest.TestCase):
         self.useLibXML2Parser();
         xmls = self.ascii_xml
         # ERROR: This should be fine, see trac/147
-        if sys.version[:2] == (2, 7):
+        if sys.version_info[:2] == (2, 7):
             self.assertRaises(xml.sax.SAXParseException, CreateFromDocument, xmls)
         else:
             instance = CreateFromDocument(xmls)

@@ -65,7 +65,7 @@ class TestTrac0131 (unittest.TestCase):
         instance = CreateFromDocument(xmls)
         self.assertEqual(instance.e, self.textu)
         pyxb._SetXMLStyle(pyxb.XMLStyle_minidom)
-        if sys.version[:2] == (2, 7):
+        if sys.version_info[:2] == (2, 7):
             self.assertRaises(self.ExpectedUnicodeErrors, CreateFromDocument, xmlu)
         else:
             instance = CreateFromDocument(xmlu)
