@@ -23,19 +23,6 @@ import types
 import pyxb.namespace
 from pyxb.namespace.builtin import XMLSchema_instance as XSI
 
-BINDING_STYLE_ACCESSOR = 'accessor'
-BINDING_STYLE_PROPERTY = 'property'
-
-BINDING_STYLES = (BINDING_STYLE_ACCESSOR, BINDING_STYLE_PROPERTY)
-DEFAULT_BINDING_STYLE = BINDING_STYLE_PROPERTY
-CURRENT_BINDING_STYLE = None
-
-def ConfigureBindingStyle (style):
-    global CURRENT_BINDING_STYLE
-    simpleTypeDefinition._ConfigureBindingStyle(style)
-    complexTypeDefinition._ConfigureBindingStyle(style)
-    CURRENT_BINDING_STYLE = style
-
 class _TypeBinding_mixin (utility.Locatable_mixin):
 
     @classmethod
@@ -600,15 +587,6 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
     currently are no public symbols in generated SimpleTypeDefinion
     bindings."""
 
-
-    @classmethod
-    def _ConfigureBindingStyle (cls, style):
-        if BINDING_STYLE_PROPERTY == style:
-            pass
-        elif BINDING_STYLE_ACCESSOR == style:
-            pass
-        else:
-            raise pyxb.LogicError('Unrecognized binding style %s' % (style,))
 
     # Determine the name of the class-private facet map.  For the base class
     # this should produce the same attribute name as Python's privatization
@@ -1693,15 +1671,6 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         """
         return self.__wildcardElements
 
-    @classmethod
-    def _ConfigureBindingStyle (cls, style):
-        if BINDING_STYLE_PROPERTY == style:
-            pass
-        elif BINDING_STYLE_ACCESSOR == style:
-            pass
-        else:
-            raise pyxb.LogicError('Unrecognized binding style %s' % (style,))
-
     def __init__ (self, *args, **kw):
         """Create a new instance of this binding.
 
@@ -2254,8 +2223,6 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             if cls._HasWildcardElement:
                 desc.append("\n  Wildcard element(s)")
         return ''.join(desc)
-
-ConfigureBindingStyle(DEFAULT_BINDING_STYLE)
 
 ## Local Variables:
 ## fill-column:78

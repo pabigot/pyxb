@@ -6,7 +6,7 @@ import pyxb.binding.basis
 
 import os.path
 schema_path = '%s/../schemas/alt-po1.xsd' % (os.path.dirname(__file__),)
-code = pyxb.binding.generate.GeneratePython(schema_location=schema_path, binding_style=pyxb.binding.basis.BINDING_STYLE_PROPERTY)
+code = pyxb.binding.generate.GeneratePython(schema_location=schema_path)
 #file('code.py', 'w').write(code)
 
 rv = compile(code, 'test', 'exec')
@@ -22,12 +22,6 @@ def ToDOM (instance, tag=None, dom_support=None):
 import unittest
 
 class TestProperties (unittest.TestCase):
-
-    def setUp (self):
-        pyxb.binding.basis.ConfigureBindingStyle(pyxb.binding.basis.BINDING_STYLE_PROPERTY)
-
-    def tearDown (self):
-        pyxb.binding.basis.ConfigureBindingStyle(pyxb.binding.basis.DEFAULT_BINDING_STYLE)
 
     street_content = '''95 Main St.
 Anytown, AS  12345-6789'''

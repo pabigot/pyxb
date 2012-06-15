@@ -642,28 +642,9 @@ class %{ctd} (%{superclass}):
     %{use} = pyxb.binding.content.ElementUse(%{name_expr}, '%{id}', '%{key}', %{is_plural}%{aux_init})
 ''', name_expr=binding_module.literal(ed.expandedName(), **kw), **ef_map))
 
-            if basis.BINDING_STYLE_ACCESSOR == generator.bindingStyle():
-                definitions.append(templates.replaceInText('''
-    def %{inspector} (self):
-        """Get the value of the %{name} element."""
-        return self.%{use}.value(self)
-    def %{mutator} (self, new_value):
-        """Set the value of the %{name} element.  Raises BadValueTypeException
-        if the new value is not consistent with the element's type."""
-        return self.%{use}.set(self, new_value)''', **ef_map))
-                if is_plural:
-                    definitions.append(templates.replaceInText('''
-    def %{appender} (self, new_value):
-        """Add the value as another occurrence of the %{name} element.  Raises
-        BadValueTypeException if the new value is not consistent with the
-        element's type."""
-        return self.%{use}.append(self, new_value)''', **ef_map))
-            elif basis.BINDING_STYLE_PROPERTY == generator.bindingStyle():
-                definitions.append(templates.replaceInText('''
+            definitions.append(templates.replaceInText('''
     %{inspector} = property(%{use}.value, %{use}.set, None, %{documentation})
 ''', **ef_map))
-            else:
-                raise pyxb.LogicError('Unexpected binding style %s' % (generator.bindingStyle(),))
             outf.postscript().append(templates.replaceInText('''
 %{ctd}._AddElement(pyxb.binding.basis.element(%{name_expr}, %{typeDefinition}%{element_aux_init}))
 ''', name_expr=binding_module.literal(ed.expandedName(), **kw), ctd=template_map['ctd'], **ef_map))
@@ -741,37 +722,13 @@ class %{ctd} (%{superclass}):
     # Attribute %{name} uses Python identifier %{id}
     %{use} = pyxb.binding.content.AttributeUse(%{name_expr}, '%{id}', '%{key}', %{attr_type}%{aux_init})''', name_expr=binding_module.literal(ad.expandedName(), **kw), **au_map))
         if au.prohibited():
-            if basis.BINDING_STYLE_ACCESSOR == generator.bindingStyle():
-                definitions.append(templates.replaceInText('''
-    # Attribute %{id} marked prohibited in this type
-    def %{inspector} (self):
-        raise pyxb.ProhibitedAttributeError("Attribute %{name} is prohibited in %{ctd}")
-    def %{mutator} (self, new_value):
-        raise pyxb.ProhibitedAttributeError("Attribute %{name} is prohibited in %{ctd}")
-''', ctd=template_map['ctd'], **au_map))
-            elif basis.BINDING_STYLE_PROPERTY == generator.bindingStyle():
-                definitions.append(templates.replaceInText('''
+            definitions.append(templates.replaceInText('''
     %{inspector} = property()
 ''', ctd=template_map['ctd'], **au_map))
-
-            else:
-                raise pyxb.LogicError('Unexpected binding style %s' % (generator.bindingStyle(),))
         else:
-            if basis.BINDING_STYLE_ACCESSOR == generator.bindingStyle():
-                definitions.append(templates.replaceInText('''
-    def %{inspector} (self):
-        """Get the attribute value for %{name}."""
-        return self.%{use}.value(self)
-    def %{mutator} (self, new_value):
-        """Set the attribute value for %{name}.  Raises BadValueTypeException
-        if the new value is not consistent with the attribute's type."""
-        return self.%{use}.set(self, new_value)''', **au_map))
-            elif basis.BINDING_STYLE_PROPERTY == generator.bindingStyle():
-                definitions.append(templates.replaceInText('''
+            definitions.append(templates.replaceInText('''
     %{inspector} = property(%{use}.value, %{use}.set, None, %{documentation})
 ''', ctd=template_map['ctd'], **au_map))
-            else:
-                raise pyxb.LogicError('Unexpected binding style %s' % (generator.bindingStyle(),))
 
     if ctd.attributeWildcard() is not None:
         definitions.append('_AttributeWildcard = %s' % (binding_module.literal(ctd.attributeWildcard(), **kw),))
@@ -1878,23 +1835,6 @@ class Generator (object):
         return self
     __validateChanges = None
 
-    _DEFAULT_bindingStyle = basis.CURRENT_BINDING_STYLE
-    def bindingStyle (self):
-        """The style of Python used in generated bindings.
-
-        C{accessor} means values are private variables accessed
-        through inspector and mutator methods.
-
-        C{property} means values are private variables accessed
-        through a Python property.
-        """
-        return self.__bindingStyle
-    def setBindingStyle (self, binding_style):
-        raise pyxb.IncompleteImplementationError('No support for binding style configuration')
-        self.__bindingStyle = binding_style
-        return self
-    __bindingStyle = None
-
     def writeForCustomization (self):
         """Indicates whether the binding Python code should be written into a sub-module for customization.
 
@@ -1964,7 +1904,6 @@ class Generator (object):
         @keyword private_namespace: Invokes L{setNamespaceVisibility}
         @keyword default_namespace_public: Invokes L{setDefaultNamespacePublic}
         @keyword validate_changes: Invokes L{setValidateChanges}
-        @keyword binding_style: Invokes L{setBindingStyle}
         @keyword namespace_module_map: Initializes L{namespaceModuleMap}
         @keyword schemas: Invokes L{setSchemas}
         @keyword namespaces: Invokes L{setNamespaces}
@@ -1993,7 +1932,6 @@ class Generator (object):
         self._setNamespaceVisibilities(kw.get('public_namespaces', set()), kw.get('private_namespaces', set()))
         self.__defaultNamespacePublic = kw.get('default_namespace_public', False)
         self.__validateChanges = kw.get('validate_changes', True)
-        self.__bindingStyle = kw.get('binding_style', self._DEFAULT_bindingStyle)
         self.__namespaceModuleMap = kw.get('namespace_module_map', {}).copy()
         self.__schemas = kw.get('schemas', [])[:]
         self.__namespaces = set(kw.get('namespaces', []))
@@ -2028,7 +1966,6 @@ class Generator (object):
         ('pre_load_archive', _setPreLoadArchives),
         ('archive_to_file', setArchiveToFile),
         ('default_namespace_public', setDefaultNamespacePublic),
-        ('binding_style', setBindingStyle),
         ('validate_changes', setValidateChanges),
         ('write_for_customization', setWriteForCustomization),
         ('allow_builtin_generation', setAllowBuiltinGeneration),
@@ -2130,9 +2067,6 @@ class Generator (object):
             parser.add_option_group(group)
 
             group = optparse.OptionGroup(parser, 'Configuring Binding Code Generation', "Control the style and content of the generated bindings.  This is not well-supported, and you are advised to pretend these options don't exist.")
-            group.add_option('--binding-style',
-                              type='choice', choices=basis.BINDING_STYLES,
-                              help=self.__stripSpaces(self.bindingStyle.__doc__))
             group.add_option('--validate-changes',
                               action='store_true', dest='validate_changes',
                               help=self.__stripSpaces(self.validateChanges.__doc__ + ' This option turns on validation (default).'))
