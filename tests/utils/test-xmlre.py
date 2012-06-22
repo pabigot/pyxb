@@ -234,5 +234,79 @@ class TestXMLRE (unittest.TestCase):
         self.assertMatches(u"foo\\P{C}bar", u"fooWbar")
         self.assertNoMatch(u"foo\\P{C}bar", u"foo\ufffebar")
 
+    def testMultiCharEscape_s(self):
+        self.assertNoMatch(u"foo\\sbar", u"fooWbar")
+        self.assertMatches(u"foo\\sbar", u"foo bar")
+
+    def testMultiCharEscape_S(self):
+        self.assertMatches(u"foo\\Sbar", u"fooWbar")
+        self.assertNoMatch(u"foo\\Sbar", u"foo bar")
+
+    def testMultiCharEscape_i(self):
+        self.assertNoMatch(u"foo\\ibar", u"foo bar")
+        self.assertMatches(u"foo\\ibar", u"fooWbar")
+        self.assertMatches(u"foo\\ibar", u"foo:bar")
+        self.assertMatches(u"foo\\ibar", u"foo_bar")
+        self.assertMatches(u"foo\\ibar", u"foo\u0D0Cbar")
+        self.assertNoMatch(u"foo\\ibar", u"foo-bar")
+        self.assertNoMatch(u"foo\\ibar", u"foo.bar")
+        self.assertNoMatch(u"foo\\ibar", u"foo\u203Fbar")
+        self.assertNoMatch(u"foo\\ibar", u"foo\u3005bar")
+
+    def testMultiCharEscape_I(self):
+        self.assertMatches(u"foo\\Ibar", u"foo bar")
+        self.assertNoMatch(u"foo\\Ibar", u"fooWbar")
+        self.assertNoMatch(u"foo\\Ibar", u"foo:bar")
+        self.assertNoMatch(u"foo\\Ibar", u"foo_bar")
+        self.assertNoMatch(u"foo\\Ibar", u"foo\u0D0Cbar")
+        self.assertMatches(u"foo\\Ibar", u"foo-bar")
+        self.assertMatches(u"foo\\Ibar", u"foo.bar")
+        self.assertMatches(u"foo\\Ibar", u"foo\u203Fbar")
+        self.assertMatches(u"foo\\Ibar", u"foo\u3005bar")
+
+    def testMultiCharEscape_c(self):
+        self.assertNoMatch(u"foo\\cbar", u"foo bar")
+        self.assertMatches(u"foo\\cbar", u"fooWbar")
+        self.assertMatches(u"foo\\cbar", u"foo:bar")
+        self.assertMatches(u"foo\\cbar", u"foo_bar")
+        self.assertMatches(u"foo\\cbar", u"foo\u0D0Cbar")
+        self.assertMatches(u"foo\\cbar", u"foo-bar")
+        self.assertMatches(u"foo\\cbar", u"foo.bar")
+        self.assertNoMatch(u"foo\\cbar", u"foo\u203Fbar")
+        self.assertMatches(u"foo\\cbar", u"foo\u3005bar")
+
+    def testMultiCharEscape_C(self):
+        self.assertMatches(u"foo\\Cbar", u"foo bar")
+        self.assertNoMatch(u"foo\\Cbar", u"fooWbar")
+        self.assertNoMatch(u"foo\\Cbar", u"foo:bar")
+        self.assertNoMatch(u"foo\\Cbar", u"foo_bar")
+        self.assertNoMatch(u"foo\\Cbar", u"foo\u0D0Cbar")
+        self.assertNoMatch(u"foo\\Cbar", u"foo-bar")
+        self.assertNoMatch(u"foo\\Cbar", u"foo.bar")
+        self.assertMatches(u"foo\\Cbar", u"foo\u203Fbar")
+        self.assertNoMatch(u"foo\\Cbar", u"foo\u3005bar")
+
+    def testMultiCharEscape_d(self):
+        self.assertNoMatch(u"foo\\dbar", u"foo bar")
+        self.assertNoMatch(u"foo\\dbar", u"foozbar")
+        self.assertMatches(u"foo\\dbar", u"foo5bar")
+        self.assertMatches(u"foo\\dbar", u"foo\u0669bar")
+
+    def testMultiCharEscape_D(self):
+        self.assertMatches(u"foo\\Dbar", u"foo bar")
+        self.assertMatches(u"foo\\Dbar", u"foozbar")
+        self.assertNoMatch(u"foo\\Dbar", u"foo5bar")
+        self.assertNoMatch(u"foo\\Dbar", u"foo\u0669bar")
+
+    def testMultiCharEscape_w(self):
+        self.assertNoMatch(u"foo\\wbar", u"foo bar")
+        self.assertNoMatch(u"foo\\wbar", u"foo&bar")
+        self.assertMatches(u"foo\\wbar", u"fooWbar")
+
+    def testMultiCharEscape_W(self):
+        self.assertMatches(u"foo\\Wbar", u"foo bar")
+        self.assertMatches(u"foo\\Wbar", u"foo&bar")
+        self.assertNoMatch(u"foo\\Wbar", u"fooWbar")
+
 if __name__ == '__main__':
     unittest.main()
