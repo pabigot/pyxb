@@ -584,22 +584,26 @@ class TestGetMatchingFiles (unittest.TestCase):
                 out_args.append(a)
             else:
                 out_args.append(os.path.join(self.__directory, a))
-        return ':'.join(out_args)
+        return os.pathsep.join(out_args)
 
     def _stripPath (self, files):
-        return [ _f[len(self.__directory)+1:] for _f in files ]
+        return [ _f[len(self.__directory)+1:].replace(os.sep, '/') for _f in files ]
 
     def testFormPath (self):
         # Make sure _formPath preserves trailing slashes
         saved_dir = self.__directory
         candidates = [ 'a', 'a/', 'a//', '+' ]
         try:
-            self.__directory = '/test'
+            self.__directory = os.path.join(os.sep, 'test')
             expanded = self._formPath(*candidates)
-            self.assertEqual('/test/a:/test/a/:/test/a//:+', expanded)
+            expected = os.pathsep.join([os.path.join(self.__directory, 'a'),
+                                        os.path.join(self.__directory, 'a', ''),
+                                        os.path.join(self.__directory, 'a//'),
+                                        '+'])
+            self.assertEqual(expected, expanded)
             candidates.pop()
             expanded = self._formPath(*candidates)
-            condensed = self._stripPath(expanded.split(':'))
+            condensed = self._stripPath(expanded.split(os.pathsep))
             self.assertEqual(candidates, condensed)
         finally:
             self.__directory = saved_dir
@@ -639,7 +643,7 @@ class TestGetMatchingFiles (unittest.TestCase):
         kw = { 'prefix_pattern' : '&',
                'prefix_substituend' : self.__directory }
         # Note: &/d1 => /d1 so it does not count
-        files = set(self._stripPath(GetMatchingFiles('&/d1:&d2', self.__NoExt_re, **kw)))
+        files = set(self._stripPath(GetMatchingFiles(os.pathsep.join([os.path.join('&', 'd1'), '&d2']), self.__NoExt_re, **kw)))
         self.assertEqual(files, set(['d2/f2b']))
 
     def testRecursive (self):

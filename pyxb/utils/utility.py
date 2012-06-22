@@ -1034,9 +1034,12 @@ def GetMatchingFiles (path, pattern=None, default_path_wildcard=None, default_pa
     C{/opt/pyxb/bundles}, or non-recursively within
     C{/usr/local/pyxb/nsarchives}.
 
-    @param path: A colon separated list of directories in which the
-    search should be performed.  If a path entry ends with C{//}, any
-    directory beneath it is scanned as well, recursively.
+    @param path: A list of directories in which the search should be
+    performed.  The entries are separated by os.pathsep, which is a
+    colon on POSIX platforms and a semi-colon on Windows.  If a path
+    entry ends with C{//} regardless of platform, the suffix C{//} is
+    stripped and any directory beneath the path is scanned as well,
+    recursively.
 
     @keyword pattern: Optional regular expression object used to
     determine whether a given directory entry should be returned.  If
@@ -1060,12 +1063,12 @@ def GetMatchingFiles (path, pattern=None, default_path_wildcard=None, default_pa
     area.
     """
     matching_files = []
-    path_set = path.split(':')
+    path_set = path.split(os.pathsep)
     while 0 < len(path_set):
         path = path_set.pop(0)
         if default_path_wildcard == path:
             if default_path is not None:
-                path_set[0:0] = default_path.split(':')
+                path_set[0:0] = default_path.split(os.pathsep)
                 default_path = None
             continue
         recursive = False

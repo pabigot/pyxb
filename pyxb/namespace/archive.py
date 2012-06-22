@@ -118,10 +118,12 @@ class NamespaceArchive (object):
         This only validates potential archive contents; it does not load
         namespace data from the archives.  If invoked with no arguments, 
 
-        @keyword archive_path: A colon-separated list of files or directories in
-        which namespace archives can be found; see L{PathEnvironmentVariable}.
-        Defaults to L{GetArchivePath()}.  If not defaulted, C{reset} will be
-        forced to C{True}.  For any directory in the path, all files ending with
+        @keyword archive_path: A list of files or directories in which
+        namespace archives can be found.  The entries are separated by
+        os.pathsep, which is a colon on POSIX platforms and a semi-colon on
+        Windows.  See L{PathEnvironmentVariable}.  Defaults to
+        L{GetArchivePath()}.  If not defaulted, C{reset} will be forced to
+        C{True}.  For any directory in the path, all files ending with
         C{.wxs} are examined.
 
         @keyword required_archive_files: A list of paths to files that must
