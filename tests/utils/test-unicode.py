@@ -116,9 +116,9 @@ class TestCodePointSet (unittest.TestCase):
 
         n = c.negate()
         if SupportsWideUnicode:
-            self.assertEqual(u'[\u0000-\u0039\u003B-\U0010FFFF]', n.asPattern())
+            self.assertEqual(u'[\\x00-\u0039\u003B-\U0010FFFF]', n.asPattern())
         else:
-            self.assertEqual(u'[\u0000-\u0039\u003B-\uFFFF]', n.asPattern())
+            self.assertEqual(u'[\\x00-\u0039\u003B-\uFFFF]', n.asPattern())
 
         c = CodePointSet()
         c.add(']')

@@ -180,22 +180,37 @@ class CodePointSet (object):
             return self
         return self.__mutate(value, False)
 
-    # Characters that must not appear unescaped in regular expression
-    # patterns
-    __NotXMLChar_set = frozenset([ '-', '[', ']' ])
+    # Escape sequences for characters that must not appear unescaped in
+    # Python regular expression patterns.  Maps each bad character to a safe
+    # escape sequence.
+    __XMLtoPythonREMap = {
+        u'\x00': u'\\x00',  # From docs for Python's "re" module: Regular
+                            # expression pattern strings may not contain null
+                            # bytes
+        u'^': u'\\^',  # Indicates negation if it happens to occur at the
+                       # start of a character group
+        u'\\': u'\\\\',  # Escape character
+        u'[': u'\\[',  # Actually doesn't need to be escaped inside a Python
+                       # character group, but escaping it is less confusing.
+        u']': u'\\]',  # End of character group
+        u'-': u'\\-',  # Indicates a range of characters
+    }
 
     # Return the given code point as a unicode character suitable for
     # use in a regular expression
     def __unichr (self, code_point):
         rv = unichr(code_point)
-        if rv in self.__NotXMLChar_set:
-            rv = u'\\' + rv
+        rv = self.__XMLtoPythonREMap.get(rv, rv)
         return rv
 
     def asPattern (self, with_brackets=True):
         """Return the code point set as Unicode regular expression
         character group consisting of a sequence of characters or
         character ranges.
+
+        This returns a regular expression fragment using Python's
+        regular expression syntax.  Note that different regular expression
+        syntaxes are not compatible, often in subtle ways.
 
         @param with_brackets: If C{True} (default), square brackets
         are added to enclose the returned character group."""

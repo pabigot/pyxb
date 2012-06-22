@@ -192,6 +192,30 @@ class TestXMLRE (unittest.TestCase):
         self.assertTrue(compiled_re.match('identifier'))
         self.assertTrue(compiled_re.match('_underscore'))
 
+    def testConvertingRangesToPythonWithDash(self):
+        # It's really easy to convert this RE into u"foo[&-X]bar", if
+        # sorting characters in ASCII order without special-casing "-"
+        self.assertNoMatch(u"foo[-&X]bar", u"fooWbar")
+        self.assertMatches(u"foo[-&X]bar", u"foo-bar")
+        self.assertMatches(u"foo[-&X]bar", u"foo&bar")
+        self.assertMatches(u"foo[-&X]bar", u"fooXbar")
+
+    def testConvertingRangesToPythonWithCaret(self):
+        # It's really easy to convert this RE into u"foo[^z]bar", if
+        # sorting characters in ASCII order without special-casing "^"
+        self.assertNoMatch(u"foo[z^]bar", u"fooWbar")
+        self.assertMatches(u"foo[z^]bar", u"foozbar")
+        self.assertMatches(u"foo[z^]bar", u"foo^bar")
+
+    def testConvertingRangesToPythonWithBackslash(self):
+        # It's really easy to convert this RE into u"foo[A\n]bar", if
+        # you forget to special-case r"\"
+        self.assertNoMatch(u"foo[A\\\\n]bar", u"fooWbar")
+        self.assertNoMatch(u"foo[A\\\\n]bar", u"foo\nbar")
+        self.assertMatches(u"foo[A\\\\n]bar", u"fooAbar")
+        self.assertMatches(u"foo[A\\\\n]bar", u"foo\\bar")
+        self.assertMatches(u"foo[A\\\\n]bar", u"foonbar")
+
     def testCnUnicodeClass(self):
         # The Cn class is basically "everything that is not included in the
         # Unicode character database".  So it requires special handling when
