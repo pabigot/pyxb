@@ -7,7 +7,7 @@ import pyxb.binding.generate
 from xml.dom import Node
 
 import os.path
-schema_path = '%s/../schemas/test-deconflict.xsd' % (os.path.dirname(__file__),)
+schema_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../schemas/test-deconflict.xsd'))
 code = pyxb.binding.generate.GeneratePython(schema_location=schema_path)
 
 rv = compile(code, 'test', 'exec')

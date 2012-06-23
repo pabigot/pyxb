@@ -14,7 +14,7 @@ import unittest
 
 class TestIncludeDD (unittest.TestCase):
     def testDefault (self):
-        schema_path = '%s/../schemas/test-include-dcu.xsd' % (os.path.dirname(__file__),)
+        schema_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../schemas/test-include-dcu.xsd'))
         self.assertRaises(pyxb.SchemaValidationError, pyxb.binding.generate.GeneratePython, schema_location=schema_path)
 
 if __name__ == '__main__':

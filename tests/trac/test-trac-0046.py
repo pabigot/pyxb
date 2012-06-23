@@ -9,7 +9,7 @@ import pyxb.binding.basis
 import pyxb.utils.domutils
 
 import os.path
-schema_path = '%s/../schemas/absentns.xsd' % (os.path.dirname(__file__),)
+schema_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../schemas/absentns.xsd'))
 
 xsd='''<?xml version="1.0" encoding="UTF-8"?>
 <xs:schema targetNamespace="URN:trac0046" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:tns="URN:trac0046">

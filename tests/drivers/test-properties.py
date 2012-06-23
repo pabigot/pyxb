@@ -10,7 +10,7 @@ from xml.dom import Node
 import pyxb.binding.basis
 
 import os.path
-schema_path = '%s/../schemas/alt-po1.xsd' % (os.path.dirname(__file__),)
+schema_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../schemas/alt-po1.xsd'))
 code = pyxb.binding.generate.GeneratePython(schema_location=schema_path)
 #file('code.py', 'w').write(code)
 

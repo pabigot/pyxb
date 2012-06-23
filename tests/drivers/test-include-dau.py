@@ -7,7 +7,7 @@ import pyxb.binding.generate
 import pyxb.utils.domutils
 
 import os.path
-schema_path = '%s/../schemas/test-include-dau.xsd' % (os.path.dirname(__file__),)
+schema_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../schemas/test-include-dau.xsd'))
 code = pyxb.binding.generate.GeneratePython(schema_location=schema_path)
 #file('code.py', 'w').write(code)
 rv = compile(code, 'test', 'exec')
