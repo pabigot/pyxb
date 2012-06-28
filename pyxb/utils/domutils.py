@@ -271,12 +271,16 @@ class _BDSNamespaceSupport (object):
         if namespace.isAbsentNamespace():
             raise pyxb.UsageError('declareNamespace: namespace must not be an absent namespace')
         if prefix is None:
+            prefix = self.__namespaces.get(namespace)
+        if prefix is None:
             prefix = self.__namespacePrefixMap.get(namespace)
         if prefix is None:
             prefix = namespace.prefix()
         if prefix is None:
             self.__namespacePrefixCounter += 1
             prefix = 'ns%d' % (self.__namespacePrefixCounter,)
+        if prefix == self.__namespaces.get(namespace):
+            return prefix
         if prefix in self.__prefixes:
             raise pyxb.LogicError('Prefix %s is already in use' % (prefix,))
         self.__namespaces[namespace] = prefix
@@ -462,7 +466,7 @@ class BindingDOMSupport (object):
 
     def declareNamespace (self, namespace, prefix=None):
         """Declare a namespace within this instance only."""
-        return self.__namespaceSupport.declareNamespace(namespace, prefix)
+        return self.__namespaceSupport.declareNamespace(namespace, prefix, add_to_map=True)
     @classmethod
     def DeclareNamespace (cls, namespace, prefix=None):
         """Declare a namespace that will be added to each created instance."""

@@ -44,29 +44,23 @@ class Test_Mixed2 (unittest.TestCase):
     <core:v xmlns="http://www.w3.org/1999/xhtml"><ul><li>entry1</li><li>entry2</li></ul></core:v>
 </OpaqueData> """
 
+    def setUp (self):
+        pyxb.utils.domutils.BindingDOMSupport.SetDefaultNamespace(Namespace.uri())
+
+    def tearDown (self):
+        pyxb.utils.domutils.BindingDOMSupport.SetDefaultNamespace(None)
+
+    Expected = """<?xml version="1.0" ?><OpaqueData xmlns="http://schema.omg.org/spec/CTS2/1.0/Core" xmlns:ns1="http://www.w3.org/1999/xhtml"><v><ns1:ul><ns1:li>entry1</ns1:li><ns1:li>entry2</ns1:li></ns1:ul></v></OpaqueData>"""
+
     def test (self):
 	""" This fails because namespaces continue to be assigned """
 	
-	# It can sort of be fixed by changing:
-	#
-	# domutils.py line 250:
-	# def declareNamespace (self, namespace, prefix=None, add_to_map=False):
-	# -to-
-	# def declareNamespace (self, namespace, prefix=None, add_to_map=True):
-	#
-	# and domutils line 280:
-	# if prefix in self.__prefixes:
-	# -to-
-	# if prefix in self.__prefixes and not add_to_map:
-	#
-	# it still assigns namespaces to <li>, but it is at least semantically correct
-    	pyxb.utils.domutils.BindingDOMSupport.SetDefaultNamespace(Namespace.uri())
         txml = CreateFromDocument(self.testxml)
-	print "-" * 10
-	print txml.toxml()
-	print "-" * 10
-	self.assertEqual(txml.toxml(), """<?xml version="1.0" ?>
-<OpaqueData xmlns="http://schema.omg.org/spec/CTS2/1.0/Core" xmlns:ns1="http://www.w3.org/1999/xhtml"><v><ns1:ul><li>entry1</li><li>entry2</li></ns1:ul></v></OpaqueData>""")
+        #dom = txml.toDOM()
+        #print dom.toprettyxml()
+        #print txml.toxml()
+        #print self.Expected
+	self.assertEqual(txml.toxml(), self.Expected)
 
 
 if __name__ == '__main__':
