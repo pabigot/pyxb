@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="utf-8"?>
 <po:purchaseOrder xmlns:po="URN:purchase-order" orderDate="1999-10-20">
   <po:shipTo country="US">
     <name>Alice Smith</name>

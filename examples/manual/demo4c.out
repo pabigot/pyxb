@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="utf-8"?>
 <ns1:purchaseOrder xmlns:ns1="URN:purchase-order" orderDate="1999-10-20">
   <ns1:billTo>
     <city>Anytown</city>
