@@ -193,6 +193,12 @@ for possible_bundle in possible_bundles:
             package_relpath = os.path.relpath(bundle_path, setup_path)
         except AttributeError, e:
             package_relpath = bundle_path
+            if setup_path:
+                prefix_path = setup_path + os.path.sep
+                if not package_relpath.startswith(prefix_path):
+                    print "Unable to determine relative path for %s installation" % (bundle_path,)
+                    sys.exit(1)
+                package_relpath = package_relpath[len(prefix_path):]
         package = package_relpath.replace(os.path.sep, '.')
         b_packages.append(package)
         wxs_files = [os.path.basename(_f) for _f in pyxb.utils.utility.GetMatchingFiles(bundle_path, wxs_re) ]
