@@ -2223,19 +2223,16 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
                 self.__ctscClause2STD = None
                 self.__ctscRestrictionNode = None
                 return ( self.CT_SIMPLE, std._createRestriction(self, restriction_node) )
-            elif ((type(parent_content_type) == tuple) \
+            if ((type(parent_content_type) == tuple) \
                     and (self.CT_MIXED == parent_content_type[0]) \
                     and parent_content_type[1].isEmptiable()):
                 # Clause 2
                 assert isinstance(self.__ctscClause2STD, SimpleTypeDefinition)
                 return ( self.CT_SIMPLE, self.__ctscClause2STD )
-            else:
-                # Clause 3
-                return parent_content_type
-        else:
-            # Clause 4
-            return ( self.CT_SIMPLE, self.__baseTypeDefinition )
-        assert False
+            # Clause 3
+            return parent_content_type
+        # Clause 4
+        return ( self.CT_SIMPLE, self.__baseTypeDefinition )
 
     __ctscClause2STD = None
     __ctscRestrictioNode = None
@@ -3664,9 +3661,6 @@ class Annotation (_SchemaComponent_mixin):
         annotation as a single unicode string.  Returns the empty string if
         there are no user information elements."""
         return self.text()
-        text = []
-        if not self.__userInformation:
-            return ''
 
 # Section 3.14.
 class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.namespace.resolution._Resolvable_mixin, _Annotated_mixin):
