@@ -14,10 +14,10 @@
 
 """Utility to generate the code point sets defined by the Unicode standard.
 
-You'll need these files:
+You'll need these files, corresponding to U{XML 1.0 2nd Ed<http://www.w3.org/TR/2000/WD-xml-2e-20000814#Unicode>}:
 
- - U{http://www.unicode.org/Public/3.1-Update/UnicodeData-3.1.0.txt}
- - U{http://www.unicode.org/Public/3.1-Update/Blocks-4.txt}
+ - U{http://www.unicode.org/Public/2.0-Update/UnicodeData-2.0.14.txt}
+ - U{http://www.unicode.org/Public/2.0-Update/Blocks-1.txt}
 
 Invoke this script, redirecting the output to
 C{pyxb/utils/unicode_data.py}.
@@ -62,7 +62,7 @@ def rangesToPython (ranges, indent=11, width=67):
     wrapped = textwrap.wrap(text, 67)
     return ("\n%s" % (' ' * indent,)).join(wrapped)
 
-def emitCategoryMap (data_file='UnicodeData-3.1.0.txt'):
+def emitCategoryMap (data_file):
     category_map = {}
     unicode_data = file(data_file)
     range_first = None
@@ -96,9 +96,9 @@ def emitCategoryMap (data_file='UnicodeData-3.1.0.txt'):
         print "         ]),"
     print '  }'
 
-def emitBlockMap (data_file='Blocks-4.txt'):
+def emitBlockMap (data_file):
     block_map = { }
-    block_re = re.compile('(?P<min>[0-9A-F]+)\.\.(?P<max>[0-9A-F]+);\s(?P<block>.*)$')
+    block_re = re.compile('(?P<min>[0-9A-F]+)(?P<spans>\.\.|; )(?P<max>[0-9A-F]+);\s(?P<block>.*)$')
     block_data = file(data_file)
     while True:
         line = block_data.readline()
@@ -121,10 +121,11 @@ def emitBlockMap (data_file='Blocks-4.txt'):
         print '  ),'
     print '  }'
 
-print '''# Unicode property and category maps.
+print '''# -*- coding: utf-8 -*-
+# Unicode property and category maps.
 
-from unicode import CodePointSet
+from pyxb.utils.unicode import CodePointSet
 '''
 
-emitBlockMap()
-emitCategoryMap()
+emitBlockMap('Blocks-1.txt')
+emitCategoryMap('UnicodeData-2.0.14.txt')
