@@ -52,5 +52,19 @@ class TestTrac0119 (unittest.TestCase):
         instance = base.CreateFromDocument(xmls, default_namespace=absent.Namespace)
         self.assertEquals('hi', instance.command.payload)
         
+    def testUndefineNondefault (self):
+        xmls='''<?xml version="1.0"?>
+<base:Message xmlns:base="urn:trac0119" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <command xsi:type="doit" xmlns:base=""> <!-- undefine the base namespace -->
+    <payload>hi</payload>
+  </command>
+</base:Message>
+'''
+        # Cannot undefine a prefix in SAX.
+        import xml.sax
+        self.assertRaises(xml.sax.SAXParseException, base.CreateFromDocument, xmls)
+        self.assertRaises(xml.sax.SAXParseException, absent.CreateFromDocument, xmls)
+        self.assertRaises(xml.sax.SAXParseException, base.CreateFromDocument, xmls, default_namespace=absent.Namespace)
+
 if __name__ == '__main__':
     unittest.main()

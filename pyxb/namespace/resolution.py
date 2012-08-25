@@ -444,7 +444,7 @@ class NamespaceContext (object):
             # paragraph 6 implies you can do this, but expat blows up
             # if you try it.  I don't think it's legal.
             if prefix is not None:
-                raise pyxb.NamespaceError(self, 'Attempt to undefine non-default namespace %s' % (attr.localName,))
+                raise pyxb.NamespaceError(self, 'Attempt to undefine non-default namespace %s' % (prefix,))
             self.__inScopeNamespaces.pop(prefix, None)
             self.__defaultNamespace = None
 
