@@ -20,8 +20,6 @@ components.
 """
 
 import pyxb
-import os
-import fnmatch
 import pyxb.utils.utility
 import xml.dom
 
@@ -392,7 +390,7 @@ class _NamespaceCategory_mixin (pyxb.cscRoot):
                 elif existing_component._allowUpdateFromOther(component):
                     existing_component._updateFromOther(component)
                 else:
-                    raise pyxb.NamespaceError(self, 'Load attempted to override %s %s in %s' % (category, ln, self.uri()))
+                    raise pyxb.NamespaceError(self, 'Load attempted to override %s %s in %s' % (category, local_name, self.uri()))
         self.__defineCategoryAccessors()
 
     def hasSchemaComponents (self):
@@ -542,10 +540,12 @@ class _NamespaceComponentAssociation_mixin (pyxb.cscRoot):
         for c in self.__components:
             c._clearNamespaceContext()
 
-import archive
-import resolution
-
-from utility import *
+from pyxb.namespace import archive
+from pyxb.namespace.utility import NamespaceInstance
+from pyxb.namespace.utility import NamespaceForURI
+from pyxb.namespace.utility import CreateAbsentNamespace
+from pyxb.namespace.utility import AvailableNamespaces
+from pyxb.namespace import resolution
 
 class Namespace (_NamespaceCategory_mixin, resolution._NamespaceResolution_mixin, _NamespaceComponentAssociation_mixin, archive._NamespaceArchivable_mixin):
     """Represents an XML namespace (a URI).
@@ -690,7 +690,7 @@ class Namespace (_NamespaceCategory_mixin, resolution._NamespaceResolution_mixin
         """Create a new Namespace.
 
         The URI must be non-None, and must not already be assigned to
-        a Namespace instance.  See NamespaceForURI().
+        a Namespace instance.  See _NamespaceForURI().
         
         User-created Namespace instances may also provide a description.
 
@@ -802,9 +802,10 @@ class Namespace (_NamespaceCategory_mixin, resolution._NamespaceResolution_mixin
         return 'pyxb.namespace.%s' % (self.__builtinNamespaceVariable,)
 
     def builtinModulePath (self):
+        from pyxb.namespace import builtin
         if not self.__builtinModulePath:
             raise pyxb.LogicError('Namespace has no built-in module: %s' % (self,))
-        mr = self.lookupModuleRecordByUID(BuiltInObjectUID)
+        mr = self.lookupModuleRecordByUID(builtin.BuiltInObjectUID)
         assert mr is not None
         assert mr.modulePath() == self.__builtinModulePath
         return self.__builtinModulePath
@@ -854,7 +855,7 @@ class Namespace (_NamespaceCategory_mixin, resolution._NamespaceResolution_mixin
     def _defineBuiltins (self, structures_module):
         assert self.isBuiltinNamespace()
         if not self.__definedBuiltins:
-            mr = self.lookupModuleRecordByUID(BuiltInObjectUID, create_if_missing=True, module_path=self.__builtinModulePath)
+            mr = self.lookupModuleRecordByUID(builtin.BuiltInObjectUID, create_if_missing=True, module_path=self.__builtinModulePath)
             self._defineBuiltins_ox(structures_module)
             self.__definedBuiltins = True
             mr.markIncorporated()
@@ -976,9 +977,15 @@ class Namespace (_NamespaceCategory_mixin, resolution._NamespaceResolution_mixin
             rv = self.__uri
         return rv
 
-from builtin import *
+from pyxb.namespace.builtin import XMLSchema_instance
+from pyxb.namespace.builtin import XMLNamespaces
+from pyxb.namespace.builtin import XMLSchema
+from pyxb.namespace.builtin import XHTML
+from pyxb.namespace.builtin import XML
+from pyxb.namespace.builtin import XMLSchema_hfp
+from pyxb.namespace.builtin import BuiltInObjectUID
 
-resolution.NamespaceContext._AddTargetNamespaceAttribute(XMLSchema.createExpandedName('schema'), ExpandedName('targetNamespace'))
+resolution.NamespaceContext._AddTargetNamespaceAttribute(builtin.XMLSchema.createExpandedName('schema'), ExpandedName('targetNamespace'))
 
 ## Local Variables:
 ## fill-column:78

@@ -17,9 +17,8 @@ Namespaces<http://www.w3.org/TR/2006/REC-xml-names-20060816/index.html>}."""
 
 import pyxb
 import os
-import fnmatch
+import os.path
 import pyxb.utils.utility
-import utility
 
 PathEnvironmentVariable = 'PYXB_ARCHIVE_PATH'
 """Environment variable from which default path to pre-loaded namespaces is
@@ -31,9 +30,6 @@ with PyXB.
 
 @note: If you put a path separator between C{&} and the following path, this
 will cause the substitution to be ignored."""
-
-import os.path
-import stat
 
 DefaultArchivePrefix = os.path.realpath(os.path.join(os.path.dirname( __file__), '../..'))
 """The default archive prefix, substituted for C{&} in C{PYXB_ARCHIVE_PATH}."""
@@ -384,10 +380,6 @@ class NamespaceArchive (object):
     def _unsatisfiedModulePrerequisites (self):
         prereq_uids = set()
         for mr in self.__moduleRecords:
-            ns = mr.namespace()
-            #print 'Namespace %s records:' % (ns,)
-            #for xmr in ns.moduleRecords():
-            #    print ' %s' % (xmr,)
             prereq_uids.update(mr.dependsOnExternal())
         return prereq_uids
 

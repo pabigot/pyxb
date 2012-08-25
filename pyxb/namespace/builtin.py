@@ -103,7 +103,7 @@ class _XMLSchema_instance (Namespace):
         type_en = ns_ctx.interpretQName(type_name, namespace=fallback_namespace)
         try:
             alternative_type_class = type_en.typeBinding()
-        except KeyError, e:
+        except KeyError:
             alternative_type_class = None
         if self.PT_strict == pt:
             if alternative_type_class is None:
@@ -123,10 +123,10 @@ class _XMLSchema_instance (Namespace):
         
         assert structures_module is not None
         schema = structures_module.Schema(namespace_context=self.initialNamespaceContext(), schema_location="URN:noLocation:PyXB:xsi", generation_uid=BuiltInObjectUID, _bypass_preload=True)
-        type = schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('type', schema))
-        nil = schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('nil', schema))
-        schema_location = schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('schemaLocation', schema))
-        no_namespace_schema_location = schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('noNamespaceSchemaLocation', schema))
+        schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('type', schema))
+        schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('nil', schema))
+        schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('schemaLocation', schema))
+        schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('noNamespaceSchemaLocation', schema))
         return self
 
 class _XML (Namespace):
@@ -152,7 +152,6 @@ class _XML (Namespace):
         
         assert structures_module is not None
         import pyxb.binding.datatypes as xsd
-        import pyxb.binding.facets as xsdf
         import archive
 
         self.configureCategories([archive.NamespaceArchive._AnonymousCategory()])
@@ -171,7 +170,7 @@ class _XML (Namespace):
         space = schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('space', schema, std=std_space))
         lang = schema._addNamedComponent(structures_module.AttributeDeclaration.CreateBaseInstance('lang', schema, std=std_lang))
 
-        specialAttrs = schema._addNamedComponent(structures_module.AttributeGroupDefinition.CreateBaseInstance('specialAttrs', schema, [
+        schema._addNamedComponent(structures_module.AttributeGroupDefinition.CreateBaseInstance('specialAttrs', schema, [
                     structures_module.AttributeUse.CreateBaseInstance(schema, space),
                     structures_module.AttributeUse.CreateBaseInstance(schema, base),
                     structures_module.AttributeUse.CreateBaseInstance(schema, lang),

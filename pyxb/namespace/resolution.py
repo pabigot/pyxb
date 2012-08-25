@@ -16,11 +16,8 @@
 Namespaces<http://www.w3.org/TR/2006/REC-xml-names-20060816/index.html>}."""
 
 import pyxb
-import os
-import fnmatch
 import pyxb.utils.utility
-import archive
-import utility
+from pyxb.namespace import archive, utility
 
 class _Resolvable_mixin (pyxb.cscRoot):
     """Mix-in indicating that this object may have references to unseen named components.
