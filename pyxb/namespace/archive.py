@@ -46,8 +46,6 @@ def GetArchivePath ():
 
 # Stuff required for pickling
 import cPickle as pickle
-#import pyxb.utils.pickle_trace as pickle
-
 import re
 
 class NamespaceArchive (object):
