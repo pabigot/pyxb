@@ -659,7 +659,7 @@ class ElementUse (ContentState_mixin, ContentModel_mixin):
         try:
             self.setOrAppend(instance, self.__elementBinding.compatibleValue(value, _convert_string_values=False))
             return True
-        except pyxb.BadTypeValueError, e:
+        except pyxb.BadTypeValueError:
             pass
         #print '%s %s %s in %s' % (instance, value, element_use, self)
         return False
@@ -910,7 +910,6 @@ class ChoiceState (ContentState_mixin):
 
     # CS._verifyComplete:ChoiceState
     def _verifyComplete (self, parent_particle_state):
-        rv = True
         #print 'CS.VC %s: %s' % (self, self.__activeChoice)
         if self.__activeChoice is None:
             # Use self.__activeChoice as the iteration value so that it's
@@ -920,7 +919,7 @@ class ChoiceState (ContentState_mixin):
                     #print 'CS.VC: try %s' % (self.__activeChoice,)
                     self.__activeChoice.verifyComplete()
                     return
-                except Exception, e:
+                except Exception:
                     pass
             #print 'Missing components %s' % ("\n".join([ "\n  ".join([str(_p2.term()) for _p2 in _p.particle().term().particles()]) for _p in self.__choices ]),)
             raise pyxb.MissingContentError('choice')

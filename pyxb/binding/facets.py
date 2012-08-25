@@ -22,13 +22,11 @@ value spaces.
 
 """
 
-from xml.dom import Node
 import pyxb
 import types
 import datatypes
 import basis
 from pyxb.utils import utility
-from pyxb.utils import domutils
 import re
 
 class Facet (pyxb.cscRoot):
@@ -756,7 +754,7 @@ class FundamentalFacet (Facet):
     def _updateFromDOM (self, node):
         try:
             super(FundamentalFacet, self)._updateFromDOM(node)
-        except AttributeError, e:
+        except AttributeError:
             pass
         if (self.valueDatatype() is not None) and node.hasAttribute('value'):
             self._value(self.valueDatatype()(node.getAttribute('value')))

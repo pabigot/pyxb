@@ -382,7 +382,7 @@ class _TypeBinding_mixin (utility.Locatable_mixin):
             if iv is not None:
                 attribute_settings[fu.name()] = iv
         for (attr_en, value) in attribute_settings.items():
-            au = self._setAttribute(attr_en, value)
+            self._setAttribute(attr_en, value)
 
     def toDOM (self, bds=None, parent=None, element_name=None):
         """Convert this instance to a DOM node.
@@ -605,7 +605,7 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
         ns_uri = ''
         try:
             ns_uri = cls._ExpandedName.namespaceURI()
-        except Exception, e:
+        except Exception:
             pass
         nm = '_' + utility.MakeIdentifier('%s_%s_FacetMap' % (ns_uri, cls.__name__.strip('_')))
         '''
@@ -623,7 +623,7 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
                 ns_uri = ''
                 try:
                     ns_uri = cls._ExpandedName.namespaceURI()
-                except Exception, e:
+                except Exception:
                     pass
                 nm = '_' + utility.MakeIdentifier('%s_%s_FacetMap' % (ns_uri, nm))
             cls.__FacetMapAttributeNameMap[cls] = nm
@@ -905,7 +905,7 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
                 # initialization should succceed.
                 try:
                     clazz_facets = clazz._FacetMap().values()
-                except AttributeError, e:
+                except AttributeError:
                     cache_result = False
                     clazz_facets = []
                 for v in clazz_facets:
@@ -982,7 +982,7 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
         try:
             self._CheckValidValue(value)
             return True
-        except pyxb.PyXBException, e:
+        except pyxb.PyXBException:
             pass
         return False
 
@@ -1002,7 +1002,7 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
             #print ' -- checking list of %s' % (cls._ItemType,)
             try:
                 iter(value)
-            except TypeError, e:
+            except TypeError:
                 raise pyxb.BadTypeValueError('%s cannot have non-iterable value type %s' % (cls, type(value)))
             for v in value:
                 if not cls._ItemType._IsValidValue(v):
@@ -1085,7 +1085,7 @@ class STD_union (simpleTypeDefinition):
             arg = args[0]
             try:
                 rv = cls._ValidatedMember(arg)
-            except pyxb.BadTypeValueError, e:
+            except pyxb.BadTypeValueError:
                 pass
         if rv is None:
             kw['_validate_constraints'] = True
@@ -1545,7 +1545,6 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
         # Now determine the type binding for the content.  If xsi:type is
         # used, it won't be the one built into the element binding.
         type_class = element_binding.typeDefinition()
-        elt_ns = element_binding.name().namespace()
  
         # Get the namespace context for the value being created.  If none is
         # associated, one will be created.  Do not make assumptions about the
@@ -1842,7 +1841,6 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             value = eu.value(self)
             if value is None:
                 continue
-            res = None
             converter = eu.elementBinding().compatibleValue
             if eu.isPlural():
                 if 0 < len(value):

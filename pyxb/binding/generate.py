@@ -20,23 +20,18 @@ import pyxb
 import pyxb.xmlschema as xs
 import StringIO
 import datetime
-import urlparse
 import errno
 
 from pyxb.utils import utility
 from pyxb.utils import templates
-from pyxb.utils import domutils
-import basis
-import content
-import datatypes
-import facets
+from pyxb.binding import basis
+from pyxb.binding import datatypes
+from pyxb.binding import facets
 
 import types
 import sys
 import traceback
-import xml.dom
 import os.path
-import StringIO
 
 # Initialize UniqueInBinding with the public identifiers we generate,
 # import, or otherwise can't have mucked about with.
@@ -533,7 +528,6 @@ def GenerateCTD (ctd, generator, **kw):
     binding_module = generator.moduleForComponent(ctd)
     outf = binding_module.bindingIO()
 
-    content_type = None
     prolog_template = None
     template_map = { }
     binding_name = template_map['ctd'] = binding_module.literal(ctd, **kw)
@@ -588,7 +582,6 @@ class %{ctd} (%{superclass}):
     # have different types.  Determine what name that should be, and
     # whether there might be multiple instances of elements of that
     # name.
-    element_name_map = { }
     element_uses = []
 
     definitions = []
@@ -1027,7 +1020,6 @@ class _ModuleNaming_mixin (object):
 
     @classmethod
     def ComponentBindingModule (cls, component):
-        rv = cls.__ComponentBindingModuleMap.get(component)
         return cls.__ComponentBindingModuleMap.get(component)
 
     @classmethod
@@ -2215,7 +2207,6 @@ class Generator (object):
         return component_graph
 
     def __buildBindingModules (self):
-        named_bindable_fn = lambda _c: (isinstance(_c, xs.structures.ElementDeclaration) and _c._scopeIsGlobal()) or _c.isTypeDefinition()
         bindable_fn = lambda _c: isinstance(_c, xs.structures.ElementDeclaration) or _c.isTypeDefinition()
 
         self.__moduleRecords = set()
@@ -2268,7 +2259,6 @@ class Generator (object):
             c._setBindingNamespace(c._objectOrigin().moduleRecord().namespace())
 
         record_binding_map = {}
-        unique_in_bindings = set([NamespaceGroupModule._GroupPrefix])
         modules = []
         for mr_scc in module_scc_order:
             scc_modules = [ ]
@@ -2294,7 +2284,6 @@ class Generator (object):
                     nsm.setNamespaceGroupModule(ngm)
 
         component_csets = self.__graphFromComponents(binding_components, False).sccOrder()
-        bad_order = False
         component_order = []
         for cset in component_csets:
             if 1 < len(cset):

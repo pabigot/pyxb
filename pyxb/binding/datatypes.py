@@ -45,8 +45,6 @@ instance of either SimpleTypeDefinition or ComplexTypeDefinition.
 from pyxb.exceptions_ import *
 import types
 import pyxb.namespace
-import pyxb.utils.domutils as domutils
-import pyxb.utils.utility as utility
 import pyxb.utils.unicode
 import basis
 import re
@@ -159,7 +157,6 @@ class double (basis.simpleTypeDefinition, types.FloatType):
 
 _PrimitiveDatatypes.append(double)
 
-import time as python_time
 import datetime
 
 class duration (basis.simpleTypeDefinition, datetime.timedelta):
@@ -255,7 +252,6 @@ class duration (basis.simpleTypeDefinition, datetime.timedelta):
             raise BadTypeValueError('[xsd:duration] Initializer "%s" type %s not valid for type' % (text, type(text)))
         if not have_kw_update:
             rem_time = data['seconds']
-            use_seconds = rem_time
             if (0 != (rem_time % 1)):
                 data['microseconds'] = types.IntType(1000000 * (rem_time % 1))
                 rem_time = rem_time // 1
@@ -750,7 +746,7 @@ class hexBinary (basis.simpleTypeDefinition, types.StringType):
         if kw.get('_from_xml', False):
             try:
                 args = (binascii.unhexlify(args[0]),) + args[1:]
-            except TypeError, e:
+            except TypeError:
                 raise BadTypeValueError('%s is not a valid hexBinary string' % (cls.__class__.__name__,))
         return args
 

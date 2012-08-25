@@ -10,5 +10,4 @@ import datatypes_facets
 import content
 
 # Do not include the stuff that's required only for code generation
-# noimport nfa
 # noimport generate
