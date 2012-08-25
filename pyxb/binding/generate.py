@@ -248,10 +248,6 @@ def pythonLiteral (value, **kw):
     if isinstance(value, facets._EnumerationElement):
         return pythonLiteral(value.value())
 
-    # Particles expand to a pyxb.binding.content.Particle instance
-    if isinstance(value, xs.structures.Particle):
-        return pythonLiteral(ReferenceParticle(value, **kw))
-
     # Wildcards expand to a pyxb.binding.content.Wildcard instance
     if isinstance(value, xs.structures.Wildcard):
         return pythonLiteral(ReferenceWildcard(value, **kw))
