@@ -682,6 +682,20 @@ SingleCharEsc = { 'n' : CodePointSet(0x0A),
 for c in r'\|.-^?*+{}()[]':
     SingleCharEsc[c] = CodePointSet(ord(c))
 
+# Production 25 : Category Escapes
+# Production 26: Complemented Category Escapes
+catEsc = { }
+complEsc = { }
+for k, v in PropertyMap.iteritems():
+    catEsc[u'p{%s}' % (k,)] = v
+    catEsc[u'P{%s}' % (k,)] = v.negate()
+
+# Production 36 : IsBlock escapes
+IsBlockEsc = { }
+for k, v in BlockMap.iteritems():
+    IsBlockEsc[u'p{Is%s}' % (k,)] = v
+    IsBlockEsc[u'P{Is%s}' % (k,)] = v.negate()
+
 # Production 37 : Multi-Character Escapes
 WildcardEsc = CodePointSet(ord('\n'), ord('\r')).negate()
 MultiCharEsc = { }
@@ -696,16 +710,3 @@ MultiCharEsc['D'] = MultiCharEsc['d'].negate()
 MultiCharEsc['W'] = CodePointSet(PropertyMap['P']).extend(PropertyMap['Z']).extend(PropertyMap['C'])
 MultiCharEsc['w'] = MultiCharEsc['W'].negate()
 
-# AllEsc maps all the possible escape codes and wildcards in an XML schema
-# regular expression into the corresponding CodePointSet.
-AllEsc = { u'.': WildcardEsc }
-for k, v in SingleCharEsc.iteritems():
-    AllEsc[u'\\' + unicode(k)] = v
-for k, v in MultiCharEsc.iteritems():
-    AllEsc[u'\\' + unicode(k)] = v
-for k, v in BlockMap.iteritems():
-    AllEsc[u'\\p{Is' + unicode(k) + u'}'] = v
-    AllEsc[u'\\P{Is' + unicode(k) + u'}'] = v.negate()
-for k, v in PropertyMap.iteritems():
-    AllEsc[u'\\p{' + unicode(k) + u'}'] = v
-    AllEsc[u'\\P{' + unicode(k) + u'}'] = v.negate()

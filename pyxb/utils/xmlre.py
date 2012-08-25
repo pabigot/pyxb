@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2009, Peter A. Bigot
+# Copyright 2009-2012, Peter A. Bigot
 # Copyright 2012, Jon Foster
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -37,35 +37,55 @@ http://www.xmlschemareference.com/examples/Ch14/regexpDemo.xml}"""
 import pyxb.utils.unicode
 import re
 
+# AllEsc maps all the possible escape codes and wildcards in an XML schema
+# regular expression into the corresponding CodePointSet.
+_AllEsc = { u'.': pyxb.utils.unicode.WildcardEsc }
+for k, v in pyxb.utils.unicode.SingleCharEsc.iteritems():
+    _AllEsc[u'\\' + unicode(k)] = v
+for k, v in pyxb.utils.unicode.MultiCharEsc.iteritems():
+    _AllEsc[u'\\' + unicode(k)] = v
+for k, v in pyxb.utils.unicode.catEsc.iteritems():
+    _AllEsc[u'\\' + unicode(k)] = v
+for k, v in pyxb.utils.unicode.complEsc.iteritems():
+    _AllEsc[u'\\' + unicode(k)] = v
+for k, v in pyxb.utils.unicode.IsBlockEsc.iteritems():
+    _AllEsc[u'\\' + unicode(k)] = v
+
 class RegularExpressionError (ValueError):
     """Raised when a regular expression cannot be processed.."""
     def __init__ (self, position, description):
         self.position = position
         ValueError.__init__(self, 'At %d: %s' % (position, description))
 
-_character_group_re = re.compile(u'\\\\(?:(?:[pP]\\{[-A-Za-z0-9]+\\})|[^pP])')
+_CharClassEsc_re = re.compile(r'\\(?:(?P<cgProp>[pP]{(?P<charProp>[-A-Za-z0-9]+)})|(?P<cgClass>[^pP]))')
 def _MatchCharClassEsc(text, position):
     '''Parse a "charClassEsc" term.
 
-    This is either:
+    This is one of:
      - "SingleCharEsc", an escaped single character, e.g. u"\\n" or u"\\\\"
      - "MultiCharEsc", an escape code that can match a range of characters,
        e.g. u"\\s" to match certain whitespace characters
-     - "catEsc", the \p{...} Unicode escapes
-     - "complEsc", the \P{...} inverted Unicode escapes
+     - "catEsc", the \p{...} Unicode property escapes including categories and blocks
+     - "complEsc", the \P{...} inverted Unicode property escapes
 
     Preconditions: None
     If the parsing fails, throws a RegularExpressionError.
     Returns a tuple with the CodePointSet and the new position.
     Postconditions: None
     '''
-    mo = _character_group_re.match(text, position)
+    mo = _CharClassEsc_re.match(text, position)
     if mo:
         escape_code = mo.group(0)
-        cps = pyxb.utils.unicode.AllEsc.get(escape_code)
+        cps = _AllEsc.get(escape_code)
         if cps is not None:
             return cps, mo.end()
-    raise RegularExpressionError(position, "Unrecognized escape identifier")
+        char_prop = mo.group('charProp')
+        if char_prop is not None:
+            if char_prop.startswith('Is'):
+                raise RegularExpressionError(position, 'Unrecognized Unicode block %s in %s' % (char_prop[2:], escape_code))
+            raise RegularExpressionError(position, 'Unrecognized character property %s' % (escape_code,))
+        raise RegularExpressionError(position, 'Unrecognized character class %s' % (escape_code,))
+    raise RegularExpressionError(position, "Unrecognized escape identifier at %s" % (text[position:],))
 
 def _MatchPosCharGroup(text, position):
     '''Parse a "posCharGroup" term.

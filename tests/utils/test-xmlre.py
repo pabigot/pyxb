@@ -82,6 +82,7 @@ class TestXMLRE (unittest.TestCase):
         self.assertEqual(position, len(text))
         self.assertEqual(charset, unicode.PropertyMap['Sm'])
 
+    def testCharBlock (self):
         text = r'\p{IsArrows}'
         (charset, position) = xmlre.MaybeMatchCharacterClass(text, 0)
         self.assertEqual(position, len(text))
@@ -90,6 +91,11 @@ class TestXMLRE (unittest.TestCase):
         (charset, position) = xmlre.MaybeMatchCharacterClass(text, 0)
         self.assertEqual(position, len(text))
         self.assertEqual(charset.negate(), unicode.BlockMap['Arrows'])
+        
+        text = r'\p{IsWelsh}'
+        self.assertRaises(xmlre.RegularExpressionError, xmlre.MaybeMatchCharacterClass, text, 0)
+        text = r'\P{IsWelsh}'
+        self.assertRaises(xmlre.RegularExpressionError, xmlre.MaybeMatchCharacterClass, text, 0)
 
     def testCharGroup (self):
         self.assertRaises(xmlre.RegularExpressionError, xmlre.MaybeMatchCharacterClass, '[]', 0)
