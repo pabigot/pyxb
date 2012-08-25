@@ -33,7 +33,15 @@ load-plugins=
 # can either give multiple identifier separated by comma (,) or put this option
 # multiple time (only on the command line, not in the configuration file where
 # it should appear only once).
-#disable=
+
+# C0301: Look, I'm real sorry the lines are so long, but suck it up.
+# C0103: And I use different naming conventions
+# W0212: You can whine about access to protected members of client classes
+#        when you implement "friend".
+# W0142: Um, "*args, **kw" is an awesome way to insert functionality in a
+#        call chain.
+# R0912: Too many branches?  So where's "switch"?
+disable=C0301,C0103,W0212,W0142,R0912
 
 
 [REPORTS]
@@ -43,7 +51,7 @@ load-plugins=
 output-format=text
 
 # Include message's id in output
-include-ids=no
+include-ids=yes
 
 # Put messages in a separate file for each module / package specified on the
 # command line instead of printing them on stdout. Reports (if any) will be
