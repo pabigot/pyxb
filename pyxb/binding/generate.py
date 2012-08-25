@@ -1060,16 +1060,6 @@ class _ModuleNaming_mixin (object):
     def nameInModule (self, component):
         return self.__componentNameMap.get(component)
 
-    def __componentModule (self, component, module_type):
-        assert module_type is None
-        if NamespaceGroupModule == module_type:
-            pass
-        elif NamespaceModule == module_type:
-            pass
-        else:
-            assert module_type is None
-        return component_module
-
     def referenceSchemaComponent (self, component):
         origin = component._objectOrigin()
         assert origin is not None
