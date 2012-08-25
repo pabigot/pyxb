@@ -2103,10 +2103,10 @@ class Generator (object):
         for ns in self.noLoadNamespaces():
             opts.append('--no-load-namespace=' + ns.uri())
         for fps in self.preLoadArchives():
-            opts.append('--pre-load-archive=' + fp)
+            opts.append('--pre-load-archive=' + fps)
         if self.archiveToFile() is not None:
             opts.append('--archive-to-file=' + self.archiveToFile())
-        for (ns, visibility) in self._namespaceVisibilityMap():
+        for (ns, visibility) in self.namespaceVisibilityMap():
             if visibility:
                 opts.append('--public-namespace=' + ns.uri())
             else:
