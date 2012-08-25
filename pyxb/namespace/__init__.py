@@ -24,7 +24,7 @@ import pyxb
 import pyxb.utils.utility
 import xml.dom
 
-class ExpandedName (pyxb.cscRoot):
+class ExpandedName (object):
 
     """Represent an U{expanded name
     <http://www.w3.org/TR/REC-xml-names/#dt-expname>}, which pairs a
@@ -986,7 +986,7 @@ from pyxb.namespace.builtin import XML
 from pyxb.namespace.builtin import XMLSchema_hfp
 from pyxb.namespace.builtin import BuiltInObjectUID
 
-resolution.NamespaceContext._AddTargetNamespaceAttribute(builtin.XMLSchema.createExpandedName('schema'), ExpandedName('targetNamespace'))
+resolution.NamespaceContext._AddTargetNamespaceAttribute(XMLSchema.createExpandedName('schema'), ExpandedName('targetNamespace'))
 
 ## Local Variables:
 ## fill-column:78

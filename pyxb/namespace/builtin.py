@@ -153,7 +153,7 @@ class _XML (Namespace):
         
         assert structures_module is not None
         import pyxb.binding.datatypes as xsd
-        import archive
+        from pyxb.namespace import archive
 
         self.configureCategories([archive.NamespaceArchive._AnonymousCategory()])
 

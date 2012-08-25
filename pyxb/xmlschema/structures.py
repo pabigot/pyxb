@@ -386,7 +386,7 @@ class _Annotated_mixin (pyxb.cscRoot):
     def annotation (self):
         return self.__annotation
 
-class _PickledAnonymousReference (pyxb.cscRoot):
+class _PickledAnonymousReference (object):
     """A helper that encapsulates a reference to an anonymous type in a different namespace.
 
     Normally references to components in other namespaces can be made using
@@ -411,7 +411,6 @@ class _PickledAnonymousReference (pyxb.cscRoot):
         the namespace.  See L{_NamedComponent_mixin._anonymousName}.
         @type anonymous_name: C{basestring}.
         """
-        super(_PickledAnonymousReference, self).__init__()
         self.__namespace = namespace
         self.__anonymousName = anonymous_name
         assert self.__anonymousName is not None

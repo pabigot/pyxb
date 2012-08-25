@@ -38,7 +38,6 @@ DefaultArchivePrefix = os.path.realpath(os.path.join(os.path.dirname( __file__),
 def GetArchivePath ():
     """Return the archive path as defined by the L{PathEnvironmentVariable},
     or C{None} if that variable is not defined."""
-    import os
     return os.environ.get(PathEnvironmentVariable)
 
 # Stuff required for pickling
@@ -137,7 +136,7 @@ class NamespaceArchive (object):
         contain a valid namespace archive.
         """
         
-        import builtin
+        from pyxb.namespace import builtin
         
         reset = reset or (archive_path is not None) or (required_archive_files is not None) or (cls.__NamespaceArchives is None)
         required_archives = []
@@ -344,9 +343,9 @@ class NamespaceArchive (object):
     def __createUnpickler (self):
         unpickler = pickle.Unpickler(open(self.__archivePath, 'rb'))
 
-        format = unpickler.load()
-        if self.__PickleFormat != format:
-            raise pyxb.NamespaceArchiveError('Archive format is %s, require %s' % (format, self.__PickleFormat))
+        fmt = unpickler.load()
+        if self.__PickleFormat != fmt:
+            raise pyxb.NamespaceArchiveError('Archive format is %s, require %s' % (fmt, self.__PickleFormat))
 
         self.__generationUID = unpickler.load()
 
@@ -385,7 +384,7 @@ class NamespaceArchive (object):
         return prereq_uids
 
     def __validatePrerequisites (self, stage):
-        import builtin
+        from pyxb.namespace import builtin
         prereq_uids = self._unsatisfiedModulePrerequisites()
         #print '%s depends on %d prerequisites' % (self, len(prereq_uids))
         for uid in prereq_uids:
@@ -546,7 +545,7 @@ class _ArchivableObject_mixin (pyxb.cscRoot):
         return self._updateFromOther_csc(other)
 
     def _allowUpdateFromOther (self, other):
-        import builtin
+        from pyxb.namespace import builtin
         assert self._objectOrigin()
         return builtin.BuiltInObjectUID == self._objectOrigin().generationUID()
 
@@ -756,7 +755,7 @@ class ModuleRecord (pyxb.utils.utility.PrivateTransient_mixin):
     __PrivateTransient.add('constructedLocally')
 
     def __init__ (self, namespace, generation_uid, **kw):
-        import builtin
+        from pyxb.namespace import builtin
 
         super(ModuleRecord, self).__init__()
         self.__namespace = namespace

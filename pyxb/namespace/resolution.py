@@ -159,9 +159,9 @@ class _NamespaceResolution_mixin (pyxb.cscRoot):
             assert depends_on is None or isinstance(depends_on, _Resolvable_mixin)
             self.__unresolvedComponents.append(resolvable)
             if depends_on is not None and not depends_on.isResolved():
-                import pyxb.xmlschema.structures
+                from pyxb.xmlschema import structures
                 assert isinstance(depends_on, _Resolvable_mixin)
-                assert isinstance(depends_on, pyxb.xmlschema.structures._NamedComponent_mixin)
+                assert isinstance(depends_on, structures._NamedComponent_mixin)
                 self.__unresolvedDependents.setdefault(resolvable, set()).add(depends_on)
         return resolvable
 
@@ -204,7 +204,6 @@ class _NamespaceResolution_mixin (pyxb.cscRoot):
         raise a validation exception if a reference to an unrecognized
         component is encountered.
         """
-        num_loops = 0
         if not self.needsResolution():
             return True
         
@@ -214,8 +213,6 @@ class _NamespaceResolution_mixin (pyxb.cscRoot):
             # resolution for everything that isn't resolved.
             unresolved = self.__unresolvedComponents
             #print 'Looping for %d unresolved definitions: %s' % (len(unresolved), ' '.join([ str(_r) for _r in unresolved]))
-            num_loops += 1
-            #assert num_loops < 18
             
             self.__unresolvedComponents = []
             self.__unresolvedDependents = {}
@@ -239,12 +236,12 @@ class _NamespaceResolution_mixin (pyxb.cscRoot):
                 # there is a circular dependency in some named component
                 # (i.e., the schema designer didn't do things right).
                 failed_components = []
-                import pyxb.xmlschema.structures
+                from pyxb.xmlschema import structures
                 for d in self.__unresolvedComponents:
-                    if isinstance(d, pyxb.xmlschema.structures._NamedComponent_mixin):
+                    if isinstance(d, structures._NamedComponent_mixin):
                         failed_components.append('%s named %s' % (d.__class__.__name__, d.name()))
                     else:
-                        if isinstance(d, pyxb.xmlschema.structures.AttributeUse):
+                        if isinstance(d, structures.AttributeUse):
                             print d.attributeDeclaration()
                         failed_components.append('Anonymous %s' % (d.__class__.__name__,))
                 raise pyxb.NotInNamespaceError('Infinite loop in resolution:\n  %s' % ("\n  ".join(failed_components),))
@@ -500,7 +497,7 @@ class NamespaceContext (object):
         this if necessary.
         @type in_scope_namespaces: C{dict} mapping C{string} to L{Namespace}.
         """
-        import builtin
+        from pyxb.namespace import builtin
 
         if dom_node is not None:
             try:
