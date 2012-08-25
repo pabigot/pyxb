@@ -14,10 +14,12 @@
 
 """Utility to generate the code point sets defined by the Unicode standard.
 
-You'll need these files, corresponding to U{XML 1.0 2nd Ed<http://www.w3.org/TR/2000/WD-xml-2e-20000814#Unicode>}:
+You'll need these files, corresponding to the U{Unicode Database for XML
+Schema Part 2: Datatypes<http://www.w3.org/TR/xmlschema-2/#UnicodeDB>},
+which is:
 
- - U{http://www.unicode.org/Public/2.0-Update/UnicodeData-2.0.14.txt}
- - U{http://www.unicode.org/Public/2.0-Update/Blocks-1.txt}
+ - U{http://www.unicode.org/Public/3.1-Update/UnicodeData-3.1.0.txt}
+ - U{http://www.unicode.org/Public/3.1-Update/Blocks-4.txt}
 
 Invoke this script, redirecting the output to
 C{pyxb/utils/unicode_data.py}.
@@ -127,5 +129,5 @@ print '''# -*- coding: utf-8 -*-
 from pyxb.utils.unicode import CodePointSet
 '''
 
-emitBlockMap('Blocks-1.txt')
-emitCategoryMap('UnicodeData-2.0.14.txt')
+emitBlockMap('Blocks-4.txt')
+emitCategoryMap('UnicodeData-3.1.0.txt')
