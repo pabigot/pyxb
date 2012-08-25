@@ -361,7 +361,7 @@ class BaseSAXHandler (xml.sax.handler.ContentHandler, object):
 
     def ignorableWhitespace (self, whitespace):
         """Save whitespace as content too."""
-        self.__pendingText.append(content)
+        self.__pendingText.append(whitespace)
 
     def processingInstruction (self, target, data):
         self.__flushPendingText()
