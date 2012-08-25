@@ -979,17 +979,6 @@ class _SchemaOrigin (_ObjectOrigin):
         rv.append(')')
         return ''.join(rv)
 
-def AvailableForLoad ():
-    """Return a list of namespace URIs for which we may be able to load the
-    namespace contents from a pre-parsed file.  The corresponding L{Namespace}
-    can be retrieved using L{NamespaceForURI}, and the declared objects in
-    that namespace loaded with L{Namespace.validateComponentModel}.
-
-    Note that success of the load is not guaranteed if the packed file
-    is not compatible with the schema class being used."""
-    # Invoke this to ensure we have searched for loadable namespaces
-    return _LoadableNamespaceMap().keys()
-
 class NamespaceDependencies (object):
 
     def rootNamespaces (self):

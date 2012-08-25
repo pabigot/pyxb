@@ -4567,11 +4567,10 @@ class _ImportElementInformationItem (_Annotated_mixin):
     def __init__ (self, importing_schema, node, **kw):
         """Gather the information relative to an C{import} statement.
 
-        This examines the L{available
-        namespaces<pyxb.namespace.archive.AvailableForLoad>} to see whether
-        the imported namespace can be loaded.  If so, the C{schemaLocation}
-        attribute is ignored.  Otherwise, it attempts to retrieve and parse
-        the corresponding schema (if this has not already been done).
+        If the imported namespace can be loaded from an archive, the
+        C{schemaLocation} attribute is ignored.  Otherwise, it attempts to
+        retrieve and parse the corresponding schema (if this has not already
+        been done).
 
         @param importing_schema: The L{Schema} instance in which the import
         was found.
