@@ -269,8 +269,6 @@ def pythonLiteral (value, **kw):
         return repr(value)
 
     raise Exception('Unexpected literal type %s' % (type(value),))
-    print 'Unexpected literal type %s' % (type(value),)
-    return str(value)
 
 
 def GenerateContentTerm (ctd, term, binding_module, **kw):
