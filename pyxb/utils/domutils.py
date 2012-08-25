@@ -579,7 +579,7 @@ class BindingDOMSupport (object):
         pfx = None
         local_name = name
         if 0 < name.find(':'):
-            (pfx, local_name) = node_name.split(':', 1)
+            (pfx, local_name) = name.split(':', 1)
             if ns is None:
                 raise pyxb.LogicError('QName with prefix but no available namespace')
         ns_uri = None
