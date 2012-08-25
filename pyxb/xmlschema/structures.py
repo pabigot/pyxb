@@ -247,7 +247,8 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin,
             # namespace context, only so that their cloned children can be
             # associated with the same namespace.
             self.__namespaceContext = owner._namespaceContext()
-        return getattr(super(_SchemaComponent_mixin, self), '_resetClone_csc', lambda *_args,**_kw: self)(**kw)
+        self_fn = lambda *_args, **_kw: self
+        return getattr(super(_SchemaComponent_mixin, self), '_resetClone_csc', self_fn)(**kw)
 
     def _clone (self, owner, origin):
         """Create a copy of this instance suitable for adoption by some other
@@ -329,7 +330,8 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin,
         Post-extended; description in leaf implementation in
         ComplexTypeDefinition and SimpleTypeDefinition."""
         assert self != other
-        getattr(super(_SchemaComponent_mixin, self), '_updateFromOther_csc', lambda *args, **kw: self)(other)
+        self_fn = lambda *_args, **_kw: self
+        getattr(super(_SchemaComponent_mixin, self), '_updateFromOther_csc', self_fn)(other)
         # The only thing we update is the binding name, and that only if it's new.
         if self.__nameInBinding is None:
             self.__nameInBinding = other.__nameInBinding
@@ -375,7 +377,8 @@ class _Annotated_mixin (pyxb.cscRoot):
         Post-extended; description in leaf implementation in
         ComplexTypeDefinition and SimpleTypeDefinition."""
         assert self != other
-        getattr(super(_Annotated_mixin, self), '_updateFromOther_csc', lambda *args, **kw: self)(other)
+        self_fn = lambda *_args, **_kw: self
+        getattr(super(_Annotated_mixin, self), '_updateFromOther_csc', self_fn)(other)
         # @todo: make this a copy?
         self.__annotation = other.__annotation
         return self
@@ -408,6 +411,7 @@ class _PickledAnonymousReference (pyxb.cscRoot):
         the namespace.  See L{_NamedComponent_mixin._anonymousName}.
         @type anonymous_name: C{basestring}.
         """
+        super(pyxb.cscRoot, self).__init__()
         self.__namespace = namespace
         self.__anonymousName = anonymous_name
         assert self.__anonymousName is not None
@@ -436,9 +440,6 @@ class _PickledAnonymousReference (pyxb.cscRoot):
         return self.__namespace.categoryMap(self.__AnonymousCategory).get(self.__anonymousName)
 
     typeDefinition = __lookupObject
-    """Return the attribute group definition referenced by this instance, or
-    C{None} if the reference is not to an attribute group definition."""
-
     attributeGroupDefinition = __lookupObject
     modelGroupDefinition = __lookupObject
     attributeDeclaration = __lookupObject
@@ -557,7 +558,8 @@ class _NamedComponent_mixin (pyxb.utils.utility.PrivateTransient_mixin, pyxb.csc
     def _prepareForArchive_csc (self, module_record):
         if self.__needAnonymousSupport():
             self._setAnonymousName(module_record.namespace(), unique_id=module_record.generationUID())
-        return getattr(super(_NamedComponent_mixin, self), '_prepareForArchive_csc', lambda *_args,**_kw: self)(module_record)
+        self_fn = lambda *_args, **_kw: self
+        return getattr(super(_NamedComponent_mixin, self), '_prepareForArchive_csc', self_fn)(module_record)
 
     def _picklesInArchive (self, archive):
         """Return C{True} if this component should be pickled by value in the
@@ -844,7 +846,8 @@ class _NamedComponent_mixin (pyxb.utils.utility.PrivateTransient_mixin, pyxb.csc
             
     def _resetClone_csc (self, **kw):
         self.__schema = None
-        rv = getattr(super(_NamedComponent_mixin, self), '_resetClone_csc', lambda *_args,**_kw: self)(**kw)
+        self_fn = lambda *_args, **_kw: self
+        rv = getattr(super(_NamedComponent_mixin, self), '_resetClone_csc', self_fn)(**kw)
         self.__templateMap = { }
         origin = kw.get('origin')
         self.__anonymousName = None
@@ -991,7 +994,7 @@ class _PluralityData (types.ListType):
     """
     
     @classmethod
-    def _MapUnion (self, map1, map2):
+    def _MapUnion (cls, map1, map2):
         """Given two maps, return an updated map indicating the unified
         plurality."""
         umap = { }
@@ -1206,6 +1209,9 @@ class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
          conform."""
         return self.__typeDefinition
 
+    # The string value of the XSD type attribute
+    __typeAttribute = None
+
     def __init__ (self, *args, **kw):
         super(AttributeDeclaration, self).__init__(*args, **kw)
         assert 'scope' in kw
@@ -1345,8 +1351,15 @@ class AttributeUse (_SchemaComponent_mixin, pyxb.namespace.resolution._Resolvabl
     USE_required = 0x01         #<<< The attribute is required
     USE_optional = 0x02         #<<< The attribute may or may not appear
     USE_prohibited = 0x04       #<<< The attribute must not appear
-    def required (self): return self.USE_required == self.__use
-    def prohibited (self): return self.USE_prohibited == self.__use
+
+    def required (self):
+        return self.USE_required == self.__use
+
+    def prohibited (self):
+        return self.USE_prohibited == self.__use
+
+    # The string value of the XSD ref attribute
+    __refAttribute = None
 
     __restrictionOf = None
     def restrictionOf (self):
@@ -1506,8 +1519,13 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.na
         self.__typeDefinition = type_definition
         return self
 
+    __substitutionGroupAttribute = None
+
+    __typeAttribute = None
+
     __nillable = False
-    def nillable (self): return self.__nillable
+    def nillable (self):
+        return self.__nillable
 
     __identityConstraintDefinitions = None
     def identityConstraintDefinitions (self):
@@ -1536,7 +1554,8 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.na
     __disallowedSubstitutions = SGE_none
 
     __abstract = False
-    def abstract (self): return self.__abstract
+    def abstract (self):
+        return self.__abstract
 
     def pluralityData (self):
         """Return the plurality information for this component.
@@ -1769,7 +1788,8 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
 
     # Derived from the abstract attribute
     __abstract = False
-    def abstract (self): return self.__abstract
+    def abstract (self):
+        return self.__abstract
     
     # A frozenset() of AttributeUse instances.
     __attributeUses = None
@@ -2053,6 +2073,9 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         
         return rv.__setContentFromDOM(node, **kw)
 
+    __baseAttribute = None
+
+
     __ckw = None
     __anyAttribute = None
     __attributeGroupAttributes = None
@@ -2231,7 +2254,13 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         return ( self.CT_SIMPLE, self.__baseTypeDefinition )
 
     __ctscClause2STD = None
-    __ctscRestrictioNode = None
+    __ctscRestrictionNode = None
+    __effectiveMixed = None
+    __effectiveContent = None
+    __pendingDerivationMethod = None
+    __isComplexContent = None
+    __ctscRestrictionMode = None
+    __contentStyle = None
     
     def __setComplexContentFromDOM (self, type_node, content_node, definition_node_list, method, **kw):
         # Do content type.  Cache the keywords that need to be used
@@ -2578,7 +2607,9 @@ class AttributeGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, p
 
     __anyAttribute = None
     __attributeGroupAttributes = None
+    __refAttribute = None
     __PrivateTransient.update(['anyAttribute', 'attributeGroupAttributes'])
+
 
     # CFD:AGD CFD:AttributeGroupDefinition
     @classmethod
@@ -2725,7 +2756,8 @@ class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
     # One of the C_* values above.  Set at construction time from the
     # keyword parameter "compositor".
     __compositor = C_INVALID
-    def compositor (self): return self.__compositor
+    def compositor (self):
+        return self.__compositor
 
     @classmethod
     def CompositorToString (cls, compositor):
@@ -2745,7 +2777,8 @@ class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
     # A list of Particle instances.  Set at construction time from
     # the keyword parameter "particles".
     __particles = None
-    def particles (self): return self.__particles
+    def particles (self):
+        return self.__particles
 
     def isAdaptable (self, ctd):
         """A model group has an unresolvable particle if any of its
@@ -2914,7 +2947,6 @@ class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
                     element_decls.extend(p.elementDeclarations())
                 else:
                     assert p.term() is not None
-                    pass
                 #print 'Particle term: %s' % (object.__str__(p.term()),)
         #print 'Model group with %d particles produced %d element declarations' % (len(self.particles()), len(element_decls))
         return element_decls
@@ -2971,6 +3003,9 @@ class Particle (_SchemaComponent_mixin, pyxb.namespace.resolution._Resolvable_mi
         """A reference to a ModelGroup, Wildcard, or ElementDeclaration."""
         return self.__term
     __pendingTerm = None
+
+    __refAttribute = None
+    __resolvableType = None
 
     def elementDeclarations (self):
         assert self.__term is not None
@@ -3247,9 +3282,9 @@ class Wildcard (_SchemaComponent_mixin, _Annotated_mixin):
     def IntensionalUnion (cls, constraints):
         """http://www.w3.org/TR/xmlschema-1/#cos-aw-union"""
         assert 0 < len(constraints)
-        o1 = constraints.pop(0);
+        o1 = constraints.pop(0)
         while 0 < len(constraints):
-            o2 = constraints.pop(0);
+            o2 = constraints.pop(0)
             # 1
             if (o1 == o2):
                 continue
@@ -3304,9 +3339,9 @@ class Wildcard (_SchemaComponent_mixin, _Annotated_mixin):
     def IntensionalIntersection (cls, constraints):
         """http://www.w3.org/TR/xmlschema-1/#cos-aw-intersect"""
         assert 0 < len(constraints)
-        o1 = constraints.pop(0);
+        o1 = constraints.pop(0)
         while 0 < len(constraints):
-            o2 = constraints.pop(0);
+            o2 = constraints.pop(0)
             # 1
             if (o1 == o2):
                 continue
@@ -3362,7 +3397,8 @@ class Wildcard (_SchemaComponent_mixin, _Annotated_mixin):
 
     # One of PC_*
     __processContents = None
-    def processContents (self): return self.__processContents
+    def processContents (self):
+        return self.__processContents
 
     def pluralityData (self):
         """Get the plurality data for this wildcard
@@ -3433,18 +3469,24 @@ class IdentityConstraintDefinition (_SchemaComponent_mixin, _NamedComponent_mixi
     ICC_UNIQUE = 0x04
 
     __identityConstraintCategory = None
-    def identityConstraintCategory (self): return self.__identityConstraintCategory
+    def identityConstraintCategory (self):
+        return self.__identityConstraintCategory
 
     __selector = None
-    def selector (self): return self.__selector
+    def selector (self):
+        return self.__selector
     
     __fields = None
-    def fields (self): return self.__fields
+    def fields (self):
+        return self.__fields
     
     __referencedKey = None
+    __referAttribute = None
+    __icc = None
     
     __annotations = None
-    def annotations (self): return self.__annotations
+    def annotations (self):
+        return self.__annotations
 
     # CFD:ICD CFD:IdentityConstraintDefinition
     @classmethod
@@ -3544,10 +3586,12 @@ class IdentityConstraintDefinition (_SchemaComponent_mixin, _NamedComponent_mixi
 class NotationDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, _Annotated_mixin):
     """An XMLSchema U{Notation Declaration<http://www.w3.org/TR/xmlschema-1/#cNotation_Declarations>} component."""
     __systemIdentifier = None
-    def systemIdentifier (self): return self.__systemIdentifier
+    def systemIdentifier (self):
+        return self.__systemIdentifier
     
     __publicIdentifier = None
-    def publicIdentifier (self): return self.__publicIdentifier
+    def publicIdentifier (self):
+        return self.__publicIdentifier
 
     # CFD:ND CFD:NotationDeclaration
     @classmethod
@@ -3665,6 +3709,12 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
     __baseTypeDefinition = None
     def baseTypeDefinition (self):
         return self.__baseTypeDefinition
+
+    __memberTypes = None
+    __itemTypeAttribute = None
+    __baseAttribute = None
+    __memberTypesAttribute = None
+    __localFacets = None
 
     # A map from a subclass of facets.Facet to an instance of that class.
     # Presence of a facet class as a key in this map is the indicator that the
@@ -3937,7 +3987,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
         For example, xml:space is a restriction of NCName; xml:lang is a union.
 
         """
-        import pyxb.binding.xml_
+        from pyxb.binding import xml_
         kw = { 'schema' : schema,
                'binding_namespace' : schema.targetNamespace(),
                'namespace_context' : schema.targetNamespace().initialNamespaceContext(),
@@ -3948,7 +3998,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
             bi.__derivationAlternative = cls._DA_restriction
             bi.__baseTypeDefinition = datatypes.NCName.SimpleTypeDefinition()
             bi.__primitiveTypeDefinition = bi.__baseTypeDefinition.__primitiveTypeDefinition
-            bi._setPythonSupport(pyxb.binding.xml_.STD_ANON_space)
+            bi._setPythonSupport(xml_.STD_ANON_space)
             bi.setNameInBinding('STD_ANON_space')
         elif 'lang' == name:
             bi = cls(**kw)
@@ -3956,7 +4006,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
             bi.__memberTypes = [ datatypes.language.SimpleTypeDefinition() ]
             bi.__derivationAlternative = cls._DA_union
             bi.__primitiveTypeDefinition = bi
-            bi._setPythonSupport(pyxb.binding.xml_.STD_ANON_lang)
+            bi._setPythonSupport(xml_.STD_ANON_lang)
             bi.setNameInBinding('STD_ANON_lang')
         else:
             raise pyxb.IncompleteImplementationError('No implementation for %s' % (name,))
@@ -4674,6 +4724,8 @@ class Schema (_SchemaComponent_mixin):
     def referencedNamespaces (self):
         return self.__referencedNamespaces
     __referencedNamespaces = None
+
+    __namespaceData = None
 
     def importEIIs (self):
         return self.__importEIIs
