@@ -11,9 +11,7 @@ class TestXMLRE (unittest.TestCase):
         py_pattern = xmlre.XMLToPython(xml_pattern)
         compiled = re.compile(py_pattern)
         mo = compiled.match(value)
-        self.assertIsNotNone(mo, 'XML pattern %r compiles to Python pattern '
-                             '%r which doesn\'t match value %r but should'
-                             % (xml_pattern, py_pattern, value))
+        self.assertTrue(mo is not None, 'XML re %r Python %r should match %r' % (xml_pattern, py_pattern, value))
 
     def assertNoMatch(self, xml_pattern, value):
         '''Helper function to assert a value does not matche an XSD regexp
@@ -21,9 +19,7 @@ class TestXMLRE (unittest.TestCase):
         py_pattern = xmlre.XMLToPython(xml_pattern)
         compiled = re.compile(py_pattern)
         mo = compiled.match(value)
-        self.assertIsNone(mo, 'XML pattern %r compiles to Python pattern '
-                          '%r which matches value %r but shouldn\'t'
-                          % (xml_pattern, py_pattern, value))
+        self.assertTrue(mo is None, 'XML re %r Python %r shoudl not match %r' % (xml_pattern, py_pattern, value))
 
     def testRangeErrors (self):
         self.assertTrue(xmlre.MaybeMatchCharacterClass('', 1) is None)
