@@ -523,7 +523,7 @@ class NamespaceContext (object):
 
         if in_scope_namespaces is not None:
             if parent_context is not None:
-                raise LogicError('Cannot provide both parent_context and in_scope_namespaces')
+                raise pyxb.LogicError('Cannot provide both parent_context and in_scope_namespaces')
             self.__inScopeNamespaces = builtin._UndeclaredNamespaceMap.copy()
             self.__inScopeNamespaces.update(in_scope_namespaces)
             self.__mutableInScopeNamespaces = True
