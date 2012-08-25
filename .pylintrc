@@ -41,7 +41,13 @@ load-plugins=
 # W0142: Um, "*args, **kw" is an awesome way to insert functionality in a
 #        call chain.
 # R0912: Too many branches?  So where's "switch"?
-disable=C0301,C0103,W0212,W0142,R0912
+# R0901: So I like inheritance.
+# R0902: There are no more attributes than are necessary
+# R0903: Inappropriate where class is a protected abstract base or mixin
+# R0904: There are no more methods than are necessary
+# R0914: There are no more local variables than are necessary
+# R0915: There are no more statements than are necessary
+disable=C0301,C0103,W0212,W0142,R0912,R0901,R0902,R0903,R0904,R0914,R0915
 
 
 [REPORTS]

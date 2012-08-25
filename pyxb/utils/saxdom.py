@@ -27,7 +27,7 @@ converting it back into document format.
 """
 
 import xml.dom
-import saxutils
+import pyxb.utils.saxutils
 import StringIO
 import pyxb.namespace
 
@@ -52,7 +52,7 @@ def _DumpDOM (n, depth=0):
     else:
         print 'UNRECOGNIZED %s' % (n.nodeType,)
 
-class _DOMSAXHandler (saxutils.BaseSAXHandler):
+class _DOMSAXHandler (pyxb.utils.saxutils.BaseSAXHandler):
     """SAX handler class that transforms events into a DOM tree."""
 
     def document (self):
@@ -96,7 +96,7 @@ def parse (stream, **kw):
     """Parse a stream containing an XML document and return the DOM tree
     representing its contents.
 
-    Keywords not described here are passed to L{saxutils.make_parser}.
+    Keywords not described here are passed to L{pyxb.utils.saxutils.make_parser}.
 
     @param stream: An object presenting the standard file C{read} interface
     from which the document can be read.
@@ -108,7 +108,7 @@ def parse (stream, **kw):
     """
 
     kw['content_handler_constructor'] = _DOMSAXHandler
-    saxer = saxutils.make_parser(**kw)
+    saxer = pyxb.utils.saxutils.make_parser(**kw)
     handler = saxer.getContentHandler()
     saxer.parse(stream)
     return handler.document()
@@ -129,6 +129,7 @@ class Node (xml.dom.Node, pyxb.utils.utility.Locatable_mixin):
             pyxb.utils.utility.Locatable_mixin.__init__(self, location=location)
         self.__nodeType = node_type
         self.__parentNode = None
+        self.__indexInParent = None
         self.__childNodes = []
         self.__namespaceContext = kw['namespace_context']
         self.__value = kw.get('value')

@@ -108,7 +108,7 @@ def MakeIdentifier (s, camel_case=False):
     @rtype: C{str}
     """
     s = _XMLIdentifierToPython(s)
-    s = _PrefixUnderscore_re.sub('', _NonIdentifier_re.sub('',_UnderscoreSubstitute_re.sub('_', s)))
+    s = _PrefixUnderscore_re.sub('', _NonIdentifier_re.sub('', _UnderscoreSubstitute_re.sub('_', s)))
     if camel_case:
         s = _CamelCase_re.sub(lambda _m: _m.group(0)[1].upper(), s)
     if _PrefixDigit_re.match(s):
@@ -445,7 +445,7 @@ class Graph:
             while True:
                 scc.append(self.__stack.pop())
                 if v == scc[-1]:
-                    break;
+                    break
             self.__sccOrder.append(scc)
             if 1 < len(scc):
                 self.__scc.append(scc)

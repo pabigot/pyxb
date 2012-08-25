@@ -52,8 +52,7 @@ def StringToDOM (text, **kw):
     if pyxb.XMLStyle_minidom == pyxb._XMLStyle:
         parser = pyxb.utils.saxutils.make_parser()
         return xml.dom.minidom.parseString(text, parser)
-    import saxdom
-    return saxdom.parseString(text, **kw)
+    return pyxb.utils.saxdom.parseString(text, **kw)
 
 def NodeAttribute (node, attribute_ncname, attribute_ns=None):
     """Namespace-aware search for an optional attribute in a node.
@@ -411,9 +410,9 @@ class BindingDOMSupport (object):
         self.__namespaceSupport.reset(**kw)
 
     @classmethod
-    def Reset (self, **kw):
+    def Reset (cls, **kw):
         """Reset the global defaults for default/prefix/namespace informmation."""
-        self.__NamespaceSupport.reset(**kw)
+        cls.__NamespaceSupport.reset(**kw)
 
     def __init__ (self, implementation=None, default_namespace=None, require_xsi_type=False, namespace_prefix_map=None):
         """Create a new instance used for building a single document.

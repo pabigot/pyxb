@@ -411,7 +411,7 @@ class _PickledAnonymousReference (pyxb.cscRoot):
         the namespace.  See L{_NamedComponent_mixin._anonymousName}.
         @type anonymous_name: C{basestring}.
         """
-        super(pyxb.cscRoot, self).__init__()
+        super(_PickledAnonymousReference, self).__init__()
         self.__namespace = namespace
         self.__anonymousName = anonymous_name
         assert self.__anonymousName is not None

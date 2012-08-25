@@ -58,8 +58,8 @@ class TracingSAXHandler (xml.sax.handler.ContentHandler):
     def ignorableWhitespace (self, whitespace):
         print 'ignorableWhitespace len %d' % (len(whitespace),)
 
-    def processingInstruction (self, data):
-        print 'processingInstruction %s' % (data,)
+    def processingInstruction (self, target, data):
+        print 'processingInstruction %s %s' % (target, data)
 
 class _NoopSAXHandler (xml.sax.handler.ContentHandler):
     """A SAX handler class which doesn't do anything.  Used to get baseline
@@ -90,7 +90,7 @@ class _NoopSAXHandler (xml.sax.handler.ContentHandler):
     def ignorableWhitespace (self, whitespace):
         pass
 
-    def processingInstruction (self, data):
+    def processingInstruction (self, target, data):
         pass
 
 

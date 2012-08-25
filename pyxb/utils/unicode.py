@@ -90,8 +90,8 @@ class CodePointSet (object):
                 return
             if isinstance(args[0], list):
                 args = args[0]
-        [ self.add(_a) for _a in args ]
-
+        for a in args:
+            self.add(a)
 
     def __mutate (self, value, do_add):
         # Identify the start (inclusive) and end (exclusive) code
@@ -162,7 +162,8 @@ class CodePointSet (object):
         if isinstance(values, CodePointSet):
             self.extend(values.asTuples())
         else:
-            [ self.__mutate(_v, True) for _v in values ]
+            for v in values:
+                self.__mutate(v, True)
         return self
 
     def subtract (self, value):
@@ -174,7 +175,8 @@ class CodePointSet (object):
 
         @return: C{self}"""
         if isinstance(value, CodePointSet):
-            [ self.subtract(_v) for _v in value.asTuples() ]
+            for v in value.asTuples():
+                self.subtract(v)
             return self
         return self.__mutate(value, False)
 
@@ -492,7 +494,7 @@ class XML1p0e2 (object):
         ( 0x3021, 0x3029 )
         )
 
-    Letter = CodePointSet(BaseChar).extend(Ideographic);
+    Letter = CodePointSet(BaseChar).extend(Ideographic)
 
     CombiningChar = CodePointSet(
         ( 0x0300, 0x0345 ),

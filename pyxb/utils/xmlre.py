@@ -33,7 +33,7 @@ U{http://www.xmlschemareference.com/examples/Ch14/regexpDemo.xsd},
 with a sample document at U{
 http://www.xmlschemareference.com/examples/Ch14/regexpDemo.xml}"""
 
-import unicode
+import pyxb.utils.unicode
 
 class RegularExpressionError (ValueError):
     """Raised when a regular expression cannot be processed.."""
@@ -55,7 +55,7 @@ def _MatchCharPropBraced (text, position):
     property
 
     @return: A pair C{(cps, p)} where C{cps} is a
-    L{unicode.CodePointSet} containing the code points associated with
+    L{pyxb.utils.unicode.CodePointSet} containing the code points associated with
     the property, and C{p} is the text offset immediately following
     the closing brace.
 
@@ -73,11 +73,11 @@ def _MatchCharPropBraced (text, position):
     char_prop = text[position+1:ep]
     if char_prop.startswith('Is'):
         char_prop = char_prop[2:]
-        cs = unicode.BlockMap.get(char_prop)
+        cs = pyxb.utils.unicode.BlockMap.get(char_prop)
         if cs is None:
             raise RegularExpressionError(position, "Unrecognized block name '%s'" % (char_prop,))
         return (cs, ep+1)
-    cs = unicode.PropertyMap.get(char_prop)
+    cs = pyxb.utils.unicode.PropertyMap.get(char_prop)
     if cs is None:
         raise RegularExpressionError(position, "Unrecognized character property '%s'" % (char_prop,))
     return (cs, ep+1)
@@ -109,9 +109,9 @@ def _MaybeMatchCharClassEsc (text, position, include_sce=True):
     np = position + 1
     cs = None
     if include_sce:
-        cs = unicode.SingleCharEsc.get(nc)
+        cs = pyxb.utils.unicode.SingleCharEsc.get(nc)
     if cs is None:
-        cs = unicode.MultiCharEsc.get(nc)
+        cs = pyxb.utils.unicode.MultiCharEsc.get(nc)
     if cs is not None:
         return (cs, np)
     if 'p' == nc:
@@ -119,7 +119,7 @@ def _MaybeMatchCharClassEsc (text, position, include_sce=True):
     if 'P' == nc:
         (cs, np) = _MatchCharPropBraced(text, np)
         return (cs.negate(), np)
-    if (not include_sce) and (nc in unicode.SingleCharEsc):
+    if (not include_sce) and (nc in pyxb.utils.unicode.SingleCharEsc):
         return None
     raise RegularExpressionError(np, "Unrecognized escape identifier '\\%s'" % (nc,))
 
@@ -157,7 +157,7 @@ def _CharOrSCE (text, position):
     if '\\' == rc:
         if position >= len(text):
             raise RegularExpressionError(position, "Incomplete escape sequence")
-        charset = unicode.SingleCharEsc.get(text[position])
+        charset = pyxb.utils.unicode.SingleCharEsc.get(text[position])
         if charset is None:
             raise RegularExpressionError(position-1, "Unrecognized single-character escape '\\%s'" % (text[position],))
         rc = charset.asSingleCharacter()
@@ -180,7 +180,7 @@ def _MatchPosCharGroup (text, position):
     @raise RegularExpressionError: if the expression is syntactically
     invalid.
     """
-    cps = unicode.CodePointSet()
+    cps = pyxb.utils.unicode.CodePointSet()
     if '-' == text[position]:
         cps.add(ord('-'))
         position += 1
@@ -285,7 +285,7 @@ def MaybeMatchCharacterClass (text, position):
     c = text[position]
     np = position + 1
     if '.' == c:
-        return (unicode.WildcardEsc, np)
+        return (pyxb.utils.unicode.WildcardEsc, np)
     if '[' == c:
         return _MatchCharClassExpr(text, position)
     return _MaybeMatchCharClassEsc(text, position)
