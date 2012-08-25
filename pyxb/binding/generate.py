@@ -552,18 +552,14 @@ def GenerateCTD (ctd, generator, **kw):
     template_map['contentTypeTag'] = content_type_tag
     template_map['is_abstract'] = repr(not not ctd.abstract())
 
-    need_content = False
     content_basis = None
     if (ctd.CT_SIMPLE == content_type_tag):
         content_basis = ctd.contentType()[1]
         template_map['simple_base_type'] = binding_module.literal(content_basis, **kw)
     elif (ctd.CT_MIXED == content_type_tag):
         content_basis = ctd.contentType()[1]
-        need_content = True
     elif (ctd.CT_ELEMENT_ONLY == content_type_tag):
         content_basis = ctd.contentType()[1]
-        need_content = True
-    need_content = False
 
     prolog_template = '''
 # Complex type %{ctd} with content type %{contentTypeTag}
@@ -652,11 +648,6 @@ class %{ctd} (%{superclass}):
         outf.postscript().append(templates.replaceInText('%{ctd}._ContentModel = %{particle_val}', ctd=template_map['ctd'], particle_val=particle_val))
         outf.postscript().append("\n")
 
-    if need_content:
-        PostscriptItems.append(templates.replaceInText('''
-%{ctd}._Content = %{particle}
-''', **template_map))
-        
     # Create definitions for all attributes.
     attribute_uses = []
 
