@@ -138,11 +138,6 @@ class _NamespaceResolution_mixin (pyxb.cscRoot):
         """Return the set of namespaces which appear in namespace declarations
         of schema with this namespace as target."""
         return frozenset(self.__referencedNamespaces)
-        rn = self.__referencedNamespaces.copy()
-        for mr in self.moduleRecords():
-            if mr.isIncorporated():
-                rn.update(mr.referencedNamespaces())
-        return rn
 
     def queueForResolution (self, resolvable, depends_on=None):
         """Invoked to note that a component may have references that will need
