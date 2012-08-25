@@ -1226,7 +1226,7 @@ class STD_list (simpleTypeDefinition, types.ListType):
 
     def __setitem__ (self, key, value):
         if isinstance(key, slice):
-            super(STD_list, self).__setitem__(key, self.__convertMany(values))
+            super(STD_list, self).__setitem__(key, self.__convertMany(value))
         else:
             super(STD_list, self).__setitem__(key, self._ValidatedItem(value))
 
