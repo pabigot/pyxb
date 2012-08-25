@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import pyxb
 
 print "\n".join([ str(_ns) for _ns in pyxb.namespace.AvailableNamespaces() ])

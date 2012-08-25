@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Test individual attributes
 import pyxb.binding.generate
 import pyxb.utils.domutils

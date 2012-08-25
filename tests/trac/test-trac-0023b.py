@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Declare xml namespace
 import pyxb.binding.generate
 import pyxb.utils.domutils

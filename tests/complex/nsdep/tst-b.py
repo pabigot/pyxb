@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from pyxb.utils.domutils import BindingDOMSupport
 import unittest
 

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Unicode property and category maps.
 
 from unicode import CodePointSet

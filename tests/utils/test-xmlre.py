@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import pyxb.utils.xmlre as xmlre
 import pyxb.utils.unicode as unicode
 import re

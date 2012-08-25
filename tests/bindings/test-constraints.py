@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from pyxb.exceptions_ import *
 import unittest
 #import pyxb.binding.facets as facets

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import pyxb.binding.generate
 import pyxb.binding.datatypes as xs
 import pyxb.binding.basis

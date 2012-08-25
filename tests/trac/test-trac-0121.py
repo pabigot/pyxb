@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import pyxb.binding.datatypes as xsd
 import datetime
 import copy

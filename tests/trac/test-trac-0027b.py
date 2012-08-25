@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Undeclared XML namespace
 import pyxb.binding.generate
 import pyxb.binding.datatypes as xs

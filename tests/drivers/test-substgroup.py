@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import pyxb
 import pyxb.binding.generate
 import pyxb.utils.domutils

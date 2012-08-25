@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import pyxb
 import unittest
 import datetime

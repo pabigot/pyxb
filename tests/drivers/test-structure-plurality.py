@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Test the infrastructure that determines whether specific element
 # names should be treated as single values or collections.
 

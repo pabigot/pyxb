@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """XMLSchema -- Classes to support processing W3C XML Schema definitions.
 
 This module supports processing DOM model representations of XML schema into a

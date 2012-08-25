@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # This file contains code adopted from http://code.activestate.com/recipes/.
 # Copyright and licensing information is associated with each incorporated
 # recipe.  At this time, all code is licensed under PSF.

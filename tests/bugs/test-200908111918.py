@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Test generated documentation of attributes, elements, and classes
 import pyxb.binding.generate
 import pyxb.binding.datatypes as xs

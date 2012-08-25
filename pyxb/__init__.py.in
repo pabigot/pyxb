@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 """PyXB stands for Python U{W3C XML
 Schema<http://www.w3.org/XML/Schema>} Bindings, and is pronounced
 "pixbee".  It enables translation between XML instance documents and

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import pyxb.binding.generate
 from xml.dom import Node
 

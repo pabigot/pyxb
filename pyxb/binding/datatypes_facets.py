@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """Generated file that augments the standard schema L{datatype
 definitions<pyxb.binding.datatypes>} with their respective
 U{constraining facets<http://www.w3.org/TR/xmlschema-2/index.html#rf-facets>}.  At

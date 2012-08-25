@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import xml.dom.minidom
 import pyxb.utils.domutils
 

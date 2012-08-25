@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import unittest
 from pyxb.utils.domutils import *
 from xml.dom import Node

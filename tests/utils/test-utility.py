@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import unittest
 from pyxb.utils.utility import *
 from pyxb.utils.utility import _DeconflictSymbols_mixin
