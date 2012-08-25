@@ -21,7 +21,7 @@ import pyxb.namespace
 import pyxb.utils.saxutils
 import pyxb.utils.saxdom
 import pyxb.utils.utility
-import basis
+from pyxb.binding import basis
 from pyxb.namespace.builtin import XMLSchema_instance as XSI
 
 class _SAXElementState (pyxb.utils.saxutils.SAXElementState):

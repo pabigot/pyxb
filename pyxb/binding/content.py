@@ -29,7 +29,7 @@ L{Wildcard} holds content-related information used in the content model.
 
 import pyxb
 import pyxb.namespace
-import basis
+from pyxb.binding import basis
 
 import xml.dom
 
@@ -267,6 +267,7 @@ class AttributeUse (pyxb.cscRoot):
         self.__fixed = fixed
         self.__required = required
         self.__prohibited = prohibited
+        super(AttributeUse, self).__init__()
 
     def name (self):
         """The expanded name of the element.
@@ -528,6 +529,7 @@ class ElementUse (ContentState_mixin, ContentModel_mixin):
         self.__key = key
         self.__isPlural = is_plural
         self.__elementBinding = element_binding
+        super(ElementUse, self).__init__()
 
     def defaultValue (self):
         """Return the default value for this element.
@@ -740,6 +742,7 @@ class Wildcard (ContentState_mixin, ContentModel_mixin):
             nsc = set([ self.__normalizeNamespace(_uri) for _uri in nsc ])
         self.__namespaceConstraint = nsc
         self.__processContents = kw['process_contents']
+        super(Wildcard, self).__init__()
 
     def matches (self, instance, value):
         """Return True iff the value is a valid match against this wildcard.
@@ -1004,6 +1007,7 @@ class ParticleState (pyxb.cscRoot):
         self.__particle = particle
         self.__parentState = parent_state
         self.__count = -1
+        super(ParticleState, self).__init__()
         #print 'PS.CTOR %s: particle %s' % (self, particle)
         self.incrementCount()
 
@@ -1154,6 +1158,7 @@ class ParticleModel (ContentModel_mixin):
         self.__term = term
         self.__minOccurs = min_occurs
         self.__maxOccurs = max_occurs
+        super(ParticleModel, self).__init__()
 
     # CM.newState:ParticleModel
     def newState (self):
@@ -1235,6 +1240,7 @@ class _Group (ContentModel_mixin):
 
     def __init__ (self, *particles):
         self.__particles = particles
+        super(_Group, self).__init__()
 
     # CM.newState:_Group
     # CM.newState:GroupAll CM.newState:GroupSequence CM.newState:GroupChoice

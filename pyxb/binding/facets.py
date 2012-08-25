@@ -382,6 +382,7 @@ class _PatternElement (utility.PrivateTransient_mixin):
         self.pattern = pattern
         self.annotation = annotation
         self.__pythonExpression = pyxb.utils.xmlre.XMLToPython(pattern)
+        super(_PatternElement, self).__init__()
         #print 'Translated pattern %s to %s' % (pattern.encode('ascii', 'xmlcharrefreplace'),
         #                                       self.__pythonExpression.encode('ascii', 'xmlcharrefreplace'))
 

@@ -1369,6 +1369,7 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
         self.__defaultValue = default_value
         self.__substitutionGroup = substitution_group
         self.__documentation = documentation
+        super(element, self).__init__()
         
     def __call__ (self, *args, **kw):
         """Invoke the Factory method on the type associated with this element.
@@ -2007,7 +2008,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         # in saxer.
         element_binding = None
         if element_use is not None:
-            import content
+            from pyxb.binding import content
             assert isinstance(element_use, content.ElementUse)
             element_binding = element_use.elementBinding()
             assert element_binding is not None

@@ -124,6 +124,7 @@ class ReferenceSchemaComponent (ReferenceLiteral):
     def __init__ (self, component, **kw):
         self.__component = component
         binding_module = kw['binding_module']
+        super(ReferenceSchemaComponent, self).__init__(**kw)
         rv = binding_module.referenceSchemaComponent(component)
         #print '%s in %s is %s' % (component.expandedName(), binding_module, rv)
         self.setLiteral(rv)
@@ -134,6 +135,7 @@ class ReferenceNamespace (ReferenceLiteral):
     def __init__ (self, **kw):
         self.__namespace = kw['namespace']
         binding_module = kw['binding_module']
+        super(ReferenceNamespace, self).__init__(**kw)
         rv = binding_module.referenceNamespace(self.__namespace)
         self.setLiteral(rv)
 
@@ -142,6 +144,7 @@ class ReferenceExpandedName (ReferenceLiteral):
 
     def __init__ (self, **kw):
         self.__expandedName = kw['expanded_name']
+        super(ReferenceExpandedName, self).__init__(**kw)
         self.setLiteral('pyxb.namespace.ExpandedName(%s, %s)' % (pythonLiteral(self.__expandedName.namespace(), **kw), pythonLiteral(self.__expandedName.localName(), **kw)))
 
 class ReferenceFacet (ReferenceLiteral):

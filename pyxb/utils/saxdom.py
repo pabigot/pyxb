@@ -252,7 +252,7 @@ class Text (_CharacterData):
 
 class Comment (_CharacterData):
     def __init__ (self, text, **kw):
-        super(Text, self).__init__(value=text, node_type=xml.dom.Node.COMMENT_NODE, **kw)
+        super(Comment, self).__init__(value=text, node_type=xml.dom.Node.COMMENT_NODE, **kw)
 
 if '__main__' == __name__:
     import sys
