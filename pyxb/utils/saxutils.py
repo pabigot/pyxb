@@ -24,6 +24,7 @@ element in the stream.  These classes are extended for specific parsing needs
 import xml.sax
 import xml.sax.handler
 import pyxb.namespace
+import StringIO
 
 class TracingSAXHandler (xml.sax.handler.ContentHandler):
     """A SAX handler class which prints each method invocation.
@@ -366,7 +367,6 @@ class BaseSAXHandler (xml.sax.handler.ContentHandler, object):
     def processingInstruction (self, target, data):
         self.__flushPendingText()
 
-import StringIO
 class _EntityResolver (object):
     """Dummy used to prevent the SAX parser from crashing when it sees
     processing instructions that we don't care about."""
@@ -442,12 +442,10 @@ def make_parser (**kw):
 
 if '__main__' == __name__:
     import xml.dom.pulldom
-    import pyxb.utils.domutils as domutils
     import pyxb.utils.saxdom as saxdom
     import time
     import lxml.sax
     import lxml.etree
-    import StringIO
     import sys
 
     Handler = BaseSAXHandler

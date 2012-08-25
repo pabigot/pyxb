@@ -244,7 +244,8 @@ class CodePointSet (object):
             raise CodePointSetError('CodePointSet does not represent single character')
         return unichr(self.__codepoints[0])
 
-from unicode_data import *
+from pyxb.utils.unicode_data import PropertyMap
+from pyxb.utils.unicode_data import BlockMap
 
 class XML1p0e2 (object):
     """Regular expression support for XML Schema Data Types.

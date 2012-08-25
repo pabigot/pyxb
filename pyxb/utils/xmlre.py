@@ -33,7 +33,6 @@ with a sample document at U{
 http://www.xmlschemareference.com/examples/Ch14/regexpDemo.xml}"""
 
 import unicode
-import re
 
 class RegularExpressionError (ValueError):
     """Raised when a regular expression cannot be processed.."""

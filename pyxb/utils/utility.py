@@ -18,10 +18,9 @@ import re
 import os
 import errno
 import pyxb
-
-# Import utility routines that are not from PyXB so have distinct
-# licensing.
-from pyxb.utils.activestate import *
+import urlparse
+import time
+import datetime
 
 def QuotedEscaped (s):
     """Convert a string into a literal value that can be used in Python source.
@@ -594,9 +593,6 @@ def NormalizeLocation (uri, parent_uri=None, prefix_map=None):
     L{SetLocationPrefixRewriteMap}.
     
     """
-    import urlparse
-    import os
-    
     if uri is None:
         return uri
     if parent_uri is None:
@@ -614,7 +610,6 @@ def NormalizeLocation (uri, parent_uri=None, prefix_map=None):
         abs_uri = os.path.realpath(abs_uri)
     return abs_uri
 
-import urlparse
 
 def TextFromURI (uri, archive_directory=None):
     """Retrieve the contents of the uri as a text string.
@@ -742,7 +737,6 @@ try:
     import uuid
     __HaveUUID = True
 except ImportError:
-    import time
     import random
 def _NewUUIDString ():
     """Obtain a UUID using the best available method.  On a version of
@@ -850,9 +844,6 @@ class UniqueIdentifier (object):
     def __repr__ (self):
         return 'pyxb.utils.utility.UniqueIdentifier(%s)' % (repr(self.uid()),)
 
-import datetime
-import calendar
-import time
 class UTCOffsetTimeZone (datetime.tzinfo):
     """A C{datetime.tzinfo} subclass that helps deal with UTC
     conversions in an ISO8601 world.
