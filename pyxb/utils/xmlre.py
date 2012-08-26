@@ -18,7 +18,7 @@
 
 For the most part, XML regular expressions are similar to the POSIX
 ones, and can be handled by the Python C{re} module.  The exceptions
-are for multi-character (C{\w}) and category escapes (e.g., C{\N} or
+are for multi-character (C{\w}) and category escapes (e.g., C{\p{N}} or
 C{\p{IPAExtensions}}) and the character set subtraction capability.
 This module supports those by scanning the regular expression,
 replacing the category escapes with equivalent charset expressions.
@@ -42,17 +42,24 @@ _log = logging.getLogger(__name__)
 
 # AllEsc maps all the possible escape codes and wildcards in an XML schema
 # regular expression into the corresponding CodePointSet.
-_AllEsc = { u'.': pyxb.utils.unicode.WildcardEsc }
-for k, v in pyxb.utils.unicode.SingleCharEsc.iteritems():
-    _AllEsc[u'\\' + unicode(k)] = v
-for k, v in pyxb.utils.unicode.MultiCharEsc.iteritems():
-    _AllEsc[u'\\' + unicode(k)] = v
-for k, v in pyxb.utils.unicode.catEsc.iteritems():
-    _AllEsc[u'\\' + unicode(k)] = v
-for k, v in pyxb.utils.unicode.complEsc.iteritems():
-    _AllEsc[u'\\' + unicode(k)] = v
-for k, v in pyxb.utils.unicode.IsBlockEsc.iteritems():
-    _AllEsc[u'\\' + unicode(k)] = v
+_AllEsc = { }
+
+def _InitializeAllEsc ():
+    """Set the values in _AllEsc without introducing C{k} and C{v} into
+    the module."""
+
+    _AllEsc.update({ u'.': pyxb.utils.unicode.WildcardEsc })
+    for k, v in pyxb.utils.unicode.SingleCharEsc.iteritems():
+        _AllEsc[u'\\' + unicode(k)] = v
+    for k, v in pyxb.utils.unicode.MultiCharEsc.iteritems():
+        _AllEsc[u'\\' + unicode(k)] = v
+    for k, v in pyxb.utils.unicode.catEsc.iteritems():
+        _AllEsc[u'\\' + unicode(k)] = v
+    for k, v in pyxb.utils.unicode.complEsc.iteritems():
+        _AllEsc[u'\\' + unicode(k)] = v
+    for k, v in pyxb.utils.unicode.IsBlockEsc.iteritems():
+        _AllEsc[u'\\' + unicode(k)] = v
+_InitializeAllEsc()
 
 class RegularExpressionError (ValueError):
     """Raised when a regular expression cannot be processed.."""
@@ -62,26 +69,41 @@ class RegularExpressionError (ValueError):
 
 _CharClassEsc_re = re.compile(r'\\(?:(?P<cgProp>[pP]{(?P<charProp>[-A-Za-z0-9]+)})|(?P<cgClass>[^pP]))')
 def _MatchCharClassEsc(text, position):
-    '''Parse a "charClassEsc" term.
+    """Parse a U{charClassEsc<http://www.w3.org/TR/xmlschema-2/#nt-charClassEsc>} term.
 
     This is one of:
-     - "SingleCharEsc", an escaped single character, e.g. u"\\n" or u"\\\\"
-     - "MultiCharEsc", an escape code that can match a range of characters,
-       e.g. u"\\s" to match certain whitespace characters
-     - "catEsc", the \p{...} Unicode property escapes including categories and blocks
-     - "complEsc", the \P{...} inverted Unicode property escapes
 
-    Preconditions: None
+      - U{SingleCharEsc<http://www.w3.org/TR/xmlschema-2/#nt-SingleCharEsc>},
+      an escaped single character such as C{E{\}n}
+
+      - U{MultiCharEsc<http://www.w3.org/TR/xmlschema-2/#nt-MultiCharEsc>},
+      an escape code that can match a range of characters,
+      e.g. C{E{\}s} to match certain whitespace characters
+
+      - U{catEsc<http://www.w3.org/TR/xmlschema-2/#nt-catEsc>}, the
+      C{E{\}pE{lb}...E{rb}} Unicode property escapes including
+      categories and blocks
+
+      - U{complEsc<http://www.w3.org/TR/xmlschema-2/#nt-complEsc>},
+      the C{E{\}PE{lb}...E{rb}} inverted Unicode property escapes
+
     If the parsing fails, throws a RegularExpressionError.
-    Returns a tuple with the CodePointSet and the new position.
-    Postconditions: None
-    '''
+
+    @return: A pair C{(cps, p)} where C{cps} is a
+    L{pyxb.utils.unicode.CodePointSet} containing the code points
+    associated with the character class, and C{p} is the text offset
+    immediately following the escape sequence.
+
+    @raise RegularExpressionError: if the expression is syntactically
+    invalid.
+    """
+  
     mo = _CharClassEsc_re.match(text, position)
     if mo:
         escape_code = mo.group(0)
         cps = _AllEsc.get(escape_code)
         if cps is not None:
-            return cps, mo.end()
+            return (cps, mo.end())
         char_prop = mo.group('charProp')
         if char_prop is not None:
             if char_prop.startswith('Is'):
@@ -91,17 +113,15 @@ def _MatchCharClassEsc(text, position):
     raise RegularExpressionError(position, "Unrecognized escape identifier at %s" % (text[position:],))
 
 def _MatchPosCharGroup(text, position):
-    '''Parse a "posCharGroup" term.
+    '''Parse a U{posCharGroup<http://www.w3.org/TR/xmlschema-2/#nt-posCharGroup>} term.
 
-    Preconditions: None.
-    If the parsing fails, throws a RegularExpressionError.
-    Returns a tuple with the character class, a bool indicating if there's a
-    following subtraction, and the new position.
+    @return: A tuple C{(cps, fs, p)} where:
+      - C{cps} is a L{pyxb.utils.unicode.CodePointSet} containing the code points associated with the group;
+      - C{fs} is a C{bool} that is C{True} if the next character is the C{-} in a U{charClassSub<http://www.w3.org/TR/xmlschema-2/#nt-charClassSub>} and C{False} if the group is not part of a charClassSub;
+      - C{p} is the text offset immediately following the closing brace.
 
-    Postconditions: If has_following_subtraction is True, then the next
-        characters are u"-[".  If has_following_subtraction is False, then
-        the next character will be u"]".  This function guarantees this,
-        so caller doesn't need to check.
+    @raise RegularExpressionError: if the expression is syntactically
+    invalid.
     '''
 
     start_position = position
@@ -182,25 +202,20 @@ def _MatchPosCharGroup(text, position):
     return result_cps, has_following_subtraction, position
 
 def _MatchCharClassExpr(text, position):
-    '''Parse a U{character class expression<http://www.w3.org/TR/xmlschema-2/#nt-charClassExpr>}
-    ("charClassExpr"), like [abc] or [a-c] or [^abc] or [a-z-[q]].
+    '''Parse a U{charClassExpr<http://www.w3.org/TR/xmlschema-2/#nt-charClassExpr>}.
 
-    Preconditions: None.
-    Preconditions for successful parse: Next character must be a u'[' that
-        starts a character class.
-    If the parsing fails, throws a RegularExpressionError.
-    Returns a tuple with the character class, and the new position.
-    Postconditions: None.
+    These are XML regular expression classes such as C{[abc]}, C{[a-c]}, C{[^abc]}, or C{[a-z-[q]]}.
 
     @param text: The complete text of the regular expression being
-    translated
+    translated.  The first character must be the C{[} starting a
+    character class.
 
     @param position: The offset of the start of the character group.
     
     @return: A pair C{(cps, p)} where C{cps} is a
-    L{pyxb.utils.unicode.CodePointSet} containing the code points associated with
-    the property, and C{p} is the text offset immediately following
-    the closing brace.
+    L{pyxb.utils.unicode.CodePointSet} containing the code points
+    associated with the property, and C{p} is the text offset
+    immediately following the closing brace.
 
     @raise RegularExpressionError: if the expression is syntactically
     invalid.
