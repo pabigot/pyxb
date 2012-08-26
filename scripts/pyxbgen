@@ -7,7 +7,10 @@ import pyxb.utils.domutils
 import os.path
 import sys
 import optparse
+
 import logging
+logging.basicConfig()
+log_ = logging.getLogger(__name__)
 
 def WSDLToSchema (generator, wsdl_uri):
     """Extract the schema element from a WSDL types document and
@@ -32,8 +35,6 @@ def _WSDLOptionCallback (option, opt_str, value, parser, *args, **kwargs):
         parser.values.schema_location = []
     parser.values.schema_location.append( (value, WSDLToSchema) )
 
-logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
-
 generator = pyxb.binding.generate.Generator()
 parser = generator.optionParser()
 group = optparse.OptionGroup(parser, 'WSDL Options', 'Options relevant to generating bindings from WSDL service descriptions')
@@ -46,7 +47,6 @@ parser.add_option_group(group)
                              
 (options, args) = parser.parse_args()
 
-print generator.generationUID()
 if options.wsdl_location is not None:
     import pyxb.bundles.wssplat.wsdl11 as wsdl
     wsdl.ImportRelatedNamespaces()

@@ -420,7 +420,7 @@ def GenerateSTD (std, generator):
     template_map = { }
     binding_name = template_map['std'] = binding_module.literal(std, **kw)
     if (std.expandedName() is not None) and (std.expandedName().localName() != binding_name):
-        _log.info('Simple type %s renamed to %s', std.expandedName(), binding_name)
+        _log.warning('Simple type %s renamed to %s', std.expandedName(), binding_name)
 
     template_map['superclasses'] = ''
     if 0 < len(parent_classes):
@@ -502,7 +502,7 @@ def elementDeclarationMap (ed, binding_module, **kw):
     if (ed.SCOPE_global == ed.scope()):
         binding_name = template_map['class'] = binding_module.literal(ed, **kw)
         if ed.expandedName().localName() != binding_name:
-            _log.info('Element %s renamed to %s', ed.expandedName(), binding_name)
+            _log.warning('Element %s renamed to %s', ed.expandedName(), binding_name)
         template_map['localName'] = binding_module.literal(ed.name(), **kw)
         template_map['map_update'] = templates.replaceInText("%{namespaceReference}.addCategoryObject('elementBinding', %{localName}, %{class})", **template_map)
     else:
@@ -536,7 +536,7 @@ def GenerateCTD (ctd, generator, **kw):
     template_map = { }
     binding_name = template_map['ctd'] = binding_module.literal(ctd, **kw)
     if (ctd.expandedName() is not None) and (ctd.expandedName().localName() != binding_name):
-        _log.info('Complex type %s renamed to %s', ctd.expandedName(), binding_name)
+        _log.warning('Complex type %s renamed to %s', ctd.expandedName(), binding_name)
     
     base_type = ctd.baseTypeDefinition()
     content_type_tag = ctd._contentTypeTag()
@@ -623,7 +623,7 @@ class %{ctd} (%{superclass}):
                 continue
 
             if ed.expandedName().localName() != ef_map['id']:
-                _log.info('Element use %s.%s renamed to %s', ctd.expandedName(), ed.expandedName(), ef_map['id'])
+                _log.warning('Element use %s.%s renamed to %s', ctd.expandedName(), ed.expandedName(), ef_map['id'])
             definitions.append(templates.replaceInText('''
     # Element %{name} uses Python identifier %{id}
     %{use} = pyxb.binding.content.ElementUse(%{name_expr}, '%{id}', '%{key}', %{is_plural}%{aux_init})
@@ -698,7 +698,7 @@ class %{ctd} (%{superclass}):
 
         attribute_uses.append(templates.replaceInText('%{use}.name() : %{use}', **au_map))
         if ad.expandedName().localName() != au_map['id']:
-            _log.info('Attribute %s.%s renamed to %s', ctd.expandedName(), ad.expandedName(), au_map['id'])
+            _log.warning('Attribute %s.%s renamed to %s', ctd.expandedName(), ad.expandedName(), au_map['id'])
         definitions.append(templates.replaceInText('''
     # Attribute %{name} uses Python identifier %{id}
     %{use} = pyxb.binding.content.AttributeUse(%{name_expr}, '%{id}', '%{key}', %{attr_type}%{aux_init})''', name_expr=binding_module.literal(ad.expandedName(), **kw), **au_map))
