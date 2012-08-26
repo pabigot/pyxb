@@ -34,6 +34,7 @@ import sys
 import traceback
 import os.path
 import logging
+import logging.config
 
 _log = logging.getLogger(__name__)
 
@@ -1844,6 +1845,18 @@ class Generator (object):
         self.__uriContentArchiveDirectory = ucad
     __uriContentArchiveDirectory = None
 
+    def loggingConfigFile (self):
+        """A file provided to L{logging.config.fileConfig} to control log messages.
+
+        In the absence of other configuration the Python standard logging infrastructure is used in its
+        default configuration.
+
+        @rtype: C{str}"""
+        return self.__loggingConfigFile
+    def setLoggingConfigFile (self, logging_config_file):
+        self.__loggingConfigFile = logging_config_file
+    __loggingConfigFile = None
+
     def __init__ (self, *args, **kw):
         """Create a configuration to be used for generating bindings.
 
@@ -1873,6 +1886,7 @@ class Generator (object):
         @keyword allow_absent_module: Invokes L{setAllowAbsentModule}
         @keyword generate_to_files: Sets L{generateToFiles}
         @keyword uri_content_archive_directory: Invokes L{setUriContentArchiveDirectory}
+        @keyword logging_config_file: Invokes L{setLoggingConfigFile}
         """
         argv = kw.get('argv', None)
         if argv is not None:
@@ -1901,6 +1915,7 @@ class Generator (object):
         self.__allowAbsentModule = kw.get('allow_absent_module', False)
         self.__generateToFiles = kw.get('generate_to_files', True)
         self.__uriContentArchiveDirectory = kw.get('uri_content_archive_directory')
+        self.__loggingConfigFile = kw.get('logging_config_file')
         
         if argv is not None:
             self.applyOptionValues(*self.optionParser().parse_args(argv))
@@ -1931,7 +1946,8 @@ class Generator (object):
         ('write_for_customization', setWriteForCustomization),
         ('allow_builtin_generation', setAllowBuiltinGeneration),
         ('allow_absent_module', setAllowAbsentModule),
-        ('uri_content_archive_directory', setUriContentArchiveDirectory)
+        ('uri_content_archive_directory', setUriContentArchiveDirectory),
+        ('logging_config_file', setLoggingConfigFile)
         )
     def applyOptionValues (self, options, args=None):
         for (tag, method) in self.__OptionSetters:
@@ -1944,6 +1960,8 @@ class Generator (object):
         if args is not None:
             self.__schemaLocationList.extend(args)
         pyxb.utils.utility.SetLocationPrefixRewriteMap(self.locationPrefixRewriteMap())
+        if self.__loggingConfigFile is not None:
+            logging.config.fileConfig(self.__loggingConfigFile)
 
     def setFromCommandLine (self, argv=None):
         if argv is None:
@@ -2036,7 +2054,13 @@ class Generator (object):
                               help=self.__stripSpaces(self.validateChanges.__doc__ + ' This option turns off validation.'))
             parser.add_option_group(group)
 
+            group = optparse.OptionGroup(parser, 'Miscellaneous Options', "Anything else.")
+            group.add_option('--logging-config-file', metavar="FILE",
+                             help=self.__stripSpaces(self.loggingConfigFile.__doc__))
+            parser.add_option_group(group)
+
             group = optparse.OptionGroup(parser, 'Maintainer Options', "Don't use these.  They don't exist.  If they did, they'd do different things at different times, and if you used them you'd probably be sorry.")
+
             group.add_option('--allow-absent-module',
                               action='store_true', dest='allow_absent_module',
                               help=self.__stripSpaces(self.allowAbsentModule.__doc__ + ' This option turns on the feature.'))

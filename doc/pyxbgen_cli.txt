@@ -287,6 +287,27 @@ content model. This option turns on validation (default).
 Indicates whether the bindings should validate mutations against the
 content model. This option turns off validation.
 
+Miscellaneous Options
+---------------------
+
+Anything else.
+
+.. table:: Miscellaneous Options
+
+   =========================  =========  ====  ==================================================  
+    Long Option                Argument   Alt   Description                                        
+   =========================  =========  ====  ==================================================  
+   ``--logging-config-file``  *FILE*           :ref:`A file provided to L{logging.config.fileConfig} to...<pyxbgen--logging-config-file>`
+   =========================  =========  ====  ==================================================  
+
+.. _pyxbgen--logging-config-file:
+
+``--logging-config-file``
+^^^^^^^^^^^^^^^^^^^^^^^^^
+A file provided to L{logging.config.fileConfig} to control log messages.
+In the absence of other configuration the Python standard logging
+infrastructure is used in its default configuration. @rtype: ``str``
+
 Maintainer Options
 ------------------
 
