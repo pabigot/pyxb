@@ -14,6 +14,7 @@ import os
 import stat
 import re
 import datetime
+import logging
 
 from distutils.core import setup, Command
 
@@ -77,6 +78,9 @@ class test (Command):
     __TestFile_re = re.compile('^test.*\.py$')
 
     def run (self):
+        # Make sure log messages are supported
+        logging.basicConfig()
+
         # Walk the tests hierarchy looking for tests
         dirs = self.testdirs.split(':')
         tests = [ ]
