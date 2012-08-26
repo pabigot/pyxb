@@ -73,4 +73,6 @@ class TestTrac_0094 (unittest.TestCase):
         self.assertRaises(AttributeError, instance.toxml)
 
 if __name__ == '__main__':
+    import logging
+    logging.basicConfig()
     unittest.main()

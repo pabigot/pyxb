@@ -20,5 +20,7 @@ class TestIncludeDD (unittest.TestCase):
         self.assertEqual(english.one, instance.from_)
 
 if __name__ == '__main__':
+    import logging
+    logging.basicConfig()
     unittest.main()
     

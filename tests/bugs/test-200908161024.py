@@ -55,4 +55,6 @@ class TestTrac_200908161024 (unittest.TestCase):
         self.assertEqual(tvColorCode.B__W, CreateFromDocument('<colorCode>B &amp; W</colorCode>'))
 
 if __name__ == '__main__':
+    import logging
+    logging.basicConfig()
     unittest.main()

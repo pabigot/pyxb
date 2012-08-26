@@ -66,4 +66,6 @@ class TestTrac_0057 (unittest.TestCase):
         self.assertEquals(xml, self.XMLS)
 
 if __name__ == '__main__':
+    import logging
+    logging.basicConfig()
     unittest.main()

@@ -463,4 +463,6 @@ class TestXMLRE (unittest.TestCase):
         self.assertMatches(u"foo\\\\bar", u"foo\\bar")
 
 if __name__ == '__main__':
+    import logging
+    logging.basicConfig()
     unittest.main()

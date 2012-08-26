@@ -42,4 +42,6 @@ class TestTrac_0088 (unittest.TestCase):
         self.assertEqual(enums[2].value(), u'm\xb3')
 
 if __name__ == '__main__':
+    import logging
+    logging.basicConfig()
     unittest.main()

@@ -57,4 +57,6 @@ class TestTrac0141 (unittest.TestCase):
         self.assertTrue(instance.is_clean)
 
 if __name__ == '__main__':
+    import logging
+    logging.basicConfig()
     unittest.main()

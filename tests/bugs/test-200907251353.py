@@ -41,4 +41,6 @@ class TestBug_200907251353 (unittest.TestCase):
         self.assertEqual(2, len(anon))
 
 if __name__ == '__main__':
+    import logging
+    logging.basicConfig()
     unittest.main()

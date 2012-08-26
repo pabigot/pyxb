@@ -75,6 +75,8 @@ Anytown, AS  12345-6789'''
         self.assertEqual(xml2, ToDOM(po2, dom_support=bds).toxml("utf-8"))
 
 if __name__ == '__main__':
+    import logging
+    logging.basicConfig()
     unittest.main()
     
         

@@ -59,4 +59,6 @@ class TestTrac0080 (unittest.TestCase):
         self.assertRaises(pyxb.MissingAttributeError, r.validateBinding)
 
 if __name__ == '__main__':
+    import logging
+    logging.basicConfig()
     unittest.main()

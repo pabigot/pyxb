@@ -86,4 +86,6 @@ class TestTrac_0047 (unittest.TestCase):
         self.assertTrue(isinstance(v, xs.anyURI))
 
 if __name__ == '__main__':
+    import logging
+    logging.basicConfig()
     unittest.main()

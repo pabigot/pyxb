@@ -19,4 +19,6 @@ class TestTrac_0093 (unittest.TestCase):
         self.assertRaises(pyxb.IncompleteImplementationError, pyxb.binding.generate.GeneratePython, schema_text=xsd)
 
 if __name__ == '__main__':
+    import logging
+    logging.basicConfig()
     unittest.main()

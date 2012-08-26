@@ -25,4 +25,6 @@ class TestTrac_0045 (unittest.TestCase):
         self.assertEqual("inner ''' docstring!", CreateDocumentationNode('inner """ docstring!').asDocString())
 
 if __name__ == '__main__':
+    import logging
+    logging.basicConfig()
     unittest.main()

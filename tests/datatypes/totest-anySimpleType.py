@@ -7,4 +7,6 @@ class Test_anySimpleType (unittest.TestCase):
         self.assertFalse("Datatype anySimpleType test not implemented")
 
 if __name__ == '__main__':
+    import logging
+    logging.basicConfig()
     unittest.main()

@@ -7,4 +7,6 @@ class Test_decimal (unittest.TestCase):
         self.assertFalse("Datatype decimal test not implemented")
 
 if __name__ == '__main__':
+    import logging
+    logging.basicConfig()
     unittest.main()

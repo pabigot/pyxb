@@ -41,4 +41,6 @@ class TestTrac_0052 (unittest.TestCase):
         
 
 if __name__ == '__main__':
+    import logging
+    logging.basicConfig()
     unittest.main()

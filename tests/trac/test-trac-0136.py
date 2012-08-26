@@ -54,4 +54,6 @@ class TestTrac_0136 (unittest.TestCase):
         self.assertTrue(i_naive.tzinfo is None)
 
 if __name__ == '__main__':
+    import logging
+    logging.basicConfig()
     unittest.main()

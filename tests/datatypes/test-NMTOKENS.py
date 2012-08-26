@@ -27,4 +27,6 @@ class Test_NMTOKENS (unittest.TestCase):
         self.assertEqual(('a', 'B', 'b', 'c'), tuple(v))
 
 if __name__ == '__main__':
+    import logging
+    logging.basicConfig()
     unittest.main()

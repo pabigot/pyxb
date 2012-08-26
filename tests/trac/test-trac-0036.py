@@ -69,4 +69,6 @@ class TestTrac_200908041715 (unittest.TestCase):
         self.assertEqual(cv._element(), tData._ElementMap['D'].elementBinding())
 
 if __name__ == '__main__':
+    import logging
+    logging.basicConfig()
     unittest.main()

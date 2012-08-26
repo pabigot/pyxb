@@ -26,4 +26,6 @@ class TestTrac_0046 (unittest.TestCase):
         self.assertEqual(g2.innerComplex.globalSimple, 'simple')
 
 if __name__ == '__main__':
+    import logging
+    logging.basicConfig()
     unittest.main()

@@ -17,4 +17,6 @@ class Test_ID (unittest.TestCase):
             self.assertRaises(BadTypeValueError, xsd.ID, f)
 
 if __name__ == '__main__':
+    import logging
+    logging.basicConfig()
     unittest.main()

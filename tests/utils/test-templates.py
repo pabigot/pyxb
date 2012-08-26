@@ -88,6 +88,8 @@ Line %{three}
         self.assertEquals('%{MISSING:four}', replaceInText('%{four}', **self.dictionary))
 
 if __name__ == '__main__':
+    import logging
+    logging.basicConfig()
     #print replaceInText('%{?three%?three is defined%:three is not defined?}', ConditionalPatternTestCase.dictionary)
     #print "\n".join(_substConditionalPattern.match('%{?three%?three is defined%:three is not defined?}').groups())
     unittest.main()

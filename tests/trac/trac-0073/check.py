@@ -11,4 +11,6 @@ class TestTrac0073 (unittest.TestCase):
         self.assertTrue(base_id in amap)
 
 if __name__ == '__main__':
+    import logging
+    logging.basicConfig()
     unittest.main()

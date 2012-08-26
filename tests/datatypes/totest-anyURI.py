@@ -7,4 +7,6 @@ class Test_anyURI (unittest.TestCase):
         self.assertFalse("Datatype anyURI test not implemented")
 
 if __name__ == '__main__':
+    import logging
+    logging.basicConfig()
     unittest.main()

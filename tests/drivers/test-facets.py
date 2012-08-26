@@ -27,5 +27,7 @@ class TestFacets (unittest.TestCase):
         self.assertRaises(Exception, v, 100)
 
 if __name__ == '__main__':
+    import logging
+    logging.basicConfig()
     unittest.main()
     

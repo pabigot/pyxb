@@ -18,5 +18,7 @@ class TestKML (unittest.TestCase):
         self.assertRaises(BadTypeValueError, angle360, -361.0)
         
 if __name__ == '__main__':
+    import logging
+    logging.basicConfig()
     unittest.main()
     

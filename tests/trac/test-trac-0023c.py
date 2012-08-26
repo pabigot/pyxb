@@ -33,5 +33,7 @@ class TestTrac0023 (unittest.TestCase):
         self.assertEqual(pyxb.binding.datatypes.anyURI, structure._AttributeMap[pyxb.namespace.XML.createExpandedName('base')].dataType())
 
 if __name__ == '__main__':
+    import logging
+    logging.basicConfig()
     unittest.main()
     

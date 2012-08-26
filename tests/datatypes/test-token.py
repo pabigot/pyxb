@@ -28,4 +28,6 @@ class Test_token (unittest.TestCase):
                 self.assertRaises(pyxb.BadTypeValueError, xsd.token, lexical)
 
 if __name__ == '__main__':
+    import logging
+    logging.basicConfig()
     unittest.main()

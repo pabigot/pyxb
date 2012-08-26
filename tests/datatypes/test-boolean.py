@@ -22,4 +22,6 @@ class Test_boolean (unittest.TestCase):
         self.assertRaises(BadTypeValueError, xsd.boolean, "FALSE")
 
 if __name__ == '__main__':
+    import logging
+    logging.basicConfig()
     unittest.main()

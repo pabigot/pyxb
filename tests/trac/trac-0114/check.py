@@ -41,4 +41,6 @@ class TestTrac0114 (unittest.TestCase):
         self.assertEqual(a.toxml("utf-8"), '<ns1:a xmlns:ns1="urn:schema:a" xmlns:ns2="urn:schema:b" xmlns:ns3="urn:schema:c"><ns1:Extensions><ns2:xyz ns3:tag="value">abc</ns2:xyz></ns1:Extensions></ns1:a>')
 
 if __name__ == '__main__':
+    import logging
+    logging.basicConfig()
     unittest.main()

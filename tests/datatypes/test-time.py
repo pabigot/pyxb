@@ -48,4 +48,6 @@ class Test_time (unittest.TestCase):
         self.assertFalse(dt.tzinfo is not None)
 
 if __name__ == '__main__':
+    import logging
+    logging.basicConfig()
     unittest.main()

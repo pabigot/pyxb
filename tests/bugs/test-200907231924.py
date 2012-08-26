@@ -52,4 +52,6 @@ class TestTrac_200907231924 (unittest.TestCase):
         self.assertEqual(instance.content()[2], 'State')
 
 if __name__ == '__main__':
+    import logging
+    logging.basicConfig()
     unittest.main()

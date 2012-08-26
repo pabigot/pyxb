@@ -30,6 +30,8 @@ class TestTypeInference (unittest.TestCase):
         self.assertEqual(e.str, "3")
 
 if __name__ == '__main__':
+    import logging
+    logging.basicConfig()
     unittest.main()
     
         

@@ -203,6 +203,8 @@ class TestWildcard (unittest.TestCase):
         self.assertEquals('somevalue', instance.wildcardAttributeMap()['auxattr'])
 
 if __name__ == '__main__':
+    import logging
+    logging.basicConfig()
     unittest.main()
     
         

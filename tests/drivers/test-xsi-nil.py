@@ -175,6 +175,8 @@ class TestXSIType (unittest.TestCase):
             instance.validateBinding()
 
 if __name__ == '__main__':
+    import logging
+    logging.basicConfig()
     unittest.main()
     
         

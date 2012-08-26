@@ -61,4 +61,6 @@ class Test_date (unittest.TestCase):
         self.assertEqual('2002-10-11+10:00', dt.xsdLiteral())
 
 if __name__ == '__main__':
+    import logging
+    logging.basicConfig()
     unittest.main()

@@ -24,4 +24,6 @@ class TestTrac0148 (unittest.TestCase):
         self.assertRaises(pyxb.SchemaValidationError, pyxb.binding.generate.GeneratePython, schema_text=xsd)
 
 if __name__ == '__main__':
+    import logging
+    logging.basicConfig()
     unittest.main()

@@ -46,5 +46,7 @@ class TestTrac0110 (unittest.TestCase):
         self.assertEqual(s.toxml("utf-8", root_only=True), expect)
 
 if __name__ == '__main__':
+    import logging
+    logging.basicConfig()
     unittest.main()
     

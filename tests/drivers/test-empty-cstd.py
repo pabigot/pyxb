@@ -33,5 +33,7 @@ class TestEmptyCSTD (unittest.TestCase):
         self.assertEqual("", instance.value())
 
 if __name__ == '__main__':
+    import logging
+    logging.basicConfig()
     unittest.main()
     

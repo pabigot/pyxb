@@ -114,4 +114,6 @@ class TestTrac0131 (unittest.TestCase):
         self.assertEqual(instance, self.textu)
 
 if __name__ == '__main__':
+    import logging
+    logging.basicConfig()
     unittest.main()

@@ -66,4 +66,6 @@ class TestXSIType (unittest.TestCase):
         self.assertEqual('rightleft', instance.right.left.data)
 
 if __name__ == '__main__':
+    import logging
+    logging.basicConfig()
     unittest.main()

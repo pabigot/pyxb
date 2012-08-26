@@ -13,4 +13,6 @@ class TestTrac0161 (unittest.TestCase):
         args = g.getCommandLineArgs()
 
 if __name__ == '__main__':
+    import logging
+    logging.basicConfig()
     unittest.main()

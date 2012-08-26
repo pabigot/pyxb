@@ -24,5 +24,7 @@ class TestTrac0116 (unittest.TestCase):
         self.assertRaises(pyxb.UnrecognizedAttributeError, CreateFromDocument, self.xmls)
 
 if __name__ == '__main__':
+    import logging
+    logging.basicConfig()
     unittest.main()
     

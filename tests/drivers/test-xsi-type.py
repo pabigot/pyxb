@@ -91,4 +91,6 @@ class TestXSIType (unittest.TestCase):
         self.assertEqual(xml, r2)
 
 if __name__ == '__main__':
+    import logging
+    logging.basicConfig()
     unittest.main()

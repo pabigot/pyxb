@@ -8,4 +8,6 @@ class Test_string (unittest.TestCase):
         pass
 
 if __name__ == '__main__':
+    import logging
+    logging.basicConfig()
     unittest.main()

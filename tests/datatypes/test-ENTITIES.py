@@ -18,4 +18,6 @@ class Test_ENTITIES (unittest.TestCase):
         self.assertRaises(BadTypeValueError, xsd.ENTITIES, 'string with b@d id')
 
 if __name__ == '__main__':
+    import logging
+    logging.basicConfig()
     unittest.main()
