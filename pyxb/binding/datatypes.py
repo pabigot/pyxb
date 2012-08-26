@@ -51,6 +51,9 @@ import basis
 import re
 import binascii
 import base64
+import logging
+
+_log = logging.getLogger(__name__)
 
 _PrimitiveDatatypes = []
 _DerivedDatatypes = []

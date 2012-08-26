@@ -36,6 +36,9 @@ http://www.xmlschemareference.com/examples/Ch14/regexpDemo.xml}"""
 
 import pyxb.utils.unicode
 import re
+import logging
+
+_log = logging.getLogger(__name__)
 
 # AllEsc maps all the possible escape codes and wildcards in an XML schema
 # regular expression into the corresponding CodePointSet.

@@ -16,6 +16,9 @@
 """Classes and global objects related to built-in U{XML Namespaces<http://www.w3.org/TR/2006/REC-xml-names-20060816/index.html>}."""
 
 import pyxb
+import logging
+
+_log = logging.getLogger(__name__)
 
 # A unique identifier for components that are built-in to the PyXB system
 BuiltInObjectUID = pyxb.utils.utility.UniqueIdentifier('PyXB-' + pyxb.__version__ + '-Builtin')

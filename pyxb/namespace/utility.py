@@ -17,6 +17,9 @@
 
 import pyxb
 import pyxb.namespace
+import logging
+
+_log = logging.getLogger(__name__)
 
 def NamespaceInstance (namespace):
     """Get a namespace instance for the given namespace.
