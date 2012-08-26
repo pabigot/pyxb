@@ -35,8 +35,13 @@ eval(rv)
 from pyxb.exceptions_ import *
 
 import unittest
+# Note: Without this, there's an exception thrown below because the
+# binding for the namespace isn't available; PyXB falls back to a raw
+# DOM model there.  With this, though, you run afoul of trac/153 which
+# may not be fixed in the PyXB 1.1.x series.
+#import pyxb.bundles.common.xhtml1
 
-class Test_Mixed2 (unittest.TestCase):
+class TestTrac0155 (unittest.TestCase):
     testxml = """<?xml version="1.0" encoding="UTF-8"?>
 <OpaqueData xmlns="http://schema.omg.org/spec/CTS2/1.0/Core"
     xmlns:core="http://schema.omg.org/spec/CTS2/1.0/Core"
@@ -54,8 +59,6 @@ class Test_Mixed2 (unittest.TestCase):
     Expected = """<?xml version="1.0" ?><OpaqueData xmlns="http://schema.omg.org/spec/CTS2/1.0/Core" xmlns:ns1="http://www.w3.org/1999/xhtml"><v><ns1:ul><ns1:li>entry1</ns1:li><ns1:li>entry2</ns1:li></ns1:ul></v></OpaqueData>"""
 
     def test (self):
-	""" This fails because namespaces continue to be assigned """
-	
         txml = CreateFromDocument(self.testxml)
         #dom = txml.toDOM()
         #print dom.toprettyxml()
