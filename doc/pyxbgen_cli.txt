@@ -266,22 +266,12 @@ Control the style and content of the generated bindings.  This is not well-suppo
 
 .. table:: Configuring Binding Code Generation
 
-   =========================  ==========================  ====  ==================================================  
-    Long Option                Argument                    Alt   Description                                        
-   =========================  ==========================  ====  ==================================================  
-   ``--binding-style``        ``accessor``, ``property``        :ref:`The style of Python used in generated bindings....<pyxbgen--binding-style>`
-   ``--validate-changes``                                       :ref:`Indicates whether the bindings should validate...<pyxbgen--validate-changes>`
-   ``--no-validate-changes``                                    :ref:`Indicates whether the bindings should validate...<pyxbgen--no-validate-changes>`
-   =========================  ==========================  ====  ==================================================  
-
-.. _pyxbgen--binding-style:
-
-``--binding-style``
-^^^^^^^^^^^^^^^^^^^
-The style of Python used in generated bindings. ``accessor`` means
-values are private variables accessed through inspector and mutator
-methods. ``property`` means values are private variables accessed
-through a Python property.
+   =========================  =========  ====  ==================================================  
+    Long Option                Argument   Alt   Description                                        
+   =========================  =========  ====  ==================================================  
+   ``--validate-changes``                      :ref:`Indicates whether the bindings should validate...<pyxbgen--validate-changes>`
+   ``--no-validate-changes``                   :ref:`Indicates whether the bindings should validate...<pyxbgen--no-validate-changes>`
+   =========================  =========  ====  ==================================================  
 
 .. _pyxbgen--validate-changes:
 
