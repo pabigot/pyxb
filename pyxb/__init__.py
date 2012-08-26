@@ -41,7 +41,8 @@ class cscRoot (object):
     hierarchies.  The standard syntax in PyXB for this pattern is::
 
       def method_csc (self, *args, **kw):
-        super_fn = getattr(super(ThisClass, self), 'method_csc', lambda *a,**kw: self)
+        self_fn = lambda *_args, **_kw: self
+        super_fn = getattr(super(ThisClass, self), 'method_csc', self_fn)
         return super_fn(*args, **kw)
 
     """
