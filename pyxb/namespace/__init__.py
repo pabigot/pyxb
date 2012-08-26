@@ -352,7 +352,6 @@ class _NamespaceCategory_mixin (pyxb.cscRoot):
         for (cat, registry) in self.__categoryMap.items():
             for (k, v) in registry.items():
                 if v == existing_def:
-                    _log.info('Replacing value for %s in %s', k, cat)
                     del registry[k]
                     if replacement_def is not None:
                         registry[k] = replacement_def
@@ -885,7 +884,7 @@ class Namespace (_NamespaceCategory_mixin, resolution._NamespaceResolution_mixin
                     try:
                         mr.archive().readNamespaces()
                     except pyxb.NamespaceArchiveError, e:
-                        _log.exception("%s", str(e))
+                        _log.exception("Failure reading namespaces in archive")
                 else:
                     _log.info('Ignoring private module %s in validation', mr)
         self._activate()

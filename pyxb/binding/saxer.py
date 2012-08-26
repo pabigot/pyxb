@@ -149,7 +149,6 @@ class _SAXElementState (pyxb.utils.saxutils.SAXElementState):
     def startDOMElement (self, attrs):
         """Actions upon entering an element that is part of a DOM subtree."""
         self.__domDepth += 1
-        #_log.debug('Enter level %d with %s', self.__domDepth, self.expandedName())
         self.__attributes = pyxb.utils.saxdom.NamedNodeMap()
         ns_ctx = self.namespaceContext()
         for name in attrs.getNames():
@@ -165,7 +164,6 @@ class _SAXElementState (pyxb.utils.saxutils.SAXElementState):
                 element.appendChild(content)
             else:
                 element.appendChild(pyxb.utils.saxdom.Text(content, namespace_context=ns_ctx))
-        #_log.debug('Leaving level %d with %s', self.__domDepth, self.expandedName())
         self.__domDepth -= 1
         if 0 == self.__domDepth:
             self.__domDocument.appendChild(element)
@@ -220,7 +218,6 @@ class _SAXElementState (pyxb.utils.saxutils.SAXElementState):
             assert 1 >= len(args), 'Unexpected STD content %s' % (args,)
             self.__constructElement(self.__delayedConstructor, self.__attributes, args)
         else:
-            #_log.debug('Extending %s by content %s', self.__bindingInstance, self.__content)
             for (content, element_use, maybe_element) in self.__content:
                 self.__bindingInstance.append(content, element_use, maybe_element, require_validation=pyxb._ParsingRequiresValid)
         parent_state = self.parentState()

@@ -129,7 +129,6 @@ class CodePointSet (object):
         case = ((li & 1) << 1) | (ri & 1)
         if not do_add:
             case = 3 - case
-        #_log.debug('add %d %d to %s at %d %d', s, e, self.__codepoints, li, ri)
         if 0x03 == case:
             # Add: Incoming value begins and ends within existing ranges
             del self.__codepoints[li:ri]

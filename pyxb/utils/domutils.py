@@ -288,7 +288,6 @@ class _BDSNamespaceSupport (object):
             raise pyxb.LogicError('Prefix %s is already in use' % (prefix,))
         self.__namespaces[namespace] = prefix
         self.__prefixes.add(prefix)
-        #_log.debug('%x declared namespace %s as %s', id(self), namespace, prefix)
         if add_to_map:
             self.__namespacePrefixMap[namespace] = prefix
         return prefix

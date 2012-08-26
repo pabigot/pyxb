@@ -152,7 +152,6 @@ def _SetXMLStyle (style=None):
     if _XMLStyleMapReverse.get(style) is None:
         raise PyXBException('Bad value %s for _SetXMLStyle' % (style,))
     _XMLStyle = style
-    #_log.debug("XML style %s", _XMLStyleMapReverse.get(_XMLStyle))
 
 _SetXMLStyle()
 

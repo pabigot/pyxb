@@ -300,7 +300,6 @@ class BaseSAXHandler (xml.sax.handler.ContentHandler, object):
         @note: For this to be invoked, the C{feature_namespaces} feature must
         be enabled in the SAX parser."""
         self.__updateNamespaceContext().processXMLNS(prefix, uri)
-        #_log.debug('%s PM %s %s', self.__namespaceContext, prefix, uri)
 
     # The NamespaceContext management does not require any action upon
     # leaving the scope of a namespace directive.

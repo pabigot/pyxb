@@ -303,7 +303,6 @@ class _CollectionFacet_mixin (pyxb.cscRoot):
         if kw.get('_reset', False):
             self.__items = []
         if not kw.get('_constructor', False):
-            #_log.debug("%s", str(self._CollectionFacet_itemType))
             self.__items.append(self._CollectionFacet_itemType(facet_instance=self, **kw))
         super_fn = getattr(super(_CollectionFacet_mixin, self), '_setFromKeywords_vb', lambda *a,**kw: self)
         return super_fn(**kw)
@@ -386,9 +385,6 @@ class _PatternElement (utility.PrivateTransient_mixin):
         self.annotation = annotation
         self.__pythonExpression = pyxb.utils.xmlre.XMLToPython(pattern)
         super(_PatternElement, self).__init__()
-        #_log.debug('Translated pattern %s to %s',
-        #            pattern.encode('ascii', 'xmlcharrefreplace'),
-        #            self.__pythonExpression.encode('ascii', 'xmlcharrefreplace'))
 
     def __str__ (self): return self.pattern
 

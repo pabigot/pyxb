@@ -438,7 +438,6 @@ class _PickledAnonymousReference (object):
         return self.__namespace.validateComponentModel()
 
     def __lookupObject (self):
-        #_log.debug('Lookup %s', self)
         return self.__namespace.categoryMap(self.__AnonymousCategory).get(self.__anonymousName)
 
     typeDefinition = __lookupObject
@@ -725,7 +724,6 @@ class _NamedComponent_mixin (pyxb.utils.utility.PrivateTransient_mixin, pyxb.csc
         while this is not None:
             if this.isTypeEquivalent(other):
                 return True
-            _log.info('Checking %s against %s', this, other)
             if not (this.isResolved() and other.isResolved()):
                 raise pyxb.IncompleteImplementationError('Oh fudge.  Somebody violated the assumptions in ElementDeclaration.isAdaptable.')
             if isinstance(self, ComplexTypeDefinition):
@@ -745,7 +743,6 @@ class _NamedComponent_mixin (pyxb.utils.utility.PrivateTransient_mixin, pyxb.csc
 
     def _picklingReference (self):
         if self.__needAnonymousSupport():
-            #_log.debug('Wrapping %s as anonymous %s in %s', self, self._anonymousName(), self.targetNamespace())
             assert self._anonymousName() is not None
             return _PickledAnonymousReference(self.targetNamespace(), self._anonymousName())
         return self.expandedName().uriTuple()
@@ -781,7 +778,6 @@ class _NamedComponent_mixin (pyxb.utils.utility.PrivateTransient_mixin, pyxb.csc
             # absent scope).
             # @todo: this is wrong for schema that are not bound to a
             # namespace, unless we use an unbound Namespace instance
-            #_log.debug("%s", type(self))
             #assert isinstance(self, _ScopedDeclaration_mixin)
             #assert self.SCOPE_global != self.scope()
             # NOTE: The name of the scope may be None.  This is not a
@@ -1333,7 +1329,7 @@ class AttributeDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
         if not other.isResolved():
             if pyxb.namespace.BuiltInObjectUID == self._objectOrigin().generationUID():
                 #assert self.isResolved(), 'Built-in %s is not resolved' % (self.expandedName(),)
-                _log.error('**!!**!! Not destroying builtin %s: %s', self.expandedName(), self.__typeDefinition)
+                _log.warning('Not destroying builtin %s: %s', self.expandedName(), self.__typeDefinition)
             else:
                 self.__typeDefinition = None
         return self
@@ -1718,7 +1714,6 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.na
 
     # aFS:ED
     def _adaptForScope (self, owner, ctd):
-        #_log.debug('aFS:ED %s %s old scope %s', self.expandedName(), ctd.expandedName(), self.scope())
         rv = self
         assert isinstance(ctd, ComplexTypeDefinition), '%s is not a CTD' % (ctd,)
         if not isinstance(self.scope(), ComplexTypeDefinition):
@@ -2228,7 +2223,6 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         if isinstance(self.__baseTypeDefinition, ComplexTypeDefinition):
             # Clauses 1, 2, and 3 might apply
             parent_content_type = self.__baseTypeDefinition.__contentType
-            #_log.debug('%s %s %s', self.expandedName(), self.__baseTypeDefinition.expandedName(), parent_content_type)
             if ((type(parent_content_type) == tuple) \
                     and (self.CT_SIMPLE == parent_content_type[0]) \
                     and (self.DM_restriction == method)):
@@ -2334,9 +2328,6 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
         self.__effectiveMixed = effective_mixed
         self.__effectiveContent = effective_content
         self.__ckw = ckw
-
-        #if isinstance(effective_content, Particle):
-        #    _log.debug('Effective total range: %s %s', effective_content.effectiveTotalRange())
 
     def __complexContent (self, method):
         ckw = self.__ckw
@@ -2555,7 +2546,6 @@ class ComplexTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb
                 self._queueForResolution('content particle %s is not deep-resolved' % (prt,))
                 return self
             self.__contentType = (self.__contentType[0], prt._adaptForScope(self, self))
-            #_log.debug('Done adapting %s content', self.expandedName(),)
 
         return self.__completeProcessing(self.__pendingDerivationMethod, self.__contentStyle)
 
@@ -2861,7 +2851,6 @@ class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
         super(ModelGroup, self).__init__(*args, **kw)
         assert 'scope' in kw
         self.__compositor = compositor
-        #_log.debug('Incoming particles %s with scope %s', particles, self._scope())
         self.__particles = particles
         self.__modelGroupDefinition = kw.get('model_group_definition')
 
@@ -2939,7 +2928,6 @@ class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
         occur."""
         element_decls = []
         model_groups = [ self ]
-        #_log.debug('Extracting element declarations from model group with %d particles: %s', len(self.particles()), self.particles())
         while model_groups:
             mg = model_groups.pop(0)
             for p in mg.particles():
@@ -2949,13 +2937,10 @@ class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
                     element_decls.extend(p.elementDeclarations())
                 else:
                     assert p.term() is not None
-                #_log.debug('Particle term: %s', object.__str__(p.term()))
-        #_log.debug('Model group with %d particles produced %d element declarations', len(self.particles()), len(element_decls))
         return element_decls
 
     # aFS:MG
     def _adaptForScope (self, owner, ctd):
-        #_log.debug('aFS:MG - %s', ctd.expandedName())
         rv = self
         assert isinstance(ctd, ComplexTypeDefinition)
         maybe_rv = self._clone(owner, ctd._objectOrigin())
@@ -3222,7 +3207,6 @@ class Particle (_SchemaComponent_mixin, pyxb.namespace.resolution._Resolvable_mi
 
     # aFS:PRT
     def _adaptForScope (self, owner, ctd):
-        #_log.debug('aFS:PRT - %s', ctd.expandedName())
         rv = self
         assert isinstance(ctd, ComplexTypeDefinition)
         maybe_rv = self._clone(owner, ctd._objectOrigin())
@@ -4171,7 +4155,6 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
             self.__facets = { }
             for v in self.pythonSupport().__dict__.values():
                 if isinstance(v, facets.ConstrainingFacet):
-                    #_log.debug('Adding facet %s to %s', v, self.name())
                     self.__facets[v.__class__] = v
                     if v.ownerTypeDefinition() is None:
                         v.setFromKeywords(_constructor=True, owner_type_definition=self)
@@ -4419,7 +4402,6 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
         self.__derivationAlternative = alternative
         self.__variety = variety
         self.__domNode = None
-        #_log.debug('Completed STD %s', self)
         return self
 
     def isResolved (self):
@@ -4463,7 +4445,6 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
         """
         if self.__variety is not None:
             return self
-        #_log.debug('Resolving STD %s', self.name())
         assert self.__domNode
         node = self.__domNode
         
@@ -4635,7 +4616,6 @@ class _ImportElementInformationItem (_Annotated_mixin):
         ns_ctx = pyxb.namespace.resolution.NamespaceContext.GetNodeContext(node)
         if self.schemaLocation() is not None:
             # @todo: NOTICE
-            #_log.debug('import %s + %s = %s', importing_schema.location(), self.__schemaLocation, schema_location)
             (has_schema, schema_instance) = self.__namespace.lookupSchemaByLocation(schema_location)
             if not has_schema:
                 ckw = { 'absolute_schema_location' : schema_location,
@@ -4645,11 +4625,11 @@ class _ImportElementInformationItem (_Annotated_mixin):
                 try:
                     schema_instance = Schema.CreateFromLocation(**ckw)
                 except Exception, e:
-                    _log.warning('Import %s cannot read schema location %s (%s): %s', ns, self.__schemaLocation, schema_location, e)
+                    _log.exception('Import %s cannot read schema location %s (%s)', ns, self.__schemaLocation, schema_location)
                     raise
             self.__schema = schema_instance
         elif need_schema:
-            _log.warning('WARNING: No information available on imported namespace %s', uri)
+            _log.warning('No information available on imported namespace %s', uri)
 
         # If we think we found a schema, make sure it's in the right
         # namespace.
@@ -4810,7 +4790,6 @@ class Schema (_SchemaComponent_mixin):
             self.__generationUID = pyxb.utils.utility.UniqueIdentifier()
 
         self.__signature = kw.get('schema_signature')
-        #_log.debug('Schema at %s signature %s uid %s', self.location(), self.signature(), self.generationUID())
 
         super(Schema, self).__init__(*args, **kw)
         self.__importEIIs = set()
@@ -4926,7 +4905,6 @@ class Schema (_SchemaComponent_mixin):
                 if text:
                     _log.info('Ignored text: %s', text)
             elif Node.COMMENT_NODE == cn.nodeType:
-                #_log.debug('comment: %s', cn.data.strip())
                 pass
             else:
                 # ATTRIBUTE_NODE
@@ -5024,14 +5002,12 @@ class Schema (_SchemaComponent_mixin):
         of prolog elements."""
         
         if self.__pastProlog:
-            _log.info('%s past prolog', object.__str__(self))
             raise pyxb.SchemaValidationError('Unexpected node %s after prolog' % (node_name,))
 
     def __processInclude (self, node):
         self.__requireInProlog(node.nodeName)
         # See section 4.2.1 of Structures.
         abs_uri = pyxb.utils.utility.NormalizeLocation(domutils.NodeAttribute(node, 'schemaLocation'), self.__location)
-        #_log.debug('include %s + %s = %s', self.__location, rel_uri, abs_uri)
         (has_schema, schema_instance) = self.targetNamespace().lookupSchemaByLocation(abs_uri)
         if not has_schema:
             kw = { 'absolute_schema_location': abs_uri,
@@ -5042,13 +5018,8 @@ class Schema (_SchemaComponent_mixin):
             try:
                 schema_instance = self.CreateFromLocation(**kw)
             except Exception, e:
-                _log.info('INCLUDE %s caught: %s', abs_uri, e)
-                #_log.debug('INCLUDE %s caught: %s', abs_uri, e, exc_info=True)
+                _log.exception('INCLUDE %s caught', abs_uri)
                 raise
-            # @todo: NOTICE
-            #_log.debug('%s completed including %s from %s', self.__location, included_schema.targetNamespace(), abs_uri)
-        # @todo: NOTICE
-        #_log.debug('Included %s, back to %s', included_schema.location(), self.location())
         if schema_instance:
             if self.targetNamespace() != schema_instance.targetNamespace():
                 raise pyxb.SchemaValidationError('Included namespace %s not consistent with including namespace %s' % (schema_instance.targetNamespace(), self.targetNamespace()))
@@ -5064,8 +5035,6 @@ class Schema (_SchemaComponent_mixin):
 
         self.__requireInProlog(node.nodeName)
         import_eii = _ImportElementInformationItem(self, node)
-        # @todo: NOTICE
-        #_log.debug('Imported %s, prefix %s, back to %s', import_eii.namespace().uri(), import_eii.prefix(), self.__location)
         if import_eii.schema() is not None:
             self.__importedSchema.add(import_eii.schema())
         self.targetNamespace().importNamespace(import_eii.namespace())
@@ -5120,7 +5089,6 @@ class Schema (_SchemaComponent_mixin):
             raise pyxb.LogicError('Attempt to add anonymous component to dictionary: %s', (nc.__class__,))
         if isinstance(nc, _ScopedDeclaration_mixin):
             assert _ScopedDeclaration_mixin.SCOPE_global == nc.scope()
-        #_log.debug('Adding %s as %s', nc.__class__.__name__, nc.name())
         if isinstance(nc, (SimpleTypeDefinition, ComplexTypeDefinition)):
             return self.__addTypeDefinition(nc)
         if isinstance(nc, AttributeDeclaration):

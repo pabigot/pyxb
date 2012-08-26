@@ -166,14 +166,13 @@ class NamespaceArchive (object):
                                                                       default_path_wildcard='+', default_path=GetArchivePath(),
                                                                       prefix_pattern='&', prefix_substituend=DefaultArchivePrefix)
                 for afn in candidate_files:
-                    #_log.debug('Considering %s', afn)
                     try:
                         nsa = cls.__GetArchiveInstance(afn, stage=cls._STAGE_readModules)
                         archive_set.add(nsa)
                     except pickle.UnpicklingError, e:
-                        _log.exception('Cannot use archive %s: %s', afn, e)
+                        _log.exception('Cannot unpickle archive %s', afn)
                     except pyxb.NamespaceArchiveError, e:
-                        _log.exception('Cannot use archive %s: %s', afn, e)
+                        _log.exception('Cannot process archive %s', afn)
                 
                 # Do this for two reasons: first, to get an iterable that won't
                 # cause problems when we remove unresolvable archives from
@@ -198,10 +197,8 @@ class NamespaceArchive (object):
                                 _log.warning('%s depends on unavailable archive %s', a, p)
                                 archive_set.remove(a)
                             else:
-                                #_log.debug('%s depends on %s', a, da)
                                 archive_graph.addEdge(a, da)
                     else:
-                        #_log.debug('%s has no dependencies', a)
                         archive_graph.addRoot(a)
     
                 # Verify that there are no dependency loops.
@@ -211,11 +208,9 @@ class NamespaceArchive (object):
                         raise pyxb.LogicError("Cycle in archive dependencies.  How'd you do that?\n  " + "\n  ".join([ _a.archivePath() for _a in scc ]))
                     archive = scc[0]
                     if not (archive in archive_set):
-                        #_log.debug('Discarding unresolvable %s', archive)
                         archive.discard()
                         existing_archives.remove(archive)
                         continue
-                    #_log.debug('Completing load of %s', archive)
                     #archive._readToStage(cls._STAGE_COMPLETE)
 
             # Discard any archives that we used to know about but now aren't
@@ -355,7 +350,6 @@ class NamespaceArchive (object):
         return unpickler
 
     def __readModules (self, unpickler):
-        #_log.debug('RM %x %s', id(self), self)
         mrs = unpickler.load()
         assert isinstance(mrs, set), 'Expected set got %s from %s' % (type(mrs), self.archivePath())
         if self.__moduleRecords is None:
@@ -363,7 +357,6 @@ class NamespaceArchive (object):
                 mr2 = mr.namespace().lookupModuleRecordByUID(mr.generationUID())
                 if mr2 is not None:
                     mr2._setFromOther(mr, self)
-                    #_log.debug('Replaced locally defined %s with archive data', mr2)
                     mrs.remove(mr)
             self.__moduleRecords = set()
             assert 0 == len(self.__namespaces)
@@ -389,23 +382,18 @@ class NamespaceArchive (object):
     def __validatePrerequisites (self, stage):
         from pyxb.namespace import builtin
         prereq_uids = self._unsatisfiedModulePrerequisites()
-        #_log.debug('%s depends on %d prerequisites', self, len(prereq_uids))
         for uid in prereq_uids:
             if builtin.BuiltInObjectUID == uid:
                 continue
             depends_on = self.__NamespaceArchives.get(uid)
             if depends_on is None:
                 raise pyxb.NamespaceArchiveError('%s: archive depends on unavailable archive %s' % (self.archivePath(), uid))
-            #_log.debug('%s stage %s depends on %s at %s going to %s', self, self._stage(), depends_on, depends_on._stage(), stage)
             depends_on._readToStage(stage)
 
     def __validateModules (self):
         self.__validatePrerequisites(self._STAGE_validateModules)
         for mr in self.__moduleRecords:
             ns = mr.namespace()
-            #_log.debug('Namespace %s records:', ns)
-            #for xmr in ns.moduleRecords():
-            #    _log.debug(' %s', xmr)
             for base_uid in mr.dependsOnExternal():
                 xmr = ns.lookupModuleRecordByUID(base_uid)
                 if xmr is None:
@@ -416,7 +404,6 @@ class NamespaceArchive (object):
                     _log.info('Have required base data %s', xmr)
 
             for origin in mr.origins():
-                #_log.debug('mr %s origin %s', mr, origin)
                 for (cat, names) in origin.categoryMembers().iteritems():
                     if not (cat in ns.categories()):
                         continue
@@ -427,7 +414,6 @@ class NamespaceArchive (object):
 
     def __readComponentSet (self, unpickler):
         self.__validatePrerequisites(self._STAGE_readComponents)
-        _log.info('RCS %s', self)
         for n in range(len(self.__moduleRecords)):
             ns = unpickler.load()
             mr = ns.lookupModuleRecordByUID(self.generationUID())
@@ -442,7 +428,6 @@ class NamespaceArchive (object):
             raise pyxb.NamespaceArchiveError('Attempt to read from invalid archive %s' % (self,))
         try:
             while self.__stage < stage:
-                #_log.debug('RTS %s want %s', self.__stage, stage)
                 if self.__stage < self._STAGE_uid:
                     self.__unpickler = self.__createUnpickler()
                     self.__stage = self._STAGE_uid
@@ -499,7 +484,6 @@ class NamespaceArchive (object):
             pickler = self.__createPickler(output)
 
             assert isinstance(self.__moduleRecords, set)
-            _log.info("\n".join([ str(_mr) for _mr in self.__moduleRecords ]))
             pickler.dump(self.__moduleRecords)
 
             for mr in self.__moduleRecords:
@@ -577,14 +561,11 @@ class _NamespaceArchivable_mixin (pyxb.cscRoot):
         if self.__isActive and empty_inactive:
             for (ct, cm) in self._categoryMap().items():
                 if 0 < len(cm):
-                    _log.info('%s: %d %s -- activated', self, len(cm), ct)
                     return True
             return False
         return self.__isActive
 
     def _activate (self):
-        #if not self.__isActive:
-        #    _log.debug('Activating %s', self)
         self.__isActive = True
     __isActive = None
 
@@ -601,7 +582,6 @@ class _NamespaceArchivable_mixin (pyxb.cscRoot):
         # Yes, I do want this to raise KeyError if the archive is not present
         mr = self.__moduleRecordMap[archive.generationUID()]
         assert not mr.isIncorporated(), 'Removing archive %s after incorporation' % (archive.archivePath(),)
-        #_log.debug('removing %s', mr)
         del self.__moduleRecordMap[archive.generationUID()]
         
     def isLoadable (self):
@@ -762,7 +742,6 @@ class ModuleRecord (pyxb.utils.utility.PrivateTransient_mixin):
 
         super(ModuleRecord, self).__init__()
         self.__namespace = namespace
-        #_log.debug('Created MR for %s gen %s', namespace, generation_uid)
         assert (generation_uid != builtin.BuiltInObjectUID) or namespace.isBuiltinNamespace()
         self.__isPublic = kw.get('is_public', False)
         self.__isIncoporated = kw.get('is_incorporated', False)
@@ -839,7 +818,6 @@ class ModuleRecord (pyxb.utils.utility.PrivateTransient_mixin):
             if isinstance(obj, _ArchivableObject_mixin):
                 if obj._objectOrigin():
                     obj._prepareForArchive(self)
-        #_log.debug('Archive %s ns %s module %s has %d origins', self.archive(), self.namespace(), self, len(self.origins()))
 
     def completeGenerationAssociations (self):
         self.namespace()._transferReferencedNamespaces(self)
@@ -995,7 +973,7 @@ class NamespaceDependencies (object):
                     if not rns in done_check:
                         need_check.add(rns)
                 if not ns.hasSchemaComponents():
-                    _log.info('WARNING: Referenced %s has no schema components', ns.uri())
+                    _log.warning('Referenced %s has no schema components', ns.uri())
                 done_check.add(ns)
             assert done_check == self.__namespaceGraph.nodes()
 

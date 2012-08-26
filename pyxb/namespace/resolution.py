@@ -69,8 +69,7 @@ class _Resolvable_mixin (pyxb.cscRoot):
         """Short-hand to requeue an object if the class implements _namespaceContext().
         """
         if (why is not None) and self._TraceResolution:
-            _log.info('Resolution delayed for %s: %s', self, why)
-            _log.info('    Depends on: %s', depends_on)
+            _log.info('Resolution delayed for %s: %s\n\tDepends on: %s', self, why, depends_on)
         self._namespaceContext().queueForResolution(self, depends_on)
 
 class _NamespaceResolution_mixin (pyxb.cscRoot):
@@ -178,7 +177,6 @@ class _NamespaceResolution_mixin (pyxb.cscRoot):
         """
         try:
             index = self.__unresolvedComponents.index(existing_def)
-            _log.info('Replacing unresolved %s', existing_def)
             if (replacement_def is None) or (replacement_def in self.__unresolvedComponents):
                 del self.__unresolvedComponents[index]
             else:
@@ -216,7 +214,6 @@ class _NamespaceResolution_mixin (pyxb.cscRoot):
             # any new objects defined during resolution, and attempt the
             # resolution for everything that isn't resolved.
             unresolved = self.__unresolvedComponents
-            #_log.debug('Looping for %d unresolved definitions: %s', len(unresolved), ' '.join([ str(_r) for _r in unresolved]))
             
             self.__unresolvedComponents = []
             self.__unresolvedDependents = {}
@@ -245,8 +242,6 @@ class _NamespaceResolution_mixin (pyxb.cscRoot):
                     if isinstance(d, structures._NamedComponent_mixin):
                         failed_components.append('%s named %s' % (d.__class__.__name__, d.name()))
                     else:
-                        if isinstance(d, structures.AttributeUse):
-                            _log.info(d.attributeDeclaration())
                         failed_components.append('Anonymous %s' % (d.__class__.__name__,))
                 raise pyxb.NotInNamespaceError('Infinite loop in resolution:\n  %s' % ("\n  ".join(failed_components),))
 
@@ -303,16 +298,14 @@ def ResolveSiblingNamespaces (sibling_namespaces):
         for ns in need_resolved_list:
             if not ns.needsResolution():
                 continue
-            #_log.debug('Attempting resolution %s', ns.uri())
             if not ns.resolveDefinitions(allow_unresolved=True):
-                _log.info('Holding incomplete resolution %s', ns.uri())
                 deps = dependency_map.setdefault(ns, set())
                 for (c, dcs) in ns._unresolvedDependents().iteritems():
                     for dc in dcs:
                         dns = dc.expandedName().namespace()
                         if dns != ns:
                             deps.add(dns)
-                _log.info('%s depends on %s', ns, ' ; '.join([ str(_dns) for _dns in deps ]))
+                _log.info('Holding incomplete resolution %s depending on: ', ns.uri(), ' ; '.join([ str(_dns) for _dns in deps ]))
                 need_resolved_set.add(ns)
         # Exception termination check: if we have the same set of incompletely
         # resolved namespaces, and each has the same number of unresolved
