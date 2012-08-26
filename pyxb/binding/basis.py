@@ -2037,14 +2037,17 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
                                         mr._setModule(mod)
                                     value = mr.module().CreateFromDOM(node)
                                     break
-                                except pyxb.PyXBException:
-                                    _log.exception('Ignoring error when creating binding for wildcard %s', expanded_name)
+                                except pyxb.UnrecognizedElementError, e:
+                                    _log.info('Ignoring unrecognized element when creating binding for wildcard %s', expanded_name)
+                                except pyxb.PyXBException, e:
+                                    _log.warning('Ignoring error when creating binding for wildcard %s', expanded_name, exc_info=e)
                                 except AttributeError, e:
-                                    # The module holding XMLSchema bindnigs does not
+                                    # The module holding XMLSchema bindings does not
                                     # have a CreateFromDOM method, and shouldn't since
                                     # we need to convert schema instances to DOM more
                                     # carefully.
                                     if mr.namespace() != pyxb.namespace.XMLSchema:
+                                        _log.exception('No bindings for module in %s', expanded_name)
                                         raise
                     except Exception:
                         _log.exception('Unable to convert DOM node %s to Python instance', expanded_name)
