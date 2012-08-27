@@ -29,6 +29,7 @@ originate from the pos.  This set is represented as a Python list
 since update instructions are dicts and cannot be hashed.
 """
 
+import operator
 
 RESET = False
 INCREMENT = True
@@ -53,6 +54,96 @@ def posConcatTransitionSet (pos, transition_set):
     for (q, psi) in transition_set:
         ts.append((pos + q, posConcatUpdateInstruction(pos, psi) ))
     return ts
+
+class NondeterministicFACError (Exception):
+    pass
+
+class RecognitionError (Exception):
+    pass
+
+class Automaton (object):
+    __termTree = None
+    def __get_termTree (self):
+        return self.__termTree
+    termTree = property(__get_termTree)
+
+    __state = None
+    def __get_state (self):
+        return self.__state
+    state = property(__get_state)
+
+    __counterValues = None
+
+    def __init__ (self, term_tree):
+        self.__termTree = term_tree
+        self.reset()
+
+    def reset (self):
+        tt = self.__termTree
+        self.__state = None
+        self.__counterValues = dict(zip(tt.counters, len(tt.counters) * (1,)))
+
+    def __satisfiable (self, psi):
+        for c in psi.iterkeys():
+            cv = self.__counterValues[c]
+            uv = psi[c]
+            if (INCREMENT == uv) and (cv >= c.max):
+                return False
+            if (RESET == uv) and (cv < c.min):
+                return False
+        return True
+
+    def __updateCounters (self, psi):
+        for (c, uv) in psi.iteritems():
+            if RESET == uv:
+                self.__counterValues[c] = 1
+            else:
+                self.__counterValues[c] += 1
+
+    def isFinal (self):
+        for (c, cv) in self.__counterValues.iteritems():
+            if (cv < c.min) or ((c.max is not None) and (c.max < cv)):
+                return False
+        return True
+
+    def step (self, sym):
+        tt = self.__termTree
+        if self.__state is None:
+            istate = tt.initialStateMap.get(sym)
+            if istate is None:
+                raise RecognitionError(sym)
+            (self.__state,) = istate
+        else:
+            delta = tt.phi[self.__state]
+            sym_trans = delta.get(sym)
+            if sym_trans is None:
+                raise RecognitionError(sym)
+            sel_trans = None
+            for tp in sym_trans:
+                (dst, psi) = tp
+                if self.__satisfiable(psi):
+                    if sel_trans is not None:
+                        raise NondeterministicFACError('multiple satisfiable transitions')
+                    sel_trans = tp
+            if sel_trans is None:
+                raise RecognitionError(sym)
+            (self.__state, psi) = sel_trans
+            self.__updateCounters(psi)
+        return self
+
+    def candidateSymbols (self):
+        return self.__termTree.phi[self.__state].keys()
+
+    def __str__ (self):
+        tt = self.__termTree
+        rv = []
+        if self.__state is None:
+            rv.append("INIT")
+        else:
+            rv.append(str(tt.nodePosMap[self.__state]))
+        rv.append(': ')
+        rv.append(' ; '.join([ '%s = %u' % (tt.nodePosMap[_c], _v) for (_c, _v) in self.__counterValues.iteritems() ]))
+        return ''.join(rv)
 
 class Node (object):
     """Abstract class for any node in the term tree."""
@@ -119,8 +210,69 @@ class Node (object):
         return self.__posNodeMap
     posNodeMap = property(__get_posNodeMap)
 
+    __nodePosMap = None
+    def __get_nodePosMap (self):
+        if self.__nodePosMap is None:
+            npm = {}
+            for (p,n) in self.posNodeMap.iteritems():
+                npm[n] = p
+            self.__nodePosMap = npm
+        return self.__nodePosMap
+    nodePosMap = property(__get_nodePosMap)
+
     def followPosition (self, position):
         return self.posNodeMap[position]
+
+    def __buildAutomaton (self):
+        self.__states = frozenset([ self.posNodeMap[_p] for _p in self.follow.iterkeys() ])
+        # All states should be Symbol instances
+        assert reduce(operator.and_, map(lambda _s: isinstance(_s, Symbol), self.__states), True)
+        self.__counters = frozenset([ self.posNodeMap[_p] for _p in self.counterPositions() ])
+        # All counters should be NumericalConstraint instances
+        assert reduce(operator.and_, map(lambda _s: isinstance(_s, NumericalConstraint), self.__counters), True)
+        self.__phi = {}
+        for (p, transition_set) in self.follow.iteritems():
+            src = self.posNodeMap[p]
+            self.__phi[src] = delta = {}
+            for (q, psi) in transition_set:
+                npsi = {}
+                for (c, u) in psi.iteritems():
+                    npsi[self.posNodeMap[c]] = u
+                dst = self.posNodeMap[q]
+                delta.setdefault(dst.symbol, []).append((dst, npsi))
+        self.__initialStateMap = {}
+        for p in self.first:
+            n = self.posNodeMap[p]
+            assert isinstance(n, Symbol)
+            self.__initialStateMap.setdefault(n.symbol,set()).add(n)
+
+    __states = None
+    def __get_states (self):
+        if self.__states is None:
+            self.__buildAutomaton()
+        return self.__states
+    states = property(__get_states)
+
+    __initialStateMap = None
+    def __get_initialStateMap (self):
+        if self.__initialStateMap is None:
+            self.__buildAutomaton()
+        return self.__initialStateMap
+    initialStateMap = property(__get_initialStateMap)
+
+    __counters = None
+    def __get_counters (self):
+        if self.__counters is None:
+            self.__buildAutomaton()
+        return self.__counters
+    counters = property(__get_counters)
+
+    __phi = None
+    def __get_phi (self):
+        if self.__phi is None:
+            self.__buildAutomaton()
+        return self.__phi
+    phi = property(__get_phi)
 
     def counterPositions (self):
         """All numerical constraint positions that aren't r+.
@@ -557,6 +709,14 @@ class TestFAC (unittest.TestCase):
         m = self.a.follow
         self.assertEqual(1, len(m))
         self.assertEqual([((), frozenset())], m.items())
+
+    def testAutomaton (self):
+        au = Automaton(self.ex)
+        print 'Initial %s maystart %s' % (au, ' or '.join(au.termTree.initialStateMap.keys()))
+        for c in 'aabcaa':
+            au.step(c)
+            print 'eat %s now %s next %s' % (c, au, ' or '.join(au.candidateSymbols()))
+        self.assertTrue(au.isFinal())
         
 if __name__ == '__main__':
     unittest.main()
