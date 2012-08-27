@@ -18,6 +18,13 @@ class PathError (LookupError):
 class Node (object):
     """Abstract class for any node in the term tree."""
 
+    _Precedence = None
+    """An integral value used for parenthesizing expressions.
+
+    A subterm that has a precedence less than that of its containing
+    term must be enclosed in parentheses when forming a text
+    expression representing the containing term."""
+
     __first = None
     def first (self):
         if self.__first is None:
@@ -50,7 +57,7 @@ class NumericalConstraint (Node):
 
     This corresponds to a "particle" in the XML Schema content model."""
 
-    _Precedence = 1
+    _Precedence = -1
 
     __min = None
     __max = None
@@ -74,9 +81,12 @@ class NumericalConstraint (Node):
         self.__min = min
         self.__max = max
 
+    def _nullable (self):
+        return (0 == self.__min) or self.__term.nullable()
+
     def __str__ (self):
         rv = str(self.__term)
-        if self.__term._Precedence > self._Precedence:
+        if self.__term._Precedence < self._Precedence:
             rv = '(' + rv + ')'
         rv += '^(%u,' % (self.__min,)
         if self.__max is not None:
@@ -88,7 +98,7 @@ class Choice (Node):
 
     This term matches if any one of its contained terms matches."""
     
-    _Precedence = 3
+    _Precedence = -3
 
     __terms = None
     
@@ -127,7 +137,7 @@ class Choice (Node):
     def __str__ (self):
         elts = []
         for t in self.__terms:
-            if t._Precedence > self._Precedence:
+            if t._Precedence < self._Precedence:
                 elts.append('(' + str(t) + ')')
             else:
                 elts.append(str(t))
@@ -136,7 +146,7 @@ class Choice (Node):
 class Sequence (Node):
     """A term that is an ordered sequence of terms."""
     
-    _Precedence = 2
+    _Precedence = -2
 
     __terms = None
 
@@ -168,7 +178,7 @@ class Sequence (Node):
     def __str__ (self):
         elts = []
         for t in self.__terms:
-            if t._Precedence > self._Precedence:
+            if t._Precedence < self._Precedence:
                 elts.append('(' + str(t) + ')')
             else:
                 elts.append(str(t))
@@ -188,6 +198,12 @@ class All (Node):
         a subclass of L{Node}."""
 
         self.__terms = terms
+
+    def _nullable (self):
+        for t in self.__terms:
+            if not t.nullable():
+                return False
+        return True
 
     def __str__ (self):
         return u'&(' + ','.join([str(_t) for _t in self.__terms]) + ')'
@@ -239,25 +255,53 @@ class Empty (Node):
 import unittest
 class TestFAC (unittest.TestCase):
 
+    epsilon = Empty()
+    a = Symbol('a')
+    b = Symbol('b')
+    c = Symbol('c')
+    aOb = Choice(a, b)
+    aTb = Sequence(a, b)
+    a2 = NumericalConstraint(a, 2, 2)
+    bTc = Sequence(b, c)
+    a2ObTc = Choice(a2, bTc)
+    aXb = All(a, b)
+
+
     def testBasicStr (self):
-        a = Symbol('a')
-        b = Symbol('b')
-        c = Symbol('c')
-        self.assertEqual('a', str(a))
-        self.assertEqual('b', str(b))
-        aOb = Choice(a, b)
-        self.assertEqual('a+b', str(aOb))
-        aTb = Sequence(a, b)
-        self.assertEqual('a.b', str(aTb))
-        x = Choice(b, aTb)
+        self.assertEqual('a', str(self.a))
+        self.assertEqual('b', str(self.b))
+        self.assertEqual('a+b', str(self.aOb))
+        self.assertEqual('a.b', str(self.aTb))
+        self.assertEqual('&(a,b)', str(self.aXb))
+        x = Choice(self.b, self.aTb)
         self.assertEqual('b+a.b', str(x))
-        x = Sequence(a, aOb)
+        x = Sequence(self.a, self.aOb)
         self.assertEqual('a.(a+b)', str(x))
-        a2 = NumericalConstraint(a, 2, 2)
-        bTc = Sequence(b, c)
-        a2ObTc = Choice(a2, bTc)
-        x = NumericalConstraint(a2ObTc, 3, 5)
+        x = NumericalConstraint(self.a2ObTc, 3, 5)
         self.assertEqual('(a^(2,2)+b.c)^(3,5)', str(x))
+
+    def testNullable (self):
+        self.assertTrue(self.epsilon.nullable())
+        self.assertFalse(self.a.nullable())
+        self.assertFalse(self.aOb.nullable())
+        aOe = Choice(self.a, self.epsilon)
+        self.assertTrue(aOe.nullable())
+        eOa = Choice(self.epsilon, self.a)
+        self.assertTrue(eOa.nullable())
+        self.assertFalse(self.aTb.nullable())
+        x = Sequence(aOe, self.b)
+        self.assertFalse(x.nullable())
+        x = Sequence(aOe, eOa)
+        self.assertTrue(x.nullable())
+        self.assertFalse(self.aXb.nullable())
+        x = All(aOe, eOa)
+        self.assertTrue(x.nullable())
+        x = NumericalConstraint(self.a, 0, 4)
+        self.assertTrue(x.nullable())
+        x = NumericalConstraint(self.a, 1, 4)
+        self.assertFalse(x.nullable())
+        x = NumericalConstraint(aOe, 1, 4)
+        self.assertTrue(x.nullable())
 
 if __name__ == '__main__':
     unittest.main()
