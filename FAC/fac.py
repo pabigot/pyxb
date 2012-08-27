@@ -43,7 +43,7 @@ class Node (object):
     last = property(__get_last)
     
     def _last (self):
-        raise NotImplementedError('%s.first' % (self.__class__.__name__,))
+        raise NotImplementedError('%s.last' % (self.__class__.__name__,))
 
     __nullable = None
     def __get_nullable (self):
@@ -105,6 +105,9 @@ class NumericalConstraint (Node):
 
     def _first (self):
         return [ (0,) + _fc for _fc in self.__term.first ]
+
+    def _last (self):
+        return [ (0,) + _lc for _lc in self.__term.last ]
 
     def _nullable (self):
         return self.__term.nullable
@@ -199,6 +202,17 @@ class Sequence (Node):
             if not t.nullable:
                 break
             c += 1
+        return rv
+
+    def _last (self):
+        rv = set()
+        c = len(self.__terms) - 1;
+        while 0 <= c:
+            t = self.__terms[c]
+            rv.update([ (c,) + _lc for _lc in t.last])
+            if not t.nullable:
+                break
+            c -= 1
         return rv
 
     def _nullable (self):
@@ -370,6 +384,21 @@ class TestFAC (unittest.TestCase):
         for p in self.a2ObTc.first:
             rs.add(self.a2ObTc.followPath(p))
         self.assertEqual(frozenset([self.a, self.b]), rs)
+
+    def testLast (self):
+        empty_set = frozenset()
+        null_path = frozenset([()])
+        p0 = frozenset([(0,)])
+        p1 = frozenset([(1,)])
+        p0or1 = frozenset(set(p0).union(p1))
+        self.assertEqual(empty_set, self.epsilon.last)
+        self.assertEqual(null_path, self.a.last)
+        self.assertEqual(p0or1, self.aOb.last)
+        self.assertEqual(p1, self.aTb.last)
+        rs = set()
+        for p in self.a2ObTc.last:
+            rs.add(self.a2ObTc.followPath(p))
+        self.assertEqual(frozenset([self.a, self.c]), rs)
 
 if __name__ == '__main__':
     unittest.main()
