@@ -11,9 +11,48 @@
 # Unordered Concatenation and Numerical Constraints
 # (http://www.ii.uib.no/~dagh/presLATA2012.pdf)
  
+"""
+
+A pos (position) is a tuple of non-negative integers comprising a path
+from a node in the term tree.  It identifies a node in the tree.
+
+An update instruction (psi) is a map from positions to either RESET or
+INCREMENT.  It identifies actions to be taken on the counter states
+corresponding to the positions in its domain.
+
+A transition is a pair containing a path and an update instruction.
+It indicates a potential next node in the state, and the updates that
+are to be performed if the transition is taken.
+
+A follow value is a map from a pos to a set of transitions that may
+originate from the pos.  This set is represented as a Python list
+since update instructions are dicts and cannot be hashed.
+"""
+
+
+RESET = False
+INCREMENT = True
 
 class PositionError (LookupError):
     pass
+
+def posConcatPosSet (pos, pos_set):
+    """Definition 11.1"""
+    return frozenset([ pos + _mp for _mp in pos_set ])
+
+def posConcatUpdateInstruction (pos, psi):
+    """Definition 11.2"""
+    rv = {}
+    for (q, v) in psi.iteritems():
+        rv[pos + q] = v
+    return rv
+
+def posConcatTransitionSet (pos, transition_set):
+    """Definition 11.3"""
+    ts = []
+    for (q, psi) in transition_set:
+        ts.append((pos + q, posConcatUpdateInstruction(pos, psi) ))
+    return ts
 
 class Node (object):
     """Abstract class for any node in the term tree."""
@@ -85,7 +124,7 @@ class Node (object):
                               and _n.max is not None \
                               and _a.append(_p),
                           None, cpos)
-        return cpos
+        return frozenset(cpos)
 
 class MultiTermNode (Node):
     """Intermediary for nodes that have multiple child nodes."""
@@ -166,6 +205,27 @@ class NumericalConstraint (Node):
     def _nullable (self):
         return self.__term.nullable
 
+    def _follow (self):
+        rv = {}
+        pp = (0,)
+        last_r1 = set(self.__term.last)
+        counter_pos = self.__term.counterPositions()
+        for (q, transition_set) in self.__term.follow.iteritems():
+            rv[pp+q] = posConcatTransitionSet(pp, transition_set)
+            if q in last_r1:
+                last_r1.remove(q)
+                for sq1 in self.__term.first:
+                    q1 = pp+sq1
+                    psi = {}
+                    for p1 in counter_pos:
+                        if p1 == q[:len(p1)]:
+                            psi[pp+p1] = RESET
+                    if (1 != self.min) or (self.max is not None):
+                        psi[()] = INCREMENT
+                    rv[pp+q].append((q1, psi))
+        assert not last_r1
+        return rv
+                
     def _walkTermTree (self, position, pre, post, arg):
         if pre is not None:
             pre(self, position, arg)
@@ -224,8 +284,9 @@ class Choice (MultiTermNode):
     def _follow (self):
         rv = {}
         for c in xrange(len(self.terms)):
-            for (q, fq) in self.terms[c].follow.iteritems():
-                rv[(c,) + q] = fq
+            for (q, transition_set) in self.terms[c].follow.iteritems():
+                pp = (c,)
+                rv[pp + q] = posConcatTransitionSet(pp, transition_set)
         return rv
 
     def followPosition (self, position):
@@ -283,6 +344,25 @@ class Sequence (MultiTermNode):
                 return False
         return True
 
+    def _follow (self):
+        rv = {}
+        for c in xrange(len(self.terms)):
+            pp = (c,)
+            for (q, transition_set) in self.terms[c].follow.iteritems():
+                rv[pp + q] = posConcatTransitionSet(pp, transition_set)
+        for c in xrange(len(self.terms)-1):
+            pp = (c,)
+            counter_pos = self.terms[c].counterPositions()
+            for q in self.terms[c].last:
+                for sq1 in self.terms[c+1].first:
+                    q1 = (c+1,) + sq1
+                    psi = {}
+                    for p1 in counter_pos:
+                        if p1 == q[:len(p1)]:
+                            psi[pp + p1] = RESET
+                    rv[pp+q].append((q1, psi))
+        return rv
+            
     def followPosition (self, position):
         if 0 == len(position):
             return self
@@ -491,13 +571,12 @@ class TestFAC (unittest.TestCase):
         self.assertEqual([(0,0,0),(0,1,0),(0,1,1)], pre_pos)
 
     def testCounterPositions (self):
-        self.assertEqual([(), (0,0)], self.ex.counterPositions())
+        self.assertEqual(frozenset([(), (0,0)]), self.ex.counterPositions())
 
     def testFollow (self):
         m = self.a.follow
         self.assertEqual(1, len(m))
         self.assertEqual([((), frozenset())], m.items())
-        #print self.aOb.follow
-
+        
 if __name__ == '__main__':
     unittest.main()
