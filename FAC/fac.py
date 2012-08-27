@@ -55,6 +55,16 @@ class Node (object):
     def _nullable (self):
         raise NotImplementedError('%s.nullable' % (self.__class__.__name__,))
 
+    __follow = None
+    def __get_follow (self):
+        if self.__follow is None:
+            self.__follow = self._follow()
+        return self.__follow
+    follow = property(__get_follow)
+
+    def _follow (self):
+        raise NotImplementedError('%s.follow' % (self.__class__.__name__,))
+
     def followPath (self, path):
         raise NotImplementedError('%s.followPath' % (self.__class__.__name__,))
 
@@ -142,9 +152,8 @@ class Choice (Node):
 
         The terms are provided as arguments.  All must be instances of
         a subclass of L{Node}."""
-
         self.__terms = terms
-
+        
     def _first (self):
         rv = set()
         for c in xrange(len(self.__terms)):
@@ -162,6 +171,13 @@ class Choice (Node):
             if t.nullable:
                 return True
         return False
+
+    def _follow (self):
+        rv = {}
+        for c in xrange(len(self.__terms)):
+            for (q, fq) in self.__terms[c].follow.iteritems():
+                rv[(c,) + q] = fq
+        return rv
 
     def followPath (self, path):
         if 0 == len(path):
@@ -190,7 +206,6 @@ class Sequence (Node):
 
         The terms are provided as arguments.  All must be instances of
         a subclass of L{Node}."""
-
         self.__terms = terms
 
     def _first (self):
@@ -279,6 +294,8 @@ class Symbol (Node):
         return [()]
     def _nullable (self):
         return False
+    def _follow (self):
+        return { (): frozenset() }
 
     def followPath (self, path):
         if () != path:
@@ -399,6 +416,11 @@ class TestFAC (unittest.TestCase):
         for p in self.a2ObTc.last:
             rs.add(self.a2ObTc.followPath(p))
         self.assertEqual(frozenset([self.a, self.c]), rs)
+
+    def testFollow (self):
+        m = self.a.follow
+        self.assertEqual(1, len(m))
+        self.assertEqual([((), frozenset())], m.items())
 
 if __name__ == '__main__':
     unittest.main()
