@@ -12,7 +12,7 @@
 # (http://www.ii.uib.no/~dagh/presLATA2012.pdf)
  
 
-class PathError (LookupError):
+class PositionError (LookupError):
     pass
 
 class Node (object):
@@ -68,11 +68,11 @@ class Node (object):
     def walkTermTree (self, pre, post, arg):
         return self._walkTermTree((), pre, post, arg)
 
-    def _walkTermTree (self, path, pre, post, arg):
+    def _walkTermTree (self, position, pre, post, arg):
         raise NotImplementedError('%s.walkTermTree' % (self.__class__.__name__,))
 
-    def followPath (self, path):
-        raise NotImplementedError('%s.followPath' % (self.__class__.__name__,))
+    def followPosition (self, position):
+        raise NotImplementedError('%s.followPosition' % (self.__class__.__name__,))
 
 class MultiTermNode (Node):
     """Intermediary for nodes that have multiple child nodes."""
@@ -90,13 +90,13 @@ class MultiTermNode (Node):
         super(MultiTermNode, self).__init__()
         self.__terms = terms
 
-    def _walkTermTree (self, path, pre, post, arg):
+    def _walkTermTree (self, position, pre, post, arg):
         if pre is not None:
-            pre(self, path, arg)
+            pre(self, position, arg)
         for c in xrange(len(self.__terms)):
-            self.__terms[c]._walkTermTree(path + (c,), pre, post, arg)
+            self.__terms[c]._walkTermTree(position + (c,), pre, post, arg)
         if post is not None:
-            post(self, path, arg)
+            post(self, position, arg)
 
 class NumericalConstraint (Node):
     """A term with a numeric range constraint.
@@ -153,19 +153,19 @@ class NumericalConstraint (Node):
     def _nullable (self):
         return self.__term.nullable
 
-    def _walkTermTree (self, path, pre, post, arg):
+    def _walkTermTree (self, position, pre, post, arg):
         if pre is not None:
-            pre(self, path, arg)
-        self.__term._walkTermTree(path + (0,), pre, post, arg)
+            pre(self, position, arg)
+        self.__term._walkTermTree(position + (0,), pre, post, arg)
         if post is not None:
-            post(self, path, arg)
+            post(self, position, arg)
 
-    def followPath (self, path):
-        if 0 == len(path):
+    def followPosition (self, position):
+        if 0 == len(position):
             return self
-        if 0 != path[0]:
-            raise PathError(path)
-        return self.__term.followPath(path[1:])
+        if 0 != position[0]:
+            raise PositionError(position)
+        return self.__term.followPosition(position[1:])
 
     def __str__ (self):
         rv = str(self.__term)
@@ -215,11 +215,11 @@ class Choice (MultiTermNode):
                 rv[(c,) + q] = fq
         return rv
 
-    def followPath (self, path):
-        if 0 == len(path):
+    def followPosition (self, position):
+        if 0 == len(position):
             return self
-        c = path[0]
-        return self.terms[c].followPath(path[1:])
+        c = position[0]
+        return self.terms[c].followPosition(position[1:])
 
     def __str__ (self):
         elts = []
@@ -270,11 +270,11 @@ class Sequence (MultiTermNode):
                 return False
         return True
 
-    def followPath (self, path):
-        if 0 == len(path):
+    def followPosition (self, position):
+        if 0 == len(position):
             return self
-        c = path[0]
-        return self.terms[c].followPath(path[1:])
+        c = position[0]
+        return self.terms[c].followPosition(position[1:])
 
     def __str__ (self):
         elts = []
@@ -329,15 +329,15 @@ class Symbol (Node):
     def _follow (self):
         return { (): frozenset() }
 
-    def _walkTermTree (self, path, pre, post, arg):
+    def _walkTermTree (self, position, pre, post, arg):
         if pre is not None:
-            pre(self, path, arg)
+            pre(self, position, arg)
         if post is not None:
-            post(self, path, arg)
+            post(self, position, arg)
 
-    def followPath (self, path):
-        if () != path:
-            raise PathError(path)
+    def followPosition (self, position):
+        if () != position:
+            raise PositionError(position)
         return self
 
     def __str__ (self):
@@ -357,15 +357,15 @@ class Empty (Node):
     def _nullable (self):
         return True
 
-    def _walkTermTree (self, path, pre, post, arg):
+    def _walkTermTree (self, position, pre, post, arg):
         if pre is not None:
-            pre(self, path, arg)
+            pre(self, position, arg)
         if post is not None:
-            post(self, path, arg)
+            post(self, position, arg)
 
-    def followPath (self, path):
-        if () != path:
-            raise PathError(path)
+    def followPosition (self, position):
+        if () != position:
+            raise PositionError(position)
         return self
 
     def __str__ (self):
@@ -431,36 +431,36 @@ class TestFAC (unittest.TestCase):
 
     def testFirst (self):
         empty_set = frozenset()
-        null_path = frozenset([()])
+        null_position = frozenset([()])
         p0 = frozenset([(0,)])
         p1 = frozenset([(1,)])
         p0or1 = frozenset(set(p0).union(p1))
         self.assertEqual(empty_set, self.epsilon.first)
-        self.assertEqual(null_path, self.a.first)
+        self.assertEqual(null_position, self.a.first)
         for p in self.a.first:
-            self.assertEqual(self.a, self.a.followPath(p))
+            self.assertEqual(self.a, self.a.followPosition(p))
         self.assertEqual(p0or1, self.aOb.first)
         self.assertEqual(p0, self.aTb.first)
         for p in self.aTb.first:
-            self.assertEqual(self.a, self.aTb.followPath(p))
+            self.assertEqual(self.a, self.aTb.followPosition(p))
         rs = set()
         for p in self.a2ObTc.first:
-            rs.add(self.a2ObTc.followPath(p))
+            rs.add(self.a2ObTc.followPosition(p))
         self.assertEqual(frozenset([self.a, self.b]), rs)
 
     def testLast (self):
         empty_set = frozenset()
-        null_path = frozenset([()])
+        null_position = frozenset([()])
         p0 = frozenset([(0,)])
         p1 = frozenset([(1,)])
         p0or1 = frozenset(set(p0).union(p1))
         self.assertEqual(empty_set, self.epsilon.last)
-        self.assertEqual(null_path, self.a.last)
+        self.assertEqual(null_position, self.a.last)
         self.assertEqual(p0or1, self.aOb.last)
         self.assertEqual(p1, self.aTb.last)
         rs = set()
         for p in self.a2ObTc.last:
-            rs.add(self.a2ObTc.followPath(p))
+            rs.add(self.a2ObTc.followPosition(p))
         self.assertEqual(frozenset([self.a, self.c]), rs)
 
         #import sys
