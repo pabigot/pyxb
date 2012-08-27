@@ -20,7 +20,7 @@ An update instruction (psi) is a map from positions to either RESET or
 INCREMENT.  It identifies actions to be taken on the counter states
 corresponding to the positions in its domain.
 
-A transition is a pair containing a path and an update instruction.
+A transition is a pair containing a pos and an update instruction.
 It indicates a potential next node in the state, and the updates that
 are to be performed if the transition is taken.
 
@@ -110,8 +110,17 @@ class Node (object):
     def _walkTermTree (self, position, pre, post, arg):
         raise NotImplementedError('%s.walkTermTree' % (self.__class__.__name__,))
 
+    __posNodeMap = None
+    def __get_posNodeMap (self):
+        if self.__posNodeMap is None:
+            pnm = { }
+            self.walkTermTree(lambda _n,_p,_a: _a.setdefault(_p, _n), None, pnm)
+            self.__posNodeMap = pnm
+        return self.__posNodeMap
+    posNodeMap = property(__get_posNodeMap)
+
     def followPosition (self, position):
-        raise NotImplementedError('%s.followPosition' % (self.__class__.__name__,))
+        return self.posNodeMap[position]
 
     def counterPositions (self):
         """All numerical constraint positions that aren't r+.
@@ -233,13 +242,6 @@ class NumericalConstraint (Node):
         if post is not None:
             post(self, position, arg)
 
-    def followPosition (self, position):
-        if 0 == len(position):
-            return self
-        if 0 != position[0]:
-            raise PositionError(position)
-        return self.__term.followPosition(position[1:])
-
     def __str__ (self):
         rv = str(self.__term)
         if self.__term._Precedence < self._Precedence:
@@ -288,12 +290,6 @@ class Choice (MultiTermNode):
                 pp = (c,)
                 rv[pp + q] = posConcatTransitionSet(pp, transition_set)
         return rv
-
-    def followPosition (self, position):
-        if 0 == len(position):
-            return self
-        c = position[0]
-        return self.terms[c].followPosition(position[1:])
 
     def __str__ (self):
         elts = []
@@ -363,12 +359,6 @@ class Sequence (MultiTermNode):
                     rv[pp+q].append((q1, psi))
         return rv
             
-    def followPosition (self, position):
-        if 0 == len(position):
-            return self
-        c = position[0]
-        return self.terms[c].followPosition(position[1:])
-
     def __str__ (self):
         elts = []
         for t in self.terms:
@@ -428,11 +418,6 @@ class Symbol (Node):
         if post is not None:
             post(self, position, arg)
 
-    def followPosition (self, position):
-        if () != position:
-            raise PositionError(position)
-        return self
-
     def __str__ (self):
         return str(self.__symbol)
 
@@ -455,11 +440,6 @@ class Empty (Node):
             pre(self, position, arg)
         if post is not None:
             post(self, position, arg)
-
-    def followPosition (self, position):
-        if () != position:
-            raise PositionError(position)
-        return self
 
     def __str__ (self):
         return u'ε'
