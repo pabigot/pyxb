@@ -12,17 +12,45 @@
 # (http://www.ii.uib.no/~dagh/presLATA2012.pdf)
  
 
+class PathError (LookupError):
+    pass
+
 class Node (object):
     """Abstract class for any node in the term tree."""
 
-    pass
+    __first = None
+    def first (self):
+        if self.__first is None:
+            self.__first = frozenset(self._first())
+        return self.__first
+    def _first (self):
+        raise NotImplementedError('%s.first' % (self.__class__.__name__,))
+
+    __last = None
+    def last (self):
+        if self.__last is None:
+            self.__last = frozenset(self._last())
+        return self.__last
+    def _last (self):
+        raise NotImplementedError('%s.first' % (self.__class__.__name__,))
+
+    __nullable = None
+    def nullable (self):
+        if self.__nullable is None:
+            self.__nullable = self._nullable()
+        return self.__nullable
+    def _nullable (self):
+        raise NotImplementedError('%s.nullable' % (self.__class__.__name__,))
+
+    def step (self, path):
+        raise NotImplementedError('Node.step')
 
 class NumericalConstraint (Node):
     """A term with a numeric range constraint.
 
     This corresponds to a "particle" in the XML Schema content model."""
 
-    _IsSimple = False
+    _Precedence = 1
 
     __min = None
     __max = None
@@ -47,23 +75,20 @@ class NumericalConstraint (Node):
         self.__max = max
 
     def __str__ (self):
-        rv = unicode(self.__term)
-        if not self.__term._IsSimple:
+        rv = str(self.__term)
+        if self.__term._Precedence > self._Precedence:
             rv = '(' + rv + ')'
         rv += '^(%u,' % (self.__min,)
-        if self.__max is None:
-            rv += u'∞'
-        else:
+        if self.__max is not None:
             rv += '%u' % (self.__max)
         return rv + ')'
-
 
 class Choice (Node):
     """A term that may be any one of a set of terms.
 
     This term matches if any one of its contained terms matches."""
     
-    _IsSimple = False
+    _Precedence = 3
 
     __terms = None
     
@@ -75,13 +100,43 @@ class Choice (Node):
 
         self.__terms = terms
 
+    def _first (self):
+        rv = set()
+        for c in xrange(len(self.__terms)):
+            rv.update([ (c,) + _fc for _fc in  self.__terms[c].first()])
+        return rv
+
+    def _last (self):
+        rv = set()
+        for c in xrange(len(self.__terms)):
+            rv.update([ (c,) + _lc for _lc in  self.__terms[c].last()])
+        return rv
+
+    def _nullable (self):
+        for t in self.__terms:
+            if t.nullable():
+                return True
+        return False
+
+    def step (self, path):
+        if 0 == len(path):
+            raise PathError(path)
+        c = path[0]
+        return self.__terms[c].step(path[1:])
+
     def __str__ (self):
-        return '(' + u'+'.join([ unicode(_t) for _t in self.__terms ]) + ')'
+        elts = []
+        for t in self.__terms:
+            if t._Precedence > self._Precedence:
+                elts.append('(' + str(t) + ')')
+            else:
+                elts.append(str(t))
+        return '+'.join(elts)
 
 class Sequence (Node):
     """A term that is an ordered sequence of terms."""
     
-    _IsSimple = False
+    _Precedence = 2
 
     __terms = None
 
@@ -93,13 +148,36 @@ class Sequence (Node):
 
         self.__terms = terms
 
+    def _first (self):
+        rv = set()
+        c = 0
+        while c < len(self.__terms):
+            t = self.__terms[c]
+            rv.update([ (c,) + fc for _fc in _t.first()])
+            if not t.nullable():
+                break
+            c += 1
+        return rv
+
+    def _nullable (self):
+        for t in self.__terms:
+            if not t.nullable():
+                return False
+        return True
+
     def __str__ (self):
-        return u'∙'.join([ unicode(_t) for _t in self.__terms ])
+        elts = []
+        for t in self.__terms:
+            if t._Precedence > self._Precedence:
+                elts.append('(' + str(t) + ')')
+            else:
+                elts.append(str(t))
+        return '.'.join(elts)
 
 class All (Node):
     """A term that is an unordered sequence of terms."""
 
-    _IsSimple = False
+    _Precedence = 0
 
     __terms = None
 
@@ -112,29 +190,74 @@ class All (Node):
         self.__terms = terms
 
     def __str__ (self):
-        return u'&(' + ','.join([unicode(_t) for _t in self.__terms]) + ')'
+        return u'&(' + ','.join([str(_t) for _t in self.__terms]) + ')'
 
 class Symbol (Node):
     """A term that is a symbol (leaf node)."""
     __symbol = None
 
-    _IsSimple = True
+    _Precedence = 0
 
     def __init__ (self, symbol):
         self.__symbol = symbol
 
+    def _first (self):
+        return [()]
+    def _last (self):
+        return [()]
+    def _nullable (self):
+        return False
+
+    def step (self, path):
+        if () != path:
+            raise PathError(path)
+        return self.__symbol
+
     def __str__ (self):
-        return unicode(self.__symbol)
+        return str(self.__symbol)
 
 class Empty (Node):
     """A term indicating that no symbol is consumed."""
 
-    _IsSimple = True
+    _Precedence = 0
+
+    def _first (self):
+        return []
+    def _last (self):
+        return []
+    def _nullable (self):
+        return True
+
+    def step (self, path):
+        if () != path:
+            raise PathError(path)
+        return None
 
     def __str__ (self):
         return u'ε'
 
-expr = NumericalConstraint(Symbol('a'), 2, 2)
-expr = Choice(expr, Sequence(Symbol('b'), Symbol('c')))
-expr = NumericalConstraint(expr, 3, 5)
-print unicode(expr)
+import unittest
+class TestFAC (unittest.TestCase):
+
+    def testBasicStr (self):
+        a = Symbol('a')
+        b = Symbol('b')
+        c = Symbol('c')
+        self.assertEqual('a', str(a))
+        self.assertEqual('b', str(b))
+        aOb = Choice(a, b)
+        self.assertEqual('a+b', str(aOb))
+        aTb = Sequence(a, b)
+        self.assertEqual('a.b', str(aTb))
+        x = Choice(b, aTb)
+        self.assertEqual('b+a.b', str(x))
+        x = Sequence(a, aOb)
+        self.assertEqual('a.(a+b)', str(x))
+        a2 = NumericalConstraint(a, 2, 2)
+        bTc = Sequence(b, c)
+        a2ObTc = Choice(a2, bTc)
+        x = NumericalConstraint(a2ObTc, 3, 5)
+        self.assertEqual('(a^(2,2)+b.c)^(3,5)', str(x))
+
+if __name__ == '__main__':
+    unittest.main()
