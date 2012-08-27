@@ -55,8 +55,8 @@ class Node (object):
     def _nullable (self):
         raise NotImplementedError('%s.nullable' % (self.__class__.__name__,))
 
-    def step (self, path):
-        raise NotImplementedError('Node.step')
+    def followPath (self, path):
+        raise NotImplementedError('%s.followPath' % (self.__class__.__name__,))
 
 class NumericalConstraint (Node):
     """A term with a numeric range constraint.
@@ -103,8 +103,18 @@ class NumericalConstraint (Node):
         self.__min = min
         self.__max = max
 
+    def _first (self):
+        return [ (0,) + _fc for _fc in self.__term.first ]
+
     def _nullable (self):
         return self.__term.nullable
+
+    def followPath (self, path):
+        if 0 == len(path):
+            return self
+        if 0 != path[0]:
+            raise PathError(path)
+        return self.__term.followPath(path[1:])
 
     def __str__ (self):
         rv = str(self.__term)
@@ -150,11 +160,11 @@ class Choice (Node):
                 return True
         return False
 
-    def step (self, path):
+    def followPath (self, path):
         if 0 == len(path):
-            raise PathError(path)
+            return self
         c = path[0]
-        return self.__terms[c].step(path[1:])
+        return self.__terms[c].followPath(path[1:])
 
     def __str__ (self):
         elts = []
@@ -196,6 +206,12 @@ class Sequence (Node):
             if not t.nullable:
                 return False
         return True
+
+    def followPath (self, path):
+        if 0 == len(path):
+            return self
+        c = path[0]
+        return self.__terms[c].followPath(path[1:])
 
     def __str__ (self):
         elts = []
@@ -250,10 +266,10 @@ class Symbol (Node):
     def _nullable (self):
         return False
 
-    def step (self, path):
+    def followPath (self, path):
         if () != path:
             raise PathError(path)
-        return self.__symbol
+        return self
 
     def __str__ (self):
         return str(self.__symbol)
@@ -270,10 +286,10 @@ class Empty (Node):
     def _nullable (self):
         return True
 
-    def step (self, path):
+    def followPath (self, path):
         if () != path:
             raise PathError(path)
-        return None
+        return self
 
     def __str__ (self):
         return u'ε'
@@ -344,9 +360,16 @@ class TestFAC (unittest.TestCase):
         p0or1 = frozenset(set(p0).union(p1))
         self.assertEqual(empty_set, self.epsilon.first)
         self.assertEqual(null_path, self.a.first)
+        for p in self.a.first:
+            self.assertEqual(self.a, self.a.followPath(p))
         self.assertEqual(p0or1, self.aOb.first)
         self.assertEqual(p0, self.aTb.first)
-        #print self.a2ObTc.first
+        for p in self.aTb.first:
+            self.assertEqual(self.a, self.aTb.followPath(p))
+        rs = set()
+        for p in self.a2ObTc.first:
+            rs.add(self.a2ObTc.followPath(p))
+        self.assertEqual(frozenset([self.a, self.b]), rs)
 
 if __name__ == '__main__':
     unittest.main()
