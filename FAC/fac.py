@@ -88,18 +88,23 @@ class NumericalConstraint (Node):
         @type term: L{Node}
 
         @keyword min: The minimum number of occurrences of C{term}.
-        The value must be non-negative.
+        The value must be positive.  To model a situation where the
+        minimum number of occurrences is zero, use L{Choice} with an
+        L{Empty} term and a L{NumericalConstraint} term with a minimum
+        occurrence of 1.
 
         @keyword max: The maximum number of occurrences of C{term}.
         The value must be positive (in which case it must also be no
         smaller than C{min}), or C{None} to indicate an unbounded
         number of occurrences."""
         self.__term = term
+        if 0 == min:
+            raise ValueError('numerical constraint min must be positive')
         self.__min = min
         self.__max = max
 
     def _nullable (self):
-        return (0 == self.__min) or self.__term.nullable
+        return self.__term.nullable
 
     def __str__ (self):
         rv = str(self.__term)
@@ -292,6 +297,7 @@ class TestFAC (unittest.TestCase):
         self.assertEqual('a', self.a.symbol)
 
     def testNumericalConstraint (self):
+        self.assertRaises(ValueError, NumericalConstraint, self.a, 0, 1)
         self.assertEqual(self.a2ObTc, self.ex.term)
         self.assertEqual(3, self.ex.min)
         self.assertEqual(5, self.ex.max)
@@ -325,8 +331,6 @@ class TestFAC (unittest.TestCase):
         self.assertFalse(self.aXb.nullable)
         x = All(aOe, eOa)
         self.assertTrue(x.nullable)
-        x = NumericalConstraint(self.a, 0, 4)
-        self.assertTrue(x.nullable)
         x = NumericalConstraint(self.a, 1, 4)
         self.assertFalse(x.nullable)
         x = NumericalConstraint(aOe, 1, 4)
@@ -342,7 +346,7 @@ class TestFAC (unittest.TestCase):
         self.assertEqual(null_path, self.a.first)
         self.assertEqual(p0or1, self.aOb.first)
         self.assertEqual(p0, self.aTb.first)
-        print self.a2ObTc.first
+        #print self.a2ObTc.first
 
 if __name__ == '__main__':
     unittest.main()
