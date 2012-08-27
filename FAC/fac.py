@@ -26,26 +26,32 @@ class Node (object):
     expression representing the containing term."""
 
     __first = None
-    def first (self):
+    def __get_first (self):
         if self.__first is None:
             self.__first = frozenset(self._first())
         return self.__first
+    first = property(__get_first)
+
     def _first (self):
         raise NotImplementedError('%s.first' % (self.__class__.__name__,))
 
     __last = None
-    def last (self):
+    def __get_last (self):
         if self.__last is None:
             self.__last = frozenset(self._last())
         return self.__last
+    last = property(__get_last)
+    
     def _last (self):
         raise NotImplementedError('%s.first' % (self.__class__.__name__,))
 
     __nullable = None
-    def nullable (self):
+    def __get_nullable (self):
         if self.__nullable is None:
             self.__nullable = self._nullable()
         return self.__nullable
+    nullable = property(__get_nullable)
+    
     def _nullable (self):
         raise NotImplementedError('%s.nullable' % (self.__class__.__name__,))
 
@@ -93,7 +99,7 @@ class NumericalConstraint (Node):
         self.__max = max
 
     def _nullable (self):
-        return (0 == self.__min) or self.__term.nullable()
+        return (0 == self.__min) or self.__term.nullable
 
     def __str__ (self):
         rv = str(self.__term)
@@ -124,18 +130,18 @@ class Choice (Node):
     def _first (self):
         rv = set()
         for c in xrange(len(self.__terms)):
-            rv.update([ (c,) + _fc for _fc in  self.__terms[c].first()])
+            rv.update([ (c,) + _fc for _fc in  self.__terms[c].first])
         return rv
 
     def _last (self):
         rv = set()
         for c in xrange(len(self.__terms)):
-            rv.update([ (c,) + _lc for _lc in  self.__terms[c].last()])
+            rv.update([ (c,) + _lc for _lc in  self.__terms[c].last])
         return rv
 
     def _nullable (self):
         for t in self.__terms:
-            if t.nullable():
+            if t.nullable:
                 return True
         return False
 
@@ -174,7 +180,7 @@ class Sequence (Node):
         c = 0
         while c < len(self.__terms):
             t = self.__terms[c]
-            rv.update([ (c,) + fc for _fc in _t.first()])
+            rv.update([ (c,) + fc for _fc in _t.first])
             if not t.nullable():
                 break
             c += 1
@@ -182,7 +188,7 @@ class Sequence (Node):
 
     def _nullable (self):
         for t in self.__terms:
-            if not t.nullable():
+            if not t.nullable:
                 return False
         return True
 
@@ -212,7 +218,7 @@ class All (Node):
 
     def _nullable (self):
         for t in self.__terms:
-            if not t.nullable():
+            if not t.nullable:
                 return False
         return True
 
@@ -304,27 +310,27 @@ class TestFAC (unittest.TestCase):
         self.assertEqual('(a^(2,2)+b.c)^(3,5)', str(x))
 
     def testNullable (self):
-        self.assertTrue(self.epsilon.nullable())
-        self.assertFalse(self.a.nullable())
-        self.assertFalse(self.aOb.nullable())
+        self.assertTrue(self.epsilon.nullable)
+        self.assertFalse(self.a.nullable)
+        self.assertFalse(self.aOb.nullable)
         aOe = Choice(self.a, self.epsilon)
-        self.assertTrue(aOe.nullable())
+        self.assertTrue(aOe.nullable)
         eOa = Choice(self.epsilon, self.a)
-        self.assertTrue(eOa.nullable())
-        self.assertFalse(self.aTb.nullable())
+        self.assertTrue(eOa.nullable)
+        self.assertFalse(self.aTb.nullable)
         x = Sequence(aOe, self.b)
-        self.assertFalse(x.nullable())
+        self.assertFalse(x.nullable)
         x = Sequence(aOe, eOa)
-        self.assertTrue(x.nullable())
-        self.assertFalse(self.aXb.nullable())
+        self.assertTrue(x.nullable)
+        self.assertFalse(self.aXb.nullable)
         x = All(aOe, eOa)
-        self.assertTrue(x.nullable())
+        self.assertTrue(x.nullable)
         x = NumericalConstraint(self.a, 0, 4)
-        self.assertTrue(x.nullable())
+        self.assertTrue(x.nullable)
         x = NumericalConstraint(self.a, 1, 4)
-        self.assertFalse(x.nullable())
+        self.assertFalse(x.nullable)
         x = NumericalConstraint(aOe, 1, 4)
-        self.assertTrue(x.nullable())
+        self.assertTrue(x.nullable)
 
 if __name__ == '__main__':
     unittest.main()
