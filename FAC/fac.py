@@ -68,6 +68,22 @@ class Node (object):
     def followPath (self, path):
         raise NotImplementedError('%s.followPath' % (self.__class__.__name__,))
 
+class MultiTermNode (Node):
+    """Intermediary for nodes that have multiple child nodes."""
+    
+    __terms = None
+    def __get_terms (self):
+        return self.__terms
+    terms = property(__get_terms)
+
+    def __init__ (self, *terms):
+        """Term that collects an ordered sequence of terms.
+
+        The terms are provided as arguments.  All must be instances of
+        a subclass of L{Node}."""
+        super(MultiTermNode, self).__init__()
+        self.__terms = terms
+
 class NumericalConstraint (Node):
     """A term with a numeric range constraint.
 
@@ -139,45 +155,42 @@ class NumericalConstraint (Node):
             rv += '%u' % (self.__max)
         return rv + ')'
 
-class Choice (Node):
+class Choice (MultiTermNode):
     """A term that may be any one of a set of terms.
 
     This term matches if any one of its contained terms matches."""
     
     _Precedence = -3
 
-    __terms = None
-    
     def __init__ (self, *terms):
         """Term that selects one of a set of terms.
 
         The terms are provided as arguments.  All must be instances of
         a subclass of L{Node}."""
-        super(Choice, self).__init__()
-        self.__terms = terms
+        super(Choice, self).__init__(*terms)
         
     def _first (self):
         rv = set()
-        for c in xrange(len(self.__terms)):
-            rv.update([ (c,) + _fc for _fc in  self.__terms[c].first])
+        for c in xrange(len(self.terms)):
+            rv.update([ (c,) + _fc for _fc in self.terms[c].first])
         return rv
 
     def _last (self):
         rv = set()
-        for c in xrange(len(self.__terms)):
-            rv.update([ (c,) + _lc for _lc in  self.__terms[c].last])
+        for c in xrange(len(self.terms)):
+            rv.update([ (c,) + _lc for _lc in self.terms[c].last])
         return rv
 
     def _nullable (self):
-        for t in self.__terms:
+        for t in self.terms:
             if t.nullable:
                 return True
         return False
 
     def _follow (self):
         rv = {}
-        for c in xrange(len(self.__terms)):
-            for (q, fq) in self.__terms[c].follow.iteritems():
+        for c in xrange(len(self.terms)):
+            for (q, fq) in self.terms[c].follow.iteritems():
                 rv[(c,) + q] = fq
         return rv
 
@@ -185,37 +198,34 @@ class Choice (Node):
         if 0 == len(path):
             return self
         c = path[0]
-        return self.__terms[c].followPath(path[1:])
+        return self.terms[c].followPath(path[1:])
 
     def __str__ (self):
         elts = []
-        for t in self.__terms:
+        for t in self.terms:
             if t._Precedence < self._Precedence:
                 elts.append('(' + str(t) + ')')
             else:
                 elts.append(str(t))
         return '+'.join(elts)
 
-class Sequence (Node):
+class Sequence (MultiTermNode):
     """A term that is an ordered sequence of terms."""
     
     _Precedence = -2
-
-    __terms = None
 
     def __init__ (self, *terms):
         """Term that collects an ordered sequence of terms.
 
         The terms are provided as arguments.  All must be instances of
         a subclass of L{Node}."""
-        super(Sequence, self).__init__()
-        self.__terms = terms
+        super(Sequence, self).__init__(*terms)
 
     def _first (self):
         rv = set()
         c = 0
-        while c < len(self.__terms):
-            t = self.__terms[c]
+        while c < len(self.terms):
+            t = self.terms[c]
             rv.update([ (c,) + _fc for _fc in t.first])
             if not t.nullable:
                 break
@@ -224,9 +234,9 @@ class Sequence (Node):
 
     def _last (self):
         rv = set()
-        c = len(self.__terms) - 1;
+        c = len(self.terms) - 1;
         while 0 <= c:
-            t = self.__terms[c]
+            t = self.terms[c]
             rv.update([ (c,) + _lc for _lc in t.last])
             if not t.nullable:
                 break
@@ -234,7 +244,7 @@ class Sequence (Node):
         return rv
 
     def _nullable (self):
-        for t in self.__terms:
+        for t in self.terms:
             if not t.nullable:
                 return False
         return True
@@ -243,40 +253,37 @@ class Sequence (Node):
         if 0 == len(path):
             return self
         c = path[0]
-        return self.__terms[c].followPath(path[1:])
+        return self.terms[c].followPath(path[1:])
 
     def __str__ (self):
         elts = []
-        for t in self.__terms:
+        for t in self.terms:
             if t._Precedence < self._Precedence:
                 elts.append('(' + str(t) + ')')
             else:
                 elts.append(str(t))
         return '.'.join(elts)
 
-class All (Node):
+class All (MultiTermNode):
     """A term that is an unordered sequence of terms."""
 
     _Precedence = 0
-
-    __terms = None
 
     def __init__ (self, *terms):
         """Term that collects an unordered sequence of terms.
 
         The terms are provided as arguments.  All must be instances of
         a subclass of L{Node}."""
-
-        self.__terms = terms
+        super(All, self).__init__(*terms)
 
     def _nullable (self):
-        for t in self.__terms:
+        for t in self.terms:
             if not t.nullable:
                 return False
         return True
 
     def __str__ (self):
-        return u'&(' + ','.join([str(_t) for _t in self.__terms]) + ')'
+        return u'&(' + ','.join([str(_t) for _t in self.terms]) + ')'
 
 class Symbol (Node):
     """A term that is a symbol (leaf node)."""
