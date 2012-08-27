@@ -107,6 +107,7 @@ class NumericalConstraint (Node):
         The value must be positive (in which case it must also be no
         smaller than C{min}), or C{None} to indicate an unbounded
         number of occurrences."""
+        super(NumericalConstraint, self).__init__()
         self.__term = term
         if 0 == min:
             raise ValueError('numerical constraint min must be positive')
@@ -152,6 +153,7 @@ class Choice (Node):
 
         The terms are provided as arguments.  All must be instances of
         a subclass of L{Node}."""
+        super(Choice, self).__init__()
         self.__terms = terms
         
     def _first (self):
@@ -206,6 +208,7 @@ class Sequence (Node):
 
         The terms are provided as arguments.  All must be instances of
         a subclass of L{Node}."""
+        super(Sequence, self).__init__()
         self.__terms = terms
 
     def _first (self):
@@ -286,6 +289,7 @@ class Symbol (Node):
     _Precedence = 0
 
     def __init__ (self, symbol):
+        super(Symbol, self).__init__()
         self.__symbol = symbol
 
     def _first (self):
