@@ -65,6 +65,12 @@ class Node (object):
     def _follow (self):
         raise NotImplementedError('%s.follow' % (self.__class__.__name__,))
 
+    def walkTermTree (self, pre, post, arg):
+        return self._walkTermTree((), pre, post, arg)
+
+    def _walkTermTree (self, path, pre, post, arg):
+        raise NotImplementedError('%s.walkTermTree' % (self.__class__.__name__,))
+
     def followPath (self, path):
         raise NotImplementedError('%s.followPath' % (self.__class__.__name__,))
 
@@ -83,6 +89,14 @@ class MultiTermNode (Node):
         a subclass of L{Node}."""
         super(MultiTermNode, self).__init__()
         self.__terms = terms
+
+    def _walkTermTree (self, path, pre, post, arg):
+        if pre is not None:
+            pre(self, path, arg)
+        for c in xrange(len(self.__terms)):
+            self.__terms[c]._walkTermTree((c,)+path, pre, post, arg)
+        if post is not None:
+            post(self, path, arg)
 
 class NumericalConstraint (Node):
     """A term with a numeric range constraint.
@@ -138,6 +152,13 @@ class NumericalConstraint (Node):
 
     def _nullable (self):
         return self.__term.nullable
+
+    def _walkTermTree (self, path, pre, post, arg):
+        if pre is not None:
+            pre(self, path, arg)
+        self.__term._walkTermTree((0,) + path, pre, post, arg)
+        if post is not None:
+            post(self, path, arg)
 
     def followPath (self, path):
         if 0 == len(path):
@@ -286,7 +307,7 @@ class All (MultiTermNode):
         return u'&(' + ','.join([str(_t) for _t in self.terms]) + ')'
 
 class Symbol (Node):
-    """A term that is a symbol (leaf node)."""
+    """A leaf term that is a symbol."""
 
     __symbol = None
     def __get_symbol (self):
@@ -308,6 +329,12 @@ class Symbol (Node):
     def _follow (self):
         return { (): frozenset() }
 
+    def _walkTermTree (self, path, pre, post, arg):
+        if pre is not None:
+            pre(self, path, arg)
+        if post is not None:
+            post(self, path, arg)
+
     def followPath (self, path):
         if () != path:
             raise PathError(path)
@@ -317,7 +344,9 @@ class Symbol (Node):
         return str(self.__symbol)
 
 class Empty (Node):
-    """A term indicating that no symbol is consumed."""
+    """A leaf term indicating absence of a symbol.
+
+    This is the only way to introduce nullable into the system."""
 
     _Precedence = 0
 
@@ -327,6 +356,12 @@ class Empty (Node):
         return []
     def _nullable (self):
         return True
+
+    def _walkTermTree (self, path, pre, post, arg):
+        if pre is not None:
+            pre(self, path, arg)
+        if post is not None:
+            post(self, path, arg)
 
     def followPath (self, path):
         if () != path:
@@ -432,6 +467,12 @@ class TestFAC (unittest.TestCase):
         m = self.a.follow
         self.assertEqual(1, len(m))
         self.assertEqual([((), frozenset())], m.items())
+
+    def testWalkTree (self):
+        sym_pos = []
+        set_sym_pos = lambda _n,_p,_a: isinstance(_n, Symbol) and _a.append(_p)
+        self.a2ObTc.walkTermTree(set_sym_pos, None, sym_pos)
+        self.assertEqual([(0,0),(0,1),(1,1)], sym_pos)
 
 if __name__ == '__main__':
     unittest.main()
