@@ -226,7 +226,7 @@ class Node (object):
     def __buildAutomaton (self):
         self.__states = frozenset([ self.posNodeMap[_p] for _p in self.follow.iterkeys() ])
         # All states should be Symbol instances
-        assert reduce(operator.and_, map(lambda _s: isinstance(_s, Symbol), self.__states), True)
+        assert reduce(operator.and_, map(lambda _s: isinstance(_s, LeafNode), self.__states), True)
         self.__counters = frozenset([ self.posNodeMap[_p] for _p in self.counterPositions() ])
         # All counters should be NumericalConstraint instances
         assert reduce(operator.and_, map(lambda _s: isinstance(_s, NumericalConstraint), self.__counters), True)
@@ -243,8 +243,8 @@ class Node (object):
         self.__initialStateMap = {}
         for p in self.first:
             n = self.posNodeMap[p]
-            assert isinstance(n, Symbol)
-            self.__initialStateMap.setdefault(n.symbol,set()).add(n)
+            if isinstance(n, Symbol):
+                self.__initialStateMap.setdefault(n.symbol,set()).add(n)
 
     __states = None
     def __get_states (self):
@@ -281,11 +281,27 @@ class Node (object):
         cpos = []
         self.walkTermTree(lambda _n,_p,_a: \
                               isinstance(_n, NumericalConstraint) \
-                              and 1 != _n.min \
-                              and _n.max is not None \
+                              and ((1 != _n.min) \
+                                   or (_n.max is not None)) \
                               and _a.append(_p),
                           None, cpos)
         return frozenset(cpos)
+
+    def displayAutomaton (self):
+        positions = sorted(self.posNodeMap.keys())
+        for p in positions:
+            n = self.posNodeMap[p]
+            print '%s recognizes %s' % (p, n)
+            print '\tfirst: %s' % (' '.join(map(str,n.first)),)
+            print '\tlast: %s' % (' '.join(map(str,n.last)),)
+        for (src, trans_map) in self.phi.iteritems():
+            print '%s recognizing %s:' % (self.nodePosMap[src], src)
+            for (sym, transition_set) in trans_map.iteritems():
+                for (dst, psi) in transition_set:
+                    av = []
+                    for (c, uv) in psi.iteritems():
+                        av.append('%s %s' % (self.nodePosMap[c], (uv == INCREMENT) and 'inc' or 'res'))
+                    print '\t%s via %s: %s' % (self.nodePosMap[dst], sym, ' , '.join(av))
 
 class MultiTermNode (Node):
     """Intermediary for nodes that have multiple child nodes."""
@@ -541,7 +557,10 @@ class All (MultiTermNode):
     def __str__ (self):
         return u'&(' + ','.join([str(_t) for _t in self.terms]) + ')'
 
-class Symbol (Node):
+class LeafNode (Node):
+    pass
+
+class Symbol (LeafNode):
     """A leaf term that is a symbol."""
 
     __symbol = None
@@ -573,7 +592,7 @@ class Symbol (Node):
     def __str__ (self):
         return str(self.__symbol)
 
-class Empty (Node):
+class Empty (LeafNode):
     """A leaf term indicating absence of a symbol.
 
     This is the only way to introduce nullable into the system."""
@@ -586,6 +605,8 @@ class Empty (Node):
         return []
     def _nullable (self):
         return True
+    def _follow (self):
+        return { (): frozenset() }
 
     def _walkTermTree (self, position, pre, post, arg):
         if pre is not None:
@@ -594,7 +615,7 @@ class Empty (Node):
             post(self, position, arg)
 
     def __str__ (self):
-        return u'ε'
+        return '_'
 
 import unittest
 class TestFAC (unittest.TestCase):
@@ -717,6 +738,19 @@ class TestFAC (unittest.TestCase):
             au.step(c)
             print 'eat %s now %s next %s' % (c, au, ' or '.join(au.candidateSymbols()))
         self.assertTrue(au.isFinal())
+
+    def testKT2004 (self):
+        x = NumericalConstraint(Sequence(Choice(Symbol('b'), Empty()), Symbol('c')), 1, 2)
+        x = Sequence(Choice(Symbol('a'), Empty()), x, Choice(Symbol('a'), Symbol('d')))
+        x = NumericalConstraint(x, 3, 4)
+        au = Automaton(x)
+        for word in ['cacaca',]:
+            au.reset()
+            print 'Initial %s maystart %s' % (au, ' or '.join(au.termTree.initialStateMap.keys()))
+            for c in word:
+                au.step(c)
+                print 'eat %s now %s next %s' % (c, au, ' or '.join(au.candidateSymbols()))
+            self.assertTrue(au.isFinal())
         
 if __name__ == '__main__':
     unittest.main()
