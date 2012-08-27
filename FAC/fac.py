@@ -104,10 +104,14 @@ class Automaton (object):
                 self.__counterValues[c] += 1
 
     def isFinal (self):
-        for (c, cv) in self.__counterValues.iteritems():
-            if (cv < c.min) or ((c.max is not None) and (c.max < cv)):
-                return False
-        return True
+        tt = self.__termTree
+        relevant_counters = tt.finalCounters.get(self.__state)
+        if relevant_counters is None:
+            return False
+        psi = {}
+        for c in relevant_counters:
+            psi[c] = RESET
+        return self.__satisfiable(psi)
 
     def step (self, sym):
         tt = self.__termTree
@@ -248,6 +252,15 @@ class Node (object):
             n = self.posNodeMap[p]
             if isinstance(n, Symbol):
                 self.__initialStateMap.setdefault(n.symbol,set()).add(n)
+        self.__finalCounters = {}
+        counter_positions = self.counterPositions()
+        for p in self.last:
+            n = self.posNodeMap[p]
+            rv = set()
+            for cp in counter_positions:
+                if cp == p[:len(cp)]:
+                    rv.add(self.posNodeMap[cp])
+            self.__finalCounters[n] = frozenset(rv)
 
     __states = None
     def __get_states (self):
@@ -269,6 +282,13 @@ class Node (object):
             self.__buildAutomaton()
         return self.__counters
     counters = property(__get_counters)
+
+    __finalCounters = None
+    def __get_finalCounters (self):
+        if self.__finalCounters is None:
+            self.__buildAutomaton()
+        return self.__finalCounters
+    finalCounters = property(__get_finalCounters)
 
     __phi = None
     def __get_phi (self):
@@ -313,6 +333,8 @@ class Node (object):
                     for (c, uv) in psi.iteritems():
                         av.append('%s %s' % (self.nodePosMap[c], (uv == INCREMENT) and 'inc' or 'res'))
                     print '\t%s via %s: %s' % (self.nodePosMap[dst], sym, ' , '.join(av))
+        for (n, cs) in self.finalCounters.iteritems():
+            print 'Final %s: %s' % (self.nodePosMap[n], ' '.join([str(self.nodePosMap[_cn]) for _cn in cs]))
 
 class MultiTermNode (Node):
     """Intermediary for nodes that have multiple child nodes."""
@@ -673,11 +695,6 @@ class TestFAC (unittest.TestCase):
             rs.add(self.a2ObTc.followPosition(p))
         self.assertEqual(frozenset([self.a, self.c]), rs)
 
-        #import sys
-        #pre_print = lambda _n,_p,_a: sys.stdout.write('Pre %s at %s\n' % (_n, _p))
-        #post_print = lambda _n,_p,_a: sys.stdout.write('Post %s at %s\n' % (_n, _p))
-        #self.ex.walkTermTree(pre_print, post_print, None)
-
     def testWalkTermTree (self):
         pre_pos = []
         post_pos = []
@@ -707,7 +724,7 @@ class TestFAC (unittest.TestCase):
         a = Symbol('a')
         x = Sequence(a, a)
         self.assertRaises(InvalidFACError, x.validateAutomaton)
-    '''
+
     def testKT2004 (self):
         a = Symbol('a')
         x = NumericalConstraint(Symbol('b'), 0, 1)
@@ -715,6 +732,7 @@ class TestFAC (unittest.TestCase):
         x = Sequence(NumericalConstraint(Symbol('a'), 0, 1), x, Choice(Symbol('a'), Symbol('d')))
         x = NumericalConstraint(x, 3, 4)
         au = Automaton(x.validateAutomaton())
+        print 'Counters: %s' % (' '.join([ str(x.nodePosMap[_v]) for _v in x.counters]))
         for word in ['cacaca', 'abcaccdacd']:
             au.reset()
             print 'Initial %s maystart %s' % (au, ' or '.join(au.termTree.initialStateMap.keys()))
@@ -729,7 +747,6 @@ class TestFAC (unittest.TestCase):
                 au.step(c)
                 print 'eat %s now %s next %s' % (c, au, ' or '.join(au.candidateSymbols()))
             self.assertFalse(au.isFinal())
-    '''
 
 if __name__ == '__main__':
     unittest.main()
