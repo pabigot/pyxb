@@ -60,8 +60,19 @@ class NumericalConstraint (Node):
     _Precedence = -1
 
     __min = None
+    def __get_min (self):
+        return self.__min
+    min = property(__get_min)
+
     __max = None
+    def __get_max (self):
+        return self.__max
+    max = property(__get_max)
+
     __term = None
+    def __get_term (self):
+        return self.__term
+    term = property(__get_term)
 
     def __init__ (self, term, min=0, max=1):
         """Term with a numerical constraint.
@@ -210,7 +221,11 @@ class All (Node):
 
 class Symbol (Node):
     """A term that is a symbol (leaf node)."""
+
     __symbol = None
+    def __get_symbol (self):
+        return self.__symbol
+    symbol = property(__get_symbol)
 
     _Precedence = 0
 
@@ -265,7 +280,15 @@ class TestFAC (unittest.TestCase):
     bTc = Sequence(b, c)
     a2ObTc = Choice(a2, bTc)
     aXb = All(a, b)
+    ex = NumericalConstraint(a2ObTc, 3, 5)
 
+    def testSymbol (self):
+        self.assertEqual('a', self.a.symbol)
+
+    def testNumericalConstraint (self):
+        self.assertEqual(self.a2ObTc, self.ex.term)
+        self.assertEqual(3, self.ex.min)
+        self.assertEqual(5, self.ex.max)
 
     def testBasicStr (self):
         self.assertEqual('a', str(self.a))
