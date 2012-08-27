@@ -180,8 +180,8 @@ class Sequence (Node):
         c = 0
         while c < len(self.__terms):
             t = self.__terms[c]
-            rv.update([ (c,) + fc for _fc in _t.first])
-            if not t.nullable():
+            rv.update([ (c,) + _fc for _fc in t.first])
+            if not t.nullable:
                 break
             c += 1
         return rv
@@ -331,6 +331,18 @@ class TestFAC (unittest.TestCase):
         self.assertFalse(x.nullable)
         x = NumericalConstraint(aOe, 1, 4)
         self.assertTrue(x.nullable)
+
+    def testFirst (self):
+        empty_set = frozenset()
+        null_path = frozenset([()])
+        p0 = frozenset([(0,)])
+        p1 = frozenset([(1,)])
+        p0or1 = frozenset(set(p0).union(p1))
+        self.assertEqual(empty_set, self.epsilon.first)
+        self.assertEqual(null_path, self.a.first)
+        self.assertEqual(p0or1, self.aOb.first)
+        self.assertEqual(p0, self.aTb.first)
+        print self.a2ObTc.first
 
 if __name__ == '__main__':
     unittest.main()
