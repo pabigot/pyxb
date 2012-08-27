@@ -94,7 +94,7 @@ class MultiTermNode (Node):
         if pre is not None:
             pre(self, path, arg)
         for c in xrange(len(self.__terms)):
-            self.__terms[c]._walkTermTree((c,)+path, pre, post, arg)
+            self.__terms[c]._walkTermTree(path + (c,), pre, post, arg)
         if post is not None:
             post(self, path, arg)
 
@@ -156,7 +156,7 @@ class NumericalConstraint (Node):
     def _walkTermTree (self, path, pre, post, arg):
         if pre is not None:
             pre(self, path, arg)
-        self.__term._walkTermTree((0,) + path, pre, post, arg)
+        self.__term._walkTermTree(path + (0,), pre, post, arg)
         if post is not None:
             post(self, path, arg)
 
@@ -463,16 +463,25 @@ class TestFAC (unittest.TestCase):
             rs.add(self.a2ObTc.followPath(p))
         self.assertEqual(frozenset([self.a, self.c]), rs)
 
+        #import sys
+        #pre_print = lambda _n,_p,_a: sys.stdout.write('Pre %s at %s\n' % (_n, _p))
+        #post_print = lambda _n,_p,_a: sys.stdout.write('Post %s at %s\n' % (_n, _p))
+        #self.ex.walkTermTree(pre_print, post_print, None)
+
+    def testWalkTermTree (self):
+        pre_pos = []
+        post_pos = []
+        set_sym_pos = lambda _n,_p,_a: isinstance(_n, Symbol) and _a.append(_p)
+        self.ex.walkTermTree(set_sym_pos, None, pre_pos)
+        self.ex.walkTermTree(None, set_sym_pos, post_pos)
+        self.assertEqual(pre_pos, post_pos)
+        self.assertEqual([(0,0,0),(0,1,0),(0,1,1)], pre_pos)
+
     def testFollow (self):
         m = self.a.follow
         self.assertEqual(1, len(m))
         self.assertEqual([((), frozenset())], m.items())
-
-    def testWalkTree (self):
-        sym_pos = []
-        set_sym_pos = lambda _n,_p,_a: isinstance(_n, Symbol) and _a.append(_p)
-        self.a2ObTc.walkTermTree(set_sym_pos, None, sym_pos)
-        self.assertEqual([(0,0),(0,1),(1,1)], sym_pos)
+        #print self.aOb.follow
 
 if __name__ == '__main__':
     unittest.main()
