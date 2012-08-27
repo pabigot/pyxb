@@ -22,8 +22,6 @@ the Python field in which the values are stored.  They also provide the
 low-level interface to set and get the corresponding values in a binding
 instance.
 
-
-
 L{Wildcard} holds content-related information used in the content model.
 """
 
@@ -52,7 +50,7 @@ class ContentState_mixin (pyxb.cscRoot):
         the proposed value completes the content model.
 
         @param instance: An instance of a subclass of
-        {basis.complexTypeDefinition}, into which the provided value will be
+        L{basis.complexTypeDefinition}, into which the provided value will be
         stored if it is consistent with the current model state.
 
         @param value: The value that is being validated against the state.
@@ -1037,7 +1035,7 @@ class ParticleState (pyxb.cscRoot):
         particle has a parent state, it is informed of the failure.
 
         @param instance: An instance of a subclass of
-        {basis.complexTypeDefinition}, into which the provided value will be
+        L{basis.complexTypeDefinition}, into which the provided value will be
         stored if it is consistent with the current model state.
 
         @param value: The value that is being validated against the state.

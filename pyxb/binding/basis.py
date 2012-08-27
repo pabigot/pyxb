@@ -254,7 +254,7 @@ class _TypeBinding_mixin (utility.Locatable_mixin):
         required type.  Note that constraining facets are applied here if
         necessary (e.g., although a Python C{int} with value C{500} is
         type-compatible with C{xs:byte}, it is outside the value space, and
-        compatibility will fail.
+        compatibility will fail).
 
         @keyword _convert_string_values: If C{True} (default) and the incoming value is
         a string, an attempt will be made to form a compatible value by using
