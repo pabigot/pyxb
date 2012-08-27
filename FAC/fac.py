@@ -61,6 +61,9 @@ class NondeterministicFACError (Exception):
 class RecognitionError (Exception):
     pass
 
+class InvalidFACError (Exception):
+    pass
+
 class Automaton (object):
     __termTree = None
     def __get_termTree (self):
@@ -286,6 +289,14 @@ class Node (object):
                               and _a.append(_p),
                           None, cpos)
         return frozenset(cpos)
+
+    def validateAutomaton (self):
+        node_map = {}
+        self.walkTermTree(lambda _n,_p,_a: _a.setdefault(_n,[]).append(_p), None, node_map)
+        for (node, paths) in node_map.iteritems():
+            if 1 < len(paths):
+                raise InvalidFACError('Node %s appears multiple times at %s' % (node, ' '.join(map(str,paths))))
+        return self
 
     def displayAutomaton (self):
         positions = sorted(self.posNodeMap.keys())
@@ -740,17 +751,27 @@ class TestFAC (unittest.TestCase):
         self.assertTrue(au.isFinal())
 
     def testKT2004 (self):
+        a = Symbol('a')
         x = NumericalConstraint(Sequence(Choice(Symbol('b'), Empty()), Symbol('c')), 1, 2)
+        invalid_x = Sequence(Choice(a, Empty()), x, Choice(a, Symbol('d')))
+        self.assertRaises(InvalidFACError, invalid_x.validateAutomaton)
         x = Sequence(Choice(Symbol('a'), Empty()), x, Choice(Symbol('a'), Symbol('d')))
         x = NumericalConstraint(x, 3, 4)
-        au = Automaton(x)
-        for word in ['cacaca',]:
+        au = Automaton(x.validateAutomaton())
+        for word in ['cacaca', 'abcaccdacd']:
             au.reset()
             print 'Initial %s maystart %s' % (au, ' or '.join(au.termTree.initialStateMap.keys()))
             for c in word:
                 au.step(c)
                 print 'eat %s now %s next %s' % (c, au, ' or '.join(au.candidateSymbols()))
             self.assertTrue(au.isFinal())
-        
+        for word in ['caca', 'abcaccdac']:
+            au.reset()
+            print 'Initial %s maystart %s' % (au, ' or '.join(au.termTree.initialStateMap.keys()))
+            for c in word:
+                au.step(c)
+                print 'eat %s now %s next %s' % (c, au, ' or '.join(au.candidateSymbols()))
+            self.assertFalse(au.isFinal())
+
 if __name__ == '__main__':
     unittest.main()
