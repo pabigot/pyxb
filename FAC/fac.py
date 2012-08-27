@@ -368,10 +368,7 @@ class NumericalConstraint (Node):
         @type term: L{Node}
 
         @keyword min: The minimum number of occurrences of C{term}.
-        The value must be positive.  To model a situation where the
-        minimum number of occurrences is zero, use L{Choice} with an
-        L{Empty} term and a L{NumericalConstraint} term with a minimum
-        occurrence of 1.
+        The value must be non-negative.
 
         @keyword max: The maximum number of occurrences of C{term}.
         The value must be positive (in which case it must also be no
@@ -379,8 +376,6 @@ class NumericalConstraint (Node):
         number of occurrences."""
         super(NumericalConstraint, self).__init__()
         self.__term = term
-        if 0 == min:
-            raise ValueError('numerical constraint min must be positive')
         self.__min = min
         self.__max = max
 
@@ -391,7 +386,7 @@ class NumericalConstraint (Node):
         return [ (0,) + _lc for _lc in self.__term.last ]
 
     def _nullable (self):
-        return self.__term.nullable
+        return (0 == self.__min) or self.__term.nullable
 
     def _follow (self):
         rv = {}
@@ -603,35 +598,9 @@ class Symbol (LeafNode):
     def __str__ (self):
         return str(self.__symbol)
 
-class Empty (LeafNode):
-    """A leaf term indicating absence of a symbol.
-
-    This is the only way to introduce nullable into the system."""
-
-    _Precedence = 0
-
-    def _first (self):
-        return []
-    def _last (self):
-        return []
-    def _nullable (self):
-        return True
-    def _follow (self):
-        return { (): frozenset() }
-
-    def _walkTermTree (self, position, pre, post, arg):
-        if pre is not None:
-            pre(self, position, arg)
-        if post is not None:
-            post(self, position, arg)
-
-    def __str__ (self):
-        return '_'
-
 import unittest
 class TestFAC (unittest.TestCase):
 
-    epsilon = Empty()
     a = Symbol('a')
     b = Symbol('b')
     c = Symbol('c')
@@ -647,7 +616,6 @@ class TestFAC (unittest.TestCase):
         self.assertEqual('a', self.a.symbol)
 
     def testNumericalConstraint (self):
-        self.assertRaises(ValueError, NumericalConstraint, self.a, 0, 1)
         self.assertEqual(self.a2ObTc, self.ex.term)
         self.assertEqual(3, self.ex.min)
         self.assertEqual(5, self.ex.max)
@@ -666,33 +634,20 @@ class TestFAC (unittest.TestCase):
         self.assertEqual('(a^(2,2)+b.c)^(3,5)', str(x))
 
     def testNullable (self):
-        self.assertTrue(self.epsilon.nullable)
+        x = NumericalConstraint(self.a, 0, 1)
+        self.assertTrue(x.nullable)
         self.assertFalse(self.a.nullable)
         self.assertFalse(self.aOb.nullable)
-        aOe = Choice(self.a, self.epsilon)
-        self.assertTrue(aOe.nullable)
-        eOa = Choice(self.epsilon, self.a)
-        self.assertTrue(eOa.nullable)
         self.assertFalse(self.aTb.nullable)
-        x = Sequence(aOe, self.b)
-        self.assertFalse(x.nullable)
-        x = Sequence(aOe, eOa)
-        self.assertTrue(x.nullable)
         self.assertFalse(self.aXb.nullable)
-        x = All(aOe, eOa)
-        self.assertTrue(x.nullable)
         x = NumericalConstraint(self.a, 1, 4)
         self.assertFalse(x.nullable)
-        x = NumericalConstraint(aOe, 1, 4)
-        self.assertTrue(x.nullable)
 
     def testFirst (self):
-        empty_set = frozenset()
         null_position = frozenset([()])
         p0 = frozenset([(0,)])
         p1 = frozenset([(1,)])
         p0or1 = frozenset(set(p0).union(p1))
-        self.assertEqual(empty_set, self.epsilon.first)
         self.assertEqual(null_position, self.a.first)
         for p in self.a.first:
             self.assertEqual(self.a, self.a.followPosition(p))
@@ -706,12 +661,10 @@ class TestFAC (unittest.TestCase):
         self.assertEqual(frozenset([self.a, self.b]), rs)
 
     def testLast (self):
-        empty_set = frozenset()
         null_position = frozenset([()])
         p0 = frozenset([(0,)])
         p1 = frozenset([(1,)])
         p0or1 = frozenset(set(p0).union(p1))
-        self.assertEqual(empty_set, self.epsilon.last)
         self.assertEqual(null_position, self.a.last)
         self.assertEqual(p0or1, self.aOb.last)
         self.assertEqual(p1, self.aTb.last)
@@ -750,12 +703,16 @@ class TestFAC (unittest.TestCase):
             print 'eat %s now %s next %s' % (c, au, ' or '.join(au.candidateSymbols()))
         self.assertTrue(au.isFinal())
 
+    def testValidateAutomaton (self):
+        a = Symbol('a')
+        x = Sequence(a, a)
+        self.assertRaises(InvalidFACError, x.validateAutomaton)
+    '''
     def testKT2004 (self):
         a = Symbol('a')
-        x = NumericalConstraint(Sequence(Choice(Symbol('b'), Empty()), Symbol('c')), 1, 2)
-        invalid_x = Sequence(Choice(a, Empty()), x, Choice(a, Symbol('d')))
-        self.assertRaises(InvalidFACError, invalid_x.validateAutomaton)
-        x = Sequence(Choice(Symbol('a'), Empty()), x, Choice(Symbol('a'), Symbol('d')))
+        x = NumericalConstraint(Symbol('b'), 0, 1)
+        x = NumericalConstraint(Sequence(x, Symbol('c')), 1, 2)
+        x = Sequence(NumericalConstraint(Symbol('a'), 0, 1), x, Choice(Symbol('a'), Symbol('d')))
         x = NumericalConstraint(x, 3, 4)
         au = Automaton(x.validateAutomaton())
         for word in ['cacaca', 'abcaccdacd']:
@@ -772,6 +729,7 @@ class TestFAC (unittest.TestCase):
                 au.step(c)
                 print 'eat %s now %s next %s' % (c, au, ' or '.join(au.candidateSymbols()))
             self.assertFalse(au.isFinal())
+    '''
 
 if __name__ == '__main__':
     unittest.main()
