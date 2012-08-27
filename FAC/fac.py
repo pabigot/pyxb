@@ -74,6 +74,19 @@ class Node (object):
     def followPosition (self, position):
         raise NotImplementedError('%s.followPosition' % (self.__class__.__name__,))
 
+    def counterPositions (self):
+        """All numerical constraint positions that aren't r+.
+        
+        I.e., implement Definition 13.1."""
+        cpos = []
+        self.walkTermTree(lambda _n,_p,_a: \
+                              isinstance(_n, NumericalConstraint) \
+                              and 1 != _n.min \
+                              and _n.max is not None \
+                              and _a.append(_p),
+                          None, cpos)
+        return cpos
+
 class MultiTermNode (Node):
     """Intermediary for nodes that have multiple child nodes."""
     
@@ -476,6 +489,9 @@ class TestFAC (unittest.TestCase):
         self.ex.walkTermTree(None, set_sym_pos, post_pos)
         self.assertEqual(pre_pos, post_pos)
         self.assertEqual([(0,0,0),(0,1,0),(0,1,1)], pre_pos)
+
+    def testCounterPositions (self):
+        self.assertEqual([(), (0,0)], self.ex.counterPositions())
 
     def testFollow (self):
         m = self.a.follow
