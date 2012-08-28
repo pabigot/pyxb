@@ -3015,7 +3015,8 @@ class Particle (_SchemaComponent_mixin, pyxb.namespace.resolution._Resolvable_mi
     def effectiveTotalRange (self):
         """Extend the concept of effective total range to all particles.
 
-        See U{http://www.w3.org/TR/xmlschema-1/#cos-seq-range}
+        See U{http://www.w3.org/TR/xmlschema-1/#cos-seq-range} and
+        U{http://www.w3.org/TR/xmlschema-1/#cos-choice-range}
         """
         if isinstance(self.__term, ModelGroup):
             return self.__term.effectiveTotalRange(self)
