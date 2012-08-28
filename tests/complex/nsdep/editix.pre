@@ -1,18 +1,30 @@
 <?xml version="1.0"?>
-<MyProject path="nsdep.pre">
- <item path="/home/pab/pyxb/dev/tests/complex/nsdep/a_b.xsd" type="XSD" encoding="AUTOMATIC" open="true" test="true">
+<MyProject path="editix.pre">
+ <item path="/opt/pyxb/tests/complex/nsdep/a_b.xsd" type="XSD" encoding="AUTOMATIC" open="true" test="true">
   <property name="encoding" value="AUTOMATIC"/>
  </item>
- <item path="/home/pab/pyxb/dev/tests/complex/nsdep/a_c.xsd" type="XSD" encoding="AUTOMATIC" open="true" test="true">
+ <item path="/opt/pyxb/tests/complex/nsdep/a_c.xsd" type="XSD" encoding="AUTOMATIC" open="false" test="true">
   <property name="encoding" value="AUTOMATIC"/>
  </item>
- <item path="/home/pab/pyxb/dev/tests/complex/nsdep/b_c.xsd" type="XSD" encoding="AUTOMATIC" open="true" test="true">
+ <item path="/opt/pyxb/tests/complex/nsdep/b_c.xsd" type="XSD" encoding="AUTOMATIC" open="true" test="true">
   <property name="encoding" value="AUTOMATIC"/>
  </item>
- <item path="/home/pab/pyxb/dev/tests/complex/nsdep/shared.xsd" type="XSD" encoding="AUTOMATIC" open="true" test="true">
+ <item path="/opt/pyxb/tests/complex/nsdep/shared.xsd" type="XSD" encoding="AUTOMATIC" open="true" test="true">
   <property name="encoding" value="AUTOMATIC"/>
  </item>
- <item path="/home/pab/pyxb/dev/tests/complex/nsdep/b_b.xsd" type="XSD" encoding="AUTOMATIC" open="true" test="true">
+ <item path="/opt/pyxb/tests/complex/nsdep/b_b.xsd" type="XSD" encoding="AUTOMATIC" open="true" test="true">
+  <property name="encoding" value="AUTOMATIC"/>
+ </item>
+ <item path="/opt/pyxb/tests/complex/nsdep/a_x.xsd" type="XSD" encoding="AUTOMATIC" test="true" open="true">
+  <property name="encoding" value="AUTOMATIC"/>
+ </item>
+ <item path="/opt/pyxb/tests/complex/nsdep/c_b.xsd" type="XSD" encoding="AUTOMATIC" test="true" open="true">
+  <property name="encoding" value="AUTOMATIC"/>
+ </item>
+ <item path="/opt/pyxb/tests/complex/nsdep/c_c.xsd" type="XSD" encoding="AUTOMATIC" open="true">
+  <property name="encoding" value="AUTOMATIC"/>
+ </item>
+ <item path="/opt/pyxb/tests/complex/nsdep/d_c.xsd" type="XSD" encoding="AUTOMATIC" test="true" open="true">
   <property name="encoding" value="AUTOMATIC"/>
  </item>
 

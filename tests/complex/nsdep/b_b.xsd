@@ -8,4 +8,5 @@
 		</xs:restriction>
 	</xs:simpleType>
 	<xs:element name="B_b_e1" type="tns:strB"/>
+	<xs:element name="s" type="xs:string"/>
 </xs:schema>
