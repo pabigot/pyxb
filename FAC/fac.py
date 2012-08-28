@@ -237,7 +237,7 @@ class Node (object):
     def __buildAutomaton (self):
         self.__states = frozenset([ self.posNodeMap[_p] for _p in self.follow.iterkeys() ])
         # All states should be Symbol instances
-        assert reduce(operator.and_, map(lambda _s: isinstance(_s, LeafNode), self.__states), True)
+        assert reduce(operator.and_, map(lambda _s: isinstance(_s, Symbol), self.__states), True)
         self.__counters = frozenset([ self.posNodeMap[_p] for _p in self.counterPositions ])
         # All counters should be NumericalConstraint instances
         assert reduce(operator.and_, map(lambda _s: isinstance(_s, NumericalConstraint), self.__counters), True)
@@ -581,10 +581,7 @@ class All (MultiTermNode):
     def __str__ (self):
         return u'&(' + ','.join([str(_t) for _t in self.terms]) + ')'
 
-class LeafNode (Node):
-    pass
-
-class Symbol (LeafNode):
+class Symbol (Node):
     """A leaf term that is a symbol."""
 
     __symbol = None
