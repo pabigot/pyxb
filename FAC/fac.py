@@ -413,7 +413,6 @@ class NumericalConstraint (Node):
         rv = {}
         pp = (0,)
         last_r1 = set(self.__term.last)
-        counter_pos = self.__term.counterPositions
         for (q, transition_set) in self.__term.follow.iteritems():
             rv[pp+q] = posConcatTransitionSet(pp, transition_set)
             if q in last_r1:
@@ -421,9 +420,8 @@ class NumericalConstraint (Node):
                 for sq1 in self.__term.first:
                     q1 = pp+sq1
                     psi = {}
-                    for p1 in counter_pos:
-                        if p1 == q[:len(p1)]:
-                            psi[pp+p1] = RESET
+                    for p1 in self.__term.subPositions(q):
+                        psi[pp+p1] = RESET
                     if (1 != self.min) or (self.max is not None):
                         psi[()] = INCREMENT
                     rv[pp+q].append((q1, psi))
@@ -542,15 +540,14 @@ class Sequence (MultiTermNode):
             for (q, transition_set) in self.terms[c].follow.iteritems():
                 rv[pp + q] = posConcatTransitionSet(pp, transition_set)
         for c in xrange(len(self.terms)-1):
+            t = self.terms[c]
             pp = (c,)
-            counter_pos = self.terms[c].counterPositions
-            for q in self.terms[c].last:
+            for q in t.last:
                 for sq1 in self.terms[c+1].first:
                     q1 = (c+1,) + sq1
                     psi = {}
-                    for p1 in counter_pos:
-                        if p1 == q[:len(p1)]:
-                            psi[pp + p1] = RESET
+                    for p1 in t.subPositions(q):
+                        psi[pp + p1] = RESET
                     rv[pp+q].append((q1, psi))
         return rv
             
