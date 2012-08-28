@@ -2242,7 +2242,7 @@ class Generator (object):
                     component_graph.addEdge(c, cd)
         return component_graph
 
-    def __buildBindingModules (self):
+    def __resolveComponentDependencies (self):
         bindable_fn = lambda _c: isinstance(_c, xs.structures.ElementDeclaration) or _c.isTypeDefinition()
 
         self.__moduleRecords = set()
@@ -2272,43 +2272,9 @@ class Generator (object):
         component_graph = self.__graphFromComponents(all_components, True)
 
         binding_components = set(filter(bindable_fn, component_graph.nodes()))
-
-        module_graph = pyxb.utils.utility.Graph()
-        [ module_graph.addRoot(_mr) for _mr in self.__moduleRecords ]
-        for (s, t) in component_graph.edges():
-            module_graph.addEdge(s._objectOrigin().moduleRecord(), t._objectOrigin().moduleRecord())
-        module_scc_order = module_graph.sccOrder()
-
-        # Note that module graph may have fewer nodes than
-        # self.__moduleRecords, if a module has no components that
-        # require binding generation.
-
         for c in binding_components:
             assert bindable_fn(c), 'Unexpected %s in binding components' % (type(s),)
             c._setBindingNamespace(c._objectOrigin().moduleRecord().namespace())
-
-        record_binding_map = {}
-        modules = []
-        for mr_scc in module_scc_order:
-            scc_modules = [ ]
-            for mr in mr_scc:
-                mr._setIsPublic(self.__namespaceVisibilityMap.get(mr.namespace(), self.defaultNamespacePublic()))
-                self.__assignModulePath(mr)
-                assert not ((mr.modulePath() is None) and self.generateToFiles()), 'No module path defined for %s' % (mr,)
-                if (not mr.isPublic()) and (mr.modulePath() is not None):
-                    elts = mr.modulePath().split('.')
-                    elts[-1] = '_%s' % (elts[-1],)
-                    mr.setModulePath('.'.join(elts))
-                nsm = NamespaceModule(self, mr, mr_scc)
-                record_binding_map[mr] = nsm
-                scc_modules.append(nsm)
-
-            modules.extend(scc_modules)
-            if 1 < len(mr_scc):
-                ngm = NamespaceGroupModule(self, scc_modules)
-                modules.append(ngm)
-                for nsm in scc_modules:
-                    nsm.setNamespaceGroupModule(ngm)
 
         component_csets = self.__graphFromComponents(binding_components, False).sccOrder()
         component_order = []
@@ -2333,9 +2299,49 @@ class Generator (object):
             else:
                 component_order.extend(cset)
     
+        self.__componentGraph = component_graph
+        self.__componentOrder = component_order
+
+    def __generateBindings (self):
+
+        # Note that module graph may have fewer nodes than
+        # self.__moduleRecords, if a module has no components that
+        # require binding generation.
+
+        module_graph = pyxb.utils.utility.Graph()
+        [ module_graph.addRoot(_mr) for _mr in self.__moduleRecords ]
+        for (s, t) in self.__componentGraph.edges():
+            module_graph.addEdge(s._objectOrigin().moduleRecord(), t._objectOrigin().moduleRecord())
+        module_scc_order = module_graph.sccOrder()
+
+        record_binding_map = {}
+        modules = []
+        for mr_scc in module_scc_order:
+            scc_modules = [ ]
+            for mr in mr_scc:
+                mr._setIsPublic(self.__namespaceVisibilityMap.get(mr.namespace(), self.defaultNamespacePublic()))
+                self.__assignModulePath(mr)
+                assert not ((mr.modulePath() is None) and self.generateToFiles()), 'No module path defined for %s' % (mr,)
+                if (not mr.isPublic()) and (mr.modulePath() is not None):
+                    elts = mr.modulePath().split('.')
+                    elts[-1] = '_%s' % (elts[-1],)
+                    mr.setModulePath('.'.join(elts))
+                nsm = NamespaceModule(self, mr, mr_scc)
+                record_binding_map[mr] = nsm
+                scc_modules.append(nsm)
+
+            modules.extend(scc_modules)
+            if 1 < len(mr_scc):
+                ngm = NamespaceGroupModule(self, scc_modules)
+                modules.append(ngm)
+                for nsm in scc_modules:
+                    nsm.setNamespaceGroupModule(ngm)
+
+        self.__bindingModules = modules
+
         element_declarations = []
         type_definitions = []
-        for c in component_order:
+        for c in self.__componentOrder:
             if isinstance(c, xs.structures.ElementDeclaration) and c._scopeIsGlobal():
                 # Only bind elements this pass, so their names get priority in deconfliction
                 nsm = record_binding_map[c._objectOrigin().moduleRecord()]
@@ -2363,7 +2369,7 @@ class Generator (object):
             else:
                 assert False, 'Unexpected component type %s' % (type(td),)
 
-        for ngm in modules:
+        for ngm in self.__bindingModules:
             if isinstance(ngm, NamespaceGroupModule):
                 for m in ngm.namespaceModules():
                     m.addImportsFrom(ngm)
@@ -2375,14 +2381,13 @@ class Generator (object):
         for ed in element_declarations:
             GenerateED(ed, self)
     
-        return modules
-    
     __bindingModules = None
     def bindingModules (self, reset=False):
         if reset or (not self.__didResolveExternalSchema):
             self.resolveExternalSchema(reset)
         if reset or (self.__bindingModules is None):
-            self.__bindingModules = self.__buildBindingModules()
+            self.__resolveComponentDependencies()
+            self.__generateBindings()
         return self.__bindingModules
     
     def writeNamespaceArchive (self):
