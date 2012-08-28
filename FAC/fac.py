@@ -748,5 +748,18 @@ class TestFAC (unittest.TestCase):
                 print 'eat %s now %s next %s' % (c, au, ' or '.join(au.candidateSymbols()))
             self.assertFalse(au.isFinal())
 
+    def testCJ2010 (self):
+        x = NumericalConstraint(Symbol('b'), 1, 2)
+        x = NumericalConstraint(Choice(x, Symbol('c')), 2, 2)
+        x = Sequence(Symbol('a'), x, Symbol('d'))
+        x.displayAutomaton()
+        au = Automaton(x.validateAutomaton())
+        print 'Initial %s maystart %s' % (au, ' or '.join(au.termTree.initialStateMap.keys()))
+        for c in 'abbd':
+            au.step(c)
+            print 'eat %s now %s next %s' % (c, au, ' or '.join(au.candidateSymbols()))
+        self.assertTrue(au.isFinal())
+            
+
 if __name__ == '__main__':
     unittest.main()
