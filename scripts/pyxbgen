@@ -25,8 +25,7 @@ def WSDLToSchema (generator, wsdl_uri):
     wsdl_uri = pyxb.utils.utility.NormalizeLocation(wsdl_uri)
     print 'Retrieving WSDL from %s' % (wsdl_uri,)
     xmlns = pyxb.utils.utility.TextFromURI(wsdl_uri)
-    # wsdl_location=wsdl_uri
-    spec = wsdl.definitions.createFromDOM(pyxb.utils.domutils.StringToDOM(xmlns), process_schema=True, generation_uid=generator.generationUID())
+    spec = wsdl.definitions.createFromDOM(pyxb.utils.domutils.StringToDOM(xmlns, location_base=wsdl_uri), process_schema=True, generation_uid=generator.generationUID())
     return spec.schema()
 
 def _WSDLOptionCallback (option, opt_str, value, parser, *args, **kwargs):
