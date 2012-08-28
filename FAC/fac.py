@@ -105,13 +105,17 @@ class Automaton (object):
 
     def isFinal (self):
         tt = self.__termTree
-        relevant_counters = tt.finalCounters.get(self.__state)
-        if relevant_counters is None:
+        if self.__state is None:
+            return tt.nullable
+        pos = tt.nodePosMap[self.__state]
+        if not (pos in tt.last):
             return False
-        psi = {}
-        for c in relevant_counters:
-            psi[c] = RESET
-        return self.__satisfiable(psi)
+        for cp in tt.subPositions(pos):
+            c = tt.posNodeMap[cp]
+            cv = self.__counterValues[c]
+            if (cv < c.min) or (cv > c.max):
+                return False
+        return True
 
     def step (self, sym):
         tt = self.__termTree
@@ -234,7 +238,7 @@ class Node (object):
         self.__states = frozenset([ self.posNodeMap[_p] for _p in self.follow.iterkeys() ])
         # All states should be Symbol instances
         assert reduce(operator.and_, map(lambda _s: isinstance(_s, LeafNode), self.__states), True)
-        self.__counters = frozenset([ self.posNodeMap[_p] for _p in self.counterPositions() ])
+        self.__counters = frozenset([ self.posNodeMap[_p] for _p in self.counterPositions ])
         # All counters should be NumericalConstraint instances
         assert reduce(operator.and_, map(lambda _s: isinstance(_s, NumericalConstraint), self.__counters), True)
         self.__phi = {}
@@ -252,15 +256,6 @@ class Node (object):
             n = self.posNodeMap[p]
             if isinstance(n, Symbol):
                 self.__initialStateMap.setdefault(n.symbol,set()).add(n)
-        self.__finalCounters = {}
-        counter_positions = self.counterPositions()
-        for p in self.last:
-            n = self.posNodeMap[p]
-            rv = set()
-            for cp in counter_positions:
-                if cp == p[:len(cp)]:
-                    rv.add(self.posNodeMap[cp])
-            self.__finalCounters[n] = frozenset(rv)
 
     __states = None
     def __get_states (self):
@@ -283,13 +278,6 @@ class Node (object):
         return self.__counters
     counters = property(__get_counters)
 
-    __finalCounters = None
-    def __get_finalCounters (self):
-        if self.__finalCounters is None:
-            self.__buildAutomaton()
-        return self.__finalCounters
-    finalCounters = property(__get_finalCounters)
-
     __phi = None
     def __get_phi (self):
         if self.__phi is None:
@@ -297,18 +285,29 @@ class Node (object):
         return self.__phi
     phi = property(__get_phi)
 
-    def counterPositions (self):
+    __counterPositions = None
+    def __get_counterPositions (self):
         """All numerical constraint positions that aren't r+.
         
         I.e., implement Definition 13.1."""
-        cpos = []
-        self.walkTermTree(lambda _n,_p,_a: \
-                              isinstance(_n, NumericalConstraint) \
-                              and ((1 != _n.min) \
-                                   or (_n.max is not None)) \
-                              and _a.append(_p),
-                          None, cpos)
-        return frozenset(cpos)
+        if self.__counterPositions is None:
+            cpos = []
+            self.walkTermTree(lambda _n,_p,_a: \
+                                  isinstance(_n, NumericalConstraint) \
+                                  and ((1 != _n.min) \
+                                       or (_n.max is not None)) \
+                                  and _a.append(_p),
+                              None, cpos)
+            self.__counterPositions = frozenset(cpos)
+        return self.__counterPositions
+    counterPositions = property(__get_counterPositions)
+
+    def subPositions (self, pos):
+        rv = set()
+        for cpos in self.counterPositions:
+            if cpos == pos[:len(cpos)]:
+                rv.add(cpos)
+        return frozenset(rv)
 
     def validateAutomaton (self):
         node_map = {}
@@ -333,8 +332,8 @@ class Node (object):
                     for (c, uv) in psi.iteritems():
                         av.append('%s %s' % (self.nodePosMap[c], (uv == INCREMENT) and 'inc' or 'res'))
                     print '\t%s via %s: %s' % (self.nodePosMap[dst], sym, ' , '.join(av))
-        for (n, cs) in self.finalCounters.iteritems():
-            print 'Final %s: %s' % (self.nodePosMap[n], ' '.join([str(self.nodePosMap[_cn]) for _cn in cs]))
+        for p in self.last:
+            print 'Final %s: %s' % (str(p), ' '.join([ str(_p) for _p in self.subPositions(p)]))
 
 class MultiTermNode (Node):
     """Intermediary for nodes that have multiple child nodes."""
@@ -414,7 +413,7 @@ class NumericalConstraint (Node):
         rv = {}
         pp = (0,)
         last_r1 = set(self.__term.last)
-        counter_pos = self.__term.counterPositions()
+        counter_pos = self.__term.counterPositions
         for (q, transition_set) in self.__term.follow.iteritems():
             rv[pp+q] = posConcatTransitionSet(pp, transition_set)
             if q in last_r1:
@@ -544,7 +543,7 @@ class Sequence (MultiTermNode):
                 rv[pp + q] = posConcatTransitionSet(pp, transition_set)
         for c in xrange(len(self.terms)-1):
             pp = (c,)
-            counter_pos = self.terms[c].counterPositions()
+            counter_pos = self.terms[c].counterPositions
             for q in self.terms[c].last:
                 for sq1 in self.terms[c+1].first:
                     q1 = (c+1,) + sq1
@@ -705,7 +704,7 @@ class TestFAC (unittest.TestCase):
         self.assertEqual([(0,0,0),(0,1,0),(0,1,1)], pre_pos)
 
     def testCounterPositions (self):
-        self.assertEqual(frozenset([(), (0,0)]), self.ex.counterPositions())
+        self.assertEqual(frozenset([(), (0,0)]), self.ex.counterPositions)
 
     def testFollow (self):
         m = self.a.follow
