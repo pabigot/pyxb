@@ -2784,7 +2784,7 @@ class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
         """Return the minimum and maximum of the number of elements that can
         appear in a sequence matched by this particle.
 
-        See http://www.w3.org/TR/xmlschema-1/#cos-seq-range
+        See U{http://www.w3.org/TR/xmlschema-1/#cos-seq-range}
         """
         if self.__compositor in (self.C_ALL, self.C_SEQUENCE):
             sum_minoccurs = 0
@@ -3015,7 +3015,7 @@ class Particle (_SchemaComponent_mixin, pyxb.namespace.resolution._Resolvable_mi
     def effectiveTotalRange (self):
         """Extend the concept of effective total range to all particles.
 
-        See http://www.w3.org/TR/xmlschema-1/#cos-seq-range
+        See U{http://www.w3.org/TR/xmlschema-1/#cos-seq-range}
         """
         if isinstance(self.__term, ModelGroup):
             return self.__term.effectiveTotalRange(self)
@@ -3025,7 +3025,7 @@ class Particle (_SchemaComponent_mixin, pyxb.namespace.resolution._Resolvable_mi
         """Return C{True} iff this particle can legitimately match an empty
         sequence (no content).
 
-        See http://www.w3.org/TR/xmlschema-1/#cos-group-emptiable.
+        See U{http://www.w3.org/TR/xmlschema-1/#cos-group-emptiable}
         """
         return 0 == self.effectiveTotalRange()[0]
 
