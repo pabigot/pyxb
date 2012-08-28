@@ -505,6 +505,7 @@ class %{std} (pyxb.binding.basis.STD_union):
 def elementDeclarationMap (ed, binding_module, **kw):
     template_map = { }
     template_map['qname'] = unicode(ed.expandedName())
+    template_map['decl_location'] = repr(ed._location())
     template_map['namespaceReference'] = binding_module.literal(ed.bindingNamespace(), **kw)
     if (ed.SCOPE_global == ed.scope()):
         binding_name = template_map['class'] = binding_module.literal(ed, **kw)
@@ -616,6 +617,7 @@ class %{ctd} (%{superclass}):
         for (ed, is_plural) in plurality_data.items():
             # @todo Detect and account for plurality change between this and base
             ef_map = ed._templateMap()
+            ef_map['use_location'] = repr(content_basis._location())
             if ed.scope() == ctd:
                 ef_map.update(elementDeclarationMap(ed, binding_module, **kw))
                 aux_init = []
@@ -640,6 +642,8 @@ class %{ctd} (%{superclass}):
             definitions.append(templates.replaceInText('''
     # Element %{qname} uses Python identifier %{id}
     %{use} = pyxb.binding.content.ElementUse(%{name_expr}, '%{id}', '%{key}', %{is_plural}%{aux_init})
+    %{use}._DeclarationLocation = %{decl_location}
+    %{use}._UseLocation = %{use_location}
 ''', name_expr=binding_module.literal(ed.expandedName(), **kw), **ef_map))
 
             definitions.append(templates.replaceInText('''
@@ -685,7 +689,9 @@ class %{ctd} (%{superclass}):
 
         assert ad.typeDefinition() is not None
         au_map['attr_type'] = binding_module.literal(ad.typeDefinition(), **kw)
-                            
+        au_map['decl_location'] = repr(ad._location())
+        au_map['use_location'] = repr(au._location())
+
         vc_source = ad
         if au.valueConstraint() is not None:
             vc_source = au
@@ -714,7 +720,9 @@ class %{ctd} (%{superclass}):
             _log.warning('Attribute %s.%s renamed to %s', ctd.expandedName(), ad.expandedName(), au_map['id'])
         definitions.append(templates.replaceInText('''
     # Attribute %{qname} uses Python identifier %{id}
-    %{use} = pyxb.binding.content.AttributeUse(%{name_expr}, '%{id}', '%{key}', %{attr_type}%{aux_init})''', name_expr=binding_module.literal(ad.expandedName(), **kw), **au_map))
+    %{use} = pyxb.binding.content.AttributeUse(%{name_expr}, '%{id}', '%{key}', %{attr_type}%{aux_init})
+    %{use}._DeclarationLocation = %{decl_location}
+    %{use}._UseLocation = %{use_location}''', name_expr=binding_module.literal(ad.expandedName(), **kw), **au_map))
         if au.prohibited():
             definitions.append(templates.replaceInText('''
     %{inspector} = property()
