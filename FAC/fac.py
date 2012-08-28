@@ -21,7 +21,7 @@ INCREMENT.  It identifies actions to be taken on the counter states
 corresponding to the positions in its domain.
 
 A transition is a pair containing a pos and an update instruction.
-It indicates a potential next node in the state, and the updates that
+It identifies a potential next node in the state and  updates that
 are to be performed if the transition is taken.
 
 A follow value is a map from a pos to a set of transitions that may
@@ -235,6 +235,11 @@ class Node (object):
         return self.posNodeMap[position]
 
     def __buildAutomaton (self):
+        node_map = {}
+        self.walkTermTree(lambda _n,_p,_a: _a.setdefault(_n,[]).append(_p), None, node_map)
+        for (node, paths) in node_map.iteritems():
+            if 1 < len(paths):
+                raise InvalidFACError('Node %s appears multiple times at %s' % (node, ' '.join(map(str,paths))))
         self.__states = frozenset([ self.posNodeMap[_p] for _p in self.follow.iterkeys() ])
         # All states should be Symbol instances
         assert reduce(operator.and_, map(lambda _s: isinstance(_s, Symbol), self.__states), True)
@@ -308,14 +313,6 @@ class Node (object):
             if cpos == pos[:len(cpos)]:
                 rv.add(cpos)
         return frozenset(rv)
-
-    def validateAutomaton (self):
-        node_map = {}
-        self.walkTermTree(lambda _n,_p,_a: _a.setdefault(_n,[]).append(_p), None, node_map)
-        for (node, paths) in node_map.iteritems():
-            if 1 < len(paths):
-                raise InvalidFACError('Node %s appears multiple times at %s' % (node, ' '.join(map(str,paths))))
-        return self
 
     def displayAutomaton (self):
         positions = sorted(self.posNodeMap.keys())
@@ -716,7 +713,7 @@ class TestFAC (unittest.TestCase):
     def testValidateAutomaton (self):
         a = Symbol('a')
         x = Sequence(a, a)
-        self.assertRaises(InvalidFACError, x.validateAutomaton)
+        self.assertRaises(InvalidFACError, lambda _s: _s.states, x)
 
     def testKT2004 (self):
         a = Symbol('a')
@@ -724,7 +721,7 @@ class TestFAC (unittest.TestCase):
         x = NumericalConstraint(Sequence(x, Symbol('c')), 1, 2)
         x = Sequence(NumericalConstraint(Symbol('a'), 0, 1), x, Choice(Symbol('a'), Symbol('d')))
         x = NumericalConstraint(x, 3, 4)
-        au = Automaton(x.validateAutomaton())
+        au = Automaton(x)
         print 'Counters: %s' % (' '.join([ str(x.nodePosMap[_v]) for _v in x.counters]))
         for word in ['cacaca', 'abcaccdacd']:
             au.reset()
@@ -733,7 +730,7 @@ class TestFAC (unittest.TestCase):
                 au.step(c)
                 print 'eat %s now %s next %s' % (c, au, ' or '.join(au.candidateSymbols()))
             self.assertTrue(au.isFinal())
-        for word in ['caca', 'abcaccdac']:
+        for word in ['caca', 'abcaccdac', 'ad']:
             au.reset()
             print 'Initial %s maystart %s' % (au, ' or '.join(au.termTree.initialStateMap.keys()))
             for c in word:
@@ -745,8 +742,7 @@ class TestFAC (unittest.TestCase):
         x = NumericalConstraint(Symbol('b'), 1, 2)
         x = NumericalConstraint(Choice(x, Symbol('c')), 2, 2)
         x = Sequence(Symbol('a'), x, Symbol('d'))
-        x.displayAutomaton()
-        au = Automaton(x.validateAutomaton())
+        au = Automaton(x)
         print 'Initial %s maystart %s' % (au, ' or '.join(au.termTree.initialStateMap.keys()))
         for c in 'abbd':
             au.step(c)
