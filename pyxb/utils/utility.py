@@ -1086,33 +1086,14 @@ def GetMatchingFiles (path, pattern=None, default_path_wildcard=None, default_pa
                     break
     return matching_files
     
-class _LocationBase (object):
-    """Wrap a location.
-
-    This is probably a string, but might be a uri object or the like.
-    Really we only have this as a separate object so as to avoid
-    creating hundreds of copies of the same string."""
-
-    __locationBase = None
-    def locationBase (self):
-        return self.__locationBase
-
-    def __init__ (self, location_base):
-        if isinstance(location_base, _LocationBase):
-            location_base = location_base.locationBase()
-        self.__locationBase = location_base
-
-    def __str__ (self):
-        return str(self.__locationBase)
-
 class Location (object):
     __locationBase = None
     __lineNumber = None
     __columnNumber = None
 
     def __init__ (self, location_base=None, line_number=None, column_number=None):
-        if not isinstance(location_base, _LocationBase):
-            location_base = _LocationBase(location_base)
+        if isinstance(location_base, str):
+            location_base = intern(location_base)
         self.__locationBase = location_base
         self.__lineNumber = line_number
         self.__columnNumber = column_number
@@ -1134,6 +1115,11 @@ class Location (object):
         if self.locationBase is None:
             return '<unknownLocation>'
         return '%s[%s:%s]' % (self.locationBase, self.lineNumber, self.columnNumber)
+
+    def __repr__ (self):
+        t = type(self)
+        ctor = '%s.%s' % (t.__module__, t.__name__)
+        return '%s(%r, %r, %r)' % (ctor, self.__locationBase, self.__lineNumber, self.__columnNumber)
 
 class Locatable_mixin (pyxb.cscRoot):
     __location = None

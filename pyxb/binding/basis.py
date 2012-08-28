@@ -44,6 +44,9 @@ class _TypeBinding_mixin (utility.Locatable_mixin):
     _ExpandedName = None
     """The expanded name of the component."""
 
+    _DefinitionLocation = None
+    """Where the definition can be found in the originating schema."""
+
     _ReservedSymbols = set([ 'validateBinding', 'toDOM', 'toxml', 'Factory', 'property' ])
 
     if pyxb._CorruptionDetectionEnabled:

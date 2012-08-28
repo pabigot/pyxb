@@ -432,10 +432,7 @@ def GenerateSTD (std, generator):
     else:
         template_map['qname'] = '[anonymous]'
     template_map['namespaceReference'] = binding_module.literal(std.bindingNamespace(), **kw)
-    if std._location() is not None:
-        template_map['defn_loc'] = ' at %s' % (std._location(),)
-    else:
-        template_map['defn_loc'] = ''
+    template_map['defn_location'] = repr(std._location())
     if std.annotation() is not None:
         template_map['documentation'] = std.annotation().asDocString()
         template_map['documentation_expr'] = binding_module.literal(std.annotation().text())
@@ -449,25 +446,26 @@ def GenerateSTD (std, generator):
     """%{documentation}"""
 
     _ExpandedName = %{expanded_name}
+    _DefinitionLocation = %{defn_location}
     _Documentation = %{documentation_expr}
 '''
     if xs.structures.SimpleTypeDefinition.VARIETY_absent == std.variety():
         template = '''
-# The ur simple type: %{qname}%{defn_loc}
+# The ur simple type: %{qname}
 class %{std} (%{superclasses}):
 ''' + common_template
         if not template_map['documentation']:
             template_map['documentation'] = 'The ur simple type.'
     elif xs.structures.SimpleTypeDefinition.VARIETY_atomic == std.variety():
         template = '''
-# Atomic simple type: %{qname}%{defn_loc}
+# Atomic simple type: %{qname}
 class %{std} (%{superclasses}):
 ''' + common_template
         if not template_map['documentation']:
             template_map['documentation'] = 'An atomic simple type.'
     elif xs.structures.SimpleTypeDefinition.VARIETY_list == std.variety():
         template = '''
-# List simple type: %{qname}%{defn_loc}
+# List simple type: %{qname}
 # superclasses %{superclasses}
 class %{std} (pyxb.binding.basis.STD_list):
 ''' + common_template + '''
@@ -478,7 +476,7 @@ class %{std} (pyxb.binding.basis.STD_list):
             template_map['documentation'] = templates.replaceInText('Simple type that is a list of %{itemtype}.', **template_map)
     elif xs.structures.SimpleTypeDefinition.VARIETY_union == std.variety():
         template = '''
-# Union simple type: %{qname}%{defn_loc}
+# Union simple type: %{qname}
 # superclasses %{superclasses}
 class %{std} (pyxb.binding.basis.STD_union):
 ''' + common_template + '''
@@ -557,10 +555,7 @@ def GenerateCTD (ctd, generator, **kw):
         template_map['qname'] = unicode(ctd.expandedName())
     else:
         template_map['qname'] = '[anonymous]'
-    if ctd._location() is not None:
-        template_map['defn_loc'] = ' at %s' % (ctd._location(),)
-    else:
-        template_map['defn_loc'] = ''
+    template_map['defn_location'] = repr(ctd._location())
     template_map['simple_base_type'] = binding_module.literal(None, **kw)
     template_map['contentTypeTag'] = content_type_tag
     template_map['is_abstract'] = repr(not not ctd.abstract())
@@ -575,12 +570,13 @@ def GenerateCTD (ctd, generator, **kw):
         content_basis = ctd.contentType()[1]
 
     prolog_template = '''
-# Complex type %{qname}%{defn_loc} with content type %{contentTypeTag}
+# Complex type %{qname} with content type %{contentTypeTag}
 class %{ctd} (%{superclass}):
     _TypeDefinition = %{simple_base_type}
     _ContentTypeTag = pyxb.binding.basis.complexTypeDefinition._CT_%{contentTypeTag}
     _Abstract = %{is_abstract}
     _ExpandedName = %{expanded_name}
+    _DefinitionLocation = %{defn_location}
 '''
 
     # Complex types that inherit from non-ur-type complex types should
