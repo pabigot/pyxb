@@ -427,7 +427,15 @@ def GenerateSTD (std, generator):
     if 0 < len(parent_classes):
         template_map['superclasses'] = ', '.join(parent_classes)
     template_map['expanded_name'] = binding_module.literal(std.expandedName(), **kw)
+    if std.expandedName() is not None:
+        template_map['qname'] = unicode(std.expandedName())
+    else:
+        template_map['qname'] = '[anonymous]'
     template_map['namespaceReference'] = binding_module.literal(std.bindingNamespace(), **kw)
+    if std._location() is not None:
+        template_map['defn_loc'] = ' at %s' % (std._location(),)
+    else:
+        template_map['defn_loc'] = ''
     if std.annotation() is not None:
         template_map['documentation'] = std.annotation().asDocString()
         template_map['documentation_expr'] = binding_module.literal(std.annotation().text())
@@ -445,21 +453,21 @@ def GenerateSTD (std, generator):
 '''
     if xs.structures.SimpleTypeDefinition.VARIETY_absent == std.variety():
         template = '''
-# The ur SimpleTypeDefinition
+# The ur simple type: %{qname}%{defn_loc}
 class %{std} (%{superclasses}):
 ''' + common_template
         if not template_map['documentation']:
             template_map['documentation'] = 'The ur simple type.'
     elif xs.structures.SimpleTypeDefinition.VARIETY_atomic == std.variety():
         template = '''
-# Atomic SimpleTypeDefinition
+# Atomic simple type: %{qname}%{defn_loc}
 class %{std} (%{superclasses}):
 ''' + common_template
         if not template_map['documentation']:
             template_map['documentation'] = 'An atomic simple type.'
     elif xs.structures.SimpleTypeDefinition.VARIETY_list == std.variety():
         template = '''
-# List SimpleTypeDefinition
+# List simple type: %{qname}%{defn_loc}
 # superclasses %{superclasses}
 class %{std} (pyxb.binding.basis.STD_list):
 ''' + common_template + '''
@@ -470,7 +478,7 @@ class %{std} (pyxb.binding.basis.STD_list):
             template_map['documentation'] = templates.replaceInText('Simple type that is a list of %{itemtype}.', **template_map)
     elif xs.structures.SimpleTypeDefinition.VARIETY_union == std.variety():
         template = '''
-# Union SimpleTypeDefinition
+# Union simple type: %{qname}%{defn_loc}
 # superclasses %{superclasses}
 class %{std} (pyxb.binding.basis.STD_union):
 ''' + common_template + '''
@@ -498,7 +506,7 @@ class %{std} (pyxb.binding.basis.STD_union):
 
 def elementDeclarationMap (ed, binding_module, **kw):
     template_map = { }
-    template_map['name'] = unicode(ed.expandedName())
+    template_map['qname'] = unicode(ed.expandedName())
     template_map['namespaceReference'] = binding_module.literal(ed.bindingNamespace(), **kw)
     if (ed.SCOPE_global == ed.scope()):
         binding_name = template_map['class'] = binding_module.literal(ed, **kw)
@@ -545,6 +553,14 @@ def GenerateCTD (ctd, generator, **kw):
     template_map['base_type'] = binding_module.literal(base_type, **kw)
     template_map['namespaceReference'] = binding_module.literal(ctd.bindingNamespace(), **kw)
     template_map['expanded_name'] = binding_module.literal(ctd.expandedName(), **kw)
+    if ctd.expandedName() is not None:
+        template_map['qname'] = unicode(ctd.expandedName())
+    else:
+        template_map['qname'] = '[anonymous]'
+    if ctd._location() is not None:
+        template_map['defn_loc'] = ' at %s' % (ctd._location(),)
+    else:
+        template_map['defn_loc'] = ''
     template_map['simple_base_type'] = binding_module.literal(None, **kw)
     template_map['contentTypeTag'] = content_type_tag
     template_map['is_abstract'] = repr(not not ctd.abstract())
@@ -559,7 +575,7 @@ def GenerateCTD (ctd, generator, **kw):
         content_basis = ctd.contentType()[1]
 
     prolog_template = '''
-# Complex type %{ctd} with content type %{contentTypeTag}
+# Complex type %{qname}%{defn_loc} with content type %{contentTypeTag}
 class %{ctd} (%{superclass}):
     _TypeDefinition = %{simple_base_type}
     _ContentTypeTag = pyxb.binding.basis.complexTypeDefinition._CT_%{contentTypeTag}
@@ -620,13 +636,13 @@ class %{ctd} (%{superclass}):
                     ef_map['documentation'] = binding_module.literal(None)
             if ed.scope() != ctd:
                 definitions.append(templates.replaceInText('''
-    # Element %{id} (%{name}) inherited from %{decl_type_en}''', decl_type_en=unicode(ed.scope().expandedName()), **ef_map))
+    # Element %{id} (%{qname}) inherited from %{decl_type_en}''', decl_type_en=unicode(ed.scope().expandedName()), **ef_map))
                 continue
 
             if ed.expandedName().localName() != ef_map['id']:
                 _log.warning('Element use %s.%s renamed to %s', ctd.expandedName(), ed.expandedName(), ef_map['id'])
             definitions.append(templates.replaceInText('''
-    # Element %{name} uses Python identifier %{id}
+    # Element %{qname} uses Python identifier %{id}
     %{use} = pyxb.binding.content.ElementUse(%{name_expr}, '%{id}', '%{key}', %{is_plural}%{aux_init})
 ''', name_expr=binding_module.literal(ed.expandedName(), **kw), **ef_map))
 
@@ -701,7 +717,7 @@ class %{ctd} (%{superclass}):
         if ad.expandedName().localName() != au_map['id']:
             _log.warning('Attribute %s.%s renamed to %s', ctd.expandedName(), ad.expandedName(), au_map['id'])
         definitions.append(templates.replaceInText('''
-    # Attribute %{name} uses Python identifier %{id}
+    # Attribute %{qname} uses Python identifier %{id}
     %{use} = pyxb.binding.content.AttributeUse(%{name_expr}, '%{id}', '%{key}', %{attr_type}%{aux_init})''', name_expr=binding_module.literal(ad.expandedName(), **kw), **au_map))
         if au.prohibited():
             definitions.append(templates.replaceInText('''
@@ -814,7 +830,7 @@ def _SetNameWithAccessors (component, container, is_plural, binding_module, nsm,
     component.setNameInBinding(use_map['use'])
     key_name = '%s_%s_%s' % (str(nsm.namespace()), container.nameInBinding(), component.expandedName())
     use_map['key'] = utility.PrepareIdentifier(key_name, class_unique, private=True)
-    use_map['name'] = unicode(component.expandedName())
+    use_map['qname'] = unicode(component.expandedName())
     if isinstance(component, xs.structures.ElementDeclaration) and is_plural:
         use_map['appender'] = utility.PrepareIdentifier('add' + unique_name[0].upper() + unique_name[1:], class_unique)
     return use_map
