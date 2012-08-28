@@ -804,7 +804,7 @@ class UniqueIdentifier (object):
     def associateObject (self, obj):
         """Associate the given object witth this identifier.
 
-        This is a one-way associatoin: the object is not provided with
+        This is a one-way association: the object is not provided with
         a return path to this identifier instance."""
         self.__associatedObjects.add(obj)
     def associatedObjects (self):
