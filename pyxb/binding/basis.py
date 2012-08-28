@@ -52,8 +52,6 @@ class _TypeBinding_mixin (utility.Locatable_mixin):
                 raise pyxb.BindingError('Attempt to set reserved name %s in instance of %s' % (name, type(self)))
             return super(_TypeBinding_mixin, self).__setattr__(name, value)
 
-    # @todo: We don't actually use this anymore; get rid of it, just leaving a
-    # comment describing each keyword.
     _PyXBFactoryKeywords = ( '_dom_node', '_fallback_namespace', '_from_xml',
                              '_apply_whitespace_facet', '_validate_constraints',
                              '_require_value', '_nil', '_element',
