@@ -127,16 +127,19 @@ class TestFAC (unittest.TestCase):
                 au.step(c)
             self.assertFalse(au.isAccepting())
 
-    '''
     def testCJ2010 (self):
         x = NumericalConstraint(Symbol('b'), 1, 2)
         x = NumericalConstraint(Choice(x, Symbol('c')), 2, 2)
         x = Sequence(Symbol('a'), x, Symbol('d'))
-        au = Configuration(x.buildAutomaton())
+        #print x
+        ms = MultiConfiguration(Configuration(x.buildAutomaton()))
         for c in 'abbd':
-            au.step(c)
-        self.assertTrue(au.isFinal())
-    '''
+            ms.step(c)
+        accepting = ms.acceptingConfigurations()
+        #print '\n'.join(map(str, accepting))
+        self.assertTrue(0 < len(accepting))
+        for cfg in accepting:
+            self.assertTrue(cfg.isAccepting())
 
 if __name__ == '__main__':
     unittest.main()

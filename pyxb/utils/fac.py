@@ -360,6 +360,11 @@ class UpdateInstruction:
         return '%s %s' % (self.__doIncrement and 'inc' or 'reset', self.__counterCondition)
 
 class Configuration (object):
+    """The state of an L{Automaton} in execution.
+
+    This combines a state node of the automaton with a set of counter
+    values."""
+
     __state = None
     def __get_state (self):
         """The state of the configuration.
@@ -427,15 +432,18 @@ class Configuration (object):
             transitions = self.__state.transitions
         return filter(lambda _phi: UpdateInstruction.Satisfies(self.__counterValues, _phi[1]), transitions)
 
+    def applyTransition (self, transition):
+        (self.__state, update_instructions) = transition
+        UpdateInstruction.Apply(update_instructions, self.__counterValues)
+        return self
+
     def step (self, symbol):
         transitions = self.candidateTransitions(symbol)
         if 0 == len(transitions):
             raise RecognitionError('Unable to match symbol %s' % (symbol,))
         if 1 < len(transitions):
             raise RecognitionError('Non-deterministic transition on %s' % (symbol,))
-        (self.__state, update_instructions) = iter(transitions).next()
-        UpdateInstruction.Apply(update_instructions, self.__counterValues)
-        return self
+        return self.applyTransition(iter(transitions).next())
 
     def isAccepting (self):
         if self.__state is not None:
@@ -445,6 +453,53 @@ class Configuration (object):
     def __init__ (self, automaton):
         self.__automaton = automaton
         self.reset()
+
+    def clone (self):
+        other = type(self)(self.__automaton)
+        other.__state = self.__state
+        other.__counterValues = self.__counterValues.copy()
+        return other
+
+    def __str__ (self):
+        return '%s: %s' % (self.__state, ' ; '.join([ '%s=%u' % (_c,_v) for (_c,_v) in self.__counterValues.iteritems()]))
+
+class MultiConfiguration (object):
+    """Support parallel execution of state machine.
+
+    This holds a set of configurations, and executes each transition
+    on each one.  A starting configuration from which no transition
+    can be made is silently dropped.  If multiple valid transitions
+    are permitted, a state is added for each resulting
+    configuration."""
+    
+    __configurations = None
+
+    def __init__ (self, configuration):
+        self.__configurations = set()
+        self.__configurations.add(configuration)
+    
+    def step (self, symbol):
+        """Execute the symbol transition on all configurations."""
+        next_configs = set()
+        #print 'Transition on %s from:\n\t%s' % (symbol, '\n\t'.join(map(str, self.__configurations)))
+        for cfg in self.__configurations:
+            transitions = cfg.candidateTransitions(symbol)
+            if 0 == len(transitions):
+                pass
+            elif 1 == len(transitions):
+                next_configs.add(cfg.applyTransition(iter(transitions).next()))
+            else:
+                for transition in transitions:
+                    next_configs.add(cfg.clone().applyTransition(transition))
+        if 0 == len(next_configs):
+            raise RecognitionError('Unable to match symbol %s' % (symbol,))
+        self.__configurations = next_configs
+        #print 'Result:\n\t%s' % ('\n\t'.join(map(str, self.__configurations)))
+        return self
+
+    def acceptingConfigurations (self):
+        """Return the set of configurations that are in an accepting state."""
+        return filter(lambda _s: _s.isAccepting(), self.__configurations)
 
 class Automaton (object):
     __states = None
