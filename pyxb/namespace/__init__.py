@@ -406,6 +406,15 @@ class _NamespaceCategory_mixin (pyxb.cscRoot):
         return 'typeDefinition' in self.__categoryMap
 
     def _associateOrigins (self, module_record):
+        """Add links from L{pyxb.namespace.archive._ObjectOrigin} instances.
+
+        For any resolvable item in this namespace from an origin managed by
+        the module_record, ensure that item can be found via a lookup through
+        that origin.
+
+        This allows these items to be found when a single namespace comprises
+        items translated from different schema at different times using
+        archives to maintain consistency."""
         assert module_record.namespace() == self
         module_record.resetCategoryObjects()
         self.configureCategories([archive.NamespaceArchive._AnonymousCategory()])
