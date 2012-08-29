@@ -386,6 +386,19 @@ class Node (object):
     term must be enclosed in parentheses when forming a text
     expression representing the containing term."""
 
+    def __init__ (self, **kw):
+        """Create a FAC term-tree node.
+
+        @kw metadata : Any application-specific metadata retained in
+        the term tree for transfer to the resulting automaton."""
+        self.__metadata = kw.get('metadata')
+
+    __metadata = None
+    def __get_metadata (self):
+        """Application-specific metadata provided during construction."""
+        return self.__metadata
+    metadata = property(__get_metadata)
+
     __first = None
     def __get_first (self):
         """The I{first} set for the node.
@@ -552,12 +565,12 @@ class Node (object):
                 for (c, u) in psi.iteritems():
                     npsi[self.posNodeMap[c]] = u
                 dst = self.posNodeMap[q]
-                delta.setdefault(dst.symbol, []).append((dst, npsi))
+                delta.setdefault(dst.metadata, []).append((dst, npsi))
         self.__initialStateMap = {}
         for p in self.first:
             n = self.posNodeMap[p]
             if isinstance(n, Symbol):
-                self.__initialStateMap.setdefault(n.symbol,set()).add(n)
+                self.__initialStateMap.setdefault(n.metadata, set()).add(n)
 
     __states = None
     def __get_states (self):
@@ -662,12 +675,12 @@ class MultiTermNode (Node):
         return self.__terms
     terms = property(__get_terms)
 
-    def __init__ (self, *terms):
+    def __init__ (self, *terms, **kw):
         """Term that collects an ordered sequence of terms.
 
         The terms are provided as arguments.  All must be instances of
         a subclass of L{Node}."""
-        super(MultiTermNode, self).__init__()
+        super(MultiTermNode, self).__init__(**kw)
         self.__terms = terms
 
     def _walkTermTree (self, position, pre, post, arg):
@@ -700,7 +713,7 @@ class NumericalConstraint (Node):
         return self.__term
     term = property(__get_term)
 
-    def __init__ (self, term, min=0, max=1):
+    def __init__ (self, term, min=0, max=1, **kw):
         """Term with a numerical constraint.
 
         @param term: A term, the number of appearances of which is
@@ -714,7 +727,7 @@ class NumericalConstraint (Node):
         The value must be positive (in which case it must also be no
         smaller than C{min}), or C{None} to indicate an unbounded
         number of occurrences."""
-        super(NumericalConstraint, self).__init__()
+        super(NumericalConstraint, self).__init__(**kw)
         self.__term = term
         self.__min = min
         self.__max = max
@@ -770,12 +783,12 @@ class Choice (MultiTermNode):
     
     _Precedence = -3
 
-    def __init__ (self, *terms):
+    def __init__ (self, *terms, **kw):
         """Term that selects one of a set of terms.
 
         The terms are provided as arguments.  All must be instances of
         a subclass of L{Node}."""
-        super(Choice, self).__init__(*terms)
+        super(Choice, self).__init__(*terms, **kw)
         
     def _first (self):
         rv = set()
@@ -817,12 +830,12 @@ class Sequence (MultiTermNode):
     
     _Precedence = -2
 
-    def __init__ (self, *terms):
+    def __init__ (self, *terms, **kw):
         """Term that collects an ordered sequence of terms.
 
         The terms are provided as arguments.  All must be instances of
         a subclass of L{Node}."""
-        super(Sequence, self).__init__(*terms)
+        super(Sequence, self).__init__(*terms, **kw)
 
     def _first (self):
         rv = set()
@@ -884,12 +897,12 @@ class All (MultiTermNode):
 
     _Precedence = 0
 
-    def __init__ (self, *terms):
+    def __init__ (self, *terms, **kw):
         """Term that collects an unordered sequence of terms.
 
         The terms are provided as arguments.  All must be instances of
         a subclass of L{Node}."""
-        super(All, self).__init__(*terms)
+        super(All, self).__init__(*terms, **kw)
 
     def _nullable (self):
         for t in self.terms:
@@ -901,18 +914,15 @@ class All (MultiTermNode):
         return u'&(' + ','.join([str(_t) for _t in self.terms]) + ')'
 
 class Symbol (Node):
-    """A leaf term that is a symbol."""
+    """A leaf term that is a symbol.
 
-    __symbol = None
-    def __get_symbol (self):
-        return self.__symbol
-    symbol = property(__get_symbol)
+    The symbol is represented by the L{metadata} field."""
 
     _Precedence = 0
 
-    def __init__ (self, symbol):
-        super(Symbol, self).__init__()
-        self.__symbol = symbol
+    def __init__ (self, symbol, **kw):
+        kw['metadata'] = symbol
+        super(Symbol, self).__init__(**kw)
 
     def _first (self):
         return [()]
@@ -930,4 +940,4 @@ class Symbol (Node):
             post(self, position, arg)
 
     def __str__ (self):
-        return str(self.__symbol)
+        return str(self.metadata)

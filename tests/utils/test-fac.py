@@ -15,7 +15,7 @@ class TestFAC (unittest.TestCase):
     ex = NumericalConstraint(a2ObTc, 3, 5)
 
     def testSymbol (self):
-        self.assertEqual('a', self.a.symbol)
+        self.assertEqual('a', self.a.metadata)
 
     def testNumericalConstraint (self):
         self.assertEqual(self.a2ObTc, self.ex.term)
