@@ -83,6 +83,126 @@ class RecognitionError (Exception):
 class InvalidFACError (Exception):
     pass
 
+class State (object):
+    """A thin wrapper around an object reference.
+
+    The state of the automaton corresponds to a position, or marked
+    symbol, in the term tree.  Because the same symbol may appear at
+    multiple locations in the tree, and the distinction between these
+    positions is critical, a L{State} wrapper is provided to maintain
+    distinct values."""
+    __symbol = None
+    def __get_symbol (self):
+        return self.__symbol
+    symbol = property(__get_symbol)
+
+    def __init__ (self, symbol=None):
+        self.__symbol = symbol
+
+class CounterCondition (object):
+    __min = None
+    def __get_min (self):
+        return self.__min
+    min = property(__get_min)
+
+    __max = None
+    def __get_max (self):
+        return self.__max
+    max = property(__get_max)
+    
+    __metadata = None
+    def __get_metadata (self):
+        return self.__metadata
+    metadata = property(__get_metadata)
+
+    def __init__ (self, min, max, metadata=None):
+        self.__min = min
+        self.__max = max
+        self.__metadata = metadata
+
+    def satisfiedBy (self, value, update_action):
+        """Implement a component of definition 5 from B{HOV09}.
+
+        The C{update_action} is satisfied by the counter and a
+        C{value} if the action may legitimately be applied to the
+        counter when it has that value.
+
+        @param value : a potential value for the counter.  This is a
+        non-negative integer.
+
+        @param update_action : One of L{RESET}, L{INCREMENT}
+
+        @return : C{True} or C{False}
+        """
+
+    @classmethod
+    def Satisfies (cls, value_map, psi):
+        for (ctr, update_action) in psi.iteritems():
+            if not ctr.satisfiedBy(value_map[ctr], update_action):
+                return False
+        return True
+
+class UpdateInstruction:
+    __counterCondition = None
+    __min = None
+    __max = None
+    __doIncrement = None
+
+    def __init__ (self, counter_condition, do_increment):
+        self.__counterCondition = counter_condition
+        self.__min = counter_condition.min
+        self.__max = counter_condition.max
+        self.__doIncrement = not not do_increment
+
+    def satisfiedBy (self, counter_values):
+        value = counter_values[self.__counterCondition]
+        if self.__doIncrement \
+                and (self.__max is not None) \
+                and (value >= self.__max):
+            return False
+        if (not self.__doIncrement) \
+                and (value < self.__min):
+            return False
+        return True
+
+    def apply (self, counter_values):
+        assert self.satisfiedBy(counter_values)
+        value = counter_values[self.__counterCondition]
+        if self.__doIncrement:
+            value += 1
+        else:
+            value = 1
+        counter_values[self.__counterCondition] = value
+
+class Configuration (object):
+    __state = None
+    def __get_state (self):
+        """The state of the configuration.
+
+        This is C{None} to indicate an initial state, or one of the underlying automaton's states."""
+        return self.__state
+    state = property(__get_state)
+
+    __counterValues = None
+    """The values of the counters.
+
+    This is a map from the CounterCondition instances of the
+    underlying automaton to integer values."""
+
+    __automaton = None
+    def __get_automaton (self):
+        return self.__automaton
+    automaton = property(__get_automaton)
+
+    def reset (self):
+        fac = self.__automaton
+        self.__state = None
+        self.__counterValues = dict(zip(fac.counterConditions, len(fac.counterConditions) * (1,)))
+
+    def __init__ (self, automaton):
+        self.__automaton = automaton
+        self.reset()
+
 class Automaton (object):
     __termTree = None
     def __get_termTree (self):
@@ -422,7 +542,7 @@ class Node (object):
     counterPositions = property(__get_counterPositions)
 
     def counterSubPositions (self, pos):
-        """Implement definition 12 from B{HOV09}.
+        """Implement definition 13.2 from B{HOV09}.
 
         This is the subset of L{counterPositions} that occur along the
         path to C{pos}."""
