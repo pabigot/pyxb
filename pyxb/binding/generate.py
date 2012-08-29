@@ -2216,7 +2216,8 @@ class Generator (object):
             assert schema.targetNamespace() == origin.moduleRecord().namespace()
             self.addNamespace(schema.targetNamespace())
         self.__didResolveExternalSchema = True
-        self.__bindingModules = None
+        self.__componentGraph = None
+        self.__componentOrder = None
 
     def __graphFromComponents (self, components, include_lax):
         components = components.copy()
@@ -2332,10 +2333,11 @@ class Generator (object):
 
         record_binding_map = {}
         modules = []
+        nsvm = self.namespaceVisibilityMap()
         for mr_scc in module_scc_order:
             scc_modules = [ ]
             for mr in mr_scc:
-                mr._setIsPublic(self.__namespaceVisibilityMap.get(mr.namespace(), self.defaultNamespacePublic()))
+                mr._setIsPublic(nsvm.get(mr.namespace(), self.defaultNamespacePublic()))
                 self.__assignModulePath(mr)
                 assert not ((mr.modulePath() is None) and self.generateToFiles()), 'No module path defined for %s' % (mr,)
                 if (not mr.isPublic()) and (mr.modulePath() is not None):
@@ -2352,8 +2354,6 @@ class Generator (object):
                 modules.append(ngm)
                 for nsm in scc_modules:
                     nsm.setNamespaceGroupModule(ngm)
-
-        self.__bindingModules = modules
 
         element_declarations = []
         type_definitions = []
@@ -2385,7 +2385,7 @@ class Generator (object):
             else:
                 assert False, 'Unexpected component type %s' % (type(td),)
 
-        for ngm in self.__bindingModules:
+        for ngm in modules:
             if isinstance(ngm, NamespaceGroupModule):
                 for m in ngm.namespaceModules():
                     m.addImportsFrom(ngm)
@@ -2396,6 +2396,8 @@ class Generator (object):
             GenerateCTD(ctd, self)
         for ed in element_declarations:
             GenerateED(ed, self)
+
+        self.__bindingModules = modules
     
     __bindingModules = None
     def bindingModules (self, reset=False):
