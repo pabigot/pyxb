@@ -2242,7 +2242,10 @@ class Generator (object):
                     component_graph.addEdge(c, cd)
         return component_graph
 
-    def __resolveComponentDependencies (self):
+    def __resolveComponentDependencies (self, reset=False):
+        if reset or (not self.__didResolveExternalSchema):
+            self.resolveExternalSchema(reset)
+
         bindable_fn = lambda _c: isinstance(_c, xs.structures.ElementDeclaration) or _c.isTypeDefinition()
 
         self.__moduleRecords = set()
@@ -2302,6 +2305,19 @@ class Generator (object):
         self.__componentGraph = component_graph
         self.__componentOrder = component_order
 
+    __componentGraph = None
+    __componentOrder = None
+
+    def componentGraph (self):
+        if self.__componentGraph is None:
+            self.__resolveComponentDependencies()
+        return self.__componentGraph
+
+    def componentOrder (self):
+        if self.__componentOrder is None:
+            self.__resolveComponentDependencies()
+        return self.__componentOrder
+
     def __generateBindings (self):
 
         # Note that module graph may have fewer nodes than
@@ -2310,7 +2326,7 @@ class Generator (object):
 
         module_graph = pyxb.utils.utility.Graph()
         [ module_graph.addRoot(_mr) for _mr in self.__moduleRecords ]
-        for (s, t) in self.__componentGraph.edges():
+        for (s, t) in self.componentGraph().edges():
             module_graph.addEdge(s._objectOrigin().moduleRecord(), t._objectOrigin().moduleRecord())
         module_scc_order = module_graph.sccOrder()
 
@@ -2341,7 +2357,7 @@ class Generator (object):
 
         element_declarations = []
         type_definitions = []
-        for c in self.__componentOrder:
+        for c in self.componentOrder():
             if isinstance(c, xs.structures.ElementDeclaration) and c._scopeIsGlobal():
                 # Only bind elements this pass, so their names get priority in deconfliction
                 nsm = record_binding_map[c._objectOrigin().moduleRecord()]
@@ -2383,10 +2399,9 @@ class Generator (object):
     
     __bindingModules = None
     def bindingModules (self, reset=False):
-        if reset or (not self.__didResolveExternalSchema):
-            self.resolveExternalSchema(reset)
+        if reset or (self.__componentGraph is None):
+            self.__resolveComponentDependencies(reset)
         if reset or (self.__bindingModules is None):
-            self.__resolveComponentDependencies()
             self.__generateBindings()
         return self.__bindingModules
     
