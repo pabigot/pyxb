@@ -2168,18 +2168,35 @@ class Generator (object):
             sl = sl[len(ssp):]
         return pyxb.utils.utility.NormalizeLocation(sl, self.schemaRoot())
 
-    def __assignModulePath (self, module_record, module_path=None):
+    def assignModulePath (self, module_record, module_path=None):
+        """Provide a Python module path for the module record.
+        
+        This is the path by which the module bindings associated with
+        C{module_record} will be imported.
+
+        If a path had already been assigned to the module, it is left
+        in place.
+
+        @param module_record: Information about a collection of related bindings
+        @type module_record: L{pyxb.namespace.archive.ModuleRecord}
+
+        @param module_path: Default path to use
+        @type module_path: C{str}
+
+        @return: C{module_record}
+        """
         if module_record.modulePath() is not None:
             return module_record
         namespace = module_record.namespace()
         if not namespace.isAbsentNamespace():
+            # Use the namespace prefix from a referencing schema if no other clue was given
             if (module_path is None) and not (namespace.prefix() is None):
                 module_path = namespace.prefix()
+            # Prefer an existing assignment over a new one
             module_path = self.namespaceModuleMap().get(namespace.uri(), module_path)
         if (module_path is not None) and self.modulePrefix(): # non-empty value
+            # Prepend a configured module prefix
             module_path = '.'.join([self.modulePrefix(), module_path])
-        if (module_path is None) and self.generateToFiles():
-            raise pyxb.BindingGenerationError('No prefix or module name available for %s' % (module_record,))
         module_record.setModulePath(module_path)
         return module_record
 
@@ -2231,7 +2248,7 @@ class Generator (object):
             module_path = None
             if self.__moduleList:
                 module_path = self.__moduleList.pop(0)
-            self.__assignModulePath(origin.moduleRecord(), module_path)
+            self.assignModulePath(origin.moduleRecord(), module_path)
             assert schema.targetNamespace() == origin.moduleRecord().namespace()
             self.addNamespace(schema.targetNamespace())
         self.__didResolveExternalSchema = True
@@ -2374,8 +2391,9 @@ class Generator (object):
             scc_modules = [ ]
             for mr in mr_scc:
                 mr._setIsPublic(nsvm.get(mr.namespace(), self.defaultNamespacePublic()))
-                self.__assignModulePath(mr)
-                assert not ((mr.modulePath() is None) and self.generateToFiles()), 'No module path defined for %s' % (mr,)
+                self.assignModulePath(mr)
+                if (mr.modulePath() is None) and self.generateToFiles():
+                    raise pyxb.BindingGenerationError('No prefix or module name available for %s' % (mr,))
                 if (not mr.isPublic()) and (mr.modulePath() is not None):
                     elts = mr.modulePath().split('.')
                     elts[-1] = '_%s' % (elts[-1],)
