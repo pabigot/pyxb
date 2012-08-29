@@ -1991,6 +1991,13 @@ class Generator (object):
         return self
 
     def generationUID (self):
+        """A unique identifier associated with this Generator instance.
+
+        This is an instance of L{pyxb.utils.utility.UniqueIdentifier}.
+        Its associated objects are
+        L{pyxb.namespace.archive._SchemaOrigin} instances, which
+        identify schema that contribute to the definition of a
+        namespace."""
         return self.__generationUID
     __generationUID = None
 
@@ -2181,12 +2188,21 @@ class Generator (object):
         if self.__didResolveExternalSchema and (not reset):
             raise pyxb.PyXBException('Cannot resolve external schema multiple times')
 
+        # Find all the namespaces we were told to pre-load.  These may
+        # be namespaces for which we already have bindings that we
+        # intend to augment with private extensions.
         required_archives = pyxb.namespace.archive.NamespaceArchive.PreLoadArchives(self.archivePath(), self.preLoadArchives())
         for nsa in required_archives:
             nsa.readNamespaces()
+
+        # Mark the namespaces we were told not to load.  These may be
+        # namespaces for which we already have bindings in the search
+        # path, but we want to generate completely new ones.
         for ns in self.noLoadNamespaces():
             assert isinstance(ns, pyxb.namespace.Namespace)
             ns.markNotLoadable()
+
+        # Read all the schema we were told about.
         while self.__schemaLocationList:
             sl = self.__schemaLocationList.pop(0)
             if isinstance(sl, tuple):
@@ -2204,6 +2220,9 @@ class Generator (object):
             except pyxb.SchemaUniquenessError, e:
                 _log.info('Skipped redundant translation of %s defining %s', e.schemaLocation(), e.namespace())
                 self.addSchema(e.existingSchema())
+
+        # Assign Python modules to hold bindings for the schema we're
+        # processing.
         for schema in self.__schemas:
             if isinstance(schema, basestring):
                 schema = xs.schema.CreateFromDocument(schema, generation_uid=self.generationUID())
@@ -2216,6 +2235,8 @@ class Generator (object):
             assert schema.targetNamespace() == origin.moduleRecord().namespace()
             self.addNamespace(schema.targetNamespace())
         self.__didResolveExternalSchema = True
+
+        # Discard any existing component information
         self.__componentGraph = None
         self.__componentOrder = None
 
@@ -2306,8 +2327,23 @@ class Generator (object):
         self.__componentGraph = component_graph
         self.__componentOrder = component_order
 
+    __moduleRecords = None
     __componentGraph = None
     __componentOrder = None
+
+    def moduleRecords (self):
+        """The set of L{pyxb.namespace.archive.ModuleRecord} instances
+        associated with schema processed in this generation
+        instance.
+
+        These should be in one-to-one correspondence with the
+        namespaces for which bindings are being generated.  Multiple
+        input schemas may contribute to a single module record; all
+        material in that record is placed in a single binding file.
+        """
+        if self.__moduleRecords is None:
+            self.__resolveComponentDependencies()
+        return self.__moduleRecords
 
     def componentGraph (self):
         if self.__componentGraph is None:
@@ -2322,11 +2358,11 @@ class Generator (object):
     def __generateBindings (self):
 
         # Note that module graph may have fewer nodes than
-        # self.__moduleRecords, if a module has no components that
+        # self.moduleRecords(), if a module has no components that
         # require binding generation.
 
         module_graph = pyxb.utils.utility.Graph()
-        [ module_graph.addRoot(_mr) for _mr in self.__moduleRecords ]
+        [ module_graph.addRoot(_mr) for _mr in self.moduleRecords() ]
         for (s, t) in self.componentGraph().edges():
             module_graph.addEdge(s._objectOrigin().moduleRecord(), t._objectOrigin().moduleRecord())
         module_scc_order = module_graph.sccOrder()
