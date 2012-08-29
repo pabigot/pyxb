@@ -103,7 +103,7 @@ class TestFAC (unittest.TestCase):
     def testValidateAutomaton (self):
         a = Symbol('a')
         x = Sequence(a, a)
-        self.assertRaises(InvalidFACError, lambda _s: _s.states, x)
+        self.assertRaises(InvalidTermTreeError, lambda _s: _s.states, x)
 
     def testKT2004 (self):
         a = Symbol('a')

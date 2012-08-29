@@ -74,13 +74,25 @@ RESET = False
 INCREMENT = True
 """An arbitrary value representing increment of a counter."""
 
+class FACError (Exception):
+    pass
+
+class InvalidTermTreeError (FACError):
+    """Exception raised when a FAC term tree is not a tree.
+
+    For example, a L{Symbol} node appears multiple times, or a cycle is detected."""
+    pass
+
+class CounterApplicationError (FACError):
+    """Exception raised when an unsatisfied update instruction is executed.
+
+    This indicates an internal error in the implementation."""
+    pass
+
 class NondeterministicFACError (Exception):
     pass
 
 class RecognitionError (Exception):
-    pass
-
-class InvalidFACError (Exception):
     pass
 
 class State (object):
@@ -99,62 +111,94 @@ class State (object):
     def __init__ (self, symbol=None):
         self.__symbol = symbol
 
+    def match (self, symbol):
+        """Return C{True} iff the symbol matches for this state.
+
+        This may be overridden by subclasses when matching by
+        equivalence does not work."""
+        return self.__symbol == symbol
+
 class CounterCondition (object):
+    """A counter condition is a range limit on valid counter values.
+
+    Instances of this class serve as keys for the counters that
+    represent the configuration of a FAC.  The instance also maintains
+    a pointer to application-specific L{metadata}."""
+
     __min = None
     def __get_min (self):
+        """The minimum legal value for the counter.
+
+        This is a non-negative integer."""
         return self.__min
     min = property(__get_min)
 
     __max = None
     def __get_max (self):
+        """The maximum legal value for the counter.
+
+        This is a positive integer, or C{None} to indicate that the
+        counter is unbounded."""
         return self.__max
     max = property(__get_max)
     
     __metadata = None
     def __get_metadata (self):
+        """A pointer to application metadata provided when the condition was created."""
         return self.__metadata
     metadata = property(__get_metadata)
 
     def __init__ (self, min, max, metadata=None):
+        """Create a counter condition.
+
+        @param min : The value for L{min}
+        @param max : The value for L{max}
+        @param metadata : The value for L{metadata}
+        """
         self.__min = min
         self.__max = max
         self.__metadata = metadata
 
-    def satisfiedBy (self, value, update_action):
-        """Implement a component of definition 5 from B{HOV09}.
-
-        The C{update_action} is satisfied by the counter and a
-        C{value} if the action may legitimately be applied to the
-        counter when it has that value.
-
-        @param value : a potential value for the counter.  This is a
-        non-negative integer.
-
-        @param update_action : One of L{RESET}, L{INCREMENT}
-
-        @return : C{True} or C{False}
-        """
-
-    @classmethod
-    def Satisfies (cls, value_map, psi):
-        for (ctr, update_action) in psi.iteritems():
-            if not ctr.satisfiedBy(value_map[ctr], update_action):
-                return False
-        return True
-
 class UpdateInstruction:
+    """An update instruction pairs a counter with a mutation of that counter.
+
+    The instruction is executed during a transition from one state to
+    another, and causes the corresponding counter to be incremented or
+    reset.  The instruction may only be applied if doing so does not
+    violate the conditions of the counter it affects."""
     __counterCondition = None
     __min = None
     __max = None
     __doIncrement = None
 
     def __init__ (self, counter_condition, do_increment):
+        """Create an update instruction.
+
+        @param counter_condition : A L{CounterCondition} identifying a
+        minimum and maximum value for a counter, and serving as a map
+        key for the value of the corresponding counter.
+
+        @param do_increment : C{True} if the update is to increment
+        the value of the counter; C{False} if the update is to reset
+        the counter.
+        """
         self.__counterCondition = counter_condition
         self.__min = counter_condition.min
         self.__max = counter_condition.max
         self.__doIncrement = not not do_increment
 
     def satisfiedBy (self, counter_values):
+        """Implement a component of definition 5 from B{HOV09}.
+
+        The update instruction is satisfied by the counter values if
+        its action may be legitimately applied to the value of its
+        associated counter.
+
+        @param counter_values : A map from  L{CounterCondition}s to
+        non-negative integers
+
+        @return:  C{True} or C{False}
+        """
         value = counter_values[self.__counterCondition]
         if self.__doIncrement \
                 and (self.__max is not None) \
@@ -165,14 +209,51 @@ class UpdateInstruction:
             return False
         return True
 
+    @classmethod
+    def Satisfies (cls, counter_values, update_instructions):
+        """Return C{True} iff the counter values satisfy the update
+        instructions.
+
+        @param counter_values : A map from L{CounterCondition} to
+        integer counter values
+
+        @param update_instructions : A set of L{UpdateInstruction}
+        instances
+
+        @return: C{True} iff all instructions are satisfied by the
+        values and limits."""
+        for psi in update_instructions:
+            if not psi.satisfiedBy(counter_values):
+                return False
+        return True
+
     def apply (self, counter_values):
-        assert self.satisfiedBy(counter_values)
+        """Apply the update instruction to the provided counter values.
+
+        @param counter_values : A map from L{CounterCondition} to
+        inter counter values.  This map is updated in-place."""
+        if not self.satisfiedBy(counter_values):
+            raise CounterSatisfactionError(self, counter_values)
         value = counter_values[self.__counterCondition]
         if self.__doIncrement:
             value += 1
         else:
             value = 1
         counter_values[self.__counterCondition] = value
+
+    @classmethod
+    def Apply (cls, update_instructions, counter_values):
+        """Apply the update instructions to the counter values.
+
+        @param update_instructions : A set of L{UpdateInstruction}
+        instances.
+
+        @param counter_values : A map from L{CounterCondition}
+        instances to non-negative integers.  This map is updated
+        in-place by applying each instruction in
+        C{update_instructions}."""
+        for psi in update_instructions:
+            psi.apply(counter_values)
 
 class Configuration (object):
     __state = None
@@ -438,17 +519,19 @@ class Node (object):
             ts.append((pos + q, cls._PosConcatUpdateInstruction(pos, psi) ))
         return ts
 
-    def __buildAutomaton (self):
+    def __validateTreeNode (self, node, pos, visited_nodes):
+        if node in visited_nodes:
+            raise InvalidTermTreeError(self)
+        visited_nodes.add(node)
+
+    def __buildAutomaton (self, state_ctor=State, ctr_cond_ctor=CounterCondition):
         # Validate that the term tree is in fact a tree.  A DAG does
         # not work.  If the tree has cycles, this won't even return.
-        node_map = {}
-        self.walkTermTree(lambda _n,_p,_a: _a.setdefault(_n,[]).append(_p), None, node_map)
-        for (node, paths) in node_map.iteritems():
-            if 1 < len(paths):
-                raise InvalidFACError('Node %s appears multiple times at %s' % (node, ' '.join(map(str,paths))))
+        self.walkTermTree(self.__validateTreeNode, None, set())
 
         # Get the FAC states as nodes in the term tree
         self.__states = frozenset([ self.posNodeMap[_p] for _p in self.follow.iterkeys() ])
+
         # All states should be Symbol instances
         assert reduce(operator.and_, map(lambda _s: isinstance(_s, Symbol), self.__states), True)
 
