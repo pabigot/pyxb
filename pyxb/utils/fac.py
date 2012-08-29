@@ -24,7 +24,8 @@ The implementation here derives from U{Regular Expressions with
 Numerical Constraints and Automata with Counters
 <https://bora.uib.no/bitstream/1956/3628/3/Hovland_LNCS%205684.pdf>},
 Dag Hovland, Lecture Notes in Computer Science, 2009, Volume 5684,
-Theoretical Aspects of Computing - ICTAC 2009, Pages 231-245.
+Theoretical Aspects of Computing - ICTAC 2009, Pages 231-245.  In what
+follows, this reference will be denoted B{HOV09}.
  
 A regular expression is directly translated into a term tree, where
 nodes are operators such as sequence, choice, and counter
@@ -72,24 +73,6 @@ RESET = False
 
 INCREMENT = True
 """An arbitrary value representing increment of a counter."""
-
-def posConcatPosSet (pos, pos_set):
-    """Definition 11.1"""
-    return frozenset([ pos + _mp for _mp in pos_set ])
-
-def posConcatUpdateInstruction (pos, psi):
-    """Definition 11.2"""
-    rv = {}
-    for (q, v) in psi.iteritems():
-        rv[pos + q] = v
-    return rv
-
-def posConcatTransitionSet (pos, transition_set):
-    """Definition 11.3"""
-    ts = []
-    for (q, psi) in transition_set:
-        ts.append((pos + q, posConcatUpdateInstruction(pos, psi) ))
-    return ts
 
 class NondeterministicFACError (Exception):
     pass
@@ -146,7 +129,7 @@ class Automaton (object):
         pos = tt.nodePosMap[self.__state]
         if not (pos in tt.last):
             return False
-        for cp in tt.subPositions(pos):
+        for cp in tt.counterSubPositions(pos):
             c = tt.posNodeMap[cp]
             cv = self.__counterValues[c]
             if (cv < c.min) or (cv > c.max):
@@ -204,52 +187,98 @@ class Node (object):
 
     __first = None
     def __get_first (self):
+        """The I{first} set for the node.
+
+        This is the set of positions leading to symbols that can
+        appear first in a string matched by an execution starting at
+        the node."""
         if self.__first is None:
             self.__first = frozenset(self._first())
         return self.__first
     first = property(__get_first)
 
     def _first (self):
+        """Abstract method that defines L{first} for the subclass.
+
+        The return value should be an iterable of tuples of integers
+        denoting paths from this node through the term tree to a
+        symbol."""
         raise NotImplementedError('%s.first' % (self.__class__.__name__,))
 
     __last = None
     def __get_last (self):
+        """The I{last} set for the node.
+
+        This is the set of positions leading to symbols that can
+        appear last in a string matched by an execution starting at
+        the node."""
         if self.__last is None:
             self.__last = frozenset(self._last())
         return self.__last
     last = property(__get_last)
     
     def _last (self):
+        """Abstract method that defines L{last} for the subclass.
+
+        The return value should be an iterable of tuples of integers
+        denoting paths from this node through the term tree to a
+        symbol."""
         raise NotImplementedError('%s.last' % (self.__class__.__name__,))
 
     __nullable = None
     def __get_nullable (self):
+        """C{True} iff the empty string is accepted by this node."""
         if self.__nullable is None:
             self.__nullable = self._nullable()
         return self.__nullable
     nullable = property(__get_nullable)
     
     def _nullable (self):
+        """Abstract method that defines L{nullable} for the subclass.
+
+        The return value should be C{True} or C{False}."""
         raise NotImplementedError('%s.nullable' % (self.__class__.__name__,))
 
     __follow = None
     def __get_follow (self):
+        """The I{follow} map for the node."""
         if self.__follow is None:
             self.__follow = self._follow()
         return self.__follow
     follow = property(__get_follow)
 
     def _follow (self):
+        """Abstract method that defines L{follow} for the subclass.
+        
+        The return value should be a map from tuples of integers (positions)
+        to a list of transitions, where a transition is a position and
+        an update instruction."""
         raise NotImplementedError('%s.follow' % (self.__class__.__name__,))
 
     def walkTermTree (self, pre, post, arg):
-        return self._walkTermTree((), pre, post, arg)
+        """Utility function for term tree processing.
+
+        @param pre : a callable that, unless C{None}, is invoked at
+        each node C{n} with parameters C{n}, C{pos}, and C{arg}, where
+        C{pos} is the tuple of integers identifying the path from the
+        node at on which this method was invoked to the node being
+        processed.  The invocation occurs before processing any
+        subordinate nodes.
+
+        @param post : as with C{pre} but invocation occurs after
+        processing any subordinate nodes.
+
+        @param arg : a value passed to invocations of C{pre} and
+        C{post}."""
+        self._walkTermTree((), pre, post, arg)
 
     def _walkTermTree (self, position, pre, post, arg):
+        """Abstract method implementing L{walkTermTree} for the subclass."""
         raise NotImplementedError('%s.walkTermTree' % (self.__class__.__name__,))
 
     __posNodeMap = None
     def __get_posNodeMap (self):
+        """A map from positions to nodes in the term tree."""
         if self.__posNodeMap is None:
             pnm = { }
             self.walkTermTree(lambda _n,_p,_a: _a.setdefault(_p, _n), None, pnm)
@@ -259,6 +288,7 @@ class Node (object):
 
     __nodePosMap = None
     def __get_nodePosMap (self):
+        """A map from nodes to their position in the term tree."""
         if self.__nodePosMap is None:
             npm = {}
             for (p,n) in self.posNodeMap.iteritems():
@@ -267,21 +297,49 @@ class Node (object):
         return self.__nodePosMap
     nodePosMap = property(__get_nodePosMap)
 
-    def followPosition (self, position):
-        return self.posNodeMap[position]
+    @classmethod
+    def _PosConcatPosSet (cls, pos, pos_set):
+        """Implement definition 11.1 in B{HOV09}."""
+        return frozenset([ pos + _mp for _mp in pos_set ])
+
+    @classmethod
+    def _PosConcatUpdateInstruction (cls, pos, psi):
+        """Implement definition 11.2 in B{HOV09}"""
+        rv = {}
+        for (q, v) in psi.iteritems():
+            rv[pos + q] = v
+        return rv
+
+    @classmethod
+    def _PosConcatTransitionSet (cls, pos, transition_set):
+        """Implement definition 11.3 in B{HOV09}"""
+        ts = []
+        for (q, psi) in transition_set:
+            ts.append((pos + q, cls._PosConcatUpdateInstruction(pos, psi) ))
+        return ts
 
     def __buildAutomaton (self):
+        # Validate that the term tree is in fact a tree.  A DAG does
+        # not work.  If the tree has cycles, this won't even return.
         node_map = {}
         self.walkTermTree(lambda _n,_p,_a: _a.setdefault(_n,[]).append(_p), None, node_map)
         for (node, paths) in node_map.iteritems():
             if 1 < len(paths):
                 raise InvalidFACError('Node %s appears multiple times at %s' % (node, ' '.join(map(str,paths))))
+
+        # Get the FAC states as nodes in the term tree
         self.__states = frozenset([ self.posNodeMap[_p] for _p in self.follow.iterkeys() ])
         # All states should be Symbol instances
         assert reduce(operator.and_, map(lambda _s: isinstance(_s, Symbol), self.__states), True)
+
+        # Get the FAC counters as nodes in the term tree
         self.__counters = frozenset([ self.posNodeMap[_p] for _p in self.counterPositions ])
         # All counters should be NumericalConstraint instances
         assert reduce(operator.and_, map(lambda _s: isinstance(_s, NumericalConstraint), self.__counters), True)
+
+        # Get the transition function as a map from nodes (src) to
+        # maps from symbols to maps from nodes (dst) to update
+        # instructions.
         self.__phi = {}
         for (p, transition_set) in self.follow.iteritems():
             src = self.posNodeMap[p]
@@ -300,6 +358,7 @@ class Node (object):
 
     __states = None
     def __get_states (self):
+        """The set of L{symbols <Symbol>} that serve as states in the FAC."""
         if self.__states is None:
             self.__buildAutomaton()
         return self.__states
@@ -307,6 +366,7 @@ class Node (object):
 
     __initialStateMap = None
     def __get_initialStateMap (self):
+        """The set of L{symbols <Symbol>} that can be initial states in the FAC."""
         if self.__initialStateMap is None:
             self.__buildAutomaton()
         return self.__initialStateMap
@@ -314,6 +374,7 @@ class Node (object):
 
     __counters = None
     def __get_counters (self):
+        """The set of L{counters <NumericalConstraint>} relevant to processing the FAC."""
         if self.__counters is None:
             self.__buildAutomaton()
         return self.__counters
@@ -321,6 +382,21 @@ class Node (object):
 
     __phi = None
     def __get_phi (self):
+        """The transition function for the FAC.
+
+        Given a source L{state <Symbol>} C{src}, the value C{phi[src]}
+        is a map showing potential transitions from C{src}.  The map
+        is keyed by the L{symbol <Symbol>} that enables the
+        transitions.
+
+        A transition is a map from a destination L{state <Symbol>}
+        C{dst} to the update instruction that must be applied if that
+        transition is selected.
+
+        The same symbol may be used for multiple
+        transitions.  If the FAC is deterministic, only one of those
+        transitions has an update instruction that is satisfied by the
+        FAC counter state."""
         if self.__phi is None:
             self.__buildAutomaton()
         return self.__phi
@@ -328,9 +404,11 @@ class Node (object):
 
     __counterPositions = None
     def __get_counterPositions (self):
-        """All numerical constraint positions that aren't r+.
-        
-        I.e., implement Definition 13.1."""
+        """Implement definition 13.1 from B{HOV09}.
+
+        The return value is the set of all positions leading to
+        L{NumericalConstraint} nodes for which either the minimum
+        value is not 1 or the maximum value is not unbounded."""
         if self.__counterPositions is None:
             cpos = []
             self.walkTermTree(lambda _n,_p,_a: \
@@ -343,7 +421,11 @@ class Node (object):
         return self.__counterPositions
     counterPositions = property(__get_counterPositions)
 
-    def subPositions (self, pos):
+    def counterSubPositions (self, pos):
+        """Implement definition 12 from B{HOV09}.
+
+        This is the subset of L{counterPositions} that occur along the
+        path to C{pos}."""
         rv = set()
         for cpos in self.counterPositions:
             if cpos == pos[:len(cpos)]:
@@ -366,13 +448,14 @@ class Node (object):
                         av.append('%s %s' % (self.nodePosMap[c], (uv == INCREMENT) and 'inc' or 'res'))
                     print '\t%s via %s: %s' % (self.nodePosMap[dst], sym, ' , '.join(av))
         for p in self.last:
-            print 'Final %s: %s' % (str(p), ' '.join([ str(_p) for _p in self.subPositions(p)]))
+            print 'Final %s: %s' % (str(p), ' '.join([ str(_p) for _p in self.counterSubPositions(p)]))
 
 class MultiTermNode (Node):
     """Intermediary for nodes that have multiple child nodes."""
     
     __terms = None
     def __get_terms (self):
+        """The set of subordinate terms of the current node."""
         return self.__terms
     terms = property(__get_terms)
 
@@ -447,13 +530,13 @@ class NumericalConstraint (Node):
         pp = (0,)
         last_r1 = set(self.__term.last)
         for (q, transition_set) in self.__term.follow.iteritems():
-            rv[pp+q] = posConcatTransitionSet(pp, transition_set)
+            rv[pp+q] = self._PosConcatTransitionSet(pp, transition_set)
             if q in last_r1:
                 last_r1.remove(q)
                 for sq1 in self.__term.first:
                     q1 = pp+sq1
                     psi = {}
-                    for p1 in self.__term.subPositions(q):
+                    for p1 in self.__term.counterSubPositions(q):
                         psi[pp+p1] = RESET
                     if (1 != self.min) or (self.max is not None):
                         psi[()] = INCREMENT
@@ -514,7 +597,7 @@ class Choice (MultiTermNode):
         for c in xrange(len(self.terms)):
             for (q, transition_set) in self.terms[c].follow.iteritems():
                 pp = (c,)
-                rv[pp + q] = posConcatTransitionSet(pp, transition_set)
+                rv[pp + q] = self._PosConcatTransitionSet(pp, transition_set)
         return rv
 
     def __str__ (self):
@@ -571,7 +654,7 @@ class Sequence (MultiTermNode):
         for c in xrange(len(self.terms)):
             pp = (c,)
             for (q, transition_set) in self.terms[c].follow.iteritems():
-                rv[pp + q] = posConcatTransitionSet(pp, transition_set)
+                rv[pp + q] = self._PosConcatTransitionSet(pp, transition_set)
         for c in xrange(len(self.terms)-1):
             t = self.terms[c]
             pp = (c,)
@@ -579,7 +662,7 @@ class Sequence (MultiTermNode):
                 for sq1 in self.terms[c+1].first:
                     q1 = (c+1,) + sq1
                     psi = {}
-                    for p1 in t.subPositions(q):
+                    for p1 in t.counterSubPositions(q):
                         psi[pp + p1] = RESET
                     rv[pp+q].append((q1, psi))
         return rv

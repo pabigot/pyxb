@@ -52,14 +52,14 @@ class TestFAC (unittest.TestCase):
         p0or1 = frozenset(set(p0).union(p1))
         self.assertEqual(null_position, self.a.first)
         for p in self.a.first:
-            self.assertEqual(self.a, self.a.followPosition(p))
+            self.assertEqual(self.a, self.a.posNodeMap[p])
         self.assertEqual(p0or1, self.aOb.first)
         self.assertEqual(p0, self.aTb.first)
         for p in self.aTb.first:
-            self.assertEqual(self.a, self.aTb.followPosition(p))
+            self.assertEqual(self.a, self.aTb.posNodeMap[p])
         rs = set()
         for p in self.a2ObTc.first:
-            rs.add(self.a2ObTc.followPosition(p))
+            rs.add(self.a2ObTc.posNodeMap[p])
         self.assertEqual(frozenset([self.a, self.b]), rs)
 
     def testLast (self):
@@ -72,7 +72,7 @@ class TestFAC (unittest.TestCase):
         self.assertEqual(p1, self.aTb.last)
         rs = set()
         for p in self.a2ObTc.last:
-            rs.add(self.a2ObTc.followPosition(p))
+            rs.add(self.a2ObTc.posNodeMap[p])
         self.assertEqual(frozenset([self.a, self.c]), rs)
 
     def testWalkTermTree (self):
