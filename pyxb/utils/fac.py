@@ -67,6 +67,9 @@ since update instructions are dicts and cannot be hashed.
 """
 
 import operator
+import logging
+
+log_ = logging.getLogger(__name__)
 
 RESET = False
 """An arbitrary value representing reset of a counter."""
@@ -164,8 +167,8 @@ class State (object):
         equivalence does not work."""
         return self.__symbol == symbol
 
-    def step (self, symbol):
-        pass
+    def candidateTransitions (self, symbol):
+        return filter(lambda _step: _step[0].match(symbol), self.__transitionSet)
 
     def __str__ (self):
         return 'S.%x' % (id(self),)
@@ -351,17 +354,56 @@ class Configuration (object):
         self.__state = None
         self.__counterValues = dict(zip(fac.counterConditions, len(fac.counterConditions) * (1,)))
 
+    def multiStep (self, symbol):
+        fac = self.__automaton
+        if self.__state is None:
+            transitions = set()
+            for s in fac.states:
+                if s.isInitial and s.match(symbol):
+                    transitions.add((s, frozenset()))
+        else:
+            transitions = self.__state.candidateTransitions(symbol)
+        return filter(lambda _phi: (_phi[1] is None) or UpdateInstruction.Satisfies(self.__counterValues, _phi[1]), transitions)
+
+    def step (self, symbol):
+        transitions = self.multiStep(symbol)
+        if 0 == len(transitions):
+            raise RecognitionError('Unable to match symbol %s' % (symbol,))
+        if 1 < len(transitions):
+            raise RecognitionError('Non-deterministic transition on %s' % (symbol,))
+        (self.__state, update_instructions) = iter(transitions).next()
+        UpdateInstruction.Apply(update_instructions, self.__counterValues)
+        return self
+
+    def isAccepting (self):
+        if self.__state is not None:
+            return self.__state.isAccepting(self.__counterValues)
+        return self.__automaton.nullable
+
     def __init__ (self, automaton):
         self.__automaton = automaton
         self.reset()
 
 class Automaton (object):
     __states = None
+    def __get_states (self):
+        return self.__states
+    states = property(__get_states)
+    
     __counterConditions = None
+    def __get_counterConditions (self):
+        return self.__counterConditions
+    counterConditions = property(__get_counterConditions)
 
-    def __init__ (self, states, counter_conditions):
+    __nullable = None
+    def __get_nullable (self):
+        return self.__nullable
+    nullable = property(__get_nullable)
+
+    def __init__ (self, states, counter_conditions, nullable):
         self.__states = frozenset(states)
         self.__counterConditions = frozenset(counter_conditions)
+        self.__nullable = nullable
 
     def __str__ (self):
         rv = []
@@ -372,98 +414,6 @@ class Automaton (object):
         for s in self.__states:
             rv.append(s._facText())
         return '\n'.join(rv)
-
-class OldAutomaton (object):
-    __termTree = None
-    def __get_termTree (self):
-        return self.__termTree
-    termTree = property(__get_termTree)
-
-    __state = None
-    def __get_state (self):
-        return self.__state
-    state = property(__get_state)
-
-    __counterValues = None
-
-    def __init__ (self, term_tree):
-        self.__termTree = term_tree
-        self.reset()
-
-    def reset (self):
-        tt = self.__termTree
-        self.__state = None
-        self.__counterValues = dict(zip(tt.counters, len(tt.counters) * (1,)))
-
-    def __satisfiable (self, psi):
-        for c in psi.iterkeys():
-            cv = self.__counterValues[c]
-            uv = psi[c]
-            if (INCREMENT == uv) and (cv >= c.max):
-                return False
-            if (RESET == uv) and (cv < c.min):
-                return False
-        return True
-
-    def __updateCounters (self, psi):
-        for (c, uv) in psi.iteritems():
-            if RESET == uv:
-                self.__counterValues[c] = 1
-            else:
-                self.__counterValues[c] += 1
-
-    def isFinal (self):
-        tt = self.__termTree
-        if self.__state is None:
-            return tt.nullable
-        pos = tt.nodePosMap[self.__state]
-        if not (pos in tt.last):
-            return False
-        for cp in tt.counterSubPositions(pos):
-            c = tt.posNodeMap[cp]
-            cv = self.__counterValues[c]
-            if (cv < c.min) or (cv > c.max):
-                return False
-        return True
-
-    def step (self, sym):
-        tt = self.__termTree
-        if self.__state is None:
-            istate = tt.initialStateMap.get(sym)
-            if istate is None:
-                raise RecognitionError(sym)
-            (self.__state,) = istate
-        else:
-            delta = tt.phi[self.__state]
-            sym_trans = delta.get(sym)
-            if sym_trans is None:
-                raise RecognitionError(sym)
-            sel_trans = None
-            for tp in sym_trans:
-                (dst, psi) = tp
-                if self.__satisfiable(psi):
-                    if sel_trans is not None:
-                        raise NondeterministicFACError('multiple satisfiable transitions')
-                    sel_trans = tp
-            if sel_trans is None:
-                raise RecognitionError(sym)
-            (self.__state, psi) = sel_trans
-            self.__updateCounters(psi)
-        return self
-
-    def candidateSymbols (self):
-        return self.__termTree.phi[self.__state].keys()
-
-    def __str__ (self):
-        tt = self.__termTree
-        rv = []
-        if self.__state is None:
-            rv.append("INIT")
-        else:
-            rv.append(str(tt.nodePosMap[self.__state]))
-        rv.append(': ')
-        rv.append(' ; '.join([ '%s = %u' % (tt.nodePosMap[_c], _v) for (_c, _v) in self.__counterValues.iteritems() ]))
-        return ''.join(rv)
 
 class Node (object):
     """Abstract class for any node in the term tree."""
@@ -688,7 +638,7 @@ class Node (object):
                 phi.add((dst, frozenset(uiset)))
             src._setTransitions(frozenset(phi))
 
-        return Automaton(states, counters)
+        return Automaton(states, counters, self.nullable)
 
     __counterPositions = None
     def __get_counterPositions (self):

@@ -98,18 +98,16 @@ class TestFAC (unittest.TestCase):
         self.assertRaises(InvalidTermTreeError, x.buildAutomaton)
 
     def testInternals (self):
-        print self.ex.facToString()
+        #print self.ex.facToString()
         au = self.ex.buildAutomaton()
-        print str(au)
+        #print str(au)
 
-    '''
     def testAutomaton (self):
-        au = Automaton(self.ex)
-        #print 'Initial %s maystart %s' % (au, ' or '.join(au.termTree.initialStateMap.keys()))
+        au = self.ex.buildAutomaton()
+        cfg = Configuration(au)
         for c in 'aabcaa':
-            au.step(c)
-            #print 'eat %s now %s next %s' % (c, au, ' or '.join(au.candidateSymbols()))
-        self.assertTrue(au.isFinal())
+            cfg.step(c)
+        self.assertTrue(cfg.isAccepting())
 
     def testKT2004 (self):
         a = Symbol('a')
@@ -117,34 +115,28 @@ class TestFAC (unittest.TestCase):
         x = NumericalConstraint(Sequence(x, Symbol('c')), 1, 2)
         x = Sequence(NumericalConstraint(Symbol('a'), 0, 1), x, Choice(Symbol('a'), Symbol('d')))
         x = NumericalConstraint(x, 3, 4)
-        au = Automaton(x)
-        #print 'Counters: %s' % (' '.join([ str(x.nodePosMap[_v]) for _v in x.counters]))
+        au = Configuration(x.buildAutomaton())
         for word in ['cacaca', 'abcaccdacd']:
             au.reset()
-            #print 'Initial %s maystart %s' % (au, ' or '.join(au.termTree.initialStateMap.keys()))
             for c in word:
                 au.step(c)
-                #print 'eat %s now %s next %s' % (c, au, ' or '.join(au.candidateSymbols()))
-            self.assertTrue(au.isFinal())
+            self.assertTrue(au.isAccepting())
         for word in ['caca', 'abcaccdac']: # , 'ad']:
             au.reset()
-            #print 'Initial %s maystart %s' % (au, ' or '.join(au.termTree.initialStateMap.keys()))
             for c in word:
                 au.step(c)
-                #print 'eat %s now %s next %s' % (c, au, ' or '.join(au.candidateSymbols()))
-            self.assertFalse(au.isFinal())
+            self.assertFalse(au.isAccepting())
+
+    '''
     def testCJ2010 (self):
         x = NumericalConstraint(Symbol('b'), 1, 2)
         x = NumericalConstraint(Choice(x, Symbol('c')), 2, 2)
         x = Sequence(Symbol('a'), x, Symbol('d'))
-        au = Automaton(x)
-        print 'Initial %s maystart %s' % (au, ' or '.join(au.termTree.initialStateMap.keys()))
+        au = Configuration(x.buildAutomaton())
         for c in 'abbd':
             au.step(c)
-            print 'eat %s now %s next %s' % (c, au, ' or '.join(au.candidateSymbols()))
         self.assertTrue(au.isFinal())
     '''
-            
 
 if __name__ == '__main__':
     unittest.main()
