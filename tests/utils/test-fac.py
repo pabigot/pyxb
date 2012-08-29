@@ -92,6 +92,17 @@ class TestFAC (unittest.TestCase):
         self.assertEqual(1, len(m))
         self.assertEqual([((), frozenset())], m.items())
 
+    def testValidateAutomaton (self):
+        a = Symbol('a')
+        x = Sequence(a, a)
+        self.assertRaises(InvalidTermTreeError, x.buildAutomaton)
+
+    def testInternals (self):
+        print self.ex.facToString()
+        au = self.ex.buildAutomaton()
+        print str(au)
+
+    '''
     def testAutomaton (self):
         au = Automaton(self.ex)
         #print 'Initial %s maystart %s' % (au, ' or '.join(au.termTree.initialStateMap.keys()))
@@ -99,11 +110,6 @@ class TestFAC (unittest.TestCase):
             au.step(c)
             #print 'eat %s now %s next %s' % (c, au, ' or '.join(au.candidateSymbols()))
         self.assertTrue(au.isFinal())
-
-    def testValidateAutomaton (self):
-        a = Symbol('a')
-        x = Sequence(a, a)
-        self.assertRaises(InvalidTermTreeError, lambda _s: _s.states, x)
 
     def testKT2004 (self):
         a = Symbol('a')
@@ -127,7 +133,6 @@ class TestFAC (unittest.TestCase):
                 au.step(c)
                 #print 'eat %s now %s next %s' % (c, au, ' or '.join(au.candidateSymbols()))
             self.assertFalse(au.isFinal())
-    '''
     def testCJ2010 (self):
         x = NumericalConstraint(Symbol('b'), 1, 2)
         x = NumericalConstraint(Choice(x, Symbol('c')), 2, 2)

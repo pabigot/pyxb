@@ -103,13 +103,59 @@ class State (object):
     multiple locations in the tree, and the distinction between these
     positions is critical, a L{State} wrapper is provided to maintain
     distinct values."""
+    
+    def __init__ (self, symbol, is_initial, final_update=None):
+        """Create a FAC state.
+
+        @param symbol : The symbol associated with the state.
+        Normally initialized from the L{Symbol.metadata} value.  The
+        state may be entered if, among other conditions, the L{match}
+        routine accepts the proposed input as being consistent with
+        this value.
+
+        @param is_initial : C{True} iff this state may serve as the
+        first state of the automaton.
+
+        @param final_update : C{None} if this state is not an
+        accepting state of the automaton; otherwise a set of
+        L{UpdateInstruction} values that must be satisfied by the
+        counter values in a configuration as a further restriction of
+        acceptance.  """
+        self.__symbol = symbol
+        self.__isInitial = not not is_initial
+        self.__finalUpdate = final_update
+
     __symbol = None
     def __get_symbol (self):
+        """Application-specific metadata identifying the symbol.
+
+        See also L{match}."""
         return self.__symbol
     symbol = property(__get_symbol)
 
-    def __init__ (self, symbol=None):
-        self.__symbol = symbol
+    __isInitial = None
+    def __get_isInitial (self):
+        """C{True} iff this state may be the first state the automaton enters."""
+        return self.__isInitial
+    isInitial = property(__get_isInitial)
+
+    __finalUpdate = None
+
+    def isAccepting (self, counter_values):
+        """C{True} iff this state is an accepting state for the automaton.
+
+        @param counter_values : Counter values that further validate
+        whether the requirements of the automaton have been met.
+
+        @return : C{True} if this is an accepting state and the
+        counter values relevant at it are satisfied."""
+        if self.__finalUpdate is None:
+            return False
+        return UpdateInstruction.Satisfies(counter_values, self.__finalUpdate)
+
+    __transitionSet = None
+    def _setTransitions (self, transition_set):
+        self.__transitionSet = transition_set
 
     def match (self, symbol):
         """Return C{True} iff the symbol matches for this state.
@@ -118,6 +164,20 @@ class State (object):
         equivalence does not work."""
         return self.__symbol == symbol
 
+    def step (self, symbol):
+        pass
+
+    def __str__ (self):
+        return 'S.%x' % (id(self),)
+
+    def _facText (self):
+        rv = []
+        for (dst, update_instructions) in self.__transitionSet:
+            rv.append('%s -%s-> %s : %s' % (self, self.symbol, dst, ' ; '.join(map(str, update_instructions))))
+        if self.__finalUpdate is not None:
+            rv.append('Final: %s' % (' '.join(map(lambda _ui: str(_ui.counterCondition), self.__finalUpdate))))
+        return '\n'.join(rv)
+    
 class CounterCondition (object):
     """A counter condition is a range limit on valid counter values.
 
@@ -159,6 +219,9 @@ class CounterCondition (object):
         self.__max = max
         self.__metadata = metadata
 
+    def __str__ (self):
+        return 'C.%x{%s,%s}' % (id(self), self.min, self.max is not None and self.max or '')
+
 class UpdateInstruction:
     """An update instruction pairs a counter with a mutation of that counter.
 
@@ -166,7 +229,12 @@ class UpdateInstruction:
     another, and causes the corresponding counter to be incremented or
     reset.  The instruction may only be applied if doing so does not
     violate the conditions of the counter it affects."""
+
     __counterCondition = None
+    def __get_counterCondition (self):
+        return self.__counterCondition
+    counterCondition = property(__get_counterCondition)
+
     __min = None
     __max = None
     __doIncrement = None
@@ -255,6 +323,9 @@ class UpdateInstruction:
         for psi in update_instructions:
             psi.apply(counter_values)
 
+    def __str__ (self):
+        return '%s %s' % (self.__doIncrement and 'inc' or 'reset', self.__counterCondition)
+
 class Configuration (object):
     __state = None
     def __get_state (self):
@@ -285,6 +356,24 @@ class Configuration (object):
         self.reset()
 
 class Automaton (object):
+    __states = None
+    __counterConditions = None
+
+    def __init__ (self, states, counter_conditions):
+        self.__states = frozenset(states)
+        self.__counterConditions = frozenset(counter_conditions)
+
+    def __str__ (self):
+        rv = []
+        rv.append('sigma = %s' % (' '.join(map(lambda _s: str(_s.symbol), self.__states))))
+        rv.append('states = %s' % (' '.join(map(str, self.__states))))
+        rv.append('counters = %s' % (' '.join(map(str, self.__counterConditions))))
+        rv.append('initial = %s' % (' ; '.join([ '%s on %s' % (_s, _s.symbol) for _s in filter(lambda _s: _s.isInitial, self.__states)])))
+        for s in self.__states:
+            rv.append(s._facText())
+        return '\n'.join(rv)
+
+class OldAutomaton (object):
     __termTree = None
     def __get_termTree (self):
         return self.__termTree
@@ -469,6 +558,20 @@ class Node (object):
         an update instruction."""
         raise NotImplementedError('%s.follow' % (self.__class__.__name__,))
 
+    def reset (self):
+        """Reset any term-tree state associated with the node.
+
+        Any change to the structure of the term tree in which the node
+        appears invalidates memoized first/follow sets and related
+        information.  This method clears all that data so it can be
+        recalculated.  It does not clear the L{metadata} link, or any
+        existing structural data."""
+        self.__first = None
+        self.__last = None
+        self.__nullable = None
+        self.__follow = None
+        self.__counterPositions = None
+
     def walkTermTree (self, pre, post, arg):
         """Utility function for term tree processing.
 
@@ -532,91 +635,60 @@ class Node (object):
             ts.append((pos + q, cls._PosConcatUpdateInstruction(pos, psi) ))
         return ts
 
-    def __validateTreeNode (self, node, pos, visited_nodes):
+    def __resetAndValidate (self, node, pos, visited_nodes):
         if node in visited_nodes:
             raise InvalidTermTreeError(self)
+        node.reset()
         visited_nodes.add(node)
 
-    def __buildAutomaton (self, state_ctor=State, ctr_cond_ctor=CounterCondition):
+    def buildAutomaton (self, state_ctor=State, ctr_cond_ctor=CounterCondition):
         # Validate that the term tree is in fact a tree.  A DAG does
         # not work.  If the tree has cycles, this won't even return.
-        self.walkTermTree(self.__validateTreeNode, None, set())
+        self.walkTermTree(self.__resetAndValidate, None, set())
 
-        # Get the FAC states as nodes in the term tree
-        self.__states = frozenset([ self.posNodeMap[_p] for _p in self.follow.iterkeys() ])
+        counter_map = { }
+        for pos in self.counterPositions:
+            nci = self.posNodeMap.get(pos)
+            assert isinstance(nci, NumericalConstraint)
+            assert nci not in counter_map
+            counter_map[pos] = ctr_cond_ctor(nci.min, nci.max, nci.metadata)
+        counters = counter_map.values()
 
-        # All states should be Symbol instances
-        assert reduce(operator.and_, map(lambda _s: isinstance(_s, Symbol), self.__states), True)
+        state_map = { }
+        for pos in self.follow.iterkeys():
+            sym = self.posNodeMap.get(pos)
+            assert isinstance(sym, Symbol)
+            assert sym not in state_map
 
-        # Get the FAC counters as nodes in the term tree
-        self.__counters = frozenset([ self.posNodeMap[_p] for _p in self.counterPositions ])
-        # All counters should be NumericalConstraint instances
-        assert reduce(operator.and_, map(lambda _s: isinstance(_s, NumericalConstraint), self.__counters), True)
+            # The state may be an initial state if it is in the first
+            # set for the root of the term tree.
+            is_initial = pos in self.first
 
-        # Get the transition function as a map from nodes (src) to
-        # maps from symbols to maps from nodes (dst) to update
-        # instructions.
-        self.__phi = {}
+            # The state may be a final state if it is nullable or is
+            # in the last set of the term tree.
+            final_update = None
+            if (() == pos and sym.nullable) or (pos in self.last):
+                # Acceptance is further constrained by the counter
+                # values satisfying an update rule that would reset
+                # all counters that are relevant at the state.
+                final_update = set()
+                for nci in map(counter_map.get, self.counterSubPositions(pos)):
+                    final_update.add(UpdateInstruction(nci, False))
+            state_map[pos] = state_ctor(sym.metadata, is_initial=is_initial, final_update=final_update)
+        states = state_map.values()
+
         for (p, transition_set) in self.follow.iteritems():
-            src = self.posNodeMap[p]
-            self.__phi[src] = delta = {}
-            for (q, psi) in transition_set:
-                npsi = {}
+            src = state_map[p]
+            phi = set()
+            for (dpos, psi) in transition_set:
+                dst = state_map[dpos]
+                uiset = set()
                 for (c, u) in psi.iteritems():
-                    npsi[self.posNodeMap[c]] = u
-                dst = self.posNodeMap[q]
-                delta.setdefault(dst.metadata, []).append((dst, npsi))
-        self.__initialStateMap = {}
-        for p in self.first:
-            n = self.posNodeMap[p]
-            if isinstance(n, Symbol):
-                self.__initialStateMap.setdefault(n.metadata, set()).add(n)
+                    uiset.add(UpdateInstruction(counter_map[c], INCREMENT == u))
+                phi.add((dst, frozenset(uiset)))
+            src._setTransitions(frozenset(phi))
 
-    __states = None
-    def __get_states (self):
-        """The set of L{symbols <Symbol>} that serve as states in the FAC."""
-        if self.__states is None:
-            self.__buildAutomaton()
-        return self.__states
-    states = property(__get_states)
-
-    __initialStateMap = None
-    def __get_initialStateMap (self):
-        """The set of L{symbols <Symbol>} that can be initial states in the FAC."""
-        if self.__initialStateMap is None:
-            self.__buildAutomaton()
-        return self.__initialStateMap
-    initialStateMap = property(__get_initialStateMap)
-
-    __counters = None
-    def __get_counters (self):
-        """The set of L{counters <NumericalConstraint>} relevant to processing the FAC."""
-        if self.__counters is None:
-            self.__buildAutomaton()
-        return self.__counters
-    counters = property(__get_counters)
-
-    __phi = None
-    def __get_phi (self):
-        """The transition function for the FAC.
-
-        Given a source L{state <Symbol>} C{src}, the value C{phi[src]}
-        is a map showing potential transitions from C{src}.  The map
-        is keyed by the L{symbol <Symbol>} that enables the
-        transitions.
-
-        A transition is a map from a destination L{state <Symbol>}
-        C{dst} to the update instruction that must be applied if that
-        transition is selected.
-
-        The same symbol may be used for multiple
-        transitions.  If the FAC is deterministic, only one of those
-        transitions has an update instruction that is satisfied by the
-        FAC counter state."""
-        if self.__phi is None:
-            self.__buildAutomaton()
-        return self.__phi
-    phi = property(__get_phi)
+        return Automaton(states, counters)
 
     __counterPositions = None
     def __get_counterPositions (self):
@@ -648,23 +720,24 @@ class Node (object):
                 rv.add(cpos)
         return frozenset(rv)
 
-    def displayAutomaton (self):
-        positions = sorted(self.posNodeMap.keys())
-        for p in positions:
-            n = self.posNodeMap[p]
-            print '%s recognizes %s' % (p, n)
-            print '\tfirst: %s' % (' '.join(map(str,n.first)),)
-            print '\tlast: %s' % (' '.join(map(str,n.last)),)
-        for (src, trans_map) in self.phi.iteritems():
-            print '%s recognizing %s:' % (self.nodePosMap[src], src)
-            for (sym, transition_set) in trans_map.iteritems():
-                for (dst, psi) in transition_set:
-                    av = []
-                    for (c, uv) in psi.iteritems():
-                        av.append('%s %s' % (self.nodePosMap[c], (uv == INCREMENT) and 'inc' or 'res'))
-                    print '\t%s via %s: %s' % (self.nodePosMap[dst], sym, ' , '.join(av))
-        for p in self.last:
-            print 'Final %s: %s' % (str(p), ' '.join([ str(_p) for _p in self.counterSubPositions(p)]))
+    def facToString (self):
+        rv = []
+        rv.append('r\t= %s' % (str(self),))
+        states = self.follow.keys()
+        rv.append('sym(r)\t= %s' % (' '.join(map(str, map(self.posNodeMap.get, states)))))
+        rv.append('first(r)\t= %s' % (' '.join(map(str, self.first))))
+        rv.append('last(r)\t= %s' % (' '.join(map(str, self.last))))
+        rv.append('C\t= %s' % (' '.join(map(str, self.counterPositions))))
+        for pos in self.first:
+            rv.append('qI(%s) -> %s' % (self.posNodeMap[pos].metadata, str(pos)))
+        for spos in states:
+            for (dpos, transition_set) in self.follow[spos]:
+                dst = self.posNodeMap[dpos]
+                uv = []
+                for (c, u) in transition_set.iteritems():
+                    uv.append('%s %s' % (u == INCREMENT and "inc" or "rst", str(c)))
+                rv.append('%s -%s-> %s ; %s' % (str(spos), dst.metadata, str(dpos), ' ; '.join(uv)))
+        return '\n'.join(rv)
 
 class MultiTermNode (Node):
     """Intermediary for nodes that have multiple child nodes."""
