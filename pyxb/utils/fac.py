@@ -54,28 +54,22 @@ only positions that are leaf nodes in the term tree remain, and the
 corresponding symbol value (Python instance) is used as the position.
 
 An B{update instruction} (C{psi}) is a map from positions to either
-L{RESET} or L{INCREMENT}.  It identifies actions to be taken on the
-counter states corresponding to the positions in its domain.
+L{Node.RESET} or L{Node.INCREMENT}.  It identifies actions to be taken
+on the counter states corresponding to the positions in its domain.
 
 A B{transition} is a pair containing a position and an update instruction.
 It identifies a potential next node in the state and the updates that
 are to be performed if the transition is taken.
 
-A B{follow value} is a map from a pos to a set of transitions that may
-originate from the pos.  This set is represented as a Python list
-since update instructions are dicts and cannot be hashed.
+A B{follow value} is a map from a position to a set of transitions
+that may originate from the pos.  This set is represented as a Python
+list since update instructions are dicts and cannot be hashed.
 """
 
 import operator
 import logging
 
 log_ = logging.getLogger(__name__)
-
-RESET = False
-"""An arbitrary value representing reset of a counter."""
-
-INCREMENT = True
-"""An arbitrary value representing increment of a counter."""
 
 class FACError (Exception):
     pass
@@ -90,9 +84,6 @@ class CounterApplicationError (FACError):
     """Exception raised when an unsatisfied update instruction is executed.
 
     This indicates an internal error in the implementation."""
-    pass
-
-class NondeterministicFACError (Exception):
     pass
 
 class RecognitionError (Exception):
@@ -110,16 +101,16 @@ class State (object):
     def __init__ (self, symbol, is_initial, final_update=None):
         """Create a FAC state.
 
-        @param symbol : The symbol associated with the state.
+        @param symbol: The symbol associated with the state.
         Normally initialized from the L{Symbol.metadata} value.  The
         state may be entered if, among other conditions, the L{match}
         routine accepts the proposed input as being consistent with
         this value.
 
-        @param is_initial : C{True} iff this state may serve as the
+        @param is_initial: C{True} iff this state may serve as the
         first state of the automaton.
 
-        @param final_update : C{None} if this state is not an
+        @param final_update: C{None} if this state is not an
         accepting state of the automaton; otherwise a set of
         L{UpdateInstruction} values that must be satisfied by the
         counter values in a configuration as a further restriction of
@@ -143,21 +134,43 @@ class State (object):
     isInitial = property(__get_isInitial)
 
     __finalUpdate = None
-
     def isAccepting (self, counter_values):
         """C{True} iff this state is an accepting state for the automaton.
 
-        @param counter_values : Counter values that further validate
+        @param counter_values: Counter values that further validate
         whether the requirements of the automaton have been met.
 
-        @return : C{True} if this is an accepting state and the
+        @return: C{True} if this is an accepting state and the
         counter values relevant at it are satisfied."""
         if self.__finalUpdate is None:
             return False
         return UpdateInstruction.Satisfies(counter_values, self.__finalUpdate)
 
     __transitionSet = None
+    def __get_transitionSet (self):
+        """Definitions of viable transitions from this state.
+
+        The transition set of a state is a set of pairs where the first
+        member is the destination L{State} and the second member is the
+        set of L{UpdateInstruction}s that apply when the automaton
+        transitions to the destination state."""
+        return self.__transitionSet
+    transitionSet = property(__get_transitionSet)
+    
     def _setTransitions (self, transition_set):
+        """Method invoked during automaton construction to set the
+        legal transitions from the state.
+
+        The set of transitions cannot be defined until all states that
+        appear in it are available, so the creation of the automaton
+        requires that the association of the transition set be
+        delayed.
+
+        @param transition_set: a set of pairs where the first
+        member is the destination L{State} and the second member is the
+        set of L{UpdateInstruction}s that apply when the automaton
+        transitions to the destination state."""
+
         self.__transitionSet = transition_set
 
     def match (self, symbol):
@@ -168,6 +181,22 @@ class State (object):
         return self.__symbol == symbol
 
     def candidateTransitions (self, symbol):
+        """Return the set of transitions for which the destination
+        accepts C{symbol} as a match.
+        
+        The returned set may have multiple members.  If the automaton
+        is not deterministic, the set may have multiple members even
+        after it is further filtered to eliminate transitions where
+        the update instructions are not satisfied.
+        
+        @param symbol: A symbol against which the destination
+        L{State.match} operation is invoked.
+
+        @return: A set of pairs where the first member is a
+        destination L{State} that would accept C{symbol} and the
+        second member is the set of L{UpdateInstruction} that would
+        apply if the automaton were to transition to that destination
+        state in accordance."""
         return filter(lambda _step: _step[0].match(symbol), self.__transitionSet)
 
     def __str__ (self):
@@ -214,9 +243,9 @@ class CounterCondition (object):
     def __init__ (self, min, max, metadata=None):
         """Create a counter condition.
 
-        @param min : The value for L{min}
-        @param max : The value for L{max}
-        @param metadata : The value for L{metadata}
+        @param min: The value for L{min}
+        @param max: The value for L{max}
+        @param metadata: The value for L{metadata}
         """
         self.__min = min
         self.__max = max
@@ -226,7 +255,8 @@ class CounterCondition (object):
         return 'C.%x{%s,%s}' % (id(self), self.min, self.max is not None and self.max or '')
 
 class UpdateInstruction:
-    """An update instruction pairs a counter with a mutation of that counter.
+    """An update instruction pairs a counter with a mutation of that
+    counter.
 
     The instruction is executed during a transition from one state to
     another, and causes the corresponding counter to be incremented or
@@ -245,11 +275,11 @@ class UpdateInstruction:
     def __init__ (self, counter_condition, do_increment):
         """Create an update instruction.
 
-        @param counter_condition : A L{CounterCondition} identifying a
+        @param counter_condition: A L{CounterCondition} identifying a
         minimum and maximum value for a counter, and serving as a map
         key for the value of the corresponding counter.
 
-        @param do_increment : C{True} if the update is to increment
+        @param do_increment: C{True} if the update is to increment
         the value of the counter; C{False} if the update is to reset
         the counter.
         """
@@ -265,7 +295,7 @@ class UpdateInstruction:
         its action may be legitimately applied to the value of its
         associated counter.
 
-        @param counter_values : A map from  L{CounterCondition}s to
+        @param counter_values: A map from  L{CounterCondition}s to
         non-negative integers
 
         @return:  C{True} or C{False}
@@ -285,10 +315,10 @@ class UpdateInstruction:
         """Return C{True} iff the counter values satisfy the update
         instructions.
 
-        @param counter_values : A map from L{CounterCondition} to
+        @param counter_values: A map from L{CounterCondition} to
         integer counter values
 
-        @param update_instructions : A set of L{UpdateInstruction}
+        @param update_instructions: A set of L{UpdateInstruction}
         instances
 
         @return: C{True} iff all instructions are satisfied by the
@@ -301,7 +331,7 @@ class UpdateInstruction:
     def apply (self, counter_values):
         """Apply the update instruction to the provided counter values.
 
-        @param counter_values : A map from L{CounterCondition} to
+        @param counter_values: A map from L{CounterCondition} to
         inter counter values.  This map is updated in-place."""
         if not self.satisfiedBy(counter_values):
             raise CounterSatisfactionError(self, counter_values)
@@ -316,10 +346,10 @@ class UpdateInstruction:
     def Apply (cls, update_instructions, counter_values):
         """Apply the update instructions to the counter values.
 
-        @param update_instructions : A set of L{UpdateInstruction}
+        @param update_instructions: A set of L{UpdateInstruction}
         instances.
 
-        @param counter_values : A map from L{CounterCondition}
+        @param counter_values: A map from L{CounterCondition}
         instances to non-negative integers.  This map is updated
         in-place by applying each instruction in
         C{update_instructions}."""
@@ -354,7 +384,24 @@ class Configuration (object):
         self.__state = None
         self.__counterValues = dict(zip(fac.counterConditions, len(fac.counterConditions) * (1,)))
 
-    def multiStep (self, symbol):
+    def candidateTransitions (self, symbol):
+        """Return set of viable transitions on C{symbol}
+
+        This is the result of L{State.candidateTransitions} from the
+        current state, filtering out those transitions where the
+        update instruction is not satisfied by the current automaton
+        configuration.
+
+        @param symbol: A symbol through which a transition from this
+        state is intended.
+
+        @return: A set of pairs where the first member is a
+        destination L{State} that would accept C{symbol} and the
+        second member is the set of L{UpdateInstruction} that would
+        apply if the automaton were to transition to that destination
+        state in accordance.  Non-deterministic automata may result in
+        a set with multiple members. """
+        
         fac = self.__automaton
         if self.__state is None:
             transitions = set()
@@ -363,10 +410,25 @@ class Configuration (object):
                     transitions.add((s, frozenset()))
         else:
             transitions = self.__state.candidateTransitions(symbol)
-        return filter(lambda _phi: (_phi[1] is None) or UpdateInstruction.Satisfies(self.__counterValues, _phi[1]), transitions)
+        return filter(lambda _phi: UpdateInstruction.Satisfies(self.__counterValues, _phi[1]), transitions)
+
+    def candidateSymbols (self):
+        """Return the set of symbols which would permit transition from this state.
+
+        This is L{State.transitionSet} from the current state,
+        filtering out those transitions where the update instructions
+        are not satisfied."""
+        if self.__state is None:
+            transitions = set()
+            for s in fac.states:
+                if s.isInitial:
+                    transitions.add((s, frozenset()))
+        else:
+            transitions = self.__state.transitions
+        return filter(lambda _phi: UpdateInstruction.Satisfies(self.__counterValues, _phi[1]), transitions)
 
     def step (self, symbol):
-        transitions = self.multiStep(symbol)
+        transitions = self.candidateTransitions(symbol)
         if 0 == len(transitions):
             raise RecognitionError('Unable to match symbol %s' % (symbol,))
         if 1 < len(transitions):
@@ -425,10 +487,16 @@ class Node (object):
     term must be enclosed in parentheses when forming a text
     expression representing the containing term."""
 
+    RESET = False
+    """An arbitrary value representing reset of a counter."""
+
+    INCREMENT = True
+    """An arbitrary value representing increment of a counter."""
+
     def __init__ (self, **kw):
         """Create a FAC term-tree node.
 
-        @kw metadata : Any application-specific metadata retained in
+        @keyword metadata: Any application-specific metadata retained in
         the term tree for transfer to the resulting automaton."""
         self.__metadata = kw.get('metadata')
 
@@ -525,17 +593,17 @@ class Node (object):
     def walkTermTree (self, pre, post, arg):
         """Utility function for term tree processing.
 
-        @param pre : a callable that, unless C{None}, is invoked at
+        @param pre: a callable that, unless C{None}, is invoked at
         each node C{n} with parameters C{n}, C{pos}, and C{arg}, where
         C{pos} is the tuple of integers identifying the path from the
         node at on which this method was invoked to the node being
         processed.  The invocation occurs before processing any
         subordinate nodes.
 
-        @param post : as with C{pre} but invocation occurs after
+        @param post: as with C{pre} but invocation occurs after
         processing any subordinate nodes.
 
-        @param arg : a value passed to invocations of C{pre} and
+        @param arg: a value passed to invocations of C{pre} and
         C{post}."""
         self._walkTermTree((), pre, post, arg)
 
@@ -634,7 +702,7 @@ class Node (object):
                 dst = state_map[dpos]
                 uiset = set()
                 for (c, u) in psi.iteritems():
-                    uiset.add(UpdateInstruction(counter_map[c], INCREMENT == u))
+                    uiset.add(UpdateInstruction(counter_map[c], self.INCREMENT == u))
                 phi.add((dst, frozenset(uiset)))
             src._setTransitions(frozenset(phi))
 
@@ -670,7 +738,11 @@ class Node (object):
                 rv.add(cpos)
         return frozenset(rv)
 
-    def facToString (self):
+    def _facToString (self):
+        """Obtain a description of the FAC in text format.
+
+        This is a diagnostic tool, returning first, last, and follow
+        maps using positions."""
         rv = []
         rv.append('r\t= %s' % (str(self),))
         states = self.follow.keys()
@@ -685,7 +757,7 @@ class Node (object):
                 dst = self.posNodeMap[dpos]
                 uv = []
                 for (c, u) in transition_set.iteritems():
-                    uv.append('%s %s' % (u == INCREMENT and "inc" or "rst", str(c)))
+                    uv.append('%s %s' % (u == self.INCREMENT and "inc" or "rst", str(c)))
                 rv.append('%s -%s-> %s ; %s' % (str(spos), dst.metadata, str(dpos), ' ; '.join(uv)))
         return '\n'.join(rv)
 
@@ -776,9 +848,9 @@ class NumericalConstraint (Node):
                     q1 = pp+sq1
                     psi = {}
                     for p1 in self.__term.counterSubPositions(q):
-                        psi[pp+p1] = RESET
+                        psi[pp+p1] = self.RESET
                     if (1 != self.min) or (self.max is not None):
-                        psi[()] = INCREMENT
+                        psi[()] = self.INCREMENT
                     rv[pp+q].append((q1, psi))
         assert not last_r1
         return rv
@@ -902,7 +974,7 @@ class Sequence (MultiTermNode):
                     q1 = (c+1,) + sq1
                     psi = {}
                     for p1 in t.counterSubPositions(q):
-                        psi[pp + p1] = RESET
+                        psi[pp + p1] = self.RESET
                     rv[pp+q].append((q1, psi))
         return rv
             
