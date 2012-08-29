@@ -1,30 +1,66 @@
 # -*- coding: utf-8 -*-
+# Copyright 2012, Peter A. Bigot
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain a
+# copy of the License at:
+#
+#            http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
 
-# "Regular Expressions with Numerical Constraints and Automata with
-# Counters", Dag Hovland.  Proceedings of the 6th International
-# Colloquium on Theoretical Aspects of Computing, pp 231--245.  Pages
-# 231 - 245 Springer-Verlag Berlin, Heidelberg, 2009.
-#
-# http://www.ii.uib.no/~dagh/
-#
-# LATA 2012: The Membership Problem for Regular Expressions with
-# Unordered Concatenation and Numerical Constraints
-# (http://www.ii.uib.no/~dagh/presLATA2012.pdf)
+"""This module provides Finite Automata with Counters.
+
+FACs are type of state machine where a transition may include a
+constraint and a modification to a set of counters.  They are used to
+implement regular expressions with numerical constraints, as are found
+in POSIX regexp, Perl, and XML schema.
+
+The implementation here derives from U{Regular Expressions with
+Numerical Constraints and Automata with Counters
+<https://bora.uib.no/bitstream/1956/3628/3/Hovland_LNCS%205684.pdf>},
+Dag Hovland, Lecture Notes in Computer Science, 2009, Volume 5684,
+Theoretical Aspects of Computing - ICTAC 2009, Pages 231-245.
  
-"""
+A regular expression is directly translated into a term tree, where
+nodes are operators such as sequence, choice, and counter
+restrictions, and the leaf nodes denote symbols in the language of the
+regular expression.
 
-A pos (position) is a tuple of non-negative integers comprising a path
-from a node in the term tree.  It identifies a node in the tree.
+In the case of XML content models, the symbols include L{element
+declarations <pyxb.xmlschema.structures.ElementDeclaration>} and
+L{wildcard elements <pyxb.xmlschema.structures.Wildcard>}.  A
+numerical constraint node corresponds to an L{XML particle
+<pyxb.xmlschema.structures.Particle>}, and choice and sequence nodes
+derive from L{model groups <pyxb.xmlschema.structures.ModelGroup>} of
+types B{choice} and B{sequence}.  As suggested in U{The Membership
+Problem for Regular Expressions with Unordered Concatenation and
+Numerical Constraints <http://www.ii.uib.no/~dagh/presLATA2012.pdf>}
+the B{all} content model can be translated into state machine using
+choice and sequence at the cost of a quadratic size explosion;
+consequently this type of node is likely to become a leaf node in the
+FAC that manages internal transitions among a set of subordinate FACs
+corresponding to the alternatives in the group.
 
-An update instruction (psi) is a map from positions to either RESET or
-INCREMENT.  It identifies actions to be taken on the counter states
-corresponding to the positions in its domain.
+In its original form a B{position} (C{pos}) is a tuple of non-negative
+integers comprising a path from a node in the term tree.  It
+identifies a node in the tree.  After the FAC has been constructed,
+only positions that are leaf nodes in the term tree remain, and the
+corresponding symbol value (Python instance) is used as the position.
 
-A transition is a pair containing a pos and an update instruction.
-It identifies a potential next node in the state and  updates that
+An B{update instruction} (C{psi}) is a map from positions to either
+L{RESET} or L{INCREMENT}.  It identifies actions to be taken on the
+counter states corresponding to the positions in its domain.
+
+A B{transition} is a pair containing a position and an update instruction.
+It identifies a potential next node in the state and the updates that
 are to be performed if the transition is taken.
 
-A follow value is a map from a pos to a set of transitions that may
+A B{follow value} is a map from a pos to a set of transitions that may
 originate from the pos.  This set is represented as a Python list
 since update instructions are dicts and cannot be hashed.
 """
@@ -32,10 +68,10 @@ since update instructions are dicts and cannot be hashed.
 import operator
 
 RESET = False
-INCREMENT = True
+"""An arbitrary value representing reset of a counter."""
 
-class PositionError (LookupError):
-    pass
+INCREMENT = True
+"""An arbitrary value representing increment of a counter."""
 
 def posConcatPosSet (pos, pos_set):
     """Definition 11.1"""
@@ -609,146 +645,3 @@ class Symbol (Node):
 
     def __str__ (self):
         return str(self.__symbol)
-
-import unittest
-class TestFAC (unittest.TestCase):
-
-    a = Symbol('a')
-    b = Symbol('b')
-    c = Symbol('c')
-    aOb = Choice(a, b)
-    aTb = Sequence(a, b)
-    a2 = NumericalConstraint(a, 2, 2)
-    bTc = Sequence(b, c)
-    a2ObTc = Choice(a2, bTc)
-    aXb = All(a, b)
-    ex = NumericalConstraint(a2ObTc, 3, 5)
-
-    def testSymbol (self):
-        self.assertEqual('a', self.a.symbol)
-
-    def testNumericalConstraint (self):
-        self.assertEqual(self.a2ObTc, self.ex.term)
-        self.assertEqual(3, self.ex.min)
-        self.assertEqual(5, self.ex.max)
-
-    def testBasicStr (self):
-        self.assertEqual('a', str(self.a))
-        self.assertEqual('b', str(self.b))
-        self.assertEqual('a+b', str(self.aOb))
-        self.assertEqual('a.b', str(self.aTb))
-        self.assertEqual('&(a,b)', str(self.aXb))
-        x = Choice(self.b, self.aTb)
-        self.assertEqual('b+a.b', str(x))
-        x = Sequence(self.a, self.aOb)
-        self.assertEqual('a.(a+b)', str(x))
-        x = NumericalConstraint(self.a2ObTc, 3, 5)
-        self.assertEqual('(a^(2,2)+b.c)^(3,5)', str(x))
-
-    def testNullable (self):
-        x = NumericalConstraint(self.a, 0, 1)
-        self.assertTrue(x.nullable)
-        self.assertFalse(self.a.nullable)
-        self.assertFalse(self.aOb.nullable)
-        self.assertFalse(self.aTb.nullable)
-        self.assertFalse(self.aXb.nullable)
-        x = NumericalConstraint(self.a, 1, 4)
-        self.assertFalse(x.nullable)
-
-    def testFirst (self):
-        null_position = frozenset([()])
-        p0 = frozenset([(0,)])
-        p1 = frozenset([(1,)])
-        p0or1 = frozenset(set(p0).union(p1))
-        self.assertEqual(null_position, self.a.first)
-        for p in self.a.first:
-            self.assertEqual(self.a, self.a.followPosition(p))
-        self.assertEqual(p0or1, self.aOb.first)
-        self.assertEqual(p0, self.aTb.first)
-        for p in self.aTb.first:
-            self.assertEqual(self.a, self.aTb.followPosition(p))
-        rs = set()
-        for p in self.a2ObTc.first:
-            rs.add(self.a2ObTc.followPosition(p))
-        self.assertEqual(frozenset([self.a, self.b]), rs)
-
-    def testLast (self):
-        null_position = frozenset([()])
-        p0 = frozenset([(0,)])
-        p1 = frozenset([(1,)])
-        p0or1 = frozenset(set(p0).union(p1))
-        self.assertEqual(null_position, self.a.last)
-        self.assertEqual(p0or1, self.aOb.last)
-        self.assertEqual(p1, self.aTb.last)
-        rs = set()
-        for p in self.a2ObTc.last:
-            rs.add(self.a2ObTc.followPosition(p))
-        self.assertEqual(frozenset([self.a, self.c]), rs)
-
-    def testWalkTermTree (self):
-        pre_pos = []
-        post_pos = []
-        set_sym_pos = lambda _n,_p,_a: isinstance(_n, Symbol) and _a.append(_p)
-        self.ex.walkTermTree(set_sym_pos, None, pre_pos)
-        self.ex.walkTermTree(None, set_sym_pos, post_pos)
-        self.assertEqual(pre_pos, post_pos)
-        self.assertEqual([(0,0,0),(0,1,0),(0,1,1)], pre_pos)
-
-    def testCounterPositions (self):
-        self.assertEqual(frozenset([(), (0,0)]), self.ex.counterPositions)
-
-    def testFollow (self):
-        m = self.a.follow
-        self.assertEqual(1, len(m))
-        self.assertEqual([((), frozenset())], m.items())
-
-    def testAutomaton (self):
-        au = Automaton(self.ex)
-        print 'Initial %s maystart %s' % (au, ' or '.join(au.termTree.initialStateMap.keys()))
-        for c in 'aabcaa':
-            au.step(c)
-            print 'eat %s now %s next %s' % (c, au, ' or '.join(au.candidateSymbols()))
-        self.assertTrue(au.isFinal())
-
-    def testValidateAutomaton (self):
-        a = Symbol('a')
-        x = Sequence(a, a)
-        self.assertRaises(InvalidFACError, lambda _s: _s.states, x)
-
-    def testKT2004 (self):
-        a = Symbol('a')
-        x = NumericalConstraint(Symbol('b'), 0, 1)
-        x = NumericalConstraint(Sequence(x, Symbol('c')), 1, 2)
-        x = Sequence(NumericalConstraint(Symbol('a'), 0, 1), x, Choice(Symbol('a'), Symbol('d')))
-        x = NumericalConstraint(x, 3, 4)
-        au = Automaton(x)
-        print 'Counters: %s' % (' '.join([ str(x.nodePosMap[_v]) for _v in x.counters]))
-        for word in ['cacaca', 'abcaccdacd']:
-            au.reset()
-            print 'Initial %s maystart %s' % (au, ' or '.join(au.termTree.initialStateMap.keys()))
-            for c in word:
-                au.step(c)
-                print 'eat %s now %s next %s' % (c, au, ' or '.join(au.candidateSymbols()))
-            self.assertTrue(au.isFinal())
-        for word in ['caca', 'abcaccdac', 'ad']:
-            au.reset()
-            print 'Initial %s maystart %s' % (au, ' or '.join(au.termTree.initialStateMap.keys()))
-            for c in word:
-                au.step(c)
-                print 'eat %s now %s next %s' % (c, au, ' or '.join(au.candidateSymbols()))
-            self.assertFalse(au.isFinal())
-
-    def testCJ2010 (self):
-        x = NumericalConstraint(Symbol('b'), 1, 2)
-        x = NumericalConstraint(Choice(x, Symbol('c')), 2, 2)
-        x = Sequence(Symbol('a'), x, Symbol('d'))
-        au = Automaton(x)
-        print 'Initial %s maystart %s' % (au, ' or '.join(au.termTree.initialStateMap.keys()))
-        for c in 'abbd':
-            au.step(c)
-            print 'eat %s now %s next %s' % (c, au, ' or '.join(au.candidateSymbols()))
-        self.assertTrue(au.isFinal())
-            
-
-if __name__ == '__main__':
-    unittest.main()
