@@ -8,6 +8,8 @@ import pyxb.binding.basis
 import pyxb.utils.saxutils
 import tempfile
 import xml.sax
+import logging
+_log = logging.getLogger(__name__)
 
 import os.path
 xsd=u'''<?xml version="1.0" encoding="utf-8"?>
@@ -18,7 +20,7 @@ xsd=u'''<?xml version="1.0" encoding="utf-8"?>
 
 #file('schema.xsd', 'w').write(xsd)
 code = pyxb.binding.generate.GeneratePython(schema_text=xsd)
-file('code.py', 'w').write(code)
+#file('code.py', 'w').write(code)
 #print code
 
 rv = compile(code.encode('utf-8'), 'test', 'exec')
@@ -65,7 +67,6 @@ class TestTrac_0139 (unittest.TestCase):
             import drv_libxml2
         except ImportError:
             self.have_libxml2 = False
-            print 'WARNING: libxml2 not present, test is not valid'
 
     # NOTE: Init-lower version does not exist before Python 2.7, so
     # make this non-standard and invoke it in del
@@ -110,6 +111,9 @@ class TestTrac_0139 (unittest.TestCase):
         self.assertEqual(self.ascii, instance)
 
     def testASCII_libxml2_str (self):
+        if not self.have_libxml2:
+            _log.warning('%s: testASCII_libxml2_str bypassed since libxml2 not present', __file__)
+            return
         self.useLibXML2Parser();
         xmls = self.ascii_xml
         # ERROR: This should be fine, see trac/147
@@ -125,6 +129,9 @@ class TestTrac_0139 (unittest.TestCase):
         self.assertEqual(self.ascii, instance)
 
     def testASCII_libxml2_file (self):
+        if not self.have_libxml2:
+            _log.warning('%s: testASCII_libxml2_file bypassed since libxml2 not present', __file__)
+            return
         self.useLibXML2Parser();
         xmls = file(self.path_ascii).read()
         instance = CreateFromDocument(xmls)
@@ -139,19 +146,23 @@ class TestTrac_0139 (unittest.TestCase):
         self.assertRaises(xml.sax.SAXParseException, CreateFromDocument, xmls)
 
     def testNihongo_libxml2_str (self):
+        if not self.have_libxml2:
+            _log.warning('%s: testNihongo_libxml2_str bypassed since libxml2 not present', __file__)
+            return
         xmls = self.nihongo_xml
-        if self.have_libxml2:
-            # ERROR: This should be fine, see trac/147
-            #instance = CreateFromDocument(xmls)
-            #self.assertEqual(self.nihongo, instance)
-            self.assertRaises(UnicodeEncodeError, CreateFromDocument, xmls)
+        # ERROR: This should be fine, see trac/147
+        #instance = CreateFromDocument(xmls)
+        #self.assertEqual(self.nihongo, instance)
+        self.assertRaises(UnicodeEncodeError, CreateFromDocument, xmls)
 
     def testNihongo_libxml2_file (self):
+        if not self.have_libxml2:
+            _log.warning('%s: testNihongo_libxml2_file bypassed since libxml2 not present', __file__)
+            return
         self.useLibXML2Parser();
-        if self.have_libxml2:
-            xmls = file(self.path_nihongo).read()
-            instance = CreateFromDocument(xmls)
-            self.assertEqual(self.nihongo, instance)
+        xmls = file(self.path_nihongo).read()
+        instance = CreateFromDocument(xmls)
+        self.assertEqual(self.nihongo, instance)
 
     def testASCII_stringio (self):
         f = file(self.path_ascii).read();
