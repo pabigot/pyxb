@@ -4,6 +4,8 @@ import pyxb.binding.datatypes as xs
 import pyxb.binding.basis
 import pyxb.utils.domutils
 import gc
+import logging
+_log = logging.getLogger(__name__)
 
 import os.path
 xsd='''<?xml version="1.0" encoding="UTF-8"?>
@@ -40,14 +42,24 @@ import unittest
 import os
 
 class TestBug_200908271556(unittest.TestCase):
-    # No, this isn't portable.  No, I don't care.
-    __statm = file('/proc/%d/statm' % (os.getpid(),))
+    # Somebody cares, so make this OS-dependent.
+    __statm = None
+    if sys.platform.startswith('linux'):
+        __statm = file('/proc/%d/statm' % (os.getpid(),))
 
     def __getMem (self):
-        self.__statm.seek(0)
-        return int(self.__statm.read().split()[0])
+        if self.__statm is not None:
+            self.__statm.seek(0)
+            return int(self.__statm.read().split()[0])
+        raise NotImplementedError()
 
     def testMemory (self):
+        # Only proceed if the OS provides a way to get the process memory
+        try:
+            self.__getMem()
+        except NotImplementedError:
+            _log.warning('%s: test not supported on platform', __file__)
+            return
         xmls = '<instance><inner><text>text</text><number>45</number></inner></instance>'
         base_at = 10
         check_at = 20
