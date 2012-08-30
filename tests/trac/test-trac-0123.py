@@ -34,7 +34,7 @@ class TestTrac0123 (unittest.TestCase):
         try:
             import pyxb.bundles.wssplat.ds as dsig
         except ImportError, e:
-            sys.stderr.write('%s: Skipping test, error importing dsig: %s\n' % (__file__, e))
+            _log.warning('%s: skipping test, error importing dsig', __file__)
             return
         instance = dsig.CreateFromDocument(xmls)
         # Problem was the PrefixList attribute in InclusiveNamespaces,
