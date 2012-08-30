@@ -38,8 +38,13 @@ class PyXBException (exceptions.Exception):
     def __init__ (self, *args, **kw):
         """Create an exception indicating a PyXB-related problem.
 
+        If no args are present, a default argument is taken from the
+        C{message} keyword.
+
         @keyword message : Text to provide the user with information about the problem.
         """
+        if 0 == len(args) and 'message' in kw:
+            args = (kw.pop('message'),)
         self._args = args
         self._kw = kw
         exceptions.Exception.__init__(self, *args)
