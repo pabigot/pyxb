@@ -1,4 +1,8 @@
 # -*- coding: utf-8 -*-
+import logging
+if __name__ == '__main__':
+    logging.basicConfig()
+_log = logging.getLogger(__name__)
 import pyxb
 import pyxb.xmlschema.structures
 import pyxb.utils.domutils

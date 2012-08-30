@@ -1,4 +1,8 @@
 # -*- coding: iso-2022-jp -*-
+import logging
+if __name__ == '__main__':
+    logging.basicConfig()
+_log = logging.getLogger(__name__)
 #
 
 import sys
@@ -8,8 +12,6 @@ import pyxb.binding.basis
 import pyxb.utils.saxutils
 import tempfile
 import xml.sax
-import logging
-_log = logging.getLogger(__name__)
 
 import os.path
 xsd=u'''<?xml version="1.0" encoding="utf-8"?>

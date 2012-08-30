@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
+import logging
+if __name__ == '__main__':
+    logging.basicConfig()
+_log = logging.getLogger(__name__)
 import pyxb.binding.generate
 import pyxb.binding.datatypes as xs
 import pyxb.binding.basis
 import pyxb.utils.domutils
 import gc
-import logging
-_log = logging.getLogger(__name__)
 
 import os.path
 xsd='''<?xml version="1.0" encoding="UTF-8"?>

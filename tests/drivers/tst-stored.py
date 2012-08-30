@@ -1,4 +1,8 @@
 # -*- coding: utf-8 -*-
+import logging
+if __name__ == '__main__':
+    logging.basicConfig()
+_log = logging.getLogger(__name__)
 import pyxb
 
 print "\n".join([ str(_ns) for _ns in pyxb.namespace.AvailableNamespaces() ])

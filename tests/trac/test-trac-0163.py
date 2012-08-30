@@ -1,4 +1,8 @@
 # -*- coding: utf-8 -*-
+import logging
+if __name__ == '__main__':
+    logging.basicConfig()
+_log = logging.getLogger(__name__)
 import pyxb.binding.generate
 import pyxb.binding.datatypes as xs
 import pyxb.binding.basis
@@ -44,6 +48,4 @@ class TestTrac0163 (unittest.TestCase):
         self.assertTrue(ran_test)
 
 if __name__ == '__main__':
-    import logging
-    logging.basicConfig()
     unittest.main()

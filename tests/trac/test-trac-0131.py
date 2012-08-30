@@ -1,5 +1,9 @@
 # Coding declaration for unicode strings
 # -*- coding: utf-8 -*-
+import logging
+if __name__ == '__main__':
+    logging.basicConfig()
+_log = logging.getLogger(__name__)
 # See also:
 # http://www.evanjones.ca/python-utf8.html
 # http://bytes.com/topic/python/answers/41153-xml-unicode-what-am-i-doing-wrong

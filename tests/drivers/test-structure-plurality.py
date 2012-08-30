@@ -1,4 +1,8 @@
 # -*- coding: utf-8 -*-
+import logging
+if __name__ == '__main__':
+    logging.basicConfig()
+_log = logging.getLogger(__name__)
 # Test the infrastructure that determines whether specific element
 # names should be treated as single values or collections.
 
