@@ -197,10 +197,10 @@ for possible_bundle in possible_bundles:
             package_relpath = os.path.relpath(bundle_path, setup_path)
         except AttributeError, e:
             package_relpath = bundle_path
-            if setup_path:
+            if setup_path and '.' != setup_path:
                 prefix_path = setup_path + os.path.sep
                 if not package_relpath.startswith(prefix_path):
-                    print "Unable to determine relative path for %s installation" % (bundle_path,)
+                    print "Unable to determine relative path from %s to %s installation" % (setup_path, bundle_path)
                     sys.exit(1)
                 package_relpath = package_relpath[len(prefix_path):]
         package = package_relpath.replace(os.path.sep, '.')
