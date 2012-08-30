@@ -135,5 +135,10 @@ if __name__ == '__main__':
     import logging
     logging.basicConfig()
     unittest.main()
-    
-        
+
+import os
+try:
+    os.unlink('st.py')
+    os.unlink('te.py')
+except:
+    pass
