@@ -18,6 +18,4 @@ class Test_anyType (unittest.TestCase):
         i = xsd.anyType(43)
 
 if __name__ == '__main__':
-    import logging
-    logging.basicConfig()
     unittest.main()

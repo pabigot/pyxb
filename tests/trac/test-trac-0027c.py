@@ -83,7 +83,5 @@ class TestTrac0027b (unittest.TestCase):
         self.assertTrue(instance.attr is None)
 
 if __name__ == '__main__':
-    import logging
-    logging.basicConfig()
     unittest.main()
     

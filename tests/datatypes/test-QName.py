@@ -20,6 +20,4 @@ class Test_QName (unittest.TestCase):
             self.assertRaises(BadTypeValueError, xsd.QName, f)
 
 if __name__ == '__main__':
-    import logging
-    logging.basicConfig()
     unittest.main()

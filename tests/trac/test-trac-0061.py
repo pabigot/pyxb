@@ -96,6 +96,4 @@ class TestTrac_0061 (unittest.TestCase):
         self.assertRaises(pyxb.BadTypeValueError, dervAtlaZ, 'X23')
 
 if __name__ == '__main__':
-    import logging
-    logging.basicConfig()
     unittest.main()

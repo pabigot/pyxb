@@ -84,8 +84,6 @@ class TestSubstGroup (unittest.TestCase):
         self.assertRaises(pyxb.AbstractElementError, sgTime)
 
 if __name__ == '__main__':
-    import logging
-    logging.basicConfig()
     unittest.main()
     
         

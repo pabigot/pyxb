@@ -81,6 +81,4 @@ class TestBug_200908271556(unittest.TestCase):
             xmls = instance.toxml("utf-8", root_only=True)
 
 if __name__ == '__main__':
-    import logging
-    logging.basicConfig()
     unittest.main()

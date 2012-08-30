@@ -29,7 +29,5 @@ class TestDeconflict (unittest.TestCase):
         self.assertEqual('Factory_2', CTD_empty._AttributeMap['Factory'].id())
 
 if __name__ == '__main__':
-    import logging
-    logging.basicConfig()
     unittest.main()
     

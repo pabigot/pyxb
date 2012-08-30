@@ -46,8 +46,6 @@ class TestCTDSimple (unittest.TestCase):
         self.assertEqual(6, clause1_2._TypeDefinition._CF_length.value())
 
 if __name__ == '__main__':
-    import logging
-    logging.basicConfig()
     unittest.main()
     
         

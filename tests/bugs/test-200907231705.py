@@ -89,6 +89,4 @@ class TestTrac_200907231705 (unittest.TestCase):
         self.assertTrue(instance.value() is None)
 
 if __name__ == '__main__':
-    import logging
-    logging.basicConfig()
     unittest.main()

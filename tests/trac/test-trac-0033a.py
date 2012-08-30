@@ -51,7 +51,5 @@ class TestTrac0033a (unittest.TestCase):
         instance = CreateFromDocument(xml)
 
 if __name__ == '__main__':
-    import logging
-    logging.basicConfig()
     unittest.main()
     

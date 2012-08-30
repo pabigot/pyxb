@@ -45,6 +45,4 @@ class TestTrac_0051 (unittest.TestCase):
             self.assertRaises(pyxb.BindingError, self.__setToXML, e, 32)
 
 if __name__ == '__main__':
-    import logging
-    logging.basicConfig()
     unittest.main()

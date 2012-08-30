@@ -49,6 +49,4 @@ class Test_int (unittest.TestCase, _TestIntegerType):
     MAX_IN_RANGE = 2147483647
 
 if __name__ == '__main__':
-    import logging
-    logging.basicConfig()
     unittest.main()

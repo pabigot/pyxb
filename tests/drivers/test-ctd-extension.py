@@ -79,8 +79,6 @@ class TestCTDExtension (unittest.TestCase):
         self.assertRaises(ExtraContentError, defs.createFromDOM, doc.documentElement)
 
 if __name__ == '__main__':
-    import logging
-    logging.basicConfig()
     unittest.main()
     
         

@@ -15,6 +15,4 @@ class Test_language (unittest.TestCase):
             self.assertRaises(BadTypeValueError, xsd.language, f)
 
 if __name__ == '__main__':
-    import logging
-    logging.basicConfig()
     unittest.main()

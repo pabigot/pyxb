@@ -144,8 +144,6 @@ class TestMGChoice (unittest.TestCase):
         self.assertRaises(ExtraContentError, fixedMultichoice.createFromDOM, dom.documentElement)
 
 if __name__ == '__main__':
-    import logging
-    logging.basicConfig()
     unittest.main()
     
         

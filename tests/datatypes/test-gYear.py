@@ -38,6 +38,4 @@ class Test_gYear (unittest.TestCase):
 
         
 if __name__ == '__main__':
-    import logging
-    logging.basicConfig()
     unittest.main()

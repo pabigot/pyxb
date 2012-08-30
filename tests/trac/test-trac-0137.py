@@ -58,8 +58,6 @@ class TestTrac_0137 (unittest.TestCase):
         self.validate()
 
 if __name__ == '__main__':
-    import logging
-    logging.basicConfig()
     unittest.main()
     
         

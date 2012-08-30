@@ -110,7 +110,5 @@ class TestTrac0032 (unittest.TestCase):
         self.assertEqual(2, len(instance.content()))
 
 if __name__ == '__main__':
-    import logging
-    logging.basicConfig()
     unittest.main()
     

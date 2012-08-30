@@ -132,8 +132,6 @@ class TestExternal (unittest.TestCase):
         self.assertEqual(n, uMorewords.ichi)
 
 if __name__ == '__main__':
-    import logging
-    logging.basicConfig()
     unittest.main()
 
 import os

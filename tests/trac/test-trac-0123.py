@@ -39,6 +39,4 @@ class TestTrac0123 (unittest.TestCase):
         dom = instance.toDOM()
 
 if __name__ == '__main__':
-    import logging
-    logging.basicConfig()
     unittest.main()

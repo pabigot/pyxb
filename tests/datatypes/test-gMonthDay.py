@@ -55,6 +55,4 @@ class Test_gMonthDay (unittest.TestCase):
         self.assertRaises((AttributeError, TypeError), setattr, v, 'day', 5)
 
 if __name__ == '__main__':
-    import logging
-    logging.basicConfig()
     unittest.main()

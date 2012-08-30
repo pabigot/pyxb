@@ -18,6 +18,4 @@ class Test_IDREFS (unittest.TestCase):
         self.assertRaises(BadTypeValueError, xsd.IDREFS, 'string with b@d id')
 
 if __name__ == '__main__':
-    import logging
-    logging.basicConfig()
     unittest.main()

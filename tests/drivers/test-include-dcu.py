@@ -14,7 +14,5 @@ class TestIncludeDD (unittest.TestCase):
         self.assertRaises(pyxb.SchemaValidationError, pyxb.binding.generate.GeneratePython, schema_location=schema_path)
 
 if __name__ == '__main__':
-    import logging
-    logging.basicConfig()
     unittest.main()
     

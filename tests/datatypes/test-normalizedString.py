@@ -21,6 +21,4 @@ class Test_normalizedString (unittest.TestCase):
             self.assertRaises(BadTypeValueError, xsd.normalizedString, lexical)
 
 if __name__ == '__main__':
-    import logging
-    logging.basicConfig()
     unittest.main()

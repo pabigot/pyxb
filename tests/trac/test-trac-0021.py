@@ -52,7 +52,5 @@ class TestTrac0021 (unittest.TestCase):
 
 
 if __name__ == '__main__':
-    import logging
-    logging.basicConfig()
     unittest.main()
     

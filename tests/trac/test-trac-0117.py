@@ -62,7 +62,5 @@ class TestTrac0117 (unittest.TestCase):
         self.assertTrue(instance.Required)
 
 if __name__ == '__main__':
-    import logging
-    logging.basicConfig()
     unittest.main()
     

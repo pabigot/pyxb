@@ -46,6 +46,4 @@ class TestTrac_200908041708 (unittest.TestCase):
         self.assertEqual('<aggregate><li>1</li></aggregate>', instance.toxml("utf-8", root_only=True))
         
 if __name__ == '__main__':
-    import logging
-    logging.basicConfig()
     unittest.main()

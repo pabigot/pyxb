@@ -14,7 +14,5 @@ class TestTrac0156a (unittest.TestCase):
         self.assertRaises(pyxb.SchemaValidationError, pyxb.utils.domutils.LocateUniqueChild, dom.firstChild, 'list', absent_ok=False)
 
 if __name__ == '__main__':
-    import logging
-    logging.basicConfig()
     unittest.main()
     

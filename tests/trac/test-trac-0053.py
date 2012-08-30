@@ -64,6 +64,4 @@ class TestTrac_0053 (unittest.TestCase):
         self.assertRaises(pyxb.MissingAttributeError, CreateFromDOM, domn)
 
 if __name__ == '__main__':
-    import logging
-    logging.basicConfig()
     unittest.main()

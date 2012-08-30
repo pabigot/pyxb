@@ -114,8 +114,6 @@ Anytown, AS  12345-6789'''
         self.assertTrue(po2.billTo is None)
 
 if __name__ == '__main__':
-    import logging
-    logging.basicConfig()
     unittest.main()
     
         

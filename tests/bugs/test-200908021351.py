@@ -52,6 +52,4 @@ class TestBug_200908021351 (unittest.TestCase):
         self.assertEqual(2, len(ad.typeDefinition().memberTypeDefinitions()))
 
 if __name__ == '__main__':
-    import logging
-    logging.basicConfig()
     unittest.main()

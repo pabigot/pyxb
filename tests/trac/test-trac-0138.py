@@ -10,8 +10,6 @@ class TestTrac_0138 (unittest.TestCase):
         self.assertEqual(value.xsdLiteral(), self.Literal)
 
 if __name__ == '__main__':
-    import logging
-    logging.basicConfig()
     unittest.main()
     
         

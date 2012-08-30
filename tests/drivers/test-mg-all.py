@@ -122,8 +122,6 @@ class TestMGAll (unittest.TestCase):
         self.assertRaises(pyxb.DOMGenerationError, ToDOM, instance)
 
 if __name__ == '__main__':
-    import logging
-    logging.basicConfig()
     unittest.main()
     
         

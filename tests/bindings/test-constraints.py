@@ -236,6 +236,4 @@ class testWhitespace (unittest.TestCase):
         self.assertEqual(source, CollapseString(source, _apply_whitespace_facet=False, _from_xml=True))
 
 if __name__ == '__main__':
-    import logging
-    logging.basicConfig()
     unittest.main()

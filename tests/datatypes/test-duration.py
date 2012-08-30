@@ -102,6 +102,4 @@ class Test_duration (unittest.TestCase):
         self.assertRaises(pyxb.BadTypeValueError, xsd.duration, 4)
 
 if __name__ == '__main__':
-    import logging
-    logging.basicConfig()
     unittest.main()

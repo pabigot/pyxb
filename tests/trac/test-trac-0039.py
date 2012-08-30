@@ -99,7 +99,5 @@ class TestTrac0039 (unittest.TestCase):
         self.assertEqual('<wrapper><holding><required deep="2">hi</required></holding></wrapper>', w.toxml("utf-8", root_only=True))
 
 if __name__ == '__main__':
-    import logging
-    logging.basicConfig()
     unittest.main()
     

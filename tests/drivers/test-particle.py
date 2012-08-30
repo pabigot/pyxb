@@ -110,8 +110,6 @@ class TestParticle (unittest.TestCase):
                 self.assertRaises(ExtraContentError, h24b.createFromDOM, dom.documentElement)
 
 if __name__ == '__main__':
-    import logging
-    logging.basicConfig()
     unittest.main()
     
         

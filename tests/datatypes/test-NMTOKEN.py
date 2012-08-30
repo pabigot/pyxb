@@ -23,6 +23,4 @@ class Test_NMTOKEN (unittest.TestCase):
             self.assertRaises(BadTypeValueError, xsd.NMTOKEN, f)
 
 if __name__ == '__main__':
-    import logging
-    logging.basicConfig()
     unittest.main()

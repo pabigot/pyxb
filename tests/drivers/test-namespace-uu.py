@@ -34,8 +34,6 @@ class TestNamespaceUU (unittest.TestCase):
         self.assertEqual(instance.globalElt, 'global')
 
 if __name__ == '__main__':
-    import logging
-    logging.basicConfig()
     unittest.main()
     
         

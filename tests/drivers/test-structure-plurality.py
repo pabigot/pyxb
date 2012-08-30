@@ -359,8 +359,6 @@ class TestParticle (_TestBase):
         self.assertTrue(pdm[self.belt])
 
 if __name__ == '__main__':
-    import logging
-    logging.basicConfig()
     unittest.main()
     
         

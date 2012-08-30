@@ -139,6 +139,4 @@ class Test_positiveInteger (unittest.TestCase, _TestIntegerType):
     ZERO_IN_RANGE = False
 
 if __name__ == '__main__':
-    import logging
-    logging.basicConfig()
     unittest.main()

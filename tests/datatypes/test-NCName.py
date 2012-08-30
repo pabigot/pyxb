@@ -17,6 +17,4 @@ class Test_NCName (unittest.TestCase):
             self.assertRaises(BadTypeValueError, xsd.NCName, f)
 
 if __name__ == '__main__':
-    import logging
-    logging.basicConfig()
     unittest.main()

@@ -33,6 +33,4 @@ class TestTrac_0058 (unittest.TestCase):
         self.assertEqual(xml, instance.toxml("utf-8", root_only=True))
 
 if __name__ == '__main__':
-    import logging
-    logging.basicConfig()
     unittest.main()

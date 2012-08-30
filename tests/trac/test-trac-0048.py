@@ -44,6 +44,4 @@ class TestTrac_0048 (unittest.TestCase):
         #self.assertTrue(x._isNil())
 
 if __name__ == '__main__':
-    import logging
-    logging.basicConfig()
     unittest.main()

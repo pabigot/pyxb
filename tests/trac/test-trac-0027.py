@@ -186,7 +186,5 @@ class TestTrac0027 (unittest.TestCase):
         self.assertRaises(pyxb.BadTypeValueError, self.setAttr, i, 1000)
 
 if __name__ == '__main__':
-    import logging
-    logging.basicConfig()
     unittest.main()
     

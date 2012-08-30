@@ -35,6 +35,4 @@ class Test_base64Binary (unittest.TestCase):
         self.assertRaises(pyxb.BadTypeValueError, xsd.base64Binary, 'ZE==', _from_xml=True)
 
 if __name__ == '__main__':
-    import logging
-    logging.basicConfig()
     unittest.main()

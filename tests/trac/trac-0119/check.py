@@ -68,6 +68,4 @@ class TestTrac0119 (unittest.TestCase):
         self.assertRaises(xml.sax.SAXParseException, base.CreateFromDocument, xmls, default_namespace=absent.Namespace)
 
 if __name__ == '__main__':
-    import logging
-    logging.basicConfig()
     unittest.main()
