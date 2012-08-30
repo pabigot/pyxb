@@ -34,12 +34,14 @@ class TestTrac0163 (unittest.TestCase):
         self.assertEqual(instance.inner, 'one')
 
     def testBad (self):
+        ran_test = True
         try:
             instance = CreateFromDocument('<outer><inner>one</inner><inner>extra</inner></outer>')
-            self.assertFail()
+            ran_test = False
         except Exception, e:
             self.assertTrue(isinstance(e, pyxb.ExtraContentError))
-            self.assertTrue(0 < e.message.find('starting with extra'))
+            self.assertTrue(0 < str(e).find('starting with extra'))
+        self.assertTrue(ran_test)
 
 if __name__ == '__main__':
     import logging
