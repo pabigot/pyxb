@@ -2036,20 +2036,22 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
                                         for c in mr.modulePath().split('.')[1:]:
                                             mod = getattr(mod, c)
                                         mr._setModule(mod)
-                                    value = mr.module().CreateFromDOM(node)
+                                    # The module holding XMLSchema bindings
+                                    # does not have a CreateFromDOM method,
+                                    # and shouldn't since we need to convert
+                                    # schema instances to DOM more carefully.
+                                    # Other namespaces won't have a module if
+                                    # the bindings were not imported; this is
+                                    # probably worth a warning.
+                                    if mr.module() is not None:
+                                        value = mr.module().CreateFromDOM(node)
+                                    elif mr.namespace() != pyxb.namespace.XMLSchema:
+                                        _log.warning('No bindings available for %s', expanded_name)
                                     break
                                 except pyxb.UnrecognizedElementError, e:
                                     _log.info('Ignoring unrecognized element when creating binding for wildcard %s', expanded_name)
                                 except pyxb.PyXBException, e:
                                     _log.warning('Ignoring error when creating binding for wildcard %s', expanded_name, exc_info=e)
-                                except AttributeError, e:
-                                    # The module holding XMLSchema bindings does not
-                                    # have a CreateFromDOM method, and shouldn't since
-                                    # we need to convert schema instances to DOM more
-                                    # carefully.
-                                    if mr.namespace() != pyxb.namespace.XMLSchema:
-                                        _log.exception('No bindings for module in %s', expanded_name)
-                                        raise
                     except Exception:
                         _log.exception('Unable to convert DOM node %s to Python instance', expanded_name)
         if (not maybe_element) and isinstance(value, basestring) and (self._ContentTypeTag in (self._CT_EMPTY, self._CT_ELEMENT_ONLY)):
