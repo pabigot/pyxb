@@ -2,6 +2,7 @@
 import unittest
 from pyxb.utils.utility import *
 from pyxb.utils.utility import _DeconflictSymbols_mixin
+import sys
 
 class DST_base (_DeconflictSymbols_mixin):
     _ReservedSymbols = set([ 'one', 'two' ])
@@ -408,7 +409,9 @@ class TestOpenOrCreate_ExistingTagMismatch (unittest.TestCase, _TestOpenOrCreate
         tag = 'MyTagXX'
         text = 'This file has the tag NotMyTag in it'
         file(filename, 'w').write(text)
-        self.assertTrue(0 < file(filename, 'a').tell())
+        # Verify that opening for append will be positioned after the text.
+        if 'win32' != sys.platform:
+            self.assertTrue(0 < file(filename, 'a').tell())
         self.assertEqual(text, file(filename).read())
         self.assertRaises(OSError, OpenOrCreate, filename, tag=tag)
 
@@ -558,7 +561,9 @@ class TestGetMatchingFiles (unittest.TestCase):
                   'd1/d12/d121/f121a.wxs' ]
         [ file(os.path.join(self.__directory, _f), 'w') for _f in files ]
 
-        os.symlink(os.path.join(self.__directory, 'd2'), os.path.join(self.__directory, 'd1', 'd11', 'l2'))
+        self.__haveSymlink = hasattr(os, 'symlink')
+        if self.__haveSymlink:
+            os.symlink(os.path.join(self.__directory, 'd2'), os.path.join(self.__directory, 'd1', 'd11', 'l2'))
 
     def tearDown (self):
         #print 'teardown %s' % (self.__directory,)
@@ -616,8 +621,9 @@ class TestGetMatchingFiles (unittest.TestCase):
         self.assertEqual(files, set(['d1/f1a.wxs', 'd1/f1b.wxs', 'd1/f1c', 'd2/f2a.wxs', 'd2/f2b']))
 
     def testLink (self):
-        files = set(self._stripPath(GetMatchingFiles(self._formPath(os.path.join('d1', 'd11', 'l2')))))
-        self.assertEqual(files, set(['d1/d11/l2/f2a.wxs', 'd1/d11/l2/f2b']))
+        if self.__haveSymlink:
+            files = set(self._stripPath(GetMatchingFiles(self._formPath(os.path.join('d1', 'd11', 'l2')))))
+            self.assertEqual(files, set(['d1/d11/l2/f2a.wxs', 'd1/d11/l2/f2b']))
 
     def testDefault (self):
         kw = { 'default_path' : self._formPath('d1'),
