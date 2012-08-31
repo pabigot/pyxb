@@ -340,6 +340,32 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin,
             self.__nameInBinding = other.__nameInBinding
         return self
 
+class _ParticleTree_mixin (pyxb.cscRoot):
+    def _walkParticleTree (self, visit, arg):
+        """Mix-in supporting walks of L{Particle} trees.
+
+        This invokes a provided function on each node in a tree defining the
+        content model of a particle, both on the way down the tree and on the
+        way back up.  A standard implementation would be::
+
+          def _walkParticleTree (self, visit, arg):
+            visit(self, True, arg)
+            self.__term.walkParticleTree(visit, arg)
+            visit(self, False, arg)
+
+        @param visit: A callable with parameters C{node, entering, arg} where
+        C{node} is an instance of a class inheriting L{_ParticleTree_mixin},
+        C{entering} indicates tree transition status, and C{arg} is a
+        caller-provided state parameter.  C{entering} is C{True} if C{node}
+        has particle children and the call is before they are visited;
+        C{None} if the C{node} has no particle children; and C{False} if
+        C{node} has particle children and they have been visited.
+
+        @param arg: The caller-provided state parameter to be passed along
+        with the node and entry/exit status in the invocation of C{visit}.
+        """
+        raise NotImplementedError('%s._walkParticleTree' % (self.__class__.__name__,))
+
 class _Singleton_mixin (pyxb.cscRoot):
     """This class is a mix-in which guarantees that only one instance
     of the class will be created.  It is used to ensure that the
@@ -1505,7 +1531,7 @@ class AttributeUse (_SchemaComponent_mixin, pyxb.namespace.resolution._Resolvabl
         return 'AU[%s]' % (self.attributeDeclaration(),)
 
 
-class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.namespace.resolution._Resolvable_mixin, _Annotated_mixin, _ValueConstraint_mixin, _ScopedDeclaration_mixin):
+class ElementDeclaration (_ParticleTree_mixin, _SchemaComponent_mixin, _NamedComponent_mixin, pyxb.namespace.resolution._Resolvable_mixin, _Annotated_mixin, _ValueConstraint_mixin, _ScopedDeclaration_mixin):
     """An XMLSchema U{Element Declaration<http://www.w3.org/TR/xmlschema-1/#cElement_Declarations>} component."""
 
     # Simple or complex type definition
@@ -1750,6 +1776,9 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.na
 
         self.__isResolved = True
         return self
+
+    def _walkParticleTree (self, visit, arg):
+        visit(self, None, arg)
 
     def __str__ (self):
         if self.typeDefinition() is not None:
@@ -2738,7 +2767,7 @@ class ModelGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Anno
         return 'MGD[%s: %s]' % (self.name(), self.modelGroup())
 
 
-class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
+class ModelGroup (_ParticleTree_mixin, _SchemaComponent_mixin, _Annotated_mixin):
     """An XMLSchema U{Model Group<http://www.w3.org/TR/xmlschema-1/#cModel_Group>} component."""
     C_INVALID = 0
     C_ALL = 0x01
@@ -2934,6 +2963,12 @@ class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
             rv.__particles = scoped_particles
         return rv
 
+    def _walkParticleTree (self, visit, arg):
+        visit(self, True, arg)
+        for p in self.particles():
+            p._walkParticleTree(visit, arg)
+        visit(self, False, arg)
+
     def __str__ (self):
         comp = None
         if self.C_ALL == self.compositor():
@@ -2944,7 +2979,7 @@ class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
             comp = 'SEQUENCE'
         return '%s:(%s)' % (comp, ",".join( [ str(_p) for _p in self.particles() ] ) )
 
-class Particle (_SchemaComponent_mixin, pyxb.namespace.resolution._Resolvable_mixin):
+class Particle (_ParticleTree_mixin, _SchemaComponent_mixin, pyxb.namespace.resolution._Resolvable_mixin):
     """An XMLSchema U{Particle<http://www.w3.org/TR/xmlschema-1/#cParticle>} component."""
 
     # The minimum number of times the term may appear.
@@ -3200,6 +3235,17 @@ class Particle (_SchemaComponent_mixin, pyxb.namespace.resolution._Resolvable_mi
             return False
         return self.term().isAdaptable(ctd)
         
+    def walkParticleTree (self, visit, arg):
+        """The entry-point to walk a particle tree defining a content model.
+
+        See L{_ParticleTree_mixin._walkParticleTree}."""
+        self._walkParticleTree(visit, arg)
+
+    def _walkParticleTree (self, visit, arg):
+        visit(self, True, arg)
+        self.__term._walkParticleTree(visit, arg)
+        visit(self, False, arg)
+
     @classmethod
     def IsTypedefNode (cls, node):
         return xsd.nodeIsNamed(node, 'group', 'all', 'choice', 'sequence')
@@ -3214,7 +3260,7 @@ class Particle (_SchemaComponent_mixin, pyxb.namespace.resolution._Resolvable_mi
  
 
 # 3.10.1
-class Wildcard (_SchemaComponent_mixin, _Annotated_mixin):
+class Wildcard (_ParticleTree_mixin, _SchemaComponent_mixin, _Annotated_mixin):
     """An XMLSchema U{Wildcard<http://www.w3.org/TR/xmlschema-1/#cParticle>} component."""
 
     NC_any = '##any'            #<<< The namespace constraint "##any"
@@ -3377,6 +3423,9 @@ class Wildcard (_SchemaComponent_mixin, _Annotated_mixin):
 
     def isAdaptable (self, ctd):
         return True
+
+    def _walkParticleTree (self, visit, arg):
+        visit(self, None, arg)
 
     # aFS:WC
     def _adaptForScope (self, owner, ctd):
