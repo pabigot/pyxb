@@ -560,6 +560,25 @@ class Node (object):
         the term tree for transfer to the resulting automaton."""
         self.__metadata = kw.get('metadata')
 
+    def clone (self, *args, **kw):
+        """Create a deep copy of the node.
+
+        All term-tree--related attributes and properties are replaced
+        with deep clones.  Other attributes are preserved.
+
+        @param args: A tuple of arguments to be passed to the instance
+        constructor.
+
+        @param kw: A dict of keywords to be passed to the instance
+        constructor.
+
+        @note: Subclasses should pre-extend this method to augment the
+        C{args} and C{kw} parameters as necessary to match the
+        expectations of the C{__init__} method of the class being
+        cloned."""
+        kw.setdefault('metadata', self.metadata)
+        return type(self)(*args, **kw)
+
     __metadata = None
     def __get_metadata (self):
         """Application-specific metadata provided during construction."""
@@ -838,6 +857,10 @@ class MultiTermNode (Node):
         super(MultiTermNode, self).__init__(**kw)
         self.__terms = terms
 
+    def clone (self):
+        cterms = map(lambda _s: _s.clone(), self.__terms)
+        return super(MultiTermNode, self).clone(*cterms)
+
     def _walkTermTree (self, position, pre, post, arg):
         if pre is not None:
             pre(self, position, arg)
@@ -886,6 +909,9 @@ class NumericalConstraint (Node):
         self.__term = term
         self.__min = min
         self.__max = max
+
+    def clone (self):
+        return super(NumericalConstraint, self).clone(self.__term, self.__min, self.__max)
 
     def _first (self):
         return [ (0,) + _fc for _fc in self.__term.first ]
@@ -1065,6 +1091,31 @@ class All (MultiTermNode):
                 return False
         return True
 
+    @classmethod
+    def CreateTermTree (cls, *terms):
+        """Create a term tree that implements unordered catenation of
+        the terms.
+
+        This expansion results in a standard choice/sequence term
+        tree, at the cost of quadratic state expansion because terms
+        are L{cloned<Node.clone>} as required to satisfy the tree
+        requirements of the term tree.
+
+        @param terms: The tuple of terms that are elements of an
+        accepted sequence.
+
+        @return: A term tree comprising a choice between sequences
+        that connect each term to the unordered catenation of the
+        remaining terms."""
+        if 1 == len(terms):
+            return terms[0]
+        disjuncts = []
+        for i in xrange(len(terms)):
+            n = terms[i]
+            rem = map(lambda _s: _s.clone(), terms[:i] + terms[i+1:])
+            disjuncts.append(Sequence(n, cls.CreateTermTree(*rem)))
+        return Choice(*disjuncts)
+
     def __str__ (self):
         return u'&(' + ','.join([str(_t) for _t in self.terms]) + ')'
 
@@ -1078,6 +1129,9 @@ class Symbol (Node):
     def __init__ (self, symbol, **kw):
         kw['metadata'] = symbol
         super(Symbol, self).__init__(**kw)
+
+    def clone (self):
+        return super(Symbol, self).clone(self.metadata)
 
     def _first (self):
         return [()]

@@ -141,5 +141,22 @@ class TestFAC (unittest.TestCase):
         for cfg in accepting:
             self.assertTrue(cfg.isAccepting())
 
+    def testExpandAll (self):
+        a = Symbol('a')
+        b = Symbol('b')
+        c = Symbol('c')
+        all = All.CreateTermTree(a, b, c)
+        import itertools
+        cfg = Configuration(all.buildAutomaton())
+        for word in itertools.permutations('abc'):
+            cfg.reset()
+            for c in word:
+                cfg.step(c)
+            self.assertTrue(cfg.isAccepting())
+        cfg.reset()
+        cfg.step('a')
+        cfg.step('b')
+        self.assertFalse(cfg.isAccepting())
+
 if __name__ == '__main__':
     unittest.main()
