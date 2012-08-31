@@ -534,20 +534,20 @@ def elementDeclarationMap (ed, binding_module, **kw):
 
 import pyxb.utils.fac
 
+# A Symbol in the term tree is a pair consisting of the containing
+# particle (for location information) and one of an
+# ElementDeclaration, Wildcard, or tuple of sub-term-trees for All
+# model groups.
+
 def BuildTermTree (node):
-    if isinstance(node, xs.structures.Particle):
-        ttlist = []
-        ttarg = [ttlist]
-        node.walkParticleTree(_generateTermTree, ttarg)
-        assert 1 == len(ttarg)
-        assert 1 == len(ttlist)
-        term_tree = ttlist[0]
-    else:
-        if isinstance(node, xs.structures.ModelGroup):
-            assert node.compositor() == node.C_ALL
-        else:
-            assert isinstance(node, (xs.structures.ElementDeclaration, xs.structures.Wildcard)), 'unexpected %s' %(type(node),)
-        term_tree = pyxb.utils.fac.Symbol(node)
+    assert isinstance(node, xs.structures.Particle)
+    parent_particles = [node]
+    ttlist = []
+    ttarg = [ (node, ttlist) ]
+    node.walkParticleTree(_generateTermTree, ttarg)
+    assert 1 == len(ttarg)
+    assert 1 == len(ttlist)
+    term_tree = ttlist[0]
     auto = term_tree.buildAutomaton()
     return term_tree
 
@@ -555,29 +555,34 @@ import operator
 
 def _generateTermTree (node, entered, arg):
     if entered is None:
+        (parent_particle, terms) = arg[-1]
+        assert isinstance(parent_particle, xs.structures.Particle)
         assert isinstance(node, (xs.structures.ElementDeclaration, xs.structures.Wildcard))
-        arg[-1].append(BuildTermTree(node))
+        terms.append(pyxb.utils.fac.Symbol((parent_particle, node)))
     elif entered:
-        arg.append([])
+        arg.append((node, []))
     else:
-        terms = arg.pop()
+        (xnode, terms) = arg.pop()
+        assert xnode == node
+        (parent_particle, siblings) = arg[-1]
         if isinstance(node, xs.structures.Particle):
             assert 1 == len(terms)
             term = terms[0]
             if (1 != node.minOccurs()) or (1 != node.maxOccurs()):
                 term = pyxb.utils.fac.NumericalConstraint(term, node.minOccurs(), node.maxOccurs())
         else:
+            assert isinstance(parent_particle, xs.structures.Particle), 'unexpected %s' % (parent_particle,)
             assert isinstance(node, xs.structures.ModelGroup)
             if node.C_CHOICE == node.compositor():
-                term = pyxb.utils.fac.Choice(*terms)
+                term = pyxb.utils.fac.Choice(*terms, metadata=node)
             elif node.C_SEQUENCE == node.compositor():
-                term = pyxb.utils.fac.Sequence(*terms)
+                term = pyxb.utils.fac.Sequence(*terms, metadata=node)
             else:
                 assert node.C_ALL == node.compositor()
                 assert reduce(operator.and_, map(lambda _s: isinstance(_s, pyxb.utils.fac.Node), terms), True)
-                term = pyxb.utils.fac.Symbol(terms)
+                term = pyxb.utils.fac.Symbol((parent_particle, terms))
                 #term = pyxb.utils.fac.All.CreateTermTree(*terms)
-        arg[-1].append(term)
+        siblings.append(term)
 
 def GenerateCTD (ctd, generator, **kw):
     binding_module = generator.moduleForComponent(ctd)
