@@ -2922,23 +2922,6 @@ class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
     def IsGroupMemberNode (cls, node):
         return xsd.nodeIsNamed(node, 'all', 'choice', 'sequence')
 
-    def elementDeclarations (self):
-        """Return a list of all ElementDeclarations that are at the
-        top level of this model group, in the order in which they can
-        occur."""
-        element_decls = []
-        model_groups = [ self ]
-        while model_groups:
-            mg = model_groups.pop(0)
-            for p in mg.particles():
-                if isinstance(p.term(), ModelGroup):
-                    model_groups.append(p.term())
-                elif isinstance(p.term(), ElementDeclaration):
-                    element_decls.extend(p.elementDeclarations())
-                else:
-                    assert p.term() is not None
-        return element_decls
-
     # aFS:MG
     def _adaptForScope (self, owner, ctd):
         rv = self
@@ -2993,16 +2976,6 @@ class Particle (_SchemaComponent_mixin, pyxb.namespace.resolution._Resolvable_mi
 
     __refAttribute = None
     __resolvableType = None
-
-    def elementDeclarations (self):
-        assert self.__term is not None
-        if isinstance(self.__term, ModelGroup):
-            return self.__term.elementDeclarations()
-        if isinstance(self.__term, ElementDeclaration):
-            return [ self.__term ]
-        if isinstance(self.__term, Wildcard):
-            return [ ]
-        raise pyxb.LogicError('Unexpected term type %s' % (self.__term,))
 
     def pluralityData (self):
         """Return the plurality data for this component.
