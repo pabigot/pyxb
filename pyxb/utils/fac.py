@@ -47,23 +47,6 @@ consequently this type of node is likely to become a leaf node in the
 FAC that manages internal transitions among a set of subordinate FACs
 corresponding to the alternatives in the group.
 
-In its original form a B{position} (C{pos}) is a tuple of non-negative
-integers comprising a path from a node in the term tree.  It
-identifies a node in the tree.  After the FAC has been constructed,
-only positions that are leaf nodes in the term tree remain, and the
-corresponding symbol value (Python instance) is used as the position.
-
-An B{update instruction} (C{psi}) is a map from positions to either
-L{Node.RESET} or L{Node.INCREMENT}.  It identifies actions to be taken
-on the counter states corresponding to the positions in its domain.
-
-A B{transition} is a pair containing a position and an update instruction.
-It identifies a potential next node in the state and the updates that
-are to be performed if the transition is taken.
-
-A B{follow value} is a map from a position to a set of transitions
-that may originate from the pos.  This set is represented as a Python
-list since update instructions are dicts and cannot be hashed.
 """
 
 import operator
@@ -533,7 +516,29 @@ class Automaton (object):
         return '\n'.join(rv)
 
 class Node (object):
-    """Abstract class for any node in the term tree."""
+    """Abstract class for any node in the term tree.
+
+    In its original form a B{position} (C{pos}) is a tuple of
+    non-negative integers comprising a path from a node in the term
+    tree.  It identifies a node in the tree.  After the FAC has been
+    constructed, only positions that are leaf nodes in the term tree
+    remain, and the corresponding symbol value (Python instance) is
+    used as the position.
+
+    An B{update instruction} (C{psi}) is a map from positions to
+    either L{Node.RESET} or L{Node.INCREMENT}.  It identifies actions
+    to be taken on the counter states corresponding to the positions
+    in its domain.
+
+    A B{transition} is a pair containing a position and an update
+    instruction.  It identifies a potential next node in the state and
+    the updates that are to be performed if the transition is taken.
+
+    A B{follow value} is a map from a position to a set of transitions
+    that may originate from the pos.  This set is represented as a
+    Python list since update instructions are dicts and cannot be
+    hashed.
+    """
 
     _Precedence = None
     """An integral value used for parenthesizing expressions.
