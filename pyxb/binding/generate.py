@@ -532,6 +532,53 @@ def elementDeclarationMap (ed, binding_module, **kw):
         
     return template_map
 
+import pyxb.utils.fac
+
+def BuildTermTree (node):
+    if isinstance(node, xs.structures.Particle):
+        ttlist = []
+        ttarg = [ttlist]
+        node.walkParticleTree(_generateTermTree, ttarg)
+        assert 1 == len(ttarg)
+        assert 1 == len(ttlist)
+        term_tree = ttlist[0]
+    else:
+        if isinstance(node, xs.structures.ModelGroup):
+            assert node.compositor() == node.C_ALL
+        else:
+            assert isinstance(node, (xs.structures.ElementDeclaration, xs.structures.Wildcard)), 'unexpected %s' %(type(node),)
+        term_tree = pyxb.utils.fac.Symbol(node)
+    auto = term_tree.buildAutomaton()
+    return term_tree
+
+import operator
+
+def _generateTermTree (node, entered, arg):
+    if entered is None:
+        assert isinstance(node, (xs.structures.ElementDeclaration, xs.structures.Wildcard))
+        arg[-1].append(BuildTermTree(node))
+    elif entered:
+        arg.append([])
+    else:
+        terms = arg.pop()
+        if isinstance(node, xs.structures.Particle):
+            assert 1 == len(terms)
+            term = terms[0]
+            if (1 != node.minOccurs()) or (1 != node.maxOccurs()):
+                term = pyxb.utils.fac.NumericalConstraint(term, node.minOccurs(), node.maxOccurs())
+        else:
+            assert isinstance(node, xs.structures.ModelGroup)
+            if node.C_CHOICE == node.compositor():
+                term = pyxb.utils.fac.Choice(*terms)
+            elif node.C_SEQUENCE == node.compositor():
+                term = pyxb.utils.fac.Sequence(*terms)
+            else:
+                assert node.C_ALL == node.compositor()
+                assert reduce(operator.and_, map(lambda _s: isinstance(_s, pyxb.utils.fac.Node), terms), True)
+                term = pyxb.utils.fac.Symbol(terms)
+                #term = pyxb.utils.fac.All.CreateTermTree(*terms)
+        arg[-1].append(term)
+
 def GenerateCTD (ctd, generator, **kw):
     binding_module = generator.moduleForComponent(ctd)
     outf = binding_module.bindingIO()
@@ -607,6 +654,7 @@ class %{ctd} (%{superclass}):
     # subclasses.
 
     if isinstance(content_basis, xs.structures.Particle):
+        term_tree = BuildTermTree(content_basis)
         plurality_data = content_basis.pluralityData().combinedPlurality()
 
         outf.postscript().append("\n\n")
