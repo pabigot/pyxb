@@ -502,21 +502,22 @@ class Configuration (object):
         if self.__state is None:
             transitions.update(filter(match_filter, fac.initialTransitions))
         else:
-            exclude_local = False
+            allow_local = True
             if self.__subConfiguration is not None:
                 transitions.update(self.__subConfiguration.candidateTransitions(symbol))
-                if self.__subConfiguration.isAccepting():
+                allow_local = self.__subConfiguration.isAccepting()
+            if allow_local:
+                if self.__subAutomata is not None:
                     transitions.update(filter(match_filter, map(lambda _sa: _sa.initialTransitions, self.__subAutomata)))
-                else:
-                    exclude_local = True
-            if not exclude_local:
                 transitions.update(filter(update_filter, self.__state.candidateTransitions(symbol)))
         return transitions
 
     def applyTransition (self, transition):
-        self.__state = transition.destination
-        UpdateInstruction.Apply(transition.updateInstructions, self.__counterValues)
-        return self
+        if self.__subAutomata is None:
+            self.__state = transition.destination
+            UpdateInstruction.Apply(transition.updateInstructions, self.__counterValues)
+            return self
+        assert False
 
     def step (self, symbol):
         transitions = self.candidateTransitions(symbol)
@@ -539,6 +540,10 @@ class Configuration (object):
         other = type(self)(self.__automaton)
         other.__state = self.__state
         other.__counterValues = self.__counterValues.copy()
+        if self.__subAutomata is not None:
+            other.__subAutomata = self.__subAutomata.copy()
+            if self.__subConfiguration:
+                other.__subConfiguration = self.__subConfiguration.clone()
         return other
 
     def __str__ (self):
