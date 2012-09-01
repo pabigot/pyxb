@@ -565,10 +565,13 @@ def _generateTermTree (node, entered, arg):
         (xnode, terms) = arg.pop()
         assert xnode == node
         (parent_particle, siblings) = arg[-1]
-        if isinstance(node, xs.structures.Particle):
-            assert 1 == len(terms)
+        if 1 == len(terms):
             term = terms[0]
-            if (1 != node.minOccurs()) or (1 != node.maxOccurs()):
+            # Either node is a Particle, or it's a single-member model
+            # group.  If it's a particle we need a numerical
+            # constraint; if it's a single-member model group we can
+            # just use it.
+            if isinstance(node, xs.structures.Particle) and ((1 != node.minOccurs()) or (1 != node.maxOccurs())):
                 term = pyxb.utils.fac.NumericalConstraint(term, node.minOccurs(), node.maxOccurs())
         else:
             assert isinstance(parent_particle, xs.structures.Particle), 'unexpected %s' % (parent_particle,)
