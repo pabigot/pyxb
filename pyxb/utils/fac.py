@@ -233,7 +233,10 @@ class State (object):
         for xit in self.__transitionSet:
             rv.append('%s -%s-> %s : %s' % (self, xit.destination.symbol, xit.destination, ' ; '.join(map(str, xit.updateInstructions))))
         if self.__finalUpdate is not None:
-            rv.append('Final: %s' % (' '.join(map(lambda _ui: str(_ui.counterCondition), self.__finalUpdate))))
+            if 0 == len(self.__finalUpdate):
+                rv.append('Final (no conditions)')
+            else:
+                rv.append('Final if %s' % (' '.join(map(lambda _ui: str(_ui.counterCondition), self.__finalUpdate))))
         return '\n'.join(rv)
     
 class CounterCondition (object):
@@ -511,7 +514,8 @@ class Configuration (object):
                 allow_local = self.__subConfiguration.isAccepting()
             if allow_local:
                 if self.__subAutomata is not None:
-                    transitions.update(filter(match_filter, map(lambda _sa: _sa.initialTransitions, self.__subAutomata)))
+                    for sa in self.__subAutomata:
+                        transitions.update(filter(match_filter, sa.initialTransitions))
                 transitions.update(filter(update_filter, self.__state.candidateTransitions(symbol)))
         return transitions
 
