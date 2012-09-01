@@ -200,7 +200,7 @@ class State (object):
         second member is the set of L{UpdateInstruction} that would
         apply if the automaton were to transition to that destination
         state in accordance."""
-        return filter(lambda _step: _step[0].match(symbol), self.__transitionSet)
+        return filter(lambda _xit: _xit.destination.match(symbol), self.__transitionSet)
 
     def __str__ (self):
         return 'S.%x' % (id(self),)
@@ -362,6 +362,33 @@ class UpdateInstruction:
     def __str__ (self):
         return '%s %s' % (self.__doIncrement and 'inc' or 'reset', self.__counterCondition)
 
+class Transition (object):
+    """Representation of a FAC state transition."""
+
+    __destination = None
+    def __get_destination (self):
+        """The transition destination state."""
+        return self.__destination
+    destination = property(__get_destination)
+
+    __updateInstructions = None
+    def __get_updateInstructions (self):
+        """The set of counter updates that are applied when the transition is taken."""
+        return self.__updateInstructions
+    updateInstructions = property(__get_updateInstructions)
+
+    def __init__ (self, destination, update_instructions):
+        """Create a transition to a state.
+
+        @param destination: the state into which the transition is
+        made
+
+        @param update_instructions: A set of L{UpdateInstruction}s
+        denoting the changes that must be made to counters as a
+        consequence of taking the transition."""
+        self.__destination = destination
+        self.__updateInstructions = frozenset(update_instructions)
+
 class Configuration (object):
     """The state of an L{Automaton} in execution.
 
@@ -387,10 +414,24 @@ class Configuration (object):
         return self.__automaton
     automaton = property(__get_automaton)
 
+    __subConfiguration = None
+    def __get_subConfiguration (self):
+        """Reference to configuration being executed in a sub-automaton.
+
+        @return: C{None} if no sub-automaton is active, else a
+        reference to a configuration that is being executed in a
+        sub-automaton."""
+        return self.__subConfiguration
+    subConfiguration = property(__get_subConfiguration)
+
+    __subAutomata = None
+
     def reset (self):
         fac = self.__automaton
         self.__state = None
         self.__counterValues = dict(zip(fac.counterConditions, len(fac.counterConditions) * (1,)))
+        self.__subConfiguration = None
+        self.__subAutomata = None
 
     def candidateTransitions (self, symbol):
         """Return set of viable transitions on C{symbol}
@@ -415,10 +456,10 @@ class Configuration (object):
             transitions = set()
             for s in fac.states:
                 if s.isInitial and s.match(symbol):
-                    transitions.add((s, frozenset()))
+                    transitions.add(Transition(s, frozenset()))
         else:
             transitions = self.__state.candidateTransitions(symbol)
-        return filter(lambda _phi: UpdateInstruction.Satisfies(self.__counterValues, _phi[1]), transitions)
+        return filter(lambda _xit: UpdateInstruction.Satisfies(self.__counterValues, _xit.updateInstructions), transitions)
 
     def candidateSymbols (self):
         """Return the set of symbols which would permit transition from this state.
@@ -436,8 +477,8 @@ class Configuration (object):
         return filter(lambda _phi: UpdateInstruction.Satisfies(self.__counterValues, _phi[1]), transitions)
 
     def applyTransition (self, transition):
-        (self.__state, update_instructions) = transition
-        UpdateInstruction.Apply(update_instructions, self.__counterValues)
+        self.__state = transition.destination
+        UpdateInstruction.Apply(transition.updateInstructions, self.__counterValues)
         return self
 
     def step (self, symbol):
@@ -809,7 +850,7 @@ class Node (object):
                 uiset = set()
                 for (c, u) in psi.iteritems():
                     uiset.add(UpdateInstruction(counter_map[c], self.INCREMENT == u))
-                phi.add((dst, frozenset(uiset)))
+                phi.add(Transition(dst, uiset))
             src._setTransitions(frozenset(phi))
 
         return Automaton(states, counters, self.nullable)
