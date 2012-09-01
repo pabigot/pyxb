@@ -730,6 +730,34 @@ def BuildPluralityData (term_tree):
     assert 1 == len(arg)
     return arg[0]
 
+class _CTDAuxData (object):
+    """Helper class holding information need in both preparation and generation."""
+    
+    contentBasis = None
+    termTree = None
+    edSingles = None
+    edMultiples = None
+    ctd = None
+
+    def __init__ (self, ctd):
+        self.ctd = ctd
+        ctd.__auxData = self
+        self.contentBasis = ctd.contentType()[1]
+        if isinstance(self.contentBasis, xs.structures.Particle):
+            self.termTree = BuildTermTree(self.contentBasis)
+            (self.edSingles, self.edMultiples) = BuildPluralityData(self.termTree)
+        else:
+            self.edSingles = set()
+            self.edMultiples = set()
+
+    @classmethod
+    def Create (cls, ctd):
+        return cls(ctd)
+
+    @classmethod
+    def Get (cls, ctd):
+        return ctd.__auxData
+
 def GenerateCTD (ctd, generator, **kw):
     binding_module = generator.moduleForComponent(ctd)
     outf = binding_module.bindingIO()
@@ -805,20 +833,13 @@ class %{ctd} (%{superclass}):
     # subclasses.
 
     if isinstance(content_basis, xs.structures.Particle):
-        term_tree = BuildTermTree(content_basis)
-        (singles, multiples) = BuildPluralityData(term_tree)
-        plurality_data = content_basis.pluralityData().combinedPlurality()
-
+        plurality_data = {}
+        aux = _CTDAuxData.Get(ctd)
+        elements = aux.edSingles.union(aux.edMultiples)
+        
         outf.postscript().append("\n\n")
-        for (ed, is_plural) in plurality_data.items():
-            if ed in singles:
-                assert not ed in multiples
-                assert not is_plural
-            elif ed in multiples:
-                assert not ed in singles
-                assert is_plural
-            else:
-                assert False
+        for ed in elements:
+            is_plural = ed in aux.edMultiples
             # @todo Detect and account for plurality change between this and base
             ef_map = ed._templateMap()
             if ed.scope() == ctd:
@@ -1004,23 +1025,12 @@ def _PrepareSimpleTypeDefinition (std, generator, nsm, module_context):
                 ei._setTag(utility.PrepareIdentifier(ei.unicodeValue(), nsm.uniqueInClass(std)))
 
 def _PrepareComplexTypeDefinition (ctd, generator, nsm, module_context):
-    content_basis = None
-    content_type_tag = ctd._contentTypeTag()
-    if (ctd.CT_SIMPLE == content_type_tag):
-        content_basis = ctd.contentType()[1]
-        #template_map['simple_base_type'] = binding_module.literal(content_basis, **kw)
-    elif (ctd.CT_MIXED == content_type_tag):
-        content_basis = ctd.contentType()[1]
-    elif (ctd.CT_ELEMENT_ONLY == content_type_tag):
-        content_basis = ctd.contentType()[1]
     kw = { 'binding_module' : module_context }
-    if isinstance(content_basis, xs.structures.Particle):
-        plurality_map = content_basis.pluralityData().combinedPlurality()
-    else:
-        plurality_map = {}
     ctd._templateMap()['_unique'] = nsm.uniqueInClass(ctd)
+    aux = _CTDAuxData.Create(ctd)
+    multiples = aux.edMultiples
     for cd in ctd.localScopedDeclarations():
-        _SetNameWithAccessors(cd, ctd, plurality_map.get(cd, False), module_context, nsm, kw)
+        _SetNameWithAccessors(cd, ctd, cd in multiples, module_context, nsm, kw)
 
 def _SetNameWithAccessors (component, container, is_plural, binding_module, nsm, kw):
     use_map = component._templateMap()
