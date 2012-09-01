@@ -102,6 +102,17 @@ class State (object):
         self.__isInitial = not not is_initial
         self.__finalUpdate = final_update
 
+    __automaton = None
+    def __get_automaton (self):
+        """Link to the L{Automaton} to which the state belongs."""
+        return self.__automaton
+    def _set_automaton (self, automaton):
+        """Method invoked during automaton construction to set state owner."""
+        assert self.__automaton is None
+        self.__automaton = automaton
+        return self
+    automaton = property(__get_automaton)
+
     __symbol = None
     def __get_symbol (self):
         """Application-specific metadata identifying the symbol.
@@ -109,6 +120,15 @@ class State (object):
         See also L{match}."""
         return self.__symbol
     symbol = property(__get_symbol)
+
+    __subAutomata = None
+    def __get_subAutomata (self):
+        """A sequence of sub-automata supporting internal state transitions."""
+        return self.__subAutomata
+    def _set_subAutomata (self, *automata):
+        assert self.__subAutomata is None
+        self.__subAutomata = automata
+    subAutomata = property(__get_subAutomata)
 
     __isInitial = None
     def __get_isInitial (self):
@@ -502,6 +522,7 @@ class Automaton (object):
 
     def __init__ (self, states, counter_conditions, nullable):
         self.__states = frozenset(states)
+        map(lambda _s: _s._set_automaton(self), self.__states)
         self.__counterConditions = frozenset(counter_conditions)
         self.__nullable = nullable
 
@@ -509,6 +530,10 @@ class Automaton (object):
         rv = []
         rv.append('sigma = %s' % (' '.join(map(lambda _s: str(_s.symbol), self.__states))))
         rv.append('states = %s' % (' '.join(map(str, self.__states))))
+        for s in self.__states:
+            if s.subAutomata is not None:
+                for i in xrange(len(s.subAutomata)):
+                    rv.append('SA %s.%u:\n  ' % (str(s), i) + '\n  '.join(str(s.subAutomata[i]).split('\n')))
         rv.append('counters = %s' % (' '.join(map(str, self.__counterConditions))))
         rv.append('initial = %s' % (' ; '.join([ '%s on %s' % (_s, _s.symbol) for _s in filter(lambda _s: _s.isInitial, self.__states)])))
         for s in self.__states:
@@ -754,7 +779,7 @@ class Node (object):
         state_map = { }
         for pos in self.follow.iterkeys():
             sym = self.posNodeMap.get(pos)
-            assert isinstance(sym, Symbol)
+            assert isinstance(sym, LeafNode)
             assert sym not in state_map
 
             # The state may be an initial state if it is in the first
@@ -772,6 +797,8 @@ class Node (object):
                 for nci in map(counter_map.get, self.counterSubPositions(pos)):
                     final_update.add(UpdateInstruction(nci, False))
             state_map[pos] = state_ctor(sym.metadata, is_initial=is_initial, final_update=final_update)
+            if isinstance(sym, All):
+                state_map[pos]._set_subAutomata(*map(lambda _s: _s.buildAutomaton(state_ctor, ctr_cond_ctor), sym.terms))
         states = state_map.values()
 
         for (p, transition_set) in self.follow.iteritems():
@@ -866,6 +893,23 @@ class MultiTermNode (Node):
             pre(self, position, arg)
         for c in xrange(len(self.__terms)):
             self.__terms[c]._walkTermTree(position + (c,), pre, post, arg)
+        if post is not None:
+            post(self, position, arg)
+
+class LeafNode (Node):
+    """Intermediary for nodes that have no child nodes."""
+    def _first (self):
+        return [()]
+    def _last (self):
+        return [()]
+    def _nullable (self):
+        return False
+    def _follow (self):
+        return { (): frozenset() }
+
+    def _walkTermTree (self, position, pre, post, arg):
+        if pre is not None:
+            pre(self, position, arg)
         if post is not None:
             post(self, position, arg)
 
@@ -1073,8 +1117,13 @@ class Sequence (MultiTermNode):
                 elts.append(str(t))
         return '.'.join(elts)
 
-class All (MultiTermNode):
-    """A term that is an unordered sequence of terms."""
+class All (MultiTermNode, LeafNode):
+    """A term that is an unordered sequence of terms.
+
+    Note that the inheritance structure for this node is unusual.  It
+    has multiple children when it is treated as a term tree, but is
+    considered a leaf node when constructing an automaton.
+    """
 
     _Precedence = 0
 
@@ -1119,7 +1168,7 @@ class All (MultiTermNode):
     def __str__ (self):
         return u'&(' + ','.join([str(_t) for _t in self.terms]) + ')'
 
-class Symbol (Node):
+class Symbol (LeafNode):
     """A leaf term that is a symbol.
 
     The symbol is represented by the L{metadata} field."""
@@ -1132,21 +1181,6 @@ class Symbol (Node):
 
     def clone (self):
         return super(Symbol, self).clone(self.metadata)
-
-    def _first (self):
-        return [()]
-    def _last (self):
-        return [()]
-    def _nullable (self):
-        return False
-    def _follow (self):
-        return { (): frozenset() }
-
-    def _walkTermTree (self, position, pre, post, arg):
-        if pre is not None:
-            pre(self, position, arg)
-        if post is not None:
-            post(self, position, arg)
 
     def __str__ (self):
         return str(self.metadata)

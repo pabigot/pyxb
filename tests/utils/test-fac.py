@@ -16,6 +16,14 @@ class TestFAC (unittest.TestCase):
 
     def testSymbol (self):
         self.assertEqual('a', self.a.metadata)
+        au = self.a.buildAutomaton()
+        cfg = Configuration(au)
+        self.assertFalse(cfg.isAccepting())
+        cfg.step('a')
+        self.assertTrue(cfg.isAccepting())
+        cfg.reset()
+        self.assertFalse(cfg.isAccepting())
+        self.assertRaises(RecognitionError, cfg.step, 'b')
 
     def testNumericalConstraint (self):
         self.assertEqual(self.a2ObTc, self.ex.term)
@@ -157,6 +165,12 @@ class TestFAC (unittest.TestCase):
         cfg.step('a')
         cfg.step('b')
         self.assertFalse(cfg.isAccepting())
+
+    def testAllTree (self):
+        ex = Sequence(Symbol('f'), All(Symbol('a'), Symbol('b'), Symbol('c')), Symbol('l'))
+        #print ex
+        au = ex.buildAutomaton()
+        #print au
 
 if __name__ == '__main__':
     unittest.main()
