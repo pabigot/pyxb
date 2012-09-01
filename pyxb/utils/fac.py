@@ -612,11 +612,20 @@ class Automaton (object):
         return self.__initialTransitions
     initialTransitions = property(__get_initialTransitions)
 
-    def __init__ (self, states, counter_conditions, nullable):
+    __containingState = None
+    def __get_containingState (self):
+        """The L{State} instance for which this is a sub-automaton.
+
+        C{None} if this is not a sub-automaton."""
+        return self.__containingState
+    containingState = property(__get_containingState)
+
+    def __init__ (self, states, counter_conditions, nullable, containing_state=None):
         self.__states = frozenset(states)
         map(lambda _s: _s._set_automaton(self), self.__states)
         self.__counterConditions = frozenset(counter_conditions)
         self.__nullable = nullable
+        self.__containingState = containing_state
         xit = set()
         for s in self.__states:
             if s.isInitial:
@@ -861,7 +870,7 @@ class Node (object):
         node.reset()
         visited_nodes.add(node)
 
-    def buildAutomaton (self, state_ctor=State, ctr_cond_ctor=CounterCondition):
+    def buildAutomaton (self, state_ctor=State, ctr_cond_ctor=CounterCondition, containing_state=None):
         # Validate that the term tree is in fact a tree.  A DAG does
         # not work.  If the tree has cycles, this won't even return.
         self.walkTermTree(self.__resetAndValidate, None, set())
@@ -896,7 +905,7 @@ class Node (object):
                     final_update.add(UpdateInstruction(nci, False))
             state_map[pos] = state_ctor(sym.metadata, is_initial=is_initial, final_update=final_update)
             if isinstance(sym, All):
-                state_map[pos]._set_subAutomata(*map(lambda _s: _s.buildAutomaton(state_ctor, ctr_cond_ctor), sym.terms))
+                state_map[pos]._set_subAutomata(*map(lambda _s: _s.buildAutomaton(state_ctor, ctr_cond_ctor, containing_state=state_map[pos]), sym.terms))
         states = state_map.values()
 
         for (p, transition_set) in self.follow.iteritems():
@@ -910,7 +919,7 @@ class Node (object):
                 phi.add(Transition(dst, uiset))
             src._set_transitionSet(frozenset(phi))
 
-        return Automaton(states, counters, self.nullable)
+        return Automaton(states, counters, self.nullable, containing_state=containing_state)
 
     __counterPositions = None
     def __get_counterPositions (self):
