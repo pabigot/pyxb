@@ -916,7 +916,18 @@ class Node (object):
                 uiset = set()
                 for (c, u) in psi.iteritems():
                     uiset.add(UpdateInstruction(counter_map[c], self.INCREMENT == u))
-                phi.add(Transition(dst, uiset))
+                if dst.subAutomata is not None:
+                    # This is essentially an epsilon-transition
+                    # through the dst state into the sub-automaton
+                    # initial state.  Preserve the counter updates
+                    # resulting from the transition at this level.
+                    for sa in dst.subAutomata:
+                        for xit in sa.initialTransitions:
+                            assert 0 == len(xit.updateInstructions)
+                            phi.add(Transition(xit.destination, uiset))
+                else:
+                    # Standard transition to destination
+                    phi.add(Transition(dst, uiset))
             src._set_transitionSet(frozenset(phi))
 
         return Automaton(states, counters, self.nullable, containing_state=containing_state)
