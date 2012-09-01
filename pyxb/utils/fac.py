@@ -513,95 +513,13 @@ class Configuration (object):
         if self.__state is None:
             transitions.update(filter(match_filter, fac.initialTransitions))
         else:
-            allow_local = True
-            if self.__subConfiguration is not None:
-                transitions.update(self.__subConfiguration.candidateTransitions(symbol))
-                allow_local = self.__subConfiguration.isAccepting()
-            if allow_local:
-                if self.__subAutomata is not None:
-                    for sa in self.__subAutomata:
-                        transitions.update(filter(match_filter, sa.initialTransitions))
-                transitions.update(filter(update_filter, self.__state.candidateTransitions(symbol)))
+            transitions.update(filter(update_filter, self.__state.candidateTransitions(symbol)))
         return transitions
 
     def applyTransition (self, transition):
-        # No automata involved at the source node
-        if self.__subAutomata is None:
-            UpdateInstruction.Apply(transition.updateInstructions, self.__counterValues)
-            if transition.destination.automaton == self.automaton:
-                # No automata involved with destination, either
-                self.__state = transition.destination
-                assert self.__state.subAutomata is None
-            else:
-                dest_state = transition.destination
-                cfg = None
-                assert dest_state.subAutomata is None
-                while self != cfg:
-                    assert dest_state is not None
-                    if dest_state.automaton == self.automaton:
-                        parent_cfg = self
-                    else:
-                        parent_cfg = Configuration(dest_state.automaton)
-                    # Just set the state.  This is either a transition
-                    # in this state, for which we've already applied
-                    # the update, or it's an initial transition into a
-                    # sub-automaton, for which there are no updates.
-                    parent_cfg.__state = dest_state
-                    assert (cfg is None) or (dest_state.subAutomata is not None)
-                    if dest_state.subAutomata is not None:
-                        assert cfg is not None
-                        parent_cfg.__subAutomata = set(dest_state.subAutomata)
-                        parent_cfg.__subAutomata.remove(cfg.automaton)
-                        parent_cfg.__subConfiguration = cfg
-                    cfg = parent_cfg
-                    dest_state = dest_state.automaton.containingState
-            return self
-
-        assert self.__subConfiguration is not None
-        if transition.destination.automaton == self.automaton:
-            assert (self.__subConfiguration is None) or self.__subConfiguration.isAccepting()
-            assert reduce(operator.and_, map(lambda _sa: _sa.nullable, self.__subAutomata), True)
-            self.__subAutomata = None
-            self.__subConfiguration = None
-            return self.applyTransition(transition)
-
-        assert 0 == len(transition.updateInstructions)
-
-        # Automata lineage containing destination
-        dest = transition.destination
-        dest_parentage = []
-        while dest.automaton.containingState is not None:
-            dest_parentage.append(dest)
-            dest = dest.automaton.containingState
-        dest_parentage.append(dest)
-
-        # Active configurations
-        active_configs = []
-        cfg = self
-        while cfg is not None:
-            active_configs.append(cfg)
-            cfg = cfg.__subConfiguration
-
-        while active_configs:
-            cfg = active_configs.pop()
-            for dest in dest_parentage:
-                if cfg.automaton == dest.automaton:
-                    break
-            if cfg.automaton == dest.automaton:
-                assert (cfg.__subConfiguration is None) or cfg.__subConfiguration.isAccepting()
-                while dest_parentage[-1] != dest:
-                    dest_parentage.pop()
-                dest = dest_parentage.pop()
-                while dest_parentage:
-                    dest = dest_parentage.pop()
-                    assert cfg.__subAutomata is not None
-                    assert dest.automaton in cfg.__subAutomata
-                    cfg.__subAutomata.remove(dest.automaton)
-                    cfg.__subConfiguration = Configuration(dest.automaton)
-                    cfg.__subConfiguration.applyTransition(Transition(dest, transition.updateInstructions))
-                    cfg = cfg.__subConfiguration
-                return self
-        assert False
+        UpdateInstruction.Apply(transition.updateInstructions, self.__counterValues)
+        self.__state = transition.destination
+        return self
 
     def step (self, symbol):
         transitions = self.candidateTransitions(symbol)
@@ -1008,27 +926,16 @@ class Node (object):
                 state_map[pos]._set_subAutomata(*map(lambda _s: _s.buildAutomaton(state_ctor, ctr_cond_ctor, containing_state=state_map[pos]), sym.terms))
         states = state_map.values()
 
-        for (p, transition_set) in self.follow.iteritems():
-            src = state_map[p]
+        for (spos, transition_set) in self.follow.iteritems():
+            src = state_map[spos]
             phi = set()
             for (dpos, psi) in transition_set:
                 dst = state_map[dpos]
                 uiset = set()
-                for (c, u) in psi.iteritems():
-                    uiset.add(UpdateInstruction(counter_map[c], self.INCREMENT == u))
-                if dst.subAutomata is not None:
-                    # This is essentially an epsilon-transition
-                    # through the dst state into the sub-automaton
-                    # initial state.  Preserve the counter updates
-                    # resulting from the transition at this level.
-                    for sa in dst.subAutomata:
-                        for xit in sa.initialTransitions:
-                            assert 0 == len(xit.updateInstructions)
-                            phi.add(Transition(xit.destination, uiset))
-                else:
-                    # Standard transition to destination
-                    phi.add(Transition(dst, uiset))
-            src._set_transitionSet(frozenset(phi))
+                for (counter, action) in psi.iteritems():
+                    uiset.add(UpdateInstruction(counter_map[counter], self.INCREMENT == action))
+                phi.add(Transition(dst, uiset))
+            src._set_transitionSet(phi)
 
         return Automaton(states, counters, self.nullable, containing_state=containing_state)
 
