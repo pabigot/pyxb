@@ -520,9 +520,36 @@ class Configuration (object):
         return transitions
 
     def applyTransition (self, transition):
+        # No automata involved at the source node
         if self.__subAutomata is None:
-            self.__state = transition.destination
             UpdateInstruction.Apply(transition.updateInstructions, self.__counterValues)
+            if transition.destination.automaton == self.automaton:
+                # No automata involved with destination, either
+                self.__state = transition.destination
+                assert self.__state.subAutomata is None
+            else:
+                dest_state = transition.destination
+                cfg = None
+                assert dest_state.subAutomata is None
+                while self != cfg:
+                    assert dest_state is not None
+                    if dest_state.automaton == self.automaton:
+                        parent_cfg = self
+                    else:
+                        parent_cfg = Configuration(dest_state.automaton)
+                    # Just set the state.  This is either a transition
+                    # in this state, for which we've already applied
+                    # the update, or it's an initial transition into a
+                    # sub-automaton, for which there are no updates.
+                    parent_cfg.__state = dest_state
+                    assert (cfg is None) or (dest_state.subAutomata is not None)
+                    if dest_state.subAutomata is not None:
+                        assert cfg is not None
+                        parent_cfg.__subAutomata = set(dest_state.subAutomata)
+                        parent_cfg.__subAutomata.remove(cfg.automaton)
+                        parent_cfg.__subConfiguration = cfg
+                    cfg = parent_cfg
+                    dest_state = dest_state.automaton.containingState
             return self
         assert False
 
@@ -536,7 +563,16 @@ class Configuration (object):
 
     def isAccepting (self):
         if self.__state is not None:
+            # Any active sub-configuration must be accepting
+            if (self.__subConfiguration is not None) and not self.__subConfiguration.isAccepting():
+                return False
+            # Any unprocessed sub-automata must be nullable
+            if self.__subAutomata is not None:
+                if not reduce(operator.and_, map(lambda _sa: _sa.nullable, self.__subAutomata), True):
+                    return False
+            # This state must be accepting
             return self.__state.isAccepting(self.__counterValues)
+        # Accepting without any action requires nullable automaton
         return self.__automaton.nullable
 
     def __init__ (self, automaton):
