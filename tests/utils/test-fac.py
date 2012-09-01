@@ -13,7 +13,7 @@ class TestFAC (unittest.TestCase):
     a2ObTc = Choice(a2, bTc)
     aXb = All(a, b)
     ex = NumericalConstraint(a2ObTc, 3, 5)
-
+    '''
     def testSymbol (self):
         self.assertEqual('a', self.a.metadata)
         au = self.a.buildAutomaton()
@@ -166,11 +166,20 @@ class TestFAC (unittest.TestCase):
         cfg.step('b')
         self.assertFalse(cfg.isAccepting())
 
+    '''
     def testAllTree (self):
-        ex = Sequence(NumericalConstraint(Symbol('f'), 0, 1), All(Symbol('a'), Symbol('b'), Symbol('c')), Symbol('l'))
+        a1 = All(Symbol('a'), Symbol('b'), Symbol('c'))
+        #a2 = All(Symbol('d'), Symbol('e'), Symbol('f'))
+        ex = Sequence(NumericalConstraint(Symbol('f'), 0, 1), a1, Symbol('l'))
         #print ex
         au = ex.buildAutomaton()
         #print au
+        cfg = Configuration(au)
+        for word in ['fabcl', 'fcabl']:
+            cfg.reset()
+            for c in word:
+                cfg.step(c)
+            self.assertTrue(cfg.isAccepting())
 
 if __name__ == '__main__':
     unittest.main()

@@ -551,6 +551,51 @@ class Configuration (object):
                     cfg = parent_cfg
                     dest_state = dest_state.automaton.containingState
             return self
+
+        assert self.__subConfiguration is not None
+        if transition.destination.automaton == self.automaton:
+            assert (self.__subConfiguration is None) or self.__subConfiguration.isAccepting()
+            assert reduce(operator.and_, map(lambda _sa: _sa.nullable, self.__subAutomata), True)
+            self.__subAutomata = None
+            self.__subConfiguration = None
+            return self.applyTransition(transition)
+
+        assert 0 == len(transition.updateInstructions)
+
+        # Automata lineage containing destination
+        dest = transition.destination
+        dest_parentage = []
+        while dest.automaton.containingState is not None:
+            dest_parentage.append(dest)
+            dest = dest.automaton.containingState
+        dest_parentage.append(dest)
+
+        # Active configurations
+        active_configs = []
+        cfg = self
+        while cfg is not None:
+            active_configs.append(cfg)
+            cfg = cfg.__subConfiguration
+
+        while active_configs:
+            cfg = active_configs.pop()
+            for dest in dest_parentage:
+                if cfg.automaton == dest.automaton:
+                    break
+            if cfg.automaton == dest.automaton:
+                assert (cfg.__subConfiguration is None) or cfg.__subConfiguration.isAccepting()
+                while dest_parentage[-1] != dest:
+                    dest_parentage.pop()
+                dest = dest_parentage.pop()
+                while dest_parentage:
+                    dest = dest_parentage.pop()
+                    assert cfg.__subAutomata is not None
+                    assert dest.automaton in cfg.__subAutomata
+                    cfg.__subAutomata.remove(dest.automaton)
+                    cfg.__subConfiguration = Configuration(dest.automaton)
+                    cfg.__subConfiguration.applyTransition(Transition(dest, transition.updateInstructions))
+                    cfg = cfg.__subConfiguration
+                return self
         assert False
 
     def step (self, symbol):
@@ -679,7 +724,7 @@ class Automaton (object):
         for s in self.__states:
             if s.subAutomata is not None:
                 for i in xrange(len(s.subAutomata)):
-                    rv.append('SA %s.%u:\n  ' % (str(s), i) + '\n  '.join(str(s.subAutomata[i]).split('\n')))
+                    rv.append('SA %s.%u is %x:\n  ' % (str(s), i, id(s.subAutomata[i])) + '\n  '.join(str(s.subAutomata[i]).split('\n')))
         rv.append('counters = %s' % (' '.join(map(str, self.__counterConditions))))
         rv.append('initial = %s' % (' ; '.join([ '%s on %s' % (_s, _s.symbol) for _s in filter(lambda _s: _s.isInitial, self.__states)])))
         rv.append('initial sym = %s' % (' ; '.join(map(lambda _xit: '%s on %s' % (_xit.destination, _xit.destination.symbol), self.initialTransitions))))
