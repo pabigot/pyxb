@@ -160,7 +160,7 @@ class State (object):
         return self.__transitionSet
     transitionSet = property(__get_transitionSet)
     
-    def _setTransitions (self, transition_set):
+    def _set_transitionSet (self, transition_set):
         """Method invoked during automaton construction to set the
         legal transitions from the state.
 
@@ -851,7 +851,7 @@ class Node (object):
                 for (c, u) in psi.iteritems():
                     uiset.add(UpdateInstruction(counter_map[c], self.INCREMENT == u))
                 phi.add(Transition(dst, uiset))
-            src._setTransitions(frozenset(phi))
+            src._set_transitionSet(frozenset(phi))
 
         return Automaton(states, counters, self.nullable)
 
