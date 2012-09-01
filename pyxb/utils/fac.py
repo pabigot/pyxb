@@ -231,7 +231,7 @@ class State (object):
     def _facText (self):
         rv = []
         for xit in self.__transitionSet:
-            rv.append('%s -%s-> %s : %s' % (self, self.symbol, xit.destination, ' ; '.join(map(str, xit.updateInstructions))))
+            rv.append('%s -%s-> %s : %s' % (self, xit.destination.symbol, xit.destination, ' ; '.join(map(str, xit.updateInstructions))))
         if self.__finalUpdate is not None:
             rv.append('Final: %s' % (' '.join(map(lambda _ui: str(_ui.counterCondition), self.__finalUpdate))))
         return '\n'.join(rv)
@@ -411,6 +411,9 @@ class Transition (object):
         consequence of taking the transition."""
         self.__destination = destination
         self.__updateInstructions = frozenset(update_instructions)
+
+    def __str__ (self):
+        return '%s with %s' % (self.destination, ' ; '.join(map(str, self.updateInstructions)))
 
 class Configuration (object):
     """The state of an L{Automaton} in execution.
