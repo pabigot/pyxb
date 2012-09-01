@@ -533,6 +533,8 @@ def elementDeclarationMap (ed, binding_module, **kw):
     return template_map
 
 import pyxb.utils.fac
+import operator
+
 
 # A Symbol in the term tree is a pair consisting of the containing
 # particle (for location information) and one of an
@@ -540,7 +542,7 @@ import pyxb.utils.fac
 # model groups.
 
 def BuildTermTree (node):
-    """Construct a L{FAC term tree<pyxb.utils.fac.Node>} for a L{particle <xs.structures.Particle}.
+    """Construct a L{FAC term tree<pyxb.utils.fac.Node>} for a L{particle<xs.structures.Particle>}.
 
     This translates the XML schema content model of particles, model
     groups, element declarations, and wildcards into a tree expressing
@@ -551,6 +553,61 @@ def BuildTermTree (node):
 
     @return: An instance of L{pyxb.utils.fac.Node}
     """
+    
+    def _generateTermTree_visitor (node, entered, arg):
+        """Helper for constructing a L{FAC term tree<pyxb.utils.fac.Node>}.
+    
+        This is passed to L{xs.structures.Particle.walkParticleTree}.
+    
+        @param node: An instance of L{xs.structures._ParticleTree_mixin}
+    
+        @param entered: C{True} entering an interior tree node, C{False}
+        leaving an interior tree node, C{None} at a leaf node.
+    
+        @param arg: A list of pairs C{(particle, terms)} where C{particle}
+        is the L{xs.structures.Particle} instance containing a list of
+        L{term trees<pyxb.utils.fac.Node>}.
+        """
+        
+        if entered is None:
+            (parent_particle, terms) = arg[-1]
+            assert isinstance(parent_particle, xs.structures.Particle)
+            assert isinstance(node, (xs.structures.ElementDeclaration, xs.structures.Wildcard))
+            terms.append(pyxb.utils.fac.Symbol((parent_particle, node)))
+        elif entered:
+            arg.append((node, []))
+        else:
+            (xnode, terms) = arg.pop()
+            assert xnode == node
+            (parent_particle, siblings) = arg[-1]
+            if 1 == len(terms):
+                term = terms[0]
+                # Either node is a Particle, or it's a single-member model
+                # group.  If it's a non-trivial particle we need a
+                # numerical constraint; if it's a single-member model
+                # group or a trivial particle we can use the term
+                # directly.
+                if isinstance(node, xs.structures.Particle) and ((1 != node.minOccurs()) or (1 != node.maxOccurs())):
+                    term = pyxb.utils.fac.NumericalConstraint(term, node.minOccurs(), node.maxOccurs())
+            else:
+                assert isinstance(parent_particle, xs.structures.Particle), 'unexpected %s' % (parent_particle,)
+                assert isinstance(node, xs.structures.ModelGroup)
+                if node.C_CHOICE == node.compositor():
+                    term = pyxb.utils.fac.Choice(*terms, metadata=node)
+                elif node.C_SEQUENCE == node.compositor():
+                    term = pyxb.utils.fac.Sequence(*terms, metadata=node)
+                else:
+                    # The quadratic state explosion and need to clone
+                    # terms that results from a naive transformation of
+                    # unordered catenation to choices among sequences of
+                    # nodes and recursively-defined catenation expressions
+                    # is not worth the pain.  Create a "symbol" for the
+                    # state and hold the alternatives in it.
+                    assert node.C_ALL == node.compositor()
+                    assert reduce(operator.and_, map(lambda _s: isinstance(_s, pyxb.utils.fac.Node), terms), True)
+                    term = pyxb.utils.fac.Symbol((parent_particle, terms))
+            siblings.append(term)
+
     assert isinstance(node, xs.structures.Particle)
     parent_particles = [node]
     ttlist = []
@@ -562,158 +619,112 @@ def BuildTermTree (node):
     auto = term_tree.buildAutomaton()
     return term_tree
 
-import operator
+def BuildPluralityData (term_tree):
+    """Walk a term tree to determine which element declarations may
+    appear multiple times.
 
-def _generateTermTree_visitor (node, entered, arg):
-    """Helper for constructing a L{FAC term tree<pyxb.utils.fac.Node>}.
+    The bindings need to use a list for any Python attribute
+    corresponding to an element declaration that can occur multiple
+    times in the content model.  The number of occurrences is
+    determined by the occurrence constraints on parent particles and
+    the compositors of containing model groups.  All this information
+    is available in the term tree used for the content model
+    automaton.
 
-    This is passed to L{xs.structures.Particle.walkParticleTree}.
+    @param term_tree: A L{FAC term tree<pyxb.utils.fac.Node>}
+    representing the content model for a complex data type.
 
-    @param node: An instance of L{xs.structures._ParticleTree_mixin}
-
-    @param entered: C{True} entering an interior tree node, C{False}
-    leaving an interior tree node, C{None} at a leaf node.
-
-    @param arg: A list of pairs C{(particle, terms)} where C{particle}
-    is the L{xs.structures.Particle} instance containing a list of
-    L{term trees<pyxb.utils.fac.Node>}.
-    """
-    
-    if entered is None:
-        (parent_particle, terms) = arg[-1]
-        assert isinstance(parent_particle, xs.structures.Particle)
-        assert isinstance(node, (xs.structures.ElementDeclaration, xs.structures.Wildcard))
-        terms.append(pyxb.utils.fac.Symbol((parent_particle, node)))
-    elif entered:
-        arg.append((node, []))
-    else:
-        (xnode, terms) = arg.pop()
-        assert xnode == node
-        (parent_particle, siblings) = arg[-1]
-        if 1 == len(terms):
-            term = terms[0]
-            # Either node is a Particle, or it's a single-member model
-            # group.  If it's a non-trivial particle we need a
-            # numerical constraint; if it's a single-member model
-            # group or a trivial particle we can use the term
-            # directly.
-            if isinstance(node, xs.structures.Particle) and ((1 != node.minOccurs()) or (1 != node.maxOccurs())):
-                term = pyxb.utils.fac.NumericalConstraint(term, node.minOccurs(), node.maxOccurs())
-        else:
-            assert isinstance(parent_particle, xs.structures.Particle), 'unexpected %s' % (parent_particle,)
-            assert isinstance(node, xs.structures.ModelGroup)
-            if node.C_CHOICE == node.compositor():
-                term = pyxb.utils.fac.Choice(*terms, metadata=node)
-            elif node.C_SEQUENCE == node.compositor():
-                term = pyxb.utils.fac.Sequence(*terms, metadata=node)
-            else:
-                # The quadratic state explosion and need to clone
-                # terms that results from a naive transformation of
-                # unordered catenation to choices among sequences of
-                # nodes and recursively-defined catenation expressions
-                # is not worth the pain.  Create a "symbol" for the
-                # state and hold the alternatives in it.
-                assert node.C_ALL == node.compositor()
-                assert reduce(operator.and_, map(lambda _s: isinstance(_s, pyxb.utils.fac.Node), terms), True)
-                term = pyxb.utils.fac.Symbol((parent_particle, terms))
-        siblings.append(term)
-
-def _ttMergeSets (parent, child):
-    """Merge child plurality data into the parent aggregator.
-
-    Each is represented as a pair C{(singles, multiples)} where
+    @return: Plurality data, as a pair C{(singles, multiples)} where
     C{singles} is a set of base L{element
     declarations<xs.structures.ElementDeclaration>} that are known to
-    occur at most once in a region of the content, and C{multiples} is
-    a similar set of declarations that are known to potentially occur
-    more than once.
+    occur at least once and at most once in a region of the content,
+    and C{multiples} is a similar set of declarations that are known
+    to potentially occur more than once."""
 
-    @param parent: The pair representing plurality for a tree node.
-    This value is updated in-place.
+    def _ttMergeSets (parent, child):
+        (p1, pm) = parent
+        (c1, cm) = child
+        
+        # Anything multiple in the child becomes multiple in the parent.
+        pm.update(cm)
     
-    @param child: The pair representing plurality for a child node.
-    Its contribution updates the parent values.
-    """
-    (p1, pm) = parent
-    (c1, cm) = child
+        # Anything independently occuring once in both parent and child
+        # becomes multiple in the parent.
+        pm.update(c1.intersection(p1))
+    
+        # Anything that was single in the parent (child) but is now
+        # multiple is no longer single.
+        p1.difference_update(pm)
+        c1.difference_update(pm)
+    
+        # Anything that was single in the parent and also single in the
+        # child is no longer single in the parent.
+        p1.symmetric_difference_update(c1)
 
-    # Anything multiple in the child becomes multiple in the parent.
-    pm.update(cm)
-
-    # Anything independently occuring once in both parent and child
-    # becomes multiple in the parent.
-    pm.update(c1.intersection(p1))
-
-    # Anything that was single in the parent (child) but is now
-    # multiple is no longer single.
-    p1.difference_update(pm)
-    c1.difference_update(pm)
-
-    # Anything that was single in the parent and also single in the
-    # child is no longer single in the parent.
-    p1.symmetric_difference_update(c1)
-
-def _ttPrePluralityWalk (node, pos, arg):
-    # If there are multiple children, create a new list on which they
-    # will be placed.
-    if isinstance(node, pyxb.utils.fac.MultiTermNode):
-        arg.append([])
-
-def _ttPostPluralityWalk (node, pos, arg):
-    singles = set()
-    multiples = set()
-    combined = (singles, multiples)
-    if isinstance(node, pyxb.utils.fac.MultiTermNode):
-        # Get the list of children, and examine
-        term_list = arg.pop()
-        if isinstance(node, pyxb.utils.fac.Choice):
-            # For choice we aggregate the singles and multiples
-            # separately.
-            for (t1, tm) in term_list:
-                multiples.update(tm)
-                singles.update(t1)
+    def _ttPrePluralityWalk (node, pos, arg):
+        # If there are multiple children, create a new list on which they
+        # will be placed.
+        if isinstance(node, pyxb.utils.fac.MultiTermNode):
+            arg.append([])
+            
+    def _ttPostPluralityWalk (node, pos, arg):
+        # Initialize a fresh result for this node
+        singles = set()
+        multiples = set()
+        combined = (singles, multiples)
+        if isinstance(node, pyxb.utils.fac.MultiTermNode):
+            # Get the list of children, and examine
+            term_list = arg.pop()
+            if isinstance(node, pyxb.utils.fac.Choice):
+                # For choice we aggregate the singles and multiples
+                # separately.
+                for (t1, tm) in term_list:
+                    multiples.update(tm)
+                    singles.update(t1)
+            else:
+                # For sequence we merge the children
+                assert isinstance(node, pyxb.utils.fac.Sequence)
+                for tt in term_list:
+                    _ttMergeSets(combined, tt)
+        elif isinstance(node, pyxb.utils.fac.Symbol):
+            (particle, term) = node.metadata
+            if isinstance(term, xs.structures.ElementDeclaration):
+                # One instance of the base declaration for the element
+                singles.add(term.baseDeclaration())
+            elif isinstance(term, xs.structures.Wildcard):
+                pass
+            else:
+                assert isinstance(term, list)
+                # Unordered catenation is the same as ordered catenation.
+                for tt in term:
+                    _ttMergeSets(combined, BuildPluralityData(tt))
         else:
-            # For sequence we merge the children
-            assert isinstance(node, pyxb.utils.fac.Sequence)
-            for tt in term_list:
-                _ttMergeSets(combined, tt)
-    elif isinstance(node, pyxb.utils.fac.Symbol):
-        (particle, term) = node.metadata
-        if isinstance(term, xs.structures.ElementDeclaration):
-            # One instance of the base declaration for the element
-            singles.add(term.baseDeclaration())
-        elif isinstance(term, xs.structures.Wildcard):
-            pass
-        else:
-            assert isinstance(term, list)
-            # Unordered catenation is the same as ordered catenation.
-            for tt in term:
-                _ttMergeSets(combined, BuildPluralityData(tt))
-    else:
-        assert isinstance(node, pyxb.utils.fac.NumericalConstraint)
-        # Grab the data for the topmost tree and adjust it based on
-        # occurrence data.
-        combined = arg[-1].pop()
-        (singles, multiples) = combined
-        if 0 == node.max:
-            # If the node can't match at all, there are no occurrences
-            # at all
-            multiples.clear()
-            singles.clear()
-        elif 1 == node.max:
-            # If the node can only match once, what we've got is right
-            pass
-        else:
-            # If the node can match multiple times, there are no
-            # singles.
-            multiples.update(singles)
-            singles.clear()
-    arg[-1].append(combined)
+            assert isinstance(node, pyxb.utils.fac.NumericalConstraint)
+            # Grab the data for the topmost tree and adjust it based on
+            # occurrence data.
+            combined = arg[-1].pop()
+            (singles, multiples) = combined
+            if 0 == node.max:
+                # If the node can't match at all, there are no occurrences
+                # at all
+                multiples.clear()
+                singles.clear()
+            elif 1 == node.max:
+                # If the node can only match once, what we've got is right
+                pass
+            else:
+                # If the node can match multiple times, there are no
+                # singles.
+                multiples.update(singles)
+                singles.clear()
+        arg[-1].append(combined)
 
-
-def BuildPluralityData (term_tree):
+    # Initialize state with an implied parent that currently has no
+    # children
     arg = [[]]
     term_tree.walkTermTree(_ttPrePluralityWalk, _ttPostPluralityWalk, arg)
+
+    # The result term tree is the single child of that implied parent
     assert 1 == len(arg)
     arg = arg[0]
     assert 1 == len(arg)
