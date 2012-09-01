@@ -156,6 +156,11 @@ class State (object):
     initialTransitions = property(__get_initialTransitions)
 
     __finalUpdate = None
+    def __get_finalUpdate (self):
+        """Return the update instructions that must be satisfied for this to be a final state."""
+        return self.__finalUpdate
+    finalUpdate = property(__get_finalUpdate)
+
     def isAccepting (self, counter_values):
         """C{True} iff this state is an accepting state for the automaton.
 
@@ -193,7 +198,7 @@ class State (object):
         set of L{UpdateInstruction}s that apply when the automaton
         transitions to the destination state."""
 
-        self.__transitionSet = transition_set
+        self.__transitionSet = frozenset(transition_set)
 
     def match (self, symbol):
         """Return C{True} iff the symbol matches for this state.
@@ -705,6 +710,12 @@ class Automaton (object):
         return self.__containingState
     containingState = property(__get_containingState)
 
+    __finalStates = None
+    def __get_finalStates (self):
+        """The set of L{State} members which can terminate a match."""
+        return self.__finalStates
+    finalStates = property(__get_finalStates)
+
     def __init__ (self, states, counter_conditions, nullable, containing_state=None):
         self.__states = frozenset(states)
         map(lambda _s: _s._set_automaton(self), self.__states)
@@ -712,10 +723,14 @@ class Automaton (object):
         self.__nullable = nullable
         self.__containingState = containing_state
         xit = set()
+        fnl = set()
         for s in self.__states:
             if s.isInitial:
                 xit.update(s.initialTransitions)
+            if s.finalUpdate is not None:
+                fnl.add(s)
         self.__initialTransitions = frozenset(xit)
+        self.__finalStates = frozenset(fnl)
 
     def __str__ (self):
         rv = []
