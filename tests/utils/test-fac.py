@@ -167,7 +167,7 @@ class TestFAC (unittest.TestCase):
         self.assertFalse(cfg.isAccepting())
 
     def testAllTree (self):
-        ex = Sequence(Symbol('f'), All(Symbol('a'), Symbol('b'), Symbol('c')), Symbol('l'))
+        ex = Sequence(NumericalConstraint(Symbol('f'), 0, 1), All(Symbol('a'), Symbol('b'), Symbol('c')), Symbol('l'))
         #print ex
         au = ex.buildAutomaton()
         #print au

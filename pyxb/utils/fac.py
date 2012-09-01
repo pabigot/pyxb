@@ -136,6 +136,25 @@ class State (object):
         return self.__isInitial
     isInitial = property(__get_isInitial)
 
+    __initialTransitions = None
+    def __get_initialTransitions (self):
+        """Return the set of initial transitions allowing entry to this state.
+
+        These are structurally-permitted transitions only, and must be
+        filtered based on the symbol that might trigger the
+        transition."""
+        if self.__initialTransitions is None:
+            xit = set()
+            if self.__isInitial:
+                if self.__subAutomata is None:
+                    xit.add(Transition(self, set()))
+                else:
+                    for sa in self.__subAutomata:
+                        xit.update(sa.initialTransitions)
+            self.__initialTransitions = frozenset(xit)
+        return self.__initialTransitions
+    initialTransitions = property(__get_initialTransitions)
+
     __finalUpdate = None
     def isAccepting (self, counter_values):
         """C{True} iff this state is an accepting state for the automaton.
@@ -193,13 +212,17 @@ class State (object):
         the update instructions are not satisfied.
         
         @param symbol: A symbol against which the destination
-        L{State.match} operation is invoked.
+        L{State.match} operation is invoked.  If the symbol is
+        C{None}, no symbol-based constraint is applied and all
+        structurally-permitted transitions are returned.
 
         @return: A set of pairs where the first member is a
         destination L{State} that would accept C{symbol} and the
         second member is the set of L{UpdateInstruction} that would
         apply if the automaton were to transition to that destination
         state in accordance."""
+        if symbol is None:
+            return self.__transitionSet
         return filter(lambda _xit: _xit.destination.match(symbol), self.__transitionSet)
 
     def __str__ (self):
@@ -207,8 +230,8 @@ class State (object):
 
     def _facText (self):
         rv = []
-        for (dst, update_instructions) in self.__transitionSet:
-            rv.append('%s -%s-> %s : %s' % (self, self.symbol, dst, ' ; '.join(map(str, update_instructions))))
+        for xit in self.__transitionSet:
+            rv.append('%s -%s-> %s : %s' % (self, self.symbol, xit.destination, ' ; '.join(map(str, xit.updateInstructions))))
         if self.__finalUpdate is not None:
             rv.append('Final: %s' % (' '.join(map(lambda _ui: str(_ui.counterCondition), self.__finalUpdate))))
         return '\n'.join(rv)
@@ -425,6 +448,22 @@ class Configuration (object):
     subConfiguration = property(__get_subConfiguration)
 
     __subAutomata = None
+    def __get_subAutomata (self):
+        """A set of automata that must be satisfied before the current state can complete.
+
+        This is used in unordered catenation.  Each sub-automaton
+        represents a term in the catenation.  When the configuration
+        enters a state with sub-automata, a set containing references
+        to those automata is assigned to this attribute.
+        Subsequently, until all automata in the state are satisfied,
+        transitions can only occur within an active sub-automaton, out
+        of the active sub-automaton if it is in an accepting state,
+        and into a new sub-automaton if no sub-automaton is active.
+        """
+        return self.__subAutomata
+    def _set_subAutomata (self, automata):
+        self.__subAutomata = set(automata)
+    subAutomata = property(__get_subAutomata)
 
     def reset (self):
         fac = self.__automaton
@@ -437,44 +476,42 @@ class Configuration (object):
         """Return set of viable transitions on C{symbol}
 
         This is the result of L{State.candidateTransitions} from the
-        current state, filtering out those transitions where the
-        update instruction is not satisfied by the current automaton
-        configuration.
+        current state and relevant subautomata, filtering out those
+        transitions where the update instruction is not satisfied by
+        the configuration counter values.
 
         @param symbol: A symbol through which a transition from this
-        state is intended.
+        state is intended.  A value of C{None} indicates that the set
+        of transitions should ignore the symbol; candidates are still
+        filtered based on the counter state of the configuration.
 
-        @return: A set of pairs where the first member is a
-        destination L{State} that would accept C{symbol} and the
-        second member is the set of L{UpdateInstruction} that would
-        apply if the automaton were to transition to that destination
-        state in accordance.  Non-deterministic automata may result in
-        a set with multiple members. """
+        @return: A set of L{Transition} instances permitted from the
+        current configuration.  If C{symbol} is not C{None},
+        transitions that would not accept the symbol are excluded.
+        Any transition that would require an unsatisfied counter
+        update is also excluded.  Non-deterministic automata may
+        result in a set with multiple members. """
         
         fac = self.__automaton
-        if self.__state is None:
-            transitions = set()
-            for s in fac.states:
-                if s.isInitial and s.match(symbol):
-                    transitions.add(Transition(s, frozenset()))
+        transitions = set()
+        if symbol is None:
+            match_filter = lambda _xit: True
         else:
-            transitions = self.__state.candidateTransitions(symbol)
-        return filter(lambda _xit: UpdateInstruction.Satisfies(self.__counterValues, _xit.updateInstructions), transitions)
-
-    def candidateSymbols (self):
-        """Return the set of symbols which would permit transition from this state.
-
-        This is L{State.transitionSet} from the current state,
-        filtering out those transitions where the update instructions
-        are not satisfied."""
+            match_filter = lambda _xit: _xit.destination.match(symbol)
+        update_filter = lambda _xit: UpdateInstruction.Satisfies(self.__counterValues, _xit.updateInstructions)
         if self.__state is None:
-            transitions = set()
-            for s in fac.states:
-                if s.isInitial:
-                    transitions.add((s, frozenset()))
+            transitions.update(filter(match_filter, fac.initialTransitions))
         else:
-            transitions = self.__state.transitions
-        return filter(lambda _phi: UpdateInstruction.Satisfies(self.__counterValues, _phi[1]), transitions)
+            exclude_local = False
+            if self.__subConfiguration is not None:
+                transitions.update(self.__subConfiguration.candidateTransitions(symbol))
+                if self.__subConfiguration.isAccepting():
+                    transitions.update(filter(match_filter, map(lambda _sa: _sa.initialTransitions, self.__subAutomata)))
+                else:
+                    exclude_local = True
+            if not exclude_local:
+                transitions.update(filter(update_filter, self.__state.candidateTransitions(symbol)))
+        return transitions
 
     def applyTransition (self, transition):
         self.__state = transition.destination
@@ -561,11 +598,22 @@ class Automaton (object):
         return self.__nullable
     nullable = property(__get_nullable)
 
+    __initialTransitions = None
+    def __get_initialTransitions (self):
+        """The set of transitions that may be made to enter the automaton."""
+        return self.__initialTransitions
+    initialTransitions = property(__get_initialTransitions)
+
     def __init__ (self, states, counter_conditions, nullable):
         self.__states = frozenset(states)
         map(lambda _s: _s._set_automaton(self), self.__states)
         self.__counterConditions = frozenset(counter_conditions)
         self.__nullable = nullable
+        xit = set()
+        for s in self.__states:
+            if s.isInitial:
+                xit.update(s.initialTransitions)
+        self.__initialTransitions = frozenset(xit)
 
     def __str__ (self):
         rv = []
@@ -577,6 +625,7 @@ class Automaton (object):
                     rv.append('SA %s.%u:\n  ' % (str(s), i) + '\n  '.join(str(s.subAutomata[i]).split('\n')))
         rv.append('counters = %s' % (' '.join(map(str, self.__counterConditions))))
         rv.append('initial = %s' % (' ; '.join([ '%s on %s' % (_s, _s.symbol) for _s in filter(lambda _s: _s.isInitial, self.__states)])))
+        rv.append('initial sym = %s' % (' ; '.join(map(lambda _xit: '%s on %s' % (_xit.destination, _xit.destination.symbol), self.initialTransitions))))
         for s in self.__states:
             rv.append(s._facText())
         return '\n'.join(rv)
