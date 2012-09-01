@@ -587,6 +587,67 @@ def _generateTermTree (node, entered, arg):
                 #term = pyxb.utils.fac.All.CreateTermTree(*terms)
         siblings.append(term)
 
+def _ttMergeSets (parent, child):
+    (p1, pm) = parent
+    (c1, cm) = child
+    pm.update(cm)
+    pm.update(c1.intersection(p1))
+    p1.difference_update(pm)
+    c1.difference_update(pm)
+    p1.symmetric_difference_update(c1)
+
+def _ttPrePluralityWalk (node, pos, arg):
+    if isinstance(node, pyxb.utils.fac.MultiTermNode):
+        arg.append([])
+
+def _ttPostPluralityWalk (node, pos, arg):
+    singles = set()
+    multiples = set()
+    combined = (singles, multiples)
+    if isinstance(node, pyxb.utils.fac.MultiTermNode):
+        term_list = arg.pop()
+        if isinstance(node, pyxb.utils.fac.Choice):
+            for (t1, tm) in term_list:
+                multiples.update(tm)
+                singles.update(t1)
+        else:
+            assert isinstance(node, pyxb.utils.fac.Sequence)
+            for tt in term_list:
+                _ttMergeSets(combined, tt)
+    elif isinstance(node, pyxb.utils.fac.Symbol):
+        (particle, term) = node.metadata
+        if isinstance(term, xs.structures.ElementDeclaration):
+            singles.add(term.baseDeclaration())
+        elif isinstance(term, xs.structures.Wildcard):
+            pass
+        elif isinstance(term, list):
+            for tt in term:
+                _ttMergeSets(combined, BuildPluralityData(tt))
+        else:
+            assert False, 'term %s' % (term,)
+    else:
+        assert isinstance(node, pyxb.utils.fac.NumericalConstraint)
+        combined = arg[-1].pop()
+        (singles, multiples) = combined
+        if 0 == node.max:
+            multiples.clear()
+            singles.clear()
+        elif 1 == node.max:
+            pass
+        else:
+            multiples.update(singles)
+            singles.clear()
+    arg[-1].append(combined)
+
+
+def BuildPluralityData (term_tree):
+    arg = [[]]
+    term_tree.walkTermTree(_ttPrePluralityWalk, _ttPostPluralityWalk, arg)
+    assert 1 == len(arg)
+    arg = arg[0]
+    assert 1 == len(arg)
+    return arg[0]
+
 def GenerateCTD (ctd, generator, **kw):
     binding_module = generator.moduleForComponent(ctd)
     outf = binding_module.bindingIO()
@@ -663,10 +724,19 @@ class %{ctd} (%{superclass}):
 
     if isinstance(content_basis, xs.structures.Particle):
         term_tree = BuildTermTree(content_basis)
+        (singles, multiples) = BuildPluralityData(term_tree)
         plurality_data = content_basis.pluralityData().combinedPlurality()
 
         outf.postscript().append("\n\n")
         for (ed, is_plural) in plurality_data.items():
+            if ed in singles:
+                assert not ed in multiples
+                assert not is_plural
+            elif ed in multiples:
+                assert not ed in singles
+                assert is_plural
+            else:
+                assert False
             # @todo Detect and account for plurality change between this and base
             ef_map = ed._templateMap()
             if ed.scope() == ctd:
