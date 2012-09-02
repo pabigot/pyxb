@@ -156,30 +156,64 @@ class State (object):
         return self.__isInitial
     isInitial = property(__get_isInitial)
 
-    __initialTransitions = None
-    def __get_initialTransitions (self):
-        """Return the set of initial transitions allowing entry to this state.
+    __automatonEntryTransitions = None
+    def __get_automatonEntryTransitions (self):
+        """Return the set of initial transitions allowing entry to the automata through this state.
 
         These are structurally-permitted transitions only, and must be
         filtered based on the symbol that might trigger the
-        transition."""
-        if self.__initialTransitions is None:
-            xit = set()
+        transition.  The results are not filtered based on counter
+        value, since this value is used to determine how the
+        containing automaton might be entered.  Consequently the
+        return value is the empty set unless this is an initial state.
+
+        The returned set is closed under entry to sub-automata,
+        i.e. it is guaranteed that each transition includes a
+        consuming state even if it requires a multi-element chain of
+        transitions into subautomata to reach one."""
+        if self.__automatonEntryTransitions is None:
+            transitions = set()
             if self.__isInitial:
+                xit = Transition(self, set())
                 if self.__subAutomata is None:
-                    xit.add(Transition(self, set()))
+                    transitions.add(xit)
                 else:
                     for sa in self.__subAutomata:
-                        xit.update(sa.initialTransitions)
-            self.__initialTransitions = frozenset(xit)
-        return self.__initialTransitions
-    initialTransitions = property(__get_initialTransitions)
+                        for saxit in sa.initialTransitions:
+                            transitions.add(xit.chainTo(saxit.enterAutomaton()))
+            self.__automatonEntryTransitions = frozenset(transitions)
+        return self.__automatonEntryTransitions
+    automatonEntryTransitions = property(__get_automatonEntryTransitions)
 
     __finalUpdate = None
     def __get_finalUpdate (self):
         """Return the update instructions that must be satisfied for this to be a final state."""
         return self.__finalUpdate
     finalUpdate = property(__get_finalUpdate)
+
+    def subAutomataInitialTransitions (self, sub_automata=None):
+        """Return the set of candidate transitions to enter a sub-automaton of this state.
+
+        @param sub_automata: A subset of the sub-automata of this
+        state which should contribute to the result.  If C{None}, all
+        sub-automata are used.
+
+        @return: A pair C{(nullable, transitions)} where C{nullable}
+        is C{True} iff there is at least one sub-automaton that is in
+        an accepting state on entry, and C{transitions} is a set of
+        L{Transition} instances describing how to reach some state in
+        a sub-automaton via a consumed symbol.
+        """
+        assert self.__subAutomata is not None
+        is_nullable = True
+        transitions = set()
+        if sub_automata is None:
+            sub_automata = self.__subAutomata
+        for sa in sub_automata:
+            if not sa.nullable:
+                is_nullable = False
+            transitions.update(sa.initialTransitions)
+        return (is_nullable, transitions)
 
     def isAccepting (self, counter_values):
         """C{True} iff this state is an accepting state for the automaton.
@@ -197,10 +231,17 @@ class State (object):
     def __get_transitionSet (self):
         """Definitions of viable transitions from this state.
 
-        The transition set of a state is a set of pairs where the first
-        member is the destination L{State} and the second member is the
-        set of L{UpdateInstruction}s that apply when the automaton
-        transitions to the destination state."""
+        The transition set of a state is a set of L{Transition} nodes
+        identifying a state reachable in a single step from this
+        state, and a set of counter updates that must apply if the
+        transition is taken.
+
+        These transitions may not in themselves consume a symbol.  For
+        example, if the destination state represents a match of an
+        L{unordered catenation of terms<All>}, then secondary
+        processing must be done to traverse into the automata for
+        those terms and identify transitions that include a symbol
+        consumption."""
         return self.__transitionSet
     transitionSet = property(__get_transitionSet)
     
@@ -450,7 +491,45 @@ class Transition (object):
 
     def consumingState (self):
         """Return the state in this transition chain that must match a symbol."""
+
+        # Transitions to a state with subautomata never consume anything
+        if self.__destination.subAutomata is not None:
+            if not self.__nextTransition:
+                return None
+            return self.__nextTransition.consumingState()
+        # I don't think there should be subsequent transitions
+        assert self.__nextTransition is None
         return self.__destination
+
+    def satisfiedBy (self, configuration):
+        """Check the transition update instructions against
+        configuration counter values.
+
+        This implementation follows layer changes, updating the
+        configuration used as counter value source as necessary.
+
+        @param configuration: A L{Configuration} instance containing
+        counter data against which update instruction satisfaction is
+        checked.
+
+        @return: C{True} iff all update instructions along the
+        transition chain are satisfied by their relevant
+        configuration."""
+        # If we're entering an automaton, we know no subsequent
+        # transitions have update instructions
+        if isinstance(self.__layerLink, Automaton):
+            return True
+        # If we're leaving an automaton, switch to the configuration
+        # that is relevant to the destination of the transition.
+        if isinstance(self.__layerLink, Configuration):
+            configuration = self.__layerLink
+        # Blow chunks if the configuration doesn't satisfy the transition
+        if not configuration.satisfies(self):
+            return False
+        # Otherwise try the next transition, or succeed if there isn't one
+        if self.__nextTransition:
+            return self.__nextTransition.satisfiedBy(configuration)
+        return True
 
     def apply (self, configuration):
         """Apply the transitition to a configuration.
@@ -461,15 +540,20 @@ class Transition (object):
         @note: If the transition involves leaving a sub-automaton or
         creating a new sub-automaton, the returned configuration
         structure will be different from the one passed in.  You
-        should use this as::
+        should invoke this as::
 
           cfg = transition.apply(cfg)
 
         @param configuration: A L{Configuration} of an executing automaton
         @return: The resulting configuration
         """
+        if isinstance(self.__layerLink, Configuration):
+            configuration = self.__layerLink
+            configuration.__subConfiguration = None
+        elif isinstance(self.__layerLink, Automaton):
+            configuration = configuration.enterAutomaton(self.__layerLink)
         UpdateInstruction.Apply(self.updateInstructions, configuration._get_counterValues())
-        configuration._set_state(self.destination)
+        configuration._set_state(self.destination, self.__layerLink is None)
         if self.__nextTransition is None:
             return configuration
         return self.__nextTransition.apply(configuration)
@@ -495,8 +579,31 @@ class Transition (object):
         head.__nextTransition = next_transition
         return head
 
+    def enterAutomaton (self):
+        """Replicate the transition as a layer link into its automaton.
+
+        This is used on initial transitions into sub-automata where a
+        sub-configuration must be created and recorded."""
+        assert self.__layerLink is None
+        assert self.__nextTransition is None
+        head = type(self)(self.__destination, self.__updateInstructions)
+        head.__layerLink = self.__destination.automaton
+        return head
+
     def __str__ (self):
-        return '%s with %s' % (self.destination, ' ; '.join(map(str, self.updateInstructions)))
+        rv = []
+        if isinstance(self.__layerLink, Configuration):
+            rv.append('from A%x ' % (id(self.__layerLink.automaton),))
+        elif isinstance(self.__layerLink, Automaton):
+            rv.append('in A%x ' % (id(self.__layerLink)))
+        rv.append('enter %s ' % (self.destination,))
+        if (self.consumingState() == self.destination):
+            rv.append('via %s ' % (self.destination.symbol,))
+        rv.append('with %s' % (' ; '.join(map(str, self.updateInstructions)),))
+        if self.__nextTransition:
+            rv.append("\n\tthen ")
+            rv.append(str(self.__nextTransition))
+        return ''.join(rv)
 
 class Configuration (object):
     """The state of an L{Automaton} in execution.
@@ -510,8 +617,31 @@ class Configuration (object):
 
         This is C{None} to indicate an initial state, or one of the underlying automaton's states."""
         return self.__state
-    def _set_state (self, state):
+    def _set_state (self, state, is_layer_change):
+        """Internal state transition interface.
+
+        @param state: the new destination state
+
+        @param is_layer_change: C{True} iff the transition inducing
+        the state change involves a layer change.
+        """
+
+        # If the new state and old state are the same, the layer
+        # change has no effect (we're probably leaving a
+        # subconfiguration, and we want to keep the current set of
+        # sub-automata.)
+        if state == self.__state:
+            return
+
+        # Otherwise, discard any unprocessed automata in the former
+        # state, set the state, and if the new state has subautomata
+        # create a set holding them so they can be processed.
+        if is_layer_change:
+            self.__subAutomata = None
         self.__state = state
+        if is_layer_change and (state.subAutomata is not None):
+            assert self.__subAutomata is None
+            self.__subAutomata = set(state.subAutomata)
     state = property(__get_state)
 
     __counterValues = None
@@ -573,6 +703,26 @@ class Configuration (object):
         self.__subAutomata = set(automata)
     subAutomata = property(__get_subAutomata)
 
+    def leaveAutomaton (self):
+        """Create a transition back to the containing configuration.
+
+        This is done when a configuration is in an accepting state and
+        there are candidate transitions to other states that must be
+        considered.  The transition does not consume a symbol."""
+        assert self.__superConfiguration is not None
+        return Transition(self.__superConfiguration.__state, set(), layer_link=self.__superConfiguration)
+
+    def enterAutomaton (self, automaton):
+        assert self.__subConfiguration is None
+        assert self.__subAutomata is not None
+        self.__subAutomata.remove(automaton)
+        self.__subConfiguration = Configuration(automaton)
+        self.__subConfiguration.__superConfiguration = self
+        return self.__subConfiguration
+
+    def satisfies (self, transition):
+        return UpdateInstruction.Satisfies(self.__counterValues, transition.updateInstructions)
+
     def reset (self):
         fac = self.__automaton
         self.__state = None
@@ -607,12 +757,35 @@ class Configuration (object):
             match_filter = lambda _xit: True
         else:
             match_filter = lambda _xit: _xit.consumingState().match(symbol)
-        update_filter = lambda _xit: UpdateInstruction.Satisfies(self.__counterValues, _xit.updateInstructions)
+        update_filter = lambda _xit: _xit.satisfiedBy(self)
+
+        # We assume that any subconfiguration is in an accepting state.
         if self.__state is None:
             transitions.update(fac.initialTransitions)
         else:
-            transitions.update(filter(update_filter, self.__state.transitionSet))
-        return filter(match_filter, transitions)
+            # Normally include transitions at this level, but in some
+            # cases they are not permitted.
+            include_local = True
+            if self.__subAutomata:
+                (include_local, sub_initial) = self.__state.subAutomataInitialTransitions(self.__subAutomata)
+                transitions.update(sub_initial)
+            if include_local:
+                for xit in filter(update_filter, self.__state.transitionSet):
+                    if xit.consumingState() is not None:
+                        transitions.add(xit)
+                    else:
+                        # The transition did not consume a symbol, so we have to find
+                        # one that does, from among the subautomata of the destination.
+                        # We do not care if the destination is nullable; alternatives
+                        # to it are already being handled with different transitions.
+                        (_, sub_initial) = xit.destination.subAutomataInitialTransitions()
+                        transitions.update(map(lambda _xit: xit.chainTo(_xit), sub_initial))
+                transitions.update()
+                if (self.__superConfiguration is not None) and self.isAccepting():
+                    lxit = self.leaveAutomaton()
+                    supxit = self.__superConfiguration.candidateTransitions(symbol)
+                    transitions.update(map(lambda _sx: lxit.chainTo(_sx), supxit))
+        return filter(update_filter, filter(match_filter, transitions))
 
     def step (self, symbol):
         transitions = self.candidateTransitions(symbol)
@@ -749,7 +922,7 @@ class Automaton (object):
         fnl = set()
         for s in self.__states:
             if s.isInitial:
-                xit.update(s.initialTransitions)
+                xit.update(s.automatonEntryTransitions)
             if s.finalUpdate is not None:
                 fnl.add(s)
         self.__initialTransitions = frozenset(xit)

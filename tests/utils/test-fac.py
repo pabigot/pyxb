@@ -187,11 +187,19 @@ class TestFAC (unittest.TestCase):
         self.assertEqual(x1.nextTransition, None)
         self.assertEqual(x1b.nextTransition, x2)
 
+    def testTransitionLayers (self):
+        a1 = All(NumericalConstraint(Symbol('a'), 0, 1), Symbol('b'), NumericalConstraint(Symbol('c'), 0, 1))
+        a2 = All(Symbol('d'), NumericalConstraint(Symbol('e'), 0, 1), Symbol('f'))
+        tt = NumericalConstraint(Sequence(NumericalConstraint(a1, 0, 1), NumericalConstraint(a2, 0, 1), Symbol('l')), 0, 3)
+        au = tt.buildAutomaton()
+        topcfg = Configuration(au)
+        cfg = topcfg.step('b')
+        cfg = cfg.step('a')
+
     def testAllTree (self):
         a1 = All(Symbol('a'), Symbol('b'), Symbol('c'))
         a2 = All(Symbol('d'), Symbol('e'), Symbol('f'))
         ex = Sequence(NumericalConstraint(Symbol('f'), 0, 1), a1, NumericalConstraint(a2, 0, 1), Symbol('l'))
-        '''
         print ex
         au = ex.buildAutomaton()
         print au
@@ -205,7 +213,6 @@ class TestFAC (unittest.TestCase):
                     print e
                 print 'step %s' %(c,)
             self.assertTrue(cfg.isAccepting())
-        '''
 
 if __name__ == '__main__':
     unittest.main()
