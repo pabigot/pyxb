@@ -443,8 +443,9 @@ class Transition (object):
 
         @keyword layer_link: The value for L{layerLink}."""
         self.__destination = destination
-        if update_instructions is not None:
-            self.__updateInstructions = frozenset(update_instructions)
+        if not isinstance(update_instructions, frozenset):
+            update_instructions = frozenset(update_instructions)
+        self.__updateInstructions = update_instructions
         self.__layerLink = layer_link
 
     def consumingState (self):
@@ -490,8 +491,7 @@ class Transition (object):
         @return: a clone of this node, augmented with a link to
         C{next_transition}."""
         assert not self.__nextTransition
-        head = type(self)(self.__destination, None)
-        head.__updateInstructions = self.__updateInstructions
+        head = type(self)(self.__destination, self.__updateInstructions, layer_link=self.__layerLink)
         head.__nextTransition = next_transition
         return head
 
