@@ -207,29 +207,6 @@ class State (object):
         equivalence does not work."""
         return self.__symbol == symbol
 
-    def candidateTransitions (self, symbol):
-        """Return the set of transitions for which the destination
-        accepts C{symbol} as a match.
-        
-        The returned set may have multiple members.  If the automaton
-        is not deterministic, the set may have multiple members even
-        after it is further filtered to eliminate transitions where
-        the update instructions are not satisfied.
-        
-        @param symbol: A symbol against which the destination
-        L{State.match} operation is invoked.  If the symbol is
-        C{None}, no symbol-based constraint is applied and all
-        structurally-permitted transitions are returned.
-
-        @return: A set of pairs where the first member is a
-        destination L{State} that would accept C{symbol} and the
-        second member is the set of L{UpdateInstruction} that would
-        apply if the automaton were to transition to that destination
-        state in accordance."""
-        if symbol is None:
-            return self.__transitionSet
-        return filter(lambda _xit: _xit.destination.match(symbol), self.__transitionSet)
-
     def __str__ (self):
         return 'S.%x' % (id(self),)
 
@@ -530,10 +507,10 @@ class Configuration (object):
             match_filter = lambda _xit: _xit.destination.match(symbol)
         update_filter = lambda _xit: UpdateInstruction.Satisfies(self.__counterValues, _xit.updateInstructions)
         if self.__state is None:
-            transitions.update(filter(match_filter, fac.initialTransitions))
+            transitions.update(fac.initialTransitions)
         else:
-            transitions.update(filter(update_filter, self.__state.candidateTransitions(symbol)))
-        return transitions
+            transitions.update(filter(update_filter, self.__state.transitionSet))
+        return filter(match_filter, transitions)
 
     def applyTransition (self, transition):
         UpdateInstruction.Apply(transition.updateInstructions, self.__counterValues)
