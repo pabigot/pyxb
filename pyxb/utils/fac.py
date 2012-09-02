@@ -752,7 +752,7 @@ class Configuration (object):
         self.__subConfiguration = None
         self.__subAutomata = None
 
-    def candidateTransitions (self, symbol):
+    def candidateTransitions (self, symbol=None):
         """Return set of viable transitions on C{symbol}
 
         The set of transitions that are structurally permitted from
@@ -781,17 +781,25 @@ class Configuration (object):
             match_filter = lambda _xit: _xit.consumingState().match(symbol)
         update_filter = lambda _xit: _xit.satisfiedBy(self)
 
-        # We assume that any subconfiguration is in an accepting state.
         if self.__state is None:
+            # Special-case the initial entry to the topmost configuration
             transitions.update(fac.initialTransitions)
+        elif (self.__subConfiguration is not None) and not self.__subConfiguration.isAccepting():
+            # If there's an active subconfiguration that is not in an
+            # accepting state, we can't do anything at this level.
+            pass
         else:
             # Normally include transitions at this level, but in some
             # cases they are not permitted.
             include_local = True
             if self.__subAutomata:
+                # Disallow transitions in this level if there are
+                # subautomata that require symbols before a transition
+                # out of this node is allowed.
                 (include_local, sub_initial) = self.__state.subAutomataInitialTransitions(self.__subAutomata)
                 transitions.update(map(lambda _xit: _xit.makeEnterAutomatonTransition(), sub_initial))
             if include_local:
+                # Transitions within this layer
                 for xit in filter(update_filter, self.__state.transitionSet):
                     if xit.consumingState() is not None:
                         transitions.add(xit)
@@ -802,8 +810,8 @@ class Configuration (object):
                         # to it are already being handled with different transitions.
                         (_, sub_initial) = xit.destination.subAutomataInitialTransitions()
                         transitions.update(map(lambda _xit: xit.chainTo(_xit.makeEnterAutomatonTransition()), sub_initial))
-                transitions.update()
                 if (self.__superConfiguration is not None) and self.isAccepting():
+                    # Transitions that leave this automaton
                     lxit = self.makeLeaveAutomatonTransition()
                     supxit = self.__superConfiguration.candidateTransitions(symbol)
                     transitions.update(map(lambda _sx: lxit.chainTo(_sx), supxit))

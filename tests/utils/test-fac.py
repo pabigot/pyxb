@@ -195,7 +195,14 @@ class TestFAC (unittest.TestCase):
         topcfg = Configuration(au)
         cfg = topcfg.step('b')
         cfg = cfg.step('a')
-
+        cfg = cfg.step('e')
+        topcfg.reset()
+        cfg = topcfg.step('a')
+        # Can't move to 'e' until the required component 'b' of a1 has been provided.
+        self.assertRaises(RecognitionError, cfg.step, 'e')
+        cfg = cfg.step('b')
+        cfg = cfg.step('e')
+        
     def testAllTree (self):
         a1 = All(Symbol('a'), Symbol('b'), Symbol('c'))
         a2 = All(Symbol('d'), Symbol('e'), Symbol('f'))
@@ -208,7 +215,7 @@ class TestFAC (unittest.TestCase):
             cfg.reset()
             for c in word:
                 try:
-                    cfg.step(c)
+                    cfg = cfg.step(c)
                 except RecognitionError as e:
                     print e
                 print 'step %s' %(c,)
