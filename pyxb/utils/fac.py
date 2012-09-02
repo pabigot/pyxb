@@ -413,18 +413,39 @@ class Transition (object):
         return self.__nextTransition
     nextTransition = property(__get_nextTransition)
 
-    def __init__ (self, destination, update_instructions):
+    __layerLink = None
+    def __get_layerLink (self):
+        """A directive relating to changing automaton layer on transition.
+
+        C{None} indicates this transition is from one state to another
+        within a single automaton.
+
+        An instance of L{Configuration} is a transition on completion
+        of a subautomaton back to the configuration in the parent
+        automaton.  The L{destination} is the state in the parent automaton.
+
+        An instance of L{Automaton} requires creation of a
+        sub-configuration and initial entry into the automaton.  The
+        L{destination} is the state in the sub-automaton.
+        """
+        return self.__layerLink
+    layerLink = property(__get_layerLink)
+
+    def __init__ (self, destination, update_instructions, layer_link=None):
         """Create a transition to a state.
 
         @param destination: the state into which the transition is
         made
 
-        @param update_instructions: A set of L{UpdateInstruction}s
+        @param update_instructions: A iterable of L{UpdateInstruction}s
         denoting the changes that must be made to counters as a
-        consequence of taking the transition."""
+        consequence of taking the transition.
+
+        @keyword layer_link: The value for L{layerLink}."""
         self.__destination = destination
         if update_instructions is not None:
             self.__updateInstructions = frozenset(update_instructions)
+        self.__layerLink = layer_link
 
     def consumingState (self):
         """Return the state in this transition chain that must match a symbol."""
