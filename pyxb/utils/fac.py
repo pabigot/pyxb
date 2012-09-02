@@ -452,11 +452,30 @@ class Configuration (object):
     def __get_subConfiguration (self):
         """Reference to configuration being executed in a sub-automaton.
 
+        Sub-configurations are used to match sub-terms in an
+        L{unordered catenation<All>} term.  A configuration may have
+        at most one sub-configuration at a time, and the configuration
+        will be removed and possibly replaced when the term being
+        processed completes.
+
         @return: C{None} if no sub-automaton is active, else a
         reference to a configuration that is being executed in a
         sub-automaton."""
         return self.__subConfiguration
     subConfiguration = property(__get_subConfiguration)
+
+    __superConfiguration = None
+    def __get_superConfiguration (self):
+        """Reference to the configuration for which this is a sub-configuration.
+
+        The super-configuration relation persists for the lifetime of
+        the configuration.
+
+        @return: C{None} if no super-automaton is active, else a
+        reference to a configuration that is being executed in a
+        super-automaton."""
+        return self.__superConfiguration
+    superConfiguration = property(__get_superConfiguration)
 
     __subAutomata = None
     def __get_subAutomata (self):
@@ -543,18 +562,30 @@ class Configuration (object):
         # Accepting without any action requires nullable automaton
         return self.__automaton.nullable
 
-    def __init__ (self, automaton):
+    def __init__ (self, automaton, super_configuration=None):
         self.__automaton = automaton
+        self.__superConfiguration = super_configuration
         self.reset()
 
     def clone (self):
+        """Clone a configuration and its descendents.
+
+        This is used for parallel execution where a configuration has
+        multiple candidate transitions and must follow all of them."""
+        # When the time comes, figure out how to clone the upper part
+        # of the chain too.
+        assert not self.__superConfiguration
+        return self._clone(self.__superConfiguration)
+
+    def _clone (self, super_configuration):
         other = type(self)(self.__automaton)
         other.__state = self.__state
         other.__counterValues = self.__counterValues.copy()
+        other.__superConfiguration = super_configuration
         if self.__subAutomata is not None:
             other.__subAutomata = self.__subAutomata.copy()
             if self.__subConfiguration:
-                other.__subConfiguration = self.__subConfiguration.clone()
+                other.__subConfiguration = self.__subConfiguration._clone(other)
         return other
 
     def __str__ (self):
