@@ -417,6 +417,26 @@ class Transition (object):
         self.__destination = destination
         self.__updateInstructions = frozenset(update_instructions)
 
+    def apply (self, configuration):
+        """Apply the transitition to a configuration.
+
+        This updates the configuration counter values based on the
+        update instructions, and sets the new configuration state.
+
+        @note: If the transition involves leaving a sub-automaton or
+        creating a new sub-automaton, the returned configuration
+        structure will be different from the one passed in.  You
+        should use this as::
+
+          cfg = transition.apply(cfg)
+
+        @param configuration: A L{Configuration} of an executing automaton
+        @return: The resulting configuration
+        """
+        UpdateInstruction.Apply(self.updateInstructions, configuration._get_counterValues())
+        configuration._set_state(self.destination)
+        return configuration
+
     def __str__ (self):
         return '%s with %s' % (self.destination, ' ; '.join(map(str, self.updateInstructions)))
 
@@ -432,6 +452,8 @@ class Configuration (object):
 
         This is C{None} to indicate an initial state, or one of the underlying automaton's states."""
         return self.__state
+    def _set_state (self, state):
+        self.__state = state
     state = property(__get_state)
 
     __counterValues = None
@@ -439,6 +461,8 @@ class Configuration (object):
 
     This is a map from the CounterCondition instances of the
     underlying automaton to integer values."""
+    def _get_counterValues (self):
+        return self.__counterValues
 
     __automaton = None
     def __get_automaton (self):
@@ -532,18 +556,13 @@ class Configuration (object):
             transitions.update(filter(update_filter, self.__state.transitionSet))
         return filter(match_filter, transitions)
 
-    def applyTransition (self, transition):
-        UpdateInstruction.Apply(transition.updateInstructions, self.__counterValues)
-        self.__state = transition.destination
-        return self
-
     def step (self, symbol):
         transitions = self.candidateTransitions(symbol)
         if 0 == len(transitions):
             raise RecognitionError('Unable to match symbol %s' % (symbol,))
         if 1 < len(transitions):
             raise RecognitionError('Non-deterministic transition on %s' % (symbol,))
-        return self.applyTransition(iter(transitions).next())
+        return iter(transitions).next().apply(self)
 
     def isAccepting (self):
         if self.__state is not None:
@@ -612,10 +631,10 @@ class MultiConfiguration (object):
             if 0 == len(transitions):
                 pass
             elif 1 == len(transitions):
-                next_configs.add(cfg.applyTransition(iter(transitions).next()))
+                next_configs.add(iter(transitions).next().apply(cfg))
             else:
                 for transition in transitions:
-                    next_configs.add(cfg.clone().applyTransition(transition))
+                    next_configs.add(transition.apply(cfg.clone()))
         if 0 == len(next_configs):
             raise RecognitionError('Unable to match symbol %s' % (symbol,))
         self.__configurations = next_configs
