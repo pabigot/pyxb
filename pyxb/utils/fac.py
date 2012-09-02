@@ -180,7 +180,7 @@ class State (object):
                 else:
                     for sa in self.__subAutomata:
                         for saxit in sa.initialTransitions:
-                            transitions.add(xit.chainTo(saxit.enterAutomaton()))
+                            transitions.add(xit.chainTo(saxit.makeEnterAutomatonTransition()))
             self.__automatonEntryTransitions = frozenset(transitions)
         return self.__automatonEntryTransitions
     automatonEntryTransitions = property(__get_automatonEntryTransitions)
@@ -523,6 +523,7 @@ class Transition (object):
         # that is relevant to the destination of the transition.
         if isinstance(self.__layerLink, Configuration):
             configuration = self.__layerLink
+        assert self.destination.automaton == configuration.automaton
         # Blow chunks if the configuration doesn't satisfy the transition
         if not configuration.satisfies(self):
             return False
@@ -548,8 +549,7 @@ class Transition (object):
         @return: The resulting configuration
         """
         if isinstance(self.__layerLink, Configuration):
-            configuration = self.__layerLink
-            configuration.__subConfiguration = None
+            configuration = self.__layerLink.leaveAutomaton(configuration)
         elif isinstance(self.__layerLink, Automaton):
             configuration = configuration.enterAutomaton(self.__layerLink)
         UpdateInstruction.Apply(self.updateInstructions, configuration._get_counterValues())
@@ -579,7 +579,7 @@ class Transition (object):
         head.__nextTransition = next_transition
         return head
 
-    def enterAutomaton (self):
+    def makeEnterAutomatonTransition (self):
         """Replicate the transition as a layer link into its automaton.
 
         This is used on initial transitions into sub-automata where a
@@ -637,6 +637,7 @@ class Configuration (object):
         # state, set the state, and if the new state has subautomata
         # create a set holding them so they can be processed.
         if is_layer_change:
+            self.__subConfiguration = None
             self.__subAutomata = None
         self.__state = state
         if is_layer_change and (state.subAutomata is not None):
@@ -703,7 +704,7 @@ class Configuration (object):
         self.__subAutomata = set(automata)
     subAutomata = property(__get_subAutomata)
 
-    def leaveAutomaton (self):
+    def makeLeaveAutomatonTransition (self):
         """Create a transition back to the containing configuration.
 
         This is done when a configuration is in an accepting state and
@@ -712,7 +713,28 @@ class Configuration (object):
         assert self.__superConfiguration is not None
         return Transition(self.__superConfiguration.__state, set(), layer_link=self.__superConfiguration)
 
+    def leaveAutomaton (self, sub_configuration):
+        """Execute steps to leave a sub-automaton.
+
+        @param sub_configuration: The configuration associated with
+        the automata that has completed.
+
+        @return: C{self}"""
+        assert sub_configuration.__superConfiguration == self
+        self.__subConfiguration = None
+        return self
+
     def enterAutomaton (self, automaton):
+        """Execute steps to enter a new automaton.
+
+        The new automaton is removed from the set of remaining
+        automata for the current state, and a new configuration
+        created.  No transition is made in that new configuration.
+
+        @param automaton: The automaton to be entered
+
+        @return: The configuration that executes the new automaton as
+        a sub-configuration of C{self}."""
         assert self.__subConfiguration is None
         assert self.__subAutomata is not None
         self.__subAutomata.remove(automaton)
@@ -768,7 +790,7 @@ class Configuration (object):
             include_local = True
             if self.__subAutomata:
                 (include_local, sub_initial) = self.__state.subAutomataInitialTransitions(self.__subAutomata)
-                transitions.update(sub_initial)
+                transitions.update(map(lambda _xit: _xit.makeEnterAutomatonTransition(), sub_initial))
             if include_local:
                 for xit in filter(update_filter, self.__state.transitionSet):
                     if xit.consumingState() is not None:
@@ -779,10 +801,10 @@ class Configuration (object):
                         # We do not care if the destination is nullable; alternatives
                         # to it are already being handled with different transitions.
                         (_, sub_initial) = xit.destination.subAutomataInitialTransitions()
-                        transitions.update(map(lambda _xit: xit.chainTo(_xit), sub_initial))
+                        transitions.update(map(lambda _xit: xit.chainTo(_xit.makeEnterAutomatonTransition()), sub_initial))
                 transitions.update()
                 if (self.__superConfiguration is not None) and self.isAccepting():
-                    lxit = self.leaveAutomaton()
+                    lxit = self.makeLeaveAutomatonTransition()
                     supxit = self.__superConfiguration.candidateTransitions(symbol)
                     transitions.update(map(lambda _sx: lxit.chainTo(_sx), supxit))
         return filter(update_filter, filter(match_filter, transitions))
