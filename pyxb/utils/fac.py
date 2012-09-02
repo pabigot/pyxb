@@ -405,6 +405,14 @@ class Transition (object):
         return self.__updateInstructions
     updateInstructions = property(__get_updateInstructions)
 
+    __nextTransition = None
+    def __get_nextTransition (self):
+        """The next transition to apply in this chain.
+
+        C{None} if this is the last transition in the chain."""
+        return self.__nextTransition
+    nextTransition = property(__get_nextTransition)
+
     def __init__ (self, destination, update_instructions):
         """Create a transition to a state.
 
@@ -415,7 +423,8 @@ class Transition (object):
         denoting the changes that must be made to counters as a
         consequence of taking the transition."""
         self.__destination = destination
-        self.__updateInstructions = frozenset(update_instructions)
+        if update_instructions is not None:
+            self.__updateInstructions = frozenset(update_instructions)
 
     def consumingState (self):
         """Return the state in this transition chain that must match a symbol."""
@@ -439,7 +448,31 @@ class Transition (object):
         """
         UpdateInstruction.Apply(self.updateInstructions, configuration._get_counterValues())
         configuration._set_state(self.destination)
-        return configuration
+        if self.__nextTransition is None:
+            return configuration
+        return self.__nextTransition.apply(configuration)
+
+    def chainTo (self, next_transition):
+        """Duplicate the state and chain the duplicate to a successor
+        transition.
+
+        This returns a new transition which applies the operation for
+        this transition, then proceeds to apply the next transition in
+        the chain.
+
+        @note: The node that is invoking this must not have successor
+        transitions.
+
+        @param next_transition: A L{Transition} node describing a
+        subsequent transition.
+
+        @return: a clone of this node, augmented with a link to
+        C{next_transition}."""
+        assert not self.__nextTransition
+        head = type(self)(self.__destination, None)
+        head.__updateInstructions = self.__updateInstructions
+        head.__nextTransition = next_transition
+        return head
 
     def __str__ (self):
         return '%s with %s' % (self.destination, ' ; '.join(map(str, self.updateInstructions)))

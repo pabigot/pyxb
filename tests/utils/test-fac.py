@@ -173,6 +173,20 @@ class TestFAC (unittest.TestCase):
         cfg.step('b')
         self.assertFalse(cfg.isAccepting())
 
+    def testTransitionChain (self):
+        cc1 = CounterCondition(0, 1)
+        cc2 = CounterCondition(3, None)
+        psi = frozenset([UpdateInstruction(cc1, False), UpdateInstruction(cc2, True)])
+        s1 = State('1', True)
+        s2 = State('2', False)
+        x1 = Transition(s1, psi)
+        x2 = Transition(s2, [UpdateInstruction(cc2, False)])
+        x1b = x1.chainTo(x2)
+        self.assertNotEqual(x1, x1b)
+        self.assertEqual(id(x1.updateInstructions), id(x1b.updateInstructions))
+        self.assertEqual(x1.nextTransition, None)
+        self.assertEqual(x1b.nextTransition, x2)
+
     def testAllTree (self):
         a1 = All(Symbol('a'), Symbol('b'), Symbol('c'))
         a2 = All(Symbol('d'), Symbol('e'), Symbol('f'))
