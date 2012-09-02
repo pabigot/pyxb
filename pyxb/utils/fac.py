@@ -81,7 +81,7 @@ class State (object):
     positions is critical, a L{State} wrapper is provided to maintain
     distinct values."""
     
-    def __init__ (self, symbol, is_initial, final_update=None):
+    def __init__ (self, symbol, is_initial, final_update=None, is_unordered_catenation=False):
         """Create a FAC state.
 
         @param symbol: The symbol associated with the state.
@@ -97,10 +97,16 @@ class State (object):
         accepting state of the automaton; otherwise a set of
         L{UpdateInstruction} values that must be satisfied by the
         counter values in a configuration as a further restriction of
-        acceptance.  """
+        acceptance.
+
+        @param is_unordered_catenation: C{True} if this state has
+        subautomata that must be matched to execute the unordered
+        catenation of an L{All} node; C{False} if this is a regular
+        symbol."""
         self.__symbol = symbol
         self.__isInitial = not not is_initial
         self.__finalUpdate = final_update
+        self.__isUnorderedCatenation = is_unordered_catenation
 
     __automaton = None
     def __get_automaton (self):
@@ -121,12 +127,26 @@ class State (object):
         return self.__symbol
     symbol = property(__get_symbol)
 
+    __isUnorderedCatenation = None
+    def __get_isUnorderedCatenation (self):
+        """Indicate whether the state has subautomata for unordered
+        catenation.
+
+        To reduce state explosion due to non-determinism, such a state
+        executes internal transitions in subautomata until all terms
+        have matched or a failure is discovered."""
+        return self.__isUnorderedCatenation
+    isUnorderedCatenation = property(__get_isUnorderedCatenation)
+
     __subAutomata = None
     def __get_subAutomata (self):
-        """A sequence of sub-automata supporting internal state transitions."""
+        """A sequence of sub-automata supporting internal state transitions.
+
+        This will return C{None} unless L{isUnorderedCatenation} is C{True}."""
         return self.__subAutomata
     def _set_subAutomata (self, *automata):
         assert self.__subAutomata is None
+        assert self.__isUnorderedCatenation
         self.__subAutomata = automata
     subAutomata = property(__get_subAutomata)
 
@@ -429,28 +449,27 @@ class Configuration (object):
     def __get_subConfiguration (self):
         """Reference to configuration being executed in a sub-automaton.
 
+        C{None} if no sub-automaton is active, else a reference to a
+        configuration that is being executed in a sub-automaton.
+
         Sub-configurations are used to match sub-terms in an
         L{unordered catenation<All>} term.  A configuration may have
         at most one sub-configuration at a time, and the configuration
         will be removed and possibly replaced when the term being
-        processed completes.
-
-        @return: C{None} if no sub-automaton is active, else a
-        reference to a configuration that is being executed in a
-        sub-automaton."""
+        processed completes."""
         return self.__subConfiguration
     subConfiguration = property(__get_subConfiguration)
 
     __superConfiguration = None
     def __get_superConfiguration (self):
-        """Reference to the configuration for which this is a sub-configuration.
+        """Reference to the configuration for which this is a
+        sub-configuration.
+
+        C{None} if no super-automaton is active, else a reference to a
+        configuration that is being executed in a super-automaton.
 
         The super-configuration relation persists for the lifetime of
-        the configuration.
-
-        @return: C{None} if no super-automaton is active, else a
-        reference to a configuration that is being executed in a
-        super-automaton."""
+        the configuration."""
         return self.__superConfiguration
     superConfiguration = property(__get_superConfiguration)
 
@@ -482,10 +501,11 @@ class Configuration (object):
     def candidateTransitions (self, symbol):
         """Return set of viable transitions on C{symbol}
 
-        This is the result of L{State.candidateTransitions} from the
-        current state and relevant subautomata, filtering out those
-        transitions where the update instruction is not satisfied by
-        the configuration counter values.
+        The set of transitions that are structurally permitted from
+        this state, filtering out those transitions where the update
+        instruction is not satisfied by the configuration counter
+        values, and optionally those for which the symbol does not
+        match.
 
         @param symbol: A symbol through which a transition from this
         state is intended.  A value of C{None} indicates that the set
@@ -929,7 +949,7 @@ class Node (object):
                 final_update = set()
                 for nci in map(counter_map.get, self.counterSubPositions(pos)):
                     final_update.add(UpdateInstruction(nci, False))
-            state_map[pos] = state_ctor(sym.metadata, is_initial=is_initial, final_update=final_update)
+            state_map[pos] = state_ctor(sym.metadata, is_initial=is_initial, final_update=final_update, is_unordered_catenation=isinstance(sym, All))
             if isinstance(sym, All):
                 state_map[pos]._set_subAutomata(*map(lambda _s: _s.buildAutomaton(state_ctor, ctr_cond_ctor, containing_state=state_map[pos]), sym.terms))
         states = state_map.values()

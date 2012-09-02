@@ -117,6 +117,13 @@ class TestFAC (unittest.TestCase):
             cfg.step(c)
         self.assertTrue(cfg.isAccepting())
 
+    def testAllConstruction (self):
+        tt = All(Symbol('a'), Symbol('b'))
+        au = tt.buildAutomaton()
+        self.assertEqual(1, len(au.states))
+        st = iter(au.states).next()
+        self.assertTrue(st.isUnorderedCatenation)
+
     def testKT2004 (self):
         a = Symbol('a')
         x = NumericalConstraint(Symbol('b'), 0, 1)
@@ -166,11 +173,11 @@ class TestFAC (unittest.TestCase):
         cfg.step('b')
         self.assertFalse(cfg.isAccepting())
 
-    '''
     def testAllTree (self):
         a1 = All(Symbol('a'), Symbol('b'), Symbol('c'))
         a2 = All(Symbol('d'), Symbol('e'), Symbol('f'))
         ex = Sequence(NumericalConstraint(Symbol('f'), 0, 1), a1, NumericalConstraint(a2, 0, 1), Symbol('l'))
+        '''
         print ex
         au = ex.buildAutomaton()
         print au
@@ -184,7 +191,7 @@ class TestFAC (unittest.TestCase):
                     print e
                 print 'step %s' %(c,)
             self.assertTrue(cfg.isAccepting())
-    '''
+        '''
 
 if __name__ == '__main__':
     unittest.main()
