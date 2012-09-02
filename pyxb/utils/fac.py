@@ -417,6 +417,10 @@ class Transition (object):
         self.__destination = destination
         self.__updateInstructions = frozenset(update_instructions)
 
+    def consumingState (self):
+        """Return the state in this transition chain that must match a symbol."""
+        return self.__destination
+
     def apply (self, configuration):
         """Apply the transitition to a configuration.
 
@@ -548,7 +552,7 @@ class Configuration (object):
         if symbol is None:
             match_filter = lambda _xit: True
         else:
-            match_filter = lambda _xit: _xit.destination.match(symbol)
+            match_filter = lambda _xit: _xit.consumingState().match(symbol)
         update_filter = lambda _xit: UpdateInstruction.Satisfies(self.__counterValues, _xit.updateInstructions)
         if self.__state is None:
             transitions.update(fac.initialTransitions)
