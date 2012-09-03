@@ -636,7 +636,7 @@ class %{ctd} (%{superclass}):
                 _log.warning('Element use %s.%s renamed to %s', ctd.expandedName(), ed.expandedName(), ef_map['id'])
             definitions.append(templates.replaceInText('''
     # Element %{qname} uses Python identifier %{id}
-    %{use} = pyxb.binding.content.ElementUse(%{name_expr}, '%{id}', '%{key}', %{is_plural}%{aux_init})
+    %{use} = pyxb.binding.content.ElementDeclaration(%{name_expr}, '%{id}', '%{key}', %{is_plural}%{aux_init})
     %{use}._DeclarationLocation = %{decl_location}
 ''', name_expr=binding_module.literal(ed.expandedName(), **kw), **ef_map))
 

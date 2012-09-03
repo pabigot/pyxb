@@ -244,7 +244,7 @@ Complex Type Definitions
 :api:`pyxb.binding.basis.complexTypeDefinition`.  Classes representing complex
 type definitions record maps that specify :api:`attribute
 <pyxb.binding.content.AttributeUse>` and :api:`element
-<pyxb.binding.content.ElementUse>` use structures to record the attributes and
+<pyxb.binding.content.ElementDeclaration>` use structures to record the attributes and
 elements that comprise the type.  Each such structure is stored as a private
 class field and is used by Python properties to provide access to element and
 attribute values in a binding instance.

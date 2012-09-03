@@ -84,29 +84,29 @@ Element Uses
 The element analog to an attribute use is an `element declaration
 <http://www.w3.org/TR/xmlschema-1/#cElement_Declarations>`_, and the
 corresponding information is stored in a
-:api:`pyxb.binding.content.ElementUse` instance.  This class provides:
+:api:`pyxb.binding.content.ElementDeclaration` instance.  This class provides:
 
-- The :api:`element binding <pyxb.binding.content.ElementUse.elementBinding>`
+- The :api:`element binding <pyxb.binding.content.ElementDeclaration.elementBinding>`
   that defines the properties of the referenced element, including its type
 
 - Whether the use allows :api:`multiple occurrences
-  <pyxb.binding.content.ElementUse.isPlural>`
+  <pyxb.binding.content.ElementDeclaration.isPlural>`
 
-- The :api:`default value <pyxb.binding.content.ElementUse.defaultValue>` of
+- The :api:`default value <pyxb.binding.content.ElementDeclaration.defaultValue>` of
   the element.  Currently this is either C{None} or an empty list, depending
-  on :api:`pyxb.binding.content.ElementUse.isPlural`
+  on :api:`pyxb.binding.content.ElementDeclaration.isPlural`
 
-- Methods to :api:`read <pyxb.binding.content.ElementUse.value>`, :api:`set
-  <pyxb.binding.content.ElementUse.set>`, :api:`append to
-  <pyxb.binding.content.ElementUse.append>` (only for plural elements), and
-  :api:`reset <pyxb.binding.content.ElementUse.reset>` the value of the
+- Methods to :api:`read <pyxb.binding.content.ElementDeclaration.value>`, :api:`set
+  <pyxb.binding.content.ElementDeclaration.set>`, :api:`append to
+  <pyxb.binding.content.ElementDeclaration.append>` (only for plural elements), and
+  :api:`reset <pyxb.binding.content.ElementDeclaration.reset>` the value of the
   element in a given binding instance
 
-- The :api:`setOrAppend <pyxb.binding.content.ElementUse.setOrAppend>` method,
+- The :api:`setOrAppend <pyxb.binding.content.ElementDeclaration.setOrAppend>` method,
   which is most commonly used to provide new content to a value
 
 A :api:`map <pyxb.binding.basis.complexTypeDefinition._ElementMap>` is used to
-map from expanded names to ElementUse instances.  This map is defined within
+map from expanded names to ElementDeclaration instances.  This map is defined within
 the class definition itself.
 
 Content Model Description

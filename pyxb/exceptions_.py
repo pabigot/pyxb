@@ -112,7 +112,7 @@ class StructuralBadDocumentError (BadDocumentError):
     """Raised when processing document and the content model is not satisfied."""
     @property
     def element_use (self):
-        """The L{pyxb.binding.content.ElementUse} instance to which the content should conform, if available."""
+        """The L{pyxb.binding.content.ElementDeclaration} instance to which the content should conform, if available."""
         return self.__elementUse
 
     @property

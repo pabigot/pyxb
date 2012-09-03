@@ -132,7 +132,7 @@ class SAXElementState (object):
         This is a list, with each member being C{(content, element_use,
         maybe_element)}.  C{content} is text or a binding instance;
         C{element_use} is C{None} or the
-        L{ElementUse<pyxb.binding.content.ElementUse>} instance used to create
+        L{ElementDeclaration<pyxb.binding.content.ElementDeclaration>} instance used to create
         the content; and C{maybe_element} is C{True} iff the content is
         non-content text."""
         return self.__content
@@ -159,7 +159,7 @@ class SAXElementState (object):
         @param element: Any L{binding instance<pyxb.binding.basis._TypeBinding_mixin>}.
 
         @param element_use: The L{element
-        use<pyxb.binding.content.ElementUse>} in the containing complex type.
+        use<pyxb.binding.content.ElementDeclaration>} in the containing complex type.
         """
         self.__content.append( (element, element_use, True) )
 

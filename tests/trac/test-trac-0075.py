@@ -52,7 +52,7 @@ class TestTrac_0075 (unittest.TestCase):
 
     def testNotAnElementError (self):
         elt = tTop._UseForTag('inner')
-        self.assertTrue(isinstance(elt, pyxb.binding.content.ElementUse))
+        self.assertTrue(isinstance(elt, pyxb.binding.content.ElementDeclaration))
         try:
             elt = tTop._UseForTag('notInner')
             self.fail('Found non-existent inner element')

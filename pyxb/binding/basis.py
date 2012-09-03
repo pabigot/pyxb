@@ -1621,9 +1621,9 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
     # wildcard elements.  Supporting classes should override this value.
     _HasWildcardElement = False
 
-    # Map from expanded names to ElementUse instances
+    # Map from expanded names to ElementDeclaration instances
     _ElementMap = { }
-    """Map from expanded names to ElementUse instances."""
+    """Map from expanded names to ElementDeclaration instances."""
 
     # Per-instance map from tags to attribute values for wildcard attributes.
     # Value is C{None} if the type does not support wildcard attributes.
@@ -1667,7 +1667,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         Arguments are used as transition values along the content model.
         Keywords are passed to the constructor of any simple content, or used
         to initialize attribute and element values whose L{id
-        <content.ElementUse.id>} (not L{name <content.ElementUse.name>})
+        <content.ElementDeclaration.id>} (not L{name <content.ElementDeclaration.name>})
         matches the keyword.
 
         @keyword _dom_node: The node to use as the source of binding content.
@@ -1750,7 +1750,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
 
     @classmethod
     def _UseForTag (cls, tag, raise_if_fail=True):
-        """Return the ElementUse object corresponding to the element name.
+        """Return the ElementDeclaration object corresponding to the element name.
 
         @param tag: The L{ExpandedName} of an element in the class."""
         rv = cls._ElementMap.get(tag)
@@ -1784,7 +1784,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         Returns a sequence of tuples representing a valid path through the
         content model where each transition corresponds to one of the member
         element instances within this instance.  The tuple is a pair
-        comprising the L{content.ElementUse} instance and the value for the
+        comprising the L{content.ElementDeclaration} instance and the value for the
         transition.
 
         If the content of the instance does not validate against the content
@@ -1813,7 +1813,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         return None
 
     def _symbolSet (self):
-        """Return a map from L{content.ElementUse} instances to a list of
+        """Return a map from L{content.ElementDeclaration} instances to a list of
         values associated with that use.
 
         This is used as the set of symbols available for transitions when
@@ -1998,7 +1998,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         element_binding = None
         if element_use is not None:
             from pyxb.binding import content
-            assert isinstance(element_use, content.ElementUse)
+            assert isinstance(element_use, content.ElementDeclaration)
             element_binding = element_use.elementBinding()
             assert element_binding is not None
         # Convert the value if it's XML and we recognize it.
