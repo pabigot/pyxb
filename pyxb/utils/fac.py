@@ -70,14 +70,28 @@ class CounterApplicationError (FACError):
     pass
 
 class RecognitionError (Exception):
+    pass
+
+class UnrecognizedSymbolError (RecognitionError):
     message = None
     symbol = None
     configuration = None
-    allowed = None
-    
+    expected = None
+
     def __init__ (self, *args):
-        (self.message, self.symbol, self.configuration, self.allowed) = args
-        super(RecognitionError, self).__init__(*args)
+        (self.message, self.symbol, self.configuration, self.expected) = args
+        super(UnrecognizedSymbolError, self).__init__(*args)
+    pass
+
+class NondeterministicSymbolError (RecognitionError):
+    message = None
+    symbol = None
+    configuration = None
+    matches = None
+
+    def __init__ (self, *args):
+        (self.message, self.symbol, self.configuration, self.matches) = args
+        super(NondeterministicSymbolError, self).__init__(*args)
 
 class State (object):
     """A thin wrapper around an object reference.
@@ -830,9 +844,9 @@ class Configuration (object):
     def step (self, symbol):
         transitions = self.candidateTransitions(symbol)
         if 0 == len(transitions):
-            raise RecognitionError('Unable to match symbol', symbol, self, map(lambda _xit: _xit.consumedSymbol(), self.candidateTransitions()))
+            raise UnrecognizedSymbolError('Unable to match symbol', symbol, self, map(lambda _xit: _xit.consumedSymbol(), self.candidateTransitions()))
         if 1 < len(transitions):
-            raise RecognitionError('Non-deterministic transition', symbol, self, transitions)
+            raise NondeterministicSymbolError('Non-deterministic transition', symbol, self, transitions)
         return iter(transitions).next().apply(self)
 
     def isAccepting (self):
@@ -896,7 +910,6 @@ class MultiConfiguration (object):
     def step (self, symbol):
         """Execute the symbol transition on all configurations."""
         next_configs = set()
-        #print 'Transition on %s from:\n\t%s' % (symbol, '\n\t'.join(map(str, self.__configurations)))
         for cfg in self.__configurations:
             transitions = cfg.candidateTransitions(symbol)
             if 0 == len(transitions):
@@ -910,9 +923,8 @@ class MultiConfiguration (object):
             allowed = set()
             for cfg in self.__configurations:
                 allowed.update(map(lambda _xit: _xit.consumedSymbol(), cfg.candidateTransitions))
-            raise RecognitionError('Multiconfig unable to match symbol', symbol, self, allowed)
+            raise UnrecognizedSymbolError('Multiconfig unable to match symbol', symbol, self, allowed)
         self.__configurations = next_configs
-        #print 'Result:\n\t%s' % ('\n\t'.join(map(str, self.__configurations)))
         return self
 
     def acceptingConfigurations (self):

@@ -124,37 +124,59 @@ class TestFAC (unittest.TestCase):
         st = iter(au.states).next()
         self.assertTrue(st.isUnorderedCatenation)
 
+    # Example from Kilpelainen & Tuhkanen, "Towards Efficient
+    # Implementation of XML Schema Content Models"
     def testKT2004 (self):
         a = Symbol('a')
         x = NumericalConstraint(Symbol('b'), 0, 1)
         x = NumericalConstraint(Sequence(x, Symbol('c')), 1, 2)
         x = Sequence(NumericalConstraint(Symbol('a'), 0, 1), x, Choice(Symbol('a'), Symbol('d')))
         x = NumericalConstraint(x, 3, 4)
-        au = Configuration(x.buildAutomaton())
+        cfg = Configuration(x.buildAutomaton())
         for word in ['cacaca', 'abcaccdacd']:
-            au.reset()
+            cfg.reset()
             for c in word:
-                au.step(c)
-            self.assertTrue(au.isAccepting())
-        for word in ['caca', 'abcaccdac']: # , 'ad']:
-            au.reset()
+                cfg = cfg.step(c)
+            self.assertTrue(cfg.isAccepting())
+        for word in ['caca', 'abcaccdac']:
+            cfg.reset()
             for c in word:
-                au.step(c)
-            self.assertFalse(au.isAccepting())
-
+                cfg = cfg.step(c)
+            self.assertFalse(cfg.isAccepting())
+        word = list('ad')
+        cfg.reset()
+        cfg = cfg.step(word.pop(0))
+        try:
+            cfg = cfg.step(word.pop(0))
+            self.fail("Expected recognition error")
+        except RecognitionError as e:
+            self.assertEqual(e.symbol, 'd')
+            self.assertEqual(e.expected, ['b', 'c'])
+        except Exception as e:
+            self.fail("Unexpected exception %s" % (e,))
+            
+    # Example from email by Casey Jordan to xmlschema-dev mailing list
+    # 20100810: http://lists.w3.org/Archives/Public/xmlschema-dev/2010Aug/0008.html
+    # This expression is non-deterministic, but at the end only one path is
+    # accepting.
     def testCJ2010 (self):
         x = NumericalConstraint(Symbol('b'), 1, 2)
         x = NumericalConstraint(Choice(x, Symbol('c')), 2, 2)
         x = Sequence(Symbol('a'), x, Symbol('d'))
-        #print x
-        ms = MultiConfiguration(Configuration(x.buildAutomaton()))
-        for c in 'abbd':
-            ms.step(c)
-        accepting = ms.acceptingConfigurations()
-        #print '\n'.join(map(str, accepting))
-        self.assertTrue(0 < len(accepting))
-        for cfg in accepting:
-            self.assertTrue(cfg.isAccepting())
+        cfg = Configuration(x.buildAutomaton())
+        word = list('abbd')
+        cfg = cfg.step(word.pop(0))
+        cfg = cfg.step(word.pop(0))
+        try:
+            cfg = cfg.step(word.pop(0))
+            self.fail('Expected nondeterminism exception')
+        except NondeterministicSymbolError as e:
+            word.insert(0, e.symbol)
+        mcfg = MultiConfiguration(cfg)
+        mcfg = mcfg.step(word.pop(0))
+        mcfg = mcfg.step(word.pop(0))
+        accepting = mcfg.acceptingConfigurations()
+        self.assertEqual(1, len(accepting))
 
     def testExpandAll (self):
         a = Symbol('a')
@@ -205,7 +227,7 @@ class TestFAC (unittest.TestCase):
             self.fail('Expected recognition error')
         except RecognitionError as e:
             self.assertEqual(e.symbol, 'e')
-            self.assertEqual(frozenset(e.allowed), frozenset(['c', 'b']))
+            self.assertEqual(frozenset(e.expected), frozenset(['c', 'b']))
         except Exception as e:
             self.fail('Unexpected exception %s' % (e,))
         cfg = cfg.step('b')
