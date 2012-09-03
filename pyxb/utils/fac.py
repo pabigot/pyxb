@@ -507,6 +507,10 @@ class Transition (object):
         assert self.__nextTransition is None
         return self.__destination
 
+    def consumedSymbol (self):
+        """Return the L{symbol<State.symbol>} of the L{consumingState}."""
+        return self.consumingState().symbol
+
     def satisfiedBy (self, configuration):
         """Check the transition update instructions against
         configuration counter values.
@@ -826,7 +830,7 @@ class Configuration (object):
     def step (self, symbol):
         transitions = self.candidateTransitions(symbol)
         if 0 == len(transitions):
-            raise RecognitionError('Unable to match symbol', symbol, self, map(lambda _xit: _xit.consumingState().symbol, self.candidateTransitions()))
+            raise RecognitionError('Unable to match symbol', symbol, self, map(lambda _xit: _xit.consumedSymbol(), self.candidateTransitions()))
         if 1 < len(transitions):
             raise RecognitionError('Non-deterministic transition', symbol, self, transitions)
         return iter(transitions).next().apply(self)
@@ -903,7 +907,10 @@ class MultiConfiguration (object):
                 for transition in transitions:
                     next_configs.add(transition.apply(cfg.clone()))
         if 0 == len(next_configs):
-            raise RecognitionError('Unable to match symbol %s' % (symbol,))
+            allowed = set()
+            for cfg in self.__configurations:
+                allowed.update(map(lambda _xit: _xit.consumedSymbol(), cfg.candidateTransitions))
+            raise RecognitionError('Multiconfig unable to match symbol', symbol, self, allowed)
         self.__configurations = next_configs
         #print 'Result:\n\t%s' % ('\n\t'.join(map(str, self.__configurations)))
         return self
