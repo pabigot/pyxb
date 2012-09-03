@@ -617,7 +617,6 @@ class %{ctd} (%{superclass}):
         for (ed, is_plural) in plurality_data.items():
             # @todo Detect and account for plurality change between this and base
             ef_map = ed._templateMap()
-            ef_map['use_location'] = repr(content_basis._location())
             if ed.scope() == ctd:
                 ef_map.update(elementDeclarationMap(ed, binding_module, **kw))
                 aux_init = []
@@ -643,7 +642,6 @@ class %{ctd} (%{superclass}):
     # Element %{qname} uses Python identifier %{id}
     %{use} = pyxb.binding.content.ElementUse(%{name_expr}, '%{id}', '%{key}', %{is_plural}%{aux_init})
     %{use}._DeclarationLocation = %{decl_location}
-    %{use}._UseLocation = %{use_location}
 ''', name_expr=binding_module.literal(ed.expandedName(), **kw), **ef_map))
 
             definitions.append(templates.replaceInText('''
