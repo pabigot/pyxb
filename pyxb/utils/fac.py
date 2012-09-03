@@ -1540,11 +1540,11 @@ class Sequence (MultiTermNode):
             t = self.terms[c]
             pp = (c,)
             for q in t.last:
+                psi = {}
+                for p1 in t.counterSubPositions(q):
+                    psi[pp + p1] = self.RESET
                 for sq1 in self.terms[c+1].first:
                     q1 = (c+1,) + sq1
-                    psi = {}
-                    for p1 in t.counterSubPositions(q):
-                        psi[pp + p1] = self.RESET
                     rv[pp+q].append((q1, psi))
         return rv
             
