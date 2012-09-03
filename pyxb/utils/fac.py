@@ -42,11 +42,19 @@ types B{choice} and B{sequence}.  As suggested in U{The Membership
 Problem for Regular Expressions with Unordered Concatenation and
 Numerical Constraints <http://www.ii.uib.no/~dagh/presLATA2012.pdf>}
 the B{all} content model can be translated into state machine using
-choice and sequence at the cost of a quadratic size explosion;
-consequently this type of node is likely to become a leaf node in the
-FAC that manages internal transitions among a set of subordinate FACs
-corresponding to the alternatives in the group.
+choice and sequence at the cost of a quadratic size explosion.  Since
+some XML content models might have a hundred terms in an unordered
+catenation, this is not acceptable, and the implementation here
+optimizes this construct by creating a leaf node in the automaton
+which in turn contains sub-automata for each term, and permits an exit
+transition only when all the terms that are required have been
+completed.
 
+@note: In XSD 1.1 the restriction that terms in an B{all} model group
+occur at most once has been removed.  Since the current implementation
+removes a completed term from the set of available terms, this will
+not work: instead the subconfiguration with its counter values must be
+retained between matches.
 """
 
 import operator
@@ -940,24 +948,44 @@ class MultiConfiguration (object):
         return filter(lambda _s: _s.isAccepting(), self.__configurations)
 
 class Automaton (object):
+    """Representation of a Finite Automaton with Counters.
+
+    This has all the standard FAC elements, plus links to other
+    states/automata as required to support the nested automata
+    construct used for matching unordered catenation terms."""
     __states = None
     def __get_states (self):
+        """The set of L{State}s in the automaton.
+
+        These correspond essentially to marked symbols in the original
+        regular expression, or L{element
+        declarations<pyxb.xmlschema.structures.ElementDeclaration>} in
+        an XML schema."""
         return self.__states
     states = property(__get_states)
     
     __counterConditions = None
     def __get_counterConditions (self):
+        """The set of L{CounterCondition}s in the automaton.
+
+        These are marked positions in the regular expression, or
+        L{particles<pyxb.xmlschema.structures.Particle>} in an XML
+        schema, paired with their occurrence constraints."""
         return self.__counterConditions
     counterConditions = property(__get_counterConditions)
 
     __nullable = None
     def __get_nullable (self):
+        """C{True} iff the automaton accepts the empty string."""
         return self.__nullable
     nullable = property(__get_nullable)
 
     __initialTransitions = None
     def __get_initialTransitions (self):
-        """The set of transitions that may be made to enter the automaton."""
+        """The set of transitions that may be made to enter the automaton.
+
+        These are full transitions, including chains into subautomata
+        if an initial state represents a node with sub-automata."""
         return self.__initialTransitions
     initialTransitions = property(__get_initialTransitions)
 
