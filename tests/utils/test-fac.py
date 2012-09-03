@@ -178,6 +178,33 @@ class TestFAC (unittest.TestCase):
         accepting = mcfg.acceptingConfigurations()
         self.assertEqual(1, len(accepting))
 
+    def testDeepMulti (self):
+        # Verify multiconfig works when non-determinism is introduced
+        # in a subconfiguration
+        x = NumericalConstraint(Symbol('b'), 1, 2)
+        x = NumericalConstraint(Choice(x, Symbol('c')), 2, 2)
+        mx = Sequence(Symbol('a'), x, Symbol('d'))
+        ax = All(mx, Symbol('e'), NumericalConstraint(Symbol('f'), 0, 1))
+        topcfg = Configuration(ax.buildAutomaton())
+        word = list('abbde')
+        cfg = topcfg.step(word.pop(0))
+        # Descended into sub-automaton
+        self.assertNotEqual(cfg, topcfg)
+        cfg = cfg.step(word.pop(0))
+        try:
+            cfg = cfg.step(word.pop(0))
+            self.fail('Expected nondeterminism exception')
+        except NondeterministicSymbolError as e:
+            word.insert(0, e.symbol)
+        mcfg = MultiConfiguration(cfg)
+        mcfg = mcfg.step(word.pop(0))
+        mcfg = mcfg.step(word.pop(0))
+        accepting = mcfg.acceptingConfigurations()
+        self.assertEqual(1, len(accepting))
+        mcfg = mcfg.step('f')
+        accepting = mcfg.acceptingConfigurations()
+        self.assertEqual(1, len(accepting))
+
     # Example from page 2 of Kilpelainen "Checking Determinism of XML
     # Schema Content Models in Optimal Time", IS preprint 20101026
     # ("K2010") Note that though the paper states this RE is

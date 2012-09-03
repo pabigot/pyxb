@@ -877,20 +877,24 @@ class Configuration (object):
 
         This is used for parallel execution where a configuration has
         multiple candidate transitions and must follow all of them."""
-        # When the time comes, figure out how to clone the upper part
-        # of the chain too.
-        assert not self.__superConfiguration
-        return self._clone(self.__superConfiguration)
+        clone_map = {}
+        root = self
+        while root.__superConfiguration is not None:
+            root = root.__superConfiguration
+        root = root._clone(clone_map, None)
+        return clone_map.get(self)
 
-    def _clone (self, super_configuration):
+    def _clone (self, clone_map, super_configuration):
+        assert not self in clone_map
         other = type(self)(self.__automaton)
+        clone_map[self] = other
         other.__state = self.__state
         other.__counterValues = self.__counterValues.copy()
         other.__superConfiguration = super_configuration
         if self.__subAutomata is not None:
             other.__subAutomata = self.__subAutomata.copy()
             if self.__subConfiguration:
-                other.__subConfiguration = self.__subConfiguration._clone(other)
+                other.__subConfiguration = self.__subConfiguration._clone(clone_map, other)
         return other
 
     def __str__ (self):
