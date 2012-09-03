@@ -605,7 +605,7 @@ def BuildTermTree (node):
                     # state and hold the alternatives in it.
                     assert node.C_ALL == node.compositor()
                     assert reduce(operator.and_, map(lambda _s: isinstance(_s, pyxb.utils.fac.Node), terms), True)
-                    term = pyxb.utils.fac.Symbol((parent_particle, terms))
+                    term = pyxb.utils.fac.All(*terms, metadata=node)
             siblings.append(term)
 
     assert isinstance(node, xs.structures.Particle)
@@ -682,8 +682,8 @@ def BuildPluralityData (term_tree):
                     multiples.update(tm)
                     singles.update(t1)
             else:
-                # For sequence we merge the children
-                assert isinstance(node, pyxb.utils.fac.Sequence)
+                # For sequence (ordered or not) we merge the children
+                assert isinstance(node, (pyxb.utils.fac.Sequence, pyxb.utils.fac.All))
                 for tt in term_list:
                     _ttMergeSets(combined, tt)
         elif isinstance(node, pyxb.utils.fac.Symbol):
