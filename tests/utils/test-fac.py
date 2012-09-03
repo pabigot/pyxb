@@ -151,7 +151,7 @@ class TestFAC (unittest.TestCase):
             self.fail("Expected recognition error")
         except RecognitionError as e:
             self.assertEqual(e.symbol, 'd')
-            self.assertEqual(e.expected, ['b', 'c'])
+            self.assertEqual(e.expected, frozenset(['b', 'c']))
         except Exception as e:
             self.fail("Unexpected exception %s" % (e,))
             
@@ -177,6 +177,25 @@ class TestFAC (unittest.TestCase):
         mcfg = mcfg.step(word.pop(0))
         accepting = mcfg.acceptingConfigurations()
         self.assertEqual(1, len(accepting))
+
+    # Example from page 2 of Kilpelainen "Checking Determinism of XML
+    # Schema Content Models in Optimal Time", IS prepring 20101026.
+    def testK2012a (self):
+        t = NumericalConstraint(Symbol('a'), 2, 3)
+        t = NumericalConstraint(Choice(t, Symbol('b')), 2, 2)
+        ex = Sequence(t, Symbol('b'))
+        L = [ 'aaaab', 'aaaaab', 'aaaaaab', 'aabb', 'aaabb', 'baab', 'baaab', 'bbb' ]
+        cfg = Configuration(ex.buildAutomaton())
+        for word in L:
+            cfg.reset()
+            mcfg = MultiConfiguration(cfg)
+            for c in word:
+                mcfg.step(c)
+            accepting = mcfg.acceptingConfigurations()
+            if word in ('aaaaab',):
+                self.assertEqual(2, len(accepting))
+            else:
+                self.assertEqual(1, len(accepting), 'multiple for %s' % (word,))
 
     def testExpandAll (self):
         a = Symbol('a')

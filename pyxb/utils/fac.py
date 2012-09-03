@@ -80,6 +80,8 @@ class UnrecognizedSymbolError (RecognitionError):
 
     def __init__ (self, *args):
         (self.message, self.symbol, self.configuration, self.expected) = args
+        if not isinstance(self.expected, frozenset):
+            self.expected = frozenset(self.expected)
         super(UnrecognizedSymbolError, self).__init__(*args)
     pass
 
@@ -91,6 +93,8 @@ class NondeterministicSymbolError (RecognitionError):
 
     def __init__ (self, *args):
         (self.message, self.symbol, self.configuration, self.matches) = args
+        if not isinstance(self.matches, frozenset):
+            self.expected = frozenset(self.matches)
         super(NondeterministicSymbolError, self).__init__(*args)
 
 class State (object):
