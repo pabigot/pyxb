@@ -179,8 +179,11 @@ class TestFAC (unittest.TestCase):
         self.assertEqual(1, len(accepting))
 
     # Example from page 2 of Kilpelainen "Checking Determinism of XML
-    # Schema Content Models in Optimal Time", IS prepring 20101026.
-    def testK2012a (self):
+    # Schema Content Models in Optimal Time", IS preprint 20101026
+    # ("K2010") Note that though the paper states this RE is
+    # deterministic, it's not in the sense that are multiple paths
+    # recognizing the same word.
+    def testK2010a (self):
         t = NumericalConstraint(Symbol('a'), 2, 3)
         t = NumericalConstraint(Choice(t, Symbol('b')), 2, 2)
         ex = Sequence(t, Symbol('b'))
@@ -196,6 +199,66 @@ class TestFAC (unittest.TestCase):
                 self.assertEqual(2, len(accepting))
             else:
                 self.assertEqual(1, len(accepting), 'multiple for %s' % (word,))
+
+    # The MPEG-7 example from page 3 of K2010
+    def testK2010b (self):
+        def makeInstance (num_m, num_reps):
+            s = []
+            while 0 < num_reps:
+                num_reps -= 1
+                s.append('t')
+                s.append('m' * num_m)
+            return ''.join(s)
+
+        m = NumericalConstraint(Symbol('m'), 2, 12)
+        ex = NumericalConstraint(Sequence(Symbol('t'), m), 0, 65535)
+        cfg = Configuration(ex.buildAutomaton())
+        self.assertTrue(cfg.isAccepting())
+        cfg = cfg.step('t')
+        self.assertFalse(cfg.isAccepting())
+        cfg = cfg.step('m')
+        self.assertFalse(cfg.isAccepting())
+        cfg = cfg.step('m')
+        self.assertTrue(cfg.isAccepting())
+        cfg = cfg.step('t')
+        self.assertFalse(cfg.isAccepting())
+        for _ in xrange(12):
+            cfg = cfg.step('m')
+        self.assertTrue(cfg.isAccepting())
+        self.assertRaises(UnrecognizedSymbolError, cfg.step, 'm')
+
+    # Example from page 6 of K2010.  This is the "nondeterministic"
+    # expression similar to the "deterministic" one of testK2010a.
+    # From the perspective of this implementation, there is no
+    # difference.
+    def testK2010c (self):
+        t = NumericalConstraint(Symbol('a'), 1, 2)
+        t = NumericalConstraint(Choice(t, Symbol('b')), 2, 2)
+        ex = Sequence(t, Symbol('b'))
+        L = [ 'aab', 'aaab', 'abb', 'aabb', 'bbb' ]
+        cfg = Configuration(ex.buildAutomaton())
+        for word in L:
+            cfg.reset()
+            mcfg = MultiConfiguration(cfg)
+            for c in word:
+                mcfg.step(c)
+            accepting = mcfg.acceptingConfigurations()
+            if word in ('aaab',):
+                self.assertEqual(2, len(accepting))
+            else:
+                self.assertEqual(1, len(accepting), 'multiple for %s' % (word,))
+        Lbar = [ 'aa', 'bb' ]
+        for word in Lbar:
+            cfg.reset()
+            mcfg = MultiConfiguration(cfg)
+            for c in word:
+                mcfg.step(c)
+            self.assertEqual(0, len(mcfg.acceptingConfigurations()), 'accepting %s' % (word,))
+        cfg.reset()
+        mcfg = MultiConfiguration(cfg)
+        mcfg.step('a')
+        mcfg.step('b')
+        self.assertRaises(UnrecognizedSymbolError, mcfg.step, 'a')
 
     def testExpandAll (self):
         a = Symbol('a')

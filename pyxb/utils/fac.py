@@ -926,7 +926,7 @@ class MultiConfiguration (object):
         if 0 == len(next_configs):
             allowed = set()
             for cfg in self.__configurations:
-                allowed.update(map(lambda _xit: _xit.consumedSymbol(), cfg.candidateTransitions))
+                allowed.update(map(lambda _xit: _xit.consumedSymbol(), cfg.candidateTransitions()))
             raise UnrecognizedSymbolError('Multiconfig unable to match symbol', symbol, self, allowed)
         self.__configurations = next_configs
         return self
