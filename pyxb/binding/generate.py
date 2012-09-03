@@ -38,10 +38,6 @@ import logging.config
 
 _log = logging.getLogger(__name__)
 
-# Initialize UniqueInBinding with the public identifiers we generate,
-# import, or otherwise can't have mucked about with.
-UniqueInBinding = set([ 'pyxb', 'sys', 'Namespace', 'ModuleRecord', 'CreateFromDocument', 'CreateFromDOM' ])
-
 def PrefixModule (value, text=None):
     if text is None:
         text = value.__name__
@@ -905,8 +901,13 @@ class _ModuleNaming_mixin (object):
     __uniqueInModule = None
     __uniqueInClass = None
 
-    # @todo: provide a way to reset this, for multiple generations in a single run
     _UniqueInModule = set([ 'pyxb', 'sys' ])
+    """Identifiers that are reserved within a module.
+
+    Subclasses extend this with the identifiers they add to the
+    module.  Module-level schema-derived identifiers (such as type
+    definition and element names) are deconflicted from this set and
+    from each other."""
     
     __ComponentBindingModuleMap = {}
 
