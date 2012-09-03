@@ -1114,6 +1114,17 @@ class Location (object):
     lineNumber = property(lambda _s: _s.__lineNumber)
     columnNumber = property(lambda _s: _s.__columnNumber)
 
+    def __cmp__ (self, other):
+        """Comparison by locationBase, then lineNumber, then columnNumber."""
+        if other is None:
+            return 1
+        rv = cmp(self.__locationBase, other.__locationBase)
+        if 0 == rv:
+            rv = cmp(self.__lineNumber, other.__lineNumber)
+        if 0 == rv:
+            rv = cmp(self.__columnNumber, other.__columnNumber)
+        return rv
+
     def __str__ (self):
         if self.locationBase is None:
             return '<unknownLocation>'
