@@ -369,12 +369,23 @@ class UpdateInstruction:
 
     __counterCondition = None
     def __get_counterCondition (self):
+        """A reference to the L{CounterCondition} identifying the
+        counter to be updated.
+
+        The counter condition instance is used as a key to the
+        dictionary maintaining current counter values."""
         return self.__counterCondition
     counterCondition = property(__get_counterCondition)
 
+    __doIncrement = None
+    def __get_doIncrement (self):
+        """C{True} if the counter is to be incremented; C{False} if it is to be reset."""
+        return self.__doIncrement
+    doIncrement = property(__get_doIncrement)
+
+    # Cached values extracted from counter condition
     __min = None
     __max = None
-    __doIncrement = None
 
     def __init__ (self, counter_condition, do_increment):
         """Create an update instruction.
@@ -388,9 +399,9 @@ class UpdateInstruction:
         the counter.
         """
         self.__counterCondition = counter_condition
+        self.__doIncrement = not not do_increment
         self.__min = counter_condition.min
         self.__max = counter_condition.max
-        self.__doIncrement = not not do_increment
 
     def satisfiedBy (self, counter_values):
         """Implement a component of definition 5 from B{HOV09}.
