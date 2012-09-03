@@ -70,7 +70,14 @@ class CounterApplicationError (FACError):
     pass
 
 class RecognitionError (Exception):
-    pass
+    message = None
+    symbol = None
+    configuration = None
+    allowed = None
+    
+    def __init__ (self, *args):
+        (self.message, self.symbol, self.configuration, self.allowed) = args
+        super(RecognitionError, self).__init__(*args)
 
 class State (object):
     """A thin wrapper around an object reference.
@@ -273,8 +280,7 @@ class State (object):
 
     def _facText (self):
         rv = []
-        for xit in self.__transitionSet:
-            rv.append('%s -%s-> %s : %s' % (self, xit.destination.symbol, xit.destination, ' ; '.join(map(str, xit.updateInstructions))))
+        rv.extend(map(str, self.__transitionSet))
         if self.__finalUpdate is not None:
             if 0 == len(self.__finalUpdate):
                 rv.append('Final (no conditions)')
@@ -820,9 +826,9 @@ class Configuration (object):
     def step (self, symbol):
         transitions = self.candidateTransitions(symbol)
         if 0 == len(transitions):
-            raise RecognitionError('Unable to match symbol %s' % (symbol,))
+            raise RecognitionError('Unable to match symbol', symbol, self, map(lambda _xit: _xit.consumingState().symbol, self.candidateTransitions()))
         if 1 < len(transitions):
-            raise RecognitionError('Non-deterministic transition on %s' % (symbol,))
+            raise RecognitionError('Non-deterministic transition', symbol, self, transitions)
         return iter(transitions).next().apply(self)
 
     def isAccepting (self):
@@ -968,9 +974,10 @@ class Automaton (object):
                     rv.append('SA %s.%u is %x:\n  ' % (str(s), i, id(s.subAutomata[i])) + '\n  '.join(str(s.subAutomata[i]).split('\n')))
         rv.append('counters = %s' % (' '.join(map(str, self.__counterConditions))))
         rv.append('initial = %s' % (' ; '.join([ '%s on %s' % (_s, _s.symbol) for _s in filter(lambda _s: _s.isInitial, self.__states)])))
-        rv.append('initial sym = %s' % (' ; '.join(map(lambda _xit: '%s on %s' % (_xit.destination, _xit.destination.symbol), self.initialTransitions))))
+        rv.append('initial transitions:\n%s' % ('\n'.join(map(str, self.initialTransitions))))
+        rv.append('States:')
         for s in self.__states:
-            rv.append(s._facText())
+            rv.append('%s: %s' % (s, s._facText()))
         return '\n'.join(rv)
 
 class Node (object):
