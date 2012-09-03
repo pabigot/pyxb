@@ -1539,13 +1539,22 @@ class Sequence (MultiTermNode):
         for c in xrange(len(self.terms)-1):
             t = self.terms[c]
             pp = (c,)
+            # Link from the last of one term to the first of the next term.
+            # Repeat while the destination term is nullable and there are
+            # successor terms.
             for q in t.last:
                 psi = {}
                 for p1 in t.counterSubPositions(q):
                     psi[pp + p1] = self.RESET
-                for sq1 in self.terms[c+1].first:
-                    q1 = (c+1,) + sq1
-                    rv[pp+q].append((q1, psi))
+                nc = c
+                while nc+1 < len(self.terms):
+                    nc += 1
+                    nt = self.terms[nc]
+                    for sq1 in nt.first:
+                        q1 = (nc,) + sq1
+                        rv[pp+q].append((q1, psi))
+                    if not nt.nullable:
+                        break
         return rv
             
     def __str__ (self):

@@ -198,28 +198,47 @@ class TestFAC (unittest.TestCase):
         cfg = cfg.step('e')
         topcfg.reset()
         cfg = topcfg.step('a')
-        # Can't move to 'e' until the required component 'b' of a1 has been provided.
-        self.assertRaises(RecognitionError, cfg.step, 'e')
+        # Can't move to 'e' until the required component 'b' of a1 has
+        # been provided.  'c' is also permitted.
+        try:
+            cfg = cfg.step('e')
+            self.fail('Expected recognition error')
+        except RecognitionError as e:
+            self.assertEqual(e.symbol, 'e')
+            self.assertEqual(frozenset(e.allowed), frozenset(['c', 'b']))
+        except Exception as e:
+            self.fail('Unexpected exception %s' % (e,))
         cfg = cfg.step('b')
         cfg = cfg.step('e')
-        
+
     def testAllTree (self):
         a1 = All(Symbol('a'), Symbol('b'), Symbol('c'))
         a2 = All(Symbol('d'), Symbol('e'), Symbol('f'))
         ex = Sequence(NumericalConstraint(Symbol('f'), 0, 1), a1, NumericalConstraint(a2, 0, 1), Symbol('l'))
-        print ex
+        # print ex
+        # f^(0,1).&(a,b,c).&(d,e,f)^(0,1).l
         au = ex.buildAutomaton()
-        print au
         cfg = Configuration(au)
         for word in ['fabcl', 'fcabl']:
             cfg.reset()
             for c in word:
-                try:
-                    cfg = cfg.step(c)
-                except RecognitionError as e:
-                    print e
-                print 'step %s' %(c,)
+                cfg = cfg.step(c)
             self.assertTrue(cfg.isAccepting())
+    
+    def testNonAllTree (self):
+        a1 = Symbol('a')
+        a2 = Symbol('d')
+        ex = Sequence(NumericalConstraint(Symbol('f'), 0, 1), a1, NumericalConstraint(a2, 0, 1), Symbol('l'))
+        # f?ad?l
+        au = ex.buildAutomaton()
+        cfg = Configuration(au)
+        # This checks that the transition from a can jump over the d and find the l.
+        for word in ['fal', 'fadl']:
+            cfg.reset()
+            for c in word:
+                cfg = cfg.step(c)
+            self.assertTrue(cfg.isAccepting())
+
 
 if __name__ == '__main__':
     unittest.main()
