@@ -23,6 +23,7 @@ import StringIO
 import datetime
 import errno
 
+from pyxb.utils import fac
 from pyxb.utils import utility
 from pyxb.utils import templates
 from pyxb.binding import basis
@@ -309,6 +310,74 @@ def GenerateContentParticle (ctd, particle, binding_module, **kw):
     particle_val = templates.replaceInText('pyxb.binding.content.ParticleModel(%{term_val}, min_occurs=%{min_occurs}, max_occurs=%{max_occurs})', term_val=term_val, **template_map)
     return (particle_val, lines)
 
+def _GenerateAutomaton (automaton, template_map, containing_state, lines, **kw):
+    binding_module = kw['binding_module']
+    name = utility.PrepareIdentifier('BuildAutomaton', binding_module.uniqueInModule(), protected=True)
+    au_src = []
+    au_src.append(templates.replaceInText('''
+def %{name} ():
+    # Remove this helper function from the namespace after it's invoked
+    global %{name}
+    del %{name}
+    import pyxb.utils.fac as fac
+''', name=name))
+    
+    au_src.append('    counters = set()')
+    counter_map = {}
+    for cc in automaton.counterConditions:
+        cc_id = 'cc_%u' % (len(counter_map),)
+        counter_map[cc] = cc_id
+        au_src.append('    %s = fac.CounterCondition(min=%r, max=%r, metadata=%r)' % (cc_id, cc.min, cc.max, cc.metadata._location()))
+        au_src.append('    counters.add(%s)' % (cc_id,))
+    state_map = {}
+    au_src.append('    states = set()')
+    for st in automaton.states:
+        st_id = 'st_%u' % (len(state_map),)
+        state_map[st] = st_id
+        if st.subAutomata is not None:
+            au_src.append('    sub_automata = []')
+            for sa in st.subAutomata:
+                au_src.append('    sub_automata.append(%s)' % (_GenerateAutomaton(sa, template_map, st_id, lines, **kw),))
+        if st.finalUpdate is None:
+            au_src.append('    final_update = None')
+        else:
+            au_src.append('    final_update = set()')
+            for ui in st.finalUpdate:
+                au_src.append('    final_update.add(fac.UpdateInstruction(%s, %r))' % (counter_map[ui.counterCondition], ui.doIncrement))
+        if isinstance(st.symbol, xs.structures.ModelGroup):
+            au_src.append('    symbol = %r' % (st.symbol._location(),))
+        else:
+            (particle, symbol) = st.symbol
+            if isinstance(symbol, xs.structures.Wildcard):
+                au_src.append(templates.replaceInText('    symbol = %{wildcard}', wildcard=binding_module.literal(symbol, **kw)))
+            elif isinstance(symbol, xs.structures.ElementDeclaration):
+                au_src.append(templates.replaceInText('    symbol = pyxb.binding.content.ElementUse(%{ctd}._UseForTag(%{field_tag}), %{location})', field_tag=binding_module.literal(symbol.expandedName(), **kw), location=repr(particle._location()), **template_map))
+        au_src.append('    %s = fac.State(symbol, is_initial=%r, final_update=final_update, is_unordered_catenation=%r)' % (st_id, st.isInitial, st.isUnorderedCatenation))
+        if st.subAutomata is not None:
+            au_src.append('    %s._set_subAutomata(*sub_automata)' % (st_id,))
+        au_src.append('    states.add(%s)' % (st_id,))
+    for st in automaton.states:
+        au_src.append('    transitions = set()')
+        for xit in st.transitionSet:
+            au_src.append('    transitions.add(fac.Transition(%s, [' % (state_map[xit.destination],))
+            au_src.append('        %s ]))' % (',\n        '.join(map(lambda _ui: 'fac.UpdateInstruction(%s, %r)' % (counter_map[_ui.counterCondition], _ui.doIncrement), xit.updateInstructions))))
+        au_src.append('    %s._set_transitionSet(transitions)' % (state_map[st],))
+    au_src.append('    return fac.Automaton(states, counters, %r, containing_state=%s)' % (automaton.nullable, containing_state))
+    lines.extend(au_src)
+    return '%s()' % (name,)
+    
+def GenerateAutomaton (ctd, **kw):
+    aux = _CTDAuxData.Get(ctd)
+    binding_module = kw['binding_module']
+    template_map = { 'ctd' : binding_module.literal(ctd, **kw) }
+    automaton = aux.automaton
+    if automaton is None:
+        return None
+    serial_map = { 'automata': 1 }
+    lines = []
+    name = _GenerateAutomaton(automaton, template_map, 'None', lines, **kw)
+    return (name, lines)
+
 def _useEnumerationTags (td):
     if td is None:
         return False
@@ -588,7 +657,7 @@ def BuildTermTree (node):
                 # group or a trivial particle we can use the term
                 # directly.
                 if isinstance(node, xs.structures.Particle) and ((1 != node.minOccurs()) or (1 != node.maxOccurs())):
-                    term = pyxb.utils.fac.NumericalConstraint(term, node.minOccurs(), node.maxOccurs())
+                    term = pyxb.utils.fac.NumericalConstraint(term, node.minOccurs(), node.maxOccurs(), metadata=node)
             else:
                 assert isinstance(parent_particle, xs.structures.Particle), 'unexpected %s' % (parent_particle,)
                 assert isinstance(node, xs.structures.ModelGroup)
@@ -616,7 +685,6 @@ def BuildTermTree (node):
     assert 1 == len(ttarg)
     assert 1 == len(ttlist)
     term_tree = ttlist[0]
-    auto = term_tree.buildAutomaton()
     return term_tree
 
 def BuildPluralityData (term_tree):
@@ -737,6 +805,7 @@ class _CTDAuxData (object):
     termTree = None
     edSingles = None
     edMultiples = None
+    automaton = None
     ctd = None
 
     def __init__ (self, ctd):
@@ -745,6 +814,7 @@ class _CTDAuxData (object):
         self.contentBasis = ctd.contentType()[1]
         if isinstance(self.contentBasis, xs.structures.Particle):
             self.termTree = BuildTermTree(self.contentBasis)
+            self.automaton = self.termTree.buildAutomaton()
             (self.edSingles, self.edMultiples) = BuildPluralityData(self.termTree)
         else:
             self.edSingles = set()
@@ -880,8 +950,17 @@ class %{ctd} (%{superclass}):
         if lines:
             outf.postscript().append("\n".join(lines))
             outf.postscript().append("\n")
-        outf.postscript().append(templates.replaceInText('%{ctd}._ContentModel = %{particle_val}', ctd=template_map['ctd'], particle_val=particle_val))
+        outf.postscript().append(templates.replaceInText('%{ctd}._ContentModel = %{particle_val}\n', ctd=template_map['ctd'], particle_val=particle_val))
         outf.postscript().append("\n")
+
+        auto_defn = GenerateAutomaton(ctd, binding_module=binding_module, **kw)
+        if auto_defn is not None:
+            (automaton_ctor, lines) = auto_defn
+            if lines:
+                outf.postscript().append("\n".join(lines))
+                outf.postscript().append("\n")
+            outf.postscript().append(templates.replaceInText('%{ctd}._Automaton = %{automaton_ctor}\n', ctd=template_map['ctd'], automaton_ctor=automaton_ctor))
+            outf.postscript().append("\n")
 
     # Create definitions for all attributes.
     attribute_uses = []
@@ -1388,7 +1467,6 @@ class _ModuleNaming_mixin (object):
             _log.info('Saved binding source to %s', self.__bindingFilePath)
         else:
             _log.info('No binding file for %s', self)
-
 
 class NamespaceModule (_ModuleNaming_mixin):
     """This class represents a Python module that holds all the

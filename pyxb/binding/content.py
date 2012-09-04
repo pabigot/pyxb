@@ -442,6 +442,22 @@ class AttributeUse (pyxb.cscRoot):
             desc.extend(['=', self.__unicodeDefault ])
         return ''.join(desc)
 
+class ElementUse (object):
+    """Information about a schema element declaration reference."""
+
+    __elementDeclaration = None
+    __schemaLocation = None
+
+    def elementDeclaration (self):
+        return self.__elementDeclaration
+
+    def schemaLocation (self):
+        return self.__schemaLocation
+
+    def __init__ (self, element_declaration, schema_location):
+        self.__elementDeclaration = element_declaration
+        self.__schemaLocation = schema_location
+
 class ElementDeclaration (ContentState_mixin, ContentModel_mixin):
     """Aggregate the information relevant to an element of a complex type.
 
