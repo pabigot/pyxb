@@ -133,6 +133,10 @@ keywords.
 
 _PythonBuiltInConstants = frozenset( (
         "False", "True", "None", "NotImplemented", "Ellipsis", "__debug__",
+        # "set" is neither a keyword nor a constant, but if some fool
+        # like {http://www.w3.org/2001/SMIL20/}set gets defined there's
+        # no way to access the builtin constructor.
+        "set"
         ) )
 """Other symbols that aren't keywords but that can't be used.
 
