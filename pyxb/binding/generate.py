@@ -349,7 +349,7 @@ def %{name} ():
         else:
             (particle, symbol) = st.symbol
             if isinstance(symbol, xs.structures.Wildcard):
-                au_src.append(templates.replaceInText('    symbol = %{wildcard}', wildcard=binding_module.literal(symbol, **kw)))
+                au_src.append(templates.replaceInText('    symbol = pyxb.binding.content.WildcardUse(%{wildcard}, %{location})', wildcard=binding_module.literal(symbol, **kw), location=repr(particle._location())))
             elif isinstance(symbol, xs.structures.ElementDeclaration):
                 au_src.append(templates.replaceInText('    symbol = pyxb.binding.content.ElementUse(%{ctd}._UseForTag(%{field_tag}), %{location})', field_tag=binding_module.literal(symbol.expandedName(), **kw), location=repr(particle._location()), **template_map))
         au_src.append('    %s = fac.State(symbol, is_initial=%r, final_update=final_update, is_unordered_catenation=%r)' % (st_id, st.isInitial, st.isUnorderedCatenation))

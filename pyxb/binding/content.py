@@ -458,6 +458,23 @@ class ElementUse (object):
         self.__elementDeclaration = element_declaration
         self.__schemaLocation = schema_location
 
+class WildcardUse (object):
+    """Information about a schema wildcard element."""
+
+    __wildcardDeclaration = None
+    __schemaLocation = None
+
+    def wildcardDeclaration (self):
+        return self.__wildcardDeclaration
+
+    def schemaLocation (self):
+        return self.__schemaLocation
+
+    def __init__ (self, wildcard_declaration, schema_location):
+        self.__wildcardDeclaration = wildcard_declaration
+        self.__schemaLocation = schema_location
+
+
 class ElementDeclaration (ContentState_mixin, ContentModel_mixin):
     """Aggregate the information relevant to an element of a complex type.
 
