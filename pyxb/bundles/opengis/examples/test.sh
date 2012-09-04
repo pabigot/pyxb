@@ -22,7 +22,7 @@ else
 fi
 
 rm -f gmlapp.py* raw/gmlapp.py*
-PYXB_ARCHIVE_PATH='&pyxb/bundles/opengis//'
+PYXB_ARCHIVE_PATH='&pyxb/bundles/opengis//:&pyxb/bundles/common//'
 export PYXB_ARCHIVE_PATH
 pyxbgen \
   --schema-location=gmlapp.xsd --module=gmlapp \

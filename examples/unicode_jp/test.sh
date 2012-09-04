@@ -6,8 +6,9 @@ fail () {
 }
 
 # Because this is an OpenGIS application, the OpenGIS bundle must be
-# made available during binding generation.
-export PYXB_ARCHIVE_PATH='&pyxb/bundles/opengis//:+'
+# made available during binding generation.  OpenGIS also depends
+# on XLink which is in the common bundle.
+export PYXB_ARCHIVE_PATH='&pyxb/bundles/opengis//:&pyxb/bundles/common//:+'
 
 python -c 'import drv_libxml2' || fail python-libxml2 not installed
 

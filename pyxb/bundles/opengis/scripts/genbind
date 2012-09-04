@@ -10,7 +10,8 @@ BUNDLE_TAG=opengis
 
 . ${PYXB_ROOT}/maintainer/bundlesupport.sh
 
-export PYXB_ARCHIVE_PATH=${RAW_DIR}//:${PYXB_ROOT}/pyxb/bundles/wssplat/raw:+
+# Need access to common (for xlink) and wssplat.
+export PYXB_ARCHIVE_PATH=${RAW_DIR}//:${PYXB_ROOT}/pyxb/bundles/common//:${PYXB_ROOT}/pyxb/bundles/wssplat//:+
 
 (
 mkdir -p ${SCHEMA_DIR}
@@ -28,13 +29,6 @@ fi
 )
 
 find ${RAW_DIR} -name '*.wxs' | xargs rm -f
-
-# OGC uses a custom xlink schema with incorrect attribute group names of
-# (for example) xlink:simpleLink instead of the W3C name xlink:simpleAttrs.
-( cat <<EOText
-${SCHEMA_DIR}/xlink/1.0.0/xlinks.xsd misc.xlinks
-EOText
-) | generateBindings
 
 # Build GML 3.1.1 (the most recent version not identified in the namespace)
 pyxbgen \
@@ -113,6 +107,7 @@ pyxbgen \
 # Catalog schema has some external namespaces
 pyxbgen \
   --location-prefix-rewrite=http://schemas.opengis.net/=${SCHEMA_DIR}/ \
+  --schema-location=${SCHEMA_DIR}/csw/2.0.2/csw.xsd --module=csw_2_0_2 \
   --schema-location=${SCHEMA_DIR}/csw/2.0.2/record.xsd --module=csw_2_0_2 \
   --schema-location=${SCHEMA_DIR}/csw/2.0.2/rec-dcmes.xsd --module=csw_dc \
   --schema-location=${SCHEMA_DIR}/csw/2.0.2/rec-dcterms.xsd --module=csw_dct \
