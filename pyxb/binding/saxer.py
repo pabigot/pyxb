@@ -210,7 +210,7 @@ class _SAXElementState (pyxb.utils.saxutils.SAXElementState):
         """
         if self.__delayedConstructor is not None:
             args = []
-            for (content, element_use, maybe_element) in self.__content:
+            for (content, element_use, maybe_element) in self.content():
                 assert not maybe_element
                 assert element_use is None
                 assert isinstance(content, basestring)
@@ -218,7 +218,7 @@ class _SAXElementState (pyxb.utils.saxutils.SAXElementState):
             assert 1 >= len(args), 'Unexpected STD content %s' % (args,)
             self.__constructElement(self.__delayedConstructor, self.__attributes, args)
         else:
-            for (content, element_use, maybe_element) in self.__content:
+            for (content, element_use, maybe_element) in self.content():
                 self.__bindingInstance.append(content, element_use, maybe_element, require_validation=pyxb._ParsingRequiresValid)
         parent_state = self.parentState()
         if parent_state is not None:
