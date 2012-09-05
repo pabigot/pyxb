@@ -105,6 +105,15 @@ class NondeterministicSymbolError (RecognitionError):
             self.expected = frozenset(self.matches)
         super(NondeterministicSymbolError, self).__init__(*args)
 
+class SymbolMatch_mixin (object):
+    """Mix-in used by symbols to provide a custom match implementation.
+
+    If a L{State.symbol} value is an instance of this mix-in, then it
+    will be used to validate a candidate symbol for a match."""
+
+    def match (self, symbol):
+        raise NotImplementedError('%s.match' % (type(self).__name__,))
+
 class State (object):
     """A thin wrapper around an object reference.
 
@@ -298,7 +307,18 @@ class State (object):
         """Return C{True} iff the symbol matches for this state.
 
         This may be overridden by subclasses when matching by
-        equivalence does not work."""
+        equivalence does not work.  Alternatively, if the symbol
+        stored in this node is a subclass of L{SymbolMatch_mixin}, then
+        its match method will be used.  Otherwise C{symbol} matches
+        only if it is equal to the L{symbol} of this state.
+
+        @param symbol: A candidate symbol corresponding to the
+        expression symbol for this state.
+
+        @return: C{True} iff C{symbol} is a match for this state.
+        """
+        if isinstance(self.__symbol, SymbolMatch_mixin):
+            return self.__symbol.match(symbol)
         return self.__symbol == symbol
 
     def __str__ (self):
@@ -1029,6 +1049,10 @@ class Automaton (object):
                 fnl.add(s)
         self.__initialTransitions = frozenset(xit)
         self.__finalStates = frozenset(fnl)
+
+    def newConfiguration (self):
+        """Return a new L{Configuration} instance for this automaton."""
+        return Configuration(self)
 
     def __str__ (self):
         rv = []
