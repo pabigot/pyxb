@@ -1134,7 +1134,7 @@ class Node (object):
         The return value should be an iterable of tuples of integers
         denoting paths from this node through the term tree to a
         symbol."""
-        raise NotImplementedError('%s.first' % (self.__class__.__name__,))
+        raise NotImplementedError('%s.first' % (type(self).__name__,))
 
     __last = None
     def __get_last (self):
@@ -1154,7 +1154,7 @@ class Node (object):
         The return value should be an iterable of tuples of integers
         denoting paths from this node through the term tree to a
         symbol."""
-        raise NotImplementedError('%s.last' % (self.__class__.__name__,))
+        raise NotImplementedError('%s.last' % (type(self).__name__,))
 
     __nullable = None
     def __get_nullable (self):
@@ -1168,7 +1168,7 @@ class Node (object):
         """Abstract method that defines L{nullable} for the subclass.
 
         The return value should be C{True} or C{False}."""
-        raise NotImplementedError('%s.nullable' % (self.__class__.__name__,))
+        raise NotImplementedError('%s.nullable' % (type(self).__name__,))
 
     __follow = None
     def __get_follow (self):
@@ -1184,7 +1184,7 @@ class Node (object):
         The return value should be a map from tuples of integers (positions)
         to a list of transitions, where a transition is a position and
         an update instruction."""
-        raise NotImplementedError('%s.follow' % (self.__class__.__name__,))
+        raise NotImplementedError('%s.follow' % (type(self).__name__,))
 
     def reset (self):
         """Reset any term-tree state associated with the node.
@@ -1219,7 +1219,7 @@ class Node (object):
 
     def _walkTermTree (self, position, pre, post, arg):
         """Abstract method implementing L{walkTermTree} for the subclass."""
-        raise NotImplementedError('%s.walkTermTree' % (self.__class__.__name__,))
+        raise NotImplementedError('%s.walkTermTree' % (type(self).__name__,))
 
     __posNodeMap = None
     def __get_posNodeMap (self):
