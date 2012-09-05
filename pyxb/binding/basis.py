@@ -1417,6 +1417,66 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
             return value
         return self.typeDefinition()._CompatibleValue(value, **kw)
 
+    @classmethod
+    def CreateDOMBinding (cls, node, element_binding, **kw):
+        """Create a binding from a DOM node.
+
+        @param node: The DOM node
+
+        @param element_binding: An instance of L{element} that would be the
+        type of the node ignoring the potential for xsi:type.
+
+        @keyword _fallback_namespace: The namespace to use as the namespace for
+        the node, if the node name is unqualified.  This should be an absent
+        namespace.
+
+        @return A binding for the DOM node.
+
+        @raises pyxb.UnrecognizedElementError: if no underlying element or
+        type for the node can be identified.
+        """
+
+        assert xml.dom.Node.DOCUMENT_NODE != node.nodeType
+
+        fallback_namespace = kw.get('_fallback_namespace')
+
+        # Record the element to be associated with the created binding
+        # instance.
+        if '_element' in kw:
+            raise pyxb.LogicError('Cannot set _element in element-based instance creation')
+
+        type_class = None
+        if element_binding is not None:
+            # Can't create instances of abstract elements.  @todo: Is there any
+            # way this could be legal given an xsi:type attribute?  I'm pretty
+            # sure "no"...
+            if element_binding.abstract():
+                raise pyxb.AbstractElementError(element_binding)
+            kw['_element'] = element_binding
+            type_class = element_binding.typeDefinition()
+
+        # Get the namespace context for the value being created.  If none is
+        # associated, one will be created.  Do not make assumptions about the
+        # namespace context; if the user cared, she should have assigned a
+        # context before calling this.
+        ns_ctx = pyxb.namespace.resolution.NamespaceContext.GetNodeContext(node)
+        (did_replace, type_class) = XSI._InterpretTypeAttribute(XSI.type.getAttribute(node), ns_ctx, fallback_namespace, type_class)
+
+        if type_class is None:
+            raise pyxb.UnrecognizedElementError(dom_node=node)
+
+        # Pass xsi:nil on to the constructor regardless of whether the element
+        # is nillable.  Another sop to SOAP-encoding WSDL fans who don't
+        # bother to provide valid schema for their message content.
+        is_nil = XSI.nil.getAttribute(node)
+        if is_nil is not None:
+            kw['_nil'] = pyxb.binding.datatypes.boolean(is_nil)
+
+        rv = type_class.Factory(_dom_node=node, **kw)
+        assert rv._element() == element_binding
+        rv._setNamespaceContext(pyxb.namespace.resolution.NamespaceContext.GetNodeContext(node))
+        return rv._postDOMValidate()
+
     # element
     @classmethod
     def AnyCreateFromDOM (cls, node, fallback_namespace):
@@ -1437,13 +1497,7 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
         if xml.dom.Node.DOCUMENT_NODE == node.nodeType:
             node = node.documentElement
         expanded_name = pyxb.namespace.ExpandedName(node, fallback_namespace=fallback_namespace)
-        elt = expanded_name.elementBinding()
-        if elt is None:
-            raise pyxb.UnrecognizedElementError(dom_node=node, element_name=expanded_name)
-        assert isinstance(elt, pyxb.binding.basis.element)
-        # Pass on the namespace to use when resolving unqualified qnames as in
-        # xsi:type
-        return elt._createFromDOM(node, expanded_name, _fallback_namespace=fallback_namespace)
+        return cls.CreateDOMBinding(node, expanded_name.elementBinding(), _fallback_namespace=fallback_namespace)
         
     def elementForName (self, name):
         """Return the element that should be used if this element binding is
@@ -1540,54 +1594,12 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
         if xml.dom.Node.DOCUMENT_NODE == node.nodeType:
             node = node.documentElement
 
-        # At this point we have no idea what type the node could be.
-        type_class = None
-
         # Identify the element binding to be used for the given node.  NB:
         # Even if found, this may not be equal to self, since we allow you to
         # use an abstract substitution group head to create instances from DOM
-        # nodes that are in that group.
-        fallback_namespace = kw.get('_fallback_namespace')
-        element_binding = self.elementForName(expanded_name)
-        if element_binding is not None:
-            # Can't create instances of abstract elements.  @todo: Is there any
-            # way this could be legal given an xsi:type attribute?  I'm pretty
-            # sure "no"...
-            if element_binding.abstract():
-                raise pyxb.AbstractElementError(element_binding)
-
-            # Record the element to be associated with the created binding
-            # instance.
-            if '_element' in kw:
-                raise pyxb.LogicError('Cannot set _element in element-based instance creation')
-            kw['_element'] = element_binding
-
-            # Now determine the type binding for the content.  If xsi:type is
-            # used, it won't be the one built into the element binding, but we
-            # can start with this.
-            type_class = element_binding.typeDefinition()
- 
-        # Get the namespace context for the value being created.  If none is
-        # associated, one will be created.  Do not make assumptions about the
-        # namespace context; if the user cared, she should have assigned a
-        # context before calling this.
-        ns_ctx = pyxb.namespace.resolution.NamespaceContext.GetNodeContext(node)
-        (did_replace, type_class) = XSI._InterpretTypeAttribute(XSI.type.getAttribute(node), ns_ctx, fallback_namespace, type_class)
-            
-        if type_class is None:
-            raise pyxb.StructuralBadDocumentError('Element %s cannot create from node %s' % (self.name(), expanded_name))
-
-        # Pass xsi:nil on to the constructor regardless of whether the element
-        # is nillable.  Another sop to SOAP-encoding WSDL fans who don't
-        # bother to provide valid schema for their message content.
-        is_nil = XSI.nil.getAttribute(node)
-        if is_nil is not None:
-            kw['_nil'] = pyxb.binding.datatypes.boolean(is_nil)
-
-        rv = type_class.Factory(_dom_node=node, **kw)
-        assert rv._element() == element_binding
-        rv._setNamespaceContext(ns_ctx)
-        return rv._postDOMValidate()
+        # nodes that are in that group, and xsi:type might apply.  But it's a
+        # start.
+        return element.CreateDOMBinding(node, self.elementForName(expanded_name), **kw)
 
     def __str__ (self):
         return 'Element %s' % (self.name(),)
@@ -2054,8 +2066,15 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
                 expanded_name = pyxb.namespace.ExpandedName(node, fallback_namespace=_fallback_namespace)
                 (element_binding, element_use) = self._ElementBindingUseForName(expanded_name)
                 if element_binding is not None:
+                    # If we have an element binding, we need to use it because
+                    # it knows how to resolve substitution groups.
                     value = element_binding._createFromDOM(node, expanded_name, _fallback_namespace=_fallback_namespace)
                 else:
+                    try:
+                        value = element.CreateDOMBinding(node, None, _fallback_namespace=_fallback_namespace)
+                    except:
+                        pass
+                if value == node:
                     # Might be a resolvable wildcard.  See if we can convert it to an
                     # element.
                     try:
