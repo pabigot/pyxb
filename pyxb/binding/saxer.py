@@ -378,7 +378,11 @@ class PyXBSAXHandler (pyxb.utils.saxutils.BaseSAXHandler):
         # created on start, and the root object has been assigned.  If
         # it has simple content, then there are no internal elements
         # that could slip in and set this before we get to it here.
-        if self.__rootObject is None:
+        #
+        # Unless we're still in DOM mode, in which case this isn't really the
+        # root object.  Then the real root object will be the one that caused
+        # us to enter DOM mode.
+        if (self.__rootObject is None) and not this_state.inDOMMode():
             self.__rootObject = binding_object
 
 def make_parser (*args, **kw):

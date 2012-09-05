@@ -48,7 +48,7 @@ class TestTrac_0075 (unittest.TestCase):
             instance = CreateFromDocument(xmls)
             self.fail("Succeeded in creating from document with bad top level element")
         except UnrecognizedElementError, e:
-            self.assertEqual('inner', e.element_name)
+            self.assertEqual('t0p', e.element_name)
 
     def testNotAnElementError (self):
         elt = tTop._UseForTag('inner')
@@ -67,10 +67,13 @@ class TestTrac_0075 (unittest.TestCase):
             instance = CreateFromDocument(xmls)
             self.fail("Succeeded in creating from document with bad inner element")
         except UnrecognizedContentError, e:
-            loc = e.content.location
-            self.assertEqual(tag, e.content.name)
-            self.assertEqual(1, loc.lineNumber)
-            self.assertEqual(5, loc.columnNumber)
+            if isinstance(e.content, xml.dom.Node):
+                self.assertEqual(e.content.localName, tag.localName())
+            else:
+                self.assertEqual(tag, e.content.name)
+                loc = e.content.location
+                self.assertEqual(1, loc.lineNumber)
+                self.assertEqual(5, loc.columnNumber)
 
         dom = xml.dom.minidom.parseString(xmls)
         try:
