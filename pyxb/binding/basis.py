@@ -644,7 +644,7 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
         superclass, or may create a new class instance if the class adds a new
         constraint type.
 
-        :raise AttributeError: if the facet map has not been defined"""
+        @raise AttributeError: if the facet map has not been defined"""
         return getattr(cls, cls.__FacetMapAttributeName())
     
     @classmethod
@@ -654,8 +654,8 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
         This must be called exactly once, after all facets belonging to the
         datatype have been created.
 
-        :raise pyxb.LogicError: if called multiple times (on the same class)
-        :raise pyxb.LogicError: if called when a parent class facet map has not been initialized
+        @raise pyxb.LogicError: if called multiple times (on the same class)
+        @raise pyxb.LogicError: if called when a parent class facet map has not been initialized
         :return: the facet map"""
         fm = None
         try:
@@ -946,8 +946,8 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
         constraints should be considered trivially satisfied (as with
         QName and NOTATION).
 
-        :raise pyxb.LogicError: the provided value is not an instance of cls.
-        :raise pyxb.LogicError: an attempt is made to calculate a length for
+        @raise pyxb.LogicError: the provided value is not an instance of cls.
+        @raise pyxb.LogicError: an attempt is made to calculate a length for
         an instance of a type that does not support length calculations.
         """
         assert isinstance(value, cls)

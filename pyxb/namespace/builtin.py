@@ -93,7 +93,7 @@ class _XMLSchema_instance (Namespace):
         @param ns_ctx: The NamespaceContext within which the type_name should be resolved
         @param fallback_namespace: The namespace that should be used if the type name has no prefix
         @param type_class: The value to return if the type name is missing or acceptably invalid
-        @raises L{pyxb.BadDocumentError}: if the processing type
+        @raises pyxb.BadDocumentError: if the processing type
         configuration is L{PT_strict} and the type name fails to
         resolve to a type definition that is consistent with any
         provided type_class.
