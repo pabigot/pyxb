@@ -445,6 +445,7 @@ def make_parser (**kw):
 
 if '__main__' == __name__:
     import xml.dom.pulldom
+    import xml.dom.minidom
     import pyxb.utils.saxdom as saxdom
     import time
     import lxml.sax
