@@ -54,6 +54,8 @@ def StringToDOM (text, **kw):
     @see: L{pyxb._SetXMLStyle}."""
     if pyxb.XMLStyle_minidom == pyxb._XMLStyle:
         parser = pyxb.utils.saxutils.make_parser()
+        if isinstance(text, unicode):
+            text = text.encode(pyxb._InputEncoding)
         return xml.dom.minidom.parseString(text, parser)
     return pyxb.utils.saxdom.parseString(text, **kw)
 
