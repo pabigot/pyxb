@@ -2135,8 +2135,9 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         return (cls._CT_MIXED == cls._ContentTypeTag)
     
     def _postDOMValidate (self):
-        if self._PerformValidation() and (not self._isNil()) and (self.__modelState is not None):
-            self.__modelState.verifyComplete()
+        if self._PerformValidation():
+            if (not self._isNil()) and (self.__modelState is not None):
+                self.__modelState.verifyComplete()
             self._validateAttributes()
         return self
 
