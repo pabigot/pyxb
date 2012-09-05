@@ -9,6 +9,11 @@ from xml.dom import Node
 import xml.dom
 import pyxb.namespace
 
+def NonTextSibling (n):
+    while n.TEXT_NODE == n.nodeType:
+        n = n.nextSibling
+    return n
+
 class TestInScopeNames (unittest.TestCase):
     def show (self, node):
         xmlns_map = pyxb.namespace.resolution.NamespaceContext.GetNodeContext(node).inScopeNamespaces()
@@ -38,16 +43,21 @@ class TestInScopeNames (unittest.TestCase):
         self.assertEqual('urn:loc.gov:books', xmlns_map[None].uri())
         self.assertEqual('urn:ISBN:0-395-36341-6', xmlns_map['isbn'].uri())
 
-        title = book.firstChild.nextSibling
+        title = NonTextSibling(book.firstChild)
         self.assertEqual('title', title.localName)
         xmlns_map =self.show(title)
         self.assertEqual(3, len(xmlns_map))
         self.assertEqual('http://www.w3.org/XML/1998/namespace', xmlns_map['xml'].uri())
         self.assertEqual('urn:loc.gov:books', xmlns_map[None].uri())
         self.assertEqual('urn:ISBN:0-395-36341-6', xmlns_map['isbn'].uri())
-        notes = title.nextSibling.nextSibling.nextSibling.nextSibling
+
+        number = NonTextSibling(title.nextSibling)
+        notes = NonTextSibling(number.nextSibling)
+        while notes.TEXT_NODE == notes.nodeType:
+            notes = notes.nextSibling
         self.assertEqual('notes', notes.localName)
-        p = notes.firstChild.nextSibling
+
+        p = NonTextSibling(notes.firstChild)
         xmlns_map = self.show(p)
         self.assertEqual('p', p.localName)
         self.assertEqual(3, len(xmlns_map))
@@ -55,7 +65,8 @@ class TestInScopeNames (unittest.TestCase):
         self.assertEqual('http://www.w3.org/XML/1998/namespace', xmlns_map['xml'].uri())
         self.assertEqual('http://www.w3.org/1999/xhtml', xmlns_map[None].uri())
         self.assertEqual('urn:ISBN:0-395-36341-6', xmlns_map['isbn'].uri())
-        x = p.nextSibling.nextSibling
+
+        x = NonTextSibling(p.nextSibling)
         xmlns_map = self.show(x)
         self.assertEqual('p', x.localName)
         self.assertEqual(3, len(xmlns_map))
@@ -85,18 +96,18 @@ class TestInScopeNames (unittest.TestCase):
         xmlns_map = self.show(Beers)
         self.assertEqual(1, len(xmlns_map))
         self.assertEqual('http://www.w3.org/XML/1998/namespace', xmlns_map['xml'].uri())
-        table = Beers.firstChild.nextSibling
+        table = NonTextSibling(Beers.firstChild)
         self.assertEqual('table', table.localName)
         xmlns_map = self.show(table)
         self.assertEqual(2, len(xmlns_map))
         self.assertEqual('http://www.w3.org/XML/1998/namespace', xmlns_map['xml'].uri())
         self.assertEqual('http://www.w3.org/1999/xhtml', xmlns_map[None].uri())
-        th = table.firstChild.nextSibling
+        th = NonTextSibling(table.firstChild)
         self.assertEqual('th', th.localName)
-        tr = th.nextSibling.nextSibling
+        tr = NonTextSibling(th.nextSibling)
         self.assertEqual('tr', tr.localName)
         #brandName = table.firstChild.nextSibling.nextSibling.nextSibling.firstChild.nextSibling.nextSibling.nextSibling.firstChild
-        td = tr.firstChild.nextSibling
+        td = NonTextSibling(tr.firstChild)
         self.assertEqual('td', td.localName)
         brandName = td.firstChild
         self.assertEqual('brandName', brandName.localName)
