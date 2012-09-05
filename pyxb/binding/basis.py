@@ -57,7 +57,7 @@ class _TypeBinding_mixin (utility.Locatable_mixin):
 
     _PyXBFactoryKeywords = ( '_dom_node', '_fallback_namespace', '_from_xml',
                              '_apply_whitespace_facet', '_validate_constraints',
-                             '_require_value', '_nil', '_element',
+                             '_require_value', '_nil', '_element', '_apply_attributes',
                              '_convert_string_values' )
     """Keywords that are interpreted by __new__ or __init__ in one or more
     classes in the PyXB type hierarchy.  All these keywords must be removed
@@ -744,6 +744,7 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
         kw.pop('_require_value', None)
         kw.pop('_element', None)
         kw.pop('_fallback_namespace', None)
+        kw.pop('_apply_attributes', None)
         kw.pop('_nil', None)
         # ConvertArguments will remove _element and _apply_whitespace_facet
         dom_node = kw.get('_dom_node')
@@ -751,9 +752,7 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
         kw.pop('_from_xml', dom_node is not None)
         assert issubclass(cls, _TypeBinding_mixin)
         try:
-            rv = super(simpleTypeDefinition, cls).__new__(cls, *args, **kw)
-            rv._setAttributesFromKeywordsAndDOM(kw, dom_node)
-            return rv
+            return super(simpleTypeDefinition, cls).__new__(cls, *args, **kw)
         except ValueError, e:
             raise pyxb.BadTypeValueError(e)
         except OverflowError, e:
@@ -771,10 +770,19 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
         enabled), the newly constructed value is checked against its
         constraining facets.
         @type _validate_constraints: C{bool}
+
+        @keyword _apply_attributes: If C{True} (default), any attributes
+        present in the keywords or DOM node are applied.  Normally presence of
+        such an attribute should produce an error; when creating simple
+        content for a complex type we need the DOM node, but do not want to
+        apply the attributes, so we bypass the application.
         """
         # PyXBFactoryKeywords
         validate_constraints = kw.pop('_validate_constraints', self._PerformValidation())
         require_value = kw.pop('_require_value', False)
+        # Save DOM node so we can pull attributes off it
+        dom_node = kw.get('_dom_node')
+        apply_attributes = kw.pop('_apply_attributes', True)
         # _ConvertArguments handles _dom_node and _apply_whitespace_facet
         # TypeBinding_mixin handles _nil and _element
         args = self._ConvertArguments(args, kw)
@@ -784,7 +792,8 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
             raise pyxb.BadTypeValueError(e)
         if require_value and (not self._constructedWithValue()):
             raise pyxb.MissingContentError('missing value')
-            
+        if apply_attributes and (dom_node is not None):
+            self._setAttributesFromKeywordsAndDOM(kw, dom_node)
         if validate_constraints:
             self.xsdConstraintsOK()
 
@@ -1726,7 +1735,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         # don't like them, and even if they do we're not using them here.  (Do
         # need to propagate _nil, though, to correctly handle types derived
         # from basestring.)
-        value = self._TypeDefinition.Factory(_require_value=not self._isNil(), _dom_node=dom_node, _nil=self._isNil(), *args)
+        value = self._TypeDefinition.Factory(_require_value=not self._isNil(), _dom_node=dom_node, _nil=self._isNil(), _apply_attributes=False, *args)
         if value._constructedWithValue():
             if self._isNil():
                 raise pyxb.ContentInNilElementError(value)
