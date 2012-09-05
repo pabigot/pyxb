@@ -60,7 +60,7 @@ class ReferenceLiteral (object):
 
     def __init__ (self, **kw):
         # NB: Pre-extend __init__
-        self.__ownerClass = kw.get('type_definition', None)
+        self.__ownerClass = kw.get('type_definition')
 
     def setLiteral (self, literal):
         self.__literal = literal
@@ -78,7 +78,7 @@ class ReferenceFacetMember (ReferenceLiteral):
     __facetClass = None
 
     def __init__ (self, **kw):
-        variable = kw.get('variable', None)
+        variable = kw.get('variable')
         assert (variable is None) or isinstance(variable, facets.Facet)
 
         if variable is not None:
@@ -166,12 +166,12 @@ class ReferenceEnumerationMember (ReferenceLiteral):
 
         # See if we were given a value, from which we can extract the
         # other information.
-        value = kw.get('enum_value', None)
+        value = kw.get('enum_value')
         assert (value is None) or isinstance(value, facets._Enumeration_mixin)
 
         # Must provide facet_instance, or a value from which it can be
         # obtained.
-        facet_instance = kw.get('facet_instance', None)
+        facet_instance = kw.get('facet_instance')
         if facet_instance is None:
             assert isinstance(value, facets._Enumeration_mixin)
             facet_instance = value._CF_enumeration
@@ -179,7 +179,7 @@ class ReferenceEnumerationMember (ReferenceLiteral):
 
         # Must provide the enumeration_element, or a facet_instance
         # and value from which it can be identified.
-        self.enumerationElement = kw.get('enumeration_element', None)
+        self.enumerationElement = kw.get('enumeration_element')
         if self.enumerationElement is None:
             assert value is not None
             self.enumerationElement = facet_instance.elementForValue(value)
@@ -410,7 +410,7 @@ def GenerateSTD (std, generator):
     kw['class_unique'] = class_unique
 
     parent_classes = [ binding_module.literal(std.baseTypeDefinition(), **kw) ]
-    enum_facet = std.facets().get(facets.CF_enumeration, None)
+    enum_facet = std.facets().get(facets.CF_enumeration)
     if (enum_facet is not None) and (enum_facet.ownerTypeDefinition() == std):
         parent_classes.append('pyxb.binding.basis.enumeration_mixin')
         
@@ -789,7 +789,7 @@ def GenerateED (ed, generator, **kw):
 def _PrepareSimpleTypeDefinition (std, generator, nsm, module_context):
     std._templateMap()['_unique'] = nsm.uniqueInClass(std)
     if _useEnumerationTags(std):
-        enum_facet = std.facets().get(pyxb.binding.facets.CF_enumeration, None)
+        enum_facet = std.facets().get(pyxb.binding.facets.CF_enumeration)
         if (enum_facet is not None) and (std == enum_facet.ownerTypeDefinition()):
             for ei in enum_facet.iteritems():
                 assert ei.tag() is None, '%s already has a tag' % (ei,)
@@ -1907,7 +1907,7 @@ class Generator (object):
         @keyword uri_content_archive_directory: Invokes L{setUriContentArchiveDirectory}
         @keyword logging_config_file: Invokes L{setLoggingConfigFile}
         """
-        argv = kw.get('argv', None)
+        argv = kw.get('argv')
         if argv is not None:
             kw = {}
         self.__bindingRoot = kw.get('binding_root', self._DEFAULT_bindingRoot)

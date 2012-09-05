@@ -211,7 +211,7 @@ class tDefinitions (raw_wsdl11.tDefinitions):
         raw_wsdl11.Namespace.validateComponentModel()
         state = ( kw.pop('process_schema', False),
                   kw.pop('generation_uid', None),
-                  kw.get('_dom_node', None) )
+                  kw.get('_dom_node') )
         return state
 
     def _postFactory_vx (self, state):

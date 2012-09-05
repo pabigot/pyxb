@@ -69,7 +69,7 @@ def _bodyIfDefinedPattern (match_object, dictionary):
     id = match_object.group('id')
     repl = match_object.group('repl')
     ndrepl = match_object.group('ndrepl')
-    value = dictionary.get(id, None)
+    value = dictionary.get(id)
     if value is not None:
         if repl:
             return _substDefinedBodyPattern.sub(id, repl)

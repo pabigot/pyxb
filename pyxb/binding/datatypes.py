@@ -206,14 +206,14 @@ class duration (basis.simpleTypeDefinition, datetime.timedelta):
             if match is None:
                 raise BadTypeValueError('Value "%s" not in %s lexical space' % (text, cls._ExpandedName)) 
             match_map = match.groupdict()
-            if 'T' == match_map.get('Time', None):
+            if 'T' == match_map.get('Time'):
                 # Can't have T without additional time information
                 raise BadTypeValueError('Value "%s" not in %s lexical space' % (text, cls._ExpandedName)) 
 
-            negative_duration = ('-' == match_map.get('neg', None))
+            negative_duration = ('-' == match_map.get('neg'))
 
             fractional_seconds = 0.0
-            if match_map.get('fracsec', None) is not None:
+            if match_map.get('fracsec') is not None:
                 fractional_seconds = types.FloatType('0%s' % (match_map['fracsec'],))
                 usec = types.IntType(1000000 * fractional_seconds)
                 if negative_duration:
@@ -358,14 +358,14 @@ class _PyXBDateTime_base (basis.simpleTypeDefinition):
         for (k, v) in match_map.iteritems():
             if (k in cls.__LexicalIntegerFields) and (v is not None):
                 kw[k] = types.IntType(v)
-        if '-' == match_map.get('negYear', None):
+        if '-' == match_map.get('negYear'):
             kw['year'] = - kw['year']
-        if match_map.get('fracsec', None) is not None:
+        if match_map.get('fracsec') is not None:
             kw['microsecond'] = types.IntType(round(1000000 * types.FloatType('0%s' % (match_map['fracsec'],))))
         else:
             # Discard any bogosity passed in by the caller
             kw.pop('microsecond', None)
-        if match_map.get('tzinfo', None) is not None:
+        if match_map.get('tzinfo') is not None:
             kw['tzinfo'] = pyxb.utils.utility.UTCOffsetTimeZone(match_map['tzinfo'])
         else:
             kw.pop('tzinfo', None)

@@ -69,7 +69,7 @@ request_values = { 'latitude' : lat
 # have a value, add an element to the message document.
 req_msg = spec.messageMap()['NDFDgenRequest']
 for p in req_msg.part:
-    fv = request_values.get(p.name, None)
+    fv = request_values.get(p.name)
     if fv is None:
         print '%s: %s has no value' % (p.name, p.typeReference.expandedName())
     else:

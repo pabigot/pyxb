@@ -510,7 +510,7 @@ class Graph:
         @return: The SCC set, or C{None} if the node is not present in
         the results of Tarjan's algorithm."""
         
-        return self.sccMap(**kw).get(node, None)
+        return self.sccMap(**kw).get(node)
 
     def cyclomaticComplexity (self):
         """Return the cyclomatic complexity of the graph."""

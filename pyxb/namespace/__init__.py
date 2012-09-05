@@ -652,8 +652,7 @@ class Namespace (_NamespaceCategory_mixin, resolution._NamespaceResolution_mixin
         one (e.g., for a schema with no target namespace), don't lose hold of
         it."""
         assert uri is not None
-        return cls.__Registry.get(uri, None)
-
+        return cls.__Registry.get(uri)
 
     def __getnewargs__ (self):
         """Pickling support.

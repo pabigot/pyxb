@@ -1872,7 +1872,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         return True
 
     def _setAttribute (self, attr_en, value):
-        au = self._AttributeMap.get(attr_en, None)
+        au = self._AttributeMap.get(attr_en)
         if au is None:
             if self._AttributeWildcard is None:
                 raise pyxb.UnrecognizedAttributeError('Attribute %s is not permitted in type %s' % (attr_en, self._ExpandedName))

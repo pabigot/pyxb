@@ -119,8 +119,8 @@ class Facet (pyxb.cscRoot):
             kw.setdefault('base_type_definition', self.__baseTypeDefinition)
             kw.setdefault('owner_type_definition', self.__ownerTypeDefinition)
             kw.setdefault('value_datatype', self.__valueDatatype)
-        self.__baseTypeDefinition = kw.get('base_type_definition', None)
-        self.__ownerTypeDefinition = kw.get('owner_type_definition', None)
+        self.__baseTypeDefinition = kw.get('base_type_definition')
+        self.__ownerTypeDefinition = kw.get('owner_type_definition')
         self.__valueDatatype = kw.get('value_datatype', self._ValueDatatype)
         # Verify that there's enough information that we should be
         # able to identify a PST suitable for representing facet
@@ -139,7 +139,7 @@ class Facet (pyxb.cscRoot):
         assert cls != Facet
         if 0 <= name.find(':'):
             name = name.split(':', 1)[1]
-        facet_class = globals().get('%s_%s' % (cls._FacetPrefix, name), None)
+        facet_class = globals().get('%s_%s' % (cls._FacetPrefix, name))
         if facet_class is None:
             raise pyxb.LogicError('Unrecognized facet name %s: expect %s' % (name, ','.join([_f._Name for _f in cls.Facets])))
         assert facet_class is not None
@@ -186,7 +186,7 @@ class ConstrainingFacet (Facet):
         return self._validateConstraint_vx(value)
 
     def __setFromKeywords(self, **kw):
-        kwv = kw.get('value', None)
+        kwv = kw.get('value')
         if kwv is not None:
             if not isinstance(kwv, self.valueDatatype()):
                 kwv = self.valueDatatype()(kwv)
@@ -265,7 +265,7 @@ class _Fixed_mixin (pyxb.cscRoot):
     def __setFromKeywords (self, **kw):
         if kw.get('_reset', False):
             self.__fixed = None
-        kwv = kw.get('fixed', None)
+        kwv = kw.get('fixed')
         if kwv is not None:
             self.__fixed = datatypes.boolean(kwv)
         
@@ -584,7 +584,7 @@ class CF_enumeration (ConstrainingFacet, _CollectionFacet_mixin, _LateDatatype_m
         """Return the enumeration value corresponding to the given unicode string.
 
         If ustr is not a valid option for this enumeration, return None."""
-        rv = self.__unicodeToElement.get(ustr, None)
+        rv = self.__unicodeToElement.get(ustr)
         if rv is not None:
             rv = rv.value()
         return rv

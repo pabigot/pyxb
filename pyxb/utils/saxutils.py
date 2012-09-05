@@ -139,10 +139,10 @@ class SAXElementState (object):
     __content = None
 
     def __init__ (self, **kw):
-        self.__expandedName = kw.get('expanded_name', None)
+        self.__expandedName = kw.get('expanded_name')
         self.__namespaceContext = kw['namespace_context']
-        self.__parentState = kw.get('parent_state', None)
-        self.__location = kw.get('location', None)
+        self.__parentState = kw.get('parent_state')
+        self.__location = kw.get('location')
         self.__content = []
 
     def addTextContent (self, content):

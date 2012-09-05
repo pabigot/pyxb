@@ -343,7 +343,7 @@ class NamespaceContext (object):
         cls.__TargetNamespaceAttributes[expanded_name] = attribute_name
     @classmethod
     def _TargetNamespaceAttribute (cls, expanded_name):
-        return cls.__TargetNamespaceAttributes.get(expanded_name, None)
+        return cls.__TargetNamespaceAttributes.get(expanded_name)
 
     # Support for holding onto referenced namespaces until we have a target
     # namespace to give them to.
