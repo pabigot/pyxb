@@ -39,7 +39,7 @@ class _Resolvable_mixin (pyxb.cscRoot):
         """Determine whether this named component is resolved.
 
         Override this in the child class."""
-        raise pyxb.LogicError('Resolved check not implemented in %s' % (self.__class__,))
+        raise NotImplementedError("_Resolvable_mixin.isResolved in %s"% (type(self).__name__,))
     
     def _resolve (self):
         """Perform whatever steps are required to resolve this component.
@@ -63,7 +63,7 @@ class _Resolvable_mixin (pyxb.cscRoot):
         @return: C{self}, whether or not resolution succeeds.
         @raise pyxb.SchemaValidationError: if resolution requlres a reference to an unknown component
         """
-        raise pyxb.LogicError('Resolution not implemented in %s' % (self.__class__,))
+        raise NotImplementedError("_Resolvable_mixin._resolve in %s"% (type(self).__name__,))
 
     def _queueForResolution (self, why=None, depends_on=None):
         """Short-hand to requeue an object if the class implements _namespaceContext().

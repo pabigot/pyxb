@@ -62,7 +62,7 @@ class ContentState_mixin (pyxb.cscRoot):
 
         @return: C{True} if the value was successfully matched against the
         state.  C{False} if the value did not match against the state."""
-        raise Exception('ContentState_mixin.accepts not implemented in %s' % (type(self),))
+        raise NotImplementedError('ContentState_mixin.accepts in %s' % (type(self).__name__,))
 
     def notifyFailure (self, sub_state, particle_ok):
         """Invoked by a sub-state to indicate that validation cannot proceed
@@ -77,7 +77,7 @@ class ContentState_mixin (pyxb.cscRoot):
         in an accepting terminal state
 
         """
-        raise Exception('ContentState_mixin.notifyFailure not implemented in %s' % (type(self),))
+        raise NotImplementedError('ContentState_mixin.notifyFailure in %s' % (type(self).__name__,))
         
     def _verifyComplete (self, parent_particle_state):
         """Determine whether the deep state is complete without further elements.
@@ -106,7 +106,7 @@ class ContentModel_mixin (pyxb.cscRoot):
         this instance is a term.  C{None} for the top content model of a
         complex data type.
         """
-        raise Exception('ContentModel_mixin.newState not implemented in %s' % (type(self),))
+        raise NotImplementedError('ContentModel_mixin.newState in %s' % (type(self).__name__,))
 
     def _validateCloneSymbolSet (self, symbol_set_im):
         """Create a mutable copy of the symbol set.
@@ -164,7 +164,7 @@ class ContentModel_mixin (pyxb.cscRoot):
         @return: C{True} iff the model validates.  C{symbol_set} and
         C{output_path} will be unchanged if this returns C{False}.
         """
-        raise Exception('ContentState_mixin._validate not implemented in %s' % (type(self),))
+        raise NotImplementedError('ContentModel_mixin._validate in %s' % (type(self).__name__,))
 
 
 class AttributeUse (pyxb.cscRoot):
