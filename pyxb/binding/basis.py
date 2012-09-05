@@ -198,7 +198,9 @@ class _TypeBinding_mixin (utility.Locatable_mixin):
         @keyword _apply_whitespace_facet: If C{True} and this is a
         simpleTypeDefinition with a whiteSpace facet, the first argument will
         be normalized in accordance with that facet prior to invoking the
-        parent constructor.
+        parent constructor.  The value is always C{True} if text content is
+        extracted from a C{_dom_node}, and otherwise defaults to the defaulted
+        value of C{_from_xml}.
 
         @keyword _validate_constraints: If C{True}, any constructed value is
         checked against constraints applied to the union as well as the member
@@ -765,8 +767,9 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
         Usually there is one positional argument, which is a value that can be
         converted to the underlying Python type.
 
-        @keyword _validate_constraints: If True (default), the newly
-        constructed value is checked against its constraining facets.
+        @keyword _validate_constraints: If True (default if validation is
+        enabled), the newly constructed value is checked against its
+        constraining facets.
         @type _validate_constraints: C{bool}
         """
         # PyXBFactoryKeywords
@@ -1057,9 +1060,9 @@ class STD_union (simpleTypeDefinition):
         """Given a value, attempt to create an instance of some member of this
         union.  The first instance which can be legally created is returned.
 
-        @keyword _validate_constraints: If True (default), any constructed
-        value is checked against constraints applied to the union as well as
-        the member type.
+        @keyword _validate_constraints: If True (default if validation is
+        enabled), any constructed value is checked against constraints applied
+        to the union as well as the member type.
 
         @raise pyxb.BadTypeValueError: no member type will permit creation of
         an instance from the parameters in C{args} and C{kw}.
