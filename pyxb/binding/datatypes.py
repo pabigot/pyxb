@@ -1149,6 +1149,29 @@ class anyType (basis.complexTypeDefinition):
     __Inner = content.GroupSequence(content.ParticleModel(__Wildcard, min_occurs=0, max_occurs=None))
     _ContentModel = content.ParticleModel(__Inner, min_occurs=1, max_occurs=1)
 
+def _BuildAutomaton ():
+    # Remove this helper function from the namespace after it's invoked
+    global _BuildAutomaton
+    del _BuildAutomaton
+    import pyxb.utils.fac as fac
+
+    counters = set()
+    cc_0 = fac.CounterCondition(min=0L, max=None, metadata=pyxb.utils.utility.Location('/opt/pyxb/tests/schemas/anyType.xsd', 9, 3))
+    counters.add(cc_0)
+    states = set()
+    final_update = set()
+    final_update.add(fac.UpdateInstruction(cc_0, False))
+    symbol = content.WildcardUse(content.Wildcard(process_contents=content.Wildcard.PC_lax, namespace_constraint=content.Wildcard.NC_any), None)
+    st_0 = fac.State(symbol, is_initial=True, final_update=final_update, is_unordered_catenation=False)
+    states.add(st_0)
+    transitions = set()
+    transitions.add(fac.Transition(st_0, [
+        fac.UpdateInstruction(cc_0, True) ]))
+    st_0._set_transitionSet(transitions)
+    return fac.Automaton(states, counters, True, containing_state=None)
+anyType._Automaton = _BuildAutomaton()
+
+    
 # anyType._IsUrType() is True; foo._IsUrType() for descendents of it
 # should be false.
 anyType._IsUrType = classmethod(lambda _c: _c == anyType)

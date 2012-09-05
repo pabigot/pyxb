@@ -1817,6 +1817,10 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
     # reduce a DOM node list to the body of this element.
     _ContentModel = None
 
+    # None, or a reference to a pyxb.utils.fac.Automaton instance that defines
+    # the content model for the type.
+    _Automaton = None
+
     @classmethod
     def _AddElement (cls, element):
         """Method used by generated code to associate the element binding with a use in this type.
@@ -2005,6 +2009,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             self.__setContent(None)
 
     __modelState = None
+    __automatonConfiguration = None
     def reset (self):
         """Reset the instance.
 
@@ -2018,8 +2023,11 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             au.reset(self)
         for eu in self._ElementMap.values():
             eu.reset(self)
+        assert (self._ContentModel is None) == (self._Automaton is None), 'Mismatch automaton/contentmodel for %s' % (type(self),)
         if self._ContentModel is not None:
             self.__modelState = self._ContentModel.newState()
+        if self._Automaton is not None:
+            self.__automatonConfiguration = self._Automaton.newConfiguration()
         return self
 
     @classmethod
@@ -2126,6 +2134,8 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
                     return self
                 raise pyxb.StructuralBadDocumentError('Validation is required when no element_use can be found')
             else:
+                #print 'step %s\n\t%s' % (value, element_use)
+                #print 'candidates: %s' % ('\n\t'.join(map(str, self.__automatonConfiguration.candidateTransitions())))
                 ( consumed, underflow_exc ) = self.__modelState.step(self, value, element_use)
                 if consumed:
                     return self

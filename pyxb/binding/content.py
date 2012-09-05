@@ -27,6 +27,7 @@ L{Wildcard} holds content-related information used in the content model.
 
 import pyxb
 import pyxb.namespace
+import pyxb.utils.fac
 from pyxb.binding import basis
 
 import xml.dom
@@ -442,7 +443,7 @@ class AttributeUse (pyxb.cscRoot):
             desc.extend(['=', self.__unicodeDefault ])
         return ''.join(desc)
 
-class ElementUse (object):
+class ElementUse (pyxb.utils.fac.SymbolMatch_mixin):
     """Information about a schema element declaration reference."""
 
     __elementDeclaration = None
@@ -455,10 +456,14 @@ class ElementUse (object):
         return self.__schemaLocation
 
     def __init__ (self, element_declaration, schema_location):
+        super(ElementUse, self).__init__()
         self.__elementDeclaration = element_declaration
         self.__schemaLocation = schema_location
 
-class WildcardUse (object):
+    def __str__ (self):
+        return '%s at %s' % (self.__elementDeclaration.name(), self.__schemaLocation)
+
+class WildcardUse (pyxb.utils.fac.SymbolMatch_mixin):
     """Information about a schema wildcard element."""
 
     __wildcardDeclaration = None
@@ -471,6 +476,7 @@ class WildcardUse (object):
         return self.__schemaLocation
 
     def __init__ (self, wildcard_declaration, schema_location):
+        super(WildcardUse, self).__init__()
         self.__wildcardDeclaration = wildcard_declaration
         self.__schemaLocation = schema_location
 
