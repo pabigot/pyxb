@@ -1131,8 +1131,12 @@ class Location (object):
 
     def __str__ (self):
         if self.locationBase is None:
-            return '<unknownLocation>'
-        return '%s[%s:%s]' % (self.locationBase, self.lineNumber, self.columnNumber)
+            lb = '<unknown>'
+        else:
+            # No, this should not be os.sep.  The location is
+            # expected to be a URI.
+            lb = self.locationBase.rsplit('/', 1)[-1]
+        return '%s[%s:%s]' % (lb, self.lineNumber, self.columnNumber)
 
     def __repr__ (self):
         t = type(self)
