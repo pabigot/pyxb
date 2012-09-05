@@ -1302,7 +1302,7 @@ def CreateFromDOM (node, default_namespace=None):
     @deprecated: Forcing use of DOM interface is unnecessary; use L{CreateFromDocument}."""
     if default_namespace is None:
         default_namespace = Namespace.fallbackNamespace()
-    return pyxb.binding.basis.element.AnyCreateFromDOM(node, _fallback_namespace=default_namespace)
+    return pyxb.binding.basis.element.AnyCreateFromDOM(node, default_namespace)
 
 ''', **template_map))
 

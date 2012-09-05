@@ -1419,17 +1419,31 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
 
     # element
     @classmethod
-    def AnyCreateFromDOM (cls, node, _fallback_namespace):
+    def AnyCreateFromDOM (cls, node, fallback_namespace):
+        """Create a binding from a DOM node.
+
+        @param node: The DOM node
+
+        @param fallback_namespace: The namespace to use as the namespace for
+        the node, if the node name is unqualified.  This should be an absent
+        namespace.
+
+        @return A binding for the DOM node.
+
+        @raises pyxb.UnrecognizedElementError: if the name produced by
+        combining the C{node} with the C{fallback_namespace} fails to resolve
+        to an element declaration.
+        """
         if xml.dom.Node.DOCUMENT_NODE == node.nodeType:
             node = node.documentElement
-        expanded_name = pyxb.namespace.ExpandedName(node, fallback_namespace=_fallback_namespace)
+        expanded_name = pyxb.namespace.ExpandedName(node, fallback_namespace=fallback_namespace)
         elt = expanded_name.elementBinding()
         if elt is None:
             raise pyxb.UnrecognizedElementError(dom_node=node, element_name=expanded_name)
         assert isinstance(elt, pyxb.binding.basis.element)
         # Pass on the namespace to use when resolving unqualified qnames as in
         # xsi:type
-        return elt._createFromDOM(node, expanded_name, _fallback_namespace=_fallback_namespace)
+        return elt._createFromDOM(node, expanded_name, _fallback_namespace=fallback_namespace)
         
     def elementForName (self, name):
         """Return the element that should be used if this element binding is
@@ -1477,6 +1491,8 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
         """
         if xml.dom.Node.DOCUMENT_NODE == node.nodeType:
             node = node.documentElement
+        if fallback_namespace is not None:
+            kw.setdefault('_fallback_namespace', fallback_namespace)
         if expanded_name is None:
             expanded_name = pyxb.namespace.ExpandedName(node, fallback_namespace=fallback_namespace)
         return self._createFromDOM(node, expanded_name, **kw)
@@ -1528,7 +1544,7 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
         # Even if found, this may not be equal to self, since we allow you to
         # use an abstract substitution group head to create instances from DOM
         # nodes that are in that group.
-        fallback_namespace = kw.pop('_fallback_namespace', None)
+        fallback_namespace = kw.get('_fallback_namespace')
         element_binding = self.elementForName(expanded_name)
         if element_binding is None:
             raise pyxb.StructuralBadDocumentError('Element %s cannot create from node %s' % (self.name(), expanded_name))
@@ -1563,7 +1579,7 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
         if is_nil is not None:
             kw['_nil'] = pyxb.binding.datatypes.boolean(is_nil)
 
-        rv = type_class.Factory(_dom_node=node, _fallback_namespace=fallback_namespace, **kw)
+        rv = type_class.Factory(_dom_node=node, **kw)
         assert rv._element() == element_binding
         rv._setNamespaceContext(ns_ctx)
         return rv._postDOMValidate()
