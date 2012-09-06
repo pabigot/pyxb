@@ -1260,7 +1260,41 @@ class STD_list (simpleTypeDefinition, types.ListType):
         super(STD_list, self).remove(self._ValidatedItem(x))
 
 class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
-    """Class that represents a schema element.
+    """Class that represents a schema element within a binding.
+
+    This gets a little confusing.  Within a schema, the L{element
+    declaration<pyxb.xmlschema.structures.ElementDeclaration>} type represents
+    an U{element
+    declaration<http://www.w3.org/TR/xmlschema-1/#cElement_Declarations>}.
+    Those declarations may be global (have a name that is visible in the
+    namespace), or local (have a name that is visible only within a complex
+    type definition).  Further, local (but not global) declarations may have a
+    reference to a global declaration (which might be in a different
+    namespace).
+
+    Within a PyXB binding, the element declarations from the original complex
+    type definition that have the same
+    U{QName<http://www.w3.org/TR/1999/REC-xml-names-19990114/#dt-qname>}
+    (after deconflicting the
+    U{LocalPart<http://www.w3.org/TR/1999/REC-xml-names-19990114/#NT-LocalPart>}
+    are associated with an attribute in the class for the complex type.  Each
+    of these attributes is defined via a L{binding
+    ElementDeclaration<pyxb.binding.basis.Content.ElementDeclaration>} which
+    provides the mechanism by which the binding holds values associated with
+    that element.
+
+    Furthermore, in the FAC-based content model, each schema element
+    declaration is associated with a binding
+    L{ElementUse<pyxb.binding.basis.Content.ElementUse>} instance to locate
+    the point in the schema where content came from.  Multiple instances of
+    these classes will may refer to the same binding ElementDeclaration.
+
+    None of these are this element.  This element is type used for a variable
+    which associates the name of a element with data required to represent it,
+    all within a particular scope (a module for global scope, the binding
+    class for a complex type definition for local scope).  From the
+    perspective of a PyXB user they look almost like a class, in that you can
+    call them to create instances of the underlying complex type.
 
     Global and local elements are represented by instances of this class.
     """
