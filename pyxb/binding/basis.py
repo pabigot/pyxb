@@ -2104,42 +2104,12 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
                     # it knows how to resolve substitution groups.
                     value = element_binding._createFromDOM(node, expanded_name, _fallback_namespace=_fallback_namespace)
                 else:
+                    # If we don't have an element binding, we might still be
+                    # able to convert this if it has an xsi:type attribute.
                     try:
                         value = element.CreateDOMBinding(node, None, _fallback_namespace=_fallback_namespace)
                     except:
-                        pass
-                if value == node:
-                    # Might be a resolvable wildcard.  See if we can convert it to an
-                    # element.
-                    try:
-                        ns = expanded_name.namespace()
-                        if ns is not None:
-                            for mr in ns.moduleRecords():
-                                try:
-                                    if (mr.module() is None) and (mr.modulePath() is not None):
-                                        _log.info('Importing %s to get binding for wildcard %s', mr.modulePath(), expanded_name)
-                                        mod = __import__(mr.modulePath())
-                                        for c in mr.modulePath().split('.')[1:]:
-                                            mod = getattr(mod, c)
-                                        mr._setModule(mod)
-                                    # The module holding XMLSchema bindings
-                                    # does not have a CreateFromDOM method,
-                                    # and shouldn't since we need to convert
-                                    # schema instances to DOM more carefully.
-                                    # Other namespaces won't have a module if
-                                    # the bindings were not imported; this is
-                                    # probably worth a warning.
-                                    if mr.module() is not None:
-                                        value = mr.module().CreateFromDOM(node)
-                                    elif mr.namespace() != pyxb.namespace.XMLSchema:
-                                        _log.warning('No bindings available for %s', expanded_name)
-                                    break
-                                except pyxb.UnrecognizedElementError, e:
-                                    _log.info('Ignoring unrecognized element when creating binding for wildcard %s', expanded_name)
-                                except pyxb.PyXBException, e:
-                                    _log.warning('Ignoring error when creating binding for wildcard %s', expanded_name, exc_info=e)
-                    except Exception:
-                        _log.exception('Unable to convert DOM node %s to Python instance', expanded_name)
+                        _log.warning('Unable to convert DOM node %s at %s to binding', expanded_name, getattr(node, 'location', '[UNAVAILABLE]'))
         if (not maybe_element) and isinstance(value, basestring) and (self._ContentTypeTag in (self._CT_EMPTY, self._CT_ELEMENT_ONLY)):
             if (0 == len(value.strip())) and not self._isNil():
                 return self
