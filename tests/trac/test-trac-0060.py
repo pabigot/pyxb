@@ -84,6 +84,7 @@ class TestTrac_0060 (unittest.TestCase):
     ConflictStringInteger = '<integer xsi:type="String" xmlns:xsi="%s"><child>%d</child></integer>' % (XSI.uri(), AnInteger)
     UntypedIntegerElement = '<element><child>%d</child></element>' % (AnInteger,)
     TypedElement = '<element xsi:type="Integer" xmlns:xsi="%s"><child>%d</child></element>' % (XSI.uri(), AnInteger)
+    # There is no type Float in the schema
     BogusTypedElement = '<element xsi:type="Float" xmlns:xsi="%s"><child>%d</child></element>' % (XSI.uri(), AnInteger)
     BogusTypedInteger = '<integer xsi:type="Float" xmlns:xsi="%s"><child>%d</child></integer>' % (XSI.uri(), AnInteger)
 
@@ -148,7 +149,6 @@ class TestTrac_0060 (unittest.TestCase):
         self.assertTrue(isinstance(instance.child, long))
         self.assertEqual(self.AnInteger, instance.child)
 
-
     def testStrict (self):
         self.assertEqual(XSI.ProcessTypeAttribute(), XSI.PT_strict)
         xmls = '<wildcard>%s</wildcard>' % (self.ConflictString,)
@@ -162,6 +162,10 @@ class TestTrac_0060 (unittest.TestCase):
         self.assertRaises(pyxb.BadDocumentError, CreateFromDOM, dom)
 
         xmls = '<wildcard>%s</wildcard>' % (self.BogusTypedElement,)
+        # This only raises with saxer, which treats the bogus xsi:type as
+        # a content failure.  With saxdom and minidom, that error gets
+        # lost by the code that thinks it's ok to pass a DOM node where
+        # no binding could be created.  This should be reconciled.
         self.assertRaises(pyxb.BadDocumentError, CreateFromDocument, xmls)
 
         xmls = '<wildcard>%s</wildcard>' % (self.BogusTypedInteger,)
@@ -181,7 +185,6 @@ class TestTrac_0060 (unittest.TestCase):
         self.assertRaises(pyxb.BadDocumentError, CreateFromDocument, xmls)
         dom = pyxb.utils.domutils.StringToDOM(xmls)
         self.assertRaises(pyxb.BadDocumentError, CreateFromDOM, dom)
-
 
     def testLax (self):
         # Lax won't convert DOM nodes
@@ -323,7 +326,6 @@ class TestTrac_0060 (unittest.TestCase):
         self.assertRaises(pyxb.AbstractInstantiationError, CreateFromDocument, xmls)
         dom = pyxb.utils.domutils.StringToDOM(xmls)
         self.assertRaises(pyxb.AbstractInstantiationError, CreateFromDOM, dom)
-
 
 if __name__ == '__main__':
     unittest.main()
