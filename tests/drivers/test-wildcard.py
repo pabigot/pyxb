@@ -139,6 +139,17 @@ class TestIntensionalSet (unittest.TestCase):
         self.assertEqual(nc_not(ns1), ISECT([nc_not(ns1), nc_not(None)]))
 
 class TestWildcard (unittest.TestCase):
+    def setUp (self):
+        # Hide the warning about failure to convert DOM node {}third
+        # to a binding
+        self.__basis_log = logging.getLogger('pyxb.binding.basis')
+        self.__basis_loglevel = self.__basis_log.level
+        self.__basis_log.setLevel(logging.ERROR)
+
+    def tearDown (self):
+        pyxb.RequireValidWhenParsing(True)
+        self.__basis_log.level = self.__basis_loglevel
+
     def testElement (self):
         # NB: Test on CTD, not element
         self.assert_(wrapper_._HasWildcardElement)

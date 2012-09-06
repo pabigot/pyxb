@@ -62,6 +62,12 @@ def ToDOM (instance):
 import unittest
 
 class TestExternal (unittest.TestCase):
+    def setUp (self):
+        self.__basis_log = logging.getLogger('pyxb.binding.basis')
+        self.__basis_loglevel = self.__basis_log.level
+
+    def tearDown (self):
+        self.__basis_log.level = self.__basis_loglevel
 
     def testSharedTypes (self):
         self.assertEqual(word.typeDefinition()._ElementMap['from'].elementBinding().typeDefinition(), st.english)
@@ -112,7 +118,9 @@ class TestExternal (unittest.TestCase):
         instance = st.personName.Factory(_dom_node=dom.documentElement)
         xml = '<personName><surname>Smith</surname><generation>Jr.</generation></personName>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
+        self.__basis_log.setLevel(logging.ERROR)
         self.assertRaises(ExtraContentError, st.personName.Factory, _dom_node=dom.documentElement)
+        self.__basis_log.level = self.__basis_loglevel
         xml = xml.replace('personName', 'extendedName')
         dom = pyxb.utils.domutils.StringToDOM(xml)
         instance = st.extendedName.Factory(_dom_node=dom.documentElement)

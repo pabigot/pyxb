@@ -36,6 +36,11 @@ class TestTrac0123 (unittest.TestCase):
         except ImportError, e:
             _log.warning('%s: skipping test, error importing dsig', __file__)
             return
+        # The warning that InclusiveNamespaces could not be converted
+        # is correct.  We don't have bindings for
+        # http://www.w3.org/2001/10/xml-exc-c14n#.  We're going to
+        # leave it that way for now, as evidence the warning is still
+        # present.
         instance = dsig.CreateFromDocument(xmls)
         # Problem was the PrefixList attribute in InclusiveNamespaces,
         # which has no namespace; deepClone couldn't handle it.  Show

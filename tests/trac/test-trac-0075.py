@@ -37,6 +37,14 @@ from pyxb.exceptions_ import *
 import unittest
 
 class TestTrac_0075 (unittest.TestCase):
+    def setUp (self):
+        # Prepare to hide warnings about failure to convert DOM node to binding
+        self.__basis_log = logging.getLogger('pyxb.binding.basis')
+        self.__basis_loglevel = self.__basis_log.level
+
+    def tearDown (self):
+        self.__basis_log.level = self.__basis_loglevel
+
     def testGood (self):
         xmls = '<top><inner>content</inner></top>'
         instance = CreateFromDocument(xmls)
@@ -61,6 +69,8 @@ class TestTrac_0075 (unittest.TestCase):
             self.assertEqual(tTop, e.containing_type)
 
     def testUnrecognizedContentError (self):
+        # Hide the warnings that tInner could not be converted to binding
+        self.__basis_log.setLevel(logging.ERROR)
         tag = Namespace.createExpandedName('tInner')
         xmls = '<top><tInner>content</tInner></top>'
         try:

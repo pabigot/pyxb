@@ -18,9 +18,17 @@ from pyxb.exceptions_ import *
 import unittest
 
 class TestIncludeDD (unittest.TestCase):
+    def setUp (self):
+        self.__basis_log = logging.getLogger('pyxb.binding.basis')
+        self.__basis_loglevel = self.__basis_log.level
+
+    def tearDown (self):
+        self.__basis_log.level = self.__basis_loglevel
+
     def testDefault (self):
         xmls = '<entry xmlns="%s"><from>one</from><to>single</to></entry>' % (Namespace.uri(),)
         # Default namespace applies to from which should be in no namespace
+        self.__basis_log.setLevel(logging.ERROR)
         self.assertRaises(pyxb.UnrecognizedContentError, CreateFromDocument, xmls.encode('utf-8'))
 
     def testExplicit (self):

@@ -20,7 +20,18 @@ from pyxb.exceptions_ import *
 import unittest
 
 class TestNamespaceUU (unittest.TestCase):
+    def setUp (self):
+        # Prepare to hide warnings about failure to convert DOM node
+        self.__basis_log = logging.getLogger('pyxb.binding.basis')
+        self.__basis_loglevel = self.__basis_log.level
+
+    def tearDown (self):
+        self.__basis_log.level = self.__basis_loglevel
+
     def testBad (self):
+        # Hide warnings about no binding for DOM nodes that are
+        # uninteresting; we want to catch the validation errors.
+        self.__basis_log.setLevel(logging.ERROR)
         # Default namespace improperly gives namespace to local element
         xml = '<globalStruct xmlns="urn:namespaceTest"><local>local</local><globalElt>global</globalElt></globalStruct>'
         self.assertRaises(pyxb.UnrecognizedContentError, CreateFromDocument, xml)

@@ -40,8 +40,16 @@ from pyxb.exceptions_ import *
 import unittest
 
 class TestTrac_0137 (unittest.TestCase):
+    def setUp (self):
+        # Hide the warning about failure to convert DOM node {}third
+        # to a binding
+        self.__basis_log = logging.getLogger('pyxb.binding.basis')
+        self.__basis_loglevel = self.__basis_log.level
+        self.__basis_log.setLevel(logging.ERROR)
+
     def tearDown (self):
         pyxb.RequireValidWhenParsing(True)
+        self.__basis_log.level = self.__basis_loglevel
 
     def validate (self):
         xmls = '<wrapper><first/><second/><third><selt>text</selt></third></wrapper>'

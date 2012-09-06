@@ -34,8 +34,17 @@ import unittest
 import xml.dom
 
 class TestTrac_0052 (unittest.TestCase):
+    def setUp (self):
+        self.__basis_log = logging.getLogger('pyxb.binding.basis')
+        self.__basis_loglevel = self.__basis_log.level
+
+    def tearDown (self):
+        self.__basis_log.level = self.__basis_loglevel
+
     def testInternalDOM (self):
         xmls = '<testElt><wc1/><wc2 wca="3"/></testElt>'
+        # Hide the warning about failure to convert wc1/wc2 to bindings
+        self.__basis_log.setLevel(logging.ERROR)
         instance = CreateFromDocument(xmls);
         self.assertEqual(2, len(instance.wildcardElements()))
         wc2 = instance.wildcardElements()[1]

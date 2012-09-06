@@ -61,7 +61,12 @@ from pyxb.exceptions_ import *
 import unittest
 
 class TestTrac_0060 (unittest.TestCase):
+    def setUp (self):
+        self.__basis_log = logging.getLogger('pyxb.binding.basis')
+        self.__basis_loglevel = self.__basis_log.level
+
     def tearDown (self):
+        self.__basis_log.level = self.__basis_loglevel
         XSI.ProcessTypeAttribute(XSI.PT_strict)
 
     AString = 'hi'        
@@ -105,6 +110,8 @@ class TestTrac_0060 (unittest.TestCase):
         self.assertRaises(pyxb.BadTypeValueError, CreateFromDocument, xmls)
 
     def testWildcardUntyped (self):
+        # Inhibit warning about conversion; we get a DOM node out of this.
+        self.__basis_log.level = logging.ERROR
         xmls = '<wildcard>%s</wildcard>' % (self.UntypedIntegerElement,)
         wc = CreateFromDocument(xmls)
         instance = wc.wildcardElements()[0]
@@ -177,6 +184,8 @@ class TestTrac_0060 (unittest.TestCase):
 
 
     def testLax (self):
+        # Lax won't convert DOM nodes
+        self.__basis_log.level = logging.ERROR
         self.assertEqual(XSI.ProcessTypeAttribute(), XSI.PT_strict)
         XSI.ProcessTypeAttribute(XSI.PT_lax)
         xmls = '<wildcard>%s</wildcard>' % (self.ConflictString,)
@@ -246,6 +255,8 @@ class TestTrac_0060 (unittest.TestCase):
 
 
     def testSkip (self):
+        # Skip won't convert DOM nodes
+        self.__basis_log.level = logging.ERROR
         self.assertEqual(XSI.ProcessTypeAttribute(), XSI.PT_strict)
         XSI.ProcessTypeAttribute(XSI.PT_skip)
 

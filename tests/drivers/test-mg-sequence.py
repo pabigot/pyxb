@@ -23,8 +23,19 @@ def ToDOM (instance, tag=None):
 import unittest
 
 class TestMGSeq (unittest.TestCase):
+    def setUp (self):
+        # Hide the warning about failure to convert DOM node {}third
+        # to a binding
+        self.__basis_log = logging.getLogger('pyxb.binding.basis')
+        self.__basis_loglevel = self.__basis_log.level
+
+    def tearDown (self):
+        self.__basis_log.level = self.__basis_loglevel
+
     def testBad (self):
         # Second is wrong element tag
+        # Hide warning about failure to convert
+        self.__basis_log.level = logging.ERROR
         xml = '<ns1:wrapper xmlns:ns1="URN:test-mg-sequence"><first/><second/><third/><fourth_0_2/></ns1:wrapper>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
         self.assertRaises(UnrecognizedContentError, wrapper.createFromDOM, dom.documentElement)

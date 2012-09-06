@@ -18,6 +18,14 @@ from pyxb.exceptions_ import *
 import unittest
 
 class TestCTDExtension (unittest.TestCase):
+    def setUp (self):
+        # Hide the warning about failure to convert DOM node {}third
+        # to a binding
+        self.__basis_log = logging.getLogger('pyxb.binding.basis')
+        self.__basis_loglevel = self.__basis_log.level
+
+    def tearDown (self):
+        self.__basis_log.level = self.__basis_loglevel
 
     def testStructure (self):
         # Extension should be a subclass of parent
@@ -61,6 +69,8 @@ class TestCTDExtension (unittest.TestCase):
         self.assertEqual('add generation', instance.eAttr)
 
     def testMidWildcard (self):
+        # Hide the warnings that other:something could not be converted
+        self.__basis_log.setLevel(logging.ERROR)
         xml = '<defs xmlns:other="other"><documentation/><other:something/><message/><message/><import/><message/></defs>'
         doc = pyxb.utils.domutils.StringToDOM(xml)
         instance = defs.createFromDOM(doc.documentElement)
@@ -78,6 +88,8 @@ class TestCTDExtension (unittest.TestCase):
         self.assertEqual(2, len(instance.wildcardElements()))
 
     def testEndWildcard (self):
+        # Hide the warnings that other:something could not be converted
+        self.__basis_log.setLevel(logging.ERROR)
         xml = '<defs xmlns:other="other"><message/><other:something/></defs>'
         doc = pyxb.utils.domutils.StringToDOM(xml)
         self.assertRaises(ExtraContentError, defs.createFromDOM, doc.documentElement)
