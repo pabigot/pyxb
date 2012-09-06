@@ -1430,7 +1430,7 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
         the node, if the node name is unqualified.  This should be an absent
         namespace.
 
-        @return A binding for the DOM node.
+        @return: A binding for the DOM node.
 
         @raises pyxb.UnrecognizedElementError: if no underlying element or
         type for the node can be identified.
@@ -1488,7 +1488,7 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
         the node, if the node name is unqualified.  This should be an absent
         namespace.
 
-        @return A binding for the DOM node.
+        @return: A binding for the DOM node.
 
         @raises pyxb.UnrecognizedElementError: if the name produced by
         combining the C{node} with the C{fallback_namespace} fails to resolve
