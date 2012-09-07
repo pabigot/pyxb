@@ -678,33 +678,35 @@ class ElementDeclaration (ContentState_mixin, ContentModel_mixin):
     # CS.accepts:ElementDeclaration
     def accepts (self, particle_state, instance, value, element_decl):
         ## Implement ContentState_mixin.accepts
-        rv = self._accepts(instance, value, element_decl)
+        (rv, value) = self._matches(value, element_decl)
         if rv:
+            self.setOrAppend(instance, value)
             particle_state.incrementCount()
         return rv
 
-    def _accepts (self, instance, value, element_decl):
+    def _matches (self, value, element_decl):
+        accept = False
         if element_decl == self:
-            self.setOrAppend(instance, value)
-            return True
-        if element_decl is not None:
+            accept = True
+        elif element_decl is not None:
             # If there's a known element, and it's not this one, the content
             # does not match.  This assumes we handled xsi:type and
             # substitution groups earlier, which may be true.
-            return False
-        if isinstance(value, xml.dom.Node):
+            accept = False
+        elif isinstance(value, xml.dom.Node):
             # If we haven't been able to identify an element for this before,
             # then we don't recognize it, and will have to treat it as a
             # wildcard.
-            return False
-        # See if we can accept the value by converting it to something
-        # compatible.
-        try:
-            self.setOrAppend(instance, self.__elementBinding.compatibleValue(value, _convert_string_values=False))
-            return True
-        except pyxb.BadTypeValueError:
-            pass
-        return False
+            accept = False
+        else:
+            # A foreign value which might be usable if we can convert
+            # it to a compatible value trivially.
+            try:
+                value = self.__elementBinding.compatibleValue(value, _convert_string_values=False)
+                accept = True
+            except pyxb.BadTypeValueError:
+                pass
+        return (accept, value)
 
     # CM._validate:ElementDeclaration
     def _validate (self, symbol_set, output_sequence):
