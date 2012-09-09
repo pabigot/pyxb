@@ -599,7 +599,7 @@ class Transition (object):
             return self.__nextTransition.satisfiedBy(configuration)
         return True
 
-    def apply (self, configuration):
+    def apply (self, configuration, clone_map=None):
         """Apply the transitition to a configuration.
 
         This updates the configuration counter values based on the
@@ -613,17 +613,28 @@ class Transition (object):
           cfg = transition.apply(cfg)
 
         @param configuration: A L{Configuration} of an executing automaton
+
+        @param clone_map: A map from L{Configuration} to
+        L{Configuration} reflecting the replacements made when the
+        configuration for which the transition was calculated was
+        subsequently cloned into the C{configuration} passed into this
+        method.  This is only necessary when the transition includes
+        layer transitions.
+
         @return: The resulting configuration
         """
-        if isinstance(self.__layerLink, Configuration):
-            configuration = self.__layerLink.leaveAutomaton(configuration)
-        elif isinstance(self.__layerLink, Automaton):
-            configuration = configuration.enterAutomaton(self.__layerLink)
+        layer_link = self.__layerLink
+        if isinstance(layer_link, Configuration):
+            if clone_map is not None:
+                layer_link = clone_map[layer_link]
+            configuration = layer_link.leaveAutomaton(configuration)
+        elif isinstance(layer_link, Automaton):
+            configuration = configuration.enterAutomaton(layer_link)
         UpdateInstruction.Apply(self.updateInstructions, configuration._get_counterValues())
-        configuration._set_state(self.destination, self.__layerLink is None)
+        configuration._set_state(self.destination, layer_link is None)
         if self.__nextTransition is None:
             return configuration
-        return self.__nextTransition.apply(configuration)
+        return self.__nextTransition.apply(configuration, clone_map)
 
     def chainTo (self, next_transition):
         """Duplicate the state and chain the duplicate to a successor
@@ -892,7 +903,12 @@ class Configuration (object):
             raise NondeterministicSymbolError('Non-deterministic transition', symbol, self, transitions)
         return iter(transitions).next().apply(self)
 
+    def isInitial (self):
+        """Return C{True} iff no transitions have ever been made."""
+        return self.__state is None
+
     def isAccepting (self):
+        """Return C{True} iff the automaton is in an accepting state."""
         if self.__state is not None:
             # Any active sub-configuration must be accepting
             if (self.__subConfiguration is not None) and not self.__subConfiguration.isAccepting():
@@ -911,12 +927,22 @@ class Configuration (object):
         self.__superConfiguration = super_configuration
         self.reset()
 
-    def clone (self):
+    def clone (self, clone_map=None):
         """Clone a configuration and its descendents.
 
         This is used for parallel execution where a configuration has
-        multiple candidate transitions and must follow all of them."""
-        clone_map = {}
+        multiple candidate transitions and must follow all of them.
+        It clones the entire chain of configurations through
+        multiple layers.
+
+        @param clone_map: Optional map into which the translation from
+        the original configuration object to the corresponding cloned
+        configuration object can be reconstructed, e.g. when applying
+        a transition that includes automata exits referencing
+        superconfigurations from the original configuration.
+        """
+        if clone_map is None:
+            clone_map = {}
         root = self
         while root.__superConfiguration is not None:
             root = root.__superConfiguration
@@ -965,7 +991,9 @@ class MultiConfiguration (object):
                 next_configs.add(iter(transitions).next().apply(cfg))
             else:
                 for transition in transitions:
-                    next_configs.add(transition.apply(cfg.clone()))
+                    clone_map = {}
+                    ccfg = cfg.clone(clone_map)
+                    next_configs.add(transition.apply(ccfg, clone_map))
         if 0 == len(next_configs):
             allowed = set()
             for cfg in self.__configurations:
