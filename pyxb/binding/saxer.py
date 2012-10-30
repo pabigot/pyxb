@@ -302,18 +302,18 @@ class PyXBSAXHandler (pyxb.utils.saxutils.BaseSAXHandler):
         # Resolve the element within the appropriate context.  Note
         # that global elements have no use, only the binding.
         if parent_state.enclosingCTD() is not None:
-            (element_binding, element_use) = parent_state.enclosingCTD()._ElementBindingUseForName(name_en)
+            (element_binding, element_decl) = parent_state.enclosingCTD()._ElementBindingDeclForName(name_en)
         else:
-            element_use = None
+            element_decl = None
             element_binding = name_en.elementBinding()
         this_state.setElementBinding(element_binding)
 
         # Non-root elements should have an element use, from which we can
         # extract the binding if we couldn't find one elsewhere.  (Keep any
         # current binding, since it may be a member of a substitution group.)
-        if (element_use is not None) and (element_binding is None):
+        if (element_decl is not None) and (element_binding is None):
             assert self.__rootObject is not None
-            element_binding = element_use.elementBinding()
+            element_binding = element_decl.elementBinding()
             assert element_binding is not None
 
         # Start knowing nothing
@@ -351,7 +351,7 @@ class PyXBSAXHandler (pyxb.utils.saxutils.BaseSAXHandler):
 
         # Process the element start.  This may or may not return a
         # binding object.
-        binding_object = this_state.startBindingElement(type_class, new_object_factory, element_use, attrs)
+        binding_object = this_state.startBindingElement(type_class, new_object_factory, element_decl, attrs)
 
         # If the top-level element has complex content, this sets the
         # root object.  If it has simple content, see endElementNS.

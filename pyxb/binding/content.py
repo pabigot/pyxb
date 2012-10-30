@@ -27,6 +27,7 @@ L{Wildcard} holds content-related information used in the content model.
 
 import pyxb
 import pyxb.namespace
+import pyxb.utils.fac
 from pyxb.binding import basis
 
 import xml.dom
@@ -38,7 +39,7 @@ class ContentState_mixin (pyxb.cscRoot):
     """Declares methods used by classes that hold state while validating a
     content model component."""
 
-    def accepts (self, particle_state, instance, value, element_use):
+    def accepts (self, particle_state, instance, value, element_decl):
         """Determine whether the provided value can be added to the instance
         without violating state validation.
 
@@ -55,7 +56,7 @@ class ContentState_mixin (pyxb.cscRoot):
 
         @param value: The value that is being validated against the state.
 
-        @param element_use: An optional L{ElementDeclaration} instance that specifies
+        @param element_decl: An optional L{ElementDeclaration} instance that specifies
         the element to which the value corresponds.  This will be available
         when the value is extracted by parsing a document, but will be absent
         if the value was passed as a constructor positional parameter.
@@ -442,6 +443,44 @@ class AttributeUse (pyxb.cscRoot):
             desc.extend(['=', self.__unicodeDefault ])
         return ''.join(desc)
 
+class ElementUse (pyxb.utils.fac.SymbolMatch_mixin):
+    """Information about a schema element declaration reference."""
+
+    __elementDeclaration = None
+    __schemaLocation = None
+
+    def elementDeclaration (self):
+        return self.__elementDeclaration
+
+    def schemaLocation (self):
+        return self.__schemaLocation
+
+    def __init__ (self, element_declaration, schema_location):
+        super(ElementUse, self).__init__()
+        self.__elementDeclaration = element_declaration
+        self.__schemaLocation = schema_location
+
+    def __str__ (self):
+        return '%s at %s' % (self.__elementDeclaration.name(), self.__schemaLocation)
+
+class WildcardUse (pyxb.utils.fac.SymbolMatch_mixin):
+    """Information about a schema wildcard element."""
+
+    __wildcardDeclaration = None
+    __schemaLocation = None
+
+    def wildcardDeclaration (self):
+        return self.__wildcardDeclaration
+
+    def schemaLocation (self):
+        return self.__schemaLocation
+
+    def __init__ (self, wildcard_declaration, schema_location):
+        super(WildcardUse, self).__init__()
+        self.__wildcardDeclaration = wildcard_declaration
+        self.__schemaLocation = schema_location
+
+
 class ElementDeclaration (ContentState_mixin, ContentModel_mixin):
     """Aggregate the information relevant to an element of a complex type.
 
@@ -637,35 +676,37 @@ class ElementDeclaration (ContentState_mixin, ContentModel_mixin):
         return self
 
     # CS.accepts:ElementDeclaration
-    def accepts (self, particle_state, instance, value, element_use):
+    def accepts (self, particle_state, instance, value, element_decl):
         ## Implement ContentState_mixin.accepts
-        rv = self._accepts(instance, value, element_use)
+        (rv, value) = self._matches(value, element_decl)
         if rv:
+            self.setOrAppend(instance, value)
             particle_state.incrementCount()
         return rv
 
-    def _accepts (self, instance, value, element_use):
-        if element_use == self:
-            self.setOrAppend(instance, value)
-            return True
-        if element_use is not None:
+    def _matches (self, value, element_decl):
+        accept = False
+        if element_decl == self:
+            accept = True
+        elif element_decl is not None:
             # If there's a known element, and it's not this one, the content
             # does not match.  This assumes we handled xsi:type and
             # substitution groups earlier, which may be true.
-            return False
-        if isinstance(value, xml.dom.Node):
+            accept = False
+        elif isinstance(value, xml.dom.Node):
             # If we haven't been able to identify an element for this before,
             # then we don't recognize it, and will have to treat it as a
             # wildcard.
-            return False
-        # See if we can accept the value by converting it to something
-        # compatible.
-        try:
-            self.setOrAppend(instance, self.__elementBinding.compatibleValue(value, _convert_string_values=False))
-            return True
-        except pyxb.BadTypeValueError:
-            pass
-        return False
+            accept = False
+        else:
+            # A foreign value which might be usable if we can convert
+            # it to a compatible value trivially.
+            try:
+                value = self.__elementBinding.compatibleValue(value, _convert_string_values=False)
+                accept = True
+            except pyxb.BadTypeValueError:
+                pass
+        return (accept, value)
 
     # CM._validate:ElementDeclaration
     def _validate (self, symbol_set, output_sequence):
@@ -679,7 +720,7 @@ class ElementDeclaration (ContentState_mixin, ContentModel_mixin):
         return True
 
     def __str__ (self):
-        return 'EU.%s@%x' % (self.__name, id(self))
+        return 'ED.%s@%x' % (self.__name, id(self))
 
 
 class Wildcard (ContentState_mixin, ContentModel_mixin):
@@ -781,7 +822,7 @@ class Wildcard (ContentState_mixin, ContentModel_mixin):
         return self
 
     # CS.accepts:Wildcard
-    def accepts (self, particle_state, instance, value, element_use):
+    def accepts (self, particle_state, instance, value, element_decl):
         ## Implement ContentState_mixin.accepts
         if isinstance(value, xml.dom.Node):
             value_desc = 'value in %s' % (value.nodeName,)
@@ -844,12 +885,12 @@ class SequenceState (ContentState_mixin):
         self.notifyFailure(None, False)
 
     # CS.accepts:SequenceState
-    def accepts (self, particle_state, instance, value, element_use):
+    def accepts (self, particle_state, instance, value, element_decl):
         ## Implement ContentState_mixin.accepts
         assert self.__parentParticleState == particle_state
         assert not self.__failed
         while self.__particleState is not None:
-            (consume, underflow_exc) = self.__particleState.step(instance, value, element_use)
+            (consume, underflow_exc) = self.__particleState.step(instance, value, element_decl)
             if consume:
                 return True
             if underflow_exc is not None:
@@ -881,12 +922,12 @@ class ChoiceState (ContentState_mixin):
         self.__activeChoice = None
 
     # CS.accepts:ChoiceState
-    def accepts (self, particle_state, instance, value, element_use):
+    def accepts (self, particle_state, instance, value, element_decl):
         ## Implement ContentState_mixin.accepts
         if self.__activeChoice is None:
             for choice in self.__choices:
                 try:
-                    (consume, underflow_exc) = choice.step(instance, value, element_use)
+                    (consume, underflow_exc) = choice.step(instance, value, element_decl)
                 except Exception, e:
                     consume = False
                     underflow_exc = e
@@ -895,7 +936,7 @@ class ChoiceState (ContentState_mixin):
                     self.__choices = None
                     return True
             return False
-        (consume, underflow_exc) = self.__activeChoice.step(instance, value, element_use)
+        (consume, underflow_exc) = self.__activeChoice.step(instance, value, element_decl)
         if consume:
             return True
         if underflow_exc is not None:
@@ -932,14 +973,14 @@ class AllState (ContentState_mixin):
         self.__choices = set([ ParticleState(_p, self) for _p in group.particles() ])
 
     # CS.accepts:AllState
-    def accepts (self, particle_state, instance, value, element_use):
+    def accepts (self, particle_state, instance, value, element_decl):
         self.__needRetry = True
         while self.__needRetry:
             self.__needRetry = False
             if self.__activeChoice is None:
                 for choice in self.__choices:
                     try:
-                        (consume, underflow_exc) = choice.step(instance, value, element_use)
+                        (consume, underflow_exc) = choice.step(instance, value, element_decl)
                     except Exception, e:
                         consume = False
                         underflow_exc = e
@@ -948,7 +989,7 @@ class AllState (ContentState_mixin):
                         self.__choices.discard(self.__activeChoice)
                         return True
                 return False
-            (consume, underflow_exc) = self.__activeChoice.step(instance, value, element_use)
+            (consume, underflow_exc) = self.__activeChoice.step(instance, value, element_decl)
             if consume:
                 return True
         if underflow_exc is not None:
@@ -1026,7 +1067,7 @@ class ParticleState (pyxb.cscRoot):
         if self.__parentState is not None:
             self.__parentState.notifyFailure(self, True)
 
-    def step (self, instance, value, element_use):
+    def step (self, instance, value, element_decl):
         """Attempt to apply the value as a new instance of the particle's term.
 
         The L{ContentState_mixin} created for the particle's term is consulted
@@ -1040,7 +1081,7 @@ class ParticleState (pyxb.cscRoot):
 
         @param value: The value that is being validated against the state.
 
-        @param element_use: An optional L{ElementDeclaration} instance that specifies
+        @param element_decl: An optional L{ElementDeclaration} instance that specifies
         the element to which the value corresponds.  This will be available
         when the value is extracted by parsing a document, but will be absent
         if the value was passed as a constructor positional parameter.
@@ -1069,7 +1110,7 @@ class ParticleState (pyxb.cscRoot):
         self.__tryAccept = True
         while self.__tryAccept and (self.__count != self.__particle.maxOccurs()):
             self.__tryAccept = False
-            consumed = self.__termState.accepts(self, instance, value, element_use)
+            consumed = self.__termState.accepts(self, instance, value, element_decl)
             self.__tryAccept = self.__tryAccept and (not consumed)
         if consumed:
             if not self.__particle.meetsMaximum(self.__count):

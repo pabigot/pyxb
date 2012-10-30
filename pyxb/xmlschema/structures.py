@@ -28,7 +28,7 @@ basic fields, though all these must support namespaces.
 
 @group Mixins: *_mixin
 @group Ur Type Specializations: *UrType*
-@group Utilities: _PluralityData, _ImportElementInformationItem
+@group Utilities: _ImportElementInformationItem
 
 """
 
@@ -339,6 +339,32 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin,
         if self.__nameInBinding is None:
             self.__nameInBinding = other.__nameInBinding
         return self
+
+class _ParticleTree_mixin (pyxb.cscRoot):
+    def _walkParticleTree (self, visit, arg):
+        """Mix-in supporting walks of L{Particle} trees.
+
+        This invokes a provided function on each node in a tree defining the
+        content model of a particle, both on the way down the tree and on the
+        way back up.  A standard implementation would be::
+
+          def _walkParticleTree (self, visit, arg):
+            visit(self, True, arg)
+            self.__term.walkParticleTree(visit, arg)
+            visit(self, False, arg)
+
+        @param visit: A callable with parameters C{node, entering, arg} where
+        C{node} is an instance of a class inheriting L{_ParticleTree_mixin},
+        C{entering} indicates tree transition status, and C{arg} is a
+        caller-provided state parameter.  C{entering} is C{True} if C{node}
+        has particle children and the call is before they are visited;
+        C{None} if the C{node} has no particle children; and C{False} if
+        C{node} has particle children and they have been visited.
+
+        @param arg: The caller-provided state parameter to be passed along
+        with the node and entry/exit status in the invocation of C{visit}.
+        """
+        raise NotImplementedError('%s._walkParticleTree' % (self.__class__.__name__,))
 
 class _Singleton_mixin (pyxb.cscRoot):
     """This class is a mix-in which guarantees that only one instance
@@ -977,126 +1003,6 @@ class _ScopedDeclaration_mixin (pyxb.cscRoot):
         self.__baseDeclaration = referenced_declaration.baseDeclaration()
         return self.__baseDeclaration
 
-class _PluralityData (types.ListType):
-    """This class represents an abstraction of the set of documents conformant
-    to a particle or particle term.
-
-    The abstraction of a given document is a map from element declarations
-    that can appear at the top level of the document to a boolean that is true
-    iff there could be multiple instances of that element declaration at the
-    top level of a valid document.  The abstraction of the set is a list of
-    document abstractions.
-
-    This information is used in binding generation to determine whether a
-    field associated with a tag might need to hold multiple instances.
-    """
-    
-    @classmethod
-    def _MapUnion (cls, map1, map2):
-        """Given two maps, return an updated map indicating the unified
-        plurality."""
-        umap = { }
-        for k in set(map1.keys()).union(map2.keys()):
-            if k in map1:
-                umap[k] = (k in map2) or map1[k]
-            else:
-                umap[k] = map2[k]
-        return umap
-
-    def combinedPlurality (self):
-        """Combine all the document abstractions into a single one that covers
-        all possible documents.
-
-        The combined plurality is simply the elemental maximum over all
-        document abstractions.
-        """
-
-        combined_plurality = { }
-        for pdm in self:
-            for (ed, v) in pdm.items():
-                if isinstance(ed, ElementDeclaration):
-                    assert ed.baseDeclaration() == ed
-                    combined_plurality[ed] = combined_plurality.get(ed, False) or v
-                elif isinstance(ed, Wildcard):
-                    pass
-                else:
-                    raise pyxb.LogicError('Unexpected plurality index %s' % (ed,))
-        return combined_plurality
-
-    def __fromModelGroup (self, model_group):
-        # Start by collecting the data for each of the particles.
-        pdll = [ _PluralityData(_p) for _p in model_group.particles() ]
-        #dumpmap = lambda _pdm: ', '.join( [ '%s: %s' % (_ed.expandedName(), _pl) for (_ed, _pl) in _pdm.items() ])
-        #dumpmapset = lambda _pd: '(' + ') | ('.join([ dumpmap(_pdm) for _pdm in _pd ]) + ')'
-        if (ModelGroup.C_CHOICE == model_group.compositor()):
-            # Plurality for choice is simply any of the pluralities of the particles
-            [ self.extend(_pd) for _pd in pdll ]
-        elif ((ModelGroup.C_SEQUENCE == model_group.compositor()) or (ModelGroup.C_ALL == model_group.compositor())):
-            # Sequence means all of them, in all their glory.  All is treated
-            # the same way.  Essentially this is a pointwise OR of the
-            # pluralities of the particles.
-            if 0 < len(pdll):
-                new_pd = pdll.pop()
-                for pd in pdll:
-                    assert 0 < len(pd)
-                    assert 0 < len(new_pd)
-                    stage_pd = [ ]
-                    for pdm1 in new_pd:
-                        for pdm2 in pd:
-                            stage_pd.append(self._MapUnion(pdm1, pdm2))
-                    new_pd = stage_pd
-                self.extend(new_pd)
-        else:
-            raise pyxb.LogicError('Unrecognized compositor value %s' % (model_group.compositor(),))
-
-    def __fromParticle (self, particle):
-        assert particle.isResolved()
-        pd = particle.term().pluralityData()
-
-        # If the particle can't appear at all, there are no results.
-        if 0 == particle.maxOccurs():
-            return
-
-        # If the particle can only occur once, it has no effect on the
-        # pluralities; use the term to identify them
-        if 1 == particle.maxOccurs():
-            self.__setFromComponent(particle.term())
-            return
-        
-        # If there are multiple alternatives, assume they are all
-        # taken.  Do this by creating a map that treats every possible
-        # element as appearing multiple times.
-        true_map = {}
-        pd = _PluralityData(particle.term())
-        while 0 < len(pd):
-            pdm = pd.pop()
-            [ true_map.setdefault(_k, True) for _k in pdm.keys() ]
-        self.append(true_map)
-
-    def __setFromComponent (self, component=None):
-        del self[:]
-        if isinstance(component, ElementDeclaration):
-            assert component.isResolved()
-            assert isinstance(component.baseDeclaration(), ElementDeclaration)
-            self.append( { component.baseDeclaration(): False } )
-            #self.append( { component: False } )
-        elif isinstance(component, ModelGroup):
-            self.__fromModelGroup(component)
-        elif isinstance(component, Particle):
-            self.__fromParticle(component)
-        elif isinstance(component, Wildcard):
-            pass
-        elif component is not None:
-            raise pyxb.IncompleteImplementationError("No support for plurality of component type %s" % (type(component),))
-        # Elements get lost if there's a result set that doesn't have any
-        # documents in it.
-        if 0 == len(self):
-            self.append({})
-
-    def __init__ (self, component=None):
-        super(_PluralityData, self).__init__()
-        self.__setFromComponent(component)
-
 class _AttributeWildcard_mixin (pyxb.cscRoot):
     """Support for components that accept attribute wildcards.
 
@@ -1505,7 +1411,7 @@ class AttributeUse (_SchemaComponent_mixin, pyxb.namespace.resolution._Resolvabl
         return 'AU[%s]' % (self.attributeDeclaration(),)
 
 
-class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.namespace.resolution._Resolvable_mixin, _Annotated_mixin, _ValueConstraint_mixin, _ScopedDeclaration_mixin):
+class ElementDeclaration (_ParticleTree_mixin, _SchemaComponent_mixin, _NamedComponent_mixin, pyxb.namespace.resolution._Resolvable_mixin, _Annotated_mixin, _ValueConstraint_mixin, _ScopedDeclaration_mixin):
     """An XMLSchema U{Element Declaration<http://www.w3.org/TR/xmlschema-1/#cElement_Declarations>} component."""
 
     # Simple or complex type definition
@@ -1554,12 +1460,6 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.na
     __abstract = False
     def abstract (self):
         return self.__abstract
-
-    def pluralityData (self):
-        """Return the plurality information for this component.
-
-        An ElementDeclaration produces one instance of a single element."""
-        return _PluralityData(self)
 
     def hasWildcardElement (self):
         """Return False, since element declarations are not wildcards."""
@@ -1750,6 +1650,9 @@ class ElementDeclaration (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.na
 
         self.__isResolved = True
         return self
+
+    def _walkParticleTree (self, visit, arg):
+        visit(self, None, arg)
 
     def __str__ (self):
         if self.typeDefinition() is not None:
@@ -2738,7 +2641,7 @@ class ModelGroupDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, _Anno
         return 'MGD[%s: %s]' % (self.name(), self.modelGroup())
 
 
-class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
+class ModelGroup (_ParticleTree_mixin, _SchemaComponent_mixin, _Annotated_mixin):
     """An XMLSchema U{Model Group<http://www.w3.org/TR/xmlschema-1/#cModel_Group>} component."""
     C_INVALID = 0
     C_ALL = 0x01
@@ -2854,11 +2757,6 @@ class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
         self.__particles = particles
         self.__modelGroupDefinition = kw.get('model_group_definition')
 
-    def pluralityData (self):
-        """Get the plurality data for this model group.
-        """
-        return _PluralityData(self)
-
     def hasWildcardElement (self):
         """Return True if the model includes a wildcard amongst its particles."""
         for p in self.particles():
@@ -2922,23 +2820,6 @@ class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
     def IsGroupMemberNode (cls, node):
         return xsd.nodeIsNamed(node, 'all', 'choice', 'sequence')
 
-    def elementDeclarations (self):
-        """Return a list of all ElementDeclarations that are at the
-        top level of this model group, in the order in which they can
-        occur."""
-        element_decls = []
-        model_groups = [ self ]
-        while model_groups:
-            mg = model_groups.pop(0)
-            for p in mg.particles():
-                if isinstance(p.term(), ModelGroup):
-                    model_groups.append(p.term())
-                elif isinstance(p.term(), ElementDeclaration):
-                    element_decls.extend(p.elementDeclarations())
-                else:
-                    assert p.term() is not None
-        return element_decls
-
     # aFS:MG
     def _adaptForScope (self, owner, ctd):
         rv = self
@@ -2951,6 +2832,12 @@ class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
             rv.__particles = scoped_particles
         return rv
 
+    def _walkParticleTree (self, visit, arg):
+        visit(self, True, arg)
+        for p in self.particles():
+            p._walkParticleTree(visit, arg)
+        visit(self, False, arg)
+
     def __str__ (self):
         comp = None
         if self.C_ALL == self.compositor():
@@ -2961,7 +2848,7 @@ class ModelGroup (_SchemaComponent_mixin, _Annotated_mixin):
             comp = 'SEQUENCE'
         return '%s:(%s)' % (comp, ",".join( [ str(_p) for _p in self.particles() ] ) )
 
-class Particle (_SchemaComponent_mixin, pyxb.namespace.resolution._Resolvable_mixin):
+class Particle (_ParticleTree_mixin, _SchemaComponent_mixin, pyxb.namespace.resolution._Resolvable_mixin):
     """An XMLSchema U{Particle<http://www.w3.org/TR/xmlschema-1/#cParticle>} component."""
 
     # The minimum number of times the term may appear.
@@ -2993,24 +2880,6 @@ class Particle (_SchemaComponent_mixin, pyxb.namespace.resolution._Resolvable_mi
 
     __refAttribute = None
     __resolvableType = None
-
-    def elementDeclarations (self):
-        assert self.__term is not None
-        if isinstance(self.__term, ModelGroup):
-            return self.__term.elementDeclarations()
-        if isinstance(self.__term, ElementDeclaration):
-            return [ self.__term ]
-        if isinstance(self.__term, Wildcard):
-            return [ ]
-        raise pyxb.LogicError('Unexpected term type %s' % (self.__term,))
-
-    def pluralityData (self):
-        """Return the plurality data for this component.
-
-        The plurality data for a particle is the plurality data for
-        its term, with the counts scaled by the effect of
-        maxOccurs."""
-        return _PluralityData(self)
 
     def effectiveTotalRange (self):
         """Extend the concept of effective total range to all particles.
@@ -3227,6 +3096,17 @@ class Particle (_SchemaComponent_mixin, pyxb.namespace.resolution._Resolvable_mi
             return False
         return self.term().isAdaptable(ctd)
         
+    def walkParticleTree (self, visit, arg):
+        """The entry-point to walk a particle tree defining a content model.
+
+        See L{_ParticleTree_mixin._walkParticleTree}."""
+        self._walkParticleTree(visit, arg)
+
+    def _walkParticleTree (self, visit, arg):
+        visit(self, True, arg)
+        self.__term._walkParticleTree(visit, arg)
+        visit(self, False, arg)
+
     @classmethod
     def IsTypedefNode (cls, node):
         return xsd.nodeIsNamed(node, 'group', 'all', 'choice', 'sequence')
@@ -3241,7 +3121,7 @@ class Particle (_SchemaComponent_mixin, pyxb.namespace.resolution._Resolvable_mi
  
 
 # 3.10.1
-class Wildcard (_SchemaComponent_mixin, _Annotated_mixin):
+class Wildcard (_ParticleTree_mixin, _SchemaComponent_mixin, _Annotated_mixin):
     """An XMLSchema U{Wildcard<http://www.w3.org/TR/xmlschema-1/#cParticle>} component."""
 
     NC_any = '##any'            #<<< The namespace constraint "##any"
@@ -3387,11 +3267,6 @@ class Wildcard (_SchemaComponent_mixin, _Annotated_mixin):
     def processContents (self):
         return self.__processContents
 
-    def pluralityData (self):
-        """Get the plurality data for this wildcard
-        """
-        return _PluralityData(self)
-
     def hasWildcardElement (self):
         """Return True, since Wildcard components are wildcards."""
         return True
@@ -3404,6 +3279,9 @@ class Wildcard (_SchemaComponent_mixin, _Annotated_mixin):
 
     def isAdaptable (self, ctd):
         return True
+
+    def _walkParticleTree (self, visit, arg):
+        visit(self, None, arg)
 
     # aFS:WC
     def _adaptForScope (self, owner, ctd):

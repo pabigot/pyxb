@@ -23,6 +23,7 @@ import StringIO
 import datetime
 import errno
 
+from pyxb.utils import fac
 from pyxb.utils import utility
 from pyxb.utils import templates
 from pyxb.binding import basis
@@ -309,6 +310,74 @@ def GenerateContentParticle (ctd, particle, binding_module, **kw):
     particle_val = templates.replaceInText('pyxb.binding.content.ParticleModel(%{term_val}, min_occurs=%{min_occurs}, max_occurs=%{max_occurs})', term_val=term_val, **template_map)
     return (particle_val, lines)
 
+def _GenerateAutomaton (automaton, template_map, containing_state, lines, **kw):
+    binding_module = kw['binding_module']
+    name = utility.PrepareIdentifier('BuildAutomaton', binding_module.uniqueInModule(), protected=True)
+    au_src = []
+    au_src.append(templates.replaceInText('''
+def %{name} ():
+    # Remove this helper function from the namespace after it's invoked
+    global %{name}
+    del %{name}
+    import pyxb.utils.fac as fac
+''', name=name))
+    
+    au_src.append('    counters = set()')
+    counter_map = {}
+    for cc in automaton.counterConditions:
+        cc_id = 'cc_%u' % (len(counter_map),)
+        counter_map[cc] = cc_id
+        au_src.append('    %s = fac.CounterCondition(min=%r, max=%r, metadata=%r)' % (cc_id, cc.min, cc.max, cc.metadata._location()))
+        au_src.append('    counters.add(%s)' % (cc_id,))
+    state_map = {}
+    au_src.append('    states = set()')
+    for st in automaton.states:
+        st_id = 'st_%u' % (len(state_map),)
+        state_map[st] = st_id
+        if st.subAutomata is not None:
+            au_src.append('    sub_automata = []')
+            for sa in st.subAutomata:
+                au_src.append('    sub_automata.append(%s)' % (_GenerateAutomaton(sa, template_map, st_id, lines, **kw),))
+        if st.finalUpdate is None:
+            au_src.append('    final_update = None')
+        else:
+            au_src.append('    final_update = set()')
+            for ui in st.finalUpdate:
+                au_src.append('    final_update.add(fac.UpdateInstruction(%s, %r))' % (counter_map[ui.counterCondition], ui.doIncrement))
+        if isinstance(st.symbol, xs.structures.ModelGroup):
+            au_src.append('    symbol = %r' % (st.symbol._location(),))
+        else:
+            (particle, symbol) = st.symbol
+            if isinstance(symbol, xs.structures.Wildcard):
+                au_src.append(templates.replaceInText('    symbol = pyxb.binding.content.WildcardUse(%{wildcard}, %{location})', wildcard=binding_module.literal(symbol, **kw), location=repr(particle._location())))
+            elif isinstance(symbol, xs.structures.ElementDeclaration):
+                au_src.append(templates.replaceInText('    symbol = pyxb.binding.content.ElementUse(%{ctd}._UseForTag(%{field_tag}), %{location})', field_tag=binding_module.literal(symbol.expandedName(), **kw), location=repr(particle._location()), **template_map))
+        au_src.append('    %s = fac.State(symbol, is_initial=%r, final_update=final_update, is_unordered_catenation=%r)' % (st_id, st.isInitial, st.isUnorderedCatenation))
+        if st.subAutomata is not None:
+            au_src.append('    %s._set_subAutomata(*sub_automata)' % (st_id,))
+        au_src.append('    states.add(%s)' % (st_id,))
+    for st in automaton.states:
+        au_src.append('    transitions = set()')
+        for xit in st.transitionSet:
+            au_src.append('    transitions.add(fac.Transition(%s, [' % (state_map[xit.destination],))
+            au_src.append('        %s ]))' % (',\n        '.join(map(lambda _ui: 'fac.UpdateInstruction(%s, %r)' % (counter_map[_ui.counterCondition], _ui.doIncrement), xit.updateInstructions))))
+        au_src.append('    %s._set_transitionSet(transitions)' % (state_map[st],))
+    au_src.append('    return fac.Automaton(states, counters, %r, containing_state=%s)' % (automaton.nullable, containing_state))
+    lines.extend(au_src)
+    return '%s()' % (name,)
+    
+def GenerateAutomaton (ctd, **kw):
+    aux = _CTDAuxData.Get(ctd)
+    binding_module = kw['binding_module']
+    template_map = { 'ctd' : binding_module.literal(ctd, **kw) }
+    automaton = aux.automaton
+    if automaton is None:
+        return None
+    serial_map = { 'automata': 1 }
+    lines = []
+    name = _GenerateAutomaton(automaton, template_map, 'None', lines, **kw)
+    return (name, lines)
+
 def _useEnumerationTags (td):
     if td is None:
         return False
@@ -532,6 +601,233 @@ def elementDeclarationMap (ed, binding_module, **kw):
         
     return template_map
 
+import pyxb.utils.fac
+import operator
+
+
+# A Symbol in the term tree is a pair consisting of the containing
+# particle (for location information) and one of an
+# ElementDeclaration, Wildcard, or tuple of sub-term-trees for All
+# model groups.
+
+def BuildTermTree (node):
+    """Construct a L{FAC term tree<pyxb.utils.fac.Node>} for a L{particle<xs.structures.Particle>}.
+
+    This translates the XML schema content model of particles, model
+    groups, element declarations, and wildcards into a tree expressing
+    the corresponding content as a regular expression with numerical
+    constraints.
+
+    @param node: An instance of L{xs.structures.Particle}
+
+    @return: An instance of L{pyxb.utils.fac.Node}
+    """
+    
+    def _generateTermTree_visitor (node, entered, arg):
+        """Helper for constructing a L{FAC term tree<pyxb.utils.fac.Node>}.
+    
+        This is passed to L{xs.structures.Particle.walkParticleTree}.
+    
+        @param node: An instance of L{xs.structures._ParticleTree_mixin}
+    
+        @param entered: C{True} entering an interior tree node, C{False}
+        leaving an interior tree node, C{None} at a leaf node.
+    
+        @param arg: A list of pairs C{(particle, terms)} where C{particle}
+        is the L{xs.structures.Particle} instance containing a list of
+        L{term trees<pyxb.utils.fac.Node>}.
+        """
+        
+        if entered is None:
+            (parent_particle, terms) = arg[-1]
+            assert isinstance(parent_particle, xs.structures.Particle)
+            assert isinstance(node, (xs.structures.ElementDeclaration, xs.structures.Wildcard))
+            terms.append(pyxb.utils.fac.Symbol((parent_particle, node)))
+        elif entered:
+            arg.append((node, []))
+        else:
+            (xnode, terms) = arg.pop()
+            assert xnode == node
+            (parent_particle, siblings) = arg[-1]
+            if 1 == len(terms):
+                term = terms[0]
+                # Either node is a Particle, or it's a single-member model
+                # group.  If it's a non-trivial particle we need a
+                # numerical constraint; if it's a single-member model
+                # group or a trivial particle we can use the term
+                # directly.
+                if isinstance(node, xs.structures.Particle) and ((1 != node.minOccurs()) or (1 != node.maxOccurs())):
+                    term = pyxb.utils.fac.NumericalConstraint(term, node.minOccurs(), node.maxOccurs(), metadata=node)
+            else:
+                assert isinstance(parent_particle, xs.structures.Particle), 'unexpected %s' % (parent_particle,)
+                assert isinstance(node, xs.structures.ModelGroup)
+                if node.C_CHOICE == node.compositor():
+                    term = pyxb.utils.fac.Choice(*terms, metadata=node)
+                elif node.C_SEQUENCE == node.compositor():
+                    term = pyxb.utils.fac.Sequence(*terms, metadata=node)
+                else:
+                    # The quadratic state explosion and need to clone
+                    # terms that results from a naive transformation of
+                    # unordered catenation to choices among sequences of
+                    # nodes and recursively-defined catenation expressions
+                    # is not worth the pain.  Create a "symbol" for the
+                    # state and hold the alternatives in it.
+                    assert node.C_ALL == node.compositor()
+                    assert reduce(operator.and_, map(lambda _s: isinstance(_s, pyxb.utils.fac.Node), terms), True)
+                    term = pyxb.utils.fac.All(*terms, metadata=node)
+            siblings.append(term)
+
+    assert isinstance(node, xs.structures.Particle)
+    parent_particles = [node]
+    ttlist = []
+    ttarg = [ (node, ttlist) ]
+    node.walkParticleTree(_generateTermTree_visitor, ttarg)
+    assert 1 == len(ttarg)
+    assert 1 == len(ttlist)
+    term_tree = ttlist[0]
+    return term_tree
+
+def BuildPluralityData (term_tree):
+    """Walk a term tree to determine which element declarations may
+    appear multiple times.
+
+    The bindings need to use a list for any Python attribute
+    corresponding to an element declaration that can occur multiple
+    times in the content model.  The number of occurrences is
+    determined by the occurrence constraints on parent particles and
+    the compositors of containing model groups.  All this information
+    is available in the term tree used for the content model
+    automaton.
+
+    @param term_tree: A L{FAC term tree<pyxb.utils.fac.Node>}
+    representing the content model for a complex data type.
+
+    @return: Plurality data, as a pair C{(singles, multiples)} where
+    C{singles} is a set of base L{element
+    declarations<xs.structures.ElementDeclaration>} that are known to
+    occur at least once and at most once in a region of the content,
+    and C{multiples} is a similar set of declarations that are known
+    to potentially occur more than once."""
+
+    def _ttMergeSets (parent, child):
+        (p1, pm) = parent
+        (c1, cm) = child
+        
+        # Anything multiple in the child becomes multiple in the parent.
+        pm.update(cm)
+    
+        # Anything independently occuring once in both parent and child
+        # becomes multiple in the parent.
+        pm.update(c1.intersection(p1))
+    
+        # Anything that was single in the parent (child) but is now
+        # multiple is no longer single.
+        p1.difference_update(pm)
+        c1.difference_update(pm)
+    
+        # Anything that was single in the parent and also single in the
+        # child is no longer single in the parent.
+        p1.symmetric_difference_update(c1)
+
+    def _ttPrePluralityWalk (node, pos, arg):
+        # If there are multiple children, create a new list on which they
+        # will be placed.
+        if isinstance(node, pyxb.utils.fac.MultiTermNode):
+            arg.append([])
+            
+    def _ttPostPluralityWalk (node, pos, arg):
+        # Initialize a fresh result for this node
+        singles = set()
+        multiples = set()
+        combined = (singles, multiples)
+        if isinstance(node, pyxb.utils.fac.MultiTermNode):
+            # Get the list of children, and examine
+            term_list = arg.pop()
+            if isinstance(node, pyxb.utils.fac.Choice):
+                # For choice we aggregate the singles and multiples
+                # separately.
+                for (t1, tm) in term_list:
+                    multiples.update(tm)
+                    singles.update(t1)
+            else:
+                # For sequence (ordered or not) we merge the children
+                assert isinstance(node, (pyxb.utils.fac.Sequence, pyxb.utils.fac.All))
+                for tt in term_list:
+                    _ttMergeSets(combined, tt)
+        elif isinstance(node, pyxb.utils.fac.Symbol):
+            (particle, term) = node.metadata
+            if isinstance(term, xs.structures.ElementDeclaration):
+                # One instance of the base declaration for the element
+                singles.add(term.baseDeclaration())
+            elif isinstance(term, xs.structures.Wildcard):
+                pass
+            else:
+                assert isinstance(term, list)
+                # Unordered catenation is the same as ordered catenation.
+                for tt in term:
+                    _ttMergeSets(combined, BuildPluralityData(tt))
+        else:
+            assert isinstance(node, pyxb.utils.fac.NumericalConstraint)
+            # Grab the data for the topmost tree and adjust it based on
+            # occurrence data.
+            combined = arg[-1].pop()
+            (singles, multiples) = combined
+            if 0 == node.max:
+                # If the node can't match at all, there are no occurrences
+                # at all
+                multiples.clear()
+                singles.clear()
+            elif 1 == node.max:
+                # If the node can only match once, what we've got is right
+                pass
+            else:
+                # If the node can match multiple times, there are no
+                # singles.
+                multiples.update(singles)
+                singles.clear()
+        arg[-1].append(combined)
+
+    # Initialize state with an implied parent that currently has no
+    # children
+    arg = [[]]
+    term_tree.walkTermTree(_ttPrePluralityWalk, _ttPostPluralityWalk, arg)
+
+    # The result term tree is the single child of that implied parent
+    assert 1 == len(arg)
+    arg = arg[0]
+    assert 1 == len(arg)
+    return arg[0]
+
+class _CTDAuxData (object):
+    """Helper class holding information need in both preparation and generation."""
+    
+    contentBasis = None
+    termTree = None
+    edSingles = None
+    edMultiples = None
+    automaton = None
+    ctd = None
+
+    def __init__ (self, ctd):
+        self.ctd = ctd
+        ctd.__auxData = self
+        self.contentBasis = ctd.contentType()[1]
+        if isinstance(self.contentBasis, xs.structures.Particle):
+            self.termTree = BuildTermTree(self.contentBasis)
+            self.automaton = self.termTree.buildAutomaton()
+            (self.edSingles, self.edMultiples) = BuildPluralityData(self.termTree)
+        else:
+            self.edSingles = set()
+            self.edMultiples = set()
+
+    @classmethod
+    def Create (cls, ctd):
+        return cls(ctd)
+
+    @classmethod
+    def Get (cls, ctd):
+        return ctd.__auxData
+
 def GenerateCTD (ctd, generator, **kw):
     binding_module = generator.moduleForComponent(ctd)
     outf = binding_module.bindingIO()
@@ -607,10 +903,13 @@ class %{ctd} (%{superclass}):
     # subclasses.
 
     if isinstance(content_basis, xs.structures.Particle):
-        plurality_data = content_basis.pluralityData().combinedPlurality()
-
+        plurality_data = {}
+        aux = _CTDAuxData.Get(ctd)
+        elements = aux.edSingles.union(aux.edMultiples)
+        
         outf.postscript().append("\n\n")
-        for (ed, is_plural) in plurality_data.items():
+        for ed in elements:
+            is_plural = ed in aux.edMultiples
             # @todo Detect and account for plurality change between this and base
             ef_map = ed._templateMap()
             if ed.scope() == ctd:
@@ -651,8 +950,17 @@ class %{ctd} (%{superclass}):
         if lines:
             outf.postscript().append("\n".join(lines))
             outf.postscript().append("\n")
-        outf.postscript().append(templates.replaceInText('%{ctd}._ContentModel = %{particle_val}', ctd=template_map['ctd'], particle_val=particle_val))
+        outf.postscript().append(templates.replaceInText('%{ctd}._ContentModel = %{particle_val}\n', ctd=template_map['ctd'], particle_val=particle_val))
         outf.postscript().append("\n")
+
+        auto_defn = GenerateAutomaton(ctd, binding_module=binding_module, **kw)
+        if auto_defn is not None:
+            (automaton_ctor, lines) = auto_defn
+            if lines:
+                outf.postscript().append("\n".join(lines))
+                outf.postscript().append("\n")
+            outf.postscript().append(templates.replaceInText('%{ctd}._Automaton = %{automaton_ctor}\n', ctd=template_map['ctd'], automaton_ctor=automaton_ctor))
+            outf.postscript().append("\n")
 
     # Create definitions for all attributes.
     attribute_uses = []
@@ -796,23 +1104,12 @@ def _PrepareSimpleTypeDefinition (std, generator, nsm, module_context):
                 ei._setTag(utility.PrepareIdentifier(ei.unicodeValue(), nsm.uniqueInClass(std)))
 
 def _PrepareComplexTypeDefinition (ctd, generator, nsm, module_context):
-    content_basis = None
-    content_type_tag = ctd._contentTypeTag()
-    if (ctd.CT_SIMPLE == content_type_tag):
-        content_basis = ctd.contentType()[1]
-        #template_map['simple_base_type'] = binding_module.literal(content_basis, **kw)
-    elif (ctd.CT_MIXED == content_type_tag):
-        content_basis = ctd.contentType()[1]
-    elif (ctd.CT_ELEMENT_ONLY == content_type_tag):
-        content_basis = ctd.contentType()[1]
     kw = { 'binding_module' : module_context }
-    if isinstance(content_basis, xs.structures.Particle):
-        plurality_map = content_basis.pluralityData().combinedPlurality()
-    else:
-        plurality_map = {}
     ctd._templateMap()['_unique'] = nsm.uniqueInClass(ctd)
+    aux = _CTDAuxData.Create(ctd)
+    multiples = aux.edMultiples
     for cd in ctd.localScopedDeclarations():
-        _SetNameWithAccessors(cd, ctd, plurality_map.get(cd, False), module_context, nsm, kw)
+        _SetNameWithAccessors(cd, ctd, cd in multiples, module_context, nsm, kw)
 
 def _SetNameWithAccessors (component, container, is_plural, binding_module, nsm, kw):
     use_map = component._templateMap()
@@ -1170,7 +1467,6 @@ class _ModuleNaming_mixin (object):
             _log.info('Saved binding source to %s', self.__bindingFilePath)
         else:
             _log.info('No binding file for %s', self)
-
 
 class NamespaceModule (_ModuleNaming_mixin):
     """This class represents a Python module that holds all the

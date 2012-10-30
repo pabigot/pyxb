@@ -1349,13 +1349,13 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
         return self
     __substitutionGroup = None
 
-    def findSubstituendUse (self, ctd_class):
-        eu = ctd_class._ElementMap.get(self.name())
-        if eu is not None:
-            return eu
+    def findSubstituendDecl (self, ctd_class):
+        ed = ctd_class._ElementMap.get(self.name())
+        if ed is not None:
+            return ed
         if self.substitutionGroup() is None:
             return None
-        return self.substitutionGroup().findSubstituendUse(ctd_class)
+        return self.substitutionGroup().findSubstituendDecl(ctd_class)
 
     def _real_substitutesFor (self, other):
         """Determine whether an instance of this element can substitute for the other element.
@@ -1817,6 +1817,10 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
     # reduce a DOM node list to the body of this element.
     _ContentModel = None
 
+    # None, or a reference to a pyxb.utils.fac.Automaton instance that defines
+    # the content model for the type.
+    _Automaton = None
+
     @classmethod
     def _AddElement (cls, element):
         """Method used by generated code to associate the element binding with a use in this type.
@@ -2005,6 +2009,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             self.__setContent(None)
 
     __modelState = None
+    __automatonConfiguration = None
     def reset (self):
         """Reset the instance.
 
@@ -2018,16 +2023,19 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             au.reset(self)
         for eu in self._ElementMap.values():
             eu.reset(self)
+        assert (self._ContentModel is None) == (self._Automaton is None), 'Mismatch automaton/contentmodel for %s' % (type(self),)
         if self._ContentModel is not None:
             self.__modelState = self._ContentModel.newState()
+        if self._Automaton is not None:
+            self.__automatonConfiguration = self._Automaton.newConfiguration()
         return self
 
     @classmethod
-    def _ElementBindingUseForName (cls, element_name):
+    def _ElementBindingDeclForName (cls, element_name):
         """Determine what the given name means as an element in this type.
 
         Normally, C{element_name} identifies an element definition within this
-        type.  If so, the returned C{element_use} identifies that definition,
+        type.  If so, the returned C{element_decl} identifies that definition,
         and the C{element_binding} is extracted from that use.
 
         It may also be that the C{element_name} does not appear as an element
@@ -2035,33 +2043,33 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         the returned C{element_binding} identifies the global element.  If,
         further, that element is a member of a substitution group which does
         have an element definition in this class, then the returned
-        C{element_use} identifies that definition.
+        C{element_decl} identifies that definition.
 
-        If a non-C{None} C{element_use} is returned, there will be an
+        If a non-C{None} C{element_decl} is returned, there will be an
         associated C{element_binding}.  However, it is possible to return a
-        non-C{None} C{element_binding}, but C{None} as the C{element_use}.  In
+        non-C{None} C{element_binding}, but C{None} as the C{element_decl}.  In
         that case, the C{element_binding} can be used to create a binding
         instance, but the content model will have to treat it as a wildcard.
 
         @param element_name: The name of the element in this type, either an
         expanded name or a local name if the element has an absent namespace.
 
-        @return: C{( element_binding, element_use )}
+        @return: C{( element_binding, element_decl )}
         """
-        element_use = cls._ElementMap.get(element_name)
+        element_decl = cls._ElementMap.get(element_name)
         element_binding = None
-        if element_use is None:
+        if element_decl is None:
             try:
                 element_binding = element_name.elementBinding()
             except pyxb.NamespaceError:
                 pass
             if element_binding is not None:
-                element_use = element_binding.findSubstituendUse(cls)
+                element_decl = element_binding.findSubstituendDecl(cls)
         else:
-            element_binding = element_use.elementBinding()
-        return (element_binding, element_use)
+            element_binding = element_decl.elementBinding()
+        return (element_binding, element_decl)
         
-    def append (self, value, element_use=None, maybe_element=True, _fallback_namespace=None, require_validation=True, _from_xml=False):
+    def append (self, value, element_decl=None, maybe_element=True, _fallback_namespace=None, require_validation=True, _from_xml=False):
         """Add the value to the instance.
 
         The value should be a DOM node or other value that is or can be
@@ -2075,10 +2083,10 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         # @todo: Allow caller to provide default element use; it's available
         # in saxer.
         element_binding = None
-        if element_use is not None:
+        if element_decl is not None:
             from pyxb.binding import content
-            assert isinstance(element_use, content.ElementDeclaration)
-            element_binding = element_use.elementBinding()
+            assert isinstance(element_decl, content.ElementDeclaration)
+            element_binding = element_decl.elementBinding()
             assert element_binding is not None
         # Convert the value if it's XML and we recognize it.
         if isinstance(value, xml.dom.Node):
@@ -2098,7 +2106,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
                 # Do type conversion here
                 assert xml.dom.Node.ELEMENT_NODE == node.nodeType
                 expanded_name = pyxb.namespace.ExpandedName(node, fallback_namespace=_fallback_namespace)
-                (element_binding, element_use) = self._ElementBindingUseForName(expanded_name)
+                (element_binding, element_decl) = self._ElementBindingDeclForName(expanded_name)
                 if element_binding is not None:
                     # If we have an element binding, we need to use it because
                     # it knows how to resolve substitution groups.
@@ -2118,15 +2126,17 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         if maybe_element and (self.__modelState is not None):
             # Allows element content.
             if not require_validation:
-                if element_use is not None:
-                    element_use.setOrAppend(self, value)
+                if element_decl is not None:
+                    element_decl.setOrAppend(self, value)
                     return self
                 if self.wildcardElements() is not None:
                     self._appendWildcardElement(value)
                     return self
-                raise pyxb.StructuralBadDocumentError('Validation is required when no element_use can be found')
+                raise pyxb.StructuralBadDocumentError('Validation is required when no element_decl can be found')
             else:
-                ( consumed, underflow_exc ) = self.__modelState.step(self, value, element_use)
+                #print 'step %s\n\t%s' % (value, element_decl)
+                #print 'candidates: %s' % ('\n\t'.join(map(str, self.__automatonConfiguration.candidateTransitions())))
+                ( consumed, underflow_exc ) = self.__modelState.step(self, value, element_decl)
                 if consumed:
                     return self
         # If what we have is element content, we can't accept it, either
