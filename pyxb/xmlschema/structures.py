@@ -156,6 +156,7 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin,
         self.__scope = kw.get('scope')
         self.__namespaceContext = kw.get('namespace_context')
         node = kw.get('node')
+        owner = kw.get('owner')
         if self.__namespaceContext is None:
             if node is None:
                 raise pyxb.LogicError('Schema component constructor must be given namespace_context or node')
@@ -165,12 +166,13 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin,
            
         super(_SchemaComponent_mixin, self).__init__(*args, **kw)
 
-        if isinstance(node, pyxb.utils.utility.Locatable_mixin):
-            self._setLocation(node._location())
-
         self._namespaceContext().targetNamespace()._associateComponent(self)
 
-        self._setOwner(kw.get('owner'))
+        self._setOwner(owner)
+        if isinstance(node, pyxb.utils.utility.Locatable_mixin):
+            self._setLocation(node._location())
+        elif isinstance(owner, pyxb.utils.utility.Locatable_mixin):
+            self._setLocation(owner._location())
 
         schema = kw.get('schema')
         if schema is not None:
