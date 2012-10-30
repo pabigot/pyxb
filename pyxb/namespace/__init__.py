@@ -518,7 +518,7 @@ class _NamespaceComponentAssociation_mixin (pyxb.cscRoot):
     def addSchema (self, schema):
         for sr in self.__origins:
             if isinstance(sr, archive._SchemaOrigin) and sr.match(schema=schema):
-                _log.info('Schema at %s already registered in %s', schema.location(), self)
+                _log.info('Hash for %s matches %s already registered as %s', schema.location(), sr.schema().location(), self)
                 raise pyxb.SchemaUniquenessError(self, schema.location(), sr.schema())
         sr = archive._SchemaOrigin(schema=schema)
         schema.generationUID().associateObject(sr)

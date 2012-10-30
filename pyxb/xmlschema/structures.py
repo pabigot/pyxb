@@ -5018,6 +5018,8 @@ class Schema (_SchemaComponent_mixin):
                  }
             try:
                 schema_instance = self.CreateFromLocation(**kw)
+            except pyxb.SchemaUniquenessError, e:
+                _log.warning('Skipping apparent redundant inclusion of %s defining %s (hash matches %s)', e.schemaLocation(), e.namespace(), e.existingSchema().location())
             except Exception, e:
                 _log.exception('INCLUDE %s caught', abs_uri)
                 raise
