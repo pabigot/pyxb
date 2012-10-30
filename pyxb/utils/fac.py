@@ -469,7 +469,7 @@ class UpdateInstruction:
         @param counter_values: A map from L{CounterCondition} to
         inter counter values.  This map is updated in-place."""
         if not self.satisfiedBy(counter_values):
-            raise CounterSatisfactionError(self, counter_values)
+            raise CounterApplicationError(self, counter_values)
         value = counter_values[self.__counterCondition]
         if self.__doIncrement:
             value += 1
