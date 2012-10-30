@@ -2315,7 +2315,7 @@ class Generator (object):
 
         binding_components = set(filter(bindable_fn, component_graph.nodes()))
         for c in binding_components:
-            assert bindable_fn(c), 'Unexpected %s in binding components' % (type(s),)
+            assert bindable_fn(c), 'Unexpected %s in binding components' % (type(c),)
             c._setBindingNamespace(c._objectOrigin().moduleRecord().namespace())
 
         component_csets = self.__graphFromComponents(binding_components, False).sccOrder()

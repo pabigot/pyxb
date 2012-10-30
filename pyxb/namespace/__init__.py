@@ -867,6 +867,7 @@ class Namespace (_NamespaceCategory_mixin, resolution._NamespaceResolution_mixin
     def _defineBuiltins (self, structures_module):
         assert self.isBuiltinNamespace()
         if not self.__definedBuiltins:
+            from pyxb.namespace import builtin
             mr = self.lookupModuleRecordByUID(builtin.BuiltInObjectUID, create_if_missing=True, module_path=self.__builtinModulePath)
             self._defineBuiltins_ox(structures_module)
             self.__definedBuiltins = True
