@@ -565,6 +565,40 @@ class Graph:
                 raise Exception('DFS walk did not cover all nodes (walk %d versus nodes %d)' % (len(self.__dfsOrder), len(self.__nodes)))
         return self.__dfsOrder
         
+    def rootSetOrder (self):
+        """Return the nodes of the graph as a sequence of root sets.
+
+        The first root set is the set of nodes that are roots: i.e.,
+        have no incoming edges.  The second root set is the set of
+        nodes that have incoming nodes in the first root set.  This
+        continues until all nodes have been reached.  The sets impose
+        a partial order on the nodes, without being as constraining as
+        L{sccOrder}.
+
+        @return a list of the root sets."""
+        order = []
+        nodes = set(self.__nodes)
+        edge_map = {}
+        for (d, srcs) in self.__edgeMap.iteritems():
+            edge_map[d] = srcs.copy()
+        while nodes:
+            freeset = set()
+            for n in nodes:
+                if not (n in edge_map):
+                    freeset.add(n)
+            if 0 == len(freeset):
+                _log.error('dependency cycle in named components')
+                return None
+            order.append(freeset)
+            nodes.difference_update(freeset)
+            new_edge_map = {}
+            for (d, srcs) in edge_map.iteritems():
+                srcs.difference_update(freeset)
+                if 0 != len(srcs):
+                    new_edge_map[d] = srcs
+            edge_map = new_edge_map
+        return order
+
 LocationPrefixRewriteMap_ = { }
 
 def SetLocationPrefixRewriteMap (prefix_map):

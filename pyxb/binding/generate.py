@@ -199,7 +199,7 @@ def pythonLiteral (value, **kw):
     # For dictionaries, apply translation to all values (not keys)
     if isinstance(value, types.DictionaryType):
         return ', '.join([ '%s=%s' % (k, pythonLiteral(v, **kw)) for (k, v) in value.items() ])
-
+    
     # For lists, apply translation to all members
     if isinstance(value, types.ListType):
         return [ pythonLiteral(_v, **kw) for _v in value ]
@@ -322,16 +322,37 @@ def %{name} ():
     import pyxb.utils.fac as fac
 ''', name=name))
     
+    def stateSortKey (st):
+        if isinstance(st.symbol, xs.structures.ModelGroup):
+            return st.symbol.bindingSortKey()
+        return st.symbol[1].bindingSortKey()
+
+    def counterConditionSortKey (cc):
+        return cc.metadata.term().bindingSortKey()
+
+    def updateInstructionSortKey (ui):
+        return counterConditionSortKey(ui.counterCondition)
+
+    def transitionSortKey (xit):
+        # The destination of a transition is not unique; need to
+        # differentiate using the update instructions.  Which
+        # themselves should be sorted.
+        keys = [ stateSortKey(xit.consumingState()) ]
+        keys.extend(map(updateInstructionSortKey, sorted(xit.updateInstructions, key=updateInstructionSortKey)))
+        return tuple(keys)
+
     au_src.append('    counters = set()')
     counter_map = {}
-    for cc in automaton.counterConditions:
+    sorted_counter_conditions = sorted(automaton.counterConditions, key=counterConditionSortKey)
+    for cc in sorted_counter_conditions:
         cc_id = 'cc_%u' % (len(counter_map),)
         counter_map[cc] = cc_id
         au_src.append('    %s = fac.CounterCondition(min=%r, max=%r, metadata=%r)' % (cc_id, cc.min, cc.max, cc.metadata._location()))
         au_src.append('    counters.add(%s)' % (cc_id,))
     state_map = {}
     au_src.append('    states = set()')
-    for st in automaton.states:
+    sorted_states = sorted(automaton.states, key=stateSortKey)
+    for st in sorted_states:
         st_id = 'st_%u' % (len(state_map),)
         state_map[st] = st_id
         if st.subAutomata is not None:
@@ -342,7 +363,7 @@ def %{name} ():
             au_src.append('    final_update = None')
         else:
             au_src.append('    final_update = set()')
-            for ui in st.finalUpdate:
+            for ui in sorted(st.finalUpdate, key=updateInstructionSortKey):
                 au_src.append('    final_update.add(fac.UpdateInstruction(%s, %r))' % (counter_map[ui.counterCondition], ui.doIncrement))
         if isinstance(st.symbol, xs.structures.ModelGroup):
             au_src.append('    symbol = %r' % (st.symbol._location(),))
@@ -356,11 +377,12 @@ def %{name} ():
         if st.subAutomata is not None:
             au_src.append('    %s._set_subAutomata(*sub_automata)' % (st_id,))
         au_src.append('    states.add(%s)' % (st_id,))
-    for st in automaton.states:
+    for st in sorted_states:
         au_src.append('    transitions = set()')
-        for xit in st.transitionSet:
+        for xit in sorted(st.transitionSet, key=transitionSortKey):
             au_src.append('    transitions.add(fac.Transition(%s, [' % (state_map[xit.destination],))
-            au_src.append('        %s ]))' % (',\n        '.join(map(lambda _ui: 'fac.UpdateInstruction(%s, %r)' % (counter_map[_ui.counterCondition], _ui.doIncrement), xit.updateInstructions))))
+            sorted_ui = sorted(xit.updateInstructions, key=updateInstructionSortKey)
+            au_src.append('        %s ]))' % (',\n        '.join(map(lambda _ui: 'fac.UpdateInstruction(%s, %r)' % (counter_map[_ui.counterCondition], _ui.doIncrement), sorted_ui))))
         au_src.append('    %s._set_transitionSet(transitions)' % (state_map[st],))
     au_src.append('    return fac.Automaton(states, counters, %r, containing_state=%s)' % (automaton.nullable, containing_state))
     lines.extend(au_src)
@@ -908,7 +930,7 @@ class %{ctd} (%{superclass}):
         elements = aux.edSingles.union(aux.edMultiples)
         
         outf.postscript().append("\n\n")
-        for ed in elements:
+        for ed in sorted(elements, key=lambda _c: _c.bindingSortKey()):
             is_plural = ed in aux.edMultiples
             # @todo Detect and account for plurality change between this and base
             ef_map = ed._templateMap()
@@ -972,7 +994,7 @@ class %{ctd} (%{superclass}):
     # key - String used as dictionary key holding instance value of attribute (value_attr_name)
     # inspector - Name of the method used for inspection (attr_inspector)
     # mutator - Name of the method use for mutation (attr_mutator)
-    for au in ctd.attributeUses():
+    for au in sorted(ctd.attributeUses(), key=lambda _au: _au.attributeDeclaration().bindingSortKey()):
         ad = au.attributeDeclaration()
         assert isinstance(ad.scope(), xs.structures.ComplexTypeDefinition), 'unexpected scope %s' % (ad.scope(),)
         au_map = ad._templateMap()
@@ -2613,28 +2635,12 @@ class Generator (object):
             assert bindable_fn(c), 'Unexpected %s in binding components' % (type(c),)
             c._setBindingNamespace(c._objectOrigin().moduleRecord().namespace())
 
-        component_csets = self.__graphFromComponents(binding_components, False).sccOrder()
         component_order = []
-        for cset in component_csets:
-            if 1 < len(cset):
-                errmsg = ["COMPONENT DEPENDENCY LOOP of %d components" % (len(cset),)]
-                cg = pyxb.utils.utility.Graph()
-                for c in cset:
-                    assert bindable_fn(c), 'Unexpected %s in list' % (type(c),)
-                    errmsg.append('   ' + c.expandedName())
-                    cg.addNode(c)
-                    for cd in c.bindingRequires(reset=True, include_lax=False):
-                        cg.addEdge(c, cd)
-                _log.error('\n'.join(errmsg))
-                #file('deploop.dot', 'w').write(cg._generateDOT('CompDep', lambda _c: _c.bestNCName()))
-                relaxed_order = cg.sccOrder()
-                for rcs in relaxed_order:
-                    assert 1 == len(rcs)
-                    rcs = rcs[0]
-                    if rcs in cset:
-                        component_order.append(rcs)
-            else:
-                component_order.extend(cset)
+        root_sets = self.__graphFromComponents(binding_components, False).rootSetOrder()
+        if root_sets is None:
+            raise pyxb.BindingGenerationError('Unable to partial-order named components')
+        for rs in root_sets:
+            component_order.extend(sorted(rs, key=lambda _c: _c.bindingSortKey()))
     
         self.__componentGraph = component_graph
         self.__componentOrder = component_order
@@ -2697,6 +2703,7 @@ class Generator (object):
                 record_binding_map[mr] = nsm
                 scc_modules.append(nsm)
 
+            scc_modules.sort(key=lambda _nm: _nm.namespace().uri())
             modules.extend(scc_modules)
             if 1 < len(mr_scc):
                 ngm = NamespaceGroupModule(self, scc_modules)

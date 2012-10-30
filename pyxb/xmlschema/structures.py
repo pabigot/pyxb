@@ -86,6 +86,9 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin,
             raise pyxb.LogicError('Attempt to access missing namespace context for %s' % (self,))
         return self.__namespaceContext
     def _clearNamespaceContext (self):
+        # Calculate the binding sort key for any archive before we discard the
+        # namespace context, which we might need.
+        self.bindingSortKey()
         self.__namespaceContext = None
         return self
     __namespaceContext = None
@@ -182,7 +185,6 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin,
 
         if isinstance(self, ComplexTypeDefinition):
             assert 1 < len(self.__namespaceContext.inScopeNamespaces())
-
 
     def _dissociateFromNamespace (self):
         """Dissociate this component from its owning namespace.
@@ -341,6 +343,34 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin,
         if self.__nameInBinding is None:
             self.__nameInBinding = other.__nameInBinding
         return self
+
+    def bindingSortKey (self):
+        """A key to be used when sorting components for binding generation.
+
+        This is a tuple comprising the namespace URI, schema location, and
+        line and column of the component definition within the schema."""
+        if self.__bindingSortKey is None:
+            ns = None
+            if isinstance(self, _NamedComponent_mixin):
+                ns = self.bindingNamespace()
+                if ns is None:
+                    ns = self._namespaceContext().targetNamespace()
+            elif isinstance(self, _ParticleTree_mixin):
+                ns = self._namespaceContext().targetNamespace()
+            else:
+                return None
+            # We must have found a namespace.  For now, we don't care if the
+            # namespace is absent; most (all?) components with an absent
+            # namespace are coming from schemas for which we have a location.
+            assert ns is not None
+            key_elts = [ns.uri()]
+            loc = self._location()
+            if loc is not None:
+                key_elts.extend([loc.locationBase, loc.lineNumber, loc.columnNumber])
+            self.__bindingSortKey = tuple(key_elts)
+        return self.__bindingSortKey
+    __bindingSortKey = None
+
 
 class _ParticleTree_mixin (pyxb.cscRoot):
     def _walkParticleTree (self, visit, arg):
