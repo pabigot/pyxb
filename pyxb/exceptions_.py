@@ -262,7 +262,7 @@ class BindingValidationError (ValidationError):
     """Raised when the content of a binding object is not consistent with its content model"""
     pass
 
-class UnexpectedNonElementContentError (ValidationError):
+class UnexpectedNonElementContentError (UnrecognizedContentError):
     """Raised when an element is given non-element content but may not contain such."""
     pass
 
