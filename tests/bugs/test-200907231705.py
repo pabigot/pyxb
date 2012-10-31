@@ -66,7 +66,7 @@ class TestTrac_200907231705 (unittest.TestCase):
         self.assertRaises(pyxb.AttributeValidationError, instance.validateBinding)
         instance = Empty(units='m')
         self.assertTrue(instance.validateBinding())
-        self.assertRaises(pyxb.ValidationError, Empty, 4, units='m')
+        self.assertRaises((pyxb.ValidationError, pyxb.UnexpectedNonElementContentError), Empty, 4, units='m')
 
     def testCtorMixed (self):
         instance = Mixed()

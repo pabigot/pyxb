@@ -55,9 +55,10 @@ class TestTrac_0057 (unittest.TestCase):
     def testDefault (self):
         self.assertTrue(pyxb._GenerationRequiresValid)
         self.assertTrue(pyxb._ParsingRequiresValid)
-        self.assertRaises(pyxb.UnrecognizedContentError, CreateFromDocument, self.XMLS)
+        expected_exc = (pyxb.UnrecognizedContentError, pyxb.ExtraContentError)
+        self.assertRaises(expected_exc, CreateFromDocument, self.XMLS)
         doc = pyxb.utils.domutils.StringToDOM(self.XMLS)
-        self.assertRaises(pyxb.UnrecognizedContentError, CreateFromDOM, doc)
+        self.assertRaises(expected_exc, CreateFromDOM, doc)
         
     def testDisable (self):
         pyxb.RequireValidWhenParsing(False)

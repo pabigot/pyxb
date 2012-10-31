@@ -193,7 +193,7 @@ class UnexpectedElementError (StructuralBadDocumentError):
     """More instances of an element are present than permitted by the content model."""
     pass
 
-class ExtraContentError (StructuralBadDocumentError):
+class ExtraContentError (UnrecognizedContentError):
     """Raised when processing document and there is more material in an element content than expected."""
 
 class ContentInNilElementError (ExtraContentError):

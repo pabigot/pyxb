@@ -76,6 +76,8 @@ class TestTrac_0075 (unittest.TestCase):
         try:
             instance = CreateFromDocument(xmls)
             self.fail("Succeeded in creating from document with bad inner element")
+        except ExtraContentError, e:
+            pass
         except UnrecognizedContentError, e:
             if isinstance(e.content, xml.dom.Node):
                 self.assertEqual(e.content.localName, tag.localName())
@@ -89,6 +91,8 @@ class TestTrac_0075 (unittest.TestCase):
         try:
             instance = CreateFromDOM(dom)
             self.fail("Succeeded in creating from document with bad inner element")
+        except ExtraContentError, e:
+            pass
         except UnrecognizedContentError, e:
             self.assertEqual(dom.documentElement.firstChild, e.content)
 
