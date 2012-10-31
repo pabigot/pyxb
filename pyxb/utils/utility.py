@@ -575,7 +575,7 @@ class Graph:
         a partial order on the nodes, without being as constraining as
         L{sccOrder}.
 
-        @return a list of the root sets."""
+        @return: a list of the root sets."""
         order = []
         nodes = set(self.__nodes)
         edge_map = {}
