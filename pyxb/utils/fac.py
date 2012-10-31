@@ -102,7 +102,7 @@ class NondeterministicSymbolError (RecognitionError):
     def __init__ (self, *args):
         (self.message, self.symbol, self.configuration, self.matches) = args
         if not isinstance(self.matches, frozenset):
-            self.expected = frozenset(self.matches)
+            self.matches = frozenset(self.matches)
         super(NondeterministicSymbolError, self).__init__(*args)
 
 class SymbolMatch_mixin (object):
@@ -214,16 +214,16 @@ class State (object):
         consuming state even if it requires a multi-element chain of
         transitions into subautomata to reach one."""
         if self.__automatonEntryTransitions is None:
-            transitions = set()
+            transitions = []
             if self.__isInitial:
                 xit = Transition(self, set())
                 if self.__subAutomata is None:
-                    transitions.add(xit)
+                    transitions.append(xit)
                 else:
                     for sa in self.__subAutomata:
                         for saxit in sa.initialTransitions:
-                            transitions.add(xit.chainTo(saxit.makeEnterAutomatonTransition()))
-            self.__automatonEntryTransitions = frozenset(transitions)
+                            transitions.append(xit.chainTo(saxit.makeEnterAutomatonTransition()))
+            self.__automatonEntryTransitions = transitions
         return self.__automatonEntryTransitions
     automatonEntryTransitions = property(__get_automatonEntryTransitions)
 
@@ -242,19 +242,19 @@ class State (object):
 
         @return: A pair C{(nullable, transitions)} where C{nullable}
         is C{True} iff there is at least one sub-automaton that is in
-        an accepting state on entry, and C{transitions} is a set of
+        an accepting state on entry, and C{transitions} is a list of
         L{Transition} instances describing how to reach some state in
         a sub-automaton via a consumed symbol.
         """
         assert self.__subAutomata is not None
         is_nullable = True
-        transitions = set()
+        transitions = []
         if sub_automata is None:
             sub_automata = self.__subAutomata
         for sa in sub_automata:
             if not sa.nullable:
                 is_nullable = False
-            transitions.update(sa.initialTransitions)
+            transitions.extend(sa.initialTransitions)
         return (is_nullable, transitions)
 
     def isAccepting (self, counter_values):
@@ -283,7 +283,15 @@ class State (object):
         L{unordered catenation of terms<All>}, then secondary
         processing must be done to traverse into the automata for
         those terms and identify transitions that include a symbol
-        consumption."""
+        consumption.
+
+        @note: Although conceptually the viable transitions are a set,
+        this implementation maintains them in a list so that order is
+        preserved when automata processing becomes non-deterministic.
+        PyXB is careful to build the transition list so that the
+        states are attempted in the order in which they appear in the
+        schema that define the automata.
+        """
         return self.__transitionSet
     transitionSet = property(__get_transitionSet)
     
@@ -296,12 +304,12 @@ class State (object):
         requires that the association of the transition set be
         delayed.
 
-        @param transition_set: a set of pairs where the first
+        @param transition_set: a list of pairs where the first
         member is the destination L{State} and the second member is the
         set of L{UpdateInstruction}s that apply when the automaton
         transitions to the destination state."""
 
-        self.__transitionSet = frozenset(transition_set)
+        self.__transitionSet = list(transition_set)
 
     def match (self, symbol):
         """Return C{True} iff the symbol matches for this state.
@@ -547,8 +555,8 @@ class Transition (object):
 
         @keyword layer_link: The value for L{layerLink}."""
         self.__destination = destination
-        if not isinstance(update_instructions, frozenset):
-            update_instructions = frozenset(update_instructions)
+        if not isinstance(update_instructions, list):
+            update_instructions = list(update_instructions)
         self.__updateInstructions = update_instructions
         self.__layerLink = layer_link
 
@@ -844,15 +852,15 @@ class Configuration (object):
         of transitions should ignore the symbol; candidates are still
         filtered based on the counter state of the configuration.
 
-        @return: A set of L{Transition} instances permitted from the
+        @return: A list of L{Transition} instances permitted from the
         current configuration.  If C{symbol} is not C{None},
         transitions that would not accept the symbol are excluded.
         Any transition that would require an unsatisfied counter
         update is also excluded.  Non-deterministic automata may
-        result in a set with multiple members. """
+        result in a lits with multiple members. """
         
         fac = self.__automaton
-        transitions = set()
+        transitions = []
         if symbol is None:
             match_filter = lambda _xit: True
         else:
@@ -861,7 +869,7 @@ class Configuration (object):
 
         if self.__state is None:
             # Special-case the initial entry to the topmost configuration
-            transitions.update(fac.initialTransitions)
+            transitions.extend(fac.initialTransitions)
         elif (self.__subConfiguration is not None) and not self.__subConfiguration.isAccepting():
             # If there's an active subconfiguration that is not in an
             # accepting state, we can't do anything at this level.
@@ -875,24 +883,25 @@ class Configuration (object):
                 # subautomata that require symbols before a transition
                 # out of this node is allowed.
                 (include_local, sub_initial) = self.__state.subAutomataInitialTransitions(self.__subAutomata)
-                transitions.update(map(lambda _xit: _xit.makeEnterAutomatonTransition(), sub_initial))
+                transitions.extend(map(lambda _xit: _xit.makeEnterAutomatonTransition(), sub_initial))
             if include_local:
                 # Transitions within this layer
                 for xit in filter(update_filter, self.__state.transitionSet):
                     if xit.consumingState() is not None:
-                        transitions.add(xit)
+                        transitions.append(xit)
                     else:
                         # The transition did not consume a symbol, so we have to find
                         # one that does, from among the subautomata of the destination.
                         # We do not care if the destination is nullable; alternatives
                         # to it are already being handled with different transitions.
                         (_, sub_initial) = xit.destination.subAutomataInitialTransitions()
-                        transitions.update(map(lambda _xit: xit.chainTo(_xit.makeEnterAutomatonTransition()), sub_initial))
+                        transitions.extend(map(lambda _xit: xit.chainTo(_xit.makeEnterAutomatonTransition()), sub_initial))
                 if (self.__superConfiguration is not None) and self.isAccepting():
                     # Transitions that leave this automaton
                     lxit = self.makeLeaveAutomatonTransition()
                     supxit = self.__superConfiguration.candidateTransitions(symbol)
-                    transitions.update(map(lambda _sx: lxit.chainTo(_sx), supxit))
+                    transitions.extend(map(lambda _sx: lxit.chainTo(_sx), supxit))
+        assert len(frozenset(transitions)) == len(transitions)
         return filter(update_filter, filter(match_filter, transitions))
 
     def step (self, symbol):
@@ -901,7 +910,7 @@ class Configuration (object):
             raise UnrecognizedSymbolError('Unable to match symbol', symbol, self, map(lambda _xit: _xit.consumedSymbol(), self.candidateTransitions()))
         if 1 < len(transitions):
             raise NondeterministicSymbolError('Non-deterministic transition', symbol, self, transitions)
-        return iter(transitions).next().apply(self)
+        return transitions[0].apply(self)
 
     def isInitial (self):
         """Return C{True} iff no transitions have ever been made."""
@@ -977,28 +986,28 @@ class MultiConfiguration (object):
     __configurations = None
 
     def __init__ (self, configuration):
-        self.__configurations = set()
-        self.__configurations.add(configuration)
+        self.__configurations = [ configuration]
     
     def step (self, symbol):
         """Execute the symbol transition on all configurations."""
-        next_configs = set()
+        next_configs = []
         for cfg in self.__configurations:
             transitions = cfg.candidateTransitions(symbol)
             if 0 == len(transitions):
                 pass
             elif 1 == len(transitions):
-                next_configs.add(iter(transitions).next().apply(cfg))
+                next_configs.append(transitions[0].apply(cfg))
             else:
                 for transition in transitions:
                     clone_map = {}
                     ccfg = cfg.clone(clone_map)
-                    next_configs.add(transition.apply(ccfg, clone_map))
+                    next_configs.append(transition.apply(ccfg, clone_map))
         if 0 == len(next_configs):
-            allowed = set()
+            allowed = []
             for cfg in self.__configurations:
-                allowed.update(map(lambda _xit: _xit.consumedSymbol(), cfg.candidateTransitions()))
+                allowed.extend(map(lambda _xit: _xit.consumedSymbol(), cfg.candidateTransitions()))
             raise UnrecognizedSymbolError('Multiconfig unable to match symbol', symbol, self, allowed)
+        assert len(frozenset(next_configs)) == len(next_configs)
         self.__configurations = next_configs
         return self
 
@@ -1044,7 +1053,11 @@ class Automaton (object):
         """The set of transitions that may be made to enter the automaton.
 
         These are full transitions, including chains into subautomata
-        if an initial state represents a node with sub-automata."""
+        if an initial state represents a node with sub-automata.
+
+        @note: As with L{State.transitionSet}, the set is represented
+        as a list to preserve priority when resolving
+        non-deterministic matches."""
         return self.__initialTransitions
     initialTransitions = property(__get_initialTransitions)
 
@@ -1068,14 +1081,14 @@ class Automaton (object):
         self.__counterConditions = frozenset(counter_conditions)
         self.__nullable = nullable
         self.__containingState = containing_state
-        xit = set()
+        xit = []
         fnl = set()
         for s in self.__states:
             if s.isInitial:
-                xit.update(s.automatonEntryTransitions)
+                xit.extend(s.automatonEntryTransitions)
             if s.finalUpdate is not None:
                 fnl.add(s)
-        self.__initialTransitions = frozenset(xit)
+        self.__initialTransitions = xit
         self.__finalStates = frozenset(fnl)
 
     def newConfiguration (self):
@@ -1361,13 +1374,13 @@ class Node (object):
 
         for (spos, transition_set) in self.follow.iteritems():
             src = state_map[spos]
-            phi = set()
+            phi = []
             for (dpos, psi) in transition_set:
                 dst = state_map[dpos]
                 uiset = set()
                 for (counter, action) in psi.iteritems():
                     uiset.add(UpdateInstruction(counter_map[counter], self.INCREMENT == action))
-                phi.add(Transition(dst, uiset))
+                phi.append(Transition(dst, uiset))
             src._set_transitionSet(phi)
 
         return Automaton(states, counters, self.nullable, containing_state=containing_state)

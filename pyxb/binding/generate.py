@@ -378,9 +378,9 @@ def %{name} ():
             au_src.append('    %s._set_subAutomata(*sub_automata)' % (st_id,))
         au_src.append('    states.add(%s)' % (st_id,))
     for st in sorted_states:
-        au_src.append('    transitions = set()')
+        au_src.append('    transitions = []')
         for xit in sorted(st.transitionSet, key=transitionSortKey):
-            au_src.append('    transitions.add(fac.Transition(%s, [' % (state_map[xit.destination],))
+            au_src.append('    transitions.append(fac.Transition(%s, [' % (state_map[xit.destination],))
             sorted_ui = sorted(xit.updateInstructions, key=updateInstructionSortKey)
             au_src.append('        %s ]))' % (',\n        '.join(map(lambda _ui: 'fac.UpdateInstruction(%s, %r)' % (counter_map[_ui.counterCondition], _ui.doIncrement), sorted_ui))))
         au_src.append('    %s._set_transitionSet(transitions)' % (state_map[st],))
