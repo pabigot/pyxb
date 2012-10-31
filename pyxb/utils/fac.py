@@ -1028,7 +1028,12 @@ class Automaton (object):
         These correspond essentially to marked symbols in the original
         regular expression, or L{element
         declarations<pyxb.xmlschema.structures.ElementDeclaration>} in
-        an XML schema."""
+        an XML schema.
+
+        @note: These are conceptually a set and are stored that way.
+        When an L{Automaton} is constructed the incoming states should
+        be passed as a list so the calculated initial transitions are
+        executed in a deterministic order."""
         return self.__states
     states = property(__get_states)
     
@@ -1083,7 +1088,9 @@ class Automaton (object):
         self.__containingState = containing_state
         xit = []
         fnl = set()
-        for s in self.__states:
+        # Iterate over states, not self.__states, in case the input was a list.
+        # This way we preserve the priority for initial transitions.
+        for s in states:
             if s.isInitial:
                 xit.extend(s.automatonEntryTransitions)
             if s.finalUpdate is not None:

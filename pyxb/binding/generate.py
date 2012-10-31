@@ -350,7 +350,7 @@ def %{name} ():
         au_src.append('    %s = fac.CounterCondition(min=%r, max=%r, metadata=%r)' % (cc_id, cc.min, cc.max, cc.metadata._location()))
         au_src.append('    counters.add(%s)' % (cc_id,))
     state_map = {}
-    au_src.append('    states = set()')
+    au_src.append('    states = []')
     sorted_states = sorted(automaton.states, key=stateSortKey)
     for st in sorted_states:
         st_id = 'st_%u' % (len(state_map),)
@@ -376,7 +376,7 @@ def %{name} ():
         au_src.append('    %s = fac.State(symbol, is_initial=%r, final_update=final_update, is_unordered_catenation=%r)' % (st_id, st.isInitial, st.isUnorderedCatenation))
         if st.subAutomata is not None:
             au_src.append('    %s._set_subAutomata(*sub_automata)' % (st_id,))
-        au_src.append('    states.add(%s)' % (st_id,))
+        au_src.append('    states.append(%s)' % (st_id,))
     for st in sorted_states:
         au_src.append('    transitions = []')
         for xit in sorted(st.transitionSet, key=transitionSortKey):
