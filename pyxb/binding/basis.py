@@ -1790,7 +1790,8 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             if self._CT_SIMPLE == self._ContentTypeTag:
                 self.__initializeSimpleContent(args, dom_node)
             else:
-                self._setContentFromDOM(dom_node, fallback_namespace)
+                self.extend(dom_node.childNodes[:], fallback_namespace)
+                self._postDOMValidate()
         elif 0 < len(args):
             self.extend(args, _from_xml=from_xml)
         else:
@@ -2203,12 +2204,6 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
                 self.__modelState.verifyComplete()
             self._validateAttributes()
         return self
-
-    def _setContentFromDOM (self, node, _fallback_namespace):
-        """Initialize the content of this element from the content of the DOM node."""
-
-        self.extend(node.childNodes[:], _fallback_namespace)
-        return self._postDOMValidate()
 
     def _setDOMFromAttributes (self, dom_support, element):
         """Add any appropriate attributes from this instance into the DOM element."""
