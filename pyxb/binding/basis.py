@@ -1786,17 +1786,13 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             [ kw.pop(_fkw, None) for _fkw in self._PyXBFactoryKeywords ]
             if kw:
                 raise pyxb.ExtraContentError(kw)
-        if dom_node is not None:
-            if self._CT_SIMPLE == self._ContentTypeTag:
-                self.__initializeSimpleContent(args, dom_node)
-            else:
-                self.extend(dom_node.childNodes[:], fallback_namespace)
-                self._postDOMValidate()
-        elif 0 < len(args):
+        if 0 < len(args):
             self.extend(args, _from_xml=from_xml)
-        else:
-            if self._CT_SIMPLE == self._ContentTypeTag:
-                self.__initializeSimpleContent(args, dom_node)
+        elif self._CT_SIMPLE == self._ContentTypeTag:
+            self.__initializeSimpleContent(args, dom_node)
+        elif dom_node is not None:
+            self.extend(dom_node.childNodes[:], fallback_namespace)
+            self._postDOMValidate()
 
     def __initializeSimpleContent (self, args, dom_node=None):
         # Don't propagate the keywords.  Python base simple types usually
