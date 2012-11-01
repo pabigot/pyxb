@@ -2030,6 +2030,14 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             self.__setContent(None)
 
     __automatonConfiguration = None
+    def _resetAutomaton (self):
+        assert (self._ContentModel is None) == (self._Automaton is None), 'Mismatch automaton/contentmodel for %s' % (type(self),)
+        if self._Automaton is not None:
+            if self.__automatonConfiguration is None:
+                import pyxb.binding.content
+                self.__automatonConfiguration = pyxb.binding.content.AutomatonConfiguration(self)
+            self.__automatonConfiguration.reset()
+    
     def reset (self):
         """Reset the instance.
 
@@ -2043,12 +2051,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             au.reset(self)
         for eu in self._ElementMap.values():
             eu.reset(self)
-        assert (self._ContentModel is None) == (self._Automaton is None), 'Mismatch automaton/contentmodel for %s' % (type(self),)
-        if self._Automaton is not None:
-            if self.__automatonConfiguration is None:
-                import pyxb.binding.content
-                self.__automatonConfiguration = pyxb.binding.content.AutomatonConfiguration(self)
-            self.__automatonConfiguration.reset()
+        self._resetAutomaton()
         return self
 
     @classmethod
