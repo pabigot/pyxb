@@ -2029,14 +2029,13 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         else:
             self.__setContent(None)
 
-    __modelState = None
     __automatonConfiguration = None
     def reset (self):
         """Reset the instance.
 
         This resets all element and attribute fields, and discards any
-        recorded content.  It resets the DFA to the initial state of the
-        content model.
+        recorded content.  It resets the content model automaton to its
+        initial state.
         """
         
         self._resetContent()
@@ -2045,10 +2044,11 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         for eu in self._ElementMap.values():
             eu.reset(self)
         assert (self._ContentModel is None) == (self._Automaton is None), 'Mismatch automaton/contentmodel for %s' % (type(self),)
-        if self._ContentModel is not None:
-            self.__modelState = self._ContentModel.newState()
         if self._Automaton is not None:
-            self.__automatonConfiguration = self._Automaton.newConfiguration()
+            if self.__automatonConfiguration is None:
+                import pyxb.binding.content
+                self.__automatonConfiguration = pyxb.binding.content.AutomatonConfiguration(self)
+            self.__automatonConfiguration.reset()
         return self
 
     @classmethod
@@ -2144,7 +2144,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
                 return self
         if self._isNil() and not self._IsSimpleTypeContent():
             raise pyxb.ExtraContentError('%s: Content %s present in element with xsi:nil' % (type(self), value))
-        if maybe_element and (self.__modelState is not None):
+        if maybe_element and (self.__automatonConfiguration is not None):
             # Allows element content.
             if not require_validation:
                 if element_decl is not None:
@@ -2155,10 +2155,10 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
                     return self
                 raise pyxb.StructuralBadDocumentError('Validation is required when no element_decl can be found')
             else:
-                #print 'step %s\n\t%s' % (value, element_decl)
-                #print 'candidates: %s' % ('\n\t'.join(map(str, self.__automatonConfiguration.candidateTransitions())))
-                ( consumed, underflow_exc ) = self.__modelState.step(self, value, element_decl)
-                if consumed:
+                # Attempt to place the value based on the content model
+                num_cand = self.__automatonConfiguration.step(value, element_decl)
+                if 1 <= num_cand:
+                    # Resolution was successful (possibly non-deterministic)
                     return self
         # If what we have is element content, we can't accept it, either
         # because the type doesn't accept element content or because it does
@@ -2218,10 +2218,19 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
     def _IsMixed (cls):
         return (cls._CT_MIXED == cls._ContentTypeTag)
     
+    def _finalizeContentModel (self):
+        # Override parent implementation.
+        if self.__automatonConfiguration:
+            self.__automatonConfiguration.resolveNondeterminism()
+
     def _postDOMValidate (self):
+        # It's probably finalized already, but just in case...
+        self._finalizeContentModel()
         if self._PerformValidation():
-            if (not self._isNil()) and (self.__modelState is not None):
-                self.__modelState.verifyComplete()
+            # @todo isNil should verify that no content is present.
+            if (not self._isNil()) and (self.__automatonConfiguration is not None):
+                if not self.__automatonConfiguration.isAccepting():
+                    raise pyxb.MissingContentError(self)
             self._validateAttributes()
         return self
 

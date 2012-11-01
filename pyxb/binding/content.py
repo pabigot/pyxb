@@ -443,6 +443,141 @@ class AttributeUse (pyxb.cscRoot):
             desc.extend(['=', self.__unicodeDefault ])
         return ''.join(desc)
 
+class AutomatonConfiguration (object):
+    """State for a L{pyxb.utils.FAC.Automaton} monitoring content for an
+    incrementally constructed complex type binding instance."""
+
+    # The binding instance for which content is being built
+    __instance = None
+
+    # The underlying configuration when the state is deterministic.  In this
+    # case, all updates to the instance content corresponding to the current
+    # state have been applied to the instance.
+    __cfg = None
+
+    # A list of pairs when the state is non-deterministic.  The first member
+    # of the pair is the configuration; the second is a tuple of closures that
+    # must be applied to the instance in order to store the content that was
+    # accepted along the path to that configuration.  This is in order of
+    # preference based on the location of path candidate declarations in the
+    # defining schema.
+    __multi = None
+
+    def __init__ (self, ctd):
+        self.__instance = ctd
+
+    def reset (self):
+        """Reset the automaton to its initial state.
+
+        Subsequent transitions are expected based on candidate content to be
+        supplied through the L{step} method."""
+        if self.__cfg is None:
+            self.__cfg = self.__instance._Automaton.newConfiguration()
+        self.__cfg.reset()
+        self.__multi = None
+
+    def step (self, value, element_decl):
+        """Attempt a transition from the current state.
+
+        @param value: the content to be supplied.  For success the value must
+        be consistent with the recorded symbol (element or wildcard
+        declaration) for a transition from the current automaton state.
+
+        @param element_decl: optional
+        L{pyxb.binding.content.ElementDeclaration} that is the preferred
+        symbol for the transition.
+
+        @return: the cardinal number of successful transitions from the
+        current configuration based on the parameters."""
+
+        sym = (value, element_decl)
+
+        # Start with the current configuration(s), assuming we might see
+        # non-determinism.
+        new_multi = []
+        if self.__multi is None:
+            multi = [ (self.__cfg, ()) ]
+        else:
+            multi = self.__multi[:]
+        # Collect the complete set of reachable configurations along with the
+        # closures that will update the instance content based on the path.
+        for (cfg, pending) in multi:
+            cand = cfg.candidateTransitions(sym)
+            for transition in cand:
+                clone_map = {}
+                ccfg = cfg.clone(clone_map)
+                new_multi.append( (transition.apply(ccfg, clone_map), pending+(transition.consumedSymbol().consumingClosure(),)) )
+        rv = len(new_multi)
+        if 0 == rv:
+            # No candidate transitions.  Do not change the state.
+            return 0
+        if 1 == rv:
+            # Deterministic transition.  Save the configuration and apply the
+            # corresponding updates.
+            self.__multi = None
+            (self.__cfg, actions) = new_multi[0]
+            for fn in actions:
+                fn(self.__instance)
+        else:
+            # Non-deterministic.  Save everything for subsequent resolution.
+            self.__cfg = None
+            self.__multi = new_multi
+        return rv
+
+    def resolveNondeterminism (self, prefer_accepting=True):
+        """Resolve any non-determinism in the automaton state.
+
+        If the automaton has reached a single configuration (was
+        deterministic), this does nothing.
+
+        If multiple candidate configurations are available, the best one is
+        selected and applied, updating the binding instance with the pending
+        content.
+
+        "Best" in this case is determined by optionally eliminating
+        configurations that are not accepting, then selecting the path where
+        the initial transition sorts highest using the binding sort key (based
+        on position in the original schema).
+
+        @keyword prefer_accepting: eliminate non-accepting paths if any
+        accepting path is present."""
+        if self.__multi is None:
+            return
+        assert self.__cfg is None
+        multi = self.__multi
+        if prefer_accepting:
+            multi = filter(lambda _ts: _ts[0].isAccepting(), self.__multi)
+            if 0 == len(multi):
+                multi = self.__multi
+        # step() will not create an empty multi list, so cannot get here with
+        # no configurations available unless nobody even reset the
+        # configuration, which would be a usage error.
+        assert 0 < len(multi)
+        if 1 < len(multi):
+            desc = self.__instance._ExpandedName
+            if desc is None:
+                desc = type(self.__instance)
+            _log.warning('Multiple accepting paths for %s', desc)
+            '''
+            for (cfg, actions) in multi:
+                foo = type(self.__instance)()
+                for fn in actions:
+                    fn(foo)
+                print '1: %s ; 2 : %s ; wc: %s' % (foo.first, foo.second, foo.wildcardElements())
+            '''
+        (self.__cfg, actions) = multi[0]
+        self.__multi = None
+        for fn in actions:
+            fn(self.__instance)
+
+    def isAccepting (self):
+        """Return C{True} iff the automaton is in an accepting state.
+
+        If the automaton has unresolved nondeterminism, it is resolved first,
+        preferring accepting states."""
+        self.resolveNondeterminism(True)
+        return self.__cfg.isAccepting()
+                    
 class ElementUse (pyxb.utils.fac.SymbolMatch_mixin):
     """Information about a schema element declaration reference."""
 
@@ -460,6 +595,41 @@ class ElementUse (pyxb.utils.fac.SymbolMatch_mixin):
         self.__elementDeclaration = element_declaration
         self.__schemaLocation = schema_location
 
+    # A cached value accepted by the match method.  Subsequently either
+    # storeContent or consumingClosure should be invoked to clear it.
+    __acceptedValue = None
+
+    def storeContent (self, instance):
+        """Apply the value accepted by L{match} to the content of the instance."""
+        assert self.__acceptedValue is not None
+        self.__elementDeclaration.setOrAppend(instance, self.__acceptedValue)
+        self.__acceptedValue = None
+
+    def consumingClosure (self):
+        """Create a closure that will apply the value accepted by L{match} to a to-be-supplied instance."""
+        assert self.__acceptedValue is not None
+        rv = lambda _inst,_ed=self.__elementDeclaration,_av=self.__acceptedValue: _ed.setOrAppend(_inst, _av)
+        self.__acceptedValue = None
+        return rv
+        
+    def match (self, symbol):
+        """Satisfy L{pyxb.utils.fac.SymbolMatch_mixin}.
+
+        Determine whether the proposed content encapsulated in C{symbol} is
+        compatible with the element declaration.  If so, the accepted value is
+        cached internally and return C{True}; otherwise return C{False}.
+
+        @param symbol: a pair C{(value, element_decl)}.
+        L{pyxb.binding.content.ElementDeclaration._matches} is used to
+        determine whether the proposed content is compatible with this element
+        declaration."""
+        (value, element_decl) = symbol
+        # NB: this call may change value to be compatible
+        (rv, value) = self.__elementDeclaration._matches(value, element_decl)
+        if rv:
+            self.__acceptedValue = value
+        return rv
+
     def __str__ (self):
         return '%s at %s' % (self.__elementDeclaration.name(), self.__schemaLocation)
 
@@ -474,6 +644,41 @@ class WildcardUse (pyxb.utils.fac.SymbolMatch_mixin):
 
     def schemaLocation (self):
         return self.__schemaLocation
+
+    # A cached value accepted by the match method.  Subsequently either
+    # storeContent or consumingClosure should be invoked to clear it.
+    __acceptedValue = None
+    
+    def storeContent (self, instance):
+        """Apply the value accepted by L{match} to the content of the instance."""
+        assert self.__acceptedValue is not None
+        instance._appendWildcardElement(self.__acceptedValue)
+        self.__acceptedValue = None
+        
+    def consumingClosure (self):
+        """Create a closure that will apply the value accepted by L{match} to a to-be-supplied instance."""
+        assert self.__acceptedValue is not None
+        rv = lambda _inst,av=self.__acceptedValue: _inst._appendWildcardElement(av)
+        self.__acceptedValue = None
+        return rv
+
+    def match (self, symbol):
+        """Satisfy L{pyxb.utils.fac.SymbolMatch_mixin}.
+
+        Determine whether the proposed content encapsulated in C{symbol} is
+        compatible with the wildcard declaration.  If so, the accepted value
+        is cached internally and return C{True}; otherwise return C{False}.
+
+        @param symbol: a pair C{(value, element_decl)}.
+        L{pyxb.binding.content.WildcardDeclaration.matches} is used to
+        determine whether the proposed content is compatible with this
+        wildcard.
+        """
+        (value, element_decl) = symbol
+        rv = self.__wildcardDeclaration.matches(None, value)
+        if rv:
+            self.__acceptedValue = value
+        return rv
 
     def __init__ (self, wildcard_declaration, schema_location):
         super(WildcardUse, self).__init__()
@@ -680,7 +885,7 @@ class ElementDeclaration (ContentState_mixin, ContentModel_mixin):
         ## Implement ContentState_mixin.accepts
         (rv, value) = self._matches(value, element_decl)
         if rv:
-            self.setOrAppend(instance, value)
+            #self.setOrAppend(instance, value)
             particle_state.incrementCount()
         return rv
 
@@ -833,7 +1038,7 @@ class Wildcard (ContentState_mixin, ContentModel_mixin):
         if not isinstance(value, basis._TypeBinding_mixin):
             _log.info('Created unbound wildcard element from %s', value_desc,)
         assert isinstance(instance.wildcardElements(), list), 'Uninitialized wildcard list in %s' % (instance._ExpandedName,)
-        instance._appendWildcardElement(value)
+        #instance._appendWildcardElement(value)
         particle_state.incrementCount()
         return True
 
