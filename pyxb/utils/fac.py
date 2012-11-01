@@ -839,13 +839,13 @@ class Configuration (object):
         self.__subAutomata = None
 
     def candidateTransitions (self, symbol=None):
-        """Return set of viable transitions on C{symbol}
+        """Return list of viable transitions on C{symbol}
 
-        The set of transitions that are structurally permitted from
-        this state, filtering out those transitions where the update
-        instruction is not satisfied by the configuration counter
-        values, and optionally those for which the symbol does not
-        match.
+        The transitions that are structurally permitted from this
+        state, in order, filtering out those transitions where the
+        update instruction is not satisfied by the configuration
+        counter values and optionally those for which the symbol does
+        not match.
 
         @param symbol: A symbol through which a transition from this
         state is intended.  A value of C{None} indicates that the set
