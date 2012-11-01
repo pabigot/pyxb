@@ -33,6 +33,33 @@ Python 3 <150>` will result in PyXB 2.0.0.
 1.1.x
 =====
 
+1.1.5 (01 Nov 2012)
+-------------------
+
+This is a maintenance release to finalize the 1.1.x series before starting the
+1.2.x series.
+
+The following reported `defects/enhancements
+<http://sourceforge.net/apps/trac/pyxb/>`_ have been addressed:
+
+- The standard Python logging module is now used.  :ticket:`17`,
+  :ticket:`159`, :ticket:`157`
+- The potential for changing binding style support has been removed.
+  :ticket:`82`
+- PyPI/setuptools support has been fixed (again).  :ticket:`130`
+- Unit test setup/teardown has been reviewed.  :ticket:`149`
+- utf-8 is now used in all PyXB source files.  :ticket:`151`
+- Preserve namespace mappings in deep-cloned instances.  :ticket:`155`
+- Fix problems revealed by cython and pyflakes.  :ticket:`156`, :ticket:`167`
+- User contributions from Jon Foster, with the exception of windows test
+  scripts, have been incorporated.  :ticket:`157`
+- Correct issues in generator function to retrieve command line.
+  :ticket:`161`
+- Restore content of ExtraContentError exception.  :ticket:`163`
+- Warn rather than abort when apparently redundant schema are included.
+  :ticket:`169`
+
+
 1.1.4 (15 Jun 2012)
 -------------------
 
