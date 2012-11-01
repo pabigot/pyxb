@@ -269,47 +269,6 @@ def pythonLiteral (value, **kw):
 
     raise Exception('Unexpected literal type %s' % (type(value),))
 
-
-def GenerateContentTerm (ctd, term, binding_module, **kw):
-    lines = []
-    padding = '    '
-    separator = ",\n%s" % (padding,)
-    template_map = { 'ctd' : binding_module.literal(ctd, **kw) }
-    if isinstance(term, xs.structures.Wildcard):
-        term_val = binding_module.literal(term, **kw)
-    elif isinstance(term, xs.structures.ElementDeclaration):
-        term_val = templates.replaceInText('%{ctd}._UseForTag(%{field_tag})', field_tag=binding_module.literal(term.expandedName(), **kw), **template_map)
-    else:
-        gm_id = utility.PrepareIdentifier('GroupModel', binding_module.uniqueInClass(ctd), protected=True)
-        assert isinstance(term, xs.structures.ModelGroup)
-        if (term.C_ALL == term.compositor()):
-            group_val = 'All'
-        elif (term.C_CHOICE == term.compositor()):
-            group_val = 'Choice'
-        else:
-            assert term.C_SEQUENCE == term.compositor()
-            group_val = 'Sequence'
-        pvalues = []
-        for p in term.particles():
-            (value, plines) = GenerateContentParticle(ctd, p, binding_module, **kw)
-            if plines:
-                lines.extend(plines)
-            pvalues.append(value)
-        group_val = "pyxb.binding.content.Group%s(\n" % (group_val,) + padding + separator.join(pvalues) + "\n" + padding + ")"
-        template_map['gm_id'] = gm_id
-        lines.append(templates.replaceInText('%{ctd}.%{gm_id} = %{group_val}', group_val=group_val, **template_map))
-        term_val = templates.replaceInText('%{ctd}.%{gm_id}', **template_map)
-    return (term_val, lines)
-
-def GenerateContentParticle (ctd, particle, binding_module, **kw):
-    template_map = { }
-    template_map['ctd'] = binding_module.literal(ctd, **kw)
-    template_map['min_occurs'] = repr(particle.minOccurs())
-    template_map['max_occurs'] = repr(particle.maxOccurs())
-    (term_val, lines) = GenerateContentTerm(ctd, particle.term(), binding_module, **kw)
-    particle_val = templates.replaceInText('pyxb.binding.content.ParticleModel(%{term_val}, min_occurs=%{min_occurs}, max_occurs=%{max_occurs})', term_val=term_val, **template_map)
-    return (particle_val, lines)
-
 def _GenerateAutomaton (automaton, template_map, containing_state, lines, **kw):
     binding_module = kw['binding_module']
     name = utility.PrepareIdentifier('BuildAutomaton', binding_module.uniqueInModule(), protected=True)
@@ -967,13 +926,6 @@ class %{ctd} (%{superclass}):
             outf.postscript().append(templates.replaceInText('''
 %{ctd}._AddElement(pyxb.binding.basis.element(%{name_expr}, %{typeDefinition}%{element_aux_init}))
 ''', name_expr=binding_module.literal(ed.expandedName(), **kw), ctd=template_map['ctd'], **ef_map))
-
-        (particle_val, lines) = GenerateContentParticle(ctd=ctd, particle=content_basis, binding_module=binding_module, **kw)
-        if lines:
-            outf.postscript().append("\n".join(lines))
-            outf.postscript().append("\n")
-        outf.postscript().append(templates.replaceInText('%{ctd}._ContentModel = %{particle_val}\n', ctd=template_map['ctd'], particle_val=particle_val))
-        outf.postscript().append("\n")
 
         auto_defn = GenerateAutomaton(ctd, binding_module=binding_module, **kw)
         if auto_defn is not None:

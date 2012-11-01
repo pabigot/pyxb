@@ -1834,10 +1834,6 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
     _ReservedSymbols = _TypeBinding_mixin._ReservedSymbols.union(set([ 'wildcardElements', 'wildcardAttributeMap',
                              'xsdConstraintsOK', 'content', 'append', 'extend', 'value', 'reset' ]))
 
-    # None, or a reference to a ParticleModel instance that defines how to
-    # reduce a DOM node list to the body of this element.
-    _ContentModel = None
-
     # None, or a reference to a pyxb.utils.fac.Automaton instance that defines
     # the content model for the type.
     _Automaton = None
@@ -2025,7 +2021,6 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
 
     __automatonConfiguration = None
     def _resetAutomaton (self):
-        assert (self._ContentModel is None) == (self._Automaton is None), 'Mismatch automaton/contentmodel for %s' % (type(self),)
         if self._Automaton is not None:
             if self.__automatonConfiguration is None:
                 import pyxb.binding.content

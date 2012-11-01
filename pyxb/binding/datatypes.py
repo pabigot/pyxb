@@ -1145,11 +1145,6 @@ class anyType (basis.complexTypeDefinition):
     _HasWildcardElement = True
     _AttributeWildcard = content.Wildcard(namespace_constraint=content.Wildcard.NC_any, process_contents=content.Wildcard.PC_lax)
 
-    # Generate from tests/schemas/anyType.xsd
-    __Wildcard = content.Wildcard(process_contents=content.Wildcard.PC_lax, namespace_constraint=content.Wildcard.NC_any)
-    __Inner = content.GroupSequence(content.ParticleModel(__Wildcard, min_occurs=0, max_occurs=None))
-    _ContentModel = content.ParticleModel(__Inner, min_occurs=1, max_occurs=1)
-
 def _BuildAutomaton ():
     # Remove this helper function from the namespace after it's invoked
     global _BuildAutomaton
