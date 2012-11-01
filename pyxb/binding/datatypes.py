@@ -1139,6 +1139,7 @@ import content
 class anyType (basis.complexTypeDefinition):
     """XMLSchema datatype U{anyType<http://www.w3.org/TR/2001/REC-xmlschema-1-20010502/#key-urType>}."""
     _ExpandedName = pyxb.namespace.XMLSchema.createExpandedName('anyType')
+    _DefinitionLocation = pyxb.utils.utility.Location('http://www.w3.org/TR/2001/REC-xmlschema-1-20010502/#key-urType', 1, 1)
     _ContentTypeTag = basis.complexTypeDefinition._CT_MIXED
     _Abstract = False
     _HasWildcardElement = True
@@ -1156,7 +1157,7 @@ def _BuildAutomaton ():
     import pyxb.utils.fac as fac
 
     counters = set()
-    cc_0 = fac.CounterCondition(min=0L, max=None, metadata=pyxb.utils.utility.Location('/opt/pyxb/tests/schemas/anyType.xsd', 9, 3))
+    cc_0 = fac.CounterCondition(min=0L, max=None, metadata=pyxb.utils.utility.Location('http://www.w3.org/TR/2001/REC-xmlschema-1-20010502/#key-urType', 1, 1))
     counters.add(cc_0)
     states = set()
     final_update = set()
