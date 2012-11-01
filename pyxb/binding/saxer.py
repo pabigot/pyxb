@@ -226,9 +226,7 @@ class _SAXElementState (pyxb.utils.saxutils.SAXElementState):
         # As CreateFromDOM does, validate the resulting element
         if self.__bindingInstance._element() is None:
             self.__bindingInstance._setElement(self.__elementBinding)
-        if pyxb._ParsingRequiresValid:
-            self.__bindingInstance.validateBinding()
-        return self.__bindingInstance
+        return self.__bindingInstance._postDOMValidate()
 
 class PyXBSAXHandler (pyxb.utils.saxutils.BaseSAXHandler):
     """A SAX handler class which generates a binding instance for a document

@@ -57,8 +57,9 @@ import unittest
 
 class TestTrac0112 (unittest.TestCase):
     def testExample (self):
+        instance = CreateFromDocument(xmls)
         print "NOTE: THIS TEST ACTUALLY FAILS (we're validating that it does fail)"
-        self.assertRaises(pyxb.BindingValidationError, CreateFromDocument, xmls)
+        self.assertRaises(pyxb.BindingValidationError, instance.validateBinding)
 
 
 if __name__ == '__main__':
