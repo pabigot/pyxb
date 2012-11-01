@@ -476,6 +476,14 @@ class _TypeBinding_mixin (utility.Locatable_mixin):
             self._validateBinding_vx()
         return True
 
+    def _finalizeContentModel (self):
+        """Inform content model that all additions have been provided.
+
+        This is used to resolve any pending non-determinism when the content
+        of an element is provided through a DOM assignment or through
+        positional arguments in a constructor."""
+        return self
+
     def _postDOMValidate (self):
         self.validateBinding()
         return self
@@ -1754,12 +1762,19 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
 
         @keyword _from_xml: See L{_TypeBinding_mixin.Factory}
 
+        @keyword _finalize_content_model: If C{True} the constructor invokes
+        L{_TypeBinding_mixin._finalizeContentModel} prior to return.  The
+        value defaults to C{False} when content is assigned through keyword
+        parameters (bypassing the content model) or neither a L{_dom_node} nor
+        positional element parameters have been provided, and to C{True} in
+        all other cases.
         """
 
         fallback_namespace = kw.pop('_fallback_namespace', None)
         is_nil = False
         dom_node = kw.pop('_dom_node', None)
         from_xml = kw.pop('_from_xml', dom_node is not None)
+        do_finalize_content_model = kw.pop('_finalize_content_model', None)
         if dom_node is not None:
             if isinstance(dom_node, pyxb.utils.utility.Locatable_mixin):
                 self._setLocation(dom_node.location)
@@ -1778,21 +1793,30 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         super(complexTypeDefinition, self).__init__(**kw)
         self.reset()
         self._setAttributesFromKeywordsAndDOM(kw, dom_node)
+        did_set_kw_elt = False
         for fu in self._ElementMap.values():
             iv = kw.pop(fu.id(), None)
             if iv is not None:
+                did_set_kw_elt = True
                 fu.set(self, iv)
+        if do_finalize_content_model is None:
+            do_finalize_content_model = not did_set_kw_elt
         if kw and kw.pop('_strict_keywords', True):
             [ kw.pop(_fkw, None) for _fkw in self._PyXBFactoryKeywords ]
             if kw:
                 raise pyxb.ExtraContentError(kw)
         if 0 < len(args):
+            if did_set_kw_elt:
+                raise pyxb.UsageError('Cannot mix keyword and positional args for element initialization')
             self.extend(args, _from_xml=from_xml)
         elif self._CT_SIMPLE == self._ContentTypeTag:
             self.__initializeSimpleContent(args, dom_node)
         elif dom_node is not None:
             self.extend(dom_node.childNodes[:], fallback_namespace)
-            self._postDOMValidate()
+        else:
+            do_finalize_content_model = False
+        if do_finalize_content_model:
+            self._finalizeContentModel()
 
     def __initializeSimpleContent (self, args, dom_node=None):
         # Don't propagate the keywords.  Python base simple types usually
