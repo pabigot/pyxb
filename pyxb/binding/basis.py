@@ -1905,16 +1905,10 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         """
         if self._ContentTypeTag in (self._CT_EMPTY, self._CT_SIMPLE):
             return []
-        
-        if  self._ContentModel is None:
+        self._resetAutomaton()
+        if  self.__automatonConfiguration is None:
             raise pyxb.NoContentModel(self)
-        path = self._ContentModel.validate(self._symbolSet())
-        if path is not None:
-            ( symbols, sequence ) = path
-            if 0 == len(symbols):
-                return sequence
-            raise pyxb.BindingValidationError('Ungenerated symbols: %s' % (symbols,) )
-        return None
+        return self.__automatonConfiguration.sequencedChildren()
 
     def _symbolSet (self):
         """Return a map from L{content.ElementDeclaration} instances to a list of

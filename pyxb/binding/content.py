@@ -452,7 +452,9 @@ class AutomatonConfiguration (object):
 
     # The underlying configuration when the state is deterministic.  In this
     # case, all updates to the instance content corresponding to the current
-    # state have been applied to the instance.
+    # state have been applied to the instance.  Note that while steps are
+    # occurring this instance, as well as those in __multi, might be
+    # references to sub-automata.
     __cfg = None
 
     # A list of pairs when the state is non-deterministic.  The first member
@@ -463,17 +465,15 @@ class AutomatonConfiguration (object):
     # defining schema.
     __multi = None
 
-    def __init__ (self, ctd):
-        self.__instance = ctd
+    def __init__ (self, instance):
+        self.__instance = instance
 
     def reset (self):
         """Reset the automaton to its initial state.
 
         Subsequent transitions are expected based on candidate content to be
         supplied through the L{step} method."""
-        if self.__cfg is None:
-            self.__cfg = self.__instance._Automaton.newConfiguration()
-        self.__cfg.reset()
+        self.__cfg = self.__instance._Automaton.newConfiguration()
         self.__multi = None
 
     def step (self, value, element_decl):
@@ -576,7 +576,75 @@ class AutomatonConfiguration (object):
         If the automaton has unresolved nondeterminism, it is resolved first,
         preferring accepting states."""
         self.resolveNondeterminism(True)
-        return self.__cfg.isAccepting()
+        cfg = self.__cfg
+        while cfg.superConfiguration is not None:
+            cfg = cfg.superConfiguration
+        return cfg.isAccepting()
+
+    def sequencedChildren (self):
+        """Implement L{pyxb.binding.basis.complexTypeDefinition._validatedChildren}.
+
+        Go there for the interface.
+        """
+
+        # We need a fresh automaton configuration corresponding to the type of
+        # the binding instance.
+        self.reset()
+        cfg = self.__cfg
+
+        # The validated sequence
+        symbols = []
+
+        # The available content, in a map from ElementDeclaration to in-order
+        # values.  The key None corresponds to the wildcard content.  Keys are
+        # removed when their corresponding content is exhausted.
+        symbol_set = self.__instance._symbolSet()
+        while symbol_set:
+            # Find the first acceptable transition without filtering on any
+            # symbols
+            selected_xit = None
+            for xit in cfg.candidateTransitions(None):
+                csym = xit.consumedSymbol()
+                if isinstance(csym, ElementUse):
+                    ed = csym.elementDeclaration()
+                elif isinstance(csym, WildcardUse):
+                    ed = None
+                else:
+                    assert False
+                # Check whether we have content that matches the symbol
+                matches = symbol_set.get(ed)
+                if matches is None:
+                    continue
+                if not csym.match((matches[0], ed)):
+                    continue
+                # Commit to this transition and consume the selected content
+                symbols.append( (ed, csym.retrieveContent()) )
+                selected_xit = xit
+                matches.pop(0)
+                if 0 == len(matches):
+                    del symbol_set[ed]
+                break
+            if selected_xit is None:
+                break
+            cfg = selected_xit.apply(cfg)
+        # Exit out of any sub-configurations (they might be accepting while
+        # the superConfiguration is not)
+        while cfg.superConfiguration:
+            cfg = cfg.superConfiguration
+        if not cfg.isAccepting():
+            _log.warning('Incomplete content, expect %s' % (' or '.join(map(lambda _xit: str(_xit.consumedSymbol()), cfg.candidateTransitions(None))),))
+            return None
+        if symbol_set:
+            raise pyxb.BindingValidationError('Unvalidated symbols: %s' % (symbol_set,) )
+        return symbols
+        ''' # The old method
+        path = self.__instance._ContentModel.validate(self.__instance._symbolSet())
+        if path is not None:
+            ( symbols, sequence ) = path
+            if 0 == len(symbols):
+                return sequence
+        return None
+        '''
                     
 class ElementUse (pyxb.utils.fac.SymbolMatch_mixin):
     """Information about a schema element declaration reference."""
@@ -598,6 +666,12 @@ class ElementUse (pyxb.utils.fac.SymbolMatch_mixin):
     # A cached value accepted by the match method.  Subsequently either
     # storeContent or consumingClosure should be invoked to clear it.
     __acceptedValue = None
+
+    def retrieveContent (self):
+        """Read back an the content archived by a previous accepting match."""
+        rv = self.__acceptedValue
+        self.__acceptedValue = None
+        return rv
 
     def storeContent (self, instance):
         """Apply the value accepted by L{match} to the content of the instance."""
@@ -631,7 +705,7 @@ class ElementUse (pyxb.utils.fac.SymbolMatch_mixin):
         return rv
 
     def __str__ (self):
-        return '%s at %s' % (self.__elementDeclaration.name(), self.__schemaLocation)
+        return '%s per %s' % (self.__elementDeclaration.name(), self.__schemaLocation)
 
 class WildcardUse (pyxb.utils.fac.SymbolMatch_mixin):
     """Information about a schema wildcard element."""
@@ -649,6 +723,12 @@ class WildcardUse (pyxb.utils.fac.SymbolMatch_mixin):
     # storeContent or consumingClosure should be invoked to clear it.
     __acceptedValue = None
     
+    def retrieveContent (self):
+        """Read back an the content archived by a previous accepting match."""
+        rv = self.__acceptedValue
+        self.__acceptedValue = None
+        return rv
+
     def storeContent (self, instance):
         """Apply the value accepted by L{match} to the content of the instance."""
         assert self.__acceptedValue is not None
