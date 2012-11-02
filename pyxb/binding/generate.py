@@ -843,9 +843,18 @@ def GenerateCTD (ctd, generator, **kw):
     elif (ctd.CT_ELEMENT_ONLY == content_type_tag):
         content_basis = ctd.contentType()[1]
 
+    if ctd.annotation() is not None:
+        template_map['documentation'] = ctd.annotation().asDocString()
+    elif isinstance(ctd.owner(), xs.structures.ElementDeclaration) \
+      and ctd.owner().annotation() is not None:
+        template_map['documentation'] = ctd.owner().annotation().asDocString()
+    else:
+        template_map['documentation'] = templates.replaceInText("Complex type %{qname} with content type %{contentTypeTag}", **template_map)
+
     prolog_template = '''
 # Complex type %{qname} with content type %{contentTypeTag}
 class %{ctd} (%{superclass}):
+    """%{documentation}"""
     _TypeDefinition = %{simple_base_type}
     _ContentTypeTag = pyxb.binding.basis.complexTypeDefinition._CT_%{contentTypeTag}
     _Abstract = %{is_abstract}
