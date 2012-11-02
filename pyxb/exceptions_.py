@@ -268,17 +268,27 @@ class NoContentModel (BindingValidationError):
      pass
 
 class BindingError (PyXBException):
-    """Raised when the bindings are mis-used."""
-    pass
+    """Raised when the bindings are mis-used.
+
+    These are not validation errors, but rather structural errors.
+    For example, attempts to extract complex content from a type that
+    requires simple content, or vice versa.  """
+
+    instance = None
+    """The binding instance on which an inappropriate operation was invoked."""
+
+    def __init__ (self, *args):
+        (self.instance,) = args
+        super(BindingError, self).__init__(*args)
 
 class NotSimpleContentError (BindingError):
-    """Raised when an operation that requires simple content is
-    invoked on a complex type that does not have simple content."""
+    """An operation that requires simple content was invoked on a
+    complex type instance that does not have simple content."""
     pass
 
 class NotComplexContentError (BindingError):
-    """Raised when an operation is attempted that requires a content
-    model, but the complex type has empty or simple content."""
+    """An operation that requires a content model was invoked on a
+    complex type instance that has empty or simple content."""
     pass
 
 class PyXBError (exceptions.Exception):

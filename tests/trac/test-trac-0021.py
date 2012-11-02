@@ -39,17 +39,17 @@ class TestTrac0021 (unittest.TestCase):
     elements in that group to not be generated."""
     def testEmpty (self):
         instance = empty()
-        self.assertRaises(pyxb.NotSimpleContentError, lambda: instance.value())
-        self.assertRaises(pyxb.NotComplexContentError, lambda: instance.content())
+        self.assertRaises(pyxb.NotSimpleContentError, instance.value)
+        self.assertRaises(pyxb.NotComplexContentError, instance.content)
 
     def testSimple (self):
         instance = simple("hi")
         self.assertEqual("hi", instance.value())
-        self.assertRaises(pyxb.NotComplexContentError, lambda: instance.content())
+        self.assertRaises(pyxb.NotComplexContentError, instance.content)
 
     def testComplex (self):
         instance = complex("hi")
-        self.assertRaises(pyxb.NotSimpleContentError, lambda: instance.value())
+        self.assertRaises(pyxb.NotSimpleContentError, instance.value)
         elt = instance.content()[0]
         self.assertTrue(isinstance(elt, basestring))
         self.assertEqual("hi", elt)
