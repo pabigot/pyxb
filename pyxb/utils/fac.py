@@ -95,33 +95,38 @@ class UpdateApplicationError (FACError):
         (self.update_instruction, self.values) = args
         super(UpdateApplicationError, self).__init__(*args)
 
-class RecognitionError (Exception):
-    pass
+class AutomatonStepError (Exception):
+    """Symbol rejected by L{Configuration_ABC.step}.
 
-class UnrecognizedSymbolError (RecognitionError):
-    message = None
-    symbol = None
+    The exception indicates that the proposed symbol either failed to
+    produce a transition (L{UnrecognizedSymbolError}) or produced
+    multiple equally valid transitions
+    (L{NondeterministicSymbolError})."""
+
     configuration = None
-    expected = None
+    """The instance of L{Configuration_ABC} that raised the exception.
+    From L{Configuration_ABC.acceptableSymbols} you can determine what
+    alternatives might be present."""
+
+    symbol = None
+    """The symbol that was not accepted."""
+
+    def __get_acceptable (self):
+        """A list of symbols that the configuration would accept in its current state."""
+        return self.configuration.acceptableSymbols()
+    acceptable = property(__get_acceptable)
 
     def __init__ (self, *args):
-        (self.message, self.symbol, self.configuration, self.expected) = args
-        if not isinstance(self.expected, frozenset):
-            self.expected = frozenset(self.expected)
-        super(UnrecognizedSymbolError, self).__init__(*args)
+        (self.configuration, self.symbol) = args
+        super(AutomatonStepError, self).__init__(*args)
+
+class UnrecognizedSymbolError (AutomatonStepError):
+    """L{Configuration.step} failed to find a valid transition."""
     pass
 
-class NondeterministicSymbolError (RecognitionError):
-    message = None
-    symbol = None
-    configuration = None
-    matches = None
-
-    def __init__ (self, *args):
-        (self.message, self.symbol, self.configuration, self.matches) = args
-        if not isinstance(self.matches, frozenset):
-            self.matches = frozenset(self.matches)
-        super(NondeterministicSymbolError, self).__init__(*args)
+class NondeterministicSymbolError (AutomatonStepError):
+    """L{Configuration.step} found multiple transitions."""
+    pass
 
 class SymbolMatch_mixin (object):
     """Mix-in used by symbols to provide a custom match implementation.
@@ -709,7 +714,54 @@ class Transition (object):
             rv.append(str(self.__nextTransition))
         return ''.join(rv)
 
-class Configuration (object):
+class Configuration_ABC (object):
+    """Base class for something that represents an L{Automaton} in
+    execution.
+
+    For deterministic automata, this is generally a L{Configuration}
+    which records the current automaton state along with its counter
+    values.
+
+    For non-deterministic automata, this is a L{MultiConfiguration}
+    which records a set of L{Configuration}s."""
+    
+    def acceptableSymbols (self):
+        """Return the acceptable L{Symbol}s given the current
+        configuration.
+
+        This method extracts the symbol from all candidate transitions
+        that are permitted based on the current counter values.
+        Because transitions are presented in a preferred order, the
+        symbols are as well."""
+        raise NotImplementedError('%s.acceptableSymbols' % (type(self).__name__,))
+
+    def step (self, symbol):
+        """Execute an automaton transition using the given symbol.
+
+        @param symbol: A symbol from the alphabet of the automaton's
+        language.  This is a Python value that should be accepted by
+        the L{SymbolMatch_mixin.match} method of a L{State.symbol}.
+        It is not a L{Symbol} instance.
+
+        @return: The new configuration resulting from the step.
+
+        @raises AutomatonStepError: L{UnrecognizedSymbolError}
+        when no transition compatible with C{symbol} is available, and
+        L{NondeterministicSymbolError} if C{symbol} admits multiple
+        transitions and the subclass does not support
+        non-deterministic steps (see L{MultiConfiguration}).
+
+        @warning: If the step entered or left a sub-automaton the
+        return value will not be the configuration that was used to
+        execute the step.  The proper pattern for using this method
+        is::
+
+           cfg = cfg.step(sym)
+        
+        """
+        raise NotImplementedError('%s.step' % (type(self).__name__,))
+
+class Configuration (Configuration_ABC):
     """The state of an L{Automaton} in execution.
 
     This combines a state node of the automaton with a set of counter
@@ -922,12 +974,15 @@ class Configuration (object):
         assert len(frozenset(transitions)) == len(transitions)
         return filter(update_filter, filter(match_filter, transitions))
 
+    def acceptableSymbols (self):
+        return map(lambda _xit: _xit.consumedSymbol(), self.candidateTransitions())
+
     def step (self, symbol):
         transitions = self.candidateTransitions(symbol)
         if 0 == len(transitions):
-            raise UnrecognizedSymbolError('Unable to match symbol', symbol, self, map(lambda _xit: _xit.consumedSymbol(), self.candidateTransitions()))
+            raise UnrecognizedSymbolError(self, symbol)
         if 1 < len(transitions):
-            raise NondeterministicSymbolError('Non-deterministic transition', symbol, self, transitions)
+            raise NondeterministicSymbolError(self, symbol)
         return transitions[0].apply(self)
 
     def isInitial (self):
@@ -992,14 +1047,19 @@ class Configuration (object):
     def __str__ (self):
         return '%s: %s' % (self.__state, ' ; '.join([ '%s=%u' % (_c,_v) for (_c,_v) in self.__counterValues.iteritems()]))
 
-class MultiConfiguration (object):
+class MultiConfiguration (Configuration_ABC):
     """Support parallel execution of state machine.
 
     This holds a set of configurations, and executes each transition
-    on each one.  A starting configuration from which no transition
-    can be made is silently dropped.  If multiple valid transitions
-    are permitted, a state is added for each resulting
-    configuration."""
+    on each one.  Configurations which fail to accept a step are
+    silently dropped; only if this results in no remaining
+    configurations will L{UnrecognizedSymbolError} be raised.  If a
+    step admits multiple valid transitions, a configuration is added
+    for each one.
+
+    See L{pyxb.binding.content.AutomatonConfiguration} for an
+    alternative solution which holds actions associated with the
+    transition until the non-determinism is resolved."""
     
     __configurations = None
 
@@ -1007,14 +1067,12 @@ class MultiConfiguration (object):
         self.__configurations = [ configuration]
     
     def acceptableSymbols (self):
-        """Return the acceptable L{Symbol}s in preferred order."""
         acceptable = []
         for cfg in self.__configurations:
-            acceptable.extend(map(lambda _xit: _xit.consumedSymbol(), cfg.candidateTransitions()))
+            acceptable.extend(cfg.acceptableSymbols())
         return acceptable
 
     def step (self, symbol):
-        """Execute the symbol transition on all configurations."""
         next_configs = []
         for cfg in self.__configurations:
             transitions = cfg.candidateTransitions(symbol)
@@ -1028,7 +1086,7 @@ class MultiConfiguration (object):
                     ccfg = cfg.clone(clone_map)
                     next_configs.append(transition.apply(ccfg, clone_map))
         if 0 == len(next_configs):
-            raise UnrecognizedSymbolError('Multiconfig unable to match symbol', symbol, self, self.acceptableSymbols())
+            raise UnrecognizedSymbolError(self, symbol)
         assert len(frozenset(next_configs)) == len(next_configs)
         self.__configurations = next_configs
         return self

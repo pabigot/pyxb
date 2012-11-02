@@ -24,7 +24,7 @@ class TestFAC (unittest.TestCase):
         self.assertTrue(cfg.isAccepting())
         cfg.reset()
         self.assertFalse(cfg.isAccepting())
-        self.assertRaises(RecognitionError, cfg.step, 'b')
+        self.assertRaises(AutomatonStepError, cfg.step, 'b')
 
     def testNumericalConstraint (self):
         self.assertEqual(self.a2ObTc, self.ex.term)
@@ -171,9 +171,9 @@ class TestFAC (unittest.TestCase):
         try:
             cfg = cfg.step(word.pop(0))
             self.fail("Expected recognition error")
-        except RecognitionError as e:
+        except AutomatonStepError as e:
             self.assertEqual(e.symbol, 'd')
-            self.assertEqual(e.expected, frozenset(['b', 'c']))
+            self.assertEqual(frozenset(e.acceptable), frozenset(['c', 'b']))
         except Exception as e:
             self.fail("Unexpected exception %s" % (e,))
             
@@ -221,15 +221,14 @@ class TestFAC (unittest.TestCase):
         mcfg = MultiConfiguration(cfg)
         mcfg = mcfg.step(word.pop(0))
         mcfg = mcfg.step(word.pop(0))
-        acceptable = frozenset(mcfg.acceptableSymbols())
-        self.assertEqual(acceptable, frozenset('fe'))
+        # NB: buildAutomaton may not preserve term order
+        self.assertEqual(frozenset(mcfg.acceptableSymbols()), frozenset(['e', 'f']))
         accepting = mcfg.acceptingConfigurations()
         self.assertEqual(0, len(accepting))
         mcfg = mcfg.step('f')
         accepting = mcfg.acceptingConfigurations()
         self.assertEqual(0, len(accepting))
-        acceptable = frozenset(mcfg.acceptableSymbols())
-        self.assertEqual(acceptable, frozenset('e'))
+        self.assertEqual(mcfg.acceptableSymbols(), [ 'e' ])
         mcfg = mcfg.step('e')
         accepting = mcfg.acceptingConfigurations()
         self.assertEqual(1, len(accepting))
@@ -373,9 +372,10 @@ class TestFAC (unittest.TestCase):
         try:
             cfg = cfg.step('e')
             self.fail('Expected recognition error')
-        except RecognitionError as e:
+        except AutomatonStepError as e:
             self.assertEqual(e.symbol, 'e')
-            self.assertEqual(frozenset(e.expected), frozenset(['c', 'b']))
+            # NB: buildAutomaton may not preserve term order
+            self.assertEqual(frozenset(e.acceptable), frozenset(['c', 'b']))
         except Exception as e:
             self.fail('Unexpected exception %s' % (e,))
         cfg = cfg.step('b')

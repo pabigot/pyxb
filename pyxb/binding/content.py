@@ -311,8 +311,12 @@ class AttributeUse (pyxb.cscRoot):
         return ''.join(desc)
 
 class AutomatonConfiguration (object):
-    """State for a L{pyxb.utils.FAC.Automaton} monitoring content for an
-    incrementally constructed complex type binding instance."""
+    """State for a L{pyxb.utils.fac.Automaton} monitoring content for an
+    incrementally constructed complex type binding instance.
+
+    @warning: This is not an implementation of
+    L{pyxb.utils.fac.Configuration_ABC} because we need the L{step} function
+    to return a different type of value."""
 
     # The binding instance for which content is being built
     __instance = None
