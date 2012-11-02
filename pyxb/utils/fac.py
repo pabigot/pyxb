@@ -69,7 +69,16 @@ class InvalidTermTreeError (FACError):
     """Exception raised when a FAC term tree is not a tree.
 
     For example, a L{Symbol} node appears multiple times, or a cycle is detected."""
-    pass
+
+    parent = None
+    """The L{MultiTermNode} containing the term that proves invalidity"""
+
+    term = None
+    """The L{Node} that proves invalidity"""
+
+    def __init__ (self, *args):
+        (self.parent, self.term) = args
+        super(InvalidTermTreeError, self).__init__(*args)
 
 class CounterApplicationError (FACError):
     """Exception raised when an unsatisfied update instruction is executed.
@@ -1337,13 +1346,14 @@ class Node (object):
 
     def __resetAndValidate (self, node, pos, visited_nodes):
         if node in visited_nodes:
-            raise InvalidTermTreeError(self)
+            raise InvalidTermTreeError(self, node)
         node.reset()
         visited_nodes.add(node)
 
     def buildAutomaton (self, state_ctor=State, ctr_cond_ctor=CounterCondition, containing_state=None):
         # Validate that the term tree is in fact a tree.  A DAG does
-        # not work.  If the tree has cycles, this won't even return.
+        # not work.  If the tree had cycles, the automaton build
+        # wouldn't even return.
         self.walkTermTree(self.__resetAndValidate, None, set())
 
         counter_map = { }

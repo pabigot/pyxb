@@ -1,5 +1,6 @@
 from pyxb.utils.fac import *
 import unittest
+import sys
 
 class TestFAC (unittest.TestCase):
 
@@ -103,7 +104,13 @@ class TestFAC (unittest.TestCase):
     def testValidateAutomaton (self):
         a = Symbol('a')
         x = Sequence(a, a)
-        self.assertRaises(InvalidTermTreeError, x.buildAutomaton)
+        if sys.version_info[:2] >= (2, 7):
+            with self.assertRaises(InvalidTermTreeError) as cm:
+                x.buildAutomaton()
+            self.assertEqual(cm.exception.parent, x)
+            self.assertEqual(cm.exception.term, a)
+        else:
+            self.assertRaises(InvalidTermTreeError, x.buildAutomaton)
 
     def testInternals (self):
         #print self.ex.facToString()
