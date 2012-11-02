@@ -1920,7 +1920,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
                     rv[eu] = [ converter(_v) for _v in value ]
             else:
                 rv[eu] = [ converter(value)]
-        wce = self.wildcardElements()
+        wce = self.__wildcardElements
         if (wce is not None) and (0 < len(wce)):
             rv[None] = wce[:]
         return rv
@@ -2130,7 +2130,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
                 if element_decl is not None:
                     element_decl.setOrAppend(self, value)
                     return self
-                if self.wildcardElements() is not None:
+                if self.__wildcardElements is not None:
                     self._appendWildcardElement(value)
                     return self
                 raise pyxb.StructuralBadDocumentError('Validation is required when no element_decl can be found')
@@ -2172,10 +2172,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         return self
 
     def _appendWildcardElement (self, value):
-        wcl = self.wildcardElements()
-        if wcl is None:
-            raise pyxb.UnrecognizedContentError(value, container=self)
-        wcl.append(value)
+        self.__wildcardElements.append(value)
         
     def extend (self, value_list, _fallback_namespace=None, _from_xml=False):
         """Invoke L{append} for each value in the list, in turn."""
