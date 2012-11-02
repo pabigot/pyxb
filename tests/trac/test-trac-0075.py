@@ -61,12 +61,7 @@ class TestTrac_0075 (unittest.TestCase):
     def testNotAnElementError (self):
         elt = tTop._UseForTag('inner')
         self.assertTrue(isinstance(elt, pyxb.binding.content.ElementDeclaration))
-        try:
-            elt = tTop._UseForTag('notInner')
-            self.fail('Found non-existent inner element')
-        except NotAnElementError, e:
-            self.assertEqual('notInner', e.element_name)
-            self.assertEqual(tTop, e.containing_type)
+        self.assertRaises(KeyError, tTop._UseForTag, 'notInner')
 
     def testUnrecognizedContentError (self):
         # Hide the warnings that tInner could not be converted to binding

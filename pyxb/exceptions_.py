@@ -187,30 +187,6 @@ class ExtraContentError (UnrecognizedContentError):
 class MissingContentError (StructuralBadDocumentError):
     """Raised when processing document and expected content is not present.  See also UnrecognizedContentError."""
 
-class NotAnElementError (UnrecognizedContentError):
-    """Raised when processing document and a tag that is a type but not an element is encountered."""
-
-    @property
-    def element_name (self):
-        """The L{pyxb.namespace.ExpandedName} of the element that was not recognized."""
-        return self.__elementName
-
-    @property
-    def containing_type (self):
-        """The L{pyxb.binding.content.complexTypeDefinition} in which the element was unrecognized."""
-        return self.__containingType
-
-    def __init__ (self, element_name, containing_type, **kw):
-        """Raised when a document inner element is recognized as a type rather than an element.
-
-        @param element_name : The name of the inner element from the document
-        @param containing_type : The L{pyxb.binding.content.complexTypeDefinition} class in which the lookup failed
-        """
-        self.__elementName = element_name
-        self.__containingType = containing_type
-        kw.setdefault('message', 'Unable to locate element %s in type %s' % (element_name, self.__containingType._ExpandedName))
-        UnrecognizedContentError.__init__(self, **kw)
-
 class UnrecognizedAttributeError (BadDocumentError):
     """Raised when an attribute is found that is not sanctioned by the content model."""
 
