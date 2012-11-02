@@ -248,7 +248,15 @@ class DOMGenerationError (PyXBException):
 
 class NoNillableSupportError (PyXBException):
     """Raised when checking _isNil on a type that does not support nillable."""
-    pass
+
+    instance = None
+    """The binding instance on which an inappropriate operation was invoked."""
+
+    def __init__ (self, instance):
+        """@param instance: the binding instance that was mis-used.
+        This will be available in the L{instance} attribute."""
+        self.instance = instance
+        super(NoNillableSupportError, self).__init__(instance)
 
 class BindingValidationError (ValidationError):
     """Raised when the content of a binding object is not consistent with its content model"""

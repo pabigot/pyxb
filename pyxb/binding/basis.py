@@ -124,7 +124,7 @@ class _TypeBinding_mixin (utility.Locatable_mixin):
         <pyxb.binding.basis.element.nillable>}.
         """
         if self.__xsiNil is None:
-            raise pyxb.NoNillableSupportError(type(self))
+            raise pyxb.NoNillableSupportError(self)
         self.__xsiNil = not not nil
         if self.__xsiNil:
             self._resetContent()
