@@ -113,8 +113,11 @@ class _TypeBinding_mixin (utility.Locatable_mixin):
         whether the instance itself is U{nil<http://www.w3.org/TR/xmlschema-1/#xsi_nil>}.
         """
         return self.__xsiNil
-    def _setIsNil (self):
+    def _setIsNil (self, nil=True):
         """Set the xsi:nil property of the instance.
+
+        @param nil: C{True} if the value of xsi:nil should be C{true},
+        C{False} if the value of xsi:nil should be C{false}.
 
         @raise pyxb.NoNillableSupportError: the instance is not associated
         with an element that is L{nillable
@@ -122,8 +125,9 @@ class _TypeBinding_mixin (utility.Locatable_mixin):
         """
         if self.__xsiNil is None:
             raise pyxb.NoNillableSupportError(type(self))
-        self.__xsiNil = True
-        self._resetContent()
+        self.__xsiNil = not not nil
+        if self.__xsiNil:
+            self._resetContent()
 
     def _resetContent (self):
         pass
@@ -2083,6 +2087,8 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         
         # @todo: Allow caller to provide default element use; it's available
         # in saxer.
+        if self._isNil():
+            raise pyxb.ExtraContentError('%s: Content %s present in element with xsi:nil' % (type(self), value))
         element_binding = None
         if element_decl is not None:
             from pyxb.binding import content
@@ -2122,8 +2128,6 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         if (not maybe_element) and isinstance(value, basestring) and (self._ContentTypeTag in (self._CT_EMPTY, self._CT_ELEMENT_ONLY)):
             if (0 == len(value.strip())) and not self._isNil():
                 return self
-        if self._isNil() and not self._IsSimpleTypeContent():
-            raise pyxb.ExtraContentError('%s: Content %s present in element with xsi:nil' % (type(self), value))
         if maybe_element and (self.__automatonConfiguration is not None):
             # Allows element content.
             if not require_validation:

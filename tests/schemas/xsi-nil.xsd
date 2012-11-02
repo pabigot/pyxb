@@ -12,4 +12,14 @@
 			</xs:sequence>
 		</xs:complexType>
 	</xs:element>
+	<xs:element name="simple" nillable="true">
+		<xs:complexType>
+                <xs:simpleContent>
+                        <xs:extension base="xs:string">
+                                <xs:attribute name="attr" type="xs:string"/>
+                        </xs:extension>
+                </xs:simpleContent>
+		</xs:complexType>
+	</xs:element>
+
 </xs:schema>

@@ -178,6 +178,27 @@ class TestXSIType (unittest.TestCase):
             self.assertEqual(instance.toDOM().documentElement.toxml("utf-8"), canonical)
             instance.validateBinding()
 
+    def testConstructorNil (self):
+        o = optional()
+        self.assertFalse(o._isNil())
+        o = optional(_nil=True)
+        self.assertTrue(o._isNil())
+        c = complex()
+        self.assertFalse(c._isNil())
+        c = complex(_nil=True)
+        self.assertTrue(c._isNil())
+        s = simple()
+        self.assertFalse(s._isNil())
+        s = simple(_nil=True)
+        self.assertTrue(s._isNil())
+
+    def testNilAppend (self):
+        c = complex(_nil=True)
+        self.assertRaises(pyxb.ExtraContentError, c.append, 'one')
+
+        s = simple(_nil=True)
+        self.assertRaises(pyxb.ExtraContentError, s.append, 'one')
+
 if __name__ == '__main__':
     unittest.main()
     
