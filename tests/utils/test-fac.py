@@ -221,11 +221,28 @@ class TestFAC (unittest.TestCase):
         mcfg = MultiConfiguration(cfg)
         mcfg = mcfg.step(word.pop(0))
         mcfg = mcfg.step(word.pop(0))
+        acceptable = frozenset(mcfg.acceptableSymbols())
+        self.assertEqual(acceptable, frozenset('fe'))
         accepting = mcfg.acceptingConfigurations()
-        self.assertEqual(1, len(accepting))
+        self.assertEqual(0, len(accepting))
         mcfg = mcfg.step('f')
         accepting = mcfg.acceptingConfigurations()
+        self.assertEqual(0, len(accepting))
+        acceptable = frozenset(mcfg.acceptableSymbols())
+        self.assertEqual(acceptable, frozenset('e'))
+        mcfg = mcfg.step('e')
+        accepting = mcfg.acceptingConfigurations()
         self.assertEqual(1, len(accepting))
+
+    def testSubAcceptMulti (self):
+        a = NumericalConstraint(Symbol('a'), 0, 1)
+        b = Symbol('b')
+        ax = All(a, b)
+        mcfg = MultiConfiguration(Configuration(ax.buildAutomaton()))
+        word = list('a')
+        mcfg = mcfg.step(word.pop(0))
+        acc = mcfg.acceptingConfigurations()
+        self.assertEqual(0, len(acc))
 
     # Example from page 2 of Kilpelainen "Checking Determinism of XML
     # Schema Content Models in Optimal Time", IS preprint 20101026

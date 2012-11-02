@@ -1006,6 +1006,13 @@ class MultiConfiguration (object):
     def __init__ (self, configuration):
         self.__configurations = [ configuration]
     
+    def acceptableSymbols (self):
+        """Return the acceptable L{Symbol}s in preferred order."""
+        acceptable = []
+        for cfg in self.__configurations:
+            acceptable.extend(map(lambda _xit: _xit.consumedSymbol(), cfg.candidateTransitions()))
+        return acceptable
+
     def step (self, symbol):
         """Execute the symbol transition on all configurations."""
         next_configs = []
@@ -1021,17 +1028,27 @@ class MultiConfiguration (object):
                     ccfg = cfg.clone(clone_map)
                     next_configs.append(transition.apply(ccfg, clone_map))
         if 0 == len(next_configs):
-            allowed = []
-            for cfg in self.__configurations:
-                allowed.extend(map(lambda _xit: _xit.consumedSymbol(), cfg.candidateTransitions()))
-            raise UnrecognizedSymbolError('Multiconfig unable to match symbol', symbol, self, allowed)
+            raise UnrecognizedSymbolError('Multiconfig unable to match symbol', symbol, self, self.acceptableSymbols())
         assert len(frozenset(next_configs)) == len(next_configs)
         self.__configurations = next_configs
         return self
 
     def acceptingConfigurations (self):
-        """Return the set of configurations that are in an accepting state."""
-        return filter(lambda _s: _s.isAccepting(), self.__configurations)
+        """Return the set of configurations that are in an accepting state.
+
+        Note that some of the configurations may be within a
+        sub-automaton; their presence in the return value is because
+        the root configuration is also accepting."""
+        accepting = []
+        for cfg in self.__configurations:
+            rcfg = cfg
+            # Rule out configurations that are accepting within their
+            # automaton, but not in the containing automaton.
+            while rcfg.superConfiguration is not None:
+                rcfg = rcfg.superConfiguration
+            if rcfg.isAccepting():
+                accepting.append(cfg)
+        return accepting
 
 class Automaton (object):
     """Representation of a Finite Automaton with Counters.
