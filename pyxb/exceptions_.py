@@ -100,10 +100,6 @@ class NotInNamespaceError (PyXBException):
     __namespace = None
     __ncName = None
 
-class BadPropertyError (PyXBException):
-    """Raised when a schema component property is accessed on a component instance that does not define that property."""
-    pass
-
 class BadDocumentError (PyXBException):
     """Raised when processing document content and an error is encountered."""
     pass

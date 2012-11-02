@@ -3686,8 +3686,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
     __primitiveTypeDefinition = None
     def primitiveTypeDefinition (self, throw_if_absent=True):
         if throw_if_absent:
-            if self.variety() != self.VARIETY_atomic:
-                raise pyxb.BadPropertyError('[%s] primitiveTypeDefinition only defined for atomic types' % (self.name(), self.variety()))
+            assert self.VARIETY_atomic == self.variety()
             if self.__primitiveTypeDefinition is None:
                 raise pyxb.LogicError('Expected primitive type for %s in %s', self, self.targetNamespace())
         return self.__primitiveTypeDefinition
@@ -3695,8 +3694,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
     # For list variety only, the type of items in the list
     __itemTypeDefinition = None
     def itemTypeDefinition (self):
-        if self.VARIETY_list != self.variety():
-            raise pyxb.BadPropertyError('itemTypeDefinition only defined for list types')
+        assert self.VARIETY_list == self.variety()
         if self.__itemTypeDefinition is None:
             raise pyxb.LogicError('Expected item type')
         return self.__itemTypeDefinition
@@ -3704,8 +3702,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
     # For union variety only, the sequence of candidate members
     __memberTypeDefinitions = None
     def memberTypeDefinitions (self):
-        if self.VARIETY_union != self.variety():
-            raise pyxb.BadPropertyError('memberTypeDefinitions only defined for union types')
+        assert self.VARIETY_union == self.variety()
         if self.__memberTypeDefinitions is None:
             raise pyxb.LogicError('Expected member types')
         return self.__memberTypeDefinitions
