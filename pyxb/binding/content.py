@@ -510,7 +510,14 @@ class AutomatonConfiguration (object):
         return symbols
                     
 class ElementUse (pyxb.utils.fac.SymbolMatch_mixin):
-    """Information about a schema element declaration reference."""
+    """Information about a schema element declaration reference.
+
+    This is used by the FAC content model to identify the location
+    within a schema at which an element use appears.  The L{ElementDeclaration}
+    is not sufficient since multiple uses in various schema, possibly in
+    different namespaces, may refer to the same declaration but be independent
+    uses.
+    """
 
     __elementDeclaration = None
     __schemaLocation = None
@@ -571,7 +578,11 @@ class ElementUse (pyxb.utils.fac.SymbolMatch_mixin):
         return '%s per %s' % (self.__elementDeclaration.name(), self.__schemaLocation)
 
 class WildcardUse (pyxb.utils.fac.SymbolMatch_mixin):
-    """Information about a schema wildcard element."""
+    """Information about a schema wildcard element.
+
+    This is functionally parallel to L{ElementUse}, but references a
+    L{Wildcard} that is unique to this instance.  That L{Wildcard} is not
+    incorporated into this class is an artifact of the evolution of PyXB."""
 
     __wildcardDeclaration = None
     __schemaLocation = None
@@ -613,9 +624,8 @@ class WildcardUse (pyxb.utils.fac.SymbolMatch_mixin):
         is cached internally and return C{True}; otherwise return C{False}.
 
         @param symbol: a pair C{(value, element_decl)}.
-        L{pyxb.binding.content.WildcardDeclaration.matches} is used to
-        determine whether the proposed content is compatible with this
-        wildcard.
+        L{pyxb.binding.content.Wildcard.matches} is used to determine whether
+        the proposed content is compatible with this wildcard.
         """
         (value, element_decl) = symbol
         rv = self.__wildcardDeclaration.matches(None, value)

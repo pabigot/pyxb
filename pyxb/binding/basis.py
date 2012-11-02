@@ -1265,9 +1265,9 @@ class STD_list (simpleTypeDefinition, types.ListType):
 class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
     """Class that represents a schema element within a binding.
 
-    This gets a little confusing.  Within a schema, the L{element
-    declaration<pyxb.xmlschema.structures.ElementDeclaration>} type represents
-    an U{element
+    This gets a little confusing.  Within a schema, the
+    L{pyxb.xmlschema.structures.ElementDeclaration} type represents an
+    U{element
     declaration<http://www.w3.org/TR/xmlschema-1/#cElement_Declarations>}.
     Those declarations may be global (have a name that is visible in the
     namespace), or local (have a name that is visible only within a complex
@@ -1279,25 +1279,25 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
     type definition that have the same
     U{QName<http://www.w3.org/TR/1999/REC-xml-names-19990114/#dt-qname>}
     (after deconflicting the
-    U{LocalPart<http://www.w3.org/TR/1999/REC-xml-names-19990114/#NT-LocalPart>}
+    U{LocalPart<http://www.w3.org/TR/1999/REC-xml-names-19990114/#NT-LocalPart>})
     are associated with an attribute in the class for the complex type.  Each
-    of these attributes is defined via a L{binding
-    ElementDeclaration<pyxb.binding.basis.Content.ElementDeclaration>} which
-    provides the mechanism by which the binding holds values associated with
-    that element.
+    of these attributes is defined via a
+    L{pyxb.binding.content.ElementDeclaration} which provides the mechanism by
+    which the binding holds values associated with that element.
 
-    Furthermore, in the FAC-based content model, each schema element
-    declaration is associated with a binding
-    L{ElementUse<pyxb.binding.basis.Content.ElementUse>} instance to locate
-    the point in the schema where content came from.  Multiple instances of
-    these classes will may refer to the same binding ElementDeclaration.
+    Furthermore, in the FAC-based content model each schema element
+    declaration is associated with an
+    L{ElementUse<pyxb.binding.content.ElementUse>} instance to locate the
+    point in the schema where content came from.  Instances that refer to the
+    same schema element declaration share the same underlying
+    L{pyxb.binding.content.ElementDeclaration}.
 
-    None of these are this element.  This element is type used for a variable
-    which associates the name of a element with data required to represent it,
-    all within a particular scope (a module for global scope, the binding
-    class for a complex type definition for local scope).  From the
-    perspective of a PyXB user they look almost like a class, in that you can
-    call them to create instances of the underlying complex type.
+    This element isn't any of those elements.  This element is the type used
+    for an attribute which associates the name of a element with data required
+    to represent it, all within a particular scope (a module for global scope,
+    the binding class for a complex type definition for local scope).  From
+    the perspective of a PyXB user they look almost like a class, in that you
+    can call them to create instances of the underlying complex type.
 
     Global and local elements are represented by instances of this class.
     """
@@ -1884,13 +1884,6 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
 
         If the content of the instance does not validate against the content
         model, C{None} is returned.
-
-        The base class implementation uses the
-        L{content.ParticleModel.validate} method.  Subclasses may desire to
-        override this in cases where the desired order is not maintained by
-        model interpretation (for example, when an "all" model is used and the
-        original element order is desired).  See L{__childrenForDOM} as an
-        example of an alternative approach.
 
         @return: C{None} or a list as described above.
         """
