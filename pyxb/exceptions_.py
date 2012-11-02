@@ -277,9 +277,11 @@ class BindingError (PyXBException):
     instance = None
     """The binding instance on which an inappropriate operation was invoked."""
 
-    def __init__ (self, *args):
-        (self.instance,) = args
-        super(BindingError, self).__init__(*args)
+    def __init__ (self, instance):
+        """@param instance: the binding instance that was mis-used.
+        This will be available in the L{instance} attribute."""
+        self.instance = instance
+        super(BindingError, self).__init__(instance)
 
 class NotSimpleContentError (BindingError):
     """An operation that requires simple content was invoked on a
