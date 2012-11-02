@@ -753,6 +753,8 @@ class ElementDeclaration (object):
         """Set the value of this element in the given instance."""
         if value is None:
             return self.reset(ctd_instance)
+        if ctd_instance._isNil():
+            raise pyxb.ExtraContentError(ctd_instance)
         assert self.__elementBinding is not None
         if basis._TypeBinding_mixin._PerformValidation:
             value = self.__elementBinding.compatibleValue(value, is_plural=self.isPlural())
@@ -771,6 +773,8 @@ class ElementDeclaration (object):
         """Add the given value as another instance of this element within the binding instance.
         @raise pyxb.StructuralBadDocumentError: invoked on an element use that is not plural
         """
+        if ctd_instance._isNil():
+            raise pyxb.ExtraContentError(ctd_instance)
         if not self.isPlural():
             raise pyxb.StructuralBadDocumentError('Cannot append to element with non-plural multiplicity')
         values = self.value(ctd_instance)

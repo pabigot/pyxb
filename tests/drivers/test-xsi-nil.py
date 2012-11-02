@@ -22,6 +22,10 @@ from pyxb.exceptions_ import *
 
 import unittest
 
+def setFull (instance, value):
+    instance.full = value
+    return instance
+
 class TestXSIType (unittest.TestCase):
 
     def testFull (self):
@@ -192,12 +196,21 @@ class TestXSIType (unittest.TestCase):
         s = simple(_nil=True)
         self.assertTrue(s._isNil())
 
-    def testNilAppend (self):
-        c = complex(_nil=True)
-        self.assertRaises(pyxb.ExtraContentError, c.append, 'one')
-
+    def testNilSetAndAppend (self):
         s = simple(_nil=True)
         self.assertRaises(pyxb.ExtraContentError, s.append, 'one')
+        c = complex(_nil=True)
+        self.assertRaises(pyxb.ExtraContentError, c.append, 'one')
+        full = c._UseForTag('full')
+        self.assertRaises(pyxb.ExtraContentError, setFull, c, 'yes')
+        self.assertRaises(pyxb.ExtraContentError, full.append, c, 'yes')
+        self.assertRaises(pyxb.ExtraContentError, full.setOrAppend, c, 'yes')
+        multi = c._UseForTag('multi')
+        self.assertRaises(pyxb.ExtraContentError, multi.append, c, 'one')
+        self.assertRaises(pyxb.ExtraContentError, multi.setOrAppend, c, 'one')
+        # Nothing we can do about assignments that bypass the validation hooks.
+        # Customizing list would probably destroy performance.
+        c.multi.append('one')
 
 if __name__ == '__main__':
     unittest.main()

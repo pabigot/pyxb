@@ -9,6 +9,7 @@
 			<xs:sequence>
 				<xs:element ref="full"/>
 				<xs:element ref="optional"/>
+				<xs:element name="multi" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
 		</xs:complexType>
 	</xs:element>
