@@ -188,10 +188,6 @@ class MissingElementError (UnrecognizedContentError):
 class ExtraContentError (UnrecognizedContentError):
     """Raised when processing document and there is more material in an element content than expected."""
 
-class ContentInNilElementError (ExtraContentError):
-    """Raised when an element that is marked to be nil has content."""
-    pass
-
 class MissingContentError (StructuralBadDocumentError):
     """Raised when processing document and expected content is not present.  See also UnrecognizedContentError."""
 
@@ -257,6 +253,27 @@ class NoNillableSupportError (PyXBException):
         This will be available in the L{instance} attribute."""
         self.instance = instance
         super(NoNillableSupportError, self).__init__(instance)
+
+class ContentInNilInstanceError (PyXBException):
+    """Raised when an element that is marked to be nil is assigned content."""
+
+    instance = None
+    """The binding instance which is xsi:nil"""
+
+    content = None
+    """The content that was to be assigned to the instance."""
+
+    def __init__ (self, instance, content):
+        """@param instance: the binding instance that is marked nil.
+        This will be available in the L{instance} attribute.
+
+        @param content: the content found to be in violation of the nil requirement.
+        This will be available in the L{content} attribute.
+
+        """
+        self.instance = instance
+        self.content = content
+        super(ContentInNilInstanceError, self).__init__(instance, content)
 
 class BindingValidationError (ValidationError):
     """Raised when the content of a binding object is not consistent with its content model"""

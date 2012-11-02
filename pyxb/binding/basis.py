@@ -137,7 +137,7 @@ class _TypeBinding_mixin (utility.Locatable_mixin):
         self.__constructedWithValue = (0 < len(args))
         if self.__xsiNil:
             if self.__constructedWithValue:
-                raise pyxb.ContentInNilElementError(args[0])
+                raise pyxb.ContentInNilInstanceError(self, args[0])
         else:
             # Types that descend from string will, when constructed from an
             # element with empty content, appear to have no constructor value,
@@ -1824,10 +1824,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         # from basestring.)
         value = self._TypeDefinition.Factory(_require_value=not self._isNil(), _dom_node=dom_node, _nil=self._isNil(), _apply_attributes=False, *args)
         if value._constructedWithValue():
-            if self._isNil():
-                raise pyxb.ContentInNilElementError(value)
-            else:
-                self.append(value)
+            self.append(value)
 
     # Specify the symbols to be reserved for all CTDs.
     _ReservedSymbols = _TypeBinding_mixin._ReservedSymbols.union(set([ 'wildcardElements', 'wildcardAttributeMap',
@@ -1936,7 +1933,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
     def _validateBinding_vx (self):
         if self._isNil():
             if (self._IsSimpleTypeContent() and (self.__content is not None)) or self.__content:
-                raise pyxb.ContentInNilElementError(self._ExpandedName)
+                raise pyxb.ContentInNilInstanceError(self, self.__content)
             return True
         if self._IsSimpleTypeContent() and (self.__content is None):
             raise pyxb.MissingContentError(self._TypeDefinition)
@@ -2088,7 +2085,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         # @todo: Allow caller to provide default element use; it's available
         # in saxer.
         if self._isNil():
-            raise pyxb.ExtraContentError('%s: Content %s present in element with xsi:nil' % (type(self), value))
+            raise pyxb.ContentInNilInstanceError(self, value)
         element_binding = None
         if element_decl is not None:
             from pyxb.binding import content

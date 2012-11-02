@@ -125,11 +125,11 @@ class TestXSIType (unittest.TestCase):
 
     def testNilOptionalSpaceContent (self):
         xml = '<optional xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true"> </optional>'
-        self.assertRaises(pyxb.ExtraContentError, CreateFromDocument, xml)
+        self.assertRaises(pyxb.ContentInNilInstanceError, CreateFromDocument, xml)
 
     def testNilComplexSpaceContent (self):
         xml = '<complex xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true"> </complex>'
-        self.assertRaises(pyxb.ExtraContentError, CreateFromDocument, xml)
+        self.assertRaises(pyxb.ContentInNilInstanceError, CreateFromDocument, xml)
 
     def testComplexInternal (self):
         xml = '<complex><full>full content</full><optional>optional content</optional></complex>'
@@ -198,16 +198,16 @@ class TestXSIType (unittest.TestCase):
 
     def testNilSetAndAppend (self):
         s = simple(_nil=True)
-        self.assertRaises(pyxb.ExtraContentError, s.append, 'one')
+        self.assertRaises(pyxb.ContentInNilInstanceError, s.append, 'one')
         c = complex(_nil=True)
-        self.assertRaises(pyxb.ExtraContentError, c.append, 'one')
+        self.assertRaises(pyxb.ContentInNilInstanceError, c.append, 'one')
         full = c._UseForTag('full')
-        self.assertRaises(pyxb.ExtraContentError, setFull, c, 'yes')
-        self.assertRaises(pyxb.ExtraContentError, full.append, c, 'yes')
-        self.assertRaises(pyxb.ExtraContentError, full.setOrAppend, c, 'yes')
+        self.assertRaises(pyxb.ContentInNilInstanceError, setFull, c, 'yes')
+        self.assertRaises(pyxb.ContentInNilInstanceError, full.append, c, 'yes')
+        self.assertRaises(pyxb.ContentInNilInstanceError, full.setOrAppend, c, 'yes')
         multi = c._UseForTag('multi')
-        self.assertRaises(pyxb.ExtraContentError, multi.append, c, 'one')
-        self.assertRaises(pyxb.ExtraContentError, multi.setOrAppend, c, 'one')
+        self.assertRaises(pyxb.ContentInNilInstanceError, multi.append, c, 'one')
+        self.assertRaises(pyxb.ContentInNilInstanceError, multi.setOrAppend, c, 'one')
         # Nothing we can do about assignments that bypass the validation hooks.
         # Customizing list would probably destroy performance.
         c.multi.append('one')
