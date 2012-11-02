@@ -1894,8 +1894,6 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         if self._ContentTypeTag in (self._CT_EMPTY, self._CT_SIMPLE):
             return []
         self._resetAutomaton()
-        if  self.__automatonConfiguration is None:
-            raise pyxb.NoContentModel(self)
         return self.__automatonConfiguration.sequencedChildren()
 
     def _symbolSet (self):

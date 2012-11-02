@@ -255,11 +255,6 @@ class UnexpectedNonElementContentError (UnrecognizedContentError):
     """Raised when an element is given non-element content but may not contain such."""
     pass
 
-class NoContentModel (BindingValidationError):
-     """Raised when an operation is attempted that requires a content
-     model, but the complex type has empty or simple content."""
-     pass
-
 class BindingError (PyXBException):
     """Raised when the bindings are mis-used.
 
