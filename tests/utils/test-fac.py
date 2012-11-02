@@ -112,6 +112,21 @@ class TestFAC (unittest.TestCase):
         else:
             self.assertRaises(InvalidTermTreeError, x.buildAutomaton)
 
+    def testUpdateApplication (self):
+        cc = CounterCondition(0, 1)
+        ui = UpdateInstruction(cc, True)
+        values = { cc : 0 }
+        self.assertTrue(ui.satisfiedBy(values))
+        ui.apply(values)
+        self.assertEqual(values[cc], 1)
+        if sys.version_info[:2] >= (2, 7):
+            with self.assertRaises(UpdateApplicationError) as cm:
+                ui.apply(values)
+            self.assertEqual(cm.exception.update_instruction, ui)
+            self.assertEqual(cm.exception.values, values)
+        else:
+            self.assertRaises(UpdateApplicationError, ui.apply, values)
+            
     def testInternals (self):
         #print self.ex.facToString()
         au = self.ex.buildAutomaton()

@@ -80,11 +80,20 @@ class InvalidTermTreeError (FACError):
         (self.parent, self.term) = args
         super(InvalidTermTreeError, self).__init__(*args)
 
-class CounterApplicationError (FACError):
+class UpdateApplicationError (FACError):
     """Exception raised when an unsatisfied update instruction is executed.
 
     This indicates an internal error in the implementation."""
-    pass
+
+    update_instruction = None
+    """The L{UpdateInstruction} with an unsatisfied L{CounterCondition}"""
+
+    values = None
+    """The unsatisfying value map from L{CounterCondition} instances to integers"""
+
+    def __init__ (self, *args):
+        (self.update_instruction, self.values) = args
+        super(UpdateApplicationError, self).__init__(*args)
 
 class RecognitionError (Exception):
     pass
@@ -484,9 +493,9 @@ class UpdateInstruction:
         """Apply the update instruction to the provided counter values.
 
         @param counter_values: A map from L{CounterCondition} to
-        inter counter values.  This map is updated in-place."""
+        integer counter values.  This map is updated in-place."""
         if not self.satisfiedBy(counter_values):
-            raise CounterApplicationError(self, counter_values)
+            raise UpdateApplicationError(self, counter_values)
         value = counter_values[self.__counterCondition]
         if self.__doIncrement:
             value += 1
