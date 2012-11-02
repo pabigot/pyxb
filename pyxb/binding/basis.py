@@ -463,7 +463,7 @@ class _TypeBinding_mixin (utility.Locatable_mixin):
         @raise pyxb.BindingValidationError: complex content does not match model
         @raise pyxb.BadTypeValueError: simple content fails to satisfy constraints
         """
-        raise pyxb.IncompleteImplementationError('%s did not override _validateBinding_vx' % (type(self),))
+        raise NotImplementedError('%s._validateBinding_vx' % (type(self).__name__,))
 
     def validateBinding (self):
         """Check whether the binding content matches its content model.
@@ -831,16 +831,11 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
         """Return the SimpleTypeDefinition instance for the given
         class.
 
-        This should only be invoked when generating bindings.
-
-        @raise pyxb.IncompleteImplementationError: no STD instance has been
-        associated with the class.
-
-        """
+        This should only be invoked when generating bindings.  An STD must
+        have been associated with the class using L{_SimpleTypeDefinition}."""
         attr_name = cls.__STDAttrName()
-        if hasattr(cls, attr_name):
-            return getattr(cls, attr_name)
-        raise pyxb.IncompleteImplementationError('%s: No STD available' % (cls,))
+        assert hasattr(cls, attr_name)
+        return getattr(cls, attr_name)
 
     @classmethod
     def XsdLiteral (cls, value):

@@ -616,7 +616,7 @@ class BindingDOMSupport (object):
             return clone_node
         if node.COMMENT_NODE == node.nodeType:
             return docnode.createComment(node.data)
-        raise pyxb.IncompleteImplementationError('Unable to clone type %s DOM node %s' % (node.nodeType, node))
+        raise ValueError('DOM node not supported in clone', node)
 
     def cloneIntoImplementation (self, node):
         """Create a deep copy of the node in the target implementation.

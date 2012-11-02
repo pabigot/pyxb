@@ -561,8 +561,7 @@ class CF_enumeration (ConstrainingFacet, _CollectionFacet_mixin, _LateDatatype_m
     def addEnumeration (self, **kw):
         kw['enumeration'] = self
         ee = _EnumerationElement(**kw)
-        if ee.tag in self.__tagToElement:
-            raise pyxb.IncompleteImplementationError('Duplicate enumeration tags')
+        assert not (ee.tag in self.__tagToElement)
         self.__tagToElement[ee.tag()] = ee
         self.__unicodeToElement[ee.unicodeValue()] = ee
         value = ee.value()

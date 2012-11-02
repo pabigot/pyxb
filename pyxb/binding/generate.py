@@ -46,7 +46,7 @@ def PrefixModule (value, text=None):
         return 'pyxb.binding.datatypes.%s' % (text,)
     if value.__module__ == facets.__name__:
         return 'pyxb.binding.facets.%s' % (text,)
-    raise pyxb.IncompleteImplementationError('PrefixModule needs support for non-builtin instances')
+    raise ValueError('No standard name for module of value', value)
 
 class ReferenceLiteral (object):
     """Base class for something that requires fairly complex activity
@@ -2090,7 +2090,6 @@ class Generator (object):
         against the content model."""
         return self.__validateChanges
     def setValidateChanges (self, validate_changes):
-        #raise pyxb.IncompleteImplementationError('No support for disabling validation')
         self.__validateChanges = validate_changes
         return self
     __validateChanges = None

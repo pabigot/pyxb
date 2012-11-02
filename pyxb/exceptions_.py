@@ -297,4 +297,8 @@ class LogicError (PyXBError):
     """Raised when the code detects an implementation problem."""
 
 class IncompleteImplementationError (LogicError):
-    """Raised when a code branch is taken that has not yet been implemented."""
+    """Raised when required capability has not been implemented.
+
+    This is only used where it is reasonable to expect the capability
+    to be present, such as a feature of XML schema that is not
+    supported (e.g., the redefine directive)."""

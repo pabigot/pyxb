@@ -78,7 +78,7 @@ class _SchemaComponent_mixin (pyxb.namespace._ComponentDependency_mixin,
         """The namespace context for this schema.
 
         This defines where it looks things up, where it puts things it
-        createas, the in-scope namespace declarations, etc.  Must be defined
+        creates, the in-scope namespace declarations, etc.  Must be defined
         for anything that does any sort of QName interpretation.  The value is
         generally a reference to a namespace context associated with the DOM
         element node corresponding to this component."""
@@ -687,6 +687,7 @@ class _NamedComponent_mixin (pyxb.utils.utility.PrivateTransient_mixin, pyxb.csc
         # Explicitly validate here: the lookup operations won't do so,
         # but will abort if the namespace hasn't been validated yet.
         object_reference.validateComponentModel()
+        rv = None
         if isinstance(scope, (tuple, _PickledAnonymousReference)):
             # Scope is the expanded name of the complex type in which the
             # named value can be located.
@@ -701,8 +702,6 @@ class _NamedComponent_mixin (pyxb.utils.utility.PrivateTransient_mixin, pyxb.csc
                 rv = scope_ctd.lookupScopedAttributeDeclaration(object_reference)
             elif issubclass(icls, ElementDeclaration):
                 rv = scope_ctd.lookupScopedElementDeclaration(object_reference)
-            else:
-                raise pyxb.IncompleteImplementationError('Scope %s reference lookup of %s not implemented for type %s' % (scope_ref, object_reference, icls))
             if rv is None:
                 raise pyxb.SchemaValidationError('Unable to resolve %s as %s in scope %s' % (object_reference, icls, scope_ref))
         elif _ScopedDeclaration_mixin.ScopeIsGlobal(scope) or _ScopedDeclaration_mixin.ScopeIsIndeterminate(scope):
@@ -718,12 +717,10 @@ class _NamedComponent_mixin (pyxb.utils.utility.PrivateTransient_mixin, pyxb.csc
                 rv = object_reference.elementDeclaration()
             elif issubclass(icls, IdentityConstraintDefinition):
                 rv = object_reference.identityConstraintDefinition()
-            else:
-                raise pyxb.IncompleteImplementationError('Reference lookup of %s not implemented for type %s' % (object_reference, icls))
             if rv is None:
                 raise pyxb.SchemaValidationError('Unable to resolve %s as %s' % (object_reference, icls))
-        else:
-            raise pyxb.IncompleteImplementationError('Unable to resolve reference %s, scope %s ns %s type %s, class %s' % (object_reference, scope, scope.targetNamespace(), type(scope), icls))
+        if rv is None:
+            raise pyxb.SchemaValidationError('Unable to resolve reference %s, scope %s ns %s type %s, class %s' % (object_reference, scope, scope.targetNamespace(), type(scope), icls))
         return rv
 
     def __init__ (self, *args, **kw):
@@ -782,16 +779,15 @@ class _NamedComponent_mixin (pyxb.utils.utility.PrivateTransient_mixin, pyxb.csc
         while this is not None:
             if this.isTypeEquivalent(other):
                 return True
-            if not (this.isResolved() and other.isResolved()):
-                raise pyxb.IncompleteImplementationError('Oh fudge.  Somebody violated the assumptions in ElementDeclaration.isAdaptable.')
+            # Assumption from ElementDeclaration.isAdaptable
+            assert this.isResolved() and other.isResolved()
             if isinstance(self, ComplexTypeDefinition):
                 if self.DM_restriction != this.derivationMethod():
                     return False
-            elif isinstance(self, SimpleTypeDefinition):
+            else:
+                assert isinstance(self, SimpleTypeDefinition)
                 if self._DA_restriction != this._derivationAlternative():
                     return False
-            else:
-                raise pyxb.IncompleteImplementationError('Need derivation consistency check for type %s' % (type(this),))
             this = this.baseTypeDefinition()
             if this.isUrTypeDefinition():
                 # Well, this certainly can't be a valid restriction of
@@ -869,12 +865,10 @@ class _NamedComponent_mixin (pyxb.utils.utility.PrivateTransient_mixin, pyxb.csc
                 elif isinstance(self.scope(), ComplexTypeDefinition):
                     scope = self.scope()._picklingReference()
                     assert isinstance(scope, (tuple, _PickledAnonymousReference)), self
-                elif self._scopeIsIndeterminate():
+                else:
+                    assert self._scopeIsIndeterminate()
                     # This is actually OK: we made sure both the scope and
                     # this instance can be looked up by a unique identifier.
-                    pass
-                else:
-                    raise pyxb.IncompleteImplementationError('pickling unrecognized scope %s type %s' % (self.scope(), type(self.scope())))
             else:
                 assert isinstance(self, _NamedComponent_mixin), 'Pickling unnamed component %s in indeterminate scope by reference' % (self,)
                 assert not isinstance(scope, ComplexTypeDefinition), '%s %s %s %s' % (self, self.name(), scope, self._objectOrigin())
@@ -2827,10 +2821,9 @@ class ModelGroup (_ParticleTree_mixin, _SchemaComponent_mixin, _Annotated_mixin)
             compositor = cls.C_ALL
         elif xsd.nodeIsNamed(node, 'choice'):
             compositor = cls.C_CHOICE
-        elif xsd.nodeIsNamed(node, 'sequence'):
-            compositor = cls.C_SEQUENCE
         else:
-            raise pyxb.IncompleteImplementationError('ModelGroup: Got unexpected %s' % (node.nodeName,))
+            assert xsd.nodeIsNamed(node, 'sequence')
+            compositor = cls.C_SEQUENCE
         particles = []
         # Remove the owner from particle constructor arguments: we need to set it later
         kw.pop('owner', None)
@@ -3735,11 +3728,10 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
         elif self.VARIETY_list == self.variety():
             assert self != self.itemTypeDefinition()
             type_definitions.add(self.itemTypeDefinition())
-        elif self.VARIETY_union == self.variety():
+        else:
+            assert self.VARIETY_union == self.variety()
             assert self not in self.memberTypeDefinitions()
             type_definitions.update(self.memberTypeDefinitions())
-        else:
-            raise pyxb.LogicError('Unable to identify dependent types: variety %s' % (self.variety(),))
         # NB: This type also depends on the value type definitions for
         # any facets that apply to it.  This fact only matters when
         # generating the datatypes_facets source.  That, and the fact
@@ -3906,7 +3898,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
             bi._setPythonSupport(xml_.STD_ANON_lang)
             bi.setNameInBinding('STD_ANON_lang')
         else:
-            raise pyxb.IncompleteImplementationError('No implementation for %s' % (name,))
+            raise pyxb.IncompleteImplementationError('No implementation for xml:%s' % (name,))
         bi.__facets = { }
         for v in bi.pythonSupport().__dict__.values():
             if isinstance(v, facets.ConstrainingFacet):
@@ -5016,7 +5008,7 @@ class Schema (_SchemaComponent_mixin):
             return tns.addCategoryObject('notationDeclaration', nc.name(), nc)
         if isinstance(nc, IdentityConstraintDefinition):
             return tns.addCategoryObject('identityConstraintDefinition', nc.name(), nc)
-        raise pyxb.IncompleteImplementationError('No support to record named component of type %s' % (nc.__class__,))
+        assert False, 'No support to record named component of type %s' % (nc.__class__,)
 
     def __addTypeDefinition (self, td):
         local_name = td.name()

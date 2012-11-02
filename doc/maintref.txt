@@ -95,7 +95,9 @@ PyXB provides a `standard exception hierarchy
 <api/pyxb.exceptions_-module.html>`_ that extends the one built into Python.
 
 Where an execution branch has been identified that requires behavior that
-has not yet been implemented, raise an :api:`pyxb.exceptions_.IncompleteImplementationError`.
+has not yet been implemented, raise an
+:api:`pyxb.exceptions_.IncompleteImplementationError`.  At the current stage
+of development, these should be extremely rare.
 
 Where the system detects that a precondition is not satisfied, processing
 must stop.  If the precondition failure is due to improper use of the PyXB
