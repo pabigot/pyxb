@@ -1477,7 +1477,8 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
         type for the node can be identified.
         """
 
-        assert xml.dom.Node.DOCUMENT_NODE != node.nodeType
+        if xml.dom.Node.ELEMENT_NODE != node.nodeType:
+            raise ValueError('node is not an element')
 
         fallback_namespace = kw.get('_fallback_namespace')
 
@@ -1521,20 +1522,18 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
     # element
     @classmethod
     def AnyCreateFromDOM (cls, node, fallback_namespace):
-        """Create a binding from a DOM node.
+        """Wrapper for L{CreateDOMBinding}.
 
-        @param node: The DOM node
+        This function validates C{node}, identifies the element binding
+        associated with it (if possible), and passes the pieces off to
+        L{CreateDOMBinding}.
 
-        @param fallback_namespace: The namespace to use as the namespace for
-        the node, if the node name is unqualified.  This should be an absent
-        namespace.
+        @param node: An L{xml.dom.Node} representing a root element.  If the
+        node is a document, that document's root node will be substituted.
 
-        @return: A binding for the DOM node.
+        @param fallback_namespace: As with L{CreateDOMBinding}
 
-        @raises pyxb.UnrecognizedDOMRootNodeError: if the name produced by
-        combining the C{node} with the C{fallback_namespace} fails to resolve
-        to an element declaration.
-        """
+        @return: As with L{CreateDOMBinding}"""
         if xml.dom.Node.DOCUMENT_NODE == node.nodeType:
             node = node.documentElement
         expanded_name = pyxb.namespace.ExpandedName(node, fallback_namespace=fallback_namespace)
