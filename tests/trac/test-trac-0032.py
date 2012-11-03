@@ -99,7 +99,7 @@ class TestTrac0032 (unittest.TestCase):
 
         instance = multi(li=[])
         instance.li.append(xs.int(1))
-        self.assertRaises(pyxb.BindingValidationError, instance.validateBinding)
+        self.assertRaises(pyxb.SimpleTypeValueError, instance.validateBinding)
 
         instance = CreateFromDocument('<multi><li>1</li></multi>')
         self.assertEqual(1, len(instance.li))

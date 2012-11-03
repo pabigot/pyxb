@@ -331,10 +331,6 @@ class AttributeValueError (AttributeValidationError):
     """The value of an attribute does not satisfy its content constraints."""
     pass
     
-class DOMGenerationError (PyXBException):
-    """Raised when converting binding to DOM and something goes wrong."""
-    pass
-
 class NoNillableSupportError (PyXBException):
     """Raised when checking _isNil on a type that does not support nillable."""
 

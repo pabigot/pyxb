@@ -504,7 +504,7 @@ class AutomatonConfiguration (object):
             cfg = cfg.superConfiguration
         if not cfg.isAccepting():
             _log.warning('Incomplete content, expect %s' % (' or '.join(map(lambda _xit: str(_xit.consumedSymbol()), cfg.candidateTransitions(None))),))
-            return None
+            raise pyxb.BindingValidationError(cfg, symbol_set)
         if symbol_set:
             raise pyxb.BindingValidationError('Unvalidated symbols: %s' % (symbol_set,) )
         return symbols

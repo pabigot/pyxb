@@ -63,7 +63,7 @@ class TestTrac_0057 (unittest.TestCase):
     def testDisable (self):
         pyxb.RequireValidWhenParsing(False)
         instance = CreateFromDocument(self.XMLS)
-        self.assertRaises(pyxb.DOMGenerationError, self.exec_toxml, instance)
+        self.assertRaises(pyxb.BindingValidationError, self.exec_toxml, instance)
         doc = pyxb.utils.domutils.StringToDOM(self.XMLS)
         instance = CreateFromDOM(doc)
         pyxb.RequireValidWhenGenerating(False) 

@@ -123,7 +123,7 @@ class TestMGAll (unittest.TestCase):
         many_h = many.memberElement('h')
         instance = many(a=many_a(), c=many_c(), d=many_d(), e=many_e(), f=many_f(), g=many_g(), h=many_h())
         self.assertRaises(pyxb.BindingValidationError, instance.validateBinding)
-        self.assertRaises(pyxb.DOMGenerationError, ToDOM, instance)
+        self.assertRaises(pyxb.BindingValidationError, ToDOM, instance)
 
 if __name__ == '__main__':
     unittest.main()

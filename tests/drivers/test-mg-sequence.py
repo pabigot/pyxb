@@ -102,7 +102,7 @@ class TestMGSeq (unittest.TestCase):
         dom = pyxb.utils.domutils.StringToDOM(xml)
         self.assertRaises(UnrecognizedContentError, altwrapper.createFromDOM, dom.documentElement)
         instance = altwrapper(third=altsequence._ElementMap['third'].elementBinding()())
-        self.assertRaises(pyxb.DOMGenerationError, ToDOM, instance)
+        self.assertRaises(pyxb.BindingValidationError, ToDOM, instance)
 
     def testMissingAtEndLeadingContent (self):
         xml = '<ns1:altwrapper xmlns:ns1="URN:test-mg-sequence"><first/></ns1:altwrapper>'
