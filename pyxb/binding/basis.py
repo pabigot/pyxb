@@ -1417,9 +1417,7 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
     def __call__ (self, *args, **kw):
         """Invoke the Factory method on the type associated with this element.
 
-        @keyword _dom_node: If set, specifies a DOM node that should be used
-        for initialization.  In that case, the L{createFromDOM} method is
-        invoked instead of the type definition Factory method.
+        @keyword _dom_node: This keyword is removed.  If present, it must be C{None}.
 
         @note: Other keywords are passed to L{_TypeBinding_mixin.Factory}.
 
