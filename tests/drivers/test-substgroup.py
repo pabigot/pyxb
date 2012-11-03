@@ -84,7 +84,7 @@ class TestSubstGroup (unittest.TestCase):
         self.assertEqual(instance.toDOM().documentElement.toxml("utf-8"), xml)
         # Loss of element association kills DOM generation
         instance.sgTime._setElement(None)
-        self.assertRaises(pyxb.DOMGenerationError, instance.toDOM)
+        self.assertRaises(pyxb.AbstractElementError, instance.toDOM)
         self.assertRaises(pyxb.AbstractElementError, sgTime)
 
 if __name__ == '__main__':

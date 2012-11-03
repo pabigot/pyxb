@@ -794,6 +794,8 @@ class ElementDeclaration (object):
         @param value: The content for this element.  May be text (if the
         element allows mixed content), or an instance of
         L{basis._TypeBinding_mixin}.
+
+        @raise pyxb.AbstractElementError: the binding to be used is abstract
         """
         if isinstance(value, basis._TypeBinding_mixin):
             element_binding = self.__elementBinding
@@ -801,7 +803,7 @@ class ElementDeclaration (object):
                 element_binding = value._element()
             assert element_binding is not None
             if element_binding.abstract():
-                raise pyxb.DOMGenerationError('Element %s is abstract but content %s not associated with substitution group member' % (self.name(), value))
+                raise pyxb.AbstractElementError(self, value)
             element = dom_support.createChildElement(element_binding.name(), parent)
             elt_type = element_binding.typeDefinition()
             val_type = type(value)

@@ -149,17 +149,20 @@ class AbstractElementError (StructuralBadDocumentError):
     element = None
     """The abstract L{pyxb.binding.basis.element} in question"""
 
-    node = None
-    """The C{xml.dom.Node} used in the attempt to create the element.
-    This may be C{None} if the abstract element was invoked without a
-    node."""
+    value = None
+    """The value proposed for the L{element}.  This is usually going
+    to be a C{xml.dom.Node} used in the attempt to create the element,
+    C{None} if the abstract element was invoked without a node, or
+    another type if
+    L{pyxb.binding.content.ElementDeclaration.toDOM} is
+    mis-used."""
 
-    def __init__ (self, element, node=None):
+    def __init__ (self, element, value=None):
         """@param element: the value for the L{element} attribute.
-        @param node: the value for the L{node} attribute."""
+        @param value: the value for the L{value} attribute."""
         self.element = element
-        self.node = node
-        super(AbstractElementError, self).__init__(element, node)
+        self.value = value
+        super(AbstractElementError, self).__init__(element, value)
 
 class AbstractInstantiationError (PyXBException):
     """Attempt to create an instance of an abstract complex type.
