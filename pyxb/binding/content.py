@@ -242,7 +242,7 @@ class AttributeUse (pyxb.cscRoot):
                 assert self.__fixed
                 raise pyxb.MissingAttributeError(type(ctd_instance), self.__name, ctd_instance)
             if not self.__dataType._IsValidValue(value):
-                raise pyxb.BindingValidationError('Attribute %s value type %s not %s' % (self.__name, type(value), self.__dataType))
+                raise pyxb.AttributeValueError(type(ctd_instance), self.__name, ctd_instance)
             self.__dataType.XsdConstraintsOK(value)
         else:
             if self.__required:

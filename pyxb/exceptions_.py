@@ -259,6 +259,10 @@ class AttributeChangeError (AttributeValidationError):
     """Attempt to change an attribute that has a fixed value constraint."""
     pass
 
+class AttributeValueError (AttributeValidationError):
+    """The value of an attribute does not satisfy its content constraints."""
+    pass
+    
 class DOMGenerationError (PyXBException):
     """Raised when converting binding to DOM and something goes wrong."""
     pass
@@ -349,8 +353,7 @@ class PyXBError (exceptions.Exception):
     pass
     
 class UsageError (PyXBError):
-    """Raised when the code detects arguments to a public
-    operation."""
+    """Raised when the code detects user violation of an API."""
 
 class LogicError (PyXBError):
     """Raised when the code detects an implementation problem."""
