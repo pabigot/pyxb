@@ -187,7 +187,7 @@ class TestTrac0027 (unittest.TestCase):
         self.assertEqual(opt_struct._AttributeMap['attr_def'], opt_rest._AttributeMap['attr_def'])
         self.assertEqual(opt_struct._AttributeMap['attr_fixed'], opt_rest._AttributeMap['attr_fixed'])
 
-        self.assertRaises(pyxb.BadTypeValueError, self.setAttr, i, 1000)
+        self.assertRaises(pyxb.SimpleTypeValueError, self.setAttr, i, 1000)
 
 if __name__ == '__main__':
     unittest.main()

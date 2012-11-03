@@ -19,7 +19,7 @@ class Test_ENTITIES (unittest.TestCase):
         self.assertEqual(3, len(v))
         self.assertEqual("one", v[0])
         self.assertTrue(isinstance(v[0], xsd.ENTITY))
-        self.assertRaises(BadTypeValueError, xsd.ENTITIES, 'string with b@d id')
+        self.assertRaises(SimpleTypeValueError, xsd.ENTITIES, 'string with b@d id')
 
 if __name__ == '__main__':
     unittest.main()

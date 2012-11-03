@@ -64,40 +64,40 @@ class TestTrac_0061 (unittest.TestCase):
 
     def testTLA (self):
         self.assertEquals("tla", tla('tla'))
-        self.assertRaises(pyxb.BadTypeValueError, tla, 'four')
-        self.assertRaises(pyxb.BadTypeValueError, tla, '1')
+        self.assertRaises(pyxb.SimpleTypeValueError, tla, 'four')
+        self.assertRaises(pyxb.SimpleTypeValueError, tla, '1')
 
     def testAtla (self):
-        self.assertRaises(pyxb.BadTypeValueError, Atla, 'four')
-        self.assertRaises(pyxb.BadTypeValueError, Atla, '1')
+        self.assertRaises(pyxb.SimpleTypeValueError, Atla, 'four')
+        self.assertRaises(pyxb.SimpleTypeValueError, Atla, '1')
         self.assertEquals("A23", Atla('A23'))
         self.assertEquals("A2Z", Atla('A2Z'))
-        self.assertRaises(pyxb.BadTypeValueError, Atla, 'B12')
+        self.assertRaises(pyxb.SimpleTypeValueError, Atla, 'B12')
 
     def testtlaZ (self):
-        self.assertRaises(pyxb.BadTypeValueError, tlaZ, 'four')
-        self.assertRaises(pyxb.BadTypeValueError, tlaZ, '1')
+        self.assertRaises(pyxb.SimpleTypeValueError, tlaZ, 'four')
+        self.assertRaises(pyxb.SimpleTypeValueError, tlaZ, '1')
         self.assertEquals("12Z", tlaZ('12Z'))
         self.assertEquals("A2Z", tlaZ('A2Z'))
-        self.assertRaises(pyxb.BadTypeValueError, tlaZ, '12X')
+        self.assertRaises(pyxb.SimpleTypeValueError, tlaZ, '12X')
 
     def testcombAtlaZ (self):
-        self.assertRaises(pyxb.BadTypeValueError, combAtlaZ, 'four')
-        self.assertRaises(pyxb.BadTypeValueError, combAtlaZ, '1')
+        self.assertRaises(pyxb.SimpleTypeValueError, combAtlaZ, 'four')
+        self.assertRaises(pyxb.SimpleTypeValueError, combAtlaZ, '1')
         self.assertEquals("A2Z", combAtlaZ('A2Z'))
         self.assertEquals("A23", combAtlaZ('A23'))
         self.assertEquals("12Z", combAtlaZ('12Z'))
-        self.assertRaises(pyxb.BadTypeValueError, combAtlaZ, '12X')
-        self.assertRaises(pyxb.BadTypeValueError, combAtlaZ, 'X23')
+        self.assertRaises(pyxb.SimpleTypeValueError, combAtlaZ, '12X')
+        self.assertRaises(pyxb.SimpleTypeValueError, combAtlaZ, 'X23')
 
     def testdervAtlaZ (self):
-        self.assertRaises(pyxb.BadTypeValueError, dervAtlaZ, 'four')
-        self.assertRaises(pyxb.BadTypeValueError, dervAtlaZ, '1')
+        self.assertRaises(pyxb.SimpleTypeValueError, dervAtlaZ, 'four')
+        self.assertRaises(pyxb.SimpleTypeValueError, dervAtlaZ, '1')
         self.assertEquals("A2Z", dervAtlaZ('A2Z'))
-        self.assertRaises(pyxb.BadTypeValueError, dervAtlaZ, 'A23')
-        self.assertRaises(pyxb.BadTypeValueError, dervAtlaZ, '12Z')
-        self.assertRaises(pyxb.BadTypeValueError, dervAtlaZ, '12X')
-        self.assertRaises(pyxb.BadTypeValueError, dervAtlaZ, 'X23')
+        self.assertRaises(pyxb.SimpleTypeValueError, dervAtlaZ, 'A23')
+        self.assertRaises(pyxb.SimpleTypeValueError, dervAtlaZ, '12Z')
+        self.assertRaises(pyxb.SimpleTypeValueError, dervAtlaZ, '12X')
+        self.assertRaises(pyxb.SimpleTypeValueError, dervAtlaZ, 'X23')
 
 if __name__ == '__main__':
     unittest.main()

@@ -16,7 +16,7 @@ class Test_language (unittest.TestCase):
     def testInvalid (self):
         invalid = [ 'toomanychars', 'illegal_chars', 'numb3rs' ]
         for f in invalid:
-            self.assertRaises(BadTypeValueError, xsd.language, f)
+            self.assertRaises(SimpleTypeValueError, xsd.language, f)
 
 if __name__ == '__main__':
     unittest.main()

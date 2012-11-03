@@ -59,8 +59,8 @@ class TestTrac_0089 (unittest.TestCase):
             self.assertEqual(instance, base(ok))
         for nok in self.invalid:
             xmls = '<base>%s</base>' % (nok,)
-            self.assertRaises(pyxb.BadTypeValueError, CreateFromDocument, xmls)
-            self.assertRaises(pyxb.BadTypeValueError, base, nok)
+            self.assertRaises(pyxb.SimpleTypeValueError, CreateFromDocument, xmls)
+            self.assertRaises(pyxb.SimpleTypeValueError, base, nok)
         
     def testRestr (self):
         for ok in self.restr_valid:
@@ -70,8 +70,8 @@ class TestTrac_0089 (unittest.TestCase):
             self.assertEqual(instance, base(ok))
         for nok in self.invalid:
             xmls = '<base>%s</base>' % (nok,)
-            self.assertRaises(pyxb.BadTypeValueError, CreateFromDocument, xmls)
-            self.assertRaises(pyxb.BadTypeValueError, base, nok)
+            self.assertRaises(pyxb.SimpleTypeValueError, CreateFromDocument, xmls)
+            self.assertRaises(pyxb.SimpleTypeValueError, base, nok)
         
     def testAlt (self):
         xmls = '<altrestr>C</altrestr>'
@@ -79,8 +79,8 @@ class TestTrac_0089 (unittest.TestCase):
         self.assertEqual(instance, 'C')
         self.assertEqual(instance, altrestr('C'))
         xmls = '<altrestr>A</altrestr>'
-        self.assertRaises(pyxb.BadTypeValueError, CreateFromDocument, xmls)
-        self.assertRaises(pyxb.BadTypeValueError, altrestr, 'A')
+        self.assertRaises(pyxb.SimpleTypeValueError, CreateFromDocument, xmls)
+        self.assertRaises(pyxb.SimpleTypeValueError, altrestr, 'A')
 
 if __name__ == '__main__':
     unittest.main()

@@ -20,11 +20,11 @@ class _TestIntegerType (object):
         self.assertTrue(self.PARENT_TYPE == self.THIS_TYPE.XsdSuperType())
         
     def testRange (self):
-        self.assertRaises(BadTypeValueError, self.THIS_TYPE, self.MIN_IN_RANGE - 1)
+        self.assertRaises(SimpleTypeValueError, self.THIS_TYPE, self.MIN_IN_RANGE - 1)
         self.assertEquals(self.MIN_IN_RANGE, self.THIS_TYPE(self.MIN_IN_RANGE))
         self.assertEquals(0, self.THIS_TYPE(0))
         self.assertEquals(self.MAX_IN_RANGE, self.THIS_TYPE(self.MAX_IN_RANGE))
-        self.assertRaises(BadTypeValueError, self.THIS_TYPE, self.MAX_IN_RANGE+1)
+        self.assertRaises(SimpleTypeValueError, self.THIS_TYPE, self.MAX_IN_RANGE+1)
 
     PARENT_EXCLUDE = []
 
@@ -43,8 +43,8 @@ class _TestIntegerType (object):
                 bp = self.THIS_TYPE(p)
                 self.assertEquals(n, bp)
             else:
-                self.assertRaises(BadTypeValueError, self.THIS_TYPE, s)
-                self.assertRaises(BadTypeValueError, self.THIS_TYPE, p)
+                self.assertRaises(SimpleTypeValueError, self.THIS_TYPE, s)
+                self.assertRaises(SimpleTypeValueError, self.THIS_TYPE, p)
 
 class Test_int (unittest.TestCase, _TestIntegerType):
     THIS_TYPE = xsd.int

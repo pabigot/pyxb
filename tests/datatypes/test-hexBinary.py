@@ -25,10 +25,10 @@ class Test_hexBinary (unittest.TestCase):
             self.assertEqual(ev.upper(), v.xsdLiteral())
         
     def testBadStrings (self):
-        self.assertRaises(BadTypeValueError, xsd.hexBinary.Factory, u'0', _from_xml=True)
-        self.assertRaises(BadTypeValueError, xsd.hexBinary.Factory, u'012', _from_xml=True)
-        self.assertRaises(BadTypeValueError, xsd.hexBinary.Factory, u'01s', _from_xml=True)
-        self.assertRaises(BadTypeValueError, xsd.hexBinary.Factory, u'sb', _from_xml=True)
+        self.assertRaises(SimpleTypeValueError, xsd.hexBinary.Factory, u'0', _from_xml=True)
+        self.assertRaises(SimpleTypeValueError, xsd.hexBinary.Factory, u'012', _from_xml=True)
+        self.assertRaises(SimpleTypeValueError, xsd.hexBinary.Factory, u'01s', _from_xml=True)
+        self.assertRaises(SimpleTypeValueError, xsd.hexBinary.Factory, u'sb', _from_xml=True)
 
     def testLiteralization (self):
         self.assertEqual('', xsd.hexBinary('').xsdLiteral())

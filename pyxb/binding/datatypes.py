@@ -118,7 +118,7 @@ class boolean (basis.simpleTypeDefinition, types.IntType):
                 else:
                     iv = False
                 return super(boolean, cls).__new__(cls, iv, *args, **kw)
-            raise BadTypeValueError('[xsd:boolean] Initializer "%s" not valid for type' % (value,))
+            raise SimpleTypeValueError(cls, value)
         return super(boolean, cls).__new__(cls, *args, **kw)
 
 _PrimitiveDatatypes.append(boolean)
@@ -198,17 +198,17 @@ class duration (basis.simpleTypeDefinition, datetime.timedelta):
     def __new__ (cls, *args, **kw):
         args = cls._ConvertArguments(args, kw)
         if 0 == len(args):
-            raise BadTypeValueError('[xsd:duration] Type requires an initializer')
+            raise SimpleTypeValueError(cls, args)
         text = args[0]
         have_kw_update = False
         if isinstance(text, (str, unicode)):
             match = cls.__Lexical_re.match(text)
             if match is None:
-                raise BadTypeValueError('Value "%s" not in %s lexical space' % (text, cls._ExpandedName)) 
+                raise SimpleTypeValueError(cls, text)
             match_map = match.groupdict()
             if 'T' == match_map.get('Time'):
                 # Can't have T without additional time information
-                raise BadTypeValueError('Value "%s" not in %s lexical space' % (text, cls._ExpandedName)) 
+                raise SimpleTypeValueError(cls, text)
 
             negative_duration = ('-' == match_map.get('neg'))
 
@@ -253,7 +253,7 @@ class duration (basis.simpleTypeDefinition, datetime.timedelta):
             data['minutes'] = 0
             data['hours'] = 0
         else:
-            raise BadTypeValueError('[xsd:duration] Initializer "%s" type %s not valid for type' % (text, type(text)))
+            raise SimpleTypeValueError(cls, text)
         if not have_kw_update:
             rem_time = data['seconds']
             if (0 != (rem_time % 1)):
@@ -352,7 +352,7 @@ class _PyXBDateTime_base (basis.simpleTypeDefinition):
             cls.__LexicalREMap[cls] = lexical_re
         match = lexical_re.match(text)
         if match is None:
-            raise BadTypeValueError('Value "%s" not in %s lexical space' % (text, cls._ExpandedName)) 
+            raise SimpleTypeValueError(cls, text)
         match_map = match.groupdict()
         kw = { }
         for (k, v) in match_map.iteritems():
@@ -463,7 +463,7 @@ class dateTime (_PyXBDateTime_base, datetime.datetime):
             elif isinstance(value, (types.IntType, types.LongType)):
                 raise TypeError('function takes at least 3 arguments (%d given)' % (len(args),))
             else:
-                raise BadTypeValueError('Unexpected type %s in %s' % (type(value), cls._ExpandedName))
+                raise SimpleTypeValueError(cls, value)
         elif 3 <= len(args):
             for fi in range(len(cls.__CtorFields)):
                 fn = cls.__CtorFields[fi]
@@ -540,7 +540,7 @@ class time (_PyXBDateTime_base, datetime.time):
                         ctor_kw[fn] = kw[fn]
                     kw.pop(fn, None)
             else:
-                raise BadTypeValueError('Unexpected type %s' % (type(value),))
+                raise SimpleTypeValueError(cls, value)
 
         cls._AdjustForTimezone(ctor_kw)
         kw.update(ctor_kw)
@@ -751,7 +751,7 @@ class hexBinary (basis.simpleTypeDefinition, types.StringType):
             try:
                 args = (binascii.unhexlify(args[0]),) + args[1:]
             except TypeError:
-                raise BadTypeValueError('%s is not a valid hexBinary string' % (cls.__class__.__name__,))
+                raise SimpleTypeValueError(cls, args[0])
         return args
 
     @classmethod
@@ -792,10 +792,10 @@ class base64Binary (basis.simpleTypeDefinition, types.StringType):
             try:
                 args = (base64.standard_b64decode(xmls),) + args[1:]
             except TypeError, e:
-                raise BadTypeValueError('%s is not a valid base64Binary string: %s' % (cls.__class__.__name__, str(e)))
+                raise SimpleTypeValueError(cls, xmls)
             # This is what it costs to try to be a validating processor.
             if cls.__Lexical_re.match(xmls) is None:
-                raise BadTypeValueError('%s is not a valid base64Binary string: XML strict failed' % (cls.__class__.__name__,))
+                raise SimpleTypeValueError(cls, xmls)
         return args
 
     @classmethod
@@ -861,14 +861,14 @@ class QName (basis.simpleTypeDefinition, unicode):
     @classmethod
     def _XsdConstraintsPreCheck_vb (cls, value):
         if not isinstance(value, types.StringTypes):
-            raise BadTypeValueError('%s value must be a string' % (cls.__name__,))
+            raise SimpleTypeValueError(cls, value)
         if 0 <= value.find(':'):
             (prefix, local) = value.split(':', 1)
             if (NCName._ValidRE.match(prefix) is None) or (NCName._ValidRE.match(local) is None):
-                raise BadTypeValueError('%s lexical/value space violation for "%s"' % (cls.__name__, value))
+                raise SimpleTypeValueError(cls, value)
         else:
             if NCName._ValidRE.match(value) is None:
-                raise BadTypeValueError('%s lexical/value space violation for "%s"' % (cls.__name__, value))
+                raise SimpleTypeValueError(cls, value)
         super_fn = getattr(super(QName, cls), '_XsdConstraintsPreCheck_vb', lambda *a,**kw: True)
         return super_fn(value)
 
@@ -916,17 +916,17 @@ class normalizedString (string):
     def __ValidateString (cls, value):
         # This regular expression doesn't work.  Don't know why.
         #if cls.__BadChars.match(value) is not None:
-        #    raise BadTypeValueError('CR/NL/TAB characters illegal in %s' % (cls.__name__,))
+        #    raise SimpleTypeValueError('CR/NL/TAB characters illegal in %s' % (cls.__name__,))
         if (0 <= value.find("\n")) or (0 <= value.find("\r")) or (0 <= value.find("\t")):
-            raise BadTypeValueError('CR/NL/TAB characters illegal in %s' % (cls.__name__,))
+            raise SimpleTypeValueError(cls, value)
         if cls._ValidRE is not None:
             match_object = cls._ValidRE.match(value)
             if match_object is None:
-                raise BadTypeValueError('%s pattern constraint violation for "%s"' % (cls.__name__, value))
+                raise SimpleTypeValueError(cls, value)
         if cls._InvalidRE is not None:
             match_object = cls._InvalidRE.match(value)
             if not (match_object is None):
-                raise BadTypeValueError('%s pattern constraint violation for "%s"' % (cls.__name__, value))
+                raise SimpleTypeValueError(cls, value)
         return True
 
     @classmethod
@@ -948,9 +948,9 @@ class normalizedString (string):
     @classmethod
     def _XsdConstraintsPreCheck_vb (cls, value):
         if not isinstance(value, types.StringTypes):
-            raise BadTypeValueError('%s value must be a string' % (cls.__name__,))
+            raise SimpleTypeValueError(cls, value)
         if not cls._ValidateString_va(value):
-            raise BadTypeValueError('%s lexical/value space violation for "%s"' % (cls.__name__, value))
+            raise SimpleTypeValueError(cls, value)
         super_fn = getattr(super(normalizedString, cls), '_XsdConstraintsPreCheck_vb', lambda *a,**kw: True)
         return super_fn(value)
 
@@ -971,12 +971,10 @@ class token (normalizedString):
         super_fn = getattr(super(token, cls), '_ValidateString_va', lambda *a,**kw: True)
         if not super_fn(value):
             return False
-        if value.startswith(" "):
-            raise BadTypeValueError('Leading spaces in token')
-        if value.endswith(" "):
-            raise BadTypeValueError('Trailing spaces in token')
-        if 0 <= value.find('  '):
-            raise BadTypeValueError('Multiple internal spaces in token')
+        if value.startswith(" ") \
+           or value.endswith(" ") \
+           or (0 <= value.find('  ')):
+            raise SimpleTypeValueError(cls, value)
         return True
 _DerivedDatatypes.append(token)
 

@@ -74,7 +74,7 @@ import unittest
 class TestTrac_0047 (unittest.TestCase):
     def testEnum (self):
         self.assertEqual('missing', NilReasonEnumeration.Factory('missing'))
-        self.assertRaises(pyxb.BadTypeValueError, NilReasonEnumeration.Factory, 'notValid')
+        self.assertRaises(pyxb.SimpleTypeValueError, NilReasonEnumeration.Factory, 'notValid')
         self.assertEqual('other:myReason', NilReasonEnumeration.Factory('other:myReason'))
 
     def testDblNil (self):

@@ -24,7 +24,7 @@ class Test_NMTOKEN (unittest.TestCase):
                 print 'Unexpected success with %s' % (f,)
             except:
                 pass
-            self.assertRaises(BadTypeValueError, xsd.NMTOKEN, f)
+            self.assertRaises(SimpleTypeValueError, xsd.NMTOKEN, f)
 
 if __name__ == '__main__':
     unittest.main()

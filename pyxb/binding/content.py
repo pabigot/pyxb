@@ -122,7 +122,7 @@ class AttributeUse (pyxb.cscRoot):
         L{prohibited} should be assigned C{True}.
         @type prohibited: C{bool}
 
-        @raise pyxb.BadTypeValueError: the L{unicode_default} cannot be used
+        @raise pyxb.SimpleTypeValueError: the L{unicode_default} cannot be used
         to initialize an instance of L{data_type}
         """
         
@@ -852,7 +852,7 @@ class ElementDeclaration (object):
             try:
                 value = self.__elementBinding.compatibleValue(value, _convert_string_values=False)
                 accept = True
-            except pyxb.BadTypeValueError:
+            except pyxb.SimpleTypeValueError:
                 pass
         return (accept, value)
 

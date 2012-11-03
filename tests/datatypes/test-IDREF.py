@@ -18,7 +18,7 @@ class Test_IDREF (unittest.TestCase):
                     'With?Illegal', '??LeadingIllegal', 'TrailingIllegal??',
                     '  LeadingSpace', 'TrailingSpace   ']
         for f in invalid:
-            self.assertRaises(BadTypeValueError, xsd.IDREF, f)
+            self.assertRaises(SimpleTypeValueError, xsd.IDREF, f)
 
 if __name__ == '__main__':
     unittest.main()

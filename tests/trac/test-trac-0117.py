@@ -53,7 +53,7 @@ class TestTrac0117 (unittest.TestCase):
     def testEnumeration (self):
         pyxb.RequireValidWhenParsing(True)
         xmls = '<Element Required="true" attr="Q"/>'
-        self.assertRaises(pyxb.BadTypeValueError, CreateFromDocument, xmls)
+        self.assertRaises(pyxb.SimpleTypeValueError, CreateFromDocument, xmls)
         pyxb.RequireValidWhenParsing(False)
         instance = CreateFromDocument(xmls)
         self.assertEqual('Q', instance.attr)

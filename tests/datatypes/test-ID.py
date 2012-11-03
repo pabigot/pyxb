@@ -18,7 +18,7 @@ class Test_ID (unittest.TestCase):
                     'With?Illegal', '??LeadingIllegal', 'TrailingIllegal??',
                     '  LeadingSpace', 'TrailingSpace   ']
         for f in invalid:
-            self.assertRaises(BadTypeValueError, xsd.ID, f)
+            self.assertRaises(SimpleTypeValueError, xsd.ID, f)
 
 if __name__ == '__main__':
     unittest.main()

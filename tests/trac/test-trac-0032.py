@@ -51,8 +51,8 @@ class TestTrac0032 (unittest.TestCase):
         self.assertEqual(1, len(instance.content()))
         self.assertTrue(instance.validateBinding())
 
-        self.assertRaises(pyxb.BadTypeValueError, SET_li, instance, 1)
-        self.assertRaises(pyxb.BadTypeValueError, SET_li, instance, [[1,2,3], [2,3,4]])
+        self.assertRaises(pyxb.SimpleTypeValueError, SET_li, instance, 1)
+        self.assertRaises(pyxb.SimpleTypeValueError, SET_li, instance, [[1,2,3], [2,3,4]])
 
         instance = aggregate([1,2,3])
         self.assertEqual(3, len(instance.li))
@@ -77,8 +77,8 @@ class TestTrac0032 (unittest.TestCase):
 
     def testMulti (self):
         instance = multi()
-        self.assertRaises(pyxb.BadTypeValueError, SET_li, instance, 1)
-        self.assertRaises(pyxb.BadTypeValueError, SET_li, instance, [1, 2, 3])
+        self.assertRaises(pyxb.SimpleTypeValueError, SET_li, instance, 1)
+        self.assertRaises(pyxb.SimpleTypeValueError, SET_li, instance, [1, 2, 3])
         instance.li = [[1,2,3], [2,3,4]]
         self.assertEqual(2, len(instance.li))
         self.assertTrue(instance.validateBinding())
@@ -90,7 +90,7 @@ class TestTrac0032 (unittest.TestCase):
         self.assertEqual(2, len(instance.content()))
 
         self.assertRaises(pyxb.UnrecognizedContentError, multi, [[1,2,3], [2,3,4]])
-        self.assertRaises(pyxb.BadTypeValueError, multi, li=[1,2,3])
+        self.assertRaises(pyxb.SimpleTypeValueError, multi, li=[1,2,3])
 
         instance = multi(li=[[1,2,3],[2,3,4]])
         self.assertEqual(2, len(instance.li))

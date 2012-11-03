@@ -108,7 +108,7 @@ class TestTrac_0060 (unittest.TestCase):
 
     def testWildcardIntegerBad (self):
         xmls = '<wildcard>%s</wildcard>' % (self.BadInteger,)
-        self.assertRaises(pyxb.BadTypeValueError, CreateFromDocument, xmls)
+        self.assertRaises(pyxb.SimpleTypeValueError, CreateFromDocument, xmls)
 
     def testWildcardUntyped (self):
         # Inhibit warning about conversion; we get a DOM node out of this.
@@ -265,9 +265,9 @@ class TestTrac_0060 (unittest.TestCase):
 
         # skip uses element name to force to integer, which content doesn't match
         xmls = '<wildcard>%s</wildcard>' % (self.ConflictString,)
-        self.assertRaises(pyxb.BadTypeValueError, CreateFromDocument, xmls)
+        self.assertRaises(pyxb.SimpleTypeValueError, CreateFromDocument, xmls)
         dom = pyxb.utils.domutils.StringToDOM(xmls)
-        self.assertRaises(pyxb.BadTypeValueError, CreateFromDOM, dom)
+        self.assertRaises(pyxb.SimpleTypeValueError, CreateFromDOM, dom)
 
         xmls = '<wildcard>%s</wildcard>' % (self.ConflictStringInteger,)
         wc = CreateFromDocument(xmls)

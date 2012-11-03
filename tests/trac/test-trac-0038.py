@@ -85,7 +85,7 @@ class TestTrac0038 (unittest.TestCase):
         self.assertTrue(isinstance(w, welsh))
         self.assertEqual(w, welsh.dau)
         self.assertEqual(w, tUnion.dau)
-        self.assertRaises(pyxb.BadTypeValueError, union, 'deux')
+        self.assertRaises(pyxb.SimpleTypeValueError, union, 'deux')
         n = union('ni')
         self.assertEqual(n, tUnion.ni)
 

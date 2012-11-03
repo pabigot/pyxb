@@ -73,12 +73,12 @@ class TestExternal (unittest.TestCase):
         self.assertEqual(word.typeDefinition()._ElementMap['from'].elementBinding().typeDefinition(), st.english)
         self.assertEqual(word.typeDefinition()._ElementMap['to'].elementBinding().typeDefinition(), st.welsh)
         one = st.english('one')
-        self.assertRaises(BadTypeValueError, st.english, 'five')
+        self.assertRaises(SimpleTypeValueError, st.english, 'five')
         # Element constructor without content is error
-        self.assertRaises(BadTypeValueError, english)
+        self.assertRaises(SimpleTypeValueError, english)
         self.assertEqual('one', english('one'))
         # Element constructor with out-of-range content is error
-        self.assertRaises(BadTypeValueError, english, 'five')
+        self.assertRaises(SimpleTypeValueError, english, 'five')
 
         xml = '<ns1:english xmlns:ns1="URN:test-external">one</ns1:english>'
         instance = st.CreateFromDocument(xml)
@@ -94,7 +94,7 @@ class TestExternal (unittest.TestCase):
         
     def testBadWords (self):
         xml = '<ns1:word xmlns:ns1="URN:test-external"><from>five</from><to>pump</to></ns1:word>'
-        self.assertRaises(BadTypeValueError, CreateFromDocument, xml)
+        self.assertRaises(SimpleTypeValueError, CreateFromDocument, xml)
 
     def testComplexShared (self):
         xml = '<ns1:lwords language="english" newlanguage="welsh" xmlns:ns1="URN:test-external">un</ns1:lwords>'

@@ -19,7 +19,7 @@ class Test_NMTOKENS (unittest.TestCase):
         self.assertEqual(3, len(v))
         self.assertEqual("one", v[0])
         self.assertTrue(isinstance(v[0], xsd.NMTOKEN))
-        self.assertRaises(BadTypeValueError, xsd.NMTOKENS, 'string with b@d id')
+        self.assertRaises(SimpleTypeValueError, xsd.NMTOKENS, 'string with b@d id')
 
     def testInsertion (self):
         tup = ('a', 'b', 'c')

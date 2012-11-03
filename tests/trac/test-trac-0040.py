@@ -58,8 +58,8 @@ class TestTrac0040 (unittest.TestCase):
         self.assertEqual(instance.lu.xsdLiteral(), '1 two 3')
         
         # These also caught a missed TypeError to PyXBException conversion
-        self.assertRaises(pyxb.BadTypeValueError, SET_lu, instance, 1)
-        self.assertRaises(pyxb.BadTypeValueError, SET_lu, instance, [[1,'two',3], ['two',3,4]])
+        self.assertRaises(pyxb.SimpleTypeValueError, SET_lu, instance, 1)
+        self.assertRaises(pyxb.SimpleTypeValueError, SET_lu, instance, [[1,'two',3], ['two',3,4]])
 
         instance = aggregate([1,'two',3])
         self.assertEqual(3, len(instance.lu))

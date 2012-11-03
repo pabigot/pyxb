@@ -15,7 +15,7 @@ print addr.toxml("utf-8")
 try:
     ny = address.USState('NY')
     assert False
-except pyxb.BadTypeValueError, e:
+except pyxb.SimpleTypeValueError, e:
     print e
 
 

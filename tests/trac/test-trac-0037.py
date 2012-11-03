@@ -32,6 +32,7 @@ xsd='''<?xml version="1.0" encoding="UTF-8"?>
   <xs:complexType name="tStructure">
     <xs:sequence/>
     <xs:attribute name="attr" type="tUnion" use="required"/>
+    <xs:attribute name="enum" type="tEnum" use="optional"/>
   </xs:complexType>
   <xs:element name="structure" type="tStructure"/>
 </xs:schema>'''
@@ -45,6 +46,14 @@ eval(rv)
 from pyxb.exceptions_ import *
 
 import unittest
+
+def setAttr (instance, value):
+    instance.attr = value
+    return instance
+
+def setEnum (instance, value):
+    instance.enum = value
+    return instance
 
 class TestTrac0037 (unittest.TestCase):
     def testElement (self):
@@ -84,14 +93,28 @@ class TestTrac0037 (unittest.TestCase):
         self.assertEqual(2, len(i))
         self.assertEqual(1, i.index('two'))
         
-    def testAttribute (self):
-        #i = structure(attr='three')
-        #self.assertRaises(pyxb.BindingValidationError, i.validateBinding)
+    def testConstructor (self):
+        self.assertRaises(pyxb.SimpleTypeValueError, structure, attr='three')
         i = structure(attr=4)
         self.assertTrue(i.validateBinding())
         i = structure(attr='two')
         self.assertTrue(i.validateBinding())
         
+    def testSet (self):
+        i = structure()
+        setAttr(i, 4)
+        self.assertEqual(i.attr, 4)
+        self.assertTrue(isinstance(i.attr, int))
+        setAttr(i, 'two')
+        self.assertEqual(i.attr, 'two')
+        self.assertTrue(isinstance(i.attr, tEnum))
+        setEnum(i, 'one')
+        self.assertEqual(i.attr, 'two')
+        self.assertEqual(i.enum, 'one')
+        self.assertTrue(isinstance(i.enum, tEnum))
+        self.assertRaises(pyxb.SimpleTypeValueError, setAttr, i, 'three')
+        self.assertRaises(pyxb.SimpleTypeValueError, setEnum, i, 4)
+
 
 if __name__ == '__main__':
     unittest.main()

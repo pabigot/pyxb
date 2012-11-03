@@ -91,10 +91,6 @@ class NamespaceUniquenessError (NamespaceError):
     """Raised when an attempt is made to record multiple objects of the same name in the same namespace category."""
     pass
 
-class BadTypeValueError (PyXBException):
-    """Raised when a value in an XML attribute does not conform to the simple type."""
-    pass
-
 class NotInNamespaceError (PyXBException):
     '''Raised when a name is referenced that is not defined in the appropriate namespace.'''
     __namespace = None
@@ -219,6 +215,75 @@ class SimpleContentAbsentError (StructuralBadDocumentError):
 
 class ValidationError (PyXBException):
     """Raised when something in the infoset fails to satisfy a content model or attribute requirement."""
+    pass
+
+class SimpleTypeValueError (ValidationError):
+    """Raised when a simple type value does not satisfy its constraints."""
+    type = None
+    """The L{pyxb.binding.basis.simpleTypeDefinition} that constrains values."""
+    
+    value = None
+    """The value that violates the constraints of L{type}.  In some
+    cases this is a tuple of arguments passed to a constructor that
+    failed with a built-in exception likeC{ValueError} or
+    C{OverflowError}."""
+
+    def __init__ (self, type, value):
+        """@param type: the value for the L{type} attribute.
+        @param value: the value for the L{value} attribute.
+        """
+        self.type = type
+        self.value = value
+        super(SimpleTypeValueError, self).__init__(type, value)
+
+class SimpleListValueError (SimpleTypeValueError):
+    """Raised when a list simple type contains a member that does not satisfy its constraints.
+
+    In this case, L{type} is the type of the list, and the value
+    C{type._ItemType} is the type for which the value is
+    unacceptable."""
+    pass
+
+class SimpleUnionValueError (SimpleTypeValueError):
+    """Raised when a union simple type contains a member that does not satisfy its constraints.
+
+    In this case, L{type} is the type of the union, and the value
+    C{type._MemberTypes} is the set of types for which the value is
+    unacceptable."""
+    pass
+
+class SimpleFacetValueError (SimpleTypeValueError):
+    """Raised when a simple type value does not satisfy a facet constraint.
+
+    This extends L{SimpleTypeValueError} with the L{facet} field which
+    can be used to determine why the value is unacceptable."""
+
+    type = None
+    """The L{pyxb.binding.basis.simpleTypeDefinition} that constrains values."""
+    
+    value = None
+    """The value that violates the constraints of L{type}.  In some
+    cases this is a tuple of arguments passed to a constructor that
+    failed with a built-in exception likeC{ValueError} or
+    C{OverflowError}."""
+
+    facet = None
+    """The specific facet that is violated by the value."""
+
+    def __init__ (self, type, value, facet):
+        """@param type: the value for the L{type} attribute.
+        @param value: the value for the L{value} attribute.
+        """
+        self.type = type
+        self.value = value
+        self.facet = facet
+        # Bypass immediate parent
+        super(SimpleTypeValueError, self).__init__(type, value, facet)
+
+class SimplePluralValueError (SimpleTypeValueError):
+    """Raised when context requires a plural value.
+
+    In this case, the plurality is marked external to C{type}."""
     pass
 
 class AttributeValidationError (ValidationError):

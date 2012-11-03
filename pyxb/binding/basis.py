@@ -268,7 +268,7 @@ class _TypeBinding_mixin (utility.Locatable_mixin):
         the string as a constructor argument to the this class.  This flag is
         set to C{False} when testing automaton transitions.
 
-        @raise pyxb.BadTypeValueError: if the value is not both
+        @raise pyxb.SimpleTypeValueError: if the value is not both
         type-consistent and value-consistent with the element's type.
         """
         convert_string_values = kw.get('_convert_string_values', True)
@@ -331,7 +331,7 @@ class _TypeBinding_mixin (utility.Locatable_mixin):
         # things result in an undesirable loss of information: for example,
         # when an all model supports both numeric and string transitions, the
         # candidate is a number, and the string transition is tested first.
-        raise pyxb.BadTypeValueError('No conversion from %s to %s' % (value_type, cls))
+        raise pyxb.SimpleTypeValueError(cls, value)
 
     @classmethod
     def _IsSimpleTypeContent (cls):
@@ -465,7 +465,7 @@ class _TypeBinding_mixin (utility.Locatable_mixin):
 
         @return: C{True} if the instance validates
         @raise pyxb.BindingValidationError: complex content does not match model
-        @raise pyxb.BadTypeValueError: simple content fails to satisfy constraints
+        @raise pyxb.SimpleTypeValueError: simple content fails to satisfy constraints
         """
         raise NotImplementedError('%s._validateBinding_vx' % (type(self).__name__,))
 
@@ -474,7 +474,7 @@ class _TypeBinding_mixin (utility.Locatable_mixin):
 
         @return: C{True} if validation succeeds.
         @raise pyxb.BindingValidationError: complex content does not match model
-        @raise pyxb.BadTypeValueError: simple content fails to satisfy constraints
+        @raise pyxb.SimpleTypeValueError: simple content fails to satisfy constraints
         """
         if self._PerformValidation():
             self._validateBinding_vx()
@@ -574,7 +574,7 @@ class _DynamicCreate_mixin (pyxb.cscRoot):
         try:
             return ctor(*args, **kw)
         except TypeError, e:
-            raise pyxb.BadTypeValueError(e)
+            raise pyxb.SimpleTypeValueError(ctor, args)
 
 class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
     """L{simpleTypeDefinition} is a base class that is part of the
@@ -766,9 +766,9 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
         try:
             return super(simpleTypeDefinition, cls).__new__(cls, *args, **kw)
         except ValueError, e:
-            raise pyxb.BadTypeValueError(e)
+            raise pyxb.SimpleTypeValueError(cls, args)
         except OverflowError, e:
-            raise pyxb.BadTypeValueError(e)
+            raise pyxb.SimpleTypeValueError(cls, args)
 
     # Validate the constraints after invoking the parent constructor,
     # unless told not to.
@@ -801,7 +801,7 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
         try:
             super(simpleTypeDefinition, self).__init__(*args, **kw)
         except OverflowError, e:
-            raise pyxb.BadTypeValueError(e)
+            raise pyxb.SimpleTypeValueError(type(self), args)
         if apply_attributes and (dom_node is not None):
             self._setAttributesFromKeywordsAndDOM(kw, dom_node)
         if require_value and (not self._constructedWithValue()):
@@ -897,7 +897,7 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
     def XsdConstraintsOK (cls, value):
         """Validate the given value against the constraints on this class.
         
-        @raise pyxb.BadTypeValueError: if any constraint is violated.
+        @raise pyxb.SimpleTypeValueError: if any constraint is violated.
         """
 
         value = cls._XsdConstraintsPreCheck_vb(value)
@@ -929,7 +929,7 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
                 cls.__ClassFacetSequence[cls] = facet_values
         for f in facet_values:
             if not f.validateConstraint(value):
-                raise pyxb.BadTypeValueError('%s violation for %s in %s' % (f.Name(), value, cls.__name__))
+                raise pyxb.SimpleFacetValueError(cls, value, f)
         return value
 
     def xsdConstraintsOK (self):
@@ -1008,16 +1008,16 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
         possible to bypass the normal content validation (by invoking
         append/extend on the list instance)."""
         if value is None:
-            raise pyxb.BadTypeValueError('None is not a valid instance of %s' % (cls,))
+            raise pyxb.SimpleTypeValueError(cls, value)
         value_class = cls
         if issubclass(cls, STD_list):
             try:
                 iter(value)
             except TypeError:
-                raise pyxb.BadTypeValueError('%s cannot have non-iterable value type %s' % (cls, type(value)))
+                raise pyxb.SimpleTypeValueError(cls, value)
             for v in value:
                 if not cls._ItemType._IsValidValue(v):
-                    raise pyxb.BadTypeValueError('%s cannot have member of type %s (want %s)' % (cls, type(v), cls._ItemType))
+                    raise pyxb.SimpleListValueError(cls, v)
         else:
             if issubclass(cls, STD_union):
                 value_class = None
@@ -1026,10 +1026,10 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
                         value_class = mt
                         break
                 if value_class is None:
-                    raise pyxb.BadTypeValueError('%s cannot have value type %s' % (cls, type(value)))
+                    raise pyxb.SimpleUnionValueError(cls, value)
             #if not (isinstance(value, value_class) or issubclass(value_class, type(value))):
             if not isinstance(value, value_class):
-                raise pyxb.BadTypeValueError('Value type %s is not valid for %s' % (type(value), cls))
+                raise pyxb.SimpleTypeValueError(cls, value)
         value_class.XsdConstraintsOK(value)
 
     def _checkValidValue (self):
@@ -1080,7 +1080,7 @@ class STD_union (simpleTypeDefinition):
         enabled), any constructed value is checked against constraints applied
         to the union as well as the member type.
 
-        @raise pyxb.BadTypeValueError: no member type will permit creation of
+        @raise pyxb.SimpleTypeValueError: no member type will permit creation of
         an instance from the parameters in C{args} and C{kw}.
         """
 
@@ -1095,7 +1095,7 @@ class STD_union (simpleTypeDefinition):
             arg = args[0]
             try:
                 rv = cls._ValidatedMember(arg)
-            except pyxb.BadTypeValueError:
+            except pyxb.SimpleTypeValueError:
                 pass
         if rv is None:
             kw['_validate_constraints'] = True
@@ -1103,9 +1103,9 @@ class STD_union (simpleTypeDefinition):
                 try:
                     rv = mt.Factory(*args, **kw)
                     break
-                except pyxb.BadTypeValueError:
+                except pyxb.SimpleTypeValueError:
                     pass
-                except ValueError:
+                except (ValueError, OverflowError):
                     pass
                 except:
                     pass
@@ -1114,13 +1114,13 @@ class STD_union (simpleTypeDefinition):
                 cls.XsdConstraintsOK(rv)
             rv._postFactory_vx(state)
             return rv
-        raise pyxb.BadTypeValueError('%s cannot construct union member from args %s' % (cls.__name__, args))
+        raise pyxb.SimpleUnionValueError(cls, args)
 
     @classmethod
     def _ValidatedMember (cls, value):
         """Validate the given value as a potential union member.
 
-        @raise pyxb.BadTypeValueError: the value is not an instance of a
+        @raise pyxb.SimpleTypeValueError: the value is not an instance of a
         member type."""
         if not isinstance(value, cls._MemberTypes):
             for mt in cls._MemberTypes:
@@ -1129,9 +1129,9 @@ class STD_union (simpleTypeDefinition):
                     # first member will be accepted.
                     value = mt.Factory(value, _validate_constraints=True)
                     return value
-                except (TypeError, pyxb.BadTypeValueError):
+                except (TypeError, pyxb.SimpleTypeValueError):
                     pass
-            raise pyxb.BadTypeValueError('%s cannot hold a member of type %s' % (cls.__name__, value.__class__.__name__))
+            raise pyxb.SimpleUnionValueError(cls, value)
         return value
 
     def __init__ (self, *args, **kw):
@@ -1181,8 +1181,8 @@ class STD_list (simpleTypeDefinition, types.ListType):
         else:
             try:
                 value = cls._ItemType(value)
-            except (pyxb.BadTypeValueError, TypeError):
-                raise pyxb.BadTypeValueError('Type %s has member of type %s, must be %s' % (cls.__name__, type(value).__name__, cls._ItemType.__name__))
+            except (pyxb.SimpleTypeValueError, TypeError):
+                raise pyxb.SimpleListValueError(cls, value)
         return value
 
     @classmethod
@@ -1439,7 +1439,7 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
 
         This mostly defers to L{_TypeBinding_mixin._CompatibleValue}.
 
-        @raise pyxb.BadTypeValueError: if the value is not both
+        @raise pyxb.SimpleTypeValueError: if the value is not both
         type-consistent and value-consistent with the element's type.
         """
         # None is always None
@@ -1450,7 +1450,7 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
             try:
                 iter(value)
             except TypeError:
-                raise pyxb.BadTypeValueError('Expected plural value, got %s' % (type(value),))
+                raise pyxb.SimplePluralValueError(self.typeDefinition(), value)
             return [ self.compatibleValue(_v) for _v in value ]
         if isinstance(value, _TypeBinding_mixin) and (value._element() is not None) and value._element().substitutesFor(self):
             return value

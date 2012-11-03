@@ -21,7 +21,7 @@ class Test_QName (unittest.TestCase):
                 print 'Unexpected pass with %s' % (f,)
             except:
                 pass
-            self.assertRaises(BadTypeValueError, xsd.QName, f)
+            self.assertRaises(SimpleTypeValueError, xsd.QName, f)
 
 if __name__ == '__main__':
     unittest.main()

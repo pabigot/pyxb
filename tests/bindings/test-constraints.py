@@ -10,6 +10,7 @@ import unittest
 import pyxb.binding
 import pyxb.binding.facets as facets
 import pyxb.binding.datatypes as datatypes
+import sys
 
 # 4.3.1 length
 # 4.3.2 minLength
@@ -80,49 +81,49 @@ CollapseString._InitializeFacetMap(CollapseString._CF_whiteSpace)
 class testMaxInclusive (unittest.TestCase):
     def test (self):
         self.assertEqual(5, datatypes.byte(5))
-        self.assertRaises(BadTypeValueError, datatypes.byte, 256)
-        self.assertRaises(BadTypeValueError, datatypes.byte, 255)
+        self.assertRaises(SimpleTypeValueError, datatypes.byte, 256)
+        self.assertRaises(SimpleTypeValueError, datatypes.byte, 255)
         self.assertEquals(127, datatypes.byte(127))
-        self.assertRaises(BadTypeValueError, datatypes.byte, -150)
-        self.assertRaises(BadTypeValueError, datatypes.byte, -129)
+        self.assertRaises(SimpleTypeValueError, datatypes.byte, -150)
+        self.assertRaises(SimpleTypeValueError, datatypes.byte, -129)
         self.assertEquals(-128, datatypes.byte(-128))
 
 class testMinMaxExclusive (unittest.TestCase):
     def test (self):
-        self.assertRaises(BadTypeValueError, ExclusiveFloat, -10.0)
-        self.assertRaises(BadTypeValueError, ExclusiveFloat, -5.0)
+        self.assertRaises(SimpleFacetValueError, ExclusiveFloat, -10.0)
+        self.assertRaises(SimpleFacetValueError, ExclusiveFloat, -5.0)
         self.assertEqual(-4.0, ExclusiveFloat(-4.0))
         self.assertEqual(0.0, ExclusiveFloat(0.0))
         self.assertEqual(6.875, ExclusiveFloat(6.875))
-        self.assertRaises(BadTypeValueError, ExclusiveFloat, 7.0)
+        self.assertRaises(SimpleFacetValueError, ExclusiveFloat, 7.0)
 
 class testLength (unittest.TestCase):
     def test (self):
         self.assertEqual('one', TLA('one'))
-        self.assertRaises(BadTypeValueError, TLA, 'three')
-        self.assertRaises(BadTypeValueError, TLA, 'un')
+        self.assertRaises(SimpleFacetValueError, TLA, 'three')
+        self.assertRaises(SimpleFacetValueError, TLA, 'un')
 
     def testList (self):
         t = datatypes.NMTOKEN('card')
-        self.assertRaises(BadTypeValueError, Hand, 4 * [t])
+        self.assertRaises(SimpleFacetValueError, Hand, 4 * [t])
         self.assertEqual(5, len(Hand(5 * [t])))
-        self.assertRaises(BadTypeValueError, Hand, 6 * [t])
+        self.assertRaises(SimpleFacetValueError, Hand, 6 * [t])
 
 class testMinMaxLength (unittest.TestCase):
     def test (self):
-        self.assertRaises(BadTypeValueError, Password, 7*'x')
+        self.assertRaises(SimpleFacetValueError, Password, 7*'x')
         self.assertEqual(8 * 'x', Password(8*'x'))
         self.assertEqual(15 * 'x', Password(15*'x'))
-        self.assertRaises(BadTypeValueError, Password, 16*'x')
+        self.assertRaises(SimpleFacetValueError, Password, 16*'x')
         
     def testList (self):
         i = datatypes.integer(2)
-        self.assertRaises(BadTypeValueError, AFew, [])
-        self.assertRaises(BadTypeValueError, AFew, [i])
+        self.assertRaises(SimpleFacetValueError, AFew, [])
+        self.assertRaises(SimpleFacetValueError, AFew, [i])
         self.assertEqual(2, len(AFew(2 * [i])))
         self.assertEqual(3, len(AFew(3 * [i])))
         self.assertEqual(4, len(AFew(4 * [i])))
-        self.assertRaises(BadTypeValueError, AFew, 5 * [i])
+        self.assertRaises(SimpleFacetValueError, AFew, 5 * [i])
 
 class testEnumeration (unittest.TestCase):
     def test (self):
@@ -130,8 +131,12 @@ class testEnumeration (unittest.TestCase):
         self.assertEqual(Cardinals.one, Cardinals(u'one'))
         self.assertEqual(Cardinals.three, Cardinals('three'))
         self.assertEqual(Cardinals.three, Cardinals(u'three'))
-        self.assertRaises(BadTypeValueError, Cardinals, 'One')
-        self.assertRaises(BadTypeValueError, Cardinals, 'four')
+        self.assertRaises(SimpleFacetValueError, Cardinals, 'One')
+        self.assertRaises(SimpleFacetValueError, Cardinals, 'four')
+        if sys.version_info[:2] >= (2, 7):
+            with self.assertRaises(SimpleFacetValueError) as cm:
+                Cardinals('four')
+            self.assertEqual(cm.exception.facet, Cardinals._CF_enumeration)
 
 class testDigits (unittest.TestCase):
     def testTotalDigits (self):
@@ -140,33 +145,33 @@ class testDigits (unittest.TestCase):
         self.assertEqual(123, FixedPoint(123))
         self.assertEqual(1234, FixedPoint(1234))
         self.assertEqual(12345, FixedPoint(12345))
-        self.assertRaises(BadTypeValueError, FixedPoint, 123456)
-        self.assertRaises(BadTypeValueError, FixedPoint, 1234567)
+        self.assertRaises(SimpleFacetValueError, FixedPoint, 123456)
+        self.assertRaises(SimpleFacetValueError, FixedPoint, 1234567)
         self.assertEqual(-1, FixedPoint(-1))
         self.assertEqual(-12, FixedPoint(-12))
         self.assertEqual(-123, FixedPoint(-123))
         self.assertEqual(-1234, FixedPoint(-1234))
         self.assertEqual(-12345, FixedPoint(-12345))
-        self.assertRaises(BadTypeValueError, FixedPoint, -123456)
-        self.assertRaises(BadTypeValueError, FixedPoint, -1234567)
+        self.assertRaises(SimpleFacetValueError, FixedPoint, -123456)
+        self.assertRaises(SimpleFacetValueError, FixedPoint, -1234567)
 
     def testFractionDigits (self):
         self.assertEqual(1, FixedPoint(1))
         self.assertEqual(1.2, FixedPoint(1.2))
         self.assertEqual(1.23, FixedPoint(1.23))
-        self.assertRaises(BadTypeValueError, FixedPoint, 1.234)
+        self.assertRaises(SimpleFacetValueError, FixedPoint, 1.234)
         self.assertEqual(12, FixedPoint(12))
         self.assertEqual(12.3, FixedPoint(12.3))
         self.assertEqual(12.34, FixedPoint(12.34))
-        self.assertRaises(BadTypeValueError, FixedPoint, 12.345)
+        self.assertRaises(SimpleFacetValueError, FixedPoint, 12.345)
         self.assertEqual(-1, FixedPoint(-1))
         self.assertEqual(-1.2, FixedPoint(-1.2))
         self.assertEqual(-1.23, FixedPoint(-1.23))
-        self.assertRaises(BadTypeValueError, FixedPoint, -1.234)
+        self.assertRaises(SimpleFacetValueError, FixedPoint, -1.234)
         self.assertEqual(-12, FixedPoint(-12))
         self.assertEqual(-12.3, FixedPoint(-12.3))
         self.assertEqual(-12.34, FixedPoint(-12.34))
-        self.assertRaises(BadTypeValueError, FixedPoint, -12.345)
+        self.assertRaises(SimpleFacetValueError, FixedPoint, -12.345)
 
 class testWhitespace (unittest.TestCase):
     __Preserve = facets.CF_whiteSpace(value=facets._WhiteSpace_enum.preserve)

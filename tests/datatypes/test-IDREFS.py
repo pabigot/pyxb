@@ -19,7 +19,7 @@ class Test_IDREFS (unittest.TestCase):
         self.assertEqual(3, len(v))
         self.assertEqual("one", v[0])
         self.assertTrue(isinstance(v[0], xsd.IDREF))
-        self.assertRaises(BadTypeValueError, xsd.IDREFS, 'string with b@d id')
+        self.assertRaises(SimpleTypeValueError, xsd.IDREFS, 'string with b@d id')
 
 if __name__ == '__main__':
     unittest.main()

@@ -23,7 +23,7 @@ class TestUnion (unittest.TestCase):
         self.assertRaises(LogicError, myUnion, 5)
         self.assertEqual(5, myUnion.Factory(5))
         self.assertEqual(5, myUnion.Factory('5'))
-        self.assertRaises(BadTypeValueError, myUnion.Factory, 10)
+        self.assertRaises(SimpleTypeValueError, myUnion.Factory, 10)
         self.assert_(isinstance(myUnion.Factory('5'), singleDigit))
         self.assert_(isinstance(myUnion.Factory('one'), english))
         self.assertEqual(welsh.un, myUnion.Factory('un'))
@@ -37,13 +37,13 @@ class TestUnion (unittest.TestCase):
 
     def testRestrictedUnion (self):
         self.assertEqual(ones.one, ones.Factory('one'))
-        self.assertRaises(BadTypeValueError, ones.Factory, 'two')
+        self.assertRaises(SimpleTypeValueError, ones.Factory, 'two')
         self.assertEqual(ones.un, ones.Factory('un'))
 
     def testAnonymousUnion (self):
         self.assertEqual('four', words2.Factory('four'))
         self.assertEqual('pump', words2.Factory('pump'))
-        self.assertRaises(BadTypeValueError,  words2.Factory, 'one')
+        self.assertRaises(SimpleTypeValueError,  words2.Factory, 'one')
 
     def testFiveWords (self):
         self.assertEqual('one', fiveWords.Factory('one'))
@@ -55,7 +55,7 @@ class TestUnion (unittest.TestCase):
         self.assertEqual(0, myElement('0'))
         self.assertEqual(english.two, myElement('two'))
         self.assertEqual(welsh.tri, myElement('tri'))
-        self.assertRaises(BadTypeValueError, myElement, 'five')
+        self.assertRaises(SimpleTypeValueError, myElement, 'five')
 
     def testValidation (self):
         # Test automated conversion
@@ -84,12 +84,12 @@ class TestUnion (unittest.TestCase):
         self.assertEqual(welsh.un, myElement.createFromDOM(pyxb.utils.domutils.StringToDOM('<myElement xmlns="URN:unionTest"><!-- with comment -->un</myElement>').documentElement))
 
         self.assertEqual(english.one, myElement.createFromDOM(pyxb.utils.domutils.StringToDOM('<myElement xmlns="URN:unionTest"> one <!-- with comment and whitespace --></myElement>').documentElement))
-        self.assertRaises(BadTypeValueError, myElement.createFromDOM, pyxb.utils.domutils.StringToDOM('<myElement xmlns="URN:unionTest"><!-- whitespace is error for welsh --> un</myElement>').documentElement)
+        self.assertRaises(SimpleTypeValueError, myElement.createFromDOM, pyxb.utils.domutils.StringToDOM('<myElement xmlns="URN:unionTest"><!-- whitespace is error for welsh --> un</myElement>').documentElement)
 
         self.assertEqual(english.one, myElement.createFromDOM(pyxb.utils.domutils.StringToDOM('''<myElement xmlns="URN:unionTest"><!-- whitespace is collapsed for english -->
 one
 </myElement>''').documentElement))
-        self.assertRaises(BadTypeValueError, myElement.createFromDOM, pyxb.utils.domutils.StringToDOM('''<myElement xmlns="URN:unionTest"><!--whitespace is only reduced for welsh -->
+        self.assertRaises(SimpleTypeValueError, myElement.createFromDOM, pyxb.utils.domutils.StringToDOM('''<myElement xmlns="URN:unionTest"><!--whitespace is only reduced for welsh -->
 un
 </myElement>''').documentElement)
 

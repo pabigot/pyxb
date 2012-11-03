@@ -155,7 +155,7 @@ class Facet (pyxb.cscRoot):
                 _log.exception('Stringize facet %s produced exception', self.Name())
                 raise
         return str(self.value())
-    
+
     def __str__ (self):
         rv = []
         rv.append('%s="%s"' % (self.Name(), self._valueString()))

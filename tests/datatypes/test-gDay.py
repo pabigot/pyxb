@@ -9,8 +9,8 @@ import pyxb.binding.datatypes as xsd
 
 class Test_gDay (unittest.TestCase):
     def testBasic (self):
-        self.assertRaises(pyxb.BadTypeValueError, xsd.gDay, 0)
-        self.assertRaises(pyxb.BadTypeValueError, xsd.gDay, 42)
+        self.assertRaises(pyxb.SimpleTypeValueError, xsd.gDay, 0)
+        self.assertRaises(pyxb.SimpleTypeValueError, xsd.gDay, 42)
         v = xsd.gDay('---27')
         self.assertEqual(v.day, 27)
         v = xsd.gDay(27)

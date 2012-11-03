@@ -17,7 +17,7 @@ class Test_date (unittest.TestCase):
         self.assertEqual(with_tzinfo, dt.tzinfo is not None)
 
     def testBad (self):
-        self.assertRaises(pyxb.BadTypeValueError, xsd.date, '2002-10-27T')
+        self.assertRaises(pyxb.SimpleTypeValueError, xsd.date, '2002-10-27T')
         
     def testFromText (self):
         self.verifyTime(xsd.date('  2002-10-27', _from_xml=True), with_usec=False, with_tzinfo=False)
@@ -26,7 +26,7 @@ class Test_date (unittest.TestCase):
 
     def testYear (self):
         # This test can't succeed because Python doesn't support negative years.
-        self.assertRaises(pyxb.BadTypeValueError, xsd.date, '-0024-01-01')
+        self.assertRaises(pyxb.SimpleTypeValueError, xsd.date, '-0024-01-01')
 
     def testArguments (self):
         self.assertRaises(TypeError, xsd.date)

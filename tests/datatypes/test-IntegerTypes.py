@@ -31,14 +31,14 @@ class _TestIntegerType (object):
     def testRange (self):
         if self.MIN_IN_RANGE is not None:
             if not ((self.MIN_IN_RANGE-1) in self.PARENT_EXCLUDE):
-                self.assertRaises(BadTypeValueError, self.THIS_TYPE, self.MIN_IN_RANGE - 1)
+                self.assertRaises(SimpleTypeValueError, self.THIS_TYPE, self.MIN_IN_RANGE - 1)
             self.assertEquals(self.MIN_IN_RANGE, self.THIS_TYPE(self.MIN_IN_RANGE))
         if self.ZERO_IN_RANGE:
             self.assertEquals(0, self.THIS_TYPE(0))
         if self.MAX_IN_RANGE is not None:
             self.assertEquals(self.MAX_IN_RANGE, self.THIS_TYPE(self.MAX_IN_RANGE))
             if not ((self.MAX_IN_RANGE+1) in self.PARENT_EXCLUDE):
-                self.assertRaises(BadTypeValueError, self.THIS_TYPE, self.MAX_IN_RANGE+1)
+                self.assertRaises(SimpleTypeValueError, self.THIS_TYPE, self.MAX_IN_RANGE+1)
 
     PARENT_EXCLUDE = []
 
@@ -64,9 +64,9 @@ class _TestIntegerType (object):
                 bp = self.THIS_TYPE(p)
                 self.assertEquals(n, bp)
             else:
-                self.assertRaises(BadTypeValueError, self.THIS_TYPE, s)
+                self.assertRaises(SimpleTypeValueError, self.THIS_TYPE, s)
                 if p is not None:
-                    self.assertRaises(BadTypeValueError, self.THIS_TYPE, p)
+                    self.assertRaises(SimpleTypeValueError, self.THIS_TYPE, p)
 
 class Test_byte (unittest.TestCase, _TestIntegerType):
     THIS_TYPE = xsd.byte

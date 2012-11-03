@@ -10,8 +10,8 @@ import pyxb.binding.datatypes as xsd
 class Test_gMonth (unittest.TestCase):
 
     def testBasic (self):
-        self.assertRaises(pyxb.BadTypeValueError, xsd.gMonth, 0)
-        self.assertRaises(pyxb.BadTypeValueError, xsd.gMonth, 13)
+        self.assertRaises(pyxb.SimpleTypeValueError, xsd.gMonth, 0)
+        self.assertRaises(pyxb.SimpleTypeValueError, xsd.gMonth, 13)
         v = xsd.gMonth('--10')
         self.assertEqual(v.month, 10)
         v = xsd.gMonth(10)

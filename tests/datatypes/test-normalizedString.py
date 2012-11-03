@@ -22,7 +22,7 @@ class Test_normalizedString (unittest.TestCase):
 
     def testInvalid (self):
         for (lexical, value) in self.Cases:
-            self.assertRaises(BadTypeValueError, xsd.normalizedString, lexical)
+            self.assertRaises(SimpleTypeValueError, xsd.normalizedString, lexical)
 
 if __name__ == '__main__':
     unittest.main()
