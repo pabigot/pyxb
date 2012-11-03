@@ -175,6 +175,25 @@ class ValidationError (PyXBException):
     """Raised when something in the infoset fails to satisfy a content model or attribute requirement."""
     pass
 
+class ContentError (ValidationError):
+    pass
+
+class ExtraSimpleContentError (ContentError):
+    """A complex type with simple content was provided too much content."""
+
+    instance = None
+    """The binding instance that already has simple content assigned."""
+
+    value = None
+    """The proposed addition to that simple content."""
+
+    def __init__ (self, instance, value):
+        """@param instance: the value for the L{instance} attribute.
+        @param value: the value for the L{value} attribute."""
+        self.instance = instance
+        self.value = value
+        super(ExtraSimpleContentError, self).__init__(instance, value)
+
 class SimpleTypeValueError (ValidationError):
     """Raised when a simple type value does not satisfy its constraints."""
     type = None

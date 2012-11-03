@@ -2122,12 +2122,11 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
                     self._appendWildcardElement(value)
                     return self
                 raise pyxb.StructuralBadDocumentError('Validation is required when no element_decl can be found')
-            else:
-                # Attempt to place the value based on the content model
-                num_cand = self.__automatonConfiguration.step(value, element_decl)
-                if 1 <= num_cand:
-                    # Resolution was successful (possibly non-deterministic)
-                    return self
+            # Attempt to place the value based on the content model
+            num_cand = self.__automatonConfiguration.step(value, element_decl)
+            if 1 <= num_cand:
+                # Resolution was successful (possibly non-deterministic)
+                return self
         # If what we have is element content, we can't accept it, either
         # because the type doesn't accept element content or because it does
         # and what we got didn't match the content model.
@@ -2138,7 +2137,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         # expecting simple content?
         if self._IsSimpleTypeContent():
             if self.__content is not None:
-                raise pyxb.ExtraContentError('Extra content starting with %s (already have %s)' % (value, self.__content))
+                raise pyxb.ExtraSimpleContentError(self, value)
             if not self._isNil():
                 if not isinstance(value, self._TypeDefinition):
                     value = self._TypeDefinition.Factory(value, _from_xml=_from_xml)
