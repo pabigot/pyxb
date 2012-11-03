@@ -237,16 +237,16 @@ class AttributeUse (pyxb.cscRoot):
         (provided, value) = self.__getValue(ctd_instance)
         if value is not None:
             if self.__prohibited:
-                raise pyxb.ProhibitedAttributeError('Value given for prohibited attribute %s' % (self.__name,))
+                raise pyxb.ProhibitedAttributeError(type(ctd_instance), self.__name, ctd_instance)
             if self.__required and not provided:
                 assert self.__fixed
-                raise pyxb.MissingAttributeError('Fixed required attribute %s was never set' % (self.__name,))
+                raise pyxb.MissingAttributeError(type(ctd_instance), self.__name, ctd_instance)
             if not self.__dataType._IsValidValue(value):
                 raise pyxb.BindingValidationError('Attribute %s value type %s not %s' % (self.__name, type(value), self.__dataType))
             self.__dataType.XsdConstraintsOK(value)
         else:
             if self.__required:
-                raise pyxb.MissingAttributeError('Required attribute %s does not have a value' % (self.__name,))
+                raise pyxb.MissingAttributeError(type(ctd_instance), self.__name, ctd_instance)
 
     def set (self, ctd_instance, new_value):
         """Set the value of the attribute.
@@ -268,7 +268,7 @@ class AttributeUse (pyxb.cscRoot):
             unicode_value = self.__name.getAttribute(new_value)
             if unicode_value is None:
                 if self.__required:
-                    raise pyxb.MissingAttributeError('Required attribute %s from %s not found' % (self.__name, ctd_instance._ExpandedName or type(ctd_instance)))
+                    raise pyxb.MissingAttributeError(type(ctd_instance), self.__name, ctd_instance)
                 provided = False
                 unicode_value = self.__unicodeDefault
             if unicode_value is None:
@@ -279,14 +279,14 @@ class AttributeUse (pyxb.cscRoot):
                 new_value = unicode_value
         elif new_value is None:
             if self.__required:
-                raise pyxb.MissingAttributeError('Required attribute %s in %s may not be set to None' % (self.__name, ctd_instance._ExpandedName or type(ctd_instance)))
+                raise pyxb.MissingAttributeError(type(ctd_instance), self.__name, ctd_instance)
             provided = False
         if provided and self.__prohibited:
-            raise pyxb.ProhibitedAttributeError('Value given for prohibited attribute %s' % (self.__name,))
+            raise pyxb.ProhibitedAttributeError(type(ctd_instance), self.__name, ctd_instance)
         if (new_value is not None) and (not isinstance(new_value, self.__dataType)):
             new_value = self.__dataType.Factory(new_value, _from_xml=from_xml)
         if self.__fixed and (new_value != self.__defaultValue):
-            raise pyxb.AttributeChangeError(ctd_instance, self.__name)
+            raise pyxb.AttributeChangeError(type(ctd_instance), self.__name, ctd_instance)
         self.__setValue(ctd_instance, new_value, provided)
         return new_value
 

@@ -1039,7 +1039,7 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
         self._IsValidValue(self)
 
     def _setAttribute (self, attr_en, value):
-        raise pyxb.UnrecognizedAttributeError(type(self), attr_en)
+        raise pyxb.UnrecognizedAttributeError(type(self), attr_en, self)
 
     @classmethod
     def _description (cls, name_only=False, user_documentation=True):
@@ -1943,7 +1943,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         au = self._AttributeMap.get(attr_en)
         if au is None:
             if self._AttributeWildcard is None:
-                raise pyxb.UnrecognizedAttributeError(type(self), attr_en)
+                raise pyxb.UnrecognizedAttributeError(type(self), attr_en, self)
             self.__wildcardAttributeMap[attr_en] = value
         else:
             au.set(self, value)

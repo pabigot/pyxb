@@ -223,23 +223,29 @@ class ValidationError (PyXBException):
 
 class AttributeValidationError (ValidationError):
     """Raised when an attribute requirement is not satisfied."""
-    pass
-
-class UnrecognizedAttributeError (AttributeValidationError):
-    """Attempt to reference an attribute not sanctioned by content model."""
 
     type = None
     """The L{pyxb.binding.basis.complexTypeDefinition} subclass of the instance."""
+
     tag = None
     """The name of the attribute."""
     
-    def __init__ (self, type, tag):
+    instance = None
+    """The binding instance, if available."""
+
+    def __init__ (self, type, tag, instance=None):
         """@param type: the value for the L{type} attribute.
         @param tag: the value for the L{tag} attribute.
+        @param instance: the value for the L{instance} attribute.
         """
         self.type = type
         self.tag = tag
-        super(UnrecognizedAttributeError, self).__init__(type, tag)
+        self.instance = instance
+        super(AttributeValidationError, self).__init__(type, tag, instance)
+
+class UnrecognizedAttributeError (AttributeValidationError):
+    """Attempt to reference an attribute not sanctioned by content model."""
+    pass
 
 class ProhibitedAttributeError (AttributeValidationError):
     """Raised when an attribute that is prohibited is provided in an element."""
@@ -249,21 +255,9 @@ class MissingAttributeError (AttributeValidationError):
     """Raised when an attribute that is required is missing in an element."""
     pass
 
-class AttributeChangeError (BadDocumentError):
+class AttributeChangeError (AttributeValidationError):
     """Attempt to change an attribute that has a fixed value constraint."""
-
-    instance = None
-    """The L{pyxb.binding.basis.complexTypeDefinition} instance owning the attribute."""
-    tag = None
-    """The name of the attribute."""
-    
-    def __init__ (self, instance, tag):
-        """@param instance: the value for the L{instance} attribute.
-        @param tag: the value for the L{tag} attribute.
-        """
-        self.instance = instance
-        self.tag = tag
-        super(AttributeChangeError, self).__init__(instance, tag)
+    pass
 
 class DOMGenerationError (PyXBException):
     """Raised when converting binding to DOM and something goes wrong."""
