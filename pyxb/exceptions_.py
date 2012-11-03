@@ -154,7 +154,7 @@ class AbstractElementError (StructuralBadDocumentError):
     """The abstract L{pyxb.binding.basis.element} in question"""
 
     node = None
-    """The L{xml.dom.Node} used in the attempt to create the element.
+    """The C{xml.dom.Node} used in the attempt to create the element.
     This may be C{None} if the abstract element was invoked without a
     node."""
 
