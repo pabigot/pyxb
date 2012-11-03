@@ -183,7 +183,7 @@ class UnrecognizedContentError (StructuralBadDocumentError):
     """Raised when processing document and an element does not match the content model."""
     pass
 
-class UnrecognizedDOMRootNodeError (UnrecognizedContentError):
+class UnrecognizedDOMRootNodeError (StructuralBadDocumentError):
     """A root DOM node could not be resolved to a schema element"""
 
     node = None
@@ -286,7 +286,9 @@ class SimpleFacetValueError (SimpleTypeValueError):
 class SimplePluralValueError (SimpleTypeValueError):
     """Raised when context requires a plural value.
 
-    In this case, the plurality is marked external to C{type}."""
+    Unlike L{SimpleListValueError}, in this case the plurality is
+    external to C{type}, for example when an element has simple
+    content and allows multiple occurrences."""
     pass
 
 class AttributeValidationError (ValidationError):
