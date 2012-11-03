@@ -194,6 +194,23 @@ class ExtraSimpleContentError (ContentError):
         self.value = value
         super(ExtraSimpleContentError, self).__init__(instance, value)
 
+class UnprocessedKeywordContentError (ContentError):
+    """A complex type constructor was provided with keywords that could not be recognized."""
+
+    instance = None
+    """The binding instance being constructed."""
+
+    keywords = None
+    """The keywords that could not be recognized."""
+
+    def __init__ (self, instance, keywords):
+        """@param instance: the value for the L{instance} attribute.
+        @param keywords: the value for the L{keywords} attribute."""
+        self.instance = instance
+        self.keywords = keywords
+        super(UnprocessedKeywordContentError, self).__init__(instance, keywords)
+    
+
 class SimpleTypeValueError (ValidationError):
     """Raised when a simple type value does not satisfy its constraints."""
     type = None

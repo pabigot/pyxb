@@ -1790,7 +1790,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         if kw and kw.pop('_strict_keywords', True):
             [ kw.pop(_fkw, None) for _fkw in self._PyXBFactoryKeywords ]
             if kw:
-                raise pyxb.ExtraContentError(kw)
+                raise pyxb.UnprocessedKeywordContentError(self, kw)
         if 0 < len(args):
             if did_set_kw_elt:
                 raise pyxb.UsageError('Cannot mix keyword and positional args for element initialization')
