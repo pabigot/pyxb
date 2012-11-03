@@ -1462,8 +1462,13 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
 
         @param node: The DOM node
 
-        @param element_binding: An instance of L{element} that would be the
-        type of the node ignoring the potential for xsi:type.
+        @param element_binding: An instance of L{element} that would normally
+        be used to determine the type of the binding.  The actual type of
+        object returned is determined by the type definition associated with
+        the C{element_binding} and the value of any U{xsi:type
+        <http://www.w3.org/TR/xmlschema-1/#xsi_type>} attribute found in
+        C{node}, modulated by
+        L{XSI._InterpretTypeAttribute<pyxb.namespace.builtin._XMLSchema_instance._InterpretTypeAttribute>}.
 
         @keyword _fallback_namespace: The namespace to use as the namespace for
         the node, if the node name is unqualified.  This should be an absent
@@ -1520,16 +1525,18 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
     # element
     @classmethod
     def AnyCreateFromDOM (cls, node, fallback_namespace):
-        """Wrapper for L{CreateDOMBinding}.
+        """Create an instance of an element from a DOM node.
 
-        This function validates C{node}, identifies the element binding
-        associated with it (if possible), and passes the pieces off to
+        This method does minimal processing of C{node} and delegates to
         L{CreateDOMBinding}.
 
-        @param node: An L{xml.dom.Node} representing a root element.  If the
+        @param node: An C{xml.dom.Node} representing a root element.  If the
         node is a document, that document's root node will be substituted.
+        The name of the node is extracted as the name of the element to be
+        created, and the node and the name are passed to L{CreateDOMBinding}.
 
-        @param fallback_namespace: As with C{_fallback_namespace} in L{CreateDOMBinding}
+        @param fallback_namespace: The value to pass as C{_fallback_namespace}
+        to L{CreateDOMBinding}
 
         @return: As with L{CreateDOMBinding}"""
         if xml.dom.Node.DOCUMENT_NODE == node.nodeType:
@@ -1572,71 +1579,54 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
             return named_elt
         return None
 
-    def createFromDOM (self, node, expanded_name=None, fallback_namespace=None, **kw):
-        """Create a binding instance from the given DOM node.
+    def createFromDOM (self, node, fallback_namespace=None, **kw):
+        """Create an instance of this element using a DOM node as the source
+        of its content.
 
-        @keyword expanded_name: Optional name for the DOM node.  If not
-        present, is inferred from C{node}.
+        This method does minimal processing of C{node} and delegates to
+        L{_createFromDOM}.
 
-        @keyword fallback_namespace: Optional namespace to use when resolving
-        unqualified names.
+        @param node: An C{xml.dom.Node} representing a root element.  If the
+        node is a document, that document's root node will be substituted.
+        The name of the node is extracted as the name of the element to be
+        created, and the node and the name are passed to L{_createFromDOM}
+
+        @keyword fallback_namespace: Used as default for
+        C{_fallback_namespace} in call to L{_createFromDOM}
+
+        @note: Keyword parameters are passed to L{CreateDOMBinding}.
+
+        @return: As with L{_createFromDOM}
         """
         if xml.dom.Node.DOCUMENT_NODE == node.nodeType:
             node = node.documentElement
         if fallback_namespace is not None:
             kw.setdefault('_fallback_namespace', fallback_namespace)
-        if expanded_name is None:
-            expanded_name = pyxb.namespace.ExpandedName(node, fallback_namespace=fallback_namespace)
+        expanded_name = pyxb.namespace.ExpandedName(node, fallback_namespace=fallback_namespace)
         return self._createFromDOM(node, expanded_name, **kw)
 
     def _createFromDOM (self, node, expanded_name, **kw):
-        """Create a binding instance from the given DOM node, using the
-        provided name to identify the correct binding.
+        """Create an instance from a DOM node given the name of an element.
 
-        The context and information associated with this element is used to
-        identify the actual element binding to use.  By default, C{self} is
-        used.  If this element represents a term in a content model, the name
-        and namespace of the incoming node may identify a different element.
-        If that element is a member of this element's substitution group, the
-        binding associated with the node's name will be used instead.
+        This method does minimal processing of C{node} and C{expanded_name}
+        and delegates to L{CreateDOMBinding}.
 
-        The type of object returned is determined by the type definition
-        associated with the element binding and the value of any U{xsi:type
-        <http://www.w3.org/TR/xmlschema-1/#xsi_type>} attribute found in the
-        node, modulated by the configuration of L{XSI.ProcessTypeAttribute<pyxb.namespace.builtin._XMLSchema_instance.ProcessTypeAttribute>}.
+        @param node: An C{xml.dom.Node} representing a root element.  If the
+        node is a document, that document's root node will be substituted.
+        The value is passed to L{CreateDOMBinding}.
 
-        Keyword parameters are passed to the factory method of the type
-        associated with the selected element binding.  See
-        L{_TypeBinding_mixin} and any specializations of it.
+        @param expanded_name: The expanded name of the element to be used for
+        content.  This is passed to L{elementForName} to obtain the binding
+        that is passed to L{CreateDOMBinding}, superseding any identification
+        that might be inferred from C{node}.  If no name is available, use
+        L{createFromDOM}.
 
-        @param expanded_name: The expanded name of the node.  If the value is
-        C{None}, defaults to the name of this element.  (In the case of
-        substitution groups, the default is wrong, but correct inference
-        depends on context not available here.)
+        @note: Keyword parameters are passed to L{CreateDOMBinding}.
 
-        @keyword _fallback_namespace: Optional namespace to use when resolving
-        unqualified type names.
-
-        @param node: The DOM node specifying the element content.  If this is
-        a (top-level) Document node, its element node is used.
-        @type node: C{xml.dom.Node}
-        @return: An instance of L{_TypeBinding_mixin}
-        @raise pyxb.StructuralBadDocumentError: The node's name does identify an element binding.
-        @raise pyxb.AbstractElementError: The element binding associated with the node is abstract.
-        @raise pyxb.BadDocumentError: An U{xsi:type <http://www.w3.org/TR/xmlschema-1/#xsi_type>} attribute in the node fails to resolve to a recognized type
-        @raise pyxb.BadDocumentError: An U{xsi:type <http://www.w3.org/TR/xmlschema-1/#xsi_type>} attribute in the node resolves to a type that is not a subclass of the type of the element binding.
+        @return: As with L{CreateDOMBinding}.
         """
-
-        # Bypass the useless top-level node and start with the element beneath
-        # it.
         if xml.dom.Node.DOCUMENT_NODE == node.nodeType:
             node = node.documentElement
-
-        # Identify the element binding to be used for the given node.  NB:
-        # Even if found, this may not be equal to self, since we allow you to
-        # use an abstract substitution group head to create instances from DOM
-        # nodes that are in that group, and xsi:type might apply.  But it's a
-        # start.
         return element.CreateDOMBinding(node, self.elementForName(expanded_name), **kw)
 
     def __str__ (self):
