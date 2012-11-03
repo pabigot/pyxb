@@ -138,51 +138,6 @@ class StructuralBadDocumentError (BadDocumentError):
                 kw.setdefault('message', str(self.__content))
         BadDocumentError.__init__(self, **kw)
 
-class AbstractElementError (StructuralBadDocumentError):
-    """Attempt to create an instance of an abstract element.
-
-    Raised when an element is created and the identified binding is
-    abstract.  Such elements cannot be created directly; instead the
-    creation must derive from an instance of the abstract element's
-    substitution group."""
-
-    element = None
-    """The abstract L{pyxb.binding.basis.element} in question"""
-
-    value = None
-    """The value proposed for the L{element}.  This is usually going
-    to be a C{xml.dom.Node} used in the attempt to create the element,
-    C{None} if the abstract element was invoked without a node, or
-    another type if
-    L{pyxb.binding.content.ElementDeclaration.toDOM} is
-    mis-used."""
-
-    def __init__ (self, element, value=None):
-        """@param element: the value for the L{element} attribute.
-        @param value: the value for the L{value} attribute."""
-        self.element = element
-        self.value = value
-        super(AbstractElementError, self).__init__(element, value)
-
-class AbstractInstantiationError (PyXBException):
-    """Attempt to create an instance of an abstract complex type.
-
-    These types are analogous to abstract base classes, and cannot be
-    created directly.  A type should be used that extends the abstract
-    class."""
-
-    type = None
-    """The abstract L{pyxb.binding.basis.complexTypeDefinition} subclass used"""
-
-    def __init__ (self, type):
-        """@param type: the value for the L{type} attribute."""
-        self.type = type
-        super(AbstractInstantiationError, self).__init__(type)
-
-class UnrecognizedContentError (StructuralBadDocumentError):
-    """Raised when processing document and an element does not match the content model."""
-    pass
-
 class UnrecognizedDOMRootNodeError (StructuralBadDocumentError):
     """A root DOM node could not be resolved to a schema element"""
 
@@ -200,21 +155,12 @@ class UnrecognizedDOMRootNodeError (StructuralBadDocumentError):
         self.node = node
         super(UnrecognizedDOMRootNodeError, self).__init__(node)
 
+class UnrecognizedContentError (StructuralBadDocumentError):
+    """Raised when processing document and an element does not match the content model."""
+    pass
+
 class ExtraContentError (UnrecognizedContentError):
     """Raised when processing document and there is more material in an element content than expected."""
-
-class SimpleContentAbsentError (StructuralBadDocumentError):
-    """An instance with simple content was not provided with a value."""
-
-    instance = None
-    """The binding instance for which simple content is missing."""
-
-    def __init__ (self, instance):
-        """@param instance: the binding instance that is missing
-        content.  This will be available in the L{instance}
-        attribute."""
-        self.instance = instance
-        super(SimpleContentAbsentError, self).__init__(instance)
 
 class ValidationError (PyXBException):
     """Raised when something in the infoset fails to satisfy a content model or attribute requirement."""
@@ -381,8 +327,39 @@ class BindingError (PyXBException):
     For example, attempts to extract complex content from a type that
     requires simple content, or vice versa.  """
 
+class NotSimpleContentError (BindingError):
+    """An operation that requires simple content was invoked on a
+    complex type instance that does not have simple content."""
+
     instance = None
-    """The binding instance on which an inappropriate operation was invoked."""
+    """The binding instance which should have had simple content."""
+
+    def __init__ (self, instance):
+        """@param instance: the binding instance that was mis-used.
+        This will be available in the L{instance} attribute."""
+        self.instance = instance
+        super(BindingError, self).__init__(instance)
+    pass
+
+class SimpleContentAbsentError (BindingError):
+    """An instance with simple content was not provided with a value."""
+
+    instance = None
+    """The binding instance for which simple content is missing."""
+
+    def __init__ (self, instance):
+        """@param instance: the binding instance that is missing
+        content.  This will be available in the L{instance}
+        attribute."""
+        self.instance = instance
+        super(SimpleContentAbsentError, self).__init__(instance)
+
+class NotComplexContentError (BindingError):
+    """An operation that requires a content model was invoked on a
+    complex type instance that has empty or simple content."""
+
+    instance = None
+    """The binding instance which should have had a content model."""
 
     def __init__ (self, instance):
         """@param instance: the binding instance that was mis-used.
@@ -390,15 +367,47 @@ class BindingError (PyXBException):
         self.instance = instance
         super(BindingError, self).__init__(instance)
 
-class NotSimpleContentError (BindingError):
-    """An operation that requires simple content was invoked on a
-    complex type instance that does not have simple content."""
-    pass
+class AbstractElementError (BindingError):
+    """Attempt to create an instance of an abstract element.
 
-class NotComplexContentError (BindingError):
-    """An operation that requires a content model was invoked on a
-    complex type instance that has empty or simple content."""
-    pass
+    Raised when an element is created and the identified binding is
+    abstract.  Such elements cannot be created directly; instead the
+    creation must derive from an instance of the abstract element's
+    substitution group."""
+
+    element = None
+    """The abstract L{pyxb.binding.basis.element} in question"""
+
+    value = None
+    """The value proposed for the L{element}.  This is usually going
+    to be a C{xml.dom.Node} used in the attempt to create the element,
+    C{None} if the abstract element was invoked without a node, or
+    another type if
+    L{pyxb.binding.content.ElementDeclaration.toDOM} is
+    mis-used."""
+
+    def __init__ (self, element, value=None):
+        """@param element: the value for the L{element} attribute.
+        @param value: the value for the L{value} attribute."""
+        self.element = element
+        self.value = value
+        super(AbstractElementError, self).__init__(element, value)
+
+class AbstractInstantiationError (BindingError):
+    """Attempt to create an instance of an abstract complex type.
+
+    These types are analogous to abstract base classes, and cannot be
+    created directly.  A type should be used that extends the abstract
+    class."""
+
+    type = None
+    """The abstract L{pyxb.binding.basis.complexTypeDefinition} subclass used"""
+
+    def __init__ (self, type):
+        """@param type: the value for the L{type} attribute."""
+        self.type = type
+        super(AbstractInstantiationError, self).__init__(type)
+
 
 class ReservedNameError (BindingError):
     """Reserved name set in binding instance."""

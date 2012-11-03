@@ -59,7 +59,7 @@ class TestTrac_0056 (unittest.TestCase):
         xmls = '<Child xsi:type="ChildT" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"/>'
         #self.assertRaises(pyxb.BadDocumentError, CreateFromDocument, xmls)
         doc = pyxb.utils.domutils.StringToDOM(xmls)
-        self.assertRaises(pyxb.BadDocumentError, CreateFromDOM, doc)
+        self.assertRaises(pyxb.BindingError, CreateFromDOM, doc)
         
 
 if __name__ == '__main__':
