@@ -102,7 +102,7 @@ class TestMGSeq (unittest.TestCase):
         dom = pyxb.utils.domutils.StringToDOM(xml)
         self.assertRaises(UnhandledElementContentError, altwrapper.createFromDOM, dom.documentElement)
         instance = altwrapper(third=altsequence._ElementMap['third'].elementBinding()())
-        self.assertRaises(pyxb.BindingValidationError, ToDOM, instance)
+        self.assertRaises(pyxb.IncompleteElementContentError, ToDOM, instance)
 
     def testMissingAtEndLeadingContent (self):
         xml = '<ns1:altwrapper xmlns:ns1="URN:test-mg-sequence"><first/></ns1:altwrapper>'
@@ -124,8 +124,16 @@ class TestMGSeq (unittest.TestCase):
         dom = pyxb.utils.domutils.StringToDOM(xml)
         self.assertRaises(UnhandledElementContentError, altwrapper.createFromDOM, dom.documentElement)
         instance = altwrapper(first=[ altsequence._ElementMap['first'].elementBinding()(), altsequence._ElementMap['first'].elementBinding()(), altsequence._ElementMap['first'].elementBinding()() ], third=altsequence._ElementMap['third'].elementBinding()())
-        self.assertRaises(pyxb.BindingValidationError, ToDOM, instance)
-
+        self.assertRaises(pyxb.UnprocessedElementContentError, ToDOM, instance)
+        if sys.version_info[:2] >= (2, 7):
+            with self.assertRaises(UnprocessedElementContentError) as cm:
+                instance.toxml('utf-8')
+            # Verify the exception tells us what was being processed
+            self.assertEqual(instance, cm.exception.instance)
+            # Verify the exception tells us what was left over
+            first_ed = altsequence._ElementMap['first']
+            self.assertEqual(instance.first[2], cm.exception.symbol_set[first_ed][0])
+            
     def testTooManyInMiddle (self):
         xml = '<ns1:altwrapper xmlns:ns1="URN:test-mg-sequence"><second_multi/><second_multi/><second_multi/><third/></ns1:altwrapper>'
         dom = pyxb.utils.domutils.StringToDOM(xml)

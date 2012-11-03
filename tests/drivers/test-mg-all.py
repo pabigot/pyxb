@@ -6,6 +6,7 @@ _log = logging.getLogger(__name__)
 import pyxb.binding.generate
 import pyxb.utils.domutils
 from xml.dom import Node
+import sys
 
 import os.path
 schema_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../schemas/test-mg-all.xsd'))
@@ -122,8 +123,14 @@ class TestMGAll (unittest.TestCase):
         many_g = many.memberElement('g')
         many_h = many.memberElement('h')
         instance = many(a=many_a(), c=many_c(), d=many_d(), e=many_e(), f=many_f(), g=many_g(), h=many_h())
-        self.assertRaises(pyxb.BindingValidationError, instance.validateBinding)
-        self.assertRaises(pyxb.BindingValidationError, ToDOM, instance)
+        self.assertRaises(pyxb.IncompleteElementContentError, instance.validateBinding)
+        self.assertRaises(pyxb.IncompleteElementContentError, ToDOM, instance)
+        if sys.version_info[:2] >= (2, 7):
+            with self.assertRaises(IncompleteElementContentError) as cm:
+                instance.validateBinding()
+            acceptable = cm.exception.automaton_configuration.acceptableSymbols()
+            self.assertEqual(1, len(acceptable))
+            self.assertEqual(many.memberElement('b'), acceptable[0].elementDeclaration().elementBinding())
 
 if __name__ == '__main__':
     unittest.main()

@@ -232,7 +232,7 @@ class AttributeUse (pyxb.cscRoot):
         @raise pyxb.MissingAttributeError: when instance lacks attribute but
         must have it (including when a required fixed-value attribute is
         missing).
-        @raise pyxb.BindingValidationError: when instance has attribute but its value is not acceptable
+        @raise pyxb.BatchContentValidationError: when instance has attribute but its value is not acceptable
         """
         (provided, value) = self.__getValue(ctd_instance)
         if value is not None:
@@ -518,9 +518,9 @@ class AutomatonConfiguration (object):
             cfg = cfg.superConfiguration
         if not cfg.isAccepting():
             _log.warning('Incomplete content, expect %s' % (' or '.join(map(str, cfg.acceptableSymbols()))))
-            raise pyxb.BindingValidationError(cfg, symbol_set)
+            raise pyxb.IncompleteElementContentError(self.__instance, cfg, symbol_set)
         if symbol_set:
-            raise pyxb.BindingValidationError('Unvalidated symbols: %s' % (symbol_set,) )
+            raise pyxb.UnprocessedElementContentError(self.__instance, cfg, symbol_set)
         return symbols
                     
 class ElementUse (pyxb.utils.fac.SymbolMatch_mixin):

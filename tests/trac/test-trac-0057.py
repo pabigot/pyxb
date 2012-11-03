@@ -76,7 +76,21 @@ class TestTrac_0057 (unittest.TestCase):
     def testDisable (self):
         pyxb.RequireValidWhenParsing(False)
         instance = CreateFromDocument(self.XMLS)
-        self.assertRaises(pyxb.BindingValidationError, self.exec_toxml, instance)
+        self.assertRaises(pyxb.IncompleteElementContentError, self.exec_toxml, instance)
+        if sys.version_info[:2] >= (2, 7):
+            with self.assertRaises(IncompleteElementContentError) as cm:
+                instance.toxml('utf-8', root_only=True)
+            # Verify the exception tells us what was being processed
+            self.assertEqual(instance, cm.exception.instance)
+            # Verify the exception tells us what would be acceptable
+            accept = cm.exception.automaton_configuration.acceptableSymbols()
+            self.assertEqual(1, len(accept))
+            assigned_priority_ed = ObsProject.typeDefinition()._UseForTag(Namespace.createExpandedName('assignedPriority'))
+            self.assertEqual(accept[0].elementDeclaration(), assigned_priority_ed)
+            # Verify the exception tells us what was left
+            time_of_creation_ed = ObsProject.typeDefinition()._UseForTag(Namespace.createExpandedName('timeOfCreation'))
+            self.assertEqual(instance.timeOfCreation, cm.exception.symbol_set[time_of_creation_ed][0])
+            
         doc = pyxb.utils.domutils.StringToDOM(self.XMLS)
         instance = CreateFromDOM(doc)
         pyxb.RequireValidWhenGenerating(False) 

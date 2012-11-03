@@ -159,10 +159,6 @@ class UnrecognizedContentError (StructuralBadDocumentError):
     """Raised when processing document and an element does not match the content model."""
     pass
 
-class BindingValidationError (UnrecognizedContentError):
-    """Raised when the content of a binding object is not consistent with its content model"""
-    pass
-
 class UnexpectedNonElementContentError (UnrecognizedContentError):
     """Raised when an element is given non-element content but may not contain such."""
     pass
@@ -197,7 +193,9 @@ class UnprocessedKeywordContentError (ContentError):
     """The binding instance being constructed."""
 
     keywords = None
-    """The keywords that could not be recognized."""
+    """The keywords that could not be recognized.  These may have been
+    intended to be attributes or elements, but cannot be identified as
+    either."""
 
     def __init__ (self, instance, keywords):
         """@param instance: the value for the L{instance} attribute.
@@ -206,8 +204,13 @@ class UnprocessedKeywordContentError (ContentError):
         self.keywords = keywords
         super(UnprocessedKeywordContentError, self).__init__(instance, keywords)
 
-class UnhandledElementContentError (ContentError):
-    """Element or element-like content could not be validly associated with an sub-element in the content model."""
+class IncrementalElementContentError (ContentError):
+    """Element or element-like content could not be validly associated with an sub-element in the content model.
+
+    This exception occurs when content is added to an element during
+    incremental validation, such as when positional arguments are used
+    in a constructor or material is appended either explicitly or
+    through parsing a DOM instance."""
 
     instance = None
     """The binding for which the L{value} could not be associated with an element."""
@@ -225,7 +228,48 @@ class UnhandledElementContentError (ContentError):
         self.instance = instance
         self.automaton_configuration = automaton_configuration
         self.value = value
-        super(UnhandledElementContentError, self).__init__(instance, automaton_configuration, value)
+        super(IncrementalElementContentError, self).__init__(instance, automaton_configuration, value)
+
+class UnhandledElementContentError (IncrementalElementContentError):
+    """Element or element-like content could not be validly associated with an sub-element in the content model.
+
+    This exception occurs when content is added to an element during incremental validation."""
+
+class BatchElementContentError (ContentError):
+    """Element/wildcard content cannot be reconciled with the required content model.
+
+    This exception occurs in post-construction validation using a
+    fresh validating automaton."""
+    
+    instance = None
+    """The binding instance being constructed."""
+
+    automaton_configuration = None
+    """The L{pyxb.binding.content.AutomatonConfiguration} representing the current state of the L{instance} content."""
+
+    symbol_set = None
+    """The leftovers from L{pyxb.binding.basis.complexTypeDefinition._symbolSet} that could not be reconciled with the content model."""
+
+    def __init__ (self, instance, automaton_configuration, symbol_set):
+        """@param instance: the value for the L{instance} attribute.
+        @param automaton_configuration: the value for the L{automaton_configuration} attribute.
+        @param symbol_set: the value for the L{symbol_set} attribute."""
+        self.instance = instance
+        self.automaton_configuration = automaton_configuration
+        self.symbol_set = symbol_set
+        super(BatchElementContentError, self).__init__(instance, automaton_configuration, symbol_set)
+
+class IncompleteElementContentError (BatchElementContentError):
+    """Validation of an instance failed to produce an accepting state.
+
+    This exception occurs in batch-mode validation."""
+    pass
+
+class UnprocessedElementContentError (BatchElementContentError):
+    """Validation of an instance produced an accepting state but left element material unconsumed.
+
+    This exception occurs in batch-mode validation."""
+    pass
 
 class SimpleTypeValueError (ValidationError):
     """Raised when a simple type value does not satisfy its constraints."""

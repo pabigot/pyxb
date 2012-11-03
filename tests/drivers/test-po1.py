@@ -98,7 +98,7 @@ Anytown, AS  12345-6789'''
         self.assertTrue(po.billTo is None)
 
         self.assertTrue(pyxb.RequireValidWhenGenerating())
-        self.assertRaises(pyxb.BindingValidationError, po.toxml)
+        self.assertRaises(pyxb.IncompleteElementContentError, po.toxml)
         try:
             pyxb.RequireValidWhenGenerating(False)
             self.assertFalse(pyxb.RequireValidWhenGenerating())

@@ -464,7 +464,7 @@ class _TypeBinding_mixin (utility.Locatable_mixin):
         content.
 
         @return: C{True} if the instance validates
-        @raise pyxb.BindingValidationError: complex content does not match model
+        @raise pyxb.BatchContentValidationError: complex content does not match model
         @raise pyxb.SimpleTypeValueError: simple content fails to satisfy constraints
         """
         raise NotImplementedError('%s._validateBinding_vx' % (type(self).__name__,))
@@ -473,7 +473,7 @@ class _TypeBinding_mixin (utility.Locatable_mixin):
         """Check whether the binding content matches its content model.
 
         @return: C{True} if validation succeeds.
-        @raise pyxb.BindingValidationError: complex content does not match model
+        @raise pyxb.BatchContentValidationError: complex content does not match model
         @raise pyxb.SimpleTypeValueError: simple content fails to satisfy constraints
         """
         if self._PerformValidation():
