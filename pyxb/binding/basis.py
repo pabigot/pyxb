@@ -367,7 +367,7 @@ class _TypeBinding_mixin (utility.Locatable_mixin):
             au = cls._AttributeMap.get(attr_en)
             if au is None:
                 if cls._AttributeWildcard is None:
-                    raise pyxb.UnrecognizedAttributeError('Attribute %s is not permitted in type %s' % (attr_en, cls._ExpandedName))
+                    raise pyxb.UnrecognizedAttributeError(cls, attr_en)
             attribute_settings[attr_en] = value
         return attribute_settings
 
@@ -1039,7 +1039,7 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
         self._IsValidValue(self)
 
     def _setAttribute (self, attr_en, value):
-        raise pyxb.UnrecognizedAttributeError('Attribute %s is not permitted in simple type %s' % (attr_en, self._ExpandedName))
+        raise pyxb.UnrecognizedAttributeError(type(self), attr_en)
 
     @classmethod
     def _description (cls, name_only=False, user_documentation=True):
@@ -1943,7 +1943,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         au = self._AttributeMap.get(attr_en)
         if au is None:
             if self._AttributeWildcard is None:
-                raise pyxb.UnrecognizedAttributeError('Attribute %s is not permitted in type %s' % (attr_en, self._ExpandedName))
+                raise pyxb.UnrecognizedAttributeError(type(self), attr_en)
             self.__wildcardAttributeMap[attr_en] = value
         else:
             au.set(self, value)

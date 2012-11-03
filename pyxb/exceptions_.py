@@ -217,9 +217,6 @@ class SimpleContentAbsentError (StructuralBadDocumentError):
         self.instance = instance
         super(SimpleContentAbsentError, self).__init__(instance)
 
-class UnrecognizedAttributeError (BadDocumentError):
-    """Raised when an attribute is found that is not sanctioned by the content model."""
-
 class ValidationError (PyXBException):
     """Raised when something in the infoset fails to satisfy a content model or attribute requirement."""
     pass
@@ -228,11 +225,29 @@ class AttributeValidationError (ValidationError):
     """Raised when an attribute requirement is not satisfied."""
     pass
 
+class UnrecognizedAttributeError (AttributeValidationError):
+    """Attempt to reference an attribute not sanctioned by content model."""
+
+    type = None
+    """The L{pyxb.binding.basis.complexTypeDefinition} subclass of the instance."""
+    tag = None
+    """The name of the attribute."""
+    
+    def __init__ (self, type, tag):
+        """@param type: the value for the L{type} attribute.
+        @param tag: the value for the L{tag} attribute.
+        """
+        self.type = type
+        self.tag = tag
+        super(UnrecognizedAttributeError, self).__init__(type, tag)
+
 class ProhibitedAttributeError (AttributeValidationError):
     """Raised when an attribute that is prohibited is provided in an element."""
+    pass
 
 class MissingAttributeError (AttributeValidationError):
     """Raised when an attribute that is required is missing in an element."""
+    pass
 
 class AttributeChangeError (BadDocumentError):
     """Attempt to change an attribute that has a fixed value constraint."""
