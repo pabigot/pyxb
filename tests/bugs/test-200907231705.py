@@ -59,7 +59,7 @@ class TestTrac_200907231705 (unittest.TestCase):
         xml = '<Mixed units="m">5<Something/>4</Mixed>'
         self.assertRaises(pyxb.ExtraContentError, CreateFromDocument, xml)
         xml = '<Simple units="m"/>'
-        self.assertRaises(pyxb.MissingContentError, CreateFromDocument, xml)
+        self.assertRaises(pyxb.SimpleContentAbsentError, CreateFromDocument, xml)
 
     def testCtorEmpty (self):
         instance = Empty()
@@ -78,10 +78,10 @@ class TestTrac_200907231705 (unittest.TestCase):
         self.assertEqual(4, instance.content()[0])
 
     def testCtorSimple (self):
-        self.assertRaises(pyxb.MissingContentError, Simple)
+        self.assertRaises(pyxb.SimpleContentAbsentError, Simple)
         instance = Simple(4)
         self.assertRaises(pyxb.AttributeValidationError, instance.validateBinding)
-        self.assertRaises(pyxb.MissingContentError, Simple, units='m')
+        self.assertRaises(pyxb.SimpleContentAbsentError, Simple, units='m')
         instance = Simple(4.5, units='m')
         self.assertEqual(4.5, instance.value())
 

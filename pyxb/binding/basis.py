@@ -212,7 +212,7 @@ class _TypeBinding_mixin (utility.Locatable_mixin):
 
         @keyword _require_value: If C{False} (default), it is permitted to
         create a value without an initial value.  If C{True} and no initial
-        value was provided, causes L{pyxb.MissingContentError} to be raised.
+        value was provided, causes L{pyxb.SimpleContentAbsentError} to be raised.
         Only applies to simpleTypeDefinition instances; this is used when
         creating values from DOM nodes.
         """
@@ -802,10 +802,10 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
             super(simpleTypeDefinition, self).__init__(*args, **kw)
         except OverflowError, e:
             raise pyxb.BadTypeValueError(e)
-        if require_value and (not self._constructedWithValue()):
-            raise pyxb.MissingContentError('missing value')
         if apply_attributes and (dom_node is not None):
             self._setAttributesFromKeywordsAndDOM(kw, dom_node)
+        if require_value and (not self._constructedWithValue()):
+            raise pyxb.SimpleContentAbsentError(self)
         if validate_constraints:
             self.xsdConstraintsOK()
 
@@ -1937,7 +1937,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
                 raise pyxb.ContentInNilInstanceError(self, self.__content)
             return True
         if self._IsSimpleTypeContent() and (self.__content is None):
-            raise pyxb.MissingContentError(self._TypeDefinition)
+            raise pyxb.SimpleContentAbsentError(self)
         try:
             order = self._validatedChildren()
         except Exception, e:
@@ -1967,7 +1967,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
 
         @return: C{True} if the content validates against its type.
         @raise pyxb.NotSimpleContentError: this type does not have simple content.
-        @raise pyxb.MissingContentError: the content of this type has not been set
+        @raise pyxb.SimpleContentAbsentError: the content of this type has not been set
         """
         # @todo: type check
         if self._CT_SIMPLE != self._ContentTypeTag:
@@ -1975,7 +1975,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         if self._isNil():
             return True
         if self.value() is None:
-            raise pyxb.MissingContentError(self)
+            raise pyxb.SimpleContentAbsentError(self)
         return self.value().xsdConstraintsOK()
 
     __content = None
@@ -2209,7 +2209,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             # @todo isNil should verify that no content is present.
             if (not self._isNil()) and (self.__automatonConfiguration is not None):
                 if not self.__automatonConfiguration.isAccepting():
-                    raise pyxb.MissingContentError(self)
+                    raise pyxb.SimpleContentAbsentError(self)
             self._validateAttributes()
         return self
 

@@ -25,7 +25,7 @@ class TestMGAll (unittest.TestCase):
     def testRequired (self):
         xml = '<ns1:required xmlns:ns1="URN:test-mg-all"/>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
-        self.assertRaises(MissingContentError, required.createFromDOM, dom.documentElement)
+        self.assertRaises(SimpleContentAbsentError, required.createFromDOM, dom.documentElement)
 
         xml = '<ns1:required xmlns:ns1="URN:test-mg-all"><first/><second/><third/></ns1:required>'
         dom = pyxb.utils.domutils.StringToDOM(xml)

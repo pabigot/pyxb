@@ -184,8 +184,18 @@ class UnrecognizedElementError (UnrecognizedContentError):
 class ExtraContentError (UnrecognizedContentError):
     """Raised when processing document and there is more material in an element content than expected."""
 
-class MissingContentError (StructuralBadDocumentError):
-    """Raised when processing document and expected content is not present.  See also UnrecognizedContentError."""
+class SimpleContentAbsentError (StructuralBadDocumentError):
+    """An instance with simple content was not provided with a value."""
+
+    instance = None
+    """The binding instance for which simple content is missing."""
+
+    def __init__ (self, instance):
+        """@param instance: the binding instance that is missing
+        content.  This will be available in the L{instance}
+        attribute."""
+        self.instance = instance
+        super(SimpleContentAbsentError, self).__init__(instance)
 
 class UnrecognizedAttributeError (BadDocumentError):
     """Raised when an attribute is found that is not sanctioned by the content model."""

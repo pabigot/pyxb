@@ -59,7 +59,7 @@ class TestMGChoice (unittest.TestCase):
     def testMissingSingle (self):
         xml = '<ns1:choice xmlns:ns1="URN:test-mg-choice"/>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
-        self.assertRaises(MissingContentError, choice.createFromDOM, dom.documentElement)
+        self.assertRaises(SimpleContentAbsentError, choice.createFromDOM, dom.documentElement)
 
     def testTooManySingle (self):
         xml = '<ns1:choice xmlns:ns1="URN:test-mg-choice"><first/><second/></ns1:choice>'
