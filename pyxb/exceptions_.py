@@ -161,6 +161,15 @@ class UnrecognizedContentError (StructuralBadDocumentError):
 
 class ExtraContentError (UnrecognizedContentError):
     """Raised when processing document and there is more material in an element content than expected."""
+    pass
+
+class BindingValidationError (UnrecognizedContentError):
+    """Raised when the content of a binding object is not consistent with its content model"""
+    pass
+
+class UnexpectedNonElementContentError (UnrecognizedContentError):
+    """Raised when an element is given non-element content but may not contain such."""
+    pass
 
 class ValidationError (PyXBException):
     """Raised when something in the infoset fails to satisfy a content model or attribute requirement."""
@@ -311,14 +320,6 @@ class ContentInNilInstanceError (PyXBException):
         self.instance = instance
         self.content = content
         super(ContentInNilInstanceError, self).__init__(instance, content)
-
-class BindingValidationError (ValidationError):
-    """Raised when the content of a binding object is not consistent with its content model"""
-    pass
-
-class UnexpectedNonElementContentError (UnrecognizedContentError):
-    """Raised when an element is given non-element content but may not contain such."""
-    pass
 
 class BindingError (PyXBException):
     """Raised when the bindings are mis-used.
