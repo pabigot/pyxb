@@ -64,7 +64,8 @@ class _XMLSchema_instance (Namespace):
     # is an instance method even though it looks and behaves like a
     # class method.
     def ProcessTypeAttribute (self, value=None):
-        """Specify how PyXB should interpret xsi:type attributes when
+        """Specify how PyXB should interpret U{xsi:type
+        <http://www.w3.org/TR/xmlschema-1/#xsi_type>} attributes when
         converting a document to a binding instance.
 
         The default value is L{PT_strict}.
@@ -87,16 +88,31 @@ class _XMLSchema_instance (Namespace):
         return self.__processType
     
     def _InterpretTypeAttribute (self, type_name, ns_ctx, fallback_namespace, type_class):
-        """Interpret the value of an xsi:type attribute as configured.
+        """Interpret the value of an xsi:type attribute as configured
+        by L{ProcessTypeAttribute}.
 
-        @param type_name: The QName value from the attribute
-        @param ns_ctx: The NamespaceContext within which the type_name should be resolved
-        @param fallback_namespace: The namespace that should be used if the type name has no prefix
-        @param type_class: The value to return if the type name is missing or acceptably invalid
+        @param type_name: The QName value from U{xsi:type
+        <http://www.w3.org/TR/xmlschema-1/#xsi_type>}.  If this is
+        C{None}, C{type_class} is used as C{ret_type_class}.
+        
+        @param ns_ctx: The NamespaceContext within which C{type_name}
+        should be resolved
+        
+        @param fallback_namespace: The namespace that should be used
+        if C{type_name} has no prefix
+        
+        @param type_class: The value to return if C{type_name} is
+        missing or acceptably invalid (viz., due to L{PT_skip})
+        
+        @return: A tuple C{(did_replace, ret_type_class)} where
+        C{did_replace} is C{True} iff the C{ret_type_class} is not the
+        same as C{type_class}, and C{ret_type_class} is the class that
+        should be used.
+
         @raises pyxb.BadDocumentError: if the processing type
-        configuration is L{PT_strict} and the type name fails to
+        configuration is L{PT_strict} and C{type_name} fails to
         resolve to a type definition that is consistent with any
-        provided type_class.
+        provided C{type_class}.
         """
         did_replace = False
         if type_name is None:
