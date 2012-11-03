@@ -1751,7 +1751,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         @keyword _finalize_content_model: If C{True} the constructor invokes
         L{_TypeBinding_mixin._finalizeContentModel} prior to return.  The
         value defaults to C{False} when content is assigned through keyword
-        parameters (bypassing the content model) or neither a L{_dom_node} nor
+        parameters (bypassing the content model) or neither a C{_dom_node} nor
         positional element parameters have been provided, and to C{True} in
         all other cases.
         """
