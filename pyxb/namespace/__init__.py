@@ -133,12 +133,12 @@ class ExpandedName (object):
 
         Expected argument patterns are:
 
-        ( C{str} ) -- the local name in an absent namespace
-        ( L{ExpandedName} ) -- a copy of the given expanded name
-        ( C{xml.dom.Node} ) -- The name extracted from node.namespaceURI and node.localName
-        ( C{str}, C{str} ) -- the namespace URI and the local name
-        ( L{Namespace}, C{str} ) -- the namespace and the local name
-        ( L{ExpandedName}, C{str}) -- the namespace from the expanded name, and the local name
+         - ( C{str} ) : the local name in an absent namespace
+         - ( L{ExpandedName} ) : a copy of the given expanded name
+         - ( C{xml.dom.Node} ) : The name extracted from node.namespaceURI and node.localName
+         - ( C{str}, C{str} ) : the namespace URI and the local name
+         - ( L{Namespace}, C{str} ) : the namespace and the local name
+         - ( L{ExpandedName}, C{str}) : the namespace from the expanded name, and the local name
 
         Wherever C{str} occurs C{unicode} is also permitted.
         
