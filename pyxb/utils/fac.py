@@ -325,14 +325,20 @@ class State (object):
         The set of transitions cannot be defined until all states that
         appear in it are available, so the creation of the automaton
         requires that the association of the transition set be
-        delayed.
+        delayed.  (Though described as a set, the transitions are a
+        list where order reflects priority.)
 
         @param transition_set: a list of pairs where the first
         member is the destination L{State} and the second member is the
         set of L{UpdateInstruction}s that apply when the automaton
         transitions to the destination state."""
 
-        self.__transitionSet = list(transition_set)
+        self.__transitionSet = []
+        seen = set()
+        for xit in transition_set:
+            if not (xit in seen):
+                seen.add(xit)
+                self.__transitionSet.append(xit)
 
     def match (self, symbol):
         """Return C{True} iff the symbol matches for this state.
@@ -405,6 +411,18 @@ class CounterCondition (object):
         self.__min = min
         self.__max = max
         self.__metadata = metadata
+
+    def __hash__ (self):
+        return hash(self.__min) ^ hash(self.__max) ^ hash(self.__metadata)
+
+    def __eq__ (self, other):
+        return (other is not None) \
+            and (self.__min == other.__min) \
+            and (self.__max == other.__max) \
+            and (self.__metadata == other.__metadata)
+
+    def __ne__ (self, other):
+        return not self.__eq__(other)
 
     def __str__ (self):
         return 'C.%x{%s,%s}' % (id(self), self.min, self.max is not None and self.max or '')
@@ -521,6 +539,17 @@ class UpdateInstruction:
         C{update_instructions}."""
         for psi in update_instructions:
             psi.apply(counter_values)
+
+    def __hash__ (self):
+        return hash(self.__counterCondition) ^ hash(self.__doIncrement)
+
+    def __eq__ (self, other):
+        return (other is not None) \
+            and (self.__doIncrement == other.__doIncrement) \
+            and (self.__counterCondition == other.__counterCondition)
+
+    def __ne__ (self, other):
+        return not self.__eq__(other)
 
     def __str__ (self):
         return '%s %s' % (self.__doIncrement and 'inc' or 'reset', self.__counterCondition)
@@ -698,6 +727,22 @@ class Transition (object):
         head = type(self)(self.__destination, self.__updateInstructions)
         head.__layerLink = self.__destination.automaton
         return head
+
+    def __hash__ (self):
+        rv = hash(self.__destination)
+        for ui in self.__updateInstructions:
+            rv ^= hash(ui)
+        return rv ^ hash(self.__nextTransition) ^ hash(self.__layerLink)
+
+    def __eq__ (self, other):
+        return (other is not None) \
+            and (self.__destination == other.__destination) \
+            and (self.__updateInstructions == other.__updateInstructions) \
+            and (self.__nextTransition == other.__nextTransition) \
+            and (self.__layerLink == other.__layerLink)
+
+    def __ne__ (self, other):
+        return not self.__eq__(other)
 
     def __str__ (self):
         rv = []

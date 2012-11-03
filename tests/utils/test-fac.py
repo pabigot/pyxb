@@ -3,7 +3,6 @@ import unittest
 import sys
 
 class TestFAC (unittest.TestCase):
-
     a = Symbol('a')
     b = Symbol('b')
     c = Symbol('c')
@@ -408,7 +407,23 @@ class TestFAC (unittest.TestCase):
             for c in word:
                 cfg = cfg.step(c)
             self.assertTrue(cfg.isAccepting())
-
+    
+    def testFilterXit (self):
+        # This models part of the content of time-layoutElementType in
+        # the DWMLgen schema from NDFD.  The initial state is reached
+        # through 's'.  The state can be re-entered on 's' in two
+        # ways: a repetition of the 's' term, and a follow past a
+        # trivial occurrence of the 'e' term to another instance of
+        # ex.  This produces a state that has two identical
+        # transitions, introducing non-determinism unnecessarily.
+        # Make sure we filter that.
+        s = NumericalConstraint(Symbol('s'), 1, None)
+        e = NumericalConstraint(Symbol('e'), 0, None)
+        ex = NumericalConstraint(Sequence(s, e), 1, None)
+        au = ex.buildAutomaton()
+        cfg = Configuration(au)
+        cfg = cfg.step('s')
+        self.assertEqual(1, len(cfg.candidateTransitions('s')))
 
 if __name__ == '__main__':
     unittest.main()
