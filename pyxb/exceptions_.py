@@ -155,14 +155,6 @@ class UnrecognizedDOMRootNodeError (StructuralBadDocumentError):
         self.node = node
         super(UnrecognizedDOMRootNodeError, self).__init__(node)
 
-class UnrecognizedContentError (StructuralBadDocumentError):
-    """Raised when processing document and an element does not match the content model."""
-    pass
-
-class UnexpectedNonElementContentError (UnrecognizedContentError):
-    """Raised when an element is given non-element content but may not contain such."""
-    pass
-
 class ValidationError (PyXBException):
     """Raised when something in the infoset fails to satisfy a content model or attribute requirement."""
     pass
@@ -185,6 +177,22 @@ class ExtraSimpleContentError (ContentError):
         self.instance = instance
         self.value = value
         super(ExtraSimpleContentError, self).__init__(instance, value)
+
+class MixedContentError (ContentError):
+    """Non-element content added to a complex type instance that does not support mixed content."""
+    
+    instance = None
+    """The binding instance."""
+
+    value = None
+    """The non-element content."""
+
+    def __init__ (self, instance, value):
+        """@param instance: the value for the L{instance} attribute.
+        @param value: the value for the L{value} attribute."""
+        self.instance = instance
+        self.value = value
+        super(MixedContentError, self).__init__(instance, value)
 
 class UnprocessedKeywordContentError (ContentError):
     """A complex type constructor was provided with keywords that could not be recognized."""

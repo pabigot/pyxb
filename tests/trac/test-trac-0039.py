@@ -93,8 +93,8 @@ class TestTrac0039 (unittest.TestCase):
     def testShallowCTOR (self):
         w = shallow(BIND(5))
         self.assertTrue(isinstance(w.optional.value(), xs.int))
-        self.assertRaises(pyxb.UnexpectedNonElementContentError, shallow, 5)
-        self.assertRaises(pyxb.UnexpectedNonElementContentError, shallow, BIND('string'))
+        self.assertRaises(pyxb.MixedContentError, shallow, 5)
+        self.assertRaises(pyxb.MixedContentError, shallow, BIND('string'))
 
     def testDeep (self):
         w = wrapper(BIND(BIND(4, deep=4), BIND('hi')))

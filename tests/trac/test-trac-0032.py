@@ -89,7 +89,9 @@ class TestTrac0032 (unittest.TestCase):
         self.assertTrue(instance.validateBinding())
         self.assertEqual(2, len(instance.content()))
 
-        self.assertRaises(pyxb.UnrecognizedContentError, multi, [[1,2,3], [2,3,4]])
+        # The individual lists here aren't recognized as li elements, so this becomes something unknown
+        self.assertRaises(pyxb.MixedContentError, multi, [[1,2,3], [2,3,4]])
+
         self.assertRaises(pyxb.SimpleTypeValueError, multi, li=[1,2,3])
 
         instance = multi(li=[[1,2,3],[2,3,4]])

@@ -2149,11 +2149,15 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
                     self.xsdConstraintsOK()
             return self
 
-        # Do we allow non-element content?
-        if not self._IsMixed():
-            raise pyxb.UnexpectedNonElementContentError(value)
+        # We don't know what this was supposed to be, but if it got a binding
+        # type assigned to it it's not valid as mixed content.  (Even if it
+        # happens to be character data?)
         if isinstance(value, _TypeBinding_mixin):
             raise pyxb.UnhandledElementContentError(self, self.__automatonConfiguration, value)
+
+        # Do we allow non-element content?
+        if not self._IsMixed():
+            raise pyxb.MixedContentError(self, value)
 
         self._addContent(value, element_binding)
         return self

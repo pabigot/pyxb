@@ -48,7 +48,7 @@ class TestTrac_200907231705 (unittest.TestCase):
         self.assertEqual(pyxb.binding.basis.complexTypeDefinition._CT_EMPTY, instance._ContentTypeTag)
         self.assertTrue(instance.validateBinding())
         xml = '<Empty units="m">5</Empty>'
-        self.assertRaises(pyxb.UnexpectedNonElementContentError, CreateFromDocument, xml)
+        self.assertRaises(pyxb.MixedContentError, CreateFromDocument, xml)
         xml = '<Mixed units="m"/>'
         instance = CreateFromDocument(xml)
         self.assertEqual(pyxb.binding.basis.complexTypeDefinition._CT_MIXED, instance._ContentTypeTag)
@@ -66,7 +66,7 @@ class TestTrac_200907231705 (unittest.TestCase):
         self.assertRaises(pyxb.AttributeValidationError, instance.validateBinding)
         instance = Empty(units='m')
         self.assertTrue(instance.validateBinding())
-        self.assertRaises((pyxb.ValidationError, pyxb.UnexpectedNonElementContentError), Empty, 4, units='m')
+        self.assertRaises(pyxb.MixedContentError, Empty, 4, units='m')
 
     def testCtorMixed (self):
         instance = Mixed()
