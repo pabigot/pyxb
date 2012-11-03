@@ -1493,7 +1493,7 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
             # way this could be legal given an xsi:type attribute?  I'm pretty
             # sure "no"...
             if element_binding.abstract():
-                raise pyxb.AbstractElementError(element_binding)
+                raise pyxb.AbstractElementError(element_binding, node)
             kw['_element'] = element_binding
             type_class = element_binding.typeDefinition()
 
@@ -1531,7 +1531,7 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
         @param node: An L{xml.dom.Node} representing a root element.  If the
         node is a document, that document's root node will be substituted.
 
-        @param fallback_namespace: As with L{CreateDOMBinding}
+        @param fallback_namespace: As with C{_fallback_namespace} in L{CreateDOMBinding}
 
         @return: As with L{CreateDOMBinding}"""
         if xml.dom.Node.DOCUMENT_NODE == node.nodeType:

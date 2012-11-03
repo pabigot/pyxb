@@ -143,8 +143,42 @@ class StructuralBadDocumentError (BadDocumentError):
         BadDocumentError.__init__(self, **kw)
 
 class AbstractElementError (StructuralBadDocumentError):
-    """Raised when attempting to construct an element that is abstract."""
-    pass
+    """Attempt to create an instance of an abstract element.
+
+    Raised when an element is created and the identified binding is
+    abstract.  Such elements cannot be created directly; instead the
+    creation must derive from an instance of the abstract element's
+    substitution group."""
+
+    element = None
+    """The abstract L{pyxb.binding.basis.element} in question"""
+
+    node = None
+    """The L{xml.dom.Node} used in the attempt to create the element.
+    This may be C{None} if the abstract element was invoked without a
+    node."""
+
+    def __init__ (self, element, node=None):
+        """@param element: the value for the L{element} attribute.
+        @param node: the value for the L{node} attribute."""
+        self.element = element
+        self.node = node
+        super(AbstractElementError, self).__init__(element, node)
+
+class AbstractInstantiationError (PyXBException):
+    """Attempt to create an instance of an abstract complex type.
+
+    These types are analogous to abstract base classes, and cannot be
+    created directly.  A type should be used that extends the abstract
+    class."""
+
+    type = None
+    """The abstract L{pyxb.binding.basis.complexTypeDefinition} subclass used"""
+
+    def __init__ (self, type):
+        """@param type: the value for the L{type} attribute."""
+        self.type = type
+        super(AbstractInstantiationError, self).__init__(type)
 
 class UnrecognizedContentError (StructuralBadDocumentError):
     """Raised when processing document and an element does not match the content model."""
@@ -215,9 +249,6 @@ class AttributeChangeError (BadDocumentError):
         self.instance = instance
         self.tag = tag
         super(AttributeChangeError, self).__init__(instance, tag)
-
-class AbstractInstantiationError (PyXBException):
-    """Raised when somebody tries to instantiate an abstract complex type."""
 
 class DOMGenerationError (PyXBException):
     """Raised when converting binding to DOM and something goes wrong."""
