@@ -59,6 +59,19 @@ class TestTrac_0057 (unittest.TestCase):
         self.assertRaises(pyxb.UnhandledElementContentError, CreateFromDocument, self.XMLS)
         doc = pyxb.utils.domutils.StringToDOM(self.XMLS)
         self.assertRaises(pyxb.UnhandledElementContentError, CreateFromDOM, doc)
+        if sys.version_info[:2] >= (2, 7):
+            with self.assertRaises(UnhandledElementContentError) as cm:
+                CreateFromDocument(self.XMLS)
+            # Verify the exception tells us what was being processed
+            self.assertTrue(isinstance(cm.exception.instance, ObsProject.typeDefinition()))
+            # Verify the exception tells us what was rejected
+            time_of_creation_ed = ObsProject.typeDefinition()._UseForTag(Namespace.createExpandedName('timeOfCreation'))
+            self.assertTrue(isinstance(cm.exception.value, time_of_creation_ed.elementBinding().typeDefinition()))
+            # Verify the exception tells us what would be acceptable
+            accept = cm.exception.automaton_configuration.acceptableSymbols()
+            self.assertEqual(1, len(accept))
+            assigned_priority_ed = ObsProject.typeDefinition()._UseForTag(Namespace.createExpandedName('assignedPriority'))
+            self.assertEqual(accept[0].elementDeclaration(), assigned_priority_ed)
         
     def testDisable (self):
         pyxb.RequireValidWhenParsing(False)

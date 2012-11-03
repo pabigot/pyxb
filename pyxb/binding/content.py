@@ -441,6 +441,20 @@ class AutomatonConfiguration (object):
         for fn in actions:
             fn(self.__instance)
 
+    def acceptableSymbols (self):
+        """Return the sequence of acceptable symbols at this state.
+
+        @return: the catenation of values returned by
+        L{pyxb.utils.fac.Configuration_ABC.acceptableSymbols} for each
+        configuration."""
+        rv = []
+        multi = self.__multi
+        if multi is None:
+            multi = [ self.__cfg]
+        for cfg in multi:
+            rv.extend(cfg.acceptableSymbols())
+        return rv
+
     def isAccepting (self):
         """Return C{True} iff the automaton is in an accepting state.
 
@@ -503,7 +517,7 @@ class AutomatonConfiguration (object):
         while cfg.superConfiguration:
             cfg = cfg.superConfiguration
         if not cfg.isAccepting():
-            _log.warning('Incomplete content, expect %s' % (' or '.join(map(lambda _xit: str(_xit.consumedSymbol()), cfg.candidateTransitions(None))),))
+            _log.warning('Incomplete content, expect %s' % (' or '.join(map(str, cfg.acceptableSymbols()))))
             raise pyxb.BindingValidationError(cfg, symbol_set)
         if symbol_set:
             raise pyxb.BindingValidationError('Unvalidated symbols: %s' % (symbol_set,) )
