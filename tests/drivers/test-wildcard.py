@@ -204,7 +204,7 @@ class TestWildcard (unittest.TestCase):
                     self.assertEquals('third', instance.wildcardElements()[i].nodeName)
             else:
                 tested_overmax = True
-                self.assertRaises(ExtraContentError, wrapper.createFromDOM, doc.documentElement)
+                self.assertRaises(UnhandledElementContentError, wrapper.createFromDOM, doc.documentElement)
         self.assert_(tested_overmax)
 
     def testAttribute (self):

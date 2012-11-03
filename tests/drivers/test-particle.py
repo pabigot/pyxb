@@ -45,7 +45,7 @@ class TestParticle (unittest.TestCase):
     def test_h01_elt2 (self):
         xml = '<h01 xmlns="URN:test"><elt/><elt/></h01>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
-        self.assertRaises(ExtraContentError, h01.createFromDOM, dom.documentElement)
+        self.assertRaises(UnhandledElementContentError, h01.createFromDOM, dom.documentElement)
 
     def test_h01b_empty (self):
         xml = '<ns1:h01b xmlns:ns1="URN:test"/>'
@@ -64,7 +64,7 @@ class TestParticle (unittest.TestCase):
     def test_h01b_elt2 (self):
         xml = '<ns1:h01b xmlns:ns1="URN:test"><elt/><elt/></ns1:h01b>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
-        self.assertRaises(ExtraContentError, h01b.createFromDOM, dom.documentElement)
+        self.assertRaises(UnhandledElementContentError, h01b.createFromDOM, dom.documentElement)
 
     def test_h11_empty (self):
         xml = '<ns1:h11 xmlns:ns1="URN:test"/>'
@@ -94,7 +94,7 @@ class TestParticle (unittest.TestCase):
                 self.assertEqual(num_elt, len(instance.elt))
                 self.assertEqual(ToDOM(instance).toxml("utf-8"), xml)
             else:
-                self.assertRaises(ExtraContentError, h24.createFromDOM, dom.documentElement)
+                self.assertRaises(UnhandledElementContentError, h24.createFromDOM, dom.documentElement)
 
     def test_h24b (self):
         xml = '<ns1:h24b xmlns:ns1="URN:test"></ns1:h24b>'
@@ -111,7 +111,7 @@ class TestParticle (unittest.TestCase):
                 self.assertEqual(num_elt, len(instance.elt))
                 self.assertEqual(ToDOM(instance).toxml("utf-8"), xml)
             else:
-                self.assertRaises(ExtraContentError, h24b.createFromDOM, dom.documentElement)
+                self.assertRaises(UnhandledElementContentError, h24b.createFromDOM, dom.documentElement)
 
 if __name__ == '__main__':
     unittest.main()

@@ -106,7 +106,7 @@ Anytown, AS  12345-6789'''
             self.assertEqual('<ns1:purchaseOrder xmlns:ns1="http://www.example.com/PO1"><shipTo><street>General Delivery</street><name>Robert Smith</name></shipTo></ns1:purchaseOrder>', xmls)
         finally:
             pyxb.RequireValidWhenGenerating(True)
-        self.assertRaises(pyxb.UnrecognizedContentError, CreateFromDocument, xmls)
+        self.assertRaises(pyxb.UnhandledElementContentError, CreateFromDocument, xmls)
         self.assertTrue(pyxb.RequireValidWhenParsing())
         try:
             pyxb.RequireValidWhenParsing(False)

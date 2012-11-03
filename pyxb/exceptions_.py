@@ -159,10 +159,6 @@ class UnrecognizedContentError (StructuralBadDocumentError):
     """Raised when processing document and an element does not match the content model."""
     pass
 
-class ExtraContentError (UnrecognizedContentError):
-    """Raised when processing document and there is more material in an element content than expected."""
-    pass
-
 class BindingValidationError (UnrecognizedContentError):
     """Raised when the content of a binding object is not consistent with its content model"""
     pass
@@ -209,7 +205,27 @@ class UnprocessedKeywordContentError (ContentError):
         self.instance = instance
         self.keywords = keywords
         super(UnprocessedKeywordContentError, self).__init__(instance, keywords)
+
+class UnhandledElementContentError (ContentError):
+    """Element or element-like content could not be validly associated with an sub-element in the content model."""
+
+    instance = None
+    """The binding for which the L{value} could not be associated with an element."""
+
+    automaton_configuration = None
+    """The L{pyxb.binding.content.AutomatonConfiguration} representing the current state of the L{instance} content."""
+
+    value = None
+    """The value that could not be associated with allowable content."""
     
+    def __init__ (self, instance, automaton_configuration, value):
+        """@param instance: the value for the L{instance} attribute.
+        @param automaton_configuration: the value for the L{automaton_configuration} attribute.
+        @param value: the value for the L{value} attribute."""
+        self.instance = instance
+        self.automaton_configuration = automaton_configuration
+        self.value = value
+        super(UnhandledElementContentError, self).__init__(instance, automaton_configuration, value)
 
 class SimpleTypeValueError (ValidationError):
     """Raised when a simple type value does not satisfy its constraints."""

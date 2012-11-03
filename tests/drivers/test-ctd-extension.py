@@ -92,7 +92,7 @@ class TestCTDExtension (unittest.TestCase):
         self.__basis_log.setLevel(logging.ERROR)
         xml = '<defs xmlns:other="other"><message/><other:something/></defs>'
         doc = pyxb.utils.domutils.StringToDOM(xml)
-        self.assertRaises(ExtraContentError, defs.createFromDOM, doc.documentElement)
+        self.assertRaises(UnhandledElementContentError, defs.createFromDOM, doc.documentElement)
 
 if __name__ == '__main__':
     unittest.main()

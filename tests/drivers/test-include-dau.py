@@ -31,7 +31,7 @@ class TestIncludeDD (unittest.TestCase):
         # Hide the warning from pyxb.binding.basis.complexTypeDefinition.append
         # that it couldn't convert the DOM node to a binding.
         self.__basis_log.setLevel(logging.ERROR)
-        self.assertRaises(pyxb.UnrecognizedContentError, CreateFromDocument, xmls.encode('utf-8'))
+        self.assertRaises(pyxb.UnhandledElementContentError, CreateFromDocument, xmls.encode('utf-8'))
 
     def testExplicit (self):
         xmls = '<ns:entry xmlns:ns="%s"><from>one</from><ns:to>single</ns:to></ns:entry>' % (Namespace.uri(),)

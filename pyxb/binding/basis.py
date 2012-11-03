@@ -2065,8 +2065,8 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         converted to a binding instance.  If the instance has a DFA state, the
         value must be permitted by the content model.
 
-        @raise pyxb.ExtraContentError: the value is not permitted at the
-        current state of the content model.
+        @raise pyxb.ContentError: the value is not permitted at the current
+        state of the content model.
         """
         
         # @todo: Allow caller to provide default element use; it's available
@@ -2131,7 +2131,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         # because the type doesn't accept element content or because it does
         # and what we got didn't match the content model.
         if (element_binding is not None) or isinstance(value, xml.dom.Node):
-            raise pyxb.ExtraContentError('%s: Extra content %s starting with %s' % (self._ExpandedName, element_binding, value,))
+            raise pyxb.UnhandledElementContentError(self, self.__automatonConfiguration, value)
 
         # We have something that doesn't seem to be an element.  Are we
         # expecting simple content?
@@ -2153,7 +2153,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         if not self._IsMixed():
             raise pyxb.UnexpectedNonElementContentError(value)
         if isinstance(value, _TypeBinding_mixin):
-            raise pyxb.ExtraContentError('Extra content starting with %s' % (value,))
+            raise pyxb.UnhandledElementContentError(self, self.__automatonConfiguration, value)
 
         self._addContent(value, element_binding)
         return self

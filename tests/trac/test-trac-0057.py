@@ -7,6 +7,7 @@ import pyxb.binding.generate
 import pyxb.binding.datatypes as xs
 import pyxb.binding.basis
 import pyxb.utils.domutils
+import sys
 
 # Thanks to agrimstrup for this example
 
@@ -55,10 +56,9 @@ class TestTrac_0057 (unittest.TestCase):
     def testDefault (self):
         self.assertTrue(pyxb._GenerationRequiresValid)
         self.assertTrue(pyxb._ParsingRequiresValid)
-        expected_exc = (pyxb.UnrecognizedContentError, pyxb.ExtraContentError)
-        self.assertRaises(expected_exc, CreateFromDocument, self.XMLS)
+        self.assertRaises(pyxb.UnhandledElementContentError, CreateFromDocument, self.XMLS)
         doc = pyxb.utils.domutils.StringToDOM(self.XMLS)
-        self.assertRaises(expected_exc, CreateFromDOM, doc)
+        self.assertRaises(pyxb.UnhandledElementContentError, CreateFromDOM, doc)
         
     def testDisable (self):
         pyxb.RequireValidWhenParsing(False)
