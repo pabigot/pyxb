@@ -321,6 +321,20 @@ class NotComplexContentError (BindingError):
     complex type instance that has empty or simple content."""
     pass
 
+class ReservedNameError (BindingError):
+    """Reserved name set in binding instance."""
+
+    name = None
+    """The name that was caught being assigned"""
+
+    def __init__ (self, instance, name):
+        """@param instance: the binding instance that was mis-used.
+        This will be available in the L{instance} attribute."""
+        self.instance = instance
+        self.name = name
+        # Jump over BindingError in parent invocation
+        super(BindingError, self).__init__(instance, name)
+
 class PyXBError (exceptions.Exception):
     """Base class for exceptions that indicate a problem that the user probably can't fix."""
     pass

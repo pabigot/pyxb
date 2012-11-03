@@ -52,7 +52,7 @@ class _TypeBinding_mixin (utility.Locatable_mixin):
     if pyxb._CorruptionDetectionEnabled:
         def __setattr__ (self, name, value):
             if name in self._ReservedSymbols:
-                raise pyxb.BindingError('Attempt to set reserved name %s in instance of %s' % (name, type(self)))
+                raise pyxb.ReservedNameError(self, name)
             return super(_TypeBinding_mixin, self).__setattr__(name, value)
 
     _PyXBFactoryKeywords = ( '_dom_node', '_fallback_namespace', '_from_xml',
