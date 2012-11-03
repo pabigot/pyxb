@@ -70,8 +70,8 @@ class TestUnion (unittest.TestCase):
 
     def testXMLErrors (self):
         self.assertEqual(welsh.un, CreateFromDocument('<myElement xmlns="URN:unionTest">un</myElement>'))
-        self.assertRaises(UnrecognizedElementError, CreateFromDocument, '<welsh>un</welsh>')
-        self.assertRaises(UnrecognizedElementError, CreateFromDocument, '<myelement>un</myelement>')
+        self.assertRaises(UnrecognizedDOMRootNodeError, CreateFromDocument, '<welsh>un</welsh>')
+        self.assertRaises(UnrecognizedDOMRootNodeError, CreateFromDocument, '<myelement>un</myelement>')
 
     def testMyElementDOM (self):
         self.assertEqual(0, myElement.createFromDOM(pyxb.utils.domutils.StringToDOM('<myElement xmlns="URN:unionTest">0</myElement>').documentElement))

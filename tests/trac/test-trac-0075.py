@@ -50,13 +50,13 @@ class TestTrac_0075 (unittest.TestCase):
         instance = CreateFromDocument(xmls)
         self.assertEqual('content', instance.inner)
 
-    def testUnrecognizedElementError (self):
+    def testUnrecognizedDOMRootNodeError (self):
         xmls = '<t0p><inner>content</inner></t0p>'
         try:
             instance = CreateFromDocument(xmls)
             self.fail("Succeeded in creating from document with bad top level element")
-        except UnrecognizedElementError, e:
-            self.assertEqual('t0p', e.element_name)
+        except UnrecognizedDOMRootNodeError, e:
+            self.assertEqual('t0p', e.node_name)
 
     def testNotAnElementError (self):
         elt = tTop._UseForTag('inner')

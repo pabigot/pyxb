@@ -150,36 +150,22 @@ class UnrecognizedContentError (StructuralBadDocumentError):
     """Raised when processing document and an element does not match the content model."""
     pass
 
-class UnrecognizedElementError (UnrecognizedContentError):
-    """Raised when creating an instance from a document with an unrecognized root element."""
+class UnrecognizedDOMRootNodeError (UnrecognizedContentError):
+    """A root DOM node could not be resolved to a schema element"""
 
-    @property
-    def element_name (self):
-        """The L{pyxb.namespace.ExpandedName} of the element that was not recognized."""
-        return self.__elementName
+    node = None
+    """The L{xml.dom.Element} instance that could not be recognized"""
 
-    @property
-    def dom_node (self):
-        """The DOM node associated with the unrecognized element, if available."""
-        return self.__domNode
+    def __get_node_name (self):
+        """The QName of the L{node} as a L{pyxb.namespace.ExpandedName}"""
+        import pyxb.namespace
+        return  pyxb.namespace.ExpandedName(self.node.namespaceURI, self.node.localName)
+    node_name = property(__get_node_name)
 
-    def __init__ (self, **kw):
-        """Raised when creating an instance from a document with an unrecognized root element.
-
-        @keyword element_name : The expanded name of the outermost element
-        @keyword dom_node : The DOM node of the outermost element, if available
-        """
-        self.__domNode = kw.get('dom_node')
-        self.__elementName = kw.get('element_name')
-        if self.__elementName is None:
-            if self.__domNode is not None:
-                import pyxb.namespace
-                self.__elementName = pyxb.namespace.ExpandedName(self.__domNode.namespaceURI, self.__domNode.localName)
-            else:
-                raise LogicError('No source for element_name  in UnrecognizedElementError')
-        kw['content'] = self.__domNode
-        kw.setdefault('message', 'No element binding available for %s' % (self.__elementName,))
-        UnrecognizedContentError.__init__(self, **kw)
+    def __init__ (self, node):
+        """@param node: the value for the L{node} attribute."""
+        self.node = node
+        super(UnrecognizedDOMRootNodeError, self).__init__(node)
 
 class ExtraContentError (UnrecognizedContentError):
     """Raised when processing document and there is more material in an element content than expected."""

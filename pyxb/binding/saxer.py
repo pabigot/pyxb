@@ -260,11 +260,12 @@ class PyXBSAXHandler (pyxb.utils.saxutils.BaseSAXHandler):
         @return: An instance of L{basis._TypeBinding_mixin} (most usually a
         L{basis.complexTypeDefinition}.
 
-        @raise pyxb.UnrecognizedElementError: No binding could be found to
+        @raise pyxb.[UnrecognizedDOMRootNodeError: No binding could be found to
         match the top-level element in the document."""
         if not isinstance(self.__rootObject, basis._TypeBinding_mixin):
             # Happens if the top-level element got processed as a DOM instance.
-            raise pyxb.UnrecognizedElementError(dom_node=self.__rootObject)
+            assert isinstance(self.__rootObject, xml.dom.Node)
+            raise pyxb.UnrecognizedDOMRootNodeError(self.__rootObject)
         return self.__rootObject._postDOMValidate()
     __rootObject = None
 

@@ -1473,7 +1473,7 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
 
         @return: A binding for the DOM node.
 
-        @raises pyxb.UnrecognizedElementError: if no underlying element or
+        @raises pyxb.UnrecognizedDOMRootNodeError: if no underlying element or
         type for the node can be identified.
         """
 
@@ -1504,7 +1504,7 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
         (did_replace, type_class) = XSI._InterpretTypeAttribute(XSI.type.getAttribute(node), ns_ctx, fallback_namespace, type_class)
 
         if type_class is None:
-            raise pyxb.UnrecognizedElementError(dom_node=node)
+            raise pyxb.UnrecognizedDOMRootNodeError(node)
 
         # Pass xsi:nil on to the constructor regardless of whether the element
         # is nillable.  Another sop to SOAP-encoding WSDL fans who don't
@@ -1531,7 +1531,7 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
 
         @return: A binding for the DOM node.
 
-        @raises pyxb.UnrecognizedElementError: if the name produced by
+        @raises pyxb.UnrecognizedDOMRootNodeError: if the name produced by
         combining the C{node} with the C{fallback_namespace} fails to resolve
         to an element declaration.
         """

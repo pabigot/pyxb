@@ -36,17 +36,17 @@ class TestTrac_0074 (unittest.TestCase):
         try:
             dom_instance = CreateFromDOM(dom.documentElement)
             self.fail('DOM creation succeeded')
-        except pyxb.UnrecognizedElementError, e:
-            self.assertEqual(t0p, e.element_name)
-            self.assertEqual(dom.documentElement, e.dom_node)
+        except pyxb.UnrecognizedDOMRootNodeError, e:
+            self.assertEqual(dom.documentElement, e.node)
+            self.assertEqual(t0p, e.node_name)
 
         saxdom = pyxb.utils.saxdom.parseString(xmls)
         try:
             saxdom_instance = CreateFromDOM(saxdom)
             self.fail('SAXDOM creation succeeded')
-        except pyxb.UnrecognizedElementError, e:
-            self.assertEqual(t0p, e.element_name)
-            self.assertEqual(saxdom.documentElement, e.dom_node)
+        except pyxb.UnrecognizedDOMRootNodeError, e:
+            self.assertEqual(saxdom.documentElement, e.node)
+            self.assertEqual(t0p, e.node_name)
 
         saxer = pyxb.binding.saxer.make_parser()
         handler = saxer.getContentHandler()
@@ -54,8 +54,8 @@ class TestTrac_0074 (unittest.TestCase):
         try:
             sax_instance = handler.rootObject()
             self.fail('SAXER creation succeeded')
-        except pyxb.UnrecognizedElementError, e:
-            self.assertEqual(t0p, e.element_name)
+        except pyxb.UnrecognizedDOMRootNodeError, e:
+            self.assertEqual(t0p, e.node_name)
 
 if __name__ == '__main__':
     unittest.main()
