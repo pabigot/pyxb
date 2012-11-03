@@ -201,7 +201,20 @@ class MissingAttributeError (AttributeValidationError):
     """Raised when an attribute that is required is missing in an element."""
 
 class AttributeChangeError (BadDocumentError):
-    """Raised when an attribute with a fixed value constraint is set to a different value."""
+    """Attempt to change an attribute that has a fixed value constraint."""
+
+    instance = None
+    """The L{pyxb.binding.basis.complexTypeDefinition} instance owning the attribute."""
+    tag = None
+    """The name of the attribute."""
+    
+    def __init__ (self, instance, tag):
+        """@param instance: the value for the L{instance} attribute.
+        @param tag: the value for the L{tag} attribute.
+        """
+        self.instance = instance
+        self.tag = tag
+        super(AttributeChangeError, self).__init__(instance, tag)
 
 class AbstractInstantiationError (PyXBException):
     """Raised when somebody tries to instantiate an abstract complex type."""
