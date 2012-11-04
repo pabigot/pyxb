@@ -180,5 +180,18 @@ class TestSimpleContentAbsentError (unittest.TestCase):
         if DisplayException:
             instance = trac26.CreateFromDocument(self.BadSeq_xmls)
         
+class TestReservedNameError (unittest.TestCase):
+    def testException (self):
+        instance = trac26.eCTwSC(4)
+        with self.assertRaises(pyxb.ReservedNameError) as cm:
+            instance.toxml = 1
+        e = cm.exception
+        self.assertEqual(e.instance, instance)
+        self.assertEqual(e.name, 'toxml')
+
+    def testDisplayException (self):
+        if DisplayException:
+            trac26.eCTwSC(4).toxml = 1
+
 if __name__ == '__main__':
     unittest.main()

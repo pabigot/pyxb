@@ -562,16 +562,21 @@ class AbstractInstantiationError (BindingError):
 class ReservedNameError (BindingError):
     """Reserved name set in binding instance."""
 
+    instance = None
+    """The binding instance."""
+
     name = None
     """The name that was caught being assigned"""
 
     def __init__ (self, instance, name):
-        """@param instance: the binding instance that was mis-used.
-        This will be available in the L{instance} attribute."""
+        """@param instance: the value for the L{instance} attribute.
+        p@param name: the value for the L{name} attribute."""
         self.instance = instance
         self.name = name
-        # Jump over BindingError in parent invocation
-        super(BindingError, self).__init__(instance, name)
+        super(ReservedNameError, self).__init__(instance, name)
+
+    def __str__ (self):
+        return '%s is a reserved name within %s' % (self.name, type(self.instance))
 
 class PyXBError (exceptions.Exception):
     """Base class for exceptions that indicate a problem that the user probably can't fix."""
