@@ -1,0 +1,27 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:simpleType name="tCardCymru">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="un"/>
+      <xs:enumeration value="dau"/>
+      <xs:enumeration value="tri"/>
+      <xs:enumeration value="pedwar"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="tCardEnglish">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="one"/>
+      <xs:enumeration value="two"/>
+      <xs:enumeration value="three"/>
+      <xs:enumeration value="four"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:element name="eAbstractCard" abstract="true"/>
+  <xs:element name="eConcCardCymru" substitutionGroup="eAbstractCard" type="tCardCymru"/>
+  <xs:element name="eConcCardEnglish" substitutionGroup="eAbstractCard" type="tCardEnglish"/>
+  <xs:complexType name="tCardinals">
+    <xs:sequence minOccurs="0" maxOccurs="unbounded">
+      <xs:element ref="eAbstractCard"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="eCardinals" type="tCardinals"/>
+</xs:schema>

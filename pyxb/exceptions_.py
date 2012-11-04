@@ -478,7 +478,12 @@ class AbstractElementError (BindingError):
     Raised when an element is created and the identified binding is
     abstract.  Such elements cannot be created directly; instead the
     creation must derive from an instance of the abstract element's
-    substitution group."""
+    substitution group.
+
+    Since members of the substitution group self-identify using the
+    C{substitutionGroup} attribute, there is no general way to find
+    the set of elements which would be acceptable in place of the
+    abstract element."""
 
     element = None
     """The abstract L{pyxb.binding.basis.element} in question"""
@@ -497,6 +502,9 @@ class AbstractElementError (BindingError):
         self.element = element
         self.value = value
         super(AbstractElementError, self).__init__(element, value)
+
+    def __str__ (self):
+        return '%s: Cannot instantiate element %s directly' % (type(self).__name__, self.element.name())
 
 class AbstractInstantiationError (BindingError):
     """Attempt to create an instance of an abstract complex type.

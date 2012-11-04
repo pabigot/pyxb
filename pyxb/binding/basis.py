@@ -1367,7 +1367,7 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
     def _real_substitutesFor (self, other):
         """Determine whether an instance of this element can substitute for the other element.
         
-        See U{Substitution Group OK<http://www.w3.org/TR/xmlschema-1/#cos-equiv-derived-ok-rec>)}.
+        See U{Substitution Group OK<http://www.w3.org/TR/xmlschema-1/#cos-equiv-derived-ok-rec>}.
 
         @todo: Do something about blocking constraints.  This ignores them, as
         does everything leading to this point.
@@ -1431,7 +1431,7 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
         kw['_element'] = self
         # Can't create instances of abstract elements.
         if self.abstract():
-            raise pyxb.AbstractElementError(self)
+            raise pyxb.AbstractElementError(self, args)
         return self.typeDefinition().Factory(*args, **kw)
 
     def compatibleValue (self, value, **kw):
