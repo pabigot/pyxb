@@ -121,5 +121,64 @@ class TestAbstractInstantiationError (unittest.TestCase):
         if DisplayException:
             instance = trac26.CreateFromDocument(self.Bad_xmls)
 
+class TestSimpleContentAbsentError (unittest.TestCase):
+
+    Good_xmls = '<eCTwSC>3</eCTwSC>'
+    Bad_xmls = '<eCTwSC></eCTwSC>'
+
+    GoodSeq_xmls = '<eCTwSCSequence><eCTwSC>1</eCTwSC><eCTwSC>2</eCTwSC></eCTwSCSequence>'
+    BadSeq_xmls = '<eCTwSCSequence><eCTwSC>1</eCTwSC><eCTwSC></eCTwSC></eCTwSCSequence>'
+
+    def testSchemaSupport (self):
+        instance = trac26.eCTwSC(3)
+        self.assertEqual(3, instance.value())
+        instance = trac26.CreateFromDocument(self.Good_xmls)
+        self.assertEqual(3, instance.value())
+        instance = trac26.eCTwSCSequence()
+        # Can't infer conversion why?
+        instance.eCTwSC.append(trac26.eCTwSC(1))
+        instance.eCTwSC.append(trac26.eCTwSC(2))
+        instance = trac26.CreateFromDocument(self.GoodSeq_xmls)
+        xmls = instance.toxml('utf-8', root_only=True)
+        self.assertEqual(xmls, self.GoodSeq_xmls)
+        
+
+    def testDirect (self):
+        instance = None
+        with self.assertRaises(pyxb.SimpleContentAbsentError) as cm:
+            instance = trac26.eCTwSC()
+        e = cm.exception
+        self.assertTrue(instance is None)
+
+    def testDocument (self):
+        instance = None
+        with self.assertRaises(pyxb.SimpleContentAbsentError) as cm:
+            instance = trac26.CreateFromDocument(self.Bad_xmls)
+        e = cm.exception
+        self.assertTrue(instance is None)
+        self.assertFalse(e.location is None)
+        self.assertEqual(1, e.location.lineNumber)
+        self.assertEqual(0, e.location.columnNumber)
+        self.assertEqual(str(e), 'Type {http://www.w3.org/2001/XMLSchema}int requires content')
+
+    def testDocumentSeq (self):
+        instance = None
+        with self.assertRaises(pyxb.SimpleContentAbsentError) as cm:
+            instance = trac26.CreateFromDocument(self.BadSeq_xmls)
+        e = cm.exception
+        self.assertTrue(instance is None)
+        self.assertFalse(e.location is None)
+        self.assertEqual(1, e.location.lineNumber)
+        self.assertEqual(34, e.location.columnNumber)
+        self.assertEqual(str(e), 'Type {http://www.w3.org/2001/XMLSchema}int requires content')
+
+    def testDisplayException (self):
+        if DisplayException:
+            instance = trac26.eCTwSC()
+
+    def testDisplayExceptionDoc (self):
+        if DisplayException:
+            instance = trac26.CreateFromDocument(self.BadSeq_xmls)
+        
 if __name__ == '__main__':
     unittest.main()

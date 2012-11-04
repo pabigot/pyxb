@@ -802,6 +802,9 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
         require_value = kw.pop('_require_value', False)
         # Save DOM node so we can pull attributes off it
         dom_node = kw.get('_dom_node')
+        location = kw.get('_location')
+        if (location is None) and isinstance(dom_node, utility.Locatable_mixin):
+            location = dom_node._location()
         apply_attributes = kw.pop('_apply_attributes', True)
         # _ConvertArguments handles _dom_node and _apply_whitespace_facet
         # TypeBinding_mixin handles _nil and _element
@@ -813,7 +816,9 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
         if apply_attributes and (dom_node is not None):
             self._setAttributesFromKeywordsAndDOM(kw, dom_node)
         if require_value and (not self._constructedWithValue()):
-            raise pyxb.SimpleContentAbsentError(self)
+            if location is None:
+                location = self._location()
+            raise pyxb.SimpleContentAbsentError(self, location)
         if validate_constraints:
             self.xsdConstraintsOK()
 
@@ -1822,22 +1827,15 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
                 raise pyxb.UsageError('Cannot mix keyword and positional args for element initialization')
             self.extend(args, _from_xml=from_xml)
         elif self._CT_SIMPLE == self._ContentTypeTag:
-            self.__initializeSimpleContent(args, dom_node)
+            value = self._TypeDefinition.Factory(_require_value=not self._isNil(), _dom_node=dom_node, _location=location, _nil=self._isNil(), _apply_attributes=False, *args)
+            if value._constructedWithValue():
+                self.append(value)
         elif dom_node is not None:
             self.extend(dom_node.childNodes[:], fallback_namespace)
         else:
             do_finalize_content_model = False
         if do_finalize_content_model:
             self._finalizeContentModel()
-
-    def __initializeSimpleContent (self, args, dom_node=None):
-        # Don't propagate the keywords.  Python base simple types usually
-        # don't like them, and even if they do we're not using them here.  (Do
-        # need to propagate _nil, though, to correctly handle types derived
-        # from basestring.)
-        value = self._TypeDefinition.Factory(_require_value=not self._isNil(), _dom_node=dom_node, _nil=self._isNil(), _apply_attributes=False, *args)
-        if value._constructedWithValue():
-            self.append(value)
 
     # Specify the symbols to be reserved for all CTDs.
     _ReservedSymbols = _TypeBinding_mixin._ReservedSymbols.union(set([ 'wildcardElements', 'wildcardAttributeMap',
@@ -1954,7 +1952,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
                 raise pyxb.ContentInNilInstanceError(self, self.__content)
             return True
         if self._IsSimpleTypeContent() and (self.__content is None):
-            raise pyxb.SimpleContentAbsentError(self)
+            raise pyxb.SimpleContentAbsentError(self, self._location())
         order = self._validatedChildren()
         for (eu, value) in order:
             if isinstance(value, _TypeBinding_mixin):
@@ -1987,7 +1985,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         if self._isNil():
             return True
         if self.value() is None:
-            raise pyxb.SimpleContentAbsentError(self)
+            raise pyxb.SimpleContentAbsentError(self, self._location())
         return self.value().xsdConstraintsOK()
 
     __content = None
@@ -2229,7 +2227,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             # @todo isNil should verify that no content is present.
             if (not self._isNil()) and (self.__automatonConfiguration is not None):
                 if not self.__automatonConfiguration.isAccepting():
-                    raise pyxb.SimpleContentAbsentError(self)
+                    raise pyxb.SimpleContentAbsentError(self, self._location())
             self._validateAttributes()
         return self
 

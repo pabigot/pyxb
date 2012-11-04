@@ -457,12 +457,18 @@ class SimpleContentAbsentError (BindingError):
     instance = None
     """The binding instance for which simple content is missing."""
 
-    def __init__ (self, instance):
-        """@param instance: the binding instance that is missing
-        content.  This will be available in the L{instance}
-        attribute."""
+    location = None
+    """Where the error occurred in the document being parsed, if available."""
+
+    def __init__ (self, instance, location):
+        """@param instance: the value for the L{instance} attribute.
+        @param location: the value for the L{location} attribute."""
         self.instance = instance
-        super(SimpleContentAbsentError, self).__init__(instance)
+        self.location = location
+        super(SimpleContentAbsentError, self).__init__(instance, location)
+
+    def __str__ (self):
+        return 'Type %s requires content' % (type(self.instance)._ExpandedName,)
 
 class NotComplexContentError (BindingError):
     """An operation that requires a content model was invoked on a
