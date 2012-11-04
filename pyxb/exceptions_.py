@@ -509,23 +509,44 @@ class AbstractElementError (BindingError):
         super(AbstractElementError, self).__init__(element, value)
 
     def __str__ (self):
-        return '%s: Cannot instantiate element %s directly' % (type(self).__name__, self.element.name())
+        return 'Cannot instantiate abstract element %s directly' % (self.element.name(),)
 
 class AbstractInstantiationError (BindingError):
     """Attempt to create an instance of an abstract complex type.
 
     These types are analogous to abstract base classes, and cannot be
     created directly.  A type should be used that extends the abstract
-    class."""
+    class.
+
+    When an incoming document is missing the xsi:type attribute which
+    redirects an element with an abstract type to the correct type,
+    the L{node} attribute is provided so the user can get a clue as to
+    where the problem occured.  When this exception is a result of
+    constructor mis-use in Python code, the traceback will tell you
+    where the problem lies.
+    """
 
     type = None
-    """The abstract L{pyxb.binding.basis.complexTypeDefinition} subclass used"""
+    """The abstract L{pyxb.binding.basis.complexTypeDefinition} subclass used."""
 
-    def __init__ (self, type):
-        """@param type: the value for the L{type} attribute."""
+    location = None
+    """Where the error occurred in the document being parsed, if available."""
+
+    node = None
+    """The L{xml.dom.Element} from which instantiation was attempted, if available."""
+
+    def __init__ (self, type, location, node):
+        """@param type: the value for the L{type} attribute.
+        @param location: the value for the L{location} attribute.
+        @param node: the value for the L{node} attribute."""
         self.type = type
-        super(AbstractInstantiationError, self).__init__(type)
+        self.location = location
+        self.node = node
+        super(AbstractInstantiationError, self).__init__(type, location, node)
 
+    def __str__ (self):
+        # If the type is abstract, it has to have a name.
+        return 'Cannot instantiate abstract type %s directly' % (self.type._ExpandedName,)
 
 class ReservedNameError (BindingError):
     """Reserved name set in binding instance."""

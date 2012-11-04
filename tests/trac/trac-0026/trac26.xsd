@@ -25,4 +25,35 @@
     </xs:sequence>
   </xs:complexType>
   <xs:element name="eCardinals" type="tCardinals"/>
+
+  <!-- *** Material related to abstract types -->
+  <xs:complexType abstract="true" name="tAbstract"/>
+  <xs:complexType name="tConcSubCymru">
+    <xs:complexContent>
+      <xs:extension base="tAbstract">
+        <xs:sequence>
+          <xs:element name="welsh" type="tCardCymru"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="tConcSubEnglish">
+    <xs:complexContent>
+      <xs:extension base="tAbstract">
+        <xs:sequence>
+          <xs:element name="english" type="tCardEnglish"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="eAbstract" type="tAbstract"/>
+  <xs:element name="eUseAbstract">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="eAbstract"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+
 </xs:schema>

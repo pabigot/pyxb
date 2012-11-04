@@ -58,7 +58,7 @@ class _TypeBinding_mixin (utility.Locatable_mixin):
     _PyXBFactoryKeywords = ( '_dom_node', '_fallback_namespace', '_from_xml',
                              '_apply_whitespace_facet', '_validate_constraints',
                              '_require_value', '_nil', '_element', '_apply_attributes',
-                             '_convert_string_values' )
+                             '_convert_string_values', '_location' )
     """Keywords that are interpreted by __new__ or __init__ in one or more
     classes in the PyXB type hierarchy.  All these keywords must be removed
     before invoking base Python __init__ or __new__."""
@@ -192,6 +192,10 @@ class _TypeBinding_mixin (utility.Locatable_mixin):
         @keyword _dom_node: If provided, the value must be a DOM node, the
         content of which will be used to set the value of the instance.
 
+        @keyword _location: An optional instance of
+        L{pyxb.utils.utility.Location} showing the origin the binding.  If
+        C{None}, a value from C{_dom_node} is used if available.
+
         @keyword _from_xml: If C{True}, the input must be either a DOM node or
         a unicode string comprising a lexical representation of a value.  This
         is a further control on C{_apply_whitespace_facet} and arises from
@@ -219,13 +223,16 @@ class _TypeBinding_mixin (utility.Locatable_mixin):
         # Invoke _PreFactory_vx for the superseding class, which is where
         # customizations will be found.
         dom_node = kw.get('_dom_node')
+        location = kw.get('_location')
+        if (location is None) and isinstance(dom_node, utility.Locatable_mixin):
+            location = dom_node.location
         kw.setdefault('_from_xml', dom_node is not None)
         used_cls = cls._SupersedingClass()
         state = used_cls._PreFactory_vx(args, kw)
         rv = cls._DynamicCreate(*args, **kw)
         rv._postFactory_vx(state)
-        if isinstance(dom_node, utility.Locatable_mixin):
-            rv._setLocation(dom_node.location)
+        if (rv._location is None) and (location is not None):
+            rv._setLocation(location)
         return rv
 
     def _substitutesFor (self, element):
@@ -758,6 +765,7 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
         kw.pop('_fallback_namespace', None)
         kw.pop('_apply_attributes', None)
         kw.pop('_nil', None)
+        kw.pop('_location', None)
         # ConvertArguments will remove _element and _apply_whitespace_facet
         dom_node = kw.get('_dom_node')
         args = cls._ConvertArguments(args, kw)
@@ -1748,6 +1756,10 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         @keyword _dom_node: The node to use as the source of binding content.
         @type _dom_node: C{xml.dom.Element}
 
+        @keyword _location: An optional instance of
+        L{pyxb.utils.utility.Location} showing the origin the binding.  If
+        C{None}, a value from C{_dom_node} is used if available.
+
         @keyword _from_xml: See L{_TypeBinding_mixin.Factory}
 
         @keyword _finalize_content_model: If C{True} the constructor invokes
@@ -1761,23 +1773,26 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         fallback_namespace = kw.pop('_fallback_namespace', None)
         is_nil = False
         dom_node = kw.pop('_dom_node', None)
+        location = kw.pop('_location', None)
         from_xml = kw.pop('_from_xml', dom_node is not None)
         do_finalize_content_model = kw.pop('_finalize_content_model', None)
         if dom_node is not None:
-            if isinstance(dom_node, pyxb.utils.utility.Locatable_mixin):
-                self._setLocation(dom_node.location)
+            if (location is None) and isinstance(dom_node, pyxb.utils.utility.Locatable_mixin):
+                location = dom_node.location
             if xml.dom.Node.DOCUMENT_NODE == dom_node.nodeType:
                 dom_node = dom_node.documentElement
             #kw['_validate_constraints'] = False
             is_nil = XSI.nil.getAttribute(dom_node)
             if is_nil is not None:
                 is_nil = kw['_nil'] = pyxb.binding.datatypes.boolean(is_nil)
+        if location is not None:
+            self._setLocation(location)
         if self._AttributeWildcard is not None:
             self.__wildcardAttributeMap = { }
         if self._HasWildcardElement:
             self.__wildcardElements = []
         if self._Abstract:
-            raise pyxb.AbstractInstantiationError(type(self))
+            raise pyxb.AbstractInstantiationError(type(self), location, dom_node)
         super(complexTypeDefinition, self).__init__(**kw)
         self.reset()
         self._setAttributesFromKeywordsAndDOM(kw, dom_node)
