@@ -255,17 +255,22 @@ class BatchElementContentError (ContentError):
     automaton_configuration = None
     """The L{pyxb.binding.content.AutomatonConfiguration} representing the current state of the L{instance} content."""
 
+    symbols = None
+    """The sequence of symbols that were accepted as content prior to the error."""
+
     symbol_set = None
     """The leftovers from L{pyxb.binding.basis.complexTypeDefinition._symbolSet} that could not be reconciled with the content model."""
 
-    def __init__ (self, instance, automaton_configuration, symbol_set):
+    def __init__ (self, instance, automaton_configuration, symbols, symbol_set):
         """@param instance: the value for the L{instance} attribute.
         @param automaton_configuration: the value for the L{automaton_configuration} attribute.
+        @param symbols: the value for the L{symbols} attribute.
         @param symbol_set: the value for the L{symbol_set} attribute."""
         self.instance = instance
         self.automaton_configuration = automaton_configuration
+        self.symbols = symbols
         self.symbol_set = symbol_set
-        super(BatchElementContentError, self).__init__(instance, automaton_configuration, symbol_set)
+        super(BatchElementContentError, self).__init__(instance, automaton_configuration, symbols, symbol_set)
 
 class IncompleteElementContentError (BatchElementContentError):
     """Validation of an instance failed to produce an accepting state.
