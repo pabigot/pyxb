@@ -1454,6 +1454,8 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
             return [ self.compatibleValue(_v) for _v in value ]
         if isinstance(value, _TypeBinding_mixin) and (value._element() is not None) and value._element().substitutesFor(self):
             return value
+        if self.abstract():
+            raise pyxb.AbstractElementError(self, value)
         return self.typeDefinition()._CompatibleValue(value, **kw)
 
     @classmethod
