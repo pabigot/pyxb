@@ -14,6 +14,9 @@ if [ ! -f ${PREFIX}.py ] ; then
   echo "from raw.${PREFIX} import *" > ${PREFIX}.py
 fi
 
+# To test local edits, copy uriArchive into hacked, edit there, and run:
+# pyxbgen -r -u hacked/DWML.xsd -m DWML --location-prefix-rewrite=http://graphical.weather.gov/xml/DWMLgen/schema/=hacked/
+
 # Retrieve the wsdl.  Heck, show it off even.  Just not using it yet.
 WSDL_URI='http://www.weather.gov/forecasts/xml/DWMLgen/wsdl/ndfdXML.wsdl'
 if [ ! -f ndfdXML.wsdl ] ; then
