@@ -10,6 +10,10 @@ DisplayException = False
 #DisplayException = True
 
 class TestAbstractElementError (unittest.TestCase):
+    Good_xmls = '<eCardinals><eConcCardCymru>un</eConcCardCymru><eConcCardEnglish>three</eConcCardEnglish></eCardinals>'
+
+    Bad_xmls = '<eCardinals><eConcCardCymru>un</eConcCardCymru><eAbstractCard>three</eAbstractCard></eCardinals>'
+
     def testSchemaSupport (self):
         cym1 = trac26.eConcCardCymru('un')
         eng3 = trac26.eConcCardEnglish('three')
@@ -25,7 +29,7 @@ class TestAbstractElementError (unittest.TestCase):
         self.assertTrue(isinstance(instance.eAbstractCard[1], trac26.tCardEnglish))
         self.assertTrue(instance.validateBinding())
         xmls = instance.toxml('utf-8', root_only=True)
-        self.assertEqual(xmls, '<eCardinals><eConcCardCymru>un</eConcCardCymru><eConcCardEnglish>three</eConcCardEnglish></eCardinals>')
+        self.assertEqual(xmls, self.Good_xmls)
 
         # Incremental through construtor element
         instance = trac26.eCardinals(cym1, eng3)
@@ -34,7 +38,14 @@ class TestAbstractElementError (unittest.TestCase):
         self.assertTrue(isinstance(instance.eAbstractCard[1], trac26.tCardEnglish))
         self.assertTrue(instance.validateBinding())
         xmls = instance.toxml('utf-8', root_only=True)
-        self.assertEqual(xmls, '<eCardinals><eConcCardCymru>un</eConcCardCymru><eConcCardEnglish>three</eConcCardEnglish></eCardinals>')
+        self.assertEqual(xmls, self.Good_xmls)
+
+        # Through parsing
+        instance = trac26.CreateFromDocument(self.Good_xmls)
+        self.assertEqual(2, len(instance.eAbstractCard))
+        self.assertTrue(isinstance(instance.eAbstractCard[0], trac26.tCardCymru))
+        self.assertTrue(isinstance(instance.eAbstractCard[1], trac26.tCardEnglish))
+        self.assertTrue(instance.validateBinding())
 
     def testException (self):
         instance = None
@@ -45,6 +56,15 @@ class TestAbstractElementError (unittest.TestCase):
         self.assertEqual(e.element, trac26.eAbstractCard)
         self.assertEqual(e.value, ('un',))
         self.assertEqual(str(e), 'Cannot instantiate abstract element eAbstractCard directly')
+
+    def testFromDocument (self):
+        instance = None
+        with self.assertRaises(pyxb.AbstractElementError) as cm:
+            instance = trac26.CreateFromDocument(self.Bad_xmls)
+        e = cm.exception
+        self.assertFalse(e.location is None)
+        self.assertEqual(1, e.location.lineNumber)
+        self.assertEqual(47, e.location.columnNumber)
 
     def testDisplayException (self):
         if DisplayException:

@@ -493,6 +493,9 @@ class AbstractElementError (BindingError):
     element = None
     """The abstract L{pyxb.binding.basis.element} in question"""
 
+    location = None
+    """Where the error occurred in the document being parsed, if available."""
+
     value = None
     """The value proposed for the L{element}.  This is usually going
     to be a C{xml.dom.Node} used in the attempt to create the element,
@@ -501,12 +504,14 @@ class AbstractElementError (BindingError):
     L{pyxb.binding.content.ElementDeclaration.toDOM} is
     mis-used."""
 
-    def __init__ (self, element, value=None):
+    def __init__ (self, element, location, value=None):
         """@param element: the value for the L{element} attribute.
+        @param location: the value for the L{location} attribute.
         @param value: the value for the L{value} attribute."""
         self.element = element
+        self.location = location
         self.value = value
-        super(AbstractElementError, self).__init__(element, value)
+        super(AbstractElementError, self).__init__(element, location, value)
 
     def __str__ (self):
         return 'Cannot instantiate abstract element %s directly' % (self.element.name(),)

@@ -225,7 +225,7 @@ class _TypeBinding_mixin (utility.Locatable_mixin):
         dom_node = kw.get('_dom_node')
         location = kw.get('_location')
         if (location is None) and isinstance(dom_node, utility.Locatable_mixin):
-            location = dom_node.location
+            location = dom_node._location()
         kw.setdefault('_from_xml', dom_node is not None)
         used_cls = cls._SupersedingClass()
         state = used_cls._PreFactory_vx(args, kw)
@@ -1439,7 +1439,10 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
         kw['_element'] = self
         # Can't create instances of abstract elements.
         if self.abstract():
-            raise pyxb.AbstractElementError(self, args)
+            location = kw.get('_location')
+            if (location is None) and isinstance(dom_node, utility.Locatable_mixin):
+                location = dom_node._location()
+            raise pyxb.AbstractElementError(self, location, args)
         return self.typeDefinition().Factory(*args, **kw)
 
     def compatibleValue (self, value, **kw):
@@ -1463,7 +1466,10 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
         if isinstance(value, _TypeBinding_mixin) and (value._element() is not None) and value._element().substitutesFor(self):
             return value
         if self.abstract():
-            raise pyxb.AbstractElementError(self, value)
+            location = None
+            if isinstance(value, utility.Locatable_mixin):
+                location = value._location()
+            raise pyxb.AbstractElementError(self, location, value)
         return self.typeDefinition()._CompatibleValue(value, **kw)
 
     @classmethod
@@ -1506,7 +1512,10 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
             # way this could be legal given an xsi:type attribute?  I'm pretty
             # sure "no"...
             if element_binding.abstract():
-                raise pyxb.AbstractElementError(element_binding, node)
+                location = kw.get('location')
+                if (location is None) and isinstance(node, utility.Locatable_mixin):
+                    location = node._location()
+                raise pyxb.AbstractElementError(element_binding, location, node)
             kw['_element'] = element_binding
             type_class = element_binding.typeDefinition()
 
@@ -1778,7 +1787,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         do_finalize_content_model = kw.pop('_finalize_content_model', None)
         if dom_node is not None:
             if (location is None) and isinstance(dom_node, pyxb.utils.utility.Locatable_mixin):
-                location = dom_node.location
+                location = dom_node._location()
             if xml.dom.Node.DOCUMENT_NODE == dom_node.nodeType:
                 dom_node = dom_node.documentElement
             #kw['_validate_constraints'] = False
