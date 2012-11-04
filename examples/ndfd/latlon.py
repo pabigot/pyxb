@@ -1,5 +1,6 @@
 import DWML
 import datetime
+import pyxb
 import pyxb.utils.domutils as domutils
 import pyxb.binding.datatypes as xsd
 import pyxb.xmlschema.structures as structures
@@ -63,6 +64,7 @@ request_values = { 'latitude' : lat
                  , 'startTime' : today
                  , 'endTime' : later
                  , 'product' : ndfd.productType.time_series
+                 , 'Unit' : ndfd.unitType.e
                  , 'weatherParameters' : weather_params }
 
 # Get the WSDL message description, and for each part for which we
@@ -71,7 +73,8 @@ req_msg = spec.messageMap()['NDFDgenRequest']
 for p in req_msg.part:
     fv = request_values.get(p.name)
     if fv is None:
-        print '%s: %s has no value' % (p.name, p.typeReference.expandedName())
+        # Fatal error if a field required by the message is not available
+        raise Exception('%s: %s has no value' % (p.name, p.typeReference.expandedName()))
     else:
         print '%s: %s' % (p.name, p.typeReference.expandedName())
         # Make sure the value is of the expected type
@@ -96,14 +99,23 @@ soap_message = '''<?xml version="1.0" encoding="ISO-8859-1"?>
 # Save the request message so it can be examined later
 file('req.xml', 'w').write(soap_message)
 
+# Pull the SOAPAction and endpoint out of the WSDL spec.  This is gross.
+spec_ns = spec.namespaceContext().targetNamespace()
+binding = spec_ns.createExpandedName('ndfdXMLBinding').binding()
+operation = binding.operationMap()['NDFDgen']
+soap_op = operation.wildcardElements()[0]
+soap_action = soap_op.soapAction
+
+service = spec_ns.createExpandedName('ndfdXML').service()
+soap_addr = service.port[0].wildcardElements()[0]
+endpoint = soap_addr.location
+
 # Execute the request
-endpoint = 'http://www.weather.gov/forecasts/xml/SOAP_server/ndfdXMLserver.php'
-soap_action = 'http://www.weather.gov/forecasts/xml/DWMLgen/wsdl/ndfdXML.wsdl#NDFDgen'
 uri = urllib2.Request(endpoint,
                       soap_message,
                       { 'SOAPAction' : soap_action, 'Content-Type': 'text/xml' } )
 rxml = urllib2.urlopen(uri).read()
-#rxml = file('resp.xml').read()
+#rxml = file('rawresp.xml').read()
 
 # Save the raw SOAP-wrapped response
 file('rawresp.xml', 'w').write(rxml)
@@ -119,14 +131,27 @@ rxml = v.childNodes[0].childNodes[0].value
 file('resp.xml', 'w').write(rxml)
 #rxml = file('resp.xml').read()
 
-# Create the binding instance from the response, and start spitting
-# out its data.
-r = DWML.CreateFromDOM(domutils.StringToDOM(rxml))
+# Create the binding instance from the response.  If there's a
+# problem, diagnose the issue, then try again with validation
+# disabled.
+r = None
+try:
+    r = DWML.CreateFromDOM(domutils.StringToDOM(rxml))
+except pyxb.UnhandledElementContentError, e:
+    print '\n\n******* ERROR validating response'
+    print 'Unacceptable instance of %s at %s' % (e.value._element().name(), e.value._location())
+    print 'Allowed: %s' % ('\n\t(or) '.join(map(str, e.automaton_configuration.acceptableSymbols())))
+    print '\n\n'
+if r is None:
+    pyxb.RequireValidWhenParsing(False)
+    r = DWML.CreateFromDOM(domutils.StringToDOM(rxml))
+
+# Start spitting out the processed data.
 product = r.head.product
 print '%s %s' % (product.title, product.category)
 source = r.head.source
 print ", ".join(source.production_center.content())
-data = r.data
+data = r.data[0]
 
 for i in range(len(data.location)):
     loc = data.location[i]
