@@ -41,10 +41,11 @@ class TestAbstractElementError (unittest.TestCase):
         self.assertEqual(str(e), 'AbstractElementError: Cannot instantiate element eAbstractCard directly')
 
     def testIncremental (self):
-        # Without type information, incremental does not work.
+        # Without type information, incremental does not work.  The content
+        # model fails to recognize it, and it looks like mixed content.
         instance = trac26.eCardinals()
         self.assertEqual(0, len(instance.eAbstractCard))
-        self.assertRaises(pyxb.AbstractElementError, instance.append, 'un')
+        self.assertRaises(pyxb.MixedContentError, instance.append, 'un')
 
 if __name__ == '__main__':
     unittest.main()

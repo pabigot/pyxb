@@ -878,7 +878,7 @@ class ElementDeclaration (object):
             try:
                 value = self.__elementBinding.compatibleValue(value, _convert_string_values=False)
                 accept = True
-            except pyxb.SimpleTypeValueError:
+            except (pyxb.ValidationError, pyxb.BindingError):
                 pass
         return (accept, value)
 
