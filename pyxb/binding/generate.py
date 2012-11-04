@@ -284,10 +284,10 @@ def %{name} ():
     def stateSortKey (st):
         if isinstance(st.symbol, xs.structures.ModelGroup):
             return st.symbol.bindingSortKey()
-        return st.symbol[1].bindingSortKey()
+        return st.symbol[0].bindingSortKey()
 
     def counterConditionSortKey (cc):
-        return cc.metadata.term().bindingSortKey()
+        return cc.metadata.bindingSortKey()
 
     def updateInstructionSortKey (ui):
         return counterConditionSortKey(ui.counterCondition)
