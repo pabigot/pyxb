@@ -2002,6 +2002,11 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
                 import pyxb.binding.content
                 self.__automatonConfiguration = pyxb.binding.content.AutomatonConfiguration(self)
             self.__automatonConfiguration.reset()
+        return self.__automatonConfiguration
+
+    def _automatonConfiguration (self):
+        """For whitebox testing use only"""
+        return self.__automatonConfiguration
     
     def reset (self):
         """Reset the instance.

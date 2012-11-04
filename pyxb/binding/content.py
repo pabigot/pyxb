@@ -347,6 +347,16 @@ class AutomatonConfiguration (object):
         self.__cfg = self.__instance._Automaton.newConfiguration()
         self.__multi = None
 
+    def nondeterminismCount (self):
+        """Return the number of pending configurations.
+
+        The automaton is deterministic if exactly one configuration is
+        available."""
+        if self.__cfg is not None:
+            assert self.__multi is None
+            return 1
+        return len(self.__multi)
+
     def step (self, value, element_decl):
         """Attempt a transition from the current state.
 
@@ -377,7 +387,7 @@ class AutomatonConfiguration (object):
             for transition in cand:
                 clone_map = {}
                 ccfg = cfg.clone(clone_map)
-                new_multi.append( (transition.apply(ccfg, clone_map), pending+(transition.consumedSymbol().consumingClosure(),)) )
+                new_multi.append( (transition.apply(ccfg, clone_map), pending+(transition.consumedSymbol().consumingClosure(sym),)) )
         rv = len(new_multi)
         if 0 == rv:
             # No candidate transitions.  Do not change the state.
@@ -503,9 +513,9 @@ class AutomatonConfiguration (object):
                 if not csym.match((matches[0], ed)):
                     continue
                 # Commit to this transition and consume the selected content
-                symbols.append( (ed, csym.retrieveContent()) )
+                value = matches.pop(0)
+                symbols.append( (ed, csym.matchValue( (value, ed) )) )
                 selected_xit = xit
-                matches.pop(0)
                 if 0 == len(matches):
                     del symbol_set[ed]
                 break
@@ -527,34 +537,41 @@ class _FACSymbol (pyxb.utils.fac.SymbolMatch_mixin):
     """Base class for L{pyxb.utils.fac.Symbol} instances associated with PyXB content models.
 
     This holds the location in the schema of the L{ElementUse} or
-    L{WildcardUse}, as well as an accepted value calculated by the subclass
-    C{match} method and cached for later use.
-    """
+    L{WildcardUse} and documents the methods expected of its children."""
 
     __schemaLocation = None
 
     def schemaLocation (self):
         return self.__schemaLocation
 
+    def matchValue (self, sym):
+        """Return the value accepted by L{match} for this symbol.
+
+        A match for an element declaration might have resulted in a type
+        change for the value (converting it to an acceptable type).  There is
+        no safe place to cache the compatible value calculated in the match
+        while other candidates are being considered, so we need to
+        re-calculate it if the transition is taken.
+
+        If the match could not have changed the value, the value from the
+        symbol may be returned immediately."""
+        raise NotImplementedError('%s._matchValue' % (type(self).__name__,))
+
+    def consumingClosure (self, sym):
+        """Create a closure that will apply the value from C{sym} to a to-be-supplied instance.
+
+        This is necessary for non-deterministic automata, where we can't store
+        the value into the instance field until we know that the transition
+        will be taken:
+
+        @return: A closure that takes a L{complexTypeDefinition} instance and
+        stores the value from invoking L{matchValue} on C{sym} into the
+        appropriate slot."""
+        raise NotImplementedError('%s._consumingClosure' % (type(self).__name__,))
+
     def __init__ (self, schema_location):
         super(_FACSymbol, self).__init__()
         self.__schemaLocation = schema_location
-
-    # A cached value accepted by the match method.  Subsequently either
-    # storeContent or consumingClosure should be invoked to clear it.
-    __acceptedValue = None
-    def _setAcceptedValue (self, accepted_value):
-        """Store a value for later retrieval."""
-        self.__acceptedValue = accepted_value
-
-    def retrieveContent (self):
-        """Read back an the content archived by a previous accepting match.
-
-        This also clears the value so it can be garbage collected."""
-        assert self.__acceptedValue is not None
-        rv = self.__acceptedValue
-        self.__acceptedValue = None
-        return rv
 
 class ElementUse (_FACSymbol):
     """Information about a schema element declaration reference.
@@ -575,14 +592,16 @@ class ElementUse (_FACSymbol):
         super(ElementUse, self).__init__(schema_location)
         self.__elementDeclaration = element_declaration
 
-    def storeContent (self, instance):
-        """Apply the value accepted by L{match} to the content of the instance."""
-        self.__elementDeclaration.setOrAppend(instance, self.retrieveContent())
-
-    def consumingClosure (self):
-        """Create a closure that will apply the value accepted by L{match} to a to-be-supplied instance."""
-        av = self.retrieveContent()
-        return lambda _inst,_ed=self.__elementDeclaration,_av=av: _ed.setOrAppend(_inst, _av)
+    def matchValue (self, sym):
+        (value, element_decl) = sym
+        (rv, value) = self.__elementDeclaration._matches(value, element_decl)
+        assert rv
+        return value
+    
+    def consumingClosure (self, sym):
+        # Defer the potentially-expensive re-invocation of matchValue until
+        # the closure is applied.
+        return lambda _inst,_eu=self,_sy=sym: _eu.__elementDeclaration.setOrAppend(_inst, _eu.matchValue(_sy))
         
     def match (self, symbol):
         """Satisfy L{pyxb.utils.fac.SymbolMatch_mixin}.
@@ -596,10 +615,10 @@ class ElementUse (_FACSymbol):
         determine whether the proposed content is compatible with this element
         declaration."""
         (value, element_decl) = symbol
-        # NB: this call may change value to be compatible
+        # NB: this call may change value to be compatible.  Unfortunately, we
+        # can't reliably cache that converted value, so just ignore it and
+        # we'll recompute it if the candidate transition is taken.
         (rv, value) = self.__elementDeclaration._matches(value, element_decl)
-        if rv:
-            self._setAcceptedValue(value)
         return rv
 
     def __str__ (self):
@@ -617,14 +636,13 @@ class WildcardUse (_FACSymbol):
     def wildcardDeclaration (self):
         return self.__wildcardDeclaration
 
-    def storeContent (self, instance):
-        """Apply the value accepted by L{match} to the content of the instance."""
-        instance._appendWildcardElement(self.retrieveContent())
-        
-    def consumingClosure (self):
+    def matchValue (self, sym):
+        (value, element_decl) = sym
+        return value
+    
+    def consumingClosure (self, sym):
         """Create a closure that will apply the value accepted by L{match} to a to-be-supplied instance."""
-        av = self.retrieveContent()
-        return lambda _inst,_av=av: _inst._appendWildcardElement(_av)
+        return lambda _inst,_av=self.matchValue(sym): _inst._appendWildcardElement(_av)
 
     def match (self, symbol):
         """Satisfy L{pyxb.utils.fac.SymbolMatch_mixin}.
@@ -638,10 +656,7 @@ class WildcardUse (_FACSymbol):
         the proposed content is compatible with this wildcard.
         """
         (value, element_decl) = symbol
-        rv = self.__wildcardDeclaration.matches(None, value)
-        if rv:
-            self._setAcceptedValue(value)
-        return rv
+        return self.__wildcardDeclaration.matches(None, value)
 
     def __init__ (self, wildcard_declaration, schema_location):
         super(WildcardUse, self).__init__(schema_location)
