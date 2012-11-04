@@ -40,7 +40,7 @@ class TestTrac_0076 (unittest.TestCase):
         try:
             elt = root(name='myTitle')
             self.fail('Succeeded creating root element with bogus keyword')
-        except UnprocessedKeywordContentError, e:
+        except UnprocessedKeywordContentError as e:
             pass
 
 if __name__ == '__main__':

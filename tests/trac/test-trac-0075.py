@@ -55,7 +55,7 @@ class TestTrac_0075 (unittest.TestCase):
         try:
             instance = CreateFromDocument(xmls)
             self.fail("Succeeded in creating from document with bad top level element")
-        except UnrecognizedDOMRootNodeError, e:
+        except UnrecognizedDOMRootNodeError as e:
             self.assertEqual('t0p', e.node_name)
 
     def testNotAnElementError (self):
@@ -71,14 +71,14 @@ class TestTrac_0075 (unittest.TestCase):
         try:
             instance = CreateFromDocument(xmls)
             self.fail("Succeeded in creating from document with bad inner element")
-        except UnhandledElementContentError, e:
+        except UnhandledElementContentError as e:
             pass
 
         dom = xml.dom.minidom.parseString(xmls)
         try:
             instance = CreateFromDOM(dom)
             self.fail("Succeeded in creating from document with bad inner element")
-        except UnhandledElementContentError, e:
+        except UnhandledElementContentError as e:
             pass
 
     '''

@@ -151,7 +151,7 @@ class test (Command):
                         suite.addTest(loader.loadTestsFromTestCase(obj))
                 if self.trace_tests:
                     print '%s imported' % (fn,)
-            except Exception, e:
+            except Exception as e:
                 print '%s failed in %s: %s' % (fn, stage, e)
                 raise
 
@@ -183,7 +183,7 @@ bundle_base = os.path.join(setup_path, 'pyxb', 'bundles')
 possible_bundles = []
 try:
     possible_bundles.extend(os.listdir(bundle_base))
-except OSError,e :
+except OSError as e:
     print "Directory %s bundle search failed: %s" % (bundle_base, e)
 for possible_bundle in possible_bundles:
     bundle_root = os.path.join(bundle_base, possible_bundle)
@@ -195,7 +195,7 @@ for possible_bundle in possible_bundles:
         bundle_path = os.path.dirname(os.path.normpath(fp))
         try:
             package_relpath = os.path.relpath(bundle_path, setup_path)
-        except AttributeError, e:
+        except AttributeError as e:
             package_relpath = bundle_path
             if setup_path and '.' != setup_path:
                 prefix_path = setup_path + os.path.sep

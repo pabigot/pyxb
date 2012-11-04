@@ -33,7 +33,7 @@ class TestTrac0123 (unittest.TestCase):
     def testEmpty (self):
         try:
             import pyxb.bundles.wssplat.ds as dsig
-        except ImportError, e:
+        except ImportError as e:
             _log.warning('%s: skipping test, error importing dsig', __file__)
             return
         # The warning that InclusiveNamespaces could not be converted

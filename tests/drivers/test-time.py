@@ -24,7 +24,7 @@ def make_tTime (*args, **kw):
             v = cls(*args, **kw)
             v.toxml("utf-8")
             return v
-        except Exception, e:
+        except Exception as e:
             pass
     return None
 tTime._SetAlternativeConstructor(make_tTime)

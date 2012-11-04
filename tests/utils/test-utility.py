@@ -357,7 +357,7 @@ class _TestOpenOrCreate_mixin (object):
     def unlinkFile (self):
         try:
             os.unlink(self.__fileName)
-        except OSError, e:
+        except OSError as e:
             if errno.EEXIST != e:
                 raise
 

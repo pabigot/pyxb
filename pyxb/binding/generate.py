@@ -1749,7 +1749,7 @@ class Generator (object):
             binding_file_path = self.__moduleFilePath(module_elts)
             try:
                 binding_file = pyxb.utils.utility.OpenOrCreate(binding_file_path, tag=module.moduleUID())
-            except OSError, e:
+            except OSError as e:
                 if errno.EEXIST == e.errno:
                     raise pyxb.BindingGenerationError('Target file %s for module %s bindings exists with other content' % (binding_file_path, mr))
                 raise
@@ -1769,7 +1769,7 @@ class Generator (object):
                     _log.info('Attempting group %s uid %s at %s', module, module.moduleUID(), binding_file_path)
                     binding_file = pyxb.utils.utility.OpenOrCreate(binding_file_path, tag=module.moduleUID())
                     break
-                except OSError, e:
+                except OSError as e:
                     if errno.EEXIST != e.errno:
                         raise
                 module_elts.pop()
@@ -2511,7 +2511,7 @@ class Generator (object):
                 else:
                     schema = converter(self, sl)
                 self.addSchema(schema)
-            except pyxb.SchemaUniquenessError, e:
+            except pyxb.SchemaUniquenessError as e:
                 _log.info('Skipped redundant translation of %s defining %s', e.schemaLocation(), e.namespace())
                 self.addSchema(e.existingSchema())
 
@@ -2730,7 +2730,7 @@ class Generator (object):
             try:
                 ns_archive.writeNamespaces(pyxb.utils.utility.OpenOrCreate(archive_file))
                 _log.info('Saved parsed schema to %s URI', archive_file)
-            except Exception, e:
+            except Exception as e:
                 _log.exception('Failure saving preprocessed schema to %s', archive_file)
                 #try:
                 #    os.unlink(component_model_file)

@@ -36,7 +36,7 @@ try:
     _tagger1 = MeCab.Tagger("-Owakati")
     _tagger2 = MeCab.Tagger("-Oyomi")
     pyxb.utils.utility._SetXMLIdentifierToPython(ConvertJPIdentifier)
-except ImportError, e:
+except ImportError as e:
     print 'WARNING: No Kanji/Hiragana/Katana-to-ASCII transliteration available'
     print e
 
@@ -72,7 +72,7 @@ try:
         m.writeToModuleFile()
 
     generator.writeNamespaceArchive()
-except Exception, e:
+except Exception as e:
     print 'Exception generating bindings: %s' % (e,)
     traceback.print_exception(*sys.exc_info())
     sys.exit(3)

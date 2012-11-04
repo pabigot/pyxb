@@ -664,7 +664,7 @@ def TextFromURI (uri, archive_directory=None):
     if 0 <= uri.find(':'):
         try:
             stream = urllib2.urlopen(uri)
-        except Exception, e:
+        except Exception as e:
             exc = e
         if stream is None:
             try:
@@ -678,7 +678,7 @@ def TextFromURI (uri, archive_directory=None):
         try:
             stream = file(uri)
             exc = None
-        except Exception, e:
+        except Exception as e:
             if exc is None:
                 exc = e
     if exc is not None:
@@ -701,7 +701,7 @@ def TextFromURI (uri, archive_directory=None):
             counter += 1
         try:
             OpenOrCreate(dest_file).write(xmls)
-        except OSError, e:
+        except OSError as e:
             _log.warning('Unable to save %s in %s: %s', uri, dest_file, e)
     return xmls
 
@@ -731,7 +731,7 @@ def OpenOrCreate (file_name, tag=None, preserve_contents=False):
     if path:
         try:
             os.makedirs(path)
-        except Exception, e:
+        except Exception as e:
             if not (isinstance(e, (OSError, IOError)) and (errno.EEXIST == e.errno)):
                 raise
     fp = file(file_name, 'ab+')

@@ -283,7 +283,7 @@ class tDefinitions (raw_wsdl11.tDefinitions):
                     for ns in self.namespaceContext().inScopeNamespaces().values():
                         try:
                             ns.validateComponentModel()
-                        except Exception, e:
+                        except Exception as e:
                             print 'Error validating component model for %s: %s' % (ns.uri(), e)
                     self.__schema = pyxb.xmlschema.schema.CreateFromDOM(wc, namespace_context=self.namespaceContext(), generation_uid=generation_uid)
                 elif isinstance(wc, pyxb.xmlschema.schema):

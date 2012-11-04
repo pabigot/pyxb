@@ -89,7 +89,7 @@ def _bodyConditionalPattern (match_object, dictionary):
     value = None
     try:
         value = eval(expr, dictionary)
-    except Exception, e:
+    except Exception as e:
         return '%%{EXCEPTION: %s}' % (e,)
     if value:
         return _substDefinedBodyPattern.sub(expr, true)

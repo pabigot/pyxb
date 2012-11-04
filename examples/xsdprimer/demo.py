@@ -14,7 +14,7 @@ for item in order.items().item():
 # Give Mary more
 try:
     item.setQuantity(100)
-except pyxb.SimpleTypeValueError, e:
+except pyxb.SimpleTypeValueError as e:
     print 'Too many: %s' % (e,)
     item.setQuantity(10)
 print 'Increased quantity to %d' % (item.quantity(),)

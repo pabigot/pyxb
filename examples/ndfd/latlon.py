@@ -137,7 +137,7 @@ file('resp.xml', 'w').write(rxml)
 r = None
 try:
     r = DWML.CreateFromDOM(domutils.StringToDOM(rxml))
-except pyxb.UnhandledElementContentError, e:
+except pyxb.UnhandledElementContentError as e:
     print '\n\n******* ERROR validating response'
     print 'Unacceptable instance of %s at %s' % (e.value._element().name(), e.value._location())
     print 'Allowed: %s' % ('\n\t(or) '.join(map(str, e.automaton_configuration.acceptableSymbols())))

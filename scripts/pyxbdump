@@ -28,7 +28,7 @@ for fn in sys.argv[1:]:
     nsa = None
     try:
         nsa = pyxb.namespace.archive.NamespaceArchive.ForPath(fn)
-    except pyxb.NamespaceArchiveError, e:
+    except pyxb.NamespaceArchiveError as e:
         print '%s: %s' % (fn, e)
         continue
     print '%s : %d namespaces:' % (fn, len(nsa.namespaces()))

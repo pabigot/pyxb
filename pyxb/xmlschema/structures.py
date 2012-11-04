@@ -4147,7 +4147,7 @@ class SimpleTypeDefinition (_SchemaComponent_mixin, _NamedComponent_mixin, pyxb.
                         kw[str(attr.localName)] = attr.value
                     try:
                         fi.setFromKeywords(**kw)
-                    except pyxb.PyXBException, e:
+                    except pyxb.PyXBException as e:
                         raise pyxb.SchemaValidationError('Error assigning facet %s in %s: %s' % (fc.Name(), self.expandedName(), e))
                 local_facets[fc] = fi
         self.__localFacets = local_facets
@@ -4524,7 +4524,7 @@ class _ImportElementInformationItem (_Annotated_mixin):
                         }
                 try:
                     schema_instance = Schema.CreateFromLocation(**ckw)
-                except Exception, e:
+                except Exception as e:
                     _log.exception('Import %s cannot read schema location %s (%s)', ns, self.__schemaLocation, schema_location)
                     raise
             self.__schema = schema_instance
@@ -4917,9 +4917,9 @@ class Schema (_SchemaComponent_mixin):
                  }
             try:
                 schema_instance = self.CreateFromLocation(**kw)
-            except pyxb.SchemaUniquenessError, e:
+            except pyxb.SchemaUniquenessError as e:
                 _log.warning('Skipping apparent redundant inclusion of %s defining %s (hash matches %s)', e.schemaLocation(), e.namespace(), e.existingSchema().location())
-            except Exception, e:
+            except Exception as e:
                 _log.exception('INCLUDE %s caught', abs_uri)
                 raise
         if schema_instance:
