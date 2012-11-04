@@ -523,7 +523,40 @@ class AutomatonConfiguration (object):
             raise pyxb.UnprocessedElementContentError(self.__instance, cfg, symbol_set)
         return symbols
                     
-class ElementUse (pyxb.utils.fac.SymbolMatch_mixin):
+class _FACSymbol (pyxb.utils.fac.SymbolMatch_mixin):
+    """Base class for L{pyxb.utils.fac.Symbol} instances associated with PyXB content models.
+
+    This holds the location in the schema of the L{ElementUse} or
+    L{WildcardUse}, as well as an accepted value calculated by the subclass
+    C{match} method and cached for later use.
+    """
+
+    __schemaLocation = None
+
+    def schemaLocation (self):
+        return self.__schemaLocation
+
+    def __init__ (self, schema_location):
+        super(_FACSymbol, self).__init__()
+        self.__schemaLocation = schema_location
+
+    # A cached value accepted by the match method.  Subsequently either
+    # storeContent or consumingClosure should be invoked to clear it.
+    __acceptedValue = None
+    def _setAcceptedValue (self, accepted_value):
+        """Store a value for later retrieval."""
+        self.__acceptedValue = accepted_value
+
+    def retrieveContent (self):
+        """Read back an the content archived by a previous accepting match.
+
+        This also clears the value so it can be garbage collected."""
+        assert self.__acceptedValue is not None
+        rv = self.__acceptedValue
+        self.__acceptedValue = None
+        return rv
+
+class ElementUse (_FACSymbol):
     """Information about a schema element declaration reference.
 
     This is used by the FAC content model to identify the location
@@ -534,41 +567,22 @@ class ElementUse (pyxb.utils.fac.SymbolMatch_mixin):
     """
 
     __elementDeclaration = None
-    __schemaLocation = None
 
     def elementDeclaration (self):
         return self.__elementDeclaration
 
-    def schemaLocation (self):
-        return self.__schemaLocation
-
     def __init__ (self, element_declaration, schema_location):
-        super(ElementUse, self).__init__()
+        super(ElementUse, self).__init__(schema_location)
         self.__elementDeclaration = element_declaration
-        self.__schemaLocation = schema_location
-
-    # A cached value accepted by the match method.  Subsequently either
-    # storeContent or consumingClosure should be invoked to clear it.
-    __acceptedValue = None
-
-    def retrieveContent (self):
-        """Read back an the content archived by a previous accepting match."""
-        rv = self.__acceptedValue
-        self.__acceptedValue = None
-        return rv
 
     def storeContent (self, instance):
         """Apply the value accepted by L{match} to the content of the instance."""
-        assert self.__acceptedValue is not None
-        self.__elementDeclaration.setOrAppend(instance, self.__acceptedValue)
-        self.__acceptedValue = None
+        self.__elementDeclaration.setOrAppend(instance, self.retrieveContent())
 
     def consumingClosure (self):
         """Create a closure that will apply the value accepted by L{match} to a to-be-supplied instance."""
-        assert self.__acceptedValue is not None
-        rv = lambda _inst,_ed=self.__elementDeclaration,_av=self.__acceptedValue: _ed.setOrAppend(_inst, _av)
-        self.__acceptedValue = None
-        return rv
+        av = self.retrieveContent()
+        return lambda _inst,_ed=self.__elementDeclaration,_av=av: _ed.setOrAppend(_inst, _av)
         
     def match (self, symbol):
         """Satisfy L{pyxb.utils.fac.SymbolMatch_mixin}.
@@ -585,13 +599,13 @@ class ElementUse (pyxb.utils.fac.SymbolMatch_mixin):
         # NB: this call may change value to be compatible
         (rv, value) = self.__elementDeclaration._matches(value, element_decl)
         if rv:
-            self.__acceptedValue = value
+            self._setAcceptedValue(value)
         return rv
 
     def __str__ (self):
-        return '%s per %s' % (self.__elementDeclaration.name(), self.__schemaLocation)
+        return '%s per %s' % (self.__elementDeclaration.name(), self.schemaLocation())
 
-class WildcardUse (pyxb.utils.fac.SymbolMatch_mixin):
+class WildcardUse (_FACSymbol):
     """Information about a schema wildcard element.
 
     This is functionally parallel to L{ElementUse}, but references a
@@ -599,36 +613,18 @@ class WildcardUse (pyxb.utils.fac.SymbolMatch_mixin):
     incorporated into this class is an artifact of the evolution of PyXB."""
 
     __wildcardDeclaration = None
-    __schemaLocation = None
 
     def wildcardDeclaration (self):
         return self.__wildcardDeclaration
 
-    def schemaLocation (self):
-        return self.__schemaLocation
-
-    # A cached value accepted by the match method.  Subsequently either
-    # storeContent or consumingClosure should be invoked to clear it.
-    __acceptedValue = None
-    
-    def retrieveContent (self):
-        """Read back an the content archived by a previous accepting match."""
-        rv = self.__acceptedValue
-        self.__acceptedValue = None
-        return rv
-
     def storeContent (self, instance):
         """Apply the value accepted by L{match} to the content of the instance."""
-        assert self.__acceptedValue is not None
-        instance._appendWildcardElement(self.__acceptedValue)
-        self.__acceptedValue = None
+        instance._appendWildcardElement(self.retrieveContent())
         
     def consumingClosure (self):
         """Create a closure that will apply the value accepted by L{match} to a to-be-supplied instance."""
-        assert self.__acceptedValue is not None
-        rv = lambda _inst,av=self.__acceptedValue: _inst._appendWildcardElement(av)
-        self.__acceptedValue = None
-        return rv
+        av = self.retrieveContent()
+        return lambda _inst,_av=av: _inst._appendWildcardElement(_av)
 
     def match (self, symbol):
         """Satisfy L{pyxb.utils.fac.SymbolMatch_mixin}.
@@ -644,13 +640,12 @@ class WildcardUse (pyxb.utils.fac.SymbolMatch_mixin):
         (value, element_decl) = symbol
         rv = self.__wildcardDeclaration.matches(None, value)
         if rv:
-            self.__acceptedValue = value
+            self._setAcceptedValue(value)
         return rv
 
     def __init__ (self, wildcard_declaration, schema_location):
-        super(WildcardUse, self).__init__()
+        super(WildcardUse, self).__init__(schema_location)
         self.__wildcardDeclaration = wildcard_declaration
-        self.__schemaLocation = schema_location
 
 
 class ElementDeclaration (object):
