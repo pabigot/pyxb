@@ -70,4 +70,9 @@
       </xs:sequence>
     </xs:complexType>
   </xs:element>
+
+  <!-- *** Material related to empty and mixed content -->
+  <xs:complexType name="tEmpty"/>
+  <xs:element name="eEmpty" type="tEmpty"/>
+
 </xs:schema>

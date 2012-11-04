@@ -193,5 +193,33 @@ class TestReservedNameError (unittest.TestCase):
         if DisplayException:
             trac26.eCTwSC(4).toxml = 1
 
+class TestNotComplexContentError (unittest.TestCase):
+    # No tests on documents as the exception is raised only in code
+    # that invokes the content() method.
+
+    def testSchemaSupport (self):
+        instance = trac26.eEmpty()
+        instance = trac26.eCTwSC(4)
+
+    def testEmptyException (self):
+        content = None
+        instance = trac26.eEmpty()
+        with self.assertRaises(pyxb.NotComplexContentError) as cm:
+            content = instance.content()
+        e = cm.exception
+        self.assertEqual(e.instance, instance)
+
+    def testSimpleException (self):
+        content = None
+        instance = trac26.eCTwSC(4)
+        with self.assertRaises(pyxb.NotComplexContentError) as cm:
+            content = instance.content()
+        e = cm.exception
+        self.assertEqual(e.instance, instance)
+
+    def testDisplayException (self):
+        if DisplayException:
+            trac26.eEmpty().content()
+
 if __name__ == '__main__':
     unittest.main()

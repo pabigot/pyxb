@@ -483,6 +483,9 @@ class NotComplexContentError (BindingError):
         self.instance = instance
         super(BindingError, self).__init__(instance)
 
+    def __str__ (self):
+        return 'type %s has simple/empty content' % (type(self.instance),)
+
 class AbstractElementError (BindingError):
     """Attempt to create an instance of an abstract element.
 
