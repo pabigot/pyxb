@@ -1008,12 +1008,7 @@ class %{ctd} (%{superclass}):
     %{use} = pyxb.binding.content.AttributeUse(%{name_expr}, '%{id}', '%{key}', %{attr_type}%{aux_init})
     %{use}._DeclarationLocation = %{decl_location}
     %{use}._UseLocation = %{use_location}''', name_expr=binding_module.literal(ad.expandedName(), **kw), **au_map))
-        if au.prohibited():
-            definitions.append(templates.replaceInText('''
-    %{inspector} = property()
-''', ctd=template_map['ctd'], **au_map))
-        else:
-            definitions.append(templates.replaceInText('''
+        definitions.append(templates.replaceInText('''
     %{inspector} = property(%{use}.value, %{use}.set, None, %{documentation})
 ''', ctd=template_map['ctd'], **au_map))
 

@@ -396,6 +396,56 @@ class TestMissingAttributeError (unittest.TestCase):
         if DisplayException:
             instance = trac26.CreateFromDocument(self.Bad_xmls)
 
+class TestProhibitedAttributeError (unittest.TestCase):
+    Good_xmls = '<eAttributes aProhibited="6" aReq="4"/>'
+    Bad_xmls = '<eAttributesProhibited aProhibited="6" aReq="4"/>'
+
+    def testSchemaSupport (self):
+        i1 = trac26.eAttributes(aReq=2, aProhibited=6)
+        self.assertTrue(i1.validateBinding())
+        i2 = trac26.eAttributesProhibited(aReq=2)
+        self.assertTrue(i2.validateBinding())
+        self.assertTrue(isinstance(i2, type(i1)))
+        self.assertFalse(isinstance(i1, type(i2)))
+        instance = trac26.CreateFromDocument(self.Good_xmls)
+        self.assertEqual(self.Good_xmls, instance.toxml('utf-8', root_only=True))
+
+    def testConstructor (self):
+        instance = None
+        with self.assertRaises(pyxb.ProhibitedAttributeError) as cm:
+            instance = trac26.eAttributesProhibited(aReq=2, aProhibited=6)
+
+    def testAssignment (self):
+        instance = trac26.eAttributesProhibited(aReq=2)
+        with self.assertRaises(pyxb.ProhibitedAttributeError) as cm:
+            instance.aProhibited = 6
+
+    def testSet (self):
+        instance = trac26.eAttributesProhibited(aReq=2)
+        au = instance._AttributeMap['aProhibited']
+        with self.assertRaises(pyxb.ProhibitedAttributeError) as cm:
+            au.set(instance, 6)
+        
+    def testDocument (self):
+        instance = None
+        with self.assertRaises(pyxb.ProhibitedAttributeError) as cm:
+            instance = trac26.CreateFromDocument(self.Bad_xmls)
+        e = cm.exception
+        self.assertFalse(e.instance is None)
+        self.assertEqual(e.type, trac26.tAttributesProhibited)
+        self.assertFalse(e.location is None)
+        self.assertEqual(1, e.location.lineNumber)
+        self.assertEqual(0, e.location.columnNumber)
+        self.assertEqual(str(e), "Attempt to reference prohibited attribute aProhibited in type <class 'trac26.tAttributesProhibited'>")
+
+    def testDisplay (self):
+        instance = trac26.eAttributesProhibited(aReq=2)
+        if DisplayException:
+            instance.aProhibited = 6
+
+    def testDisplayDoc (self):
+        if DisplayException:
+            instance = trac26.CreateFromDocument(self.Bad_xmls)
 
 if __name__ == '__main__':
     unittest.main()

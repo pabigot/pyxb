@@ -80,7 +80,7 @@ class TestTrac0027b (unittest.TestCase):
         instance = subElt1("test")
         self.assertEqual(instance.attr_def, 10)
         self.assertEqual(instance.attr_fixed, 20)
-        self.assertRaises(AttributeError, lambda _i: _i.attr, instance)
+        self.assertRaises(pyxb.ProhibitedAttributeError, lambda _i: _i.attr, instance)
 
     def testSub2 (self):
         instance = subElt2("test")

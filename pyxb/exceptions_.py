@@ -393,8 +393,9 @@ class UnrecognizedAttributeError (AttributeValidationError):
     pass
 
 class ProhibitedAttributeError (AttributeValidationError):
-    """Raised when an attribute that is prohibited is provided in an element."""
-    pass
+    """Raised when an attribute that is prohibited is set or referenced in an element."""
+    def __str__ (self):
+        return 'Attempt to reference prohibited attribute %s in type %s' % (self.tag, self.type)
 
 class MissingAttributeError (AttributeValidationError):
     """Raised when an attribute that is required is missing in an element."""

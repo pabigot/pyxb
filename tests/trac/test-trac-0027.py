@@ -173,7 +173,7 @@ class TestTrac0027 (unittest.TestCase):
         self.assertTrue(opt_pro._AttributeMap['attr_def'].prohibited())
         self.assertEqual(opt_struct._AttributeMap['attr_fixed'], opt_pro._AttributeMap['attr_fixed'])
         i = opt_pro()
-        self.assertRaises(AttributeError, lambda: i.attr)
+        self.assertRaises(pyxb.ProhibitedAttributeError, lambda: i.attr)
 
     def testOptProCtor (self):
         self.assertRaises(pyxb.ProhibitedAttributeError, opt_pro, attr=1)

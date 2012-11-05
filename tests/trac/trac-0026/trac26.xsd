@@ -27,9 +27,7 @@
   <xs:element name="eCardinals" type="tCardinals"/>
 
   <!-- *** Material related to abstract types -->
-  <xs:complexType abstract="true" name="tAbstract">
-    <xs:attribute name="aBase" type="xs:int"/>
-  </xs:complexType>
+  <xs:complexType abstract="true" name="tAbstract"/>
   <xs:complexType name="tConcSubCymru">
     <xs:complexContent>
       <xs:extension base="tAbstract">
@@ -81,6 +79,7 @@
   <xs:complexType name="tAttributes">
     <xs:attribute name="aReq" use="required" type="xs:int"/>
     <xs:attribute name="aFixed" fixed="5" type="xs:int"/>
+    <xs:attribute name="aProhibited" type="xs:int"/>
     <xs:attribute name="aCardCymru" type="tCardCymru"/>
   </xs:complexType>
   <xs:element name="eAttributes" type="tAttributes"/>
@@ -88,13 +87,13 @@
     <xs:attribute name="aReqFixed" use="required" fixed="9" type="xs:int"/>
   </xs:complexType>
   <xs:element name="eAttributeReqFixed" type="tAttributeReqFixed"/>
-  <xs:complexType name="tConcProhibitAttr">
+  <xs:complexType name="tAttributesProhibited">
     <xs:complexContent>
-      <xs:restriction base="tAbstract">
-        <xs:attribute name="aBase" use="prohibited" type="xs:int"/>
+      <xs:restriction base="tAttributes">
+        <xs:attribute name="aProhibited" use="prohibited"/>
       </xs:restriction>
     </xs:complexContent>
   </xs:complexType>
-  <xs:element name="eConcProhibitAttr" type="tConcProhibitAttr"/>
+  <xs:element name="eAttributesProhibited" type="tAttributesProhibited"/>
 
 </xs:schema>

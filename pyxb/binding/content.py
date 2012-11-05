@@ -201,6 +201,8 @@ class AttributeUse (pyxb.cscRoot):
 
     def value (self, ctd_instance):
         """Get the value of the attribute from the instance."""
+        if self.__prohibited:
+            raise pyxb.ProhibitedAttributeError(type(ctd_instance), self.__name, ctd_instance)
         return self.__getValue(ctd_instance)[1]
 
     def __setValue (self, ctd_instance, new_value, provided):
@@ -266,7 +268,7 @@ class AttributeUse (pyxb.cscRoot):
             if self.__required:
                 raise pyxb.MissingAttributeError(type(ctd_instance), self.__name, ctd_instance)
             provided = False
-        if provided and self.__prohibited:
+        if self.__prohibited:
             raise pyxb.ProhibitedAttributeError(type(ctd_instance), self.__name, ctd_instance)
         if (new_value is not None) and (not isinstance(new_value, self.__dataType)):
             new_value = self.__dataType.Factory(new_value, _from_xml=from_xml)
