@@ -256,27 +256,13 @@ class AttributeUse (pyxb.cscRoot):
         value is to be set
         @type ctd_instance: subclass of L{pyxb.binding.basis.complexTypeDefinition}
         @param new_value: The value for the attribute
-        @type new_value: An C{xml.dom.Node} instance, or any value that is
-        permitted as the input parameter to the C{Factory} method of the
-        attribute's datatype.
+        @type new_value: Any value that is permitted as the input parameter to
+        the C{Factory} method of the attribute's datatype.
         """
         provided = True
         from_xml = False
-        if isinstance(new_value, xml.dom.Node):
-            from_xml = True
-            unicode_value = self.__name.getAttribute(new_value)
-            if unicode_value is None:
-                if self.__required:
-                    raise pyxb.MissingAttributeError(type(ctd_instance), self.__name, ctd_instance)
-                provided = False
-                unicode_value = self.__unicodeDefault
-            if unicode_value is None:
-                # Must be optional and absent
-                provided = False
-                new_value = None
-            else:
-                new_value = unicode_value
-        elif new_value is None:
+        assert not isinstance(new_value, xml.dom.Node)
+        if new_value is None:
             if self.__required:
                 raise pyxb.MissingAttributeError(type(ctd_instance), self.__name, ctd_instance)
             provided = False
@@ -285,7 +271,7 @@ class AttributeUse (pyxb.cscRoot):
         if (new_value is not None) and (not isinstance(new_value, self.__dataType)):
             new_value = self.__dataType.Factory(new_value, _from_xml=from_xml)
         if self.__fixed and (new_value != self.__defaultValue):
-            raise pyxb.AttributeChangeError(type(ctd_instance), self.__name, ctd_instance, ctd_instance._location())
+            raise pyxb.AttributeChangeError(type(ctd_instance), self.__name, ctd_instance)
         self.__setValue(ctd_instance, new_value, provided)
         return new_value
 
