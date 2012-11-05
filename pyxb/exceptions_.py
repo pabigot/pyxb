@@ -347,6 +347,9 @@ class SimpleFacetValueError (SimpleTypeValueError):
         # Bypass immediate parent
         super(SimpleTypeValueError, self).__init__(type, value, facet)
 
+    def __str__ (self):
+        return 'Type %s %s constraint violated by value %s' % (self.type, self.facet._Name, self.value)
+
 class SimplePluralValueError (SimpleTypeValueError):
     """Raised when context requires a plural value.
 
@@ -399,10 +402,6 @@ class AttributeChangeError (AttributeValidationError):
     def __str__ (self):
         return 'Cannot change fixed attribute %s in type %s' % (self.tag, self.type)
 
-class AttributeValueError (AttributeValidationError):
-    """The value of an attribute does not satisfy its content constraints."""
-    pass
-    
 class NoNillableSupportError (PyXBException):
     """Raised when checking _isNil on a type that does not support nillable."""
 

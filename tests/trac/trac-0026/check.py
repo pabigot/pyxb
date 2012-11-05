@@ -301,5 +301,43 @@ class TestAttributeChangeError (unittest.TestCase):
             trac26.CreateFromDocument(self.Bad_xmls)
 
 
+class TestAttributeValueError (unittest.TestCase):
+    # AttributeValueError was intended to be raised when batch
+    # validation discovered that the value was not suited for the type
+    # of the attribute.  This can no longer happen since attribute
+    # values are validated when they are assigned.  Consequently such
+    # errors show up as SimpleTypeValueErrors.  Test for those instead.
+
+    Good_xmls = '<eAttributes aCardCymru="pedwar" aReq="4"/>'
+    Bad_xmls = '<eAttributes aCardCymru="four" aReq="4"/>'
+
+    def testSchemaSupport (self):
+        instance = trac26.tAttributes(aCardCymru='pedwar', aReq=4)
+        self.assertTrue(instance.validateBinding())
+        instance = trac26.CreateFromDocument(self.Good_xmls)
+        self.assertEqual(self.Good_xmls, instance.toxml('utf-8', root_only=True))
+        instance.aCardCymru = 'dau'
+        self.assertTrue(instance.validateBinding())
+
+    def testAssignment (self):
+        instance = trac26.eAttributes(aReq=4)
+        with self.assertRaises(pyxb.SimpleTypeValueError) as cm:
+            instance.aCardCymru = 'four'
+        e = cm.exception
+        au = trac26.tAttributes._AttributeMap['aCardCymru']
+        self.assertTrue(isinstance(e, pyxb.SimpleFacetValueError))
+        self.assertEqual(e.type, au.dataType())
+        self.assertEqual(e.value, 'four')
+        self.assertEqual(e.facet, au.dataType()._CF_enumeration)
+        self.assertEqual(str(e), "Type <class 'trac26.tCardCymru'> enumeration constraint violated by value four")
+
+    def testConstructor (self):
+        with self.assertRaises(pyxb.SimpleTypeValueError) as cm:
+            instance = trac26.eAttributes(aReq=4, aCardCymru='four')
+
+    def testDocument (self):
+        with self.assertRaises(pyxb.SimpleTypeValueError) as cm:
+            instance = trac26.CreateFromDocument(self.Bad_xmls)
+
 if __name__ == '__main__':
     unittest.main()
