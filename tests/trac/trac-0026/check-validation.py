@@ -7,26 +7,26 @@
 # ComplexTypeValidationError
 # . AbstractInstantiationError
 # . AttributeOnSimpleTypeError
-# - ContentValidationError
+# . ContentValidationError
 # - - BatchElementContentError
-# - - - IncompleteElementContentError
-# - - - UnprocessedElementContentError            
+# - - * IncompleteElementContentError
+# - - * UnprocessedElementContentError            
 # - - IncrementalElementContentError
-# - - - UnhandledElementContentError
-# - - ExtraSimpleContentError
-# - - MixedContentError
-# . . SimpleContentAbsentError
-# - - UnprocessedKeywordContentError
+# - - * UnhandledElementContentError
+# - * ExtraSimpleContentError
+# - * MixedContentError
+# - + SimpleContentAbsentError
+# - * UnprocessedKeywordContentError
 # AttributeValidationError
 # . AttributeChangeError
 # . MissingAttributeError
 # . ProhibitedAttributeError
 # . UnrecognizedAttributeError
 # SimpleTypeValueError
-# - SimpleFacetValueError
-# - SimpleListValueError
-# - SimplePluralValueError
-# - SimpleUnionValueError
+# * SimpleFacetValueError
+# * SimpleListValueError
+# * SimplePluralValueError
+# * SimpleUnionValueError
 
 import pyxb
 import pyxb.binding.datatypes as xs
@@ -173,7 +173,6 @@ class TestSimpleContentAbsentError (unittest.TestCase):
         instance = trac26.CreateFromDocument(self.GoodSeq_xmls)
         xmls = instance.toxml('utf-8', root_only=True)
         self.assertEqual(xmls, self.GoodSeq_xmls)
-        
 
     def testDirect (self):
         instance = None
@@ -181,6 +180,24 @@ class TestSimpleContentAbsentError (unittest.TestCase):
             instance = trac26.eCTwSC()
         e = cm.exception
         self.assertTrue(instance is None)
+
+    def testXsdConstraints (self):
+        instance = trac26.eCTwSC(3)
+        self.assertTrue(instance.validateBinding())
+        instance.reset()
+        with self.assertRaises(pyxb.SimpleContentAbsentError) as cm:
+            instance.xsdConstraintsOK()
+        e = cm.exception
+        self.assertEqual(str(e), 'Type tCTwSC requires content')
+
+    def testAfterReset (self):
+        instance = trac26.eCTwSC(3)
+        self.assertTrue(instance.validateBinding())
+        instance.reset()
+        with self.assertRaises(pyxb.SimpleContentAbsentError) as cm:
+            instance.validateBinding()
+        e = cm.exception
+        self.assertEqual(str(e), 'Type tCTwSC requires content')
 
     def testDocument (self):
         instance = None
@@ -212,6 +229,18 @@ class TestSimpleContentAbsentError (unittest.TestCase):
         if DisplayException:
             instance = trac26.CreateFromDocument(self.BadSeq_xmls)
         
+    def testDisplayExceptionReset (self):
+        if DisplayException:
+            instance = trac26.eCTwSC(3)
+            instance.reset()
+            instance.validateBinding()
+
+    def testDisplayExceptionXsdConstraints (self):
+        if DisplayException:
+            instance = trac26.eCTwSC(3)
+            instance.reset()
+            instance.xsdConstraintsOK()
+
 class TestAttributeChangeError (unittest.TestCase):
 
     Good_xmls = '<eAttributes aFixed="5" aReq="2"/>'
@@ -473,7 +502,7 @@ class TestAttributeOnSimpleTypeError (unittest.TestCase):
         self.assertFalse(e.location is None)
         self.assertEqual(1, e.location.lineNumber)
         self.assertEqual(7, e.location.columnNumber)
-        self.assertEqual(str(e), "Simple type <class 'pyxb.binding.datatypes.int'> cannot support attribute bits")
+        self.assertEqual(str(e), "Simple type {http://www.w3.org/2001/XMLSchema}int cannot support attribute bits")
         
     def testDisplay (self):
         if DisplayException:

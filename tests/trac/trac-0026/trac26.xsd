@@ -56,13 +56,12 @@
   </xs:element>
 
   <!-- *** Material related to simple type content -->
-  <xs:element name="eCTwSC"> <!-- that's Complex Type with Simple Content -->
-    <xs:complexType>
-      <xs:simpleContent>
-        <xs:extension base="xs:int"/>
-      </xs:simpleContent>
-    </xs:complexType>
-  </xs:element>
+  <xs:complexType name="tCTwSC"><!-- that's Complex Type with Simple Content -->
+    <xs:simpleContent>
+      <xs:extension base="xs:int"/>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:element name="eCTwSC" type="tCTwSC"/> 
   <xs:element name="eCTwSCSequence">
     <xs:complexType>
       <xs:sequence minOccurs="0" maxOccurs="unbounded">
