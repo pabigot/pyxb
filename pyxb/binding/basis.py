@@ -481,7 +481,7 @@ class _TypeBinding_mixin (utility.Locatable_mixin):
 
         @return: C{True} if validation succeeds.
         @raise pyxb.BatchContentValidationError: complex content does not match model
-        @raise pyxb.SimpleTypeValueError: simple content fails to satisfy constraints
+        @raise pyxb.SimpleTypeValueError: attribute or simple content fails to satisfy constraints
         """
         if self._PerformValidation():
             self._validateBinding_vx()
