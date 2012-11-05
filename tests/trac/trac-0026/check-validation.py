@@ -21,7 +21,7 @@
 # . AttributeChangeError
 # . MissingAttributeError
 # . ProhibitedAttributeError
-# - UnrecognizedAttributeError
+# . UnrecognizedAttributeError
 # SimpleTypeValueError
 # - SimpleFacetValueError
 # - SimpleListValueError
@@ -35,7 +35,9 @@ import unittest
 
 # By default skip the "tests" which actually emit the exception
 # backtrace.  Sometimes though it's good to see those, since they're
-# what the user will normally see first.
+# what the user will normally see first.  Also, this is how we ensure
+# that each point where a particular exception might be raised has a
+# test case covering it.
 DisplayException = False
 #DisplayException = True
 
@@ -401,6 +403,52 @@ class TestProhibitedAttributeError (unittest.TestCase):
     def testDisplayDoc (self):
         if DisplayException:
             instance = trac26.CreateFromDocument(self.Bad_xmls)
+
+class TestUnrecognizedAttributeError (unittest.TestCase):
+    Good_xmls = '<eAttributes aReq="4"/>'
+    Bad_xmls = '<eAttributes aReq="4" aBad="1"/>'
+
+    def testSchemaSupport (self):
+        dom = pyxb.utils.domutils.StringToDOM(self.Good_xmls)
+        instance = trac26.CreateFromDOM(dom)
+        self.assertEqual(self.Good_xmls, instance.toxml('utf-8', root_only=True))
+
+    def testDOM (self):
+        dom = pyxb.utils.domutils.StringToDOM(self.Bad_xmls)
+        with self.assertRaises(pyxb.UnrecognizedAttributeError) as cm:
+            instance = trac26.CreateFromDOM(dom)
+        e = cm.exception
+        # The code path for this is creating a map from attribute tags
+        # to values in isolation of the specific instance.  No
+        # instance, no location.
+        self.assertEqual(e.type, trac26.tAttributes)
+        self.assertEqual(e.tag, 'aBad')
+        self.assertTrue(e.instance is None)
+        self.assertTrue(e.location is None)
+
+    def testDocument (self):
+        instance = None
+        with self.assertRaises(pyxb.UnrecognizedAttributeError) as cm:
+            instance = trac26.CreateFromDocument(self.Bad_xmls)
+        self.assertTrue(instance is None)
+        e = cm.exception
+        self.assertEqual(e.type, trac26.tAttributes)
+        self.assertEqual(e.tag, 'aBad')
+        # In this case we were given an instance, which provides a
+        # location.  Note that initialization of the instance was left
+        # incomplete.
+        self.assertFalse(e.instance is None)
+        self.assertFalse(e.location is None)
+        self.assertEqual(1, e.location.lineNumber)
+        self.assertEqual(0, e.location.columnNumber)
+
+    def testDisplayDOM (self):
+        if DisplayException:
+            trac26.CreateFromDOM(pyxb.utils.domutils.StringToDOM(self.Bad_xmls))
+
+    def testDisplayDoc (self):
+        if DisplayException:
+            trac26.CreateFromDocument(self.Bad_xmls)
 
 class TestAttributeOnSimpleTypeError (unittest.TestCase):
     Good_xmls = '<eInts><eInt>1</eInt></eInts>'
