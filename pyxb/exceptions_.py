@@ -159,10 +159,114 @@ class ValidationError (PyXBException):
     """Raised when something in the infoset fails to satisfy a content model or attribute requirement."""
     pass
 
-class ContentError (ValidationError):
+class ElementValidationError (ValidationError):
+    """Raised when a validation requirement for an element is not satisfied."""
     pass
 
-class ExtraSimpleContentError (ContentError):
+class AbstractElementError (ElementValidationError):
+    """Attempt to create an instance of an abstract element.
+
+    Raised when an element is created and the identified binding is
+    abstract.  Such elements cannot be created directly; instead the
+    creation must derive from an instance of the abstract element's
+    substitution group.
+
+    Since members of the substitution group self-identify using the
+    C{substitutionGroup} attribute, there is no general way to find
+    the set of elements which would be acceptable in place of the
+    abstract element."""
+
+    element = None
+    """The abstract L{pyxb.binding.basis.element} in question"""
+
+    location = None
+    """Where the error occurred in the document being parsed, if available."""
+
+    value = None
+    """The value proposed for the L{element}.  This is usually going
+    to be a C{xml.dom.Node} used in the attempt to create the element,
+    C{None} if the abstract element was invoked without a node, or
+    another type if
+    L{pyxb.binding.content.ElementDeclaration.toDOM} is
+    mis-used."""
+
+    def __init__ (self, element, location, value=None):
+        """@param element: the value for the L{element} attribute.
+        @param location: the value for the L{location} attribute.
+        @param value: the value for the L{value} attribute."""
+        self.element = element
+        self.location = location
+        self.value = value
+        super(AbstractElementError, self).__init__(element, location, value)
+
+    def __str__ (self):
+        return 'Cannot instantiate abstract element %s directly' % (self.element.name(),)
+
+class ComplexTypeValidationError (ValidationError):
+    """Raised when a validation requirement for a complex type is not satisfied."""
+    pass
+
+class AbstractInstantiationError (ComplexTypeValidationError):
+    """Attempt to create an instance of an abstract complex type.
+
+    These types are analogous to abstract base classes, and cannot be
+    created directly.  A type should be used that extends the abstract
+    class.
+
+    When an incoming document is missing the xsi:type attribute which
+    redirects an element with an abstract type to the correct type,
+    the L{node} attribute is provided so the user can get a clue as to
+    where the problem occured.  When this exception is a result of
+    constructor mis-use in Python code, the traceback will tell you
+    where the problem lies.
+    """
+
+    type = None
+    """The abstract L{pyxb.binding.basis.complexTypeDefinition} subclass used."""
+
+    location = None
+    """Where the error occurred in the document being parsed, if available."""
+
+    node = None
+    """The L{xml.dom.Element} from which instantiation was attempted, if available."""
+
+    def __init__ (self, type, location, node):
+        """@param type: the value for the L{type} attribute.
+        @param location: the value for the L{location} attribute.
+        @param node: the value for the L{node} attribute."""
+        self.type = type
+        self.location = location
+        self.node = node
+        super(AbstractInstantiationError, self).__init__(type, location, node)
+
+    def __str__ (self):
+        # If the type is abstract, it has to have a name.
+        return 'Cannot instantiate abstract type %s directly' % (self.type._ExpandedName,)
+
+class ContentValidationError (ComplexTypeValidationError):
+    """Violation of a complex type content model."""
+    pass
+
+class SimpleContentAbsentError (ContentValidationError):
+    """An instance with simple content was not provided with a value."""
+
+    instance = None
+    """The binding instance for which simple content is missing."""
+
+    location = None
+    """Where the error occurred in the document being parsed, if available."""
+
+    def __init__ (self, instance, location):
+        """@param instance: the value for the L{instance} attribute.
+        @param location: the value for the L{location} attribute."""
+        self.instance = instance
+        self.location = location
+        super(SimpleContentAbsentError, self).__init__(instance, location)
+
+    def __str__ (self):
+        return 'Type %s requires content' % (type(self.instance)._ExpandedName,)
+
+class ExtraSimpleContentError (ContentValidationError):
     """A complex type with simple content was provided too much content."""
 
     instance = None
@@ -178,7 +282,7 @@ class ExtraSimpleContentError (ContentError):
         self.value = value
         super(ExtraSimpleContentError, self).__init__(instance, value)
 
-class MixedContentError (ContentError):
+class MixedContentError (ContentValidationError):
     """Non-element content added to a complex type instance that does not support mixed content."""
     
     instance = None
@@ -194,7 +298,7 @@ class MixedContentError (ContentError):
         self.value = value
         super(MixedContentError, self).__init__(instance, value)
 
-class UnprocessedKeywordContentError (ContentError):
+class UnprocessedKeywordContentError (ContentValidationError):
     """A complex type constructor was provided with keywords that could not be recognized."""
 
     instance = None
@@ -212,7 +316,7 @@ class UnprocessedKeywordContentError (ContentError):
         self.keywords = keywords
         super(UnprocessedKeywordContentError, self).__init__(instance, keywords)
 
-class IncrementalElementContentError (ContentError):
+class IncrementalElementContentError (ContentValidationError):
     """Element or element-like content could not be validly associated with an sub-element in the content model.
 
     This exception occurs when content is added to an element during
@@ -243,7 +347,7 @@ class UnhandledElementContentError (IncrementalElementContentError):
 
     This exception occurs when content is added to an element during incremental validation."""
 
-class BatchElementContentError (ContentError):
+class BatchElementContentError (ContentValidationError):
     """Element/wildcard content cannot be reconciled with the required content model.
 
     This exception occurs in post-construction validation using a
@@ -447,25 +551,6 @@ class BindingError (PyXBException):
     For example, attempts to extract complex content from a type that
     requires simple content, or vice versa.  """
 
-class SimpleContentAbsentError (BindingError):
-    """An instance with simple content was not provided with a value."""
-
-    instance = None
-    """The binding instance for which simple content is missing."""
-
-    location = None
-    """Where the error occurred in the document being parsed, if available."""
-
-    def __init__ (self, instance, location):
-        """@param instance: the value for the L{instance} attribute.
-        @param location: the value for the L{location} attribute."""
-        self.instance = instance
-        self.location = location
-        super(SimpleContentAbsentError, self).__init__(instance, location)
-
-    def __str__ (self):
-        return 'Type %s requires content' % (type(self.instance)._ExpandedName,)
-
 class NotSimpleContentError (BindingError):
     """An operation that requires simple content was invoked on a
     complex type instance that does not have simple content."""
@@ -498,82 +583,6 @@ class NotComplexContentError (BindingError):
 
     def __str__ (self):
         return 'type %s has simple/empty content' % (type(self.instance),)
-
-class AbstractElementError (BindingError):
-    """Attempt to create an instance of an abstract element.
-
-    Raised when an element is created and the identified binding is
-    abstract.  Such elements cannot be created directly; instead the
-    creation must derive from an instance of the abstract element's
-    substitution group.
-
-    Since members of the substitution group self-identify using the
-    C{substitutionGroup} attribute, there is no general way to find
-    the set of elements which would be acceptable in place of the
-    abstract element."""
-
-    element = None
-    """The abstract L{pyxb.binding.basis.element} in question"""
-
-    location = None
-    """Where the error occurred in the document being parsed, if available."""
-
-    value = None
-    """The value proposed for the L{element}.  This is usually going
-    to be a C{xml.dom.Node} used in the attempt to create the element,
-    C{None} if the abstract element was invoked without a node, or
-    another type if
-    L{pyxb.binding.content.ElementDeclaration.toDOM} is
-    mis-used."""
-
-    def __init__ (self, element, location, value=None):
-        """@param element: the value for the L{element} attribute.
-        @param location: the value for the L{location} attribute.
-        @param value: the value for the L{value} attribute."""
-        self.element = element
-        self.location = location
-        self.value = value
-        super(AbstractElementError, self).__init__(element, location, value)
-
-    def __str__ (self):
-        return 'Cannot instantiate abstract element %s directly' % (self.element.name(),)
-
-class AbstractInstantiationError (BindingError):
-    """Attempt to create an instance of an abstract complex type.
-
-    These types are analogous to abstract base classes, and cannot be
-    created directly.  A type should be used that extends the abstract
-    class.
-
-    When an incoming document is missing the xsi:type attribute which
-    redirects an element with an abstract type to the correct type,
-    the L{node} attribute is provided so the user can get a clue as to
-    where the problem occured.  When this exception is a result of
-    constructor mis-use in Python code, the traceback will tell you
-    where the problem lies.
-    """
-
-    type = None
-    """The abstract L{pyxb.binding.basis.complexTypeDefinition} subclass used."""
-
-    location = None
-    """Where the error occurred in the document being parsed, if available."""
-
-    node = None
-    """The L{xml.dom.Element} from which instantiation was attempted, if available."""
-
-    def __init__ (self, type, location, node):
-        """@param type: the value for the L{type} attribute.
-        @param location: the value for the L{location} attribute.
-        @param node: the value for the L{node} attribute."""
-        self.type = type
-        self.location = location
-        self.node = node
-        super(AbstractInstantiationError, self).__init__(type, location, node)
-
-    def __str__ (self):
-        # If the type is abstract, it has to have a name.
-        return 'Cannot instantiate abstract type %s directly' % (self.type._ExpandedName,)
 
 class ReservedNameError (BindingError):
     """Reserved name set in binding instance."""

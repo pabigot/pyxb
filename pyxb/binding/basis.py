@@ -2094,7 +2094,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         converted to a binding instance.  If the instance has a DFA state, the
         value must be permitted by the content model.
 
-        @raise pyxb.ContentError: the value is not permitted at the current
+        @raise pyxb.ContentValidationError: the value is not permitted at the current
         state of the content model.
         """
         
