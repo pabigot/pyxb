@@ -2,6 +2,32 @@
 
 # Check all exceptions under pyxb.ValidationError
 
+# ElementValidationError
+# . AbstractElementError
+# ComplexTypeValidationError
+# . AbstractInstantiationError
+# . AttributeOnSimpleTypeError
+# - ContentValidationError
+# - - BatchElementContentError
+# - - - IncompleteElementContentError
+# - - - UnprocessedElementContentError            
+# - - IncrementalElementContentError
+# - - - UnhandledElementContentError
+# - - ExtraSimpleContentError
+# - - MixedContentError
+# . . SimpleContentAbsentError
+# - - UnprocessedKeywordContentError
+# AttributeValidationError
+# . AttributeChangeError
+# . MissingAttributeError
+# . ProhibitedAttributeError
+# - UnrecognizedAttributeError
+# SimpleTypeValueError
+# - SimpleFacetValueError
+# - SimpleListValueError
+# - SimplePluralValueError
+# - SimpleUnionValueError
+
 import pyxb
 import pyxb.binding.datatypes as xs
 import trac26
@@ -230,7 +256,6 @@ class TestAttributeChangeError (unittest.TestCase):
         if DisplayException:
             trac26.CreateFromDocument(self.Bad_xmls)
 
-
 class TestAttributeValueError (unittest.TestCase):
     # AttributeValueError was intended to be raised when batch
     # validation discovered that the value was not suited for the type
@@ -376,6 +401,36 @@ class TestProhibitedAttributeError (unittest.TestCase):
     def testDisplayDoc (self):
         if DisplayException:
             instance = trac26.CreateFromDocument(self.Bad_xmls)
+
+class TestAttributeOnSimpleTypeError (unittest.TestCase):
+    Good_xmls = '<eInts><eInt>1</eInt></eInts>'
+    Bad_xmls = '<eInts><eInt bits="1">1</eInt></eInts>'
+
+    def testSchemaSupport (self):
+        instance = trac26.eInts(1,2)
+        self.assertEqual(2, len(instance.eInt))
+        e0 = instance.eInt[0]
+        self.assertTrue(isinstance(e0, trac26.eInt.typeDefinition()))
+        self.assertEqual(e0, 1)
+        instance = trac26.CreateFromDocument(self.Good_xmls)
+        self.assertEqual(self.Good_xmls, instance.toxml('utf-8', root_only=True))
+
+    def testException (self):
+        instance = None
+        with self.assertRaises(pyxb.AttributeOnSimpleTypeError) as cm:
+            instance = trac26.CreateFromDocument(self.Bad_xmls)
+        e = cm.exception
+        self.assertEqual(e.tag, 'bits')
+        self.assertEqual(e.value, u'1')
+        self.assertFalse(e.location is None)
+        self.assertEqual(1, e.location.lineNumber)
+        self.assertEqual(7, e.location.columnNumber)
+        self.assertEqual(str(e), "Simple type <class 'pyxb.binding.datatypes.int'> cannot support attribute bits")
+        
+    def testDisplay (self):
+        if DisplayException:
+            instance = trac26.CreateFromDocument(self.Bad_xmls)
+
 
 if __name__ == '__main__':
     unittest.main()

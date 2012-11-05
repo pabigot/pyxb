@@ -1052,7 +1052,10 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
         self._IsValidValue(self)
 
     def _setAttribute (self, attr_en, value):
-        raise pyxb.UnrecognizedAttributeError(type(self), attr_en, self)
+        # Simple types have no attributes, but the parsing infrastructure
+        # might invoke this to delegate responsibility for notifying the user
+        # of the failure.
+        raise pyxb.AttributeOnSimpleTypeError(self, attr_en, value)
 
     @classmethod
     def _description (cls, name_only=False, user_documentation=True):

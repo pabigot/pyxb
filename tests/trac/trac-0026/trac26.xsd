@@ -70,6 +70,15 @@
       </xs:sequence>
     </xs:complexType>
   </xs:element>
+  <xs:element name="eInt" type="xs:int"/>
+  <xs:element name="eInts">
+    <xs:complexType>
+      <xs:sequence minOccurs="0" maxOccurs="unbounded">
+        <xs:element ref="eInt"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
 
   <!-- *** Material related to empty and mixed content -->
   <xs:complexType name="tEmpty"/>

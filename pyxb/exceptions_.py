@@ -246,6 +246,38 @@ class AbstractInstantiationError (ComplexTypeValidationError):
         # If the type is abstract, it has to have a name.
         return 'Cannot instantiate abstract type %s directly' % (self.type._ExpandedName,)
 
+class AttributeOnSimpleTypeError (ComplexTypeValidationError):
+    """Attempt made to set an attribute on an element with simple type.
+
+    Note that elements with complex type and simple content may have
+    attributes; elements with simple type must not."""
+    
+    instance = None
+    """The simple type binding instance on which no attributes exist."""
+
+    tag = None
+    """The name of the proposed attribute."""
+
+    value = None
+    """The value proposed to be assigned to the non-existent attribute."""
+    
+    def __init__ (self, instance, tag, value, location=None):
+        """@param instance: the value for the L{instance} attribute.
+        @param tag: the value for the L{tag} attribute.
+        @param value: the value for the L{value} attribute.
+        @param location: the value for the L{location} attribute.  Default taken from C{instance} if possible."""
+
+        self.instance = instance
+        self.tag = tag
+        self.value = value
+        if location is None:
+            location = self.instance._location()
+        self.location = location
+        super(AttributeOnSimpleTypeError, self).__init__(instance, tag, value, location)
+
+    def __str__ (self):
+        return 'Simple type %s cannot support attribute %s' % (type(self.instance), self.tag)
+
 class ContentValidationError (ComplexTypeValidationError):
     """Violation of a complex type content model."""
     pass

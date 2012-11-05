@@ -25,7 +25,7 @@ class TestTrac0116 (unittest.TestCase):
     xmls = '''<?xml version="1.0" encoding="utf-8"?><root foo='boo'/>'''
 
     def testBasic (self):
-        self.assertRaises(pyxb.UnrecognizedAttributeError, CreateFromDocument, self.xmls)
+        self.assertRaises(pyxb.AttributeOnSimpleTypeError, CreateFromDocument, self.xmls)
 
 if __name__ == '__main__':
     unittest.main()

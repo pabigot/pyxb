@@ -130,6 +130,8 @@ class _SAXElementState (pyxb.utils.saxutils.SAXElementState):
             # Ignore xmlns and xsi attributes; we've already handled those
             if attr_en.namespace() in ( pyxb.namespace.XMLNamespaces, XSI ):
                 continue
+            # The binding instance may be a simple type that does not support
+            # attributes; the following raises an exception in that case.
             self.__bindingInstance._setAttribute(attr_en, attrs.getValue(attr_name))
 
         return self.__bindingInstance
