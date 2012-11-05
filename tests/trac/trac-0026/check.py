@@ -221,5 +221,35 @@ class TestNotComplexContentError (unittest.TestCase):
         if DisplayException:
             trac26.eEmpty().content()
 
+class TestNotSimpleContentError (unittest.TestCase):
+    # No tests on documents as the exception is raised only in code
+    # that invokes the content() method.
+
+    def testSchemaSupport (self):
+        instance = trac26.eEmpty()
+        cym1 = trac26.tConcSubCymru('un')
+        instance = trac26.eUseAbstract(cym1)
+
+    def testEmptyException (self):
+        value = None
+        instance = trac26.eEmpty()
+        with self.assertRaises(pyxb.NotSimpleContentError) as cm:
+            value = instance.value()
+        e = cm.exception
+        self.assertEqual(e.instance, instance)
+
+    def testComplexException (self):
+        value = None
+        instance = trac26.eUseAbstract(trac26.tConcSubCymru('un'))
+        with self.assertRaises(pyxb.NotSimpleContentError) as cm:
+            value = instance.value()
+        e = cm.exception
+        self.assertEqual(e.instance, instance)
+
+    def testDisplayException (self):
+        if DisplayException:
+            trac26.eEmpty().value()
+
+
 if __name__ == '__main__':
     unittest.main()

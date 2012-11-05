@@ -437,20 +437,6 @@ class BindingError (PyXBException):
     For example, attempts to extract complex content from a type that
     requires simple content, or vice versa.  """
 
-class NotSimpleContentError (BindingError):
-    """An operation that requires simple content was invoked on a
-    complex type instance that does not have simple content."""
-
-    instance = None
-    """The binding instance which should have had simple content."""
-
-    def __init__ (self, instance):
-        """@param instance: the binding instance that was mis-used.
-        This will be available in the L{instance} attribute."""
-        self.instance = instance
-        super(BindingError, self).__init__(instance)
-    pass
-
 class SimpleContentAbsentError (BindingError):
     """An instance with simple content was not provided with a value."""
 
@@ -469,6 +455,23 @@ class SimpleContentAbsentError (BindingError):
 
     def __str__ (self):
         return 'Type %s requires content' % (type(self.instance)._ExpandedName,)
+
+class NotSimpleContentError (BindingError):
+    """An operation that requires simple content was invoked on a
+    complex type instance that does not have simple content."""
+
+    instance = None
+    """The binding instance which should have had simple content."""
+
+    def __init__ (self, instance):
+        """@param instance: the binding instance that was mis-used.
+        This will be available in the L{instance} attribute."""
+        self.instance = instance
+        super(BindingError, self).__init__(instance)
+    pass
+
+    def __str__ (self):
+        return 'type %s does not have simple content' % (type(self.instance),)
 
 class NotComplexContentError (BindingError):
     """An operation that requires a content model was invoked on a
