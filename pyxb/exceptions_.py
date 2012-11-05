@@ -156,8 +156,17 @@ class UnrecognizedDOMRootNodeError (StructuralBadDocumentError):
         super(UnrecognizedDOMRootNodeError, self).__init__(node)
 
 class ValidationError (PyXBException):
-    """Raised when something in the infoset fails to satisfy a content model or attribute requirement."""
-    pass
+    """Raised when something in the infoset fails to satisfy a content model or attribute requirement.
+
+    All validation errors include a L{location} attribute which shows
+    where in the original XML the problem occurred.  The attribute may
+    be C{None} if the content did not come from an XML document, or
+    the underlying XML infrastructure did not provide a location.
+
+    More refined validation error exception classes add more attributes."""
+
+    location = None
+    """Where the error occurred in the document being parsed, if available."""
 
 class ElementValidationError (ValidationError):
     """Raised when a validation requirement for an element is not satisfied."""
@@ -178,9 +187,6 @@ class AbstractElementError (ElementValidationError):
 
     element = None
     """The abstract L{pyxb.binding.basis.element} in question"""
-
-    location = None
-    """Where the error occurred in the document being parsed, if available."""
 
     value = None
     """The value proposed for the L{element}.  This is usually going
@@ -224,9 +230,6 @@ class AbstractInstantiationError (ComplexTypeValidationError):
     type = None
     """The abstract L{pyxb.binding.basis.complexTypeDefinition} subclass used."""
 
-    location = None
-    """Where the error occurred in the document being parsed, if available."""
-
     node = None
     """The L{xml.dom.Element} from which instantiation was attempted, if available."""
 
@@ -253,9 +256,6 @@ class SimpleContentAbsentError (ContentValidationError):
     instance = None
     """The binding instance for which simple content is missing."""
 
-    location = None
-    """Where the error occurred in the document being parsed, if available."""
-
     def __init__ (self, instance, location):
         """@param instance: the value for the L{instance} attribute.
         @param location: the value for the L{location} attribute."""
@@ -275,12 +275,14 @@ class ExtraSimpleContentError (ContentValidationError):
     value = None
     """The proposed addition to that simple content."""
 
-    def __init__ (self, instance, value):
+    def __init__ (self, instance, value, location=None):
         """@param instance: the value for the L{instance} attribute.
-        @param value: the value for the L{value} attribute."""
+        @param value: the value for the L{value} attribute.
+        @param location: the value for the L{location} attribute."""
         self.instance = instance
         self.value = value
-        super(ExtraSimpleContentError, self).__init__(instance, value)
+        self.location = location
+        super(ExtraSimpleContentError, self).__init__(instance, value, location)
 
 class MixedContentError (ContentValidationError):
     """Non-element content added to a complex type instance that does not support mixed content."""
@@ -291,12 +293,14 @@ class MixedContentError (ContentValidationError):
     value = None
     """The non-element content."""
 
-    def __init__ (self, instance, value):
+    def __init__ (self, instance, value, location=None):
         """@param instance: the value for the L{instance} attribute.
-        @param value: the value for the L{value} attribute."""
+        @param value: the value for the L{value} attribute.
+        @param location: the value for the L{location} attribute."""
         self.instance = instance
         self.value = value
-        super(MixedContentError, self).__init__(instance, value)
+        self.location = location
+        super(MixedContentError, self).__init__(instance, value, location)
 
 class UnprocessedKeywordContentError (ContentValidationError):
     """A complex type constructor was provided with keywords that could not be recognized."""
@@ -309,12 +313,14 @@ class UnprocessedKeywordContentError (ContentValidationError):
     intended to be attributes or elements, but cannot be identified as
     either."""
 
-    def __init__ (self, instance, keywords):
+    def __init__ (self, instance, keywords, location=None):
         """@param instance: the value for the L{instance} attribute.
-        @param keywords: the value for the L{keywords} attribute."""
+        @param keywords: the value for the L{keywords} attribute.
+        @param location: the value for the L{location} attribute."""
         self.instance = instance
         self.keywords = keywords
-        super(UnprocessedKeywordContentError, self).__init__(instance, keywords)
+        self.location = location
+        super(UnprocessedKeywordContentError, self).__init__(instance, keywords, location)
 
 class IncrementalElementContentError (ContentValidationError):
     """Element or element-like content could not be validly associated with an sub-element in the content model.
@@ -333,14 +339,16 @@ class IncrementalElementContentError (ContentValidationError):
     value = None
     """The value that could not be associated with allowable content."""
     
-    def __init__ (self, instance, automaton_configuration, value):
+    def __init__ (self, instance, automaton_configuration, value, location=None):
         """@param instance: the value for the L{instance} attribute.
         @param automaton_configuration: the value for the L{automaton_configuration} attribute.
-        @param value: the value for the L{value} attribute."""
+        @param value: the value for the L{value} attribute.
+        @param location: the value for the L{location} attribute."""
         self.instance = instance
         self.automaton_configuration = automaton_configuration
         self.value = value
-        super(IncrementalElementContentError, self).__init__(instance, automaton_configuration, value)
+        self.location = location
+        super(IncrementalElementContentError, self).__init__(instance, automaton_configuration, value, location)
 
 class UnhandledElementContentError (IncrementalElementContentError):
     """Element or element-like content could not be validly associated with an sub-element in the content model.
@@ -473,9 +481,6 @@ class AttributeValidationError (ValidationError):
     
     instance = None
     """The binding instance, if available."""
-
-    location = None
-    """Where the error occurred in the document being parsed, if available."""
 
     def __init__ (self, type, tag, instance=None, location=None):
         """@param type: the value for the L{type} attribute.
