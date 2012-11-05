@@ -942,13 +942,18 @@ class _ValueConstraint_mixin (pyxb.cscRoot):
         return self.__valueConstraint[0]
 
     def _valueConstraintFromDOM (self, node):
-        aval = domutils.NodeAttribute(node, 'default')
-        if aval is not None:
-            self.__valueConstraint = (aval, self.VC_default)
+        adefault = domutils.NodeAttribute(node, 'default')
+        afixed = domutils.NodeAttribute(node, 'fixed')
+        ause = domutils.NodeAttribute(node, 'use')
+        if (adefault is not None) and (afixed is not None):
+            raise pyxb.SchemaValidationError('Attributes default and fixed may not both appear (3.2.3r1)')
+        if adefault is not None:
+            if (ause is not None) and ('optional' != ause):
+                raise pyxb.SchemaValidationError('Attribute use must be optional when default present (3.2.3r2)')
+            self.__valueConstraint = (adefault, self.VC_default)
             return self
-        aval = domutils.NodeAttribute(node, 'fixed')
-        if aval is not None:
-            self.__valueConstraint = (aval, self.VC_fixed)
+        if afixed is not None:
+            self.__valueConstraint = (afixed, self.VC_fixed)
             return self
         self.__valueConstraint = None
         return self
