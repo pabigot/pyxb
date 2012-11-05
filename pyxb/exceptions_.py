@@ -377,11 +377,14 @@ class AttributeValidationError (ValidationError):
         """@param type: the value for the L{type} attribute.
         @param tag: the value for the L{tag} attribute.
         @param instance: the value for the L{instance} attribute.
-        @param location: the value for the L{location} attribute.
+        @param location: the value for the L{location} attribute.  Default taken from C{instance} if possible.
         """
+        import pyxb.utils.utility as utility
         self.type = type
         self.tag = tag
         self.instance = instance
+        if (location is None) and isinstance(instance, utility.Locatable_mixin):
+            location = instance._location()
         self.location = location
         super(AttributeValidationError, self).__init__(type, tag, instance, location)
 
@@ -395,7 +398,8 @@ class ProhibitedAttributeError (AttributeValidationError):
 
 class MissingAttributeError (AttributeValidationError):
     """Raised when an attribute that is required is missing in an element."""
-    pass
+    def __str__ (self):
+        return 'Instance of %s lacks required attribute %s' % (self.type, self.tag)
 
 class AttributeChangeError (AttributeValidationError):
     """Attempt to change an attribute that has a fixed value constraint."""

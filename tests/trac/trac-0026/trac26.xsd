@@ -84,6 +84,10 @@
     <xs:attribute name="aCardCymru" type="tCardCymru"/>
   </xs:complexType>
   <xs:element name="eAttributes" type="tAttributes"/>
+  <xs:complexType name="tAttributeReqFixed">
+    <xs:attribute name="aReqFixed" use="required" fixed="9" type="xs:int"/>
+  </xs:complexType>
+  <xs:element name="eAttributeReqFixed" type="tAttributeReqFixed"/>
   <xs:complexType name="tConcProhibitAttr">
     <xs:complexContent>
       <xs:restriction base="tAbstract">

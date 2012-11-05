@@ -339,5 +339,63 @@ class TestAttributeValueError (unittest.TestCase):
         with self.assertRaises(pyxb.SimpleTypeValueError) as cm:
             instance = trac26.CreateFromDocument(self.Bad_xmls)
 
+class TestMissingAttributeError (unittest.TestCase):
+    Good_xmls = '<eAttributes aReq="4"/>'
+    Bad_xmls = '<eAttributes/>'
+
+    def testSchemaSupport (self):
+        instance = trac26.tAttributes(aReq=4)
+        self.assertTrue(instance.validateBinding())
+        instance = trac26.tAttributeReqFixed(aReqFixed=9)
+        self.assertTrue(instance.validateBinding())
+        instance = trac26.CreateFromDocument(self.Good_xmls)
+        self.assertEqual(self.Good_xmls, instance.toxml('utf-8', root_only=True))
+    
+    def testBatch (self):
+        instance = trac26.tAttributes()
+        with self.assertRaises(pyxb.MissingAttributeError) as cm:
+            instance.validateBinding()
+
+    def testBatchReqFixed (self):
+        instance = trac26.tAttributeReqFixed()
+        with self.assertRaises(pyxb.MissingAttributeError) as cm:
+            instance.validateBinding()
+
+    def testAssignment (self):
+        instance = trac26.tAttributes(aReq=3)
+        self.assertTrue(instance.validateBinding())
+        with self.assertRaises(pyxb.MissingAttributeError) as cm:
+            instance.aReq = None
+        e = cm.exception
+        self.assertEqual(e.instance, instance)
+
+    def testDocument (self):
+        instance = None
+        with self.assertRaises(pyxb.MissingAttributeError) as cm:
+            instance = trac26.CreateFromDocument(self.Bad_xmls)
+        e = cm.exception
+        au = trac26.tAttributes._AttributeMap['aReq']
+        self.assertFalse(e.instance is None)
+        self.assertEqual(e.type, trac26.tAttributes)
+        self.assertFalse(e.location is None)
+        self.assertEqual(1, e.location.lineNumber)
+        self.assertEqual(0, e.location.columnNumber)
+        self.assertEqual(str(e), "Instance of <class 'trac26.tAttributes'> lacks required attribute aReq")
+
+    def testDisplayBatch (self):
+        instance = trac26.tAttributes()
+        if DisplayException:
+            instance.validateBinding()
+
+    def testDisplayBatchReqFixed (self):
+        instance = trac26.tAttributeReqFixed()
+        if DisplayException:
+            instance.validateBinding()
+
+    def testDisplayDoc (self):
+        if DisplayException:
+            instance = trac26.CreateFromDocument(self.Bad_xmls)
+
+
 if __name__ == '__main__':
     unittest.main()
