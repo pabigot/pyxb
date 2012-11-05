@@ -501,11 +501,14 @@ class _TypeBinding_mixin (utility.Locatable_mixin):
 
     @classmethod
     def _Name (cls):
+        """Return the best descriptive name for the type of the instance.
+
+        This is intended to be a human-readable value used in diagnostics, and
+        is the expanded name if the type has one, or the Python type name if
+        it does not."""
         if cls._ExpandedName is not None:
-            name = str(cls._ExpandedName)
-        else:
-            name = str(type(cls))
-        return name
+            return str(cls._ExpandedName)
+        return str(cls)
 
 class _DynamicCreate_mixin (pyxb.cscRoot):
     """Helper to allow overriding the implementation class.
@@ -1987,11 +1990,15 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             raise pyxb.NotSimpleContentError(self)
         if self._isNil():
             return True
-        if self.value() is None:
+        if self.__content is None:
             raise pyxb.SimpleContentAbsentError(self, self._location())
         return self.value().xsdConstraintsOK()
 
+    # __content is used in two ways: when complex content is used, it is as
+    # documented in L{content}.  When simple content is used, it is as
+    # documented in L{value}.
     __content = None
+    
     def content (self):
         """Return the content of the element.
 

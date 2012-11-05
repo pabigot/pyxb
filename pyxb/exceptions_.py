@@ -276,7 +276,7 @@ class AttributeOnSimpleTypeError (ComplexTypeValidationError):
         super(AttributeOnSimpleTypeError, self).__init__(instance, tag, value, location)
 
     def __str__ (self):
-        return 'Simple type %s cannot support attribute %s' % (type(self.instance), self.tag)
+        return 'Simple type %s cannot support attribute %s' % (self.instance._Name(), self.tag)
 
 class ContentValidationError (ComplexTypeValidationError):
     """Violation of a complex type content model."""
@@ -296,7 +296,7 @@ class SimpleContentAbsentError (ContentValidationError):
         super(SimpleContentAbsentError, self).__init__(instance, location)
 
     def __str__ (self):
-        return 'Type %s requires content' % (type(self.instance)._ExpandedName,)
+        return 'Type %s requires content' % (self.instance._Name(),)
 
 class ExtraSimpleContentError (ContentValidationError):
     """A complex type with simple content was provided too much content."""
@@ -603,7 +603,7 @@ class NotSimpleContentError (BindingError):
     pass
 
     def __str__ (self):
-        return 'type %s does not have simple content' % (type(self.instance),)
+        return 'type %s does not have simple content' % (self.instance._Name(),)
 
 class NotComplexContentError (BindingError):
     """An operation that requires a content model was invoked on a
@@ -619,7 +619,7 @@ class NotComplexContentError (BindingError):
         super(BindingError, self).__init__(instance)
 
     def __str__ (self):
-        return 'type %s has simple/empty content' % (type(self.instance),)
+        return 'type %s has simple/empty content' % (self.instance._Name(),)
 
 class ReservedNameError (BindingError):
     """Reserved name set in binding instance."""
@@ -638,7 +638,7 @@ class ReservedNameError (BindingError):
         super(ReservedNameError, self).__init__(instance, name)
 
     def __str__ (self):
-        return '%s is a reserved name within %s' % (self.name, type(self.instance))
+        return '%s is a reserved name within %s' % (self.name, self.instance._Name())
 
 class PyXBError (exceptions.Exception):
     """Base class for exceptions that indicate a problem that the user probably can't fix."""
