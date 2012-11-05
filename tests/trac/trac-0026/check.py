@@ -181,6 +181,10 @@ class TestSimpleContentAbsentError (unittest.TestCase):
             instance = trac26.CreateFromDocument(self.BadSeq_xmls)
         
 class TestReservedNameError (unittest.TestCase):
+    def testSchemaSupport (self):
+        instance = trac26.eCTwSC(4)
+        instance.nottoxml = 1
+
     def testException (self):
         instance = trac26.eCTwSC(4)
         with self.assertRaises(pyxb.ReservedNameError) as cm:
@@ -249,6 +253,52 @@ class TestNotSimpleContentError (unittest.TestCase):
     def testDisplayException (self):
         if DisplayException:
             trac26.eEmpty().value()
+
+class TestAttributeChangeError (unittest.TestCase):
+
+    Good_xmls = '<eAttributes aFixed="5" aReq="2"/>'
+    Bad_xmls = '<eAttributes aFixed="2" aReq="2"/>'
+
+    def testSchemaSupport (self):
+        instance = trac26.tAttributes(aReq=2)
+        self.assertEqual(instance.aReq, 2)
+        self.assertEqual(instance.aFixed, 5)
+        self.assertTrue(instance.validateBinding())
+        # OK to explicitly assign fixed value
+        instance.aFixed = 5
+        instance = trac26.CreateFromDocument(self.Good_xmls)
+        self.assertEqual(self.Good_xmls, instance.toxml('utf-8',root_only=True))
+
+    def testDirect (self):
+        instance = trac26.tAttributes(aReq=2)
+        with self.assertRaises(pyxb.AttributeChangeError) as cm:
+            instance.aFixed = 1
+        e = cm.exception
+        self.assertEqual(e.type, trac26.tAttributes)
+        self.assertEqual(e.tag, 'aFixed')
+        self.assertEqual(e.instance, instance)
+        self.assertTrue(e.location is None)
+
+    def testDisplayException (self):
+        if DisplayException:
+            trac26.tAttributes(aReq=2).aFixed = 1
+
+    def testDocument (self):
+        instance = None
+        with self.assertRaises(pyxb.AttributeChangeError) as cm:
+            instance = trac26.CreateFromDocument(self.Bad_xmls)
+        self.assertTrue(instance is None)
+        e = cm.exception
+        self.assertEqual(e.type, trac26.tAttributes)
+        self.assertEqual(e.tag, 'aFixed')
+        self.assertFalse(e.instance is None) # there, but partially defined
+        self.assertFalse(e.location is None)
+        self.assertEqual(1, e.location.lineNumber)
+        self.assertEqual(0, e.location.columnNumber)
+
+    def testDisplayExceptionDoc (self):
+        if DisplayException:
+            trac26.CreateFromDocument(self.Bad_xmls)
 
 
 if __name__ == '__main__':

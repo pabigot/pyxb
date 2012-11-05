@@ -286,7 +286,7 @@ class AttributeUse (pyxb.cscRoot):
         if (new_value is not None) and (not isinstance(new_value, self.__dataType)):
             new_value = self.__dataType.Factory(new_value, _from_xml=from_xml)
         if self.__fixed and (new_value != self.__defaultValue):
-            raise pyxb.AttributeChangeError(type(ctd_instance), self.__name, ctd_instance)
+            raise pyxb.AttributeChangeError(type(ctd_instance), self.__name, ctd_instance, ctd_instance._location())
         self.__setValue(ctd_instance, new_value, provided)
         return new_value
 

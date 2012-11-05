@@ -27,7 +27,9 @@
   <xs:element name="eCardinals" type="tCardinals"/>
 
   <!-- *** Material related to abstract types -->
-  <xs:complexType abstract="true" name="tAbstract"/>
+  <xs:complexType abstract="true" name="tAbstract">
+    <xs:attribute name="aBase" type="xs:int"/>
+  </xs:complexType>
   <xs:complexType name="tConcSubCymru">
     <xs:complexContent>
       <xs:extension base="tAbstract">
@@ -74,5 +76,20 @@
   <!-- *** Material related to empty and mixed content -->
   <xs:complexType name="tEmpty"/>
   <xs:element name="eEmpty" type="tEmpty"/>
+
+  <!-- *** Material related to attribute validation -->
+  <xs:complexType name="tAttributes">
+    <xs:attribute name="aReq" use="required" type="xs:int"/>
+    <xs:attribute name="aFixed" fixed="5" type="xs:int"/>
+  </xs:complexType>
+  <xs:element name="eAttributes" type="tAttributes"/>
+  <xs:complexType name="tConcProhibitAttr">
+    <xs:complexContent>
+      <xs:restriction base="tAbstract">
+        <xs:attribute name="aBase" use="prohibited" type="xs:int"/>
+      </xs:restriction>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="eConcProhibitAttr" type="tConcProhibitAttr"/>
 
 </xs:schema>

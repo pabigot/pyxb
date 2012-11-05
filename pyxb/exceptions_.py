@@ -367,15 +367,20 @@ class AttributeValidationError (ValidationError):
     instance = None
     """The binding instance, if available."""
 
-    def __init__ (self, type, tag, instance=None):
+    location = None
+    """Where the error occurred in the document being parsed, if available."""
+
+    def __init__ (self, type, tag, instance=None, location=None):
         """@param type: the value for the L{type} attribute.
         @param tag: the value for the L{tag} attribute.
         @param instance: the value for the L{instance} attribute.
+        @param location: the value for the L{location} attribute.
         """
         self.type = type
         self.tag = tag
         self.instance = instance
-        super(AttributeValidationError, self).__init__(type, tag, instance)
+        self.location = location
+        super(AttributeValidationError, self).__init__(type, tag, instance, location)
 
 class UnrecognizedAttributeError (AttributeValidationError):
     """Attempt to reference an attribute not sanctioned by content model."""
@@ -391,7 +396,8 @@ class MissingAttributeError (AttributeValidationError):
 
 class AttributeChangeError (AttributeValidationError):
     """Attempt to change an attribute that has a fixed value constraint."""
-    pass
+    def __str__ (self):
+        return 'Cannot change fixed attribute %s in type %s' % (self.tag, self.type)
 
 class AttributeValueError (AttributeValidationError):
     """The value of an attribute does not satisfy its content constraints."""
