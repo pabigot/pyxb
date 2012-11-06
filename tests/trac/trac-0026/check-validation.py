@@ -5,6 +5,7 @@
 # ElementValidationError
 # . AbstractElementError
 # . ContentInNilInstanceError
+# . NoNillableSupportError
 # ComplexTypeValidationError
 # . AbstractInstantiationError
 # . AttributeOnSimpleTypeError
@@ -810,6 +811,21 @@ class TestContentInNilInstanceError (unittest.TestCase):
     def testDisplayDoc (self):
         if DisplayException:
             trac26.CreateFromDocument(self.Bad_xmls)
+
+class TestContentInNilInstanceError (unittest.TestCase):
+    def testSchemaSupport (self):
+        instance = trac26.eNilCTwSC(4)
+        instance._setIsNil(True)
+        self.assertTrue(instance.validateBinding())
+
+    def testException (self):
+        instance = trac26.eCTwSC(4)
+        with self.assertRaises(pyxb.NoNillableSupportError) as cm:
+            instance._setIsNil(True)
+        e = cm.exception
+        self.assertTrue(e.location is None)
+        self.assertEqual(e.instance, instance)
+        
 
 if __name__ == '__main__':
     unittest.main()

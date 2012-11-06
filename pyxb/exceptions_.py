@@ -230,13 +230,10 @@ class ContentInNilInstanceError (ElementValidationError):
     """The content that was to be assigned to the instance."""
 
     def __init__ (self, instance, content, location=None):
-        """@param instance: the binding instance that is marked nil.
-        This will be available in the L{instance} attribute.
+        """@param instance: the value for the L{instance} attribute.
+        @param content: the value for the L{content} attribute.
+        @param location: the value for the L{location} attribute.  Default taken from C{instance} if possible."""
 
-        @param content: the content found to be in violation of the nil requirement.
-        This will be available in the L{content} attribute.
-
-        """
         self.instance = instance
         self.content = content
         if location is None:
@@ -247,6 +244,21 @@ class ContentInNilInstanceError (ElementValidationError):
     def __str__ (self):
         from pyxb.namespace.builtin import XMLSchema_instance as XSI        
         return '%s with %s=true cannot have content' % (self.instance._diagnosticName(), XSI.nil)
+
+class NoNillableSupportError (ElementValidationError):
+    """Raised when invoking L{_setIsNil<pyxb.binding.basis._TypeBinding_mixin._setIsNil>} on a type that does not support nillable."""
+
+    instance = None
+    """The binding instance on which an inappropriate operation was invoked."""
+
+    def __init__ (self, instance, location=None):
+        """@param instance: the value for the L{instance} attribute.
+        @param location: the value for the L{location} attribute.  Default taken from C{instance} if possible."""
+        self.instance = instance
+        if location is None:
+            location = self.instance._location()
+        self.location = location
+        super(NoNillableSupportError, self).__init__(instance, location)
 
 class ComplexTypeValidationError (ValidationError):
     """Raised when a validation requirement for a complex type is not satisfied."""
@@ -699,18 +711,6 @@ class AttributeChangeError (AttributeValidationError):
     """Attempt to change an attribute that has a fixed value constraint."""
     def __str__ (self):
         return 'Cannot change fixed attribute %s in type %s' % (self.tag, self.type)
-
-class NoNillableSupportError (PyXBException):
-    """Raised when checking _isNil on a type that does not support nillable."""
-
-    instance = None
-    """The binding instance on which an inappropriate operation was invoked."""
-
-    def __init__ (self, instance):
-        """@param instance: the binding instance that was mis-used.
-        This will be available in the L{instance} attribute."""
-        self.instance = instance
-        super(NoNillableSupportError, self).__init__(instance)
 
 class BindingError (PyXBException):
     """Raised when the bindings are mis-used.
