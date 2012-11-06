@@ -316,6 +316,9 @@ class ExtraSimpleContentError (ContentValidationError):
         self.location = location
         super(ExtraSimpleContentError, self).__init__(instance, value, location)
 
+    def __str__ (self):
+        return 'Instance of %s already has simple content value assigned' % (self.instance._Name(),)
+
 class MixedContentError (ContentValidationError):
     """Non-element content added to a complex type instance that does not support mixed content."""
     

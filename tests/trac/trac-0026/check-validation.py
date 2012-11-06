@@ -13,7 +13,7 @@
 # - - * UnprocessedElementContentError            
 # - - IncrementalElementContentError
 # - - * UnhandledElementContentError
-# - * ExtraSimpleContentError
+# - + ExtraSimpleContentError
 # - * MixedContentError
 # - + SimpleContentAbsentError
 # - + UnprocessedKeywordContentError
@@ -521,5 +521,30 @@ class TestUnprocessedKeywordContentError (unittest.TestCase):
         self.assertTrue(e.location is None)
         self.assertEqual(str(e), 'Unprocessed keywords instantiating tAttributes: foo')
         
+class TestExtraSimpleContentError (unittest.TestCase):
+
+    def testSchemaSupport (self):
+        instance = trac26.eCTwSC(1)
+        self.assertTrue(instance.validateBinding())
+        instance.reset()
+        self.assertRaises(pyxb.SimpleContentAbsentError, instance.validateBinding)
+        instance.append(1)
+        self.assertTrue(instance.validateBinding())
+
+    def testException (self):
+        instance = trac26.eCTwSC(1)
+        with self.assertRaises(pyxb.ExtraSimpleContentError) as cm:
+            instance.append(2)
+        e = cm.exception
+        self.assertEqual(e.instance, instance)
+        self.assertEqual(e.value, 2)
+        self.assertTrue(e.location is None)
+        self.assertEqual(str(e), 'Instance of tCTwSC already has simple content value assigned')
+
+    def testDisplay (self):
+        instance = trac26.eCTwSC(1)
+        if DisplayException:
+            instance.append(2)
+
 if __name__ == '__main__':
     unittest.main()
