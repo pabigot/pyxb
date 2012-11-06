@@ -530,10 +530,10 @@ class _FACSymbol (pyxb.utils.fac.SymbolMatch_mixin):
     This holds the location in the schema of the L{ElementUse} or
     L{WildcardUse} and documents the methods expected of its children."""
 
-    __schemaLocation = None
+    __xsdLocation = None
 
-    def schemaLocation (self):
-        return self.__schemaLocation
+    def xsdLocation (self):
+        return self.__xsdLocation
 
     def matchValue (self, sym):
         """Return the value accepted by L{match} for this symbol.
@@ -560,9 +560,10 @@ class _FACSymbol (pyxb.utils.fac.SymbolMatch_mixin):
         appropriate slot."""
         raise NotImplementedError('%s._consumingClosure' % (type(self).__name__,))
 
-    def __init__ (self, schema_location):
+    def __init__ (self, xsd_location):
+        """@param xsd_location: the L{location<pyxb.utils.utility.Location>} of the element use or wildcard declaration."""
+        self.__xsdLocation = xsd_location
         super(_FACSymbol, self).__init__()
-        self.__schemaLocation = schema_location
 
 class ElementUse (_FACSymbol):
     """Information about a schema element declaration reference.
@@ -592,8 +593,8 @@ class ElementUse (_FACSymbol):
         Equivalent to L{elementDeclaration}().L{elementBinding()<pyxb.binding.content.ElementDeclaration.elementBinding>}.L{typeDefinition()<pyxb.binding.basis.element.typeDefinition>}."""
         return self.__elementDeclaration.elementBinding().typeDefinition()
 
-    def __init__ (self, element_declaration, schema_location):
-        super(ElementUse, self).__init__(schema_location)
+    def __init__ (self, element_declaration, xsd_location):
+        super(ElementUse, self).__init__(xsd_location)
         self.__elementDeclaration = element_declaration
 
     def matchValue (self, sym):
@@ -626,7 +627,7 @@ class ElementUse (_FACSymbol):
         return rv
 
     def __str__ (self):
-        return '%s per %s' % (self.__elementDeclaration.name(), self.schemaLocation())
+        return '%s per %s' % (self.__elementDeclaration.name(), self.xsdLocation())
 
 class WildcardUse (_FACSymbol):
     """Information about a schema wildcard element.
@@ -662,9 +663,12 @@ class WildcardUse (_FACSymbol):
         (value, element_decl) = symbol
         return self.__wildcardDeclaration.matches(None, value)
 
-    def __init__ (self, wildcard_declaration, schema_location):
-        super(WildcardUse, self).__init__(schema_location)
+    def __init__ (self, wildcard_declaration, xsd_location):
+        super(WildcardUse, self).__init__(xsd_location)
         self.__wildcardDeclaration = wildcard_declaration
+
+    def __str__ (self):
+        return 'xs:any per %s' % (self.xsdLocation(),)
 
 
 class ElementDeclaration (object):
@@ -676,11 +680,13 @@ class ElementDeclaration (object):
     information.
     """
 
-    _DeclarationLocation = None
-    """The L{location<pyxb.utils.utility.Location>} in the schema where the
-    element was declared.
+    def xsdLocation (self):
+        """The L{location<pyxb.utils.utility.Location>} in the schema where the
+        element was declared.
 
-    Note that this is not necessarily the same location as its use."""
+        Note that this is not necessarily the same location as its use."""
+        return self.__xsdLocation
+    __xsdLocation = None
 
     def name (self):
         """The expanded name of the element.
@@ -728,7 +734,7 @@ class ElementDeclaration (object):
         return self.__isPlural
     __isPlural = False
 
-    def __init__ (self, name, id, key, is_plural, element_binding=None):
+    def __init__ (self, name, id, key, is_plural, location, element_binding=None):
         """Create an ElementDeclaration instance.
 
         @param name: The name by which the element is referenced in the XML

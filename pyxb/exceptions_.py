@@ -445,7 +445,7 @@ class UnrecognizedContentError (IncrementalElementContentError):
         rv = [ ]
         if i._element() is not None:
             rv.append('The containing element %s is defined at %s.' % (i._element().name(), i._element().xsdLocation()))
-        rv.append('The containing element type %s is defined at %s' % (self.instance._Name(), str(self.instance._DefinitionLocation)))
+        rv.append('The containing element type %s is defined at %s' % (self.instance._Name(), str(self.instance._XSDLocation)))
         if self.location is not None:
             rv.append('The unrecognized content %s begins at %s' % (self.value._diagnosticName(), self.location))
         else:
@@ -462,10 +462,10 @@ class UnrecognizedContentError (IncrementalElementContentError):
             rv2 = []
             for u in acceptable:
                 if isinstance(u, pyxb.binding.content.ElementUse):
-                    rv2.append('An element %s per %s' % (u.elementBinding().name(), u.schemaLocation()))
+                    rv2.append('An element %s per %s' % (u.elementBinding().name(), u.xsdLocation()))
                 else:
                     assert isinstance(u, pyxb.binding.content.WildcardUse)
-                    rv2.append('A wildcard per %s' % (u.schemaLocation(),))
+                    rv2.append('A wildcard per %s' % (u.xsdLocation(),))
             rv.append('\t' + '\n\t'.join(rv2))
         return '\n'.join(rv)
 

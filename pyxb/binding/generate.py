@@ -478,7 +478,7 @@ def GenerateSTD (std, generator):
     else:
         template_map['qname'] = '[anonymous]'
     template_map['namespaceReference'] = binding_module.literal(std.bindingNamespace(), **kw)
-    template_map['defn_location'] = repr(std._location())
+    template_map['xsd_location'] = repr(std._location())
     if std.annotation() is not None:
         template_map['documentation'] = std.annotation().asDocString()
         template_map['documentation_expr'] = binding_module.literal(std.annotation().text())
@@ -492,7 +492,7 @@ def GenerateSTD (std, generator):
     """%{documentation}"""
 
     _ExpandedName = %{expanded_name}
-    _DefinitionLocation = %{defn_location}
+    _XSDLocation = %{xsd_location}
     _Documentation = %{documentation_expr}
 '''
     if xs.structures.SimpleTypeDefinition.VARIETY_absent == std.variety():
@@ -576,7 +576,7 @@ def elementDeclarationMap (ed, binding_module, **kw):
     for k in ( 'nillable', 'abstract', 'scope', 'documentation' ):
         if k in template_map:
             aux_init.append('%s=%s' % (k, template_map[k]))
-    aux_init.append('location=%s' % (repr(ed._location()),))
+    aux_init.append('location=%s' % (template_map['decl_location'],))
     template_map['element_aux_init'] = ''
     if 0 < len(aux_init):
         template_map['element_aux_init'] = ', ' + ', '.join(aux_init)
@@ -830,7 +830,7 @@ def GenerateCTD (ctd, generator, **kw):
         template_map['qname'] = unicode(ctd.expandedName())
     else:
         template_map['qname'] = '[anonymous]'
-    template_map['defn_location'] = repr(ctd._location())
+    template_map['xsd_location'] = repr(ctd._location())
     template_map['simple_base_type'] = binding_module.literal(None, **kw)
     template_map['contentTypeTag'] = content_type_tag
     template_map['is_abstract'] = repr(not not ctd.abstract())
@@ -860,7 +860,7 @@ class %{ctd} (%{superclass}):
     _ContentTypeTag = pyxb.binding.basis.complexTypeDefinition._CT_%{contentTypeTag}
     _Abstract = %{is_abstract}
     _ExpandedName = %{expanded_name}
-    _DefinitionLocation = %{defn_location}
+    _XSDLocation = %{xsd_location}
 '''
 
     # Complex types that inherit from non-ur-type complex types should
@@ -926,8 +926,7 @@ class %{ctd} (%{superclass}):
                 _log.warning('Element use %s.%s renamed to %s', ctd.expandedName(), ed.expandedName(), ef_map['id'])
             definitions.append(templates.replaceInText('''
     # Element %{qname} uses Python identifier %{id}
-    %{use} = pyxb.binding.content.ElementDeclaration(%{name_expr}, '%{id}', '%{key}', %{is_plural}%{aux_init})
-    %{use}._DeclarationLocation = %{decl_location}
+    %{use} = pyxb.binding.content.ElementDeclaration(%{name_expr}, '%{id}', '%{key}', %{is_plural}, %{decl_location}, %{aux_init})
 ''', name_expr=binding_module.literal(ed.expandedName(), **kw), **ef_map))
 
             definitions.append(templates.replaceInText('''
