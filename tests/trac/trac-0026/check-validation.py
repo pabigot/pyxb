@@ -9,8 +9,8 @@
 # . AttributeOnSimpleTypeError
 # . ContentValidationError
 # - - BatchElementContentError
-# - - * IncompleteElementContentError
-# - - * UnprocessedElementContentError            
+# - - + IncompleteElementContentError
+# - - + UnprocessedElementContentError            
 # - - IncrementalElementContentError
 # - - + UnrecognizedContentError
 # - + ExtraSimpleContentError
@@ -684,5 +684,42 @@ The following content was not processed by the automaton:
         self.assertEqual(instance.cardinal, syms[0])
         self.assertEqual(e.details(), self.Bad_details)
         
+class TestUnprocessedElementContentError (unittest.TestCase):
+    Bad_details = '''The containing element eTranslateCardMulti is defined at trac26.xsd[132:2].
+The containing element type tTranslateCardMulti is defined at trac26.xsd[125:2]
+The tTranslateCardMulti automaton is in an accepting state.
+The last accepted content was cardinal
+The following element and wildcard content would be accepted:
+\tAn element eConcCardCymru per trac26.xsd[127:6]
+The following content was not processed by the automaton:
+\tcardinal (1 instances)'''
+
+    def testSchemaSupport (self):
+        instance = trac26.eTranslateCardMulti(trac26.eConcCardCymru('un'),
+                                              trac26.eConcCardEnglish('one'),
+                                              xs.int(1))
+        self.assertTrue(instance.validateBinding())
+        instance.eConcCardCymru.append('dau')
+        instance.eConcCardEnglish.append('two')
+        instance.cardinal.append(2)
+        self.assertTrue(instance.validateBinding())
+
+    def testException (self):
+        instance = trac26.eTranslateCardMulti(trac26.eConcCardCymru('un'),
+                                              trac26.eConcCardEnglish('one'),
+                                              xs.int(1))
+        self.assertTrue(instance.validateBinding())
+        instance.cardinal.append(2)
+        with self.assertRaises(pyxb.UnprocessedElementContentError) as cm:
+            instance.validateBinding()
+        e = cm.exception
+        self.assertTrue(e.automaton_configuration.isAccepting())
+        self.assertEqual(3, len(e.symbols))
+        self.assertEqual(1, len(e.symbol_set))
+        (ed, syms) = e.symbol_set.iteritems().next()
+        self.assertEqual(1, len(syms))
+        self.assertEqual(instance.cardinal[1], syms[0])
+        self.assertEqual(e.details(), self.Bad_details)
+
 if __name__ == '__main__':
     unittest.main()

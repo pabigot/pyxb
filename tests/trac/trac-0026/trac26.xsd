@@ -114,7 +114,7 @@
   <!-- *** Material related to content model validation -->
   <xs:complexType name="tTranslateCard">
     <xs:sequence>
-      <xs:all>
+      <xs:all> <!-- This is illegal, but PyXB accepts it.  trac/176 -->
         <xs:element ref="eConcCardCymru"/>
         <xs:element ref="eConcCardEnglish"/>
       </xs:all>
@@ -122,5 +122,13 @@
     </xs:sequence>
   </xs:complexType>
   <xs:element name="eTranslateCard" type="tTranslateCard"/>
+  <xs:complexType name="tTranslateCardMulti">
+    <xs:sequence minOccurs="0" maxOccurs="unbounded">
+      <xs:element ref="eConcCardCymru"/>
+      <xs:element ref="eConcCardEnglish"/>
+      <xs:element name="cardinal" type="xs:int"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="eTranslateCardMulti" type="tTranslateCardMulti"/>
 
 </xs:schema>
