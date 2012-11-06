@@ -159,9 +159,9 @@ class _TypeBinding_mixin (utility.Locatable_mixin):
         super(_TypeBinding_mixin, self).__init__(*args, **kw)
         if (element is None) or element.nillable():
             self.__xsiNil = is_nil
-        self.__checkNilCtor(args)
         if element is not None:
             self._setElement(element)
+        self.__checkNilCtor(args)
 
     @classmethod
     def _PreFactory_vx (cls, args, kw):
@@ -1846,7 +1846,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         if 0 < len(args):
             if did_set_kw_elt:
                 raise pyxb.UsageError('Cannot mix keyword and positional args for element initialization')
-            self.extend(args, _from_xml=from_xml)
+            self.extend(args, _from_xml=from_xml, _location=location)
         elif self._CT_SIMPLE == self._ContentTypeTag:
             value = self._TypeDefinition.Factory(_require_value=not self._isNil(), _dom_node=dom_node, _location=location, _nil=self._isNil(), _apply_attributes=False, *args)
             if value._constructedWithValue():
@@ -2125,11 +2125,11 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         
         # @todo: Allow caller to provide default element use; it's available
         # in saxer.
-        if self._isNil():
-            raise pyxb.ContentInNilInstanceError(self, value)
         element_decl = kw.get('_element_decl', None)
         maybe_element = kw.get('_maybe_element', True)
         location = kw.get('_location', None)
+        if self._isNil():
+            raise pyxb.ContentInNilInstanceError(self, value, location)
         fallback_namespace = kw.get('_fallback_namespace', None)
         require_validation = kw.get('_require_validation', 'True')
         from_xml = kw.get('_from_xml', False)
@@ -2220,9 +2220,9 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
     def _appendWildcardElement (self, value):
         self.__wildcardElements.append(value)
         
-    def extend (self, value_list, _fallback_namespace=None, _from_xml=False):
+    def extend (self, value_list, _fallback_namespace=None, _from_xml=False, _location=None):
         """Invoke L{append} for each value in the list, in turn."""
-        [ self.append(_v, _fallback_namespace=_fallback_namespace, _from_xml=_from_xml) for _v in value_list ]
+        [ self.append(_v, _fallback_namespace=_fallback_namespace, _from_xml=_from_xml, _location=_location) for _v in value_list ]
         return self
 
     def __setContent (self, value):

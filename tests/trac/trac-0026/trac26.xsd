@@ -131,4 +131,23 @@
   </xs:complexType>
   <xs:element name="eTranslateCardMulti" type="tTranslateCardMulti"/>
 
+  <!-- *** Nillable validation -->
+  <xs:element name="eNilInt" nillable="true" type="xs:int"/>
+  <xs:element name="eNilCTwSC" nillable="true" type="tCTwSC"/>
+  <xs:element name="eNilInts" nillable="true">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="eInt" minOccurs="0" maxOccurs="unbounded"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="eNilOneInt" nillable="true">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="eInt"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+
 </xs:schema>

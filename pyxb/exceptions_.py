@@ -220,6 +220,34 @@ class AbstractElementError (ElementValidationError):
     def __str__ (self):
         return 'Cannot instantiate abstract element %s directly' % (self.element.name(),)
 
+class ContentInNilInstanceError (ElementValidationError):
+    """Raised when an element that is marked to be nil is assigned content."""
+
+    instance = None
+    """The binding instance which is xsi:nil"""
+
+    content = None
+    """The content that was to be assigned to the instance."""
+
+    def __init__ (self, instance, content, location=None):
+        """@param instance: the binding instance that is marked nil.
+        This will be available in the L{instance} attribute.
+
+        @param content: the content found to be in violation of the nil requirement.
+        This will be available in the L{content} attribute.
+
+        """
+        self.instance = instance
+        self.content = content
+        if location is None:
+            location = self.instance._location()
+        self.location = location
+        super(ContentInNilInstanceError, self).__init__(instance, content, location)
+
+    def __str__ (self):
+        from pyxb.namespace.builtin import XMLSchema_instance as XSI        
+        return '%s with %s=true cannot have content' % (self.instance._diagnosticName(), XSI.nil)
+
 class ComplexTypeValidationError (ValidationError):
     """Raised when a validation requirement for a complex type is not satisfied."""
     pass
@@ -683,27 +711,6 @@ class NoNillableSupportError (PyXBException):
         This will be available in the L{instance} attribute."""
         self.instance = instance
         super(NoNillableSupportError, self).__init__(instance)
-
-class ContentInNilInstanceError (PyXBException):
-    """Raised when an element that is marked to be nil is assigned content."""
-
-    instance = None
-    """The binding instance which is xsi:nil"""
-
-    content = None
-    """The content that was to be assigned to the instance."""
-
-    def __init__ (self, instance, content):
-        """@param instance: the binding instance that is marked nil.
-        This will be available in the L{instance} attribute.
-
-        @param content: the content found to be in violation of the nil requirement.
-        This will be available in the L{content} attribute.
-
-        """
-        self.instance = instance
-        self.content = content
-        super(ContentInNilInstanceError, self).__init__(instance, content)
 
 class BindingError (PyXBException):
     """Raised when the bindings are mis-used.

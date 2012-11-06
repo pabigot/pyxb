@@ -4,6 +4,7 @@
 
 # ElementValidationError
 # . AbstractElementError
+# . ContentInNilInstanceError
 # ComplexTypeValidationError
 # . AbstractInstantiationError
 # . AttributeOnSimpleTypeError
@@ -720,6 +721,95 @@ The following content was not processed by the automaton:
         self.assertEqual(1, len(syms))
         self.assertEqual(instance.cardinal[1], syms[0])
         self.assertEqual(e.details(), self.Bad_details)
+
+class TestContentInNilInstanceError (unittest.TestCase):
+    Good_xmls = '<eNilCTwSC xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true"/>'
+    Bad_xmls = '<eNilCTwSC xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true">4</eNilCTwSC>'
+
+    def testSchemaSupport (self):
+        instance = trac26.eNilCTwSC(4)
+        self.assertEqual(instance.value(), 4)
+        self.assertTrue(instance.validateBinding())
+        instance = trac26.eNilCTwSC(_nil=True)
+        self.assertTrue(instance.value() is None)
+        self.assertTrue(instance.validateBinding())
+        instance = trac26.CreateFromDocument(self.Good_xmls)
+        self.assertEqual(self.Good_xmls, instance.toxml('utf-8', root_only=True))
+        instance = trac26.eNilInt(4)
+        self.assertEqual(4, instance)
+        instance = trac26.eNilInt(_nil=True)
+        self.assertTrue(instance.validateBinding())
+        instance = trac26.eNilCTwSC(3)
+        instance.reset()
+        instance.append(4)
+        self.assertTrue(instance.validateBinding())
+        instance = trac26.eNilOneInt()
+        instance.eInt = 5
+        self.assertTrue(instance.validateBinding())
+        instance = trac26.eNilInts()
+        instance.eInt.append(1)
+        self.assertTrue(instance.validateBinding())
+
+    def testConstructor (self):
+        with self.assertRaises(pyxb.ContentInNilInstanceError) as cm:
+            trac26.eNilInt(4, _nil=True)
+        e = cm.exception
+        self.assertTrue(e.location is None)
+        self.assertEqual(e.instance._element(), trac26.eNilInt)
+        self.assertEqual(e.content, 4)
+
+    def testAppend (self):
+        instance = trac26.eNilCTwSC(_nil=True)
+        with self.assertRaises(pyxb.ContentInNilInstanceError) as cm:
+            instance.append(4)
+        e = cm.exception
+        self.assertTrue(e.location is None)
+        self.assertEqual(e.content, 4)
+
+    def testValidate (self):
+        instance = trac26.eNilInts(1, 2, 3)
+        self.assertTrue(instance.validateBinding())
+        instance._setIsNil(True)
+        self.assertTrue(instance.validateBinding())
+        # Not a valid way to do things, but only way to test this raise
+        instance.content().append(1)
+        with self.assertRaises(pyxb.ContentInNilInstanceError) as cm:
+            instance.validateBinding()
+        e = cm.exception
+        self.assertTrue(e.location is None)
+        self.assertEqual(e.content, [1])
+
+    def testContentAppend (self):
+        instance = trac26.eNilInts(_nil=True)
+        self.assertTrue(instance._isNil())
+        with self.assertRaises(pyxb.ContentInNilInstanceError) as cm:
+            type(instance)._UseForTag('eInt').append(instance, 1)
+        e = cm.exception
+        self.assertTrue(e.location is None)
+        self.assertEqual(e.instance, instance)
+        
+    def testContentSet (self):
+        instance = trac26.eNilOneInt(_nil=True)
+        with self.assertRaises(pyxb.ContentInNilInstanceError) as cm:
+            instance.eInt = 1
+        e = cm.exception
+        self.assertTrue(e.location is None)
+        self.assertEqual(e.instance, instance)
+
+    def testDocument (self):
+        instance = None
+        with self.assertRaises(pyxb.ContentInNilInstanceError) as cm:
+            instance = trac26.CreateFromDocument(self.Bad_xmls)
+        e = cm.exception
+        self.assertFalse(e.location is None)
+        self.assertEqual(e.content, u'4')
+        self.assertEqual(1, e.location.lineNumber)
+        self.assertEqual(0, e.location.columnNumber)
+        self.assertEqual(str(e), 'eNilCTwSC with {http://www.w3.org/2001/XMLSchema-instance}nil=true cannot have content')
+
+    def testDisplayDoc (self):
+        if DisplayException:
+            trac26.CreateFromDocument(self.Bad_xmls)
 
 if __name__ == '__main__':
     unittest.main()
