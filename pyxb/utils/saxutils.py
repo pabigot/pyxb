@@ -101,6 +101,11 @@ class SAXElementState (object):
     """State corresponding to processing a given element with the SAX
     model."""
 
+    def contentHandler (self):
+        """Reference to the C{xml.sxa.handler.ContentHandler} that is processing the document."""
+        return self.__contentHandler
+    __contentHandler = None
+
     def parentState (self):
         """Reference to the SAXElementState of the element enclosing this
         one."""
@@ -142,7 +147,9 @@ class SAXElementState (object):
         self.__expandedName = kw.get('expanded_name')
         self.__namespaceContext = kw['namespace_context']
         self.__parentState = kw.get('parent_state')
-        self.__location = kw.get('location')
+        self.__contentHandler = kw.get('content_handler')
+        assert self.__contentHandler is not None
+        self.__location = self.__contentHandler.location()
         self.__content = []
 
     def addTextContent (self, content):
@@ -174,6 +181,10 @@ class BaseSAXHandler (xml.sax.handler.ContentHandler, object):
     # An instance of L{pyxb.utils.utility.Location} that will be used to
     # construct the locations of events as they are received.
     __locationTemplate = None
+
+    def location (self):
+        """Return the current location within the SAX-processed document."""
+        return self.__locationTemplate.newLocation(self.__locator)
 
     # The callable that creates an instance of (a subclass of)
     # L{SAXElementState} as required to hold element-specific information as
@@ -241,7 +252,8 @@ class BaseSAXHandler (xml.sax.handler.ContentHandler, object):
                                                                              including_context=self.__includingContext,
                                                                              finalize_target_namespace=False)
         self.__nextNamespaceContext = None
-        self.__elementState = self.__elementStateConstructor(namespace_context=self.__namespaceContext)
+        self.__elementState = self.__elementStateConstructor(content_handler=self,
+                                                             namespace_context=self.__namespaceContext)
         self.__elementStateStack = []
         self.__rootObject = None
         # Note: setDocumentLocator is invoked before startDocument (which
@@ -329,10 +341,10 @@ class BaseSAXHandler (xml.sax.handler.ContentHandler, object):
         # state for this element.
         parent_state = self.__elementState
         self.__elementStateStack.append(self.__elementState)
-        self.__elementState = this_state = self.__elementStateConstructor(expanded_name=expanded_name,
+        self.__elementState = this_state = self.__elementStateConstructor(content_handler=self,
+                                                                          expanded_name=expanded_name,
                                                                           namespace_context=ns_ctx,
-                                                                          parent_state=parent_state,
-                                                                          location=self.__locationTemplate.newLocation(self.__locator))
+                                                                          parent_state=parent_state)
         return (this_state, parent_state, ns_ctx, expanded_name)
 
     def endElementNS (self, name, qname):
@@ -354,13 +366,17 @@ class BaseSAXHandler (xml.sax.handler.ContentHandler, object):
     # to join them all at once, and to process one content value rather than a
     # sequence of them.
     __pendingText = None
+    __pendingTextLocation = None
     def __flushPendingText (self):
         if self.__pendingText:
             self.__elementState.addTextContent(''.join(self.__pendingText))
+        self.__pendingTextLocation = None
         self.__pendingText = []
 
     def characters (self, content):
         """Save the text as content"""
+        if self.__pendingTextLocation is None:
+            self.__pendingTextLocation = self.location()
         self.__pendingText.append(content)
 
     def ignorableWhitespace (self, whitespace):
