@@ -64,11 +64,11 @@ class TestMGChoice (unittest.TestCase):
     def testTooManySingle (self):
         xml = '<ns1:choice xmlns:ns1="URN:test-mg-choice"><first/><second/></ns1:choice>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
-        self.assertRaises(UnhandledElementContentError, choice.createFromDOM, dom.documentElement)
+        self.assertRaises(UnrecognizedContentError, choice.createFromDOM, dom.documentElement)
 
         xml = '<ns1:choice xmlns:ns1="URN:test-mg-choice"><second/><third/></ns1:choice>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
-        self.assertRaises(UnhandledElementContentError, choice.createFromDOM, dom.documentElement)
+        self.assertRaises(UnrecognizedContentError, choice.createFromDOM, dom.documentElement)
 
     def testMultichoice (self):
         xml = '<ns1:multiplechoice xmlns:ns1="URN:test-mg-choice"/>'
@@ -134,7 +134,7 @@ class TestMGChoice (unittest.TestCase):
     def testTooManyChoices (self):
         xml = '<ns1:altmultiplechoice xmlns:ns1="URN:test-mg-choice"><first/><first/><first/><third/></ns1:altmultiplechoice>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
-        self.assertRaises(UnhandledElementContentError, altmultiplechoice.createFromDOM, dom.documentElement)
+        self.assertRaises(UnrecognizedContentError, altmultiplechoice.createFromDOM, dom.documentElement)
 
     def testFixedMultichoice (self):
         xml = '<fixedMultichoice xmlns="URN:test-mg-choice"></fixedMultichoice>'
@@ -145,7 +145,7 @@ class TestMGChoice (unittest.TestCase):
         instance = fixedMultichoice.createFromDOM(dom.documentElement)
         xml = '<ns1:fixedMultichoice xmlns:ns1="URN:test-mg-choice"><A/><B/></ns1:fixedMultichoice>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
-        self.assertRaises(UnhandledElementContentError, fixedMultichoice.createFromDOM, dom.documentElement)
+        self.assertRaises(UnrecognizedContentError, fixedMultichoice.createFromDOM, dom.documentElement)
 
 if __name__ == '__main__':
     unittest.main()

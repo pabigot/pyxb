@@ -573,7 +573,20 @@ class ElementUse (_FACSymbol):
     __elementDeclaration = None
 
     def elementDeclaration (self):
+        """Return the L{element declaration<pyxb.binding.content.ElementDeclaration} associated with the use."""
         return self.__elementDeclaration
+
+    def elementBinding (self):
+        """Return the L{element binding<pyxb.binding.content.ElementDeclaration.elementBinding>} associated with the use.
+
+        Equivalent to L{elementDeclaration}().L{elementBinding()<pyxb.binding.content.ElementDeclaration.elementBinding>}."""
+        return self.__elementDeclaration.elementBinding()
+
+    def typeDefinition (self):
+        """Return the element type.
+        
+        Equivalent to L{elementDeclaration}().L{elementBinding()<pyxb.binding.content.ElementDeclaration.elementBinding>}.L{typeDefinition()<pyxb.binding.basis.element.typeDefinition>}."""
+        return self.__elementDeclaration.elementBinding().typeDefinition()
 
     def __init__ (self, element_declaration, schema_location):
         super(ElementUse, self).__init__(schema_location)

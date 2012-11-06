@@ -393,10 +393,27 @@ class IncrementalElementContentError (ContentValidationError):
         self.location = location
         super(IncrementalElementContentError, self).__init__(instance, automaton_configuration, value, location)
 
-class UnhandledElementContentError (IncrementalElementContentError):
+class UnrecognizedContentError (IncrementalElementContentError):
     """Element or element-like content could not be validly associated with an sub-element in the content model.
 
     This exception occurs when content is added to an element during incremental validation."""
+
+    def __str__ (self):
+        value = self.value
+        try:
+            value = str(self.value._element().name())
+        except:
+            pass
+        acceptable = self.automaton_configuration.acceptableSymbols()
+        if 0 == acceptable:
+            expect = 'no more content'
+        else:
+            expect = ' or '.join([ str(_eu.elementBinding().name()) for _eu in acceptable])
+        location = ''
+        if self.location is not None:
+            location = ' at %s' % (self.location,)
+        return 'Invalid content %s%s (expect %s)' % (value, location, expect)
+        
 
 class BatchElementContentError (ContentValidationError):
     """Element/wildcard content cannot be reconciled with the required content model.

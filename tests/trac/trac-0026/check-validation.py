@@ -12,7 +12,7 @@
 # - - * IncompleteElementContentError
 # - - * UnprocessedElementContentError            
 # - - IncrementalElementContentError
-# - - * UnhandledElementContentError
+# - - + UnrecognizedContentError
 # - + ExtraSimpleContentError
 # - + MixedContentError
 # - + SimpleContentAbsentError
@@ -584,6 +584,54 @@ class TestMixedContentError (unittest.TestCase):
             instance.append(trac26.eCTwSC(2))
             instance.append('noise')
 
+    def testDisplayDoc (self):
+        if DisplayException:
+            instance = trac26.CreateFromDocument(self.Bad_xmls)
+
+class TestUnrecognizedContentError (unittest.TestCase):
+    Good_xmls = '<eInts><eInt>1</eInt></eInts>'
+    Bad_xmls = '<eInts><eCTwSC>1</eCTwSC></eInts>'
+    
+    def testSchemaSupport (self):
+        instance = trac26.eInts()
+        instance.append(1)
+        instance = trac26.CreateFromDocument(self.Good_xmls)
+        self.assertEqual(self.Good_xmls, instance.toxml('utf-8', root_only=True))
+
+    def testException (self):
+        instance = trac26.eInts()
+        with self.assertRaises(pyxb.UnrecognizedContentError) as cm:
+            instance.append(trac26.eCTwSC(2))
+        e = cm.exception
+        self.assertTrue(e.location is None)
+        self.assertTrue(e.automaton_configuration is not None)
+        self.assertTrue(isinstance(e.value, trac26.tCTwSC))
+        acceptable = e.automaton_configuration.acceptableSymbols()
+        self.assertEqual(1, len(acceptable))
+        self.assertNotEqual(acceptable[0].elementBinding(), trac26.eInt)
+        self.assertEqual(acceptable[0].typeDefinition(), trac26.eInt.typeDefinition())
+        self.assertEqual(str(e), 'Invalid content eCTwSC (expect eInt)')
+        
+    def testDocument (self):
+        instance = None
+        with self.assertRaises(pyxb.UnrecognizedContentError) as cm:
+            instance = trac26.CreateFromDocument(self.Bad_xmls)
+        e = cm.exception
+        self.assertFalse(e.location is None)
+        self.assertEqual(1, e.location.lineNumber)
+        self.assertEqual(7, e.location.columnNumber)
+        self.assertTrue(isinstance(e.value, trac26.tCTwSC))
+        acceptable = e.automaton_configuration.acceptableSymbols()
+        self.assertEqual(1, len(acceptable))
+        self.assertNotEqual(acceptable[0].elementBinding(), trac26.eInt)
+        self.assertEqual(acceptable[0].typeDefinition(), trac26.eInt.typeDefinition())
+        self.assertEqual(str(e), 'Invalid content eCTwSC at <unknown>[1:7] (expect eInt)')
+
+    def testDisplay (self):
+        if DisplayException:
+            instance = trac26.eInts()
+            instance.append(trac26.eCTwSC(2))
+        
     def testDisplayDoc (self):
         if DisplayException:
             instance = trac26.CreateFromDocument(self.Bad_xmls)

@@ -63,7 +63,7 @@ class TestTrac_0075 (unittest.TestCase):
         self.assertTrue(isinstance(elt, pyxb.binding.content.ElementDeclaration))
         self.assertRaises(KeyError, tTop._UseForTag, 'notInner')
 
-    def testUnhandledElementContentError (self):
+    def testUnrecognizedContentError (self):
         # Hide the warnings that tInner could not be converted to binding
         self.__basis_log.setLevel(logging.ERROR)
         tag = Namespace.createExpandedName('tInner')
@@ -71,20 +71,20 @@ class TestTrac_0075 (unittest.TestCase):
         try:
             instance = CreateFromDocument(xmls)
             self.fail("Succeeded in creating from document with bad inner element")
-        except UnhandledElementContentError as e:
+        except UnrecognizedContentError as e:
             pass
 
         dom = xml.dom.minidom.parseString(xmls)
         try:
             instance = CreateFromDOM(dom)
             self.fail("Succeeded in creating from document with bad inner element")
-        except UnhandledElementContentError as e:
+        except UnrecognizedContentError as e:
             pass
 
     '''
     NOT YET FINISHED
 
-    def testUnhandledElementContentError (self):
+    def testUnrecognizedContentError (self):
         self.fail("Unimplemented test")
 
     def testMissingContentError (self):

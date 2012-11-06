@@ -57,7 +57,7 @@ class TestTrac_200907231705 (unittest.TestCase):
         self.assertEqual(pyxb.binding.basis.complexTypeDefinition._CT_MIXED, instance._ContentTypeTag)
         self.assertEqual(u'5', instance.content()[0])
         xml = '<Mixed units="m">5<Something/>4</Mixed>'
-        self.assertRaises(pyxb.UnhandledElementContentError, CreateFromDocument, xml)
+        self.assertRaises(pyxb.UnrecognizedContentError, CreateFromDocument, xml)
         xml = '<Simple units="m"/>'
         self.assertRaises(pyxb.SimpleContentAbsentError, CreateFromDocument, xml)
 

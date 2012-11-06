@@ -43,7 +43,7 @@ class TestTrac0163 (unittest.TestCase):
             instance = CreateFromDocument('<outer><inner>one</inner><inner>extra</inner></outer>')
             ran_test = False
         except Exception as e:
-            self.assertTrue(isinstance(e, pyxb.UnhandledElementContentError))
+            self.assertTrue(isinstance(e, pyxb.UnrecognizedContentError))
             self.assertTrue(isinstance(e.value, outer.typeDefinition()._UseForTag('inner').elementBinding().typeDefinition()))
             self.assertEqual(e.value, 'extra')
         self.assertTrue(ran_test)

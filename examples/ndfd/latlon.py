@@ -136,15 +136,12 @@ file('resp.xml', 'w').write(rxml)
 # disabled.
 r = None
 try:
-    r = DWML.CreateFromDOM(domutils.StringToDOM(rxml))
-except pyxb.UnhandledElementContentError as e:
-    print '\n\n******* ERROR validating response'
-    print 'Unacceptable instance of %s at %s' % (e.value._element().name(), e.value._location())
-    print 'Allowed: %s' % ('\n\t(or) '.join(map(str, e.automaton_configuration.acceptableSymbols())))
-    print '\n\n'
+    r = DWML.CreateFromDocument(rxml)
+except pyxb.UnrecognizedContentError as e:
+    print '*** ERROR validating response: %s' % (e,)
 if r is None:
     pyxb.RequireValidWhenParsing(False)
-    r = DWML.CreateFromDOM(domutils.StringToDOM(rxml))
+    r = DWML.CreateFromDocument(rxml)
 
 # Start spitting out the processed data.
 product = r.head.product

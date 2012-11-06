@@ -56,11 +56,11 @@ class TestTrac_0057 (unittest.TestCase):
     def testDefault (self):
         self.assertTrue(pyxb._GenerationRequiresValid)
         self.assertTrue(pyxb._ParsingRequiresValid)
-        self.assertRaises(pyxb.UnhandledElementContentError, CreateFromDocument, self.XMLS)
+        self.assertRaises(pyxb.UnrecognizedContentError, CreateFromDocument, self.XMLS)
         doc = pyxb.utils.domutils.StringToDOM(self.XMLS)
-        self.assertRaises(pyxb.UnhandledElementContentError, CreateFromDOM, doc)
+        self.assertRaises(pyxb.UnrecognizedContentError, CreateFromDOM, doc)
         if sys.version_info[:2] >= (2, 7):
-            with self.assertRaises(UnhandledElementContentError) as cm:
+            with self.assertRaises(UnrecognizedContentError) as cm:
                 CreateFromDocument(self.XMLS)
             # Verify the exception tells us what was being processed
             self.assertTrue(isinstance(cm.exception.instance, ObsProject.typeDefinition()))

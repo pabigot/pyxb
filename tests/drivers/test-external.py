@@ -119,7 +119,7 @@ class TestExternal (unittest.TestCase):
         xml = '<personName><surname>Smith</surname><generation>Jr.</generation></personName>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
         self.__basis_log.setLevel(logging.ERROR)
-        self.assertRaises(UnhandledElementContentError, st.personName.Factory, _dom_node=dom.documentElement)
+        self.assertRaises(UnrecognizedContentError, st.personName.Factory, _dom_node=dom.documentElement)
         self.__basis_log.level = self.__basis_loglevel
         xml = xml.replace('personName', 'extendedName')
         dom = pyxb.utils.domutils.StringToDOM(xml)

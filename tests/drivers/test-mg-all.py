@@ -46,7 +46,7 @@ class TestMGAll (unittest.TestCase):
     def testRequiredTooMany (self):
         xml = '<ns1:required xmlns:ns1="URN:test-mg-all"><third/><first/><second/><third/></ns1:required>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
-        self.assertRaises(UnhandledElementContentError, required.createFromDOM, dom.documentElement)
+        self.assertRaises(UnrecognizedContentError, required.createFromDOM, dom.documentElement)
 
     def testThirdOptional (self):
         xml = '<ns1:thirdOptional xmlns:ns1="URN:test-mg-all"><first/><second/></ns1:thirdOptional>'
@@ -65,7 +65,7 @@ class TestMGAll (unittest.TestCase):
 
         xml = '<ns1:thirdOptional xmlns:ns1="URN:test-mg-all"><first/><second/><third/><first/></ns1:thirdOptional>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
-        self.assertRaises(UnhandledElementContentError, thirdOptional.Factory, _dom_node=dom.documentElement)
+        self.assertRaises(UnrecognizedContentError, thirdOptional.Factory, _dom_node=dom.documentElement)
 
     def testOptional (self):
         xml = '<ns1:optional xmlns:ns1="URN:test-mg-all"/>'
@@ -99,7 +99,7 @@ class TestMGAll (unittest.TestCase):
     def testOptionalTooMany (self):
         xml = '<ns1:optional xmlns:ns1="URN:test-mg-all"><third/><first/><third/></ns1:optional>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
-        self.assertRaises(UnhandledElementContentError, optional.createFromDOM, dom.documentElement)
+        self.assertRaises(UnrecognizedContentError, optional.createFromDOM, dom.documentElement)
 
     def stripMembers (self, xml, body):
         for b in body:
