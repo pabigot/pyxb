@@ -510,6 +510,15 @@ class _TypeBinding_mixin (utility.Locatable_mixin):
             return str(cls._ExpandedName)
         return str(cls)
 
+    def _diagnosticName (self):
+        """The best name available for this instance in diagnostics.
+
+        If the instance is associated with an element, it is the element name;
+        otherwise it is the best name for the type of the instance per L{_Name}."""
+        if self.__element is None:
+            return self._Name()
+        return str(self.__element.name())
+
 class _DynamicCreate_mixin (pyxb.cscRoot):
     """Helper to allow overriding the implementation class.
 
@@ -1335,6 +1344,11 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
         return self.__typeDefinition._SupersedingClass()
     __typeDefinition = None
 
+    def xsdLocation (self):
+        """The L{pyxb.utils.utility.Location} where the element appears in the schema."""
+        return self.__xsdLocation
+    __xsdLocation = None
+
     def scope (self):
         """The scope of the element.  This is either C{None}, representing a
         top-level element, or an instance of C{complexTypeDefinition} for
@@ -1419,7 +1433,7 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
         The type for this element must be a complex type definition."""
         return self.typeDefinition()._UseForTag(name).elementBinding()
 
-    def __init__ (self, name, type_definition, scope=None, nillable=False, abstract=False, default_value=None, substitution_group=None, documentation=None):
+    def __init__ (self, name, type_definition, scope=None, nillable=False, abstract=False, default_value=None, substitution_group=None, documentation=None, location=None):
         """Create a new element binding.
         """
         assert isinstance(name, pyxb.namespace.ExpandedName)
@@ -1431,6 +1445,7 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
         self.__defaultValue = default_value
         self.__substitutionGroup = substitution_group
         self.__documentation = documentation
+        self.__xsdLocation = location
         super(element, self).__init__()
         
     def __call__ (self, *args, **kw):

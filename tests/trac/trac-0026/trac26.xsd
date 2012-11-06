@@ -72,8 +72,16 @@
   <xs:element name="eInt" type="xs:int"/>
   <xs:element name="eInts">
     <xs:complexType>
-      <xs:sequence minOccurs="0" maxOccurs="unbounded">
-        <xs:element ref="eInt"/>
+      <xs:sequence>
+        <xs:element ref="eInt"  minOccurs="0" maxOccurs="unbounded"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="eIntsPlus">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="eInt"  minOccurs="0" maxOccurs="unbounded"/>
+        <xs:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax"/>
       </xs:sequence>
     </xs:complexType>
   </xs:element>

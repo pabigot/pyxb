@@ -168,6 +168,18 @@ class ValidationError (PyXBException):
     location = None
     """Where the error occurred in the document being parsed, if available."""
 
+    def details (self):
+        """Provide information describing why validation failed.
+
+        In many cases, this is simple the informal string content that
+        would be obtained through the C{str} built-in function.  For
+        certain errors this method gives more details on what would be
+        acceptable and where the descriptions can be found in the
+        original schema.
+
+        @return: a string description of validation failure"""
+        return str(self)
+
 class ElementValidationError (ValidationError):
     """Raised when a validation requirement for an element is not satisfied."""
     pass
@@ -415,7 +427,7 @@ class UnrecognizedContentError (IncrementalElementContentError):
                 if isinstance(u, pyxb.binding.content.ElementUse):
                     n = str(u.elementBinding().name())
                 else:
-                    assert isinstance(u, pyxb.binding.content.elementWildcardUse)
+                    assert isinstance(u, pyxb.binding.content.WildcardUse)
                     n = 'xs:any'
                 if not (n in seen):
                     names.append(n)
@@ -426,6 +438,36 @@ class UnrecognizedContentError (IncrementalElementContentError):
             location = ' at %s' % (self.location,)
         return 'Invalid content %s%s (expect %s)' % (value, location, expect)
         
+    def details (self):
+        import pyxb.binding.basis
+        import pyxb.binding.content
+        i = self.instance
+        rv = [ ]
+        if i._element() is not None:
+            rv.append('The containing element %s is defined at %s.' % (i._element().name(), i._element().xsdLocation()))
+        rv.append('The containing element type %s is defined at %s' % (self.instance._Name(), str(self.instance._DefinitionLocation)))
+        if self.location is not None:
+            rv.append('The unrecognized content %s begins at %s' % (self.value._diagnosticName(), self.location))
+        else:
+            rv.append('The unrecognized content is %s' % (self.value._diagnosticName(),))
+        ty = type(self.instance)
+        rv.append('The %s automaton %s in an accepting state.' % (self.instance._Name(), self.automaton_configuration.isAccepting() and "is" or "is not"))
+        if isinstance(self.instance, pyxb.binding.basis.complexTypeDefinition) and self.instance._IsMixed():
+            rv.append('Character information content would be permitted.')
+        acceptable = self.automaton_configuration.acceptableContent()
+        if 0 == len(acceptable):
+            rv.append('No elements or wildcards would be accepted at this point.')
+        else:
+            rv.append('The following element and wildcard content would be accepted:')
+            rv2 = []
+            for u in acceptable:
+                if isinstance(u, pyxb.binding.content.ElementUse):
+                    rv2.append('An element %s per %s' % (u.elementBinding().name(), u.schemaLocation()))
+                else:
+                    assert isinstance(u, pyxb.binding.content.WildcardUse)
+                    rv2.append('A wildcard per %s' % (u.schemaLocation(),))
+            rv.append('\t' + '\n\t'.join(rv2))
+        return '\n'.join(rv)
 
 class BatchElementContentError (ContentValidationError):
     """Element/wildcard content cannot be reconciled with the required content model.

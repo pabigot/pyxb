@@ -138,7 +138,8 @@ r = None
 try:
     r = DWML.CreateFromDocument(rxml)
 except pyxb.UnrecognizedContentError as e:
-    print '*** ERROR validating response: %s' % (e,)
+    print '*** ERROR validating response:'
+    print e.details()
 if r is None:
     pyxb.RequireValidWhenParsing(False)
     r = DWML.CreateFromDocument(rxml)

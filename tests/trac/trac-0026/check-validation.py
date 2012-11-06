@@ -591,6 +591,13 @@ class TestMixedContentError (unittest.TestCase):
 class TestUnrecognizedContentError (unittest.TestCase):
     Good_xmls = '<eInts><eInt>1</eInt></eInts>'
     Bad_xmls = '<eInts><eCTwSC>1</eCTwSC></eInts>'
+    Bad_details = '''The containing element eIntsPlus is defined at trac26.xsd[80:2].
+The containing element type <class 'trac26.CTD_ANON_3'> is defined at trac26.xsd[81:4]
+The unrecognized content is eCTwSC
+The <class 'trac26.CTD_ANON_3'> automaton is in an accepting state.
+The following element and wildcard content would be accepted:
+\tAn element eInt per trac26.xsd[83:8]
+\tA wildcard per trac26.xsd[84:8]'''
     
     def testSchemaSupport (self):
         instance = trac26.eInts()
@@ -599,7 +606,7 @@ class TestUnrecognizedContentError (unittest.TestCase):
         self.assertEqual(self.Good_xmls, instance.toxml('utf-8', root_only=True))
 
     def testException (self):
-        instance = trac26.eInts()
+        instance = trac26.eIntsPlus()
         with self.assertRaises(pyxb.UnrecognizedContentError) as cm:
             instance.append(trac26.eCTwSC(2))
         e = cm.exception
@@ -607,10 +614,13 @@ class TestUnrecognizedContentError (unittest.TestCase):
         self.assertTrue(e.automaton_configuration is not None)
         self.assertTrue(isinstance(e.value, trac26.tCTwSC))
         acceptable = e.automaton_configuration.acceptableContent()
-        self.assertEqual(1, len(acceptable))
+        self.assertEqual(2, len(acceptable))
+        self.assertTrue(isinstance(acceptable[0], pyxb.binding.content.ElementUse))
         self.assertNotEqual(acceptable[0].elementBinding(), trac26.eInt)
         self.assertEqual(acceptable[0].typeDefinition(), trac26.eInt.typeDefinition())
-        self.assertEqual(str(e), 'Invalid content eCTwSC (expect eInt)')
+        self.assertTrue(isinstance(acceptable[1], pyxb.binding.content.WildcardUse))
+        self.assertEqual(str(e), 'Invalid content eCTwSC (expect eInt or xs:any)')
+        self.assertEqual(e.details(), self.Bad_details)
         
     def testDocument (self):
         instance = None

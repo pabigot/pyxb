@@ -576,6 +576,7 @@ def elementDeclarationMap (ed, binding_module, **kw):
     for k in ( 'nillable', 'abstract', 'scope', 'documentation' ):
         if k in template_map:
             aux_init.append('%s=%s' % (k, template_map[k]))
+    aux_init.append('location=%s' % (repr(ed._location()),))
     template_map['element_aux_init'] = ''
     if 0 < len(aux_init):
         template_map['element_aux_init'] = ', ' + ', '.join(aux_init)

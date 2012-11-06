@@ -676,6 +676,12 @@ class ElementDeclaration (object):
     information.
     """
 
+    _DeclarationLocation = None
+    """The L{location<pyxb.utils.utility.Location>} in the schema where the
+    element was declared.
+
+    Note that this is not necessarily the same location as its use."""
+
     def name (self):
         """The expanded name of the element.
 
