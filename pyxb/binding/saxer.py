@@ -162,11 +162,11 @@ class _SAXElementState (pyxb.utils.saxutils.SAXElementState):
         """Actions upon leaving an element that is part of a DOM subtree."""
         ns_ctx = self.namespaceContext()
         element = pyxb.utils.saxdom.Element(namespace_context=ns_ctx, expanded_name=self.expandedName(), attributes=self.__attributes, location=self.location())
-        for ( content, element_use, maybe_element ) in self.content():
-            if isinstance(content, xml.dom.Node):
-                element.appendChild(content)
+        for info in self.content():
+            if isinstance(info.item, xml.dom.Node):
+                element.appendChild(info.item)
             else:
-                element.appendChild(pyxb.utils.saxdom.Text(content, namespace_context=ns_ctx))
+                element.appendChild(pyxb.utils.saxdom.Text(info.item, namespace_context=ns_ctx))
         self.__domDepth -= 1
         if 0 == self.__domDepth:
             self.__domDocument.appendChild(element)
@@ -177,7 +177,7 @@ class _SAXElementState (pyxb.utils.saxutils.SAXElementState):
         parent_state.addElementContent(element, None)
         return element
 
-    def startBindingElement (self, type_class, new_object_factory, element_use, attrs):
+    def startBindingElement (self, type_class, new_object_factory, element_decl, attrs):
         """Actions upon entering an element that will produce a binding instance.
 
         The element use is recorded.  If the type is a subclass of
@@ -190,14 +190,14 @@ class _SAXElementState (pyxb.utils.saxutils.SAXElementState):
         @param type_class: The Python type of the binding instance
         @type type_class: subclass of L{basis._TypeBinding_mixin}
         @param new_object_factory: A callable object that creates an instance of the C{type_class}
-        @param element_use: The element use with which the binding instance is associated.  Will be C{None} for top-level elements
-        @type element_use: L{basis.element}
+        @param element_decl: The element use with which the binding instance is associated.  Will be C{None} for top-level elements
+        @type element_decl: L{basis.element}
         @param attrs: The XML attributes associated with the element
         @type attrs: C{xml.sax.xmlreader.Attributes}
         @return: The generated binding instance, or C{None} if creation is delayed
         """
         self.__delayedConstructor = None
-        self.__elementUse = element_use
+        self.__elementDecl = element_decl
         self.__attributes = attrs
         if type_class._IsSimpleTypeContent():
             self.__delayedConstructor = new_object_factory
@@ -213,19 +213,19 @@ class _SAXElementState (pyxb.utils.saxutils.SAXElementState):
         """
         if self.__delayedConstructor is not None:
             args = []
-            for (content, element_use, maybe_element) in self.content():
-                assert not maybe_element
-                assert element_use is None
-                assert isinstance(content, basestring)
-                args.append(content)
+            for info in self.content():
+                assert not info.maybe_element
+                assert info.element_decl is None
+                assert isinstance(info.item, basestring)
+                args.append(info.item)
             assert 1 >= len(args), 'Unexpected STD content %s' % (args,)
             self.__constructElement(self.__delayedConstructor, self.__attributes, args)
         else:
-            for (content, element_use, maybe_element) in self.content():
-                self.__bindingInstance.append(content, element_use, maybe_element, require_validation=pyxb._ParsingRequiresValid)
+            for info in self.content():
+                self.__bindingInstance.append(info.item, info.element_decl, info.maybe_element, require_validation=pyxb._ParsingRequiresValid)
         parent_state = self.parentState()
         if parent_state is not None:
-            parent_state.addElementContent(self.__bindingInstance, self.__elementUse)
+            parent_state.addElementContent(self.__bindingInstance, self.__elementDecl)
         # As CreateFromDOM does, validate the resulting element
         if self.__bindingInstance._element() is None:
             self.__bindingInstance._setElement(self.__elementBinding)

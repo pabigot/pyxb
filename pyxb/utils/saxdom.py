@@ -70,8 +70,8 @@ class _DOMSAXHandler (pyxb.utils.saxutils.BaseSAXHandler):
     def endDocument (self):
         content = self.elementState().content()
         if 0 < len(content):
-            ( content, element_use, maybe_element ) = content[0]
-            self.__document.appendChild(content)
+            assert content[0].maybe_element
+            self.__document.appendChild(content[0].item)
             #_DumpDOM(content)
 
     def startElementNS (self, name, qname, attrs):
@@ -86,11 +86,11 @@ class _DOMSAXHandler (pyxb.utils.saxutils.BaseSAXHandler):
         this_state = super(_DOMSAXHandler, self).endElementNS(name, qname)
         ns_ctx = this_state.namespaceContext()
         element = Element(namespace_context=ns_ctx, expanded_name=this_state.expandedName(), attributes=this_state.__attributes, location=this_state.location())
-        for ( content, element_use, maybe_element ) in this_state.content():
-            if isinstance(content, Node):
-                element.appendChild(content)
+        for info in this_state.content():
+            if isinstance(info.item, Node):
+                element.appendChild(info.item)
             else:
-                element.appendChild(Text(content, namespace_context=ns_ctx))
+                element.appendChild(Text(info.item, namespace_context=ns_ctx))
         parent_state = this_state.parentState()
         parent_state.addElementContent(element, None)
 

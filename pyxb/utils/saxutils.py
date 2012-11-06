@@ -96,6 +96,28 @@ class _NoopSAXHandler (xml.sax.handler.ContentHandler):
     def processingInstruction (self, target, data):
         pass
 
+class SAXInformationItem (object):
+    """Class used to capture an item discovered in the body of an element."""
+    
+    item = None
+    """The item.  Generally either character information (as text) or a DOM Node instance or a binding instance."""
+    
+    location = None
+    """Where the item began in the document."""
+
+    maybe_element = None
+    """C{False} iff the L{item} is character information as opposed to element content."""
+
+    element_decl = None
+    """A reference to the
+    L{ElementDeclaration<pyxb.binding.content.ElementDeclaration>} used for
+    the L{item}.  This will be C{None} for element content that does not have
+    an enclosing CTD scope."""
+    
+    def __init__ (self, item, maybe_element, element_decl=None):
+        self.item = item
+        self.maybe_element = maybe_element
+        self.element_decl = element_decl
 
 class SAXElementState (object):
     """State corresponding to processing a given element with the SAX
@@ -157,18 +179,18 @@ class SAXElementState (object):
         @type content: C{unicode} or C{str}
         @return: C{self}
         """
-        self.__content.append( (content, None, False) )
+        self.__content.append(SAXInformationItem(content, False))
 
-    def addElementContent (self, element, element_use):
-        """Add the given binding instance as element content correspondidng to
+    def addElementContent (self, element, element_decl=None):
+        """Add the given binding instance as element content corresponding to
         the given use.
 
         @param element: Any L{binding instance<pyxb.binding.basis._TypeBinding_mixin>}.
 
-        @param element_use: The L{element
+        @param element_decl: The L{element
         use<pyxb.binding.content.ElementDeclaration>} in the containing complex type.
         """
-        self.__content.append( (element, element_use, True) )
+        self.__content.append(SAXInformationItem(element, True, element_decl))
 
 class BaseSAXHandler (xml.sax.handler.ContentHandler, object):
     """A SAX handler class that maintains a stack of enclosing elements and
