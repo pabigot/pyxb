@@ -354,6 +354,9 @@ class UnprocessedKeywordContentError (ContentValidationError):
         self.location = location
         super(UnprocessedKeywordContentError, self).__init__(instance, keywords, location)
 
+    def __str__ (self):
+        return 'Unprocessed keywords instantiating %s: %s' % (self.instance._Name(), ' '.join(self.keywords.keys()))
+
 class IncrementalElementContentError (ContentValidationError):
     """Element or element-like content could not be validly associated with an sub-element in the content model.
 

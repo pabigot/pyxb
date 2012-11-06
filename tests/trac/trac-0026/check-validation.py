@@ -16,7 +16,7 @@
 # - * ExtraSimpleContentError
 # - * MixedContentError
 # - + SimpleContentAbsentError
-# - * UnprocessedKeywordContentError
+# - + UnprocessedKeywordContentError
 # AttributeValidationError
 # . AttributeChangeError
 # . MissingAttributeError
@@ -508,6 +508,18 @@ class TestAttributeOnSimpleTypeError (unittest.TestCase):
         if DisplayException:
             instance = trac26.CreateFromDocument(self.Bad_xmls)
 
-
+class TestUnprocessedKeywordContentError (unittest.TestCase):
+    def testException (self):
+        instance = None
+        with self.assertRaises(pyxb.UnprocessedKeywordContentError) as cm:
+            instance = trac26.eAttributes(foo=3)
+        self.assertTrue(instance is None)
+        e = cm.exception
+        self.assertTrue(isinstance(e.instance, trac26.tAttributes))
+        self.assertEqual(1, len(e.keywords))
+        self.assertEqual(3, e.keywords['foo'])
+        self.assertTrue(e.location is None)
+        self.assertEqual(str(e), 'Unprocessed keywords instantiating tAttributes: foo')
+        
 if __name__ == '__main__':
     unittest.main()
