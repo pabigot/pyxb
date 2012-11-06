@@ -296,7 +296,15 @@ def %{name} ():
         # The destination of a transition is not unique; need to
         # differentiate using the update instructions.  Which
         # themselves should be sorted.
-        keys = [ stateSortKey(xit.consumingState()) ]
+        st = xit.consumingState()
+
+        # What this assert means is that there appears to be an all model
+        # group in a scope where maxOccurs is not 1, violating the
+        # "All Group Limited" constraint in section 3.8.6 of the
+        # specification.  I'd really like to diagnose this somewhere
+        # else.
+        assert st is not None, 'Transition with no consuming symbol: is All Group Limited satisfied?'
+        keys = [ stateSortKey(st) ]
         keys.extend(map(updateInstructionSortKey, sorted(xit.updateInstructions, key=updateInstructionSortKey)))
         return tuple(keys)
 
