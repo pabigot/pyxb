@@ -14,7 +14,7 @@
 # - - IncrementalElementContentError
 # - - * UnhandledElementContentError
 # - + ExtraSimpleContentError
-# - * MixedContentError
+# - + MixedContentError
 # - + SimpleContentAbsentError
 # - + UnprocessedKeywordContentError
 # AttributeValidationError
@@ -167,7 +167,7 @@ class TestSimpleContentAbsentError (unittest.TestCase):
         instance = trac26.CreateFromDocument(self.Good_xmls)
         self.assertEqual(3, instance.value())
         instance = trac26.eCTwSCSequence()
-        # Can't infer conversion why?
+        # Can't infer conversion, see trac/175
         instance.eCTwSC.append(trac26.eCTwSC(1))
         instance.eCTwSC.append(trac26.eCTwSC(2))
         instance = trac26.CreateFromDocument(self.GoodSeq_xmls)
@@ -545,6 +545,48 @@ class TestExtraSimpleContentError (unittest.TestCase):
         instance = trac26.eCTwSC(1)
         if DisplayException:
             instance.append(2)
+
+class TestMixedContentError (unittest.TestCase):
+    Good_xmls = '<eCTwSCSequence><eCTwSC>2</eCTwSC></eCTwSCSequence>'
+    Bad_xmls = '<eCTwSCSequence><eCTwSC>2</eCTwSC>noise</eCTwSCSequence>'
+    
+    def testSchemaSupport (self):
+        instance = trac26.eCTwSCSequence()
+        instance.append(trac26.eCTwSC(2))
+        instance = trac26.CreateFromDocument(self.Good_xmls)
+        self.assertEqual(self.Good_xmls, instance.toxml('utf-8', root_only=True))
+
+    def testException (self):
+        instance = trac26.eCTwSCSequence()
+        instance.append(trac26.eCTwSC(2))
+        with self.assertRaises(pyxb.MixedContentError) as cm:
+            instance.append('noise')
+        e = cm.exception
+        self.assertTrue(e.location is None)
+        self.assertEqual(e.instance, instance)
+        self.assertEqual(e.value, 'noise')
+        self.assertEqual(str(e), 'Invalid non-element content')
+        
+    def testDocument (self):
+        instance = None
+        with self.assertRaises(pyxb.MixedContentError) as cm:
+            instance = trac26.CreateFromDocument(self.Bad_xmls)
+        e = cm.exception
+        self.assertFalse(e.location is None)
+        self.assertEqual(1, e.location.lineNumber)
+        self.assertEqual(34, e.location.columnNumber)
+        self.assertEqual(e.value, 'noise')
+        self.assertEqual(str(e), 'Invalid non-element content at <unknown>[1:34]')
+        
+    def testDisplay (self):
+        if DisplayException:
+            instance = trac26.eCTwSCSequence()
+            instance.append(trac26.eCTwSC(2))
+            instance.append('noise')
+
+    def testDisplayDoc (self):
+        if DisplayException:
+            instance = trac26.CreateFromDocument(self.Bad_xmls)
 
 if __name__ == '__main__':
     unittest.main()

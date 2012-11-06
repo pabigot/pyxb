@@ -337,6 +337,11 @@ class MixedContentError (ContentValidationError):
         self.location = location
         super(MixedContentError, self).__init__(instance, value, location)
 
+    def __str__ (self):
+        if self.location is not None:
+            return 'Invalid non-element content at %s' % (self.location,)
+        return 'Invalid non-element content'
+
 class UnprocessedKeywordContentError (ContentValidationError):
     """A complex type constructor was provided with keywords that could not be recognized."""
 

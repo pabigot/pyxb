@@ -222,7 +222,11 @@ class _SAXElementState (pyxb.utils.saxutils.SAXElementState):
             self.__constructElement(self.__delayedConstructor, self.__attributes, args)
         else:
             for info in self.content():
-                self.__bindingInstance.append(info.item, info.element_decl, info.maybe_element, require_validation=pyxb._ParsingRequiresValid)
+                self.__bindingInstance.append(info.item,
+                                              _element_decl=info.element_decl,
+                                              _maybe_element=info.maybe_element,
+                                              _location=info.location,
+                                              _require_validation=pyxb._ParsingRequiresValid)
         parent_state = self.parentState()
         if parent_state is not None:
             parent_state.addElementContent(self.location(), self.__bindingInstance, self.__elementDecl)

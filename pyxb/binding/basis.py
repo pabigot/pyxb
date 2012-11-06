@@ -2097,7 +2097,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             element_binding = element_decl.elementBinding()
         return (element_binding, element_decl)
         
-    def append (self, value, element_decl=None, maybe_element=True, _fallback_namespace=None, require_validation=True, _from_xml=False):
+    def append (self, value, **kw):
         """Add the value to the instance.
 
         The value should be a DOM node or other value that is or can be
@@ -2112,6 +2112,12 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         # in saxer.
         if self._isNil():
             raise pyxb.ContentInNilInstanceError(self, value)
+        element_decl = kw.get('_element_decl', None)
+        maybe_element = kw.get('_maybe_element', True)
+        location = kw.get('_location', None)
+        _fallback_namespace = kw.get('_fallback_namespace', None)
+        require_validation = kw.get('_require_validation', 'True')
+        _from_xml = kw.get('_from_xml', False)
         element_binding = None
         if element_decl is not None:
             from pyxb.binding import content
@@ -2196,7 +2202,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
 
         # Do we allow non-element content?
         if not self._IsMixed():
-            raise pyxb.MixedContentError(self, value)
+            raise pyxb.MixedContentError(self, value, location)
 
         self._addContent(value, element_binding)
         return self
