@@ -438,18 +438,22 @@ class AutomatonConfiguration (object):
         for fn in actions:
             fn(self.__instance)
 
-    def acceptableSymbols (self):
+    def acceptableContent (self):
         """Return the sequence of acceptable symbols at this state.
 
-        @return: the catenation of values returned by
-        L{pyxb.utils.fac.Configuration_ABC.acceptableSymbols} for each
-        configuration."""
+        The list comprises the L{pyxb.binding.content.ElementUse} and
+        L{pyxb.binding.content.WildcardUse} instances that are used to
+        validate proposed symbols, in preferred order."""
         rv = []
+        seen = set()
         multi = self.__multi
         if multi is None:
             multi = [ self.__cfg]
         for cfg in multi:
-            rv.extend(cfg.acceptableSymbols())
+            for u in cfg.acceptableSymbols():
+                if not (u in seen):
+                    rv.append(u)
+                    seen.add(u)
         return rv
 
     def isAccepting (self):
@@ -573,7 +577,7 @@ class ElementUse (_FACSymbol):
     __elementDeclaration = None
 
     def elementDeclaration (self):
-        """Return the L{element declaration<pyxb.binding.content.ElementDeclaration} associated with the use."""
+        """Return the L{element declaration<pyxb.binding.content.ElementDeclaration>} associated with the use."""
         return self.__elementDeclaration
 
     def elementBinding (self):

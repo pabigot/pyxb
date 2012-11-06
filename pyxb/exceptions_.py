@@ -404,11 +404,23 @@ class UnrecognizedContentError (IncrementalElementContentError):
             value = str(self.value._element().name())
         except:
             pass
-        acceptable = self.automaton_configuration.acceptableSymbols()
+        acceptable = self.automaton_configuration.acceptableContent()
         if 0 == acceptable:
             expect = 'no more content'
         else:
-            expect = ' or '.join([ str(_eu.elementBinding().name()) for _eu in acceptable])
+            import pyxb.binding.content
+            seen = set()
+            names = []
+            for u in acceptable:
+                if isinstance(u, pyxb.binding.content.ElementUse):
+                    n = str(u.elementBinding().name())
+                else:
+                    assert isinstance(u, pyxb.binding.content.elementWildcardUse)
+                    n = 'xs:any'
+                if not (n in seen):
+                    names.append(n)
+                    seen.add(n)
+            expect = ' or '.join(names)
         location = ''
         if self.location is not None:
             location = ' at %s' % (self.location,)
