@@ -99,12 +99,13 @@ class _NoopSAXHandler (xml.sax.handler.ContentHandler):
 class SAXInformationItem (object):
     """Class used to capture an item discovered in the body of an element."""
     
-    item = None
-    """The item.  Generally either character information (as text) or a DOM Node instance or a binding instance."""
-    
     location = None
     """Where the item began in the document."""
 
+    item = None
+    """The item.  Generally either character information (as text) or a DOM
+    Node instance or a binding instance."""
+    
     maybe_element = None
     """C{False} iff the L{item} is character information as opposed to element content."""
 
@@ -114,7 +115,8 @@ class SAXInformationItem (object):
     the L{item}.  This will be C{None} for element content that does not have
     an enclosing CTD scope."""
     
-    def __init__ (self, item, maybe_element, element_decl=None):
+    def __init__ (self, location, item, maybe_element, element_decl=None):
+        self.location = location
         self.item = item
         self.maybe_element = maybe_element
         self.element_decl = element_decl
@@ -174,14 +176,14 @@ class SAXElementState (object):
         self.__location = self.__contentHandler.location()
         self.__content = []
 
-    def addTextContent (self, content):
+    def addTextContent (self, location, content):
         """Add the given text as non-element content of the current element.
         @type content: C{unicode} or C{str}
         @return: C{self}
         """
-        self.__content.append(SAXInformationItem(content, False))
+        self.__content.append(SAXInformationItem(location, content, False))
 
-    def addElementContent (self, element, element_decl=None):
+    def addElementContent (self, location, element, element_decl=None):
         """Add the given binding instance as element content corresponding to
         the given use.
 
@@ -190,7 +192,7 @@ class SAXElementState (object):
         @param element_decl: The L{element
         use<pyxb.binding.content.ElementDeclaration>} in the containing complex type.
         """
-        self.__content.append(SAXInformationItem(element, True, element_decl))
+        self.__content.append(SAXInformationItem(location, element, True, element_decl))
 
 class BaseSAXHandler (xml.sax.handler.ContentHandler, object):
     """A SAX handler class that maintains a stack of enclosing elements and
@@ -391,7 +393,10 @@ class BaseSAXHandler (xml.sax.handler.ContentHandler, object):
     __pendingTextLocation = None
     def __flushPendingText (self):
         if self.__pendingText:
-            self.__elementState.addTextContent(''.join(self.__pendingText))
+            location = self.__pendingTextLocation
+            if location is None:
+                location = self.location()
+            self.__elementState.addTextContent(location, ''.join(self.__pendingText))
         self.__pendingTextLocation = None
         self.__pendingText = []
 

@@ -92,7 +92,7 @@ class _DOMSAXHandler (pyxb.utils.saxutils.BaseSAXHandler):
             else:
                 element.appendChild(Text(info.item, namespace_context=ns_ctx))
         parent_state = this_state.parentState()
-        parent_state.addElementContent(element, None)
+        parent_state.addElementContent(this_state.location(), element, None)
 
 def parse (stream, **kw):
     """Parse a stream containing an XML document and return the DOM tree

@@ -174,7 +174,7 @@ class _SAXElementState (pyxb.utils.saxutils.SAXElementState):
             self.__domDepth = None
             self.__domDocument = None
         parent_state = self.parentState()
-        parent_state.addElementContent(element, None)
+        parent_state.addElementContent(self.location(), element, None)
         return element
 
     def startBindingElement (self, type_class, new_object_factory, element_decl, attrs):
@@ -225,7 +225,7 @@ class _SAXElementState (pyxb.utils.saxutils.SAXElementState):
                 self.__bindingInstance.append(info.item, info.element_decl, info.maybe_element, require_validation=pyxb._ParsingRequiresValid)
         parent_state = self.parentState()
         if parent_state is not None:
-            parent_state.addElementContent(self.__bindingInstance, self.__elementDecl)
+            parent_state.addElementContent(self.location(), self.__bindingInstance, self.__elementDecl)
         # As CreateFromDOM does, validate the resulting element
         if self.__bindingInstance._element() is None:
             self.__bindingInstance._setElement(self.__elementBinding)
