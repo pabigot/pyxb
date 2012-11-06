@@ -2115,9 +2115,9 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         element_decl = kw.get('_element_decl', None)
         maybe_element = kw.get('_maybe_element', True)
         location = kw.get('_location', None)
-        _fallback_namespace = kw.get('_fallback_namespace', None)
+        fallback_namespace = kw.get('_fallback_namespace', None)
         require_validation = kw.get('_require_validation', 'True')
-        _from_xml = kw.get('_from_xml', False)
+        from_xml = kw.get('_from_xml', False)
         element_binding = None
         if element_decl is not None:
             from pyxb.binding import content
@@ -2126,7 +2126,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             assert element_binding is not None
         # Convert the value if it's XML and we recognize it.
         if isinstance(value, xml.dom.Node):
-            _from_xml = True
+            from_xml = True
             assert maybe_element
             assert element_binding is None
             node = value
@@ -2141,17 +2141,17 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             else:
                 # Do type conversion here
                 assert xml.dom.Node.ELEMENT_NODE == node.nodeType
-                expanded_name = pyxb.namespace.ExpandedName(node, fallback_namespace=_fallback_namespace)
+                expanded_name = pyxb.namespace.ExpandedName(node, fallback_namespace=fallback_namespace)
                 (element_binding, element_decl) = self._ElementBindingDeclForName(expanded_name)
                 if element_binding is not None:
                     # If we have an element binding, we need to use it because
                     # it knows how to resolve substitution groups.
-                    value = element_binding._createFromDOM(node, expanded_name, _fallback_namespace=_fallback_namespace)
+                    value = element_binding._createFromDOM(node, expanded_name, _fallback_namespace=fallback_namespace)
                 else:
                     # If we don't have an element binding, we might still be
                     # able to convert this if it has an xsi:type attribute.
                     try:
-                        value = element.CreateDOMBinding(node, None, _fallback_namespace=_fallback_namespace)
+                        value = element.CreateDOMBinding(node, None, _fallback_namespace=fallback_namespace)
                     except:
                         _log.warning('Unable to convert DOM node %s at %s to binding', expanded_name, getattr(node, 'location', '[UNAVAILABLE]'))
         if (not maybe_element) and isinstance(value, basestring) and (self._ContentTypeTag in (self._CT_EMPTY, self._CT_ELEMENT_ONLY)):
@@ -2185,7 +2185,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
                 raise pyxb.ExtraSimpleContentError(self, value)
             if not self._isNil():
                 if not isinstance(value, self._TypeDefinition):
-                    value = self._TypeDefinition.Factory(value, _from_xml=_from_xml)
+                    value = self._TypeDefinition.Factory(value, _from_xml=from_xml)
                 self.__setContent(value)
                 if require_validation:
                     # NB: This only validates the value, not any associated
