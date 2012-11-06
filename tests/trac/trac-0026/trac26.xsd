@@ -111,4 +111,16 @@
   </xs:complexType>
   <xs:element name="eAttributesProhibited" type="tAttributesProhibited"/>
 
+  <!-- *** Material related to content model validation -->
+  <xs:complexType name="tTranslateCard">
+    <xs:sequence>
+      <xs:all>
+        <xs:element ref="eConcCardCymru"/>
+        <xs:element ref="eConcCardEnglish"/>
+      </xs:all>
+      <xs:element name="cardinal" type="xs:int"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="eTranslateCard" type="tTranslateCard"/>
+
 </xs:schema>

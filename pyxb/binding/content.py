@@ -515,7 +515,7 @@ class AutomatonConfiguration (object):
             cfg = selected_xit.apply(cfg)
         # Exit out of any sub-configurations (they might be accepting while
         # the superConfiguration is not)
-        while cfg.superConfiguration:
+        while cfg.isAccepting() and (cfg.superConfiguration is not None):
             cfg = cfg.superConfiguration
         if not cfg.isAccepting():
             _log.warning('Incomplete content, expect %s' % (' or '.join(map(str, cfg.acceptableSymbols()))))

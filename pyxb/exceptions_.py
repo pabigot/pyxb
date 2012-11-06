@@ -498,6 +498,48 @@ class BatchElementContentError (ContentValidationError):
         self.symbol_set = symbol_set
         super(BatchElementContentError, self).__init__(instance, automaton_configuration, symbols, symbol_set)
 
+    def details (self):
+        import pyxb.binding.basis
+        import pyxb.binding.content
+        i = self.instance
+        rv = [ ]
+        if i._element() is not None:
+            rv.append('The containing element %s is defined at %s.' % (i._element().name(), i._element().xsdLocation()))
+        rv.append('The containing element type %s is defined at %s' % (self.instance._Name(), str(self.instance._XSDLocation)))
+        ty = type(self.instance)
+        rv.append('The %s automaton %s in an accepting state.' % (self.instance._Name(), self.automaton_configuration.isAccepting() and "is" or "is not"))
+        if 0 == len(self.symbols):
+            rv.append('No content has been accepted')
+        else:
+            rv.append('The last accepted content was %s' % (self.symbols[-1][1]._diagnosticName(),))
+        if isinstance(self.instance, pyxb.binding.basis.complexTypeDefinition) and self.instance._IsMixed():
+            rv.append('Character information content would be permitted.')
+        acceptable = self.automaton_configuration.acceptableSymbols()
+        if 0 == len(acceptable):
+            rv.append('No elements or wildcards would be accepted at this point.')
+        else:
+            rv.append('The following element and wildcard content would be accepted:')
+            rv2 = []
+            for u in acceptable:
+                if isinstance(u, pyxb.binding.content.ElementUse):
+                    rv2.append('An element %s per %s' % (u.elementBinding().name(), u.xsdLocation()))
+                else:
+                    assert isinstance(u, pyxb.binding.content.WildcardUse)
+                    rv2.append('A wildcard per %s' % (u.xsdLocation(),))
+            rv.append('\t' + '\n\t'.join(rv2))
+        if 0 == len(self.symbol_set):
+            rv.append('No content remains unconsumed')
+        else:
+            rv.append('The following content was not processed by the automaton:')
+            rv2 = []
+            for (ed, syms) in self.symbol_set.iteritems():
+                if ed is None:
+                    rv2.append('xs:any (%u instances)' % (len(syms),))
+                else:
+                    rv2.append('%s (%u instances)' % (ed.name(), len(syms)))
+            rv.append('\t' + '\n\t'.join(rv2))
+        return '\n'.join(rv)
+
 class IncompleteElementContentError (BatchElementContentError):
     """Validation of an instance failed to produce an accepting state.
 

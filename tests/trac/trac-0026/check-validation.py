@@ -646,5 +646,43 @@ The following element and wildcard content would be accepted:
         if DisplayException:
             instance = trac26.CreateFromDocument(self.Bad_xmls)
 
+class TestIncompleteElementContentError (unittest.TestCase):
+    Good_xmls = '<eTranslateCard><eConcCardCymru>un</eConcCardCymru><eConcCardEnglish>one</eConcCardEnglish><cardinal>1</cardinal></eTranslateCard>'
+    Bad_xmls = '<eTranslateCard><eConcCardEnglish>one</eConcCardEnglish><cardinal>1</cardinal></eTranslateCard>'
+    Bad_details = '''The containing element eTranslateCard is defined at trac26.xsd[124:2].
+The containing element type tTranslateCard is defined at trac26.xsd[115:2]
+The tTranslateCard automaton is not in an accepting state.
+The last accepted content was eConcCardCymru
+The following element and wildcard content would be accepted:
+\tAn element eConcCardEnglish per trac26.xsd[119:8]
+The following content was not processed by the automaton:
+\tcardinal (1 instances)'''
+
+    def testSchemaSupport (self):
+        instance = trac26.eTranslateCard(trac26.eConcCardCymru('un'),
+                                         trac26.eConcCardEnglish('one'),
+                                         xs.int(1))
+        self.assertTrue(instance.validateBinding())
+        instance = trac26.CreateFromDocument(self.Good_xmls)
+        self.assertEqual(self.Good_xmls, instance.toxml('utf-8', root_only=True))
+        instance = trac26.eTranslateCard(trac26.eConcCardCymru('un'))
+        instance.cardinal = 1
+        instance.eConcCardEnglish = 'one'
+        self.assertTrue(instance.validateBinding())
+
+    def testException (self):
+        instance = trac26.eTranslateCard(trac26.eConcCardCymru('un'))
+        instance.cardinal = 1
+        with self.assertRaises(pyxb.IncompleteElementContentError) as cm:
+            instance.validateBinding()
+        e = cm.exception
+        self.assertFalse(e.automaton_configuration.isAccepting())
+        self.assertEqual(1, len(e.symbols))
+        self.assertEqual(1, len(e.symbol_set))
+        (ed, syms) = e.symbol_set.iteritems().next()
+        self.assertEqual(1, len(syms))
+        self.assertEqual(instance.cardinal, syms[0])
+        self.assertEqual(e.details(), self.Bad_details)
+        
 if __name__ == '__main__':
     unittest.main()
