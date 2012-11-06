@@ -2172,10 +2172,10 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             if 1 <= num_cand:
                 # Resolution was successful (possibly non-deterministic)
                 return self
-        # If what we have is element content, we can't accept it, either
-        # because the type doesn't accept element content or because it does
-        # and what we got didn't match the content model.
-        if (element_binding is not None) or isinstance(value, xml.dom.Node):
+        # If what we have is element or just complex content, we can't accept
+        # it, either because the type doesn't accept element content or
+        # because it does and what we got didn't match the content model.
+        if (element_binding is not None) or isinstance(value, (xml.dom.Node, complexTypeDefinition)):
             raise pyxb.UnhandledElementContentError(self, self.__automatonConfiguration, value)
 
         # We have something that doesn't seem to be an element.  Are we
@@ -2194,17 +2194,12 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
                     self.xsdConstraintsOK()
             return self
 
-        # We don't know what this was supposed to be, but if it got a binding
-        # type assigned to it it's not valid as mixed content.  (Even if it
-        # happens to be character data?)
-        if isinstance(value, _TypeBinding_mixin):
-            raise pyxb.UnhandledElementContentError(self, self.__automatonConfiguration, value)
-
         # Do we allow non-element content?
         if not self._IsMixed():
             raise pyxb.MixedContentError(self, value, location)
 
-        self._addContent(value, element_binding)
+        # It's character information.
+        self._addContent(unicode(value), None)
         return self
 
     def _appendWildcardElement (self, value):

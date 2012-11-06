@@ -75,7 +75,10 @@ class TestTrac_200907231705 (unittest.TestCase):
         self.assertTrue(instance.validateBinding())
         instance = Mixed(4, units='m')
         self.assertTrue(instance.validateBinding())
-        self.assertEqual(4, instance.content()[0])
+        self.assertEqual(u'4', instance.content()[0])
+        instance = Mixed(xs.int(4), units='m')
+        self.assertTrue(instance.validateBinding())
+        self.assertEqual(u'4', instance.content()[0])
 
     def testCtorSimple (self):
         self.assertRaises(pyxb.SimpleContentAbsentError, Simple)
