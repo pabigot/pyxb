@@ -832,7 +832,7 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
                 location = self._location()
             raise pyxb.SimpleContentAbsentError(self, location)
         if validate_constraints:
-            self.xsdConstraintsOK()
+            self.xsdConstraintsOK(location)
 
 
     # The class attribute name used to store the reference to the STD
@@ -919,7 +919,7 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
     __ClassFacetSequence = { }
 
     @classmethod
-    def XsdConstraintsOK (cls, value):
+    def XsdConstraintsOK (cls, value, location=None):
         """Validate the given value against the constraints on this class.
         
         @raise pyxb.SimpleTypeValueError: if any constraint is violated.
@@ -954,12 +954,12 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
                 cls.__ClassFacetSequence[cls] = facet_values
         for f in facet_values:
             if not f.validateConstraint(value):
-                raise pyxb.SimpleFacetValueError(cls, value, f)
+                raise pyxb.SimpleFacetValueError(cls, value, f, location)
         return value
 
-    def xsdConstraintsOK (self):
+    def xsdConstraintsOK (self, location=None):
         """Validate the value of this instance against its constraints."""
-        return self.XsdConstraintsOK(self)
+        return self.XsdConstraintsOK(self, location)
 
     def _validateBinding_vx (self):
         if not self._isNil():
@@ -1137,14 +1137,14 @@ class STD_union (simpleTypeDefinition):
                     pass
                 except:
                     pass
-        if rv is not None:
-            if validate_constraints:
-                cls.XsdConstraintsOK(rv)
-            rv._postFactory_vx(state)
-            return rv
         location = None
         if kw is not None:
             location = kw.get('_location')
+        if rv is not None:
+            if validate_constraints:
+                cls.XsdConstraintsOK(rv, location)
+            rv._postFactory_vx(state)
+            return rv
         # The constructor may take any number of arguments, so pass the whole thing.
         # Should we also provide the keywords?
         raise pyxb.SimpleUnionValueError(cls, args, location)
@@ -2008,7 +2008,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             au.set(self, value)
         return au
 
-    def xsdConstraintsOK (self):
+    def xsdConstraintsOK (self, location=None):
         """Validate the content against the simple type.
 
         @return: C{True} if the content validates against its type.
@@ -2021,8 +2021,10 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         if self._isNil():
             return True
         if self.__content is None:
-            raise pyxb.SimpleContentAbsentError(self, self._location())
-        return self.value().xsdConstraintsOK()
+            if location is None:
+                location = self._location()
+            raise pyxb.SimpleContentAbsentError(self, location)
+        return self.value().xsdConstraintsOK(location)
 
     # __content is used in two ways: when complex content is used, it is as
     # documented in L{content}.  When simple content is used, it is as
@@ -2221,7 +2223,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
                     # NB: This only validates the value, not any associated
                     # attributes, which is correct to be parallel to complex
                     # content validation.
-                    self.xsdConstraintsOK()
+                    self.xsdConstraintsOK(location)
             return self
 
         # Do we allow non-element content?
