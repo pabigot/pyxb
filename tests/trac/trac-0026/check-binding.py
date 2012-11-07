@@ -2,10 +2,16 @@
 
 # Check all exceptions under pyxb.BindingError
 
+import logging
+if __name__ == '__main__':
+    logging.basicConfig()
+_log = logging.getLogger(__name__)
+
 import pyxb
 import pyxb.binding.datatypes as xs
 import trac26
 import unittest
+import sys
 
 # By default skip the "tests" which actually emit the exception
 # backtrace.  Sometimes though it's good to see those, since they're
@@ -88,4 +94,7 @@ class TestNotSimpleContentError (unittest.TestCase):
             trac26.eEmpty().value()
 
 if __name__ == '__main__':
-    unittest.main()
+    if sys.version_info[:2] >= (2, 7):
+        unittest.main()
+    else:
+        _log.warning('Cannot run test prior to Python 2.7')
