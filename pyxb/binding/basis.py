@@ -1104,7 +1104,7 @@ class STD_union (simpleTypeDefinition):
         """Given a value, attempt to create an instance of some member of this
         union.  The first instance which can be legally created is returned.
 
-        @keyword _validate_constraints: If True (default if validation is
+        @keyword _validate_constraints: If C{True} (default if validation is
         enabled), any constructed value is checked against constraints applied
         to the union as well as the member type.
 
@@ -1142,7 +1142,12 @@ class STD_union (simpleTypeDefinition):
                 cls.XsdConstraintsOK(rv)
             rv._postFactory_vx(state)
             return rv
-        raise pyxb.SimpleUnionValueError(cls, args)
+        location = None
+        if kw is not None:
+            location = kw.get('_location')
+        # The constructor may take any number of arguments, so pass the whole thing.
+        # Should we also provide the keywords?
+        raise pyxb.SimpleUnionValueError(cls, args, location)
 
     @classmethod
     def _ValidatedMember (cls, value):
@@ -1477,7 +1482,9 @@ class element (utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
             if (location is None) and isinstance(dom_node, utility.Locatable_mixin):
                 location = dom_node._location()
             raise pyxb.AbstractElementError(self, location, args)
-        return self.typeDefinition().Factory(*args, **kw)
+        rv = self.typeDefinition().Factory(*args, **kw)
+        rv._setElement(self)
+        return rv
 
     def compatibleValue (self, value, **kw):
         """Return a variant of the value that is compatible with this element.

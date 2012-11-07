@@ -618,18 +618,25 @@ class SimpleTypeValueError (ValidationError):
 class SimpleListValueError (SimpleTypeValueError):
     """Raised when a list simple type contains a member that does not satisfy its constraints.
 
-    In this case, L{type} is the type of the list, and the value
-    C{type._ItemType} is the type for which the value is
+    In this case, L{type} is the type of the list, and value
+    C{type._ItemType} is the type for which the L{value} is
     unacceptable."""
-    pass
+
+    def __str__ (self):
+        return 'Member type %s of list type %s cannot accept %s' % (self.type._ItemType._Name(), self.type._Name(), self.value)
 
 class SimpleUnionValueError (SimpleTypeValueError):
     """Raised when a union simple type contains a member that does not satisfy its constraints.
 
     In this case, L{type} is the type of the union, and the value
     C{type._MemberTypes} is the set of types for which the value is
-    unacceptable."""
-    pass
+    unacceptable.
+
+    The L{value} itself is the tuple of arguments passed to the
+    constructor for the union."""
+
+    def __str__ (self):
+        return 'No memberType of %s can be constructed from %s' % (self.type._Name(), self.value)
 
 class SimpleFacetValueError (SimpleTypeValueError):
     """Raised when a simple type value does not satisfy a facet constraint.

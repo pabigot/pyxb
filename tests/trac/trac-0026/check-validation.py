@@ -852,6 +852,7 @@ class TestSimpleListValueError (unittest.TestCase):
         self.assertEqual(e.type, trac26.tListCardCymru)
         self.assertEqual(e.value, 'pump')
         self.assertTrue(e.location is None)
+        self.assertEqual(str(e), 'Member type tCardCymru of list type tListCardCymru cannot accept pump')
 
     def testException (self):
         instance = None
@@ -863,6 +864,39 @@ class TestSimpleListValueError (unittest.TestCase):
         self.assertFalse(e.location is None)
         self.assertEqual(1, e.location.lineNumber)
         self.assertEqual(0, e.location.columnNumber)
+
+class TestSimpleUnionValueError (unittest.TestCase):
+    Good_xmls = '<eSimpleInstance><eUnionCard>dau</eUnionCard></eSimpleInstance>'
+    Bad_xmls = '<eSimpleInstance><eUnionCard>pump</eUnionCard></eSimpleInstance>'
+
+    def testSchemaSupport (self):
+        for (ty, va) in ((trac26.tCardCymru, 'un'), (trac26.tCardEnglish, 'two') , (xs.int, 3)):
+            instance = trac26.eUnionCard(va)
+            self.assertTrue(isinstance(instance, ty))
+            self.assertEqual('<eUnionCard>%s</eUnionCard>' % (va,), instance.toxml('utf-8', root_only=True))
+        instance = trac26.CreateFromDocument(self.Good_xmls)
+        self.assertEqual(self.Good_xmls, instance.toxml('utf-8', root_only=True))
+
+    def testException (self):
+        instance = None
+        with self.assertRaises(pyxb.SimpleUnionValueError) as cm:
+            instance = trac26.eUnionCard('pump')
+        e = cm.exception
+        self.assertEqual(e.type, trac26.tUnionCard)
+        self.assertEqual(e.value, ('pump',))
+        self.assertTrue(e.location is None)
+        self.assertEqual(str(e), "No memberType of tUnionCard can be constructed from ('pump',)")
+
+    def testDocument (self):
+        instance = None
+        with self.assertRaises(pyxb.SimpleUnionValueError) as cm:
+            instance = trac26.CreateFromDocument(self.Bad_xmls)
+        e = cm.exception
+        self.assertEqual(e.type, trac26.tUnionCard)
+        self.assertEqual(e.value, ('pump',))
+        self.assertFalse(e.location is None)
+        self.assertEqual(1, e.location.lineNumber)
+        self.assertEqual(17, e.location.columnNumber)
 
 if __name__ == '__main__':
     unittest.main()
