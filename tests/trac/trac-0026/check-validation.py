@@ -317,7 +317,7 @@ class TestAttributeValueError (unittest.TestCase):
         self.assertEqual(e.type, au.dataType())
         self.assertEqual(e.value, 'four')
         self.assertEqual(e.facet, au.dataType()._CF_enumeration)
-        self.assertEqual(str(e), "Type <class 'trac26.tCardCymru'> enumeration constraint violated by value four")
+        self.assertEqual(str(e), "Type tCardCymru enumeration constraint violated by value four")
 
     def testConstructor (self):
         with self.assertRaises(pyxb.SimpleTypeValueError) as cm:
@@ -897,6 +897,41 @@ class TestSimpleUnionValueError (unittest.TestCase):
         self.assertFalse(e.location is None)
         self.assertEqual(1, e.location.lineNumber)
         self.assertEqual(17, e.location.columnNumber)
+
+class TestSimpleFacetValueError (unittest.TestCase):
+    Good_xmls = '<eTLA>ABC</eTLA>'
+    Bad_xmls = '<eTLA>ABCD</eTLA>'
+
+    def testSchemaSupport (self):
+        instance = trac26.eTLA('ABC')
+        self.assertTrue(instance.validateBinding())
+        instance = trac26.CreateFromDocument(self.Good_xmls)
+        self.assertEqual(self.Good_xmls, instance.toxml('utf-8', root_only=True))
+
+    def testException (self):
+        instance = None
+        with self.assertRaises(pyxb.SimpleFacetValueError) as cm:
+            instance = trac26.eTLA('ABCD')
+        e = cm.exception
+        self.assertTrue(e.location is None)
+        self.assertEqual(e.type, trac26.tTLA)
+        self.assertEqual(e.value, 'ABCD')
+        self.assertEqual(e.facet, trac26.tTLA._CF_length)
+        self.assertEqual(str(e), 'Type tTLA length constraint violated by value ABCD')
+
+    def testDocument (self):
+        instance = None
+        with self.assertRaises(pyxb.SimpleFacetValueError) as cm:
+            instance = trac26.CreateFromDocument(self.Bad_xmls)
+        e = cm.exception
+        self.assertFalse(e.location is None)
+        self.assertEqual(1, e.location.lineNumber)
+        self.assertEqual(0, e.location.columnNumber)
+        self.assertEqual(e.type, trac26.tTLA)
+        self.assertEqual(e.value, 'ABCD')
+        self.assertEqual(e.facet, trac26.tTLA._CF_length)
+        self.assertEqual(str(e), 'Type tTLA length constraint violated by value ABCD')
+
 
 if __name__ == '__main__':
     unittest.main()

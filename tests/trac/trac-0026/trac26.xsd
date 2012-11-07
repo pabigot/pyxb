@@ -150,6 +150,12 @@
   </xs:element>
 
   <!-- *** Simple type validation -->
+  <xs:simpleType name="tTLA">
+    <xs:restriction base="xs:string">
+      <xs:length value="3"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:element name="eTLA" type="tTLA"/>
   <xs:simpleType name="tListCardCymru">
     <xs:list itemType="tCardCymru"/>
   </xs:simpleType>
@@ -163,6 +169,7 @@
       <xs:sequence>
         <xs:element ref="eListCardCymru" minOccurs="0"/>
         <xs:element ref="eUnionCard" minOccurs="0"/>
+	<xs:element ref="eTLA" minOccurs="0"/>
       </xs:sequence>
     </xs:complexType>
   </xs:element>

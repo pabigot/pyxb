@@ -656,18 +656,24 @@ class SimpleFacetValueError (SimpleTypeValueError):
     facet = None
     """The specific facet that is violated by the value."""
 
-    def __init__ (self, type, value, facet):
+    def __init__ (self, type, value, facet, location=None):
         """@param type: the value for the L{type} attribute.
         @param value: the value for the L{value} attribute.
-        """
+        @param facet: the value for the L{facet} attribute.
+        @param location: the value for the L{location} attribute.  Default taken from C{value} if possible."""
+        import pyxb.utils.utility
+
         self.type = type
         self.value = value
         self.facet = facet
+        if (location is None) and isinstance(value, pyxb.utils.utility.Locatable_mixin):
+            location = value._location()
+        self.location = location
         # Bypass immediate parent
         super(SimpleTypeValueError, self).__init__(type, value, facet)
 
     def __str__ (self):
-        return 'Type %s %s constraint violated by value %s' % (self.type, self.facet._Name, self.value)
+        return 'Type %s %s constraint violated by value %s' % (self.type._Name(), self.facet._Name, self.value)
 
 class SimplePluralValueError (SimpleTypeValueError):
     """Raised when context requires a plural value.
