@@ -149,5 +149,22 @@
     </xs:complexType>
   </xs:element>
 
+  <!-- *** Simple type validation -->
+  <xs:simpleType name="tListCardCymru">
+    <xs:list itemType="tCardCymru"/>
+  </xs:simpleType>
+  <xs:element name="eListCardCymru" type="tListCardCymru"/>
+  <xs:simpleType name="tUnionCard">
+    <xs:union memberTypes="tCardCymru tCardEnglish xs:int"/>
+  </xs:simpleType>
+  <xs:element name="eUnionCard" type="tUnionCard"/>
+  <xs:element name="eSimpleInstance">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="eListCardCymru" minOccurs="0"/>
+        <xs:element ref="eUnionCard" minOccurs="0"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
 
 </xs:schema>

@@ -777,11 +777,11 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
         kw.pop('_fallback_namespace', None)
         kw.pop('_apply_attributes', None)
         kw.pop('_nil', None)
-        kw.pop('_location', None)
         # ConvertArguments will remove _element and _apply_whitespace_facet
         dom_node = kw.get('_dom_node')
         args = cls._ConvertArguments(args, kw)
         kw.pop('_from_xml', dom_node is not None)
+        kw.pop('_location', None)
         assert issubclass(cls, _TypeBinding_mixin)
         try:
             return super(simpleTypeDefinition, cls).__new__(cls, *args, **kw)
@@ -1195,13 +1195,18 @@ class STD_list (simpleTypeDefinition, types.ListType):
     __FacetMap = {}
 
     @classmethod
-    def _ValidatedItem (cls, value):
+    def _ValidatedItem (cls, value, kw=None):
         """Verify that the given value is permitted as an item of this list.
 
         This may convert the value to the proper type, if it is
         compatible but not an instance of the item type.  Returns the
         value that should be used as the item, or raises an exception
-        if the value cannot be converted."""
+        if the value cannot be converted.
+
+        @param kw: optional dictionary of standard constructor keywords used
+        when exceptions must be built.  In particular, C{_location} may be
+        useful.
+        """
         if isinstance(value, cls._ItemType):
             pass
         elif issubclass(cls._ItemType, STD_union):
@@ -1210,7 +1215,10 @@ class STD_list (simpleTypeDefinition, types.ListType):
             try:
                 value = cls._ItemType(value)
             except (pyxb.SimpleTypeValueError, TypeError):
-                raise pyxb.SimpleListValueError(cls, value)
+                location = None
+                if kw is not None:
+                    location = kw.get('_location')
+                raise pyxb.SimpleListValueError(cls, value, location)
         return value
 
     @classmethod
@@ -1231,7 +1239,7 @@ class STD_list (simpleTypeDefinition, types.ListType):
             if is_iterable:
                 new_arg1 = []
                 for i in range(len(arg1)):
-                    new_arg1.append(cls._ValidatedItem(arg1[i]))
+                    new_arg1.append(cls._ValidatedItem(arg1[i], kw))
                 args = (new_arg1,) + args[1:]
         super_fn = getattr(super(STD_list, cls), '_ConvertArguments_vx', lambda *a,**kw: args)
         return super_fn(args, kw)

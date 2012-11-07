@@ -603,13 +603,17 @@ class SimpleTypeValueError (ValidationError):
     failed with a built-in exception likeC{ValueError} or
     C{OverflowError}."""
 
-    def __init__ (self, type, value):
+    def __init__ (self, type, value, location=None):
         """@param type: the value for the L{type} attribute.
         @param value: the value for the L{value} attribute.
-        """
+        @param location: the value for the L{location} attribute.  Default taken from C{value} if possible."""
+        import pyxb.utils.utility
         self.type = type
         self.value = value
-        super(SimpleTypeValueError, self).__init__(type, value)
+        if (location is None) and isinstance(value, pyxb.utils.utility.Locatable_mixin):
+            location = value._location()
+        self.location = location
+        super(SimpleTypeValueError, self).__init__(type, value, location)
 
 class SimpleListValueError (SimpleTypeValueError):
     """Raised when a list simple type contains a member that does not satisfy its constraints.

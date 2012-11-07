@@ -26,7 +26,7 @@
 # . UnrecognizedAttributeError
 # SimpleTypeValueError
 # * SimpleFacetValueError
-# * SimpleListValueError
+# . SimpleListValueError
 # * SimplePluralValueError
 # * SimpleUnionValueError
 
@@ -826,6 +826,43 @@ class TestContentInNilInstanceError (unittest.TestCase):
         self.assertTrue(e.location is None)
         self.assertEqual(e.instance, instance)
         
+class TestSimpleListValueError (unittest.TestCase):
+    # Note: Unable to come up with code to test raise in _CheckValidValue;
+    # values get validated before that point.
+    Good_xmls = '<eListCardCymru>un dau tri pedwar</eListCardCymru>'
+    Bad_xmls = '<eListCardCymru>un dau tri pedwar pump</eListCardCymru>'
+
+    def testSchemaSupport (self):
+        instance = trac26.eListCardCymru()
+        instance.append('un')
+        instance.append('dau')
+        self.assertTrue(instance.validateBinding())
+        instance = trac26.CreateFromDocument(self.Good_xmls)
+        self.assertEqual(self.Good_xmls, instance.toxml('utf-8', root_only=True))
+        instance = trac26.eSimpleInstance()
+        self.assertTrue(instance.validateBinding())
+        instance.eSimpleInstance = [ 'un', 'dau', 'tri' ]
+        self.assertTrue(instance.validateBinding())
+
+    def testException (self):
+        instance = trac26.eListCardCymru()
+        with self.assertRaises(pyxb.SimpleListValueError) as cm:
+            instance.append('pump')
+        e = cm.exception
+        self.assertEqual(e.type, trac26.tListCardCymru)
+        self.assertEqual(e.value, 'pump')
+        self.assertTrue(e.location is None)
+
+    def testException (self):
+        instance = None
+        with self.assertRaises(pyxb.SimpleListValueError) as cm:
+            instance = trac26.CreateFromDocument(self.Bad_xmls)
+        e = cm.exception
+        self.assertEqual(e.type, trac26.tListCardCymru)
+        self.assertEqual(e.value, 'pump')
+        self.assertFalse(e.location is None)
+        self.assertEqual(1, e.location.lineNumber)
+        self.assertEqual(0, e.location.columnNumber)
 
 if __name__ == '__main__':
     unittest.main()
