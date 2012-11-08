@@ -28,6 +28,11 @@ definition (whether simple or complex).  The key features of this mixin are:
    overridden in each class to identify the type definition corresponding to
    the class.
 
+ - The :api:`_XSDLocation
+   <pyxb.binding.basis._TypeBinding_mixin._XSDLocation>`_ class variable is
+   overridden in each class to provide the line, column, and schema at which
+   the data type definition was found.  This is used in diagnostics.
+
  - The :api:`namespace context
    <pyxb.binding.basis._TypeBinding_mixin._namespaceContext>` of the type
    definition is recorded to allow users to perform QName resolution of values
@@ -272,12 +277,12 @@ Elements
 ^^^^^^^^
 
 Each element corresponds to a field in the binding instance; the field is
-managed through a :ref:`element use <elementUse>` structure.  Element names
-are disambiguated, and a Python property is defined to retrieve and set the
-element value.
+managed through a :ref:`element declaration <elementUse>` structure.  Element
+names are disambiguated, and a Python property is defined to retrieve and set
+the element value.
 
 When the content model permits multiple occurrences of the element, its value
-is a Python list.
+is a Python list.  The order in this list is significant.
 
 Attributes
 ^^^^^^^^^^
@@ -331,18 +336,20 @@ Mixed and Element-Only Content
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 `Mixed and element-only content
-<http://www.w3.org/TR/xmlschema-1/#content_type>`_ nodes assign values to
-their :api:`element maps
-<pyxb.binding.basis.complexTypeDefinition._ElementUses>` variable to manage
-the mapping from XML schema element names to class members.  The element and
-attribute names are distinct.  These classes also associate a :api:`content
-model <pyxb.binding.content.ContentModel>` to ensure the constraints of the
-schema are satisfied.  These structures are described in
+<http://www.w3.org/TR/xmlschema-1/#content_type>`_ nodes use the :api:`
+<pyxb.binding.basis.complexTypeDefinition._ElementBindingDeclForName>` method
+to manage the mapping from XML schema element names to class members.  The
+element and attribute names are distinct.  Instances of complex types also
+reference a :api:`content automaton
+<pyxb.binding.content.AutomatonConfiguration>` to ensure the constraints of
+the schema are satisfied.  These structures are described in
 :ref:`contentModel`.
 
 For these types, the :api:`pyxb.binding.basis.complexTypeDefinition.content`
 method returns a list, in parsed order, of the Python objects and (if mixed)
-non-element content that belong to the instance.
+non-element content that belong to the instance.  Be aware that this order
+currently does not influence the order of elements when converting bindings
+into XML.
 
 Elements
 --------

@@ -9,4 +9,5 @@ User Reference
 
    userref_pyxbgen
    userref_usebind
+   userref_validating
    pyxbgen_cli

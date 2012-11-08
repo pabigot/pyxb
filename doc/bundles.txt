@@ -124,6 +124,12 @@ Binding Module                          Namespace
 OpenGIS
 -------
 
+.. note::
+   As of PyXB 1.2.0, this bundle supports the version of the OGC Schema that
+   use the W3C XLink 1.1 instead of the older OGC XLink schema.  See
+   http://www.opengeospatial.org/blog/1597 for more information about this
+   change.
+
 The following namespaces are available in support of `Open Geospatial
 Consortium <http://www.opengeospatial.org/standards>`_ Geographic
 Information System processing.  Note that several of these namespaces are

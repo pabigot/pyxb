@@ -166,7 +166,9 @@ class ValidationError (PyXBException):
     More refined validation error exception classes add more attributes."""
 
     location = None
-    """Where the error occurred in the document being parsed, if available."""
+    """Where the error occurred in the document being parsed, if
+    available.  This will be C{None}, or an instance of
+    L{pyxb.utils.utility.Location}."""
 
     def details (self):
         """Provide information describing why validation failed.

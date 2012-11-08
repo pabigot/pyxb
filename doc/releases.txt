@@ -25,16 +25,71 @@ relaxed policy is:
 - All packaged releases are intended to be of comparable stability, with bug
   fixes and most enhancements causing an increment in the third integer
 
-As an example, it is likely that :ticket:`correcting the content model for
-weak determinism <112>` will result in PyXB 1.2.0, and :ticket:`support of
-Python 3 <150>` will result in PyXB 2.0.0.
+As an example, :ticket:`correcting the content model for weak determinism
+<112>` resulted in PyXB 1.2.0, and :ticket:`support of Python 3 <150>` will
+result in PyXB 1.3.0.
 
+
+1.2.x
+=====
+
+The 1.2.x release series introduces a new content model which provides much
+more help in resolving validation errors.  Concurrent with this support was
+dropped for Python 2.4 and 2.5.  The 1.2.x release will work with Python 2.6
+and 2.7; some unit tests are skipped under Python 2.6 due to insufficient
+support for validating exception attributes.
+
+.. _pyxb-1.2.0:
+
+1.2.0 (07 Nov 2012)
+-------------------
+
+This is a beta release intended to allow independent verification that the new
+content model works.  It is released on SourceForge, but will not be made
+available through PyPI until such verification is satisfactory.
+
+Key feature of the release:
+
+- Use of an advanced content model which provides more accurate validation and
+  :ref:`much better diagnostics <validating>` when validation fails.
+
+- Elimination of support for Python 2.4 and 2.5 (necessary to ease the path to
+  a future Python3 implementation of PyXB).
+
+- Complete rework of the exceptions that normally arise when using binding
+  instances.  These exceptions now provide information through attributes
+  rather than a text message.
+
+The following reported `defects/enhancements
+<http://sourceforge.net/apps/trac/pyxb/>`_ have been addressed:
+
+- Improved diagnostics. :ticket:`26`, :ticket:`75`
+- Correct handling of schema where greedy processing fails.  :ticket:`112`,
+  :ticket:`133`
+- Elements and attributes in generated bindings are emitted in a deterministic
+  order sorted by schema and location within schema, to ensure deterministic
+  processing and reduce variation between bindings when generation is
+  repeated.  :ticket:`164`
+- Make documentation annotations from schema available as documentation
+  strings for the generated complex type bindings.  :ticket:`79`
+- Update OpenGIS bindings to `use W3C XLink schema
+  <http://www.ogcnetwork.net/node/1829>`_.  :ticket:`165`
 
 1.1.x
 =====
 
+The 1.1.x release series entered maintenance mode with release 1.1.5.  It is
+unlikely that further releases will occur, though critical bugs fixes may be
+made available in the `release branch
+<http://pyxb.git.sourceforge.net/git/gitweb.cgi?p=pyxb/pyxb;a=shortlog;h=refs/heads/pyxb-1.1/next>`_.
+Bugs reported against 1.1.5 will generally be fixed in the 1.2.x series.
+
+.. _pyxb-1.1.5:
+
 1.1.5 (01 Nov 2012)
 -------------------
+
+Documentation: http://pyxb.sourceforge.net/PyXB-1.1.5
 
 This is a maintenance release to finalize the 1.1.x series before starting the
 1.2.x series.
@@ -60,8 +115,12 @@ The following reported `defects/enhancements
   :ticket:`169`
 
 
+.. _pyxb-1.1.4:
+
 1.1.4 (15 Jun 2012)
 -------------------
+
+Documentation: http://pyxb.sourceforge.net/PyXB-1.1.4
 
 Key features of the release:
 
@@ -125,9 +184,12 @@ The following reported `defects/enhancements
 - mark encoding in generated output. :ticket:`146`
 - domutils references unqualified PyXB exceptions. :ticket:`148`
 
+.. _pyxb-1.1.3:
 
 1.1.3 (09 Sep 2011)
 --------------------
+
+Documentation: http://pyxb.sourceforge.net/PyXB-1.1.3
 
 General cleanup, finish up a few previously unsupported datatypes.
 
@@ -168,9 +230,12 @@ General cleanup, finish up a few previously unsupported datatypes.
   <http://docs.python.org/library/constants.html>`_, including ``None``,
   ``True``, and ``False``.  :ticket:`107`
 
+.. _pyxb-1.1.2:
 
 1.1.2 (30 May 2010)
 -------------------
+
+Documentation: http://pyxb.sourceforge.net/PyXB-1.1.2
 
 Complete replacement of the model group portion of the content model.  The
 NFA-to-DFA approach is gone.  The resulting system does a better job in less
@@ -191,9 +256,12 @@ the validation portion of the content model is completely out of date.
 
 - Support whitespace validation bypass in simple type definitions.  :ticket:`85`
 
+.. _pyxb-1.1.1:
 
 1.1.1 (28 Jan 2010, rev 2135)
 -----------------------------
+
+Documentation: http://pyxb.sourceforge.net/PyXB-1.1.1
 
 Major feature is significantly improved ability to determine what content is
 not acceptable to the validating parser, and where it can be found in the
@@ -229,6 +297,7 @@ element of the class being instantiated.
 
 - Detect invalid keywords in instance constructor calls.  :ticket:`76`
 
+.. _pyxb-1.1.0:
 
 1.1.0 (30 Nov 2009, rev 2092)
 -----------------------------

@@ -1,6 +1,8 @@
 License and Disclaimers
 -----------------------
 
+.. _pyxb-license:
+
 License
 ^^^^^^^
 

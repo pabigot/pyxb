@@ -11,11 +11,14 @@ conjunction with PyXB:
   `Python Web Services <http://pywebsvcs.sourceforge.net/>`_ project.  It is
   specifically intended to support web service interaction with SOAP and
   WSDL.  The primary purpose of ZSI is SOAP, but it generates bindings for
-  some XML Schema constructs.
+  some XML Schema constructs.  The last release of ZSI appears to have been
+  in 2007, so much of this paragraph could be reworded to be in the past
+  tense.
 
 - `generateDS <http://www.rexx.com/~dkuhlman/generateDS.html>`_ is an
   alternative package that is intended to do the same general thing as PyXB,
   though it uses a very different approach for extending bindings.
+  generateDS is still under active development/maintenance.
 
 - The `Amara XML Toolkit <http://xml3k.org/Amara>`_ appears to be a fairly
   complete set of XML tools for Python evolved from the `4Suite

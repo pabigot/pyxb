@@ -36,10 +36,6 @@ Things That Don't Work
 ...but could someday
 ^^^^^^^^^^^^^^^^^^^^
 
-* The ability to use templates to customize binding generation was promised
-  in the vision document.  That has not yet been done, though it should be
-  fairly straightforward.
-
 * Identity constraints ("key", "unique", "keyref") are stored in the content
   model, but are not used.
 
@@ -48,31 +44,27 @@ Things That Don't Work
   provide access to unrecognized values through the
   :api:`pyxb.binding.basis.complexTypeDefinition.wildcardElements` method.
   Where the type of the node is recognized, it is converted to a Python
-  binding instance; otherwise, the xml DOM instance is stored.  Neither the
-  namespace constraint nor process contents attributes of the wildcard are
-  applied.
+  binding instance; otherwise, the xml DOM instance is stored.  Although
+  namespace constraints are applied when checking for wildcard matches, the
+  process contents attribute of the wildcard is ignored.
 
 * `Wildcard attributes
   <http://www.w3.org/TR/xmlschema-1/#ag-attribute_wildcard>`_ are supported
-  in the same sense as wildcard elements: no constraints are checked, and
-  all are aggregated into the
+  in much the same sense as wildcard elements: no constraints are checked,
+  and all are aggregated into the
   :api:`pyxb.binding.basis.complexTypeDefinition.wildcardAttributeMap`.
   Values are uninterpreted Unicode strings.
 
 ...and probably never will
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-* When generating a DOM instance from a binding instance, the resulting
-  document should validate against the schema, but the order of elements
-  within it may be different from the original order of creation.  For an
-  example of this, see
-  :file:`tests/test-mg-choice:TestMGChoice.testMultichoiceOrderImportant`.
-  See also
-  :api:`pyxb.binding.basis.complexTypeDefinition._validatedChildren` for a
-  work-around.
-
 * The `redefine directive <http://www.w3.org/TR/xmlschema-1/#modify-schema>`_
   is not supported.
+
+* The ability to use templates to customize binding generation was promised
+  in the vision document, but after three years of no plausible use case it
+  is no longer part of the plan.
+
 
 Things That Mostly Work, But They're Ugly
 -----------------------------------------
@@ -83,10 +75,3 @@ Things That Mostly Work, But They're Ugly
   version records that information, but the ``timedelta`` functionality
   (adding/substracting from ``datetime`` instances) does not incorporate
   that portion of the delta.  Negative durations also may not work properly.
-
-
-Intended Near-Term Enhancements
--------------------------------
-
-* Any requests?
-

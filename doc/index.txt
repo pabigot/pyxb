@@ -24,6 +24,12 @@ documents and Python objects.  In concept it is similar to `JAXB
 :ref:`thirty_sec_example` is at the bottom of this page.  Step-by-step
 examples are in :ref:`userReference`.
 
+.. note::
+
+   This page is for the :ref:`1.2.0 release of PyXB <pyxb-1.2.0>`, which
+   should be considered beta software.  For documentation on the recommended
+   stable release please see the :ref:`PyXB 1.1.5 release notes <pyxb-1.1.5>`.
+
 ************
 Getting Help
 ************

@@ -187,3 +187,10 @@ With this, the final document produced is:
 (Surprise: ``addr`` does not appear, because the ``nsaddress.xsd`` schema
 uses the default element form ``unqualified``, so none of the address
 components in the document have a namespace.)
+
+.. ignored
+   ## Local Variables:
+   ## fill-column:78
+   ## indent-tabs-mode:nil
+   ## End:
+
