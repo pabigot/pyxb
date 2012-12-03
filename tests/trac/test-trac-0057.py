@@ -83,7 +83,7 @@ class TestTrac_0057 (unittest.TestCase):
             # Verify the exception tells us what was being processed
             self.assertEqual(instance, cm.exception.instance)
             # Verify the exception tells us what would be acceptable
-            accept = cm.exception.automaton_configuration.acceptableSymbols()
+            accept = cm.exception.fac_configuration.acceptableSymbols()
             self.assertEqual(1, len(accept))
             assigned_priority_ed = ObsProject.typeDefinition()._UseForTag(Namespace.createExpandedName('assignedPriority'))
             self.assertEqual(accept[0].elementDeclaration(), assigned_priority_ed)

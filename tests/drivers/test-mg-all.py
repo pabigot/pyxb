@@ -128,7 +128,7 @@ class TestMGAll (unittest.TestCase):
         if sys.version_info[:2] >= (2, 7):
             with self.assertRaises(IncompleteElementContentError) as cm:
                 instance.validateBinding()
-            acceptable = cm.exception.automaton_configuration.acceptableSymbols()
+            acceptable = cm.exception.fac_configuration.acceptableSymbols()
             self.assertEqual(1, len(acceptable))
             self.assertEqual(many.memberElement('b'), acceptable[0].elementDeclaration().elementBinding())
 

@@ -520,8 +520,8 @@ class BatchElementContentError (ContentValidationError):
     instance = None
     """The binding instance being constructed."""
 
-    automaton_configuration = None
-    """The L{pyxb.binding.content.AutomatonConfiguration} representing the current state of the L{instance} content."""
+    fac_configuration = None
+    """The L{pyxb.utils.fac.Configuration} representing the current state of the L{instance} automaton."""
 
     symbols = None
     """The sequence of symbols that were accepted as content prior to the error."""
@@ -529,16 +529,16 @@ class BatchElementContentError (ContentValidationError):
     symbol_set = None
     """The leftovers from L{pyxb.binding.basis.complexTypeDefinition._symbolSet} that could not be reconciled with the content model."""
 
-    def __init__ (self, instance, automaton_configuration, symbols, symbol_set):
+    def __init__ (self, instance, fac_configuration, symbols, symbol_set):
         """@param instance: the value for the L{instance} attribute.
-        @param automaton_configuration: the value for the L{automaton_configuration} attribute.
+        @param fac_configuration: the value for the L{fac_configuration} attribute.
         @param symbols: the value for the L{symbols} attribute.
         @param symbol_set: the value for the L{symbol_set} attribute."""
         self.instance = instance
-        self.automaton_configuration = automaton_configuration
+        self.fac_configuration = fac_configuration
         self.symbols = symbols
         self.symbol_set = symbol_set
-        super(BatchElementContentError, self).__init__(instance, automaton_configuration, symbols, symbol_set)
+        super(BatchElementContentError, self).__init__(instance, fac_configuration, symbols, symbol_set)
 
     def details (self):
         import pyxb.binding.basis
@@ -549,14 +549,14 @@ class BatchElementContentError (ContentValidationError):
             rv.append('The containing element %s is defined at %s.' % (i._element().name(), i._element().xsdLocation()))
         rv.append('The containing element type %s is defined at %s' % (self.instance._Name(), str(self.instance._XSDLocation)))
         ty = type(self.instance)
-        rv.append('The %s automaton %s in an accepting state.' % (self.instance._Name(), self.automaton_configuration.isAccepting() and "is" or "is not"))
+        rv.append('The %s automaton %s in an accepting state.' % (self.instance._Name(), self.fac_configuration.isAccepting() and "is" or "is not"))
         if 0 == len(self.symbols):
             rv.append('No content has been accepted')
         else:
             rv.append('The last accepted content was %s' % (self.symbols[-1][1]._diagnosticName(),))
         if isinstance(self.instance, pyxb.binding.basis.complexTypeDefinition) and self.instance._IsMixed():
             rv.append('Character information content would be permitted.')
-        acceptable = self.automaton_configuration.acceptableSymbols()
+        acceptable = self.fac_configuration.acceptableSymbols()
         if 0 == len(acceptable):
             rv.append('No elements or wildcards would be accepted at this point.')
         else:
