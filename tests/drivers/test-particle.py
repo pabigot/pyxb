@@ -69,7 +69,7 @@ class TestParticle (unittest.TestCase):
     def test_h11_empty (self):
         xml = '<ns1:h11 xmlns:ns1="URN:test"/>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
-        self.assertRaises(SimpleContentAbsentError, h11.createFromDOM, dom.documentElement)
+        self.assertRaises(IncompleteElementContentError, h11.createFromDOM, dom.documentElement)
 
     def test_h11_elt (self):
         xml = '<ns1:h11 xmlns:ns1="URN:test"><elt/></ns1:h11>'
@@ -82,13 +82,13 @@ class TestParticle (unittest.TestCase):
     def test_h24 (self):
         xml = '<h24 xmlns="URN:test"></h24>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
-        self.assertRaises(SimpleContentAbsentError, h24.createFromDOM, dom.documentElement)
+        self.assertRaises(IncompleteElementContentError, h24.createFromDOM, dom.documentElement)
         
         for num_elt in range(0, 5):
             xml = '<ns1:h24 xmlns:ns1="URN:test">%s</ns1:h24>' % (''.join(num_elt * ['<elt/>']),)
             dom = pyxb.utils.domutils.StringToDOM(xml)
             if 2 > num_elt:
-                self.assertRaises(SimpleContentAbsentError, h24.createFromDOM, dom.documentElement)
+                self.assertRaises(IncompleteElementContentError, h24.createFromDOM, dom.documentElement)
             elif 4 >= num_elt:
                 instance = h24.createFromDOM(dom.documentElement)
                 self.assertEqual(num_elt, len(instance.elt))
@@ -99,13 +99,13 @@ class TestParticle (unittest.TestCase):
     def test_h24b (self):
         xml = '<ns1:h24b xmlns:ns1="URN:test"></ns1:h24b>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
-        self.assertRaises(SimpleContentAbsentError, h24b.createFromDOM, dom.documentElement)
+        self.assertRaises(IncompleteElementContentError, h24b.createFromDOM, dom.documentElement)
         
         for num_elt in range(0, 5):
             xml = '<ns1:h24b xmlns:ns1="URN:test">%s</ns1:h24b>' % (''.join(num_elt * ['<elt/>']),)
             dom = pyxb.utils.domutils.StringToDOM(xml)
             if 2 > num_elt:
-                self.assertRaises(SimpleContentAbsentError, h24b.createFromDOM, dom.documentElement)
+                self.assertRaises(IncompleteElementContentError, h24b.createFromDOM, dom.documentElement)
             elif 4 >= num_elt:
                 instance = h24b.createFromDOM(dom.documentElement)
                 self.assertEqual(num_elt, len(instance.elt))

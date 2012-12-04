@@ -684,7 +684,7 @@ The following content was not processed by the automaton:
         with self.assertRaises(pyxb.IncompleteElementContentError) as cm:
             instance.validateBinding()
         e = cm.exception
-        self.assertFalse(e.automaton_configuration.isAccepting())
+        self.assertFalse(e.fac_configuration.isAccepting())
         self.assertEqual(1, len(e.symbols))
         self.assertEqual(1, len(e.symbol_set))
         (ed, syms) = e.symbol_set.iteritems().next()
@@ -721,7 +721,7 @@ The following content was not processed by the automaton:
         with self.assertRaises(pyxb.UnprocessedElementContentError) as cm:
             instance.validateBinding()
         e = cm.exception
-        self.assertTrue(e.automaton_configuration.isAccepting())
+        self.assertTrue(e.fac_configuration.isAccepting())
         self.assertEqual(3, len(e.symbols))
         self.assertEqual(1, len(e.symbol_set))
         (ed, syms) = e.symbol_set.iteritems().next()

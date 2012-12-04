@@ -107,12 +107,12 @@ class TestMGSeq (unittest.TestCase):
     def testMissingAtEndLeadingContent (self):
         xml = '<ns1:altwrapper xmlns:ns1="URN:test-mg-sequence"><first/></ns1:altwrapper>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
-        self.assertRaises(SimpleContentAbsentError, altwrapper.createFromDOM, dom.documentElement)
+        self.assertRaises(IncompleteElementContentError, altwrapper.createFromDOM, dom.documentElement)
 
     def testMissingAtEndNoContent (self):
         xml = '<ns1:altwrapper xmlns:ns1="URN:test-mg-sequence"></ns1:altwrapper>'
         dom = pyxb.utils.domutils.StringToDOM(xml)
-        self.assertRaises(SimpleContentAbsentError, altwrapper.createFromDOM, dom.documentElement)
+        self.assertRaises(IncompleteElementContentError, altwrapper.createFromDOM, dom.documentElement)
 
     def testTooManyAtEnd (self):
         xml = '<ns1:wrapper xmlns:ns1="URN:test-mg-sequence"><first/><third/><fourth_0_2/><fourth_0_2/><fourth_0_2/></ns1:wrapper>'

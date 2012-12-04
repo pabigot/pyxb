@@ -550,7 +550,9 @@ class BatchElementContentError (ContentValidationError):
         rv.append('The containing element type %s is defined at %s' % (self.instance._Name(), str(self.instance._XSDLocation)))
         ty = type(self.instance)
         rv.append('The %s automaton %s in an accepting state.' % (self.instance._Name(), self.fac_configuration.isAccepting() and "is" or "is not"))
-        if 0 == len(self.symbols):
+        if self.symbols is None:
+            rv.append('Any accepted content has been stored in instance')
+        elif 0 == len(self.symbols):
             rv.append('No content has been accepted')
         else:
             rv.append('The last accepted content was %s' % (self.symbols[-1][1]._diagnosticName(),))
@@ -569,7 +571,7 @@ class BatchElementContentError (ContentValidationError):
                     assert isinstance(u, pyxb.binding.content.WildcardUse)
                     rv2.append('A wildcard per %s' % (u.xsdLocation(),))
             rv.append('\t' + '\n\t'.join(rv2))
-        if 0 == len(self.symbol_set):
+        if (self.symbol_set is None) or (0 == len(self.symbol_set)):
             rv.append('No content remains unconsumed')
         else:
             rv.append('The following content was not processed by the automaton:')

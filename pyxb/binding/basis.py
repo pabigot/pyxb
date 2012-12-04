@@ -2270,7 +2270,9 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             # @todo isNil should verify that no content is present.
             if (not self._isNil()) and (self.__automatonConfiguration is not None):
                 if not self.__automatonConfiguration.isAccepting():
-                    raise pyxb.SimpleContentAbsentError(self, self._location())
+                    if self._IsSimpleTypeContent():
+                        raise pyxb.SimpleContentAbsentError(self, self._location())
+                    self.__automatonConfiguration.diagnoseIncompleteContent()
             self._validateAttributes()
         return self
 

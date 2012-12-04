@@ -456,7 +456,7 @@ class AutomatonConfiguration (object):
                     seen.add(u)
         return rv
 
-    def isAccepting (self):
+    def isAccepting (self, raise_if_rejecting=False):
         """Return C{True} iff the automaton is in an accepting state.
 
         If the automaton has unresolved nondeterminism, it is resolved first,
@@ -467,7 +467,28 @@ class AutomatonConfiguration (object):
             cfg = cfg.superConfiguration
         return cfg.isAccepting()
 
+    def _diagnoseIncompleteContent (self, symbols, symbol_set):
+        """Check for incomplete content.
+
+        @raises pyxb.IncompleteElementContentError: if a non-accepting state is found
+        @return: the topmost configuration (if accepting)
+        """
+        # Exit out of any sub-configurations (they might be accepting while
+        # the superConfiguration is not)
+        cfg = self.__cfg
+        while cfg.isAccepting() and (cfg.superConfiguration is not None):
+            cfg = cfg.superConfiguration
+        if not cfg.isAccepting():
+            _log.warning('Incomplete content, expect %s' % (' or '.join(map(str, cfg.acceptableSymbols()))))
+            raise pyxb.IncompleteElementContentError(self.__instance, cfg, symbols, symbol_set)
+        return cfg
+    
+    def diagnoseIncompleteContent (self):
+        """Generate the exception explaining why the content is incomplete."""
+        return self._diagnoseIncompleteContent(None, None)
+
     def sequencedChildren (self):
+
         """Implement L{pyxb.binding.basis.complexTypeDefinition._validatedChildren}.
 
         Go there for the interface.
@@ -513,13 +534,7 @@ class AutomatonConfiguration (object):
             if selected_xit is None:
                 break
             cfg = selected_xit.apply(cfg)
-        # Exit out of any sub-configurations (they might be accepting while
-        # the superConfiguration is not)
-        while cfg.isAccepting() and (cfg.superConfiguration is not None):
-            cfg = cfg.superConfiguration
-        if not cfg.isAccepting():
-            _log.warning('Incomplete content, expect %s' % (' or '.join(map(str, cfg.acceptableSymbols()))))
-            raise pyxb.IncompleteElementContentError(self.__instance, cfg, symbols, symbol_set)
+        cfg = self._diagnoseIncompleteContent(symbols, symbol_set)
         if symbol_set:
             raise pyxb.UnprocessedElementContentError(self.__instance, cfg, symbols, symbol_set)
         return symbols
