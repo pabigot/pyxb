@@ -29,7 +29,7 @@ definition (whether simple or complex).  The key features of this mixin are:
    the class.
 
  - The :api:`_XSDLocation
-   <pyxb.binding.basis._TypeBinding_mixin._XSDLocation>`_ class variable is
+   <pyxb.binding.basis._TypeBinding_mixin._XSDLocation>` class variable is
    overridden in each class to provide the line, column, and schema at which
    the data type definition was found.  This is used in diagnostics.
 
