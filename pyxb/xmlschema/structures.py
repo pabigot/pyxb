@@ -720,7 +720,7 @@ class _NamedComponent_mixin (pyxb.utils.utility.PrivateTransient_mixin, pyxb.csc
             if rv is None:
                 raise pyxb.SchemaValidationError('Unable to resolve %s as %s' % (object_reference, icls))
         if rv is None:
-            raise pyxb.SchemaValidationError('Unable to resolve reference %s, scope %s ns %s type %s, class %s' % (object_reference, scope, scope.targetNamespace(), type(scope), icls))
+            raise pyxb.SchemaValidationError('Unable to resolve reference %s, scope %s ns %s type %s, class %s' % (object_reference, scope, (scope is None and "<unknown>" or scope.targetNamespace()), type(scope), icls))
         return rv
 
     def __init__ (self, *args, **kw):
