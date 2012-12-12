@@ -119,7 +119,33 @@ Binding Module                          Namespace
 ``pyxb.bundles.saml20.xacml``           ``urn:oasis:names:tc:SAML:2.0:profiles:attribute:XACML``
 =====================================   ==========================================================
 
+.. _bundle_dc:
+
+Dublin Core
+-----------
+
+The following namespaces are available in support of the `Dublin Core(R)
+Metadata Initiative <http://dublincore.org/>`_.
+
+.. PYXB_ARCHIVE_PATH=${PYXB_ROOT}/pyxb/bundles/dc// ${PYXB_ROOT}/scripts/pyxbdump \
+   | awk '$2~/pyxb.bundles.dc/ { print $2, $1; }' \
+   | sed \
+      -e 's@^@``@' \
+      -e 's@ @``\t``@' \
+      -e 's@$@``@' \
+   | expand -40 \
+   | sort \
+   > /tmp/x
+
 .. _bundle_opengis:
+
+=====================================   ==========================================================
+Binding Module                          Namespace
+=====================================   ==========================================================
+``pyxb.bundles.dc.dc``                  ``http://purl.org/dc/elements/1.1/``
+``pyxb.bundles.dc.dcmitype``            ``http://purl.org/dc/dcmitype/``
+``pyxb.bundles.dc.dcterms``             ``http://purl.org/dc/terms/``
+=====================================   ==========================================================
 
 OpenGIS
 -------

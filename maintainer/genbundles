@@ -5,7 +5,7 @@
 # may have dependencies, and are built in the specified order.  All previous
 # bundles are made available during the build.
 
-BUNDLES="common wssplat saml20"
+BUNDLES="common wssplat saml20 dc"
 if [ 0 -lt $# ] ; then
   BUNDLES=$(echo ${@} | sed -e "s/@/${BUNDLES}/")
 fi
