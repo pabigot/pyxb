@@ -81,8 +81,11 @@ class TestTrac0039 (unittest.TestCase):
     """Creating nested anonymous elements"""
     def testShallowSet (self):
         w = shallow()
-        self.assertRaises(pyxb.SimpleTypeValueError, SET_optional, w, 5)
+        w.optional = 4
+        self.assertEqual(w.optional.value(), 4)
+        self.assertTrue(w.optional.deep is None)
         w.optional = BIND(5)
+        self.assertEqual(w.optional.value(), 5)
         self.assertTrue(w.optional.deep is None)
         self.assertTrue(isinstance(w.optional.value(), xs.int))
         self.assertRaises(pyxb.SimpleTypeValueError, SET_optional, w, BIND('string'))
@@ -93,7 +96,10 @@ class TestTrac0039 (unittest.TestCase):
     def testShallowCTOR (self):
         w = shallow(BIND(5))
         self.assertTrue(isinstance(w.optional.value(), xs.int))
-        self.assertRaises(pyxb.MixedContentError, shallow, 5)
+        self.assertEqual(w.optional.value(), 5)
+        w = shallow(6)
+        self.assertTrue(isinstance(w.optional.value(), xs.int))
+        self.assertEqual(w.optional.value(), 6)
         self.assertRaises(pyxb.MixedContentError, shallow, BIND('string'))
 
     def testDeep (self):

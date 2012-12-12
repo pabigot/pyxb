@@ -333,6 +333,17 @@ class _TypeBinding_mixin (utility.Locatable_mixin):
         if isinstance(value, pyxb.BIND):
             return value.createInstance(cls.Factory, **kw)
 
+        # Does the class have simple content which we can convert?
+        if cls._IsSimpleTypeContent():
+            # NB: byte(34.2) will create a value, but it may not be one we
+            # want to accept, so only do this if the output is equal to the
+            # input.
+            rv = cls.Factory(value)
+            if isinstance(rv, simpleTypeDefinition) and (rv == value):
+                return rv
+            if isinstance(rv, complexTypeDefinition) and (rv.value() == value):
+                return rv
+
         # There may be other things that can be converted to the desired type,
         # but we can't tell that from the type hierarchy.  Too many of those
         # things result in an undesirable loss of information: for example,
