@@ -39,8 +39,8 @@ mkdir -p ${RAW_DIR}
 touch ${RAW_DIR}/__init__.py
 
 if ! test -d ${SCHEMA_DIR} && \
-   test -n ${PYXB_SCHEMA_REPO+available} && \
-    ( cd ${PYXB_SCHEMA_REPO} && git log -1 schemas/bundles/${BUNDLE_TAG} ) ; then
+   test -n "${PYXB_SCHEMA_REPO:+available}" && \
+    ( cd ${PYXB_SCHEMA_REPO} && test -d .git && git log -1 schemas/bundles/${BUNDLE_TAG} ) ; then
   ( cd ${BUNDLE_ROOT} &&
     git clone -b schemas/bundles/${BUNDLE_TAG} ${PYXB_SCHEMA_REPO} schemas )
 fi
