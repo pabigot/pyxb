@@ -122,7 +122,7 @@ Validating the Content Model
 As of :ref:`PyXB 1.2.0 <pyxb-1.2.0>`, content validation is performed using
 the **Finite Automata with Counters (FAC)** data structure, as described in
 `Regular Expressions with Numerical Constraints and Automata with Counters
-<http://dl.acm.org/citation.cfm?id=1615520>`_, `Dag Hovland
+<http://bora.uib.no/handle/1956/3628>`_, `Dag Hovland
 <http://www.ii.uib.no/~dagh/>`_, Lecture Notes in Computer Science, 2009,
 Volume 5684, Theoretical Aspects of Computing - ICTAC 2009, Pages 231-245.
 
