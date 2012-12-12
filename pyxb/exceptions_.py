@@ -619,6 +619,12 @@ class SimpleTypeValueError (ValidationError):
         self.location = location
         super(SimpleTypeValueError, self).__init__(type, value, location)
 
+    def __str__ (self):
+        import pyxb.binding.basis
+        if isinstance(self.value, pyxb.binding.basis._TypeBinding_mixin): 
+            return 'Type %s cannot be created from %s: %s' % (self.type._Name(), self.value._Name(), self.value)
+        return 'Type %s cannot be created from: %s' % (self.type._Name(), self.value)
+
 class SimpleListValueError (SimpleTypeValueError):
     """Raised when a list simple type contains a member that does not satisfy its constraints.
 
