@@ -1,3 +1,6 @@
+# This module is sourced by genbind scripts in bundle directories to
+# initialize a bundle area and provide a function to translate schema.
+
 set -e
 
 if [ ! "${PYXB_ROOT}" ] ; then
@@ -44,7 +47,7 @@ fi
 
 mkdir -p ${SCHEMA_DIR}
 
-# We use this keep local comes of schema we had to retrieve from a
+# We use this to keep local copies of schema we had to retrieve from a
 # remote system.  Normally, any such means a namespace dependency; the
 # retrieved schema should have been translated first, and read from an
 # archive.
