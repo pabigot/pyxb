@@ -223,15 +223,20 @@ class ValidationConfig (object):
     an element in a content list fails skip it and continue with the next
     element in the list.)"""
     
-    GIVE_UP = 2
+    WAIT = 2
+    """If an error occurs hold the value and try it gain later.  (E.g., if an
+    element in a content list fails hold onto it until transition to another
+    state.)"""
+
+    GIVE_UP = 3
     """If an error occurs ignore it and stop using whatever provided the cause
     of the error.  (E.g., if an element in a content list fails stop
     processing the content list and execute as though it was absent)."""
 
-    RAISE_EXCEPTION = 3
+    RAISE_EXCEPTION = 4
     """If an error occurs, raise an exception."""
 
-    MIXED_ONLY = 4
+    MIXED_ONLY = 5
     """Only when content type is mixed."""
 
     __contentInfluencesGeneration = MIXED_ONLY
@@ -248,11 +253,6 @@ class ValidationConfig (object):
         self.__contentInfluencesGeneration = value
     contentInfluencesGeneration = property(__getContentInfluencesGeneration)
 
-    def __validatedContentValue (self, value):
-        if not (value in ( self.IGNORE_ONCE, self.GIVE_UP, self.RAISE_EXCEPTION )):
-            raise ValueError(value)
-        return value
-
     __orphanElementInContent = IGNORE_ONCE
     def __getOrphanElementInContent (self):
         """How to handle unrecognized elements in content lists.
@@ -265,19 +265,23 @@ class ValidationConfig (object):
         return self.__orphanElementInContent
     def _setOrphanElementInContent (self, value):
         """Set the value of L{orphanElementInContent}."""
-        self.__orphanElementInContent = self.__validatedContentValue(value)
+        if not (value in ( self.IGNORE_ONCE, self.GIVE_UP, self.RAISE_EXCEPTION )):
+            raise ValueError(value)
+        self.__orphanElementInContent = value
     orphanElementInContent = property(__getOrphanElementInContent)
     
-    __invalidElementInContent = GIVE_UP
+    __invalidElementInContent = WAIT
     def __getInvalidElementInContent (self):
         """How to handle invalid elements in content lists.
 
-        The value is one of L{IGNORE_ONCE}, L{GIVE_UP} (default),
+        The value is one of L{IGNORE_ONCE}, L{WAIT} (default), L{GIVE_UP},
         L{RAISE_EXCEPTION}."""
         return self.__invalidElementInContent
     def _setInvalidElementInContent (self, value):
         """Set the value of L{invalidElementInContent}."""
-        self.__invalidElementInContent = self.__validatedContentValue(value)
+        if not (value in ( self.IGNORE_ONCE, self.WAIT, self.GIVE_UP, self.RAISE_EXCEPTION )):
+            raise ValueError(value)
+        self.__invalidElementInContent = value
     invalidElementInContent = property(__getInvalidElementInContent)
 
     def copy (self):

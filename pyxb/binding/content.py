@@ -510,12 +510,18 @@ class AutomatonConfiguration (object):
         symbol_set = self.__instance._symbolSet()
 
         vc = self.__instance._validationConfig
+        psym_wait = False
+        psym = psym_pending = None
         while symbol_set:
             # Find the first acceptable transition.  If there's a preferred
             # symbol to use, try it first.
             selected_xit = None
             psym = None
-            if preferred_sequence is not None:
+            if (preferred_sequence is not None) and not psym_wait:
+                psym = psym_pending
+                if psym is not None:
+                    _log.info('restoring %s', psym)
+                psym_pending = None
                 while psym is None:
                     if pi >= len(preferred_sequence):
                         preferred_sequence = None
@@ -569,9 +575,15 @@ class AutomatonConfiguration (object):
                     if vc.GIVE_UP == vc.invalidElementInContent:
                         pi = len(preferred_sequence)
                         continue
+                    if vc.WAIT == vc.invalidElementInContent:
+                        psym_pending = psym
+                        _log.info('holding %s', psym)
+                        psym_wait = True
+                        continue
                     raise InvalidPreferredElementContentError(self.__instance, cfg, symbols, symbol_set)
                 break
             cfg = selected_xit.apply(cfg)
+            psym_wait = False
         cfg = self._diagnoseIncompleteContent(symbols, symbol_set)
         if symbol_set:
             raise pyxb.UnprocessedElementContentError(self.__instance, cfg, symbols, symbol_set)
