@@ -843,7 +843,7 @@ class Configuration (Configuration_ABC):
         self.__state = state
         if is_layer_change and (state.subAutomata is not None):
             assert self.__subAutomata is None
-            self.__subAutomata = set(state.subAutomata)
+            self.__subAutomata = list(state.subAutomata)
     state = property(__get_state)
 
     __counterValues = None
@@ -902,7 +902,7 @@ class Configuration (Configuration_ABC):
         """
         return self.__subAutomata
     def _set_subAutomata (self, automata):
-        self.__subAutomata = set(automata)
+        self.__subAutomata = list(automata)
     subAutomata = property(__get_subAutomata)
 
     def makeLeaveAutomatonTransition (self):
@@ -1084,7 +1084,7 @@ class Configuration (Configuration_ABC):
         other.__counterValues = self.__counterValues.copy()
         other.__superConfiguration = super_configuration
         if self.__subAutomata is not None:
-            other.__subAutomata = self.__subAutomata.copy()
+            other.__subAutomata = self.__subAutomata[:]
             if self.__subConfiguration:
                 other.__subConfiguration = self.__subConfiguration._clone(clone_map, other)
         return other
