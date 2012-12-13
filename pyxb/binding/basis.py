@@ -28,23 +28,42 @@ from pyxb.namespace.builtin import XMLSchema_instance as XSI
 _log = logging.getLogger(__name__)
 
 class _TypeBinding_mixin (utility.Locatable_mixin):
+    # Private member holding the validation configuration that applies to the
+    # class or instance.  Can't really make it private with __ prefix because
+    # that would screw up parent classes.  You end users---stay away from
+    # this.
+    _validationConfig_ = pyxb.GlobalValidationConfig
+
+    @classmethod
+    def _SetValidationConfig (cls, validation_config):
+        """Set the validation configuration for this class."""
+        cls._validationConfig_ = validation_config
+    
+    def _setValidationConfig (self, validation_config):
+        """Set the validation configuration for this instance."""
+        self._validationConfig_ = validation_config
+
+    def __getValidationConfig (self):
+        """The L{pyxb.ValidationConfig} instance that applies to this instance.
+
+        By default this will reference L{pyxb.GlobalValidationConfig}."""
+        return self._validationConfig_
+
+    # This is how you should be accessing this value.
+    _validationConfig = property(__getValidationConfig)
 
     @classmethod
     def _PerformValidation (cls):
-        """Determine whether the content model should be validated for this class.
-
-        Proper validation is not yet supported in PyXB.  The low level binding
-        material consults this function, but not always in a context where the
-        direction of translation is clear.  Conseequently, this method
-        indicates that validation should be performed only when both
-        generation and parsing validation are enabled."""
-        #    return True
-        return pyxb._GenerationRequiresValid and pyxb._ParsingRequiresValid
+        """Determine whether the content model should be validated for this class."""
+        # Bypass the property since this is a class method
+        vo = cls._validationConfig_
+        return vo.forBinding and vo.forDocument
 
     def _performValidation (self):
         """Determine whether the content model should be validated for this
         instance."""
-        return self._PerformValidation()
+        vo = self._validationConfig
+        return vo.forBinding and vo.forDocument
     
     _ExpandedName = None
     """The expanded name of the component."""
@@ -2232,7 +2251,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             assert maybe_element
             assert element_binding is None
             node = value
-            require_validation = pyxb._ParsingRequiresValid
+            require_validation = pyxb.GlobalValidationConfig.forBinding
             if xml.dom.Node.COMMENT_NODE == node.nodeType:
                 # @todo: Note that we're allowing comments inside the bodies
                 # of simple content elements, which isn't really Hoyle.
@@ -2350,7 +2369,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
     def _setDOMFromAttributes (self, dom_support, element):
         """Add any appropriate attributes from this instance into the DOM element."""
         for au in self._AttributeMap.values():
-            if pyxb._GenerationRequiresValid:
+            if pyxb.GlobalValidationConfig.forDocument:
                 au.validate(self)
             au.addDOMAttribute(dom_support, self, element)
         return element
@@ -2367,7 +2386,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             assert self.value() is not None, '%s has no value' % (self,)
             element.appendChild(dom_support.document().createTextNode(self.value().xsdLiteral()))
         else:
-            if pyxb._GenerationRequiresValid:
+            if pyxb.GlobalValidationConfig.forDocument:
                 order = self._validatedChildren()
             else:
                 order = self.__childrenForDOM()

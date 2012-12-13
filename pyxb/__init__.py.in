@@ -173,7 +173,49 @@ PyXB methods.
 Applies only at compilation time; dynamic changes are ignored.
 """
 
+class ValidationConfig (object):
+    """Class holding configuration related to validation."""
+    __forBinding = True
+    def _getForBinding (self):
+        """C{True} iff validation should be performed when manipulating a
+        binding instance.
+
+        This includes parsing a document or DOM tree, using a binding instance
+        class constructor, or assigning to an element or attribute field of a
+        binding instance."""
+        return self.__forBinding
+    def _setForBinding (self, value):
+        """Configure whether validation should be performed when manipulating
+        a binding instance."""
+        if not isinstance(value, bool):
+            raise TypeError(value)
+        self.__forBinding = value
+        return value
+    forBinding = property(_getForBinding)
+
+    __forDocument = True
+    def _getForDocument (self):
+        """C{True} iff validation should be performed when creating a document
+        from a binding instance.
+
+        This applies at invocation of
+        L{toDOM()<pyxb.binding._TypeBinding_mixin.toDOM>}.
+        L{toxml()<pyxb.binding._TypeBinding_mixin.toDOM>} invokes C{toDOM()}."""
+        return self.__forDocument
+    def _setForDocument (self, value):
+        """Configure whether validation should be performed when generating
+        a document from a binding instance."""
+        if not isinstance(value, bool):
+            raise TypeError(value)
+        self.__forDocument = value
+        return value
+    forDocument = property(_getForDocument)
+
+GlobalValidationConfig = ValidationConfig()
+
 _GenerationRequiresValid = True
+"""Legacy flag; prefer L{forDocument<ValidationConfig.forDocument>} in L{GlobalValidationConfig}."""
+
 def RequireValidWhenGenerating (value=None):
     """Query or set a flag that controls validation checking in XML generation.
 
@@ -192,15 +234,14 @@ def RequireValidWhenGenerating (value=None):
 
     @return: C{True} iff attempts to generate XML for a binding that does not
     validate should raise an exception.  """
-    global _GenerationRequiresValid
     if value is None:
-        return _GenerationRequiresValid
-    if not isinstance(value, bool):
-        raise TypeError(value)
-    _GenerationRequiresValid = value
-    return _GenerationRequiresValid
+        return GlobalValidationConfig.forDocument
+    global _GenerationRequiresValid
+    _GenerationRequiresValid = GlobalValidationConfig._setForDocument(value)
+    return value
 
 _ParsingRequiresValid = True
+"""Legacy flag; prefer L{forBinding<ValidationConfig.forBinding>} in L{GlobalValidationConfig}."""
 def RequireValidWhenParsing (value=None):
     """Query or set a flag that controls validation checking in XML parsing.
 
@@ -218,12 +259,10 @@ def RequireValidWhenParsing (value=None):
 
     @return: C{True} iff attempts to generate bindings for a document that
     does not validate should raise an exception."""
-    global _ParsingRequiresValid
     if value is None:
-        return _ParsingRequiresValid
-    if not isinstance(value, bool):
-        raise TypeError(value)
-    _ParsingRequiresValid = value
+        return GlobalValidationConfig.forBinding
+    global _ParsingRequiresValid
+    _ParsingRequiresValid = GlobalValidationConfig._setForBinding(value)
     return _ParsingRequiresValid
 
 _PreserveInputTimeZone = False

@@ -226,7 +226,7 @@ class _SAXElementState (pyxb.utils.saxutils.SAXElementState):
                                               _element_decl=info.element_decl,
                                               _maybe_element=info.maybe_element,
                                               _location=info.location,
-                                              _require_validation=pyxb._ParsingRequiresValid)
+                                              _require_validation=pyxb.GlobalValidationConfig.forBinding)
         parent_state = self.parentState()
         if parent_state is not None:
             parent_state.addElementContent(self.location(), self.__bindingInstance, self.__elementDecl)
