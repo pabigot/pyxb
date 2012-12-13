@@ -31,7 +31,7 @@ class _TypeBinding_mixin (utility.Locatable_mixin):
 
     @classmethod
     def _PerformValidation (cls):
-        """Determine whether the content model should be validated.
+        """Determine whether the content model should be validated for this class.
 
         Proper validation is not yet supported in PyXB.  The low level binding
         material consults this function, but not always in a context where the
@@ -40,6 +40,11 @@ class _TypeBinding_mixin (utility.Locatable_mixin):
         generation and parsing validation are enabled."""
         #    return True
         return pyxb._GenerationRequiresValid and pyxb._ParsingRequiresValid
+
+    def _performValidation (self):
+        """Determine whether the content model should be validated for this
+        instance."""
+        return self._PerformValidation()
     
     _ExpandedName = None
     """The expanded name of the component."""
@@ -521,7 +526,7 @@ class _TypeBinding_mixin (utility.Locatable_mixin):
         @raise pyxb.BatchContentValidationError: complex content does not match model
         @raise pyxb.SimpleTypeValueError: attribute or simple content fails to satisfy constraints
         """
-        if self._PerformValidation():
+        if self._performValidation():
             self._validateBinding_vx()
         return True
 
@@ -848,7 +853,7 @@ class simpleTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin
         apply the attributes, so we bypass the application.
         """
         # PyXBFactoryKeywords
-        validate_constraints = kw.pop('_validate_constraints', self._PerformValidation())
+        validate_constraints = kw.pop('_validate_constraints', self._performValidation())
         require_value = kw.pop('_require_value', False)
         # Save DOM node so we can pull attributes off it
         dom_node = kw.get('_dom_node')
@@ -2314,7 +2319,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
     def _addContent (self, child, element_binding):
         # This assert is inadequate in the case of plural/non-plural elements with an STD_list base type.
         # Trust that validation elsewhere was done correctly.
-        #assert self._IsMixed() or (not self._PerformValidation()) or isinstance(child, _TypeBinding_mixin) or isinstance(child, types.StringTypes), 'Unrecognized child %s type %s' % (child, type(child))
+        #assert self._IsMixed() or (not self._performValidation()) or isinstance(child, _TypeBinding_mixin) or isinstance(child, types.StringTypes), 'Unrecognized child %s type %s' % (child, type(child))
         assert not (self._ContentTypeTag in (self._CT_EMPTY, self._CT_SIMPLE))
         if isinstance(child, _TypeBinding_mixin) and (child._element() is None):
             child._setElement(element_binding)
@@ -2332,7 +2337,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
     def _postDOMValidate (self):
         # It's probably finalized already, but just in case...
         self._finalizeContentModel()
-        if self._PerformValidation():
+        if self._performValidation():
             # @todo isNil should verify that no content is present.
             if (not self._isNil()) and (self.__automatonConfiguration is not None):
                 if not self.__automatonConfiguration.isAccepting():
