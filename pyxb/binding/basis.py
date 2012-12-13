@@ -127,10 +127,37 @@ class _TypeBinding_mixin (utility.Locatable_mixin):
             raise pyxb.NoNillableSupportError(self)
         self.__xsiNil = not not nil
         if self.__xsiNil:
-            self._resetContent()
+            # The element must be empty, so also remove all element content.
+            # Attribute values are left unchanged.
+            self._resetContent(reset_elements=True)
 
-    def _resetContent (self):
-        pass
+    def _resetContent (self, reset_elements=False):
+        """Reset the content of an element value.
+
+        For simple types, this does nothing.
+
+        For complex types, this clears the
+        L{content<complexTypeDefinition.content>} array, removing all
+        non-element content from the instance.  It optionally also removes all
+        element content.
+
+        @param reset_elements: If C{False} (default) only the content array is
+        cleared, which has the effect of removing any preference for element
+        order when generating a document.  If C{True}, the element content
+        stored within the binding is also cleared, leaving it with no content
+        at all.
+
+        @return: The list that would be returned by
+        L{complexTypeDefinition.content} if this is a complex type with mixed
+        or element-only content; C{None} otherwise.  In the former case the
+        caller may proceed to directly insert non-element content with element
+        markers to influence generation of documents with mixed content.
+
+        @note: This is not the same thing as L{complexTypeDefinition.reset},
+        which unconditionally resets attributes and element and non-element
+        content.
+        """
+        return None
 
     __constructedWithValue = False
     def __checkNilCtor (self, args):
@@ -2046,8 +2073,29 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         """Return the content of the element.
 
         This must be a complex type with complex content.  The return value is
-        a list of the element and non-element content in the order in which it
-        was added.
+        a list of the element and non-element content in a preferred order.
+
+        The returned list contains element and non-element content in the
+        order which it was added to the instance.  This may have been through
+        parsing a document, constructing an instance using positional
+        arguments, invoking the L{append} or L{extend} methods, or assigning
+        directly to an instance attribute associated with an element binding.
+
+        Be aware that assigning directly to an element attribute does not
+        remove any previous value for the element from the content list.
+
+        The order in the list may influence the generation of documents with
+        mixed content.  Non-element content is emitted immediately prior to the
+        next element in this list.  Any trailing non-element content is
+        emitted after the last element in the content.  The list need not
+        include element content that is not necessary to ensure the placement
+        of non-element content.  Element content in this list that is not
+        present within an element member of the binding instance results in an
+        error.
+
+        @note: The returned value is mutable, allowing the caller to change
+        the order to be used.
+        
         @raise pyxb.NotComplexContentError: this is not a complex type with mixed or element-only content
         """
         if self._ContentTypeTag in (self._CT_EMPTY, self._CT_SIMPLE):
@@ -2066,11 +2114,14 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
             raise pyxb.NotSimpleContentError(self)
         return self.__content
 
-    def _resetContent (self):
+    def _resetContent (self, reset_elements=False):
+        if reset_elements:
+            for eu in self._ElementMap.values():
+                eu.reset(self)
+        nv = None
         if self._ContentTypeTag in (self._CT_MIXED, self._CT_ELEMENT_ONLY):
-            self.__setContent([])
-        else:
-            self.__setContent(None)
+            nv = []
+        return self.__setContent(nv)
 
     __automatonConfiguration = None
     def _resetAutomaton (self):
@@ -2091,13 +2142,16 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         This resets all element and attribute fields, and discards any
         recorded content.  It resets the content model automaton to its
         initial state.
+
+        @see: Manipulate the return value of
+        L{_resetContent<_TypeBinding_mixin._resetContent>} if your intent is
+        to influence the generation of documents from the binding instance
+        without changing its (element) content.
         """
         
-        self._resetContent()
+        self._resetContent(reset_elements=True)
         for au in self._AttributeMap.values():
             au.reset(self)
-        for eu in self._ElementMap.values():
-            eu.reset(self)
         self._resetAutomaton()
         return self
 
@@ -2144,8 +2198,8 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         """Add the value to the instance.
 
         The value should be a DOM node or other value that is or can be
-        converted to a binding instance.  If the instance has a DFA state, the
-        value must be permitted by the content model.
+        converted to a binding instance, or a string if the instance allows
+        mixed content.  The value must be permitted by the content model.
 
         @raise pyxb.ContentValidationError: the value is not permitted at the current
         state of the content model.
@@ -2255,6 +2309,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
 
     def __setContent (self, value):
         self.__content = value
+        return self.__content
 
     def _addContent (self, child, element_binding):
         # This assert is inadequate in the case of plural/non-plural elements with an STD_list base type.
