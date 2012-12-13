@@ -561,7 +561,7 @@ class AutomatonConfiguration (object):
                     continue
                 # Commit to this transition and consume the selected content
                 value = matches.pop(0)
-                symbols.append( (ed, csym.matchValue( (value, ed) )) )
+                symbols.append(basis.ElementContent(csym.matchValue( (value, ed) ), ed))
                 selected_xit = xit
                 if 0 == len(matches):
                     del symbol_set[ed]

@@ -1809,6 +1809,32 @@ class enumeration_mixin (pyxb.cscRoot):
         """Generate the associated L{pyxb.binding.facet._EnumerationElement} instances."""
         return cls._CF_enumeration.iteritems()
 
+class _Content (object):
+    value = None
+    """The value of the content."""
+
+    def __init__ (self, value):
+        self.value = value
+        
+class ElementContent (_Content):
+    """Marking wrapper for element content.
+
+    The value should be translated into XML and made a child of its parent."""
+
+    elementDeclaration = None
+    """The L{pyxb.binding.content.ElementDeclaration} associated with the element content.
+    This may be C{None} if the value is a wildcard."""
+
+    def __init__ (self, value, element_declaration):
+        super(ElementContent, self).__init__(value)
+        self.elementDeclaration = element_declaration
+
+class NonElementContent (_Content):
+    """Marking wrapper for non-element content.
+
+    The value should be appended as character data."""
+    pass
+
 class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixin, _DynamicCreate_mixin):
     """Base for any Python class that serves as the binding for an
     XMLSchema complexType.
@@ -1992,14 +2018,14 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         disabled validation.  Consequently, it may not generate valid XML.
         """
         order = []
-        for eu in self._ElementMap.values():
-            value = eu.value(self)
+        for ed in self._ElementMap.values():
+            value = ed.value(self)
             if value is None:
                 continue
-            if isinstance(value, list) and eu.isPlural():
-                order.extend([ (eu, _v) for _v in value ])
+            if isinstance(value, list) and ed.isPlural():
+                order.extend([ ElementContent(_v, ed) for _v in value ])
                 continue
-            order.append( (eu, value) )
+            order.append(ElementContent(value, ed))
         return order
 
     def _validatedChildren (self):
@@ -2013,7 +2039,7 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         transition.
 
         If the content of the instance does not validate against the content
-        model, C{None} is returned.
+        model, an exception is raised.
 
         @return: C{None} or a list as described above.
         """
@@ -2073,11 +2099,13 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
         if self._IsSimpleTypeContent() and (self.__content is None):
             raise pyxb.SimpleContentAbsentError(self, self._location())
         order = self._validatedChildren()
-        for (eu, value) in order:
-            if isinstance(value, _TypeBinding_mixin):
-                value.validateBinding()
-            elif eu is not None:
-                _log.warning('Cannot validate value %s in field %s', value, eu.id())
+        for content in order:
+            if isinstance (content, NonElementContent):
+                continue
+            if isinstance(content.value, _TypeBinding_mixin):
+                content.value.validateBinding()
+            elif content.elementDeclaration is not None:
+                _log.warning('Cannot validate value %s in field %s', content.value, content.elementDeclaration.id())
         self._validateAttributes()
         return True
 
@@ -2411,15 +2439,17 @@ class complexTypeDefinition (_TypeBinding_mixin, utility._DeconflictSymbols_mixi
                 order = self._validatedChildren()
             else:
                 order = self.__childrenForDOM()
-            for (eu, v) in order:
-                assert v != self
-                if eu is None:
-                    if isinstance(v, xml.dom.Node):
-                        dom_support.appendChild(v, element)
+            for content in order:
+                assert content.value != self
+                if isinstance(content, NonElementContent):
+                    continue
+                if content.elementDeclaration is None:
+                    if isinstance(content.value, xml.dom.Node):
+                        dom_support.appendChild(content.value, element)
                     else:
-                        v.toDOM(dom_support, parent)
+                        content.value.toDOM(dom_support, parent)
                 else:
-                    eu.toDOM(dom_support, parent, v)
+                    content.elementDeclaration.toDOM(dom_support, parent, content.value)
             mixed_content = self.content()
             for mc in mixed_content:
                 pass

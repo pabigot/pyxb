@@ -555,7 +555,7 @@ class BatchElementContentError (ContentValidationError):
         elif 0 == len(self.symbols):
             rv.append('No content has been accepted')
         else:
-            rv.append('The last accepted content was %s' % (self.symbols[-1][1]._diagnosticName(),))
+            rv.append('The last accepted content was %s' % (self.symbols[-1].value._diagnosticName(),))
         if isinstance(self.instance, pyxb.binding.basis.complexTypeDefinition) and self.instance._IsMixed():
             rv.append('Character information content would be permitted.')
         acceptable = self.fac_configuration.acceptableSymbols()
